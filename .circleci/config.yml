@@ -9,10 +9,10 @@ jobs:
                 name: Create conda environment
                 command: |
                     apt-get update --yes
-                    apt-get install --yes libxrender-dev  # needed for matplotlib
+                    apt-get install --yes libxrender-dev build-essential
                     conda env create -f environment.yml
             - run:
-                name: Run tests
+                name: Build/install/test automol
                 command: |
                     source activate autochem-env
                     python setup.py install
@@ -20,6 +20,16 @@ jobs:
                     pytest -v --cov=automol --pyargs automol
                     flake8 --exit-zero autommol
                     pylint --rcfile=../.pylintrc automol
+            - run:
+                name: Build/install/test x2z
+                command: |
+                    source activate autochem-env
+                    cd external/x2z
+                    bash debug/build.sh
+                    . debug/fake-install.sh
+                    x2z examples/ch4.xyz
+                    x2z examples/allene.xyz
+                    pytest -v tests/
 workflows:
     version: 2
     build-all:

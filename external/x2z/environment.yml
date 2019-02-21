@@ -1,0 +1,11 @@
+name: x2z-env
+
+dependencies:
+    - python=2
+    - pybind11
+    - cmake
+    - gcc_linux-64
+    - gxx_linux-64
+    - gfortran_linux-64
+    - pytest
+    - numpy
