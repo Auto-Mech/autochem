@@ -1,0 +1,26 @@
+# cmd: conda build . -c pacchem -c rdkit -c openbabel
+package:
+    name: autochem
+    version: "0.1.0"
+
+source:
+    path: .
+
+requirements:
+    build:
+        - python
+    test:
+        commands:
+            - pytest -v --pyargs automol
+    run:
+        - python
+        - numpy
+        - networkx
+        - pytest
+        - pytest-cov
+        - future
+        - flake8
+        - pylint
+        - rdkit::rdkit
+        - openbabel::openbabel
+        - pacchem::autoparse

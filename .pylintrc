@@ -1,0 +1,8 @@
+[MASTER]
+extension-pkg-whitelist=
+    rdkit
+disable=
+    too-few-public-methods,
+    no-init,
+    old-style-class,
+    too-many-arguments

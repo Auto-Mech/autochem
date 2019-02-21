@@ -1,0 +1,19 @@
+name: autochem-env
+
+channels:
+    - pacchem
+    - rdkit
+    - openbabel
+
+dependencies:
+    - python
+    - numpy
+    - networkx
+    - pytest
+    - pytest-cov
+    - future
+    - flake8
+    - pylint
+    - rdkit::rdkit
+    - openbabel::openbabel
+    - pacchem::autoparse
