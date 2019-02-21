@@ -1,0 +1,27 @@
+version: 2
+jobs:
+    build-debian:
+        docker:
+            - image: continuumio/miniconda3
+        steps:
+            - checkout  # checkout the code
+            - run: 
+                name: Create conda environment
+                command: |
+                    apt-get update --yes
+                    apt-get install --yes libxrender-dev  # needed for matplotlib
+                    conda env create -f environment.yml
+            - run:
+                name: Run tests
+                command: |
+                    source activate autochem-env
+                    python setup.py install
+                    cd automol
+                    pytest -v --cov=automol --pyargs automol
+                    flake8 --exit-zero autommol
+                    pylint --rcfile=../.pylintrc automol
+workflows:
+    version: 2
+    build-all:
+        jobs:
+            - build-debian
