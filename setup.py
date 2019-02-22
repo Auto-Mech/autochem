@@ -5,8 +5,7 @@ from distutils.core import setup
 
 setup(name="autochem",
       version="0.1.0",
-      packages=["phycon",
-                "automol",
+      packages=["automol",
                 "automol._cnst",
                 "automol.inchi",
                 "automol.geom",
