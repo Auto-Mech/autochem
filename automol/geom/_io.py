@@ -12,6 +12,28 @@ from ._core import coordinates as _coordinates
 ATOM_SYMBOL_PATTERN = app.LETTER + app.maybe(app.LETTER)
 
 
+def from_xyz_string(xyz_str):
+    """ read a cartesian geometry from a .xyz string
+    """
+    lines = xyz_str.splitlines()
+    assert apf.has_match(app.UNSIGNED_INTEGER, lines[0])
+    natms = int(lines[0])
+    # comment_line = lines[1]
+    geo_str = '\n'.join(lines[2:natms+2])
+    geo = from_string(geo_str, angstroms=True, strict=True)
+    return geo
+
+
+def xyz_string(geo, comment=''):
+    """ write the cartesian geometry to a .xyz string
+    """
+    natms = len(_symbols(geo))
+    assert not apf.has_match(app.NEWLINE, comment)
+    geo_str = string(geo)
+    xyz_str = '{:d}\n{:s}\n{:s}'.format(natms, comment, geo_str)
+    return xyz_str
+
+
 def from_string(geo_str, angstroms=True, strict=True):
     """ read a cartesian geometry from a string
     """
@@ -47,25 +69,3 @@ def string(geo, to_angstroms=True):
     geo_str = '\n'.join('{:2s} {:10.6f} {:10.6f} {:10.6f}'.format(sym, *xyz)
                         for sym, xyz in zip(syms, xyzs))
     return geo_str
-
-
-def from_xyz_string(xyz_str):
-    """ read a cartesian geometry from a .xyz string
-    """
-    lines = xyz_str.splitlines()
-    assert apf.has_match(app.UNSIGNED_INTEGER, lines[0])
-    natms = int(lines[0])
-    # comment_line = lines[1]
-    geo_str = '\n'.join(lines[2:natms+2])
-    geo = from_string(geo_str, angstroms=True, strict=True)
-    return geo
-
-
-def xyz_string(geo, comment=''):
-    """ write the cartesian geometry to a .xyz string
-    """
-    natms = len(_symbols(geo))
-    assert not apf.has_match(app.NEWLINE, comment)
-    geo_str = string(geo)
-    xyz_str = '{:d}\n{:s}\n{:s}'.format(natms, comment, geo_str)
-    return xyz_str
