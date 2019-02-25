@@ -1,6 +1,7 @@
 [MASTER]
 extension-pkg-whitelist=
-    rdkit
+    rdkit,
+    pyx2z
 disable=
     too-few-public-methods,
     no-init,
