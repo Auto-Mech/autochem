@@ -12,10 +12,14 @@ jobs:
                     apt-get install --yes libxrender-dev build-essential
                     conda env create -f environment.yml
             - run:
-                name: Build/install/test automol
+                name: Build/install autochem
                 command: |
                     source activate autochem-env
                     python setup.py install
+            - run:
+                name: Test automol
+                command: |
+                    source activate autochem-env
                     cd automol
                     pytest -v --cov=automol --pyargs automol
                     flake8 --exit-zero autommol

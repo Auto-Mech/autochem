@@ -1,4 +1,4 @@
-""" Install automol
+""" Install autochem
 """
 from distutils.core import setup
 

@@ -22,3 +22,4 @@ dependencies:
     - rdkit::rdkit
     - openbabel::openbabel
     - pacchem::autoparse
+    - pacchem::x2z
