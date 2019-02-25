@@ -1,6 +1,6 @@
 """ graph constructor
 """
-from .. import atom as _atom
+import phycon.elements as pce
 
 
 def from_data(atom_symbols, bond_keys, atom_implicit_hydrogen_valences=None,
@@ -23,10 +23,10 @@ def _atom_dictionary(syms, vlcs=None, pars=None):
     assert len(vlcs) == natms
     assert len(pars) == natms
 
-    syms = list(map(_atom.standard_case, syms))
+    syms = list(map(pce.standard_case, syms))
     vlcs = list(map(int, vlcs))
 
-    assert all(sym in _atom.SYMBOLS for sym in syms)
+    assert all(sym in pce.organic_element_keys() for sym in syms)
     assert all(par in (None, False, True) for par in pars)
 
     atm_dct = dict(enumerate(zip(syms, vlcs, pars)))

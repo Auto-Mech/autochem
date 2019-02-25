@@ -4,8 +4,8 @@ import numpy
 import autoparse.pattern as app
 import autoparse.find as apf
 import autoparse.conv as apc
+import phycon.units as pcu
 from .._cnst.geom import from_data
-from .. import _units
 from ._core import symbols as _symbols
 from ._core import coordinates as _coordinates
 
@@ -64,7 +64,7 @@ def string(geo, to_angstroms=True):
     """
     syms = _symbols(geo)
     xyzs = _coordinates(geo)
-    xyzs = xyzs if not to_angstroms else numpy.multiply(xyzs, _units.BOHR2ANG)
+    xyzs = xyzs if not to_angstroms else numpy.multiply(xyzs, pcu.BOHR2ANG)
 
     geo_str = '\n'.join('{:2s} {:10.6f} {:10.6f} {:10.6f}'.format(sym, *xyz)
                         for sym, xyz in zip(syms, xyzs))

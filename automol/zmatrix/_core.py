@@ -1,8 +1,8 @@
 """ core library defining the zmatrix data structure
 """
 import numpy
+import phycon.units as pcu
 from .._cnst.zmatrix import from_data as _from_data
-from .. import _units
 
 
 def from_matrices(syms, key_mat, val_mat):
@@ -89,9 +89,9 @@ def value_matrix(zma, angstroms=False):
     """
     val_mat = _object_array(_value_matrix(zma))
     if angstroms:
-        val_mat[1:, 0] *= _units.BOHR2ANG
-        val_mat[2:, 1] *= _units.RAD2DEG
-        val_mat[3:, 2] *= _units.RAD2DEG
+        val_mat[1:, 0] *= pcu.BOHR2ANG
+        val_mat[2:, 1] *= pcu.RAD2DEG
+        val_mat[3:, 2] *= pcu.RAD2DEG
     return tuple(map(tuple, val_mat))
 
 

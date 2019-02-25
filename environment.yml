@@ -22,4 +22,5 @@ dependencies:
     - rdkit::rdkit
     - openbabel::openbabel
     - pacchem::autoparse
+    - pacchem::phycon
     - pacchem::x2z

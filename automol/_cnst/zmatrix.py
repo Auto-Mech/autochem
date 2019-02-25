@@ -1,16 +1,16 @@
 """ zmarix constructor
 """
 import numpy
-from .. import atom as _atom
-from .. import _units
+import phycon.units as pcu
+import phycon.elements as pce
 
 
 def from_data(symbols, distance_column, angle_column, torsion_column,
               angstroms=False, one_indexed=False):
     """ zmatrix data structure from the usual zmatrix columns
     """
-    syms = list(map(_atom.standard_case, symbols))
-    assert all(sym in _atom.SYMBOLS for sym in syms)
+    syms = list(map(pce.standard_case, symbols))
+    assert all(sym in pce.element_keys() for sym in syms)
     natms = len(syms)
 
     dst_keys, dst_vals = _column_keys_and_values(
@@ -33,8 +33,8 @@ def _column_keys_and_values(column, num, natms, angstroms, one_indexed):
         assert all(map(float.is_integer, map(float, keys)))
         idx = 1 if one_indexed else 0
         keys = tuple(int(key) - idx for key in keys)
-        conv = (1. if not angstroms else _units.BOHR2ANG if num == 1 else
-                _units.DEG2RAD)
+        conv = (1. if not angstroms else pcu.BOHR2ANG if num == 1 else
+                pcu.DEG2RAD)
         vals = tuple(float(val) * conv for val in vals)
         assert all(key < ref_key + num for ref_key, key in enumerate(keys))
         keys = (None,) * num + keys

@@ -1,6 +1,7 @@
 """ I/O for z-matrices
 """
 import numpy
+import phycon.units as pcu
 from ._core import from_matrices as _from_matrices
 from ._core import symbols as _symbols
 from ._core import key_matrix as _key_matrix
@@ -11,7 +12,6 @@ from .parse import matrix_symbols as _matrix_symbols
 from .parse import variable_block as _variable_block
 from .parse import variable_values as _variable_values
 from .parse import matrix_keys_and_entries as _matrix_keys_and_entries
-from .. import _units
 
 
 def from_zmat_string(zma_str):
@@ -33,8 +33,8 @@ def from_zmat_string(zma_str):
             if val in val_dct:
                 var_dct[coo] = val
                 val = val_dct[val]
-            val_mat[row_idx, col_idx] = val * (_units.ANG2BOHR if col_idx == 0
-                                               else _units.DEG2RAD)
+            val_mat[row_idx, col_idx] = val * (pcu.ANG2BOHR if col_idx == 0
+                                               else pcu.DEG2RAD)
 
     zma = _from_matrices(syms, key_mat, val_mat)
     return zma, var_dct
