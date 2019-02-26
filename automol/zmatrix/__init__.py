@@ -1,39 +1,37 @@
 """ a z-matrix internal geometry module
 """
-from .._cnst.zmatrix import from_data
-from ._core import from_matrices
+from ..constructors.zmatrix import from_data
+from ._core import matrix
+from ._core import values
 from ._core import symbols
-from ._core import distance_column
-from ._core import angle_column
-from ._core import torsion_column
-from ._core import coordinate_matrix
 from ._core import key_matrix
-from ._core import value_matrix
-from ._core import iter_
-from ._core import iter_column_
+from ._core import name_matrix
+from ._core import distance_names
+from ._core import angle_names
+from ._core import torsion_names
+from ._core import set_names
+from ._core import set_values
 from ._math import almost_equal
 from ._io import from_zmat_string
 from ._io import zmat_string
-from ._io import zmat_string_matrix_block
-from ._io import zmat_string_variable_block
-from . import parse
+from ._io import matrix_block_string
+from ._io import setval_block_string
 
 __all__ = [
     'from_data',
-    'from_matrices',
+    'matrix',
+    'values',
     'symbols',
-    'distance_column',
-    'angle_column',
-    'torsion_column',
-    'coordinate_matrix',
     'key_matrix',
-    'value_matrix',
-    'iter_',
-    'iter_column_',
+    'name_matrix',
+    'distance_names',
+    'angle_names',
+    'torsion_names',
+    'set_names',
+    'set_values',
     'almost_equal',
     'from_zmat_string',
     'zmat_string',
-    'zmat_string_matrix_block',
-    'zmat_string_variable_block',
-    'parse',
+    'matrix_block_string',
+    'setval_block_string',
 ]

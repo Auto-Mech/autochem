@@ -4,8 +4,8 @@ import numpy
 import autoparse.pattern as app
 import autoparse.find as apf
 import autoparse.conv as apc
-from .._cnst.geom import from_data
-from .. import _units
+import phycon.units as pcu
+from ..constructors.geom import from_data
 from ._core import symbols as _symbols
 from ._core import coordinates as _coordinates
 
@@ -52,7 +52,7 @@ def from_string(geo_str, angstroms=True, strict=True):
         assert all(apf.has_match(line_pattern, line) for line in lines)
 
     mcaps = apf.all_captures(pattern, geo_str)
-    mvals = apc.multis(mcaps, dtypes=(str, float, float, float))
+    mvals = apc.multis(mcaps, funcs=(str, float, float, float))
     syms = tuple(mval[0] for mval in mvals)
     xyzs = tuple(mval[1:] for mval in mvals)
     geo = from_data(syms, xyzs, angstroms=angstroms)
@@ -64,7 +64,7 @@ def string(geo, to_angstroms=True):
     """
     syms = _symbols(geo)
     xyzs = _coordinates(geo)
-    xyzs = xyzs if not to_angstroms else numpy.multiply(xyzs, _units.BOHR2ANG)
+    xyzs = xyzs if not to_angstroms else numpy.multiply(xyzs, pcu.BOHR2ANG)
 
     geo_str = '\n'.join('{:2s} {:10.6f} {:10.6f} {:10.6f}'.format(sym, *xyz)
                         for sym, xyz in zip(syms, xyzs))

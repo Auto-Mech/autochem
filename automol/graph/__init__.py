@@ -8,7 +8,7 @@ bnd_key := frozenset({atm1_key, atm2_key})
 
 # core library
 # # constructors
-from .._cnst.graph import from_data
+from ..constructors.graph import from_data
 from ._core import from_dictionaries
 from ._core import from_atoms_and_bonds
 from ._core import add_atoms

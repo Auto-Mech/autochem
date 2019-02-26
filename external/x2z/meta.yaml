@@ -1,7 +1,7 @@
-# cmd: conda build . --python 2 -c conda-forge
+# cmd: conda build .
 package:
     name: x2z
-    version: 0.1.1
+    version: 0.1.2
 
 source:
     path: .
@@ -13,6 +13,8 @@ requirements:
         - cmake
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
+        - numpy
+        - pytest
     host:
         - python
     run:
@@ -21,6 +23,5 @@ requirements:
         - cmake
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - libgcc
-        - pytest
         - numpy
+        - pytest

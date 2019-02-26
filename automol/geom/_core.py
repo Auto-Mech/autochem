@@ -1,6 +1,6 @@
 """ core library defining the geom data structure
 """
-from .._cnst.geom import from_data as _from_data
+from ..constructors.geom import from_data as _from_data
 
 
 def symbols(geo):

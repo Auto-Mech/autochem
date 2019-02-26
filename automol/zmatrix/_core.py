@@ -1,124 +1,138 @@
-""" core library defining the zmatrix data structure
+""" core library defining the z-matrix data structure
 """
+from more_itertools import unique_everseen as _unique_everseen
 import numpy
-from .._cnst.zmatrix import from_data as _from_data
-from .. import _units
+import phycon.units as pcu
+from ..constructors.zmatrix import from_data as _from_data
 
 
-def from_matrices(syms, key_mat, val_mat):
-    """ build a z-matrix from key and value matrices
+# value getters
+def matrix(zma):
+    """ the matrix (atom symbols, atom keys, and coordinate names)
     """
-    assert len(syms) == len(key_mat) == len(val_mat)
-    zma = tuple(zip(syms, key_mat, val_mat))
-    return _from_data(symbols(zma), distance_column(zma), angle_column(zma),
-                      torsion_column(zma))
+    mat, _ = zma
+    return mat
+
+
+def values(zma, angstrom=False, degree=False):
+    """ coordinate values, by coordinate name
+    """
+    _, val_dct = zma
+    return _values(val_dct, zma, angstrom, degree)
+
+
+def _values(val_dct, zma, angstrom, degree):
+    """ values post-processing
+    """
+    dist_names = distance_names(zma)
+    ang_names = angle_names(zma) + torsion_names(zma)
+    orig_val_dct = val_dct
+
+    val_dct = {}
+    for name, val in orig_val_dct.items():
+        if angstrom and name in dist_names:
+            val *= pcu.BOHR2ANG
+        if degree and name in ang_names:
+            val *= pcu.RAD2DEG
+        val_dct[name] = val
+    return val_dct
 
 
 def symbols(zma):
-    """ atomic symbols
+    """ atomic symbols, by z-matrix row
     """
-    if zma:
-        syms, _, _ = zip(*zma)
+    mat = matrix(zma)
+    if mat:
+        syms, _, _ = zip(*mat)
     else:
         syms = ()
     return syms
 
 
-def _key_matrix(zma):
-    """ atom keys, by row and column
+def key_matrix(zma, one_indexed=False):
+    """ coordinate atom keys, by z-matrix row and column
     """
-    if zma:
-        _, key_mat, _ = zip(*zma)
+    mat = matrix(zma)
+    if mat:
+        _, key_mat, _ = zip(*mat)
     else:
         key_mat = ()
-    return key_mat
+
+    return _key_matrix(key_mat, one_indexed)
 
 
-def _value_matrix(zma):
-    """ coordinate values, by row and column
+def _key_matrix(key_mat, one_indexed):
+    """ key matrix post-processing
     """
-    if zma:
-        _, _, val_mat = zip(*zma)
-    else:
-        val_mat = ()
-    return val_mat
-
-
-def distance_column(zma):
-    """ the z-matrix distance column, keys and values
-    """
-    return _column(zma, 0)
-
-
-def angle_column(zma):
-    """ the z-matrix angle column, keys and values
-    """
-    return _column(zma, 1)
-
-
-def torsion_column(zma):
-    """ the z-matrix torsion column, keys and values
-    """
-    return _column(zma, 2)
-
-
-def coordinate_matrix(zma):
-    """ matrix of z-matrix coordinates
-    """
-    key_mat = _object_array(_key_matrix(zma))
-    coo_mat = numpy.empty_like(key_mat)
-    for row_idx, col_idx in iter_(zma):
-        coo = (row_idx,) + tuple(key_mat[row_idx][:col_idx+1])
-        coo_mat[row_idx, col_idx] = coo
-    return tuple(map(tuple, coo_mat))
-
-
-def key_matrix(zma, one_indexed=False):
-    """ matrix of z-matrix keys
-    """
-    key_mat = _object_array(_key_matrix(zma))
     if one_indexed:
-        key_mat[1:, 0] += 1
-        key_mat[2:, 1] += 1
-        key_mat[3:, 2] += 1
+        key_mat = numpy.array(key_mat)
+        tril_idxs = numpy.tril_indices(key_mat.shape[0], -1, m=3)
+        key_mat[tril_idxs] += 1
     return tuple(map(tuple, key_mat))
 
 
-def value_matrix(zma, angstroms=False):
-    """ matrix of z-matrix coordinate values
+def name_matrix(zma):
+    """ coordinate names, by z-matrix row and column
     """
-    val_mat = _object_array(_value_matrix(zma))
-    if angstroms:
-        val_mat[1:, 0] *= _units.BOHR2ANG
-        val_mat[2:, 1] *= _units.RAD2DEG
-        val_mat[3:, 2] *= _units.RAD2DEG
-    return tuple(map(tuple, val_mat))
+    mat = matrix(zma)
+    if mat:
+        _, _, name_mat = zip(*mat)
+    else:
+        name_mat = ()
+    return name_mat
 
 
-def iter_(zma):
-    """ iterate over valid z-matrix row and column indices
+def distance_names(zma):
+    """ distance coordinate names, from top to bottom (no repeats)
     """
-    natms = len(symbols(zma))
-    for row_idx in range(natms):
-        for col_idx in range(min(row_idx, 3)):
-            yield (row_idx, col_idx)
+    name_mat = numpy.array(name_matrix(zma))
+    return tuple(_unique_everseen(name_mat[1:, 0]))
 
 
-def iter_column_(zma, col_idx):
-    """ iterate over valid z-matrix row indices in a given column
+def angle_names(zma):
+    """ angle coordinate names, from top to bottom
     """
-    natms = len(symbols(zma))
-    for row_idx in range(col_idx+1, natms):
-        yield row_idx
+    name_mat = numpy.array(name_matrix(zma))
+    return tuple(_unique_everseen(name_mat[2:, 1]))
 
 
-def _column(zma, col_idx):
-    key_mat = _object_array(_key_matrix(zma))
-    val_mat = _object_array(_value_matrix(zma))
-    return tuple((key_mat[row_idx, col_idx], val_mat[row_idx, col_idx])
-                 for row_idx in iter_column_(zma, col_idx))
+def torsion_names(zma):
+    """ torsion coordinate names, from top to bottom
+    """
+    name_mat = numpy.array(name_matrix(zma))
+    return tuple(_unique_everseen(name_mat[3:, 2]))
 
 
-def _object_array(arr):
-    shape = numpy.shape(arr) if numpy.size(arr) else (0, 3)
-    return numpy.array(arr, dtype=numpy.object_).reshape(shape)
+# value setters
+def set_names(zma, name_dct):
+    """ set coordinate names for the z-matrix
+    """
+    orig_name_mat = numpy.array(name_matrix(zma))
+    tril_idxs = numpy.tril_indices(orig_name_mat.shape[0], -1, m=3)
+    orig_names = set(orig_name_mat[tril_idxs])
+    assert set(name_dct.keys()) <= orig_names
+
+    name_dct.update({orig_name: orig_name for orig_name in orig_names
+                     if orig_name not in name_dct})
+
+    name_mat = numpy.empty_like(orig_name_mat)
+    name_mat[tril_idxs] = list(map(name_dct.__getitem__,
+                                   orig_name_mat[tril_idxs]))
+
+    orig_val_dct = values(zma)
+    val_dct = {name_dct[orig_name]: val
+               for orig_name, val in orig_val_dct.items()}
+
+    return _from_data(symbols(zma), key_matrix(zma), name_mat, val_dct)
+
+
+def set_values(zma, val_dct):
+    """ set coordinate values for the z-matrix
+    """
+    new_val_dct = val_dct
+    orig_val_dct = values(zma)
+    assert set(new_val_dct.keys()) <= set(orig_val_dct.keys())
+    val_dct = {}
+    val_dct.update(orig_val_dct)
+    val_dct.update(new_val_dct)
+    return _from_data(symbols(zma), key_matrix(zma), name_matrix(zma), val_dct)

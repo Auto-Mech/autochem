@@ -3,7 +3,7 @@
 from functools import partial as _partial
 from itertools import product as _product
 import numpy
-from ..atom import valence as _atom_valence
+import phycon.elements as pce
 from ._dict import values_by_key as _values_by_key
 from ._dict import transform_values as _transform_values
 from ._core import frozen as _frozen
@@ -45,7 +45,7 @@ def atom_radical_valences(rgr):
 
 def _atom_total_valences(xgr):
     atm_sym_dct = _atom_symbols(xgr)
-    atm_tot_vlc_dct = _transform_values(atm_sym_dct, func=_atom_valence)
+    atm_tot_vlc_dct = _transform_values(atm_sym_dct, func=pce.bonding_valence)
     return atm_tot_vlc_dct
 
 

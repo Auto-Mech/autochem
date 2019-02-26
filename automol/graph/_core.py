@@ -6,7 +6,7 @@ bnd_dct: {bnd_key: (bnd_ord, bnd_ste_par), ...}
 bnd_key := frozenset({atm1_key, atm2_key})
 """
 import numpy
-from .._cnst.graph import from_data as _from_data
+from ..constructors.graph import from_data as _from_data
 from ._dict import transform_keys as _transform_keys
 from ._dict import by_key as _by_key
 from ._dict import values_by_key as _values_by_key

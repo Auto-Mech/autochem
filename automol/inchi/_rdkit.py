@@ -3,8 +3,8 @@
 from rdkit import RDLogger
 import rdkit.Chem as _rd_chem
 import rdkit.Chem.AllChem as _rd_all_chem
-from .._cnst.graph import from_data as _graph_from_data
-from .._cnst.geom import from_data as _geom_from_data
+from ..constructors.graph import from_data as _graph_from_data
+from ..constructors.geom import from_data as _geom_from_data
 
 _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)

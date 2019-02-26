@@ -3,8 +3,41 @@
 #include <pybind11/stl.h>
 #include "libx2z/atom.hh"
 #include "libx2z/chem.hh"
+#include <sstream>
 
 namespace py = pybind11;
+
+std::string zmatrix_string(const MolecStruct& mol) {
+  std::ostringstream s;
+
+  s << mol.zmatrix();
+  //
+  s << "\n";
+
+  s << std::left;
+
+  for(int i = 1; i < mol.zmat_coval().size(1); ++i) {
+    //
+    s << MolecStruct::var_name(MolecStruct::DISTANCE) << std::setw(2) << i
+	      << " = " << std::setw(9) << mol.zmat_coval()(MolecStruct::DISTANCE, i);
+    
+    if(i > 1) {
+      //
+      s << " " << MolecStruct::var_name(MolecStruct::POLAR) <<  std::setw(2) << i
+		<< " = " << std::setw(9) << mol.zmat_coval()(MolecStruct::POLAR, i);
+    }
+
+    if(i > 2) {
+      //
+      s << " " <<  MolecStruct::var_name(MolecStruct::DIHEDRAL) << std::setw(2) << i
+		<< " = " << std::setw(15) << mol.zmat_coval()(MolecStruct::DIHEDRAL, i);
+    }
+
+    s << "\n";
+  }
+
+  return s.str();
+}
 
 
 PYBIND11_MODULE(pyx2z, module) {
@@ -44,7 +77,6 @@ PYBIND11_MODULE(pyx2z, module) {
     py::class_<MolecStruct>(module, "MolecStruct")
         .def(py::init<const PrimStruct&>())
         .def("size", [](MolecStruct& m) { return m.size(); })
-        .def("zmatrix", &MolecStruct::zmatrix)
         .def("atom_ordering", &MolecStruct::atom_ordering)
         .def("rotation_bond", &MolecStruct::rotation_bond)
         .def("resonance_averaged_bond_order",
@@ -55,4 +87,5 @@ PYBIND11_MODULE(pyx2z, module) {
              &MolecStruct::bond_order)
         .def("resonance_count", &MolecStruct::resonance_count)
         .def("is_radical", &MolecStruct::is_radical);
+    module.def("zmatrix_string", &zmatrix_string);
 }
