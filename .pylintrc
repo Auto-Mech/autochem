@@ -6,4 +6,5 @@ disable=
     too-few-public-methods,
     no-init,
     old-style-class,
-    too-many-arguments
+    too-many-arguments,
+    too-many-locals

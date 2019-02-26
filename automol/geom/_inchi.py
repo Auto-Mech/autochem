@@ -1,4 +1,4 @@
-""" functions operating on cartesian geometries (angstroms)
+""" inchi conversion
 """
 from ._core import coordinates as _coordinates
 from ._graph import connectivity_graph as _connectivity_graph

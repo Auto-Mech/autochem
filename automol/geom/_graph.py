@@ -1,10 +1,10 @@
-""" graph conversion helpers
+""" graph conversion
 """
 from itertools import combinations as _combinations
 import numpy
 from ._core import symbols as _symbols
 from ._core import coordinates as _coordinates
-from .._cnst.graph import from_data as _graph_from_data
+from ..constructors.graph import from_data as _graph_from_data
 
 RQ_BOND_MAX = 3.5
 RH_BOND_MAX = 2.5

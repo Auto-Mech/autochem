@@ -1,7 +1,7 @@
 """ pybel interface
 """
 import pybel
-from .._cnst.geom import from_data as _geom_from_data
+from ..constructors.geom import from_data as _geom_from_data
 
 
 def from_inchi(ich):

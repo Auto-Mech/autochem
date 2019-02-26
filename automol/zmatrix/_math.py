@@ -1,27 +1,35 @@
-""" some math functions
+""" math functions
 """
 import numpy
 from ._core import symbols as _symbols
-from ._core import coordinate_matrix as _coordinate_matrix
-from ._core import value_matrix as _value_matrix
+from ._core import key_matrix as _key_matrix
+from ._core import name_matrix as _name_matrix
+from ._core import values as _values
+from ._core import distance_names as _distance_names
+from ._core import angle_names as _angle_names
+from ._core import torsion_names as _torsion_names
 
 
 def almost_equal(zma1, zma2):
-    """ are these z-matrices almost equal?
+    """ are these z-matrices numerically equal?
     """
     ret = False
-    if _symbols(zma1) == _symbols(zma2):
-        if _coordinate_matrix(zma1) == _coordinate_matrix(zma2):
-            for shift in [0., numpy.pi/3., numpy.pi/5., numpy.pi/7.]:
-                val_mat1 = _array_mod_angles(_value_matrix(zma1), shift=shift)
-                val_mat2 = _array_mod_angles(_value_matrix(zma2), shift=shift)
-                if numpy.allclose(val_mat1, val_mat2, equal_nan=True):
+    if (_symbols(zma1) == _symbols(zma2) and
+            _key_matrix(zma1) == _key_matrix(zma2) and
+            _name_matrix(zma1) == _name_matrix(zma2)):
+        val_dct1 = _values(zma1)
+        val_dct2 = _values(zma2)
+        dist_names = _distance_names(zma1)
+        dist_vals1 = tuple(map(val_dct1.__getitem__, dist_names))
+        dist_vals2 = tuple(map(val_dct2.__getitem__, dist_names))
+        if numpy.allclose(dist_vals1, dist_vals2):
+            ang_names = _angle_names(zma1) + _torsion_names(zma1)
+            ang_vals1 = tuple(map(val_dct1.__getitem__, ang_names))
+            ang_vals2 = tuple(map(val_dct2.__getitem__, ang_names))
+            for shift in (0., numpy.pi/10.):
+                ang_vals1 = numpy.mod(numpy.add(ang_vals1, shift), 2*numpy.pi)
+                ang_vals2 = numpy.mod(numpy.add(ang_vals2, shift), 2*numpy.pi)
+                if numpy.allclose(ang_vals1, ang_vals2):
                     ret = True
                     break
     return ret
-
-
-def _array_mod_angles(val_mat, shift=0.):
-    val_mat = numpy.array(val_mat, dtype=float)
-    val_mat[:, 1:3] = numpy.mod(val_mat[:, 1:3]+shift, 2*numpy.pi)
-    return val_mat

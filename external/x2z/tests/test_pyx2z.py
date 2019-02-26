@@ -2,7 +2,6 @@
 """
 import numpy
 import pyx2z
-import pytest
 
 
 def test__AtomBase_mass():
@@ -170,18 +169,6 @@ def test__MolecStruct_size():
     assert s.size() == 1
 
 
-def test__MolecStruct_zmatrix():
-    """ test pyx2z.MolecStruct.zmatrix()
-    """
-    asymbs = ['O', 'H', 'H']
-    coords = [(-1.2516025626, 2.3683550357, 0.0000000000),
-              (-0.2816025626, 2.3683550357, 0.0000000000),
-              (-1.5749323743, 3.2380324089, -0.2828764736)]
-    m = _molec_geom_obj(asymbs, coords)
-    s = pyx2z.MolecStruct(pyx2z.PrimStruct(m))
-    assert s.zmatrix() == 'O \nH , 1 , R1 \nH , 1 , R2 , 2 , A2 \n'
-
-
 def test__MolecStruct_resonance_averaged_bond_order():
     """ test pyx2z.MolecStruct.resonance_averaged_bond_order()
     """
@@ -289,6 +276,24 @@ def test__MolecStruct_bond_order():
     assert s.bond_order(1, 2, 1) == 2
 
 
+def test__zmatrix():
+    """ test pyx2z.zmatrix_coordinate_values()
+    """
+    asymbs = ['C', 'C', 'C', 'H', 'H', 'H', 'H', 'H']
+    coords = [(1.10206, 0.05263, 0.02517),
+              (2.44012, 0.03045, 0.01354),
+              (3.23570, 0.06292, 1.20436),
+              (2.86296, -0.38925, 2.11637),
+              (4.29058, 0.30031, 1.12619),
+              (0.54568, -0.01805, -0.90370),
+              (0.53167, 0.14904, 0.94292),
+              (2.97493, -0.03212, -0.93001)]
+    m = _molec_geom_obj(asymbs, coords)
+    s = pyx2z.MolecStruct(pyx2z.PrimStruct(m))
+    string = pyx2z.zmatrix_string(s)
+    print(string)
+
+
 def _molec_geom_obj(asymbs, coords):
     _mg = pyx2z.MolecGeom()
     for asymb, xyz in zip(asymbs, coords):
@@ -309,3 +314,5 @@ if __name__ == '__main__':
     test__MolecStruct_bond_order()
     test__MolecStruct_size()
     test__MolecStruct_is_radical()
+    test__zmatrix_coordinate_values()
+    test__zmatrix()

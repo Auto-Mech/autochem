@@ -1,5 +1,6 @@
 """ test the automol.geom module
 """
+import automol
 from automol import geom
 
 C2H2CLF_ICH = 'InChI=1S/C2H2ClF/c3-1-2-4/h1-2H'
@@ -41,6 +42,31 @@ def test__from_data():
     )
 
 
+def test__zmatrix():
+    """ test geom.zmatrix
+    """
+    geo = (('C', (-0.70116587131, 0.0146227007587, -0.016166607003)),
+           ('O', (1.7323365056, -0.9538524899, -0.5617192010)),
+           ('H', (-0.9827048283, 0.061897979239, 2.02901783816)),
+           ('H', (-0.8787925682, 1.91673409124, -0.80019507919)),
+           ('H', (-2.12093033745, -1.21447973767, -0.87411360631)),
+           ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
+    zma = geom.zmatrix(geo)
+
+    ref_zma = (
+        (('C', (None, None, None), (None, None, None)),
+         ('O', (0, None, None), ('R1', None, None)),
+         ('H', (0, 1, None), ('R2', 'A2', None)),
+         ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+         ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
+         ('H', (1, 0, 2), ('R5', 'A5', 'D5'))),
+        {'R1': 2.67535, 'R2': 2.06501, 'A2': 1.9116242,
+         'R3': 2.06501, 'A3': 1.9116242, 'D3': 2.108497362,
+         'R4': 2.06458, 'A4': 1.9020947, 'D4': 4.195841334,
+         'R5': 1.83748, 'A5': 1.8690905, 'D5': 5.228936625})
+    assert automol.zmatrix.almost_equal(zma, ref_zma)
+
+
 def test__connectivity_graph():
     """ test geom.connectivity_graph
     """
@@ -80,4 +106,5 @@ if __name__ == '__main__':
     # test__from_xyz_string()
     # test__from_data()
     # test__is_valid()
-    test__from_string()
+    # test__from_string()
+    test__zmatrix()
