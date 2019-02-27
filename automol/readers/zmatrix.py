@@ -1,4 +1,4 @@
-""" z-matrix parsing pattern generators
+""" z-matrix readers
 """
 import numpy
 import autoparse.pattern as app
@@ -16,16 +16,63 @@ VAL_PATTERN = app.FLOAT
 NAME_PATTERN = app.VARIABLE_NAME
 
 
-def zmatrix(mat_str, setval_str,
-            sym_pattern=SYM_PATTERN,
-            key_pattern=KEY_PATTERN,
-            val_pattern=VAL_PATTERN,
-            name_pattern=NAME_PATTERN,
-            mat_delim_pattern=app.LINESPACE,
-            setval_pattern=app.escape('='),
-            one_indexed=True,
-            angstrom=True,
-            degree=True):
+def from_string(zma_str,
+                sym_pattern=SYM_PATTERN,
+                key_pattern=KEY_PATTERN,
+                val_pattern=VAL_PATTERN,
+                name_pattern=NAME_PATTERN,
+                mat_delim_pattern=app.LINESPACE,
+                setval_pattern=app.escape('='),
+                setval_delim_pattern=app.NEWLINE,
+                one_indexed=True,
+                angstrom=True,
+                degree=True):
+    """ read a z-matrix from a single string
+
+    (grabs the first matrix and setval blocks it finds)
+    """
+    mat_block_pattern = matrix_block_capturing_pattern(
+        sym_pattern=sym_pattern,
+        key_pattern=key_pattern,
+        val_pattern=val_pattern,
+        name_pattern=name_pattern,
+        delim_pattern=mat_delim_pattern,
+    )
+    setval_block_pattern = setval_block_capturing_pattern(
+        name_pattern=name_pattern,
+        setval_pattern=setval_pattern,
+        val_pattern=val_pattern,
+        delim_pattern=setval_delim_pattern,
+    )
+
+    mat_str = apf.first_capture(mat_block_pattern, zma_str)
+    setval_str = apf.first_capture(setval_block_pattern, zma_str)
+
+    zma = from_matrix_and_setval_strings(
+        mat_str, setval_str,
+        sym_pattern=sym_pattern,
+        key_pattern=key_pattern,
+        val_pattern=val_pattern,
+        name_pattern=name_pattern,
+        mat_delim_pattern=mat_delim_pattern,
+        setval_pattern=setval_pattern,
+        one_indexed=one_indexed,
+        angstrom=angstrom,
+        degree=degree
+    )
+    return zma
+
+
+def from_matrix_and_setval_strings(mat_str, setval_str,
+                                   sym_pattern=SYM_PATTERN,
+                                   key_pattern=KEY_PATTERN,
+                                   val_pattern=VAL_PATTERN,
+                                   name_pattern=NAME_PATTERN,
+                                   mat_delim_pattern=app.LINESPACE,
+                                   setval_pattern=app.escape('='),
+                                   one_indexed=True,
+                                   angstrom=True,
+                                   degree=True):
     """ read a z-matrix from matrix and setval strings
 
     (use: first capture the matrix and setval blocks using the functions below,
@@ -44,11 +91,11 @@ def zmatrix(mat_str, setval_str,
 
     for col, col_pattern in enumerate(col_patterns[1:]):
         caps = apf.all_captures(col_pattern, mat_str)
-        assert caps
-        vals = apc.multis(caps, (int, str))
-        keys, names = zip(*vals)
-        key_mat[col+1:, col] = keys
-        name_mat[col+1:, col] = names
+        if caps:
+            vals = apc.multis(caps, (int, str))
+            keys, names = zip(*vals)
+            key_mat[col+1:, col] = keys
+            name_mat[col+1:, col] = names
 
     # parse the setval string
     pattern = setval_capturing_pattern(

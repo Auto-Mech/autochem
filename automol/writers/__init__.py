@@ -1,4 +1,4 @@
-""" helpers for reading data-types from a string
+""" helpers for writing data-types to a string
 """
 from . import zmatrix
 
