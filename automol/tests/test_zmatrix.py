@@ -104,3 +104,8 @@ if __name__ == '__main__':
     test__set_values()
     test__from_zmat_string()
     test__zmat_string()
+    import automol
+    ICH = automol.smiles.inchi('O')
+    GEO = automol.inchi.geometry(ICH)
+    ZMA = automol.geom.zmatrix(GEO)
+    print(ZMA)
