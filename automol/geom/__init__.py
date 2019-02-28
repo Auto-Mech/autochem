@@ -6,6 +6,7 @@ from ._core import coordinates
 from ._core import is_valid
 from ._math import almost_equal
 from ._zmatrix import zmatrix
+from ._zmatrix import zmatrix_rotational_coordinate_names
 from ._graph import connectivity_graph
 from ._inchi import inchi
 from ._inchi import stereo_inchi
@@ -22,6 +23,7 @@ __all__ = [
     'is_valid',
     'almost_equal',
     'zmatrix',
+    'zmatrix_rotational_coordinate_names',
     'connectivity_graph',
     'inchi',
     'stereo_inchi',
