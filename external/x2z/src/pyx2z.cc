@@ -40,6 +40,22 @@ std::string zmatrix_string(const MolecStruct& mol) {
 }
 
 
+std::vector<std::string> rotational_bond_coordinates(const MolecStruct& mol) {
+    std::vector<std::string> coords;
+
+    for(std::map<int, std::list<std::list<int> > >::const_iterator
+        bit = mol.rotation_bond().begin();
+	    bit != mol.rotation_bond().end(); ++bit) {
+        std::string coord = (MolecStruct::var_name(MolecStruct::DIHEDRAL) +
+                             std::to_string(bit->first));
+        coords.push_back(coord);
+    }
+
+    return coords;
+}
+
+
+
 PYBIND11_MODULE(pyx2z, module) {
     py::class_<AtomBase>(module, "AtomBase")
         .def(py::init<const std::string&>())
@@ -88,4 +104,5 @@ PYBIND11_MODULE(pyx2z, module) {
         .def("resonance_count", &MolecStruct::resonance_count)
         .def("is_radical", &MolecStruct::is_radical);
     module.def("zmatrix_string", &zmatrix_string);
+    module.def("rotational_bond_coordinates", &rotational_bond_coordinates);
 }

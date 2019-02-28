@@ -29,5 +29,11 @@ def to_zmatrix(x2m):
         setval_delim_pattern=app.one_of_these([app.LINESPACE, app.NEWLINE]),
         one_indexed=True, angstrom=False, degree=True,
     )
-
     return zma
+
+
+def zmatrix_rotational_coordinate_names(x2m):
+    """ z-matrix rotational bond coordinate name from an x2z molecule object
+    """
+    names = pyx2z.rotational_bond_coordinates(x2m)
+    return names
