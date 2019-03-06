@@ -1,6 +1,5 @@
 """ core library defining the z-matrix data structure
 """
-from more_itertools import unique_everseen as _unique_everseen
 import numpy
 import phycon.units as pcu
 from ..constructors.zmatrix import from_data as _from_data
@@ -93,25 +92,57 @@ def value_matrix(zma):
     return val_mat
 
 
+def coordinate_key_matrix(zma):
+    """ coordinate keys, by z-matrix row and column
+    """
+    key_mat = key_matrix(zma)
+    coo_key_mat = tuple(
+        tuple((key,) + key_row[:col+1] if key_row[col] is not None else None
+              for col in range(3))
+        for key, key_row in enumerate(key_mat))
+    return coo_key_mat
+
+
 def distance_names(zma):
     """ distance coordinate names, from top to bottom (no repeats)
     """
     name_mat = numpy.array(name_matrix(zma))
-    return tuple(_unique_everseen(name_mat[1:, 0]))
+    return tuple(name_mat[1:, 0])
 
 
 def angle_names(zma):
     """ angle coordinate names, from top to bottom
     """
     name_mat = numpy.array(name_matrix(zma))
-    return tuple(_unique_everseen(name_mat[2:, 1]))
+    return tuple(name_mat[2:, 1])
 
 
 def dihedral_names(zma):
     """ dihedral coordinate names, from top to bottom
     """
     name_mat = numpy.array(name_matrix(zma))
-    return tuple(_unique_everseen(name_mat[3:, 2]))
+    return tuple(name_mat[3:, 2])
+
+
+def distance_keys(zma):
+    """ distance coordinate keys, from top to bottom (no repeats)
+    """
+    coo_key_mat = numpy.array(coordinate_key_matrix(zma))
+    return tuple(coo_key_mat[1:, 0])
+
+
+def angle_keys(zma):
+    """ angle coordinate keys, from top to bottom
+    """
+    coo_key_mat = numpy.array(coordinate_key_matrix(zma))
+    return tuple(coo_key_mat[2:, 1])
+
+
+def dihedral_keys(zma):
+    """ dihedral coordinate keys, from top to bottom
+    """
+    coo_key_mat = numpy.array(coordinate_key_matrix(zma))
+    return tuple(coo_key_mat[3:, 2])
 
 
 # value setters
