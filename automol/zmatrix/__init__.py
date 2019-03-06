@@ -8,7 +8,7 @@ from ._core import key_matrix
 from ._core import name_matrix
 from ._core import distance_names
 from ._core import angle_names
-from ._core import torsion_names
+from ._core import dihedral_names
 from ._core import set_names
 from ._core import set_values
 from ._math import almost_equal
@@ -27,7 +27,7 @@ __all__ = [
     'name_matrix',
     'distance_names',
     'angle_names',
-    'torsion_names',
+    'dihedral_names',
     'set_names',
     'set_values',
     'almost_equal',

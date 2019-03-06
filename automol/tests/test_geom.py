@@ -67,8 +67,8 @@ def test__zmatrix():
          'R5': 1.83748, 'A5': 1.8690905, 'D5': 5.228936625})
     assert automol.zmatrix.almost_equal(zma, ref_zma)
 
-    rot_names = geom.zmatrix_rotational_coordinate_names(geo)
-    assert set(rot_names) <= set(automol.zmatrix.torsion_names(zma))
+    tors_names = geom.zmatrix_torsion_coordinate_names(geo)
+    assert set(tors_names) <= set(automol.zmatrix.dihedral_names(zma))
 
 
 def test__connectivity_graph():

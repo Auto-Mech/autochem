@@ -57,10 +57,10 @@ def test__angle_names():
     assert zmatrix.angle_names(CH4O_ZMA) == ('a1', 'a2')
 
 
-def test__torsion_names():
-    """ test zmatrix.torsion_names
+def test__dihedral_names():
+    """ test zmatrix.dihedral_names
     """
-    assert zmatrix.torsion_names(CH4O_ZMA) == ('t1', 't2', 't3')
+    assert zmatrix.dihedral_names(CH4O_ZMA) == ('t1', 't2', 't3')
 
 
 def test__set_names():
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     test__from_data()
     test__distance_names()
     test__angle_names()
-    test__torsion_names()
+    test__dihedral_names()
     test__set_names()
     test__set_values()
     test__from_zmat_string()

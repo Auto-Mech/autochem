@@ -25,7 +25,7 @@ def _values(val_dct, zma, angstrom, degree):
     """ values post-processing
     """
     dist_names = distance_names(zma)
-    ang_names = angle_names(zma) + torsion_names(zma)
+    ang_names = angle_names(zma) + dihedral_names(zma)
     orig_val_dct = val_dct
 
     val_dct = {}
@@ -107,8 +107,8 @@ def angle_names(zma):
     return tuple(_unique_everseen(name_mat[2:, 1]))
 
 
-def torsion_names(zma):
-    """ torsion coordinate names, from top to bottom
+def dihedral_names(zma):
+    """ dihedral coordinate names, from top to bottom
     """
     name_mat = numpy.array(name_matrix(zma))
     return tuple(_unique_everseen(name_mat[3:, 2]))

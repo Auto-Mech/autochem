@@ -34,17 +34,17 @@ def geometry(zma):
     return geo
 
 
-def local_position(dist=0., ang=0., tors=0.):
+def local_position(dist=0., ang=0., dih=0.):
     """ position by internal coordinates in the local axis frame
     """
-    x_comp = dist * numpy.sin(ang) * numpy.sin(tors)
-    y_comp = dist * numpy.sin(ang) * numpy.cos(tors)
+    x_comp = dist * numpy.sin(ang) * numpy.sin(dih)
+    y_comp = dist * numpy.sin(ang) * numpy.cos(dih)
     z_comp = dist * numpy.cos(ang)
     return (x_comp, y_comp, z_comp)
 
 
 def local_axes(xyz1=(0., 0., 0.), xyz2=(0., 0., 1.), xyz3=(0., 1., 0.)):
-    """ local axes for defining bond, angle, torsion from support atoms
+    """ local axes for defining bond, angle, dihedral from support atoms
     """
     uxyz12 = _unit_direction(xyz1, xyz2)
     uxyz23 = _unit_direction(xyz2, xyz3)

@@ -32,8 +32,8 @@ def to_zmatrix(x2m):
     return zma
 
 
-def zmatrix_rotational_coordinate_names(x2m):
-    """ z-matrix rotational bond coordinate name from an x2z molecule object
+def zmatrix_torsion_coordinate_names(x2m):
+    """ z-matrix torsion coordinate name from an x2z molecule object
     """
     names = pyx2z.rotational_bond_coordinates(x2m)
     return names

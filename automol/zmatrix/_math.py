@@ -7,7 +7,7 @@ from ._core import name_matrix as _name_matrix
 from ._core import values as _values
 from ._core import distance_names as _distance_names
 from ._core import angle_names as _angle_names
-from ._core import torsion_names as _torsion_names
+from ._core import dihedral_names as _dihedral_names
 
 
 def almost_equal(zma1, zma2):
@@ -23,7 +23,7 @@ def almost_equal(zma1, zma2):
         dist_vals1 = tuple(map(val_dct1.__getitem__, dist_names))
         dist_vals2 = tuple(map(val_dct2.__getitem__, dist_names))
         if numpy.allclose(dist_vals1, dist_vals2):
-            ang_names = _angle_names(zma1) + _torsion_names(zma1)
+            ang_names = _angle_names(zma1) + _dihedral_names(zma1)
             ang_vals1 = tuple(map(val_dct1.__getitem__, ang_names))
             ang_vals2 = tuple(map(val_dct2.__getitem__, ang_names))
             for shift in (0., numpy.pi/10.):
