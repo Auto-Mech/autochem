@@ -82,6 +82,17 @@ def name_matrix(zma):
     return name_mat
 
 
+def value_matrix(zma):
+    """ coordinate values, by z-matrix row and column
+    """
+    val_dct = values(zma)
+    name_mat = name_matrix(zma)
+    val_mat = tuple(tuple(val_dct[name] if name is not None else None
+                          for name in name_mat_row)
+                    for name_mat_row in name_mat)
+    return val_mat
+
+
 def distance_names(zma):
     """ distance coordinate names, from top to bottom (no repeats)
     """
@@ -115,7 +126,7 @@ def set_names(zma, name_dct):
     name_dct.update({orig_name: orig_name for orig_name in orig_names
                      if orig_name not in name_dct})
 
-    name_mat = numpy.empty_like(orig_name_mat)
+    name_mat = numpy.empty(orig_name_mat.shape, dtype=numpy.object_)
     name_mat[tril_idxs] = list(map(name_dct.__getitem__,
                                    orig_name_mat[tril_idxs]))
 

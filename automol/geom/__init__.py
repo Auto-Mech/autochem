@@ -8,6 +8,9 @@ from ._comp import almost_equal
 from ._comp import almost_equal_coulomb_spectrum
 from ._zmatrix import zmatrix
 from ._zmatrix import zmatrix_rotational_coordinate_names
+from ._zmatrix import distance
+from ._zmatrix import angle
+from ._zmatrix import torsion
 from ._graph import connectivity_graph
 from ._inchi import inchi
 from ._inchi import stereo_inchi
@@ -28,6 +31,9 @@ __all__ = [
     'almost_equal_coulomb_spectrum',
     'zmatrix',
     'zmatrix_rotational_coordinate_names',
+    'distance',
+    'angle',
+    'torsion',
     'connectivity_graph',
     'inchi',
     'stereo_inchi',

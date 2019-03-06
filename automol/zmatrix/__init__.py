@@ -12,6 +12,7 @@ from ._core import torsion_names
 from ._core import set_names
 from ._core import set_values
 from ._math import almost_equal
+from ._geom import geometry
 from ._io import from_zmat_string
 from ._io import zmat_string
 from ._io import matrix_block_string
@@ -30,6 +31,7 @@ __all__ = [
     'set_names',
     'set_values',
     'almost_equal',
+    'geometry',
     'from_zmat_string',
     'zmat_string',
     'matrix_block_string',

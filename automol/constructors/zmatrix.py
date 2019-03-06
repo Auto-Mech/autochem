@@ -72,7 +72,7 @@ def _values(val_dct, name_mat, angstrom, degree):
         assert numpy.any(numpy.equal(name_mat, name))
 
         # make sure coordinates with the same name are in the same column
-        _, col_idxs = numpy.where(numpy.equal(name_mat, name))
+        col_idxs = numpy.where(numpy.equal(name_mat, name))[1]
         col_idx_set = set(col_idxs)
         assert len(col_idx_set) == 1
 

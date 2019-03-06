@@ -7,4 +7,5 @@ disable=
     no-init,
     old-style-class,
     too-many-arguments,
-    too-many-locals
+    too-many-locals,
+    assignment-from-no-return
