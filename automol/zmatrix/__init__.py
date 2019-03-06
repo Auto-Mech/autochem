@@ -11,7 +11,7 @@ from ._core import angle_names
 from ._core import dihedral_names
 from ._core import set_names
 from ._core import set_values
-from ._math import almost_equal
+from ._comp import almost_equal
 from ._geom import geometry
 from ._io import from_zmat_string
 from ._io import zmat_string
