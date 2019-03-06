@@ -26,15 +26,15 @@ def geometry(zma):
         vals = val_mat[key][:min(key, 3)]
         keys = key_mat[key][:min(key, 3)]
         ref_xyzs = xyzs[list(keys)]
-        ref_axes = local_axes(*ref_xyzs)
-        loc_xyz = local_position(*vals)
+        ref_axes = _local_axes(*ref_xyzs)
+        loc_xyz = _local_position(*vals)
         xyzs[key] = ref_xyzs[0] + numpy.dot(loc_xyz, ref_axes)
 
     geo = _geom_from_data(syms, xyzs)
     return geo
 
 
-def local_position(dist=0., ang=0., dih=0.):
+def _local_position(dist=0., ang=0., dih=0.):
     """ position by internal coordinates in the local axis frame
     """
     x_comp = dist * numpy.sin(ang) * numpy.sin(dih)
@@ -43,7 +43,7 @@ def local_position(dist=0., ang=0., dih=0.):
     return (x_comp, y_comp, z_comp)
 
 
-def local_axes(xyz1=(0., 0., 0.), xyz2=(0., 0., 1.), xyz3=(0., 1., 0.)):
+def _local_axes(xyz1=(0., 0., 0.), xyz2=(0., 0., 1.), xyz3=(0., 1., 0.)):
     """ local axes for defining bond, angle, dihedral from support atoms
     """
     uxyz12 = _unit_direction(xyz1, xyz2)

@@ -758,6 +758,16 @@ def test__enantiomerically_unique():
     )
 
 
+# misc
+def test__bond_symmetry_numbers():
+    """ test graph.bond_symmetry_numbers
+    """
+    assert graph.bond_symmetry_numbers(C8H13O_CGR) == {
+        frozenset({1, 4}): 1, frozenset({4, 6}): 1, frozenset({2, 6}): 3,
+        frozenset({0, 3}): 3, frozenset({6, 7}): 1, frozenset({8, 7}): 1,
+        frozenset({3, 5}): 1, frozenset({5, 7}): 1}
+
+
 if __name__ == '__main__':
     # test__from_atoms_and_bonds()
     # test__from_dictionaries()
@@ -794,3 +804,4 @@ if __name__ == '__main__':
     test__backbone_unique()
     test__enantiomerically_unique()
     test__stereo_inchi()
+    test__bond_symmetry_numbers()

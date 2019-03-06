@@ -101,6 +101,9 @@ from ._stereo import stereomers
 from ._stereo import substereomers
 from ._stereo import enantiomerically_unique
 
+# misc
+from ._misc import bond_symmetry_numbers
+
 # submodules
 from . import _dict as dict_
 
@@ -200,6 +203,9 @@ __all__ = [
     'stereomers',
     'substereomers',
     'enantiomerically_unique',
+
+    # misc
+    'bond_symmetry_numbers',
 
     # submodules
     'dict_',
