@@ -1,5 +1,6 @@
 """ test the automol.zmatrix module
 """
+import automol
 from automol import zmatrix
 
 CH4O_ZMA = (
@@ -95,6 +96,14 @@ def test__zmat_string():
     assert zmatrix.almost_equal(zma, CH4O_ZMA)
 
 
+def test__geometry():
+    """ test zmatrix.geometry
+    """
+    ref_zma = automol.geom.zmatrix(zmatrix.geometry(CH4O_ZMA))
+    zma = automol.geom.zmatrix(zmatrix.geometry(ref_zma))
+    assert zmatrix.almost_equal(zma, ref_zma)
+
+
 if __name__ == '__main__':
     test__from_data()
     test__distance_names()
@@ -104,8 +113,4 @@ if __name__ == '__main__':
     test__set_values()
     test__from_zmat_string()
     test__zmat_string()
-    import automol
-    ICH = automol.smiles.inchi('O')
-    GEO = automol.inchi.geometry(ICH)
-    ZMA = automol.geom.zmatrix(GEO)
-    print(ZMA)
+    test__geometry()

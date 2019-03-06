@@ -12,7 +12,7 @@ _LEND = app.maybe(app.LINESPACES) + app.LINE_END
 
 SYM_PATTERN = app.LETTER + app.maybe(app.LETTER)
 KEY_PATTERN = app.UNSIGNED_INTEGER
-VAL_PATTERN = app.FLOAT
+VAL_PATTERN = app.one_of_these([app.FLOAT, app.INTEGER])
 NAME_PATTERN = app.VARIABLE_NAME
 
 

@@ -1,5 +1,6 @@
 """ test the automol.geom module
 """
+import numpy
 import automol
 from automol import geom
 
@@ -102,6 +103,21 @@ def test__from_xyz_string():
         geom.from_xyz_string(geom.xyz_string(C2H2CLF_GEO)), C2H2CLF_GEO)
 
 
+def test__formula():
+    """ test geom.formula
+    """
+    assert geom.formula(C2H2CLF_GEO) == {'F': 1, 'C': 2, 'Cl': 1, 'H': 2}
+
+
+def test__coulomb_spectrum():
+    """ test geom.coulomb_spectrum
+    """
+    assert numpy.allclose(
+        geom.coulomb_spectrum(C2H2CLF_GEO),
+        (0.23373850982000086, 0.26771181015927226, 21.472418990888897,
+         38.92412503488664, 104.1418603738336, 456.00384141400343))
+
+
 if __name__ == '__main__':
     # test__connectivity_graph()
     # test__inchi()
@@ -111,3 +127,5 @@ if __name__ == '__main__':
     # test__is_valid()
     # test__from_string()
     test__zmatrix()
+    test__formula()
+    test__coulomb_spectrum()
