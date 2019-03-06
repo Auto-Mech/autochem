@@ -8,8 +8,8 @@ from ..cart import unit_perpendicular as _unit_perpendicular
 from ._core import coordinates as _coordinates
 from ._pyx2z import from_geometry as _x2m_from_geometry
 from ._pyx2z import to_zmatrix as _x2m_to_zmatrix
-from ._pyx2z import (zmatrix_rotational_coordinate_names as
-                     _x2m_zmatrix_rotational_coordinate_names)
+from ._pyx2z import (zmatrix_torsion_coordinate_names as
+                     _x2m_zmatrix_torsion_coordinate_names)
 
 
 def zmatrix(geo):
@@ -20,11 +20,11 @@ def zmatrix(geo):
     return zma
 
 
-def zmatrix_rotational_coordinate_names(geo):
+def zmatrix_torsion_coordinate_names(geo):
     """ z-matrix rotational coordinate names
     """
     x2m = _x2m_from_geometry(geo)
-    names = _x2m_zmatrix_rotational_coordinate_names(x2m)
+    names = _x2m_zmatrix_torsion_coordinate_names(x2m)
     return names
 
 
@@ -51,8 +51,8 @@ def angle(geo, key1, key2, key3):
     return ang
 
 
-def torsion(geo, key1, key2, key3, key4):
-    """ measure the torsion angle defined by four atoms
+def dihedral(geo, key1, key2, key3, key4):
+    """ measure the dihedral angle defined by four atoms
     """
     xyzs = _coordinates(geo)
     xyz1 = xyzs[key1]
@@ -74,5 +74,5 @@ def torsion(geo, key1, key2, key3, key4):
     val = max(min(val, 1.), -1.)
     sign = 2 * (val < 0) - 1
 
-    tors = sign * numpy.arccos(cos)
-    return tors
+    dih = sign * numpy.arccos(cos)
+    return dih
