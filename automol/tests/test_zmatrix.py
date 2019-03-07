@@ -54,6 +54,24 @@ CH4O2_ZMA = (
      'R5': 1.83126, 'A5': 1.86751, 'D5': 1.44253,
      'R6': 1.83126, 'A6': 1.86751, 'D6': 4.84065})
 
+H2O_ZMA_STR = """Geometry (in Angstrom), charge = 0, multiplicity = 1:
+
+    O
+    H             1          R1
+    H             1          R2      2          A2
+
+    A2        =   99.9891574659
+    R1        =    0.9894851960
+    R2        =    0.9894852414
+"""
+
+H2O_ZMA = (
+    (('O', (None, None, None), (None, None, None)),
+     ('H', (0, None, None), ('R1', None, None)),
+     ('H', (0, 1, None), ('R2', 'A2', None))),
+    {'A2': 1.7451400140750248, 'R1': 1.8698560256349597,
+     'R2': 1.869856111428526})
+
 
 def test__from_data():
     """ test zmatrix.from_data
@@ -142,6 +160,9 @@ def test__from_zmat_string():
     """
     zma = zmatrix.from_zmat_string(CH4O_ZMA_STR)
     assert zmatrix.almost_equal(zma, CH4O_ZMA)
+
+    zma = zmatrix.from_zmat_string(H2O_ZMA_STR)
+    assert zmatrix.almost_equal(zma, H2O_ZMA)
 
 
 def test__zmat_string():
