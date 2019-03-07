@@ -1,4 +1,6 @@
 """ z-matrix readers
+
+(this can be cleaned up with new autoparse functionality)
 """
 import numpy
 import autoparse.pattern as app
@@ -171,8 +173,10 @@ def setval_block_capturing_pattern(name_pattern=NAME_PATTERN,
                                           val_pattern])
     _delim_pattern = (app.maybe(app.LINESPACES) + delim_pattern +
                       app.maybe(app.LINESPACES))
-    pattern = app.capturing(
-        setval_pattern + app.zero_or_more(_delim_pattern + setval_pattern))
+    pattern = (
+        _LSTART + app.capturing(
+            setval_pattern +
+            app.zero_or_more(_delim_pattern + setval_pattern)) + _LEND)
     return pattern
 
 
