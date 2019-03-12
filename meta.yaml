@@ -26,3 +26,4 @@ requirements:
         - pacchem::autoparse
         - pacchem::phycon
         - pacchem::x2z
+        - pacchem::transformations
