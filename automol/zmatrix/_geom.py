@@ -4,8 +4,8 @@ borrows from https://github.com/tmpchem/computational_chemistry
 """
 import numpy
 from ..constructors.geom import from_data as _geom_from_data
-from ..cart import unit_direction as _unit_direction
-from ..cart import unit_perpendicular as _unit_perpendicular
+from ..cart.vec import unit_direction as _unit_direction
+from ..cart.vec import unit_perpendicular as _unit_perpendicular
 from ._core import symbols as _symbols
 from ._core import key_matrix as _key_matrix
 from ._core import value_matrix as _value_matrix
