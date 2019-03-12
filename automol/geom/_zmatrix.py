@@ -3,8 +3,8 @@
 borrows from https://github.com/tmpchem/computational_chemistry
 """
 import numpy
-from ..cart import unit_direction as _unit_direction
-from ..cart import unit_perpendicular as _unit_perpendicular
+from ..cart.vec import unit_direction as _unit_direction
+from ..cart.vec import unit_perpendicular as _unit_perpendicular
 from ._core import coordinates as _coordinates
 from ._pyx2z import from_geometry as _x2m_from_geometry
 from ._pyx2z import to_zmatrix as _x2m_to_zmatrix

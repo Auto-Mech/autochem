@@ -1,0 +1,14 @@
+# cmd: conda build .
+package:
+    name: transformations
+    version: "2019.2.20"
+
+source:
+    path: .
+
+requirements:
+    build:
+        - python
+    run:
+        - python
+        - numpy

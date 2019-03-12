@@ -1,4 +1,4 @@
-""" cartesian coordinate linear algbera helpers
+""" vector functions
 """
 import numpy
 

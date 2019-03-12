@@ -1,5 +1,6 @@
 """ some comparison functions
 """
+import functools
 import numpy
 from ._core import symbols as _symbols
 from ._core import coordinates as _coordinates
@@ -21,3 +22,24 @@ def almost_equal_coulomb_spectrum(geo1, geo2, rtol=2e-5):
     ret = numpy.allclose(_coulomb_spectrum(geo1), _coulomb_spectrum(geo2),
                          rtol=rtol)
     return ret
+
+
+def argunique_coulomb_spectrum(geos, rtol=2e-5):
+    """ get indices of unique geometries, by coulomb spectrum
+    """
+    comp_ = functools.partial(almost_equal_coulomb_spectrum, rtol=rtol)
+    idxs = _argunique(geos, comp_)
+    return idxs
+
+
+def _argunique(items, comparison):
+    """ get the indices of unique items using some comparison function
+    """
+    idxs = []
+    seen_items = []
+    for idx, item in enumerate(items):
+        if not any(comparison(item, seen_item) for seen_item in seen_items):
+            idxs.append(idx)
+            seen_items.append(item)
+    idxs = tuple(idxs)
+    return idxs
