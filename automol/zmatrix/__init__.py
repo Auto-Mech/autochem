@@ -14,8 +14,10 @@ from ._core import dihedral_names
 from ._core import distance_keys
 from ._core import angle_keys
 from ._core import dihedral_keys
+from ._core import coordinates
 from ._core import set_names
 from ._core import set_values
+from ._core import is_valid
 from ._io import from_zmat_string
 from ._io import zmat_string
 from ._io import matrix_block_string
@@ -41,8 +43,10 @@ __all__ = [
     'distance_keys',
     'angle_keys',
     'dihedral_keys',
+    'coordinates',
     'set_names',
     'set_values',
+    'is_valid',
     'from_zmat_string',
     'zmat_string',
     'matrix_block_string',
