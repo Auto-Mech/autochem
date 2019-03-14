@@ -37,6 +37,7 @@ def set_coordinates(geo, xyz_dct):
     return _from_data(syms, xyzs)
 
 
+# misc
 def is_valid(geo):
     """ is this a valid geometry?
     """

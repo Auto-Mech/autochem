@@ -94,7 +94,18 @@ def test__coordinate_key_matrix():
                    ((3, 2), (3, 2, 1), (3, 2, 1, 0)),
                    ((4, 2), (4, 2, 1), (4, 2, 1, 0)),
                    ((5, 2), (5, 2, 1), (5, 2, 1, 0)))
+
     assert zmatrix.coordinate_key_matrix(CH4O_ZMA) == coo_key_mat
+
+    one_indexed_coo_key_mat = ((None, None, None),
+                               ((2, 1), None, None),
+                               ((3, 2), (3, 2, 1), None),
+                               ((4, 3), (4, 3, 2), (4, 3, 2, 1)),
+                               ((5, 3), (5, 3, 2), (5, 3, 2, 1)),
+                               ((6, 3), (6, 3, 2), (6, 3, 2, 1)))
+
+    assert (zmatrix.coordinate_key_matrix(CH4O_ZMA, one_indexed=True)
+            == one_indexed_coo_key_mat)
 
 
 def test__distance_names():
@@ -120,6 +131,8 @@ def test__distance_keys():
     """
     assert zmatrix.distance_keys(CH4O_ZMA) == (
         (1, 0), (2, 1), (3, 2), (4, 2), (5, 2))
+    assert zmatrix.distance_keys(CH4O_ZMA, one_indexed=True) == (
+        (2, 1), (3, 2), (4, 3), (5, 3), (6, 3))
 
 
 def test__angle_keys():
@@ -127,6 +140,8 @@ def test__angle_keys():
     """
     assert zmatrix.angle_keys(CH4O_ZMA) == (
         (2, 1, 0), (3, 2, 1), (4, 2, 1), (5, 2, 1))
+    assert zmatrix.angle_keys(CH4O_ZMA, one_indexed=True) == (
+        (3, 2, 1), (4, 3, 2), (5, 3, 2), (6, 3, 2))
 
 
 def test__dihedral_keys():
@@ -134,6 +149,26 @@ def test__dihedral_keys():
     """
     assert zmatrix.dihedral_keys(CH4O_ZMA) == (
         (3, 2, 1, 0), (4, 2, 1, 0), (5, 2, 1, 0))
+    assert zmatrix.dihedral_keys(CH4O_ZMA, one_indexed=True) == (
+        (4, 3, 2, 1), (5, 3, 2, 1), (6, 3, 2, 1))
+
+
+def test__coordinates():
+    """ test zmatrix.coordinates
+    """
+    coo_dct = {
+        'd1': ((1, 0),), 'd2': ((2, 1),), 'd3': ((3, 2), (4, 2), (5, 2)),
+        'a1': ((2, 1, 0),), 'a2': ((3, 2, 1), (4, 2, 1), (5, 2, 1)),
+        't1': ((3, 2, 1, 0),), 't2': ((4, 2, 1, 0),), 't3': ((5, 2, 1, 0),)
+    }
+    assert zmatrix.coordinates(CH4O_ZMA) == coo_dct
+
+    one_indexed_coo_dct = {
+        'd1': ((2, 1),), 'd2': ((3, 2),), 'd3': ((4, 3), (5, 3), (6, 3)),
+        'a1': ((3, 2, 1),), 'a2': ((4, 3, 2), (5, 3, 2), (6, 3, 2)),
+        't1': ((4, 3, 2, 1),), 't2': ((5, 3, 2, 1),), 't3': ((6, 3, 2, 1),)}
+    assert (zmatrix.coordinates(CH4O_ZMA, one_indexed=True) ==
+            one_indexed_coo_dct)
 
 
 def test__set_names():
@@ -153,6 +188,13 @@ def test__set_values():
 
     zma = zmatrix.set_values(CH4O_ZMA, {'t1': val + 1e-1})
     assert not zmatrix.almost_equal(zma, CH4O_ZMA)
+
+
+def test__is_valid():
+    """ test zmatrix.is_valid
+    """
+    assert zmatrix.is_valid(CH4O_ZMA)
+    assert not zmatrix.is_valid(zmatrix.geometry(CH4O_ZMA))
 
 
 def test__from_zmat_string():
@@ -218,3 +260,8 @@ if __name__ == '__main__':
     test__coordinate_key_matrix()
     test__tors__symmetry_numbers()
     test__tors__samples()
+    test__distance_keys()
+    test__angle_keys()
+    test__dihedral_keys()
+    test__coordinates()
+    test__is_valid()
