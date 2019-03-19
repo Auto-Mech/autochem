@@ -212,6 +212,7 @@ def test__zmat_string():
     """
     zma = zmatrix.from_zmat_string(zmatrix.zmat_string(CH4O_ZMA))
     assert zmatrix.almost_equal(zma, CH4O_ZMA)
+    print(zmatrix.zmat_string(CH4O_ZMA))
 
 
 def test__geometry():
