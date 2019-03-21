@@ -64,7 +64,7 @@ def geometry(rdm):
         _rd_all_chem.MMFFOptimizeMolecule(rdm)
         syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
         xyzs = tuple(map(tuple, rdm.GetConformer(0).GetPositions()))
-    geo = _geom_from_data(syms, xyzs, angstroms=True)
+    geo = _geom_from_data(syms, xyzs, angstrom=True)
     return geo
 
 
