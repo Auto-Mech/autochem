@@ -25,8 +25,8 @@ def to_zmatrix(x2m):
 
     zma = _zmatrix_reader(
         zma_str,
-        mat_delim_pattern=',',
-        setval_delim_pattern=app.one_of_these([app.LINESPACE, app.NEWLINE]),
+        mat_delim_ptt=',',
+        setval_delim_ptt=app.one_of_these([app.LINESPACE, app.NEWLINE]),
         one_indexed=True, angstrom=False, degree=True,
     )
     return zma

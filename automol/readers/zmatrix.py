@@ -9,9 +9,6 @@ import autoparse.conv as apc
 from ..constructors.zmatrix import from_data as _from_data
 
 
-_LSTART = app.LINE_START + app.maybe(app.LINESPACES)
-_LEND = app.maybe(app.LINESPACES) + app.LINE_END
-
 SYM_PATTERN = app.LETTER + app.maybe(app.LETTER)
 KEY_PATTERN = app.UNSIGNED_INTEGER
 VAL_PATTERN = app.one_of_these([app.FLOAT, app.INTEGER])
@@ -19,45 +16,35 @@ NAME_PATTERN = app.VARIABLE_NAME
 
 
 def from_string(zma_str,
-                sym_pattern=SYM_PATTERN,
-                key_pattern=KEY_PATTERN,
-                val_pattern=VAL_PATTERN,
-                name_pattern=NAME_PATTERN,
-                mat_delim_pattern=app.LINESPACE,
-                setval_pattern=app.escape('='),
-                setval_delim_pattern=app.NEWLINE,
+                sym_ptt=SYM_PATTERN,
+                key_ptt=KEY_PATTERN,
+                val_ptt=VAL_PATTERN,
+                name_ptt=NAME_PATTERN,
+                mat_delim_ptt=app.LINESPACE,
+                setv_ptt=app.escape('='),
+                setval_delim_ptt=app.NEWLINE,
+                block_delim_ptt=app.one_or_more(app.NEWLINE),
                 one_indexed=True,
                 angstrom=True,
                 degree=True):
     """ read a z-matrix from a single string
-
-    (grabs the first matrix and setval blocks it finds)
     """
-    mat_block_pattern = matrix_block_capturing_pattern(
-        sym_pattern=sym_pattern,
-        key_pattern=key_pattern,
-        val_pattern=val_pattern,
-        name_pattern=name_pattern,
-        delim_pattern=mat_delim_pattern,
-    )
-    setval_block_pattern = setval_block_capturing_pattern(
-        name_pattern=name_pattern,
-        setval_pattern=setval_pattern,
-        val_pattern=val_pattern,
-        delim_pattern=setval_delim_pattern,
-    )
+    zma_ptt = block_pattern(
+        sym_ptt, key_ptt, val_ptt, name_ptt, mat_delim_ptt, setv_ptt,
+        setval_delim_ptt, block_delim_ptt,
+        capture_matrix_block=True,
+        capture_setval_block=True)
 
-    mat_str = apf.first_capture(mat_block_pattern, zma_str)
-    setval_str = apf.first_capture(setval_block_pattern, zma_str)
+    mat_str, setval_str = apf.first_capture(zma_ptt, zma_str)
 
     zma = from_matrix_and_setval_strings(
         mat_str, setval_str,
-        sym_pattern=sym_pattern,
-        key_pattern=key_pattern,
-        val_pattern=val_pattern,
-        name_pattern=name_pattern,
-        mat_delim_pattern=mat_delim_pattern,
-        setval_pattern=setval_pattern,
+        sym_ptt=sym_ptt,
+        key_ptt=key_ptt,
+        val_ptt=val_ptt,
+        name_ptt=name_ptt,
+        mat_delim_ptt=mat_delim_ptt,
+        setv_ptt=setv_ptt,
         one_indexed=one_indexed,
         angstrom=angstrom,
         degree=degree
@@ -66,12 +53,12 @@ def from_string(zma_str,
 
 
 def from_matrix_and_setval_strings(mat_str, setval_str,
-                                   sym_pattern=SYM_PATTERN,
-                                   key_pattern=KEY_PATTERN,
-                                   val_pattern=VAL_PATTERN,
-                                   name_pattern=NAME_PATTERN,
-                                   mat_delim_pattern=app.LINESPACE,
-                                   setval_pattern=app.escape('='),
+                                   sym_ptt=SYM_PATTERN,
+                                   key_ptt=KEY_PATTERN,
+                                   val_ptt=VAL_PATTERN,
+                                   name_ptt=NAME_PATTERN,
+                                   mat_delim_ptt=app.LINESPACE,
+                                   setv_ptt=app.escape('='),
                                    one_indexed=True,
                                    angstrom=True,
                                    degree=True):
@@ -81,29 +68,38 @@ def from_matrix_and_setval_strings(mat_str, setval_str,
     then call this function)
     """
     # parse the matrix string
-    col_patterns = matrix_column_capturing_patterns(
-        sym_pattern=sym_pattern, key_pattern=key_pattern,
-        val_pattern=val_pattern, name_pattern=name_pattern,
-        delim_pattern=mat_delim_pattern)
-    syms = apf.all_captures(col_patterns[0], mat_str)
-    natms = len(syms)
+    mat_str = mat_str.strip()
+    setval_str = setval_str.strip()
+    lines = mat_str.splitlines()
+    nrows = len(lines)
+    syms = []
+    key_mat = numpy.empty((nrows, 3), dtype=numpy.object_)
+    name_mat = numpy.empty((nrows, 3), dtype=numpy.object_)
+    for row_idx, line in enumerate(lines):
+        ncols = min(row_idx, 3)
+        line_ptt = matrix_line_pattern(
+            num=ncols,
+            sym_ptt=app.capturing(sym_ptt),
+            key_ptt=app.capturing(key_ptt),
+            name_ptt=app.capturing(name_ptt),
+            delim_ptt=mat_delim_ptt,
+        )
+        caps = apf.first_capture(line_ptt, line)
+        sym = caps if ncols == 0 else caps[0]
+        keys = caps[1::2]
+        names = caps[2::2]
 
-    key_mat = numpy.empty((natms, 3), dtype=numpy.object_)
-    name_mat = numpy.empty((natms, 3), dtype=numpy.object_)
-
-    for col, col_pattern in enumerate(col_patterns[1:]):
-        caps = apf.all_captures(col_pattern, mat_str)
-        if caps:
-            vals = apc.multis(caps, (int, str))
-            keys, names = zip(*vals)
-            key_mat[col+1:, col] = keys
-            name_mat[col+1:, col] = names
+        syms.append(sym)
+        key_mat[row_idx, :ncols] = keys
+        name_mat[row_idx, :ncols] = names
 
     # parse the setval string
-    pattern = setval_capturing_pattern(
-        name_pattern=name_pattern, setval_pattern=setval_pattern,
-        val_pattern=val_pattern)
-    caps = apf.all_captures(pattern, setval_str)
+    setv_ptt_ = setval_term_pattern(
+        name_ptt=app.capturing(name_ptt),
+        setv_ptt=setv_ptt,
+        val_ptt=app.capturing(val_ptt),
+    )
+    caps = apf.all_captures(setv_ptt_, setval_str)
     val_dct = dict(apc.multis(caps, (str, float)))
 
     return _from_data(syms, key_mat, name_mat, val_dct,
@@ -112,79 +108,84 @@ def from_matrix_and_setval_strings(mat_str, setval_str,
                       degree=degree)
 
 
-# matrix block parsers
-def matrix_block_capturing_pattern(sym_pattern=SYM_PATTERN,
-                                   key_pattern=KEY_PATTERN,
-                                   val_pattern=VAL_PATTERN,
-                                   name_pattern=NAME_PATTERN,
-                                   delim_pattern=app.LINESPACE):
+# patterns
+def block_pattern(sym_ptt=SYM_PATTERN,
+                  key_ptt=KEY_PATTERN,
+                  val_ptt=VAL_PATTERN,
+                  name_ptt=NAME_PATTERN,
+                  mat_delim_ptt=app.LINESPACE,
+                  setv_ptt=app.escape('='),
+                  setval_delim_ptt=app.NEWLINE,
+                  block_delim_ptt=app.one_or_more(app.NEWLINE),
+                  capture_matrix_block=False,
+                  capture_setval_block=False):
+    """ pattern for a z-matrix string with subblocks separated by newlines
+    """
+    mat_ptt = matrix_block_pattern(
+        sym_ptt=sym_ptt,
+        key_ptt=key_ptt,
+        name_ptt=name_ptt,
+        delim_ptt=mat_delim_ptt,
+    )
+    setv_ptt = setval_block_pattern(
+        name_ptt=name_ptt,
+        setv_ptt=setv_ptt,
+        val_ptt=val_ptt,
+        delim_ptt=setval_delim_ptt,
+    )
+    mat_ptt = app.capturing(mat_ptt) if capture_matrix_block else mat_ptt
+    setv_ptt = app.capturing(setv_ptt) if capture_setval_block else setv_ptt
+
+    return block_delim_ptt.join([mat_ptt, setv_ptt])
+
+
+def matrix_block_pattern(sym_ptt=SYM_PATTERN,
+                         key_ptt=KEY_PATTERN,
+                         name_ptt=NAME_PATTERN,
+                         delim_ptt=app.LINESPACE):
     """ the matrix block of a z-matrix string
     """
-    _entry_pattern = app.one_of_these([val_pattern, name_pattern])
-    _delim_pattern = (app.maybe(app.LINESPACES) + delim_pattern +
-                      app.maybe(app.LINESPACES))
+    line_ptts = [
+        matrix_line_pattern(num, sym_ptt, key_ptt, name_ptt, delim_ptt)
+        for num in range(4)
+    ]
 
-    def _parts(nentries):
-        return [sym_pattern] + nentries * [key_pattern, _entry_pattern]
-
-    line_patterns = [_LSTART + _delim_pattern.join(_parts(n)) + _LEND
-                     for n in range(0, 4)]
-    pattern = app.one_of_these([
-        app.NEWLINE.join(line_patterns[:3])
-        + app.zero_or_more(app.NEWLINE + line_patterns[3]),
-        app.NEWLINE.join(line_patterns[:2]),
-        app.NEWLINE.join(line_patterns[:1]),
+    return app.one_of_these([
+        app.NEWLINE.join(
+            line_ptts[:3] + [app.series(line_ptts[3], app.NEWLINE)]),
+        app.NEWLINE.join(line_ptts[:3]),
+        app.NEWLINE.join(line_ptts[:2]),
+        app.NEWLINE.join(line_ptts[:1]),
     ])
-    pattern = app.capturing(pattern)
-    return pattern
 
 
-def matrix_column_capturing_patterns(sym_pattern=SYM_PATTERN,
-                                     key_pattern=KEY_PATTERN,
-                                     val_pattern=VAL_PATTERN,
-                                     name_pattern=NAME_PATTERN,
-                                     delim_pattern=app.LINESPACE):
-    """ patterns to capture each of the four columns of the matrix block
+def matrix_line_pattern(num,
+                        sym_ptt=SYM_PATTERN,
+                        key_ptt=KEY_PATTERN,
+                        name_ptt=NAME_PATTERN,
+                        delim_ptt=app.LINESPACE):
+    """ pattern to capture a line of the zmatrix
     """
-    _entry_pattern = app.one_of_these([val_pattern, name_pattern])
-    _delim_pattern = (app.maybe(app.LINESPACES) + delim_pattern +
-                      app.maybe(app.LINESPACES))
-
-    sym_capturing_pattern = _LSTART + app.capturing(sym_pattern)
-
-    column_patterns = [sym_capturing_pattern]
-    for col in range(3):
-        parts = ([sym_pattern] + col * [key_pattern, _entry_pattern] +
-                 [app.capturing(key_pattern), app.capturing(_entry_pattern)])
-        pattern = _LSTART + _delim_pattern.join(parts)
-        column_patterns.append(pattern)
-
-    return column_patterns
+    assert num in range(0, 4)
+    return app.LINE_START + app.padded(
+        app.padded(delim_ptt).join([sym_ptt] + num * [key_ptt, name_ptt])
+    ) + app.LINE_END
 
 
-# setval block parsers
-def setval_block_capturing_pattern(name_pattern=NAME_PATTERN,
-                                   setval_pattern=app.escape('='),
-                                   val_pattern=VAL_PATTERN,
-                                   delim_pattern=app.NEWLINE):
+def setval_block_pattern(name_ptt=NAME_PATTERN,
+                         setv_ptt=app.escape('='),
+                         val_ptt=VAL_PATTERN,
+                         delim_ptt=app.NEWLINE):
     """ captures the whole setval block of a z-matrix
     """
-    setval_pattern = app.LINESPACES.join([name_pattern, setval_pattern,
-                                          val_pattern])
-    _delim_pattern = (app.maybe(app.LINESPACES) + delim_pattern +
-                      app.maybe(app.LINESPACES))
-    pattern = (
-        _LSTART + app.capturing(
-            setval_pattern +
-            app.zero_or_more(_delim_pattern + setval_pattern)) + _LEND)
-    return pattern
+    term_ptt = setval_term_pattern(name_ptt=name_ptt, setv_ptt=setv_ptt,
+                                   val_ptt=val_ptt)
+    return app.LINE_START + app.padded(
+        app.series(term_ptt, app.padded(delim_ptt)))
 
 
-def setval_capturing_pattern(name_pattern=NAME_PATTERN,
-                             setval_pattern=app.escape('='),
-                             val_pattern=VAL_PATTERN):
+def setval_term_pattern(name_ptt=NAME_PATTERN, setv_ptt=app.escape('='),
+                        val_ptt=VAL_PATTERN):
     """ pattern to capture names and values from the setval block
     """
-    pattern = app.LINESPACES.join([app.capturing(name_pattern), setval_pattern,
-                                   app.capturing(val_pattern)])
-    return pattern
+    return app.LINESPACES.join([name_ptt, setv_ptt, val_ptt])

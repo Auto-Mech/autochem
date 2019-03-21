@@ -19,7 +19,7 @@ def geometry(pbm):
     anbs = [atm.atomicnum for atm in pbm.atoms]
     syms = list(map(_atomic_symbol, anbs))
     xyzs = tuple(tuple(atm.coords) for atm in pbm.atoms)
-    geo = _geom_from_data(syms, xyzs, angstroms=True)
+    geo = _geom_from_data(syms, xyzs, angstrom=True)
     return geo
 
 
