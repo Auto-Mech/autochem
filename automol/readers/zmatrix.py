@@ -35,10 +35,10 @@ def from_string(zma_str,
         capture_matrix_block=True,
         capture_setval_block=True)
 
-    mat_str, setval_str = apf.first_capture(zma_ptt, zma_str)
+    mat_str, setv_str = apf.first_capture(zma_ptt, zma_str)
 
-    zma = from_matrix_and_setval_strings(
-        mat_str, setval_str,
+    zma = from_matrix_and_setv_strings(
+        mat_str, setv_str,
         sym_ptt=sym_ptt,
         key_ptt=key_ptt,
         val_ptt=val_ptt,
@@ -52,24 +52,45 @@ def from_string(zma_str,
     return zma
 
 
-def from_matrix_and_setval_strings(mat_str, setval_str,
-                                   sym_ptt=SYM_PATTERN,
-                                   key_ptt=KEY_PATTERN,
-                                   val_ptt=VAL_PATTERN,
-                                   name_ptt=NAME_PATTERN,
-                                   mat_delim_ptt=app.LINESPACE,
-                                   setv_ptt=app.escape('='),
-                                   one_indexed=True,
-                                   angstrom=True,
-                                   degree=True):
+def from_matrix_and_setv_strings(mat_str, setv_str,
+                                 sym_ptt=SYM_PATTERN,
+                                 key_ptt=KEY_PATTERN,
+                                 val_ptt=VAL_PATTERN,
+                                 name_ptt=NAME_PATTERN,
+                                 mat_delim_ptt=app.LINESPACE,
+                                 setv_ptt=app.escape('='),
+                                 one_indexed=True,
+                                 angstrom=True,
+                                 degree=True):
     """ read a z-matrix from matrix and setval strings
 
     (use: first capture the matrix and setval blocks using the functions below,
     then call this function)
     """
     # parse the matrix string
+    syms, key_mat, name_mat = matrix_block_information(
+        mat_str, sym_ptt=sym_ptt, key_ptt=key_ptt, name_ptt=name_ptt,
+        delim_ptt=mat_delim_ptt)
+
+    # parse the setval string
+    val_dct = setval_block_information(
+        setv_str, name_ptt=name_ptt, setv_ptt=setv_ptt, val_ptt=val_ptt)
+
+    return _from_data(syms, key_mat, name_mat, val_dct,
+                      one_indexed=one_indexed,
+                      angstrom=angstrom,
+                      degree=degree)
+
+
+def matrix_block_information(mat_str,
+                             sym_ptt=SYM_PATTERN,
+                             key_ptt=KEY_PATTERN,
+                             name_ptt=NAME_PATTERN,
+                             delim_ptt=app.LINESPACE):
+    """ read the atomic symbols, the key matrix, and the name matrix from a
+    z-matrix matrix block string
+    """
     mat_str = mat_str.strip()
-    setval_str = setval_str.strip()
     lines = mat_str.splitlines()
     nrows = len(lines)
     syms = []
@@ -82,7 +103,7 @@ def from_matrix_and_setval_strings(mat_str, setval_str,
             sym_ptt=app.capturing(sym_ptt),
             key_ptt=app.capturing(key_ptt),
             name_ptt=app.capturing(name_ptt),
-            delim_ptt=mat_delim_ptt,
+            delim_ptt=delim_ptt,
         )
         caps = apf.first_capture(line_ptt, line)
         sym = caps if ncols == 0 else caps[0]
@@ -93,19 +114,27 @@ def from_matrix_and_setval_strings(mat_str, setval_str,
         key_mat[row_idx, :ncols] = keys
         name_mat[row_idx, :ncols] = names
 
-    # parse the setval string
+    syms = tuple(syms)
+    key_mat = tuple(map(tuple, key_mat))
+    name_mat = tuple(map(tuple, name_mat))
+    return syms, key_mat, name_mat
+
+
+def setval_block_information(setv_str,
+                             name_ptt=NAME_PATTERN,
+                             setv_ptt=app.escape('='),
+                             val_ptt=VAL_PATTERN):
+    """ read z-matrix coordinate values from the z-matrix setval block string
+    """
+    setv_str = setv_str.strip()
     setv_ptt_ = setval_term_pattern(
         name_ptt=app.capturing(name_ptt),
         setv_ptt=setv_ptt,
         val_ptt=app.capturing(val_ptt),
     )
-    caps = apf.all_captures(setv_ptt_, setval_str)
+    caps = apf.all_captures(setv_ptt_, setv_str)
     val_dct = dict(apc.multis(caps, (str, float)))
-
-    return _from_data(syms, key_mat, name_mat, val_dct,
-                      one_indexed=one_indexed,
-                      angstrom=angstrom,
-                      degree=degree)
+    return val_dct
 
 
 # patterns
