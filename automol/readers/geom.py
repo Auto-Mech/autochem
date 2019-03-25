@@ -58,5 +58,5 @@ def line_pattern(sym_pattern=SYM_PATTERN, val_pattern=VAL_PATTERN):
     """ pattern to capture values from a line of the geometry block
     """
     pattern = app.LINE_START + app.padded(
-        app.LINESPACES.join([sym_pattern] + 3 * [val_pattern])) + app.LINE_END
+        app.LINESPACES.join([sym_pattern] + 3 * [val_pattern]))
     return pattern
