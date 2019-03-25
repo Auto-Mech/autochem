@@ -168,8 +168,7 @@ def matrix_line_pattern(num,
     """
     assert num in range(0, 4)
     return app.LINE_START + app.padded(
-        app.padded(delim_ptt).join([sym_ptt] + num * [key_ptt, name_ptt])
-    ) + app.LINE_END
+        app.padded(delim_ptt).join([sym_ptt] + num * [key_ptt, name_ptt]))
 
 
 def setval_block_pattern(name_ptt=NAME_PATTERN,
