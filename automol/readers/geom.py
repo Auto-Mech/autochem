@@ -1,8 +1,8 @@
 """ cartesian geometry readers
 """
+from autoparse import cast as _cast
 import autoparse.pattern as app
 import autoparse.find as apf
-import autoparse.conv as apc
 from ..constructors.geom import from_data
 
 
@@ -39,7 +39,7 @@ def from_string(geo_str,
 
     block_str = apf.first_capture(app.capturing(_block_pattern), geo_str)
     mcaps = apf.all_captures(_line_pattern_, block_str)
-    mvals = apc.multis(mcaps, funcs=(str, float, float, float))
+    mvals = _cast(mcaps)
     syms = tuple(mval[0] for mval in mvals)
     xyzs = tuple(mval[1:] for mval in mvals)
     geo = from_data(syms, xyzs, angstrom=angstrom)
