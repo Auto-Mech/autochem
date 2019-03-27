@@ -3,9 +3,9 @@
 (this can be cleaned up with new autoparse functionality)
 """
 import numpy
+from autoparse import cast as _cast
 import autoparse.pattern as app
 import autoparse.find as apf
-import autoparse.conv as apc
 from ..constructors.zmatrix import from_data as _from_data
 
 
@@ -133,7 +133,7 @@ def setval_block_information(setv_str,
         val_ptt=app.capturing(val_ptt),
     )
     caps = apf.all_captures(setv_ptt_, setv_str)
-    val_dct = dict(apc.multis(caps, (str, float)))
+    val_dct = dict(_cast(caps))
     return val_dct
 
 
