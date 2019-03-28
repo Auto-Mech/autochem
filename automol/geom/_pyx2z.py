@@ -1,8 +1,9 @@
 """ pyx2z interface
 """
 import pyx2z
+from automol.constructors.zmatrix import from_data as _zmatrix_from_data
+import autoparser as apr
 import autoparse.pattern as app
-from ..readers.zmatrix import from_string as _zmatrix_reader
 
 
 def from_geometry(geo):
@@ -23,12 +24,14 @@ def to_zmatrix(x2m):
     """
     zma_str = pyx2z.zmatrix_string(x2m)
 
-    zma = _zmatrix_reader(
+    syms, key_mat, name_mat, val_dct = apr.zmatrix.read(
         zma_str,
-        mat_delim_ptt=',',
-        setval_delim_ptt=app.one_of_these([app.LINESPACE, app.NEWLINE]),
-        one_indexed=True, angstrom=False, degree=True,
-    )
+        mat_entry_sep_ptt=app.padded(','),
+        setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
+
+    zma = _zmatrix_from_data(
+        syms, key_mat, name_mat, val_dct,
+        one_indexed=True, angstrom=False, degree=True)
     return zma
 
 

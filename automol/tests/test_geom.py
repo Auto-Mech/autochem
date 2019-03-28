@@ -106,9 +106,8 @@ def test__stereo_inchi():
 def test__from_string():
     """ test geom.from_string
     """
-    print(geom.from_string(geom.string(C2H2CLF_GEO)))
-    # assert geom.almost_equal(
-    #     geom.from_string(geom.string(C2H2CLF_GEO)), C2H2CLF_GEO)
+    assert geom.almost_equal(
+        geom.from_string(geom.string(C2H2CLF_GEO)), C2H2CLF_GEO)
 
 
 def test__from_xyz_string():
@@ -172,9 +171,10 @@ if __name__ == '__main__':
     # test__from_xyz_string()
     # test__from_data()
     # test__is_valid()
-    # test__zmatrix()
     # test__formula()
     # test__coulomb_spectrum()
     # test__set_coordinates()
     # test__argunique_coulomb_spectrum()
     test__from_string()
+    test__from_xyz_string()
+    test__zmatrix()

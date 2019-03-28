@@ -2,7 +2,8 @@
 """
 import numpy
 import phycon.units as pcu
-from ..readers import geom as _geom_reader
+import autoparser as apr
+from automol.constructors.geom import from_data as _from_data
 from ._core import symbols as _symbols
 from ._core import coordinates as _coordinates
 
@@ -10,7 +11,14 @@ from ._core import coordinates as _coordinates
 def from_xyz_string(xyz_str):
     """ read a cartesian geometry from a .xyz string
     """
-    geo = _geom_reader.from_xyz_string(xyz_str)
+    lines = xyz_str.splitlines()
+    try:
+        natms = int(lines[0])
+    except ValueError:
+        raise ValueError('Invalid xyz string')
+
+    geo_str = '\n'.join(lines[2:natms+2])
+    geo = from_string(geo_str, angstrom=True)
     return geo
 
 
@@ -23,10 +31,11 @@ def xyz_string(geo, comment=''):
     return xyz_str
 
 
-def from_string(geo_str, angstrom=True, strict=True):
+def from_string(geo_str, angstrom=True):
     """ read a cartesian geometry from a string
     """
-    geo = _geom_reader.from_string(geo_str, angstrom=angstrom, strict=strict)
+    syms, xyzs = apr.geom.read(geo_str)
+    geo = _from_data(syms, xyzs, angstrom=angstrom)
     return geo
 
 
