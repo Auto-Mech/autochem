@@ -4,12 +4,11 @@ from distutils.core import setup
 
 
 setup(name="autochem",
-      version="0.1.6",
+      version="0.1.7",
       packages=["automol",
                 "automol.constructors",
-                "automol.readers",
-                "automol.cart",
                 "automol.writers",
+                "automol.cart",
                 "automol.inchi",
                 "automol.geom",
                 "automol.zmatrix",

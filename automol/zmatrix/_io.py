@@ -1,7 +1,8 @@
 """ I/O for z-matrices
 """
-from ..readers import zmatrix as _zmatrix_reader
-from ..writers import zmatrix as _zmatrix_writer
+import autoparser as apr
+from automol.constructors.zmatrix import from_data as _from_data
+from automol.writers import zmatrix as _zmatrix_writer
 from ._core import symbols as _symbols
 from ._core import key_matrix as _key_matrix
 from ._core import name_matrix as _name_matrix
@@ -11,7 +12,9 @@ from ._core import values as _values
 def from_zmat_string(zma_str):
     """ read a z-matrix from a .zmat string
     """
-    zma = _zmatrix_reader.from_string(zma_str)
+    syms, key_mat, name_mat, val_dct = apr.zmatrix.read(zma_str)
+    zma = _from_data(syms, key_mat, name_mat, val_dct,
+                     one_indexed=True, angstrom=True, degree=True)
     return zma
 
 
