@@ -24,19 +24,19 @@ def almost_equal_coulomb_spectrum(geo1, geo2, rtol=2e-5):
     return ret
 
 
-def argunique_coulomb_spectrum(geos, rtol=2e-5):
+def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=2e-5):
     """ get indices of unique geometries, by coulomb spectrum
     """
     comp_ = functools.partial(almost_equal_coulomb_spectrum, rtol=rtol)
-    idxs = _argunique(geos, comp_)
+    idxs = _argunique(geos, comp_, seen_items=seen_geos)
     return idxs
 
 
-def _argunique(items, comparison):
+def _argunique(items, comparison, seen_items=()):
     """ get the indices of unique items using some comparison function
     """
     idxs = []
-    seen_items = []
+    seen_items = list(seen_items)
     for idx, item in enumerate(items):
         if not any(comparison(item, seen_item) for seen_item in seen_items):
             idxs.append(idx)
