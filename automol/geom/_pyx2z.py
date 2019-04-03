@@ -2,7 +2,7 @@
 """
 import pyx2z
 from automol.constructors.zmatrix import from_data as _zmatrix_from_data
-import autoparser as apr
+import autoread as ar
 import autoparse.pattern as app
 
 
@@ -24,7 +24,7 @@ def to_zmatrix(x2m):
     """
     zma_str = pyx2z.zmatrix_string(x2m)
 
-    syms, key_mat, name_mat, val_dct = apr.zmatrix.read(
+    syms, key_mat, name_mat, val_dct = ar.zmatrix.read(
         zma_str,
         mat_entry_sep_ptt=',',
         mat_entry_start_ptt=',',

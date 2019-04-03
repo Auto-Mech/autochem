@@ -175,6 +175,6 @@ if __name__ == '__main__':
     # test__coulomb_spectrum()
     # test__set_coordinates()
     # test__argunique_coulomb_spectrum()
-    test__from_string()
     test__from_xyz_string()
     test__zmatrix()
+    test__from_string()
