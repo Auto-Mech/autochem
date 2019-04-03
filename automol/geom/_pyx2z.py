@@ -26,7 +26,8 @@ def to_zmatrix(x2m):
 
     syms, key_mat, name_mat, val_dct = apr.zmatrix.read(
         zma_str,
-        mat_entry_sep_ptt=app.padded(','),
+        mat_entry_sep_ptt=',',
+        mat_entry_start_ptt=',',
         setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
 
     zma = _zmatrix_from_data(

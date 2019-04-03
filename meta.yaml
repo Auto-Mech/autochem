@@ -1,7 +1,7 @@
 # cmd: conda build . -c pacchem -c rdkit -c openbabel
 package:
     name: autochem
-    version: "0.1.7"
+    version: "0.1.8"
 
 source:
     path: .
