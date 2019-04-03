@@ -255,7 +255,7 @@ if __name__ == '__main__':
     # test__set_names()
     # test__set_values()
     test__from_zmat_string()
-    # test__zmat_string()
+    test__zmat_string()
     # test__geometry()
     # test__connectivity_graph()
     # test__coordinate_key_matrix()

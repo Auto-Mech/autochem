@@ -1,5 +1,7 @@
 """ core library defining the geom data structure
 """
+import numpy
+import phycon.units as pcu
 from ..constructors.geom import from_data as _from_data
 
 
@@ -13,13 +15,14 @@ def symbols(geo):
     return syms
 
 
-def coordinates(geo):
+def coordinates(geo, angstrom=False):
     """ atomic coordinates
     """
     if geo:
         _, xyzs = zip(*geo)
     else:
         xyzs = ()
+    xyzs = xyzs if not angstrom else numpy.multiply(xyzs, pcu.BOHR2ANG)
     return xyzs
 
 
