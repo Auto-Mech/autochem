@@ -25,6 +25,14 @@ jobs:
                     flake8 --exit-zero autommol
                     pylint --rcfile=../.pylintrc automol
             - run:
+                name: Test autoread
+                command: |
+                    source activate autochem-env
+                    cd autoread
+                    pytest -v --cov=autoread --pyargs autoread
+                    flake8 --exit-zero autommol
+                    pylint --rcfile=../.pylintrc autoread
+            - run:
                 name: Build/install/test x2z
                 command: |
                     source activate autochem-env

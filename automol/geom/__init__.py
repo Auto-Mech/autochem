@@ -19,6 +19,7 @@ from ._inchi import stereo_inchi
 from ._io import string
 from ._io import from_string
 from ._io import xyz_string
+from ._io import xyz_trajectory_string
 from ._io import from_xyz_string
 from ._repr import formula
 from ._repr import coulomb_spectrum
@@ -45,6 +46,7 @@ __all__ = [
     'string',
     'from_string',
     'xyz_string',
+    'xyz_trajectory_string',
     'from_xyz_string',
     'formula',
     'coulomb_spectrum',

@@ -8,4 +8,5 @@ disable=
     old-style-class,
     too-many-arguments,
     too-many-locals,
-    assignment-from-no-return
+    assignment-from-no-return,
+    duplicate-code
