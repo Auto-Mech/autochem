@@ -32,10 +32,22 @@ def string(geo, angstrom=True):
     return geo_str
 
 
-def xyz_string(geo):
+def xyz_string(geo, comment=None):
     """ write the cartesian geometry to a .xyz string
     """
     syms = _symbols(geo)
     xyzs = _coordinates(geo, angstrom=True)
-    geo_str = aw.geom.write_xyz(syms=syms, xyzs=xyzs)
+    geo_str = aw.geom.write_xyz(syms=syms, xyzs=xyzs, comment=comment)
     return geo_str
+
+
+def xyz_trajectory_string(geo_lst, comments=None):
+    """ write a series of cartesian geometries to a .xyz string
+    """
+    syms_lst = [_symbols(geo) for geo in geo_lst]
+    xyzs_lst = [_coordinates(geo, angstrom=True) for geo in geo_lst]
+    assert len(set(syms_lst)) == 1
+    syms = syms_lst[0]
+    xyz_traj_str = aw.geom.write_xyz_trajectory(syms, xyzs_lst,
+                                                comments=comments)
+    return xyz_traj_str

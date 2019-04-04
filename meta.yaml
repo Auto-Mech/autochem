@@ -23,7 +23,7 @@ requirements:
         - pylint
         - rdkit::rdkit
         - openbabel::openbabel
-        - pacchem::autostring
+        - pacchem::autoparse
         - pacchem::phycon
         - pacchem::x2z
         - pacchem::transformations
