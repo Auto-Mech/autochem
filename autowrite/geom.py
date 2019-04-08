@@ -22,7 +22,7 @@ def write_xyz(syms, xyzs, comment=None):
     assert len(xyzs) == natms
 
     geo_str = write(syms=syms, xyzs=xyzs)
-    xyz_str = '{:d}\n{:s}\n{:s}'.format(natms, comment, geo_str)
+    xyz_str = ' {:d}\n{:s}\n{:s}'.format(natms, comment, geo_str)
     return xyz_str
 
 
