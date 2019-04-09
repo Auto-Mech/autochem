@@ -6,7 +6,8 @@ import phycon.elements as pce
 
 
 def from_data(symbols, key_matrix, name_matrix, values,
-              one_indexed=False, angstrom=False, degree=False):
+              one_indexed=False, angstrom=False, degree=False,
+              complete=True):
     """ z-matrix constructor
 
     :param symbols: atomic symbols
@@ -17,6 +18,8 @@ def from_data(symbols, key_matrix, name_matrix, values,
     :type name_matrix; tuple[tuple[str, str or None, str or None]]
     :param values: coordinate values, by coordinate name
     :type values: dict
+    :param complete: is this a complete z-matrix, with no unspecified values?
+    :type complete: bool
     """
     syms = list(map(pce.standard_case, symbols))
     assert all(sym in pce.element_keys() for sym in syms)
@@ -24,7 +27,7 @@ def from_data(symbols, key_matrix, name_matrix, values,
 
     key_mat = _key_matrix(key_matrix, natms, one_indexed)
     name_mat = _name_matrix(name_matrix, natms)
-    val_dct = _values(values, name_mat, angstrom, degree)
+    val_dct = _values(values, name_mat, angstrom, degree, complete=complete)
 
     mat = tuple(zip(syms, key_mat, name_mat))
     zma = (mat, val_dct)
@@ -59,12 +62,14 @@ def _name_matrix(name_mat, natms):
     return tuple(map(tuple, name_mat))
 
 
-def _values(val_dct, name_mat, angstrom, degree):
+def _values(val_dct, name_mat, angstrom, degree, complete):
     ret_val_dct = {}
 
-    # makes sure the value dictionary is complete
-    assert all(name in val_dct or name is None
-               for name in numpy.ravel(name_mat))
+    # makes sure the value dictionary and variable list partition the set of
+    # coordinate names
+    if complete:
+        name_set = set(numpy.ravel(name_mat)) - {None}
+        assert set(val_dct) == name_set
 
     for name, val in val_dct.items():
         # make sure every entry in the value dictionary corresponds to a

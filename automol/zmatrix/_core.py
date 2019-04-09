@@ -1,5 +1,7 @@
 """ core library defining the z-matrix data structure
 """
+import itertools
+import more_itertools
 import numpy
 import phycon.units as pcu
 from ..constructors.zmatrix import from_data as _from_data
@@ -24,7 +26,7 @@ def _values(val_dct, zma, angstrom, degree):
     """ values post-processing
     """
     dist_names = distance_names(zma)
-    ang_names = angle_names(zma) + dihedral_names(zma)
+    ang_names = central_angle_names(zma) + dihedral_angle_names(zma)
     orig_val_dct = val_dct
 
     val_dct = {}
@@ -104,62 +106,130 @@ def coordinate_key_matrix(zma, one_indexed=False):
     return tuple(map(tuple, coo_key_mat))
 
 
-def distance_names(zma):
-    """ distance coordinate names, from top to bottom (no repeats)
-    """
-    name_mat = numpy.array(name_matrix(zma))
-    return tuple(name_mat[1:, 0])
-
-
-def angle_names(zma):
-    """ angle coordinate names, from top to bottom
-    """
-    name_mat = numpy.array(name_matrix(zma))
-    return tuple(name_mat[2:, 1])
-
-
-def dihedral_names(zma):
-    """ dihedral coordinate names, from top to bottom
-    """
-    name_mat = numpy.array(name_matrix(zma))
-    return tuple(name_mat[3:, 2])
-
-
-def distance_keys(zma, one_indexed=False):
-    """ distance coordinate keys, from top to bottom (no repeats)
-    """
-    coo_key_mat = numpy.array(coordinate_key_matrix(zma, one_indexed))
-    return tuple(coo_key_mat[1:, 0])
-
-
-def angle_keys(zma, one_indexed=False):
-    """ angle coordinate keys, from top to bottom
-    """
-    coo_key_mat = numpy.array(coordinate_key_matrix(zma, one_indexed))
-    return tuple(coo_key_mat[2:, 1])
-
-
-def dihedral_keys(zma, one_indexed=False):
-    """ dihedral coordinate keys, from top to bottom
-    """
-    coo_key_mat = numpy.array(coordinate_key_matrix(zma, one_indexed))
-    return tuple(coo_key_mat[3:, 2])
-
-
 def coordinates(zma, one_indexed=False):
     """ coordinate keys associated with each coordinate name, as a dictionary
 
     (the values are sequences of coordinate keys, since there may be multiple)
     """
-    names = distance_names(zma) + angle_names(zma) + dihedral_names(zma)
-    keys = (distance_keys(zma, one_indexed) + angle_keys(zma, one_indexed) +
-            dihedral_keys(zma, one_indexed))
+    _names = numpy.ravel(name_matrix(zma))
+    coo_keys = numpy.ravel(coordinate_key_matrix(zma, one_indexed))
 
-    coo_dct = {name: () for name in names}
-    for name, key in zip(names, keys):
-        coo_dct[name] += (key,)
+    coo_dct = {name: () for name in _names}
+    for name, coo_key in zip(_names, coo_keys):
+        coo_dct[name] += (coo_key,)
 
+    coo_dct.pop(None)
     return coo_dct
+
+
+def names(zma):
+    """ coordinate names
+    """
+    _names = filter(lambda x: x is not None,
+                    numpy.ravel(numpy.transpose(name_matrix(zma))))
+    return tuple(more_itertools.unique_everseen(_names))
+
+
+def value_names(zma):
+    """ value coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in names(zma) if name in val_dct)
+
+
+def variable_names(zma):
+    """ variable coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in names(zma) if name not in val_dct)
+
+
+def distance_names(zma):
+    """ distance coordinate names
+    """
+    name_mat = numpy.array(name_matrix(zma))
+    return tuple(more_itertools.unique_everseen(name_mat[1:, 0]))
+
+
+def distance_value_names(zma):
+    """ distance value coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in distance_names(zma) if name in val_dct)
+
+
+def distance_variable_names(zma):
+    """ distance variable coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in distance_names(zma) if name not in val_dct)
+
+
+def central_angle_names(zma):
+    """ central angle coordinate names, from top to bottom
+    """
+    name_mat = numpy.array(name_matrix(zma))
+    return tuple(more_itertools.unique_everseen(name_mat[2:, 1]))
+
+
+def central_angle_value_names(zma):
+    """ central angle value coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in central_angle_names(zma)
+                 if name in val_dct)
+
+
+def central_angle_variable_names(zma):
+    """ central angle variable coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in central_angle_names(zma)
+                 if name not in val_dct)
+
+
+def dihedral_angle_names(zma):
+    """ dihedral angle coordinate names, from top to bottom
+    """
+    name_mat = numpy.array(name_matrix(zma))
+    return tuple(more_itertools.unique_everseen(name_mat[3:, 2]))
+
+
+def dihedral_angle_value_names(zma):
+    """ dihedral angle value coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in dihedral_angle_names(zma)
+                 if name in val_dct)
+
+
+def dihedral_angle_variable_names(zma):
+    """ dihedral angle variable coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in dihedral_angle_names(zma)
+                 if name not in val_dct)
+
+
+def angle_names(zma):
+    """ angle coordinate names (dihedral and central)
+    """
+    return tuple(itertools.chain(central_angle_names(zma),
+                                 dihedral_angle_names(zma)))
+
+
+def angle_value_names(zma):
+    """ dihedral angle value coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in angle_names(zma) if name in val_dct)
+
+
+def angle_variable_names(zma):
+    """ dihedral angle variable coordinate names
+    """
+    val_dct = values(zma)
+    return tuple(name for name in angle_names(zma) if name not in val_dct)
 
 
 # value setters
@@ -178,27 +248,27 @@ def set_names(zma, name_dct):
     name_mat[tril_idxs] = list(map(name_dct.__getitem__,
                                    orig_name_mat[tril_idxs]))
 
-    orig_val_dct = values(zma)
     val_dct = {name_dct[orig_name]: val
-               for orig_name, val in orig_val_dct.items()}
+               for orig_name, val in values(zma).items()}
 
-    return _from_data(symbols(zma), key_matrix(zma), name_mat, val_dct)
+    return _from_data(symbols(zma), key_matrix(zma), name_mat, val_dct,
+                      complete=False)
 
 
 def set_values(zma, val_dct):
     """ set coordinate values for the z-matrix
     """
-    new_val_dct = val_dct
-    orig_val_dct = values(zma)
-    assert set(new_val_dct.keys()) <= set(orig_val_dct.keys())
-    val_dct = {}
-    val_dct.update(orig_val_dct)
-    val_dct.update(new_val_dct)
-    return _from_data(symbols(zma), key_matrix(zma), name_matrix(zma), val_dct)
+    _names = names(zma)
+    assert set(val_dct.keys()) <= set(_names)
+
+    new_val_dct = values(zma).copy()
+    new_val_dct.update(val_dct)
+    return _from_data(symbols(zma), key_matrix(zma), name_matrix(zma),
+                      new_val_dct, complete=False)
 
 
 # misc
-def is_valid(zma):
+def is_valid(zma, require_complete=True):
     """ is this a valid zmatrix?
     """
     ret = hasattr(zma, '__len__') and len(zma) == 2
@@ -208,7 +278,14 @@ def is_valid(zma):
         if ret:
             syms, key_mat, name_mat = zip(*mat)
             try:
-                _from_data(syms, key_mat, name_mat, val_dct)
+                _from_data(syms, key_mat, name_mat, val_dct,
+                           complete=require_complete)
             except AssertionError:
                 ret = False
     return ret
+
+
+def is_complete(zma):
+    """ is this a complete zmatrix? (no variables)
+    """
+    return value_names(zma) == names(zma) and not variable_names(zma)

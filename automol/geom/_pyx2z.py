@@ -32,7 +32,7 @@ def to_zmatrix(x2m):
 
     zma = _zmatrix_from_data(
         syms, key_mat, name_mat, val_dct,
-        one_indexed=True, angstrom=False, degree=True)
+        one_indexed=True, angstrom=False, degree=True, complete=True)
     return zma
 
 
