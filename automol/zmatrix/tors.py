@@ -4,8 +4,8 @@ import numpy
 from ..graph import bond_symmetry_numbers as _bond_symmetry_numbers
 from ._graph import connectivity_graph as _connectivity_graph
 from ._core import set_values as _set_values
-from ._core import dihedral_keys as _dihedral_keys
-from ._core import dihedral_names as _dihedral_names
+from ._core import coordinates as _coordinates
+from ._core import dihedral_angle_value_names as _dihedral_angle_value_names
 
 
 def symmetry_numbers(zma, tors_names):
@@ -40,10 +40,12 @@ def samples(zma, nsamp, tors_names, tors_ranges=None):
 def _dihedral_edge_keys(zma):
     """ dihedral bonds, by name
     """
-    dih_names = _dihedral_names(zma)
-    dih_keys = _dihedral_keys(zma)
+    coo_dct = _coordinates(zma)
+    dih_names = _dihedral_angle_value_names(zma)
+    dih_keys_lst = tuple(map(coo_dct.__getitem__, dih_names))
     dih_edg_key_dct = {dih_name: frozenset(dih_key[1:3])
-                       for dih_name, dih_key in zip(dih_names, dih_keys)}
+                       for dih_name, dih_keys in zip(dih_names, dih_keys_lst)
+                       for dih_key in dih_keys}
     return dih_edg_key_dct
 
 

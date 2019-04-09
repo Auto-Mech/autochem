@@ -9,12 +9,13 @@ from ._core import name_matrix as _name_matrix
 from ._core import values as _values
 
 
-def from_zmat_string(zma_str):
+def from_zmat_string(zma_str, complete=True):
     """ read a z-matrix from a .zmat string
     """
     syms, key_mat, name_mat, val_dct = ar.zmatrix.read(zma_str)
     zma = _from_data(syms, key_mat, name_mat, val_dct,
-                     one_indexed=True, angstrom=True, degree=True)
+                     one_indexed=True, angstrom=True, degree=True,
+                     complete=complete)
     return zma
 
 

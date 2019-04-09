@@ -68,7 +68,7 @@ def test__zmatrix():
     assert automol.zmatrix.almost_equal(zma, ref_zma)
 
     tors_names = geom.zmatrix_torsion_coordinate_names(geo)
-    assert set(tors_names) <= set(automol.zmatrix.dihedral_names(zma))
+    assert set(tors_names) <= set(automol.zmatrix.dihedral_angle_names(zma))
 
 
 def test__set_coordinates():
