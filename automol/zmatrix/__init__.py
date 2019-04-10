@@ -26,7 +26,10 @@ from ._core import angle_value_names
 from ._core import angle_variable_names
 from ._core import set_names
 from ._core import set_values
+from ._core import standard_form
 from ._core import is_valid
+from ._core import is_complete
+from ._core import is_standard_form
 from ._io import from_zmat_string
 from ._io import zmat_string
 from ._io import matrix_block_string
@@ -64,7 +67,10 @@ __all__ = [
     'angle_variable_names',
     'set_names',
     'set_values',
+    'standard_form',
     'is_valid',
+    'is_complete',
+    'is_standard_form',
     'from_zmat_string',
     'zmat_string',
     'matrix_block_string',

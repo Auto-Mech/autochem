@@ -56,9 +56,13 @@ def read(string,
         block_ptt_ = start_ptt + block_ptt_
 
     if last:
-        mat_str, setv_str = apf.last_capture(block_ptt_, string, case=case)
+        cap = apf.last_capture(block_ptt_, string, case=case)
+        assert cap is not None
+        mat_str, setv_str = cap
     else:
-        mat_str, setv_str = apf.first_capture(block_ptt_, string, case=case)
+        cap = apf.first_capture(block_ptt_, string, case=case)
+        assert cap is not None
+        mat_str, setv_str = cap
 
     syms, key_mat, name_mat = _matrix_read(
         mat_str,

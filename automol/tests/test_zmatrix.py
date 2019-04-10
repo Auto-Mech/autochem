@@ -246,7 +246,25 @@ def test__is_valid():
     assert zmatrix.is_valid(CH4O_ZMA)
     assert not zmatrix.is_valid(zmatrix.geometry(CH4O_ZMA))
     assert not zmatrix.is_valid(CH4O_VAR_ZMA)
-    assert zmatrix.is_valid(CH4O_VAR_ZMA, require_complete=False)
+    assert zmatrix.is_valid(CH4O_VAR_ZMA, complete=False)
+
+
+def test__is_complete():
+    """ test zmatrix.is_complete
+    """
+    assert zmatrix.is_complete(CH4O_ZMA)
+    assert not zmatrix.is_complete(CH4O_VAR_ZMA)
+
+
+def test__is_standard_form():
+    """ test zmatrix.is_standard_form
+    """
+    assert not zmatrix.is_standard_form(CH4O_ZMA)
+    assert not zmatrix.is_standard_form(CH4O_VAR_ZMA)
+    assert zmatrix.is_standard_form(zmatrix.standard_form(CH4O_ZMA))
+    assert zmatrix.is_standard_form(zmatrix.standard_form(CH4O_VAR_ZMA))
+    print(zmatrix.standard_form(CH4O_ZMA))
+    print(zmatrix.standard_form(CH4O_VAR_ZMA))
 
 
 def test__from_zmat_string():
@@ -321,3 +339,5 @@ if __name__ == '__main__':
     test__is_valid()
     # test__coordinates()
     # test__from_data()
+    test__is_complete()
+    test__is_standard_form()

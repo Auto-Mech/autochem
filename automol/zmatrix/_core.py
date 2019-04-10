@@ -26,7 +26,7 @@ def _values(val_dct, zma, angstrom, degree):
     """ values post-processing
     """
     dist_names = distance_names(zma)
-    ang_names = central_angle_names(zma) + dihedral_angle_names(zma)
+    ang_names = angle_names(zma)
     orig_val_dct = val_dct
 
     val_dct = {}
@@ -267,8 +267,27 @@ def set_values(zma, val_dct):
                       new_val_dct, complete=False)
 
 
+def standard_form(zma):
+    """ set standard variable names for the z-matrix
+    """
+    dist_names = distance_names(zma)
+    cent_ang_names = central_angle_names(zma)
+    dih_ang_names = dihedral_angle_names(zma)
+    name_dct = {}
+    name_dct.update({
+        dist_name: 'r{:d}'.format(num+1)
+        for num, dist_name in enumerate(dist_names)})
+    name_dct.update({
+        cent_ang_name: 'a{:d}'.format(num+1)
+        for num, cent_ang_name in enumerate(cent_ang_names)})
+    name_dct.update({
+        dih_ang_name: 'd{:d}'.format(num+1)
+        for num, dih_ang_name in enumerate(dih_ang_names)})
+    return set_names(zma, name_dct)
+
+
 # misc
-def is_valid(zma, require_complete=True):
+def is_valid(zma, complete=True):
     """ is this a valid zmatrix?
     """
     ret = hasattr(zma, '__len__') and len(zma) == 2
@@ -278,8 +297,7 @@ def is_valid(zma, require_complete=True):
         if ret:
             syms, key_mat, name_mat = zip(*mat)
             try:
-                _from_data(syms, key_mat, name_mat, val_dct,
-                           complete=require_complete)
+                _from_data(syms, key_mat, name_mat, val_dct, complete=complete)
             except AssertionError:
                 ret = False
     return ret
@@ -289,3 +307,15 @@ def is_complete(zma):
     """ is this a complete zmatrix? (no variables)
     """
     return value_names(zma) == names(zma) and not variable_names(zma)
+
+
+def is_standard_form(zma):
+    """ set standard variable names for the z-matrix
+    """
+    dist_names = distance_names(zma)
+    cent_ang_names = central_angle_names(zma)
+    dih_ang_names = dihedral_angle_names(zma)
+    zma = standard_form(zma)
+    return (dist_names == distance_names(zma) and
+            cent_ang_names == central_angle_names(zma) and
+            dih_ang_names == dihedral_angle_names(zma))
