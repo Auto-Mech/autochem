@@ -1,11 +1,12 @@
 """ functions for working with torsional degrees of freedom
 """
 import numpy
-from ..graph import bond_symmetry_numbers as _bond_symmetry_numbers
-from ._graph import connectivity_graph as _connectivity_graph
-from ._core import set_values as _set_values
-from ._core import coordinates as _coordinates
-from ._core import dihedral_angle_value_names as _dihedral_angle_value_names
+from automol.graph import bond_symmetry_numbers as _bond_symmetry_numbers
+from automol.zmatrix._graph import connectivity_graph as _connectivity_graph
+from automol.zmatrix._core import set_values as _set_values
+from automol.zmatrix._core import coordinates as _coordinates
+from automol.zmatrix._core import (dihedral_angle_names as
+                                   _dihedral_angle_names)
 
 
 def symmetry_numbers(zma, tors_names):
@@ -41,7 +42,7 @@ def _dihedral_edge_keys(zma):
     """ dihedral bonds, by name
     """
     coo_dct = _coordinates(zma)
-    dih_names = _dihedral_angle_value_names(zma)
+    dih_names = _dihedral_angle_names(zma)
     dih_keys_lst = tuple(map(coo_dct.__getitem__, dih_names))
     dih_edg_key_dct = {dih_name: frozenset(dih_key[1:3])
                        for dih_name, dih_keys in zip(dih_names, dih_keys_lst)
