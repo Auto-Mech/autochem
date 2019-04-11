@@ -3,12 +3,12 @@
 borrows from https://github.com/tmpchem/computational_chemistry
 """
 import numpy
-from ..constructors.geom import from_data as _geom_from_data
-from ..cart.vec import unit_direction as _unit_direction
-from ..cart.vec import unit_perpendicular as _unit_perpendicular
-from ._core import symbols as _symbols
-from ._core import key_matrix as _key_matrix
-from ._core import value_matrix as _value_matrix
+from automol.constructors.geom import from_data as _geom_from_data
+from automol.cart.vec import unit_direction as _unit_direction
+from automol.cart.vec import unit_perpendicular as _unit_perpendicular
+from automol.zmatrix._core import symbols as _symbols
+from automol.zmatrix._core import key_matrix as _key_matrix
+from automol.zmatrix._core import value_matrix as _value_matrix
 
 
 def geometry(zma):

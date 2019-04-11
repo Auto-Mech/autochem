@@ -1,10 +1,10 @@
 """ molecular descriptor libraries
 """
-from . import smiles
-from . import inchi
-from . import graph
-from . import geom
-from . import zmatrix
+from automol import smiles
+from automol import inchi
+from automol import graph
+from automol import geom
+from automol import zmatrix
 
 __all__ = [
     'smiles',
