@@ -2,7 +2,10 @@
 
 dictionary values must all be tuples of the same length
 """
-from collections.abc import Mapping as _Mapping
+try:
+    from collections.abc import Mapping as _Mapping
+except ImportError:
+    from collections import Mapping as _Mapping
 import numpy
 from .__dict import values_by_key as _values_by_key
 from .__dict import transform_values as _transform_values

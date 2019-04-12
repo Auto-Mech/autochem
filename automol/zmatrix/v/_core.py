@@ -126,8 +126,8 @@ def set_names(vma, name_dct):
     return _from_data(symbols(vma), key_matrix(vma), name_mat)
 
 
-def standard_form(vma):
-    """ set standard variable names for the variable z-matrix
+def standard_names(vma):
+    """ standard names for the coordinates, by their current names
     """
     dist_names = distance_names(vma)
     cent_ang_names = central_angle_names(vma)
@@ -142,6 +142,13 @@ def standard_form(vma):
     name_dct.update({
         dih_ang_name: 'd{:d}'.format(num+1)
         for num, dih_ang_name in enumerate(dih_ang_names)})
+    return name_dct
+
+
+def standard_form(vma):
+    """ set standard variable names for the variable z-matrix
+    """
+    name_dct = standard_names(vma)
     return set_names(vma, name_dct)
 
 

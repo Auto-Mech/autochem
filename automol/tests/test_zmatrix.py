@@ -269,10 +269,14 @@ def test__tors__symmetry_numbers():
 def test__tors__samples():
     """ test zmatrix.tors.samples
     """
-    zmas = zmatrix.tors.samples(CH4O_ZMA, 9, ('d1',))
+    tors_names = ['d1']
+    tors_ranges = zmatrix.tors.sampling_ranges(CH4O_ZMA, tors_names)
+    zmas = zmatrix.tors.samples(CH4O_ZMA, 9, tors_names, tors_ranges)
     assert len(zmas) == 9
 
-    zmas = zmatrix.tors.samples(CH4O2_ZMA, 7, ('d3', 'd4'))
+    tors_names = ['d3', 'd4']
+    tors_ranges = zmatrix.tors.sampling_ranges(CH4O2_ZMA, tors_names)
+    zmas = zmatrix.tors.samples(CH4O2_ZMA, 7, tors_names, tors_ranges)
     assert len(zmas) == 7
 
 

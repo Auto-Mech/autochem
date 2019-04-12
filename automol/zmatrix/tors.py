@@ -24,14 +24,17 @@ def symmetry_numbers(zma, tors_names):
     return tors_sym_nums
 
 
-def samples(zma, nsamp, tors_names, tors_ranges=None):
+def sampling_ranges(zma, tors_names):
+    """ sampling ranges for torsional dihedrals
+    """
+    sym_nums = symmetry_numbers(zma, tors_names)
+    return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
+
+
+def samples(zma, nsamp, tors_names, tors_ranges):
     """ randomly sample over torsional dihedrals
     """
-    if tors_ranges is None:
-        sym_nums = symmetry_numbers(zma, tors_names)
-        tors_ranges = [(0, 2*numpy.pi/sym_num) for sym_num in sym_nums]
-
-    tors_vals_lst = _sample_ranges(tors_ranges, nsamp)
+    tors_vals_lst = _sample_over_ranges(tors_ranges, nsamp)
 
     zmas = tuple(_set_values(zma, dict(zip(tors_names, tors_vals)))
                  for tors_vals in tors_vals_lst)
@@ -50,11 +53,11 @@ def _dihedral_edge_keys(zma):
     return dih_edg_key_dct
 
 
-def _sample_ranges(ranges, nsamp):
+def _sample_over_ranges(rngs, nsamp):
     """ randomly sample over several ranges
     """
-    nrange = len(ranges)
-    samp_mat = numpy.random.rand(nsamp, nrange)
-    for i, (start, stop) in enumerate(ranges):
+    nrng = len(rngs)
+    samp_mat = numpy.random.rand(nsamp, nrng)
+    for i, (start, stop) in enumerate(rngs):
         samp_mat[:, i] = samp_mat[:, i] * (stop - start) + start
     return tuple(map(tuple, samp_mat))

@@ -16,6 +16,7 @@ from automol.zmatrix._core import angle_names
 from automol.zmatrix._core import values
 from automol.zmatrix._core import set_names
 from automol.zmatrix._core import set_values
+from automol.zmatrix._core import standard_names
 from automol.zmatrix._core import standard_form
 from automol.zmatrix._core import is_valid
 from automol.zmatrix._core import is_standard_form
@@ -45,6 +46,7 @@ __all__ = [
     'values',
     'set_names',
     'set_values',
+    'standard_names',
     'standard_form',
     'is_valid',
     'is_standard_form',

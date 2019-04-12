@@ -12,6 +12,7 @@ from automol.zmatrix.v._core import central_angle_names
 from automol.zmatrix.v._core import dihedral_angle_names
 from automol.zmatrix.v._core import angle_names
 from automol.zmatrix.v._core import set_names
+from automol.zmatrix.v._core import standard_names
 from automol.zmatrix.v._core import standard_form
 from automol.zmatrix.v._core import is_valid
 from automol.zmatrix.v._core import is_standard_form
@@ -31,6 +32,7 @@ __all__ = [
     'dihedral_angle_names',
     'angle_names',
     'set_names',
+    'standard_names',
     'standard_form',
     'is_valid',
     'is_standard_form',

@@ -136,15 +136,16 @@ def set_values(zma, val_dct):
                       _v_.name_matrix(vma), new_val_dct)
 
 
+def standard_names(zma):
+    """ standard names for the coordinates, by their current names
+    """
+    return _v_.standard_names(var_(zma))
+
+
 def standard_form(zma):
     """ set standard variable names for the z-matrix
     """
-    orig_vma = var_(zma)
-    vma = _v_.standard_form(orig_vma)
-    name_dct = dict(zip(numpy.ravel(_v_.name_matrix(orig_vma)),
-                        numpy.ravel(_v_.name_matrix(vma))))
-    name_dct.pop(None)
-    return set_names(zma, name_dct)
+    return set_names(zma, standard_names(zma))
 
 
 # misc
