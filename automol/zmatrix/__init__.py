@@ -2,6 +2,7 @@
 """
 from automol.constructors.zmatrix import from_data
 from automol.zmatrix._core import var_
+from automol.zmatrix._core import count
 from automol.zmatrix._core import symbols
 from automol.zmatrix._core import key_matrix
 from automol.zmatrix._core import name_matrix
@@ -18,6 +19,7 @@ from automol.zmatrix._core import set_names
 from automol.zmatrix._core import set_values
 from automol.zmatrix._core import standard_names
 from automol.zmatrix._core import standard_form
+from automol.zmatrix._core import join
 from automol.zmatrix._core import is_valid
 from automol.zmatrix._core import is_standard_form
 from automol.zmatrix._io import from_string
@@ -32,6 +34,7 @@ from automol.zmatrix import tors
 __all__ = [
     'from_data',
     'var_',
+    'count',
     'symbols',
     'key_matrix',
     'name_matrix',
@@ -48,6 +51,7 @@ __all__ = [
     'set_values',
     'standard_names',
     'standard_form',
+    'join',
     'is_valid',
     'is_standard_form',
     'from_string',

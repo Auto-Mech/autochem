@@ -89,7 +89,7 @@ def test__coordinate_key_matrix():
                                ((5, 3), (5, 3, 2), (5, 3, 2, 1)),
                                ((6, 3), (6, 3, 2), (6, 3, 2, 1)))
 
-    assert (zmatrix.coordinate_key_matrix(CH4O_ZMA, one_indexed=True)
+    assert (zmatrix.coordinate_key_matrix(CH4O_ZMA, shift=1)
             == one_indexed_coo_key_mat)
 
 
@@ -107,7 +107,7 @@ def test__coordinates():
         'r1': ((2, 1),), 'r2': ((3, 2),), 'r3': ((4, 3), (5, 3), (6, 3)),
         'a1': ((3, 2, 1),), 'a2': ((4, 3, 2), (5, 3, 2), (6, 3, 2)),
         'd1': ((4, 3, 2, 1),), 'd2': ((5, 3, 2, 1),), 'd3': ((6, 3, 2, 1),)}
-    assert (zmatrix.coordinates(CH4O_ZMA, one_indexed=True) ==
+    assert (zmatrix.coordinates(CH4O_ZMA, shift=1) ==
             one_indexed_coo_dct)
 
 
@@ -280,6 +280,44 @@ def test__tors__samples():
     assert len(zmas) == 7
 
 
+def test__join():
+    """ test zmatrix.join
+    """
+    zma1 = ((('C', (None, None, None), (None, None, None)),
+             ('O', (0, None, None), ('R1', None, None)),
+             ('H', (0, 1, None), ('R2', 'A2', None)),
+             ('H', (0, 1, 2), ('R3', 'A3', 'D3'))),
+            {'R1': 2.31422,
+             'R2': 2.08191, 'A2': 2.13342,
+             'R3': 2.08191, 'A3': 2.13342, 'D3': 3.14159})
+    zma2 = ((('X', (None, None, None), (None, None, None)),), {})
+    zma3 = ((('N', (None, None, None), (None, None, None)),
+             ('O', (0, None, None), ('R1', None, None)),
+             ('O', (0, 1, None), ('R2', 'A2', None))),
+            {'R1': 2.69082, 'R2': 2.69082, 'A2': 1.89019})
+
+    zma1 = zmatrix.standard_form(zma1)
+    zma3 = zmatrix.standard_form(zma3, shift=zmatrix.count(zma1)+1)
+
+    join_key_mat1 = ((3, 0, 1),)
+    join_name_mat1 = (('jr4', 'ja3', 'jd2'),)
+    join_val_dct1 = {'jr4': 3.78, 'ja3': 1.57, 'jd2': 3.14}
+    zma = zmatrix.join(zma1, zma2, join_key_mat1, join_name_mat1,
+                       join_val_dct1)
+
+    join_key_mat2 = ((3, 4, 0),
+                     (None, 3, 4),
+                     (None, None, 3))
+    join_name_mat2 = (('jr5', 'ja4', 'jd3'),
+                      (None, 'ja5', 'jd4'),
+                      (None, None, 'jd5'))
+    val_dct2 = {'jr5': 2.38,
+                'ja4': 1.53, 'jd3': 3.32,
+                'ja5': 1.83, 'jd4': 1.39, 'jd5': 0.}
+    zma = zmatrix.join(zma, zma3, join_key_mat2, join_name_mat2, val_dct2)
+    print(zmatrix.string(zma))
+
+
 if __name__ == '__main__':
     test__from_data()
     test__coordinate_key_matrix()
@@ -292,3 +330,4 @@ if __name__ == '__main__':
     test__geometry()
     test__tors__symmetry_numbers()
     test__tors__samples()
+    test__join()

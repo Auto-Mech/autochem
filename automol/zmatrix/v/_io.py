@@ -22,7 +22,7 @@ def string(vma):
     """
     vma_str = aw.zmatrix.matrix_block(
         syms=_symbols(vma),
-        key_mat=_key_matrix(vma, one_indexed=True),
+        key_mat=_key_matrix(vma, shift=1),
         name_mat=_name_matrix(vma),
     )
     return vma_str
