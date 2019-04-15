@@ -94,13 +94,13 @@ def test__connectivity_graph():
 def test__inchi():
     """ test geom.inchi
     """
-    assert geom.inchi(C2H2CLF_GEO) == C2H2CLF_ICH
+    assert geom.inchi(C2H2CLF_GEO, stereo=False) == C2H2CLF_ICH
 
 
 def test__stereo_inchi():
     """ test geom.inchi
     """
-    assert geom.stereo_inchi(C2H2CLF_GEO) == C2H2CLF_STE_ICH
+    assert geom.inchi(C2H2CLF_GEO, stereo=True) == C2H2CLF_STE_ICH
 
 
 def test__from_string():
@@ -167,7 +167,6 @@ def test__argunique_coulomb_spectrum():
 if __name__ == '__main__':
     # test__connectivity_graph()
     # test__inchi()
-    # test__stereo_inchi()
     # test__from_xyz_string()
     # test__from_data()
     # test__is_valid()

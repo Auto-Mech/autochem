@@ -15,7 +15,7 @@ from ._rdkit import geometry as _rdm_to_geometry
 from ._rdkit import connectivity_graph as _rdm_to_connectivity_graph
 from ._pybel import from_inchi as _pbm_from_inchi
 from ._pybel import geometry as _pbm_to_geometry
-from ..geom import stereo_inchi as _stereo_inchi_from_geometry
+from ..geom import inchi as _inchi_from_geometry
 from ..graph import inchi as _inchi_from_graph
 from ..graph import stereo_inchi as _stereo_inchi_from_stereo_graph
 
@@ -91,13 +91,13 @@ def geometry(ich):
     try:
         rdm = _rdm_from_inchi(ich)
         geo = _rdm_to_geometry(rdm)
-        geo_ich = _stereo_inchi_from_geometry(geo)
+        geo_ich = _inchi_from_geometry(geo, stereo=True)
         assert _has_same_connectivity(ich, geo_ich)
         assert _has_compatible_stereo(ich, geo_ich)
     except (AssertionError, RuntimeError):
         pbm = _pbm_from_inchi(ich)
         geo = _pbm_to_geometry(pbm)
-        geo_ich = _stereo_inchi_from_geometry(geo)
+        geo_ich = _inchi_from_geometry(geo, stereo=True)
         assert _has_same_connectivity(ich, geo_ich)
         assert _has_compatible_stereo(ich, geo_ich)
     return geo
