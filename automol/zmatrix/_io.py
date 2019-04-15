@@ -23,7 +23,7 @@ def string(zma):
     """
     zma_str = aw.zmatrix.write(
         syms=_v_.symbols(_var_(zma)),
-        key_mat=_v_.key_matrix(_var_(zma), one_indexed=True),
+        key_mat=_v_.key_matrix(_var_(zma), shift=1),
         name_mat=_v_.name_matrix(_var_(zma)),
         val_dct=_values(zma, angstrom=True, degree=True)
     )

@@ -6,6 +6,12 @@ import numpy
 from automol.constructors.vmatrix import from_data as _from_data
 
 
+def count(zma):
+    """ the number of z-matrix rows (number of atoms or dummy atoms)
+    """
+    return len(symbols(zma))
+
+
 def symbols(vma):
     """ atomic symbols, by z-matrix row
     """
@@ -16,7 +22,7 @@ def symbols(vma):
     return syms
 
 
-def key_matrix(vma, one_indexed=False):
+def key_matrix(vma, shift=0):
     """ coordinate atom keys, by z-matrix row and column
     """
     if vma:
@@ -24,11 +30,10 @@ def key_matrix(vma, one_indexed=False):
     else:
         key_mat = ()
 
-    # post-processing for one-indexing
-    if one_indexed:
-        key_mat = numpy.array(key_mat)
-        tril_idxs = numpy.tril_indices(key_mat.shape[0], -1, m=3)
-        key_mat[tril_idxs] += 1
+    # post-processing for adding the shift
+    key_mat = numpy.array(key_mat)
+    tril_idxs = numpy.tril_indices(key_mat.shape[0], -1, m=3)
+    key_mat[tril_idxs] += shift
 
     return tuple(map(tuple, key_mat))
 
@@ -43,25 +48,25 @@ def name_matrix(vma):
     return name_mat
 
 
-def coordinate_key_matrix(vma, one_indexed=False):
+def coordinate_key_matrix(vma, shift=0):
     """ coordinate keys, by z-matrix row and column
     """
-    key_mat = key_matrix(vma, one_indexed=one_indexed)
+    key_mat = key_matrix(vma, shift=shift)
     natms = len(key_mat)
-    atm_keys = range(natms) if not one_indexed else range(1, natms+1)
+    atm_keys = range(shift, natms+shift)
     coo_key_mat = [[(atm_key,) + key_row[:col+1]
                     if key_row[col] is not None else None for col in range(3)]
                    for atm_key, key_row in zip(atm_keys, key_mat)]
     return tuple(map(tuple, coo_key_mat))
 
 
-def coordinates(vma, one_indexed=False):
+def coordinates(vma, shift=0):
     """ coordinate keys associated with each coordinate name, as a dictionary
 
     (the values are sequences of coordinate keys, since there may be multiple)
     """
     _names = numpy.ravel(name_matrix(vma))
-    coo_keys = numpy.ravel(coordinate_key_matrix(vma, one_indexed))
+    coo_keys = numpy.ravel(coordinate_key_matrix(vma, shift))
 
     coo_dct = {name: () for name in _names}
     for name, coo_key in zip(_names, coo_keys):
@@ -126,7 +131,7 @@ def set_names(vma, name_dct):
     return _from_data(symbols(vma), key_matrix(vma), name_mat)
 
 
-def standard_names(vma):
+def standard_names(vma, shift=0):
     """ standard names for the coordinates, by their current names
     """
     dist_names = distance_names(vma)
@@ -134,13 +139,13 @@ def standard_names(vma):
     dih_ang_names = dihedral_angle_names(vma)
     name_dct = {}
     name_dct.update({
-        dist_name: 'r{:d}'.format(num+1)
+        dist_name: 'r{:d}'.format(num + shift + 1)
         for num, dist_name in enumerate(dist_names)})
     name_dct.update({
-        cent_ang_name: 'a{:d}'.format(num+1)
+        cent_ang_name: 'a{:d}'.format(num + shift + 1)
         for num, cent_ang_name in enumerate(cent_ang_names)})
     name_dct.update({
-        dih_ang_name: 'd{:d}'.format(num+1)
+        dih_ang_name: 'd{:d}'.format(num + shift + 1)
         for num, dih_ang_name in enumerate(dih_ang_names)})
     return name_dct
 

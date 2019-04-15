@@ -1,5 +1,6 @@
 """ core library defining the z-matrix data structure
 """
+import itertools
 import numpy
 import phycon.units as pcu
 from automol.zmatrix import v as _v_
@@ -14,16 +15,22 @@ def var_(zma):
     return vma
 
 
+def count(zma):
+    """ the number of z-matrix rows (number of atoms or dummy atoms)
+    """
+    return _v_.count(var_(zma))
+
+
 def symbols(zma):
     """ atomic symbols, by z-matrix row
     """
     return _v_.symbols(var_(zma))
 
 
-def key_matrix(zma, one_indexed=False):
+def key_matrix(zma, shift=0):
     """ coordinate atom keys, by z-matrix row and column
     """
-    return _v_.key_matrix(var_(zma), one_indexed)
+    return _v_.key_matrix(var_(zma), shift=shift)
 
 
 def name_matrix(zma):
@@ -43,18 +50,18 @@ def value_matrix(zma):
     return val_mat
 
 
-def coordinate_key_matrix(zma, one_indexed=False):
+def coordinate_key_matrix(zma, shift=0):
     """ coordinate keys, by z-matrix row and column
     """
-    return _v_.coordinate_key_matrix(var_(zma), one_indexed)
+    return _v_.coordinate_key_matrix(var_(zma), shift=shift)
 
 
-def coordinates(zma, one_indexed=False):
+def coordinates(zma, shift=0):
     """ coordinate keys associated with each coordinate name, as a dictionary
 
     (the values are sequences of coordinate keys, since there may be multiple)
     """
-    return _v_.coordinates(var_(zma), one_indexed)
+    return _v_.coordinates(var_(zma), shift=shift)
 
 
 def names(zma):
@@ -136,16 +143,63 @@ def set_values(zma, val_dct):
                       _v_.name_matrix(vma), new_val_dct)
 
 
-def standard_names(zma):
+def standard_names(zma, shift=0):
     """ standard names for the coordinates, by their current names
     """
-    return _v_.standard_names(var_(zma))
+    return _v_.standard_names(var_(zma), shift=shift)
 
 
-def standard_form(zma):
+def standard_form(zma, shift=0):
     """ set standard variable names for the z-matrix
     """
-    return set_names(zma, standard_names(zma))
+    return set_names(zma, standard_names(zma, shift=shift))
+
+
+# operations
+def join(zma1, zma2, join_key_mat, join_name_mat, join_val_dct):
+    """ join two z-matrices together
+    """
+    syms1 = symbols(zma1)
+    syms2 = symbols(zma2)
+    natms1 = count(zma1)
+    natms2 = count(zma2)
+    key_mat1 = numpy.array(key_matrix(zma1))
+    key_mat2 = numpy.array(key_matrix(zma2, shift=natms1))  # note the shift
+    name_mat1 = numpy.array(name_matrix(zma1))
+    name_mat2 = numpy.array(name_matrix(zma2))
+    val_dct1 = values(zma1)
+    val_dct2 = values(zma2)
+
+    join_natms = min(natms2, 3)
+    assert len(join_key_mat) == len(join_name_mat) == join_natms
+
+    join_key_mat = numpy.array(join_key_mat, dtype=numpy.object_)
+    join_name_mat = numpy.array(join_name_mat, dtype=numpy.object_)
+
+    # make sure we aren't overwriting values -- the constructor should take
+    # care of the rest of the necessary validation
+    assert numpy.all(numpy.equal(join_key_mat, None) ==
+                     numpy.equal(join_key_mat, None))
+
+    join_idxs = numpy.not_equal(join_key_mat, None)
+    assert numpy.all(numpy.equal(key_mat2[join_idxs], None))
+    assert numpy.all(numpy.equal(name_mat2[join_idxs], None))
+    key_mat2[join_idxs] = join_key_mat[join_idxs]
+    name_mat2[join_idxs] = join_name_mat[join_idxs]
+
+    syms = tuple(itertools.chain(syms1, syms2))
+    key_mat = tuple(itertools.chain(key_mat1, key_mat2))
+    name_mat = tuple(itertools.chain(name_mat1, name_mat2))
+
+    # Could be made to allow for joins with common zma1 and zma2 names (for
+    # symmetry constraints).  Not sure if we really want that.
+    val_dct = val_dct1.copy()
+    assert not set(val_dct.keys()) & set(val_dct2.keys())
+    assert not set(val_dct.keys()) & set(join_val_dct.keys())
+    val_dct.update(val_dct2)
+    val_dct.update(join_val_dct)
+
+    return _from_data(syms, key_mat, name_mat, val_dct)
 
 
 # misc
@@ -169,3 +223,17 @@ def is_standard_form(zma):
     """ set standard variable names for the z-matrix
     """
     return is_valid(zma) and _v_.is_standard_form(var_(zma))
+
+
+# helpers
+def _coordinate_count(natms):
+    """ z-matrix degrees of freedom, by the number of atoms
+    """
+    assert natms > 0
+    if natms == 1:
+        ncoo = 0
+    elif natms == 2:
+        ncoo = 1
+    elif natms > 2:
+        ncoo = 3 * natms - 6
+    return ncoo

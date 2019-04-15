@@ -1,6 +1,7 @@
 """ variable z-matrix
 """
 from automol.constructors.vmatrix import from_data
+from automol.zmatrix.v._core import count
 from automol.zmatrix.v._core import symbols
 from automol.zmatrix.v._core import key_matrix
 from automol.zmatrix.v._core import name_matrix
@@ -21,6 +22,7 @@ from automol.zmatrix.v._io import string
 
 __all__ = [
     'from_data',
+    'count',
     'symbols',
     'key_matrix',
     'name_matrix',
