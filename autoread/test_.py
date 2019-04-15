@@ -75,6 +75,26 @@ def test__geom():
                     (-0.8761735478, 0.8179459165, -0.389906474),
                     (0.8761735478, -0.8179459165, -0.389906474))
 
+    string = (' ATOMIC COORDINATES\n'
+              ' \n'
+              ' NR ATOM  CHARGE    X       Y       Z\n'
+              ' \n'
+              '  1 O    8.00  0.000000000  0.000000000  -0.109999068\n'
+              '  2 H    1.00  0.000000000  -1.635000492  0.875999553\n'
+              '  3 H    1.00  0.000000000  1.635000492  0.875999553\n')
+
+    syms, xyzs = autoread.geom.read(
+        string,
+        start_ptt=app.padded(app.NEWLINE).join([
+            app.escape('ATOMIC COORDINATES'),
+            app.LINE, app.LINE, app.LINE, '']),
+        line_start_ptt=app.UNSIGNED_INTEGER,
+        line_sep_ptt=app.FLOAT,)
+    assert syms == ('O', 'H', 'H')
+    assert xyzs == ((0.0, 0.0, -0.109999068),
+                    (0.0, -1.635000492, 0.875999553),
+                    (0.0, 1.635000492, 0.875999553))
+
 
 def test__matrix():
     """ test autoread.matrix
@@ -220,5 +240,5 @@ def test__matrix():
 
 if __name__ == '__main__':
     # test__energy()
-    # test__geom()
-    test__matrix()
+    # test__matrix()
+    test__geom()
