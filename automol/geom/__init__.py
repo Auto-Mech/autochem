@@ -15,7 +15,6 @@ from ._zmatrix import angle
 from ._zmatrix import dihedral
 from ._graph import connectivity_graph
 from ._inchi import inchi
-from ._inchi import stereo_inchi
 from ._io import string
 from ._io import from_string
 from ._io import xyz_string
@@ -42,7 +41,6 @@ __all__ = [
     'dihedral',
     'connectivity_graph',
     'inchi',
-    'stereo_inchi',
     'string',
     'from_string',
     'xyz_string',

@@ -7,14 +7,20 @@ from ..graph import (stereo_inchi_from_coordinates as
                      _stereo_inchi_from_coordinates)
 
 
-def inchi(geo):
+def inchi(geo, stereo=True):
+    """ InChI string of a cartesian geometry
+    """
+    return _stereo_inchi(geo) if stereo else _connectivity_inchi(geo)
+
+
+def _connectivity_inchi(geo):
     """ connectivity InChI string of a cartesian geometry
     """
     cgr = _connectivity_graph(geo)
     return _inchi_from_connectivity_graph(cgr)
 
 
-def stereo_inchi(geo):
+def _stereo_inchi(geo):
     """ stereo-specific InChI string of a cartesian geometry
     """
     cgr = _connectivity_graph(geo)
