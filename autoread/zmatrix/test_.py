@@ -106,6 +106,68 @@ def test__matrix():
                         ('R2', 'A2', None),
                         ('R2', 'A2', 'D3'))
 
+    string = (' Symbolic Z-matrix:\n'
+              ' Charge = 0 Multiplicity = 1\n'
+              ' C\n'
+              ' C     1 R1\n'
+              ' H     1 R2  2 A2\n'
+              ' H     1 R3  2 A3  3 D3  0\n'
+              ' H     1 R4  2 A4  3 D4  0\n'
+              ' C     2 R5  1 A5  3 D5  0\n'
+              ' C     2 R6  1 A6  6 D6  0\n'
+              ' H     6 R7  2 A7  1 D7  0\n'
+              ' H     6 R8  2 A8  8 D8  0\n'
+              ' H     6 R9  2 A9  8 D9  0\n'
+              ' C     7 R10  2 A10  1 D10  0\n'
+              ' H     7 R11  2 A11  11 D11  0\n'
+              ' O     11 R12  7 A12  2 D12  0\n'
+              ' H     11 R13  7 A13  13 D13  0\n'
+              ' H     11 R14  7 A14  13 D14  0\n'
+              ' H     13 R15  11 A15  7 D15  0\n')
+    syms, key_mat, name_mat = autoread.zmatrix.matrix.read(
+        string,
+        start_ptt=app.padded(app.NEWLINE).join([
+            app.escape('Symbolic Z-matrix:'), app.LINE, '']),
+        line_end_ptt=app.maybe(app.UNSIGNED_INTEGER))
+
+    assert syms == (
+        'C', 'C', 'H', 'H', 'H', 'C', 'C', 'H', 'H', 'H', 'C', 'H', 'O', 'H',
+        'H', 'H')
+    assert key_mat == (
+        (None, None, None),
+        (1, None, None),
+        (1, 2, None),
+        (1, 2, 3),
+        (1, 2, 3),
+        (2, 1, 3),
+        (2, 1, 6),
+        (6, 2, 1),
+        (6, 2, 8),
+        (6, 2, 8),
+        (7, 2, 1),
+        (7, 2, 11),
+        (11, 7, 2),
+        (11, 7, 13),
+        (11, 7, 13),
+        (13, 11, 7))
+    assert name_mat == (
+        (None, None, None),
+        ('R1', None, None),
+        ('R2', 'A2', None),
+        ('R3', 'A3', 'D3'),
+        ('R4', 'A4', 'D4'),
+        ('R5', 'A5', 'D5'),
+        ('R6', 'A6', 'D6'),
+        ('R7', 'A7', 'D7'),
+        ('R8', 'A8', 'D8'),
+        ('R9', 'A9', 'D9'),
+        ('R10', 'A10', 'D10'),
+        ('R11', 'A11', 'D11'),
+        ('R12', 'A12', 'D12'),
+        ('R13', 'A13', 'D13'),
+        ('R14', 'A14', 'D14'),
+        ('R15', 'A15', 'D15'))
+
     string = (' -----------------------------------------------------------\n'
               '              Z-MATRIX (ANGSTROMS AND DEGREES)\n'
               '    nt   At 1      Lengt    2      Alph           Bet      J\n'
@@ -145,7 +207,6 @@ def test__matrix():
                         (1.090938, 106.548, 118.98),
                         (1.093052, 111.241, 238.017),
                         (1.360181, 108.248, 60.99))
-    print(name_mat)
 
 
 def test__setval():
