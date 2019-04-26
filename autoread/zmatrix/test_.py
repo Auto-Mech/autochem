@@ -73,6 +73,42 @@ def test_():
         'A3': 109.528, 'D3': 120.808, 'R4': 2.06458, 'A4': 108.982,
         'D4': 240.404, 'R5': 1.83748, 'A5': 107.091, 'D5': 299.596}
 
+    string = ('C \n'
+              'X , 1 , R1 \n'
+              'C , 1 , R2 , 2 , A2 \n'
+              'H , 1 , R3 , 2 , A3 , 3 , D3 \n'
+              'C , 3 , R4 , 1 , A4 , 2 , D4 \n'
+              'H , 3 , R5 , 1 , A5 , 5 , D5 \n'
+              'C , 5 , R6 , 3 , A6 , 1 , D6 \n'
+              'H , 5 , R7 , 3 , A7 , 7 , D7 \n'
+              'C , 7 , R8 , 5 , A8 , 3 , D8 \n'
+              'H , 7 , R9 , 5 , A9 , 9 , D9 \n'
+              'O , 9 , R10, 7 , A10, 5 , D10\n'
+              'H , 9 , R11, 7 , A11, 11, D11\n'
+              '\n'
+              'R1  = 1       \n'
+              'R2  = 2.45306  A2  = 90      \n'
+              'R3  = 2.0156   A3  = 90       D3  = 180      \n'
+              'R4  = 2.72923  A4  = 125.99   D4  = 0        \n'
+              'R5  = 2.05621  A5  = 118.134  D5  = 180      \n'
+              'R6  = 2.53427  A6  = 131.892  D6  = 0.004769 \n'
+              'R7  = 2.06371  A7  = 112.345  D7  = 180      \n'
+              'R8  = 2.7902   A8  = 128.119  D8  = 1.62e-05 \n'
+              'R9  = 2.05471  A9  = 119.045  D9  = 180      \n'
+              'R10 = 2.31772  A10 = 120.738  D10 = 180      \n'
+              'R11 = 2.07277  A11 = 117.734  D11 = 180      \n')
+
+    syms, key_mat, name_mat, val_dct = autoread.zmatrix.read(
+        string,
+        mat_entry_start_ptt=',',
+        mat_entry_sep_ptt=',',
+        setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
+    import numpy
+    print(syms)
+    print(numpy.array(key_mat))
+    print(numpy.array(name_mat))
+    print(val_dct)
+
 
 def test__matrix():
     """ test autoread.zmatrix.matrix
@@ -265,5 +301,5 @@ def test__setval():
 
 if __name__ == '__main__':
     # test__setval()
-    # test_()
-    test__matrix()
+    # test__matrix()
+    test_()

@@ -5,7 +5,7 @@ import autoparse.pattern as app
 import autoparse.find as apf
 
 NAME_PATTERN = app.VARIABLE_NAME
-VALUE_PATTERN = app.one_of_these([app.FLOAT, app.INTEGER])
+VALUE_PATTERN = app.NUMBER
 ENTRY_SEP_PATTERN = app.escape('=')
 SEP_PATTERN = app.padded(app.NEWLINE)
 

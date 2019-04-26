@@ -3,14 +3,12 @@
 from autoparse import cast as _cast
 import autoparse.find as apf
 import autoparse.pattern as app
-
-SYM_PATTERN = app.LETTER + app.maybe(app.LETTER)
-VALUE_PATTERN = app.one_of_these([app.FLOAT, app.INTEGER])
+from autoread import par
 
 
 def read(string,
-         sym_ptt=SYM_PATTERN,
-         val_ptt=VALUE_PATTERN,
+         sym_ptt=par.Pattern.ATOM_SYMBOL,
+         val_ptt=par.Pattern.NUMERIC_VALUE,
          start_ptt=None,
          line_sep_ptt=None,
          line_start_ptt=None,
@@ -36,7 +34,8 @@ def read(string,
     return syms, xyzs
 
 
-def read_xyz(string, sym_ptt=SYM_PATTERN, val_ptt=VALUE_PATTERN):
+def read_xyz(string, sym_ptt=par.Pattern.ATOM_SYMBOL,
+             val_ptt=par.Pattern.NUMERIC_VALUE):
     """ read geometry from a .xyz string
     """
     lines = string.splitlines()
@@ -50,8 +49,8 @@ def read_xyz(string, sym_ptt=SYM_PATTERN, val_ptt=VALUE_PATTERN):
     return syms, xyzs
 
 
-def block_pattern(sym_ptt=SYM_PATTERN,
-                  val_ptt=VALUE_PATTERN,
+def block_pattern(sym_ptt=par.Pattern.ATOM_SYMBOL,
+                  val_ptt=par.Pattern.NUMERIC_VALUE,
                   line_sep_ptt=None,
                   line_start_ptt=None):
     """ geometry block pattern
@@ -63,8 +62,8 @@ def block_pattern(sym_ptt=SYM_PATTERN,
     return block_ptt
 
 
-def line_pattern(sym_ptt=SYM_PATTERN,
-                 val_ptt=VALUE_PATTERN,
+def line_pattern(sym_ptt=par.Pattern.ATOM_SYMBOL,
+                 val_ptt=par.Pattern.NUMERIC_VALUE,
                  sep_ptt=None,
                  start_ptt=None):
     """ geometry line pattern

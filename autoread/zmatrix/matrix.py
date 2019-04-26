@@ -4,8 +4,8 @@ import numpy
 from autoparse import cast as _cast
 import autoparse.find as apf
 import autoparse.pattern as app
+from autoread import par
 
-SYM_PATTERN = app.LETTER + app.maybe(app.LETTER)
 KEY_PATTERN = app.UNSIGNED_INTEGER
 NAME_PATTERN = app.VARIABLE_NAME
 ENTRY_SEP_PATTERN = app.LINESPACE
@@ -13,7 +13,7 @@ ENTRY_SEP_PATTERN = app.LINESPACE
 
 def read(string,
          start_ptt=None,
-         sym_ptt=SYM_PATTERN,
+         sym_ptt=par.Pattern.ATOM_SYMBOL,
          key_ptt=KEY_PATTERN,
          name_ptt=NAME_PATTERN,
          entry_start_ptt=None,
@@ -76,7 +76,7 @@ def read(string,
     return syms, key_mat, name_mat
 
 
-def block_pattern(sym_ptt=SYM_PATTERN,
+def block_pattern(sym_ptt=par.Pattern.ATOM_SYMBOL,
                   key_ptt=KEY_PATTERN,
                   name_ptt=NAME_PATTERN,
                   entry_start_ptt=None,
@@ -111,7 +111,7 @@ def block_pattern(sym_ptt=SYM_PATTERN,
 
 
 def line_pattern(num,
-                 sym_ptt=SYM_PATTERN,
+                 sym_ptt=par.Pattern.ATOM_SYMBOL,
                  key_ptt=KEY_PATTERN,
                  name_ptt=NAME_PATTERN,
                  entry_start_ptt=None,

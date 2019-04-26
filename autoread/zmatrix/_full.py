@@ -6,11 +6,10 @@ from autoread.zmatrix.matrix import read as _matrix_read
 from autoread.zmatrix.setval import read as _setval_read
 from autoread.zmatrix.matrix import block_pattern as _matrix_block_pattern
 from autoread.zmatrix.setval import block_pattern as _setval_block_pattern
+from autoread import par
 
-SYM_PATTERN = app.LETTER + app.maybe(app.LETTER)
 KEY_PATTERN = app.UNSIGNED_INTEGER
 NAME_PATTERN = app.VARIABLE_NAME
-VALUE_PATTERN = app.one_of_these([app.FLOAT, app.INTEGER])
 MAT_ENTRY_SEP_PATTERN = app.LINESPACE
 SETVAL_START_PATTERN = app.one_or_more(app.NEWLINE)
 SETVAL_ENTRY_SEP_PATTERN = app.escape('=')
@@ -19,10 +18,10 @@ SETVAL_SEP_PATTERN = app.padded(app.NEWLINE)
 
 def read(string,
          start_ptt=None,
-         sym_ptt=SYM_PATTERN,
+         sym_ptt=par.Pattern.ATOM_SYMBOL,
          key_ptt=KEY_PATTERN,
          name_ptt=NAME_PATTERN,
-         val_ptt=VALUE_PATTERN,
+         val_ptt=par.Pattern.NUMERIC_VALUE,
          mat_entry_start_ptt=None,
          mat_entry_sep_ptt=MAT_ENTRY_SEP_PATTERN,
          mat_entry_end_ptt=None,
@@ -86,10 +85,10 @@ def read(string,
     return syms, key_mat, name_mat, val_dct
 
 
-def block_pattern(sym_ptt=SYM_PATTERN,
+def block_pattern(sym_ptt=par.Pattern.ATOM_SYMBOL,
                   key_ptt=KEY_PATTERN,
                   name_ptt=NAME_PATTERN,
-                  val_ptt=VALUE_PATTERN,
+                  val_ptt=par.Pattern.NUMERIC_VALUE,
                   mat_entry_start_ptt=None,
                   mat_entry_sep_ptt=MAT_ENTRY_SEP_PATTERN,
                   mat_entry_end_ptt=None,
