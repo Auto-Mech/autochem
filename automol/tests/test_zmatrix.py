@@ -270,13 +270,15 @@ def test__tors__samples():
     """ test zmatrix.tors.samples
     """
     tors_names = ['d1']
-    tors_ranges = zmatrix.tors.sampling_ranges(CH4O_ZMA, tors_names)
-    zmas = zmatrix.tors.samples(CH4O_ZMA, 9, tors_names, tors_ranges)
+    tors_range_vals = zmatrix.tors.sampling_ranges(CH4O_ZMA, tors_names)
+    tors_range_dct = dict(zip(tors_names, tors_range_vals))
+    zmas = zmatrix.tors.samples(CH4O_ZMA, 9, tors_range_dct)
     assert len(zmas) == 9
 
     tors_names = ['d3', 'd4']
-    tors_ranges = zmatrix.tors.sampling_ranges(CH4O2_ZMA, tors_names)
-    zmas = zmatrix.tors.samples(CH4O2_ZMA, 7, tors_names, tors_ranges)
+    tors_range_vals = zmatrix.tors.sampling_ranges(CH4O2_ZMA, tors_names)
+    tors_range_dct = dict(zip(tors_names, tors_range_vals))
+    zmas = zmatrix.tors.samples(CH4O2_ZMA, 7, tors_range_dct)
     assert len(zmas) == 7
 
 

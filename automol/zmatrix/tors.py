@@ -31,9 +31,11 @@ def sampling_ranges(zma, tors_names):
     return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
 
 
-def samples(zma, nsamp, tors_names, tors_ranges):
+def samples(zma, nsamp, tors_range_dct):
     """ randomly sample over torsional dihedrals
     """
+    tors_names = tuple(tors_range_dct.keys())
+    tors_ranges = tuple(tors_range_dct.values())
     tors_vals_lst = _sample_over_ranges(tors_ranges, nsamp)
 
     zmas = tuple(_set_values(zma, dict(zip(tors_names, tors_vals)))
