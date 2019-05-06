@@ -453,15 +453,29 @@ def test__inchi__key__second_hash():
         mol.inchi.inchi_key(C2H2F2_ICH_STEREO_UNKNOWN)) == 'HXYFBOIP')
 
 
-def test__inchi__key__is_standard_neutral():
-    """ inchi.key.is_standard_neutral()
+def test__inchi__key__version_indicator():
+    """ inchi.key.version_indicator()
     """
-    assert (mol.inchi.key.is_standard_neutral(
-        mol.inchi.inchi_key(C2H2F2_ICH)) is True)
-    assert (mol.inchi.key.is_standard_neutral(
-        mol.inchi.inchi_key(C2H2F2_ICH_NO_STEREO)) is True)
-    assert (mol.inchi.key.is_standard_neutral(
-        mol.inchi.inchi_key(C2H2F2_ICH_STEREO_UNKNOWN)) is False)
+    assert (mol.inchi.key.version_indicator(
+        mol.inchi.inchi_key(C2H2F2_ICH)) == 'SA')
+    assert (mol.inchi.key.version_indicator(
+        mol.inchi.inchi_key(C2H2F2_ICH_NO_STEREO)) == 'SA')
+    assert (mol.inchi.key.version_indicator(
+        mol.inchi.inchi_key(C2H2F2_ICH_STEREO_UNKNOWN)) == 'NA')
+
+
+def test__inchi__key__protonation_indicator():
+    """ inchi.key.protonation_indicator()
+    """
+    ich1 = 'InChI=1S/C2H5NO2/c3-1-2(4)5/h1,3H2,(H,4,5)'
+    ich2 = 'InChI=1S/C2H5NO2/c3-1-2(4)5/h1,3H2,(H,4,5)/p-1'
+    ich3 = 'InChI=1S/C2H5NO2/c3-1-2(4)5/h1,3H2,(H,4,5)/p+1'
+    assert (mol.inchi.key.protonation_indicator(mol.inchi.inchi_key(ich1))
+            == 'N')
+    assert (mol.inchi.key.protonation_indicator(mol.inchi.inchi_key(ich2))
+            == 'M')
+    assert (mol.inchi.key.protonation_indicator(mol.inchi.inchi_key(ich3))
+            == 'O')
 
 
 def test__inchi__geometry():
@@ -526,23 +540,24 @@ def test__inchi__stereo_graph():
 
 
 if __name__ == '__main__':
-    test__smiles__inchi()
-    test__inchi__smiles()
-    test__inchi__recalculate()
-    test__inchi__is_closed()
-    test__inchi__prefix()
-    test__inchi__version()
-    test__inchi__formula_layer()
-    test__inchi__key_layer()
-    test__inchi__key_layer_content()
-    test__inchi__core_parent()
-    test__inchi__atom_stereo_elements()
-    test__inchi__bond_stereo_elements()
-    test__inchi__has_unknown_stereo_elements()
-    test__inchi__compatible_stereoisomers()
-    test__inchi__key__first_hash()
-    test__inchi__key__second_hash()
-    test__inchi__key__is_standard_neutral()
-    test__inchi__geometry()
-    test__inchi__connectivity_graph()
-    test__inchi__stereo_graph()
+    # test__smiles__inchi()
+    # test__inchi__smiles()
+    # test__inchi__recalculate()
+    # test__inchi__is_closed()
+    # test__inchi__prefix()
+    # test__inchi__version()
+    # test__inchi__formula_layer()
+    # test__inchi__key_layer()
+    # test__inchi__key_layer_content()
+    # test__inchi__core_parent()
+    # test__inchi__atom_stereo_elements()
+    # test__inchi__bond_stereo_elements()
+    # test__inchi__has_unknown_stereo_elements()
+    # test__inchi__compatible_stereoisomers()
+    # test__inchi__key__first_hash()
+    # test__inchi__key__second_hash()
+    test__inchi__key__version_indicator()
+    test__inchi__key__protonation_indicator()
+    # test__inchi__geometry()
+    # test__inchi__connectivity_graph()
+    # test__inchi__stereo_graph()

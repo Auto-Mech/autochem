@@ -13,16 +13,19 @@ class PARSE():
     """ InChIKey parser """
     _HASH1 = _UPPERCASE_LETTER * 14
     _HASH2 = _UPPERCASE_LETTER * 8
-    _SVP = _UPPERCASE_LETTER * 2 + _escape('-') + _UPPERCASE_LETTER
+    _VERSION = _UPPERCASE_LETTER * 2
+    _PROT = _UPPERCASE_LETTER
 
     HASH1_KEY = 'hash1'
     HASH2_KEY = 'hash2'
-    SVP_KEY = 'svp'
+    VERSION_KEY = 'version'
+    PROT_KEY = 'protonation'
     PATTERN = (
         _STRING_START +
         _named_capturing(_HASH1, name=HASH1_KEY) + _escape('-') +
         _named_capturing(_HASH2, name=HASH2_KEY) +
-        _named_capturing(_SVP, name=SVP_KEY) + _STRING_END)
+        _named_capturing(_VERSION, name=VERSION_KEY) + _escape('-') +
+        _named_capturing(_PROT, name=PROT_KEY) + _STRING_END)
 
 
 def is_valid(ick):
@@ -30,15 +33,6 @@ def is_valid(ick):
     """
     assert isinstance(ick, (str, bytes, bytearray))
     return _has_match(PARSE.PATTERN, ick)
-
-
-def is_standard_neutral(ick):
-    """ is this a standard, netural InChIKey?
-    """
-    assert is_valid(ick)
-    cap_dct = _first_named_capture(PARSE.PATTERN, ick)
-    svp = cap_dct[PARSE.SVP_KEY]
-    return svp == 'SA-N'
 
 
 def first_hash(ick):
@@ -51,9 +45,27 @@ def first_hash(ick):
 
 
 def second_hash(ick):
-    """ the second hash block, indicating connectivity
+    """ the second hash block, indicating stereochemistry etc.
     """
     assert is_valid(ick)
     cap_dct = _first_named_capture(PARSE.PATTERN, ick)
     hash2 = cap_dct[PARSE.HASH2_KEY]
     return hash2
+
+
+def version_indicator(ick):
+    """ the version indicator following the second hash block
+    """
+    assert is_valid(ick)
+    cap_dct = _first_named_capture(PARSE.PATTERN, ick)
+    ver = cap_dct[PARSE.VERSION_KEY]
+    return ver
+
+
+def protonation_indicator(ick):
+    """ protonation indicator (last character of the key)
+    """
+    assert is_valid(ick)
+    cap_dct = _first_named_capture(PARSE.PATTERN, ick)
+    prot = cap_dct[PARSE.PROT_KEY]
+    return prot
