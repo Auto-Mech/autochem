@@ -7,7 +7,7 @@ const double Phys_const::kelv = 3.166829e-6;
 const double Phys_const::kcal = 1.59362e-3;
 const double Phys_const::incm = 4.55633e-6;
 
-double Phys_const::str2fac(const std::string& unit) throw(Error::General) 
+double Phys_const::str2fac(const std::string& unit)  
 {
   const char funame [] = "Phys_const::str2fac: ";
 

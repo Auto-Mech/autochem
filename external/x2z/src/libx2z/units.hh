@@ -26,7 +26,7 @@ struct Phys_const
   static double kcal2hart (double x) { return x*kcal; }
   static double hart2kcal (double x) { return x/kcal; }
 
-  static double str2fac (const std::string&) throw(Error::General);
+  static double str2fac (const std::string&) ;
 };
 
 #endif

@@ -7,7 +7,7 @@
 
 /************************** Atom description ****************************/
 
-const char* AtomBase::name() const throw(Error::General)
+const char* AtomBase::name() const 
 {
   const char funame [] = "AtomBase::name: ";
 
@@ -44,7 +44,7 @@ const char* AtomBase::name() const throw(Error::General)
   }
 }
 
-void AtomBase::_str2num(const std::string& name) throw(Error::General)
+void AtomBase::_str2num(const std::string& name) 
 {
   const char funame [] = "AtomBase::set(const std::string&): ";
 
@@ -81,7 +81,7 @@ void AtomBase::_str2num(const std::string& name) throw(Error::General)
   _isot = _default_isot();
 }
 
-int AtomBase::_default_isot () const throw(Error::General)
+int AtomBase::_default_isot () const 
 {
   const char funame [] = "AtomBase::_default_isot: ";
 
@@ -119,7 +119,7 @@ int AtomBase::_default_isot () const throw(Error::General)
   }
 }
 
-double AtomBase::mass () const throw(Error::General)
+double AtomBase::mass () const 
 {
   const char funame [] = "AtomBase::mass: ";
 
@@ -233,7 +233,7 @@ double AtomBase::mass () const throw(Error::General)
   }
 }
 
-unsigned AtomBase::valence () const throw(Error::General)
+unsigned AtomBase::valence () const 
 {
   const char funame [] = "AtomBase::valence: ";
 
@@ -266,7 +266,7 @@ unsigned AtomBase::valence () const throw(Error::General)
   }
 }
 
-void Atom::_read (std::istream& from) throw(Error::General)
+void Atom::_read (std::istream& from) 
 {
     const char funame [] = "Atom::_read: ";
 

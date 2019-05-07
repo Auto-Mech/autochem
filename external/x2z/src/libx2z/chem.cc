@@ -70,7 +70,7 @@ void MolecGeom::operator *= (double d)
     *at *= d;
 }
 
-MolecOrient::MolecOrient (const MolecGeom& m) throw(Error::General) : MolecGeom(m) 
+MolecOrient::MolecOrient (const MolecGeom& m)  : MolecGeom(m) 
 {
   const char funame [] = "MolecOrient::MolecOrient (const MolecGeom&): ";
 
@@ -181,12 +181,12 @@ MolecOrient::MolecOrient (const MolecGeom& m) throw(Error::General) : MolecGeom(
     }
 } 
 
-int  MolecOrient::sym_num () const throw(Error::General)
+int  MolecOrient::sym_num () const 
 {
   return compare(*this, *this, SYMNUM); 
 }
 
-bool MolecOrient::is_enantiomer () const throw(Error::General)
+bool MolecOrient::is_enantiomer () const 
 {
   if(_mt == NONLINEAR) {
     MolecGeom m = *this;
@@ -197,7 +197,7 @@ bool MolecOrient::is_enantiomer () const throw(Error::General)
 }
 
 int compare (const MolecOrient& m1, const MolecOrient& m2, 
-	     MolecOrient::mode_t mode) throw(Error::General)
+	     MolecOrient::mode_t mode) 
 {
   const char funame [] = "MolecOrient::compare: ";
 
@@ -419,7 +419,7 @@ int compare (const MolecOrient& m1, const MolecOrient& m2,
   return result;
 }
 
-PrimStruct::PrimStruct (const MolecGeom& g) throw(Error::General)
+PrimStruct::PrimStruct (const MolecGeom& g) 
   : ConMat<unsigned>(g.size()), MolecGeom(g), _la(g.size(), false)
 {
   const char funame [] = "PrimStruct::PrimStruct(const MolecGeom&): ";
@@ -569,7 +569,7 @@ std::list<std::list<int> > PrimStruct::connected_group () const
 
 // check if the bond belong to a ring structure
 //
-bool PrimStruct::is_ring (int at1, int at2) const throw(Error::General)
+bool PrimStruct::is_ring (int at1, int at2) const 
 {
   const char funame [] = "PrimStruct::is_ring: ";
 
@@ -615,7 +615,7 @@ std::string PrimStruct::group_stoicheometry (const std::list<int>& group) const
 /*
 // minimal number of bonds between two atoms
 //
-int  PrimStruct::distance (int at1, int at2) const throw(Error::General)
+int  PrimStruct::distance (int at1, int at2) const 
 {
   const char funame [] = "PrimStruct::distance: ";
 
@@ -656,7 +656,7 @@ int  PrimStruct::distance (int at1, int at2) const throw(Error::General)
 */
 
 MolecStruct::MolecStruct (const PrimStruct& prim) 
-  throw(Error::General) : PrimStruct(prim)
+   : PrimStruct(prim)
 {
   const char funame [] = "MolecStruct::MolecStruct(const PrimStruct&): ";
 
@@ -829,6 +829,16 @@ MolecStruct::MolecStruct (const PrimStruct& prim)
     //
   } // main cycle
 
+  // atom map
+  for(int i = 0; i < _cpath.size(); ++i) {
+    //
+    itemp = _cpath[i].atom;
+    
+    if(itemp >= 0)
+      //
+      _atom_map[itemp] = i;
+  }
+    
   /*
   std::cout << "C_Path:\n"
 	    << std::setw(7) << "line #"
@@ -1120,14 +1130,14 @@ MolecStruct::MolecStruct (const PrimStruct& prim)
 		_coval(DIHEDRAL, ref0) = angle((*this)[_cpath[ref0].atom], 
 						     (*this)[_cpath[ref1].atom],
 						     (*this)[_cpath[ref2].atom], 
-						     (*this)[2]);
+						     (*this)[_cpath[2   ].atom]);
 	      }
 	      else {
 		//
 		_coval(DIHEDRAL, ref0) = angle((*this)[_cpath[ref0].atom],
 						     (*this)[_cpath[ref1].atom],
 						     (*this)[_cpath[ref2].atom],
-						     (*this)[1]);
+						     (*this)[_cpath[1   ].atom]);
 	      }
 	    }
 	  }
@@ -1172,6 +1182,22 @@ MolecStruct::MolecStruct (const PrimStruct& prim)
 	    
 	    throw Error::General();
 	  }
+	  
+	  for(std::list<std::list<int> >::iterator git = _rotvar[ref0].begin(); git != _rotvar[ref0].end(); ++git) {
+	    //
+	    for(std::list<int>::iterator it = git->begin(); it != git->end(); ++it)
+	      //
+	      if(*it == _cpath[ref1].atom || *it == _cpath[ref2].atom) {
+		//
+		itemp = *it;
+		
+		git->erase(it);
+		
+		git->push_front(itemp);
+		
+		break;
+	      }
+	  }
 	}
 	//
 	//
@@ -1186,6 +1212,19 @@ MolecStruct::MolecStruct (const PrimStruct& prim)
   }
   
   _zmat = to.str();
+}
+
+// atom-to-zmatrix map
+//
+int MolecStruct::atom_map (int i) const
+{
+  std::map<int, int>::const_iterator it = _atom_map.find(i);
+  
+  if(it != _atom_map.end())
+    //
+    return it->second;
+  
+  return -1;
 }
 
 void MolecStruct::print (std::ostream& to, const std::string& offset) const
@@ -1314,7 +1353,7 @@ std::vector<int> MolecStruct::atom_ordering() const
 }
 
 // check if the bond is single
-bool MolecStruct::is_single (int at0, int at1) const throw(Error::General)
+bool MolecStruct::is_single (int at0, int at1) const 
 {
   const char funame [] = "MolecStruct::is_single: "; 
 
@@ -1338,7 +1377,7 @@ bool MolecStruct::is_radical (int at) const
   return false;
 }
 
-bool MolecStruct::is_beta (int at0, int at1) const throw(Error::General)
+bool MolecStruct::is_beta (int at0, int at1) const 
 {
   // is the bond single one
   //
@@ -1391,7 +1430,7 @@ double MolecStruct::bond_order (int i, int j) const
 }
 
 void MolecStruct::set_bond_order (int i, int j, unsigned order, int s)
-  throw(Error::General)
+  
 {
   const char funame [] =  "MolecStruct::set_bond_order (int, int, unsigned, int): ";
 
@@ -1403,7 +1442,7 @@ void MolecStruct::set_bond_order (int i, int j, unsigned order, int s)
   _resonance[s](i, j) = order;
 }
 
-void MolecStruct::remove_resonance (int i) throw(Error::General)
+void MolecStruct::remove_resonance (int i) 
 {
   const char funame [] = "MolecStruct::remove_resonance(int): ";
 
@@ -1415,7 +1454,7 @@ void MolecStruct::remove_resonance (int i) throw(Error::General)
   _resonance.erase(_resonance.begin() + i);
 }
 
-void MolecStruct::add_resonance (const ConMat<unsigned>& cm) throw(Error::General)
+void MolecStruct::add_resonance (const ConMat<unsigned>& cm) 
 {
   const char funame [] = "MolecStruct::add_resonance (const ConMat<unsigned>&): ";
 

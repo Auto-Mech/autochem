@@ -31,7 +31,7 @@ namespace Exception {
     Base (const Base& b)        : _mesg(b._mesg)  {}
     Base (const std::string& s) : _mesg(s)        {}
     Base (const char*        s) : _mesg(s)        {}
-    ~Base () throw() {}
+    ~Base ()  {}
 
     template<typename T>
     Base& operator<< (const T&);

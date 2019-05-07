@@ -58,11 +58,11 @@ private:
   double _dm [3]; // distance matrix of first three atoms
 
 public:
-  MolecOrient (const MolecGeom&) throw(Error::General); 
+  MolecOrient (const MolecGeom&) ; 
   operator MolecGeom () const { return *this; }
 
-  int  sym_num       () const throw(Error::General);
-  bool is_enantiomer () const throw(Error::General);
+  int  sym_num       () const ;
+  bool is_enantiomer () const ;
   bool is_plane  () const { return _mt == PLANE; }
   bool is_linear () const { return _mt == LINEAR; }
 
@@ -70,11 +70,11 @@ public:
   const Atom& operator [] (int i) const { return MolecGeom::operator[](i); }
 
   friend int compare (const MolecOrient&, const MolecOrient&, MolecOrient::mode_t) 
-    throw(Error::General);
+    ;
 };
 
 int compare (const MolecOrient&, const MolecOrient&, MolecOrient::mode_t)
-    throw(Error::General);
+    ;
 
 // connection graph
 //
@@ -84,7 +84,7 @@ class PrimStruct : public ConMat<unsigned>, private MolecGeom {
   
 public:
   //
-  explicit PrimStruct (const MolecGeom&) throw(Error::General);
+  explicit PrimStruct (const MolecGeom&) ;
   
   const Atom& operator [] (int i) const { return MolecGeom::operator[](i); }
   
@@ -98,9 +98,9 @@ public:
 
   bool is_connected () const { if(connected_group().size() == 1) return true; return false; }
   
-  //int distance (int, int) const throw(Error::General);
+  //int distance (int, int) const ;
   
-  bool is_ring (int, int) const throw(Error::General);
+  bool is_ring (int, int) const ;
   
   bool is_linear (int at) const { return _la[at]; }
 
@@ -147,6 +147,8 @@ class MolecStruct : public PrimStruct
 
   std::list<int> _constvar; // constants
 
+  std::map<int, int> _atom_map; // atom-to-zmatrix map
+
 public:
   
   enum {
@@ -157,24 +159,25 @@ public:
 
   static const char* var_name (int);
 
-  explicit MolecStruct (const PrimStruct&) throw(Error::General);
+  explicit MolecStruct (const PrimStruct&) ;
 
   unsigned  bond_order (int, int, int) const;
   double    bond_order (int, int)      const;
 
   int resonance_count () const { return _resonance.size(); }
 
+
   std::vector<int> atom_ordering() const;
   
-  void set_bond_order (int i, int j, unsigned order, int bs =0) throw(Error::General);
-  void remove_resonance (int i) throw(Error::General);
+  void set_bond_order (int i, int j, unsigned order, int bs =0) ;
+  void remove_resonance (int i) ;
   void add_resonance ();
   
-  void add_resonance (const ConMat<unsigned>&) throw(Error::General);
+  void add_resonance (const ConMat<unsigned>&) ;
   void print (std::ostream&, const std::string& = std::string()) const;
 
-  bool is_single  (int at0, int at1) const throw(Error::General);
-  bool is_beta    (int at0, int at1) const throw(Error::General);
+  bool is_single  (int at0, int at1) const ;
+  bool is_beta    (int at0, int at1) const ;
   bool is_radical (int at)           const;
 
   const std::string&            zmatrix () const { return _zmat; }
@@ -185,7 +188,8 @@ public:
   const std::list<int>&       const_var () const { return _constvar; }
 
   const MultiArray<double>&          zmat_coval () const { return _coval; }
-  
+
+  int atom_map (int i) const;
 };
 
 #endif

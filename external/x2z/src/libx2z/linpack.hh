@@ -7,7 +7,7 @@
 /********************** General Vector Operations ***************************/
 
 double normalize (double*, int);
-double orthogonalize (double*, const double*, int) throw(Error::General);
+double orthogonalize (double*, const double*, int) ;
 double vdistance (const double*, const double*, int);
 double vlength (const double*, int);
 double vdot (const double*, const double*, int);
@@ -21,13 +21,13 @@ class PseudoArray
     int _size;
 
 public:
-    PseudoArray (T*, int) throw(Error::General);
-    T& operator[] (int i) const throw(Error::General);
+    PseudoArray (T*, int) ;
+    T& operator[] (int i) const ;
     int size() { return _size; }
 };
 
 template <typename T>
-PseudoArray<T>::PseudoArray (T* p, int s) throw(Error::General) : _begin(p), _size(s)
+PseudoArray<T>::PseudoArray (T* p, int s)  : _begin(p), _size(s)
 {
   const char funame [] = "PseudoArray<T>::PseudoArray: ";
 
@@ -45,7 +45,7 @@ PseudoArray<T>::PseudoArray (T* p, int s) throw(Error::General) : _begin(p), _si
 }
 
 template <typename T>
-T& PseudoArray<T>::operator[] (int i) const throw(Error::General)
+T& PseudoArray<T>::operator[] (int i) const 
 {
     const char funame [] = "PseudoArray<T>::operator[]: ";
 
@@ -70,7 +70,7 @@ class StridePointer
   int _stride;
 
 public:
-  StridePointer (T*, int =1) throw(Error::General);
+  StridePointer (T*, int =1) ;
   int stride () const { return _stride; }
   T& operator*  () const { return *_pnt; }
   T* operator-> () const { return  _pnt; }
@@ -85,7 +85,7 @@ public:
   StridePointer operator+   (int d) const { return StridePointer(_pnt + d * _stride, _stride); }
   StridePointer operator-   (int d) const { return StridePointer(_pnt - d * _stride, _stride); }
 
-  int operator-   (const StridePointer&) const throw(Error::General);
+  int operator-   (const StridePointer&) const ;
 };
 
 template <typename T> 
@@ -95,7 +95,7 @@ StridePointer<T> operator+ (int d, const StridePointer<T>& p)
 }
 
 template <typename T> 
-int StridePointer<T>::operator- (const StridePointer& sp) const throw(Error::General)
+int StridePointer<T>::operator- (const StridePointer& sp) const 
 {
   const char funame [] = "StridePointer::operator- (const StridePointer&): ";
 
@@ -114,7 +114,7 @@ int StridePointer<T>::operator- (const StridePointer& sp) const throw(Error::Gen
 }
 
 template <typename T>
-StridePointer<T>::StridePointer (T* p, int s) throw(Error::General) : _pnt(p), _stride(s) 
+StridePointer<T>::StridePointer (T* p, int s)  : _pnt(p), _stride(s) 
 {
   const char funame [] = "StridePointer<T>::StridePointer: ";
 
@@ -140,7 +140,7 @@ class ConstStridePointer
   int _stride;
 
 public:
-  ConstStridePointer (const T*, int =1) throw(Error::General);
+  ConstStridePointer (const T*, int =1) ;
   ConstStridePointer (const StridePointer<T>& p) : _pnt(p), _stride(p.stride()) {}
   int stride () const { return _stride; }
   const T& operator* () const { return *_pnt; }
@@ -160,7 +160,7 @@ public:
   ConstStridePointer operator-   (int d) const 
   { return ConstStridePointer(_pnt - d * _stride, _stride); }
 
-  int operator- (const ConstStridePointer&) const throw(Error::General);
+  int operator- (const ConstStridePointer&) const ;
 };
 
 template <typename T> 
@@ -170,7 +170,7 @@ ConstStridePointer<T> operator+ (int d, const ConstStridePointer<T>& p)
 }
 
 template <typename T> 
-int ConstStridePointer<T>::operator- (const ConstStridePointer& sp) const throw(Error::General)
+int ConstStridePointer<T>::operator- (const ConstStridePointer& sp) const 
 {
   const char funame [] = "ConstStridePointer::operator- (const ConstStridePointer&): ";
 
@@ -189,7 +189,7 @@ int ConstStridePointer<T>::operator- (const ConstStridePointer& sp) const throw(
 }
 
 template <typename T>
-ConstStridePointer<T>::ConstStridePointer (const T* p, int s) throw(Error::General) 
+ConstStridePointer<T>::ConstStridePointer (const T* p, int s)  
     : _pnt(p), _stride(s) 
 {
   const char funame [] = "ConstStridePointer<T>::ConstStridePointer: ";
@@ -253,18 +253,18 @@ public:
     iterator begin () { return ConstStridePointer<T>(_start, _stride); }
     iterator end   () { return ConstStridePointer<T>(_stop , _stride); }
 
-    ConstSlice(const T* st, int sz, int sd =1) throw(Error::General);
+    ConstSlice(const T* st, int sz, int sd =1) ;
 
     const T*  start  () const { return _start; }
 
     int size   () const { return _size; }
     int stride () const { return _stride; }
 
-    const T&  operator[] (int) const throw(Error::Range);
+    const T&  operator[] (int) const ;
     
     // scalar product
-    T operator* (const ConstSlice&) const throw(Error::General);
-    T operator* (const Slice<T>&)   const throw(Error::General);
+    T operator* (const ConstSlice&) const ;
+    T operator* (const Slice<T>&)   const ;
     T operator* (const T*)    const;
 
     T max (int* =0) const;
@@ -275,7 +275,7 @@ public:
 };
 
 template <typename T>
-ConstSlice<T>::ConstSlice(const T* st, int sz, int sd) throw(Error::General)
+ConstSlice<T>::ConstSlice(const T* st, int sz, int sd) 
   : _start(st), _size(sz), _stride(sd), _stop(st + sz * sd)
 {
   const char funame [] = "ConstSlice<T>::ConstSlice: ";
@@ -300,7 +300,7 @@ ConstSlice<T>::ConstSlice(const T* st, int sz, int sd) throw(Error::General)
 }
 
 template <typename T>
-const T& ConstSlice<T>::operator[] (int i) const throw(Error::Range)
+const T& ConstSlice<T>::operator[] (int i) const 
 {
   const char funame [] = "ConstSlice<T>::operator[]: ";
 
@@ -315,7 +315,7 @@ const T& ConstSlice<T>::operator[] (int i) const throw(Error::Range)
 }
 
 template <typename T>
-T ConstSlice<T>::operator* (const Slice<T>& s) const throw(Error::General)
+T ConstSlice<T>::operator* (const Slice<T>& s) const 
 {
   const char funame [] = "ConstSlice<T>::operator*(const Slice<T>&): ";
   
@@ -340,7 +340,7 @@ T ConstSlice<T>::operator* (const Slice<T>& s) const throw(Error::General)
 }
 
 template <typename T>
-T ConstSlice<T>::operator* (const ConstSlice& s) const throw(Error::General)
+T ConstSlice<T>::operator* (const ConstSlice& s) const 
 {
   const char funame [] = "ConstSlice<T>::operator* (const ConstSlice&): ";
 
@@ -444,7 +444,7 @@ public:
   iterator begin () { return StridePointer<T>(_start, _stride); }
   iterator end   () { return StridePointer<T>(_stop , _stride); }
 
-  Slice(T* st, int sz, int sd =1) throw(Error::General);
+  Slice(T* st, int sz, int sd =1) ;
 
   const T*  start  () const { return _start; }
   T*        start  ()       { return _start; }
@@ -452,12 +452,12 @@ public:
   int size   () const { return _size; }
   int stride () const { return _stride; }
 
-  const T&  operator[] (int) const throw(Error::Range);
-  T&        operator[] (int)       throw(Error::Range);
+  const T&  operator[] (int) const ;
+  T&        operator[] (int)       ;
 
   // scalar product
-  T operator* (const Slice&)         const throw(Error::General);
-  T operator* (const ConstSlice<T>&) const throw(Error::General);
+  T operator* (const Slice&)         const ;
+  T operator* (const ConstSlice<T>&) const ;
   T operator* (const T*)     const;
 
   T max (int* =0) const;
@@ -467,17 +467,17 @@ public:
   T vdot ()       const;
   
   // block operations
-  void operator=  (const Slice&) throw(Error::General);// copy values
-  void operator+= (const Slice&) throw(Error::General);
-  void operator-= (const Slice&) throw(Error::General);
-  void operator*= (const Slice&) throw(Error::General);
-  void operator/= (const Slice&) throw(Error::General);
+  void operator=  (const Slice&) ;// copy values
+  void operator+= (const Slice&) ;
+  void operator-= (const Slice&) ;
+  void operator*= (const Slice&) ;
+  void operator/= (const Slice&) ;
 
-  void operator=  (const ConstSlice<T>&) throw(Error::General);// copy values
-  void operator+= (const ConstSlice<T>&) throw(Error::General);
-  void operator-= (const ConstSlice<T>&) throw(Error::General);
-  void operator*= (const ConstSlice<T>&) throw(Error::General);
-  void operator/= (const ConstSlice<T>&) throw(Error::General);
+  void operator=  (const ConstSlice<T>&) ;// copy values
+  void operator+= (const ConstSlice<T>&) ;
+  void operator-= (const ConstSlice<T>&) ;
+  void operator*= (const ConstSlice<T>&) ;
+  void operator/= (const ConstSlice<T>&) ;
 
   void operator=  (const T*);
   void operator+= (const T*);
@@ -494,7 +494,7 @@ public:
 };
 
 template <typename T>
-Slice<T>::Slice(T* st, int sz, int sd) throw(Error::General)
+Slice<T>::Slice(T* st, int sz, int sd) 
   : _start(st), _size(sz), _stride(sd), _stop(st + sz * sd)
 {
   const char funame [] = "Slice<T>::Slice: ";
@@ -519,7 +519,7 @@ Slice<T>::Slice(T* st, int sz, int sd) throw(Error::General)
 }
 
 template <typename T>
-const T& Slice<T>::operator[] (int i) const throw(Error::Range)
+const T& Slice<T>::operator[] (int i) const 
 {
   const char funame [] = "Slice<T>::operator[]: ";
 
@@ -534,7 +534,7 @@ const T& Slice<T>::operator[] (int i) const throw(Error::Range)
 }
 
 template <typename T>
-T& Slice<T>::operator[] (int i) throw(Error::Range)
+T& Slice<T>::operator[] (int i) 
 {
   const char funame [] = "Slice<T>::operator[]: ";
 
@@ -549,7 +549,7 @@ T& Slice<T>::operator[] (int i) throw(Error::Range)
 }
 
 template <typename T>
-T Slice<T>::operator* (const Slice& s) const throw(Error::General)
+T Slice<T>::operator* (const Slice& s) const 
 {
   const char funame [] = "Slice<T>::operator*(const Slice&): ";
 
@@ -573,7 +573,7 @@ T Slice<T>::operator* (const Slice& s) const throw(Error::General)
 }
 
 template <typename T>
-T Slice<T>::operator* (const ConstSlice<T>& s) const throw(Error::General)
+T Slice<T>::operator* (const ConstSlice<T>& s) const 
 {
   const char funame [] = "Slice<T>::operator*(const ConstSlice<T>&): ";
   
@@ -660,7 +660,7 @@ T Slice<T>::vdot() const
 }
 
 template <typename T>
-void Slice<T>::operator= (const Slice& s) throw(Error::General)
+void Slice<T>::operator= (const Slice& s) 
 {
   const char funame [] = "Slice<T>::operator= (const Slice&): ";
  
@@ -682,7 +682,7 @@ void Slice<T>::operator= (const Slice& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator+= (const Slice& s) throw(Error::General)
+void Slice<T>::operator+= (const Slice& s) 
 {
   const char funame [] = "Slice<T>::operator+= (const Slice&): ";
   
@@ -704,7 +704,7 @@ void Slice<T>::operator+= (const Slice& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator-= (const Slice& s) throw(Error::General)
+void Slice<T>::operator-= (const Slice& s) 
 {
   const char funame [] = "Slice<T>::operator-= (const Slice&): ";
   
@@ -726,7 +726,7 @@ void Slice<T>::operator-= (const Slice& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator*= (const Slice& s) throw(Error::General)
+void Slice<T>::operator*= (const Slice& s) 
 {
   const char funame [] = "Slice<T>::operator*= (const Slice&): ";
   
@@ -748,7 +748,7 @@ void Slice<T>::operator*= (const Slice& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator/= (const Slice& s) throw(Error::General)
+void Slice<T>::operator/= (const Slice& s) 
 {
   const char funame [] = "Slice<T>::operator/= (const Slice&): ";
   
@@ -770,7 +770,7 @@ void Slice<T>::operator/= (const Slice& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator= (const ConstSlice<T>& s) throw(Error::General)
+void Slice<T>::operator= (const ConstSlice<T>& s) 
 {
   const char funame [] = "Slice<T>::operator= (const ConstSlice<T>&): ";
   
@@ -792,7 +792,7 @@ void Slice<T>::operator= (const ConstSlice<T>& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator+= (const ConstSlice<T>& s) throw(Error::General)
+void Slice<T>::operator+= (const ConstSlice<T>& s) 
 {
   const char funame [] = "Slice<T>::operator+= (const ConstSlice<T>&): ";
   
@@ -814,7 +814,7 @@ void Slice<T>::operator+= (const ConstSlice<T>& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator-= (const ConstSlice<T>& s) throw(Error::General)
+void Slice<T>::operator-= (const ConstSlice<T>& s) 
 {
   const char funame [] = "Slice<T>::operator-= (const ConstSlice<T>&): ";
   
@@ -836,7 +836,7 @@ void Slice<T>::operator-= (const ConstSlice<T>& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator*= (const ConstSlice<T>& s) throw(Error::General)
+void Slice<T>::operator*= (const ConstSlice<T>& s) 
 {
   const char funame [] = "Slice<T>::operator*= (const ConstSlice<T>&): ";
   
@@ -858,7 +858,7 @@ void Slice<T>::operator*= (const ConstSlice<T>& s) throw(Error::General)
 }
 
 template <typename T>
-void Slice<T>::operator/= (const ConstSlice<T>& s) throw(Error::General)
+void Slice<T>::operator/= (const ConstSlice<T>& s) 
 {
   const char funame [] = "Slice<T>::operator/= (const ConstSlice<T>&): ";
   

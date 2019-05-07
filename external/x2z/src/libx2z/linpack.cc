@@ -30,7 +30,7 @@ double normalize (double* v, int dim)
     return norm;
 }
 
-double orthogonalize (double* v, const double* n, int dim) throw(Error::General)
+double orthogonalize (double* v, const double* n, int dim) 
 {
     const char funame [] = "orthogonalize: ";
     static const double tol = 1.e-12;

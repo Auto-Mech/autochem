@@ -23,7 +23,7 @@ double angle (const D3::Vector& a1, const D3::Vector& a2, const D3::Vector& a3)
 
 // dihedral angle
 double angle (const D3::Vector& a1, const D3::Vector& a2, const D3::Vector& a3, 
-	      const D3::Vector& a4) throw(Error::General)
+	      const D3::Vector& a4) 
 {
   double dtemp;
 
@@ -55,7 +55,7 @@ double angle (const D3::Vector& a1, const D3::Vector& a2, const D3::Vector& a3,
 
 const double MultiIndex::_ceil = 1.e9;
 
-MultiIndex::MultiIndex (const std::vector<int>& l) throw(Error::General) 
+MultiIndex::MultiIndex (const std::vector<int>& l)  
   :  _len(l), _val(l.size()), _end(false)
 {
   const char funame [] = "MultiIndex::MultiIndex: "; 
@@ -81,7 +81,7 @@ MultiIndex::MultiIndex (const std::vector<int>& l) throw(Error::General)
   }
 }
 
-void MultiIndex::operator++ () throw(Error::General)
+void MultiIndex::operator++ () 
 {
   const char funame [] = "MultiIndex::operator++: ";
 
