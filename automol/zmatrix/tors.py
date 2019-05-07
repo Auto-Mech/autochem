@@ -31,6 +31,16 @@ def sampling_ranges(zma, tors_names):
     return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
 
 
+def scan_grids(zma, tors_names, increment=0.5):
+    """ scan grids for torsional dihedrals
+    """
+    sym_nums = symmetry_numbers(zma, tors_names)
+    intervals = tuple(2*numpy.pi/sym_num for sym_num in sym_nums)
+    npoints_lst = tuple(int(interval / increment) for interval in intervals)
+    return tuple((0, interval, npoints)
+                 for interval, npoints in zip(intervals, npoints_lst))
+
+
 def samples(zma, nsamp, tors_range_dct):
     """ randomly sample over torsional dihedrals
     """

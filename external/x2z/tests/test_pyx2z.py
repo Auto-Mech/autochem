@@ -216,8 +216,9 @@ def test__MolecStruct_rotation_bond():
               (-4.1233452839, 4.0204635187, -0.0028769813)]
     m = _molec_geom_obj(asymbs, coords)
     s = pyx2z.MolecStruct(pyx2z.PrimStruct(m))
-    assert s.rotation_bond() == {4: [[9, 6, 0, 1, 7, 8], [5, 2, 3, 4]],
-                                 7: [[9, 6, 7, 8], [5, 2, 0, 1, 3, 4]]}
+
+    assert s.rotation_bond() == {4: [[0, 9, 6, 1, 7, 8], [2, 5, 3, 4]],
+                                 7: [[6, 9, 7, 8], [0, 5, 2, 1, 3, 4]]}
 
 
 def test__MolecStruct_atom_ordering():
@@ -332,9 +333,10 @@ def _atom_obj(asymb, xyz):
 
 
 if __name__ == '__main__':
-    test__MolecStruct_resonance_count()
-    test__MolecStruct_bond_order()
-    test__MolecStruct_size()
-    test__MolecStruct_is_radical()
-    test__zmatrix_string()
-    test__rotational_bond_coordinates()
+    # test__MolecStruct_resonance_count()
+    # test__MolecStruct_bond_order()
+    # test__MolecStruct_size()
+    # test__MolecStruct_is_radical()
+    # test__zmatrix_string()
+    # test__rotational_bond_coordinates()
+    test__MolecStruct_rotation_bond()

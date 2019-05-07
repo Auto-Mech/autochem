@@ -45,7 +45,7 @@ D3::Plane::Plane ()
 
 /*********************** 3-D rotational matrix ***********************/
 
-D3::Matrix::Matrix (Vector n1, Vector n2) throw(Error::General) 
+D3::Matrix::Matrix (Vector n1, Vector n2)  
 {
   n1.normalize();
   row(0) = n1;
@@ -57,7 +57,7 @@ D3::Matrix::Matrix (Vector n1, Vector n2) throw(Error::General)
   row(2) = vprod(n1, n2);  
 }
 
-double& D3::Matrix::operator() (int i, int j) throw(Error::General)
+double& D3::Matrix::operator() (int i, int j) 
 {
   const char funame [] = "D3::Matrix::operator() (int, int):";
 
@@ -71,7 +71,7 @@ double& D3::Matrix::operator() (int i, int j) throw(Error::General)
   return *(_data + (i * 3 +  j));
 }
 
-double  D3::Matrix::operator() (int i, int j) const throw(Error::General)
+double  D3::Matrix::operator() (int i, int j) const 
 {
   const char funame [] = "D3::Matrix::operator() (int, int) const:";
 
@@ -85,7 +85,7 @@ double  D3::Matrix::operator() (int i, int j) const throw(Error::General)
   return *(_data + (i * 3 +  j));
 }
 
-Slice<double> D3::Matrix::column (int i) throw(Error::General) 
+Slice<double> D3::Matrix::column (int i)  
 {
   const char funame [] = "D3::Matrix::column (int):";
 
@@ -99,7 +99,7 @@ Slice<double> D3::Matrix::column (int i) throw(Error::General)
   return Slice<double>(_data + i, 3, 3);
 }
 
-ConstSlice<double> D3::Matrix::column (int i) const throw(Error::General)
+ConstSlice<double> D3::Matrix::column (int i) const 
 {
   const char funame [] = "D3::Matrix::column (int) const:";
 
@@ -113,7 +113,7 @@ ConstSlice<double> D3::Matrix::column (int i) const throw(Error::General)
   return ConstSlice<double>(_data + i, 3, 3);
 }
 
-Slice<double> D3::Matrix::row (int i) throw(Error::General)
+Slice<double> D3::Matrix::row (int i) 
 {
   const char funame [] = "D3::Matrix::row (int):";
 
@@ -127,7 +127,7 @@ Slice<double> D3::Matrix::row (int i) throw(Error::General)
   return Slice<double>(_data + i*3, 3);
 
 }
-ConstSlice<double> D3::Matrix::row (int i) const throw(Error::General)
+ConstSlice<double> D3::Matrix::row (int i) const 
 {
   const char funame [] = "D3::Matrix::row (int) const:";
 
@@ -160,7 +160,7 @@ D3::Vector D3::Matrix::operator* (const double* v) const
   return res;
 }
 
-void D3::Matrix::orthogonality_check () const throw(Error::General)
+void D3::Matrix::orthogonality_check () const 
 {
   const char funame [] = "D3::Matrix::orthogonality_check: ";
 
@@ -329,7 +329,7 @@ double D3::Vector::normalize ()
   return ::normalize(_data, 3);
 }
 
-double D3::Vector::orthogonalize (const double* n) throw(Error::General)
+double D3::Vector::orthogonalize (const double* n) 
 {
   return ::orthogonalize(_data, n, 3);
 }

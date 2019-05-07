@@ -12,7 +12,7 @@
 double angle (const D3::Vector&, const D3::Vector&, 
 	      const D3::Vector&); // polar angle
 double angle (const D3::Vector&, const D3::Vector&, const D3::Vector&, 
-	      const D3::Vector&) throw(Error::General); // dihedral angle
+	      const D3::Vector&) ; // dihedral angle
 
 // connectivity matrix (symmetric matrix with zero diagonal)
 template <typename T> 
@@ -21,10 +21,10 @@ class ConMat : private std::vector<T>
   int _dim;
 
 public:
-  explicit ConMat(int d) throw(Error::General) : _dim(d), std::vector<T>(d*(d-1)/2) {}
+  explicit ConMat(int d)  : _dim(d), std::vector<T>(d*(d-1)/2) {}
     
-  T  operator() (int, int) const throw(Error::General);
-  T& operator() (int, int) throw(Error::General);
+  T  operator() (int, int) const ;
+  T& operator() (int, int) ;
 
   bool operator== (const ConMat<T>& cm) const 
   { return (const std::vector<T>&)(*this) == (const std::vector<T>&)cm; }
@@ -58,7 +58,7 @@ T ConMat<T>::row_sum (int i) const
 }
 
 template <typename T>
-T ConMat<T>::operator() (int i, int j) const throw(Error::General)
+T ConMat<T>::operator() (int i, int j) const 
 {
   const char funame [] = "ConMat<T>::operator() (int, int) const: ";
 
@@ -85,7 +85,7 @@ T ConMat<T>::operator() (int i, int j) const throw(Error::General)
 }
 
 template <typename T>
-T& ConMat<T>::operator() (int i, int j) throw(Error::General)
+T& ConMat<T>::operator() (int i, int j) 
 {
   const char funame [] = "ConMat<T>::operator() (int, int): ";
 
@@ -168,13 +168,13 @@ class MultiIndex {
   static const double _ceil;
 public:
 
-  MultiIndex (const std::vector<int>&) throw(Error::General);
+  MultiIndex (const std::vector<int>&) ;
 
   int operator[] (int i) const { return _val[i]; }
   int rank () const { return _len.size(); }
   bool end () const { return _end; }
 
-  void operator++ () throw(Error::General);
+  void operator++ () ;
 
 };
 

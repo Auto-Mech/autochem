@@ -18,6 +18,7 @@ int main(int argc, const char* argv [])
     std::cout << funame << "usage: x2z input_file\n";
     return 1;
   }
+  
   std::ifstream from(argv[1]);
   if(!from) {
     std::cout << funame << "cannot open " << argv[1] << " file\n";
@@ -184,6 +185,28 @@ int main(int argc, const char* argv [])
     }
 
     std::cout << "\n";
+
+    for(std::map<int, std::list<std::list<int> > >::const_iterator bit = mol.rotation_bond().begin();
+	bit != mol.rotation_bond().end(); ++bit) {
+      
+      std::cout << MolecStruct::var_name(MolecStruct::DIHEDRAL) << std::setw(2) << bit->first;
+
+      for(std::list<std::list<int> >::const_iterator git = bit->second.begin(); git != bit->second.end(); ++git) {
+	//
+	std::cout << "   ";
+	
+	for(std::list<int>::const_iterator it = git->begin(); it != git->end(); ++it) {
+	  //
+	  if(it != git->begin())
+	    //
+	    std::cout << ",";
+	  
+	  std::cout << mol[*it].name() << mol.atom_map(*it) + 1;
+	}
+      }
+      std::cout << "\n";
+    }
+    std::cout << "\n";
   }
   else
     std::cout << "no rotational bonds\n";
@@ -209,4 +232,5 @@ int main(int argc, const char* argv [])
     std::cout << "no beta-scision bonds\n";
   
   return 0;
+
 }

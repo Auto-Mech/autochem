@@ -49,7 +49,7 @@ namespace D3 {
     double vdot    () const;
 
     double normalize ();
-    double orthogonalize (const double*) throw(Error::General);
+    double orthogonalize (const double*) ;
   };
 
   Vector operator+ (const double*, const D3::Vector&);
@@ -78,21 +78,21 @@ namespace D3 {
 
   public:
     Matrix () {}
-    Matrix (Vector, Vector) throw(Error::General); // standard orientation
+    Matrix (Vector, Vector) ; // standard orientation
 
-    double& operator() (int, int)       throw(Error::General);   // C style indexing
-    double  operator() (int, int) const throw(Error::General);   
+    double& operator() (int, int)       ;   // C style indexing
+    double  operator() (int, int) const ;   
 
-    Slice<double>      column (int i)       throw(Error::General);
-    ConstSlice<double> column (int i) const throw(Error::General);
-    Slice<double>      row    (int i)       throw(Error::General);
-    ConstSlice<double> row    (int i) const throw(Error::General);
+    Slice<double>      column (int i)       ;
+    ConstSlice<double> column (int i) const ;
+    Slice<double>      row    (int i)       ;
+    ConstSlice<double> row    (int i) const ;
 
     Matrix operator* (const Matrix&) const; // matrix multiplication
     Vector operator* (const double*) const; // matrix vector product M*v
     Vector operator* (const Vector& v) const { return *this * (const double*)v; }
 
-    void orthogonality_check () const throw(Error::General);
+    void orthogonality_check () const ;
   };
 
   class Plane

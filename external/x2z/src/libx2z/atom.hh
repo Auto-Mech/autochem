@@ -25,37 +25,28 @@ public:
     BROMINE = 35
   };
 
-  class valence_t {
-    int _value;
-    
-  public:
-    
-  };
-  
 private:
   AN  _num;   // atomic number 
   int _isot; // isotope
-  int _val;  // valence
 
-  int  _default_isot   () const throw(Error::General);
-  int _default_valence () const;
+  int  _default_isot   () const ;
   
-  void _str2num (const std::string&) throw(Error::General);
+  void _str2num (const std::string&) ;
   
 public: 
   void set (AN n) { _num = n; _isot = _default_isot(); }
   void set (AN n, int i) { _num = n; _isot = i; }
 
-  void set (const std::string& s)        throw(Error::General) { _str2num(s); _isot = _default_isot(); }
-  void set (const std::string& s, int i) throw(Error::General) { _str2num(s); _isot = i; }
+  void set (const std::string& s)         { _str2num(s); _isot = _default_isot(); }
+  void set (const std::string& s, int i)  { _str2num(s); _isot = i; }
 
   AtomBase () : _num(DUMMY), _isot(0)  {}
-  explicit AtomBase (const std::string& s) throw(Error::General) { set(s); }
-  explicit AtomBase (const std::string& s, int i) throw(Error::General) { set(s, i); }
+  explicit AtomBase (const std::string& s)  { set(s); }
+  explicit AtomBase (const std::string& s, int i)  { set(s, i); }
     
-  const char* name    () const throw(Error::General);
-  double      mass    () const throw(Error::General);
-  unsigned    valence () const throw(Error::General);
+  const char* name    () const ;
+  double      mass    () const ;
+  unsigned    valence () const ;
 
   operator AN      () const { return _num; }
   AN        number () const { return _num; }
@@ -87,18 +78,18 @@ inline bool AtomBase::operator> (const AtomBase& a) const
 
 class Atom : public AtomBase, public D3::Vector
 {
-  void _read(std::istream&) throw(Error::General);
+  void _read(std::istream&) ;
 
 public:
   Atom () {}
   explicit Atom (const std::string& s) : AtomBase(s) {}
-  explicit Atom (std::istream& from) throw(Error::General) { _read(from); }
+  explicit Atom (std::istream& from)  { _read(from); }
   Atom (const std::string& s, int i) : AtomBase(s, i) {}
 
-  friend std::istream& operator>> (std::istream&, Atom&) throw(Error::General);
+  friend std::istream& operator>> (std::istream&, Atom&) ;
 };
 
-inline std::istream& operator>> (std::istream& from, Atom& a) throw(Error::General) 
+inline std::istream& operator>> (std::istream& from, Atom& a)  
 { 
   a._read(from); 
   return from; 

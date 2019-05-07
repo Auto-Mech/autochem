@@ -25,8 +25,8 @@ class Array
 
 public:
       
-  explicit Array (int =0, const T* =0) throw(Error::General);
-  Array (int, const T&) throw(Error::General);
+  explicit Array (int =0, const T* =0) ;
+  Array (int, const T&) ;
   explicit Array(const Slice<T>&);
   explicit Array(const ConstSlice<T>&);
   template <typename S>
@@ -43,15 +43,15 @@ public:
   operator       T* ()       { return _begin; }
   operator const T* () const { return _begin; }
 
-  T& front () throw(Error::General);
-  T& back  () throw(Error::General);
-  const T& front () const throw(Error::General);
-  const T& back  () const throw(Error::General);
+  T& front () ;
+  T& back  () ;
+  const T& front () const ;
+  const T& back  () const ;
 
   int size     () const { return _size; }
   int capacity () const { return _capacity; }
-  void resize  (int) throw(Error::General);
-  void reserve (int) throw(Error::General);
+  void resize  (int) ;
+  void reserve (int) ;
   void compact ();
 
   Array& operator= (const Array&);
@@ -60,13 +60,13 @@ public:
   template <typename S>
   Array& operator= (const std::vector<S>&);
 
-  T& operator[] (int) throw(Error::General);
-  const T&  operator[] (int) const throw(Error::General);
+  T& operator[] (int) ;
+  const T&  operator[] (int) const ;
 
   Array& operator- ();
 
-  Array& operator+= (const Array&) throw(Error::General);
-  Array& operator-= (const Array&) throw(Error::General);
+  Array& operator+= (const Array&) ;
+  Array& operator-= (const Array&) ;
   Array& operator+= (const T*);
   Array& operator-= (const T*);
 
@@ -77,7 +77,7 @@ public:
 };// class Array
 
 template <typename T>
-Array<T>::Array (int s, const T* p1) throw(Error::General)
+Array<T>::Array (int s, const T* p1) 
   : _size(s), _capacity(s)
 {
   const char funame [] = "Array<T>::Array(int, T*): ";
@@ -101,7 +101,7 @@ Array<T>::Array (int s, const T* p1) throw(Error::General)
 }
 
 template <typename T>
-Array<T>::Array (int s, const T& t) throw(Error::General)
+Array<T>::Array (int s, const T& t) 
   : _size(s), _capacity(s)
 {
   const char funame [] = "Array<T>::Array(int, const T&): ";
@@ -218,7 +218,7 @@ void Array<T>::compact ()
 }
 
 template <typename T>
-void Array<T>::resize (int s) throw(Error::General)
+void Array<T>::resize (int s) 
 {
   const char funame [] = "Array<T>::resize: ";
 
@@ -247,7 +247,7 @@ void Array<T>::resize (int s) throw(Error::General)
 }
 
 template <typename T>
-void Array<T>::reserve (int s) throw(Error::General)
+void Array<T>::reserve (int s) 
 {
   const char funame [] = "Array<T>::reserve: ";
 
@@ -354,7 +354,7 @@ Array<T>& Array<T>::operator= (const T& val)
 }
 
 template <typename T>
-T& Array<T>::operator[] (int i) throw(Error::General)
+T& Array<T>::operator[] (int i) 
 {
   const char funame [] = "Array<T>::operator[]: ";
 
@@ -369,7 +369,7 @@ T& Array<T>::operator[] (int i) throw(Error::General)
 }
 
 template <typename T>
-const T& Array<T>::operator[] (int i) const throw(Error::General)
+const T& Array<T>::operator[] (int i) const 
 {
   const char funame [] = "Array<T>::operator[]: ";
 
@@ -384,7 +384,7 @@ const T& Array<T>::operator[] (int i) const throw(Error::General)
 }
 
 template <typename T>
-T& Array<T>::front () throw(Error::General)
+T& Array<T>::front () 
 {
   if(!_size) {
     std::cerr << "Array<T>::front(): array is empty\n";
@@ -394,7 +394,7 @@ T& Array<T>::front () throw(Error::General)
 }
 
 template <typename T>
-const T& Array<T>::front () const throw(Error::General)
+const T& Array<T>::front () const 
 {
   if(!_size) {
     std::cerr << "Array<T>::front(): array is empty\n";
@@ -404,7 +404,7 @@ const T& Array<T>::front () const throw(Error::General)
 }
 
 template <typename T>
-T& Array<T>::back () throw(Error::General)
+T& Array<T>::back () 
 {
   if(!_size) {
     std::cerr << "Array<T>::back(): array is empty\n";
@@ -414,7 +414,7 @@ T& Array<T>::back () throw(Error::General)
 }
 
 template <typename T>
-const T& Array<T>::back () const throw(Error::General)
+const T& Array<T>::back () const 
 {
   if(!_size) {
     std::cerr << "Array<T>::back(): array is empty\n";
@@ -432,7 +432,7 @@ Array<T>& Array<T>::operator- ()
 }
 
 template <typename T>
-Array<T>& Array<T>::operator+= (const Array& a1) throw(Error::General)
+Array<T>& Array<T>::operator+= (const Array& a1) 
 {
   const char funame [] = "Array<T>::operator+=: ";
 
@@ -450,7 +450,7 @@ Array<T>& Array<T>::operator+= (const Array& a1) throw(Error::General)
 }
 
 template <typename T>
-Array<T>& Array<T>::operator-= (const Array& a1) throw(Error::General)
+Array<T>& Array<T>::operator-= (const Array& a1) 
 {
   const char funame [] = "Array<T>::operator-=: ";
 
@@ -573,12 +573,12 @@ public:
   bool operator!= (const RefArr& a) const { return _data != a._data; }
 
   // arithmetic operations
-  RefArr operator+ (const RefArr&) const throw(Error::General);
-  RefArr operator- (const RefArr&) const throw(Error::General);
+  RefArr operator+ (const RefArr&) const ;
+  RefArr operator- (const RefArr&) const ;
 
-  RefArr operator+= (const RefArr& a) throw(Error::General)
+  RefArr operator+= (const RefArr& a) 
   { *_data += *a._data; return *this; }
-  RefArr operator-= (const RefArr& a) throw(Error::General)
+  RefArr operator-= (const RefArr& a) 
   { *_data -= *a._data; return *this; }
 
   RefArr operator-  ()           { -(*_data)  ; return *this; }
@@ -624,7 +624,7 @@ RefArr<T> RefArr<T>::copy() const
 }
 
 template <typename T>
-RefArr<T> RefArr<T>::operator+ (const RefArr& a) const throw(Error::General)
+RefArr<T> RefArr<T>::operator+ (const RefArr& a) const 
 {
   const char funame [] = "RefArr<T>::operator+: ";
 
@@ -643,7 +643,7 @@ RefArr<T> RefArr<T>::operator+ (const RefArr& a) const throw(Error::General)
 }
 
 template <typename T>
-RefArr<T> RefArr<T>::operator- (const RefArr& a) const throw(Error::General)
+RefArr<T> RefArr<T>::operator- (const RefArr& a) const 
 {
   const char funame [] = "RefArr<T>::operator-: ";
 
