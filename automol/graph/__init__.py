@@ -1,122 +1,146 @@
-""" a molecular graph module
-
-xgr = (atm_dct, bnd_dct)
-atm_dct: {atm_key: (atm_val1, atm_val2, ...), ...}
-bnd_dct: {bnd_key: (bnd_val1, bnd_val2, ...), ...}
-bnd_key := frozenset({atm1_key, atm2_key})
+""" molecular graph
 """
-
-# core library
-# # constructors
-from ..constructors.graph import from_data
-from ._core import from_dictionaries
-from ._core import from_atoms_and_bonds
-from ._core import add_atoms
-from ._core import add_bonds
-# # value getters
-from ._core import atoms
-from ._core import bonds
-from ._core import atom_keys
-from ._core import bond_keys
-from ._core import atom_symbols
-from ._core import atom_implicit_hydrogen_valences
-from ._core import atom_stereo_parities
-from ._core import bond_orders
-from ._core import bond_stereo_parities
-# # value setters
-from ._core import relabel
-from ._core import set_atom_implicit_hydrogen_valences
-from ._core import set_atom_stereo_parities
-from ._core import set_bond_orders
-from ._core import set_bond_stereo_parities
-# # transformations
-from ._core import without_bond_orders
-from ._core import without_stereo_parities
+# getters
+from automol.graph._graph import atoms
+from automol.graph._graph import bonds
+from automol.graph._graph import atom_keys
+from automol.graph._graph import bond_keys
+from automol.graph._graph import atom_symbols
+from automol.graph._graph import atom_implicit_hydrogen_valences
+from automol.graph._graph import atom_stereo_parities
+from automol.graph._graph import bond_orders
+from automol.graph._graph import bond_stereo_parities
+# setters
+from automol.graph._graph import relabel
+from automol.graph._graph import set_atom_implicit_hydrogen_valences
+from automol.graph._graph import set_atom_stereo_parities
+from automol.graph._graph import set_bond_orders
+from automol.graph._graph import set_bond_stereo_parities
+from automol.graph._graph import without_bond_orders
+from automol.graph._graph import without_stereo_parities
 
 # graph theory library
 # # atom properties
-from ._graph import atom_neighbor_keys
-from ._graph import atom_bond_keys
-from ._graph import atom_neighborhoods
+from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_bond_keys
+from automol.graph._graph import atom_neighborhoods
 # # bond properties
-from ._graph import bond_neighbor_keys
-from ._graph import bond_neighborhoods
+from automol.graph._graph import bond_neighbor_keys
+from automol.graph._graph import bond_neighborhoods
 # # other properties
-from ._graph import branch
-from ._graph import branch_bond_keys
-from ._graph import rings
-from ._graph import rings_bond_keys
-from ._graph import subgraph
-from ._graph import bond_induced_subgraph
+from automol.graph._graph import branch
+from automol.graph._graph import branch_bond_keys
+from automol.graph._graph import rings
+from automol.graph._graph import rings_bond_keys
+from automol.graph._graph import subgraph
+from automol.graph._graph import bond_induced_subgraph
 # # transformations
-from ._graph import delete_atoms
+from automol.graph._graph import delete_atoms
+from automol.graph._graph import without_ghost_atoms
 
-# connectivity graph library
+# implicit/explicit hydrogen functions
 # # atom properties
-from ._expl import atom_explicit_hydrogen_valences
-from ._expl import atom_explicit_hydrogen_keys
+from automol.graph._graph import atom_explicit_hydrogen_valences
+from automol.graph._graph import atom_explicit_hydrogen_keys
 # # other properties
-from ._expl import backbone_keys
-from ._expl import explicit_hydrogen_keys
+from automol.graph._graph import backbone_keys
+from automol.graph._graph import explicit_hydrogen_keys
 # # transformations
-from ._expl import add_explicit_hydrogens
-from ._expl import implicit
-from ._expl import explicit
+from automol.graph._graph import add_explicit_hydrogens
+from automol.graph._graph import implicit
+from automol.graph._graph import explicit
 # # comparisons
-from ._expl import backbone_isomorphic
-from ._expl import backbone_isomorphism
-from ._expl import backbone_unique
+from automol.graph._graph import backbone_isomorphic
+from automol.graph._graph import backbone_isomorphism
+from automol.graph._graph import backbone_unique
 
-# inchi conversion library
-from ._inchi import atom_inchi_numbers
-from ._inchi import inchi
-from ._inchi import stereo_inchi_from_coordinates
-
-# resonance library
+# chemistry library
 # # atom properties
-from ._res import atom_bond_valences
-from ._res import atom_radical_valences
-# # bond properties
-from ._res import resonance_dominant_bond_orders
+from automol.graph._graph import atom_element_valences
+from automol.graph._graph import atom_lone_pair_counts
+from automol.graph._graph import atom_bond_valences
+from automol.graph._graph import atom_radical_valences
 # # other properties
-from ._res import maximum_spin_multiplicity
-from ._res import possible_spin_multiplicities
+from automol.graph._graph import maximum_spin_multiplicity
+from automol.graph._graph import possible_spin_multiplicities
+
+# miscellaneous
+# # bond properties
+from automol.graph._graph import bond_symmetry_numbers
+
+# resonance graph library
+# # atom properties
+from automol.graph._res import atom_hybridizations
+from automol.graph._res import resonance_dominant_atom_hybridizations
+# # bond properties
+from automol.graph._res import resonance_dominant_bond_orders
 # # transformations
-from ._res import resonances
-from ._res import subresonances
-from ._res import dominant_resonances
-from ._res import dominant_resonance
+from automol.graph._res import resonances
+from automol.graph._res import subresonances
+from automol.graph._res import dominant_resonances
+from automol.graph._res import dominant_resonance
 
-# stereo library
-# # properties
-from ._stereo import stereo_inchi
-from ._stereo import is_chiral
-from ._stereo import atom_stereo_keys
-from ._stereo import bond_stereo_keys
-from ._stereo import stereogenic_atom_keys
-from ._stereo import stereogenic_bond_keys
-# # transformations
-from ._stereo import reflection
-from ._stereo import stereomers
-from ._stereo import substereomers
-from ._stereo import enantiomerically_unique
+# stereo graph library
+from automol.graph._stereo import has_stereo
+from automol.graph._stereo import atom_stereo_keys
+from automol.graph._stereo import bond_stereo_keys
+from automol.graph._stereo import stereo_priority_vector
+from automol.graph._stereo import stereogenic_atom_keys
+from automol.graph._stereo import stereogenic_bond_keys
+from automol.graph._stereo import stereomers
+from automol.graph._stereo import substereomers
+from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._stereo import set_stereo_from_atom_coordinates
+from automol.graph._stereo import atom_stereo_coordinates
 
-# misc
-from ._misc import bond_symmetry_numbers
+# constructors
+import automol.create.graph
+# conversions
+import automol.convert.graph
 
-# submodules
-from . import _dict as dict_
+
+def from_data(atm_sym_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
+              atm_ste_par_dct=None, bnd_ord_dct=None, bnd_ste_par_dct=None):
+    """ construct a molecular graph from data
+
+    format:
+        gra = (atm_dct, bnd_dct)
+        atm_dct := {atm_key: (atm_sym, atm_imp_hyd_vlc, atm_ste_par), ...}
+        bnd_dct := {bnd_key: (bnd_ord, bnd_ste_par), ...}
+        [where bnd_key := frozenset({atm1_key, atm2_key})]
+
+    :param atm_sym_dct: atomic symbols, by atom key
+    :type atm_sym_dct: dict
+    :param bnd_keys: bond keys
+    :type bnd_keys: set
+    :param atm_imp_hyd_vlc_dct: the number of implicit hydrogens associated
+        with each atom, by atom key
+    :type atm_imp_hyd_vlc_dct: dict
+    :param atm_ste_par_dct: atom stereo parities, by atom key
+    :type atm_ste_par_dct: dict
+    :param bnd_ord_dct: bond orders, by bond key
+    :type bnd_ord_dct: dict
+    :param bnd_ste_par_dct: bond stereo parities, by bond key
+    :type bnd_ste_par_dct: dict
+    """
+    return automol.create.graph.from_data(
+        atom_symbols=atm_sym_dct, bond_keys=bnd_keys,
+        atom_implicit_hydrogen_valences=atm_imp_hyd_vlc_dct,
+        atom_stereo_parities=atm_ste_par_dct, bond_orders=bnd_ord_dct,
+        bond_stereo_parities=bnd_ste_par_dct
+    )
+
+
+def inchi(gra):
+    """ graph => inchi
+    """
+    return automol.convert.graph.inchi(gra)
 
 
 __all__ = [
-    # core library
-    # # constructors
+    # constructors
     'from_data',
-    'from_dictionaries',
-    'from_atoms_and_bonds',
-    'add_atoms',
-    'add_bonds',
-    # # value getters
+    # getters
     'atoms',
     'bonds',
     'atom_keys',
@@ -126,12 +150,12 @@ __all__ = [
     'atom_stereo_parities',
     'bond_orders',
     'bond_stereo_parities',
-    # # value setters
+    # setters
+    'relabel',
     'set_atom_implicit_hydrogen_valences',
     'set_atom_stereo_parities',
     'set_bond_orders',
     'set_bond_stereo_parities',
-    # # transformations
     'without_bond_orders',
     'without_stereo_parities',
 
@@ -151,10 +175,10 @@ __all__ = [
     'subgraph',
     'bond_induced_subgraph',
     # # transformations
-    'relabel',
     'delete_atoms',
+    'without_ghost_atoms',
 
-    # chemical connectivity graph library
+    # implicit/explicit hydrogen functions
     # # atom properties
     'atom_explicit_hydrogen_valences',
     'atom_explicit_hydrogen_keys',
@@ -170,43 +194,42 @@ __all__ = [
     'backbone_isomorphism',
     'backbone_unique',
 
-    # inchi conversion library
-    'atom_inchi_numbers',
-    'inchi',
-    'stereo_inchi_from_coordinates',
-
-    # resonance library
+    # chemistry library
     # # atom properties
+    'atom_element_valences',
+    'atom_lone_pair_counts',
     'atom_bond_valences',
     'atom_radical_valences',
-    # # bond properties
-    'resonance_dominant_bond_orders',
     # # other properties
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
+    'bond_symmetry_numbers',
+
+    # resonance library
+    # # atom properties
+    'atom_hybridizations',
+    'resonance_dominant_atom_hybridizations',
+    # # bond properties
+    'resonance_dominant_bond_orders',
     # # transformations
     'resonances',
     'subresonances',
     'dominant_resonances',
     'dominant_resonance',
 
-    # stereo library
-    # # properties
-    'stereo_inchi',
-    'is_chiral',
+    # stereo graph library
+    'has_stereo',
     'atom_stereo_keys',
     'bond_stereo_keys',
+    'stereo_priority_vector',
     'stereogenic_atom_keys',
     'stereogenic_bond_keys',
-    # # transformations
-    'reflection',
     'stereomers',
     'substereomers',
-    'enantiomerically_unique',
+    'stereo_sorted_atom_neighbor_keys',
+    'set_stereo_from_atom_coordinates',
+    'atom_stereo_coordinates',
 
-    # misc
-    'bond_symmetry_numbers',
-
-    # submodules
-    'dict_',
+    # conversions,
+    'inchi',
 ]

@@ -1,7 +1,7 @@
 """ cartesian coordinate linear algbera helpers
 """
-from . import vec
-from . import mat
+from automol.cart import vec
+from automol.cart import mat
 
 __all__ = [
     'vec',
