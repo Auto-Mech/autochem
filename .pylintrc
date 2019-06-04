@@ -9,4 +9,5 @@ disable=
     too-many-arguments,
     too-many-locals,
     assignment-from-no-return,
-    duplicate-code
+    duplicate-code,
+    cyclic-import

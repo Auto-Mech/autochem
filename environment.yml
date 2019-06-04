@@ -4,6 +4,7 @@ channels:
     - pacchem
     - rdkit
     - openbabel
+    - conda-forge
 
 dependencies:
     - python
@@ -21,7 +22,7 @@ dependencies:
     - pylint
     - rdkit::rdkit
     - openbabel::openbabel
+    - conda-forge::qcelemental
     - pacchem::autoparse
-    - pacchem::phycon
     - pacchem::x2z
     - pacchem::transformations

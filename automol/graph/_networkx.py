@@ -15,7 +15,7 @@ def from_graph(xgr):
     return nxg
 
 
-def minimal_rings_atom_keys(nxg):
+def minimum_cycle_basis(nxg):
     """ minimum cycle basis for the graph
     """
     rng_atm_keys_lst = networkx.algorithms.cycles.minimum_cycle_basis(nxg)
