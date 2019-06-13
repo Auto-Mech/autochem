@@ -7,6 +7,7 @@ from automol import graph
 from automol import inchi
 from automol import inchi_key
 from automol import smiles
+from automol import formula
 
 __all__ = [
     'geom',
@@ -16,4 +17,5 @@ __all__ = [
     'inchi',
     'inchi_key',
     'smiles',
+    'formula',
 ]

@@ -98,6 +98,21 @@ def relabel(xgr, atm_key_dct):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
+def standard_keys(xgr):
+    """ replace the current atom keys with standard indices, counting from zero
+    """
+    atm_key_dct = dict(enumerate(sorted(atom_keys(xgr))))
+    return relabel(xgr, atm_key_dct)
+
+
+def transform_keys(xgr, atm_key_func):
+    """ transform atom keys with a function
+    """
+    atm_keys = atom_keys(xgr)
+    atm_key_dct = dict(zip(atm_keys, map(atm_key_func, atm_keys)))
+    return relabel(xgr, atm_key_dct)
+
+
 def set_atom_implicit_hydrogen_valences(xgr, atm_imp_hyd_vlc_dct):
     """ set atom implicit hydrogen valences
     """
@@ -129,6 +144,20 @@ def set_bond_stereo_parities(sgr, bnd_par_dct):
     bnd_dct = mdict.set_by_key_by_position(bonds(sgr), bnd_par_dct,
                                            BND_STE_PAR_POS)
     return _create.from_atoms_and_bonds(atoms(sgr), bnd_dct)
+
+
+def add_atom_implicit_hydrogen_valences(xgr, inc_atm_imp_hyd_vlc_dct):
+    """ add atom imlicit hydrogen valences
+
+    (increments can be positive or negative)
+    """
+    atm_keys = list(inc_atm_imp_hyd_vlc_dct.keys())
+    atm_imp_hyd_vlcs = numpy.add(
+        dict_.values_by_key(atom_implicit_hydrogen_valences(xgr), atm_keys),
+        dict_.values_by_key(inc_atm_imp_hyd_vlc_dct, atm_keys))
+    assert all(atm_imp_hyd_vlc >= 0 for atm_imp_hyd_vlc in atm_imp_hyd_vlcs)
+    atm_imp_hyd_vlc_dct = dict(zip(atm_keys, atm_imp_hyd_vlcs))
+    return set_atom_implicit_hydrogen_valences(xgr, atm_imp_hyd_vlc_dct)
 
 
 def without_bond_orders(xgr):
@@ -184,7 +213,7 @@ def add_bonds(xgr, keys, ord_dct=None, ste_par_dct=None):
     bnd_ord_dct = bond_orders(xgr)
     bnd_ste_par_dct = bond_stereo_parities(xgr)
 
-    keys = set(keys)
+    keys = set(map(frozenset, keys))
     ord_dct = {} if ord_dct is None else ord_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
 
@@ -361,6 +390,37 @@ def rings_bond_keys(xgr):
     return rng_bnd_keys_lst
 
 
+def connected_components(xgr):
+    """ connected components in the graph
+    """
+    cmp_xgr_atm_keys_lst = connected_components_atom_keys(xgr)
+    cmp_xgrs = tuple(subgraph(xgr, cmp_xgr_atm_keys)
+                     for cmp_xgr_atm_keys in cmp_xgr_atm_keys_lst)
+    return cmp_xgrs
+
+
+def connected_components_atom_keys(xgr):
+    """ atom keys for each connected component in the graph
+    """
+    nxg = _networkx.from_graph(xgr)
+    cmp_xgr_atm_keys_lst = _networkx.connected_component_atom_keys(nxg)
+    return cmp_xgr_atm_keys_lst
+
+
+def union(xgr1, xgr2):
+    """ a union of two graphs
+    """
+    assert not atom_keys(xgr1) & atom_keys(xgr2)
+    atm_dct = {}
+    atm_dct.update(atoms(xgr1))
+    atm_dct.update(atoms(xgr2))
+
+    bnd_dct = {}
+    bnd_dct.update(bonds(xgr1))
+    bnd_dct.update(bonds(xgr2))
+    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+
+
 def subgraph(xgr, atm_keys):
     """ the subgraph induced by a subset of the atoms
     """
@@ -385,14 +445,26 @@ def bond_induced_subgraph(xgr, bnd_keys):
 
 
 # # transformations
-def delete_atoms(xgr, atm_keys):
-    """ delete atoms from the molecular graph
+def remove_atoms(xgr, atm_keys):
+    """ remove atoms from the molecular graph
     """
     all_atm_keys = atom_keys(xgr)
     atm_keys = set(atm_keys)
     assert atm_keys <= all_atm_keys
     atm_keys_left = all_atm_keys - atm_keys
     return subgraph(xgr, atm_keys_left)
+
+
+def remove_bonds(xgr, bnd_keys):
+    """ remove bonds from the molecular graph
+    """
+    all_bnd_keys = bond_keys(xgr)
+    bnd_keys = set(bnd_keys)
+    assert bnd_keys <= all_bnd_keys
+    bnd_keys = all_bnd_keys - bnd_keys
+    atm_dct = atoms(xgr)
+    bnd_dct = dict_.by_key(bonds(xgr), bnd_keys)
+    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
 def without_ghost_atoms(xgr):
@@ -478,7 +550,7 @@ def implicit(xgr, atm_keys=None):
 
     xgr = set_atom_implicit_hydrogen_valences(
         xgr, dict(zip(atm_keys, atm_tot_hyd_vlcs)))
-    xgr = delete_atoms(xgr, exp_hyd_keys)
+    xgr = remove_atoms(xgr, exp_hyd_keys)
     return xgr
 
 
@@ -597,8 +669,10 @@ def atom_bond_valences(xgr, bond_order=True):
     return atm_bnd_vlc_dct
 
 
-def atom_radical_valences(xgr, bond_order=True):
-    """ radical valences, by atom
+def atom_unsaturated_valences(xgr, bond_order=True):
+    """ unsaturated valences, by atom
+
+    (element valences minus bonding valences -- pi sites and radical electrons)
     """
     atm_keys = list(atom_keys(xgr))
     if not bond_order:
@@ -610,11 +684,19 @@ def atom_radical_valences(xgr, bond_order=True):
     return dict(zip(atm_keys, atm_rad_vlcs))
 
 
+def unsaturated_atom_keys(xgr):
+    """ keys of unsaturated (radical or pi-bonded) atoms
+    """
+    atm_unsat_vlc_dct = atom_unsaturated_valences(xgr, bond_order=False)
+    unsat_atm_keys = frozenset(dict_.keys_by_value(atm_unsat_vlc_dct, bool))
+    return unsat_atm_keys
+
+
 # # other properties
 def maximum_spin_multiplicity(xgr, bond_order=True):
     """ the highest possible spin multiplicity for this molecular graph
     """
-    atm_rad_vlc_dct = atom_radical_valences(xgr, bond_order=bond_order)
+    atm_rad_vlc_dct = atom_unsaturated_valences(xgr, bond_order=bond_order)
     return sum(atm_rad_vlc_dct.values()) + 1
 
 

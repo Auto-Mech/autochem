@@ -36,6 +36,7 @@ from automol.graph._graph import (explicit_hydrogen_keys as
 from automol.graph._graph import rings_bond_keys as _rings_bond_keys
 from automol.graph._graph import (rings_sorted_atom_keys as
                                   _rings_sorted_atom_keys)
+from automol.graph._graph import connected_components as _connected_components
 
 
 def has_stereo(xgr):
@@ -451,15 +452,44 @@ def _correct_bond_stereo_coordinates(xgr, bnd_ste_par_dct, atm_xyz_dct):
 
 
 def _atom_coordinates(sgr):
-    """ non-stereo-specific coordinates for this molecular graph
+    """ non-stereo-specific coordinates for a molecular graph
+    """
+    atm_xyz_dct = {}
+    for idx, cnn_sgr in enumerate(_connected_components(sgr)):
+        shift = 20. * idx
+        cnn_atm_xyz_dct = _connected_graph_atom_coordinates(cnn_sgr)
+        atm_keys = list(cnn_atm_xyz_dct.keys())
+        atm_xyzs = numpy.array(list(cnn_atm_xyz_dct.values()))
+        atm_xyzs += numpy.array([0., 0., shift])
+        atm_xyz_dct.update(dict(zip(atm_keys, map(tuple, atm_xyzs))))
+    return atm_xyz_dct
 
-    (currently assumes a connected graph -- fix that)
+
+def _connected_graph_atom_coordinates(sgr):
+    """ non-stereo-specific coordinates for a connected molecular graph
+
+    (currently assumes a with at most one ring -- fix that)
     """
     assert sgr == _explicit(sgr)
 
+    atm_keys = _atom_keys(sgr)
     rng_atm_keys_lst = _rings_sorted_atom_keys(sgr)
 
-    if not rng_atm_keys_lst:
+    if len(atm_keys) == 1:
+        atm1_key, = atm_keys
+        atm_xyz_dct = {}
+        atm_xyz_dct[atm1_key] = (0., 0., 0.)
+    elif len(atm_keys) == 2:
+        atm1_key, atm2_key = atm_keys
+
+        atm1_xyz = (0., 0., 0.)
+
+        dist = _bond_distance(sgr, atm2_key, atm1_key)
+        atm2_xyz = cart.vec.from_internals(dist=dist, xyz1=atm1_xyz)
+        atm_xyz_dct = {}
+        atm_xyz_dct[atm1_key] = tuple(atm1_xyz)
+        atm_xyz_dct[atm2_key] = tuple(atm2_xyz)
+    elif not rng_atm_keys_lst:
         atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
 
         # grab the first three coordinates along the longest chain
@@ -489,9 +519,8 @@ def _atom_coordinates(sgr):
         atm4_key = sorted(atm_ngb_keys_dct[atm3_key] - {atm2_key})[0]
         atm_xyz_dct = _extend_atom_coordinates(
             sgr, atm4_key, atm3_key, atm2_key, atm_xyz_dct)
-    else:
+    elif len(rng_atm_keys_lst) == 1:
         # for now, we'll assume only one ring
-        assert len(rng_atm_keys_lst) == 1
         rng_atm_keys, = rng_atm_keys_lst
         rng_atm_xyzs = _polygon_coordinates(num=len(rng_atm_keys))
 
@@ -502,6 +531,9 @@ def _atom_coordinates(sgr):
         for atm1_key, atm2_key, atm3_key in trip_iter:
             atm_xyz_dct = _extend_atom_coordinates(
                 sgr, atm1_key, atm2_key, atm3_key, atm_xyz_dct)
+    else:
+        raise NotImplementedError("This algorithm is currently not implemented"
+                                  "for more than one ring.")
 
     return atm_xyz_dct
 
@@ -643,33 +675,3 @@ def _longest_chain(xgr, atm_key):
 
     max_chain = tuple(chains_lst[0])
     return max_chain
-
-
-def _stereo_parity(sgr, atm_key, fix_atm_ngb_key, atm_ngb_keys):
-    all_atm_ngb_keys = [fix_atm_ngb_key] + list(atm_ngb_keys)
-    assert len(all_atm_ngb_keys) == 4
-
-    srt_atm_ngb_keys = stereo_sorted_atom_neighbor_keys(
-        sgr, atm_key, all_atm_ngb_keys)
-
-    sgn = _signature(all_atm_ngb_keys, srt_atm_ngb_keys)
-
-    if srt_atm_ngb_keys.index(fix_atm_ngb_key) % 2:
-        sgn *= -1
-
-    return sgn != -1
-
-
-def _signature(seq, ref_seq):
-    size = len(seq)
-    assert sorted(seq) == sorted(ref_seq) and len(set(seq)) == size
-    perm = [ref_seq.index(val) for val in seq]
-
-    sgn = 1
-    for idx in range(size):
-        if perm[idx] != idx:
-            sgn *= -1
-            swap_idx = perm.index(idx)
-            perm[idx], perm[swap_idx] = perm[swap_idx], perm[idx]
-
-    return sgn

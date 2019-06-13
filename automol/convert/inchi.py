@@ -1,8 +1,10 @@
 """ inchi conversions
 """
+import functools
 from qcelemental import constants as qcc
 from automol import error
 import automol.inchi
+import automol.geom
 import automol.convert.geom
 from automol.convert import _rdkit
 from automol.convert import _pybel
@@ -44,11 +46,31 @@ HARDCODED_INCHI_TO_SMILES_DCT = {
     'InChI=1S/CBr/c1-2': '[C]Br',
     'InChI=1S/CI/c1-2': '[C]I',
 }
+HARDCODED_INCHI_TO_FORMULA_DCT = {
+    'InChI=1S/C': {'C': 1},
+    'InChI=1S/N': {'N': 1},
+    'InChI=1S/CH/h1H': {'C': 1, 'H': 1},
+    'InChI=1S/CF/c1-2': {'C': 1, 'F': 1},
+    'InChI=1S/CCl/c1-2': {'C': 1, 'Cl': 1},
+    'InChI=1S/CBr/c1-2': {'C': 1, 'Br': 1},
+    'InChI=1S/CI/c1-2': {'C': 1, 'I': 1},
+}
 
 
 def geometry(ich):
     """ InChI => geometry
     """
+    # rdkit fails for multi-component inchis, so we split it up and space out
+    # the geometries
+    ichs = automol.inchi.split(ich)
+    geos = list(map(_connected_geometry, ichs))
+    geos = [automol.geom.translated(geo, [50. * idx, 0., 0.])
+            for idx, geo in enumerate(geos)]
+    geo = functools.reduce(automol.geom.join, geos)
+    return geo
+
+
+def _connected_geometry(ich):
     if ich in HARDCODED_INCHI_TO_GEOM_DCT:
         geo = HARDCODED_INCHI_TO_GEOM_DCT[ich]
     else:
@@ -56,13 +78,17 @@ def geometry(ich):
             rdm = _rdkit.from_inchi(ich)
             geo = _rdkit.to_geometry(rdm)
             geo_ich = automol.convert.geom.inchi(geo)
-            if not automol.inchi.same_connectivity(ich, geo_ich):
+            if not automol.inchi.same_connectivity(ich, geo_ich) or (
+                    automol.inchi.has_stereo(ich) and not
+                    automol.inchi.equivalent(ich, geo_ich)):
                 raise error.FailedGeometryGenerationError
         except (error.FailedGeometryGenerationError, RuntimeError):
             pbm = _pybel.from_inchi(ich)
             geo = _pybel.to_geometry(pbm)
             geo_ich = automol.convert.geom.inchi(geo)
-            if not automol.inchi.same_connectivity(ich, geo_ich):
+            if not automol.inchi.same_connectivity(ich, geo_ich) or (
+                    automol.inchi.has_stereo(ich) and not
+                    automol.inchi.equivalent(ich, geo_ich)):
                 raise error.FailedGeometryGenerationError
     return geo
 
@@ -82,13 +108,14 @@ def graph(ich):
     if ich in HARDCODED_INCHI_TO_GRAPH_DCT:
         gra = HARDCODED_INCHI_TO_GRAPH_DCT[ich]
     else:
-        if not automol.inchi.has_known_stereo_elements(ich):
+        if not automol.inchi.has_stereo(ich):
             rdm = _rdkit.from_inchi(ich)
             gra = _rdkit.to_connectivity_graph(rdm)
         else:
             geo = geometry(ich)
             gra = automol.convert.geom.graph(geo)
-            gra = automol.graph.implicit(gra)
+
+    gra = automol.graph.implicit(gra)
     return gra
 
 
@@ -108,3 +135,14 @@ def inchi_key(ich):
     """
     ick = _rdkit.inchi_to_inchi_key(ich)
     return ick
+
+
+def formula(ich):
+    """ InChI => formula
+    """
+    if ich in HARDCODED_INCHI_TO_FORMULA_DCT:
+        fml = HARDCODED_INCHI_TO_FORMULA_DCT[ich]
+    else:
+        rdm = _rdkit.from_inchi(ich)
+        fml = _rdkit.to_formula(rdm)
+    return fml

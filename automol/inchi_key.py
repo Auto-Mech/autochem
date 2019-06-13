@@ -1,4 +1,6 @@
 """ InChIKeys
+
+(could be simplified like I did for automol.inchi, but for now this works)
 """
 import autoparse.pattern as app
 import autoparse.find as apf

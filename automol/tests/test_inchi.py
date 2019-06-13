@@ -3,6 +3,13 @@
 from automol import inchi
 
 AR_ICH = 'InChI=1S/Ar'
+CH2O2_ICH = 'InChI=1S/CH2O2/c2-1-3/h1-2H/q+1/p+1'
+C2H6O_ICH = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3/i2D/t2-/m1/s1'
+C2H6O_ICH_NO_STEREO = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3/i2D'
+
+C4H10ZN_ICH = 'InChI=1S/2C2H5.Zn/c2*1-2;/h2*1H2,2H3;'
+C4H5F2O_ICH = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H/b3-1+,4-2+;'
+C4H5F2O_ICH_NO_STEREO = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H'
 
 C2H2F2_ICH = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H/b2-1+'
 C2H2F2_ICH_NO_STEREO = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H'
@@ -11,47 +18,39 @@ C2H2F2_ICH_STEREO_UNKNOWN = 'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1?'
 C8H13O_ICH = (
     'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
     'b5-3-,6-4-/t8-/m0/s1')
-C8H13O_ICH_NO_ENANTIOMER = (
-    'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-    'b5-3-,6-4-/t8-')
-C8H13O_ICH_PARTIAL_STEREO = (
-    'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/b5-3-/t8-/m0/s1')
 C8H13O_ICH_NO_STEREO = 'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3'
-C8H13O_ICHS = (
-    'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-    'b5-3-,6-4-/t8-/m0/s1',
-    'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-    'b5-3-,6-4+/t8-/m0/s1',
-    'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-    'b5-3+,6-4-/t8-/m0/s1',
-    'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-    'b5-3+,6-4+/t8-/m0/s1'
-)
 
 
-def test__recalculate():
-    """ inchi.recalculate
+def test__from_data():
+    """ test getters
     """
-    assert inchi.recalculate(C2H2F2_ICH_NO_STEREO) == C2H2F2_ICH_NO_STEREO
-    assert (inchi.recalculate(C2H2F2_ICH_NO_STEREO, force_stereo=True)
-            == C2H2F2_ICH_STEREO_UNKNOWN)
+    assert AR_ICH == inchi.from_data(
+        fml_slyr=inchi.formula_sublayer(AR_ICH),
+    )
 
+    assert CH2O2_ICH == inchi.from_data(
+        fml_slyr=inchi.formula_sublayer(CH2O2_ICH),
+        main_dct=inchi.main_sublayers(CH2O2_ICH),
+        char_dct=inchi.charge_sublayers(CH2O2_ICH),
+    )
 
-def test__is_closed():
-    """ inchi.is_closed
-    """
-    assert inchi.is_closed(C8H13O_ICH) is True
-    assert inchi.is_closed(C8H13O_ICH_PARTIAL_STEREO) is False
-    assert inchi.is_closed(C8H13O_ICH_NO_STEREO) is True
-    assert inchi.is_closed(C8H13O_ICH_NO_ENANTIOMER) is False
+    assert C2H6O_ICH == inchi.from_data(
+        fml_slyr=inchi.formula_sublayer(C2H6O_ICH),
+        main_dct=inchi.main_sublayers(C2H6O_ICH),
+        iso_dct=inchi.isotope_sublayers(C2H6O_ICH),
+    )
 
+    assert C2H2F2_ICH == inchi.from_data(
+        fml_slyr=inchi.formula_sublayer(C2H2F2_ICH),
+        main_dct=inchi.main_sublayers(C2H2F2_ICH),
+        ste_dct=inchi.stereo_sublayers(C2H2F2_ICH),
+    )
 
-def test__prefix():
-    """ inchi.prefix
-    """
-    assert inchi.prefix(C2H2F2_ICH) == 'InChI=1S'
-    assert inchi.prefix(C2H2F2_ICH_NO_STEREO) == 'InChI=1S'
-    assert inchi.prefix(C2H2F2_ICH_STEREO_UNKNOWN) == 'InChI=1'
+    assert C8H13O_ICH == inchi.from_data(
+        fml_slyr=inchi.formula_sublayer(C8H13O_ICH),
+        main_dct=inchi.main_sublayers(C8H13O_ICH),
+        ste_dct=inchi.stereo_sublayers(C8H13O_ICH),
+    )
 
 
 def test__version():
@@ -62,92 +61,57 @@ def test__version():
     assert inchi.version(C2H2F2_ICH_STEREO_UNKNOWN) == '1'
 
 
-def test__formula_layer():
-    """ inchi.formula_layer
+def test__without_stereo():
+    """ test inchi.without_stereo
     """
-    assert inchi.formula_layer(C2H2F2_ICH) == 'C2H2F2'
-    assert (inchi.formula_layer('InChI=1S/2C2H5.Zn/c2*1-2;/h2*1H2,2H3;')
-            == '2C2H5.Zn')
+    assert inchi.without_stereo(C2H6O_ICH) == C2H6O_ICH_NO_STEREO
+    assert inchi.without_stereo(C4H5F2O_ICH) == C4H5F2O_ICH_NO_STEREO
+    assert inchi.without_stereo(C2H2F2_ICH) == C2H2F2_ICH_NO_STEREO
+    assert inchi.without_stereo(C8H13O_ICH) == C8H13O_ICH_NO_STEREO
 
 
-def test__key_layer():
-    """ inchi.key_layer
+def test__has_stereo():
+    """ test inchi.has_stereo
     """
-    assert inchi.key_layer(C2H2F2_ICH, 'c') == 'c3-1-2-4'
-    assert inchi.key_layer(C2H2F2_ICH, 'h') == 'h1-2H'
-    assert inchi.key_layer(C2H2F2_ICH, 'b') == 'b2-1+'
-    assert inchi.key_layer(C2H2F2_ICH_STEREO_UNKNOWN, 'c') == 'c3-1-2-4'
-    assert inchi.key_layer(C2H2F2_ICH_STEREO_UNKNOWN, 'h') == 'h1-2H'
-    assert inchi.key_layer(C2H2F2_ICH_STEREO_UNKNOWN, 'b') == 'b2-1?'
-    assert inchi.key_layer(C2H2F2_ICH_NO_STEREO, 'c') == 'c3-1-2-4'
-    assert inchi.key_layer(C2H2F2_ICH_NO_STEREO, 'h') == 'h1-2H'
-    assert inchi.key_layer(C2H2F2_ICH_NO_STEREO, 'b') is None
+    assert inchi.has_stereo(C2H6O_ICH)
+    assert inchi.has_stereo(C4H5F2O_ICH)
+    assert inchi.has_stereo(C2H2F2_ICH)
+    assert inchi.has_stereo(C8H13O_ICH)
+    assert not inchi.has_stereo(inchi.without_stereo(C2H6O_ICH))
+    assert not inchi.has_stereo(inchi.without_stereo(C4H5F2O_ICH))
+    assert not inchi.has_stereo(inchi.without_stereo(C2H2F2_ICH))
+    assert not inchi.has_stereo(inchi.without_stereo(C8H13O_ICH))
 
 
-def test__key_layer_content():
-    """ inchi.key_layer_content
+def test__split():
+    """ test inchi.split
     """
-    assert inchi.key_layer_content(C2H2F2_ICH, 'c') == '3-1-2-4'
-    assert inchi.key_layer_content(C2H2F2_ICH, 'h') == '1-2H'
-    assert inchi.key_layer_content(C2H2F2_ICH, 'b') == '2-1+'
-    assert (inchi.key_layer_content(C2H2F2_ICH_STEREO_UNKNOWN, 'c')
-            == '3-1-2-4')
-    assert (inchi.key_layer_content(C2H2F2_ICH_STEREO_UNKNOWN, 'h')
-            == '1-2H')
-    assert (inchi.key_layer_content(C2H2F2_ICH_STEREO_UNKNOWN, 'b')
-            == '2-1?')
-    assert inchi.key_layer_content(C2H2F2_ICH_NO_STEREO, 'c') == '3-1-2-4'
-    assert inchi.key_layer_content(C2H2F2_ICH_NO_STEREO, 'h') == '1-2H'
-    assert inchi.key_layer_content(C2H2F2_ICH_NO_STEREO, 'b') is None
+    assert inchi.split(C4H10ZN_ICH) == (
+        'InChI=1S/C2H5/c1-2/h1H2,2H3', 'InChI=1S/C2H5/c1-2/h1H2,2H3',
+        'InChI=1S/Zn')
+    assert inchi.split(C4H5F2O_ICH) == (
+        'InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1+,4-2+', 'InChI=1S/HO/h1H')
 
 
-def test__core_parent():
-    """ inchi.core_parent
+def test__join():
+    """ test inchi.join
     """
-    assert inchi.core_parent(AR_ICH) == AR_ICH
-    assert (inchi.core_parent(C2H2F2_ICH)
-            == 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H')
-    assert (inchi.core_parent(C2H2F2_ICH_NO_STEREO)
-            == 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H')
-    assert (inchi.core_parent(C2H2F2_ICH_STEREO_UNKNOWN)
-            == 'InChI=1/C2H2F2/c3-1-2-4/h1-2H')
-    assert (inchi.core_parent(C8H13O_ICH_NO_STEREO)
-            == 'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3')
-    assert (inchi.core_parent(C8H13O_ICH)
-            == 'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3')
+    assert inchi.join(inchi.split(C4H10ZN_ICH)) == C4H10ZN_ICH
+    assert inchi.join(inchi.split(C4H5F2O_ICH)) == C4H5F2O_ICH
 
 
-def test__atom_stereo_elements():
-    """ inchi.atom_stereo_elements
+def test__recalculate():
+    """ inchi.recalculate
     """
-    assert inchi.atom_stereo_elements(C8H13O_ICH_NO_STEREO) == ()
-    assert inchi.atom_stereo_elements(C8H13O_ICH) == (('8', '-'),)
+    assert inchi.recalculate(C2H2F2_ICH_NO_STEREO) == C2H2F2_ICH_NO_STEREO
+    assert (inchi.recalculate(C2H2F2_ICH_NO_STEREO, force_stereo=True)
+            == C2H2F2_ICH_STEREO_UNKNOWN)
 
 
-def test__bond_stereo_elements():
-    """ inchi.bond_stereo_elements
-    """
-    assert inchi.bond_stereo_elements(C8H13O_ICH_NO_STEREO) == ()
-    assert (inchi.bond_stereo_elements(C8H13O_ICH)
-            == (('5-3', '-'), ('6-4', '-')))
-
-
-def test__has_unknown_stereo_elements():
-    """ inchi.has_unknown_stereo_elements
-    """
-    assert (inchi.has_unknown_stereo_elements(C8H13O_ICH)
-            is False)
-    assert (inchi.has_unknown_stereo_elements(C8H13O_ICH_PARTIAL_STEREO)
-            is True)
-    assert (inchi.has_unknown_stereo_elements(C8H13O_ICH_NO_STEREO)
-            is True)
-    assert (inchi.has_unknown_stereo_elements(C8H13O_ICH_NO_ENANTIOMER)
-            is False)
-
-
-def test__substereomers():
-    """ inchi.substereomers
-    """
-    assert (inchi.substereomers(C8H13O_ICH_NO_STEREO)
-            == C8H13O_ICHS)
-    assert inchi.substereomers(C8H13O_ICH) == (C8H13O_ICH,)
+if __name__ == '__main__':
+    test__from_data()
+    test__version()
+    test__join()
+    test__split()
+    test__without_stereo()
+    test__has_stereo()
