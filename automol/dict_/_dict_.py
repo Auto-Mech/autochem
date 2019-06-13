@@ -3,6 +3,13 @@
 from itertools import starmap as _starmap
 
 
+def empty_if_none(obj):
+    """ return an empty dictionary if the object is None, otherwise return the
+    object
+    """
+    return dict() if obj is None else obj
+
+
 def right_update(dct1, dct2):
     """ return the update of `dct1` by `dct2`
     """

@@ -4,6 +4,7 @@ from rdkit import RDLogger
 import rdkit.Chem as _rd_chem
 import rdkit.Chem.AllChem as _rd_all_chem
 import automol.create
+from automol.convert import _util
 
 _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)
@@ -94,3 +95,14 @@ def inchi_to_inchi_key(ich):
     """
     ick = _rd_chem.inchi.InchiToInchiKey(ich)
     return ick
+
+
+# formula
+def to_formula(rdm):
+    """ formula from an rdkit molecule object
+    """
+    rdm = _rd_chem.AddHs(rdm)
+    atms = rdm.GetAtoms()
+    syms = [rda.GetSymbol() for rda in atms]
+    fml = _util.formula(syms)
+    return fml

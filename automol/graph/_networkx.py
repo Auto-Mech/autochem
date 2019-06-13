@@ -22,6 +22,12 @@ def minimum_cycle_basis(nxg):
     return frozenset(map(frozenset, rng_atm_keys_lst))
 
 
+def connected_component_atom_keys(nxg):
+    """ atom keys for the connected components in this graph
+    """
+    return tuple(map(frozenset, networkx.algorithms.connected_components(nxg)))
+
+
 def isomorphism(nxg1, nxg2):
     """ graph isomorphism
     """

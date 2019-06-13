@@ -12,12 +12,17 @@ from automol.graph._graph import bond_orders
 from automol.graph._graph import bond_stereo_parities
 # setters
 from automol.graph._graph import relabel
+from automol.graph._graph import standard_keys
+from automol.graph._graph import transform_keys
 from automol.graph._graph import set_atom_implicit_hydrogen_valences
 from automol.graph._graph import set_atom_stereo_parities
 from automol.graph._graph import set_bond_orders
 from automol.graph._graph import set_bond_stereo_parities
+from automol.graph._graph import add_atom_implicit_hydrogen_valences
 from automol.graph._graph import without_bond_orders
 from automol.graph._graph import without_stereo_parities
+from automol.graph._graph import add_atoms
+from automol.graph._graph import add_bonds
 
 # graph theory library
 # # atom properties
@@ -32,10 +37,14 @@ from automol.graph._graph import branch
 from automol.graph._graph import branch_bond_keys
 from automol.graph._graph import rings
 from automol.graph._graph import rings_bond_keys
+from automol.graph._graph import connected_components
+from automol.graph._graph import connected_components_atom_keys
+from automol.graph._graph import union
 from automol.graph._graph import subgraph
 from automol.graph._graph import bond_induced_subgraph
 # # transformations
-from automol.graph._graph import delete_atoms
+from automol.graph._graph import remove_atoms
+from automol.graph._graph import remove_bonds
 from automol.graph._graph import without_ghost_atoms
 
 # implicit/explicit hydrogen functions
@@ -59,7 +68,8 @@ from automol.graph._graph import backbone_unique
 from automol.graph._graph import atom_element_valences
 from automol.graph._graph import atom_lone_pair_counts
 from automol.graph._graph import atom_bond_valences
-from automol.graph._graph import atom_radical_valences
+from automol.graph._graph import atom_unsaturated_valences
+from automol.graph._graph import unsaturated_atom_keys
 # # other properties
 from automol.graph._graph import maximum_spin_multiplicity
 from automol.graph._graph import possible_spin_multiplicities
@@ -72,6 +82,7 @@ from automol.graph._graph import bond_symmetry_numbers
 # # atom properties
 from automol.graph._res import atom_hybridizations
 from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._res import resonance_dominant_radical_atom_keys
 # # bond properties
 from automol.graph._res import resonance_dominant_bond_orders
 # # transformations
@@ -137,6 +148,12 @@ def inchi(gra):
     return automol.convert.graph.inchi(gra)
 
 
+def formula(gra):
+    """ graph => formula
+    """
+    return automol.convert.graph.formula(gra)
+
+
 __all__ = [
     # constructors
     'from_data',
@@ -152,12 +169,17 @@ __all__ = [
     'bond_stereo_parities',
     # setters
     'relabel',
+    'standard_keys',
+    'transform_keys',
     'set_atom_implicit_hydrogen_valences',
     'set_atom_stereo_parities',
     'set_bond_orders',
     'set_bond_stereo_parities',
+    'add_atom_implicit_hydrogen_valences',
     'without_bond_orders',
     'without_stereo_parities',
+    'add_atoms',
+    'add_bonds',
 
     # graph theory library
     # # atom properties
@@ -172,10 +194,14 @@ __all__ = [
     'branch_bond_keys',
     'rings',
     'rings_bond_keys',
+    'connected_components',
+    'connected_components_atom_keys',
+    'union',
     'subgraph',
     'bond_induced_subgraph',
     # # transformations
-    'delete_atoms',
+    'remove_atoms',
+    'remove_bonds',
     'without_ghost_atoms',
 
     # implicit/explicit hydrogen functions
@@ -199,7 +225,8 @@ __all__ = [
     'atom_element_valences',
     'atom_lone_pair_counts',
     'atom_bond_valences',
-    'atom_radical_valences',
+    'atom_unsaturated_valences',
+    'unsaturated_atom_keys',
     # # other properties
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
@@ -209,6 +236,7 @@ __all__ = [
     # # atom properties
     'atom_hybridizations',
     'resonance_dominant_atom_hybridizations',
+    'resonance_dominant_radical_atom_keys',
     # # bond properties
     'resonance_dominant_bond_orders',
     # # transformations
@@ -232,4 +260,5 @@ __all__ = [
 
     # conversions,
     'inchi',
+    'formula',
 ]

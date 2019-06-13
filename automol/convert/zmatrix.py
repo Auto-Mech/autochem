@@ -4,6 +4,7 @@ import itertools
 import numpy
 from automol import create
 from automol import cart
+from automol.convert import _util
 import automol.convert.geom
 import automol.geom
 import automol.zmatrix
@@ -33,3 +34,12 @@ def geometry(zma, remove_ghost_atoms=None):
         geo = automol.geom.without_ghost_atoms(geo)
 
     return geo
+
+
+# z-matrix => formula
+def formula(zma):
+    """ z-matrix => formula
+    """
+    syms = automol.zmatrix.symbols(zma)
+    fml = _util.formula(syms)
+    return fml

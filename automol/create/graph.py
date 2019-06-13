@@ -61,9 +61,9 @@ def atoms_from_data(atom_symbols, atom_implicit_hydrogen_valences=None,
     keys = sorted(atom_symbols.keys())
     syms = dict_.values_by_key(atom_symbols, keys)
     vlcs = dict_.values_by_key(
-        _dict_if_none(atom_implicit_hydrogen_valences), keys, fill_val=0)
+        dict_.empty_if_none(atom_implicit_hydrogen_valences), keys, fill_val=0)
     pars = dict_.values_by_key(
-        _dict_if_none(atom_stereo_parities), keys, fill_val=None)
+        dict_.empty_if_none(atom_stereo_parities), keys, fill_val=None)
 
     natms = len(syms)
     vlcs = [0] * natms if vlcs is None else list(vlcs)
@@ -98,9 +98,9 @@ def bonds_from_data(bond_keys, bond_orders=None, bond_stereo_parities=None):
     keys = sorted(bond_keys)
     assert all(len(key) == 2 for key in keys)
     ords = dict_.values_by_key(
-        _dict_if_none(bond_orders), keys, fill_val=1)
+        dict_.empty_if_none(bond_orders), keys, fill_val=1)
     pars = dict_.values_by_key(
-        _dict_if_none(bond_stereo_parities), keys, fill_val=None)
+        dict_.empty_if_none(bond_stereo_parities), keys, fill_val=None)
 
     nbnds = len(keys)
 
@@ -136,8 +136,3 @@ def from_atoms_and_bonds(atoms, bonds):
     bnd_keys = set(bnd_dct.keys())
     assert all(bnd_key <= atm_keys for bnd_key in bnd_keys)
     return (atm_dct, bnd_dct)
-
-
-# helpers
-def _dict_if_none(obj):
-    return dict() if obj is None else obj

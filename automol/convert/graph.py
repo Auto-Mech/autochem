@@ -6,6 +6,7 @@ import automol.inchi
 import automol.convert.inchi
 from automol.convert import _molfile
 from automol.convert import _rdkit
+from automol.convert import _util
 
 
 # graph => inchi
@@ -16,7 +17,7 @@ def inchi(gra):
     if ich is None:
         if not automol.graph.has_stereo(gra):
             ich = inchi_from_coordinates(gra, atm_xyz_dct=None)
-            ich = automol.inchi.recalculate(automol.inchi.core_parent(ich))
+            ich = automol.inchi.recalculate(automol.inchi.without_stereo(ich))
         else:
             gra = automol.graph.explicit(gra)
             atm_xyz_dct = automol.graph.atom_stereo_coordinates(gra)
@@ -50,7 +51,7 @@ def inchi_from_coordinates(gra, atm_xyz_dct=None):
     atm_bnd_vlcs = dict_.values_by_key(
         automol.graph.atom_bond_valences(gra), atm_keys)
     atm_rad_vlcs = dict_.values_by_key(
-        automol.graph.atom_radical_valences(gra), atm_keys)
+        automol.graph.atom_unsaturated_valences(gra), atm_keys)
     bnd_ords = dict_.values_by_key(automol.graph.bond_orders(gra), bnd_keys)
     atm_xyzs = (None if atm_xyz_dct is None else
                 dict_.values_by_key(atm_xyz_dct, atm_keys))
@@ -60,3 +61,12 @@ def inchi_from_coordinates(gra, atm_xyz_dct=None):
     rdm = _rdkit.from_molfile(mlf)
     ich = _rdkit.to_inchi(rdm)
     return ich
+
+
+def formula(gra):
+    """ graph  => formula
+    """
+    gra = automol.graph.explicit(gra)
+    syms = automol.graph.atom_symbols(gra).values()
+    fml = _util.formula(syms)
+    return fml

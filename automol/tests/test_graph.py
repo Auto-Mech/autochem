@@ -400,6 +400,21 @@ def test__rings():
     )
 
 
+def test__connected_components():
+    """ test graph.connected_components
+    """
+    gra1 = C3H3_CGR
+    gra2 = C2_CGR
+    gra1_natms = automol.formula.atom_count(graph.formula(C3H3_CGR))
+    gra2 = graph.transform_keys(gra2, lambda x: x + gra1_natms)
+
+    gra1 = gra1
+    gra2 = gra2
+    gra = graph.union(gra1, gra2)
+    cmp_gras = graph.connected_components(gra)
+    assert cmp_gras in [(gra1, gra2), (gra2, gra1)]
+
+
 def test__subgraph():
     """ test graph.subgraph
     """
@@ -427,12 +442,20 @@ def test__relabel():
          frozenset({12, 10}): (1, None)})
 
 
-def test__delete_atoms():
-    """ test graph.delete_atoms
+def test__remove_atoms():
+    """ test graph.remove_atoms
     """
-    assert graph.delete_atoms(C3H3_CGR, (0,)) == (
+    assert graph.remove_atoms(C3H3_CGR, (0,)) == (
         {1: ('C', 1, None), 2: ('C', 1, None)},
         {frozenset({1, 2}): (1, None)})
+
+
+def test__remove_bonds():
+    """ test graph.remove_bonds
+    """
+    assert graph.remove_bonds(C3H3_CGR, [frozenset({1, 2})]) == (
+        {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
+        {frozenset({0, 1}): (1, None), frozenset({2, 0}): (1, None)})
 
 
 # implicit/explicit hydrogen functions
@@ -538,11 +561,18 @@ def test__atom_bond_valences():
         0: 4, 1: 3, 2: 4, 3: 3, 4: 3, 5: 3, 6: 4, 7: 4, 8: 1}
 
 
-def test__atom_radical_valences():
-    """ test graph.atom_radical_valences
+def test__atom_unsaturated_valences():
+    """ test graph.atom_unsaturated_valences
     """
-    assert graph.atom_radical_valences(C8H13O_CGR) == {
+    assert graph.atom_unsaturated_valences(C8H13O_CGR) == {
         0: 0, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 1}
+
+
+def test__unsaturated_atom_keys():
+    """ test graph.unsaturated_atom_keys
+    """
+    assert graph.unsaturated_atom_keys(C8H13O_CGR) == frozenset(
+        {1, 3, 4, 5, 8})
 
 
 def test__maximum_spin_multiplicity():
@@ -576,6 +606,15 @@ def test__resonance_dominant_atom_hybridizations():
         0: 2, 1: 2, 2: 2}
     assert graph.resonance_dominant_atom_hybridizations(C8H13O_CGR) == {
         0: 3, 1: 2, 2: 3, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3}
+
+
+def test__resonance_dominant_radical_atom_keys():
+    """ test graph.resonance_dominant_radical_atom_keys
+    """
+    assert graph.resonance_dominant_radical_atom_keys(C3H3_CGR) == frozenset(
+        {0, 1, 2})
+    assert graph.resonance_dominant_radical_atom_keys(C8H13O_CGR) == frozenset(
+        {8})
 
 
 # # bond properties
@@ -675,14 +714,18 @@ def test__atom_stereo_coordinates():
 
 
 if __name__ == '__main__':
-    test__from_data()
-    test__set_atom_implicit_hydrogen_valences()
-    test__without_bond_orders()
-    test__without_stereo_parities()
-    test__atom_explicit_hydrogen_valences()
-    test__atom_explicit_hydrogen_keys()
-    test__explicit()
-    test__backbone_keys()
-    test__explicit_hydrogen_keys()
-    test__stereomers()
-    test__atom_stereo_coordinates()
+    # test__from_data()
+    # test__set_atom_implicit_hydrogen_valences()
+    # test__without_bond_orders()
+    # test__without_stereo_parities()
+    # test__atom_explicit_hydrogen_valences()
+    # test__atom_explicit_hydrogen_keys()
+    # test__explicit()
+    # test__backbone_keys()
+    # test__explicit_hydrogen_keys()
+    # test__stereomers()
+    # test__atom_stereo_coordinates()
+    # test__connected_components()
+    # test__unsaturated_atom_keys()
+    test__resonance_dominant_radical_atom_keys()
+    test__remove_bonds()

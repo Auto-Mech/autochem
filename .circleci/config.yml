@@ -25,6 +25,14 @@ jobs:
                     flake8 --exit-zero autommol
                     pylint --rcfile=../.pylintrc automol
             - run:
+                name: Test autorxn
+                command: |
+                    source activate autochem-env
+                    cd autorxn
+                    pytest -v --disable-pytest-warnings --cov=autorxn --pyargs autorxn
+                    flake8 --exit-zero autommol
+                    pylint --rcfile=../.pylintrc autorxn
+            - run:
                 name: Test autoread
                 command: |
                     source activate autochem-env

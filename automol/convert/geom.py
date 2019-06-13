@@ -4,6 +4,7 @@ import itertools
 import numpy
 from automol import create
 from automol.convert import _pyx2z
+from automol.convert import _util
 import automol.graph
 import automol.geom
 import automol.convert.graph
@@ -81,3 +82,12 @@ def inchi(geo, remove_stereo=False):
         ich = automol.convert.graph.inchi_from_coordinates(
             gra=gra, atm_xyz_dct=atm_xyz_dct)
     return ich
+
+
+# geometry => formula
+def formula(geo):
+    """ geometry => formula
+    """
+    syms = automol.geom.symbols(geo)
+    fml = _util.formula(syms)
+    return fml

@@ -380,3 +380,9 @@ def graph(zma):
     geo = geometry(zma)
     gra = automol.convert.geom.graph(geo)
     return gra
+
+
+def formula(zma):
+    """ zmatrix => formula
+    """
+    return automol.convert.zmatrix.formula(zma)

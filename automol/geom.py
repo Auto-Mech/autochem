@@ -2,7 +2,6 @@
 """
 import functools
 import numpy
-import more_itertools as mit
 from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
@@ -86,6 +85,15 @@ def without_ghost_atoms(geo):
     return from_data(syms, xyzs)
 
 
+# operations
+def join(geo1, geo2):
+    """ join two geometries together
+    """
+    syms = symbols(geo1) + symbols(geo2)
+    xyzs = coordinates(geo1) + coordinates(geo2)
+    return from_data(syms, xyzs)
+
+
 # I/O
 def from_string(geo_str, angstrom=True):
     """ read a cartesian geometry from a string
@@ -134,14 +142,6 @@ def xyz_trajectory_string(geo_lst, comments=None):
 
 
 # representations
-def formula(geo):
-    """ molecular formula, as a dictionary
-    """
-    syms = list(map(pt.to_E, symbols(geo)))
-    frm_dct = {sym: syms.count(sym) for sym in mit.unique_everseen(syms)}
-    return frm_dct
-
-
 def coulomb_spectrum(geo):
     """ (sorted) coulomb matrix eigenvalue spectrum
     """
@@ -359,3 +359,9 @@ def inchi(geo, remove_stereo=False):
     """ geometry => inchi
     """
     return automol.convert.geom.inchi(geo, remove_stereo=remove_stereo)
+
+
+def formula(geo):
+    """ geometry => formula
+    """
+    return automol.convert.geom.formula(geo)
