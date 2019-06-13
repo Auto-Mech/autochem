@@ -99,7 +99,7 @@ def has_stereo(ich):
     """
     ste_dct = stereo_sublayers(ich)
     iso_dct = isotope_sublayers(ich)
-    return ste_dct or any(pfx in iso_dct for pfx in STE_PFXS)
+    return bool(ste_dct or any(pfx in iso_dct for pfx in STE_PFXS))
 
 
 def without_stereo(ich):
@@ -113,11 +113,28 @@ def without_stereo(ich):
                      iso_dct=iso_dct)
 
 
+def is_closed(ich):
+    """ is this inchi closed?
+    """
+    return ich == recalculate(ich)
+
+
+def is_complete(ich):
+    """ is this inchi complete? (are all stereo-centers assigned?)
+    """
+    return is_closed(ich) and not (
+        has_stereo(ich) ^ has_stereo(recalculate(ich, force_stereo=True)))
+
+
 # comparisons
 def equivalent(ich1, ich2):
     """ are these inchis equivalent? (only considers up to the isotope layer
     """
-    return recalculate(ich1) == recalculate(ich2)
+    return (formula_sublayer(ich1) == formula_sublayer(ich2) and
+            main_sublayers(ich1) == main_sublayers(ich2) and
+            charge_sublayers(ich1) == charge_sublayers(ich2) and
+            stereo_sublayers(ich1) == stereo_sublayers(ich2) and
+            isotope_sublayers(ich1) == isotope_sublayers(ich2))
 
 
 def same_connectivity(ich1, ich2):
@@ -226,10 +243,10 @@ def geometry(ich):
     return automol.convert.inchi.geometry(ich)
 
 
-def graph(ich):
+def graph(ich, no_stereo=False):
     """ inchi => graph
     """
-    return automol.convert.inchi.graph(ich)
+    return automol.convert.inchi.graph(ich, no_stereo=no_stereo)
 
 
 def smiles(ich):
