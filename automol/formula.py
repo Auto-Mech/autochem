@@ -38,6 +38,15 @@ def add_hydrogen(fml, num=1):
     return add_element(fml, 'H', num)
 
 
+def join(fml1, fml2):
+    """ join two formulas together
+    """
+    fml = dict(fml1)
+    for sym, num in fml2.items():
+        fml = add_element(fml, sym, num=num)
+    return fml
+
+
 def _is_standard(fml):
     syms = list(fml.keys())
     return syms == list(filter(pt.to_Z, map(pt.to_E, syms)))
