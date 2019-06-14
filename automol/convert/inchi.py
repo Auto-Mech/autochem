@@ -1,6 +1,7 @@
 """ inchi conversions
 """
 import functools
+import operator
 from qcelemental import constants as qcc
 from automol import error
 import automol.inchi
@@ -8,62 +9,6 @@ import automol.geom
 import automol.convert.geom
 from automol.convert import _rdkit
 from automol.convert import _pybel
-
-HARDCODED_INCHI_LST = [
-    'InChI=1S/C',
-    'InChI=1S/N',
-    'InChI=1S/CH/h1H',
-    'InChI=1S/CF/c1-2',
-    'InChI=1S/CCl/c1-2',
-    'InChI=1S/CBr/c1-2',
-    'InChI=1S/CI/c1-2',
-]
-ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
-HARDCODED_INCHI_TO_GEOM_DCT = {
-    'InChI=1S/C': (('C', (0., 0., 0.)),),
-    'InChI=1S/N': (('N', (0., 0., 0.)),),
-    'InChI=1S/CH/h1H': (('C', (0., 0., 0.)),
-                        ('H', (0., 0., 1.12 * ANG2BOHR))),
-    'InChI=1S/CF/c1-2': (('C', (0., 0., 0.)),
-                         ('F', (0., 0., 1.27 * ANG2BOHR))),
-    'InChI=1S/CCl/c1-2': (('C', (0., 0., 0.)),
-                          ('Cl', (0., 0., 1.65 * ANG2BOHR))),
-    'InChI=1S/CBr/c1-2': (('C', (0., 0., 0.)),
-                          ('Br', (0., 0., 1.8 * ANG2BOHR))),
-    'InChI=1S/CI/c1-2': (('C', (0., 0., 0.)),
-                         ('I', (0., 0., 1.8 * ANG2BOHR))),
-}
-HARDCODED_INCHI_TO_GRAPH_DCT = {
-    'InChI=1S/C': ({0: ('C', 0, None)}, {}),
-    'InChI=1S/N': ({0: ('N', 0, None)}, {}),
-    'InChI=1S/CH/h1H': ({0: ('C', 1, None)}, {}),
-    'InChI=1S/CF/c1-2': ({0: ('C', 0, None), 1: ('F', 0, None)},
-                         {frozenset({0, 1}): (1, None)}),
-    'InChI=1S/CCl/c1-2': ({0: ('C', 0, None), 1: ('Cl', 0, None)},
-                          {frozenset({0, 1}): (1, None)}),
-    'InChI=1S/CBr/c1-2': ({0: ('C', 0, None), 1: ('Br', 0, None)},
-                          {frozenset({0, 1}): (1, None)}),
-    'InChI=1S/CI/c1-2': ({0: ('C', 0, None), 1: ('I', 0, None)},
-                         {frozenset({0, 1}): (1, None)}),
-}
-HARDCODED_INCHI_TO_SMILES_DCT = {
-    'InChI=1S/C': '[C]',
-    'InChI=1S/N': '[N]',
-    'InChI=1S/CH/h1H': '[CH]',
-    'InChI=1S/CF/c1-2': '[C]F',
-    'InChI=1S/CCl/c1-2': '[C]Cl',
-    'InChI=1S/CBr/c1-2': '[C]Br',
-    'InChI=1S/CI/c1-2': '[C]I',
-}
-HARDCODED_INCHI_TO_FORMULA_DCT = {
-    'InChI=1S/C': {'C': 1},
-    'InChI=1S/N': {'N': 1},
-    'InChI=1S/CH/h1H': {'C': 1, 'H': 1},
-    'InChI=1S/CF/c1-2': {'C': 1, 'F': 1},
-    'InChI=1S/CCl/c1-2': {'C': 1, 'Cl': 1},
-    'InChI=1S/CBr/c1-2': {'C': 1, 'Br': 1},
-    'InChI=1S/CI/c1-2': {'C': 1, 'I': 1},
-}
 
 
 def geometry(ich):
@@ -80,9 +25,8 @@ def geometry(ich):
 
 
 def _connected_geometry(ich):
-    if ich in HARDCODED_INCHI_TO_GEOM_DCT:
-        geo = HARDCODED_INCHI_TO_GEOM_DCT[ich]
-    else:
+    geo = object_from_hardcoded_inchi_by_key('geom', ich)
+    if geo is None:
         try:
             rdm = _rdkit.from_inchi(ich)
             geo = _rdkit.to_geometry(rdm)
@@ -91,7 +35,7 @@ def _connected_geometry(ich):
                     automol.inchi.has_stereo(ich) and not
                     automol.inchi.equivalent(ich, geo_ich)):
                 raise error.FailedGeometryGenerationError
-        except (error.FailedGeometryGenerationError, RuntimeError):
+        except (error.FailedGeometryGenerationError, RuntimeError, ValueError):
             pbm = _pybel.from_inchi(ich)
             geo = _pybel.to_geometry(pbm)
             geo_ich = automol.convert.geom.inchi(geo)
@@ -105,10 +49,12 @@ def _connected_geometry(ich):
 def recalculate(ich, force_stereo=False):
     """ recalculate InChI string
     """
-    _options = '-SUU' if force_stereo else ''
-    rdm = _rdkit.from_inchi(ich)
-    ich = _rdkit.to_inchi(rdm, options=_options, with_aux_info=False)
-    return ich
+    ret = object_from_hardcoded_inchi_by_key('inchi', ich)
+    if ret is None:
+        _options = '-SUU' if force_stereo else ''
+        rdm = _rdkit.from_inchi(ich)
+        ret = _rdkit.to_inchi(rdm, options=_options, with_aux_info=False)
+    return ret
 
 
 def graph(ich, no_stereo=False):
@@ -128,9 +74,8 @@ def graph(ich, no_stereo=False):
 
 
 def _connected_graph(ich, no_stereo=False):
-    if ich in HARDCODED_INCHI_TO_GRAPH_DCT:
-        gra = HARDCODED_INCHI_TO_GRAPH_DCT[ich]
-    else:
+    gra = object_from_hardcoded_inchi_by_key('graph', ich)
+    if gra is None:
         if no_stereo or not automol.inchi.has_stereo(ich):
             rdm = _rdkit.from_inchi(ich)
             gra = _rdkit.to_connectivity_graph(rdm)
@@ -153,9 +98,8 @@ def smiles(ich):
 
 
 def _connected_smiles(ich):
-    if ich in HARDCODED_INCHI_TO_SMILES_DCT:
-        smi = HARDCODED_INCHI_TO_SMILES_DCT[ich]
-    else:
+    smi = object_from_hardcoded_inchi_by_key('smiles', ich)
+    if smi is None:
         rdm = _rdkit.from_inchi(ich)
         smi = _rdkit.to_smiles(rdm)
     return smi
@@ -179,9 +123,88 @@ def formula(ich):
 
 
 def _connected_formula(ich):
-    if ich in HARDCODED_INCHI_TO_FORMULA_DCT:
-        fml = HARDCODED_INCHI_TO_FORMULA_DCT[ich]
-    else:
+    fml = object_from_hardcoded_inchi_by_key('formula', ich)
+    if fml is None:
         rdm = _rdkit.from_inchi(ich)
         fml = _rdkit.to_formula(rdm)
     return fml
+
+
+# hardcoded inchis which neither RDKit nor Pybel can handle
+ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
+HARDCODED_INCHI_DCT = {
+    'InChI=1S/C': {
+        'inchi': 'InChI=1S/C',
+        'geom': (('C', (0., 0., 0.)),),
+        'graph': ({0: ('C', 0, None)}, {}),
+        'smiles': '[C]',
+        'formula': {'C': 1},
+    },
+    'InChI=1S/N': {
+        'inchi': 'InChI=1S/N',
+        'geom': (('N', (0., 0., 0.)),),
+        'graph': ({0: ('N', 0, None)}, {}),
+        'smiles': '[N]',
+        'formula': {'N': 1},
+    },
+    'InChI=1S/CH/h1H': {
+        'inchi': 'InChI=1S/CH/h1H',
+        'geom': (('C', (0., 0., 0.)), ('H', (0., 0., 1.12 * ANG2BOHR))),
+        'graph': ({0: ('C', 1, None)}, {}),
+        'smiles': '[CH]',
+        'formula': {'C': 1, 'H': 1},
+    },
+    'InChI=1S/CF/c1-2': {
+        'inchi': 'InChI=1S/CF/c1-2',
+        'geom': (('C', (0., 0., 0.)), ('F', (0., 0., 1.27 * ANG2BOHR))),
+        'graph': ({0: ('C', 0, None), 1: ('F', 0, None)},
+                  {frozenset({0, 1}): (1, None)}),
+        'smiles': '[C]F',
+        'formula': {'C': 1, 'F': 1},
+    },
+    'InChI=1S/CCl/c1-2': {
+        'inchi': 'InChI=1S/CCl/c1-2',
+        'geom': (('C', (0., 0., 0.)), ('Cl', (0., 0., 1.65 * ANG2BOHR))),
+        'graph': ({0: ('C', 0, None), 1: ('Cl', 0, None)},
+                  {frozenset({0, 1}): (1, None)}),
+        'smiles': '[C]Cl',
+        'formula': {'C': 1, 'Cl': 1},
+    },
+    'InChI=1S/CBr/c1-2': {
+        'inchi': 'InChI=1S/CBr/c1-2',
+        'geom': (('C', (0., 0., 0.)), ('Br', (0., 0., 1.8 * ANG2BOHR))),
+        'graph': ({0: ('C', 0, None), 1: ('Br', 0, None)},
+                  {frozenset({0, 1}): (1, None)}),
+        'smiles': '[C]Br',
+        'formula': {'C': 1, 'Br': 1},
+    },
+    'InChI=1S/CI/c1-2': {
+        'inchi': 'InChI=1S/CI/c1-2',
+        'geom': (('C', (0., 0., 0.)), ('I', (0., 0., 1.8 * ANG2BOHR))),
+        'graph': ({0: ('C', 0, None), 1: ('I', 0, None)},
+                  {frozenset({0, 1}): (1, None)}),
+        'smiles': '[C]I',
+        'formula': {'C': 1, 'I': 1},
+    },
+}
+
+
+def object_from_hardcoded_inchi_by_key(key, ich):
+    """ object from a hardcoded inchi by key
+    """
+    obj = None
+    for ich_, obj_dct in HARDCODED_INCHI_DCT.items():
+        if automol.inchi.equivalent(ich, ich_):
+            obj = obj_dct[key]
+    return obj
+
+
+def object_to_hardcoded_inchi_by_key(key, obj, comp=operator.eq):
+    """ object to hardcoded inchi by key
+    """
+    ich = None
+    for ich_, obj_dct in HARDCODED_INCHI_DCT.items():
+        obj_ = obj_dct[key]
+        if comp(obj, obj_):
+            ich = ich_
+    return ich

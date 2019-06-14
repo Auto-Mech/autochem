@@ -15,40 +15,15 @@ SLASH_OR_START = app.one_of_these([SLASH, app.STRING_START])
 SLASH_OR_END = app.one_of_these([SLASH, app.STRING_END])
 
 
-MAIN_PFXS = ['c', 'h']
-CHAR_PFXS = ['q', 'p']
-STE_PFXS = ['b', 't', 'm', 's']
-ISO_NONSTE_PFXS = ['i', 'h']
-ISO_PFXS = ISO_NONSTE_PFXS + STE_PFXS
-
-
 # "constructor"
 def from_data(fml_slyr, main_dct=None, char_dct=None, ste_dct=None,
               iso_dct=None):
     """ calculate an inchi string from layers
     """
-    main_dct = dict_.empty_if_none(main_dct)
-    char_dct = dict_.empty_if_none(char_dct)
-    ste_dct = dict_.empty_if_none(ste_dct)
-    iso_dct = dict_.empty_if_none(iso_dct)
-
-    main_slyrs = [
-        pfx + slyr for pfx, slyr
-        in zip(MAIN_PFXS, dict_.values_by_key(main_dct, MAIN_PFXS)) if slyr]
-    char_slyrs = [
-        pfx + slyr for pfx, slyr
-        in zip(CHAR_PFXS, dict_.values_by_key(char_dct, CHAR_PFXS)) if slyr]
-    ste_slyrs = [
-        pfx + slyr for pfx, slyr
-        in zip(STE_PFXS, dict_.values_by_key(ste_dct, STE_PFXS)) if slyr]
-    iso_slyrs = [
-        pfx + slyr for pfx, slyr
-        in zip(ISO_PFXS, dict_.values_by_key(iso_dct, ISO_PFXS)) if slyr]
-
-    ich = '/'.join(['InChI=1', fml_slyr] + main_slyrs + char_slyrs +
-                   ste_slyrs + iso_slyrs)
-    ich = automol.convert.inchi.recalculate(ich)
-    return ich
+    return automol.create.inchi.from_data(
+        formula_sublayer=fml_slyr, main_sublayer_dct=main_dct,
+        charge_sublayer_dct=char_dct, stereo_sublayer_dct=ste_dct,
+        isotope_sublayer_dct=iso_dct)
 
 
 # getters
@@ -94,35 +69,47 @@ def isotope_sublayers(ich):
 
 
 # setters
+def standard_form(ich, remove_stereo=False):
+    """ return an inchi string in standard form
+    """
+    if remove_stereo:
+        fml_slyr = formula_sublayer(ich)
+        main_dct = main_sublayers(ich)
+        char_dct = charge_sublayers(ich)
+        ste_dct = {}
+        iso_dct = dict_.by_key(isotope_sublayers(ich),
+                               automol.create.inchi.ISO_NONSTE_PFXS)
+    else:
+        fml_slyr = formula_sublayer(ich)
+        main_dct = main_sublayers(ich)
+        char_dct = charge_sublayers(ich)
+        ste_dct = stereo_sublayers(ich)
+        iso_dct = isotope_sublayers(ich)
+
+    ich = from_data(fml_slyr, main_dct=main_dct, char_dct=char_dct,
+                    ste_dct=ste_dct, iso_dct=iso_dct)
+    return recalculate(ich)
+
+
 def has_stereo(ich):
     """ does this inchi have stereo information?
     """
     ste_dct = stereo_sublayers(ich)
     iso_dct = isotope_sublayers(ich)
-    return bool(ste_dct or any(pfx in iso_dct for pfx in STE_PFXS))
+    return bool(ste_dct or
+                any(pfx in iso_dct for pfx in automol.create.inchi.STE_PFXS))
 
 
-def without_stereo(ich):
-    """ inchi without stereo layer (and sublayers)
-    """
-    fml_slyr = formula_sublayer(ich)
-    main_dct = main_sublayers(ich)
-    char_dct = charge_sublayers(ich)
-    iso_dct = dict_.by_key(isotope_sublayers(ich), ISO_NONSTE_PFXS)
-    return from_data(fml_slyr=fml_slyr, main_dct=main_dct, char_dct=char_dct,
-                     iso_dct=iso_dct)
-
-
-def is_closed(ich):
+def is_standard_form(ich):
     """ is this inchi closed?
     """
-    return ich == recalculate(ich)
+    return ich == standard_form(ich)
 
 
 def is_complete(ich):
     """ is this inchi complete? (are all stereo-centers assigned?)
     """
-    return is_closed(ich) and not (
+    return equivalent(ich, standard_form(ich)) and not (
         has_stereo(ich) ^ has_stereo(recalculate(ich, force_stereo=True)))
 
 
@@ -140,14 +127,18 @@ def equivalent(ich1, ich2):
 def same_connectivity(ich1, ich2):
     """ do these inchis have the same connectivity
     """
-    return without_stereo(ich1) == without_stereo(ich2)
+    return (standard_form(ich1, remove_stereo=True) ==
+            standard_form(ich2, remove_stereo=True))
 
 
 # transformations/operations
 def join(ichs):
     """ join separate inchis into one multi-component inchi
     """
-    fml_slyr = '.'.join(map(formula_sublayer, ichs))
+    # first, make sure they are completely split up
+    ichs = list(itertools.chain(*map(split, ichs)))
+    fmls = list(map(formula_sublayer, ichs))
+    fml_slyr = _join_sublayer_strings(fmls, count_sep='', sep='.')
     main_dct = _join_sublayers(list(map(main_sublayers, ichs)))
     char_dct = _join_sublayers(list(map(charge_sublayers, ichs)))
     ste_dct = _join_sublayers(list(map(stereo_sublayers, ichs)))
@@ -157,12 +148,22 @@ def join(ichs):
 
 
 def _join_sublayers(dcts):
-    """ join sublayer dictionaries into one multi-component sublayer dictionary
-    """
     pfxs = functools.reduce(set.union, map(set, dcts))
     dcts = [dict_.by_key(dct, pfxs, fill_val='') for dct in dcts]
-    dct = {pfx: ';'.join([dct[pfx] for dct in dcts]) for pfx in pfxs}
+    dct = {pfx: _join_sublayer_strings([dct[pfx] for dct in dcts])
+           for pfx in pfxs}
     return dct
+
+
+def _join_sublayer_strings(slyrs, count_sep='*', sep=';'):
+    """ join sublayer strings into one multi-component sublayer string
+    """
+    counts, slyrs = zip(*[
+        (len(list(g)), slyr) for slyr, g in itertools.groupby(slyrs)])
+    slyr = sep.join([
+        ('{:d}' + count_sep + '{:s}').format(count, slyr)
+        if count > 1 else slyr for count, slyr in zip(counts, slyrs)])
+    return slyr
 
 
 def split(ich):
@@ -204,7 +205,7 @@ def _split_sublayers(dct, count):
     return dcts
 
 
-def _split_sublayer_string(lyr, count_sep_ptt=app.escape('*'),
+def _split_sublayer_string(slyr, count_sep_ptt=app.escape('*'),
                            sep_ptt=app.escape(';')):
     count_ptt = app.UNSIGNED_INTEGER
     group_ptt = (app.STRING_START + app.capturing(count_ptt) + count_sep_ptt +
@@ -219,7 +220,7 @@ def _split_sublayer_string(lyr, count_sep_ptt=app.escape('*'),
         return parts
 
     parts = tuple(
-        itertools.chain(*map(_expand_group, apf.split(sep_ptt, lyr))))
+        itertools.chain(*map(_expand_group, apf.split(sep_ptt, slyr))))
     return parts
 
 
@@ -227,13 +228,6 @@ def _split_sublayer_string(lyr, count_sep_ptt=app.escape('*'),
 def recalculate(ich, force_stereo=False):
     """ recalculate an inchi string
     """
-    fml_slyr = formula_sublayer(ich)
-    main_dct = main_sublayers(ich)
-    char_dct = charge_sublayers(ich)
-    ste_dct = stereo_sublayers(ich)
-    iso_dct = isotope_sublayers(ich)
-    ich = from_data(fml_slyr, main_dct=main_dct, char_dct=char_dct,
-                    ste_dct=ste_dct, iso_dct=iso_dct)
     return automol.convert.inchi.recalculate(ich, force_stereo=force_stereo)
 
 

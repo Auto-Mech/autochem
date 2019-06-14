@@ -8,6 +8,7 @@ from automol.convert import _util
 import automol.graph
 import automol.geom
 import automol.convert.graph
+import automol.convert.inchi
 
 
 # geometry => z-matrix
@@ -71,9 +72,11 @@ def _connectivity_graph(geo, rq_bond_max=3.5, rh_bond_max=2.5):
 def inchi(geo, remove_stereo=False):
     """ geometry => InChI
     """
-    gra = _connectivity_graph(geo)
-    ich = automol.convert.graph.hardcoded_inchi(gra)
+    ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
+        'geom', geo, comp=_compare)
+
     if ich is None:
+        gra = _connectivity_graph(geo)
         if remove_stereo:
             atm_xyz_dct = None
         else:
@@ -82,6 +85,12 @@ def inchi(geo, remove_stereo=False):
         ich = automol.convert.graph.inchi_from_coordinates(
             gra=gra, atm_xyz_dct=atm_xyz_dct)
     return ich
+
+
+def _compare(geo1, geo2):
+    gra1 = automol.graph.without_ghost_atoms(_connectivity_graph(geo1))
+    gra2 = automol.graph.without_ghost_atoms(_connectivity_graph(geo2))
+    return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
 # geometry => formula
