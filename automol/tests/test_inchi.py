@@ -61,13 +61,17 @@ def test__version():
     assert inchi.version(C2H2F2_ICH_STEREO_UNKNOWN) == '1'
 
 
-def test__without_stereo():
-    """ test inchi.without_stereo
+def test__standard_form():
+    """ test inchi.standard_form
     """
-    assert inchi.without_stereo(C2H6O_ICH) == C2H6O_ICH_NO_STEREO
-    assert inchi.without_stereo(C4H5F2O_ICH) == C4H5F2O_ICH_NO_STEREO
-    assert inchi.without_stereo(C2H2F2_ICH) == C2H2F2_ICH_NO_STEREO
-    assert inchi.without_stereo(C8H13O_ICH) == C8H13O_ICH_NO_STEREO
+    assert (inchi.standard_form(C2H6O_ICH, remove_stereo=True) ==
+            C2H6O_ICH_NO_STEREO)
+    assert (inchi.standard_form(C4H5F2O_ICH, remove_stereo=True) ==
+            C4H5F2O_ICH_NO_STEREO)
+    assert (inchi.standard_form(C2H2F2_ICH, remove_stereo=True) ==
+            C2H2F2_ICH_NO_STEREO)
+    assert (inchi.standard_form(C8H13O_ICH, remove_stereo=True) ==
+            C8H13O_ICH_NO_STEREO)
 
 
 def test__has_stereo():
@@ -77,10 +81,14 @@ def test__has_stereo():
     assert inchi.has_stereo(C4H5F2O_ICH)
     assert inchi.has_stereo(C2H2F2_ICH)
     assert inchi.has_stereo(C8H13O_ICH)
-    assert not inchi.has_stereo(inchi.without_stereo(C2H6O_ICH))
-    assert not inchi.has_stereo(inchi.without_stereo(C4H5F2O_ICH))
-    assert not inchi.has_stereo(inchi.without_stereo(C2H2F2_ICH))
-    assert not inchi.has_stereo(inchi.without_stereo(C8H13O_ICH))
+    assert not inchi.has_stereo(
+        inchi.standard_form(C2H6O_ICH, remove_stereo=True))
+    assert not inchi.has_stereo(
+        inchi.standard_form(C4H5F2O_ICH, remove_stereo=True))
+    assert not inchi.has_stereo(
+        inchi.standard_form(C2H2F2_ICH, remove_stereo=True))
+    assert not inchi.has_stereo(
+        inchi.standard_form(C8H13O_ICH, remove_stereo=True))
 
 
 def test__split():
@@ -113,5 +121,5 @@ if __name__ == '__main__':
     test__version()
     test__join()
     test__split()
-    test__without_stereo()
+    test__standard_form()
     test__has_stereo()

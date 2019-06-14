@@ -3,21 +3,22 @@
 import automol.convert.inchi
 from automol.convert import _rdkit
 
-HARDCODED_SMILES_TO_INCHI_DCT = dict(
-    map(reversed, automol.convert.inchi.HARDCODED_INCHI_TO_SMILES_DCT.items())
-)
-
 
 def inchi(smi):
     """ SMILES => InChI
     """
-
-    # first, canonicalize the SMILES string
-    rdm = _rdkit.from_smiles(smi)
-    smi = _rdkit.to_smiles(rdm)
-
-    if smi in HARDCODED_SMILES_TO_INCHI_DCT:
-        ich = HARDCODED_SMILES_TO_INCHI_DCT[smi]
-    else:
+    ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
+        'smiles', smi, comp=_compare)
+    if ich is None:
+        rdm = _rdkit.from_smiles(smi)
         ich = _rdkit.to_inchi(rdm)
     return ich
+
+
+# helpers
+def _compare(smi1, smi2):
+    return _canonicalize(smi1) == _canonicalize(smi2)
+
+
+def _canonicalize(smi):
+    return _rdkit.to_smiles(_rdkit.from_smiles(smi))

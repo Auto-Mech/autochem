@@ -13,11 +13,13 @@ from automol.convert import _util
 def inchi(gra):
     """ graph => inchi
     """
-    ich = hardcoded_inchi(gra)
+    ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
+        'graph', gra, comp=_compare)
+
     if ich is None:
         if not automol.graph.has_stereo(gra):
             ich = inchi_from_coordinates(gra, atm_xyz_dct=None)
-            ich = automol.inchi.recalculate(automol.inchi.without_stereo(ich))
+            ich = automol.inchi.standard_form(ich, remove_stereo=True)
         else:
             gra = automol.graph.explicit(gra)
             atm_xyz_dct = automol.graph.atom_stereo_coordinates(gra)
@@ -26,16 +28,10 @@ def inchi(gra):
     return ich
 
 
-def hardcoded_inchi(gra):
-    """ (hardcoded) connectivity graph => inchi conversions
-    """
-    gra = automol.graph.without_ghost_atoms(gra)
-    ich = None
-    for _ich, _gra in (
-            automol.convert.inchi.HARDCODED_INCHI_TO_GRAPH_DCT.items()):
-        if automol.graph.backbone_isomorphic(gra, _gra):
-            ich = _ich
-    return ich
+def _compare(gra1, gra2):
+    gra1 = automol.graph.without_ghost_atoms(gra1)
+    gra2 = automol.graph.without_ghost_atoms(gra2)
+    return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
 def inchi_from_coordinates(gra, atm_xyz_dct=None):
