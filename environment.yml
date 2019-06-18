@@ -23,6 +23,7 @@ dependencies:
     - rdkit::rdkit
     - openbabel::openbabel
     - conda-forge::qcelemental
+    - conda-forge::nglview
     - pacchem::autoparse
     - pacchem::x2z
     - pacchem::transformations

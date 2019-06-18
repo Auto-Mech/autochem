@@ -828,6 +828,13 @@ def test__reaction__is_stereo_compatible():
     cgr1 = graph.explicit(cgr1)
     cgr2 = graph.explicit(cgr2)
 
+    ich1 = graph.inchi(cgr1)
+    ich2 = graph.inchi(cgr2)
+    smi1 = automol.inchi.smiles(ich1)
+    smi2 = automol.inchi.smiles(ich2)
+    print(smi1)
+    print(smi2)
+
     rxn = graph.reaction.addition(cgr1, cgr2)
     assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr1), cgr2)
 

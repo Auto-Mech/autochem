@@ -59,6 +59,18 @@ def inchi_from_coordinates(gra, atm_xyz_dct=None):
     return ich
 
 
+def geometry(gra):
+    """ graph => geometry
+    """
+    gra = automol.graph.explicit(gra)
+    atm_keys = sorted(automol.graph.atom_keys(gra))
+    atm_syms = dict_.values_by_key(automol.graph.atom_symbols(gra), atm_keys)
+    atm_xyzs = dict_.values_by_key(
+        automol.graph.atom_stereo_coordinates(gra), atm_keys)
+    geo = automol.create.geom.from_data(atm_syms, atm_xyzs)
+    return geo
+
+
 def formula(gra):
     """ graph  => formula
     """

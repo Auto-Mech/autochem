@@ -72,6 +72,9 @@ def isotope_sublayers(ich):
 # setters
 def standard_form(ich, remove_stereo=False):
     """ return an inchi string in standard form
+
+    (eventually we should just designate standard-form as standard inchi
+    ordering for all but the hardcoded exceptions, which we can put at the end)
     """
     if remove_stereo:
         fml_slyr = formula_sublayer(ich)

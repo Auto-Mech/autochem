@@ -36,13 +36,14 @@ def zmatrix_torsion_coordinate_names(geo):
 
 
 # geometry => graph
-def graph(geo):
+def graph(geo, remove_stereo=False):
     """ geometry => graph
     """
     gra = _connectivity_graph(geo)
-    xyzs = automol.geom.coordinates(geo)
-    atm_xyz_dct = dict(enumerate(xyzs))
-    gra = automol.graph.set_stereo_from_atom_coordinates(gra, atm_xyz_dct)
+    if not remove_stereo:
+        xyzs = automol.geom.coordinates(geo)
+        atm_xyz_dct = dict(enumerate(xyzs))
+        gra = automol.graph.set_stereo_from_atom_coordinates(gra, atm_xyz_dct)
     return gra
 
 
