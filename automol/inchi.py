@@ -141,6 +141,12 @@ def same_connectivity(ich1, ich2):
             standard_form(ich2, remove_stereo=True))
 
 
+def sorted_(ichs):
+    """ sort the inchies in their standard form sort order
+    """
+    return tuple(ichs[idx] for idx in argsort(ichs))
+
+
 def argsort(ichs):
     """ determine the sort order for the inchi standard form
     """

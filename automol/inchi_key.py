@@ -66,3 +66,10 @@ def protonation_indicator(ick):
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
     prot = cap_dct[Parse.PROT_KEY]
     return prot
+
+
+def second_hash_with_extension(ick):
+    """ second hash block with version and protonation indicators
+    """
+    return (second_hash(ick) + version_indicator(ick) + '-' +
+            protonation_indicator(ick))
