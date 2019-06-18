@@ -158,9 +158,9 @@ def test__geom__zmatrix_torsion_coordinate_names():
 if __name__ == '__main__':
     # test__geom__graph()
     # test__geom__inchi()
-    # test__zmatrix__with_stereo()
     # test__geom__with_stereo()
     # test__graph__no_stereo()
     # test__graph__with_stereo()
-    test__graph__misc()
-    test__graph__with_stereo()
+    # test__graph__misc()
+    # test__graph__with_stereo()
+    test__zmatrix__with_stereo()

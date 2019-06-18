@@ -713,6 +713,131 @@ def test__atom_stereo_coordinates():
         assert graph.set_stereo_from_atom_coordinates(cgr, atm_xyz_dct) == sgr
 
 
+def test__reaction__hydrogen_migration():
+    """ test graph.reaction.hydrogen_migration
+    """
+    cgr1 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('C', 1, None), 5: ('O', 0, None)},
+            {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+             frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
+             frozenset({0, 1}): (1, None)})
+    cgr2 = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('C', 0, None), 5: ('O', 0, None)},
+            {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+             frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
+             frozenset({0, 1}): (1, None)})
+
+    cgr1 = graph.explicit(cgr1)
+    cgr2 = graph.explicit(cgr2)
+
+    rxn = graph.reaction.hydrogen_migration(cgr1, cgr2)
+    assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr1), cgr2)
+
+    rxn = graph.reaction.hydrogen_migration(cgr2, cgr1)
+    assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr2), cgr1)
+
+
+def test__reaction__beta_scission():
+    """ test graph.reaction.beta_scission
+    """
+    cgr1 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
+             6: ('O', 1, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({3, 6}): (1, None), frozenset({2, 4}): (1, None),
+             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+    cgr2 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
+             6: ('O', 1, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
+             frozenset({1, 3}): (1, None)})
+
+    cgr1 = graph.explicit(cgr1)
+    cgr2 = graph.explicit(cgr2)
+
+    rxn = graph.reaction.beta_scission(cgr1, cgr2)
+    assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr1), cgr2)
+
+
+def test__reaction__addition():
+    """ test graph.reaction.addition
+    """
+    cgr1 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
+             6: ('O', 1, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
+             frozenset({1, 3}): (1, None)})
+    cgr2 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
+             6: ('O', 1, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({3, 6}): (1, None), frozenset({2, 4}): (1, None),
+             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+
+    cgr1 = graph.explicit(cgr1)
+    cgr2 = graph.explicit(cgr2)
+
+    rxn = graph.reaction.addition(cgr1, cgr2)
+    assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr1), cgr2)
+
+
+def test__reaction__hydrogen_abstraction():
+    """ test graph.reaction.hydrogen_abstraction
+    """
+    cgr1 = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 1, None),
+             3: ('C', 2, None), 4: ('C', 1, None), 5: ('C', 2, None),
+             6: ('C', 2, None), 7: ('O', 1, None)},
+            {frozenset({4, 6}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({5, 6}): (1, None),
+             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+    cgr2 = ({0: ('C', 2, None), 1: ('C', 3, None), 2: ('C', 1, None),
+             3: ('C', 2, None), 4: ('C', 1, None), 5: ('C', 2, None),
+             6: ('C', 2, None), 7: ('O', 2, None)},
+            {frozenset({4, 6}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({5, 6}): (1, None),
+             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+
+    cgr1 = graph.explicit(cgr1)
+    cgr2 = graph.explicit(cgr2)
+
+    rxn = graph.reaction.hydrogen_abstraction(cgr1, cgr2)
+    assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr1), cgr2)
+
+    rxn = graph.reaction.hydrogen_abstraction(cgr2, cgr1)
+    assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr2), cgr1)
+
+
+def test__reaction__is_stereo_compatible():
+    """ test graph.reaction.is_stereo_compatible
+    """
+    cgr1 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
+             6: ('O', 1, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
+             frozenset({1, 3}): (1, None)})
+    cgr2 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+             3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
+             6: ('O', 1, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({3, 6}): (1, None), frozenset({2, 4}): (1, None),
+             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+
+    cgr1 = graph.explicit(cgr1)
+    cgr2 = graph.explicit(cgr2)
+
+    rxn = graph.reaction.addition(cgr1, cgr2)
+    assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr1), cgr2)
+
+    sgr1 = graph.stereomers(cgr1)[0]
+    print(sgr1)
+    for sgr2 in graph.stereomers(cgr2):
+        print(sgr2)
+        print(graph.reaction.is_stereo_compatible(rxn, sgr1, sgr2))
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__set_atom_implicit_hydrogen_valences()
@@ -727,5 +852,10 @@ if __name__ == '__main__':
     # test__atom_stereo_coordinates()
     # test__connected_components()
     # test__unsaturated_atom_keys()
-    test__resonance_dominant_radical_atom_keys()
-    test__remove_bonds()
+    # test__resonance_dominant_radical_atom_keys()
+    # test__remove_bonds()
+    test__reaction__hydrogen_migration()
+    test__reaction__beta_scission()
+    test__reaction__addition()
+    test__reaction__hydrogen_abstraction()
+    test__reaction__is_stereo_compatible()

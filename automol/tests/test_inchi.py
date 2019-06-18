@@ -1,5 +1,6 @@
 """ test automol.inchi
 """
+import numpy
 from automol import inchi
 
 AR_ICH = 'InChI=1S/Ar'
@@ -8,8 +9,14 @@ C2H6O_ICH = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3/i2D/t2-/m1/s1'
 C2H6O_ICH_NO_STEREO = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3/i2D'
 
 C4H10ZN_ICH = 'InChI=1S/2C2H5.Zn/c2*1-2;/h2*1H2,2H3;'
+C4H10ZN_ICHS = (
+    'InChI=1S/C2H5/c1-2/h1H2,2H3', 'InChI=1S/C2H5/c1-2/h1H2,2H3',
+    'InChI=1S/Zn')
+
 C4H5F2O_ICH = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H/b3-1+,4-2+;'
 C4H5F2O_ICH_NO_STEREO = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H'
+C4H5F2O_ICHS = (
+    'InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1+,4-2+', 'InChI=1S/HO/h1H')
 
 C2H2F2_ICH = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H/b2-1+'
 C2H2F2_ICH_NO_STEREO = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H'
@@ -94,11 +101,8 @@ def test__has_stereo():
 def test__split():
     """ test inchi.split
     """
-    assert inchi.split(C4H10ZN_ICH) == (
-        'InChI=1S/C2H5/c1-2/h1H2,2H3', 'InChI=1S/C2H5/c1-2/h1H2,2H3',
-        'InChI=1S/Zn')
-    assert inchi.split(C4H5F2O_ICH) == (
-        'InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1+,4-2+', 'InChI=1S/HO/h1H')
+    assert inchi.split(C4H10ZN_ICH) == C4H10ZN_ICHS
+    assert inchi.split(C4H5F2O_ICH) == C4H5F2O_ICHS
 
 
 def test__join():
@@ -106,6 +110,19 @@ def test__join():
     """
     assert inchi.join(inchi.split(C4H10ZN_ICH)) == C4H10ZN_ICH
     assert inchi.join(inchi.split(C4H5F2O_ICH)) == C4H5F2O_ICH
+
+
+def test__argsort():
+    """ test inchi.argsort
+    """
+    ref_ichs = ['InChI=1S/CH4/h1H4', 'InChI=1S/CH3/h1H3', 'InChI=1S/CH2/h1H2',
+                'InChI=1S/BH3/h1H3', 'InChI=1S/H3N/h1H3', 'InChI=1S/H2O/h1H2']
+
+    for _ in range(50):
+        ichs = numpy.random.permutation(ref_ichs)
+        idxs = inchi.argsort(ichs)
+        srt_ichs = [ichs[idx] for idx in idxs]
+        assert srt_ichs == ref_ichs
 
 
 def test__recalculate():
@@ -117,9 +134,10 @@ def test__recalculate():
 
 
 if __name__ == '__main__':
-    test__from_data()
-    test__version()
+    # test__from_data()
+    # test__version()
     test__join()
-    test__split()
-    test__standard_form()
-    test__has_stereo()
+    # test__split()
+    # test__standard_form()
+    # test__has_stereo()
+    # test__argsort()

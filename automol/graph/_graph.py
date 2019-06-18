@@ -517,14 +517,12 @@ def explicit_hydrogen_keys(xgr):
 
 
 # # transformations
-def add_explicit_hydrogens(xgr, atm_exp_hyd_vlc_dct):
+def add_atom_explicit_hydrogen_keys(xgr, atm_exp_hyd_keys_dct):
     """ add explicit hydrogens by atom
     """
-    assert set(atm_exp_hyd_vlc_dct.keys()) <= atom_keys(xgr)
-    for atm_key, atm_exp_hyd_vlc in atm_exp_hyd_vlc_dct.items():
-        next_atm_key = max(atom_keys(xgr)) + 1
-        atm_exp_hyd_keys = set(range(next_atm_key,
-                                     next_atm_key + atm_exp_hyd_vlc))
+    assert set(atm_exp_hyd_keys_dct.keys()) <= atom_keys(xgr)
+    for atm_key, atm_exp_hyd_keys in atm_exp_hyd_keys_dct.items():
+        assert not set(atm_exp_hyd_keys) & atom_keys(xgr)
         atm_exp_hyd_bnd_keys = {frozenset({atm_key, atm_exp_hyd_key})
                                 for atm_exp_hyd_key in atm_exp_hyd_keys}
         atm_exp_hyd_sym_dct = dict_.by_key({}, atm_exp_hyd_keys, fill_val='H')
@@ -537,19 +535,14 @@ def implicit(xgr, atm_keys=None):
     """ make the hydrogens at these atoms implicit
     """
     atm_keys = backbone_keys(xgr) if atm_keys is None else atm_keys
-    atm_keys = list(atm_keys)
-    atm_imp_hyd_vlcs = dict_.values_by_key(
-        atom_implicit_hydrogen_valences(xgr), atm_keys)
 
-    atm_exp_hyd_keys = dict_.values_by_key(
+    atm_exp_hyd_keys_dct = dict_.by_key(
         atom_explicit_hydrogen_keys(xgr), atm_keys)
-    atm_exp_hyd_vlcs = tuple(map(len, atm_exp_hyd_keys))
-    atm_tot_hyd_vlcs = numpy.add(atm_imp_hyd_vlcs, atm_exp_hyd_vlcs)
 
-    exp_hyd_keys = tuple(itertools.chain(*atm_exp_hyd_keys))
+    inc_imp_hyd_keys_dct = dict_.transform_values(atm_exp_hyd_keys_dct, len)
+    xgr = add_atom_implicit_hydrogen_valences(xgr, inc_imp_hyd_keys_dct)
 
-    xgr = set_atom_implicit_hydrogen_valences(
-        xgr, dict(zip(atm_keys, atm_tot_hyd_vlcs)))
+    exp_hyd_keys = set(itertools.chain(*atm_exp_hyd_keys_dct.values()))
     xgr = remove_atoms(xgr, exp_hyd_keys)
     return xgr
 
@@ -558,18 +551,35 @@ def explicit(xgr, atm_keys=None):
     """ make the hydrogens at these atoms explicit
     """
     atm_keys = backbone_keys(xgr) if atm_keys is None else atm_keys
-    atm_keys = list(atm_keys)
-    atm_imp_hyd_vlcs = dict_.values_by_key(
+    atm_keys = sorted(atm_keys)
+    atm_imp_hyd_vlc_dct = dict_.by_key(
         atom_implicit_hydrogen_valences(xgr), atm_keys)
+
+    atm_exp_hyd_keys_dct = {}
+    next_atm_key = max(atom_keys(xgr)) + 1
+    for atm_key in atm_keys:
+        imp_hyd_vlc = atm_imp_hyd_vlc_dct[atm_key]
+        atm_exp_hyd_keys_dct[atm_key] = set(
+            range(next_atm_key, next_atm_key+imp_hyd_vlc))
+        next_atm_key += imp_hyd_vlc
 
     xgr = set_atom_implicit_hydrogen_valences(
         xgr, dict_.by_key({}, atm_keys, fill_val=0))
-    xgr = add_explicit_hydrogens(
-        xgr, dict(zip(atm_keys, atm_imp_hyd_vlcs)))
+    xgr = add_atom_explicit_hydrogen_keys(xgr, atm_exp_hyd_keys_dct)
     return xgr
 
 
 # # comparisons
+def full_isomorphism(xgr1, xgr2):
+    """ full graph isomorphism
+    """
+    assert xgr1 == explicit(xgr1) and xgr2 == explicit(xgr2)
+    nxg1 = _networkx.from_graph(xgr1)
+    nxg2 = _networkx.from_graph(xgr2)
+    iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    return iso_dct
+
+
 def backbone_isomorphic(xgr1, xgr2):
     """ are these molecular graphs backbone isomorphic?
     """

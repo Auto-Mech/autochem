@@ -2,6 +2,7 @@
 """
 import itertools
 import functools
+import numpy
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
@@ -100,6 +101,12 @@ def has_stereo(ich):
                 any(pfx in iso_dct for pfx in automol.create.inchi.STE_PFXS))
 
 
+def has_multiple_components(ich):
+    """ does this inchi have multiple components?
+    """
+    return len(split(ich)) > 1
+
+
 def is_standard_form(ich):
     """ is this inchi closed?
     """
@@ -131,6 +138,16 @@ def same_connectivity(ich1, ich2):
             standard_form(ich2, remove_stereo=True))
 
 
+def argsort(ichs):
+    """ determine the sort order for the inchi standard form
+    """
+    assert not any(map(has_multiple_components, ichs))
+    ichs = list(map(standard_form, ichs))
+    ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
+    idxs = tuple(numpy.argsort(list(map(ref_ichs.index, ichs))))
+    return idxs
+
+
 # transformations/operations
 def join(ichs):
     """ join separate inchis into one multi-component inchi
@@ -158,11 +175,19 @@ def _join_sublayers(dcts):
 def _join_sublayer_strings(slyrs, count_sep='*', sep=';'):
     """ join sublayer strings into one multi-component sublayer string
     """
+    def _s(count, slyr):
+        if count > 1 and slyr:
+            ret = ('{:d}' + count_sep + '{:s}').format(count, slyr)
+        elif slyr:
+            ret = slyr
+        else:
+            ret = sep * (count - 1)
+        return ret
+
     counts, slyrs = zip(*[
         (len(list(g)), slyr) for slyr, g in itertools.groupby(slyrs)])
-    slyr = sep.join([
-        ('{:d}' + count_sep + '{:s}').format(count, slyr)
-        if count > 1 else slyr for count, slyr in zip(counts, slyrs)])
+
+    slyr = sep.join([_s(count, slyr) for count, slyr in zip(counts, slyrs)])
     return slyr
 
 
@@ -209,7 +234,7 @@ def _split_sublayer_string(slyr, count_sep_ptt=app.escape('*'),
                            sep_ptt=app.escape(';')):
     count_ptt = app.UNSIGNED_INTEGER
     group_ptt = (app.STRING_START + app.capturing(count_ptt) + count_sep_ptt +
-                 app.capturing(app.one_or_more(app.WILDCARD)))
+                 app.capturing(app.zero_or_more(app.WILDCARD)))
 
     def _expand_group(group_str):
         if apf.has_match(group_ptt, group_str):
