@@ -12,11 +12,8 @@ setup(name="autochem",
                 "automol.dict_",
                 "automol.graph",
                 "automol.tests",
-                "autorxn",
-                "autorxn.tests",
                 "autoread",
                 "autoread.zmatrix",
                 "autowrite"],
-      package_dir={'automol': "automol", 'autorxn': "autorxn"},
-      package_data={'automol': ["tests/data/*.txt"],
-                    'autorxn': ["tests/data/*.txt"]},)
+      package_dir={'automol': "automol"},
+      package_data={'automol': ["tests/data/*.txt"]})

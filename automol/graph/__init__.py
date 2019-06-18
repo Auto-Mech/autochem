@@ -55,10 +55,11 @@ from automol.graph._graph import atom_explicit_hydrogen_keys
 from automol.graph._graph import backbone_keys
 from automol.graph._graph import explicit_hydrogen_keys
 # # transformations
-from automol.graph._graph import add_explicit_hydrogens
+from automol.graph._graph import add_atom_explicit_hydrogen_keys
 from automol.graph._graph import implicit
 from automol.graph._graph import explicit
 # # comparisons
+from automol.graph._graph import full_isomorphism
 from automol.graph._graph import backbone_isomorphic
 from automol.graph._graph import backbone_isomorphism
 from automol.graph._graph import backbone_unique
@@ -103,6 +104,9 @@ from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 from automol.graph._stereo import set_stereo_from_atom_coordinates
 from automol.graph._stereo import atom_stereo_coordinates
+
+# submodules
+from automol.graph import reaction
 
 # constructors
 import automol.create.graph
@@ -212,10 +216,11 @@ __all__ = [
     'backbone_keys',
     'explicit_hydrogen_keys',
     # # transformations
-    'add_explicit_hydrogens',
+    'add_atom_explicit_hydrogen_keys',
     'implicit',
     'explicit',
     # # comparisons
+    'full_isomorphism',
     'backbone_isomorphic',
     'backbone_isomorphism',
     'backbone_unique',
@@ -261,4 +266,7 @@ __all__ = [
     # conversions,
     'inchi',
     'formula',
+
+    # submodules
+    'reaction',
 ]
