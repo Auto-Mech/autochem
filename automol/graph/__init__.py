@@ -152,6 +152,12 @@ def inchi(gra):
     return automol.convert.graph.inchi(gra)
 
 
+def geometry(gra):
+    """ graph => geometry
+    """
+    return automol.convert.graph.geometry(gra)
+
+
 def formula(gra):
     """ graph => formula
     """

@@ -2,6 +2,7 @@
 """
 import functools
 import numpy
+import qcelemental as qcel
 from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
@@ -9,6 +10,7 @@ import autowrite as aw
 from automol import cart
 import automol.create.geom
 import automol.convert.geom
+import automol.convert.inchi
 
 
 # constructor
@@ -139,6 +141,17 @@ def xyz_trajectory_string(geo_lst, comments=None):
     xyz_traj_str = aw.geom.write_xyz_trajectory(syms, xyzs_lst,
                                                 comments=comments)
     return xyz_traj_str
+
+
+def view(geo):
+    """ view the geometry using nglview
+    """
+    import nglview
+
+    xyz_str = xyz_string(geo)
+    qcm = qcel.models.Molecule.from_data(xyz_str)
+    ngv = nglview.show_qcelemental(qcm)
+    return ngv
 
 
 # representations
@@ -349,16 +362,23 @@ def zmatrix_torsion_coordinate_names(geo):
     return automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
 
 
-def graph(geo):
+def graph(geo, remove_stereo=False):
     """ geometry => graph
     """
-    return automol.convert.geom.graph(geo)
+    return automol.convert.geom.graph(geo, remove_stereo=remove_stereo)
 
 
 def inchi(geo, remove_stereo=False):
     """ geometry => inchi
     """
     return automol.convert.geom.inchi(geo, remove_stereo=remove_stereo)
+
+
+def smiles(geo, remove_stereo=False):
+    """ geometry => inchi
+    """
+    ich = inchi(geo, remove_stereo=remove_stereo)
+    return automol.convert.inchi.smiles(ich)
 
 
 def formula(geo):
