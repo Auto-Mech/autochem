@@ -4,6 +4,7 @@ import os
 import itertools
 import pandas
 import automol
+import autofile
 
 
 class ReactionType():
@@ -47,29 +48,41 @@ if __name__ == '__main__':
     PATH = os.path.dirname(os.path.realpath(__file__))
     HEPTANE_TAB = pandas.read_csv(os.path.join(PATH, 'data', 'heptane.csv'))
 
-    RCTS_ICH_LST = list(HEPTANE_TAB['reac_inchi'])
-    PRDS_ICH_LST = list(HEPTANE_TAB['prod_inchi'])
+    ICH1_LST = list(HEPTANE_TAB['reac_inchi'])
+    ICH2_LST = list(HEPTANE_TAB['prod_inchi'])
+    MLT1_LST = list(HEPTANE_TAB['reac_mults'])
+    MLT2_LST = list(HEPTANE_TAB['prod_mults'])
 
-    for IDX, (RCTS_ICH, PRDS_ICH) in enumerate(
-            zip(RCTS_ICH_LST, PRDS_ICH_LST)):
-        print(IDX)
-        print(RCTS_ICH)
-        print(PRDS_ICH)
-        RCTS_CGR = automol.graph.explicit(automol.inchi.graph(RCTS_ICH))
-        PRDS_CGR = automol.graph.explicit(automol.inchi.graph(PRDS_ICH))
+    for IDX, (ICH1, ICH2, MLT1, MLT2) in enumerate(
+            zip(ICH1_LST, ICH2_LST, MLT1_LST, MLT2_LST)):
+        ICHS1 = automol.inchi.split(ICH1)
+        ICHS2 = automol.inchi.split(ICH2)
+        MULTS1 = list(map(int, MLT1.split('_')))
+        MULTS2 = list(map(int, MLT2.split('_')))
+        ICHS_PAIR = (ICHS1, ICHS2)
+        MULTS_PAIR = (MULTS1, MULTS2)
+        CHARS_PAIR = ((0,) * len(ICHS1), (0,) * len(ICHS2))
+        ICHS_PAIR, MULTS_PAIR, CHARS_PAIR = autofile.system.map_.sort_together(
+            ICHS_PAIR, MULTS_PAIR, CHARS_PAIR)
 
-        RET = classify(RCTS_CGR, PRDS_CGR)
+        ICH1 = automol.inchi.join(ICHS_PAIR[0])
+        ICH2 = automol.inchi.join(ICHS_PAIR[1])
+        CGR1 = automol.graph.explicit(automol.inchi.graph(ICH1))
+        CGR2 = automol.graph.explicit(automol.inchi.graph(ICH2))
+
+        RET = classify(CGR1, CGR2)
         if RET is not None:
             TYP, RXN = RET
-            print(TYP, RXN)
-            assert automol.graph.backbone_isomorphic(
-                automol.graph.reaction.react(RXN, RCTS_CGR), PRDS_CGR)
-
-            for RCTS_SGR, PRDS_SGR in itertools.product(
-                    automol.graph.stereomers(RCTS_CGR),
-                    automol.graph.stereomers(PRDS_CGR)):
-                print(automol.graph.reaction.is_stereo_compatible(
-                    RXN, RCTS_SGR, PRDS_SGR))
-        else:
-            print('unclassified')
-        print()
+            print(IDX, TYP, RXN)
+            for SGR1, SGR2 in itertools.product(
+                    automol.graph.stereomers(CGR1),
+                    automol.graph.stereomers(CGR2)):
+                if automol.graph.reaction.is_stereo_compatible(
+                        RXN, SGR1, SGR2):
+                    SICH1 = automol.graph.inchi(SGR1)
+                    SICH2 = automol.graph.inchi(SGR2)
+                    SICHS1 = automol.inchi.split(SICH1)
+                    SICHS2 = automol.inchi.split(SICH2)
+                    SICHS_PAIR = (SICHS1, SICHS2)
+                    print(SICHS_PAIR, CHARS_PAIR, MULTS_PAIR)
+            print()
