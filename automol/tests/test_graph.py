@@ -608,6 +608,31 @@ def test__resonance_dominant_atom_hybridizations():
         0: 3, 1: 2, 2: 3, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3}
 
 
+def test__resonance_dominant_atom_centered_cumulene_keys():
+    """ test graph.resonance_dominant_atom_centered_cumulene_keys
+    """
+    cgr = ({0: ('C', 1, None), 1: ('C', 2, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 0, None),
+            6: ('C', 0, None)},
+           {frozenset({4, 6}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({5, 6}): (1, None),
+            frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+    assert (graph.resonance_dominant_atom_centered_cumulene_keys(cgr) ==
+            frozenset({(frozenset({1, 4}), 5)}))
+
+
+def test__resonance_dominant_bond_centered_cumulene_keys():
+    """ test graph.resonance_dominant_bond_centered_cumulene_keys
+    """
+    cgr = ({0: ('C', 1, None), 1: ('C', 2, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 0, None)},
+           {frozenset({4, 5}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({1, 3}): (1, None)})
+    assert (graph.resonance_dominant_bond_centered_cumulene_keys(cgr) ==
+            frozenset({(frozenset({1, 4}), frozenset({3, 5}))}))
+
+
 def test__resonance_dominant_radical_atom_keys():
     """ test graph.resonance_dominant_radical_atom_keys
     """
@@ -808,6 +833,39 @@ def test__reaction__hydrogen_abstraction():
     rxn = graph.reaction.hydrogen_abstraction(cgr2, cgr1)
     assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr2), cgr1)
 
+    ichs1 = ('InChI=1S/C2H2O/c1-2-3/h1H2', 'InChI=1S/H')
+    ichs2 = ('InChI=1S/C2HO/c1-2-3/h1H', 'InChI=1S/H2/h1H')
+    ich1 = automol.inchi.join(ichs1)
+    ich2 = automol.inchi.join(ichs2)
+    print(ich1)
+    print(ich2)
+    cgr1 = automol.inchi.graph(ich1)
+    cgr2 = automol.inchi.graph(ich2)
+    print(cgr1)
+    print(cgr2)
+
+    cgr = automol.graph.implicit(cgr2)
+    print(automol.graph.resonance_dominant_atom_hybridizations(cgr))
+
+    ch4_cgr = ({0: ('C', 4, None)}, {})
+    print(automol.graph.resonance_dominant_atom_hybridizations(ch4_cgr))
+
+    # import autofile
+    # geo = automol.inchi.geometry(ich2)
+    # geo_str = autofile.file.write.geometry(geo)
+    # autofile.file.write_file('geo.xyz', geo_str)
+
+    # print(automol.graph.stereogenic_atom_keys(cgr1))
+    # print(automol.graph.stereogenic_bond_keys(cgr1))
+    # print(automol.graph.stereogenic_atom_keys(cgr2))
+    # print(automol.graph.stereogenic_bond_keys(cgr2))
+    # for sgr1 in automol.graph.stereomers(cgr1):
+    #     for sgr2 in automol.graph.stereomers(cgr2):
+    #         sich1 = automol.graph.inchi(sgr1)
+    #         print(sich1)
+    #         sich2 = automol.graph.inchi(sgr2)
+    #         print(sich2)
+
 
 def test__reaction__is_stereo_compatible():
     """ test graph.reaction.is_stereo_compatible
@@ -861,8 +919,10 @@ if __name__ == '__main__':
     # test__unsaturated_atom_keys()
     # test__resonance_dominant_radical_atom_keys()
     # test__remove_bonds()
-    test__reaction__hydrogen_migration()
-    test__reaction__beta_scission()
-    test__reaction__addition()
-    test__reaction__hydrogen_abstraction()
-    test__reaction__is_stereo_compatible()
+    # test__reaction__hydrogen_migration()
+    # test__reaction__beta_scission()
+    # test__reaction__addition()
+    # test__reaction__hydrogen_abstraction()
+    # test__reaction__is_stereo_compatible()
+    test__resonance_dominant_atom_centered_cumulene_keys()
+    test__resonance_dominant_bond_centered_cumulene_keys()

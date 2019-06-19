@@ -11,6 +11,7 @@ from automol.graph._graph import bond_orders as _bond_orders
 from automol.graph._graph import set_bond_orders as _set_bond_orders
 from automol.graph._graph import without_bond_orders as _without_bond_orders
 from automol.graph._graph import atom_bond_keys as _atom_bond_keys
+from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
 from automol.graph._graph import (atom_unsaturated_valences as
                                   _atom_unsaturated_valences)
 from automol.graph._graph import atom_bond_valences as _atom_bond_valences
@@ -33,7 +34,8 @@ def atom_hybridizations(rgr):
     atm_lpcs = numpy.array(
         dict_.values_by_key(_atom_lone_pair_counts(rgr), atm_keys))
     atm_hybs = atm_unsat_vlcs + atm_bnd_vlcs + atm_lpcs - 1
-    atm_hyb_dct = dict(zip(atm_keys, atm_hybs))
+    atm_hyb_dct = dict_.transform_values(
+        dict(zip(atm_keys, atm_hybs)), int)
     return atm_hyb_dct
 
 
@@ -47,6 +49,91 @@ def resonance_dominant_atom_hybridizations(rgr):
     atm_hybs = [min(hybs) for hybs in zip(*atm_hybs_by_res)]
     atm_hyb_dct = dict(zip(atm_keys, atm_hybs))
     return atm_hyb_dct
+
+
+def resonance_dominant_atom_centered_cumulene_keys(rgr):
+    """ resonance dominant keys for atom-centered cumulenes
+
+    the bond-centered cumulenes are described by
+        (frozenset({end_atm_key1, end_atm_key2}), cent_atm_key)
+    where the first pair contains the sp2 atoms at the cumulene ends and
+    `cent_atm_key` is the key of the central atom
+    """
+    cum_chains = _cumulene_chains(rgr)
+    cum_keys = set()
+    for cum_chain in cum_chains:
+        size = len(cum_chain)
+        if size % 2 == 1:
+            cum_keys.add(
+                (frozenset({cum_chain[0], cum_chain[-1]}),
+                 cum_chain[size // 2])
+            )
+    cum_keys = frozenset(cum_keys)
+    return cum_keys
+
+
+def resonance_dominant_bond_centered_cumulene_keys(rgr):
+    """ resonance dominant keys for bond-centered cumulenes
+
+    the bond-centered cumulenes are described by
+        (frozenset({end_atm_key1, end_atm_key2}),
+         frozenset({cent_atm_key1, cent_atm_key2}))
+    where the first pair contains the sp2 atoms at the cumulene ends and the
+    second pair is the bond key for the central bond
+    """
+    cum_chains = _cumulene_chains(rgr)
+    cum_keys = set()
+    for cum_chain in cum_chains:
+        size = len(cum_chain)
+        if size % 2 == 0:
+            cum_keys.add(
+                (frozenset({cum_chain[0], cum_chain[-1]}),
+                 frozenset({cum_chain[size // 2 - 1], cum_chain[size // 2]}))
+            )
+    cum_keys = frozenset(cum_keys)
+    return cum_keys
+
+
+def _cumulene_chains(rgr):
+    atm_hyb_dct = resonance_dominant_atom_hybridizations(rgr)
+    sp1_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
+    sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
+
+    atm_ngb_keys_dct = _atom_neighbor_keys(rgr)
+
+    def _cumulene_chain(chain):
+        ret = None
+        atm_key = chain[-1]
+        next_atm_keys = atm_ngb_keys_dct[atm_key] - {chain[-2]}
+        if next_atm_keys:
+            assert len(next_atm_keys) == 1
+            next_atm_key, = next_atm_keys
+            if next_atm_key in sp1_atm_keys:
+                chain.append(next_atm_key)
+                ret = _cumulene_chain(chain)
+            elif next_atm_key in sp2_atm_keys:
+                chain.append(next_atm_key)
+                ret = chain
+        return ret
+
+    cum_chains = []
+    for atm_key in sp2_atm_keys:
+        # first find simple double bonds, which we treat as trivial
+        # bond-centered cumulenes
+        sp2_atm_ngb_keys = atm_ngb_keys_dct[atm_key] & sp2_atm_keys
+        for atm_ngb_key in sp2_atm_ngb_keys:
+            cum_chains.append([atm_key, atm_ngb_key])
+
+        # now, follow each chain starting with an sp^1 atom
+        sp1_atm_ngb_keys = atm_ngb_keys_dct[atm_key] & sp1_atm_keys
+        chains = [[atm_key, atm_ngb_key] for atm_ngb_key in sp1_atm_ngb_keys]
+        for chain in chains:
+            cum_chain = _cumulene_chain(chain)
+            if cum_chain is not None:
+                cum_chains.append(cum_chain)
+
+    cum_chains = tuple(map(tuple, cum_chains))
+    return cum_chains
 
 
 def resonance_dominant_radical_atom_keys(rgr):

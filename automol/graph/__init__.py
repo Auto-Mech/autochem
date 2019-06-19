@@ -83,6 +83,8 @@ from automol.graph._graph import bond_symmetry_numbers
 # # atom properties
 from automol.graph._res import atom_hybridizations
 from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._res import resonance_dominant_atom_centered_cumulene_keys
+from automol.graph._res import resonance_dominant_bond_centered_cumulene_keys
 from automol.graph._res import resonance_dominant_radical_atom_keys
 # # bond properties
 from automol.graph._res import resonance_dominant_bond_orders
@@ -247,6 +249,8 @@ __all__ = [
     # # atom properties
     'atom_hybridizations',
     'resonance_dominant_atom_hybridizations',
+    'resonance_dominant_atom_centered_cumulene_keys',
+    'resonance_dominant_bond_centered_cumulene_keys',
     'resonance_dominant_radical_atom_keys',
     # # bond properties
     'resonance_dominant_bond_orders',

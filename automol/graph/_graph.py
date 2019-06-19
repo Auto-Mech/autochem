@@ -156,7 +156,8 @@ def add_atom_implicit_hydrogen_valences(xgr, inc_atm_imp_hyd_vlc_dct):
         dict_.values_by_key(atom_implicit_hydrogen_valences(xgr), atm_keys),
         dict_.values_by_key(inc_atm_imp_hyd_vlc_dct, atm_keys))
     assert all(atm_imp_hyd_vlc >= 0 for atm_imp_hyd_vlc in atm_imp_hyd_vlcs)
-    atm_imp_hyd_vlc_dct = dict(zip(atm_keys, atm_imp_hyd_vlcs))
+    atm_imp_hyd_vlc_dct = dict_.transform_values(
+        dict(zip(atm_keys, atm_imp_hyd_vlcs)), int)
     return set_atom_implicit_hydrogen_valences(xgr, atm_imp_hyd_vlc_dct)
 
 
@@ -662,6 +663,7 @@ def atom_lone_pair_counts(xgr):
     atm_group_idx_dct = dict_.transform_values(atm_sym_dct, pt.to_group)
     atm_lpc_dct = dict_.transform_values(atm_group_idx_dct,
                                          LONE_PAIR_COUNTS_DCT.__getitem__)
+    atm_lpc_dct = dict_.transform_values(atm_lpc_dct, int)
     return atm_lpc_dct
 
 
@@ -675,7 +677,8 @@ def atom_bond_valences(xgr, bond_order=True):
 
     atm_nbhs = dict_.values_by_key(atom_neighborhoods(xgr), atm_keys)
     atm_bnd_vlcs = [sum(bond_orders(nbh).values()) for nbh in atm_nbhs]
-    atm_bnd_vlc_dct = dict(zip(atm_keys, atm_bnd_vlcs))
+    atm_bnd_vlc_dct = dict_.transform_values(
+        dict(zip(atm_keys, atm_bnd_vlcs)), int)
     return atm_bnd_vlc_dct
 
 
@@ -691,7 +694,9 @@ def atom_unsaturated_valences(xgr, bond_order=True):
     atm_bnd_vlcs = dict_.values_by_key(atom_bond_valences(xgr), atm_keys)
     atm_tot_vlcs = dict_.values_by_key(atom_element_valences(xgr), atm_keys)
     atm_rad_vlcs = numpy.subtract(atm_tot_vlcs, atm_bnd_vlcs)
-    return dict(zip(atm_keys, atm_rad_vlcs))
+    atm_unsat_vlc_dct = dict_.transform_values(
+        dict(zip(atm_keys, atm_rad_vlcs)), int)
+    return atm_unsat_vlc_dct
 
 
 def unsaturated_atom_keys(xgr):
