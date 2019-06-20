@@ -160,6 +160,9 @@ def argsort(ichs):
 # transformations/operations
 def join(ichs):
     """ join separate inchis into one multi-component inchi
+
+    (fix this for /s [which should be removed in split/join operations] and /m,
+    which is joined as /m0110..  with no separators)
     """
     # first, make sure they are completely split up
     ichs = list(itertools.chain(*map(split, ichs)))
@@ -202,6 +205,9 @@ def _join_sublayer_strings(slyrs, count_sep='*', sep=';'):
 
 def split(ich):
     """ split a multi-component inchi into inchis for each of its components
+
+    (fix this for /s [which should be removed in split/join operations] and /m,
+    which is joined as /m0110..  with no separators)
     """
     fml_slyr = formula_sublayer(ich)
     main_dct = main_sublayers(ich)
