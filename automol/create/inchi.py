@@ -34,6 +34,6 @@ def from_data(formula_sublayer, main_sublayer_dct=None,
         pfx + slyr for pfx, slyr
         in zip(ISO_PFXS, dict_.values_by_key(iso_dct, ISO_PFXS)) if slyr]
 
-    ich = '/'.join(['InChI=1S', fml_slyr] + main_slyrs + char_slyrs +
+    ich = '/'.join(['InChI=1', fml_slyr] + main_slyrs + char_slyrs +
                    ste_slyrs + iso_slyrs)
     return ich

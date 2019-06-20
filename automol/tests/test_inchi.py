@@ -31,33 +31,33 @@ C8H13O_ICH_NO_STEREO = 'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3'
 def test__from_data():
     """ test getters
     """
-    assert AR_ICH == inchi.from_data(
+    assert AR_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(AR_ICH),
-    )
+    ))
 
-    assert CH2O2_ICH == inchi.from_data(
+    assert CH2O2_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(CH2O2_ICH),
         main_dct=inchi.main_sublayers(CH2O2_ICH),
         char_dct=inchi.charge_sublayers(CH2O2_ICH),
-    )
+    ))
 
-    assert C2H6O_ICH == inchi.from_data(
+    assert C2H6O_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(C2H6O_ICH),
         main_dct=inchi.main_sublayers(C2H6O_ICH),
         iso_dct=inchi.isotope_sublayers(C2H6O_ICH),
-    )
+    ))
 
-    assert C2H2F2_ICH == inchi.from_data(
+    assert C2H2F2_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(C2H2F2_ICH),
         main_dct=inchi.main_sublayers(C2H2F2_ICH),
         ste_dct=inchi.stereo_sublayers(C2H2F2_ICH),
-    )
+    ))
 
-    assert C8H13O_ICH == inchi.from_data(
+    assert C8H13O_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(C8H13O_ICH),
         main_dct=inchi.main_sublayers(C8H13O_ICH),
         ste_dct=inchi.stereo_sublayers(C8H13O_ICH),
-    )
+    ))
 
 
 def test__version():
@@ -101,33 +101,29 @@ def test__has_stereo():
 def test__split():
     """ test inchi.split
     """
-    assert inchi.split(C4H10ZN_ICH) == C4H10ZN_ICHS
-    assert inchi.split(C4H5F2O_ICH) == C4H5F2O_ICHS
+    assert (tuple(map(inchi.standard_form, inchi.split(C4H10ZN_ICH))) ==
+            C4H10ZN_ICHS)
+    assert (tuple(map(inchi.standard_form, inchi.split(C4H5F2O_ICH))) ==
+            C4H5F2O_ICHS)
+
+    ich = ('InChI=1S/C3H7O4.C2H5FO/c1-3(7-5)2-6-4;1-2(3)4/'
+           'h3,5H,2H2,1H3;2,4H,1H3/t3-;2-/m01/s1')
+    assert tuple(map(inchi.standard_form, inchi.split(ich))) == (
+        'InChI=1S/C3H7O4/c1-3(7-5)2-6-4/h3,5H,2H2,1H3/t3-/m0/s1',
+        'InChI=1S/C2H5FO/c1-2(3)4/h2,4H,1H3/t2-/m1/s1')
 
 
 def test__join():
     """ test inchi.join
     """
-    import automol
+    assert (inchi.standard_form(inchi.join(inchi.split(C4H10ZN_ICH))) ==
+            C4H10ZN_ICH)
+    assert (inchi.standard_form(inchi.join(inchi.split(C4H5F2O_ICH))) ==
+            C4H5F2O_ICH)
 
-    assert inchi.join(inchi.split(C4H10ZN_ICH)) == C4H10ZN_ICH
-    assert inchi.join(inchi.split(C4H5F2O_ICH)) == C4H5F2O_ICH
-
-    cichs = ['InChI=1S/C2H5FO/c1-2(3)4/h2,4H,1H3',
-             'InChI=1S/C3H7O4/c1-3(7-5)2-6-4/h3,5H,2H2,1H3']
-    cich = inchi.join(cichs)
-
-    ich = automol.geom.inchi(inchi.geometry(cich))
-    print(ich)
-
-    # this will fail:
-    # ichs = automol.inchi.split(ich)
-
-    cgr = automol.inchi.graph(cich)
-    for sgr in automol.graph.stereomers(cgr):
-        print(sgr)
-        ich = automol.graph.inchi(sgr)
-        print(ich)
+    ich = ('InChI=1S/C3H7O4.C2H5FO/c1-3(7-5)2-6-4;1-2(3)4/'
+           'h3,5H,2H2,1H3;2,4H,1H3/t3-;2-/m01/s1')
+    assert inchi.standard_form(inchi.join(inchi.split(ich))) == ich
 
 
 def test__argsort():
@@ -154,8 +150,8 @@ def test__recalculate():
 if __name__ == '__main__':
     # test__from_data()
     # test__version()
-    test__join()
-    # test__split()
+    # test__join()
+    test__split()
     # test__standard_form()
     # test__has_stereo()
     # test__argsort()
