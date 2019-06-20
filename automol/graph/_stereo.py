@@ -17,6 +17,8 @@ from automol.graph._graph import atom_keys as _atom_keys
 from automol.graph._graph import atom_symbols as _atom_symbols
 from automol.graph._graph import atom_stereo_parities as _atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities as _bond_stereo_parities
+from automol.graph._graph import add_atoms as _add_atoms
+from automol.graph._graph import remove_atoms as _remove_atoms
 from automol.graph._graph import (set_atom_stereo_parities as
                                   _set_atom_stereo_parities)
 from automol.graph._graph import (set_bond_stereo_parities as
@@ -498,18 +500,19 @@ def _connected_graph_atom_coordinates(sgr):
     elif not rng_atm_keys_lst:
         atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
 
-        # grab the first three coordinates along the longest chain
+        # start assigning coordinates along the longest chain
         max_chain = longest_chain(sgr)
+        atm2_key, atm3_key = max_chain[:2]
 
-        atm1_key, atm2_key, atm3_key = max_chain[:3]
+        # add a dummy atom to start the chain
+        atm1_key = max(atm_keys) + 1
+        sgr = _add_atoms(sgr, {atm1_key: 'X'})
 
-        atm1_xyz = (0., 0., 0.)
-
-        dist = _bond_distance(sgr, atm2_key, atm1_key)
-        atm2_xyz = cart.vec.from_internals(dist=dist, xyz1=atm1_xyz)
+        atm1_xyz = (0., 0., -5.)
+        atm2_xyz = (0., 0., 0.)
 
         dist = _bond_distance(sgr, atm3_key, atm2_key)
-        ang = _bond_angle(sgr, atm3_key, atm2_key, atm1_key)
+        ang = numpy.pi / 2.
         atm3_xyz = cart.vec.from_internals(dist=dist, xyz1=atm2_xyz,
                                            ang=ang, xyz2=atm1_xyz)
 
@@ -522,9 +525,14 @@ def _connected_graph_atom_coordinates(sgr):
             sgr, atm1_key, atm2_key, atm3_key, atm_xyz_dct)
 
         atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
-        atm4_key = sorted(atm_ngb_keys_dct[atm3_key] - {atm2_key})[0]
-        atm_xyz_dct = _extend_atom_coordinates(
-            sgr, atm4_key, atm3_key, atm2_key, atm_xyz_dct)
+        atm4_keys = sorted(atm_ngb_keys_dct[atm3_key] - {atm2_key})
+        for atm4_key in atm4_keys:
+            atm_xyz_dct = _extend_atom_coordinates(
+                sgr, atm4_key, atm3_key, atm2_key, atm_xyz_dct)
+
+        # we don't actually need to remove it from sgr, but fwiw
+        sgr = _remove_atoms(sgr, {atm1_key})
+        atm_xyz_dct.pop(atm1_key)
     elif len(rng_atm_keys_lst) == 1:
         # for now, we'll assume only one ring
         rng_atm_keys, = rng_atm_keys_lst
@@ -569,7 +577,8 @@ def _extend_atom_coordinates(sgr, atm1_key, atm2_key, atm3_key, atm_xyz_dct):
     atm4_keys = list(all_atm4_keys - fix_atm_keys)
 
     # set the initial dihedral angle value
-    dih_incr = _dihedral_increment(sgr, atm1_key, atm2_key, atm3_key)
+    dih_incr = _dihedral_increment(sgr, atm1_key, atm2_key, atm3_key,
+                                   check=False)
     if fix_atm4_keys:
         fix_atm4_dih_vals = list(
             cart.vec.dihedral_angle(
@@ -595,13 +604,14 @@ def _extend_atom_coordinates(sgr, atm1_key, atm2_key, atm3_key, atm_xyz_dct):
     return atm_xyz_dct
 
 
-def _bond_distance(xgr, atm1_key, atm2_key):
+def _bond_distance(xgr, atm1_key, atm2_key, check=True):
     """ predicted bond distance
 
     (currently crude, but could easily be made more sophisticated
     """
-    atm_sym_dct = _atom_symbols(xgr)
-    assert atm2_key in _atom_neighbor_keys(xgr)[atm1_key]
+    if check:
+        atm_sym_dct = _atom_symbols(xgr)
+        assert atm2_key in _atom_neighbor_keys(xgr)[atm1_key]
 
     atm1_sym = atm_sym_dct[atm1_key]
     atm2_sym = atm_sym_dct[atm2_key]
@@ -614,12 +624,13 @@ def _bond_distance(xgr, atm1_key, atm2_key):
     return dist
 
 
-def _bond_angle(sgr, atm1_key, atm2_key, atm3_key):
+def _bond_angle(sgr, atm1_key, atm2_key, atm3_key, check=True):
     """ predict the bond angles an atom makes with its neighbors
     """
-    atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
-    atm2_ngb_keys = atm_ngb_keys_dct[atm2_key]
-    assert {atm1_key, atm3_key} <= atm2_ngb_keys
+    if check:
+        atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
+        atm2_ngb_keys = atm_ngb_keys_dct[atm2_key]
+        assert {atm1_key, atm3_key} <= atm2_ngb_keys
 
     atm_hyb_dct = _resonance_dominant_atom_hybridizations(sgr)
     atm2_hyb = atm_hyb_dct[atm2_key]
@@ -635,14 +646,15 @@ def _bond_angle(sgr, atm1_key, atm2_key, atm3_key):
     return ang
 
 
-def _dihedral_increment(sgr, atm1_key, atm2_key, atm3_key):
+def _dihedral_increment(sgr, atm1_key, atm2_key, atm3_key, check=True):
     """ predict dihedral increment for atoms attached to `atm3_key`
     """
-    atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
-    atm2_ngb_keys = atm_ngb_keys_dct[atm2_key]
-    atm3_ngb_keys = atm_ngb_keys_dct[atm3_key]
-    assert atm2_key in atm3_ngb_keys
-    assert atm1_key in atm2_ngb_keys - {atm3_key}
+    if check:
+        atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
+        atm2_ngb_keys = atm_ngb_keys_dct[atm2_key]
+        atm3_ngb_keys = atm_ngb_keys_dct[atm3_key]
+        assert atm2_key in atm3_ngb_keys
+        assert atm1_key in atm2_ngb_keys - {atm3_key}
 
     atm_hyb_dct = _resonance_dominant_atom_hybridizations(sgr)
     atm3_hyb = atm_hyb_dct[atm3_key]

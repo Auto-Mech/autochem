@@ -27,6 +27,7 @@ def geometry(ich):
 def _connected_geometry(ich):
     geo = object_from_hardcoded_inchi_by_key('geom', ich)
     if geo is None:
+        ich = automol.inchi.standard_form(ich)
         try:
             rdm = _rdkit.from_inchi(ich)
             geo = _rdkit.to_geometry(rdm)
@@ -84,6 +85,7 @@ def graph(ich, no_stereo=False):
 def _connected_graph(ich, no_stereo=False):
     gra = object_from_hardcoded_inchi_by_key('graph', ich)
     if gra is None:
+        ich = automol.inchi.standard_form(ich)
         if no_stereo or not automol.inchi.has_stereo(ich):
             rdm = _rdkit.from_inchi(ich)
             gra = _rdkit.to_connectivity_graph(rdm)
@@ -108,6 +110,7 @@ def smiles(ich):
 def _connected_smiles(ich):
     smi = object_from_hardcoded_inchi_by_key('smiles', ich)
     if smi is None:
+        ich = automol.inchi.standard_form(ich)
         rdm = _rdkit.from_inchi(ich)
         smi = _rdkit.to_smiles(rdm)
     return smi
@@ -133,6 +136,7 @@ def formula(ich):
 def _connected_formula(ich):
     fml = object_from_hardcoded_inchi_by_key('formula', ich)
     if fml is None:
+        ich = automol.inchi.standard_form(ich)
         rdm = _rdkit.from_inchi(ich)
         fml = _rdkit.to_formula(rdm)
     return fml

@@ -177,11 +177,19 @@ def join(ichs):
 
 
 def _join_sublayers(dcts):
-    pfxs = functools.reduce(set.union, map(set, dcts))
+    pfxs = sorted(functools.reduce(set.union, map(set, dcts)))
+    if 's' in pfxs:
+        pfxs.remove('s')
     dcts = [dict_.by_key(dct, pfxs, fill_val='') for dct in dcts]
-    dct = {pfx: _join_sublayer_strings([dct[pfx] for dct in dcts])
-           for pfx in pfxs}
+    slyrs_lst = [[dct[pfx] for dct in dcts] for pfx in pfxs]
+    dct = {pfx: (_join_sublayer_strings(slyrs) if pfx != 'm' else
+                 _join_m_sublayer_strings(slyrs))
+           for pfx, slyrs in zip(pfxs, slyrs_lst)}
     return dct
+
+
+def _join_m_sublayer_strings(m_slyrs):
+    return ''.join(m_slyrs)
 
 
 def _join_sublayer_strings(slyrs, count_sep='*', sep=';'):
@@ -235,14 +243,21 @@ def _split_sublayers(dct, count):
     """
     if dct:
         pfxs = sorted(dct.keys())
-        slyrs_lst = list(
-            map(_split_sublayer_string, dict_.values_by_key(dct, pfxs)))
+        if 's' in pfxs:
+            pfxs.remove('s')
+        slyrs_lst = [
+            _split_sublayer_string(dct[pfx]) if pfx != 'm'
+            else _split_m_sublayer_string(dct[pfx]) for pfx in pfxs]
         assert all(len(slyrs) == count for slyrs in slyrs_lst)
         dcts = tuple({pfx: slyr for pfx, slyr in zip(pfxs, slyrs) if slyr}
                      for slyrs in zip(*slyrs_lst))
     else:
         return (dict(),) * count
     return dcts
+
+
+def _split_m_sublayer_string(m_slyr):
+    return tuple(m_slyr)
 
 
 def _split_sublayer_string(slyr, count_sep_ptt=app.escape('*'),

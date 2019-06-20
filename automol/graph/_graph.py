@@ -621,7 +621,7 @@ def _unique(itms, equiv):
 
 # chemistry library
 VALENCE_DCT = {
-    None: None,
+    None: 0,
     1: 1,   # H
     2: 2,   # Be
     13: 3,  # B
@@ -633,7 +633,7 @@ VALENCE_DCT = {
 }
 
 LONE_PAIR_COUNTS_DCT = {
-    None: None,
+    None: 0,
     1: 0,   # H
     2: 0,   # Be
     13: 0,  # B
