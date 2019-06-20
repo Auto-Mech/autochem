@@ -118,13 +118,6 @@ def _cumulene_chains(rgr):
 
     cum_chains = []
     for atm_key in sp2_atm_keys:
-        # first find simple double bonds, which we treat as trivial
-        # bond-centered cumulenes
-        sp2_atm_ngb_keys = atm_ngb_keys_dct[atm_key] & sp2_atm_keys
-        for atm_ngb_key in sp2_atm_ngb_keys:
-            cum_chains.append([atm_key, atm_ngb_key])
-
-        # now, follow each chain starting with an sp^1 atom
         sp1_atm_ngb_keys = atm_ngb_keys_dct[atm_key] & sp1_atm_keys
         chains = [[atm_key, atm_ngb_key] for atm_ngb_key in sp1_atm_ngb_keys]
         for chain in chains:

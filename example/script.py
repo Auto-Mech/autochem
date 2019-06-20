@@ -81,7 +81,9 @@ if __name__ == '__main__':
                         RXN, SGR1, SGR2):
                     SICH1 = automol.graph.inchi(SGR1)
                     SICH2 = automol.graph.inchi(SGR2)
+                    print(SICH1)
                     SICHS1 = automol.inchi.split(SICH1)
+                    print(SICH2)
                     SICHS2 = automol.inchi.split(SICH2)
                     SICHS_PAIR = (SICHS1, SICHS2)
                     print(SICHS_PAIR, CHARS_PAIR, MULTS_PAIR)

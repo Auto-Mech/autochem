@@ -145,6 +145,12 @@ def stereogenic_bond_keys(xgr):
     bnd_keys = dict_.keys_by_value(
         _resonance_dominant_bond_orders(xgr), lambda x: 2 in x)
 
+    # make sure both ends are sp^2 (excludes cumulenes)
+    atm_hyb_dct = _resonance_dominant_atom_hybridizations(xgr)
+    sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
+    bnd_keys = frozenset({bnd_key for bnd_key in bnd_keys
+                          if bnd_key <= sp2_atm_keys})
+
     bnd_keys -= bond_stereo_keys(xgr)
     bnd_keys -= functools.reduce(  # remove double bonds in small rings
         frozenset.union,

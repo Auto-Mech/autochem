@@ -108,8 +108,26 @@ def test__split():
 def test__join():
     """ test inchi.join
     """
+    import automol
+
     assert inchi.join(inchi.split(C4H10ZN_ICH)) == C4H10ZN_ICH
     assert inchi.join(inchi.split(C4H5F2O_ICH)) == C4H5F2O_ICH
+
+    cichs = ['InChI=1S/C2H5FO/c1-2(3)4/h2,4H,1H3',
+             'InChI=1S/C3H7O4/c1-3(7-5)2-6-4/h3,5H,2H2,1H3']
+    cich = inchi.join(cichs)
+
+    ich = automol.geom.inchi(inchi.geometry(cich))
+    print(ich)
+
+    # this will fail:
+    # ichs = automol.inchi.split(ich)
+
+    cgr = automol.inchi.graph(cich)
+    for sgr in automol.graph.stereomers(cgr):
+        print(sgr)
+        ich = automol.graph.inchi(sgr)
+        print(ich)
 
 
 def test__argsort():
