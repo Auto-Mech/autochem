@@ -7,7 +7,7 @@ channels:
     - conda-forge
 
 dependencies:
-    - python
+    - python=3.7
     - pybind11
     - cmake
     - gcc_linux-64       # [linux]
