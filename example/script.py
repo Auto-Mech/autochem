@@ -74,6 +74,7 @@ if __name__ == '__main__':
         if RET is not None:
             TYP, RXN = RET
             print(IDX, TYP, RXN)
+            print(ICH1, ICH2)
             for SGR1, SGR2 in itertools.product(
                     automol.graph.stereomers(CGR1),
                     automol.graph.stereomers(CGR2)):

@@ -607,6 +607,14 @@ def test__resonance_dominant_atom_hybridizations():
     assert graph.resonance_dominant_atom_hybridizations(C8H13O_CGR) == {
         0: 3, 1: 2, 2: 3, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3}
 
+    cgr = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
+            3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('X', 0, None)},
+           {frozenset({1, 4}): (1, None), frozenset({1, 2}): (1, None),
+            frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
+            frozenset({2, 5}): (1, None)})
+    print(graph.resonance_dominant_atom_hybridizations(cgr))
+
 
 def test__resonance_dominant_atom_centered_cumulene_keys():
     """ test graph.resonance_dominant_atom_centered_cumulene_keys
@@ -786,35 +794,6 @@ def test__reaction__beta_scission():
     rxn = graph.reaction.beta_scission(cgr1, cgr2)
     assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr1), cgr2)
 
-    # failed case  #482
-    ichs1 = ("InChI=1S/C3H7O4/c4-6-2-1-3-7-5/h4H,1-3H2",)
-    ichs2 = ('InChI=1S/C3H7O2/c1-2-3-5-4/h4H,1-3H2', 'InChI=1S/O2/c1-2')
-    ich1 = automol.inchi.join(ichs1)
-    ich2 = automol.inchi.join(ichs2)
-    # mults1 = (2,)
-    # mults2 = (2, 3)
-    print(ich1)
-    print(ich2)
-    cgr1 = automol.graph.explicit(automol.inchi.graph(ich1))
-    cgr2 = automol.graph.explicit(automol.inchi.graph(ich2))
-    print(cgr1)
-    print(cgr2)
-
-    rxn = automol.graph.reaction.beta_scission(cgr1, cgr2)
-    print(rxn)
-    for sgr1 in automol.graph.stereomers(cgr1):
-        for sgr2 in automol.graph.stereomers(cgr2):
-            if automol.graph.reaction.is_stereo_compatible(
-                    rxn, sgr1, sgr2):
-                sich1 = automol.graph.inchi(sgr1)
-                print(sich1)
-                sich2 = automol.graph.inchi(sgr2)
-                print(sich2)
-                sichs1 = automol.inchi.split(sich1)
-                sichs2 = automol.inchi.split(sich2)
-                print(sichs1)
-                print(sichs2)
-
 
 def test__reaction__addition():
     """ test graph.reaction.addition
@@ -863,33 +842,6 @@ def test__reaction__hydrogen_abstraction():
 
     rxn = graph.reaction.hydrogen_abstraction(cgr2, cgr1)
     assert graph.backbone_isomorphic(graph.reaction.react(rxn, cgr2), cgr1)
-
-    ichs1 = ('InChI=1S/C2H2O/c1-2-3/h1H2', 'InChI=1S/H')
-    ichs2 = ('InChI=1S/C2HO/c1-2-3/h1H', 'InChI=1S/H2/h1H')
-    ich1 = automol.inchi.join(ichs1)
-    ich2 = automol.inchi.join(ichs2)
-    print(ich1)
-    print(ich2)
-    cgr1 = automol.inchi.graph(ich1)
-    cgr2 = automol.inchi.graph(ich2)
-    print(cgr1)
-    print(cgr2)
-
-    # import autofile
-    # geo = automol.inchi.geometry(ich2)
-    # geo_str = autofile.file.write.geometry(geo)
-    # autofile.file.write_file('geo.xyz', geo_str)
-
-    print(automol.graph.stereogenic_atom_keys(cgr1))
-    print(automol.graph.stereogenic_bond_keys(cgr1))
-    print(automol.graph.stereogenic_atom_keys(cgr2))
-    print(automol.graph.stereogenic_bond_keys(cgr2))
-    for sgr1 in automol.graph.stereomers(cgr1):
-        for sgr2 in automol.graph.stereomers(cgr2):
-            sich1 = automol.graph.inchi(sgr1)
-            print(sich1)
-            sich2 = automol.graph.inchi(sgr2)
-            print(sich2)
 
 
 def test__reaction__is_stereo_compatible():
@@ -947,9 +899,10 @@ if __name__ == '__main__':
     # test__reaction__hydrogen_migration()
     # test__reaction__beta_scission()
     # test__reaction__addition()
-    test__reaction__hydrogen_abstraction()
+    # test__reaction__hydrogen_abstraction()
     # test__reaction__is_stereo_compatible()
     # test__resonance_dominant_atom_centered_cumulene_keys()
     # test__resonance_dominant_bond_centered_cumulene_keys()
-    test__stereogenic_bond_keys()
-    test__reaction__beta_scission()
+    # test__stereogenic_bond_keys()
+    # test__reaction__beta_scission()
+    test__resonance_dominant_atom_hybridizations()
