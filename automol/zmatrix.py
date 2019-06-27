@@ -224,10 +224,10 @@ def join(zma1, zma2, join_key_mat, join_name_mat, join_val_dct):
                      numpy.equal(join_key_mat, None))
 
     join_idxs = numpy.not_equal(join_key_mat, None)
-    assert numpy.all(numpy.equal(key_mat2[join_idxs], None))
-    assert numpy.all(numpy.equal(name_mat2[join_idxs], None))
-    key_mat2[join_idxs] = join_key_mat[join_idxs]
-    name_mat2[join_idxs] = join_name_mat[join_idxs]
+    assert numpy.all(numpy.equal(key_mat2[:3][join_idxs], None))
+    assert numpy.all(numpy.equal(name_mat2[:3][join_idxs], None))
+    key_mat2[:3][join_idxs] = join_key_mat[join_idxs]
+    name_mat2[:3][join_idxs] = join_name_mat[join_idxs]
 
     syms = tuple(itertools.chain(syms1, syms2))
     key_mat = tuple(itertools.chain(key_mat1, key_mat2))

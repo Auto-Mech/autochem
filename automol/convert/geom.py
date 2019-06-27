@@ -27,12 +27,12 @@ def zmatrix(geo):
     return zma
 
 
-def zmatrix_torsion_coordinate_names(geo):
-    """ z-matrix torsional coordinate names
+def zmatrix_atom_ordering(geo):
+    """ z-matrix atom ordering
     """
     x2m = _pyx2z.from_geometry(geo)
-    names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
-    return names
+    idxs  = _pyx2z.zmatrix_atom_ordering(x2m)
+    return idxs
 
 
 # geometry => graph

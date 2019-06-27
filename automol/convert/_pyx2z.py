@@ -41,3 +41,11 @@ def zmatrix_torsion_coordinate_names(x2m):
     """
     names = pyx2z.rotational_bond_coordinates(x2m)
     return names
+
+
+def zmatrix_atom_ordering(x2m):
+    """ z-matrix atom ordering from an x2z molecule object
+    """
+    idx_dct = {geo_key: zma_key
+               for zma_key, geo_key in enumerate(x2m.atom_ordering())}
+    return idx_dct

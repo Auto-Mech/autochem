@@ -362,6 +362,12 @@ def zmatrix_torsion_coordinate_names(geo):
     return automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
 
 
+def zmatrix_atom_ordering(geo):
+    """ z-matrix atom ordering
+    """
+    return automol.convert.geom.zmatrix_atom_ordering(geo)
+
+
 def graph(geo, remove_stereo=False):
     """ geometry => graph
     """
