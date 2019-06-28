@@ -75,15 +75,15 @@ def set_coordinates(geo, xyz_dct):
     return from_data(syms, xyzs)
 
 
-def without_ghost_atoms(geo):
-    """ return a copy of the geometry without ghost atoms
+def without_dummy_atoms(geo):
+    """ return a copy of the geometry without dummy atoms
     """
     syms = symbols(geo)
     xyzs = coordinates(geo)
 
-    non_ghost_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
-    syms = list(map(syms.__getitem__, non_ghost_keys))
-    xyzs = list(map(xyzs.__getitem__, non_ghost_keys))
+    non_dummy_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
+    syms = list(map(syms.__getitem__, non_dummy_keys))
+    xyzs = list(map(xyzs.__getitem__, non_dummy_keys))
     return from_data(syms, xyzs)
 
 
@@ -360,6 +360,12 @@ def zmatrix_torsion_coordinate_names(geo):
     """ z-matrix torsional coordinate names
     """
     return automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
+
+
+def zmatrix_atom_ordering(geo):
+    """ z-matrix atom ordering
+    """
+    return automol.convert.geom.zmatrix_atom_ordering(geo)
 
 
 def graph(geo, remove_stereo=False):

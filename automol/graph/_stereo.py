@@ -672,6 +672,16 @@ def longest_chain(xgr):
     return max_chain
 
 
+def atom_longest_chains(xgr):
+    """ longest chains, by atom
+    """
+    atm_keys = _atom_keys(xgr)
+
+    long_chain_dct = {atm_key: _longest_chain(xgr, atm_key)
+                      for atm_key in atm_keys}
+    return long_chain_dct
+
+
 def _longest_chain(xgr, atm_key):
     atm_ngb_keys_dct = _atom_neighbor_keys(xgr)
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]

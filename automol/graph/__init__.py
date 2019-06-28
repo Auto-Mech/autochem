@@ -45,7 +45,7 @@ from automol.graph._graph import bond_induced_subgraph
 # # transformations
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
-from automol.graph._graph import without_ghost_atoms
+from automol.graph._graph import without_dummy_atoms
 
 # implicit/explicit hydrogen functions
 # # atom properties
@@ -106,6 +106,7 @@ from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 from automol.graph._stereo import set_stereo_from_atom_coordinates
 from automol.graph._stereo import atom_stereo_coordinates
+from automol.graph._stereo import atom_longest_chains
 
 # submodules
 from automol.graph import reaction
@@ -214,7 +215,7 @@ __all__ = [
     # # transformations
     'remove_atoms',
     'remove_bonds',
-    'without_ghost_atoms',
+    'without_dummy_atoms',
 
     # implicit/explicit hydrogen functions
     # # atom properties
@@ -272,6 +273,7 @@ __all__ = [
     'stereo_sorted_atom_neighbor_keys',
     'set_stereo_from_atom_coordinates',
     'atom_stereo_coordinates',
+    'atom_longest_chains',
 
     # conversions,
     'inchi',

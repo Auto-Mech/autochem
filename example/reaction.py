@@ -1,4 +1,4 @@
-""" sample script
+""" reaction sample script
 """
 import os
 import itertools
@@ -46,7 +46,7 @@ def classify(xgr1, xgr2):
 
 if __name__ == '__main__':
     PATH = os.path.dirname(os.path.realpath(__file__))
-    HEPTANE_TAB = pandas.read_csv(os.path.join(PATH, 'data', 'heptane.csv'))
+    HEPTANE_TAB = pandas.read_csv(os.path.join(PATH, 'data', 'reaction.csv'))
 
     ICH1_LST = list(HEPTANE_TAB['reac_inchi'])
     ICH2_LST = list(HEPTANE_TAB['prod_inchi'])
