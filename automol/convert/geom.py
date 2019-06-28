@@ -27,11 +27,19 @@ def zmatrix(geo):
     return zma
 
 
+def zmatrix_torsion_coordinate_names(geo):
+    """ z-matrix torsional coordinate names
+    """
+    x2m = _pyx2z.from_geometry(geo)
+    names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
+    return names
+
+
 def zmatrix_atom_ordering(geo):
     """ z-matrix atom ordering
     """
     x2m = _pyx2z.from_geometry(geo)
-    idxs  = _pyx2z.zmatrix_atom_ordering(x2m)
+    idxs = _pyx2z.zmatrix_atom_ordering(x2m)
     return idxs
 
 
@@ -89,8 +97,8 @@ def inchi(geo, remove_stereo=False):
 
 
 def _compare(geo1, geo2):
-    gra1 = automol.graph.without_ghost_atoms(_connectivity_graph(geo1))
-    gra2 = automol.graph.without_ghost_atoms(_connectivity_graph(geo2))
+    gra1 = automol.graph.without_dummy_atoms(_connectivity_graph(geo1))
+    gra2 = automol.graph.without_dummy_atoms(_connectivity_graph(geo2))
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 

@@ -367,11 +367,11 @@ def torsional_scan_grids(zma, tors_names, increment=0.5):
 
 
 # conversions
-def geometry(zma, remove_ghost_atoms=None):
+def geometry(zma, remove_dummy_atoms=None):
     """ z-matrix => geometry
     """
     return automol.convert.zmatrix.geometry(
-        zma, remove_ghost_atoms=remove_ghost_atoms)
+        zma, remove_dummy_atoms=remove_dummy_atoms)
 
 
 def graph(zma):

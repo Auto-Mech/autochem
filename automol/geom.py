@@ -75,15 +75,15 @@ def set_coordinates(geo, xyz_dct):
     return from_data(syms, xyzs)
 
 
-def without_ghost_atoms(geo):
-    """ return a copy of the geometry without ghost atoms
+def without_dummy_atoms(geo):
+    """ return a copy of the geometry without dummy atoms
     """
     syms = symbols(geo)
     xyzs = coordinates(geo)
 
-    non_ghost_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
-    syms = list(map(syms.__getitem__, non_ghost_keys))
-    xyzs = list(map(xyzs.__getitem__, non_ghost_keys))
+    non_dummy_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
+    syms = list(map(syms.__getitem__, non_dummy_keys))
+    xyzs = list(map(xyzs.__getitem__, non_dummy_keys))
     return from_data(syms, xyzs)
 
 

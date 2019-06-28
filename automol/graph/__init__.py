@@ -45,7 +45,7 @@ from automol.graph._graph import bond_induced_subgraph
 # # transformations
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
-from automol.graph._graph import without_ghost_atoms
+from automol.graph._graph import without_dummy_atoms
 
 # implicit/explicit hydrogen functions
 # # atom properties
@@ -215,7 +215,7 @@ __all__ = [
     # # transformations
     'remove_atoms',
     'remove_bonds',
-    'without_ghost_atoms',
+    'without_dummy_atoms',
 
     # implicit/explicit hydrogen functions
     # # atom properties

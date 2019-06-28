@@ -468,8 +468,8 @@ def remove_bonds(xgr, bnd_keys):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def without_ghost_atoms(xgr):
-    """ remove ghost atoms from the graph
+def without_dummy_atoms(xgr):
+    """ remove dummy atoms from the graph
     """
     atm_sym_dct = atom_symbols(xgr)
     atm_keys = [key for key, sym in atm_sym_dct.items() if pt.to_Z(sym)]
