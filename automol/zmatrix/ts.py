@@ -2,6 +2,7 @@
 """
 import functools
 import automol.graph
+import automol.graph.reaction
 import automol.convert.zmatrix
 
 
@@ -11,12 +12,15 @@ import automol.convert.zmatrix
 
 
 def addition(rct_zmas, prd_zmas):
-    """ z-matrix for a beta scission reaction
+    """ z-matrix for an addition reaction
     """
     rcts_gra = _combined_graph(rct_zmas)
     prds_gra = _combined_graph(prd_zmas)
+    rxn = automol.graph.reaction.addition(rcts_gra, prds_gra)
+    frm_bnd_key, = automol.graph.reaction.formed_bond_keys(rxn)
     print(rcts_gra)
     print(prds_gra)
+    print(frm_bnd_key)
 
 
 def _combined_graph(zmas):

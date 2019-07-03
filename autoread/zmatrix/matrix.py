@@ -53,6 +53,7 @@ def read(string,
 
     block_str = (apf.last_capture(block_ptt_, string, case=case) if last else
                  apf.first_capture(block_ptt_, string, case=case))
+    print(block_str)
 
     lines = block_str.splitlines()
     nrows = len(lines)
@@ -106,6 +107,7 @@ def block_pattern(sym_ptt=par.Pattern.ATOM_SYMBOL,
         app.padded(app.NEWLINE).join(line_ptts[:3] + [block_end_ptt]),
         app.padded(app.NEWLINE).join(line_ptts[:3]),
         app.padded(app.NEWLINE).join(line_ptts[:2]),
+        app.padded(app.NEWLINE).join(line_ptts[:1]),
     ])
     return block_ptt
 
