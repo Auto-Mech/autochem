@@ -12,25 +12,6 @@ import automol.convert.geom
 from automol import vmatrix as _v_
 
 
-# constructor
-def from_data(syms, key_mat, name_mat, val_dct,
-              one_indexed=False, angstrom=False, degree=False):
-    """ z-matrix constructor
-
-    :param syms: atomic symbols
-    :type syms: tuple[str]
-    :param key_mat: key/index columns of the z-matrix, zero-indexed
-    :type key_mat: tuple[tuple[float, float or None, float or None]]
-    :param name_mat: coordinate name columns of the z-matrix
-    :type name_mat; tuple[tuple[str, str or None, str or None]]
-    :param val_dct: coordinate values, by coordinate name
-    :type val_dct: dict
-    """
-    return automol.create.zmatrix.from_data(
-        symbols=syms, key_matrix=key_mat, name_matrix=name_mat, values=val_dct,
-        one_indexed=one_indexed, angstrom=angstrom, degree=degree)
-
-
 # getters
 def var_(zma):
     """ the variable matrix (atom symbols, atom keys, and coordinate names)
@@ -148,8 +129,9 @@ def is_valid(zma):
         ret = _v_.is_valid(vma) and set(_v_.names(vma)) == set(val_dct)
         if ret:
             try:
-                from_data(_v_.symbols(vma), _v_.key_matrix(vma),
-                          _v_.name_matrix(vma), val_dct)
+                automol.create.zmatrix.from_data(
+                    _v_.symbols(vma), _v_.key_matrix(vma),
+                    _v_.name_matrix(vma), val_dct)
             except AssertionError:
                 ret = False
     return ret
@@ -168,10 +150,10 @@ def set_names(zma, name_dct):
     val_dct = {name_dct[orig_name]: val
                for orig_name, val in values(zma).items()}
 
-    return from_data(_v_.symbols(vma), _v_.key_matrix(vma), name_mat, val_dct)
+    return automol.create.zmatrix.from_data(
+        _v_.symbols(vma), _v_.key_matrix(vma), name_mat, val_dct)
 
 
-# setters
 def set_values(zma, val_dct):
     """ set coordinate values for the z-matrix
     """
@@ -181,8 +163,9 @@ def set_values(zma, val_dct):
 
     new_val_dct = values(zma).copy()
     new_val_dct.update(val_dct)
-    return from_data(_v_.symbols(vma), _v_.key_matrix(vma),
-                     _v_.name_matrix(vma), new_val_dct)
+    return automol.create.zmatrix.from_data(
+        _v_.symbols(vma), _v_.key_matrix(vma), _v_.name_matrix(vma),
+        new_val_dct)
 
 
 def standard_names(zma, shift=0):
@@ -241,7 +224,7 @@ def join(zma1, zma2, join_key_mat, join_name_mat, join_val_dct):
     val_dct.update(val_dct2)
     val_dct.update(join_val_dct)
 
-    return from_data(syms, key_mat, name_mat, val_dct)
+    return automol.create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
 
 
 # misc
@@ -257,8 +240,9 @@ def from_string(zma_str):
     """
     syms, key_mat, name_mat, val_dct = ar.zmatrix.read(zma_str)
 
-    zma = from_data(syms, key_mat, name_mat, val_dct,
-                    one_indexed=True, angstrom=True, degree=True)
+    zma = automol.create.zmatrix.from_data(
+        syms, key_mat, name_mat, val_dct, one_indexed=True, angstrom=True,
+        degree=True)
     return zma
 
 
@@ -329,7 +313,7 @@ def torsional_symmetry_numbers(zma, tors_names):
     assert set(tors_names) <= set(dih_edg_key_dct.keys())
     edg_keys = tuple(map(dih_edg_key_dct.__getitem__, tors_names))
 
-    gra = graph(zma)
+    gra = automol.convert.zmatrix.graph(zma)
     bnd_sym_num_dct = automol.graph.bond_symmetry_numbers(gra)
     assert set(edg_keys) <= set(bnd_sym_num_dct.keys())
 
@@ -364,25 +348,3 @@ def torsional_scan_grids(zma, tors_names, increment=0.5):
     npoints_lst = tuple(int(interval / increment) for interval in intervals)
     return tuple((0, interval, npoints)
                  for interval, npoints in zip(intervals, npoints_lst))
-
-
-# conversions
-def geometry(zma, remove_dummy_atoms=None):
-    """ z-matrix => geometry
-    """
-    return automol.convert.zmatrix.geometry(
-        zma, remove_dummy_atoms=remove_dummy_atoms)
-
-
-def graph(zma):
-    """ z-matrix => graph
-    """
-    geo = geometry(zma)
-    gra = automol.convert.geom.graph(geo)
-    return gra
-
-
-def formula(zma):
-    """ zmatrix => formula
-    """
-    return automol.convert.zmatrix.formula(zma)

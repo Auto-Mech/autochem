@@ -36,6 +36,15 @@ def geometry(zma, remove_dummy_atoms=None):
     return geo
 
 
+# z-matrix => graph
+def graph(zma):
+    """ z-matrix => graph
+    """
+    geo = geometry(zma)
+    gra = automol.convert.geom.graph(geo)
+    return gra
+
+
 # z-matrix => formula
 def formula(zma):
     """ z-matrix => formula
