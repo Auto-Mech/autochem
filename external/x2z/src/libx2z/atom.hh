@@ -22,7 +22,12 @@ public:
     SULFUR = 16,
     CHLORINE = 17,
     TITANIUM = 22,
-    BROMINE = 35
+    BROMINE = 35,
+    HELIUM = 2,
+    NEON = 10,
+    ARGON = 18,
+    KRYPTON = 36,
+    XENON = 54
   };
 
 private:
