@@ -267,8 +267,8 @@ def test__torsional_symmetry_numbers():
         1, 1)
 
 
-def test__tors__samples():
-    """ test zmatrix.tors.samples
+def test__samples():
+    """ test zmatrix.samples
     """
     tors_names = ['d1']
     tors_range_vals = zmatrix.torsional_sampling_ranges(CH4O_ZMA, tors_names)
@@ -283,7 +283,142 @@ def test__tors__samples():
     assert len(zmas) == 7
 
 
+def test__ts__addition():
+    """ test zmatrix.ts.addition
+    """
+    rct_zmas = [
+        ((('O', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None))),
+         {'R1': 2.15608}),
+        ((('H', (None, None, None), (None, None, None)),),
+         {}),
+    ]
+    prd_zmas = [
+        ((('O', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None))),
+         {'R1': 2.48959, 'R2': 1.86213, 'A2': 1.9084302705931997})
+    ]
+    ts_zma, bnd_dist_name = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    assert bnd_dist_name == 'rts'
+    assert zmatrix.almost_equal(
+        ts_zma,
+        ((('O', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('r1', None, None)),
+          ('H', (1, 0, None), ('rts', 'aabs1', None))),
+         {'r1': 2.15608, 'aabs1': 1.4835298641951802, 'rts': 3.0})
+    )
+
+    rct_zmas = list(reversed(rct_zmas))
+    ts_zma, bnd_dist_name = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    assert bnd_dist_name == 'rts'
+    assert zmatrix.almost_equal(
+        ts_zma,
+        ((('H', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('rts', None, None)),
+          ('O', (1, 0, None), ('r2', 'aabs2', None))),
+         {'r2': 2.15608, 'aabs2': 1.4835298641951802, 'rts': 3.0})
+    )
+
+    rct_zmas = [
+        ((('O', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None))),
+         {'R1': 2.48959, 'R2': 1.86213, 'A2': 1.9084302705931997}),
+        ((('C', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3'))),
+         {'R1': 2.045,
+          'R2': 2.045, 'A2': 2.0943,
+          'R3': 2.045, 'A3': 2.0943, 'D3': 3.1415}),
+    ]
+    prd_zmas = [
+        ((('C', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
+          ('O', (1, 0, 2), ('R5', 'A5', 'D5')),
+          ('H', (5, 1, 0), ('R6', 'A6', 'D6'))),
+         {'R1': 2.687,
+          'R2': 2.065, 'A2': 1.894,
+          'R3': 2.067, 'A3': 1.920, 'D3': 4.202,
+          'R4': 2.067, 'A4': 1.920, 'D4': 2.080,
+          'R5': 2.750, 'A5': 1.842, 'D5': 3.140,
+          'R6': 1.840, 'A6': 1.680, 'D6': 2.055})
+    ]
+    ts_zma, bnd_dist_name = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    assert bnd_dist_name == 'rts'
+    assert zmatrix.almost_equal(
+        ts_zma,
+        ((('O', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('r1', None, None)),
+          ('H', (0, 1, None), ('r2', 'a1', None)),
+          ('C', (1, 0, 2), ('rts', 'aabs1', 'babs1')),
+          ('H', (3, 1, 0), ('r4', 'aabs2', 'babs2')),
+          ('H', (3, 4, 1), ('r5', 'a4', 'babs3')),
+          ('H', (3, 4, 5), ('r6', 'a5', 'd4'))),
+         {'r1': 2.48959,
+          'r2': 1.86213, 'a1': 1.90843,
+          'rts': 3.00, 'aabs1': 1.48352, 'babs1': 3.14159,
+          'r4': 2.045, 'aabs2': 1.48352, 'babs2': 1.57079,
+          'r5': 2.045, 'a4': 2.0943, 'babs3': 1.57079,
+          'r6': 2.045, 'a5': 2.0943, 'd4': 3.1415})
+    )
+
+
+def test__ts__hydrogen_abstraction():
+    """ test zmatrix.ts.hydrogen_abstraction
+    """
+    rct_zmas = [
+        ((('C', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (0, 1, 2), ('R4', 'A4', 'D4'))),
+         {'R1': 2.063,
+          'R2': 2.063, 'A2': 1.9106,
+          'R3': 2.063, 'A3': 1.9106, 'D3': 2.0943,
+          'R4': 2.063, 'A4': 1.9106, 'D4': 4.1887}),
+        ((('H', (None, None, None), (None, None, None)),),
+         {}),
+    ]
+    prd_zmas = [
+        ((('C', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3'))),
+         {'R1': 2.045,
+          'R2': 2.045, 'A2': 2.0943,
+          'R3': 2.045, 'A3': 2.0943, 'D3': 3.1415}),
+        ((('H', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('R1', None, None))),
+         {'R1': 1.31906}),
+    ]
+    ts_zma, bnd_dist_name = zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas)
+    assert bnd_dist_name == 'rts'
+    assert zmatrix.almost_equal(
+        ts_zma,
+        ((('C', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('r1', None, None)),
+          ('H', (0, 1, None), ('r2', 'a1', None)),
+          ('H', (0, 1, 2), ('r3', 'a2', 'd1')),
+          ('H', (0, 1, 2), ('r4', 'a3', 'd2')),
+          ('X', (4, 0, 1), ('rx', 'ax', 'dx')),
+          ('H', (4, 5, 0), ('rts', 'aabs1', 'babs1'))),
+         {'r1': 2.063,
+          'r2': 2.063, 'a1': 1.9106,
+          'r3': 2.063, 'a2': 1.9106, 'd1': 2.0943,
+          'r4': 2.063, 'a3': 1.9106, 'd2': 4.1887,
+          'rx': 1.88972, 'ax': 1.570796, 'dx': 3.14159,
+          'rts': 3.0, 'aabs1': 1.48352, 'babs1': 3.14159})
+    )
+
+
 if __name__ == '__main__':
     test__from_data()
     test__string()
     test__join()
+    test__ts__addition()
+    test__ts__hydrogen_abstraction()

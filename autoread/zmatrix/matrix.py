@@ -53,7 +53,6 @@ def read(string,
 
     block_str = (apf.last_capture(block_ptt_, string, case=case) if last else
                  apf.first_capture(block_ptt_, string, case=case))
-    print(block_str)
 
     lines = block_str.splitlines()
     nrows = len(lines)

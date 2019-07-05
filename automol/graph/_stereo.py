@@ -687,19 +687,23 @@ def _longest_chain(xgr, atm_key):
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]
 
     chains_lst = []
-    next_chains_lst = [[atm_key, atm_ngb_key] for atm_ngb_key in atm_ngb_keys]
+    if atm_ngb_keys:
+        next_chains_lst = [
+            [atm_key, atm_ngb_key] for atm_ngb_key in atm_ngb_keys]
 
-    while True:
-        chains_lst = next_chains_lst
-        next_chains_lst = []
-        for chain in chains_lst:
-            atm_ngb_keys = atm_ngb_keys_dct[chain[-1]]
-            next_atm_keys = sorted(atm_ngb_keys - set(chain))
-            for next_atm_key in next_atm_keys:
-                next_chains_lst.append(chain + [next_atm_key])
+        while True:
+            chains_lst = next_chains_lst
+            next_chains_lst = []
+            for chain in chains_lst:
+                atm_ngb_keys = atm_ngb_keys_dct[chain[-1]]
+                next_atm_keys = sorted(atm_ngb_keys - set(chain))
+                for next_atm_key in next_atm_keys:
+                    next_chains_lst.append(chain + [next_atm_key])
 
-        if not next_chains_lst:
-            break
+            if not next_chains_lst:
+                break
 
-    max_chain = tuple(chains_lst[0])
+        max_chain = tuple(chains_lst[0])
+    else:
+        max_chain = tuple((atm_key,))
     return max_chain
