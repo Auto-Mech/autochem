@@ -1,7 +1,7 @@
 # cmd: conda build . -c pacchem -c rdkit -c openbabel -c conda-forge
 package:
     name: autochem
-    version: "0.2.7"
+    version: "0.2.8"
 
 source:
     path: .

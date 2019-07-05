@@ -38,6 +38,9 @@ from automol.zmatrix._zmatrix import torsional_symmetry_numbers
 from automol.zmatrix._zmatrix import torsional_sampling_ranges
 from automol.zmatrix._zmatrix import torsional_scan_grids
 
+# submodules
+from automol.zmatrix import ts
+
 # constructors
 import automol.create.zmatrix
 # conversions
@@ -123,11 +126,11 @@ __all__ = [
     'torsional_sampling_ranges',
     'torsional_scan_grids',
 
+    # submodules
+    'ts',
+
     # conversions,
     'geometry',
     'graph',
     'formula',
-
-    # submodules
-    'ts',
 ]
