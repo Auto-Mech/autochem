@@ -11,6 +11,7 @@ import automol.convert.zmatrix
 def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
     """
+    ret = None
     rct_zmas, rcts_gra = _standard_form_with_combined_graph(rct_zmas)
     prd_zmas, prds_gra = _standard_form_with_combined_graph(prd_zmas)
     rxn = automol.graph.reaction.beta_scission(rcts_gra, prds_gra)
@@ -29,6 +30,7 @@ def beta_scission(rct_zmas, prd_zmas):
 def addition(rct_zmas, prd_zmas):
     """ z-matrix for an addition reaction
     """
+    ret = None
     bnd_dist_name = 'rts'
     bnd_dist_val = 3.
 
@@ -88,6 +90,7 @@ def addition(rct_zmas, prd_zmas):
 def hydrogen_abstraction(rct_zmas, prd_zmas):
     """ z-matrix for an addition reaction
     """
+    ret = None
     bnd_dist_name = 'rts'
     bnd_dist_val = 3.
     rct_zmas, rcts_gra = _standard_form_with_combined_graph(rct_zmas)
