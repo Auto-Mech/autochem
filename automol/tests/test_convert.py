@@ -137,6 +137,18 @@ def test__geom__zmatrix():
          'R3': 2.06501, 'A3': 1.9116242, 'D3': 2.108497362,
          'R4': 2.06458, 'A4': 1.9020947, 'D4': 4.195841334,
          'R5': 1.83748, 'A5': 1.8690905, 'D5': 5.228936625})
+    ref_zma = (
+        (('C', (None, None, None), (None, None, None)),
+         ('O', (0, None, None), ('r1', None, None)),
+         ('H', (0, 1, None), ('r2', 'a1', None)),
+         ('H', (0, 1, 2), ('r3', 'a2', 'd1')),
+         ('H', (0, 1, 2), ('r4', 'a3', 'd2')),
+         ('H', (1, 0, 2), ('r5', 'a4', 'd3'))),
+        {'r1': 2.67535,
+         'r2': 2.06501, 'a1': 1.91162,
+         'r3': 2.06501, 'a2': 1.91162, 'd1': 2.10849,
+         'r4': 2.06458, 'a3': 1.90209, 'd2': 4.19584,
+         'r5': 1.83748, 'a4': 1.86909, 'd3': 5.22893})
     assert automol.zmatrix.almost_equal(zma, ref_zma)
 
 
@@ -163,4 +175,6 @@ if __name__ == '__main__':
     # test__graph__with_stereo()
     # test__zmatrix__with_stereo()
     # test__graph__with_stereo()
-    test__graph__misc()
+    # test__graph__misc()
+    test__geom__zmatrix()
+    test__geom__zmatrix_torsion_coordinate_names()
