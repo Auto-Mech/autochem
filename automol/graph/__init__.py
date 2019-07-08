@@ -109,7 +109,7 @@ from automol.graph._stereo import atom_stereo_coordinates
 from automol.graph._stereo import atom_longest_chains
 
 # submodules
-from automol.graph import reaction
+from automol.graph import trans
 
 # constructors
 import automol.create.graph
@@ -280,5 +280,5 @@ __all__ = [
     'formula',
 
     # submodules
-    'reaction',
+    'trans',
 ]

@@ -4,7 +4,7 @@ from distutils.core import setup
 
 
 setup(name="autochem",
-      version="0.2.8",
+      version="0.2.9",
       packages=["automol",
                 "automol.cart",
                 "automol.convert",
@@ -12,6 +12,7 @@ setup(name="autochem",
                 "automol.dict_",
                 "automol.graph",
                 "automol.zmatrix",
+                "automol.formula",
                 "automol.mult",
                 "automol.tests",
                 "autoread",

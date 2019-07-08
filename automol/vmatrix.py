@@ -154,25 +154,29 @@ def set_names(vma, name_dct):
 
 def standard_names(vma, shift=0):
     """ standard names for the coordinates, by their current names
+
+    (follows x2z format)
     """
     dist_names = distance_names(vma)
     cent_ang_names = central_angle_names(vma)
     dih_ang_names = dihedral_angle_names(vma)
     name_dct = {}
     name_dct.update({
-        dist_name: 'r{:d}'.format(num + shift + 1)
+        dist_name: 'R{:d}'.format(num + shift + 1)
         for num, dist_name in enumerate(dist_names)})
     name_dct.update({
-        cent_ang_name: 'a{:d}'.format(num + shift + 1)
+        cent_ang_name: 'A{:d}'.format(num + shift + 2)
         for num, cent_ang_name in enumerate(cent_ang_names)})
     name_dct.update({
-        dih_ang_name: 'd{:d}'.format(num + shift + 1)
+        dih_ang_name: 'D{:d}'.format(num + shift + 3)
         for num, dih_ang_name in enumerate(dih_ang_names)})
     return name_dct
 
 
 def standard_form(vma):
     """ set standard variable names for the variable z-matrix
+
+    (follows x2z format)
     """
     name_dct = standard_names(vma)
     return set_names(vma, name_dct)
@@ -203,6 +207,8 @@ def _is_sequence_of_triples(obj):
 
 def is_standard_form(vma):
     """ set standard variable names for the z-matrix
+
+    (follows x2z format)
     """
     return names(vma) == names(standard_form(vma))
 

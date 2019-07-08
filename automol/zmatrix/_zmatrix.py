@@ -170,12 +170,16 @@ def set_values(zma, val_dct):
 
 def standard_names(zma, shift=0):
     """ standard names for the coordinates, by their current names
+
+    (follows x2z format)
     """
     return _v_.standard_names(var_(zma), shift=shift)
 
 
 def standard_form(zma, shift=0):
     """ set standard variable names for the z-matrix
+
+    (follows x2z format)
     """
     return set_names(zma, standard_names(zma, shift=shift))
 
@@ -230,6 +234,8 @@ def join(zma1, zma2, join_key_mat, join_name_mat, join_val_dct):
 # misc
 def is_standard_form(zma):
     """ set standard variable names for the z-matrix
+
+    (follows x2z format)
     """
     return is_valid(zma) and _v_.is_standard_form(var_(zma))
 
