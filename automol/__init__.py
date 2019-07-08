@@ -8,6 +8,7 @@ from automol import inchi
 from automol import inchi_key
 from automol import smiles
 from automol import formula
+from automol import mult
 
 __all__ = [
     'geom',
@@ -18,4 +19,5 @@ __all__ = [
     'inchi_key',
     'smiles',
     'formula',
+    'mult',
 ]
