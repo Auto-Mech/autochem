@@ -346,7 +346,7 @@ def torsional_sampling_ranges(zma, tors_names):
     return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
 
 
-def torsional_scan_grids(zma, tors_names, increment=0.5):
+def torsional_scan_linspaces(zma, tors_names, increment=0.5):
     """ scan grids for torsional dihedrals
     """
     sym_nums = torsional_symmetry_numbers(zma, tors_names)

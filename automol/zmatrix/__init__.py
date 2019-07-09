@@ -36,7 +36,7 @@ from automol.zmatrix._zmatrix import samples
 # z-matrix torsional degrees of freedom
 from automol.zmatrix._zmatrix import torsional_symmetry_numbers
 from automol.zmatrix._zmatrix import torsional_sampling_ranges
-from automol.zmatrix._zmatrix import torsional_scan_grids
+from automol.zmatrix._zmatrix import torsional_scan_linspaces
 
 # submodules
 from automol.zmatrix import ts
@@ -124,7 +124,7 @@ __all__ = [
     # z-matrix torsional degrees of freedom
     'torsional_symmetry_numbers',
     'torsional_sampling_ranges',
-    'torsional_scan_grids',
+    'torsional_scan_linspaces',
 
     # submodules
     'ts',
