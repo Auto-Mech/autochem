@@ -1,4 +1,4 @@
-""" molecular graph reactions
+""" molecular graph transformations (representing transformations)
 """
 import numbers
 import itertools
@@ -31,7 +31,7 @@ from automol.graph._stereo import (stereo_sorted_atom_neighbor_keys as
 
 
 def from_data(frm_bnd_keys, brk_bnd_keys):
-    """ define a reaction from data
+    """ define a transformation from data
     """
     frm_bnd_keys = frozenset(map(frozenset, frm_bnd_keys))
     brk_bnd_keys = frozenset(map(frozenset, brk_bnd_keys))
@@ -40,39 +40,40 @@ def from_data(frm_bnd_keys, brk_bnd_keys):
     return (frm_bnd_keys, brk_bnd_keys)
 
 
-def formed_bond_keys(rxn):
-    """ keys for bonds that are formed in the reaction
+def formed_bond_keys(tra):
+    """ keys for bonds that are formed in the transformation
     """
-    frm_bnd_keys, _ = rxn
+    frm_bnd_keys, _ = tra
     return frm_bnd_keys
 
 
-def broken_bond_keys(rxn):
-    """ keys for bonds that are broken in the reaction
+def broken_bond_keys(tra):
+    """ keys for bonds that are broken in the transformation
     """
-    _, brk_bnd_keys = rxn
+    _, brk_bnd_keys = tra
     return brk_bnd_keys
 
 
-def react(rxn, xgr):
+def apply(tra, xgr):
     """ apply this transformation to a graph
     """
-    brk_bnd_keys = broken_bond_keys(rxn)
-    frm_bnd_keys = formed_bond_keys(rxn)
+    brk_bnd_keys = broken_bond_keys(tra)
+    frm_bnd_keys = formed_bond_keys(tra)
     # in case some bonds are broken *and* formed, we subtract the other set
     xgr = _remove_bonds(xgr, brk_bnd_keys - frm_bnd_keys)
     xgr = _add_bonds(xgr, frm_bnd_keys - brk_bnd_keys)
     return xgr
 
 
-def is_stereo_compatible(rxn, sgr1, sgr2):
-    """ is this reaction compatible with the reactant/product stereo assignments?
+def is_stereo_compatible(tra, sgr1, sgr2):
+    """ is this transformation compatible with the applyant/product stereo
+    assignments?
     """
     cgr1 = _without_stereo_parities(sgr1)
     cgr2 = _without_stereo_parities(sgr2)
-    atm_key_dct = _full_isomorphism(react(rxn, cgr1), cgr2)
+    atm_key_dct = _full_isomorphism(apply(tra, cgr1), cgr2)
 
-    # determine the stereo centers which are preserved in the reaction
+    # determine the stereo centers which are preserved in the transformation
     sgr1 = _relabel(sgr1, atm_key_dct)
     atm_keys = sorted(_atom_stereo_keys(sgr1) & _atom_stereo_keys(sgr2))
     bnd_keys = sorted(_bond_stereo_keys(sgr1) & _bond_stereo_keys(sgr2))
@@ -137,11 +138,11 @@ def _permutation_parity(seq, ref_seq):
 
 
 def hydrogen_migration(xgr1, xgr2):
-    """ find a hydrogen migration reaction
+    """ find a hydrogen migration transformation
     """
     assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
 
-    rxn = None
+    tra = None
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
 
@@ -162,33 +163,33 @@ def hydrogen_migration(xgr1, xgr2):
 
             inv_atm_key_dct = _full_isomorphism(xgr2_h, xgr1_h)
             if inv_atm_key_dct:
-                rxn = from_data(
+                tra = from_data(
                     frm_bnd_keys=[{atm_key1,
                                    inv_atm_key_dct[h_atm_key2]}],
                     brk_bnd_keys=[{inv_atm_key_dct[atm_key2],
                                    inv_atm_key_dct[h_atm_key2]}])
 
-    return rxn
+    return tra
 
 
 def beta_scission(xgr1, xgr2):
-    """ find a beta scission reaction
+    """ find a beta scission transformation
     """
-    rxn = None
+    tra = None
 
-    rev_rxn = addition(xgr2, xgr1)
-    if rev_rxn:
-        rxn = _reverse(rev_rxn, xgr2, xgr1)
+    rev_tra = addition(xgr2, xgr1)
+    if rev_tra:
+        tra = _reverse(rev_tra, xgr2, xgr1)
 
-    return rxn
+    return tra
 
 
 def addition(xgr1, xgr2):
-    """ find an addition reaction
+    """ find an addition transformation
     """
     assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
 
-    rxn = None
+    tra = None
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
 
@@ -203,46 +204,44 @@ def addition(xgr1, xgr2):
 
             atm_key_dct = _full_isomorphism(xy_xgr, xgr2)
             if atm_key_dct:
-                rxn = from_data(frm_bnd_keys=[{x_atm_key, y_atm_key}],
+                tra = from_data(frm_bnd_keys=[{x_atm_key, y_atm_key}],
                                 brk_bnd_keys=[])
 
-    return rxn
+    return tra
 
 
 def hydrogen_abstraction(xgr1, xgr2):
-    """ find an addition reaction
+    """ find an addition transformation
     """
     assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
 
-    rxn = None
+    tra = None
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
 
-    if len(xgrs1) == 2 and len(xgrs2) == 2:
-        for xgrs1_ in itertools.permutations(xgrs1):
-            for xgrs2_ in itertools.permutations(xgrs2):
-                fmls1 = list(map(automol.convert.graph.formula, xgrs1_))
-                fmls2 = list(map(automol.convert.graph.formula, xgrs2_))
-                if (formula.add_hydrogen(fmls2[0]) == fmls1[0] and
-                        formula.add_hydrogen(fmls1[1]) == fmls2[1]):
-                    q1h_xgr, q2_xgr = xgrs1_
-                    q1_xgr, q2h_xgr = xgrs2_
-                    q1_rxn = _partial_hydrogen_abstraction(q1h_xgr, q1_xgr)
-                    q2_rev_rxn = _partial_hydrogen_abstraction(q2h_xgr, q2_xgr)
-                    if q1_rxn and q2_rev_rxn:
-                        xgr1_ = _union(react(q1_rxn, q1h_xgr), q2_xgr)
-                        xgr2_ = _union(q1_xgr, q2h_xgr)
+    ret = formula.reac.argsort_hydrogen_abstraction(
+        list(map(automol.convert.graph.formula, xgrs1)),
+        list(map(automol.convert.graph.formula, xgrs2)))
+    if ret is not None:
+        idxs1, idxs2 = ret
+        q1h_xgr, q2_xgr = list(map(xgrs1.__getitem__, idxs1))
+        q1_xgr, q2h_xgr = list(map(xgrs2.__getitem__, idxs2))
+        q1_tra = _partial_hydrogen_abstraction(q1h_xgr, q1_xgr)
+        q2_rev_tra = _partial_hydrogen_abstraction(q2h_xgr, q2_xgr)
+        if q1_tra and q2_rev_tra:
+            xgr1_ = _union(apply(q1_tra, q1h_xgr), q2_xgr)
+            xgr2_ = _union(q1_xgr, q2h_xgr)
 
-                        q2_rxn = _reverse(q2_rev_rxn, xgr2_, xgr1_)
-                        rxn = from_data(
-                            frm_bnd_keys=formed_bond_keys(q2_rxn),
-                            brk_bnd_keys=broken_bond_keys(q1_rxn))
+            q2_tra = _reverse(q2_rev_tra, xgr2_, xgr1_)
+            tra = from_data(
+                frm_bnd_keys=formed_bond_keys(q2_tra),
+                brk_bnd_keys=broken_bond_keys(q1_tra))
 
-    return rxn
+    return tra
 
 
 def _partial_hydrogen_abstraction(qh_xgr, q_xgr):
-    rxn = None
+    tra = None
     h_atm_key = max(_atom_keys(q_xgr)) + 1
     rad_atm_keys = _resonance_dominant_radical_atom_keys(q_xgr)
     for atm_key in rad_atm_keys:
@@ -252,22 +251,22 @@ def _partial_hydrogen_abstraction(qh_xgr, q_xgr):
         if inv_atm_key_dct:
             brk_bnd_keys = [frozenset(
                 {inv_atm_key_dct[atm_key], inv_atm_key_dct[h_atm_key]})]
-            rxn = from_data(frm_bnd_keys=[], brk_bnd_keys=brk_bnd_keys)
+            tra = from_data(frm_bnd_keys=[], brk_bnd_keys=brk_bnd_keys)
 
-    return rxn
+    return tra
 
 
-def _reverse(rxn, xgr1, xgr2):
-    frm_bnd_keys = formed_bond_keys(rxn)
-    brk_bnd_keys = broken_bond_keys(rxn)
-    atm_key_dct = _full_isomorphism(react(rxn, xgr1), xgr2)
+def _reverse(tra, xgr1, xgr2):
+    frm_bnd_keys = formed_bond_keys(tra)
+    brk_bnd_keys = broken_bond_keys(tra)
+    atm_key_dct = _full_isomorphism(apply(tra, xgr1), xgr2)
     rev_frm_bnd_keys = [frozenset(map(atm_key_dct.__getitem__, bnd_key))
                         for bnd_key in brk_bnd_keys]
     rev_brk_bnd_keys = [frozenset(map(atm_key_dct.__getitem__, bnd_key))
                         for bnd_key in frm_bnd_keys]
-    rev_rxn = from_data(frm_bnd_keys=rev_frm_bnd_keys,
+    rev_tra = from_data(frm_bnd_keys=rev_frm_bnd_keys,
                         brk_bnd_keys=rev_brk_bnd_keys)
-    return rev_rxn
+    return rev_tra
 
 
 def _is_atom_key(obj):
