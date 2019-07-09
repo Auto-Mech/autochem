@@ -62,7 +62,7 @@ def addition(rct_zmas, prd_zmas, standard=True):
                 dist_name: dist_val,
                 'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
                 'aabs2': 85. * qcc.conversion_factor('degree', 'radian'),
-                'babs1': 180. * qcc.conversion_factor('degree', 'radian'),
+                'babs1': 90. * qcc.conversion_factor('degree', 'radian'),
                 'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
                 'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
             }
@@ -73,7 +73,7 @@ def addition(rct_zmas, prd_zmas, standard=True):
                 dist_name: dist_val,
                 'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
                 'aabs2': 85. * qcc.conversion_factor('degree', 'radian'),
-                'babs1': 180. * qcc.conversion_factor('degree', 'radian'),
+                'babs1': 90. * qcc.conversion_factor('degree', 'radian'),
                 'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
                 'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
             }
