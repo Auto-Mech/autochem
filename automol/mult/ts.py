@@ -20,7 +20,7 @@ def low(rct_mults, prd_mults):
 def _high(mults):
     spns = list(map(_spin, mults))
     hi_spn = sum(spns)
-    return hi_spn + 1
+    return int(hi_spn + 1)
 
 
 def _low(mults):
@@ -29,4 +29,4 @@ def _low(mults):
     low_spn = min(map(abs, map(sum, (
         numpy.multiply(spns, sgns)
         for sgns in itertools.product([+1, -1], repeat=num)))))
-    return low_spn + 1
+    return int(low_spn + 1)
