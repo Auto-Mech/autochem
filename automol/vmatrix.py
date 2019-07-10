@@ -101,10 +101,7 @@ def coordinates(vma, shift=0):
 def names(vma):
     """ coordinate names
     """
-    return _names_from_name_matrix(name_matrix(vma))
-
-
-def _names_from_name_matrix(name_mat):
+    name_mat = name_matrix(vma)
     _names = filter(lambda x: x is not None,
                     numpy.ravel(numpy.transpose(name_mat)))
     return tuple(more_itertools.unique_everseen(_names))
@@ -144,8 +141,15 @@ def dummy_coordinate_names(vma):
     syms = symbols(vma)
     name_mat = numpy.array(name_matrix(vma))
     dummy_keys = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
-    _names = _names_from_name_matrix(name_mat[dummy_keys])
-    return _names
+    dummy_names = []
+    for dummy_key in dummy_keys:
+        for col_idx in range(3):
+            dummy_name = next(filter(lambda x: x is not None,
+                                     name_mat[dummy_key:, col_idx]))
+            dummy_names.append(dummy_name)
+
+    dummy_names = tuple(dummy_names)
+    return dummy_names
 
 
 # value setters
