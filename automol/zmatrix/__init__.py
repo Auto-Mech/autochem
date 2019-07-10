@@ -14,6 +14,7 @@ from automol.zmatrix._zmatrix import distance_names
 from automol.zmatrix._zmatrix import central_angle_names
 from automol.zmatrix._zmatrix import dihedral_angle_names
 from automol.zmatrix._zmatrix import angle_names
+from automol.zmatrix._zmatrix import dummy_coordinate_names
 from automol.zmatrix._zmatrix import values
 # validation
 from automol.zmatrix._zmatrix import is_valid
@@ -102,6 +103,7 @@ __all__ = [
     'central_angle_names',
     'dihedral_angle_names',
     'angle_names',
+    'dummy_coordinate_names',
     'values',
     # validation
     'is_valid',

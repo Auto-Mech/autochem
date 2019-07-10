@@ -99,6 +99,12 @@ def angle_names(zma):
     return _v_.angle_names(var_(zma))
 
 
+def dummy_coordinate_names(zma):
+    """ names of dummy atom coordinates
+    """
+    return _v_.dummy_coordinate_names(var_(zma))
+
+
 def values(zma, angstrom=False, degree=False):
     """ coordinate values, by coordinate name
     """

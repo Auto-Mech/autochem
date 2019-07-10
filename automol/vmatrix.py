@@ -5,6 +5,7 @@
 import itertools
 import more_itertools
 import numpy
+from qcelemental import periodictable as pt
 import autoread as ar
 import autowrite as aw
 import automol.create.vmatrix
@@ -100,8 +101,12 @@ def coordinates(vma, shift=0):
 def names(vma):
     """ coordinate names
     """
+    return _names_from_name_matrix(name_matrix(vma))
+
+
+def _names_from_name_matrix(name_mat):
     _names = filter(lambda x: x is not None,
-                    numpy.ravel(numpy.transpose(name_matrix(vma))))
+                    numpy.ravel(numpy.transpose(name_mat)))
     return tuple(more_itertools.unique_everseen(_names))
 
 
@@ -131,6 +136,16 @@ def angle_names(vma):
     """
     return tuple(itertools.chain(central_angle_names(vma),
                                  dihedral_angle_names(vma)))
+
+
+def dummy_coordinate_names(vma):
+    """ names of dummy atom coordinates
+    """
+    syms = symbols(vma)
+    name_mat = numpy.array(name_matrix(vma))
+    dummy_keys = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+    _names = _names_from_name_matrix(name_mat[dummy_keys])
+    return _names
 
 
 # value setters
@@ -232,3 +247,27 @@ def string(vma):
         name_mat=name_matrix(vma),
     )
     return vma_str
+
+
+if __name__ == '__main__':
+    import automol
+
+    ZMA_STR = """
+H
+H 1    R1
+X 2    R2 1    A2
+O 2    R3 3    A3 1    D3
+H 4    R4 2    A4 3    D4
+R1   =   0.709426
+A2   =  90.000000
+R2   =   1.000000
+R4   =   0.977808
+D3   = 180.000000
+D4   =  90.000000
+R3   =   1.200000
+A3   =  85.000000
+A4   =  85.000000
+"""
+    ZMA = automol.zmatrix.from_string(ZMA_STR)
+    VMA = automol.zmatrix.var_(ZMA)
+    print(dummy_coordinate_names(VMA))
