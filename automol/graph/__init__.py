@@ -34,6 +34,7 @@ from automol.graph._graph import bond_neighbor_keys
 from automol.graph._graph import bond_neighborhoods
 # # other properties
 from automol.graph._graph import branch
+from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import branch_bond_keys
 from automol.graph._graph import rings
 from automol.graph._graph import rings_bond_keys
@@ -205,6 +206,7 @@ __all__ = [
     'bond_neighborhoods',
     # # other properties
     'branch',
+    'branch_atom_keys',
     'branch_bond_keys',
     'rings',
     'rings_bond_keys',
