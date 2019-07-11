@@ -34,15 +34,21 @@ def bonds(xgr):
 
 
 def atom_keys(xgr):
-    """ sorted atom keys
+    """ atom keys
     """
     return frozenset(atoms(xgr).keys())
 
 
 def bond_keys(xgr):
-    """ sorted bond keys
+    """ bond keys
     """
     return frozenset(bonds(xgr).keys())
+
+
+def dummy_bond_keys(xgr):
+    """ dummy bond (order=0) keys
+    """
+    return frozenset(dict_.keys_by_value(bond_orders(xgr), lambda x: x == 0))
 
 
 def atom_symbols(xgr):
@@ -164,7 +170,8 @@ def add_atom_implicit_hydrogen_valences(xgr, inc_atm_imp_hyd_vlc_dct):
 def without_bond_orders(xgr):
     """ resonance graph with maximum spin (i.e. no pi bonds)
     """
-    bnd_ord_dct = dict_.by_key({}, bond_keys(xgr), fill_val=1)
+    bnd_keys = bond_keys(xgr) - dummy_bond_keys(xgr)
+    bnd_ord_dct = dict_.by_key({}, bnd_keys, fill_val=1)
     return set_bond_orders(xgr, bnd_ord_dct)
 
 
