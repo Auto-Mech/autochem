@@ -65,6 +65,15 @@ def apply(tra, xgr):
     return xgr
 
 
+def form_dummy_bonds(tra, xgr):
+    """ for each bond formed in this transformation, add a bond with order 0
+    """
+    bnd_keys = formed_bond_keys(tra) - broken_bond_keys(tra)
+    bnd_ord_dct = {bnd_key: 0 for bnd_key in bnd_keys}
+    xgr = _add_bonds(xgr, bnd_keys, bnd_ord_dct)
+    return xgr
+
+
 def is_stereo_compatible(tra, sgr1, sgr2):
     """ is this transformation compatible with the applyant/product stereo
     assignments?

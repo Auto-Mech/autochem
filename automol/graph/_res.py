@@ -260,8 +260,9 @@ def rotational_bond_keys(xgr):
     bnd_keys = []
     for bnd_key, bnd_ords in res_dom_bnd_ords_dct.items():
         if all(bnd_ord <= 1 for bnd_ord in bnd_ords):
-            atm1_key, atm2_key = bnd_key
-            if atm_bnd_vlc_dct[atm1_key] > 1 and atm_bnd_vlc_dct[atm2_key] > 1:
+            bnd_ord = min(bnd_ords)
+            atm_bnd_vlcs = list(map(atm_bnd_vlc_dct.__getitem__, bnd_key))
+            if all(atm_bnd_vlc > bnd_ord for atm_bnd_vlc in atm_bnd_vlcs):
                 bnd_keys.append(bnd_key)
 
     return frozenset(bnd_keys)

@@ -856,6 +856,33 @@ def test__trans__hydrogen_abstraction():
     assert graph.backbone_isomorphic(graph.trans.apply(tra, cgr2), cgr1)
 
 
+def test__trans__form_dummy_bonds():
+    """ test graph.trans.from_dummy_bonds
+    """
+    cgr1 = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 1, None),
+             3: ('C', 2, None), 4: ('C', 1, None), 5: ('C', 2, None),
+             6: ('C', 2, None), 7: ('O', 1, None)},
+            {frozenset({4, 6}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({5, 6}): (1, None),
+             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+    cgr2 = ({0: ('C', 2, None), 1: ('C', 3, None), 2: ('C', 1, None),
+             3: ('C', 2, None), 4: ('C', 1, None), 5: ('C', 2, None),
+             6: ('C', 2, None), 7: ('O', 2, None)},
+            {frozenset({4, 6}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({5, 6}): (1, None),
+             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
+
+    cgr1 = graph.explicit(cgr1)
+    cgr2 = graph.explicit(cgr2)
+
+    tra = graph.trans.hydrogen_abstraction(cgr1, cgr2)
+    dum_cgr1 = graph.trans.form_dummy_bonds(tra, cgr1)
+
+    assert graph.rotational_bond_keys(dum_cgr1) == frozenset({
+        frozenset({4, 6}), frozenset({10, 7}), frozenset({0, 2}),
+        frozenset({5, 6}), frozenset({3, 5}), frozenset({1, 3})})
+
+
 def test__trans__is_stereo_compatible():
     """ test graph.trans.is_stereo_compatible
     """
@@ -918,4 +945,5 @@ if __name__ == '__main__':
     # test__stereogenic_bond_keys()
     # test__trans__beta_scission()
     # test__resonance_dominant_atom_hybridizations()
-    test__rotational_bond_keys()
+    # test__rotational_bond_keys()
+    test__trans__form_dummy_bonds()
