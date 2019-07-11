@@ -324,8 +324,14 @@ def branch(xgr, atm_key, bnd_key):
     return bond_induced_subgraph(xgr, branch_bond_keys(xgr, atm_key, bnd_key))
 
 
+def branch_atom_keys(xgr, atm_key, bnd_key):
+    """ atom keys for branch extending along `bnd_key` away from `atm_key`
+    """
+    return atom_keys(branch(xgr, atm_key, bnd_key)) - {atm_key}
+
+
 def branch_bond_keys(xgr, atm_key, bnd_key):
-    """ keys for branch extending along `bnd_key` away from `atm_key`
+    """ bond keys for branch extending along `bnd_key` away from `atm_key`
     """
     bnd_key = frozenset(bnd_key)
     assert atm_key in bnd_key

@@ -882,6 +882,13 @@ def test__trans__form_dummy_bonds():
         frozenset({4, 6}), frozenset({10, 7}), frozenset({0, 2}),
         frozenset({5, 6}), frozenset({3, 5}), frozenset({1, 3})})
 
+    bnd_key = frozenset({10, 7})
+    atm1_key = 7
+    atm2_key = 10
+
+    print(graph.branch_atom_keys(dum_cgr1, atm1_key, bnd_key))
+    print(graph.branch_atom_keys(dum_cgr1, atm2_key, bnd_key))
+
 
 def test__trans__is_stereo_compatible():
     """ test graph.trans.is_stereo_compatible

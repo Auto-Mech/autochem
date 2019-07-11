@@ -266,16 +266,3 @@ def rotational_bond_keys(xgr):
                 bnd_keys.append(bnd_key)
 
     return frozenset(bnd_keys)
-
-
-if __name__ == '__main__':
-    XGR = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-            9: ('H', 0, None), 10: ('H', 0, None)},
-           {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, None),
-            frozenset({0, 4}): (1, None), frozenset({0, 5}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({1, 6}): (1, None),
-            frozenset({1, 7}): (1, None), frozenset({8, 1}): (1, None),
-            frozenset({9, 2}): (1, None), frozenset({2, 10}): (1, None)})
-    print(rotational_bond_keys(XGR))
