@@ -93,6 +93,7 @@ from automol.graph._res import resonances
 from automol.graph._res import subresonances
 from automol.graph._res import dominant_resonances
 from automol.graph._res import dominant_resonance
+from automol.graph._res import rotational_bond_keys
 
 # stereo graph library
 from automol.graph._stereo import has_stereo
@@ -260,6 +261,7 @@ __all__ = [
     'subresonances',
     'dominant_resonances',
     'dominant_resonance',
+    'rotational_bond_keys',
 
     # stereo graph library
     'has_stereo',

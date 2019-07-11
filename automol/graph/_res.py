@@ -248,3 +248,33 @@ def _add_pi_bonds(rgr, bnd_ord_inc_dct):
     bnd_ord_dct = dict(zip(bnd_keys, new_bnd_ords))
     rgr = _set_bond_orders(rgr, bnd_ord_dct)
     return rgr
+
+
+# other utilities
+def rotational_bond_keys(xgr):
+    """ determine rotational bonds in this molecular graph
+    """
+    atm_bnd_vlc_dct = _atom_bond_valences(xgr, bond_order=False)
+    res_dom_bnd_ords_dct = resonance_dominant_bond_orders(xgr)
+
+    bnd_keys = []
+    for bnd_key, bnd_ords in res_dom_bnd_ords_dct.items():
+        if all(bnd_ord <= 1 for bnd_ord in bnd_ords):
+            atm1_key, atm2_key = bnd_key
+            if atm_bnd_vlc_dct[atm1_key] > 1 and atm_bnd_vlc_dct[atm2_key] > 1:
+                bnd_keys.append(bnd_key)
+
+    return frozenset(bnd_keys)
+
+
+if __name__ == '__main__':
+    XGR = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None)},
+           {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, None),
+            frozenset({0, 4}): (1, None), frozenset({0, 5}): (1, None),
+            frozenset({1, 2}): (1, None), frozenset({1, 6}): (1, None),
+            frozenset({1, 7}): (1, None), frozenset({8, 1}): (1, None),
+            frozenset({9, 2}): (1, None), frozenset({2, 10}): (1, None)})
+    print(rotational_bond_keys(XGR))

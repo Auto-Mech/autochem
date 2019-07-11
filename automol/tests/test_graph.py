@@ -686,6 +686,18 @@ def test__dominant_resonance():
     assert graph.dominant_resonance(C3H3_CGR) == C3H3_RGRS[1]
 
 
+def test__rotational_bond_keys():
+    """ test graph.rotational_bond_keys
+    """
+    cgr = ({0: ('C', 2, None), 1: ('C', 2, None), 2: ('C', 1, None),
+            3: ('C', 1, None)},
+           {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
+            frozenset({2, 3}): (1, None)})
+    cgr = automol.graph.explicit(cgr)
+    assert (automol.graph.rotational_bond_keys(cgr) ==
+            frozenset({frozenset({2, 3})}))
+
+
 # stereo graph library
 def test__stereogenic_atom_keys():
     """ test graph.stereogenic_atom_keys
@@ -905,4 +917,5 @@ if __name__ == '__main__':
     # test__resonance_dominant_bond_centered_cumulene_keys()
     # test__stereogenic_bond_keys()
     # test__trans__beta_scission()
-    test__resonance_dominant_atom_hybridizations()
+    # test__resonance_dominant_atom_hybridizations()
+    test__rotational_bond_keys()
