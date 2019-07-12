@@ -107,6 +107,7 @@ from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 from automol.graph._stereo import set_stereo_from_atom_coordinates
+from automol.graph._stereo import heuristic_geometry
 from automol.graph._stereo import atom_stereo_coordinates
 from automol.graph._stereo import atom_longest_chains
 
@@ -276,6 +277,7 @@ __all__ = [
     'substereomers',
     'stereo_sorted_atom_neighbor_keys',
     'set_stereo_from_atom_coordinates',
+    'heuristic_geometry',
     'atom_stereo_coordinates',
     'atom_longest_chains',
 

@@ -7,6 +7,7 @@ import numpy
 from qcelemental import constants as qcc
 from automol import dict_
 from automol import cart
+import automol.create.geom
 from automol.graph._res import (resonance_dominant_atom_hybridizations as
                                 _resonance_dominant_atom_hybridizations)
 from automol.graph._res import (resonance_dominant_bond_orders as
@@ -335,6 +336,17 @@ def _bond_stereo_parity_from_coordinates(xgr, bnd_key, atm_xyz_dct):
     assert dot_val != 0.  # for now, assume no collinear
     par = dot_val > 0.
     return par
+
+
+def heuristic_geometry(xgr):
+    """ heuristic geometry for this molecular graph
+    """
+    xgr = _explicit(xgr)
+    atm_keys = sorted(_atom_keys(xgr))
+    syms = dict_.values_by_key(_atom_symbols(xgr), atm_keys)
+    xyzs = dict_.values_by_key(atom_stereo_coordinates(xgr), atm_keys)
+    geo = automol.create.geom.from_data(syms, xyzs)
+    return geo
 
 
 def atom_stereo_coordinates(sgr):

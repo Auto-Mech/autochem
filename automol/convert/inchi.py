@@ -6,6 +6,7 @@ from qcelemental import constants as qcc
 from automol import error
 import automol.inchi
 import automol.geom
+import automol.graph
 import automol.convert.geom
 from automol.convert import _rdkit
 from automol.convert import _pybel
@@ -28,22 +29,38 @@ def _connected_geometry(ich):
     geo = object_from_hardcoded_inchi_by_key('geom', ich)
     if geo is None:
         ich = automol.inchi.standard_form(ich)
-        try:
+
+        def _gen1(ich):
             rdm = _rdkit.from_inchi(ich)
             geo = _rdkit.to_geometry(rdm)
-            geo_ich = automol.convert.geom.inchi(geo)
-            if not automol.inchi.same_connectivity(ich, geo_ich) or (
-                    automol.inchi.has_stereo(ich) and not
-                    automol.inchi.equivalent(ich, geo_ich)):
-                raise error.FailedGeometryGenerationError
-        except (error.FailedGeometryGenerationError, RuntimeError, ValueError):
+            return geo
+
+        def _gen2(ich):
             pbm = _pybel.from_inchi(ich)
             geo = _pybel.to_geometry(pbm)
-            geo_ich = automol.convert.geom.inchi(geo)
-            if not automol.inchi.same_connectivity(ich, geo_ich) or (
-                    automol.inchi.has_stereo(ich) and not
-                    automol.inchi.equivalent(ich, geo_ich)):
-                raise error.FailedGeometryGenerationError
+            return geo
+
+        def _gen3(ich):
+            gra = automol.convert.inchi.graph(ich)
+            geo = automol.graph.heuristic_geometry(gra)
+            return geo
+
+        for gen_ in [_gen1, _gen2, _gen3]:
+            success = False
+            try:
+                geo = gen_(ich)
+                geo_ich = automol.convert.geom.inchi(geo)
+                if automol.inchi.same_connectivity(ich, geo_ich) and (
+                        not automol.inchi.has_stereo(ich) or
+                        automol.inchi.equivalent(ich, geo_ich)):
+                    success = True
+                    break
+            except (RuntimeError, TypeError, ValueError):
+                continue
+
+        if not success:
+            raise error.FailedGeometryGenerationError
+
     return geo
 
 
