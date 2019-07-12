@@ -302,7 +302,8 @@ def test__ts__addition():
           ('H', (0, 1, None), ('R2', 'A2', None))),
          {'R1': 2.48959, 'R2': 1.86213, 'A2': 1.9084302705931997})
     ]
-    ts_zma, dist_name = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    ts_zma, dist_name, rct_name_dcts = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    print(rct_name_dcts)
     assert dist_name == 'R2'
     assert zmatrix.almost_equal(
         ts_zma,
@@ -313,7 +314,8 @@ def test__ts__addition():
     )
 
     rct_zmas = list(reversed(rct_zmas))
-    ts_zma, dist_name = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    ts_zma, dist_name, rct_name_dcts = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    print(rct_name_dcts)
     assert dist_name == 'R1'
     assert zmatrix.almost_equal(
         ts_zma,
@@ -325,16 +327,16 @@ def test__ts__addition():
 
     rct_zmas = [
         ((('O', (None, None, None), (None, None, None)),
-          ('O', (0, None, None), ('R1', None, None)),
-          ('H', (0, 1, None), ('R2', 'A2', None))),
-         {'R1': 2.48959, 'R2': 1.86213, 'A2': 1.9084302705931997}),
+          ('O', (0, None, None), ('x1', None, None)),
+          ('H', (0, 1, None), ('x2', 'y2', None))),
+         {'x1': 2.48959, 'x2': 1.86213, 'y2': 1.9084302705931997}),
         ((('C', (None, None, None), (None, None, None)),
-          ('H', (0, None, None), ('R1', None, None)),
-          ('H', (0, 1, None), ('R2', 'A2', None)),
-          ('H', (0, 1, 2), ('R3', 'A3', 'D3'))),
-         {'R1': 2.045,
-          'R2': 2.045, 'A2': 2.0943,
-          'R3': 2.045, 'A3': 2.0943, 'D3': 3.1415}),
+          ('H', (0, None, None), ('x1', None, None)),
+          ('H', (0, 1, None), ('x2', 'y2', None)),
+          ('H', (0, 1, 2), ('x3', 'y3', 'z3'))),
+         {'x1': 2.045,
+          'x2': 2.045, 'y2': 2.0943,
+          'x3': 2.045, 'y3': 2.0943, 'z3': 3.1415}),
     ]
     prd_zmas = [
         ((('C', (None, None, None), (None, None, None)),
@@ -351,7 +353,8 @@ def test__ts__addition():
           'R5': 2.750, 'A5': 1.842, 'D5': 3.140,
           'R6': 1.840, 'A6': 1.680, 'D6': 2.055})
     ]
-    ts_zma, dist_name = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    ts_zma, dist_name, rct_name_dcts = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    print(rct_name_dcts)
     assert dist_name == 'R3'
     assert zmatrix.almost_equal(
         ts_zma,
@@ -368,6 +371,11 @@ def test__ts__addition():
           'R4': 2.045, 'A4': 1.483539, 'D4': 1.570796,
           'R5': 2.045, 'A5': 2.0943, 'D5': 1.570796,
           'R6': 2.045, 'A6': 2.0943, 'D6': 3.1415})
+    )
+    assert rct_name_dcts == (
+        {'x1': 'R1', 'x2': 'R2', 'y2': 'A2'},
+        {'x1': 'R4', 'x2': 'R5', 'x3': 'R6',
+         'y2': 'A5', 'y3': 'A6', 'z3': 'D6'}
     )
 
 
@@ -399,7 +407,9 @@ def test__ts__hydrogen_abstraction():
           ('H', (0, None, None), ('R1', None, None))),
          {'R1': 1.31906}),
     ]
-    ts_zma, dist_name = zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas)
+    ts_zma, dist_name, rct_name_dcts = (
+        zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
+    print(rct_name_dcts)
     assert dist_name == 'R6'
     assert zmatrix.almost_equal(
         ts_zma,
