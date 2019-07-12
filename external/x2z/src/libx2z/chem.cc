@@ -41,7 +41,7 @@ bool are_distances_equal (double a1, double a2)
 double max_bond_length(const AtomBase& a1, const AtomBase& a2)
 {
   if(a1 == AtomBase::HYDROGEN || a2 == AtomBase::HYDROGEN)
-    return 2.5;
+    return 2.6;
   
   return 3.5;
 }

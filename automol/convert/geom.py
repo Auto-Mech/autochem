@@ -65,7 +65,7 @@ def graph(geo, remove_stereo=False):
     return gra
 
 
-def _connectivity_graph(geo, rq_bond_max=3.5, rh_bond_max=2.5):
+def _connectivity_graph(geo, rq_bond_max=3.5, rh_bond_max=2.6):
     """ geometry => connectivity graph (no stereo)
     """
     syms = automol.geom.symbols(geo)
