@@ -697,6 +697,16 @@ def test__rotational_bond_keys():
     assert (automol.graph.rotational_bond_keys(cgr) ==
             frozenset({frozenset({2, 3})}))
 
+    cgr = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 2, None),
+            3: ('C', 2, None)},
+           {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
+            frozenset({2, 3}): (1, None)})
+    assert (automol.graph.rotational_bond_keys(cgr) ==
+            frozenset({frozenset({0, 2}), frozenset({1, 3}),
+                       frozenset({2, 3})}))
+    assert (automol.graph.rotational_bond_keys(cgr, with_h_rotors=False) ==
+            frozenset({frozenset({2, 3})}))
+
 
 # stereo graph library
 def test__stereogenic_atom_keys():
