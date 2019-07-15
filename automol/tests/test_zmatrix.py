@@ -302,8 +302,8 @@ def test__ts__addition():
           ('H', (0, 1, None), ('R2', 'A2', None))),
          {'R1': 2.48959, 'R2': 1.86213, 'A2': 1.9084302705931997})
     ]
-    ts_zma, dist_name, rct_name_dcts = zmatrix.ts.addition(rct_zmas, prd_zmas)
-    print(rct_name_dcts)
+    ts_zma, dist_name, tors_names = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    print(tors_names)
     assert dist_name == 'R2'
     assert zmatrix.almost_equal(
         ts_zma,
@@ -314,8 +314,8 @@ def test__ts__addition():
     )
 
     rct_zmas = list(reversed(rct_zmas))
-    ts_zma, dist_name, rct_name_dcts = zmatrix.ts.addition(rct_zmas, prd_zmas)
-    print(rct_name_dcts)
+    ts_zma, dist_name, tors_names = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    print(tors_names)
     assert dist_name == 'R1'
     assert zmatrix.almost_equal(
         ts_zma,
@@ -353,8 +353,8 @@ def test__ts__addition():
           'R5': 2.750, 'A5': 1.842, 'D5': 3.140,
           'R6': 1.840, 'A6': 1.680, 'D6': 2.055})
     ]
-    ts_zma, dist_name, rct_name_dcts = zmatrix.ts.addition(rct_zmas, prd_zmas)
-    print(rct_name_dcts)
+    ts_zma, dist_name, tors_names = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    print(tors_names)
     assert dist_name == 'R3'
     assert zmatrix.almost_equal(
         ts_zma,
@@ -371,11 +371,6 @@ def test__ts__addition():
           'R4': 2.045, 'A4': 1.483539, 'D4': 1.570796,
           'R5': 2.045, 'A5': 2.0943, 'D5': 1.570796,
           'R6': 2.045, 'A6': 2.0943, 'D6': 3.1415})
-    )
-    assert rct_name_dcts == (
-        {'x1': 'R1', 'x2': 'R2', 'y2': 'A2'},
-        {'x1': 'R4', 'x2': 'R5', 'x3': 'R6',
-         'y2': 'A5', 'y3': 'A6', 'z3': 'D6'}
     )
 
 
@@ -407,9 +402,9 @@ def test__ts__hydrogen_abstraction():
           ('H', (0, None, None), ('R1', None, None))),
          {'R1': 1.31906}),
     ]
-    ts_zma, dist_name, rct_name_dcts = (
+    ts_zma, dist_name, tors_names = (
         zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
-    print(rct_name_dcts)
+    print(tors_names)
     assert dist_name == 'R6'
     assert zmatrix.almost_equal(
         ts_zma,
@@ -437,6 +432,6 @@ if __name__ == '__main__':
     # test__is_standard_form()
     # test__join()
     # test__ts__addition()
-    # test__ts__hydrogen_abstraction()
     # test__from_string()
     test__ts__addition()
+    test__ts__hydrogen_abstraction()

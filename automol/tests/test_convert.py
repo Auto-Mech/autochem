@@ -172,6 +172,6 @@ if __name__ == '__main__':
     # test__zmatrix__with_stereo()
     # test__graph__with_stereo()
     # test__graph__misc()
-    # test__geom__zmatrix_torsion_coordinate_names()
+    test__geom__zmatrix_torsion_coordinate_names()
     # test__geom__with_stereo()
-    test__geom__zmatrix()
+    # test__geom__zmatrix()

@@ -82,7 +82,7 @@ def coordinate_key_matrix(vma, shift=0):
     return tuple(map(tuple, coo_key_mat))
 
 
-def coordinates(vma, shift=0):
+def coordinates(vma, shift=0, multi=True):
     """ coordinate keys associated with each coordinate name, as a dictionary
 
     (the values are sequences of coordinate keys, since there may be multiple)
@@ -90,9 +90,12 @@ def coordinates(vma, shift=0):
     _names = numpy.ravel(name_matrix(vma))
     coo_keys = numpy.ravel(coordinate_key_matrix(vma, shift))
 
-    coo_dct = {name: () for name in _names}
-    for name, coo_key in zip(_names, coo_keys):
-        coo_dct[name] += (coo_key,)
+    if not multi:
+        coo_dct = dict(zip(_names, coo_keys))
+    else:
+        coo_dct = {name: () for name in _names}
+        for name, coo_key in zip(_names, coo_keys):
+            coo_dct[name] += (coo_key,)
 
     coo_dct.pop(None)
     return coo_dct

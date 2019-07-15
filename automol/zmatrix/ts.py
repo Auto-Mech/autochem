@@ -14,10 +14,8 @@ def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
     """
     ret = None
-    rct_zmas, rct_gras, rct_name_dcts = (
-        _shifted_standard_forms_with_gaphs(rct_zmas))
-    prd_zmas, prd_gras, _ = (
-        _shifted_standard_forms_with_gaphs(prd_zmas))
+    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
     tra = automol.graph.trans.beta_scission(rcts_gra, prds_gra)
@@ -30,13 +28,11 @@ def beta_scission(rct_zmas, prd_zmas):
                          if dist_coo_key in coo_keys)
 
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
-        rct_name_dcts = tuple(
-            {name1: ts_name_dct[name2] for name1, name2 in name_dct.items()}
-            for name_dct in rct_name_dcts)
         dist_name = ts_name_dct[dist_name]
         ts_zma = automol.zmatrix.standard_form(ts_zma)
+        tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
-        ret = ts_zma, dist_name, rct_name_dcts
+        ret = ts_zma, dist_name, tors_names
 
     return ret
 
@@ -48,10 +44,8 @@ def addition(rct_zmas, prd_zmas):
     dist_name = 'rts'
     dist_val = 3.
 
-    rct_zmas, rct_gras, rct_name_dcts = (
-        _shifted_standard_forms_with_gaphs(rct_zmas))
-    prd_zmas, prd_gras, _ = (
-        _shifted_standard_forms_with_gaphs(prd_zmas))
+    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
     tra = automol.graph.trans.addition(rcts_gra, prds_gra)
@@ -102,13 +96,24 @@ def addition(rct_zmas, prd_zmas):
             rct1_zma, rct2_zma, join_keys, join_names, join_val_dct)
 
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
-        rct_name_dcts = tuple(
-            {name1: ts_name_dct[name2] for name1, name2 in name_dct.items()}
-            for name_dct in rct_name_dcts)
         dist_name = ts_name_dct[dist_name]
         ts_zma = automol.zmatrix.standard_form(ts_zma)
+        rct1_tors_names = automol.zmatrix.torsion_coordinate_names(rct1_zma)
+        rct2_tors_names = automol.zmatrix.torsion_coordinate_names(rct2_zma)
+        tors_names = (
+            tuple(map(ts_name_dct.__getitem__, rct1_tors_names)) +
+            tuple(map(ts_name_dct.__getitem__, rct2_tors_names))
+        )
 
-        ret = ts_zma, dist_name, rct_name_dcts
+        if 'babs2' in ts_name_dct:
+            tors_name = ts_name_dct['babs2']
+            tors_names += (tors_name,)
+
+        if 'babs3' in ts_name_dct:
+            tors_name = ts_name_dct['babs3']
+            tors_names += (tors_name,)
+
+        ret = ts_zma, dist_name, tors_names
 
     return ret
 
@@ -127,10 +132,8 @@ def hydrogen_abstraction(rct_zmas, prd_zmas):
         rct_idxs, prd_idxs = rxn_idxs
         rct_zmas = list(map(rct_zmas.__getitem__, rct_idxs))
         prd_zmas = list(map(prd_zmas.__getitem__, prd_idxs))
-        rct_zmas, rct_gras, rct_name_dcts = (
-            _shifted_standard_forms_with_gaphs(rct_zmas))
-        prd_zmas, prd_gras, _ = (
-            _shifted_standard_forms_with_gaphs(prd_zmas))
+        rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+        prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
         prds_gra = functools.reduce(automol.graph.union, prd_gras)
         tra = automol.graph.trans.hydrogen_abstraction(rcts_gra, prds_gra)
@@ -214,32 +217,40 @@ def hydrogen_abstraction(rct_zmas, prd_zmas):
                 rct1_x_zma, rct2_zma, join_keys, join_names, join_val_dct)
 
             ts_name_dct = automol.zmatrix.standard_names(ts_zma)
-            rct_name_dcts = tuple(
-                {name1: ts_name_dct[name2]
-                 for name1, name2 in name_dct.items()}
-                for name_dct in rct_name_dcts)
             dist_name = ts_name_dct[dist_name]
             ts_zma = automol.zmatrix.standard_form(ts_zma)
+            rct1_tors_names = automol.zmatrix.torsion_coordinate_names(
+                rct1_zma)
+            rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
+                rct2_zma)
+            tors_names = (
+                tuple(map(ts_name_dct.__getitem__, rct1_tors_names)) +
+                tuple(map(ts_name_dct.__getitem__, rct2_tors_names))
+            )
 
-            ret = ts_zma, dist_name, rct_name_dcts
+            if 'babs2' in ts_name_dct:
+                tors_name = ts_name_dct['babs2']
+                tors_names += (tors_name,)
+
+            if 'babs3' in ts_name_dct:
+                tors_name = ts_name_dct['babs3']
+                tors_names += (tors_name,)
+
+            ret = ts_zma, dist_name, tors_names
 
     return ret
 
 
 def _shifted_standard_forms_with_gaphs(zmas):
-    name_dcts = []
     gras = list(map(automol.convert.zmatrix.graph, zmas))
     shift = 0
     for idx, (zma, gra) in enumerate(zip(zmas, gras)):
-        name_dct = automol.zmatrix.standard_names(zma, shift=shift)
-        name_dcts.append(name_dct)
         zmas[idx] = automol.zmatrix.standard_form(zma, shift=shift)
         gras[idx] = automol.graph.transform_keys(gra, lambda x: x+shift)
         shift += len(automol.graph.atoms(gra))
     zmas = tuple(zmas)
     gras = tuple(map(automol.graph.without_dummy_atoms, gras))
-    name_dcts = tuple(name_dcts)
-    return zmas, gras, name_dcts
+    return zmas, gras
 
 
 def _join_atom_keys(zma, atm1_key):
