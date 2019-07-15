@@ -169,6 +169,13 @@ HARDCODED_INCHI_DCT = {
         'smiles': '[C]',
         'formula': {'C': 1},
     },
+    'InChI=1S/B': {
+        'inchi': 'InChI=1S/B',
+        'geom': (('B', (0., 0., 0.)),),
+        'graph': ({0: ('C', 0, None)}, {}),
+        'smiles': '[B]',
+        'formula': {'B': 1},
+    },
     'InChI=1S/N': {
         'inchi': 'InChI=1S/N',
         'geom': (('N', (0., 0., 0.)),),
