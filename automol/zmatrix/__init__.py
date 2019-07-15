@@ -73,6 +73,20 @@ def geometry(zma, remove_dummy_atoms=None):
         zma, remove_dummy_atoms=remove_dummy_atoms)
 
 
+def torsion_coordinate_names(zma):
+    """ z-matrix torsional coordinate names
+
+    (currently assumes torsional coordinates generated through x2z)
+    """
+    name_dct = standard_names(zma)
+    inv_name_dct = dict(map(reversed, name_dct.items()))
+    geo = geometry(zma)
+    assert var_(standard_form(zma)) == var_(automol.convert.geom.zmatrix(geo))
+    tors_names = automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
+    tors_names = tuple(map(inv_name_dct.__getitem__, tors_names))
+    return tors_names
+
+
 def graph(zma):
     """ z-matrix => graph
     """
@@ -104,6 +118,7 @@ __all__ = [
     'dihedral_angle_names',
     'angle_names',
     'dummy_coordinate_names',
+    'torsion_coordinate_names',
     'values',
     # validation
     'is_valid',

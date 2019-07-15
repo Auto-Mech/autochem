@@ -48,8 +48,12 @@ def zmatrix_torsion_coordinate_names(geo):
 def zmatrix_atom_ordering(geo):
     """ z-matrix atom ordering
     """
-    x2m = _pyx2z.from_geometry(geo)
-    idxs = _pyx2z.zmatrix_atom_ordering(x2m)
+    syms = automol.geom.symbols(geo)
+    if len(syms) == 1:
+        idxs = (0,)
+    else:
+        x2m = _pyx2z.from_geometry(geo)
+        idxs = _pyx2z.zmatrix_atom_ordering(x2m)
     return idxs
 
 

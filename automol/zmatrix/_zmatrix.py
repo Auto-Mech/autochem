@@ -61,12 +61,12 @@ def coordinate_key_matrix(zma, shift=0):
     return _v_.coordinate_key_matrix(var_(zma), shift=shift)
 
 
-def coordinates(zma, shift=0):
+def coordinates(zma, shift=0, multi=True):
     """ coordinate keys associated with each coordinate name, as a dictionary
 
     (the values are sequences of coordinate keys, since there may be multiple)
     """
-    return _v_.coordinates(var_(zma), shift=shift)
+    return _v_.coordinates(var_(zma), shift=shift, multi=multi)
 
 
 def names(zma):
