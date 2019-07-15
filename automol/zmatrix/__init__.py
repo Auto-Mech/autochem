@@ -80,7 +80,7 @@ def torsion_coordinate_names(zma):
     """
     name_dct = standard_names(zma)
     inv_name_dct = dict(map(reversed, name_dct.items()))
-    geo = geometry(zma)
+    geo = automol.geom.without_dummy_atoms(geometry(zma))
     assert var_(standard_form(zma)) == var_(automol.convert.geom.zmatrix(geo))
     tors_names = automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
     tors_names = tuple(map(inv_name_dct.__getitem__, tors_names))
