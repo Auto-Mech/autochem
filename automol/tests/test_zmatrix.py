@@ -423,6 +423,44 @@ def test__ts__hydrogen_abstraction():
           'R6': 3.000000, 'A6': 1.483530, 'D6': 3.141593})
     )
 
+    # example 2
+    rct_zmas = [
+        ((('O', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None))),
+         {'R1': 1.83114, 'R2': 1.83115, 'A2': 1.814758449638664}),
+        ((('C', (None, None, None), (None, None, None)),
+          ('X', (0, None, None), ('R1', None, None)),
+          ('C', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (2, 0, 1), ('R4', 'A4', 'D4')),
+          ('H', (2, 0, 4), ('R5', 'A5', 'D5'))),
+         {'R1': 1,
+          'R2': 2.45333, 'A2': 1.570796,
+          'R3': 2.01549, 'A3': 1.570796, 'D3': 3.14159,
+          'R4': 2.04888, 'A4': 2.106804, 'D4': 0.00000,
+          'R5': 2.04888, 'A5': 2.106804, 'D5': 3.14159}),
+    ]
+    prd_zmas = [
+        ((('O', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('R1', None, None))),
+         {'R1': 1.84779}),
+        ((('C', (None, None, None), (None, None, None)),
+          ('C', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (1, 0, 2), ('R4', 'A4', 'D4')),
+          ('H', (1, 0, 4), ('R5', 'A5', 'D5'))),
+         {'R1': 2.52427,
+          'R2': 2.05128, 'A2': 2.112721059539136,
+          'R3': 2.05128, 'A3': 2.112721059539136, 'D3': 3.141592653589793,
+          'R4': 2.05128, 'A4': 2.112721059539136, 'D4': 3.141592653589793,
+          'R5': 2.05128, 'A5': 2.112721059539136, 'D5': 3.141592653589793})
+    ]
+    ts_zma, dist_name, tors_names = (
+        zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
+    print(zmatrix.string(ts_zma))
+
 
 if __name__ == '__main__':
     # test__from_data()
@@ -433,5 +471,5 @@ if __name__ == '__main__':
     # test__join()
     # test__ts__addition()
     # test__from_string()
-    test__ts__addition()
+    # test__ts__addition()
     test__ts__hydrogen_abstraction()
