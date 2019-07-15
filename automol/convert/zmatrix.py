@@ -37,11 +37,11 @@ def geometry(zma, remove_dummy_atoms=None):
 
 
 # z-matrix => graph
-def graph(zma):
+def graph(zma, remove_stereo=False):
     """ z-matrix => graph
     """
     geo = geometry(zma)
-    gra = automol.convert.geom.graph(geo)
+    gra = automol.convert.geom.graph(geo, remove_stereo=remove_stereo)
     return gra
 
 
