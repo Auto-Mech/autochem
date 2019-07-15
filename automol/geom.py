@@ -184,7 +184,7 @@ def _coulomb_matrix(geo):
 
 
 # comparisons
-def almost_equal(geo1, geo2, rtol=2e-5):
+def almost_equal(geo1, geo2, rtol=2e-3):
     """ are these geometries numerically equal?
     """
     ret = False
@@ -193,15 +193,19 @@ def almost_equal(geo1, geo2, rtol=2e-5):
     return ret
 
 
-def almost_equal_coulomb_spectrum(geo1, geo2, rtol=2e-5):
+def almost_equal_coulomb_spectrum(geo1, geo2, rtol=1e-2):
     """ do these geometries have similar coulomb spectrums?
     """
     ret = numpy.allclose(coulomb_spectrum(geo1), coulomb_spectrum(geo2),
                          rtol=rtol)
+#   print('coulomb test')
+#   print(rtol)
+#   print(coulomb_spectrum(geo1))
+#   print(coulomb_spectrum(geo2))
     return ret
 
 
-def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=2e-5):
+def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=1e-2):
     """ get indices of unique geometries, by coulomb spectrum
     """
     comp_ = functools.partial(almost_equal_coulomb_spectrum, rtol=rtol)
