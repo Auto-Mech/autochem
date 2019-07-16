@@ -87,10 +87,10 @@ def torsion_coordinate_names(zma):
     return tors_names
 
 
-def graph(zma):
+def graph(zma, remove_stereo=False):
     """ z-matrix => graph
     """
-    return automol.convert.zmatrix.graph(zma)
+    return automol.convert.zmatrix.graph(zma, remove_stereo=remove_stereo)
 
 
 def formula(zma):

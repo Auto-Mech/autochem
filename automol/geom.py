@@ -287,6 +287,16 @@ def dihedral_angle(geo, key1, key2, key3, key4):
 
 
 # chemical properties
+def is_atom(geo):
+    """ return return the atomic masses
+    """
+    syms = symbols(geo)
+    ret = False
+    if len(syms) == 1:
+        ret = True
+    return ret
+
+
 def masses(geo, amu=True):
     """ return the atomic masses
     """

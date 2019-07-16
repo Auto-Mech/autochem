@@ -362,7 +362,9 @@ def torsional_scan_linspaces(zma, tors_names, increment=0.5):
     """ scan grids for torsional dihedrals
     """
     sym_nums = torsional_symmetry_numbers(zma, tors_names)
-    intervals = tuple(2*numpy.pi/sym_num for sym_num in sym_nums)
-    npoints_lst = tuple(int(interval / increment) for interval in intervals)
+#    intervals = tuple(2*numpy.pi/sym_num for sym_num in sym_nums)
+#    npoints_lst = tuple(int(interval / increment) for interval in intervals)
+    intervals = tuple(2*numpy.pi/sym_num - increment for sym_num in sym_nums)
+    npoints_lst = tuple((int(interval / increment)+1) for interval in intervals)
     return tuple((0, interval, npoints)
                  for interval, npoints in zip(intervals, npoints_lst))
