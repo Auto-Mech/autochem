@@ -1,5 +1,6 @@
 """ test automol.vmatrix
 """
+import automol.zmatrix
 from automol import vmatrix
 
 CH4O_VMA = (('H', (None, None, None), (None, None, None)),
@@ -8,6 +9,18 @@ CH4O_VMA = (('H', (None, None, None), (None, None, None)),
             ('H', (2, 1, 0), ('r3', 'a2', 'd1')),
             ('H', (2, 1, 0), ('r3', 'a2', 'd2')),
             ('H', (2, 1, 0), ('r3', 'a2', 'd3')))
+
+CH4O_ZMA = (
+    (('H', (None, None, None), (None, None, None)),
+     ('O', (0, None, None), ('R1', None, None)),
+     ('C', (1, 0, None), ('R2', 'A2', None)),
+     ('H', (2, 1, 0), ('R3', 'A3', 'D3')),
+     ('H', (2, 1, 0), ('R3', 'A3', 'D4')),
+     ('H', (2, 1, 0), ('R3', 'A3', 'D5'))),
+    {'R1': 1.70075351,
+     'R2': 2.64561657, 'A2': 1.74532925,
+     'R3': 2.07869873, 'A3': 1.83259571,
+     'D3': 1.04719755, 'D4': -1.04719755, 'D5': 3.1415926})
 
 CH4O_VMA_STR = """
 H
@@ -42,3 +55,17 @@ def test__string():
     """
     vma = vmatrix.from_string(vmatrix.string(CH4O_VMA))
     assert vma == CH4O_VMA
+
+
+def test__zmatrix_from_geometry():
+    """ test vmatrix.zmatrix_from_geometry
+    """
+    ref_zma = CH4O_ZMA
+    vma = automol.zmatrix.var_(ref_zma)
+    geo = automol.zmatrix.geometry(ref_zma)
+    zma = vmatrix.zmatrix_from_geometry(vma, geo)
+    assert automol.zmatrix.almost_equal(zma, ref_zma)
+
+
+if __name__ == '__main__':
+    test__zmatrix_from_geometry()
