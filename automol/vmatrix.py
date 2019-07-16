@@ -9,17 +9,18 @@ from qcelemental import periodictable as pt
 import autoread as ar
 import autowrite as aw
 import automol.create.vmatrix
+import automol.geom
 
 
 # constructor
 def from_data(syms, key_mat, name_mat, one_indexed=False):
-    """ z-matrix constructor
+    """ v-matrix constructor
 
     :param syms: atomic symbols
     :type syms: tuple[str]
-    :param key_mat: key/index columns of the z-matrix, zero-indexed
+    :param key_mat: key/index columns of the v-matrix, zero-indexed
     :type key_mat: tuple[tuple[float, float or None, float or None]]
-    :param name_mat: coordinate name columns of the z-matrix
+    :param name_mat: coordinate name columns of the v-matrix
     :type name_mat; tuple[tuple[str, str or None, str or None]]
     """
     return automol.create.vmatrix.from_data(
@@ -29,13 +30,13 @@ def from_data(syms, key_mat, name_mat, one_indexed=False):
 
 # getters
 def count(zma):
-    """ the number of z-matrix rows (number of atoms or dummy atoms)
+    """ the number of v-matrix rows (number of atoms or dummy atoms)
     """
     return len(symbols(zma))
 
 
 def symbols(vma):
-    """ atomic symbols, by z-matrix row
+    """ atomic symbols, by v-matrix row
     """
     if vma:
         syms, _, _ = zip(*vma)
@@ -45,7 +46,7 @@ def symbols(vma):
 
 
 def key_matrix(vma, shift=0):
-    """ coordinate atom keys, by z-matrix row and column
+    """ coordinate atom keys, by v-matrix row and column
     """
     if vma:
         _, key_mat, _ = zip(*vma)
@@ -61,7 +62,7 @@ def key_matrix(vma, shift=0):
 
 
 def name_matrix(vma):
-    """ coordinate names, by z-matrix row and column
+    """ coordinate names, by v-matrix row and column
     """
     if vma:
         _, _, name_mat = zip(*vma)
@@ -71,7 +72,7 @@ def name_matrix(vma):
 
 
 def coordinate_key_matrix(vma, shift=0):
-    """ coordinate keys, by z-matrix row and column
+    """ coordinate keys, by v-matrix row and column
     """
     key_mat = key_matrix(vma, shift=shift)
     natms = len(key_mat)
@@ -157,7 +158,7 @@ def dummy_coordinate_names(vma):
 
 # value setters
 def set_names(vma, name_dct):
-    """ set coordinate names for the variable z-matrix
+    """ set coordinate names for the variable v-matrix
     """
     orig_name_mat = numpy.array(name_matrix(vma))
     tril_idxs = numpy.tril_indices(orig_name_mat.shape[0], -1, m=3)
@@ -196,7 +197,7 @@ def standard_names(vma, shift=0):
 
 
 def standard_form(vma):
-    """ set standard variable names for the variable z-matrix
+    """ set standard variable names for the variable v-matrix
 
     (follows x2z format)
     """
@@ -228,7 +229,7 @@ def _is_sequence_of_triples(obj):
 
 
 def is_standard_form(vma):
-    """ set standard variable names for the z-matrix
+    """ set standard variable names for the v-matrix
 
     (follows x2z format)
     """
@@ -237,7 +238,7 @@ def is_standard_form(vma):
 
 # I/O
 def from_string(vma_str):
-    """ read a z-matrix from a string
+    """ read a v-matrix from a string
     """
     syms, key_mat, name_mat = ar.zmatrix.matrix.read(vma_str)
 
@@ -246,7 +247,7 @@ def from_string(vma_str):
 
 
 def string(vma):
-    """ write a z-matrix to a string
+    """ write a v-matrix to a string
     """
     vma_str = aw.zmatrix.matrix_block(
         syms=symbols(vma),
@@ -256,25 +257,24 @@ def string(vma):
     return vma_str
 
 
-if __name__ == '__main__':
-    import automol
+def zmatrix_from_geometry(vma, geo):
+    """ determine z-matrix from v-matrix and geometry
+    """
+    assert symbols(vma) == automol.geom.symbols(geo)
+    val_dct = {}
+    coo_dct = coordinates(vma, multi=False)
+    dist_names = distance_names(vma)
+    cent_names = central_angle_names(vma)
+    dih_names = dihedral_angle_names(vma)
+    for name, coo in coo_dct.items():
+        if name in dist_names:
+            val_dct[name] = automol.geom.distance(geo, *coo)
+        elif name in cent_names:
+            val_dct[name] = automol.geom.central_angle(geo, *coo)
+        elif name in dih_names:
+            val_dct[name] = automol.geom.dihedral_angle(geo, *coo)
 
-    ZMA_STR = """
-H
-H 1    R1
-X 2    R2 1    A2
-O 2    R3 3    A3 1    D3
-H 4    R4 2    A4 3    D4
-R1   =   0.709426
-A2   =  90.000000
-R2   =   1.000000
-R4   =   0.977808
-D3   = 180.000000
-D4   =  90.000000
-R3   =   1.200000
-A3   =  85.000000
-A4   =  85.000000
-"""
-    ZMA = automol.zmatrix.from_string(ZMA_STR)
-    VMA = automol.zmatrix.var_(ZMA)
-    print(dummy_coordinate_names(VMA))
+    zma = automol.create.zmatrix.from_data(
+        symbols=symbols(vma), key_matrix=key_matrix(vma),
+        name_matrix=name_matrix(vma), values=val_dct)
+    return zma

@@ -227,6 +227,15 @@ def _argunique(items, comparison, seen_items=()):
 
 
 # transformations
+def displaced(geo, xyzs):
+    """ displacement of the geometry
+    """
+    syms = symbols(geo)
+    orig_xyzs = coordinates(geo)
+    xyzs = numpy.add(orig_xyzs, xyzs)
+    return from_data(syms, xyzs)
+
+
 def translated(geo, xyz):
     """ translation of the geometry
     """
