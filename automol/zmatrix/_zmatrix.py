@@ -237,6 +237,48 @@ def join(zma1, zma2, join_key_mat, join_name_mat, join_val_dct):
     return automol.create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
 
 
+def insert_dummy_atom(zma, x_key, x_key_mat, x_name_mat, x_val_dct):
+    """ insert a dummy atom at a given position in the z-matrix
+    """
+    syms = symbols(zma)
+    key_mat = numpy.array(key_matrix(zma))
+    name_mat = numpy.array(name_matrix(zma))
+
+    # check whether x_name_mat overlaps with name_mat
+
+    natms = len(syms)
+    keys = numpy.arange(natms)
+    keys[x_key:] += 1
+    key_dct = dict(enumerate(keys))
+    key_dct[None] = None
+    key_mat = [list(map(key_dct.__getitem__, row)) for row in key_mat]
+
+    syms = list(syms)
+    key_mat = list(key_mat)
+    name_mat = list(name_mat)
+    syms.insert(x_key, 'X')
+    key_mat.insert(x_key, [None, None, None])
+    name_mat.insert(x_key, [None, None, None])
+
+    key_mat = numpy.array(key_mat)
+    name_mat = numpy.array(name_mat)
+
+    x_key_mat = numpy.array(x_key_mat, dtype=numpy.object_)
+    x_name_mat = numpy.array(x_name_mat, dtype=numpy.object_)
+
+    x_idxs = numpy.not_equal(x_key_mat, None)
+
+    offset = min(3, len(key_mat)-x_key)
+    key_mat[x_key:x_key+offset][x_idxs] = x_key_mat[:offset][x_idxs]
+    name_mat[x_key:x_key+offset][x_idxs] = x_name_mat[:offset][x_idxs]
+
+    val_dct = values(zma)
+    assert not set(val_dct.keys()) & set(x_val_dct.keys())
+    val_dct.update(x_val_dct)
+
+    return automol.create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
+
+
 # misc
 def is_standard_form(zma):
     """ set standard variable names for the z-matrix
@@ -362,8 +404,6 @@ def torsional_scan_linspaces(zma, tors_names, increment=0.5):
     """ scan grids for torsional dihedrals
     """
     sym_nums = torsional_symmetry_numbers(zma, tors_names)
-#    intervals = tuple(2*numpy.pi/sym_num for sym_num in sym_nums)
-#    npoints_lst = tuple(int(interval / increment) for interval in intervals)
     intervals = tuple(2*numpy.pi/sym_num - increment for sym_num in sym_nums)
     npoints_lst = tuple((int(interval / increment)+1) for interval in intervals)
     return tuple((0, interval, npoints)

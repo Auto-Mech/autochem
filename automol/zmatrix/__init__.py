@@ -25,6 +25,7 @@ from automol.zmatrix._zmatrix import standard_names
 from automol.zmatrix._zmatrix import standard_form
 # operations
 from automol.zmatrix._zmatrix import join
+from automol.zmatrix._zmatrix import insert_dummy_atom
 # misc
 from automol.zmatrix._zmatrix import is_standard_form
 # I/O
@@ -129,6 +130,7 @@ __all__ = [
     'standard_form',
     # operations
     'join',
+    'insert_dummy_atom',
     # misc
     'is_standard_form',
     # I/O
