@@ -55,7 +55,7 @@ def addition(rct_zmas, prd_zmas):
 
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
         rct1_atm1_key, _ = sorted(frm_bnd_key)
-        rct1_atm2_key, rct1_atm3_key, chain = _join_atom_keys(
+        rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
             rct1_zma, rct1_atm1_key)
 
         join_val_dct = {
@@ -115,6 +115,7 @@ def hydrogen_abstraction(rct_zmas, prd_zmas, sigma=False):
         ret = _hydrogen_abstraction(rct_zmas, prd_zmas)
     return ret
 
+
 def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
     ret = None
     dist_name = 'rts'
@@ -151,7 +152,7 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 assert atm_key_dct
                 rct1_atm1_key = atm_key_dct[rct1_atm1_key]
 
-            rct1_atm2_key, rct1_atm3_key, chain = _join_atom_keys(
+            rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
                 rct1_zma, rct1_atm1_key)
 
             x_zma = ((('X', (None, None, None), (None, None, None)),), {})
@@ -174,7 +175,6 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 rct1_zma, x_zma, x_join_keys, x_join_names, x_join_val_dct)
 
             rct1_x_atm_key = rct1_natms
-
 
             if rct2_atm1_key in automol.graph.atom_keys(rct1_gra):
                 atm_key_dct = automol.graph.full_isomorphism(rct1_gra,
@@ -203,7 +203,8 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 'dx2': 180. * qcc.conversion_factor('degree', 'radian'),
             }
             insert_name_set = set(numpy.ravel(insert_names)) - {None}
-            insert_val_dct = {name: insert_val_dct[name] for name in insert_name_set}
+            insert_val_dct = {name: insert_val_dct[name]
+                              for name in insert_name_set}
             rct2_x_zma = automol.zmatrix.insert_dummy_atom(
                 rct2_zma, 1, insert_keys, insert_names, insert_val_dct
             )
@@ -300,7 +301,7 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                 assert atm_key_dct
                 rct1_atm1_key = atm_key_dct[rct1_atm1_key]
 
-            rct1_atm2_key, rct1_atm3_key, chain = _join_atom_keys(
+            rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
                 rct1_zma, rct1_atm1_key)
 
             x_zma = ((('X', (None, None, None), (None, None, None)),), {})
