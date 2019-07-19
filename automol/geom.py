@@ -1,5 +1,6 @@
 """ cartesian geometries
 """
+import itertools
 import functools
 import more_itertools as mit
 import numpy
@@ -89,9 +90,33 @@ def without_dummy_atoms(geo):
 
 
 # operations
-def join(geo1, geo2):
+def join(geo1, geo2,
+         dist_cutoff=3.*qcc.conversion_factor('angstrom', 'bohr'),
+         theta=0.*qcc.conversion_factor('degree', 'radian'),
+         phi=0.*qcc.conversion_factor('degree', 'radian')):
     """ join two geometries together
     """
+    orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
+                              numpy.sin(theta) * numpy.sin(phi),
+                              numpy.cos(theta)])
+
+    # get the correct distance apart
+    geo1 = mass_centered(geo1)
+    geo2 = mass_centered(geo2)
+    ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
+    ext2 = max(numpy.vdot(-orient_vec, xyz) for xyz in coordinates(geo2))
+
+    cm_dist = ext1 + dist_cutoff + ext2
+    dist_grid = numpy.arange(cm_dist, 0., -0.1)
+    for dist in dist_grid:
+        trans_geo2 = translated(geo2, orient_vec * dist)
+        min_dist = minimum_distance(geo1, trans_geo2)
+        if numpy.abs(min_dist - dist_cutoff) < 0.1:
+            break
+
+    geo2 = trans_geo2
+
+    # now, join them together
     syms = symbols(geo1) + symbols(geo2)
     xyzs = coordinates(geo1) + coordinates(geo2)
     return from_data(syms, xyzs)
@@ -194,15 +219,20 @@ def almost_equal(geo1, geo2, rtol=2e-3):
     return ret
 
 
+def minimum_distance(geo1, geo2):
+    """ get the minimum distance between atoms in geo1 and those in geo2
+    """
+    xyzs1 = coordinates(geo1)
+    xyzs2 = coordinates(geo2)
+    return min(cart.vec.distance(xyz1, xyz2)
+               for xyz1, xyz2 in itertools.product(xyzs1, xyzs2))
+
+
 def almost_equal_coulomb_spectrum(geo1, geo2, rtol=1e-2):
     """ do these geometries have similar coulomb spectrums?
     """
     ret = numpy.allclose(coulomb_spectrum(geo1), coulomb_spectrum(geo2),
                          rtol=rtol)
-#   print('coulomb test')
-#   print(rtol)
-#   print(coulomb_spectrum(geo1))
-#   print(coulomb_spectrum(geo2))
     return ret
 
 
@@ -252,6 +282,16 @@ def rotated(geo, axis, angle):
     syms = symbols(geo)
     xyzs = coordinates(geo)
     rot_mat = cart.mat.rotation(axis, angle)
+    xyzs = numpy.dot(xyzs, numpy.transpose(rot_mat))
+    return from_data(syms, xyzs)
+
+
+def euler_rotated(geo, theta, phi, psi):
+    """ axis-angle rotation of the geometry
+    """
+    syms = symbols(geo)
+    xyzs = coordinates(geo)
+    rot_mat = cart.mat.euler_rotation(theta, phi, psi)
     xyzs = numpy.dot(xyzs, numpy.transpose(rot_mat))
     return from_data(syms, xyzs)
 
@@ -428,5 +468,3 @@ def formula(geo):
     """ geometry => formula
     """
     return automol.convert.geom.formula(geo)
-
-
