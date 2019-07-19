@@ -1,6 +1,7 @@
 """ cartesian geometries
 """
 import functools
+import more_itertools as mit
 import numpy
 import qcelemental as qcel
 from qcelemental import periodictable as pt
@@ -372,6 +373,19 @@ def rotational_constants(geo, amu=True):
     return cons
 
 
+def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
+    """ is this geometry linear?
+    """
+    ret = True
+
+    keys = range(len(symbols(geo)))
+    for key1, key2, key3 in mit.windowed(keys, 3):
+        if numpy.abs(central_angle(geo, key1, key2, key3) % numpy.pi) > tol:
+            ret = False
+
+    return ret
+
+
 # conversions
 def zmatrix(geo):
     """ geometry => z-matrix
@@ -414,3 +428,5 @@ def formula(geo):
     """ geometry => formula
     """
     return automol.convert.geom.formula(geo)
+
+
