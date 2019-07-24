@@ -11,7 +11,7 @@ import automol.zmatrix
 
 
 # z-matrix => geometry
-def geometry(zma, remove_ghost_atoms=None):
+def geometry(zma, remove_dummy_atoms=None):
     """ z-matrix => geometry
     """
     syms = automol.zmatrix.symbols(zma)
@@ -30,10 +30,19 @@ def geometry(zma, remove_ghost_atoms=None):
         xyzs[key] = xyz
 
     geo = create.geom.from_data(syms, xyzs)
-    if remove_ghost_atoms:
-        geo = automol.geom.without_ghost_atoms(geo)
+    if remove_dummy_atoms:
+        geo = automol.geom.without_dummy_atoms(geo)
 
     return geo
+
+
+# z-matrix => graph
+def graph(zma, remove_stereo=False):
+    """ z-matrix => graph
+    """
+    geo = geometry(zma)
+    gra = automol.convert.geom.graph(geo, remove_stereo=remove_stereo)
+    return gra
 
 
 # z-matrix => formula

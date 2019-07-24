@@ -5,20 +5,22 @@
 import itertools
 import more_itertools
 import numpy
+from qcelemental import periodictable as pt
 import autoread as ar
 import autowrite as aw
 import automol.create.vmatrix
+import automol.geom
 
 
 # constructor
 def from_data(syms, key_mat, name_mat, one_indexed=False):
-    """ z-matrix constructor
+    """ v-matrix constructor
 
     :param syms: atomic symbols
     :type syms: tuple[str]
-    :param key_mat: key/index columns of the z-matrix, zero-indexed
+    :param key_mat: key/index columns of the v-matrix, zero-indexed
     :type key_mat: tuple[tuple[float, float or None, float or None]]
-    :param name_mat: coordinate name columns of the z-matrix
+    :param name_mat: coordinate name columns of the v-matrix
     :type name_mat; tuple[tuple[str, str or None, str or None]]
     """
     return automol.create.vmatrix.from_data(
@@ -28,13 +30,13 @@ def from_data(syms, key_mat, name_mat, one_indexed=False):
 
 # getters
 def count(zma):
-    """ the number of z-matrix rows (number of atoms or dummy atoms)
+    """ the number of v-matrix rows (number of atoms or dummy atoms)
     """
     return len(symbols(zma))
 
 
 def symbols(vma):
-    """ atomic symbols, by z-matrix row
+    """ atomic symbols, by v-matrix row
     """
     if vma:
         syms, _, _ = zip(*vma)
@@ -44,7 +46,7 @@ def symbols(vma):
 
 
 def key_matrix(vma, shift=0):
-    """ coordinate atom keys, by z-matrix row and column
+    """ coordinate atom keys, by v-matrix row and column
     """
     if vma:
         _, key_mat, _ = zip(*vma)
@@ -60,7 +62,7 @@ def key_matrix(vma, shift=0):
 
 
 def name_matrix(vma):
-    """ coordinate names, by z-matrix row and column
+    """ coordinate names, by v-matrix row and column
     """
     if vma:
         _, _, name_mat = zip(*vma)
@@ -70,7 +72,7 @@ def name_matrix(vma):
 
 
 def coordinate_key_matrix(vma, shift=0):
-    """ coordinate keys, by z-matrix row and column
+    """ coordinate keys, by v-matrix row and column
     """
     key_mat = key_matrix(vma, shift=shift)
     natms = len(key_mat)
@@ -81,7 +83,7 @@ def coordinate_key_matrix(vma, shift=0):
     return tuple(map(tuple, coo_key_mat))
 
 
-def coordinates(vma, shift=0):
+def coordinates(vma, shift=0, multi=True):
     """ coordinate keys associated with each coordinate name, as a dictionary
 
     (the values are sequences of coordinate keys, since there may be multiple)
@@ -89,9 +91,12 @@ def coordinates(vma, shift=0):
     _names = numpy.ravel(name_matrix(vma))
     coo_keys = numpy.ravel(coordinate_key_matrix(vma, shift))
 
-    coo_dct = {name: () for name in _names}
-    for name, coo_key in zip(_names, coo_keys):
-        coo_dct[name] += (coo_key,)
+    if not multi:
+        coo_dct = dict(zip(_names, coo_keys))
+    else:
+        coo_dct = {name: () for name in _names}
+        for name, coo_key in zip(_names, coo_keys):
+            coo_dct[name] += (coo_key,)
 
     coo_dct.pop(None)
     return coo_dct
@@ -100,8 +105,9 @@ def coordinates(vma, shift=0):
 def names(vma):
     """ coordinate names
     """
+    name_mat = name_matrix(vma)
     _names = filter(lambda x: x is not None,
-                    numpy.ravel(numpy.transpose(name_matrix(vma))))
+                    numpy.ravel(numpy.transpose(name_mat)))
     return tuple(more_itertools.unique_everseen(_names))
 
 
@@ -133,9 +139,26 @@ def angle_names(vma):
                                  dihedral_angle_names(vma)))
 
 
+def dummy_coordinate_names(vma):
+    """ names of dummy atom coordinates
+    """
+    syms = symbols(vma)
+    name_mat = numpy.array(name_matrix(vma))
+    dummy_keys = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+    dummy_names = []
+    for dummy_key in dummy_keys:
+        for col_idx in range(3):
+            dummy_name = next(filter(lambda x: x is not None,
+                                     name_mat[dummy_key:, col_idx]))
+            dummy_names.append(dummy_name)
+
+    dummy_names = tuple(dummy_names)
+    return dummy_names
+
+
 # value setters
 def set_names(vma, name_dct):
-    """ set coordinate names for the variable z-matrix
+    """ set coordinate names for the variable v-matrix
     """
     orig_name_mat = numpy.array(name_matrix(vma))
     tril_idxs = numpy.tril_indices(orig_name_mat.shape[0], -1, m=3)
@@ -154,25 +177,29 @@ def set_names(vma, name_dct):
 
 def standard_names(vma, shift=0):
     """ standard names for the coordinates, by their current names
+
+    (follows x2z format)
     """
     dist_names = distance_names(vma)
     cent_ang_names = central_angle_names(vma)
     dih_ang_names = dihedral_angle_names(vma)
     name_dct = {}
     name_dct.update({
-        dist_name: 'r{:d}'.format(num + shift + 1)
+        dist_name: 'R{:d}'.format(num + shift + 1)
         for num, dist_name in enumerate(dist_names)})
     name_dct.update({
-        cent_ang_name: 'a{:d}'.format(num + shift + 1)
+        cent_ang_name: 'A{:d}'.format(num + shift + 2)
         for num, cent_ang_name in enumerate(cent_ang_names)})
     name_dct.update({
-        dih_ang_name: 'd{:d}'.format(num + shift + 1)
+        dih_ang_name: 'D{:d}'.format(num + shift + 3)
         for num, dih_ang_name in enumerate(dih_ang_names)})
     return name_dct
 
 
 def standard_form(vma):
-    """ set standard variable names for the variable z-matrix
+    """ set standard variable names for the variable v-matrix
+
+    (follows x2z format)
     """
     name_dct = standard_names(vma)
     return set_names(vma, name_dct)
@@ -202,14 +229,16 @@ def _is_sequence_of_triples(obj):
 
 
 def is_standard_form(vma):
-    """ set standard variable names for the z-matrix
+    """ set standard variable names for the v-matrix
+
+    (follows x2z format)
     """
     return names(vma) == names(standard_form(vma))
 
 
 # I/O
 def from_string(vma_str):
-    """ read a z-matrix from a string
+    """ read a v-matrix from a string
     """
     syms, key_mat, name_mat = ar.zmatrix.matrix.read(vma_str)
 
@@ -218,7 +247,7 @@ def from_string(vma_str):
 
 
 def string(vma):
-    """ write a z-matrix to a string
+    """ write a v-matrix to a string
     """
     vma_str = aw.zmatrix.matrix_block(
         syms=symbols(vma),
@@ -226,3 +255,26 @@ def string(vma):
         name_mat=name_matrix(vma),
     )
     return vma_str
+
+
+def zmatrix_from_geometry(vma, geo):
+    """ determine z-matrix from v-matrix and geometry
+    """
+    assert symbols(vma) == automol.geom.symbols(geo)
+    val_dct = {}
+    coo_dct = coordinates(vma, multi=False)
+    dist_names = distance_names(vma)
+    cent_names = central_angle_names(vma)
+    dih_names = dihedral_angle_names(vma)
+    for name, coo in coo_dct.items():
+        if name in dist_names:
+            val_dct[name] = automol.geom.distance(geo, *coo)
+        elif name in cent_names:
+            val_dct[name] = automol.geom.central_angle(geo, *coo)
+        elif name in dih_names:
+            val_dct[name] = automol.geom.dihedral_angle(geo, *coo)
+
+    zma = automol.create.zmatrix.from_data(
+        symbols=symbols(vma), key_matrix=key_matrix(vma),
+        name_matrix=name_matrix(vma), values=val_dct)
+    return zma

@@ -115,6 +115,14 @@ def test__graph__misc():
     assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
+def test__inchi_geometry():
+    """ test automol.inchi.geometry
+    """
+    ref_ich = 'InChI=1S/H2S/h1H2'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    assert ich == ref_ich
+
+
 def test__geom__zmatrix():
     """ test automol.geom.zmatrix
     """
@@ -163,4 +171,7 @@ if __name__ == '__main__':
     # test__graph__with_stereo()
     # test__zmatrix__with_stereo()
     # test__graph__with_stereo()
-    test__graph__misc()
+    # test__graph__misc()
+    test__geom__zmatrix_torsion_coordinate_names()
+    # test__geom__with_stereo()
+    # test__geom__zmatrix()

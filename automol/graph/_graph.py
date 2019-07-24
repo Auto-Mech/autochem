@@ -34,15 +34,21 @@ def bonds(xgr):
 
 
 def atom_keys(xgr):
-    """ sorted atom keys
+    """ atom keys
     """
     return frozenset(atoms(xgr).keys())
 
 
 def bond_keys(xgr):
-    """ sorted bond keys
+    """ bond keys
     """
     return frozenset(bonds(xgr).keys())
+
+
+def dummy_bond_keys(xgr):
+    """ dummy bond (order=0) keys
+    """
+    return frozenset(dict_.keys_by_value(bond_orders(xgr), lambda x: x == 0))
 
 
 def atom_symbols(xgr):
@@ -164,7 +170,8 @@ def add_atom_implicit_hydrogen_valences(xgr, inc_atm_imp_hyd_vlc_dct):
 def without_bond_orders(xgr):
     """ resonance graph with maximum spin (i.e. no pi bonds)
     """
-    bnd_ord_dct = dict_.by_key({}, bond_keys(xgr), fill_val=1)
+    bnd_keys = bond_keys(xgr) - dummy_bond_keys(xgr)
+    bnd_ord_dct = dict_.by_key({}, bnd_keys, fill_val=1)
     return set_bond_orders(xgr, bnd_ord_dct)
 
 
@@ -317,8 +324,14 @@ def branch(xgr, atm_key, bnd_key):
     return bond_induced_subgraph(xgr, branch_bond_keys(xgr, atm_key, bnd_key))
 
 
+def branch_atom_keys(xgr, atm_key, bnd_key):
+    """ atom keys for branch extending along `bnd_key` away from `atm_key`
+    """
+    return atom_keys(branch(xgr, atm_key, bnd_key)) - {atm_key}
+
+
 def branch_bond_keys(xgr, atm_key, bnd_key):
-    """ keys for branch extending along `bnd_key` away from `atm_key`
+    """ bond keys for branch extending along `bnd_key` away from `atm_key`
     """
     bnd_key = frozenset(bnd_key)
     assert atm_key in bnd_key
@@ -468,8 +481,8 @@ def remove_bonds(xgr, bnd_keys):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def without_ghost_atoms(xgr):
-    """ remove ghost atoms from the graph
+def without_dummy_atoms(xgr):
+    """ remove dummy atoms from the graph
     """
     atm_sym_dct = atom_symbols(xgr)
     atm_keys = [key for key, sym in atm_sym_dct.items() if pt.to_Z(sym)]

@@ -12,25 +12,6 @@ import automol.convert.geom
 from automol import vmatrix as _v_
 
 
-# constructor
-def from_data(syms, key_mat, name_mat, val_dct,
-              one_indexed=False, angstrom=False, degree=False):
-    """ z-matrix constructor
-
-    :param syms: atomic symbols
-    :type syms: tuple[str]
-    :param key_mat: key/index columns of the z-matrix, zero-indexed
-    :type key_mat: tuple[tuple[float, float or None, float or None]]
-    :param name_mat: coordinate name columns of the z-matrix
-    :type name_mat; tuple[tuple[str, str or None, str or None]]
-    :param val_dct: coordinate values, by coordinate name
-    :type val_dct: dict
-    """
-    return automol.create.zmatrix.from_data(
-        symbols=syms, key_matrix=key_mat, name_matrix=name_mat, values=val_dct,
-        one_indexed=one_indexed, angstrom=angstrom, degree=degree)
-
-
 # getters
 def var_(zma):
     """ the variable matrix (atom symbols, atom keys, and coordinate names)
@@ -80,12 +61,12 @@ def coordinate_key_matrix(zma, shift=0):
     return _v_.coordinate_key_matrix(var_(zma), shift=shift)
 
 
-def coordinates(zma, shift=0):
+def coordinates(zma, shift=0, multi=True):
     """ coordinate keys associated with each coordinate name, as a dictionary
 
     (the values are sequences of coordinate keys, since there may be multiple)
     """
-    return _v_.coordinates(var_(zma), shift=shift)
+    return _v_.coordinates(var_(zma), shift=shift, multi=multi)
 
 
 def names(zma):
@@ -118,6 +99,12 @@ def angle_names(zma):
     return _v_.angle_names(var_(zma))
 
 
+def dummy_coordinate_names(zma):
+    """ names of dummy atom coordinates
+    """
+    return _v_.dummy_coordinate_names(var_(zma))
+
+
 def values(zma, angstrom=False, degree=False):
     """ coordinate values, by coordinate name
     """
@@ -148,8 +135,9 @@ def is_valid(zma):
         ret = _v_.is_valid(vma) and set(_v_.names(vma)) == set(val_dct)
         if ret:
             try:
-                from_data(_v_.symbols(vma), _v_.key_matrix(vma),
-                          _v_.name_matrix(vma), val_dct)
+                automol.create.zmatrix.from_data(
+                    _v_.symbols(vma), _v_.key_matrix(vma),
+                    _v_.name_matrix(vma), val_dct)
             except AssertionError:
                 ret = False
     return ret
@@ -168,10 +156,10 @@ def set_names(zma, name_dct):
     val_dct = {name_dct[orig_name]: val
                for orig_name, val in values(zma).items()}
 
-    return from_data(_v_.symbols(vma), _v_.key_matrix(vma), name_mat, val_dct)
+    return automol.create.zmatrix.from_data(
+        _v_.symbols(vma), _v_.key_matrix(vma), name_mat, val_dct)
 
 
-# setters
 def set_values(zma, val_dct):
     """ set coordinate values for the z-matrix
     """
@@ -181,18 +169,23 @@ def set_values(zma, val_dct):
 
     new_val_dct = values(zma).copy()
     new_val_dct.update(val_dct)
-    return from_data(_v_.symbols(vma), _v_.key_matrix(vma),
-                     _v_.name_matrix(vma), new_val_dct)
+    return automol.create.zmatrix.from_data(
+        _v_.symbols(vma), _v_.key_matrix(vma), _v_.name_matrix(vma),
+        new_val_dct)
 
 
 def standard_names(zma, shift=0):
     """ standard names for the coordinates, by their current names
+
+    (follows x2z format)
     """
     return _v_.standard_names(var_(zma), shift=shift)
 
 
 def standard_form(zma, shift=0):
     """ set standard variable names for the z-matrix
+
+    (follows x2z format)
     """
     return set_names(zma, standard_names(zma, shift=shift))
 
@@ -241,12 +234,56 @@ def join(zma1, zma2, join_key_mat, join_name_mat, join_val_dct):
     val_dct.update(val_dct2)
     val_dct.update(join_val_dct)
 
-    return from_data(syms, key_mat, name_mat, val_dct)
+    return automol.create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
+
+
+def insert_dummy_atom(zma, x_key, x_key_mat, x_name_mat, x_val_dct):
+    """ insert a dummy atom at a given position in the z-matrix
+    """
+    syms = symbols(zma)
+    key_mat = numpy.array(key_matrix(zma))
+    name_mat = numpy.array(name_matrix(zma))
+
+    # check whether x_name_mat overlaps with name_mat
+
+    natms = len(syms)
+    keys = numpy.arange(natms)
+    keys[x_key:] += 1
+    key_dct = dict(enumerate(keys))
+    key_dct[None] = None
+    key_mat = [list(map(key_dct.__getitem__, row)) for row in key_mat]
+
+    syms = list(syms)
+    key_mat = list(key_mat)
+    name_mat = list(name_mat)
+    syms.insert(x_key, 'X')
+    key_mat.insert(x_key, [None, None, None])
+    name_mat.insert(x_key, [None, None, None])
+
+    key_mat = numpy.array(key_mat)
+    name_mat = numpy.array(name_mat)
+
+    x_key_mat = numpy.array(x_key_mat, dtype=numpy.object_)
+    x_name_mat = numpy.array(x_name_mat, dtype=numpy.object_)
+
+    x_idxs = numpy.not_equal(x_key_mat, None)
+
+    offset = min(3, len(key_mat)-x_key)
+    key_mat[x_key:x_key+offset][x_idxs] = x_key_mat[:offset][x_idxs]
+    name_mat[x_key:x_key+offset][x_idxs] = x_name_mat[:offset][x_idxs]
+
+    val_dct = values(zma)
+    assert not set(val_dct.keys()) & set(x_val_dct.keys())
+    val_dct.update(x_val_dct)
+
+    return automol.create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
 
 
 # misc
 def is_standard_form(zma):
     """ set standard variable names for the z-matrix
+
+    (follows x2z format)
     """
     return is_valid(zma) and _v_.is_standard_form(var_(zma))
 
@@ -257,8 +294,9 @@ def from_string(zma_str):
     """
     syms, key_mat, name_mat, val_dct = ar.zmatrix.read(zma_str)
 
-    zma = from_data(syms, key_mat, name_mat, val_dct,
-                    one_indexed=True, angstrom=True, degree=True)
+    zma = automol.create.zmatrix.from_data(
+        syms, key_mat, name_mat, val_dct, one_indexed=True, angstrom=True,
+        degree=True)
     return zma
 
 
@@ -329,11 +367,17 @@ def torsional_symmetry_numbers(zma, tors_names):
     assert set(tors_names) <= set(dih_edg_key_dct.keys())
     edg_keys = tuple(map(dih_edg_key_dct.__getitem__, tors_names))
 
-    gra = graph(zma)
+    gra = automol.convert.zmatrix.graph(zma, remove_stereo=True)
     bnd_sym_num_dct = automol.graph.bond_symmetry_numbers(gra)
-    assert set(edg_keys) <= set(bnd_sym_num_dct.keys())
+    tors_sym_nums = []
+    for edg_key in edg_keys:
+        if edg_key in bnd_sym_num_dct.keys():
+            sym_num = bnd_sym_num_dct[edg_key]
+        else:
+            sym_num = 1.
+        tors_sym_nums.append(sym_num)
 
-    tors_sym_nums = tuple(map(bnd_sym_num_dct.__getitem__, edg_keys))
+    tors_sym_nums = tuple(tors_sym_nums)
     return tors_sym_nums
 
 
@@ -356,33 +400,12 @@ def torsional_sampling_ranges(zma, tors_names):
     return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
 
 
-def torsional_scan_grids(zma, tors_names, increment=0.5):
+def torsional_scan_linspaces(zma, tors_names, increment=0.5):
     """ scan grids for torsional dihedrals
     """
     sym_nums = torsional_symmetry_numbers(zma, tors_names)
-    intervals = tuple(2*numpy.pi/sym_num for sym_num in sym_nums)
-    npoints_lst = tuple(int(interval / increment) for interval in intervals)
+    intervals = tuple(2*numpy.pi/sym_num - increment for sym_num in sym_nums)
+    npoints_lst = tuple(
+        (int(interval / increment)+1) for interval in intervals)
     return tuple((0, interval, npoints)
                  for interval, npoints in zip(intervals, npoints_lst))
-
-
-# conversions
-def geometry(zma, remove_ghost_atoms=None):
-    """ z-matrix => geometry
-    """
-    return automol.convert.zmatrix.geometry(
-        zma, remove_ghost_atoms=remove_ghost_atoms)
-
-
-def graph(zma):
-    """ z-matrix => graph
-    """
-    geo = geometry(zma)
-    gra = automol.convert.geom.graph(geo)
-    return gra
-
-
-def formula(zma):
-    """ zmatrix => formula
-    """
-    return automol.convert.zmatrix.formula(zma)

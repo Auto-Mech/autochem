@@ -16,11 +16,11 @@ def matrix_block(syms, key_mat, name_mat, delim=' '):
     """ write the .zmat matrix block to a string
     """
     def _line_string(row_idx):
-        line_str = '{:<2s}'.format(syms[row_idx])
+        line_str = '{:<2s} '.format(syms[row_idx])
         keys = key_mat[row_idx]
         names = name_mat[row_idx]
         line_str += delim.join([
-            '{:>d}{}{:>5s}'.format(keys[col_idx], delim, names[col_idx])
+            '{:>d}{}{:>5s} '.format(keys[col_idx], delim, names[col_idx])
             for col_idx in range(min(row_idx, 3))])
         return line_str
 

@@ -16,6 +16,7 @@ def read(string,
          val_ptt=VALUE_PATTERN,
          entry_sep_ptt=ENTRY_SEP_PATTERN,
          entry_start_ptt=None,
+         entry_end_ptt=None,
          sep_ptt=SEP_PATTERN,
          last=True,
          case=False):
@@ -23,10 +24,12 @@ def read(string,
     """
     entry_ptt_ = entry_pattern(
         name_ptt=app.capturing(name_ptt), val_ptt=app.capturing(val_ptt),
-        sep_ptt=entry_sep_ptt, start_ptt=entry_start_ptt)
+        sep_ptt=entry_sep_ptt, start_ptt=entry_start_ptt,
+        end_ptt=entry_end_ptt)
     block_ptt_ = app.capturing(block_pattern(
         name_ptt=name_ptt, val_ptt=val_ptt, entry_sep_ptt=entry_sep_ptt,
-        entry_start_ptt=entry_start_ptt, sep_ptt=sep_ptt))
+        entry_start_ptt=entry_start_ptt, entry_end_ptt=entry_end_ptt,
+        sep_ptt=sep_ptt))
 
     block_ptt_ = block_ptt_ if start_ptt is None else start_ptt + block_ptt_
 
@@ -42,6 +45,7 @@ def block_pattern(name_ptt=NAME_PATTERN,
                   val_ptt=VALUE_PATTERN,
                   entry_sep_ptt=ENTRY_SEP_PATTERN,
                   entry_start_ptt=None,
+                  entry_end_ptt=None,
                   sep_ptt=SEP_PATTERN):
     """ a single setvalue entry
     """
@@ -50,6 +54,7 @@ def block_pattern(name_ptt=NAME_PATTERN,
         val_ptt=val_ptt,
         sep_ptt=entry_sep_ptt,
         start_ptt=entry_start_ptt,
+        end_ptt=entry_end_ptt,
     )
     block_ptt = app.series(entry_ptt, app.padded(sep_ptt))
     return block_ptt
@@ -58,13 +63,15 @@ def block_pattern(name_ptt=NAME_PATTERN,
 def entry_pattern(name_ptt=NAME_PATTERN,
                   val_ptt=VALUE_PATTERN,
                   sep_ptt=ENTRY_SEP_PATTERN,
-                  start_ptt=None):
+                  start_ptt=None,
+                  end_ptt=None):
     """ a single setvalue entry
     """
     parts = (([] if start_ptt is None else [start_ptt]) +
              [name_ptt] +
              [sep_ptt] +
-             [val_ptt])
+             [val_ptt] +
+             ([] if end_ptt is None else [end_ptt]))
 
     ptt = app.padded(app.maybe(app.LINESPACES).join(parts))
     return ptt

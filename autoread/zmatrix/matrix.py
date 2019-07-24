@@ -106,6 +106,7 @@ def block_pattern(sym_ptt=par.Pattern.ATOM_SYMBOL,
         app.padded(app.NEWLINE).join(line_ptts[:3] + [block_end_ptt]),
         app.padded(app.NEWLINE).join(line_ptts[:3]),
         app.padded(app.NEWLINE).join(line_ptts[:2]),
+        app.padded(app.NEWLINE).join(line_ptts[:1]),
     ])
     return block_ptt
 

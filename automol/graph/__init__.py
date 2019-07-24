@@ -34,6 +34,7 @@ from automol.graph._graph import bond_neighbor_keys
 from automol.graph._graph import bond_neighborhoods
 # # other properties
 from automol.graph._graph import branch
+from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import branch_bond_keys
 from automol.graph._graph import rings
 from automol.graph._graph import rings_bond_keys
@@ -45,7 +46,7 @@ from automol.graph._graph import bond_induced_subgraph
 # # transformations
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
-from automol.graph._graph import without_ghost_atoms
+from automol.graph._graph import without_dummy_atoms
 
 # implicit/explicit hydrogen functions
 # # atom properties
@@ -93,6 +94,7 @@ from automol.graph._res import resonances
 from automol.graph._res import subresonances
 from automol.graph._res import dominant_resonances
 from automol.graph._res import dominant_resonance
+from automol.graph._res import rotational_bond_keys
 
 # stereo graph library
 from automol.graph._stereo import has_stereo
@@ -105,11 +107,12 @@ from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 from automol.graph._stereo import set_stereo_from_atom_coordinates
+from automol.graph._stereo import heuristic_geometry
 from automol.graph._stereo import atom_stereo_coordinates
 from automol.graph._stereo import atom_longest_chains
 
 # submodules
-from automol.graph import reaction
+from automol.graph import trans
 
 # constructors
 import automol.create.graph
@@ -204,6 +207,7 @@ __all__ = [
     'bond_neighborhoods',
     # # other properties
     'branch',
+    'branch_atom_keys',
     'branch_bond_keys',
     'rings',
     'rings_bond_keys',
@@ -215,7 +219,7 @@ __all__ = [
     # # transformations
     'remove_atoms',
     'remove_bonds',
-    'without_ghost_atoms',
+    'without_dummy_atoms',
 
     # implicit/explicit hydrogen functions
     # # atom properties
@@ -260,6 +264,7 @@ __all__ = [
     'subresonances',
     'dominant_resonances',
     'dominant_resonance',
+    'rotational_bond_keys',
 
     # stereo graph library
     'has_stereo',
@@ -272,6 +277,7 @@ __all__ = [
     'substereomers',
     'stereo_sorted_atom_neighbor_keys',
     'set_stereo_from_atom_coordinates',
+    'heuristic_geometry',
     'atom_stereo_coordinates',
     'atom_longest_chains',
 
@@ -280,5 +286,5 @@ __all__ = [
     'formula',
 
     # submodules
-    'reaction',
+    'trans',
 ]

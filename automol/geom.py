@@ -1,6 +1,8 @@
 """ cartesian geometries
 """
+import itertools
 import functools
+import more_itertools as mit
 import numpy
 import qcelemental as qcel
 from qcelemental import periodictable as pt
@@ -75,22 +77,46 @@ def set_coordinates(geo, xyz_dct):
     return from_data(syms, xyzs)
 
 
-def without_ghost_atoms(geo):
-    """ return a copy of the geometry without ghost atoms
+def without_dummy_atoms(geo):
+    """ return a copy of the geometry without dummy atoms
     """
     syms = symbols(geo)
     xyzs = coordinates(geo)
 
-    non_ghost_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
-    syms = list(map(syms.__getitem__, non_ghost_keys))
-    xyzs = list(map(xyzs.__getitem__, non_ghost_keys))
+    non_dummy_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
+    syms = list(map(syms.__getitem__, non_dummy_keys))
+    xyzs = list(map(xyzs.__getitem__, non_dummy_keys))
     return from_data(syms, xyzs)
 
 
 # operations
-def join(geo1, geo2):
+def join(geo1, geo2,
+         dist_cutoff=3.*qcc.conversion_factor('angstrom', 'bohr'),
+         theta=0.*qcc.conversion_factor('degree', 'radian'),
+         phi=0.*qcc.conversion_factor('degree', 'radian')):
     """ join two geometries together
     """
+    orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
+                              numpy.sin(theta) * numpy.sin(phi),
+                              numpy.cos(theta)])
+
+    # get the correct distance apart
+    geo1 = mass_centered(geo1)
+    geo2 = mass_centered(geo2)
+    ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
+    ext2 = max(numpy.vdot(-orient_vec, xyz) for xyz in coordinates(geo2))
+
+    cm_dist = ext1 + dist_cutoff + ext2
+    dist_grid = numpy.arange(cm_dist, 0., -0.1)
+    for dist in dist_grid:
+        trans_geo2 = translated(geo2, orient_vec * dist)
+        min_dist = minimum_distance(geo1, trans_geo2)
+        if numpy.abs(min_dist - dist_cutoff) < 0.1:
+            break
+
+    geo2 = trans_geo2
+
+    # now, join them together
     syms = symbols(geo1) + symbols(geo2)
     xyzs = coordinates(geo1) + coordinates(geo2)
     return from_data(syms, xyzs)
@@ -184,7 +210,7 @@ def _coulomb_matrix(geo):
 
 
 # comparisons
-def almost_equal(geo1, geo2, rtol=2e-5):
+def almost_equal(geo1, geo2, rtol=2e-3):
     """ are these geometries numerically equal?
     """
     ret = False
@@ -193,7 +219,16 @@ def almost_equal(geo1, geo2, rtol=2e-5):
     return ret
 
 
-def almost_equal_coulomb_spectrum(geo1, geo2, rtol=2e-5):
+def minimum_distance(geo1, geo2):
+    """ get the minimum distance between atoms in geo1 and those in geo2
+    """
+    xyzs1 = coordinates(geo1)
+    xyzs2 = coordinates(geo2)
+    return min(cart.vec.distance(xyz1, xyz2)
+               for xyz1, xyz2 in itertools.product(xyzs1, xyzs2))
+
+
+def almost_equal_coulomb_spectrum(geo1, geo2, rtol=1e-2):
     """ do these geometries have similar coulomb spectrums?
     """
     ret = numpy.allclose(coulomb_spectrum(geo1), coulomb_spectrum(geo2),
@@ -201,7 +236,7 @@ def almost_equal_coulomb_spectrum(geo1, geo2, rtol=2e-5):
     return ret
 
 
-def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=2e-5):
+def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=1e-2):
     """ get indices of unique geometries, by coulomb spectrum
     """
     comp_ = functools.partial(almost_equal_coulomb_spectrum, rtol=rtol)
@@ -223,6 +258,15 @@ def _argunique(items, comparison, seen_items=()):
 
 
 # transformations
+def displaced(geo, xyzs):
+    """ displacement of the geometry
+    """
+    syms = symbols(geo)
+    orig_xyzs = coordinates(geo)
+    xyzs = numpy.add(orig_xyzs, xyzs)
+    return from_data(syms, xyzs)
+
+
 def translated(geo, xyz):
     """ translation of the geometry
     """
@@ -238,6 +282,16 @@ def rotated(geo, axis, angle):
     syms = symbols(geo)
     xyzs = coordinates(geo)
     rot_mat = cart.mat.rotation(axis, angle)
+    xyzs = numpy.dot(xyzs, numpy.transpose(rot_mat))
+    return from_data(syms, xyzs)
+
+
+def euler_rotated(geo, theta, phi, psi):
+    """ axis-angle rotation of the geometry
+    """
+    syms = symbols(geo)
+    xyzs = coordinates(geo)
+    rot_mat = cart.mat.euler_rotation(theta, phi, psi)
     xyzs = numpy.dot(xyzs, numpy.transpose(rot_mat))
     return from_data(syms, xyzs)
 
@@ -274,6 +328,16 @@ def dihedral_angle(geo, key1, key2, key3, key4):
 
 
 # chemical properties
+def is_atom(geo):
+    """ return return the atomic masses
+    """
+    syms = symbols(geo)
+    ret = False
+    if len(syms) == 1:
+        ret = True
+    return ret
+
+
 def masses(geo, amu=True):
     """ return the atomic masses
     """
@@ -347,6 +411,19 @@ def rotational_constants(geo, amu=True):
     cons = numpy.divide(1., moms) / 4. / numpy.pi / sol
     cons = tuple(cons)
     return cons
+
+
+def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
+    """ is this geometry linear?
+    """
+    ret = True
+
+    keys = range(len(symbols(geo)))
+    for key1, key2, key3 in mit.windowed(keys, 3):
+        if numpy.abs(central_angle(geo, key1, key2, key3) % numpy.pi) > tol:
+            ret = False
+
+    return ret
 
 
 # conversions

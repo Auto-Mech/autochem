@@ -244,6 +244,34 @@ def test__matrix():
                         (1.093052, 111.241, 238.017),
                         (1.360181, 108.248, 60.99))
 
+    string = (' geometry = {\n'
+              ' C\n'
+              ' O 1,    R1\n'
+              ' H 1,    R2, 2,    A2\n'
+              ' H 1,    R3, 2,    A3, 3,    D3\n'
+              ' H 1,    R4, 2,    A4, 3,    D4\n'
+              ' H 2,    R5, 1,    A5, 3,    D5\n'
+              ' }\n')
+    syms, key_mat, name_mat = autoread.zmatrix.matrix.read(
+        string,
+        start_ptt=app.maybe(app.SPACES).join([
+            'geometry', app.escape('='), app.escape('{'), '']),
+        entry_start_ptt=app.maybe(','),
+        entry_sep_ptt=',')
+    assert syms == ('C', 'O', 'H', 'H', 'H', 'H')
+    assert key_mat == ((None, None, None),
+                       (1, None, None),
+                       (1, 2, None),
+                       (1, 2, 3),
+                       (1, 2, 3),
+                       (2, 1, 3))
+    assert name_mat == ((None, None, None),
+                        ('R1', None, None),
+                        ('R2', 'A2', None),
+                        ('R3', 'A3', 'D3'),
+                        ('R4', 'A4', 'D4'),
+                        ('R5', 'A5', 'D5'))
+
 
 def test__setval():
     """ test autoread.zmatrix.setval
@@ -298,8 +326,57 @@ def test__setval():
         'R1': 2.73454, 'R2': 1.84451, 'A2': 96.7726, 'R3': 1.84451,
         'A3': 96.7726, 'D3': 129.367}
 
+    string = (' SETTING R1             =         1.37586100\n'
+              ' SETTING R2             =         1.05835400\n'
+              ' SETTING A2             =       108.86198100\n'
+              ' SETTING R3             =         1.05835400\n'
+              ' SETTING A3             =       108.86198100\n'
+              ' SETTING D3             =       120.32113700\n'
+              ' SETTING R4             =         1.05835400\n'
+              ' SETTING A4             =       108.86198100\n'
+              ' SETTING D4             =       234.91269600\n'
+              ' SETTING R5             =         0.95251900\n'
+              ' SETTING A5             =       103.13240300\n'
+              ' SETTING D5             =       297.93805300\n'
+              ' SETTING SPIN           =     0.00000000D+00\n'
+              ' SETTING CHARGE         =     0.00000000D+00\n')
+
+    val_dct = autoread.zmatrix.setval.read(
+        string,
+        entry_start_ptt='SETTING',
+        val_ptt=app.one_of_these([app.EXPONENTIAL_FLOAT_D, app.NUMBER]),
+        last=False,
+        case=False)
+    assert val_dct == {
+        'R1': 1.375861, 'R2': 1.058354, 'A2': 108.861981, 'R3': 1.058354,
+        'A3': 108.861981, 'D3': 120.321137, 'R4': 1.058354, 'A4': 108.861981,
+        'D4': 234.912696, 'R5': 0.952519, 'A5': 103.132403, 'D5': 297.938053,
+        'SPIN': '0.00000000D+00', 'CHARGE': '0.00000000D+00'}
+
+    string = (' Optimized variables\n'
+              ' R1=                  1.43218364 ANGSTROM\n'
+              ' R2=                  1.09538054 ANGSTROM\n'
+              ' A2=                112.03775543 DEGREE\n'
+              ' R3=                  1.09538307 ANGSTROM\n'
+              ' A3=                112.04463832 DEGREE\n'
+              ' R4=                  1.09084803 ANGSTROM\n'
+              ' A4=                108.31761858 DEGREE\n'
+              ' D4=                240.16203078 DEGREE\n'
+              ' D5=                299.84441753 DEGREE\n')
+
+    val_dct = autoread.zmatrix.setval.read(
+        string,
+        start_ptt=app.padded('Optimized variables') + app.NEWLINE,
+        entry_end_ptt=app.one_of_these(['ANGSTROM', 'DEGREE']),
+        last=True,
+        case=False)
+    assert val_dct == {
+        'R1': 1.43218364, 'R2': 1.09538054, 'A2': 112.03775543,
+        'R3': 1.09538307, 'A3': 112.04463832, 'R4': 1.09084803,
+        'A4': 108.31761858, 'D4': 240.16203078, 'D5': 299.84441753}
+
 
 if __name__ == '__main__':
-    # test__setval()
+    test__setval()
     # test__matrix()
-    test_()
+    # test_()

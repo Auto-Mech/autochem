@@ -29,8 +29,8 @@ def inchi(gra):
 
 
 def _compare(gra1, gra2):
-    gra1 = automol.graph.without_ghost_atoms(gra1)
-    gra2 = automol.graph.without_ghost_atoms(gra2)
+    gra1 = automol.graph.without_dummy_atoms(gra1)
+    gra2 = automol.graph.without_dummy_atoms(gra2)
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
@@ -39,7 +39,7 @@ def inchi_from_coordinates(gra, atm_xyz_dct=None):
 
     (if coordinates are passed in, they are used to determine stereo)
     """
-    gra = automol.graph.without_ghost_atoms(gra)
+    gra = automol.graph.without_dummy_atoms(gra)
     gra = automol.graph.dominant_resonance(gra)
     atm_keys = list(automol.graph.atom_keys(gra))
     bnd_keys = list(automol.graph.bond_keys(gra))

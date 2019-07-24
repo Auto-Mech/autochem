@@ -7,6 +7,7 @@ from automol.convert import _pyx2z
 from automol.convert import _util
 import automol.graph
 import automol.geom
+import automol.zmatrix
 import automol.convert.graph
 import automol.convert.inchi
 
@@ -24,14 +25,35 @@ def zmatrix(geo):
     else:
         x2m = _pyx2z.from_geometry(geo)
         zma = _pyx2z.to_zmatrix(x2m)
+    zma = automol.zmatrix.standard_form(zma)
     return zma
+
+
+def zmatrix_torsion_coordinate_names(geo):
+    """ z-matrix torsional coordinate names
+    """
+    syms = automol.geom.symbols(geo)
+    if len(syms) == 1:
+        names = ()
+    else:
+        x2m = _pyx2z.from_geometry(geo)
+        names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
+
+        zma = _pyx2z.to_zmatrix(x2m)
+        name_dct = automol.zmatrix.standard_names(zma)
+        names = tuple(map(name_dct.__getitem__, names))
+    return names
 
 
 def zmatrix_atom_ordering(geo):
     """ z-matrix atom ordering
     """
-    x2m = _pyx2z.from_geometry(geo)
-    idxs  = _pyx2z.zmatrix_atom_ordering(x2m)
+    syms = automol.geom.symbols(geo)
+    if len(syms) == 1:
+        idxs = (0,)
+    else:
+        x2m = _pyx2z.from_geometry(geo)
+        idxs = _pyx2z.zmatrix_atom_ordering(x2m)
     return idxs
 
 
@@ -47,7 +69,7 @@ def graph(geo, remove_stereo=False):
     return gra
 
 
-def _connectivity_graph(geo, rq_bond_max=3.5, rh_bond_max=2.5):
+def _connectivity_graph(geo, rq_bond_max=3.5, rh_bond_max=2.6):
     """ geometry => connectivity graph (no stereo)
     """
     syms = automol.geom.symbols(geo)
@@ -89,8 +111,8 @@ def inchi(geo, remove_stereo=False):
 
 
 def _compare(geo1, geo2):
-    gra1 = automol.graph.without_ghost_atoms(_connectivity_graph(geo1))
-    gra2 = automol.graph.without_ghost_atoms(_connectivity_graph(geo2))
+    gra1 = automol.graph.without_dummy_atoms(_connectivity_graph(geo1))
+    gra2 = automol.graph.without_dummy_atoms(_connectivity_graph(geo2))
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
