@@ -87,8 +87,11 @@ from automol.graph._res import resonance_dominant_atom_hybridizations
 from automol.graph._res import resonance_dominant_atom_centered_cumulene_keys
 from automol.graph._res import resonance_dominant_bond_centered_cumulene_keys
 from automol.graph._res import resonance_dominant_radical_atom_keys
+from automol.graph._res import sing_res_dom_radical_atom_keys
 # # bond properties
 from automol.graph._res import resonance_dominant_bond_orders
+from automol.graph._res import one_resonance_dominant_bond_orders
+from automol.graph._res import resonance_avg_bond_orders
 # # transformations
 from automol.graph._res import resonances
 from automol.graph._res import subresonances
@@ -257,8 +260,11 @@ __all__ = [
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
     'resonance_dominant_radical_atom_keys',
+    'sing_res_dom_radical_atom_keys',
     # # bond properties
     'resonance_dominant_bond_orders',
+    'one_resonance_dominant_bond_orders',
+    'resonance_avg_bond_orders',
     # # transformations
     'resonances',
     'subresonances',
