@@ -3,6 +3,17 @@
 from qcelemental import periodictable as pt
 
 
+def electron_count(fml):
+    """ the number of atoms in this molecular formula
+    """
+    assert _is_standard(fml)
+    electron_count = 0
+    for key in fml:
+        value = fml[key]
+        electron_count += value*pt.to_Z(key)
+    return electron_count
+
+
 def atom_count(fml):
     """ the number of atoms in this molecular formula
     """
