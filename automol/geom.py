@@ -418,11 +418,15 @@ def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
     """
     ret = True
 
-    keys = range(len(symbols(geo)))
-    for key1, key2, key3 in mit.windowed(keys, 3):
-        if numpy.abs(central_angle(geo, key1, key2, key3) % numpy.pi) > tol:
-            ret = False
-
+    if len(geo) == 1:
+        ret = False
+    elif len(geo) == 2:
+        ret = True
+    else:
+        keys = range(len(symbols(geo)))
+        for key1, key2, key3 in mit.windowed(keys, 3):
+            if numpy.abs(central_angle(geo, key1, key2, key3) % numpy.pi) > tol:
+                ret = False
     return ret
 
 

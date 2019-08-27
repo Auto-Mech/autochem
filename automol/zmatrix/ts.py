@@ -246,13 +246,13 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 rct1_x_zma, rct2_x_zma, join_keys, join_names, join_val_dct)
 
             ts_name_dct = automol.zmatrix.standard_names(ts_zma)
-            print('babs test')
-            print(ts_name_dct['babs2'])
-            print(ts_name_dct['babs3'])
+#            print('babs test')
+#            print(ts_name_dct['babs2'])
+#            print(ts_name_dct['babs3'])
             inv_ts_name_dct = dict(map(reversed, ts_name_dct.items()))
-            print(inv_ts_name_dct['D5'])
+#            print(inv_ts_name_dct['D5'])
             ts_val_dct = automol.zmatrix.values(ts_zma)
-            print(ts_val_dct['babs3'])
+#            print(ts_val_dct['babs3'])
             dist_name = ts_name_dct[dist_name]
             ts_zma = automol.zmatrix.standard_form(ts_zma)
             rct1_tors_names = automol.zmatrix.torsion_coordinate_names(
@@ -265,8 +265,10 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
             )
 
             if 'babs2' in ts_name_dct:
-                tors_name = ts_name_dct['babs2']
-                tors_names += (tors_name,)
+                geo1 = automol.convert.zmatrix.geometry(rct1_zma)
+                if not automol.geom.is_linear(geo1):
+                    tors_name = ts_name_dct['babs2']
+                    tors_names += (tors_name,)
 
             if 'babs3' in ts_name_dct:
                 tors_name = ts_name_dct['babs3']
@@ -357,13 +359,18 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
 
             join_name_set = set(numpy.ravel(join_names)) - {None}
             join_val_dct = {name: join_val_dct[name] for name in join_name_set}
+#            print('join_keys:', join_keys)
+#            print('join_names:', join_names)
+#            print('join_val_dct:', join_val_dct)
 
             ts_zma = automol.zmatrix.join(
                 rct1_x_zma, rct2_zma, join_keys, join_names, join_val_dct)
+#            print('ts_zma in h abs:', ts_zma)
 
             ts_name_dct = automol.zmatrix.standard_names(ts_zma)
             dist_name = ts_name_dct[dist_name]
             ts_zma = automol.zmatrix.standard_form(ts_zma)
+#            print('ts_zma standard in h abs:', ts_zma)
             rct1_tors_names = automol.zmatrix.torsion_coordinate_names(
                 rct1_zma)
             rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
@@ -374,8 +381,10 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             )
 
             if 'babs2' in ts_name_dct:
-                tors_name = ts_name_dct['babs2']
-                tors_names += (tors_name,)
+                geo1 = automol.convert.zmatrix.geometry(rct1_zma)
+                if not automol.geom.is_linear(geo1):
+                    tors_name = ts_name_dct['babs2']
+                    tors_names += (tors_name,)
 
             if 'babs3' in ts_name_dct:
                 tors_name = ts_name_dct['babs3']
