@@ -389,7 +389,7 @@ def test__ts__hydrogen_abstraction():
           'R4': 2.063, 'A4': 1.9106, 'D4': 4.1887}),
         ((('H', (None, None, None), (None, None, None)),),
          {}),
-    ]
+     ]
     prd_zmas = [
         ((('C', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None)),
@@ -402,7 +402,7 @@ def test__ts__hydrogen_abstraction():
           ('H', (0, None, None), ('R1', None, None))),
          {'R1': 1.31906}),
     ]
-    ts_zma, dist_name, tors_names = (
+     ts_zma, dist_name, tors_names = (
         zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
     print(tors_names)
     assert dist_name == 'R6'
@@ -415,7 +415,7 @@ def test__ts__hydrogen_abstraction():
           ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
           ('X', (4, 0, 1), ('R5', 'A5', 'D5')),
           ('H', (4, 5, 0), ('R6', 'A6', 'D6'))),
-         {'R1': 2.063,
+          {'R1': 2.063,
           'R2': 2.063, 'A2': 1.9106,
           'R3': 2.063, 'A3': 1.9106, 'D3': 2.0943,
           'R4': 2.063, 'A4': 1.9106, 'D4': 4.1887,
@@ -428,7 +428,7 @@ def test__ts__hydrogen_abstraction():
         ((('O', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None)),
           ('H', (0, 1, None), ('R2', 'A2', None))),
-         {'R1': 1.83114, 'R2': 1.83115, 'A2': 1.814758449638664}),
+          {'R1': 1.83114, 'R2': 1.83115, 'A2': 1.814758449638664}),
         ((('C', (None, None, None), (None, None, None)),
           ('X', (0, None, None), ('R1', None, None)),
           ('C', (0, 1, None), ('R2', 'A2', None)),
@@ -441,7 +441,7 @@ def test__ts__hydrogen_abstraction():
           'R4': 2.04888, 'A4': 2.106804, 'D4': 0.00000,
           'R5': 2.04888, 'A5': 2.106804, 'D5': 3.14159}),
     ]
-    prd_zmas = [
+     prd_zmas = [
         ((('O', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None))),
          {'R1': 1.84779}),
@@ -454,13 +454,40 @@ def test__ts__hydrogen_abstraction():
          {'R1': 2.52427,
           'R2': 2.05128, 'A2': 2.112721059539136,
           'R3': 2.05128, 'A3': 2.112721059539136, 'D3': 3.141592653589793,
-          'R4': 2.05128, 'A4': 2.112721059539136, 'D4': 3.141592653589793,
+           'R4': 2.05128, 'A4': 2.112721059539136, 'D4': 3.141592653589793,
           'R5': 2.05128, 'A5': 2.112721059539136, 'D5': 3.141592653589793})
     ]
     ts_zma, dist_name, tors_names = (
         zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
     print(zmatrix.string(ts_zma))
 
+
+def test__isomerization():
+    """ test zmatrix.ts.hydrogen_abstraction
+    """
+
+    rct_zmas = [
+        ((('H', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None)),
+          ('N', (1, 0, None), ('R2', 'A2', None)),
+          ('O', (2, 1, 0), ('R3', 'A3', 'D3'))),
+         {'R1': 1.90,
+          'R2': 2.70, 'A2': 2.0944,
+          'R3': 2.45, 'A3': 2.0944, 'D3': 3.14159})
+    ]
+
+    prd_zmas = [
+        ((('H', (None, None, None), (None, None, None)),
+          ('N', (0, None, None), ('R1', None, None)),
+          ('O', (1, 0, None), ('R2', 'A2', None)),
+          ('O', (1, 0, 2), ('R3', 'A3', 'D3'))),
+         {'R1': 2.2,
+          'R2': 2.70, 'A2': 2.0944,
+          'R3': 2.45, 'A3': 2.0944, 'D3': -3.14159})
+    ]
+    
+    ts_zma, dist_name, tors_names = (
+        zmatrix.ts.isomerization(rct_zmas, prd_zmas))
 
 if __name__ == '__main__':
     # test__from_data()
@@ -469,7 +496,7 @@ if __name__ == '__main__':
     # test__ts__hydrogen_abstraction()
     # test__is_standard_form()
     # test__join()
-    # test__ts__addition()
     # test__from_string()
     # test__ts__addition()
-    test__ts__hydrogen_abstraction()
+    # test__ts__hydrogen_abstraction()
+    test__ts_isomerization

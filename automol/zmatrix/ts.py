@@ -10,6 +10,17 @@ import automol.convert.zmatrix
 import automol.zmatrix
 
 
+def isomerization(rct_zmas, prd_zmas):
+    """ z-matrix for a isomerization reaction
+    """
+    ret = None, None, None
+    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+    print(rct_zmas)
+    print(rct_gras)
+
+    return ret
+
+
 def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
     """
