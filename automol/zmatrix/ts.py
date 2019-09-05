@@ -8,17 +8,155 @@ import automol.graph
 import automol.graph.trans
 import automol.convert.zmatrix
 import automol.zmatrix
+import sys
 
 
-def isomerization(rct_zmas, prd_zmas):
-    """ z-matrix for a isomerization reaction
+def hydrogen_migration(rct_zmas, prd_zmas):
+    """ z-matrix for a hydrogen migration reaction
     """
     ret = None, None, None
-    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
-    print(rct_zmas)
-    print(rct_gras)
+
+    # set products which will be unchanged to ts algorithm
+    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
+    prd_gra = functools.reduce(automol.graph.union, prd_gras)
+
+    count = 1
+    while True:
+        rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+        rct_gra = functools.reduce(automol.graph.union, rct_gras)
+        tra = automol.graph.trans.hydrogen_migration(rct_gra, prd_gra)
+        if tra is not None:
+
+            # Get the bond formation keys and the reactant zmatrix
+            frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+            init_zma, = rct_zmas
+
+            # figure out which idx in frm_bnd_keys corresponds to the hydrogen
+            symbols = automol.vmatrix.symbols(automol.zmatrix.var_(init_zma))
+            dist_coo_key = tuple(reversed(sorted(frm_bnd_key)))
+            for idx in dist_coo_key:
+                if symbols[idx] == 'H':
+                    h_idx = idx
+                else:
+                    a1_idx = idx
+
+            # determine if the zmatrix needs to be rebuilt by x2z
+            # determines if the hydrogen atom is used to define other atoms
+            init_keys = automol.zmatrix.key_matrix(init_zma)
+            rebuild = False
+            for i, _ in enumerate(init_keys):
+                if i > h_idx and any(idx == h_idx for idx in init_keys[i]):
+                    rebuild = True
+                    break
+
+            # rebuild zmat and go through while loop again if needed
+            # shifts order of cartesian coords and rerun x2z to get a new zmat
+            # else go to next stage
+            if rebuild:
+                reord_zma = _reorder_zmatrix_hydrogen_migration(
+                    init_zma, a1_idx, h_idx)
+                rct_zmas = [reord_zma]
+                count += 1
+                if count == 3:
+                    break
+            else:
+                rct_zma = init_zma
+                break
+
+    # if migrating H atom is not the final zmat entry, shift it to the end
+    # if h_idx != automol.zmatrix.count(rct_zma) - 1:
+    #    rct_zma = automol.zmatrix.shift_row_to_end(rct_zma, h_idx)
+
+    # determine the backbone atoms to redefine the z-matrix entry
+    _, gras = _shifted_standard_forms_with_gaphs([rct_zma])
+    gra = functools.reduce(automol.graph.union, gras)
+    xgr1, = automol.graph._graph.connected_components(gra)
+    chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
+    a2_idx = chains_dct[a1_idx][1]
+    a3_idx = chains_dct[a1_idx][2]
+
+    # determine the new coordinates
+    rct_geo = automol.zmatrix.geometry(rct_zma)
+    distance = automol.geom.distance(
+        rct_geo, h_idx, a1_idx)
+    angle = automol.geom.central_angle(
+        rct_geo, h_idx, a1_idx, a2_idx)
+    dihedral = automol.geom.dihedral_angle(
+        rct_geo, h_idx, a1_idx, a2_idx, a3_idx)
+
+    # Reset the keys for the migrating H atom
+    new_idxs = (a1_idx, a2_idx, a3_idx)
+    key_dct = {h_idx: new_idxs}
+    ts_zma = automol.zmatrix.set_keys(rct_zma, key_dct)
+
+    # Reset the values in the value dict
+    h_names = automol.zmatrix.name_matrix(ts_zma)[h_idx]
+    ts_zma = automol.zmatrix.set_values(
+        ts_zma, {h_names[0]: distance,
+                 h_names[1]: angle,
+                 h_names[2]: dihedral}
+    )
+
+    # standardize the ts zmat and get tors and dist coords
+    coo_dct = automol.zmatrix.coordinates(ts_zma)
+    dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
+                     if dist_coo_key in coo_keys)
+    ts_name_dct = automol.zmatrix.standard_names(ts_zma)
+    dist_name = ts_name_dct[dist_name]
+    ts_zma = automol.zmatrix.standard_form(ts_zma)
+    tors_names = []
+    # below Breaks since x2z is called again losing the redefinition
+    # how is x2z working for these anyway
+    # tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
+
+    ret = ts_zma, dist_name, tors_names
 
     return ret
+
+
+def _reorder_zmatrix_hydrogen_migration(zma, a_idx, h_idx):
+    """ performs z-matrix reordering operations required to
+        build proper z-matrices for hydrogen migrations
+    """
+
+    # initialize zmat components neededlater
+    symbols = automol.zmatrix.symbols(zma)
+
+    # Get the longest chain for all the atoms
+    _, gras = _shifted_standard_forms_with_gaphs([zma])
+    gra = functools.reduce(automol.graph.union, gras)
+    xgr1, = automol.graph._graph.connected_components(gra)
+    chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
+
+    # find the longest heavy-atom chain for the forming atom
+    form_chain = chains_dct[a_idx]
+
+    # get the indices used for reordering
+    # get the longest chain from the bond forming atom (not including H)
+    order_idxs = [idx for idx in form_chain
+                  if symbols[idx] != 'H' and idx != h_idx]
+
+    # add all the heavy-atoms not in the chain
+    for i, atom in enumerate(symbols):
+        if i not in order_idxs and atom != 'H':
+            order_idxs.append(i)
+
+    # add all the hydrogens
+    for i, atom in enumerate(symbols):
+        if i != h_idx and atom == 'H':
+            order_idxs.append(i)
+
+    # add the migrating atoms
+    order_idxs.append(h_idx)
+
+    # get the geometry and redorder it according to the order_idxs list
+    geo = [list(x) for x in automol.zmatrix.geometry(zma)]
+    geo2 = tuple(tuple(geo[idx]) for idx in order_idxs)
+
+    # convert to a z-matrix
+    zma_ret = automol.geom.zmatrix(geo2)
+
+    return zma_ret
 
 
 def beta_scission(rct_zmas, prd_zmas):
@@ -249,9 +387,9 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
 #            print('babs test')
 #            print(ts_name_dct['babs2'])
 #            print(ts_name_dct['babs3'])
-            inv_ts_name_dct = dict(map(reversed, ts_name_dct.items()))
+#            inv_ts_name_dct = dict(map(reversed, ts_name_dct.items()))
 #            print(inv_ts_name_dct['D5'])
-            ts_val_dct = automol.zmatrix.values(ts_zma)
+#            ts_val_dct = automol.zmatrix.values(ts_zma)
 #            print(ts_val_dct['babs3'])
             dist_name = ts_name_dct[dist_name]
             ts_zma = automol.zmatrix.standard_form(ts_zma)

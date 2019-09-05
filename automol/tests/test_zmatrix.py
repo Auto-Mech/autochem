@@ -3,12 +3,39 @@
 from automol import zmatrix
 import automol
 
+
 CH4O_ZMA = (
     (('H', (None, None, None), (None, None, None)),
      ('O', (0, None, None), ('R1', None, None)),
      ('C', (1, 0, None), ('R2', 'A2', None)),
      ('H', (2, 1, 0), ('R3', 'A3', 'D3')),
      ('H', (2, 1, 0), ('R3', 'A3', 'D4')),
+     ('H', (2, 1, 0), ('R3', 'A3', 'D5'))),
+    {'R1': 1.70075351,
+     'R2': 2.64561657, 'A2': 1.74532925,
+     'R3': 2.07869873, 'A3': 1.83259571,
+     'D3': 1.04719755, 'D4': -1.04719755, 'D5': 3.1415926})
+
+# CH4O_ZMA with R1 replaced with R7 and R2 with R8
+CH4O_ZMA_2 = (
+    (('H', (None, None, None), (None, None, None)),
+     ('O', (0, None, None), ('R7', None, None)),
+     ('C', (1, 0, None), ('R8', 'A2', None)),
+     ('H', (2, 1, 0), ('R3', 'A3', 'D3')),
+     ('H', (2, 1, 0), ('R3', 'A3', 'D4')),
+     ('H', (2, 1, 0), ('R3', 'A3', 'D5'))),
+    {'R7': 1.70075351,
+     'R8': 2.64561657, 'A2': 1.74532925,
+     'R3': 2.07869873, 'A3': 1.83259571,
+     'D3': 1.04719755, 'D4': -1.04719755, 'D5': 3.1415926})
+
+# CH4O_ZMA with R1 replaced with R7 and R2 with R8
+CH4O_ZMA_3 = (
+    (('H', (None, None, None), (None, None, None)),
+     ('O', (0, None, None), ('R1', None, None)),
+     ('C', (1, 0, None), ('R2', 'A2', None)),
+     ('H', (0, 2, 4), ('R3', 'A3', 'D3')),
+     ('H', (1, 2, 3), ('R3', 'A3', 'D4')),
      ('H', (2, 1, 0), ('R3', 'A3', 'D5'))),
     {'R1': 1.70075351,
      'R2': 2.64561657, 'A2': 1.74532925,
@@ -30,6 +57,21 @@ CH4O2_ZMA = (
      'R5': 1.83126, 'A5': 1.86751, 'D5': 1.44253,
      'R6': 1.83126, 'A6': 1.86751, 'D6': 4.84065})
 
+C2O1H5_ZMA = ((('C', (None, None, None), (None, None, None)),
+               ('C', (0, None, None), ('R1', None, None)),
+               ('H', (0, 1, None), ('R2', 'A2', None)),
+               ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+               ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
+               ('O', (1, 0, 2), ('R5', 'A5', 'D5')),
+               ('H', (1, 0, 5), ('R6', 'A6', 'D6')),
+               ('H', (1, 0, 5), ('R7', 'A7', 'D7'))),
+              {'R1': 2.87358,
+               'R2': 2.09893, 'A2': 1.9205,
+               'R3': 2.09835, 'A3': 1.9149, 'D3': 4.19162,
+               'R4': 2.09893, 'A4': 1.9205, 'D4': 2.09994,
+               'R5': 2.63652, 'A5': 1.9174, 'D5': 5.23321,
+               'R6': 2.09831, 'A6': 1.9153, 'D6': 2.09638,
+               'R7': 2.09831, 'A7': 1.9153, 'D7': 4.18680})
 
 CH4O2_ZMA_STR = """
 C
@@ -208,6 +250,54 @@ def test__set_values():
 
     zma = zmatrix.set_values(CH4O_ZMA, {'D3': val + 1e-1})
     assert not zmatrix.almost_equal(zma, CH4O_ZMA)
+
+
+def test__set_names():
+    """ test zmatrix.set_names
+    """
+    name_dct = {'R1': 'R7',
+                'R2': 'R8'}
+    zma = zmatrix.set_names(CH4O_ZMA, name_dct)
+    assert zmatrix.almost_equal(zma, CH4O_ZMA_2)
+
+
+def test__set_keys():
+    """ test zmatrix.set_keys
+    """
+    key_dct = {3: (0, 2, 4),
+               4: (1, 2, 3)}
+    zma = zmatrix.set_keys(CH4O_ZMA, key_dct)
+    assert zmatrix.almost_equal(zma, CH4O_ZMA_3)
+
+
+def test__shift_row_to_end():
+    """ test zmatrix.set_keys
+    """
+    # test simple case of moving atom
+    print('\nshift_method 1')
+    zma1 = zmatrix.shift_row_to_end(CH4O2_ZMA, 4)
+    print(zmatrix.string(zma1))
+
+    print('\ngeo test')
+    geo1 = automol.geom.string(automol.zmatrix.geometry(CH4O2_ZMA))
+    print('geo1')
+    print(geo1)
+    geo2 = automol.geom.string(automol.zmatrix.geometry(zma1))
+    print('geo2')
+    print(geo2)
+
+    # test method where recalculating coords is necessary
+    print('\nshift_method 2')
+    zma2 = zmatrix.shift_row_to_end(C2O1H5_ZMA, 2)
+    print(zmatrix.string(C2O1H5_ZMA))
+    print(zmatrix.string(zma2))
+
+    geo1 = automol.geom.string(automol.zmatrix.geometry(C2O1H5_ZMA))
+    print('geo1')
+    print(geo1)
+    geo2 = automol.geom.string(automol.zmatrix.geometry(zma2))
+    print('geo2')
+    print(geo2)
 
 
 def test__join():
@@ -389,7 +479,7 @@ def test__ts__hydrogen_abstraction():
           'R4': 2.063, 'A4': 1.9106, 'D4': 4.1887}),
         ((('H', (None, None, None), (None, None, None)),),
          {}),
-     ]
+    ]
     prd_zmas = [
         ((('C', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None)),
@@ -402,7 +492,7 @@ def test__ts__hydrogen_abstraction():
           ('H', (0, None, None), ('R1', None, None))),
          {'R1': 1.31906}),
     ]
-     ts_zma, dist_name, tors_names = (
+    ts_zma, dist_name, tors_names = (
         zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
     print(tors_names)
     assert dist_name == 'R6'
@@ -415,7 +505,7 @@ def test__ts__hydrogen_abstraction():
           ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
           ('X', (4, 0, 1), ('R5', 'A5', 'D5')),
           ('H', (4, 5, 0), ('R6', 'A6', 'D6'))),
-          {'R1': 2.063,
+         {'R1': 2.063,
           'R2': 2.063, 'A2': 1.9106,
           'R3': 2.063, 'A3': 1.9106, 'D3': 2.0943,
           'R4': 2.063, 'A4': 1.9106, 'D4': 4.1887,
@@ -428,7 +518,7 @@ def test__ts__hydrogen_abstraction():
         ((('O', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None)),
           ('H', (0, 1, None), ('R2', 'A2', None))),
-          {'R1': 1.83114, 'R2': 1.83115, 'A2': 1.814758449638664}),
+         {'R1': 1.83114, 'R2': 1.83115, 'A2': 1.814758449638664}),
         ((('C', (None, None, None), (None, None, None)),
           ('X', (0, None, None), ('R1', None, None)),
           ('C', (0, 1, None), ('R2', 'A2', None)),
@@ -441,7 +531,7 @@ def test__ts__hydrogen_abstraction():
           'R4': 2.04888, 'A4': 2.106804, 'D4': 0.00000,
           'R5': 2.04888, 'A5': 2.106804, 'D5': 3.14159}),
     ]
-     prd_zmas = [
+    prd_zmas = [
         ((('O', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None))),
          {'R1': 1.84779}),
@@ -454,7 +544,7 @@ def test__ts__hydrogen_abstraction():
          {'R1': 2.52427,
           'R2': 2.05128, 'A2': 2.112721059539136,
           'R3': 2.05128, 'A3': 2.112721059539136, 'D3': 3.141592653589793,
-           'R4': 2.05128, 'A4': 2.112721059539136, 'D4': 3.141592653589793,
+          'R4': 2.05128, 'A4': 2.112721059539136, 'D4': 3.141592653589793,
           'R5': 2.05128, 'A5': 2.112721059539136, 'D5': 3.141592653589793})
     ]
     ts_zma, dist_name, tors_names = (
@@ -462,36 +552,59 @@ def test__ts__hydrogen_abstraction():
     print(zmatrix.string(ts_zma))
 
 
-def test__isomerization():
-    """ test zmatrix.ts.hydrogen_abstraction
+def test__ts__hydrogen_migration():
+    """ test zmatrix.ts.hydrogen_migration
     """
 
     rct_zmas = [
-        ((('H', (None, None, None), (None, None, None)),
-          ('O', (0, None, None), ('R1', None, None)),
-          ('N', (1, 0, None), ('R2', 'A2', None)),
-          ('O', (2, 1, 0), ('R3', 'A3', 'D3'))),
-         {'R1': 1.90,
-          'R2': 2.70, 'A2': 2.0944,
-          'R3': 2.45, 'A3': 2.0944, 'D3': 3.14159})
+        ((('C', (None, None, None), (None, None, None)),
+          ('C', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
+          ('O', (1, 0, 2), ('R5', 'A5', 'D5')),
+          ('H', (1, 0, 5), ('R6', 'A6', 'D6')),
+          ('H', (1, 0, 5), ('R7', 'A7', 'D7'))),
+         {'R1': 2.87358,
+          'R2': 2.09893, 'A2': 1.9205,
+          'R3': 2.09835, 'A3': 1.9149, 'D3': 4.19162,
+          'R4': 2.09893, 'A4': 1.9205, 'D4': 2.09994,
+          'R5': 2.63652, 'A5': 1.9174, 'D5': 5.23321,
+          'R6': 2.09831, 'A6': 1.9153, 'D6': 2.09638,
+          'R7': 2.09831, 'A7': 1.9153, 'D7': 4.18680})
     ]
 
     prd_zmas = [
-        ((('H', (None, None, None), (None, None, None)),
-          ('N', (0, None, None), ('R1', None, None)),
-          ('O', (1, 0, None), ('R2', 'A2', None)),
-          ('O', (1, 0, 2), ('R3', 'A3', 'D3'))),
-         {'R1': 2.2,
-          'R2': 2.70, 'A2': 2.0944,
-          'R3': 2.45, 'A3': 2.0944, 'D3': -3.14159})
+        ((('C', (None, None, None), (None, None, None)),
+          ('C', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('O', (1, 0, 2), ('R4', 'A4', 'D4')),
+          ('H', (1, 0, 4), ('R5', 'A5', 'D5')),
+          ('H', (1, 0, 4), ('R6', 'A6', 'D6')),
+          ('H', (4, 1, 0), ('R7', 'A7', 'D7'))),
+         {'R1': 2.86956,
+          'R2': 2.0985, 'A2': 1.9202,
+          'R3': 2.09904, 'A3': 1.9244, 'D3': 4.1802,
+          'R4': 2.64409, 'A4': 1.906, 'D4': 3.15423,
+          'R5': 2.10184, 'A5': 1.8926, 'D5': 2.0903,
+          'R6': 2.10265, 'A6': 1.9011, 'D6': 4.1848,
+          'R7': 1.87536, 'A7': 1.8507, 'D7': 3.1216})
     ]
-    
+
     ts_zma, dist_name, tors_names = (
-        zmatrix.ts.isomerization(rct_zmas, prd_zmas))
+        zmatrix.ts.hydrogen_migration(rct_zmas, prd_zmas))
+    print(automol.geom.string(automol.zmatrix.geometry(ts_zma)))
+    print(zmatrix.string(ts_zma))
+    print(dist_name)
+    print(tors_names)
+
 
 if __name__ == '__main__':
     # test__from_data()
     # test__string()
+    # test__set_keys()
+    # test__shift_row_to_end()
     # test__join()
     # test__ts__hydrogen_abstraction()
     # test__is_standard_form()
@@ -499,4 +612,4 @@ if __name__ == '__main__':
     # test__from_string()
     # test__ts__addition()
     # test__ts__hydrogen_abstraction()
-    test__ts_isomerization
+    test__ts__hydrogen_migration()

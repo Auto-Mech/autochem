@@ -12,6 +12,7 @@ def from_graph(xgr):
         nxg.add_node(atm_key, props=atm_vals)
     for bnd_key, bnd_val in bnds.items():
         nxg.add_edge(*bnd_key, props=bnd_val)
+
     return nxg
 
 
@@ -36,7 +37,8 @@ def isomorphism(nxg1, nxg2):
         return dct1['props'] == dct2['props']
 
     matcher = networkx.algorithms.isomorphism.GraphMatcher(
-        nxg1, nxg2, node_match=_same_props, edge_match=_same_props)
+        nxg1, nxg2)
+    #    nxg1, nxg2, node_match=_same_props, edge_match=_same_props)
 
     iso_dct = None
     if matcher.is_isomorphic():

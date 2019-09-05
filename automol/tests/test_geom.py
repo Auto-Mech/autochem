@@ -125,7 +125,35 @@ def test__rotational_constants():
     assert numpy.allclose(cons, ref_cons)
 
 
+def test__swap_coordinates():
+    """ test geom.swap_coordinates
+    """
+    ref_geo = (('F', (2.994881276150, -1.414434615111, -0.807144415388)),
+               ('H', (1.731596406235, 2.324260256203, -0.4292070203467)),
+               ('C', (-1.201356763194, -0.347546894407, -0.3408392500119)),
+               ('Cl', (-3.027970874978, 1.39211904938, -0.0492290974807)),
+               ('C', (1.170155936996, 0.359360756989, -0.513323178859)),
+               ('H', (-1.66730598121, -2.31375855306, -0.433949091252)))
+    swp_geo = automol.geom.swap_coordinates(C2H2CLF_GEO, 1, 4)
+    assert swp_geo == ref_geo
+
+
+def test__move_coordinates():
+    """ test geom.move_coordinates
+    """
+    ref_geo = (('F', (2.994881276150, -1.414434615111, -0.807144415388)),
+               ('C', (-1.201356763194, -0.347546894407, -0.3408392500119)),
+               ('Cl', (-3.027970874978, 1.39211904938, -0.0492290974807)),
+               ('H', (1.731596406235, 2.324260256203, -0.4292070203467)),
+               ('C', (1.170155936996, 0.359360756989, -0.513323178859)),
+               ('H', (-1.66730598121, -2.31375855306, -0.433949091252)))
+    mv_geo = automol.geom.move_coordinates(C2H2CLF_GEO, 1, 4)
+    assert mv_geo == ref_geo
+
+
 if __name__ == '__main__':
-    test__from_data()
-    test__is_valid()
-    test__set_coordinates()
+    # test__from_data()
+    # test__is_valid()
+    # test__set_coordinates()
+    test__swap_coordinates()
+    test__move_coordinates()

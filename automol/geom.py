@@ -296,6 +296,42 @@ def euler_rotated(geo, theta, phi, psi):
     return from_data(syms, xyzs)
 
 
+def swap_coordinates(geo, idx1, idx2):
+    """ swap the order of the coordinates of the two atoms
+    """
+
+    # convert geo (tuple-of-tuples) to a list-of-lists
+    geo2 = [list(x) for x in geo]
+
+    # swap the two coordinates
+    geo2[idx1], geo2[idx2] = geo2[idx2], geo2[idx1]
+
+    # convert geo back to a tuple-of-tuples
+    geo_swp = tuple(tuple(x) for x in geo2)
+
+    return geo_swp
+
+
+def move_coordinates(geo, idx1, idx2):
+    """ move the atom at position idx1 to idx2, shifting all other atoms
+    """
+
+    # convert geo (tuple-of-tuples) to a list-of-lists
+    geo2 = [list(x) for x in geo]
+
+    # Get the coordinates at idx1 that are to be moved
+    moving_coords = geo2[idx1]
+
+    # move the coordinates to idx2
+    geo2.remove(moving_coords)
+    geo2.insert(idx2, moving_coords)
+
+    # convert geo back to a tuple-of-tuples
+    geo_move = tuple(tuple(x) for x in geo2)
+
+    return geo_move
+
+
 # geometric properties
 def distance(geo, key1, key2):
     """ measure the distance between atoms

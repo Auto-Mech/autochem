@@ -19,8 +19,10 @@ from automol.zmatrix._zmatrix import values
 # validation
 from automol.zmatrix._zmatrix import is_valid
 # setters
+from automol.zmatrix._zmatrix import set_keys
 from automol.zmatrix._zmatrix import set_names
 from automol.zmatrix._zmatrix import set_values
+from automol.zmatrix._zmatrix import shift_row_to_end
 from automol.zmatrix._zmatrix import standard_names
 from automol.zmatrix._zmatrix import standard_form
 # operations
@@ -124,8 +126,10 @@ __all__ = [
     # validation
     'is_valid',
     # setters
+    'set_keys',
     'set_names',
     'set_values',
+    'shift_row_to_end',
     'standard_names',
     'standard_form',
     # operations
