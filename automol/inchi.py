@@ -315,6 +315,12 @@ def formula(ich):
     """
     return automol.convert.inchi.formula(ich)
 
+def add_stereo(ich):
+    """ inchi => inchi after adding stereoinfo
+    """
+    gra = automol.inchi.graph(ich)
+    stereo_gras = automol.graph.stereomers(gra)
+    return list(map(lambda x: automol.graph.inchi(x), stereo_gras))
 
 def _sublayers(lyr):
     """ get sublayers from a layer, by prefix
