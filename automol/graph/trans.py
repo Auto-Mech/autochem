@@ -158,7 +158,6 @@ def hydrogen_migration(xgr1, xgr2):
     if len(xgrs1) == 1 and len(xgrs2) == 1:
         xgr1, = xgrs1
         xgr2, = xgrs2
-        inv_atm_key_dct = _full_isomorphism(xgr2, xgr1)
 
         h_atm_key1 = max(_atom_keys(xgr1)) + 1
         h_atm_key2 = max(_atom_keys(xgr2)) + 1

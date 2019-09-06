@@ -8,7 +8,6 @@ import automol.graph
 import automol.graph.trans
 import automol.convert.zmatrix
 import automol.zmatrix
-import sys
 
 
 def hydrogen_migration(rct_zmas, prd_zmas):
@@ -70,8 +69,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     # determine the backbone atoms to redefine the z-matrix entry
     _, gras = _shifted_standard_forms_with_gaphs([rct_zma])
     gra = functools.reduce(automol.graph.union, gras)
-    xgr1, = automol.graph._graph.connected_components(gra)
-    chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
+    # xgr1, = automol.graph._graph.connected_components(gra)
+    # chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
     a2_idx = chains_dct[a1_idx][1]
     a3_idx = chains_dct[a1_idx][2]
 
@@ -125,8 +124,8 @@ def _reorder_zmatrix_hydrogen_migration(zma, a_idx, h_idx):
     # Get the longest chain for all the atoms
     _, gras = _shifted_standard_forms_with_gaphs([zma])
     gra = functools.reduce(automol.graph.union, gras)
-    xgr1, = automol.graph._graph.connected_components(gra)
-    chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
+    # xgr1, = automol.graph._graph.connected_components(gra)
+    # chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
 
     # find the longest heavy-atom chain for the forming atom
     form_chain = chains_dct[a_idx]
