@@ -37,7 +37,6 @@ def isomorphism(nxg1, nxg2):
         return dct1['props'] == dct2['props']
 
     matcher = networkx.algorithms.isomorphism.GraphMatcher(
-    #    nxg1, nxg2)
         nxg1, nxg2, node_match=_same_props, edge_match=_same_props)
 
     iso_dct = None

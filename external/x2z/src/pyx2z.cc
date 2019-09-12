@@ -55,6 +55,31 @@ std::vector<std::string> rotational_bond_coordinates(const MolecStruct& mol) {
 }
 
 
+std::vector<int> rotational_group_indices(const MolecStruct& mol) {
+    std::vector<int> groups;
+    std::vector<int> group;
+
+    for(std::map<int, std::list<std::list<int> > >::const_iterator
+        bit = mol.rotation_bond().begin();
+	    bit != mol.rotation_bond().end(); ++bit) {
+
+	  for(std::list<std::list<int> >::const_iterator 
+          git = bit->second.begin(); 
+          git != bit->second.end(); ++git) {
+	
+		for(std::list<int>::const_iterator 
+            it = git->begin(); 
+            it != git->end(); ++it) {
+	  
+	        group.push_back(mol.atom_map(*it) + 1);
+		}
+      }
+	  // groups.push_back(group);
+	}
+
+    return group;
+}
+
 
 PYBIND11_MODULE(pyx2z, module) {
     py::class_<AtomBase>(module, "AtomBase")
@@ -105,4 +130,5 @@ PYBIND11_MODULE(pyx2z, module) {
         .def("is_radical", &MolecStruct::is_radical);
     module.def("zmatrix_string", &zmatrix_string);
     module.def("rotational_bond_coordinates", &rotational_bond_coordinates);
+    module.def("rotational_group_indices", &rotational_group_indices);
 }

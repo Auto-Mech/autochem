@@ -594,7 +594,6 @@ def test__ts__hydrogen_migration():
 
     ts_zma, dist_name, tors_names = (
         zmatrix.ts.hydrogen_migration(rct_zmas, prd_zmas))
-    print(automol.geom.string(automol.zmatrix.geometry(ts_zma)))
     print(zmatrix.string(ts_zma))
     print(dist_name)
     print(tors_names)

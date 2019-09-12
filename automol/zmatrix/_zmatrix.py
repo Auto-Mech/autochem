@@ -199,7 +199,7 @@ def set_values(zma, val_dct):
 
 def shift_row_to_end(zma, row_idx):
     """ move a single row of the zmatrix to the end
-        
+
         function only works if atom row that needs to be moved is not
         used to define other atoms
     """
@@ -227,7 +227,7 @@ def shift_row_to_end(zma, row_idx):
     new_name_matrix += ((orig_names[row_idx]),)
 
     return automol.create.zmatrix.from_data(
-        syms, key_mat, name_mat, value_dct)
+        new_symbols, new_key_matrix, new_name_matrix, orig_values)
 
 
 # def _shift_method2(zma, row_idx, syms, key_mat, name_mat, value_dct):

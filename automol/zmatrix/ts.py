@@ -69,8 +69,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     # determine the backbone atoms to redefine the z-matrix entry
     _, gras = _shifted_standard_forms_with_gaphs([rct_zma])
     gra = functools.reduce(automol.graph.union, gras)
-    # xgr1, = automol.graph._graph.connected_components(gra)
-    # chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
+    xgr1, = automol.graph.connected_components(gra)
+    chains_dct = automol.graph.atom_longest_chains(xgr1)
     a2_idx = chains_dct[a1_idx][1]
     a3_idx = chains_dct[a1_idx][2]
 
@@ -103,10 +103,25 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
     ts_zma = automol.zmatrix.standard_form(ts_zma)
+
+    # get full set of potential torsional coordinates
+    pot_tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
+
+    # remove the torsional coordinates that would break reaction coordinate
+    gra = automol.zmatrix.graph(ts_zma, remove_stereo=True)
+    coo_dct = automol.zmatrix.coordinates(ts_zma)
     tors_names = []
-    # below Breaks since x2z is called again losing the redefinition
-    # how is x2z working for these anyway
-    # tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
+    for tors_name in pot_tors_names:
+        axis = coo_dct[tors_name][0][1:3]
+        grp1 = [axis[0]] + (
+            list(automol.graph.branch_atom_keys(gra, axis[0], axis) -
+                 set(axis)))
+        grp2 = [axis[1]] + (
+            list(automol.graph.branch_atom_keys(gra, axis[1], axis) -
+                 set(axis)))
+        if not ((h_idx in grp1 and a1_idx in grp2) or
+                (h_idx in grp2 and a1_idx in grp1)):
+            tors_names.append(tors_name)
 
     ret = ts_zma, dist_name, tors_names
 
@@ -124,8 +139,8 @@ def _reorder_zmatrix_hydrogen_migration(zma, a_idx, h_idx):
     # Get the longest chain for all the atoms
     _, gras = _shifted_standard_forms_with_gaphs([zma])
     gra = functools.reduce(automol.graph.union, gras)
-    # xgr1, = automol.graph._graph.connected_components(gra)
-    # chains_dct = automol.graph._stereo.atom_longest_chains(xgr1)
+    xgr1, = automol.graph.connected_components(gra)
+    chains_dct = automol.graph.atom_longest_chains(xgr1)
 
     # find the longest heavy-atom chain for the forming atom
     form_chain = chains_dct[a_idx]
