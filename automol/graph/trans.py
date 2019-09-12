@@ -146,7 +146,7 @@ def _permutation_parity(seq, ref_seq):
     return par
 
 
-def hydrogen_migration(xgr1, xgr2):
+def hydrogen_atom_migration(xgr1, xgr2):
     """ find a hydrogen migration transformation
     """
     assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
@@ -166,6 +166,40 @@ def hydrogen_migration(xgr1, xgr2):
         rad_atm_keys2 = _resonance_dominant_radical_atom_keys(xgr2)
         for atm_key1, atm_key2 in itertools.product(rad_atm_keys1,
                                                     rad_atm_keys2):
+            xgr1_h = _add_atom_explicit_hydrogen_keys(
+                xgr1, {atm_key1: [h_atm_key1]})
+            xgr2_h = _add_atom_explicit_hydrogen_keys(
+                xgr2, {atm_key2: [h_atm_key2]})
+
+            inv_atm_key_dct = _full_isomorphism(xgr2_h, xgr1_h)
+            if inv_atm_key_dct:
+                tra = from_data(
+                    frm_bnd_keys=[{atm_key1,
+                                   inv_atm_key_dct[h_atm_key2]}],
+                    brk_bnd_keys=[{inv_atm_key_dct[atm_key2],
+                                   inv_atm_key_dct[h_atm_key2]}])
+
+    return tra
+
+
+def proton_migration(xgr1, xgr2):
+    """ find a proton migration transformation
+    """
+    assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
+
+    tra = None
+    xgrs1 = _connected_components(xgr1)
+    xgrs2 = _connected_components(xgr2)
+        
+    h_atm_key1 = max(_atom_keys(xgr1)) + 1
+    h_atm_key2 = max(_atom_keys(xgr2)) + 1
+
+    if len(xgrs1) == 1 and len(xgrs2) == 1:
+        xgr1, = xgrs1
+        xgr2, = xgrs2
+        atm_keys1 = _unsaturated_atom_keys(xgr1)
+        atm_keys2 = _unsaturated_atom_keys(xgr2)
+        for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
             xgr1_h = _add_atom_explicit_hydrogen_keys(
                 xgr1, {atm_key1: [h_atm_key1]})
             xgr2_h = _add_atom_explicit_hydrogen_keys(

@@ -556,7 +556,9 @@ def test__ts__hydrogen_migration():
     """ test zmatrix.ts.hydrogen_migration
     """
 
-    rct_zmas = [
+    # hydrogen migration
+    print('hydrogen migration')
+    rct_zmas1 = [
         ((('C', (None, None, None), (None, None, None)),
           ('C', (0, None, None), ('R1', None, None)),
           ('H', (0, 1, None), ('R2', 'A2', None)),
@@ -574,7 +576,7 @@ def test__ts__hydrogen_migration():
           'R7': 2.09831, 'A7': 1.9153, 'D7': 4.18680})
     ]
 
-    prd_zmas = [
+    prd_zmas1 = [
         ((('C', (None, None, None), (None, None, None)),
           ('C', (0, None, None), ('R1', None, None)),
           ('H', (0, 1, None), ('R2', 'A2', None)),
@@ -593,7 +595,35 @@ def test__ts__hydrogen_migration():
     ]
 
     ts_zma, dist_name, tors_names = (
-        zmatrix.ts.hydrogen_migration(rct_zmas, prd_zmas))
+        zmatrix.ts.hydrogen_migration(rct_zmas1, prd_zmas1))
+    print(zmatrix.string(ts_zma))
+    print(dist_name)
+    print(tors_names)
+
+    print('\nproton migration')
+
+    rct_zmas2 = [
+        ((('N', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None)),
+          ('O', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (1, 0, 2), ('R3', 'A3', 'D3'))),
+         {'R1': 2.48392,
+          'R2': 2.25378, 'A2': 2.0944649155632753,
+          'R3': 1.82641, 'A3': 2.0947267149510744, 'D3': 3.141575200297273})
+    ]
+
+    prd_zmas2 = [
+        ((('N', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None)),
+          ('O', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3'))),
+         {'R1': 2.4839,
+          'R2': 2.25363, 'A2': 2.0943951023931953,
+          'R3': 1.94544, 'A3': 2.0943252892231157, 'D3': 3.1514363105710412})
+    ]
+
+    ts_zma, dist_name, tors_names = (
+        zmatrix.ts.hydrogen_migration(rct_zmas2, prd_zmas2))
     print(zmatrix.string(ts_zma))
     print(dist_name)
     print(tors_names)

@@ -8,6 +8,7 @@ import automol.graph
 import automol.graph.trans
 import automol.convert.zmatrix
 import automol.zmatrix
+from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
 
 
 def hydrogen_migration(rct_zmas, prd_zmas):
@@ -23,9 +24,14 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     while True:
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
         rct_gra = functools.reduce(automol.graph.union, rct_gras)
-        tra = automol.graph.trans.hydrogen_migration(rct_gra, prd_gra)
-        if tra is not None:
 
+        # try an atom migration then try a proton migration
+        tra = automol.graph.trans.hydrogen_atom_migration(rct_gra, prd_gra)
+        if tra is None:
+            tra = automol.graph.trans.proton_migration(rct_gra, prd_gra)
+
+        # If reaction found, the proceed
+        if tra is not None:
             # Get the bond formation keys and the reactant zmatrix
             frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
             init_zma, = rct_zmas
@@ -73,6 +79,11 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     chains_dct = automol.graph.atom_longest_chains(xgr1)
     a2_idx = chains_dct[a1_idx][1]
     a3_idx = chains_dct[a1_idx][2]
+    if a3_idx == h_idx:
+        a1_neighbors = _atom_neighbor_keys(xgr1)[a1_idx]
+        for idx in a1_neighbors:
+            if idx not in (h_idx, a2_idx):
+                a3_idx = idx
 
     # determine the new coordinates
     rct_geo = automol.zmatrix.geometry(rct_zma)
@@ -113,10 +124,10 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     tors_names = []
     for tors_name in pot_tors_names:
         axis = coo_dct[tors_name][0][1:3]
-        grp1 = [axis[0]] + (
+        grp1 = [axis[1]] + (
             list(automol.graph.branch_atom_keys(gra, axis[0], axis) -
                  set(axis)))
-        grp2 = [axis[1]] + (
+        grp2 = [axis[0]] + (
             list(automol.graph.branch_atom_keys(gra, axis[1], axis) -
                  set(axis)))
         if not ((h_idx in grp1 and a1_idx in grp2) or
