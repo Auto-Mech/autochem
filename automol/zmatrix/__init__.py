@@ -19,8 +19,10 @@ from automol.zmatrix._zmatrix import values
 # validation
 from automol.zmatrix._zmatrix import is_valid
 # setters
+from automol.zmatrix._zmatrix import set_keys
 from automol.zmatrix._zmatrix import set_names
 from automol.zmatrix._zmatrix import set_values
+from automol.zmatrix._zmatrix import shift_row_to_end
 from automol.zmatrix._zmatrix import standard_names
 from automol.zmatrix._zmatrix import standard_form
 # operations
@@ -82,7 +84,8 @@ def torsion_coordinate_names(zma):
     name_dct = standard_names(zma)
     inv_name_dct = dict(map(reversed, name_dct.items()))
     geo = automol.geom.without_dummy_atoms(geometry(zma))
-    assert var_(standard_form(zma)) == var_(automol.convert.geom.zmatrix(geo))
+    # line below should always break if zma variable has a dummy atom
+    # assert var_(standard_form(zma)) == var_(automol.convert.geom.zmatrix(geo))
     tors_names = automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
     tors_names = tuple(map(inv_name_dct.__getitem__, tors_names))
     return tors_names
@@ -124,8 +127,10 @@ __all__ = [
     # validation
     'is_valid',
     # setters
+    'set_keys',
     'set_names',
     'set_values',
+    'shift_row_to_end',
     'standard_names',
     'standard_form',
     # operations

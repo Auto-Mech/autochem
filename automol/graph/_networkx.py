@@ -12,6 +12,7 @@ def from_graph(xgr):
         nxg.add_node(atm_key, props=atm_vals)
     for bnd_key, bnd_val in bnds.items():
         nxg.add_edge(*bnd_key, props=bnd_val)
+
     return nxg
 
 

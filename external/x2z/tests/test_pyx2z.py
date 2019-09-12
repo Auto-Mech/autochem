@@ -317,6 +317,27 @@ def test__rotational_bond_coordinates():
     assert coords == ['D4', 'D7']
 
 
+def test__rotational_group_indices():
+    """ test pyx2z.rotational_group_indices()
+    """
+    asymbs = ['C', 'C', 'C', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H']
+    coords = [(-1.232983, -0.321673, -0.105358),
+              (1.243527, 0.070589, -0.288927), 
+              (-0.013971, 0.332706, 0.522469),
+              (-1.409212, 0.063988, -1.114625), 
+              (-1.106163, -1.407114, -0.169728), 
+              (-2.124468, -0.118860, 0.496321), 
+              (1.145567, 0.468640, -1.303997),
+              (2.106311, 0.551275, 0.182712),
+              (1.448625, -1.002453, -0.359095), 
+              (-0.179317, 1.412994, 0.600234),
+              (0.122085, -0.050093, 1.539995)]
+    m = _molec_geom_obj(asymbs, coords)
+    s = pyx2z.MolecStruct(pyx2z.PrimStruct(m))
+    indices = pyx2z.rotational_group_indices(s)
+    print(indices)
+
+
 def _molec_geom_obj(asymbs, coords):
     _mg = pyx2z.MolecGeom()
     for asymb, xyz in zip(asymbs, coords):
@@ -339,4 +360,5 @@ if __name__ == '__main__':
     # test__MolecStruct_is_radical()
     # test__zmatrix_string()
     # test__rotational_bond_coordinates()
-    test__MolecStruct_rotation_bond()
+    test__rotational_group_indices()
+    # test__MolecStruct_rotation_bond()

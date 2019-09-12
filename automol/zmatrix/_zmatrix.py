@@ -144,6 +144,29 @@ def is_valid(zma):
 
 
 # setters
+def set_keys(zma, key_dct):
+    """ set keys for the z-matrix
+    """
+    natoms = count(zma)
+    for key, idxs in key_dct.items():
+        assert key <= (natoms - 1)
+        assert all(idx <= (natoms - 1) for idx in idxs)
+        assert all(idx != key for idx in idxs)
+        assert len(idxs) == len(set(idxs))
+
+    orig_key_matrix = key_matrix(zma)
+    new_key_matrix = tuple()
+    for i, row in enumerate(orig_key_matrix):
+        if i in key_dct.keys():
+            new_key_matrix += (key_dct[i],)
+        else:
+            new_key_matrix += (row,)
+
+    return automol.create.zmatrix.from_data(
+        symbols(zma), new_key_matrix,
+        name_matrix(zma), values(zma))
+
+
 def set_names(zma, name_dct):
     """ set coordinate names for the z-matrix
     """
@@ -172,6 +195,157 @@ def set_values(zma, val_dct):
     return automol.create.zmatrix.from_data(
         _v_.symbols(vma), _v_.key_matrix(vma), _v_.name_matrix(vma),
         new_val_dct)
+
+
+def shift_row_to_end(zma, row_idx):
+    """ move a single row of the zmatrix to the end
+
+        function only works if atom row that needs to be moved is not
+        used to define other atoms
+    """
+
+    # set the original
+    orig_symbols = symbols(zma)
+    orig_keys = key_matrix(zma)
+    orig_names = name_matrix(zma)
+    orig_values = values(zma)
+
+    # Build new tuples with the row corresponding to the row_idx removed
+    new_symbols, new_key_matrix, new_name_matrix = tuple(), tuple(), tuple()
+    zma_data = zip(orig_symbols, orig_keys, orig_names)
+    for i, (sym, key_row, name_row) in enumerate(zma_data):
+        if i == row_idx:
+            continue
+        else:
+            new_symbols += (sym,)
+            new_key_matrix += (key_row,)
+            new_name_matrix += (name_row,)
+
+    # Append the row corresponding to row_idx
+    new_symbols += ((orig_symbols[row_idx]),)
+    new_key_matrix += ((orig_keys[row_idx]),)
+    new_name_matrix += ((orig_names[row_idx]),)
+
+    return automol.create.zmatrix.from_data(
+        new_symbols, new_key_matrix, new_name_matrix, orig_values)
+
+
+# def _shift_method2(zma, row_idx, syms, key_mat, name_mat, value_dct):
+#     """ attempt at generic shift method - not functioning
+#
+#         method needs some post processing
+#         since atom to be moved is used to define number of rows
+#     """
+#
+#     # Build new tuples with the row corresponding to the row_idx removed
+#     new_symbols, new_key_matrix, new_name_matrix = tuple(), tuple(), tuple()
+#     zmat_data = zip(syms, key_mat, name_mat)
+#     bad_names = []
+#     for i, (sym, key_row, name_row) in enumerate(zmat_data):
+#         new_symbols += (sym,)
+#         if i == 0:
+#             new_key_matrix += ((None, None, None),)
+#             new_name_matrix += ((None, None, None),)
+#             bad_names.append([name_row[i] for i in (0, 1, 2)
+#                               if name_row[i] is not None])
+#         elif i == 1:
+#             new_key_matrix += ((key_row[0], None, None),)
+#             new_name_matrix += ((name_row[0], None, None),)
+#             bad_names.append([name_row[i] for i in (1, 2)
+#                               if name_row[i] is not None])
+#         elif i == 2:
+#             new_key_matrix += ((key_row[0], key_row[1], None),)
+#             new_name_matrix += ((name_row[0], name_row[1], None),)
+#             bad_names.append([name_row[i] for i in (2,)
+#                               if name_row[i] is not None])
+#         elif i == count(zma)-1:
+#             new_key_matrix += ((0, 1, 2),)
+#             new_name_matrix += (('R1000', 'A1000', 'D1000'),)
+#             bad_names.append([name_row[i] for i in (0, 1, 2)
+#                               if name_row[i] is not None])
+#         else:
+#             new_key_matrix += (key_row,)
+#             new_name_matrix += (name_row,)
+#
+#     # lower the index of keys if needd
+#     # for i, keys in enumerate(new_key_matrix):
+#     #     if i in keys:
+#     #         new_keys = ()
+#     #         for key in keys:
+#     #         new_key_matrix[i] =
+#     #     else:
+#     #         continue
+#
+#     # build new dict: delete bad, rename
+#     flat_bad = [item for sublist in bad_names for item in sublist]
+#     new_values = {}
+#     for key, val in value_dct.items():
+#         if key in flat_bad:
+#             continue
+#         else:
+#             new_values[key] = val
+#     new_values['R1000'] = 1.000
+#     new_values['A1000'] = 1.000
+#     new_values['D1000'] = 1.000
+#
+#     # determine the coordinates in the name matrix needed to recalculate
+#     names_to_recalc = []
+#     zma_info = zip(new_key_matrix, new_name_matrix)
+#     for i, (key_row, name_row) in enumerate(zma_info):
+#         # figure out what element of the keys corresponds to moving atom idx
+#         if i != count(zma)-1:
+#             if row_idx in key_row:
+#                 idx_ref = key_row.index(row_idx)
+#                 name = name_row[idx_ref]
+#                 names_to_recalc.append([name, idx_ref])
+#             else:
+#                 names_to_recalc.append([None, None])
+#
+#     # form the initial new z-matrix
+#     new_zma = automol.create.zmatrix.from_data(
+#         new_symbols, new_key_matrix, new_name_matrix, new_values)
+#
+#     # get a reordered geometry
+#     geo = automol.zmatrix.geometry(zma)
+#     new_geo = (*geo[:row_idx],) + (*geo[row_idx+1:],) + tuple([geo[row_idx]])
+#
+#     # loop through recalc list and recalc stuff as necessary
+#     for atom_idx, (name, idx) in enumerate(names_to_recalc):
+#         # Get the keys needed to recalculate the coordinate
+#         keys = new_key_matrix[i]
+#         if idx in keys:
+#             # Calculate the coordinate
+#             if idx == 0:
+#                 new_val = automol.geom.distance(
+#                     new_geo, atom_idx, keys[0])
+#             elif idx == 1:
+#                 new_val = automol.geom.central_angle(
+#                     new_geo, atom_idx, keys[0], keys[1])
+#             elif idx == 2:
+#                 new_val = automol.geom.dihedral_angle(
+#                     new_geo, atom_idx, keys[0], keys[1], keys[2])
+#             # Reset the value in the value dictionary
+#             new_zma = set_values(new_zma, {name: new_val})
+#
+#     # set final values
+#     atom_idx = count(zma) - 1
+#     keys = new_key_matrix[-1]
+#     print(keys)
+#     new_zma = set_values(
+#         new_zma, {'R1000': automol.geom.distance(
+#             new_geo, atom_idx, keys[0])})
+#     new_zma = set_values(
+#         new_zma, {'A1000': automol.geom.central_angle(
+#             new_geo, atom_idx, keys[0], keys[1])})
+#     new_zma = set_values(
+#         new_zma, {'D1000': automol.geom.dihedral_angle(
+#             new_geo, atom_idx, keys[0], keys[1], keys[2])})
+#
+#     print(string(new_zma))
+#     print('\n')
+#     print(automol.geom.string(new_geo))
+#     sys.exit()
+#     return new_zma
 
 
 def standard_names(zma, shift=0):
