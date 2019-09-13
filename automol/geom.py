@@ -366,25 +366,27 @@ def dihedral_angle(geo, key1, key2, key3, key4):
 def dist_mat(geo):
     """form distance matrix for a set of xyz coordinates
     """
-    mat = numpy.zeros((len(geo),len(geo)))
+    mat = numpy.zeros((len(geo), len(geo)))
     for i in range(len(geo)):
         for j  in range(len(geo)):
             mat[i][j] = distance(geo, i, j)
     return mat
 
-def almost_equal_dist_mat(geo1, geo2, thresh = 0.1):
+def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
     """form distance matrix for a set of xyz coordinates
     """
     dist_mat1 = dist_mat(geo1)
     dist_mat2 = dist_mat(geo2)
-    diff_mat  = numpy.zeros((len(geo),len(geo)))
-    almost_equal = True
-    for i in range(len(dist_mat1)):
-        for j in range(len(dist_mat1)):
+    diff_mat = numpy.zeros((len(geo1), len(geo2)))
+    almost_equal_dm = True
+    for i, _ in enumerate(dist_mat1):
+        for j, _ in enumerate(dist_mat1):
             diff_mat[i][j] = abs(dist_mat1[i][j] - dist_mat2[i][j])
+#    print(numpy.amax(diff_mat))
     if numpy.amax(diff_mat) > thresh:
-        almost_equal = False
-    return almost_equal
+        almost_equal_dm = False
+    return almost_equal_dm
+#    return almost_equal_dm, numpy.amax(diff_mat)
 
 
 # chemical properties
