@@ -378,9 +378,11 @@ def _swap_for_one(geo, hyds):
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
             geo_lst.append(new_geo)
-            new_geo = geo
+            # new_geo = geo
+            # new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
+            # new_geo = swap_coordinates(new_geo, hyds[1], hyds[2])
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            new_geo = swap_coordinates(new_geo, hyds[1], hyds[2])
             geo_lst.append(new_geo)
         else:
             geo_lst.append(new_geo)
@@ -428,6 +430,7 @@ def dist_mat(geo):
         for j  in range(len(geo)):
             mat[i][j] = distance(geo, i, j)
     return mat
+
 
 def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
     """form distance matrix for a set of xyz coordinates
