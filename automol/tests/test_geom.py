@@ -151,9 +151,30 @@ def test__move_coordinates():
     assert mv_geo == ref_geo
 
 
+def test__external_symmetry_number():
+    """ test geom.external_symmety_number
+    """
+    ref_sym_num1 = 12
+    ref_sym_num2 = 2
+
+    methane_geo = (('C', (1.2069668249, 1.9997649792, -0.0000004209)),
+                   ('H', (3.3034303116, 1.9997688296, -0.0000006619)),
+                   ('H', (0.5081497935, 0.1480118251, 0.6912478445)),
+                   ('H', (0.5081445849, 2.3270011544, -1.9492882688)),
+                   ('H', (0.5081426638, 3.5242779889, 1.2580393046)))
+    water_geo = (('O', (-5.3344419198110174e-05, 0.7517614816502209, 0.0)),
+                 ('H', (-1.4427184990730881, -0.3759830919088236, 0.0)),
+                 ('H', (1.4427718434922905, -0.3757783897413961, 0.0)))
+    methane_sym_num = automol.geom.external_symmetry_number(methane_geo)
+    water_sym_num = automol.geom.external_symmetry_number(water_geo)
+    assert methane_sym_num == ref_sym_num1
+    assert water_sym_num == ref_sym_num2
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__is_valid()
     # test__set_coordinates()
-    test__swap_coordinates()
-    test__move_coordinates()
+    # test__swap_coordinates()
+    # test__move_coordinates()
+    test__external_symmetry_number()

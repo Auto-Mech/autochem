@@ -6,6 +6,18 @@ import autoparse.pattern as app
 from automol.create.zmatrix import from_data as _zmatrix_from_data
 
 
+def to_oriented_geometry(geo):
+    """ obtain an oriented x2z molecule object from a geometry
+    """
+    _mg = pyx2z.MolecGeom()
+    for sym, xyz in geo:
+        _atm = pyx2z.Atom(sym)
+        _atm[0], _atm[1], _atm[2] = xyz
+        _mg.push_back(_atm)
+    orient_mg = pyx2z.MolecOrient(_mg)
+    return orient_mg
+
+
 def from_geometry(geo):
     """ x2z molecule object from a geometry
     """
