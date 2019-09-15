@@ -13,6 +13,7 @@ from automol import cart
 import automol.create.geom
 import automol.convert.geom
 import automol.convert.inchi
+from automol.convert import _pyx2z
 
 
 # constructor
@@ -427,7 +428,7 @@ def dist_mat(geo):
     """
     mat = numpy.zeros((len(geo), len(geo)))
     for i in range(len(geo)):
-        for j  in range(len(geo)):
+        for j in range(len(geo)):
             mat[i][j] = distance(geo, i, j)
     return mat
 
@@ -447,6 +448,14 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
         almost_equal_dm = False
     return almost_equal_dm
 #    return almost_equal_dm, numpy.amax(diff_mat)
+
+
+def external_symmetry_number(geo):
+    """ obtain external symmetry number for a geometry using x2z
+    """
+    oriented_geom = _pyx2z.to_oriented_geometry(geo)
+    sym_num = oriented_geom.sym_num()
+    return sym_num
 
 
 # chemical properties
@@ -547,7 +556,8 @@ def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
     else:
         keys = range(len(symbols(geo)))
         for key1, key2, key3 in mit.windowed(keys, 3):
-            if numpy.abs(central_angle(geo, key1, key2, key3) % numpy.pi) > tol:
+            cangle = numpy.abs(central_angle(geo, key1, key2, key3))
+            if cangle % numpy.pi > tol:
                 ret = False
     return ret
 
