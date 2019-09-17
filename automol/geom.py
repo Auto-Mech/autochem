@@ -365,7 +365,7 @@ def rot_permutated_geoms(geo):
         for geom in geo_final_lst:
             geo_lst.extend(_swap_for_one(geom, hyds))
         geo_final_lst = geo_lst
-    return geo_lst
+    return geo_final_lst
 
 
 def _swap_for_one(geo, hyds):
