@@ -392,6 +392,74 @@ def _swap_for_one(geo, hyds):
     return geo_lst
 
 
+def set_axes_to_123(symb, coords):
+    """ Transform coordinates so that first 3 coords define system.
+        NONFUNCTIONING AT THE MOMENT
+    """
+
+    # Put in a matrix
+    A = numpy.asarray(coords, dtype=numpy.float)
+
+    # Translate so that first atom is center
+    B = A - A[0]
+
+    # Build Rotation matrix to rotate second atom vector onto Z-axis
+    # Get unit vectors
+    b = (1.0 / numpy.linalg.norm(B[1])) * B[1]
+    z = numpy.array([0.0, 0.0, 1.0])
+
+    # Get Orthogonal Vector to rotate about
+    v = numpy.cross(b, z)
+
+    # Get sine and cosine of angle
+    c = numpy.dot(b, z)
+    s = numpy.linalg.norm(v)
+
+    # Build matrices to sum for R
+    h = ((1.0 - c) / (s*s))
+    Rbz = numpy.array([
+        [c + h*v[0]*v[0], h*v[0]*v[1] - v[2], h*v[0]*v[2] + v[1]],
+        [h*v[0]*v[1] + v[2], c + h*v[1]*v[1], h*v[1]*v[2] - v[0]],
+        [h*v[0]*v[2] - v[1], h*v[1]*v[2] + v[0], c + h*v[2]*v[2]]])
+
+    # User rotation matrix to make second atom on Z-axis
+    C = numpy.dot(Rbz, B.transpose()).transpose()
+
+    # Build Rotation matrix to make third atom in yz-plane
+    # Get unit vectors
+    b = (1.0 / numpy.linalg.norm(C[2])) * C[2]
+    q = C[2] - numpy.array([C[2][0], 0.0, 0.0])
+    z = (1.0 / numpy.linalg.norm(q)) * q
+
+    # Get Orthogonal Vector to rotate about
+    v = numpy.cross(b, z)
+
+    # Get sine and cosine of angle
+    c = numpy.dot(b, z)
+    s = numpy.linalg.norm(v)
+
+    # Build rotation matrix to rotate about z-axis
+    Rz = numpy.array([[c, -s, 0.0],
+                     [s, c, 0.0],
+                     [0.0, 0.0, 1.0]])
+
+    # User rotation matrix to make second atom on Z-axis
+    D = numpy.dot(Rz, C.transpose()).transpose()
+
+    # Turn coords back into a list
+    trans_coords = D.tolist()
+
+    # Put the atom symbols back onto coords
+    axyb = []
+    for i in range(len(symb)):
+        xyzstr = symb[i]
+        for j in range(len(trans_coords[i])):
+            xyzstr = xyzstr + '   ' + str(trans_coords[i][j])
+        axyb.append(xyzstr)
+
+    return axyb
+
+
 # geometric properties
 def distance(geo, key1, key2):
     """ measure the distance between atoms
@@ -448,62 +516,66 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
         almost_equal_dm = False
     return almost_equal_dm
 #    return almost_equal_dm, numpy.amax(diff_mat)
-
-
+                
+                
 def external_symmetry_number(geo):
     """ obtain external symmetry number for a geometry using x2z
-    """
+    """         
+    # Get initial external symmetry number
     oriented_geom = _pyx2z.to_oriented_geometry(geo)
     sym_num = oriented_geom.sym_num()
+    # Change symmetry number if geometry has enantiomers
+    if oriented_geom.is_enantiomer:
+        sym_num *= 0.5 
     return sym_num
-
-
+                
+                
 # chemical properties
 def is_atom(geo):
     """ return return the atomic masses
-    """
+    """         
     syms = symbols(geo)
-    ret = False
+    ret = False 
     if len(syms) == 1:
         ret = True
-    return ret
-
-
+    return ret  
+                
+                
 def masses(geo, amu=True):
     """ return the atomic masses
-    """
+    """         
     syms = symbols(geo)
     amas = list(map(pt.to_mass, syms))
-
-    if not amu:
+                
+    if not amu: 
         conv = qcc.conversion_factor("atomic_mass_unit", "electron_mass")
         amas = numpy.multiply(amas, conv)
-
+                
     amas = tuple(amas)
-    return amas
-
-
+    return amas 
+                
+                
 def center_of_mass(geo):
     """ center of mass
-    """
+    """         
     xyzs = coordinates(geo)
     amas = masses(geo)
     cm_xyz = tuple(
         sum(numpy.multiply(xyz, ama) for xyz, ama in zip(xyzs, amas)) /
         sum(amas))
-
+                
     return cm_xyz
-
-
+                
+                
 def mass_centered(geo):
     """ mass-centered geometry
-    """
+    """         
     geo = translated(geo, numpy.negative(center_of_mass(geo)))
-    return geo
-
-
+    return geo  
+                
+                
 def inertia_tensor(geo, amu=True):
-    """ molecular inertia tensor (atomic units if amu=False)
+    """ molecula# r inertia tensor (atomic units if amu=False)
     """
     geo = mass_centered(geo)
     amas = masses(geo, amu=amu)
