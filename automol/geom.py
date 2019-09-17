@@ -9,6 +9,7 @@ from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
 import autowrite as aw
+import moldr
 from automol import cart
 import automol.create.geom
 import automol.convert.geom
@@ -516,64 +517,74 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
         almost_equal_dm = False
     return almost_equal_dm
 #    return almost_equal_dm, numpy.amax(diff_mat)
-                
-                
+
+
 def external_symmetry_number(geo):
     """ obtain external symmetry number for a geometry using x2z
-    """         
+    """
     # Get initial external symmetry number
     oriented_geom = _pyx2z.to_oriented_geometry(geo)
-    sym_num = oriented_geom.sym_num()
+    ext_sym_num = oriented_geom.sym_num()
     # Change symmetry number if geometry has enantiomers
     if oriented_geom.is_enantiomer:
-        sym_num *= 0.5 
-    return sym_num
-                
-                
+        ext_sym_num *= 0.5
+    return ext_sym_num
+
+
+def sym_num(geo, ene, cnf_save_fs):
+    """ obtain overall symmetry number for a geometry as a product
+    of the external and internal symmetry numbers
+    """
+    ext_sym = external_symmetry_number(geo)
+    int_sym = moldr.conformer.int_sym_num_from_sampling(geo, ene, cnf_save_fs)
+    tot_sym_num = ext_sym * int_sym
+    return tot_sym_num
+
+
 # chemical properties
 def is_atom(geo):
     """ return return the atomic masses
-    """         
+    """
     syms = symbols(geo)
-    ret = False 
+    ret = False
     if len(syms) == 1:
         ret = True
-    return ret  
-                
-                
+    return ret
+
+
 def masses(geo, amu=True):
     """ return the atomic masses
-    """         
+    """
     syms = symbols(geo)
     amas = list(map(pt.to_mass, syms))
-                
-    if not amu: 
+
+    if not amu:
         conv = qcc.conversion_factor("atomic_mass_unit", "electron_mass")
         amas = numpy.multiply(amas, conv)
-                
+
     amas = tuple(amas)
-    return amas 
-                
-                
+    return amas
+
+
 def center_of_mass(geo):
     """ center of mass
-    """         
+    """
     xyzs = coordinates(geo)
     amas = masses(geo)
     cm_xyz = tuple(
         sum(numpy.multiply(xyz, ama) for xyz, ama in zip(xyzs, amas)) /
         sum(amas))
-                
+
     return cm_xyz
-                
-                
+
+
 def mass_centered(geo):
     """ mass-centered geometry
-    """         
+    """
     geo = translated(geo, numpy.negative(center_of_mass(geo)))
-    return geo  
-                
-                
+    return geo
+
+
 def inertia_tensor(geo, amu=True):
     """ molecula# r inertia tensor (atomic units if amu=False)
     """
