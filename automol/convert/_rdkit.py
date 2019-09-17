@@ -29,6 +29,31 @@ def to_geometry(rdm):
     return geo
 
 
+def to_conformers(rdm, nconfs=150):
+    """ list of cartesian geometries for conformers
+        from an rdkit molecule object
+        currently not removing redundant conformers
+    """
+    rdm = _rd_chem.AddHs(rdm)
+    atms = rdm.GetAtoms()
+    natms = len(rdm.GetAtoms())
+    geos = []
+    if natms == 1:
+        syms = [str(atms[0].GetSymbol()).title()]
+        xyzs = [(0., 0., 0.)]
+        geos.append(
+            automol.create.geom.from_data(syms, xyzs, angstrom=True))
+    else:
+        cids = _rd_all_chem.EmbedMultipleConfs(rdm, NumConfs=nconfs)
+        _rd_all_chem.MMFFOptimizeMoleculeConfs(rdm)
+        for cid in cids:
+            syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
+            xyzs = tuple(map(tuple, rdm.GetConformer(cid).GetPositions()))
+            geos.append(
+                automol.create.geom.from_data(syms, xyzs, angstrom=True))
+    return geos
+
+
 # inchi
 def from_inchi(ich):
     """ rdkit molecule object from an InChI string
