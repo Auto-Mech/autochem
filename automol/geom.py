@@ -360,7 +360,7 @@ def rot_permutated_geoms(geo):
         for geom in geo_final_lst:
             geo_lst.extend(_swap_for_one(geo, hyds))
         geo_final_lst = geo_lst
-    return geo_lst
+    return geo_final_lst
 
 def _swap_for_one(geo, hyds):
     geo_lst = []
@@ -586,6 +586,12 @@ def symmetry_factor(geo, ene, cnf_save_fs):
     int_sym = moldr.conformer.int_sym_num_from_sampling(geo, ene, cnf_save_fs)
     sym_fac = ext_sym * int_sym
     return sym_fac
+def external_symmetry_number(geo):
+    """ obtain external symmetry number for a geometry using x2z
+    """
+    oriented_geom = _pyx2z.to_oriented_geometry(geo)
+    sym_num = oriented_geom.sym_num()
+    return sym_num
 
 
 # chemical properties
@@ -716,6 +722,10 @@ def graph(geo, remove_stereo=False):
     """
     return automol.convert.geom.graph(geo, remove_stereo=remove_stereo)
 
+def weakly_connected_graph(geo, remove_stereo=False):
+    """ geometry => graph
+    """
+    return automol.convert.geom.weakly_connected_graph(geo, remove_stereo=remove_stereo)
 
 def inchi(geo, remove_stereo=False):
     """ geometry => inchi
