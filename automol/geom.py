@@ -519,26 +519,29 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
 #    return almost_equal_dm, numpy.amax(diff_mat)
 
 
-def external_symmetry_number(geo):
+def external_symmetry_factor(geo):
     """ obtain external symmetry number for a geometry using x2z
     """
     # Get initial external symmetry number
+    print('geo test:', geo)
     oriented_geom = _pyx2z.to_oriented_geometry(geo)
-    ext_sym_num = oriented_geom.sym_num()
+    print('oriented_geom test:', oriented_geom)
+    ext_sym_fac = oriented_geom.sym_num()
+    print('ext sym num test:', ext_sym_fac)
     # Change symmetry number if geometry has enantiomers
     if oriented_geom.is_enantiomer:
-        ext_sym_num *= 0.5
-    return ext_sym_num
+        ext_sym_fac *= 0.5
+    return ext_sym_fac
 
 
-def sym_num(geo, ene, cnf_save_fs):
+def symmetry_factor(geo, ene, cnf_save_fs):
     """ obtain overall symmetry number for a geometry as a product
     of the external and internal symmetry numbers
     """
-    ext_sym = external_symmetry_number(geo)
+    ext_sym = external_symmetry_factor(geo)
     int_sym = moldr.conformer.int_sym_num_from_sampling(geo, ene, cnf_save_fs)
-    tot_sym_num = ext_sym * int_sym
-    return tot_sym_num
+    sym_fac = ext_sym * int_sym
+    return sym_fac
 
 
 # chemical properties
