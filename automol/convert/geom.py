@@ -91,7 +91,7 @@ def _connectivity_graph(geo, rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.
         sym1, sym2 = map(syms.__getitem__, idx_pair)
         dist = numpy.linalg.norm(numpy.subtract(xyz1, xyz2))
         return (False if 'X' in (sym1, sym2) else
-                (dist < rhq_bond_max) if 'H' in (sym1, sym2) elif
+                (dist < rqh_bond_max) if 'H' in (sym1, sym2) else
                 (dist < rhh_bond_max) if (sym1 == 'H' and sym2 == 'H') else
                 (dist < rqq_bond_max))
 
