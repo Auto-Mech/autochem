@@ -156,6 +156,8 @@ def test__external_symmetry_number():
     """
     ref_sym_num1 = 12
     ref_sym_num2 = 2
+    ref_sym_num3 = 0.5
+    ref_sym_num4 = 1
 
     methane_geo = (('C', (1.2069668249, 1.9997649792, -0.0000004209)),
                    ('H', (3.3034303116, 1.9997688296, -0.0000006619)),
@@ -165,10 +167,23 @@ def test__external_symmetry_number():
     water_geo = (('O', (-5.3344419198110174e-05, 0.7517614816502209, 0.0)),
                  ('H', (-1.4427184990730881, -0.3759830919088236, 0.0)),
                  ('H', (1.4427718434922905, -0.3757783897413961, 0.0)))
+    c2h5of_geo = (('C', (-4.67963119210, -2.785693400767, -0.04102938592633)),
+                  ('C', (-1.806009533535, -2.594940600449, -0.1025157659970)),
+                  ('H', (-5.39544527869, -3.740953123044, -1.774996188159)),
+                  ('H', (-5.501156952723, -0.854962636480, -0.01317371318990)),
+                  ('O', (-5.48010155525, -4.07121874876, 2.132641999777597)),
+                  ('H', (-1.208455201406, -1.52313066520, -1.804561025201)),
+                  ('F', (-0.745999108314, -4.9827454242, -0.1878162481225)),
+                  ('H', (-1.11738479998, -1.591763680324, 1.607521773704)),
+                  ('H', (-5.30771129777, -5.90407965309, 1.771303996279)))
     methane_sym_num = automol.geom.external_symmetry_number(methane_geo)
     water_sym_num = automol.geom.external_symmetry_number(water_geo)
+    c2h5of_sym_num = automol.geom.external_symmetry_number(c2h5of_geo)
+    c2h2clf_sym_num = automol.geom.external_symmetry_number(C2H2CLF_GEO)
     assert methane_sym_num == ref_sym_num1
     assert water_sym_num == ref_sym_num2
+    assert c2h5of_sym_num == ref_sym_num3
+    assert c2h2clf_sym_num == ref_sym_num4
 
 
 if __name__ == '__main__':

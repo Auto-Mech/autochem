@@ -360,5 +360,7 @@ if __name__ == '__main__':
     # test__MolecStruct_is_radical()
     # test__zmatrix_string()
     # test__rotational_bond_coordinates()
-    test__rotational_group_indices()
+    # test__rotational_group_indices()
     # test__MolecStruct_rotation_bond()
+    test__MolecOrient_sym_num()
+    test__MolecOrient_is_enantiomer()
