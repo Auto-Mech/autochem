@@ -333,6 +333,53 @@ def move_coordinates(geo, idx1, idx2):
 
     return geo_move
 
+def rot_permutated_geoms(geo):
+    gra = graph(geo)
+    term_atms = {}
+    all_hyds = []
+    neighbor_dct = automol.graph.atom_neighbor_keys(gra)
+    gra = gra[0]
+    for atm in gra:
+        if gra[atm][0] == 'H':
+            all_hyds.append(atm)
+    for atm in gra:
+        nonH_neighs = []
+        H_neighs = []
+        neighs = neighbor_dct[atm]
+        for nei in neighs:
+            if nei in all_hyds:
+                H_neighs.append(nei)
+            else:
+                nonH_neighs.append(nei)
+        if len(nonH_neighs) < 2 and len(H_neighs) > 1:
+            term_atms[atm] = H_neighs
+    geo_final_lst = [geo]
+    for atm in term_atms:
+        hyds = term_atms[atm]
+        geo_lst = []
+        for geom in geo_final_lst:
+            geo_lst.extend(_swap_for_one(geo, hyds))
+        geo_final_lst = geo_lst
+    return geo_final_lst
+
+def _swap_for_one(geo, hyds):
+    geo_lst = []
+    if len(hyds) > 1:
+        new_geo = geo
+        if len(hyds) > 2:
+            geo_lst.append(new_geo)
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
+            geo_lst.append(new_geo)
+            new_geo = geo
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
+            new_geo = swap_coordinates(new_geo, hyds[1], hyds[2])
+            geo_lst.append(new_geo)
+        else:
+            geo_lst.append(new_geo)
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
+            geo_lst.append(new_geo)
+    return geo_lst
 
 def rot_permutated_geoms(geo):
     """ convert an input geometry to a list of geometries
@@ -539,6 +586,12 @@ def symmetry_factor(geo, ene, cnf_save_fs):
     int_sym = moldr.conformer.int_sym_num_from_sampling(geo, ene, cnf_save_fs)
     sym_fac = ext_sym * int_sym
     return sym_fac
+def external_symmetry_number(geo):
+    """ obtain external symmetry number for a geometry using x2z
+    """
+    oriented_geom = _pyx2z.to_oriented_geometry(geo)
+    sym_num = oriented_geom.sym_num()
+    return sym_num
 
 
 # chemical properties
@@ -669,6 +722,10 @@ def graph(geo, remove_stereo=False):
     """
     return automol.convert.geom.graph(geo, remove_stereo=remove_stereo)
 
+def weakly_connected_graph(geo, remove_stereo=False):
+    """ geometry => graph
+    """
+    return automol.convert.geom.weakly_connected_graph(geo, remove_stereo=remove_stereo)
 
 def inchi(geo, remove_stereo=False):
     """ geometry => inchi

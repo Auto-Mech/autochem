@@ -69,7 +69,18 @@ def graph(geo, remove_stereo=False):
     return gra
 
 
-def _connectivity_graph(geo, rq_bond_max=3.5, rh_bond_max=2.6):
+def weakly_connected_graph(geo, remove_stereo=False):
+    """ geometry => graph
+    """
+    gra = _connectivity_graph(geo, rqq_bond_max=3.8, rqh_bond_max=3.8, rhh_bond_max=2.3)
+    #if not remove_stereo:
+    #    xyzs = automol.geom.coordinates(geo)
+    #    atm_xyz_dct = dict(enumerate(xyzs))
+    #    gra = automol.graph.set_stereo_from_atom_coordinates(gra, atm_xyz_dct)
+    return gra
+
+
+def _connectivity_graph(geo, rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph (no stereo)
     """
     syms = automol.geom.symbols(geo)
@@ -80,8 +91,9 @@ def _connectivity_graph(geo, rq_bond_max=3.5, rh_bond_max=2.6):
         sym1, sym2 = map(syms.__getitem__, idx_pair)
         dist = numpy.linalg.norm(numpy.subtract(xyz1, xyz2))
         return (False if 'X' in (sym1, sym2) else
-                (dist < rh_bond_max) if 'H' in (sym1, sym2) else
-                (dist < rq_bond_max))
+                (dist < rqh_bond_max) if 'H' in (sym1, sym2) else
+                (dist < rhh_bond_max) if (sym1 == 'H' and sym2 == 'H') else
+                (dist < rqq_bond_max))
 
     idxs = range(len(xyzs))
     atm_sym_dct = dict(enumerate(syms))
