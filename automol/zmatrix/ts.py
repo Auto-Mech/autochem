@@ -22,6 +22,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     count = 1
     while True:
+        print('rct_zmas in h mig:', count, rct_zmas)
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
         rct_gra = functools.reduce(automol.graph.union, rct_gras)
 
@@ -67,6 +68,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
             else:
                 rct_zma = init_zma
                 break
+        else:
+            return None
 
     # if migrating H atom is not the final zmat entry, shift it to the end
     # if h_idx != automol.zmatrix.count(rct_zma) - 1:

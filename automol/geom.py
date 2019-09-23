@@ -9,12 +9,10 @@ from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
 import autowrite as aw
-import moldr
 from automol import cart
 import automol.create.geom
 import automol.convert.geom
 import automol.convert.inchi
-from automol.convert import _pyx2z
 
 
 # constructor
@@ -564,34 +562,6 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
         almost_equal_dm = False
     return almost_equal_dm
 #    return almost_equal_dm, numpy.amax(diff_mat)
-
-
-def external_symmetry_factor(geo):
-    """ obtain external symmetry number for a geometry using x2z
-    """
-    # Get initial external symmetry number
-    oriented_geom = _pyx2z.to_oriented_geometry(geo)
-    ext_sym_fac = oriented_geom.sym_num()
-    # Change symmetry number if geometry has enantiomers
-    if oriented_geom.is_enantiomer():
-        ext_sym_fac *= 0.5
-    return ext_sym_fac
-
-
-def symmetry_factor(geo, ene, cnf_save_fs):
-    """ obtain overall symmetry number for a geometry as a product
-    of the external and internal symmetry numbers
-    """
-    ext_sym = external_symmetry_factor(geo)
-    int_sym = moldr.conformer.int_sym_num_from_sampling(geo, ene, cnf_save_fs)
-    sym_fac = ext_sym * int_sym
-    return sym_fac
-def external_symmetry_number(geo):
-    """ obtain external symmetry number for a geometry using x2z
-    """
-    oriented_geom = _pyx2z.to_oriented_geometry(geo)
-    sym_num = oriented_geom.sym_num()
-    return sym_num
 
 
 # chemical properties
