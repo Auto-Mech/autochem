@@ -32,7 +32,7 @@ def _connected_geometry(ich):
 
         def _gen1(ich):
             rdm = _rdkit.from_inchi(ich)
-            geo = _rdkit.to_geometry(rdm)
+            geo = _rdkit.to_conformers(rdm)
             return geo
 
         def _gen2(ich):
@@ -62,6 +62,44 @@ def _connected_geometry(ich):
             raise error.FailedGeometryGenerationError
 
     return geo
+
+
+def conformers(ich, nconfs):
+    """ InChI => conformers
+    """
+
+    geo = object_from_hardcoded_inchi_by_key('geom', ich)
+    if geo is None:
+        ich = automol.inchi.standard_form(ich)
+
+        def _gen1(ich):
+            rdm = _rdkit.from_inchi(ich)
+            geos = _rdkit.to_conformers(rdm, nconfs)
+            return geos
+
+        # def _gen2(ich):
+        #     pbm = _pybel.from_inchi(ich)
+        #     geos = _pybel.to_conformers(pbm)
+        #     return geos
+
+        for gen_ in [_gen1]:
+            success = False
+            try:
+                geos = gen_(ich)
+                for geo in geos:
+                    geo_ich = automol.convert.geom.inchi(geo)
+                    if automol.inchi.same_connectivity(ich, geo_ich) and (
+                            not automol.inchi.has_stereo(ich) or
+                            automol.inchi.equivalent(ich, geo_ich)):
+                        success = True  # fix
+                        break
+            except (RuntimeError, TypeError, ValueError):
+                continue
+
+        if not success:
+            raise error.FailedGeometryGenerationError
+
+    return geos
 
 
 def recalculate(ich, force_stereo=False):

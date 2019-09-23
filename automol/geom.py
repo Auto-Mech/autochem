@@ -523,13 +523,10 @@ def external_symmetry_factor(geo):
     """ obtain external symmetry number for a geometry using x2z
     """
     # Get initial external symmetry number
-    print('geo test:', geo)
     oriented_geom = _pyx2z.to_oriented_geometry(geo)
-    print('oriented_geom test:', oriented_geom)
     ext_sym_fac = oriented_geom.sym_num()
-    print('ext sym num test:', ext_sym_fac)
     # Change symmetry number if geometry has enantiomers
-    if oriented_geom.is_enantiomer:
+    if oriented_geom.is_enantiomer():
         ext_sym_fac *= 0.5
     return ext_sym_fac
 

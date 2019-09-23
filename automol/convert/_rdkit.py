@@ -29,7 +29,7 @@ def to_geometry(rdm):
     return geo
 
 
-def to_conformers(rdm, nconfs=150):
+def to_conformers(rdm, nconfs):
     """ list of cartesian geometries for conformers
         from an rdkit molecule object
         currently not removing redundant conformers
@@ -44,13 +44,16 @@ def to_conformers(rdm, nconfs=150):
         geos.append(
             automol.create.geom.from_data(syms, xyzs, angstrom=True))
     else:
-        cids = _rd_all_chem.EmbedMultipleConfs(rdm, NumConfs=nconfs)
-        _rd_all_chem.MMFFOptimizeMoleculeConfs(rdm)
+        cids = _rd_all_chem.EmbedMultipleConfs(rdm, numConfs=nconfs)
+        res = _rd_all_chem.MMFFOptimizeMoleculeConfs(rdm)
+        energies = list(zip(*res))[1]
         for cid in cids:
             syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
             xyzs = tuple(map(tuple, rdm.GetConformer(cid).GetPositions()))
             geos.append(
                 automol.create.geom.from_data(syms, xyzs, angstrom=True))
+        # Sort geometries using the energies
+        geos = [x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])]
     return geos
 
 

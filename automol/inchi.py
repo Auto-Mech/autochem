@@ -292,6 +292,12 @@ def geometry(ich):
     return automol.convert.inchi.geometry(ich)
 
 
+def conformers(ich, nconfs=100):
+    """ inchi => conformers
+    """
+    return automol.convert.inchi.conformers(ich, nconfs)
+
+
 def graph(ich, no_stereo=False):
     """ inchi => graph
     """
