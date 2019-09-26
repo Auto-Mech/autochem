@@ -22,7 +22,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     count = 1
     while True:
-        print('rct_zmas in h mig:', count, rct_zmas)
+        # print('rct_zmas in h mig:', count, rct_zmas)
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
         rct_gra = functools.reduce(automol.graph.union, rct_gras)
 

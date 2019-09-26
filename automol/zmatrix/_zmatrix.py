@@ -560,6 +560,7 @@ def _dihedral_edge_keys(zma):
     """
     coo_dct = coordinates(zma)
     dih_names = dihedral_angle_names(zma)
+    dih_keys_lst = tuple(map(coo_dct.__getitem__, dih_names))
     dih_edg_key_dct = {dih_name: frozenset(dih_key[1:3])
                        for dih_name, dih_keys in zip(dih_names, dih_keys_lst)
                        for dih_key in dih_keys}
