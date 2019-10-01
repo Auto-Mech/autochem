@@ -1,5 +1,7 @@
 """ molecular formula
 """
+import itertools
+import collections
 from qcelemental import periodictable as pt
 
 
@@ -7,11 +9,11 @@ def electron_count(fml):
     """ the number of atoms in this molecular formula
     """
     assert _is_standard(fml)
-    electron_count = 0
+    elec_count = 0
     for key in fml:
         value = fml[key]
-        electron_count += value*pt.to_Z(key)
-    return electron_count
+        elecn_count += value*pt.to_Z(key)
+    return elec_count
 
 
 def atom_count(fml):
@@ -56,6 +58,14 @@ def join(fml1, fml2):
     for sym, num in fml2.items():
         fml = add_element(fml, sym, num=num)
     return fml
+
+
+def string(fml):
+    """ convert formula dictionary to formula string
+    """
+    fml = collections.OrderedDict(sorted(fml.items()))
+    fml_str = ''.join(map(str, itertools.chain.from_iterable(fml.items())))
+    return fml_str
 
 
 def _is_standard(fml):
