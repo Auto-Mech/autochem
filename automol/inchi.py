@@ -2,6 +2,7 @@
 """
 import itertools
 import functools
+import collections
 import numpy
 import autoparse.pattern as app
 import autoparse.find as apf
@@ -317,6 +318,15 @@ def inchi_key(ich):
 
 
 def formula(ich):
+    """ inchi => formula
+    """
+    formula_dict = automol.convert.inchi.formula(ich)
+    formula_dict = collections.OrderedDict(sorted(formula_dict.items()))
+    form = ''.join(map(str, itertools.chain.from_iterable(formula_dict.items())))
+    return form
+
+
+def formula_dct(ich):
     """ inchi => formula
     """
     return automol.convert.inchi.formula(ich)
