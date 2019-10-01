@@ -150,9 +150,11 @@ def sorted_(ichs):
 def argsort(ichs):
     """ determine the sort order for the inchi standard form
     """
+
     assert not any(map(has_multiple_components, ichs))
-    ichs = list(map(standard_form, ichs))
+    current_ichs = ichs #list(map(standard_form, ichs))
     ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
+    #ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
     idxs = tuple(numpy.argsort(list(map(ref_ichs.index, ichs))))
     return idxs
 
