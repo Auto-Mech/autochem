@@ -111,7 +111,13 @@ def recalculate(ich, force_stereo=False):
     if len(ichs) > 1:
         if any(object_from_hardcoded_inchi_by_key('inchi', ich)
                for ich in ichs):
-            raise error.FailedInchiGenerationError
+               ref_ichs = []
+               for ich_i in ichs:
+                   ref_ichs.append(recalculate(ich_i))
+               ref_ichs.sort()
+               ret = automol.inchi.join(ref_ichs)
+               return ret
+           # raise error.FailedInchiGenerationError
 
     ret = object_from_hardcoded_inchi_by_key('inchi', ich)
     if ret is None:
