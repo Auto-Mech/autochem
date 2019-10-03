@@ -332,54 +332,6 @@ def move_coordinates(geo, idx1, idx2):
     return geo_move
 
 def rot_permutated_geoms(geo):
-    gra = graph(geo)
-    term_atms = {}
-    all_hyds = []
-    neighbor_dct = automol.graph.atom_neighbor_keys(gra)
-    gra = gra[0]
-    for atm in gra:
-        if gra[atm][0] == 'H':
-            all_hyds.append(atm)
-    for atm in gra:
-        nonH_neighs = []
-        H_neighs = []
-        neighs = neighbor_dct[atm]
-        for nei in neighs:
-            if nei in all_hyds:
-                H_neighs.append(nei)
-            else:
-                nonH_neighs.append(nei)
-        if len(nonH_neighs) < 2 and len(H_neighs) > 1:
-            term_atms[atm] = H_neighs
-    geo_final_lst = [geo]
-    for atm in term_atms:
-        hyds = term_atms[atm]
-        geo_lst = []
-        for geom in geo_final_lst:
-            geo_lst.extend(_swap_for_one(geo, hyds))
-        geo_final_lst = geo_lst
-    return geo_final_lst
-
-def _swap_for_one(geo, hyds):
-    geo_lst = []
-    if len(hyds) > 1:
-        new_geo = geo
-        if len(hyds) > 2:
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            geo_lst.append(new_geo)
-            new_geo = geo
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            new_geo = swap_coordinates(new_geo, hyds[1], hyds[2])
-            geo_lst.append(new_geo)
-        else:
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            geo_lst.append(new_geo)
-    return geo_lst
-
-def rot_permutated_geoms(geo):
     """ convert an input geometry to a list of geometries
     corresponding to the rotational permuations of all the terminal groups
     """
@@ -389,21 +341,31 @@ def rot_permutated_geoms(geo):
     term_atms = {}
     all_hyds = []
     neighbor_dct = automol.graph.atom_neighbor_keys(gra)
+
+    #determine if atom is a part of a double bond
+    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
+    rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
+    print(unsat_atms)
+    print(rad_atms)
+
     gra = gra[0]
     for atm in gra:
         if gra[atm][0] == 'H':
             all_hyds.append(atm)
     for atm in gra:
-        nonh_neighs = []
-        h_neighs = []
-        neighs = neighbor_dct[atm]
-        for nei in neighs:
-            if nei in all_hyds:
-                h_neighs.append(nei)
-            else:
-                nonh_neighs.append(nei)
-        if len(nonh_neighs) < 2 and len(h_neighs) > 1:
-            term_atms[atm] = h_neighs
+        if atm in unsat_atms and not atm in rad_atms:
+            pass
+        else:
+            nonh_neighs = []
+            h_neighs = []
+            neighs = neighbor_dct[atm]
+            for nei in neighs:
+                if nei in all_hyds:
+                    h_neighs.append(nei)
+                else:
+                    nonh_neighs.append(nei)
+            if len(nonh_neighs) < 2 and len(h_neighs) > 1:
+                term_atms[atm] = h_neighs
     geo_final_lst = [geo]
     for atm in term_atms:
         hyds = term_atms[atm]
@@ -425,9 +387,6 @@ def _swap_for_one(geo, hyds):
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
             geo_lst.append(new_geo)
-            # new_geo = geo
-            # new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            # new_geo = swap_coordinates(new_geo, hyds[1], hyds[2])
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
             geo_lst.append(new_geo)
