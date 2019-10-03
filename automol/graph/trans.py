@@ -287,8 +287,10 @@ def hydrogen_abstraction(xgr1, xgr2):
 def _partial_hydrogen_abstraction(qh_xgr, q_xgr):
     tra = None
     h_atm_key = max(_atom_keys(q_xgr)) + 1
-    rad_atm_keys = _resonance_dominant_radical_atom_keys(q_xgr)
-    for atm_key in rad_atm_keys:
+    #rad_atm_keys = _resonance_dominant_radical_atom_keys(q_xgr)
+    uns_atm_keys = automol.graph.unsaturated_atom_keys(q_xgr)
+    for atm_key in uns_atm_keys:
+    #for atm_key in rad_atm_keys:
         q_xgr_h = _add_atom_explicit_hydrogen_keys(
             q_xgr, {atm_key: [h_atm_key]})
         inv_atm_key_dct = _full_isomorphism(q_xgr_h, qh_xgr)
