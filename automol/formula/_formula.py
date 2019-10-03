@@ -48,7 +48,10 @@ def add_element(fml, sym, num=1):
 def add_hydrogen(fml, num=1):
     """ add hydrogen to this molecular formula
     """
-    return add_element(fml, 'H', num)
+    fml_hadd = add_element(fml, 'H', num)
+    fml_hadd = dict(collections.OrderedDict(sorted(fml_hadd.items())))
+
+    return fml_hadd
 
 
 def join(fml1, fml2):

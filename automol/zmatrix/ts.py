@@ -22,7 +22,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     count = 1
     while True:
-        # print('rct_zmas in h mig:', count, rct_zmas)
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
         rct_gra = functools.reduce(automol.graph.union, rct_gras)
 
@@ -360,9 +359,6 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 rct2_atm1_key = atm_key_dct[rct2_atm1_key]
 
             rct2_atm1_key -= rct1_natms
-            print(automol.zmatrix.string(rct1_zma))
-            print(automol.zmatrix.string(rct2_zma))
-            print(rct2_atm1_key)
             assert rct2_atm1_key == 0
             # insert dummy atom as the second atom in reactant 2
 
@@ -412,13 +408,6 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 rct1_x_zma, rct2_x_zma, join_keys, join_names, join_val_dct)
 
             ts_name_dct = automol.zmatrix.standard_names(ts_zma)
-#            print('babs test')
-#            print(ts_name_dct['babs2'])
-#            print(ts_name_dct['babs3'])
-#            inv_ts_name_dct = dict(map(reversed, ts_name_dct.items()))
-#            print(inv_ts_name_dct['D5'])
-#            ts_val_dct = automol.zmatrix.values(ts_zma)
-#            print(ts_val_dct['babs3'])
             dist_name = ts_name_dct[dist_name]
             ts_zma = automol.zmatrix.standard_form(ts_zma)
             rct1_tors_names = automol.zmatrix.torsion_coordinate_names(
@@ -435,6 +424,8 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 if not automol.geom.is_linear(geo1):
                     tors_name = ts_name_dct['babs2']
                     tors_names += (tors_name,)
+
+            # babs3 should only be included if there is only group connected to the radical atom
 
             if 'babs3' in ts_name_dct:
                 tors_name = ts_name_dct['babs3']
@@ -484,6 +475,13 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                 rct1_zma, rct1_atm1_key)
 
             x_zma = ((('X', (None, None, None), (None, None, None)),), {})
+            
+            abs_atm_key = ''
+            for atm_key in frm_bnd_key:
+                if atm_key in automol.graph.atom_keys(rct2_gra):
+                    abs_atm_key = atm_key
+
+            print('abs_atm_key:', abs_atm_key)
 
             x_join_val_dct = {
                 'rx': 1. * qcc.conversion_factor('angstrom', 'bohr'),
@@ -525,18 +523,13 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
 
             join_name_set = set(numpy.ravel(join_names)) - {None}
             join_val_dct = {name: join_val_dct[name] for name in join_name_set}
-#            print('join_keys:', join_keys)
-#            print('join_names:', join_names)
-#            print('join_val_dct:', join_val_dct)
 
             ts_zma = automol.zmatrix.join(
                 rct1_x_zma, rct2_zma, join_keys, join_names, join_val_dct)
-#            print('ts_zma in h abs:', ts_zma)
 
             ts_name_dct = automol.zmatrix.standard_names(ts_zma)
             dist_name = ts_name_dct[dist_name]
             ts_zma = automol.zmatrix.standard_form(ts_zma)
-#            print('ts_zma standard in h abs:', ts_zma)
             rct1_tors_names = automol.zmatrix.torsion_coordinate_names(
                 rct1_zma)
             rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
@@ -552,7 +545,11 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                     tors_name = ts_name_dct['babs2']
                     tors_names += (tors_name,)
 
-            if 'babs3' in ts_name_dct:
+            # babs3 should only be included if there is only group connected to the radical atom
+            ngb_dct = automol.graph.atom_neighbor_keys(rct2_gra)
+            ngb_keys = ngb_dct[abs_atm_key]
+            print('length ngb keys test:', len(ngb_keys))
+            if 'babs3' in ts_name_dct and len(ngb_keys) < 2:
                 tors_name = ts_name_dct['babs3']
                 tors_names += (tors_name,)
 
