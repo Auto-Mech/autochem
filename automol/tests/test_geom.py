@@ -185,6 +185,13 @@ def test__external_symmetry_number():
     assert c2h5of_sym_num == ref_sym_num3
     assert c2h2clf_sym_num == ref_sym_num4
 
+def test__rot_permutated_geoms():
+    smi = 'C[CH2]'
+    ich = automol.smiles.inchi(smi)
+    geo = automol.inchi.geometry(ich)
+    geos = automol.geom.rot_permutated_geoms(geo)
+    for geom in geos:
+         print(automol.geom.xyz_string(geom))
 
 if __name__ == '__main__':
     # test__from_data()
@@ -192,4 +199,5 @@ if __name__ == '__main__':
     # test__set_coordinates()
     # test__swap_coordinates()
     # test__move_coordinates()
-    test__external_symmetry_number()
+    #test__external_symmetry_number()
+    test__rot_permutated_geoms()

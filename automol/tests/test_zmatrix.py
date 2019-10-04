@@ -202,6 +202,12 @@ def test__coordinates():
     assert zmatrix.coordinates(CH4O_ZMA) == coo_dct
 
 
+def test__bond_idxs():
+    """test bond indices
+    """
+    idxs = (2, 1)
+    assert zmatrix.bond_idxs(CH4O_ZMA, 'R2') == idxs
+
 def test__distance_names():
     """ test zmatrix.distance_names
     """
@@ -641,4 +647,5 @@ if __name__ == '__main__':
     # test__from_string()
     # test__ts__addition()
     # test__ts__hydrogen_abstraction()
-    test__ts__hydrogen_migration()
+    #test__ts__hydrogen_migration()
+    test__bond_idxs()
