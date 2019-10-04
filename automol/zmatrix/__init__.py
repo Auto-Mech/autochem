@@ -9,6 +9,7 @@ from automol.zmatrix._zmatrix import name_matrix
 from automol.zmatrix._zmatrix import value_matrix
 from automol.zmatrix._zmatrix import coordinate_key_matrix
 from automol.zmatrix._zmatrix import coordinates
+from automol.zmatrix._zmatrix import bond_idxs
 from automol.zmatrix._zmatrix import names
 from automol.zmatrix._zmatrix import distance_names
 from automol.zmatrix._zmatrix import central_angle_names
@@ -116,6 +117,7 @@ __all__ = [
     'value_matrix',
     'coordinate_key_matrix',
     'coordinates',
+    'bond_idxs',
     'names',
     'distance_names',
     'central_angle_names',
