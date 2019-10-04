@@ -12,7 +12,7 @@ def electron_count(fml):
     elec_count = 0
     for key in fml:
         value = fml[key]
-        elecn_count += value*pt.to_Z(key)
+        elec_count += value*pt.to_Z(key)
     return elec_count
 
 
