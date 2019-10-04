@@ -481,8 +481,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                 if atm_key in automol.graph.atom_keys(rct2_gra):
                     abs_atm_key = atm_key
 
-            print('abs_atm_key:', abs_atm_key)
-
             x_join_val_dct = {
                 'rx': 1. * qcc.conversion_factor('angstrom', 'bohr'),
                 'ax': 90. * qcc.conversion_factor('degree', 'radian'),
@@ -548,7 +546,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             # babs3 should only be included if there is only group connected to the radical atom
             ngb_dct = automol.graph.atom_neighbor_keys(rct2_gra)
             ngb_keys = ngb_dct[abs_atm_key]
-            print('length ngb keys test:', len(ngb_keys))
             if 'babs3' in ts_name_dct and len(ngb_keys) < 2:
                 tors_name = ts_name_dct['babs3']
                 tors_names += (tors_name,)
