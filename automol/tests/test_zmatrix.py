@@ -72,6 +72,16 @@ C2O1H5_ZMA = ((('C', (None, None, None), (None, None, None)),
                'R5': 2.63652, 'A5': 1.9174, 'D5': 5.23321,
                'R6': 2.09831, 'A6': 1.9153, 'D6': 2.09638,
                'R7': 2.09831, 'A7': 1.9153, 'D7': 4.18680})
+TS_ZMA =  ((('C', (None, None, None), (None, None, None)), 
+            ('O', (0, None, None), ('R1', None, None)), 
+            ('H', (0, 1, None), ('R2', 'A2', None)), 
+            ('H', (0, 1, 2), ('R3', 'A3', 'D3')), 
+            ('O', (1, 0, 2), ('R4', 'A4', 'D4')), 
+            ('H', (4, 1, 0), ('R5', 'A5', 'D5'))), 
+            {'R1': 2.27321, 'R2': 2.09434, 'A2': 2.1331937716650295, 
+             'R3': 2.09434, 'A3': 2.1331937716650295, 'D3': 3.141592653589793, 
+             'R5': 1.84616, 'A5': 1.4835298641951802, 'D4': 1.5707963267948966, 
+             'D5': 1.5707963267948966, 'R4': 3.0, 'A4': 1.4835298641951802})
 
 CH4O2_ZMA_STR = """
 C
@@ -98,7 +108,6 @@ R6   =   0.969061
 A6   = 107.000441
 D6   = 277.348815
 """
-
 
 def test__from_data():
     """ test getters
@@ -207,6 +216,10 @@ def test__bond_idxs():
     """
     idxs = (2, 1)
     assert zmatrix.bond_idxs(CH4O_ZMA, 'R2') == idxs
+
+def test__get_babs1():
+    dist_name = 'R4'
+    assert zmatrix.get_babs1(TS_ZMA, dist_name) == 'D4'
 
 def test__distance_names():
     """ test zmatrix.distance_names
@@ -648,4 +661,5 @@ if __name__ == '__main__':
     # test__ts__addition()
     # test__ts__hydrogen_abstraction()
     #test__ts__hydrogen_migration()
-    test__bond_idxs()
+    #test__bond_idxs()
+    test__get_babs1()

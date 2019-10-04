@@ -213,7 +213,7 @@ def beta_scission(rct_zmas, prd_zmas):
     return ret
 
 
-def addition(rct_zmas, prd_zmas):
+def addition(rct_zmas, prd_zmas, rct_tors=[]):
     """ z-matrix for an addition reaction
     """
     ret = None
@@ -263,7 +263,11 @@ def addition(rct_zmas, prd_zmas):
         dist_name = ts_name_dct[dist_name]
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         rct1_tors_names = automol.zmatrix.torsion_coordinate_names(rct1_zma)
-        rct2_tors_names = automol.zmatrix.torsion_coordinate_names(rct2_zma)
+        if rct_tors:
+            rct2_tors_names = rct_tors
+        else:
+            rct2_tors_names = automol.zmatrix.torsion_coordinate_names(rct2_zma)
+        print(rct2_tors_names)
         tors_names = (
             tuple(map(ts_name_dct.__getitem__, rct1_tors_names)) +
             tuple(map(ts_name_dct.__getitem__, rct2_tors_names))

@@ -131,6 +131,18 @@ def bond_idxs(zma, key):
     idxs = coords.get(key, [None])
     return idxs[0]
     
+def get_babs1(zma, dist_name):
+    idxs = bond_idxs(zma, dist_name)
+    idx = max(idxs)
+    babs1 = 'D{:g}'.format(idx)
+    return babs1
+
+def get_babs2(zma, dist_name):
+    idxs = bond_idxs(zma, dist_name)
+    idx = max(idxs)
+    babs2 = 'D{:g}'.format(idx+1)
+    return babs2
+    
 # validation
 def is_valid(zma):
     """ is this a valid zmatrix?
