@@ -238,9 +238,9 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
             dist_name: dist_val,
             'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
             'aabs2': 85. * qcc.conversion_factor('degree', 'radian'),
-            'babs1': 90. * qcc.conversion_factor('degree', 'radian'),
-            'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
-            'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
+            'babs1': 85. * qcc.conversion_factor('degree', 'radian'),
+            'babs2': 85. * qcc.conversion_factor('degree', 'radian'),
+            'babs3': 85. * qcc.conversion_factor('degree', 'radian'),
         }
 
         join_keys = numpy.array(
@@ -390,9 +390,9 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 dist_name: dist_val,
                 'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
                 'aabs2': 85. * qcc.conversion_factor('degree', 'radian'),
-                'babs1': 180. * qcc.conversion_factor('degree', 'radian'),
-                'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
-                'babs3': 180. * qcc.conversion_factor('degree', 'radian'),
+                'babs1': 175. * qcc.conversion_factor('degree', 'radian'),
+                'babs2': 85. * qcc.conversion_factor('degree', 'radian'),
+                'babs3': 175. * qcc.conversion_factor('degree', 'radian'),
             }
 
             join_keys = numpy.array(
@@ -508,9 +508,9 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                 dist_name: dist_val,
                 'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
                 'aabs2': 85. * qcc.conversion_factor('degree', 'radian'),
-                'babs1': 180. * qcc.conversion_factor('degree', 'radian'),
-                'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
-                'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
+                'babs1': 175. * qcc.conversion_factor('degree', 'radian'),
+                'babs2': 85. * qcc.conversion_factor('degree', 'radian'),
+                'babs3': 85. * qcc.conversion_factor('degree', 'radian'),
             }
 
             join_keys = numpy.array(
