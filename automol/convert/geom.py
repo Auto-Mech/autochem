@@ -107,8 +107,16 @@ def _connectivity_graph(geo, rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.
 def inchi(geo, remove_stereo=False):
     """ geometry => InChI
     """
+    ich, _ = inchi_with_sort(geo, remove_stereo=remove_stereo)
+    return ich
+
+
+def inchi_with_sort(geo, remove_stereo=False):
+    """ geometry => InChI
+    """
     ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
         'geom', geo, comp=_compare)
+    nums = None
 
     if ich is None:
         gra = _connectivity_graph(geo)
@@ -117,9 +125,10 @@ def inchi(geo, remove_stereo=False):
         else:
             xyzs = automol.geom.coordinates(geo)
             atm_xyz_dct = dict(enumerate(xyzs))
-        ich = automol.convert.graph.inchi_from_coordinates(
+        ich, nums = automol.convert.graph.inchi_with_sort_from_coordinates(
             gra=gra, atm_xyz_dct=atm_xyz_dct)
-    return ich
+
+    return ich, nums
 
 
 def _compare(geo1, geo2):

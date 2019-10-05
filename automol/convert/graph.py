@@ -1,5 +1,7 @@
 """ graph conversions
 """
+import autoparse.pattern as app
+import autoparse.find as apf
 from automol import dict_
 import automol.graph
 import automol.inchi
@@ -18,12 +20,13 @@ def inchi(gra):
 
     if ich is None:
         if not automol.graph.has_stereo(gra):
-            ich = inchi_from_coordinates(gra, atm_xyz_dct=None)
+            ich, _ = inchi_with_sort_from_coordinates(gra, atm_xyz_dct=None)
             ich = automol.inchi.standard_form(ich, remove_stereo=True)
         else:
             gra = automol.graph.explicit(gra)
             atm_xyz_dct = automol.graph.atom_stereo_coordinates(gra)
-            ich = inchi_from_coordinates(gra, atm_xyz_dct=atm_xyz_dct)
+            ich, _ = inchi_with_sort_from_coordinates(
+                gra, atm_xyz_dct=atm_xyz_dct)
 
     return ich
 
@@ -34,7 +37,7 @@ def _compare(gra1, gra2):
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
-def inchi_from_coordinates(gra, atm_xyz_dct=None):
+def inchi_with_sort_from_coordinates(gra, atm_xyz_dct=None):
     """ connectivity graph => inchi conversion
 
     (if coordinates are passed in, they are used to determine stereo)
@@ -51,12 +54,22 @@ def inchi_from_coordinates(gra, atm_xyz_dct=None):
     bnd_ords = dict_.values_by_key(automol.graph.bond_orders(gra), bnd_keys)
     atm_xyzs = (None if atm_xyz_dct is None else
                 dict_.values_by_key(atm_xyz_dct, atm_keys))
-    mlf, _ = _molfile.from_data(
+    mlf, key_map_inv = _molfile.from_data(
         atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs, bnd_ords,
         atm_xyzs=atm_xyzs)
     rdm = _rdkit.from_molfile(mlf)
-    ich = _rdkit.to_inchi(rdm)
-    return ich
+    ich, aux_info = _rdkit.to_inchi(rdm, with_aux_info=True)
+    nums = _parse_sort_order_from_aux_info(aux_info)
+    nums = tuple(map(key_map_inv.__getitem__, nums))
+    return ich, nums
+
+
+def _parse_sort_order_from_aux_info(aux_info):
+    ptt = app.escape('/N:') + app.capturing(
+        app.series(app.UNSIGNED_INTEGER, ','))
+    num_str = apf.first_capture(ptt, aux_info)
+    nums = tuple(map(int, num_str.split(',')))
+    return nums
 
 
 def geometry(gra):

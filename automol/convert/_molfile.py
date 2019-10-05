@@ -84,7 +84,7 @@ def from_data(atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs,
     natms = len(atm_keys)
     nbnds = len(bnd_keys)
 
-    key_map = dict(zip(atm_keys, range(1, natms+1)))
+    key_map = dict(zip(sorted(atm_keys), range(1, natms+1)))
 
     counts_line = FMT.COUNTS.LINE(
         **{FMT.COUNTS.NA_KEY: natms,

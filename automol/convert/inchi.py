@@ -25,6 +25,18 @@ def geometry(ich):
     return geo
 
 
+def _connected_stereo_geometry(ich):
+    ref_ich = ich
+
+    ich = automol.inchi.standard_form(ich, remove_stereo=True)
+    geo = _connected_geometry(ich)
+    print(geo)
+    ich, nums = automol.convert.geom.inchi_with_sort(geo)
+    print(ref_ich)
+    print(ich)
+    print(nums)
+
+
 def _connected_geometry(ich):
     geo = object_from_hardcoded_inchi_by_key('geom', ich)
     if geo is None:
@@ -32,7 +44,7 @@ def _connected_geometry(ich):
 
         def _gen1(ich):
             rdm = _rdkit.from_inchi(ich)
-            geo = _rdkit.to_conformers(rdm)
+            geo, = _rdkit.to_conformers(rdm, nconfs=1)
             return geo
 
         def _gen2(ich):
@@ -41,7 +53,10 @@ def _connected_geometry(ich):
             return geo
 
         def _gen3(ich):
-            gra = automol.convert.inchi.graph(ich)
+            if automol.inchi.has_stereo(ich):
+                raise ValueError
+
+            gra = automol.convert.inchi.graph(ich, no_stereo=True)
             geo = automol.graph.heuristic_geometry(gra)
             return geo
 
@@ -111,13 +126,13 @@ def recalculate(ich, force_stereo=False):
     if len(ichs) > 1:
         if any(object_from_hardcoded_inchi_by_key('inchi', ich)
                for ich in ichs):
-               ref_ichs = []
-               for ich_i in ichs:
-                   ref_ichs.append(recalculate(ich_i))
-               ref_ichs.sort()
-               ret = automol.inchi.join(ref_ichs)
-               return ret
-           # raise error.FailedInchiGenerationError
+            ref_ichs = []
+            for ich_i in ichs:
+                ref_ichs.append(recalculate(ich_i))
+            ref_ichs.sort()
+            ret = automol.inchi.join(ref_ichs)
+            return ret
+            # raise error.FailedInchiGenerationError
 
     ret = object_from_hardcoded_inchi_by_key('inchi', ich)
     if ret is None:
