@@ -356,27 +356,28 @@ def atom_stereo_coordinates(sgr):
     last_xgr = None
     xgr = _without_stereo_parities(sgr)
 
-    full_atm_ste_par_dct = _atom_stereo_parities(sgr)
-    full_bnd_ste_par_dct = _bond_stereo_parities(sgr)
-
     # first, get a set of non-stereo-specific coordinates for the graph
     atm_xyz_dct = _atom_coordinates(xgr)
 
-    atm_keys = set()
-    bnd_keys = set()
+    if has_stereo(sgr):
+        full_atm_ste_par_dct = _atom_stereo_parities(sgr)
+        full_bnd_ste_par_dct = _bond_stereo_parities(sgr)
 
-    while last_xgr != xgr:
-        last_xgr = xgr
-        atm_keys.update(stereogenic_atom_keys(xgr))
-        bnd_keys.update(stereogenic_bond_keys(xgr))
-        atm_ste_par_dct = {atm_key: full_atm_ste_par_dct[atm_key]
-                           for atm_key in atm_keys}
-        bnd_ste_par_dct = {bnd_key: full_bnd_ste_par_dct[bnd_key]
-                           for bnd_key in bnd_keys}
-        xgr, atm_xyz_dct = _correct_atom_stereo_coordinates(
-            xgr, atm_ste_par_dct, atm_xyz_dct)
-        xgr, atm_xyz_dct = _correct_bond_stereo_coordinates(
-            xgr, bnd_ste_par_dct, atm_xyz_dct)
+        atm_keys = set()
+        bnd_keys = set()
+
+        while last_xgr != xgr:
+            last_xgr = xgr
+            atm_keys.update(stereogenic_atom_keys(xgr))
+            bnd_keys.update(stereogenic_bond_keys(xgr))
+            atm_ste_par_dct = {atm_key: full_atm_ste_par_dct[atm_key]
+                               for atm_key in atm_keys}
+            bnd_ste_par_dct = {bnd_key: full_bnd_ste_par_dct[bnd_key]
+                               for bnd_key in bnd_keys}
+            xgr, atm_xyz_dct = _correct_atom_stereo_coordinates(
+                xgr, atm_ste_par_dct, atm_xyz_dct)
+            xgr, atm_xyz_dct = _correct_bond_stereo_coordinates(
+                xgr, bnd_ste_par_dct, atm_xyz_dct)
 
     return atm_xyz_dct
 
