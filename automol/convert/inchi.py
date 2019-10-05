@@ -32,7 +32,7 @@ def _connected_geometry(ich):
 
         def _gen1(ich):
             rdm = _rdkit.from_inchi(ich)
-            geo = _rdkit.to_conformers(rdm)
+            geo = _rdkit.to_conformers(rdm, nconfs=1)
             return geo
 
         def _gen2(ich):
@@ -40,12 +40,14 @@ def _connected_geometry(ich):
             geo = _pybel.to_geometry(pbm)
             return geo
 
-        def _gen3(ich):
-            gra = automol.convert.inchi.graph(ich)
-            geo = automol.graph.heuristic_geometry(gra)
-            return geo
+        # this has a circular dependency
+        # def _gen3(ich):
+        #     gra = automol.convert.inchi.graph(ich)
+        #     geo = automol.graph.heuristic_geometry(gra)
+        #     return geo
 
-        for gen_ in [_gen1, _gen2, _gen3]:
+        # for gen_ in [_gen1, _gen2, _gen3]:
+        for gen_ in [_gen1, _gen2]:
             success = False
             try:
                 geo = gen_(ich)
@@ -111,13 +113,13 @@ def recalculate(ich, force_stereo=False):
     if len(ichs) > 1:
         if any(object_from_hardcoded_inchi_by_key('inchi', ich)
                for ich in ichs):
-               ref_ichs = []
-               for ich_i in ichs:
-                   ref_ichs.append(recalculate(ich_i))
-               ref_ichs.sort()
-               ret = automol.inchi.join(ref_ichs)
-               return ret
-           # raise error.FailedInchiGenerationError
+            ref_ichs = []
+            for ich_i in ichs:
+                ref_ichs.append(recalculate(ich_i))
+            ref_ichs.sort()
+            ret = automol.inchi.join(ref_ichs)
+            return ret
+            # raise error.FailedInchiGenerationError
 
     ret = object_from_hardcoded_inchi_by_key('inchi', ich)
     if ret is None:
