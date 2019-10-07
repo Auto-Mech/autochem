@@ -186,6 +186,231 @@ def _reorder_zmatrix_hydrogen_migration(zma, a_idx, h_idx):
     return zma_ret
 
 
+# def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
+#     """ z-matrix for a concerted unimolecular elimination reaction
+#     """
+#     ret = None
+#     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+#     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
+#     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
+#     prds_gra = functools.reduce(automol.graph.union, prd_gras)
+#     tra = automol.graph.trans.concerted_unimolecular_elimination(rcts_gra, prds_gra)
+#     if tra is not None:
+#         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+#         brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
+#         
+#         rct1_gra, rct2_gra = rct_gras
+#         rct1_zma, rct2_zma = rct_zmas
+#         rct1_natms = automol.zmatrix.count(rct1_zma)
+#         rct2_natms = automol.zmatrix.count(rct2_zma)
+# 
+#         rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
+
+
+def insertion(rct_zmas, prd_zmas):
+    """ z-matrix for an insertion reaction
+    """
+    ret = None
+    dist_name = 'rts'
+    dist_val = 3.
+    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
+    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
+    prds_gra = functools.reduce(automol.graph.union, prd_gras)
+    tra = automol.graph.trans.insertion(rcts_gra, prds_gra)
+    if tra is not None:
+        frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+        brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
+        
+        # get the atom on react 1 that is being attacked (bond is forming)
+        rct1_atm1_key = next(iter(frm_bnd_key))[0]
+       
+        # figure out atoms in the chain to define the dummy atom
+        rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
+            rct1_zma, rct1_atm1_key)
+        
+        x_zma = ((('X', (None, None, None), (None, None, None)),), {})
+
+        x_join_val_dct = {
+            'rx': 1. * qcc.conversion_factor('angstrom', 'bohr'),
+            'ax': 90. * qcc.conversion_factor('degree', 'radian'),
+            'dx': 180. * qcc.conversion_factor('degree', 'radian'),
+        }
+
+        x_join_keys = numpy.array(
+            [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key]])
+        x_join_names = numpy.array([['rx', 'ax', 'dx']],
+                                   dtype=numpy.object_)
+        x_join_names[numpy.equal(x_join_keys, None)] = None
+        x_join_name_set = set(numpy.ravel(x_join_names)) - {None}
+        x_join_val_dct = {name: x_join_val_dct[name]
+                          for name in x_join_name_set}
+        rct1_x_zma = automol.zmatrix.join(
+            rct1_zma, x_zma, x_join_keys, x_join_names, x_join_val_dct)
+
+        x_atm_key = rct1_natms
+
+        join_val_dct = {
+            dist_name: dist_val,
+            'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
+            'aabs2': 85. * qcc.conversion_factor('degree', 'radian'),
+            'babs1': 180. * qcc.conversion_factor('degree', 'radian'),
+            'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
+            'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
+        }
+
+        join_keys = numpy.array(
+            [[rct1_atm1_key, x_atm_key, rct1_atm2_key],
+             [None, rct1_atm1_key, x_atm_key],
+             [None, None, rct1_atm1_key]])[:rct2_natms]
+        join_names = numpy.array(
+            [[dist_name, 'aabs1', 'babs1'],
+             [None, 'aabs2', 'babs2'],
+             [None, None, 'babs3']])[:rct2_natms]
+        join_names[numpy.equal(join_keys, None)] = None
+
+        join_name_set = set(numpy.ravel(join_names)) - {None}
+        join_val_dct = {name: join_val_dct[name] for name in join_name_set}
+
+        ts_zma = automol.zmatrix.join(
+            rct1_x_zma, rct2_zma, join_keys, join_names, join_val_dct)
+
+        ts_name_dct = automol.zmatrix.standard_names(ts_zma)
+        dist_name = ts_name_dct[dist_name]
+        ts_zma = automol.zmatrix.standard_form(ts_zma)
+        # CHECK IF THE INSERTION MESSES WITH THE TORSION ASSIGNMENTS
+        rct1_tors_names = automol.zmatrix.torsion_coordinate_names(
+            rct1_zma)
+        rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
+            rct2_zma)
+        tors_names = (
+            tuple(map(ts_name_dct.__getitem__, rct1_tors_names)) +
+            tuple(map(ts_name_dct.__getitem__, rct2_tors_names))
+        )
+
+        if 'babs2' in ts_name_dct:
+            geo1 = automol.convert.zmatrix.geometry(rct1_zma)
+            if not automol.geom.is_linear(geo1):
+                tors_name = ts_name_dct['babs2']
+                tors_names += (tors_name,)
+
+        if 'babs3' in ts_name_dct:
+            tors_name = ts_name_dct['babs3']
+            tors_names += (tors_name,)
+
+        ret = ts_zma, dist_name, tors_names
+
+    return ret
+
+
+def substitution(rct_zmas, prd_zmas):
+    """ z-matrix for a substitution reaction
+    """
+    ret = None
+
+    # Set the name and value for the bond being formed
+    dist_name = 'rts'
+    dist_val = 3.
+
+    # Confirm the reaction type and build the appropriate Z-Matrix
+    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
+    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
+    prds_gra = functools.reduce(automol.graph.union, prd_gras)
+    tra = automol.graph.trans.insertion(rcts_gra, prds_gra)
+    if tra is not None:
+        frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+        brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
+        
+        # get the atom on react 1 that is being attacked (bond is forming)
+        rct1_atm1_key = next(iter(frm_bnd_key))[0]
+       
+        # figure out atoms in the chain to define the dummy atom
+        rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
+            rct1_zma, rct1_atm1_key)
+       
+        # Join the reactant 1 ZMAT with the dummy atomx
+        x_zma = ((('X', (None, None, None), (None, None, None)),), {})
+
+        x_join_val_dct = {
+            'rx': 1. * qcc.conversion_factor('angstrom', 'bohr'),
+            'ax': 90. * qcc.conversion_factor('degree', 'radian'),
+            'dx': 180. * qcc.conversion_factor('degree', 'radian'),
+        }
+
+        x_join_keys = numpy.array(
+            [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key]])
+        x_join_names = numpy.array([['rx', 'ax', 'dx']],
+                                   dtype=numpy.object_)
+        x_join_names[numpy.equal(x_join_keys, None)] = None
+        x_join_name_set = set(numpy.ravel(x_join_names)) - {None}
+        x_join_val_dct = {name: x_join_val_dct[name]
+                          for name in x_join_name_set}
+
+        rct1_x_zma = automol.zmatrix.join(
+            rct1_zma, x_zma, x_join_keys, x_join_names, x_join_val_dct)
+
+        # Join the React 2 ZMAT with the reac1_x ZMAT 
+        x_atm_key = rct1_natms
+
+        join_val_dct = {
+            dist_name: dist_val,
+            'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
+            'aabs2': 85. * qcc.conversion_factor('degree', 'radian'),
+            'babs1': 180. * qcc.conversion_factor('degree', 'radian'),
+            'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
+            'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
+        }
+
+        join_keys = numpy.array(
+            [[rct1_atm1_key, x_atm_key, rct1_atm2_key],
+             [None, rct1_atm1_key, x_atm_key],
+             [None, None, rct1_atm1_key]])[:rct2_natms]
+        join_names = numpy.array(
+            [[dist_name, 'aabs1', 'babs1'],
+             [None, 'aabs2', 'babs2'],
+             [None, None, 'babs3']])[:rct2_natms]
+        join_names[numpy.equal(join_keys, None)] = None
+
+        join_name_set = set(numpy.ravel(join_names)) - {None}
+        join_val_dct = {name: join_val_dct[name] for name in join_name_set}
+
+        ts_zma = automol.zmatrix.join(
+            rct1_x_zma, rct2_zma, join_keys, join_names, join_val_dct)
+
+        # Get the names of the coordinates of the breaking and forming bond
+        ts_name_dct = automol.zmatrix.standard_names(ts_zma)
+        form_dist_name = ts_name_dct[dist_name]
+        break_dist_name = automol.zmatrix.get_key_from_idxs(ts_zma, brk_keys)
+
+        # Get the torsional coordinates of the transition state
+        ts_zma = automol.zmatrix.standard_form(ts_zma)
+        rct1_tors_names = automol.zmatrix.torsion_coordinate_names(
+            rct1_zma)
+        rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
+            rct2_zma)
+        tors_names = (
+            tuple(map(ts_name_dct.__getitem__, rct1_tors_names)) +
+            tuple(map(ts_name_dct.__getitem__, rct2_tors_names))
+        )
+
+        if 'babs2' in ts_name_dct:
+            geo1 = automol.convert.zmatrix.geometry(rct1_zma)
+            if not automol.geom.is_linear(geo1):
+                tors_name = ts_name_dct['babs2']
+                tors_names += (tors_name,)
+
+        if 'babs3' in ts_name_dct:
+            tors_name = ts_name_dct['babs3']
+            tors_names += (tors_name,)
+
+        # Set info to be returned
+        ret = ts_zma, form_dist_name, break_dist_name, tors_names
+
+    return ret
+
+
+
 def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
     """
