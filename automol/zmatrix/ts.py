@@ -186,25 +186,25 @@ def _reorder_zmatrix_hydrogen_migration(zma, a_idx, h_idx):
     return zma_ret
 
 
-# def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
-#     """ z-matrix for a concerted unimolecular elimination reaction
-#     """
-#     ret = None
-#     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
-#     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
-#     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-#     prds_gra = functools.reduce(automol.graph.union, prd_gras)
-#     tra = automol.graph.trans.concerted_unimolecular_elimination(rcts_gra, prds_gra)
-#     if tra is not None:
-#         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-#         brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
-#         
-#         rct1_gra, rct2_gra = rct_gras
-#         rct1_zma, rct2_zma = rct_zmas
-#         rct1_natms = automol.zmatrix.count(rct1_zma)
-#         rct2_natms = automol.zmatrix.count(rct2_zma)
-# 
-#         rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
+def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
+    """ z-matrix for a concerted unimolecular elimination reaction
+    """
+    ret = None
+    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
+    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
+    prds_gra = functools.reduce(automol.graph.union, prd_gras)
+    tra = automol.graph.trans.concerted_unimolecular_elimination(rcts_gra, prds_gra)
+    if tra is not None:
+        frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+        brk_bnd_key1, brk_bnd_key2 = automol.graph.trans.broken_bond_keys(tra)
+        
+        rct1_gra, rct2_gra = rct_gras
+        rct1_zma, rct2_zma = rct_zmas
+        rct1_natms = automol.zmatrix.count(rct1_zma)
+        rct2_natms = automol.zmatrix.count(rct2_zma)
+
+        rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
 
 
 def insertion(rct_zmas, prd_zmas):
