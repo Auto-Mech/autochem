@@ -124,25 +124,38 @@ def values(zma, angstrom=False, degree=False):
         val_dct[name] = val
     return val_dct
 
+
 def bond_idxs(zma, key):
     """give a bond length key, return the indices of involved bonded atoms
     """
     coords = coordinates(zma)
     idxs = coords.get(key, [None])
     return idxs[0]
-    
+
+
+def bond_key_from_idxs(zma, idxs):
+    """given indices of involved bonded atoms, return bond name
+    """
+    coords = coordinates(zma)
+    for key in coords:
+        if idxs == coords.get(key, [None]):
+            return key 
+
+
 def get_babs1(zma, dist_name):
     idxs = bond_idxs(zma, dist_name)
     idx = max(idxs)
     babs1 = 'D{:g}'.format(idx)
     return babs1
 
+
 def get_babs2(zma, dist_name):
     idxs = bond_idxs(zma, dist_name)
     idx = max(idxs)
     babs2 = 'D{:g}'.format(idx+1)
     return babs2
-    
+
+
 # validation
 def is_valid(zma):
     """ is this a valid zmatrix?
