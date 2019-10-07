@@ -132,7 +132,7 @@ def recalculate(ich, force_stereo=False):
             ref_ichs.sort()
             ret = automol.inchi.join(ref_ichs)
             return ret
-            # raise error.FailedInchiGenerationError
+        # raise error.FailedInchiGenerationError
 
     ret = object_from_hardcoded_inchi_by_key('inchi', ich)
     if ret is None:
