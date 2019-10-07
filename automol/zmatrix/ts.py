@@ -217,15 +217,20 @@ def insertion(rct_zmas, prd_zmas):
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    tra = automol.graph.trans.insertion(rcts_gra, prds_gra)
+    tra, idxs = automol.graph.trans.insertion(rcts_gra, prds_gra)
     if tra is not None:
-        frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+        frm_bnd_key, frm_bnd_key2 = automol.graph.trans.formed_bond_keys(tra)
         brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
         
         # get the atom on react 1 that is being attacked (bond is forming)
-        rct1_atm1_key = next(iter(frm_bnd_key))[0]
+        #rct1_atm1_key = next(iter(frm_bnd_key))[0]
+        rct1_atm1_key = list(frm_bnd_key)[0]
        
         # figure out atoms in the chain to define the dummy atom
+        rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs)
+        rct1_natms = automol.zmatrix.count(rct1_zma)
+        rct2_natms = automol.zmatrix.count(rct2_zma)
+
         rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
             rct1_zma, rct1_atm1_key)
         
@@ -247,7 +252,6 @@ def insertion(rct_zmas, prd_zmas):
                           for name in x_join_name_set}
         rct1_x_zma = automol.zmatrix.join(
             rct1_zma, x_zma, x_join_keys, x_join_names, x_join_val_dct)
-
         x_atm_key = rct1_natms
 
         join_val_dct = {
@@ -258,7 +262,7 @@ def insertion(rct_zmas, prd_zmas):
             'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
             'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
         }
-
+     
         join_keys = numpy.array(
             [[rct1_atm1_key, x_atm_key, rct1_atm2_key],
              [None, rct1_atm1_key, x_atm_key],
@@ -297,7 +301,7 @@ def insertion(rct_zmas, prd_zmas):
         if 'babs3' in ts_name_dct:
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
-
+        print(automol.zmatrix.string(ts_zma))
         ret = ts_zma, dist_name, tors_names
 
     return ret
