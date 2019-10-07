@@ -254,6 +254,93 @@ def addition(xgr1, xgr2):
     return tra
 
 
+#def substituion(xgr1, xgr2):
+#    assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
+#
+#    tra = None
+#    xgrs1 = _connected_components(xgr1)
+#    xgrs2 = _connected_components(xgr2)
+#
+#    if len(xgrs1) == 2 and len(xgrs2) == 2:
+#        xgrA, xgrB = xgrs1
+#        xgrC, xgrD = xgrs2
+#        neighsA = automol.graph.atom_neighbor_keys(xgrA)
+#        bndsA = automol.graph.bond_keys(xgrA)
+    
+
+def insertion(xgr1, xgr2):
+    """ find an insertion transformation
+    """
+    assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
+
+    tra = None
+    xgrs1 = _connected_components(xgr1)
+    xgrs2 = _connected_components(xgr2)
+    if len(xgrs1) == 2 and len(xgrs2) == 1:
+        xgrA, xgrB = xgrs1
+        atmsA = automol.graph.atoms(xgrA)
+        atmsB = automol.graph.atoms(xgrB)
+        neighsA = automol.graph.atom_neighbor_keys(xgrA)
+        neighsB = automol.graph.atom_neighbor_keys(xgrB)
+        bndsA = automol.graph.bond_keys(xgrA)
+        bndsB = automol.graph.bond_keys(xgrB)
+        tra = _insertion(atmsA, neighsA, bndsA, atmsB, neighsB, xgr1, xgr2)
+        idxs = [0, 1]
+        if not tra:
+            tra = _insertion(atmsB, neighsB, bndsB, atmsA, neighsB, xgr1, xgr2)
+            if tra:
+                idxs = [1, 0]
+            else: 
+                idxs = None
+    elif len(xgrs1) == 1 and len(xgrs2) == 1:
+        xgrA = xgr1
+        idxs = [0]
+        atmsA = automol.graph.atoms(xgrA)
+        neighsA = automol.graph.atom_neighbor_keys(xgrA)
+        bndsA = automol.graph.bond_keys(xgrA)
+        tra = _insertion(atmsA, neighsA, bndsA, atmsA, neighsA, xgr1, xgr2)
+    return tra, idxs
+
+
+def _insertion(atmsA, neighsA, bndsA, atmsB, neighsB, xgr1, xgr2):
+    """Do the insertion for an order of reactants
+    """
+    for i in atmsA:
+        if _is_heavy(i, atmsA):
+            i_neighs = neighsA[i]
+            for j in i_neighs:
+                bnd_break_key_ij = _get_bnd_key(i, j, bndsA)
+                new_xgr = automol.graph.remove_bonds(xgr1, [bnd_break_key_ij])
+                for k in atmsB:
+                    if _is_heavy(k, atmsB) and k != i and k != j and not i in neighsB[k] and not j in neighsB[k]:
+                        bnd_form_key_ik = {i, k}
+                        bnd_form_key_jk = {j, k}
+                        new_xgr = automol.graph.add_bonds(new_xgr, [bnd_form_key_ik, bnd_form_key_jk])
+                        atm_key_dct = _full_isomorphism(new_xgr, xgr2)
+                        if atm_key_dct:
+                            tra = from_data(frm_bnd_keys=[bnd_form_key_ik, bnd_form_key_jk],
+                                            brk_bnd_keys=[bnd_break_key_ij])
+                            print(automol.geom.xyz_string(automol.graph.geometry(new_xgr)))
+                            return tra
+
+
+def _is_heavy(idx, atms):
+    """Determine if atom index points to a heavy atom
+    """
+    heavy = True
+    if atms[idx][0] == 'H':
+        heavy = False
+    return heavy
+        
+
+def _get_bnd_key(idx1, idx2, bond_keys):
+    """get bond key for two atoms
+    """
+    for bnd in bond_keys:
+        if idx1 in bnd and idx2 in bnd:
+            return bnd
+
+
 def hydrogen_abstraction(xgr1, xgr2):
     """ find an addition transformation
     """

@@ -224,7 +224,6 @@ def add_bonds(xgr, keys, ord_dct=None, ste_par_dct=None):
     keys = set(map(frozenset, keys))
     ord_dct = {} if ord_dct is None else ord_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
-
     assert not keys & bnd_keys
     assert set(ord_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
