@@ -321,14 +321,19 @@ def substitution(rct_zmas, prd_zmas):
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    tra = automol.graph.trans.insertion(rcts_gra, prds_gra)
+    tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
     if tra is not None:
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
         brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
         
         # get the atom on react 1 that is being attacked (bond is forming)
-        rct1_atm1_key = next(iter(frm_bnd_key))[0]
+        rct1_atm1_key = list(frm_bnd_key)[0]
        
+        rct_zmas, prd_zmas = map([rct_zmas, prd_zmas].__getitem__, idxs[0])
+        rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs[1])
+        rct1_natms = automol.zmatrix.count(rct1_zma)
+        rct2_natms = automol.zmatrix.count(rct2_zma)
+
         # figure out atoms in the chain to define the dummy atom
         rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
             rct1_zma, rct1_atm1_key)
@@ -385,7 +390,7 @@ def substitution(rct_zmas, prd_zmas):
         # Get the names of the coordinates of the breaking and forming bond
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
         form_dist_name = ts_name_dct[dist_name]
-        break_dist_name = automol.zmatrix.get_key_from_idxs(ts_zma, brk_keys)
+        break_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key)
 
         # Get the torsional coordinates of the transition state
         ts_zma = automol.zmatrix.standard_form(ts_zma)
@@ -409,7 +414,9 @@ def substitution(rct_zmas, prd_zmas):
             tors_names += (tors_name,)
 
         # Set info to be returned
-        ret = ts_zma, form_dist_name, break_dist_name, tors_names
+        print(automol.zmatrix.string(ts_zma))
+        #ret = ts_zma, form_dist_name, break_dist_name, tors_names
+        ret = ts_zma, form_dist_name, tors_names
 
     return ret
 

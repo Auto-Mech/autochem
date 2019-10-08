@@ -10,6 +10,7 @@ from automol.zmatrix._zmatrix import value_matrix
 from automol.zmatrix._zmatrix import coordinate_key_matrix
 from automol.zmatrix._zmatrix import coordinates
 from automol.zmatrix._zmatrix import bond_idxs
+from automol.zmatrix._zmatrix import bond_key_from_idxs
 from automol.zmatrix._zmatrix import get_babs1
 from automol.zmatrix._zmatrix import get_babs2
 from automol.zmatrix._zmatrix import names
@@ -120,6 +121,7 @@ __all__ = [
     'coordinate_key_matrix',
     'coordinates',
     'bond_idxs',
+    'bond_key_from_idxs',
     'get_babs1',
     'get_babs2',
     'names',
