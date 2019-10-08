@@ -267,7 +267,6 @@ def elimination(xgr1, xgr2):
         neighs = automol.graph.atom_neighbor_keys(xgr1)
         bnds = automol.graph.bond_keys(xgr1)
         lonepairs = automol.graph.atom_lone_pair_counts(xgr1)
-        print(lonepairs)
         for atmi in atms:
             i_neighs = neighs[atmi]
             for atmj in i_neighs:
