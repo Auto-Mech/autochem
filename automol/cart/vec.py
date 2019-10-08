@@ -22,13 +22,20 @@ def unit_direction(xyz1, xyz2):
     return uxyz12
 
 
-def unit_perpendicular(xyz1, xyz2, orig_xyz=(0., 0., 0.)):
+def unit_perpendicular(xyz1, xyz2, orig_xyz=(0., 0., 0.), allow_parallel=True):
     """ calculate a unit perpendicular on `xyz1` and `xyz2`
     """
     xyz1 = numpy.subtract(xyz1, orig_xyz)
     xyz2 = numpy.subtract(xyz2, orig_xyz)
     xyz3 = numpy.cross(xyz1, xyz2)
-    uxyz3 = unit_norm(xyz3)
+
+    if numpy.linalg.norm(xyz3) > 1e-7:
+        uxyz3 = unit_norm(xyz3)
+    elif allow_parallel:
+        uxyz3 = numpy.zeros((3,))
+    else:
+        raise ValueError
+
     return uxyz3
 
 
