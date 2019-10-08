@@ -136,13 +136,21 @@ def bond_idxs(zma, key):
 def bond_key_from_idxs(zma, idxs):
     """given indices of involved bonded atoms, return bond name
     """
+    idxs = list(idxs)
+    idxs.sort(reverse=True)
+    idxs = tuple(idxs)
     coords = coordinates(zma)
     for key in coords:
-        if idxs == coords.get(key, [None]):
-            return key 
+        for coord in coords.get(key, [None]):
+            if idxs == coord:
+                bond_key = key
+
+    return bond_key
 
 
 def get_babs1(zma, dist_name):
+    """ get name of torsional coordinate associated with babs1 pre-reformatting
+    """
     idxs = bond_idxs(zma, dist_name)
     idx = max(idxs)
     babs1 = 'D{:g}'.format(idx)
@@ -150,6 +158,8 @@ def get_babs1(zma, dist_name):
 
 
 def get_babs2(zma, dist_name):
+    """ get name of torsional coordinate associated with babs2 pre-reformatting
+    """
     idxs = bond_idxs(zma, dist_name)
     idx = max(idxs)
     babs2 = 'D{:g}'.format(idx+1)

@@ -141,51 +141,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     return ret
 
 
-def _reorder_zmatrix_for_migration(zma, a_idx, h_idx):
-    """ performs z-matrix reordering operations required to
-        build proper z-matrices for hydrogen migrations
-    """
-
-    # initialize zmat components neededlater
-    symbols = automol.zmatrix.symbols(zma)
-
-    # Get the longest chain for all the atoms
-    _, gras = _shifted_standard_forms_with_gaphs([zma])
-    gra = functools.reduce(automol.graph.union, gras)
-    xgr1, = automol.graph.connected_components(gra)
-    chains_dct = automol.graph.atom_longest_chains(xgr1)
-
-    # find the longest heavy-atom chain for the forming atom
-    form_chain = chains_dct[a_idx]
-
-    # get the indices used for reordering
-    # get the longest chain from the bond forming atom (not including H)
-    order_idxs = [idx for idx in form_chain
-                  if symbols[idx] != 'H' and idx != h_idx]
-
-    # add all the heavy-atoms not in the chain
-    for i, atom in enumerate(symbols):
-        if i not in order_idxs and atom != 'H':
-            order_idxs.append(i)
-
-    # add all the hydrogens
-    for i, atom in enumerate(symbols):
-        if i != h_idx and atom == 'H':
-            order_idxs.append(i)
-
-    # add the migrating atoms
-    order_idxs.append(h_idx)
-
-    # get the geometry and redorder it according to the order_idxs list
-    geo = [list(x) for x in automol.zmatrix.geometry(zma)]
-    geo2 = tuple(tuple(geo[idx]) for idx in order_idxs)
-
-    # convert to a z-matrix
-    zma_ret = automol.geom.zmatrix(geo2)
-
-    return zma_ret
-
-
 def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
     """ z-matrix for a concerted unimolecular elimination reaction
     """
@@ -233,7 +188,7 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
             # determine if the zmatrix needs to be rebuilt by x2z
             # determines if the hydrogen atom is used to define other atoms
             rebuild = False
-            if any(idx == mig_key for idx in mig_redef_keys):
+            if any(idx > mig_key for idx in mig_redef_keys):
                 rebuild = True
 
             # rebuild zmat and go through while loop again if needed
@@ -276,12 +231,20 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
 
     # standardize the ts zmat and get tors and dist coords
     coo_dct = automol.zmatrix.coordinates(ts_zma)
+    dist_coo_key = tuple(reversed(sorted(frm_bnd_key)))
     dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
                      if dist_coo_key in coo_keys)
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
     ts_zma = automol.zmatrix.standard_form(ts_zma)
-    break_dist_name = automol.zmatrix.get_key_from_idxs(ts_zma, brk_bnd_key)
+
+    # Get the name of the coordinate of the other bond that is breaking
+    for brk_key in (brk_bnd_key1, brk_bnd_key2):
+        if not brk_key.intersection(frm_bnd_key):
+            brk_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_key)
+
+    # get full set of potential torsional coordinates
+    pot_tors_names = automol.zmatrix.torsion_coordinate_names(rct_zma)
 
     # remove the torsional coordinates that would break reaction coordinate
     gra = automol.zmatrix.graph(ts_zma, remove_stereo=True)
@@ -299,9 +262,54 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                 (mig_key in grp2 and a1_idx in grp1)):
             tors_names.append(tors_name)
 
-    ret = ts_zma, dist_name, break_dist_name, tors_names
+    ret = ts_zma, dist_name, brk_dist_name, tors_names
 
     return ret
+
+
+def _reorder_zmatrix_for_migration(zma, a_idx, h_idx):
+    """ performs z-matrix reordering operations required to
+        build proper z-matrices for hydrogen migrations
+    """
+
+    # initialize zmat components neededlater
+    symbols = automol.zmatrix.symbols(zma)
+
+    # Get the longest chain for all the atoms
+    _, gras = _shifted_standard_forms_with_gaphs([zma])
+    gra = functools.reduce(automol.graph.union, gras)
+    xgr1, = automol.graph.connected_components(gra)
+    chains_dct = automol.graph.atom_longest_chains(xgr1)
+
+    # find the longest heavy-atom chain for the forming atom
+    form_chain = chains_dct[a_idx]
+
+    # get the indices used for reordering
+    # get the longest chain from the bond forming atom (not including H)
+    order_idxs = [idx for idx in form_chain
+                  if symbols[idx] != 'H' and idx != h_idx]
+
+    # add all the heavy-atoms not in the chain
+    for i, atom in enumerate(symbols):
+        if i not in order_idxs and atom != 'H':
+            order_idxs.append(i)
+
+    # add all the hydrogens
+    for i, atom in enumerate(symbols):
+        if i != h_idx and atom == 'H':
+            order_idxs.append(i)
+
+    # add the migrating atoms
+    order_idxs.append(h_idx)
+
+    # get the geometry and redorder it according to the order_idxs list
+    geo = [list(x) for x in automol.zmatrix.geometry(zma)]
+    geo2 = tuple(tuple(geo[idx]) for idx in order_idxs)
+
+    # convert to a z-matrix
+    zma_ret = automol.geom.zmatrix(geo2)
+
+    return zma_ret
 
 
 def insertion(rct_zmas, prd_zmas):

@@ -72,16 +72,16 @@ C2O1H5_ZMA = ((('C', (None, None, None), (None, None, None)),
                'R5': 2.63652, 'A5': 1.9174, 'D5': 5.23321,
                'R6': 2.09831, 'A6': 1.9153, 'D6': 2.09638,
                'R7': 2.09831, 'A7': 1.9153, 'D7': 4.18680})
-TS_ZMA =  ((('C', (None, None, None), (None, None, None)), 
-            ('O', (0, None, None), ('R1', None, None)), 
-            ('H', (0, 1, None), ('R2', 'A2', None)), 
-            ('H', (0, 1, 2), ('R3', 'A3', 'D3')), 
-            ('O', (1, 0, 2), ('R4', 'A4', 'D4')), 
-            ('H', (4, 1, 0), ('R5', 'A5', 'D5'))), 
-            {'R1': 2.27321, 'R2': 2.09434, 'A2': 2.1331937716650295, 
-             'R3': 2.09434, 'A3': 2.1331937716650295, 'D3': 3.141592653589793, 
-             'R5': 1.84616, 'A5': 1.4835298641951802, 'D4': 1.5707963267948966, 
-             'D5': 1.5707963267948966, 'R4': 3.0, 'A4': 1.4835298641951802})
+TS_ZMA = ((('C', (None, None, None), (None, None, None)),
+           ('O', (0, None, None), ('R1', None, None)),
+           ('H', (0, 1, None), ('R2', 'A2', None)),
+           ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+           ('O', (1, 0, 2), ('R4', 'A4', 'D4')),
+           ('H', (4, 1, 0), ('R5', 'A5', 'D5'))),
+          {'R1': 2.27321, 'R2': 2.09434, 'A2': 2.1331937716650295,
+           'R3': 2.09434, 'A3': 2.1331937716650295, 'D3': 3.141592653589793,
+           'R5': 1.84616, 'A5': 1.4835298641951802, 'D4': 1.5707963267948966,
+           'D5': 1.5707963267948966, 'R4': 3.0, 'A4': 1.4835298641951802})
 
 CH4O2_ZMA_STR = """
 C
@@ -108,6 +108,7 @@ R6   =   0.969061
 A6   = 107.000441
 D6   = 277.348815
 """
+
 
 def test__from_data():
     """ test getters
@@ -212,14 +213,18 @@ def test__coordinates():
 
 
 def test__bond_idxs():
-    """test bond indices
+    """ test bond indices
     """
     idxs = (2, 1)
     assert zmatrix.bond_idxs(CH4O_ZMA, 'R2') == idxs
 
+
 def test__get_babs1():
+    """ test get_babs1
+    """
     dist_name = 'R4'
     assert zmatrix.get_babs1(TS_ZMA, dist_name) == 'D4'
+
 
 def test__distance_names():
     """ test zmatrix.distance_names
@@ -648,6 +653,57 @@ def test__ts__hydrogen_migration():
     print(tors_names)
 
 
+def test__ts__elimination():
+    """ test zmatrix.ts.elimination
+    """
+    rct_zmas = [
+        ((('C', (None, None, None), (None, None, None)),
+          ('C', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
+          ('O', (1, 0, 2), ('R5', 'A5', 'D5')),
+          ('H', (1, 0, 5), ('R6', 'A6', 'D6')),
+          ('H', (1, 0, 5), ('R7', 'A7', 'D7')),
+          ('O', (5, 1, 0), ('R8', 'A8', 'D8'))),
+         {'R1': 2.88178,
+          'R2': 2.09836, 'A2': 1.9249236320245462,
+          'R3': 2.09877, 'A3': 1.9198796304862826, 'D3': 4.181093302785096,
+          'R4': 2.09829, 'A4': 1.914207310417301, 'D4': 2.0904157516986484,
+          'R5': 2.65619, 'A5': 1.9326205340258409, 'D5': 1.0871254484944721,
+          'R6': 2.10699, 'A6': 1.933894624379797, 'D6': 4.1123273302565195,
+          'R7': 2.09849, 'A7': 1.8998083440883475, 'D7': 2.0737304040495825,
+          'R8': 2.49456, 'A8': 1.858164788135763, 'D8': 4.852695998952513})
+    ]
+
+    prd_zmas = [
+        ((('C', (None, None, None), (None, None, None)),
+          ('C', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (1, 0, 2), ('R4', 'A4', 'D4')),
+          ('H', (1, 0, 4), ('R5', 'A5', 'D5'))),
+         {'R1': 2.51566,
+          'R2': 2.05124, 'A2': 2.098950411740901,
+          'R3': 2.05124, 'A3': 2.098950411740901, 'D3': 3.141592653589793,
+          'R4': 2.05124, 'A4': 2.098950411740901, 'D4': 6.283185307179586,
+          'R5': 2.05124, 'A5': 2.098950411740901, 'D5': 3.141592653589793}),
+        ((('O', (None, None, None), (None, None, None)),
+          ('O', (0, None, None), ('R1', None, None)),
+          ('H', (1, 0, None), ('R2', 'A2', None))),
+         {'R1': 2.48688,
+          'R2': 1.87131, 'A2': 1.824043601259274})
+    ]
+
+    ts_zma, dist_name, dist_name2, tors_names = (
+        zmatrix.ts.concerted_unimolecular_elimination(rct_zmas, prd_zmas))
+    print(zmatrix.string(ts_zma))
+    print(dist_name)
+    print(dist_name2)
+    print(tors_names)
+    print(automol.geom.string(automol.zmatrix.geometry(ts_zma)))
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__string()
@@ -660,6 +716,7 @@ if __name__ == '__main__':
     # test__from_string()
     # test__ts__addition()
     # test__ts__hydrogen_abstraction()
-    #test__ts__hydrogen_migration()
-    #test__bond_idxs()
-    test__get_babs1()
+    # test__ts__hydrogen_migration()
+    test__ts__elimination()
+    # test__bond_idxs()
+    # test__get_babs1()
