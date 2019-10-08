@@ -58,7 +58,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
             # shifts order of cartesian coords and rerun x2z to get a new zmat
             # else go to next stage
             if rebuild:
-                reord_zma = _reorder_zmatrix_hydrogen_migration(
+                reord_zma = _reorder_zmatrix_for_migration(
                     init_zma, a1_idx, h_idx)
                 rct_zmas = [reord_zma]
                 count += 1
@@ -141,7 +141,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     return ret
 
 
-def _reorder_zmatrix_hydrogen_migration(zma, a_idx, h_idx):
+def _reorder_zmatrix_for_migration(zma, a_idx, h_idx):
     """ performs z-matrix reordering operations required to
         build proper z-matrices for hydrogen migrations
     """
@@ -190,21 +190,118 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
     """ z-matrix for a concerted unimolecular elimination reaction
     """
     ret = None
-    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
-    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    tra = automol.graph.trans.concerted_unimolecular_elimination(rcts_gra, prds_gra)
-    if tra is not None:
-        frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-        brk_bnd_key1, brk_bnd_key2 = automol.graph.trans.broken_bond_keys(tra)
-        
-        rct1_gra, rct2_gra = rct_gras
-        rct1_zma, rct2_zma = rct_zmas
-        rct1_natms = automol.zmatrix.count(rct1_zma)
-        rct2_natms = automol.zmatrix.count(rct2_zma)
 
-        rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
+    count = 1
+    while True:
+        rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+        rcts_gra = functools.reduce(automol.graph.union, rct_gras)
+        init_zma, = rct_zmas
+
+        tra = automol.graph.trans.elimination(rcts_gra, prds_gra)
+        if tra is not None:
+            # Get the bond formation and breaking keys
+            frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+            brk_bnd_key1, brk_bnd_key2 = automol.graph.trans.broken_bond_keys(
+                tra)
+            init_zma, = rct_zmas
+
+            # Get index for migrating atom (or bond-form atom in group)
+            for bnd_key in (brk_bnd_key1, brk_bnd_key2):
+                if bnd_key & frm_bnd_key:
+                    mig_key = next(iter(bnd_key & frm_bnd_key))
+            for key in frm_bnd_key:
+                if key != mig_key:
+                    a1_idx = key
+
+            # Get chain for redefining the rc1_atm1_key z-matrix entries
+            _, gras = _shifted_standard_forms_with_gaphs([init_zma])
+            gra = functools.reduce(automol.graph.union, gras)
+            xgr1, = automol.graph.connected_components(gra)
+            atm1_neighbors = _atom_neighbor_keys(xgr1)[a1_idx]
+            for idx in atm1_neighbors:
+                if idx != mig_key and len(_atom_neighbor_keys(xgr1)[idx]) > 1:
+                    a2_idx = idx
+            atm2_neighbors = _atom_neighbor_keys(xgr1)[a2_idx]
+            for idx in atm2_neighbors:
+                if idx != mig_key:
+                    a3_idx = idx
+
+            mig_redef_keys = (a1_idx, a2_idx, a3_idx)
+
+            # determine if the zmatrix needs to be rebuilt by x2z
+            # determines if the hydrogen atom is used to define other atoms
+            rebuild = False
+            if any(idx == mig_key for idx in mig_redef_keys):
+                rebuild = True
+
+            # rebuild zmat and go through while loop again if needed
+            # shifts order of cartesian coords and rerun x2z to get a new zmat
+            # else go to next stage
+            if rebuild:
+                reord_zma = _reorder_zmatrix_for_migration(
+                    init_zma, a1_idx, mig_key)
+                rct_zmas = [reord_zma]
+                count += 1
+                if count == 3:
+                    break
+            else:
+                rct_zma = init_zma
+                break
+        else:
+            return None
+
+    # determine the new coordinates
+    rct_geo = automol.zmatrix.geometry(rct_zma)
+    distance = automol.geom.distance(
+        rct_geo, mig_key, a1_idx)
+    angle = automol.geom.central_angle(
+        rct_geo, mig_key, a1_idx, a2_idx)
+    dihedral = automol.geom.dihedral_angle(
+        rct_geo, mig_key, a1_idx, a2_idx, a3_idx)
+
+    # Reset the keys for the migrating H atom
+    new_idxs = (a1_idx, a2_idx, a3_idx)
+    key_dct = {mig_key: new_idxs}
+    ts_zma = automol.zmatrix.set_keys(rct_zma, key_dct)
+
+    # Reset the values in the value dict
+    mig_names = automol.zmatrix.name_matrix(ts_zma)[mig_key]
+    ts_zma = automol.zmatrix.set_values(
+        ts_zma, {mig_names[0]: distance,
+                 mig_names[1]: angle,
+                 mig_names[2]: dihedral}
+    )
+
+    # standardize the ts zmat and get tors and dist coords
+    coo_dct = automol.zmatrix.coordinates(ts_zma)
+    dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
+                     if dist_coo_key in coo_keys)
+    ts_name_dct = automol.zmatrix.standard_names(ts_zma)
+    dist_name = ts_name_dct[dist_name]
+    ts_zma = automol.zmatrix.standard_form(ts_zma)
+    break_dist_name = automol.zmatrix.get_key_from_idxs(ts_zma, brk_bnd_key)
+
+    # remove the torsional coordinates that would break reaction coordinate
+    gra = automol.zmatrix.graph(ts_zma, remove_stereo=True)
+    coo_dct = automol.zmatrix.coordinates(ts_zma)
+    tors_names = []
+    for tors_name in pot_tors_names:
+        axis = coo_dct[tors_name][0][1:3]
+        grp1 = [axis[1]] + (
+            list(automol.graph.branch_atom_keys(gra, axis[0], axis) -
+                 set(axis)))
+        grp2 = [axis[0]] + (
+            list(automol.graph.branch_atom_keys(gra, axis[1], axis) -
+                 set(axis)))
+        if not ((mig_key in grp1 and a1_idx in grp2) or
+                (mig_key in grp2 and a1_idx in grp1)):
+            tors_names.append(tors_name)
+
+    ret = ts_zma, dist_name, break_dist_name, tors_names
+
+    return ret
 
 
 def insertion(rct_zmas, prd_zmas):
@@ -219,13 +316,12 @@ def insertion(rct_zmas, prd_zmas):
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
     tra, idxs = automol.graph.trans.insertion(rcts_gra, prds_gra)
     if tra is not None:
-        frm_bnd_key, frm_bnd_key2 = automol.graph.trans.formed_bond_keys(tra)
-        brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
-        
+        frm_bnd_key, _ = automol.graph.trans.formed_bond_keys(tra)
+        # brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
+
         # get the atom on react 1 that is being attacked (bond is forming)
-        #rct1_atm1_key = next(iter(frm_bnd_key))[0]
         rct1_atm1_key = list(frm_bnd_key)[0]
-       
+
         # figure out atoms in the chain to define the dummy atom
         rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs)
         rct1_natms = automol.zmatrix.count(rct1_zma)
@@ -233,7 +329,7 @@ def insertion(rct_zmas, prd_zmas):
 
         rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
             rct1_zma, rct1_atm1_key)
-        
+
         x_zma = ((('X', (None, None, None), (None, None, None)),), {})
 
         x_join_val_dct = {
@@ -262,7 +358,7 @@ def insertion(rct_zmas, prd_zmas):
             'babs2': 90. * qcc.conversion_factor('degree', 'radian'),
             'babs3': 90. * qcc.conversion_factor('degree', 'radian'),
         }
-     
+
         join_keys = numpy.array(
             [[rct1_atm1_key, x_atm_key, rct1_atm2_key],
              [None, rct1_atm1_key, x_atm_key],
@@ -324,8 +420,8 @@ def substitution(rct_zmas, prd_zmas):
     tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
     if tra is not None:
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-        brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
-        
+        # brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
+
         # get the atom on react 1 that is being attacked (bond is forming)
         rct1_atm1_key = list(frm_bnd_key)[0]
        
@@ -337,7 +433,7 @@ def substitution(rct_zmas, prd_zmas):
         # figure out atoms in the chain to define the dummy atom
         rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
             rct1_zma, rct1_atm1_key)
-       
+
         # Join the reactant 1 ZMAT with the dummy atomx
         x_zma = ((('X', (None, None, None), (None, None, None)),), {})
 
@@ -359,7 +455,7 @@ def substitution(rct_zmas, prd_zmas):
         rct1_x_zma = automol.zmatrix.join(
             rct1_zma, x_zma, x_join_keys, x_join_names, x_join_val_dct)
 
-        # Join the React 2 ZMAT with the reac1_x ZMAT 
+        # Join the React 2 ZMAT with the reac1_x ZMAT
         x_atm_key = rct1_natms
 
         join_val_dct = {
@@ -419,7 +515,6 @@ def substitution(rct_zmas, prd_zmas):
         ret = ts_zma, form_dist_name, tors_names
 
     return ret
-
 
 
 def beta_scission(rct_zmas, prd_zmas):
@@ -502,8 +597,8 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         if rct_tors:
             rct2_tors_names = rct_tors
         else:
-            rct2_tors_names = automol.zmatrix.torsion_coordinate_names(rct2_zma)
-        print(rct2_tors_names)
+            rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
+                rct2_zma)
         tors_names = (
             tuple(map(ts_name_dct.__getitem__, rct1_tors_names)) +
             tuple(map(ts_name_dct.__getitem__, rct2_tors_names))
@@ -665,8 +760,8 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                     tors_name = ts_name_dct['babs2']
                     tors_names += (tors_name,)
 
-            # babs3 should only be included if there is only group connected to the radical atom
-
+            # babs3 should only be included if there is only group
+            # connected to the radical atom
             if 'babs3' in ts_name_dct:
                 tors_name = ts_name_dct['babs3']
                 tors_names += (tors_name,)
@@ -715,7 +810,7 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                 rct1_zma, rct1_atm1_key)
 
             x_zma = ((('X', (None, None, None), (None, None, None)),), {})
-            
+
             abs_atm_key = ''
             for atm_key in frm_bnd_key:
                 if atm_key in automol.graph.atom_keys(rct2_gra):
@@ -783,7 +878,8 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                     tors_name = ts_name_dct['babs2']
                     tors_names += (tors_name,)
 
-            # babs3 should only be included if there is only group connected to the radical atom
+            # babs3 should only be included if there is only group
+            # connected to the radical atom
             ngb_dct = automol.graph.atom_neighbor_keys(rct2_gra)
             ngb_keys = ngb_dct[abs_atm_key]
             if 'babs3' in ts_name_dct and len(ngb_keys) < 2:
