@@ -153,9 +153,7 @@ def argsort(ichs):
     """
 
     assert not any(map(has_multiple_components, ichs))
-    current_ichs = ichs #list(map(standard_form, ichs))
     ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
-    #ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
     idxs = tuple(numpy.argsort(list(map(ref_ichs.index, ichs))))
     return idxs
 
@@ -192,6 +190,7 @@ def _join_sublayers(dcts):
 
 
 def _join_m_sublayer_strings(m_slyrs):
+    m_slyrs = [m_slyr if m_slyr else '.' for m_slyr in m_slyrs]
     return ''.join(m_slyrs)
 
 
