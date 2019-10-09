@@ -337,6 +337,7 @@ def rot_permutated_geoms(geo):
     """
     # still need to check that the terminal group is part of a torsional motion
     # eg exclude double bond groups
+    #print('entering rot_permutated_geoms:', geo)
     gra = graph(geo)
     term_atms = {}
     all_hyds = []
@@ -345,8 +346,6 @@ def rot_permutated_geoms(geo):
     #determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
     rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-    print(unsat_atms)
-    print(rad_atms)
 
     gra = gra[0]
     for atm in gra:
@@ -373,6 +372,7 @@ def rot_permutated_geoms(geo):
         for geom in geo_final_lst:
             geo_lst.extend(_swap_for_one(geom, hyds))
         geo_final_lst = geo_lst
+    #print('exiting rot_permutated_geoms:', geo_final_lst)
     return geo_final_lst
 
 

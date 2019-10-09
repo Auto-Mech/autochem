@@ -285,6 +285,7 @@ def _split_sublayer_string(slyr, count_sep_ptt=app.escape('*'),
 def recalculate(ich, force_stereo=False):
     """ recalculate an inchi string
     """
+    print('incoming ich in recalculate:', ich)
     return automol.convert.inchi.recalculate(ich, force_stereo=force_stereo)
 
 
