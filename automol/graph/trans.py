@@ -261,7 +261,7 @@ def elimination(xgr1, xgr2):
     tra = None
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
-
+    tras = []
     if len(xgrs1) == 1 and len(xgrs2) == 2:
         atms = automol.graph.atoms(xgr1)
         neighs = automol.graph.atom_neighbor_keys(xgr1)
@@ -303,8 +303,10 @@ def elimination(xgr1, xgr2):
                                         newnew_xgr = automol.graph.add_bonds(newnew_xgr, [bnd_form_key_km])
                                         atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
                                         if atm_key_dct:
-                                            tra = [[bnd_form_key_km], [bnd_break_key_ij, bnd_break_key_lm]]
-                                            return tra
+                                            tras.append([[bnd_form_key_km], [bnd_break_key_ij, bnd_break_key_lm]])
+    if len(tras) < 1:
+        tras = None
+    return tras
             
 
 def substitution(xgr1, xgr2):
