@@ -331,19 +331,49 @@ def move_coordinates(geo, idx1, idx2):
 
     return geo_move
 
+
+def reflect_coordinates(geo, idxs, axes):
+    """ reflect coordinates
+    """
+
+    # check input
+    assert all(idx < len(geo) for idx in idxs)
+    assert all(axis in ('x', 'y', 'z') for axis in axes)
+
+    # get coords
+    coords = coordinates(geo)
+
+    # convert x,y,z to nums
+    axis_dct = {'x': 0, 'y': 1, 'z': 2}
+    axes = [axis_dct[axis] for axis in axes]
+
+    # build set atom dct with relected coords
+    reflect_dct = {}
+    for idx in idxs:
+        coord_lst = list(coords[idx])
+        for axis in axes:
+            coord_lst[axis] *= -1.0
+        reflect_dct[idx] = coord_lst
+
+    # Reflect coords with dct
+    geo_reflected = set_coordinates(geo, reflect_dct)
+
+    return geo_reflected
+
+
 def rot_permutated_geoms(geo):
     """ convert an input geometry to a list of geometries
     corresponding to the rotational permuations of all the terminal groups
     """
     # still need to check that the terminal group is part of a torsional motion
     # eg exclude double bond groups
-    #print('entering rot_permutated_geoms:', geo)
+    # print('entering rot_permutated_geoms:', geo)
     gra = graph(geo)
     term_atms = {}
     all_hyds = []
     neighbor_dct = automol.graph.atom_neighbor_keys(gra)
 
-    #determine if atom is a part of a double bond
+    # determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
     rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
 
@@ -372,7 +402,7 @@ def rot_permutated_geoms(geo):
         for geom in geo_final_lst:
             geo_lst.extend(_swap_for_one(geom, hyds))
         geo_final_lst = geo_lst
-    #print('exiting rot_permutated_geoms:', geo_final_lst)
+    # print('exiting rot_permutated_geoms:', geo_final_lst)
     return geo_final_lst
 
 
@@ -397,72 +427,72 @@ def _swap_for_one(geo, hyds):
     return geo_lst
 
 
-def set_axes_to_123(symb, coords):
-    """ Transform coordinates so that first 3 coords define system.
-        NONFUNCTIONING AT THE MOMENT
-    """
-
-    # Put in a matrix
-    A = numpy.asarray(coords, dtype=numpy.float)
-
-    # Translate so that first atom is center
-    B = A - A[0]
-
-    # Build Rotation matrix to rotate second atom vector onto Z-axis
-    # Get unit vectors
-    b = (1.0 / numpy.linalg.norm(B[1])) * B[1]
-    z = numpy.array([0.0, 0.0, 1.0])
-
-    # Get Orthogonal Vector to rotate about
-    v = numpy.cross(b, z)
-
-    # Get sine and cosine of angle
-    c = numpy.dot(b, z)
-    s = numpy.linalg.norm(v)
-
-    # Build matrices to sum for R
-    h = ((1.0 - c) / (s*s))
-    Rbz = numpy.array([
-        [c + h*v[0]*v[0], h*v[0]*v[1] - v[2], h*v[0]*v[2] + v[1]],
-        [h*v[0]*v[1] + v[2], c + h*v[1]*v[1], h*v[1]*v[2] - v[0]],
-        [h*v[0]*v[2] - v[1], h*v[1]*v[2] + v[0], c + h*v[2]*v[2]]])
-
-    # User rotation matrix to make second atom on Z-axis
-    C = numpy.dot(Rbz, B.transpose()).transpose()
-
-    # Build Rotation matrix to make third atom in yz-plane
-    # Get unit vectors
-    b = (1.0 / numpy.linalg.norm(C[2])) * C[2]
-    q = C[2] - numpy.array([C[2][0], 0.0, 0.0])
-    z = (1.0 / numpy.linalg.norm(q)) * q
-
-    # Get Orthogonal Vector to rotate about
-    v = numpy.cross(b, z)
-
-    # Get sine and cosine of angle
-    c = numpy.dot(b, z)
-    s = numpy.linalg.norm(v)
-
-    # Build rotation matrix to rotate about z-axis
-    Rz = numpy.array([[c, -s, 0.0],
-                     [s, c, 0.0],
-                     [0.0, 0.0, 1.0]])
-
-    # User rotation matrix to make second atom on Z-axis
-    D = numpy.dot(Rz, C.transpose()).transpose()
-
-    # Turn coords back into a list
-    trans_coords = D.tolist()
-
-    # Put the atom symbols back onto coords
-    axyb = []
-    for i in range(len(symb)):
-        xyzstr = symb[i]
-        for j in range(len(trans_coords[i])):
-            xyzstr = xyzstr + '   ' + str(trans_coords[i][j])
-        axyb.append(xyzstr)
-
-    return axyb
+# def set_axes_to_123(symb, coords):
+#     """ Transform coordinates so that first 3 coords define system.
+#         NONFUNCTIONING AT THE MOMENT
+#     """
+#
+#     # Put in a matrix
+#     A = numpy.asarray(coords, dtype=numpy.float)
+#
+#     # Translate so that first atom is center
+#     B = A - A[0]
+#
+#     # Build Rotation matrix to rotate second atom vector onto Z-axis
+#     # Get unit vectors
+#     b = (1.0 / numpy.linalg.norm(B[1])) * B[1]
+#     z = numpy.array([0.0, 0.0, 1.0])
+#
+#     # Get Orthogonal Vector to rotate about
+#     v = numpy.cross(b, z)
+#
+#     # Get sine and cosine of angle
+#     c = numpy.dot(b, z)
+#     s = numpy.linalg.norm(v)
+#
+#     # Build matrices to sum for R
+#     h = ((1.0 - c) / (s*s))
+#     Rbz = numpy.array([
+#         [c + h*v[0]*v[0], h*v[0]*v[1] - v[2], h*v[0]*v[2] + v[1]],
+#         [h*v[0]*v[1] + v[2], c + h*v[1]*v[1], h*v[1]*v[2] - v[0]],
+#         [h*v[0]*v[2] - v[1], h*v[1]*v[2] + v[0], c + h*v[2]*v[2]]])
+#
+#     # User rotation matrix to make second atom on Z-axis
+#     C = numpy.dot(Rbz, B.transpose()).transpose()
+#
+#     # Build Rotation matrix to make third atom in yz-plane
+#     # Get unit vectors
+#     b = (1.0 / numpy.linalg.norm(C[2])) * C[2]
+#     q = C[2] - numpy.array([C[2][0], 0.0, 0.0])
+#     z = (1.0 / numpy.linalg.norm(q)) * q
+#
+#     # Get Orthogonal Vector to rotate about
+#     v = numpy.cross(b, z)
+#
+#     # Get sine and cosine of angle
+#     c = numpy.dot(b, z)
+#     s = numpy.linalg.norm(v)
+#
+#     # Build rotation matrix to rotate about z-axis
+#     Rz = numpy.array([[c, -s, 0.0],
+#                      [s, c, 0.0],
+#                      [0.0, 0.0, 1.0]])
+#
+#     # User rotation matrix to make second atom on Z-axis
+#     D = numpy.dot(Rz, C.transpose()).transpose()
+#
+#     # Turn coords back into a list
+#     trans_coords = D.tolist()
+#
+#     # Put the atom symbols back onto coords
+#     axyb = []
+#     for i in range(len(symb)):
+#         xyzstr = symb[i]
+#         for j in range(len(trans_coords[i])):
+#             xyzstr = xyzstr + '   ' + str(trans_coords[i][j])
+#         axyb.append(xyzstr)
+#
+#     return axyb
 
 
 # geometric properties
@@ -651,10 +681,13 @@ def graph(geo, remove_stereo=False):
     """
     return automol.convert.geom.graph(geo, remove_stereo=remove_stereo)
 
+
 def weakly_connected_graph(geo, remove_stereo=False):
     """ geometry => graph
     """
-    return automol.convert.geom.weakly_connected_graph(geo, remove_stereo=remove_stereo)
+    return automol.convert.geom.weakly_connected_graph(
+            geo, remove_stereo=remove_stereo)
+
 
 def inchi(geo, remove_stereo=False):
     """ geometry => inchi
