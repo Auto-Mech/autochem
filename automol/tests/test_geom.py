@@ -151,6 +151,23 @@ def test__move_coordinates():
     assert mv_geo == ref_geo
 
 
+def test__reflect_coordinates():
+    """ test geom.reflect_coordinates
+    """
+    rgeo = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1], ['x'])
+    for x in C2H2CLF_GEO:
+        print(x)
+    print('\nreflect 1 about xyz')
+    rgeo = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1], ['x', 'y', 'z'])
+    for x in rgeo:
+        print(x)
+    print('\nreflect 1,2,4 about xy')
+    rgeo = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1, 2, 4], ['x', 'y'])
+    for x in rgeo:
+        print(x)
+    # assert mv_geo == ref_geo
+
+
 def test__external_symmetry_number():
     """ test geom.external_symmety_number
     """
@@ -185,6 +202,7 @@ def test__external_symmetry_number():
     assert c2h5of_sym_num == ref_sym_num3
     assert c2h2clf_sym_num == ref_sym_num4
 
+
 def test__rot_permutated_geoms():
     smi = 'C[CH2]'
     ich = automol.smiles.inchi(smi)
@@ -193,11 +211,13 @@ def test__rot_permutated_geoms():
     for geom in geos:
          print(automol.geom.xyz_string(geom))
 
+
 if __name__ == '__main__':
     # test__from_data()
     # test__is_valid()
     # test__set_coordinates()
     # test__swap_coordinates()
     # test__move_coordinates()
-    #test__external_symmetry_number()
-    test__rot_permutated_geoms()
+    test__reflect_coordinates()
+    # test__external_symmetry_number()
+    # test__rot_permutated_geoms()
