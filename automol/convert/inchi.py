@@ -30,11 +30,7 @@ def _connected_stereo_geometry(ich):
 
     ich = automol.inchi.standard_form(ich, remove_stereo=True)
     geo = _connected_geometry(ich)
-    print(geo)
     ich, nums = automol.convert.geom.inchi_with_sort(geo)
-    print(ref_ich)
-    print(ich)
-    print(nums)
 
 
 def _connected_geometry(ich):
@@ -122,7 +118,6 @@ def recalculate(ich, force_stereo=False):
     """
     # for now, just assert that we have no multi-component strings with
     # hardcoded parts -- these are guaranteed to fail
-    print('ich in recalculate:', ich)
     ichs = automol.inchi.split(ich)
     if len(ichs) > 1:
         if any(object_from_hardcoded_inchi_by_key('inchi', ich)

@@ -300,15 +300,9 @@ def swap_coordinates(geo, idx1, idx2):
     """ swap the order of the coordinates of the two atoms
     """
 
-    # convert geo (tuple-of-tuples) to a list-of-lists
-    geo2 = [list(x) for x in geo]
-
-    # swap the two coordinates
-    geo2[idx1], geo2[idx2] = geo2[idx2], geo2[idx1]
-
-    # convert geo back to a tuple-of-tuples
-    geo_swp = tuple(tuple(x) for x in geo2)
-
+    geo = [list(x) for x in geo]
+    geo[idx1], geo[idx2] = geo[idx2], geo[idx1]
+    geo_swp = tuple(tuple(x) for x in geo)
     return geo_swp
 
 
@@ -316,24 +310,19 @@ def move_coordinates(geo, idx1, idx2):
     """ move the atom at position idx1 to idx2, shifting all other atoms
     """
 
-    # convert geo (tuple-of-tuples) to a list-of-lists
-    geo2 = [list(x) for x in geo]
-
     # Get the coordinates at idx1 that are to be moved
-    moving_coords = geo2[idx1]
+    geo = [list(x) for x in geo]
+    moving_coords = geo[idx1]
 
     # move the coordinates to idx2
-    geo2.remove(moving_coords)
-    geo2.insert(idx2, moving_coords)
-
-    # convert geo back to a tuple-of-tuples
-    geo_move = tuple(tuple(x) for x in geo2)
-
+    geo.remove(moving_coords)
+    geo.insert(idx2, moving_coords)
+    geo_move = tuple(tuple(x) for x in geo)
     return geo_move
 
 
 def reflect_coordinates(geo, idxs, axes):
-    """ reflect coordinates
+    """ reflect each coordinate about the requested axes
     """
 
     # check input
@@ -363,7 +352,7 @@ def reflect_coordinates(geo, idxs, axes):
 
 def rot_permutated_geoms(geo):
     """ convert an input geometry to a list of geometries
-    corresponding to the rotational permuations of all the terminal groups
+        corresponding to the rotational permuations of all the terminal groups
     """
     # still need to check that the terminal group is part of a torsional motion
     # eg exclude double bond groups
@@ -382,7 +371,7 @@ def rot_permutated_geoms(geo):
         if gra[atm][0] == 'H':
             all_hyds.append(atm)
     for atm in gra:
-        if atm in unsat_atms and not atm in rad_atms:
+        if atm in unsat_atms and atm not in rad_atms:
             pass
         else:
             nonh_neighs = []
@@ -425,74 +414,6 @@ def _swap_for_one(geo, hyds):
             new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
             geo_lst.append(new_geo)
     return geo_lst
-
-
-# def set_axes_to_123(symb, coords):
-#     """ Transform coordinates so that first 3 coords define system.
-#         NONFUNCTIONING AT THE MOMENT
-#     """
-#
-#     # Put in a matrix
-#     A = numpy.asarray(coords, dtype=numpy.float)
-#
-#     # Translate so that first atom is center
-#     B = A - A[0]
-#
-#     # Build Rotation matrix to rotate second atom vector onto Z-axis
-#     # Get unit vectors
-#     b = (1.0 / numpy.linalg.norm(B[1])) * B[1]
-#     z = numpy.array([0.0, 0.0, 1.0])
-#
-#     # Get Orthogonal Vector to rotate about
-#     v = numpy.cross(b, z)
-#
-#     # Get sine and cosine of angle
-#     c = numpy.dot(b, z)
-#     s = numpy.linalg.norm(v)
-#
-#     # Build matrices to sum for R
-#     h = ((1.0 - c) / (s*s))
-#     Rbz = numpy.array([
-#         [c + h*v[0]*v[0], h*v[0]*v[1] - v[2], h*v[0]*v[2] + v[1]],
-#         [h*v[0]*v[1] + v[2], c + h*v[1]*v[1], h*v[1]*v[2] - v[0]],
-#         [h*v[0]*v[2] - v[1], h*v[1]*v[2] + v[0], c + h*v[2]*v[2]]])
-#
-#     # User rotation matrix to make second atom on Z-axis
-#     C = numpy.dot(Rbz, B.transpose()).transpose()
-#
-#     # Build Rotation matrix to make third atom in yz-plane
-#     # Get unit vectors
-#     b = (1.0 / numpy.linalg.norm(C[2])) * C[2]
-#     q = C[2] - numpy.array([C[2][0], 0.0, 0.0])
-#     z = (1.0 / numpy.linalg.norm(q)) * q
-#
-#     # Get Orthogonal Vector to rotate about
-#     v = numpy.cross(b, z)
-#
-#     # Get sine and cosine of angle
-#     c = numpy.dot(b, z)
-#     s = numpy.linalg.norm(v)
-#
-#     # Build rotation matrix to rotate about z-axis
-#     Rz = numpy.array([[c, -s, 0.0],
-#                      [s, c, 0.0],
-#                      [0.0, 0.0, 1.0]])
-#
-#     # User rotation matrix to make second atom on Z-axis
-#     D = numpy.dot(Rz, C.transpose()).transpose()
-#
-#     # Turn coords back into a list
-#     trans_coords = D.tolist()
-#
-#     # Put the atom symbols back onto coords
-#     axyb = []
-#     for i in range(len(symb)):
-#         xyzstr = symb[i]
-#         for j in range(len(trans_coords[i])):
-#             xyzstr = xyzstr + '   ' + str(trans_coords[i][j])
-#         axyb.append(xyzstr)
-#
-#     return axyb
 
 
 # geometric properties
@@ -546,11 +467,174 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
     for i, _ in enumerate(dist_mat1):
         for j, _ in enumerate(dist_mat1):
             diff_mat[i][j] = abs(dist_mat1[i][j] - dist_mat2[i][j])
-#    print(numpy.amax(diff_mat))
     if numpy.amax(diff_mat) > thresh:
         almost_equal_dm = False
     return almost_equal_dm
-#    return almost_equal_dm, numpy.amax(diff_mat)
+
+
+def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
+    """ geometric approach for calculating the xyz coordinates of atom A
+        when the xyz coordinates of the A B and C are known and
+        the position is defined w/r to A B C with internal coordinates
+    """
+    # Set to numpy arrays
+    xyz1 = numpy.array(xyz1)
+    xyz2 = numpy.array(xyz2)
+    xyz3 = numpy.array(xyz3)
+
+    print('coords')
+    print(pdist)
+    print(pangle)
+    print(pdihed)
+
+    # Set the coordinates of Point P in the RT system
+    xyzp_rt = numpy.array([pdist * numpy.sin(pangle) * numpy.cos(pdihed),
+                           pdist * numpy.cos(pangle),
+                           -(pdist * numpy.sin(pangle) * numpy.sin(pdihed))
+                           ])
+
+    # Set the coordinates of the Point 2 and 3 in the RT system
+    dist12 = numpy.linalg.norm(xyz1 - xyz2)
+    dist13 = numpy.linalg.norm(xyz1 - xyz3)
+    dist23 = numpy.linalg.norm(xyz2 - xyz3)
+    xyz2_rt = numpy.array([0.0, dist12, 0.0])
+
+    print('dists')
+    print(dist12)
+    print(dist13)
+    print(dist23)
+
+    val = ((dist12**2 + dist13**2 - dist23**2) / 2.0 / dist12)
+    valx3 = numpy.sqrt(dist13**2 - val**2)
+    valy3 = ((dist12**2 + dist13**2 - dist23**2) / 2.0 / dist12)
+    xyz3_rt = numpy.array([valx3, valy3, 0.0])
+
+    print('pointd rt')
+    print(xyz3_rt)
+
+    # Translate original frame of ref coors so that xyz1 is at (0, 0, 0)
+    xyz2_t = xyz2 - xyz1
+    xyz3_t = xyz3 - xyz1
+
+    # Rotation matrix to rotate back to the original ref system
+    r12 = (xyz2[0] - xyz1[0]) / xyz2_rt[1]
+    r22 = (xyz2[1] - xyz1[1]) / xyz2_rt[1]
+    r32 = (xyz2[2] - xyz1[2]) / xyz2_rt[1]
+
+    r11 = (xyz3[0] - xyz1[0] - xyz3_rt[1]*r12) / xyz3_rt[0]
+    r21 = (xyz3[1] - xyz1[1] - xyz3_rt[1]*r22) / xyz3_rt[0]
+    r31 = (xyz3[2] - xyz1[2] - xyz3_rt[1]*r32) / xyz3_rt[0]
+
+    print('r11 test')
+    print(xyz3[0])
+    print(xyz1[0])
+    print(xyz3_rt[1]*r12)
+    print(xyz3_rt[0])
+
+    anum_aconst = xyz2_t[1] - (xyz3_t[1] / xyz3_t[0]) * xyz2_t[0]
+    den_aconst = xyz2_t[2] - (xyz3_t[2] / xyz3_t[0]) * xyz2_t[0]
+
+    print('rvals')
+    print(r12)
+    print(r22)
+    print(r32)
+    print(r11)
+    print(r21)
+    print(r31)
+    print(anum_aconst)
+    print(den_aconst)
+
+    if abs(anum_aconst) < 1.0e-6 and abs(den_aconst) < 1.0e-6:
+        if anum_aconst < 0.0:
+            aconst = -1.0e20
+        else:
+            aconst = 1.0e20
+    elif abs(den_aconst) < 1.0e-6:
+        if anum_aconst < 0.0:
+            aconst = -1.0e20
+        else:
+            aconst = 1.0e20
+    else:
+        anum = xyz2_t[1] - (xyz3_t[1] / xyz3_t[0]) * xyz2_t[0]
+        aden = xyz2_t[2] - (xyz3_t[2] / xyz3_t[0]) * xyz2_t[0]
+        aconst = anum / aden
+
+    print('aconst')
+    print(aconst)
+
+    den1 = (xyz3_t[1] / xyz3_t[0]) - aconst * (xyz3_t[2] / xyz3_t[0])
+    if den1 == 0.0:
+        den1 = 1.0e-20
+    bconst = 1.0 / den1
+
+    # Set vals for another point
+    valx = -(1.0 / numpy.sqrt(1.0 + (bconst**2) * (1.0 + aconst**2)))
+    valy = -(valx * bconst)
+    xyz4_t = numpy.array([valx, valy, -(valy * aconst)])
+
+    r13 = xyz4_t[0]
+    r23 = xyz4_t[1]
+    r33 = xyz4_t[2]
+    r13n = -r13
+    r23n = -r23
+    r33n = -r33
+
+    print('rn3 vals')
+    print(r13)
+    print(r23)
+    print(r33)
+
+    print('xyzp vals')
+    print(xyzp_rt[0])
+    print(xyzp_rt[1])
+    print(xyzp_rt[2])
+
+    # Now rotate and translate back
+    # Here I check  the (001) vector direction to decide whether
+    # To take the positive of negative results of the
+    # Square root taken above
+    xap = (xyz1[0] + (r11 * xyzp_rt[0]) +
+           (r12 * xyzp_rt[1]) + (r13 * xyzp_rt[2]))
+    yap = (xyz1[1] + (r21 * xyzp_rt[0]) +
+           (r22 * xyzp_rt[1]) + (r33 * xyzp_rt[2]))
+    zap = (xyz1[2] + (r31 * xyzp_rt[0]) +
+           (r32 * xyzp_rt[1]) + (r33 * xyzp_rt[2]))
+
+    xan = (xyz1[0] + (r11 * xyzp_rt[0]) +
+           (r12 * xyzp_rt[1]) + (r13n * xyzp_rt[2]))
+    yan = (xyz1[1] + (r21 * xyzp_rt[0]) +
+           (r22 * xyzp_rt[1]) + (r23n * xyzp_rt[2]))
+    zan = (xyz1[2] + (r31 * xyzp_rt[0]) +
+           (r32 * xyzp_rt[1]) + (r33n * xyzp_rt[2]))
+
+    print('xp')
+    print(xap)
+    print(yap)
+    print(zap)
+    print('xn')
+    print(xan)
+    print(yan)
+    print(zan)
+
+    bvec = xyz1 - xyz2
+    cvec = xyz2 - xyz3
+    vec1 = (bvec[1] * cvec[2]) - (bvec[2] * cvec[1])
+    vec2 = (bvec[2] * cvec[0]) - (bvec[0] * cvec[2])
+    vec3 = (bvec[0] * cvec[1]) - (bvec[1] * cvec[0])
+
+    if abs(xyz4_t[0]) > 1.0e-5:
+        checkv = vec1 / xyz4_t[0]
+    elif abs(xyz4_t[1]) > 1.0e-5:
+        checkv = vec2 / xyz4_t[1]
+    else:
+        checkv = vec3 / xyz4_t[2]
+
+    if checkv >= 0.0:
+        xyzp = numpy.array([xap, yap, zap])
+    else:
+        xyzp = numpy.array([xan, yan, zan])
+
+    return xyzp[0], xyzp[1], xyzp[2]
 
 
 # chemical properties
@@ -679,14 +763,15 @@ def zmatrix_atom_ordering(geo):
 def graph(geo, remove_stereo=False):
     """ geometry => graph
     """
-    return automol.convert.geom.graph(geo, remove_stereo=remove_stereo)
+    return automol.convert.geom.graph(
+        geo, remove_stereo=remove_stereo)
 
 
 def weakly_connected_graph(geo, remove_stereo=False):
     """ geometry => graph
     """
     return automol.convert.geom.weakly_connected_graph(
-            geo, remove_stereo=remove_stereo)
+        geo, remove_stereo=remove_stereo)
 
 
 def inchi(geo, remove_stereo=False):
