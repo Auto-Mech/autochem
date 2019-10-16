@@ -350,21 +350,22 @@ def reflect_coordinates(geo, idxs, axes):
     return geo_reflected
 
 
-def rot_permutated_geoms(geo):
+
+def rot_permutated_geoms(geo, saddle=False):
     """ convert an input geometry to a list of geometries
         corresponding to the rotational permuations of all the terminal groups
     """
-    # still need to check that the terminal group is part of a torsional motion
-    # eg exclude double bond groups
-    # print('entering rot_permutated_geoms:', geo)
-    gra = graph(geo)
+    gra = graph(geo, remove_stereo=True)
     term_atms = {}
     all_hyds = []
     neighbor_dct = automol.graph.atom_neighbor_keys(gra)
 
     # determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
-    rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
+    if not saddle:
+        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
+    else:
+        rad_atms = []
 
     gra = gra[0]
     for atm in gra:
@@ -391,7 +392,6 @@ def rot_permutated_geoms(geo):
         for geom in geo_final_lst:
             geo_lst.extend(_swap_for_one(geom, hyds))
         geo_final_lst = geo_lst
-    # print('exiting rot_permutated_geoms:', geo_final_lst)
     return geo_final_lst
 
 
