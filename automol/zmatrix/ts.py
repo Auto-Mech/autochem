@@ -14,6 +14,33 @@ from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 
 
+def min_hyd_mig_dist(rct_zmas, prd_zmas):
+    """ determinesdistance coordinate to minimize for 
+    hydrogen migration reaction
+    """
+    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas)
+    prd_gra = functools.reduce(automol.graph.union, prd_gras)
+    if len(rct_zmas) == 1:
+        rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas)
+        rct_gra = functools.reduce(automol.graph.union, rct_gras)
+        tras = automol.graph.trans.hydrogen_atom_migration(rct_gra, prd_gra)
+        if tras is None:
+            tras = automol.graph.trans.proton_migration(rct_gra, prd_gra)
+        # If reaction found, the proceed
+        if tras:
+            min_frm_bnd_key = None
+            min_dist = 10
+            for tra in tras:
+                frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+                geo = automol.zmatrix.geometry(rct_zmas[0])
+                dist = automol.geom.distance(geo, *list(frm_bnd_key))
+                if dist < min_dist:
+                    min_dist = dist
+                    min_frm_bnd_key = frm_bnd_key
+                if min_frm_bnd_key:
+                    return min_frm_bnd_key
+
+
 def hydrogen_migration(rct_zmas, prd_zmas):
     """ z-matrix for a hydrogen migration reaction
     """
@@ -29,15 +56,25 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         rct_gra = functools.reduce(automol.graph.union, rct_gras)
 
         # try an atom migration then try a proton migration
-        tra = automol.graph.trans.hydrogen_atom_migration(rct_gra, prd_gra)
-        if tra is None:
-            tra = automol.graph.trans.proton_migration(rct_gra, prd_gra)
+        tras = automol.graph.trans.hydrogen_atom_migration(rct_gra, prd_gra)
+        if tras is None:
+            tras = automol.graph.trans.proton_migration(rct_gra, prd_gra)
 
         # If reaction found, the proceed
-        if tra is not None:
+        if tras:
             # Get the bond formation keys and the reactant zmatrix
-            frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-            init_zma, = rct_zmas
+            min_dist = 100.
+            frm_bnd_key = None
+            for tra_i in tras:
+                # Get the bond formation and breaking keys
+                bnd_key, = automol.graph.trans.formed_bond_keys(tra_i)
+                geo = automol.zmatrix.geometry(rct_zmas[0])
+                dist = automol.geom.distance(geo, *list(bnd_key))
+                if dist < min_dist:
+                    min_dist = dist
+                    frm_bnd_key = bnd_key
+                    tra = tra_i
+                init_zma, = rct_zmas
 
             # figure out which idx in frm_bnd_keys corresponds to the hydrogen
             symbols = automol.vmatrix.symbols(automol.zmatrix.var_(init_zma))
