@@ -151,7 +151,7 @@ def hydrogen_atom_migration(xgr1, xgr2):
     """
     assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
 
-    tra = None
+    tras = []
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
 
@@ -173,13 +173,15 @@ def hydrogen_atom_migration(xgr1, xgr2):
 
             inv_atm_key_dct = _full_isomorphism(xgr2_h, xgr1_h)
             if inv_atm_key_dct:
-                tra = from_data(
+                tras.append(from_data(
                     frm_bnd_keys=[{atm_key1,
                                    inv_atm_key_dct[h_atm_key2]}],
                     brk_bnd_keys=[{inv_atm_key_dct[atm_key2],
-                                   inv_atm_key_dct[h_atm_key2]}])
+                                   inv_atm_key_dct[h_atm_key2]}]))
 
-    return tra
+    if len(tras) < 1:
+        tras = None
+    return tras
 
 
 def proton_migration(xgr1, xgr2):
@@ -187,7 +189,7 @@ def proton_migration(xgr1, xgr2):
     """
     assert xgr1 == _explicit(xgr1) and xgr2 == _explicit(xgr2)
 
-    tra = None
+    tras = []
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
         
@@ -207,13 +209,14 @@ def proton_migration(xgr1, xgr2):
 
             inv_atm_key_dct = _full_isomorphism(xgr2_h, xgr1_h)
             if inv_atm_key_dct:
-                tra = from_data(
+                tras.append(from_data(
                     frm_bnd_keys=[{atm_key1,
                                    inv_atm_key_dct[h_atm_key2]}],
                     brk_bnd_keys=[{inv_atm_key_dct[atm_key2],
-                                   inv_atm_key_dct[h_atm_key2]}])
-
-    return tra
+                                   inv_atm_key_dct[h_atm_key2]}]))
+    if len(tras) < 1:
+        tras = None
+    return tras
 
 
 def beta_scission(xgr1, xgr2):
