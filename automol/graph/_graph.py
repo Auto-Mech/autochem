@@ -297,10 +297,23 @@ def bond_neighbor_keys(xgr):
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
         return frozenset(bond_keys(bnd_nbh) - {bnd_key})
-
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
         bond_neighborhoods(xgr), _neighbor_keys)
     return bnd_ngb_keys_dct
+
+
+def bond_neighbor_bonds(bnd_key, xgr):
+    """ keys of neighboring bonds, by bond
+    """
+    atmi, atmj = list(bnd_key)
+    ngb_atm_dct = atom_neighbor_keys(xgr)
+    bonds = []
+    for atm in [atmi, atmj]:
+        alpha_atms = ngb_atm_dct[atm]
+        for alpha_atm in alpha_atms:
+            if alpha_atm not in [atmi, atmj]:
+                bonds.append(frozenset({atm, alpha_atm}))
+    return bonds                    
 
 
 def bond_neighborhoods(xgr):
@@ -326,7 +339,7 @@ def branch(xgr, atm_key, bnd_key, saddle=False):
 def branch_atom_keys(xgr, atm_key, bnd_key, saddle=False):
     """ atom keys for branch extending along `bnd_key` away from `atm_key`
     """
-    return atom_keys(branch(xgr, atm_key, bnd_key)) - {atm_key}
+    return atom_keys(branch(xgr, atm_key, bnd_key, saddle)) - {atm_key}
 
 
 def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False):
@@ -342,11 +355,12 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False):
     bnch_bnd_keys = {bnd_key}
     seen_bnd_keys = set()
     excl_bnd_keys = atm_bnd_keys_dct[atm_key]
-    if not saddle:
-        excl_bnd_keys = excl_bnd_keys - {bnd_key} 
+    if bnd_key in excl_bnd_keys:
+        excl_bnd_keys = excl_bnd_keys - {bnd_key}
     new_bnd_keys = {bnd_key}
-
     bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
+    if bnd_key not in bnd_ngb_keys_dct:
+        bnd_ngb_keys_dct[bnd_key] = bond_neighbor_bonds(bnd_key, xgr)
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
             itertools.chain(
