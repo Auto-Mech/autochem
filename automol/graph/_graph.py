@@ -330,19 +330,19 @@ def bond_neighborhoods(xgr):
 
 
 # # other properties
-def branch(xgr, atm_key, bnd_key, saddle=False):
+def branch(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     """ branch extending along `bnd_key` away from `atm_key`
     """
-    return bond_induced_subgraph(xgr, branch_bond_keys(xgr, atm_key, bnd_key, saddle=saddle), saddle=saddle)
+    return bond_induced_subgraph(xgr, branch_bond_keys(xgr, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd), saddle=saddle)
 
 
-def branch_atom_keys(xgr, atm_key, bnd_key, saddle=False):
+def branch_atom_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     """ atom keys for branch extending along `bnd_key` away from `atm_key`
     """
-    return atom_keys(branch(xgr, atm_key, bnd_key, saddle)) - {atm_key}
+    return atom_keys(branch(xgr, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd)) - {atm_key}
 
 
-def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False):
+def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     """ bond keys for branch extending along `bnd_key` away from `atm_key`
     """
     bnd_key = frozenset(bnd_key)
@@ -361,6 +361,8 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False):
     bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
     if bnd_key not in bnd_ngb_keys_dct:
         bnd_ngb_keys_dct[bnd_key] = bond_neighbor_bonds(bnd_key, xgr)
+    if saddle and bnd_key != ts_bnd:
+        bnd_ngb_keys_dct[ts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
             itertools.chain(

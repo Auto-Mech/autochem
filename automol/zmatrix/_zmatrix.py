@@ -141,7 +141,6 @@ def bond_key_from_idxs(zma, idxs):
     idxs = tuple(idxs)
     bond_key = None
     coords = coordinates(zma)
-    print(coords)
     for key in coords:
         for coord in coords.get(key, [None]):
             if idxs == coord:
