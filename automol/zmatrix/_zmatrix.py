@@ -593,7 +593,7 @@ def torsional_symmetry_numbers(zma, tors_names):
         if edg_key in bnd_sym_num_dct.keys():
             sym_num = bnd_sym_num_dct[edg_key]
         else:
-            sym_num = 1.
+            sym_num = 1
         tors_sym_nums.append(sym_num)
 
     tors_sym_nums = tuple(tors_sym_nums)

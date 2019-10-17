@@ -333,7 +333,7 @@ def bond_neighborhoods(xgr):
 def branch(xgr, atm_key, bnd_key, saddle=False):
     """ branch extending along `bnd_key` away from `atm_key`
     """
-    return bond_induced_subgraph(xgr, branch_bond_keys(xgr, atm_key, bnd_key, saddle=saddle))
+    return bond_induced_subgraph(xgr, branch_bond_keys(xgr, atm_key, bnd_key, saddle=saddle), saddle=saddle)
 
 
 def branch_atom_keys(xgr, atm_key, bnd_key, saddle=False):
@@ -461,13 +461,14 @@ def subgraph(xgr, atm_keys):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def bond_induced_subgraph(xgr, bnd_keys):
+def bond_induced_subgraph(xgr, bnd_keys, saddle=False):
     """ the subgraph induced by a subset of the bonds
     """
     atm_keys = set(itertools.chain(*bnd_keys))
     bnd_keys = set(bnd_keys)
     assert atm_keys <= atom_keys(xgr)
-    assert bnd_keys <= bond_keys(xgr)
+    if not saddle:
+        assert bnd_keys <= bond_keys(xgr)
     atm_dct = dict_.by_key(atoms(xgr), atm_keys)
     bnd_dct = dict_.by_key(bonds(xgr), bnd_keys)
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
