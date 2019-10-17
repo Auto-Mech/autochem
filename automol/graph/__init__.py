@@ -31,6 +31,7 @@ from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighborhoods
 # # bond properties
 from automol.graph._graph import bond_neighbor_keys
+from automol.graph._graph import bond_neighbor_bonds
 from automol.graph._graph import bond_neighborhoods
 # # other properties
 from automol.graph._graph import branch
@@ -207,6 +208,7 @@ __all__ = [
     'atom_neighborhoods',
     # # bond properties
     'bond_neighbor_keys',
+    'bond_neighbor_bonds',
     'bond_neighborhoods',
     # # other properties
     'branch',
