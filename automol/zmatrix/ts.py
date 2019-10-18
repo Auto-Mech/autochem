@@ -65,6 +65,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
             # Get the bond formation keys and the reactant zmatrix
             min_dist = 100.
             frm_bnd_key = None
+            brk_bnd_key = None
             for tra_i in tras:
                 # Get the bond formation and breaking keys
                 bnd_key, = automol.graph.trans.formed_bond_keys(tra_i)
@@ -73,6 +74,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 if dist < min_dist:
                     min_dist = dist
                     frm_bnd_key = bnd_key
+                    brk_bnd_key = automol.graph.trans.broken_bond_keys(tra_i)
                     tra = tra_i
                 init_zma, = rct_zmas
 
@@ -153,6 +155,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     coo_dct = automol.zmatrix.coordinates(ts_zma)
     dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
                      if dist_coo_key in coo_keys)
+    brk_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key)
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
     ts_zma = automol.zmatrix.standard_form(ts_zma)
@@ -176,7 +179,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 (h_idx in grp2 and a1_idx in grp1)):
             tors_names.append(tors_name)
 
-    ret = ts_zma, dist_name, tors_names
+    ret = ts_zma, dist_name, brk_name, tors_names
 
     return ret
 
@@ -421,7 +424,7 @@ def concerted_unimolecular_elimination2(rct_zmas, prd_zmas):
         # increase the length of the bond breaking coordinates
         for name in brk_names:
             val = automol.zmatrix.values(ts_zma)[name]
-            ts_zma = zmatrix.set_values(
+            ts_zma = automol.zmatrix.set_values(
                 ts_zma, {name: val + (0.4 * ANG2BOHR)})
 
         # determine the new coordinates
@@ -547,6 +550,7 @@ def insertion(rct_zmas, prd_zmas):
         rct1_atm1_key = list(frm_bnd_key)[0]
 
         # figure out atoms in the chain to define the dummy atom
+        _, rct2_gra = map(rct_gras.__getitem__, idxs)
         rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs)
         rct1_natms = automol.zmatrix.count(rct1_zma)
         rct2_natms = automol.zmatrix.count(rct2_zma)
@@ -618,10 +622,9 @@ def insertion(rct_zmas, prd_zmas):
                 tors_name = ts_name_dct['babs2']
                 tors_names += (tors_name,)
 
-        if 'babs3' in ts_name_dct:
+        if 'babs3' in ts_name_dct and _include_babs3(frm_bnd_key, rct2_gra):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
-        print(automol.zmatrix.string(ts_zma))
         ret = ts_zma, dist_name, tors_names
 
     return ret
@@ -651,6 +654,7 @@ def substitution(rct_zmas, prd_zmas):
        
         rct_zmas, prd_zmas = map([rct_zmas, prd_zmas].__getitem__, idxs[0])
         rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs[1])
+        _, rct2_gra = map(rct_gras.__getitem__, idxs[1])
         rct1_natms = automol.zmatrix.count(rct1_zma)
         rct2_natms = automol.zmatrix.count(rct2_zma)
 
@@ -729,7 +733,7 @@ def substitution(rct_zmas, prd_zmas):
                 tors_name = ts_name_dct['babs2']
                 tors_names += (tors_name,)
 
-        if 'babs3' in ts_name_dct:
+        if 'babs3' in ts_name_dct and _include_babs3(frm_bnd_key, rct2_gra):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
 
@@ -782,6 +786,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     tra = automol.graph.trans.addition(rcts_gra, prds_gra)
     if tra is not None:
         rct1_zma, rct2_zma = rct_zmas
+        _, rct2_gra = rct_gras
         rct2_natms = automol.zmatrix.count(rct2_zma)
 
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
@@ -832,7 +837,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
             tors_name = ts_name_dct['babs2']
             tors_names += (tors_name,)
 
-        if 'babs3' in ts_name_dct:
+        if 'babs3' in ts_name_dct and _include_babs3(frm_bnd_key, rct2_gra):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
 
@@ -986,13 +991,28 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
 
             # babs3 should only be included if there is only group
             # connected to the radical atom
-            if 'babs3' in ts_name_dct:
+            if 'babs3' in ts_name_dct and _include_babs3(frm_bnd_key, rct2_gra):
                 tors_name = ts_name_dct['babs3']
                 tors_names += (tors_name,)
 
             ret = ts_zma, dist_name, tors_names
 
     return ret
+
+
+def _include_babs3(frm_bnd, rct2_gra):
+    """Should we include babs3?
+    """
+    include_babs3 = False
+    atm_ngbs = automol.graph.atom_neighbor_keys(rct2_gra)
+    is_terminal = False
+    for atm in list(frm_bnd):
+        if atm in atm_ngbs:
+            if len(atm_ngbs[atm]) == 1:
+                is_terminal = True
+    if len(atm_ngbs.keys()) > 2 and is_terminal:
+        include_babs3 = True
+    return include_babs3
 
 
 def _hydrogen_abstraction(rct_zmas, prd_zmas):
