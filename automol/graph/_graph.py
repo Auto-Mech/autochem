@@ -360,8 +360,20 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     new_bnd_keys = {bnd_key}
     bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
     if bnd_key not in bnd_ngb_keys_dct:
+        for bnd in bnd_ngb_keys_dct:
+            atmi, atmj = list(bnd)
+            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
+                bnds = list(bnd_ngb_keys_dct[bnd])
+                bnds.append(ts_bnd)
+                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
         bnd_ngb_keys_dct[bnd_key] = bond_neighbor_bonds(bnd_key, xgr)
     if saddle and bnd_key != ts_bnd:
+        for bnd in bnd_ngb_keys_dct:
+            atmi, atmj = list(bnd)
+            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
+                bnds = list(bnd_ngb_keys_dct[bnd])
+                bnds.append(ts_bnd)
+                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
         bnd_ngb_keys_dct[ts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
