@@ -65,6 +65,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
             # Get the bond formation keys and the reactant zmatrix
             min_dist = 100.
             frm_bnd_key = None
+            brk_bnd_key = None
             for tra_i in tras:
                 # Get the bond formation and breaking keys
                 bnd_key, = automol.graph.trans.formed_bond_keys(tra_i)
@@ -73,6 +74,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 if dist < min_dist:
                     min_dist = dist
                     frm_bnd_key = bnd_key
+                    brk_bnd_key = automol.graph.trans.broken_bond_keys(tra_i)
                     tra = tra_i
                 init_zma, = rct_zmas
 
@@ -176,7 +178,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 (h_idx in grp2 and a1_idx in grp1)):
             tors_names.append(tors_name)
 
-    ret = ts_zma, dist_name, tors_names
+    ret = ts_zma, dist_name, brk_name, tors_names
 
     return ret
 
