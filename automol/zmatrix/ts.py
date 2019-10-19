@@ -155,7 +155,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     coo_dct = automol.zmatrix.coordinates(ts_zma)
     dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
                      if dist_coo_key in coo_keys)
-    brk_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key)
+    #brk_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key)
+    #print('brk test:', brk_bnd_key, brk_name)
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
     ts_zma = automol.zmatrix.standard_form(ts_zma)
@@ -179,7 +180,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 (h_idx in grp2 and a1_idx in grp1)):
             tors_names.append(tors_name)
 
-    ret = ts_zma, dist_name, brk_name, tors_names
+    ret = ts_zma, dist_name, brk_bnd_key, tors_names
 
     return ret
 
