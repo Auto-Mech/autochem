@@ -584,9 +584,11 @@ def torsional_symmetry_numbers(zma, tors_names):
     dih_edg_key_dct = _dihedral_edge_keys(zma)
     assert set(tors_names) <= set(dih_edg_key_dct.keys())
     edg_keys = tuple(map(dih_edg_key_dct.__getitem__, tors_names))
+    print('edg_keys test:', edg_keys)
 
     gra = automol.convert.zmatrix.graph(zma, remove_stereo=True)
     bnd_sym_num_dct = automol.graph.bond_symmetry_numbers(gra)
+    print('bond_sym_num_dct test:', bnd_sym_num_dct)
     tors_sym_nums = []
     for edg_key in edg_keys:
         if edg_key in bnd_sym_num_dct.keys():
