@@ -769,19 +769,70 @@ def possible_spin_multiplicities(xgr, bond_order=True):
 
 # miscellaneous
 # # bond properties
-def bond_symmetry_numbers(xgr):
+def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
     """ symmetry numbers, by bond
 
     the (approximate) symmetry number of the torsional potential for this bond,
     based on the hydrogen counts for each atom
+    It is reduced to 1 if one of the H atoms in the torsional bond is a neighbor to the
+    special bonding atom (the atom that is being transferred)
     """
     imp_xgr = implicit(xgr)
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(imp_xgr)
 
     bnd_keys = bond_keys(imp_xgr)
-    bnd_max_hyd_vlcs = [max(map(atm_imp_hyd_vlc_dct.__getitem__, bnd_key))
-                        for bnd_key in bnd_keys]
-    bnd_sym_nums = [3 if vlc == 3 else 1 for vlc in bnd_max_hyd_vlcs]
+    # bnd_max_hyd_vlcs = [max(map(atm_imp_hyd_vlc_dct.__getitem__, bnd_key))
+                        # for bnd_key in bnd_keys]
+    # bnd_sym_nums = [3 if vlc == 3 else 1 for vlc in bnd_max_hyd_vlcs]
+    # bnd_sym_num_dct = dict(zip(bnd_keys, bnd_sym_nums))
+
+    print('key test:', frm_bnd_key, brk_bnd_key)
+    tfr_atm = None
+    if frm_bnd_key and brk_bnd_key:
+        for atm_f in list(frm_bnd_key):
+            for atm_b in list(brk_bnd_key):
+                if atm_f == atm_b:
+                    tfr_atm = atm_f
+    #tfr_atm = list(frm_bnd_key.intersection(list(brk_bnd_key)))
+    #tfr_atm = 1
+
+        if tfr_atm:
+            neighbor_dct = atom_neighbor_keys(xgr)
+            nei_tfr = neighbor_dct[tfr_atm]
+            print('neighs test:', nei_tfr)
+
+            gra = xgr[0]
+            all_hyds = []
+            for atm in gra:
+                if gra[atm][0] == 'H':
+                    all_hyds.append(atm)
+            print('all_hyds:', all_hyds)
+        else:
+            nei_tfr = {}
+
+
+    bnd_sym_num_dct = {}
+    bnd_sym_nums = []
+    for bnd_key in bnd_keys:
+        bnd_sym = 1
+        print('bnd_key:', bnd_key)
+        vlc = max(map(atm_imp_hyd_vlc_dct.__getitem__, bnd_key))
+        if vlc == 3:
+            bnd_sym = 3
+            if tfr_atm:
+                for atm in nei_tfr:
+                    nei_s = neighbor_dct[atm]
+                    h_nei = 0
+                    for nei in nei_s:
+                        if nei in all_hyds:
+                            h_nei += 1
+                            print('nei test:', nei)
+                    if h_nei == 3:
+                        bnd_sym = 1
+                        print('h_nei test:', h_nei)
+                        print('bnd_sym reset from 3 to 1:', bnd_key, atm)
+        bnd_sym_nums.append(bnd_sym)
+
     bnd_sym_num_dct = dict(zip(bnd_keys, bnd_sym_nums))
 
     # fill in the rest of the bonds for completeness

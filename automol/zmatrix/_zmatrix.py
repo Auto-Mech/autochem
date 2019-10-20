@@ -578,16 +578,17 @@ def _sample_over_ranges(rngs, nsamp):
 
 
 # z-matrix torsional degrees of freedom
-def torsional_symmetry_numbers(zma, tors_names):
+def torsional_symmetry_numbers(zma, tors_names, frm_bnd_key=None, brk_bnd_key=None):
     """ symmetry numbers for torsional dihedrals
     """
     dih_edg_key_dct = _dihedral_edge_keys(zma)
     assert set(tors_names) <= set(dih_edg_key_dct.keys())
     edg_keys = tuple(map(dih_edg_key_dct.__getitem__, tors_names))
     print('edg_keys test:', edg_keys)
+    print('frm_key in torsional_symmetry_numbers test:', frm_bnd_key)
 
     gra = automol.convert.zmatrix.graph(zma, remove_stereo=True)
-    bnd_sym_num_dct = automol.graph.bond_symmetry_numbers(gra)
+    bnd_sym_num_dct = automol.graph.bond_symmetry_numbers(gra, frm_bnd_key, brk_bnd_key)
     print('bond_sym_num_dct test:', bnd_sym_num_dct)
     tors_sym_nums = []
     for edg_key in edg_keys:
@@ -613,17 +614,22 @@ def _dihedral_edge_keys(zma):
     return dih_edg_key_dct
 
 
-def torsional_sampling_ranges(zma, tors_names):
+def torsional_sampling_ranges(zma, tors_names, frm_bnd_key=None, brk_bnd_key=None):
     """ sampling ranges for torsional dihedrals
     """
-    sym_nums = torsional_symmetry_numbers(zma, tors_names)
-    return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
+    # sym_nums = torsional_symmetry_numbers(zma, tors_names, frm_bnd_key=None, brk_bnd_key=None)
+    # return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
+    # originally restricted range by sym_num. But after all it appears that using the 
+    # full range is best.
+    # after all it appears that using the full sampling range is most effective
+    return tuple((0, 2*numpy.pi) for tors_name in tors_names)
 
 
-def torsional_scan_linspaces(zma, tors_names, increment=0.5):
+def torsional_scan_linspaces(zma, tors_names, increment=0.5, frm_bnd_key=None, brk_bnd_key=None):
     """ scan grids for torsional dihedrals
     """
-    sym_nums = torsional_symmetry_numbers(zma, tors_names)
+    print('frm_key in torsional_scan_linspaces test:', frm_bnd_key)
+    sym_nums = torsional_symmetry_numbers(zma, tors_names, frm_bnd_key=frm_bnd_key, brk_bnd_key=brk_bnd_key)
     intervals = tuple(2*numpy.pi/sym_num - increment for sym_num in sym_nums)
     npoints_lst = tuple(
         (int(interval / increment)+1) for interval in intervals)

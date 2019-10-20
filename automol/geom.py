@@ -351,7 +351,7 @@ def reflect_coordinates(geo, idxs, axes):
 
 
 
-def rot_permutated_geoms(geo, saddle=False, form_coords=[]):
+def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=[], brk_bnd_key=[], form_coords=[]):
     """ convert an input geometry to a list of geometries
         corresponding to the rotational permuations of all the terminal groups
     """
@@ -375,7 +375,8 @@ def rot_permutated_geoms(geo, saddle=False, form_coords=[]):
         if atm in unsat_atms and atm not in rad_atms:
             pass
         else:
-            if atm not in form_coords:
+            if atm not in frm_bnd_key and atm not in brk_bnd_key:
+            #if atm not in form_coords:
                 nonh_neighs = []
                 h_neighs = []
                 neighs = neighbor_dct[atm]

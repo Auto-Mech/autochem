@@ -192,7 +192,7 @@ def proton_migration(xgr1, xgr2):
     tras = []
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
-        
+
     h_atm_key1 = max(_atom_keys(xgr1)) + 1
     h_atm_key2 = max(_atom_keys(xgr2)) + 1
 
@@ -433,7 +433,7 @@ def _is_heavy(idx, atms):
     if atms[idx][0] == 'H':
         heavy = False
     return heavy
-        
+
 
 def _get_bnd_key(idx1, idx2, bond_keys):
     """get bond key for two atoms
