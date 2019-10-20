@@ -20,6 +20,10 @@ DELTAY = 0.01
 DELTAZ = 0.01
 
 
+
+
+
+
 def compute_bmat(natoms, coords, deltax, deltay, deltaz):
     """ compute the bmatrix by central difference
         where B_ik = dq_i / dx_k

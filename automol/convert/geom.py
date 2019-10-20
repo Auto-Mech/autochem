@@ -69,18 +69,20 @@ def graph(geo, remove_stereo=False):
     return gra
 
 
-def weakly_connected_graph(geo, remove_stereo=False):
+def weakly_connected_graph(geo):  # , remove_stereo=False):
     """ geometry => graph
     """
-    gra = _connectivity_graph(geo, rqq_bond_max=5.0, rqh_bond_max=5.0, rhh_bond_max=2.3)
-    #if not remove_stereo:
+    gra = _connectivity_graph(
+        geo, rqq_bond_max=5.0, rqh_bond_max=5.0, rhh_bond_max=2.3)
+    # if not remove_stereo:
     #    xyzs = automol.geom.coordinates(geo)
     #    atm_xyz_dct = dict(enumerate(xyzs))
     #    gra = automol.graph.set_stereo_from_atom_coordinates(gra, atm_xyz_dct)
     return gra
 
 
-def _connectivity_graph(geo, rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
+def _connectivity_graph(geo,
+                        rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph (no stereo)
     """
     syms = automol.geom.symbols(geo)
