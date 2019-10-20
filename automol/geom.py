@@ -9,10 +9,11 @@ from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
 import autowrite as aw
-from automol import cart
 import automol.create.geom
 import automol.convert.geom
 import automol.convert.inchi
+from automol import cart
+from automol.convert._pyx2z import to_oriented_geometry
 
 
 # constructor
@@ -472,6 +473,21 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
     if numpy.amax(diff_mat) > thresh:
         almost_equal_dm = False
     return almost_equal_dm
+
+
+def external_symmetry_factor(geo):
+    """ obtain external symmetry number for a geometry using x2z
+    """
+    # Get initial external symmetry number
+    if automol.geom.is_atom(geo):
+        ext_sym_fac = 1.
+    else:
+        oriented_geom = to_oriented_geometry(geo)
+        ext_sym_fac = oriented_geom.sym_num()
+        # Change symmetry number if geometry has enantiomers
+        if oriented_geom.is_enantiomer():
+            ext_sym_fac *= 0.5
+    return ext_sym_fac
 
 
 def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
