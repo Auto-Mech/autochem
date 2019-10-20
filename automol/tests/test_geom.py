@@ -154,18 +154,30 @@ def test__move_coordinates():
 def test__reflect_coordinates():
     """ test geom.reflect_coordinates
     """
-    rgeo = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1], ['x'])
-    for x in C2H2CLF_GEO:
-        print(x)
-    print('\nreflect 1 about xyz')
-    rgeo = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1], ['x', 'y', 'z'])
-    for x in rgeo:
-        print(x)
-    print('\nreflect 1,2,4 about xy')
-    rgeo = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1, 2, 4], ['x', 'y'])
-    for x in rgeo:
-        print(x)
-    # assert mv_geo == ref_geo
+    ref_geo1 = (('F', (2.99488127615, -1.414434615111, -0.807144415388)),
+                ('C', (-1.170155936996, 0.359360756989, -0.513323178859)),
+                ('C', (-1.201356763194, -0.347546894407, -0.3408392500119)),
+                ('Cl', (-3.027970874978, 1.39211904938, -0.0492290974807)),
+                ('H', (1.731596406235, 2.324260256203, -0.4292070203467)),
+                ('H', (-1.66730598121, -2.31375855306, -0.433949091252)))
+    ref_geo2 = (('F', (2.99488127615, -1.414434615111, -0.807144415388)),
+                ('C', (-1.170155936996, -0.359360756989, 0.513323178859)),
+                ('C', (-1.201356763194, -0.347546894407, -0.3408392500119)),
+                ('Cl', (-3.027970874978, 1.39211904938, -0.0492290974807)),
+                ('H', (1.731596406235, 2.324260256203, -0.4292070203467)),
+                ('H', (-1.66730598121, -2.31375855306, -0.433949091252)))
+    ref_geo3 = (('F', (2.99488127615, -1.414434615111, -0.807144415388)),
+                ('C', (-1.170155936996, -0.359360756989, -0.513323178859)),
+                ('C', (1.201356763194, 0.347546894407, -0.3408392500119)),
+                ('Cl', (-3.027970874978, 1.39211904938, -0.0492290974807)),
+                ('H', (-1.731596406235, -2.324260256203, -0.4292070203467)),
+                ('H', (-1.66730598121, -2.31375855306, -0.433949091252)))
+    geo1 = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1], ['x'])
+    geo2 = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1], ['x', 'y', 'z'])
+    geo3 = automol.geom.reflect_coordinates(C2H2CLF_GEO, [1, 2, 4], ['x', 'y'])
+    assert geo1 == ref_geo1
+    assert geo2 == ref_geo2
+    assert geo3 == ref_geo3
 
 
 def test__external_symmetry_number():
@@ -204,12 +216,14 @@ def test__external_symmetry_number():
 
 
 def test__rot_permutated_geoms():
+    """ test geom.rot_permutated_geoms
+    """
     smi = 'C[CH2]'
     ich = automol.smiles.inchi(smi)
     geo = automol.inchi.geometry(ich)
-    geos = automol.geom.rot_permutated_geoms(geo)
-    for geom in geos:
-         print(automol.geom.xyz_string(geom))
+    rgeos = automol.geom.rot_permutated_geoms(geo)
+    for rgeom in rgeos:
+        print(automol.geom.xyz_string(rgeom))
 
 
 if __name__ == '__main__':

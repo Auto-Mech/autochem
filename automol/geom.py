@@ -475,7 +475,7 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
     return almost_equal_dm
 
 
-def external_symmetry_factor(geo):
+def external_symmetry_number(geo):
     """ obtain external symmetry number for a geometry using x2z
     """
     # Get initial external symmetry number
