@@ -365,6 +365,8 @@ def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=[], brk_bnd_key=[], form
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
     if not saddle:
         rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
+        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
+        rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []
 
@@ -472,11 +474,12 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
             diff_mat[i][j] = abs(dist_mat1[i][j] - dist_mat2[i][j])
     if numpy.amax(diff_mat) > thresh:
         almost_equal_dm = False
+    print('dist mat test:', numpy.amax(diff_mat))
     return almost_equal_dm
 
 
-def external_symmetry_number(geo):
-    """ obtain external symmetry number for a geometry using x2z
+def external_symmetry_factor(geo):
+    """ obtain external symmetry factor for a geometry using x2z
     """
     # Get initial external symmetry number
     if automol.geom.is_atom(geo):
@@ -484,7 +487,7 @@ def external_symmetry_number(geo):
     else:
         oriented_geom = to_oriented_geometry(geo)
         ext_sym_fac = oriented_geom.sym_num()
-        # Change symmetry number if geometry has enantiomers
+        # Divide symmetry number by enantiomeric factor
         if oriented_geom.is_enantiomer():
             ext_sym_fac *= 0.5
     return ext_sym_fac
