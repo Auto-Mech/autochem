@@ -69,7 +69,7 @@ def graph(geo, remove_stereo=False):
     return gra
 
 
-def weakly_connected_graph(geo):  # , remove_stereo=False):
+def weakly_connected_graph(geo, remove_stereo=False):
     """ geometry => graph
     """
     gra = _connectivity_graph(
