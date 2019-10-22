@@ -245,9 +245,20 @@ def addition(xgr1, xgr2):
         xgr2, = xgrs2
         x_atm_keys = _unsaturated_atom_keys(x_xgr)
         y_atm_keys = _unsaturated_atom_keys(y_xgr)
+        print('unsat keys', x_atm_keys, y_atm_keys)
+        xgeo = automol.graph.geometry(xgr2)
+        print(automol.geom.string(())
+        print(automol.geom.string(xgeo))
+        print(xgr2)
+        print('\n')
         for x_atm_key, y_atm_key in itertools.product(x_atm_keys, y_atm_keys):
             xy_xgr = _add_bonds(
                 _union(x_xgr, y_xgr), [{x_atm_key, y_atm_key}])
+        
+            xgeo = automol.graph.geometry(xy_xgr)
+            print(automol.geom.string(xgeo))
+            print(xy_xgr)
+            print('\n')
 
             atm_key_dct = _full_isomorphism(xy_xgr, xgr2)
             if atm_key_dct:

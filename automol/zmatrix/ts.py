@@ -136,12 +136,12 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     dihedral = automol.geom.dihedral_angle(
         rct_geo, h_idx, a1_idx, a2_idx, a3_idx)
 
-    dihedral = automol.geom.dihedral_angle(
-        rct_geo, h_idx, a1_idx, a2_idx, a3_idx)
-
-    dihed_is_180 = numpy.isclose(abs(dihedral), (numpy.pi), rtol=(5.0* numpy.pi / 180.))
-    dihed_is_0 = numpy.isclose(dihedral, (0.0), rtol=(5.0* numpy.pi / 180.))
-    dihed_is_360 = numpy.isclose(abs(dihedral), (2*numpy.pi), rtol=(5.0* numpy.pi / 180.))
+    dihed_is_180 = numpy.isclose(
+        abs(dihedral), (numpy.pi), rtol=(5.0 * numpy.pi / 180.))
+    dihed_is_0 = numpy.isclose(
+        dihedral, (0.0), rtol=(5.0 * numpy.pi / 180.))
+    dihed_is_360 = numpy.isclose(
+        abs(dihedral), (2*numpy.pi), rtol=(5.0 * numpy.pi / 180.))
 
     if dihed_is_180 or dihed_is_0 or dihed_is_360:
         dihedral -= (15.0 * numpy.pi / 180.)
@@ -784,8 +784,8 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     ret = None
     dist_name = 'rts'
     dist_val = 3.
-    rct_zmas_p = rct_zmas
-    prd_zmas_p = prd_zmas
+    # rct_zmas_p = rct_zmas
+    # prd_zmas_p = prd_zmas
 
     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
@@ -1140,7 +1140,8 @@ def _include_babs3(frm_bnd, rct2_gra):
 
 
 def _shifted_standard_forms_with_gaphs(zmas, remove_stereo=False):
-    conv = functools.partial(automol.convert.zmatrix.graph, remove_stereo=remove_stereo)
+    conv = functools.partial(
+        automol.convert.zmatrix.graph, remove_stereo=remove_stereo)
     gras = list(map(conv, zmas))
     shift = 0
     for idx, (zma, gra) in enumerate(zip(zmas, gras)):
