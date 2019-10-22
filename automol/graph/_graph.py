@@ -786,7 +786,6 @@ def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
     # bnd_sym_nums = [3 if vlc == 3 else 1 for vlc in bnd_max_hyd_vlcs]
     # bnd_sym_num_dct = dict(zip(bnd_keys, bnd_sym_nums))
 
-    print('key test:', frm_bnd_key, brk_bnd_key)
     tfr_atm = None
     if frm_bnd_key and brk_bnd_key:
         for atm_f in list(frm_bnd_key):
@@ -799,14 +798,12 @@ def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
         if tfr_atm:
             neighbor_dct = atom_neighbor_keys(xgr)
             nei_tfr = neighbor_dct[tfr_atm]
-            print('neighs test:', nei_tfr)
 
             gra = xgr[0]
             all_hyds = []
             for atm in gra:
                 if gra[atm][0] == 'H':
                     all_hyds.append(atm)
-            print('all_hyds:', all_hyds)
         else:
             nei_tfr = {}
 
@@ -815,7 +812,6 @@ def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
     bnd_sym_nums = []
     for bnd_key in bnd_keys:
         bnd_sym = 1
-        print('bnd_key:', bnd_key)
         vlc = max(map(atm_imp_hyd_vlc_dct.__getitem__, bnd_key))
         if vlc == 3:
             bnd_sym = 3
@@ -826,11 +822,8 @@ def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
                     for nei in nei_s:
                         if nei in all_hyds:
                             h_nei += 1
-                            print('nei test:', nei)
                     if h_nei == 3:
                         bnd_sym = 1
-                        print('h_nei test:', h_nei)
-                        print('bnd_sym reset from 3 to 1:', bnd_key, atm)
         bnd_sym_nums.append(bnd_sym)
 
     bnd_sym_num_dct = dict(zip(bnd_keys, bnd_sym_nums))

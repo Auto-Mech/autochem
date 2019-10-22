@@ -474,7 +474,6 @@ def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
             diff_mat[i][j] = abs(dist_mat1[i][j] - dist_mat2[i][j])
     if numpy.amax(diff_mat) > thresh:
         almost_equal_dm = False
-    print('dist mat test:', numpy.amax(diff_mat))
     return almost_equal_dm
 
 
