@@ -168,8 +168,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     ts_zma = automol.zmatrix.standard_form(ts_zma)
 
     # get full set of potential torsional coordinates
-    print('ts_zma:', automol.zmatrix.string(ts_zma))
-    print('ts_geo:', automol.zmatrix.geometry(ts_zma))
     pot_tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
     # remove the torsional coordinates that would break reaction coordinate
@@ -748,8 +746,6 @@ def substitution(rct_zmas, prd_zmas):
             tors_names += (tors_name,)
 
         # Set info to be returned
-        print(automol.zmatrix.string(ts_zma))
-        #ret = ts_zma, form_dist_name, break_dist_name, tors_names
         ret = ts_zma, form_dist_name, tors_names
 
     return ret
@@ -795,9 +791,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    print('rcts_grad, prds_gra test:', rcts_gra, prds_gra)
     tra = automol.graph.trans.addition(rcts_gra, prds_gra)
-    print('tra test;', None)
     if tra is not None:
         rct1_zma, rct2_zma = rct_zmas
         _, rct2_gra = rct_gras
