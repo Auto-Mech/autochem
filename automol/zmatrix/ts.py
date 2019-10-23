@@ -784,23 +784,99 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     ret = None
     dist_name = 'rts'
     dist_val = 3.
-    # rct_zmas_p = rct_zmas
-    # prd_zmas_p = prd_zmas
 
     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
+
     tra = automol.graph.trans.addition(rcts_gra, prds_gra)
     if tra is not None:
         rct1_zma, rct2_zma = rct_zmas
-        _, rct2_gra = rct_gras
+        rct1_gra, rct2_gra = rct_gras
         rct2_natms = automol.zmatrix.count(rct2_zma)
 
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
         rct1_atm1_key, _ = sorted(frm_bnd_key)
-        rct1_atm2_key, rct1_atm3_key, _ = _join_atom_keys(
-            rct1_zma, rct1_atm1_key)
+
+        #Replace old routine with new one based on unsaturated atoms
+        # Start of new routine
+        rct1_unsat_keys = automol.graph.unsaturated_atom_keys(rct1_gra)
+        # get neighbor keys for rct1_atm1_key
+        neighbor_dct = automol.graph.atom_neighbor_keys(rct1_gra)
+        atm1_nghbr_keys = neighbor_dct[rct1_atm1_key]
+        # shift keys for unsaturated atoms and for atm1_nghbr keys to include dummy atoms
+
+        # second atom key
+        # choose rct1_atm2 as first unsaturated neighbor to rct1_atm1
+        rct1_atm2_key = None
+        for key in atm1_nghbr_keys:
+            if key in rct1_unsat_keys:
+                rct1_atm2_key = key
+                break
+
+        # if no unsaturated neighbor, choose any atm1_nghbr
+        if rct1_atm2_key is None:
+            for key in atm1_nghbr_keys:
+                rct1_atm2_key = key
+                break
+
+        # third atom key
+        # if atm1 has two neighbors choose third atom key as second neighbor
+        rct1_atm3_key = []
+        for key in atm1_nghbr_keys:
+            if key != rct1_atm2_key:
+                rct1_atm3_key = key
+                break
+
+        # else choose it as second neighbor to atm 2
+        else:
+            atm2_nghbr_keys = neighbor_dct[rct1_atm2_key]
+            for key in atm2_nghbr_keys:
+                if key != rct1_atm1_key:
+                    rct1_atm3_key = key
+                    break
+
+
+        # check if rct1_atm1, rct1_atm2, rct1_atm3 are colinear
+        # if they are choose a dummy atom
+        rct1_geo = automol.zmatrix.geometry(rct1_zma)
+        if rct1_atm3_key:
+            rct1_sub_geo = (
+                rct1_geo[rct1_atm1_key], rct1_geo[rct1_atm2_key], rct1_geo[rct1_atm3_key])
+        else:
+            rct1_sub_geo = (rct1_geo[rct1_atm1_key], rct1_geo[rct1_atm2_key])
+        if automol.geom.is_linear(rct1_sub_geo) or not rct1_atm3_key:
+            # have to regenerate atm2_nghbr_keys to include dummy atom keys!
+            rct1_key_mat = automol.zmatrix.key_matrix(rct1_zma)
+            rct1_keys = [row[0] for row in rct1_key_mat]
+            atm2_nghbr_keys = [
+                rct1_keys[rct1_atm2_key]] if rct1_keys[rct1_atm2_key] is not None else []
+            for idx, rct1_key in enumerate(rct1_keys):
+                if rct1_key == rct1_atm2_key:
+                    atm2_nghbr_keys.append(idx)
+            new_atm3 = False
+            for atm_key in atm2_nghbr_keys:
+                if atm_key not in (rct1_atm3_key, rct1_atm1_key):
+                    rct1_atm3_key = atm_key
+                    new_atm3 = True
+                    break
+            if not new_atm3:
+                # if there are no dummy atoms connected to the rct1_atm2 then
+                # search for dummy atom keys connected to rct1_atm1
+                # now have to regenerate atm1_nghbr_keys to include dummy atom keys!
+                atm1_nghbr_keys = [
+                    rct1_keys[rct1_atm1_key]] if rct1_keys[rct1_atm1_key] is not None else []
+                for idx, rct1_key in enumerate(rct1_keys):
+                    if rct1_key == rct1_atm1_key:
+                        atm1_nghbr_keys.append(idx)
+                new_atm3 = False
+                for atm_key in atm1_nghbr_keys:
+                    if atm_key not in (rct1_atm3_key, rct1_atm2_key):
+                        rct1_atm3_key = atm_key
+                        new_atm3 = True
+                        break
+
 
         join_val_dct = {
             dist_name: dist_val,
@@ -1160,8 +1236,13 @@ def _join_atom_keys(zma, atm1_key):
     gra = automol.convert.zmatrix.graph(zma)
     atm1_chain = (
         automol.graph.atom_longest_chains(gra)[atm1_key])
+    #print('atm1_key:', atm1_key)
+    #print('zma test:', automol.zmatrix.string(zma))
+    #print('gra:', gra)
+    #print('atm1_chain test:', atm1_chain)
     atm1_ngb_keys = (
         automol.graph.atom_neighbor_keys(gra)[atm1_key])
+    #print('atm1_ngb_keys test:', atm1_chain)
     if len(atm1_chain) == 1:
         atm2_key = None
         atm3_key = None

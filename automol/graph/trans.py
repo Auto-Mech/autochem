@@ -247,7 +247,6 @@ def addition(xgr1, xgr2):
         y_atm_keys = _unsaturated_atom_keys(y_xgr)
         print('unsat keys', x_atm_keys, y_atm_keys)
         xgeo = automol.graph.geometry(xgr2)
-        print(automol.geom.string(())
         print(automol.geom.string(xgeo))
         print(xgr2)
         print('\n')
