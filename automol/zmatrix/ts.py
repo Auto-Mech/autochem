@@ -907,6 +907,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         dist_name = ts_name_dct[dist_name]
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         rct1_tors_names = automol.zmatrix.torsion_coordinate_names(rct1_zma)
+
         if rct_tors:
             rct2_tors_names = rct_tors
         else:
@@ -925,7 +926,18 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
 
+        #ts_zma_p = automol.zmatrix.set_values(ts_zma, {dist_name:3.0})
+        #tors_names_p = automol.zmatrix.torsion_coordinate_names(ts_zma_p)
+        #ts_name_dct_p = automol.zmatrix.standard_names(ts_zma_p)
+        #tors_names_add = (
+        #    tuple(map(ts_name_dct_p.__getitem__, tors_names_p))
+        #)
+        #print('tors_names:', tors_names)
+        #print('tors_names_p:', tors_names_p)
+        #print('tors_names_add:', tors_names_add)
+        #print('ts_zma:', ts_zma)
         ret = ts_zma, dist_name, tors_names
+        #ret = ts_zma, dist_name, tors_names_p
 
     return ret
 

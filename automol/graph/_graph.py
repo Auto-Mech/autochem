@@ -345,36 +345,63 @@ def branch_atom_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
 def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     """ bond keys for branch extending along `bnd_key` away from `atm_key`
     """
+
+    #bnd_key is the set of atom indices for the bond of interest
+    # atm_bnd_keys_dct is a dictionary of atoms that are connected to each atom
+#    atm_bnd_keys_dct = atom_bond_keys(xgr)
+#    print('atm_bnd_keys_dct:', atm_bnd_keys_dct)
+
+#    bnch_bnd_keys = {bnd_key}
+#    seen_bnd_keys = set()
+    # form set of keys of atoms connected to atm_key
+#    excl_bnd_keys = atm_bnd_keys_dct[atm_key]
+#    if bnd_key in excl_bnd_keys:
+#        excl_bnd_keys = excl_bnd_keys - {bnd_key}
+#    print('excl_bnd_keys:', excl_bnd_keys)
+#    new_bnd_keys = {bnd_key}
+#    bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
+#    print('bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
+#    if bnd_key not in bnd_ngb_keys_dct:
+#        for bnd in bnd_ngb_keys_dct:
+#            atmi, atmj = list(bnd)
+#            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
+#                bnds = list(bnd_ngb_keys_dct[bnd])
+#                bnds.append(ts_bnd)
+#                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
+#        bnd_ngb_keys_dct[bnd_key] = bond_neighbor_bonds(bnd_key, xgr)
+#    if saddle and bnd_key != ts_bnd:
+#        for bnd in bnd_ngb_keys_dct:
+#            atmi, atmj = list(bnd)
+#            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
+#                bnds = list(bnd_ngb_keys_dct[bnd])
+#                bnds.append(ts_bnd)
+#                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
+#        bnd_ngb_keys_dct[ts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
     bnd_key = frozenset(bnd_key)
     assert atm_key in bnd_key
     if not saddle:
         assert bnd_key in bond_keys(xgr)
 
+    #print('xgr test:', xgr)
+    #print('atm_key:', atm_key)
+    #print('bnd_key:', bnd_key)
+    #print('saddle:', saddle)
+    #print('ts_bnd:', ts_bnd)
+
     atm_bnd_keys_dct = atom_bond_keys(xgr)
 
     bnch_bnd_keys = {bnd_key}
     seen_bnd_keys = set()
-    excl_bnd_keys = atm_bnd_keys_dct[atm_key]
-    if bnd_key in excl_bnd_keys:
-        excl_bnd_keys = excl_bnd_keys - {bnd_key}
+    excl_bnd_keys = atm_bnd_keys_dct[atm_key] - {bnd_key}
+
     new_bnd_keys = {bnd_key}
+
+    #print('new_bnd_keys:', new_bnd_keys)
     bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
-    if bnd_key not in bnd_ngb_keys_dct:
-        for bnd in bnd_ngb_keys_dct:
-            atmi, atmj = list(bnd)
-            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
-                bnds = list(bnd_ngb_keys_dct[bnd])
-                bnds.append(ts_bnd)
-                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
-        bnd_ngb_keys_dct[bnd_key] = bond_neighbor_bonds(bnd_key, xgr)
-    if saddle and bnd_key != ts_bnd:
-        for bnd in bnd_ngb_keys_dct:
-            atmi, atmj = list(bnd)
-            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
-                bnds = list(bnd_ngb_keys_dct[bnd])
-                bnds.append(ts_bnd)
-                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
+    #print('bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
+    if ts_bnd:
         bnd_ngb_keys_dct[ts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
+    #print('updated bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
             itertools.chain(
@@ -382,6 +409,8 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
         bnch_bnd_keys.update(new_bnd_ngb_keys - excl_bnd_keys)
         seen_bnd_keys.update(new_bnd_keys)
         new_bnd_keys = bnch_bnd_keys - seen_bnd_keys
+
+    #print('branch bond keys:', bnch_bnd_keys)
 
     return frozenset(bnch_bnd_keys)
 
