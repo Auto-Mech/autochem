@@ -353,6 +353,12 @@ def substitution(xgr1, xgr2):
                     idxs = [[1, 0], [1, 0]]
                     if not tra:
                         idxs = None
+
+        # return not substitution for radical + unsaturated reactions
+        unsat_atm_keys = automol.graph.unsaturated_atom_keys(xgrB)
+        for key in unsat_atm_keys:
+            if key in tra[0]:
+                tra = None
                         
     return tra, idxs
 

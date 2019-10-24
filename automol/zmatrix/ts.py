@@ -640,6 +640,9 @@ def insertion(rct_zmas, prd_zmas):
 
 def substitution(rct_zmas, prd_zmas):
     """ z-matrix for a substitution reaction
+    Presume that radical substitutions at a pi bond occur instead as 
+    a sequence of addition and elimination.
+    Also, for now presume that we are only interested in radical molecule substitutions
     """
     ret = None
 
@@ -647,12 +650,31 @@ def substitution(rct_zmas, prd_zmas):
     dist_name = 'rts'
     dist_val = 3.
 
-    # Confirm the reaction type and build the appropriate Z-Matrix
-    rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
-    prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-    prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
+    # first determine if this is a radical molecule reaction and then if the radical is the first species
+    # reorder to put it second
+    for idx, rct_zma in enumerate(rct_zmas):
+        rad_cnt = 0
+        mol_cnt = 0
+        rad_keys = automol.graph.resonance_dominant_radical_atom_keys(
+            automol.geom.graph(automol.zmatrix.geometry(rct_zma)))
+        if rad_keys:
+            rad_idx = idx
+            rad_cnt += 1
+        else:
+            mol_idx = idx
+            mol_cnt += 1
+    if rad_cnt == 1 and mol_cnt == 1:
+        if rad_idx == 0: 
+            rct2_zma, rct1_zma = rct_zmas
+            rct_zmas = [rct1_zma, rct2_zma]
+        # Confirm the reaction type and build the appropriate Z-Matrix
+        rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
+        prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
+        rcts_gra = functools.reduce(automol.graph.union, rct_gras)
+        prds_gra = functools.reduce(automol.graph.union, prd_gras)
+        tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
+    else:
+        tra = None
     if tra is not None:
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
         # brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
@@ -785,6 +807,12 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     dist_name = 'rts'
     dist_val = 3.
 
+
+    count1 = automol.zmatrix.count(rct_zmas[0])
+    if len(rct_zmas) == 2:
+        if count1 == 1:
+            rct2_zma, rct1_zma = rct_zmas
+            rct_zmas = [rct1_zma, rct2_zma]
     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
@@ -830,7 +858,8 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                 break
 
         # else choose it as second neighbor to atm 2
-        else:
+        print('rct1_atm2_key:', rct1_atm2_key)
+        if not rct1_atm3_key:
             atm2_nghbr_keys = neighbor_dct[rct1_atm2_key]
             for key in atm2_nghbr_keys:
                 if key != rct1_atm1_key:
@@ -877,7 +906,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                         new_atm3 = True
                         break
 
-
         join_val_dct = {
             dist_name: dist_val,
             'aabs1': 85. * qcc.conversion_factor('degree', 'radian'),
@@ -887,15 +915,40 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
             'babs3': 85. * qcc.conversion_factor('degree', 'radian'),
         }
 
-        join_keys = numpy.array(
-            [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key],
-             [None, rct1_atm1_key, rct1_atm2_key],
-             [None, None, rct1_atm1_key]])[:rct2_natms]
-        join_names = numpy.array(
-            [[dist_name, 'aabs1', 'babs1'],
-             [None, 'aabs2', 'babs2'],
-             [None, None, 'babs3']])[:rct2_natms]
-        join_names[numpy.equal(join_keys, None)] = None
+        rct1_natom = automol.zmatrix.count(rct1_zma)
+        rct2_natom = automol.zmatrix.count(rct2_zma)
+
+        if rct1_natom == 1 and rct2_natom == 1:
+            raise NotImplementedError
+        elif rct1_natom == 2 and rct2_natom == 1:
+            join_keys = numpy.array(
+                [[rct1_atm1_key, rct1_atm2_key, None]])
+            join_names = numpy.array(
+                [[dist_name, 'aabs1', None]])
+        elif rct1_natom == 2 and rct2_natom == 2:
+            join_keys = numpy.array(
+                [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key]])
+            join_names = numpy.array(
+                [[dist_name, 'aabs1', 'babs1']])
+        else:
+            join_keys = numpy.array(
+                [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key],
+                 [None, rct1_atm1_key, rct1_atm2_key],
+                 [None, None, rct1_atm1_key]])[:rct2_natms]
+            join_names = numpy.array(
+                [[dist_name, 'aabs1', 'babs1'],
+                 [None, 'aabs2', 'babs2'],
+                 [None, None, 'babs3']])[:rct2_natms]
+
+        #join_keys = numpy.array(
+            #[[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key],
+            # [None, rct1_atm1_key, rct1_atm2_key],
+            # [None, None, rct1_atm1_key]])[:rct2_natms]
+        #join_names = numpy.array(
+            #[[dist_name, 'aabs1', 'babs1'],
+             #[None, 'aabs2', 'babs2'],
+             #[None, None, 'babs3']])[:rct2_natms]
+        #join_names[numpy.equal(join_keys, None)] = None
 
         join_name_set = set(numpy.ravel(join_names)) - {None}
         join_val_dct = {name: join_val_dct[name] for name in join_name_set}
@@ -905,6 +958,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
 
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
         dist_name = ts_name_dct[dist_name]
+        print('ts_zma:', ts_zma)
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         rct1_tors_names = automol.zmatrix.torsion_coordinate_names(rct1_zma)
 
