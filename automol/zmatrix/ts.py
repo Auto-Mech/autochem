@@ -927,9 +927,11 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                 [[dist_name, 'aabs1', None]])
         elif rct1_natom == 2 and rct2_natom == 2:
             join_keys = numpy.array(
-                [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key]])
+                [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key],
+                 [None, rct1_atm1_key, rct1_atm2_key]])
             join_names = numpy.array(
-                [[dist_name, 'aabs1', 'babs1']])
+                [[dist_name, 'aabs1', None],
+                [None, 'aabs2', 'babs2']])
         else:
             join_keys = numpy.array(
                 [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key],
@@ -952,6 +954,11 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
 
         join_name_set = set(numpy.ravel(join_names)) - {None}
         join_val_dct = {name: join_val_dct[name] for name in join_name_set}
+
+
+        print('join_keys test:', join_keys)
+        print('join_names test:', join_names)
+        print('natoms test:', rct1_natom, rct2_natms)
 
         ts_zma = automol.zmatrix.join(
             rct1_zma, rct2_zma, join_keys, join_names, join_val_dct)
