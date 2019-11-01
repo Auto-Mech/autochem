@@ -218,7 +218,7 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
 def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
     """ z-matrix for a concerted unimolecular elimination reaction
     """
-    ret = None, None, None, None
+    ret = None, None, None, None, None
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
     if len(rct_zmas) == 1:
@@ -288,7 +288,7 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                     rct_zma = init_zma
                     break
             else:
-                return None, None, None, None
+                return None, None, None, None, None
 
         # determine the new coordinates
         rct_geo = automol.zmatrix.geometry(rct_zma)
@@ -344,7 +344,7 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                     (mig_key in grp2 and a1_idx in grp1)):
                 tors_names.append(tors_name)
 
-        ret = ts_zma, dist_name, brk_dist_name, tors_names
+        ret = ts_zma, dist_name, brk_dist_name, frm_bnd_key, tors_names
 
         return ret
 
@@ -652,18 +652,24 @@ def substitution(rct_zmas, prd_zmas):
 
     # first determine if this is a radical molecule reaction and then if the radical is the first species
     # reorder to put it second
+    rad_cnt = 0
+    mol_cnt = 0
     for idx, rct_zma in enumerate(rct_zmas):
-        rad_cnt = 0
-        mol_cnt = 0
         rad_keys = automol.graph.resonance_dominant_radical_atom_keys(
             automol.geom.graph(automol.zmatrix.geometry(rct_zma)))
+        print(rad_keys)
         if rad_keys:
             rad_idx = idx
             rad_cnt += 1
+            print('rad')
         else:
-            mol_idx = idx
+            # mol_idx = idx
             mol_cnt += 1
+            print('mol')
+    print(rad_cnt)
+    print(mol_cnt)
     if rad_cnt == 1 and mol_cnt == 1:
+        print('here')
         if rad_idx == 0: 
             rct2_zma, rct1_zma = rct_zmas
             rct_zmas = [rct1_zma, rct2_zma]
@@ -673,6 +679,7 @@ def substitution(rct_zmas, prd_zmas):
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
         prds_gra = functools.reduce(automol.graph.union, prd_gras)
         tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
+        print(tra)
     else:
         tra = None
     if tra is not None:
