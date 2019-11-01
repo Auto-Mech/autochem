@@ -730,6 +730,38 @@ def test__ts__elimination():
     print(automol.geom.string(automol.zmatrix.geometry(ts_zma)))
 
 
+
+def test__ts__substitution():
+    """ test zmatrix.ts.substitution
+    """
+
+    rct_zmas = [
+        automol.geom.zmatrix(
+            automol.inchi.geometry(automol.smiles.inchi('[H]'))),
+        automol.geom.zmatrix(
+            automol.inchi.geometry(automol.smiles.inchi('OO'))),
+        # automol.geom.zmatrix(
+        #    automol.inchi.geometry(automol.smiles.inchi('[H]')))
+    ]
+    prd_zmas = [
+        automol.geom.zmatrix(
+            automol.inchi.geometry(automol.smiles.inchi('[OH]'))),
+        automol.geom.zmatrix(
+            automol.inchi.geometry(automol.smiles.inchi('O')))
+    ]
+    
+
+    a = zmatrix.ts.substitution(
+        rct_zmas, prd_zmas)
+    print(zmatrix.string(a[0]))
+    # print(dist_name)
+    # print(dist_name2)
+    # print(tors_names)
+    print(automol.geom.string(automol.zmatrix.geometry(a[0])))
+
+
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__string()
@@ -739,9 +771,10 @@ if __name__ == '__main__':
     # test__is_standard_form()
     # test__join()
     # test__from_string()
-    test__ts__addition()
+    # test__ts__addition()
     # test__ts__hydrogen_abstraction()
     # test__ts__hydrogen_migration()
     # test__ts__elimination()
+    test__ts__substitution()
     # test__bond_idxs()
     # test__get_babs1()
