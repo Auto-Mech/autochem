@@ -4,7 +4,7 @@ from autoparse import cast as _cast
 import autoparse.find as apf
 import autoparse.pattern as app
 
-VALUE_PATTERN = app.one_of_these([app.FLOAT])
+VALUE_PATTERN = app.one_of_these([app.EXPONENTIAL_FLOAT_D, app.FLOAT])
 SEP_PATTERN = app.LINESPACES
 
 
