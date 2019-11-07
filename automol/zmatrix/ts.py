@@ -47,7 +47,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     # set products which will be unchanged to ts algorithm
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
     prd_gra = functools.reduce(automol.graph.union, prd_gras)
-
     count = 1
     while True:
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
@@ -126,7 +125,17 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         for idx in a1_neighbors:
             if idx not in (h_idx, a2_idx):
                 a3_idx = idx
-
+    if a2_idx > h_idx or a3_idx > h_idx:
+        atm_ngb_keys_dct = automol.graph.atom_neighbor_keys(gra)
+        ngbs = atm_ngb_keys_dct[a1_idx]
+        for idx in ngbs:
+            if idx not in [h_idx]:
+                new_ngbs = atm_ngb_keys_dct[idx]
+                for new_idx in new_ngbs:
+                    if new_idx not in [a1_idx, h_idx]:
+                        a2_idx = idx
+                        a3_idx = new_idx
+                        break
     # determine the new coordinates
     rct_geo = automol.zmatrix.geometry(rct_zma)
     distance = automol.geom.distance(
@@ -150,7 +159,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     new_idxs = (a1_idx, a2_idx, a3_idx)
     key_dct = {h_idx: new_idxs}
     ts_zma = automol.zmatrix.set_keys(rct_zma, key_dct)
-
     # Reset the values in the value dict
     h_names = automol.zmatrix.name_matrix(ts_zma)[h_idx]
     ts_zma = automol.zmatrix.set_values(
@@ -665,11 +673,7 @@ def substitution(rct_zmas, prd_zmas):
         else:
             # mol_idx = idx
             mol_cnt += 1
-            print('mol')
-    print(rad_cnt)
-    print(mol_cnt)
     if rad_cnt == 1 and mol_cnt == 1:
-        print('here')
         if rad_idx == 0: 
             rct2_zma, rct1_zma = rct_zmas
             rct_zmas = [rct1_zma, rct2_zma]
@@ -824,7 +828,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
     rcts_gra = functools.reduce(automol.graph.union, rct_gras)
     prds_gra = functools.reduce(automol.graph.union, prd_gras)
-
     tra = automol.graph.trans.addition(rcts_gra, prds_gra)
     if tra is not None:
         rct1_zma, rct2_zma = rct_zmas
@@ -1159,7 +1162,7 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 tors_name = ts_name_dct['babs3']
                 tors_names += (tors_name,)
 
-            ret = ts_zma, dist_name, tors_names
+            ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names
 
     return ret
 
