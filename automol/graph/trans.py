@@ -161,7 +161,6 @@ def hydrogen_atom_migration(xgr1, xgr2):
 
         h_atm_key1 = max(_atom_keys(xgr1)) + 1
         h_atm_key2 = max(_atom_keys(xgr2)) + 1
-
         rad_atm_keys1 = _resonance_dominant_radical_atom_keys(xgr1)
         rad_atm_keys2 = _resonance_dominant_radical_atom_keys(xgr2)
         for atm_key1, atm_key2 in itertools.product(rad_atm_keys1,
@@ -170,7 +169,7 @@ def hydrogen_atom_migration(xgr1, xgr2):
                 xgr1, {atm_key1: [h_atm_key1]})
             xgr2_h = _add_atom_explicit_hydrogen_keys(
                 xgr2, {atm_key2: [h_atm_key2]})
-
+           
             inv_atm_key_dct = _full_isomorphism(xgr2_h, xgr1_h)
             if inv_atm_key_dct:
                 tras.append(from_data(
@@ -251,7 +250,6 @@ def addition(xgr1, xgr2):
                 _union(x_xgr, y_xgr), [{x_atm_key, y_atm_key}])
         
             xgeo = automol.graph.geometry(xy_xgr)
-
             atm_key_dct = _full_isomorphism(xy_xgr, xgr2)
             if atm_key_dct:
                 tra = from_data(frm_bnd_keys=[{x_atm_key, y_atm_key}],
