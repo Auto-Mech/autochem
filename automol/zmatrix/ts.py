@@ -648,7 +648,7 @@ def insertion(rct_zmas, prd_zmas):
 
 def substitution(rct_zmas, prd_zmas):
     """ z-matrix for a substitution reaction
-    Presume that radical substitutions at a pi bond occur instead as 
+    Presume that radical substitutions at a pi bond occur instead as
     a sequence of addition and elimination.
     Also, for now presume that we are only interested in radical molecule substitutions
     """
@@ -665,14 +665,15 @@ def substitution(rct_zmas, prd_zmas):
     for idx, rct_zma in enumerate(rct_zmas):
         rad_keys = automol.graph.resonance_dominant_radical_atom_keys(
             automol.geom.graph(automol.zmatrix.geometry(rct_zma)))
-        print(rad_keys)
+        #print(rad_keys)
         if rad_keys:
             rad_idx = idx
             rad_cnt += 1
-            print('rad')
+            #print('rad')
         else:
             # mol_idx = idx
             mol_cnt += 1
+
     if rad_cnt == 1 and mol_cnt == 1:
         if rad_idx == 0: 
             rct2_zma, rct1_zma = rct_zmas
@@ -683,7 +684,7 @@ def substitution(rct_zmas, prd_zmas):
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
         prds_gra = functools.reduce(automol.graph.union, prd_gras)
         tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
-        print(tra)
+        #print(tra)
     else:
         tra = None
     if tra is not None:
@@ -692,7 +693,7 @@ def substitution(rct_zmas, prd_zmas):
 
         # get the atom on react 1 that is being attacked (bond is forming)
         rct1_atm1_key = list(frm_bnd_key)[0]
-       
+
         rct_zmas, prd_zmas = map([rct_zmas, prd_zmas].__getitem__, idxs[0])
         rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs[1])
         _, rct2_gra = map(rct_gras.__getitem__, idxs[1])
@@ -868,7 +869,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                 break
 
         # else choose it as second neighbor to atm 2
-        print('rct1_atm2_key:', rct1_atm2_key)
+        #print('rct1_atm2_key:', rct1_atm2_key)
         if not rct1_atm3_key:
             atm2_nghbr_keys = neighbor_dct[rct1_atm2_key]
             for key in atm2_nghbr_keys:
@@ -966,16 +967,16 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         join_val_dct = {name: join_val_dct[name] for name in join_name_set}
 
 
-        print('join_keys test:', join_keys)
-        print('join_names test:', join_names)
-        print('natoms test:', rct1_natom, rct2_natms)
+        #print('join_keys test:', join_keys)
+        #print('join_names test:', join_names)
+        #print('natoms test:', rct1_natom, rct2_natms)
 
         ts_zma = automol.zmatrix.join(
             rct1_zma, rct2_zma, join_keys, join_names, join_val_dct)
 
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
         dist_name = ts_name_dct[dist_name]
-        print('ts_zma:', ts_zma)
+        #print('ts_zma:', ts_zma)
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         rct1_tors_names = automol.zmatrix.torsion_coordinate_names(rct1_zma)
 
