@@ -675,7 +675,7 @@ def substitution(rct_zmas, prd_zmas):
             mol_cnt += 1
 
     if rad_cnt == 1 and mol_cnt == 1:
-        if rad_idx == 0: 
+        if rad_idx == 0:
             rct2_zma, rct1_zma = rct_zmas
             rct_zmas = [rct1_zma, rct2_zma]
         # Confirm the reaction type and build the appropriate Z-Matrix
@@ -822,7 +822,9 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
 
     count1 = automol.zmatrix.count(rct_zmas[0])
     if len(rct_zmas) == 2:
-        if count1 == 1:
+        count2 = automol.zmatrix.count(rct_zmas[1])
+        print('rct_zmas:', rct_zmas[0], rct_zmas[1])
+        if count1 == 1 or count1 < count2:
             rct2_zma, rct1_zma = rct_zmas
             rct_zmas = [rct1_zma, rct2_zma]
     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
@@ -928,6 +930,8 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
 
         rct1_natom = automol.zmatrix.count(rct1_zma)
         rct2_natom = automol.zmatrix.count(rct2_zma)
+        print('rct1_natom test:', rct1_natom)
+        print('rct2_natom test:', rct2_natom)
 
         if rct1_natom == 1 and rct2_natom == 1:
             raise NotImplementedError
@@ -1009,6 +1013,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         #print('tors_names_add:', tors_names_add)
         #print('ts_zma:', ts_zma)
         ret = ts_zma, dist_name, tors_names
+        print('ts_zma test:', ts_zma)
         #ret = ts_zma, dist_name, tors_names_p
 
     return ret
