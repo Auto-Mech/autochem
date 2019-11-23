@@ -502,10 +502,10 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
     xyz2 = numpy.array(xyz2)
     xyz3 = numpy.array(xyz3)
 
-    print('coords')
-    print(pdist)
-    print(pangle)
-    print(pdihed)
+    # print('coords')
+    # print(pdist)
+    # print(pangle)
+    # print(pdihed)
 
     # Set the coordinates of Point P in the RT system
     xyzp_rt = numpy.array([pdist * numpy.sin(pangle) * numpy.cos(pdihed),
@@ -519,18 +519,18 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
     dist23 = numpy.linalg.norm(xyz2 - xyz3)
     xyz2_rt = numpy.array([0.0, dist12, 0.0])
 
-    print('dists')
-    print(dist12)
-    print(dist13)
-    print(dist23)
+    # print('dists')
+    # print(dist12)
+    # print(dist13)
+    # print(dist23)
 
     val = ((dist12**2 + dist13**2 - dist23**2) / 2.0 / dist12)
     valx3 = numpy.sqrt(dist13**2 - val**2)
     valy3 = ((dist12**2 + dist13**2 - dist23**2) / 2.0 / dist12)
     xyz3_rt = numpy.array([valx3, valy3, 0.0])
 
-    print('pointd rt')
-    print(xyz3_rt)
+    # print('pointd rt')
+    # print(xyz3_rt)
 
     # Translate original frame of ref coors so that xyz1 is at (0, 0, 0)
     xyz2_t = xyz2 - xyz1
@@ -545,24 +545,24 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
     r21 = (xyz3[1] - xyz1[1] - xyz3_rt[1]*r22) / xyz3_rt[0]
     r31 = (xyz3[2] - xyz1[2] - xyz3_rt[1]*r32) / xyz3_rt[0]
 
-    print('r11 test')
-    print(xyz3[0])
-    print(xyz1[0])
-    print(xyz3_rt[1]*r12)
-    print(xyz3_rt[0])
+    # print('r11 test')
+    # print(xyz3[0])
+    # print(xyz1[0])
+    # print(xyz3_rt[1]*r12)
+    # print(xyz3_rt[0])
 
     anum_aconst = xyz2_t[1] - (xyz3_t[1] / xyz3_t[0]) * xyz2_t[0]
     den_aconst = xyz2_t[2] - (xyz3_t[2] / xyz3_t[0]) * xyz2_t[0]
 
-    print('rvals')
-    print(r12)
-    print(r22)
-    print(r32)
-    print(r11)
-    print(r21)
-    print(r31)
-    print(anum_aconst)
-    print(den_aconst)
+    # print('rvals')
+    # print(r12)
+    # print(r22)
+    # print(r32)
+    # print(r11)
+    # print(r21)
+    # print(r31)
+    # print(anum_aconst)
+    # print(den_aconst)
 
     if abs(anum_aconst) < 1.0e-6 and abs(den_aconst) < 1.0e-6:
         if anum_aconst < 0.0:
@@ -575,12 +575,14 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
         else:
             aconst = 1.0e20
     else:
+        print('xyz3')
+        print(xyz3_t)
         anum = xyz2_t[1] - (xyz3_t[1] / xyz3_t[0]) * xyz2_t[0]
         aden = xyz2_t[2] - (xyz3_t[2] / xyz3_t[0]) * xyz2_t[0]
         aconst = anum / aden
 
-    print('aconst')
-    print(aconst)
+    # print('aconst')
+    # print(aconst)
 
     den1 = (xyz3_t[1] / xyz3_t[0]) - aconst * (xyz3_t[2] / xyz3_t[0])
     if den1 == 0.0:
@@ -599,15 +601,15 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
     r23n = -r23
     r33n = -r33
 
-    print('rn3 vals')
-    print(r13)
-    print(r23)
-    print(r33)
+    # print('rn3 vals')
+    # print(r13)
+    # print(r23)
+    # print(r33)
 
-    print('xyzp vals')
-    print(xyzp_rt[0])
-    print(xyzp_rt[1])
-    print(xyzp_rt[2])
+    # print('xyzp vals')
+    # print(xyzp_rt[0])
+    # print(xyzp_rt[1])
+    # print(xyzp_rt[2])
 
     # Now rotate and translate back
     # Here I check  the (001) vector direction to decide whether
@@ -627,14 +629,14 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
     zan = (xyz1[2] + (r31 * xyzp_rt[0]) +
            (r32 * xyzp_rt[1]) + (r33n * xyzp_rt[2]))
 
-    print('xp')
-    print(xap)
-    print(yap)
-    print(zap)
-    print('xn')
-    print(xan)
-    print(yan)
-    print(zan)
+    # print('xp')
+    # print(xap)
+    # print(yap)
+    # print(zap)
+    # print('xn')
+    # print(xan)
+    # print(yan)
+    # print(zan)
 
     bvec = xyz1 - xyz2
     cvec = xyz2 - xyz3

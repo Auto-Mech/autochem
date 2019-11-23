@@ -329,9 +329,30 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
         ts_zma = automol.zmatrix.standard_form(ts_zma)
 
         # Get the name of the coordinate of the other bond that is breaking
+        print('elim name check')
+        print(brk_bnd_key1)
+        print(brk_bnd_key2)
+        brk_dist_name = None
         for brk_key in (brk_bnd_key1, brk_bnd_key2):
             if not brk_key.intersection(frm_bnd_key):
                 brk_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_key)
+
+        # Add second attempt to get brk_dist_name
+        if brk_dist_name is None:
+            brk_dist_names = [
+                automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key1),
+                automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key2)
+            ]
+            # Grab the name that is not None
+            for name in brk_dist_names:
+                if name is not None:
+                    brk_dist_name = name
+        print(dist_name)
+        print(brk_dist_name)
+        print(automol.zmatrix.string(ts_zma))
+        # import sys
+        # sys.exit()
+
 
         # get full set of potential torsional coordinates
         pot_tors_names = automol.zmatrix.torsion_coordinate_names(rct_zma)
@@ -1181,6 +1202,16 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
     rxn_idxs = automol.formula.reac.argsort_hydrogen_abstraction(
         list(map(automol.convert.zmatrix.formula, rct_zmas)),
         list(map(automol.convert.zmatrix.formula, prd_zmas)))
+    
+    # Sort so the smaller species is second (only needed for high spin rad-rad
+    # count1 = automol.zmatrix.count(rct_zmas[0])
+    # if len(rct_zmas) == 2:
+    #     count2 = automol.zmatrix.count(rct_zmas[1])
+    #     print('rct_zmas:', rct_zmas[0], rct_zmas[1])
+    #     if count1 == 1 or count1 < count2:
+    #         rct2_zma, rct1_zma = rct_zmas
+    #         rct_zmas = [rct1_zma, rct2_zma]
+    
     if rxn_idxs is not None:
         rct_idxs, prd_idxs = rxn_idxs
         rct_zmas = list(map(rct_zmas.__getitem__, rct_idxs))
