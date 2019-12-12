@@ -188,6 +188,8 @@ def is_valid(zma):
 def set_keys(zma, key_dct):
     """ set keys for the z-matrix
     """
+    print('zma test:', zma)
+    print('key-dct test:', key_dct)
     natoms = count(zma)
     for key, idxs in key_dct.items():
         assert key <= (natoms - 1)
