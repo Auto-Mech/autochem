@@ -207,11 +207,22 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
     if len(rct_zmas) == 1:
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
+
+        print('rct_zmas in elim:', rct_zmas)
+        print('prd_zmas in elim:', prd_zmas)
+
         tras = automol.graph.trans.elimination(rcts_gra, prds_gra)
+        print('tras test:', tras)
+        #frm_bnd_key, = automol.graph.trans.formed_bond_keys(tras)
+        #return frm_bnd_key
         if tras:
+            if len(tras[0]) == 1:
+                tras = [tras]
             min_frm_bnd_key = None
             min_dist = 10
             for tra in tras:
+                print('tra test:', tra)
+                #frm_bnd_key = tra
                 frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
                 geo = automol.zmatrix.geometry(rct_zmas[0])
                 dist = automol.geom.distance(geo, *list(frm_bnd_key))
@@ -238,6 +249,8 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
 
             tras = automol.graph.trans.elimination(rcts_gra, prds_gra)
             if tras is not None:
+                if len(tras[0]) == 1:
+                    tras = [tras]
                 min_dist = 100.
                 frm_bnd_key = None
                 for tra_i in tras:
@@ -271,7 +284,7 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                         a2_idx = idx
                 atm2_neighbors = _atom_neighbor_keys(xgr1)[a2_idx]
                 for idx in atm2_neighbors:
-                    if idx != mig_key:
+                    if idx != mig_key and idx != a1_idx:
                         a3_idx = idx
 
                 mig_redef_keys = (a1_idx, a2_idx, a3_idx)
@@ -683,27 +696,42 @@ def substitution(rct_zmas, prd_zmas):
     # reorder to put it second
     rad_cnt = 0
     mol_cnt = 0
+    print('rct_zmas in subs:', rct_zmas)
     for idx, rct_zma in enumerate(rct_zmas):
         rad_keys = automol.graph.resonance_dominant_radical_atom_keys(
             automol.geom.graph(automol.zmatrix.geometry(rct_zma)))
-        #print(rad_keys)
-        if rad_keys:
+        ich = automol.geom.inchi(automol.zmatrix.geometry(rct_zma))
+        is_co = (ich == 'InChI=1S/CO/c1-2')
+        if rad_keys and not is_co:
             rad_idx = idx
             rad_cnt += 1
-            #print('rad')
+            print('rad')
         else:
             # mol_idx = idx
             mol_cnt += 1
 
+    print('rad_cnt, mol_cnt:', rad_cnt, mol_cnt)
     if rad_cnt == 1 and mol_cnt == 1:
         if rad_idx == 0:
             rct2_zma, rct1_zma = rct_zmas
             rct_zmas = [rct1_zma, rct2_zma]
         # Confirm the reaction type and build the appropriate Z-Matrix
+
+        rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
+        rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(rct2_gra)
+        if 0 not in rad_atm_keys:
+            rct_zmas[1] = _reorder_zma_for_radicals(rct_zmas[1], min(rad_atm_keys))
+            rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
+            rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(rct2_gra)
+            # following assert checks to ensure that the first atom in the second reactant is a radical
+            # this is required for the remainder of the routine
+            assert 0 in rad_atm_keys
+
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
         prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
         prds_gra = functools.reduce(automol.graph.union, prd_gras)
+
         tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
         #print(tra)
     else:
@@ -1211,15 +1239,29 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
     #     if count1 == 1 or count1 < count2:
     #         rct2_zma, rct1_zma = rct_zmas
     #         rct_zmas = [rct1_zma, rct2_zma]
+
+
     
     if rxn_idxs is not None:
         rct_idxs, prd_idxs = rxn_idxs
         rct_zmas = list(map(rct_zmas.__getitem__, rct_idxs))
         prd_zmas = list(map(prd_zmas.__getitem__, prd_idxs))
+        rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
+        rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(rct2_gra)
+        if 0 not in rad_atm_keys:
+            rct_zmas[1] = _reorder_zma_for_radicals(rct_zmas[1], min(rad_atm_keys))
+            rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
+            rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(rct2_gra)
+            # following assert checks to ensure that the first atom in the second reactant is a radical
+            # this is required for the remainder of the routine 
+            assert 0 in rad_atm_keys
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
         prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
         prds_gra = functools.reduce(automol.graph.union, prd_gras)
+        # fix to put radical atom first
+        # ultimately need to fix this for multiple radical centers
+        # end of fix
         tra = automol.graph.trans.hydrogen_abstraction(rcts_gra, prds_gra)
         if tra is not None:
             rct1_gra, rct2_gra = rct_gras
@@ -1380,3 +1422,15 @@ def _join_atom_keys(zma, atm1_key):
         chain = True
 
     return atm2_key, atm3_key, chain
+
+
+def _reorder_zma_for_radicals(zma, rad_idx):
+    """ Creates a zmatrix where the radical atom is the first entry
+        in the zmatrix
+    """
+    print('rad_idx test:', rad_idx)
+    geo = automol.zmatrix.geometry(zma)
+    geo_swp = automol.geom.swap_coordinates(geo, 0, rad_idx)
+    zma_swp = automol.geom.zmatrix(geo_swp)
+
+    return zma_swp

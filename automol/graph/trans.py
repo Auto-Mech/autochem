@@ -43,6 +43,10 @@ def from_data(frm_bnd_keys, brk_bnd_keys):
 def formed_bond_keys(tra):
     """ keys for bonds that are formed in the transformation
     """
+    #print('tra test:', len(tra), tra)
+    #if len(tra) == 1:
+    #    frm_bnd_keys = tra
+    #else:
     frm_bnd_keys, _ = tra
     return frm_bnd_keys
 
@@ -270,7 +274,45 @@ def elimination(xgr1, xgr2):
         atms = automol.graph.atoms(xgr1)
         neighs = automol.graph.atom_neighbor_keys(xgr1)
         bnds = automol.graph.bond_keys(xgr1)
+        radicals = _resonance_dominant_radical_atom_keys(xgr1)
         lonepairs = automol.graph.atom_lone_pair_counts(xgr1)
+        for atmi in atms:
+            i_neighs = neighs[atmi]
+            for atmj in i_neighs:
+                bnd_break_key_ij = _get_bnd_key(atmi, atmj, bnds)
+                new_xgr = automol.graph.remove_bonds(xgr1, [bnd_break_key_ij])
+                new_xgrs = _connected_components(new_xgr)
+                if len(new_xgrs) == 2:
+                    xgrA, xgrB = new_xgrs
+                    atmsA = automol.graph.atoms(xgrA)
+                    if atmi not in atmsA.keys():
+                        xgrB, xgrA = xgrA, xgrB
+                        atmsA = automol.graph.atoms(xgrA)
+                    neighsA = automol.graph.atom_neighbor_keys(xgrA)
+                    atmsB = automol.graph.atoms(xgrB)
+                    neighs_i = neighsA[atmi]
+                    for atmk in atmsB:
+                        if atmk in radicals:
+                            for atml in neighs_i:
+                                neighs_l = neighsA[atml]
+                                if atml != atmj:
+                                    bnd_break_key_il = _get_bnd_key(atmi, atml, bnds)
+                                    bnd_form_key_kl = frozenset({atmk, atml})
+                                    newnew_xgr = automol.graph.remove_bonds(new_xgr, [bnd_break_key_il])
+                                    newnew_xgr = automol.graph.add_bonds(newnew_xgr, [bnd_form_key_kl])
+                                    atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
+                                    if atm_key_dct:
+                                        tra = [[bnd_form_key_kl], [bnd_break_key_ij, bnd_break_key_il]]
+                                        return tra
+                                for atmm in neighs_l:
+                                    if atmm != atmi:
+                                        bnd_break_key_lm = _get_bnd_key(atml, atmm, bnds)
+                                        bnd_form_key_km = frozenset({atmk, atmm})
+                                        newnew_xgr = automol.graph.remove_bonds(new_xgr, [bnd_break_key_lm])
+                                        newnew_xgr = automol.graph.add_bonds(newnew_xgr, [bnd_form_key_km])
+                                        atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
+                                        if atm_key_dct:
+                                            tras.append([[bnd_form_key_km], [bnd_break_key_ij, bnd_break_key_lm]])
         for atmi in atms:
             i_neighs = neighs[atmi]
             for atmj in i_neighs:
@@ -323,6 +365,9 @@ def substitution(xgr1, xgr2):
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
 
+    print('len xgrs test:', len(xgrs1), len(xgrs2))
+    print('xgrs test:', xgrs1, xgrs2)
+
     if len(xgrs1) == 2 and len(xgrs2) == 2:
         xgrA, xgrB = xgrs1
         xgrC, xgrD = xgrs2
@@ -353,10 +398,14 @@ def substitution(xgr1, xgr2):
                         idxs = None
 
         # return not substitution for radical + unsaturated reactions
-        unsat_atm_keys = automol.graph.unsaturated_atom_keys(xgrB)
+        unsat_atm_keys = automol.graph.unsaturated_atom_keys(xgrA)
+        # print('unsat test:', tra[0][0], unsat_atm_keys)
+        tra_list = list(tra[0])
         for key in unsat_atm_keys:
-            if key in tra[0]:
-                tra = None
+            if key in tra_list[0]:
+                pass
+                #tra = None
+                # commented out the tra = None and added pass to run CO + HO2
                         
     return tra, idxs
 
