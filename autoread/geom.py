@@ -15,6 +15,25 @@ def read(string,
          last=True,
          case=False):
     """ read geometry from a string
+
+    captures symbols (column 1) and coordinates (columns 2, 3, 4) from a
+    cartesian geometry
+
+    :param sym_ptt: matches atom symbol in the first column
+    :type sym_ptt: str
+    :param val_ptt: matches the coordinate values in columns 2, 3, 4
+    :type val_ptt: str
+    :param start_ptt: pattern before the start of the geometry block
+    :type start_ptt: str
+    :param line_sep_ptt: matches separator between column 1 and columns 2, 3, 4
+        in each line
+    :type line_sep_ptt: str
+    :param line_start_ptt: matches at the start of each geometry line
+    :type line_start_ptt: str
+    :param last: capture the last match, instead of the first?
+    :type last: bool
+    :param case: make the match case-sensitive?
+    :type case: bool
     """
     line_ptt_ = line_pattern(
         sym_ptt=app.capturing(sym_ptt), val_ptt=app.capturing(val_ptt),

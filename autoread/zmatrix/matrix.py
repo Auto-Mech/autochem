@@ -24,6 +24,35 @@ def read(string,
          last=True,
          case=False):
     """ read matrix from a string
+
+    captures symbols (column 1), keys (columns 2, 4, 6), and variable
+    names/values (columns 3, 5, 7) from the z-matrix and returns them
+
+    :param start_ptt: pattern before the start of the z-matrix
+    :type start_ptt: str
+    :param sym_ptt: matches atom symbol in the first column of the z-matrix
+    :type sym_ptt: str
+    :param key_ptt: matches key/index in columns 2, 4, 6 of the z-matrix
+    :type key_ptt: str
+    :param name_ptt: matches z-matrix variable names in columns 3, 5, 7; can
+        also be used to match numbers at these positions
+    :type name_ptt: str
+    :param entry_start_ptt: matches before key_ptt
+    :type entry_start_ptt: str
+    :param entry_sep_ptt: matches between key_ptt and name_ptt
+    :type entry_sep_ptt: str
+    :param entry_end_ptt: matches after name_ptt
+    :type entry_end_ptt: str
+    :param line_start_ptt: matches at the start of a z-matrix line
+    :type line_start_ptt: str
+    :param line_end_ptt: matches at the end of a z-matrix line
+    :type line_end_ptt: str
+    :param last: capture the last match, instead of the first?
+    :type last: bool
+    :param case: make the match case-sensitive?
+    :type case: bool
+    :return: symbols, key matrix, variable name matrix
+    :rtype: tuple
     """
     line_ptts_ = [
         line_pattern(

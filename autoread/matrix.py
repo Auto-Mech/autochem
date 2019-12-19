@@ -17,6 +17,24 @@ def read(string,
          tril=False,
          case=False):
     """ read matrix from a string
+
+    captures values from a matrix, which can be rectangular or
+    lower-triangular, and may or may not be broken into multiple blocks
+
+    :param val_ptt: matches numeric matrix entry
+    :type val_ptt: str
+    :param start_ptt: matches before the start of the matrix
+    :type start_ptt: str
+    :param block_start_ptt: matches at the start of each block within the
+        matrix
+    :type block_start_ptt: str
+    :param line_start_ptt: matches at the start of each line in the matrix or
+        matrix block
+    :param line_start_ptt: str
+    :param last: capture the last match, instead of the first?
+    :type last: bool
+    :param case: make the match case-sensitive?
+    :type case: bool
     """
     line_ptt_ = line_pattern(val_ptt=val_ptt, start_ptt=line_start_ptt,
                              capture_values=True)
