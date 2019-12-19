@@ -34,6 +34,47 @@ def read(string,
          last=True,
          case=False):
     """ read full z-matrix from a string
+
+    captures z-matrix values and returns them
+
+    :param start_ptt: pattern before the start of the z-matrix
+    :type start_ptt: str
+    :param sym_ptt: matches atom symbol in the first column of the z-matrix
+    :type sym_ptt: str
+    :param key_ptt: matches key/index in columns 2, 4, 6 of the z-matrix
+    :type key_ptt: str
+    :param name_ptt: matches z-matrix variable names in columns 3, 5, 7; can
+        also be used to match numbers at these positions
+    :type name_ptt: str
+    :param val_ptt: matches the numeric value in the setval block
+    :type name_ptt: str
+    :param mat_entry_start_ptt: matches before key_ptt
+    :type mat_entry_start_ptt: str
+    :param mat_entry_sep_ptt: matches between key_ptt and name_ptt
+    :type mat_entry_sep_ptt: str
+    :param mat_entry_end_ptt: matches after name_ptt
+    :type mat_entry_end_ptt: str
+    :param mat_line_start_ptt: matches at the start of a z-matrix line
+    :type mat_line_start_ptt: str
+    :param mat_line_end_ptt: matches at the end of a z-matrix line
+    :type mat_line_end_ptt: str
+    :param setv_entry_sep_ptt: matches the separator between a variable name
+        and its value, such as the equals sign in 'R1 = 5.00'
+    :type setv_entry_sep_ptt: str
+    :param setv_entry_start_ptt: matches at the start of a setval entry
+    :type setv_entry_start_ptt: str
+    :param setv_entry_end_ptt: matches at the end of a setval entry
+    :type setv_entry_end_ptt: str
+    :param setv_sep_ptt: matches the separator between setval entries, such as
+        a newline or comma
+    :type setv_sep_ptt: str
+    :param last: capture the last match, instead of the first?
+    :type last: bool
+    :param case: make the match case-sensitive?
+    :type case: bool
+    :return: symbols, key matrix, variable name matrix, dictionary of variable
+        names and values
+    :rtype: tuple
     """
     block_ptt_ = block_pattern(sym_ptt=sym_ptt,
                                key_ptt=key_ptt,

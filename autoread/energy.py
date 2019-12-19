@@ -15,6 +15,16 @@ def read(string,
          last=True,
          case=False):
     """ read energy from a string
+
+    :param start_ptt: matches before the numeric value
+    :type start_ptt: str
+    :param val_ptt: matches the numeric value
+    :type val_ptt: str
+    :param last: capture the last match, instead of the first?
+    :type last: bool
+    :param case: make the match case-sensitive?
+    :type case: bool
+    :return: energy, converted to float if possible
     """
     ptt_ = pattern(start_ptt=start_ptt, val_ptt=app.capturing(val_ptt))
 

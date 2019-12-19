@@ -21,6 +21,33 @@ def read(string,
          last=True,
          case=False):
     """ read setvalues from a string
+
+    captures variable names and values from the setval block of a z-matrix* and
+    returns them as a dictionary
+
+    *works for any series of variable names and values -- they need not be in a
+    z-matrix
+
+    :param start_ptt: matches before the start of the setval block
+    :type start_ptt: str
+    :param name_ptt: matches the variable name in the setval block
+    :type name_ptt: str
+    :param val_ptt: matches the numeric value in the setval block
+    :type name_ptt: str
+    :param entry_sep_ptt: matches the separator between a variable name and
+        its value, such as the equals sign in 'R1 = 5.00'
+    :type entry_sep_ptt: str
+    :param entry_start_ptt: matches at the start of a setval entry
+    :type entry_start_ptt: str
+    :param entry_end_ptt: matches at the end of a setval entry
+    :param sep_ptt: matches the separator between setval entries, such as a
+        newline or comma
+    :param last: capture the last match, instead of the first?
+    :type last: bool
+    :param case: make the match case-sensitive?
+    :type case: bool
+    :return: variable names and values
+    :rtype: dict
     """
     entry_ptt_ = entry_pattern(
         name_ptt=app.capturing(name_ptt), val_ptt=app.capturing(val_ptt),
