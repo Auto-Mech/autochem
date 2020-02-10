@@ -20,6 +20,8 @@ from automol.zmatrix._zmatrix import dihedral_angle_names
 from automol.zmatrix._zmatrix import angle_names
 from automol.zmatrix._zmatrix import dummy_coordinate_names
 from automol.zmatrix._zmatrix import values
+from automol.zmatrix._zmatrix import _dihedral_edge_keys as dihedral_edge_keys
+
 # validation
 from automol.zmatrix._zmatrix import is_valid
 # setters
@@ -132,6 +134,7 @@ __all__ = [
     'dummy_coordinate_names',
     'torsion_coordinate_names',
     'values',
+    'dihedral_edge_keys',
     # validation
     'is_valid',
     # setters

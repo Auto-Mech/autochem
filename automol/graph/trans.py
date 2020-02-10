@@ -329,7 +329,7 @@ def elimination(xgr1, xgr2):
                     atmsB = automol.graph.atoms(xgrB)
                     neighs_i = neighsA[atmi]
                     for atmk in atmsB:
-                        if lonepairs[atmk] > 0:
+                        if lonepairs[atmk] > 0 or len(atmsB) == 1:
                             for atml in neighs_i:
                                 neighs_l = neighsA[atml]
                                 if atml != atmj:
