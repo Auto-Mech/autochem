@@ -43,10 +43,6 @@ def from_data(frm_bnd_keys, brk_bnd_keys):
 def formed_bond_keys(tra):
     """ keys for bonds that are formed in the transformation
     """
-    #print('tra test:', len(tra), tra)
-    #if len(tra) == 1:
-    #    frm_bnd_keys = tra
-    #else:
     frm_bnd_keys, _ = tra
     return frm_bnd_keys
 
@@ -365,9 +361,6 @@ def substitution(xgr1, xgr2):
     xgrs1 = _connected_components(xgr1)
     xgrs2 = _connected_components(xgr2)
 
-    print('len xgrs test:', len(xgrs1), len(xgrs2))
-    print('xgrs test:', xgrs1, xgrs2)
-
     if len(xgrs1) == 2 and len(xgrs2) == 2:
         xgrA, xgrB = xgrs1
         xgrC, xgrD = xgrs2
@@ -399,7 +392,6 @@ def substitution(xgr1, xgr2):
 
         # return not substitution for radical + unsaturated reactions
         unsat_atm_keys = automol.graph.unsaturated_atom_keys(xgrA)
-        # print('unsat test:', tra[0][0], unsat_atm_keys)
         tra_list = list(tra[0])
         for key in unsat_atm_keys:
             if key in tra_list[0]:
