@@ -207,12 +207,7 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
     if len(rct_zmas) == 1:
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-
-        print('rct_zmas in elim:', rct_zmas)
-        print('prd_zmas in elim:', prd_zmas)
-
         tras = automol.graph.trans.elimination(rcts_gra, prds_gra)
-        print('tras test:', tras)
         #frm_bnd_key, = automol.graph.trans.formed_bond_keys(tras)
         #return frm_bnd_key
         if tras:
@@ -221,7 +216,6 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
             min_frm_bnd_key = None
             min_dist = 10
             for tra in tras:
-                print('tra test:', tra)
                 #frm_bnd_key = tra
                 frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
                 geo = automol.zmatrix.geometry(rct_zmas[0])
@@ -342,9 +336,6 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
         ts_zma = automol.zmatrix.standard_form(ts_zma)
 
         # Get the name of the coordinate of the other bond that is breaking
-        print('elim name check')
-        print(brk_bnd_key1)
-        print(brk_bnd_key2)
         brk_dist_name = None
         for brk_key in (brk_bnd_key1, brk_bnd_key2):
             if not brk_key.intersection(frm_bnd_key):
@@ -360,12 +351,6 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
             for name in brk_dist_names:
                 if name is not None:
                     brk_dist_name = name
-        print(dist_name)
-        print(brk_dist_name)
-        print(automol.zmatrix.string(ts_zma))
-        # import sys
-        # sys.exit()
-
 
         # get full set of potential torsional coordinates
         pot_tors_names = automol.zmatrix.torsion_coordinate_names(rct_zma)
@@ -696,7 +681,6 @@ def substitution(rct_zmas, prd_zmas):
     # reorder to put it second
     rad_cnt = 0
     mol_cnt = 0
-    print('rct_zmas in subs:', rct_zmas)
     for idx, rct_zma in enumerate(rct_zmas):
         rad_keys = automol.graph.resonance_dominant_radical_atom_keys(
             automol.geom.graph(automol.zmatrix.geometry(rct_zma)))
@@ -705,12 +689,10 @@ def substitution(rct_zmas, prd_zmas):
         if rad_keys and not is_co:
             rad_idx = idx
             rad_cnt += 1
-            print('rad')
         else:
             # mol_idx = idx
             mol_cnt += 1
 
-    print('rad_cnt, mol_cnt:', rad_cnt, mol_cnt)
     if rad_cnt == 1 and mol_cnt == 1:
         if rad_idx == 0:
             rct2_zma, rct1_zma = rct_zmas
@@ -733,7 +715,6 @@ def substitution(rct_zmas, prd_zmas):
         prds_gra = functools.reduce(automol.graph.union, prd_gras)
 
         tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
-        #print(tra)
     else:
         tra = None
     if tra is not None:
@@ -872,7 +853,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     count1 = automol.zmatrix.count(rct_zmas[0])
     if len(rct_zmas) == 2:
         count2 = automol.zmatrix.count(rct_zmas[1])
-        print('rct_zmas:', rct_zmas[0], rct_zmas[1])
         if count1 == 1 or count1 < count2:
             rct2_zma, rct1_zma = rct_zmas
             rct_zmas = [rct1_zma, rct2_zma]
@@ -979,8 +959,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
 
         rct1_natom = automol.zmatrix.count(rct1_zma)
         rct2_natom = automol.zmatrix.count(rct2_zma)
-        print('rct1_natom test:', rct1_natom)
-        print('rct2_natom test:', rct2_natom)
 
         if rct1_natom == 1 and rct2_natom == 1:
             raise NotImplementedError
@@ -1062,7 +1040,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         #print('tors_names_add:', tors_names_add)
         #print('ts_zma:', ts_zma)
         ret = ts_zma, dist_name, tors_names
-        print('ts_zma test:', ts_zma)
         #ret = ts_zma, dist_name, tors_names_p
 
     return ret
