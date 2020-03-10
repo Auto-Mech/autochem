@@ -770,8 +770,8 @@ def test__atom_stereo_coordinates():
         assert graph.set_stereo_from_atom_coordinates(cgr, atm_xyz_dct) == sgr
 
 
-def test__trans__hydrogen_migration():
-    """ test graph.trans.hydrogen_migration
+def test__trans__hydrogen_atom_migration():
+    """ test graph.trans.hydrogen_atom_migration
     """
     cgr1 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
              3: ('C', 1, None), 4: ('C', 1, None), 5: ('O', 0, None)},
@@ -787,10 +787,10 @@ def test__trans__hydrogen_migration():
     cgr1 = graph.explicit(cgr1)
     cgr2 = graph.explicit(cgr2)
 
-    tra = graph.trans.hydrogen_migration(cgr1, cgr2)
+    tra = graph.trans.hydrogen_atom_migration(cgr1, cgr2)[0]
     assert graph.backbone_isomorphic(graph.trans.apply(tra, cgr1), cgr2)
 
-    tra = graph.trans.hydrogen_migration(cgr2, cgr1)
+    tra = graph.trans.hydrogen_atom_migration(cgr2, cgr1)[0]
     assert graph.backbone_isomorphic(graph.trans.apply(tra, cgr2), cgr1)
 
 
@@ -952,7 +952,7 @@ if __name__ == '__main__':
     # test__unsaturated_atom_keys()
     # test__resonance_dominant_radical_atom_keys()
     # test__remove_bonds()
-    # test__trans__hydrogen_migration()
+    # test__trans__hydrogen_atom_migration()
     # test__trans__beta_scission()
     # test__trans__addition()
     # test__trans__hydrogen_abstraction()
