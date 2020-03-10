@@ -798,7 +798,7 @@ def possible_spin_multiplicities(xgr, bond_order=True):
 
 # miscellaneous
 # # bond properties
-def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
+def bond_symmetry_numbers(xgr, frm_bnd_key=None, brk_bnd_key=None):
     """ symmetry numbers, by bond
 
     the (approximate) symmetry number of the torsional potential for this bond,
@@ -810,10 +810,6 @@ def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(imp_xgr)
 
     bnd_keys = bond_keys(imp_xgr)
-    # bnd_max_hyd_vlcs = [max(map(atm_imp_hyd_vlc_dct.__getitem__, bnd_key))
-                        # for bnd_key in bnd_keys]
-    # bnd_sym_nums = [3 if vlc == 3 else 1 for vlc in bnd_max_hyd_vlcs]
-    # bnd_sym_num_dct = dict(zip(bnd_keys, bnd_sym_nums))
 
     tfr_atm = None
     if frm_bnd_key and brk_bnd_key:
@@ -821,8 +817,6 @@ def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
             for atm_b in list(brk_bnd_key):
                 if atm_f == atm_b:
                     tfr_atm = atm_f
-    #tfr_atm = list(frm_bnd_key.intersection(list(brk_bnd_key)))
-    #tfr_atm = 1
 
         if tfr_atm:
             neighbor_dct = atom_neighbor_keys(xgr)
@@ -835,7 +829,6 @@ def bond_symmetry_numbers(xgr, frm_bnd_key, brk_bnd_key):
                     all_hyds.append(atm)
         else:
             nei_tfr = {}
-
 
     bnd_sym_num_dct = {}
     bnd_sym_nums = []
