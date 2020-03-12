@@ -45,12 +45,6 @@ def bond_keys(xgr):
     return frozenset(bonds(xgr).keys())
 
 
-def dummy_bond_keys(xgr):
-    """ dummy bond (order=0) keys
-    """
-    return frozenset(dict_.keys_by_value(bond_orders(xgr), lambda x: x == 0))
-
-
 def atom_symbols(xgr):
     """ atom symbols, as a dictionary
     """
@@ -170,7 +164,7 @@ def add_atom_implicit_hydrogen_valences(xgr, inc_atm_imp_hyd_vlc_dct):
 def without_bond_orders(xgr):
     """ resonance graph with maximum spin (i.e. no pi bonds)
     """
-    bnd_keys = bond_keys(xgr) - dummy_bond_keys(xgr)
+    bnd_keys = bond_keys(xgr)
     bnd_ord_dct = dict_.by_key({}, bnd_keys, fill_val=1)
     return set_bond_orders(xgr, bnd_ord_dct)
 
@@ -260,6 +254,38 @@ def frozen(xgr):
 
 # graph theory library
 # # atom properties
+def electron_count(xgr, charge=0):
+    """ the number of electrons in the molecule
+    """
+    atm_sym_dct = atom_symbols(explicit(xgr))
+    nelec = sum(map(pt.to_Z, atm_sym_dct.values())) - charge
+    return nelec
+
+
+def atom_count(xgr, with_dummy=False, with_implicit=True):
+    """ count the number of atoms in this molecule
+
+    by default, this includes implicit hydrogens and excludes dummy atoms
+    """
+    if not with_dummy:
+        xgr = without_dummy_atoms(xgr)
+    natms = len(atoms(xgr))
+    if with_implicit:
+        atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(xgr)
+        natms += sum(atm_imp_hyd_vlc_dct.values())
+    return natms
+
+
+def heavy_atom_count(xgr, with_dummy=False):
+    """ the number of heavy atoms
+    """
+    if not with_dummy:
+        xgr = without_dummy_atoms(xgr)
+    atm_sym_dct = atom_symbols(xgr)
+    nhvy_atms = sum(pt.to_Z(sym) != 1 for sym in atm_sym_dct.values())
+    return nhvy_atms
+
+
 def atom_neighbor_keys(xgr):
     """ keys of neighboring atoms, by atom
     """
@@ -307,13 +333,13 @@ def bond_neighbor_bonds(bnd_key, xgr):
     """
     atmi, atmj = list(bnd_key)
     ngb_atm_dct = atom_neighbor_keys(xgr)
-    bonds = []
+    bnds = []
     for atm in [atmi, atmj]:
         alpha_atms = ngb_atm_dct[atm]
         for alpha_atm in alpha_atms:
             if alpha_atm not in [atmi, atmj]:
-                bonds.append(frozenset({atm, alpha_atm}))
-    return bonds                    
+                bnds.append(frozenset({atm, alpha_atm}))
+    return bnds
 
 
 def bond_neighborhoods(xgr):
@@ -333,20 +359,25 @@ def bond_neighborhoods(xgr):
 def branch(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     """ branch extending along `bnd_key` away from `atm_key`
     """
-    return bond_induced_subgraph(xgr, branch_bond_keys(xgr, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd), saddle=saddle)
+    return bond_induced_subgraph(
+        xgr,
+        branch_bond_keys(xgr, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd),
+        saddle=saddle)
 
 
 def branch_atom_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     """ atom keys for branch extending along `bnd_key` away from `atm_key`
     """
-    return atom_keys(branch(xgr, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd)) - {atm_key}
+    bnch_atm_keys = atom_keys(
+        branch(xgr, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd))
+    return bnch_atm_keys - {atm_key}
 
 
 def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     """ bond keys for branch extending along `bnd_key` away from `atm_key`
     """
 
-    #bnd_key is the set of atom indices for the bond of interest
+    # bnd_key is the set of atom indices for the bond of interest
     # atm_bnd_keys_dct is a dictionary of atoms that are connected to each atom
 #    atm_bnd_keys_dct = atom_bond_keys(xgr)
 #    print('atm_bnd_keys_dct:', atm_bnd_keys_dct)
@@ -491,6 +522,12 @@ def union(xgr1, xgr2):
     bnd_dct.update(bonds(xgr1))
     bnd_dct.update(bonds(xgr2))
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+
+
+def union_from_sequence(xgrs):
+    """ a union of all parts of a sequence of graphs
+    """
+    return tuple(functools.reduce(union, xgrs))
 
 
 def subgraph(xgr, atm_keys):
@@ -757,7 +794,7 @@ def atom_bond_valences(xgr, bond_order=True):
 def atom_unsaturated_valences(xgr, bond_order=True):
     """ unsaturated valences, by atom
 
-    (element valences minus bonding valences -- pi sites and radical electrons)
+    element valences minus bonding valences = pi sites and radical electrons
     """
     atm_keys = list(atom_keys(xgr))
     if not bond_order:

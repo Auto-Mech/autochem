@@ -26,6 +26,9 @@ from automol.graph._graph import add_bonds
 
 # graph theory library
 # # atom properties
+from automol.graph._graph import electron_count
+from automol.graph._graph import atom_count
+from automol.graph._graph import heavy_atom_count
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighborhoods
@@ -42,6 +45,7 @@ from automol.graph._graph import rings_bond_keys
 from automol.graph._graph import connected_components
 from automol.graph._graph import connected_components_atom_keys
 from automol.graph._graph import union
+from automol.graph._graph import union_from_sequence
 from automol.graph._graph import subgraph
 from automol.graph._graph import bond_induced_subgraph
 # # transformations
@@ -117,6 +121,7 @@ from automol.graph._stereo import atom_longest_chains
 
 # submodules
 from automol.graph import trans
+from automol.graph import reac
 
 # constructors
 import automol.create.graph
@@ -203,6 +208,9 @@ __all__ = [
 
     # graph theory library
     # # atom properties
+    'electron_count',
+    'atom_count',
+    'heavy_atom_count',
     'atom_neighbor_keys',
     'atom_bond_keys',
     'atom_neighborhoods',
@@ -219,6 +227,7 @@ __all__ = [
     'connected_components',
     'connected_components_atom_keys',
     'union',
+    'union_from_sequence',
     'subgraph',
     'bond_induced_subgraph',
     # # transformations
@@ -295,4 +304,5 @@ __all__ = [
 
     # submodules
     'trans',
+    'reac',
 ]
