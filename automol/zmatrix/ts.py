@@ -16,13 +16,9 @@ def min_hyd_mig_dist(rct_zmas, prd_zmas):
     """ determines distance coordinate to minimize for hydrogen migration reaction
     """
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    prd_gra = functools.reduce(automol.graph.union, prd_gras)
     if len(rct_zmas) == 1:
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
-        rct_gra = functools.reduce(automol.graph.union, rct_gras)
-        tras = automol.graph.trans.hydrogen_atom_migration(rct_gra, prd_gra)
-        if tras is None:
-            tras = automol.graph.trans.proton_migration(rct_gra, prd_gra)
+        tras, _, _ = automol.graph.reac.hydrogen_migration(rct_gras, prd_gras)
         # If reaction found, then proceed
         if tras:
             min_frm_bnd_key = None
@@ -46,16 +42,12 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     # set products which will be unchanged to ts algorithm
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    prd_gra = functools.reduce(automol.graph.union, prd_gras)
     count = 1
     while True:
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
-        rct_gra = functools.reduce(automol.graph.union, rct_gras)
 
         # try an atom migration then try a proton migration
-        tras = automol.graph.trans.hydrogen_atom_migration(rct_gra, prd_gra)
-        if tras is None:
-            tras = automol.graph.trans.proton_migration(rct_gra, prd_gra)
+        tras, _, _ = automol.graph.reac.hydrogen_migration(rct_gras, prd_gras)
 
         # If reaction found, then proceed
         if tras:
@@ -203,20 +195,15 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
     """ determines distance coordinate to minimize for a concerted unimolecular elimination reaction
     """
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    prds_gra = functools.reduce(automol.graph.union, prd_gras)
     if len(rct_zmas) == 1:
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
-        rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-        tras = automol.graph.trans.elimination(rcts_gra, prds_gra)
-        #frm_bnd_key, = automol.graph.trans.formed_bond_keys(tras)
-        #return frm_bnd_key
+        tras, _, _ = automol.graph.reac.elimination(rct_gras, prd_gras)
         if tras:
             if len(tras[0]) == 1:
                 tras = [tras]
             min_frm_bnd_key = None
             min_dist = 10
             for tra in tras:
-                #frm_bnd_key = tra
                 frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
                 geo = automol.zmatrix.geometry(rct_zmas[0])
                 dist = automol.geom.distance(geo, *list(frm_bnd_key))
@@ -233,15 +220,13 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
     """
     ret = None, None, None, None, None
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    prds_gra = functools.reduce(automol.graph.union, prd_gras)
     if len(rct_zmas) == 1:
         count = 1
         while True:
             rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
-            rcts_gra = functools.reduce(automol.graph.union, rct_gras)
             init_zma, = rct_zmas
 
-            tras = automol.graph.trans.elimination(rcts_gra, prds_gra)
+            tras, _, _ = automol.graph.reac.elimination(rct_gras, prd_gras)
             if tras is not None:
                 if len(tras[0]) == 1:
                     tras = [tras]
@@ -381,15 +366,13 @@ def concerted_unimolecular_elimination2(rct_zmas, prd_zmas):
     """
     ret = None, None, None, None
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    prds_gra = functools.reduce(automol.graph.union, prd_gras)
     if len(rct_zmas) == 1:
         count = 1
         while True:
             rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
-            rcts_gra = functools.reduce(automol.graph.union, rct_gras)
             init_zma, = rct_zmas
 
-            tras = automol.graph.trans.elimination(rcts_gra, prds_gra)
+            tras = automol.graph.reac.elimination(rct_gras, prd_gras)
             if tras is not None:
                 min_dist = 100.
                 frm_bnd_key = None
@@ -574,10 +557,9 @@ def insertion(rct_zmas, prd_zmas):
     dist_val = 3.
     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-    prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    tra, idxs = automol.graph.trans.insertion(rcts_gra, prds_gra)
-    if tra is not None:
+    tras, rct_idxs, _ = automol.graph.reac.insertion(rct_gras, prd_gras)
+    if tras:
+        tra = tras[0]
         frm_bnd_key, _ = automol.graph.trans.formed_bond_keys(tra)
         # brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
 
@@ -585,8 +567,8 @@ def insertion(rct_zmas, prd_zmas):
         rct1_atm1_key = list(frm_bnd_key)[0]
 
         # figure out atoms in the chain to define the dummy atom
-        _, rct2_gra = map(rct_gras.__getitem__, idxs)
-        rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs)
+        _, rct2_gra = map(rct_gras.__getitem__, rct_idxs)
+        rct1_zma, rct2_zma = map(rct_zmas.__getitem__, rct_idxs)
         rct1_natms = automol.zmatrix.count(rct1_zma)
         rct2_natms = automol.zmatrix.count(rct2_zma)
 
@@ -714,19 +696,20 @@ def substitution(rct_zmas, prd_zmas):
         rcts_gra = functools.reduce(automol.graph.union, rct_gras)
         prds_gra = functools.reduce(automol.graph.union, prd_gras)
 
-        tra, idxs = automol.graph.trans.substitution(rcts_gra, prds_gra)
+        tras, rct_idxs, _ = automol.graph.reac.substitution(rcts_gra, prds_gra)
     else:
-        tra = None
-    if tra is not None:
+        tras = []
+
+    if tras:
+        tra = tras[0]
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
         # brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
 
         # get the atom on react 1 that is being attacked (bond is forming)
         rct1_atm1_key = list(frm_bnd_key)[0]
 
-        rct_zmas, prd_zmas = map([rct_zmas, prd_zmas].__getitem__, idxs[0])
-        rct1_zma, rct2_zma = map(rct_zmas.__getitem__, idxs[1])
-        _, rct2_gra = map(rct_gras.__getitem__, idxs[1])
+        rct1_zma, rct2_zma = map(rct_zmas.__getitem__, rct_idxs)
+        _, rct2_gra = map(rct_gras.__getitem__, rct_idxs)
         rct1_natms = automol.zmatrix.count(rct1_zma)
         rct2_natms = automol.zmatrix.count(rct2_zma)
 
@@ -786,7 +769,6 @@ def substitution(rct_zmas, prd_zmas):
         # Get the names of the coordinates of the breaking and forming bond
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
         form_dist_name = ts_name_dct[dist_name]
-        #break_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key)
 
         # Get the torsional coordinates of the transition state
         ts_zma = automol.zmatrix.standard_form(ts_zma)
@@ -821,10 +803,9 @@ def beta_scission(rct_zmas, prd_zmas):
     ret = None
     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-    prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    tra = automol.graph.trans.beta_scission(rcts_gra, prds_gra)
-    if tra is not None:
+    tras, _, _ = automol.graph.reac.beta_scission(rct_gras, prd_gras)
+    if tras:
+        tra = tras[0]
         brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
         ts_zma, = rct_zmas
         coo_dct = automol.zmatrix.coordinates(ts_zma)
@@ -849,7 +830,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
     dist_name = 'rts'
     dist_val = 3.
 
-
     count1 = automol.zmatrix.count(rct_zmas[0])
     if len(rct_zmas) == 2:
         count2 = automol.zmatrix.count(rct_zmas[1])
@@ -858,10 +838,9 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
             rct_zmas = [rct1_zma, rct2_zma]
     rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-    rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-    prds_gra = functools.reduce(automol.graph.union, prd_gras)
-    tra = automol.graph.trans.addition(rcts_gra, prds_gra)
-    if tra is not None:
+    tras, _, _ = automol.graph.reac.addition(rct_gras, prd_gras)
+    if tras:
+        tra = tras[0]
         rct1_zma, rct2_zma = rct_zmas
         rct1_gra, rct2_gra = rct_gras
         rct2_natms = automol.zmatrix.count(rct2_zma)
@@ -869,7 +848,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
         rct1_atm1_key, _ = sorted(frm_bnd_key)
 
-        #Replace old routine with new one based on unsaturated atoms
+        # Replace old routine with new one based on unsaturated atoms
         # Start of new routine
         rct1_unsat_keys = automol.graph.unsaturated_atom_keys(rct1_gra)
         # get neighbor keys for rct1_atm1_key
@@ -900,7 +879,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                 break
 
         # else choose it as second neighbor to atm 2
-        #print('rct1_atm2_key:', rct1_atm2_key)
+        # print('rct1_atm2_key:', rct1_atm2_key)
         if not rct1_atm3_key:
             atm2_nghbr_keys = neighbor_dct[rct1_atm2_key]
             for key in atm2_nghbr_keys:
@@ -908,13 +887,13 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                     rct1_atm3_key = key
                     break
 
-
         # check if rct1_atm1, rct1_atm2, rct1_atm3 are colinear
         # if they are choose a dummy atom
         rct1_geo = automol.zmatrix.geometry(rct1_zma)
         if rct1_atm3_key:
             rct1_sub_geo = (
-                rct1_geo[rct1_atm1_key], rct1_geo[rct1_atm2_key], rct1_geo[rct1_atm3_key])
+                rct1_geo[rct1_atm1_key], rct1_geo[rct1_atm2_key],
+                rct1_geo[rct1_atm3_key])
         else:
             rct1_sub_geo = (rct1_geo[rct1_atm1_key], rct1_geo[rct1_atm2_key])
         if automol.geom.is_linear(rct1_sub_geo) or not rct1_atm3_key:
@@ -973,7 +952,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                  [None, rct1_atm1_key, rct1_atm2_key]])
             join_names = numpy.array(
                 [[dist_name, 'aabs1', None],
-                [None, 'aabs2', 'babs2']])
+                 [None, 'aabs2', 'babs2']])
         else:
             join_keys = numpy.array(
                 [[rct1_atm1_key, rct1_atm2_key, rct1_atm3_key],
@@ -1060,6 +1039,8 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
     dist_name = 'rts'
     dist_val = 3.
 
+    # in the future, we can get the rxn_idxs directly from
+    # graph.reac.hydrogen_abstraction, because it returns them now
     rxn_idxs = automol.formula.reac.argsort_hydrogen_abstraction(
         list(map(automol.convert.zmatrix.formula, rct_zmas)),
         list(map(automol.convert.zmatrix.formula, prd_zmas)))
@@ -1069,10 +1050,10 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
         prd_zmas = list(map(prd_zmas.__getitem__, prd_idxs))
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
         prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-        rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-        prds_gra = functools.reduce(automol.graph.union, prd_gras)
-        tra = automol.graph.trans.hydrogen_abstraction(rcts_gra, prds_gra)
-        if tra is not None:
+        tras, _, _ = automol.graph.reac.hydrogen_abstraction(rct_gras,
+                                                             prd_gras)
+        if tras:
+            tra = tras[0]
             rct1_gra, rct2_gra = rct_gras
             rct1_zma, rct2_zma = rct_zmas
             rct1_natms = automol.zmatrix.count(rct1_zma)
@@ -1234,13 +1215,13 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             assert 0 in rad_atm_keys
         rct_zmas, rct_gras = _shifted_standard_forms_with_gaphs(rct_zmas, remove_stereo=True)
         prd_zmas, prd_gras = _shifted_standard_forms_with_gaphs(prd_zmas, remove_stereo=True)
-        rcts_gra = functools.reduce(automol.graph.union, rct_gras)
-        prds_gra = functools.reduce(automol.graph.union, prd_gras)
         # fix to put radical atom first
         # ultimately need to fix this for multiple radical centers
         # end of fix
-        tra = automol.graph.trans.hydrogen_abstraction(rcts_gra, prds_gra)
-        if tra is not None:
+        tras, _, _ = automol.graph.reac.hydrogen_abstraction(rct_gras,
+                                                             prd_gras)
+        if tras:
+            tra = tras[0]
             rct1_gra, rct2_gra = rct_gras
             rct1_zma, rct2_zma = rct_zmas
             rct1_natms = automol.zmatrix.count(rct1_zma)

@@ -518,6 +518,22 @@ def test__ts__hydrogen_abstraction():
     assert frm_key == frozenset({4, 5})
     assert brk_key == frozenset({0, 4})
     assert not tors_names
+    print(zmatrix.string(ts_zma))
+    print(zmatrix.string(
+        ((('C', (None, None, None), (None, None, None)),
+          ('H', (0, None, None), ('R1', None, None)),
+          ('H', (0, 1, None), ('R2', 'A2', None)),
+          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+          ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
+          ('X', (4, 0, 1), ('R5', 'A5', 'D5')),
+          ('H', (4, 5, 0), ('R6', 'A6', 'D6'))),
+         {'R1': 2.063,
+          'R2': 2.063, 'A2': 1.9106,
+          'R3': 2.063, 'A3': 1.9106, 'D3': 2.0943,
+          'R4': 2.063, 'A4': 1.9106, 'D4': 4.1887,
+          'A5': 1.5707963267948966, 'D5': 3.141592653589793,
+          'R5': 1.8897261254578281, 'A6': 1.4835298641951802,
+          'R6': 3.0, 'D6': 3.0543261909900767})))
     assert zmatrix.almost_equal(
         ts_zma,
         ((('C', (None, None, None), (None, None, None)),
@@ -760,8 +776,6 @@ def test__ts__substitution():
     print(automol.geom.string(automol.zmatrix.geometry(a[0])))
 
 
-
-
 if __name__ == '__main__':
     # test__from_data()
     # test__string()
@@ -772,9 +786,9 @@ if __name__ == '__main__':
     # test__join()
     # test__from_string()
     # test__ts__addition()
-    # test__ts__hydrogen_abstraction()
+    test__ts__hydrogen_abstraction()
     # test__ts__hydrogen_migration()
     # test__ts__elimination()
-    test__ts__substitution()
+    # test__ts__substitution()
     # test__bond_idxs()
     # test__get_babs1()
