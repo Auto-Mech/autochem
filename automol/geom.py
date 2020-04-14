@@ -764,22 +764,22 @@ def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
 
 
 # conversions
-def zmatrix(geo):
+def zmatrix(geo, ts_bnds=()):
     """ geometry => z-matrix
     """
-    return automol.convert.geom.zmatrix(geo)
+    return automol.convert.geom.zmatrix(geo, ts_bnds)
 
 
-def zmatrix_torsion_coordinate_names(geo):
+def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
     """ z-matrix torsional coordinate names
     """
-    return automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
+    return automol.convert.geom.zmatrix_torsion_coordinate_names(geo, ts_bnds)
 
 
-def zmatrix_atom_ordering(geo):
+def zmatrix_atom_ordering(geo, ts_bnds=()):
     """ z-matrix atom ordering
     """
-    return automol.convert.geom.zmatrix_atom_ordering(geo)
+    return automol.convert.geom.zmatrix_atom_ordering(geo, ts_bnds)
 
 
 def graph(geo, remove_stereo=False):

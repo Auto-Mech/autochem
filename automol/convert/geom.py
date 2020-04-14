@@ -13,7 +13,7 @@ import automol.convert.inchi
 
 
 # geometry => z-matrix
-def zmatrix(geo):
+def zmatrix(geo, ts_bnds=()):
     """ geometry => z-matrix
     """
     syms = automol.geom.symbols(geo)
@@ -23,20 +23,20 @@ def zmatrix(geo):
         val_dct = {}
         zma = create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
     else:
-        x2m = _pyx2z.from_geometry(geo)
+        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         zma = _pyx2z.to_zmatrix(x2m)
     zma = automol.zmatrix.standard_form(zma)
     return zma
 
 
-def zmatrix_torsion_coordinate_names(geo):
+def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
     """ z-matrix torsional coordinate names
     """
     syms = automol.geom.symbols(geo)
     if len(syms) == 1:
         names = ()
     else:
-        x2m = _pyx2z.from_geometry(geo)
+        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
 
         zma = _pyx2z.to_zmatrix(x2m)
@@ -45,14 +45,14 @@ def zmatrix_torsion_coordinate_names(geo):
     return names
 
 
-def zmatrix_atom_ordering(geo):
+def zmatrix_atom_ordering(geo, ts_bnds=()):
     """ z-matrix atom ordering
     """
     syms = automol.geom.symbols(geo)
     if len(syms) == 1:
         idxs = (0,)
     else:
-        x2m = _pyx2z.from_geometry(geo)
+        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         idxs = _pyx2z.zmatrix_atom_ordering(x2m)
     return idxs
 
