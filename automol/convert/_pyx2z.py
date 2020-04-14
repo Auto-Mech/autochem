@@ -18,7 +18,7 @@ def to_oriented_geometry(geo):
     return orient_mg
 
 
-def from_geometry(geo):
+def from_geometry(geo, ts_bnds=()):
     """ x2z molecule object from a geometry
     """
     _mg = pyx2z.MolecGeom()
@@ -26,8 +26,9 @@ def from_geometry(geo):
         _atm = pyx2z.Atom(sym)
         _atm[0], _atm[1], _atm[2] = xyz
         _mg.push_back(_atm)
-    _ps = pyx2z.PrimStruct(_mg)
-    x2m = pyx2z.MolecStruct(_ps)
+
+    ts_bnds = list(map(list, ts_bnds))
+    x2m = pyx2z.MolecStruct(_mg, ts_bnds)
     return x2m
 
 

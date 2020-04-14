@@ -471,17 +471,17 @@ def test__ts__addition():
         automol.geom.zmatrix(
             automol.inchi.geometry(automol.smiles.inchi('[OH]')))
     ]
-    prd_zmas = [   
+    prd_zmas = [
         automol.geom.zmatrix(
             automol.geom.from_string("""
-C       -0.7098058705     -1.1786246473     -0.7947589125                 
-H        0.5726407133     -0.1254300441      0.4782572056                 
-C       -0.2483754754     -0.0657274328     -0.2292993915                 
-O       -0.7959872854      1.1280046080     -0.5323466543                 
-H       -1.5298618753     -1.1457692671     -1.5054072018                 
+C       -0.7098058705     -1.1786246473     -0.7947589125
+H        0.5726407133     -0.1254300441      0.4782572056
+C       -0.2483754754     -0.0657274328     -0.2292993915
+O       -0.7959872854      1.1280046080     -0.5323466543
+H       -1.5298618753     -1.1457692671     -1.5054072018
 H       -0.4639672067      1.9392647833     -0.1239390454"""))
     ]
-    ts_zma, dist_name, tors_names = zmatrix.ts.addition(rct_zmas, prd_zmas)
+    zmatrix.ts.addition(rct_zmas, prd_zmas)
 
 
 def test__ts__hydrogen_abstraction():
@@ -744,7 +744,6 @@ def test__ts__elimination():
     print(dist_name2)
     print(tors_names)
     print(automol.geom.string(automol.zmatrix.geometry(ts_zma)))
-
 
 
 def test__ts__substitution():
