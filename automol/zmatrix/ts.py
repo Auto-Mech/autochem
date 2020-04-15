@@ -10,6 +10,7 @@ import automol.convert.zmatrix
 import automol.zmatrix
 from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
 
+
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 
 
