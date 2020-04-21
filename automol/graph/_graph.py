@@ -430,9 +430,12 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
     #print('new_bnd_keys:', new_bnd_keys)
     bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
     #print('bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
+    # print('new_bnd_ngb_keys before ts_bnd:', new_bnd_keys, bnd_ngb_keys_dct)
     if ts_bnd:
-        bnd_ngb_keys_dct[ts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
+        fts_bnd = frozenset(ts_bnd)
+        bnd_ngb_keys_dct[fts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
     #print('updated bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
+    # print('new_bnd_ngb_keys test:', new_bnd_keys, bnd_ngb_keys_dct)
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
             itertools.chain(
