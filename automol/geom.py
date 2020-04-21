@@ -699,6 +699,12 @@ def masses(geo, amu=True):
     return amas
 
 
+def total_mass(geo):
+    """ Calculate the total mass
+    """
+    return sum(masses(geo))
+
+
 def center_of_mass(geo):
     """ center of mass
     """

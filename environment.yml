@@ -1,7 +1,7 @@
-name: autochem-env
+name: automol-env
 
 channels:
-    - pacchem
+    - auto-mech
     - rdkit
     - openbabel
     - conda-forge
@@ -24,6 +24,6 @@ dependencies:
     - openbabel::openbabel
     - conda-forge::qcelemental
     - conda-forge::nglview
-    - pacchem::autoparse
-    - pacchem::x2z
-    - pacchem::transformations
+    - auto-mech::autoparse
+    - auto-mech::x2z
+    - auto-mech::transformations

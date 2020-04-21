@@ -1,7 +1,7 @@
-# cmd: conda build . -c pacchem -c rdkit -c openbabel -c conda-forge
+# cmd: conda build . -c auto-mech -c rdkit -c openbabel -c conda-forge
 package:
-    name: autochem
-    version: "0.2.9"
+    name: automol
+    version: "0.3.0"
 
 source:
     path: .
@@ -22,6 +22,6 @@ requirements:
         - openbabel::openbabel
         - conda-forge::qcelemental
         - conda-forge::nglview
-        - pacchem::autoparse
-        - pacchem::x2z
-        - pacchem::transformations
+        - auto-mech::autoparse
+        - auto-mech::x2z
+        - auto-mech::transformations
