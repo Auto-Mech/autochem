@@ -163,8 +163,16 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     # standardize the ts zmat and get tors and dist coords
     coo_dct = automol.zmatrix.coordinates(ts_zma)
-    dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
-                     if dist_coo_key in coo_keys)
+    print('coo_dct test:', dist_coo_key, coo_dct)
+    for coo_name, coo_key in coo_dct.items():
+        dist_coo_key_rev = dist_coo_key[::-1]
+        if coo_key[0] in (dist_coo_key, dist_coo_key_rev):
+            dist_name = coo_name
+            break
+
+    print('dist_name test:', dist_name)
+    #dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
+                     # if dist_coo_key in coo_keys)
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
     ts_zma = automol.zmatrix.standard_form(ts_zma)
