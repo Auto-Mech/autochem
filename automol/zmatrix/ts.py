@@ -10,7 +10,9 @@ import automol.convert.zmatrix
 import automol.zmatrix
 from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
 
+
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
+
 
 def min_hyd_mig_dist(rct_zmas, prd_zmas):
     """ determines distance coordinate to minimize for hydrogen migration reaction
@@ -1386,7 +1388,6 @@ def _reorder_zma_for_radicals(zma, rad_idx):
     """ Creates a zmatrix where the radical atom is the first entry
         in the zmatrix
     """
-    print('rad_idx test:', rad_idx)
     geo = automol.zmatrix.geometry(zma)
     geo_swp = automol.geom.swap_coordinates(geo, 0, rad_idx)
     zma_swp = automol.geom.zmatrix(geo_swp)

@@ -47,6 +47,22 @@ def coordinates(geo, angstrom=False):
     return xyzs
 
 
+def count(geo):
+    """ count the number of atoms in the geometry
+    """
+    return len(symbols)
+
+
+def heavy_count(geo):
+    """ count the number of atoms in the geometry
+    """
+    cnt = 0
+    for sym in symbols(geo):
+        if sym != 'H':
+            cnt += 1
+    return cnt
+
+
 # validation
 def is_valid(geo):
     """ is this a valid geometry?
@@ -349,7 +365,6 @@ def reflect_coordinates(geo, idxs, axes):
     geo_reflected = set_coordinates(geo, reflect_dct)
 
     return geo_reflected
-
 
 
 def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=[], brk_bnd_key=[], form_coords=[]):
@@ -682,6 +697,12 @@ def masses(geo, amu=True):
 
     amas = tuple(amas)
     return amas
+
+
+def total_mass(geo):
+    """ Calculate the total mass
+    """
+    return sum(masses(geo))
 
 
 def center_of_mass(geo):
