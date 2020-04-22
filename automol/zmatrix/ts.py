@@ -103,10 +103,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         else:
             return None
 
-    # if migrating H atom is not the final zmat entry, shift it to the end
-    # if h_idx != automol.zmatrix.count(rct_zma) - 1:
-    #    rct_zma = automol.zmatrix.shift_row_to_end(rct_zma, h_idx)
-
     # determine the backbone atoms to redefine the z-matrix entry
     _, gras = _shifted_standard_forms_with_gaphs([rct_zma], remove_stereo=True)
     gra = functools.reduce(automol.graph.union, gras)
@@ -170,6 +166,10 @@ def hydrogen_migration(rct_zmas, prd_zmas):
             dist_name = coo_name
             break
 
+    # if migrating H atom is not the final zmat entry, shift it to the end
+    if h_idx != automol.zmatrix.count(ts_zma) - 1:
+        ts_zma, h_idx = automol.zmatrix.shift_row_to_end(ts_zma, h_idx)
+
     print('dist_name test:', dist_name)
     #dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
                      # if dist_coo_key in coo_keys)
@@ -178,6 +178,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     ts_zma = automol.zmatrix.standard_form(ts_zma)
 
     # get full set of potential torsional coordinates
+    print('automol ts_zma:', automol.zmatrix.string(ts_zma))
+    print('ts_zma:', ts_zma)
     pot_tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
     # remove the torsional coordinates that would break reaction coordinate
