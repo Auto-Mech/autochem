@@ -173,6 +173,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     print('dist_name test:', dist_name)
     #dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
                      # if dist_coo_key in coo_keys)
+
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
     ts_zma = automol.zmatrix.standard_form(ts_zma)
