@@ -264,10 +264,10 @@ def shift_row_to_end(zma, row_idx):
 
     # Check if a shift is needed
     shift_needed = False
-    print('row_idx:', row_idx)
+    # print('row_idx:', row_idx)
     # for key in zma[0][row_idx][1]:
     for key in orig_keys[row_idx]:
-        print('key in row_idx:', key)
+        # print('key in row_idx:', key)
         if key > row_idx:
             shift_needed = True
 
@@ -308,14 +308,14 @@ def shift_row_to_end(zma, row_idx):
         new_key_matrix += (new_keys_at_row)
         new_name_matrix += ((orig_names[row_idx]),)
 
-        print('new key mat')
+        # print('new key mat')
         for krow in new_key_matrix:
             print(krow)
 
         zma = automol.create.zmatrix.from_data(
             new_symbols, new_key_matrix, new_name_matrix, orig_values)
         h_idx = automol.zmatrix.count(zma) - 1
-        print('h_idx test:', h_idx)
+        # print('h_idx test:', h_idx)
 
     return zma, h_idx
 
