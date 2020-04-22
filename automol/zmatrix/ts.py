@@ -170,7 +170,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     if h_idx != automol.zmatrix.count(ts_zma) - 1:
         ts_zma, h_idx = automol.zmatrix.shift_row_to_end(ts_zma, h_idx)
 
-    print('dist_name test:', dist_name)
+    # print('dist_name test:', dist_name)
     #dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
                      # if dist_coo_key in coo_keys)
 
@@ -179,8 +179,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     ts_zma = automol.zmatrix.standard_form(ts_zma)
 
     # get full set of potential torsional coordinates
-    print('automol ts_zma:', automol.zmatrix.string(ts_zma))
-    print('ts_zma:', ts_zma)
+    # print('automol ts_zma:', automol.zmatrix.string(ts_zma))
+    # print('ts_zma:', ts_zma)
     pot_tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
     # remove the torsional coordinates that would break reaction coordinate
