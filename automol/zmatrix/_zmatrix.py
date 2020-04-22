@@ -241,6 +241,8 @@ def set_values(zma, val_dct):
 def shift_row_to_end(zma, row_idx):
     """ move a single row of the zmatrix to the end
 
+        set to only act if keys in row_idx are larger than row_idx
+        i.e., if the shift is clearly needed
         function only works if atom row that needs to be moved is not
         used to define other atoms
     """
@@ -251,24 +253,45 @@ def shift_row_to_end(zma, row_idx):
     orig_names = name_matrix(zma)
     orig_values = values(zma)
 
+    shift_needed = False
+    print('row_idx:', row_idx)
+    for key in zma[0][row_idx][1]:
+        print('key in row_idx:', key)
+        if key > row_idx:
+            shift_needed = True
     # Build new tuples with the row corresponding to the row_idx removed
-    new_symbols, new_key_matrix, new_name_matrix = tuple(), tuple(), tuple()
-    zma_data = zip(orig_symbols, orig_keys, orig_names)
-    for i, (sym, key_row, name_row) in enumerate(zma_data):
-        if i == row_idx:
-            continue
-        else:
-            new_symbols += (sym,)
-            new_key_matrix += (key_row,)
-            new_name_matrix += (name_row,)
+    if shift_needed:
+        new_symbols, new_key_matrix, new_name_matrix = tuple(), tuple(), tuple()
+        zma_data = zip(orig_symbols, orig_keys, orig_names)
+        for i, (sym, key_row, name_row) in enumerate(zma_data):
+            if i <= row_idx:
+                new_symbols += (sym,)
+                new_key_matrix += (key_row,)
+                new_name_matrix += (name_row,)
+            elif i == row_idx:
+                continue
+            else:
+                new_symbols += (sym,)
+                for key in zma[0][row_idx][1]:
+                    if key < row_idx:
+                       key_row += key
+                   else:
+                       key_row += key-1
+                new_key_matrix += (key_row,)
+                new_name_matrix += (name_row,)
+    
+        # Append the row corresponding to row_idx
+        new_symbols += ((orig_symbols[row_idx]),)
+        new_key_matrix += ((orig_keys[row_idx]),)-1
+        new_name_matrix += ((orig_names[row_idx]),)
 
-    # Append the row corresponding to row_idx
-    new_symbols += ((orig_symbols[row_idx]),)
-    new_key_matrix += ((orig_keys[row_idx]),)
-    new_name_matrix += ((orig_names[row_idx]),)
-
-    return automol.create.zmatrix.from_data(
-        new_symbols, new_key_matrix, new_name_matrix, orig_values)
+        new_zma = automol.create.zmatrix.from_data(
+            new_symbols, new_key_matrix, new_name_matrix, orig_values)
+        h_idx = automol.zmatrix.count(new_zma)-1
+        print('h_idx test:', h_idx)
+    else:
+        new_zma = zma
+    return new_zma, h_idx
 
 
 # def _shift_method2(zma, row_idx, syms, key_mat, name_mat, value_dct):
