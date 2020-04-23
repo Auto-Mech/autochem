@@ -36,7 +36,6 @@ def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
     if len(syms) == 1:
         names = ()
     else:
-        print('geo test:', automol.geom.string(geo))
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
 

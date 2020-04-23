@@ -159,7 +159,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     # standardize the ts zmat and get tors and dist coords
     coo_dct = automol.zmatrix.coordinates(ts_zma)
-    print('coo_dct test:', dist_coo_key, coo_dct)
     for coo_name, coo_key in coo_dct.items():
         dist_coo_key_rev = dist_coo_key[::-1]
         if coo_key[0] in (dist_coo_key, dist_coo_key_rev):
@@ -170,17 +169,11 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     if h_idx != automol.zmatrix.count(ts_zma) - 1:
         ts_zma, h_idx = automol.zmatrix.shift_row_to_end(ts_zma, h_idx)
 
-    # print('dist_name test:', dist_name)
-    #dist_name = next(coo_name for coo_name, coo_keys in coo_dct.items()
-                     # if dist_coo_key in coo_keys)
-
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
     ts_zma = automol.zmatrix.standard_form(ts_zma)
 
     # get full set of potential torsional coordinates
-    # print('automol ts_zma:', automol.zmatrix.string(ts_zma))
-    # print('ts_zma:', ts_zma)
     pot_tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
     # remove the torsional coordinates that would break reaction coordinate
@@ -892,7 +885,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
                 break
 
         # else choose it as second neighbor to atm 2
-        # print('rct1_atm2_key:', rct1_atm2_key)
         if not rct1_atm3_key:
             atm2_nghbr_keys = neighbor_dct[rct1_atm2_key]
             for key in atm2_nghbr_keys:
@@ -989,17 +981,11 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         join_name_set = set(numpy.ravel(join_names)) - {None}
         join_val_dct = {name: join_val_dct[name] for name in join_name_set}
 
-
-        #print('join_keys test:', join_keys)
-        #print('join_names test:', join_names)
-        #print('natoms test:', rct1_natom, rct2_natms)
-
         ts_zma = automol.zmatrix.join(
             rct1_zma, rct2_zma, join_keys, join_names, join_val_dct)
 
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
         dist_name = ts_name_dct[dist_name]
-        #print('ts_zma:', ts_zma)
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         rct1_tors_names = automol.zmatrix.torsion_coordinate_names(rct1_zma)
 
@@ -1027,12 +1013,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=[]):
         #tors_names_add = (
         #    tuple(map(ts_name_dct_p.__getitem__, tors_names_p))
         #)
-        #print('tors_names:', tors_names)
-        #print('tors_names_p:', tors_names_p)
-        #print('tors_names_add:', tors_names_add)
-        #print('ts_zma:', ts_zma)
         ret = ts_zma, dist_name, tors_names
-        #ret = ts_zma, dist_name, tors_names_p
 
     return ret
 
@@ -1210,8 +1191,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
     #     if count1 == 1 or count1 < count2:
     #         rct2_zma, rct1_zma = rct_zmas
     #         rct_zmas = [rct1_zma, rct2_zma]
-
-
     
     if rxn_idxs is not None:
         rct_idxs, prd_idxs = rxn_idxs
@@ -1369,13 +1348,8 @@ def _join_atom_keys(zma, atm1_key):
     gra = automol.convert.zmatrix.graph(zma)
     atm1_chain = (
         automol.graph.atom_longest_chains(gra)[atm1_key])
-    #print('atm1_key:', atm1_key)
-    #print('zma test:', automol.zmatrix.string(zma))
-    #print('gra:', gra)
-    #print('atm1_chain test:', atm1_chain)
     atm1_ngb_keys = (
         automol.graph.atom_neighbor_keys(gra)[atm1_key])
-    #print('atm1_ngb_keys test:', atm1_chain)
     if len(atm1_chain) == 1:
         atm2_key = None
         atm3_key = None

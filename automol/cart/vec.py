@@ -9,7 +9,6 @@ def unit_norm(xyz):
     """ vector normalized to 1
     """
     norm = numpy.linalg.norm(xyz)
-    # print('norm test:', norm, xyz)
     uxyz = numpy.divide(xyz, norm)
     assert numpy.allclose(numpy.linalg.norm(uxyz), 1.)
     return uxyz
