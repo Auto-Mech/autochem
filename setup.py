@@ -1,9 +1,9 @@
-""" Install autochem
+""" Install automol
 """
 from distutils.core import setup
 
 
-setup(name='autochem',
+setup(name='automol',
       version='0.1.0',
       packages=['automol',
                 'automol.cart',
@@ -22,5 +22,5 @@ setup(name='autochem',
       package_dir={'automol': 'automol',
                    'autoread': 'autoread',
                    'autowrite': 'autowrite',
-                   'transformations', 'transformations'},
+                   'transformations': 'transformations'},
       package_data={'automol': ['tests/data/*.txt']})
