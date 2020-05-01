@@ -12,14 +12,14 @@ jobs:
                     apt-get install --yes libxrender-dev build-essential
                     conda env create -f environment.yml
             - run:
-                name: Build/install autochem
+                name: Build/install automol
                 command: |
-                    source activate autochem-env
+                    source activate automol-env
                     python setup.py install
             - run:
                 name: Test automol
                 command: |
-                    source activate autochem-env
+                    source activate automol-env
                     cd automol
                     pytest -v --disable-pytest-warnings --cov=automol --pyargs automol
                     flake8 --exit-zero autommol
@@ -27,21 +27,11 @@ jobs:
             - run:
                 name: Test autoread
                 command: |
-                    source activate autochem-env
+                    source activate automol-env
                     cd autoread
                     pytest -v --cov=autoread --pyargs autoread
                     flake8 --exit-zero autoread
                     pylint --rcfile=../.pylintrc autoread
-            - run:
-                name: Build/install/test x2z
-                command: |
-                    source activate autochem-env
-                    cd external/x2z
-                    bash debug/build.sh
-                    . debug/fake-install.sh
-                    x2z examples/ch4.xyz
-                    x2z examples/allene.xyz
-                    pytest -v tests/
 workflows:
     version: 2
     build-all:
