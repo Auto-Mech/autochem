@@ -1,7 +1,7 @@
 # cmd: conda build . -c auto-mech -c rdkit -c openbabel -c conda-forge
 package:
     name: automol
-    version: "0.3.0"
+    version: "0.1.0"
 
 source:
     path: .
@@ -24,4 +24,3 @@ requirements:
         - conda-forge::nglview
         - auto-mech::autoparse
         - auto-mech::x2z
-        - auto-mech::transformations

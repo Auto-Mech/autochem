@@ -4,7 +4,7 @@ from distutils.core import setup
 
 
 setup(name="autochem",
-      version="0.2.9",
+      version="0.1.0",
       packages=["automol",
                 "automol.cart",
                 "automol.convert",
