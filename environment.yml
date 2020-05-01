@@ -8,11 +8,6 @@ channels:
 
 dependencies:
     - python=3.7
-    - pybind11
-    # - cmake
-    # - gcc_linux-64       # [linux]
-    # - gxx_linux-64       # [linux]
-    # - gfortran_linux-64  # [linux]
     - numpy
     - networkx
     - pytest
@@ -26,4 +21,3 @@ dependencies:
     - conda-forge::nglview
     - auto-mech::autoparse
     - auto-mech::x2z
-    # - auto-mech::transformations
