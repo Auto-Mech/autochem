@@ -17,6 +17,7 @@ setup(name="autochem",
                 "automol.tests",
                 "autoread",
                 "autoread.zmatrix",
-                "autowrite"],
+                "autowrite",
+                "transformation"],
       package_dir={'automol': "automol"},
       package_data={'automol': ["tests/data/*.txt"]})
