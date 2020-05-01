@@ -2,7 +2,7 @@
 """
 import numbers
 import numpy
-import transformations as tf
+from transformations import rotation_matrix
 
 
 def unit_norm(xyz):
@@ -122,7 +122,7 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
 def rotate_(axis, angle, orig_xyz=None):
     """ a function to rotate vectors about an axis at a particular point
     """
-    aug_rot_mat = tf.rotation_matrix(angle, axis, point=orig_xyz)
+    aug_rot_mat = rotation_matrix(angle, axis, point=orig_xyz)
 
     def _rotated(xyz):
         aug_xyz = _augmented(xyz)

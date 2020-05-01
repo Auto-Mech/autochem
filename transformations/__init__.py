@@ -4,8 +4,10 @@
 """
 
 from transformations._transformations import rotation_matrix
+from transformations._transformations import euler_matrix
 
 
 __all__ = [
-    'rotation_matrix'
+    'rotation_matrix',
+    'euler_matrix'
 ]
