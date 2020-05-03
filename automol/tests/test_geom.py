@@ -180,8 +180,8 @@ def test__reflect_coordinates():
     assert geo3 == ref_geo3
 
 
-def test__external_symmetry_number():
-    """ test geom.external_symmety_number
+def test__external_symmetry_factor():
+    """ test geom.external_symmety_factor
     """
     ref_sym_num1 = 12
     ref_sym_num2 = 2
@@ -205,10 +205,10 @@ def test__external_symmetry_number():
                   ('F', (-0.745999108314, -4.9827454242, -0.1878162481225)),
                   ('H', (-1.11738479998, -1.591763680324, 1.607521773704)),
                   ('H', (-5.30771129777, -5.90407965309, 1.771303996279)))
-    methane_sym_num = automol.geom.external_symmetry_number(methane_geo)
-    water_sym_num = automol.geom.external_symmetry_number(water_geo)
-    c2h5of_sym_num = automol.geom.external_symmetry_number(c2h5of_geo)
-    c2h2clf_sym_num = automol.geom.external_symmetry_number(C2H2CLF_GEO)
+    methane_sym_num = automol.geom.external_symmetry_factor(methane_geo)
+    water_sym_num = automol.geom.external_symmetry_factor(water_geo)
+    c2h5of_sym_num = automol.geom.external_symmetry_factor(c2h5of_geo)
+    c2h2clf_sym_num = automol.geom.external_symmetry_factor(C2H2CLF_GEO)
     assert methane_sym_num == ref_sym_num1
     assert water_sym_num == ref_sym_num2
     assert c2h5of_sym_num == ref_sym_num3
@@ -227,11 +227,11 @@ def test__rot_permutated_geoms():
 
 
 if __name__ == '__main__':
-    # test__from_data()
-    # test__is_valid()
-    # test__set_coordinates()
-    # test__swap_coordinates()
-    # test__move_coordinates()
+    test__from_data()
+    test__is_valid()
+    test__set_coordinates()
+    test__swap_coordinates()
+    test__move_coordinates()
     test__reflect_coordinates()
-    # test__external_symmetry_number()
-    # test__rot_permutated_geoms()
+    test__external_symmetry_factor()
+    test__rot_permutated_geoms()

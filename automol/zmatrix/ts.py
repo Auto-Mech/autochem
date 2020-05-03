@@ -1182,7 +1182,7 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
     rxn_idxs = automol.formula.reac.argsort_hydrogen_abstraction(
         list(map(automol.convert.zmatrix.formula, rct_zmas)),
         list(map(automol.convert.zmatrix.formula, prd_zmas)))
-    
+
     # Sort so the smaller species is second (only needed for high spin rad-rad
     # count1 = automol.zmatrix.count(rct_zmas[0])
     # if len(rct_zmas) == 2:
