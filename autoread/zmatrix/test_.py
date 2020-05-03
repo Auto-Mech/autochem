@@ -1,5 +1,6 @@
 """ test the autoread.zmatrix module
 """
+
 import autoread
 import autoparse.pattern as app
 
@@ -103,11 +104,6 @@ def test_():
         mat_entry_start_ptt=',',
         mat_entry_sep_ptt=',',
         setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
-    import numpy
-    print(syms)
-    print(numpy.array(key_mat))
-    print(numpy.array(name_mat))
-    print(val_dct)
 
 
 def test__matrix():

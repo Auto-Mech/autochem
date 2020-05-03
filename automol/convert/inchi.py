@@ -25,12 +25,13 @@ def geometry(ich):
     return geo
 
 
-def _connected_stereo_geometry(ich):
-    ref_ich = ich
-
-    ich = automol.inchi.standard_form(ich, remove_stereo=True)
-    geo = _connected_geometry(ich)
-    ich, nums = automol.convert.geom.inchi_with_sort(geo)
+# old function? these lines don't do anything
+# def _connected_stereo_geometry(ich):
+#     ref_ich = ich
+#
+#     ich = automol.inchi.standard_form(ich, remove_stereo=True)
+#     geo = _connected_geometry(ich)
+#     ich, nums = automol.convert.geom.inchi_with_sort(geo)
 
 
 def _connected_geometry(ich):

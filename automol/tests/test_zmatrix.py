@@ -1,5 +1,6 @@
 """ test automol.zmatrix
 """
+
 from automol import zmatrix
 import automol
 
@@ -668,6 +669,8 @@ def test__ts__hydrogen_migration():
         zmatrix.ts.hydrogen_migration(rct_zmas1, prd_zmas1))
     print(zmatrix.string(ts_zma))
     print(dist_name)
+    print(frm_key)
+    print(brk_key)
     print(tors_names)
 
     print('\nproton migration')
@@ -759,8 +762,6 @@ def test__ts__substitution():
             automol.inchi.geometry(automol.smiles.inchi('[H]'))),
         automol.geom.zmatrix(
             automol.inchi.geometry(automol.smiles.inchi('OO'))),
-        # automol.geom.zmatrix(
-        #    automol.inchi.geometry(automol.smiles.inchi('[H]')))
     ]
     prd_zmas = [
         automol.geom.zmatrix(
@@ -768,15 +769,12 @@ def test__ts__substitution():
         automol.geom.zmatrix(
             automol.inchi.geometry(automol.smiles.inchi('O')))
     ]
-    
 
-    a = zmatrix.ts.substitution(
+    ts_zma, form_dist_name, tors_names = zmatrix.ts.substitution(
         rct_zmas, prd_zmas)
-    print(zmatrix.string(a[0]))
-    # print(dist_name)
-    # print(dist_name2)
-    # print(tors_names)
-    print(automol.geom.string(automol.zmatrix.geometry(a[0])))
+    print(automol.geom.string(automol.zmatrix.geometry(ts_zma)))
+    print(form_dist_name)
+    print(tors_names)
 
 
 if __name__ == '__main__':

@@ -32,6 +32,13 @@ jobs:
                     pytest -v --cov=autoread --pyargs autoread
                     flake8 --exit-zero autoread
                     pylint --rcfile=../.pylintrc autoread
+            - run:
+                name: Test autowrite
+                command: |
+                    source activate automol-env
+                    cd autowrite
+                    flake8 --exit-zero autowrite
+                    pylint --rcfile=../.pylintrc autoread
 workflows:
     version: 2
     build-all:

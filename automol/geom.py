@@ -1,9 +1,11 @@
 """ cartesian geometries
 """
+
 import itertools
 import functools
 import more_itertools as mit
 import numpy
+import nglview
 import qcelemental as qcel
 from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
@@ -50,7 +52,7 @@ def coordinates(geo, angstrom=False):
 def count(geo):
     """ count the number of atoms in the geometry
     """
-    return len(symbols)
+    return len(symbols(geo))
 
 
 def heavy_count(geo):
@@ -116,12 +118,13 @@ def join(geo1, geo2,
     orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
                               numpy.sin(theta) * numpy.sin(phi),
                               numpy.cos(theta)])
+    neg_orient_vec = -1.0 * orient_vec
 
     # get the correct distance apart
     geo1 = mass_centered(geo1)
     geo2 = mass_centered(geo2)
     ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
-    ext2 = max(numpy.vdot(-orient_vec, xyz) for xyz in coordinates(geo2))
+    ext2 = max(numpy.vdot(neg_orient_vec, xyz) for xyz in coordinates(geo2))
 
     cm_dist = ext1 + dist_cutoff + ext2
     dist_grid = numpy.arange(cm_dist, 0., -0.1)
@@ -189,8 +192,6 @@ def xyz_trajectory_string(geo_lst, comments=None):
 def view(geo):
     """ view the geometry using nglview
     """
-    import nglview
-
     xyz_str = xyz_string(geo)
     qcm = qcel.models.Molecule.from_data(xyz_str)
     ngv = nglview.show_qcelemental(qcm)
@@ -367,7 +368,7 @@ def reflect_coordinates(geo, idxs, axes):
     return geo_reflected
 
 
-def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=[], brk_bnd_key=[], form_coords=[]):
+def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=(), brk_bnd_key=()):
     """ convert an input geometry to a list of geometries
         corresponding to the rotational permuations of all the terminal groups
     """
@@ -394,7 +395,6 @@ def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=[], brk_bnd_key=[], form
             pass
         else:
             if atm not in frm_bnd_key and atm not in brk_bnd_key:
-            #if atm not in form_coords:
                 nonh_neighs = []
                 h_neighs = []
                 neighs = neighbor_dct[atm]
