@@ -1,5 +1,6 @@
 """ test the autoread module
 """
+
 import numpy
 import autoread
 import autoparse.pattern as app
@@ -239,6 +240,6 @@ def test__matrix():
 
 
 if __name__ == '__main__':
-    # test__energy()
-    # test__matrix()
+    test__energy()
+    test__matrix()
     test__geom()

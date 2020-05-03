@@ -6,14 +6,12 @@ import numpy
 from automol import dict_
 from automol.graph._graph import frozen as _frozen
 from automol.graph._graph import atom_keys as _atom_keys
-from automol.graph._graph import atoms as _atoms
 from automol.graph._graph import bond_keys as _bond_keys
 from automol.graph._graph import bond_orders as _bond_orders
 from automol.graph._graph import set_bond_orders as _set_bond_orders
 from automol.graph._graph import without_bond_orders as _without_bond_orders
 from automol.graph._graph import atom_bond_keys as _atom_bond_keys
 from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
-from automol.graph._graph import atom_element_valences as _atom_element_valences
 from automol.graph._graph import (atom_unsaturated_valences as
                                   _atom_unsaturated_valences)
 from automol.graph._graph import atom_bond_valences as _atom_bond_valences
@@ -98,6 +96,7 @@ def resonance_dominant_bond_centered_cumulene_keys(rgr):
     cum_keys = frozenset(cum_keys)
     return cum_keys
 
+
 def _cumulene_chains(rgr):
     atm_hyb_dct = resonance_dominant_atom_hybridizations(rgr)
     sp1_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
@@ -173,6 +172,7 @@ def resonance_dominant_bond_orders(rgr):
     bnd_dom_res_ords_dct = dict(zip(bnd_keys, bnd_ords_lst))
     return bnd_dom_res_ords_dct
 
+
 def one_resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
@@ -180,10 +180,11 @@ def one_resonance_dominant_bond_orders(rgr):
     bnd_ords_by_res = [
         dict_.values_by_key(_bond_orders(dom_rgr), bnd_keys)
         for dom_rgr in dominant_resonances(rgr)]
-    first_bnd_ords = [bnd_ords_by_res[0] ]
+    first_bnd_ords = [bnd_ords_by_res[0]]
     bnd_ords_lst = list(map(frozenset, zip(*first_bnd_ords)))
     bnd_dom_res_ords_dct = dict(zip(bnd_keys, bnd_ords_lst))
     return bnd_dom_res_ords_dct
+
 
 def resonance_avg_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond

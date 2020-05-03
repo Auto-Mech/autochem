@@ -1,5 +1,6 @@
 """ full z-matrix parsers
 """
+
 import autoparse.find as apf
 import autoparse.pattern as app
 from autoread.zmatrix.matrix import read as _matrix_read
@@ -98,11 +99,13 @@ def read(string,
     if last:
         cap = apf.last_capture(block_ptt_, string, case=case)
         assert cap is not None
-        mat_str, setv_str = cap
+        strs = cap if cap is not None else []
+        mat_str, setv_str = strs
     else:
         cap = apf.first_capture(block_ptt_, string, case=case)
         assert cap is not None
-        mat_str, setv_str = cap
+        strs = cap if cap is not None else []
+        mat_str, setv_str = strs
 
     syms, key_mat, name_mat = _matrix_read(
         mat_str,

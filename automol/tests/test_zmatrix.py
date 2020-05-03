@@ -1,5 +1,6 @@
 """ test automol.zmatrix
 """
+
 from automol import zmatrix
 import automol
 
@@ -349,9 +350,10 @@ def test__join():
 def test__torsional_symmetry_numbers():
     """ test zmatrix.torsional_symmetry_numbers
     """
-    assert zmatrix.torsional_symmetry_numbers(CH4O_ZMA, ('D3',)) == (3,)
-    assert zmatrix.torsional_symmetry_numbers(CH4O2_ZMA, ('D5', 'D6')) == (
-        1, 1)
+    sym_nums1 = zmatrix.torsional_symmetry_numbers(CH4O_ZMA, ('D3',))
+    sym_nums2 = zmatrix.torsional_symmetry_numbers(CH4O2_ZMA, ('D5', 'D6'))
+    assert sym_nums1 == (3,)
+    assert sym_nums2 == (1, 1)
 
 
 def test__samples():
@@ -487,6 +489,8 @@ H       -0.4639672067      1.9392647833     -0.1239390454"""))
 def test__ts__hydrogen_abstraction():
     """ test zmatrix.ts.hydrogen_abstraction
     """
+
+    # CH4+H
     rct_zmas = [
         ((('C', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None)),
@@ -514,6 +518,7 @@ def test__ts__hydrogen_abstraction():
     ]
     ts_zma, dist_name, frm_key, brk_key, tors_names = (
         zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
+
     assert dist_name == 'R6'
     assert frm_key == frozenset({4, 5})
     assert brk_key == frozenset({0, 4})
@@ -552,7 +557,7 @@ def test__ts__hydrogen_abstraction():
           'R6': 3.0, 'D6': 3.0543261909900767})
     )
 
-    # example 2
+    # CH2O + CH3
     rct_zmas = [
         ((('O', (None, None, None), (None, None, None)),
           ('H', (0, None, None), ('R1', None, None)),
@@ -588,6 +593,7 @@ def test__ts__hydrogen_abstraction():
     ]
     ts_zma, dist_name, frm_key, brk_key, tors_names = (
         zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
+
     assert dist_name == 'R4'
     assert frm_key == frozenset({2, 3})
     assert brk_key == frozenset({0, 2})
@@ -623,7 +629,6 @@ def test__ts__hydrogen_migration():
     """
 
     # hydrogen migration
-    print('hydrogen migration')
     rct_zmas1 = [
         ((('C', (None, None, None), (None, None, None)),
           ('C', (0, None, None), ('R1', None, None)),
@@ -664,6 +669,8 @@ def test__ts__hydrogen_migration():
         zmatrix.ts.hydrogen_migration(rct_zmas1, prd_zmas1))
     print(zmatrix.string(ts_zma))
     print(dist_name)
+    print(frm_key)
+    print(brk_key)
     print(tors_names)
 
     print('\nproton migration')
@@ -755,8 +762,6 @@ def test__ts__substitution():
             automol.inchi.geometry(automol.smiles.inchi('[H]'))),
         automol.geom.zmatrix(
             automol.inchi.geometry(automol.smiles.inchi('OO'))),
-        # automol.geom.zmatrix(
-        #    automol.inchi.geometry(automol.smiles.inchi('[H]')))
     ]
     prd_zmas = [
         automol.geom.zmatrix(
@@ -764,30 +769,27 @@ def test__ts__substitution():
         automol.geom.zmatrix(
             automol.inchi.geometry(automol.smiles.inchi('O')))
     ]
-    
 
-    a = zmatrix.ts.substitution(
+    ts_zma, form_dist_name, tors_names = zmatrix.ts.substitution(
         rct_zmas, prd_zmas)
-    print(zmatrix.string(a[0]))
-    # print(dist_name)
-    # print(dist_name2)
-    # print(tors_names)
-    print(automol.geom.string(automol.zmatrix.geometry(a[0])))
+    print(automol.geom.string(automol.zmatrix.geometry(ts_zma)))
+    print(form_dist_name)
+    print(tors_names)
 
 
 if __name__ == '__main__':
-    # test__from_data()
-    # test__string()
-    # test__set_keys()
-    # test__join()
-    # test__ts__hydrogen_abstraction()
-    # test__is_standard_form()
-    # test__join()
-    # test__from_string()
-    # test__ts__addition()
+    test__from_data()
+    test__string()
+    test__set_keys()
+    test__join()
     test__ts__hydrogen_abstraction()
-    # test__ts__hydrogen_migration()
-    # test__ts__elimination()
-    # test__ts__substitution()
-    # test__bond_idxs()
-    # test__get_babs1()
+    test__is_standard_form()
+    test__join()
+    test__from_string()
+    test__ts__addition()
+    test__ts__hydrogen_abstraction()
+    test__ts__hydrogen_migration()
+    test__ts__elimination()
+    test__ts__substitution()
+    test__bond_idxs()
+    test__get_babs1()

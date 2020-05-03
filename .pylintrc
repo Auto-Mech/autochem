@@ -9,6 +9,8 @@ disable=
     too-many-arguments,
     too-many-statements,
     too-many-locals,
+    too-many-branches,
+    too-many-nested-blocks,
     assignment-from-no-return,
     duplicate-code,
     cyclic-import,

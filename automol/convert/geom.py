@@ -74,6 +74,7 @@ def weakly_connected_graph(geo, remove_stereo=False):
     """
     gra = _connectivity_graph(
         geo, rqq_bond_max=5.0, rqh_bond_max=5.0, rhh_bond_max=2.3)
+    _ = remove_stereo
     # if not remove_stereo:
     #    xyzs = automol.geom.coordinates(geo)
     #    atm_xyz_dct = dict(enumerate(xyzs))
