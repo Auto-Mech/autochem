@@ -50,6 +50,7 @@ from automol.zmatrix._zmatrix import torsional_scan_linspaces
 
 # submodules
 from automol.zmatrix import ts
+from automol.zmatrix._util import shifted_standard_zmas_graphs
 
 # constructors
 import automol.create.zmatrix
@@ -163,6 +164,7 @@ __all__ = [
 
     # submodules
     'ts',
+    'shifted_standard_zmas_graphs',
 
     # conversions,
     'geometry',
