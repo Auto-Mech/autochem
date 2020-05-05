@@ -1,7 +1,7 @@
 # cmd: conda build . -c auto-mech -c rdkit -c openbabel -c conda-forge
 package:
     name: automol
-    version: "0.2.0"
+    version: "0.3.0"
 
 source:
     path: .
