@@ -1,6 +1,7 @@
 name: automol-env
 
 channels:
+    - kevinmooreiii
     - auto-mech
     - rdkit
     - openbabel
@@ -19,5 +20,5 @@ dependencies:
     - openbabel::openbabel
     - conda-forge::qcelemental
     - conda-forge::nglview
-    - auto-mech::autoparse
+    - kevinmooreiii::autoparse
     - auto-mech::x2z
