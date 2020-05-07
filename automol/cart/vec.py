@@ -22,7 +22,6 @@ def unit_direction(xyz1, xyz2):
     return uxyz12
 
 
-
 def unit_perpendicular(xyz1, xyz2, orig_xyz=(0., 0., 0.), allow_parallel=True):
     """ calculate a unit perpendicular on `xyz1` and `xyz2`
     """
@@ -51,49 +50,17 @@ def unit_bisector(xyz1, xyz2, orig_xyz):
     return xyz
 
 
-def from_internals(dist=0., xyz1=(0., 0., 0.),
-                   ang=numpy.pi, xyz2=(0., 0., 1.),
-                   dih=0., xyz3=None):
+def from_internals(dist=0., xyz1=(0., 0., 0.), ang=0., xyz2=(0., 0., 1.),
+                   dih=0., xyz3=(0., 1., 0.)):
     """ cartesian position from internal coordinates
     """
-    ang = numpy.mod(ang, 2*numpy.pi)
-    dih = numpy.mod(ang, 2*numpy.pi)
-    if xyz3 is None:
-        xyz3 = _independent_axis(xyz1, xyz2)
-
-    # when there's a linear chain involved, just pick an independent axis for
-    # xyz3 and don't worry about it
-    det = numpy.linalg.det([xyz1, xyz2, xyz3])
-    if numpy.allclose(det, 0):
-        xyz3 = _independent_axis(xyz1, xyz2)
-
     local_xyz = _local_position(dist=dist, ang=ang, dih=dih)
     local_basis = _local_axes(xyz1=xyz1, xyz2=xyz2, xyz3=xyz3)
     xyz = tuple(xyz1 + numpy.dot(local_xyz, local_basis))
-
-    assert numpy.allclose(dist, distance(xyz, xyz1))
-    assert numpy.allclose(ang, central_angle(xyz, xyz1, xyz2))
-    if not (numpy.allclose(ang, 0) or numpy.allclose(ang, numpy.pi) or
-            numpy.allclose(ang, 2*numpy.pi)):
-        assert numpy.allclose(dih, dihedral_angle(xyz, xyz1, xyz2, xyz3))
     return xyz
 
 
-def _independent_axis(xyz1, xyz2):
-    _xyz1 = numpy.add(xyz1, xyz2)
-    _xyz2 = numpy.subtract(xyz2, xyz1)
-
-    xyz3 = None
-    for xyz3 in numpy.eye(3):
-        xnorm1 = numpy.linalg.norm(numpy.cross(_xyz1, xyz3))
-        xnorm2 = numpy.linalg.norm(numpy.cross(_xyz2, xyz3))
-        if xnorm1 > 1e-7 and xnorm2 > 1e-7:
-            break
-
-    return tuple(xyz3)
-
-
-def _local_position(dist=0., ang=numpy.pi/2, dih=0.):
+def _local_position(dist=0., ang=0., dih=0.):
     """ position by internal coordinates in the local axis frame
     """
     x_comp = dist * numpy.sin(ang) * numpy.sin(dih)

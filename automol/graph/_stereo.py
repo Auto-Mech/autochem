@@ -502,10 +502,12 @@ def _connected_graph_atom_coordinates(sgr):
     atm_keys = _atom_keys(sgr)
     rng_atm_keys_lst = _rings_sorted_atom_keys(sgr)
 
+    # one atom
     if len(atm_keys) == 1:
         atm1_key, = atm_keys
         atm_xyz_dct = {}
         atm_xyz_dct[atm1_key] = (0., 0., 0.)
+    # two atoms
     elif len(atm_keys) == 2:
         atm1_key, atm2_key = atm_keys
 
@@ -516,6 +518,7 @@ def _connected_graph_atom_coordinates(sgr):
         atm_xyz_dct = {}
         atm_xyz_dct[atm1_key] = tuple(atm1_xyz)
         atm_xyz_dct[atm2_key] = tuple(atm2_xyz)
+    # three or more atoms, no rings
     elif not rng_atm_keys_lst:
         atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
 
@@ -552,6 +555,7 @@ def _connected_graph_atom_coordinates(sgr):
         # we don't actually need to remove it from sgr, but fwiw
         sgr = _remove_atoms(sgr, {atm1_key})
         atm_xyz_dct.pop(atm1_key)
+    # one ring
     elif len(rng_atm_keys_lst) == 1:
         # for now, we'll assume only one ring
         rng_atm_keys, = rng_atm_keys_lst
