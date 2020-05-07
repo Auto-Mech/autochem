@@ -23,11 +23,17 @@ def atom_count(fml):
     return sum(fml.values())
 
 
+def element_count(fml, sym):
+    """ the number of a given element in this molecular formula
+    """
+    assert _is_standard(fml)
+    return fml[sym] if sym in fml else 0
+
+
 def hydrogen_count(fml):
     """ the number of hydrogens in this molecular formula
     """
-    assert _is_standard(fml)
-    return fml['H']
+    return element_count(fml, 'H')
 
 
 def add_element(fml, sym, num=1):
@@ -48,10 +54,7 @@ def add_element(fml, sym, num=1):
 def add_hydrogen(fml, num=1):
     """ add hydrogen to this molecular formula
     """
-    fml_hadd = add_element(fml, 'H', num)
-    fml_hadd = dict(collections.OrderedDict(sorted(fml_hadd.items())))
-
-    return fml_hadd
+    return add_element(fml, 'H', num)
 
 
 def join(fml1, fml2):
@@ -64,10 +67,26 @@ def join(fml1, fml2):
 
 
 def string(fml):
-    """ convert formula dictionary to formula string
+    """ convert formula dictionary to formula string in the Hill convention
+
+    (should come out identical to an InChI formula string)
     """
-    fml = collections.OrderedDict(sorted(fml.items()))
-    fml_str = ''.join(map(str, itertools.chain.from_iterable(fml.items())))
+    ncar = element_count(fml, 'C')
+    nhyd = element_count(fml, 'H')
+
+    fml.pop('C')
+    fml.pop('H')
+
+    fml_lst = list(sorted(fml.items()))
+    if nhyd:
+        fml_lst.insert(0, ('H', nhyd))
+
+    if ncar:
+        fml_lst.insert(0, ('C', ncar))
+
+    fml_str = ''.join(map(str,
+        itertools.filterfalse(lambda x: x==1, itertools.chain(*fml_lst))))
+
     return fml_str
 
 

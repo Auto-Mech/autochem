@@ -64,6 +64,8 @@ def test__zmatrix_from_geometry():
     vma = automol.zmatrix.var_(ref_zma)
     geo = automol.zmatrix.geometry(ref_zma)
     zma = vmatrix.zmatrix_from_geometry(vma, geo)
+    print(automol.zmatrix.string(ref_zma))
+    print(automol.zmatrix.string(zma))
     assert automol.zmatrix.almost_equal(zma, ref_zma)
 
 
