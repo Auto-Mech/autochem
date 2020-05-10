@@ -18,8 +18,8 @@ requirements:
         - future
         - flake8
         - pylint
+        - kevinmooreiii::autoparse
+        - auto-mech::x2z
         - rdkit::rdkit
         - openbabel::openbabel
         - conda-forge::qcelemental
-        - kevinmooreiii::autoparse
-        - auto-mech::x2z
