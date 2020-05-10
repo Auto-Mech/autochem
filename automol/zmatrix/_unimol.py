@@ -81,6 +81,10 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     h_idx = idx
                 else:
                     a1_idx = idx
+            # brk_dist_coo_key = tuple(reversed(sorted(brk_bnd_key)))
+            # for idx in brk_dist_coo_key:
+            #     if symbols[idx] != 'H':
+            #         a2_idx = idx
 
             # determine if the zmatrix needs to be rebuilt by x2z
             # determines if the hydrogen atom is used to define other atoms
@@ -130,6 +134,15 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                         a2_idx = idx
                         a3_idx = new_idx
                         break
+    
+    # a3_idx = chains_dct[a2_idx][1]
+    # if a3_idx == h_idx or a3_idx == a1_idx::
+    #     a2_neighbors = _atom_neighbor_keys(xgr1)[a1_idx]
+    #     for idx in a2_neighbors:
+    #         if idx not in (h_idx, a1_idx):
+    #             a3_idx = idx
+    
+
     # determine the new coordinates
     rct_geo = automol.zmatrix.geometry(rct_zma)
     distance = automol.geom.distance(

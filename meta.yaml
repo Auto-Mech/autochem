@@ -1,7 +1,7 @@
-# cmd: conda build . -c kevinmooreiii -c rdkit -c openbabel -c conda-forge
+# cmd: conda build . -c kevinmooreiii -c auto-mech -c rdkit -c openbabel -c conda-forge
 package:
     name: automol
-    version: "0.1.0"
+    version: "0.4.0"
 
 source:
     path: .
@@ -21,6 +21,6 @@ requirements:
         - rdkit::rdkit
         - openbabel::openbabel
         - conda-forge::qcelemental
-        - conda-forge::nglview
+        # - conda-forge::nglview
         - kevinmooreiii::autoparse
-        - kevinmooreiii::x2z
+        - auto-mech::x2z
