@@ -5,8 +5,6 @@ import itertools
 import functools
 import more_itertools as mit
 import numpy
-import nglview
-import qcelemental as qcel
 from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
@@ -187,15 +185,6 @@ def xyz_trajectory_string(geo_lst, comments=None):
     xyz_traj_str = aw.geom.write_xyz_trajectory(syms, xyzs_lst,
                                                 comments=comments)
     return xyz_traj_str
-
-
-def view(geo):
-    """ view the geometry using nglview
-    """
-    xyz_str = xyz_string(geo)
-    qcm = qcel.models.Molecule.from_data(xyz_str)
-    ngv = nglview.show_qcelemental(qcm)
-    return ngv
 
 
 # representations

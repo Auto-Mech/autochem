@@ -160,7 +160,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 if idx not in (h_idx, a1_idx):
                     a3_idx = idx
 
-    # print('indices in H migration:', h_idx, a1_idx, a2_idx, a3_idx)
     # determine the new coordinates
     rct_geo = automol.zmatrix.geometry(rct_zma)
     distance = automol.geom.distance(

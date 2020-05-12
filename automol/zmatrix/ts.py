@@ -2,15 +2,15 @@
 Import all the ts builder functions
 """
 
-from automol.zmatrix._unimol import min_hyd_mig_dist
-from automol.zmatrix._unimol import hydrogen_migration
-from automol.zmatrix._unimol import min_unimolecular_elimination_dist
-from automol.zmatrix._unimol import concerted_unimolecular_elimination
-from automol.zmatrix._unimol import beta_scission
-from automol.zmatrix._bimol import insertion
-from automol.zmatrix._bimol import substitution
-from automol.zmatrix._bimol import addition
-from automol.zmatrix._bimol import hydrogen_abstraction
+from automol.zmatrix._unimol_ts import min_hyd_mig_dist
+from automol.zmatrix._unimol_ts import hydrogen_migration
+from automol.zmatrix._unimol_ts import min_unimolecular_elimination_dist
+from automol.zmatrix._unimol_ts import concerted_unimolecular_elimination
+from automol.zmatrix._unimol_ts import beta_scission
+from automol.zmatrix._bimol_ts import insertion
+from automol.zmatrix._bimol_ts import substitution
+from automol.zmatrix._bimol_ts import addition
+from automol.zmatrix._bimol_ts import hydrogen_abstraction
 
 
 __all__ = [
