@@ -1,7 +1,6 @@
 """ molecular formula
 """
 import itertools
-import collections
 from qcelemental import periodictable as pt
 
 
@@ -84,8 +83,9 @@ def string(fml):
     if ncar:
         fml_lst.insert(0, ('C', ncar))
 
-    fml_str = ''.join(map(str,
-        itertools.filterfalse(lambda x: x==1, itertools.chain(*fml_lst))))
+    fml_str = ''.join(map(
+        str,
+        itertools.filterfalse(lambda x: x == 1, itertools.chain(*fml_lst))))
 
     return fml_str
 
