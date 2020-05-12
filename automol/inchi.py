@@ -317,8 +317,8 @@ def inchi_key(ich):
     return automol.convert.inchi.inchi_key(ich)
 
 
-def formula(ich):
-    """ inchi => formula
+def formula_dct(ich):
+    """ inchi => formula_dct
     """
     return automol.convert.inchi.formula(ich)
 
