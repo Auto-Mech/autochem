@@ -1,6 +1,7 @@
 """ molecular formula
 """
 import itertools
+import collections
 from qcelemental import periodictable as pt
 
 
@@ -86,6 +87,16 @@ def string(fml):
     fml_str = ''.join(map(
         str,
         itertools.filterfalse(lambda x: x == 1, itertools.chain(*fml_lst))))
+
+    return fml_str
+
+
+def string2(fml):
+    """ convert formula dictionary to formula string with ones when appropriate
+    """
+
+    fml = collections.OrderedDict(sorted(fml.items()))
+    fml_str = ''.join(map(str, itertools.chain.from_iterable(fml.items())))
 
     return fml_str
 

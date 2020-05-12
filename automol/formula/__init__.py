@@ -8,6 +8,7 @@ from automol.formula._formula import add_element
 from automol.formula._formula import add_hydrogen
 from automol.formula._formula import join
 from automol.formula._formula import string
+from automol.formula._formula import string2
 # submodules
 from automol.formula import reac
 
@@ -20,6 +21,7 @@ __all__ = [
     'add_hydrogen',
     'join',
     'string',
+    'string2',
     # submodules
     'reac',
 ]
