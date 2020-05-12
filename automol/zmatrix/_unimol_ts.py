@@ -82,6 +82,13 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 else:
                     a1_idx = idx
 
+            brk_dist_coo_key = tuple(reversed(sorted(brk_bnd_key)))
+            # print('coo key test:', dist_coo_key, brk_dist_coo_key)
+            for idx in brk_dist_coo_key[0]:
+                # print('idx test:', idx)
+                if symbols[idx] != 'H':
+                    a2_idx = idx
+
             # determine if the zmatrix needs to be rebuilt by x2z
             # determines if the hydrogen atom is used to define other atoms
             init_keys = automol.zmatrix.key_matrix(init_zma)
@@ -112,24 +119,46 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     gra = functools.reduce(automol.graph.union, gras)
     xgr1, = automol.graph.connected_components(gra)
     chains_dct = automol.graph.atom_longest_chains(xgr1)
-    a2_idx = chains_dct[a1_idx][1]
-    a3_idx = chains_dct[a1_idx][2]
-    if a3_idx == h_idx:
+
+    # a2_idx = chains_dct[a1_idx][1]
+    # a3_idx = chains_dct[a1_idx][2]
+    # if a3_idx == h_idx:
+        # a1_neighbors = _atom_neighbor_keys(xgr1)[a1_idx]
+        # for idx in a1_neighbors:
+            # if idx not in (h_idx, a2_idx):
+                # a3_idx = idx
+    # if a2_idx > h_idx or a3_idx > h_idx:
+        # atm_ngb_keys_dct = automol.graph.atom_neighbor_keys(gra)
+        # ngbs = atm_ngb_keys_dct[a1_idx]
+        # for idx in ngbs:
+            # if idx not in [h_idx]:
+                # new_ngbs = atm_ngb_keys_dct[idx]
+                # for new_idx in new_ngbs:
+                    # if new_idx not in [a1_idx, h_idx]:
+                        # a2_idx = idx
+                        # a3_idx = new_idx
+                        # break
+
+    # print('rct_zma:\n',automol.zmatrix.string(rct_zma))
+    idx_found = True
+    a3_idx = chains_dct[a1_idx][1]
+    if a3_idx in (h_idx, a2_idx):
+        idx_found = False
         a1_neighbors = _atom_neighbor_keys(xgr1)[a1_idx]
         for idx in a1_neighbors:
+            # print('idx test 1:', a3_idx, a1_neighbors)
             if idx not in (h_idx, a2_idx):
                 a3_idx = idx
-    if a2_idx > h_idx or a3_idx > h_idx:
-        atm_ngb_keys_dct = automol.graph.atom_neighbor_keys(gra)
-        ngbs = atm_ngb_keys_dct[a1_idx]
-        for idx in ngbs:
-            if idx not in [h_idx]:
-                new_ngbs = atm_ngb_keys_dct[idx]
-                for new_idx in new_ngbs:
-                    if new_idx not in [a1_idx, h_idx]:
-                        a2_idx = idx
-                        a3_idx = new_idx
-                        break
+                idx_found = True
+
+    if not idx_found:
+        a3_idx = chains_dct[a2_idx][1]
+        if a3_idx in (h_idx, a1_idx):
+            a2_neighbors = _atom_neighbor_keys(xgr1)[a2_idx]
+            # print('idx test 2:', a3_idx, a2_neighbors)
+            for idx in a2_neighbors:
+                if idx not in (h_idx, a1_idx):
+                    a3_idx = idx
 
     # determine the new coordinates
     rct_geo = automol.zmatrix.geometry(rct_zma)
@@ -184,18 +213,47 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     # remove the torsional coordinates that would break reaction coordinate
     gra = automol.zmatrix.graph(ts_zma, remove_stereo=True)
     coo_dct = automol.zmatrix.coordinates(ts_zma)
+    key_mat = automol.zmatrix.key_matrix(ts_zma)
+    h_keys = key_mat[len(key_mat)-1]
+    # print('h_keys test:', h_keys)
+    a1_key = h_keys[0]
+    a2_key = h_keys[1]
+    # print('a1_key:', a1_key, a2_key)
     tors_names = []
+    axis_dict = {}
+    bad_tors = []
+    # print('zmatrix in h-migration:\n', automol.zmatrix.string(ts_zma))
     for tors_name in pot_tors_names:
         axis = coo_dct[tors_name][0][1:3]
-        grp1 = [axis[1]] + (
-            list(automol.graph.branch_atom_keys(gra, axis[0], axis) -
-                 set(axis)))
-        grp2 = [axis[0]] + (
-            list(automol.graph.branch_atom_keys(gra, axis[1], axis) -
-                 set(axis)))
-        if not ((h_idx in grp1 and a1_idx in grp2) or
-                (h_idx in grp2 and a1_idx in grp1)):
-            tors_names.append(tors_name)
+        if axis not in axis_dict:
+            axis_dict[axis] = [tors_name]
+        else:
+            axis_dict[axis].append(tors_name)
+        if a1_key in axis and a2_key in axis:
+            bad_tors.append(tors_name)
+    for axis in axis_dict:
+        if len(axis_dict[axis]) > 1:
+            coord1 = coo_dct[axis_dict[axis][0]]
+            coord2 = coo_dct[axis_dict[axis][1]]
+            # print('coord1 test:', coord1)
+            # print('coord2 test:', coord2)
+            if h_idx in coord1[0]:
+                bad_tors.append(axis_dict[axis][0])
+            if h_idx in coord2[0]:
+                bad_tors.append(axis_dict[axis][1])
+    for tors_name in pot_tors_names:
+        if tors_name not in bad_tors:
+            axis = coo_dct[tors_name][0][1:3]
+            #print('axis test:', axis)
+            grp1 = [axis[1]] + (
+                list(automol.graph.branch_atom_keys(gra, axis[0], axis) -
+                     set(axis)))
+            grp2 = [axis[0]] + (
+                list(automol.graph.branch_atom_keys(gra, axis[1], axis) -
+                     set(axis)))
+            if not ((h_idx in grp1 and a1_idx in grp2) or
+                    (h_idx in grp2 and a1_idx in grp1)):
+                tors_names.append(tors_name)
 
     ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names
 

@@ -26,7 +26,7 @@ def test__geom__with_stereo():
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich
 
-        # assert automol.geom.formula(geo) == automol.inchi.formula(ich)
+        assert automol.geom.formula(geo) == automol.inchi.formula(ich)
 
 
 def test__zmatrix__with_stereo():
@@ -37,14 +37,14 @@ def test__zmatrix__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmatrix.geometry(zma)
         ich = automol.geom.inchi(geo)
-        print(ich, ref_ich)
         assert ich == ref_ich
 
-        # assert automol.zmatrix.formula(zma) == automol.inchi.formula(ich)
+        assert automol.zmatrix.formula(zma) == automol.inchi.formula(ich)
 
 
 def test__smiles__with_stereo():
@@ -55,9 +55,8 @@ def test__smiles__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        gra = automol.inchi.smiles(ref_ich)
-        ich = automol.smiles.inchi(gra)
-        print(ich, ref_ich)
+        smi = automol.inchi.smiles(ref_ich)
+        ich = automol.smiles.inchi(smi)
         assert ich == ref_ich
 
 
@@ -69,12 +68,12 @@ def test__graph__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         gra = automol.inchi.graph(ref_ich)
         ich = automol.graph.inchi(gra)
-        print(ich, ref_ich)
         assert ich == ref_ich
 
-        # assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
 def test__graph__no_stereo():
@@ -297,11 +296,12 @@ def test__geom__zmatrix_torsion_coordinate_names():
 if __name__ == '__main__':
     # test__geom__graph()
     # test__geom__inchi()
-    test__geom__with_stereo()
     # test__graph__no_stereo()
     # test__graph__with_stereo()
+    # test__geom__with_stereo()
     # test__zmatrix__with_stereo()
-    # test__graph__with_stereo()
+    # test__smiles__with_stereo()
+    test__graph__with_stereo()
     # test__graph__misc()
     # test__geom__with_stereo()
     # test__geom__zmatrix()

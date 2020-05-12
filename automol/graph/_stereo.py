@@ -342,9 +342,15 @@ def heuristic_geometry(xgr):
     """ heuristic geometry for this molecular graph
     """
     xgr = _explicit(xgr)
+    atm_xyz_dct = atom_stereo_coordinates(xgr)
+    return _geometry_from_stereo_coordinates(xgr, atm_xyz_dct)
+
+
+def _geometry_from_stereo_coordinates(xgr, atm_xyz_dct):
     atm_keys = sorted(_atom_keys(xgr))
-    syms = dict_.values_by_key(_atom_symbols(xgr), atm_keys)
-    xyzs = dict_.values_by_key(atom_stereo_coordinates(xgr), atm_keys)
+    atm_sym_dct = _atom_symbols(xgr)
+    syms = dict_.values_by_key(atm_sym_dct, atm_keys)
+    xyzs = dict_.values_by_key(atm_xyz_dct, atm_keys)
     geo = automol.create.geom.from_data(syms, xyzs)
     return geo
 
@@ -496,10 +502,12 @@ def _connected_graph_atom_coordinates(sgr):
     atm_keys = _atom_keys(sgr)
     rng_atm_keys_lst = _rings_sorted_atom_keys(sgr)
 
+    # one atom
     if len(atm_keys) == 1:
         atm1_key, = atm_keys
         atm_xyz_dct = {}
         atm_xyz_dct[atm1_key] = (0., 0., 0.)
+    # two atoms
     elif len(atm_keys) == 2:
         atm1_key, atm2_key = atm_keys
 
@@ -510,6 +518,7 @@ def _connected_graph_atom_coordinates(sgr):
         atm_xyz_dct = {}
         atm_xyz_dct[atm1_key] = tuple(atm1_xyz)
         atm_xyz_dct[atm2_key] = tuple(atm2_xyz)
+    # three or more atoms, no rings
     elif not rng_atm_keys_lst:
         atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
 
@@ -546,6 +555,7 @@ def _connected_graph_atom_coordinates(sgr):
         # we don't actually need to remove it from sgr, but fwiw
         sgr = _remove_atoms(sgr, {atm1_key})
         atm_xyz_dct.pop(atm1_key)
+    # one ring
     elif len(rng_atm_keys_lst) == 1:
         # for now, we'll assume only one ring
         rng_atm_keys, = rng_atm_keys_lst
@@ -649,13 +659,14 @@ def _bond_angle(sgr, atm1_key, atm2_key, atm3_key, check=True):
     atm2_hyb = atm_hyb_dct[atm2_key]
 
     if atm2_hyb == 3:
-        ang = 109.5 * qcc.conversion_factor('degree', 'radian')
+        ang_deg = 109.5
     elif atm2_hyb == 2:
-        ang = 120.0 * qcc.conversion_factor('degree', 'radian')
+        ang_deg = 120.0
     else:
         assert atm2_hyb == 1
-        ang = 180.0 * qcc.conversion_factor('degree', 'radian')
+        ang_deg = 180.0
 
+    ang = ang_deg * qcc.conversion_factor('degree', 'radian')
     return ang
 
 
@@ -720,3 +731,17 @@ def _longest_chain(xgr, atm_key):
     else:
         max_chain = tuple((atm_key,))
     return max_chain
+
+
+if __name__ == '__main__':
+    import automol.geom
+    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 1, None)},
+           {frozenset({4, 5}): (1, False), frozenset({0, 2}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({1, 3}): (1, None)})
+    GRA = _explicit(GRA)
+    ATM_XYZ_DCT = _connected_graph_atom_coordinates(GRA)
+    print('geometry:')
+    GEO = _geometry_from_stereo_coordinates(GRA, ATM_XYZ_DCT)
+    print(automol.geom.xyz_string(GEO))
