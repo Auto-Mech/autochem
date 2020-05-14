@@ -164,8 +164,12 @@ def add_atom_implicit_hydrogen_valences(xgr, inc_atm_imp_hyd_vlc_dct):
 def without_bond_orders(xgr):
     """ resonance graph with maximum spin (i.e. no pi bonds)
     """
-    bnd_keys = bond_keys(xgr)
-    bnd_ord_dct = dict_.by_key({}, bnd_keys, fill_val=1)
+    bnd_keys = list(bond_keys(xgr))
+    # don't set dummy bonds to one!
+    bnd_ord_dct = bond_orders(xgr)
+    bnd_vals = [1 if v != 0 else 0
+                for v in map(bnd_ord_dct.__getitem__, bnd_keys)]
+    bnd_ord_dct = dict(zip(bnd_keys, bnd_vals))
     return set_bond_orders(xgr, bnd_ord_dct)
 
 
@@ -180,7 +184,7 @@ def without_stereo_parities(xgr):
 
 
 def add_atoms(xgr, sym_dct, imp_hyd_vlc_dct=None, ste_par_dct=None):
-    """ add atoms to this molecular graph
+    """ add atoms to this molecular graph, setting their keys
     """
     atm_keys = atom_keys(xgr)
     atm_sym_dct = atom_symbols(xgr)
@@ -233,6 +237,34 @@ def add_bonds(xgr, keys, ord_dct=None, ste_par_dct=None):
 
     xgr = _create.from_atoms_and_bonds(atoms=atm_dct, bonds=bnd_dct)
     return xgr
+
+
+def add_bonded_atom(xgr, sym, bnd_atm_key, imp_hyd_vlc=None, atm_ste_par=None,
+                    bnd_ord=None, bnd_ste_par=None):
+    """ add a single atom with a bond to an atom already in the graph
+    """
+    atm_keys = atom_keys(xgr)
+
+    atm_key = max(atm_keys) + 1
+
+    sym_dct = {atm_key: sym}
+    imp_hyd_vlc_dct = ({atm_key: imp_hyd_vlc}
+                       if imp_hyd_vlc is not None else None)
+    atm_ste_par_dct = ({atm_key: atm_ste_par}
+                       if atm_ste_par is not None else None)
+
+    xgr = add_atoms(xgr, sym_dct, imp_hyd_vlc_dct=imp_hyd_vlc_dct,
+                    ste_par_dct=atm_ste_par_dct)
+
+    bnd_key = frozenset({atm_key, bnd_atm_key})
+    bnd_ord_dct = {bnd_key: bnd_ord} if bnd_ord is not None else None
+    bnd_ste_par_dct = ({bnd_key: bnd_ste_par}
+                       if bnd_ste_par is not None else None)
+
+    xgr = add_bonds(xgr, [bnd_key], ord_dct=bnd_ord_dct,
+                    ste_par_dct=bnd_ste_par_dct)
+
+    return xgr, atm_key
 
 
 def frozen(xgr):
@@ -379,45 +411,10 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
 
     # bnd_key is the set of atom indices for the bond of interest
     # atm_bnd_keys_dct is a dictionary of atoms that are connected to each atom
-#    atm_bnd_keys_dct = atom_bond_keys(xgr)
-#    print('atm_bnd_keys_dct:', atm_bnd_keys_dct)
-
-#    bnch_bnd_keys = {bnd_key}
-#    seen_bnd_keys = set()
-    # form set of keys of atoms connected to atm_key
-#    excl_bnd_keys = atm_bnd_keys_dct[atm_key]
-#    if bnd_key in excl_bnd_keys:
-#        excl_bnd_keys = excl_bnd_keys - {bnd_key}
-#    print('excl_bnd_keys:', excl_bnd_keys)
-#    new_bnd_keys = {bnd_key}
-#    bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
-#    print('bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
-#    if bnd_key not in bnd_ngb_keys_dct:
-#        for bnd in bnd_ngb_keys_dct:
-#            atmi, atmj = list(bnd)
-#            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
-#                bnds = list(bnd_ngb_keys_dct[bnd])
-#                bnds.append(ts_bnd)
-#                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
-#        bnd_ngb_keys_dct[bnd_key] = bond_neighbor_bonds(bnd_key, xgr)
-#    if saddle and bnd_key != ts_bnd:
-#        for bnd in bnd_ngb_keys_dct:
-#            atmi, atmj = list(bnd)
-#            if atmi in list(ts_bnd) or atmj in list(ts_bnd):
-#                bnds = list(bnd_ngb_keys_dct[bnd])
-#                bnds.append(ts_bnd)
-#                bnd_ngb_keys_dct[bnd] = frozenset(bnds)
-#        bnd_ngb_keys_dct[ts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
     bnd_key = frozenset(bnd_key)
     assert atm_key in bnd_key
     if not saddle:
         assert bnd_key in bond_keys(xgr)
-
-    #print('xgr test:', xgr)
-    #print('atm_key:', atm_key)
-    #print('bnd_key:', bnd_key)
-    #print('saddle:', saddle)
-    #print('ts_bnd:', ts_bnd)
 
     atm_bnd_keys_dct = atom_bond_keys(xgr)
 
@@ -427,15 +424,10 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
 
     new_bnd_keys = {bnd_key}
 
-    #print('new_bnd_keys:', new_bnd_keys)
     bnd_ngb_keys_dct = bond_neighbor_keys(xgr)
-    #print('bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
-    # print('new_bnd_ngb_keys before ts_bnd:', new_bnd_keys, bnd_ngb_keys_dct)
     if ts_bnd:
         fts_bnd = frozenset(ts_bnd)
         bnd_ngb_keys_dct[fts_bnd] = bond_neighbor_bonds(ts_bnd, xgr)
-    #print('updated bnd_ngb_keys_dct:', bnd_ngb_keys_dct)
-    # print('new_bnd_ngb_keys test:', new_bnd_keys, bnd_ngb_keys_dct)
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
             itertools.chain(
@@ -443,8 +435,6 @@ def branch_bond_keys(xgr, atm_key, bnd_key, saddle=False, ts_bnd=None):
         bnch_bnd_keys.update(new_bnd_ngb_keys - excl_bnd_keys)
         seen_bnd_keys.update(new_bnd_keys)
         new_bnd_keys = bnch_bnd_keys - seen_bnd_keys
-
-    #print('branch bond keys:', bnch_bnd_keys)
 
     return frozenset(bnch_bnd_keys)
 
@@ -511,6 +501,53 @@ def connected_components_atom_keys(xgr):
     nxg = _networkx.from_graph(xgr)
     cmp_xgr_atm_keys_lst = _networkx.connected_component_atom_keys(nxg)
     return cmp_xgr_atm_keys_lst
+
+
+def longest_chain(xgr):
+    """ longest chain in the graph
+    """
+    atm_keys = atom_keys(xgr)
+
+    max_chain = max((_longest_chain(xgr, atm_key) for atm_key in atm_keys),
+                    key=len)
+    return max_chain
+
+
+def atom_longest_chains(xgr):
+    """ longest chains, by atom
+    """
+    atm_keys = atom_keys(xgr)
+
+    long_chain_dct = {atm_key: _longest_chain(xgr, atm_key)
+                      for atm_key in atm_keys}
+    return long_chain_dct
+
+
+def _longest_chain(xgr, atm_key):
+    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
+    atm_ngb_keys = atm_ngb_keys_dct[atm_key]
+
+    chains_lst = []
+    if atm_ngb_keys:
+        next_chains_lst = [
+            [atm_key, atm_ngb_key] for atm_ngb_key in atm_ngb_keys]
+
+        while True:
+            chains_lst = next_chains_lst
+            next_chains_lst = []
+            for chain in chains_lst:
+                atm_ngb_keys = atm_ngb_keys_dct[chain[-1]]
+                next_atm_keys = sorted(atm_ngb_keys - set(chain))
+                for next_atm_key in next_atm_keys:
+                    next_chains_lst.append(chain + [next_atm_key])
+
+            if not next_chains_lst:
+                break
+
+        max_chain = tuple(chains_lst[0])
+    else:
+        max_chain = tuple((atm_key,))
+    return max_chain
 
 
 def union(xgr1, xgr2):
@@ -843,8 +880,8 @@ def bond_symmetry_numbers(xgr, frm_bnd_key=None, brk_bnd_key=None):
 
     the (approximate) symmetry number of the torsional potential for this bond,
     based on the hydrogen counts for each atom
-    It is reduced to 1 if one of the H atoms in the torsional bond is a neighbor to the
-    special bonding atom (the atom that is being transferred)
+    It is reduced to 1 if one of the H atoms in the torsional bond is a
+    neighbor to the special bonding atom (the atom that is being transferred)
     """
     imp_xgr = implicit(xgr)
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(imp_xgr)

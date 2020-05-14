@@ -63,9 +63,7 @@ def graph(geo, remove_stereo=False):
     """
     gra = _connectivity_graph(geo)
     if not remove_stereo:
-        xyzs = automol.geom.coordinates(geo)
-        atm_xyz_dct = dict(enumerate(xyzs))
-        gra = automol.graph.set_stereo_from_atom_coordinates(gra, atm_xyz_dct)
+        gra = automol.graph.set_stereo_from_geometry(gra, geo)
     return gra
 
 
@@ -124,12 +122,12 @@ def inchi_with_sort(geo, remove_stereo=False):
     if ich is None:
         gra = _connectivity_graph(geo)
         if remove_stereo:
-            atm_xyz_dct = None
+            geo = None
+            geo_idx_dct = None
         else:
-            xyzs = automol.geom.coordinates(geo)
-            atm_xyz_dct = dict(enumerate(xyzs))
-        ich, nums = automol.convert.graph.inchi_with_sort_from_coordinates(
-            gra=gra, atm_xyz_dct=atm_xyz_dct)
+            geo_idx_dct = dict(enumerate(range(automol.geom.count(geo))))
+        ich, nums = automol.convert.graph.inchi_with_sort_from_geometry(
+            gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
     return ich, nums
 

@@ -45,6 +45,26 @@ def name_matrix(zma):
     return _v_.name_matrix(var_(zma))
 
 
+def values(zma, angstrom=False, degree=False):
+    """ coordinate values, by coordinate name
+    """
+    vma, val_dct = zma
+
+    # post-processing for unit convertions
+    dist_names = _v_.distance_names(vma)
+    ang_names = _v_.angle_names(vma)
+    orig_val_dct = val_dct
+
+    val_dct = {}
+    for name, val in orig_val_dct.items():
+        if angstrom and name in dist_names:
+            val *= qcc.conversion_factor('bohr', 'angstrom')
+        if degree and name in ang_names:
+            val *= qcc.conversion_factor('radian', 'degree')
+        val_dct[name] = val
+    return val_dct
+
+
 def value_matrix(zma):
     """ coordinate values, by z-matrix row and column
     """
@@ -94,6 +114,39 @@ def dihedral_angle_names(zma):
     return _v_.dihedral_angle_names(var_(zma))
 
 
+def new_distance_name(zma):
+    """ a distance coordinate name that hasn't been used
+
+    (if standard-form, returns the next standard-form name
+    """
+    names_ = names(zma)
+    dist_name_iter = iter(map('R{:1}'.format, itertools.count(1)))
+    dist_name = next(filter(lambda x: x not in names_, dist_name_iter))
+    return dist_name
+
+
+def new_central_angle_name(zma):
+    """ a central angle coordinate name that hasn't been used
+
+    (if standard-form, returns the next standard-form name
+    """
+    names_ = central_angle_names(zma)
+    cang_name_iter = iter(map('A{:1}'.format, itertools.count(2)))
+    cang_name = next(filter(lambda x: x not in names_, cang_name_iter))
+    return cang_name
+
+
+def new_dihedral_angle_name(zma):
+    """ a dihedral angle coordinate name that hasn't been used
+
+    (if standard-form, returns the next standard-form name
+    """
+    names_ = dihedral_angle_names(zma)
+    dih_name_iter = iter(map('D{:1}'.format, itertools.count(3)))
+    dih_name = next(filter(lambda x: x not in names_, dih_name_iter))
+    return dih_name
+
+
 def angle_names(zma):
     """ angle coordinate names (dihedral and central)
     """
@@ -104,26 +157,6 @@ def dummy_coordinate_names(zma):
     """ names of dummy atom coordinates
     """
     return _v_.dummy_coordinate_names(var_(zma))
-
-
-def values(zma, angstrom=False, degree=False):
-    """ coordinate values, by coordinate name
-    """
-    vma, val_dct = zma
-
-    # post-processing for unit convertions
-    dist_names = _v_.distance_names(vma)
-    ang_names = _v_.angle_names(vma)
-    orig_val_dct = val_dct
-
-    val_dct = {}
-    for name, val in orig_val_dct.items():
-        if angstrom and name in dist_names:
-            val *= qcc.conversion_factor('bohr', 'angstrom')
-        if degree and name in ang_names:
-            val *= qcc.conversion_factor('radian', 'degree')
-        val_dct[name] = val
-    return val_dct
 
 
 def bond_idxs(zma, key):
@@ -331,6 +364,25 @@ def standard_form(zma, shift=0):
 
 
 # operations
+def append(zma, sym, key_row, name_row, val_row):
+    """ append an atom to the end of a z-matrix
+    """
+    syms = list(symbols(zma))
+    key_mat = list(key_matrix(zma))
+    nam_mat = list(name_matrix(zma))
+    val_dct = values(zma)
+
+    syms.append(sym)
+    key_mat.append(key_row)
+    nam_mat.append(name_row)
+    val_dct.update(dict(zip(name_row, val_row)))
+
+    if None in val_dct:
+        val_dct.pop(None)
+
+    return automol.create.zmatrix.from_data(syms, key_mat, nam_mat, val_dct)
+
+
 def join(zma1, zma2, join_key_mat, join_name_mat, join_val_dct):
     """ join two z-matrices together
     """

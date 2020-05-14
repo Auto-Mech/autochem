@@ -24,6 +24,17 @@ def from_data(syms, xyzs, angstrom=False):
         symbols=syms, coordinates=xyzs, angstrom=angstrom)
 
 
+def from_subset(geo, idxs):
+    """ generate a new geometry from a subset of the atoms
+    """
+    syms = symbols(geo)
+    xyzs = coordinates(geo)
+
+    syms = list(map(syms.__getitem__, idxs))
+    xyzs = list(map(xyzs.__getitem__, idxs))
+    return from_data(syms, xyzs)
+
+
 # getters
 def symbols(geo):
     """ atomic symbols
@@ -98,12 +109,9 @@ def without_dummy_atoms(geo):
     """ return a copy of the geometry without dummy atoms
     """
     syms = symbols(geo)
-    xyzs = coordinates(geo)
 
     non_dummy_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
-    syms = list(map(syms.__getitem__, non_dummy_keys))
-    xyzs = list(map(xyzs.__getitem__, non_dummy_keys))
-    return from_data(syms, xyzs)
+    return from_subset(geo, non_dummy_keys)
 
 
 # operations
@@ -283,13 +291,26 @@ def translated(geo, xyz):
     return from_data(syms, xyzs)
 
 
-def rotated(geo, axis, angle):
-    """ axis-angle rotation of the geometry
+def inverted(geo):
+    """ inversion of the geometry
     """
     syms = symbols(geo)
+    xyzs = numpy.array(coordinates(geo))
+    xyzs *= -1.
+    xyzs = list(map(list, xyzs))
+    return from_data(syms, xyzs)
+
+
+def rotated(geo, axis, angle, orig_xyz=None, idxs=None):
+    """ axis-angle rotation of the geometry
+
+    if rotating a subset, specify the atoms indices with `idxs`
+    """
+    idxs = list(range(count(geo))) if idxs is None else idxs
+    syms = symbols(geo)
     xyzs = coordinates(geo)
-    rot_mat = cart.mat.rotation(axis, angle)
-    xyzs = numpy.dot(xyzs, numpy.transpose(rot_mat))
+    rot_ = cart.vec.rotate_(axis, angle, orig_xyz=orig_xyz)
+    xyzs = [rot_(xyz) if idx in idxs else xyz for idx, xyz in enumerate(xyzs)]
     return from_data(syms, xyzs)
 
 
@@ -500,6 +521,9 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
     """ geometric approach for calculating the xyz coordinates of atom A
         when the xyz coordinates of the A B and C are known and
         the position is defined w/r to A B C with internal coordinates
+
+    TODO: This already exists: cart.vec.from_internals does exactly the same
+    thing; find where this is used and replace it with that
     """
     # Set to numpy arrays
     xyz1 = numpy.array(xyz1)

@@ -23,6 +23,7 @@ from automol.graph._graph import without_bond_orders
 from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import add_atoms
 from automol.graph._graph import add_bonds
+from automol.graph._graph import add_bonded_atom
 
 # graph theory library
 # # atom properties
@@ -44,6 +45,8 @@ from automol.graph._graph import rings
 from automol.graph._graph import rings_bond_keys
 from automol.graph._graph import connected_components
 from automol.graph._graph import connected_components_atom_keys
+from automol.graph._graph import longest_chain
+from automol.graph._graph import atom_longest_chains
 from automol.graph._graph import union
 from automol.graph._graph import union_from_sequence
 from automol.graph._graph import subgraph
@@ -114,10 +117,11 @@ from automol.graph._stereo import stereogenic_bond_keys
 from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
-from automol.graph._stereo import set_stereo_from_atom_coordinates
-from automol.graph._stereo import heuristic_geometry
-from automol.graph._stereo import atom_stereo_coordinates
-from automol.graph._stereo import atom_longest_chains
+
+# graph <=> geometry library
+from automol.graph._geom import heuristic_geometry
+from automol.graph._geom import connected_heuristic_zmatrix
+from automol.graph._geom import set_stereo_from_geometry
 
 # submodules
 from automol.graph import trans
@@ -205,6 +209,7 @@ __all__ = [
     'without_stereo_parities',
     'add_atoms',
     'add_bonds',
+    'add_bonded_atom',
 
     # graph theory library
     # # atom properties
@@ -226,6 +231,8 @@ __all__ = [
     'rings_bond_keys',
     'connected_components',
     'connected_components_atom_keys',
+    'longest_chain',
+    'atom_longest_chains',
     'union',
     'union_from_sequence',
     'subgraph',
@@ -293,10 +300,11 @@ __all__ = [
     'stereomers',
     'substereomers',
     'stereo_sorted_atom_neighbor_keys',
-    'set_stereo_from_atom_coordinates',
+
+    # graph <=> geometry library
     'heuristic_geometry',
-    'atom_stereo_coordinates',
-    'atom_longest_chains',
+    'connected_heuristic_zmatrix',
+    'set_stereo_from_geometry',
 
     # conversions,
     'inchi',

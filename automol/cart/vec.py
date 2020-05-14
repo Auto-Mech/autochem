@@ -115,6 +115,15 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
     val = max(min(val, 1.), -1.)
     sign = 2 * (val < 0) - 1
 
+    # before plugging it into the arccos function, make sure we haven't
+    # slightly run out of bounds
+    if cos < -1.:
+        assert numpy.allclose(cos, -1.)
+        cos = -1.
+    elif cos > 1.:
+        assert numpy.allclose(cos, 1.)
+        cos = 1.
+
     dih = sign * numpy.arccos(cos)
     return dih
 
