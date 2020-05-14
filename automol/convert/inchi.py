@@ -166,6 +166,17 @@ def _connected_graph(ich, no_stereo=False):
             geo = geometry(ich)
             gra = automol.convert.geom.graph(geo)
 
+            # gra_ich = automol.convert.graph.inchi(gra)
+
+            # assert gra_ich == ich
+            # I don't think we should need this -- take it out
+            # # make sure the enantiomer matches up
+            # if gra_ich != ich:
+            #     # if this assert fails, something else is wrong!
+            #     assert automol.inchi.is_chiral(ich)
+            #     geo = automol.geom.inverted(geo)
+            #     gra = automol.convert.geom.graph(geo)
+
     gra = automol.graph.implicit(gra)
     return gra
 

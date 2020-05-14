@@ -428,8 +428,6 @@ def test__connected_components():
     gra1_natms = automol.formula.atom_count(graph.formula(C3H3_CGR))
     gra2 = graph.transform_keys(gra2, lambda x: x + gra1_natms)
 
-    gra1 = gra1
-    gra2 = gra2
     gra = graph.union(gra1, gra2)
     cmp_gras = graph.connected_components(gra)
     assert cmp_gras in [(gra1, gra2), (gra2, gra1)]
@@ -762,55 +760,55 @@ def test__stereomers():
     assert graph.stereomers(C8H13O_CGR) == C8H13O_SGRS
 
 
-def test__atom_stereo_coordinates():
-    """ test graph.atom_stereo_coordinates
+def test__heuristic_geometry():
+    """ test graph.heuristic_geometry
     """
     for sgr in C2H2CL2F2_SGRS:
         sgr = graph.explicit(sgr)
         cgr = graph.without_stereo_parities(sgr)
-        atm_xyz_dct = graph.atom_stereo_coordinates(sgr)
-        assert graph.set_stereo_from_atom_coordinates(cgr, atm_xyz_dct) == sgr
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
 
     for sgr in C3H5N3_SGRS:
         sgr = graph.explicit(sgr)
         cgr = graph.without_stereo_parities(sgr)
-        atm_xyz_dct = graph.atom_stereo_coordinates(sgr)
-        assert graph.set_stereo_from_atom_coordinates(cgr, atm_xyz_dct) == sgr
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
 
     for sgr in C3H3CL2F3_SGRS:
         sgr = graph.explicit(sgr)
         cgr = graph.without_stereo_parities(sgr)
-        atm_xyz_dct = graph.atom_stereo_coordinates(sgr)
-        assert graph.set_stereo_from_atom_coordinates(cgr, atm_xyz_dct) == sgr
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
 
     for sgr in C8H13O_SGRS:
         sgr = graph.explicit(sgr)
         cgr = graph.without_stereo_parities(sgr)
-        atm_xyz_dct = graph.atom_stereo_coordinates(sgr)
-        assert graph.set_stereo_from_atom_coordinates(cgr, atm_xyz_dct) == sgr
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
 
 
 if __name__ == '__main__':
-    test__from_data()
-    test__set_atom_implicit_hydrogen_valences()
-    test__without_bond_orders()
-    test__without_stereo_parities()
-    test__atom_explicit_hydrogen_valences()
-    test__atom_explicit_hydrogen_keys()
-    test__explicit()
-    test__backbone_keys()
-    test__explicit_hydrogen_keys()
-    test__stereomers()
-    test__atom_stereo_coordinates()
-    test__connected_components()
-    test__unsaturated_atom_keys()
-    test__resonance_dominant_radical_atom_keys()
-    test__remove_bonds()
-    test__resonance_dominant_atom_centered_cumulene_keys()
-    test__resonance_dominant_bond_centered_cumulene_keys()
-    test__stereogenic_bond_keys()
-    test__resonance_dominant_atom_hybridizations()
-    test__rotational_bond_keys()
-    test__electron_count()
-    test__atom_count()
-    test__heavy_atom_count()
+    # test__from_data()
+    # test__set_atom_implicit_hydrogen_valences()
+    # test__without_bond_orders()
+    # test__without_stereo_parities()
+    # test__atom_explicit_hydrogen_valences()
+    # test__atom_explicit_hydrogen_keys()
+    # test__explicit()
+    # test__backbone_keys()
+    # test__explicit_hydrogen_keys()
+    # test__stereomers()
+    test__heuristic_geometry()
+    # test__connected_components()
+    # test__unsaturated_atom_keys()
+    # test__resonance_dominant_radical_atom_keys()
+    # test__remove_bonds()
+    # test__resonance_dominant_atom_centered_cumulene_keys()
+    # test__resonance_dominant_bond_centered_cumulene_keys()
+    # test__stereogenic_bond_keys()
+    # test__resonance_dominant_atom_hybridizations()
+    # test__rotational_bond_keys()
+    # test__electron_count()
+    # test__atom_count()
+    # test__heavy_atom_count()

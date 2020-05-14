@@ -123,6 +123,14 @@ def is_complete(ich):
         has_stereo(ich) ^ has_stereo(recalculate(ich, force_stereo=True)))
 
 
+def is_chiral(ich):
+    """ is this inchi chiral?
+    """
+    ste_dct = stereo_sublayers(ich)
+    iso_dct = isotope_sublayers(ich)
+    return ste_dct['s'] == '1' or iso_dct['s'] == '1'
+
+
 # comparisons
 def equivalent(ich1, ich2):
     """ are these inchis equivalent? (only considers up to the isotope layer

@@ -146,6 +146,7 @@ def resonance_dominant_radical_atom_keys(rgr):
                              in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc)
     return atm_rad_keys
 
+
 def sing_res_dom_radical_atom_keys(rgr):
     """ resonance-dominant radical atom keys,for one resonance
     """

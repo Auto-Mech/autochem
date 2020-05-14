@@ -11,7 +11,7 @@ ICHS_NO_STEREO = numpy.loadtxt(
 ICHS_WITH_STEREO = numpy.loadtxt(
     os.path.join(DATA_PATH, 'heptane_inchis_with_stereo.txt'), dtype=str)
 
-NSAMP = 100
+NSAMP = 50
 
 
 def test__geom__with_stereo():
@@ -22,11 +22,51 @@ def test__geom__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         geo = automol.inchi.geometry(ref_ich)
         ich = automol.geom.inchi(geo)
+        print(ich)
+        print()
         assert ich == ref_ich
 
         assert automol.geom.formula(geo) == automol.inchi.formula(ich)
+
+
+def test__graph__with_stereo():
+    """ test graph conversions
+    """
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+
+    for ref_ich in ref_ichs:
+        print(ref_ich)
+        gra = automol.inchi.graph(ref_ich)
+        ich = automol.graph.inchi(gra)
+        print(ich)
+        print()
+        assert ich == ref_ich
+
+        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+
+
+def test__graph__no_stereo():
+    """ test graph conversions
+    """
+    ref_ichs = ICHS_NO_STEREO
+    if NSAMP is not None:
+        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+
+    for ref_ich in ref_ichs:
+        print(ref_ich)
+        gra = automol.inchi.graph(ref_ich)
+        gra = automol.graph.without_stereo_parities(gra)
+        ich = automol.graph.inchi(gra)
+        print(ich)
+        print()
+        assert ich == ref_ich
+
+        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
 def test__zmatrix__with_stereo():
@@ -37,7 +77,6 @@ def test__zmatrix__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmatrix.geometry(zma)
@@ -58,39 +97,6 @@ def test__smiles__with_stereo():
         smi = automol.inchi.smiles(ref_ich)
         ich = automol.smiles.inchi(smi)
         assert ich == ref_ich
-
-
-def test__graph__with_stereo():
-    """ test graph conversions
-    """
-    ref_ichs = ICHS_WITH_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    for ref_ich in ref_ichs:
-        print(ref_ich)
-        gra = automol.inchi.graph(ref_ich)
-        ich = automol.graph.inchi(gra)
-        assert ich == ref_ich
-
-        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
-
-
-def test__graph__no_stereo():
-    """ test graph conversions
-    """
-    ref_ichs = ICHS_NO_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    for ref_ich in ref_ichs:
-        gra = automol.inchi.graph(ref_ich)
-        gra = automol.graph.without_stereo_parities(gra)
-        ich = automol.graph.inchi(gra)
-        print(ich, ref_ich)
-        assert ich == ref_ich
-
-        # assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
 def test__graph__misc():
@@ -298,11 +304,11 @@ if __name__ == '__main__':
     # test__geom__inchi()
     # test__graph__no_stereo()
     # test__graph__with_stereo()
-    # test__geom__with_stereo()
     # test__zmatrix__with_stereo()
     # test__smiles__with_stereo()
-    test__graph__with_stereo()
-    # test__graph__misc()
+    # test__geom__with_stereo()
+    # test__graph__with_stereo()
+    test__graph__misc()
     # test__geom__with_stereo()
     # test__geom__zmatrix()
     # test__geom__zmatrix_torsion_coordinate_names()

@@ -20,13 +20,13 @@ def inchi(gra):
 
     if ich is None:
         if not automol.graph.has_stereo(gra):
-            ich, _ = inchi_with_sort_from_coordinates(gra, atm_xyz_dct=None)
+            ich, _ = inchi_with_sort_from_geometry(gra)
             ich = automol.inchi.standard_form(ich, remove_stereo=True)
         else:
             gra = automol.graph.explicit(gra)
-            atm_xyz_dct = automol.graph.atom_stereo_coordinates(gra)
-            ich, _ = inchi_with_sort_from_coordinates(
-                gra, atm_xyz_dct=atm_xyz_dct)
+            geo, geo_idx_dct = automol.graph.heuristic_geometry(gra)
+            ich, _ = inchi_with_sort_from_geometry(
+                gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
     return ich
 
@@ -37,14 +37,14 @@ def _compare(gra1, gra2):
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
-def inchi_with_sort_from_coordinates(gra, atm_xyz_dct=None):
+def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     """ connectivity graph => inchi conversion
 
     (if coordinates are passed in, they are used to determine stereo)
     """
     gra = automol.graph.without_dummy_atoms(gra)
     gra = automol.graph.dominant_resonance(gra)
-    atm_keys = list(automol.graph.atom_keys(gra))
+    atm_keys = sorted(automol.graph.atom_keys(gra))
     bnd_keys = list(automol.graph.bond_keys(gra))
     atm_syms = dict_.values_by_key(automol.graph.atom_symbols(gra), atm_keys)
     atm_bnd_vlcs = dict_.values_by_key(
@@ -52,8 +52,14 @@ def inchi_with_sort_from_coordinates(gra, atm_xyz_dct=None):
     atm_rad_vlcs = dict_.values_by_key(
         automol.graph.atom_unsaturated_valences(gra), atm_keys)
     bnd_ords = dict_.values_by_key(automol.graph.bond_orders(gra), bnd_keys)
-    atm_xyzs = (None if atm_xyz_dct is None else
-                dict_.values_by_key(atm_xyz_dct, atm_keys))
+
+    if geo is not None:
+        assert geo_idx_dct is not None
+        atm_xyzs = automol.geom.coordinates(geo)
+        atm_xyzs = [atm_xyzs[geo_idx_dct[atm_key]] for atm_key in atm_keys]
+    else:
+        atm_xyzs = None
+
     mlf, key_map_inv = _molfile.from_data(
         atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs, bnd_ords,
         atm_xyzs=atm_xyzs)
@@ -76,11 +82,7 @@ def geometry(gra):
     """ graph => geometry
     """
     gra = automol.graph.explicit(gra)
-    atm_keys = sorted(automol.graph.atom_keys(gra))
-    atm_syms = dict_.values_by_key(automol.graph.atom_symbols(gra), atm_keys)
-    atm_xyzs = dict_.values_by_key(
-        automol.graph.atom_stereo_coordinates(gra), atm_keys)
-    geo = automol.create.geom.from_data(atm_syms, atm_xyzs)
+    geo, _ = automol.graph.heuristic_geometry(gra)
     return geo
 
 

@@ -17,6 +17,9 @@ from automol.zmatrix._zmatrix import names
 from automol.zmatrix._zmatrix import distance_names
 from automol.zmatrix._zmatrix import central_angle_names
 from automol.zmatrix._zmatrix import dihedral_angle_names
+from automol.zmatrix._zmatrix import new_distance_name
+from automol.zmatrix._zmatrix import new_central_angle_name
+from automol.zmatrix._zmatrix import new_dihedral_angle_name
 from automol.zmatrix._zmatrix import angle_names
 from automol.zmatrix._zmatrix import dummy_coordinate_names
 from automol.zmatrix._zmatrix import values
@@ -32,6 +35,7 @@ from automol.zmatrix._zmatrix import shift_row_to_end
 from automol.zmatrix._zmatrix import standard_names
 from automol.zmatrix._zmatrix import standard_form
 # operations
+from automol.zmatrix._zmatrix import append
 from automol.zmatrix._zmatrix import join
 from automol.zmatrix._zmatrix import insert_dummy_atom
 # misc
@@ -91,8 +95,6 @@ def torsion_coordinate_names(zma):
     name_dct = standard_names(zma)
     inv_name_dct = dict(map(reversed, name_dct.items()))
     geo = automol.geom.without_dummy_atoms(geometry(zma))
-    # line below should always break if zma variable has a dummy atom
-    # assert var_(standard_form(zma)) == var_(automol.convert.geom.zmatrix(geo))
     tors_names = automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
     tors_names = tuple(map(inv_name_dct.__getitem__, tors_names))
     return tors_names
@@ -131,6 +133,9 @@ __all__ = [
     'distance_names',
     'central_angle_names',
     'dihedral_angle_names',
+    'new_distance_name',
+    'new_central_angle_name',
+    'new_dihedral_angle_name',
     'angle_names',
     'dummy_coordinate_names',
     'torsion_coordinate_names',
@@ -146,6 +151,7 @@ __all__ = [
     'standard_names',
     'standard_form',
     # operations
+    'append',
     'join',
     'insert_dummy_atom',
     # misc
