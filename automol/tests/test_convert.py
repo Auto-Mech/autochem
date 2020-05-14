@@ -11,7 +11,7 @@ ICHS_NO_STEREO = numpy.loadtxt(
 ICHS_WITH_STEREO = numpy.loadtxt(
     os.path.join(DATA_PATH, 'heptane_inchis_with_stereo.txt'), dtype=str)
 
-NSAMP = 100
+NSAMP = 50
 
 
 def test__geom__with_stereo():
