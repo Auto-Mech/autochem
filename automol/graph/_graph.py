@@ -550,14 +550,9 @@ def _longest_chain(xgr, atm_key):
     return max_chain
 
 
-def union(xgr1, xgr2, shift_keys=False):
+def union(xgr1, xgr2):
     """ a union of two graphs
     """
-    if shift_keys:
-        if atom_keys(xgr1) & atom_keys(xgr2):
-            offset = max(atom_keys(xgr1)) + 1
-            xgr2 = transform_keys(xgr2, offset.__add__)
-
     assert not atom_keys(xgr1) & atom_keys(xgr2)
     atm_dct = {}
     atm_dct.update(atoms(xgr1))
@@ -569,11 +564,10 @@ def union(xgr1, xgr2, shift_keys=False):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def union_from_sequence(xgrs, shift_keys=False):
+def union_from_sequence(xgrs):
     """ a union of all parts of a sequence of graphs
     """
-    _union = functools.partial(union, shift_keys=shift_keys)
-    return tuple(functools.reduce(_union, xgrs))
+    return tuple(functools.reduce(union, xgrs))
 
 
 def subgraph(xgr, atm_keys):

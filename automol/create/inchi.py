@@ -12,7 +12,7 @@ ISO_PFXS = ISO_NONSTE_PFXS + STE_PFXS
 
 def from_data(formula_sublayer, main_sublayer_dct=None,
               charge_sublayer_dct=None, stereo_sublayer_dct=None,
-              isotope_sublayer_dct=None, force_standard_indicator=False):
+              isotope_sublayer_dct=None):
     """ calculate an inchi string from layers
     """
     main_dct = dict_.empty_if_none(main_sublayer_dct)
@@ -34,11 +34,6 @@ def from_data(formula_sublayer, main_sublayer_dct=None,
         pfx + slyr for pfx, slyr
         in zip(ISO_PFXS, dict_.values_by_key(iso_dct, ISO_PFXS)) if slyr]
 
-    if force_standard_indicator:
-        pfx = 'InChI=1S'
-    else:
-        pfx = 'InChI=1'
-
-    ich = '/'.join([pfx, fml_slyr] + main_slyrs + char_slyrs +
+    ich = '/'.join(['InChI=1', fml_slyr] + main_slyrs + char_slyrs +
                    ste_slyrs + iso_slyrs)
     return ich

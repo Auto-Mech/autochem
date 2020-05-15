@@ -108,33 +108,34 @@ def _connectivity_graph(geo,
 def inchi(geo, remove_stereo=False):
     """ geometry => InChI
     """
-    gra = _connectivity_graph(geo)
-
-    gras = automol.graph.connected_components(gra)
-
-    if remove_stereo:
-        geos = [None] * len(gras)
-        geo_idx_dcts = [None] * len(gras)
-    else:
-        geos = []
-        geo_idx_dcts = []
-
-        for gra_ in gras:
-            atm_keys = sorted(automol.graph.atom_keys(gra_))
-            geo = automol.geom.from_subset(geo, atm_keys)
-            geo_idx_dct = {
-                atm_key: geo_idx for geo_idx, atm_key in enumerate(atm_keys)}
-
-            geos.append(geo)
-            geo_idx_dcts.append(geo_idx_dct)
-
-    ichs = [
-        automol.convert.graph.connected_inchi_from_geometry(
-            gra, geo=geo, geo_idx_dct=geo_idx_dct)
-        for gra, geo, geo_idx_dct in zip(gras, geos, geo_idx_dcts)]
-    ich = automol.inchi.join(ichs)
-    ich = automol.inchi.standard_form(ich)
+    ich, _ = inchi_with_sort(geo, remove_stereo=remove_stereo)
     return ich
+
+
+def inchi_with_sort(geo, remove_stereo=False):
+    """ geometry => InChI
+    """
+    ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
+        'geom', geo, comp=_compare)
+    nums = None
+
+    if ich is None:
+        gra = _connectivity_graph(geo)
+        if remove_stereo:
+            geo = None
+            geo_idx_dct = None
+        else:
+            geo_idx_dct = dict(enumerate(range(automol.geom.count(geo))))
+        ich, nums = automol.convert.graph.inchi_with_sort_from_geometry(
+            gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
+
+    return ich, nums
+
+
+def _compare(geo1, geo2):
+    gra1 = automol.graph.without_dummy_atoms(_connectivity_graph(geo1))
+    gra2 = automol.graph.without_dummy_atoms(_connectivity_graph(geo2))
+    return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
 # geometry => formula

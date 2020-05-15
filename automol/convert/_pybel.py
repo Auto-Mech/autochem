@@ -31,33 +31,3 @@ def to_inchi(pbm):
     """
     ich = pbm.write('inchi').strip()
     return ich
-
-
-# smiles
-def from_smiles(smi):
-    """ pybel molecule object from SMILES string
-    """
-    pbm = pybel.readstring('smiles', smi)
-    return pbm
-
-
-def to_smiles(pbm):
-    """ SMILES string from a pybel molecule object
-    """
-    smi = pbm.write('smiles').strip()
-    return smi
-
-
-# molfile
-def from_molfile(mlf):
-    """ pybel molecule object from Molfile string
-    """
-    pbm = pybel.readstring('mol', mlf)
-    return pbm
-
-
-def to_molfile(pbm):
-    """ Molfile string from a pybel molecule object
-    """
-    smi = pbm.write('mol').strip()
-    return smi
