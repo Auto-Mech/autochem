@@ -101,9 +101,9 @@ def from_data(atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs,
                         FMT.BOND_KEY: bond_block})
 
     # for recovering the original keys from those used in the molfile
-    key_map_inv = dict(map(reversed, key_map.items()))
+    idx_dct = dict(map(reversed, key_map.items()))
 
-    return mlf, key_map_inv
+    return mlf, idx_dct
 
 
 def _atom_block(atm_keys, key_map, atm_syms, atm_bnd_vlcs, atm_rad_vlcs,

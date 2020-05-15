@@ -53,7 +53,8 @@ def to_conformers(rdm, nconfs):
             geos.append(
                 automol.create.geom.from_data(syms, xyzs, angstrom=True))
         # Sort geometries using the energies
-        geos = [x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])]
+        geos = [x for _, x in
+                sorted(zip(energies, geos), key=lambda pair: pair[0])]
     return geos
 
 

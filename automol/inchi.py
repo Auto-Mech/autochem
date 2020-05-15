@@ -18,13 +18,14 @@ SLASH_OR_END = app.one_of_these([SLASH, app.STRING_END])
 
 # "constructor"
 def from_data(fml_slyr, main_dct=None, char_dct=None, ste_dct=None,
-              iso_dct=None):
+              iso_dct=None, force_standard_indicator=False):
     """ calculate an inchi string from layers
     """
     return automol.create.inchi.from_data(
         formula_sublayer=fml_slyr, main_sublayer_dct=main_dct,
         charge_sublayer_dct=char_dct, stereo_sublayer_dct=ste_dct,
-        isotope_sublayer_dct=iso_dct)
+        isotope_sublayer_dct=iso_dct,
+        force_standard_indicator=force_standard_indicator)
 
 
 # getters
@@ -72,9 +73,6 @@ def isotope_sublayers(ich):
 # setters
 def standard_form(ich, remove_stereo=False):
     """ return an inchi string in standard form
-
-    (eventually we should just designate standard-form as standard inchi
-    ordering for all but the hardcoded exceptions, which we can put at the end)
     """
     if remove_stereo:
         fml_slyr = formula_sublayer(ich)
@@ -95,6 +93,25 @@ def standard_form(ich, remove_stereo=False):
     return recalculate(ich)
 
 
+def without_bond_stereo(ich):
+    """ remove bond stereo from the inchi, if it has any
+    """
+    fml_slyr = formula_sublayer(ich)
+    main_dct = main_sublayers(ich)
+    char_dct = charge_sublayers(ich)
+    ste_dct = stereo_sublayers(ich)
+    iso_dct = isotope_sublayers(ich)
+    if 'b' in ste_dct:
+        ste_dct.pop('b')
+    if 'b' in iso_dct:
+        iso_dct.pop('b')
+
+    ich = from_data(fml_slyr, main_dct=main_dct, char_dct=char_dct,
+                    ste_dct=ste_dct, iso_dct=iso_dct,
+                    force_standard_indicator=True)
+    return ich
+
+
 def has_stereo(ich):
     """ does this inchi have stereo information?
     """
@@ -102,6 +119,13 @@ def has_stereo(ich):
     iso_dct = isotope_sublayers(ich)
     return bool(ste_dct or
                 any(pfx in iso_dct for pfx in automol.create.inchi.STE_PFXS))
+
+
+def has_isotope(ich):
+    """ does this inchi have isotope information
+    """
+    iso_dct = isotope_sublayers(ich)
+    return bool(iso_dct)
 
 
 def has_multiple_components(ich):
