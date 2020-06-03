@@ -505,31 +505,45 @@ def string(zma):
 
 
 # comparisons
-def almost_equal(zma1, zma2, rtol=2e-5, just_dist=False):
+def almost_equal(zma1, zma2, dist_rtol=2e-5, ang_atol=2e-3, just_dist=False):
     """ are these z-matrices numerically equal?
+
+    :param zma1: The first z-matrix
+    :param zma2: The second z-matrix
+    :param dist_rtol: Relative tolerance for the distances
+    :type dist_rtol: float
+    :param ang_atol: Absolute tolerance for the angles
+    :type ang_atol: float
+    :param just_dist: Only compare distances?
+    :type just_dist: bool
     """
     ret = False
     if var_(zma1) == var_(zma2):
+        # first compare the distances
         val_dct1 = values(zma1)
         val_dct2 = values(zma2)
         dist_names = distance_names(zma1)
         dist_vals1 = tuple(map(val_dct1.__getitem__, dist_names))
         dist_vals2 = tuple(map(val_dct2.__getitem__, dist_names))
-        if numpy.allclose(dist_vals1, dist_vals2, rtol=rtol):
+        if numpy.allclose(dist_vals1, dist_vals2, rtol=dist_rtol):
             if just_dist:
                 ret = True
             else:
+                # now compare the angles
+                # see https://gamedev.stackexchange.com/a/4472
                 ang_names = angle_names(zma1)
+
                 ang_vals1 = tuple(map(val_dct1.__getitem__, ang_names))
                 ang_vals2 = tuple(map(val_dct2.__getitem__, ang_names))
-                for shift in (0., numpy.pi/10.):
-                    ang_vals1 = numpy.mod(
-                        numpy.add(ang_vals1, shift), 2*numpy.pi)
-                    ang_vals2 = numpy.mod(
-                        numpy.add(ang_vals2, shift), 2*numpy.pi)
-                    if numpy.allclose(ang_vals1, ang_vals2, rtol=rtol):
-                        ret = True
-                        break
+
+                ang_vals1 = numpy.mod(ang_vals1, 2*numpy.pi)
+                ang_vals2 = numpy.mod(ang_vals2, 2*numpy.pi)
+
+                ang_diffs = numpy.abs(ang_vals1 - ang_vals2)
+                ang_diffs = numpy.pi - numpy.abs(ang_diffs - numpy.pi)
+
+                if numpy.allclose(ang_diffs, 0., atol=ang_atol):
+                    ret = True
     return ret
 
 
