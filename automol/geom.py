@@ -74,6 +74,14 @@ def heavy_count(geo):
     return cnt
 
 
+def dummy_atom_indices(geo):
+    """ indices of dummy atoms in this geometry
+    """
+    syms = symbols(geo)
+    dummy_idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+    return tuple(dummy_idxs)
+
+
 # validation
 def is_valid(geo):
     """ is this a valid geometry?
@@ -110,8 +118,8 @@ def without_dummy_atoms(geo):
     """
     syms = symbols(geo)
 
-    non_dummy_keys = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
-    return from_subset(geo, non_dummy_keys)
+    non_dummy_idxs = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
+    return from_subset(geo, non_dummy_idxs)
 
 
 # operations
@@ -273,6 +281,37 @@ def _argunique(items, comparison, seen_items=()):
 
 
 # transformations
+def insert(geo, sym, xyz, idx=None):
+    """ Insert an atom into this geometry
+    """
+    syms = list(symbols(geo))
+    xyzs = list(coordinates(geo))
+
+    idx = idx if idx is not None else len(syms)
+
+    syms.insert(idx, sym)
+    xyzs.insert(idx, xyz)
+    return from_data(syms, xyzs)
+
+
+def reorder(geo, idx_dct):
+    """ Reorder the atoms in this geometry
+
+    :param geo: The geometry
+    :param idx_dct: The new order of the atoms, by index
+    :type idx_dct: dict
+    """
+    syms = symbols(geo)
+    xyzs = coordinates(geo)
+
+    idxs = [idx for idx, _ in sorted(idx_dct.items(), key=lambda x: x[1])]
+    assert len(syms) == len(xyzs) == len(idxs)
+
+    syms = [syms[idx] for idx in idxs]
+    xyzs = [xyzs[idx] for idx in idxs]
+    return from_data(syms, xyzs)
+
+
 def displaced(geo, xyzs):
     """ displacement of the geometry
     """
@@ -447,33 +486,33 @@ def _swap_for_one(geo, hyds):
 
 
 # geometric properties
-def distance(geo, key1, key2):
+def distance(geo, idx1, idx2):
     """ measure the distance between atoms
     """
     xyzs = coordinates(geo)
-    xyz1 = xyzs[key1]
-    xyz2 = xyzs[key2]
+    xyz1 = xyzs[idx1]
+    xyz2 = xyzs[idx2]
     return cart.vec.distance(xyz1, xyz2)
 
 
-def central_angle(geo, key1, key2, key3):
+def central_angle(geo, idx1, idx2, idx3):
     """ measure the angle inscribed by three atoms
     """
     xyzs = coordinates(geo)
-    xyz1 = xyzs[key1]
-    xyz2 = xyzs[key2]
-    xyz3 = xyzs[key3]
+    xyz1 = xyzs[idx1]
+    xyz2 = xyzs[idx2]
+    xyz3 = xyzs[idx3]
     return cart.vec.central_angle(xyz1, xyz2, xyz3)
 
 
-def dihedral_angle(geo, key1, key2, key3, key4):
+def dihedral_angle(geo, idx1, idx2, idx3, idx4):
     """ measure the dihedral angle defined by four atoms
     """
     xyzs = coordinates(geo)
-    xyz1 = xyzs[key1]
-    xyz2 = xyzs[key2]
-    xyz3 = xyzs[key3]
-    xyz4 = xyzs[key4]
+    xyz1 = xyzs[idx1]
+    xyz2 = xyzs[idx2]
+    xyz3 = xyzs[idx3]
+    xyz4 = xyzs[idx4]
     return cart.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
 
 

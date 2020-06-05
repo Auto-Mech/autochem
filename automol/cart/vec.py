@@ -22,6 +22,13 @@ def unit_direction(xyz1, xyz2):
     return uxyz12
 
 
+def are_parallel(xyz1, xyz2, orig_xyz=(0., 0., 0.), tol=1e-7):
+    """ Are these vectors parallel to each other?
+    """
+    det = numpy.linalg.det([list(orig_xyz), list(xyz1), list(xyz2)])
+    return det > tol
+
+
 def unit_perpendicular(xyz1, xyz2, orig_xyz=(0., 0., 0.), allow_parallel=True):
     """ calculate a unit perpendicular on `xyz1` and `xyz2`
     """
@@ -125,6 +132,7 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
         cos = 1.
 
     dih = sign * numpy.arccos(cos)
+    dih = numpy.mod(dih, 2*numpy.pi)
     return dih
 
 

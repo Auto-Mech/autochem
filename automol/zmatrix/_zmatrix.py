@@ -3,14 +3,41 @@
 
 import itertools
 import numpy
+from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
 import autowrite as aw
 import automol.graph
+import automol.geom
 import automol.create.zmatrix
 import automol.convert.zmatrix
 import automol.convert.geom
 from automol import vmatrix as _v_
+from automol import cart
+
+
+# constructors
+def from_geometry(vma, geo):
+    """ determine z-matrix from v-matrix and geometry
+    """
+    assert _v_.symbols(vma) == automol.geom.symbols(geo)
+    val_dct = {}
+    coo_dct = _v_.coordinates(vma, multi=False)
+    dist_names = _v_.distance_names(vma)
+    cent_names = _v_.central_angle_names(vma)
+    dih_names = _v_.dihedral_angle_names(vma)
+    for name, coo in coo_dct.items():
+        if name in dist_names:
+            val_dct[name] = automol.geom.distance(geo, *coo)
+        elif name in cent_names:
+            val_dct[name] = automol.geom.central_angle(geo, *coo)
+        elif name in dih_names:
+            val_dct[name] = automol.geom.dihedral_angle(geo, *coo)
+
+    zma = automol.create.zmatrix.from_data(
+        symbols=_v_.symbols(vma), key_matrix=_v_.key_matrix(vma),
+        name_matrix=_v_.name_matrix(vma), values=val_dct)
+    return zma
 
 
 # getters
@@ -157,6 +184,83 @@ def dummy_coordinate_names(zma):
     """ names of dummy atom coordinates
     """
     return _v_.dummy_coordinate_names(var_(zma))
+
+
+def dummy_atom_indices(zma):
+    """ indices of dummy atoms in this z-matrix
+    """
+    syms = symbols(zma)
+    dummy_idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+    return tuple(dummy_idxs)
+
+
+def atom_specifiers(zma, without_dummies=False):
+    """ For each atom, this gives the indices of atoms specifying its position
+    """
+    syms = symbols(zma)
+    key_mat = key_matrix(zma)
+
+    def _specifiers(idx):
+        key_mat_row = key_mat[idx]
+        idxs = tuple(filter(lambda x: x is not None and syms, key_mat_row))
+        if without_dummies:
+            idxs = tuple(idx for idx in idxs if pt.to_Z(syms[idx]))
+        return idxs
+
+    idxs = range(count(zma))
+    atm_dep_dct = dict(zip(idxs, map(_specifiers, idxs)))
+    return atm_dep_dct
+
+
+def atom_dependents(zma, without_dummies=False):
+    """ For each atom, this gives the indices of atoms depending on its position
+    """
+    syms = symbols(zma)
+    key_mat = key_matrix(zma)
+
+    def _dependents(idx):
+        idxs = [idx_ for idx_, row in enumerate(key_mat) if idx in row]
+        if without_dummies:
+            idxs = tuple(idx for idx in idxs if pt.to_Z(syms[idx]))
+        return tuple(idxs)
+
+    idxs = range(count(zma))
+    atm_dep_dct = dict(zip(idxs, map(_dependents, idxs)))
+    return atm_dep_dct
+
+
+def dummy_atom_anchors(zma):
+    """ Three atoms specifying each dummy atom's position
+
+    Where possible, ensures that the atoms are non-collinear
+
+    (Could be generalized to other atoms, but I can't see a use case.)
+    """
+    geo = automol.convert.zmatrix.geometry(zma)
+    xyzs = automol.geom.coordinates(geo)
+
+    atm_spe_dct = atom_specifiers(zma)
+    atm_dep_dct = atom_dependents(zma, without_dummies=True)
+
+    dummy_idxs = dummy_atom_indices(zma)
+
+    atm_ach_dct = {}
+    for dummy_idx in dummy_idxs:
+        pool = atm_spe_dct[dummy_idx] + atm_dep_dct[dummy_idx]
+
+        # find a non-collinear atom for the third index
+        atm_achs = list(pool[:2])
+        for atm3_idx in pool[2:]:
+            atm1_xyz, atm2_xyz = map(xyzs.__getitem__, atm_achs)
+            atm3_xyz = xyzs[atm3_idx]
+            if not cart.vec.are_parallel(atm1_xyz, atm2_xyz,
+                                         orig_xyz=atm3_xyz):
+                atm_achs.append(atm3_idx)
+                break
+
+        atm_ach_dct[dummy_idx] = tuple(atm_achs)
+
+    return atm_ach_dct
 
 
 def bond_idxs(zma, key):
@@ -469,6 +573,65 @@ def insert_dummy_atom(zma, x_key, x_key_mat, x_name_mat, x_val_dct):
     val_dct.update(x_val_dct)
 
     return automol.create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
+
+
+def translate(zma1, zma2, frm_bnd_keys=(), brk_bnd_keys=()):
+    """ Translate the geometry of zma1 into the z-matrix format of zma2
+
+    Note: The two geometries must have the same connectivity!
+
+    We may need to put in extra functionality for forward/reverse transition
+    states
+    """
+
+    # Remove dummy atoms and reorder the atoms in geo1 to match geo2
+    geo1 = automol.convert.zmatrix.geometry(zma1)
+    geo2 = automol.convert.zmatrix.geometry(zma2)
+
+    geo1 = automol.geom.without_dummy_atoms(geo1)
+    geo2_no_dummies = automol.geom.without_dummy_atoms(geo2)
+
+    gra1 = automol.convert.geom.graph(geo1)
+    gra2 = automol.convert.geom.graph(geo2_no_dummies)
+
+    # If bonds are broken and formed, apply the transformation so that there is
+    # an isomorphism between gra1 and gra2
+    if frm_bnd_keys or brk_bnd_keys:
+        tra = automol.graph.trans.from_data(frm_bnd_keys, brk_bnd_keys)
+        gra1 = automol.graph.trans.apply(tra, gra1)
+
+    iso_dct = automol.graph.full_isomorphism(gra1, gra2)
+
+    assert iso_dct is not None
+
+    geo1 = automol.geom.reorder(geo1, iso_dct)
+
+    # Insert the dummy atoms according to their relative positions in geo2
+    atm_ach_dct2 = dummy_atom_anchors(zma2)
+
+    # First, insert the dummies without coordinates to fully line up the atom
+    # indices in geo1 and geo2
+    for dummy_idx in sorted(atm_ach_dct2):
+        geo1 = automol.geom.insert(geo1, 'X', [0., 0., 0.], idx=dummy_idx)
+
+    for dummy_idx, (idx1, idx2, idx3) in sorted(atm_ach_dct2.items()):
+        dist = automol.geom.distance(geo2, dummy_idx, idx1)
+        ang = automol.geom.central_angle(geo2, dummy_idx, idx1, idx2)
+        dih = automol.geom.dihedral_angle(geo2, dummy_idx, idx1, idx2, idx3)
+
+        xyzs = automol.geom.coordinates(geo1)
+        xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
+
+        dummy_xyz = cart.vec.from_internals(dist=dist, xyz1=xyz1,
+                                            ang=ang, xyz2=xyz2,
+                                            dih=dih, xyz3=xyz3)
+        geo1 = automol.geom.set_coordinates(geo1, {dummy_idx: dummy_xyz})
+
+    # At this point, the two geometries should be fully lined up and we can
+    # simply call the constructor
+    vma2 = var_(zma2)
+    zma = from_geometry(vma2, geo1)
+    return zma
 
 
 # misc
