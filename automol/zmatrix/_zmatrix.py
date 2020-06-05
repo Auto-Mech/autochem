@@ -575,13 +575,19 @@ def insert_dummy_atom(zma, x_key, x_key_mat, x_name_mat, x_val_dct):
     return automol.create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
 
 
-def translate(zma1, zma2, frm_bnd_keys=(), brk_bnd_keys=()):
-    """ Translate the geometry of zma1 into the z-matrix format of zma2
+def convert(zma1, zma2, frm_bnd_keys=(), brk_bnd_keys=()):
+    """ Convert the geometry of zma1 into the z-matrix form of zma2
 
-    Note: The two geometries must have the same connectivity!
-
-    We may need to put in extra functionality for forward/reverse transition
-    states
+    :param zma1: A z-matrix specifying the desired geometry
+    :param zma2: A z-matrix giving the desired z-matrix form. If no
+        formed/broken bond keys are provided, its connectivity graph must be
+        isomoprhic to the connectivity graph of `zma1`.
+    :param frm_bnd_keys: Bonds that must be formed in order to make `zma1`
+        isomorphic to `zma2`.
+    :type frm_bnd_keys: list, tuple, set
+    :param frm_bnd_keys: Bonds that must be broken in order to make `zma1`
+        isomorphic to `zma2`.
+    :type brk_bnd_keys: list, tuple, set
     """
 
     # Remove dummy atoms and reorder the atoms in geo1 to match geo2

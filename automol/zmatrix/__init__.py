@@ -40,7 +40,7 @@ from automol.zmatrix._zmatrix import standard_form
 from automol.zmatrix._zmatrix import append
 from automol.zmatrix._zmatrix import join
 from automol.zmatrix._zmatrix import insert_dummy_atom
-from automol.zmatrix._zmatrix import translate
+from automol.zmatrix._zmatrix import convert
 # misc
 from automol.zmatrix._zmatrix import is_standard_form
 # I/O
@@ -158,7 +158,7 @@ __all__ = [
     'append',
     'join',
     'insert_dummy_atom',
-    'translate',
+    'convert',
     # misc
     'is_standard_form',
     # I/O
