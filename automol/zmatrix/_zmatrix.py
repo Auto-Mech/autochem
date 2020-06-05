@@ -232,9 +232,15 @@ def atom_dependents(zma, without_dummies=False):
 def dummy_atom_anchors(zma):
     """ Three atoms specifying each dummy atom's position
 
-    Where possible, ensures that the atoms are non-collinear
+    If the dummy atom is below the third row of the z-matrix, the anchoring
+    atoms will be the three atoms used to specify its position in `zma`
+    (see :meth:`autofile.zmatrix.atom_specifiers`).
+    If the dummy atom is in the first three rows of the z-matrix, atoms from
+    the rest of `zma` will be included to arrive at a total of three.
+    Where possible, the third atom will be chosen to be non-collinear with the
+    first two.
 
-    (Could be generalized to other atoms, but I can't see a use case.)
+    (Could be generalized to non-dummy atoms, but I can't see a use case.)
     """
     geo = automol.convert.zmatrix.geometry(zma)
     xyzs = automol.geom.coordinates(geo)
@@ -578,10 +584,13 @@ def insert_dummy_atom(zma, x_key, x_key_mat, x_name_mat, x_val_dct):
 def convert(zma1, zma2, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Convert the geometry of zma1 into the z-matrix form of zma2
 
+    Each dummy atom is placed based on its position in `zma2`, relative to
+    three "anchoring atoms" (see :meth:`autofile.zmatrix.dummy_atom_anchors`).
+
     :param zma1: A z-matrix specifying the desired geometry
     :param zma2: A z-matrix giving the desired z-matrix form. If no
         formed/broken bond keys are provided, its connectivity graph must be
-        isomoprhic to the connectivity graph of `zma1`.
+        isomorphic to the connectivity graph of `zma1`.
     :param frm_bnd_keys: Bonds that must be formed in order to make `zma1`
         isomorphic to `zma2`.
     :type frm_bnd_keys: list, tuple, set
