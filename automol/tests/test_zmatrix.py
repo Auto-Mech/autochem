@@ -359,8 +359,8 @@ def test__join():
          'R7': 2.69082, 'A7': 1.89019, 'JD7': 0.0})
 
 
-def test__translate():
-    """ test zmatrix.translate
+def test__convert():
+    """ test zmatrix.convert
     """
     # C5 ring (not an actual molecule -- just a simple test case for weirder
     # dummy atom placements)
@@ -388,10 +388,10 @@ def test__translate():
              'R5': 2.38, 'A5': numpy.pi/2, 'D5': 3*2*numpy.pi/5.,
              'R6': 2.38, 'A6': numpy.pi/2, 'D6': 4*2*numpy.pi/5.})
 
-    zma1_ = zmatrix.translate(zmatrix.translate(zma1, zma2), zma1)
+    zma1_ = zmatrix.convert(zmatrix.convert(zma1, zma2), zma1)
     assert zmatrix.almost_equal(zma1, zma1_)
 
-    zma2_ = zmatrix.translate(zmatrix.translate(zma2, zma1), zma2)
+    zma2_ = zmatrix.convert(zmatrix.convert(zma2, zma1), zma2)
     assert zmatrix.almost_equal(zma2, zma2_)
 
     # OH + C2H4 <=> H2O + C2H3 forward/reverse transition state
@@ -434,17 +434,17 @@ def test__translate():
              'R7': 3.00000, 'A7': 1.483530, 'D7': 2.967059,
              'R8': 1.84779, 'A8': 1.483530, 'D8': 1.483529})
 
-    zma1_in_zma2_form = zmatrix.translate(zma1, zma2,
-                                          frm_bnd_keys=[frozenset({1, 3})],
-                                          brk_bnd_keys=[frozenset({0, 1})])
-    zma1_ = zmatrix.translate(zma1_in_zma2_form, zma1)
+    zma1_in_zma2_form = zmatrix.convert(zma1, zma2,
+                                        frm_bnd_keys=[frozenset({1, 3})],
+                                        brk_bnd_keys=[frozenset({0, 1})])
+    zma1_ = zmatrix.convert(zma1_in_zma2_form, zma1)
 
     assert zmatrix.almost_equal(zma1, zma1_)
 
-    zma2_in_zma1_form = zmatrix.translate(zma2, zma1,
-                                          frm_bnd_keys=[frozenset({2, 6})],
-                                          brk_bnd_keys=[frozenset({0, 2})])
-    zma2_ = zmatrix.translate(zma2_in_zma1_form, zma2)
+    zma2_in_zma1_form = zmatrix.convert(zma2, zma1,
+                                        frm_bnd_keys=[frozenset({2, 6})],
+                                        brk_bnd_keys=[frozenset({0, 2})])
+    zma2_ = zmatrix.convert(zma2_in_zma1_form, zma2)
 
     assert zmatrix.almost_equal(zma2, zma2_)
 
@@ -894,7 +894,7 @@ if __name__ == '__main__':
     # test__ts__hydrogen_abstraction()
     # test__is_standard_form()
     # test__join()
-    test__translate()
+    test__convert()
     # test__from_string()
     # test__ts__addition()
     # test__ts__hydrogen_abstraction()
