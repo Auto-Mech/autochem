@@ -1,6 +1,5 @@
 """ test automol.vmatrix
 """
-import automol.zmatrix
 from automol import vmatrix
 
 CH4O_VMA = (('H', (None, None, None), (None, None, None)),
@@ -55,19 +54,3 @@ def test__string():
     """
     vma = vmatrix.from_string(vmatrix.string(CH4O_VMA))
     assert vma == CH4O_VMA
-
-
-def test__zmatrix_from_geometry():
-    """ test vmatrix.zmatrix_from_geometry
-    """
-    ref_zma = CH4O_ZMA
-    vma = automol.zmatrix.var_(ref_zma)
-    geo = automol.zmatrix.geometry(ref_zma)
-    zma = vmatrix.zmatrix_from_geometry(vma, geo)
-    print(automol.zmatrix.string(ref_zma))
-    print(automol.zmatrix.string(zma))
-    assert automol.zmatrix.almost_equal(zma, ref_zma)
-
-
-if __name__ == '__main__':
-    test__zmatrix_from_geometry()

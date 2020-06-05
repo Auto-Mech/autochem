@@ -7,7 +7,6 @@ from qcelemental import constants as qcc
 from automol import dict_
 import automol.geom
 import automol.zmatrix
-import automol.vmatrix
 import automol.create.geom
 from automol import cart
 from automol.graph._stereo import has_stereo as _has_stereo
@@ -147,7 +146,7 @@ def connected_heuristic_zmatrix(xgr):
 
     # 4. convert back to z-matrix, keeping the original z-matrix structure
     vma = automol.zmatrix.var_(zma)
-    zma = automol.vmatrix.zmatrix_from_geometry(vma, geo)
+    zma = automol.zmatrix.from_geometry(vma, geo)
 
     return zma, zma_key_dct
 

@@ -255,26 +255,3 @@ def string(vma):
         name_mat=name_matrix(vma),
     )
     return vma_str
-
-
-def zmatrix_from_geometry(vma, geo):
-    """ determine z-matrix from v-matrix and geometry
-    """
-    assert symbols(vma) == automol.geom.symbols(geo)
-    val_dct = {}
-    coo_dct = coordinates(vma, multi=False)
-    dist_names = distance_names(vma)
-    cent_names = central_angle_names(vma)
-    dih_names = dihedral_angle_names(vma)
-    for name, coo in coo_dct.items():
-        if name in dist_names:
-            val_dct[name] = automol.geom.distance(geo, *coo)
-        elif name in cent_names:
-            val_dct[name] = automol.geom.central_angle(geo, *coo)
-        elif name in dih_names:
-            val_dct[name] = automol.geom.dihedral_angle(geo, *coo)
-
-    zma = automol.create.zmatrix.from_data(
-        symbols=symbols(vma), key_matrix=key_matrix(vma),
-        name_matrix=name_matrix(vma), values=val_dct)
-    return zma

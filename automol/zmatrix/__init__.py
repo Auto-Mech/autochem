@@ -1,5 +1,7 @@
 """ z-matrix
 """
+# constructors
+from automol.zmatrix._zmatrix import from_geometry
 # getters
 from automol.zmatrix._zmatrix import var_
 from automol.zmatrix._zmatrix import count
@@ -38,6 +40,7 @@ from automol.zmatrix._zmatrix import standard_form
 from automol.zmatrix._zmatrix import append
 from automol.zmatrix._zmatrix import join
 from automol.zmatrix._zmatrix import insert_dummy_atom
+from automol.zmatrix._zmatrix import translate
 # misc
 from automol.zmatrix._zmatrix import is_standard_form
 # I/O
@@ -115,6 +118,7 @@ def formula(zma):
 __all__ = [
     # constructors
     'from_data',
+    'from_geometry',
 
     # getters
     'var_',
@@ -154,6 +158,7 @@ __all__ = [
     'append',
     'join',
     'insert_dummy_atom',
+    'translate',
     # misc
     'is_standard_form',
     # I/O
