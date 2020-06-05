@@ -24,6 +24,10 @@ from automol.zmatrix._zmatrix import new_central_angle_name
 from automol.zmatrix._zmatrix import new_dihedral_angle_name
 from automol.zmatrix._zmatrix import angle_names
 from automol.zmatrix._zmatrix import dummy_coordinate_names
+from automol.zmatrix._zmatrix import dummy_atom_indices
+from automol.zmatrix._zmatrix import atom_specifiers
+from automol.zmatrix._zmatrix import atom_dependentes
+from automol.zmatrix._zmatrix import dummy_atom_anchors
 from automol.zmatrix._zmatrix import values
 from automol.zmatrix._zmatrix import _dihedral_edge_keys as dihedral_edge_keys
 
@@ -142,6 +146,10 @@ __all__ = [
     'new_dihedral_angle_name',
     'angle_names',
     'dummy_coordinate_names',
+    'dummy_atom_indices',
+    'atom_specifiers',
+    'atom_dependentes',
+    'dummy_atom_anchors',
     'torsion_coordinate_names',
     'values',
     'dihedral_edge_keys',
