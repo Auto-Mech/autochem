@@ -80,6 +80,7 @@ def to_inchi(rdm, options='', with_aux_info=False):
 def from_smiles(smi):
     """ rdkit molecule object from a SMILES string
     """
+    # print('rd smi', smi)
     rdm = _rd_chem.MolFromSmiles(smi)
     assert rdm is not None
     return rdm
