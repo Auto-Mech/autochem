@@ -498,6 +498,6 @@ def beta_scission(rct_zmas, prd_zmas):
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
-        ret = ts_zma, dist_name, tors_names
+        ret = ts_zma, dist_name, brk_bnd_key, tors_names
 
     return ret

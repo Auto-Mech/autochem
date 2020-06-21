@@ -417,10 +417,14 @@ def reflect_coordinates(geo, idxs, axes):
     return geo_reflected
 
 
-def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=(), brk_bnd_key=()):
+def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ convert an input geometry to a list of geometries
         corresponding to the rotational permuations of all the terminal groups
     """
+
+    # Set saddle based on frm and brk keys existing
+    saddle = bool(frm_bnd_keys or brk_bnd_keys)
+
     gra = graph(geo, remove_stereo=True)
     term_atms = {}
     all_hyds = []
@@ -443,7 +447,7 @@ def rot_permutated_geoms(geo, saddle=False, frm_bnd_key=(), brk_bnd_key=()):
         if atm in unsat_atms and atm not in rad_atms:
             pass
         else:
-            if atm not in frm_bnd_key and atm not in brk_bnd_key:
+            if atm not in frm_bnd_keys and atm not in brk_bnd_keys:
                 nonh_neighs = []
                 h_neighs = []
                 neighs = neighbor_dct[atm]

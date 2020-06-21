@@ -288,6 +288,9 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
         prd_zmas, remove_stereo=True)
     tras, _, _ = automol.graph.reac.addition(rct_gras, prd_gras)
+    print('tras')
+    for tra in tras:
+        print(tra)
     if tras:
         tra = tras[0]
         rct1_zma, rct2_zma = rct_zmas
@@ -445,7 +448,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
 
-        ret = ts_zma, dist_name, tors_names
+        ret = ts_zma, dist_name, frm_bnd_key, tors_names
 
     return ret
 
@@ -642,8 +645,12 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         # fix to put radical atom first
         # ultimately need to fix this for multiple radical centers
         # end of fix
+        print(rct_gras)
         tras, _, _ = automol.graph.reac.hydrogen_abstraction(
             rct_gras, prd_gras)
+        print('tras')
+        for tra in tras:
+            print(tra)
         if tras:
             tra = tras[0]
             rct1_gra, rct2_gra = rct_gras
@@ -653,6 +660,8 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
 
             frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
             brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
+            print('frm_key', frm_bnd_key)
+            print('brk_key', brk_bnd_key)
             rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
 
             # if rct1 and rct2 are isomorphic, we may get an atom key on rct2.
