@@ -16,22 +16,20 @@ import itertools
 from automol import formula
 import automol.graph.trans as trans
 import automol.convert.graph as graph_convert
-from automol.graph._graph import atom_count as _atom_count
-from automol.graph._graph import heavy_atom_count as _heavy_atom_count
-from automol.graph._graph import electron_count as _electron_count
-from automol.graph._graph import atom_keys as _atom_keys
-from automol.graph._graph import bond_keys as _bond_keys
-from automol.graph._graph import explicit as _explicit
-from automol.graph._graph import union as _union
-from automol.graph._graph import union_from_sequence as _union_from_sequence
-from automol.graph._graph import connected_components as _connected_components
-from automol.graph._graph import full_isomorphism as _full_isomorphism
-from automol.graph._graph import add_bonds as _add_bonds
-from automol.graph._graph import remove_bonds as _remove_bonds
-from automol.graph._graph import (add_atom_explicit_hydrogen_keys as
-                                  _add_atom_explicit_hydrogen_keys)
-from automol.graph._graph import (unsaturated_atom_keys as
-                                  _unsaturated_atom_keys)
+from automol.graph._graph import atom_count
+from automol.graph._graph import heavy_atom_count
+from automol.graph._graph import electron_count
+from automol.graph._graph import atom_keys
+from automol.graph._graph import bond_keys
+from automol.graph._graph import explicit
+from automol.graph._graph import union
+from automol.graph._graph import union_from_sequence
+from automol.graph._graph import connected_components
+from automol.graph._graph import full_isomorphism
+from automol.graph._graph import add_bonds
+from automol.graph._graph import remove_bonds
+from automol.graph._graph import add_atom_explicit_hydrogen_keys
+from automol.graph._graph import unsaturated_atom_keys
 
 
 def hydrogen_migration(rct_xgrs, prd_xgrs):
@@ -53,18 +51,18 @@ def hydrogen_migration(rct_xgrs, prd_xgrs):
         xgr1, = rct_xgrs
         xgr2, = prd_xgrs
 
-        h_atm_key1 = max(_atom_keys(xgr1)) + 1
-        h_atm_key2 = max(_atom_keys(xgr2)) + 1
+        h_atm_key1 = max(atom_keys(xgr1)) + 1
+        h_atm_key2 = max(atom_keys(xgr2)) + 1
 
-        atm_keys1 = _unsaturated_atom_keys(xgr1)
-        atm_keys2 = _unsaturated_atom_keys(xgr2)
+        atm_keys1 = unsaturated_atom_keys(xgr1)
+        atm_keys2 = unsaturated_atom_keys(xgr2)
         for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
-            xgr1_h = _add_atom_explicit_hydrogen_keys(
+            xgr1_h = add_atom_explicit_hydrogen_keys(
                 xgr1, {atm_key1: [h_atm_key1]})
-            xgr2_h = _add_atom_explicit_hydrogen_keys(
+            xgr2_h = add_atom_explicit_hydrogen_keys(
                 xgr2, {atm_key2: [h_atm_key2]})
 
-            inv_atm_key_dct = _full_isomorphism(xgr2_h, xgr1_h)
+            inv_atm_key_dct = full_isomorphism(xgr2_h, xgr1_h)
             if inv_atm_key_dct:
                 tra = trans.from_data(
                     frm_bnd_keys=[{atm_key1,
@@ -112,8 +110,8 @@ def hydrogen_abstraction(rct_xgrs, prd_xgrs):
             if q1_tras and q2_rev_tras:
                 for q1_tra, q2_rev_tra in itertools.product(q1_tras,
                                                             q2_rev_tras):
-                    xgr1_ = _union(trans.apply(q1_tra, q1h_xgr), q2_xgr)
-                    xgr2_ = _union(q1_xgr, q2h_xgr)
+                    xgr1_ = union(trans.apply(q1_tra, q1h_xgr), q2_xgr)
+                    xgr2_ = union(q1_xgr, q2h_xgr)
 
                     q2_tra = trans.reverse(q2_rev_tra, xgr2_, xgr1_)
                     tra = trans.from_data(
@@ -131,12 +129,12 @@ def hydrogen_abstraction(rct_xgrs, prd_xgrs):
 
 def _partial_hydrogen_abstraction(qh_xgr, q_xgr):
     tras = []
-    h_atm_key = max(_atom_keys(q_xgr)) + 1
-    uns_atm_keys = _unsaturated_atom_keys(q_xgr)
+    h_atm_key = max(atom_keys(q_xgr)) + 1
+    uns_atm_keys = unsaturated_atom_keys(q_xgr)
     for atm_key in uns_atm_keys:
-        q_xgr_h = _add_atom_explicit_hydrogen_keys(
+        q_xgr_h = add_atom_explicit_hydrogen_keys(
             q_xgr, {atm_key: [h_atm_key]})
-        inv_atm_key_dct = _full_isomorphism(q_xgr_h, qh_xgr)
+        inv_atm_key_dct = full_isomorphism(q_xgr_h, qh_xgr)
         if inv_atm_key_dct:
             brk_bnd_keys = [frozenset(
                 {inv_atm_key_dct[atm_key], inv_atm_key_dct[h_atm_key]})]
@@ -164,13 +162,13 @@ def addition(rct_xgrs, prd_xgrs):
     if len(rct_xgrs) == 2 and len(prd_xgrs) == 1:
         x_xgr, y_xgr = rct_xgrs
         prd_xgr, = prd_xgrs
-        x_atm_keys = _unsaturated_atom_keys(x_xgr)
-        y_atm_keys = _unsaturated_atom_keys(y_xgr)
+        x_atm_keys = unsaturated_atom_keys(x_xgr)
+        y_atm_keys = unsaturated_atom_keys(y_xgr)
         for x_atm_key, y_atm_key in itertools.product(x_atm_keys, y_atm_keys):
-            xy_xgr = _add_bonds(
-                _union(x_xgr, y_xgr), [{x_atm_key, y_atm_key}])
+            xy_xgr = add_bonds(
+                union(x_xgr, y_xgr), [{x_atm_key, y_atm_key}])
 
-            atm_key_dct = _full_isomorphism(xy_xgr, prd_xgr)
+            atm_key_dct = full_isomorphism(xy_xgr, prd_xgr)
             if atm_key_dct:
                 tra = trans.from_data(frm_bnd_keys=[{x_atm_key, y_atm_key}],
                                       brk_bnd_keys=[])
@@ -193,8 +191,8 @@ def beta_scission(rct_xgrs, prd_xgrs):
 
     rev_tras, prd_idxs, rct_idxs = addition(prd_xgrs, rct_xgrs)
     if rev_tras:
-        rct_xgr = _union_from_sequence(rct_xgrs)
-        prd_xgr = _union_from_sequence(prd_xgrs)
+        rct_xgr = union_from_sequence(rct_xgrs)
+        prd_xgr = union_from_sequence(prd_xgrs)
         tras = [trans.reverse(tra, prd_xgr, rct_xgr) for tra in rev_tras]
 
     tras = tuple(set(tras))
@@ -219,13 +217,13 @@ def elimination(rct_xgrs, prd_xgrs):
 
     if len(rct_xgrs) == 1 and len(prd_xgrs) == 2:
         rct_xgr, = rct_xgrs
-        rct_bnd_keys = _bond_keys(rct_xgr)
+        rct_bnd_keys = bond_keys(rct_xgr)
         # Loop over pairs of bonds and break them. Then, if this forms three
         # fragments, join the two end fragments and compare the result to the
         # products.
         for brk_bnd_key1, brk_bnd_key2 in itertools.combinations(
                 rct_bnd_keys, r=2):
-            rct_xgr_ = _remove_bonds(rct_xgr, [brk_bnd_key1, brk_bnd_key2])
+            rct_xgr_ = remove_bonds(rct_xgr, [brk_bnd_key1, brk_bnd_key2])
 
             # Find the central fragment, which is the one connected to both
             # break sites. If there's a loop there may not be a central
@@ -237,10 +235,10 @@ def elimination(rct_xgrs, prd_xgrs):
                 atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
                 frm_bnd_key = frozenset({atm1_key, atm2_key})
 
-                rct_xgr_ = _add_bonds(rct_xgr_, [frm_bnd_key])
+                rct_xgr_ = add_bonds(rct_xgr_, [frm_bnd_key])
 
-                prd_xgr = _union_from_sequence(prd_xgrs)
-                atm_key_dct = _full_isomorphism(rct_xgr_, prd_xgr)
+                prd_xgr = union_from_sequence(prd_xgrs)
+                atm_key_dct = full_isomorphism(rct_xgr_, prd_xgr)
                 if atm_key_dct:
                     tra = trans.from_data(
                         frm_bnd_keys=[frm_bnd_key],
@@ -252,10 +250,10 @@ def elimination(rct_xgrs, prd_xgrs):
                     cent_prd_atm_keys = frozenset(
                         map(atm_key_dct.__getitem__, cent_frag_atm_keys))
 
-                    if cent_prd_atm_keys <= _atom_keys(prd_xgrs[0]):
+                    if cent_prd_atm_keys <= atom_keys(prd_xgrs[0]):
                         prd_idxs = (0, 1)
                     else:
-                        assert cent_prd_atm_keys <= _atom_keys(prd_xgrs[1])
+                        assert cent_prd_atm_keys <= atom_keys(prd_xgrs[1])
                         prd_idxs = (1, 0)
 
     tras = tuple(tras)
@@ -269,10 +267,10 @@ def _central_fragment_atom_keys(xgr, brk_bnd_key1, brk_bnd_key2):
     a loop there may not be a central fragment, in which case this function
     will return None.
     """
-    xgrs = _connected_components(xgr)
+    xgrs = connected_components(xgr)
     atm_keys = None
     if len(xgrs) == 3:
-        for atm_keys_ in map(_atom_keys, xgrs):
+        for atm_keys_ in map(atom_keys, xgrs):
             if (len(brk_bnd_key1 - atm_keys_) == 1 and
                     len(brk_bnd_key2 - atm_keys_) == 1):
                 atm_keys = atm_keys_
@@ -288,8 +286,8 @@ def insertion(rct_xgrs, prd_xgrs):
 
     rev_tras, prd_idxs, rct_idxs = elimination(prd_xgrs, rct_xgrs)
     if rev_tras:
-        rct_xgr = _union_from_sequence(rct_xgrs)
-        prd_xgr = _union_from_sequence(prd_xgrs)
+        rct_xgr = union_from_sequence(rct_xgrs)
+        prd_xgr = union_from_sequence(prd_xgrs)
         tras = [trans.reverse(tra, prd_xgr, rct_xgr) for tra in rev_tras]
 
     tras = tuple(set(tras))
@@ -310,17 +308,17 @@ def substitution(rct_xgrs, prd_xgrs):
     prd_idxs = None
 
     if len(rct_xgrs) == 2 and len(prd_xgrs) == 2:
-        rct_xgr = _union_from_sequence(rct_xgrs)
-        prd_xgr = _union_from_sequence(prd_xgrs)
+        rct_xgr = union_from_sequence(rct_xgrs)
+        prd_xgr = union_from_sequence(prd_xgrs)
 
-        rct_bnd_keys = _bond_keys(rct_xgr)
-        prd_bnd_keys = _bond_keys(prd_xgr)
+        rct_bnd_keys = bond_keys(rct_xgr)
+        prd_bnd_keys = bond_keys(prd_xgr)
         for rct_bnd_key, prd_bnd_key in itertools.product(
                 rct_bnd_keys, prd_bnd_keys):
-            rct_xgr_ = _remove_bonds(rct_xgr, [rct_bnd_key])
-            prd_xgr_ = _remove_bonds(prd_xgr, [prd_bnd_key])
+            rct_xgr_ = remove_bonds(rct_xgr, [rct_bnd_key])
+            prd_xgr_ = remove_bonds(prd_xgr, [prd_bnd_key])
 
-            inv_atm_key_dct = _full_isomorphism(prd_xgr_, rct_xgr_)
+            inv_atm_key_dct = full_isomorphism(prd_xgr_, rct_xgr_)
             if inv_atm_key_dct:
                 brk_bnd_key = rct_bnd_key
                 frm_bnd_key = frozenset(
@@ -343,11 +341,11 @@ def _is_valid_reagent_graph_list(xgrs):
 
 
 def _are_all_explicit(xgrs):
-    return all(xgr == _explicit(xgr) for xgr in xgrs)
+    return all(xgr == explicit(xgr) for xgr in xgrs)
 
 
 def _have_no_common_atom_keys(xgrs):
-    atm_keys = list(itertools.chain(*map(_atom_keys, xgrs)))
+    atm_keys = list(itertools.chain(*map(atom_keys, xgrs)))
     return len(atm_keys) == len(set(atm_keys))
 
 
@@ -355,9 +353,9 @@ def _argsort_reactants(xgrs):
 
     def __sort_value(args):
         _, xgr = args
-        val = (-_heavy_atom_count(xgr),
-               -_atom_count(xgr),
-               -_electron_count(xgr))
+        val = (-heavy_atom_count(xgr),
+               -atom_count(xgr),
+               -electron_count(xgr))
         return val
 
     idxs = tuple(idx for idx, xgr in sorted(enumerate(xgrs), key=__sort_value))

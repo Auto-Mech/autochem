@@ -9,35 +9,25 @@ import automol.geom
 import automol.zmatrix
 import automol.create.geom
 from automol import cart
-from automol.graph._stereo import has_stereo as _has_stereo
-from automol.graph._stereo import (stereogenic_atom_keys as
-                                   _stereogenic_atom_keys)
-from automol.graph._stereo import (stereogenic_bond_keys as
-                                   _stereogenic_bond_keys)
-from automol.graph._stereo import (stereo_sorted_atom_neighbor_keys as
-                                   _stereo_sorted_atom_neighbor_keys)
-from automol.graph._res import (resonance_dominant_atom_hybridizations as
-                                _resonance_dominant_atom_hybridizations)
-from automol.graph._graph import atom_keys as _atom_keys
-from automol.graph._graph import atom_symbols as _atom_symbols
-from automol.graph._graph import add_bonded_atom as _add_bonded_atom
-from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
-from automol.graph._graph import explicit as _explicit
-from automol.graph._graph import branch as _branch
-from automol.graph._graph import longest_chain as _longest_chain
-from automol.graph._graph import (rings_sorted_atom_keys as
-                                  _rings_sorted_atom_keys)
-from automol.graph._graph import (atom_stereo_parities as
-                                  _atom_stereo_parities)
-from automol.graph._graph import (bond_stereo_parities as
-                                  _bond_stereo_parities)
-from automol.graph._graph import (without_stereo_parities as
-                                  _without_stereo_parities)
-from automol.graph._graph import (set_atom_stereo_parities as
-                                  _set_atom_stereo_parities)
-from automol.graph._graph import (set_bond_stereo_parities as
-                                  _set_bond_stereo_parities)
-from automol.graph._graph import connected_components as _connected_components
+from automol.graph._stereo import has_stereo
+from automol.graph._stereo import stereogenic_atom_keys
+from automol.graph._stereo import stereogenic_bond_keys
+from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._graph import atom_keys
+from automol.graph._graph import atom_symbols
+from automol.graph._graph import add_bonded_atom
+from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import explicit
+from automol.graph._graph import branch
+from automol.graph._graph import longest_chain
+from automol.graph._graph import rings_sorted_atom_keys
+from automol.graph._graph import atom_stereo_parities
+from automol.graph._graph import bond_stereo_parities
+from automol.graph._graph import without_stereo_parities
+from automol.graph._graph import set_atom_stereo_parities
+from automol.graph._graph import set_bond_stereo_parities
+from automol.graph._graph import connected_components
 
 
 def heuristic_geometry(xgr):
@@ -45,8 +35,8 @@ def heuristic_geometry(xgr):
 
     (need not be connected)
     """
-    assert xgr == _explicit(xgr)
-    xgr_iter = iter(_connected_components(xgr))
+    assert xgr == explicit(xgr)
+    xgr_iter = iter(connected_components(xgr))
     xgr_ = next(xgr_iter)
     geo_, geo_idx_dct_ = _connected_heuristic_geometry(xgr_)
 
@@ -67,9 +57,9 @@ def heuristic_geometry(xgr):
 def _connected_heuristic_geometry(xgr):
     """ stereo-specific coordinates for a connected molecular geometry
     """
-    assert xgr == _explicit(xgr)
+    assert xgr == explicit(xgr)
 
-    atm_keys = sorted(_atom_keys(xgr))
+    atm_keys = sorted(atom_keys(xgr))
 
     zma, zma_key_dct = connected_heuristic_zmatrix(xgr)
 
@@ -86,21 +76,21 @@ def connected_heuristic_zmatrix(xgr):
 
     (currently unable to handle rings -- fix that)
     """
-    assert xgr == _explicit(xgr)
+    assert xgr == explicit(xgr)
 
-    atm_sym_dct = _atom_symbols(xgr)
+    atm_sym_dct = atom_symbols(xgr)
 
     # this will contain triplets of adjacent atoms from which to continue
     # filling out the z-matrix, after it has been started
     triplets = []
 
     # 1. start the z-matrix and set the lists of triplets
-    rng_atm_keys_lst = _rings_sorted_atom_keys(xgr)
+    rng_atm_keys_lst = rings_sorted_atom_keys(xgr)
     if not rng_atm_keys_lst:
         # find the first heavy atom in the longest chain (if there isn't one,
         # we are dealing with atomic or molecular hydrogen, which will be
         # captured by the last two cases)
-        chain = _longest_chain(xgr)
+        chain = longest_chain(xgr)
 
         if atm_sym_dct[chain[0]] != 'H':
             chain = list(reversed(chain))
@@ -158,10 +148,10 @@ def set_stereo_from_geometry(xgr, geo, geo_idx_dct=None):
     (coordinate distances need not match connectivity -- what matters is the
     relative positions at stereo sites)
     """
-    xgr = _without_stereo_parities(xgr)
+    xgr = without_stereo_parities(xgr)
     last_xgr = None
 
-    atm_keys = sorted(_atom_keys(xgr))
+    atm_keys = sorted(atom_keys(xgr))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {atm_key: idx for idx, atm_key in enumerate(atm_keys)})
 
@@ -170,8 +160,8 @@ def set_stereo_from_geometry(xgr, geo, geo_idx_dct=None):
     bnd_keys = set()
     while last_xgr != xgr:
         last_xgr = xgr
-        atm_keys.update(_stereogenic_atom_keys(xgr))
-        bnd_keys.update(_stereogenic_bond_keys(xgr))
+        atm_keys.update(stereogenic_atom_keys(xgr))
+        bnd_keys.update(stereogenic_bond_keys(xgr))
         xgr = _set_atom_stereo_from_geometry(xgr, atm_keys, geo, geo_idx_dct)
         xgr = _set_bond_stereo_from_geometry(xgr, bnd_keys, geo, geo_idx_dct)
 
@@ -179,22 +169,22 @@ def set_stereo_from_geometry(xgr, geo, geo_idx_dct=None):
 
 
 def _set_atom_stereo_from_geometry(xgr, atm_keys, geo, geo_idx_dct):
-    assert xgr == _explicit(xgr)
+    assert xgr == explicit(xgr)
 
     atm_pars = [
         _atom_stereo_parity_from_geometry(xgr, atm_key, geo, geo_idx_dct)
         for atm_key in atm_keys]
-    xgr = _set_atom_stereo_parities(xgr, dict(zip(atm_keys, atm_pars)))
+    xgr = set_atom_stereo_parities(xgr, dict(zip(atm_keys, atm_pars)))
     return xgr
 
 
 def _set_bond_stereo_from_geometry(xgr, bnd_keys, geo, geo_idx_dct):
-    assert xgr == _explicit(xgr)
+    assert xgr == explicit(xgr)
 
     bnd_pars = [
         _bond_stereo_parity_from_geometry(xgr, bnd_key, geo, geo_idx_dct)
         for bnd_key in bnd_keys]
-    xgr = _set_bond_stereo_parities(xgr, dict(zip(bnd_keys, bnd_pars)))
+    xgr = set_bond_stereo_parities(xgr, dict(zip(bnd_keys, bnd_pars)))
     return xgr
 
 
@@ -202,11 +192,11 @@ def _set_bond_stereo_from_geometry(xgr, bnd_keys, geo, geo_idx_dct):
 def _atom_stereo_parity_from_geometry(xgr, atm_key, geo, geo_idx_dct):
     """ get the current stereo parity of an atom from its geometry
     """
-    atm_ngb_keys_dct = _atom_neighbor_keys(xgr)
+    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]
 
     # sort the neighbor keys by stereo priority
-    atm_ngb_keys = _stereo_sorted_atom_neighbor_keys(
+    atm_ngb_keys = stereo_sorted_atom_neighbor_keys(
         xgr, atm_key, atm_ngb_keys)
 
     # determine the parity based on the coordinates
@@ -225,13 +215,13 @@ def _bond_stereo_parity_from_geometry(xgr, bnd_key, geo, geo_idx_dct):
     """ get the current stereo parity of a bond from its geometry
     """
     atm1_key, atm2_key = bnd_key
-    atm_ngb_keys_dct = _atom_neighbor_keys(xgr)
+    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
     atm1_ngb_keys = atm_ngb_keys_dct[atm1_key] - {atm2_key}
     atm2_ngb_keys = atm_ngb_keys_dct[atm2_key] - {atm1_key}
 
-    atm1_ngb_keys = _stereo_sorted_atom_neighbor_keys(
+    atm1_ngb_keys = stereo_sorted_atom_neighbor_keys(
         xgr, atm1_key, atm1_ngb_keys)
-    atm2_ngb_keys = _stereo_sorted_atom_neighbor_keys(
+    atm2_ngb_keys = stereo_sorted_atom_neighbor_keys(
         xgr, atm2_key, atm2_ngb_keys)
 
     # get the top priority neighbor keys on each side
@@ -258,12 +248,12 @@ def _stereo_corrected_geometry(sgr, geo, geo_idx_dct):
 
     (works iterately to handle cases of higher-order stereo)
     """
-    assert sgr == _explicit(sgr)
-    xgr = _without_stereo_parities(sgr)
+    assert sgr == explicit(sgr)
+    xgr = without_stereo_parities(sgr)
 
-    if _has_stereo(sgr):
-        full_atm_ste_par_dct = _atom_stereo_parities(sgr)
-        full_bnd_ste_par_dct = _bond_stereo_parities(sgr)
+    if has_stereo(sgr):
+        full_atm_ste_par_dct = atom_stereo_parities(sgr)
+        full_bnd_ste_par_dct = bond_stereo_parities(sgr)
 
         atm_keys = set()
         bnd_keys = set()
@@ -273,8 +263,8 @@ def _stereo_corrected_geometry(sgr, geo, geo_idx_dct):
         while last_xgr != xgr:
             last_xgr = xgr
 
-            atm_keys.update(_stereogenic_atom_keys(xgr))
-            bnd_keys.update(_stereogenic_bond_keys(xgr))
+            atm_keys.update(stereogenic_atom_keys(xgr))
+            bnd_keys.update(stereogenic_bond_keys(xgr))
 
             atm_ste_par_dct = {atm_key: full_atm_ste_par_dct[atm_key]
                                for atm_key in atm_keys}
@@ -291,8 +281,8 @@ def _stereo_corrected_geometry(sgr, geo, geo_idx_dct):
 def _atom_stereo_corrected_geometry(xgr, atm_ste_par_dct, geo, geo_idx_dct):
     """ correct the atom stereo parities of a geometry, for a subset of atoms
     """
-    ring_atm_keys = set(itertools.chain(*_rings_sorted_atom_keys(xgr)))
-    atm_ngb_keys_dct = _atom_neighbor_keys(xgr)
+    ring_atm_keys = set(itertools.chain(*rings_sorted_atom_keys(xgr)))
+    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
 
     atm_keys = list(atm_ste_par_dct.keys())
     for atm_key in atm_keys:
@@ -319,8 +309,8 @@ def _atom_stereo_corrected_geometry(xgr, atm_ste_par_dct, geo, geo_idx_dct):
                 atm3_xyz, atm4_xyz, orig_xyz=atm_xyz)
 
             rot_atm_keys = (
-                _atom_keys(_branch(xgr, atm_key, {atm_key, atm3_key})) |
-                _atom_keys(_branch(xgr, atm_key, {atm_key, atm4_key})))
+                atom_keys(branch(xgr, atm_key, {atm_key, atm3_key})) |
+                atom_keys(branch(xgr, atm_key, {atm_key, atm4_key})))
             rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
             geo = automol.geom.rotated(
@@ -328,7 +318,7 @@ def _atom_stereo_corrected_geometry(xgr, atm_ste_par_dct, geo, geo_idx_dct):
 
         assert _atom_stereo_parity_from_geometry(
             xgr, atm_key, geo, geo_idx_dct) == par
-        xgr = _set_atom_stereo_parities(xgr, {atm_key: par})
+        xgr = set_atom_stereo_parities(xgr, {atm_key: par})
 
     return geo, xgr
 
@@ -351,8 +341,8 @@ def _bond_stereo_corrected_geometry(xgr, bnd_ste_par_dct, geo, geo_idx_dct):
 
             rot_axis = numpy.subtract(atm2_xyz, atm1_xyz)
 
-            rot_atm_keys = _atom_keys(
-                _branch(xgr, atm1_key, {atm1_key, atm2_key}))
+            rot_atm_keys = atom_keys(
+                branch(xgr, atm1_key, {atm1_key, atm2_key}))
 
             rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
@@ -361,7 +351,7 @@ def _bond_stereo_corrected_geometry(xgr, bnd_ste_par_dct, geo, geo_idx_dct):
 
         assert _bond_stereo_parity_from_geometry(
             xgr, bnd_key, geo, geo_idx_dct) == par
-        xgr = _set_bond_stereo_parities(xgr, {bnd_key: par})
+        xgr = set_bond_stereo_parities(xgr, {bnd_key: par})
 
     return geo, xgr
 
@@ -382,7 +372,7 @@ def _start_zmatrix_from_ring(xgr, rng_atm_keys):
 
     # now, build the z-matrix
     natms = len(rng_atm_keys)
-    atm_sym_dct = _atom_symbols(xgr)
+    atm_sym_dct = atom_symbols(xgr)
 
     dist_val = 1.5 * qcc.conversion_factor('angstrom', 'bohr')
     ang_val = (natms - 2.) * numpy.pi / natms
@@ -426,11 +416,11 @@ def _start_zmatrix_from_atom(xgr, atm_key):
     returns a z-matrix and a dictionary mapping atom keys to rows of the
     z-matrix
     """
-    atm_ngb_keys_dct = _atom_neighbor_keys(xgr)
+    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
 
     dummy_atm_key = None
 
-    atm_sym_dct = _atom_symbols(xgr)
+    atm_sym_dct = atom_symbols(xgr)
 
     atm_ngb_keys = sorted(atm_ngb_keys_dct[atm_key])
 
@@ -455,7 +445,7 @@ def _start_zmatrix_from_atom(xgr, atm_key):
                 ['R3', 'A3', 'D3'],
                 ['R4', 'A4', 'D4']][:natms]
 
-    atm_hyb = _resonance_dominant_atom_hybridizations(xgr)[atm_key]
+    atm_hyb = resonance_dominant_atom_hybridizations(xgr)[atm_key]
 
     # z-matrix coordinate values
     val_dct = {}
@@ -489,7 +479,7 @@ def _start_zmatrix_from_atom(xgr, atm_key):
         val_dct.update({'R2': 1.0, 'R3': val_dct['R2'],
                         'A2': RIT_ANG, 'A3': RIT_ANG, 'D3': LIN_ANG})
 
-        xgr, dummy_atm_key = _add_bonded_atom(xgr, 'X', atm_key, bnd_ord=0)
+        xgr, dummy_atm_key = add_bonded_atom(xgr, 'X', atm_key, bnd_ord=0)
 
         zma_key_dct[dummy_atm_key] = 2
         zma_key_dct[atm_keys[2]] = 3
@@ -514,8 +504,8 @@ def _complete_zmatrix_for_branch(xgr, atm1_key, atm2_key, atm3_key, zma,
     returns a z-matrix and a dictionary mapping atom keys to rows of the
     z-matrix
     """
-    atm_sym_dct = _atom_symbols(xgr)
-    atm_ngb_keys_dct = _atom_neighbor_keys(xgr)
+    atm_sym_dct = atom_symbols(xgr)
+    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
 
     atm1_zma_key = zma_key_dct[atm1_key]
     atm2_zma_key = zma_key_dct[atm2_key]
@@ -524,7 +514,7 @@ def _complete_zmatrix_for_branch(xgr, atm1_key, atm2_key, atm3_key, zma,
     atm4_keys = atm_ngb_keys_dct[atm3_key] - {atm2_key}
 
     # first handle the linear bond case, inserting a dummy atom
-    atm_hyb = _resonance_dominant_atom_hybridizations(xgr)[atm3_key]
+    atm_hyb = resonance_dominant_atom_hybridizations(xgr)[atm3_key]
     if atm_hyb == 1 and atm4_keys:
         assert len(atm4_keys) == 1
         atm4_key, = atm4_keys
@@ -539,7 +529,7 @@ def _complete_zmatrix_for_branch(xgr, atm1_key, atm2_key, atm3_key, zma,
         dih4_name = automol.zmatrix.new_dihedral_angle_name(zma)
         dih4_val = 0.
 
-        xgr, dummy_atm_key = _add_bonded_atom(xgr, 'X', atm3_key, bnd_ord=0)
+        xgr, dummy_atm_key = add_bonded_atom(xgr, 'X', atm3_key, bnd_ord=0)
         dummy_atm_zma_key = automol.zmatrix.count(zma)
 
         zma_key_dct[dummy_atm_key] = dummy_atm_zma_key
@@ -633,8 +623,8 @@ def _bond_distance(xgr, atm1_key, atm2_key, check=True):
     (currently crude, but could easily be made more sophisticated
     """
     if check:
-        atm_sym_dct = _atom_symbols(xgr)
-        assert atm2_key in _atom_neighbor_keys(xgr)[atm1_key]
+        atm_sym_dct = atom_symbols(xgr)
+        assert atm2_key in atom_neighbor_keys(xgr)[atm1_key]
 
     atm1_sym = atm_sym_dct[atm1_key]
     atm2_sym = atm_sym_dct[atm2_key]
@@ -651,11 +641,11 @@ def _bond_angle(sgr, atm1_key, atm2_key, atm3_key, check=True):
     """ predict the bond angles an atom makes with its neighbors
     """
     if check:
-        atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
+        atm_ngb_keys_dct = atom_neighbor_keys(sgr)
         atm2_ngb_keys = atm_ngb_keys_dct[atm2_key]
         assert {atm1_key, atm3_key} <= atm2_ngb_keys
 
-    atm_hyb_dct = _resonance_dominant_atom_hybridizations(sgr)
+    atm_hyb_dct = resonance_dominant_atom_hybridizations(sgr)
     atm2_hyb = atm_hyb_dct[atm2_key]
 
     if atm2_hyb == 3:
@@ -674,13 +664,13 @@ def _dihedral_increment(sgr, atm1_key, atm2_key, atm3_key, check=False):
     """ predict dihedral increment for atoms attached to `atm3_key`
     """
     if check:
-        atm_ngb_keys_dct = _atom_neighbor_keys(sgr)
+        atm_ngb_keys_dct = atom_neighbor_keys(sgr)
         atm2_ngb_keys = atm_ngb_keys_dct[atm2_key]
         atm3_ngb_keys = atm_ngb_keys_dct[atm3_key]
         assert atm2_key in atm3_ngb_keys
         assert atm1_key in atm2_ngb_keys - {atm3_key}
 
-    atm_hyb_dct = _resonance_dominant_atom_hybridizations(sgr)
+    atm_hyb_dct = resonance_dominant_atom_hybridizations(sgr)
     atm3_hyb = atm_hyb_dct[atm3_key]
     dih_incr = 2 * numpy.pi / atm3_hyb if not atm3_hyb == 0 else 0.
     return dih_incr
@@ -760,7 +750,7 @@ if __name__ == '__main__':
             frozenset({2, 4}): (1, None), frozenset({1, 3}): (1, None),
             frozenset({5, 7}): (1, None), frozenset({4, 7}): (1, None)})
 
-    SGR = _explicit(GRA)
+    SGR = explicit(GRA)
     GEO, GEO_IDX_DCT = heuristic_geometry(SGR)
 
     # GEO = (
@@ -787,8 +777,8 @@ if __name__ == '__main__':
 
     print(automol.geom.string(GEO))
     REF_ATM_STE_PAR_DCT = dict_.filter_by_value(
-        _atom_stereo_parities(GRA), lambda x: x is not None)
+        atom_stereo_parities(GRA), lambda x: x is not None)
     ATM_STE_PAR_DCT = dict_.filter_by_value(
-        _atom_stereo_parities(XGR), lambda x: x is not None)
+        atom_stereo_parities(XGR), lambda x: x is not None)
     print(REF_ATM_STE_PAR_DCT)
     print(ATM_STE_PAR_DCT)

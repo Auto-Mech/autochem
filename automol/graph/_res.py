@@ -4,38 +4,34 @@ import itertools
 import functools
 import numpy
 from automol import dict_
-from automol.graph._graph import frozen as _frozen
-from automol.graph._graph import atom_keys as _atom_keys
-from automol.graph._graph import bond_keys as _bond_keys
-from automol.graph._graph import bond_orders as _bond_orders
-from automol.graph._graph import set_bond_orders as _set_bond_orders
-from automol.graph._graph import without_bond_orders as _without_bond_orders
-from automol.graph._graph import atom_bond_keys as _atom_bond_keys
-from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
-from automol.graph._graph import (atom_unsaturated_valences as
-                                  _atom_unsaturated_valences)
-from automol.graph._graph import atom_bond_valences as _atom_bond_valences
-from automol.graph._graph import (atom_lone_pair_counts as
-                                  _atom_lone_pair_counts)
-from automol.graph._graph import (maximum_spin_multiplicity as
-                                  _maximum_spin_multiplicity)
-from automol.graph._graph import explicit as _explicit
-from automol.graph._graph import (atom_explicit_hydrogen_valences as
-                                  _atom_explicit_hydrogen_valences)
+from automol.graph._graph import frozen
+from automol.graph._graph import atom_keys
+from automol.graph._graph import bond_keys
+from automol.graph._graph import bond_orders
+from automol.graph._graph import set_bond_orders
+from automol.graph._graph import without_bond_orders
+from automol.graph._graph import atom_bond_keys
+from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_unsaturated_valences
+from automol.graph._graph import atom_bond_valences
+from automol.graph._graph import atom_lone_pair_counts
+from automol.graph._graph import maximum_spin_multiplicity
+from automol.graph._graph import explicit
+from automol.graph._graph import atom_explicit_hydrogen_valences
 
 
 # atom properties
 def atom_hybridizations(rgr):
     """ atom hybridizations, by atom
     """
-    atm_keys = list(_atom_keys(rgr))
-    atm_unsat_vlc_dct = _atom_unsaturated_valences(rgr, bond_order=True)
-    atm_bnd_vlc_dct = _atom_bond_valences(rgr, bond_order=False)     # note!!
+    atm_keys = list(atom_keys(rgr))
+    atm_unsat_vlc_dct = atom_unsaturated_valences(rgr, bond_order=True)
+    atm_bnd_vlc_dct = atom_bond_valences(rgr, bond_order=False)     # note!!
     atm_unsat_vlcs = numpy.array(
         dict_.values_by_key(atm_unsat_vlc_dct, atm_keys))
     atm_bnd_vlcs = numpy.array(dict_.values_by_key(atm_bnd_vlc_dct, atm_keys))
     atm_lpcs = numpy.array(
-        dict_.values_by_key(_atom_lone_pair_counts(rgr), atm_keys))
+        dict_.values_by_key(atom_lone_pair_counts(rgr), atm_keys))
     atm_hybs = atm_unsat_vlcs + atm_bnd_vlcs + atm_lpcs - 1
     atm_hyb_dct = dict_.transform_values(
         dict(zip(atm_keys, atm_hybs)), int)
@@ -45,7 +41,7 @@ def atom_hybridizations(rgr):
 def resonance_dominant_atom_hybridizations(rgr):
     """ resonance-dominant atom hybridizations, by atom
     """
-    atm_keys = list(_atom_keys(rgr))
+    atm_keys = list(atom_keys(rgr))
     atm_hybs_by_res = [
         dict_.values_by_key(atom_hybridizations(dom_rgr), atm_keys)
         for dom_rgr in dominant_resonances(rgr)]
@@ -102,7 +98,7 @@ def _cumulene_chains(rgr):
     sp1_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
     sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
 
-    atm_ngb_keys_dct = _atom_neighbor_keys(rgr)
+    atm_ngb_keys_dct = atom_neighbor_keys(rgr)
 
     def _cumulene_chain(chain):
         ret = None
@@ -137,9 +133,9 @@ def resonance_dominant_radical_atom_keys(rgr):
 
     (keys of resonance-dominant radical sites)
     """
-    atm_keys = list(_atom_keys(rgr))
+    atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
-        dict_.values_by_key(_atom_unsaturated_valences(dom_rgr), atm_keys)
+        dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
         for dom_rgr in dominant_resonances(rgr)]
     atm_rad_vlcs = [max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
@@ -150,9 +146,9 @@ def resonance_dominant_radical_atom_keys(rgr):
 def sing_res_dom_radical_atom_keys(rgr):
     """ resonance-dominant radical atom keys,for one resonance
     """
-    atm_keys = list(_atom_keys(rgr))
+    atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
-        dict_.values_by_key(_atom_unsaturated_valences(dom_rgr), atm_keys)
+        dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
         for dom_rgr in dominant_resonances(rgr)]
     first_atm_rad_val = [atm_rad_vlcs_by_res[0]]
     atm_rad_vlcs = [max(rad_vlcs) for rad_vlcs in zip(*first_atm_rad_val)]
@@ -165,9 +161,9 @@ def sing_res_dom_radical_atom_keys(rgr):
 def resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
-    bnd_keys = list(_bond_keys(rgr))
+    bnd_keys = list(bond_keys(rgr))
     bnd_ords_by_res = [
-        dict_.values_by_key(_bond_orders(dom_rgr), bnd_keys)
+        dict_.values_by_key(bond_orders(dom_rgr), bnd_keys)
         for dom_rgr in dominant_resonances(rgr)]
     bnd_ords_lst = list(map(frozenset, zip(*bnd_ords_by_res)))
     bnd_dom_res_ords_dct = dict(zip(bnd_keys, bnd_ords_lst))
@@ -177,9 +173,9 @@ def resonance_dominant_bond_orders(rgr):
 def one_resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
-    bnd_keys = list(_bond_keys(rgr))
+    bnd_keys = list(bond_keys(rgr))
     bnd_ords_by_res = [
-        dict_.values_by_key(_bond_orders(dom_rgr), bnd_keys)
+        dict_.values_by_key(bond_orders(dom_rgr), bnd_keys)
         for dom_rgr in dominant_resonances(rgr)]
     first_bnd_ords = [bnd_ords_by_res[0]]
     bnd_ords_lst = list(map(frozenset, zip(*first_bnd_ords)))
@@ -190,9 +186,9 @@ def one_resonance_dominant_bond_orders(rgr):
 def resonance_avg_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
-    bnd_keys = list(_bond_keys(rgr))
+    bnd_keys = list(bond_keys(rgr))
     bnd_ords_by_res = [
-        dict_.values_by_key(_bond_orders(dom_rgr), bnd_keys)
+        dict_.values_by_key(bond_orders(dom_rgr), bnd_keys)
         for dom_rgr in dominant_resonances(rgr)]
     nres = len(bnd_ords_by_res)
     bnd_ords_lst = zip(*bnd_ords_by_res)
@@ -212,16 +208,16 @@ def dominant_resonances(rgr):
     """ all dominant (minimum spin/maximum pi) resonance graphs
     """
     rgrs = resonances(rgr)
-    mult_min = min(map(_maximum_spin_multiplicity, rgrs))
+    mult_min = min(map(maximum_spin_multiplicity, rgrs))
     dom_rgrs = tuple(
-        rgr for rgr in rgrs if _maximum_spin_multiplicity(rgr) == mult_min)
+        rgr for rgr in rgrs if maximum_spin_multiplicity(rgr) == mult_min)
     return dom_rgrs
 
 
 def resonances(rgr):
     """ all resonance graphs with this connectivity
     """
-    return subresonances(_without_bond_orders(rgr))
+    return subresonances(without_bond_orders(rgr))
 
 
 def subresonances(rgr):
@@ -232,13 +228,13 @@ def subresonances(rgr):
 
     add_pi_bonds_ = functools.partial(_add_pi_bonds, rgr)
 
-    atm_keys = list(_atom_keys(rgr))
-    bnd_keys = list(_bond_keys(rgr))
+    atm_keys = list(atom_keys(rgr))
+    bnd_keys = list(bond_keys(rgr))
     atm_unsat_vlcs = dict_.values_by_key(
-        _atom_unsaturated_valences(rgr), atm_keys)
-    atm_bnd_keys_lst = dict_.values_by_key(_atom_bond_keys(rgr), atm_keys)
+        atom_unsaturated_valences(rgr), atm_keys)
+    atm_bnd_keys_lst = dict_.values_by_key(atom_bond_keys(rgr), atm_keys)
     bnd_caps = dict_.values_by_key(_bond_capacities(rgr), bnd_keys)
-    bnd_ord_dct = _bond_orders(rgr)
+    bnd_ord_dct = bond_orders(rgr)
 
     def _is_valid(bnd_ord_inc_dct):
         # check if pi bonds exceed unsaturated valences
@@ -261,19 +257,19 @@ def subresonances(rgr):
     bnd_ord_incs_itr = itertools.product(*map(_inc_range, bnd_caps))
     bnd_ord_inc_dct_itr = map(_bond_value_dictionary, bnd_ord_incs_itr)
     bnd_ord_inc_dct_itr = filter(_is_valid, bnd_ord_inc_dct_itr)
-    rgrs = tuple(sorted(map(add_pi_bonds_, bnd_ord_inc_dct_itr), key=_frozen))
+    rgrs = tuple(sorted(map(add_pi_bonds_, bnd_ord_inc_dct_itr), key=frozen))
     return rgrs
 
 
 def _bond_capacities(rgr):
     """ the number of electron pairs available for further pi-bonding, by bond
     """
-    atm_unsat_vlc_dct = _atom_unsaturated_valences(rgr)
+    atm_unsat_vlc_dct = atom_unsaturated_valences(rgr)
 
     def _pi_capacities(bnd_key):
         return min(map(atm_unsat_vlc_dct.__getitem__, bnd_key))
 
-    bnd_keys = list(_bond_keys(rgr))
+    bnd_keys = list(bond_keys(rgr))
     bnd_caps = tuple(map(_pi_capacities, bnd_keys))
     bnd_cap_dct = dict(zip(bnd_keys, bnd_caps))
     return bnd_cap_dct
@@ -282,15 +278,15 @@ def _bond_capacities(rgr):
 def _add_pi_bonds(rgr, bnd_ord_inc_dct):
     """ add pi bonds to this graph
     """
-    bnd_keys = _bond_keys(rgr)
+    bnd_keys = bond_keys(rgr)
     assert set(bnd_ord_inc_dct.keys()) <= bnd_keys
 
     bnd_keys = list(bnd_keys)
-    bnd_ords = dict_.values_by_key(_bond_orders(rgr), bnd_keys)
+    bnd_ords = dict_.values_by_key(bond_orders(rgr), bnd_keys)
     bnd_ord_incs = dict_.values_by_key(bnd_ord_inc_dct, bnd_keys, fill_val=0)
     new_bnd_ords = numpy.add(bnd_ords, bnd_ord_incs)
     bnd_ord_dct = dict(zip(bnd_keys, new_bnd_ords))
-    rgr = _set_bond_orders(rgr, bnd_ord_dct)
+    rgr = set_bond_orders(rgr, bnd_ord_dct)
     return rgr
 
 
@@ -298,9 +294,9 @@ def _add_pi_bonds(rgr, bnd_ord_inc_dct):
 def rotational_bond_keys(xgr, with_h_rotors=True):
     """ determine rotational bonds in this molecular graph
     """
-    xgr = _explicit(xgr)
-    atm_bnd_vlc_dct = _atom_bond_valences(xgr, bond_order=False)
-    atm_exp_hyd_vlc_dct = _atom_explicit_hydrogen_valences(xgr)
+    xgr = explicit(xgr)
+    atm_bnd_vlc_dct = atom_bond_valences(xgr, bond_order=False)
+    atm_exp_hyd_vlc_dct = atom_explicit_hydrogen_valences(xgr)
     res_dom_bnd_ords_dct = resonance_dominant_bond_orders(xgr)
 
     bnd_keys = []

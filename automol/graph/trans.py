@@ -2,19 +2,17 @@
 """
 import numbers
 from automol import dict_
-from automol.graph._graph import relabel as _relabel
-from automol.graph._graph import full_isomorphism as _full_isomorphism
-from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
-from automol.graph._graph import add_bonds as _add_bonds
-from automol.graph._graph import remove_bonds as _remove_bonds
-from automol.graph._stereo import atom_stereo_keys as _atom_stereo_keys
-from automol.graph._stereo import bond_stereo_keys as _bond_stereo_keys
-from automol.graph._graph import atom_stereo_parities as _atom_stereo_parities
-from automol.graph._graph import bond_stereo_parities as _bond_stereo_parities
-from automol.graph._graph import (without_stereo_parities as
-                                  _without_stereo_parities)
-from automol.graph._stereo import (stereo_sorted_atom_neighbor_keys as
-                                   _stereo_sorted_atom_neighbor_keys)
+from automol.graph._graph import relabel
+from automol.graph._graph import full_isomorphism
+from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import add_bonds
+from automol.graph._graph import remove_bonds
+from automol.graph._stereo import atom_stereo_keys
+from automol.graph._stereo import bond_stereo_keys
+from automol.graph._graph import atom_stereo_parities
+from automol.graph._graph import bond_stereo_parities
+from automol.graph._graph import without_stereo_parities
+from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 
 
 def from_data(frm_bnd_keys, brk_bnd_keys):
@@ -48,8 +46,8 @@ def apply(tra, xgr):
     brk_bnd_keys = broken_bond_keys(tra)
     frm_bnd_keys = formed_bond_keys(tra)
     # in case some bonds are broken *and* formed, we subtract the other set
-    xgr = _remove_bonds(xgr, brk_bnd_keys - frm_bnd_keys)
-    xgr = _add_bonds(xgr, frm_bnd_keys - brk_bnd_keys)
+    xgr = remove_bonds(xgr, brk_bnd_keys - frm_bnd_keys)
+    xgr = add_bonds(xgr, frm_bnd_keys - brk_bnd_keys)
     return xgr
 
 
@@ -58,7 +56,7 @@ def reverse(tra, xgr1, xgr2):
     """
     frm_bnd_keys = formed_bond_keys(tra)
     brk_bnd_keys = broken_bond_keys(tra)
-    atm_key_dct = _full_isomorphism(apply(tra, xgr1), xgr2)
+    atm_key_dct = full_isomorphism(apply(tra, xgr1), xgr2)
     rev_frm_bnd_keys = [frozenset(map(atm_key_dct.__getitem__, bnd_key))
                         for bnd_key in brk_bnd_keys]
     rev_brk_bnd_keys = [frozenset(map(atm_key_dct.__getitem__, bnd_key))
@@ -72,29 +70,29 @@ def is_stereo_compatible(tra, sgr1, sgr2):
     """ is this transformation compatible with the applyant/product stereo
     assignments?
     """
-    cgr1 = _without_stereo_parities(sgr1)
-    cgr2 = _without_stereo_parities(sgr2)
-    atm_key_dct = _full_isomorphism(apply(tra, cgr1), cgr2)
+    cgr1 = without_stereo_parities(sgr1)
+    cgr2 = without_stereo_parities(sgr2)
+    atm_key_dct = full_isomorphism(apply(tra, cgr1), cgr2)
 
     # determine the stereo centers which are preserved in the transformation
-    sgr1 = _relabel(sgr1, atm_key_dct)
-    atm_keys = sorted(_atom_stereo_keys(sgr1) & _atom_stereo_keys(sgr2))
-    bnd_keys = sorted(_bond_stereo_keys(sgr1) & _bond_stereo_keys(sgr2))
+    sgr1 = relabel(sgr1, atm_key_dct)
+    atm_keys = sorted(atom_stereo_keys(sgr1) & atom_stereo_keys(sgr2))
+    bnd_keys = sorted(bond_stereo_keys(sgr1) & bond_stereo_keys(sgr2))
 
-    atm_pars1 = dict_.values_by_key(_atom_stereo_parities(sgr1), atm_keys)
-    atm_pars2 = dict_.values_by_key(_atom_stereo_parities(sgr2), atm_keys)
-    bnd_pars1 = dict_.values_by_key(_bond_stereo_parities(sgr1), bnd_keys)
-    bnd_pars2 = dict_.values_by_key(_bond_stereo_parities(sgr2), bnd_keys)
+    atm_pars1 = dict_.values_by_key(atom_stereo_parities(sgr1), atm_keys)
+    atm_pars2 = dict_.values_by_key(atom_stereo_parities(sgr2), atm_keys)
+    bnd_pars1 = dict_.values_by_key(bond_stereo_parities(sgr1), bnd_keys)
+    bnd_pars2 = dict_.values_by_key(bond_stereo_parities(sgr2), bnd_keys)
 
-    atm_ngb_keys_dct1 = _atom_neighbor_keys(sgr1)
-    atm_ngb_keys_dct2 = _atom_neighbor_keys(sgr2)
+    atm_ngb_keys_dct1 = atom_neighbor_keys(sgr1)
+    atm_ngb_keys_dct2 = atom_neighbor_keys(sgr2)
 
     ret = True
 
     for atm_key, par1, par2 in zip(atm_keys, atm_pars1, atm_pars2):
-        atm_ngb_keys1 = _stereo_sorted_atom_neighbor_keys(
+        atm_ngb_keys1 = stereo_sorted_atom_neighbor_keys(
             sgr1, atm_key, atm_ngb_keys_dct1[atm_key])
-        atm_ngb_keys2 = _stereo_sorted_atom_neighbor_keys(
+        atm_ngb_keys2 = stereo_sorted_atom_neighbor_keys(
             sgr2, atm_key, atm_ngb_keys_dct2[atm_key])
 
         if _permutation_parity(atm_ngb_keys1, atm_ngb_keys2):
@@ -105,13 +103,13 @@ def is_stereo_compatible(tra, sgr1, sgr2):
     for bnd_key, par1, par2 in zip(bnd_keys, bnd_pars1, bnd_pars2):
         atm1_key, atm2_key = bnd_key
 
-        atm1_ngb_key1 = _stereo_sorted_atom_neighbor_keys(
+        atm1_ngb_key1 = stereo_sorted_atom_neighbor_keys(
             sgr1, atm1_key, atm_ngb_keys_dct1[atm1_key] - {atm2_key})[0]
-        atm2_ngb_key1 = _stereo_sorted_atom_neighbor_keys(
+        atm2_ngb_key1 = stereo_sorted_atom_neighbor_keys(
             sgr1, atm2_key, atm_ngb_keys_dct1[atm2_key] - {atm1_key})[0]
-        atm1_ngb_key2 = _stereo_sorted_atom_neighbor_keys(
+        atm1_ngb_key2 = stereo_sorted_atom_neighbor_keys(
             sgr2, atm1_key, atm_ngb_keys_dct2[atm1_key] - {atm2_key})[0]
-        atm2_ngb_key2 = _stereo_sorted_atom_neighbor_keys(
+        atm2_ngb_key2 = stereo_sorted_atom_neighbor_keys(
             sgr2, atm2_key, atm_ngb_keys_dct2[atm2_key] - {atm1_key})[0]
 
         if not ((atm1_ngb_key1 != atm1_ngb_key2) ^

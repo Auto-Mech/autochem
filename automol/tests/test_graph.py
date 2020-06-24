@@ -296,6 +296,13 @@ def test__set_atom_implicit_hydrogen_valences():
         graph.atom_symbols(C8H13O_CGR), graph.bond_keys(C8H13O_CGR))
 
 
+def test__string():
+    """ test graph.string and graph.from_string
+    """
+    for sgr in C8H13O_SGRS:
+        assert sgr == automol.graph.from_string(automol.graph.string(sgr))
+
+
 def test__without_bond_orders():
     """ test graph.without_bond_orders
     """
