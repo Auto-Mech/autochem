@@ -117,7 +117,7 @@ def string(gra):
 
     yaml_atm_dct = {atm_key: dict(zip(ATM_PROP_NAMES, atm_props))
                     for atm_key, atm_props in atoms(gra).items()}
-    yaml_bnd_dct = {','.join(map(str, sorted(bnd_key))):
+    yaml_bnd_dct = {'-'.join(map(str, sorted(bnd_key))):
                     dict(zip(BND_PROP_NAMES, bnd_props))
                     for bnd_key, bnd_props in bonds(gra).items()}
 
@@ -139,7 +139,7 @@ def from_string(gra_str):
         atm_dct, lambda x: tuple(map(x.__getitem__, ATM_PROP_NAMES)))
 
     bnd_dct = dict_.transform_keys(
-        bnd_dct, lambda x: frozenset(map(int, x.split(','))))
+        bnd_dct, lambda x: frozenset(map(int, x.split('-'))))
 
     bnd_dct = dict_.transform_values(
         bnd_dct, lambda x: tuple(map(x.__getitem__, BND_PROP_NAMES)))
