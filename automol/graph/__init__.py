@@ -1,31 +1,35 @@
 """ molecular graph
 """
 # getters
-from automol.graph._graph import atoms
-from automol.graph._graph import bonds
-from automol.graph._graph import atom_keys
-from automol.graph._graph import bond_keys
-from automol.graph._graph import atom_symbols
-from automol.graph._graph import atom_implicit_hydrogen_valences
-from automol.graph._graph import atom_stereo_parities
-from automol.graph._graph import bond_orders
-from automol.graph._graph import bond_stereo_parities
+from automol.graph._graph_base import atoms
+from automol.graph._graph_base import bonds
+from automol.graph._graph_base import atom_keys
+from automol.graph._graph_base import bond_keys
+from automol.graph._graph_base import atom_symbols
+from automol.graph._graph_base import atom_implicit_hydrogen_valences
+from automol.graph._graph_base import atom_stereo_parities
+from automol.graph._graph_base import bond_orders
+from automol.graph._graph_base import bond_stereo_parities
+# setters
+from automol.graph._graph_base import set_atom_implicit_hydrogen_valences
+from automol.graph._graph_base import set_atom_stereo_parities
+from automol.graph._graph_base import set_bond_orders
+from automol.graph._graph_base import set_bond_stereo_parities
+# I/O
+from automol.graph._graph_base import string
+from automol.graph._graph_base import from_string
+
+# graph theory library
 # setters
 from automol.graph._graph import relabel
 from automol.graph._graph import standard_keys
 from automol.graph._graph import transform_keys
-from automol.graph._graph import set_atom_implicit_hydrogen_valences
-from automol.graph._graph import set_atom_stereo_parities
-from automol.graph._graph import set_bond_orders
-from automol.graph._graph import set_bond_stereo_parities
 from automol.graph._graph import add_atom_implicit_hydrogen_valences
 from automol.graph._graph import without_bond_orders
 from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import add_atoms
 from automol.graph._graph import add_bonds
 from automol.graph._graph import add_bonded_atom
-
-# graph theory library
 # # atom properties
 from automol.graph._graph import electron_count
 from automol.graph._graph import atom_count
@@ -197,13 +201,18 @@ __all__ = [
     'bond_orders',
     'bond_stereo_parities',
     # setters
-    'relabel',
-    'standard_keys',
-    'transform_keys',
     'set_atom_implicit_hydrogen_valences',
     'set_atom_stereo_parities',
     'set_bond_orders',
     'set_bond_stereo_parities',
+    # I/O
+    'string',
+    'from_string',
+
+    # setters
+    'relabel',
+    'standard_keys',
+    'transform_keys',
     'add_atom_implicit_hydrogen_valences',
     'without_bond_orders',
     'without_stereo_parities',

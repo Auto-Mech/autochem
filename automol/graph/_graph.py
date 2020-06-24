@@ -6,76 +6,21 @@ import numpy
 import future.moves.itertools as fmit
 from qcelemental import periodictable as pt
 from automol import dict_
+from automol.graph._graph_base import atoms
+from automol.graph._graph_base import bonds
+from automol.graph._graph_base import atom_keys
+from automol.graph._graph_base import bond_keys
+from automol.graph._graph_base import atom_symbols
+from automol.graph._graph_base import atom_implicit_hydrogen_valences
+from automol.graph._graph_base import atom_stereo_parities
+from automol.graph._graph_base import bond_orders
+from automol.graph._graph_base import bond_stereo_parities
+from automol.graph._graph_base import set_atom_implicit_hydrogen_valences
+from automol.graph._graph_base import set_atom_stereo_parities
+from automol.graph._graph_base import set_bond_orders
+from automol.graph._graph_base import set_bond_stereo_parities
 from automol.graph import _networkx
-import automol.dict_.multi as mdict
 import automol.create.graph as _create
-
-ATM_SYM_POS = 0
-ATM_IMP_HYD_VLC_POS = 1
-ATM_STE_PAR_POS = 2
-
-BND_ORD_POS = 0
-BND_STE_PAR_POS = 1
-
-
-# getters
-def atoms(xgr):
-    """ atoms, as a dictionary
-    """
-    atm_dct, _ = xgr
-    return atm_dct
-
-
-def bonds(xgr):
-    """ bonds, as a dictionary
-    """
-    _, bnd_dct = xgr
-    return bnd_dct
-
-
-def atom_keys(xgr):
-    """ atom keys
-    """
-    return frozenset(atoms(xgr).keys())
-
-
-def bond_keys(xgr):
-    """ bond keys
-    """
-    return frozenset(bonds(xgr).keys())
-
-
-def atom_symbols(xgr):
-    """ atom symbols, as a dictionary
-    """
-    return mdict.by_key_by_position(atoms(xgr), atom_keys(xgr), ATM_SYM_POS)
-
-
-def atom_implicit_hydrogen_valences(xgr):
-    """ atom implicit hydrogen valences, as a dictionary
-    """
-    return mdict.by_key_by_position(atoms(xgr), atom_keys(xgr),
-                                    ATM_IMP_HYD_VLC_POS)
-
-
-def atom_stereo_parities(sgr):
-    """ atom parities, as a dictionary
-    """
-    return mdict.by_key_by_position(atoms(sgr), atom_keys(sgr),
-                                    ATM_STE_PAR_POS)
-
-
-def bond_orders(rgr):
-    """ bond orders, as a dictionary
-    """
-    return mdict.by_key_by_position(bonds(rgr), bond_keys(rgr), BND_ORD_POS)
-
-
-def bond_stereo_parities(sgr):
-    """ bond parities, as a dictionary
-    """
-    return mdict.by_key_by_position(bonds(sgr), bond_keys(sgr),
-                                    BND_STE_PAR_POS)
 
 
 # setters
@@ -111,39 +56,6 @@ def transform_keys(xgr, atm_key_func):
     atm_keys = atom_keys(xgr)
     atm_key_dct = dict(zip(atm_keys, map(atm_key_func, atm_keys)))
     return relabel(xgr, atm_key_dct)
-
-
-def set_atom_implicit_hydrogen_valences(xgr, atm_imp_hyd_vlc_dct):
-    """ set atom implicit hydrogen valences
-    """
-    atm_dct = mdict.set_by_key_by_position(atoms(xgr), atm_imp_hyd_vlc_dct,
-                                           ATM_IMP_HYD_VLC_POS)
-    bnd_dct = bonds(xgr)
-    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
-
-
-def set_atom_stereo_parities(sgr, atm_par_dct):
-    """ set atom parities
-    """
-    atm_dct = mdict.set_by_key_by_position(atoms(sgr), atm_par_dct,
-                                           ATM_STE_PAR_POS)
-    return _create.from_atoms_and_bonds(atm_dct, bonds(sgr))
-
-
-def set_bond_orders(rgr, bnd_ord_dct):
-    """ set bond orders
-    """
-    bnd_dct = mdict.set_by_key_by_position(bonds(rgr), bnd_ord_dct,
-                                           BND_ORD_POS)
-    return _create.from_atoms_and_bonds(atoms(rgr), bnd_dct)
-
-
-def set_bond_stereo_parities(sgr, bnd_par_dct):
-    """ set bond parities
-    """
-    bnd_dct = mdict.set_by_key_by_position(bonds(sgr), bnd_par_dct,
-                                           BND_STE_PAR_POS)
-    return _create.from_atoms_and_bonds(atoms(sgr), bnd_dct)
 
 
 def add_atom_implicit_hydrogen_valences(xgr, inc_atm_imp_hyd_vlc_dct):
