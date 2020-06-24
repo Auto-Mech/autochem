@@ -72,9 +72,11 @@ def test__reac__hydrogen_migration():
     assert rct_idxs
     assert prd_idxs
 
+    print("hydrogen migration")
     rct_cgr = graph.union_from_sequence(rct_cgrs)
     prd_cgr = graph.union_from_sequence(prd_cgrs)
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -104,6 +106,7 @@ def test__reac__hydrogen_migration():
     assert prd_idxs
 
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -142,7 +145,11 @@ def test__reac__hydrogen_abstraction():
     assert rct_idxs
     assert prd_idxs
 
+    print("hydrogen abstraction")
+    rct_cgr = graph.union_from_sequence(rct_cgrs)
+    print(rct_cgr)
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -153,6 +160,7 @@ def test__reac__hydrogen_abstraction():
     assert prd_idxs
 
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, prd_cgr), rct_cgr)
 
@@ -184,7 +192,9 @@ def test__reac__addition():
     assert rct_idxs
     assert prd_idxs
 
+    print("addition")
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -216,7 +226,9 @@ def test__reac__beta_scission():
     assert rct_idxs
     assert prd_idxs
 
+    print("beta scission")
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -244,7 +256,9 @@ def test__reac__elimination():
     assert rct_idxs
     assert prd_idxs
 
+    print("elimination")
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -269,6 +283,7 @@ def test__reac__elimination():
     assert prd_idxs
 
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -294,6 +309,7 @@ def test__reac__elimination():
     assert prd_idxs
 
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -321,7 +337,9 @@ def test__reac__insertion():
     assert rct_idxs
     assert prd_idxs
 
+    print("insertion")
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -346,6 +364,7 @@ def test__reac__insertion():
     assert prd_idxs
 
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -371,6 +390,7 @@ def test__reac__insertion():
     assert prd_idxs
 
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
@@ -397,13 +417,15 @@ def test__reac__substitution():
     assert rct_idxs
     assert prd_idxs
 
+    print("substitution")
     for tra in tras:
+        print(tra)
         assert graph.backbone_isomorphic(
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
 
 if __name__ == '__main__':
-    test__trans__is_stereo_compatible()
+    # test__trans__is_stereo_compatible()
     test__reac__hydrogen_migration()
     test__reac__hydrogen_abstraction()
     test__reac__addition()
