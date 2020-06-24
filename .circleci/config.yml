@@ -20,31 +20,10 @@ jobs:
                 name: Test automol
                 command: |
                     source activate automol-env
-                    ls
                     cd automol
                     # pytest -v --disable-pytest-warnings --cov=automol --pyargs automol
                     flake8 --exit-zero autommol
                     pylint --rcfile=../.pylintrc automol
-                    ls
-            - run:
-                name: Test autoread
-                command: |
-                    source activate automol-env
-                    ls
-                    cd autoread
-                    pytest -v --cov=autoread --pyargs autoread
-                    flake8 --exit-zero autoread
-                    pylint --rcfile=../.pylintrc autoread
-                    ls
-            - run:
-                name: Test autowrite
-                command: |
-                    source activate automol-env
-                    ls
-                    cd autowrite
-                    flake8 --exit-zero autowrite
-                    pylint --rcfile=../.pylintrc autoread
-                    ls
 workflows:
     version: 2
     build-all:
