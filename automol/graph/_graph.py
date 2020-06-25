@@ -19,30 +19,12 @@ from automol.graph._graph_base import set_atom_implicit_hydrogen_valences
 from automol.graph._graph_base import set_atom_stereo_parities
 from automol.graph._graph_base import set_bond_orders
 from automol.graph._graph_base import set_bond_stereo_parities
+from automol.graph._graph_base import relabel
 from automol.graph import _networkx
 import automol.create.graph as _create
 
 
 # setters
-def relabel(xgr, atm_key_dct):
-    """ relabel the graph with new atom keys
-    """
-    orig_atm_keys = atom_keys(xgr)
-    assert set(atm_key_dct.keys()) <= orig_atm_keys
-
-    new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
-    new_atm_key_dct.update(atm_key_dct)
-
-    _relabel_atom_key = new_atm_key_dct.__getitem__
-
-    def _relabel_bond_key(bnd_key):
-        return frozenset(map(_relabel_atom_key, bnd_key))
-
-    atm_dct = dict_.transform_keys(atoms(xgr), _relabel_atom_key)
-    bnd_dct = dict_.transform_keys(bonds(xgr), _relabel_bond_key)
-    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
-
-
 def standard_keys(xgr):
     """ replace the current atom keys with standard indices, counting from zero
     """
