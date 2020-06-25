@@ -448,6 +448,8 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
 
+        frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
+
         ret = ts_zma, dist_name, frm_bnd_key, tors_names
 
     return ret
@@ -607,6 +609,9 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
                 tors_name = ts_name_dct['babs3']
                 tors_names += (tors_name,)
 
+            frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
+            brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
+
             ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names
 
     return ret
@@ -744,6 +749,27 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                 tors_name = ts_name_dct['babs3']
                 tors_names += (tors_name,)
 
+            frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
+            brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
+
             ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names
 
     return ret
+
+
+def shift_vals_from_dummy(vals, zma):
+    """ Shift a set of values using remdummy
+        Shift requires indices be 1-indexed
+    """
+
+    dummy_idxs = automol.zmatrix.dummy_atom_indices(zma)
+
+    shift_vals = []
+    for val in vals:
+        shift = 0
+        for dummy in dummy_idxs:
+            if val >= dummy:
+                shift += 1
+        shift_vals.append(val+shift)
+
+    return shift_vals
