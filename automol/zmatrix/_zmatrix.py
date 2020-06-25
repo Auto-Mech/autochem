@@ -54,6 +54,12 @@ def count(zma):
     return _v_.count(var_(zma))
 
 
+def atom_count(zma, atype, match=True):
+    """ the number of entries for desired atom types (put in vma code)
+    """
+    return len(atom_count(zma, atype, match=match))
+
+
 def symbols(zma):
     """ atomic symbols, by z-matrix row
     """
@@ -186,12 +192,23 @@ def dummy_coordinate_names(zma):
     return _v_.dummy_coordinate_names(var_(zma))
 
 
-def dummy_atom_indices(zma):
-    """ indices of dummy atoms in this z-matrix
+def atom_indices(zma, atype, match=True):
+    """ indices for a particular atom type
+        :param match: grab idxs that match given atom type
     """
+
     syms = symbols(zma)
-    dummy_idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
-    return tuple(dummy_idxs)
+    idxs = tuple()
+    for idx, sym in enumerate(syms):
+        if sym == atype and match:
+            idxs += (idx,)
+        elif sym != atype and not match:
+            idxs += (idx,)
+
+    # old dummy match, may be useful
+    # idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+
+    return idxs
 
 
 def atom_specifiers(zma, without_dummies=False):
@@ -248,7 +265,7 @@ def dummy_atom_anchors(zma):
     atm_spe_dct = atom_specifiers(zma)
     atm_dep_dct = atom_dependents(zma, without_dummies=True)
 
-    dummy_idxs = dummy_atom_indices(zma)
+    dummy_idxs = atom_indices(zma, 'X', match=True)
 
     atm_ach_dct = {}
     for dummy_idx in dummy_idxs:

@@ -64,18 +64,33 @@ def count(geo):
     return len(symbols(geo))
 
 
-def heavy_count(geo):
-    """ count the number of atoms in the geometry
+def atom_count(geo, atype, match=True):
+    """ count the number of some atom type in the geometry
     """
-    cnt = 0
-    for sym in symbols(geo):
-        if sym != 'H':
-            cnt += 1
-    return cnt
+    return len(atom_indices(geo, atype, match=match))
+
+
+def atom_indices(geo, atype, match=True):
+    """ indices for a particular atom type
+        :param match: grab idxs that match given atom type
+    """
+
+    syms = symbols(geo)
+    idxs = tuple()
+    for idx, sym in enumerate(syms):
+        if sym == atype and match:
+            idxs += (idx,)
+        elif sym != atype and not match:
+            idxs += (idx,)
+
+    # old dummy match, may be useful
+    # idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+
+    return idxs
 
 
 def dummy_atom_indices(geo):
-    """ indices of dummy atoms in this geometry
+    """ indices of dummy atoms in this geometry (Replace w/ above at some pt)
     """
     syms = symbols(geo)
     dummy_idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]

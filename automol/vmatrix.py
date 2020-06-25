@@ -29,12 +29,6 @@ def from_data(syms, key_mat, name_mat, one_indexed=False):
 
 
 # getters
-def count(zma):
-    """ the number of v-matrix rows (number of atoms or dummy atoms)
-    """
-    return len(symbols(zma))
-
-
 def symbols(vma):
     """ atomic symbols, by v-matrix row
     """
@@ -43,6 +37,12 @@ def symbols(vma):
     else:
         syms = ()
     return syms
+
+
+def count(zma):
+    """ the number of v-matrix rows (number of atoms or dummy atoms)
+    """
+    return len(symbols(zma))
 
 
 def key_matrix(vma, shift=0):
