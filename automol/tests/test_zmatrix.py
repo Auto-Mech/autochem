@@ -225,6 +225,17 @@ def test__coordinates():
     assert zmatrix.coordinates(CH4O_ZMA) == coo_dct
 
 
+def test__atom_indices():
+    """ test zmatrix.atom_indices
+    """
+
+    hidxs = zmatrix.atom_indices(CH4O_ZMA, 'H', match=True)
+    heavyidxs = zmatrix.atom_indices(CH4O_ZMA, 'H', match=False)
+
+    assert hidxs == (0, 3, 4, 5)
+    assert heavyidxs == (1, 2)
+
+
 def test__bond_idxs():
     """ test bond indices
     """
@@ -894,10 +905,11 @@ if __name__ == '__main__':
     # test__ts__hydrogen_abstraction()
     # test__is_standard_form()
     # test__join()
-    test__convert()
+    # test__convert()
     # test__from_string()
     # test__ts__addition()
     # test__ts__hydrogen_abstraction()
     # test__ts__hydrogen_migration()
+    test__atom_indices()
     # test__bond_idxs()
     # test__get_babs1()

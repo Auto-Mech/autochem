@@ -5,6 +5,7 @@ from automol.zmatrix._zmatrix import from_geometry
 # getters
 from automol.zmatrix._zmatrix import var_
 from automol.zmatrix._zmatrix import count
+from automol.zmatrix._zmatrix import atom_count
 from automol.zmatrix._zmatrix import symbols
 from automol.zmatrix._zmatrix import key_matrix
 from automol.zmatrix._zmatrix import name_matrix
@@ -24,7 +25,7 @@ from automol.zmatrix._zmatrix import new_central_angle_name
 from automol.zmatrix._zmatrix import new_dihedral_angle_name
 from automol.zmatrix._zmatrix import angle_names
 from automol.zmatrix._zmatrix import dummy_coordinate_names
-from automol.zmatrix._zmatrix import dummy_atom_indices
+from automol.zmatrix._zmatrix import atom_indices
 from automol.zmatrix._zmatrix import atom_specifiers
 from automol.zmatrix._zmatrix import atom_dependents
 from automol.zmatrix._zmatrix import dummy_atom_anchors
@@ -127,6 +128,7 @@ __all__ = [
     # getters
     'var_',
     'count',
+    'atom_count',
     'symbols',
     'key_matrix',
     'name_matrix',
@@ -146,7 +148,7 @@ __all__ = [
     'new_dihedral_angle_name',
     'angle_names',
     'dummy_coordinate_names',
-    'dummy_atom_indices',
+    'atom_indices',
     'atom_specifiers',
     'atom_dependents',
     'dummy_atom_anchors',

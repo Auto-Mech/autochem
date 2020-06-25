@@ -61,6 +61,17 @@ def test__formula():
     assert geom.formula(C2H2CLF_GEO) == {'F': 1, 'C': 2, 'Cl': 1, 'H': 2}
 
 
+def test__atom_indices():
+    """ test geom.atom_indices
+    """
+
+    hidxs = geom.atom_indices(C2H2CLF_GEO, 'H', match=True)
+    heavyidxs = geom.atom_indices(C2H2CLF_GEO, 'H', match=False)
+
+    assert hidxs == (4, 5)
+    assert heavyidxs == (0, 1, 2, 3)
+
+
 def test__coulomb_spectrum():
     """ test geom.coulomb_spectrum
     """
@@ -227,11 +238,12 @@ def test__rot_permutated_geoms():
 
 
 if __name__ == '__main__':
-    test__from_data()
-    test__is_valid()
-    test__set_coordinates()
-    test__swap_coordinates()
-    test__move_coordinates()
-    test__reflect_coordinates()
-    test__external_symmetry_factor()
-    test__rot_permutated_geoms()
+    # test__from_data()
+    # test__is_valid()
+    test__atom_indices()
+    # test__set_coordinates()
+    # test__swap_coordinates()
+    # test__move_coordinates()
+    # test__reflect_coordinates()
+    # test__external_symmetry_factor()
+    # test__rot_permutated_geoms()
