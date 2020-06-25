@@ -120,25 +120,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     xgr1, = automol.graph.connected_components(gra)
     chains_dct = automol.graph.atom_longest_chains(xgr1)
 
-    # a2_idx = chains_dct[a1_idx][1]
-    # a3_idx = chains_dct[a1_idx][2]
-    # if a3_idx == h_idx:
-        # a1_neighbors = _atom_neighbor_keys(xgr1)[a1_idx]
-        # for idx in a1_neighbors:
-            # if idx not in (h_idx, a2_idx):
-                # a3_idx = idx
-    # if a2_idx > h_idx or a3_idx > h_idx:
-        # atm_ngb_keys_dct = automol.graph.atom_neighbor_keys(gra)
-        # ngbs = atm_ngb_keys_dct[a1_idx]
-        # for idx in ngbs:
-            # if idx not in [h_idx]:
-                # new_ngbs = atm_ngb_keys_dct[idx]
-                # for new_idx in new_ngbs:
-                    # if new_idx not in [a1_idx, h_idx]:
-                        # a2_idx = idx
-                        # a3_idx = new_idx
-                        # break
-
     # print('rct_zma:\n',automol.zmatrix.string(rct_zma))
     idx_found = True
     a3_idx = chains_dct[a2_idx][1]
@@ -221,7 +202,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
             dist_name = coo_name
             break
 
-    # if migrating H atom is not the final zmat entry, shift it to the end (if needed)
+    # if migrating H atom is not the final zmat entry, shift it to the end (if
+    # needed)
     if h_idx != automol.zmatrix.count(ts_zma) - 1:
         ts_zma, h_idx = automol.zmatrix.shift_row_to_end(ts_zma, h_idx)
 
@@ -232,7 +214,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     # get full set of potential torsional coordinates
     pot_tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
     print('pot_tors_names test:', pot_tors_names)
-    print('ts_zma test:\n',automol.zmatrix.string(ts_zma))
+    print('ts_zma test:\n', automol.zmatrix.string(ts_zma))
 
     # remove the torsional coordinates that would break reaction coordinate
     gra = automol.zmatrix.graph(ts_zma, remove_stereo=True)
@@ -269,7 +251,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     for tors_name in pot_tors_names:
         if tors_name not in bad_tors:
             axis = coo_dct[tors_name][0][1:3]
-            #print('axis test:', axis)
             grp1 = [axis[1]] + (
                 list(automol.graph.branch_atom_keys(gra, axis[0], axis) -
                      set(axis)))
@@ -281,6 +262,9 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 tors_names.append(tors_name)
 
     print('final_tors_names:', tors_names)
+
+    frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
+    brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
 
     ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names
 
@@ -470,6 +454,7 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                     (mig_key in grp2 and a1_idx in grp1)):
                 tors_names.append(tors_name)
 
+        frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
         ret = ts_zma, dist_name, brk_dist_name, frm_bnd_key, tors_names
 
     return ret
@@ -498,6 +483,25 @@ def beta_scission(rct_zmas, prd_zmas):
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
+        brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
         ret = ts_zma, dist_name, brk_bnd_key, tors_names
 
     return ret
+
+
+def shift_vals_from_dummy(vals, zma):
+    """ Shift a set of values using remdummy
+        Shift requires indices be 1-indexed
+    """
+
+    dummy_idxs = automol.zmatrix.atom_indices(zma, atype='X')
+
+    shift_vals = []
+    for val in vals:
+        shift = 0
+        for dummy in dummy_idxs:
+            if val >= dummy:
+                shift += 1
+        shift_vals.append(val+shift)
+
+    return shift_vals
