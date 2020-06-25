@@ -634,7 +634,7 @@ def test__ts__hydrogen_abstraction():
         zmatrix.ts.hydrogen_abstraction(rct_zmas, prd_zmas))
 
     assert dist_name == 'R6'
-    assert frm_key == frozenset({4, 5})
+    assert frm_key == frozenset({4, 6})
     assert brk_key == frozenset({0, 4})
     assert not tors_names
     print(zmatrix.string(ts_zma))
@@ -723,7 +723,7 @@ def test__ts__hydrogen_abstraction():
     print(frm_key_b, brk_key_b)
 
     assert dist_name == 'R4'
-    assert frm_key == frozenset({1, 3})
+    assert frm_key == frozenset({1, 4})
     assert brk_key == frozenset({0, 1})
     assert tors_names == ('D5',)
     # assert zmatrix.almost_equal(
@@ -909,7 +909,7 @@ if __name__ == '__main__':
     # test__from_string()
     # test__ts__addition()
     # test__ts__hydrogen_abstraction()
-    # test__ts__hydrogen_migration()
-    test__atom_indices()
+    test__ts__hydrogen_migration()
+    # test__atom_indices()
     # test__bond_idxs()
     # test__get_babs1()
