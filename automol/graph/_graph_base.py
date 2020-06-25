@@ -5,8 +5,8 @@ from automol import dict_
 import automol.create.graph as _create
 import automol.dict_.multi as mdict
 
-ATM_PROP_NAMES = ['symbol', 'implicit_hydrogen_valence', 'stereo_parity']
-BND_PROP_NAMES = ['order', 'stereo_parity']
+ATM_PROP_NAMES = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity')
+BND_PROP_NAMES = ('order', 'stereo_parity')
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_VLC_POS = 1
@@ -110,16 +110,49 @@ def set_bond_stereo_parities(sgr, bnd_par_dct):
     return _create.from_atoms_and_bonds(atoms(sgr), bnd_dct)
 
 
+def relabel(xgr, atm_key_dct):
+    """ relabel the graph with new atom keys
+    """
+    orig_atm_keys = atom_keys(xgr)
+    assert set(atm_key_dct.keys()) <= orig_atm_keys
+
+    new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
+    new_atm_key_dct.update(atm_key_dct)
+
+    _relabel_atom_key = new_atm_key_dct.__getitem__
+
+    def _relabel_bond_key(bnd_key):
+        return frozenset(map(_relabel_atom_key, bnd_key))
+
+    atm_dct = dict_.transform_keys(atoms(xgr), _relabel_atom_key)
+    bnd_dct = dict_.transform_keys(bonds(xgr), _relabel_bond_key)
+    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+
+
 # I/O
 def string(gra):
     """ write the graph to a string
     """
+    # shift to one-indexing when we print
+    atm_key_dct = {atm_key: atm_key+1 for atm_key in atom_keys(gra)}
+    gra = relabel(gra, atm_key_dct)
 
-    yaml_atm_dct = {atm_key: dict(zip(ATM_PROP_NAMES, atm_props))
-                    for atm_key, atm_props in atoms(gra).items()}
-    yaml_bnd_dct = {'-'.join(map(str, sorted(bnd_key))):
-                    dict(zip(BND_PROP_NAMES, bnd_props))
-                    for bnd_key, bnd_props in bonds(gra).items()}
+    yaml_atm_dct = atoms(gra)
+    yaml_bnd_dct = bonds(gra)
+
+    # prepare the atom dictionary
+    yaml_atm_dct = dict(sorted(yaml_atm_dct.items()))
+    yaml_atm_dct = dict_.transform_values(
+        yaml_atm_dct, lambda x: dict(zip(ATM_PROP_NAMES, x)))
+
+    # perpare the bond dictionary
+    yaml_bnd_dct = dict_.transform_keys(
+        yaml_bnd_dct, lambda x: tuple(sorted(x)))
+    yaml_bnd_dct = dict(sorted(yaml_bnd_dct.items()))
+    yaml_bnd_dct = dict_.transform_keys(
+        yaml_bnd_dct, lambda x: '-'.join(map(str, x)))
+    yaml_bnd_dct = dict_.transform_values(
+        yaml_bnd_dct, lambda x: dict(zip(BND_PROP_NAMES, x)))
 
     yaml_gra_dct = {'atoms': yaml_atm_dct, 'bonds': yaml_bnd_dct}
 
@@ -144,7 +177,13 @@ def from_string(gra_str):
     bnd_dct = dict_.transform_values(
         bnd_dct, lambda x: tuple(map(x.__getitem__, BND_PROP_NAMES)))
 
-    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+    gra = _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+
+    # shift back to zero-indexing when we read it in
+    atm_key_dct = {atm_key: atm_key-1 for atm_key in atom_keys(gra)}
+    gra = relabel(gra, atm_key_dct)
+
+    return gra
 
 
 if __name__ == '__main__':
@@ -158,6 +197,7 @@ if __name__ == '__main__':
          frozenset({3, 5}): (1, False), frozenset({5, 7}): (1, None)})
 
     GRA_STR = string(GRA)
-    _GRA = from_string(GRA_STR)
+    print(GRA_STR)
+    # _GRA = from_string(GRA_STR)
 
-    print(GRA == _GRA)
+    # print(GRA == _GRA)
