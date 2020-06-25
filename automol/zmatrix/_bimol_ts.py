@@ -761,8 +761,7 @@ def shift_vals_from_dummy(vals, zma):
     """ Shift a set of values using remdummy
         Shift requires indices be 1-indexed
     """
-
-    dummy_idxs = automol.zmatrix.dummy_atom_indices(zma)
+    dummy_idxs = automol.zmatrix.atom_indices(zma, atype='X')
 
     shift_vals = []
     for val in vals:
