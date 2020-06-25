@@ -70,7 +70,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 if dist < min_dist:
                     min_dist = dist
                     frm_bnd_key = bnd_key
-                    brk_bnd_key = automol.graph.trans.broken_bond_keys(tra_i)
+                    brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra_i)
                 init_zma, = rct_zmas
 
             # figure out which idx in frm_bnd_keys corresponds to the hydrogen
@@ -84,7 +84,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
             brk_dist_coo_key = tuple(reversed(sorted(brk_bnd_key)))
             # print('coo key test:', dist_coo_key, brk_dist_coo_key)
-            for idx in brk_dist_coo_key[0]:
+            for idx in brk_dist_coo_key:
                 # print('idx test:', idx)
                 if symbols[idx] != 'H':
                     a2_idx = idx
@@ -493,6 +493,7 @@ def shift_vals_from_dummy(vals, zma):
     """ Shift a set of values using remdummy
         Shift requires indices be 1-indexed
     """
+    type_ = type(vals)
 
     dummy_idxs = automol.zmatrix.atom_indices(zma, atype='X')
 
@@ -503,5 +504,7 @@ def shift_vals_from_dummy(vals, zma):
             if val >= dummy:
                 shift += 1
         shift_vals.append(val+shift)
+
+    shift_vals = type_(shift_vals)
 
     return shift_vals
