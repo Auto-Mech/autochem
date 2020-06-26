@@ -17,42 +17,42 @@ BND_STE_PAR_POS = 1
 
 
 # getters
-def atoms(xgr):
+def atoms(gra):
     """ atoms, as a dictionary
     """
-    atm_dct, _ = xgr
+    atm_dct, _ = gra
     return atm_dct
 
 
-def bonds(xgr):
+def bonds(gra):
     """ bonds, as a dictionary
     """
-    _, bnd_dct = xgr
+    _, bnd_dct = gra
     return bnd_dct
 
 
-def atom_keys(xgr):
+def atom_keys(gra):
     """ atom keys
     """
-    return frozenset(atoms(xgr).keys())
+    return frozenset(atoms(gra).keys())
 
 
-def bond_keys(xgr):
+def bond_keys(gra):
     """ bond keys
     """
-    return frozenset(bonds(xgr).keys())
+    return frozenset(bonds(gra).keys())
 
 
-def atom_symbols(xgr):
+def atom_symbols(gra):
     """ atom symbols, as a dictionary
     """
-    return mdict.by_key_by_position(atoms(xgr), atom_keys(xgr), ATM_SYM_POS)
+    return mdict.by_key_by_position(atoms(gra), atom_keys(gra), ATM_SYM_POS)
 
 
-def atom_implicit_hydrogen_valences(xgr):
+def atom_implicit_hydrogen_valences(gra):
     """ atom implicit hydrogen valences, as a dictionary
     """
-    return mdict.by_key_by_position(atoms(xgr), atom_keys(xgr),
+    return mdict.by_key_by_position(atoms(gra), atom_keys(gra),
                                     ATM_IMP_HYD_VLC_POS)
 
 
@@ -77,12 +77,12 @@ def bond_stereo_parities(sgr):
 
 
 # setters
-def set_atom_implicit_hydrogen_valences(xgr, atm_imp_hyd_vlc_dct):
+def set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct):
     """ set atom implicit hydrogen valences
     """
-    atm_dct = mdict.set_by_key_by_position(atoms(xgr), atm_imp_hyd_vlc_dct,
+    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_imp_hyd_vlc_dct,
                                            ATM_IMP_HYD_VLC_POS)
-    bnd_dct = bonds(xgr)
+    bnd_dct = bonds(gra)
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
@@ -110,10 +110,10 @@ def set_bond_stereo_parities(sgr, bnd_par_dct):
     return _create.from_atoms_and_bonds(atoms(sgr), bnd_dct)
 
 
-def relabel(xgr, atm_key_dct):
+def relabel(gra, atm_key_dct):
     """ relabel the graph with new atom keys
     """
-    orig_atm_keys = atom_keys(xgr)
+    orig_atm_keys = atom_keys(gra)
     assert set(atm_key_dct.keys()) <= orig_atm_keys
 
     new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
@@ -124,8 +124,8 @@ def relabel(xgr, atm_key_dct):
     def _relabel_bond_key(bnd_key):
         return frozenset(map(_relabel_atom_key, bnd_key))
 
-    atm_dct = dict_.transform_keys(atoms(xgr), _relabel_atom_key)
-    bnd_dct = dict_.transform_keys(bonds(xgr), _relabel_bond_key)
+    atm_dct = dict_.transform_keys(atoms(gra), _relabel_atom_key)
+    bnd_dct = dict_.transform_keys(bonds(gra), _relabel_bond_key)
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 

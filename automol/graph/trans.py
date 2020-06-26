@@ -2,7 +2,7 @@
 """
 import numbers
 from automol import dict_
-from automol.graph._graph import relabel
+from automol.graph._graph import relabel as _relabel
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import add_bonds
@@ -40,6 +40,18 @@ def broken_bond_keys(tra):
     return brk_bnd_keys
 
 
+def relabel(tra, atm_key_dct):
+    """ relabel the atom keys in the transformation
+    """
+    def _relabel_bond_key(bnd_key):
+        return frozenset(map(atm_key_dct.__getitem__, bnd_key))
+
+    frm_bnd_keys = list(map(_relabel_bond_key, formed_bond_keys(tra)))
+    brk_bnd_keys = list(map(_relabel_bond_key, broken_bond_keys(tra)))
+
+    return from_data(frm_bnd_keys, brk_bnd_keys)
+
+
 def apply(tra, xgr):
     """ apply this transformation to a graph
     """
@@ -75,7 +87,7 @@ def is_stereo_compatible(tra, sgr1, sgr2):
     atm_key_dct = full_isomorphism(apply(tra, cgr1), cgr2)
 
     # determine the stereo centers which are preserved in the transformation
-    sgr1 = relabel(sgr1, atm_key_dct)
+    sgr1 = _relabel(sgr1, atm_key_dct)
     atm_keys = sorted(atom_stereo_keys(sgr1) & atom_stereo_keys(sgr2))
     bnd_keys = sorted(bond_stereo_keys(sgr1) & bond_stereo_keys(sgr2))
 

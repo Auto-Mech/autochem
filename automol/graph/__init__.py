@@ -23,6 +23,7 @@ from automol.graph._graph_base import from_string
 # setters
 from automol.graph._graph import relabel
 from automol.graph._graph import standard_keys
+from automol.graph._graph import standard_keys_for_sequence
 from automol.graph._graph import transform_keys
 from automol.graph._graph import add_atom_implicit_hydrogen_valences
 from automol.graph._graph import without_bond_orders
@@ -212,6 +213,7 @@ __all__ = [
     # setters
     'relabel',
     'standard_keys',
+    'standard_keys_for_sequence',
     'transform_keys',
     'add_atom_implicit_hydrogen_valences',
     'without_bond_orders',
