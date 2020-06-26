@@ -126,6 +126,10 @@ def test__inchi_geometry():
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
     assert ich == ref_ich
 
+    ref_ich = 'InChI=1S/Cl2/c1-2'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    assert ich == ref_ich
+
 
 def test__geom__zmatrix():
     """ test automol.geom.zmatrix

@@ -25,15 +25,6 @@ def geometry(ich):
     return geo
 
 
-# old function? these lines don't do anything
-# def _connected_stereo_geometry(ich):
-#     ref_ich = ich
-#
-#     ich = automol.inchi.standard_form(ich, remove_stereo=True)
-#     geo = _connected_geometry(ich)
-#     ich, nums = automol.convert.geom.inchi_with_sort(geo)
-
-
 def _connected_geometry(ich):
     geo = object_from_hardcoded_inchi_by_key('geom', ich)
     if geo is None:
@@ -54,7 +45,7 @@ def _connected_geometry(ich):
                 raise ValueError
 
             gra = automol.convert.inchi.graph(ich, no_stereo=True)
-            geo = automol.graph.heuristic_geometry(gra)
+            geo, _ = automol.graph.heuristic_geometry(gra)
             return geo
 
         for gen_ in [_gen1, _gen2, _gen3]:
