@@ -11,20 +11,20 @@ from automol.graph._graph_base import bond_orders
 from automol.graph._graph_base import bond_stereo_parities
 
 
-def from_graph(xgr):
+def from_graph(gra):
     """ networkx graph object from a molecular graph
     """
     nxg = networkx.Graph()
-    nxg.add_nodes_from(atom_keys(xgr))
-    nxg.add_edges_from(bond_keys(xgr))
-    networkx.set_node_attributes(nxg, atom_symbols(xgr), 'symbol')
-    networkx.set_node_attributes(nxg, atom_implicit_hydrogen_valences(xgr),
+    nxg.add_nodes_from(atom_keys(gra))
+    nxg.add_edges_from(bond_keys(gra))
+    networkx.set_node_attributes(nxg, atom_symbols(gra), 'symbol')
+    networkx.set_node_attributes(nxg, atom_implicit_hydrogen_valences(gra),
                                  'implicit_hydrogen_valence')
-    networkx.set_node_attributes(nxg, atom_stereo_parities(xgr),
+    networkx.set_node_attributes(nxg, atom_stereo_parities(gra),
                                  'stereo_parity')
-    networkx.set_edge_attributes(nxg, bond_orders(xgr),
+    networkx.set_edge_attributes(nxg, bond_orders(gra),
                                  'order')
-    networkx.set_edge_attributes(nxg, bond_stereo_parities(xgr),
+    networkx.set_edge_attributes(nxg, bond_stereo_parities(gra),
                                  'stereo_parity')
 
     return nxg

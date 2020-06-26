@@ -291,13 +291,13 @@ def _add_pi_bonds(rgr, bnd_ord_inc_dct):
 
 
 # other utilities
-def rotational_bond_keys(xgr, with_h_rotors=True):
+def rotational_bond_keys(gra, with_h_rotors=True):
     """ determine rotational bonds in this molecular graph
     """
-    xgr = explicit(xgr)
-    atm_bnd_vlc_dct = atom_bond_valences(xgr, bond_order=False)
-    atm_exp_hyd_vlc_dct = atom_explicit_hydrogen_valences(xgr)
-    res_dom_bnd_ords_dct = resonance_dominant_bond_orders(xgr)
+    gra = explicit(gra)
+    atm_bnd_vlc_dct = atom_bond_valences(gra, bond_order=False)
+    atm_exp_hyd_vlc_dct = atom_explicit_hydrogen_valences(gra)
+    res_dom_bnd_ords_dct = resonance_dominant_bond_orders(gra)
 
     bnd_keys = []
     for bnd_key, bnd_ords in res_dom_bnd_ords_dct.items():

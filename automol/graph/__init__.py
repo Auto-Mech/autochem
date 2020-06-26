@@ -23,6 +23,7 @@ from automol.graph._graph_base import from_string
 # setters
 from automol.graph._graph import relabel
 from automol.graph._graph import standard_keys
+from automol.graph._graph import standard_keys_for_sequence
 from automol.graph._graph import transform_keys
 from automol.graph._graph import add_atom_implicit_hydrogen_valences
 from automol.graph._graph import without_bond_orders
@@ -53,7 +54,6 @@ from automol.graph._graph import longest_chain
 from automol.graph._graph import atom_longest_chains
 from automol.graph._graph import union
 from automol.graph._graph import union_from_sequence
-from automol.graph._graph import union_from_sequence_with_standard_keys
 from automol.graph._graph import subgraph
 from automol.graph._graph import bond_induced_subgraph
 # # transformations
@@ -213,6 +213,7 @@ __all__ = [
     # setters
     'relabel',
     'standard_keys',
+    'standard_keys_for_sequence',
     'transform_keys',
     'add_atom_implicit_hydrogen_valences',
     'without_bond_orders',
@@ -245,7 +246,6 @@ __all__ = [
     'atom_longest_chains',
     'union',
     'union_from_sequence',
-    'union_from_sequence_with_standard_keys',
     'subgraph',
     'bond_induced_subgraph',
     # # transformations

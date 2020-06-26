@@ -39,7 +39,7 @@ def from_data(atom_symbols, bond_keys, atom_implicit_hydrogen_valences=None,
         bond_orders=bond_orders,
         bond_stereo_parities=bond_stereo_parities)
 
-    gra = from_atoms_and_bonds(atoms=atm_dct, bonds=bnd_dct)
+    gra = _from_atoms_and_bonds(atoms=atm_dct, bonds=bnd_dct)
     return gra
 
 
@@ -76,6 +76,7 @@ def atoms_from_data(atom_symbols, atom_implicit_hydrogen_valences=None,
     vlcs = list(map(int, vlcs))
 
     assert all(par in (None, False, True) for par in pars)
+    pars = [bool(par) if par is not None else par for par in pars]
 
     atm_dct = dict(zip(keys, zip(syms, vlcs, pars)))
     return atm_dct
@@ -114,12 +115,41 @@ def bonds_from_data(bond_keys, bond_orders=None, bond_stereo_parities=None):
     ords = list(map(int, ords))
 
     assert all(par in (None, False, True) for par in pars)
+    pars = [bool(par) if par is not None else par for par in pars]
 
     bnd_dct = dict(zip(keys, zip(ords, pars)))
     return bnd_dct
 
 
 def from_atoms_and_bonds(atoms, bonds):
+    """ construct a molecular graph from atom and bond dictionaries
+
+    format:
+        gra = (atm_dct, bnd_dct)
+
+    :param atoms: atom dictionary
+    :type atoms: dict
+    :param bonds: bond dictionary
+    :type bonds: dict
+    """
+    atm_dct = dict(atoms)
+    bnd_dct = dict(bonds)
+
+    atm_sym_dct = dict_.transform_values(atm_dct, lambda x: x[0])
+    atm_imp_hyd_vlc_dct = dict_.transform_values(atm_dct, lambda x: x[1])
+    atm_ste_par_dct = dict_.transform_values(atm_dct, lambda x: x[2])
+
+    bnd_ord_dct = dict_.transform_values(bnd_dct, lambda x: x[0])
+    bnd_ste_par_dct = dict_.transform_values(bnd_dct, lambda x: x[1])
+
+    return from_data(
+        atm_sym_dct, bnd_dct.keys(),
+        atom_implicit_hydrogen_valences=atm_imp_hyd_vlc_dct,
+        atom_stereo_parities=atm_ste_par_dct, bond_orders=bnd_ord_dct,
+        bond_stereo_parities=bnd_ste_par_dct)
+
+
+def _from_atoms_and_bonds(atoms, bonds):
     """ construct a molecular graph from atom and bond dictionaries
 
     format:

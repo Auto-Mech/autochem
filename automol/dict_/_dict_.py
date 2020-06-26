@@ -71,3 +71,12 @@ def filter_by_value(dct, func=lambda val: val):
     """ filter dictionary entries by their values
     """
     return {key: val for key, val in dct.items() if func(val)}
+
+
+def merge_sequence(dcts):
+    """ merge a sequence of dictionaries
+    """
+    merged_dct = {}
+    for dct in dcts:
+        merged_dct.update(dct)
+    return merged_dct

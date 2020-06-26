@@ -24,10 +24,10 @@ from automol.graph._graph import explicit_hydrogen_keys
 from automol.graph._graph import rings_bond_keys
 
 
-def has_stereo(xgr):
+def has_stereo(gra):
     """ does this graph have stereo of any kind?
     """
-    return bool(atom_stereo_keys(xgr) or bond_stereo_keys(xgr))
+    return bool(atom_stereo_keys(gra) or bond_stereo_keys(gra))
 
 
 def atom_stereo_keys(sgr):
@@ -46,26 +46,26 @@ def bond_stereo_keys(sgr):
     return bnd_ste_keys
 
 
-def stereo_priority_vector(xgr, atm_key, atm_ngb_key):
+def stereo_priority_vector(gra, atm_key, atm_ngb_key):
     """ generates a sortable one-to-one representation of the branch extending
     from `atm_key` through its bonded neighbor `atm_ngb_key`
     """
-    bbn_keys = backbone_keys(xgr)
-    exp_hyd_keys = explicit_hydrogen_keys(xgr)
+    bbn_keys = backbone_keys(gra)
+    exp_hyd_keys = explicit_hydrogen_keys(gra)
 
     if atm_ngb_key not in bbn_keys:
         assert atm_ngb_key in exp_hyd_keys
-        assert frozenset({atm_key, atm_ngb_key}) in bonds(xgr)
+        assert frozenset({atm_key, atm_ngb_key}) in bonds(gra)
         pri_vec = ()
     else:
-        xgr = implicit(xgr)
-        atm_dct = atoms(xgr)
-        bnd_dct = bonds(xgr)
+        gra = implicit(gra)
+        atm_dct = atoms(gra)
+        bnd_dct = bonds(gra)
         assert atm_key in bbn_keys
         assert frozenset({atm_key, atm_ngb_key}) in bnd_dct
 
         # here, switch to an implicit graph
-        atm_ngb_keys_dct = atom_neighbor_keys(xgr)
+        atm_ngb_keys_dct = atom_neighbor_keys(gra)
 
         def _priority_vector(atm1_key, atm2_key, seen_keys):
             # we keep a list of seen keys to cut off cycles, avoiding infinite
@@ -101,19 +101,19 @@ def _replace_nones_with_negative_infinity(seq):
     return [-numpy.inf if val is None else val for val in seq]
 
 
-def stereogenic_atom_keys(xgr):
+def stereogenic_atom_keys(gra):
     """ (unassigned) stereogenic atoms in this graph
     """
-    xgr = without_bond_orders(xgr)
-    xgr = explicit(xgr)  # for simplicity, add the explicit hydrogens back in
-    atm_keys = dict_.keys_by_value(atom_bond_valences(xgr), lambda x: x == 4)
-    atm_keys -= atom_stereo_keys(xgr)
+    gra = without_bond_orders(gra)
+    gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
+    atm_keys = dict_.keys_by_value(atom_bond_valences(gra), lambda x: x == 4)
+    atm_keys -= atom_stereo_keys(gra)
 
-    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
+    atm_ngb_keys_dct = atom_neighbor_keys(gra)
 
     def _is_stereogenic(atm_key):
         atm_ngb_keys = list(atm_ngb_keys_dct[atm_key])
-        pri_vecs = [stereo_priority_vector(xgr, atm_key, atm_ngb_key)
+        pri_vecs = [stereo_priority_vector(gra, atm_key, atm_ngb_key)
                     for atm_ngb_key in atm_ngb_keys]
         return not any(pv1 == pv2
                        for pv1, pv2 in itertools.combinations(pri_vecs, r=2))
@@ -122,26 +122,26 @@ def stereogenic_atom_keys(xgr):
     return ste_gen_atm_keys
 
 
-def stereogenic_bond_keys(xgr):
+def stereogenic_bond_keys(gra):
     """ (unassigned) stereogenic bonds in this graph
     """
-    xgr = without_bond_orders(xgr)
-    xgr = explicit(xgr)  # for simplicity, add the explicit hydrogens back in
+    gra = without_bond_orders(gra)
+    gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     bnd_keys = dict_.keys_by_value(
-        resonance_dominant_bond_orders(xgr), lambda x: 2 in x)
+        resonance_dominant_bond_orders(gra), lambda x: 2 in x)
 
     # make sure both ends are sp^2 (excludes cumulenes)
-    atm_hyb_dct = resonance_dominant_atom_hybridizations(xgr)
+    atm_hyb_dct = resonance_dominant_atom_hybridizations(gra)
     sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
     bnd_keys = frozenset({bnd_key for bnd_key in bnd_keys
                           if bnd_key <= sp2_atm_keys})
 
-    bnd_keys -= bond_stereo_keys(xgr)
+    bnd_keys -= bond_stereo_keys(gra)
     bnd_keys -= functools.reduce(  # remove double bonds in small rings
         frozenset.union,
-        filter(lambda x: len(x) < 8, rings_bond_keys(xgr)), frozenset())
+        filter(lambda x: len(x) < 8, rings_bond_keys(gra)), frozenset())
 
-    atm_ngb_keys_dct = atom_neighbor_keys(xgr)
+    atm_ngb_keys_dct = atom_neighbor_keys(gra)
 
     def _is_stereogenic(bnd_key):
         atm1_key, atm2_key = bnd_key
@@ -155,8 +155,8 @@ def stereogenic_bond_keys(xgr):
                 ret = False
             else:
                 assert len(atm_ngb_keys) == 2   # C=C(-X)-Y
-                ret = (stereo_priority_vector(xgr, atm_key, atm_ngb_keys[0]) ==
-                       stereo_priority_vector(xgr, atm_key, atm_ngb_keys[1]))
+                ret = (stereo_priority_vector(gra, atm_key, atm_ngb_keys[0]) ==
+                       stereo_priority_vector(gra, atm_key, atm_ngb_keys[1]))
 
             return ret
 
@@ -167,7 +167,7 @@ def stereogenic_bond_keys(xgr):
     return ste_gen_bnd_keys
 
 
-def stereomers(xgr):
+def stereomers(gra):
     """ all stereomers, ignoring this graph's assignments
     """
     bool_vals = (False, True)
@@ -191,7 +191,7 @@ def stereomers(xgr):
         return sgrs
 
     last_sgrs = []
-    sgrs = [without_stereo_parities(xgr)]
+    sgrs = [without_stereo_parities(gra)]
 
     while sgrs != last_sgrs:
         last_sgrs = sgrs
@@ -201,14 +201,14 @@ def stereomers(xgr):
     return tuple(sorted(sgrs, key=frozen))
 
 
-def substereomers(xgr):
+def substereomers(gra):
     """ all stereomers compatible with this graph's assignments
     """
     _assigned = functools.partial(
         dict_.filter_by_value, func=lambda x: x is not None)
 
-    known_atm_ste_par_dct = _assigned(atom_stereo_parities(xgr))
-    known_bnd_ste_par_dct = _assigned(bond_stereo_parities(xgr))
+    known_atm_ste_par_dct = _assigned(atom_stereo_parities(gra))
+    known_bnd_ste_par_dct = _assigned(bond_stereo_parities(gra))
 
     def _is_compatible(sgr):
         atm_ste_par_dct = _assigned(atom_stereo_parities(sgr))
@@ -219,11 +219,11 @@ def substereomers(xgr):
                               set(bnd_ste_par_dct.items()))
         return _compat_atm_assgns and _compat_bnd_assgns
 
-    sgrs = tuple(filter(_is_compatible, stereomers(xgr)))
+    sgrs = tuple(filter(_is_compatible, stereomers(gra)))
     return sgrs
 
 
-def stereo_sorted_atom_neighbor_keys(xgr, atm_key, atm_ngb_keys):
+def stereo_sorted_atom_neighbor_keys(gra, atm_key, atm_ngb_keys):
     """ get the neighbor keys of an atom sorted by stereo priority
     """
     atm_ngb_keys = list(atm_ngb_keys)
@@ -231,7 +231,7 @@ def stereo_sorted_atom_neighbor_keys(xgr, atm_key, atm_ngb_keys):
     # explicitly create an object array because otherwise the argsort
     # interprets [()] as []
     atm_pri_vecs = numpy.empty(len(atm_ngb_keys), dtype=numpy.object_)
-    atm_pri_vecs[:] = [stereo_priority_vector(xgr, atm_key, atm_ngb_key)
+    atm_pri_vecs[:] = [stereo_priority_vector(gra, atm_key, atm_ngb_key)
                        for atm_ngb_key in atm_ngb_keys]
 
     sort_idxs = numpy.argsort(atm_pri_vecs)

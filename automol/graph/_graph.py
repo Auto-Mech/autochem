@@ -32,6 +32,29 @@ def standard_keys(gra):
     return relabel(gra, atm_key_dct)
 
 
+def standard_keys_for_sequence(gras):
+    """ assigns non-overlapping keys to a sequence of graphs
+
+    (returns a series of key maps for each)
+    """
+    atm_key_dcts = []
+
+    shift = 0
+    for gra in gras:
+        natms = atom_count(gra, with_dummy=True, with_implicit=False)
+
+        atm_key_dct = {atm_key: idx+shift
+                       for idx, atm_key in enumerate(sorted(atom_keys(gra)))}
+        atm_key_dcts.append(atm_key_dct)
+
+        shift += natms
+
+    gras = [relabel(gra, atm_key_dct)
+            for gra, atm_key_dct in zip(gras, atm_key_dcts)]
+
+    return gras, atm_key_dcts
+
+
 def transform_keys(gra, atm_key_func):
     """ transform atom keys with a function
     """
@@ -363,35 +386,6 @@ def union_from_sequence(gras):
     """ a union of all parts of a sequence of graphs
     """
     return tuple(functools.reduce(union, gras))
-
-
-def union_from_sequence_with_standard_keys(gras):
-    """ a union of all parts of a sequence of graphs
-
-    (returns a key map for matching keys in the union graph to those in the
-    original graphs)
-    """
-    atm_key_dcts = []
-
-    shift = 0
-    for gra in gras:
-        natms = atom_count(gra, with_dummy=True, with_implicit=False)
-
-        atm_key_dct = {atm_key: idx+shift
-                       for idx, atm_key in enumerate(sorted(atom_keys(gra)))}
-        atm_key_dcts.append(atm_key_dct)
-
-        shift += natms
-
-    gras = [relabel(gra, atm_key_dct)
-            for gra, atm_key_dct in zip(gras, atm_key_dcts)]
-
-    gra = union_from_sequence(gras)
-    idx_key_dct = {atm_key: (gra_idx, gra_atm_key)
-                   for gra_idx, atm_key_dct in enumerate(atm_key_dcts)
-                   for gra_atm_key, atm_key in atm_key_dct.items()}
-
-    return gra, idx_key_dct
 
 
 def subgraph(gra, atm_keys):
