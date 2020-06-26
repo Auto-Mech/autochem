@@ -53,6 +53,7 @@ from automol.graph._graph import longest_chain
 from automol.graph._graph import atom_longest_chains
 from automol.graph._graph import union
 from automol.graph._graph import union_from_sequence
+from automol.graph._graph import union_from_sequence_with_standard_keys
 from automol.graph._graph import subgraph
 from automol.graph._graph import bond_induced_subgraph
 # # transformations
@@ -244,6 +245,7 @@ __all__ = [
     'atom_longest_chains',
     'union',
     'union_from_sequence',
+    'union_from_sequence_with_standard_keys',
     'subgraph',
     'bond_induced_subgraph',
     # # transformations
