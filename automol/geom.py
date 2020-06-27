@@ -36,32 +36,38 @@ def from_subset(geo, idxs):
 
 
 # getters
-def symbols(geo):
+def symbols(geo, idxs=None):
     """ atomic symbols
     """
+    idxs = list(range(count(geo))) if idxs is None else idxs
+
     if geo:
         syms, _ = zip(*geo)
     else:
         syms = ()
+
+    syms = tuple(sym for idx, sym in enumerate(syms) if idx in idxs)
     return syms
 
 
-def coordinates(geo, angstrom=False):
+def coordinates(geo, idxs=None, angstrom=False):
     """ atomic coordinates
     """
+    idxs = list(range(count(geo))) if idxs is None else idxs
     if geo:
         _, xyzs = zip(*geo)
     else:
         xyzs = ()
     xyzs = xyzs if not angstrom else numpy.multiply(
         xyzs, qcc.conversion_factor('bohr', 'angstrom'))
+    xyzs = tuple(xyz for idx, xyz in enumerate(xyzs) if idx in idxs)
     return xyzs
 
 
 def count(geo):
     """ count the number of atoms in the geometry
     """
-    return len(symbols(geo))
+    return len(geo)
 
 
 def atom_count(geo, atype, match=True):
@@ -600,7 +606,7 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4):
     return cart.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
 
 
-def dist_mat(geo):
+def distance_matrix(geo):
     """form distance matrix for a set of xyz coordinates
     """
     mat = numpy.zeros((len(geo), len(geo)))
@@ -610,11 +616,11 @@ def dist_mat(geo):
     return mat
 
 
-def almost_equal_dist_mat(geo1, geo2, thresh=0.1):
+def almost_equal_distance_matrix(geo1, geo2, thresh=0.1):
     """form distance matrix for a set of xyz coordinates
     """
-    dist_mat1 = dist_mat(geo1)
-    dist_mat2 = dist_mat(geo2)
+    dist_mat1 = distance_matrix(geo1)
+    dist_mat2 = distance_matrix(geo2)
     diff_mat = numpy.zeros((len(geo1), len(geo2)))
     almost_equal_dm = True
     for i, _ in enumerate(dist_mat1):
@@ -920,17 +926,62 @@ def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
     return ret
 
 
+def external_symmetry_factor1(geo):
+    """ obtain external symmetry factor for a geometry using x2z
+    """
+    # Get initial external symmetry number
+    if automol.geom.is_atom(geo):
+        ext_sym_fac = 1.
+    else:
+        oriented_geom = to_oriented_geometry(geo)
+        ext_sym_fac = oriented_geom.sym_num()
+    return ext_sym_fac
+
+
 def external_symmetry_factor2(geo):
     """ calculate the external symmetry factor
     """
-    if not is_linear(geo):
-        ref_geo = geo = mass_centered(geo)
-        rand_mat = cart.mat.random_rotation()
-        geo = transform_by_matrix(geo, rand_mat)
-        print(string(ref_geo))
-        print(string(geo))
-    else:
-        raise NotImplementedError("Linear case not yet implemented")
+    thresh = 1e-4
+
+    ext_sym_fac = 1.
+
+    if not automol.geom.is_atom(geo):
+        idxs = range(count(geo))
+
+        # First, find two atoms that aren't at the origin
+        ref_geo = mass_centered(geo)
+        for idx_pair in itertools.permutations(idxs, r=2):
+            xyzs = coordinates(ref_geo, idxs=idx_pair)
+            norms = list(map(numpy.linalg.norm, xyzs))
+            if all(norm > thresh for norm in norms):
+                ref_idx_pair = idx_pair
+                break
+
+        # This pair of atoms, together with the center of mass, will serve as
+        # our "reference points" that we can align with other orientations as
+        # we identify symmetries
+        ref_xyzs = coordinates(ref_geo, idxs=ref_idx_pair)
+        ref_syms = symbols(ref_geo, idxs=ref_idx_pair)
+
+        ref_xyzs_with_orig = ((0., 0., 0.),) + ref_xyzs
+        ref_dist_mat = cart.vec.distance_matrix(ref_xyzs_with_orig)
+
+        # Now, loop over pairs. If they have symbols and the same distance
+        # matrix with the origin as the reference pair, then rotate the
+        # geometry to superimpose them onto the reference pair. If the rotated
+        # geometry is exactly aligned with the reference geometry, then we've
+        # identified a new symmetry to add to our list.
+        for idx_pair in itertools.permutations(idxs, r=2):
+            geo = ref_geo
+            syms = symbols(geo, idxs=idx_pair)
+            if idx_pair != ref_idx_pair and syms == ref_syms:
+                xyzs = coordinates(geo, idxs=idx_pair)
+                xyzs_with_orig = ((0., 0., 0.),) + xyzs
+                dist_mat = cart.vec.distance_matrix(xyzs_with_orig)
+                if numpy.allclose(dist_mat, ref_dist_mat):
+                    print(idx_pair)
+
+    return ext_sym_fac
 
 
 if __name__ == '__main__':
