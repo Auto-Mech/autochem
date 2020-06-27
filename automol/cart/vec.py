@@ -2,7 +2,7 @@
 """
 import numbers
 import numpy
-from transformations import rotation_matrix
+import transformations as tf
 
 
 def unit_norm(xyz):
@@ -50,7 +50,7 @@ def unit_bisector(xyz1, xyz2, orig_xyz):
     """ calculate a unit bisector
     """
     ang = central_angle(xyz1, orig_xyz, xyz2)
-    rot_ = rotate_(
+    rot_ = rotater(
         axis=unit_perpendicular(xyz1, xyz2, orig_xyz), angle=ang/2.,
         orig_xyz=orig_xyz)
     xyz = unit_norm(numpy.subtract(rot_(xyz1), orig_xyz))
@@ -136,18 +136,23 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
     return dih
 
 
-def rotate_(axis, angle, orig_xyz=None):
+# transformations
+def rotater(axis, angle, orig_xyz=None):
     """ a function to rotate vectors about an axis at a particular point
     """
-    aug_rot_mat = rotation_matrix(angle, axis, point=orig_xyz)
+    aug_rot_mat = tf.rotation_matrix(angle, axis, point=orig_xyz)
+    return _transformer(aug_rot_mat)
 
-    def _rotated(xyz):
+
+def _transformer(aug_mat):
+
+    def _transform(xyz):
         aug_xyz = _augmented(xyz)
-        rot_aug_xyz = numpy.dot(aug_rot_mat, aug_xyz)
+        rot_aug_xyz = numpy.dot(aug_mat, aug_xyz)
         rot_xyz = tuple(rot_aug_xyz[:3])
         return rot_xyz
 
-    return _rotated
+    return _transform
 
 
 def _augmented(xyz):

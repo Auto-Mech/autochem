@@ -137,6 +137,58 @@ def without_dummy_atoms(geo):
     return from_subset(geo, non_dummy_idxs)
 
 
+# conversions
+def zmatrix(geo, ts_bnds=()):
+    """ geometry => z-matrix
+    """
+    return automol.convert.geom.zmatrix(geo, ts_bnds)
+
+
+def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
+    """ z-matrix torsional coordinate names
+    """
+    return automol.convert.geom.zmatrix_torsion_coordinate_names(geo, ts_bnds)
+
+
+def zmatrix_atom_ordering(geo, ts_bnds=()):
+    """ z-matrix atom ordering
+    """
+    return automol.convert.geom.zmatrix_atom_ordering(geo, ts_bnds)
+
+
+def graph(geo, remove_stereo=False):
+    """ geometry => graph
+    """
+    return automol.convert.geom.graph(
+        geo, remove_stereo=remove_stereo)
+
+
+def weakly_connected_graph(geo, remove_stereo=False):
+    """ geometry => graph
+    """
+    return automol.convert.geom.weakly_connected_graph(
+        geo, remove_stereo=remove_stereo)
+
+
+def inchi(geo, remove_stereo=False):
+    """ geometry => inchi
+    """
+    return automol.convert.geom.inchi(geo, remove_stereo=remove_stereo)
+
+
+def smiles(geo, remove_stereo=False):
+    """ geometry => inchi
+    """
+    ich = inchi(geo, remove_stereo=remove_stereo)
+    return automol.convert.inchi.smiles(ich)
+
+
+def formula(geo):
+    """ geometry => formula
+    """
+    return automol.convert.geom.formula(geo)
+
+
 # operations
 def join(geo1, geo2,
          dist_cutoff=3.*qcc.conversion_factor('angstrom', 'bohr'),
@@ -158,7 +210,7 @@ def join(geo1, geo2,
     cm_dist = ext1 + dist_cutoff + ext2
     dist_grid = numpy.arange(cm_dist, 0., -0.1)
     for dist in dist_grid:
-        trans_geo2 = translated(geo2, orient_vec * dist)
+        trans_geo2 = translate(geo2, orient_vec * dist)
         min_dist = minimum_distance(geo1, trans_geo2)
         if numpy.abs(min_dist - dist_cutoff) < 0.1:
             break
@@ -296,19 +348,6 @@ def _argunique(items, comparison, seen_items=()):
 
 
 # transformations
-def insert(geo, sym, xyz, idx=None):
-    """ Insert an atom into this geometry
-    """
-    syms = list(symbols(geo))
-    xyzs = list(coordinates(geo))
-
-    idx = idx if idx is not None else len(syms)
-
-    syms.insert(idx, sym)
-    xyzs.insert(idx, xyz)
-    return from_data(syms, xyzs)
-
-
 def reorder(geo, idx_dct):
     """ Reorder the atoms in this geometry
 
@@ -327,7 +366,29 @@ def reorder(geo, idx_dct):
     return from_data(syms, xyzs)
 
 
-def displaced(geo, xyzs):
+def swap_coordinates(geo, idx1, idx2):
+    """ swap the order of the coordinates of the two atoms
+    """
+    geo = [list(x) for x in geo]
+    geo[idx1], geo[idx2] = geo[idx2], geo[idx1]
+    geo_swp = tuple(tuple(x) for x in geo)
+    return geo_swp
+
+
+def insert(geo, sym, xyz, idx=None):
+    """ Insert an atom into this geometry
+    """
+    syms = list(symbols(geo))
+    xyzs = list(coordinates(geo))
+
+    idx = idx if idx is not None else len(syms)
+
+    syms.insert(idx, sym)
+    xyzs.insert(idx, xyz)
+    return from_data(syms, xyzs)
+
+
+def displace(geo, xyzs):
     """ displacement of the geometry
     """
     syms = symbols(geo)
@@ -336,7 +397,7 @@ def displaced(geo, xyzs):
     return from_data(syms, xyzs)
 
 
-def translated(geo, xyz):
+def translate(geo, xyz):
     """ translation of the geometry
     """
     syms = symbols(geo)
@@ -345,7 +406,7 @@ def translated(geo, xyz):
     return from_data(syms, xyzs)
 
 
-def inverted(geo):
+def invert(geo):
     """ inversion of the geometry
     """
     syms = symbols(geo)
@@ -355,37 +416,41 @@ def inverted(geo):
     return from_data(syms, xyzs)
 
 
-def rotated(geo, axis, angle, orig_xyz=None, idxs=None):
-    """ axis-angle rotation of the geometry
+def transform(geo, func, idxs=None):
+    """ transform the coordinates of a geometry by a function
 
-    if rotating a subset, specify the atoms indices with `idxs`
+    if transforming a subset, specify the atoms indices with `idxs`
     """
     idxs = list(range(count(geo))) if idxs is None else idxs
     syms = symbols(geo)
     xyzs = coordinates(geo)
-    rot_ = cart.vec.rotate_(axis, angle, orig_xyz=orig_xyz)
-    xyzs = [rot_(xyz) if idx in idxs else xyz for idx, xyz in enumerate(xyzs)]
+    xyzs = [func(xyz) if idx in idxs else xyz for idx, xyz in enumerate(xyzs)]
     return from_data(syms, xyzs)
 
 
-def euler_rotated(geo, theta, phi, psi):
-    """ axis-angle rotation of the geometry
+def transform_by_matrix(geo, mat):
+    """ transform the coordinates of a geometry by a matrix
     """
     syms = symbols(geo)
     xyzs = coordinates(geo)
-    rot_mat = cart.mat.euler_rotation(theta, phi, psi)
-    xyzs = numpy.dot(xyzs, numpy.transpose(rot_mat))
+    xyzs = numpy.dot(xyzs, numpy.transpose(mat))
     return from_data(syms, xyzs)
 
 
-def swap_coordinates(geo, idx1, idx2):
-    """ swap the order of the coordinates of the two atoms
-    """
+def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
+    """ axis-angle rotation of the geometry
 
-    geo = [list(x) for x in geo]
-    geo[idx1], geo[idx2] = geo[idx2], geo[idx1]
-    geo_swp = tuple(tuple(x) for x in geo)
-    return geo_swp
+    if rotating a subset, specify the atoms indices with `idxs`
+    """
+    func = cart.vec.rotater(axis, angle, orig_xyz=orig_xyz)
+    return transform(geo, func, idxs=idxs)
+
+
+def euler_rotate(geo, theta, phi, psi):
+    """ axis-angle rotation of the geometry
+    """
+    mat = cart.mat.euler_rotation(theta, phi, psi)
+    return transform_by_matrix(geo, mat)
 
 
 def move_coordinates(geo, idx1, idx2):
@@ -791,7 +856,7 @@ def center_of_mass(geo):
 def mass_centered(geo):
     """ mass-centered geometry
     """
-    geo = translated(geo, numpy.negative(center_of_mass(geo)))
+    geo = translate(geo, numpy.negative(center_of_mass(geo)))
     return geo
 
 
@@ -855,53 +920,27 @@ def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
     return ret
 
 
-# conversions
-def zmatrix(geo, ts_bnds=()):
-    """ geometry => z-matrix
+def external_symmetry_factor2(geo):
+    """ calculate the external symmetry factor
     """
-    return automol.convert.geom.zmatrix(geo, ts_bnds)
+    if not is_linear(geo):
+        ref_geo = geo = mass_centered(geo)
+        rand_mat = cart.mat.random_rotation()
+        geo = transform_by_matrix(geo, rand_mat)
+        print(string(ref_geo))
+        print(string(geo))
+    else:
+        raise NotImplementedError("Linear case not yet implemented")
 
 
-def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
-    """ z-matrix torsional coordinate names
-    """
-    return automol.convert.geom.zmatrix_torsion_coordinate_names(geo, ts_bnds)
+if __name__ == '__main__':
+    # GEO = (('C', (1.43210415746, -0.7681543652, 0.212793208918)),
+    #        ('C', (-0.0393296328, 1.6305747247, -0.161072379111)),
+    #        ('C', (-1.3927747481, -0.8624201904, -0.051721285230)),)
 
-
-def zmatrix_atom_ordering(geo, ts_bnds=()):
-    """ z-matrix atom ordering
-    """
-    return automol.convert.geom.zmatrix_atom_ordering(geo, ts_bnds)
-
-
-def graph(geo, remove_stereo=False):
-    """ geometry => graph
-    """
-    return automol.convert.geom.graph(
-        geo, remove_stereo=remove_stereo)
-
-
-def weakly_connected_graph(geo, remove_stereo=False):
-    """ geometry => graph
-    """
-    return automol.convert.geom.weakly_connected_graph(
-        geo, remove_stereo=remove_stereo)
-
-
-def inchi(geo, remove_stereo=False):
-    """ geometry => inchi
-    """
-    return automol.convert.geom.inchi(geo, remove_stereo=remove_stereo)
-
-
-def smiles(geo, remove_stereo=False):
-    """ geometry => inchi
-    """
-    ich = inchi(geo, remove_stereo=remove_stereo)
-    return automol.convert.inchi.smiles(ich)
-
-
-def formula(geo):
-    """ geometry => formula
-    """
-    return automol.convert.geom.formula(geo)
+    GEO = (('C', (0.0, 0.0, 0.0)),
+           ('H', (0.0, 0.0, 2.0786987380036113)),
+           ('H', (0.0, 1.9598159649150293, -0.6928995793345372)),
+           ('H', (1.69725041235873, -0.97990798245751, -0.69289957933454)),
+           ('H', (-1.69725041235873, -0.97990798245751, -0.69289957933454)))
+    print(external_symmetry_factor2(GEO))

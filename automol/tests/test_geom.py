@@ -84,7 +84,7 @@ def test__coulomb_spectrum():
     for _ in range(10):
         axis = numpy.random.rand(3)
         angle = numpy.random.rand()
-        geo = geom.rotated(C2H2CLF_GEO, axis, angle)
+        geo = geom.rotate(C2H2CLF_GEO, axis, angle)
         assert numpy.allclose(geom.coulomb_spectrum(geo), ref_coul_spec)
 
 
@@ -100,7 +100,7 @@ def test__argunique_coulomb_spectrum():
     for idx in range(10):
         axis = numpy.random.rand(3)
         angle = numpy.random.rand()
-        geo = geom.rotated(geo, axis, angle)
+        geo = geom.rotate(geo, axis, angle)
 
         if idx in ref_idxs and idx != 0:
             idx_to_change = numpy.random.randint(0, natms)
