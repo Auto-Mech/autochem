@@ -313,7 +313,7 @@ def _atom_stereo_corrected_geometry(gra, atm_ste_par_dct, geo, geo_idx_dct):
                 atom_keys(branch(gra, atm_key, {atm_key, atm4_key})))
             rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
-            geo = automol.geom.rotated(
+            geo = automol.geom.rotate(
                 geo, rot_axis, numpy.pi, orig_xyz=atm_xyz, idxs=rot_idxs)
 
         assert _atom_stereo_parity_from_geometry(
@@ -346,7 +346,7 @@ def _bond_stereo_corrected_geometry(gra, bnd_ste_par_dct, geo, geo_idx_dct):
 
             rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
-            geo = automol.geom.rotated(
+            geo = automol.geom.rotate(
                 geo, rot_axis, numpy.pi, orig_xyz=atm1_xyz, idxs=rot_idxs)
 
         assert _bond_stereo_parity_from_geometry(

@@ -19,7 +19,7 @@ def geometry(ich):
     # the geometries
     ichs = automol.inchi.split(ich)
     geos = list(map(_connected_geometry, ichs))
-    geos = [automol.geom.translated(geo, [50. * idx, 0., 0.])
+    geos = [automol.geom.translate(geo, [50. * idx, 0., 0.])
             for idx, geo in enumerate(geos)]
     geo = functools.reduce(automol.geom.join, geos)
     return geo
@@ -156,17 +156,6 @@ def _connected_graph(ich, no_stereo=False):
         else:
             geo = geometry(ich)
             gra = automol.convert.geom.graph(geo)
-
-            # gra_ich = automol.convert.graph.inchi(gra)
-
-            # assert gra_ich == ich
-            # I don't think we should need this -- take it out
-            # # make sure the enantiomer matches up
-            # if gra_ich != ich:
-            #     # if this assert fails, something else is wrong!
-            #     assert automol.inchi.is_chiral(ich)
-            #     geo = automol.geom.inverted(geo)
-            #     gra = automol.convert.geom.graph(geo)
 
     gra = automol.graph.implicit(gra)
     return gra
