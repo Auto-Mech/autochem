@@ -136,6 +136,15 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
     return dih
 
 
+def distance_matrix(xyzs):
+    """ determine the distance matrix for a series of points
+    """
+    dist_mat = tuple(tuple(distance(xyz1, xyz2) if idx1 != idx2 else 0.
+                           for idx2, xyz2 in enumerate(xyzs))
+                     for idx1, xyz1 in enumerate(xyzs))
+    return dist_mat
+
+
 # transformations
 def rotater(axis, angle, orig_xyz=None):
     """ a function to rotate vectors about an axis at a particular point

@@ -11,13 +11,17 @@ def random_rotation():
     return tuple(map(tuple, rot_mat))
 
 
-def superimposition(points1, points2):
+def superimposition(points1, points2, keep_origin=False):
     """ superimposition matrix
     """
-    pts1 = numpy.transpose(points1)
-    pts2 = numpy.transpose(points2)
-    rot_mat = _slice_affine(tf.superimposition_matrix(pts1, pts2))
-    return rot_mat
+    if keep_origin:
+        points1 = numpy.concatenate(([[0., 0., 0.]], points1), axis=0)
+        points2 = numpy.concatenate(([[0., 0., 0.]], points2), axis=0)
+
+    points1 = numpy.transpose(points1)
+    points2 = numpy.transpose(points2)
+    rot_mat = _slice_affine(tf.superimposition_matrix(points1, points2))
+    return tuple(map(tuple, rot_mat))
 
 
 def rotation(axis, angle):
