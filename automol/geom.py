@@ -1,6 +1,5 @@
 """ cartesian geometries
 """
-
 import itertools
 import functools
 import more_itertools as mit
@@ -70,23 +69,23 @@ def count(geo):
     return len(geo)
 
 
-def atom_count(geo, atype, match=True):
+def atom_count(geo, sym, match=True):
     """ count the number of some atom type in the geometry
     """
-    return len(atom_indices(geo, atype, match=match))
+    return len(atom_indices(geo, sym, match=match))
 
 
-def atom_indices(geo, atype, match=True):
+def atom_indices(geo, sym, match=True):
     """ indices for a particular atom type
         :param match: grab idxs that match given atom type
     """
 
     syms = symbols(geo)
     idxs = tuple()
-    for idx, sym in enumerate(syms):
-        if sym == atype and match:
+    for idx, sym_ in enumerate(syms):
+        if sym_ == sym and match:
             idxs += (idx,)
-        elif sym != atype and not match:
+        elif sym_ != sym and not match:
             idxs += (idx,)
 
     # old dummy match, may be useful
@@ -921,77 +920,34 @@ def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
         keys = range(len(symbols(geo)))
         for key1, key2, key3 in mit.windowed(keys, 3):
             cangle = numpy.abs(central_angle(geo, key1, key2, key3))
-            if cangle % numpy.pi > tol:
+            if not (numpy.abs(cangle) < tol or
+                    numpy.abs(cangle - numpy.pi) < tol):
                 ret = False
     return ret
 
 
-def external_symmetry_factor1(geo):
-    """ obtain external symmetry factor for a geometry using x2z
+def permutation(geo, ref_geo, thresh=1e-4):
+    """ determine the permutation of one geometry that reproduces another
+
+    (If there isn't one -- the geometries are not aligned, return None)
     """
-    # Get initial external symmetry number
-    if automol.geom.is_atom(geo):
-        ext_sym_fac = 1.
-    else:
-        oriented_geom = to_oriented_geometry(geo)
-        ext_sym_fac = oriented_geom.sym_num()
-    return ext_sym_fac
+    natms = count(geo)
+    syms = symbols(geo)
+    xyzs = coordinates(geo)
 
+    perm_idxs = [None] * natms
+    for idx, (sym, xyz) in enumerate(zip(syms, xyzs)):
+        # Loop over atoms in the reference geometry with the same symbol
+        ref_idxs = atom_indices(ref_geo, sym=sym)
+        ref_xyzs = coordinates(ref_geo, idxs=ref_idxs)
+        perm_idx = next(
+            (ref_idx for ref_idx, ref_xyz in zip(ref_idxs, ref_xyzs)
+             if cart.vec.distance(xyz, ref_xyz) < thresh), None)
+        perm_idxs[idx] = perm_idx
 
-def external_symmetry_factor2(geo):
-    """ calculate the external symmetry factor
-    """
-    thresh = 1e-4
+    perm_idxs = tuple(perm_idxs)
 
-    ext_sym_fac = 1.
+    if any(perm_idx is None for perm_idx in perm_idxs):
+        perm_idxs = None
 
-    if not automol.geom.is_atom(geo):
-        idxs = range(count(geo))
-
-        # First, find two atoms that aren't at the origin
-        ref_geo = mass_centered(geo)
-        for idx_pair in itertools.permutations(idxs, r=2):
-            xyzs = coordinates(ref_geo, idxs=idx_pair)
-            norms = list(map(numpy.linalg.norm, xyzs))
-            if all(norm > thresh for norm in norms):
-                ref_idx_pair = idx_pair
-                break
-
-        # This pair of atoms, together with the center of mass, will serve as
-        # our "reference points" that we can align with other orientations as
-        # we identify symmetries
-        ref_xyzs = coordinates(ref_geo, idxs=ref_idx_pair)
-        ref_syms = symbols(ref_geo, idxs=ref_idx_pair)
-
-        ref_xyzs_with_orig = ((0., 0., 0.),) + ref_xyzs
-        ref_dist_mat = cart.vec.distance_matrix(ref_xyzs_with_orig)
-
-        # Now, loop over pairs. If they have symbols and the same distance
-        # matrix with the origin as the reference pair, then rotate the
-        # geometry to superimpose them onto the reference pair. If the rotated
-        # geometry is exactly aligned with the reference geometry, then we've
-        # identified a new symmetry to add to our list.
-        for idx_pair in itertools.permutations(idxs, r=2):
-            geo = ref_geo
-            syms = symbols(geo, idxs=idx_pair)
-            if idx_pair != ref_idx_pair and syms == ref_syms:
-                xyzs = coordinates(geo, idxs=idx_pair)
-                xyzs_with_orig = ((0., 0., 0.),) + xyzs
-                dist_mat = cart.vec.distance_matrix(xyzs_with_orig)
-                if numpy.allclose(dist_mat, ref_dist_mat):
-                    print(idx_pair)
-
-    return ext_sym_fac
-
-
-if __name__ == '__main__':
-    # GEO = (('C', (1.43210415746, -0.7681543652, 0.212793208918)),
-    #        ('C', (-0.0393296328, 1.6305747247, -0.161072379111)),
-    #        ('C', (-1.3927747481, -0.8624201904, -0.051721285230)),)
-
-    GEO = (('C', (0.0, 0.0, 0.0)),
-           ('H', (0.0, 0.0, 2.0786987380036113)),
-           ('H', (0.0, 1.9598159649150293, -0.6928995793345372)),
-           ('H', (1.69725041235873, -0.97990798245751, -0.69289957933454)),
-           ('H', (-1.69725041235873, -0.97990798245751, -0.69289957933454)))
-    print(external_symmetry_factor2(GEO))
+    return perm_idxs
