@@ -54,10 +54,10 @@ def count(zma):
     return _v_.count(var_(zma))
 
 
-def atom_count(zma, atype, match=True):
+def atom_count(zma, sym, match=True):
     """ the number of entries for desired atom types (put in vma code)
     """
-    return len(atom_count(zma, atype, match=match))
+    return len(atom_count(zma, sym, match=match))
 
 
 def symbols(zma):
@@ -192,21 +192,21 @@ def dummy_coordinate_names(zma):
     return _v_.dummy_coordinate_names(var_(zma))
 
 
-def atom_indices(zma, atype, match=True):
+def atom_indices(zma, sym, match=True):
     """ indices for a particular atom type
         :param match: grab idxs that match given atom type
     """
 
     syms = symbols(zma)
     idxs = tuple()
-    for idx, sym in enumerate(syms):
-        if sym == atype and match:
+    for idx, sym_ in enumerate(syms):
+        if sym_ == sym and match:
             idxs += (idx,)
-        elif sym != atype and not match:
+        elif sym_ != sym and not match:
             idxs += (idx,)
 
     # old dummy match, may be useful
-    # idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+    # idxs = [idx for idx, sym_ in enumerate(syms) if not pt.to_Z(sym)]
 
     return idxs
 

@@ -105,6 +105,16 @@ def central_angle(xyz1, xyz2, xyz3):
     return ang
 
 
+def projected_central_angle(xyz1, xyz2, xyz3):
+    """ measure the angle inscribed by three atoms, projected onto the normal
+    plane of the central atom
+    """
+    uxyz21 = unit_perpendicular(xyz2, xyz1)
+    uxyz23 = unit_perpendicular(xyz2, xyz3)
+    ang = numpy.arccos(numpy.dot(uxyz21, uxyz23))
+    return ang
+
+
 def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
     """ measure the dihedral angle defined by four atoms
     """

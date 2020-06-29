@@ -763,7 +763,7 @@ def shift_vals_from_dummy(vals, zma):
     """
     type_ = type(vals)
 
-    dummy_idxs = automol.zmatrix.atom_indices(zma, atype='X')
+    dummy_idxs = automol.zmatrix.atom_indices(zma, sym='X')
 
     shift_vals = []
     for val in vals:
