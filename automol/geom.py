@@ -615,7 +615,7 @@ def distance_matrix(geo):
     return mat
 
 
-def almost_equal_distance_matrix(geo1, geo2, thresh=0.1):
+def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
     """form distance matrix for a set of xyz coordinates
     """
     dist_mat1 = distance_matrix(geo1)
