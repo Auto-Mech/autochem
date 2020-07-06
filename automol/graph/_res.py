@@ -128,6 +128,19 @@ def _cumulene_chains(rgr):
     return cum_chains
 
 
+def nonresonant_radical_atom_keys(rgr):
+    """ keys for radical atoms that are not in resonance
+    """
+    atm_keys = list(atom_keys(rgr))
+    atm_rad_vlcs_by_res = [
+        dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
+        for dom_rgr in dominant_resonances(rgr)]
+    atm_rad_vlcs = [min(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
+    atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
+                             in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc)
+    return atm_rad_keys
+
+
 def resonance_dominant_radical_atom_keys(rgr):
     """ resonance-dominant radical atom keys
 
@@ -315,3 +328,13 @@ def rotational_bond_keys(gra, with_h_rotors=True):
                 bnd_keys.append(bnd_key)
 
     return frozenset(bnd_keys)
+
+
+if __name__ == '__main__':
+    GRA = ({0: ('C', 2, None), 1: ('C', 2, None), 2: ('C', 1, None),
+            3: ('C', 2, None), 4: ('C', 1, None)},
+           {frozenset({3, 4}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None)})
+
+    print(nonresonant_radical_atom_keys(GRA))
+    print(resonance_dominant_radical_atom_keys(GRA))
