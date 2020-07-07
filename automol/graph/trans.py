@@ -1,6 +1,7 @@
 """ molecular graph transformations (representing reactions)
 """
 import numbers
+import yaml
 from automol import dict_
 from automol.graph._graph import relabel as _relabel
 from automol.graph._graph import full_isomorphism
@@ -38,6 +39,47 @@ def broken_bond_keys(tra):
     """
     _, brk_bnd_keys = tra
     return brk_bnd_keys
+
+
+def string(tra):
+    """ write the transformation to a string
+    """
+    def _encode_bond(bnd_key):
+        atm1_key, atm2_key = bnd_key
+        bnd_str = '{}-{}'.format(atm1_key+1, atm2_key+1)
+        return bnd_str
+
+    frm_bnd_keys = sorted(map(sorted, formed_bond_keys(tra)))
+    brk_bnd_keys = sorted(map(sorted, broken_bond_keys(tra)))
+
+    frm_bnd_strs = list(map(_encode_bond, frm_bnd_keys))
+    brk_bnd_strs = list(map(_encode_bond, brk_bnd_keys))
+
+    tra_dct = {'bonds formed': frm_bnd_strs,
+               'bonds broken': brk_bnd_strs}
+
+    tra_str = yaml.dump(tra_dct, default_flow_style=None, sort_keys=False)
+    return tra_str
+
+
+def from_string(tra_str):
+    """ read the transformation from a string
+    """
+    def _decode_bond(bnd_str):
+        atm1_key, atm2_key = map(int, bnd_str.split('-'))
+        bnd_key = frozenset({atm1_key-1, atm2_key-1})
+        return bnd_key
+
+    tra_dct = yaml.load(tra_str, Loader=yaml.FullLoader)
+    frm_bnd_strs = tra_dct['bonds formed']
+    brk_bnd_strs = tra_dct['bonds broken']
+
+    frm_bnd_keys = frozenset(map(_decode_bond, frm_bnd_strs))
+    brk_bnd_keys = frozenset(map(_decode_bond, brk_bnd_strs))
+
+    tra = from_data(frm_bnd_keys, brk_bnd_keys)
+
+    return tra
 
 
 def relabel(tra, atm_key_dct):
@@ -157,3 +199,10 @@ def _is_bond_key(obj):
 
 def _is_atom_key(obj):
     return isinstance(obj, numbers.Integral)
+
+
+if __name__ == '__main__':
+    TRA = (frozenset({frozenset({3, 6})}),
+           frozenset({frozenset({1, 3}), frozenset({0, 6})}))
+    print(string(TRA))
+    print(from_string(string(TRA)) == TRA)
