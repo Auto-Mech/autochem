@@ -73,6 +73,7 @@ from automol.graph._graph import add_atom_explicit_hydrogen_keys
 from automol.graph._graph import implicit
 from automol.graph._graph import explicit
 # # comparisons
+from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import backbone_isomorphic
 from automol.graph._graph import backbone_isomorphism

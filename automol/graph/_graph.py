@@ -656,6 +656,16 @@ def full_isomorphism(gra1, gra2):
     return iso_dct
 
 
+def full_subgraph_isomorphism(gra1, gra2):
+    """ gra2 is fully isomorphic to a subgraph of gra1
+    """
+    assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
+    nxg1 = _networkx.from_graph(gra1)
+    nxg2 = _networkx.from_graph(gra2)
+    iso_dct = _networkx.subgraph_isomorphism(nxg1, nxg2)
+    return iso_dct
+
+
 def backbone_isomorphic(gra1, gra2):
     """ are these molecular graphs backbone isomorphic?
     """
