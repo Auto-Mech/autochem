@@ -236,11 +236,11 @@ def test__atom_indices():
     assert heavyidxs == (1, 2)
 
 
-def test__bond_idxs():
+def test__coord_idxs():
     """ test bond indices
     """
     idxs = (2, 1)
-    assert zmatrix.bond_idxs(CH4O_ZMA, 'R2') == idxs
+    assert zmatrix.coord_idxs(CH4O_ZMA, 'R2') == idxs
 
 
 def test__get_babs1():
@@ -911,5 +911,5 @@ if __name__ == '__main__':
     # test__ts__hydrogen_abstraction()
     test__ts__hydrogen_migration()
     # test__atom_indices()
-    # test__bond_idxs()
+    # test__coord_idxs()
     # test__get_babs1()

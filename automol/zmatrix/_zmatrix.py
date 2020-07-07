@@ -286,7 +286,7 @@ def dummy_atom_anchors(zma):
     return atm_ach_dct
 
 
-def bond_idxs(zma, key):
+def coord_idxs(zma, key):
     """give a bond length key, return the indices of involved bonded atoms
     """
     coords = coordinates(zma)
@@ -312,7 +312,7 @@ def bond_key_from_idxs(zma, idxs):
 def get_babs1(zma, dist_name):
     """ get name of torsional coordinate associated with babs1 pre-reformatting
     """
-    idxs = bond_idxs(zma, dist_name)
+    idxs = coord_idxs(zma, dist_name)
     idx = max(idxs)
     babs1 = 'D{:g}'.format(idx)
     return babs1
@@ -321,7 +321,7 @@ def get_babs1(zma, dist_name):
 def get_babs2(zma, dist_name):
     """ get name of torsional coordinate associated with babs2 pre-reformatting
     """
-    idxs = bond_idxs(zma, dist_name)
+    idxs = coord_idxs(zma, dist_name)
     idx = max(idxs)
     babs2 = 'D{:g}'.format(idx+1)
     return babs2
