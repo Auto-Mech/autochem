@@ -57,6 +57,20 @@ def isomorphism(nxg1, nxg2):
     return iso_dct
 
 
+def subgraph_isomorphism(nxg1, nxg2):
+    """ subgraph isomorphism -- a subgraph of G1 is isomorphic to G2
+    """
+
+    matcher = networkx.algorithms.isomorphism.GraphMatcher(
+        nxg1, nxg2, node_match=operator.eq, edge_match=operator.eq)
+
+    iso_dct = None
+    if matcher.subgraph_is_isomorphic():
+        iso_dct = dict(matcher.mapping)
+
+    return iso_dct
+
+
 if __name__ == '__main__':
     GRA = (
         {0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
