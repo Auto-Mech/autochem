@@ -2,6 +2,9 @@
 Import all the ts builder functions
 """
 import automol.inchi
+import automol.graph
+import automol.geom
+import automol.zmatrix
 from automol.zmatrix._unimol_ts import min_hyd_mig_dist
 from automol.zmatrix._unimol_ts import hydrogen_migration
 from automol.zmatrix._unimol_ts import min_unimolecular_elimination_dist
@@ -13,12 +16,100 @@ from automol.zmatrix._bimol_ts import addition
 from automol.zmatrix._bimol_ts import hydrogen_abstraction
 
 
+def zmatrix_transformation(ts_zma, rct_gras, prd_gras,
+                           reactant_connectivity=False):
+    """ determines bonds broken and formed, using the TS zmatrix keys
+
+    The keys used in the reactant and product graphs here are irrelevant -- the
+    return value will use the keys of the TS zmatrix.
+
+    The transformation returned will be one that aligns with the TS z-matrix
+    keys, and it will be the transformation that most closely matches the TS
+    z-matrix geometry, in terms of the bond distances for the bonds broken and
+    formed.
+    """
+    ts_gras = None
+
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
+    ts_gra = automol.zmatrix.connectivity_graph(ts_zma)
+    ts_gra = automol.graph.without_dummy_atoms(ts_gra)
+    if reactant_connectivity:
+        # If the connectivity matches the reactants, we can just split up the
+        # graph into components
+        ts_gras = automol.graph.connected_components(ts_gra)
+        assert len(ts_gras) == len(rct_gras)
+        assert all(any(automol.graph.backbone_isomorphic(ts_gra, rct_gra)
+                       for ts_gra in ts_gras)
+                   for rct_gra in rct_gras)
+    else:
+        # If the connectivity doesn't match the reactants, we have to do some
+        # work.
+        ts_atm_keys = automol.graph.atom_keys(ts_gra)
+
+        # Get the largest reactant
+        rct1_gra = sorted(rct_gras, key=automol.graph.atom_count)[0]
+
+        # See if the TS graph contains a subgraph matching the largest reacant
+        rct1_iso_dct = automol.graph.full_subgraph_isomorphism(
+            ts_gra, rct1_gra)
+
+        if rct1_iso_dct:
+            rct1_atm_keys = set(rct1_iso_dct.keys())
+
+            rct1_gra = automol.graph.subgraph(ts_gra, rct1_atm_keys)
+
+            if len(rct_gras) == 1:
+                ts_gras = [rct1_gra]
+            elif len(rct_gras) == 2:
+                rct2_atm_keys = ts_atm_keys - rct1_atm_keys
+                rct2_gra = automol.graph.subgraph(ts_gra, rct2_atm_keys)
+                ts_gras = [rct1_gra, rct2_gra]
+            else:
+                raise NotImplementedError("Doesn't handle termolecular rxns")
+
+    if ts_gras is not None:
+        tras, _, _, _ = automol.graph.reac.classify(ts_gras, prd_gras)
+        tra = _find_closest_transformation(ts_zma, tras)
+    else:
+        tra = None
+
+    return tra
+
+
+def _find_closest_transformation(ts_zma, tras):
+    """ find the transformation which best matches the structure of the TS
+    zmatrix (the one in which the bonds broken and formed are shortest)
+    """
+    min_tra = None
+    min_dist_val = 1000.
+
+    ts_geo = automol.zmatrix.geometry(ts_zma)
+    for tra in tras:
+        frm_bnd_keys = automol.graph.trans.formed_bond_keys(tra)
+        brk_bnd_keys = automol.graph.trans.broken_bond_keys(tra)
+
+        frm_dists = [automol.geom.distance(ts_geo, *frm_bnd_key)
+                     for frm_bnd_key in frm_bnd_keys]
+        brk_dists = [automol.geom.distance(ts_geo, *brk_bnd_key)
+                     for brk_bnd_key in brk_bnd_keys]
+
+        dist_val = sum(frm_dists) + sum(brk_dists)
+
+        if dist_val < min_dist_val:
+            min_dist_val = dist_val
+            min_tra = tra
+
+    return min_tra
+
+
 def zmatrix_reactant_graph(ts_zma, frm_keys, brk_keys):
     """ determine the reactant graph for a TS zmatrix
 
     (graph keys are aligned with z-matrix rows)
     """
-    rct_gra = automol.convert.zmatrix.graph(ts_zma)
+    rct_gra = automol.convert.zmatrix.connectivity_graph(ts_zma)
     rct_gra = automol.graph.without_dummy_atoms(rct_gra)
     rct_gra = automol.graph.add_bonds(rct_gra, brk_keys, check=False)
     rct_gra = automol.graph.remove_bonds(rct_gra, frm_keys, check=False)

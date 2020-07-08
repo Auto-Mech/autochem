@@ -58,30 +58,8 @@ def zmatrix_atom_ordering(geo, ts_bnds=()):
 
 
 # geometry => graph
-def graph(geo, remove_stereo=False):
-    """ geometry => graph
-    """
-    gra = _connectivity_graph(geo)
-    if not remove_stereo:
-        gra = automol.graph.set_stereo_from_geometry(gra, geo)
-    return gra
-
-
-def weakly_connected_graph(geo, remove_stereo=False):
-    """ geometry => graph
-    """
-    gra = _connectivity_graph(
-        geo, rqq_bond_max=5.0, rqh_bond_max=5.0, rhh_bond_max=2.3)
-    _ = remove_stereo
-    # if not remove_stereo:
-    #    xyzs = automol.geom.coordinates(geo)
-    #    atm_xyz_dct = dict(enumerate(xyzs))
-    #    gra = automol.graph.set_stereo_from_atom_coordinates(gra, atm_xyz_dct)
-    return gra
-
-
-def _connectivity_graph(geo,
-                        rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
+def connectivity_graph(geo,
+                       rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph (no stereo)
     """
     syms = automol.geom.symbols(geo)
@@ -104,6 +82,15 @@ def _connectivity_graph(geo,
     return gra
 
 
+def graph(geo, remove_stereo=False):
+    """ geometry => graph
+    """
+    gra = connectivity_graph(geo)
+    if not remove_stereo:
+        gra = automol.graph.set_stereo_from_geometry(gra, geo)
+    return gra
+
+
 # geometry => inchi
 def inchi(geo, remove_stereo=False):
     """ geometry => InChI
@@ -120,7 +107,7 @@ def inchi_with_sort(geo, remove_stereo=False):
     nums = None
 
     if ich is None:
-        gra = _connectivity_graph(geo)
+        gra = connectivity_graph(geo)
         if remove_stereo:
             geo = None
             geo_idx_dct = None
@@ -133,8 +120,8 @@ def inchi_with_sort(geo, remove_stereo=False):
 
 
 def _compare(geo1, geo2):
-    gra1 = automol.graph.without_dummy_atoms(_connectivity_graph(geo1))
-    gra2 = automol.graph.without_dummy_atoms(_connectivity_graph(geo2))
+    gra1 = automol.graph.without_dummy_atoms(connectivity_graph(geo1))
+    gra2 = automol.graph.without_dummy_atoms(connectivity_graph(geo2))
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
