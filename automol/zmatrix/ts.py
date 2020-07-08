@@ -16,6 +16,81 @@ from automol.zmatrix._bimol_ts import addition
 from automol.zmatrix._bimol_ts import hydrogen_abstraction
 
 
+def zmatrix_reaction_info(ts_zma, rct_gras, prd_gras):
+    """ determines reactant graph and formed/broken bonds for the TS zmatrix
+
+    The keys used in the reactant and product graphs here are irrelevant -- the
+    return value will use the keys of the TS zmatrix.
+
+    The transformation returned will be one that aligns with the TS z-matrix
+    keys, and it will be the transformation that most closely matches the TS
+    z-matrix geometry, in terms of the bond distances for the bonds broken and
+    formed.
+    """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
+    ts_gra = automol.zmatrix.connectivity_graph(ts_zma)
+    ts_gra = automol.graph.without_dummy_atoms(ts_gra)
+
+    # First, try aligning the reactant graph to the TS graph as-is, using a
+    # subgraph isomoprhism
+    aligned_rct_gras = _align_reactant_graphs_to_ts(ts_gra, rct_gras)
+
+    # If that doesn't work, bond the closest unbonded atoms and try again
+    if aligned_rct_gras is None:
+        ts_geo = automol.zmatrix.geometry(ts_zma)
+
+        bnd_key, _ = automol.geom.closest_unbonded_atoms(ts_geo, ts_gra)
+
+        ts_gra = automol.graph.add_bonds(ts_gra, [bnd_key])
+
+        aligned_rct_gras = _align_reactant_graphs_to_ts(ts_gra, rct_gras)
+
+    # Hopefully at this point we have the correctly aligned  reactant graphs.
+    # Now, we can determine the transformation (formed/broken keys). Since
+    # there may be multiple transformations between these reactants and
+    # products, choose the one that most closely matches the TS geometry -- the
+    # one in which the formed and broken keys are as short as possible.
+    if aligned_rct_gras is not None:
+        tras, _, _, _ = automol.graph.reac.classify(aligned_rct_gras, prd_gras)
+        tra = _find_closest_transformation(ts_zma, tras)
+        rct_gra = automol.graph.union_from_sequence(aligned_rct_gras)
+    else:
+        tra = None
+        rct_gra = None
+
+    return tra, rct_gra
+
+
+def _align_reactant_graphs_to_ts(ts_gra, rct_gras):
+    ts_atm_keys = automol.graph.atom_keys(ts_gra)
+
+    # Get the largest reactant
+    rct1_gra = sorted(rct_gras, key=automol.graph.atom_count)[0]
+
+    # See if the TS graph contains a subgraph matching the largest reacant
+    rct1_iso_dct = automol.graph.full_subgraph_isomorphism(
+        ts_gra, rct1_gra)
+
+    rct_gras_ = None
+    if rct1_iso_dct:
+        rct1_atm_keys = set(rct1_iso_dct.keys())
+
+        rct1_gra = automol.graph.subgraph(ts_gra, rct1_atm_keys)
+
+        if len(rct_gras) == 1:
+            rct_gras_ = [rct1_gra]
+        elif len(rct_gras) == 2:
+            rct2_atm_keys = ts_atm_keys - rct1_atm_keys
+            rct2_gra = automol.graph.subgraph(ts_gra, rct2_atm_keys)
+            rct_gras_ = [rct1_gra, rct2_gra]
+        else:
+            raise NotImplementedError("Doesn't handle termolecular rxns")
+
+    return rct_gras_
+
+
 def zmatrix_transformation(ts_zma, rct_gras, prd_gras,
                            reactant_connectivity=False):
     """ determines bonds broken and formed, using the TS zmatrix keys

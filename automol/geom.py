@@ -818,6 +818,27 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
     return xyzp[0], xyzp[1], xyzp[2]
 
 
+def closest_unbonded_atoms(geo, gra):
+    """ determine the closest unbonded pair of atoms in this geometry
+    """
+    atm_keys = automol.graph.atom_keys(gra)
+    bnd_keys = automol.graph.bond_keys(gra)
+    poss_bnd_keys = set(map(frozenset, itertools.combinations(atm_keys, r=2)))
+
+    # The set of candidates includes all unbonded pairs of atoms
+    cand_bnd_keys = poss_bnd_keys - bnd_keys
+
+    min_bnd_key = None
+    min_dist_val = 1000.
+    for bnd_key in cand_bnd_keys:
+        dist_val = distance(geo, *bnd_key)
+        if dist_val < min_dist_val:
+            min_dist_val = dist_val
+            min_bnd_key = bnd_key
+
+    return min_bnd_key, min_dist_val
+
+
 # chemical properties
 def is_atom(geo):
     """ return return the atomic masses
@@ -954,3 +975,52 @@ def permutation(geo, ref_geo, thresh=1e-4):
         perm_idxs = None
 
     return perm_idxs
+
+
+if __name__ == '__main__':
+    GEO_STR = """
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.528500
+H    0.000000   1.021271  -0.395008
+H   -0.884960  -0.505333  -0.402273
+H    0.884431  -0.514168  -0.394620
+C    0.131848  -1.396208   2.150831
+H    0.830707   0.618974   1.889645
+H   -0.915682   0.483661   1.891358
+C   -0.935918  -2.407074   1.716757
+H    0.105716  -1.297371   3.244463
+H    1.121314  -1.802704   1.901432
+C   -2.368078  -1.949468   2.003020
+H   -0.754135  -3.357275   2.235849
+H   -0.822109  -2.622070   0.646658
+C   -3.429891  -2.998316   1.719404
+H   -2.443822  -1.645020   3.056185
+H   -2.587464  -1.045228   1.414070
+C   -3.441270  -3.623096   0.332366
+H   -3.196344  -3.971965   2.538467
+H   -4.422939  -2.656165   2.030354
+C   -3.487708  -2.607740  -0.819639
+H   -2.548685  -4.250408   0.207484
+H   -4.303285  -4.298844   0.256996
+C   -4.697641  -1.673392  -0.777069
+H   -2.564651  -2.015142  -0.805424
+H   -3.484882  -3.150427  -1.774953
+C   -4.756162  -0.678230  -1.939836
+H   -4.695662  -1.111648   0.167050
+H   -5.614566  -2.278478  -0.770618
+C   -3.584557   0.306860  -1.978679
+H   -5.693215  -0.109020  -1.871759
+H   -4.798868  -1.225952  -2.892242
+C   -3.760205   1.390162  -3.041302
+H   -3.472805   0.773991  -0.989972
+H   -2.648859  -0.232888  -2.169286
+H   -4.662764   1.983230  -2.853383
+H   -2.905957   2.074798  -3.059709
+H   -3.856588   0.947583  -4.039544
+X   -3.239107  -3.334837   3.308037
+C   -2.887701  -5.027299   3.409914
+H   -3.850477  -5.459083   3.681271
+H   -2.368177  -4.557577   4.244852
+H   -2.257867  -5.697614   2.825405
+"""
+    GEO = from_string(GEO_STR)
