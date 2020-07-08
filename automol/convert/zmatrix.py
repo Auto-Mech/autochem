@@ -45,6 +45,17 @@ def graph(zma, remove_stereo=False):
     return gra
 
 
+def connectivity_graph(zma,
+                       rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
+    """ z-matrix => connectivity graph
+    """
+    geo = geometry(zma)
+    gra = automol.convert.geom.connectivity_graph(
+        geo, rqq_bond_max=rqq_bond_max, rqh_bond_max=rqh_bond_max,
+        rhh_bond_max=rhh_bond_max)
+    return gra
+
+
 # z-matrix => formula
 def formula(zma):
     """ z-matrix => formula

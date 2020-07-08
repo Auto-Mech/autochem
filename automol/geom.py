@@ -168,11 +168,14 @@ def graph(geo, remove_stereo=False):
         geo, remove_stereo=remove_stereo)
 
 
-def weakly_connected_graph(geo, remove_stereo=False):
-    """ geometry => graph
+def connectivity_graph(geo,
+                       rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
+    """ geometry => connectivity graph
     """
-    return automol.convert.geom.weakly_connected_graph(
-        geo, remove_stereo=remove_stereo)
+    gra = automol.convert.geom.connectivity_graph(
+        geo, rqq_bond_max=rqq_bond_max, rqh_bond_max=rqh_bond_max,
+        rhh_bond_max=rhh_bond_max)
+    return gra
 
 
 def inchi(geo, remove_stereo=False):

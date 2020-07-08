@@ -114,6 +114,16 @@ def graph(zma, remove_stereo=False):
     return automol.convert.zmatrix.graph(zma, remove_stereo=remove_stereo)
 
 
+def connectivity_graph(zma,
+                       rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
+    """ z-matrix => connectivity graph
+    """
+    gra = automol.convert.zmatrix.connectivity_graph(
+        zma, rqq_bond_max=rqq_bond_max, rqh_bond_max=rqh_bond_max,
+        rhh_bond_max=rhh_bond_max)
+    return gra
+
+
 def formula(zma):
     """ zmatrix => formula
     """
