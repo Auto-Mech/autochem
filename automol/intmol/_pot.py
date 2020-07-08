@@ -3,8 +3,11 @@
 """
 
 import numpy
+from qcelemental import constants as qcc
+from automol.geom import symbols, distance
 
 
+# DCTS OF POTENTIAL PARAMETERS
 # eps[whatever], sig[ang] params
 LJ_DCT = {
     ('H', 'H'): [0.25, 1.0],
@@ -26,7 +29,36 @@ EXP6_DCT = {
 }
 
 
-def pairwise_potential_matrix(geo):
+def _read_params(dct, symb1, symb2):
+    """ Calculate pot
+    """
+
+    params = dct.get((symb1, symb2), None)
+    if params is None:
+        params = dct.get((symb2, symb1), None)
+
+    return params
+
+
+# POTENTIAL FORMS
+def lj_potential(rdist, eps, sig):
+    """ Calculate Lennard-Jones Potential
+    """
+    return (4.0 * eps) * ((sig / rdist)**12 - (sig / rdist)**6)
+
+
+def exp6_potential(rdist, apar, bpar, cpar, rcut):
+    """ Calculate modified Buckhingham potential
+    """
+    if rdist < rcut:
+        pot_val = apar * numpy.exp(-1.0*bpar*rcut) - (cpar / rcut**6)
+    else:
+        pot_val = apar * numpy.exp(-1.0*bpar*rdist) - (cpar / rdist**6)
+    return pot_val
+
+
+# INTERACTION MATRIX WITH ABOVE POTENTIALS
+def pairwise_potential_matrix(geo, potential='exp6'):
     """ Generate a matrix of pairwise potentials
     """
 
@@ -36,7 +68,8 @@ def pairwise_potential_matrix(geo):
 
     for i in range(natoms):
         for j in range(natoms):
-            pot_mat[i, j] = _pairwise_potentials(geo, (i, j))
+            pot_mat[i, j] = _pairwise_potentials(
+                geo, (i, j), potential=potential)
 
     return pot_mat
 
@@ -51,17 +84,22 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
     if idx1 != idx2:
 
         # Get the symbols of the atoms
-        symbols = automol.geom.symbols(geo)
-        symb1, symb2 = symbols[idx1], symbols[idx2]
+        symbs = symbols(geo)
+        symb1, symb2 = symbs[idx1], symbs[idx2]
 
         # Calculate interatomic distance
-        rdist = automol.geom.distance(geo, idx1, idx2) * phycon.BOHR2ANG
+        rdist = (
+            distance(geo, idx1, idx2) *
+            qcc.conversion_factor('bohr', 'angstrom')
+        )
 
-        # Calculate the interaction potential value
+        # Calculate the potential
         if potential == 'exp6':
-            pot_val = _pairwise_exp6_potential(rdist, symb1, symb2)
+            params = _read_params(EXP6_DCT, symb1, symb2)
+            pot_val = exp6_potential(rdist, *params)
         elif potential == 'lj_12_6':
-            pot_val = _pairwise_lj_potential(rdist, symb1, symb2)
+            params = _read_params(LJ_DCT, symb1, symb2)
+            pot_val = lj_potential(rdist, *params)
         else:
             pot_val = None
 
@@ -69,48 +107,6 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
         pot_val = 1e10
 
     return pot_val
-
-
-def _pairwise_exp6_potential(rdist, symb1, symb2):
-    """ Calculate pot
-    """
-
-    exp6_params = EXP6_DCT.get((symb1, symb2), None)
-    if exp6_params is None:
-        exp6_params = EXP6_DCT.get((symb2, symb1), None)
-
-    pot_val = _exp6_potential(rdist, *exp6_params)
-
-    return pot_val
-
-
-def _exp6_potential(rdist, apar, bpar, cpar, rcut):
-    """ Calculate modified Buckhingham potential
-    """
-    if rdist < rcut:
-        pot_val = apar * numpy.exp(-1.0*bpar*rcut) - (cpar / rcut**6)
-    else:
-        pot_val = apar * numpy.exp(-1.0*bpar*rdist) - (cpar / rdist**6)
-    return pot_val
-
-
-def _pairwise_lj_potential(rdist, symb1, symb2):
-    """ Calculate pot
-    """
-
-    ljparams = LJ_DCT.get((symb1, symb2), None)
-    if ljparams is None:
-        ljparams = LJ_DCT.get((symb2, symb1), None)
-
-    pot_val = _lj_potential(rdist, *ljparams)
-
-    return pot_val
-
-
-def _lj_potential(rdist, eps, sig):
-    """ Calculate Lennard-Jones Potential
-    """
-    return (4.0 * eps) * ((sig / rdist)**12 - (sig / rdist)**6)
 
 
 def _generate_pairs(geo, pairs='offdiag'):
@@ -121,6 +117,14 @@ def _generate_pairs(geo, pairs='offdiag'):
         'Can only generate list of off-diagonal pairs'
     )
 
+    # OFF-DIAG PAIRS
+    pairs = tuple()
+    for i in range(len(geo)):
+        for j in range(len(geo)):
+            if i != j:
+                pairs += ((i, j),)
+
+    # ALTERNATE IDX CODE
     # Grab the indices of the heavy atoms for the zmas
     # heavy_idxs = automol.geom.atom_indices(geo, 'H', match=False)
 
@@ -137,20 +141,5 @@ def _generate_pairs(geo, pairs='offdiag'):
     # h_pairs = tuple()
     # for comb in itertools.combinations(h_idxs, 2):
     #     h_pairs += tuple(itertools.product(*comb))
-
-    # Loop over neighbor dict to build pairs
-    # print('geo', geo)
-    # print('heavy idxs', heavy_idxs)
-    # print('heacy pairs', heavy_pairs)
-    # print('h idxs', h_idxs)
-    # print('h pairs', h_pairs)
-    # print(neigh_dct)
-    #
-
-    pairs = tuple()
-    for i in range(len(geo)):
-        for j in range(len(geo)):
-            if i != j:
-                pairs += ((i, j),)
 
     return pairs
