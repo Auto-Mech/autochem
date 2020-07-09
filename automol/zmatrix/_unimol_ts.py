@@ -57,12 +57,14 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         tras, _, _ = automol.graph.reac.hydrogen_migration(rct_gras, prd_gras)
 
         # If reaction found, then proceed
+        print('tras')
         if tras:
             # Get the bond formation keys and the reactant zmatrix
             min_dist = 100.
             frm_bnd_key = None
             brk_bnd_key = None
             for tra_i in tras:
+                print('tra_i', tra_i)
                 # Get the bond formation and breaking keys
                 bnd_key, = automol.graph.trans.formed_bond_keys(tra_i)
                 geo = automol.zmatrix.geometry(rct_zmas[0])

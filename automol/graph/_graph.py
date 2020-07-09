@@ -596,7 +596,10 @@ def explicit_hydrogen_keys(gra):
 def add_atom_explicit_hydrogen_keys(gra, atm_exp_hyd_keys_dct):
     """ add explicit hydrogens by atom
     """
-    assert set(atm_exp_hyd_keys_dct.keys()) <= atom_keys(gra)
+    assert set(atm_exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
+            '{} !<= {}'.format(
+                set(atm_exp_hyd_keys_dct.keys()), atom_keys(gra))
+    )
     for atm_key, atm_exp_hyd_keys in atm_exp_hyd_keys_dct.items():
         assert not set(atm_exp_hyd_keys) & atom_keys(gra)
         atm_exp_hyd_bnd_keys = {frozenset({atm_key, atm_exp_hyd_key})
