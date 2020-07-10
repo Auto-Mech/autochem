@@ -89,6 +89,8 @@ from automol.graph._graph import unsaturated_atom_keys
 # # other properties
 from automol.graph._graph import maximum_spin_multiplicity
 from automol.graph._graph import possible_spin_multiplicities
+# # radical properies
+from automol.graph._rad import isomorphic_radical_graphs
 
 # miscellaneous
 # # bond properties
@@ -283,6 +285,8 @@ __all__ = [
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
     'bond_symmetry_numbers',
+    # # radical properies
+    'isomorphic_radical_graphs',
 
     # resonance library
     # # atom properties

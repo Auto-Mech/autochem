@@ -52,13 +52,17 @@ def hydrogen_migration(rct_gras, prd_gras):
     if len(rct_gras) == 1 and len(prd_gras) == 1:
         gra1, = rct_gras
         gra2, = prd_gras
-
+        print('gras')
+        print(gra1)
+        print(gra2)
         h_atm_key1 = max(atom_keys(gra1)) + 1
         h_atm_key2 = max(atom_keys(gra2)) + 1
 
         atm_keys1 = unsaturated_atom_keys(gra1)
         atm_keys2 = unsaturated_atom_keys(gra2)
+        print('keys')
         for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
+            print(atm_key1, atm_key2)
             gra1_h = add_atom_explicit_hydrogen_keys(
                 gra1, {atm_key1: [h_atm_key1]})
             gra2_h = add_atom_explicit_hydrogen_keys(
@@ -77,6 +81,7 @@ def hydrogen_migration(rct_gras, prd_gras):
                 prd_idxs = (0,)
 
     tras = tuple(tras)
+
     return tras, rct_idxs, prd_idxs
 
 
