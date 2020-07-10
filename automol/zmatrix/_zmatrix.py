@@ -811,7 +811,8 @@ def torsional_sampling_ranges(tors_names):
     # But after all it appears that using the
     # full range is best.
     # after all it appears that using the full sampling range is most effective
-    return tuple((0, 2*numpy.pi) for tors_name in tors_names)
+    sym_nums = 1.
+    return tuple((0, 2*numpy.pi/sym_nums) for tors_name in tors_names)
 
 
 def torsional_scan_linspaces(zma, tors_names, increment=0.5,
