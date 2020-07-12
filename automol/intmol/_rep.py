@@ -3,7 +3,7 @@
 """
 
 from automol.zmatrix import geometry
-from automol.intmol.pot import pairwise_potential_matrix
+from automol.intmol._pot import pairwise_potential_matrix
 
 
 def low_repulsion_struct(zma_ref, zma_samp, pairs='offdiag', thresh=40.0):
