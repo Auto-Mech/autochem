@@ -41,7 +41,7 @@ def _read_params(dct, symb1, symb2):
 
 
 # POTENTIAL FORMS
-def lj_potential(rdist, eps, sig):
+def ljpotential(rdist, eps, sig):
     """ Calculate Lennard-Jones Potential
     """
     return (4.0 * eps) * ((sig / rdist)**12 - (sig / rdist)**6)
