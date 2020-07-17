@@ -57,14 +57,12 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         tras, _, _ = automol.graph.reac.hydrogen_migration(rct_gras, prd_gras)
 
         # If reaction found, then proceed
-        print('tras')
         if tras:
             # Get the bond formation keys and the reactant zmatrix
             min_dist = 100.
             frm_bnd_key = None
             brk_bnd_key = None
             for tra_i in tras:
-                print('tra_i', tra_i)
                 # Get the bond formation and breaking keys
                 bnd_key, = automol.graph.trans.formed_bond_keys(tra_i)
                 geo = automol.zmatrix.geometry(rct_zmas[0])
@@ -85,9 +83,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     a1_idx = idx
 
             brk_dist_coo_key = tuple(reversed(sorted(brk_bnd_key)))
-            # print('coo key test:', dist_coo_key, brk_dist_coo_key)
             for idx in brk_dist_coo_key:
-                # print('idx test:', idx)
                 if symbols[idx] != 'H':
                     a2_idx = idx
 
@@ -165,7 +161,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     # determine the new coordinates
     rct_geo = automol.zmatrix.geometry(rct_zma)
-    print('rct_geo test:\n', automol.geom.string(rct_geo))
     distance = automol.geom.distance(
         rct_geo, h_idx, a1_idx)
     angle = automol.geom.central_angle(
@@ -186,7 +181,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     # Reset the keys for the migrating H atom
     new_idxs = (a1_idx, a2_idx, a3_idx)
     key_dct = {h_idx: new_idxs}
-    print('key_dct:', key_dct)
     ts_zma = automol.zmatrix.set_keys(rct_zma, key_dct)
     # Reset the values in the value dict
     h_names = automol.zmatrix.name_matrix(ts_zma)[h_idx]
@@ -208,6 +202,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     # needed)
     if h_idx != automol.zmatrix.count(ts_zma) - 1:
         ts_zma, new_h_idx = automol.zmatrix.shift_row_to_end(ts_zma, h_idx)
+    else:
+        new_h_idx = h_idx
 
     ts_name_dct = automol.zmatrix.standard_names(ts_zma)
     dist_name = ts_name_dct[dist_name]
@@ -215,22 +211,17 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     # get full set of potential torsional coordinates
     pot_tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
-    print('pot_tors_names test:', pot_tors_names)
-    print('ts_zma test:\n', automol.zmatrix.string(ts_zma))
 
     # remove the torsional coordinates that would break reaction coordinate
     gra = automol.zmatrix.graph(ts_zma, remove_stereo=True)
     coo_dct = automol.zmatrix.coordinates(ts_zma)
     key_mat = automol.zmatrix.key_matrix(ts_zma)
     h_keys = key_mat[new_h_idx]
-    print('h_keys test:', h_keys)
     a1_key = h_keys[0]
     a2_key = h_keys[1]
-    print('a1_key:', a1_key, a2_key)
     tors_names = []
     axis_dict = {}
     bad_tors = []
-    print('zmatrix 2 in h-migration:\n', automol.zmatrix.string(ts_zma))
     for tors_name in pot_tors_names:
         axis = coo_dct[tors_name][0][1:3]
         if axis not in axis_dict:
@@ -243,13 +234,10 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         if len(axis_dict[axis]) > 1:
             coord1 = coo_dct[axis_dict[axis][0]]
             coord2 = coo_dct[axis_dict[axis][1]]
-            print('coord1 test:', coord1)
-            print('coord2 test:', coord2)
             if new_h_idx in coord1[0]:
                 bad_tors.append(axis_dict[axis][0])
             if new_h_idx in coord2[0]:
                 bad_tors.append(axis_dict[axis][1])
-    print('bad_tors_names:', bad_tors)
     for tors_name in pot_tors_names:
         if tors_name not in bad_tors:
             axis = coo_dct[tors_name][0][1:3]
@@ -263,14 +251,12 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     (new_h_idx in grp2 and a1_idx in grp1)):
                 tors_names.append(tors_name)
 
-    print('final_tors_names:', tors_names)
-
     frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
     brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
 
     # Build the reacts graph
     if h_idx != new_h_idx:
-        atom_idxs = (x for x in range(len(rct_geo)))
+        atom_idxs = (x for x in automol.graph.atom_keys(rct_gras[0]))
         atm_key_dct = {}
         for idx in atom_idxs:
             if idx != h_idx:
@@ -281,9 +267,11 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 atm_key_dct[idx] = new_idx
         atm_key_dct[h_idx] = new_h_idx
 
+        print('rct_zmas', automol.zmatrix.string(rct_zmas[0]))
+        print('rct_gras', rct_gras)
         print('atm_key_dct', atm_key_dct)
-        new_rct_gra = automol.graph.relabel(rct_gras, atm_key_dct)
-        rcts_gra = automol.graph.union_from_sequence(new_rct_gra)
+        rcts_gra = automol.graph.relabel(rct_gras[0], atm_key_dct)
+        # rcts_gra = automol.graph.union_from_sequence(new_rct_gra)
     else:
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
