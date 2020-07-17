@@ -27,6 +27,7 @@ def atoms(gra):
 def bonds(gra):
     """ bonds, as a dictionary
     """
+    # print(gra)
     _, bnd_dct = gra
     return bnd_dct
 
@@ -114,7 +115,9 @@ def relabel(gra, atm_key_dct):
     """ relabel the graph with new atom keys
     """
     orig_atm_keys = atom_keys(gra)
-    assert set(atm_key_dct.keys()) <= orig_atm_keys
+    assert set(atm_key_dct.keys()) <= orig_atm_keys, (
+        '{}\n{}'.format(set(atm_key_dct.keys()), orig_atm_keys)
+    )
 
     new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
     new_atm_key_dct.update(atm_key_dct)

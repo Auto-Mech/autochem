@@ -453,7 +453,7 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
         frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
 
         # Build reactants graph
-        rcts_gra = automol.graph.union_from_sequence(rct_gras)        
+        rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
         ret = ts_zma, dist_name, frm_bnd_key, tors_names, rcts_gra
 

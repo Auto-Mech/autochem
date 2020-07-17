@@ -118,6 +118,12 @@ def is_valid(geo):
     return ret
 
 
+def connected(geo, remove_stereo=False):
+    """ Determine if all atoms in geometry are completely connected
+    """
+    return bool(len(components_graph(geo, remove_stereo=remove_stereo)) == 1)
+
+
 # setters
 def set_coordinates(geo, xyz_dct):
     """ set coordinate values for the geometry, using a dictionary by index
@@ -176,6 +182,13 @@ def connectivity_graph(geo,
         geo, rqq_bond_max=rqq_bond_max, rqh_bond_max=rqh_bond_max,
         rhh_bond_max=rhh_bond_max)
     return gra
+
+
+def components_graph(geo, remove_stereo=False):
+    """ geometry => connected components graphs
+    """
+    return automol.graph.connected_components(
+        automol.convert.geom.graph(geo, remove_stereo=remove_stereo))
 
 
 def inchi(geo, remove_stereo=False):
