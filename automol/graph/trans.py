@@ -49,20 +49,14 @@ def string(tra):
         bnd_str = '{}-{}'.format(atm1_key+1, atm2_key+1)
         return bnd_str
 
-
     frm_bnd_keys = sorted(map(sorted, formed_bond_keys(tra)))
     brk_bnd_keys = sorted(map(sorted, broken_bond_keys(tra)))
-    print('keys')
-    print(formed_bond_keys(tra))
-    print(broken_bond_keys(tra))
-    print(frm_bnd_keys)
-    print(brk_bnd_keys)
 
     if any(frm_bnd_keys):
         frm_bnd_strs = list(map(_encode_bond, frm_bnd_keys))
     else:
         frm_bnd_strs = None
-    
+
     if any(brk_bnd_keys):
         brk_bnd_strs = list(map(_encode_bond, brk_bnd_keys))
     else:
