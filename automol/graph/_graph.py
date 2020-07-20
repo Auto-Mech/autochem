@@ -838,10 +838,10 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
             neighbor_dct = atom_neighbor_keys(gra)
             nei_tfr = neighbor_dct[tfr_atm]
 
-            gra = gra[0]
+            atms = gra[0]
             all_hyds = []
-            for atm in gra:
-                if gra[atm][0] == 'H':
+            for atm in atms:
+                if atms[atm][0] == 'H':
                     all_hyds.append(atm)
         else:
             nei_tfr = {}
