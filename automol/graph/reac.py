@@ -228,6 +228,7 @@ def elimination(rct_gras, prd_gras):
         # products.
         for brk_bnd_key1, brk_bnd_key2 in itertools.combinations(
                 rct_bnd_keys, r=2):
+            print([brk_bnd_key1, brk_bnd_key2])
             rct_gra_ = remove_bonds(rct_gra, [brk_bnd_key1, brk_bnd_key2])
 
             # Find the central fragment, which is the one connected to both
@@ -235,6 +236,7 @@ def elimination(rct_gras, prd_gras):
             # fragment, in which case this function will return None.
             cent_frag_atm_keys = _central_fragment_atom_keys(
                 rct_gra_, brk_bnd_key1, brk_bnd_key2)
+            print('centfrag', cent_frag_atm_keys)
             if cent_frag_atm_keys is not None:
                 # separate into separate cases for radicals and closed shells
                 rad_atm = list(automol.graph.sing_res_dom_radical_atom_keys(rct_gra))
