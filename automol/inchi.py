@@ -455,3 +455,24 @@ def _sublayer_pattern(key_ptt='',
     """ inchi sublayer pattern
     """
     return key_ptt + val_ptt
+
+
+if __name__ == '__main__':
+    SMI = 'FC=CF'
+    ICH = automol.smiles.inchi(SMI)
+    print(automol.inchi.recalculate(ICH, force_stereo=True))
+
+    SMI = 'CCC=C[CH]CCCCCC'
+    ICH = automol.smiles.inchi(SMI)
+    print(automol.inchi.recalculate(ICH, force_stereo=True))
+
+    SMI = 'CCC=C[CH]CCCCCC'
+    ICH = automol.smiles.inchi(SMI)
+    GRA = automol.inchi.graph(ICH)
+    BND_KEYS = automol.graph.stereogenic_bond_keys(GRA)
+    print(BND_KEYS)
+
+    for SGR in automol.graph.stereomers(GRA):
+        BND_STE_PAR_DCT = automol.graph.bond_stereo_parities(SGR)
+        print(automol.dict_.by_key(BND_STE_PAR_DCT, BND_KEYS))
+        print(automol.graph.inchi(SGR))
