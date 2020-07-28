@@ -25,6 +25,13 @@ def by_key(dct, keys, fill_val=None):
     return dict(zip(keys, values_by_key(dct, keys, fill_val=fill_val)))
 
 
+def by_value(dct, func):
+    """ dictionary on a set of values, determined by a function
+    """
+    keys = keys_by_value(dct, func)
+    return by_key(dct, keys)
+
+
 def values_by_key(dct, keys, fill_val=None):
     """ return dictionary values for specific keys, filling missing entries
     """

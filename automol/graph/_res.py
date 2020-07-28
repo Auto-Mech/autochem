@@ -4,13 +4,13 @@ import itertools
 import functools
 import numpy
 from automol import dict_
-from automol.graph._graph import frozen
+# from automol.graph._graph import frozen
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import bond_orders
 from automol.graph._graph import set_bond_orders
 from automol.graph._graph import without_bond_orders
-from automol.graph._graph import atom_bond_keys
+# from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_unsaturated_valences
 from automol.graph._graph import atom_bond_valences
@@ -236,42 +236,38 @@ def resonances(rgr):
 def subresonances(rgr):
     """ this connected graph and its lower-spin (more pi-bonded) resonances
     """
-    def _inc_range(bnd_cap):
-        return tuple(range(0, bnd_cap+1))
+    # get the bond capacities (room for increasing bond order), filtering out
+    # the negative ones to avoid complications with hypervalent atoms in TSs
+    print(rgr)
+    bnd_cap_dct = dict_.by_value(_bond_capacities(rgr), lambda x: x > 0)
 
-    add_pi_bonds_ = functools.partial(_add_pi_bonds, rgr)
+    ret_rgrs = []
+    if bnd_cap_dct:
+        bnd_keys, bnd_caps = zip(*bnd_cap_dct.items())
+        atm_keys = list(functools.reduce(frozenset.union, bnd_keys))
 
-    atm_keys = list(atom_keys(rgr))
-    bnd_keys = list(bond_keys(rgr))
-    atm_unsat_vlcs = dict_.values_by_key(
-        atom_unsaturated_valences(rgr), atm_keys)
-    atm_bnd_keys_lst = dict_.values_by_key(atom_bond_keys(rgr), atm_keys)
-    bnd_caps = dict_.values_by_key(_bond_capacities(rgr), bnd_keys)
-    bnd_ord_dct = bond_orders(rgr)
+        # Loop over all possible combinations of bond order increments (amounts
+        # by which to increase the bond order), filtering out the ones that
+        # increase the bond order too much
+        bnd_ord_inc_ranges = [range(bnd_cap+1) for bnd_cap in bnd_caps]
+        for bnd_ord_incs in itertools.product(*bnd_ord_inc_ranges):
+            bnd_ord_inc_dct = dict(zip(bnd_keys, bnd_ord_incs))
+            ret_rgr = _add_pi_bonds(rgr, bnd_ord_inc_dct)
 
-    def _is_valid(bnd_ord_inc_dct):
-        # check if pi bonds exceed unsaturated valences
-        def __tally(atm_bnd_keys):
-            return sum(dict_.values_by_key(bnd_ord_inc_dct, atm_bnd_keys))
-        atm_unsat_vlc_decs = tuple(map(__tally, atm_bnd_keys_lst))
-        enough_elecs = numpy.all(
-            numpy.less_equal(atm_unsat_vlc_decs, atm_unsat_vlcs))
-        # check if all bond orders are less than 4 (should only affect C2)
-        bnd_inc_keys = bnd_ord_inc_dct.keys()
-        bnd_incs = dict_.values_by_key(bnd_ord_inc_dct, bnd_inc_keys)
-        bnd_ords = dict_.values_by_key(bnd_ord_dct, bnd_inc_keys)
-        new_bnd_ords = numpy.add(bnd_ords, bnd_incs)
-        not_too_many = numpy.all(numpy.less(new_bnd_ords, 4))
-        return enough_elecs and not_too_many
+            atm_unsat_vlcs = dict_.values_by_key(
+                atom_unsaturated_valences(ret_rgr), atm_keys)
 
-    def _bond_value_dictionary(bnd_vals):
-        return dict(zip(bnd_keys, bnd_vals))
+            print(atm_unsat_vlcs)
 
-    bnd_ord_incs_itr = itertools.product(*map(_inc_range, bnd_caps))
-    bnd_ord_inc_dct_itr = map(_bond_value_dictionary, bnd_ord_incs_itr)
-    bnd_ord_inc_dct_itr = filter(_is_valid, bnd_ord_inc_dct_itr)
-    rgrs = tuple(sorted(map(add_pi_bonds_, bnd_ord_inc_dct_itr), key=frozen))
-    return rgrs
+            if not any(atm_unsat_vlc < 0 for atm_unsat_vlc in atm_unsat_vlcs):
+                ret_rgrs.append(ret_rgr)
+
+    if not ret_rgrs:
+        ret_rgrs = (rgr,)
+    else:
+        ret_rgrs = tuple(ret_rgrs)
+
+    return ret_rgrs
 
 
 def _bond_capacities(rgr):
@@ -331,10 +327,31 @@ def rotational_bond_keys(gra, with_h_rotors=True):
 
 
 if __name__ == '__main__':
-    GRA = ({0: ('C', 2, None), 1: ('C', 2, None), 2: ('C', 1, None),
-            3: ('C', 2, None), 4: ('C', 1, None)},
-           {frozenset({3, 4}): (1, None), frozenset({2, 4}): (1, None),
-            frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None)})
+    import automol
 
-    print(nonresonant_radical_atom_keys(GRA))
-    print(resonance_dominant_radical_atom_keys(GRA))
+    GRA = ({0: ('O', 0, None), 1: ('N', 0, None), 2: ('O', 0, None),
+            3: ('O', 0, None), 4: ('C', 0, None), 5: ('C', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('O', 0, None),
+            9: ('H', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({0, 7}): (1, None),
+            frozenset({1, 3}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({4, 5}): (1, None), frozenset({4, 6}): (1, None),
+            frozenset({4, 7}): (1, None), frozenset({8, 5}): (1, None),
+            frozenset({9, 5}): (1, None)})
+    GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
+           {frozenset({0, 1}): (1, None)})
+    GRA = (
+        {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
+        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None),
+         frozenset({2, 0}): (1, None)})
+    GRA = (
+        {0: ('C', 1, None), 1: ('C', 1, None), 2: ('F', 0, None),
+         3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
+        {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+         frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
+         frozenset({1, 5}): (1, None)})
+
+    for gra in subresonances(GRA):
+        print(automol.graph.string(gra))
+
+    print(len(subresonances(GRA)))

@@ -60,6 +60,8 @@ C2_RGRS = (
      {frozenset({0, 1}): (2, None)}),
     ({0: ('C', 0, None), 1: ('C', 0, None)},
      {frozenset({0, 1}): (3, None)}),
+    ({0: ('C', 0, None), 1: ('C', 0, None)},
+     {frozenset({0, 1}): (4, None)}),
 )
 
 CH2FH2H_CGR_IMP = (
@@ -806,7 +808,7 @@ if __name__ == '__main__':
     # test__backbone_keys()
     # test__explicit_hydrogen_keys()
     # test__stereomers()
-    test__heuristic_geometry()
+    # test__heuristic_geometry()
     # test__connected_components()
     # test__unsaturated_atom_keys()
     # test__resonance_dominant_radical_atom_keys()
@@ -819,3 +821,5 @@ if __name__ == '__main__':
     # test__electron_count()
     # test__atom_count()
     # test__heavy_atom_count()
+    # test__subresonances()
+    test__stereomers()
