@@ -451,15 +451,6 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
         brk_bnd_keys = frozenset({brk_bnd_key1, brk_bnd_key2})
         frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
 
-        # Get reactants graph
-        _, rct_gras = shifted_standard_zmas_graphs(
-            [rct_zma], remove_stereo=True)
-        rcts_gra = automol.graph.union_from_sequence(rct_gras)
- 
-        brk_bnd_key1 = shift_vals_from_dummy(brk_bnd_key1, ts_zma)
-        brk_bnd_key2 = shift_vals_from_dummy(brk_bnd_key2, ts_zma)
-        brk_bnd_keys = frozenset({brk_bnd_key1, brk_bnd_key2})
-
         ret = ts_zma, dist_name, brk_dist_name, brk_bnd_keys, frm_bnd_key, tors_names, rct_gras
 
     return ret
