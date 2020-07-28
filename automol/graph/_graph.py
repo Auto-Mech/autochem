@@ -504,7 +504,9 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
 
     if check:
-        assert not keys & bnd_keys
+        assert not keys & bnd_keys, (
+            '{} and {} have a non-empty intersection'.format(keys, bnd_keys)
+        )
 
     assert set(ord_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
