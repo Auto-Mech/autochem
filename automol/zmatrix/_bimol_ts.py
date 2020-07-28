@@ -292,7 +292,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
     tras, _, _ = automol.graph.reac.addition(rct_gras, prd_gras)
     # print('tras')
     # for tra in tras:
-        # print(tra)
     if tras:
         tra = tras[0]
         rct1_zma, rct2_zma = rct_zmas
@@ -668,7 +667,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             rct_gras, prd_gras)
         # print('tras')
         # for tra in tras:
-            # print(tra)
         if tras:
             tra = tras[0]
             rct1_gra, rct2_gra = rct_gras
