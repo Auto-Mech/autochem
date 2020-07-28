@@ -169,6 +169,7 @@ def addition(rct_gras, prd_gras):
         prd_gra, = prd_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
         y_atm_keys = unsaturated_atom_keys(y_gra)
+
         for x_atm_key, y_atm_key in itertools.product(x_atm_keys, y_atm_keys):
             xy_gra = add_bonds(
                 union(x_gra, y_gra), [{x_atm_key, y_atm_key}])
@@ -228,7 +229,7 @@ def elimination(rct_gras, prd_gras):
         # products.
         for brk_bnd_key1, brk_bnd_key2 in itertools.combinations(
                 rct_bnd_keys, r=2):
-            print([brk_bnd_key1, brk_bnd_key2])
+            # print([brk_bnd_key1, brk_bnd_key2])
             rct_gra_ = remove_bonds(rct_gra, [brk_bnd_key1, brk_bnd_key2])
 
             # Find the central fragment, which is the one connected to both
@@ -236,7 +237,6 @@ def elimination(rct_gras, prd_gras):
             # fragment, in which case this function will return None.
             cent_frag_atm_keys = _central_fragment_atom_keys(
                 rct_gra_, brk_bnd_key1, brk_bnd_key2)
-            print('centfrag', cent_frag_atm_keys)
             if cent_frag_atm_keys is not None:
                 # separate into separate cases for radicals and closed shells
                 rad_atm = list(automol.graph.sing_res_dom_radical_atom_keys(rct_gra))
@@ -278,7 +278,6 @@ def elimination(rct_gras, prd_gras):
                             frm_bnd_keys=[frm_bnd_key],
                             brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
                         tras.append(tra)
-    
                         rct_idxs = (0,)
     
                         cent_prd_atm_keys = frozenset(
@@ -289,7 +288,6 @@ def elimination(rct_gras, prd_gras):
                         else:
                             assert cent_prd_atm_keys <= atom_keys(prd_gras[1])
                             prd_idxs = (1, 0)
-    
     tras = tuple(tras)
     return tras, rct_idxs, prd_idxs
 
