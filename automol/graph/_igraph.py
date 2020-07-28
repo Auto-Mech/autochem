@@ -136,11 +136,21 @@ def automorphisms(igr):
     return aut_dcts
 
 
+def canonical_permutation(igr):
+    """ get the list of automorphisms for an igraph object
+
+    (currently does not consider bond stereo, because the igraph/BLISS function
+    doesn't consider edge colors)
+    """
+    atm_keys = igr.vs['label']
+    atm_colors = igr.vs['color']
+    perm = igr.canonical_permutation(color=atm_colors)
+    perm_dct = dict(zip(atm_keys, perm))
+    return perm_dct
+
+
 if __name__ == '__main__':
     ICH = automol.smiles.inchi('CF')
     GRA = automol.graph.explicit(automol.inchi.graph(ICH))
     IGR = from_graph(GRA)
-    print(IGR)
-    GRA = to_graph(IGR)
-    print(automol.graph.string(GRA))
-    print(automorphisms(IGR))
+    print(canonical_permutation(IGR))
