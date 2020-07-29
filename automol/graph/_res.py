@@ -4,13 +4,11 @@ import itertools
 import functools
 import numpy
 from automol import dict_
-# from automol.graph._graph import frozen
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import bond_orders
 from automol.graph._graph import set_bond_orders
 from automol.graph._graph import without_bond_orders
-# from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_unsaturated_valences
 from automol.graph._graph import atom_bond_valences
@@ -238,7 +236,6 @@ def subresonances(rgr):
     """
     # get the bond capacities (room for increasing bond order), filtering out
     # the negative ones to avoid complications with hypervalent atoms in TSs
-    print(rgr)
     bnd_cap_dct = dict_.by_value(_bond_capacities(rgr), lambda x: x > 0)
 
     ret_rgrs = []
@@ -247,8 +244,11 @@ def subresonances(rgr):
         atm_keys = list(functools.reduce(frozenset.union, bnd_keys))
 
         # Loop over all possible combinations of bond order increments (amounts
-        # by which to increase the bond order), filtering out the ones that
-        # increase the bond order too much
+        # by which to increase the bond order), filtering out combinations that
+        # exceed the valences of the atoms involved.
+        # (Note that we are only testing the bonds with available pi electrons,
+        # so this is compatible with having hypervalent atoms elsewhere in the
+        # molecule)
         bnd_ord_inc_ranges = [range(bnd_cap+1) for bnd_cap in bnd_caps]
         for bnd_ord_incs in itertools.product(*bnd_ord_inc_ranges):
             bnd_ord_inc_dct = dict(zip(bnd_keys, bnd_ord_incs))
@@ -256,8 +256,6 @@ def subresonances(rgr):
 
             atm_unsat_vlcs = dict_.values_by_key(
                 atom_unsaturated_valences(ret_rgr), atm_keys)
-
-            print(atm_unsat_vlcs)
 
             if not any(atm_unsat_vlc < 0 for atm_unsat_vlc in atm_unsat_vlcs):
                 ret_rgrs.append(ret_rgr)
@@ -338,20 +336,20 @@ if __name__ == '__main__':
             frozenset({4, 5}): (1, None), frozenset({4, 6}): (1, None),
             frozenset({4, 7}): (1, None), frozenset({8, 5}): (1, None),
             frozenset({9, 5}): (1, None)})
-    GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
-           {frozenset({0, 1}): (1, None)})
-    GRA = (
-        {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
-        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None),
-         frozenset({2, 0}): (1, None)})
-    GRA = (
-        {0: ('C', 1, None), 1: ('C', 1, None), 2: ('F', 0, None),
-         3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
-        {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-         frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
-         frozenset({1, 5}): (1, None)})
+    # GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
+    #        {frozenset({0, 1}): (1, None)})
+    # GRA = (
+    #     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
+    #     {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None),
+    #      frozenset({2, 0}): (1, None)})
+    # GRA = (
+    #     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('F', 0, None),
+    #      3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
+    #     {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+    #      frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
+    #      frozenset({1, 5}): (1, None)})
 
-    for gra in subresonances(GRA):
-        print(automol.graph.string(gra))
+    for RGR in subresonances(GRA):
+        print(automol.graph.string(RGR))
 
     print(len(subresonances(GRA)))
