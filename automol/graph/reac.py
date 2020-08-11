@@ -130,6 +130,10 @@ def hydrogen_abstraction(rct_gras, prd_gras):
                 prd_idxs = prd_idxs_
 
     tras = tuple(tras)
+    print ('tras test:', tras)
+    print ('idxs test:', rct_idxs, prd_idxs)
+    # import sys
+    # sys.exit()
     return tras, rct_idxs, prd_idxs
 
 
