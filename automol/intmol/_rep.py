@@ -12,8 +12,8 @@ def low_repulsion_struct(zma_ref, zma_samp, pairs='offdiag', thresh=40.0):
     """
 
     # # Convert to geoms
-    geo_ref = geometry(zma_ref)
-    geo_samp = geometry(zma_samp)
+    geo_ref = geometry(zma_ref, remove_dummy_atoms=True)
+    geo_samp = geometry(zma_samp, remove_dummy_atoms=True)
 
     # Calculate the pairwise potentials
     pot_mat = pairwise_potential_matrix(geo_ref)
