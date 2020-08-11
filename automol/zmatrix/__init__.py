@@ -126,6 +126,17 @@ def connectivity_graph(zma,
 def chain_between(zma, atm1, atm2):
     """ returns the chain of atoms connecting two given atoms
     """              
+    chain1 = _chain_between(zma, atm1, atm2)
+    chain2 = _chain_between(zma, atm2, atm1)
+    if len(chain2) > 0 and len(chain2) < len(chain1):
+        chain1 = chain2
+    if len(chain1) < 1:
+        chain1 = chain2
+    return chain1
+
+def _chain_between(zma, atm1, atm2):
+    """ returns the chain of atoms connecting two given atoms
+    """              
     def _loop(atm_nbh_keys_dct, nbh_atms, chain, atm2, iters, checked_atms):
         if iters < 800:
             new_atm_nbhs = []
