@@ -146,38 +146,6 @@ def atom_neighbor_keys(gra):
         atom_neighborhoods(gra), _neighbor_keys)
     return atm_ngb_keys_dct
 
-def chain_between(gra, atm1, atm2):
-    """ returns the chain of atoms connecting two given atoms
-    """                                          
-    def _loop(atm_nbh_keys_dct, nbh_atms, chain, atm2, iters, checked_atms):
-        if iters < 100:
-            new_atm_nbhs = []
-            for atm in nbh_atms:
-                if atm not in checked_atms:
-                    new_atm_nbhs.append(atm)
-            for nbh in new_atm_nbhs: 
-                chain.append(nbh)
-                checked_atms.append(nbh)
-                iters += 1
-                if nbh == atm2:           
-                    iters = 1000
-                    return chain, nbh_atms, iters, checked_atms
-                else:
-                    nbh_atms = atm_nbh_keys_dct[nbh]
-                    chain, atm_nbhs, iters, checked_atms = _loop(atm_nbh_keys_dct, nbh_atms, chain, atm2, checked_atms)
-                chain = chain[:-1]
-                nbh_atms= atm_nbh_keys_dct[chain[-1]]
-        return chain, nbh_atms, iters, checked_atms
-
-    atm_nbh_keys_dct = atom_neighbor_keys(gra)
-    nbh_atms = atm_nbh_keys_dct[atm1]
-    chain = [atm1]
-    checked_atms = [atm1]
-    iters = 0
-    return_chain, nbh_atms, iters, checked_atms =_loop(atm_nbh_keys_dct, nbh_atms, chain, atm2, checked_atms)
-    if iters < 500:
-        return_chain = []
-    return return_chain    
 
 def atom_bond_keys(gra):
     """ bond keys, by atom
