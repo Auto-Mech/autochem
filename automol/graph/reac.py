@@ -52,17 +52,12 @@ def hydrogen_migration(rct_gras, prd_gras):
     if len(rct_gras) == 1 and len(prd_gras) == 1:
         gra1, = rct_gras
         gra2, = prd_gras
-        print('gras')
-        print(gra1)
-        print(gra2)
         h_atm_key1 = max(atom_keys(gra1)) + 1
         h_atm_key2 = max(atom_keys(gra2)) + 1
 
         atm_keys1 = unsaturated_atom_keys(gra1)
         atm_keys2 = unsaturated_atom_keys(gra2)
-        print('keys')
         for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
-            print(atm_key1, atm_key2)
             gra1_h = add_atom_explicit_hydrogen_keys(
                 gra1, {atm_key1: [h_atm_key1]})
             gra2_h = add_atom_explicit_hydrogen_keys(
@@ -130,8 +125,8 @@ def hydrogen_abstraction(rct_gras, prd_gras):
                 prd_idxs = prd_idxs_
 
     tras = tuple(tras)
-    print ('tras test:', tras)
-    print ('idxs test:', rct_idxs, prd_idxs)
+    # print ('tras test:', tras)
+    # print ('idxs test:', rct_idxs, prd_idxs)
     # import sys
     # sys.exit()
     return tras, rct_idxs, prd_idxs
@@ -410,3 +405,39 @@ def _argsort_reactants(gras):
 
     idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
     return idxs
+
+
+if __name__ == '__main__':
+    import automol
+
+    RCT_ICHS = (
+        automol.smiles.inchi('[O][O]'),
+        automol.smiles.inchi('CC=CCC'),
+    )
+    PRD_ICHS1 = (
+        automol.smiles.inchi('[O]O'),
+        automol.smiles.inchi('[CH2]C=CCC'),
+    )
+    PRD_ICHS2 = (
+        automol.smiles.inchi('[O]O'),
+        automol.smiles.inchi('CC=C[CH]C'),
+    )
+
+    RCT_GRAS, _ = automol.graph.standard_keys_for_sequence([
+        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
+        for ich in RCT_ICHS
+    ])
+    PRD_GRAS1, _ = automol.graph.standard_keys_for_sequence([
+        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
+        for ich in PRD_ICHS1
+    ])
+    PRD_GRAS2, _ = automol.graph.standard_keys_for_sequence([
+        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
+        for ich in PRD_ICHS2
+    ])
+
+    TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
+    TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
+    print(TS1)
+    print()
+    print(TS2)
