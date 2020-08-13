@@ -2,6 +2,7 @@
 """
 
 import itertools
+import copy
 import numpy
 from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
@@ -399,7 +400,7 @@ def set_values(zma, val_dct):
         new_val_dct)
 
 
-def shift_row_to_end(zma, row_idx):
+def shift_row_to_end(zma, row_idx, tors_names):
     """ move a single row of the zmatrix to the end
 
         set to only act if keys in row_idx are larger than row_idx
@@ -471,7 +472,18 @@ def shift_row_to_end(zma, row_idx):
             new_symbols, new_key_matrix, new_name_matrix, orig_values)
         h_idx = automol.zmatrix.count(zma) - 1
 
-    return zma, h_idx
+        if shift_needed:
+            new_tors_names = []
+            for tors_name in tors_names:
+                tors_num = int(tors_name[1:])
+                if tors_num >= row_idx:
+                    new_tors_names.append('D'+str(tors_num - 1))
+                else:
+                    new_tors_names.append('D'+str(tors_num))
+        else:
+            new_tors_names = copy.copy(tors_names)
+
+    return zma, h_idx, new_tors_names
 
 
 def standard_names(zma, shift=0):

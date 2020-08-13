@@ -641,6 +641,10 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
         rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(
             rct2_gra)
+        print('rad_atm_keys:', rad_atm_keys)
+        print('rct_zmas:', rct_zmas)
+        # import sys
+        # sys.exit()
         if 0 not in rad_atm_keys:
             rct_zmas[1] = reorder_zma_for_radicals(
                 rct_zmas[1], min(rad_atm_keys))
