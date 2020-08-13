@@ -400,7 +400,7 @@ def set_values(zma, val_dct):
         new_val_dct)
 
 
-def shift_row_to_end(zma, row_idx, tors_names):
+def shift_row_to_end(zma, row_idx, frm_bnd_key, brk_bnd_key):
     """ move a single row of the zmatrix to the end
 
         set to only act if keys in row_idx are larger than row_idx
@@ -472,18 +472,31 @@ def shift_row_to_end(zma, row_idx, tors_names):
             new_symbols, new_key_matrix, new_name_matrix, orig_values)
         h_idx = automol.zmatrix.count(zma) - 1
 
-        if shift_needed:
-            new_tors_names = []
-            for tors_name in tors_names:
-                tors_num = int(tors_name[1:])
-                if tors_num >= row_idx:
-                    new_tors_names.append('D'+str(tors_num - 1))
-                else:
-                    new_tors_names.append('D'+str(tors_num))
-        else:
-            new_tors_names = copy.copy(tors_names)
+        frm_bnd_key = list(frm_bnd_key)
+        brk_bnd_key = list(brk_bnd_key)
 
-    return zma, h_idx, new_tors_names
+        if shift_needed:
+            if frm_bnd_key[0] > row_idx:
+                frm_bnd_key[0] = frm_bnd_key[0] - 1
+            elif frm_bnd_key[0] == row_idx:
+                frm_bnd_key[0] = h_idx
+            if frm_bnd_key[1] > row_idx:
+                frm_bnd_key[1] = frm_bnd_key[1] - 1
+            elif frm_bnd_key[1] == row_idx:
+                frm_bnd_key[1] = h_idx
+            if brk_bnd_key[0] > row_idx:
+                brk_bnd_key[0] = brk_bnd_key[0] - 1
+            elif brk_bnd_key[0] == row_idx:
+                brk_bnd_key[0] = h_idx
+            if brk_bnd_key[1] > row_idx:
+                brk_bnd_key[1] = brk_bnd_key[1] - 1
+            elif brk_bnd_key[1] == row_idx:
+                brk_bnd_key[1] = h_idx
+
+        frm_bnd_key = frozenset(frm_bnd_key)
+        brk_bnd_key = frozenset(brk_bnd_key)
+
+    return zma, h_idx, frm_bnd_key, brk_bnd_key
 
 
 def standard_names(zma, shift=0):

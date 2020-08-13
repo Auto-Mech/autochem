@@ -290,9 +290,9 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
         prd_zmas, remove_stereo=True)
     tras, _, _ = automol.graph.reac.addition(rct_gras, prd_gras)
-    print('tras')
-    for tra in tras:
-        print(tra)
+    # print('tras')
+    # for tra in tras:
+        # print(tra)
     if tras:
         tra = tras[0]
         rct1_zma, rct2_zma = rct_zmas
@@ -450,7 +450,9 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
 
+        # print('frm_bnd_key test before shift:', frm_bnd_key)
         frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
+        # print('frm_bnd_key test after shift:', frm_bnd_key)
 
         # Build reactants graph
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
@@ -641,8 +643,8 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
         rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(
             rct2_gra)
-        print('rad_atm_keys:', rad_atm_keys)
-        print('rct_zmas:', rct_zmas)
+        # print('rad_atm_keys:', rad_atm_keys)
+        # print('rct_zmas:', rct_zmas)
         # import sys
         # sys.exit()
         if 0 not in rad_atm_keys:
@@ -662,12 +664,12 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         # fix to put radical atom first
         # ultimately need to fix this for multiple radical centers
         # end of fix
-        print(rct_gras)
+        # print(rct_gras)
         tras, _, _ = automol.graph.reac.hydrogen_abstraction(
             rct_gras, prd_gras)
-        print('tras')
-        for tra in tras:
-            print(tra)
+        # print('tras')
+        # for tra in tras:
+            # print(tra)
         if tras:
             tra = tras[0]
             rct1_gra, rct2_gra = rct_gras
@@ -677,8 +679,8 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
 
             frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
             brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
-            print('frm_key', frm_bnd_key)
-            print('brk_key', brk_bnd_key)
+            # print('frm_key', frm_bnd_key)
+            # print('brk_key', brk_bnd_key)
             rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
 
             # if rct1 and rct2 are isomorphic, we may get an atom key on rct2.
