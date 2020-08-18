@@ -618,10 +618,20 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
             frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
             brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
 
-            # Build reactants graph (copy from other abs)
-            rcts_gra = ()
+            # Build reactants graph
+            atom_keys2 = automol.graph.atom_keys(rct2_gra)
+            natom2 = len(atom_keys2)
+            atm_key_dct = dict(zip(
+                atom_keys2,
+                (key+natom2 for key in atom_keys2),
+            ))
+            new_rct2_gra = automol.graph.relabel(rct2_gra, atm_key_dct)
+            rcts_gra = automol.graph.union_from_sequence(
+                (rct1_gra, new_rct2_gra))
 
-            ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names, rcts_gra
+            ret = (ts_zma, dist_name,
+                   frm_bnd_key, brk_bnd_key,
+                   tors_names, rcts_gra)
 
     return ret
 
@@ -775,7 +785,9 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             rcts_gra = automol.graph.union_from_sequence(
                 (rct1_gra, new_rct2_gra))
 
-            ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names, rcts_gra
+            ret = (ts_zma, dist_name,
+                   frm_bnd_key, brk_bnd_key,
+                   tors_names, rcts_gra)
 
     return ret
 
