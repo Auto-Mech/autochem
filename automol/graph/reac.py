@@ -411,16 +411,16 @@ if __name__ == '__main__':
     import automol
 
     RCT_ICHS = (
-        automol.smiles.inchi('[O][O]'),
-        automol.smiles.inchi('CC=CCC'),
+        automol.smiles.inchi('[CH2]C=CCCCCCCCCC'),
+        automol.smiles.inchi('[O]O'),
     )
     PRD_ICHS1 = (
-        automol.smiles.inchi('[O]O'),
-        automol.smiles.inchi('[CH2]C=CCC'),
+        automol.smiles.inchi('[O][O]'),
+        automol.smiles.inchi('C=CCCCCCCCCCC'),
     )
     PRD_ICHS2 = (
-        automol.smiles.inchi('[O]O'),
-        automol.smiles.inchi('CC=C[CH]C'),
+        automol.smiles.inchi('[O][O]'),
+        automol.smiles.inchi('CC=CCCCCCCCCC'),
     )
 
     RCT_GRAS, _ = automol.graph.standard_keys_for_sequence([
@@ -438,6 +438,24 @@ if __name__ == '__main__':
 
     TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
     TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
-    print(TS1)
+    # print(TS1)
+    # print()
+    # print(TS2)
+
+    RCT_ZMAS = list(
+        map(automol.geom.zmatrix, map(automol.inchi.geometry, RCT_ICHS)))
+    PRD_ZMAS1 = list(
+        map(automol.geom.zmatrix, map(automol.inchi.geometry, PRD_ICHS1)))
+    PRD_ZMAS2 = list(
+        map(automol.geom.zmatrix, map(automol.inchi.geometry, PRD_ICHS2)))
+
+    ts_zma1, dist_name1, frm_bnd_key1, brk_bnd_key1, _, _ = (
+        automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS1))
+    print(automol.zmatrix.string(ts_zma1))
     print()
-    print(TS2)
+    ts_zma2, dist_name2, frm_bnd_key2, brk_bnd_key2, _, _ = (
+        automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS2))
+    print(automol.zmatrix.string(ts_zma2))
+
+    print(dist_name1, frm_bnd_key1, brk_bnd_key1)
+    print(dist_name2, frm_bnd_key2, brk_bnd_key2)
