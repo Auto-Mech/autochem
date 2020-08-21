@@ -852,7 +852,6 @@ if __name__ == '__main__':
         automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
         for ich in RCT_ICHS
     ])
-    for GRA in RCT_GRAS:
     PRD_GRAS1, _ = automol.graph.standard_keys_for_sequence([
         automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
         for ich in PRD_ICHS1
