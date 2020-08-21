@@ -643,7 +643,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
         rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(
             rct2_gra)
-        # print('rad_atm_keys:', rad_atm_keys)
         # print('rct_zmas:', rct_zmas)
         # import sys
         # sys.exit()
@@ -679,8 +678,23 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
 
             frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
             brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
-            # print('frm_key', frm_bnd_key)
-            # print('brk_key', brk_bnd_key)
+
+            rct2_atm1_key = _xor(frm_bnd_key, brk_bnd_key)
+            if not rct2_atm1_key == rct1_natms:
+                rct2_gra = automol.graph.move_idx_to_top(rct2_gra, rct2_atm1_key, rct1_natms)
+                rct2_zma = automol.geom.zmatrix(automol.graph.geometry(rct2_gra))
+                rct_zmas = [rct1_zma, rct2_zma]
+                rct_zmas, _ = shifted_standard_zmas_graphs(rct_zmas, remove_stereo=True)
+                _, rct2_zma = rct_zmas
+                new_bnd_key = []    
+                for key in frm_bnd_key:
+                    if key == rct2_atm1_key:
+                        key = rct1_natms
+                    new_bnd_key.append(key)
+                frm_bnd_key = frozenset(new_bnd_key)    
+                rct_gras = (rct1_gra, rct2_gra)
+            #print('frm_key', frm_bnd_key)
+            #print('brk_key', brk_bnd_key)
             rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
 
             # if rct1 and rct2 are isomorphic, we may get an atom key on rct2.
@@ -781,6 +795,10 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
 
     return ret
 
+def _xor(atms1, atms2):
+    for atmi in atms1:
+        if not atmi in atms2:
+            return atmi
 
 def shift_vals_from_dummy(vals, zma):
     """ Shift a set of values using remdummy
@@ -801,3 +819,55 @@ def shift_vals_from_dummy(vals, zma):
     shift_vals = type_(shift_vals)
 
     return shift_vals
+
+
+if __name__ == '__main__':
+    import automol
+
+    RCT_ICHS = (
+        automol.smiles.inchi('[O]O'),
+        automol.smiles.inchi('[CH2]C=CCCCCCCCCC'),
+    )
+    #PRD_ICHS1 = (
+    #    automol.smiles.inchi('[O]O'),
+    #    automol.smiles.inchi('[CH2]C=CCC'),
+    #)
+    #PRD_ICHS2 = (
+    #    automol.smiles.inchi('[O]O'),
+    #    automol.smiles.inchi('CC=C[CH]C'),
+    #)
+    PRD_ICHS1 = (
+        automol.smiles.inchi('[O][O]'),
+        automol.smiles.inchi('C=CCCCCCCCCCC'),
+    )
+    PRD_ICHS2 = (
+        automol.smiles.inchi('[O][O]'),
+        automol.smiles.inchi('CC=CCCCCCCCCC'),
+    )
+    RCT_ZMAS = [automol.geom.zmatrix(automol.inchi.geometry(ich)) for ich in RCT_ICHS]
+    PRD1_ZMAS = [automol.geom.zmatrix(automol.inchi.geometry(ich)) for ich in PRD_ICHS1]
+    PRD2_ZMAS = [automol.geom.zmatrix(automol.inchi.geometry(ich)) for ich in PRD_ICHS2]
+
+    RCT_GRAS, _ = automol.graph.standard_keys_for_sequence([
+        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
+        for ich in RCT_ICHS
+    ])
+    for GRA in RCT_GRAS:
+    PRD_GRAS1, _ = automol.graph.standard_keys_for_sequence([
+        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
+        for ich in PRD_ICHS1
+    ])
+    PRD_GRAS2, _ = automol.graph.standard_keys_for_sequence([
+        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
+        for ich in PRD_ICHS2
+    ])
+
+    #TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
+    #TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
+    #TS1 = hydrogen_abstraction(PRD_GRAS1, RCT_GRAS)
+    #TS2 = hydrogen_abstraction(PRD_GRAS2, RCT_GRAS)
+    TS1 = hydrogen_abstraction(RCT_ZMAS, PRD1_ZMAS)
+    TS2 = hydrogen_abstraction(RCT_ZMAS, PRD2_ZMAS)
+    #print(automol.geom.string(automol.zmatrix.geometry(TS1[0])))
+    #print()
+    #print(automol.geom.string(automol.zmatrix.geometry(TS2[0])))

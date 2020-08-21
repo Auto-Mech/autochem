@@ -31,6 +31,7 @@ from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import add_atoms
 from automol.graph._graph import add_bonds
 from automol.graph._graph import add_bonded_atom
+from automol.graph._graph import move_idx_to_top
 # # atom properties
 from automol.graph._graph import electron_count
 from automol.graph._graph import atom_count
@@ -61,9 +62,6 @@ from automol.graph._graph import bond_induced_subgraph
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import without_dummy_atoms
-from automol.graph._graph import add_ts_bonds
-from automol.graph._graph import ts_bond_keys
-from automol.graph._graph import without_ts_bonds
 
 # implicit/explicit hydrogen functions
 # # atom properties
@@ -229,6 +227,7 @@ __all__ = [
     'add_atoms',
     'add_bonds',
     'add_bonded_atom',
+    'move_idx_to_top',
 
     # graph theory library
     # # atom properties
@@ -261,9 +260,6 @@ __all__ = [
     'remove_atoms',
     'remove_bonds',
     'without_dummy_atoms',
-    'add_ts_bonds',
-    'ts_bond_keys',
-    'without_ts_bonds',
 
     # implicit/explicit hydrogen functions
     # # atom properties
