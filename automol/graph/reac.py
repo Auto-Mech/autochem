@@ -125,7 +125,6 @@ def hydrogen_abstraction(rct_gras, prd_gras):
                 prd_idxs = prd_idxs_
 
     tras = tuple(tras)
-    # print ('tras test:', tras)
     # print ('idxs test:', rct_idxs, prd_idxs)
     # import sys
     # sys.exit()
@@ -422,11 +421,12 @@ if __name__ == '__main__':
         automol.smiles.inchi('[O][O]'),
         automol.smiles.inchi('CC=CCCCCCCCCC'),
     )
-
     RCT_GRAS, _ = automol.graph.standard_keys_for_sequence([
         automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
         for ich in RCT_ICHS
     ])
+    for GRA in RCT_GRAS:
+        print(automol.geom.string(automol.graph.geometry(GRA)))
     PRD_GRAS1, _ = automol.graph.standard_keys_for_sequence([
         automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
         for ich in PRD_ICHS1
@@ -452,6 +452,11 @@ if __name__ == '__main__':
     ts_zma1, dist_name1, frm_bnd_key1, brk_bnd_key1, _, _ = (
         automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS1))
     print(automol.zmatrix.string(ts_zma1))
+    #TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
+    #TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
+    TS1 = hydrogen_abstraction(PRD_GRAS1, RCT_GRAS)
+    TS2 = hydrogen_abstraction(PRD_GRAS2, RCT_GRAS)
+    print(TS1)
     print()
     ts_zma2, dist_name2, frm_bnd_key2, brk_bnd_key2, _, _ = (
         automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS2))
