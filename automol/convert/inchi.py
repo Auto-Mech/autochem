@@ -48,7 +48,7 @@ def _connected_geometry(ich):
             geo, _ = automol.graph.heuristic_geometry(gra)
             return geo
 
-        for gen_ in [_gen1, _gen2, _gen3]:
+        for gen_ in [_gen1, _gen1, _gen1, _gen2, _gen3]:
             success = False
             try:
                 geo = gen_(ich)

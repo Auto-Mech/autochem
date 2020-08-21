@@ -61,8 +61,10 @@ def to_conformers(rdm, nconfs):
 def from_inchi(ich):
     """ rdkit molecule object from an InChI string
     """
+
     rdm = _rd_chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
-    assert rdm is not None
+    if rdm is None: 
+        print('rdm fails for {} by returning {}'.format(ich, rdm))
     return rdm
 
 
@@ -82,7 +84,8 @@ def from_smiles(smi):
     """
     # print('rd smi', smi)
     rdm = _rd_chem.MolFromSmiles(smi)
-    assert rdm is not None
+    assert rdm is not None, (
+                'rdm fails for {} by returning {}'.format(smi, rdm))
     return rdm
 
 
@@ -114,7 +117,8 @@ def from_molfile(mfl):
     """ rdkit molecule object from a mol block string
     """
     rdm = _rd_chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
-    assert rdm is not None
+    if rdm is None: 
+        print('Warning: rdm fails for {} by returning {}'.format(mfl, rdm))
     return rdm
 
 
