@@ -13,6 +13,7 @@ Function return values:
     standard sort order for each reaction.
 """
 import itertools
+import automol
 from automol import formula
 import automol.graph.trans as trans
 import automol.convert.graph as graph_convert
@@ -235,31 +236,58 @@ def elimination(rct_gras, prd_gras):
             cent_frag_atm_keys = _central_fragment_atom_keys(
                 rct_gra_, brk_bnd_key1, brk_bnd_key2)
             if cent_frag_atm_keys is not None:
-                atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
-                atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
-                frm_bnd_key = frozenset({atm1_key, atm2_key})
+                # separate into separate cases for radicals and closed shells
+                rad_atm = list(automol.graph.sing_res_dom_radical_atom_keys(rct_gra))
+                if rad_atm:
+                    rad_atm = rad_atm[0]
+                    frm_bnd_key = None
+                    gras = connected_components(rct_gra_)
+                    for gra in gras:
+                        if rad_atm in automol.graph.atoms(gra): 
+                            for key in brk_bnd_key1:
+                                if key in automol.graph.atoms(gra):
+                                    frag2_atm = brk_bnd_key1 - frozenset({key})
+                                    frag3_key = brk_bnd_key2
+                            for key in brk_bnd_key2:
+                                if key in automol.graph.atoms(gra):
+                                    frag2_atm = brk_bnd_key2 - frozenset({key})
+                                    frag3_key = brk_bnd_key1
+                    for gra in gras:
+                        if list(frag2_atm)[0] in automol.graph.atoms(gra): 
+                            for key in frag3_key:
+                                if key in automol.graph.atoms(gra):
+                                    frag3_atm = frag3_key - frozenset({key})
+                                    frm_bnd_key = frozenset({rad_atm, list(frag3_atm)[0]})
 
-                rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
+                else:
+                # really this should be a loop over rad_atms to handle resonantly stabilized radicals
+                # also issues for biradicals
+                    atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
+                    atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
+                    frm_bnd_key = frozenset({atm1_key, atm2_key})
 
-                prd_gra = union_from_sequence(prd_gras)
-                atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
-                if atm_key_dct:
-                    tra = trans.from_data(
-                        frm_bnd_keys=[frm_bnd_key],
-                        brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
-                    tras.append(tra)
-
-                    rct_idxs = (0,)
-
-                    cent_prd_atm_keys = frozenset(
-                        map(atm_key_dct.__getitem__, cent_frag_atm_keys))
-
-                    if cent_prd_atm_keys <= atom_keys(prd_gras[0]):
-                        prd_idxs = (0, 1)
-                    else:
-                        assert cent_prd_atm_keys <= atom_keys(prd_gras[1])
-                        prd_idxs = (1, 0)
-
+                if frm_bnd_key:
+                    rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
+    
+                    prd_gra = union_from_sequence(prd_gras)
+                    atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
+                    if atm_key_dct:
+                        tra = trans.from_data(
+                            frm_bnd_keys=[frm_bnd_key],
+                            brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
+                        tras.append(tra)
+    
+                        rct_idxs = (0,)
+    
+                        cent_prd_atm_keys = frozenset(
+                            map(atm_key_dct.__getitem__, cent_frag_atm_keys))
+    
+                        if cent_prd_atm_keys <= atom_keys(prd_gras[0]):
+                            prd_idxs = (0, 1)
+                        else:
+                            assert cent_prd_atm_keys <= atom_keys(prd_gras[1])
+                            prd_idxs = (1, 0)
+    
     tras = tuple(tras)
     return tras, rct_idxs, prd_idxs
 
