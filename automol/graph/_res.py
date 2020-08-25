@@ -6,6 +6,9 @@ import numpy
 from automol import dict_
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
+from automol.graph._graph import remove_bonds
+from automol.graph._graph import remove_atoms
+from automol.graph._graph import bond_orders
 from automol.graph._graph import bond_orders
 from automol.graph._graph import set_bond_orders
 from automol.graph._graph import without_bond_orders
@@ -202,18 +205,20 @@ def radical_dissociation_prods(gra, pgra1):
     """ given a dissociation product, determine the other product
     """
     pgra2 = None
+    import automol.graph
     rads = sing_res_dom_radical_atom_keys(gra)
     adj_atms = atom_neighbor_keys(gra)
     for rad in rads:
         for adj in adj_atms[rad]:
             groups = atom_groups(gra, adj)
-            print(adj, groups, '\n')
+            for group in groups:
+                print(automol.graph.string(group))
             if full_isomorphism(explicit(groups[0]), explicit(pgra1)):
-                print('in group 0')
-                pgra2 = grouss[1]
+                pgra2 = remove_atoms(gra, atom_keys(groups[0]))
+                pgra2 = remove_bonds(pgra2, bond_keys(groups[0]))
             elif full_isomorphism(explicit(groups[1]), explicit(pgra1)):   
-                print('in group 1')
-                pgra2 = groups[0]
+                pgra2 = remove_atoms(gra, atom_keys(groups[1]))
+                pgra2 = remove_bonds(pgra2, bond_keys(groups[1]))
     return (pgra1, pgra2)            
     
 # bond properties
