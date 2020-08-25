@@ -39,6 +39,7 @@ from automol.graph._graph import heavy_atom_count
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighborhoods
+from automol.graph._graph import atm_groups
 from automol.graph._res   import radical_groups
 # # bond properties
 from automol.graph._graph import bond_neighbor_keys
@@ -240,6 +241,7 @@ __all__ = [
     'atom_neighbor_keys',
     'atom_bond_keys',
     'atom_neighborhoods',
+    'atm_groups',
     'radical_groups',
     # # bond properties
     'bond_neighbor_keys',
