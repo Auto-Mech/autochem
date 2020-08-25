@@ -18,6 +18,9 @@ from automol.graph._graph import maximum_spin_multiplicity
 from automol.graph._graph import implicit
 from automol.graph._graph import explicit
 from automol.graph._graph import atom_explicit_hydrogen_valences
+from automol.graph._graph import atoms
+from automol.graph._graph import atom_groups
+from automol.graph._graph import full_isomorphism
 
 
 # atom properties
@@ -173,11 +176,48 @@ def sing_res_dom_radical_atom_keys(rgr):
 def radical_groups(gra):
     """ returns a list of lists of groups attached each radical
     """
-    rad = next(iter(sing_res_dom_radical_atom_keys(gra)))
-    groups = automol.graph.atm_groups(gra, rad)
+
+    groups = []
+    rads = sing_res_dom_radical_atom_keys(gra)
+    for rad in rads:        
+        groups.append(atom_groups(gra, rad))
     return groups
 
 
+def radical_group_dct(gra):
+    """ return a dictionary of lists of groups attached each radical
+    """
+    groups = {}
+    rads = list(sing_res_dom_radical_atom_keys(gra))
+    atms = atoms(gra)
+    for rad in rads:
+        key = atms[rad][0]
+        if key in groups:
+            groups[atms[rad][0]].append(atom_groups(gra, rad))
+        else:    
+            groups[atms[rad][0]] = atom_groups(gra, rad)
+    return groups    
+
+
+def radical_dissociation_prods(gra, pgra1):
+    """ given a dissociation product, determine the other product
+    """
+    pgra2 = None
+    rads = sing_res_dom_radical_atom_keys(gra)
+    adj_atms = atom_neighbor_keys(gra)
+    for rad in rads:
+        for adj in adj_atms[rad]:
+            groups = atom_groups(gra, adj)
+            print(adj, groups, '\n')
+            if full_isomorphism(explicit(groups[0]), explicit(pgra1)):
+                print('in group 0')
+                pgra2 = grouss[1]
+            elif full_isomorphism(explicit(groups[1]), explicit(pgra1)):   
+                print('in group 1')
+                pgra2 = groups[0]
+    return (pgra1, pgra2)            
+    
+>>>>>>> 686caf961b619103e576797a45ca1af71dbb14e4
 # bond properties
 def resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond

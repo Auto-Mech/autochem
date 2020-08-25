@@ -523,18 +523,20 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
     gra = _create.from_atoms_and_bonds(atoms=atm_dct, bonds=bnd_dct)
     return gra
 
-def atm_groups(gra, atm):
+
+def atom_groups(gra, atm):
     """ return a list of groups off of one atom
     """
-    adj_atms = tom_neighbor_keys(gra)
+    adj_atms = atom_neighbor_keys(gra)
     keys = []
-    for atmi in adj_atms(atm):
+    for atmi in adj_atms[atm]:
         key = [atm, atmi]
         key.sort()
         key = frozenset(key)
         keys.append(key)
     gras = remove_bonds(gra, keys)
     return connected_components(gras)
+
 
 def remove_bonds(gra, bnd_keys, check=True):
     """ remove bonds from the molecular graph
