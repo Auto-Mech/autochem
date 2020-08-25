@@ -173,6 +173,7 @@ def bond_neighbor_keys(gra):
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
         return frozenset(bond_keys(bnd_nbh) - {bnd_key})
+
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
         bond_neighborhoods(gra), _neighbor_keys)
     return bnd_ngb_keys_dct
@@ -189,6 +190,8 @@ def bond_neighbor_bonds(bnd_key, gra):
         for alpha_atm in alpha_atms:
             if alpha_atm not in [atmi, atmj]:
                 bnds.append(frozenset({atm, alpha_atm}))
+
+    bnds = tuple(bnds)
     return bnds
 
 
@@ -206,24 +209,21 @@ def bond_neighborhoods(gra):
 
 
 # # other properties
-def branch(gra, atm_key, bnd_key, saddle=False, ts_bnd=None):
+def branch(gra, atm_key, bnd_key):
     """ branch extending along `bnd_key` away from `atm_key`
     """
     return bond_induced_subgraph(
-        gra,
-        branch_bond_keys(gra, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd),
-        saddle=saddle)
+        gra, branch_bond_keys(gra, atm_key, bnd_key))
 
 
-def branch_atom_keys(gra, atm_key, bnd_key, saddle=False, ts_bnd=None):
+def branch_atom_keys(gra, atm_key, bnd_key):
     """ atom keys for branch extending along `bnd_key` away from `atm_key`
     """
-    bnch_atm_keys = atom_keys(
-        branch(gra, atm_key, bnd_key, saddle=saddle, ts_bnd=ts_bnd))
+    bnch_atm_keys = atom_keys(branch(gra, atm_key, bnd_key))
     return bnch_atm_keys - {atm_key}
 
 
-def branch_bond_keys(gra, atm_key, bnd_key, saddle=False, ts_bnd=None):
+def branch_bond_keys(gra, atm_key, bnd_key):
     """ bond keys for branch extending along `bnd_key` away from `atm_key`
     """
 
@@ -231,8 +231,6 @@ def branch_bond_keys(gra, atm_key, bnd_key, saddle=False, ts_bnd=None):
     # atm_bnd_keys_dct is a dictionary of atoms that are connected to each atom
     bnd_key = frozenset(bnd_key)
     assert atm_key in bnd_key
-    if not saddle:
-        assert bnd_key in bond_keys(gra)
 
     atm_bnd_keys_dct = atom_bond_keys(gra)
 
@@ -243,9 +241,7 @@ def branch_bond_keys(gra, atm_key, bnd_key, saddle=False, ts_bnd=None):
     new_bnd_keys = {bnd_key}
 
     bnd_ngb_keys_dct = bond_neighbor_keys(gra)
-    if ts_bnd:
-        fts_bnd = frozenset(ts_bnd)
-        bnd_ngb_keys_dct[fts_bnd] = bond_neighbor_bonds(ts_bnd, gra)
+
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
             itertools.chain(
@@ -326,7 +322,7 @@ def longest_chain(gra):
     """
     atm_keys = atom_keys(gra)
 
-    max_chain = max((atom_longest_chain(gra, atm_key) for atm_key in atm_keys),
+    max_chain = max((_longest_chain(gra, atm_key) for atm_key in atm_keys),
                     key=len)
     return max_chain
 
@@ -336,12 +332,12 @@ def atom_longest_chains(gra):
     """
     atm_keys = atom_keys(gra)
 
-    long_chain_dct = {atm_key: atom_longest_chain(gra, atm_key)
+    long_chain_dct = {atm_key: _longest_chain(gra, atm_key)
                       for atm_key in atm_keys}
     return long_chain_dct
 
 
-def atom_longest_chain(gra, atm_key):
+def _longest_chain(gra, atm_key):
     atm_ngb_keys_dct = atom_neighbor_keys(gra)
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]
 
@@ -399,14 +395,12 @@ def subgraph(gra, atm_keys):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def bond_induced_subgraph(gra, bnd_keys, saddle=False):
+def bond_induced_subgraph(gra, bnd_keys):
     """ the subgraph induced by a subset of the bonds
     """
     atm_keys = set(itertools.chain(*bnd_keys))
     bnd_keys = set(bnd_keys)
     assert atm_keys <= atom_keys(gra)
-    if not saddle:
-        assert bnd_keys <= bond_keys(gra)
     atm_dct = dict_.by_key(atoms(gra), atm_keys)
     bnd_dct = dict_.by_key(bonds(gra), bnd_keys)
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
@@ -551,6 +545,39 @@ def without_dummy_atoms(gra):
     return subgraph(gra, atm_keys)
 
 
+def add_ts_bonds(gra, keys):
+    """ add order-0 bonds to represent a transition state structure
+
+    Makes it so that other functions (such as branch and other functions) will
+    work along with this one.
+
+    To determine which keys are ts bonds, use ts_bond_keys().
+
+    To remove the ts bonds again, use without_ts_bonds().
+    """
+    keys = list(map(frozenset, keys))
+    ord_dct = {key: 0 for key in keys}
+    gra = add_bonds(gra, keys, ord_dct=ord_dct)
+    return gra
+
+
+def ts_bond_keys(gra):
+    """ get keys for all order-0 bonds in the graph
+    """
+    bnd_ord_dct = bond_orders(gra)
+    ts_bnd_keys = tuple(
+        bnd_key for bnd_key, bnd_ord in bnd_ord_dct.items() if bnd_ord == 0)
+    return ts_bnd_keys
+
+
+def without_ts_bonds(gra):
+    """ remove order-0 bonds from the graph
+    """
+    ts_bnd_keys = ts_bond_keys(gra)
+    gra = remove_bonds(gra, ts_bnd_keys)
+    return gra
+
+
 def move_idx_to_top(gra, idx1, idx2):
     """ move indexing for atm at idx1 to idx2
     """
@@ -583,7 +610,8 @@ def move_idx_to_top(gra, idx1, idx2):
         newkey = frozenset(newkey)
         newbnds[newkey] = bnds[key]
     return (newatms, newbnds)
-  
+ 
+
 # implicit/explicit hydrogen functions
 # # atom properties
 def atom_explicit_hydrogen_valences(gra):
@@ -630,8 +658,8 @@ def add_atom_explicit_hydrogen_keys(gra, atm_exp_hyd_keys_dct):
     """ add explicit hydrogens by atom
     """
     assert set(atm_exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
-            '{} !<= {}'.format(
-                set(atm_exp_hyd_keys_dct.keys()), atom_keys(gra))
+        '{} !<= {}'.format(
+            set(atm_exp_hyd_keys_dct.keys()), atom_keys(gra))
     )
     for atm_key, atm_exp_hyd_keys in atm_exp_hyd_keys_dct.items():
         assert not set(atm_exp_hyd_keys) & atom_keys(gra)
@@ -902,7 +930,3 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
     # fill in the rest of the bonds for completeness
     bnd_sym_num_dct = dict_.by_key(bnd_sym_num_dct, bond_keys(gra), fill_val=1)
     return bnd_sym_num_dct
-
-
-if __name__ == '__main__':
-    print(standard_keys(({5: ('H', 0, None)}, {})))

@@ -10,10 +10,12 @@ from automol.graph._graph import bond_orders
 from automol.graph._graph import set_bond_orders
 from automol.graph._graph import without_bond_orders
 from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import atom_unsaturated_valences
 from automol.graph._graph import atom_bond_valences
 from automol.graph._graph import atom_lone_pair_counts
 from automol.graph._graph import maximum_spin_multiplicity
+from automol.graph._graph import implicit
 from automol.graph._graph import explicit
 from automol.graph._graph import atom_explicit_hydrogen_valences
 
@@ -167,6 +169,16 @@ def sing_res_dom_radical_atom_keys(rgr):
                              in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc)
     return atm_rad_keys
 
+
+def radical_groups(gra):
+    """ returns a list of lists of groups attached each radical
+    """
+    groups = []
+    gra = implicit(gra) 
+    rads = sing_res_dom_radical_atom_keys(gra)
+    adj_atms = atom_neighbor_keys(gra)
+    ngbs = atom_neighborhoods(gra)
+    print(nbgs)
 
 # bond properties
 def resonance_dominant_bond_orders(rgr):

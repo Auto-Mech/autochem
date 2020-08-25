@@ -39,6 +39,7 @@ from automol.graph._graph import heavy_atom_count
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighborhoods
+from automol.graph._res   import radical_groups
 # # bond properties
 from automol.graph._graph import bond_neighbor_keys
 from automol.graph._graph import bond_neighbor_bonds
@@ -62,7 +63,9 @@ from automol.graph._graph import bond_induced_subgraph
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import without_dummy_atoms
-
+from automol.graph._graph import add_ts_bonds
+from automol.graph._graph import ts_bond_keys
+from automol.graph._graph import without_ts_bonds
 # implicit/explicit hydrogen functions
 # # atom properties
 from automol.graph._graph import atom_explicit_hydrogen_valences
@@ -237,6 +240,7 @@ __all__ = [
     'atom_neighbor_keys',
     'atom_bond_keys',
     'atom_neighborhoods',
+    'radical_groups',
     # # bond properties
     'bond_neighbor_keys',
     'bond_neighbor_bonds',
@@ -260,6 +264,9 @@ __all__ = [
     'remove_atoms',
     'remove_bonds',
     'without_dummy_atoms',
+    'add_ts_bonds',
+    'ts_bond_keys',
+    'without_ts_bonds',
 
     # implicit/explicit hydrogen functions
     # # atom properties
