@@ -652,6 +652,9 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
         rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(
             rct2_gra)
+        # hno2 hack
+        # rad_atm_keys = [0]
+        # print('rad_atm_keys:', rad_atm_keys)
         # print('rct_zmas:', rct_zmas)
         # import sys
         # sys.exit()
@@ -798,6 +801,9 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             new_rct2_gra = automol.graph.relabel(rct2_gra, atm_key_dct)
             rcts_gra = automol.graph.union_from_sequence(
                 (rct1_gra, new_rct2_gra))
+    
+            print('frm', frm_bnd_key)
+            print('brk', brk_bnd_key)
 
             ret = (ts_zma, dist_name,
                    frm_bnd_key, brk_bnd_key,
