@@ -173,9 +173,10 @@ def sing_res_dom_radical_atom_keys(rgr):
 def radical_groups(gra):
     """ returns a list of lists of groups attached each radical
     """
-    rad = next(iter(sing_res_dom_radical_atom_keys(gra))
+    rad = next(iter(sing_res_dom_radical_atom_keys(gra)))
     groups = automol.graph.atm_groups(gra, rad)
     return groups
+
 
 # bond properties
 def resonance_dominant_bond_orders(rgr):
