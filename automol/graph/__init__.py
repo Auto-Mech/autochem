@@ -53,7 +53,7 @@ from automol.graph._graph import rings_bond_keys
 from automol.graph._graph import connected_components
 from automol.graph._graph import connected_components_atom_keys
 from automol.graph._graph import longest_chain
-from automol.graph._graph import atom_longest_chain
+from automol.graph._graph import _longest_chain
 from automol.graph._graph import atom_longest_chains
 from automol.graph._graph import union
 from automol.graph._graph import union_from_sequence
