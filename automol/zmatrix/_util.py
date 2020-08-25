@@ -11,7 +11,7 @@ def reorder_zmatrix_for_migration(zma, a_idx, h_idx):
         build proper z-matrices for hydrogen migrations
     """
 
-    # initialize zmat components neededlater
+    # initialize zmat components needed later
     symbols = automol.zmatrix.symbols(zma)
 
     # Get the longest chain for all the atoms

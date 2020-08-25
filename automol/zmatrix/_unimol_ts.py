@@ -310,6 +310,7 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                 brk_bnd_key1, brk_bnd_key2 = brk_keys
                 init_zma, = rct_zmas
 
+
                 # Get index for migrating atom (or bond-form atom in group)
                 for bnd_key in (brk_bnd_key1, brk_bnd_key2):
                     if bnd_key & frm_bnd_key:
@@ -430,7 +431,8 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                 tors_names.append(tors_name)
 
         frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
-        ret = ts_zma, dist_name, brk_dist_name, frm_bnd_key, tors_names
+        brk_bnd_keys = [brk_bnd_key1, brk_bnd_key2]
+        ret = ts_zma, dist_name, brk_dist_name, brk_bnd_keys, frm_bnd_key, tors_names, rct_gras
 
     return ret
 
