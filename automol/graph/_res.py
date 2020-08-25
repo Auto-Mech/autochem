@@ -217,7 +217,6 @@ def radical_dissociation_prods(gra, pgra1):
                 pgra2 = groups[0]
     return (pgra1, pgra2)            
     
->>>>>>> 686caf961b619103e576797a45ca1af71dbb14e4
 # bond properties
 def resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
