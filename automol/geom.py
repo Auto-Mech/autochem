@@ -747,8 +747,8 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
         else:
             aconst = 1.0e20
     else:
-        print('xyz3')
-        print(xyz3_t)
+        # print('xyz3')
+        # print(xyz3_t)
         anum = xyz2_t[1] - (xyz3_t[1] / xyz3_t[0]) * xyz2_t[0]
         aden = xyz2_t[2] - (xyz3_t[2] / xyz3_t[0]) * xyz2_t[0]
         aconst = anum / aden

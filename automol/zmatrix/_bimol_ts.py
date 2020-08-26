@@ -802,8 +802,8 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             rcts_gra = automol.graph.union_from_sequence(
                 (rct1_gra, new_rct2_gra))
     
-            print('frm', frm_bnd_key)
-            print('brk', brk_bnd_key)
+            # print('frm', frm_bnd_key)
+            # print('brk', brk_bnd_key)
 
             ret = (ts_zma, dist_name,
                    frm_bnd_key, brk_bnd_key,
