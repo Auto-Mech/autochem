@@ -156,6 +156,21 @@ def dummy_coordinate_names(vma):
     return dummy_names
 
 
+def bond_key_from_idxs(vma, idxs):
+    """given indices of involved bonded atoms, return bond name
+    """
+    idxs = list(idxs)
+    idxs.sort(reverse=True)
+    idxs = tuple(idxs)
+    bond_key = None
+    coords = coordinates(vma)
+    for key in coords:
+        for coord in coords.get(key, [None]):
+            if idxs == coord:
+                bond_key = key
+    return bond_key
+
+
 # value setters
 def set_names(vma, name_dct):
     """ set coordinate names for the variable v-matrix

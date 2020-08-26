@@ -292,7 +292,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
     tras, _, _ = automol.graph.reac.addition(rct_gras, prd_gras)
     # print('tras')
     # for tra in tras:
-        # print(tra)
     if tras:
         tra = tras[0]
         rct1_zma, rct2_zma = rct_zmas
@@ -619,10 +618,20 @@ def _sigma_hydrogen_abstraction(rct_zmas, prd_zmas):
             frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
             brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
 
-            # Build reactants graph (copy from other abs)
-            rcts_gra = ()
+            # Build reactants graph
+            atom_keys2 = automol.graph.atom_keys(rct2_gra)
+            natom2 = len(atom_keys2)
+            atm_key_dct = dict(zip(
+                atom_keys2,
+                (key+natom2 for key in atom_keys2),
+            ))
+            new_rct2_gra = automol.graph.relabel(rct2_gra, atm_key_dct)
+            rcts_gra = automol.graph.union_from_sequence(
+                (rct1_gra, new_rct2_gra))
 
-            ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names, rcts_gra
+            ret = (ts_zma, dist_name,
+                   frm_bnd_key, brk_bnd_key,
+                   tors_names, rcts_gra)
 
     return ret
 
@@ -643,6 +652,9 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
         rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(
             rct2_gra)
+        # hno2 hack
+        # rad_atm_keys = [0]
+        # print('rad_atm_keys:', rad_atm_keys)
         # print('rct_zmas:', rct_zmas)
         # import sys
         # sys.exit()
@@ -668,7 +680,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             rct_gras, prd_gras)
         # print('tras')
         # for tra in tras:
-            # print(tra)
         if tras:
             tra = tras[0]
             rct1_gra, rct2_gra = rct_gras
@@ -790,8 +801,13 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             new_rct2_gra = automol.graph.relabel(rct2_gra, atm_key_dct)
             rcts_gra = automol.graph.union_from_sequence(
                 (rct1_gra, new_rct2_gra))
+    
+            # print('frm', frm_bnd_key)
+            # print('brk', brk_bnd_key)
 
-            ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names, rcts_gra
+            ret = (ts_zma, dist_name,
+                   frm_bnd_key, brk_bnd_key,
+                   tors_names, rcts_gra)
 
     return ret
 

@@ -254,9 +254,13 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
         prd_zmas, remove_stereo=True)
     if len(rct_zmas) == 1:
+        print('here')
         rct_zmas, rct_gras = shifted_standard_zmas_graphs(
             rct_zmas, remove_stereo=True)
+        print('geo')
+        print(automol.geom.string(automol.zmatrix.geometry(rct_zmas[0])))
         tras, _, _ = automol.graph.reac.elimination(rct_gras, prd_gras)
+        print('el tras', tras)
         if tras:
             if len(tras[0]) == 1:
                 tras = [tras]
@@ -269,6 +273,9 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
                 if dist < min_dist:
                     min_dist = dist
                     min_frm_bnd_key = frm_bnd_key
+    # print('AT ELIM1')
+    # import sys
+    # sys.exit()
 
     return min_frm_bnd_key
 
@@ -276,6 +283,10 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
 def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
     """ z-matrix for a concerted unimolecular elimination reaction
     """
+
+    # print('AT ELIM2')
+    # import sys
+    # sys.exit()
 
     # Initialize info for the returns
     ret = None, None, None, None, None
@@ -430,15 +441,15 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                     (mig_key in grp2 and a1_idx in grp1)):
                 tors_names.append(tors_name)
 
-        frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
         # Get reactants graph
         _, rct_gras = shifted_standard_zmas_graphs(
             [rct_zma], remove_stereo=True)
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
- 
+
         brk_bnd_key1 = shift_vals_from_dummy(brk_bnd_key1, ts_zma)
         brk_bnd_key2 = shift_vals_from_dummy(brk_bnd_key2, ts_zma)
         brk_bnd_keys = frozenset({brk_bnd_key1, brk_bnd_key2})
+        frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
 
         ret = ts_zma, dist_name, brk_dist_name, brk_bnd_keys, frm_bnd_key, tors_names, rct_gras
 
@@ -471,7 +482,7 @@ def beta_scission(rct_zmas, prd_zmas):
         brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
 
         # Build the reactants graph
-        rcts_gra = automol.graph.union_from_sequence(rct_gras)        
+        rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
         ret = ts_zma, dist_name, brk_bnd_key, tors_names, rcts_gra
 

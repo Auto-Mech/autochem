@@ -179,6 +179,7 @@ def sing_res_dom_radical_atom_keys(rgr):
 def radical_groups(gra):
     """ returns a list of lists of groups attached each radical
     """
+
     groups = []
     rads = sing_res_dom_radical_atom_keys(gra)
     for rad in rads:        
@@ -212,13 +213,16 @@ def radical_dissociation_prods(gra, pgra1):
         for adj in adj_atms[rad]:
             groups = atom_groups(gra, adj)
             for group in groups:
-                print(automol.graph.string(group))
+                print('grploop\n', automol.graph.string(group))
             if full_isomorphism(explicit(groups[0]), explicit(pgra1)):
                 pgra2 = remove_atoms(gra, atom_keys(groups[0]))
                 pgra2 = remove_bonds(pgra2, bond_keys(groups[0]))
             elif full_isomorphism(explicit(groups[1]), explicit(pgra1)):   
                 pgra2 = remove_atoms(gra, atom_keys(groups[1]))
-                pgra2 = remove_bonds(pgra2, bond_keys(groups[1]))
+                print('pgra2', automol.graph.string(pgra2))
+                if bond_keys(groups[1]) in pgra2:
+                    pgra2 = remove_bonds(pgra2, bond_keys(groups[1]))
+                    print('in if st')
     return (pgra1, pgra2)            
     
 # bond properties
