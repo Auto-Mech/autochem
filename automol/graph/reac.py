@@ -267,42 +267,32 @@ def elimination(rct_gras, prd_gras):
                 # also issues for biradicals
                     atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
                     atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
-                    frm_bnd_key = frozenset({atm1_key, atm2_key})
+
+                    # Loop over various keys
+                    # print('centfrag', cent_frag_atm_keys)
+                    # print('rctkeys', atom_keys(rct_gra_))
+                    frm_keys1 = {atm1_key, atm2_key}
+                    frm_keys2 = (
+                        atom_keys(rct_gra_) - cent_frag_atm_keys -
+                        {atm1_key} - {atm2_key}
+                    )
+                    # print('frm1', frm_keys1)
+                    # print('frm2', frm_keys2)
+                    frm_bnd_key = None
+                    for bnd_key in itertools.product(frm_keys1, frm_keys2):
+
+                        frm_bnd_key = frozenset(set(bnd_key))
+
+                        # Skip form bnd key if it already exists
+                        # print('bnd_key', bnd_key)
+                        # print('frm_key', frm_bnd_key)
+                        # print('all bond_keys', bond_keys(rct_gra_))
+                        if frm_bnd_key in bond_keys(rct_gra_):
+                            continue
 
                 if frm_bnd_key:
                     rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
     
-                    prd_gra = union_from_sequence(prd_gras)
-                    atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
-
-                atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
-                atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
-
-                # Loop over various keys
-                # print('centfrag', cent_frag_atm_keys)
-                # print('rctkeys', atom_keys(rct_gra_))
-                frm_keys1 = {atm1_key, atm2_key}
-                frm_keys2 = (
-                    atom_keys(rct_gra_) - cent_frag_atm_keys -
-                    {atm1_key} - {atm2_key}
-                )
-                # print('frm1', frm_keys1)
-                # print('frm2', frm_keys2)
-
-                for bnd_key in itertools.product(frm_keys1, frm_keys2):
-
-                    frm_bnd_key = frozenset(set(bnd_key))
-
-                    # Skip form bnd key if it already exists
-                    # print('bnd_key', bnd_key)
-                    # print('frm_key', frm_bnd_key)
-                    # print('all bond_keys', bond_keys(rct_gra_))
-                    if frm_bnd_key in bond_keys(rct_gra_):
-                        continue
-
-                    # frm_bnd_key = frozenset({atm1_key, atm2_key})
-                    rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
-
                     prd_gra = union_from_sequence(prd_gras)
                     atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
                     # print('atmkeydct', atm_key_dct)
