@@ -78,6 +78,8 @@ def hydrogen_migration(rct_gras, prd_gras):
 
     tras = tuple(tras)
 
+    print('tras test:', tras, rct_idxs, prd_idxs)
+
     return tras, rct_idxs, prd_idxs
 
 
