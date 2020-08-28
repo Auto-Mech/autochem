@@ -112,6 +112,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         else:
             return None
 
+    
     # determine the backbone atoms to redefine the z-matrix entry
     _, gras = shifted_standard_zmas_graphs([rct_zma], remove_stereo=True)
     gra = functools.reduce(automol.graph.union, gras)
@@ -200,13 +201,17 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     for key in frm_bnd_key:
         if key != new_h_idx:
             chn_end = key
-
     ring_atoms1 = automol.zmatrix.chain_between(ts_zma, chn_end, new_h_idx)
+
+    # Use this ring information to constrain the beta bond from the attacking atom
+    const_bnd_key = None
+    if len(ring_atoms1) > 3:
+        const_bnd_key = frozenset({ring_atoms1[1], ring_atoms1[2]})
+
     chn_end = new_h_idx
     for key in brk_bnd_key:
         if key != new_h_idx:
             chn_end = key
-
     ring_atoms2 = automol.zmatrix.chain_between(ts_zma, chn_end, new_h_idx)
     ring_atoms = ring_atoms1
     if len(ring_atoms2) > len(ring_atoms1):
@@ -216,10 +221,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     coo_dct = automol.zmatrix.coordinates(ts_zma)
     for tors_name in pot_tors_names:
         axis = coo_dct[tors_name][0][1:3]
-        print('tors_name axis test:', tors_name, axis)
         if axis[0] not in ring_atoms or axis[1] not in ring_atoms:
             tors_names.append(tors_name)
-            print('good torsion test:', tors_name)
 
     # Build the reacts graph
     if h_idx != new_h_idx:
@@ -240,8 +243,9 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
     brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
+    const_bnd_key = shift_vals_from_dummy(const_bnd_key, ts_zma)
 
-    ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, tors_names, rcts_gra
+    ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, const_bnd_key, tors_names, rcts_gra
 
     return ret
 
@@ -254,13 +258,9 @@ def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
         prd_zmas, remove_stereo=True)
     if len(rct_zmas) == 1:
-        print('here')
         rct_zmas, rct_gras = shifted_standard_zmas_graphs(
             rct_zmas, remove_stereo=True)
-        print('geo')
-        print(automol.geom.string(automol.zmatrix.geometry(rct_zmas[0])))
         tras, _, _ = automol.graph.reac.elimination(rct_gras, prd_gras)
-        print('el tras', tras)
         if tras:
             if len(tras[0]) == 1:
                 tras = [tras]
