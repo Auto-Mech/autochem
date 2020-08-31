@@ -210,6 +210,62 @@ def formula(geo):
     return automol.convert.geom.formula(geo)
 
 
+def remove(geo, idxs = []):
+    new_geo = []
+    for i, row in enumerate(geo):
+        if i not in idxs:
+            new_geo.append(row)
+    return tuple(new_geo)        
+
+
+def multiplication_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
+    # Set saddle based on frm and brk keys existing
+    saddle = bool(frm_bnd_keys or brk_bnd_keys)
+
+    gra = graph(geo, remove_stereo=True)
+    term_atms = {}
+    all_hyds = []
+    neighbor_dct = automol.graph.atom_neighbor_keys(gra)
+
+    # determine if atom is a part of a double bond
+    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
+    if not saddle:
+        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
+        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
+        rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
+    else:
+        rad_atms = []
+
+    gra = gra[0]
+    for atm in gra:
+        if gra[atm][0] == 'H':
+            all_hyds.append(atm)
+    for atm in gra:
+        if atm in unsat_atms and atm not in rad_atms:
+            pass
+        else:
+            if atm not in frm_bnd_keys and atm not in brk_bnd_keys:
+                nonh_neighs = []
+                h_neighs = []
+                neighs = neighbor_dct[atm]
+                for nei in neighs:
+                    if nei in all_hyds:
+                        h_neighs.append(nei)
+                    else:
+                        nonh_neighs.append(nei)
+                if len(nonh_neighs) < 2 and len(h_neighs) > 1:
+                    term_atms[atm] = h_neighs
+    geo_final_lst = [geo]
+    factor = 1.
+    remove_atms = []
+    for atm in term_atms:
+        hyds = term_atms[atm]
+        if len(hyds) > 1:
+            factor *= len(hyds)
+            remove_atms.extend(hyds)
+    geo = remove(geo, remove_atms)        
+    return geo, factor
+
 # operations
 def join(geo1, geo2,
          dist_cutoff=3.*qcc.conversion_factor('angstrom', 'bohr'),
