@@ -20,6 +20,7 @@ def inchi(gra):
 
     if ich is None:
         if not automol.graph.has_stereo(gra):
+            print('gra in inchi test:', gra)
             ich, _ = inchi_with_sort_from_geometry(gra)
             ich = automol.inchi.standard_form(ich, remove_stereo=True)
         else:
@@ -52,6 +53,8 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     atm_rad_vlcs = dict_.values_by_key(
         automol.graph.atom_unsaturated_valences(gra), atm_keys)
     bnd_ords = dict_.values_by_key(automol.graph.bond_orders(gra), bnd_keys)
+
+    #print('geo test print:', automol.geom.string(automol.graph.geometry(gra)))
 
     if geo is not None:
         assert geo_idx_dct is not None
