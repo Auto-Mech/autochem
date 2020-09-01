@@ -71,7 +71,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     min_dist = dist
                     frm_bnd_key = bnd_key
                     brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra_i)
-                init_zma, = rct_zmas
+            init_zma, = rct_zmas
+            print('init_zma test:', init_zma)
 
             # figure out which idx in frm_bnd_keys corresponds to the hydrogen
             symbols = automol.vmatrix.symbols(automol.zmatrix.var_(init_zma))
@@ -81,6 +82,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     h_idx = idx
                 else:
                     a1_idx = idx
+
+            print('h_idx test:', h_idx, a1_idx)
 
             brk_dist_coo_key = tuple(reversed(sorted(brk_bnd_key)))
             for idx in brk_dist_coo_key:
@@ -442,6 +445,7 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                 tors_names.append(tors_name)
 
         # Get reactants graph
+        print('rct_gras before shift:', rct_gras)
         _, rct_gras = shifted_standard_zmas_graphs(
             [rct_zma], remove_stereo=True)
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
@@ -451,7 +455,10 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
         brk_bnd_keys = frozenset({brk_bnd_key1, brk_bnd_key2})
         frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
 
-        ret = ts_zma, dist_name, brk_dist_name, brk_bnd_keys, frm_bnd_key, tors_names, rct_gras
+        ret = ts_zma, dist_name, brk_dist_name, brk_bnd_keys, frm_bnd_key, tors_names, rcts_gra
+
+        print('rct_gras after shift:', rct_gras)
+        print('rcts_gra:', rcts_gra)
 
     return ret
 
