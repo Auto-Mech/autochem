@@ -218,7 +218,7 @@ def remove(geo, idxs = []):
     return tuple(new_geo)        
 
 
-def multiplication_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
+def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     # Set saddle based on frm and brk keys existing
     saddle = bool(frm_bnd_keys or brk_bnd_keys)
 
@@ -690,7 +690,6 @@ def distance_matrix(geo):
 def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
     """form distance matrix for a set of xyz coordinates
     """
-    almost_equal_dm = True
     for i in range(len(geo1)):
         for j in range(len(geo1)):
             dist_mat1_ij = distance(geo1, i, j)
