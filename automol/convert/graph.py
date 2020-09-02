@@ -12,7 +12,7 @@ from automol.convert import _util
 
 
 # graph => inchi
-def inchi(gra):
+def inchi(gra, remove_stereo=True):
     """ graph => inchi
     """
     ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
@@ -21,7 +21,7 @@ def inchi(gra):
     if ich is None:
         if not automol.graph.has_stereo(gra):
             ich, _ = inchi_with_sort_from_geometry(gra)
-            ich = automol.inchi.standard_form(ich, remove_stereo=True)
+            ich = automol.inchi.standard_form(ich, remove_stereo=remove_stereo)
         else:
             gra = automol.graph.explicit(gra)
             geo, geo_idx_dct = automol.graph.heuristic_geometry(gra)
