@@ -203,35 +203,37 @@ def zmatrix_product_graph(ts_zma, frm_keys, brk_keys):
     return prd_gra
 
 
-def zmatrix_reactants_inchi(ts_zma, frm_keys, brk_keys):
+def zmatrix_reactants_inchi(ts_zma, frm_keys, brk_keys, remove_stereo=True):
     """ determine the InChI for the reactants of a TS zmatrix
     """
     rct_gra = zmatrix_reactant_graph(ts_zma, frm_keys, brk_keys)
-    rct_ich = automol.convert.graph.inchi(rct_gra)
+    rct_ich = automol.convert.graph.inchi(rct_gra, remove_stereo=remove_stereo)
     return rct_ich
 
 
-def zmatrix_products_inchi(ts_zma, frm_keys, brk_keys):
+def zmatrix_products_inchi(ts_zma, frm_keys, brk_keys, remove_stereo=True):
     """ determine the InChI for the products of a TS zmatrix
     """
     prd_gra = zmatrix_product_graph(ts_zma, frm_keys, brk_keys)
-    prd_ich = automol.convert.graph.inchi(prd_gra)
+    prd_ich = automol.convert.graph.inchi(prd_gra, remove_stereo=remove_stereo)
     return prd_ich
 
 
-def zmatrix_reactant_inchis(ts_zma, frm_keys, brk_keys):
+def zmatrix_reactant_inchis(ts_zma, frm_keys, brk_keys, remove_stereo=True):
     """ determine the InChIs for the reactants of a TS zmatrix
     """
-    rct_ich = zmatrix_reactants_inchi(ts_zma, frm_keys, brk_keys)
+    rct_ich = zmatrix_reactants_inchi(ts_zma, frm_keys, brk_keys,
+                                      remove_stereo=remove_stereo)
     rct_ichs = tuple(map(automol.inchi.recalculate,
                          automol.inchi.split(rct_ich)))
     return rct_ichs
 
 
-def zmatrix_product_inchis(ts_zma, frm_keys, brk_keys):
+def zmatrix_product_inchis(ts_zma, frm_keys, brk_keys, remove_stereo=True):
     """ determine the InChIs for the products of a TS zmatrix
     """
-    prd_ich = zmatrix_products_inchi(ts_zma, frm_keys, brk_keys)
+    prd_ich = zmatrix_products_inchi(ts_zma, frm_keys, brk_keys,
+                                     remove_stereo=remove_stereo)
     prd_ichs = tuple(map(automol.inchi.recalculate,
                          automol.inchi.split(prd_ich)))
     return prd_ichs

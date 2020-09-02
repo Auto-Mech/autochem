@@ -948,6 +948,23 @@ def center_of_mass(geo):
     return cm_xyz
 
 
+def reduced_mass(geo1, geo2):
+    """ Calculate the reduced mass for two species.
+
+        :param geo1: geometry of species 1 (Bohr)
+        :type geo1: list(float)
+        :param geo2: geometry of species 2 (Bohr)
+        :type geo2: list(float)
+        :return: reduced mass (amu)
+        :rtype: float
+    """
+
+    mass1 = automol.geom.total_mass(geo1)
+    mass2 = automol.geom.total_mass(geo2)
+
+    return (mass1 * mass2) / (mass1 + mass2)
+
+
 def mass_centered(geo):
     """ mass-centered geometry
     """
