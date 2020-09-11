@@ -45,6 +45,7 @@ def _connected_geometry(ich):
                 raise ValueError
 
             gra = automol.convert.inchi.graph(ich, no_stereo=True)
+            gra = automol.graph.explicit(gra)
             geo, _ = automol.graph.heuristic_geometry(gra)
             return geo
 

@@ -179,27 +179,45 @@ def _find_closest_transformation(ts_zma, tras):
     return min_tra
 
 
-def zmatrix_reactant_graph(ts_zma, frm_keys, brk_keys):
+def zmatrix_reactant_graph(ts_zma, frm_keys, brk_keys,
+                           dummy=False, stereo=True):
     """ determine the reactant graph for a TS zmatrix
 
     (graph keys are aligned with z-matrix rows)
     """
     rct_gra = automol.convert.zmatrix.connectivity_graph(ts_zma)
-    rct_gra = automol.graph.without_dummy_atoms(rct_gra)
     rct_gra = automol.graph.add_bonds(rct_gra, brk_keys, check=False)
     rct_gra = automol.graph.remove_bonds(rct_gra, frm_keys, check=False)
+
+    if stereo:
+        # set the stereo
+        rct_geo = automol.convert.zmatrix.geometry(ts_zma)
+        rct_gra = automol.graph.set_stereo_from_geometry(rct_gra, rct_geo)
+
+    if not dummy:
+        rct_gra = automol.graph.without_dummy_atoms(rct_gra)
+
     return rct_gra
 
 
-def zmatrix_product_graph(ts_zma, frm_keys, brk_keys):
+def zmatrix_product_graph(ts_zma, frm_keys, brk_keys,
+                          dummy=False, stereo=True):
     """ determine the product graph for a TS zmatrix
 
     (graph keys are aligned with z-matrix rows)
     """
     tra = automol.graph.trans.from_data(frm_keys, brk_keys)
 
-    rct_gra = zmatrix_reactant_graph(ts_zma, frm_keys, brk_keys)
+    rct_gra = zmatrix_reactant_graph(ts_zma, frm_keys, brk_keys,
+                                     dummy=dummy, stereo=False)
+
     prd_gra = automol.graph.trans.apply(tra, rct_gra)
+
+    if stereo:
+        # set the stereo
+        prd_geo = automol.convert.zmatrix.geometry(ts_zma)
+        prd_gra = automol.graph.set_stereo_from_geometry(prd_gra, prd_geo)
+
     return prd_gra
 
 
@@ -253,33 +271,20 @@ __all__ = [
 
 
 if __name__ == '__main__':
-    # CH4+H
-    RCT_ZMAS = [
-        ((('C', (None, None, None), (None, None, None)),
-          ('H', (0, None, None), ('R1', None, None)),
-          ('H', (0, 1, None), ('R2', 'A2', None)),
-          ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
-          ('H', (0, 1, 2), ('R4', 'A4', 'D4'))),
-         {'R1': 2.063,
-          'R2': 2.063, 'A2': 1.9106,
-          'R3': 2.063, 'A3': 1.9106, 'D3': 2.0943,
-          'R4': 2.063, 'A4': 1.9106, 'D4': 4.1887}),
-        ((('H', (None, None, None), (None, None, None)),),
-         {}),
-    ]
-    PRD_ZMAS = [
-        ((('C', (None, None, None), (None, None, None)),
-          ('H', (0, None, None), ('R1', None, None)),
-          ('H', (0, 1, None), ('R2', 'A2', None)),
-          ('H', (0, 1, 2), ('R3', 'A3', 'D3'))),
-         {'R1': 2.045,
-          'R2': 2.045, 'A2': 2.0943,
-          'R3': 2.045, 'A3': 2.0943, 'D3': 3.1415}),
-        ((('H', (None, None, None), (None, None, None)),
-          ('H', (0, None, None), ('R1', None, None))),
-         {'R1': 1.31906}),
-    ]
-    TS_ZMA, DIST_NAME, FRM_KEY, BRK_KEY, TORS_NAMES = (
+    RCT_ICHS = [automol.smiles.inchi('C(Cl)(C)O'),
+                automol.smiles.inchi('[H]')]
+    PRD_ICHS = [automol.smiles.inchi('[C](Cl)(C)O'),
+                automol.smiles.inchi('[H][H]')]
+    print(RCT_ICHS)
+    print(PRD_ICHS)
+
+    RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))
+    PRD_GEOS = list(map(automol.inchi.geometry, PRD_ICHS))
+
+    RCT_ZMAS = list(map(automol.geom.zmatrix, RCT_GEOS))
+    PRD_ZMAS = list(map(automol.geom.zmatrix, PRD_GEOS))
+
+    TS_ZMA, DIST_NAME, FRM_KEY, BRK_KEY, TORS_NAMES, _ = (
         hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS))
     RCT_GRA = zmatrix_reactant_graph(TS_ZMA, [FRM_KEY], [BRK_KEY])
     PRD_GRA = zmatrix_product_graph(TS_ZMA, [FRM_KEY], [BRK_KEY])

@@ -97,6 +97,8 @@ def connected_heuristic_zmatrix(gra):
 
         if len(chain) > 1:
             atm_key = chain[1]
+        else:
+            atm_key = chain[0]
 
         # determine the z-matrix of the starting atom and its neighbors
         zma, zma_key_dct, dummy_atm_key, gra = _start_zmatrix_from_atom(
