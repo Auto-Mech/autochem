@@ -652,6 +652,13 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         rct2_gra = automol.zmatrix.graph(rct_zmas[1], remove_stereo=True)
         rad_atm_keys = automol.graph.resonance_dominant_radical_atom_keys(
             rct2_gra)
+        # fix for O2 which is recognized as a radical
+        # in the long run it would be better to put then in the resonance_dominant_radical_atom_keys function
+        if not rad_atm_keys:
+            ich = automol.graph.inchi(rct2_gra)
+            if ich == 'InChI=1S/O2/c1-2':
+                rad_atm_keys = [0]
+                return None
         # hno2 hack
         # rad_atm_keys = [0]
         # print('rad_atm_keys:', rad_atm_keys)
