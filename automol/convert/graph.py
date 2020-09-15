@@ -20,7 +20,6 @@ def inchi(gra, remove_stereo=True):
 
     if ich is None:
         if not automol.graph.has_stereo(gra):
-            print('gra in inchi test:', gra)
             ich, _ = inchi_with_sort_from_geometry(gra)
             ich = automol.inchi.standard_form(ich, remove_stereo=remove_stereo)
         else:

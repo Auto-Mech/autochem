@@ -26,7 +26,7 @@ def min_hyd_mig_dist(rct_zmas, prd_zmas):
         # If reaction found, then proceed
         if tras:
             min_key = None
-            min_dist = 10
+            min_dist = 100
             for tra in tras:
                 frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
                 geo = automol.zmatrix.geometry(rct_zmas[0])
@@ -44,6 +44,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     """ z-matrix for a hydrogen migration reaction
     """
     ret = None, None, None, None, None
+    rct_zma = None
 
     # set products which will be unchanged to ts algorithm
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
@@ -72,7 +73,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     frm_bnd_key = bnd_key
                     brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra_i)
             init_zma, = rct_zmas
-            print('init_zma test:', init_zma)
+            # print('init_zma test:', init_zma)
 
             # figure out which idx in frm_bnd_keys corresponds to the hydrogen
             symbols = automol.vmatrix.symbols(automol.zmatrix.var_(init_zma))
@@ -83,7 +84,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                 else:
                     a1_idx = idx
 
-            print('h_idx test:', h_idx, a1_idx)
+            # print('h_idx test:', h_idx, a1_idx)
 
             brk_dist_coo_key = tuple(reversed(sorted(brk_bnd_key)))
             for idx in brk_dist_coo_key:
@@ -115,7 +116,9 @@ def hydrogen_migration(rct_zmas, prd_zmas):
         else:
             return None
 
-    
+    if not rct_zma:
+        return None
+
     # determine the backbone atoms to redefine the z-matrix entry
     _, gras = shifted_standard_zmas_graphs([rct_zma], remove_stereo=True)
     gra = functools.reduce(automol.graph.union, gras)
