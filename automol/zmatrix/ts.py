@@ -6,6 +6,7 @@ import automol.graph
 import automol.geom
 import automol.zmatrix
 from automol.zmatrix._unimol_ts import min_hyd_mig_dist
+from automol.zmatrix._unimol_ts import ring_forming_scission
 from automol.zmatrix._unimol_ts import hydrogen_migration
 from automol.zmatrix._unimol_ts import min_unimolecular_elimination_dist
 from automol.zmatrix._unimol_ts import concerted_unimolecular_elimination
@@ -259,6 +260,7 @@ def zmatrix_product_inchis(ts_zma, frm_keys, brk_keys, remove_stereo=True):
 
 __all__ = [
     'min_hyd_mig_dist',
+    'ring_forming_scission',
     'hydrogen_migration',
     'min_unimolecular_elimination_dist',
     'concerted_unimolecular_elimination',

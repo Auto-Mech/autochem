@@ -466,6 +466,32 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
     return ret
 
 
+def ring_forming_scission(rct_zmas, prd_zmas):
+    """zmatrix for a ring forming bond scission
+    """
+    ret = None
+    rct_zmas, rct_gras = shifted_standard_zmas_graphs(
+        rct_zmas, remove_stereo=True)
+    prd_zmas, prd_gras = shifted_standard_zmas_graphs(
+        prd_zmas, remove_stereo=True)
+    tras, _, _ = automol.graph.reac.ring_forming_scission(rct_gras, prd_gras)
+    if tras:
+        tra = tras[0]
+        brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
+        frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+        rgeo = automol.zmatrix.geometry(rct_zmas[0])
+        ts_zma = automol.geom.zmatrix(rgeo, [frm_bnd_key, brk_bnd_key])
+        atm_ord_dct = automol.geom.zmatrix_atom_ordering(rgeo, [frm_bnd_key, brk_bnd_key])
+        frm_bnd_key = frozenset(set([atm_ord_dct[atm] for atm in frm_bnd_key]))
+        brk_bnd_key = frozenset(set([atm_ord_dct[atm] for atm in brk_bnd_key]))
+        frm_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, frm_bnd_key)
+        brk_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key)
+        tors_names = automol.zmatrix.torsion_coordinate_names(rct_zmas[0])
+
+        ret = ts_zma, frm_dist_name, brk_dist_name, brk_bnd_key, frm_bnd_key, tors_names, rct_gras
+
+    return ret    
+
 def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
     """
