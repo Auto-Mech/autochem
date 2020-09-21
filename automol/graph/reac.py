@@ -207,6 +207,47 @@ def beta_scission(rct_gras, prd_gras):
     return tras, rct_idxs, prd_idxs
 
 
+def ring_forming_scission(rct_gras, prd_gras):
+    """ find a ring forming reaction that eliminates a radical group
+    """
+    _assert_is_valid_reagent_graph_list(rct_gras)
+    _assert_is_valid_reagent_graph_list(prd_gras)
+
+    tras = []
+    rct_idxs = None
+    prd_idxs = None
+
+    if len(rct_gras) == 1 and len(prd_gras) == 2:
+        rgra, = rct_gras
+        pgra1, pgra2 = prd_gras
+        pgra = automol.graph.union(pgra1, pgra2)
+        rad_atm_keys = unsaturated_atom_keys(rgra)
+        atms, bnds = rgra
+        ngb_atms = automol.graph.atom_neighbor_keys(rgra)
+     
+        for rad_atm in rad_atm_keys:
+            for xatm in atms:
+                if xatm != rad_atm and atms[xatm][1] != 'H' and xatm not in ngb_atms[rad_atm] and not tras:
+                    for natm in ngb_atms[xatm]:
+                        if natm != rad_atm:
+                            xgra = atms.copy(), bnds.copy()
+                            xgra = add_bonds(xgra, [frozenset({rad_atm, xatm})])
+                            xgra = remove_bonds(xgra, [frozenset({xatm, natm})])
+                            atm_key_dct = full_isomorphism(xgra, pgra)
+                            if atm_key_dct:
+                                tra = trans.from_data(frm_bnd_keys=[{rad_atm, xatm}],
+                                      brk_bnd_keys=[{xatm, natm},])
+                                tras.append(tra)
+                                break
+
+                # sort the reactants so that the largest species is first
+        rct_idxs = (0,)
+        prd_idxs = _argsort_reactants(prd_gras)
+        tras = tuple(tras)
+
+    return tras, rct_idxs, prd_idxs        
+                                
+
 def elimination(rct_gras, prd_gras):
     """ find an elimination transformation
 
@@ -490,17 +531,16 @@ def _argsort_reactants(gras):
 if __name__ == '__main__':
     import automol
 
+    #RCT_ICHS = (
+    #    automol.smiles.inchi('[CH2]C=CCCCCCCCCC'),
+    #    automol.smiles.inchi('[O]O'),
+    #)
     RCT_ICHS = (
-        automol.smiles.inchi('[CH2]C=CCCCCCCCCC'),
-        automol.smiles.inchi('[O]O'),
+        automol.smiles.inchi('[CH2]CCO'),
     )
-    PRD_ICHS1 = (
-        automol.smiles.inchi('[O][O]'),
-        automol.smiles.inchi('C=CCCCCCCCCCC'),
-    )
-    PRD_ICHS2 = (
-        automol.smiles.inchi('[O][O]'),
-        automol.smiles.inchi('CC=CCCCCCCCCC'),
+    PRD_ICHS = (
+        automol.smiles.inchi('C1CC1'),
+        automol.smiles.inchi('[OH]'),
     )
     RCT_GRAS, _ = automol.graph.standard_keys_for_sequence([
         automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
@@ -508,40 +548,35 @@ if __name__ == '__main__':
     ])
     for GRA in RCT_GRAS:
         print(automol.geom.string(automol.graph.geometry(GRA)))
-    PRD_GRAS1, _ = automol.graph.standard_keys_for_sequence([
+    PRD_GRAS, _ = automol.graph.standard_keys_for_sequence([
         automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
-        for ich in PRD_ICHS1
-    ])
-    PRD_GRAS2, _ = automol.graph.standard_keys_for_sequence([
-        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
-        for ich in PRD_ICHS2
+        for ich in PRD_ICHS
     ])
 
-    TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
-    TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
-    # print(TS1)
+    TS1 = ring_forming_scission(RCT_GRAS, PRD_GRAS)
+    print(TS1)
     # print()
     # print(TS2)
 
-    RCT_ZMAS = list(
-        map(automol.geom.zmatrix, map(automol.inchi.geometry, RCT_ICHS)))
-    PRD_ZMAS1 = list(
-        map(automol.geom.zmatrix, map(automol.inchi.geometry, PRD_ICHS1)))
-    PRD_ZMAS2 = list(
-        map(automol.geom.zmatrix, map(automol.inchi.geometry, PRD_ICHS2)))
+   # RCT_ZMAS = list(
+   #     map(automol.geom.zmatrix, map(automol.inchi.geometry, RCT_ICHS)))
+   # PRD_ZMAS1 = list(
+   #     map(automol.geom.zmatrix, map(automol.inchi.geometry, PRD_ICHS1)))
+   # PRD_ZMAS2 = list(
+   #     map(automol.geom.zmatrix, map(automol.inchi.geometry, PRD_ICHS2)))
 
-    ts_zma1, dist_name1, frm_bnd_key1, brk_bnd_key1, _, _ = (
-        automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS1))
-    print(automol.zmatrix.string(ts_zma1))
-    #TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
-    #TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
-    TS1 = hydrogen_abstraction(PRD_GRAS1, RCT_GRAS)
-    TS2 = hydrogen_abstraction(PRD_GRAS2, RCT_GRAS)
-    print(TS1)
-    print()
-    ts_zma2, dist_name2, frm_bnd_key2, brk_bnd_key2, _, _ = (
-        automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS2))
-    print(automol.zmatrix.string(ts_zma2))
+   # ts_zma1, dist_name1, frm_bnd_key1, brk_bnd_key1, _, _ = (
+   #     automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS1))
+   # print(automol.zmatrix.string(ts_zma1))
+   # #TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
+   # #TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
+   # TS1 = hydrogen_abstraction(PRD_GRAS1, RCT_GRAS)
+   # TS2 = hydrogen_abstraction(PRD_GRAS2, RCT_GRAS)
+   # print(TS1)
+   # print()
+   # ts_zma2, dist_name2, frm_bnd_key2, brk_bnd_key2, _, _ = (
+   #     automol.zmatrix.ts.hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS2))
+   # print(automol.zmatrix.string(ts_zma2))
 
-    print(dist_name1, frm_bnd_key1, brk_bnd_key1)
-    print(dist_name2, frm_bnd_key2, brk_bnd_key2)
+   # print(dist_name1, frm_bnd_key1, brk_bnd_key1)
+   # print(dist_name2, frm_bnd_key2, brk_bnd_key2)
