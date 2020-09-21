@@ -59,7 +59,7 @@ def zmatrix_atom_ordering(geo, ts_bnds=()):
 
 # geometry => graph
 def connectivity_graph(geo,
-                       rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
+                       rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph (no stereo)
     """
     syms = automol.geom.symbols(geo)

@@ -249,7 +249,8 @@ def hydrogen_migration(rct_zmas, prd_zmas):
 
     frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
     brk_bnd_key = shift_vals_from_dummy(brk_bnd_key, ts_zma)
-    const_bnd_key = shift_vals_from_dummy(const_bnd_key, ts_zma)
+    if const_bnd_key:
+        const_bnd_key = shift_vals_from_dummy(const_bnd_key, ts_zma)
 
     ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, const_bnd_key, tors_names, rcts_gra
 
@@ -496,6 +497,7 @@ def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
     """
     ret = None
+    print('initial rct_zmas in beta-scission test:', automol.zmatrix.string(rct_zmas[0]))
     rct_zmas, rct_gras = shifted_standard_zmas_graphs(
         rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
@@ -512,6 +514,7 @@ def beta_scission(rct_zmas, prd_zmas):
 
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
         dist_name = ts_name_dct[dist_name]
+        print('initial ts_zma in beta-scission test:', automol.zmatrix.string(ts_zma))
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
@@ -521,6 +524,8 @@ def beta_scission(rct_zmas, prd_zmas):
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
         ret = ts_zma, dist_name, brk_bnd_key, tors_names, rcts_gra
+
+        print('zmas in beta-scission test:', automol.zmatrix.string(ts_zma), automol.zmatrix.string(rct_zmas[0]))
 
     return ret
 
@@ -534,6 +539,7 @@ def shift_vals_from_dummy(vals, zma):
     dummy_idxs = automol.zmatrix.atom_indices(zma, sym='X')
 
     shift_vals = []
+    print('vals test:', vals)
     for val in vals:
         shift = 0
         for dummy in dummy_idxs:

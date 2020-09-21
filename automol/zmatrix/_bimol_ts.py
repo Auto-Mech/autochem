@@ -297,9 +297,22 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
         rct1_zma, rct2_zma = rct_zmas
         rct1_gra, rct2_gra = rct_gras
         rct2_natms = automol.zmatrix.count(rct2_zma)
+        rct1_natms = automol.zmatrix.count(rct1_zma)
 
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-        rct1_atm1_key, _ = sorted(frm_bnd_key)
+        rct1_atm1_key, rct2_atm_key = sorted(frm_bnd_key)
+
+        #Shift rct2_zma so that it's forming site is the first atom
+        if rct2_atm_key != rct1_natms:
+            rct2_geo = automol.zmatrix.geometry(rct2_zma)
+            rct2_geo = automol.geom.swap_coordinates(
+                rct2_geo, rct2_atm_key-rct1_natms, 0)
+            rct2_zma = automol.geom.zmatrix(rct2_geo)
+            rct_zmas, rct_gras = shifted_standard_zmas_graphs(
+                [rct1_zma, rct2_zma], remove_stereo=True)
+            _, rct2_zma = rct_zmas
+            rct2_atm_key = rct1_natms
+            frm_bnd_key = frozenset({rct1_atm1_key, rct2_atm_key})
 
         # Replace old routine with new one based on unsaturated atoms
         # Start of new routine
@@ -457,6 +470,9 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
         ret = ts_zma, dist_name, frm_bnd_key, tors_names, rcts_gra
+
+        print('addition zma test:', automol.zmatrix.string(ts_zma), tors_names, frm_bnd_key)
+        print('rct atm keys:', rct1_atm1_key, rct1_atm2_key, rct1_atm3_key)
 
     return ret
 
