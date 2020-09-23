@@ -237,13 +237,39 @@ def test__rot_permutated_geoms():
         print(automol.geom.xyz_string(rgeom))
 
 
+def test__traj():
+    """ test geom.from_xyz_trajectory_string
+    """
+
+    ref_traj_str = """ 3
+comment 1
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.000000
+C    0.000000   0.000000   2.000000
+ 3
+comment 2
+C    0.000000   0.000000   3.000000
+C    0.000000   0.000000   4.000000
+C    0.000000   0.000000   5.000000
+ 3
+comment 3
+C    0.000000   0.000000   6.000000
+C    0.000000   0.000000   7.000000
+C    0.000000   0.000000   8.000000"""
+
+    geoms, comments = automol.geom.from_xyz_trajectory_string(ref_traj_str)
+    traj_str = automol.geom.xyz_trajectory_string(geoms, comments=comments)
+    assert ref_traj_str == traj_str
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__is_valid()
-    test__atom_indices()
+    # test__atom_indices()
     # test__set_coordinates()
     # test__swap_coordinates()
     # test__move_coordinates()
     # test__reflect_coordinates()
     # test__external_symmetry_factor()
     # test__rot_permutated_geoms()
+    test__traj()

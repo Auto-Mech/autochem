@@ -347,6 +347,33 @@ def xyz_trajectory_string(geo_lst, comments=None):
     return xyz_traj_str
 
 
+def from_xyz_trajectory_string(geo_str):
+    """ read a series of cartesian geometries from a .xyz string
+    """
+
+    def _blocks(lst, size):
+        """ Split list into parts of size n"""
+        split_lst = []
+        for i in range(0, len(lst), size):
+            split_lst.append(lst[i:i + size])
+        return split_lst
+
+    # Split the lines for iteration
+    geo_lines = [line for line in geo_str.splitlines()
+                 if line != '']
+
+    # Get the number of atoms used to partition the trajectory file
+    line1 = geo_lines[0].strip()
+    natoms = int(line1)
+
+    geoms, comments = tuple(), tuple()
+    for block in _blocks(geo_lines, natoms+2):
+        comments += (block[1],)
+        geoms += (from_string('\n'.join(block[2:])),)
+
+    return (geoms, comments)
+
+
 # representations
 def coulomb_spectrum(geo):
     """ (sorted) coulomb matrix eigenvalue spectrum
