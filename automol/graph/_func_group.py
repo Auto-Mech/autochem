@@ -5,7 +5,7 @@
 import itertools
 from automol.graph._graph import rings
 from automol.graph._graph import atom_symbols
-from automol.graph._graph_base import atom_neighbor_keys
+from automol.graph._graph import atom_neighbor_keys
 from automol.graph._res import dominant_resonance
 from automol.graph._res import resonance_dominant_radical_atom_keys
 from automol.graph._res import bond_orders
