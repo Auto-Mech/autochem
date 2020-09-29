@@ -291,10 +291,6 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
     """ z-matrix for a concerted unimolecular elimination reaction
     """
 
-    # print('AT ELIM2')
-    # import sys
-    # sys.exit()
-
     # Initialize info for the returns
     ret = None, None, None, None, None
     finish_build = True
@@ -449,7 +445,6 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
                 tors_names.append(tors_name)
 
         # Get reactants graph
-        print('rct_gras before shift:', rct_gras)
         _, rct_gras = shifted_standard_zmas_graphs(
             [rct_zma], remove_stereo=True)
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
@@ -460,9 +455,6 @@ def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
         frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
 
         ret = ts_zma, dist_name, brk_dist_name, brk_bnd_keys, frm_bnd_key, tors_names, rcts_gra
-
-        print('rct_gras after shift:', rct_gras)
-        print('rcts_gra:', rcts_gra)
 
     return ret
 
@@ -480,18 +472,128 @@ def ring_forming_scission(rct_zmas, prd_zmas):
         tra = tras[0]
         brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra)
         frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-        rgeo = automol.zmatrix.geometry(rct_zmas[0])
-        ts_zma = automol.geom.zmatrix(rgeo, [frm_bnd_key, brk_bnd_key])
-        atm_ord_dct = automol.geom.zmatrix_atom_ordering(rgeo, [frm_bnd_key, brk_bnd_key])
-        frm_bnd_key = frozenset(set([atm_ord_dct[atm] for atm in frm_bnd_key]))
-        brk_bnd_key = frozenset(set([atm_ord_dct[atm] for atm in brk_bnd_key]))
-        frm_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, frm_bnd_key)
+        ts_zma = rct_zmas[0]
+
+        # set up radical atom, leaving atom, newly formed radical atom
+        # also set up chain between radical atom and newly formed radical atom
+        ts_gra = automol.zmatrix.graph(ts_zma)
+        rad_atm = list(automol.graph.sing_res_dom_radical_atom_keys(ts_gra))[0]
+        for atm in brk_bnd_key:
+            if atm not in frm_bnd_key:
+                leave_atm = atm
+            else:
+                new_rad_atm = atm
+
+        chain_between = automol.zmatrix.chain_between(ts_zma, new_rad_atm, rad_atm)
+
+        tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
+        coo_dct = automol.zmatrix.coordinates(ts_zma)
+        ang_90 = numpy.pi/2.
+        ts_tors_names = []
+        const_tors_names = []
+        # (i) set torsion from rad atom towards chain to 90
+        for tors_name in tors_names:
+            axis = coo_dct[tors_name][0][1:3]
+            # (ii) remove torsions in chain_between from final torsion sampling list
+            if ((axis[0] not in chain_between) or (axis[1] not in chain_between)):
+                ts_tors_names.append(tors_name)
+            if ((rad_atm == axis[0] and axis[1] in chain_between) or
+                    (rad_atm == axis[1] and axis[0] in chain_between)):
+                ts_zma_p = automol.zmatrix.set_values(ts_zma, {tors_name: ang_90})
+                # const_tors_names.append(tors_name)
+
+        # (iii) vary torsions in chain_between to minimize distance from rad_atm to new_rad_atm
+        preopt_tors_names = []
+        for tors_name in tors_names:
+            axis = coo_dct[tors_name][0][1:3]
+            if ((axis[0] in chain_between) and (axis[1] in chain_between) and
+                    (rad_atm not in axis) and (new_rad_atm not in axis)):
+                preopt_tors_names.append(tors_name)
+                # add any ring forming torsions to constraints to ensure 0 dihedrals for the ring
+                const_tors_names.append(tors_name)
+
+        print('preopt_tors_names:', preopt_tors_names)
+
+        angles = [0., 2.*numpy.pi/3, 4.*numpy.pi/3]
+        # angles = [0., numpy.pi/3., 2.*numpy.pi/3, 3.*numpy.pi/3., 4.*numpy.pi/3, 5*numpy.pi/3.]
+        trial_zmas = [ts_zma_p]
+        for preopt_tors_name in preopt_tors_names:
+            new_trial_zmas = []
+            for zma_i in trial_zmas:
+                for ang in angles:
+                    new_trial_zmas.append(automol.zmatrix.set_values(zma_i, {preopt_tors_name: ang}))
+            trial_zmas = new_trial_zmas
+
+        dist_min = 1.0e30
+        for trial_zma in trial_zmas:
+            geo_i = automol.zmatrix.geometry(trial_zma)
+            dist = automol.geom.distance(geo_i, rad_atm, new_rad_atm)
+            if dist < dist_min:
+                dist_min = dist
+                ts_zma = trial_zma
+
+        ang_stp = 2.*numpy.pi/6.
+        # (iv) vary torsion from new_rad_atm to leaving atom so that leave_atm is far from rad_atm
+        for tors_name in tors_names:
+            ang = -ang_stp
+            axis = coo_dct[tors_name][0][1:3]
+            if ((new_rad_atm == axis[0] and axis[1] in chain_between) or
+                    (new_rad_atm == axis[1] and axis[0] in chain_between)):
+                dist_max = 0.0
+                for _ in range(6):
+                    ang += ang_stp
+                    ts_zma_i = automol.zmatrix.set_values(ts_zma, {tors_name: ang})
+                    geo_i = automol.zmatrix.geometry(ts_zma_i)
+                    dist = automol.geom.distance(geo_i, rad_atm, leave_atm)
+                    if dist > dist_max:
+                        dist_max = dist
+                        ts_zma_max = ts_zma_i
+                const_tors_names.append(tors_name)
+            # set up ts torsions - remove ones with axis in the chain between new and old rad atoms
+            if ((axis[0] not in chain_between) or (axis[1] not in chain_between)):
+                ts_tors_names.append(tors_name)
+            # elif (axis[0] in chain_between) and (axis[1] in chain_between):
+                # if tors_name not in const_tors_names:
+                    # const_tors_names.append(tors_name)
+
+        print('ts_tors_names test:', ts_tors_names, automol.zmatrix.string(ts_zma))
+        print('const_tors_names test:', const_tors_names)
+        ts_zma = ts_zma_max
+
+        # (v) vary angles to decrease rad_atm to new_rad_atm to < 2.25 Angstroms
+        dist_thresh = 4.25
+        # dist_thresh = 4.
+        ang_names = automol.zmatrix.central_angle_names(ts_zma)
+        ring_angs = []
+        const_angs_names = []
+        for ang_name in ang_names:
+            ang_atms = coo_dct[ang_name][0]
+            if ((ang_atms[0] in chain_between) and (ang_atms[1] in chain_between) and
+                    (ang_atms[2] in chain_between)):
+                ring_angs.append(ang_name)
+                const_angs_names.append(ang_name)
+        dist = 1.e30
+        ang_stp = numpy.pi/360.
+        # ang_stp = 0.5 degrees
+        counter = 0
+        while ((dist > dist_thresh) and (counter < 30)):
+            counter += 1
+            values = automol.zmatrix.values(ts_zma)
+            for ang_name in ring_angs:
+                ang = values[ang_name] - ang_stp
+                ts_zma = automol.zmatrix.set_values(ts_zma, {ang_name: ang})
+            geo_i = automol.zmatrix.geometry(ts_zma)
+            dist = automol.geom.distance(geo_i, rad_atm, new_rad_atm)
+
         brk_dist_name = automol.zmatrix.bond_key_from_idxs(ts_zma, brk_bnd_key)
-        tors_names = automol.zmatrix.torsion_coordinate_names(rct_zmas[0])
 
-        ret = ts_zma, frm_dist_name, brk_dist_name, brk_bnd_key, frm_bnd_key, tors_names, rct_gras
+        # Build the reactants graph
+        rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
-    return ret    
+        ret = ts_zma, brk_dist_name, brk_bnd_key, const_tors_names, ts_tors_names, const_angs_names, rcts_gra
+
+    return ret
+
 
 def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
