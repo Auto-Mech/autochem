@@ -54,11 +54,12 @@ def _connected_geometry(ich):
             try:
                 geo = gen_(ich)
                 geo_ich = automol.convert.geom.inchi(geo)
-                print('ich, geo_ich test in connected geom:', ich, geo_ich, automol.geom.string(geo))
-                if (automol.inchi.same_connectivity(ich, geo_ich) and
-                        automol.geom.connected(geo)) and (
-                        not automol.inchi.has_stereo(ich) or
-                        automol.inchi.equivalent(ich, geo_ich)):
+                # Check connectivity
+                same_conn = automol.inchi.same_connectivity(ich, geo_ich)
+                conn = automol.geom.connected(geo)
+                has_stereo = automol.inchi.has_stereo(ich)
+                ich_equiv = automol.inchi.equivalent(ich, geo_ich)
+                if (same_conn and conn) and (not has_stereo or ich_equiv):
                     success = True
                     break
             except (RuntimeError, TypeError, ValueError):

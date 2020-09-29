@@ -63,7 +63,7 @@ def from_inchi(ich):
     """
 
     rdm = _rd_chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
-    if rdm is None: 
+    if rdm is None:
         print('rdm fails for {} by returning {}'.format(ich, rdm))
     return rdm
 
@@ -117,7 +117,7 @@ def from_molfile(mfl):
     """ rdkit molecule object from a mol block string
     """
     rdm = _rd_chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
-    if rdm is None: 
+    if rdm is None:
         print('Warning: rdm fails for {} by returning {}'.format(mfl, rdm))
     return rdm
 
