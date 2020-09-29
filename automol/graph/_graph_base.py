@@ -187,20 +187,3 @@ def from_string(gra_str):
     gra = relabel(gra, atm_key_dct)
 
     return gra
-
-
-if __name__ == '__main__':
-    GRA = (
-        {0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
-         3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
-         6: ('C', 1, False), 7: ('C', 1, False), 8: ('O', 0, None)},
-        {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None),
-         frozenset({0, 3}): (1, None), frozenset({2, 6}): (1, None),
-         frozenset({6, 7}): (1, None), frozenset({8, 7}): (1, None),
-         frozenset({3, 5}): (1, False), frozenset({5, 7}): (1, None)})
-
-    GRA_STR = string(GRA)
-    print(GRA_STR)
-    # _GRA = from_string(GRA_STR)
-
-    # print(GRA == _GRA)

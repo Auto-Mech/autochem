@@ -135,6 +135,12 @@ from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 
+# functional group library
+from automol.graph._func_group import FUNC_GROUP
+from automol.graph._func_group import functional_group_dct
+from automol.graph._func_group import hydrocarbon_species
+from automol.graph._func_group import radical_species
+
 # graph <=> geometry library
 from automol.graph._geom import heuristic_geometry
 from automol.graph._geom import connected_heuristic_zmatrix
@@ -335,6 +341,12 @@ __all__ = [
     'stereomers',
     'substereomers',
     'stereo_sorted_atom_neighbor_keys',
+
+    # functional group library
+    'FUNC_GROUP',
+    'functional_group_dct',
+    'hydrocarbon_species',
+    'radical_species',
 
     # graph <=> geometry library
     'heuristic_geometry',

@@ -603,7 +603,7 @@ def move_idx_to_top(gra, idx1, idx2):
     for key in atms:
         if key == idx1:
             newatms[idx2] = atms[key]
-        elif key < idx1 and key >= idx2:
+        elif idx2 <= key < idx1:
             newatms[key + 1] = atms[key]
         else:
             newatms[key] = atms[key]
@@ -611,13 +611,13 @@ def move_idx_to_top(gra, idx1, idx2):
         atm1, atm2 = list(key)
         if atm1 == idx1:
             key1 = idx2
-        elif atm1 < idx1 and atm1 >= idx2:
+        elif idx2 <= atm1 < idx1:
             key1 = atm1 + 1
         else:
             key1 = atm1
         if atm2 == idx1:
             key2 = idx2
-        elif atm2 < idx1 and atm2 >= idx2:
+        elif idx2 <= atm2 < idx1:
             key2 = atm2 + 1
         else:
             key2 = atm2
@@ -626,7 +626,7 @@ def move_idx_to_top(gra, idx1, idx2):
         newkey = frozenset(newkey)
         newbnds[newkey] = bnds[key]
     return (newatms, newbnds)
- 
+
 
 # implicit/explicit hydrogen functions
 # # atom properties
