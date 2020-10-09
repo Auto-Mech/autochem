@@ -701,7 +701,7 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         # print(rct_gras)
         tras, _, _ = automol.graph.reac.hydrogen_abstraction(
             rct_gras, prd_gras)
-        # print('tras')
+        print('tras', tras)
         # for tra in tras:
         if tras:
             tra = tras[0]

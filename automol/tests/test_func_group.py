@@ -8,7 +8,11 @@ import automol
 # Graphs used to inspect for functional groups
 C2H6_GRA = automol.geom.graph(
     automol.inchi.geometry(
-        automol.smiles.inchi('CC(=O)N')))
+        automol.smiles.inchi('CC')))
+
+C4H10_GRA = automol.geom.graph(
+    automol.inchi.geometry(
+        automol.smiles.inchi('CCCC')))
 
 C2H5OH_GRA = automol.geom.graph(
     automol.inchi.geometry(
@@ -161,6 +165,21 @@ def test_species_types():
     assert not automol.graph.radical_species(C2H5OO_GRA)
 
 
+def test_unique_atoms():
+    """ test automol.graph._func_group.chem_unique_atoms_of_type
+    """
+    
+    print(automol.geom.string(
+        automol.inchi.geometry(
+            automol.smiles.inchi('CCCC'))))
+
+    uni_idxs = automol.graph.chem_unique_atoms_of_type(C4H10_GRA, 'H')
+    print('uni ids', uni_idxs)
+    uni_idxs = automol.graph.chem_unique_atoms_of_type(C4H10_GRA, 'C')
+    print('uni ids', uni_idxs)
+
+
 if __name__ == '__main__':
-    test_functional_group_dct()
-    test_species_types()
+    # test_functional_group_dct()
+    # test_species_types()
+    test_unique_atoms()

@@ -424,12 +424,98 @@ def test__reac__substitution():
             graph.trans.apply(tra, rct_cgr), prd_cgr)
 
 
+def test__prod__hydrogen_abstraction():
+    """ test graph.reac.prod_hydrogen_abstraction
+    """
+
+    x_gra = automol.geom.graph(
+        automol.inchi.geometry(
+            automol.smiles.inchi('CC')))
+    y_gra = automol.geom.graph(
+        automol.inchi.geometry(
+            automol.smiles.inchi('[OH]')))
+
+    prod_gras = graph.reac.prod_hydrogen_abstraction(x_gra, y_gra)
+
+    print('\n h abstraction')
+    for gra in prod_gras:
+        print(gra)
+
+
+def test__prod__hydrogen_migration():
+    """ test graph.reac.prod_hydrogen migration
+    """
+
+    gra = automol.geom.graph(
+        automol.inchi.geometry(
+            automol.smiles.inchi('CCCC[CH2]')))
+
+    prod_gras = graph.reac.prod_hydrogen_migration(gra)
+
+    print('\n h mig')
+    for gra in prod_gras:
+        print(gra)
+
+
+def test__prod__addition():
+    """ test graph.reac.prod_addition
+    """
+
+    x_gra = automol.geom.graph(
+        automol.inchi.geometry(
+            automol.smiles.inchi('C=C=C')))
+    y_gra = automol.geom.graph(
+        automol.inchi.geometry(
+            automol.smiles.inchi('[H]')))
+
+    prod_gras = graph.reac.prod_addition(x_gra, y_gra)
+
+    print('\n addn')
+    for gra in prod_gras:
+        print(gra)
+
+
+def test__prod__beta_scission():
+    """ test graph.reac.prod_beta_scission
+    """
+
+    gra = automol.geom.graph(
+        automol.inchi.geometry(
+            automol.smiles.inchi('CCC[O]')))
+
+    prod_gras = graph.reac.prod_beta_scission(gra)
+
+    print('\n beta sci')
+    for gra in prod_gras:
+        print(gra)
+
+
+def test__prod__homolytic_scission():
+    """ test graph.reac.prod_homolytic_scission
+    """
+
+    gra = automol.geom.graph(
+        automol.inchi.geometry(
+            automol.smiles.inchi('CCCC')))
+
+    prod_gras = graph.reac.prod_homolytic_scission(gra)
+
+    print('\n homolyt scission')
+    for gra in prod_gras:
+        print(gra)
+
+
 if __name__ == '__main__':
     # test__trans__is_stereo_compatible()
-    test__reac__hydrogen_migration()
-    test__reac__hydrogen_abstraction()
-    test__reac__addition()
-    test__reac__beta_scission()
-    test__reac__elimination()
-    test__reac__insertion()
-    test__reac__substitution()
+    # test__reac__hydrogen_migration()
+    # test__reac__hydrogen_abstraction()
+    # test__reac__addition()
+    # test__reac__beta_scission()
+    # test__reac__elimination()
+    # test__reac__insertion()
+    # test__reac__substitution()
+    test__prod__hydrogen_abstraction()
+    test__prod__hydrogen_migration()
+    test__prod__addition()
+    test__prod__beta_scission()
+    test__prod__homolytic_scission()

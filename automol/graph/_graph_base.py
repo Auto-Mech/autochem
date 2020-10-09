@@ -50,6 +50,23 @@ def atom_symbols(gra):
     return mdict.by_key_by_position(atoms(gra), atom_keys(gra), ATM_SYM_POS)
 
 
+def atom_symbol_idxs(gra):
+    """ determine the indices for each atom symbol
+        :return: dict[symb] = [idxs]
+    """
+
+    idx_symb_dct = atom_symbols(gra)
+
+    symb_idx_dct = {}
+    for idx, symb in idx_symb_dct.items():
+        if symb not in symb_idx_dct:
+            symb_idx_dct[symb] = [idx]
+        else:
+            symb_idx_dct[symb].append(idx)
+
+    return symb_idx_dct
+
+
 def atom_implicit_hydrogen_valences(gra):
     """ atom implicit hydrogen valences, as a dictionary
     """
