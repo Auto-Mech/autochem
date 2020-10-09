@@ -3,15 +3,21 @@
 """
 
 import itertools
+from automol.graph._graph_base import atom_symbols
+from automol.graph._graph_base import atom_symbol_idxs
 from automol.graph._graph import rings
-from automol.graph._graph import atom_symbols
 from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import remove_atoms
+from automol.graph._graph import full_isomorphism
 from automol.graph._res import dominant_resonance
 from automol.graph._res import resonance_dominant_radical_atom_keys
 from automol.graph._res import bond_orders
+from automol.graph._util import ring_idxs
+from automol.graph._util import filter_idxs
+from automol.graph._util import atom_idx_to_symb
 
 
-class FUNC_GROUP():
+class Fgroup():
     """ Functional groups
     """
     ALCOHOL = 'alcohol'
@@ -43,10 +49,10 @@ def functional_group_dct(gra):
     epoxide_grps = epoxide_groups(gra)
     carbox_acid_grps = carboxylic_acid_groups(gra)
     ester_grps = ester_groups(gra)
-    ether_grps = ether_groups(gra, filter_idxs=ester_grps)
-    alcohol_grps = alcohol_groups(gra, filter_idxs=carbox_acid_grps)
-    aldehyde_grps = aldehyde_groups(gra, filter_idxs=carbox_acid_grps)
-    ketone_grps = ketone_groups(gra, filter_idxs=carbox_acid_grps+ester_grps)
+    ether_grps = ether_groups(gra, filterlst=ester_grps)
+    alcohol_grps = alcohol_groups(gra, filterlst=carbox_acid_grps)
+    aldehyde_grps = aldehyde_groups(gra, filterlst=carbox_acid_grps)
+    ketone_grps = ketone_groups(gra, filterlst=carbox_acid_grps+ester_grps)
     # amine_grps = amine_groups(gra)
     amide_grps = amide_groups(gra)
     nitro_grps = nitro_groups(gra)
@@ -55,20 +61,20 @@ def functional_group_dct(gra):
 
     # might have to filter it to remove ketone/oh if carbox acids are ther
     func_grp_dct = {
-        FUNC_GROUP.PEROXY: peroxy_grps,
-        FUNC_GROUP.HYDROPEROXY: hydroperoxy_grps,
-        FUNC_GROUP.ETHER: ether_grps,
-        FUNC_GROUP.EPOXIDE: epoxide_grps,
-        FUNC_GROUP.CARBOX_ACID: carbox_acid_grps,
-        FUNC_GROUP.ESTER: ester_grps,
-        FUNC_GROUP.ALCOHOL: alcohol_grps,
-        FUNC_GROUP.ALDEHYDE: aldehyde_grps,
-        FUNC_GROUP.KETONE: ketone_grps,
-        # FUNC_GROUP.AMINE: amine_grps,
-        FUNC_GROUP.AMIDE: amide_grps,
-        FUNC_GROUP.NITRO: nitro_grps,
-        FUNC_GROUP.HALIDE: halide_grps,
-        FUNC_GROUP.THIOL: thiol_grps
+        Fgroup.PEROXY: peroxy_grps,
+        Fgroup.HYDROPEROXY: hydroperoxy_grps,
+        Fgroup.ETHER: ether_grps,
+        Fgroup.EPOXIDE: epoxide_grps,
+        Fgroup.CARBOX_ACID: carbox_acid_grps,
+        Fgroup.ESTER: ester_grps,
+        Fgroup.ALCOHOL: alcohol_grps,
+        Fgroup.ALDEHYDE: aldehyde_grps,
+        Fgroup.KETONE: ketone_grps,
+        # Fgroup.AMINE: amine_grps,
+        Fgroup.AMIDE: amide_grps,
+        Fgroup.NITRO: nitro_grps,
+        Fgroup.HALIDE: halide_grps,
+        Fgroup.THIOL: thiol_grps
     }
 
     return func_grp_dct
@@ -104,13 +110,13 @@ def alkyne_sites(gra):
     return bonds_of_type(gra, asymb1='C', asymb2='C', mbond=3)
 
 
-def alcohol_groups(gra, filter_idxs=()):
+def alcohol_groups(gra, filterlst=()):
     """ Determine the location alcohol groups
 
         Returns a lsts of idxs of C-O-H groups
     """
     alc_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='H')
-    alc_grps = _filter_idxs(alc_grps, filter_idxs=filter_idxs)
+    alc_grps = filter_idxs(alc_grps, filterlst=filterlst)
 
     return alc_grps
 
@@ -152,7 +158,7 @@ def hydroperoxy_groups(gra):
     return cooh_grps
 
 
-def ether_groups(gra, filter_idxs=()):
+def ether_groups(gra, filterlst=()):
     """ Determine the location of ether groups
 
         Returns a lsts of idxs of C-O-C groups
@@ -161,19 +167,20 @@ def ether_groups(gra, filter_idxs=()):
     ether_grps = tuple()
 
     # Determing the indices of all rings in the molecule
-    ring_idxs = _ring_idxs(gra)
+
+    _ring_idxs = ring_idxs(rings(gra))
 
     coc_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='C')
     for coc_grp in coc_grps:
         c1_idx, o_idx, c2_idx = coc_grp
-        if not ring_idxs:
+        if not _ring_idxs:
             ether_grps += ((c1_idx, o_idx, c2_idx),)
         else:
-            for idxs in ring_idxs:
+            for idxs in _ring_idxs:
                 if not set(coc_grp) <= set(idxs):
                     ether_grps += ((c1_idx, o_idx, c2_idx),)
 
-    ether_grps = _filter_idxs(ether_grps, filter_idxs=filter_idxs)
+    ether_grps = filter_idxs(ether_grps, filterlst=filterlst)
 
     return ether_grps
 
@@ -187,20 +194,20 @@ def epoxide_groups(gra):
     epox_grps = tuple()
 
     # Determing the indices of all rings in the molecule
-    ring_idxs = _ring_idxs(gra)
+    _ring_idxs = ring_idxs(rings(gra))
 
     coc_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='C')
     for coc_grp in coc_grps:
         c1_idx, o_idx, c2_idx = coc_grp
-        if ring_idxs:
-            for idxs in ring_idxs:
+        if _ring_idxs:
+            for idxs in _ring_idxs:
                 if set(coc_grp) <= set(idxs):
                     epox_grps += ((c1_idx, o_idx, c2_idx),)
 
     return epox_grps
 
 
-def aldehyde_groups(gra, filter_idxs=()):
+def aldehyde_groups(gra, filterlst=()):
     """ Determine the location of aldehyde groups
 
         Returns C-O bond idxs
@@ -215,12 +222,12 @@ def aldehyde_groups(gra, filter_idxs=()):
         if c_neighs:
             ald_grps += ((c_idx, o_idx),)
 
-    ald_grps = _filter_idxs(ald_grps, filter_idxs=filter_idxs)
+    ald_grps = filter_idxs(ald_grps, filterlst=filterlst)
 
     return ald_grps
 
 
-def ketone_groups(gra, filter_idxs=()):
+def ketone_groups(gra, filterlst=()):
     """ Determine the location of ketone groups
 
         Returns C-O bond idxs
@@ -235,7 +242,7 @@ def ketone_groups(gra, filter_idxs=()):
         if not c_neighs:
             ket_grps += ((c_idx, o_idx),)
 
-    ket_grps = _filter_idxs(ket_grps, filter_idxs=filter_idxs)
+    ket_grps = filter_idxs(ket_grps, filterlst=filterlst)
 
     return ket_grps
 
@@ -317,8 +324,7 @@ def halide_groups(gra):
 
     hal_grps = tuple()
 
-    idx_symb_dct = atom_symbols(gra)
-    symb_idx_dct = _build_symb_idx_dct(idx_symb_dct)
+    symb_idx_dct = atom_symbol_idxs(gra)
 
     for symb in ('F', 'Cl', 'Br', 'I'):
         hal_idxs = symb_idx_dct.get(symb, ())
@@ -341,10 +347,42 @@ def thiol_groups(gra):
 def _unique_atoms(gra):
     """ Determine the symbols of unique atom types
     """
-    idx_symb_dct = atom_symbols(gra)
-    symb_idx_dct = _build_symb_idx_dct(idx_symb_dct)
+    symb_idx_dct = atom_symbol_idxs(gra)
 
     return tuple(symb_idx_dct.keys())
+
+
+def chem_unique_atoms_of_type(gra, asymb):
+    """ For the given atom type, determine the idxs of all the
+         chemically unique atoms.
+    """
+
+    # Get the indices for the atom type
+    symb_idx_dct = atom_symbol_idxs(gra)
+    atom_idxs = symb_idx_dct[asymb]
+
+    # Loop over each idx
+    uni_idxs = tuple()
+    uni_del_gras = []
+    for idx in atom_idxs:
+
+        # Remove the atom from the graph
+        del_gra = remove_atoms(gra, [idx])
+
+        # Test if the del_gra is isomorphic to any of the uni_del_gras
+        new_uni = True
+        for uni_del_gra in uni_del_gras:
+            iso_dct = full_isomorphism(del_gra, uni_del_gra)
+            if iso_dct:
+                new_uni = False
+                break
+
+        # Add graph and idx to lst if del gra is unique
+        if new_uni:
+            uni_del_gras.append(del_gra)
+            uni_idxs += (idx,)
+
+    return uni_idxs
 
 
 def bonds_of_type(gra, asymb1='C', asymb2='C', mbond=1):
@@ -395,12 +433,12 @@ def two_bond_idxs(gra, asymb1='H', cent='C', asymb2='H'):
 
     neigh_dct = atom_neighbor_keys(gra)
     idx_symb_dct = atom_symbols(gra)
-    symb_idx_dct = _build_symb_idx_dct(idx_symb_dct)
+    symb_idx_dct = atom_symbol_idxs(gra)
 
     cent_idxs = symb_idx_dct.get(cent, tuple())
     for cent_idx in cent_idxs:
         neighs = tuple(neigh_dct[cent_idx])
-        neigh_symbs = _atom_idx_to_symb(neighs, idx_symb_dct)
+        neigh_symbs = atom_idx_to_symb(neighs, idx_symb_dct)
         if neigh_symbs == (asymb1, asymb2):
             grp_idxs = (neighs[0], cent_idx, neighs[1])
         elif neigh_symbs == (asymb2, asymb1):
@@ -420,7 +458,7 @@ def neighbors_of_type(gra, aidx, asymb='H'):
 
     idx_symb_dct = atom_symbols(gra)
     neighs = atom_neighbor_keys(gra)[aidx]
-    neigh_symbs = _atom_idx_to_symb(neighs, idx_symb_dct)
+    neigh_symbs = atom_idx_to_symb(neighs, idx_symb_dct)
 
     idxs_of_type = tuple()
     for nidx, nsymb in zip(neighs, neigh_symbs):
@@ -428,62 +466,3 @@ def neighbors_of_type(gra, aidx, asymb='H'):
             idxs_of_type += (nidx,)
 
     return idxs_of_type
-
-
-# HELPER FUNCTIONS FOR CONVERTING B/W IDXS AND SYMBOLS
-def _build_symb_idx_dct(idx_symb_dct):
-    """ Build a dictionary
-    """
-
-    symb_idx_dct = {}
-    for idx, symb in idx_symb_dct.items():
-        if symb not in symb_idx_dct:
-            symb_idx_dct[symb] = [idx]
-        else:
-            symb_idx_dct[symb].append(idx)
-
-    return symb_idx_dct
-
-
-def _atom_idx_to_symb(idxs, idx_symb_dct):
-    """ Convert a list of atom idxs (a1, a2, ..., an)
-        to atom symbols
-    """
-    return tuple(idx_symb_dct[idx] for idx in idxs)
-
-
-def _bond_idx_to_symb(idxs, idx_symb_dct):
-    """ Convert a list of bond idxs ((a1, b1), (a2, b2), ..., (an, bn))
-        to pairs of atom symbols
-    """
-    return tuple(
-        (idx_symb_dct[idx1], idx_symb_dct[idx2]) for (idx1, idx2) in idxs
-    )
-
-
-# OTHER HELPER FUNCTIONS
-def _ring_idxs(gra):
-    """ Get idxs for rings
-    """
-    ring_idxs = tuple()
-
-    _rings = rings(gra)
-    for ring in _rings:
-        idxs = tuple(ring[0].keys())
-        if idxs:
-            ring_idxs += (idxs,)
-
-    return ring_idxs
-
-
-def _filter_idxs(idxs_lst, filter_idxs=()):
-    """ Filter out a tuple
-    """
-
-    filtered_lst = tuple()
-
-    for idxs in idxs_lst:
-        if not any(set(idxs) <= set(fidxs) for fidxs in filter_idxs):
-            filtered_lst += (idxs,)
-
-    return filtered_lst

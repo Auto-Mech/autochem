@@ -40,9 +40,9 @@ from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import atom_groups
-from automol.graph._res   import radical_groups
-from automol.graph._res   import radical_group_dct
-from automol.graph._res   import radical_dissociation_prods
+from automol.graph._res import radical_groups
+from automol.graph._res import radical_group_dct
+from automol.graph._res import radical_dissociation_prods
 # # bond properties
 from automol.graph._graph import bond_neighbor_keys
 from automol.graph._graph import bond_neighbor_bonds
@@ -136,10 +136,11 @@ from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 
 # functional group library
-from automol.graph._func_group import FUNC_GROUP
+from automol.graph._func_group import Fgroup
 from automol.graph._func_group import functional_group_dct
 from automol.graph._func_group import hydrocarbon_species
 from automol.graph._func_group import radical_species
+from automol.graph._func_group import chem_unique_atoms_of_type
 
 # graph <=> geometry library
 from automol.graph._geom import heuristic_geometry
@@ -343,10 +344,11 @@ __all__ = [
     'stereo_sorted_atom_neighbor_keys',
 
     # functional group library
-    'FUNC_GROUP',
+    'Fgroup',
     'functional_group_dct',
     'hydrocarbon_species',
     'radical_species',
+    'chem_unique_atoms_of_type',
 
     # graph <=> geometry library
     'heuristic_geometry',
