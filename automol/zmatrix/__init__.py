@@ -123,9 +123,10 @@ def connectivity_graph(zma,
         rhh_bond_max=rhh_bond_max)
     return gra
 
+
 def chain_between(zma, atm1, atm2):
     """ returns the chain of atoms connecting two given atoms
-    """              
+    """
     chain1 = _chain_between(zma, atm1, atm2)
     chain2 = _chain_between(zma, atm2, atm1)
     if len(chain2) > 0 and len(chain2) < len(chain1):
@@ -134,23 +135,21 @@ def chain_between(zma, atm1, atm2):
         chain1 = chain2
     return chain1
 
+
 def _chain_between(zma, atm1, atm2):
     """ returns the chain of atoms connecting two given atoms
-    """              
+    """
     def _loop(atm_nbh_keys_dct, nbh_atms, chain, atm2, iters, checked_atms):
         if iters < 800:
             new_atm_nbhs = []
             for atm in nbh_atms:
                 if atm not in checked_atms:
                     new_atm_nbhs.append(atm)
-            for nbh in new_atm_nbhs: 
+            for nbh in new_atm_nbhs:
                 chain.append(nbh)
-                #print('neigh atom', nbh)
-                #print('chain', chain)
-                #print('iter', iters)
                 checked_atms.append(nbh)
                 iters += 1
-                if nbh == atm2:           
+                if nbh == atm2:
                     iters = 1000
                     return chain, nbh_atms, iters, checked_atms
                 else:
@@ -171,7 +170,7 @@ def _chain_between(zma, atm1, atm2):
     return_chain, nbh_atms, iters, checked_atms =_loop(atm_nbh_keys_dct, nbh_atms, chain, atm2, iters, checked_atms)
     if iters < 900:
         return_chain = []
-    return return_chain    
+    return return_chain
 
 
 def formula(zma):

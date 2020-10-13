@@ -1,8 +1,9 @@
 """ igraph interface
 """
+
 import itertools
-import igraph
 from qcelemental import periodictable as pt
+import igraph
 import automol
 import automol.create.graph
 from automol import dict_
@@ -147,10 +148,3 @@ def canonical_permutation(igr):
     perm = igr.canonical_permutation(color=atm_colors)
     perm_dct = dict(zip(atm_keys, perm))
     return perm_dct
-
-
-if __name__ == '__main__':
-    ICH = automol.smiles.inchi('CF')
-    GRA = automol.graph.explicit(automol.inchi.graph(ICH))
-    IGR = from_graph(GRA)
-    print(canonical_permutation(IGR))

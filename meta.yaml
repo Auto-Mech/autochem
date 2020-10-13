@@ -19,6 +19,7 @@ requirements:
         - flake8
         - pylint
         - kevinmooreiii::autoparse
+        - kevinmooreiii::autoio
         - auto-mech::x2z
         - rdkit::rdkit
         - openbabel::openbabel

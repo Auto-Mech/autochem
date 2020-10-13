@@ -231,19 +231,26 @@ def ring_forming_scission(rct_gras, prd_gras):
         rad_atm_keys = unsaturated_atom_keys(rgra)
         atms, bnds = rgra
         ngb_atms = automol.graph.atom_neighbor_keys(rgra)
-     
+
         for rad_atm in rad_atm_keys:
             for xatm in atms:
-                if xatm != rad_atm and atms[xatm][1] != 'H' and xatm not in ngb_atms[rad_atm] and not tras:
+                if (xatm != rad_atm and
+                        atms[xatm][1] != 'H' and
+                        xatm not in ngb_atms[rad_atm] and
+                        not tras):
                     for natm in ngb_atms[xatm]:
                         if natm != rad_atm:
                             xgra = atms.copy(), bnds.copy()
-                            xgra = add_bonds(xgra, [frozenset({rad_atm, xatm})])
-                            xgra = remove_bonds(xgra, [frozenset({xatm, natm})])
+                            xgra = add_bonds(
+                                xgra, [frozenset({rad_atm, xatm})])
+                            xgra = remove_bonds(
+                                xgra, [frozenset({xatm, natm})])
                             atm_key_dct = full_isomorphism(xgra, pgra)
                             if atm_key_dct:
-                                tra = trans.from_data(frm_bnd_keys=[{rad_atm, xatm}],
-                                      brk_bnd_keys=[{xatm, natm},])
+                                tra = trans.from_data(
+                                    frm_bnd_keys=[{rad_atm, xatm}],
+                                    brk_bnd_keys=[{xatm, natm}, ]
+                                )
                                 tras.append(tra)
                                 break
 
@@ -290,7 +297,8 @@ def elimination(rct_gras, prd_gras):
             if cent_frag_atm_keys is not None:
 
                 # separate into separate cases for radicals and closed shells
-                rad_atm = list(automol.graph.sing_res_dom_radical_atom_keys(rct_gra))
+                rad_atm = list(
+                    automol.graph.sing_res_dom_radical_atom_keys(rct_gra))
                 if rad_atm:
                     rad_atm = rad_atm[0]
                     frm_bnd_key = None
@@ -310,11 +318,13 @@ def elimination(rct_gras, prd_gras):
                             for key in frag3_key:
                                 if key in automol.graph.atoms(gra):
                                     frag3_atm = frag3_key - frozenset({key})
-                                    frm_bnd_key = frozenset({rad_atm, list(frag3_atm)[0]})
+                                    frm_bnd_key = frozenset(
+                                        {rad_atm, list(frag3_atm)[0]})
 
                 else:
-                # really this should be a loop over rad_atms to handle resonantly stabilized radicals
-                # also issues for biradicals
+                    # really should be loop over rad_atms
+                    # to handle resonantly stabilized radicals
+                    # also issues for biradicals
                     atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
                     atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
 
