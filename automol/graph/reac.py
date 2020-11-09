@@ -480,6 +480,22 @@ REACTION_FINDER_DCT = {
 }
 
 
+def classify_simple(rct_gras, prd_gras):
+    """ classify a reaction
+
+    (simpler call for when we don't care about the indices)
+    (doesn't require explicit graphs)
+    """
+
+    # ensure that we feed explicit graphs into the classifier
+    rct_gras = list(map(explicit, rct_gras))
+    prd_gras = list(map(explicit, prd_gras))
+
+    _, _, _, rxn_type = classify(rct_gras, prd_gras)
+
+    return rxn_type
+
+
 def classify(rct_gras, prd_gras):
     """ classify a reaction
     """
