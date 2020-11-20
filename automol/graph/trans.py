@@ -135,7 +135,7 @@ def reverse(tra, xgr1, xgr2):
 
 
 def is_stereo_compatible(tra, sgr1, sgr2):
-    """ is this transformation compatible with the applyant/product stereo
+    """ is this transformation compatible with the reactant/product stereo
     assignments?
     """
     cgr1 = without_stereo_parities(sgr1)
