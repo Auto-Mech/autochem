@@ -9,6 +9,7 @@ import automol.geom
 import automol.zmatrix
 import automol.create.geom
 from automol import cart
+from automol import formula
 from automol.graph._stereo import has_stereo
 from automol.graph._stereo import stereogenic_atom_keys
 from automol.graph._stereo import stereogenic_bond_keys
@@ -424,7 +425,11 @@ def _start_zmatrix_from_atom(gra, atm_key):
 
     atm_sym_dct = atom_symbols(gra)
 
+    # sort hydrogens to be first
     atm_ngb_keys = sorted(atm_ngb_keys_dct[atm_key])
+    atm_ngb_syms = list(map(atm_sym_dct.__getitem__, atm_ngb_keys))
+    srt = formula.argsort_symbols(atm_ngb_syms, syms=('H', 'C'))
+    atm_ngb_keys = list(map(atm_ngb_keys.__getitem__, srt))
 
     atm_keys = [atm_key] + atm_ngb_keys
 
