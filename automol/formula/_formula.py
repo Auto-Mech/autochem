@@ -71,24 +71,44 @@ def string(fml):
 
     (should come out identical to an InChI formula string)
     """
-    ncar = element_count(fml, 'C')
-    nhyd = element_count(fml, 'H')
-
-    fml.pop('C')
-    fml.pop('H')
-
-    fml_lst = list(sorted(fml.items()))
-    if nhyd:
-        fml_lst.insert(0, ('H', nhyd))
-
-    if ncar:
-        fml_lst.insert(0, ('C', ncar))
+    fml_lst = [(sym, fml[sym]) for sym in sorted_symbols(fml.keys())]
 
     fml_str = ''.join(map(
         str,
         itertools.filterfalse(lambda x: x == 1, itertools.chain(*fml_lst))))
 
     return fml_str
+
+
+def sorted_symbols(seq, syms=('C', 'H')):
+    """ return elements sorted, with some elements given priority
+
+    :param seq: formula or sequence of atomic symbols
+    :type seq: dict, list, or tuple
+    :param syms: atomic symbols to place first (by default, C, then H); others
+        will follow in alphabetical order
+    :type syms: sequence of strings
+    """
+
+    def _sort_key(char):
+        val = syms.index(char) if char in syms else len(syms)
+        return (val, char)
+
+    return tuple(sorted(seq, key=_sort_key))
+
+
+def argsort_symbols(seq, syms=('C', 'H')):
+    """ get the sort order for a sequence of atomic symbols
+    """
+
+    def _sort_key(entry):
+        char = entry[0]
+        rest = entry[1:]
+        val = syms.index(char) if char in syms else len(syms)
+        return (val, char, rest)
+
+    return tuple(idx for (val, idx) in
+                 sorted(((v, i) for (i, v) in enumerate(seq)), key=_sort_key))
 
 
 def string2(fml):

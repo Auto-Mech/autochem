@@ -2,7 +2,6 @@
 """
 
 import itertools
-import copy
 import numpy
 from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
@@ -701,25 +700,26 @@ def is_standard_form(zma):
 
 
 # I/O
-def from_string(zma_str):
+def from_string(zma_str, one_indexed=True, angstrom=True, degree=True):
     """ read a z-matrix from a string
     """
     syms, key_mat, name_mat, val_dct = ar.zmatrix.read(zma_str)
 
     zma = automol.create.zmatrix.from_data(
-        syms, key_mat, name_mat, val_dct, one_indexed=True, angstrom=True,
-        degree=True)
+        syms, key_mat, name_mat, val_dct, one_indexed=one_indexed,
+        angstrom=angstrom, degree=degree)
     return zma
 
 
-def string(zma):
+def string(zma, one_indexed=True, angstrom=True, degree=True):
     """ write a z-matrix to a string
     """
+    shift = 1 if one_indexed else 0
     zma_str = aw.zmatrix.write(
         syms=_v_.symbols(var_(zma)),
-        key_mat=_v_.key_matrix(var_(zma), shift=1),
+        key_mat=_v_.key_matrix(var_(zma), shift=shift),
         name_mat=_v_.name_matrix(var_(zma)),
-        val_dct=values(zma, angstrom=True, degree=True)
+        val_dct=values(zma, angstrom=angstrom, degree=degree)
     )
     return zma_str
 

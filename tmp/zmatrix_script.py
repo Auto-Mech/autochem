@@ -8,6 +8,7 @@ from automol.graph._geom import atom_symbols
 
 # CC_DIST = 1.5 * qcc.conversion_factor('angstrom', 'bohr')
 
+# 0. Copy-pasted code to get things started
 ICH = automol.smiles.inchi('CCCCCCC')
 gra = automol.graph.explicit(automol.inchi.graph(ICH))
 
@@ -24,6 +25,9 @@ else:
     atm_key = chain[0]
 
 zma, zma_key_dct, dummy_atm_key, gra = _start_zmatrix_from_atom(gra, atm_key)
+
+print(automol.zmatrix.string(zma, one_indexed=False))
+print(zma_key_dct)
 
 print(dummy_atm_key)
 atm1_key, atm2_key, atm3_key = chain[:3]

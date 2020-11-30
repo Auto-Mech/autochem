@@ -4,6 +4,8 @@ from automol.formula._formula import electron_count
 from automol.formula._formula import atom_count
 from automol.formula._formula import element_count
 from automol.formula._formula import hydrogen_count
+from automol.formula._formula import sorted_symbols
+from automol.formula._formula import argsort_symbols
 from automol.formula._formula import add_element
 from automol.formula._formula import add_hydrogen
 from automol.formula._formula import join
@@ -17,6 +19,8 @@ __all__ = [
     'atom_count',
     'element_count',
     'hydrogen_count',
+    'sorted_symbols',
+    'argsort_symbols',
     'add_element',
     'add_hydrogen',
     'join',
