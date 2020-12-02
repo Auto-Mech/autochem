@@ -1,6 +1,8 @@
 """ molecular descriptor libraries
 """
 from automol import geom
+from automol import zmat
+from automol import vmat
 from automol import zmatrix
 from automol import vmatrix
 from automol import graph
@@ -14,6 +16,8 @@ from automol import intmol
 
 __all__ = [
     'geom',
+    'zmat',
+    'vmat',
     'zmatrix',
     'vmatrix',
     'graph',

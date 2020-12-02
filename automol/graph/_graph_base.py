@@ -150,12 +150,13 @@ def relabel(gra, atm_key_dct):
 
 
 # I/O
-def string(gra):
+def string(gra, one_indexed=True):
     """ write the graph to a string
     """
-    # shift to one-indexing when we print
-    atm_key_dct = {atm_key: atm_key+1 for atm_key in atom_keys(gra)}
-    gra = relabel(gra, atm_key_dct)
+    if one_indexed:
+        # shift to one-indexing when we print
+        atm_key_dct = {atm_key: atm_key+1 for atm_key in atom_keys(gra)}
+        gra = relabel(gra, atm_key_dct)
 
     yaml_atm_dct = atoms(gra)
     yaml_bnd_dct = bonds(gra)
