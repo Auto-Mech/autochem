@@ -629,8 +629,9 @@ def _bond_distance(gra, atm1_key, atm2_key, check=True):
 
     (currently crude, but could easily be made more sophisticated
     """
+    atm_sym_dct = atom_symbols(gra)
+
     if check:
-        atm_sym_dct = atom_symbols(gra)
         assert atm2_key in atom_neighbor_keys(gra)[atm1_key]
 
     atm1_sym = atm_sym_dct[atm1_key]

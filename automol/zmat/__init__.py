@@ -23,7 +23,7 @@ from automol.zmat._zmat import is_valid
 # constructors
 import automol.create.zmat
 # conversions
-import automol.convert.zmatrix
+import automol.convert.zmat
 
 
 def from_data(syms, key_mat, val_mat, name_mat=None,
@@ -48,7 +48,7 @@ def from_data(syms, key_mat, val_mat, name_mat=None,
 def geometry(zma, remove_dummy_atoms=None):
     """ z-matrix => geometry
     """
-    return automol.convert.zmatrix.geometry(
+    return automol.convert.zmat.geometry(
         zma, remove_dummy_atoms=remove_dummy_atoms)
 
 
@@ -68,14 +68,14 @@ def torsion_coordinate_names(zma):
 def graph(zma, remove_stereo=False):
     """ z-matrix => graph
     """
-    return automol.convert.zmatrix.graph(zma, remove_stereo=remove_stereo)
+    return automol.convert.zmat.graph(zma, remove_stereo=remove_stereo)
 
 
 def connectivity_graph(zma,
                        rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ z-matrix => connectivity graph
     """
-    gra = automol.convert.zmatrix.connectivity_graph(
+    gra = automol.convert.zmat.connectivity_graph(
         zma, rqq_bond_max=rqq_bond_max, rqh_bond_max=rqh_bond_max,
         rhh_bond_max=rhh_bond_max)
     return gra
@@ -84,7 +84,7 @@ def connectivity_graph(zma,
 def formula(zma):
     """ zmatrix => formula
     """
-    return automol.convert.zmatrix.formula(zma)
+    return automol.convert.zmat.formula(zma)
 
 
 __all__ = [

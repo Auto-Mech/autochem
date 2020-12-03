@@ -252,8 +252,8 @@ def ring_forming_scission(rct_gras, prd_gras):
         prd_idxs = _argsort_reactants(prd_gras)
         tras = tuple(tras)
 
-    return tras, rct_idxs, prd_idxs        
-                                
+    return tras, rct_idxs, prd_idxs
+
 
 def elimination(rct_gras, prd_gras):
     """ find an elimination transformation
@@ -296,7 +296,7 @@ def elimination(rct_gras, prd_gras):
                     frm_bnd_key = None
                     gras = connected_components(rct_gra_)
                     for gra in gras:
-                        if rad_atm in automol.graph.atoms(gra): 
+                        if rad_atm in automol.graph.atoms(gra):
                             for key in brk_bnd_key1:
                                 if key in automol.graph.atoms(gra):
                                     frag2_atm = brk_bnd_key1 - frozenset({key})
@@ -306,7 +306,7 @@ def elimination(rct_gras, prd_gras):
                                     frag2_atm = brk_bnd_key2 - frozenset({key})
                                     frag3_key = brk_bnd_key1
                     for gra in gras:
-                        if list(frag2_atm)[0] in automol.graph.atoms(gra): 
+                        if list(frag2_atm)[0] in automol.graph.atoms(gra):
                             for key in frag3_key:
                                 if key in automol.graph.atoms(gra):
                                     frag3_atm = frag3_key - frozenset({key})
@@ -342,7 +342,7 @@ def elimination(rct_gras, prd_gras):
 
                 if frm_bnd_key:
                     rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
-    
+
                     prd_gra = union_from_sequence(prd_gras)
                     atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
                     # print('atmkeydct', atm_key_dct)
@@ -362,7 +362,7 @@ def elimination(rct_gras, prd_gras):
                         else:
                             assert cent_prd_atm_keys <= atom_keys(prd_gras[1])
                             prd_idxs = (1, 0)
-    
+
                 # atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
                 # atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
                 # frm_bnd_key = frozenset({atm1_key, atm2_key})
@@ -696,3 +696,9 @@ def _unique_gras(gra_lst):
                 uni_gras += (gra,)
 
     return uni_gras
+
+
+if __name__ == '__main__':
+    RCT_ICH1 = 'InChI=1S/C2H4O/c1-2-3/h2-3H,1H2'
+    PRD_ICH1 = 'InChI=1S/C2H2/c1-2/h1-2H'
+    PRD_ICH2 = 'InChI=1S/H2O/h1H2'
