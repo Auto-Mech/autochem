@@ -6,6 +6,7 @@ import numpy
 from automol import dict_
 from automol.graph._res import resonance_dominant_atom_hybridizations
 from automol.graph._res import resonance_dominant_bond_orders
+from automol.graph._ring import rings_bond_keys
 from automol.graph._graph import atoms
 from automol.graph._graph import bonds
 from automol.graph._graph import atom_stereo_parities
@@ -21,7 +22,6 @@ from automol.graph._graph import explicit
 from automol.graph._graph import implicit
 from automol.graph._graph import backbone_keys
 from automol.graph._graph import explicit_hydrogen_keys
-from automol.graph._graph import rings_bond_keys
 
 
 def has_stereo(gra):

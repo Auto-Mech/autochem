@@ -420,36 +420,6 @@ def test__branch():
     assert graph.branch_atom_keys(ts_gra, 0, ts_bnd_key) == frozenset({6})
 
 
-
-def test__rings():
-    """ test graph.rings
-    """
-    c5h5n5o_cgr = (
-        {0: ('C', 1, None), 1: ('C', 0, None), 2: ('C', 0, None),
-         3: ('C', 0, None), 4: ('C', 0, None), 5: ('N', 2, None),
-         6: ('N', 0, None), 7: ('N', 0, None), 8: ('N', 0, None),
-         9: ('N', 1, None), 10: ('O', 1, None)},
-        {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
-         frozenset({0, 6}): (1, None), frozenset({9, 3}): (1, None),
-         frozenset({1, 2}): (1, None), frozenset({3, 7}): (1, None),
-         frozenset({2, 5}): (1, None), frozenset({1, 6}): (1, None),
-         frozenset({0, 7}): (1, None), frozenset({9, 4}): (1, None),
-         frozenset({1, 3}): (1, None), frozenset({8, 4}): (1, None)})
-
-    assert graph.rings(c5h5n5o_cgr) == (
-        ({0: ('C', 1, None), 1: ('C', 0, None), 3: ('C', 0, None),
-          6: ('N', 0, None), 7: ('N', 0, None)},
-         {frozenset({0, 6}): (1, None), frozenset({3, 7}): (1, None),
-          frozenset({0, 7}): (1, None), frozenset({1, 6}): (1, None),
-          frozenset({1, 3}): (1, None)}),
-        ({1: ('C', 0, None), 2: ('C', 0, None), 3: ('C', 0, None),
-          4: ('C', 0, None), 8: ('N', 0, None), 9: ('N', 1, None)},
-         {frozenset({8, 2}): (1, None), frozenset({9, 3}): (1, None),
-          frozenset({1, 2}): (1, None), frozenset({9, 4}): (1, None),
-          frozenset({1, 3}): (1, None), frozenset({8, 4}): (1, None)})
-    )
-
-
 def test__connected_components():
     """ test graph.connected_components
     """

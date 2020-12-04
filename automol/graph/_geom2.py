@@ -8,10 +8,10 @@ from qcelemental import constants as qcc
 from qcelemental import periodictable as pt
 import automol.zmat
 from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._ring import rings_atom_keys
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_symbols
 from automol.graph._graph import longest_chain
-from automol.graph._graph import rings_sorted_atom_keys
 
 
 # bond distances
@@ -68,47 +68,9 @@ def heuristic_bond_angle(gra, key1, key2, key3, check=True):
     return ang
 
 
-def chain_zmatrix(gra, chain_keys):
-    """ build a chain of heavy atoms
-    """
-    chain_iter = iter(chain_keys)
-
-    sym_dct = atom_symbols(gra)     # graph keys -> atomic symbols
-    row_dct = {}                    # graph keys -> z-matrix rows
-    zma = ()                        # empty z-matrix
-
-    key3 = row3 = r34 = None
-    key2 = row2 = a234 = None
-    key1 = row1 = d1234 = None
-
-    for key4 in chain_iter:
-        row_dct[key4] = automol.zmat.count(zma)
-
-        if key3 is not None:
-            row3 = row_dct[key3]
-            r34 = heuristic_bond_distance(gra, key3, key4)
-
-        if key2 is not None:
-            row2 = row_dct[key2]
-            a234 = heuristic_bond_angle(gra, key2, key3, key4)
-
-        if key1 is not None:
-            row1 = row_dct[key1]
-            d1234 = TRA_DIH
-
-        zma = automol.zmat.add_atom(zma, sym_dct[key4],
-                                    key_row=[row3, row2, row1],
-                                    val_row=[r34, a234, d1234])
-
-        # now, shift the keys for the next one up
-        key1, key2, key3 = key2, key3, key4
-
-    chain_rows = tuple(map(row_dct.__getitem__, chain_keys))
-    return zma, chain_rows
-
-
 def ring_arc_bond_angle(num, end_dist=XY_DIST, bond_dist=XY_DIST):
-    """ find the angle subtended by a ring arc (in degrees)
+    """ find the bond angle (in degrees) for completing a circular arc between
+    points
 
     We will form an arc of n atoms such that the ends are a distance r_e
     apart and each pair of neighboring atoms is a distance r_b apart.
@@ -165,6 +127,45 @@ def ring_arc_bond_angle(num, end_dist=XY_DIST, bond_dist=XY_DIST):
     return 180. - theta/(num-1)
 
 
+def chain_zmatrix(gra, chain_keys):
+    """ build a chain of heavy atoms
+    """
+    chain_iter = iter(chain_keys)
+
+    sym_dct = atom_symbols(gra)     # graph keys -> atomic symbols
+    row_dct = {}                    # graph keys -> z-matrix rows
+    zma = ()                        # empty z-matrix
+
+    key3 = row3 = r34 = None
+    key2 = row2 = a234 = None
+    key1 = row1 = d1234 = None
+
+    for key4 in chain_iter:
+        row_dct[key4] = automol.zmat.count(zma)
+
+        if key3 is not None:
+            row3 = row_dct[key3]
+            r34 = heuristic_bond_distance(gra, key3, key4)
+
+        if key2 is not None:
+            row2 = row_dct[key2]
+            a234 = heuristic_bond_angle(gra, key2, key3, key4)
+
+        if key1 is not None:
+            row1 = row_dct[key1]
+            d1234 = TRA_DIH
+
+        zma = automol.zmat.add_atom(zma, sym_dct[key4],
+                                    key_row=[row3, row2, row1],
+                                    val_row=[r34, a234, d1234])
+
+        # now, shift the keys for the next one up
+        key1, key2, key3 = key2, key3, key4
+
+    chain_rows = tuple(map(row_dct.__getitem__, chain_keys))
+    return zma, chain_rows
+
+
 def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
     """ build an arc (or ring) of heavy atoms
 
@@ -174,12 +175,44 @@ def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
         this sets the distance between the arc ends
     :type end_dist: float
     """
-
     num = len(ring_keys)
     bond_ang = ring_arc_bond_angle(num, end_dist=end_dist, bond_dist=bond_dist)
-    print(bond_ang)
 
-    print(ring_keys)
+    ring_iter = iter(ring_keys)
+
+    sym_dct = atom_symbols(gra)
+    row_dct = {}
+    zma = ()
+
+    key3 = row3 = None
+    key2 = row2 = None
+    key1 = row1 = None
+
+    r34 = bond_dist
+    a234 = bond_ang
+    d1234 = 0.
+
+    for key4 in ring_iter:
+        row_dct[key4] = automol.zmat.count(zma)
+
+        if key3 is not None:
+            row3 = row_dct[key3]
+
+        if key2 is not None:
+            row2 = row_dct[key2]
+
+        if key1 is not None:
+            row1 = row_dct[key1]
+
+        zma = automol.zmat.add_atom(zma, sym_dct[key4],
+                                    key_row=[row3, row2, row1],
+                                    val_row=[r34, a234, d1234])
+
+        # now, shift the keys for the next one up
+        key1, key2, key3 = key2, key3, key4
+
+    ring_rows = tuple(map(row_dct.__getitem__, ring_keys))
+    return zma, ring_rows
 
 
 if __name__ == '__main__':
@@ -202,5 +235,19 @@ if __name__ == '__main__':
     ICH = automol.smiles.inchi('C12CC(C2)CC1')
     GRA = automol.inchi.graph(ICH)
     print(automol.graph.string(GRA, one_indexed=False))
-    RING_KEYS_LST = sorted(rings_sorted_atom_keys(GRA), key=len)
-    ring_zmatrix(GRA, RING_KEYS_LST[1])
+    RING_KEYS_LST = sorted(rings_atom_keys(GRA), key=len)
+    RING1_KEYS = RING_KEYS_LST[0]
+    RING2_KEYS = RING_KEYS_LST[1]
+    ZMA1, RING1_ROWS = ring_zmatrix(GRA, RING_KEYS_LST[0])
+    ZMA2, RING2_ROWS = ring_zmatrix(GRA, RING_KEYS_LST[1])
+
+    print(set(RING1_KEYS) & set(RING2_KEYS))
+    # print(RING1_ROWS)
+    # print(RING2_ROWS)
+    # print(automol.zmat.string(ZMA1))
+    # print(automol.zmat.string(ZMA2))
+    # GEO1 = automol.zmat.geometry(ZMA1)
+    # GEO2 = automol.zmat.geometry(ZMA2)
+    # print(automol.geom.string(GEO1))
+    # print()
+    # print(automol.geom.string(GEO2))

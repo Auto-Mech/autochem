@@ -51,8 +51,6 @@ from automol.graph._graph import bond_neighborhoods
 from automol.graph._graph import branch
 from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import branch_bond_keys
-from automol.graph._graph import rings
-from automol.graph._graph import rings_bond_keys
 from automol.graph._graph import connected_components
 from automol.graph._graph import connected_components_atom_keys
 from automol.graph._graph import longest_chain
@@ -134,6 +132,13 @@ from automol.graph._stereo import stereogenic_bond_keys
 from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+
+# ring graph library
+from automol.graph._ring import rings
+from automol.graph._ring import rings_atom_keys
+from automol.graph._ring import rings_bond_keys
+from automol.graph._ring import ring_systems
+from automol.graph._ring import ring_systems_bond_keys
 
 # functional group library
 from automol.graph._func_group import Fgroup
@@ -342,6 +347,13 @@ __all__ = [
     'stereomers',
     'substereomers',
     'stereo_sorted_atom_neighbor_keys',
+
+    # ring graph library
+    'rings',
+    'rings_atom_keys',
+    'rings_bond_keys',
+    'ring_systems',
+    'ring_systems_bond_keys',
 
     # functional group library
     'Fgroup',
