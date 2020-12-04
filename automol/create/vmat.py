@@ -25,15 +25,17 @@ def from_data(symbols, key_matrix, name_matrix=None, one_indexed=False):
 
 
 def _key_matrix(key_mat, natms, one_indexed):
+    # Check dimensions and ensure proper formatting
+    key_mat = [list(row) + [None]*(3-len(row)) for row in key_mat]
     key_mat = numpy.array(key_mat, dtype=numpy.object_)
+
     assert key_mat.ndim == 2 and key_mat.shape == (natms, 3)
     triu_idxs = numpy.triu_indices(natms, m=3)
 
-    # check the key matrix and make it one-indexed
-    key_mat[triu_idxs] = -1
-    key_mat = key_mat.astype(int)
-    key_mat -= 1 if one_indexed else 0
-    key_mat = key_mat.astype(numpy.object_)
+    key_mat[1:, 0] -= 1 if one_indexed else 0
+    key_mat[2:, 1] -= 1 if one_indexed else 0
+    key_mat[3:, 2] -= 1 if one_indexed else 0
+
     key_mat[triu_idxs] = None
 
     return tuple(map(tuple, key_mat))
@@ -51,6 +53,8 @@ def _name_matrix(name_mat, natms):
             if row > 2:
                 name_mat[row, 2] = 'D{:d}'.format(row+1)
 
+    # Check dimensions and make sure there are Nones in the right places
+    name_mat = [list(row) + [None]*(3-len(row)) for row in name_mat]
     name_mat = numpy.array(name_mat, dtype=numpy.object_)
     assert name_mat.ndim == 2 and name_mat.shape == (natms, 3)
     natms = name_mat.shape[0]

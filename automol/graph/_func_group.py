@@ -5,7 +5,7 @@
 import itertools
 from automol.graph._graph_base import atom_symbols
 from automol.graph._graph_base import atom_symbol_idxs
-from automol.graph._graph import rings
+from automol.graph._ring import rings
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import full_isomorphism

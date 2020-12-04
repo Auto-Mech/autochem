@@ -10,11 +10,12 @@ import automol.zmatrix
 import automol.create.geom
 from automol import cart
 from automol import formula
+from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._ring import rings_atom_keys
 from automol.graph._stereo import has_stereo
 from automol.graph._stereo import stereogenic_atom_keys
 from automol.graph._stereo import stereogenic_bond_keys
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
-from automol.graph._res import resonance_dominant_atom_hybridizations
 from automol.graph._graph import atom_keys
 from automol.graph._graph import atom_symbols
 from automol.graph._graph import add_bonded_atom
@@ -22,7 +23,6 @@ from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import explicit
 from automol.graph._graph import branch
 from automol.graph._graph import longest_chain
-from automol.graph._graph import rings_sorted_atom_keys
 from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
 from automol.graph._graph import without_stereo_parities
@@ -86,7 +86,7 @@ def connected_heuristic_zmatrix(gra):
     triplets = []
 
     # 1. start the z-matrix and set the lists of triplets
-    rng_atm_keys_lst = rings_sorted_atom_keys(gra)
+    rng_atm_keys_lst = rings_atom_keys(gra)
     if not rng_atm_keys_lst:
         # find the first heavy atom in the longest chain (if there isn't one,
         # we are dealing with atomic or molecular hydrogen, which will be
@@ -284,7 +284,7 @@ def _stereo_corrected_geometry(sgr, geo, geo_idx_dct):
 def _atom_stereo_corrected_geometry(gra, atm_ste_par_dct, geo, geo_idx_dct):
     """ correct the atom stereo parities of a geometry, for a subset of atoms
     """
-    ring_atm_keys = set(itertools.chain(*rings_sorted_atom_keys(gra)))
+    ring_atm_keys = set(itertools.chain(*rings_atom_keys(gra)))
     atm_ngb_keys_dct = atom_neighbor_keys(gra)
 
     atm_keys = list(atm_ste_par_dct.keys())
@@ -629,8 +629,9 @@ def _bond_distance(gra, atm1_key, atm2_key, check=True):
 
     (currently crude, but could easily be made more sophisticated
     """
+    atm_sym_dct = atom_symbols(gra)
+
     if check:
-        atm_sym_dct = atom_symbols(gra)
         assert atm2_key in atom_neighbor_keys(gra)[atm1_key]
 
     atm1_sym = atm_sym_dct[atm1_key]

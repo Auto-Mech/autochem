@@ -253,53 +253,6 @@ def branch_bond_keys(gra, atm_key, bnd_key):
     return frozenset(bnch_bnd_keys)
 
 
-def rings(gra):
-    """ rings in the graph (minimal basis)
-    """
-    gras = [bond_induced_subgraph(gra, bnd_keys)
-            for bnd_keys in rings_bond_keys(gra)]
-    return tuple(sorted(gras, key=frozen))
-
-
-def rings_sorted_atom_keys(gra):
-    """ atom keys for each ring in the graph sorted by connectivity (minimal basis)
-    """
-    def _sorted_ring_atom_keys(rng_bnd_keys):
-        rng_bnd_keys = list(rng_bnd_keys)
-        bnd_key = min(rng_bnd_keys, key=sorted)
-        first_atm_key, atm_key = sorted(bnd_key)
-        rng_bnd_keys.remove(bnd_key)
-        rng_atm_keys = [first_atm_key, atm_key]
-        while rng_bnd_keys:
-            bnd_key = next(filter(lambda x: atm_key in x, rng_bnd_keys))
-            rng_bnd_keys.remove(bnd_key)
-            bnd_key = set(bnd_key)
-            bnd_key.remove(atm_key)
-            atm_key = next(iter(bnd_key))
-            rng_atm_keys.append(atm_key)
-        rng_atm_keys.pop(-1)
-        rng_atm_keys = tuple(rng_atm_keys)
-        return rng_atm_keys
-
-    rng_atm_keys_lst = frozenset(
-        map(_sorted_ring_atom_keys, rings_bond_keys(gra)))
-    return rng_atm_keys_lst
-
-
-def rings_bond_keys(gra):
-    """ bond keys for each ring in the graph (minimal basis)
-    """
-    bnd_keys = bond_keys(gra)
-
-    def _ring_bond_keys(rng_atm_keys):
-        return frozenset(filter(lambda x: x <= rng_atm_keys, bnd_keys))
-
-    nxg = _networkx.from_graph(gra)
-    rng_atm_keys_lst = _networkx.minimum_cycle_basis(nxg)
-    rng_bnd_keys_lst = frozenset(map(_ring_bond_keys, rng_atm_keys_lst))
-    return rng_bnd_keys_lst
-
-
 def connected_components(gra):
     """ connected components in the graph
     """

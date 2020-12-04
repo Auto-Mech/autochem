@@ -9,16 +9,13 @@ from automol.graph._graph import bond_keys
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import bond_orders
-from automol.graph._graph import bond_orders
 from automol.graph._graph import set_bond_orders
 from automol.graph._graph import without_bond_orders
 from automol.graph._graph import atom_neighbor_keys
-from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import atom_unsaturated_valences
 from automol.graph._graph import atom_bond_valences
 from automol.graph._graph import atom_lone_pair_counts
 from automol.graph._graph import maximum_spin_multiplicity
-from automol.graph._graph import implicit
 from automol.graph._graph import explicit
 from automol.graph._graph import atom_explicit_hydrogen_valences
 from automol.graph._graph import atoms
@@ -182,7 +179,7 @@ def radical_groups(gra):
 
     groups = []
     rads = sing_res_dom_radical_atom_keys(gra)
-    for rad in rads:        
+    for rad in rads:
         groups.append(atom_groups(gra, rad))
     return groups
 
@@ -197,34 +194,31 @@ def radical_group_dct(gra):
         key = atms[rad][0]
         if key in groups:
             groups[atms[rad][0]].append(atom_groups(gra, rad))
-        else:    
+        else:
             groups[atms[rad][0]] = atom_groups(gra, rad)
-    return groups    
+    return groups
 
 
 def radical_dissociation_prods(gra, pgra1):
     """ given a dissociation product, determine the other product
     """
     pgra2 = None
-    import automol.graph
     rads = sing_res_dom_radical_atom_keys(gra)
     adj_atms = atom_neighbor_keys(gra)
     for rad in rads:
         for adj in adj_atms[rad]:
             groups = atom_groups(gra, adj)
-            for group in groups:
-                print('grploop\n', automol.graph.string(group))
             if full_isomorphism(explicit(groups[0]), explicit(pgra1)):
                 pgra2 = remove_atoms(gra, atom_keys(groups[0]))
                 pgra2 = remove_bonds(pgra2, bond_keys(groups[0]))
-            elif full_isomorphism(explicit(groups[1]), explicit(pgra1)):   
+            elif full_isomorphism(explicit(groups[1]), explicit(pgra1)):
                 pgra2 = remove_atoms(gra, atom_keys(groups[1]))
-                print('pgra2', automol.graph.string(pgra2))
                 if bond_keys(groups[1]) in pgra2:
                     pgra2 = remove_bonds(pgra2, bond_keys(groups[1]))
                     print('in if st')
-    return (pgra1, pgra2)            
-    
+    return (pgra1, pgra2)
+
+
 # bond properties
 def resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
