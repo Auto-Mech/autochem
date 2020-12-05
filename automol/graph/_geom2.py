@@ -8,7 +8,7 @@ from qcelemental import constants as qcc
 from qcelemental import periodictable as pt
 import automol.zmat
 from automol.graph._res import resonance_dominant_atom_hybridizations
-from automol.graph._ring import rings_atom_keys
+from automol.graph._ring import ring_systems_decomposed_atom_keys
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_symbols
 from automol.graph._graph import longest_chain
@@ -232,22 +232,40 @@ if __name__ == '__main__':
     # print(automol.geom.string(GEO))
 
     # ring
-    ICH = automol.smiles.inchi('C12CC(C2)CC1')
+    # ICH = automol.smiles.inchi('C12CC(C2)CC1')
+    ICH = automol.smiles.inchi('C1CCC2CC(CCC3C4CCC5CC4C53)CC2C1')
     GRA = automol.inchi.graph(ICH)
-    print(automol.graph.string(GRA, one_indexed=False))
-    RING_KEYS_LST = sorted(rings_atom_keys(GRA), key=len)
-    RING1_KEYS = RING_KEYS_LST[0]
-    RING2_KEYS = RING_KEYS_LST[1]
-    ZMA1, RING1_ROWS = ring_zmatrix(GRA, RING_KEYS_LST[0])
-    ZMA2, RING2_ROWS = ring_zmatrix(GRA, RING_KEYS_LST[1])
 
-    print(set(RING1_KEYS) & set(RING2_KEYS))
-    # print(RING1_ROWS)
-    # print(RING2_ROWS)
-    # print(automol.zmat.string(ZMA1))
-    # print(automol.zmat.string(ZMA2))
-    # GEO1 = automol.zmat.geometry(ZMA1)
-    # GEO2 = automol.zmat.geometry(ZMA2)
-    # print(automol.geom.string(GEO1))
-    # print()
-    # print(automol.geom.string(GEO2))
+    DECOMPS = ring_systems_decomposed_atom_keys(GRA)
+    print(DECOMPS[0])
+    print(DECOMPS[1])
+    # RING_SYSTEMS = ring_systems(GRA)
+
+    # RING_SYSTEM1 = RING_SYSTEMS[1]
+
+    # decompose_ring_system_atom_keys(RING_SYSTEM1)
+
+    # RINGS1 = rings(RING_SYSTEM1)
+    # print(len(RINGS1))
+
+    # print(bridgehead_atom_keys(RINGS1[0], RINGS1[1]))
+    # print(bridgehead_atom_keys(RINGS1[0], RINGS1[2]))
+    # print(bridgehead_atom_keys(RINGS1[1], RINGS1[2]))
+
+    # print(automol.graph.string(GRA, one_indexed=False))
+    # RING_KEYS_LST = sorted(rings_atom_keys(GRA), key=len)
+    # RING1_KEYS = RING_KEYS_LST[0]
+    # RING2_KEYS = RING_KEYS_LST[1]
+    # ZMA1, RING1_ROWS = ring_zmatrix(GRA, RING_KEYS_LST[0])
+    # ZMA2, RING2_ROWS = ring_zmatrix(GRA, RING_KEYS_LST[1])
+
+    # print(set(RING1_KEYS) & set(RING2_KEYS))
+    # # print(RING1_ROWS)
+    # # print(RING2_ROWS)
+    # # print(automol.zmat.string(ZMA1))
+    # # print(automol.zmat.string(ZMA2))
+    # # GEO1 = automol.zmat.geometry(ZMA1)
+    # # GEO2 = automol.zmat.geometry(ZMA2)
+    # # print(automol.geom.string(GEO1))
+    # # print()
+    # # print(automol.geom.string(GEO2))
