@@ -54,7 +54,7 @@ from automol.graph._graph import branch_bond_keys
 from automol.graph._graph import connected_components
 from automol.graph._graph import connected_components_atom_keys
 from automol.graph._graph import longest_chain
-from automol.graph._graph import _longest_chain
+from automol.graph._graph import atom_longest_chain
 from automol.graph._graph import atom_longest_chains
 from automol.graph._graph import union
 from automol.graph._graph import union_from_sequence
@@ -137,7 +137,9 @@ from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 from automol.graph._ring import rings
 from automol.graph._ring import rings_atom_keys
 from automol.graph._ring import rings_bond_keys
+from automol.graph._ring import ring_arc_complement_atom_keys
 from automol.graph._ring import ring_systems
+from automol.graph._ring import ring_systems_decomposed_atom_keys
 from automol.graph._ring import ring_systems_bond_keys
 
 # functional group library
@@ -298,6 +300,7 @@ __all__ = [
     'implicit',
     'explicit',
     # # comparisons
+    'full_subgraph_isomorphism',
     'full_isomorphism',
     'backbone_isomorphic',
     'backbone_isomorphism',
@@ -352,7 +355,9 @@ __all__ = [
     'rings',
     'rings_atom_keys',
     'rings_bond_keys',
+    'ring_arc_complement_atom_keys',
     'ring_systems',
+    'ring_systems_decomposed_atom_keys',
     'ring_systems_bond_keys',
 
     # functional group library
