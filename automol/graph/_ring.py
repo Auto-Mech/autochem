@@ -61,46 +61,6 @@ def rings_bond_keys(gra):
     return rng_bnd_keys_lst
 
 
-def ring_systems(gra):
-    """ polycyclic ring systems in the graph
-    """
-    gras = [bond_induced_subgraph(gra, bnd_keys)
-            for bnd_keys in ring_systems_bond_keys(gra)]
-    return tuple(sorted(gras, key=frozen))
-
-
-def ring_systems_decomposed_atom_keys(gra):
-    """ decomposed atom keys for polycyclic ring systems in the graph
-
-    each ring system is decomposed into a ring and a series of arcs that can be
-    used to successively construct the system
-    """
-    rsys = ring_systems(gra)
-    decomps = tuple(map(_decompose_ring_system_atom_keys, rsys))
-    return decomps
-
-
-def ring_systems_bond_keys(gra):
-    """ bond keys for polycyclic ring systems in the graph
-    """
-
-    def _are_connected(bnd_keys1, bnd_keys2):
-        """ see if two rings are connected based on their bond keys
-        """
-        atm_keys1 = functools.reduce(operator.or_, bnd_keys1)
-        atm_keys2 = functools.reduce(operator.or_, bnd_keys2)
-        common_bonds = set(bnd_keys1) & set(bnd_keys2)
-        common_atoms = set(atm_keys1) & set(atm_keys2)
-        return bool(common_bonds) or bool(common_atoms)
-
-    rng_bnd_keys_lst = rings_bond_keys(gra)
-    rsy_bnd_keys_lsts = _equivalence_partition(rng_bnd_keys_lst,
-                                               _are_connected)
-    rsy_bnd_keys_lst = [frozenset(functools.reduce(operator.or_, bnd_keys_lst))
-                        for bnd_keys_lst in rsy_bnd_keys_lsts]
-    return rsy_bnd_keys_lst
-
-
 def ring_arc_complement_atom_keys(gra, rng):
     """ non-intersecting arcs from a ring that shares segments with a graph
     """
@@ -155,6 +115,25 @@ def ring_arc_complement_atom_keys(gra, rng):
     return arcs
 
 
+def ring_systems(gra):
+    """ polycyclic ring systems in the graph
+    """
+    gras = [bond_induced_subgraph(gra, bnd_keys)
+            for bnd_keys in ring_systems_bond_keys(gra)]
+    return tuple(sorted(gras, key=frozen))
+
+
+def ring_systems_decomposed_atom_keys(gra):
+    """ decomposed atom keys for polycyclic ring systems in the graph
+
+    each ring system is decomposed into a ring and a series of arcs that can be
+    used to successively construct the system
+    """
+    rsys = ring_systems(gra)
+    decomps = tuple(map(_decompose_ring_system_atom_keys, rsys))
+    return decomps
+
+
 def _decompose_ring_system_atom_keys(rsy):
     """ decompose a ring system into a ring and a series of arcs
     """
@@ -182,6 +161,27 @@ def _decompose_ring_system_atom_keys(rsy):
                 decomp_bnd_keys.update(bond_keys(rng))
 
     return decomp
+
+
+def ring_systems_bond_keys(gra):
+    """ bond keys for polycyclic ring systems in the graph
+    """
+
+    def _are_connected(bnd_keys1, bnd_keys2):
+        """ see if two rings are connected based on their bond keys
+        """
+        atm_keys1 = functools.reduce(operator.or_, bnd_keys1)
+        atm_keys2 = functools.reduce(operator.or_, bnd_keys2)
+        common_bonds = set(bnd_keys1) & set(bnd_keys2)
+        common_atoms = set(atm_keys1) & set(atm_keys2)
+        return bool(common_bonds) or bool(common_atoms)
+
+    rng_bnd_keys_lst = rings_bond_keys(gra)
+    rsy_bnd_keys_lsts = _equivalence_partition(rng_bnd_keys_lst,
+                                               _are_connected)
+    rsy_bnd_keys_lst = [frozenset(functools.reduce(operator.or_, bnd_keys_lst))
+                        for bnd_keys_lst in rsy_bnd_keys_lsts]
+    return rsy_bnd_keys_lst
 
 
 def _equivalence_partition(iterable, relation):

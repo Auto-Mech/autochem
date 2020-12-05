@@ -275,7 +275,7 @@ def longest_chain(gra):
     """
     atm_keys = atom_keys(gra)
 
-    max_chain = max((_longest_chain(gra, atm_key) for atm_key in atm_keys),
+    max_chain = max((atom_longest_chain(gra, atm_key) for atm_key in atm_keys),
                     key=len)
     return max_chain
 
@@ -285,12 +285,12 @@ def atom_longest_chains(gra):
     """
     atm_keys = atom_keys(gra)
 
-    long_chain_dct = {atm_key: _longest_chain(gra, atm_key)
+    long_chain_dct = {atm_key: atom_longest_chain(gra, atm_key)
                       for atm_key in atm_keys}
     return long_chain_dct
 
 
-def _longest_chain(gra, atm_key):
+def atom_longest_chain(gra, atm_key):
     atm_ngb_keys_dct = atom_neighbor_keys(gra)
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]
 
