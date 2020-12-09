@@ -15,6 +15,7 @@ Function return values:
 
 import itertools
 import automol
+from automol import par
 from automol import formula
 import automol.graph.trans as trans
 import automol.convert.graph as graph_convert
@@ -74,6 +75,7 @@ def hydrogen_migration(rct_gras, prd_gras):
             inv_atm_key_dct = full_isomorphism(gra2_h, gra1_h)
             if inv_atm_key_dct:
                 tra = trans.from_data(
+                    rxn_class=par.REACTION_CLASS.HYDROGEN_MIGRATION,
                     frm_bnd_keys=[{atm_key1,
                                    inv_atm_key_dct[h_atm_key2]}],
                     brk_bnd_keys=[{inv_atm_key_dct[atm_key2],
@@ -84,8 +86,6 @@ def hydrogen_migration(rct_gras, prd_gras):
                 prd_idxs = (0,)
 
     tras = tuple(tras)
-
-    print('tras test:', tras, rct_idxs, prd_idxs)
 
     return tras, rct_idxs, prd_idxs
 
@@ -126,8 +126,10 @@ def hydrogen_abstraction(rct_gras, prd_gras):
                 frm_bnd_key = frozenset({q2_q_atm_key, q1h_h_atm_key})
                 brk_bnd_key = frozenset({q1h_q_atm_key, q1h_h_atm_key})
 
-                tra = trans.from_data(frm_bnd_keys=[frm_bnd_key],
-                                      brk_bnd_keys=[brk_bnd_key])
+                tra = trans.from_data(
+                    rxn_class=par.REACTION_CLASS.HYDROGEN_ABSTRACTION,
+                    frm_bnd_keys=[frm_bnd_key],
+                    brk_bnd_keys=[brk_bnd_key])
 
                 tras.append(tra)
 
@@ -185,8 +187,10 @@ def addition(rct_gras, prd_gras):
 
             atm_key_dct = full_isomorphism(xy_gra, prd_gra)
             if atm_key_dct:
-                tra = trans.from_data(frm_bnd_keys=[{x_atm_key, y_atm_key}],
-                                      brk_bnd_keys=[])
+                tra = trans.from_data(
+                    rxn_class=par.REACTION_CLASS.ADDITION,
+                    frm_bnd_keys=[{x_atm_key, y_atm_key}],
+                    brk_bnd_keys=[])
                 tras.append(tra)
 
                 # sort the reactants so that the largest species is first
@@ -248,6 +252,7 @@ def ring_forming_scission(rct_gras, prd_gras):
                             atm_key_dct = full_isomorphism(xgra, pgra)
                             if atm_key_dct:
                                 tra = trans.from_data(
+                                    rxn_class=par.REACTION_CLASS.RING_FORM_SCISSION,
                                     frm_bnd_keys=[{rad_atm, xatm}],
                                     brk_bnd_keys=[{xatm, natm}, ]
                                 )
@@ -358,6 +363,7 @@ def elimination(rct_gras, prd_gras):
                     # print('atmkeydct', atm_key_dct)
                     if atm_key_dct:
                         tra = trans.from_data(
+                            rxn_class=par.REACTION_CLASS.ELIMINATION,
                             frm_bnd_keys=[frm_bnd_key],
                             brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
                         tras.append(tra)
@@ -468,6 +474,7 @@ def substitution(rct_gras, prd_gras):
                     map(inv_atm_key_dct.__getitem__, prd_bnd_key))
 
                 tra = trans.from_data(
+                    rxn_class=par.REACTION_CLASS.SUBSTITUTION,
                     frm_bnd_keys=[frm_bnd_key],
                     brk_bnd_keys=[brk_bnd_key])
                 tras.append(tra)
@@ -480,13 +487,13 @@ def substitution(rct_gras, prd_gras):
 
 
 REACTION_FINDER_DCT = {
-    'HYDROGEN MIGRATION': hydrogen_migration,
-    'HYDROGEN ABSTRACTION': hydrogen_abstraction,
-    'ADDITION': addition,
-    'BETA SCISSION': beta_scission,
-    'ELIMINATION': elimination,
-    'INSERTION': insertion,
-    'SUBSTITUTION': substitution,
+    par.REACTION_CLASS.HYDROGEN_MIGRATION: hydrogen_migration,
+    par.REACTION_CLASS.HYDROGEN_ABSTRACTION: hydrogen_abstraction,
+    par.REACTION_CLASS.ADDITION: addition,
+    par.REACTION_CLASS.BETA_SCISSION: beta_scission,
+    par.REACTION_CLASS.ELIMINATION: elimination,
+    par.REACTION_CLASS.INSERTION: insertion,
+    par.REACTION_CLASS.SUBSTITUTION: substitution,
 }
 
 
@@ -509,17 +516,39 @@ def classify_simple(rct_gras, prd_gras):
 def classify(rct_gras, prd_gras):
     """ classify a reaction
     """
-    rxn_type = None
 
-    for rxn_type, rxn_finder in REACTION_FINDER_DCT.items():
+    for rxn_finder in REACTION_FINDER_DCT.values():
         tras, rct_idxs, prd_idxs = rxn_finder(rct_gras, prd_gras)
         if tras:
             break
 
-    if not tras:
-        rxn_type = None
+    return tras, rct_idxs, prd_idxs
 
-    return tras, rct_idxs, prd_idxs, rxn_type
+
+REV_REACTION_FINDER_DCT = {
+    par.REACTION_CLASS.HYDROGEN_MIGRATION: par.REACTION_CLASS.HYDROGEN_MIGRATION,
+    par.REACTION_CLASS.HYDROGEN_ABSTRACTION: par.REACTION_CLASS.HYDROGEN_ABSTRACTION,
+    par.REACTION_CLASS.ADDITION: par.REACTION_CLASS.BETA_SCISSION,
+    par.REACTION_CLASS.BETA_SCISSION: par.REACTION_CLASS.ADDITION,
+    # par.REACTION_CLASS.ELIMINATION: elimination,
+    # par.REACTION_CLASS.INSERTION: insertion,
+    # par.REACTION_CLASS.SUBSTITUTION: substitution,
+}
+
+
+def reverse_class(rxn_class):
+    """ determine the reverse of a reaction class
+    """
+    return REV_REACTION_FINDER_DCT.get(rxn_class, None)
+
+
+# def rxn_molecularity(rct_gras, prd_gras):
+#     """ Determine molecularity of the reaction
+#     """
+#     rct_molecularity = len(rct_gras) 
+#     prd_molecularity = len(prd_gras)
+#     rxn_molecularity = (rct_molecularity, prd_molecularity)
+#     return rxn_molecularity
 
 
 def _assert_is_valid_reagent_graph_list(gras):

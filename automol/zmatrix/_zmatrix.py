@@ -205,9 +205,6 @@ def atom_indices(zma, sym, match=True):
         elif sym_ != sym and not match:
             idxs += (idx,)
 
-    # old dummy match, may be useful
-    # idxs = [idx for idx, sym_ in enumerate(syms) if not pt.to_Z(sym)]
-
     return idxs
 
 

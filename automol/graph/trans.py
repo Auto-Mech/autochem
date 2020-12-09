@@ -2,6 +2,7 @@
 """
 import numbers
 import yaml
+from automol import par
 from automol import dict_
 from automol.graph._graph import relabel as _relabel
 from automol.graph._graph import full_isomorphism
@@ -14,9 +15,11 @@ from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
 from automol.graph._graph import without_stereo_parities
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph.reac import reverse_class
 
 
-def from_data(frm_bnd_keys, brk_bnd_keys):
+# old
+def old_from_data(frm_bnd_keys, brk_bnd_keys):
     """ define a transformation from data
     """
     frm_bnd_keys = frozenset(map(frozenset, frm_bnd_keys))
@@ -27,21 +30,21 @@ def from_data(frm_bnd_keys, brk_bnd_keys):
     return (frm_bnd_keys, brk_bnd_keys)
 
 
-def formed_bond_keys(tra):
+def old_formed_bond_keys(tra):
     """ keys for bonds that are formed in the transformation
     """
     frm_bnd_keys, _ = tra
     return frm_bnd_keys
 
 
-def broken_bond_keys(tra):
+def old_broken_bond_keys(tra):
     """ keys for bonds that are broken in the transformation
     """
     _, brk_bnd_keys = tra
     return brk_bnd_keys
 
 
-def string(tra):
+def old_string(tra):
     """ write the transformation to a string
     """
     def _encode_bond(bnd_key):
@@ -49,8 +52,8 @@ def string(tra):
         bnd_str = '{}-{}'.format(atm1_key+1, atm2_key+1)
         return bnd_str
 
-    frm_bnd_keys = sorted(map(sorted, formed_bond_keys(tra)))
-    brk_bnd_keys = sorted(map(sorted, broken_bond_keys(tra)))
+    frm_bnd_keys = sorted(map(sorted, old_formed_bond_keys(tra)))
+    brk_bnd_keys = sorted(map(sorted, old_broken_bond_keys(tra)))
 
     if any(frm_bnd_keys):
         frm_bnd_strs = list(map(_encode_bond, frm_bnd_keys))
@@ -69,7 +72,7 @@ def string(tra):
     return tra_str
 
 
-def from_string(tra_str):
+def old_from_string(tra_str):
     """ read the transformation from a string
     """
     def _decode_bond(bnd_str):
@@ -91,7 +94,101 @@ def from_string(tra_str):
     else:
         brk_bnd_keys = frozenset({})
 
-    tra = from_data(frm_bnd_keys, brk_bnd_keys)
+    tra = old_from_data(frm_bnd_keys, brk_bnd_keys)
+
+    return tra
+
+
+# New
+def from_data(rxn_class, frm_bnd_keys, brk_bnd_keys):
+    """ define a transformation from data
+    """
+    frm_bnd_keys = frozenset(map(frozenset, frm_bnd_keys))
+    brk_bnd_keys = frozenset(map(frozenset, brk_bnd_keys))
+    assert all(map(_is_bond_key, frm_bnd_keys))
+    assert all(map(_is_bond_key, brk_bnd_keys))
+    assert not frm_bnd_keys & brk_bnd_keys
+    return (rxn_class, frm_bnd_keys, brk_bnd_keys)
+
+
+def reaction_class(tra):
+    """ string describing the reaction class
+    """
+    rxn_class, _, _ = tra
+    # assert par.is_reaction_class(rxn_class), (
+    #     '{} is not an allowed reaction class'.format(rxn_class)
+    # )
+    return rxn_class
+
+
+def formed_bond_keys(tra):
+    """ keys for bonds that are formed in the transformation
+    """
+    _, frm_bnd_keys, _ = tra
+    return frm_bnd_keys
+
+
+def broken_bond_keys(tra):
+    """ keys for bonds that are broken in the transformation
+    """
+    _, _, brk_bnd_keys = tra
+    return brk_bnd_keys
+
+
+def string(tra):
+    """ write the transformation to a string
+    """
+    def _encode_bond(bnd_key):
+        atm1_key, atm2_key = bnd_key
+        bnd_str = '{}-{}'.format(atm1_key+1, atm2_key+1)
+        return bnd_str
+
+    rxn_class = reaction_class(tra)
+    frm_bnd_keys = sorted(map(sorted, formed_bond_keys(tra)))
+    brk_bnd_keys = sorted(map(sorted, broken_bond_keys(tra)))
+
+    if any(frm_bnd_keys):
+        frm_bnd_strs = list(map(_encode_bond, frm_bnd_keys))
+    else:
+        frm_bnd_strs = None
+
+    if any(brk_bnd_keys):
+        brk_bnd_strs = list(map(_encode_bond, brk_bnd_keys))
+    else:
+        brk_bnd_strs = None
+
+    tra_dct = {'reaction class': rxn_class,
+               'bonds formed': frm_bnd_strs,
+               'bonds broken': brk_bnd_strs}
+
+    tra_str = yaml.dump(tra_dct, sort_keys=False)
+    return tra_str
+
+
+def from_string(tra_str):
+    """ read the transformation from a string
+    """
+    def _decode_bond(bnd_str):
+        atm1_key, atm2_key = map(int, bnd_str.split('-'))
+        bnd_key = frozenset({atm1_key-1, atm2_key-1})
+        return bnd_key
+
+    tra_dct = yaml.load(tra_str, Loader=yaml.FullLoader)
+    rxn_class = tra_dct['reaction class']
+    frm_bnd_strs = tra_dct['bonds formed']
+    brk_bnd_strs = tra_dct['bonds broken']
+
+    if frm_bnd_strs is not None:
+        frm_bnd_keys = frozenset(map(_decode_bond, frm_bnd_strs))
+    else:
+        frm_bnd_keys = frozenset({})
+
+    if brk_bnd_strs is not None:
+        brk_bnd_keys = frozenset(map(_decode_bond, brk_bnd_strs))
+    else:
+        brk_bnd_keys = frozenset({})
+
+    tra = from_data(rxn_class, frm_bnd_keys, brk_bnd_keys)
 
     return tra
 
@@ -102,10 +199,11 @@ def relabel(tra, atm_key_dct):
     def _relabel_bond_key(bnd_key):
         return frozenset(map(atm_key_dct.__getitem__, bnd_key))
 
+    rxn_class = reaction_class(tra)
     frm_bnd_keys = list(map(_relabel_bond_key, formed_bond_keys(tra)))
     brk_bnd_keys = list(map(_relabel_bond_key, broken_bond_keys(tra)))
 
-    return from_data(frm_bnd_keys, brk_bnd_keys)
+    return from_data(rxn_class, frm_bnd_keys, brk_bnd_keys)
 
 
 def apply(tra, xgr):
@@ -119,17 +217,22 @@ def apply(tra, xgr):
     return xgr
 
 
+# NEED TO FIX THIS FUNCTION (NEED REVERSE REACTION ID CODE)
 def reverse(tra, xgr1, xgr2):
     """ reverse a transformation to get the one taking products into reactants
     """
+    rxn_class = reaction_class(tra)
     frm_bnd_keys = formed_bond_keys(tra)
     brk_bnd_keys = broken_bond_keys(tra)
     atm_key_dct = full_isomorphism(apply(tra, xgr1), xgr2)
+
+    rev_rxn_class = reverse_class(rxn_class)
     rev_frm_bnd_keys = [frozenset(map(atm_key_dct.__getitem__, bnd_key))
                         for bnd_key in brk_bnd_keys]
     rev_brk_bnd_keys = [frozenset(map(atm_key_dct.__getitem__, bnd_key))
                         for bnd_key in frm_bnd_keys]
-    rev_tra = from_data(frm_bnd_keys=rev_frm_bnd_keys,
+    rev_tra = from_data(rxn_class=rev_rxn_class,
+                        frm_bnd_keys=rev_frm_bnd_keys,
                         brk_bnd_keys=rev_brk_bnd_keys)
     return rev_tra
 
@@ -201,9 +304,9 @@ def _permutation_parity(seq, ref_seq):
             swap_idx = perm.index(idx)
             perm[idx], perm[swap_idx] = perm[swap_idx], perm[idx]
 
-    par = (sgn == 1)
+    parity = (sgn == 1)
 
-    return par
+    return parity
 
 
 def _is_bond_key(obj):
@@ -213,10 +316,3 @@ def _is_bond_key(obj):
 
 def _is_atom_key(obj):
     return isinstance(obj, numbers.Integral)
-
-
-if __name__ == '__main__':
-    TRA = (frozenset({frozenset({3, 6})}),
-           frozenset({frozenset({1, 3}), frozenset({0, 6})}))
-    print(string(TRA))
-    print(from_string(string(TRA)) == TRA)

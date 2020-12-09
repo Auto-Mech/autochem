@@ -8,36 +8,9 @@ import automol
 from automol.graph._graph import atom_neighbor_keys as _atom_neighbor_keys
 from automol.zmatrix._util import shifted_standard_zmas_graphs
 from automol.zmatrix._util import reorder_zmatrix_for_migration
-
+from automol.zmatrix._util import shift_vals_from_dummy
 
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
-
-
-def min_hyd_mig_dist(rct_zmas, prd_zmas):
-    """ determines distance coordinate to minimize for hydrogen migration reaction
-    """
-    min_frm_bnd_key = None
-    prd_zmas, prd_gras = shifted_standard_zmas_graphs(
-        prd_zmas, remove_stereo=True)
-    if len(rct_zmas) == 1:
-        rct_zmas, rct_gras = shifted_standard_zmas_graphs(
-            rct_zmas, remove_stereo=True)
-        tras, _, _ = automol.graph.reac.hydrogen_migration(rct_gras, prd_gras)
-        # If reaction found, then proceed
-        if tras:
-            min_key = None
-            min_dist = 100
-            for tra in tras:
-                frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-                geo = automol.zmatrix.geometry(rct_zmas[0])
-                dist = automol.geom.distance(geo, *list(frm_bnd_key))
-                if dist < min_dist:
-                    min_dist = dist
-                    min_key = frm_bnd_key
-                if min_key:
-                    min_frm_bnd_key = min_key
-
-    return min_frm_bnd_key
 
 
 def hydrogen_migration(rct_zmas, prd_zmas):
@@ -73,7 +46,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     frm_bnd_key = bnd_key
                     brk_bnd_key, = automol.graph.trans.broken_bond_keys(tra_i)
             init_zma, = rct_zmas
-            # print('init_zma test:', init_zma)
 
             # figure out which idx in frm_bnd_keys corresponds to the hydrogen
             symbols = automol.vmatrix.symbols(automol.zmatrix.var_(init_zma))
@@ -83,8 +55,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
                     h_idx = idx
                 else:
                     a1_idx = idx
-
-            # print('h_idx test:', h_idx, a1_idx)
 
             brk_dist_coo_key = tuple(reversed(sorted(brk_bnd_key)))
             for idx in brk_dist_coo_key:
@@ -209,7 +179,7 @@ def hydrogen_migration(rct_zmas, prd_zmas):
             chn_end = key
     ring_atoms1 = automol.zmatrix.chain_between(ts_zma, chn_end, new_h_idx)
 
-    # Use this ring information to constrain the beta bond from the attacking atom
+    # Use ring information to constrain the beta bond from the attacking atom
     const_bnd_key = None
     if len(ring_atoms1) > 3:
         const_bnd_key = frozenset({ring_atoms1[1], ring_atoms1[2]})
@@ -255,36 +225,6 @@ def hydrogen_migration(rct_zmas, prd_zmas):
     ret = ts_zma, dist_name, frm_bnd_key, brk_bnd_key, const_bnd_key, tors_names, rcts_gra
 
     return ret
-
-
-def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
-    """ determines distance coordinate to minimize for a
-        concerted unimolecular elimination reaction
-    """
-    min_frm_bnd_key = None
-    prd_zmas, prd_gras = shifted_standard_zmas_graphs(
-        prd_zmas, remove_stereo=True)
-    if len(rct_zmas) == 1:
-        rct_zmas, rct_gras = shifted_standard_zmas_graphs(
-            rct_zmas, remove_stereo=True)
-        tras, _, _ = automol.graph.reac.elimination(rct_gras, prd_gras)
-        if tras:
-            if len(tras[0]) == 1:
-                tras = [tras]
-            min_frm_bnd_key = None
-            min_dist = 10
-            for tra in tras:
-                frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
-                geo = automol.zmatrix.geometry(rct_zmas[0])
-                dist = automol.geom.distance(geo, *list(frm_bnd_key))
-                if dist < min_dist:
-                    min_dist = dist
-                    min_frm_bnd_key = frm_bnd_key
-    # print('AT ELIM1')
-    # import sys
-    # sys.exit()
-
-    return min_frm_bnd_key
 
 
 def concerted_unimolecular_elimination(rct_zmas, prd_zmas):
@@ -512,8 +452,6 @@ def ring_forming_scission(rct_zmas, prd_zmas):
                 # add any ring forming torsions to constraints to ensure 0 dihedrals for the ring
                 const_tors_names.append(tors_name)
 
-        print('preopt_tors_names:', preopt_tors_names)
-
         angles = [0., 2.*numpy.pi/3, 4.*numpy.pi/3]
         # angles = [0., numpy.pi/3., 2.*numpy.pi/3, 3.*numpy.pi/3., 4.*numpy.pi/3, 5*numpy.pi/3.]
         trial_zmas = [ts_zma_p]
@@ -521,7 +459,9 @@ def ring_forming_scission(rct_zmas, prd_zmas):
             new_trial_zmas = []
             for zma_i in trial_zmas:
                 for ang in angles:
-                    new_trial_zmas.append(automol.zmatrix.set_values(zma_i, {preopt_tors_name: ang}))
+                    new_trial_zmas.append(
+                        automol.zmatrix.set_values(
+                            zma_i, {preopt_tors_name: ang}))
             trial_zmas = new_trial_zmas
 
         dist_min = 1.0e30
@@ -553,14 +493,12 @@ def ring_forming_scission(rct_zmas, prd_zmas):
             if ((axis[0] not in chain_between) or (axis[1] not in chain_between)):
                 ts_tors_names.append(tors_name)
             # elif (axis[0] in chain_between) and (axis[1] in chain_between):
-                # if tors_name not in const_tors_names:
-                    # const_tors_names.append(tors_name)
+            #     if tors_name not in const_tors_names:
+            #         const_tors_names.append(tors_name)
 
-        print('ts_tors_names test:', ts_tors_names, automol.zmatrix.string(ts_zma))
-        print('const_tors_names test:', const_tors_names)
         ts_zma = ts_zma_max
 
-        # (v) vary angles to decrease rad_atm to new_rad_atm to < 2.25 Angstroms
+        # (v) vary angles to decrease rad_atm to new_rad_atm to < 2.25 Ang
         dist_thresh = 4.25
         # dist_thresh = 4.
         ang_names = automol.zmatrix.central_angle_names(ts_zma)
@@ -590,7 +528,11 @@ def ring_forming_scission(rct_zmas, prd_zmas):
         # Build the reactants graph
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
-        ret = ts_zma, brk_dist_name, brk_bnd_key, const_tors_names, ts_tors_names, const_angs_names, rcts_gra
+        # Set the indices for the const coords
+
+        ret = (ts_zma, brk_dist_name, brk_bnd_key,
+               tuple(const_tors_names), tuple(ts_tors_names),
+               tuple(const_angs_names), rcts_gra)
 
     return ret
 
@@ -598,8 +540,8 @@ def ring_forming_scission(rct_zmas, prd_zmas):
 def beta_scission(rct_zmas, prd_zmas):
     """ z-matrix for a beta-scission reaction
     """
+
     ret = None
-    print('initial rct_zmas in beta-scission test:', automol.zmatrix.string(rct_zmas[0]))
     rct_zmas, rct_gras = shifted_standard_zmas_graphs(
         rct_zmas, remove_stereo=True)
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
@@ -616,7 +558,6 @@ def beta_scission(rct_zmas, prd_zmas):
 
         ts_name_dct = automol.zmatrix.standard_names(ts_zma)
         dist_name = ts_name_dct[dist_name]
-        print('initial ts_zma in beta-scission test:', automol.zmatrix.string(ts_zma))
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         tors_names = automol.zmatrix.torsion_coordinate_names(ts_zma)
 
@@ -627,28 +568,58 @@ def beta_scission(rct_zmas, prd_zmas):
 
         ret = ts_zma, dist_name, brk_bnd_key, tors_names, rcts_gra
 
-        print('zmas in beta-scission test:', automol.zmatrix.string(ts_zma), automol.zmatrix.string(rct_zmas[0]))
-
     return ret
 
 
-def shift_vals_from_dummy(vals, zma):
-    """ Shift a set of values using remdummy
-        Shift requires indices be 1-indexed
+def min_hyd_mig_dist(rct_zmas, prd_zmas):
+    """ determines distance coordinate to minimize for hydrogen migration reaction
     """
-    type_ = type(vals)
+    min_frm_bnd_key = None
+    prd_zmas, prd_gras = shifted_standard_zmas_graphs(
+        prd_zmas, remove_stereo=True)
+    if len(rct_zmas) == 1:
+        rct_zmas, rct_gras = shifted_standard_zmas_graphs(
+            rct_zmas, remove_stereo=True)
+        tras, _, _ = automol.graph.reac.hydrogen_migration(rct_gras, prd_gras)
+        # If reaction found, then proceed
+        if tras:
+            min_key = None
+            min_dist = 100
+            for tra in tras:
+                frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+                geo = automol.zmatrix.geometry(rct_zmas[0])
+                dist = automol.geom.distance(geo, *list(frm_bnd_key))
+                if dist < min_dist:
+                    min_dist = dist
+                    min_key = frm_bnd_key
+                if min_key:
+                    min_frm_bnd_key = min_key
 
-    dummy_idxs = automol.zmatrix.atom_indices(zma, sym='X')
+    return min_frm_bnd_key
 
-    shift_vals = []
-    print('vals test:', vals)
-    for val in vals:
-        shift = 0
-        for dummy in dummy_idxs:
-            if val >= dummy:
-                shift += 1
-        shift_vals.append(val+shift)
 
-    shift_vals = type_(shift_vals)
+def min_unimolecular_elimination_dist(rct_zmas, prd_zmas):
+    """ determines distance coordinate to minimize for a
+        concerted unimolecular elimination reaction
+    """
+    min_frm_bnd_key = None
+    prd_zmas, prd_gras = shifted_standard_zmas_graphs(
+        prd_zmas, remove_stereo=True)
+    if len(rct_zmas) == 1:
+        rct_zmas, rct_gras = shifted_standard_zmas_graphs(
+            rct_zmas, remove_stereo=True)
+        tras, _, _ = automol.graph.reac.elimination(rct_gras, prd_gras)
+        if tras:
+            if len(tras[0]) == 1:
+                tras = [tras]
+            min_frm_bnd_key = None
+            min_dist = 10
+            for tra in tras:
+                frm_bnd_key, = automol.graph.trans.formed_bond_keys(tra)
+                geo = automol.zmatrix.geometry(rct_zmas[0])
+                dist = automol.geom.distance(geo, *list(frm_bnd_key))
+                if dist < min_dist:
+                    min_dist = dist
+                    min_frm_bnd_key = frm_bnd_key
 
-    return shift_vals
+    return min_frm_bnd_key

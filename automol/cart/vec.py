@@ -179,3 +179,18 @@ def _augmented(xyz):
     assert all(isinstance(val, numbers.Real) for val in xyz)
     xyz_aug = tuple(xyz) + (1.,)
     return xyz_aug
+
+
+# I/O
+def string(vec, num_per_row=3):
+    """ Iterate over a 1D vector and print the values over some number of rows
+    """
+    nvals = len(vec)
+    vec_str = ''
+    for i, val in enumerate(vec):
+        if ((i+1) % num_per_row) == 0 and (i+1) != nvals:
+            vec_str += '{0:>8.3f}\n'.format(val)
+        else:
+            vec_str += '{0:>8.3f}'.format(val)
+
+    return vec_str

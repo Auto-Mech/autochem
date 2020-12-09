@@ -9,6 +9,7 @@ from automol.zmatrix._util import shifted_standard_zmas_graphs
 from automol.zmatrix._util import join_atom_keys
 from automol.zmatrix._util import include_babs3
 from automol.zmatrix._util import reorder_zma_for_radicals
+from automol.zmatrix._util import shift_vals_from_dummy
 
 
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
@@ -272,7 +273,7 @@ def substitution(rct_zmas, prd_zmas):
     return ret
 
 
-def addition(rct_zmas, prd_zmas, rct_tors=()):
+def addition(rct_zmas, prd_zmas):
     """ z-matrix for an addition reaction
     """
     ret = None
@@ -290,8 +291,6 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
     prd_zmas, prd_gras = shifted_standard_zmas_graphs(
         prd_zmas, remove_stereo=True)
     tras, _, _ = automol.graph.reac.addition(rct_gras, prd_gras)
-    # print('tras')
-    # for tra in tras:
     if tras:
         tra = tras[0]
         rct1_zma, rct2_zma = rct_zmas
@@ -443,12 +442,8 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
         dist_name = ts_name_dct[dist_name]
         ts_zma = automol.zmatrix.standard_form(ts_zma)
         rct1_tors_names = automol.zmatrix.torsion_coordinate_names(rct1_zma)
-
-        if rct_tors:
-            rct2_tors_names = rct_tors
-        else:
-            rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
-                rct2_zma)
+        rct2_tors_names = automol.zmatrix.torsion_coordinate_names(
+            rct2_zma)
         tors_names = (
             tuple(map(ts_name_dct.__getitem__, rct1_tors_names)) +
             tuple(map(ts_name_dct.__getitem__, rct2_tors_names))
@@ -462,17 +457,12 @@ def addition(rct_zmas, prd_zmas, rct_tors=()):
             tors_name = ts_name_dct['babs3']
             tors_names += (tors_name,)
 
-        # print('frm_bnd_key test before shift:', frm_bnd_key)
         frm_bnd_key = shift_vals_from_dummy(frm_bnd_key, ts_zma)
-        # print('frm_bnd_key test after shift:', frm_bnd_key)
 
         # Build reactants graph
         rcts_gra = automol.graph.union_from_sequence(rct_gras)
 
         ret = ts_zma, dist_name, frm_bnd_key, tors_names, rcts_gra
-
-        print('addition zma test:', automol.zmatrix.string(ts_zma), tors_names, frm_bnd_key)
-        print('rct atm keys:', rct1_atm1_key, rct1_atm2_key, rct1_atm3_key)
 
     return ret
 
@@ -677,10 +667,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                 return None
         # hno2 hack
         # rad_atm_keys = [0]
-        # print('rad_atm_keys:', rad_atm_keys)
-        # print('rct_zmas:', rct_zmas)
-        # import sys
-        # sys.exit()
         if 0 not in rad_atm_keys:
             rct_zmas[1] = reorder_zma_for_radicals(
                 rct_zmas[1], min(rad_atm_keys))
@@ -698,11 +684,8 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
         # fix to put radical atom first
         # ultimately need to fix this for multiple radical centers
         # end of fix
-        # print(rct_gras)
         tras, _, _ = automol.graph.reac.hydrogen_abstraction(
             rct_gras, prd_gras)
-        print('tras', tras)
-        # for tra in tras:
         if tras:
             tra = tras[0]
             rct1_gra, rct2_gra = rct_gras
@@ -727,8 +710,6 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
                     new_bnd_key.append(key)
                 frm_bnd_key = frozenset(new_bnd_key)    
                 rct_gras = (rct1_gra, rct2_gra)
-            #print('frm_key', frm_bnd_key)
-            #print('brk_key', brk_bnd_key)
             rct1_atm1_key = next(iter(frm_bnd_key & brk_bnd_key))
 
             # if rct1 and rct2 are isomorphic, we may get an atom key on rct2.
@@ -825,87 +806,14 @@ def _hydrogen_abstraction(rct_zmas, prd_zmas):
             rcts_gra = automol.graph.union_from_sequence(
                 (rct1_gra, new_rct2_gra))
     
-            # print('frm', frm_bnd_key)
-            # print('brk', brk_bnd_key)
-
             ret = (ts_zma, dist_name,
                    frm_bnd_key, brk_bnd_key,
                    tors_names, rcts_gra)
 
     return ret
 
+
 def _xor(atms1, atms2):
     for atmi in atms1:
         if not atmi in atms2:
             return atmi
-
-def shift_vals_from_dummy(vals, zma):
-    """ Shift a set of values using remdummy
-        Shift requires indices be 1-indexed
-    """
-    type_ = type(vals)
-
-    dummy_idxs = automol.zmatrix.atom_indices(zma, sym='X')
-
-    shift_vals = []
-    for val in vals:
-        shift = 0
-        for dummy in dummy_idxs:
-            if val >= dummy:
-                shift += 1
-        shift_vals.append(val+shift)
-
-    shift_vals = type_(shift_vals)
-
-    return shift_vals
-
-
-if __name__ == '__main__':
-    import automol
-
-    RCT_ICHS = (
-        automol.smiles.inchi('[O]O'),
-        automol.smiles.inchi('[CH2]C=CCCCCCCCCC'),
-    )
-    #PRD_ICHS1 = (
-    #    automol.smiles.inchi('[O]O'),
-    #    automol.smiles.inchi('[CH2]C=CCC'),
-    #)
-    #PRD_ICHS2 = (
-    #    automol.smiles.inchi('[O]O'),
-    #    automol.smiles.inchi('CC=C[CH]C'),
-    #)
-    PRD_ICHS1 = (
-        automol.smiles.inchi('[O][O]'),
-        automol.smiles.inchi('C=CCCCCCCCCCC'),
-    )
-    PRD_ICHS2 = (
-        automol.smiles.inchi('[O][O]'),
-        automol.smiles.inchi('CC=CCCCCCCCCC'),
-    )
-    RCT_ZMAS = [automol.geom.zmatrix(automol.inchi.geometry(ich)) for ich in RCT_ICHS]
-    PRD1_ZMAS = [automol.geom.zmatrix(automol.inchi.geometry(ich)) for ich in PRD_ICHS1]
-    PRD2_ZMAS = [automol.geom.zmatrix(automol.inchi.geometry(ich)) for ich in PRD_ICHS2]
-
-    RCT_GRAS, _ = automol.graph.standard_keys_for_sequence([
-        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
-        for ich in RCT_ICHS
-    ])
-    PRD_GRAS1, _ = automol.graph.standard_keys_for_sequence([
-        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
-        for ich in PRD_ICHS1
-    ])
-    PRD_GRAS2, _ = automol.graph.standard_keys_for_sequence([
-        automol.graph.explicit(automol.inchi.graph(ich, no_stereo=True))
-        for ich in PRD_ICHS2
-    ])
-
-    #TS1 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS1)
-    #TS2 = hydrogen_abstraction(RCT_GRAS, PRD_GRAS2)
-    #TS1 = hydrogen_abstraction(PRD_GRAS1, RCT_GRAS)
-    #TS2 = hydrogen_abstraction(PRD_GRAS2, RCT_GRAS)
-    TS1 = hydrogen_abstraction(RCT_ZMAS, PRD1_ZMAS)
-    TS2 = hydrogen_abstraction(RCT_ZMAS, PRD2_ZMAS)
-    #print(automol.geom.string(automol.zmatrix.geometry(TS1[0])))
-    #print()
-    #print(automol.geom.string(automol.zmatrix.geometry(TS2[0])))
