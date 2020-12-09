@@ -56,3 +56,19 @@ def euler_rotation(theta, phi, psi):
 
 def _slice_affine(mat):
     return mat[:3, :3]
+
+
+# I/O
+def string(mat):
+    """ Convert the Cartesian matrix
+    """
+    if mat is not None:
+        mat_str = ''
+        for row in mat:
+            mat_str += '  '.join('{0:>8.3f}'.format(val) for val in row)
+            mat_str += '\n'
+        mat_str.rstrip()
+    else:
+        mat_str = ''
+
+    return mat_str

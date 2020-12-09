@@ -271,12 +271,12 @@ ZMA_BUILDER_DCT = {
 }
 
 
-def zma_build(rct_zmas, prd_zmas, rtyp):
+def zma_build(rtyp, rct_zmas, prd_zmas, tras):
     """ build a ZMA for a TS search
     """
 
     if rtyp in ZMA_BUILDER_DCT:
-        ret = ZMA_BUILDER_DCT[rtyp](rct_zmas, prd_zmas)
+        ret = ZMA_BUILDER_DCT[rtyp](rct_zmas, prd_zmas, tras)
     else:
         ret = None
     return ret

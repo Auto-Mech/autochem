@@ -896,6 +896,35 @@ def test__ts__hydrogen_migration():
 #     ret = zmatrix.ts.substitution(rct_zmas, prd_zmas)
 #     print(ret)
 
+def test__ts_zma():
+    """ test automol.ts
+    """
+    RCT_ICHS = [automol.smiles.inchi('C(Cl)(C)O'),
+                automol.smiles.inchi('[H]')]
+    PRD_ICHS = [automol.smiles.inchi('[C](Cl)(C)O'),
+                automol.smiles.inchi('[H][H]')]
+    print(RCT_ICHS)
+    print(PRD_ICHS)
+
+    RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))
+    PRD_GEOS = list(map(automol.inchi.geometry, PRD_ICHS))
+
+    RCT_ZMAS = list(map(automol.geom.zmatrix, RCT_GEOS))
+    PRD_ZMAS = list(map(automol.geom.zmatrix, PRD_GEOS))
+
+    TS_ZMA, DIST_NAME, FRM_KEY, BRK_KEY, TORS_NAMES, _ = (
+        hydrogen_abstraction(RCT_ZMAS, PRD_ZMAS))
+    RCT_GRA = ts.zmatrix_reactant_graph(TS_ZMA, [FRM_KEY], [BRK_KEY])
+    PRD_GRA = ts.zmatrix_product_graph(TS_ZMA, [FRM_KEY], [BRK_KEY])
+    print('reactant:')
+    print(automol.graph.string(RCT_GRA))
+    print(ts.zmatrix_reactants_inchi(TS_ZMA, [FRM_KEY], [BRK_KEY]))
+    print(ts.zmatrix_reactant_inchis(TS_ZMA, [FRM_KEY], [BRK_KEY]))
+    print('product:')
+    print(automol.graph.string(PRD_GRA))
+    print(ts.zmatrix_products_inchi(TS_ZMA, [FRM_KEY], [BRK_KEY]))
+    print(ts.zmatrix_product_inchis(TS_ZMA, [FRM_KEY], [BRK_KEY]))
+
 
 if __name__ == '__main__':
     # test__from_data()

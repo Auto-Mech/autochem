@@ -1,5 +1,6 @@
 """ resonance graph library
 """
+
 import itertools
 import functools
 import numpy
@@ -202,6 +203,7 @@ def radical_group_dct(gra):
 def radical_dissociation_prods(gra, pgra1):
     """ given a dissociation product, determine the other product
     """
+
     pgra2 = None
     rads = sing_res_dom_radical_atom_keys(gra)
     adj_atms = atom_neighbor_keys(gra)
@@ -215,7 +217,6 @@ def radical_dissociation_prods(gra, pgra1):
                 pgra2 = remove_atoms(gra, atom_keys(groups[1]))
                 if bond_keys(groups[1]) in pgra2:
                     pgra2 = remove_bonds(pgra2, bond_keys(groups[1]))
-                    print('in if st')
     return (pgra1, pgra2)
 
 
@@ -373,34 +374,3 @@ def rotational_bond_keys(gra, with_h_rotors=True):
                 bnd_keys.append(bnd_key)
 
     return frozenset(bnd_keys)
-
-
-if __name__ == '__main__':
-    import automol
-
-    GRA = ({0: ('O', 0, None), 1: ('N', 0, None), 2: ('O', 0, None),
-            3: ('O', 0, None), 4: ('C', 0, None), 5: ('C', 0, None),
-            6: ('H', 0, None), 7: ('H', 0, None), 8: ('O', 0, None),
-            9: ('H', 0, None)},
-           {frozenset({0, 1}): (1, None), frozenset({0, 7}): (1, None),
-            frozenset({1, 3}): (1, None), frozenset({2, 4}): (1, None),
-            frozenset({4, 5}): (1, None), frozenset({4, 6}): (1, None),
-            frozenset({4, 7}): (1, None), frozenset({8, 5}): (1, None),
-            frozenset({9, 5}): (1, None)})
-    # GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
-    #        {frozenset({0, 1}): (1, None)})
-    # GRA = (
-    #     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
-    #     {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None),
-    #      frozenset({2, 0}): (1, None)})
-    # GRA = (
-    #     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('F', 0, None),
-    #      3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
-    #     {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-    #      frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
-    #      frozenset({1, 5}): (1, None)})
-
-    for RGR in subresonances(GRA):
-        print(automol.graph.string(RGR))
-
-    print(len(subresonances(GRA)))

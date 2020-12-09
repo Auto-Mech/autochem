@@ -1,0 +1,79 @@
+ZROT_DCT = {
+    'InChI=1S/H': 0,
+    'InChI=1S/C': 0,
+    'InChI=1S/He': 2,
+    'InChI=1S/Ar': 2,
+    'InChI=1S/H2/h1H': 280
+    'InChI=1S/N2/c1-2': 4,
+CH               0
+CH2              0
+CH2(S)           0
+CH3              0
+CH4              13
+C2               4        
+C2H              2.5          
+C2H2             2.5
+CH2C             2.5
+C2H4             1.5
+C2H5             1.5
+C2H6             1.5
+CH2CHCH2          0
+CH3CCH2           0
+CH3CHCH           0
+c-CH2CHCH2        0
+CH3CHCH2          0
+c-CH2CH2CH2       0
+O                0
+OH               0
+H2O              4
+CO               1.8
+HCO              2
+CH2O             2
+CHOH             2
+CHOH(T)          2
+CHCOH            2
+CH2CHO           2
+CH3CO            2
+CH2COH           2
+c-CHOCH2         2
+CH3CHO           2
+CH2CHOH          2
+c-CH2CH2O        2
+CH2CH2OH         1.5
+CH3CHOH          1.5
+CH3CH2O          1.5
+CH3OCH2          1.5
+CH3CH2OH         1.5
+CH3OCH3          1.5
+O2               .8
+HO2              .8
+H2O2             3.8
+CO2              2.1
+OCOH             2.1
+!OCHO(B2)        
+OCHO             
+CHOO             2
+OCHOH            2
+CH2OO            2
+c-CH2OO          2
+OCH2OH           2
+CH3OO            2
+OHCH2OH           2
+CH3OOH           2
+3OCCO            2
+OCCHO            2
+OHCCO            2
+CCOOH            2
+OCHCHO           2
+c-C(O)OCH2       2
+OCCHOH           2
+OHCCOH           2
+CH3C(O)O         2
+OCOCH3           2
+OCHOCH2          2
+OCHCH2O          2
+CHCHOOH          2
+CH2CHOO          2
+CH2C(O)OH        2
+CH3C(O)OH        2
+}

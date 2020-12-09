@@ -79,8 +79,8 @@ from automol.graph._graph import add_atom_explicit_hydrogen_keys
 from automol.graph._graph import implicit
 from automol.graph._graph import explicit
 # # comparisons
-from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import full_isomorphism
+from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import backbone_isomorphic
 from automol.graph._graph import backbone_isomorphism
 from automol.graph._graph import backbone_unique
@@ -162,6 +162,9 @@ from automol.graph import reac
 import automol.create.graph
 # conversions
 import automol.convert.graph
+
+# util fxns
+from automol.graph._util import ring_idxs
 
 
 def from_data(atm_sym_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
@@ -274,7 +277,6 @@ __all__ = [
     'connected_components',
     'connected_components_atom_keys',
     'longest_chain',
-    'atom_longest_chain',
     'atom_longest_chains',
     'union',
     'union_from_sequence',
@@ -302,6 +304,7 @@ __all__ = [
     # # comparisons
     'full_subgraph_isomorphism',
     'full_isomorphism',
+    'full_subgraph_isomorphism',
     'backbone_isomorphic',
     'backbone_isomorphism',
     'backbone_unique',
@@ -379,4 +382,7 @@ __all__ = [
     # submodules
     'trans',
     'reac',
+
+    # util fxns
+    'ring_idxs'
 ]
