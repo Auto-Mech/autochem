@@ -16,9 +16,9 @@ Function return values:
 import itertools
 import automol
 from automol import par
-from automol import formula
+import automol.formula
+import automol.convert.graph
 import automol.graph.trans as trans
-import automol.convert.graph as graph_convert
 from automol.graph._graph_base import string
 from automol.graph._graph_base import atom_symbol_idxs
 from automol.graph._graph import atom_count
@@ -26,6 +26,7 @@ from automol.graph._graph import heavy_atom_count
 from automol.graph._graph import electron_count
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
+from automol.graph._graph import standard_keys_for_sequence
 from automol.graph._graph import explicit
 from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import union
@@ -43,6 +44,69 @@ from automol.graph._func_group import chem_unique_atoms_of_type
 from automol.graph._func_group import bonds_of_order
 
 
+def is_valid_reaction(rct_gras, prd_gras):
+    """ is this a valid reaction, with the same overall formula for reactants
+    and products?
+    """
+    rct_fmls = list(map(automol.convert.graph.formula, rct_gras))
+    prd_fmls = list(map(automol.convert.graph.formula, prd_gras))
+    return automol.formula.reac.is_valid_reaction(rct_fmls, prd_fmls)
+
+
+def is_trivial_reaction(rct_gras, prd_gras):
+    """ is this a trivial reaction, with the same reactants and products?
+    """
+    tras, _, _ = trivial_reaction(rct_gras, prd_gras)
+    return bool(tras)
+
+
+def trivial_reaction(rct_gras, prd_gras):
+    """ is this a trivial reaction, with the same reactants and products?
+    """
+    _assert_is_valid_reagent_graph_list(rct_gras)
+    _assert_is_valid_reagent_graph_list(prd_gras)
+
+    tras = []
+    rct_idxs = None
+    prd_idxs = None
+
+    if len(rct_gras) == len(prd_gras):
+        prd_gras = list(prd_gras)
+
+        num = len(rct_gras)
+        rct_idxs = tuple(range(num))
+        prd_idxs = [0] * num
+
+        # cycle through reactants and check for matching products
+        for rct_idx, rct_gra in enumerate(rct_gras):
+            prd_idx = next((idx for idx, prd_gra in enumerate(prd_gras)
+                            if full_isomorphism(rct_gra, prd_gra)), None)
+
+            # if the reactant has a matching product, remove it from the
+            # products list
+            if prd_idx is not None:
+                prd_idxs[rct_idx] = prd_idx
+                prd_gras.pop(prd_idx)
+            # if the reactant has no matching product, this is not a
+            # trivial reaction
+            else:
+                tras = []
+                rct_idxs = prd_idxs = None
+
+    if rct_idxs is not None:
+        tra = trans.from_data(
+            rxn_class=par.REACTION_CLASS.TRIVIAL,
+            frm_bnd_keys=[],
+            brk_bnd_keys=[])
+        tras = (tra,)
+        rct_idxs = tuple(rct_idxs)
+        prd_idxs = tuple(prd_idxs)
+
+    tras = tuple(tras)
+
+    return tras, rct_idxs, prd_idxs
+
+
 def hydrogen_migration(rct_gras, prd_gras):
     """ find a hydrogen migration transformation
 
@@ -58,7 +122,9 @@ def hydrogen_migration(rct_gras, prd_gras):
     rct_idxs = None
     prd_idxs = None
 
-    if len(rct_gras) == 1 and len(prd_gras) == 1:
+    is_triv = is_trivial_reaction(rct_gras, prd_gras)
+
+    if len(rct_gras) == 1 and len(prd_gras) == 1 and not is_triv:
         gra1, = rct_gras
         gra2, = prd_gras
         h_atm_key1 = max(atom_keys(gra1)) + 1
@@ -106,11 +172,14 @@ def hydrogen_abstraction(rct_gras, prd_gras):
     rct_idxs = None
     prd_idxs = None
 
-    if len(rct_gras) == 2 and len(prd_gras) == 2:
-        rct_fmls = list(map(graph_convert.formula, rct_gras))
-        prd_fmls = list(map(graph_convert.formula, prd_gras))
+    is_triv = is_trivial_reaction(rct_gras, prd_gras)
 
-        ret = formula.reac.argsort_hydrogen_abstraction(rct_fmls, prd_fmls)
+    if len(rct_gras) == 2 and len(prd_gras) == 2 and not is_triv:
+        rct_fmls = list(map(automol.convert.graph.formula, rct_gras))
+        prd_fmls = list(map(automol.convert.graph.formula, prd_gras))
+
+        ret = automol.formula.reac.argsort_hydrogen_abstraction(
+            rct_fmls, prd_fmls)
         if ret:
             rct_idxs_, prd_idxs_ = ret
 
@@ -175,7 +244,9 @@ def addition(rct_gras, prd_gras):
     rct_idxs = None
     prd_idxs = None
 
-    if len(rct_gras) == 2 and len(prd_gras) == 1:
+    is_triv = is_trivial_reaction(rct_gras, prd_gras)
+
+    if len(rct_gras) == 2 and len(prd_gras) == 1 and not is_triv:
         x_gra, y_gra = rct_gras
         prd_gra, = prd_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
@@ -228,7 +299,9 @@ def ring_forming_scission(rct_gras, prd_gras):
     rct_idxs = None
     prd_idxs = None
 
-    if len(rct_gras) == 1 and len(prd_gras) == 2:
+    is_triv = is_trivial_reaction(rct_gras, prd_gras)
+
+    if len(rct_gras) == 1 and len(prd_gras) == 2 and not is_triv:
         rgra, = rct_gras
         pgra1, pgra2 = prd_gras
         pgra = automol.graph.union(pgra1, pgra2)
@@ -283,7 +356,9 @@ def elimination(rct_gras, prd_gras):
     rct_idxs = None
     prd_idxs = None
 
-    if len(rct_gras) == 1 and len(prd_gras) == 2:
+    is_triv = is_trivial_reaction(rct_gras, prd_gras)
+
+    if len(rct_gras) == 1 and len(prd_gras) == 2 and not is_triv:
         rct_gra, = rct_gras
         rct_bnd_keys = bond_keys(rct_gra)
         # Loop over pairs of bonds and break them. Then, if this forms three
@@ -291,7 +366,6 @@ def elimination(rct_gras, prd_gras):
         # products.
         for brk_bnd_key1, brk_bnd_key2 in itertools.combinations(
                 rct_bnd_keys, r=2):
-            # print([brk_bnd_key1, brk_bnd_key2])
             rct_gra_ = remove_bonds(rct_gra, [brk_bnd_key1, brk_bnd_key2])
 
             # Find the central fragment, which is the one connected to both
@@ -300,110 +374,30 @@ def elimination(rct_gras, prd_gras):
             cent_frag_atm_keys = _central_fragment_atom_keys(
                 rct_gra_, brk_bnd_key1, brk_bnd_key2)
             if cent_frag_atm_keys is not None:
+                atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
+                atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
+                frm_bnd_key = frozenset({atm1_key, atm2_key})
+                rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
 
-                # separate into separate cases for radicals and closed shells
-                rad_atm = list(
-                    automol.graph.sing_res_dom_radical_atom_keys(rct_gra))
-                if rad_atm:
-                    rad_atm = rad_atm[0]
-                    frm_bnd_key = None
-                    gras = connected_components(rct_gra_)
-                    for gra in gras:
-                        if rad_atm in automol.graph.atoms(gra):
-                            for key in brk_bnd_key1:
-                                if key in automol.graph.atoms(gra):
-                                    frag2_atm = brk_bnd_key1 - frozenset({key})
-                                    frag3_key = brk_bnd_key2
-                            for key in brk_bnd_key2:
-                                if key in automol.graph.atoms(gra):
-                                    frag2_atm = brk_bnd_key2 - frozenset({key})
-                                    frag3_key = brk_bnd_key1
-                    for gra in gras:
-                        if list(frag2_atm)[0] in automol.graph.atoms(gra):
-                            for key in frag3_key:
-                                if key in automol.graph.atoms(gra):
-                                    frag3_atm = frag3_key - frozenset({key})
-                                    frm_bnd_key = frozenset(
-                                        {rad_atm, list(frag3_atm)[0]})
+                prd_gra = union_from_sequence(prd_gras)
+                atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
+                if atm_key_dct:
+                    tra = trans.from_data(
+                        rxn_class=par.REACTION_CLASS.ELIMINATION,
+                        frm_bnd_keys=[frm_bnd_key],
+                        brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
+                    tras.append(tra)
 
-                else:
-                    # really should be loop over rad_atms
-                    # to handle resonantly stabilized radicals
-                    # also issues for biradicals
-                    atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
-                    atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
+                    rct_idxs = (0,)
 
-                    # Loop over various keys
-                    # print('centfrag', cent_frag_atm_keys)
-                    # print('rctkeys', atom_keys(rct_gra_))
-                    frm_keys1 = {atm1_key, atm2_key}
-                    frm_keys2 = (
-                        atom_keys(rct_gra_) - cent_frag_atm_keys -
-                        {atm1_key} - {atm2_key}
-                    )
-                    # print('frm1', frm_keys1)
-                    # print('frm2', frm_keys2)
-                    frm_bnd_key = None
-                    for bnd_key in itertools.product(frm_keys1, frm_keys2):
+                    cent_prd_atm_keys = frozenset(
+                        map(atm_key_dct.__getitem__, cent_frag_atm_keys))
 
-                        frm_bnd_key = frozenset(set(bnd_key))
-
-                        # Skip form bnd key if it already exists
-                        # print('bnd_key', bnd_key)
-                        # print('frm_key', frm_bnd_key)
-                        # print('all bond_keys', bond_keys(rct_gra_))
-                        if frm_bnd_key in bond_keys(rct_gra_):
-                            continue
-
-                if frm_bnd_key:
-                    rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
-
-                    prd_gra = union_from_sequence(prd_gras)
-                    atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
-                    # print('atmkeydct', atm_key_dct)
-                    if atm_key_dct:
-                        tra = trans.from_data(
-                            rxn_class=par.REACTION_CLASS.ELIMINATION,
-                            frm_bnd_keys=[frm_bnd_key],
-                            brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
-                        tras.append(tra)
-
-                        rct_idxs = (0,)
-
-                        cent_prd_atm_keys = frozenset(
-                            map(atm_key_dct.__getitem__, cent_frag_atm_keys))
-
-                        if cent_prd_atm_keys <= atom_keys(prd_gras[0]):
-                            prd_idxs = (0, 1)
-                        else:
-                            assert cent_prd_atm_keys <= atom_keys(prd_gras[1])
-                            prd_idxs = (1, 0)
-
-                # atm1_key, = brk_bnd_key1 - cent_frag_atm_keys
-                # atm2_key, = brk_bnd_key2 - cent_frag_atm_keys
-                # frm_bnd_key = frozenset({atm1_key, atm2_key})
-                # print('frm_key', frm_bnd_key)
-                # rct_gra_ = add_bonds(rct_gra_, [frm_bnd_key])
-
-                # prd_gra = union_from_sequence(prd_gras)
-                # atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
-                # print('atmkeydct', atm_key_dct)
-                # if atm_key_dct:
-                #     tra = trans.from_data(
-                #         frm_bnd_keys=[frm_bnd_key],
-                #         brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
-                #     tras.append(tra)
-
-                #     rct_idxs = (0,)
-
-                #     cent_prd_atm_keys = frozenset(
-                #         map(atm_key_dct.__getitem__, cent_frag_atm_keys))
-
-                #     if cent_prd_atm_keys <= atom_keys(prd_gras[0]):
-                #         prd_idxs = (0, 1)
-                #     else:
-                #         assert cent_prd_atm_keys <= atom_keys(prd_gras[1])
-                #         prd_idxs = (1, 0)
+                    if cent_prd_atm_keys <= atom_keys(prd_gras[0]):
+                        prd_idxs = (0, 1)
+                    else:
+                        assert cent_prd_atm_keys <= atom_keys(prd_gras[1])
+                        prd_idxs = (1, 0)
 
     tras = tuple(tras)
     return tras, rct_idxs, prd_idxs
@@ -456,7 +450,9 @@ def substitution(rct_gras, prd_gras):
     rct_idxs = None
     prd_idxs = None
 
-    if len(rct_gras) == 2 and len(prd_gras) == 2:
+    is_triv = is_trivial_reaction(rct_gras, prd_gras)
+
+    if len(rct_gras) == 2 and len(prd_gras) == 2 and not is_triv:
         rct_gra = union_from_sequence(rct_gras)
         prd_gra = union_from_sequence(prd_gras)
 
@@ -487,6 +483,7 @@ def substitution(rct_gras, prd_gras):
 
 
 REACTION_FINDER_DCT = {
+    par.REACTION_CLASS.TRIVIAL: trivial_reaction,
     par.REACTION_CLASS.HYDROGEN_MIGRATION: hydrogen_migration,
     par.REACTION_CLASS.HYDROGEN_ABSTRACTION: hydrogen_abstraction,
     par.REACTION_CLASS.ADDITION: addition,
@@ -508,7 +505,15 @@ def classify_simple(rct_gras, prd_gras):
     rct_gras = list(map(explicit, rct_gras))
     prd_gras = list(map(explicit, prd_gras))
 
-    _, _, _, rxn_type = classify(rct_gras, prd_gras)
+    rct_gras = list(map(without_stereo_parities, rct_gras))
+    prd_gras = list(map(without_stereo_parities, prd_gras))
+
+    rct_gras, _ = standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = standard_keys_for_sequence(prd_gras)
+
+    tras, _, _ = classify(rct_gras, prd_gras)
+
+    rxn_type = None if not tras else trans.reaction_class(tras[0])
 
     return rxn_type
 
@@ -516,6 +521,14 @@ def classify_simple(rct_gras, prd_gras):
 def classify(rct_gras, prd_gras):
     """ classify a reaction
     """
+
+    # check whether this is a valid reaction
+    rct_fmls = list(map(automol.formula.string,
+                        map(automol.convert.graph.formula, rct_gras)))
+    prd_fmls = list(map(automol.formula.string,
+                        map(automol.convert.graph.formula, prd_gras)))
+    assert is_valid_reaction(rct_gras, prd_gras), (
+        "Invalid reaction: {:s} -> {:s}".format(str(rct_fmls), str(prd_fmls)))
 
     for rxn_finder in REACTION_FINDER_DCT.values():
         tras, rct_idxs, prd_idxs = rxn_finder(rct_gras, prd_gras)
@@ -526,8 +539,10 @@ def classify(rct_gras, prd_gras):
 
 
 REV_REACTION_FINDER_DCT = {
-    par.REACTION_CLASS.HYDROGEN_MIGRATION: par.REACTION_CLASS.HYDROGEN_MIGRATION,
-    par.REACTION_CLASS.HYDROGEN_ABSTRACTION: par.REACTION_CLASS.HYDROGEN_ABSTRACTION,
+    par.REACTION_CLASS.HYDROGEN_MIGRATION:
+    par.REACTION_CLASS.HYDROGEN_MIGRATION,
+    par.REACTION_CLASS.HYDROGEN_ABSTRACTION:
+    par.REACTION_CLASS.HYDROGEN_ABSTRACTION,
     par.REACTION_CLASS.ADDITION: par.REACTION_CLASS.BETA_SCISSION,
     par.REACTION_CLASS.BETA_SCISSION: par.REACTION_CLASS.ADDITION,
     # par.REACTION_CLASS.ELIMINATION: elimination,
@@ -545,7 +560,7 @@ def reverse_class(rxn_class):
 # def rxn_molecularity(rct_gras, prd_gras):
 #     """ Determine molecularity of the reaction
 #     """
-#     rct_molecularity = len(rct_gras) 
+#     rct_molecularity = len(rct_gras)
 #     prd_molecularity = len(prd_gras)
 #     rxn_molecularity = (rct_molecularity, prd_molecularity)
 #     return rxn_molecularity
@@ -738,6 +753,17 @@ def _unique_gras(gra_lst):
 
 
 if __name__ == '__main__':
-    RCT_ICH1 = 'InChI=1S/C2H4O/c1-2-3/h2-3H,1H2'
-    PRD_ICH1 = 'InChI=1S/C2H2/c1-2/h1-2H'
-    PRD_ICH2 = 'InChI=1S/H2O/h1H2'
+    # import sys
+    RXNS = list(map(eval, open('reactions_from_luna.txt').read().splitlines()))
+    for RXN in RXNS:
+        RCT_ICHS, PRD_ICHS = RXN
+        RCT_GRAS = list(map(automol.inchi.graph, RCT_ICHS))
+        PRD_GRAS = list(map(automol.inchi.graph, PRD_ICHS))
+        try:
+            RXN_TYPE = classify_simple(RCT_GRAS, PRD_GRAS)
+        except AssertionError as e:
+            print(e)
+            pass
+        print(RXN_TYPE)
+        if RXN_TYPE is None:
+            print([RCT_ICHS, PRD_ICHS])
