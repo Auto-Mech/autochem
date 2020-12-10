@@ -9,6 +9,7 @@ from automol.formula._formula import argsort_symbols
 from automol.formula._formula import add_element
 from automol.formula._formula import add_hydrogen
 from automol.formula._formula import join
+from automol.formula._formula import join_sequence
 from automol.formula._formula import string
 from automol.formula._formula import string2
 # submodules
@@ -24,6 +25,7 @@ __all__ = [
     'add_element',
     'add_hydrogen',
     'join',
+    'join_sequence',
     'string',
     'string2',
     # submodules
