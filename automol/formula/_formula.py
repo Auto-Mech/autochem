@@ -1,5 +1,6 @@
 """ molecular formula
 """
+import functools
 import itertools
 import collections
 from qcelemental import periodictable as pt
@@ -63,6 +64,13 @@ def join(fml1, fml2):
     fml = dict(fml1)
     for sym, num in fml2.items():
         fml = add_element(fml, sym, num=num)
+    return fml
+
+
+def join_sequence(fmls):
+    """ join a sequence of formulas together
+    """
+    fml = functools.reduce(join, fmls)
     return fml
 
 

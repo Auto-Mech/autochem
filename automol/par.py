@@ -9,6 +9,7 @@ import itertools
 class REACTION_CLASS():
     """ Names of supported reaction classes
     """
+    TRIVIAL = 'trivial'
     # Unimolecular reactions
     BETA_SCISSION = 'beta scission'
     ELIMINATION = 'elimination'
