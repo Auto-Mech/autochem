@@ -6,6 +6,7 @@ from automol.zmat._zmat import symbols
 from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import value_matrix
+from automol.zmat._zmat import distance
 # setters
 from automol.zmat._zmat import rename
 from automol.zmat._zmat import standard_form
@@ -94,6 +95,7 @@ __all__ = [
     'key_matrix',
     'name_matrix',
     'value_matrix',
+    'distance',
     # setters
     'rename',
     'standard_form',

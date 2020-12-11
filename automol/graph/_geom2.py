@@ -117,18 +117,26 @@ def ring_arc_bond_angle(num, end_dist=XY_DIST, bond_dist=XY_DIST):
         lhs = bond_dist / end_dist
         return rhs - lhs
 
-    res_obj = scipy.optimize.root_scalar(_f, method='brentq',
-                                         bracket=[0.01, 2*numpy.pi])
+    # if the end distance is longer than the sum of the bond distances, set the
+    # angle to 180; otherwise solve for the correct bond angle to complete the
+    # arc, as described above
+    if end_dist > (num - 1) * bond_dist:
+        ang = 180.
+    else:
+        res_obj = scipy.optimize.root_scalar(_f, method='brentq',
+                                             bracket=[0.01, 2*numpy.pi])
 
-    assert res_obj.converged
-    # convert from radians to degrees
-    theta = res_obj.root * qcc.conversion_factor('radian', 'degree')
+        assert res_obj.converged
+        # convert from radians to degrees
+        theta = res_obj.root * qcc.conversion_factor('radian', 'degree')
 
-    return 180. - theta/(num-1)
+        ang = 180. - theta/(num-1)
+
+    return ang
 
 
 def chain_zmatrix(gra, chain_keys):
-    """ build a chain of heavy atoms
+    """ z-matrix for a chain of heavy atoms
     """
     chain_iter = iter(chain_keys)
 
@@ -162,12 +170,49 @@ def chain_zmatrix(gra, chain_keys):
         # now, shift the keys for the next one up
         key1, key2, key3 = key2, key3, key4
 
-    chain_rows = tuple(map(row_dct.__getitem__, chain_keys))
-    return zma, chain_rows
+    return zma, row_dct
+
+
+def ring_system_zmatrix(gra, ring_system_decomp_keys):
+    """ z-matrix for a ring system
+
+    :param gra: the graph
+    :param ring_system_decomp_keys: keys for the ring system, decomposed into a
+        single ring with several arcs extending from it; the end atoms for each
+        next arc must be contained in the preceding parts of the system
+    """
+    ring_sys_iter = iter(ring_system_decomp_keys)
+
+    ring_keys = next(ring_sys_iter)
+    print(automol.graph.string(gra))
+    print(ring_keys)
+
+    zma, row_dct = ring_zmatrix(gra, ring_keys)
+
+    arc_keys = next(ring_sys_iter)
+    end_keys = (arc_keys[0], arc_keys[-1])
+    end_rows = list(map(row_dct.__getitem__, end_keys))
+    end_dist = automol.zmat.distance(zma, *end_rows, angstrom=True)
+    print(end_keys)
+    print(end_dist)
+    arc_zma, arc_row_dct = ring_zmatrix(gra, arc_keys, end_dist=end_dist)
+
+    # TODO: write a function in automol.zmat called something like
+    # join_merge_first_order, for joining two z-matrices, merging the first
+    # atom in the second z-matrix with one of the atoms in the first.
+    # This will leave only three parameters that will need to be set:
+    #     (x,  x,  x)
+    #     (x, a1, d1)
+    #     (x,  x, d2)
+
+    arc_geo = automol.zmat.geometry(arc_zma)
+    print(automol.zmat.string(arc_zma))
+    print(automol.geom.string(arc_geo))
+    print(arc_row_dct)
 
 
 def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
-    """ build an arc (or ring) of heavy atoms
+    """ z-matrix for a ring (or arc) of heavy atoms
 
     :param bond_dist: bond distances between neighboring atoms in the ring
     :type bond_dist: float
@@ -211,8 +256,7 @@ def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
         # now, shift the keys for the next one up
         key1, key2, key3 = key2, key3, key4
 
-    ring_rows = tuple(map(row_dct.__getitem__, ring_keys))
-    return zma, ring_rows
+    return zma, row_dct
 
 
 if __name__ == '__main__':
@@ -237,8 +281,8 @@ if __name__ == '__main__':
     GRA = automol.inchi.graph(ICH)
 
     DECOMPS = ring_systems_decomposed_atom_keys(GRA)
-    print(DECOMPS[0])
-    print(DECOMPS[1])
+    ring_system_zmatrix(GRA, DECOMPS[0])
+
     # RING_SYSTEMS = ring_systems(GRA)
 
     # RING_SYSTEM1 = RING_SYSTEMS[1]
