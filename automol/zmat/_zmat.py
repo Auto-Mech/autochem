@@ -5,6 +5,8 @@ from qcelemental import constants as qcc
 from automol import vmat
 from automol.vmat import standard_names
 import automol.create.zmat
+import automol.convert.zmat
+import automol.geom
 import autoread as ar
 import autowrite as aw
 
@@ -63,6 +65,13 @@ def value_dictionary(zma, angstrom=False, degree=False):
     val_dct = dict(zip(names, vals))
     val_dct.pop(None)
     return val_dct
+
+
+def distance(zma, key1, key2, angstrom=False):
+    """ measure the distance between atoms
+    """
+    geo = automol.convert.zmat.geometry(zma)
+    return automol.geom.distance(geo, key1, key2, angstrom=angstrom)
 
 
 # setters

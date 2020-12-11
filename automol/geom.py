@@ -15,6 +15,9 @@ import automol.convert.inchi
 from automol import cart
 from automol.convert._pyx2z import to_oriented_geometry
 
+BOHR2ANG = qcc.conversion_factor('bohr', 'angstrom')
+RAD2DEG = qcc.conversion_factor('radian', 'degree')
+
 
 # constructor
 def from_data(syms, xyzs, angstrom=False):
@@ -674,26 +677,30 @@ def _swap_for_one(geo, hyds):
 
 
 # geometric properties
-def distance(geo, idx1, idx2):
+def distance(geo, idx1, idx2, angstrom=False):
     """ measure the distance between atoms
     """
     xyzs = coordinates(geo)
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
-    return cart.vec.distance(xyz1, xyz2)
+    dist = cart.vec.distance(xyz1, xyz2)
+    dist *= BOHR2ANG if angstrom else 1
+    return dist
 
 
-def central_angle(geo, idx1, idx2, idx3):
+def central_angle(geo, idx1, idx2, idx3, degree=False):
     """ measure the angle inscribed by three atoms
     """
     xyzs = coordinates(geo)
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
     xyz3 = xyzs[idx3]
-    return cart.vec.central_angle(xyz1, xyz2, xyz3)
+    ang = cart.vec.central_angle(xyz1, xyz2, xyz3)
+    ang *= RAD2DEG if degree else 1
+    return ang
 
 
-def dihedral_angle(geo, idx1, idx2, idx3, idx4):
+def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     """ measure the dihedral angle defined by four atoms
     """
     xyzs = coordinates(geo)
@@ -701,7 +708,9 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4):
     xyz2 = xyzs[idx2]
     xyz3 = xyzs[idx3]
     xyz4 = xyzs[idx4]
-    return cart.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
+    dih = cart.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
+    dih *= RAD2DEG if degree else 1
+    return dih
 
 
 def distance_matrix(geo):

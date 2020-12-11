@@ -1,7 +1,7 @@
 
 """ test automol.zmat
 """
-# import numpy
+import numpy
 from automol import zmat
 
 CH4O2_ZMA = (
@@ -122,7 +122,15 @@ def test__string():
     assert zmat.almost_equal(zma, CH4O2_ZMA)
 
 
+def test__distance():
+    """ test zmat.distance
+    """
+    dist16 = zmat.distance(CH4O2_ZMA, 1, 6, angstrom=True)
+    assert numpy.isclose(dist16, 2.6363)
+
+
 if __name__ == '__main__':
     test__from_data()
     test__string()
     test__add_atom()
+    test__distance()
