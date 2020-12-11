@@ -233,3 +233,17 @@ def rct1x_rct2_join(rct1_x_zma, rct2_zma,
         rct1_x_zma, rct2_zma, join_keys, join_names, join_val_dct)
 
     return rct1_x_rct2_zma
+
+
+def sort_zmas_by_idxs(rct_zmas_lst, prd_zmas_lst, rxn_idxs):
+    """ Given a lst of reactant and product zmas, reorder the lst using the
+        preobtained rxn idxs
+    """
+
+    if rxn_idxs is not None:
+        rct_idxs, prd_idxs = rxn_idxs
+        for i, _ in enumerate(rct_zmas_lst):
+            rct_zmas_lst[i] = list(map(rct_zmas_lst[i].__getitem__, rct_idxs))
+            prd_zmas_lst[i] = list(map(prd_zmas_lst[i].__getitem__, prd_idxs))
+
+    return rct_zmas_lst, prd_zmas_lst
