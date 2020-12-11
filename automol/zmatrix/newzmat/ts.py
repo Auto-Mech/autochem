@@ -7,16 +7,16 @@ import automol.inchi
 import automol.graph
 import automol.geom
 import automol.zmatrix
-from automol.zmatrix._unimol_ts import min_hyd_mig_dist
-from automol.zmatrix._unimol_ts import ring_forming_scission
-from automol.zmatrix._unimol_ts import hydrogen_migration
-from automol.zmatrix._unimol_ts import min_unimolecular_elimination_dist
-from automol.zmatrix._unimol_ts import concerted_unimolecular_elimination
-from automol.zmatrix._unimol_ts import beta_scission
-from automol.zmatrix._bimol_ts import insertion
-from automol.zmatrix._bimol_ts import substitution
-from automol.zmatrix._bimol_ts import addition
-from automol.zmatrix._bimol_ts import hydrogen_abstraction
+from automol.zmatrix.newzmat._unimol_ts import min_hyd_mig_dist
+from automol.zmatrix.newzmat._unimol_ts import ring_forming_scission
+from automol.zmatrix.newzmat._unimol_ts import hydrogen_migration
+from automol.zmatrix.newzmat._unimol_ts import min_unimolecular_elimination_dist
+from automol.zmatrix.newzmat._unimol_ts import concerted_unimolecular_elimination
+from automol.zmatrix.newzmat._unimol_ts import beta_scission
+from automol.zmatrix.newzmat._bimol_ts import insertion
+from automol.zmatrix.newzmat._bimol_ts import substitution
+from automol.zmatrix.newzmat._bimol_ts import addition
+from automol.zmatrix.newzmat._bimol_ts import hydrogen_abstraction
 
 
 def zmatrix_reaction_info(ts_zma, rct_gras, prd_gras):
@@ -271,12 +271,12 @@ ZMA_BUILDER_DCT = {
 }
 
 
-def zma_build(rtyp, rct_zmas, prd_zmas, tras):
+def zma_build(rtyp, rct_zmas_lst, prd_zmas_lst, tras):
     """ build a ZMA for a TS search
     """
 
     if rtyp in ZMA_BUILDER_DCT:
-        ret = ZMA_BUILDER_DCT[rtyp](rct_zmas, prd_zmas, tras)
+        ret = ZMA_BUILDER_DCT[rtyp](rct_zmas_lst, prd_zmas_lst, tras)
     else:
         ret = None
     return ret
