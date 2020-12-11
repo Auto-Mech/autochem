@@ -273,7 +273,7 @@ def substitution(rct_zmas, prd_zmas):
     return ret
 
 
-def addition(rct_zmas, prd_zmas):
+def addition(rct_zmas, prd_zmas, rct_tors=()):
     """ z-matrix for an addition reaction
     """
     ret = None
