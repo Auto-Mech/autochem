@@ -3,7 +3,6 @@
 import numpy
 from qcelemental import constants as qcc
 from automol import vmat
-from automol.vmat import standard_names
 import automol.create.zmat
 import automol.convert.zmat
 import automol.geom
@@ -74,7 +73,65 @@ def distance(zma, key1, key2, angstrom=False):
     return automol.geom.distance(geo, key1, key2, angstrom=angstrom)
 
 
+def central_angle(zma, key1, key2, key3, degree=False):
+    """ measure the angle inscribed by three atoms
+    """
+    geo = automol.convert.zmat.geometry(zma)
+    return automol.geom.central_angle(geo, key1, key2, key3, degree=degree)
+
+
+def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
+    """ measure the angle inscribed by three atoms
+    """
+    geo = automol.convert.zmat.geometry(zma)
+    return automol.geom.dihedral_angle(geo, key1, key2, key3, key4,
+                                       degree=degree)
+
+
 # setters
+def set_key_matrix(zma, key_mat):
+    """ set the key matrix
+    """
+    syms = symbols(zma)
+    val_mat = value_matrix(zma)
+    name_mat = name_matrix(zma)
+    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+    return zma
+
+
+def set_name_matrix(zma, name_mat):
+    """ set the name matrix
+    """
+    syms = symbols(zma)
+    val_mat = value_matrix(zma)
+    key_mat = key_matrix(zma)
+    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+    return zma
+
+
+def set_value_matrix(zma, val_mat):
+    """ set the name matrix
+    """
+    syms = symbols(zma)
+    key_mat = key_matrix(zma)
+    name_mat = name_matrix(zma)
+    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+    return zma
+
+
+def standard_name_matrix(zma, shift=0):
+    """ standard names for the coordinates (follows x2z format)
+    """
+    return vmat.standard_name_matrix(zma, shift=shift)
+
+
+def standard_form(zma, shift=0):
+    """ set standard variable names for the z-matrix (x2z format)
+    """
+    name_mat = standard_name_matrix(zma, shift=shift)
+    return set_name_matrix(zma, name_mat)
+
+
 def rename(zma, name_dct):
     """ set coordinate names for the z-matrix
     """
@@ -87,13 +144,6 @@ def rename(zma, name_dct):
 
     zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
     return zma
-
-
-def standard_form(zma):
-    """ set standard variable names for the z-matrix (x2z format)
-    """
-    name_dct = standard_names(zma)
-    return rename(zma, name_dct)
 
 
 # operations
@@ -115,6 +165,48 @@ def add_atom(zma, sym, key_row, val_row, name_row=None,
     zma = automol.create.zmat.from_data(
         syms, key_mat, val_mat, name_mat, one_indexed=one_indexed,
         angstrom=angstrom, degree=degree)
+    return zma
+
+
+def join_replace_one(zma1, zma2, rep1_key, key_mat, val_mat, name_mat=None,
+                     degree=True):
+    """ join two z-matrices, replacing the first atom in zma2 by an atom in zma1
+
+    :param rep1_key: the key of the atom in zma1 that will replace the first
+        atom in zma2
+    """
+    rep2_key = count(zma1) - 1
+
+    syms = symbols(zma1) + symbols(zma2)[1:]
+
+    key_mat1 = key_matrix(zma1)
+    key_mat2 = key_matrix(zma2, shift=rep2_key)[1:]
+    key_mat2 = numpy.array(key_mat2, dtype=numpy.object_)
+    key_mat2[key_mat2 == rep2_key] = rep1_key
+    key_mat2[0, 1:] = key_mat[0][-2:]
+    key_mat2[1, 2:] = key_mat[1][-1:]
+    key_mat2 = tuple(map(tuple, key_mat2))
+    key_mat = key_mat1 + key_mat2
+
+    val_mat1 = value_matrix(zma1, degree=degree)
+    val_mat2 = value_matrix(zma2, degree=degree)[1:]
+    val_mat2 = numpy.array(val_mat2, dtype=numpy.object_)
+    val_mat2[0, 1:] = val_mat[0][-2:]
+    val_mat2[1, 2:] = val_mat[1][-1:]
+    val_mat2 = tuple(map(tuple, val_mat2))
+    val_mat = val_mat1 + val_mat2
+
+    if name_mat is not None:
+        name_mat1 = name_matrix(zma1)
+        name_mat2 = name_matrix(zma2)[1:]
+        name_mat2 = numpy.array(name_mat2, dtype=numpy.object_)
+        name_mat2[0, 1:] = name_mat[0][-2:]
+        name_mat2[1, 2:] = name_mat[1][-1:]
+        name_mat2 = tuple(map(tuple, name_mat2))
+        name_mat = name_mat1 + name_mat2
+
+    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat,
+                                        degree=degree)
     return zma
 
 
