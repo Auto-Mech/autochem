@@ -7,12 +7,19 @@ from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import value_matrix
 from automol.zmat._zmat import distance
+from automol.zmat._zmat import central_angle
+from automol.zmat._zmat import dihedral_angle
 # setters
-from automol.zmat._zmat import rename
+from automol.zmat._zmat import set_key_matrix
+from automol.zmat._zmat import set_name_matrix
+from automol.zmat._zmat import set_value_matrix
+from automol.zmat._zmat import standard_name_matrix
 from automol.zmat._zmat import standard_form
-from automol.zmat._zmat import standard_names
+from automol.zmat._zmat import rename
+from automol.vmat import standard_names
 # operations
 from automol.zmat._zmat import add_atom
+from automol.zmat._zmat import join_replace_one
 # comparisons
 from automol.zmat._zmat import almost_equal
 # I/O
@@ -96,12 +103,19 @@ __all__ = [
     'name_matrix',
     'value_matrix',
     'distance',
+    'central_angle',
+    'dihedral_angle',
     # setters
+    'set_key_matrix',
+    'set_name_matrix',
+    'set_value_matrix',
+    'standard_name_matrix',
     'rename',
     'standard_form',
     'standard_names',
     # operations
     'add_atom',
+    'join_replace_one',
     # comparisons
     'almost_equal',
     # I/O

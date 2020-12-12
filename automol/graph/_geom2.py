@@ -170,7 +170,8 @@ def chain_zmatrix(gra, chain_keys):
         # now, shift the keys for the next one up
         key1, key2, key3 = key2, key3, key4
 
-    return zma, row_dct
+    chain_rows = tuple(map(row_dct.__getitem__, chain_keys))
+    return zma, chain_rows
 
 
 def ring_system_zmatrix(gra, ring_system_decomp_keys):
@@ -187,7 +188,8 @@ def ring_system_zmatrix(gra, ring_system_decomp_keys):
     print(automol.graph.string(gra))
     print(ring_keys)
 
-    zma, row_dct = ring_zmatrix(gra, ring_keys)
+    zma, ring_rows = ring_zmatrix(gra, ring_keys)
+    row_dct = dict(zip(ring_keys, ring_rows))
 
     arc_keys = next(ring_sys_iter)
     end_keys = (arc_keys[0], arc_keys[-1])
@@ -195,20 +197,26 @@ def ring_system_zmatrix(gra, ring_system_decomp_keys):
     end_dist = automol.zmat.distance(zma, *end_rows, angstrom=True)
     print(end_keys)
     print(end_dist)
-    arc_zma, arc_row_dct = ring_zmatrix(gra, arc_keys, end_dist=end_dist)
+    arc_zma, arc_rows = ring_zmatrix(gra, arc_keys, end_dist=end_dist)
+    # arc_row_dct = dict(zip(arc_keys, arc_rows))
 
-    # TODO: write a function in automol.zmat called something like
-    # join_merge_first_order, for joining two z-matrices, merging the first
-    # atom in the second z-matrix with one of the atoms in the first.
-    # This will leave only three parameters that will need to be set:
-    #     (x,  x,  x)
-    #     (x, a1, d1)
-    #     (x,  x, d2)
+    ang1 = automol.zmat.central_angle(
+        arc_zma, arc_rows[1], arc_rows[0], arc_rows[-1], degree=True)
+    dih1 = 90.
+    dih2 = 0.
 
-    arc_geo = automol.zmat.geometry(arc_zma)
-    print(automol.zmat.string(arc_zma))
-    print(automol.geom.string(arc_geo))
-    print(arc_row_dct)
+    key3 = end_keys[0]
+    key2 = end_keys[1]
+    row3 = ring_keys.index(key3)
+    row2 = ring_keys.index(key2)
+    row1 = row2 - 1 if row2 > 0 else row2 + 1
+    row_mat = [[row2, row1], [row2]]
+    val_mat = [[ang1, dih1], [dih2]]
+    zma = automol.zmat.join_replace_one(zma, arc_zma, row3, row_mat, val_mat)
+
+    geo = automol.zmat.geometry(zma)
+    print(automol.zmat.string(zma))
+    print(automol.geom.string(geo))
 
 
 def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
@@ -256,7 +264,8 @@ def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
         # now, shift the keys for the next one up
         key1, key2, key3 = key2, key3, key4
 
-    return zma, row_dct
+    ring_rows = tuple(map(row_dct.__getitem__, ring_keys))
+    return zma, ring_rows
 
 
 if __name__ == '__main__':
