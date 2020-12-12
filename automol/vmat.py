@@ -176,6 +176,46 @@ def bond_key_from_idxs(vma, idxs):
 
 
 # value setters
+def set_key_matrix(zma, key_mat):
+    """ set the key matrix
+    """
+    syms = symbols(zma)
+    name_mat = name_matrix(zma)
+    zma = automol.create.vmat.from_data(syms, key_mat, name_mat)
+    return zma
+
+
+def set_name_matrix(zma, name_mat):
+    """ set the name matrix
+    """
+    syms = symbols(zma)
+    key_mat = key_matrix(zma)
+    zma = automol.create.vmat.from_data(syms, key_mat, name_mat)
+    return zma
+
+
+def standard_name_matrix(vma, shift=0):
+    """ standard names for the coordinates (follows x2z format)
+    """
+    natms = count(vma)
+
+    name_mat = numpy.array(name_matrix(vma), dtype=numpy.object_)
+
+    name_mat[1:, 0] = ['R{:d}'.format(num + shift + 1) for num in range(natms)]
+    name_mat[2:, 1] = ['A{:d}'.format(num + shift + 2) for num in range(natms)]
+    name_mat[3:, 2] = ['D{:d}'.format(num + shift + 3) for num in range(natms)]
+
+    name_mat = tuple(map(tuple, name_mat))
+    return name_mat
+
+
+def standard_form(vma, shift=0):
+    """ set standard variable names for the z-matrix (x2z format)
+    """
+    name_mat = standard_name_matrix(vma, shift=shift)
+    return set_name_matrix(vma, name_mat)
+
+
 def rename(vma, name_dct):
     """ set coordinate names for the variable v-matrix
     """
@@ -213,15 +253,6 @@ def standard_names(vma, shift=0):
         dih_ang_name: 'D{:d}'.format(num + shift + 3)
         for num, dih_ang_name in enumerate(dih_ang_names)})
     return name_dct
-
-
-def standard_form(vma):
-    """ set standard variable names for the variable v-matrix
-
-    (follows x2z format)
-    """
-    name_dct = standard_names(vma)
-    return rename(vma, name_dct)
 
 
 def is_valid(vma):
