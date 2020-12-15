@@ -61,6 +61,13 @@ def rings_bond_keys(gra):
     return rng_bnd_keys_lst
 
 
+def is_ring_key_sequence(gra, keys):
+    """ does this sequence of keys share a ring?
+    """
+    keys = set(keys)
+    return any(keys <= rng_keys for rng_keys in rings_atom_keys(gra))
+
+
 def ring_arc_complement_atom_keys(gra, rng):
     """ non-intersecting arcs from a ring that shares segments with a graph
     """

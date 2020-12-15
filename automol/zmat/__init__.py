@@ -19,6 +19,7 @@ from automol.zmat._zmat import rename
 from automol.vmat import standard_names
 # operations
 from automol.zmat._zmat import add_atom
+from automol.zmat._zmat import remove_atom
 from automol.zmat._zmat import join_replace_one
 # comparisons
 from automol.zmat._zmat import almost_equal
@@ -115,6 +116,7 @@ __all__ = [
     'standard_names',
     # operations
     'add_atom',
+    'remove_atom',
     'join_replace_one',
     # comparisons
     'almost_equal',

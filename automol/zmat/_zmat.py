@@ -168,6 +168,35 @@ def add_atom(zma, sym, key_row, val_row, name_row=None,
     return zma
 
 
+def remove_atom(zma, key):
+    """ remove an atom from the z-matrix
+
+    complains if attempting to remove an atom that other atoms depend on
+    """
+    syms = list(symbols(zma))
+    syms.pop(key)
+
+    key_mat = list(key_matrix(zma))
+    key_mat.pop(key)
+    key_mat = numpy.array(key_mat, dtype=numpy.object_)
+
+    if (key_mat == key).any():
+        raise ValueError("Other atoms in z-matrix depend on atom {}"
+                         .format(key))
+
+    key_map = numpy.vectorize(lambda x: x if (x is None or x < key) else x-1)
+    key_mat = key_map(key_mat)
+
+    val_mat = list(value_matrix(zma))
+    val_mat.pop(key)
+
+    name_mat = list(name_matrix(zma))
+    name_mat.pop(key)
+
+    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+    return zma
+
+
 def join_replace_one(zma1, zma2, rep1_key, key_mat, val_mat, name_mat=None,
                      degree=True):
     """ join two z-matrices, replacing the first atom in zma2 by an atom in zma1
