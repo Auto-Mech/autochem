@@ -43,6 +43,12 @@ def connected_component_atom_keys(nxg):
     return tuple(map(frozenset, networkx.algorithms.connected_components(nxg)))
 
 
+def all_pairs_shortest_path(nxg):
+    """ shortest path between any two vertices in the graph
+    """
+    return networkx.all_pairs_shortest_path(nxg)
+
+
 def isomorphism(nxg1, nxg2):
     """ graph isomorphism
     """

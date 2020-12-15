@@ -2,16 +2,17 @@
 
 For generating heuristic coordinates and z-matrices from graphs
 """
+import more_itertools as mit
 import numpy
 import scipy.optimize
 from qcelemental import constants as qcc
 from qcelemental import periodictable as pt
 import automol.zmat
 from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._ring import is_ring_key_sequence
 from automol.graph._ring import ring_systems_decomposed_atom_keys
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_symbols
-from automol.graph._graph import longest_chain
 
 
 # bond distances
@@ -55,8 +56,7 @@ def heuristic_bond_angle(gra, key1, key2, key3, check=True):
     if check:
         assert {key1, key3} <= set(atom_neighbor_keys(gra)[key2])
 
-    hyb_dct = resonance_dominant_atom_hybridizations(gra)
-    hyb2 = hyb_dct[key2]
+    hyb2 = resonance_dominant_atom_hybridizations(gra)[key2]
     if hyb2 == 3:
         ang = TET_ANG
     elif hyb2 == 2:
@@ -66,6 +66,63 @@ def heuristic_bond_angle(gra, key1, key2, key3, check=True):
         ang = LIN_ANG
 
     return ang
+
+
+def heuristic_dihedral_angle(gra, key1, key2, key3, key4,
+                             zma=None, zma_keys=None, check=True):
+    """ heuristic dihedral angle
+
+    if a partial z-matrix geometry is provided, the angle will be chosen to
+    avoid overlaps with existing atoms
+
+    :param zma: a partial z-matrix
+    :param zma_keys: graph keys for each z-matrix row
+    """
+    ngb_keys = atom_neighbor_keys(gra)[key3]
+
+    if check:
+        assert key4 in ngb_keys
+
+    zma_keys = [] if zma_keys is None else zma_keys
+    zma_ngb_keys = ngb_keys & set(zma_keys) - {key2}
+
+    # if z-matrix is not specified, or there are no fixed neighbors to avoid,
+    # set the dihedral angle to 0 or 180
+    if zma is None or not zma_ngb_keys:
+        keys = [key1, key2, key3, key4]
+        dih = CIS_DIH if is_ring_key_sequence(gra, keys) else TRA_DIH
+    # if the z-matrix is specified, and there are fixed neighbors to avoid,
+    # work out the correct angle to avoid them
+    else:
+        row1, row2, row3 = map(zma_keys.index, (key1, key2, key3))
+        ngb_rows = list(map(zma_keys.index, zma_ngb_keys))
+        ngb_dihs = sorted(
+            automol.zmat.dihedral_angle(zma, row1, row2, row3, row4,
+                                        degree=True)
+            for row4 in ngb_rows)
+        start, end = _maximum_open_dihedral_range(ngb_dihs)
+        span = end - start
+
+        hyb3 = resonance_dominant_atom_hybridizations(gra)[key3]
+        if hyb3 == 3:
+            dih = start + span/(4-len(zma_ngb_keys))
+        elif hyb3 == 2:
+            dih = start + span/(3-len(zma_ngb_keys))
+        else:
+            assert hyb3 == 1
+            dih = 0.
+
+    dih = numpy.mod(dih, 360.)
+    dih = dih if dih <= 180. else dih - 360.
+
+    return dih
+
+
+def _maximum_open_dihedral_range(dihs):
+    dihs = sorted(dihs)
+    dihs.append(dihs[0] + 360.)
+    dih_ranges = sorted(mit.windowed(dihs, 2), key=lambda x: x[1]-x[0])
+    return dih_ranges[0]
 
 
 def ring_arc_bond_angle(num, end_dist=XY_DIST, bond_dist=XY_DIST):
@@ -170,53 +227,7 @@ def chain_zmatrix(gra, chain_keys):
         # now, shift the keys for the next one up
         key1, key2, key3 = key2, key3, key4
 
-    chain_rows = tuple(map(row_dct.__getitem__, chain_keys))
-    return zma, chain_rows
-
-
-def ring_system_zmatrix(gra, ring_system_decomp_keys):
-    """ z-matrix for a ring system
-
-    :param gra: the graph
-    :param ring_system_decomp_keys: keys for the ring system, decomposed into a
-        single ring with several arcs extending from it; the end atoms for each
-        next arc must be contained in the preceding parts of the system
-    """
-    ring_sys_iter = iter(ring_system_decomp_keys)
-
-    ring_keys = next(ring_sys_iter)
-    print(automol.graph.string(gra))
-    print(ring_keys)
-
-    zma, ring_rows = ring_zmatrix(gra, ring_keys)
-    row_dct = dict(zip(ring_keys, ring_rows))
-
-    arc_keys = next(ring_sys_iter)
-    end_keys = (arc_keys[0], arc_keys[-1])
-    end_rows = list(map(row_dct.__getitem__, end_keys))
-    end_dist = automol.zmat.distance(zma, *end_rows, angstrom=True)
-    print(end_keys)
-    print(end_dist)
-    arc_zma, arc_rows = ring_zmatrix(gra, arc_keys, end_dist=end_dist)
-    # arc_row_dct = dict(zip(arc_keys, arc_rows))
-
-    ang1 = automol.zmat.central_angle(
-        arc_zma, arc_rows[1], arc_rows[0], arc_rows[-1], degree=True)
-    dih1 = 90.
-    dih2 = 0.
-
-    key3 = end_keys[0]
-    key2 = end_keys[1]
-    row3 = ring_keys.index(key3)
-    row2 = ring_keys.index(key2)
-    row1 = row2 - 1 if row2 > 0 else row2 + 1
-    row_mat = [[row2, row1], [row2]]
-    val_mat = [[ang1, dih1], [dih2]]
-    zma = automol.zmat.join_replace_one(zma, arc_zma, row3, row_mat, val_mat)
-
-    geo = automol.zmat.geometry(zma)
-    print(automol.zmat.string(zma))
-    print(automol.geom.string(geo))
+    return zma
 
 
 def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
@@ -264,20 +275,73 @@ def ring_zmatrix(gra, ring_keys, bond_dist=XY_DIST, end_dist=XY_DIST):
         # now, shift the keys for the next one up
         key1, key2, key3 = key2, key3, key4
 
-    ring_rows = tuple(map(row_dct.__getitem__, ring_keys))
-    return zma, ring_rows
+    return zma
+
+
+def ring_system_zmatrix(gra, ring_system_decomp_keys):
+    """ z-matrix for a ring system
+
+    :param gra: the graph
+    :param ring_system_decomp_keys: keys for the ring system, decomposed into a
+        single ring with several arcs extending from it; the end atoms for each
+        next arc must be contained in the preceding parts of the system
+    """
+    ring_sys_iter = iter(map(list, ring_system_decomp_keys))
+
+    keys = next(ring_sys_iter)
+    zma = ring_zmatrix(gra, keys)
+
+    for arc_keys in ring_sys_iter:
+        end_keys = (arc_keys[0], arc_keys[-1])
+        end_rows = list(map(keys.index, end_keys))
+        end_dist = automol.zmat.distance(zma, *end_rows, angstrom=True)
+        arc_zma = ring_zmatrix(gra, arc_keys, end_dist=end_dist)
+
+        key4 = arc_keys[1]
+        key3 = arc_keys[0]
+        key2 = arc_keys[-1]
+        key1 = next(iter(
+            (atom_neighbor_keys(gra)[key2] & set(keys)) - {key3}))
+
+        # this angle is already fixed, since all of these atoms are in the arc
+        row4, row3, row2 = map(arc_keys.index, (key4, key3, key2))
+        ang1 = automol.zmat.central_angle(arc_zma, row4, row3, row2,
+                                          degree=True)
+        # this angle is not fixed, since key1 is not in the arc
+        dih1 = heuristic_dihedral_angle(gra, key1, key2, key3, key4,
+                                        zma=zma, zma_keys=keys)
+        # this is a dihedral between four atoms in the arc, which is zero
+        dih2 = 0.
+
+        key3 = end_keys[0]
+        key2 = end_keys[1]
+        row3 = keys.index(key3)
+        row2 = keys.index(key2)
+        row1 = row2 - 1 if row2 > 0 else row2 + 1
+        row_mat = [[row2, row1], [row2]]
+        val_mat = [[ang1, dih1], [dih2]]
+        zma = automol.zmat.join_replace_one(
+            zma, arc_zma, row3, row_mat, val_mat)
+
+        # remove the last atom, which is redundant
+        keys += arc_keys[1:-1]
+        zma = automol.zmat.remove_atom(zma, len(keys))
+
+    geo = automol.zmat.geometry(zma)
+    print(automol.zmat.string(zma))
+    print(automol.geom.string(geo))
 
 
 if __name__ == '__main__':
     import automol
 
-    # chain
-    ICH = automol.smiles.inchi('CCCCCC')
-    GRA = automol.inchi.graph(ICH)
-    # print(automol.graph.string(GRA, one_indexed=False))
-    CHAIN_KEYS = longest_chain(GRA)
-    print(CHAIN_KEYS)
-    # ZMA, CHAIN_ROWS = chain_zmatrix(GRA, CHAIN_KEYS)
+    # # chain
+    # ICH = automol.smiles.inchi('CCCCCC')
+    # GRA = automol.inchi.graph(ICH)
+    # # print(automol.graph.string(GRA, one_indexed=False))
+    # CHAIN_KEYS = longest_chain(GRA)
+    # print(CHAIN_KEYS)
+    # # ZMA, CHAIN_ROWS = chain_zmatrix(GRA, CHAIN_KEYS)
 
     # print(CHAIN_ROWS)
     # print(automol.zmat.string(ZMA))
@@ -287,10 +351,12 @@ if __name__ == '__main__':
     # ring
     # ICH = automol.smiles.inchi('C12CC(C2)CC1')
     ICH = automol.smiles.inchi('C1CCC2CC(CCC3C4CCC5CC4C53)CC2C1')
+    GEO = automol.inchi.geometry(ICH)
+    print(automol.geom.string(GEO))
     GRA = automol.inchi.graph(ICH)
 
     DECOMPS = ring_systems_decomposed_atom_keys(GRA)
-    ring_system_zmatrix(GRA, DECOMPS[0])
+    ring_system_zmatrix(GRA, DECOMPS[1])
 
     # RING_SYSTEMS = ring_systems(GRA)
 

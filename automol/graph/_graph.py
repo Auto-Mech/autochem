@@ -270,6 +270,16 @@ def connected_components_atom_keys(gra):
     return cmp_gra_atm_keys_lst
 
 
+def atom_shortest_paths(gra):
+    """ shortest paths between any two atoms in the graph
+
+    :returns: a 2d dictionary keyed by pairs of atoms
+    """
+    nxg = _networkx.from_graph(gra)
+    sp_dct = dict(_networkx.all_pairs_shortest_path(nxg))
+    return sp_dct
+
+
 def longest_chain(gra):
     """ longest chain in the graph
     """
@@ -291,6 +301,8 @@ def atom_longest_chains(gra):
 
 
 def atom_longest_chain(gra, atm_key):
+    """ longest chain for a specific atom
+    """
     atm_ngb_keys_dct = atom_neighbor_keys(gra)
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]
 
