@@ -9,7 +9,9 @@ import automol.geom
 import autoread as ar
 import autowrite as aw
 
+ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 BOHR2ANG = qcc.conversion_factor('bohr', 'angstrom')
+DEG2RAD = qcc.conversion_factor('degree', 'radian')
 RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 
@@ -117,6 +119,25 @@ def set_value_matrix(zma, val_mat):
     name_mat = name_matrix(zma)
     zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
     return zma
+
+
+def set_values_by_name(zma, val_dct, angstrom=True, degree=True):
+    """ set coordinate values for the z-matrix
+    """
+    val_mat = numpy.array(value_matrix(zma), dtype=numpy.object_)
+    name_mat = numpy.array(name_matrix(zma), dtype=numpy.object_)
+
+    for (row, col), name in numpy.ndenumerate(name_mat):
+        if name in val_dct:
+            val = val_dct[name]
+            if col == 0:
+                val *= ANG2BOHR if angstrom else 1
+            else:
+                assert col > 0
+                val *= DEG2RAD if degree else 1
+            val_mat[row, col] = val
+
+    return set_value_matrix(zma, val_mat)
 
 
 def standard_name_matrix(zma, shift=0):
