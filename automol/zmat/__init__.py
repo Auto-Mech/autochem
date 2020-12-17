@@ -13,6 +13,7 @@ from automol.zmat._zmat import dihedral_angle
 from automol.zmat._zmat import set_key_matrix
 from automol.zmat._zmat import set_name_matrix
 from automol.zmat._zmat import set_value_matrix
+from automol.zmat._zmat import set_values_by_name
 from automol.zmat._zmat import standard_name_matrix
 from automol.zmat._zmat import standard_form
 from automol.zmat._zmat import rename
@@ -110,6 +111,7 @@ __all__ = [
     'set_key_matrix',
     'set_name_matrix',
     'set_value_matrix',
+    'set_values_by_name',
     'standard_name_matrix',
     'rename',
     'standard_form',
