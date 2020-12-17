@@ -1,7 +1,24 @@
 """ geometry embedding using the distance geometry algorithm
 
+This algorithm generates approximate geometries by a randomized guess at the
+distance matrix, within heuristic distance bounds, which is then converted to
+an approximate geometry that satifies these distances.
+
 Blaney, J. M.; Dixon, J. S. “Distance Geometry in Molecular Modeling”.
 Reviews in Computational Chemistry; VCH: New York, 1994.
+
+The steps in the algorithm are as follows:
+
+    1. Generate distance bounds matrix B. (Here, B is replaced with L and U).
+    2. Narrow the bounds in B by triangle smoothing.
+    3. Generate a distance matrix D by uniform sampling within the bounds.
+    4. Generate the metric matrix G (matrix of position vector dot products).
+    5. Diagonalize G and determine the principal components.
+    6. The three largest eigenvectors and eigenvalues of G can be used to
+    generate x, y, z coordinates for the molecule which approximately
+    correspond to the distance matrix D.
+    7. (Not yet implemented) Do error refinement to clean up the structure and
+    enforce correct chirality.
 """
 import itertools
 import more_itertools as mit
