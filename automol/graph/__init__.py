@@ -156,6 +156,9 @@ from automol.graph._geom import heuristic_geometry
 from automol.graph._geom import connected_heuristic_zmatrix
 from automol.graph._geom import set_stereo_from_geometry
 
+# embedding library (should replace graph <=> geometry library)
+from automol.graph import embed
+
 # submodules
 from automol.graph import trans
 from automol.graph import reac
@@ -383,6 +386,9 @@ __all__ = [
     # conversions,
     'inchi',
     'formula',
+
+    # embedding library
+    'embed',
 
     # submodules
     'trans',

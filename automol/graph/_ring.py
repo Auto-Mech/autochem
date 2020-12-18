@@ -217,3 +217,11 @@ def _equivalence_partition(iterable, relation):
         if not found:  # it is in a new class
             classes.append(set([obj]))
     return classes
+
+
+if __name__ == '__main__':
+    import automol
+
+    ICH = automol.smiles.inchi('C1CCC2CC(CCC3C4CCC5CC4C53)CC2C1')
+    GRA = automol.inchi.graph(ICH)
+    print(automol.graph.rings_atom_keys(GRA))
