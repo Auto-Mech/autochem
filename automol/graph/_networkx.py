@@ -30,6 +30,17 @@ def from_graph(gra):
     return nxg
 
 
+def find_cycle_edges(nxg, nodes):
+    """ find a cycle starting from a list of nodes
+    """
+    try:
+        rng_bnd_keys = networkx.algorithms.cycles.find_cycle(nxg, source=nodes)
+    except networkx.exception.NetworkXNoCycle:
+        rng_bnd_keys = ()
+
+    return tuple(map(frozenset, rng_bnd_keys))
+
+
 def minimum_cycle_basis(nxg):
     """ minimum cycle basis for the graph
     """
