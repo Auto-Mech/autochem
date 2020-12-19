@@ -127,7 +127,7 @@ def cleaned_up_coordinates(xmat, lmat, umat, thresh=1e-1, maxiter=None):
 
     converged = False
 
-    for niter in range(100):
+    for niter in range(maxiter):
         # 1. Calculate the steepest direction
         sd1 = -grad_(xmat)
 
@@ -167,8 +167,8 @@ if __name__ == '__main__':
     numpy.random.seed(5)
     from automol.embed._findif import central_difference
     import automol
-    # ICH = automol.smiles.inchi('C12CC(C2)CC1')
-    ICH = automol.smiles.inchi('C1CCC2CC(CCC3C4CCC5CC4C53)CC2C1')
+    ICH = automol.smiles.inchi('CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O')
+    # ICH = automol.smiles.inchi('C1CCC2CC(CCC3C4CCC5CC4C53)CC2C1')
 
     # 1. Generate distance bounds matrices, L and U
     GRA = automol.inchi.graph(ICH)
@@ -185,3 +185,6 @@ if __name__ == '__main__':
     XYZS = XMAT[:, :3]
     GEO = automol.create.geom.from_data(SYMS, XYZS, angstrom=True)
     print(automol.geom.string(GEO))
+
+    GRA2 = automol.geom.connectivity_graph(GEO)
+    print(GRA == GRA2)
