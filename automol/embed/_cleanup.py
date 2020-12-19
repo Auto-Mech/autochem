@@ -19,96 +19,73 @@ The error function is minimized using the conjugate gradients method:
 Style convention: Functions returning callables (i.e. functions returning
 functions) and callable variables are marked by trailing underscores.
 """
-import itertools
 import numpy
 import scipy.optimize
 from automol.embed._dgeom import distance_matrix_from_coordinates
 
+X = numpy.newaxis
 
-def distance_error_function_(lmat, umat):
-    """ the distance error function
+
+def error_function_(lmat, umat, wdim4=1., leps=0.1, ueps=0.1):
+    """ the embedding error function
     """
+    triu = numpy.triu_indices_from(lmat)
 
-    def _error_function(xmat):
-        natms = len(xmat)
-
+    def _function(xmat):
         dmat = distance_matrix_from_coordinates(xmat)
 
-        err = sum(
-            max(0, ((dmat[i, j]/umat[i, j])**2 - 1)**2) +
-            max(0, (2*lmat[i, j]**2/(lmat[i, j]**2 + dmat[i, j]**2) - 1)**2)
-            for i, j in itertools.combinations(range(natms), 2))
+        utf = ((dmat**2-umat**2) / (ueps**2+umat**2))[triu]
+        ltf = ((lmat**2-dmat**2) / (leps**2+dmat**2))[triu]
 
-        return err
+        utf *= (utf > 0.)
+        ltf *= (ltf > 0.)
 
-    return _error_function
+        dist_err = numpy.vdot(utf, utf) + numpy.vdot(ltf, ltf)
+        dim4_err = wdim4 * numpy.vdot(xmat[:, 3], xmat[:, 3])
+
+        return dist_err + dim4_err
+
+    return _function
 
 
-def fourth_dimension_error_function_(weight):
-    """ the fourth-dimention error function
+def error_function_gradient_(lmat, umat, wdim4=1., leps=0.1, ueps=0.1):
+    """ the embedding error function gradient
     """
+    # natms = len(lmat)
 
-    def _error_function(xmat):
-        err = weight * numpy.linalg.norm(xmat[:, 3]) ** 2
-        return err
+    def _gradient(xmat):
+        dmat = distance_matrix_from_coordinates(xmat)
 
-    return _error_function
+        utf = (dmat**2-umat**2) / (ueps**2+umat**2)
+        ltf = (lmat**2-dmat**2) / (leps**2+dmat**2)
+        utg = (+4.*utf/(ueps**2+umat**2))*(utf > 0.)
+        ltg = (-4.*ltf/(leps**2+dmat**2)**2)*(leps**2+lmat**2)*(ltf > 0.)
+        utg = utg[:, :, X]
+        ltg = ltg[:, :, X]
+        xmx = xmat[:, X, :] - xmat[X, :, :]
+
+        dist_grad = numpy.sum(xmx*(ltg + utg), axis=1)
+        dim4_grad = numpy.hstack([numpy.zeros_like(xmat[:, :3]),
+                                  2*wdim4*xmat[:, 3:]])
+
+        return dist_grad + dim4_grad
+
+    return _gradient
 
 
-def distance_error_function_gradient_(lmat, umat):
+def error_function_numerical_gradient_(lmat, umat, wdim4=1.):
     """ the gradient of the distance error function
 
-    (Currently determined numerically. We can work out an analytic formula when
-    the time comes...)
+    (For testing purposes only; Used to check the analytic gradient formula.)
     """
 
-    erf_ = distance_error_function_(lmat, umat)
+    erf_ = error_function_(lmat, umat, wdim4=wdim4)
 
-    def _error_function_gradient(xmat):
-        grad = central_difference(erf_, xmat)
+    def _gradient(xmat):
+        grad = central_difference(erf_, xmat, npts=11)
         return grad
 
-    return _error_function_gradient
-
-
-def fourth_dimension_error_function_gradient_(weight):
-    """ the gradient of the fourth-dimension error function
-
-    (Currently determined numerically. We can work out an analytic formula when
-    the time comes...)
-    """
-
-    erf_ = fourth_dimension_error_function_(weight)
-
-    def _error_function_gradient(xmat):
-        grad = central_difference(erf_, xmat)
-        return grad
-
-    return _error_function_gradient
-
-
-def error_function_(lmat, umat, weight_4d=1.):
-    """ the total error function
-    """
-    erf1_ = distance_error_function_(lmat, umat)
-    erf2_ = fourth_dimension_error_function_(weight=weight_4d)
-
-    def _error_function(xmat):
-        return erf1_(xmat) + erf2_(xmat)
-
-    return _error_function
-
-
-def error_function_gradient_(lmat, umat, weight_4d=1.):
-    """ the total error function
-    """
-    grad1_ = distance_error_function_gradient_(lmat, umat)
-    grad2_ = fourth_dimension_error_function_gradient_(weight=weight_4d)
-
-    def _error_function_gradient(xmat):
-        return grad1_(xmat) + grad2_(xmat)
-
-    return _error_function_gradient
+    return _gradient
 
 
 def polak_ribiere_beta(sd1, sd0):
@@ -135,11 +112,11 @@ def line_search_alpha(fun_, sd1, cd1):
     return alpha
 
 
-def cleaned_up_coordinates(xmat, lmat, umat, thresh=1e-2, maxiter=None):
+def cleaned_up_coordinates(xmat, lmat, umat, thresh=1e-1, maxiter=None):
     """ clean up coordinates by conjugate-gradients error minimization
     """
-    fun_ = error_function_(lmat, umat, weight_4d=1.)
-    grad_ = error_function_gradient_(lmat, umat, weight_4d=1.)
+    fun_ = error_function_(lmat, umat, wdim4=1.)
+    grad_ = error_function_gradient_(lmat, umat, wdim4=1.)
 
     maxiter = numpy.size(xmat) * 3
     print(maxiter)
@@ -150,7 +127,7 @@ def cleaned_up_coordinates(xmat, lmat, umat, thresh=1e-2, maxiter=None):
 
     converged = False
 
-    for _ in range(100):
+    for niter in range(100):
         # 1. Calculate the steepest direction
         sd1 = -grad_(xmat)
 
@@ -181,12 +158,16 @@ def cleaned_up_coordinates(xmat, lmat, umat, thresh=1e-2, maxiter=None):
         print('function:', fun_(xmat))
         print('gradient:', grad_(xmat))
 
+    print('niter:', niter)
+
     return xmat, converged
 
 
 if __name__ == '__main__':
+    numpy.random.seed(5)
     from automol.embed._findif import central_difference
     import automol
+    # ICH = automol.smiles.inchi('C12CC(C2)CC1')
     ICH = automol.smiles.inchi('C1CCC2CC(CCC3C4CCC5CC4C53)CC2C1')
 
     # 1. Generate distance bounds matrices, L and U
