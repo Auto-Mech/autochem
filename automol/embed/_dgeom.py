@@ -197,12 +197,6 @@ if __name__ == '__main__':
     XMAT = coordinates_from_metric_matrix(GMAT, dim4=True)
     print(numpy.round(XMAT, 3))
 
-    # 7. Do error refinement by conjugate gradients
-    DMAT = distance_matrix_from_coordinates(XMAT)
-
-    ERR = distance_error_function(XMAT, LMAT, UMAT)
-    print('distance error:', ERR)
-
     SYM_DCT = automol.graph.atom_symbols(GRA)
     SYMS = list(map(SYM_DCT.__getitem__, KEYS))
     GEO = automol.geom.from_data(SYMS, XMAT[:, :3], angstrom=True)
