@@ -35,7 +35,7 @@ X = numpy.newaxis
 
 
 def volume(xmat, idxs):
-    """ calculate chiral volume
+    """ calculate tetrahedral volume
     """
     idxs = list(idxs)
     xyzs = xmat[:, :3][idxs]
@@ -46,28 +46,18 @@ def volume(xmat, idxs):
     return vol
 
 
-def volume_gradient(xmat, idxs, idx):
-    """ calculate the chiral volume gradient for a single atom
+def volume_gradient(xmat, idxs):
+    """ calculate the tetrahedral volume gradient for a tetrad of atoms
     """
     idxs = list(idxs)
+    xyzs = xmat[:, :3][idxs]
 
     grad = numpy.zeros_like(xmat)
-
-    if idx in idxs:
-        xyzs = xmat[:, :3][idxs]
-        pos = idxs.index(idx)
-
-        if pos == 0:
-            vec = (numpy.cross(xyzs[1], xyzs[3]-xyzs[2]) -
-                   numpy.cross(xyzs[2], xyzs[3]))
-        elif pos == 1:
-            vec = +numpy.cross(xyzs[2]-xyzs[0], xyzs[3]-xyzs[0])
-        elif pos == 2:
-            vec = -numpy.cross(xyzs[1]-xyzs[0], xyzs[3]-xyzs[0])
-        elif pos == 3:
-            vec = +numpy.cross(xyzs[1]-xyzs[0], xyzs[2]-xyzs[0])
-
-        grad[idx, :3] = vec
+    grad[idxs[0], :3] = (numpy.cross(xyzs[1], xyzs[3]-xyzs[2]) -
+                         numpy.cross(xyzs[2], xyzs[3]))
+    grad[idxs[1], :3] = +numpy.cross(xyzs[2]-xyzs[0], xyzs[3]-xyzs[0])
+    grad[idxs[2], :3] = -numpy.cross(xyzs[1]-xyzs[0], xyzs[3]-xyzs[0])
+    grad[idxs[3], :3] = +numpy.cross(xyzs[1]-xyzs[0], xyzs[2]-xyzs[0])
 
     return grad
 
@@ -94,16 +84,24 @@ def error_function_(lmat, umat, chip_dct=None, wdist=1., wchip=1., wdim4=1.,
         dmat = distance_matrix_from_coordinates(xmat)
 
         # distance error (equation 61 in the paper referenced above)
-        utf = ((dmat**2-umat**2) / (ueps**2+umat**2))[triu]
         ltf = ((lmat**2-dmat**2) / (leps**2+dmat**2))[triu]
-        utf *= (utf > 0.)
+        utf = ((dmat**2-umat**2) / (ueps**2+umat**2))[triu]
         ltf *= (ltf > 0.)
+        utf *= (utf > 0.)
         dist_err = wdist * (numpy.vdot(utf, utf) + numpy.vdot(ltf, ltf))
 
         # chirality/planarity error (equation 62 in the paper referenced above)
         chip_err = wchip * sum(max(0, volume(xmat, idxs) - uvol)**2 +
                                max(0, lvol - volume(xmat, idxs))**2
                                for idxs, (lvol, uvol) in chip_dct.items())
+
+        vols = numpy.array([volume(xmat, idxs) for idxs in chip_dct.keys()])
+        lvols, uvols = map(numpy.array, zip(*chip_dct.values()))
+        ltv = (lvols - vols) * (vols < lvols)
+        utv = (vols - uvols) * (vols > uvols)
+        alt_chip_err = wchip * (numpy.vdot(ltv, ltv) + numpy.vdot(utv, utv))
+        print(alt_chip_err)
+        print('chip err diff', chip_err - alt_chip_err)
 
         # fourth-dimension error
         dim4_err = wdim4 * numpy.vdot(xmat[:, 3], xmat[:, 3])
@@ -132,14 +130,27 @@ def error_function_numerical_gradient_(lmat, umat, chip_dct=None,
     return _gradient
 
 
-def error_function_gradient_(lmat, umat, wdim4=1., leps=0.1, ueps=0.1):
+def error_function_gradient_(lmat, umat, chip_dct=None,
+                             wdist=1., wchip=1., wdim4=1., leps=0.1, ueps=0.1):
     """ the embedding error function gradient
+
+    :param lmat: lower-bound distance matrix
+    :param umat: upper-bound distance matrix
+    :param chip_dct: chirality and planarity constraints; the keys are tuples
+        of four atoms, the values are lower and upper bounds on the four-point
+        signed volume of these atoms
+    :param wdist: weight on the distance constraint
+    :param wchip: weight on the chirality/planarity constraint
+    :param wdim4: weight on the fourth dimension constraint
+    :param leps: denominator epsilon for lower bound distances
+    :param ueps: denominator epsilon for upper bound distances
     """
     # natms = len(lmat)
 
     def _gradient(xmat):
         dmat = distance_matrix_from_coordinates(xmat)
 
+        # distance error gradient
         utf = (dmat**2-umat**2) / (ueps**2+umat**2)
         ltf = (lmat**2-dmat**2) / (leps**2+dmat**2)
         utg = (+4.*utf/(ueps**2+umat**2))*(utf > 0.)
@@ -147,12 +158,27 @@ def error_function_gradient_(lmat, umat, wdim4=1., leps=0.1, ueps=0.1):
         utg = utg[:, :, X]
         ltg = ltg[:, :, X]
         xmx = xmat[:, X, :] - xmat[X, :, :]
-
         dist_grad = numpy.sum(xmx*(ltg + utg), axis=1)
-        dim4_grad = numpy.hstack([numpy.zeros_like(xmat[:, :3]),
-                                  2*wdim4*xmat[:, 3:]])
+        dist_grad *= wdist
 
-        return dist_grad + dim4_grad
+        # chirality/planarity error gradient
+        vols = numpy.array([volume(xmat, idxs) for idxs in chip_dct.keys()])
+        vol_grads = numpy.array(
+            [volume_gradient(xmat, idxs) for idxs in chip_dct.keys()])
+        lvols, uvols = map(numpy.array, zip(*chip_dct.values()))
+        ltv = (lvols - vols) * (vols < lvols)
+        utv = (vols - uvols) * (vols > uvols)
+        ltg = -2. * ltv * vol_grads
+        utg = +2. * utv * vol_grads
+        chip_grad = numpy.sum(ltg+utg, axis=0)
+        chip_grad *= wchip
+
+        # fourth-dimension error gradient
+        dim3_zeros = numpy.zeros_like(xmat[:, :3])
+        dim4_grad = numpy.hstack([dim3_zeros, 2*xmat[:, 3:]])
+        dim4_grad *= wdim4
+
+        return dist_grad + chip_grad + dim4_grad
 
     return _gradient
 
@@ -261,9 +287,17 @@ if __name__ == '__main__':
     FUN_ = error_function_(LMAT, UMAT, CHIP_DCT, wdist=0., wchip=1., wdim4=0.)
     print(FUN_(XMAT))
 
-    GRAD_ = error_function_numerical_gradient_(
+    GRAD1_ = error_function_numerical_gradient_(
         LMAT, UMAT, CHIP_DCT, wdist=0., wchip=1., wdim4=0.)
-    print(GRAD_(XMAT))
+    GRAD1 = GRAD1_(XMAT)
+
+    GRAD2_ = error_function_gradient_(
+        LMAT, UMAT, CHIP_DCT, wdist=0., wchip=1., wdim4=0.)
+    GRAD2 = GRAD2_(XMAT)
+
+    print(numpy.round(GRAD1, 2))
+    print(numpy.round(GRAD2, 2))
+    print(numpy.amax(numpy.abs(GRAD1-GRAD2)))
 
     # SYMS = list(map(automol.graph.atom_symbols(GRA).__getitem__, KEYS))
     # XYZS = XMAT[:, :3]
