@@ -76,6 +76,6 @@ GRA = automol.graph.without_stereo_parities(GRA)
 GRA2 = automol.geom.connectivity_graph(GEO)
 print("Is the connectivity consistent?", 'Yes' if GRA == GRA2 else 'No')
 
-# # 10. Generate a z-matrix
-# ZMA = automol.geom.zmatrix(GEO, FRM_BND_KEYS+BRK_BND_KEYS)
-# print(automol.zmatrix.string(ZMA))
+# 10. Generate a z-matrix
+ZMA = automol.geom.zmatrix(GEO, FRM_BND_KEYS+BRK_BND_KEYS)
+print(automol.zmatrix.string(ZMA))

@@ -4,10 +4,12 @@ import numpy
 import automol
 
 # 1. Choose molecule
-ICH = automol.smiles.inchi('O')  # water
+# ICH = automol.smiles.inchi('O')  # water
 # ICH = automol.smiles.inchi('CO')  # methanol
 # ICH = automol.smiles.inchi('C1CCCCC1')  # hexane
-# ICH = automol.smiles.inchi('C1C2CC3CC1CC(C2)C3')  # adamantane
+ICH = automol.smiles.inchi('C1C2CC3CC1CC(C2)C3')  # adamantane
+# ICH = automol.smiles.inchi('CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O')
+# # ^ morphine
 
 # 2. Generate graph and sorted list of atom keys
 GEO = automol.inchi.geometry(ICH)

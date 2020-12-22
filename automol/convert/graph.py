@@ -53,8 +53,6 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
         automol.graph.atom_unsaturated_valences(gra), atm_keys)
     bnd_ords = dict_.values_by_key(automol.graph.bond_orders(gra), bnd_keys)
 
-    #print('geo test print:', automol.geom.string(automol.graph.geometry(gra)))
-
     if geo is not None:
         assert geo_idx_dct is not None
         atm_xyzs = automol.geom.coordinates(geo)
