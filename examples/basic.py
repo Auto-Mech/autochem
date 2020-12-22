@@ -1,4 +1,4 @@
-""" script to give a basic demo of distance geometry functionality
+""" Basic demo of distance geometry functionality
 """
 import numpy
 import automol
