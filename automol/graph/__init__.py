@@ -130,6 +130,7 @@ from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import stereo_priority_vector
 from automol.graph._stereo import stereogenic_atom_keys
 from automol.graph._stereo import stereogenic_bond_keys
+from automol.graph._stereo import sp2_bond_keys
 from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
@@ -357,6 +358,7 @@ __all__ = [
     'stereo_priority_vector',
     'stereogenic_atom_keys',
     'stereogenic_bond_keys',
+    'sp2_bond_keys',
     'stereomers',
     'substereomers',
     'stereo_sorted_atom_neighbor_keys',

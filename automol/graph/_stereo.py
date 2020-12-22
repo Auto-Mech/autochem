@@ -127,15 +127,11 @@ def stereogenic_bond_keys(gra):
     """
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    bnd_keys = dict_.keys_by_value(
-        resonance_dominant_bond_orders(gra), lambda x: 2 in x)
 
-    # make sure both ends are sp^2 (excludes cumulenes)
-    atm_hyb_dct = resonance_dominant_atom_hybridizations(gra)
-    sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
-    bnd_keys = frozenset({bnd_key for bnd_key in bnd_keys
-                          if bnd_key <= sp2_atm_keys})
+    # get candidates: planar bonds
+    bnd_keys = sp2_bond_keys(gra)
 
+    # remove bonds that already have stereo assignments
     bnd_keys -= bond_stereo_keys(gra)
     bnd_keys -= functools.reduce(  # remove double bonds in small rings
         frozenset.union,
@@ -165,6 +161,21 @@ def stereogenic_bond_keys(gra):
 
     ste_gen_bnd_keys = frozenset(filter(_is_stereogenic, bnd_keys))
     return ste_gen_bnd_keys
+
+
+def sp2_bond_keys(gra):
+    """ determine the sp2 bonds in this graph
+    """
+    gra = without_bond_orders(gra)
+    bnd_keys = dict_.keys_by_value(
+        resonance_dominant_bond_orders(gra), lambda x: 2 in x)
+
+    # make sure both ends are sp^2 (excludes cumulenes)
+    atm_hyb_dct = resonance_dominant_atom_hybridizations(gra)
+    sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
+    bnd_keys = frozenset({bnd_key for bnd_key in bnd_keys
+                          if bnd_key <= sp2_atm_keys})
+    return bnd_keys
 
 
 def stereomers(gra):
