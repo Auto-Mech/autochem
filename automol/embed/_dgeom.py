@@ -22,6 +22,10 @@ The steps in the algorithm are as follows:
 
 This module handles the numerical work for steps 2-6.
 
+The function sample_raw_distance_geometry() below returns the result of step
+2-6. The actual work for these steps is handled in a separate module,
+automol.embed.
+
 Step 1 is performed based on the molecular graph and is a submodule of
 automol.graph.
 
@@ -30,6 +34,25 @@ this module.
 """
 import itertools
 import numpy
+import automol.create.geom
+
+
+def sample_raw_distance_coordinates(lmat, umat, dim4=True):
+    """ sample raw (uncorrected) distance coordinates
+    """
+    # 2. Triangle-smooth the bounds matrices
+    lmat, umat = triangle_smooth_bounds_matrices(lmat, umat)
+
+    # 3. Generate a distance matrix D by sampling within the bounds
+    dmat = sample_distance_matrix(lmat, umat)
+
+    # 4. Generate the metric matrix G
+    gmat = metric_matrix(dmat)
+
+    # 5-6. Generate coordinates from the metric matrix
+    xmat = coordinates_from_metric_matrix(gmat, dim4=dim4)
+
+    return xmat
 
 
 def triangle_smooth_bounds_matrices(lmat, umat):
@@ -40,6 +63,8 @@ def triangle_smooth_bounds_matrices(lmat, umat):
 
     This algorithm is directly from p. 8 in the paper.
     """
+    lmat, umat = map(numpy.array, (lmat, umat))
+
     natms = len(umat)
 
     for k in range(natms):
@@ -52,7 +77,8 @@ def triangle_smooth_bounds_matrices(lmat, umat):
                 lmat[i, j] = lmat[j, k] - umat[k, i]
 
             assert lmat[i, j] <= umat[i, j], (
-                "Lower bound exceeds upper bound. Something is wrong!")
+                "Lower bound exceeds upper bound. Something is wrong!",
+                lmat[i, j], ">", umat[i, j])
 
     return lmat, umat
 
@@ -62,6 +88,8 @@ def sample_distance_matrix(lmat, umat):
 
     That is, a random guess at d_ij = |r_i - r_j|
     """
+    lmat, umat = map(numpy.array, (lmat, umat))
+
     dmat = numpy.random.uniform(lmat, umat)
     # The sampling will not come out symmetric, so replace the lower triangle
     # with upper triangle values
@@ -85,6 +113,8 @@ def distances_from_center(dmat):
         dc_i^2 = 1/(2n^2) sum_j sum_k (d_ij^2 + d_ik^2 - d_jk^2)
     from page 284 of the paper.
     """
+    dmat = numpy.array(dmat)
+
     natms = len(dmat)
 
     dcvec = numpy.zeros((natms,))
@@ -114,6 +144,8 @@ def metric_matrix(dmat):
     Crippen, G. M.; Havel, T. F. "Stable Calculation of Coordinates from
     Distance Information"; Acta Cryst. (1978) A34 p. 282-284
     """
+    dmat = numpy.array(dmat)
+
     natms = len(dmat)
 
     dcvec = distances_from_center(dmat)
@@ -129,6 +161,8 @@ def metric_matrix(dmat):
 def coordinates_from_metric_matrix(gmat, dim4=False):
     """ determine molecule coordinates from the metric matrix
     """
+    gmat = numpy.array(gmat)
+
     dim = 3 if not dim4 else 4
 
     vals, vecs = numpy.linalg.eigh(gmat)
@@ -148,6 +182,7 @@ def metric_matrix_from_coordinates(xmat):
 
     (for testing purposes only!)
     """
+    xmat = numpy.array(xmat)
     return xmat @ xmat.T
 
 
@@ -156,6 +191,8 @@ def distance_matrix_from_coordinates(xmat):
 
     (for testing purposes only!)
     """
+    xmat = numpy.array(xmat)
+
     natms = len(xmat)
 
     dmat = numpy.zeros((natms, natms))
@@ -164,6 +201,16 @@ def distance_matrix_from_coordinates(xmat):
         dmat[i, j] = numpy.linalg.norm(xmat[i] - xmat[j])
 
     return dmat
+
+
+def geometry_from_coordinates(xmat, syms):
+    """ returns the geometry from the coordinates and the graph
+    """
+    xmat = numpy.array(xmat)
+
+    xyzs = xmat[:, :3]
+    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
+    return geo
 
 
 if __name__ == '__main__':

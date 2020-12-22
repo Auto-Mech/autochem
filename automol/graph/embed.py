@@ -23,7 +23,7 @@ The steps in the algorithm are as follows:
 Step 1 is performed by the function distance_bounds_matrices() below.
 
 The function sample_raw_distance_geometry() below returns the result of step
-2-6. The actual work for these steps is handled in a separate module,
+1-6. The actual work for these steps is handled in a separate module,
 automol.embed.
 """
 import itertools
@@ -32,6 +32,7 @@ import qcelemental as qce
 from qcelemental import constants as qcc
 from qcelemental import periodictable as pt
 import automol.create.geom
+import automol.geom
 from automol import embed
 from automol.graph._graph_base import string
 from automol.graph._graph import atom_symbols
@@ -40,6 +41,9 @@ from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._ring import rings_atom_keys
 from automol.graph._res import resonance_dominant_atom_hybridizations
+# from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._stereo import sp2_bond_keys
+
 
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 DEG2RAD = qcc.conversion_factor('degree', 'radian')
@@ -210,6 +214,7 @@ def closest_approach(gra, key1, key2):
 def path_distance_bounds_(gra):
     """ upper distance bound between two ends of a path
 
+    :param gra: molecular graph
     :param path: the shortest path between two atoms
     :type path: list or tuple
     """
@@ -266,12 +271,17 @@ def path_distance_bounds_(gra):
     return _distance_bounds
 
 
-def distance_bounds_matrices(gra, keys):
+def distance_bounds_matrices(gra, keys, sp_dct=None):
     """ initial distance bounds matrices
+
+    :param gra: molecular graph
+    :param keys: atom keys specifying the order of indices in the matrix
+    :param sp_dct: a 2d dictionary giving the shortest path between any pair of
+        atoms in the graph
     """
     assert set(keys) == set(atom_keys(gra))
 
-    sp_dct = atom_shortest_paths(gra)
+    sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
 
     bounds_ = path_distance_bounds_(gra)
 
@@ -297,31 +307,129 @@ def distance_bounds_matrices(gra, keys):
     return lmat, umat
 
 
-def sample_raw_distance_coordinates(gra, keys, dim4=False):
-    """ sample raw (uncorrected) distance coordinates
+def ts_distance_bounds_matrices(gra, keys, frm_bnds_dct, rct_geos=None,
+                                relax_torsions=False, sp_dct=None):
+    """ distance bounds matrices for a transition state
+
+    :param gra: molecular graph
+    :param keys: atom keys specifying the order of indices in the matrix
+    :param frm_bnds_dct: bounds for bonds formed in the reaction; the keys are
+        bond keys and the values are lower and upper distance bounds for those
+        forming bonds
+    :param rct_geos: reactant geometries; must follow the same order as the
+        atoms in `keys
+    :param relax_torsions: whether or not to allow torsions to change from
+        their value in the reactant geometries
+    :param sp_dct: a 2d dictionary giving the shortest path between any pair of
+        atoms in the graph
     """
-    # 1. Generate distance bounds matrices, L and U
+    sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
+
+    natms = len(keys)
+
     lmat, umat = distance_bounds_matrices(gra, keys)
 
-    # 2. Triangle-smooth the bounds matrices
-    lmat, umat = embed.triangle_smooth_bounds_matrices(lmat, umat)
+    # save the current values so that we can overwrite the fixed torsions below
+    lmat_old = numpy.copy(lmat)
+    umat_old = numpy.copy(umat)
 
-    # 3. Generate a distance matrix D by sampling within the bounds
-    dmat = embed.sample_distance_matrix(lmat, umat)
+    # 2. set known geometric parameters
+    if rct_geos:
+        xmats = [automol.geom.coordinates(geo, angstrom=True)
+                 for geo in rct_geos]
+        dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
 
-    # 4. Generate the metric matrix G
-    gmat = embed.metric_matrix(dmat)
+        start = 0
+        for dmat in dmats:
+            dim, _ = numpy.shape(dmat)
+            end = start + dim
 
-    # 5-6. Generate coordinates from the metric matrix
-    xmat = embed.coordinates_from_metric_matrix(gmat, dim4=dim4)
+            lmat[start:end, start:end] = dmat
+            umat[start:end, start:end] = dmat
 
-    return xmat
+            start = end
+
+    # 3. reopen bounds on the torsions from the reactant
+    if relax_torsions:
+        tors_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
+                    if j in sp_dct[i] and len(sp_dct[i][j]) >= 4]
+        tors_ijs += list(map(list, map(reversed, tors_ijs)))
+
+        tors_idxs = tuple(map(list, zip(*tors_ijs)))
+
+        lmat[tors_idxs] = lmat_old[tors_idxs]
+        umat[tors_idxs] = umat_old[tors_idxs]
+
+    # 1. set distance bounds for the forming bonds
+    for bnd, (ldist, udist) in frm_bnds_dct.items():
+        idx1 = tuple(bnd)
+        idx2 = tuple(reversed(idx1))
+        lmat[idx1] = lmat[idx2] = ldist
+        umat[idx1] = umat[idx2] = udist
+
+    return lmat, umat
+
+
+# def sample_raw_distance_coordinates(gra, keys, dim4=False):
+#     """ sample raw (uncorrected) distance coordinates
+#     """
+#     # 1. Generate distance bounds matrices, L and U
+#     lmat, umat = distance_bounds_matrices(gra, keys)
+#
+#     # 2-6. Triangle-smooth the bounds matrices
+#     xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=dim4)
+#
+#     return xmat
+
+
+def chirality_constraint_bounds(gra, keys):
+    """ bounds for enforcing chirality restrictions
+    """
+    print(gra)
+    print(keys)
+
+
+def planarity_constraint_bounds(gra, keys):
+    """ bounds for enforcing planarity restrictions
+    """
+    ngb_key_dct = atom_neighbor_keys(gra)
+
+    def _planarity_constraints(bnd_key):
+        key1, key2 = sorted(bnd_key)
+        key1_ngbs = sorted(ngb_key_dct[key1] - {key2})
+        key2_ngbs = sorted(ngb_key_dct[key2] - {key1})
+
+        lst = []
+
+        # I don't think the order of the keys matters, but I tried to be
+        # roughly consistent with Figure 8 in the Blaney Dixon paper
+        if len(key1_ngbs) == 2 and len(key2_ngbs) == 2:
+            idxs = tuple(map(keys.index, key1_ngbs + key2_ngbs))
+            lst.append(idxs)
+        if len(key1_ngbs) == 2:
+            idxs = tuple(map(keys.index, [key2, key1] + key1_ngbs))
+            lst.append(idxs)
+        if len(key2_ngbs) == 2:
+            idxs = tuple(map(keys.index, [key1, key2] + key2_ngbs))
+            lst.append(idxs)
+
+        return tuple(lst)
+
+    const_dct = {
+        idxs: (0., 0.) for idxs in
+        itertools.chain(*map(_planarity_constraints, sp2_bond_keys(gra)))}
+
+    return const_dct
 
 
 def sample_raw_distance_geometry(gra, keys):
     """ sample a raw (uncorrected) distance geometry
     """
-    xmat = sample_raw_distance_coordinates(gra, keys, dim4=False)
+    # 1. Generate distance bounds matrices, L and U
+    lmat, umat = distance_bounds_matrices(gra, keys)
+
+    # 2-6. Generate coordinates from bounds matrices
+    xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
 
     sym_dct = atom_symbols(gra)
     syms = list(map(sym_dct.__getitem__, keys))
@@ -332,11 +440,99 @@ def sample_raw_distance_geometry(gra, keys):
 
 if __name__ == '__main__':
     import automol
-    ICH = automol.smiles.inchi('CO')
-
-    GRA = automol.inchi.graph(ICH)
-    GRA = automol.graph.explicit(GRA)
+    # ICH = ('InChI=1S/C17H19NO3/c1-18-7-6-17-10-3-5-13(20)16(17)21-15-12(19)'
+    #        '4-2-9(14(15)17)8-11(10)18/h2-5,10-11,13,16,19-20H,6-8H2,1H3/'
+    #        't10-,11+,13-,16-,17-/m0/s1')
+    # GEO = automol.inchi.geometry(ICH)
+    # GRA = automol.geom.graph(GEO)
+    GRA = automol.graph.from_string("""
+        atoms:
+          1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
+          11: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
+          12: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          13: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
+          14: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          15: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+          16: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
+          17: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
+          18: {symbol: N, implicit_hydrogen_valence: 0, stereo_parity: null}
+          19: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+          20: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+          21: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+          22: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          23: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          24: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          25: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          26: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          27: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          28: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          29: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          30: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          31: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          32: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          33: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          34: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          35: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          36: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          37: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          38: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          39: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+          40: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+        bonds:
+          1-18: {order: 1, stereo_parity: null}
+          1-22: {order: 1, stereo_parity: null}
+          1-23: {order: 1, stereo_parity: null}
+          1-24: {order: 1, stereo_parity: null}
+          2-4: {order: 1, stereo_parity: null}
+          2-9: {order: 1, stereo_parity: null}
+          2-25: {order: 1, stereo_parity: null}
+          3-5: {order: 1, stereo_parity: null}
+          3-10: {order: 1, stereo_parity: null}
+          3-26: {order: 1, stereo_parity: null}
+          4-12: {order: 1, stereo_parity: null}
+          4-27: {order: 1, stereo_parity: null}
+          5-13: {order: 1, stereo_parity: null}
+          5-28: {order: 1, stereo_parity: null}
+          6-7: {order: 1, stereo_parity: null}
+          6-17: {order: 1, stereo_parity: null}
+          6-29: {order: 1, stereo_parity: null}
+          6-30: {order: 1, stereo_parity: null}
+          7-18: {order: 1, stereo_parity: null}
+          7-31: {order: 1, stereo_parity: null}
+          7-32: {order: 1, stereo_parity: null}
+          8-9: {order: 1, stereo_parity: null}
+          8-11: {order: 1, stereo_parity: null}
+          8-33: {order: 1, stereo_parity: null}
+          8-34: {order: 1, stereo_parity: null}
+          9-14: {order: 1, stereo_parity: null}
+          10-11: {order: 1, stereo_parity: null}
+          10-17: {order: 1, stereo_parity: null}
+          10-35: {order: 1, stereo_parity: null}
+          11-18: {order: 1, stereo_parity: null}
+          11-36: {order: 1, stereo_parity: null}
+          12-15: {order: 1, stereo_parity: null}
+          12-19: {order: 1, stereo_parity: null}
+          13-16: {order: 1, stereo_parity: null}
+          13-20: {order: 1, stereo_parity: null}
+          13-37: {order: 1, stereo_parity: null}
+          14-15: {order: 1, stereo_parity: null}
+          14-17: {order: 1, stereo_parity: null}
+          15-21: {order: 1, stereo_parity: null}
+          16-17: {order: 1, stereo_parity: null}
+          16-21: {order: 1, stereo_parity: null}
+          16-38: {order: 1, stereo_parity: null}
+          19-39: {order: 1, stereo_parity: null}
+          20-40: {order: 1, stereo_parity: null}
+    """)
     KEYS = sorted(automol.graph.atom_keys(GRA))
-
-    GEO = sample_raw_distance_geometry(GRA, KEYS)
-    print(automol.geom.string(GEO))
+    P_DCT = planarity_constraint_bounds(GRA, KEYS)
+    print(P_DCT)
