@@ -92,6 +92,7 @@ def trivial_reaction(rct_gras, prd_gras):
             else:
                 tras = []
                 rct_idxs = prd_idxs = None
+                break
 
     if rct_idxs is not None:
         tra = trans.from_data(
@@ -206,9 +207,6 @@ def hydrogen_abstraction(rct_gras, prd_gras):
                 prd_idxs = prd_idxs_
 
     tras = tuple(tras)
-    # print ('idxs test:', rct_idxs, prd_idxs)
-    # import sys
-    # sys.exit()
     return tras, rct_idxs, prd_idxs
 
 
@@ -325,7 +323,8 @@ def ring_forming_scission(rct_gras, prd_gras):
                             atm_key_dct = full_isomorphism(xgra, pgra)
                             if atm_key_dct:
                                 tra = trans.from_data(
-                                    rxn_class=par.REACTION_CLASS.RING_FORM_SCISSION,
+                                    rxn_class=(
+                                        par.REACTION_CLASS.RING_FORM_SCISSION),
                                     frm_bnd_keys=[{rad_atm, xatm}],
                                     brk_bnd_keys=[{xatm, natm}, ]
                                 )
@@ -754,7 +753,8 @@ def _unique_gras(gra_lst):
 
 if __name__ == '__main__':
     # import sys
-    RXNS = list(map(eval, open('reactions_from_luna.txt').read().splitlines()))
+    RXNS = list(
+        map(eval, open('reactions_from_luna.txt').read().splitlines()))
     for RXN in RXNS:
         RCT_ICHS, PRD_ICHS = RXN
         RCT_GRAS = list(map(automol.inchi.graph, RCT_ICHS))
