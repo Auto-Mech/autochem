@@ -98,6 +98,12 @@ def error_function_(lmat, umat, chip_dct=None, wdist=1., wchip=1., wdim4=1.,
         utf *= (utf > 0.)
         dist_err = wdist * (numpy.vdot(utf, utf) + numpy.vdot(ltf, ltf))
 
+        # l__ = (lmat-dmat)*(lmat > dmat)
+        # u__ = (dmat-umat)*(umat < dmat)
+        # print(numpy.round(l__, 2))
+        # print(numpy.round(u__, 2))
+        # print('\tdist_err', dist_err)
+
         # chirality/planarity error (equation 62 in the paper referenced above)
         if chip_dct:
             vols = numpy.array(
@@ -109,11 +115,14 @@ def error_function_(lmat, umat, chip_dct=None, wdist=1., wchip=1., wdim4=1.,
         else:
             chip_err = 0.
 
+        # print('\tchip_err', chip_err)
+
         # fourth-dimension error
         if numpy.shape(xmat)[1] == 4:
             dim4_err = wdim4 * numpy.vdot(xmat[:, 3], xmat[:, 3])
         else:
             dim4_err = 0.
+        # print('\tdim4_err', dim4_err)
 
         return dist_err + chip_err + dim4_err
 
@@ -250,7 +259,7 @@ def cleaned_up_coordinates(xmat, lmat, umat, chip_dct=None,
     # thresh1 = pre_thresh
     thresh2 = thresh
 
-    maxiter2 = int(numpy.size(xmat) * 2 if maxiter is None else maxiter)
+    maxiter2 = int(numpy.size(xmat) * 3 if maxiter is None else maxiter)
     # maxiter1 = int(3 if pre_maxiter is None else pre_maxiter)
 
     # fun1_ = error_function_(lmat, umat, chip_dct, wdim4=0.)

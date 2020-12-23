@@ -42,6 +42,7 @@ from automol.embed._dgeom import coordinates_from_metric_matrix
 from automol.embed._dgeom import metric_matrix_from_coordinates
 from automol.embed._dgeom import distance_matrix_from_coordinates
 from automol.embed._dgeom import geometry_from_coordinates
+from automol.embed._dgeom import greatest_distance_errors
 from automol.embed._cleanup import volume
 from automol.embed._cleanup import volume_gradient
 from automol.embed._cleanup import error_function_
@@ -63,6 +64,7 @@ __all__ = [
     'metric_matrix_from_coordinates',
     'distance_matrix_from_coordinates',
     'geometry_from_coordinates',
+    'greatest_distance_errors',
     'volume',
     'volume_gradient',
     'error_function_',
