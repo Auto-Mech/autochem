@@ -45,6 +45,7 @@ def volume(xmat, idxs):
 
     where dij = rj - ri, . is the dot product, and x is the cross product
     """
+    xmat = numpy.array(xmat)
     idxs = list(idxs)
     xyzs = xmat[:, :3][idxs]
     d12 = xyzs[1] - xyzs[0]
@@ -57,6 +58,7 @@ def volume(xmat, idxs):
 def volume_gradient(xmat, idxs):
     """ calculate the tetrahedral volume gradient for a tetrad of atoms
     """
+    xmat = numpy.array(xmat)
     idxs = list(idxs)
     xyzs = xmat[:, :3][idxs]
 

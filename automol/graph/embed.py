@@ -39,9 +39,11 @@ from automol.graph._graph import atom_symbols
 from automol.graph._graph import atom_keys
 from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
 from automol.graph._ring import rings_atom_keys
 from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._stereo import atom_stereo_keys
 from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
@@ -390,23 +392,22 @@ def ts_distance_bounds_matrices(gra, keys, frm_bnds_dct, rct_geos=None,
     return lmat, umat
 
 
-# def sample_raw_distance_coordinates(gra, keys, dim4=False):
-#     """ sample raw (uncorrected) distance coordinates
-#     """
-#     # 1. Generate distance bounds matrices, L and U
-#     lmat, umat = distance_bounds_matrices(gra, keys)
-#
-#     # 2-6. Triangle-smooth the bounds matrices
-#     xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=dim4)
-#
-#     return xmat
-
-
 def chirality_constraint_bounds(gra, keys):
     """ bounds for enforcing chirality restrictions
     """
-    print(gra)
-    print(keys)
+    ste_keys = atom_stereo_keys(gra)
+    par_dct = atom_stereo_parities(gra)
+    ngb_key_dct = atom_neighbor_keys(gra)
+
+    def _chirality_constraint(key):
+        ngb_keys = ngb_key_dct[key]
+        ngb_keys = stereo_sorted_atom_neighbor_keys(gra, key, ngb_keys)
+        idxs = tuple(map(keys.index, ngb_keys))
+        vol_range = (-999., -7.) if par_dct[key] else (+7., +999.)
+        return idxs, vol_range
+
+    chi_dct = dict(map(_chirality_constraint, ste_keys))
+    return chi_dct
 
 
 def planarity_constraint_bounds(gra, keys):
