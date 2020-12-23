@@ -4,12 +4,7 @@ import numpy
 import automol
 
 # 1. Choose molecule
-# ICH = automol.smiles.inchi('O')  # water
-# ICH = automol.smiles.inchi('CO')  # methanol
-# ICH = automol.smiles.inchi('C1CCCCC1')  # hexane
-# ICH = automol.smiles.inchi('C1C2CC3CC1CC(C2)C3')  # adamantane
-ICH = automol.smiles.inchi('CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O')
-# ^ morphine
+ICH = automol.smiles.inchi('C=C')
 
 # 2. Generate graph and sorted list of atom keys
 GEO = automol.inchi.geometry(ICH)
@@ -19,6 +14,7 @@ SYMS = list(map(automol.graph.atom_symbols(GRA).__getitem__, KEYS))
 
 # 3. Generate bounds matrices
 LMAT, UMAT = automol.graph.embed.distance_bounds_matrices(GRA, KEYS)
+CHIP_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
 print("Lower bounds matrix:")
 print(numpy.round(LMAT, 1))
 print("Upper bounds matrix:")
@@ -30,7 +26,8 @@ XMAT = automol.embed.sample_raw_distance_coordinates(LMAT, UMAT, dim4=True)
 GEO_INIT = automol.embed.geometry_from_coordinates(XMAT, SYMS)
 
 # 5. Clean up the sample's coordinates
-XMAT, CONV = automol.embed.cleaned_up_coordinates(XMAT, LMAT, UMAT)
+XMAT, CONV = automol.embed.cleaned_up_coordinates(
+    XMAT, LMAT, UMAT, chip_dct=CHIP_DCT)
 GEO = automol.embed.geometry_from_coordinates(XMAT, SYMS)
 
 # 6. Print geometries

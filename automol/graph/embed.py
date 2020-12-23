@@ -41,6 +41,7 @@ from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._ring import rings_atom_keys
 from automol.graph._res import resonance_dominant_atom_hybridizations
+# from automol.graph._res import resonance_dominant_bond_orders
 # from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 from automol.graph._stereo import sp2_bond_keys
 
@@ -50,8 +51,26 @@ DEG2RAD = qcc.conversion_factor('degree', 'radian')
 # RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 # bond distances
-XY_DIST = 1.5       # angstroms
-XH_DIST = 1.1       # angstroms
+XY_LDIST = 1.50      # angstroms
+XY_UDIST = 1.50      # angstroms
+XH_LDIST = 1.10      # angstroms
+XH_UDIST = 1.10      # angstroms
+
+# # table this for now
+# DIST_DCTS = {
+#     # format:
+#     #   key: ((sym1, hyb1), (sym2, hyb2))   [sorted]
+#     #   value: (lower distance bound, upper distance bound)
+#     # See "Appendix A: Typical Interatomic Distances in Organic Compounds..."
+#     # in the book "Structure Correlation" edited by H. B. Buergi and J. D.
+#     # Dunitz (1994)
+#     #
+#     # I'm taking the ranges I find there and expanding the bounds by 0.01
+#     # angstrom to allow some flexibility
+#     ('C', 'C', 1): (1.40, 1.60),  # p. 767-770
+#     ('C', 'C', 2): (1.29, 1.44),  # p. 770-772
+#     ('C', 'C', 3): (1.16, 1.19),  # p. 772
+# }
 
 # bond angles
 TET_ANG = 109.4712  # degrees
@@ -59,8 +78,8 @@ TRI_ANG = 120.      # degrees
 LIN_ANG = 180.      # degrees
 
 
-def heuristic_bond_distance(gra, key1, key2, angstrom=True, check=False):
-    """ heuristic bond distance (in angstroms)
+def heuristic_bond_distance_range(gra, key1, key2, angstrom=True, check=False):
+    """ heuristic bond distance range (in angstroms)
     """
     if check:
         assert key1 in atom_neighbor_keys(gra)[key2]
@@ -70,17 +89,20 @@ def heuristic_bond_distance(gra, key1, key2, angstrom=True, check=False):
     sym2 = sym_dct[key2]
 
     if pt.to_Z(sym1) == 1 or pt.to_Z(sym2) == 1:
-        dist = XH_DIST
+        ldist = XH_LDIST
+        udist = XH_UDIST
     else:
-        dist = XY_DIST
+        ldist = XY_LDIST
+        udist = XY_UDIST
 
-    dist *= 1 if angstrom else ANG2BOHR
+    ldist *= 1 if angstrom else ANG2BOHR
+    udist *= 1 if angstrom else ANG2BOHR
 
-    return dist
+    return ldist, udist
 
 
-def heuristic_bond_angle(gra, key1, key2, key3, degree=False, check=False,
-                         hyb_dct=None):
+def heuristic_bond_angle_range(gra, key1, key2, key3, degree=False,
+                               check=False, hyb_dct=None):
     """ heuristic bond angle
 
     If being reused multiple times, you can speed this up by passing in the
@@ -94,49 +116,62 @@ def heuristic_bond_angle(gra, key1, key2, key3, degree=False, check=False,
 
     hyb2 = hyb_dct[key2]
     if hyb2 == 3:
-        ang = TET_ANG
+        lang = TET_ANG
+        uang = TET_ANG
     elif hyb2 == 2:
-        ang = TRI_ANG
+        lang = TRI_ANG
+        uang = TRI_ANG
     else:
         assert hyb2 == 1
-        ang = LIN_ANG
+        lang = LIN_ANG
+        uang = LIN_ANG
 
-    ang *= 1 if degree else DEG2RAD
+    lang *= 1 if degree else DEG2RAD
+    uang *= 1 if degree else DEG2RAD
 
-    return ang
+    return lang, uang
 
 
-def heuristic_bond_angle_distance(gra, key1, key2, key3, angstrom=True,
-                                  ang=None, degree=True, hyb_dct=None):
+def heuristic_bond_angle_distance_range(gra, key1, key2, key3, angstrom=True,
+                                        ang_range=None, uang=None, degree=True,
+                                        hyb_dct=None):
     """ heuristic distance between atoms at two ends of a bond angle
 
     :param angstrom: whether or not to return the distance in angstroms
     :type angstrom: bool
-    :param ang: (optional) specify the value of the angle
-    :type ang: float
+    :param ang_range: (optional) specify the angle range
+    :type ang_range: (float, float)
     :param degree: units for the angle, if specified
     :type degree: bool
 
     uses the law of cosines:
 
         d13 = sqrt(d12^2 + d23^2 - 2*d12*d23*cos(a123))
+
     """
-    if ang is None:
-        a123 = heuristic_bond_angle(
+    if ang_range is None:
+        la123, ua123 = heuristic_bond_angle_range(
             gra, key1, key2, key3, degree=False, hyb_dct=hyb_dct)
     else:
-        a123 = ang * DEG2RAD if degree else ang
+        lang, uang = ang_range
+        la123 = lang * DEG2RAD if degree else lang
+        ua123 = uang * DEG2RAD if degree else uang
 
-    d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
-    d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
-    d13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(a123))
-    return d13
+    ld12, ud12 = heuristic_bond_distance_range(
+        gra, key1, key2, angstrom=angstrom)
+    ld23, ud23 = heuristic_bond_distance_range(
+        gra, key2, key3, angstrom=angstrom)
+
+    ld13 = numpy.sqrt(ld12**2 + ld23**2 - 2*ld12*ld23*numpy.cos(la123))
+    ud13 = numpy.sqrt(ud12**2 + ud23**2 - 2*ud12*ud23*numpy.cos(ua123))
+
+    return ld13, ud13
 
 
-def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4, cis=False,
-                                     angstrom=True,
-                                     ang1=None, ang2=None, degree=True,
-                                     hyb_dct=None):
+def heuristic_torsion_angle_distance_range(gra, key1, key2, key3, key4,
+                                           cis=False, angstrom=True,
+                                           ang1_range=None, ang2_range=None,
+                                           degree=True, hyb_dct=None):
     """ heuristic max distance between atoms at two ends of a torsion angle
 
     (Formulas & implementation have been verified)
@@ -161,23 +196,40 @@ def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4, cis=False,
     we can find a132 from the law of cosines:
         a132 = arccos((d13^2 + d23^2 - d12^2)/(2*d13*d23))
     """
-    if ang2 is None:
-        a234 = heuristic_bond_angle(
+    if ang2_range is None:
+        la234, ua234 = heuristic_bond_angle_range(
             gra, key2, key3, key4, degree=False, hyb_dct=hyb_dct)
     else:
-        a234 = ang2 * DEG2RAD if degree else ang2
+        lang2, uang2 = ang2_range
+        assert lang2 <= uang2, (
+            'Invalid angle range {:f} !< {:f}'.format(lang2, uang2))
+        la234 = lang2 * DEG2RAD if degree else lang2
+        ua234 = uang2 * DEG2RAD if degree else uang2
 
-    d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
-    d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
-    d34 = heuristic_bond_distance(gra, key3, key4, angstrom=angstrom)
-    d13 = heuristic_bond_angle_distance(
-        gra, key1, key2, key3, angstrom=angstrom, ang=ang1, hyb_dct=hyb_dct)
+    ld12, ud12 = heuristic_bond_distance_range(
+        gra, key1, key2, angstrom=angstrom)
+    ld23, ud23 = heuristic_bond_distance_range(
+        gra, key2, key3, angstrom=angstrom)
+    ld34, ud34 = heuristic_bond_distance_range(
+        gra, key3, key4, angstrom=angstrom)
 
-    a132 = numpy.arccos((d13**2 + d23**2 - d12**2)/(2*d13*d23))
-    a134 = a234 - a132 if cis else a234 + a132
+    ld13, ud13 = heuristic_bond_angle_distance_range(
+        gra, key1, key2, key3, angstrom=angstrom, ang_range=ang1_range,
+        hyb_dct=hyb_dct)
 
-    d14 = numpy.sqrt(d13**2 + d34**2 - 2*d13*d34*numpy.cos(a134))
-    return d14
+    la132 = numpy.arccos((ud13**2 + ud23**2 - ld12**2)/(2*ud13*ud23))
+    ua132 = numpy.arccos((ld13**2 + ld23**2 - ud12**2)/(2*ld13*ld23))
+
+    if cis:
+        la134 = la234 - ua132
+        ua134 = ua234 - la132
+    else:
+        la134 = la234 + la132
+        ua134 = ua234 + ua132
+
+    ld14 = numpy.sqrt(ld13**2 + ld34**2 - 2*ld13*ld34*numpy.cos(la134))
+    ud14 = numpy.sqrt(ud13**2 + ud34**2 - 2*ud13*ud34*numpy.cos(ua134))
+    return ld14, ud14
 
 
 def van_der_waals_radius(gra, key):
@@ -189,14 +241,26 @@ def van_der_waals_radius(gra, key):
     return rad
 
 
-def shared_ring_size(keys, rng_keys_lst):
-    """ determine whether these keys share a ring and, if so, determine the
-    size
+def ring_size_range(keys, rng_keys_lst):
+    """ if all atoms are in rings, determine the largest ring and the smallest
     """
-    rng_keys = next((rng_keys for rng_keys in rng_keys_lst
-                     if set(keys) <= set(rng_keys)), ())
-    natms = len(rng_keys)
-    return natms
+    lsize = 999.
+    usize = 0.
+
+    all_in_rings = True
+    for key in keys:
+        sizes = list(map(
+            len, (rng_keys for rng_keys in rng_keys_lst if key in rng_keys)))
+        if sizes:
+            lsize = min(lsize, min(sizes))
+            usize = max(usize, max(sizes))
+        else:
+            all_in_rings = False
+            break
+
+    ret = (lsize, usize) if all_in_rings else None
+
+    return ret
 
 
 def closest_approach(gra, key1, key2):
@@ -221,42 +285,51 @@ def path_distance_bounds_(gra):
 
     rng_keys_lst = rings_atom_keys(gra)
     hyb_dct = resonance_dominant_atom_hybridizations(gra)
+    # bnd_ord_dct = resonance_dominant_bond_orders(gra)
 
     def _distance_bounds(path):
         # if the path is 0, the atoms are disconnected and could be arbitrarily
         # far apart
-        rsz = shared_ring_size(path, rng_keys_lst)
+        rsz = ring_size_range(path, rng_keys_lst)
         if len(path) == 1:
             ldist = udist = 0
         elif len(path) == 2:
-            ldist = udist = heuristic_bond_distance(gra, *path)
+            ldist, udist = heuristic_bond_distance_range(gra, *path)
         elif len(path) == 3:
-            if rsz == 0:
-                ldist = udist = heuristic_bond_angle_distance(
+            if rsz is None:
+                ldist, udist = heuristic_bond_angle_distance_range(
                     gra, *path, hyb_dct=hyb_dct)
             else:
-                ang = (rsz - 2.) * 180. / rsz
-                rdist = heuristic_bond_angle_distance(gra, *path, ang=ang)
-                odist = heuristic_bond_angle_distance(
-                    gra, *path, hyb_dct=hyb_dct)
-                ldist = min(rdist, odist)
-                udist = max(rdist, odist)
+                lsize, usize = rsz
+                lang = (lsize - 2.) * 180. / lsize
+                uang = (usize - 2.) * 180. / usize
+                ldist, udist = heuristic_bond_angle_distance_range(
+                    gra, *path, ang_range=(lang, uang))
+                rldist, rudist = heuristic_bond_angle_distance_range(
+                    gra, *path, ang_range=(lang, uang))
+                oldist, oudist = heuristic_bond_angle_distance_range(
+                    gra, *path)
+                ldist = min(rldist, oldist)
+                udist = max(rudist, oudist)
         elif len(path) == 4:
-            if rsz == 0:
-                ldist = heuristic_torsion_angle_distance(
+            if rsz is None:
+                ldist, _ = heuristic_torsion_angle_distance_range(
                     gra, *path, cis=True, hyb_dct=hyb_dct)
-                udist = heuristic_torsion_angle_distance(
+                _, udist = heuristic_torsion_angle_distance_range(
                     gra, *path, cis=False, hyb_dct=hyb_dct)
             else:
-                ang = (rsz - 2.) * 180. / rsz
-                rdist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=True, ang1=ang, ang2=ang)
-                cdist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=True, hyb_dct=hyb_dct)
-                tdist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=False, hyb_dct=hyb_dct)
-                ldist = min(rdist, cdist)
-                udist = max(rdist, tdist)
+                lsize, usize = rsz
+                lang = (lsize - 2.) * 180. / lsize
+                uang = (usize - 2.) * 180. / usize
+                rldist, rudist = heuristic_torsion_angle_distance_range(
+                    gra, *path, cis=True,
+                    ang1_range=(lang, uang), ang2_range=(lang, uang))
+                cldist, _ = heuristic_torsion_angle_distance_range(
+                    gra, *path, cis=True)
+                _, tudist = heuristic_torsion_angle_distance_range(
+                    gra, *path, cis=False)
+                ldist = min(rldist, cldist)
+                udist = max(rudist, tudist)
         # otherwise, just do the sum of the distances between atoms along the
         # path
         else:
@@ -416,7 +489,7 @@ def planarity_constraint_bounds(gra, keys):
         return tuple(lst)
 
     const_dct = {
-        idxs: (0., 0.) for idxs in
+        idxs: (-0.2, 0.2) for idxs in
         itertools.chain(*map(_planarity_constraints, sp2_bond_keys(gra)))}
 
     return const_dct
@@ -439,100 +512,101 @@ def sample_raw_distance_geometry(gra, keys):
 
 
 if __name__ == '__main__':
-    import automol
-    # ICH = ('InChI=1S/C17H19NO3/c1-18-7-6-17-10-3-5-13(20)16(17)21-15-12(19)'
-    #        '4-2-9(14(15)17)8-11(10)18/h2-5,10-11,13,16,19-20H,6-8H2,1H3/'
-    #        't10-,11+,13-,16-,17-/m0/s1')
-    # GEO = automol.inchi.geometry(ICH)
-    # GRA = automol.geom.graph(GEO)
-    GRA = automol.graph.from_string("""
-        atoms:
-          1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
-          11: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
-          12: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          13: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
-          14: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          15: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          16: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
-          17: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
-          18: {symbol: N, implicit_hydrogen_valence: 0, stereo_parity: null}
-          19: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-          20: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-          21: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-          22: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          23: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          24: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          25: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          26: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          27: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          28: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          29: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          30: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          31: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          32: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          33: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          34: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          35: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          36: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          37: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          38: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          39: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          40: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-        bonds:
-          1-18: {order: 1, stereo_parity: null}
-          1-22: {order: 1, stereo_parity: null}
-          1-23: {order: 1, stereo_parity: null}
-          1-24: {order: 1, stereo_parity: null}
-          2-4: {order: 1, stereo_parity: null}
-          2-9: {order: 1, stereo_parity: null}
-          2-25: {order: 1, stereo_parity: null}
-          3-5: {order: 1, stereo_parity: null}
-          3-10: {order: 1, stereo_parity: null}
-          3-26: {order: 1, stereo_parity: null}
-          4-12: {order: 1, stereo_parity: null}
-          4-27: {order: 1, stereo_parity: null}
-          5-13: {order: 1, stereo_parity: null}
-          5-28: {order: 1, stereo_parity: null}
-          6-7: {order: 1, stereo_parity: null}
-          6-17: {order: 1, stereo_parity: null}
-          6-29: {order: 1, stereo_parity: null}
-          6-30: {order: 1, stereo_parity: null}
-          7-18: {order: 1, stereo_parity: null}
-          7-31: {order: 1, stereo_parity: null}
-          7-32: {order: 1, stereo_parity: null}
-          8-9: {order: 1, stereo_parity: null}
-          8-11: {order: 1, stereo_parity: null}
-          8-33: {order: 1, stereo_parity: null}
-          8-34: {order: 1, stereo_parity: null}
-          9-14: {order: 1, stereo_parity: null}
-          10-11: {order: 1, stereo_parity: null}
-          10-17: {order: 1, stereo_parity: null}
-          10-35: {order: 1, stereo_parity: null}
-          11-18: {order: 1, stereo_parity: null}
-          11-36: {order: 1, stereo_parity: null}
-          12-15: {order: 1, stereo_parity: null}
-          12-19: {order: 1, stereo_parity: null}
-          13-16: {order: 1, stereo_parity: null}
-          13-20: {order: 1, stereo_parity: null}
-          13-37: {order: 1, stereo_parity: null}
-          14-15: {order: 1, stereo_parity: null}
-          14-17: {order: 1, stereo_parity: null}
-          15-21: {order: 1, stereo_parity: null}
-          16-17: {order: 1, stereo_parity: null}
-          16-21: {order: 1, stereo_parity: null}
-          16-38: {order: 1, stereo_parity: null}
-          19-39: {order: 1, stereo_parity: null}
-          20-40: {order: 1, stereo_parity: null}
-    """)
-    KEYS = sorted(automol.graph.atom_keys(GRA))
-    P_DCT = planarity_constraint_bounds(GRA, KEYS)
-    print(P_DCT)
+    # import automol
+    # # ICH = ('InChI=1S/C17H19NO3/c1-18-7-6-17-10-3-5-13(20)16(17)21-15-12'
+    # #        '(19)4-2-9(14(15)17)8-11(10)18/h2-5,10-11,13,16,19-20H,6-8H2'
+    # #        ',1H3/t10-,11+,13-,16-,17-/m0/s1')
+    # # GEO = automol.inchi.geometry(ICH)
+    # # GRA = automol.geom.graph(GEO)
+    # GRA = automol.graph.from_string("""
+    #     atoms:
+    #       1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
+    #       11: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
+    #       12: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       13: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
+    #       14: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       15: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       16: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
+    #       17: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
+    #       18: {symbol: N, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       19: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       20: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       21: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       22: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       23: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       24: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       25: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       26: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       27: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       28: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       29: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       30: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       31: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       32: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       33: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       34: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       35: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       36: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       37: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       38: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       39: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #       40: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+    #     bonds:
+    #       1-18: {order: 1, stereo_parity: null}
+    #       1-22: {order: 1, stereo_parity: null}
+    #       1-23: {order: 1, stereo_parity: null}
+    #       1-24: {order: 1, stereo_parity: null}
+    #       2-4: {order: 1, stereo_parity: null}
+    #       2-9: {order: 1, stereo_parity: null}
+    #       2-25: {order: 1, stereo_parity: null}
+    #       3-5: {order: 1, stereo_parity: null}
+    #       3-10: {order: 1, stereo_parity: null}
+    #       3-26: {order: 1, stereo_parity: null}
+    #       4-12: {order: 1, stereo_parity: null}
+    #       4-27: {order: 1, stereo_parity: null}
+    #       5-13: {order: 1, stereo_parity: null}
+    #       5-28: {order: 1, stereo_parity: null}
+    #       6-7: {order: 1, stereo_parity: null}
+    #       6-17: {order: 1, stereo_parity: null}
+    #       6-29: {order: 1, stereo_parity: null}
+    #       6-30: {order: 1, stereo_parity: null}
+    #       7-18: {order: 1, stereo_parity: null}
+    #       7-31: {order: 1, stereo_parity: null}
+    #       7-32: {order: 1, stereo_parity: null}
+    #       8-9: {order: 1, stereo_parity: null}
+    #       8-11: {order: 1, stereo_parity: null}
+    #       8-33: {order: 1, stereo_parity: null}
+    #       8-34: {order: 1, stereo_parity: null}
+    #       9-14: {order: 1, stereo_parity: null}
+    #       10-11: {order: 1, stereo_parity: null}
+    #       10-17: {order: 1, stereo_parity: null}
+    #       10-35: {order: 1, stereo_parity: null}
+    #       11-18: {order: 1, stereo_parity: null}
+    #       11-36: {order: 1, stereo_parity: null}
+    #       12-15: {order: 1, stereo_parity: null}
+    #       12-19: {order: 1, stereo_parity: null}
+    #       13-16: {order: 1, stereo_parity: null}
+    #       13-20: {order: 1, stereo_parity: null}
+    #       13-37: {order: 1, stereo_parity: null}
+    #       14-15: {order: 1, stereo_parity: null}
+    #       14-17: {order: 1, stereo_parity: null}
+    #       15-21: {order: 1, stereo_parity: null}
+    #       16-17: {order: 1, stereo_parity: null}
+    #       16-21: {order: 1, stereo_parity: null}
+    #       16-38: {order: 1, stereo_parity: null}
+    #       19-39: {order: 1, stereo_parity: null}
+    #       20-40: {order: 1, stereo_parity: null}
+    # """)
+    # KEYS = sorted(automol.graph.atom_keys(GRA))
+    # P_DCT = planarity_constraint_bounds(GRA, KEYS)
+    # print(P_DCT)
+    print('hi')
