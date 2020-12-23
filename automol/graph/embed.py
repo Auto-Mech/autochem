@@ -39,15 +39,17 @@ from automol.graph._graph import atom_symbols
 from automol.graph._graph import atom_keys
 from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import bond_stereo_parities
 from automol.graph._ring import rings_atom_keys
 from automol.graph._res import resonance_dominant_atom_hybridizations
-# from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
+from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 
 
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 DEG2RAD = qcc.conversion_factor('degree', 'radian')
-# RAD2DEG = qcc.conversion_factor('radian', 'degree')
+RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 # bond distances
 XY_DIST = 1.5       # angstroms
@@ -219,8 +221,12 @@ def path_distance_bounds_(gra):
     :type path: list or tuple
     """
 
-    rng_keys_lst = rings_atom_keys(gra)
     hyb_dct = resonance_dominant_atom_hybridizations(gra)
+    rng_keys_lst = rings_atom_keys(gra)
+    atm_ngb_keys = atom_neighbor_keys(gra)
+
+    ste_bnd_keys = bond_stereo_keys(gra)
+    bnd_par_dct = bond_stereo_parities(gra)
 
     def _distance_bounds(path):
         # if the path is 0, the atoms are disconnected and could be arbitrarily
@@ -243,10 +249,24 @@ def path_distance_bounds_(gra):
                 udist = max(rdist, odist)
         elif len(path) == 4:
             if rsz == 0:
-                ldist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=True, hyb_dct=hyb_dct)
-                udist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=False, hyb_dct=hyb_dct)
+                key2, key3 = path[1:3]
+                bnd_key23 = frozenset({key2, key3})
+                # handle bond stereo here
+                if bnd_key23 in ste_bnd_keys:
+                    key2_ngbs = stereo_sorted_atom_neighbor_keys(
+                        gra, key2, atm_ngb_keys[key2]-{key3})
+                    key3_ngbs = stereo_sorted_atom_neighbor_keys(
+                        gra, key3, atm_ngb_keys[key3]-{key2})
+                    pos2 = key2_ngbs.index(path[0])
+                    pos3 = key3_ngbs.index(path[-1])
+                    cis = bnd_par_dct[bnd_key23] != (pos2 != pos3)
+                    ldist = udist = heuristic_torsion_angle_distance(
+                        gra, *path, cis=cis, hyb_dct=hyb_dct)
+                else:
+                    ldist = heuristic_torsion_angle_distance(
+                        gra, *path, cis=True, hyb_dct=hyb_dct)
+                    udist = heuristic_torsion_angle_distance(
+                        gra, *path, cis=False, hyb_dct=hyb_dct)
             else:
                 ang = (rsz - 2.) * 180. / rsz
                 rdist = heuristic_torsion_angle_distance(
@@ -396,27 +416,30 @@ def planarity_constraint_bounds(gra, keys):
 
     def _planarity_constraints(bnd_key):
         key1, key2 = sorted(bnd_key)
-        key1_ngbs = sorted(ngb_key_dct[key1] - {key2})
-        key2_ngbs = sorted(ngb_key_dct[key2] - {key1})
+        key1ab = sorted(ngb_key_dct[key1] - {key2})
+        key2ab = sorted(ngb_key_dct[key2] - {key1})
 
         lst = []
 
         # I don't think the order of the keys matters, but I tried to be
         # roughly consistent with Figure 8 in the Blaney Dixon paper
-        if len(key1_ngbs) == 2 and len(key2_ngbs) == 2:
-            idxs = tuple(map(keys.index, key1_ngbs + key2_ngbs))
-            lst.append(idxs)
-        if len(key1_ngbs) == 2:
-            idxs = tuple(map(keys.index, [key2, key1] + key1_ngbs))
-            lst.append(idxs)
-        if len(key2_ngbs) == 2:
-            idxs = tuple(map(keys.index, [key1, key2] + key2_ngbs))
-            lst.append(idxs)
+        if len(key1ab) == 2 and len(key2ab) == 2:
+            lst.append(tuple(map(keys.index, key1ab + key2ab)))
+        if len(key1ab) == 2:
+            lst.append(tuple(map(keys.index, [key1, key2] + key1ab)))
+        if len(key2ab) == 2:
+            lst.append(tuple(map(keys.index, [key1, key2] + key2ab)))
+        if (len(key1ab) == 2 and len(key2ab) == 1) or (
+                len(key1ab) == 1 and len(key2ab) == 2):
+            lst.append(tuple(map(keys.index, [key1] + key1ab + key2ab)))
+            lst.append(tuple(map(keys.index, [key2] + key1ab + key2ab)))
+        if len(key1ab) == 1 and len(key2ab) == 1:
+            lst.append(tuple(map(keys.index, [key1, key2] + key1ab + key2ab)))
 
         return tuple(lst)
 
     const_dct = {
-        idxs: (0., 0.) for idxs in
+        idxs: (-0.2, 0.2) for idxs in
         itertools.chain(*map(_planarity_constraints, sp2_bond_keys(gra)))}
 
     return const_dct

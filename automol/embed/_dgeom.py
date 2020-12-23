@@ -213,6 +213,21 @@ def geometry_from_coordinates(xmat, syms):
     return geo
 
 
+def greatest_distance_errors(dmat, lmat, umat, count=10):
+    """ get the indices of the maximum distance errors
+
+    For testing purposes
+    """
+    lerrs = (lmat - dmat) * (lmat >= dmat)
+    uerrs = (dmat - umat) * (dmat >= umat)
+    errs = numpy.maximum(lerrs, uerrs)
+    idx_vecs = numpy.unravel_index(numpy.argsort(-errs, axis=None), errs.shape)
+    vals = errs[idx_vecs][:count]
+    idxs = tuple(map(tuple, zip(*idx_vecs)))[:count]
+    err_dct = dict(zip(idxs, vals))
+    return err_dct
+
+
 if __name__ == '__main__':
     import automol
     ICH = automol.smiles.inchi('CO')
