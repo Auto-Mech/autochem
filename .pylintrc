@@ -5,6 +5,7 @@ extension-pkg-whitelist=
 disable=
     too-few-public-methods,
     no-init,
+    broad-except,
     old-style-class,
     too-many-arguments,
     too-many-statements,

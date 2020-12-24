@@ -28,7 +28,6 @@ coordinates to improve convergence is described.
 """
 import numpy
 import scipy.optimize
-from automol.embed._dgeom import sample_raw_distance_coordinates
 from automol.embed._dgeom import distance_matrix_from_coordinates
 from automol.embed._findif import central_difference
 
@@ -72,15 +71,18 @@ def volume_gradient(xmat, idxs):
     return grad
 
 
-def error_function_(lmat, umat, chip_dct=None, wdist=1., wchip=1., wdim4=1.,
-                    leps=0.1, ueps=0.1):
+def error_function_(lmat, umat, chi_dct=None, pla_dct=None, wdist=1., wchip=1.,
+                    wdim4=1., leps=0.1, ueps=0.1):
     """ the embedding error function
 
     :param lmat: lower-bound distance matrix
     :param umat: upper-bound distance matrix
-    :param chip_dct: chirality and planarity constraints; the keys are tuples
-        of four atoms, the values are lower and upper bounds on the four-point
-        signed volume of these atoms
+    :param chi_dct: chirality constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
+    :param pla_dct: planarity constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
     :param wdist: weight on the distance constraint
     :param wchip: weight on the chirality/planarity constraint
     :param wdim4: weight on the fourth dimension constraint
@@ -88,7 +90,9 @@ def error_function_(lmat, umat, chip_dct=None, wdist=1., wchip=1., wdim4=1.,
     :param ueps: denominator epsilon for upper bound distances
     """
     triu = numpy.triu_indices_from(lmat)
-    chip_dct = {} if chip_dct is None else chip_dct
+    chi_dct = {} if chi_dct is None else chi_dct
+    pla_dct = {} if pla_dct is None else pla_dct
+    chip_dct = {**chi_dct, **pla_dct}
 
     def _function(xmat):
         dmat = distance_matrix_from_coordinates(xmat)
@@ -99,12 +103,6 @@ def error_function_(lmat, umat, chip_dct=None, wdist=1., wchip=1., wdim4=1.,
         ltf *= (ltf > 0.)
         utf *= (utf > 0.)
         dist_err = wdist * (numpy.vdot(utf, utf) + numpy.vdot(ltf, ltf))
-
-        # l__ = (lmat-dmat)*(lmat > dmat)
-        # u__ = (dmat-umat)*(umat < dmat)
-        # print(numpy.round(l__, 2))
-        # print(numpy.round(u__, 2))
-        # print('\tdist_err', dist_err)
 
         # chirality/planarity error (equation 62 in the paper referenced above)
         if chip_dct:
@@ -131,22 +129,27 @@ def error_function_(lmat, umat, chip_dct=None, wdist=1., wchip=1., wdim4=1.,
     return _function
 
 
-def error_function_gradient_(lmat, umat, chip_dct=None,
+def error_function_gradient_(lmat, umat, chi_dct=None, pla_dct=None,
                              wdist=1., wchip=1., wdim4=1., leps=0.1, ueps=0.1):
     """ the embedding error function gradient
 
     :param lmat: lower-bound distance matrix
     :param umat: upper-bound distance matrix
-    :param chip_dct: chirality and planarity constraints; the keys are tuples
-        of four atoms, the values are lower and upper bounds on the four-point
-        signed volume of these atoms
+    :param chi_dct: chirality constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
+    :param pla_dct: planarity constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
     :param wdist: weight on the distance constraint
     :param wchip: weight on the chirality/planarity constraint
     :param wdim4: weight on the fourth dimension constraint
     :param leps: denominator epsilon for lower bound distances
     :param ueps: denominator epsilon for upper bound distances
     """
-    # natms = len(lmat)
+    chi_dct = {} if chi_dct is None else chi_dct
+    pla_dct = {} if pla_dct is None else pla_dct
+    chip_dct = {**chi_dct, **pla_dct}
 
     def _gradient(xmat):
         dmat = distance_matrix_from_coordinates(xmat)
@@ -191,7 +194,7 @@ def error_function_gradient_(lmat, umat, chip_dct=None,
     return _gradient
 
 
-def error_function_numerical_gradient_(lmat, umat, chip_dct=None,
+def error_function_numerical_gradient_(lmat, umat, chi_dct=None, pla_dct=None,
                                        wdist=1., wchip=1., wdim4=1.,
                                        leps=0.1, ueps=0.1):
     """ the gradient of the distance error function
@@ -199,7 +202,7 @@ def error_function_numerical_gradient_(lmat, umat, chip_dct=None,
     (For testing purposes only; Used to check the analytic gradient formula.)
     """
 
-    erf_ = error_function_(lmat, umat, chip_dct,
+    erf_ = error_function_(lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct,
                            wdist=wdist, wchip=wchip, wdim4=wdim4,
                            leps=leps, ueps=ueps)
 
@@ -234,18 +237,21 @@ def line_search_alpha(fun_, sd1, cd1):
     return alpha
 
 
-def cleaned_up_coordinates(xmat, lmat, umat, chip_dct=None,
+def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
                            thresh=5e-2, maxiter=None,
                            # pre_thresh=5e-1, pre_maxiter=None,
-                           chi_flip=False):
+                           chi_flip=True):
     """ clean up coordinates by conjugate-gradients error minimization
 
     :param xmat: the initial guess coordinates to be cleaned up
     :param lmat: lower-bound distance matrix
     :param umat: upper-bound distance matrix
-    :param chip_dct: chirality and planarity constraints; the keys are tuples
-        of four atoms, the values are lower and upper bounds on the four-point
-        signed volume of these atoms
+    :param chi_dct: chirality constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
+    :param pla_dct: planarity constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
     :param thresh: convergence threshold, specifying the maximum gradient value
     :param maxiter: maximum number of iterations; default is three times the
         number of coordinates
@@ -255,8 +261,18 @@ def cleaned_up_coordinates(xmat, lmat, umat, chip_dct=None,
     :chi_flip: whether or not to invert the structure if more than half of the
         chiralities are reversed
     """
-    if chi_flip:
-        raise NotImplementedError("Chirality flip not yet implemented!")
+    xmat = numpy.array(xmat)
+
+    # If less than half of the chiralities have correct sign, invert the
+    # geometry
+    if chi_flip and chi_dct:
+        current_vols = numpy.array(
+            [volume(xmat, idxs) for idxs in chi_dct.keys()])
+        target_vols = numpy.array(list(map(numpy.average, chi_dct.values())))
+        comparison = numpy.sign(current_vols) == numpy.sign(target_vols)
+        fraction = numpy.average(comparison)
+        if fraction < 0.5:
+            xmat *= -1.
 
     # thresh1 = pre_thresh
     thresh2 = thresh
@@ -265,9 +281,11 @@ def cleaned_up_coordinates(xmat, lmat, umat, chip_dct=None,
     # maxiter1 = int(3 if pre_maxiter is None else pre_maxiter)
 
     # fun1_ = error_function_(lmat, umat, chip_dct, wdim4=0.)
-    fun2_ = error_function_(lmat, umat, chip_dct, wdim4=1.)
+    fun2_ = error_function_(
+        lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
     # grad1_ = error_function_gradient_(lmat, umat, chip_dct, wdim4=0.)
-    grad2_ = error_function_gradient_(lmat, umat, chip_dct, wdim4=1.)
+    grad2_ = error_function_gradient_(
+        lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
 
     # xmat, _ = minimize_error(xmat, fun1_, grad1_, thresh1, maxiter1)
     xmat, conv = minimize_error(xmat, fun2_, grad2_, thresh2, maxiter2)
@@ -330,35 +348,3 @@ def minimize_error(xmat, fun_, grad_, thresh=1e-1, maxiter=None):
     print()
 
     return xmat, converged
-
-
-if __name__ == '__main__':
-    numpy.random.seed(1)
-    import automol
-
-    ICH = automol.smiles.inchi('O')  # water
-    # ICH = automol.smiles.inchi('CO')  # methanol
-    # ICH = automol.smiles.inchi('C1CCCCC1')  # hexane
-    # ICH = automol.smiles.inchi('C1C2CC3CC1CC(C2)C3')  # adamantane
-    GEO = automol.inchi.geometry(ICH)
-    GRA = automol.geom.graph(GEO)
-
-    KEYS = sorted(automol.graph.atom_keys(GRA))
-    LMAT, UMAT = automol.graph.embed.distance_bounds_matrices(GRA, KEYS)
-    P_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
-    XMAT = sample_raw_distance_coordinates(GRA, KEYS, dim4=True)
-
-    print(numpy.shape(XMAT))
-    # XMAT, CONV = cleaned_up_coordinates(XMAT, LMAT, UMAT, chip_dct=P_DCT)
-    XMAT, CONV = cleaned_up_coordinates(XMAT, LMAT, UMAT, chip_dct={})
-    print(CONV)
-
-    SYMS = list(map(automol.graph.atom_symbols(GRA).__getitem__, KEYS))
-    XYZS = XMAT[:, :3]
-    GEO = automol.create.geom.from_data(SYMS, XYZS, angstrom=True)
-    print(automol.geom.string(GEO))
-
-    GRA = automol.graph.without_stereo_parities(GRA)
-    GRA2 = automol.geom.connectivity_graph(GEO)
-    print(GRA == GRA2)
-    print(ICH)
