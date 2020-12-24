@@ -42,12 +42,14 @@ from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
-from automol.graph._ring import rings_atom_keys
-from automol.graph._res import resonance_dominant_atom_hybridizations
 from automol.graph._stereo import atom_stereo_keys
 from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._ring import rings_atom_keys
+from automol.graph._geom import _atom_stereo_parity_from_geometry
+from automol.graph._geom import _bond_stereo_parity_from_geometry
+from automol.graph._res import resonance_dominant_atom_hybridizations
 
 
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
@@ -453,16 +455,16 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
     """ a convergence checker for error minimization, checking that the
     geometry is qualitatively correct (correct connectivity and stereo)
     """
-    atm_sym_dct = atom_symbols(gra)
+    sym_dct = atom_symbols(gra)
     all_bnd_keys = bond_keys(gra)
 
     nob_keys = tuple(nob_key for nob_key in itertools.combinations(keys, 2)
                      if frozenset(nob_key) not in all_bnd_keys)
     bnd_keys = tuple(tuple(bnd_key) for bnd_key in all_bnd_keys
                      if set(bnd_key) <= set(keys))
-    nob_syms = tuple(tuple(map(atm_sym_dct.__getitem__, nob_key))
+    nob_syms = tuple(tuple(map(sym_dct.__getitem__, nob_key))
                      for nob_key in nob_keys)
-    bnd_syms = tuple(tuple(map(atm_sym_dct.__getitem__, bnd_key))
+    bnd_syms = tuple(tuple(map(sym_dct.__getitem__, bnd_key))
                      for bnd_key in bnd_keys)
     nob_idxs = tuple(tuple(map(keys.index, nob_key)) for nob_key in nob_keys)
     bnd_idxs = tuple(tuple(map(keys.index, bnd_key)) for bnd_key in bnd_keys)
@@ -484,14 +486,35 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
     nob_idx_vecs = tuple(map(list, zip(*nob_idxs)))
     nob_ldists *= 2
 
+    syms = tuple(map(sym_dct.__getitem__, keys))
+    geo_idx_dct = dict(map(reversed, enumerate(keys)))
+    atm_ste_keys = atom_stereo_keys(gra)
+    bnd_ste_keys = bond_stereo_keys(gra)
+    atm_ste_par_dct = atom_stereo_parities(gra)
+    bnd_ste_par_dct = bond_stereo_parities(gra)
+
     def _is_converged(xmat, err, grad):
         assert err and numpy.any(grad)
-        dmat = embed.distance_matrix_from_coordinates(xmat[:, :3])
+        xyzs = xmat[:, :3]
+        dmat = embed.distance_matrix_from_coordinates(xyzs)
 
-        # check that for correct connectivity
+        # check for correct connectivity
         connectivity_check = (numpy.all(dmat[bnd_idx_vecs] < bnd_udists) and
                               numpy.all(dmat[nob_idx_vecs] > nob_ldists))
-        return connectivity_check
+
+        # check for correct stereo parities
+        geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
+        atom_stereo_check = all(
+            (_atom_stereo_parity_from_geometry(gra, atm_key, geo, geo_idx_dct)
+             == atm_ste_par_dct[atm_key])
+            for atm_key in atm_ste_keys)
+
+        bond_stereo_check = all(
+            (_bond_stereo_parity_from_geometry(gra, bnd_key, geo, geo_idx_dct)
+             == bnd_ste_par_dct[bnd_key])
+            for bnd_key in bnd_ste_keys)
+
+        return connectivity_check and atom_stereo_check and bond_stereo_check
 
     return _is_converged
 
