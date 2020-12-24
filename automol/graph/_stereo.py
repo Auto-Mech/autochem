@@ -115,8 +115,9 @@ def stereogenic_atom_keys(gra):
         atm_ngb_keys = list(atm_ngb_keys_dct[atm_key])
         pri_vecs = [stereo_priority_vector(gra, atm_key, atm_ngb_key)
                     for atm_ngb_key in atm_ngb_keys]
-        return not any(pv1 == pv2
-                       for pv1, pv2 in itertools.combinations(pri_vecs, r=2))
+        ret = not any(pv1 == pv2
+                      for pv1, pv2 in itertools.combinations(pri_vecs, r=2))
+        return ret
 
     ste_gen_atm_keys = frozenset(filter(_is_stereogenic, atm_keys))
     return ste_gen_atm_keys
