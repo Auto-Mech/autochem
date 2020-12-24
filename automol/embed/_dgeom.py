@@ -123,9 +123,8 @@ def distances_from_center(dmat):
         sum_dij2 = sum(dmat[i, j]**2 for j in range(natms))
         sum_djk2 = sum(dmat[j, k]**2 for j, k in
                        itertools.combinations(range(natms), 2))
-        dci2 = sum_dij2/natms - sum_djk2/(natms**2)
 
-        assert dci2 > 0
+        dci2 = numpy.abs(sum_dij2/natms - sum_djk2/(natms**2))
 
         dcvec[i] = numpy.sqrt(dci2)
 
@@ -226,40 +225,3 @@ def greatest_distance_errors(dmat, lmat, umat, count=10):
     idxs = tuple(map(tuple, zip(*idx_vecs)))[:count]
     err_dct = dict(zip(idxs, vals))
     return err_dct
-
-
-if __name__ == '__main__':
-    import automol
-    ICH = automol.smiles.inchi('CO')
-
-    # 1. Generate distance bounds matrices, L and U
-    GRA = automol.inchi.graph(ICH)
-    GRA = automol.graph.explicit(GRA)
-    KEYS = sorted(automol.graph.atom_keys(GRA))
-    LMAT, UMAT = automol.graph.embed.distance_bounds_matrices(GRA, KEYS)
-
-    # 2. Triangle-smooth the bounds matrices
-    LMAT, UMAT = triangle_smooth_bounds_matrices(LMAT, UMAT)
-    print('lower:')
-    print(numpy.round(LMAT, 2))
-    print('upper:')
-    print(numpy.round(UMAT, 2))
-
-    # 3. Generate a distance matrix D by sampling within the bounds
-    DMAT = sample_distance_matrix(LMAT, UMAT)
-    print('distance:')
-    print(numpy.round(DMAT, 2))
-
-    # 4. Generate the metric matrix G
-    GMAT = metric_matrix(DMAT)
-    print('metric:')
-    print(numpy.round(GMAT, 2))
-
-    # 5-6. Generate coordinates from the metric matrix
-    XMAT = coordinates_from_metric_matrix(GMAT, dim4=True)
-    print(numpy.round(XMAT, 3))
-
-    SYM_DCT = automol.graph.atom_symbols(GRA)
-    SYMS = list(map(SYM_DCT.__getitem__, KEYS))
-    GEO = automol.geom.from_data(SYMS, XMAT[:, :3], angstrom=True)
-    print(automol.geom.string(GEO))

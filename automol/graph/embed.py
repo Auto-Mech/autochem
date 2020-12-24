@@ -37,6 +37,7 @@ from automol import embed
 from automol.graph._graph_base import string
 from automol.graph._graph import atom_symbols
 from automol.graph._graph import atom_keys
+from automol.graph._graph import bond_keys
 from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_stereo_parities
@@ -440,10 +441,59 @@ def planarity_constraint_bounds(gra, keys):
         return tuple(lst)
 
     const_dct = {
-        idxs: (-0.2, 0.2) for idxs in
+        idxs: (-1, +1) for idxs in
         itertools.chain(*map(_planarity_constraints, sp2_bond_keys(gra)))}
 
     return const_dct
+
+
+def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
+                                     rqh_bond_max=1.3, rhh_bond_max=1.0,
+                                     bond_nobond_diff=0.1):
+    """ a convergence checker for error minimization, checking that the
+    geometry is qualitatively correct (correct connectivity and stereo)
+    """
+    atm_sym_dct = atom_symbols(gra)
+    all_bnd_keys = bond_keys(gra)
+
+    nob_keys = tuple(nob_key for nob_key in itertools.combinations(keys, 2)
+                     if frozenset(nob_key) not in all_bnd_keys)
+    bnd_keys = tuple(tuple(bnd_key) for bnd_key in all_bnd_keys
+                     if set(bnd_key) <= set(keys))
+    nob_syms = tuple(tuple(map(atm_sym_dct.__getitem__, nob_key))
+                     for nob_key in nob_keys)
+    bnd_syms = tuple(tuple(map(atm_sym_dct.__getitem__, bnd_key))
+                     for bnd_key in bnd_keys)
+    nob_idxs = tuple(tuple(map(keys.index, nob_key)) for nob_key in nob_keys)
+    bnd_idxs = tuple(tuple(map(keys.index, bnd_key)) for bnd_key in bnd_keys)
+
+    bnd_udists = tuple((rqq_bond_max if 'H' not in sym else
+                        rhh_bond_max if set(sym) == {'H'} else
+                        rqh_bond_max) for sym in bnd_syms)
+
+    diff = bond_nobond_diff
+    nob_ldists = tuple((rqq_bond_max+diff if 'H' not in sym else
+                        rhh_bond_max+diff if set(sym) == {'H'} else
+                        rqh_bond_max+diff) for sym in nob_syms)
+
+    bnd_idxs += tuple(map(tuple, map(reversed, bnd_idxs)))
+    bnd_idx_vecs = tuple(map(list, zip(*bnd_idxs)))
+    bnd_udists *= 2
+
+    nob_idxs += tuple(map(tuple, map(reversed, nob_idxs)))
+    nob_idx_vecs = tuple(map(list, zip(*nob_idxs)))
+    nob_ldists *= 2
+
+    def _is_converged(xmat, err, grad):
+        assert err and numpy.any(grad)
+        dmat = embed.distance_matrix_from_coordinates(xmat[:, :3])
+
+        # check that for correct connectivity
+        connectivity_check = (numpy.all(dmat[bnd_idx_vecs] < bnd_udists) and
+                              numpy.all(dmat[nob_idx_vecs] > nob_ldists))
+        return connectivity_check
+
+    return _is_converged
 
 
 def sample_raw_distance_geometry(gra, keys):
@@ -460,103 +510,3 @@ def sample_raw_distance_geometry(gra, keys):
     geo = automol.create.geom.from_data(syms, xmat, angstrom=True)
 
     return geo
-
-
-if __name__ == '__main__':
-    import automol
-    # ICH = ('InChI=1S/C17H19NO3/c1-18-7-6-17-10-3-5-13(20)16(17)21-15-12(19)'
-    #        '4-2-9(14(15)17)8-11(10)18/h2-5,10-11,13,16,19-20H,6-8H2,1H3/'
-    #        't10-,11+,13-,16-,17-/m0/s1')
-    # GEO = automol.inchi.geometry(ICH)
-    # GRA = automol.geom.graph(GEO)
-    GRA = automol.graph.from_string("""
-        atoms:
-          1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
-          11: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
-          12: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          13: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
-          14: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          15: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          16: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
-          17: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
-          18: {symbol: N, implicit_hydrogen_valence: 0, stereo_parity: null}
-          19: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-          20: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-          21: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-          22: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          23: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          24: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          25: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          26: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          27: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          28: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          29: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          30: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          31: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          32: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          33: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          34: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          35: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          36: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          37: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          38: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          39: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-          40: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-        bonds:
-          1-18: {order: 1, stereo_parity: null}
-          1-22: {order: 1, stereo_parity: null}
-          1-23: {order: 1, stereo_parity: null}
-          1-24: {order: 1, stereo_parity: null}
-          2-4: {order: 1, stereo_parity: null}
-          2-9: {order: 1, stereo_parity: null}
-          2-25: {order: 1, stereo_parity: null}
-          3-5: {order: 1, stereo_parity: null}
-          3-10: {order: 1, stereo_parity: null}
-          3-26: {order: 1, stereo_parity: null}
-          4-12: {order: 1, stereo_parity: null}
-          4-27: {order: 1, stereo_parity: null}
-          5-13: {order: 1, stereo_parity: null}
-          5-28: {order: 1, stereo_parity: null}
-          6-7: {order: 1, stereo_parity: null}
-          6-17: {order: 1, stereo_parity: null}
-          6-29: {order: 1, stereo_parity: null}
-          6-30: {order: 1, stereo_parity: null}
-          7-18: {order: 1, stereo_parity: null}
-          7-31: {order: 1, stereo_parity: null}
-          7-32: {order: 1, stereo_parity: null}
-          8-9: {order: 1, stereo_parity: null}
-          8-11: {order: 1, stereo_parity: null}
-          8-33: {order: 1, stereo_parity: null}
-          8-34: {order: 1, stereo_parity: null}
-          9-14: {order: 1, stereo_parity: null}
-          10-11: {order: 1, stereo_parity: null}
-          10-17: {order: 1, stereo_parity: null}
-          10-35: {order: 1, stereo_parity: null}
-          11-18: {order: 1, stereo_parity: null}
-          11-36: {order: 1, stereo_parity: null}
-          12-15: {order: 1, stereo_parity: null}
-          12-19: {order: 1, stereo_parity: null}
-          13-16: {order: 1, stereo_parity: null}
-          13-20: {order: 1, stereo_parity: null}
-          13-37: {order: 1, stereo_parity: null}
-          14-15: {order: 1, stereo_parity: null}
-          14-17: {order: 1, stereo_parity: null}
-          15-21: {order: 1, stereo_parity: null}
-          16-17: {order: 1, stereo_parity: null}
-          16-21: {order: 1, stereo_parity: null}
-          16-38: {order: 1, stereo_parity: null}
-          19-39: {order: 1, stereo_parity: null}
-          20-40: {order: 1, stereo_parity: null}
-    """)
-    KEYS = sorted(automol.graph.atom_keys(GRA))
-    P_DCT = planarity_constraint_bounds(GRA, KEYS)
-    print(P_DCT)

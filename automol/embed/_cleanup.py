@@ -26,10 +26,14 @@ The error function formulas are found on page 11 of this paper. The gradient
 formulas I derived myself. On pages 12-13, the use of four-dimensional
 coordinates to improve convergence is described.
 """
+import logging
 import numpy
 import scipy.optimize
 from automol.embed._dgeom import distance_matrix_from_coordinates
 from automol.embed._findif import central_difference
+
+# uncomment this line if you want the logging statements while debugging:
+logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 X = numpy.newaxis
 
@@ -115,14 +119,11 @@ def error_function_(lmat, umat, chi_dct=None, pla_dct=None, wdist=1., wchip=1.,
         else:
             chip_err = 0.
 
-        # print('\tchip_err', chip_err)
-
         # fourth-dimension error
         if numpy.shape(xmat)[1] == 4:
             dim4_err = wdim4 * numpy.vdot(xmat[:, 3], xmat[:, 3])
         else:
             dim4_err = 0.
-        # print('\tdim4_err', dim4_err)
 
         return dist_err + chip_err + dim4_err
 
@@ -219,13 +220,13 @@ def polak_ribiere_beta(sd1, sd0):
     return numpy.vdot(sd1, sd1-sd0) / numpy.vdot(sd0, sd0)
 
 
-def line_search_alpha(fun_, sd1, cd1):
+def line_search_alpha(err_, sd1, cd1):
     """ perform a line search to determine the alpha coefficient
     """
 
     # define the objective function
     def _function_of_alpha(alpha):
-        return fun_(sd1 + alpha*cd1)
+        return err_(sd1 + alpha*cd1)
 
     # do the line search and make sure it worked
     res = scipy.optimize.minimize_scalar(_function_of_alpha)
@@ -238,8 +239,7 @@ def line_search_alpha(fun_, sd1, cd1):
 
 
 def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
-                           thresh=5e-2, maxiter=None,
-                           # pre_thresh=5e-1, pre_maxiter=None,
+                           conv_=None, thresh=1e-1, maxiter=None,
                            chi_flip=True):
     """ clean up coordinates by conjugate-gradients error minimization
 
@@ -252,12 +252,12 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
     :param pla_dct: planarity constraints; the keys are tuples of four atoms,
         the values are lower and upper bounds on the four-point signed volume
         of these atoms
-    :param thresh: convergence threshold, specifying the maximum gradient value
+    :param conv_: a callable convergence checker function of xmat, err, and
+        grad which returns True if the geometry is converged
+    :param thresh: convergence threshold, specifying the maximum gradient
+        value, if the default convergence checker is being used
     :param maxiter: maximum number of iterations; default is three times the
         number of coordinates
-    :param pre_thresh: convergence threshold for 4-dimensional pre-optimization
-    :param pre_maxiter: maximum number of iterations for 4-dimensional
-        pre-optimization; default is half of `maxiter`
     :chi_flip: whether or not to invert the structure if more than half of the
         chiralities are reversed
     """
@@ -274,30 +274,41 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
         if fraction < 0.5:
             xmat *= -1.
 
-    # thresh1 = pre_thresh
-    thresh2 = thresh
+    maxiter = int(numpy.size(xmat) * 3 if maxiter is None else maxiter)
 
-    maxiter2 = int(numpy.size(xmat) * 3 if maxiter is None else maxiter)
-    # maxiter1 = int(3 if pre_maxiter is None else pre_maxiter)
-
-    # fun1_ = error_function_(lmat, umat, chip_dct, wdim4=0.)
-    fun2_ = error_function_(
+    err_ = error_function_(
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
-    # grad1_ = error_function_gradient_(lmat, umat, chip_dct, wdim4=0.)
-    grad2_ = error_function_gradient_(
+    grad_ = error_function_gradient_(
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
+    conv_ = (quantitative_convergence_checker_(thresh) if conv_ is None
+             else conv_)
 
-    # xmat, _ = minimize_error(xmat, fun1_, grad1_, thresh1, maxiter1)
-    xmat, conv = minimize_error(xmat, fun2_, grad2_, thresh2, maxiter2)
+    xmat, conv = minimize_error(xmat, err_, grad_, conv_, maxiter)
     return xmat, conv
 
 
-def minimize_error(xmat, fun_, grad_, thresh=1e-1, maxiter=None):
+def quantitative_convergence_checker_(thresh=1e-1):
+    """ tight, quantitative convergence checker
+    """
+
+    def _is_converged(xmat, err, grad):
+        assert numpy.shape(xmat) == numpy.shape(grad)
+        grad_max = numpy.amax(numpy.abs(grad))
+        logging.info('\tError: {:f}'.format(err))
+        logging.info('\tMax gradient: {:f}'.format(grad_max))
+        logging.info('\n')
+        return grad_max < thresh
+
+    return _is_converged
+
+
+def minimize_error(xmat, err_, grad_, conv_, maxiter=None):
     """ do conjugate-gradients error minimization
 
-    :param fun_: a callable error function
-    :param grad_: a callable error gradient function
-    :param thresh: convergence threshold, specifying the maximum gradient value
+    :param err_: a callable error function of xmat
+    :param grad_: a callable error gradient function of xmat
+    :param conv_: a callable convergence checker function of xmat, err_(xmat),
+        and grad_(xmat) which returns True if the geometry is converged
 
     :returns: the optimized coordinates and a boolean which is True if
         converged and False if not
@@ -306,11 +317,13 @@ def minimize_error(xmat, fun_, grad_, thresh=1e-1, maxiter=None):
 
     sd0 = None
     cd0 = None
-    print('Initial error:', fun_(xmat))
+    logging.info('Initial error: {:f}'.format(err_(xmat)))
 
     converged = False
 
     for niter in range(maxiter):
+        logging.info('Iteration {:d}'.format(niter))
+
         # 1. Calculate the steepest direction
         sd1 = -grad_(xmat)
 
@@ -325,26 +338,21 @@ def minimize_error(xmat, fun_, grad_, thresh=1e-1, maxiter=None):
             cd1 = sd1 + beta * cd0
 
         # 4. Perform a line search
-        alpha = line_search_alpha(fun_, xmat, cd1)
+        alpha = line_search_alpha(err_, xmat, cd1)
 
-        # 5. Take the step
+        # 5. Check convergence
+        if conv_(xmat, err_(xmat), sd1):
+            converged = True
+            break
+
+        # 6. Take the step
         xmat += alpha*cd1
 
         sd0 = sd1
         cd0 = cd1
 
-        grad_max = numpy.amax(numpy.abs(sd1))
-        if grad_max < thresh:
-            converged = True
-            break
-
-        print('Iteration {:d}'.format(niter))
-        print('\tError:', fun_(xmat))
-        print('\tMax gradient:', grad_max)
-        print()
-
-    print('Niter:', niter)
-    print('Converged:', converged)
-    print()
+    logging.info('Niter: {:d}'.format(niter))
+    logging.info('Converged: {:s}'.format('Yes' if converged else 'No'))
+    logging.info('\n')
 
     return xmat, converged
