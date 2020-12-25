@@ -33,7 +33,7 @@ from automol.embed._dgeom import distance_matrix_from_coordinates
 from automol.embed._findif import central_difference
 
 # uncomment this line if you want the logging statements while debugging:
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+# logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 X = numpy.newaxis
 

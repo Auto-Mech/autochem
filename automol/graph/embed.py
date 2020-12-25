@@ -33,6 +33,7 @@ from qcelemental import constants as qcc
 from qcelemental import periodictable as pt
 import automol.create.geom
 import automol.geom
+from automol import error
 from automol import embed
 from automol.graph._graph_base import string
 from automol.graph._graph import atom_symbols
@@ -40,8 +41,11 @@ from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_neighborhoods
+from automol.graph._graph import bond_neighborhoods
 from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
+from automol.graph._graph import explicit
 from automol.graph._stereo import atom_stereo_keys
 from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
@@ -450,8 +454,8 @@ def planarity_constraint_bounds(gra, keys):
 
 
 def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
-                                     rqh_bond_max=1.3, rhh_bond_max=1.0,
-                                     bond_nobond_diff=0.1):
+                                     rqh_bond_max=1.3, rhh_bond_max=1.1,
+                                     bond_nobond_diff=0.3):
     """ a convergence checker for error minimization, checking that the
     geometry is qualitatively correct (correct connectivity and stereo)
     """
@@ -519,17 +523,65 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
     return _is_converged
 
 
-def sample_raw_distance_geometry(gra, keys):
-    """ sample a raw (uncorrected) distance geometry
+def fake_stereo_geometry(gra, ntries=3):
+    """ generate a fake stereo geometry
+
+    TODO: Finish this
     """
-    # 1. Generate distance bounds matrices, L and U
-    lmat, umat = distance_bounds_matrices(gra, keys)
+    # determine stereo "groups" with geometrically interdependent chirality
+    atm_ngbs_dct = atom_neighborhoods(gra)
+    bnd_ngbs_dct = bond_neighborhoods(gra)
+    atm_ste_keys = atom_stereo_keys(gra)
+    bnd_ste_keys = bond_stereo_keys(gra)
+    atm_ste_groups = list(
+        map(atom_keys, map(atm_ngbs_dct.__getitem__, atm_ste_keys)))
+    bnd_ste_groups = list(
+        map(atom_keys, map(bnd_ngbs_dct.__getitem__, bnd_ste_keys)))
 
-    # 2-6. Generate coordinates from bounds matrices
-    xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
+    print(atm_ste_groups)
+    print(bnd_ste_groups)
 
+
+def qualitative_stereo_geometry(gra, keys=None, ntries=3):
+    """ sample a qualitatively-correct stereo geometry
+
+    :param gra: the graph, which may or may not have stereo
+    :param keys: graph keys, in the order in which they should appear in the
+        geometry
+
+    Qualitatively-correct means it has the right connectivity and the right
+    stero parities, but its bond lengths and bond angles may not be
+    quantitatively realistic
+    """
+    assert gra == explicit(gra), (
+        "Graph => geometry conversion requires explicit hydrogens!\n"
+        "Use automol.graph.explicit() to convert to an explicit graph.")
+
+    # 0. Get keys and symbols
     sym_dct = atom_symbols(gra)
-    syms = list(map(sym_dct.__getitem__, keys))
-    geo = automol.create.geom.from_data(syms, xmat, angstrom=True)
+
+    keys = sorted(atom_keys(gra)) if keys is None else keys
+    syms = tuple(map(sym_dct.__getitem__, keys))
+
+    # 1. Generate bounds matrices
+    lmat, umat = distance_bounds_matrices(gra, keys)
+    chi_dct = chirality_constraint_bounds(gra, keys)
+    pla_dct = planarity_constraint_bounds(gra, keys)
+    conv_ = qualitative_convergence_checker_(gra, keys)
+
+    # 2. Generate coordinates with correct stereo, trying a few times
+    for _ in range(ntries):
+        xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
+        xmat, conv = embed.cleaned_up_coordinates(
+            xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct, conv_=conv_)
+        if conv:
+            break
+
+    if not conv:
+        raise error.FailedGeometryGenerationError
+
+    # 3. Generate a geometry data structure from the coordinates
+    xyzs = xmat[:, :3]
+    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
 
     return geo

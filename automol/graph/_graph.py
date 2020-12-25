@@ -169,7 +169,7 @@ def atom_neighborhoods(gra):
 
 # # bond properties
 def bond_neighbor_keys(gra):
-    """ keys of neighboring bonds, by bond
+    """ keys of neighboring atoms, by bond
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
         return frozenset(bond_keys(bnd_nbh) - {bnd_key})

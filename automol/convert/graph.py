@@ -24,7 +24,9 @@ def inchi(gra, remove_stereo=True):
             ich = automol.inchi.standard_form(ich, remove_stereo=remove_stereo)
         else:
             gra = automol.graph.explicit(gra)
-            geo, geo_idx_dct = automol.graph.heuristic_geometry(gra)
+            keys = sorted(automol.graph.atom_keys(gra))
+            geo = automol.graph.embed.qualitative_stereo_geometry(gra)
+            geo_idx_dct = dict(map(reversed, enumerate(keys)))
             ich, _ = inchi_with_sort_from_geometry(
                 gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
