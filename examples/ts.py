@@ -6,14 +6,14 @@ import automol
 # 1. Choose reaction
 
 #    a. bimolecular: HC(CH3)3 + OH => C(CH3)3 + H2O
-RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C', '[OH]']))
-PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)C', 'O']))
-UNIMOL = False
+# RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C', '[OH]']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)C', 'O']))
+# UNIMOL = False
 
 #    b. unimolecular: (CH3)2[CH]CH2CH2O[O] => (CH3)2[C]CH2CH2O[OH]
-# RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)CCO[O]']))
-# PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)CCOO']))
-# UNIMOL = True
+RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)CCO[O]']))
+PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)CCOO']))
+UNIMOL = True
 
 # 2. Generate reactant/product graphs
 RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))

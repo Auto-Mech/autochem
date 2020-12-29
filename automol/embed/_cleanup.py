@@ -30,6 +30,7 @@ import logging
 import numpy
 import scipy.optimize
 from automol.embed._dgeom import distance_matrix_from_coordinates
+from automol.embed._dgeom import greatest_distance_errors
 from automol.embed._findif import central_difference
 
 # uncomment this line if you want the logging statements while debugging:
@@ -239,7 +240,7 @@ def line_search_alpha(err_, sd1, cd1):
 
 
 def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
-                           conv_=None, thresh=1e-1, maxiter=None,
+                           conv_=None, max_dist_err=0.5, maxiter=None,
                            chi_flip=True):
     """ clean up coordinates by conjugate-gradients error minimization
 
@@ -254,8 +255,8 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
         of these atoms
     :param conv_: a callable convergence checker function of xmat, err, and
         grad which returns True if the geometry is converged
-    :param thresh: convergence threshold, specifying the maximum gradient
-        value, if the default convergence checker is being used
+    :param max_dist_err: maximum distance error for the geometry to be
+        considered converged
     :param maxiter: maximum number of iterations; default is three times the
         number of coordinates
     :chi_flip: whether or not to invert the structure if more than half of the
@@ -274,21 +275,36 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
         if fraction < 0.5:
             xmat *= -1.
 
-    maxiter = int(numpy.size(xmat) * 3 if maxiter is None else maxiter)
+    maxiter = int(numpy.size(xmat) * 5 if maxiter is None else maxiter)
 
     err_ = error_function_(
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
     grad_ = error_function_gradient_(
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
-    conv_ = (quantitative_convergence_checker_(thresh) if conv_ is None
-             else conv_)
+    conv_ = (distance_convergence_checker_(umat, lmat, max_dist_err)
+             if conv_ is None else conv_)
 
     xmat, conv = minimize_error(xmat, err_, grad_, conv_, maxiter)
     return xmat, conv
 
 
-def quantitative_convergence_checker_(thresh=1e-1):
-    """ tight, quantitative convergence checker
+def distance_convergence_checker_(lmat, umat, max_dist_err=0.5):
+    """ convergence checker based on the maximum distance error
+    """
+
+    def _is_converged(xmat, err, grad):
+        assert err or not err
+        assert numpy.shape(xmat) == numpy.shape(grad)
+        dmat = distance_matrix_from_coordinates(xmat)
+        dist_err_dct = greatest_distance_errors(dmat, lmat, umat, count=1)
+        dist_err, = dist_err_dct.values()
+        return dist_err <= max_dist_err
+
+    return _is_converged
+
+
+def gradient_convergence_checker_(thresh=1e-1):
+    """ maximum gradient convergence checker
     """
 
     def _is_converged(xmat, err, grad):
@@ -313,7 +329,7 @@ def minimize_error(xmat, err_, grad_, conv_, maxiter=None):
     :returns: the optimized coordinates and a boolean which is True if
         converged and False if not
     """
-    maxiter = numpy.size(xmat) * 3 if maxiter is None else maxiter
+    maxiter = numpy.size(xmat) * 5 if maxiter is None else maxiter
 
     sd0 = None
     cd0 = None

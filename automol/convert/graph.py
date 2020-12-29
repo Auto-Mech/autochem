@@ -24,9 +24,7 @@ def inchi(gra, remove_stereo=True):
             ich = automol.inchi.standard_form(ich, remove_stereo=remove_stereo)
         else:
             gra = automol.graph.explicit(gra)
-            keys = sorted(automol.graph.atom_keys(gra))
-            geo = automol.graph.embed.qualitative_stereo_geometry(gra)
-            geo_idx_dct = dict(map(reversed, enumerate(keys)))
+            geo, geo_idx_dct = automol.graph.embed.fake_stereo_geometry(gra)
             ich, _ = inchi_with_sort_from_geometry(
                 gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
@@ -58,7 +56,8 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     if geo is not None:
         assert geo_idx_dct is not None
         atm_xyzs = automol.geom.coordinates(geo)
-        atm_xyzs = [atm_xyzs[geo_idx_dct[atm_key]] for atm_key in atm_keys]
+        atm_xyzs = [atm_xyzs[geo_idx_dct[atm_key]] if atm_key in geo_idx_dct
+                    else (0., 0., 0.) for atm_key in atm_keys]
     else:
         atm_xyzs = None
 

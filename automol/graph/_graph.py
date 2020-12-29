@@ -172,27 +172,25 @@ def bond_neighbor_keys(gra):
     """ keys of neighboring atoms, by bond
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
-        return frozenset(bond_keys(bnd_nbh) - {bnd_key})
+        return frozenset(atom_keys(bnd_nbh) - bnd_key)
 
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
         bond_neighborhoods(gra), _neighbor_keys)
     return bnd_ngb_keys_dct
 
 
-def bond_neighbor_bonds(bnd_key, gra):
+def bond_neighbor_bonds(gra):
     """ keys of neighboring bonds, by bond
     """
-    atmi, atmj = list(bnd_key)
-    ngb_atm_dct = atom_neighbor_keys(gra)
-    bnds = []
-    for atm in [atmi, atmj]:
-        alpha_atms = ngb_atm_dct[atm]
-        for alpha_atm in alpha_atms:
-            if alpha_atm not in [atmi, atmj]:
-                bnds.append(frozenset({atm, alpha_atm}))
+    def _neighbor_keys(bnd_key, bnd_nbh):
+        bnd_keys = bond_keys(bnd_nbh)
+        bnd_keys -= {bnd_key}
+        bnd_keys = frozenset(key for key in bnd_keys if key & bnd_key)
+        return bnd_keys
 
-    bnds = tuple(bnds)
-    return bnds
+    bnd_ngb_keys_dct = dict_.transform_items_to_values(
+        bond_neighborhoods(gra), _neighbor_keys)
+    return bnd_ngb_keys_dct
 
 
 def bond_neighborhoods(gra):
@@ -240,7 +238,7 @@ def branch_bond_keys(gra, atm_key, bnd_key):
 
     new_bnd_keys = {bnd_key}
 
-    bnd_ngb_keys_dct = bond_neighbor_keys(gra)
+    bnd_ngb_keys_dct = bond_neighbor_bonds(gra)
 
     while new_bnd_keys:
         new_bnd_ngb_keys = set(

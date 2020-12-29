@@ -276,30 +276,39 @@ def join(geo1, geo2,
          phi=0.*qcc.conversion_factor('degree', 'radian')):
     """ join two geometries together
     """
-    orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
-                              numpy.sin(theta) * numpy.sin(phi),
-                              numpy.cos(theta)])
-    neg_orient_vec = -1.0 * orient_vec
+    if not geo1:
+        syms = symbols(geo2)
+        xyzs = coordinates(geo2)
+    elif not geo2:
+        syms = symbols(geo1)
+        xyzs = coordinates(geo1)
+    else:
+        orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
+                                  numpy.sin(theta) * numpy.sin(phi),
+                                  numpy.cos(theta)])
+        neg_orient_vec = -1.0 * orient_vec
 
-    # get the correct distance apart
-    geo1 = mass_centered(geo1)
-    geo2 = mass_centered(geo2)
-    ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
-    ext2 = max(numpy.vdot(neg_orient_vec, xyz) for xyz in coordinates(geo2))
+        # get the correct distance apart
+        geo1 = mass_centered(geo1)
+        geo2 = mass_centered(geo2)
+        ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
+        ext2 = max(numpy.vdot(neg_orient_vec, xyz)
+                   for xyz in coordinates(geo2))
 
-    cm_dist = ext1 + dist_cutoff + ext2
-    dist_grid = numpy.arange(cm_dist, 0., -0.1)
-    for dist in dist_grid:
-        trans_geo2 = translate(geo2, orient_vec * dist)
-        min_dist = minimum_distance(geo1, trans_geo2)
-        if numpy.abs(min_dist - dist_cutoff) < 0.1:
-            break
+        cm_dist = ext1 + dist_cutoff + ext2
+        dist_grid = numpy.arange(cm_dist, 0., -0.1)
+        for dist in dist_grid:
+            trans_geo2 = translate(geo2, orient_vec * dist)
+            min_dist = minimum_distance(geo1, trans_geo2)
+            if numpy.abs(min_dist - dist_cutoff) < 0.1:
+                break
 
-    geo2 = trans_geo2
+        geo2 = trans_geo2
 
-    # now, join them together
-    syms = symbols(geo1) + symbols(geo2)
-    xyzs = coordinates(geo1) + coordinates(geo2)
+        # now, join them together
+        syms = symbols(geo1) + symbols(geo2)
+        xyzs = coordinates(geo1) + coordinates(geo2)
+
     return from_data(syms, xyzs)
 
 

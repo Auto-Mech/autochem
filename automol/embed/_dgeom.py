@@ -216,8 +216,6 @@ def geometry_from_coordinates(xmat, syms):
 
 def greatest_distance_errors(dmat, lmat, umat, count=10):
     """ get the indices of the maximum distance errors
-
-    For testing purposes
     """
     lerrs = (lmat - dmat) * (lmat >= dmat)
     uerrs = (dmat - umat) * (dmat >= umat)
