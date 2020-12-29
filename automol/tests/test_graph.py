@@ -384,10 +384,10 @@ def test__atom_bond_keys():
 
 
 # # bond properties
-def test__bond_neighbor_keys():
-    """ test graph.bond_neighbor_keys
+def test__bond_neighbor_bonds():
+    """ test graph.bond_neighbor_bonds
     """
-    assert graph.bond_neighbor_keys(C8H13O_CGR) == {
+    assert graph.bond_neighbor_bonds(C8H13O_CGR) == {
         frozenset({1, 4}): frozenset({frozenset({4, 6})}),
         frozenset({4, 6}): frozenset({frozenset({6, 7}), frozenset({1, 4}),
                                       frozenset({2, 6})}),
@@ -814,4 +814,5 @@ if __name__ == '__main__':
     # test__heavy_atom_count()
     # test__subresonances()
     # test__stereomers()
-    test__without_ts_bonds()
+    # test__without_ts_bonds()
+    test__bond_neighbor_bonds()

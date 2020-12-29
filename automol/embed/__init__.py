@@ -51,6 +51,8 @@ from automol.embed._cleanup import error_function_numerical_gradient_
 from automol.embed._cleanup import polak_ribiere_beta
 from automol.embed._cleanup import line_search_alpha
 from automol.embed._cleanup import cleaned_up_coordinates
+from automol.embed._cleanup import gradient_convergence_checker_
+from automol.embed._cleanup import distance_convergence_checker_
 from automol.embed._cleanup import minimize_error
 
 
@@ -73,5 +75,7 @@ __all__ = [
     'polak_ribiere_beta',
     'line_search_alpha',
     'cleaned_up_coordinates',
+    'gradient_convergence_checker_',
+    'distance_convergence_checker_',
     'minimize_error',
 ]

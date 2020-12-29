@@ -185,12 +185,14 @@ def metric_matrix_from_coordinates(xmat):
     return xmat @ xmat.T
 
 
-def distance_matrix_from_coordinates(xmat):
+def distance_matrix_from_coordinates(xmat, dim4=True):
     """ determine the distance matrix from coordinates
 
     (for testing purposes only!)
     """
     xmat = numpy.array(xmat)
+    if not dim4:
+        xmat = xmat[:, :3]
 
     natms = len(xmat)
 
@@ -214,8 +216,6 @@ def geometry_from_coordinates(xmat, syms):
 
 def greatest_distance_errors(dmat, lmat, umat, count=10):
     """ get the indices of the maximum distance errors
-
-    For testing purposes
     """
     lerrs = (lmat - dmat) * (lmat >= dmat)
     uerrs = (dmat - umat) * (dmat >= umat)

@@ -33,6 +33,7 @@ from qcelemental import constants as qcc
 from qcelemental import periodictable as pt
 import automol.create.geom
 import automol.geom
+from automol import error
 from automol import embed
 from automol.graph._graph_base import string
 from automol.graph._graph import atom_symbols
@@ -40,8 +41,12 @@ from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_neighborhoods
+from automol.graph._graph import bond_neighborhoods
 from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
+from automol.graph._graph import explicit
+from automol.graph._graph import subgraph
 from automol.graph._stereo import atom_stereo_keys
 from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
@@ -304,27 +309,30 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
     :param sp_dct: a 2d dictionary giving the shortest path between any pair of
         atoms in the graph
     """
-    assert set(keys) == set(atom_keys(gra))
+    assert set(keys) <= set(atom_keys(gra))
 
-    sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
+    sub_gra = subgraph(gra, keys)
+    sp_dct = atom_shortest_paths(sub_gra) if sp_dct is None else sp_dct
 
     bounds_ = path_distance_bounds_(gra)
 
     natms = len(keys)
     umat = numpy.zeros((natms, natms))
     lmat = numpy.zeros((natms, natms))
-    for i, j in itertools.combinations(range(natms), 2):
-        if j in sp_dct[i]:
-            path = sp_dct[i][j]
+    for (idx1, key1), (idx2, key2) in itertools.combinations(
+            enumerate(keys), 2):
+        if key2 in sp_dct[key1]:
+            path = sp_dct[key1][key2]
             ldist, udist = bounds_(path)
-            lmat[i, j] = lmat[j, i] = ldist
-            umat[i, j] = umat[j, i] = udist
+            lmat[idx1, idx2] = lmat[idx2, idx1] = ldist
+            umat[idx1, idx2] = umat[idx2, idx1] = udist
         else:
             # they are disconnected
-            lmat[i, j] = lmat[j, i] = closest_approach(gra, keys[i], keys[j])
-            umat[i, j] = umat[j, i] = 999
+            lmat[idx1, idx2] = lmat[idx2, idx1] = closest_approach(
+                gra, key1, key2)
+            umat[idx1, idx2] = umat[idx2, idx1] = 999
 
-        assert lmat[i, j] <= umat[i, j], (
+        assert lmat[idx1, idx2] <= umat[idx1, idx2], (
             "Lower bound exceeds upper bound. This is a bug!\n"
             "{}\npath: {}\n"
             .format(string(gra, one_indexed=False), str(path)))
@@ -398,7 +406,7 @@ def ts_distance_bounds_matrices(gra, keys, frm_bnds_dct, rct_geos=None,
 def chirality_constraint_bounds(gra, keys):
     """ bounds for enforcing chirality restrictions
     """
-    ste_keys = atom_stereo_keys(gra)
+    ste_keys = set(atom_stereo_keys(gra)) & set(keys)
     par_dct = atom_stereo_parities(gra)
     ngb_key_dct = atom_neighbor_keys(gra)
 
@@ -417,6 +425,9 @@ def planarity_constraint_bounds(gra, keys):
     """ bounds for enforcing planarity restrictions
     """
     ngb_key_dct = atom_neighbor_keys(gra)
+    ngb_dct = bond_neighborhoods(gra)
+    bnd_keys = [bnd_key for bnd_key in sp2_bond_keys(gra)
+                if atom_keys(ngb_dct[bnd_key]) <= set(keys)]
 
     def _planarity_constraints(bnd_key):
         key1, key2 = sorted(bnd_key)
@@ -443,25 +454,24 @@ def planarity_constraint_bounds(gra, keys):
         return tuple(lst)
 
     const_dct = {
-        idxs: (-1, +1) for idxs in
-        itertools.chain(*map(_planarity_constraints, sp2_bond_keys(gra)))}
+        idxs: (-0.5, +0.5) for idxs in
+        itertools.chain(*map(_planarity_constraints, bnd_keys))}
 
     return const_dct
 
 
 def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
-                                     rqh_bond_max=1.3, rhh_bond_max=1.0,
-                                     bond_nobond_diff=0.1):
+                                     rqh_bond_max=1.3, rhh_bond_max=1.1,
+                                     bond_nobond_diff=0.3):
     """ a convergence checker for error minimization, checking that the
     geometry is qualitatively correct (correct connectivity and stereo)
     """
     sym_dct = atom_symbols(gra)
-    all_bnd_keys = bond_keys(gra)
+    pairs = set(map(frozenset, itertools.combinations(keys, 2)))
 
-    nob_keys = tuple(nob_key for nob_key in itertools.combinations(keys, 2)
-                     if frozenset(nob_key) not in all_bnd_keys)
-    bnd_keys = tuple(tuple(bnd_key) for bnd_key in all_bnd_keys
-                     if set(bnd_key) <= set(keys))
+    bnd_keys = pairs & bond_keys(gra)
+    nob_keys = pairs - bond_keys(gra)
+
     nob_syms = tuple(tuple(map(sym_dct.__getitem__, nob_key))
                      for nob_key in nob_keys)
     bnd_syms = tuple(tuple(map(sym_dct.__getitem__, bnd_key))
@@ -488,8 +498,8 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
 
     syms = tuple(map(sym_dct.__getitem__, keys))
     geo_idx_dct = dict(map(reversed, enumerate(keys)))
-    atm_ste_keys = atom_stereo_keys(gra)
-    bnd_ste_keys = bond_stereo_keys(gra)
+    atm_ste_keys = atom_stereo_keys(gra) & set(keys)
+    bnd_ste_keys = bond_stereo_keys(gra) & bnd_keys
     atm_ste_par_dct = atom_stereo_parities(gra)
     bnd_ste_par_dct = bond_stereo_parities(gra)
 
@@ -519,17 +529,106 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
     return _is_converged
 
 
-def sample_raw_distance_geometry(gra, keys):
-    """ sample a raw (uncorrected) distance geometry
+def fake_stereo_geometry(gra, ntries=5, max_dist_err=0.5):
+    """ generate a fake stereo geometry
     """
-    # 1. Generate distance bounds matrices, L and U
-    lmat, umat = distance_bounds_matrices(gra, keys)
+    # determine stereo "groups" with geometrically interdependent chirality
+    atm_ngbs_dct = atom_neighborhoods(gra)
+    bnd_ngbs_dct = bond_neighborhoods(gra)
+    atm_ste_keys = atom_stereo_keys(gra)
+    bnd_ste_keys = bond_stereo_keys(gra)
+    atm_ste_groups = list(
+        map(atom_keys, map(atm_ngbs_dct.__getitem__, atm_ste_keys)))
+    bnd_ste_groups = list(
+        map(atom_keys, map(bnd_ngbs_dct.__getitem__, bnd_ste_keys)))
 
-    # 2-6. Generate coordinates from bounds matrices
-    xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
+    ste_groups = _aggregate_connected_groups(atm_ste_groups + bnd_ste_groups)
 
+    ste_groups = list(map(sorted, ste_groups))
+
+    natms = 0
+    geo_idx_dct = {}
+    geo = ()
+    for group in ste_groups:
+        group_geo = geometry(gra, keys=group, ntries=ntries,
+                             max_dist_err=max_dist_err)
+        group_natms = len(group)
+
+        idxs = list(range(natms, natms+group_natms))
+        geo_idx_dct.update(dict(zip(group, idxs)))
+
+        natms += group_natms
+        geo = automol.geom.join(geo, group_geo)
+
+    return geo, geo_idx_dct
+
+
+def _aggregate_connected_groups(keys_lst):
+    """ from a list of groups, join the ones with common atoms
+    """
+    groups = []
+    for keys in keys_lst:
+        idxs = list(idx for idx, group in enumerate(groups)
+                    if group & keys)
+        if not idxs:
+            groups.append(keys)
+        else:
+            groups[idxs[0]] |= keys
+            for idx in idxs[1:]:
+                groups[idxs[0]] |= groups[idx]
+                groups.pop(idx)
+
+    groups = tuple(groups)
+
+    return groups
+
+
+def geometry(gra, keys=None, ntries=5, max_dist_err=0.5):
+    """ sample a qualitatively-correct stereo geometry
+
+    :param gra: the graph, which may or may not have stereo
+    :param keys: graph keys, in the order in which they should appear in the
+        geometry
+    :param ntries: number of tries for finding a valid geometry
+    :param max_dist_err: maximum distance error convergence threshold
+
+    Qualitatively-correct means it has the right connectivity and the right
+    stero parities, but its bond lengths and bond angles may not be
+    quantitatively realistic
+    """
+    assert gra == explicit(gra), (
+        "Graph => geometry conversion requires explicit hydrogens!\n"
+        "Use automol.graph.explicit() to convert to an explicit graph.")
+
+    # 0. Get keys and symbols
     sym_dct = atom_symbols(gra)
-    syms = list(map(sym_dct.__getitem__, keys))
-    geo = automol.create.geom.from_data(syms, xmat, angstrom=True)
+
+    keys = sorted(atom_keys(gra)) if keys is None else keys
+    syms = tuple(map(sym_dct.__getitem__, keys))
+
+    # 1. Generate bounds matrices
+    lmat, umat = distance_bounds_matrices(gra, keys)
+    chi_dct = chirality_constraint_bounds(gra, keys)
+    pla_dct = planarity_constraint_bounds(gra, keys)
+    conv1_ = qualitative_convergence_checker_(gra, keys)
+    conv2_ = embed.distance_convergence_checker_(lmat, umat, max_dist_err)
+
+    def conv_(xmat, err, grad):
+        return conv1_(xmat, err, grad) & conv2_(xmat, err, grad)
+
+    # 2. Generate coordinates with correct stereo, trying a few times
+    for _ in range(ntries):
+        xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
+        xmat, conv = embed.cleaned_up_coordinates(
+            xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct, conv_=conv_)
+        if conv:
+            break
+
+    if not conv:
+        raise error.FailedGeometryGenerationError
+
+    # 3. Generate a geometry data structure from the coordinates
+    xyzs = xmat[:, :3]
+    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
 
     return geo

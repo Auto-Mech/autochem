@@ -1,5 +1,7 @@
 """ graph geometry library
 
+(To replace _geom.py eventually)
+
 For generating heuristic coordinates and z-matrices from graphs
 """
 import more_itertools as mit
