@@ -5,6 +5,7 @@ import functools
 import numpy
 import future.moves.itertools as fmit
 from qcelemental import periodictable as pt
+import automol.formula
 from automol import dict_
 from automol.graph._graph_base import atoms
 from automol.graph._graph_base import bonds
@@ -141,6 +142,23 @@ def atom_neighbor_keys(gra):
     """
     def _neighbor_keys(atm_key, atm_nbh):
         return frozenset(atom_keys(atm_nbh) - {atm_key})
+
+    atm_ngb_keys_dct = dict_.transform_items_to_values(
+        atom_neighborhoods(gra), _neighbor_keys)
+    return atm_ngb_keys_dct
+
+
+def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
+    """ keys of neighboring atoms, by atom
+    """
+    atm_sym_dct = atom_symbols(gra)
+
+    def _neighbor_keys(atm_key, atm_nbh):
+        keys = list(atom_keys(atm_nbh) - {atm_key})
+        syms = list(map(atm_sym_dct.__getitem__, keys))
+        srt = automol.formula.argsort_symbols(syms, syms_first, syms_last)
+        keys = tuple(map(keys.__getitem__, srt))
+        return keys
 
     atm_ngb_keys_dct = dict_.transform_items_to_values(
         atom_neighborhoods(gra), _neighbor_keys)

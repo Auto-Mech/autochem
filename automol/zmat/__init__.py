@@ -1,5 +1,7 @@
 """ z-matrix
 """
+# constructors
+from automol.zmat._zmat import from_geometry
 # getters
 from automol.zmat._zmat import count
 from automol.zmat._zmat import symbols
@@ -98,6 +100,8 @@ def formula(zma):
 
 
 __all__ = [
+    # constructors
+    'from_geometry',
     # getters
     'count',
     'symbols',

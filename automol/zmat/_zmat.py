@@ -15,6 +15,32 @@ DEG2RAD = qcc.conversion_factor('degree', 'radian')
 RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 
+# constructors
+def from_geometry(vma, geo):
+    """ determine a z-matrix from a vmatrix and a geometry
+    """
+    assert symbols(vma) == symbols(geo)
+
+    syms = symbols(vma)
+    key_mat = key_matrix(vma)
+    name_mat = name_matrix(vma)
+    val_mat = numpy.empty(numpy.shape(key_mat), dtype=numpy.object_)
+
+    for row, key_row in enumerate(key_mat):
+        if row > 0:
+            val_mat[row, 0] = automol.geom.distance(geo, row,
+                                                    *key_row[:1])
+        if row > 1:
+            val_mat[row, 1] = automol.geom.central_angle(geo, row,
+                                                         *key_row[:2])
+        if row > 2:
+            val_mat[row, 2] = automol.geom.dihedral_angle(geo, row,
+                                                          *key_row[:3])
+
+    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+    return zma
+
+
 # getters
 def count(zma):
     """ the number of z-matrix rows (number of atoms or dummy atoms)
