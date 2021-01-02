@@ -68,6 +68,16 @@ def is_ring_key_sequence(gra, keys):
     return any(keys <= rng_keys for rng_keys in rings_atom_keys(gra))
 
 
+def cycle_ring_atom_key_to_front(keys, key):
+    """ helper function to cycle ring atom keys until one is in front
+    """
+    assert key in keys, ("{:d} is not in {:s}".format(key, str(keys)))
+    keys = tuple(itertools.islice(
+        itertools.dropwhile(lambda x: x != key, itertools.cycle(keys)),
+        len(keys)))
+    return keys
+
+
 def ring_arc_complement_atom_keys(gra, rng):
     """ non-intersecting arcs from a ring that shares segments with a graph
     """

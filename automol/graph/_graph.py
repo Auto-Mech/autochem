@@ -296,6 +296,26 @@ def atom_shortest_paths(gra):
     return sp_dct
 
 
+def shortest_path_between_groups(gra, keys1, keys2):
+    """ shortest path between two groups of atoms
+
+    Returns the atom pair from these groups that are nearest to each other and
+    returns the path between them.
+    """
+    assert not set(keys1) & set(keys2), ("{:s} overlaps with {:s}"
+                                         .format(*map(str, [keys1, keys2])))
+
+    sp_dct = atom_shortest_paths(gra)
+    keys = None
+    for key1 in keys1:
+        for key2 in keys2:
+            if key2 in sp_dct[key1]:
+                if keys is None or len(keys) > len(sp_dct[key1][key2]):
+                    keys = sp_dct[key1][key2]
+
+    return keys
+
+
 def longest_chain(gra):
     """ longest chain in the graph
     """
