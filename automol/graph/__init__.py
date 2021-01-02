@@ -145,8 +145,9 @@ from automol.graph._ring import is_ring_key_sequence
 from automol.graph._ring import cycle_ring_atom_key_to_front
 from automol.graph._ring import ring_arc_complement_atom_keys
 from automol.graph._ring import ring_systems
-from automol.graph._ring import ring_systems_decomposed_atom_keys
+from automol.graph._ring import ring_systems_atom_keys
 from automol.graph._ring import ring_systems_bond_keys
+from automol.graph._ring import ring_systems_decomposed_atom_keys
 
 # functional group library
 from automol.graph._func_group import Fgroup
@@ -376,8 +377,9 @@ __all__ = [
     'cycle_ring_atom_key_to_front',
     'ring_arc_complement_atom_keys',
     'ring_systems',
-    'ring_systems_decomposed_atom_keys',
+    'ring_systems_atom_keys',
     'ring_systems_bond_keys',
+    'ring_systems_decomposed_atom_keys',
 
     # functional group library
     'Fgroup',

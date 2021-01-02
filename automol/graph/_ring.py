@@ -140,6 +140,34 @@ def ring_systems(gra):
     return tuple(sorted(gras, key=frozen))
 
 
+def ring_systems_atom_keys(gra):
+    """ bond keys for polycyclic ring systems in the graph
+    """
+    atm_keys_lst = tuple(map(atom_keys, ring_systems(gra)))
+    return atm_keys_lst
+
+
+def ring_systems_bond_keys(gra):
+    """ bond keys for polycyclic ring systems in the graph
+    """
+
+    def _are_connected(bnd_keys1, bnd_keys2):
+        """ see if two rings are connected based on their bond keys
+        """
+        atm_keys1 = functools.reduce(operator.or_, bnd_keys1)
+        atm_keys2 = functools.reduce(operator.or_, bnd_keys2)
+        common_bonds = set(bnd_keys1) & set(bnd_keys2)
+        common_atoms = set(atm_keys1) & set(atm_keys2)
+        return bool(common_bonds) or bool(common_atoms)
+
+    rng_bnd_keys_lst = rings_bond_keys(gra)
+    rsy_bnd_keys_lsts = _equivalence_partition(rng_bnd_keys_lst,
+                                               _are_connected)
+    rsy_bnd_keys_lst = [frozenset(functools.reduce(operator.or_, bnd_keys_lst))
+                        for bnd_keys_lst in rsy_bnd_keys_lsts]
+    return rsy_bnd_keys_lst
+
+
 def ring_systems_decomposed_atom_keys(gra):
     """ decomposed atom keys for polycyclic ring systems in the graph
 
@@ -178,27 +206,6 @@ def _decompose_ring_system_atom_keys(rsy):
                 decomp_bnd_keys.update(bond_keys(rng))
 
     return decomp
-
-
-def ring_systems_bond_keys(gra):
-    """ bond keys for polycyclic ring systems in the graph
-    """
-
-    def _are_connected(bnd_keys1, bnd_keys2):
-        """ see if two rings are connected based on their bond keys
-        """
-        atm_keys1 = functools.reduce(operator.or_, bnd_keys1)
-        atm_keys2 = functools.reduce(operator.or_, bnd_keys2)
-        common_bonds = set(bnd_keys1) & set(bnd_keys2)
-        common_atoms = set(atm_keys1) & set(atm_keys2)
-        return bool(common_bonds) or bool(common_atoms)
-
-    rng_bnd_keys_lst = rings_bond_keys(gra)
-    rsy_bnd_keys_lsts = _equivalence_partition(rng_bnd_keys_lst,
-                                               _are_connected)
-    rsy_bnd_keys_lst = [frozenset(functools.reduce(operator.or_, bnd_keys_lst))
-                        for bnd_keys_lst in rsy_bnd_keys_lsts]
-    return rsy_bnd_keys_lst
 
 
 def _equivalence_partition(iterable, relation):
