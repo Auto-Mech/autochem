@@ -52,6 +52,7 @@ from automol.graph._graph import bond_neighborhoods
 from automol.graph._graph import branch
 from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import branch_bond_keys
+from automol.graph._graph import is_connected
 from automol.graph._graph import connected_components
 from automol.graph._graph import connected_components_atom_keys
 from automol.graph._graph import atom_shortest_paths
@@ -147,6 +148,8 @@ from automol.graph._ring import ring_arc_complement_atom_keys
 from automol.graph._ring import ring_systems
 from automol.graph._ring import ring_systems_atom_keys
 from automol.graph._ring import ring_systems_bond_keys
+from automol.graph._ring import is_ring_system
+from automol.graph._ring import ring_system_decomposed_atom_keys
 from automol.graph._ring import ring_systems_decomposed_atom_keys
 
 # functional group library
@@ -285,6 +288,7 @@ __all__ = [
     'branch_bond_keys',
     'rings',
     'rings_bond_keys',
+    'is_connected',
     'connected_components',
     'connected_components_atom_keys',
     'atom_shortest_paths',
@@ -379,6 +383,8 @@ __all__ = [
     'ring_systems',
     'ring_systems_atom_keys',
     'ring_systems_bond_keys',
+    'is_ring_system',
+    'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
 
     # functional group library

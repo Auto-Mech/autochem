@@ -2,85 +2,138 @@
 """
 import more_itertools as mit
 import automol.vmat
+from automol.graph._graph import atom_count
+from automol.graph._graph import atom_keys
 from automol.graph._graph import atom_symbols
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import sorted_atom_neighbor_keys
+from automol.graph._graph import is_connected
 from automol.graph._graph import longest_chain
 from automol.graph._graph import shortest_path_between_groups
-from automol.graph._ring import rings_atom_keys
-from automol.graph._ring import ring_systems_atom_keys
+from automol.graph._ring import rings
+from automol.graph._ring import ring_systems
+from automol.graph._ring import ring_system_decomposed_atom_keys
 from automol.graph._ring import cycle_ring_atom_key_to_front
 
 
-def main_ring_system(geo):
-    """ v-matrix for a series of interconnected ring systems
+def vmatrix(gra):
+    """ v-matrix for a connected graph
     """
-    gra = automol.geom.connectivity_graph(geo)
-    rsy_keys_lst = sorted(ring_systems_atom_keys(gra), key=len, reverse=True)
+    assert is_connected(gra), "Graph must be connected!"
 
-    keys = rsy_keys_lst.pop(0)
-    print(keys)
+    rsys = sorted(ring_systems(gra), key=atom_count)
+
+    # Start with the ring systems and their connections. If there aren't any,
+    # start with the longest chain.
+    vma, row_keys = (_connected_ring_systems(gra) if rsys else
+                     _chain(gra, longest_chain(gra)))
+
+    return vma, row_keys
 
 
-def main_ring(geo):
-    """ v-matrix for a series of individual interconnected rings
+def _connected_ring_systems(gra, check=True):
+    """ generate a v-matrix covering a graph's ring systems and the connections
+    between them
     """
-    gra = automol.geom.connectivity_graph(geo)
-    rng_keys_lst = sorted(rings_atom_keys(gra), key=len, reverse=True)
+    if check:
+        assert is_connected(gra), "Graph must be connected!"
 
-    keys = rng_keys_lst.pop(0)
+    rsys = sorted(ring_systems(gra), key=atom_count)
 
-    vma, row_keys = _ring(gra, keys)
+    # Construct the v-matrix for the first ring system, choosing which ring
+    # to start from
+    rsy = rsys.pop(0)
+    rngs = sorted(rings(rsy), key=atom_count)
+    rng = rngs.pop(0)
+    keys_lst = list(ring_system_decomposed_atom_keys(rsy, rng=rng))
 
-    # Connect all rings:
-    # (Eventually this will need to be done for ring *systems* instead)
-    while rng_keys_lst:
-        keys = None
+    vma, row_keys = _ring_system(gra, keys_lst)
 
-        # Find the next ring with a connection to the current v-matrix and
-        # remove it from the list
-        rng_keys = None
-        for idx, rng_keys in enumerate(rng_keys_lst):
-            conn_keys = shortest_path_between_groups(gra, row_keys, rng_keys)
-            if conn_keys is not None:
-                rng_keys_lst.pop(idx)
+    while rsys:
+        # Find the next ring system with a connection to the current
+        # v-vmatrix
+        for idx, rsy in enumerate(rsys):
+            keys = shortest_path_between_groups(
+                gra, row_keys, atom_keys(rsy))
+            if keys is not None:
+                rsys.pop(idx)
                 break
 
-        assert conn_keys is not None, "This is a disconnected graph!"
+        assert keys is not None, "This is a disconnected graph!"
 
-        # 1. Build the bridge between the current v-matrix and the next ring
-        vma, row_keys = _continue_chain(gra, conn_keys, vma, row_keys,
+        # 1. Build a bridge from the current v-matrix to the next ring
+        # system
+        vma, row_keys = _continue_chain(gra, keys, vma, row_keys,
                                         term_hydrogens=False)
 
-        # 2. Build the next ring
-        vma, row_keys = _continue_ring(gra, rng_keys, vma, row_keys)
+        # 2. Decompose the ring system with the connecting ring first
+        rng = next(r for r in rings(rsy) if keys[-1] in atom_keys(r))
+        keys_lst = ring_system_decomposed_atom_keys(rsy, rng=rng)
 
-    subgeo = automol.geom.from_subset(geo, row_keys)
-    subzma = automol.zmat.from_geometry(vma, subgeo)
-    subgeo = automol.zmat.geometry(subzma)
-    print(automol.zmat.string(subzma))
-    print(automol.geom.string(subgeo))
+        # 3. Build the next ring system
+        vma, row_keys = _continue_ring_system(gra, keys_lst, vma, row_keys)
+
+    return vma, row_keys
 
 
-def main_linear(geo):
-    """ v-matrix for a chain of heavy atoms
+def _ring_system(gra, keys_lst):
+    """ generate a v-matrix for a ring system
+
+    :param gra: the graph
+    :param keys_lst: the first entry contains keys for a ring and each next one
+        contains keys for an arc that starts and ends on atoms in the preceding
+        entries
     """
-    gra = automol.geom.connectivity_graph(geo)
-    keys = list(longest_chain(gra))
+    # First, get the ring keys
+    keys_lst = list(keys_lst)
+    keys = keys_lst.pop(0)
 
-    # 1. Start a chain
-    vma, row_keys = _chain(gra, keys)
+    # Break the bonds joining the last pair of atoms in each arc
+    gra = remove_bonds(gra, [(k[-1], k[-2]) for k in keys_lst])
 
-    subgeo = automol.geom.from_subset(geo, row_keys)
-    subzma = automol.zmat.from_geometry(vma, subgeo)
-    subgeo = automol.zmat.geometry(subzma)
-    print(automol.zmat.string(subzma))
-    print(automol.geom.string(subgeo))
+    # Start by constructing the v-matrix for the first ring
+    vma, row_keys = _ring(gra, keys)
+
+    # Now, complete the ring system by continuing the v-matrix along each arc
+    for keys in keys_lst:
+        # Note that the atoms on each end of the arc are already in the
+        # v-matrix, so we ignore those
+        vma, row_keys = _continue_chain(gra, keys[1:-1], vma, row_keys)
+
+    return vma, row_keys
+
+
+def _continue_ring_system(gra, keys_lst, vma, row_keys):
+    """ continue constructing a v-matrix for a ring system
+
+    Exactly one atom in the ring system must already be in the v-matrix, and
+    this atom must be in the starting ring of the decomposed ring system key
+    list.
+    """
+    # First, get the ring keys
+    keys_lst = list(keys_lst)
+    keys = keys_lst.pop(0)
+
+    # Break the bonds joining the last pair of atoms in each arc
+    gra = remove_bonds(gra, [(k[-1], k[-2]) for k in keys_lst])
+
+    # Start by constructing the v-matrix for the first ring
+    vma, row_keys = _continue_ring(gra, keys, vma, row_keys)
+
+    # Now, complete the ring system by continuing the v-matrix along each arc
+    for keys in keys_lst:
+        # Note that the atoms on each end of the arc are already in the
+        # v-matrix, so we ignore those
+        vma, row_keys = _continue_chain(gra, keys[1:-1], vma, row_keys)
+
+    return vma, row_keys
 
 
 def _ring(gra, keys):
     """ generate a v-matrix for a ring
+
+    All neighboring atoms along the ring will be included
 
     :param gra: the graph
     :param keys: ring keys, in the order they should appear in the z-matrix
@@ -95,18 +148,20 @@ def _ring(gra, keys):
 
 def _continue_ring(gra, keys, vma, row_keys):
     """ continue constructing a v-matrix around a ring
+
+    All neighboring atoms along the ring will be included
+
+    Exactly one atom in the ring must already be in the v-matrix.
     """
     # Find the connecting key
     key = next((k for k in keys if k in row_keys), None)
     assert key is not None, (
-        "There most be a ring atom already in the v-matrix")
+        "There must be a ring atom already in the v-matrix")
 
     # Cycle the connecting key to the front of the ring
-    print(1, keys)
     keys = cycle_ring_atom_key_to_front(keys, key)
 
     # Break the bond between the first and last atoms to make this a chain
-    print(2, keys)
     gra = remove_bonds(gra, [(keys[0], keys[-1])])
 
     # Now, construct a v-matrix for the chain
@@ -116,6 +171,8 @@ def _continue_ring(gra, keys, vma, row_keys):
 
 def _chain(gra, keys, term_hydrogens=True):
     """ generate a v-matrix for a chain
+
+    All neighboring atoms along the chain will be included
 
     :param gra: the graph
     :param keys: a list of keys for the chain
@@ -141,6 +198,8 @@ def _continue_chain(gra, keys, vma, row_keys, extend=True,
     """ continue constructing a v-matrix along a chain
 
     All neighboring atoms along the chain will be included
+
+    Exactly one atom in the chain must already be in the v-matrix
 
     :param gra: the graph for which the v-matrix will be constructed
     :param keys: the keys for atoms along the chain, which must be contiguous;
@@ -276,13 +335,19 @@ def _extend_chain_to_include_terminal_hydrogens(gra, keys,
 
 if __name__ == '__main__':
     import automol
-    ICH = automol.smiles.inchi('C1CCC(CCC2CCCC2)CC1')
-    # ICH = automol.smiles.inchi('C12CC3C(CC2)CC1.C3C4.C45C(CC6)CCC56')
+    # ICH = automol.smiles.inchi('CCCCCC')
+    # ICH = automol.smiles.inchi('C1CCC(CCC2CCCC2)CC1')
+    ICH = automol.smiles.inchi('C12CC3C(CC2)CC1.C3C4.C45C(CC6)CCC56')
     GEO = automol.inchi.geometry(ICH)
     print(automol.geom.string(GEO))
     # ZMA = automol.geom.zmatrix(GEO)
     # print(automol.zmatrix.string(ZMA, one_indexed=False))
     # print(automol.geom.zmatrix_torsion_coordinate_names(GEO))
-    # main_linear(GEO)
-    main_ring(GEO)
-    # main_ring_system(GEO)
+    GRA = automol.geom.connectivity_graph(GEO)
+    VMA, ROW_KEYS = vmatrix(GRA)
+    SUBGEO = automol.geom.from_subset(GEO, ROW_KEYS)
+    SUBZMA = automol.zmat.from_geometry(VMA, SUBGEO)
+    SUBGEO = automol.zmat.geometry(SUBZMA)
+    SUBGEO = automol.geom.mass_centered(SUBGEO)
+    print(automol.zmat.string(SUBZMA))
+    print(automol.geom.string(SUBGEO))

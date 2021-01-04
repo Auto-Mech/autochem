@@ -269,6 +269,12 @@ def branch_bond_keys(gra, atm_key, bnd_key):
     return frozenset(bnch_bnd_keys)
 
 
+def is_connected(gra):
+    """ is this a connected graph
+    """
+    return len(connected_components(gra)) == 1
+
+
 def connected_components(gra):
     """ connected components in the graph
     """
@@ -365,10 +371,11 @@ def atom_longest_chain(gra, atm_key):
     return max_chain
 
 
-def union(gra1, gra2):
+def union(gra1, gra2, check=True):
     """ a union of two graphs
     """
-    assert not atom_keys(gra1) & atom_keys(gra2)
+    if check:
+        assert not atom_keys(gra1) & atom_keys(gra2)
     atm_dct = {}
     atm_dct.update(atoms(gra1))
     atm_dct.update(atoms(gra2))
@@ -379,10 +386,13 @@ def union(gra1, gra2):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def union_from_sequence(gras):
+def union_from_sequence(gras, check=True):
     """ a union of all parts of a sequence of graphs
     """
-    return tuple(functools.reduce(union, gras))
+    def _union(gra1, gra2):
+        return union(gra1, gra2, check=check)
+
+    return tuple(functools.reduce(_union, gras))
 
 
 def subgraph(gra, atm_keys):
