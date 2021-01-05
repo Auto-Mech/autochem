@@ -49,6 +49,7 @@ from automol.graph._graph import bond_neighbor_keys
 from automol.graph._graph import bond_neighbor_bonds
 from automol.graph._graph import bond_neighborhoods
 # # other properties
+from automol.graph._graph import terminal_heavy_atom_keys
 from automol.graph._graph import branch
 from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import branch_bond_keys
@@ -110,6 +111,7 @@ from automol.graph._graph import bond_symmetry_numbers
 # # atom properties
 from automol.graph._res import atom_hybridizations
 from automol.graph._res import resonance_dominant_atom_hybridizations
+from automol.graph._res import linear_atom_keys
 from automol.graph._res import resonance_dominant_atom_centered_cumulene_keys
 from automol.graph._res import resonance_dominant_bond_centered_cumulene_keys
 from automol.graph._res import nonresonant_radical_atom_keys
@@ -283,6 +285,7 @@ __all__ = [
     'bond_neighbor_bonds',
     'bond_neighborhoods',
     # # other properties
+    'terminal_heavy_atom_keys',
     'branch',
     'branch_atom_keys',
     'branch_bond_keys',
@@ -345,6 +348,7 @@ __all__ = [
     # # atom properties
     'atom_hybridizations',
     'resonance_dominant_atom_hybridizations',
+    'linear_atom_keys',
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
     'nonresonant_radical_atom_keys',

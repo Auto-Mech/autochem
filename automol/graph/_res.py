@@ -18,6 +18,7 @@ from automol.graph._graph import atom_bond_valences
 from automol.graph._graph import atom_lone_pair_counts
 from automol.graph._graph import maximum_spin_multiplicity
 from automol.graph._graph import explicit
+from automol.graph._graph import implicit
 from automol.graph._graph import atom_explicit_hydrogen_valences
 from automol.graph._graph import atoms
 from automol.graph._graph import atom_groups
@@ -52,6 +53,14 @@ def resonance_dominant_atom_hybridizations(rgr):
     atm_hybs = [min(hybs) for hybs in zip(*atm_hybs_by_res)]
     atm_hyb_dct = dict(zip(atm_keys, atm_hybs))
     return atm_hyb_dct
+
+
+def linear_atom_keys(rgr):
+    """ atoms forming linear bonds, based on their hybridization
+    """
+    atm_hyb_dct = resonance_dominant_atom_hybridizations(implicit(rgr))
+    atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
+    return atm_keys
 
 
 def resonance_dominant_atom_centered_cumulene_keys(rgr):

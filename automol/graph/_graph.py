@@ -154,7 +154,7 @@ def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
     atm_sym_dct = atom_symbols(gra)
 
     def _neighbor_keys(atm_key, atm_nbh):
-        keys = list(atom_keys(atm_nbh) - {atm_key})
+        keys = sorted(atom_keys(atm_nbh) - {atm_key})
         syms = list(map(atm_sym_dct.__getitem__, keys))
         srt = automol.formula.argsort_symbols(syms, syms_first, syms_last)
         keys = tuple(map(keys.__getitem__, srt))
@@ -225,6 +225,21 @@ def bond_neighborhoods(gra):
 
 
 # # other properties
+def terminal_heavy_atom_keys(gra):
+    """ terminal heavy atoms, sorted by atom type and hydrogen count
+    """
+    gra = implicit(gra)
+    atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
+    atm_keys = [key for key, ngb_keys in atom_neighbor_keys(gra).items()
+                if len(ngb_keys) == 1]
+    atm_keys = sorted(atm_keys, key=atm_imp_hyd_vlc_dct.__getitem__,
+                      reverse=True)
+    atm_syms = dict_.values_by_key(atom_symbols(gra), atm_keys)
+    srt = automol.formula.argsort_symbols(atm_syms, syms_first=('C',))
+    atm_keys = tuple(map(atm_keys.__getitem__, srt))
+    return atm_keys
+
+
 def branch(gra, atm_key, bnd_key):
     """ branch extending along `bnd_key` away from `atm_key`
     """

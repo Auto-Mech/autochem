@@ -19,6 +19,10 @@ from automol.graph._ring import cycle_ring_atom_key_to_front
 
 def vmatrix(gra):
     """ v-matrix for a connected graph
+
+    :param gra: the graph
+    :param lin_keys: keys for linear atoms in the graph (dummy atoms will be
+        inserted)
     """
     assert is_connected(gra), "Graph must be connected!"
 
@@ -26,8 +30,16 @@ def vmatrix(gra):
 
     # Start with the ring systems and their connections. If there aren't any,
     # start with the longest chain.
-    vma, row_keys = (_connected_ring_systems(gra) if rsys else
-                     _chain(gra, longest_chain(gra)))
+    vma, row_keys = (_connected_ring_systems(gra, check=False) if rsys else
+                     _start_chain(gra, longest_chain(gra)))
+
+    # Finally, complete any incomplete branches
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra)
+    for key in row_keys:
+        # If any neighbor keys are not in the v-matrix, this is an incomplete
+        # branch -- complete it.
+        if any(k not in row_keys for k in ngb_keys_dct[key]):
+            vma, row_keys = _complete_branch(gra, key, vma, row_keys)
 
     return vma, row_keys
 
@@ -193,6 +205,49 @@ def _chain(gra, keys, term_hydrogens=True):
     return vma, row_keys
 
 
+def _complete_branch(gra, key, vma, row_keys):
+    """ finish constructing the v-matrix for a branch
+    """
+    keys = _extend_chain_to_include_anchoring_atoms(gra, [key], row_keys)
+
+    sym_dct = atom_symbols(gra)
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('C',),
+                                             syms_last=('H',))
+
+    def _recurse(key1, key2, key3, vma, row_keys):
+        k3ns = list(ngb_keys_dct[key3])
+        k3ns.remove(key2)
+
+        if k3ns:
+            # Add the leading atom to the v-matrix
+            key4 = k3ns.pop(0)
+            sym = sym_dct[key4]
+            key_row = list(map(row_keys.index, (key3, key2, key1)))
+            vma = automol.vmat.add_atom(vma, sym, key_row)
+            assert key4 not in row_keys, ("Atom {:d} already in v-matrix."
+                                          .format(key4))
+            row_keys.append(key4)
+
+            for k3n in k3ns:
+                sym = sym_dct[k3n]
+                key_row = list(map(row_keys.index, (key3, key2, key4)))
+                vma = automol.vmat.add_atom(vma, sym, key_row)
+                assert k3n not in row_keys, ("Atom {:d} already in v-matrix."
+                                             .format(k3n))
+                row_keys.append(k3n)
+
+            # Recursion
+            for k3n in [key4] + k3ns:
+                vma, row_keys = _recurse(key2, key3, k3n, vma, row_keys)
+
+        return vma, row_keys
+
+    key1, key2, key3 = keys
+    vma, row_keys = _recurse(key1, key2, key3, vma, row_keys)
+
+    return vma, row_keys
+
+
 def _continue_chain(gra, keys, vma, row_keys, extend=True,
                     term_hydrogens=True):
     """ continue constructing a v-matrix along a chain
@@ -335,19 +390,25 @@ def _extend_chain_to_include_terminal_hydrogens(gra, keys,
 
 if __name__ == '__main__':
     import automol
-    # ICH = automol.smiles.inchi('CCCCCC')
+    # ICH = automol.smiles.inchi('CC(C)C')
+    # ICH = automol.smiles.inchi('CCCC(OO)CC(CC(N)(CC)CC)CCCCC')
     # ICH = automol.smiles.inchi('C1CCC(CCC2CCCC2)CC1')
-    ICH = automol.smiles.inchi('C12CC3C(CC2)CC1.C3C4.C45C(CC6)CCC56')
+    ICH = automol.smiles.inchi('C12C(OON)C3C(CC2)CC1'
+                               '.C3C(C(C)C)C4'
+                               '.C45C(CC6)CC(CCO)C56')
+    # ICH = automol.smiles.inchi('C#CCCCC#CCCCC#C')
     GEO = automol.inchi.geometry(ICH)
     print(automol.geom.string(GEO))
-    # ZMA = automol.geom.zmatrix(GEO)
-    # print(automol.zmatrix.string(ZMA, one_indexed=False))
-    # print(automol.geom.zmatrix_torsion_coordinate_names(GEO))
     GRA = automol.geom.connectivity_graph(GEO)
+    # Yuri's code:
+    ZMA = automol.geom.zmatrix(GEO)
+    print(automol.zmatrix.string(ZMA, one_indexed=False))
+    print(automol.geom.zmatrix_torsion_coordinate_names(GEO))
+    # My code:
     VMA, ROW_KEYS = vmatrix(GRA)
     SUBGEO = automol.geom.from_subset(GEO, ROW_KEYS)
     SUBZMA = automol.zmat.from_geometry(VMA, SUBGEO)
     SUBGEO = automol.zmat.geometry(SUBZMA)
     SUBGEO = automol.geom.mass_centered(SUBGEO)
-    print(automol.zmat.string(SUBZMA))
+    print(automol.zmat.string(SUBZMA, one_indexed=False))
     print(automol.geom.string(SUBGEO))
