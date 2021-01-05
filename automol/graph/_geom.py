@@ -428,7 +428,7 @@ def _start_zmatrix_from_atom(gra, atm_key):
     # sort hydrogens to be first
     atm_ngb_keys = sorted(atm_ngb_keys_dct[atm_key])
     atm_ngb_syms = list(map(atm_sym_dct.__getitem__, atm_ngb_keys))
-    srt = formula.argsort_symbols(atm_ngb_syms, syms=('H', 'C'))
+    srt = formula.argsort_symbols(atm_ngb_syms, syms_first=('H', 'C'))
     atm_ngb_keys = list(map(atm_ngb_keys.__getitem__, srt))
 
     atm_keys = [atm_key] + atm_ngb_keys

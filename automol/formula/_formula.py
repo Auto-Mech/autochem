@@ -88,7 +88,7 @@ def string(fml):
     return fml_str
 
 
-def sorted_symbols(seq, syms=('C', 'H')):
+def sorted_symbols(seq, syms_first=('C', 'H'), syms_last=()):
     """ return elements sorted, with some elements given priority
 
     :param seq: formula or sequence of atomic symbols
@@ -99,20 +99,30 @@ def sorted_symbols(seq, syms=('C', 'H')):
     """
 
     def _sort_key(char):
-        val = syms.index(char) if char in syms else len(syms)
+        if char in syms_first:
+            val = syms_first.index(char)
+        elif char in syms_last:
+            val = len(syms_first) + 1 + syms_last.index(char)
+        else:
+            val = len(syms_first)
         return (val, char)
 
     return tuple(sorted(seq, key=_sort_key))
 
 
-def argsort_symbols(seq, syms=('C', 'H')):
+def argsort_symbols(seq, syms_first=('C', 'H'), syms_last=()):
     """ get the sort order for a sequence of atomic symbols
     """
 
     def _sort_key(entry):
         char = entry[0]
         rest = entry[1:]
-        val = syms.index(char) if char in syms else len(syms)
+        if char in syms_first:
+            val = syms_first.index(char)
+        elif char in syms_last:
+            val = len(syms_first) + 1 + syms_last.index(char)
+        else:
+            val = len(syms_first)
         return (val, char, rest)
 
     return tuple(idx for (val, idx) in
@@ -132,3 +142,7 @@ def string2(fml):
 def _is_standard(fml):
     syms = list(fml.keys())
     return syms == list(filter(pt.to_Z, map(pt.to_E, syms)))
+
+
+if __name__ == '__main__':
+    print(argsort_symbols('OHCN', syms_first=('C',), syms_last=('H',)))

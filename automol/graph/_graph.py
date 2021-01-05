@@ -5,6 +5,7 @@ import functools
 import numpy
 import future.moves.itertools as fmit
 from qcelemental import periodictable as pt
+import automol.formula
 from automol import dict_
 from automol.graph._graph_base import atoms
 from automol.graph._graph_base import bonds
@@ -147,6 +148,23 @@ def atom_neighbor_keys(gra):
     return atm_ngb_keys_dct
 
 
+def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
+    """ keys of neighboring atoms, by atom
+    """
+    atm_sym_dct = atom_symbols(gra)
+
+    def _neighbor_keys(atm_key, atm_nbh):
+        keys = sorted(atom_keys(atm_nbh) - {atm_key})
+        syms = list(map(atm_sym_dct.__getitem__, keys))
+        srt = automol.formula.argsort_symbols(syms, syms_first, syms_last)
+        keys = tuple(map(keys.__getitem__, srt))
+        return keys
+
+    atm_ngb_keys_dct = dict_.transform_items_to_values(
+        atom_neighborhoods(gra), _neighbor_keys)
+    return atm_ngb_keys_dct
+
+
 def atom_bond_keys(gra):
     """ bond keys, by atom
     """
@@ -207,6 +225,21 @@ def bond_neighborhoods(gra):
 
 
 # # other properties
+def terminal_heavy_atom_keys(gra):
+    """ terminal heavy atoms, sorted by atom type and hydrogen count
+    """
+    gra = implicit(gra)
+    atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
+    atm_keys = [key for key, ngb_keys in atom_neighbor_keys(gra).items()
+                if len(ngb_keys) == 1]
+    atm_keys = sorted(atm_keys, key=atm_imp_hyd_vlc_dct.__getitem__,
+                      reverse=True)
+    atm_syms = dict_.values_by_key(atom_symbols(gra), atm_keys)
+    srt = automol.formula.argsort_symbols(atm_syms, syms_first=('C',))
+    atm_keys = tuple(map(atm_keys.__getitem__, srt))
+    return atm_keys
+
+
 def branch(gra, atm_key, bnd_key):
     """ branch extending along `bnd_key` away from `atm_key`
     """
@@ -251,6 +284,12 @@ def branch_bond_keys(gra, atm_key, bnd_key):
     return frozenset(bnch_bnd_keys)
 
 
+def is_connected(gra):
+    """ is this a connected graph
+    """
+    return len(connected_components(gra)) == 1
+
+
 def connected_components(gra):
     """ connected components in the graph
     """
@@ -276,6 +315,26 @@ def atom_shortest_paths(gra):
     nxg = _networkx.from_graph(gra)
     sp_dct = dict(_networkx.all_pairs_shortest_path(nxg))
     return sp_dct
+
+
+def shortest_path_between_groups(gra, keys1, keys2):
+    """ shortest path between two groups of atoms
+
+    Returns the atom pair from these groups that are nearest to each other and
+    returns the path between them.
+    """
+    assert not set(keys1) & set(keys2), ("{:s} overlaps with {:s}"
+                                         .format(*map(str, [keys1, keys2])))
+
+    sp_dct = atom_shortest_paths(gra)
+    keys = None
+    for key1 in keys1:
+        for key2 in keys2:
+            if key2 in sp_dct[key1]:
+                if keys is None or len(keys) > len(sp_dct[key1][key2]):
+                    keys = sp_dct[key1][key2]
+
+    return keys
 
 
 def longest_chain(gra):
@@ -327,10 +386,11 @@ def atom_longest_chain(gra, atm_key):
     return max_chain
 
 
-def union(gra1, gra2):
+def union(gra1, gra2, check=True):
     """ a union of two graphs
     """
-    assert not atom_keys(gra1) & atom_keys(gra2)
+    if check:
+        assert not atom_keys(gra1) & atom_keys(gra2)
     atm_dct = {}
     atm_dct.update(atoms(gra1))
     atm_dct.update(atoms(gra2))
@@ -341,10 +401,13 @@ def union(gra1, gra2):
     return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def union_from_sequence(gras):
+def union_from_sequence(gras, check=True):
     """ a union of all parts of a sequence of graphs
     """
-    return tuple(functools.reduce(union, gras))
+    def _union(gra1, gra2):
+        return union(gra1, gra2, check=check)
+
+    return tuple(functools.reduce(_union, gras))
 
 
 def subgraph(gra, atm_keys):

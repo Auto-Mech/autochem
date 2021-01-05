@@ -4,12 +4,18 @@ import operator
 import itertools
 import functools
 import more_itertools as mit
+from automol.graph._graph_base import string
 from automol.graph._graph import frozen
 from automol.graph._graph import atom_count
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
+from automol.graph._graph import remove_bonds
+from automol.graph._graph import is_connected
 from automol.graph._graph import atom_bond_keys
+from automol.graph._graph import atom_shortest_paths
+from automol.graph._graph import union_from_sequence
 from automol.graph._graph import bond_induced_subgraph
+from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph import _networkx
 
 
@@ -66,6 +72,16 @@ def is_ring_key_sequence(gra, keys):
     """
     keys = set(keys)
     return any(keys <= rng_keys for rng_keys in rings_atom_keys(gra))
+
+
+def cycle_ring_atom_key_to_front(keys, key):
+    """ helper function to cycle ring atom keys until one is in front
+    """
+    assert key in keys, ("{:d} is not in {:s}".format(key, str(keys)))
+    keys = tuple(itertools.islice(
+        itertools.dropwhile(lambda x: x != key, itertools.cycle(keys)),
+        len(keys)))
+    return keys
 
 
 def ring_arc_complement_atom_keys(gra, rng):
@@ -130,6 +146,99 @@ def ring_systems(gra):
     return tuple(sorted(gras, key=frozen))
 
 
+def ring_systems_atom_keys(gra):
+    """ bond keys for polycyclic ring systems in the graph
+    """
+    atm_keys_lst = tuple(map(atom_keys, ring_systems(gra)))
+    return atm_keys_lst
+
+
+def ring_systems_bond_keys(gra):
+    """ bond keys for polycyclic ring systems in the graph
+    """
+
+    def _are_connected(bnd_keys1, bnd_keys2):
+        """ see if two rings are connected based on their bond keys
+        """
+        atm_keys1 = functools.reduce(operator.or_, bnd_keys1)
+        atm_keys2 = functools.reduce(operator.or_, bnd_keys2)
+        common_bonds = set(bnd_keys1) & set(bnd_keys2)
+        common_atoms = set(atm_keys1) & set(atm_keys2)
+        return bool(common_bonds) or bool(common_atoms)
+
+    rng_bnd_keys_lst = rings_bond_keys(gra)
+    rsy_bnd_keys_lsts = _equivalence_partition(rng_bnd_keys_lst,
+                                               _are_connected)
+    rsy_bnd_keys_lst = [frozenset(functools.reduce(operator.or_, bnd_keys_lst))
+                        for bnd_keys_lst in rsy_bnd_keys_lsts]
+    return rsy_bnd_keys_lst
+
+
+def is_ring_system(gra):
+    """ is this graph a ring system?
+    """
+    return union_from_sequence(rings(gra), check=False) == gra
+
+
+def ring_system_decomposed_atom_keys(rsy, rng=None, check=True):
+    """ decomposed atom keys for a polycyclic ring system in a graph
+
+    The ring system is decomposed into a ring and a series of arcs that can
+    be used to successively construct the system
+
+    :param rsy: the ring system
+    :param rng: the ring in the decomposition; if None, the smallest ring in
+        the system will be chosen
+    """
+    rngs = sorted(rings(rsy), key=atom_count)
+    rng = rngs[0] if rng is None else rng
+
+    # check the arguments, if requested
+    if check:
+        # check that the graph is connected
+        assert is_connected(rsy), "Ring system can't be disconnected."
+
+        # check that the graph is actually a ring system
+        assert is_ring_system(rsy), (
+            "This is not a ring system graph:\n{:s}".format(string(rsy)))
+
+        # check that rng is a subgraph of rsy
+        assert full_subgraph_isomorphism(rsy, rng), (
+            "{}\n^ Rings system doesn't contain ring as subgraph:\n{}"
+            .format(*map(string, (rsy, rng))))
+
+    bnd_keys = bond_keys(rng)
+    rng_keys = _sorted_ring_atom_keys(bnd_keys)
+
+    # Remove bonds for the ring
+    rsy = remove_bonds(rsy, bnd_keys)
+    keys_lst = [rng_keys]
+    done_keys = set(rng_keys)
+
+    while bond_keys(rsy):
+
+        # Determine shortest paths for the graph with one more ring/arc deleted
+        sp_dct = atom_shortest_paths(rsy)
+
+        # The shortest path will be the next shortest arc in the system
+        arc_keys = min(
+            (sp_dct[i][j] for i, j in itertools.combinations(done_keys, 2)
+             if j in sp_dct[i]), key=len)
+
+        # Add this arc to the list
+        keys_lst.append(arc_keys)
+
+        # Add these keys to the list of done keys
+        done_keys |= set(arc_keys)
+
+        # Delete tbond keys for the new arc and continue to the next iteration
+        bnd_keys = list(map(frozenset, mit.windowed(arc_keys, 2)))
+        rsy = remove_bonds(rsy, bnd_keys)
+
+    keys_lst = tuple(map(tuple, keys_lst))
+    return keys_lst
+
+
 def ring_systems_decomposed_atom_keys(gra):
     """ decomposed atom keys for polycyclic ring systems in the graph
 
@@ -168,27 +277,6 @@ def _decompose_ring_system_atom_keys(rsy):
                 decomp_bnd_keys.update(bond_keys(rng))
 
     return decomp
-
-
-def ring_systems_bond_keys(gra):
-    """ bond keys for polycyclic ring systems in the graph
-    """
-
-    def _are_connected(bnd_keys1, bnd_keys2):
-        """ see if two rings are connected based on their bond keys
-        """
-        atm_keys1 = functools.reduce(operator.or_, bnd_keys1)
-        atm_keys2 = functools.reduce(operator.or_, bnd_keys2)
-        common_bonds = set(bnd_keys1) & set(bnd_keys2)
-        common_atoms = set(atm_keys1) & set(atm_keys2)
-        return bool(common_bonds) or bool(common_atoms)
-
-    rng_bnd_keys_lst = rings_bond_keys(gra)
-    rsy_bnd_keys_lsts = _equivalence_partition(rng_bnd_keys_lst,
-                                               _are_connected)
-    rsy_bnd_keys_lst = [frozenset(functools.reduce(operator.or_, bnd_keys_lst))
-                        for bnd_keys_lst in rsy_bnd_keys_lsts]
-    return rsy_bnd_keys_lst
 
 
 def _equivalence_partition(iterable, relation):

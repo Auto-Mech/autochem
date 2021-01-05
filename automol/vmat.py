@@ -160,21 +160,6 @@ def dummy_coordinate_names(vma):
     return dummy_names
 
 
-def bond_key_from_idxs(vma, idxs):
-    """given indices of involved bonded atoms, return bond name
-    """
-    idxs = list(idxs)
-    idxs.sort(reverse=True)
-    idxs = tuple(idxs)
-    bond_key = None
-    coords = coordinates(vma)
-    for key in coords:
-        for coord in coords.get(key, [None]):
-            if idxs == coord:
-                bond_key = key
-    return bond_key
-
-
 # value setters
 def set_key_matrix(zma, key_mat):
     """ set the key matrix
@@ -255,6 +240,49 @@ def standard_names(vma, shift=0):
     return name_dct
 
 
+# operations
+def add_atom(vma, sym, key_row, name_row=None, one_indexed=False):
+    """ add an atom to the z-matrix
+    """
+    syms = symbols(vma)
+    syms += (sym,)
+
+    key_mat = key_matrix(vma, shift=(1 if one_indexed else 0))
+    key_mat += (key_row,)
+
+    name_mat = None if name_row is None else name_matrix(vma) + (name_row,)
+
+    vma = automol.create.vmat.from_data(
+        syms, key_mat, name_mat, one_indexed=one_indexed)
+    return vma
+
+
+def remove_atom(vma, key):
+    """ remove an atom from the z-matrix
+
+    complains if attempting to remove an atom that other atoms depend on
+    """
+    syms = list(symbols(vma))
+    syms.pop(key)
+
+    key_mat = list(key_matrix(vma))
+    key_mat.pop(key)
+    key_mat = numpy.array(key_mat, dtype=numpy.object_)
+
+    if (key_mat == key).any():
+        raise ValueError("Other atoms in z-matrix depend on atom {}"
+                         .format(key))
+
+    key_map = numpy.vectorize(lambda x: x if (x is None or x < key) else x-1)
+    key_mat = key_map(key_mat)
+
+    name_mat = list(name_matrix(vma))
+    name_mat.pop(key)
+
+    vma = automol.create.vmat.from_data(syms, key_mat, name_mat)
+    return vma
+
+
 def is_valid(vma):
     """ is this a valid vmatrix?
     """
@@ -295,12 +323,13 @@ def from_string(vma_str):
     return vma
 
 
-def string(vma):
+def string(vma, one_indexed=True):
     """ write a v-matrix to a string
     """
+    shift = 1 if one_indexed else 0
     vma_str = aw.zmatrix.matrix_block(
         syms=symbols(vma),
-        key_mat=key_matrix(vma, shift=1),
+        key_mat=key_matrix(vma, shift=shift),
         name_mat=name_matrix(vma),
     )
     return vma_str
