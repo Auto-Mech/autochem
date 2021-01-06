@@ -174,6 +174,7 @@ from automol.graph import embed
 # submodules
 from automol.graph import trans
 from automol.graph import reac
+from automol.graph import vmat
 
 # constructors
 import automol.create.graph
@@ -417,6 +418,7 @@ __all__ = [
     # submodules
     'trans',
     'reac',
+    'vmat',
 
     # util fxns
     'ring_idxs'

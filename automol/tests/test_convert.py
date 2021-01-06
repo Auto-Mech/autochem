@@ -77,13 +77,14 @@ def test__zmatrix__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
-        geo = automol.zmatrix.geometry(zma)
+        geo = automol.zmat.geometry(zma)
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich
 
-        assert automol.zmatrix.formula(zma) == automol.inchi.formula(ich)
+        assert automol.zmat.formula(zma) == automol.inchi.formula(ich)
 
 
 def test__smiles__with_stereo():
@@ -368,7 +369,7 @@ if __name__ == '__main__':
     # test__geom__inchi()
     # test__graph__no_stereo()
     # test__graph__with_stereo()
-    # test__zmatrix__with_stereo()
+    test__zmatrix__with_stereo()
     # test__smiles__with_stereo()
     # test__geom__with_stereo()
     # test__graph__with_stereo()
@@ -376,4 +377,4 @@ if __name__ == '__main__':
     # test__geom__with_stereo()
     # test__geom__zmatrix()
     # test__geom__zmatrix_torsion_coordinate_names()
-    test__multiple_rings()
+    # test__multiple_rings()

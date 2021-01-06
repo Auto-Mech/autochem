@@ -58,6 +58,6 @@ def connectivity_graph(zma,
 def formula(zma):
     """ z-matrix => formula
     """
-    syms = automol.zmatrix.symbols(zma)
+    syms = automol.zmat.symbols(zma)
     fml = _util.formula(syms)
     return fml
