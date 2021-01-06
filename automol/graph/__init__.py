@@ -38,6 +38,8 @@ from automol.graph._graph import atom_count
 from automol.graph._graph import heavy_atom_count
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import sorted_atom_neighbor_keys
+from automol.graph._graph import atom_second_degree_neighbor_keys
+from automol.graph._graph import dummy_atom_neighbor_keys
 from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import atom_groups
@@ -274,6 +276,8 @@ __all__ = [
     'heavy_atom_count',
     'atom_neighbor_keys',
     'sorted_atom_neighbor_keys',
+    'atom_second_degree_neighbor_keys',
+    'dummy_atom_neighbor_keys',
     'atom_bond_keys',
     'atom_neighborhoods',
     'atom_groups',

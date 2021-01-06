@@ -3,7 +3,7 @@
 import itertools
 import numpy
 import sympy.combinatorics as spc
-from automol import cart
+from automol import util
 import automol.geom
 from automol.convert._pyx2z import to_oriented_geometry
 
@@ -39,7 +39,7 @@ def external_symmetry_factor2(geo, thresh=1e-3):
             xyzs = automol.geom.coordinates(ref_geo, idxs=idx_pair)
             norms = list(map(numpy.linalg.norm, xyzs))
             if all(norm > thresh for norm in norms):
-                ang = cart.vec.central_angle(orig, *xyzs)
+                ang = util.vec.central_angle(orig, *xyzs)
                 if not (numpy.abs(ang) < thresh or
                         numpy.abs(ang - numpy.pi) < thresh):
                     ref_idx_pair = idx_pair
@@ -52,7 +52,7 @@ def external_symmetry_factor2(geo, thresh=1e-3):
         ref_syms = automol.geom.symbols(ref_geo, idxs=ref_idx_pair)
 
         ref_xyzs_with_orig = (orig,) + ref_xyzs
-        ref_dist_mat = cart.vec.distance_matrix(ref_xyzs_with_orig)
+        ref_dist_mat = util.vec.distance_matrix(ref_xyzs_with_orig)
 
         # Now, loop over pairs. If they have the same symbols and the same
         # distance matrix with the origin as the reference pair, rotate the
@@ -66,9 +66,9 @@ def external_symmetry_factor2(geo, thresh=1e-3):
             if idx_pair != ref_idx_pair and syms == ref_syms:
                 xyzs = automol.geom.coordinates(geo, idxs=idx_pair)
                 xyzs_with_orig = (orig,) + xyzs
-                dist_mat = cart.vec.distance_matrix(xyzs_with_orig)
+                dist_mat = util.vec.distance_matrix(xyzs_with_orig)
                 if numpy.allclose(dist_mat, ref_dist_mat):
-                    rot_mat = cart.mat.superimposition(xyzs_with_orig,
+                    rot_mat = util.mat.superimposition(xyzs_with_orig,
                                                        ref_xyzs_with_orig)
                     geo = automol.geom.transform_by_matrix(geo, rot_mat)
                     perm = automol.geom.permutation(
@@ -105,7 +105,7 @@ def external_symmetry_factor3(geo, thresh=1e-3):
         ref_xyzs = automol.geom.coordinates(ref_geo, idxs=ref_idx_trip)
         ref_syms = automol.geom.symbols(ref_geo, idxs=ref_idx_trip)
 
-        ref_dist_mat = cart.vec.distance_matrix(ref_xyzs)
+        ref_dist_mat = util.vec.distance_matrix(ref_xyzs)
 
         # Now, loop over triplets in the geometry. If they have the same
         # symbols and distance matrix as the refernce triplet, rotate the
@@ -118,9 +118,9 @@ def external_symmetry_factor3(geo, thresh=1e-3):
             syms = automol.geom.symbols(geo, idxs=idx_trip)
             if syms == ref_syms:
                 xyzs = automol.geom.coordinates(geo, idxs=idx_trip)
-                dist_mat = cart.vec.distance_matrix(xyzs)
+                dist_mat = util.vec.distance_matrix(xyzs)
                 if numpy.allclose(dist_mat, ref_dist_mat):
-                    rot_mat = cart.mat.superimposition(xyzs, ref_xyzs)
+                    rot_mat = util.mat.superimposition(xyzs, ref_xyzs)
                     geo = automol.geom.transform_by_matrix(geo, rot_mat)
                     perm = automol.geom.permutation(
                         geo, ref_geo, thresh=thresh)

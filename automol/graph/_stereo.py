@@ -3,7 +3,7 @@
 import itertools
 import functools
 import numpy
-from automol import dict_
+from automol.util import dict_
 from automol.graph._res import resonance_dominant_atom_hybridizations
 from automol.graph._res import resonance_dominant_bond_orders
 from automol.graph._ring import rings_bond_keys

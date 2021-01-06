@@ -29,6 +29,17 @@ def are_parallel(xyz1, xyz2, orig_xyz=(0., 0., 0.), tol=1e-7):
     return det > tol
 
 
+def orthogonalize(xyz1, xyz2, normalize=True):
+    """ orthogonalize `xyz2` against `xyz1`
+    """
+    overlap = numpy.dot(xyz1, xyz2)
+    norm = numpy.dot(xyz1, xyz1)
+    oxyz2 = numpy.subtract(xyz2, numpy.multiply(overlap/norm, xyz1))
+    if normalize:
+        oxyz2 = unit_norm(oxyz2)
+    return oxyz2
+
+
 def unit_perpendicular(xyz1, xyz2, orig_xyz=(0., 0., 0.), allow_parallel=True):
     """ calculate a unit perpendicular on `xyz1` and `xyz2`
     """
@@ -101,7 +112,8 @@ def central_angle(xyz1, xyz2, xyz3):
     """
     uxyz21 = unit_direction(xyz2, xyz1)
     uxyz23 = unit_direction(xyz2, xyz3)
-    ang = numpy.arccos(numpy.dot(uxyz21, uxyz23))
+    dot = numpy.dot(uxyz21, uxyz23)
+    ang = numpy.arccos(numpy.round(dot, 7))
     return ang
 
 

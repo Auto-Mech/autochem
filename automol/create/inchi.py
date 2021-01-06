@@ -1,6 +1,6 @@
 """ inchi "constructor"
 """
-from automol import dict_
+from automol.util import dict_
 
 
 MAIN_PFXS = ('c', 'h')

@@ -365,6 +365,22 @@ def test__atom_neighbor_keys():
     }
 
 
+def test__atom_second_degree_neighbor_keys():
+    """ test graph.atom_neighbor_keys
+    """
+    assert graph.atom_second_degree_neighbor_keys(C8H13O_CGR) == {
+        0: frozenset({5}),
+        1: frozenset({6}),
+        2: frozenset({4, 7}),
+        3: frozenset({7}),
+        4: frozenset({2, 7}),
+        5: frozenset({0, 8, 6}),
+        6: frozenset({8, 1, 5}),
+        7: frozenset({2, 3, 4}),
+        8: frozenset({5, 6}),
+    }
+
+
 def test__atom_bond_keys():
     """ test graph.atom_neighbor_keys
     """
@@ -815,4 +831,5 @@ if __name__ == '__main__':
     # test__subresonances()
     # test__stereomers()
     # test__without_ts_bonds()
-    test__bond_neighbor_bonds()
+    # test__bond_neighbor_bonds()
+    test__atom_second_degree_neighbor_keys()

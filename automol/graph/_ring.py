@@ -4,6 +4,7 @@ import operator
 import itertools
 import functools
 import more_itertools as mit
+from automol import util
 from automol.graph._graph_base import string
 from automol.graph._graph import frozen
 from automol.graph._graph import atom_count
@@ -167,8 +168,8 @@ def ring_systems_bond_keys(gra):
         return bool(common_bonds) or bool(common_atoms)
 
     rng_bnd_keys_lst = rings_bond_keys(gra)
-    rsy_bnd_keys_lsts = _equivalence_partition(rng_bnd_keys_lst,
-                                               _are_connected)
+    rsy_bnd_keys_lsts = util.equivalence_partition(rng_bnd_keys_lst,
+                                                   _are_connected)
     rsy_bnd_keys_lst = [frozenset(functools.reduce(operator.or_, bnd_keys_lst))
                         for bnd_keys_lst in rsy_bnd_keys_lsts]
     return rsy_bnd_keys_lst
@@ -277,34 +278,6 @@ def _decompose_ring_system_atom_keys(rsy):
                 decomp_bnd_keys.update(bond_keys(rng))
 
     return decomp
-
-
-def _equivalence_partition(iterable, relation):
-    """Partitions a set of objects into equivalence classes
-
-    canned function taken from https://stackoverflow.com/a/38924631
-
-    Args:
-        iterable: collection of objects to be partitioned
-        relation: equivalence relation. I.e. relation(o1,o2) evaluates to True
-            if and only if o1 and o2 are equivalent
-
-    Returns: classes, partitions
-        classes: A sequence of sets. Each one is an equivalence class
-    """
-    classes = []
-    for obj in iterable:  # for each object
-        # find the class it is in
-        found = False
-        for cls in classes:
-            # is it equivalent to this class?
-            if relation(next(iter(cls)), obj):
-                cls.add(obj)
-                found = True
-                break
-        if not found:  # it is in a new class
-            classes.append(set([obj]))
-    return classes
 
 
 if __name__ == '__main__':
