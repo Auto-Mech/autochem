@@ -9,6 +9,7 @@ from qcelemental import periodictable as pt
 from qcelemental import constants as qcc
 import autoread as ar
 import autowrite as aw
+import automol.graph
 import automol.create.geom
 import automol.convert.geom
 import automol.convert.inchi
@@ -175,13 +176,13 @@ def graph(geo, remove_stereo=False):
         geo, remove_stereo=remove_stereo)
 
 
-def connectivity_graph(geo,
+def connectivity_graph(geo, dummy_bonds=False,
                        rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph
     """
     gra = automol.convert.geom.connectivity_graph(
-        geo, rqq_bond_max=rqq_bond_max, rqh_bond_max=rqh_bond_max,
-        rhh_bond_max=rhh_bond_max)
+        geo, dummy_bonds=dummy_bonds, rqq_bond_max=rqq_bond_max,
+        rqh_bond_max=rqh_bond_max, rhh_bond_max=rhh_bond_max)
     return gra
 
 
@@ -720,6 +721,27 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     dih = cart.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
     dih *= RAD2DEG if degree else 1
     return dih
+
+
+def zmatrix_row_values(geo, idx, idx1=None, idx2=None, idx3=None,
+                       angstrom=True, degree=True):
+    """ get coordinate values for a row in a z-matrix
+    """
+    val_row = [None, None, None]
+
+    if idx1 is not None:
+        val_row[0] = distance(geo, idx, idx1, angstrom=angstrom)
+
+    if idx2 is not None:
+        assert idx1 is not None
+        val_row[1] = central_angle(geo, idx, idx1, idx2, degree=degree)
+
+    if idx3 is not None:
+        assert idx2 is not None
+        val_row[2] = dihedral_angle(geo, idx, idx1, idx2, idx3, degree=degree)
+
+    val_row = tuple(val_row)
+    return val_row
 
 
 def distance_matrix(geo):

@@ -56,6 +56,7 @@ def key_matrix(vma, shift=0):
         key_mat = numpy.array(key_mat)
         tril_idxs = numpy.tril_indices(key_mat.shape[0], -1, m=3)
         key_mat[tril_idxs] += shift
+        key_mat[tril_idxs] = key_mat[tril_idxs].astype(int)
     else:
         key_mat = ()
 
@@ -186,9 +187,12 @@ def standard_name_matrix(vma, shift=0):
 
     name_mat = numpy.array(name_matrix(vma), dtype=numpy.object_)
 
-    name_mat[1:, 0] = ['R{:d}'.format(num + shift + 1) for num in range(natms)]
-    name_mat[2:, 1] = ['A{:d}'.format(num + shift + 2) for num in range(natms)]
-    name_mat[3:, 2] = ['D{:d}'.format(num + shift + 3) for num in range(natms)]
+    name_mat[1:, 0] = [
+        'R{:d}'.format(num + shift) for num in range(1, natms)]
+    name_mat[2:, 1] = [
+        'A{:d}'.format(num + shift) for num in range(2, natms)]
+    name_mat[3:, 2] = [
+        'D{:d}'.format(num + shift) for num in range(3, natms)]
 
     name_mat = tuple(map(tuple, name_mat))
     return name_mat

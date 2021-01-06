@@ -7,7 +7,7 @@ from automol.convert import _pyx2z
 from automol.convert import _util
 import automol.graph
 import automol.geom
-import automol.zmatrix
+import automol.zmat
 import automol.convert.graph
 import automol.convert.inchi
 
@@ -19,13 +19,12 @@ def zmatrix(geo, ts_bnds=()):
     syms = automol.geom.symbols(geo)
     if len(syms) == 1:
         key_mat = [[None, None, None]]
-        name_mat = [[None, None, None]]
-        val_dct = {}
-        zma = create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
+        val_mat = [[None, None, None]]
+        zma = create.zmat.from_data(syms, key_mat, val_mat)
     else:
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         zma = _pyx2z.to_zmatrix(x2m)
-    zma = automol.zmatrix.standard_form(zma)
+    zma = automol.zmat.standard_form(zma)
     return zma
 
 
@@ -40,7 +39,7 @@ def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
         names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
 
         zma = _pyx2z.to_zmatrix(x2m)
-        name_dct = automol.zmatrix.standard_names(zma)
+        name_dct = automol.zmat.standard_names(zma)
         names = tuple(map(name_dct.__getitem__, names))
     return names
 
@@ -58,17 +57,23 @@ def zmatrix_atom_ordering(geo, ts_bnds=()):
 
 
 # geometry => graph
-def connectivity_graph(geo,
+def connectivity_graph(geo, dummy_bonds=False,
                        rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph (no stereo)
+
+    (Kind of ugly -- should probably be cleaned up at some point)
     """
     syms = automol.geom.symbols(geo)
     xyzs = automol.geom.coordinates(geo)
 
-    def _are_bonded(idx_pair):
+    def _distance(idx_pair):
         xyz1, xyz2 = map(xyzs.__getitem__, idx_pair)
-        sym1, sym2 = map(syms.__getitem__, idx_pair)
         dist = numpy.linalg.norm(numpy.subtract(xyz1, xyz2))
+        return dist
+
+    def _are_bonded(idx_pair):
+        sym1, sym2 = map(syms.__getitem__, idx_pair)
+        dist = _distance(idx_pair)
         return (False if 'X' in (sym1, sym2) else
                 (dist < rqh_bond_max) if 'H' in (sym1, sym2) else
                 (dist < rhh_bond_max) if (sym1 == 'H' and sym2 == 'H') else
@@ -78,7 +83,22 @@ def connectivity_graph(geo,
     atm_sym_dct = dict(enumerate(syms))
     bnd_keys = tuple(
         map(frozenset, filter(_are_bonded, itertools.combinations(idxs, r=2))))
-    gra = create.graph.from_data(atom_symbols=atm_sym_dct, bond_keys=bnd_keys)
+
+    bnd_ord_dct = {bnd_key: 1 for bnd_key in bnd_keys}
+
+    if dummy_bonds:
+        dummy_idxs = automol.geom.dummy_atom_indices(geo)
+        for idx1 in dummy_idxs:
+            idx2, dist = min(
+                [[i, _distance([idx1, i])] for i in idxs if i != idx1],
+                key=lambda x: x[1])
+            if dist < rhh_bond_max:
+                bnd_key = frozenset({idx1, idx2})
+                bnd_keys += (bnd_key,)
+                bnd_ord_dct[bnd_key] = 0
+
+    gra = create.graph.from_data(atom_symbols=atm_sym_dct, bond_keys=bnd_keys,
+                                 bond_orders=bnd_ord_dct)
     return gra
 
 

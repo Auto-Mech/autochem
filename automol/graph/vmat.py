@@ -1,6 +1,5 @@
 """ graph-based z-matrix builder
 """
-import more_itertools as mit
 import automol.vmat
 from automol.graph._graph import atom_count
 from automol.graph._graph import atom_keys
@@ -34,7 +33,8 @@ def vmatrix(gra):
                      _start_chain(gra, longest_chain(gra)))
 
     # Finally, complete any incomplete branches
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra)
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
+                                             syms_last=('H',))
     for key in row_keys:
         # If any neighbor keys are not in the v-matrix, this is an incomplete
         # branch -- complete it.
@@ -76,7 +76,7 @@ def _connected_ring_systems(gra, check=True):
 
         # 1. Build a bridge from the current v-matrix to the next ring
         # system
-        vma, row_keys = _continue_chain(gra, keys, vma, row_keys,
+        vma, row_keys = _continue_chain(gra, keys[:-1], vma, row_keys,
                                         term_hydrogens=False)
 
         # 2. Decompose the ring system with the connecting ring first
@@ -199,57 +199,13 @@ def _chain(gra, keys, term_hydrogens=True):
 
     # 2. Continue the chain
     if len(keys) > 3:
-        vma, row_keys = _continue_chain(gra, keys, vma=vma, row_keys=row_keys,
-                                        extend=False)
+        vma, row_keys = _continue_chain(gra, keys[2:], vma=vma,
+                                        row_keys=row_keys)
 
     return vma, row_keys
 
 
-def _complete_branch(gra, key, vma, row_keys):
-    """ finish constructing the v-matrix for a branch
-    """
-    keys = _extend_chain_to_include_anchoring_atoms(gra, [key], row_keys)
-
-    sym_dct = atom_symbols(gra)
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('C',),
-                                             syms_last=('H',))
-
-    def _recurse(key1, key2, key3, vma, row_keys):
-        k3ns = list(ngb_keys_dct[key3])
-        k3ns.remove(key2)
-
-        if k3ns:
-            # Add the leading atom to the v-matrix
-            key4 = k3ns.pop(0)
-            sym = sym_dct[key4]
-            key_row = list(map(row_keys.index, (key3, key2, key1)))
-            vma = automol.vmat.add_atom(vma, sym, key_row)
-            assert key4 not in row_keys, ("Atom {:d} already in v-matrix."
-                                          .format(key4))
-            row_keys.append(key4)
-
-            for k3n in k3ns:
-                sym = sym_dct[k3n]
-                key_row = list(map(row_keys.index, (key3, key2, key4)))
-                vma = automol.vmat.add_atom(vma, sym, key_row)
-                assert k3n not in row_keys, ("Atom {:d} already in v-matrix."
-                                             .format(k3n))
-                row_keys.append(k3n)
-
-            # Recursion
-            for k3n in [key4] + k3ns:
-                vma, row_keys = _recurse(key2, key3, k3n, vma, row_keys)
-
-        return vma, row_keys
-
-    key1, key2, key3 = keys
-    vma, row_keys = _recurse(key1, key2, key3, vma, row_keys)
-
-    return vma, row_keys
-
-
-def _continue_chain(gra, keys, vma, row_keys, extend=True,
-                    term_hydrogens=True):
+def _continue_chain(gra, keys, vma, row_keys, term_hydrogens=True):
     """ continue constructing a v-matrix along a chain
 
     All neighboring atoms along the chain will be included
@@ -258,90 +214,21 @@ def _continue_chain(gra, keys, vma, row_keys, extend=True,
 
     :param gra: the graph for which the v-matrix will be constructed
     :param keys: the keys for atoms along the chain, which must be contiguous;
-        if `extend` is False, the first three atoms in this list must already
-        be specified in the v-matrix
+        the first atom must already appear in the v-matrix
     :param vma: a partial v-matrix from which to continue
     :param row_keys: row keys for the partial v-matrix, identifying the atom
-        specified by each row of `vma` in order (None indicates an inserted
-        dummy atom)
+        specified by each row of `vma` in order
     :param extend: whether to extend the chain's start to include the three
         anchoring atoms
     :param term_hydrogens: whether to extend the chain's end to include
         terminal hydrogens
     """
-    if extend:
-        keys = _extend_chain_to_include_anchoring_atoms(gra, keys, row_keys)
     if term_hydrogens:
         keys = _extend_chain_to_include_terminal_hydrogens(gra, keys,
                                                            start=False)
 
-    sym_dct = atom_symbols(gra)
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('C',),
-                                             syms_last=('H',))
-
-    assert set(keys[:3]) <= set(row_keys), (
-        "The first three atoms must already be specified.")
-    assert not set(keys[3:]) & set(row_keys), (
-        "Cannot add atoms {:s} that are already in the z-matrix."
-        .format(str(set(keys[3:]) & set(row_keys))))
-
-    for key1, key2, key3, key4 in mit.windowed(keys, 4):
-        sym = sym_dct[key4]
-
-        # Add the atom 4 to the v-matrix
-        key_row = list(map(row_keys.index, (key3, key2, key1)))
-        vma = automol.vmat.add_atom(vma, sym, key_row)
-        assert key4 not in row_keys, ("Atom {:d} already in v-matrix."
-                                      .format(key4))
-        row_keys.append(key4)
-
-        # Add the neighbors of atom 3 (if any) to the v-matrix, decoupled from
-        # atom 1 for properly decopuled torsions
-        k3ns = list(ngb_keys_dct[key3])
-        k3ns.remove(key2)
-        k3ns.remove(key4)
-        for k3n in k3ns:
-            sym = sym_dct[k3n]
-            key_row = list(map(row_keys.index, (key3, key2, key4)))
-            vma = automol.vmat.add_atom(vma, sym, key_row)
-            assert k3n not in row_keys, ("Atom {:d} already in v-matrix."
-                                         .format(k3n))
-            row_keys.append(k3n)
-
-    return vma, row_keys
-
-
-def _start_chain(gra, keys, term_hydrogens=True):
-    """ start v-matrix for a chain
-
-    (Seems to be relatively robust)
-    """
-    if term_hydrogens:
-        keys = _extend_chain_to_include_terminal_hydrogens(gra, keys,
-                                                           end=False)
-
-    sym_dct = atom_symbols(gra)
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('C',),
-                                             syms_last=('H',))
-
-    if len(keys) > 2:
-        ngb_keys = list(ngb_keys_dct[keys[1]])
-        ngb_keys.remove(keys[0])
-        ngb_keys.remove(keys[2])
-
-        if sym_dct[keys[0]] == 'H':
-            row_keys = [keys[1], keys[2], keys[0]] + ngb_keys
-        else:
-            row_keys = [keys[0], keys[1], keys[2]] + ngb_keys
-    else:
-        row_keys = keys[:3]
-
-    syms = tuple(map(sym_dct.__getitem__, row_keys))
-
-    vma = ()
-    for row, sym in enumerate(syms):
-        key_row = [0, 1, 2][:row]
-        vma = automol.vmat.add_atom(vma, sym, key_row)
+    vma, row_keys = _complete_branch(gra, keys[0], vma, row_keys,
+                                     branch_keys=keys)
 
     return vma, row_keys
 
@@ -353,12 +240,13 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, row_keys):
     :param keys: keys in the chain; the first atom should already be specified
     :param row_keys: keys currently in the v-matrix
     """
-    atm_ngb_dct = sorted_atom_neighbor_keys(gra)
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
+                                             syms_last=('H',))
 
     key3 = keys[0]
     assert key3 in row_keys
-    key2 = next(k for k in atm_ngb_dct[key3] if k in row_keys)
-    key1 = next(k for k in atm_ngb_dct[key2] if k in row_keys and k != key3)
+    key2 = next(k for k in ngb_keys_dct[key3] if k in row_keys)
+    key1 = next(k for k in ngb_keys_dct[key2] if k in row_keys and k != key3)
     keys = (key1, key2,) + tuple(keys)
 
     return keys
@@ -388,27 +276,145 @@ def _extend_chain_to_include_terminal_hydrogens(gra, keys,
     return keys
 
 
+def _start_chain(gra, keys, term_hydrogens=True):
+    """ start a v-matrix
+
+    (Seems to be relatively robust)
+    """
+    if term_hydrogens:
+        keys = _extend_chain_to_include_terminal_hydrogens(gra, keys,
+                                                           end=False)
+
+    sym_dct = atom_symbols(gra)
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
+                                             syms_last=('H',))
+
+    if len(keys) > 2:
+        ngb_keys = list(ngb_keys_dct[keys[1]])
+        ngb_keys.remove(keys[0])
+        ngb_keys.remove(keys[2])
+
+        if sym_dct[keys[0]] == 'H':
+            row_keys = [keys[1], keys[2], keys[0]] + ngb_keys
+        elif sym_dct[keys[0]] == 'X':
+            row_keys = [keys[1], keys[0], keys[2]] + ngb_keys
+        else:
+            row_keys = [keys[0], keys[1], keys[2]] + ngb_keys
+    else:
+        row_keys = keys[:3]
+
+    syms = tuple(map(sym_dct.__getitem__, row_keys))
+
+    vma = ()
+    for row, sym in enumerate(syms):
+        key_row = [0, 1, 2][:row]
+        vma = automol.vmat.add_atom(vma, sym, key_row)
+
+    return vma, row_keys
+
+
+def _complete_branch(gra, key, vma, row_keys, branch_keys=None):
+    """ continue constructing a v-matrix along a chain
+
+    All neighboring atoms along the chain will be included
+
+    Exactly one atom in the chain must already be in the v-matrix
+
+    :param gra: the graph for which the v-matrix will be constructed
+    :param keys: the keys for atoms along the chain, which must be contiguous;
+        the first atom must already appear in the v-matrix
+    :param vma: a partial v-matrix from which to continue
+    :param row_keys: row keys for the partial v-matrix, identifying the atom
+        specified by each row of `vma` in order
+    :param branch_keys: optionally, restrict the v-matrix to these keys and
+        their neighbors; if `None`, the entire branch will be included
+    """
+    branch_keys = atom_keys(gra) if branch_keys is None else branch_keys
+    keys = _extend_chain_to_include_anchoring_atoms(gra, [key], row_keys)
+
+    sym_dct = atom_symbols(gra)
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
+                                             syms_last=('H',))
+
+    def _continue(key1, key2, key3, vma, row_keys):
+        k3ns = list(ngb_keys_dct[key3])
+        for k3n in set(k3ns) & set(row_keys):
+            k3ns.remove(k3n)
+
+        if k3ns:
+            key4 = k3ns.pop(0)
+
+            # Add the leading atom to the v-matrix
+            sym = sym_dct[key4]
+            key_row = list(map(row_keys.index, (key3, key2, key1)))
+            vma = automol.vmat.add_atom(vma, sym, key_row)
+            assert key4 not in row_keys, ("Atom {:d} already in v-matrix."
+                                          .format(key4))
+            row_keys.append(key4)
+
+            # Add the neighbors of atom 3 (if any) to the v-matrix, decoupled
+            # from atom 1 for properly decopuled torsions
+            for k3n in k3ns:
+                sym = sym_dct[k3n]
+
+                if sym_dct[key4] == 'X':
+                    key_row = list(map(row_keys.index, (key3, key4, key2)))
+                else:
+                    key_row = list(map(row_keys.index, (key3, key2, key4)))
+
+                vma = automol.vmat.add_atom(vma, sym, key_row)
+                assert k3n not in row_keys, ("Atom {:d} already in v-matrix."
+                                             .format(k3n))
+                row_keys.append(k3n)
+
+            # Recursion
+            if key4 in branch_keys:
+                vma, row_keys = _continue(key2, key3, key4, vma, row_keys)
+
+            if sym_dct[key4] == 'X':
+                key2 = key4
+
+            for k3n in k3ns:
+                if k3n in branch_keys:
+                    vma, row_keys = _continue(key2, key3, k3n, vma, row_keys)
+
+        return vma, row_keys
+
+    key1, key2, key3 = keys[:3]
+    vma, row_keys = _continue(key1, key2, key3, vma, row_keys)
+
+    return vma, row_keys
+
+
 if __name__ == '__main__':
     import automol
-    # ICH = automol.smiles.inchi('CC(C)C')
-    # ICH = automol.smiles.inchi('CCCC(OO)CC(CC(N)(CC)CC)CCCCC')
+    # ICH = automol.smiles.inchi('CC(C)C#C')
+    # ICH = automol.smiles.inchi('CCCC(OO)CC(CC(N)(CC)CC)C=C=CC#C')
+    # ICH = automol.smiles.inchi('C1CCCC2C1.C2C3.C4C3CCC4')
     # ICH = automol.smiles.inchi('C1CCC(CCC2CCCC2)CC1')
     ICH = automol.smiles.inchi('C12C(OON)C3C(CC2)CC1'
-                               '.C3C(C(C)C)C4'
+                               '.C3C#CC(C(C)C)C4'
                                '.C45C(CC6)CC(CCO)C56')
     # ICH = automol.smiles.inchi('C#CCCCC#CCCCC#C')
+    # ICH = automol.smiles.inchi('C=C=C')
+    # ICH = automol.smiles.inchi('C#C')
     GEO = automol.inchi.geometry(ICH)
-    print(automol.geom.string(GEO))
-    GRA = automol.geom.connectivity_graph(GEO)
     # Yuri's code:
     ZMA = automol.geom.zmatrix(GEO)
-    print(automol.zmatrix.string(ZMA, one_indexed=False))
+    print(automol.zmat.string(ZMA, one_indexed=False))
     print(automol.geom.zmatrix_torsion_coordinate_names(GEO))
+    GEO = automol.zmat.geometry(ZMA)
+    GRA = automol.geom.connectivity_graph(GEO, dummy_bonds=True)
+    print(automol.geom.string(GEO))
     # My code:
     VMA, ROW_KEYS = vmatrix(GRA)
     SUBGEO = automol.geom.from_subset(GEO, ROW_KEYS)
     SUBZMA = automol.zmat.from_geometry(VMA, SUBGEO)
     SUBGEO = automol.zmat.geometry(SUBZMA)
     SUBGEO = automol.geom.mass_centered(SUBGEO)
+    SUBGEO = automol.geom.without_dummy_atoms(SUBGEO)
     print(automol.zmat.string(SUBZMA, one_indexed=False))
     print(automol.geom.string(SUBGEO))
+    ICH_OUT = automol.geom.inchi(SUBGEO, remove_stereo=True)
+    print(ICH_OUT)
+    assert ICH == ICH_OUT

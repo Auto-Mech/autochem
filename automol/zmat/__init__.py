@@ -57,7 +57,7 @@ def from_data(syms, key_mat, val_mat, name_mat=None,
         degree=degree)
 
 
-def geometry(zma, remove_dummy_atoms=None):
+def geometry(zma, remove_dummy_atoms=False):
     """ z-matrix => geometry
     """
     return automol.convert.zmat.geometry(
