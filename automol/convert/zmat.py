@@ -9,7 +9,7 @@ import automol.zmat
 
 
 # z-matrix => geometry
-def geometry(zma, remove_dummy_atoms=None):
+def geometry(zma, remove_dummy_atoms=False):
     """ z-matrix => geometry
     """
     syms = automol.zmat.symbols(zma)

@@ -1,9 +1,10 @@
 """ pyx2z interface
 """
+import numpy
 import pyx2z
 import autoread as ar
 import autoparse.pattern as app
-from automol.create.zmatrix import from_data as _zmatrix_from_data
+import automol.create.zmat
 
 
 def to_oriented_geometry(geo):
@@ -43,8 +44,10 @@ def to_zmatrix(x2m):
         mat_entry_start_ptt=',',
         setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
 
-    zma = _zmatrix_from_data(
-        syms, key_mat, name_mat, val_dct,
+    val_dct[None] = None
+    val_mat = numpy.vectorize(val_dct.__getitem__)(name_mat)
+    zma = automol.create.zmat.from_data(
+        syms, key_mat, val_mat, name_mat,
         one_indexed=True, angstrom=False, degree=True)
     return zma
 

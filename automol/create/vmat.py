@@ -47,11 +47,11 @@ def _name_matrix(name_mat, natms):
         name_mat = numpy.empty((natms, 3), dtype=numpy.object_)
         for row in range(0, natms):
             if row > 0:
-                name_mat[row, 0] = 'R{:d}'.format(row+1)
+                name_mat[row, 0] = 'R{:d}'.format(row)
             if row > 1:
-                name_mat[row, 1] = 'A{:d}'.format(row+1)
+                name_mat[row, 1] = 'A{:d}'.format(row)
             if row > 2:
-                name_mat[row, 2] = 'D{:d}'.format(row+1)
+                name_mat[row, 2] = 'D{:d}'.format(row)
 
     # Check dimensions and make sure there are Nones in the right places
     name_mat = [list(row) + [None]*(3-len(row)) for row in name_mat]
