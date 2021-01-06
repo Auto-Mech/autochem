@@ -3,7 +3,7 @@
 import itertools
 import numpy
 from automol import create
-from automol import cart
+from automol import util
 from automol.convert import _util
 import automol.zmat
 
@@ -24,7 +24,7 @@ def geometry(zma, remove_dummy_atoms=False):
         vals = val_mat[key][:min(key, 3)]
         keys = key_mat[key][:min(key, 3)]
         ref_xyzs = xyzs[list(keys)]
-        xyz = cart.vec.from_internals(*itertools.chain(*zip(vals, ref_xyzs)))
+        xyz = util.vec.from_internals(*itertools.chain(*zip(vals, ref_xyzs)))
         xyzs[key] = xyz
 
     geo = create.geom.from_data(syms, xyzs)
@@ -58,6 +58,6 @@ def connectivity_graph(zma,
 def formula(zma):
     """ z-matrix => formula
     """
-    syms = automol.zmatrix.symbols(zma)
+    syms = automol.zmat.symbols(zma)
     fml = _util.formula(syms)
     return fml

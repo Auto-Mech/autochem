@@ -1,7 +1,7 @@
 """ transformation matrices
 """
 import numpy
-import automol.cart.vec
+import automol.util.vec
 import transformations as tf
 
 
@@ -21,8 +21,8 @@ def axis_alignment(xyz1, xyz2):
     assert numpy.linalg.norm(xyz1) > 1e-3, 'norm({}) != 0'.format(xyz1)
     assert numpy.linalg.norm(xyz2) > 1e-3, 'norm({}) != 0'.format(xyz2)
     mat = numpy.zeros((3, 3))
-    mat[0] = automol.cart.vec.unit_norm(xyz1)
-    mat[2] = automol.cart.vec.unit_perpendicular(xyz1, xyz2)
+    mat[0] = automol.util.vec.unit_norm(xyz1)
+    mat[2] = automol.util.vec.unit_perpendicular(xyz1, xyz2)
     mat[1] = numpy.cross(mat[2], mat[1])
     return tuple(map(tuple, mat))
 

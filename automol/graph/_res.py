@@ -4,7 +4,7 @@
 import itertools
 import functools
 import numpy
-from automol import dict_
+from automol.util import dict_
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import remove_bonds

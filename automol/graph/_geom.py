@@ -4,11 +4,11 @@ import itertools
 import more_itertools as mit
 import numpy
 from qcelemental import constants as qcc
-from automol import dict_
+from automol.util import dict_
 import automol.geom
 import automol.zmatrix
 import automol.create.geom
-from automol import cart
+from automol import util
 from automol import formula
 from automol.graph._res import resonance_dominant_atom_hybridizations
 from automol.graph._ring import rings_atom_keys
@@ -308,7 +308,7 @@ def _atom_stereo_corrected_geometry(gra, atm_ste_par_dct, geo, geo_idx_dct):
             atm4_xyz = xyzs[geo_idx_dct[atm4_key]]
 
             # do the rotation
-            rot_axis = cart.vec.unit_bisector(
+            rot_axis = util.vec.unit_bisector(
                 atm3_xyz, atm4_xyz, orig_xyz=atm_xyz)
 
             rot_atm_keys = (

@@ -2,8 +2,7 @@
 """
 import numbers
 import yaml
-from automol import par
-from automol import dict_
+from automol.util import dict_
 from automol.graph._graph import relabel as _relabel
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import atom_neighbor_keys

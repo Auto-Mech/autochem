@@ -16,15 +16,14 @@ import automol.convert.inchi
 def zmatrix(geo, ts_bnds=()):
     """ geometry => z-matrix
     """
-    syms = automol.geom.symbols(geo)
-    if len(syms) == 1:
-        key_mat = [[None, None, None]]
-        val_mat = [[None, None, None]]
-        zma = create.zmat.from_data(syms, key_mat, val_mat)
-    else:
-        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
-        zma = _pyx2z.to_zmatrix(x2m)
-    zma = automol.zmat.standard_form(zma)
+    if ts_bnds:
+        raise NotImplementedError
+
+    geo = automol.geom.insert_dummies_on_linear_atoms(geo)
+    gra = connectivity_graph(geo, dummy_bonds=True)
+    vma, row_keys = automol.graph.vmat.vmatrix(gra)
+    geo = automol.geom.from_subset(geo, row_keys)
+    zma = automol.zmat.from_geometry(vma, geo)
     return zma
 
 
@@ -57,7 +56,7 @@ def zmatrix_atom_ordering(geo, ts_bnds=()):
 
 
 # geometry => graph
-def connectivity_graph(geo, dummy_bonds=False,
+def connectivity_graph(geo, dummy_bonds=True,
                        rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph (no stereo)
 

@@ -6,7 +6,7 @@ import numpy
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
-from automol import dict_
+from automol.util import dict_
 import automol.convert.inchi
 
 NONSLASH = '[^/]'
@@ -474,5 +474,5 @@ if __name__ == '__main__':
 
     for SGR in automol.graph.stereomers(GRA):
         BND_STE_PAR_DCT = automol.graph.bond_stereo_parities(SGR)
-        print(automol.dict_.by_key(BND_STE_PAR_DCT, BND_KEYS))
+        print(automol.util.dict_.by_key(BND_STE_PAR_DCT, BND_KEYS))
         print(automol.graph.inchi(SGR))

@@ -6,7 +6,7 @@ from qcelemental import periodictable as pt
 import igraph
 import automol
 import automol.create.graph
-from automol import dict_
+from automol.util import dict_
 
 
 def from_graph(gra):

@@ -30,16 +30,12 @@ def vmatrix(gra):
     # Start with the ring systems and their connections. If there aren't any,
     # start with the longest chain.
     vma, row_keys = (_connected_ring_systems(gra, check=False) if rsys else
-                     _start_chain(gra, longest_chain(gra)))
+                     _start(gra, longest_chain(gra)[0]))
 
     # Finally, complete any incomplete branches
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
-                                             syms_last=('H',))
-    for key in row_keys:
-        # If any neighbor keys are not in the v-matrix, this is an incomplete
-        # branch -- complete it.
-        if any(k not in row_keys for k in ngb_keys_dct[key]):
-            vma, row_keys = _complete_branch(gra, key, vma, row_keys)
+    branch_keys = _atoms_missing_neighbors(gra, row_keys)
+    for key in branch_keys:
+        vma, row_keys = _complete_branch(gra, key, vma, row_keys)
 
     return vma, row_keys
 
@@ -195,11 +191,14 @@ def _chain(gra, keys, term_hydrogens=True):
         keys = _extend_chain_to_include_terminal_hydrogens(gra, keys)
 
     # 1. Start the chain
-    vma, row_keys = _start_chain(gra, keys)
+    vma, row_keys = _start(gra, keys[0])
+
+    start_key, = set(keys) & set(_atoms_missing_neighbors(gra, row_keys))
+    keys = keys[keys.index(start_key):]
 
     # 2. Continue the chain
-    if len(keys) > 3:
-        vma, row_keys = _continue_chain(gra, keys[2:], vma=vma,
+    if keys:
+        vma, row_keys = _continue_chain(gra, keys, vma=vma,
                                         row_keys=row_keys)
 
     return vma, row_keys
@@ -276,41 +275,64 @@ def _extend_chain_to_include_terminal_hydrogens(gra, keys,
     return keys
 
 
-def _start_chain(gra, keys, term_hydrogens=True):
-    """ start a v-matrix
+def _start(gra, key):
+    """ start a v-matrix at a specific atom
 
-    (Seems to be relatively robust)
+    Returns the started vmatrix, along with keys to atoms whose neighbors are
+    missing from it
     """
-    if term_hydrogens:
-        keys = _extend_chain_to_include_terminal_hydrogens(gra, keys,
-                                                           end=False)
-
     sym_dct = atom_symbols(gra)
     ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
                                              syms_last=('H',))
 
-    if len(keys) > 2:
-        ngb_keys = list(ngb_keys_dct[keys[1]])
-        ngb_keys.remove(keys[0])
-        ngb_keys.remove(keys[2])
-
-        if sym_dct[keys[0]] == 'H':
-            row_keys = [keys[1], keys[2], keys[0]] + ngb_keys
-        elif sym_dct[keys[0]] == 'X':
-            row_keys = [keys[1], keys[0], keys[2]] + ngb_keys
+    ngb_keys = ngb_keys_dct[key]
+    if not ngb_keys:
+        row_keys = []
+    elif len(ngb_keys) == 1:
+        # Need special handling for atoms with only one neighbor
+        if sym_dct[key] in ('H', 'X'):
+            key2 = ngb_keys[0]
+            row_keys = (key2,) + ngb_keys_dct[key2]
         else:
-            row_keys = [keys[0], keys[1], keys[2]] + ngb_keys
+            key2 = ngb_keys[0]
+            ngb_keys = tuple(k for k in ngb_keys_dct[key2] if k != key)
+            row_keys = (key, key2) + ngb_keys
     else:
-        row_keys = keys[:3]
-
-    syms = tuple(map(sym_dct.__getitem__, row_keys))
+        row_keys = (key,) + ngb_keys_dct[key]
 
     vma = ()
-    for row, sym in enumerate(syms):
-        key_row = [0, 1, 2][:row]
+    for row, key_ in enumerate(row_keys):
+        idx1 = idx2 = idx3 = None
+        if row > 0:
+            key1 = next(k for k in ngb_keys_dct[key_] if k in row_keys[:row])
+            idx1 = row_keys.index(key1)
+        if row > 1:
+            key2 = next(k for k in ngb_keys_dct[key1] if k in row_keys[:row]
+                        and k != key_)
+            idx2 = row_keys.index(key2)
+        if row > 2:
+            key3 = next(k for k in row_keys[:row]
+                        if k not in (key_, key1, key2))
+            idx3 = row_keys.index(key3)
+
+        sym = sym_dct[key_]
+        key_row = [idx1, idx2, idx3]
         vma = automol.vmat.add_atom(vma, sym, key_row)
 
     return vma, row_keys
+
+
+def _atoms_missing_neighbors(gra, row_keys):
+    """ get atoms from the list currently in the v-matrix with neighbors that
+    are not in the v-matrix
+    """
+    ngb_keys_dct = atom_neighbor_keys(gra)
+    keys = []
+    for key in row_keys:
+        if any(k not in row_keys for k in ngb_keys_dct[key]):
+            keys.append(key)
+    keys = tuple(keys)
+    return keys
 
 
 def _complete_branch(gra, key, vma, row_keys, branch_keys=None):
@@ -332,6 +354,7 @@ def _complete_branch(gra, key, vma, row_keys, branch_keys=None):
     branch_keys = atom_keys(gra) if branch_keys is None else branch_keys
     keys = _extend_chain_to_include_anchoring_atoms(gra, [key], row_keys)
 
+    row_keys = list(row_keys)
     sym_dct = atom_symbols(gra)
     ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
                                              syms_last=('H',))
@@ -392,29 +415,36 @@ if __name__ == '__main__':
     # ICH = automol.smiles.inchi('CCCC(OO)CC(CC(N)(CC)CC)C=C=CC#C')
     # ICH = automol.smiles.inchi('C1CCCC2C1.C2C3.C4C3CCC4')
     # ICH = automol.smiles.inchi('C1CCC(CCC2CCCC2)CC1')
-    ICH = automol.smiles.inchi('C12C(OON)C3C(CC2)CC1'
-                               '.C3C#CC(C(C)C)C4'
-                               '.C45C(CC6)CC(CCO)C56')
+    # ICH = automol.smiles.inchi('C12C(OON)C3C(CC2)CC1'
+    #                            '.C3C#CC(C(C)C)C4'
+    #                            '.C45C(CC6)CC(CCO)C56')
+    # ICH = automol.smiles.inchi('C1CCCCC1')
     # ICH = automol.smiles.inchi('C#CCCCC#CCCCC#C')
     # ICH = automol.smiles.inchi('C=C=C')
     # ICH = automol.smiles.inchi('C#C')
+    ICH = 'InChI=1S/C3H7O4/c1-3(7-5)2-6-4/h3-4H,2H2,1H3/t3-/m0/s1'
     GEO = automol.inchi.geometry(ICH)
-    # Yuri's code:
-    ZMA = automol.geom.zmatrix(GEO)
-    print(automol.zmat.string(ZMA, one_indexed=False))
-    print(automol.geom.zmatrix_torsion_coordinate_names(GEO))
-    GEO = automol.zmat.geometry(ZMA)
+    # # Yuri's code:
+    # ZMA = automol.geom.zmatrix(GEO)
+    # print(automol.zmat.string(ZMA, one_indexed=False))
+    # print(automol.geom.zmatrix_torsion_coordinate_names(GEO))
+    # GEO = automol.zmat.geometry(ZMA)
+    # My code:
+    GEO = automol.geom.insert_dummies_on_linear_atoms(GEO)
     GRA = automol.geom.connectivity_graph(GEO, dummy_bonds=True)
     print(automol.geom.string(GEO))
-    # My code:
+    print(automol.graph.string(GRA, one_indexed=False))
+    # KEYS = longest_chain(GRA)
+    # VMA, ROW_KEYS = _start(GRA, KEYS[0])
     VMA, ROW_KEYS = vmatrix(GRA)
+    print(automol.vmat.string(VMA, one_indexed=False))
     SUBGEO = automol.geom.from_subset(GEO, ROW_KEYS)
     SUBZMA = automol.zmat.from_geometry(VMA, SUBGEO)
+    print(automol.zmat.string(SUBZMA, one_indexed=False))
     SUBGEO = automol.zmat.geometry(SUBZMA)
     SUBGEO = automol.geom.mass_centered(SUBGEO)
     SUBGEO = automol.geom.without_dummy_atoms(SUBGEO)
-    print(automol.zmat.string(SUBZMA, one_indexed=False))
     print(automol.geom.string(SUBGEO))
-    ICH_OUT = automol.geom.inchi(SUBGEO, remove_stereo=True)
+    ICH_OUT = automol.geom.inchi(SUBGEO)
     print(ICH_OUT)
     assert ICH == ICH_OUT

@@ -1,12 +1,13 @@
 """ molecular graph
 """
+import operator
 import itertools
 import functools
 import numpy
 import future.moves.itertools as fmit
 from qcelemental import periodictable as pt
 import automol.formula
-from automol import dict_
+from automol.util import dict_
 from automol.graph._graph_base import atoms
 from automol.graph._graph_base import bonds
 from automol.graph._graph_base import atom_keys
@@ -163,6 +164,36 @@ def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
     atm_ngb_keys_dct = dict_.transform_items_to_values(
         atom_neighborhoods(gra), _neighbor_keys)
     return atm_ngb_keys_dct
+
+
+def atom_second_degree_neighbor_keys(gra):
+    """ keys of second-degree neighboring atoms, by atom
+
+    That is, atoms that are connected through an intermediate atom
+    """
+    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb2_keys_dct = {}
+    for atm_key, atm_ngb_keys in atm_ngb_keys_dct.items():
+        # Union of neighbors of neighbors
+        atm_ngb2_keys = functools.reduce(
+            operator.or_, map(atm_ngb_keys_dct.__getitem__, atm_ngb_keys))
+        # Subtract of the atom itself and its neighbors (in case of 3-rings)
+        atm_ngb2_keys -= {atm_key} | atm_ngb_keys
+
+        atm_ngb2_keys_dct[atm_key] = frozenset(atm_ngb2_keys)
+    return atm_ngb2_keys_dct
+
+
+def dummy_atom_neighbor_keys(gra):
+    """ dummy atoms and their neighbor keys, by dummy atom
+
+    Atoms that are connected to dummy atoms
+    """
+    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    dummy_atm_keys = atom_keys(gra, sym='X')
+    dummy_atm_ngb_keys = frozenset(functools.reduce(
+        operator.or_, map(atm_ngb_keys_dct.__getitem__, dummy_atm_keys), ()))
+    return dummy_atm_ngb_keys
 
 
 def atom_bond_keys(gra):

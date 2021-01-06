@@ -13,7 +13,7 @@ import automol.graph
 import automol.create.geom
 import automol.convert.geom
 import automol.convert.inchi
-from automol import cart
+from automol import util
 from automol.convert._pyx2z import to_oriented_geometry
 
 BOHR2ANG = qcc.conversion_factor('bohr', 'angstrom')
@@ -176,7 +176,7 @@ def graph(geo, remove_stereo=False):
         geo, remove_stereo=remove_stereo)
 
 
-def connectivity_graph(geo, dummy_bonds=False,
+def connectivity_graph(geo, dummy_bonds=True,
                        rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph
     """
@@ -431,7 +431,7 @@ def minimum_distance(geo1, geo2):
     """
     xyzs1 = coordinates(geo1)
     xyzs2 = coordinates(geo2)
-    return min(cart.vec.distance(xyz1, xyz2)
+    return min(util.vec.distance(xyz1, xyz2)
                for xyz1, xyz2 in itertools.product(xyzs1, xyzs2))
 
 
@@ -492,17 +492,87 @@ def swap_coordinates(geo, idx1, idx2):
     return geo_swp
 
 
-def insert(geo, sym, xyz, idx=None):
+def insert(geo, sym, xyz, idx=None, angstrom=False):
     """ Insert an atom into this geometry
     """
     syms = list(symbols(geo))
-    xyzs = list(coordinates(geo))
+    xyzs = list(coordinates(geo, angstrom=angstrom))
 
     idx = idx if idx is not None else len(syms)
 
     syms.insert(idx, sym)
     xyzs.insert(idx, xyz)
-    return from_data(syms, xyzs)
+    return from_data(syms, xyzs, angstrom=angstrom)
+
+
+def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
+                                   tol=5.):
+    """ Insert dummy atoms over linear atoms in the geometry
+
+    :param geo: the geometry
+    :param lin_idxs: the indices of the linear atoms; if None, indices will be
+        automatically determined from the geometry based on the graph
+    :param gra: the graph describing connectivity; if None, a connectivity
+        graph will be generated using default distance thresholds
+    :param dist: distance of the dummy atom from the linear atom, in angstroms
+    :param tol: the tolerance threshold for linearity, in degrees
+    """
+    lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
+    gra = connectivity_graph(geo, dummy_bonds=True) if gra is None else gra
+
+    dummy_ngb_idxs = automol.graph.dummy_atom_neighbor_keys(gra)
+    assert not dummy_ngb_idxs & set(lin_idxs), (
+        "Attempting to add dummy atoms on atoms that already have them: {}"
+        .format(dummy_ngb_idxs & set(lin_idxs)))
+
+    ngb_idxs_dct = automol.graph.sorted_atom_neighbor_keys(gra)
+
+    xyzs = coordinates(geo, angstrom=True)
+
+    def _perpendicular_direction(idxs):
+        """ find a nice perpendicular direction for a series of linear atoms
+        """
+        triplets = []
+        for idx in idxs:
+            for n1idx in ngb_idxs_dct[idx]:
+                for n2idx in ngb_idxs_dct[n1idx]:
+                    if n2idx != idx:
+                        ang = central_angle(geo, idx, n1idx, n2idx,
+                                            degree=True)
+                        if numpy.abs(ang - 180.) > tol:
+                            triplets.append((idx, n1idx, n2idx))
+
+        if triplets:
+            idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
+            xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
+            r12 = util.vec.unit_direction(xyz1, xyz2)
+            r23 = util.vec.unit_direction(xyz2, xyz3)
+            direc = util.vec.orthogonalize(r12, r23)
+        else:
+            assert len(idxs) >= 2, "This should never happen."
+            idx1, idx2 = idxs[:2]
+            xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
+            r12 = util.vec.unit_direction(xyz1, xyz2)
+            for i in range(3):
+                disp = numpy.zeros((3,))
+                disp[i] = -1.
+                alt = numpy.add(r12, disp)
+                direc = util.vec.unit_perpendicular(r12, alt)
+                if numpy.linalg.norm(direc) > 1e-2:
+                    break
+        return direc
+
+    # partition the linear atoms into adjacent groups, to be handled together
+    lin_idxs_lst = sorted(map(sorted, util.equivalence_partition(
+        lin_idxs, lambda x, y: x in ngb_idxs_dct[y])))
+
+    for idxs in lin_idxs_lst:
+        direc = _perpendicular_direction(idxs)
+        for idx in idxs:
+            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
+            geo = insert(geo, 'X', xyz, angstrom=True)
+
+    return geo
 
 
 def displace(geo, xyzs):
@@ -559,14 +629,14 @@ def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
 
     if rotating a subset, specify the atoms indices with `idxs`
     """
-    func = cart.vec.rotater(axis, angle, orig_xyz=orig_xyz)
+    func = util.vec.rotater(axis, angle, orig_xyz=orig_xyz)
     return transform(geo, func, idxs=idxs)
 
 
 def euler_rotate(geo, theta, phi, psi):
     """ axis-angle rotation of the geometry
     """
-    mat = cart.mat.euler_rotation(theta, phi, psi)
+    mat = util.mat.euler_rotation(theta, phi, psi)
     return transform_by_matrix(geo, mat)
 
 
@@ -693,7 +763,7 @@ def distance(geo, idx1, idx2, angstrom=False):
     xyzs = coordinates(geo)
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
-    dist = cart.vec.distance(xyz1, xyz2)
+    dist = util.vec.distance(xyz1, xyz2)
     dist *= BOHR2ANG if angstrom else 1
     return dist
 
@@ -705,7 +775,7 @@ def central_angle(geo, idx1, idx2, idx3, degree=False):
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
     xyz3 = xyzs[idx3]
-    ang = cart.vec.central_angle(xyz1, xyz2, xyz3)
+    ang = util.vec.central_angle(xyz1, xyz2, xyz3)
     ang *= RAD2DEG if degree else 1
     return ang
 
@@ -718,7 +788,7 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     xyz2 = xyzs[idx2]
     xyz3 = xyzs[idx3]
     xyz4 = xyzs[idx4]
-    dih = cart.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
+    dih = util.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
     dih *= RAD2DEG if degree else 1
     return dih
 
@@ -742,6 +812,30 @@ def zmatrix_row_values(geo, idx, idx1=None, idx2=None, idx3=None,
 
     val_row = tuple(val_row)
     return val_row
+
+
+def linear_atoms(geo, gra=None, tol=5.):
+    """ find linear atoms in a geometry (atoms with 180 degree bond angle)
+
+    :param geo: the geometry
+    :param gra: the graph describing connectivity; if None, a connectivity
+        graph will be generated using default distance thresholds
+    :param tol: the tolerance threshold for linearity, in degrees
+    """
+    gra = connectivity_graph(geo) if gra is None else gra
+    ngb_idxs_dct = automol.graph.atom_neighbor_keys(gra)
+
+    lin_idxs = []
+    for idx in range(count(geo)):
+        nidxs = ngb_idxs_dct[idx]
+        if len(nidxs) >= 2:
+            for nidx1, nidx2 in itertools.combinations(nidxs, 2):
+                ang = central_angle(geo, nidx1, idx, nidx2, degree=True)
+                if numpy.abs(ang - 180.) < tol:
+                    lin_idxs.append(idx)
+
+    lin_idxs = tuple(lin_idxs)
+    return lin_idxs
 
 
 def distance_matrix(geo):
@@ -786,7 +880,7 @@ def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
         when the xyz coordinates of the A B and C are known and
         the position is defined w/r to A B C with internal coordinates
 
-    TODO: This already exists: cart.vec.from_internals does exactly the same
+    TODO: This already exists: util.vec.from_internals does exactly the same
     thing; find where this is used and replace it with that
     """
 
@@ -921,13 +1015,9 @@ def closest_unbonded_atoms(geo, gra):
 
 # chemical properties
 def is_atom(geo):
-    """ return return the atomic masses
+    """ does this geometry describe a single atom?
     """
-    syms = symbols(geo)
-    ret = False
-    if len(syms) == 1:
-        ret = True
-    return ret
+    return len(symbols(geo)) == 1
 
 
 def masses(geo, amu=True):
@@ -1028,7 +1118,7 @@ def rotational_constants(geo, amu=True):
     return cons
 
 
-def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
+def is_linear(geo, tol=5.):
     """ is this geometry linear?
     """
     ret = True
@@ -1040,10 +1130,11 @@ def is_linear(geo, tol=2.*qcc.conversion_factor('degree', 'radian')):
     else:
         keys = range(len(symbols(geo)))
         for key1, key2, key3 in mit.windowed(keys, 3):
-            cangle = numpy.abs(central_angle(geo, key1, key2, key3))
-            if not (numpy.abs(cangle) < tol or
-                    numpy.abs(cangle - numpy.pi) < tol):
+            ang = central_angle(geo, key1, key2, key3, degree=True)
+            if not (numpy.abs(ang) < tol or
+                    numpy.abs(ang - 180.) < tol):
                 ret = False
+                break
     return ret
 
 
@@ -1063,7 +1154,7 @@ def permutation(geo, ref_geo, thresh=1e-4):
         ref_xyzs = coordinates(ref_geo, idxs=ref_idxs)
         perm_idx = next(
             (ref_idx for ref_idx, ref_xyz in zip(ref_idxs, ref_xyzs)
-             if cart.vec.distance(xyz, ref_xyz) < thresh), None)
+             if util.vec.distance(xyz, ref_xyz) < thresh), None)
         perm_idxs[idx] = perm_idx
 
     perm_idxs = tuple(perm_idxs)
@@ -1075,49 +1166,14 @@ def permutation(geo, ref_geo, thresh=1e-4):
 
 
 if __name__ == '__main__':
-    GEO_STR = """
-C    0.000000   0.000000   0.000000
-C    0.000000   0.000000   1.528500
-H    0.000000   1.021271  -0.395008
-H   -0.884960  -0.505333  -0.402273
-H    0.884431  -0.514168  -0.394620
-C    0.131848  -1.396208   2.150831
-H    0.830707   0.618974   1.889645
-H   -0.915682   0.483661   1.891358
-C   -0.935918  -2.407074   1.716757
-H    0.105716  -1.297371   3.244463
-H    1.121314  -1.802704   1.901432
-C   -2.368078  -1.949468   2.003020
-H   -0.754135  -3.357275   2.235849
-H   -0.822109  -2.622070   0.646658
-C   -3.429891  -2.998316   1.719404
-H   -2.443822  -1.645020   3.056185
-H   -2.587464  -1.045228   1.414070
-C   -3.441270  -3.623096   0.332366
-H   -3.196344  -3.971965   2.538467
-H   -4.422939  -2.656165   2.030354
-C   -3.487708  -2.607740  -0.819639
-H   -2.548685  -4.250408   0.207484
-H   -4.303285  -4.298844   0.256996
-C   -4.697641  -1.673392  -0.777069
-H   -2.564651  -2.015142  -0.805424
-H   -3.484882  -3.150427  -1.774953
-C   -4.756162  -0.678230  -1.939836
-H   -4.695662  -1.111648   0.167050
-H   -5.614566  -2.278478  -0.770618
-C   -3.584557   0.306860  -1.978679
-H   -5.693215  -0.109020  -1.871759
-H   -4.798868  -1.225952  -2.892242
-C   -3.760205   1.390162  -3.041302
-H   -3.472805   0.773991  -0.989972
-H   -2.648859  -0.232888  -2.169286
-H   -4.662764   1.983230  -2.853383
-H   -2.905957   2.074798  -3.059709
-H   -3.856588   0.947583  -4.039544
-X   -3.239107  -3.334837   3.308037
-C   -2.887701  -5.027299   3.409914
-H   -3.850477  -5.459083   3.681271
-H   -2.368177  -4.557577   4.244852
-H   -2.257867  -5.697614   2.825405
-"""
-    GEO = from_string(GEO_STR)
+    # ICH = automol.smiles.inchi('C=C=C')
+    ICH = automol.smiles.inchi('C#CCCCC#C')
+    # ICH = automol.smiles.inchi('C#C')
+    GEO = automol.inchi.geometry(ICH)
+    ZMA = automol.geom.zmatrix(GEO)
+    GEO = automol.zmat.geometry(ZMA)
+    GEO = automol.geom.without_dummy_atoms(GEO)
+    LIN_IDXS = linear_atoms(GEO)
+    print(LIN_IDXS)
+    GEO = insert_dummies_on_linear_atoms(GEO)
+    print(automol.geom.string(GEO))

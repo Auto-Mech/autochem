@@ -13,7 +13,7 @@ import automol.create.zmatrix
 import automol.convert.zmatrix
 import automol.convert.geom
 from automol import vmatrix as _v_
-from automol import cart
+from automol import util
 
 
 # constructors
@@ -273,7 +273,7 @@ def dummy_atom_anchors(zma):
         for atm3_idx in pool[2:]:
             atm1_xyz, atm2_xyz = map(xyzs.__getitem__, atm_achs)
             atm3_xyz = xyzs[atm3_idx]
-            if not cart.vec.are_parallel(atm1_xyz, atm2_xyz,
+            if not util.vec.are_parallel(atm1_xyz, atm2_xyz,
                                          orig_xyz=atm3_xyz):
                 atm_achs.append(atm3_idx)
                 break
@@ -675,7 +675,7 @@ def convert(zma1, zma2, frm_bnd_keys=(), brk_bnd_keys=()):
         xyzs = automol.geom.coordinates(geo1)
         xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
 
-        dummy_xyz = cart.vec.from_internals(dist=dist, xyz1=xyz1,
+        dummy_xyz = util.vec.from_internals(dist=dist, xyz1=xyz1,
                                             ang=ang, xyz2=xyz2,
                                             dih=dih, xyz3=xyz3)
         geo1 = automol.geom.set_coordinates(geo1, {dummy_idx: dummy_xyz})

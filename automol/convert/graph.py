@@ -2,7 +2,7 @@
 """
 import autoparse.pattern as app
 import autoparse.find as apf
-from automol import dict_
+from automol.util import dict_
 import automol.graph
 import automol.inchi
 import automol.convert.inchi

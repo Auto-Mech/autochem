@@ -1,7 +1,7 @@
 """ graph constructor
 """
 from qcelemental import periodictable as pt
-from automol import dict_
+from automol.util import dict_
 
 
 def from_data(atom_symbols, bond_keys, atom_implicit_hydrogen_valences=None,

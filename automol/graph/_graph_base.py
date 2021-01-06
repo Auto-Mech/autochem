@@ -1,9 +1,9 @@
 """ base molecular graph library
 """
 import yaml
-from automol import dict_
+from automol.util import dict_
 import automol.create.graph as _create
-import automol.dict_.multi as mdict
+import automol.util.dict_.multi as mdict
 
 ATM_PROP_NAMES = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity')
 BND_PROP_NAMES = ('order', 'stereo_parity')
@@ -32,10 +32,14 @@ def bonds(gra):
     return bnd_dct
 
 
-def atom_keys(gra):
+def atom_keys(gra, sym=None):
     """ atom keys
     """
-    return frozenset(atoms(gra).keys())
+    atm_keys = frozenset(atoms(gra).keys())
+    if sym is not None:
+        atm_sym_dct = atom_symbols(gra)
+        atm_keys = frozenset(k for k in atm_keys if atm_sym_dct[k] == sym)
+    return atm_keys
 
 
 def bond_keys(gra):
