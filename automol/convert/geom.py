@@ -27,6 +27,24 @@ def zmatrix(geo, ts_bnds=()):
     return zma
 
 
+def zmatrix_x2z(geo, ts_bnds=()):
+    """ geometry => z-matrix
+
+    (Keep around x2z bindings for comparison/testing)
+    """
+    syms = automol.geom.symbols(geo)
+    if len(syms) == 1:
+        key_mat = [[None, None, None]]
+        name_mat = [[None, None, None]]
+        val_dct = {}
+        zma = create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
+    else:
+        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
+        zma = _pyx2z.to_zmatrix(x2m)
+    zma = automol.zmatrix.standard_form(zma)
+    return zma
+
+
 def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
     """ z-matrix torsional coordinate names
     """
@@ -53,6 +71,21 @@ def zmatrix_atom_ordering(geo, ts_bnds=()):
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         idxs = _pyx2z.zmatrix_atom_ordering(x2m)
     return idxs
+
+
+def external_symmetry_factor(geo):
+    """ obtain external symmetry factor for a geometry using x2z
+    """
+    # Get initial external symmetry number
+    if automol.geom.is_atom(geo):
+        ext_sym_fac = 1.
+    else:
+        oriented_geom = _pyx2z.to_oriented_geometry(geo)
+        ext_sym_fac = oriented_geom.sym_num()
+        # Divide symmetry number by enantiomeric factor
+        if oriented_geom.is_enantiomer():
+            ext_sym_fac *= 0.5
+    return ext_sym_fac
 
 
 # geometry => graph
