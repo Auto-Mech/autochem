@@ -1,6 +1,5 @@
 """ cartesian geometries
 """
-
 import itertools
 import functools
 import more_itertools as mit
@@ -14,29 +13,23 @@ import automol.create.geom
 import automol.convert.geom
 import automol.convert.inchi
 from automol import util
-from automol.convert._pyx2z import to_oriented_geometry
 
 BOHR2ANG = qcc.conversion_factor('bohr', 'angstrom')
 RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 
-# constructor
-def from_data(syms, xyzs, angstrom=False):
-    """ geometry data structure from symbols and coordinates
-    """
-    return automol.create.geom.from_data(
-        symbols=syms, coordinates=xyzs, angstrom=angstrom)
-
-
+# constructors
 def from_subset(geo, idxs):
     """ generate a new geometry from a subset of the atoms
+
+    (Rename this and put it under operations?)
     """
     syms = symbols(geo)
     xyzs = coordinates(geo)
 
     syms = list(map(syms.__getitem__, idxs))
     xyzs = list(map(xyzs.__getitem__, idxs))
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 # getters
@@ -104,6 +97,20 @@ def dummy_atom_indices(geo):
     return tuple(dummy_idxs)
 
 
+def components_graph(geo, remove_stereo=False):
+    """ geometry => connected components graphs
+    """
+    return automol.graph.connected_components(
+        automol.convert.geom.graph(geo, remove_stereo=remove_stereo))
+
+
+def connected(geo, remove_stereo=False):
+    """ Determine if all atoms in geometry are completely connected
+    """
+    comps = components_graph(geo, remove_stereo=remove_stereo)
+    return bool(len(comps) == 1)
+
+
 # validation
 def is_valid(geo):
     """ is this a valid geometry?
@@ -114,16 +121,10 @@ def is_valid(geo):
         if ret:
             syms, xyzs = zip(*geo)
             try:
-                from_data(syms, xyzs)
+                automol.create.geom.from_data(syms, xyzs)
             except AssertionError:
                 ret = False
     return ret
-
-
-def connected(geo, remove_stereo=False):
-    """ Determine if all atoms in geometry are completely connected
-    """
-    return bool(len(components_graph(geo, remove_stereo=remove_stereo)) == 1)
 
 
 # setters
@@ -138,7 +139,7 @@ def set_coordinates(geo, xyz_dct):
 
     xyzs = [xyz_dct[idx] if idx in xyz_dct else xyz
             for idx, xyz in enumerate(xyzs)]
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 def without_dummy_atoms(geo):
@@ -150,175 +151,12 @@ def without_dummy_atoms(geo):
     return from_subset(geo, non_dummy_idxs)
 
 
-# conversions
-def zmatrix(geo, ts_bnds=()):
-    """ geometry => z-matrix
-    """
-    return automol.convert.geom.zmatrix(geo, ts_bnds)
-
-
-def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
-    """ z-matrix torsional coordinate names
-    """
-    return automol.convert.geom.zmatrix_torsion_coordinate_names(geo, ts_bnds)
-
-
-def zmatrix_atom_ordering(geo, ts_bnds=()):
-    """ z-matrix atom ordering
-    """
-    return automol.convert.geom.zmatrix_atom_ordering(geo, ts_bnds)
-
-
-def graph(geo, remove_stereo=False):
-    """ geometry => graph
-    """
-    return automol.convert.geom.graph(
-        geo, remove_stereo=remove_stereo)
-
-
-def connectivity_graph(geo, dummy_bonds=True,
-                       rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
-    """ geometry => connectivity graph
-    """
-    gra = automol.convert.geom.connectivity_graph(
-        geo, dummy_bonds=dummy_bonds, rqq_bond_max=rqq_bond_max,
-        rqh_bond_max=rqh_bond_max, rhh_bond_max=rhh_bond_max)
-    return gra
-
-
-def components_graph(geo, remove_stereo=False):
-    """ geometry => connected components graphs
-    """
-    return automol.graph.connected_components(
-        automol.convert.geom.graph(geo, remove_stereo=remove_stereo))
-
-
-def inchi(geo, remove_stereo=False):
-    """ geometry => inchi
-    """
-    return automol.convert.geom.inchi(geo, remove_stereo=remove_stereo)
-
-
-def smiles(geo, remove_stereo=False):
-    """ geometry => inchi
-    """
-    ich = inchi(geo, remove_stereo=remove_stereo)
-    return automol.convert.inchi.smiles(ich)
-
-
-def formula(geo):
-    """ geometry => formula
-    """
-    return automol.convert.geom.formula(geo)
-
-
-def remove(geo, idxs=()):
-    """ Remove idxs from a geometry
-    """
-    new_geo = tuple(row for i, row in enumerate(geo) if i not in idxs)
-    return new_geo
-
-
-def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
-    """ Determine sym factor for terminal groups in a geometry
-    """
-
-    # Set saddle based on frm and brk keys existing
-    saddle = bool(frm_bnd_keys or brk_bnd_keys)
-
-    gra = graph(geo, remove_stereo=True)
-    term_atms = {}
-    all_hyds = []
-    neighbor_dct = automol.graph.atom_neighbor_keys(gra)
-
-    # determine if atom is a part of a double bond
-    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
-    if not saddle:
-        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
-        rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
-    else:
-        rad_atms = []
-
-    gra = gra[0]
-    for atm in gra:
-        if gra[atm][0] == 'H':
-            all_hyds.append(atm)
-    for atm in gra:
-        if atm in unsat_atms and atm not in rad_atms:
-            pass
-        else:
-            if atm not in frm_bnd_keys and atm not in brk_bnd_keys:
-                nonh_neighs = []
-                h_neighs = []
-                neighs = neighbor_dct[atm]
-                for nei in neighs:
-                    if nei in all_hyds:
-                        h_neighs.append(nei)
-                    else:
-                        nonh_neighs.append(nei)
-                if len(nonh_neighs) < 2 and len(h_neighs) > 1:
-                    term_atms[atm] = h_neighs
-    factor = 1.
-    remove_atms = []
-    for atm in term_atms:
-        hyds = term_atms[atm]
-        if len(hyds) > 1:
-            factor *= len(hyds)
-            remove_atms.extend(hyds)
-    geo = remove(geo, remove_atms)
-    return geo, factor
-
-
-# operations
-def join(geo1, geo2,
-         dist_cutoff=3.*qcc.conversion_factor('angstrom', 'bohr'),
-         theta=0.*qcc.conversion_factor('degree', 'radian'),
-         phi=0.*qcc.conversion_factor('degree', 'radian')):
-    """ join two geometries together
-    """
-    if not geo1:
-        syms = symbols(geo2)
-        xyzs = coordinates(geo2)
-    elif not geo2:
-        syms = symbols(geo1)
-        xyzs = coordinates(geo1)
-    else:
-        orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
-                                  numpy.sin(theta) * numpy.sin(phi),
-                                  numpy.cos(theta)])
-        neg_orient_vec = -1.0 * orient_vec
-
-        # get the correct distance apart
-        geo1 = mass_centered(geo1)
-        geo2 = mass_centered(geo2)
-        ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
-        ext2 = max(numpy.vdot(neg_orient_vec, xyz)
-                   for xyz in coordinates(geo2))
-
-        cm_dist = ext1 + dist_cutoff + ext2
-        dist_grid = numpy.arange(cm_dist, 0., -0.1)
-        for dist in dist_grid:
-            trans_geo2 = translate(geo2, orient_vec * dist)
-            min_dist = minimum_distance(geo1, trans_geo2)
-            if numpy.abs(min_dist - dist_cutoff) < 0.1:
-                break
-
-        geo2 = trans_geo2
-
-        # now, join them together
-        syms = symbols(geo1) + symbols(geo2)
-        xyzs = coordinates(geo1) + coordinates(geo2)
-
-    return from_data(syms, xyzs)
-
-
 # I/O
 def from_string(geo_str, angstrom=True):
     """ read a cartesian geometry from a string
     """
     syms, xyzs = ar.geom.read(geo_str)
-    geo = from_data(syms, xyzs, angstrom=angstrom)
+    geo = automol.create.geom.from_data(syms, xyzs, angstrom=angstrom)
     return geo
 
 
@@ -326,7 +164,7 @@ def from_xyz_string(xyz_str):
     """ read a cartesian geometry from a .xyz string
     """
     syms, xyzs = ar.geom.read_xyz(xyz_str)
-    geo = from_data(syms, xyzs, angstrom=True)
+    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
     return geo
 
 
@@ -464,7 +302,56 @@ def _argunique(items, comparison, seen_items=()):
     return idxs
 
 
-# transformations
+# operations
+def remove(geo, idxs=()):
+    """ Remove idxs from a geometry
+    """
+    new_geo = tuple(row for i, row in enumerate(geo) if i not in idxs)
+    return new_geo
+
+
+def join(geo1, geo2,
+         dist_cutoff=3.*qcc.conversion_factor('angstrom', 'bohr'),
+         theta=0.*qcc.conversion_factor('degree', 'radian'),
+         phi=0.*qcc.conversion_factor('degree', 'radian')):
+    """ join two geometries together
+    """
+    if not geo1:
+        syms = symbols(geo2)
+        xyzs = coordinates(geo2)
+    elif not geo2:
+        syms = symbols(geo1)
+        xyzs = coordinates(geo1)
+    else:
+        orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
+                                  numpy.sin(theta) * numpy.sin(phi),
+                                  numpy.cos(theta)])
+        neg_orient_vec = -1.0 * orient_vec
+
+        # get the correct distance apart
+        geo1 = mass_centered(geo1)
+        geo2 = mass_centered(geo2)
+        ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
+        ext2 = max(numpy.vdot(neg_orient_vec, xyz)
+                   for xyz in coordinates(geo2))
+
+        cm_dist = ext1 + dist_cutoff + ext2
+        dist_grid = numpy.arange(cm_dist, 0., -0.1)
+        for dist in dist_grid:
+            trans_geo2 = translate(geo2, orient_vec * dist)
+            min_dist = minimum_distance(geo1, trans_geo2)
+            if numpy.abs(min_dist - dist_cutoff) < 0.1:
+                break
+
+        geo2 = trans_geo2
+
+        # now, join them together
+        syms = symbols(geo1) + symbols(geo2)
+        xyzs = coordinates(geo1) + coordinates(geo2)
+
+    return automol.create.geom.from_data(syms, xyzs)
+
+
 def reorder(geo, idx_dct):
     """ Reorder the atoms in this geometry
 
@@ -480,7 +367,7 @@ def reorder(geo, idx_dct):
 
     syms = [syms[idx] for idx in idxs]
     xyzs = [xyzs[idx] for idx in idxs]
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 def swap_coordinates(geo, idx1, idx2):
@@ -502,7 +389,7 @@ def insert(geo, sym, xyz, idx=None, angstrom=False):
 
     syms.insert(idx, sym)
     xyzs.insert(idx, xyz)
-    return from_data(syms, xyzs, angstrom=angstrom)
+    return automol.create.geom.from_data(syms, xyzs, angstrom=angstrom)
 
 
 def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
@@ -518,7 +405,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
     :param tol: the tolerance threshold for linearity, in degrees
     """
     lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
-    gra = connectivity_graph(geo, dummy_bonds=True) if gra is None else gra
+    gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
 
     dummy_ngb_idxs = automol.graph.dummy_atom_neighbor_keys(gra)
     assert not dummy_ngb_idxs & set(lin_idxs), (
@@ -581,7 +468,7 @@ def displace(geo, xyzs):
     syms = symbols(geo)
     orig_xyzs = coordinates(geo)
     xyzs = numpy.add(orig_xyzs, xyzs)
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 def translate(geo, xyz):
@@ -590,7 +477,7 @@ def translate(geo, xyz):
     syms = symbols(geo)
     xyzs = coordinates(geo)
     xyzs = numpy.add(xyzs, xyz)
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 def invert(geo):
@@ -600,7 +487,7 @@ def invert(geo):
     xyzs = numpy.array(coordinates(geo))
     xyzs *= -1.
     xyzs = list(map(list, xyzs))
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 def transform(geo, func, idxs=None):
@@ -612,7 +499,7 @@ def transform(geo, func, idxs=None):
     syms = symbols(geo)
     xyzs = coordinates(geo)
     xyzs = [func(xyz) if idx in idxs else xyz for idx, xyz in enumerate(xyzs)]
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 def transform_by_matrix(geo, mat):
@@ -621,7 +508,7 @@ def transform_by_matrix(geo, mat):
     syms = symbols(geo)
     xyzs = coordinates(geo)
     xyzs = numpy.dot(xyzs, numpy.transpose(mat))
-    return from_data(syms, xyzs)
+    return automol.create.geom.from_data(syms, xyzs)
 
 
 def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
@@ -682,78 +569,6 @@ def reflect_coordinates(geo, idxs, axes):
     geo_reflected = set_coordinates(geo, reflect_dct)
 
     return geo_reflected
-
-
-def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
-    """ convert an input geometry to a list of geometries
-        corresponding to the rotational permuations of all the terminal groups
-    """
-
-    # Set saddle based on frm and brk keys existing
-    saddle = bool(frm_bnd_keys or brk_bnd_keys)
-
-    gra = graph(geo, remove_stereo=True)
-    term_atms = {}
-    all_hyds = []
-    neighbor_dct = automol.graph.atom_neighbor_keys(gra)
-
-    # determine if atom is a part of a double bond
-    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
-    if not saddle:
-        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
-        rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
-    else:
-        rad_atms = []
-
-    gra = gra[0]
-    for atm in gra:
-        if gra[atm][0] == 'H':
-            all_hyds.append(atm)
-    for atm in gra:
-        if atm in unsat_atms and atm not in rad_atms:
-            pass
-        else:
-            if atm not in frm_bnd_keys and atm not in brk_bnd_keys:
-                nonh_neighs = []
-                h_neighs = []
-                neighs = neighbor_dct[atm]
-                for nei in neighs:
-                    if nei in all_hyds:
-                        h_neighs.append(nei)
-                    else:
-                        nonh_neighs.append(nei)
-                if len(nonh_neighs) < 2 and len(h_neighs) > 1:
-                    term_atms[atm] = h_neighs
-    geo_final_lst = [geo]
-    for atm in term_atms:
-        hyds = term_atms[atm]
-        geo_lst = []
-        for geom in geo_final_lst:
-            geo_lst.extend(_swap_for_one(geom, hyds))
-        geo_final_lst = geo_lst
-    return geo_final_lst
-
-
-def _swap_for_one(geo, hyds):
-    """ rotational permuation for one rotational group
-    """
-    geo_lst = []
-    if len(hyds) > 1:
-        new_geo = geo
-        if len(hyds) > 2:
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            geo_lst.append(new_geo)
-        else:
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            geo_lst.append(new_geo)
-    return geo_lst
 
 
 # geometric properties
@@ -822,7 +637,7 @@ def linear_atoms(geo, gra=None, tol=5.):
         graph will be generated using default distance thresholds
     :param tol: the tolerance threshold for linearity, in degrees
     """
-    gra = connectivity_graph(geo) if gra is None else gra
+    gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
     ngb_idxs_dct = automol.graph.atom_neighbor_keys(gra)
 
     lin_idxs = []
@@ -848,153 +663,10 @@ def distance_matrix(geo):
     return mat
 
 
-def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
-    """form distance matrix for a set of xyz coordinates
-    """
-    for i in range(len(geo1)):
-        for j in range(len(geo1)):
-            dist_mat1_ij = distance(geo1, i, j)
-            dist_mat2_ij = distance(geo2, i, j)
-            if abs(dist_mat1_ij - dist_mat2_ij) > thresh:
-                return False
-    return True
-
-
-def external_symmetry_factor(geo):
-    """ obtain external symmetry factor for a geometry using x2z
-    """
-    # Get initial external symmetry number
-    if automol.geom.is_atom(geo):
-        ext_sym_fac = 1.
-    else:
-        oriented_geom = to_oriented_geometry(geo)
-        ext_sym_fac = oriented_geom.sym_num()
-        # Divide symmetry number by enantiomeric factor
-        if oriented_geom.is_enantiomer():
-            ext_sym_fac *= 0.5
-    return ext_sym_fac
-
-
-def find_xyzp_using_internals(xyz1, xyz2, xyz3, pdist, pangle, pdihed):
-    """ geometric approach for calculating the xyz coordinates of atom A
-        when the xyz coordinates of the A B and C are known and
-        the position is defined w/r to A B C with internal coordinates
-
-    TODO: This already exists: util.vec.from_internals does exactly the same
-    thing; find where this is used and replace it with that
-    """
-
-    # Set to numpy arrays
-    xyz1 = numpy.array(xyz1)
-    xyz2 = numpy.array(xyz2)
-    xyz3 = numpy.array(xyz3)
-
-    # Set the coordinates of Point P in the RT system
-    xyzp_rt = numpy.array([pdist * numpy.sin(pangle) * numpy.cos(pdihed),
-                           pdist * numpy.cos(pangle),
-                           -(pdist * numpy.sin(pangle) * numpy.sin(pdihed))
-                           ])
-
-    # Set the coordinates of the Point 2 and 3 in the RT system
-    dist12 = numpy.linalg.norm(xyz1 - xyz2)
-    dist13 = numpy.linalg.norm(xyz1 - xyz3)
-    dist23 = numpy.linalg.norm(xyz2 - xyz3)
-    xyz2_rt = numpy.array([0.0, dist12, 0.0])
-
-    val = ((dist12**2 + dist13**2 - dist23**2) / 2.0 / dist12)
-    valx3 = numpy.sqrt(dist13**2 - val**2)
-    valy3 = ((dist12**2 + dist13**2 - dist23**2) / 2.0 / dist12)
-    xyz3_rt = numpy.array([valx3, valy3, 0.0])
-
-    # Translate original frame of ref coors so that xyz1 is at (0, 0, 0)
-    xyz2_t = xyz2 - xyz1
-    xyz3_t = xyz3 - xyz1
-
-    # Rotation matrix to rotate back to the original ref system
-    r12 = (xyz2[0] - xyz1[0]) / xyz2_rt[1]
-    r22 = (xyz2[1] - xyz1[1]) / xyz2_rt[1]
-    r32 = (xyz2[2] - xyz1[2]) / xyz2_rt[1]
-
-    r11 = (xyz3[0] - xyz1[0] - xyz3_rt[1]*r12) / xyz3_rt[0]
-    r21 = (xyz3[1] - xyz1[1] - xyz3_rt[1]*r22) / xyz3_rt[0]
-    r31 = (xyz3[2] - xyz1[2] - xyz3_rt[1]*r32) / xyz3_rt[0]
-
-    anum_aconst = xyz2_t[1] - (xyz3_t[1] / xyz3_t[0]) * xyz2_t[0]
-    den_aconst = xyz2_t[2] - (xyz3_t[2] / xyz3_t[0]) * xyz2_t[0]
-
-    if abs(anum_aconst) < 1.0e-6 and abs(den_aconst) < 1.0e-6:
-        if anum_aconst < 0.0:
-            aconst = -1.0e20
-        else:
-            aconst = 1.0e20
-    elif abs(den_aconst) < 1.0e-6:
-        if anum_aconst < 0.0:
-            aconst = -1.0e20
-        else:
-            aconst = 1.0e20
-    else:
-        anum = xyz2_t[1] - (xyz3_t[1] / xyz3_t[0]) * xyz2_t[0]
-        aden = xyz2_t[2] - (xyz3_t[2] / xyz3_t[0]) * xyz2_t[0]
-        aconst = anum / aden
-
-    den1 = (xyz3_t[1] / xyz3_t[0]) - aconst * (xyz3_t[2] / xyz3_t[0])
-    if den1 == 0.0:
-        den1 = 1.0e-20
-    bconst = 1.0 / den1
-
-    # Set vals for another point
-    valx = -(1.0 / numpy.sqrt(1.0 + (bconst**2) * (1.0 + aconst**2)))
-    valy = -(valx * bconst)
-    xyz4_t = numpy.array([valx, valy, -(valy * aconst)])
-
-    r13 = xyz4_t[0]
-    r23 = xyz4_t[1]
-    r33 = xyz4_t[2]
-    r13n = -r13
-    r23n = -r23
-    r33n = -r33
-
-    # Now rotate and translate back
-    # Here I check  the (001) vector direction to decide whether
-    # To take the positive of negative results of square root taken above
-    xap = (xyz1[0] + (r11 * xyzp_rt[0]) +
-           (r12 * xyzp_rt[1]) + (r13 * xyzp_rt[2]))
-    yap = (xyz1[1] + (r21 * xyzp_rt[0]) +
-           (r22 * xyzp_rt[1]) + (r33 * xyzp_rt[2]))
-    zap = (xyz1[2] + (r31 * xyzp_rt[0]) +
-           (r32 * xyzp_rt[1]) + (r33 * xyzp_rt[2]))
-
-    xan = (xyz1[0] + (r11 * xyzp_rt[0]) +
-           (r12 * xyzp_rt[1]) + (r13n * xyzp_rt[2]))
-    yan = (xyz1[1] + (r21 * xyzp_rt[0]) +
-           (r22 * xyzp_rt[1]) + (r23n * xyzp_rt[2]))
-    zan = (xyz1[2] + (r31 * xyzp_rt[0]) +
-           (r32 * xyzp_rt[1]) + (r33n * xyzp_rt[2]))
-
-    bvec = xyz1 - xyz2
-    cvec = xyz2 - xyz3
-    vec1 = (bvec[1] * cvec[2]) - (bvec[2] * cvec[1])
-    vec2 = (bvec[2] * cvec[0]) - (bvec[0] * cvec[2])
-    vec3 = (bvec[0] * cvec[1]) - (bvec[1] * cvec[0])
-
-    if abs(xyz4_t[0]) > 1.0e-5:
-        checkv = vec1 / xyz4_t[0]
-    elif abs(xyz4_t[1]) > 1.0e-5:
-        checkv = vec2 / xyz4_t[1]
-    else:
-        checkv = vec3 / xyz4_t[2]
-
-    if checkv >= 0.0:
-        xyzp = numpy.array([xap, yap, zap])
-    else:
-        xyzp = numpy.array([xan, yan, zan])
-
-    return xyzp[0], xyzp[1], xyzp[2]
-
-
-def closest_unbonded_atoms(geo, gra):
+def closest_unbonded_atoms(geo, gra=None):
     """ determine the closest unbonded pair of atoms in this geometry
     """
+    gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
     atm_keys = automol.graph.atom_keys(gra)
     bnd_keys = automol.graph.bond_keys(gra)
     poss_bnd_keys = set(map(frozenset, itertools.combinations(atm_keys, r=2)))
