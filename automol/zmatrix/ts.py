@@ -261,13 +261,13 @@ def zmatrix_product_inchis(ts_zma, frm_keys, brk_keys, remove_stereo=True):
 
 
 ZMA_BUILDER_DCT = {
-    par.REACTION_CLASS.HYDROGEN_MIGRATION: hydrogen_migration,
-    par.REACTION_CLASS.HYDROGEN_ABSTRACTION: hydrogen_abstraction,
-    par.REACTION_CLASS.ADDITION: addition,
-    par.REACTION_CLASS.BETA_SCISSION: beta_scission,
-    par.REACTION_CLASS.ELIMINATION: concerted_unimolecular_elimination,
-    par.REACTION_CLASS.INSERTION: insertion,
-    par.REACTION_CLASS.SUBSTITUTION: substitution,
+    par.ReactionClass.HYDROGEN_MIGRATION: hydrogen_migration,
+    par.ReactionClass.HYDROGEN_ABSTRACTION: hydrogen_abstraction,
+    par.ReactionClass.ADDITION: addition,
+    par.ReactionClass.BETA_SCISSION: beta_scission,
+    par.ReactionClass.ELIMINATION: concerted_unimolecular_elimination,
+    par.ReactionClass.INSERTION: insertion,
+    par.ReactionClass.SUBSTITUTION: substitution,
 }
 
 

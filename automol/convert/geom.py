@@ -35,13 +35,12 @@ def zmatrix_x2z(geo, ts_bnds=()):
     syms = automol.geom.symbols(geo)
     if len(syms) == 1:
         key_mat = [[None, None, None]]
-        name_mat = [[None, None, None]]
-        val_dct = {}
-        zma = create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
+        val_mat = [[None, None, None]]
+        zma = create.zmat.from_data(syms, key_mat, val_mat)
     else:
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         zma = _pyx2z.to_zmatrix(x2m)
-    zma = automol.zmatrix.standard_form(zma)
+    zma = automol.zmat.standard_form(zma)
     return zma
 
 

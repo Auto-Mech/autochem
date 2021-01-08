@@ -96,7 +96,7 @@ def trivial_reaction(rct_gras, prd_gras):
 
     if rct_idxs is not None:
         tra = trans.from_data(
-            rxn_class=par.REACTION_CLASS.TRIVIAL,
+            rxn_class=par.ReactionClass.TRIVIAL,
             frm_bnd_keys=[],
             brk_bnd_keys=[])
         tras = (tra,)
@@ -142,7 +142,7 @@ def hydrogen_migration(rct_gras, prd_gras):
             inv_atm_key_dct = full_isomorphism(gra2_h, gra1_h)
             if inv_atm_key_dct:
                 tra = trans.from_data(
-                    rxn_class=par.REACTION_CLASS.HYDROGEN_MIGRATION,
+                    rxn_class=par.ReactionClass.HYDROGEN_MIGRATION,
                     frm_bnd_keys=[{atm_key1,
                                    inv_atm_key_dct[h_atm_key2]}],
                     brk_bnd_keys=[{inv_atm_key_dct[atm_key2],
@@ -197,7 +197,7 @@ def hydrogen_abstraction(rct_gras, prd_gras):
                 brk_bnd_key = frozenset({q1h_q_atm_key, q1h_h_atm_key})
 
                 tra = trans.from_data(
-                    rxn_class=par.REACTION_CLASS.HYDROGEN_ABSTRACTION,
+                    rxn_class=par.ReactionClass.HYDROGEN_ABSTRACTION,
                     frm_bnd_keys=[frm_bnd_key],
                     brk_bnd_keys=[brk_bnd_key])
 
@@ -257,7 +257,7 @@ def addition(rct_gras, prd_gras):
             atm_key_dct = full_isomorphism(xy_gra, prd_gra)
             if atm_key_dct:
                 tra = trans.from_data(
-                    rxn_class=par.REACTION_CLASS.ADDITION,
+                    rxn_class=par.ReactionClass.ADDITION,
                     frm_bnd_keys=[{x_atm_key, y_atm_key}],
                     brk_bnd_keys=[])
                 tras.append(tra)
@@ -324,7 +324,7 @@ def ring_forming_scission(rct_gras, prd_gras):
                             if atm_key_dct:
                                 tra = trans.from_data(
                                     rxn_class=(
-                                        par.REACTION_CLASS.RING_FORM_SCISSION),
+                                        par.ReactionClass.RING_FORM_SCISSION),
                                     frm_bnd_keys=[{rad_atm, xatm}],
                                     brk_bnd_keys=[{xatm, natm}, ]
                                 )
@@ -382,7 +382,7 @@ def elimination(rct_gras, prd_gras):
                 atm_key_dct = full_isomorphism(rct_gra_, prd_gra)
                 if atm_key_dct:
                     tra = trans.from_data(
-                        rxn_class=par.REACTION_CLASS.ELIMINATION,
+                        rxn_class=par.ReactionClass.ELIMINATION,
                         frm_bnd_keys=[frm_bnd_key],
                         brk_bnd_keys=[brk_bnd_key1, brk_bnd_key2])
                     tras.append(tra)
@@ -469,7 +469,7 @@ def substitution(rct_gras, prd_gras):
                     map(inv_atm_key_dct.__getitem__, prd_bnd_key))
 
                 tra = trans.from_data(
-                    rxn_class=par.REACTION_CLASS.SUBSTITUTION,
+                    rxn_class=par.ReactionClass.SUBSTITUTION,
                     frm_bnd_keys=[frm_bnd_key],
                     brk_bnd_keys=[brk_bnd_key])
                 tras.append(tra)
@@ -482,14 +482,14 @@ def substitution(rct_gras, prd_gras):
 
 
 REACTION_FINDER_DCT = {
-    par.REACTION_CLASS.TRIVIAL: trivial_reaction,
-    par.REACTION_CLASS.HYDROGEN_MIGRATION: hydrogen_migration,
-    par.REACTION_CLASS.HYDROGEN_ABSTRACTION: hydrogen_abstraction,
-    par.REACTION_CLASS.ADDITION: addition,
-    par.REACTION_CLASS.BETA_SCISSION: beta_scission,
-    par.REACTION_CLASS.ELIMINATION: elimination,
-    par.REACTION_CLASS.INSERTION: insertion,
-    par.REACTION_CLASS.SUBSTITUTION: substitution,
+    par.ReactionClass.TRIVIAL: trivial_reaction,
+    par.ReactionClass.HYDROGEN_MIGRATION: hydrogen_migration,
+    par.ReactionClass.HYDROGEN_ABSTRACTION: hydrogen_abstraction,
+    par.ReactionClass.ADDITION: addition,
+    par.ReactionClass.BETA_SCISSION: beta_scission,
+    par.ReactionClass.ELIMINATION: elimination,
+    par.ReactionClass.INSERTION: insertion,
+    par.ReactionClass.SUBSTITUTION: substitution,
 }
 
 
@@ -538,15 +538,15 @@ def classify(rct_gras, prd_gras):
 
 
 REV_REACTION_FINDER_DCT = {
-    par.REACTION_CLASS.HYDROGEN_MIGRATION:
-    par.REACTION_CLASS.HYDROGEN_MIGRATION,
-    par.REACTION_CLASS.HYDROGEN_ABSTRACTION:
-    par.REACTION_CLASS.HYDROGEN_ABSTRACTION,
-    par.REACTION_CLASS.ADDITION: par.REACTION_CLASS.BETA_SCISSION,
-    par.REACTION_CLASS.BETA_SCISSION: par.REACTION_CLASS.ADDITION,
-    # par.REACTION_CLASS.ELIMINATION: elimination,
-    # par.REACTION_CLASS.INSERTION: insertion,
-    # par.REACTION_CLASS.SUBSTITUTION: substitution,
+    par.ReactionClass.HYDROGEN_MIGRATION:
+    par.ReactionClass.HYDROGEN_MIGRATION,
+    par.ReactionClass.HYDROGEN_ABSTRACTION:
+    par.ReactionClass.HYDROGEN_ABSTRACTION,
+    par.ReactionClass.ADDITION: par.ReactionClass.BETA_SCISSION,
+    par.ReactionClass.BETA_SCISSION: par.ReactionClass.ADDITION,
+    # par.ReactionClass.ELIMINATION: elimination,
+    # par.ReactionClass.INSERTION: insertion,
+    # par.ReactionClass.SUBSTITUTION: substitution,
 }
 
 
