@@ -340,6 +340,68 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
     return lmat, umat
 
 
+def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
+                                  relax_torsions=False, sp_dct=None):
+    """ distance bounds matrices for joining multiple geometries
+
+    :param gra: molecular graph
+    :param keys: atom keys specifying the order of indices in the matrix
+    :param dist_range_dct: distance ranges for specific atoms in the graph
+    :param geos: (optional) geometries which will be used to fix the bond
+        angles, bond distances, and chiralities of all connected atoms in the
+        graph; if `relax_torsions` is False, the 4-atom dihedral angles will be
+        allowed to vary as well
+    :param relax_torsions: whether or not to allow torsions to change from
+        their value in the reactant geometries
+    :param sp_dct: a 2d dictionary giving the shortest path between any pair of
+        atoms in the graph
+    """
+    sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
+
+    natms = len(keys)
+
+    lmat, umat = distance_bounds_matrices(gra, keys)
+
+    # save the current values so that we can overwrite the fixed torsions below
+    lmat_old = numpy.copy(lmat)
+    umat_old = numpy.copy(umat)
+
+    # 2. set known geometric parameters
+    if geos:
+        xmats = [automol.geom.coordinates(geo, angstrom=True) for geo in geos]
+        dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
+
+        start = 0
+        for dmat in dmats:
+            dim, _ = numpy.shape(dmat)
+            end = start + dim
+
+            lmat[start:end, start:end] = dmat
+            umat[start:end, start:end] = dmat
+
+            start = end
+
+    # 3. reopen bounds on the torsions from the reactant
+    if relax_torsions:
+        tors_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
+                    if j in sp_dct[i] and len(sp_dct[i][j]) >= 4]
+        tors_ijs += list(map(list, map(reversed, tors_ijs)))
+
+        tors_idxs = tuple(map(list, zip(*tors_ijs)))
+
+        lmat[tors_idxs] = lmat_old[tors_idxs]
+        umat[tors_idxs] = umat_old[tors_idxs]
+
+    # 1. set distance bounds for the forming bonds
+    for bnd, (ldist, udist) in dist_range_dct.items():
+        idx1 = tuple(bnd)
+        idx2 = tuple(reversed(idx1))
+        lmat[idx1] = lmat[idx2] = ldist
+        umat[idx1] = umat[idx2] = udist
+
+    return lmat, umat
+
+
 def ts_distance_bounds_matrices(gra, keys, frm_bnds_dct, rct_geos=None,
                                 relax_torsions=False, sp_dct=None):
     """ distance bounds matrices for a transition state

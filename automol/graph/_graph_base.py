@@ -157,6 +157,22 @@ def relabel(gra, atm_key_dct):
 def string(gra, one_indexed=True):
     """ write the graph to a string
     """
+    yaml_gra_dct = yaml_dictionary(gra, one_indexed=one_indexed)
+    gra_str = yaml.dump(yaml_gra_dct, default_flow_style=None, sort_keys=False)
+    return gra_str
+
+
+def from_string(gra_str, one_indexed=True):
+    """ read the graph from a string
+    """
+    yaml_gra_dct = yaml.load(gra_str, Loader=yaml.FullLoader)
+    gra = from_yaml_dictionary(yaml_gra_dct, one_indexed=one_indexed)
+    return gra
+
+
+def yaml_dictionary(gra, one_indexed=True):
+    """ generate a YAML dictionary representing a given graph
+    """
     if one_indexed:
         # shift to one-indexing when we print
         atm_key_dct = {atm_key: atm_key+1 for atm_key in atom_keys(gra)}
@@ -180,16 +196,12 @@ def string(gra, one_indexed=True):
         yaml_bnd_dct, lambda x: dict(zip(BND_PROP_NAMES, x)))
 
     yaml_gra_dct = {'atoms': yaml_atm_dct, 'bonds': yaml_bnd_dct}
-
-    gra_str = yaml.dump(yaml_gra_dct, default_flow_style=None, sort_keys=False)
-    return gra_str
+    return yaml_gra_dct
 
 
-def from_string(gra_str):
-    """ read the graph from a string
+def from_yaml_dictionary(yaml_gra_dct, one_indexed=True):
+    """ read the graph from a yaml dictionary
     """
-    yaml_gra_dct = yaml.load(gra_str, Loader=yaml.FullLoader)
-
     atm_dct = yaml_gra_dct['atoms']
     bnd_dct = yaml_gra_dct['bonds']
 
@@ -204,8 +216,9 @@ def from_string(gra_str):
 
     gra = _create.from_atoms_and_bonds(atm_dct, bnd_dct)
 
-    # shift back to zero-indexing when we read it in
-    atm_key_dct = {atm_key: atm_key-1 for atm_key in atom_keys(gra)}
-    gra = relabel(gra, atm_key_dct)
+    if one_indexed:
+        # revert one-indexing if the input is one-indexed
+        atm_key_dct = {atm_key: atm_key-1 for atm_key in atom_keys(gra)}
+        gra = relabel(gra, atm_key_dct)
 
     return gra

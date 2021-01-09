@@ -1,12 +1,10 @@
+""" common automol parameters
 """
-  Parameters
-"""
-
 import inspect
 import itertools
 
 
-class REACTION_CLASS():
+class ReactionClass():
     """ Names of supported reaction classes
     """
     TRIVIAL = 'trivial'
@@ -22,10 +20,24 @@ class REACTION_CLASS():
     SUBSTITUTION = 'substitution'
 
 
-def is_reation_class(rclass):
+def is_reaction_class(rxn_class):
     """ Check if class in list of REACTION CLASS
     """
-    return rclass in _values(REACTION_CLASS)
+    return rxn_class in _values(ReactionClass)
+
+
+REVERSE_REACTION_DCT = {
+    ReactionClass.HYDROGEN_MIGRATION: ReactionClass.HYDROGEN_MIGRATION,
+    ReactionClass.HYDROGEN_ABSTRACTION: ReactionClass.HYDROGEN_ABSTRACTION,
+    ReactionClass.ADDITION: ReactionClass.BETA_SCISSION,
+    ReactionClass.BETA_SCISSION: ReactionClass.ADDITION,
+}
+
+
+def reverse_reaction_class(rxn_class):
+    """ determine the reverse of a reaction class
+    """
+    return REVERSE_REACTION_DCT.get(rxn_class, None)
 
 
 def _values(cls):

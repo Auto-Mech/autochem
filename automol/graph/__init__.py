@@ -172,6 +172,7 @@ from automol.graph._geom import set_stereo_from_geometry
 from automol.graph import embed
 
 # submodules
+from automol.graph import ts
 from automol.graph import trans
 from automol.graph import reac
 from automol.graph import vmat
@@ -416,6 +417,7 @@ __all__ = [
     'embed',
 
     # submodules
+    'ts',
     'trans',
     'reac',
     'vmat',
