@@ -37,11 +37,13 @@ from automol.graph._graph import electron_count
 from automol.graph._graph import atom_count
 from automol.graph._graph import heavy_atom_count
 from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_neighbor_key
 from automol.graph._graph import sorted_atom_neighbor_keys
 from automol.graph._graph import atom_second_degree_neighbor_keys
 from automol.graph._graph import dummy_atom_neighbor_keys
 from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_neighborhoods
+from automol.graph._graph import atom_neighborhood
 from automol.graph._graph import atom_groups
 from automol.graph._res import radical_groups
 from automol.graph._res import radical_group_dct
@@ -173,7 +175,6 @@ from automol.graph import embed
 
 # submodules
 from automol.graph import ts
-from automol.graph import trans
 from automol.graph import reac
 from automol.graph import vmat
 
@@ -277,11 +278,13 @@ __all__ = [
     'atom_count',
     'heavy_atom_count',
     'atom_neighbor_keys',
+    'atom_neighbor_key',
     'sorted_atom_neighbor_keys',
     'atom_second_degree_neighbor_keys',
     'dummy_atom_neighbor_keys',
     'atom_bond_keys',
     'atom_neighborhoods',
+    'atom_neighborhood',
     'atom_groups',
     'radical_groups',
     'radical_group_dct',
@@ -418,7 +421,6 @@ __all__ = [
 
     # submodules
     'ts',
-    'trans',
     'reac',
     'vmat',
 

@@ -78,23 +78,23 @@ def atom_implicit_hydrogen_valences(gra):
                                     ATM_IMP_HYD_VLC_POS)
 
 
-def atom_stereo_parities(sgr):
+def atom_stereo_parities(gra):
     """ atom parities, as a dictionary
     """
-    return mdict.by_key_by_position(atoms(sgr), atom_keys(sgr),
+    return mdict.by_key_by_position(atoms(gra), atom_keys(gra),
                                     ATM_STE_PAR_POS)
 
 
-def bond_orders(rgr):
+def bond_orders(gra):
     """ bond orders, as a dictionary
     """
-    return mdict.by_key_by_position(bonds(rgr), bond_keys(rgr), BND_ORD_POS)
+    return mdict.by_key_by_position(bonds(gra), bond_keys(gra), BND_ORD_POS)
 
 
-def bond_stereo_parities(sgr):
+def bond_stereo_parities(gra):
     """ bond parities, as a dictionary
     """
-    return mdict.by_key_by_position(bonds(sgr), bond_keys(sgr),
+    return mdict.by_key_by_position(bonds(gra), bond_keys(gra),
                                     BND_STE_PAR_POS)
 
 

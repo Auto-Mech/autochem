@@ -4,7 +4,7 @@ import inspect
 import itertools
 
 
-class ReactionClass():
+class ReactionClass:
     """ Names of supported reaction classes
     """
     TRIVIAL = 'trivial'

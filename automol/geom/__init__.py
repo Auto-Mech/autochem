@@ -78,6 +78,9 @@ import automol.create.geom
 # conversions
 import automol.convert.geom
 
+# submodules
+from automol.geom import ts
+
 
 def from_data(syms, xyzs, angstrom=False):
     """ geometry data structure from symbols and coordinates
@@ -220,4 +223,6 @@ __all__ = [
     'rot_permutated_geoms',
     'almost_equal_dist_matrix',
     'find_xyzp_using_internals',
+    # submodules
+    'ts',
 ]
