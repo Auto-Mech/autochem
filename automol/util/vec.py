@@ -175,6 +175,30 @@ def rotater(axis, angle, orig_xyz=None):
     return _transformer(aug_rot_mat)
 
 
+def aligner(xyz1a, xyz1b, xyz2a, xyz2b):
+    """ a function to translate and rotate a system, bringing two points into
+    alignment
+
+    Takes 1a-1b into 2a-2b if they are equidistant; otherwise, takes 1a into 2a
+    and takes 1b onto the 2a-2b line
+    """
+    xyz1a, xyz1b, xyz2a, xyz2b = map(numpy.array, (xyz1a, xyz1b, xyz2a, xyz2b))
+
+    trans = xyz2a - xyz1a
+
+    trans_mat = tf.translation_matrix(trans)
+
+    xyz1b = xyz1b + trans
+
+    rot_vec = unit_perpendicular(xyz1b, xyz2b, orig_xyz=xyz2a)
+    rot_ang = central_angle(xyz1b, xyz2a, xyz2b)
+    rot_mat = tf.rotation_matrix(rot_ang, rot_vec, point=xyz2a)
+
+    mat = numpy.dot(rot_mat, trans_mat)
+
+    return _transformer(mat)
+
+
 def _transformer(aug_mat):
 
     def _transform(xyz):

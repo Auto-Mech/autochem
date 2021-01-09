@@ -112,7 +112,7 @@ def bonds_from_data(bond_keys, bond_orders=None, bond_stereo_parities=None):
     assert len(pars) == nbnds
 
     keys = list(map(frozenset, keys))
-    ords = list(map(int, ords))
+    ords = [int(o) if round(o) == o else float(round(o, 1)) for o in ords]
 
     assert all(par in (None, False, True) for par in pars)
     pars = [bool(par) if par is not None else par for par in pars]
@@ -133,15 +133,12 @@ def from_atoms_and_bonds(atoms, bonds):
     :type bonds: dict
     """
     atm_dct = dict(atoms)
-    # print ('bonds test:', bonds)
-
     bnd_dct = dict(bonds)
 
     atm_sym_dct = dict_.transform_values(atm_dct, lambda x: x[0])
     atm_imp_hyd_vlc_dct = dict_.transform_values(atm_dct, lambda x: x[1])
     atm_ste_par_dct = dict_.transform_values(atm_dct, lambda x: x[2])
 
-    # print('bnd_dct test:', bnd_dct)
     bnd_ord_dct = dict_.transform_values(bnd_dct, lambda x: x[0])
     bnd_ste_par_dct = dict_.transform_values(bnd_dct, lambda x: x[1])
 

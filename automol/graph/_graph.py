@@ -138,6 +138,28 @@ def heavy_atom_count(gra, with_dummy=False):
     return nhvy_atms
 
 
+def atom_neighborhood(gra, atm_key, bnd_keys=None):
+    """ neighborhood subgraph for a specific atom
+    """
+    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
+    nbh = bond_induced_subgraph(gra, nbh_bnd_keys)
+    return nbh
+
+
+def atom_neighborhoods(gra):
+    """ neighborhood subgraphs, by atom
+    """
+    bnd_keys = bond_keys(gra)
+
+    def _neighborhood(atm_key):
+        return atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys)
+
+    atm_keys = list(atom_keys(gra))
+    atm_nbh_dct = dict(zip(atm_keys, map(_neighborhood, atm_keys)))
+    return atm_nbh_dct
+
+
 def atom_neighbor_keys(gra):
     """ keys of neighboring atoms, by atom
     """
@@ -164,6 +186,23 @@ def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
     atm_ngb_keys_dct = dict_.transform_items_to_values(
         atom_neighborhoods(gra), _neighbor_keys)
     return atm_ngb_keys_dct
+
+
+def atom_neighbor_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
+                      syms_first=('C',), syms_last=('H',)):
+    """ get the next in a sorted list of neighbor keys, excluding some
+    """
+    atm_sym_dct = atom_symbols(gra)
+    incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
+
+    atm_nbh = atom_neighborhood(gra, atm_key)
+    atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
+    atm_keys = [k for k in atm_keys if k in incl_atm_keys]
+
+    syms = list(map(atm_sym_dct.__getitem__, atm_keys))
+    srt = automol.formula.argsort_symbols(syms, syms_first, syms_last)
+    atm_keys = tuple(map(atm_keys.__getitem__, srt))
+    return atm_keys[0] if atm_keys else None
 
 
 def atom_second_degree_neighbor_keys(gra):
@@ -200,20 +239,6 @@ def atom_bond_keys(gra):
     """ bond keys, by atom
     """
     return dict_.transform_values(atom_neighborhoods(gra), bond_keys)
-
-
-def atom_neighborhoods(gra):
-    """ neighborhood subgraphs, by atom
-    """
-    bnd_keys = bond_keys(gra)
-
-    def _neighborhood(atm_key):
-        nbh_bnd_keys = set(filter(lambda x: atm_key in x, bnd_keys))
-        return bond_induced_subgraph(gra, nbh_bnd_keys)
-
-    atm_keys = list(atom_keys(gra))
-    atm_nbh_dct = dict(zip(atm_keys, map(_neighborhood, atm_keys)))
-    return atm_nbh_dct
 
 
 # # bond properties

@@ -1,6 +1,6 @@
 """ graph geometry library
 
-(To replace _geom.py eventually)
+(Abandoned -- should be replaced or deleted eventually)
 
 For generating heuristic coordinates and z-matrices from graphs
 """

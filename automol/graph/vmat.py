@@ -8,7 +8,7 @@ from automol.graph._graph import remove_bonds
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import sorted_atom_neighbor_keys
 from automol.graph._graph import is_connected
-from automol.graph._graph import longest_chain
+from automol.graph._graph import terminal_heavy_atom_keys
 from automol.graph._graph import shortest_path_between_groups
 from automol.graph._ring import rings
 from automol.graph._ring import ring_systems
@@ -27,10 +27,16 @@ def vmatrix(gra):
 
     rsys = sorted(ring_systems(gra), key=atom_count)
 
+    term_keys = sorted(terminal_heavy_atom_keys(gra))
+    if term_keys:
+        start_key = term_keys[0]
+    else:
+        start_key = sorted(atom_keys(gra))[0]
+
     # Start with the ring systems and their connections. If there aren't any,
     # start with the longest chain.
     vma, row_keys = (_connected_ring_systems(gra, check=False) if rsys else
-                     _start(gra, longest_chain(gra)[0]))
+                     _start(gra, start_key))
 
     # Finally, complete any incomplete branches
     branch_keys = _atoms_missing_neighbors(gra, row_keys)

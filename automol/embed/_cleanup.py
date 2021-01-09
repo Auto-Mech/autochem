@@ -241,7 +241,7 @@ def line_search_alpha(err_, sd1, cd1):
 
 def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
                            conv_=None, max_dist_err=0.5, maxiter=None,
-                           chi_flip=True):
+                           chi_flip=True, dim4=True):
     """ clean up coordinates by conjugate-gradients error minimization
 
     :param xmat: the initial guess coordinates to be cleaned up
@@ -259,10 +259,17 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
         considered converged
     :param maxiter: maximum number of iterations; default is three times the
         number of coordinates
-    :chi_flip: whether or not to invert the structure if more than half of the
-        chiralities are reversed
+    :param chi_flip: whether or not to invert the structure if more than half
+        of the chiralities are reversed
+    :param dim4: whether or not to include a fourth dimension, for allowing
+        chiralities to flip as they correct themselves
     """
     xmat = numpy.array(xmat)
+
+    # Make the coordinates four-dimensional, if they aren't already
+    natms, ndims = numpy.shape(xmat)
+    if ndims < 4 and dim4:
+        xmat = numpy.hstack([xmat, numpy.zeros((natms, 4-ndims))])
 
     # If less than half of the chiralities have correct sign, invert the
     # geometry
@@ -281,7 +288,7 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
     grad_ = error_function_gradient_(
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
-    conv_ = (distance_convergence_checker_(umat, lmat, max_dist_err)
+    conv_ = (distance_convergence_checker_(lmat, umat, max_dist_err)
              if conv_ is None else conv_)
 
     xmat, conv = minimize_error(xmat, err_, grad_, conv_, maxiter)

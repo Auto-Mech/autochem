@@ -35,11 +35,13 @@ import automol.create.geom
 import automol.geom
 from automol import error
 from automol import embed
+from automol.util import dict_
 from automol.graph._graph_base import string
 from automol.graph._graph import atom_symbols
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import atom_shortest_paths
+from automol.graph._graph import atom_neighbor_key
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import bond_neighborhoods
@@ -118,14 +120,15 @@ def heuristic_bond_angle(gra, key1, key2, key3, degree=False, check=False,
     return ang
 
 
-def heuristic_bond_angle_distance(gra, key1, key2, key3, angstrom=True,
-                                  ang=None, degree=True, hyb_dct=None):
+def heuristic_bond_angle_distance(gra, key1, key2, key3,
+                                  d12=None, d23=None, angstrom=True,
+                                  a123=None, degree=True, hyb_dct=None):
     """ heuristic distance between atoms at two ends of a bond angle
 
     :param angstrom: whether or not to return the distance in angstroms
     :type angstrom: bool
-    :param ang: (optional) specify the value of the angle
-    :type ang: float
+    :param a123: (optional) specify the value of the angle
+    :type a123: float
     :param degree: units for the angle, if specified
     :type degree: bool
 
@@ -133,11 +136,11 @@ def heuristic_bond_angle_distance(gra, key1, key2, key3, angstrom=True,
 
         d13 = sqrt(d12^2 + d23^2 - 2*d12*d23*cos(a123))
     """
-    if ang is None:
+    if a123 is None:
         a123 = heuristic_bond_angle(
             gra, key1, key2, key3, degree=False, hyb_dct=hyb_dct)
     else:
-        a123 = ang * DEG2RAD if degree else ang
+        a123 = a123 * DEG2RAD if degree else a123
 
     d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
     d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
@@ -147,7 +150,7 @@ def heuristic_bond_angle_distance(gra, key1, key2, key3, angstrom=True,
 
 def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4, cis=False,
                                      angstrom=True,
-                                     ang1=None, ang2=None, degree=True,
+                                     a123=None, a234=None, degree=True,
                                      hyb_dct=None):
     """ heuristic max distance between atoms at two ends of a torsion angle
 
@@ -173,17 +176,17 @@ def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4, cis=False,
     we can find a132 from the law of cosines:
         a132 = arccos((d13^2 + d23^2 - d12^2)/(2*d13*d23))
     """
-    if ang2 is None:
+    if a234 is None:
         a234 = heuristic_bond_angle(
             gra, key2, key3, key4, degree=False, hyb_dct=hyb_dct)
     else:
-        a234 = ang2 * DEG2RAD if degree else ang2
+        a234 = a234 * DEG2RAD if degree else a234
 
     d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
     d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
     d34 = heuristic_bond_distance(gra, key3, key4, angstrom=angstrom)
     d13 = heuristic_bond_angle_distance(
-        gra, key1, key2, key3, angstrom=angstrom, ang=ang1, hyb_dct=hyb_dct)
+        gra, key1, key2, key3, angstrom=angstrom, a123=a123, hyb_dct=hyb_dct)
 
     a132 = numpy.arccos((d13**2 + d23**2 - d12**2)/(2*d13*d23))
     a134 = a234 - a132 if cis else a234 + a132
@@ -217,7 +220,7 @@ def closest_approach(gra, key1, key2):
     Warning: The scaling factor on the van der waals radii was arbitrarily
     chosen based on limited tests and may need to be lowered
     """
-    vdw_scaling_factor = 0.8
+    vdw_scaling_factor = 0.75
     dist = (van_der_waals_radius(gra, key1) +
             van_der_waals_radius(gra, key2)) * vdw_scaling_factor
     return dist
@@ -251,8 +254,8 @@ def path_distance_bounds_(gra):
                 ldist = udist = heuristic_bond_angle_distance(
                     gra, *path, hyb_dct=hyb_dct)
             else:
-                ang = (rsz - 2.) * 180. / rsz
-                rdist = heuristic_bond_angle_distance(gra, *path, ang=ang)
+                a123 = (rsz - 2.) * 180. / rsz
+                rdist = heuristic_bond_angle_distance(gra, *path, a123=a123)
                 odist = heuristic_bond_angle_distance(
                     gra, *path, hyb_dct=hyb_dct)
                 ldist = min(rdist, odist)
@@ -280,7 +283,7 @@ def path_distance_bounds_(gra):
             else:
                 ang = (rsz - 2.) * 180. / rsz
                 rdist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=True, ang1=ang, ang2=ang)
+                    gra, *path, cis=True, a123=ang, a234=ang)
                 cdist = heuristic_torsion_angle_distance(
                     gra, *path, cis=True, hyb_dct=hyb_dct)
                 tdist = heuristic_torsion_angle_distance(
@@ -341,7 +344,8 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
 
 
 def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
-                                  relax_torsions=False, sp_dct=None):
+                                  relax_torsions=False, sp_dct=None,
+                                  angstrom=True):
     """ distance bounds matrices for joining multiple geometries
 
     :param gra: molecular graph
@@ -368,7 +372,8 @@ def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
 
     # 2. set known geometric parameters
     if geos:
-        xmats = [automol.geom.coordinates(geo, angstrom=True) for geo in geos]
+        xmats = [automol.geom.coordinates(geo, angstrom=angstrom)
+                 for geo in geos]
         dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
 
         start = 0
@@ -520,6 +525,92 @@ def planarity_constraint_bounds(gra, keys):
         itertools.chain(*map(_planarity_constraints, bnd_keys))}
 
     return const_dct
+
+
+def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None,
+                                     angstrom=True, degree=True, keys=None,
+                                     check=True):
+    """ generate a set of distance ranges from coordinate values
+
+    (Can easily add torsions, but haven't needed it yet.)
+
+    :param gra: molecular graph
+    atom keys specifying the order of indices in the matrix
+    :param dist_dct: a dictionary of desired distances for certain atoms; the
+        keys are pairs of atoms, the values are distances in angstroms
+    :type dist_dct: dict[(int, int): float]
+    :param ang_dct: a dictionary of desired angles for certain atoms; the keys
+        are triples of atoms, the values are angles in degrees; if the
+        first or last element in a triple is None, an appopriate neighboring
+        atom will be found
+    :type dist_dct: dict[(int, int, int): float]
+    :param keys: set of keys that can be used to fill in the angle keys; if
+        None, all graph keys will be considered available for use
+    :param check: check the angle keys to make sure they can all be filled in?
+    """
+    keys = atom_keys(gra) if keys is None else keys
+
+    ang_dct = {} if ang_dct is None else ang_dct
+
+    # Fill in angle keys
+    ang_key_filler_ = angle_key_filler_(gra, keys, check=check)
+    ang_dct = dict_.transform_keys(ang_dct, ang_key_filler_)
+    if None in ang_dct:
+        ang_dct.pop(None)
+
+    # Convert to radians, if needed
+    if degree:
+        ang_dct = dict_.transform_values(ang_dct, lambda x: x * DEG2RAD)
+
+    dist_dct = dict_.transform_keys(dist_dct, frozenset)
+    for (key1, key2, key3), a123 in ang_dct.items():
+        k12 = frozenset({key1, key2})
+        k23 = frozenset({key2, key3})
+        k13 = frozenset({key1, key3})
+
+        d12 = (dist_dct[k12] if k12 in dist_dct else
+               automol.graph.embed.heuristic_bond_distance(gra, key1, key2,
+                                                           angstrom=angstrom))
+        d23 = (dist_dct[k23] if k23 in dist_dct else
+               automol.graph.embed.heuristic_bond_distance(gra, key2, key3,
+                                                           angstrom=angstrom))
+
+        d13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(a123))
+
+        dist_dct[k13] = d13
+    dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
+    return dist_range_dct
+
+
+def angle_key_filler_(gra, keys=None, check=True):
+    """ returns a function that fills in the first or last element of an angle
+    key in a dictionary with a neighboring atom
+    """
+    keys = atom_keys(gra) if keys is None else keys
+
+    def _fill_in_angle_key(ang_key):
+        key1, key2, key3 = ang_key
+        assert key2 is not None
+
+        if key1 is None:
+            assert key3 is not None
+            key1 = atom_neighbor_key(gra, key2, excl_atm_keys=[key3],
+                                     incl_atm_keys=keys)
+        if key3 is None:
+            assert key1 is not None
+            key3 = atom_neighbor_key(gra, key2, excl_atm_keys=[key3],
+                                     incl_atm_keys=keys)
+        ang_key = (key1, key2, key3)
+
+        if any(k is None for k in ang_key):
+            if check:
+                raise ValueError("Angle key {} couldn't be filled in"
+                                 .format(str(ang_key)))
+            ang_key = None
+
+        return ang_key
+
+    return _fill_in_angle_key
 
 
 def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
