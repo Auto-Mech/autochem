@@ -188,14 +188,16 @@ def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
     return atm_ngb_keys_dct
 
 
-def atom_neighbor_key(gra, atm_key, excl_atm_keys=(), syms_first=('C',),
-                      syms_last=('H',)):
+def atom_neighbor_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
+                      syms_first=('C',), syms_last=('H',)):
     """ get the next in a sorted list of neighbor keys, excluding some
     """
     atm_sym_dct = atom_symbols(gra)
+    incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
 
     atm_nbh = atom_neighborhood(gra, atm_key)
     atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
+    atm_keys = [k for k in atm_keys if k in incl_atm_keys]
 
     syms = list(map(atm_sym_dct.__getitem__, atm_keys))
     srt = automol.formula.argsort_symbols(syms, syms_first, syms_last)

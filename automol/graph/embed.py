@@ -41,6 +41,7 @@ from automol.graph._graph import atom_symbols
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import atom_shortest_paths
+from automol.graph._graph import atom_neighbor_key
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import bond_neighborhoods
@@ -219,7 +220,7 @@ def closest_approach(gra, key1, key2):
     Warning: The scaling factor on the van der waals radii was arbitrarily
     chosen based on limited tests and may need to be lowered
     """
-    vdw_scaling_factor = 0.7
+    vdw_scaling_factor = 0.75
     dist = (van_der_waals_radius(gra, key1) +
             van_der_waals_radius(gra, key2)) * vdw_scaling_factor
     return dist
@@ -549,6 +550,8 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None,
     """
     keys = atom_keys(gra) if keys is None else keys
 
+    ang_dct = {} if ang_dct is None else ang_dct
+
     # Fill in angle keys
     ang_key_filler_ = angle_key_filler_(gra, keys, check=check)
     ang_dct = dict_.transform_keys(ang_dct, ang_key_filler_)
@@ -585,26 +588,18 @@ def angle_key_filler_(gra, keys=None, check=True):
     """
     keys = atom_keys(gra) if keys is None else keys
 
-    ngb_keys_dct = automol.graph.sorted_atom_neighbor_keys(
-        gra, syms_first=('X', 'C',), syms_last=('H',))
-
     def _fill_in_angle_key(ang_key):
         key1, key2, key3 = ang_key
         assert key2 is not None
 
         if key1 is None:
             assert key3 is not None
-            k2ns = ngb_keys_dct[key2]
-            k2ns = [k for k in k2ns if k != key3 and k in keys]
-            if k2ns:
-                key1 = k2ns[0]
+            key1 = atom_neighbor_key(gra, key2, excl_atm_keys=[key3],
+                                     incl_atm_keys=keys)
         if key3 is None:
             assert key1 is not None
-            k2ns = ngb_keys_dct[key2]
-            k2ns = [k for k in k2ns if k != key1 and k in keys]
-            if k2ns:
-                key3 = k2ns[0]
-
+            key3 = atom_neighbor_key(gra, key2, excl_atm_keys=[key3],
+                                     incl_atm_keys=keys)
         ang_key = (key1, key2, key3)
 
         if any(k is None for k in ang_key):

@@ -13,8 +13,8 @@ DEG2RAD = qcc.conversion_factor('degree', 'radian')
 RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 
-def join(geo1, geo2, key2, key3, r23, a123, a234, d1234=85., key1=None,
-         key4=None, angstrom=True, degree=True):
+def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
+         key1=None, key4=None, angstrom=True, degree=True):
     """ join two geometries based on four of their atoms, two on the first
     and two on the second
 

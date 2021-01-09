@@ -13,7 +13,12 @@ from automol import par
 from automol.graph import ts
 from automol.graph._graph_base import atom_keys
 from automol.graph._graph_base import string
+from automol.graph._graph import atom_count
+from automol.graph._graph import heavy_atom_count
+from automol.graph._graph import electron_count
+from automol.graph._graph import union
 from automol.graph._graph import explicit
+from automol.graph._graph import add_bonds
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import union_from_sequence
 from automol.graph._graph import unsaturated_atom_keys
@@ -72,11 +77,31 @@ class GraphReaction:
         """ determine the appropriate sort order for reactants and products,
         based on their keys
         """
-        rct_keys = list(map(tuple, map(sorted, self.reactants_keys)))
-        prd_keys = list(map(tuple, map(sorted, self.products_keys)))
-        rct_idxs = tuple(numpy.argsort(numpy.array(rct_keys, dtype=object)))
-        prd_idxs = tuple(numpy.argsort(numpy.array(prd_keys, dtype=object)))
+        if len(self.reactants_keys) == 1:
+            rct_idxs = [0]
+        else:
+            rct_keys = list(map(tuple, map(sorted, self.reactants_keys)))
+            rct_idxs = numpy.argsort(numpy.array(rct_keys, dtype=object))
+
+        if len(self.products_keys) == 1:
+            prd_idxs = [0]
+        else:
+            prd_keys = list(map(tuple, map(sorted, self.products_keys)))
+            prd_idxs = numpy.argsort(numpy.array(prd_keys, dtype=object))
+
+        rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
         return rct_idxs, prd_idxs
+
+    def key_map(self, reverse=False):
+        """ get the key map taking atoms from the reactant into atoms from the
+        product
+        """
+        iso_dct = full_isomorphism(ts.reverse(self.forward_ts_graph),
+                                   self.backward_ts_graph)
+        if reverse:
+            iso_dct = dict(map(reversed, iso_dct.items()))
+
+        return iso_dct
 
     def standardize_keys(self):
         """ standardize keys and, optionally, sort reactant and product
@@ -142,6 +167,61 @@ def trivial(rct_gras, prd_gras):
     return tuple(rxns)
 
 
+def hydrogen_migrations(rct_gras, prd_gras):
+    """ find a hydrogen migration transformation
+
+    Hydrogen migrations are identified by adding a hydrogen to an unsaturated
+    site of the reactant and adding a hydrogen to an unsaturated site of the
+    product and seeing if they match up. If so, we have a hydrogen migration
+    between these two sites.
+    """
+    _assert_is_valid_reagent_graph_list(rct_gras)
+    _assert_is_valid_reagent_graph_list(prd_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 1 and len(prd_gras) == 1:
+        gra1, = rct_gras
+        gra2, = prd_gras
+        h_atm_key1 = max(atom_keys(gra1)) + 1
+        h_atm_key2 = max(atom_keys(gra2)) + 1
+
+        atm_keys1 = unsaturated_atom_keys(gra1)
+        atm_keys2 = unsaturated_atom_keys(gra2)
+        for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
+            gra1_h = add_atom_explicit_hydrogen_keys(
+                gra1, {atm_key1: [h_atm_key1]})
+            gra2_h = add_atom_explicit_hydrogen_keys(
+                gra2, {atm_key2: [h_atm_key2]})
+
+            iso_dct = full_isomorphism(gra1_h, gra2_h)
+            inv_dct = dict(map(reversed, iso_dct.items()))
+            if inv_dct:
+                f_frm_bnd_key = frozenset({atm_key1, inv_dct[h_atm_key2]})
+                f_brk_bnd_key = frozenset({inv_dct[atm_key2],
+                                           inv_dct[h_atm_key2]})
+                b_frm_bnd_key = frozenset({atm_key2, iso_dct[h_atm_key1]})
+                b_brk_bnd_key = frozenset({iso_dct[atm_key1],
+                                           iso_dct[h_atm_key1]})
+                forw_tsg = ts.graph(gra1,
+                                    frm_bnd_keys=[f_frm_bnd_key],
+                                    brk_bnd_keys=[f_brk_bnd_key])
+                back_tsg = ts.graph(gra2,
+                                    frm_bnd_keys=[b_frm_bnd_key],
+                                    brk_bnd_keys=[b_brk_bnd_key])
+
+                # Create the reaction object
+                rxns.append(GraphReaction(
+                    rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
+                    forw_tsg=forw_tsg,
+                    back_tsg=back_tsg,
+                    rcts_keys=[atom_keys(gra1)],
+                    prds_keys=[atom_keys(gra2)],
+                ))
+
+    return tuple(rxns)
+
+
 def hydrogen_abstractions(rct_gras, prd_gras):
     """ find hydrogen abstractions consistent with these reactants and products
 
@@ -176,18 +256,16 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                 f_q1h_q_atm_key, f_q1h_h_atm_key, b_q2_q_atm_key = ret1
                 b_q1h_q_atm_key, b_q1h_h_atm_key, f_q2_q_atm_key = ret2
 
-                # Create the forward ts graph
+                # Create the forward/backward ts graphs
                 rcts_gra = union_from_sequence(rct_gras)
+                prds_gra = union_from_sequence(prd_gras)
                 f_frm_bnd_key = frozenset({f_q2_q_atm_key, f_q1h_h_atm_key})
                 f_brk_bnd_key = frozenset({f_q1h_q_atm_key, f_q1h_h_atm_key})
+                b_frm_bnd_key = frozenset({b_q2_q_atm_key, b_q1h_h_atm_key})
+                b_brk_bnd_key = frozenset({b_q1h_q_atm_key, b_q1h_h_atm_key})
                 forw_tsg = ts.graph(rcts_gra,
                                     frm_bnd_keys=[f_frm_bnd_key],
                                     brk_bnd_keys=[f_brk_bnd_key])
-
-                # Create the backward ts graph
-                prds_gra = union_from_sequence(prd_gras)
-                b_frm_bnd_key = frozenset({b_q2_q_atm_key, b_q1h_h_atm_key})
-                b_brk_bnd_key = frozenset({b_q1h_q_atm_key, b_q1h_h_atm_key})
                 back_tsg = ts.graph(prds_gra,
                                     frm_bnd_keys=[b_frm_bnd_key],
                                     brk_bnd_keys=[b_brk_bnd_key])
@@ -204,6 +282,87 @@ def hydrogen_abstractions(rct_gras, prd_gras):
     return tuple(rxns)
 
 
+def additions(rct_gras, prd_gras):
+    """ find an addition transformation
+
+    Additions are identified by joining an unsaturated site on one reactant to
+    an unsaturated site on the other. If the result matches the products, this
+    is an addition reaction.
+    """
+    _assert_is_valid_reagent_graph_list(rct_gras)
+    _assert_is_valid_reagent_graph_list(prd_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 2 and len(prd_gras) == 1:
+        x_gra, y_gra = rct_gras
+        prd_gra, = prd_gras
+        x_atm_keys = unsaturated_atom_keys(x_gra)
+        y_atm_keys = unsaturated_atom_keys(y_gra)
+
+        for x_atm_key, y_atm_key in itertools.product(x_atm_keys, y_atm_keys):
+            xy_gra = add_bonds(
+                union(x_gra, y_gra), [{x_atm_key, y_atm_key}])
+
+            iso_dct = full_isomorphism(xy_gra, prd_gra)
+            if iso_dct:
+                rcts_gra = union_from_sequence(rct_gras)
+                prds_gra = prd_gra
+                f_frm_bnd_key = frozenset({x_atm_key, y_atm_key})
+                b_brk_bnd_key = frozenset({iso_dct[x_atm_key],
+                                           iso_dct[y_atm_key]})
+                forw_tsg = ts.graph(rcts_gra,
+                                    frm_bnd_keys=[f_frm_bnd_key],
+                                    brk_bnd_keys=[])
+                back_tsg = ts.graph(prds_gra,
+                                    frm_bnd_keys=[],
+                                    brk_bnd_keys=[b_brk_bnd_key])
+
+                # sort the reactants so that the largest species is first
+                rct_idxs = _argsort_reactants(rct_gras)
+                rct_gras = list(map(rct_gras.__getitem__, rct_idxs))
+
+                # Create the reaction object
+                rxns.append(GraphReaction(
+                    rxn_cls=par.ReactionClass.ADDITION,
+                    forw_tsg=forw_tsg,
+                    back_tsg=back_tsg,
+                    rcts_keys=list(map(atom_keys, rct_gras)),
+                    prds_keys=list(map(atom_keys, prd_gras)),
+                ))
+
+    return tuple(rxns)
+
+
+def classify(rct_gras, prd_gras):
+    """ classify a reaction
+    """
+    # check whether this is a valid reaction
+    rct_fmls = list(map(automol.convert.graph.formula, rct_gras))
+    prd_fmls = list(map(automol.convert.graph.formula, prd_gras))
+    rct_strs = list(map(automol.formula.string, rct_fmls))
+    prd_strs = list(map(automol.formula.string, prd_fmls))
+    assert automol.formula.reac.is_valid_reaction(rct_fmls, prd_fmls), (
+        "Invalid reaction: {:s} -> {:s}".format(str(rct_strs), str(prd_strs)))
+
+    # Cycle through the different finders and gather all possible reactions
+    finders_ = [
+        trivial,
+        hydrogen_migrations,
+        hydrogen_abstractions,
+        additions,
+        # beta_scissions,
+        # eliminations,
+        # insertions,
+        # substitutions,
+    ]
+
+    rxns = tuple(itertools.chain(*(f_(rct_gras, prd_gras) for f_ in finders_)))
+
+    return rxns
+
+
+# helpers
 def _partial_hydrogen_abstraction(qh_gra, q_gra):
     rets = []
 
@@ -246,3 +405,16 @@ def _have_no_stereo_assignments(gras):
 def _have_no_common_atom_keys(gras):
     atm_keys = list(itertools.chain(*map(atom_keys, gras)))
     return len(atm_keys) == len(set(atm_keys))
+
+
+def _argsort_reactants(gras):
+
+    def __sort_value(args):
+        _, gra = args
+        val = (-heavy_atom_count(gra),
+               -atom_count(gra),
+               -electron_count(gra))
+        return val
+
+    idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
+    return idxs

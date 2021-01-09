@@ -20,6 +20,13 @@ class ReactionClass:
     SUBSTITUTION = 'substitution'
 
 
+# REVERSE_REACTION_DCT = {
+#     ReactionClass.HYDROGEN_ABSTRACTION: ReactionClass.HYDROGEN_ABSTRACTION,
+#     ReactionClass.HYDROGEN_MIGRATION: ReactionClass.HYDROGEN_MIGRATION,
+#     ReactionClass.ADDITION: ReactionClass.RECOMBINATION,
+# }
+
+
 def is_reaction_class(rxn_class):
     """ Check if class in list of REACTION CLASS
     """
