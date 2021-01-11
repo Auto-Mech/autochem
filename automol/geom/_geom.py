@@ -434,7 +434,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
             xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
             r12 = util.vec.unit_direction(xyz1, xyz2)
             r23 = util.vec.unit_direction(xyz2, xyz3)
-            direc = util.vec.orthogonalize(r12, r23)
+            direc = util.vec.orthogonalize(r12, r23, normalize=True)
         else:
             assert len(idxs) >= 2, "This should never happen."
             idx1, idx2 = idxs[:2]

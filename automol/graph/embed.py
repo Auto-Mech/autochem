@@ -148,50 +148,39 @@ def heuristic_bond_angle_distance(gra, key1, key2, key3,
     return d13
 
 
-def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4, cis=False,
+def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4,
                                      angstrom=True,
-                                     a123=None, a234=None, degree=True,
-                                     hyb_dct=None):
+                                     a123=None, a234=None, d1234=None,
+                                     degree=True, hyb_dct=None):
     """ heuristic max distance between atoms at two ends of a torsion angle
 
-    (Formulas & implementation have been verified)
+    Formula rearranged from eq. 2.15 in the following paper. Note that in the
+    denominator of this formula there is a typo: d02 and d12 should be switched
 
-    max implies that the torsion angle is 180 degrees
-
-    uses law of cosines:
-
-        d14 = sqrt(d13^2 + d34^2 - 2*d13*d34*cos(a134))
-
-    in this case, d13 is determined from heuristic_bond_angle_distance and a134
-    is given by
-
-        a134 = a234 + a132
-
-    if the atoms are trans and
-
-        a134 = a234 - a132
-
-    if they are cis
-
-    we can find a132 from the law of cosines:
-        a132 = arccos((d13^2 + d23^2 - d12^2)/(2*d13*d23))
+    Havel, T. F.; Kunz, I.D.; Crippen, G. M.; "The Theory and Practice of
+    Distance Geometry"; Bulletin of Mathematical Biology; Vol. 45, No. 5.,
+    pp.  665-720, 1983.
     """
-    if a234 is None:
-        a234 = heuristic_bond_angle(
-            gra, key2, key3, key4, degree=False, hyb_dct=hyb_dct)
+    if d1234 is None:
+        d1234 = numpy.pi
     else:
-        a234 = a234 * DEG2RAD if degree else a234
+        d1234 *= DEG2RAD if degree else 1.
 
     d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
     d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
     d34 = heuristic_bond_distance(gra, key3, key4, angstrom=angstrom)
     d13 = heuristic_bond_angle_distance(
         gra, key1, key2, key3, angstrom=angstrom, a123=a123, hyb_dct=hyb_dct)
+    d24 = heuristic_bond_angle_distance(
+        gra, key2, key3, key4, angstrom=angstrom, a123=a234, hyb_dct=hyb_dct)
 
-    a132 = numpy.arccos((d13**2 + d23**2 - d12**2)/(2*d13*d23))
-    a134 = a234 - a132 if cis else a234 + a132
+    term1 = (d12**2 + d23**2 - d13**2)*(d23**2 + d34**2 - d24**2)
+    term2 = 2*d23**2 * (d13**2 + d24**2 - d23**2)
+    denom = numpy.sqrt((4*d12**2 * d23**2 - (d12**2 + d23**2 - d13**2)**2) *
+                       (4*d23**2 * d34**2 - (d23**2 + d34**2 - d24**2)**2))
 
-    d14 = numpy.sqrt(d13**2 + d34**2 - 2*d13*d34*numpy.cos(a134))
+    d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) /
+                     (2 * d23**2))
     return d14
 
 
@@ -273,21 +262,22 @@ def path_distance_bounds_(gra):
                     pos2 = key2_ngbs.index(path[0])
                     pos3 = key3_ngbs.index(path[-1])
                     cis = bnd_par_dct[bnd_key23] != (pos2 != pos3)
+                    dih = 0. if cis else 180.
                     ldist = udist = heuristic_torsion_angle_distance(
-                        gra, *path, cis=cis, hyb_dct=hyb_dct)
+                        gra, *path, d1234=dih, degree=True, hyb_dct=hyb_dct)
                 else:
                     ldist = heuristic_torsion_angle_distance(
-                        gra, *path, cis=True, hyb_dct=hyb_dct)
+                        gra, *path, d1234=0., degree=True, hyb_dct=hyb_dct)
                     udist = heuristic_torsion_angle_distance(
-                        gra, *path, cis=False, hyb_dct=hyb_dct)
+                        gra, *path, d1234=180., degree=True, hyb_dct=hyb_dct)
             else:
                 ang = (rsz - 2.) * 180. / rsz
                 rdist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=True, a123=ang, a234=ang)
+                    gra, *path, d1234=0., degree=True, a123=ang, a234=ang)
                 cdist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=True, hyb_dct=hyb_dct)
+                    gra, *path, d1234=0., degree=True, hyb_dct=hyb_dct)
                 tdist = heuristic_torsion_angle_distance(
-                    gra, *path, cis=False, hyb_dct=hyb_dct)
+                    gra, *path, d1234=180., degree=True, hyb_dct=hyb_dct)
                 ldist = min(rdist, cdist)
                 udist = max(rdist, tdist)
         # otherwise, just do the sum of the distances between atoms along the
@@ -527,7 +517,7 @@ def planarity_constraint_bounds(gra, keys):
     return const_dct
 
 
-def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None,
+def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
                                      angstrom=True, degree=True, keys=None,
                                      check=True):
     """ generate a set of distance ranges from coordinate values
@@ -540,9 +530,11 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None,
         keys are pairs of atoms, the values are distances in angstroms
     :type dist_dct: dict[(int, int): float]
     :param ang_dct: a dictionary of desired angles for certain atoms; the keys
-        are triples of atoms, the values are angles in degrees; if the
-        first or last element in a triple is None, an appopriate neighboring
-        atom will be found
+        are triples of atoms; if the first or last element in a triple is None,
+        an appopriate neighboring atom will be found
+    :param dih_dct: a dictionary of desired angles for certain atoms; the keys
+        are quadruples of atoms; if the first or last element in a triple is
+        None, an appopriate neighboring atom will be found
     :type dist_dct: dict[(int, int, int): float]
     :param keys: set of keys that can be used to fill in the angle keys; if
         None, all graph keys will be considered available for use
@@ -551,6 +543,7 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None,
     keys = atom_keys(gra) if keys is None else keys
 
     ang_dct = {} if ang_dct is None else ang_dct
+    dih_dct = {} if dih_dct is None else dih_dct
 
     # Fill in angle keys
     ang_key_filler_ = angle_key_filler_(gra, keys, check=check)
@@ -558,26 +551,59 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None,
     if None in ang_dct:
         ang_dct.pop(None)
 
-    # Convert to radians, if needed
-    if degree:
-        ang_dct = dict_.transform_values(ang_dct, lambda x: x * DEG2RAD)
+    dih_dct = dict_.transform_keys(dih_dct, ang_key_filler_)
+    if None in ang_dct:
+        dih_dct.pop(None)
 
     dist_dct = dict_.transform_keys(dist_dct, frozenset)
     for (key1, key2, key3), a123 in ang_dct.items():
+        a123 *= DEG2RAD if degree else 1.
+
         k12 = frozenset({key1, key2})
         k23 = frozenset({key2, key3})
         k13 = frozenset({key1, key3})
 
         d12 = (dist_dct[k12] if k12 in dist_dct else
-               automol.graph.embed.heuristic_bond_distance(gra, key1, key2,
-                                                           angstrom=angstrom))
+               heuristic_bond_distance(gra, key1, key2, angstrom=angstrom))
         d23 = (dist_dct[k23] if k23 in dist_dct else
-               automol.graph.embed.heuristic_bond_distance(gra, key2, key3,
-                                                           angstrom=angstrom))
+               heuristic_bond_distance(gra, key2, key3, angstrom=angstrom))
 
         d13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(a123))
 
         dist_dct[k13] = d13
+
+    for (key1, key2, key3, key4), d1234 in dih_dct.items():
+        d1234 *= DEG2RAD if degree else 1.
+
+        k12 = frozenset({key1, key2})
+        k23 = frozenset({key2, key3})
+        k34 = frozenset({key3, key4})
+        k13 = frozenset({key1, key3})
+        k24 = frozenset({key2, key4})
+        k14 = frozenset({key1, key4})
+
+        d12 = (dist_dct[k12] if k12 in dist_dct else
+               heuristic_bond_distance(gra, key1, key2, angstrom=angstrom))
+        d23 = (dist_dct[k23] if k23 in dist_dct else
+               heuristic_bond_distance(gra, key2, key3, angstrom=angstrom))
+        d34 = (dist_dct[k34] if k34 in dist_dct else
+               heuristic_bond_distance(gra, key3, key4, angstrom=angstrom))
+        d13 = (dist_dct[k13] if k13 in dist_dct else
+               heuristic_bond_distance(gra, key1, key3, angstrom=angstrom))
+        d24 = (dist_dct[k24] if k24 in dist_dct else
+               heuristic_bond_distance(gra, key2, key4, angstrom=angstrom))
+
+        term1 = (d12**2 + d23**2 - d13**2)*(d23**2 + d34**2 - d24**2)
+        term2 = 2*d23**2 * (d13**2 + d24**2 - d23**2)
+        denom = numpy.sqrt(
+            (4*d12**2 * d23**2 - (d12**2 + d23**2 - d13**2)**2) *
+            (4*d23**2 * d34**2 - (d23**2 + d34**2 - d24**2)**2))
+
+        d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) /
+                         (2 * d23**2))
+
+        dist_dct[k14] = d14
+
     dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
     return dist_range_dct
 
@@ -585,22 +611,26 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None,
 def angle_key_filler_(gra, keys=None, check=True):
     """ returns a function that fills in the first or last element of an angle
     key in a dictionary with a neighboring atom
+    (works for central or dihedral angles)
     """
     keys = atom_keys(gra) if keys is None else keys
 
     def _fill_in_angle_key(ang_key):
-        key1, key2, key3 = ang_key
-        assert key2 is not None
+        end1_key = ang_key[0]
+        end2_key = ang_key[-1]
+        mid_keys = list(ang_key[1:-1])
+        assert not any(k is None for k in mid_keys)
 
-        if key1 is None:
-            assert key3 is not None
-            key1 = atom_neighbor_key(gra, key2, excl_atm_keys=[key3],
-                                     incl_atm_keys=keys)
-        if key3 is None:
-            assert key1 is not None
-            key3 = atom_neighbor_key(gra, key2, excl_atm_keys=[key3],
-                                     incl_atm_keys=keys)
-        ang_key = (key1, key2, key3)
+        if end1_key is None:
+            end1_key = atom_neighbor_key(gra, mid_keys[0],
+                                         excl_atm_keys=[end2_key]+mid_keys,
+                                         incl_atm_keys=keys)
+        if end2_key is None:
+            end2_key = atom_neighbor_key(gra, mid_keys[-1],
+                                         excl_atm_keys=[end1_key]+mid_keys,
+                                         incl_atm_keys=keys)
+
+        ang_key = [end1_key] + mid_keys + [end2_key]
 
         if any(k is None for k in ang_key):
             if check:
@@ -608,7 +638,7 @@ def angle_key_filler_(gra, keys=None, check=True):
                                  .format(str(ang_key)))
             ang_key = None
 
-        return ang_key
+        return tuple(ang_key)
 
     return _fill_in_angle_key
 
@@ -785,3 +815,10 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.5):
     geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
 
     return geo
+
+
+if __name__ == '__main__':
+    ICH = automol.smiles.inchi('OO')
+    GRA = automol.graph.explicit(automol.inchi.graph(ICH))
+    print(string(GRA, one_indexed=False))
+    print(heuristic_torsion_angle_distance(GRA, 2, 0, 1, 3, d1234=0.))

@@ -19,11 +19,13 @@ from automol.graph._graph import electron_count
 from automol.graph._graph import union
 from automol.graph._graph import explicit
 from automol.graph._graph import add_bonds
+from automol.graph._graph import remove_bonds
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import union_from_sequence
 from automol.graph._graph import unsaturated_atom_keys
 from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import add_atom_explicit_hydrogen_keys
+from automol.graph._ring import rings_bond_keys
 
 
 class GraphReaction:
@@ -102,6 +104,15 @@ class GraphReaction:
             iso_dct = dict(map(reversed, iso_dct.items()))
 
         return iso_dct
+
+    def reverse(self):
+        """ get the reaction class for the reverse reaction
+        """
+        self.class_ = par.reverse_reaction_class(self.class_)
+        self.forward_ts_graph, self.backward_ts_graph = (
+            self.backward_ts_graph, self.forward_ts_graph)
+        self.reactants_keys, self.products_keys = (
+            self.products_keys, self.reactants_keys)
 
     def standardize_keys(self):
         """ standardize keys and, optionally, sort reactant and product
@@ -197,12 +208,10 @@ def hydrogen_migrations(rct_gras, prd_gras):
             iso_dct = full_isomorphism(gra1_h, gra2_h)
             inv_dct = dict(map(reversed, iso_dct.items()))
             if inv_dct:
-                f_frm_bnd_key = frozenset({atm_key1, inv_dct[h_atm_key2]})
-                f_brk_bnd_key = frozenset({inv_dct[atm_key2],
-                                           inv_dct[h_atm_key2]})
-                b_frm_bnd_key = frozenset({atm_key2, iso_dct[h_atm_key1]})
-                b_brk_bnd_key = frozenset({iso_dct[atm_key1],
-                                           iso_dct[h_atm_key1]})
+                f_frm_bnd_key = (atm_key1, inv_dct[h_atm_key2])
+                f_brk_bnd_key = (inv_dct[atm_key2], inv_dct[h_atm_key2])
+                b_frm_bnd_key = (atm_key2, iso_dct[h_atm_key1])
+                b_brk_bnd_key = (iso_dct[atm_key1], iso_dct[h_atm_key1])
                 forw_tsg = ts.graph(gra1,
                                     frm_bnd_keys=[f_frm_bnd_key],
                                     brk_bnd_keys=[f_brk_bnd_key])
@@ -259,10 +268,10 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                 # Create the forward/backward ts graphs
                 rcts_gra = union_from_sequence(rct_gras)
                 prds_gra = union_from_sequence(prd_gras)
-                f_frm_bnd_key = frozenset({f_q2_q_atm_key, f_q1h_h_atm_key})
-                f_brk_bnd_key = frozenset({f_q1h_q_atm_key, f_q1h_h_atm_key})
-                b_frm_bnd_key = frozenset({b_q2_q_atm_key, b_q1h_h_atm_key})
-                b_brk_bnd_key = frozenset({b_q1h_q_atm_key, b_q1h_h_atm_key})
+                f_frm_bnd_key = (f_q2_q_atm_key, f_q1h_h_atm_key)
+                f_brk_bnd_key = (f_q1h_q_atm_key, f_q1h_h_atm_key)
+                b_frm_bnd_key = (b_q2_q_atm_key, b_q1h_h_atm_key)
+                b_brk_bnd_key = (b_q1h_q_atm_key, b_q1h_h_atm_key)
                 forw_tsg = ts.graph(rcts_gra,
                                     frm_bnd_keys=[f_frm_bnd_key],
                                     brk_bnd_keys=[f_brk_bnd_key])
@@ -308,9 +317,8 @@ def additions(rct_gras, prd_gras):
             if iso_dct:
                 rcts_gra = union_from_sequence(rct_gras)
                 prds_gra = prd_gra
-                f_frm_bnd_key = frozenset({x_atm_key, y_atm_key})
-                b_brk_bnd_key = frozenset({iso_dct[x_atm_key],
-                                           iso_dct[y_atm_key]})
+                f_frm_bnd_key = (x_atm_key, y_atm_key)
+                b_brk_bnd_key = (iso_dct[x_atm_key], iso_dct[y_atm_key])
                 forw_tsg = ts.graph(rcts_gra,
                                     frm_bnd_keys=[f_frm_bnd_key],
                                     brk_bnd_keys=[])
@@ -334,6 +342,70 @@ def additions(rct_gras, prd_gras):
     return tuple(rxns)
 
 
+def beta_scissions(rct_gras, prd_gras):
+    """ find a beta scission transformation
+
+    Implemented as the reverse of an addition reaction.
+    """
+    rxns = additions(prd_gras, rct_gras)
+    for rxn in rxns:
+        rxn.reverse()
+
+    return tuple(rxns)
+
+
+def ring_forming_scissions(rct_gras, prd_gras):
+    """ find a ring-forming scission
+
+    Ring-forming scissions are found by breaking ring-bonds on one product and
+    joining the ends to unsaturated sites on the other product
+    """
+    _assert_is_valid_reagent_graph_list(rct_gras)
+    _assert_is_valid_reagent_graph_list(prd_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 1 and len(prd_gras) == 2:
+        rgra, = rct_gras
+        pgra = union_from_sequence(prd_gras)
+        for pgra1, pgra2 in itertools.permutations(prd_gras):
+            bnd_keys = list(itertools.chain(*rings_bond_keys(pgra1)))
+            atm_keys = unsaturated_atom_keys(pgra2)
+
+            for bnd_key, atm_key in itertools.product(bnd_keys, atm_keys):
+                # Break a ring bond
+                gra = remove_bonds(pgra, [bnd_key])
+
+                for end_key in bnd_key:
+                    # Add to one end of the broken ring
+                    fgra = add_bonds(gra, [(atm_key, end_key)])
+                    inv_dct = full_isomorphism(fgra, rgra)
+                    if inv_dct:
+                        other_end_key, = bnd_key - {end_key}
+                        f_frm_bnd_key = (inv_dct[end_key],
+                                         inv_dct[other_end_key])
+                        f_brk_bnd_key = (inv_dct[end_key], inv_dct[atm_key])
+                        b_frm_bnd_key = (end_key, atm_key)
+                        b_brk_bnd_key = (end_key, other_end_key)
+                        forw_tsg = ts.graph(rgra,
+                                            frm_bnd_keys=[f_frm_bnd_key],
+                                            brk_bnd_keys=[f_brk_bnd_key])
+                        back_tsg = ts.graph(pgra,
+                                            frm_bnd_keys=[b_frm_bnd_key],
+                                            brk_bnd_keys=[b_brk_bnd_key])
+
+                        # Create the reaction object
+                        rxns.append(GraphReaction(
+                            rxn_cls=par.ReactionClass.RING_FORM_SCISSION,
+                            forw_tsg=forw_tsg,
+                            back_tsg=back_tsg,
+                            rcts_keys=[atom_keys(rgra)],
+                            prds_keys=[atom_keys(pgra1), atom_keys(pgra2)],
+                        ))
+
+    return tuple(rxns)
+
+
 def classify(rct_gras, prd_gras):
     """ classify a reaction
     """
@@ -351,7 +423,8 @@ def classify(rct_gras, prd_gras):
         hydrogen_migrations,
         hydrogen_abstractions,
         additions,
-        # beta_scissions,
+        beta_scissions,
+        ring_forming_scissions,
         # eliminations,
         # insertions,
         # substitutions,
