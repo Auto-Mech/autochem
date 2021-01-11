@@ -1,6 +1,7 @@
 """ generate ts geometries
 """
 import numpy
+import scipy
 from qcelemental import constants as qcc
 import automol.graph
 import automol.convert.geom
@@ -42,7 +43,23 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
 
     r34 = vec.distance(orig_xyz3, orig_xyz4)
 
-    xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1)
+    # Place xyz3 as far away from the atoms in geo1 as possible by optimizing
+    # the undetermined dihedral angle
+    xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
+
+    def _distance_norm(dih):  # objective function for minimization
+        xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
+                                  dih=dih, xyz3=xyz0)
+        dist_norm = numpy.linalg.norm(numpy.subtract(xyzs1, xyz3))
+        # return the negative norm so that minimum value gives maximum distance
+        return -dist_norm
+
+    res = scipy.optimize.basinhopping(_distance_norm, 0.)
+    dih = res.x[0]
+
+    # Now, get the next position with the optimized dihedral angle
+    xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
+                              dih=dih, xyz3=xyz0)
 
     # Don't use the dihedral angle if 1-2-3 are linear
     if numpy.abs(a123 * RAD2DEG - 180.) > 5.:
@@ -59,3 +76,17 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
 
     geo = automol.create.geom.from_data(syms, xyzs, angstrom=angstrom)
     return geo
+
+
+def _maximize_xyz3_distance(dist, xyz1, ang, xyz2, against_xyzs=()):
+    """ place another atom, maximizing its distance from another set of atoms
+    """
+    xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
+
+    against_xyzs = numpy.array(against_xyzs)
+
+    def _distance_norm(dih):
+        xyz3 = vec.from_internals(dist=dist, xyz1=xyz1, ang=ang, xyz2=xyz2,
+                                  dih=dih, xyz3=xyz0)
+        dist_norm = numpy.linalg.norm(against_xyzs - numpy.array(xyz3))
+        return dist_norm

@@ -9,28 +9,15 @@ class ReactionClass:
     """
     TRIVIAL = 'trivial'
     # Unimolecular reactions
+    HYDROGEN_MIGRATION = 'hydrogen migration'
     BETA_SCISSION = 'beta scission'
     ELIMINATION = 'elimination'
     RING_FORM_SCISSION = 'ring forming scission'
     # Bimolecular reactions
-    HYDROGEN_MIGRATION = 'hydrogen migration'
     HYDROGEN_ABSTRACTION = 'hydrogen abstraction'
     ADDITION = 'addition'
     INSERTION = 'insertion'
     SUBSTITUTION = 'substitution'
-
-
-# REVERSE_REACTION_DCT = {
-#     ReactionClass.HYDROGEN_ABSTRACTION: ReactionClass.HYDROGEN_ABSTRACTION,
-#     ReactionClass.HYDROGEN_MIGRATION: ReactionClass.HYDROGEN_MIGRATION,
-#     ReactionClass.ADDITION: ReactionClass.RECOMBINATION,
-# }
-
-
-def is_reaction_class(rxn_class):
-    """ Check if class in list of REACTION CLASS
-    """
-    return rxn_class in _values(ReactionClass)
 
 
 REVERSE_REACTION_DCT = {
@@ -38,7 +25,16 @@ REVERSE_REACTION_DCT = {
     ReactionClass.HYDROGEN_ABSTRACTION: ReactionClass.HYDROGEN_ABSTRACTION,
     ReactionClass.ADDITION: ReactionClass.BETA_SCISSION,
     ReactionClass.BETA_SCISSION: ReactionClass.ADDITION,
+    # ReactionClass.ELIMINATION: ?
+    # ReactionClass.INSERTION: ?
+    # ReactionClass.SUBSTITUTION: ?
 }
+
+
+def is_reaction_class(rxn_class):
+    """ Check if class in list of REACTION CLASS
+    """
+    return rxn_class in _values(ReactionClass)
 
 
 def reverse_reaction_class(rxn_class):

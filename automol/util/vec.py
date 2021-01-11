@@ -29,7 +29,7 @@ def are_parallel(xyz1, xyz2, orig_xyz=(0., 0., 0.), tol=1e-7):
     return det > tol
 
 
-def orthogonalize(xyz1, xyz2, normalize=True):
+def orthogonalize(xyz1, xyz2, normalize=False):
     """ orthogonalize `xyz2` against `xyz1`
     """
     overlap = numpy.dot(xyz1, xyz2)
@@ -38,6 +38,17 @@ def orthogonalize(xyz1, xyz2, normalize=True):
     if normalize:
         oxyz2 = unit_norm(oxyz2)
     return oxyz2
+
+
+def arbitrary_unit_perpendicular(xyz, orig_xyz=(0., 0., 0.)):
+    """ determine an arbitrary perpendicular vector
+    """
+    for xyz2 in ([1., 0., 0.], [0., 1., 0.], [0., 0., 1]):
+        uxyz = unit_perpendicular(xyz, xyz2, orig_xyz=orig_xyz)
+        if numpy.linalg.norm(uxyz) > 1e-7:
+            break
+
+    return uxyz
 
 
 def unit_perpendicular(xyz1, xyz2, orig_xyz=(0., 0., 0.), allow_parallel=True):
