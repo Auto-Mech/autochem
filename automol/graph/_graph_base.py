@@ -32,13 +32,15 @@ def bonds(gra):
     return bnd_dct
 
 
-def atom_keys(gra, sym=None):
+def atom_keys(gra, sym=None, excl_syms=()):
     """ atom keys
     """
     atm_keys = frozenset(atoms(gra).keys())
     if sym is not None:
         atm_sym_dct = atom_symbols(gra)
-        atm_keys = frozenset(k for k in atm_keys if atm_sym_dct[k] == sym)
+        atm_keys = frozenset(k for k in atm_keys
+                             if atm_sym_dct[k] == sym and
+                             atm_sym_dct[k] not in excl_syms)
     return atm_keys
 
 

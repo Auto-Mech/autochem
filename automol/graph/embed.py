@@ -27,6 +27,7 @@ The function sample_raw_distance_geometry() below returns the result of step
 automol.embed.
 """
 import itertools
+import more_itertools as mit
 import numpy
 import qcelemental as qce
 from qcelemental import constants as qcc
@@ -243,11 +244,14 @@ def path_distance_bounds_(gra):
                     gra, *path, hyb_dct=hyb_dct)
             else:
                 a123 = (rsz - 2.) * 180. / rsz
-                rdist = heuristic_bond_angle_distance(gra, *path, a123=a123)
+                la123 = a123 - 10.
+                ua123 = a123 + 10.
+                lrdist = heuristic_bond_angle_distance(gra, *path, a123=la123)
+                urdist = heuristic_bond_angle_distance(gra, *path, a123=ua123)
                 odist = heuristic_bond_angle_distance(
                     gra, *path, hyb_dct=hyb_dct)
-                ldist = min(rdist, odist)
-                udist = max(rdist, odist)
+                ldist = min(lrdist, odist)
+                udist = max(urdist, odist)
         elif len(path) == 4:
             if rsz == 0:
                 key2, key3 = path[1:3]
@@ -528,11 +532,9 @@ def planarity_constraint_bounds(gra, keys):
 
 
 def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
-                                     angstrom=True, degree=True, keys=None,
-                                     check=True):
+                                     angstrom=True, degree=True,
+                                     rings_keys=(), keys=None, check=True):
     """ generate a set of distance ranges from coordinate values
-
-    (Can easily add torsions, but haven't needed it yet.)
 
     :param gra: molecular graph
     atom keys specifying the order of indices in the matrix
@@ -546,6 +548,8 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
         are quadruples of atoms; if the first or last element in a triple is
         None, an appopriate neighboring atom will be found
     :type dist_dct: dict[(int, int, int): float]
+    :param rings_keys: keys for rings in the graph; angle ranges will
+        automatically be set to allow ring formation
     :param keys: set of keys that can be used to fill in the angle keys; if
         None, all graph keys will be considered available for use
     :param check: check the angle keys to make sure they can all be filled in?
@@ -561,10 +565,12 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
     if None in ang_dct:
         ang_dct.pop(None)
 
+    # Fill in dihedral keys
     dih_dct = dict_.transform_keys(dih_dct, ang_key_filler_)
     if None in ang_dct:
         dih_dct.pop(None)
 
+    # Convert angles into distances
     dist_dct = dict_.transform_keys(dist_dct, frozenset)
     for (key1, key2, key3), a123 in ang_dct.items():
         a123 *= DEG2RAD if degree else 1.
@@ -582,6 +588,7 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
 
         dist_dct[k13] = d13
 
+    # Convert dihedrals into distances
     for (key1, key2, key3, key4), d1234 in dih_dct.items():
         d1234 *= DEG2RAD if degree else 1.
 
@@ -614,7 +621,32 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
 
         dist_dct[k14] = d14
 
+    # Convert convert fixed distances into ranges
     dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
+
+    for rng_keys in rings_keys:
+        assert hasattr(keys, '__iter__'), (
+            "Please pass in rings keys as a list of lists")
+
+        rsz = len(rng_keys)
+        a123 = (rsz - 2.) * 180. / rsz
+        la123 = (a123 - 10.) * DEG2RAD
+        ua123 = (a123 + 10.) * DEG2RAD
+
+        for key1, key2, key3 in mit.windowed(rng_keys + rng_keys[:2], 3):
+            k12 = frozenset({key1, key2})
+            k23 = frozenset({key2, key3})
+            k13 = frozenset({key1, key3})
+
+            d12 = (dist_dct[k12] if k12 in dist_dct else
+                   heuristic_bond_distance(gra, key1, key2, angstrom=angstrom))
+            d23 = (dist_dct[k23] if k23 in dist_dct else
+                   heuristic_bond_distance(gra, key2, key3, angstrom=angstrom))
+
+            ld13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(la123))
+            ud13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(ua123))
+            dist_range_dct[k13] = (ld13, ud13)
+
     return dist_range_dct
 
 
