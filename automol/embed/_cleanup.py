@@ -77,7 +77,7 @@ def volume_gradient(xmat, idxs):
 
 
 def error_function_(lmat, umat, chi_dct=None, pla_dct=None, wdist=1., wchip=1.,
-                    wdim4=1., leps=0.1, ueps=0.1):
+                    wdim4=1., leps=0.1, ueps=0.1, log=False):
     """ the embedding error function
 
     :param lmat: lower-bound distance matrix
@@ -109,6 +109,22 @@ def error_function_(lmat, umat, chi_dct=None, pla_dct=None, wdist=1., wchip=1.,
         utf *= (utf > 0.)
         dist_err = wdist * (numpy.vdot(utf, utf) + numpy.vdot(ltf, ltf))
 
+        if log:
+            print('Error report:')
+            print('\tDistance error:', dist_err)
+            lerrs = (lmat-dmat) * (lmat > dmat)
+            uerrs = (dmat-umat) * (dmat > umat)
+            lsrt_idxs = numpy.unravel_index(
+                numpy.argsort(numpy.ravel(-lerrs)), lerrs.shape)
+            usrt_idxs = numpy.unravel_index(
+                numpy.argsort(numpy.ravel(-uerrs)), uerrs.shape)
+            print('\tGreatest lower-bound errors:')
+            for idxs in list(zip(*lsrt_idxs))[:5]:
+                print('\t\t', idxs, lerrs[idxs])
+            print('\tGreatest upper-bound errors:')
+            for idxs in list(zip(*usrt_idxs))[:5]:
+                print('\t\t', idxs, uerrs[idxs])
+
         # chirality/planarity error (equation 62 in the paper referenced above)
         if chip_dct:
             vols = numpy.array(
@@ -120,11 +136,18 @@ def error_function_(lmat, umat, chi_dct=None, pla_dct=None, wdist=1., wchip=1.,
         else:
             chip_err = 0.
 
+        if log:
+            print('\tChirality/planarity error:', chip_err)
+
         # fourth-dimension error
         if numpy.shape(xmat)[1] == 4:
             dim4_err = wdim4 * numpy.vdot(xmat[:, 3], xmat[:, 3])
         else:
             dim4_err = 0.
+
+        if log:
+            print('\tFourth dimension error:', dim4_err)
+            print()
 
         return dist_err + chip_err + dim4_err
 
@@ -240,8 +263,8 @@ def line_search_alpha(err_, sd1, cd1):
 
 
 def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
-                           conv_=None, max_dist_err=0.5, maxiter=None,
-                           chi_flip=True, dim4=True):
+                           conv_=None, max_dist_err=0.1, maxiter=None,
+                           chi_flip=True, dim4=True, log=False):
     """ clean up coordinates by conjugate-gradients error minimization
 
     :param xmat: the initial guess coordinates to be cleaned up
@@ -285,7 +308,7 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
     maxiter = int(numpy.size(xmat) * 5 if maxiter is None else maxiter)
 
     err_ = error_function_(
-        lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
+        lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1., log=log)
     grad_ = error_function_gradient_(
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
     conv_ = (distance_convergence_checker_(lmat, umat, max_dist_err)

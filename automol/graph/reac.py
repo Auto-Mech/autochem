@@ -432,28 +432,34 @@ def eliminations(rct_gras, prd_gras):
         rgra, = rct_gras
         pgra = union_from_sequence(prd_gras)
 
-        rad_keys = unsaturated_atom_keys(rgra)
-        hyd_keys = atom_keys(rgra, sym='H')
+        frm1_keys = atom_keys(rgra, excl_syms=('H',))
+        frm2_keys = atom_keys(rgra)
+        bnd_keys = bond_keys(rgra)
 
-        for hyd_key, rad_key in itertools.product(hyd_keys, rad_keys):
+        frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
+                        in itertools.product(frm1_keys, frm2_keys)
+                        if frm1_key != frm2_key and
+                        not frozenset({frm1_key, frm2_key}) in bnd_keys]
+
+        for frm1_key, frm2_key in frm_bnd_keys:
             # Figure out what the hydrogen was bonded to before
-            hngb_key = atom_neighbor_key(rgra, hyd_key)
+            nfrm2_key = atom_neighbor_key(rgra, frm2_key)
 
             # Bond the radical atom to the hydrogen atom
-            rgra_ = add_bonds(rgra, [(hyd_key, rad_key)])
+            rgra_ = add_bonds(rgra, [(frm2_key, frm1_key)])
 
             # Get keys to the ring formed by this extra bond
             rng_keys = next((ks for ks in rings_atom_keys(rgra_)
-                             if hyd_key in ks and rad_key in ks), None)
+                             if frm2_key in ks and frm1_key in ks), None)
             if rng_keys is not None:
                 # Break the bond between the H and its previous neighbor
-                if hngb_key is not None:
-                    rgra_ = remove_bonds(rgra_, [(hyd_key, hngb_key)])
+                if nfrm2_key is not None:
+                    rgra_ = remove_bonds(rgra_, [(frm2_key, nfrm2_key)])
 
                 # Sort the ring keys so that they start with the radical atom
                 # and end with the hydrogen atom
-                keys = cycle_ring_atom_key_to_front(rng_keys, rad_key,
-                                                    end_key=hyd_key)
+                keys = cycle_ring_atom_key_to_front(rng_keys, frm1_key,
+                                                    end_key=frm2_key)
 
                 # Break one ring bond at a time, starting from the rind, and
                 # see what we get
@@ -462,12 +468,13 @@ def eliminations(rct_gras, prd_gras):
 
                     inv_dct = full_isomorphism(gra, pgra)
                     if inv_dct:
-                        f_frm_bnd_key = (hyd_key, rad_key)
-                        f_brk_bnd_key1 = (hyd_key, hngb_key)
+                        f_frm_bnd_key = (frm2_key, frm1_key)
+                        f_brk_bnd_key1 = (frm2_key, nfrm2_key)
                         f_brk_bnd_key2 = (brk_key1, brk_key2)
-                        b_frm_bnd_key1 = (inv_dct[hyd_key], inv_dct[hngb_key])
+                        b_frm_bnd_key1 = (inv_dct[frm2_key],
+                                          inv_dct[nfrm2_key])
                         b_frm_bnd_key2 = (inv_dct[brk_key1], inv_dct[brk_key2])
-                        b_brk_bnd_key = (inv_dct[hyd_key], inv_dct[rad_key])
+                        b_brk_bnd_key = (inv_dct[frm2_key], inv_dct[frm1_key])
                         forw_tsg = ts.graph(rgra,
                                             frm_bnd_keys=[f_frm_bnd_key],
                                             brk_bnd_keys=[f_brk_bnd_key1,
@@ -480,7 +487,7 @@ def eliminations(rct_gras, prd_gras):
                         rcts_atm_keys = list(map(atom_keys, rct_gras))
                         prds_atm_keys = list(map(atom_keys, prd_gras))
 
-                        if inv_dct[hyd_key] not in prds_atm_keys[1]:
+                        if inv_dct[frm2_key] not in prds_atm_keys[1]:
                             prds_atm_keys = list(reversed(prds_atm_keys))
 
                         # Create the reaction object

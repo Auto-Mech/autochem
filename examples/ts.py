@@ -27,12 +27,12 @@ import automol
 # PRD_ICHS = list(map(automol.smiles.inchi, ['C1CO1', '[OH]']))
 
 #    f. elimination: CH3CH2OO => C2H4 + HOO
-RCT_ICHS = list(map(automol.smiles.inchi, ['CCO[O]']))
-PRD_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
+# RCT_ICHS = list(map(automol.smiles.inchi, ['CCO[O]']))
+# PRD_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
 
 #    g. insertion: CH3CH3 + CH2 => C2H4 + HOO
-# RCT_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
-# PRD_ICHS = list(map(automol.smiles.inchi, ['CCC']))
+RCT_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
+PRD_ICHS = list(map(automol.smiles.inchi, ['CCC']))
 
 #    h. substitution: H2O2 + H => H2O + OH
 # RCT_ICHS = list(map(automol.smiles.inchi, ['OO', '[H]']))
@@ -202,13 +202,17 @@ if RXN.class_ == automol.par.ReactionClass.ELIMINATION:
     RELAX_ANG = True
     RELAX_TORS = True
 
+    # Also handle the angles for the forming ring
+    FRM_RNG_KEYS, = automol.graph.ts.forming_rings_atom_keys(
+        RXN.forward_ts_graph)
+
     # b. Use the reactant(s) for the initial geometry
     GEO_INIT, = RCT_GEOS
 
     # b. Generate distance ranges for coordinates at the reaction site
     DIST_DCT = {(KEY2, KEY3): R23}
     DIST_RANGE_DCT = automol.graph.embed.distance_ranges_from_coordinates(
-        GRA, DIST_DCT, keys=KEYS)
+        GRA, DIST_DCT, keys=KEYS, rings_keys=[FRM_RNG_KEYS])
 
     # d. Generate bounds matrices
     LMAT, UMAT = automol.graph.embed.join_distance_bounds_matrices(
@@ -223,12 +227,15 @@ if RXN.class_ == automol.par.ReactionClass.INSERTION:
 if RXN.class_ == automol.par.ReactionClass.SUBSTITUTION:
     print("HI SUBSTITUTION")
 
+sys.exit()
+
 XMAT = automol.geom.coordinates(GEO_INIT, angstrom=True)
 
 # 6. Optimize the coordinates to satisfy the appropriate constraints
 XMAT, CONV = automol.embed.cleaned_up_coordinates(
     XMAT, LMAT, UMAT, chi_dct=CHI_DCT, pla_dct=PLA_DCT, max_dist_err=1e-1,
-    dim4=False)
+    dim4=False, log=True)
+
 GEO = automol.embed.geometry_from_coordinates(XMAT, SYMS)
 
 # 7. Print geometries

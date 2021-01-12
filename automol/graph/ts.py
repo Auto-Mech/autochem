@@ -10,6 +10,8 @@ from automol.graph._graph_base import bond_orders
 from automol.graph._graph_base import set_bond_orders
 from automol.graph._graph import add_bonds
 from automol.graph._graph import remove_bonds
+from automol.graph._ring import rings_bond_keys
+from automol.graph._ring import sorted_ring_atom_keys_from_bond_keys
 
 
 def graph(gra, frm_bnd_keys, brk_bnd_keys):
@@ -64,3 +66,39 @@ def products_graph(tsg):
     """ get a graph of the products from a transition state graph
     """
     return reactants_graph(reverse(tsg))
+
+
+def forming_rings_atom_keys(tsg):
+    """ get the atom keys to rings forming in the TS graph
+    """
+    frm_rngs_bnd_keys = forming_rings_bond_keys(tsg)
+    frm_rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys,
+                                  frm_rngs_bnd_keys))
+    return frm_rngs_atm_keys
+
+
+def forming_rings_bond_keys(tsg):
+    """ get the bond keys to rings forming in the TS graph
+    """
+    frm_bnd_keys = forming_bond_keys(tsg)
+    frm_rngs_bnd_keys = tuple(bks for bks in rings_bond_keys(tsg)
+                              if frm_bnd_keys & bks)
+    return frm_rngs_bnd_keys
+
+
+def breaking_rings_atom_keys(tsg):
+    """ get the atom keys to rings breaking in the TS graph
+    """
+    brk_rngs_bnd_keys = breaking_rings_bond_keys(tsg)
+    brk_rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys,
+                                  brk_rngs_bnd_keys))
+    return brk_rngs_atm_keys
+
+
+def breaking_rings_bond_keys(tsg):
+    """ get the bond keys to rings breaking in the TS graph
+    """
+    brk_bnd_keys = breaking_bond_keys(tsg)
+    brk_rngs_bnd_keys = tuple(bks for bks in rings_bond_keys(tsg)
+                              if brk_bnd_keys & bks)
+    return brk_rngs_bnd_keys

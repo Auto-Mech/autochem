@@ -32,11 +32,14 @@ def rings_atom_keys(gra):
     """ atom keys for each ring in the graph sorted by connectivity (minimal basis)
     """
     rng_atm_keys_lst = frozenset(
-        map(_sorted_ring_atom_keys, rings_bond_keys(gra)))
+        map(sorted_ring_atom_keys_from_bond_keys, rings_bond_keys(gra)))
     return rng_atm_keys_lst
 
 
-def _sorted_ring_atom_keys(rng_bnd_keys):
+def sorted_ring_atom_keys_from_bond_keys(rng_bnd_keys):
+    """ get a ring's atom keys, sorted in order of connectivity, from its bond
+    keys
+    """
     rng_bnd_keys = list(rng_bnd_keys)
     bnd_key = min(rng_bnd_keys, key=sorted)
     first_atm_key, atm_key = sorted(bnd_key)
@@ -117,7 +120,7 @@ def ring_arc_complement_atom_keys(gra, rng):
     # 2. cycle through the ring atoms; if you meet a starting divergence, start
     # an arc; extend the arc until you meet an ending divergence; repeat until
     # all divergences are accounted for
-    atm_keys = _sorted_ring_atom_keys(bond_keys(rng))
+    atm_keys = sorted_ring_atom_keys_from_bond_keys(bond_keys(rng))
 
     arcs = []
     arc = []
@@ -222,7 +225,7 @@ def ring_system_decomposed_atom_keys(rsy, rng=None, check=True):
             .format(*map(string, (rsy, rng))))
 
     bnd_keys = bond_keys(rng)
-    rng_keys = _sorted_ring_atom_keys(bnd_keys)
+    rng_keys = sorted_ring_atom_keys_from_bond_keys(bnd_keys)
 
     # Remove bonds for the ring
     rsy = remove_bonds(rsy, bnd_keys)
@@ -276,7 +279,7 @@ def _decompose_ring_system_atom_keys(rsy):
 
     rng = rngs_pool.pop(0)
     bnd_keys = bond_keys(rng)
-    atm_keys = _sorted_ring_atom_keys(bnd_keys)
+    atm_keys = sorted_ring_atom_keys_from_bond_keys(bnd_keys)
 
     decomp += (atm_keys,)
     decomp_bnd_keys.update(bnd_keys)
