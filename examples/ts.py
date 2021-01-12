@@ -23,8 +23,20 @@ import automol
 # PRD_ICHS = list(map(automol.smiles.inchi, ['CC[CH2]', '[O][O]']))
 
 #    e. ring-forming scission: [CH2]CH2OOH =>
-RCT_ICHS = list(map(automol.smiles.inchi, ['[CH2]COO']))
-PRD_ICHS = list(map(automol.smiles.inchi, ['C1CO1', '[OH]']))
+# RCT_ICHS = list(map(automol.smiles.inchi, ['[CH2]COO']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['C1CO1', '[OH]']))
+
+#    f. elimination: CH3CH2OO => C2H4 + HOO
+RCT_ICHS = list(map(automol.smiles.inchi, ['CCO[O]']))
+PRD_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
+
+#    g. insertion: CH3CH3 + CH2 => C2H4 + HOO
+# RCT_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['CCC']))
+
+#    h. substitution: H2O2 + H => H2O + OH
+# RCT_ICHS = list(map(automol.smiles.inchi, ['OO', '[H]']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['O', '[OH]']))
 
 # 2. Generate reactant/product graphs
 RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))
@@ -62,9 +74,9 @@ if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
     FRM_BND_KEY, = FRM_BND_KEYS
     KEY2, KEY3 = sorted(FRM_BND_KEY)
     R23 = 1.6
-    A123 = 180.
-    A234 = 90.
-    RELAX = False
+    A123 = 170.
+    A234 = 85.
+    RELAX_TORS = False
 
     # b. Use the reactant(s) for the initial geometry
     GEO_INIT = automol.geom.ts.join(*RCT_GEOS, key2=KEY2, key3=KEY3, r23=R23,
@@ -78,7 +90,7 @@ if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
 
     # d. Generate bounds matrices
     LMAT, UMAT = automol.graph.embed.join_distance_bounds_matrices(
-        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX)
+        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX_TORS)
     CHI_DCT = automol.graph.embed.chirality_constraint_bounds(GRA, KEYS)
     PLA_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
 
@@ -87,7 +99,7 @@ if RXN.class_ == automol.par.ReactionClass.HYDROGEN_MIGRATION:
     FRM_BND_KEY, = FRM_BND_KEYS
     KEY2, KEY3 = sorted(FRM_BND_KEY)
     R23 = 1.6
-    RELAX = True
+    RELAX_TORS = True
 
     # b. Use the reactant(s) for the initial geometry
     GEO_INIT, = RCT_GEOS
@@ -99,7 +111,7 @@ if RXN.class_ == automol.par.ReactionClass.HYDROGEN_MIGRATION:
 
     # d. Generate bounds matrices
     LMAT, UMAT = automol.graph.embed.join_distance_bounds_matrices(
-        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX)
+        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX_TORS)
     CHI_DCT = automol.graph.embed.chirality_constraint_bounds(GRA, KEYS)
     PLA_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
 
@@ -108,32 +120,40 @@ if RXN.class_ == automol.par.ReactionClass.ADDITION:
     FRM_BND_KEY, = FRM_BND_KEYS
     KEY2, KEY3 = sorted(FRM_BND_KEY)
     R23 = 1.9
-    RELAX = False
+    A123 = 85.
+    A234 = 85.
+    D1234 = 85.
+    RELAX_TORS = False
 
     # c. Generate distance ranges for coordinates at the reaction site
+    # NOTE: NEED TO PUT IN GEOMETRY PARAMETERS AS WELL, TO AVOID OVERWRITING
+    # THEM WITH HEURISTICS
     DIST_DCT = {(KEY2, KEY3): R23}
+    ANG_DCT = {(None, KEY2, KEY3): A123, (KEY2, KEY3, None): A234}
+    DIH_DCT = {(None, KEY2, KEY3, None): D1234}
     DIST_RANGE_DCT = automol.graph.embed.distance_ranges_from_coordinates(
-        GRA, DIST_DCT, degree=True, keys=KEYS)
+        GRA, DIST_DCT, ang_dct=ANG_DCT, dih_dct=DIH_DCT, degree=True,
+        keys=KEYS)
 
     # b. Use the reactant(s) for the initial geometry
     GEO_INIT = automol.geom.ts.join(*RCT_GEOS, key2=KEY2, key3=KEY3, r23=R23)
 
     # d. Generate bounds matrices
     LMAT, UMAT = automol.graph.embed.join_distance_bounds_matrices(
-        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX)
+        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX_TORS)
     CHI_DCT = automol.graph.embed.chirality_constraint_bounds(GRA, KEYS)
     PLA_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
 
 if RXN.class_ == automol.par.ReactionClass.BETA_SCISSION:
     # do absolutely nothing
     GEO_INIT, = RCT_GEOS
-    RELAX = False
+    RELAX_TORS = False
 
     DIST_RANGE_DCT = {}
 
     # d. Generate bounds matrices
     LMAT, UMAT = automol.graph.embed.join_distance_bounds_matrices(
-        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX)
+        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX_TORS)
     CHI_DCT = automol.graph.embed.chirality_constraint_bounds(GRA, KEYS)
     PLA_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
 
@@ -153,7 +173,7 @@ if RXN.class_ == automol.par.ReactionClass.RING_FORM_SCISSION:
     A234 = 85.
     D1234 = 170.
 
-    RELAX = True
+    RELAX_TORS = True
 
     # c. Generate distance ranges for coordinates at the reaction site
     # NOTE: NEED TO PUT IN GEOMETRY PARAMETERS AS WELL, TO AVOID OVERWRITING
@@ -170,9 +190,38 @@ if RXN.class_ == automol.par.ReactionClass.RING_FORM_SCISSION:
 
     # d. Generate bounds matrices
     LMAT, UMAT = automol.graph.embed.join_distance_bounds_matrices(
-        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX)
+        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX_TORS)
     CHI_DCT = automol.graph.embed.chirality_constraint_bounds(GRA, KEYS)
     PLA_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
+
+if RXN.class_ == automol.par.ReactionClass.ELIMINATION:
+    # a. Read in the formed bonds and set the reaction site coordinates
+    FRM_BND_KEY, = FRM_BND_KEYS
+    KEY2, KEY3 = sorted(FRM_BND_KEY)
+    R23 = 1.6
+    RELAX_ANG = True
+    RELAX_TORS = True
+
+    # b. Use the reactant(s) for the initial geometry
+    GEO_INIT, = RCT_GEOS
+
+    # b. Generate distance ranges for coordinates at the reaction site
+    DIST_DCT = {(KEY2, KEY3): R23}
+    DIST_RANGE_DCT = automol.graph.embed.distance_ranges_from_coordinates(
+        GRA, DIST_DCT, keys=KEYS)
+
+    # d. Generate bounds matrices
+    LMAT, UMAT = automol.graph.embed.join_distance_bounds_matrices(
+        GRA, KEYS, DIST_RANGE_DCT, geos=RCT_GEOS, relax_torsions=RELAX_TORS,
+        relax_angles=RELAX_ANG)
+    CHI_DCT = automol.graph.embed.chirality_constraint_bounds(GRA, KEYS)
+    PLA_DCT = automol.graph.embed.planarity_constraint_bounds(GRA, KEYS)
+
+if RXN.class_ == automol.par.ReactionClass.INSERTION:
+    print("HI INSERTION")
+
+if RXN.class_ == automol.par.ReactionClass.SUBSTITUTION:
+    print("HI SUBSTITUTION")
 
 XMAT = automol.geom.coordinates(GEO_INIT, angstrom=True)
 

@@ -62,9 +62,10 @@ from automol.zmatrix._zmatrix import torsional_scan_linspaces
 
 # submodules
 from automol.zmatrix import ts
+from automol.zmatrix._zmatrix import shift_row_to_end
 from automol.zmatrix._util import shifted_standard_zmas_graphs
 from automol.zmatrix._util import shift_vals_from_dummy
-from automol.zmatrix._newutil import remove_dummies
+from automol.zmatrix._util import remove_dummies
 
 # constructors
 import automol.create.zmatrix
@@ -75,7 +76,6 @@ import automol.convert.zmatrix
 def from_data(syms, key_mat, name_mat, val_dct,
               one_indexed=False, angstrom=False, degree=False):
     """ z-matrix constructor
-
     :param syms: atomic symbols
     :type syms: tuple[str]
     :param key_mat: key/index columns of the z-matrix, zero-indexed
@@ -99,7 +99,6 @@ def geometry(zma, remove_dummy_atoms=None):
 
 def torsion_coordinate_names(zma):
     """ z-matrix torsional coordinate names
-
     (currently assumes torsional coordinates generated through x2z)
     """
     name_dct = standard_names(zma)
@@ -246,6 +245,7 @@ __all__ = [
 
     # submodules
     'ts',
+    'shift_row_to_end',
     'shifted_standard_zmas_graphs',
     'shift_vals_from_dummy',
     'remove_dummies',

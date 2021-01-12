@@ -52,6 +52,24 @@ def to_zmatrix(x2m):
     return zma
 
 
+def to_zmatrix_old(x2m):
+    """ z-matrix from an x2z molecule object
+    """
+    zma_str = pyx2z.zmatrix_string(x2m)
+
+    syms, key_mat, name_mat, val_dct = ar.zmatrix.read(
+        zma_str,
+        mat_entry_sep_ptt=',',
+        mat_entry_start_ptt=',',
+        setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
+
+    zma = automol.create.zmatrix.from_data(
+        syms, key_mat, name_mat, val_dct,
+        one_indexed=True, angstrom=False, degree=True)
+
+    return zma
+
+
 def zmatrix_torsion_coordinate_names(x2m):
     """ z-matrix torsion coordinate name from an x2z molecule object
     """

@@ -58,7 +58,6 @@ from automol.graph._geom import _atom_stereo_parity_from_geometry
 from automol.graph._geom import _bond_stereo_parity_from_geometry
 from automol.graph._res import resonance_dominant_atom_hybridizations
 
-
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 DEG2RAD = qcc.conversion_factor('degree', 'radian')
 RAD2DEG = qcc.conversion_factor('radian', 'degree')
@@ -334,8 +333,8 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
 
 
 def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
-                                  relax_torsions=False, sp_dct=None,
-                                  angstrom=True):
+                                  relax_angles=False, relax_torsions=False,
+                                  sp_dct=None, angstrom=True):
     """ distance bounds matrices for joining multiple geometries
 
     :param gra: molecular graph
@@ -360,7 +359,7 @@ def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
     lmat_old = numpy.copy(lmat)
     umat_old = numpy.copy(umat)
 
-    # 2. set known geometric parameters
+    # 1. set known geometric parameters
     if geos:
         xmats = [automol.geom.coordinates(geo, angstrom=angstrom)
                  for geo in geos]
@@ -376,7 +375,7 @@ def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
 
             start = end
 
-    # 3. reopen bounds on the torsions from the reactant
+    # 2. reopen bounds on the torsions from the reactant
     if relax_torsions:
         tors_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
                     if j in sp_dct[i] and len(sp_dct[i][j]) >= 4]
@@ -387,7 +386,18 @@ def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
         lmat[tors_idxs] = lmat_old[tors_idxs]
         umat[tors_idxs] = umat_old[tors_idxs]
 
-    # 1. set distance bounds for the forming bonds
+    # 3. reopen bounds on the angles from the reactant
+    if relax_angles:
+        ang_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
+                   if j in sp_dct[i] and len(sp_dct[i][j]) >= 3]
+        ang_ijs += list(map(list, map(reversed, ang_ijs)))
+
+        ang_idxs = tuple(map(list, zip(*ang_ijs)))
+
+        lmat[ang_idxs] = lmat_old[ang_idxs]
+        umat[ang_idxs] = umat_old[ang_idxs]
+
+    # 4. set distance bounds for the forming bonds
     for bnd, (ldist, udist) in dist_range_dct.items():
         idx1 = tuple(bnd)
         idx2 = tuple(reversed(idx1))

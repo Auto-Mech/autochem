@@ -14,7 +14,7 @@ from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
 from automol.graph._graph import without_stereo_parities
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
-from automol.graph.reac import reverse_class
+from automol.par import reverse_reaction_class as reverse_class
 
 
 # old
