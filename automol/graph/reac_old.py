@@ -18,7 +18,7 @@ import automol
 from automol import par
 import automol.formula
 import automol.convert.graph
-import automol.graph.trans as trans
+import automol.graph.trans_old as trans
 from automol.graph._graph_base import string
 from automol.graph._graph_base import atom_symbol_idxs
 from automol.graph._graph import atom_count

@@ -25,8 +25,8 @@ REVERSE_REACTION_DCT = {
     ReactionClass.HYDROGEN_ABSTRACTION: ReactionClass.HYDROGEN_ABSTRACTION,
     ReactionClass.ADDITION: ReactionClass.BETA_SCISSION,
     ReactionClass.BETA_SCISSION: ReactionClass.ADDITION,
-    # ReactionClass.ELIMINATION: ?
-    # ReactionClass.INSERTION: ?
+    ReactionClass.ELIMINATION: ReactionClass.INSERTION,
+    ReactionClass.INSERTION: ReactionClass.ELIMINATION,
     # ReactionClass.SUBSTITUTION: ?
 }
 

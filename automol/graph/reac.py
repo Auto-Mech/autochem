@@ -7,11 +7,13 @@ Function arguments:
     express the bonds broken and formed between reactants.
 """
 import itertools
+import more_itertools as mit
 import numpy
 import automol.convert.graph
 from automol import par
 from automol.graph import ts
 from automol.graph._graph_base import atom_keys
+from automol.graph._graph_base import bond_keys
 from automol.graph._graph_base import string
 from automol.graph._graph import atom_count
 from automol.graph._graph import heavy_atom_count
@@ -21,11 +23,14 @@ from automol.graph._graph import explicit
 from automol.graph._graph import add_bonds
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import full_isomorphism
+from automol.graph._graph import atom_neighbor_key
 from automol.graph._graph import union_from_sequence
 from automol.graph._graph import unsaturated_atom_keys
 from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import add_atom_explicit_hydrogen_keys
 from automol.graph._ring import rings_bond_keys
+from automol.graph._ring import rings_atom_keys
+from automol.graph._ring import cycle_ring_atom_key_to_front
 
 
 class GraphReaction:
@@ -406,6 +411,160 @@ def ring_forming_scissions(rct_gras, prd_gras):
     return tuple(rxns)
 
 
+def eliminations(rct_gras, prd_gras):
+    """ find eliminations
+
+    Eliminations are identified by breaking two bonds from the reactant,
+    forming three fragments. This will form one "central fragment" with two
+    break sites and two "end fragments" with one break site each. If the
+    central fragment plus the two end fragments, joined at their break sites,
+    matches the products, this is an elimination reaction.
+
+    Correction: We actually need a radical atom on one of the end fragments to
+    attack the other fragment.
+    """
+    _assert_is_valid_reagent_graph_list(rct_gras)
+    _assert_is_valid_reagent_graph_list(prd_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 1 and len(prd_gras) == 2:
+        rgra, = rct_gras
+        pgra = union_from_sequence(prd_gras)
+
+        rad_keys = unsaturated_atom_keys(rgra)
+        hyd_keys = atom_keys(rgra, sym='H')
+
+        for hyd_key, rad_key in itertools.product(hyd_keys, rad_keys):
+            # Figure out what the hydrogen was bonded to before
+            hngb_key = atom_neighbor_key(rgra, hyd_key)
+
+            # Bond the radical atom to the hydrogen atom
+            rgra_ = add_bonds(rgra, [(hyd_key, rad_key)])
+
+            # Get keys to the ring formed by this extra bond
+            rng_keys = next((ks for ks in rings_atom_keys(rgra_)
+                             if hyd_key in ks and rad_key in ks), None)
+            if rng_keys is not None:
+                # Break the bond between the H and its previous neighbor
+                if hngb_key is not None:
+                    rgra_ = remove_bonds(rgra_, [(hyd_key, hngb_key)])
+
+                # Sort the ring keys so that they start with the radical atom
+                # and end with the hydrogen atom
+                keys = cycle_ring_atom_key_to_front(rng_keys, rad_key,
+                                                    end_key=hyd_key)
+
+                # Break one ring bond at a time, starting from the rind, and
+                # see what we get
+                for brk_key1, brk_key2 in mit.windowed(keys[:-1], 2):
+                    gra = remove_bonds(rgra_, [(brk_key1, brk_key2)])
+
+                    inv_dct = full_isomorphism(gra, pgra)
+                    if inv_dct:
+                        f_frm_bnd_key = (hyd_key, rad_key)
+                        f_brk_bnd_key1 = (hyd_key, hngb_key)
+                        f_brk_bnd_key2 = (brk_key1, brk_key2)
+                        b_frm_bnd_key1 = (inv_dct[hyd_key], inv_dct[hngb_key])
+                        b_frm_bnd_key2 = (inv_dct[brk_key1], inv_dct[brk_key2])
+                        b_brk_bnd_key = (inv_dct[hyd_key], inv_dct[rad_key])
+                        forw_tsg = ts.graph(rgra,
+                                            frm_bnd_keys=[f_frm_bnd_key],
+                                            brk_bnd_keys=[f_brk_bnd_key1,
+                                                          f_brk_bnd_key2])
+                        back_tsg = ts.graph(pgra,
+                                            frm_bnd_keys=[b_frm_bnd_key1,
+                                                          b_frm_bnd_key2],
+                                            brk_bnd_keys=[b_brk_bnd_key])
+
+                        rcts_atm_keys = list(map(atom_keys, rct_gras))
+                        prds_atm_keys = list(map(atom_keys, prd_gras))
+
+                        if inv_dct[hyd_key] not in prds_atm_keys[1]:
+                            prds_atm_keys = list(reversed(prds_atm_keys))
+
+                        # Create the reaction object
+                        rxns.append(GraphReaction(
+                            rxn_cls=par.ReactionClass.ELIMINATION,
+                            forw_tsg=forw_tsg,
+                            back_tsg=back_tsg,
+                            rcts_keys=rcts_atm_keys,
+                            prds_keys=prds_atm_keys,
+                        ))
+
+    return tuple(rxns)
+
+
+def insertions(rct_gras, prd_gras):
+    """ find insertions
+
+    Implemented as the reverse of an addition reaction.
+    """
+    rxns = eliminations(prd_gras, rct_gras)
+    for rxn in rxns:
+        rxn.reverse()
+
+    return tuple(rxns)
+
+
+def substitutions(rct_gras, prd_gras):
+    """ find substitution reactions
+
+    Substitutions are identified by breaking one bond in the reactants and one
+    bond from the products and checking for isomorphism.
+    """
+    _assert_is_valid_reagent_graph_list(rct_gras)
+    _assert_is_valid_reagent_graph_list(prd_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 2 and len(prd_gras) == 2:
+        rct_gra = union_from_sequence(rct_gras)
+        prd_gra = union_from_sequence(prd_gras)
+
+        for rgra1, rgra2 in itertools.permutations(rct_gras):
+            bnd_keys = bond_keys(rgra1)
+            rad_keys = unsaturated_atom_keys(rgra2)
+
+            for bnd_key, rad_key in itertools.product(bnd_keys, rad_keys):
+                gra = remove_bonds(rct_gra, [bnd_key])
+
+                for brk_key1 in bnd_key:
+                    gra = add_bonds(gra, [(brk_key1, rad_key)])
+
+                    inv_dct = full_isomorphism(gra, prd_gra)
+                    if inv_dct:
+                        brk_key2, = bnd_key - {brk_key1}
+                        f_frm_bnd_key = (brk_key1, rad_key)
+                        f_brk_bnd_key = (brk_key1, brk_key2)
+                        b_frm_bnd_key = (inv_dct[brk_key1], inv_dct[brk_key2])
+                        b_brk_bnd_key = (inv_dct[brk_key1], inv_dct[rad_key])
+
+                        forw_tsg = ts.graph(rct_gra,
+                                            frm_bnd_keys=[f_frm_bnd_key],
+                                            brk_bnd_keys=[f_brk_bnd_key])
+                        back_tsg = ts.graph(prd_gra,
+                                            frm_bnd_keys=[b_frm_bnd_key],
+                                            brk_bnd_keys=[b_brk_bnd_key])
+
+                        rcts_atm_keys = [atom_keys(rgra1), atom_keys(rgra2)]
+
+                        prds_atm_keys = list(map(atom_keys, prd_gras))
+                        if inv_dct[rad_key] not in prds_atm_keys[0]:
+                            prds_atm_keys = list(reversed(prds_atm_keys))
+
+                        # Create the reaction object
+                        rxns.append(GraphReaction(
+                            rxn_cls=par.ReactionClass.SUBSTITUTION,
+                            forw_tsg=forw_tsg,
+                            back_tsg=back_tsg,
+                            rcts_keys=rcts_atm_keys,
+                            prds_keys=prds_atm_keys,
+                        ))
+
+    return tuple(rxns)
+
+
 def classify(rct_gras, prd_gras):
     """ classify a reaction
     """
@@ -425,9 +584,9 @@ def classify(rct_gras, prd_gras):
         additions,
         beta_scissions,
         ring_forming_scissions,
-        # eliminations,
-        # insertions,
-        # substitutions,
+        eliminations,
+        insertions,
+        substitutions,
     ]
 
     rxns = tuple(itertools.chain(*(f_(rct_gras, prd_gras) for f_ in finders_)))

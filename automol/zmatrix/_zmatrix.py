@@ -4,7 +4,6 @@
 import itertools
 import numpy
 from qcelemental import periodictable as pt
-from qcelemental import constants as qcc
 import autoread as ar
 import autowrite as aw
 import automol.graph
@@ -13,7 +12,8 @@ import automol.create.zmatrix
 import automol.convert.zmatrix
 import automol.convert.geom
 from automol import vmatrix as _v_
-from automol import util
+from automol import util as cart
+from phydat import phycon
 
 
 # constructors
@@ -91,9 +91,9 @@ def values(zma, angstrom=False, degree=False):
     val_dct = {}
     for name, val in orig_val_dct.items():
         if angstrom and name in dist_names:
-            val *= qcc.conversion_factor('bohr', 'angstrom')
+            val *= phycon.BOHR2ANG
         if degree and name in ang_names:
-            val *= qcc.conversion_factor('radian', 'degree')
+            val *= phycon.RAD2DEG
         val_dct[name] = val
     return val_dct
 
@@ -273,7 +273,7 @@ def dummy_atom_anchors(zma):
         for atm3_idx in pool[2:]:
             atm1_xyz, atm2_xyz = map(xyzs.__getitem__, atm_achs)
             atm3_xyz = xyzs[atm3_idx]
-            if not util.vec.are_parallel(atm1_xyz, atm2_xyz,
+            if not cart.vec.are_parallel(atm1_xyz, atm2_xyz,
                                          orig_xyz=atm3_xyz):
                 atm_achs.append(atm3_idx)
                 break
@@ -650,7 +650,7 @@ def convert(zma1, zma2, frm_bnd_keys=(), brk_bnd_keys=()):
     # If bonds are broken and formed, apply the transformation so that there is
     # an isomorphism between gra1 and gra2
     if frm_bnd_keys or brk_bnd_keys:
-        tra = automol.graph.trans.from_data(frm_bnd_keys, brk_bnd_keys)
+        tra = automol.graph.trans.from_data('', frm_bnd_keys, brk_bnd_keys)
         gra1 = automol.graph.trans.apply(tra, gra1)
 
     iso_dct = automol.graph.full_isomorphism(gra1, gra2)
@@ -675,7 +675,7 @@ def convert(zma1, zma2, frm_bnd_keys=(), brk_bnd_keys=()):
         xyzs = automol.geom.coordinates(geo1)
         xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
 
-        dummy_xyz = util.vec.from_internals(dist=dist, xyz1=xyz1,
+        dummy_xyz = cart.vec.from_internals(dist=dist, xyz1=xyz1,
                                             ang=ang, xyz2=xyz2,
                                             dih=dih, xyz3=xyz3)
         geo1 = automol.geom.set_coordinates(geo1, {dummy_idx: dummy_xyz})
