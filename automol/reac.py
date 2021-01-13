@@ -304,7 +304,15 @@ def hydrogen_migration_ts_embedding_info(rxn, rct_geos, angstrom=True):
     geo_init, = rct_geos
     relax_ang = True
     relax_tors = True
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 # 2. Beta scissions
@@ -344,7 +352,15 @@ def beta_scission_ts_embedding_info(rxn, rct_geos, angstrom=True):
     geo_init, = rct_geos
     relax_ang = False
     relax_tors = False
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 # 3. Ring-forming scissions
@@ -436,7 +452,15 @@ def ring_forming_scission_ts_embedding_info(rxn, rct_geos, angstrom=True):
     geo_init, = rct_geos
     relax_ang = True
     relax_tors = True
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 # 4. Eliminations
@@ -555,7 +579,15 @@ def elimination_ts_embedding_info(rxn, rct_geos, angstrom=True):
     geo_init, = rct_geos
     relax_ang = True
     relax_tors = True
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 # Bimolecular reactions
@@ -653,7 +685,15 @@ def hydrogen_abstraction_ts_embedding_info(rxn, rct_geos, angstrom=True):
                                     r23=frm_bnd_dist, a123=a123, a234=a234)
     relax_ang = False
     relax_tors = False
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 # 2. Additions
@@ -745,7 +785,15 @@ def addition_ts_embedding_info(rxn, rct_geos, angstrom=True):
                                     d1234=d1234)
     relax_ang = False
     relax_tors = False
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 # 3. Insertions
@@ -809,7 +857,15 @@ def insertion_ts_embedding_info(rxn, rct_geos, angstrom=True):
                                     r23=frm_bnd_dist1, a123=a123)
     relax_ang = True
     relax_tors = True
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 # 4. Substitutions
@@ -915,7 +971,15 @@ def substitution_ts_embedding_info(rxn, rct_geos, angstrom=True):
                                     r23=frm_bnd_dist, a123=a123, a234=a234)
     relax_ang = True
     relax_tors = True
-    return geo_init, dist_range_dct, relax_ang, relax_tors
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo_init, angstrom=angstrom)
+    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
+        relax_torsions=relax_tors)
+    chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
+    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    return xmat, lmat, umat, chi_dct, pla_dct
 
 
 def classify(rct_gras, prd_gras):
