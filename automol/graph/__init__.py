@@ -35,6 +35,7 @@ from automol.graph._graph import move_idx_to_top
 # # atom properties
 from automol.graph._graph import electron_count
 from automol.graph._graph import atom_count
+from automol.graph._graph import atom_count_by_type
 from automol.graph._graph import heavy_atom_count
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import atom_neighbor_key
@@ -42,6 +43,7 @@ from automol.graph._graph import sorted_atom_neighbor_keys
 from automol.graph._graph import atom_second_degree_neighbor_keys
 from automol.graph._graph import dummy_atom_neighbor_keys
 from automol.graph._graph import atom_bond_keys
+from automol.graph._graph import angle_keys
 from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import atom_neighborhood
 from automol.graph._graph import atom_groups
@@ -175,7 +177,6 @@ from automol.graph import embed
 
 # submodules
 from automol.graph import ts
-from automol.graph import reac
 from automol.graph import vmat
 
 # constructors

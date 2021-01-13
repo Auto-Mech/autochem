@@ -8,10 +8,72 @@ import automol.convert.geom
 from automol.util import vec
 from automol.geom._geom import count
 from automol.geom._geom import symbols
+from automol.geom._geom import distance
 from automol.geom._geom import coordinates
 
 DEG2RAD = qcc.conversion_factor('degree', 'radian')
 RAD2DEG = qcc.conversion_factor('radian', 'degree')
+
+
+def distances(geos, bonds=True, angles=True, angstrom=True):
+    """ return a dictionary of distances for certain atoms in a sequence of
+    reactant geometries, shifting the keys as needed
+
+    :param geos: the reactant geometries
+    :param bonds: include bond distances?
+    :param angles: include distances between the ends of bond angles?
+    :param angstrom: return the distances in angstroms?
+    """
+    dist_dct = {}
+    if bonds:
+        dist_dct.update(bond_distances(geos, angstrom=angstrom))
+    if angles:
+        dist_dct.update(angle_distances(geos, angstrom=angstrom))
+    return dist_dct
+
+
+def bond_distances(geos, angstrom=True):
+    """ return a dictionary of bond distances for a sequence of reactant
+    geometries, shifting the keys as needed
+
+    :param geos: the reactant geometries
+    :param angstrom: return the distances in angstroms?
+    """
+    dist_dct = {}
+
+    shift = 0
+    for geo in geos:
+        gra = automol.convert.geom.connectivity_graph(geo)
+        pairs = list(automol.graph.bond_keys(gra))
+        keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
+        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
+        dist_dct.update(dict(zip(keys, dists)))
+
+        shift += count(geo)
+
+    return dist_dct
+
+
+def angle_distances(geos, angstrom=True):
+    """ return a dictionary of distances between ends of a bond angle for a
+    sequence of reactant geometries, shifting the keys as needed
+
+    :param geos: the reactant geometries
+    :param angstrom: return the distances in angstroms?
+    """
+    dist_dct = {}
+
+    shift = 0
+    for geo in geos:
+        gra = automol.convert.geom.connectivity_graph(geo)
+        pairs = [(k1, k3) for k1, _, k3 in automol.graph.angle_keys(gra)]
+        keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
+        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
+        dist_dct.update(dict(zip(keys, dists)))
+
+        shift += count(geo)
+
+    return dist_dct
 
 
 def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,

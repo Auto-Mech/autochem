@@ -11,6 +11,7 @@ from automol import inchi
 from automol import inchi_key
 from automol import smiles
 from automol import formula
+from automol import reac
 from automol import mult
 from automol import intmol
 from automol import prop
@@ -29,6 +30,7 @@ __all__ = [
     'inchi_key',
     'smiles',
     'formula',
+    'reac',
     'mult',
     'intmol',
     'prop',
