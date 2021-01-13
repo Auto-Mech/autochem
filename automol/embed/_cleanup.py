@@ -263,7 +263,7 @@ def line_search_alpha(err_, sd1, cd1):
 
 
 def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
-                           conv_=None, max_dist_err=0.1, maxiter=None,
+                           conv_=None, max_dist_err=2e-1, maxiter=None,
                            chi_flip=True, dim4=True, log=False):
     """ clean up coordinates by conjugate-gradients error minimization
 

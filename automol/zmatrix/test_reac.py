@@ -479,9 +479,9 @@ if __name__ == '__main__':
     # test__ts_hydrogen_abstraction()
     # test__ts_addition()
     # test__ts_substitution()
-    # test__ts_insertion()
+    test__ts_insertion()
     # UNIMOL
     # test__ts_hydrogen_migration()
     # test__ts_beta_scission()
-    test__ts_elimination()
+    # test__ts_elimination()
     # test__ts_ring_forming_scission()

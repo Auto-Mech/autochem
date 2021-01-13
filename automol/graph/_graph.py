@@ -128,6 +128,19 @@ def atom_count(gra, with_dummy=False, with_implicit=True):
     return natms
 
 
+def atom_count_by_type(gra, sym, keys=None):
+    """ count the number of atoms with a given type (symbol)
+
+    :param gra: the graph
+    :param sym: the symbol
+    :param keys: optionally, restrict the count to a subset of keys
+    """
+    keys = atom_keys(gra) if keys is None else keys
+    sym_dct = atom_symbols(gra)
+    syms = list(map(sym_dct.__getitem__, keys))
+    return syms.count(sym)
+
+
 def heavy_atom_count(gra, with_dummy=False):
     """ the number of heavy atoms
     """
@@ -239,6 +252,24 @@ def atom_bond_keys(gra):
     """ bond keys, by atom
     """
     return dict_.transform_values(atom_neighborhoods(gra), bond_keys)
+
+
+def angle_keys(gra):
+    """ triples of keys for pairs of adjacent bonds, with the central atom in
+    the middle
+    """
+    bnd_keys = bond_keys(gra)
+
+    ang_keys = []
+    for bnd_key1, bnd_key2 in itertools.combinations(bnd_keys, r=2):
+        if bnd_key1 != bnd_key2 and bnd_key1 & bnd_key2:
+            atm2_key, = bnd_key1 & bnd_key2
+            atm1_key, = bnd_key1 - {atm2_key}
+            atm3_key, = bnd_key2 - {atm2_key}
+            ang_keys.append((atm1_key, atm2_key, atm3_key))
+            ang_keys.append((atm3_key, atm2_key, atm1_key))
+
+    return tuple(ang_keys)
 
 
 # # bond properties
