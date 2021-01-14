@@ -3,6 +3,11 @@
 
 
 def spin(mult):
-    """ number of unpaired electrons
+    """ Calculate the spin (2Ms) from using the spin multiplicity
+        which is equivalent to the number of unpaired electrons.
+
+        :param mult: multiplicity
+        :type mult: int
+        :rtype: int
     """
     return mult - 1

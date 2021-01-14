@@ -7,8 +7,8 @@ try:
 except ImportError:
     from collections import Mapping as _Mapping
 import numpy
-from automol.util.dict_._dict_ import values_by_key as _values_by_key
-from automol.util.dict_._dict_ import transform_values as _transform_values
+from automol.dict_._dict_ import values_by_key as _values_by_key
+from automol.dict_._dict_ import transform_values as _transform_values
 
 
 def is_multidict(mdct):

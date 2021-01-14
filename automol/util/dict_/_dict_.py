@@ -1,18 +1,29 @@
-""" dictionary helpers
+""" Helper functions for working with Python dictionaries
 """
+
 from itertools import starmap as _starmap
 
 
 def empty_if_none(obj):
-    """ return an empty dictionary if the object is None, otherwise return the
-    object
+    """ Returns an empty dictionary if input object is None,
+        otherwise return the object.
+
+        :param obj: generic object
+        :type obj: any
     """
     return dict() if obj is None else obj
 
 
 def right_update(dct1, dct2):
-    """ return the update of `dct1` by `dct2`
+    """ Updates the entries of `dct1` with those of `dct2`.
+
+        :param dct1: dictionary1 that will be updated
+        :type dct1: dict
+        :param dct2: dictionary2 whose entries will override dct1
+        :type dct2: dict
+        :rtype: dict
     """
+
     dct = {}
     dct.update(dct1)
     dct.update(dct2)
