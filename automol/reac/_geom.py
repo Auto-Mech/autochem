@@ -8,9 +8,10 @@ from automol.graph import ts
 from automol.graph import atom_keys
 
 
+# Unimolecular reactions
 def hydrogen_migration_ts_geometry(rxn, rct_geos,
                                    max_dist_err=2e-1, log=False):
-    """ atom distance ranges for a hydrogen migration transition state
+    """ geometry for a hydrogen migration transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries
@@ -40,7 +41,7 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
 
 def beta_scission_ts_geometry(rxn, rct_geos,
                               max_dist_err=2e-1, log=False):
-    """ atom distance ranges for a beta scission transition state
+    """ geometry for a beta scission transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries
@@ -70,7 +71,7 @@ def beta_scission_ts_geometry(rxn, rct_geos,
 
 def ring_forming_scission_ts_geometry(rxn, rct_geos,
                                       max_dist_err=2e-1, log=False):
-    """ atom distance ranges for a ring-forming scission transition state
+    """ geometry for a ring-forming scission transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries
@@ -112,7 +113,7 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
 
 def elimination_ts_geometry(rxn, rct_geos,
                             max_dist_err=2e-1, log=False):
-    """ atom distance ranges for an elimination transition state
+    """ geometry for an elimination transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries
@@ -142,9 +143,10 @@ def elimination_ts_geometry(rxn, rct_geos,
     return geo
 
 
+# Bimolecular reactions
 def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
                                      max_dist_err=2e-1, log=False):
-    """ atom distance ranges for a hydrogen abstraction transition state
+    """ geometry for a hydrogen abstraction transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries
@@ -183,7 +185,7 @@ def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
 
 def addition_ts_geometry(rxn, rct_geos,
                          max_dist_err=2e-1, log=False):
-    """ atom distance ranges for an addition transition state
+    """ geometry for an addition transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries
@@ -226,7 +228,7 @@ def addition_ts_geometry(rxn, rct_geos,
 
 def insertion_ts_geometry(rxn, rct_geos,
                           max_dist_err=2e-1, log=False):
-    """ atom distance ranges for an insertion transition state
+    """ geometry for an insertion transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries
@@ -280,7 +282,7 @@ def insertion_ts_geometry(rxn, rct_geos,
 
 def substitution_ts_geometry(rxn, rct_geos,
                              max_dist_err=2e-1, log=False):
-    """ atom distance ranges for a substitution transition state
+    """ geometry for a substitution transition state
 
     :param rxn: a hydrogen migration Reaction object
     :param rct_geos: the reactant geometries

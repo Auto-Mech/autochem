@@ -31,6 +31,7 @@ from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import add_atoms
 from automol.graph._graph import add_bonds
 from automol.graph._graph import add_bonded_atom
+from automol.graph._graph import add_bonded_dummy_atoms
 from automol.graph._graph import move_idx_to_top
 # # atom properties
 from automol.graph._graph import electron_count
@@ -271,6 +272,7 @@ __all__ = [
     'add_atoms',
     'add_bonds',
     'add_bonded_atom',
+    'add_bonded_dummy_atoms',
     'move_idx_to_top',
 
     # graph theory library

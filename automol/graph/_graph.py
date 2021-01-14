@@ -564,24 +564,24 @@ def add_atoms(gra, sym_dct, imp_hyd_vlc_dct=None, ste_par_dct=None):
     return gra
 
 
-def add_bonded_atom(gra, sym, bnd_atm_key, imp_hyd_vlc=None, atm_ste_par=None,
-                    bnd_ord=None, bnd_ste_par=None):
+def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
+                    atm_ste_par=None, bnd_ord=None, bnd_ste_par=None):
     """ add a single atom with a bond to an atom already in the graph
     """
     atm_keys = atom_keys(gra)
 
-    atm_key = max(atm_keys) + 1
+    bnd_atm_key = max(atm_keys) + 1 if bnd_atm_key is None else bnd_atm_key
 
-    sym_dct = {atm_key: sym}
-    imp_hyd_vlc_dct = ({atm_key: imp_hyd_vlc}
+    sym_dct = {bnd_atm_key: sym}
+    imp_hyd_vlc_dct = ({bnd_atm_key: imp_hyd_vlc}
                        if imp_hyd_vlc is not None else None)
-    atm_ste_par_dct = ({atm_key: atm_ste_par}
+    atm_ste_par_dct = ({bnd_atm_key: atm_ste_par}
                        if atm_ste_par is not None else None)
 
     gra = add_atoms(gra, sym_dct, imp_hyd_vlc_dct=imp_hyd_vlc_dct,
                     ste_par_dct=atm_ste_par_dct)
 
-    bnd_key = frozenset({atm_key, bnd_atm_key})
+    bnd_key = frozenset({bnd_atm_key, atm_key})
     bnd_ord_dct = {bnd_key: bnd_ord} if bnd_ord is not None else None
     bnd_ste_par_dct = ({bnd_key: bnd_ste_par}
                        if bnd_ste_par is not None else None)
@@ -589,7 +589,26 @@ def add_bonded_atom(gra, sym, bnd_atm_key, imp_hyd_vlc=None, atm_ste_par=None,
     gra = add_bonds(gra, [bnd_key], ord_dct=bnd_ord_dct,
                     ste_par_dct=bnd_ste_par_dct)
 
-    return gra, atm_key
+    return gra
+
+
+def add_bonded_dummy_atoms(gra, dummy_key_dct):
+    """ add dummy atoms to the graph, with dummy bonds to particular atoms
+
+    :param dummy_key_dct: keys are atoms in the graph on which to place a dummy
+        atom; values are the desired keys of the dummy atoms themselves, which
+        must not overlap with already existing atoms
+    """
+    atm_keys = atom_keys(gra)
+    assert set(dummy_key_dct.keys()) <= atm_keys, (
+        "Keys must be existing atoms in the graph.")
+    assert not set(dummy_key_dct.values()) & atm_keys, (
+        "Dummy atom keys cannot overlap with existing atoms.")
+
+    for key, dummy_key in dummy_key_dct.items():
+        gra = add_bonded_atom(gra, 'X', key, bnd_atm_key=dummy_key, bnd_ord=0)
+
+    return gra
 
 
 def remove_atoms(gra, atm_keys, check=True):

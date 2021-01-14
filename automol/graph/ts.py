@@ -10,6 +10,7 @@ from automol.graph._graph_base import bond_orders
 from automol.graph._graph_base import set_bond_orders
 from automol.graph._graph import add_bonds
 from automol.graph._graph import remove_bonds
+from automol.graph._graph import without_dummy_atoms
 from automol.graph._ring import rings_bond_keys
 from automol.graph._ring import sorted_ring_atom_keys_from_bond_keys
 
@@ -44,9 +45,12 @@ def breaking_bond_keys(tsg):
     return frozenset(map(frozenset, brk_bnd_keys))
 
 
-def reverse(tsg):
+def reverse(tsg, dummies=True):
     """ reverse a transition state graph
     """
+    if not dummies:
+        tsg = without_dummy_atoms(tsg)
+
     return graph(gra=tsg,
                  frm_bnd_keys=breaking_bond_keys(tsg),
                  brk_bnd_keys=forming_bond_keys(tsg))
@@ -102,10 +106,3 @@ def breaking_rings_bond_keys(tsg):
     brk_rngs_bnd_keys = tuple(bks for bks in rings_bond_keys(tsg)
                               if brk_bnd_keys & bks)
     return brk_rngs_bnd_keys
-
-
-def vmatrix(tsg):
-    """ v-matrix for a TS graph
-    """
-    import automol
-    print(automol.graph.string(tsg, one_indexed=False))

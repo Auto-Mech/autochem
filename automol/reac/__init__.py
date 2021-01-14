@@ -22,6 +22,8 @@ from automol.reac._geom import addition_ts_geometry
 from automol.reac._geom import insertion_ts_geometry
 from automol.reac._geom import substitution_ts_geometry
 from automol.reac._geom import ts_geometry
+# TS zmatrices
+from automol.reac._zmat import hydrogen_abstraction_ts_zmatrix
 
 
 __all__ = [
