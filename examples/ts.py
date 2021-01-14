@@ -1,8 +1,6 @@
 """ Basic demo of distance geometry for transition states
 """
 import sys
-# import numpy
-import itertools
 import automol
 
 # 1. Choose reaction
@@ -24,8 +22,8 @@ import automol
 # PRD_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
 
 #    e. hydrogen abstraction: HC(CH3)3 + OH => C(CH3)3 + H2O
-# RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C', '[OH]']))
-# PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)C', 'O']))
+RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C#C', '[OH]']))
+PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)C#C', 'O']))
 
 #    f. addition: CH3CH2[CH2] + OO => CH3CH2CH2OO
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CC[CH2]', '[O][O]']))
@@ -40,8 +38,8 @@ import automol
 # PRD_ICHS = list(map(automol.smiles.inchi, ['CCC']))
 
 #    h. substitution: H2O2 + H => H2O + OH
-RCT_ICHS = list(map(automol.smiles.inchi, ['CO', '[CH2]C']))
-PRD_ICHS = list(map(automol.smiles.inchi, ['CCC', '[OH]']))
+# RCT_ICHS = list(map(automol.smiles.inchi, ['CO', '[CH2]C']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['CCC', '[OH]']))
 
 # 2. Generate reactant/product graphs
 RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))
@@ -56,23 +54,14 @@ RCT_GRAS, _ = automol.graph.standard_keys_for_sequence(RCT_GRAS)
 PRD_GRAS, _ = automol.graph.standard_keys_for_sequence(PRD_GRAS)
 
 # 3. Classify reaction and get bonds broken/formed
-RXNS = automol.reac.classify(RCT_GRAS, PRD_GRAS)
+RXNS = automol.reac.find(RCT_GRAS, PRD_GRAS)
 RXN = RXNS[0]
 # Sort and standardize keys (must go together)
 RCT_GEOS, PRD_GEOS = RXN.standardize_keys_and_sort_geometries_(
     RCT_GEOS, PRD_GEOS)
 
-# 4. Generate embedding info
-XMAT, LMAT, UMAT, CHI_DCT, PLA_DCT = automol.reac.ts_embedding_info(RXN,
-                                                                    RCT_GEOS)
-
-# 7. Optimize the coordinates to satisfy the appropriate constraints
-XMAT, CONV = automol.embed.cleaned_up_coordinates(
-    XMAT, LMAT, UMAT, chi_dct=CHI_DCT, pla_dct=PLA_DCT, max_dist_err=2e-1,
-    dim4=False, log=True)
-
-SYMS = list(itertools.chain(*map(automol.geom.symbols, RCT_GEOS)))
-GEO = automol.embed.geometry_from_coordinates(XMAT, SYMS)
+# 4. Generate the geometry
+GEO = automol.reac.ts_geometry(RXN, RCT_GEOS)
 
 # 8. Print some stuff
 print("Forward TS graph:")
@@ -91,14 +80,22 @@ print()
 GRA = automol.graph.ts.reactants_graph(TSG)
 GRA2 = automol.geom.graph(GEO)
 print("Is the graph consistent?", 'Yes' if GRA == GRA2 else 'No')
-print("Is the geometry converged?", 'Yes.' if CONV else 'No.')
 print()
 
-# 10. Generate a z-matrix
-FRM_BND_KEYS = automol.graph.ts.forming_bond_keys(RXN.forward_ts_graph)
-BRK_BND_KEYS = automol.graph.ts.breaking_bond_keys(RXN.forward_ts_graph)
-TS_BNDS = list(FRM_BND_KEYS | BRK_BND_KEYS)
-ZMA = automol.convert.geom.zmatrix_x2z(GEO, TS_BNDS)
-print(automol.zmat.string(ZMA))
+if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
+    LIN_IDXS = list(automol.geom.linear_atoms(GEO))
+
+    FRM_BND_KEY, = automol.graph.ts.forming_bond_keys(RXN.forward_ts_graph)
+    BRK_BND_KEY, = automol.graph.ts.breaking_bond_keys(RXN.forward_ts_graph)
+    HYD_IDX, = FRM_BND_KEY & BRK_BND_KEY
+
+    LIN_IDXS += [HYD_IDX]
+
+    RGRA = automol.graph.ts.reactants_graph(RXN.forward_ts_graph)
+    DGEO, DIDX_DCT = automol.geom.insert_dummies_on_linear_atoms(
+        GEO, lin_idxs=LIN_IDXS, gra=RGRA)
+
+    print(automol.geom.string(DGEO))
+    print(DIDX_DCT)
 
 sys.exit()
