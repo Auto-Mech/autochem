@@ -6,8 +6,8 @@ import automol
 # 1. Choose reaction
 
 #    a. hydrogen migration: (CH3)2[CH]CH2CH2O[O] => (CH3)2[C]CH2CH2O[OH]
-# RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)CCO[O]']))
-# PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)CCOO']))
+RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)CCO[O]']))
+PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)CCOO']))
 
 #    b. beta-scission: CH3CH2CH2OO => CH3CH2[CH2] + OO
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CCCO[O]']))
@@ -22,8 +22,8 @@ import automol
 # PRD_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
 
 #    e. hydrogen abstraction 1: HC(CH3)3 + OH => C(CH3)3 + H2O
-RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C', '[OH]']))
-PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)C', 'O']))
+# RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C', '[OH]']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)C', 'O']))
 
 #    e. hydrogen abstraction 2: HC(CH3)3 + OH => C(CH3)3 + H2O
 # RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C#C', '[OH]']))
@@ -88,10 +88,20 @@ GRA2 = automol.geom.graph(GEO)
 print("Is the graph consistent?", 'Yes' if GRA == GRA2 else 'No')
 print()
 
-if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
-    zma, rxn = automol.reac.hydrogen_abstraction_ts_zmatrix(RXN, GEO)
+if RXN.class_ == automol.par.ReactionClass.HYDROGEN_MIGRATION:
+    # TODO: THIS IS NOT DONE -- WE NEED TO MAKE SURE THE CORRECT COORDINATES
+    # ARE IN THERE IN THE CORRECT ORDER
+    zma, row_keys, dummy_idx_dct = (
+        automol.reac.hydrogen_migration_ts_zmatrix(RXN, GEO))
+    RXN.insert_dummy_atoms_(dummy_idx_dct)
     print(RXN.reactants_keys)
-    print(rxn.reactants_keys)
+    print(automol.zmat.string(zma))
+
+if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
+    zma, row_keys, dummy_idx_dct = (
+        automol.reac.hydrogen_abstraction_ts_zmatrix(RXN, GEO))
+    RXN.insert_dummy_atoms_(dummy_idx_dct)
+    print(RXN.reactants_keys)
     print(automol.zmat.string(zma))
 
 sys.exit()
