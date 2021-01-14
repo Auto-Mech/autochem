@@ -12,8 +12,11 @@ import automol.convert.graph
 import automol.geom.ts
 from automol import par
 from automol.graph import ts
+from automol.graph import subgraph
 from automol.graph import atom_keys
 from automol.graph import full_isomorphism
+from automol.graph import without_dummy_atoms
+from automol.graph import add_bonded_dummy_atoms
 
 
 class Reaction:
@@ -56,7 +59,8 @@ class Reaction:
             "{} != {}".format(str(all_prds_keys), str(atom_keys(back_tsg))))
 
         # Check that the reactants and products are consistent
-        assert full_isomorphism(ts.reverse(forw_tsg), back_tsg)
+        assert full_isomorphism(ts.reverse(forw_tsg, dummies=False),
+                                without_dummy_atoms(back_tsg))
 
         # Set attributes
         self.class_ = rxn_cls
@@ -130,12 +134,36 @@ class Reaction:
         self.standardize_keys_()
         return rct_geos, prd_geos
 
-    def is_standardized(self):
-        """ has this Reaction been standardized?
+    def insert_dummy_atoms_(self, dummy_key_dct, product=False):
+        """ insert dummy atoms into the reactants or products
+
+        :param dummy_key_dct: dummy atom keys, by key of the atom they are
+            connected to
+        :param product: insert dummy atoms into the products instead of the
+            reactants?
         """
-        other = self.copy()
-        other.standardize_keys_()
-        return self == other
+        if product:
+            tsg = self.backward_ts_graph
+            keys_lst = self.products_keys
+        else:
+            tsg = self.forward_ts_graph
+            keys_lst = self.reactants_keys
+
+        tsg = add_bonded_dummy_atoms(tsg, dummy_key_dct)
+        keys_lst = list(map(list, keys_lst))
+        for key, dummy_key in dummy_key_dct.items():
+            for keys in keys_lst:
+                if key in keys:
+                    keys.append(dummy_key)
+                    break
+        keys_lst = tuple(map(tuple, map(sorted, keys_lst)))
+
+        if product:
+            self.backward_ts_graph = tsg
+            self.products_keys = keys_lst
+        else:
+            self.forward_ts_graph = tsg
+            self.reactants_keys = keys_lst
 
     def copy(self):
         """ return a copy of this Reaction
@@ -143,6 +171,27 @@ class Reaction:
         return Reaction(
             self.class_, self.forward_ts_graph, self.backward_ts_graph,
             self.reactants_keys, self.products_keys)
+
+    def reactant_graphs(self):
+        """ reactant graphs for this reaction, in order
+        """
+        rcts_gra = ts.reactants_graph(self.forward_ts_graph)
+        rct_gras = [subgraph(rcts_gra, keys) for keys in self.reactants_keys]
+        return tuple(rct_gras)
+
+    def product_graphs(self):
+        """ product graphs for this reaction, in order
+        """
+        prds_gra = ts.products_graph(self.forward_ts_graph)
+        prd_gras = [subgraph(prds_gra, keys) for keys in self.products_keys]
+        return tuple(prd_gras)
+
+    def is_standardized(self):
+        """ has this Reaction been standardized?
+        """
+        other = self.copy()
+        other.standardize_keys_()
+        return self == other
 
     def __eq__(self, other):
         """ equality operator

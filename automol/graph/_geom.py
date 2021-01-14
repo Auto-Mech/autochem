@@ -486,7 +486,8 @@ def _start_zmatrix_from_atom(gra, atm_key):
         val_dct.update({'R2': 1.0, 'R3': val_dct['R2'],
                         'A2': RIT_ANG, 'A3': RIT_ANG, 'D3': LIN_ANG})
 
-        gra, dummy_atm_key = add_bonded_atom(gra, 'X', atm_key, bnd_ord=0)
+        dummy_atm_key = max(atom_keys(gra)) + 1
+        gra = add_bonded_atom(gra, 'X', atm_key, bnd_ord=0)
 
         zma_key_dct[dummy_atm_key] = 2
         zma_key_dct[atm_keys[2]] = 3
@@ -536,7 +537,8 @@ def _complete_zmatrix_for_branch(gra, atm1_key, atm2_key, atm3_key, zma,
         dih4_name = automol.zmatrix.new_dihedral_angle_name(zma)
         dih4_val = 0.
 
-        gra, dummy_atm_key = add_bonded_atom(gra, 'X', atm3_key, bnd_ord=0)
+        dummy_atm_key = max(atom_keys(gra)) + 1
+        gra = add_bonded_atom(gra, 'X', atm3_key, bnd_ord=0)
         dummy_atm_zma_key = automol.zmatrix.count(zma)
 
         zma_key_dct[dummy_atm_key] = dummy_atm_zma_key
