@@ -1,85 +1,124 @@
-""" molecular formula
+""" Library for dealing with molecular formula,
+    represented as dict[atom symbol: atom number]
 """
+
 import functools
 import itertools
 import collections
-from qcelemental import periodictable as pt
+from phydat import ptab
 
 
 def electron_count(fml):
-    """ the number of atoms in this molecular formula
+    """ Count the number of electrons for the atoms in a molecular formula.
+
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :rtype: int
     """
+
     assert _is_standard(fml)
+
     elec_count = 0
     for key in fml:
         value = fml[key]
-        elec_count += value*pt.to_Z(key)
+        elec_count += value*ptab.to_number(key)
+
     return elec_count
 
 
 def atom_count(fml):
-    """ the number of atoms in this molecular formula
+    """ Count the number of atoms in this molecular formula.
+
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :rtype: int
     """
+
     assert _is_standard(fml)
+
     return sum(fml.values())
 
 
-def element_count(fml, sym):
-    """ the number of a given element in this molecular formula
+def element_count(fml, symb):
+    """ Count the number of a given element in this molecular formula.
+
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :param symb: atomic symbol of element to be counted
+        :type symb: str
+        :rtype: int
     """
+
     assert _is_standard(fml)
-    return fml[sym] if sym in fml else 0
+
+    return fml[symb] if symb in fml else 0
 
 
-def hydrogen_count(fml):
-    """ the number of hydrogens in this molecular formula
-    """
-    return element_count(fml, 'H')
-
-
-def add_element(fml, sym, num=1):
+def add_element(fml, symb, num=1):
     """ add or subtract (if num < 0) this element from the molecular formula
+
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :param symb: atomic symbol of element to be added
+        :type symb: str
+        :param num: number of the element to add to the formula
+        :type num: int
+        :rtype: dict[str:int]
     """
-    assert pt.to_Z(sym)
+
+    assert ptab.to_number(symb)
     assert _is_standard(fml)
-    sym = pt.to_E(sym)
+
+    symb = ptab.to_symbol(symb)
     fml = fml.copy()
-    if sym in fml:
-        fml[sym] += num
+    if symb in fml:
+        fml[symb] += num
     else:
-        fml[sym] = num
-    assert fml[sym] > 0
+        fml[symb] = num
+
+    assert fml[symb] > 0
+
     return fml
 
 
-def add_hydrogen(fml, num=1):
-    """ add hydrogen to this molecular formula
-    """
-    return add_element(fml, 'H', num)
-
-
 def join(fml1, fml2):
-    """ join two formulas together
+    """ Join two formulas together.
+
+        :param fml1: stochiometric chemical formula 1
+        :type fml1: dict[str:int]
+        :param fml2: stochiometric chemical formula 2
+        :type fml2: dict[str:int]
+        :rtype: int
     """
+
     fml = dict(fml1)
-    for sym, num in fml2.items():
-        fml = add_element(fml, sym, num=num)
+    for symb, num in fml2.items():
+        fml = add_element(fml, symb, num=num)
+
     return fml
 
 
 def join_sequence(fmls):
-    """ join a sequence of formulas together
+    """ Join a sequence of formulas together:
+
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :rtype: int
     """
-    fml = functools.reduce(join, fmls)
-    return fml
+
+    return functools.reduce(join, fmls)
 
 
 def string(fml):
-    """ convert formula dictionary to formula string in the Hill convention
+    """ Convert formula dictionary to formula string in the Hill convention. 
+        Resultant string is identical to InChI formula string.
 
-    (should come out identical to an InChI formula string)
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :rtype: str
     """
-    fml_lst = [(sym, fml[sym]) for sym in sorted_symbols(fml.keys())]
+    
+    fml_lst = [(symb, fml[symb]) for symb in sorted_symbols(fml.keys())]
 
     fml_str = ''.join(map(
         str,
@@ -88,61 +127,68 @@ def string(fml):
     return fml_str
 
 
-def sorted_symbols(seq, syms_first=('C', 'H'), syms_last=()):
-    """ return elements sorted, with some elements given priority
+def string2(fml):
+    """ Convert formula dictionary to formula string that includes 1s in when there
+        is only one atom.
 
-    :param seq: formula or sequence of atomic symbols
-    :type seq: dict, list, or tuple
-    :param syms: atomic symbols to place first (by default, C, then H); others
-        will follow in alphabetical order
-    :type syms: sequence of strings
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :rtype: str
+    """
+
+    fml = collections.OrderedDict(sorted(fml.items()))
+
+    fml_str = ''.join(map(str, itertools.chain.from_iterable(fml.items())))
+
+    return fml_str
+
+
+def sorted_symbols(seq, symbs=('C', 'H')):
+    """ Produce a sorted list of atomic symbols; some elements given priority.
+        Be default, C placed first, then H, others follow in alphabetical order.
+
+        :param seq: formula or sequence of atomic symbols
+        :type seq: dict, list, or tuple
+        :param symbs: atomic symbols to place first
+        :type symbs: sequence of strings
+        :rtyp: tuple(str)
     """
 
     def _sort_key(char):
-        if char in syms_first:
-            val = syms_first.index(char)
-        elif char in syms_last:
-            val = len(syms_first) + 1 + syms_last.index(char)
-        else:
-            val = len(syms_first)
+        val = symbs.index(char) if char in symbs else len(symbs)
         return (val, char)
 
     return tuple(sorted(seq, key=_sort_key))
 
 
-def argsort_symbols(seq, syms_first=('C', 'H'), syms_last=()):
-    """ get the sort order for a sequence of atomic symbols
+def argsort_symbols(seq, symbs=('C', 'H')):
+    """ Get the sort order for a sequence of atomic symbols.
+
+        :param seq: formula or sequence of atomic symbols
+        :type seq: dict, list, or tuple
+        :param symbs: atomic symbols to place first
+        :type symbs: sequence of strings
+        :rtyp: tuple(str)
     """
 
     def _sort_key(entry):
         char = entry[0]
         rest = entry[1:]
-        if char in syms_first:
-            val = syms_first.index(char)
-        elif char in syms_last:
-            val = len(syms_first) + 1 + syms_last.index(char)
-        else:
-            val = len(syms_first)
+        val = symbs.index(char) if char in symbs else len(symbs)
         return (val, char, rest)
 
     return tuple(idx for (val, idx) in
                  sorted(((v, i) for (i, v) in enumerate(seq)), key=_sort_key))
 
 
-def string2(fml):
-    """ convert formula dictionary to formula string with ones when appropriate
+def _is_standard(fml):
+    """ Assess if the formula conforms to the standard form.
+
+        :param fml: stochiometric chemical formula
+        :type fml: dict[str:int]
+        :rtype: bool
     """
 
-    fml = collections.OrderedDict(sorted(fml.items()))
-    fml_str = ''.join(map(str, itertools.chain.from_iterable(fml.items())))
+    symbs = list(fml.keys())
 
-    return fml_str
-
-
-def _is_standard(fml):
-    syms = list(fml.keys())
-    return syms == list(filter(pt.to_Z, map(pt.to_E, syms)))
-
-
-if __name__ == '__main__':
-    print(argsort_symbols('OHCN', syms_first=('C',), syms_last=('H',)))
+    return symbs == list(filter(ptab.to_number, map(ptab.to_symbol, symbs)))
