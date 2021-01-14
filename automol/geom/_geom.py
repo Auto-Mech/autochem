@@ -403,6 +403,8 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
         graph will be generated using default distance thresholds
     :param dist: distance of the dummy atom from the linear atom, in angstroms
     :param tol: the tolerance threshold for linearity, in degrees
+    :returns: the geometry with dummy atoms inserted, along with a dictionary
+        mapping the linear atoms onto their associated dummy atoms
     """
     lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
     gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
@@ -453,13 +455,17 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
     lin_idxs_lst = sorted(map(sorted, util.equivalence_partition(
         lin_idxs, lambda x, y: x in ngb_idxs_dct[y])))
 
+    dummy_idx_dct = {}
+
     for idxs in lin_idxs_lst:
         direc = _perpendicular_direction(idxs)
         for idx in idxs:
             xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
+            dummy_idx_dct[idx] = count(geo)
+
             geo = insert(geo, 'X', xyz, angstrom=True)
 
-    return geo
+    return geo, dummy_idx_dct
 
 
 def displace(geo, xyzs):

@@ -102,3 +102,10 @@ def breaking_rings_bond_keys(tsg):
     brk_rngs_bnd_keys = tuple(bks for bks in rings_bond_keys(tsg)
                               if brk_bnd_keys & bks)
     return brk_rngs_bnd_keys
+
+
+def vmatrix(tsg):
+    """ v-matrix for a TS graph
+    """
+    import automol
+    print(automol.graph.string(tsg, one_indexed=False))
