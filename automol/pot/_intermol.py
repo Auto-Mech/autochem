@@ -7,56 +7,6 @@ from phydat import phycon
 from automol.geom import symbols, distance
 
 
-# DCTS OF POTENTIAL PARAMETERS
-# eps[whatever], sig[ang] params
-LJ_DCT = {
-    ('H', 'H'): (0.25, 1.0),
-    ('H', 'C'): (0.25, 1.0),
-    ('H', 'O'): (0.25, 1.0),
-    ('C', 'C'): (0.25, 1.0),
-    ('C', 'O'): (0.25, 1.0),
-    ('O', 'O'): (0.25, 1.0)
-}
-
-# A, B, C params E[kcal] R[Ang]; R cutoff
-EXP6_DCT = {
-    ('H', 'H'): (2.442e3, 3.74, 48.8, 1.0),
-    ('H', 'C'): (6.45e3, 3.67, 116.0, 1.0),
-    ('H', 'N'): (6.45e3, 3.67, 116.0, 1.0),
-    ('H', 'O'): (6.45e3, 3.67, 116.0, 1.0),
-    ('C', 'C'): (7.69e4, 3.6, 460.0, 0.8),
-    ('C', 'O'): (7.69e4, 3.6, 460.0, 0.8),
-    ('O', 'O'): (7.69e4, 3.6, 460.0, 0.8),
-    ('Cl', 'Cl'): (0.0, 3.6, 460.0, 0.8),
-    ('Cl', 'C'): (0.0, 3.6, 460.0, 0.8),
-    ('Cl', 'O'): (0.0, 3.6, 460.0, 0.8),
-    ('Cl', 'H'): (0.0, 3.6, 460.0, 0.8),
-    ('N', 'N'): (7.69e4, 3.6, 460.0, 0.8),
-    ('N', 'O'): (7.69e4, 3.6, 460.0, 0.8),
-    ('N', 'C'): (7.69e4, 3.6, 460.0, 0.8)
-}
-
-
-def _read_params(dct, symb1, symb2):
-    """ Read the parameters from one of the potential
-        parameter dictionaries
-
-        :param dct: potential parameter dct
-        :type dct: dict[(symbs):(params)]
-        :param symb1: atomic symbol of atom1 involved in the interaction
-        :param symb1: str
-        :param symb2: atomic symbol of atom2 involved in the interaction
-        :param symb2: str
-        :rtype: tuple(float)
-    """
-
-    params = dct.get((symb1, symb2), None)
-    if params is None:
-        params = dct.get((symb2, symb1), None)
-
-    return params
-
-
 # POTENTIAL FORMS
 def lj_potential(rdist, eps, sig):
     """ Calculate potential energy value of two interacting bodies
@@ -96,7 +46,7 @@ def exp6_potential(rdist, apar, bpar, cpar, rcut):
     return pot_val
 
 
-# INTERACTION MATRIX WITH ABOVE POTENTIALS
+# change to a dictionary
 def pairwise_potential_matrix(geo, potential='exp6'):
     """ Build a matrix of values describing the interaction potential
         of all atoms in a geometry.
@@ -160,3 +110,60 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
         pot_val = 1.0e10
 
     return pot_val
+
+
+# Check the repulsion
+def low_repulsion_struct(geo_ref, geo_samp,
+                         potential='exp6', pairs='offdiag', thresh=40.0,):
+    """ Check if the long-range interaction energy for the sample structure
+        exceeds that for the reference structure by more than given threshold.
+
+        :param geo_ref: reference structure against which repulsion is assessed
+        :type geo_ref: automol geometry data structure
+        :param geo_samp: test geometry to assess repulsion
+        :type geo_samp: automol geometry data structure
+        :param pairs: pair choosing algorithm
+        :type pairs: str
+        :param thresh: threshold for determining level of repulsion (kcal/mol)
+        :type thesh: float
+        :rtype: bool
+    """
+
+    # Calculate the pairwise potentials
+    pot_mat = pairwise_potential_matrix(geo_ref, potential=potential)
+    pot_mat_samp = pairwise_potential_matrix(geo_samp, potential=potential)
+
+    # Generate the pairs for the potentials
+    pairs = _generate_pairs(geo_ref, pairs=pairs)
+
+    # Calculate sum of potentials
+    sum_ref, sum_samp = 0.0, 0.0
+    for (idx1, idx2) in pairs:
+        sum_ref += pot_mat[idx1, idx2]
+        sum_samp += pot_mat_samp[idx1, idx2]
+
+    # Check if the potentials are within threshold
+    low_repulsion = bool((sum_samp - sum_ref) <= thresh)
+
+    return low_repulsion
+
+
+def _generate_pairs(geo):
+    """ Determine all of the pairs of atoms to calculate
+        interatomic potentials for. Only generate off-diagonal pairs for now.
+
+        :param geo: automol geometry object
+        :type geo: tuple(tuple(float))
+        :param pairs: pair choosing algorithm
+        :type pairs: str
+    """
+
+    natoms = automol.geom.count(geo) 
+
+    pairs = tuple()
+    for i in range(natoms):
+        for j in range(natoms):
+            if i != j:
+                pairs += ((i, j),)
+
+    return pairs

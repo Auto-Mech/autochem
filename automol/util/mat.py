@@ -1,7 +1,7 @@
 """ transformation matrices
 """
 import numpy
-import automol.cart.vec
+import automol.util.vec
 import transformations as tf
 
 

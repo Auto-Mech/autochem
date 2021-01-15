@@ -24,12 +24,12 @@ def from_subset(geo, idxs):
 
     (Rename this and put it under operations?)
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo)
 
-    syms = list(map(syms.__getitem__, idxs))
+    symbs = list(map(symbs.__getitem__, idxs))
     xyzs = list(map(xyzs.__getitem__, idxs))
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 # getters
@@ -39,12 +39,12 @@ def symbols(geo, idxs=None):
     idxs = list(range(count(geo))) if idxs is None else idxs
 
     if geo:
-        syms, _ = zip(*geo)
+        symbs, _ = zip(*geo)
     else:
-        syms = ()
+        symbs = ()
 
-    syms = tuple(sym for idx, sym in enumerate(syms) if idx in idxs)
-    return syms
+    symbs = tuple(symb for idx, symb in enumerate(symbs) if idx in idxs)
+    return symbs
 
 
 def coordinates(geo, idxs=None, angstrom=False):
@@ -67,23 +67,23 @@ def count(geo):
     return len(geo)
 
 
-def atom_count(geo, sym, match=True):
+def atom_count(geo, symb, match=True):
     """ count the number of some atom type in the geometry
     """
-    return len(atom_indices(geo, sym, match=match))
+    return len(atom_indices(geo, symb, match=match))
 
 
-def atom_indices(geo, sym, match=True):
+def atom_indices(geo, symb, match=True):
     """ indices for a particular atom type
         :param match: grab idxs that match given atom type
     """
 
-    syms = symbols(geo)
+    symbs = symbols(geo)
     idxs = tuple()
-    for idx, sym_ in enumerate(syms):
-        if sym_ == sym and match:
+    for idx, symb_ in enumerate(symbs):
+        if symb_ == symb and match:
             idxs += (idx,)
-        elif sym_ != sym and not match:
+        elif symb_ != symb and not match:
             idxs += (idx,)
 
     return idxs
@@ -92,8 +92,8 @@ def atom_indices(geo, sym, match=True):
 def dummy_atom_indices(geo):
     """ indices of dummy atoms in this geometry (Replace w/ above at some pt)
     """
-    syms = symbols(geo)
-    dummy_idxs = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+    symbs = symbols(geo)
+    dummy_idxs = [idx for idx, symb in enumerate(symbs) if not pt.to_Z(symb)]
     return tuple(dummy_idxs)
 
 
@@ -119,9 +119,9 @@ def is_valid(geo):
     if ret:
         ret = all(hasattr(obj, '__len__') and len(obj) == 2 for obj in geo)
         if ret:
-            syms, xyzs = zip(*geo)
+            symbs, xyzs = zip(*geo)
             try:
-                automol.create.geom.from_data(syms, xyzs)
+                automol.create.geom.from_data(symbs, xyzs)
             except AssertionError:
                 ret = False
     return ret
@@ -131,23 +131,23 @@ def is_valid(geo):
 def set_coordinates(geo, xyz_dct):
     """ set coordinate values for the geometry, using a dictionary by index
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo)
 
-    natms = len(syms)
+    natms = len(symbs)
     assert all(idx in range(natms) for idx in xyz_dct)
 
     xyzs = [xyz_dct[idx] if idx in xyz_dct else xyz
             for idx, xyz in enumerate(xyzs)]
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def without_dummy_atoms(geo):
     """ return a copy of the geometry without dummy atoms
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
 
-    non_dummy_idxs = [idx for idx, sym in enumerate(syms) if pt.to_Z(sym)]
+    non_dummy_idxs = [idx for idx, symb in enumerate(symbs) if pt.to_Z(symb)]
     return from_subset(geo, non_dummy_idxs)
 
 
@@ -155,45 +155,45 @@ def without_dummy_atoms(geo):
 def from_string(geo_str, angstrom=True):
     """ read a cartesian geometry from a string
     """
-    syms, xyzs = ar.geom.read(geo_str)
-    geo = automol.create.geom.from_data(syms, xyzs, angstrom=angstrom)
+    symbs, xyzs = ar.geom.read(geo_str)
+    geo = automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
     return geo
 
 
 def from_xyz_string(xyz_str):
     """ read a cartesian geometry from a .xyz string
     """
-    syms, xyzs = ar.geom.read_xyz(xyz_str)
-    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
+    symbs, xyzs = ar.geom.read_xyz(xyz_str)
+    geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
     return geo
 
 
 def string(geo, angstrom=True):
     """ write the cartesian geometry as a string
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo, angstrom=angstrom)
-    geo_str = aw.geom.write(syms=syms, xyzs=xyzs)
+    geo_str = aw.geom.write(symbs=symbs, xyzs=xyzs)
     return geo_str
 
 
 def xyz_string(geo, comment=None):
     """ write the cartesian geometry to a .xyz string
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo, angstrom=True)
-    geo_str = aw.geom.write_xyz(syms=syms, xyzs=xyzs, comment=comment)
+    geo_str = aw.geom.write_xyz(symbs=symbs, xyzs=xyzs, comment=comment)
     return geo_str
 
 
 def xyz_trajectory_string(geo_lst, comments=None):
     """ write a series of cartesian geometries to a .xyz string
     """
-    syms_lst = [symbols(geo) for geo in geo_lst]
+    symbs_lst = [symbols(geo) for geo in geo_lst]
     xyzs_lst = [coordinates(geo, angstrom=True) for geo in geo_lst]
-    assert len(set(syms_lst)) == 1
-    syms = syms_lst[0]
-    xyz_traj_str = aw.geom.write_xyz_trajectory(syms, xyzs_lst,
+    assert len(set(symbs_lst)) == 1
+    symbs = symbs_lst[0]
+    xyz_traj_str = aw.geom.write_xyz_trajectory(symbs, xyzs_lst,
                                                 comments=comments)
     return xyz_traj_str
 
@@ -317,10 +317,10 @@ def join(geo1, geo2,
     """ join two geometries together
     """
     if not geo1:
-        syms = symbols(geo2)
+        symbs = symbols(geo2)
         xyzs = coordinates(geo2)
     elif not geo2:
-        syms = symbols(geo1)
+        symbs = symbols(geo1)
         xyzs = coordinates(geo1)
     else:
         orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
@@ -346,10 +346,10 @@ def join(geo1, geo2,
         geo2 = trans_geo2
 
         # now, join them together
-        syms = symbols(geo1) + symbols(geo2)
+        symbs = symbols(geo1) + symbols(geo2)
         xyzs = coordinates(geo1) + coordinates(geo2)
 
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def reorder(geo, idx_dct):
@@ -359,15 +359,15 @@ def reorder(geo, idx_dct):
     :param idx_dct: The new order of the atoms, by index
     :type idx_dct: dict
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo)
 
     idxs = [idx for idx, _ in sorted(idx_dct.items(), key=lambda x: x[1])]
-    assert len(syms) == len(xyzs) == len(idxs)
+    assert len(symbs) == len(xyzs) == len(idxs)
 
-    syms = [syms[idx] for idx in idxs]
+    symbs = [symbs[idx] for idx in idxs]
     xyzs = [xyzs[idx] for idx in idxs]
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def swap_coordinates(geo, idx1, idx2):
@@ -379,17 +379,17 @@ def swap_coordinates(geo, idx1, idx2):
     return geo_swp
 
 
-def insert(geo, sym, xyz, idx=None, angstrom=False):
+def insert(geo, symb, xyz, idx=None, angstrom=False):
     """ Insert an atom into this geometry
     """
-    syms = list(symbols(geo))
+    symbs = list(symbols(geo))
     xyzs = list(coordinates(geo, angstrom=angstrom))
 
-    idx = idx if idx is not None else len(syms)
+    idx = idx if idx is not None else len(symbs)
 
-    syms.insert(idx, sym)
+    symbs.insert(idx, symb)
     xyzs.insert(idx, xyz)
-    return automol.create.geom.from_data(syms, xyzs, angstrom=angstrom)
+    return automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
 
 
 def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
@@ -471,29 +471,29 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
 def displace(geo, xyzs):
     """ displacement of the geometry
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     orig_xyzs = coordinates(geo)
     xyzs = numpy.add(orig_xyzs, xyzs)
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def translate(geo, xyz):
     """ translation of the geometry
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo)
     xyzs = numpy.add(xyzs, xyz)
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def invert(geo):
     """ inversion of the geometry
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = numpy.array(coordinates(geo))
     xyzs *= -1.
     xyzs = list(map(list, xyzs))
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def transform(geo, func, idxs=None):
@@ -502,19 +502,19 @@ def transform(geo, func, idxs=None):
     if transforming a subset, specify the atoms indices with `idxs`
     """
     idxs = list(range(count(geo))) if idxs is None else idxs
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo)
     xyzs = [func(xyz) if idx in idxs else xyz for idx, xyz in enumerate(xyzs)]
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def transform_by_matrix(geo, mat):
     """ transform the coordinates of a geometry by a matrix
     """
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo)
     xyzs = numpy.dot(xyzs, numpy.transpose(mat))
-    return automol.create.geom.from_data(syms, xyzs)
+    return automol.create.geom.from_data(symbs, xyzs)
 
 
 def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
@@ -701,8 +701,8 @@ def is_atom(geo):
 def masses(geo, amu=True):
     """ return the atomic masses
     """
-    syms = symbols(geo)
-    amas = list(map(pt.to_mass, syms))
+    symbs = symbols(geo)
+    amas = list(map(pt.to_mass, symbs))
 
     if not amu:
         conv = qcc.conversion_factor("atomic_mass_unit", "electron_mass")
@@ -822,13 +822,13 @@ def permutation(geo, ref_geo, thresh=1e-4):
     (If there isn't one -- the geometries are not aligned, return None)
     """
     natms = count(geo)
-    syms = symbols(geo)
+    symbs = symbols(geo)
     xyzs = coordinates(geo)
 
     perm_idxs = [None] * natms
-    for idx, (sym, xyz) in enumerate(zip(syms, xyzs)):
+    for idx, (symb, xyz) in enumerate(zip(symbs, xyzs)):
         # Loop over atoms in the reference geometry with the same symbol
-        ref_idxs = atom_indices(ref_geo, sym=sym)
+        ref_idxs = atom_indices(ref_geo, symb=symb)
         ref_xyzs = coordinates(ref_geo, idxs=ref_idxs)
         perm_idx = next(
             (ref_idx for ref_idx, ref_xyz in zip(ref_idxs, ref_xyzs)
