@@ -22,8 +22,8 @@ import automol
 # PRD_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
 
 #    d. elimination 2: CH3CH2CH3 => CH3CH3 + CH2
-RCT_ICHS = list(map(automol.smiles.inchi, ['CCC']))
-PRD_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
+# RCT_ICHS = list(map(automol.smiles.inchi, ['CCC']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
 
 #    e. hydrogen abstraction 1: HC(CH3)3 + OH => C(CH3)3 + H2O
 # RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C', '[OH]']))
@@ -46,8 +46,8 @@ PRD_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
 # PRD_ICHS = list(map(automol.smiles.inchi, ['CCC']))
 
 #    h. substitution: H2O2 + H => H2O + OH
-# RCT_ICHS = list(map(automol.smiles.inchi, ['CO', '[CH2]C']))
-# PRD_ICHS = list(map(automol.smiles.inchi, ['CCC', '[OH]']))
+RCT_ICHS = list(map(automol.smiles.inchi, ['CO', '[CH2]C']))
+PRD_ICHS = list(map(automol.smiles.inchi, ['CCC', '[OH]']))
 
 # 2. Generate reactant/product graphs
 RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))
@@ -71,8 +71,17 @@ RCT_GEOS, PRD_GEOS = RXN.standardize_keys_and_sort_geometries_(
 # 4. Generate the geometry
 GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=True)
 
+# 5. Generate the z-matrix
+ZMA, ROW_KEYS, DUMMY_IDX_DCT = automol.reac.ts_zmatrix(RXN, GEO)
+
 # 8. Print some stuff
-print("Forward TS graph:")
+print("Forward TS graph (lined up with geometry):")
+TSG = RXN.forward_ts_graph
+print(automol.graph.string(TSG, one_indexed=False))
+
+print("Forward TS graph (lined up with zmatrix):")
+RXN.insert_dummy_atoms_(DUMMY_IDX_DCT)
+RXN.relabel_(dict(map(reversed, enumerate(ROW_KEYS))))
 TSG = RXN.forward_ts_graph
 print(automol.graph.string(TSG, one_indexed=False))
 
@@ -84,61 +93,20 @@ print("Cleaned up geometry:")
 print(automol.geom.string(GEO))
 print()
 
+print("Final z-matrix (one-indexed for comparison):")
+print(automol.zmat.string(ZMA, one_indexed=False))
+
+print("Row keys for z-matrix:")
+print(ROW_KEYS)
+
+print("Dummy indices for z-matrix:")
+print(DUMMY_IDX_DCT)
+
 # 9. Check the connectivity
 GRA = automol.geom.graph(automol.geom.join(*RCT_GEOS) if len(RCT_GEOS) > 1
                          else RCT_GEOS[0])
 GRA2 = automol.geom.graph(GEO)
 print("Is the graph consistent?", 'Yes' if GRA == GRA2 else 'No')
 print()
-
-if RXN.class_ == automol.par.ReactionClass.HYDROGEN_MIGRATION:
-    zma, row_keys, dummy_idx_dct = (
-        automol.reac.hydrogen_migration_ts_zmatrix(RXN, GEO))
-    RXN.insert_dummy_atoms_(dummy_idx_dct)
-    geo = automol.zmat.geometry(zma)
-    print(RXN.reactants_keys)
-    print(automol.zmat.string(zma))
-    print(row_keys)
-    print(automol.geom.string(geo))
-
-if RXN.class_ == automol.par.ReactionClass.BETA_SCISSION:
-    zma, row_keys, dummy_idx_dct = (
-        automol.reac.beta_scission_ts_zmatrix(RXN, GEO))
-    RXN.insert_dummy_atoms_(dummy_idx_dct)
-    geo = automol.zmat.geometry(zma)
-    print(RXN.reactants_keys)
-    print(automol.zmat.string(zma))
-    print(row_keys)
-    print(automol.geom.string(geo))
-
-if RXN.class_ == automol.par.ReactionClass.RING_FORM_SCISSION:
-    zma, row_keys, dummy_idx_dct = (
-        automol.reac.ring_forming_scission_ts_zmatrix(RXN, GEO))
-    RXN.insert_dummy_atoms_(dummy_idx_dct)
-    geo = automol.zmat.geometry(zma)
-    print(RXN.reactants_keys)
-    print(automol.zmat.string(zma))
-    print(row_keys)
-    print(automol.geom.string(geo))
-
-if RXN.class_ == automol.par.ReactionClass.ELIMINATION:
-    zma, row_keys, dummy_idx_dct = (
-        automol.reac.elimination_ts_zmatrix(RXN, GEO))
-    RXN.insert_dummy_atoms_(dummy_idx_dct)
-    geo = automol.zmat.geometry(zma)
-    print(RXN.reactants_keys)
-    print(automol.zmat.string(zma))
-    print(row_keys)
-    print(automol.geom.string(geo))
-
-if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
-    zma, row_keys, dummy_idx_dct = (
-        automol.reac.hydrogen_abstraction_ts_zmatrix(RXN, GEO))
-    RXN.insert_dummy_atoms_(dummy_idx_dct)
-    geo = automol.zmat.geometry(zma)
-    print(RXN.reactants_keys)
-    print(automol.zmat.string(zma))
-    print(row_keys)
-    print(automol.geom.string(geo))
 
 sys.exit()

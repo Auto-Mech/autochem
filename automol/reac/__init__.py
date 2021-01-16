@@ -28,6 +28,10 @@ from automol.reac._zmat import beta_scission_ts_zmatrix
 from automol.reac._zmat import ring_forming_scission_ts_zmatrix
 from automol.reac._zmat import elimination_ts_zmatrix
 from automol.reac._zmat import hydrogen_abstraction_ts_zmatrix
+from automol.reac._zmat import addition_ts_zmatrix
+from automol.reac._zmat import insertion_ts_zmatrix
+from automol.reac._zmat import substitution_ts_zmatrix
+from automol.reac._zmat import ts_zmatrix
 
 
 __all__ = [
@@ -59,4 +63,8 @@ __all__ = [
     'ring_forming_scission_ts_zmatrix',
     'elimination_ts_zmatrix',
     'hydrogen_abstraction_ts_zmatrix',
+    'addition_ts_zmatrix',
+    'insertion_ts_zmatrix',
+    'substitution_ts_zmatrix',
+    'ts_zmatrix',
 ]

@@ -12,6 +12,7 @@ import automol.convert.graph
 import automol.geom.ts
 from automol import par
 from automol.graph import ts
+from automol.graph import relabel
 from automol.graph import subgraph
 from automol.graph import atom_keys
 from automol.graph import full_isomorphism
@@ -157,6 +158,26 @@ class Reaction:
                     keys.append(dummy_key)
                     break
         keys_lst = tuple(map(tuple, map(sorted, keys_lst)))
+
+        if product:
+            self.backward_ts_graph = tsg
+            self.products_keys = keys_lst
+        else:
+            self.forward_ts_graph = tsg
+            self.reactants_keys = keys_lst
+
+    def relabel_(self, key_dct, product=False):
+        """ relabel keys in the reactants or products
+        """
+        if product:
+            tsg = self.backward_ts_graph
+            keys_lst = self.products_keys
+        else:
+            tsg = self.forward_ts_graph
+            keys_lst = self.reactants_keys
+
+        tsg = relabel(tsg, key_dct)
+        keys_lst = [list(map(key_dct.__getitem__, keys)) for keys in keys_lst]
 
         if product:
             self.backward_ts_graph = tsg
