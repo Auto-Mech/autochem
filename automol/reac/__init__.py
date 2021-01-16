@@ -24,6 +24,9 @@ from automol.reac._geom import substitution_ts_geometry
 from automol.reac._geom import ts_geometry
 # TS zmatrices
 from automol.reac._zmat import hydrogen_migration_ts_zmatrix
+from automol.reac._zmat import beta_scission_ts_zmatrix
+from automol.reac._zmat import ring_forming_scission_ts_zmatrix
+from automol.reac._zmat import elimination_ts_zmatrix
 from automol.reac._zmat import hydrogen_abstraction_ts_zmatrix
 
 
@@ -52,5 +55,8 @@ __all__ = [
     'ts_geometry',
     # TS zmatrices
     'hydrogen_migration_ts_zmatrix',
+    'beta_scission_ts_zmatrix',
+    'ring_forming_scission_ts_zmatrix',
+    'elimination_ts_zmatrix',
     'hydrogen_abstraction_ts_zmatrix',
 ]

@@ -6,8 +6,8 @@ import automol
 # 1. Choose reaction
 
 #    a. hydrogen migration: (CH3)2[CH]CH2CH2O[O] => (CH3)2[C]CH2CH2O[OH]
-RCT_ICHS = list(map(automol.smiles.inchi, ['C1CCC1C(CC2)C2CO[O]']))
-PRD_ICHS = list(map(automol.smiles.inchi, ['C1CCC1[C](CC2)C2COO']))
+# RCT_ICHS = list(map(automol.smiles.inchi, ['C1CCC1C(CC2)C2CO[O]']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['C1CCC1[C](CC2)C2COO']))
 
 #    b. beta-scission: CH3CH2CH2OO => CH3CH2[CH2] + OO
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CCCO[O]']))
@@ -17,9 +17,13 @@ PRD_ICHS = list(map(automol.smiles.inchi, ['C1CCC1[C](CC2)C2COO']))
 # RCT_ICHS = list(map(automol.smiles.inchi, ['[CH2]COO']))
 # PRD_ICHS = list(map(automol.smiles.inchi, ['C1CO1', '[OH]']))
 
-#    d. elimination: CH3CH2OO => C2H4 + HOO
+#    d. elimination 1: CH3CH2OO => C2H4 + HOO
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CCO[O]']))
 # PRD_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
+
+#    d. elimination 2: CH3CH2CH3 => CH3CH3 + CH2
+RCT_ICHS = list(map(automol.smiles.inchi, ['CCC']))
+PRD_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
 
 #    e. hydrogen abstraction 1: HC(CH3)3 + OH => C(CH3)3 + H2O
 # RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)C', '[OH]']))
@@ -33,11 +37,11 @@ PRD_ICHS = list(map(automol.smiles.inchi, ['C1CCC1[C](CC2)C2COO']))
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CC[CH2]', '[O][O]']))
 # PRD_ICHS = list(map(automol.smiles.inchi, ['CCCO[O]']))
 
-#    g. insertion 1: CH3CH3 + CH2 => C2H4 + HOO
+#    g. insertion 1: C2H4 + HOO => CH3CH2OO
 # RCT_ICHS = reversed(list(map(automol.smiles.inchi, ['C=C', 'O[O]'])))
 # PRD_ICHS = list(map(automol.smiles.inchi, ['CCO[O]']))
 
-#    g. insertion 2: CH3CH3 + CH2 => C2H4 + HOO
+#    g. insertion 2: CH3CH3 + CH2 => CH3CH2CH3
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CC', '[CH2]']))
 # PRD_ICHS = list(map(automol.smiles.inchi, ['CCC']))
 
@@ -65,9 +69,7 @@ RCT_GEOS, PRD_GEOS = RXN.standardize_keys_and_sort_geometries_(
     RCT_GEOS, PRD_GEOS)
 
 # 4. Generate the geometry
-GEO = automol.reac.ts_geometry(RXN, RCT_GEOS)
-
-# 5. Generate the z-matrix
+GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=True)
 
 # 8. Print some stuff
 print("Forward TS graph:")
@@ -96,6 +98,37 @@ if RXN.class_ == automol.par.ReactionClass.HYDROGEN_MIGRATION:
     geo = automol.zmat.geometry(zma)
     print(RXN.reactants_keys)
     print(automol.zmat.string(zma))
+    print(row_keys)
+    print(automol.geom.string(geo))
+
+if RXN.class_ == automol.par.ReactionClass.BETA_SCISSION:
+    zma, row_keys, dummy_idx_dct = (
+        automol.reac.beta_scission_ts_zmatrix(RXN, GEO))
+    RXN.insert_dummy_atoms_(dummy_idx_dct)
+    geo = automol.zmat.geometry(zma)
+    print(RXN.reactants_keys)
+    print(automol.zmat.string(zma))
+    print(row_keys)
+    print(automol.geom.string(geo))
+
+if RXN.class_ == automol.par.ReactionClass.RING_FORM_SCISSION:
+    zma, row_keys, dummy_idx_dct = (
+        automol.reac.ring_forming_scission_ts_zmatrix(RXN, GEO))
+    RXN.insert_dummy_atoms_(dummy_idx_dct)
+    geo = automol.zmat.geometry(zma)
+    print(RXN.reactants_keys)
+    print(automol.zmat.string(zma))
+    print(row_keys)
+    print(automol.geom.string(geo))
+
+if RXN.class_ == automol.par.ReactionClass.ELIMINATION:
+    zma, row_keys, dummy_idx_dct = (
+        automol.reac.elimination_ts_zmatrix(RXN, GEO))
+    RXN.insert_dummy_atoms_(dummy_idx_dct)
+    geo = automol.zmat.geometry(zma)
+    print(RXN.reactants_keys)
+    print(automol.zmat.string(zma))
+    print(row_keys)
     print(automol.geom.string(geo))
 
 if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
@@ -105,6 +138,7 @@ if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
     geo = automol.zmat.geometry(zma)
     print(RXN.reactants_keys)
     print(automol.zmat.string(zma))
+    print(row_keys)
     print(automol.geom.string(geo))
 
 sys.exit()

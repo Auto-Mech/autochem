@@ -82,6 +82,7 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
     brk_bnd_dist = 1.5
+    a123 = 150.
     a234 = 85.
     d1234 = 170.
 
@@ -92,7 +93,7 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     key2, = frm_bnd_key & brk_bnd_key
     key1, = frm_bnd_key - {key2}
     key3, = brk_bnd_key - {key2}
-    ang_dct = {(key2, key3, None): a234}
+    ang_dct = {(key1, key2, key3): a123, (key2, key3, None): a234}
     dih_dct = {(key1, key2, key3, None): d1234}
 
     gra = ts.reactants_graph(rxn.forward_ts_graph)
