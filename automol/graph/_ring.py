@@ -16,7 +16,6 @@ from automol.graph._graph import atom_bond_keys
 from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import union_from_sequence
 from automol.graph._graph import bond_induced_subgraph
-from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph import _networkx
 
 
@@ -34,6 +33,12 @@ def rings_atom_keys(gra):
     rng_atm_keys_lst = frozenset(
         map(sorted_ring_atom_keys_from_bond_keys, rings_bond_keys(gra)))
     return rng_atm_keys_lst
+
+
+def sorted_ring_atom_keys(rng):
+    """ get a ring's atom keys, sorted in order of connectivity
+    """
+    return sorted_ring_atom_keys_from_bond_keys(bond_keys(rng))
 
 
 def sorted_ring_atom_keys_from_bond_keys(rng_bnd_keys):
@@ -197,18 +202,19 @@ def is_ring_system(gra):
     return union_from_sequence(rings(gra), check=False) == gra
 
 
-def ring_system_decomposed_atom_keys(rsy, rng=None, check=True):
+def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
     """ decomposed atom keys for a polycyclic ring system in a graph
 
     The ring system is decomposed into a ring and a series of arcs that can
     be used to successively construct the system
 
     :param rsy: the ring system
-    :param rng: the ring in the decomposition; if None, the smallest ring in
-        the system will be chosen
+    :param rng_keys: keys for the first ring in the decomposition; if None, the
+        smallest ring in the system will be chosen
     """
-    rngs = sorted(rings(rsy), key=atom_count)
-    rng = rngs[0] if rng is None else rng
+    if rng_keys is None:
+        rng = sorted(rings(rsy), key=atom_count)[0]
+        rng_keys = sorted_ring_atom_keys(rng)
 
     # check the arguments, if requested
     if check:
@@ -220,12 +226,11 @@ def ring_system_decomposed_atom_keys(rsy, rng=None, check=True):
             "This is not a ring system graph:\n{:s}".format(string(rsy)))
 
         # check that rng is a subgraph of rsy
-        assert full_subgraph_isomorphism(rsy, rng), (
+        assert set(rng_keys) <= atom_keys(rsy), (
             "{}\n^ Rings system doesn't contain ring as subgraph:\n{}"
-            .format(*map(string, (rsy, rng))))
+            .format(string(rsy, one_indexed=False), str(rng_keys)))
 
-    bnd_keys = bond_keys(rng)
-    rng_keys = sorted_ring_atom_keys_from_bond_keys(bnd_keys)
+    bnd_keys = list(mit.windowed(rng_keys + rng_keys[:1], 2))
 
     # Remove bonds for the ring
     rsy = remove_bonds(rsy, bnd_keys)
