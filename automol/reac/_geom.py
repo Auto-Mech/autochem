@@ -13,7 +13,7 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
                                    max_dist_err=2e-1, log=False):
     """ geometry for a hydrogen migration transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.HYDROGEN_MIGRATION
@@ -43,7 +43,7 @@ def beta_scission_ts_geometry(rxn, rct_geos,
                               max_dist_err=2e-1, log=False):
     """ geometry for a beta scission transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.BETA_SCISSION
@@ -73,7 +73,7 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
                                       max_dist_err=2e-1, log=False):
     """ geometry for a ring-forming scission transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.RING_FORM_SCISSION
@@ -116,7 +116,7 @@ def elimination_ts_geometry(rxn, rct_geos,
                             max_dist_err=2e-1, log=False):
     """ geometry for an elimination transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.ELIMINATION
@@ -149,7 +149,7 @@ def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
                                      max_dist_err=2e-1, log=False):
     """ geometry for a hydrogen abstraction transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.HYDROGEN_ABSTRACTION
@@ -188,7 +188,7 @@ def addition_ts_geometry(rxn, rct_geos,
                          max_dist_err=2e-1, log=False):
     """ geometry for an addition transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.ADDITION
@@ -231,7 +231,7 @@ def insertion_ts_geometry(rxn, rct_geos,
                           max_dist_err=2e-1, log=False):
     """ geometry for an insertion transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.INSERTION
@@ -285,7 +285,7 @@ def substitution_ts_geometry(rxn, rct_geos,
                              max_dist_err=2e-1, log=False):
     """ geometry for a substitution transition state
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.SUBSTITUTION
@@ -334,7 +334,7 @@ def substitution_ts_geometry(rxn, rct_geos,
 def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False):
     """ reaction-class-specific embedding info
 
-    :param rxn: a hydrogen migration Reaction object
+    :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     :returns: the TS geometry
     """
