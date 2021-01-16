@@ -1,6 +1,7 @@
 """ graph-based z-matrix builder
 """
 import automol.vmat
+from automol.graph._graph_base import string
 from automol.graph._graph import atom_count
 from automol.graph._graph import atom_keys
 from automol.graph._graph import atom_symbols
@@ -11,34 +12,37 @@ from automol.graph._graph import is_connected
 from automol.graph._graph import terminal_heavy_atom_keys
 from automol.graph._graph import shortest_path_between_groups
 from automol.graph._ring import rings
+from automol.graph._ring import rings_atom_keys
+from automol.graph._ring import sorted_ring_atom_keys
 from automol.graph._ring import ring_systems
 from automol.graph._ring import ring_system_decomposed_atom_keys
 from automol.graph._ring import cycle_ring_atom_key_to_front
 
 
-def vmatrix(gra):
+def vmatrix(gra, rng_keys=None):
     """ v-matrix for a connected graph
 
     :param gra: the graph
-    :param lin_keys: keys for linear atoms in the graph (dummy atoms will be
-        inserted)
+    :param rng_keys: keys for a ring to start from
     """
     assert is_connected(gra), "Graph must be connected!"
 
     rsys = sorted(ring_systems(gra), key=atom_count)
 
-    term_keys = sorted(terminal_heavy_atom_keys(gra))
-    if term_keys:
-        start_key = term_keys[0]
-    else:
-        start_key = sorted(atom_keys(gra))[0]
-
     # Start with the ring systems and their connections. If there aren't any,
-    # start with the longest chain.
-    vma, row_keys = (connected_ring_systems(gra, check=False) if rsys else
-                     start_at(gra, start_key))
+    # start with the first terminal atom
+    if rsys:
+        vma, row_keys = connected_ring_systems(gra, rng_keys=rng_keys)
+    else:
+        term_keys = sorted(terminal_heavy_atom_keys(gra))
+        if term_keys:
+            start_key = term_keys[0]
+        else:
+            start_key = sorted(atom_keys(gra))[0]
 
-    # Finally, complete any incomplete branches
+        vma, row_keys = start_at(gra, start_key)
+
+    # Complete any incomplete branches
     branch_keys = _atoms_missing_neighbors(gra, row_keys)
     for key in branch_keys:
         vma, row_keys = complete_branch(gra, key, vma, row_keys)
@@ -46,7 +50,7 @@ def vmatrix(gra):
     return vma, row_keys
 
 
-def connected_ring_systems(gra, check=True):
+def connected_ring_systems(gra, rng_keys=None, check=True):
     """ generate a v-matrix covering a graph's ring systems and the connections
     between them
     """
@@ -57,33 +61,58 @@ def connected_ring_systems(gra, check=True):
 
     # Construct the v-matrix for the first ring system, choosing which ring
     # to start from
-    rsy = rsys.pop(0)
-    rngs = sorted(rings(rsy), key=atom_count)
-    rng = rngs.pop(0)
-    keys_lst = list(ring_system_decomposed_atom_keys(rsy, rng=rng))
+    if rng_keys is None:
+        rsy = rsys.pop(0)
+        rngs = sorted(rings(rsy), key=atom_count)
+        rng_keys = sorted_ring_atom_keys(rngs.pop(0))
+    else:
+        idx = next((i for i, ks in enumerate(map(atom_keys, rsys))
+                    if set(rng_keys) <= ks), None)
+        assert idx is not None, (
+            "The ring {} is not in this graph:\n{}"
+            .format(str(rng_keys), string(gra, one_indexed=False)))
+        rsy = rsys.pop(idx)
+
+    keys_lst = list(ring_system_decomposed_atom_keys(rsy, rng_keys=rng_keys))
 
     vma, row_keys = ring_system(gra, keys_lst)
 
     while rsys:
         # Find the next ring system with a connection to the current
-        # v-vmatrix
-        for idx, rsy in enumerate(rsys):
-            keys = shortest_path_between_groups(
-                gra, row_keys, atom_keys(rsy))
-            if keys is not None:
-                rsys.pop(idx)
+        # v-vmatrix and connect them
+        conn = False
+        for idx, rsy_keys in enumerate(map(atom_keys, rsys)):
+            if set(row_keys) & rsy_keys:
+                # ring systems are connected by one bond -- no chain needed
+                keys = set(row_keys) & rsy_keys
+                assert len(keys) == 1, (
+                    "Attempting to add redundant keys to v-matrix: {}"
+                    .format(str(keys)))
+                key, = keys
+
+                conn = True
+            else:
+                # see if the ring systems are connected by a chain
+                keys = shortest_path_between_groups(
+                    gra, row_keys, atom_keys(rsy))
+
+                # if so, build a bridge from the current v-matrix to this next
+                # ring system
+                vma, row_keys = continue_chain(gra, keys[:-1], vma, row_keys,
+                                               term_hydrogens=False)
+                key = keys[-1]
+
+                conn = bool(keys is not None)
+
+            if conn:
+                rsy = rsys.pop(idx)
                 break
 
         assert keys is not None, "This is a disconnected graph!"
 
-        # 1. Build a bridge from the current v-matrix to the next ring
-        # system
-        vma, row_keys = continue_chain(gra, keys[:-1], vma, row_keys,
-                                       term_hydrogens=False)
-
         # 2. Decompose the ring system with the connecting ring first
-        rng = next(r for r in rings(rsy) if keys[-1] in atom_keys(r))
-        keys_lst = ring_system_decomposed_atom_keys(rsy, rng=rng)
+        rng_keys = next(rks for rks in rings_atom_keys(rsy) if key in rks)
+        keys_lst = ring_system_decomposed_atom_keys(rsy, rng_keys=rng_keys)
 
         # 3. Build the next ring system
         vma, row_keys = continue_ring_system(gra, keys_lst, vma, row_keys)

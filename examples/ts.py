@@ -6,8 +6,8 @@ import automol
 # 1. Choose reaction
 
 #    a. hydrogen migration: (CH3)2[CH]CH2CH2O[O] => (CH3)2[C]CH2CH2O[OH]
-RCT_ICHS = list(map(automol.smiles.inchi, ['C(C)(C)CCO[O]']))
-PRD_ICHS = list(map(automol.smiles.inchi, ['[C](C)(C)CCOO']))
+RCT_ICHS = list(map(automol.smiles.inchi, ['C1CCC1C(CC2)C2CO[O]']))
+PRD_ICHS = list(map(automol.smiles.inchi, ['C1CCC1[C](CC2)C2COO']))
 
 #    b. beta-scission: CH3CH2CH2OO => CH3CH2[CH2] + OO
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CCCO[O]']))
@@ -83,25 +83,28 @@ print(automol.geom.string(GEO))
 print()
 
 # 9. Check the connectivity
-GRA = automol.graph.ts.reactants_graph(TSG)
+GRA = automol.geom.graph(automol.geom.join(*RCT_GEOS) if len(RCT_GEOS) > 1
+                         else RCT_GEOS[0])
 GRA2 = automol.geom.graph(GEO)
 print("Is the graph consistent?", 'Yes' if GRA == GRA2 else 'No')
 print()
 
 if RXN.class_ == automol.par.ReactionClass.HYDROGEN_MIGRATION:
-    # TODO: THIS IS NOT DONE -- WE NEED TO MAKE SURE THE CORRECT COORDINATES
-    # ARE IN THERE IN THE CORRECT ORDER
     zma, row_keys, dummy_idx_dct = (
         automol.reac.hydrogen_migration_ts_zmatrix(RXN, GEO))
     RXN.insert_dummy_atoms_(dummy_idx_dct)
+    geo = automol.zmat.geometry(zma)
     print(RXN.reactants_keys)
     print(automol.zmat.string(zma))
+    print(automol.geom.string(geo))
 
 if RXN.class_ == automol.par.ReactionClass.HYDROGEN_ABSTRACTION:
     zma, row_keys, dummy_idx_dct = (
         automol.reac.hydrogen_abstraction_ts_zmatrix(RXN, GEO))
     RXN.insert_dummy_atoms_(dummy_idx_dct)
+    geo = automol.zmat.geometry(zma)
     print(RXN.reactants_keys)
     print(automol.zmat.string(zma))
+    print(automol.geom.string(geo))
 
 sys.exit()
