@@ -11,8 +11,8 @@ class ReactionClass:
     # Unimolecular reactions
     HYDROGEN_MIGRATION = 'hydrogen migration'
     BETA_SCISSION = 'beta scission'
-    ELIMINATION = 'elimination'
     RING_FORM_SCISSION = 'ring forming scission'
+    ELIMINATION = 'elimination'
     # Bimolecular reactions
     HYDROGEN_ABSTRACTION = 'hydrogen abstraction'
     ADDITION = 'addition'
