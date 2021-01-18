@@ -26,7 +26,11 @@ class Parse():
 
 
 def is_valid(ick):
-    """ is this a valid InChIKey?
+    """ Determine if an InChIKey has the proper form.
+
+        :param ick: InChIKey
+        :type ick: str
+        :rtype: bool
     """
     assert isinstance(ick, (str, bytes, bytearray))
     return apf.has_match(Parse.PATTERN, ick)
@@ -34,6 +38,10 @@ def is_valid(ick):
 
 def first_hash(ick):
     """ the first hash block, indicating connectivity
+
+        :param ick: InChIKey
+        :type ick: str
+        :rtype: bool
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -43,6 +51,10 @@ def first_hash(ick):
 
 def second_hash(ick):
     """ the second hash block, indicating stereochemistry etc.
+
+        :param ick: InChIKey
+        :type ick: str
+        :rtype: bool
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -52,6 +64,10 @@ def second_hash(ick):
 
 def version_indicator(ick):
     """ the version indicator following the second hash block
+
+        :param ick: InChIKey
+        :type ick: str
+        :rtype: bool
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -61,6 +77,10 @@ def version_indicator(ick):
 
 def protonation_indicator(ick):
     """ protonation indicator (last character of the key)
+
+        :param ick: InChIKey
+        :type ick: str
+        :rtype: bool
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -70,6 +90,10 @@ def protonation_indicator(ick):
 
 def second_hash_with_extension(ick):
     """ second hash block with version and protonation indicators
+
+        :param ick: InChIKey
+        :type ick: str
+        :rtype: bool
     """
     return (second_hash(ick) + version_indicator(ick) + '-' +
             protonation_indicator(ick))

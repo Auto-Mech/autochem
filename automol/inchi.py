@@ -30,6 +30,9 @@ def from_data(fml_slyr, main_dct=None, char_dct=None, ste_dct=None,
 # getters
 def version(ich):
     """ version
+
+        :param ich: InChI string
+        :type ich: str
     """
     ptt = app.capturing(_version_pattern())
     ver = apf.first_capture(ptt, ich)
@@ -38,6 +41,9 @@ def version(ich):
 
 def formula_sublayer(ich):
     """ formula sublayer
+
+        :param ich: InChI string
+        :type ich: str
     """
     ptt = (_version_pattern() +
            SLASH + app.capturing(_formula_sublayer_pattern()))
@@ -47,24 +53,36 @@ def formula_sublayer(ich):
 
 def main_sublayers(ich):
     """ main sublayers, by prefix
+
+        :param ich: InChI string
+        :type ich: str
     """
     return _sublayers(_main_layer(ich))
 
 
 def charge_sublayers(ich):
     """ charge sublayers, by prefix
+
+        :param ich: InChI string
+        :type ich: str
     """
     return _sublayers(_charge_layer(ich))
 
 
 def stereo_sublayers(ich):
     """ stereo sublayers, by prefix
+
+        :param ich: InChI string
+        :type ich: str
     """
     return _sublayers(_stereo_layer(ich))
 
 
 def isotope_sublayers(ich):
     """ isotope sublayers, by prefix
+
+        :param ich: InChI string
+        :type ich: str
     """
     return _sublayers(_isotope_layer(ich))
 
@@ -75,6 +93,9 @@ def standard_form(ich, remove_stereo=False):
 
     (eventually we should just designate standard-form as standard inchi
     ordering for all but the hardcoded exceptions, which we can put at the end)
+
+        :param ich: InChI string
+        :type ich: str
     """
     if remove_stereo:
         fml_slyr = formula_sublayer(ich)
@@ -97,6 +118,9 @@ def standard_form(ich, remove_stereo=False):
 
 def has_stereo(ich):
     """ does this inchi have stereo information?
+
+        :param ich: InChI string
+        :type ich: str
     """
     ste_dct = stereo_sublayers(ich)
     iso_dct = isotope_sublayers(ich)
@@ -106,18 +130,27 @@ def has_stereo(ich):
 
 def has_multiple_components(ich):
     """ does this inchi have multiple components?
+
+        :param ich: InChI string
+        :type ich: str
     """
     return len(split(ich)) > 1
 
 
 def is_standard_form(ich):
     """ is this inchi closed?
+
+        :param ich: InChI string
+        :type ich: str
     """
     return ich == standard_form(ich)
 
 
 def is_complete(ich):
     """ is this inchi complete? (are all stereo-centers assigned?)
+
+        :param ich: InChI string
+        :type ich: str
     """
     return equivalent(ich, standard_form(ich)) and not (
         has_stereo(ich) ^ has_stereo(recalculate(ich, force_stereo=True)))
@@ -125,6 +158,9 @@ def is_complete(ich):
 
 def is_chiral(ich):
     """ is this inchi chiral?
+
+        :param ich: InChI string
+        :type ich: str
     """
     ste_dct = stereo_sublayers(ich)
     iso_dct = isotope_sublayers(ich)
@@ -133,7 +169,13 @@ def is_chiral(ich):
 
 # comparisons
 def equivalent(ich1, ich2):
-    """ are these inchis equivalent? (only considers up to the isotope layer
+    """ Determine if two InChI strings are equivalent. Currently
+        the srings are only checked up to the isotope sublayer.
+
+        :param ich1: InChI string 1
+        :type ich1: str
+        :param ich2: InChI string 2
+        :type ich2: str
     """
     return (formula_sublayer(ich1) == formula_sublayer(ich2) and
             main_sublayers(ich1) == main_sublayers(ich2) and
@@ -143,20 +185,31 @@ def equivalent(ich1, ich2):
 
 
 def same_connectivity(ich1, ich2):
-    """ do these inchis have the same connectivity
+    """ Determine if two InChI strings have the same connectivity.
+
+        :param ich1: InChI string 1
+        :type ich1: str
+        :param ich2: InChI string 2
+        :type ich2: str
     """
     return (standard_form(ich1, remove_stereo=True) ==
             standard_form(ich2, remove_stereo=True))
 
 
 def sorted_(ichs):
-    """ sort the inchies in their standard form sort order
+    """ Sort a sequence of InChI strings in their standard form sort order.
+
+        :param ichs: sequence of InChI strings
+        :type ichs: tuple(str)
     """
     return tuple(ichs[idx] for idx in argsort(ichs))
 
 
 def argsort(ichs):
     """ determine the sort order for the inchi standard form
+
+        :param ichs: sequence of InChI strings
+        :type ichs: tuple(str)
     """
 
     assert not any(map(has_multiple_components, ichs))
@@ -171,6 +224,10 @@ def join(ichs):
 
     (fix this for /s [which should be removed in split/join operations] and /m,
     which is joined as /m0110..  with no separators)
+
+        :param ichs: sequence of InChI strings
+        :type ichs: tuple(str)
+        :rtype: str
     """
     # first, make sure they are completely split up
     ichs = list(itertools.chain(*map(split, ichs)))
@@ -291,54 +348,88 @@ def _split_sublayer_string(slyr, count_sep_ptt=app.escape('*'),
 # conversions
 def recalculate(ich, force_stereo=False):
     """ recalculate an inchi string
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: str
     """
     return automol.convert.inchi.recalculate(ich, force_stereo=force_stereo)
 
 
 def geometry(ich):
-    """ inchi => geometry
+    """ Generate a molecular geometry from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: automol geometry data structure
     """
     return automol.convert.inchi.geometry(ich)
 
 
 def conformers(ich, nconfs=100):
-    """ inchi => conformers
+    """ Generate a molecular geometry for many conformers from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: tuple(automol geometry data structure)
     """
     return automol.convert.inchi.conformers(ich, nconfs)
 
 
 def graph(ich, no_stereo=False):
-    """ inchi => graph
+    """ Generate a molecular graph from an InChI string. (stereo?)
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: automol graph data structure
     """
     return automol.convert.inchi.graph(ich, no_stereo=no_stereo)
 
 
 def smiles(ich):
-    """ inchi => smiles
+    """ Generate a corresponding SMILES string from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: str
     """
     return automol.convert.inchi.smiles(ich)
 
 
 def inchi_key(ich):
-    """ inchi => inchi_key
+    """ Generate an InChI key (what?) from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
     """
     return automol.convert.inchi.inchi_key(ich)
 
 
 def formula(ich):
-    """ inchi => formula
+    """ Generate a formula dictionary from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: dict[str: int]
     """
     return automol.convert.inchi.formula(ich)
 
 
 def formula_string(ich):
-    """ inchi => formula
+    """ Generate a formula string from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: dict[]
     """
     return formula_sublayer(ich)
 
 
 def add_stereo(ich):
     """ inchi => inchi after adding stereoinfo
+
+        :param ich: InChI string
+        :type ich: str
     """
     gra = automol.inchi.graph(ich)
     stereo_gras = automol.graph.stereomers(gra)
@@ -359,6 +450,9 @@ def _sublayers(lyr):
 
 def _main_layer(ich):
     """ main layer
+
+        :param ich: InChI string
+        :type ich: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +
@@ -369,6 +463,9 @@ def _main_layer(ich):
 
 def _charge_layer(ich):
     """ charge layer
+
+        :param ich: InChI string
+        :type ich: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +
@@ -380,6 +477,9 @@ def _charge_layer(ich):
 
 def _stereo_layer(ich):
     """ stereo layer
+
+        :param ich: InChI string
+        :type ich: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +
@@ -392,6 +492,9 @@ def _stereo_layer(ich):
 
 def _isotope_layer(ich):
     """ isotope layer
+
+        :param ich: InChI string
+        :type ich: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +

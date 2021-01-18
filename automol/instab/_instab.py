@@ -15,18 +15,31 @@ from phydat import instab_fgrps
 from automol.zmatrix._unimol_ts import beta_scission
 
 
-# Check functional groups
-def functional_groups_stable(geo, thy_save_fs, mod_thy_info):
-    """ look for functional group attachments that could cause
+def product_zmas(zma):
+    """ Determine if the species has look for functional group attachments that could cause
         molecule instabilities
     """
 
-    # Initialize empty set of product graphs
-    prd_gras = ()
+    disconn_zmas = ()
+    for gra in instability_graphs(automol.zmat.graph(zma)):
+        ich = automol.graph.inchi(gra)
+        geo_tmp = automol.inchi.geometry(ich)
+        zma = automol.geom.zmatrix(geo_tmp)
+        disconn_zmas += (zma,)
+
+    return disconn_zmas
+
+
+def product_graphs(gra):
+    """ Determine if the species has look for functional group attachments that could cause
+        molecule instabilities
+    """
+   
+    # Build graphs for the detection scheme
+    rad_grp_dct = automol.graph.radical_group_dct(gra)
 
     # Check for instability causing functional groups
-    gra = automol.geom.graph(geo)
-    rad_grp_dct = automol.graph.radical_group_dct(gra)
+    prd_gras = ()
     for atm, grps in rad_grp_dct.items():
         if atm in instab_fgrps.DCT:
             fgrps, prds = instab_fgrps.DCT[atm]
@@ -41,28 +54,11 @@ def functional_groups_stable(geo, thy_save_fs, mod_thy_info):
                         gra, prd_gra)
                     break
 
-    if prd_gras:
-        disconn_zmas = []
-        for gra in prd_gras:
-            ich = automol.graph.inchi(gra)
-            geo_tmp = automol.inchi.geometry(ich)
-            zma = automol.geom.zmatrix(geo_tmp)
-            disconn_zmas.append(zma)
-        conn_zma = automol.geom.zmatrix(geo)
-        structure.instab.write_instab2(
-            conn_zma, disconn_zmas,
-            thy_save_fs, mod_thy_info[1:4],
-            zma_locs=(0,),
-            save_cnf=True)
-
-        stable = False
-    else:
-        stable = True
-    return stable
+    return disconn_zmas
 
 
 def _instab_info(conn_zma, disconn_zmas):
-    """ Obtain instability info
+    """ Determine the keys corresponding to the breaking bond for the instabiliity
     """
 
     # Get the zma for the connected graph
@@ -77,18 +73,3 @@ def _instab_info(conn_zma, disconn_zmas):
 
     return zma, brk_bnd_keys, rcts_gra
 
-
-def _disconnected_zmas(disconn_zma):
-    """ get graphs
-    """
-
-    # Convert to disconnected component graph
-    disconn_geo = automol.zmatrix.geometry(disconn_zma)
-    disconn_gras = automol.graph.connected_components(
-        automol.geom.graph(disconn_geo))
-
-    # Get the zmas
-    disconn_zmas = [automol.geom.zmatrix(automol.graph.geometry(gra))
-                    for gra in disconn_gras]
-
-    return disconn_zmas
