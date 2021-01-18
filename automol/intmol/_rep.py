@@ -2,7 +2,7 @@
   Repulsion calculations
 """
 
-from automol.zmatrix import geometry
+from automol.zmat import geometry
 from automol.intmol._pot import pairwise_potential_matrix
 
 

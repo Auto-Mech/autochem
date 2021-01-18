@@ -55,8 +55,8 @@ from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
 from automol.graph._ring import rings_atom_keys
-from automol.graph._geom import _atom_stereo_parity_from_geometry
-from automol.graph._geom import _bond_stereo_parity_from_geometry
+from automol.graph._stereo_geom import _atom_stereo_parity_from_geometry
+from automol.graph._stereo_geom import _bond_stereo_parity_from_geometry
 from automol.graph._res import resonance_dominant_atom_hybridizations
 
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
@@ -734,8 +734,11 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
         dmat = embed.distance_matrix_from_coordinates(xyzs)
 
         # check for correct connectivity
-        connectivity_check = (numpy.all(dmat[bnd_idx_vecs] < bnd_udists) and
-                              numpy.all(dmat[nob_idx_vecs] > nob_ldists))
+        connectivity_check = (
+            (numpy.all(dmat[bnd_idx_vecs] < bnd_udists)
+             if bnd_udists else True) and
+            (numpy.all(dmat[nob_idx_vecs] > nob_ldists)
+             if nob_ldists else True))
 
         # check for correct stereo parities
         geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
@@ -808,7 +811,7 @@ def _aggregate_connected_groups(keys_lst):
     return groups
 
 
-def geometry(gra, keys=None, ntries=5, max_dist_err=0.5):
+def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
     """ sample a qualitatively-correct stereo geometry
 
     :param gra: the graph, which may or may not have stereo

@@ -46,7 +46,7 @@ def _connected_geometry(ich):
 
             gra = automol.convert.inchi.graph(ich, no_stereo=True)
             gra = automol.graph.explicit(gra)
-            geo, _ = automol.graph.heuristic_geometry(gra)
+            geo = automol.graph.embed.geometry(gra)
             return geo
 
         for gen_ in [_gen1, _gen1, _gen1, _gen2, _gen3]:
