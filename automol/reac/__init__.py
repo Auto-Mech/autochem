@@ -1,6 +1,12 @@
 """ reaction-class specific functionality
 """
+# base reaction class
 from automol.reac._reac import Reaction
+from automol.reac._reac import reverse
+from automol.reac._reac import standardized
+from automol.reac._reac import standardized_with_sorted_geometries
+from automol.reac._reac import insert_dummy_atoms
+from automol.reac._reac import relabel
 # finders
 from automol.reac._find import trivial
 from automol.reac._find import hydrogen_migrations
@@ -35,7 +41,13 @@ from automol.reac._zmat import ts_zmatrix
 
 
 __all__ = [
+    # base reaction class
     'Reaction',
+    'reverse',
+    'standardized',
+    'standardized_with_sorted_geometries',
+    'insert_dummy_atoms',
+    'relabel',
     # finders
     'trivial',
     'hydrogen_migrations',

@@ -163,6 +163,7 @@ from automol.graph._ring import ring_systems_decomposed_atom_keys
 
 # rotational group library
 from automol.graph._rot import rotational_bond_keys
+from automol.graph._rot import rotational_groups
 
 # functional group library
 from automol.graph._func_group import Fgroup
@@ -378,7 +379,6 @@ __all__ = [
     'subresonances',
     'dominant_resonances',
     'dominant_resonance',
-    'rotational_bond_keys',
 
     # stereo graph library
     'has_stereo',
@@ -408,6 +408,7 @@ __all__ = [
 
     # rotational group library
     'rotational_bond_keys',
+    'rotational_groups',
 
     # functional group library
     'Fgroup',

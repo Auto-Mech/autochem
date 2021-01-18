@@ -32,6 +32,12 @@ from automol.zmat._zmat import string
 # validators
 from automol.zmat._zmat import is_valid
 
+# extra things to be added into the module
+from automol.zmat._extra import torsion_axes
+from automol.zmat._extra import torsion_coordinate_name
+from automol.zmat._extra import torsion_leading_atom
+from automol.zmat._extra import distance_coordinate_name
+
 # constructors
 import automol.create.zmat
 # conversions
@@ -131,6 +137,12 @@ __all__ = [
     'string',
     # validator
     'is_valid',
+
+    # extras
+    'torsion_axes',
+    'torsion_coordinate_name',
+    'torsion_leading_atom',
+    'distance_coordinate_name',
 
     # constructors
     'from_data',

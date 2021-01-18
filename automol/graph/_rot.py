@@ -38,8 +38,10 @@ def rotational_groups(gra, key1, key2):
     """
     bnd_key = frozenset({key1, key2})
     assert bnd_key in bond_keys(gra)
-    grp1 = tuple(sorted(branch_atom_keys(gra, key2, bnd_key)))
-    grp2 = tuple(sorted(branch_atom_keys(gra, key1, bnd_key)))
+    grp1 = branch_atom_keys(gra, key2, bnd_key) - {key1}
+    grp2 = branch_atom_keys(gra, key1, bnd_key) - {key2}
+    grp1 = tuple(sorted(grp1))
+    grp2 = tuple(sorted(grp2))
     return grp1, grp2
 
 

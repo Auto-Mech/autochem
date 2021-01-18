@@ -7,10 +7,23 @@ from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import string
 
 
-def torsion_axes(zma):
+def distance_coordinate_name(zma, key1, key2):
+    """ get the name of a distance coordinate for a given bond
+    """
+    key1, key2 = sorted([key1, key2])
+    name_mat = name_matrix(zma)
+    key_mat = key_matrix(zma)
+    assert key_mat[key2][0] == key1, (
+        "{:d}-{:d} is not a distance coordinate in this zmatrix:\n{}"
+        .format(key1, key2, string(zma, one_indexed=False)))
+    name = name_mat[key2][0]
+    return name
+
+
+def torsion_axes(zma, gra=None):
     """ get the torsion axes (rotational bonds) for a z-matrix
     """
-    gra = automol.convert.zmat.graph(zma)
+    gra = automol.convert.zmat.graph(zma) if gra is None else gra
     tors_axes = tuple(sorted(
         map(tuple, map(sorted, automol.graph.rotational_bond_keys(gra)))))
     return tors_axes

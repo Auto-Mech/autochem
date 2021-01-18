@@ -21,8 +21,6 @@ __all__ = [
     'geom',
     'zmat',
     'vmat',
-    'zmatrix',
-    'vmatrix',
     'graph',
     'inchi',
     'inchi_key',
