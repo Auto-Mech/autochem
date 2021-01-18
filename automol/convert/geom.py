@@ -19,7 +19,7 @@ def zmatrix(geo, ts_bnds=()):
     if ts_bnds:
         raise NotImplementedError
 
-    geo = automol.geom.insert_dummies_on_linear_atoms(geo)
+    geo, dummy_idx_dct = automol.geom.insert_dummies_on_linear_atoms(geo)
     gra = connectivity_graph(geo, dummy_bonds=True)
     vma, row_keys = automol.graph.vmat.vmatrix(gra)
     geo = automol.geom.from_subset(geo, row_keys)
@@ -41,24 +41,6 @@ def zmatrix_x2z(geo, ts_bnds=()):
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         zma = _pyx2z.to_zmatrix(x2m)
     zma = automol.zmat.standard_form(zma)
-    return zma
-
-
-def zmatrix_x2z_old(geo, ts_bnds=()):
-    """ geometry => z-matrix
-
-    (Keep around x2z bindings for comparison/testing)
-    """
-    syms = automol.geom.symbols(geo)
-    if len(syms) == 1:
-        key_mat = [[None, None, None]]
-        name_mat = [[None, None, None]]
-        val_dct = {}
-        zma = create.zmatrix.from_data(syms, key_mat, name_mat, val_dct)
-    else:
-        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
-        zma = _pyx2z.to_zmatrix_old(x2m)
-    zma = automol.zmatrix.standard_form(zma)
     return zma
 
 

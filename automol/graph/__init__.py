@@ -161,6 +161,9 @@ from automol.graph._ring import is_ring_system
 from automol.graph._ring import ring_system_decomposed_atom_keys
 from automol.graph._ring import ring_systems_decomposed_atom_keys
 
+# rotational group library
+from automol.graph._rot import rotatable_bonds
+
 # functional group library
 from automol.graph._func_group import Fgroup
 from automol.graph._func_group import functional_group_dct
@@ -168,10 +171,8 @@ from automol.graph._func_group import hydrocarbon_species
 from automol.graph._func_group import radical_species
 from automol.graph._func_group import chem_unique_atoms_of_type
 
-# graph <=> geometry library
-from automol.graph._geom import heuristic_geometry
-from automol.graph._geom import connected_heuristic_zmatrix
-from automol.graph._geom import set_stereo_from_geometry
+# stereo geometry library
+from automol.graph._stereo_geom import set_stereo_from_geometry
 
 # embedding library (should replace graph <=> geometry library)
 from automol.graph import embed
@@ -279,6 +280,7 @@ __all__ = [
     # # atom properties
     'electron_count',
     'atom_count',
+    'atom_count_by_type',
     'heavy_atom_count',
     'atom_neighbor_keys',
     'atom_neighbor_key',
@@ -286,6 +288,7 @@ __all__ = [
     'atom_second_degree_neighbor_keys',
     'dummy_atom_neighbor_keys',
     'atom_bond_keys',
+    'angle_keys',
     'atom_neighborhoods',
     'atom_neighborhood',
     'atom_groups',
@@ -403,6 +406,9 @@ __all__ = [
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
 
+    # rotational group library
+    'rotatable_bonds',
+
     # functional group library
     'Fgroup',
     'functional_group_dct',
@@ -410,9 +416,7 @@ __all__ = [
     'radical_species',
     'chem_unique_atoms_of_type',
 
-    # graph <=> geometry library
-    'heuristic_geometry',
-    'connected_heuristic_zmatrix',
+    # stereo geometry library
     'set_stereo_from_geometry',
 
     # conversions,
@@ -424,7 +428,6 @@ __all__ = [
 
     # submodules
     'ts',
-    'reac',
     'vmat',
 
     # util fxns

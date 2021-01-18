@@ -7,9 +7,9 @@ representation hierarchy:
     4. composition: formula
 """
 from automol.convert import geom
-from automol.convert import zmatrix
+from automol.convert import zmat
 
 __all__ = [
     'geom',
-    'zmatrix',
+    'zmat',
 ]

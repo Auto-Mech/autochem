@@ -83,7 +83,7 @@ def geometry(gra):
     """ graph => geometry
     """
     gra = automol.graph.explicit(gra)
-    geo, _ = automol.graph.heuristic_geometry(gra)
+    geo = automol.graph.embed.geometry(gra)
     return geo
 
 
