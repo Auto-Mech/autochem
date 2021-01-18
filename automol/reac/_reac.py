@@ -10,14 +10,9 @@ import itertools
 import numpy
 import automol.convert.graph
 import automol.geom.ts
+import automol.graph
 from automol import par
 from automol.graph import ts
-from automol.graph import relabel
-from automol.graph import subgraph
-from automol.graph import atom_keys
-from automol.graph import full_isomorphism
-from automol.graph import without_dummy_atoms
-from automol.graph import add_bonded_dummy_atoms
 
 
 class Reaction:
@@ -51,17 +46,20 @@ class Reaction:
 
         # Check the reactant keys and the forward transition state graph
         all_rcts_keys = set(itertools.chain(*rcts_keys))
-        assert all_rcts_keys == atom_keys(forw_tsg), (
-            "{} != {}".format(str(all_rcts_keys), str(atom_keys(forw_tsg))))
+        forw_keys = automol.graph.atom_keys(forw_tsg)
+        assert all_rcts_keys == forw_keys, (
+            "{} != {}".format(str(all_rcts_keys), str(forw_keys)))
 
         # Check the product keys and the backward transition state graph
         all_prds_keys = set(itertools.chain(*prds_keys))
-        assert all_prds_keys == atom_keys(back_tsg), (
-            "{} != {}".format(str(all_prds_keys), str(atom_keys(back_tsg))))
+        back_keys = automol.graph.atom_keys(back_tsg)
+        assert all_prds_keys == back_keys, (
+            "{} != {}".format(str(all_prds_keys), str(back_keys)))
 
         # Check that the reactants and products are consistent
-        assert full_isomorphism(ts.reverse(forw_tsg, dummies=False),
-                                without_dummy_atoms(back_tsg))
+        assert automol.graph.full_isomorphism(
+            ts.reverse(forw_tsg, dummies=False),
+            automol.graph.without_dummy_atoms(back_tsg))
 
         # Set attributes
         self.class_ = rxn_cls
@@ -89,102 +87,16 @@ class Reaction:
         rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
         return rct_idxs, prd_idxs
 
-    def key_map(self, reverse=False):
+    def key_map(self, rev=False):
         """ get the key map taking atoms from the reactant into atoms from the
         product
         """
-        iso_dct = full_isomorphism(ts.reverse(self.forward_ts_graph),
-                                   self.backward_ts_graph)
-        if reverse:
+        iso_dct = automol.graph.full_isomorphism(
+            ts.reverse(self.forward_ts_graph), self.backward_ts_graph)
+        if rev:
             iso_dct = dict(map(reversed, iso_dct.items()))
 
         return iso_dct
-
-    def reverse_(self):
-        """ get the reaction class for the reverse reaction
-        """
-        self.class_ = par.reverse_reaction_class(self.class_)
-        self.forward_ts_graph, self.backward_ts_graph = (
-            self.backward_ts_graph, self.forward_ts_graph)
-        self.reactants_keys, self.products_keys = (
-            self.products_keys, self.reactants_keys)
-
-    def standardize_keys_(self):
-        """ standardize keys and, optionally, sort reactant and product
-        geometries in the standard order
-        """
-        rct_keys = list(map(sorted, self.reactants_keys))
-        prd_keys = list(map(sorted, self.products_keys))
-        rct_key_dct = {k: i for i, k in enumerate(itertools.chain(*rct_keys))}
-        prd_key_dct = {k: i for i, k in enumerate(itertools.chain(*prd_keys))}
-        self.reactants_keys = tuple(tuple(map(rct_key_dct.__getitem__, keys))
-                                    for keys in self.reactants_keys)
-        self.products_keys = tuple(tuple(map(prd_key_dct.__getitem__, keys))
-                                   for keys in self.products_keys)
-        self.forward_ts_graph = automol.graph.relabel(self.forward_ts_graph,
-                                                      rct_key_dct)
-        self.backward_ts_graph = automol.graph.relabel(self.backward_ts_graph,
-                                                       prd_key_dct)
-
-    def standardize_keys_and_sort_geometries_(self, rct_geos, prd_geos):
-        """ standardize keys and line up geometries to match
-        """
-        rct_idxs, prd_idxs = self.sort_order()
-        rct_geos = tuple(map(rct_geos.__getitem__, rct_idxs))
-        prd_geos = tuple(map(prd_geos.__getitem__, prd_idxs))
-        self.standardize_keys_()
-        return rct_geos, prd_geos
-
-    def insert_dummy_atoms_(self, dummy_key_dct, product=False):
-        """ insert dummy atoms into the reactants or products
-
-        :param dummy_key_dct: dummy atom keys, by key of the atom they are
-            connected to
-        :param product: insert dummy atoms into the products instead of the
-            reactants?
-        """
-        if product:
-            tsg = self.backward_ts_graph
-            keys_lst = self.products_keys
-        else:
-            tsg = self.forward_ts_graph
-            keys_lst = self.reactants_keys
-
-        tsg = add_bonded_dummy_atoms(tsg, dummy_key_dct)
-        keys_lst = list(map(list, keys_lst))
-        for key, dummy_key in dummy_key_dct.items():
-            for keys in keys_lst:
-                if key in keys:
-                    keys.append(dummy_key)
-                    break
-        keys_lst = tuple(map(tuple, map(sorted, keys_lst)))
-
-        if product:
-            self.backward_ts_graph = tsg
-            self.products_keys = keys_lst
-        else:
-            self.forward_ts_graph = tsg
-            self.reactants_keys = keys_lst
-
-    def relabel_(self, key_dct, product=False):
-        """ relabel keys in the reactants or products
-        """
-        if product:
-            tsg = self.backward_ts_graph
-            keys_lst = self.products_keys
-        else:
-            tsg = self.forward_ts_graph
-            keys_lst = self.reactants_keys
-
-        tsg = relabel(tsg, key_dct)
-        keys_lst = [list(map(key_dct.__getitem__, keys)) for keys in keys_lst]
-
-        if product:
-            self.backward_ts_graph = tsg
-            self.products_keys = keys_lst
-        else:
-            self.forward_ts_graph = tsg
-            self.reactants_keys = keys_lst
 
     def copy(self):
         """ return a copy of this Reaction
@@ -197,22 +109,22 @@ class Reaction:
         """ reactant graphs for this reaction, in order
         """
         rcts_gra = ts.reactants_graph(self.forward_ts_graph)
-        rct_gras = [subgraph(rcts_gra, keys) for keys in self.reactants_keys]
+        rct_gras = [automol.graph.subgraph(rcts_gra, keys)
+                    for keys in self.reactants_keys]
         return tuple(rct_gras)
 
     def product_graphs(self):
         """ product graphs for this reaction, in order
         """
         prds_gra = ts.products_graph(self.forward_ts_graph)
-        prd_gras = [subgraph(prds_gra, keys) for keys in self.products_keys]
+        prd_gras = [automol.graph.subgraph(prds_gra, keys)
+                    for keys in self.products_keys]
         return tuple(prd_gras)
 
     def is_standardized(self):
         """ has this Reaction been standardized?
         """
-        other = self.copy()
-        other.standardize_keys_()
-        return self == other
+        return self == standardized(self)
 
     def __eq__(self, other):
         """ equality operator
@@ -226,3 +138,103 @@ class Reaction:
                    self.reactants_keys == other.reactants_keys and
                    self.products_keys == other.products_keys)
         return ret
+
+
+def reverse(rxn):
+    """ get the reaction object for the reverse reaction
+    """
+    rxn = rxn.copy()
+    rxn.class_ = par.reverse_reaction_class(rxn.class_)
+    rxn.forward_ts_graph, rxn.backward_ts_graph = (
+        rxn.backward_ts_graph, rxn.forward_ts_graph)
+    rxn.reactants_keys, rxn.products_keys = (
+        rxn.products_keys, rxn.reactants_keys)
+    return rxn
+
+
+def standardized(rxn):
+    """ standardize keys for the reaction object
+    """
+    rxn = rxn.copy()
+    rct_keys = list(map(sorted, rxn.reactants_keys))
+    prd_keys = list(map(sorted, rxn.products_keys))
+    rct_key_dct = {k: i for i, k in enumerate(itertools.chain(*rct_keys))}
+    prd_key_dct = {k: i for i, k in enumerate(itertools.chain(*prd_keys))}
+    rxn.reactants_keys = tuple(tuple(map(rct_key_dct.__getitem__, keys))
+                               for keys in rxn.reactants_keys)
+    rxn.products_keys = tuple(tuple(map(prd_key_dct.__getitem__, keys))
+                              for keys in rxn.products_keys)
+    rxn.forward_ts_graph = automol.graph.relabel(rxn.forward_ts_graph,
+                                                 rct_key_dct)
+    rxn.backward_ts_graph = automol.graph.relabel(rxn.backward_ts_graph,
+                                                  prd_key_dct)
+    return rxn
+
+
+def standardized_with_sorted_geometries(rxn, rct_geos, prd_geos):
+    """ standardize keys and line up geometries to match
+    """
+    rxn = rxn.copy()
+    rct_idxs, prd_idxs = rxn.sort_order()
+    rct_geos = tuple(map(rct_geos.__getitem__, rct_idxs))
+    prd_geos = tuple(map(prd_geos.__getitem__, prd_idxs))
+    rxn = standardized(rxn)
+    return rxn, rct_geos, prd_geos
+
+
+def insert_dummy_atoms(rxn, dummy_key_dct, product=False):
+    """ insert dummy atoms into the reactants or products
+
+    :param dummy_key_dct: dummy atom keys, by key of the atom they are
+        connected to
+    :param product: insert dummy atoms into the products instead of the
+        reactants?
+    """
+    rxn = rxn.copy()
+    if product:
+        tsg = rxn.backward_ts_graph
+        keys_lst = rxn.products_keys
+    else:
+        tsg = rxn.forward_ts_graph
+        keys_lst = rxn.reactants_keys
+
+    tsg = automol.graph.add_bonded_dummy_atoms(tsg, dummy_key_dct)
+    keys_lst = list(map(list, keys_lst))
+    for key, dummy_key in dummy_key_dct.items():
+        for keys in keys_lst:
+            if key in keys:
+                keys.append(dummy_key)
+                break
+    keys_lst = tuple(map(tuple, map(sorted, keys_lst)))
+
+    if product:
+        rxn.backward_ts_graph = tsg
+        rxn.products_keys = keys_lst
+    else:
+        rxn.forward_ts_graph = tsg
+        rxn.reactants_keys = keys_lst
+
+    return rxn
+
+
+def relabel(rxn, key_dct, product=False):
+    """ relabel keys in the reactants or products
+    """
+    rxn = rxn.copy()
+    if product:
+        tsg = rxn.backward_ts_graph
+        keys_lst = rxn.products_keys
+    else:
+        tsg = rxn.forward_ts_graph
+        keys_lst = rxn.reactants_keys
+
+    tsg = automol.graph.relabel(tsg, key_dct)
+    keys_lst = [list(map(key_dct.__getitem__, keys)) for keys in keys_lst]
+
+    if product:
+        rxn.backward_ts_graph = tsg
+        rxn.products_keys = keys_lst
+    else:
+        rxn.forward_ts_graph = tsg
+        rxn.reactants_keys = keys_lst
+    return rxn

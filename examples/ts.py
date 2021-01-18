@@ -5,9 +5,13 @@ import automol
 
 # 1. Choose reaction
 
-#    a. hydrogen migration: (CH3)2[CH]CH2CH2O[O] => (CH3)2[C]CH2CH2O[OH]
+#    a. hydrogen migration 1: (CH3)2[CH]CH2CH2O[O] => (CH3)2[C]CH2CH2O[OH]
 # RCT_ICHS = list(map(automol.smiles.inchi, ['C1CCC1C(CC2)C2CO[O]']))
 # PRD_ICHS = list(map(automol.smiles.inchi, ['C1CCC1[C](CC2)C2COO']))
+
+#    a. hydrogen migration 2: CH3[CH2]CH2O[O] => CH3[CH]CH2O[OH]
+# RCT_ICHS = list(map(automol.smiles.inchi, ['CCCO[O]']))
+# PRD_ICHS = list(map(automol.smiles.inchi, ['C[CH]COO']))
 
 #    b. beta-scission: CH3CH2CH2OO => CH3CH2[CH2] + OO
 # RCT_ICHS = list(map(automol.smiles.inchi, ['CCCO[O]']))
@@ -65,8 +69,8 @@ PRD_GRAS, _ = automol.graph.standard_keys_for_sequence(PRD_GRAS)
 RXNS = automol.reac.find(RCT_GRAS, PRD_GRAS)
 RXN = RXNS[0]
 # Sort and standardize keys (must go together)
-RCT_GEOS, PRD_GEOS = RXN.standardize_keys_and_sort_geometries_(
-    RCT_GEOS, PRD_GEOS)
+RXN, RCT_GEOS, PRD_GEOS = automol.reac.standardized_with_sorted_geometries(
+    RXN, RCT_GEOS, PRD_GEOS)
 
 # 4. Generate the geometry
 GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=True)
@@ -74,16 +78,16 @@ GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=True)
 # 5. Generate the z-matrix
 ZMA, ROW_KEYS, DUMMY_IDX_DCT = automol.reac.ts_zmatrix(RXN, GEO)
 
-# 8. Print some stuff
+# 6. Print some stuff
 print("Forward TS graph (lined up with geometry):")
 TSG = RXN.forward_ts_graph
 print(automol.graph.string(TSG, one_indexed=False))
 
 print("Forward TS graph (lined up with zmatrix):")
-RXN.insert_dummy_atoms_(DUMMY_IDX_DCT)
-RXN.relabel_(dict(map(reversed, enumerate(ROW_KEYS))))
-TSG = RXN.forward_ts_graph
-print(automol.graph.string(TSG, one_indexed=False))
+ZRXN = automol.reac.insert_dummy_atoms(RXN, DUMMY_IDX_DCT)
+ZRXN = automol.reac.relabel(ZRXN, dict(map(reversed, enumerate(ROW_KEYS))))
+ZTSG = ZRXN.forward_ts_graph
+print(automol.graph.string(ZTSG, one_indexed=False))
 
 print("Reactant 1 geometry:")
 print(automol.geom.string(RCT_GEOS[0]))
@@ -102,11 +106,23 @@ print(ROW_KEYS)
 print("Dummy indices for z-matrix:")
 print(DUMMY_IDX_DCT)
 
-# 9. Check the connectivity
+# 7. Check the connectivity
 GRA = automol.geom.graph(automol.geom.join(*RCT_GEOS) if len(RCT_GEOS) > 1
                          else RCT_GEOS[0])
 GRA2 = automol.geom.graph(GEO)
 print("Is the graph consistent?", 'Yes' if GRA == GRA2 else 'No')
 print()
+
+# 8. Check coordinates and torsions
+print("Torsion coordinates and rotational groups:")
+TORS_AXES = automol.zmat.torsion_axes(ZMA, gra=ZTSG)
+for AX in TORS_AXES:
+    NAME = automol.zmat.torsion_coordinate_name(ZMA, *AX)
+    print("name:", NAME)
+    print("\taxis:", AX)
+    GRPS = automol.graph.rotational_groups(ZTSG, *AX)
+    for GRP in GRPS:
+        print("\tgroup:", GRP)
+    print()
 
 sys.exit()

@@ -33,6 +33,7 @@ from automol.graph import rings_bond_keys
 from automol.graph import rings_atom_keys
 from automol.graph import cycle_ring_atom_key_to_front
 from automol.reac._reac import Reaction
+from automol.reac._reac import reverse
 
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 
@@ -150,11 +151,8 @@ def beta_scissions(rct_gras, prd_gras):
 
     Implemented as the reverse of additions.
     """
-    rxns = additions(prd_gras, rct_gras)
-    for rxn in rxns:
-        rxn.reverse_()
-
-    return tuple(rxns)
+    rxns = tuple(map(reverse, additions(prd_gras, rct_gras)))
+    return rxns
 
 
 # 3. Ring-forming scissions
@@ -435,11 +433,8 @@ def insertions(rct_gras, prd_gras):
 
     Implemented as the reverse of an addition reaction.
     """
-    rxns = eliminations(prd_gras, rct_gras)
-    for rxn in rxns:
-        rxn.reverse_()
-
-    return tuple(rxns)
+    rxns = tuple(map(reverse, eliminations(prd_gras, rct_gras)))
+    return rxns
 
 
 # 4. Substitutions
