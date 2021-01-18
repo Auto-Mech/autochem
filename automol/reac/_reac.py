@@ -121,10 +121,10 @@ class Reaction:
                     for keys in self.products_keys]
         return tuple(prd_gras)
 
-    def is_standardized(self):
-        """ has this Reaction been standardized?
+    def has_standard_keys(self):
+        """ has this Reaction been standard_keys?
         """
-        return self == standardized(self)
+        return self == standard_keys(self)
 
     def __eq__(self, other):
         """ equality operator
@@ -152,7 +152,7 @@ def reverse(rxn):
     return rxn
 
 
-def standardized(rxn):
+def standard_keys(rxn):
     """ standardize keys for the reaction object
     """
     rxn = rxn.copy()
@@ -171,15 +171,38 @@ def standardized(rxn):
     return rxn
 
 
-def standardized_with_sorted_geometries(rxn, rct_geos, prd_geos):
+def standard_keys_with_sorted_geometries(rxn, rct_geos, prd_geos):
     """ standardize keys and line up geometries to match
     """
     rxn = rxn.copy()
     rct_idxs, prd_idxs = rxn.sort_order()
     rct_geos = tuple(map(rct_geos.__getitem__, rct_idxs))
     prd_geos = tuple(map(prd_geos.__getitem__, prd_idxs))
-    rxn = standardized(rxn)
+    rxn = standard_keys(rxn)
     return rxn, rct_geos, prd_geos
+
+
+def relabel(rxn, key_dct, product=False):
+    """ relabel keys in the reactants or products
+    """
+    rxn = rxn.copy()
+    if product:
+        tsg = rxn.backward_ts_graph
+        keys_lst = rxn.products_keys
+    else:
+        tsg = rxn.forward_ts_graph
+        keys_lst = rxn.reactants_keys
+
+    tsg = automol.graph.relabel(tsg, key_dct)
+    keys_lst = [list(map(key_dct.__getitem__, keys)) for keys in keys_lst]
+
+    if product:
+        rxn.backward_ts_graph = tsg
+        rxn.products_keys = keys_lst
+    else:
+        rxn.forward_ts_graph = tsg
+        rxn.reactants_keys = keys_lst
+    return rxn
 
 
 def insert_dummy_atoms(rxn, dummy_key_dct, product=False):
@@ -217,8 +240,11 @@ def insert_dummy_atoms(rxn, dummy_key_dct, product=False):
     return rxn
 
 
-def relabel(rxn, key_dct, product=False):
-    """ relabel keys in the reactants or products
+def without_dummy_atoms(rxn, product=False):
+    """ return a reaction object with all dummy atoms removed, reindexed
+    accordingly
+
+    :param product: do this for the products, instead of the reactants?
     """
     rxn = rxn.copy()
     if product:
@@ -228,8 +254,11 @@ def relabel(rxn, key_dct, product=False):
         tsg = rxn.forward_ts_graph
         keys_lst = rxn.reactants_keys
 
-    tsg = automol.graph.relabel(tsg, key_dct)
-    keys_lst = [list(map(key_dct.__getitem__, keys)) for keys in keys_lst]
+    dummy_keys = automol.graph.atom_keys(tsg, sym='X')
+
+    tsg = automol.graph.remove_atoms(tsg, dummy_keys)
+    keys_lst = [[k for k in ks if k not in dummy_keys] for ks in keys_lst]
+    keys_lst = tuple(map(tuple, map(sorted, keys_lst)))
 
     if product:
         rxn.backward_ts_graph = tsg
@@ -237,4 +266,5 @@ def relabel(rxn, key_dct, product=False):
     else:
         rxn.forward_ts_graph = tsg
         rxn.reactants_keys = keys_lst
+
     return rxn

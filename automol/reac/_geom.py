@@ -17,7 +17,7 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.HYDROGEN_MIGRATION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
 
@@ -47,7 +47,7 @@ def beta_scission_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.BETA_SCISSION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     brk_bnd_dist = 1.5
 
@@ -77,7 +77,7 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.RING_FORM_SCISSION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
@@ -120,7 +120,7 @@ def elimination_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.ELIMINATION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.6
     frm_rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
@@ -153,7 +153,7 @@ def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.HYDROGEN_ABSTRACTION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.6
     a123 = 170.
@@ -192,7 +192,7 @@ def addition_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.ADDITION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.9
     a123 = 85.
@@ -235,7 +235,7 @@ def insertion_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.INSERTION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
 
     # set the formed bond distance based on the number of hydrogens
     frm_bnd_dist_dct = {
@@ -289,7 +289,7 @@ def substitution_ts_geometry(rxn, rct_geos,
     :param rct_geos: the reactant geometries
     """
     assert rxn.class_ == par.ReactionClass.SUBSTITUTION
-    assert rxn.is_standardized()
+    assert rxn.has_standard_keys()
 
     # set the formed bond distance based on the number of hydrogens
     frm_bnd_dist_dct = {

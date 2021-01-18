@@ -3,10 +3,11 @@
 # base reaction class
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
-from automol.reac._reac import standardized
-from automol.reac._reac import standardized_with_sorted_geometries
-from automol.reac._reac import insert_dummy_atoms
+from automol.reac._reac import standard_keys
+from automol.reac._reac import standard_keys_with_sorted_geometries
 from automol.reac._reac import relabel
+from automol.reac._reac import insert_dummy_atoms
+from automol.reac._reac import without_dummy_atoms
 # finders
 from automol.reac._find import trivial
 from automol.reac._find import hydrogen_migrations
@@ -44,10 +45,11 @@ __all__ = [
     # base reaction class
     'Reaction',
     'reverse',
-    'standardized',
-    'standardized_with_sorted_geometries',
-    'insert_dummy_atoms',
+    'standard_keys',
+    'standard_keys_with_sorted_geometries',
     'relabel',
+    'insert_dummy_atoms',
+    'without_dummy_atoms',
     # finders
     'trivial',
     'hydrogen_migrations',
