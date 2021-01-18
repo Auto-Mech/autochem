@@ -51,4 +51,3 @@ def read_params(dct, symb1, symb2):
         params = dct.get((symb2, symb1), None)
 
     return params
-

@@ -2,13 +2,33 @@
   Libraries for calculating inter- and intramolecular interactions
 """
 
-from automol.intmol._itermol import lj_potential
-from automol.intmol._itermol import exp6_potential
-from automol.intmol._itermol import pairwise_potential_matrix
-from automol.intmol._itermol import low_repulsion_struct
+from automol.pot._pot import points
+from automol.pot._pot import coords
+from automol.pot._pot import scale
+from automol.pot._pot import truncate
+from automol.pot._pot import by_index
+from automol.pot._pot import hrpot_spline_fitter
+from automol.pot._pot import valid
+from automol.pot._pot import dimension
+from automol.pot._pot import string
+from automol.pot._pot import check_hr_pot
+from automol.pot._intermol import lj_potential
+from automol.pot._intermol import exp6_potential
+from automol.pot._intermol import pairwise_potential_matrix
+from automol.pot._intermol import low_repulsion_struct
 
 
 __all__ = [
+    'points',
+    'coords',
+    'scale',
+    'truncate',
+    'by_index',
+    'hrpot_spline_fitter',
+    'valid',
+    'dimension',
+    'string',
+    'check_hr_pot',
     'lj_potential',
     'exp6_potential',
     'pairwise_potential_matrix',
