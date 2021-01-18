@@ -120,12 +120,15 @@ print()
 
 # 8. Check coordinates and torsions
 print("Torsion coordinates and rotational groups:")
-TORS_AXES = automol.zmat.torsion_axes(ZMA, gra=ZTSG)
-for AX in TORS_AXES:
-    NAME = automol.zmat.torsion_coordinate_name(ZMA, *AX)
+ZAXES = sorted(map(sorted, automol.graph.rotational_bond_keys(ZTSG)))
+GAXES = sorted(map(sorted, automol.graph.rotational_bond_keys(GTSG)))
+assert len(ZAXES) == len(GAXES)
+
+for ZAX, GAX in zip(ZAXES, GAXES):
+    NAME = automol.zmat.torsion_coordinate_name(ZMA, *ZAX)
     print("name:", NAME)
-    print("\taxis:", AX)
-    GRPS = automol.graph.rotational_groups(ZTSG, *AX)
+    print("\taxis:", GAX)
+    GRPS = automol.graph.rotational_groups(GTSG, *GAX)
     for GRP in GRPS:
         print("\tgroup:", GRP)
     print()

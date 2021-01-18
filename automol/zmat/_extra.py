@@ -30,7 +30,7 @@ def torsion_axes(zma, gra=None):
 
 
 def torsion_coordinate_name(zma, key1, key2):
-    """ name for a torsion coordinate about a torsion axis (rotational bond)
+    """ name for dihedral coordinate about a torsion axis (rotational bond)
 
     :param zma: the z-matrix
     :param key1: the first key in the torsion axis (rotational bond)
