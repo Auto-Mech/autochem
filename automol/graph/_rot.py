@@ -3,12 +3,13 @@
 import itertools
 from automol.graph._graph_base import bond_keys
 from automol.graph._graph import explicit
+from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._ring import rings_bond_keys
 from automol.graph._res import resonance_dominant_bond_orders
 
 
-def rotatable_bonds(gra):
+def rotational_bond_keys(gra):
     """ get all rotational bonds for a graph
     """
     gra = explicit(gra)
@@ -26,6 +27,20 @@ def rotatable_bonds(gra):
 
     rot_bnd_keys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
     return rot_bnd_keys
+
+
+def rotational_groups(gra, key1, key2):
+    """ get the rotational groups for a given rotational axis
+
+    :param gra: the graph
+    :param key1: the first atom key
+    :param key2: the second atom key
+    """
+    bnd_key = frozenset({key1, key2})
+    assert bnd_key in bond_keys(gra)
+    grp1 = tuple(sorted(branch_atom_keys(gra, key2, bnd_key)))
+    grp2 = tuple(sorted(branch_atom_keys(gra, key1, bnd_key)))
+    return grp1, grp2
 
 
 if __name__ == '__main__':
@@ -46,7 +61,7 @@ if __name__ == '__main__':
     print()
 
     GRA = automol.geom.graph(GEO)
-    ROT_BND_KEYS = rotatable_bonds(GRA)
+    ROT_BND_KEYS = rotational_bond_keys(GRA)
     print(len(COOS))
     print(len(ROT_BND_KEYS))
     print(ROT_BND_KEYS)
