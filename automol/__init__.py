@@ -4,8 +4,6 @@ from automol import par
 from automol import geom
 from automol import zmat
 from automol import vmat
-from automol import zmatrix
-from automol import vmatrix
 from automol import graph
 from automol import inchi
 from automol import inchi_key

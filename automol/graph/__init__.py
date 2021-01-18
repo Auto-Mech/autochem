@@ -171,10 +171,8 @@ from automol.graph._func_group import hydrocarbon_species
 from automol.graph._func_group import radical_species
 from automol.graph._func_group import chem_unique_atoms_of_type
 
-# graph <=> geometry library
-from automol.graph._geom import heuristic_geometry
-from automol.graph._geom import connected_heuristic_zmatrix
-from automol.graph._geom import set_stereo_from_geometry
+# stereo geometry library
+from automol.graph._stereo_geom import set_stereo_from_geometry
 
 # embedding library (should replace graph <=> geometry library)
 from automol.graph import embed
@@ -418,9 +416,7 @@ __all__ = [
     'radical_species',
     'chem_unique_atoms_of_type',
 
-    # graph <=> geometry library
-    'heuristic_geometry',
-    'connected_heuristic_zmatrix',
+    # stereo geometry library
     'set_stereo_from_geometry',
 
     # conversions,
