@@ -161,6 +161,9 @@ from automol.graph._ring import is_ring_system
 from automol.graph._ring import ring_system_decomposed_atom_keys
 from automol.graph._ring import ring_systems_decomposed_atom_keys
 
+# rotational group library
+from automol.graph._rot import rotatable_bonds
+
 # functional group library
 from automol.graph._func_group import Fgroup
 from automol.graph._func_group import functional_group_dct
@@ -279,6 +282,7 @@ __all__ = [
     # # atom properties
     'electron_count',
     'atom_count',
+    'atom_count_by_type',
     'heavy_atom_count',
     'atom_neighbor_keys',
     'atom_neighbor_key',
@@ -286,6 +290,7 @@ __all__ = [
     'atom_second_degree_neighbor_keys',
     'dummy_atom_neighbor_keys',
     'atom_bond_keys',
+    'angle_keys',
     'atom_neighborhoods',
     'atom_neighborhood',
     'atom_groups',
@@ -403,6 +408,9 @@ __all__ = [
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
 
+    # rotational group library
+    'rotatable_bonds',
+
     # functional group library
     'Fgroup',
     'functional_group_dct',
@@ -424,7 +432,6 @@ __all__ = [
 
     # submodules
     'ts',
-    'reac',
     'vmat',
 
     # util fxns
