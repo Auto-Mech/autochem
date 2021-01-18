@@ -69,7 +69,7 @@ PRD_GRAS, _ = automol.graph.standard_keys_for_sequence(PRD_GRAS)
 RXNS = automol.reac.find(RCT_GRAS, PRD_GRAS)
 RXN = RXNS[0]
 # Sort and standardize keys (must go together)
-RXN, RCT_GEOS, PRD_GEOS = automol.reac.standardized_with_sorted_geometries(
+RXN, RCT_GEOS, PRD_GEOS = automol.reac.standard_keys_with_sorted_geometries(
     RXN, RCT_GEOS, PRD_GEOS)
 
 # 4. Generate the geometry
@@ -78,22 +78,27 @@ GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=True)
 # 5. Generate the z-matrix
 ZMA, ROW_KEYS, DUMMY_IDX_DCT = automol.reac.ts_zmatrix(RXN, GEO)
 
-# 6. Print some stuff
-print("Forward TS graph (lined up with geometry):")
-TSG = RXN.forward_ts_graph
-print(automol.graph.string(TSG, one_indexed=False))
+GEO = automol.zmat.geometry(ZMA, remove_dummy_atoms=True)
 
+# 6. Print some stuff
 print("Forward TS graph (lined up with zmatrix):")
 ZRXN = automol.reac.insert_dummy_atoms(RXN, DUMMY_IDX_DCT)
 ZRXN = automol.reac.relabel(ZRXN, dict(map(reversed, enumerate(ROW_KEYS))))
 ZTSG = ZRXN.forward_ts_graph
 print(automol.graph.string(ZTSG, one_indexed=False))
 
+print("Forward TS graph (lined up with geometry):")
+GRXN = automol.reac.without_dummy_atoms(ZRXN)
+GRXN = automol.reac.standard_keys(GRXN)
+GTSG = GRXN.forward_ts_graph
+print(automol.graph.string(GTSG, one_indexed=False))
+
+
 print("Reactant 1 geometry:")
 print(automol.geom.string(RCT_GEOS[0]))
 print()
 
-print("Cleaned up geometry:")
+print("Final geometry:")
 print(automol.geom.string(GEO))
 print()
 
