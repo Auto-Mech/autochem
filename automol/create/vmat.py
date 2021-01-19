@@ -1,26 +1,28 @@
 """ vmatrix constructor
 """
+
 import numpy
-from qcelemental import periodictable as pt
+from phydat import ptab
 
 
 def from_data(symbols, key_matrix, name_matrix=None, one_indexed=False):
-    """ z-matrix constructor
+    """ V-Matrix constructor (Z-Matrix without numerical coordinate values).
 
-    :param symbols: atomic symbols
-    :type symbols: tuple[str]
-    :param key_matrix: key/index columns of the z-matrix, zero-indexed
-    :type key_matrix: tuple[tuple[float, float or None, float or None]]
-    :param name_matrix: coordinate name columns of the z-matrix
-    :type name_matrix; tuple[tuple[str, str or None, str or None]]
+        :param symbols: atomic symbols
+        :type symbols: tuple[str]
+        :param key_matrix: key/index columns of the z-matrix, zero-indexed
+        :type key_matrix: tuple[tuple[float, float or None, float or None]]
+        :param name_matrix: coordinate name columns of the z-matrix
+        :type name_matrix; tuple[tuple[str, str or None, str or None]]
     """
-    syms = list(map(pt.to_E, symbols))
-    natms = len(syms)
+
+    symbs = list(map(ptab.to_symbol, symbols))
+    natms = len(symbs)
 
     key_mat = _key_matrix(key_matrix, natms, one_indexed)
     name_mat = _name_matrix(name_matrix, natms)
 
-    vma = tuple(zip(syms, key_mat, name_mat))
+    vma = tuple(zip(symbs, key_mat, name_mat))
     return vma
 
 

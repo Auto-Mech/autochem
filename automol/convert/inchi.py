@@ -13,8 +13,13 @@ from automol.convert import _pybel
 
 
 def geometry(ich):
-    """ InChI => geometry
+    """ Generate a molecular geometry from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: automol molecular geometry data structure
     """
+
     # rdkit fails for multi-component inchis, so we split it up and space out
     # the geometries
     ichs = automol.inchi.split(ich)
@@ -26,6 +31,14 @@ def geometry(ich):
 
 
 def _connected_geometry(ich):
+    """ Generate a molecular geometry from an InChI string where
+        all atoms are connected by at least one bond.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: automol molecular geometry data structure
+    """
+
     geo = object_from_hardcoded_inchi_by_key('geom', ich)
     if geo is None:
         ich = automol.inchi.standard_form(ich)
@@ -72,7 +85,14 @@ def _connected_geometry(ich):
 
 
 def conformers(ich, nconfs):
-    """ InChI => conformers
+    """ Generate a list of molecular geometries for various conformers
+        of a species from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :param nconfs: number of conformer structures to generate
+        :type: int
+        :rtype: automol molecular geometry data structure
     """
 
     geo = object_from_hardcoded_inchi_by_key('geom', ich)
@@ -110,8 +130,15 @@ def conformers(ich, nconfs):
 
 
 def recalculate(ich, force_stereo=False):
-    """ recalculate InChI string
+    """ Recalculate an InChI string
+
+        :param ich: InChI string
+        :type ich: str
+        :param force_stereo: force the same stereochem in recalculated InChI
+        :type force_stereo: bool
+        :rtype: str
     """
+
     # for now, just assert that we have no multi-component strings with
     # hardcoded parts -- these are guaranteed to fail
     ichs = automol.inchi.split(ich)
@@ -135,8 +162,15 @@ def recalculate(ich, force_stereo=False):
 
 
 def graph(ich, no_stereo=False):
-    """ inchi => graph
+    """ Generate a molecular graph from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :param remove_stereo: parameter to include stereochemistry information
+        :type remove_stereo: bool
+        :rtype: automol molecular graph
     """
+
     # split it up to handle hard-coded molecules in multi-component inchis
     ichs = automol.inchi.split(ich)
     gras = [_connected_graph(ich, no_stereo=no_stereo) for ich in ichs]
@@ -151,6 +185,16 @@ def graph(ich, no_stereo=False):
 
 
 def _connected_graph(ich, no_stereo=False):
+    """ Generate a molecular graph from an InChI string where
+        all all atoms are connected by at least one bond.
+
+        :param ich: InChI string
+        :type ich: str
+        :param remove_stereo: parameter to include stereochemistry information
+        :type remove_stereo: bool
+        :rtype: automol molecular graph
+    """
+
     gra = object_from_hardcoded_inchi_by_key('graph', ich)
     if gra is None:
         ich = automol.inchi.standard_form(ich)
@@ -166,8 +210,13 @@ def _connected_graph(ich, no_stereo=False):
 
 
 def smiles(ich):
-    """ InChI => SMILEs
+    """ Convert a SMILES string into an InChI string.
+
+        :param smi: SMILES string
+        :type smi: str
+        :rtype: str
     """
+
     # split it up to handle hard-coded molecules in multi-component inchis
     ichs = automol.inchi.split(ich)
     smis = list(map(_connected_smiles, ichs))
@@ -176,6 +225,13 @@ def smiles(ich):
 
 
 def _connected_smiles(ich):
+    """ Convert a SMILES string into an InChI string.
+
+        :param smi: SMILES string
+        :type smi: str
+        :rtype: str
+    """
+
     smi = object_from_hardcoded_inchi_by_key('smiles', ich)
     if smi is None:
         ich = automol.inchi.standard_form(ich)
@@ -192,8 +248,13 @@ def inchi_key(ich):
 
 
 def formula(ich):
-    """ InChI => formula
+    """ Generate a formula dictionary from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: dict[str: int]
     """
+
     # split it up to handle hard-coded molecules in multi-component inchis
     ichs = automol.inchi.split(ich)
     fmls = list(map(_connected_formula, ichs))
@@ -277,8 +338,18 @@ HARDCODED_INCHI_DCT = {
 
 
 def object_from_hardcoded_inchi_by_key(key, ich):
-    """ object from a hardcoded inchi by key
+    """ Obtains the requested structural identifier object
+        for certain hardcoded InChI string.
+
+        InChI strings: C, B, N, CH, CF, CCl, CBr, CI
+
+        :param key: key for structural identifier
+        :type key: str
+        :param ich: InChI string
+        :type ich: str
+        :rtype: obj
     """
+
     obj = None
     for ich_, obj_dct in HARDCODED_INCHI_DCT.items():
         if automol.inchi.equivalent(ich, ich_):
@@ -287,11 +358,24 @@ def object_from_hardcoded_inchi_by_key(key, ich):
 
 
 def object_to_hardcoded_inchi_by_key(key, obj, comp=operator.eq):
-    """ object to hardcoded inchi by key
+    """ Convert a structural identifier to an InChI string object if that
+        InChI <=> relation is hardoded in automol.
+
+        InChI strings: C, B, N, CH, CF, CCl, CBr, CI
+
+        :param key: key for structural identifier
+        :type key: str
+        :param obj: obj for structural identifier
+        :type obj: str
+        :param ich: InChI string
+        :type ich: str
+        :rtype: str
     """
+
     ich = None
     for ich_, obj_dct in HARDCODED_INCHI_DCT.items():
         obj_ = obj_dct[key]
         if comp(obj, obj_):
             ich = ich_
+
     return ich

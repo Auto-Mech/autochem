@@ -20,22 +20,35 @@ RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 # constructors
 def from_subset(geo, idxs):
-    """ generate a new geometry from a subset of the atoms
+    """ Generate a new molecular geometry from a subset of the atoms in an
+        input geometry.
+    
+        (Rename this and put it under operations?)
 
-    (Rename this and put it under operations?)
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param idxs: indices representing the subset of atoms
+        :type idxs: tuple(int)
+        :rtype: automol moleculer geometry data structure
     """
+
     symbs = symbols(geo)
     xyzs = coordinates(geo)
 
     symbs = list(map(symbs.__getitem__, idxs))
     xyzs = list(map(xyzs.__getitem__, idxs))
+
     return automol.create.geom.from_data(symbs, xyzs)
 
 
 # getters
 def symbols(geo, idxs=None):
     """ atomic symbols
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
     """
+
     idxs = list(range(count(geo))) if idxs is None else idxs
 
     if geo:
@@ -49,6 +62,9 @@ def symbols(geo, idxs=None):
 
 def coordinates(geo, idxs=None, angstrom=False):
     """ atomic coordinates
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
     """
     idxs = list(range(count(geo))) if idxs is None else idxs
     if geo:
@@ -63,18 +79,27 @@ def coordinates(geo, idxs=None, angstrom=False):
 
 def count(geo):
     """ count the number of atoms in the geometry
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
     """
     return len(geo)
 
 
 def atom_count(geo, symb, match=True):
     """ count the number of some atom type in the geometry
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
     """
     return len(atom_indices(geo, symb, match=match))
 
 
 def atom_indices(geo, symb, match=True):
     """ indices for a particular atom type
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
         :param match: grab idxs that match given atom type
     """
 
@@ -153,42 +178,86 @@ def without_dummy_atoms(geo):
 
 # I/O
 def from_string(geo_str, angstrom=True):
-    """ read a cartesian geometry from a string
+    """ Read a Cartesian geometry from a string comprised
+        of just the atomic symbols and coordinates.
+
+        :param geo_str: string containing the geometry
+        :type geo_str: str
+        :param angstrom: parameter to control coordinate conversion to Angstrom
+        :type angstrom: bool
+        :rtype: automol geometry data structure
     """
+
     symbs, xyzs = ar.geom.read(geo_str)
     geo = automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
     return geo
 
 
 def from_xyz_string(xyz_str):
-    """ read a cartesian geometry from a .xyz string
+    """ Read a Cartesian geometry from a string that matches the
+        format of a string of a standard .xyz file.
+
+        :param xyz_str: string obtained from reading the .xyz file
+        :type xyz_str: str
+        :rtype: automol geometry data structure
     """
+
     symbs, xyzs = ar.geom.read_xyz(xyz_str)
     geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
     return geo
 
 
 def string(geo, angstrom=True):
-    """ write the cartesian geometry as a string
+    """ Write a molecular geometry to a string:
+           symb1  xyz1 xyz2 xyz3
+           symbn  xyzn xyzn xyzn
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param angstrom: parameter to control coordinate conversion to Angstrom
+        :type angstrom: bool
+        :rtype: str
     """
+
     symbs = symbols(geo)
     xyzs = coordinates(geo, angstrom=angstrom)
     geo_str = aw.geom.write(symbs=symbs, xyzs=xyzs)
+
     return geo_str
 
 
 def xyz_string(geo, comment=None):
-    """ write the cartesian geometry to a .xyz string
+    """ Write a molecular geometry to a string:
+           natom
+           comment
+           symb1  xyz1 xyz2 xyz3
+           symbn  xyzn xyzn xyzn
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param comment: string to place in the comment line of string
+        :type comment: str
+        :rtype: str
     """
+
     symbs = symbols(geo)
     xyzs = coordinates(geo, angstrom=True)
     geo_str = aw.geom.write_xyz(symbs=symbs, xyzs=xyzs, comment=comment)
+
     return geo_str
 
 
 def xyz_trajectory_string(geo_lst, comments=None):
-    """ write a series of cartesian geometries to a .xyz string
+    """ Write a series of molecular geometries to trajectory file which
+        is a string that collated by several xyz-file format geometry strings.
+
+        :param geo_lst: list of molecular geometries
+        :type geo_lst: tuple(automol geometry data structure)
+        :param comments: list of comments for each of the molecular geometries
+        :type comments: tuple(str)
+        :rtype: str
     """
+
     symbs_lst = [symbols(geo) for geo in geo_lst]
     xyzs_lst = [coordinates(geo, angstrom=True) for geo in geo_lst]
     assert len(set(symbs_lst)) == 1
@@ -199,7 +268,11 @@ def xyz_trajectory_string(geo_lst, comments=None):
 
 
 def from_xyz_trajectory_string(geo_str):
-    """ read a series of cartesian geometries from a .xyz string
+    """ Read a series of molecular geometries from a trajectory string.
+
+        :param geo_str: string containing the geometry
+        :type geo_str: str
+        :rtype: (tuple(automol geometry data structure), tuple(str))
     """
 
     def _blocks(lst, size):
@@ -353,12 +426,15 @@ def join(geo1, geo2,
 
 
 def reorder(geo, idx_dct):
-    """ Reorder the atoms in this geometry
+    """ Reorder the atoms of a molecular geometry using
+        the mapping of an input dictionary.
 
-    :param geo: The geometry
-    :param idx_dct: The new order of the atoms, by index
-    :type idx_dct: dict
+        :param geo: The geometry
+        :param idx_dct: The new order of the atoms, by index
+        :type idx_dct: dict
+        :rtype: automol geometry data structure
     """
+
     symbs = symbols(geo)
     xyzs = coordinates(geo)
 
@@ -371,17 +447,33 @@ def reorder(geo, idx_dct):
 
 
 def swap_coordinates(geo, idx1, idx2):
-    """ swap the order of the coordinates of the two atoms
+    """ Swap the order of the coordinates of two atoms in a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
     """
+
     geo = [list(x) for x in geo]
     geo[idx1], geo[idx2] = geo[idx2], geo[idx1]
     geo_swp = tuple(tuple(x) for x in geo)
+
     return geo_swp
 
 
 def insert(geo, symb, xyz, idx=None, angstrom=False):
-    """ Insert an atom into this geometry
+    """ Insert an atom into a molecular geometry.
+        
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param symb: symbol of atom to add
+        :type symb: str
+        :param xyz: xyz coordinates of atom to add
+        :type xyz: tuple(float)
+        :param idx: index of geometry to place atom
+        :type idx: int
+        :rtype: automol geometry date structure
     """
+
     symbs = list(symbols(geo))
     xyzs = list(coordinates(geo, angstrom=angstrom))
 
@@ -389,6 +481,7 @@ def insert(geo, symb, xyz, idx=None, angstrom=False):
 
     symbs.insert(idx, symb)
     xyzs.insert(idx, xyz)
+
     return automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
 
 
@@ -478,8 +571,16 @@ def displace(geo, xyzs):
 
 
 def translate(geo, xyz):
-    """ translation of the geometry
+    """ Translate the coordinates of a molecular geometry along
+        a three-dimensiona vector.
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param xyz: vector to translate along
+        :type xyz: tuple(float)
+        :rtype: automol molecular geometry data structure
     """
+
     symbs = symbols(geo)
     xyzs = coordinates(geo)
     xyzs = numpy.add(xyzs, xyz)
@@ -518,18 +619,43 @@ def transform_by_matrix(geo, mat):
 
 
 def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
-    """ axis-angle rotation of the geometry
+    """ Rotate the coordinates of a molecular geometry about
+        an axis by a specified angle.
+    
+        if rotating a subset, specify the atoms indices with `idxs`
 
-    if rotating a subset, specify the atoms indices with `idxs`
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param axis: axis to rotate about
+        :type axis: tuple(float)
+        :param angle: angle of rotation
+        :type angle: float
+        :param orig_xyz: xyz coordinates of the origin
+        :type orig_xyz: tuple(float)
+        :param idxs: indices of atoms whose coordinates are to be rotated
+        :type idxs: tuple(int)
     """
     func = util.vec.rotater(axis, angle, orig_xyz=orig_xyz)
     return transform(geo, func, idxs=idxs)
 
 
 def euler_rotate(geo, theta, phi, psi):
-    """ axis-angle rotation of the geometry
+    """ Rotate the coordinates of a molecular geometry about
+        the three Euler angles.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param theta: angle to rotate about z-axis
+        :type theta: float
+        :param phi: angle to rotate about x'-axis
+        :type phi: float
+        :param psi: angle to rotate about z'-axis
+        :type psi: float
+        :rtype: automol geometry data structure
     """
+
     mat = util.mat.euler_rotation(theta, phi, psi)
+
     return transform_by_matrix(geo, mat)
 
 
@@ -549,7 +675,15 @@ def move_coordinates(geo, idx1, idx2):
 
 
 def reflect_coordinates(geo, idxs, axes):
-    """ reflect each coordinate about the requested axes
+    """ Reflect a specified set of coordinates of a molecular geometry
+        about some each of the requested axes.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param idxs: indices of atoms whose coordinates are to be reflected
+        :type idxs: tuple(int)
+        :param axes: axes to reflect about
+        :type axes: tuple(str)
     """
 
     # check input
@@ -579,8 +713,18 @@ def reflect_coordinates(geo, idxs, axes):
 
 # geometric properties
 def distance(geo, idx1, idx2, angstrom=False):
-    """ measure the distance between atoms
+    """ Measure the distance between two atoms in a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param idx1: index of atom 1 in the pair to be measured
+        :type idx1: int
+        :param idx2: index of atom 2 in the pair to be measured
+        :type idx2: int
+        :param angstrom: parameter to control conversion to Angstrom
+        :type angstrom: bool
     """
+
     xyzs = coordinates(geo)
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
@@ -590,8 +734,20 @@ def distance(geo, idx1, idx2, angstrom=False):
 
 
 def central_angle(geo, idx1, idx2, idx3, degree=False):
-    """ measure the angle inscribed by three atoms
+    """ Measure the angle inscribed by three atoms in a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param idx1: index of atom 1 in the triplet to be measured
+        :type idx1: int
+        :param idx2: index of atom 2 in the triplet to be measured
+        :type idx2: int
+        :param idx3: index of atom 3 in the triplet to be measured
+        :type idx3: int
+        :param degree: parameter to control conversion to degree
+        :type degree: bool
     """
+
     xyzs = coordinates(geo)
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
@@ -602,8 +758,22 @@ def central_angle(geo, idx1, idx2, idx3, degree=False):
 
 
 def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
-    """ measure the dihedral angle defined by four atoms
+    """ Measure the angle inscribed by three atoms in a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param idx1: index of atom 1 in the quartet to be measured
+        :type idx1: int
+        :param idx2: index of atom 2 in the quartet to be measured
+        :type idx2: int
+        :param idx3: index of atom 3 in the quartet to be measured
+        :type idx3: int
+        :param idx4: index of atom 4 in the quartet to be measured
+        :type idx4: int
+        :param degree: parameter to control conversion to degree
+        :type degree: bool
     """
+
     xyzs = coordinates(geo)
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
@@ -660,18 +830,31 @@ def linear_atoms(geo, gra=None, tol=5.):
 
 
 def distance_matrix(geo):
-    """form distance matrix for a set of xyz coordinates
+    """ Form a Natom X Natom matrix containing the distance of all the
+        atoms in a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: numpy.ndarray
     """
+
     mat = numpy.zeros((len(geo), len(geo)))
     for i in range(len(geo)):
         for j in range(len(geo)):
             mat[i][j] = distance(geo, i, j)
+
     return mat
 
 
 def closest_unbonded_atoms(geo, gra=None):
-    """ determine the closest unbonded pair of atoms in this geometry
+    """ Determine which pair of unbonded atoms in a molecular geometry
+        are closest together.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: (frozenset(int), float)
     """
+
     gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
     atm_keys = automol.graph.atom_keys(gra)
     bnd_keys = automol.graph.bond_keys(gra)
@@ -693,14 +876,51 @@ def closest_unbonded_atoms(geo, gra=None):
 
 # chemical properties
 def is_atom(geo):
-    """ does this geometry describe a single atom?
+    """ Determine if the molecular geometry corresponds to an atom.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: bool
     """
+
     return len(symbols(geo)) == 1
 
 
-def masses(geo, amu=True):
-    """ return the atomic masses
+def is_linear(geo, tol=2.*phycon.DEG2RAD):
+    """ Determine if the molecular geometry is linear.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: bool
     """
+
+    ret = True
+
+    if len(geo) == 1:
+        ret = False
+    elif len(geo) == 2:
+        ret = True
+    else:
+        keys = range(len(symbols(geo)))
+        for key1, key2, key3 in mit.windowed(keys, 3):
+            cangle = numpy.abs(central_angle(geo, key1, key2, key3))
+            if not (numpy.abs(cangle) < tol or
+                    numpy.abs(cangle - numpy.pi) < tol):
+                ret = False
+    return ret
+
+
+def masses(geo, amu=True):
+    """ Build a list of the atomic masses that corresponds to the list
+        of atomic sybmols of a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param amu: parameter to control mass conversion to amu
+        : bool
+        :rtype: tuple(float)
+    """
+
     symbs = symbols(geo)
     amas = list(map(pt.to_mass, symbs))
 
@@ -713,14 +933,25 @@ def masses(geo, amu=True):
 
 
 def total_mass(geo):
-    """ Calculate the total mass
+    """ Calculate the total mass of a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param amu: parameter to control mass conversion to amu
+        :type amu: bool
+        :rtype: tuple(float)
     """
     return sum(masses(geo))
 
 
 def center_of_mass(geo):
-    """ center of mass
+    """ Determine the center-of-mass for a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: tuple(float)
     """
+
     xyzs = coordinates(geo)
     amas = masses(geo)
     cm_xyz = tuple(
@@ -748,15 +979,27 @@ def reduced_mass(geo1, geo2):
 
 
 def mass_centered(geo):
-    """ mass-centered geometry
+    """ Generate a new geometry where the coordinates of the input geometry
+        have been translated to the center-of-mass.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: tuple(float)
     """
     geo = translate(geo, numpy.negative(center_of_mass(geo)))
     return geo
 
 
 def inertia_tensor(geo, amu=True):
-    """ molecula# r inertia tensor (atomic units if amu=False)
+    """ Build the moment-of-inertia tensor for a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param amu: parameter to control mass conversion to amu
+        :type amu: bool
+        :rtype: tuple(tuple(float))
     """
+
     geo = mass_centered(geo)
     amas = masses(geo, amu=amu)
     xyzs = coordinates(geo)
@@ -768,17 +1011,33 @@ def inertia_tensor(geo, amu=True):
 
 
 def principal_axes(geo, amu=True):
-    """ principal inertial axes (atomic units if amu=False)
+    """ Determine the principal axes of rotation for a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param amu: parameter to control mass conversion to amu
+        :type amu: bool
+        :rtype: tuple(tuple(float))
     """
+
     ine = inertia_tensor(geo, amu=amu)
     _, paxs = numpy.linalg.eigh(ine)
     paxs = tuple(map(tuple, paxs))
+
     return paxs
 
 
 def moments_of_inertia(geo, amu=True):
-    """ principal inertial axes (atomic units if amu=False)
+    """ Calculate the moments of inertia along the xyz axes
+        (these not sorted in to A,B,C).
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param amu: parameter to control mass conversion to amu
+        :type amu: bool
+        :rtype: tuple(tuple(float))
     """
+
     ine = inertia_tensor(geo, amu=amu)
     moms, _ = numpy.linalg.eigh(ine)
     moms = tuple(moms)
@@ -786,34 +1045,22 @@ def moments_of_inertia(geo, amu=True):
 
 
 def rotational_constants(geo, amu=True):
-    """ rotational constants (atomic units if amu=False)
+    """ Calculate the rotational constants.
+        (these not sorted in to A,B,C).
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param amu: parameter to control mass conversion to amu
+        :type amu: bool
+        :rtype: tuple(float)
     """
+
     moms = moments_of_inertia(geo, amu=amu)
     sol = (qcc.get('speed of light in vacuum') *
            qcc.conversion_factor('meter / second', 'bohr hartree / h'))
     cons = numpy.divide(1., moms) / 4. / numpy.pi / sol
     cons = tuple(cons)
     return cons
-
-
-def is_linear(geo, tol=5.):
-    """ is this geometry linear?
-    """
-    ret = True
-
-    if len(geo) == 1:
-        ret = False
-    elif len(geo) == 2:
-        ret = True
-    else:
-        keys = range(len(symbols(geo)))
-        for key1, key2, key3 in mit.windowed(keys, 3):
-            ang = central_angle(geo, key1, key2, key3, degree=True)
-            if not (numpy.abs(ang) < tol or
-                    numpy.abs(ang - 180.) < tol):
-                ret = False
-                break
-    return ret
 
 
 def permutation(geo, ref_geo, thresh=1e-4):

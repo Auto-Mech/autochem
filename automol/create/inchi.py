@@ -1,5 +1,6 @@
 """ inchi "constructor"
 """
+
 from automol.util import dict_
 
 
@@ -13,8 +14,20 @@ ISO_PFXS = ISO_NONSTE_PFXS + STE_PFXS
 def from_data(formula_sublayer, main_sublayer_dct=None,
               charge_sublayer_dct=None, stereo_sublayer_dct=None,
               isotope_sublayer_dct=None):
-    """ calculate an inchi string from layers
+    """ Build an InChI string from each of the various layers.
+
+        :param formula_sublayer: stochiomectric formula for species
+        :type formula_sublayer: str
+        :param main_sublayer_dct:
+        :type main_sublayer_dct: dict[]
+        :param charge_sublayer_dct:
+        :type charge_sublayer_dct: dict[]
+        :param stereo_sublayer_dct:
+        :type stereo_sublayer_dct: dict[]
+        :param isotope_sublayer_dct:
+        :type isotope_sublayer_dct: dict[]
     """
+
     main_dct = dict_.empty_if_none(main_sublayer_dct)
     char_dct = dict_.empty_if_none(charge_sublayer_dct)
     ste_dct = dict_.empty_if_none(stereo_sublayer_dct)

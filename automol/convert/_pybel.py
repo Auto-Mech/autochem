@@ -7,27 +7,39 @@ import automol.create
 
 # geometry
 def to_geometry(pbm):
-    """ cartesian geometry from a pybel molecule object
+    """ Build an automol geometry data structure from a Pybel molecule object.
+
+        :param pbm: Pybel molecule object
+        :type pbm: Pybel object
+        :rtype: automol geometry data structure
     """
+
     pbm.addh()
     pbm.make3D()
     nums = [atm.atomicnum for atm in pbm.atoms]
     syms = list(map(pt.to_E, nums))
     xyzs = tuple(tuple(atm.coords) for atm in pbm.atoms)
     geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
+
     return geo
 
 
 # inchi
 def from_inchi(ich):
-    """ pybel molecule object from an InChI string
+    """ Build a Pybel molecule object from an InChI string.
+
+        :param ich: InChI string for a species
+        :type ich: str 
+        :rtype: Pybel molecule object
     """
-    pbm = pybel.readstring('inchi', ich)
-    return pbm
+    return pybel.readstring('inchi', ich)
 
 
 def to_inchi(pbm):
-    """ InChI string from a pybel molecule object
+    """ Build an InChI string from a Pybel molecule object.
+
+        :param pbm: Pybel molecule object
+        :type pbm: Pybel object
+        :rtype: str
     """
-    ich = pbm.write('inchi').strip()
-    return ich
+    return pbm.write('inchi').strip()

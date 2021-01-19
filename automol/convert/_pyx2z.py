@@ -8,8 +8,13 @@ import automol.create.zmat
 
 
 def to_oriented_geometry(geo):
-    """ obtain an oriented x2z molecule object from a geometry
+    """ Obtain an oriented x2z molecule object from a geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :type: x2z molecule object
     """
+
     _mg = pyx2z.MolecGeom()
     for sym, xyz in geo:
         _atm = pyx2z.Atom(sym)
