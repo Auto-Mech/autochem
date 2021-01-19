@@ -1,8 +1,9 @@
 """ generate ts geometries
 """
+
 import numpy
 import scipy
-from qcelemental import constants as qcc
+from phydat import phycon
 import automol.graph
 import automol.convert.geom
 from automol.util import vec
@@ -10,9 +11,6 @@ from automol.geom._geom import count
 from automol.geom._geom import symbols
 from automol.geom._geom import distance
 from automol.geom._geom import coordinates
-
-DEG2RAD = qcc.conversion_factor('degree', 'radian')
-RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 
 def distances(geos, bonds=True, angles=True, angstrom=True):
@@ -85,9 +83,9 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     geo1 and 3-4 are bonded atoms in geo2.
     """
     key3 = key3 - count(geo1)
-    a123 *= DEG2RAD if degree else 1
-    a234 *= DEG2RAD if degree else 1
-    d1234 *= DEG2RAD if degree else 1
+    a123 *= phycon.DEG2RAD if degree else 1
+    a234 *= phycon.DEG2RAD if degree else 1
+    d1234 *= phycon.DEG2RAD if degree else 1
 
     gra1, gra2 = map(automol.convert.geom.connectivity_graph, (geo1, geo2))
     key1 = (automol.graph.atom_neighbor_key(gra1, key2) if key1 is None
@@ -124,7 +122,7 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
                               dih=dih, xyz3=xyz0)
 
     # Don't use the dihedral angle if 1-2-3 are linear
-    if numpy.abs(a123 * RAD2DEG - 180.) > 5.:
+    if numpy.abs(a123 * phycon.RAD2DEG - 180.) > 5.:
         xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2,
                                   dih=d1234, xyz3=xyz1)
     else:

@@ -1,7 +1,8 @@
 """ pybel interface
 """
+
 import pybel
-from qcelemental import periodictable as pt
+from phydat import ptab
 import automol.create
 
 
@@ -17,9 +18,9 @@ def to_geometry(pbm):
     pbm.addh()
     pbm.make3D()
     nums = [atm.atomicnum for atm in pbm.atoms]
-    syms = list(map(pt.to_E, nums))
+    symbs = list(map(ptab.to_symbol, nums))
     xyzs = tuple(tuple(atm.coords) for atm in pbm.atoms)
-    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
+    geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
 
     return geo
 

@@ -1,18 +1,14 @@
 """ z-matrix
 """
+
 import numpy
-from qcelemental import constants as qcc
 from automol import vmat
 import automol.create.zmat
 import automol.convert.zmat
 import automol.geom
 import autoread as ar
 import autowrite as aw
-
-ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
-BOHR2ANG = qcc.conversion_factor('bohr', 'angstrom')
-DEG2RAD = qcc.conversion_factor('degree', 'radian')
-RAD2DEG = qcc.conversion_factor('radian', 'degree')
+from phydat import phycon
 
 
 # constructors
@@ -86,9 +82,9 @@ def value_matrix(zma, angstrom=False, degree=False):
         val_mat = [list(row) + [None]*(3-len(row)) for row in val_mat]
         val_mat = numpy.array(val_mat, dtype=numpy.object_)
 
-        val_mat[1:, 0] *= BOHR2ANG if angstrom else 1
-        val_mat[2:, 1] *= RAD2DEG if degree else 1
-        val_mat[3:, 2] *= RAD2DEG if degree else 1
+        val_mat[1:, 0] *= phycon.BOHR2ANG if angstrom else 1
+        val_mat[2:, 1] *= phycon.RAD2DEG if degree else 1
+        val_mat[3:, 2] *= phycon.RAD2DEG if degree else 1
     else:
         val_mat = ()
 
@@ -168,10 +164,10 @@ def set_values_by_name(zma, val_dct, angstrom=True, degree=True):
         if name in val_dct:
             val = val_dct[name]
             if col == 0:
-                val *= ANG2BOHR if angstrom else 1
+                val *= phycon.ANG2BOHR if angstrom else 1
             else:
                 assert col > 0
-                val *= DEG2RAD if degree else 1
+                val *= phycon.DEG2RAD if degree else 1
             val_mat[row, col] = val
 
     return set_value_matrix(zma, val_mat)

@@ -9,7 +9,7 @@ from qcelemental import vdwradii
 def to_symbol(atom):
     """ Obtain the atomic symbol for a given atom.
 
-        :return atom: atom representation (symbol, number, mass)
+        :param atom: atom representation (symbol, number, mass)
         :type atom: str/int
         :rtype: str
     """
@@ -19,7 +19,7 @@ def to_symbol(atom):
 def to_number(atom):
     """ Obtain the atomic number for a given atom.
 
-        :return atom: atom representation (symbol, number, mass)
+        :param atom: atom representation (symbol, number, mass)
         :type atom: str/int
         :rtype: int
     """
@@ -29,11 +29,21 @@ def to_number(atom):
 def to_mass(atom):
     """ Obtain the atomic mass for a given atom (in amu).
 
-        :return atom: atom representation (symbol, number, mass)
+        :param atom: atom representation (symbol, number, mass)
         :type atom: str/int
         :rtype: float
     """
     return periodictable.to_mass(atom)
+
+
+def to_group(atom):
+    """ Obtain the number of the group the atom belongs to.
+
+        :param atom: atom representation (symbol, number, mass)
+        :type atom: str/int
+        :rtype: int
+    """
+    return periodictable.to_group(atom)
 
 
 def van_der_waals_radius(symb):

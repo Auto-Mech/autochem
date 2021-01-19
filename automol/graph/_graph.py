@@ -1,11 +1,12 @@
 """ molecular graph
 """
+
 import operator
 import itertools
 import functools
 import numpy
 import future.moves.itertools as fmit
-from qcelemental import periodictable as pt
+from phydat import ptab
 import automol.formula
 from automol.util import dict_
 from automol.graph._graph_base import atoms
@@ -158,7 +159,7 @@ def electron_count(gra, charge=0):
     """ the number of electrons in the molecule
     """
     atm_symb_dct = atom_symbols(explicit(gra))
-    nelec = sum(map(pt.to_Z, atm_symb_dct.values())) - charge
+    nelec = sum(map(ptab.to_number, atm_symb_dct.values())) - charge
     return nelec
 
 
@@ -195,7 +196,7 @@ def heavy_atom_count(gra, with_dummy=False):
     if not with_dummy:
         gra = without_dummy_atoms(gra)
     atm_symb_dct = atom_symbols(gra)
-    nhvy_atms = sum(pt.to_Z(sym) != 1 for sym in atm_symb_dct.values())
+    nhvy_atms = sum(ptab.to_number(sym) != 1 for sym in atm_symb_dct.values())
     return nhvy_atms
 
 
@@ -816,7 +817,8 @@ def without_dummy_atoms(gra):
     """ remove dummy atoms from the graph
     """
     atm_symb_dct = atom_symbols(gra)
-    atm_keys = [key for key, sym in atm_symb_dct.items() if pt.to_Z(sym)]
+    atm_keys = [key for key, sym in atm_symb_dct.items()
+                if ptab.to_number(sym)]
     return subgraph(gra, atm_keys)
 
 
@@ -1074,7 +1076,7 @@ def atom_element_valences(gra):
     """ element valences (# possible single bonds), by atom
     """
     atm_symb_dct = atom_symbols(gra)
-    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, pt.to_group)
+    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, ptab.to_group)
     atm_elem_vlc_dct = dict_.transform_values(atm_group_idx_dct,
                                               VALENCE_DCT.__getitem__)
     return atm_elem_vlc_dct
@@ -1084,7 +1086,7 @@ def atom_lone_pair_counts(gra):
     """ lone pair counts, by atom
     """
     atm_symb_dct = atom_symbols(gra)
-    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, pt.to_group)
+    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, ptab.to_group)
     atm_lpc_dct = dict_.transform_values(atm_group_idx_dct,
                                          LONE_PAIR_COUNTS_DCT.__getitem__)
     atm_lpc_dct = dict_.transform_values(atm_lpc_dct, int)

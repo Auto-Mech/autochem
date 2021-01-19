@@ -16,7 +16,7 @@ def test__from_data():
     """ test getters
     """
     assert C2H2CLF_GEO == geom.from_data(
-        syms=geom.symbols(C2H2CLF_GEO),
+        symbs=geom.symbols(C2H2CLF_GEO),
         xyzs=geom.coordinates(C2H2CLF_GEO),
     )
 

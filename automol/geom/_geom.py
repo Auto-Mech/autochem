@@ -1,11 +1,11 @@
 """ cartesian geometries
 """
+
 import itertools
 import functools
 import more_itertools as mit
 import numpy
-from qcelemental import periodictable as pt
-from qcelemental import constants as qcc
+from phydat import phycon, ptab
 import autoread as ar
 import autowrite as aw
 import automol.graph
@@ -13,9 +13,6 @@ import automol.create.geom
 import automol.convert.geom
 import automol.convert.inchi
 from automol import util
-
-BOHR2ANG = qcc.conversion_factor('bohr', 'angstrom')
-RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 
 # constructors
@@ -118,7 +115,8 @@ def dummy_atom_indices(geo):
     """ indices of dummy atoms in this geometry (Replace w/ above at some pt)
     """
     symbs = symbols(geo)
-    dummy_idxs = [idx for idx, symb in enumerate(symbs) if not pt.to_Z(symb)]
+    dummy_idxs = [idx for idx, symb in enumerate(symbs)
+                  if not ptab.to_number(symb)]
     return tuple(dummy_idxs)
 
 
@@ -172,7 +170,8 @@ def without_dummy_atoms(geo):
     """
     symbs = symbols(geo)
 
-    non_dummy_idxs = [idx for idx, symb in enumerate(symbs) if pt.to_Z(symb)]
+    non_dummy_idxs = [idx for idx, symb in enumerate(symbs)
+                      if ptab.to_number(symb)]
     return from_subset(geo, non_dummy_idxs)
 
 
@@ -308,7 +307,7 @@ def coulomb_spectrum(geo):
 
 
 def _coulomb_matrix(geo):
-    nums = numpy.array(list(map(pt.to_Z, symbols(geo))))
+    nums = numpy.array(list(map(ptab.to_number, symbols(geo))))
     xyzs = numpy.array(coordinates(geo))
 
     _ = numpy.newaxis
@@ -729,7 +728,7 @@ def distance(geo, idx1, idx2, angstrom=False):
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
     dist = util.vec.distance(xyz1, xyz2)
-    dist *= BOHR2ANG if angstrom else 1
+    dist *= phycon.BOHR2ANG if angstrom else 1
     return dist
 
 
@@ -753,7 +752,7 @@ def central_angle(geo, idx1, idx2, idx3, degree=False):
     xyz2 = xyzs[idx2]
     xyz3 = xyzs[idx3]
     ang = util.vec.central_angle(xyz1, xyz2, xyz3)
-    ang *= RAD2DEG if degree else 1
+    ang *= phycon.RAD2DEG if degree else 1
     return ang
 
 
@@ -780,7 +779,7 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     xyz3 = xyzs[idx3]
     xyz4 = xyzs[idx4]
     dih = util.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
-    dih *= RAD2DEG if degree else 1
+    dih *= phycon.RAD2DEG if degree else 1
     return dih
 
 
@@ -922,7 +921,7 @@ def masses(geo, amu=True):
     """
 
     symbs = symbols(geo)
-    amas = list(map(pt.to_mass, symbs))
+    amas = list(map(ptab.to_mass, symbs))
 
     if not amu:
         conv = qcc.conversion_factor("atomic_mass_unit", "electron_mass")

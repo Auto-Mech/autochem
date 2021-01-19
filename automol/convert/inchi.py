@@ -1,8 +1,9 @@
 """ inchi conversions
 """
+
 import functools
 import operator
-from qcelemental import constants as qcc
+from phydat import phycon
 from automol import error
 import automol.inchi
 import automol.geom
@@ -272,7 +273,6 @@ def _connected_formula(ich):
 
 
 # hardcoded inchis which neither RDKit nor Pybel can handle
-ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 HARDCODED_INCHI_DCT = {
     'InChI=1S/C': {
         'inchi': 'InChI=1S/C',
@@ -297,14 +297,14 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CH/h1H': {
         'inchi': 'InChI=1S/CH/h1H',
-        'geom': (('C', (0., 0., 0.)), ('H', (0., 0., 1.12 * ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)), ('H', (0., 0., 1.12 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 1, None)}, {}),
         'smiles': '[CH]',
         'formula': {'C': 1, 'H': 1},
     },
     'InChI=1S/CF/c1-2': {
         'inchi': 'InChI=1S/CF/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('F', (0., 0., 1.27 * ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)), ('F', (0., 0., 1.27 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('F', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]F',
@@ -312,7 +312,7 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CCl/c1-2': {
         'inchi': 'InChI=1S/CCl/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('Cl', (0., 0., 1.65 * ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)), ('Cl', (0., 0., 1.65 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('Cl', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]Cl',
@@ -320,7 +320,7 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CBr/c1-2': {
         'inchi': 'InChI=1S/CBr/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('Br', (0., 0., 1.8 * ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)), ('Br', (0., 0., 1.8 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('Br', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]Br',
@@ -328,7 +328,7 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CI/c1-2': {
         'inchi': 'InChI=1S/CI/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('I', (0., 0., 1.8 * ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)), ('I', (0., 0., 1.8 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('I', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]I',

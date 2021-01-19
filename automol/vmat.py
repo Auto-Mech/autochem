@@ -5,11 +5,11 @@
 import itertools
 import more_itertools
 import numpy
-from qcelemental import periodictable as pt
 import autoread as ar
 import autowrite as aw
 import automol.create.vmat
 import automol.geom
+from phydat import ptab
 
 
 # constructor
@@ -149,7 +149,8 @@ def dummy_coordinate_names(vma):
     """
     syms = symbols(vma)
     name_mat = numpy.array(name_matrix(vma))
-    dummy_keys = [idx for idx, sym in enumerate(syms) if not pt.to_Z(sym)]
+    dummy_keys = [idx for idx, sym in enumerate(syms)
+                  if not ptab.to_number(sym)]
     dummy_names = []
     for dummy_key in dummy_keys:
         for col_idx in range(3):
