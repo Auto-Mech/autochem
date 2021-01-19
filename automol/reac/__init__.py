@@ -3,10 +3,14 @@
 # base reaction class
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
-from automol.reac._reac import standardized
-from automol.reac._reac import standardized_with_sorted_geometries
-from automol.reac._reac import insert_dummy_atoms
+from automol.reac._reac import standard_keys
+from automol.reac._reac import standard_keys_with_sorted_geometries
 from automol.reac._reac import relabel
+from automol.reac._reac import add_dummy_atoms
+from automol.reac._reac import insert_dummy_atoms
+from automol.reac._reac import without_dummy_atoms
+from automol.reac._reac import relabel_for_zmatrix
+from automol.reac._reac import relabel_for_geometry
 # finders
 from automol.reac._find import trivial
 from automol.reac._find import hydrogen_migrations
@@ -38,16 +42,30 @@ from automol.reac._zmat import addition_ts_zmatrix
 from automol.reac._zmat import insertion_ts_zmatrix
 from automol.reac._zmat import substitution_ts_zmatrix
 from automol.reac._zmat import ts_zmatrix
+# scan coordinates
+from automol.reac._scan import hydrogen_migration_scan_coordinate
+from automol.reac._scan import beta_scission_scan_coordinate
+from automol.reac._scan import ring_forming_scission_scan_coordinate
+from automol.reac._scan import elimination_scan_coordinate
+from automol.reac._scan import hydrogen_abstraction_scan_coordinate
+from automol.reac._scan import addition_scan_coordinate
+from automol.reac._scan import insertion_scan_coordinate
+from automol.reac._scan import substitution_scan_coordinate
+from automol.reac._scan import scan_coordinate
 
 
 __all__ = [
     # base reaction class
     'Reaction',
     'reverse',
-    'standardized',
-    'standardized_with_sorted_geometries',
-    'insert_dummy_atoms',
+    'standard_keys',
+    'standard_keys_with_sorted_geometries',
     'relabel',
+    'add_dummy_atoms',
+    'insert_dummy_atoms',
+    'without_dummy_atoms',
+    'relabel_for_zmatrix',
+    'relabel_for_geometry',
     # finders
     'trivial',
     'hydrogen_migrations',
@@ -79,4 +97,14 @@ __all__ = [
     'insertion_ts_zmatrix',
     'substitution_ts_zmatrix',
     'ts_zmatrix',
+    # scan coordinates
+    'hydrogen_migration_scan_coordinate',
+    'beta_scission_scan_coordinate',
+    'ring_forming_scission_scan_coordinate',
+    'elimination_scan_coordinate',
+    'hydrogen_abstraction_scan_coordinate',
+    'addition_scan_coordinate',
+    'insertion_scan_coordinate',
+    'substitution_scan_coordinate',
+    'scan_coordinate',
 ]

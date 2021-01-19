@@ -2,6 +2,8 @@
 """
 # constructors
 from automol.zmat._zmat import from_geometry
+# converters
+from automol.zmat._zmat import geometry
 # getters
 from automol.zmat._zmat import count
 from automol.zmat._zmat import symbols
@@ -33,7 +35,6 @@ from automol.zmat._zmat import string
 from automol.zmat._zmat import is_valid
 
 # extra things to be added into the module
-from automol.zmat._extra import torsion_axes
 from automol.zmat._extra import torsion_coordinate_name
 from automol.zmat._extra import torsion_leading_atom
 from automol.zmat._extra import distance_coordinate_name
@@ -61,13 +62,6 @@ def from_data(syms, key_mat, val_mat, name_mat=None,
         symbols=syms, key_matrix=key_mat, value_matrix=val_mat,
         name_matrix=name_mat, one_indexed=one_indexed, angstrom=angstrom,
         degree=degree)
-
-
-def geometry(zma, remove_dummy_atoms=False):
-    """ z-matrix => geometry
-    """
-    return automol.convert.zmat.geometry(
-        zma, remove_dummy_atoms=remove_dummy_atoms)
 
 
 def torsion_coordinate_names(zma):
@@ -108,6 +102,8 @@ def formula(zma):
 __all__ = [
     # constructors
     'from_geometry',
+    # converters
+    'geometry',
     # getters
     'count',
     'symbols',
@@ -139,7 +135,6 @@ __all__ = [
     'is_valid',
 
     # extras
-    'torsion_axes',
     'torsion_coordinate_name',
     'torsion_leading_atom',
     'distance_coordinate_name',

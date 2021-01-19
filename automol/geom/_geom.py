@@ -409,7 +409,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
     lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
     gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
 
-    dummy_ngb_idxs = automol.graph.dummy_atom_neighbor_keys(gra)
+    dummy_ngb_idxs = set(automol.graph.dummy_atom_neighbor_keys(gra).values())
     assert not dummy_ngb_idxs & set(lin_idxs), (
         "Attempting to add dummy atoms on atoms that already have them: {}"
         .format(dummy_ngb_idxs & set(lin_idxs)))
@@ -455,17 +455,17 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
     lin_idxs_lst = sorted(map(sorted, util.equivalence_partition(
         lin_idxs, lambda x, y: x in ngb_idxs_dct[y])))
 
-    dummy_idx_dct = {}
+    dummy_key_dct = {}
 
     for idxs in lin_idxs_lst:
         direc = _perpendicular_direction(idxs)
         for idx in idxs:
             xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
-            dummy_idx_dct[idx] = count(geo)
+            dummy_key_dct[idx] = count(geo)
 
             geo = insert(geo, 'X', xyz, angstrom=True)
 
-    return geo, dummy_idx_dct
+    return geo, dummy_key_dct
 
 
 def displace(geo, xyzs):

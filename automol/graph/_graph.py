@@ -65,6 +65,54 @@ def transform_keys(gra, atm_key_func):
     return relabel(gra, atm_key_dct)
 
 
+def relabel_for_zmatrix(gra, zma_keys, dummy_key_dct):
+    """ relabel a geometry graph to line up with a z-matrix
+
+    Inserts dummy atoms and sorts/relabels in z-matrix order.
+
+    Graph keys should correspond to the geometry used for conversion.
+
+    :param gra: the graph
+    :param zma_keys: graph keys in the order they appear in the z-matrix
+    :param dummy_key_dct: dummy keys introduced on z-matrix conversion, by atom
+        they are attached to
+    """
+    gra = add_dummy_atoms(gra, dummy_key_dct)
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    gra = relabel(gra, key_dct)
+    return gra
+
+
+def relabel_for_geometry(gra):
+    """ relabel a z-matrix graph to line up with a geometry
+
+    The result will line up with a geometry converted from the z-matrix, with
+    dummy atoms removed.
+
+    Removes dummy atoms and relabels in geometry order.
+
+    Graph keys should correspond to the z-matrix used for conversion.
+
+    :param gra: the graph
+    """
+    dummy_keys = sorted(atom_keys(gra, sym='X'))
+
+    for dummy_key in reversed(dummy_keys):
+        gra = _shift_remove_dummy_atom(gra, dummy_key)
+    return gra
+
+
+def _shift_remove_dummy_atom(gra, dummy_key):
+    keys = sorted(automol.graph.atom_keys(gra))
+    idx = keys.index(dummy_key)
+    key_dct = {}
+    key_dct.update({k: k for k in keys[:idx]})
+    key_dct.update({k: k-1 for k in keys[(idx+1):]})
+    gra = remove_atoms(gra, [dummy_key])
+    gra = relabel(gra, key_dct)
+    return gra
+
+
 def without_bond_orders(gra):
     """ resonance graph with maximum spin (i.e. no pi bonds)
     """
@@ -184,15 +232,23 @@ def atom_neighbor_keys(gra):
     return atm_ngb_keys_dct
 
 
-def sorted_atom_neighbor_keys(gra, symbs_first=('C',), symbs_last=('H',)):
+def sorted_atom_neighbor_keys(gra, symbs_first=('C',), symbs_last=('H',),
+                              ords_last=(0.1,)):
     """ keys of neighboring atoms, by atom
     """
     atm_symb_dct = atom_symbols(gra)
+    bnd_ord_dct = bond_orders(gra)
 
     def _neighbor_keys(atm_key, atm_nbh):
         keys = sorted(atom_keys(atm_nbh) - {atm_key})
+        bnd_keys = [frozenset({atm_key, k}) for k in keys]
+        ords = list(map(bnd_ord_dct.__getitem__, bnd_keys))
+        ords = [-1 if o not in ords_last else ords_last.index(o)
+                for o in ords]
         symbs = list(map(atm_symb_dct.__getitem__, keys))
-        srt = automol.formula.argsort_symbols(symbs, symbs_first, symbs_last)
+        srt_vals = list(zip(ords, symbs))
+        srt = automol.formula.argsort_symbols(srt_vals, symbs_first, symbs_last,
+                                              idx=1)
         keys = tuple(map(keys.__getitem__, srt))
         return keys
 
@@ -237,15 +293,22 @@ def atom_second_degree_neighbor_keys(gra):
 
 
 def dummy_atom_neighbor_keys(gra):
-    """ dummy atoms and their neighbor keys, by dummy atom
+    """ Atoms that are connected to dummy atoms, by dummy atom key
 
-    Atoms that are connected to dummy atoms
+    (Requires that each dummy atom only be connected to one neighbor)
     """
     atm_ngb_keys_dct = atom_neighbor_keys(gra)
     dummy_atm_keys = atom_keys(gra, sym='X')
-    dummy_atm_ngb_keys = frozenset(functools.reduce(
-        operator.or_, map(atm_ngb_keys_dct.__getitem__, dummy_atm_keys), ()))
-    return dummy_atm_ngb_keys
+
+    dummy_ngb_key_dct = {}
+    for key in dummy_atm_keys:
+        ngb_keys = atm_ngb_keys_dct[key]
+        assert len(ngb_keys) == 1, (
+            "Dummy atoms should only be connected to one atom!")
+        ngb_key, = ngb_keys
+        dummy_ngb_key_dct[key] = ngb_key
+
+    return dummy_ngb_key_dct
 
 
 def atom_bond_keys(gra):
@@ -592,7 +655,31 @@ def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
     return gra
 
 
-def add_bonded_dummy_atoms(gra, dummy_key_dct):
+def insert_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
+                       atm_ste_par=None, bnd_ord=None, bnd_ste_par=None):
+    """ insert a single atom with a bond to an atom already in the graph
+
+    Keys will be standardized upon insertion
+    """
+    keys = sorted(atom_keys(gra))
+    bnd_atm_key_ = max(keys) + 1
+
+    gra = add_bonded_atom(gra, sym, atm_key, bnd_atm_key=bnd_atm_key_,
+                          imp_hyd_vlc=imp_hyd_vlc, atm_ste_par=atm_ste_par,
+                          bnd_ord=bnd_ord, bnd_ste_par=bnd_ste_par)
+    if bnd_atm_key != bnd_atm_key_:
+        assert bnd_atm_key in keys
+        idx = keys.index(bnd_atm_key)
+        key_dct = {}
+        key_dct.update({k: k for k in keys[:idx]})
+        key_dct[bnd_atm_key_] = bnd_atm_key
+        key_dct.update({k: k+1 for k in keys[idx:]})
+        gra = relabel(gra, key_dct)
+
+    return gra
+
+
+def add_dummy_atoms(gra, dummy_key_dct):
     """ add dummy atoms to the graph, with dummy bonds to particular atoms
 
     :param dummy_key_dct: keys are atoms in the graph on which to place a dummy
@@ -605,10 +692,50 @@ def add_bonded_dummy_atoms(gra, dummy_key_dct):
     assert not set(dummy_key_dct.values()) & atm_keys, (
         "Dummy atom keys cannot overlap with existing atoms.")
 
-    for key, dummy_key in dummy_key_dct.items():
+    for key, dummy_key in sorted(dummy_key_dct.items()):
         gra = add_bonded_atom(gra, 'X', key, bnd_atm_key=dummy_key, bnd_ord=0)
 
     return gra
+
+
+def insert_dummy_atoms(gra, dummy_key_dct):
+    """ add dummy atoms to the graph, with dummy bonds to particular atoms
+
+    :param dummy_key_dct: keys are atoms in the graph on which to place a dummy
+        atom; values are the desired keys of the dummy atoms themselves, which
+        must not overlap with already existing atoms
+    """
+    for key, dummy_key in reversed(sorted(dummy_key_dct.items())):
+        gra = insert_bonded_atom(
+            gra, 'X', key, bnd_atm_key=dummy_key, bnd_ord=0)
+
+    return gra
+
+
+def standard_keys_without_dummy_atoms(gra):
+    """ remove dummy atoms and standardize keys, returning the dummy key
+    dictionary for converting back
+
+    Requires that graph follows z-matrix ordering (this is checked)
+    """
+    dummy_ngb_key_dct = dummy_atom_neighbor_keys(gra)
+
+    dummy_keys_dct = {}
+    last_dummy_key = -1
+    decr = 0
+    for dummy_key, key in sorted(dummy_ngb_key_dct.items()):
+        assert last_dummy_key <= key < dummy_key, (
+            "{:d} must follow previous dummy {:d} and preced next dummy {:d}"
+            .format(key, last_dummy_key, dummy_key))
+
+        dummy_keys_dct[key-decr] = dummy_key-decr
+        gra = remove_atoms(gra, [dummy_key])
+
+        decr += 1
+        last_dummy_key = dummy_key-decr
+
+    gra = standard_keys(gra)
+    return gra, dummy_keys_dct
 
 
 def remove_atoms(gra, atm_keys, check=True):
@@ -771,11 +898,9 @@ def atom_explicit_hydrogen_valences(gra):
 def atom_explicit_hydrogen_keys(gra):
     """ explicit hydrogen valences, by atom
     """
-    def _explicit_hydrogen_keys(atm_key, atm_nbh):
-        return frozenset(explicit_hydrogen_keys(atm_nbh) - {atm_key})
-
-    atm_exp_hyd_keys_dct = dict_.transform_items_to_values(
-        atom_neighborhoods(gra), _explicit_hydrogen_keys)
+    exp_hyd_keys = explicit_hydrogen_keys(gra)
+    atm_exp_hyd_keys_dct = dict_.transform_values(
+        atom_neighbor_keys(gra), lambda x: x & exp_hyd_keys)
     return atm_exp_hyd_keys_dct
 
 
@@ -794,8 +919,10 @@ def explicit_hydrogen_keys(gra):
     atm_ngb_keys_dct = atom_neighbor_keys(gra)
 
     def _is_backbone(hyd_key):
-        return all(ngb_key in hyd_keys and hyd_key < ngb_key
-                   for ngb_key in atm_ngb_keys_dct[hyd_key])
+        is_h2 = all(ngb_key in hyd_keys and hyd_key < ngb_key
+                    for ngb_key in atm_ngb_keys_dct[hyd_key])
+        is_multivalent = len(atm_ngb_keys_dct[hyd_key]) > 1
+        return is_h2 or is_multivalent
 
     exp_hyd_keys = frozenset(fmit.filterfalse(_is_backbone, hyd_keys))
     return exp_hyd_keys

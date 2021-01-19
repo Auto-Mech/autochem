@@ -25,13 +25,18 @@ from automol.graph._graph import relabel
 from automol.graph._graph import standard_keys
 from automol.graph._graph import standard_keys_for_sequence
 from automol.graph._graph import transform_keys
+from automol.graph._graph import relabel_for_zmatrix
+from automol.graph._graph import relabel_for_geometry
 from automol.graph._graph import add_atom_implicit_hydrogen_valences
 from automol.graph._graph import without_bond_orders
 from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import add_atoms
 from automol.graph._graph import add_bonds
 from automol.graph._graph import add_bonded_atom
-from automol.graph._graph import add_bonded_dummy_atoms
+from automol.graph._graph import add_dummy_atoms
+from automol.graph._graph import insert_bonded_atom
+from automol.graph._graph import insert_dummy_atoms
+from automol.graph._graph import standard_keys_without_dummy_atoms
 from automol.graph._graph import move_idx_to_top
 # # atom properties
 from automol.graph._graph import electron_count
@@ -133,7 +138,6 @@ from automol.graph._res import resonances
 from automol.graph._res import subresonances
 from automol.graph._res import dominant_resonances
 from automol.graph._res import dominant_resonance
-# from automol.graph._res import rotational_bond_keys  # replaced by _rot.py
 
 # stereo graph library
 from automol.graph._stereo import has_stereo
@@ -164,6 +168,8 @@ from automol.graph._ring import ring_systems_decomposed_atom_keys
 # rotational group library
 from automol.graph._rot import rotational_bond_keys
 from automol.graph._rot import rotational_groups
+from automol.graph._rot import rotational_symmetry_number
+from automol.graph._rot import linear_segments_atom_keys
 
 # functional group library
 from automol.graph._func_group import Fgroup
@@ -268,13 +274,18 @@ __all__ = [
     'standard_keys',
     'standard_keys_for_sequence',
     'transform_keys',
+    'relabel_for_zmatrix',
+    'relabel_for_geometry',
     'add_atom_implicit_hydrogen_valences',
     'without_bond_orders',
     'without_stereo_parities',
     'add_atoms',
     'add_bonds',
     'add_bonded_atom',
-    'add_bonded_dummy_atoms',
+    'add_dummy_atoms',
+    'insert_bonded_atom',
+    'insert_dummy_atoms',
+    'standard_keys_without_dummy_atoms',
     'move_idx_to_top',
 
     # graph theory library
@@ -409,6 +420,8 @@ __all__ = [
     # rotational group library
     'rotational_bond_keys',
     'rotational_groups',
+    'rotational_symmetry_number',
+    'linear_segments_atom_keys',
 
     # functional group library
     'Fgroup',

@@ -69,7 +69,7 @@ PRD_GRAS, _ = automol.graph.standard_keys_for_sequence(PRD_GRAS)
 RXNS = automol.reac.find(RCT_GRAS, PRD_GRAS)
 RXN = RXNS[0]
 # Sort and standardize keys (must go together)
-RXN, RCT_GEOS, PRD_GEOS = automol.reac.standardized_with_sorted_geometries(
+RXN, RCT_GEOS, PRD_GEOS = automol.reac.standard_keys_with_sorted_geometries(
     RXN, RCT_GEOS, PRD_GEOS)
 
 # 4. Generate the geometry
@@ -78,22 +78,27 @@ GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=True)
 # 5. Generate the z-matrix
 ZMA, ROW_KEYS, DUMMY_IDX_DCT = automol.reac.ts_zmatrix(RXN, GEO)
 
-# 6. Print some stuff
-print("Forward TS graph (lined up with geometry):")
-TSG = RXN.forward_ts_graph
-print(automol.graph.string(TSG, one_indexed=False))
+GEO = automol.zmat.geometry(ZMA, remove_dummy_atoms=True)
 
+# 6. Print some stuff
 print("Forward TS graph (lined up with zmatrix):")
-ZRXN = automol.reac.insert_dummy_atoms(RXN, DUMMY_IDX_DCT)
+ZRXN = automol.reac.add_dummy_atoms(RXN, DUMMY_IDX_DCT)
 ZRXN = automol.reac.relabel(ZRXN, dict(map(reversed, enumerate(ROW_KEYS))))
 ZTSG = ZRXN.forward_ts_graph
 print(automol.graph.string(ZTSG, one_indexed=False))
+
+print("Forward TS graph (lined up with geometry):")
+GRXN = automol.reac.without_dummy_atoms(ZRXN)
+GRXN = automol.reac.standard_keys(GRXN)
+GTSG = GRXN.forward_ts_graph
+print(automol.graph.string(GTSG, one_indexed=False))
+
 
 print("Reactant 1 geometry:")
 print(automol.geom.string(RCT_GEOS[0]))
 print()
 
-print("Cleaned up geometry:")
+print("Final geometry:")
 print(automol.geom.string(GEO))
 print()
 
@@ -115,12 +120,15 @@ print()
 
 # 8. Check coordinates and torsions
 print("Torsion coordinates and rotational groups:")
-TORS_AXES = automol.zmat.torsion_axes(ZMA, gra=ZTSG)
-for AX in TORS_AXES:
-    NAME = automol.zmat.torsion_coordinate_name(ZMA, *AX)
+ZAXES = sorted(map(sorted, automol.graph.rotational_bond_keys(ZTSG)))
+GAXES = sorted(map(sorted, automol.graph.rotational_bond_keys(GTSG)))
+assert len(ZAXES) == len(GAXES)
+
+for ZAX, GAX in zip(ZAXES, GAXES):
+    NAME = automol.zmat.torsion_coordinate_name(ZMA, *ZAX)
     print("name:", NAME)
-    print("\taxis:", AX)
-    GRPS = automol.graph.rotational_groups(ZTSG, *AX)
+    print("\taxis:", GAX)
+    GRPS = automol.graph.rotational_groups(GTSG, *GAX)
     for GRP in GRPS:
         print("\tgroup:", GRP)
     print()

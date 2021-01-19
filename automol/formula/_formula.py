@@ -169,29 +169,28 @@ def sorted_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
     return tuple(sorted(seq, key=_sort_key))
 
 
-def argsort_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
-    """ Get the sort order for a sequence of atomic symbols.
-
-        :param seq: formula or sequence of atomic symbols
-        :type seq: dict, list, or tuple
-        :param symbs_first: atomic symbols to place first
-        :type symbs_first: sequence of strings
-        
-        :param symbs_last:
-
-        :rtyp: tuple(str)
+def argsort_symbols(seq, syms_first=('C', 'H'), syms_last=(), idx=None):
+    """ get the sort order for a sequence of atomic symbols
     """
 
     def _sort_key(entry):
-        char = entry[0]
-        rest = entry[1:]
-        if char in symbs_first:
-            val = symbs_first.index(char)
-        elif char in symbs_last:
-            val = len(symbs_first) + 1 + symbs_last.index(char)
+        if idx is not None:
+            entry = tuple(entry[0]) + entry[1:]
+            start = entry[:idx]
+            char = entry[idx]
+            rest = entry[(idx+1):]
         else:
-            val = len(symbs_first)
-        return (val, char, rest)
+            start = ()
+            char = entry[0]
+            rest = entry[1:]
+
+        if char in syms_first:
+            val = syms_first.index(char)
+        elif char in syms_last:
+            val = len(syms_first) + 1 + syms_last.index(char)
+        else:
+            val = len(syms_first)
+        return (start, val, char, rest)
 
     return tuple(idx for (val, idx) in
                  sorted(((v, i) for (i, v) in enumerate(seq)), key=_sort_key))
