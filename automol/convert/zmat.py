@@ -9,7 +9,18 @@ import automol.zmat
 
 
 # z-matrix => geometry
-def geometry(zma, remove_dummy_atoms=False):
+def geometry(zma):
+    """ z-matrix => geometry
+    """
+    geo = geometry_with_dummy_atoms(zma)
+    gra = automol.convert.geom.connectivity_graph(geo, dummy_bonds=True)
+    gra, dummy_key_dct = automol.graph.standard_keys_without_dummy_atoms(gra)
+    geo = automol.geom.without_dummy_atoms(geo)
+
+    return geo, dummy_key_dct
+
+
+def geometry_with_dummy_atoms(zma):
     """ z-matrix => geometry
     """
     syms = automol.zmat.symbols(zma)
@@ -28,9 +39,6 @@ def geometry(zma, remove_dummy_atoms=False):
         xyzs[key] = xyz
 
     geo = create.geom.from_data(syms, xyzs)
-    if remove_dummy_atoms:
-        geo = automol.geom.without_dummy_atoms(geo)
-
     return geo
 
 

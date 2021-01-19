@@ -93,7 +93,8 @@ def from_data(syms, xyzs, angstrom=False):
 def zmatrix(geo, ts_bnds=()):
     """ geometry => z-matrix
     """
-    return automol.convert.geom.zmatrix(geo, ts_bnds)
+    zma, _, _ = automol.convert.geom.zmatrix(geo, ts_bnds)
+    return zma
 
 
 def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
