@@ -333,7 +333,7 @@ def string(vma, one_indexed=True):
     """
     shift = 1 if one_indexed else 0
     vma_str = aw.zmatrix.matrix_block(
-        syms=symbols(vma),
+        symbs=symbols(vma),
         key_mat=key_matrix(vma, shift=shift),
         name_mat=name_matrix(vma),
     )

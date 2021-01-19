@@ -1,6 +1,7 @@
 """ test automol.dict_ not utilized by other tests
 """
 
+import numpy
 from automol import dict_
 
 
@@ -17,9 +18,12 @@ DCT3 = {
     'charge': 0,
     'linear': True
 }
+DCT4 = {
+    ('C', 'H'): 1.54
+}
 
 
-def test__dict_():
+def test__build():
     """ test automol.dict_
     """
 
@@ -43,3 +47,13 @@ def test__dict_():
     dct2 = dict_.merge_sequence((DCT1, DCT2, DCT3))
 
     assert dct2 == ref_dct2
+
+
+def test__read():
+    """ test read
+    """
+
+    val1 = dict_.values_by_unordered_tuple(DCT4, ('C', 'H'))
+    val2 = dict_.values_by_unordered_tuple(DCT4, ('H', 'C'))
+
+    assert numpy.isclose(val1, val2, 1.54)
