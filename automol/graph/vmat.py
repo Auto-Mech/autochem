@@ -272,16 +272,16 @@ def start_at(gra, key):
     Returns the started vmatrix, along with keys to atoms whose neighbors are
     missing from it
     """
-    sym_dct = atom_symbols(gra)
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
-                                             syms_last=('H',))
+    symb_dct = atom_symbols(gra)
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, symbs_first=('X', 'C',),
+                                             symbs_last=('H',))
 
     ngb_keys = ngb_keys_dct[key]
     if not ngb_keys:
         row_keys = []
     elif len(ngb_keys) == 1:
         # Need special handling for atoms with only one neighbor
-        if sym_dct[key] in ('H', 'X'):
+        if symb_dct[key] in ('H', 'X'):
             key2 = ngb_keys[0]
             row_keys = (key2,) + ngb_keys_dct[key2]
         else:
@@ -306,7 +306,7 @@ def start_at(gra, key):
                         if k not in (key_, key1, key2))
             idx3 = row_keys.index(key3)
 
-        sym = sym_dct[key_]
+        sym = symb_dct[key_]
         key_row = [idx1, idx2, idx3]
         vma = automol.vmat.add_atom(vma, sym, key_row)
 
@@ -333,9 +333,9 @@ def complete_branch(gra, key, vma, row_keys, branch_keys=None):
     keys = _extend_chain_to_include_anchoring_atoms(gra, [key], row_keys)
 
     row_keys = list(row_keys)
-    sym_dct = atom_symbols(gra)
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
-                                             syms_last=('H',))
+    symb_dct = atom_symbols(gra)
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, symbs_first=('X', 'C',),
+                                             symbs_last=('H',))
 
     def _continue(key1, key2, key3, vma, row_keys):
         k3ns = list(ngb_keys_dct[key3])
@@ -346,7 +346,7 @@ def complete_branch(gra, key, vma, row_keys, branch_keys=None):
             key4 = k3ns.pop(0)
 
             # Add the leading atom to the v-matrix
-            sym = sym_dct[key4]
+            sym = symb_dct[key4]
             key_row = list(map(row_keys.index, (key3, key2, key1)))
             vma = automol.vmat.add_atom(vma, sym, key_row)
             assert key4 not in row_keys, ("Atom {:d} already in v-matrix."
@@ -356,9 +356,9 @@ def complete_branch(gra, key, vma, row_keys, branch_keys=None):
             # Add the neighbors of atom 3 (if any) to the v-matrix, decoupled
             # from atom 1 for properly decopuled torsions
             for k3n in k3ns:
-                sym = sym_dct[k3n]
+                sym = symb_dct[k3n]
 
-                if sym_dct[key4] == 'X':
+                if symb_dct[key4] == 'X':
                     key_row = list(map(row_keys.index, (key3, key4, key2)))
                 else:
                     key_row = list(map(row_keys.index, (key3, key2, key4)))
@@ -372,7 +372,7 @@ def complete_branch(gra, key, vma, row_keys, branch_keys=None):
             if key4 in branch_keys:
                 vma, row_keys = _continue(key2, key3, key4, vma, row_keys)
 
-            if sym_dct[key4] == 'X':
+            if symb_dct[key4] == 'X':
                 key2 = key4
 
             for k3n in k3ns:
@@ -395,8 +395,8 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, row_keys):
     :param keys: keys in the chain; the first atom should already be specified
     :param row_keys: keys currently in the v-matrix
     """
-    ngb_keys_dct = sorted_atom_neighbor_keys(gra, syms_first=('X', 'C',),
-                                             syms_last=('H',))
+    ngb_keys_dct = sorted_atom_neighbor_keys(gra, symbs_first=('X', 'C',),
+                                             symbs_last=('H',))
 
     key3 = keys[0]
     assert key3 in row_keys
@@ -411,14 +411,14 @@ def _extend_chain_to_include_terminal_hydrogens(gra, keys,
                                                 start=True, end=True):
     """ extend each end of a chain to include terminal hydrogens, if any
     """
-    sym_dct = atom_symbols(gra)
+    symb_dct = atom_symbols(gra)
     atm_ngb_dct = atom_neighbor_keys(gra)
 
     sta_ngbs = atm_ngb_dct[keys[0]] - {keys[1]}
     end_ngbs = atm_ngb_dct[keys[-1]] - {keys[-2]}
 
-    sta_ngb = min((k for k in sta_ngbs if sym_dct[k] == 'H'), default=None)
-    end_ngb = min((k for k in end_ngbs if sym_dct[k] == 'H'), default=None)
+    sta_ngb = min((k for k in sta_ngbs if symb_dct[k] == 'H'), default=None)
+    end_ngb = min((k for k in end_ngbs if symb_dct[k] == 'H'), default=None)
 
     keys = tuple(keys)
 

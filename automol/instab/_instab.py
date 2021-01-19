@@ -1,27 +1,18 @@
 """
- Library to deal unstable species
+ Build unstable products
 """
 
-# init: just check geom
-# conf: check ratio of confs
-# hr:   check geom along scan,
-
 import automol
-import autofile
-import elstruct
-import mechanalyzer
-from lib import filesys
 from phydat import instab_fgrps
-from automol.zmatrix._unimol_ts import beta_scission
 
 
 def product_zmas(zma):
-    """ Determine if the species has look for functional group attachments that could cause
-        molecule instabilities
+    """ Determine if the species has look for functional group attachments that
+        could cause molecule instabilities
     """
 
     disconn_zmas = ()
-    for gra in instability_graphs(automol.zmat.graph(zma)):
+    for gra in product_graphs(automol.zmat.graph(zma)):
         ich = automol.graph.inchi(gra)
         geo_tmp = automol.inchi.geometry(ich)
         zma = automol.geom.zmatrix(geo_tmp)
@@ -31,10 +22,10 @@ def product_zmas(zma):
 
 
 def product_graphs(gra):
-    """ Determine if the species has look for functional group attachments that could cause
-        molecule instabilities
+    """ Determine if the species has look for functional group attachments that
+        could cause molecule instabilities
     """
-   
+
     # Build graphs for the detection scheme
     rad_grp_dct = automol.graph.radical_group_dct(gra)
 
@@ -54,22 +45,21 @@ def product_graphs(gra):
                         gra, prd_gra)
                     break
 
-    return disconn_zmas
+    return prd_gras
 
 
-def _instab_info(conn_zma, disconn_zmas):
-    """ Determine the keys corresponding to the breaking bond for the instabiliity
-    """
-
-    # Get the zma for the connected graph
-    rct_zmas = [conn_zma]
-
-    # Get the zmas used for the identification
-    prd_zmas = disconn_zmas
-
-    # Get the keys
-    ret = beta_scission(rct_zmas, prd_zmas)
-    zma, _, brk_bnd_keys, _, rcts_gra = ret
-
-    return zma, brk_bnd_keys, rcts_gra
-
+# def _instab_info(conn_zma, disconn_zmas):
+#     """ Determine keys corresponding to breaking bond for the instabiliity
+#     """
+#
+#     # Get the zma for the connected graph
+#     rct_zmas = [conn_zma]
+#
+#     # Get the zmas used for the identification
+#     prd_zmas = disconn_zmas
+#
+#     # Get the keys
+#     ret = beta_scission(rct_zmas, prd_zmas)
+#     zma, _, brk_bnd_keys, _, rcts_gra = ret
+#
+#     return zma, brk_bnd_keys, rcts_gra

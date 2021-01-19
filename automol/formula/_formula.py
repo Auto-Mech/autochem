@@ -143,7 +143,7 @@ def string2(fml):
     return fml_str
 
 
-def sorted_symbols(seq, symbs=('C', 'H')):
+def sorted_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
     """ Produce a sorted list of atomic symbols; some elements given priority.
         Be default, C placed first, then H, others follow in alphabetical order.
 
@@ -151,30 +151,46 @@ def sorted_symbols(seq, symbs=('C', 'H')):
         :type seq: dict, list, or tuple
         :param symbs: atomic symbols to place first
         :type symbs: sequence of strings
+
+        :param symbs_last:
+
         :rtyp: tuple(str)
     """
 
     def _sort_key(char):
-        val = symbs.index(char) if char in symbs else len(symbs)
+        if char in symbs_first:
+            val = symbs_first.index(char)
+        elif char in symbs_last:
+            val = len(symbs_first) + 1 + symbs_last.index(char)
+        else:
+            val = len(symbs_first)
         return (val, char)
 
     return tuple(sorted(seq, key=_sort_key))
 
 
-def argsort_symbols(seq, symbs=('C', 'H')):
+def argsort_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
     """ Get the sort order for a sequence of atomic symbols.
 
         :param seq: formula or sequence of atomic symbols
         :type seq: dict, list, or tuple
-        :param symbs: atomic symbols to place first
-        :type symbs: sequence of strings
+        :param symbs_first: atomic symbols to place first
+        :type symbs_first: sequence of strings
+        
+        :param symbs_last:
+
         :rtyp: tuple(str)
     """
 
     def _sort_key(entry):
         char = entry[0]
         rest = entry[1:]
-        val = symbs.index(char) if char in symbs else len(symbs)
+        if char in symbs_first:
+            val = symbs_first.index(char)
+        elif char in symbs_last:
+            val = len(symbs_first) + 1 + symbs_last.index(char)
+        else:
+            val = len(symbs_first)
         return (val, char, rest)
 
     return tuple(idx for (val, idx) in

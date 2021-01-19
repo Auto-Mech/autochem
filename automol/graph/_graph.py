@@ -109,8 +109,8 @@ def frozen(gra):
 def electron_count(gra, charge=0):
     """ the number of electrons in the molecule
     """
-    atm_sym_dct = atom_symbols(explicit(gra))
-    nelec = sum(map(pt.to_Z, atm_sym_dct.values())) - charge
+    atm_symb_dct = atom_symbols(explicit(gra))
+    nelec = sum(map(pt.to_Z, atm_symb_dct.values())) - charge
     return nelec
 
 
@@ -136,9 +136,9 @@ def atom_count_by_type(gra, sym, keys=None):
     :param keys: optionally, restrict the count to a subset of keys
     """
     keys = atom_keys(gra) if keys is None else keys
-    sym_dct = atom_symbols(gra)
-    syms = list(map(sym_dct.__getitem__, keys))
-    return syms.count(sym)
+    symb_dct = atom_symbols(gra)
+    symbs = list(map(symb_dct.__getitem__, keys))
+    return symbs.count(sym)
 
 
 def heavy_atom_count(gra, with_dummy=False):
@@ -146,8 +146,8 @@ def heavy_atom_count(gra, with_dummy=False):
     """
     if not with_dummy:
         gra = without_dummy_atoms(gra)
-    atm_sym_dct = atom_symbols(gra)
-    nhvy_atms = sum(pt.to_Z(sym) != 1 for sym in atm_sym_dct.values())
+    atm_symb_dct = atom_symbols(gra)
+    nhvy_atms = sum(pt.to_Z(sym) != 1 for sym in atm_symb_dct.values())
     return nhvy_atms
 
 
@@ -184,15 +184,15 @@ def atom_neighbor_keys(gra):
     return atm_ngb_keys_dct
 
 
-def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
+def sorted_atom_neighbor_keys(gra, symbs_first=('C',), symbs_last=('H',)):
     """ keys of neighboring atoms, by atom
     """
-    atm_sym_dct = atom_symbols(gra)
+    atm_symb_dct = atom_symbols(gra)
 
     def _neighbor_keys(atm_key, atm_nbh):
         keys = sorted(atom_keys(atm_nbh) - {atm_key})
-        syms = list(map(atm_sym_dct.__getitem__, keys))
-        srt = automol.formula.argsort_symbols(syms, syms_first, syms_last)
+        symbs = list(map(atm_symb_dct.__getitem__, keys))
+        srt = automol.formula.argsort_symbols(symbs, symbs_first, symbs_last)
         keys = tuple(map(keys.__getitem__, srt))
         return keys
 
@@ -202,18 +202,18 @@ def sorted_atom_neighbor_keys(gra, syms_first=('C',), syms_last=('H',)):
 
 
 def atom_neighbor_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
-                      syms_first=('C',), syms_last=('H',)):
+                      symbs_first=('C',), symbs_last=('H',)):
     """ get the next in a sorted list of neighbor keys, excluding some
     """
-    atm_sym_dct = atom_symbols(gra)
+    atm_symb_dct = atom_symbols(gra)
     incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
 
     atm_nbh = atom_neighborhood(gra, atm_key)
     atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
     atm_keys = [k for k in atm_keys if k in incl_atm_keys]
 
-    syms = list(map(atm_sym_dct.__getitem__, atm_keys))
-    srt = automol.formula.argsort_symbols(syms, syms_first, syms_last)
+    symbs = list(map(atm_symb_dct.__getitem__, atm_keys))
+    srt = automol.formula.argsort_symbols(symbs, symbs_first, symbs_last)
     atm_keys = tuple(map(atm_keys.__getitem__, srt))
     return atm_keys[0] if atm_keys else None
 
@@ -321,8 +321,8 @@ def terminal_heavy_atom_keys(gra):
                 if len(ngb_keys) == 1]
     atm_keys = sorted(atm_keys, key=atm_imp_hyd_vlc_dct.__getitem__,
                       reverse=True)
-    atm_syms = dict_.values_by_key(atom_symbols(gra), atm_keys)
-    srt = automol.formula.argsort_symbols(atm_syms, syms_first=('C',))
+    atm_symbs = dict_.values_by_key(atom_symbols(gra), atm_keys)
+    srt = automol.formula.argsort_symbols(atm_symbs, symbs_first=('C',))
     atm_keys = tuple(map(atm_keys.__getitem__, srt))
     return atm_keys
 
@@ -535,15 +535,15 @@ def add_atom_implicit_hydrogen_valences(gra, inc_atm_imp_hyd_vlc_dct):
     return set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct)
 
 
-def add_atoms(gra, sym_dct, imp_hyd_vlc_dct=None, ste_par_dct=None):
+def add_atoms(gra, symb_dct, imp_hyd_vlc_dct=None, ste_par_dct=None):
     """ add atoms to this molecular graph, setting their keys
     """
     atm_keys = atom_keys(gra)
-    atm_sym_dct = atom_symbols(gra)
+    atm_symb_dct = atom_symbols(gra)
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
     atm_ste_par_dct = atom_stereo_parities(gra)
 
-    keys = set(sym_dct.keys())
+    keys = set(symb_dct.keys())
     imp_hyd_vlc_dct = {} if imp_hyd_vlc_dct is None else imp_hyd_vlc_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
 
@@ -551,12 +551,12 @@ def add_atoms(gra, sym_dct, imp_hyd_vlc_dct=None, ste_par_dct=None):
     assert set(imp_hyd_vlc_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
 
-    atm_sym_dct.update(sym_dct)
+    atm_symb_dct.update(symb_dct)
     atm_imp_hyd_vlc_dct.update(imp_hyd_vlc_dct)
     atm_ste_par_dct.update(ste_par_dct)
 
     atm_dct = _create.atoms_from_data(
-        atom_symbols=atm_sym_dct,
+        atom_symbols=atm_symb_dct,
         atom_implicit_hydrogen_valences=atm_imp_hyd_vlc_dct,
         atom_stereo_parities=atm_ste_par_dct)
     bnd_dct = bonds(gra)
@@ -572,13 +572,13 @@ def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
 
     bnd_atm_key = max(atm_keys) + 1 if bnd_atm_key is None else bnd_atm_key
 
-    sym_dct = {bnd_atm_key: sym}
+    symb_dct = {bnd_atm_key: sym}
     imp_hyd_vlc_dct = ({bnd_atm_key: imp_hyd_vlc}
                        if imp_hyd_vlc is not None else None)
     atm_ste_par_dct = ({bnd_atm_key: atm_ste_par}
                        if atm_ste_par is not None else None)
 
-    gra = add_atoms(gra, sym_dct, imp_hyd_vlc_dct=imp_hyd_vlc_dct,
+    gra = add_atoms(gra, symb_dct, imp_hyd_vlc_dct=imp_hyd_vlc_dct,
                     ste_par_dct=atm_ste_par_dct)
 
     bnd_key = frozenset({bnd_atm_key, atm_key})
@@ -688,8 +688,8 @@ def remove_bonds(gra, bnd_keys, check=True):
 def without_dummy_atoms(gra):
     """ remove dummy atoms from the graph
     """
-    atm_sym_dct = atom_symbols(gra)
-    atm_keys = [key for key, sym in atm_sym_dct.items() if pt.to_Z(sym)]
+    atm_symb_dct = atom_symbols(gra)
+    atm_keys = [key for key, sym in atm_symb_dct.items() if pt.to_Z(sym)]
     return subgraph(gra, atm_keys)
 
 
@@ -813,8 +813,8 @@ def add_atom_explicit_hydrogen_keys(gra, atm_exp_hyd_keys_dct):
         assert not set(atm_exp_hyd_keys) & atom_keys(gra)
         atm_exp_hyd_bnd_keys = {frozenset({atm_key, atm_exp_hyd_key})
                                 for atm_exp_hyd_key in atm_exp_hyd_keys}
-        atm_exp_hyd_sym_dct = dict_.by_key({}, atm_exp_hyd_keys, fill_val='H')
-        gra = add_atoms(gra, atm_exp_hyd_sym_dct)
+        atm_exp_hyd_symb_dct = dict_.by_key({}, atm_exp_hyd_keys, fill_val='H')
+        gra = add_atoms(gra, atm_exp_hyd_symb_dct)
         gra = add_bonds(gra, atm_exp_hyd_bnd_keys)
     return gra
 
@@ -946,8 +946,8 @@ LONE_PAIR_COUNTS_DCT = {
 def atom_element_valences(gra):
     """ element valences (# possible single bonds), by atom
     """
-    atm_sym_dct = atom_symbols(gra)
-    atm_group_idx_dct = dict_.transform_values(atm_sym_dct, pt.to_group)
+    atm_symb_dct = atom_symbols(gra)
+    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, pt.to_group)
     atm_elem_vlc_dct = dict_.transform_values(atm_group_idx_dct,
                                               VALENCE_DCT.__getitem__)
     return atm_elem_vlc_dct
@@ -956,8 +956,8 @@ def atom_element_valences(gra):
 def atom_lone_pair_counts(gra):
     """ lone pair counts, by atom
     """
-    atm_sym_dct = atom_symbols(gra)
-    atm_group_idx_dct = dict_.transform_values(atm_sym_dct, pt.to_group)
+    atm_symb_dct = atom_symbols(gra)
+    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, pt.to_group)
     atm_lpc_dct = dict_.transform_values(atm_group_idx_dct,
                                          LONE_PAIR_COUNTS_DCT.__getitem__)
     atm_lpc_dct = dict_.transform_values(atm_lpc_dct, int)
@@ -1055,8 +1055,8 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
         else:
             nei_tfr = {}
 
-    bnd_sym_num_dct = {}
-    bnd_sym_nums = []
+    bnd_symb_num_dct = {}
+    bnd_symb_nums = []
     for bnd_key in bnd_keys:
         bnd_sym = 1
         vlc = max(map(atm_imp_hyd_vlc_dct.__getitem__, bnd_key))
@@ -1071,10 +1071,10 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
                             h_nei += 1
                     if h_nei == 3:
                         bnd_sym = 1
-        bnd_sym_nums.append(bnd_sym)
+        bnd_symb_nums.append(bnd_sym)
 
-    bnd_sym_num_dct = dict(zip(bnd_keys, bnd_sym_nums))
+    bnd_symb_num_dct = dict(zip(bnd_keys, bnd_symb_nums))
 
     # fill in the rest of the bonds for completeness
-    bnd_sym_num_dct = dict_.by_key(bnd_sym_num_dct, bond_keys(gra), fill_val=1)
-    return bnd_sym_num_dct
+    bnd_symb_num_dct = dict_.by_key(bnd_symb_num_dct, bond_keys(gra), fill_val=1)
+    return bnd_symb_num_dct

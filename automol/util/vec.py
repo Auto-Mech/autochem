@@ -342,7 +342,7 @@ def _augmented(xyz):
 
 
 # I/O
-def string(vec, num_per_row=3):
+def string(vec, num_per_row=3, val_format='{0:>8.3f}'):
     """ Write a vector to a string.
 
         :param vec: vector to form string with
@@ -357,9 +357,8 @@ def string(vec, num_per_row=3):
     nvals = len(vec)
     vec_str = ''
     for i, val in enumerate(vec):
+        vec_str += val_format.format(val)
         if ((i+1) % num_per_row) == 0 and (i+1) != nvals:
-            vec_str += '{0:>8.3f}\n'.format(val)
-        else:
-            vec_str += '{0:>8.3f}'.format(val)
+            vec_str += '\n'
 
     return vec_str

@@ -2,7 +2,8 @@
 """
 
 import numpy
-from automol import intmol
+import automol.pot
+
 
 PROP_GEO1 = (
     ('C', (0.300662110143701, -0.45146519971545696, 0.5208682143568093)),
@@ -68,20 +69,23 @@ NUM_TORS = 3
 # SCAN_INCREMENT = 0.5
 SCAN_INCREMENT = 0.523599
 
-# Scaling potential
+
+def test__grid():
+    """ test automol.pot.grid
+    """
 
 
 def test__valid_potential():
-    """ test automol.rotor.pot.valid
+    """ test automol.pot.valid
     """
 
-    assert automol.rotor.pot.valid(POT1)
-    assert not automol.rotor.pot.valid(BAD_POT)
+    assert automol.pot.valid(POT1)
+    assert not automol.pot.valid(BAD_POT)
 
 
 def test__build_potential():
-    """ test automol.rotor.pot.points
-        test automol.rotor.pot.coords
+    """ test automol.pot.points
+        test automol.pot.coords
     """
 
     ref_grid_pts = ((0, 0), (0, 1),
@@ -93,13 +97,13 @@ def test__build_potential():
                        (3.0, 0.1), (3.0, 0.2),
                        (4.0, 0.1), (4.0, 0.2))
 
-    assert automol.rotor.pot.points((PCOORDS1, PCOORDS2)) == ref_grid_pts
-    assert automol.rotor.pot.coords((PCOORDS1, PCOORDS2)) == ref_grid_coords
+    assert automol.pot.points((PCOORDS1, PCOORDS2)) == ref_grid_pts
+    assert automol.pot.coords((PCOORDS1, PCOORDS2)) == ref_grid_coords
 
 
 def test__transform_potential():
-    """ test automol.rotor.pot.scale
-        test automol.rotor.pot.truncate
+    """ test automol.pot.scale
+        test automol.pot.truncate
     """
 
     # Test scaling
@@ -116,7 +120,7 @@ def test__transform_potential():
                       (5.23598776,): 1.7638037567728562,
                       (5.75958653,): 0.8586939342183642}
 
-    pot_scaled = automol.rotor.pot.scale(POT1, SCALE_COEFF, NUM_TORS)
+    pot_scaled = automol.pot.scale(POT1, SCALE_COEFF, NUM_TORS)
 
     assert numpy.allclose(list(pot_scaled.keys()), list(ref_pot_scaled.keys()))
     for key, val in pot_scaled.items():
@@ -132,8 +136,8 @@ def test__transform_potential():
     ref_pot_trunc2 = {(0.00000000,): 0.00, (0.52359878,): 1.74,
                       (1.04719755,): 3.58, (1.57079633,): 1.68}
 
-    pot_trunc1 = automol.rotor.pot.truncate(POT1, SYM_NUM1)
-    pot_trunc2 = automol.rotor.pot.truncate(POT2, SYM_NUM2)
+    pot_trunc1 = automol.pot.truncate(POT1, SYM_NUM1)
+    pot_trunc2 = automol.pot.truncate(POT2, SYM_NUM2)
 
     assert numpy.allclose(list(pot_trunc1.keys()), list(ref_pot_trunc1.keys()))
     assert numpy.allclose(list(pot_trunc2.keys()), list(ref_pot_trunc2.keys()))
@@ -149,8 +153,8 @@ def test__transform_potential():
                     (1, 0): 1.3, (1, 1): 1.4,
                     (2, 0): 1.5, (2, 1): 1.6,
                     (3, 0): 1.7, (3, 1): 1.8}
-    idx_pot1 = automol.rotor.pot.by_index(POT1)
-    idx_pot2 = automol.rotor.pot.by_index(POT3)
+    idx_pot1 = automol.pot.by_index(POT1)
+    idx_pot2 = automol.pot.by_index(POT3)
 
     assert numpy.allclose(list(idx_pot1.keys()), list(ref_idx_pot1.keys()))
     assert numpy.allclose(list(idx_pot2.keys()), list(ref_idx_pot2.keys()))
@@ -164,10 +168,10 @@ def test__repulsion():
     """ test prop.low_repulsion_struct
     """
 
-    assert intmol.low_repulsion_struct(
-        PROP_GEO1, PROP_GEO2, pairs='offdiag', thresh=40.0, potential='exp6')
-    assert intmol.low_repulsion_struct(
-        PROP_GEO1, PROP_GEO2, pairs='offdiag', thresh=40.0, potential='lj_12_6')
+    assert automol.pot.low_repulsion_struct(
+        PROP_GEO1, PROP_GEO2, thresh=40.0, potential='exp6')
+    assert automol.pot.low_repulsion_struct(
+        PROP_GEO1, PROP_GEO2, thresh=40.0, potential='lj_12_6')
 
 
 if __name__ == '__main__':

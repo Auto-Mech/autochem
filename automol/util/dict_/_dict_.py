@@ -49,6 +49,24 @@ def values_by_key(dct, keys, fill_val=None):
     return tuple(dct[key] if key in dct else fill_val for key in keys)
 
 
+def values_any_order(dct, key):
+    """ return dictionary values where keys are a tuple where either order
+        of tuple will access element
+
+        should really add a check if flipping key worder gives different vals
+    """
+
+    val = None
+    nkeys = len(key)
+    # vals = tuple(dct.get(key, None) for itertools.permutations(key, nkeys)))
+    for key in itertools.permutations(key, nkeys):
+        val = dct.get(key, None)
+        if val is not None:
+            break
+
+    return val
+
+
 def keys_by_value(dct, func):
     """ return dictionary keys for specific values
     """
@@ -91,6 +109,7 @@ def filter_by_value(dct, func=lambda val: val):
     return {key: val for key, val in dct.items() if func(val)}
 
 
+
 def merge_sequence(dcts):
     """ merge a sequence of dictionaries
     """
@@ -98,3 +117,6 @@ def merge_sequence(dcts):
     for dct in dcts:
         merged_dct.update(dct)
     return merged_dct
+
+
+def read_all(dct)

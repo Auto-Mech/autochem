@@ -3,9 +3,7 @@
 """
 
 import numpy
-import yaml
 import automol
-from phydat import phycon
 
 
 def grid(zma, tors_name, scan_increment, sym, from_equil=False):
@@ -22,7 +20,7 @@ def grid(zma, tors_name, scan_increment, sym, from_equil=False):
     return grid_from_equil
 
 
-def _scan_linspace(zma, coord_name, scan_increment, sym)
+def _scan_linspace(zma, coord_name, scan_increment, sym):
     """ scan grids for torsional dihedrals
     """
 

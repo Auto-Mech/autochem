@@ -4,7 +4,7 @@
 
 import numpy
 from phydat import phycon
-from automol.geom import symbols, distance
+from automol.geom import count, symbols, distance
 
 
 # POTENTIAL FORMS
@@ -114,7 +114,7 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
 
 # Check the repulsion
 def low_repulsion_struct(geo_ref, geo_samp,
-                         potential='exp6', pairs='offdiag', thresh=40.0,):
+                         potential='exp6', thresh=40.0,):
     """ Check if the long-range interaction energy for the sample structure
         exceeds that for the reference structure by more than given threshold.
 
@@ -134,7 +134,7 @@ def low_repulsion_struct(geo_ref, geo_samp,
     pot_mat_samp = pairwise_potential_matrix(geo_samp, potential=potential)
 
     # Generate the pairs for the potentials
-    pairs = _generate_pairs(geo_ref, pairs=pairs)
+    pairs = _generate_pairs(geo_ref)
 
     # Calculate sum of potentials
     sum_ref, sum_samp = 0.0, 0.0
@@ -158,7 +158,7 @@ def _generate_pairs(geo):
         :type pairs: str
     """
 
-    natoms = automol.geom.count(geo) 
+    natoms = count(geo)
 
     pairs = tuple()
     for i in range(natoms):
