@@ -41,6 +41,17 @@ def from_geometry(vma, geo):
     return zma
 
 
+# converters
+def geometry(zma, remove_dummy_atoms=True):
+    """ z-matrix => geometry
+    """
+    if remove_dummy_atoms:
+        geo, _ = automol.convert.zmat.geometry(zma)
+    else:
+        geo = automol.convert.zmat.geometry_with_dummy_atoms(zma)
+    return geo
+
+
 # getters
 def count(zma):
     """ the number of z-matrix rows (number of atoms or dummy atoms)

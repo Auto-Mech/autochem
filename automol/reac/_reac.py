@@ -143,38 +143,41 @@ class Reaction:
 def reverse(rxn):
     """ get the reaction object for the reverse reaction
     """
-    rxn = rxn.copy()
-    rxn.class_ = par.reverse_reaction_class(rxn.class_)
-    rxn.forward_ts_graph, rxn.backward_ts_graph = (
-        rxn.backward_ts_graph, rxn.forward_ts_graph)
-    rxn.reactants_keys, rxn.products_keys = (
-        rxn.products_keys, rxn.reactants_keys)
+    rxn_cls = par.reverse_reaction_class(rxn.class_)
+    forw_tsg = rxn.backward_ts_graph
+    back_tsg = rxn.forward_ts_graph
+    rcts_keys = rxn.products_keys
+    prds_keys = rxn.reactants_keys
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
     return rxn
 
 
 def standard_keys(rxn):
     """ standardize keys for the reaction object
     """
-    rxn = rxn.copy()
     rct_keys = list(map(sorted, rxn.reactants_keys))
     prd_keys = list(map(sorted, rxn.products_keys))
     rct_key_dct = {k: i for i, k in enumerate(itertools.chain(*rct_keys))}
     prd_key_dct = {k: i for i, k in enumerate(itertools.chain(*prd_keys))}
-    rxn.reactants_keys = tuple(tuple(map(rct_key_dct.__getitem__, keys))
-                               for keys in rxn.reactants_keys)
-    rxn.products_keys = tuple(tuple(map(prd_key_dct.__getitem__, keys))
-                              for keys in rxn.products_keys)
-    rxn.forward_ts_graph = automol.graph.relabel(rxn.forward_ts_graph,
-                                                 rct_key_dct)
-    rxn.backward_ts_graph = automol.graph.relabel(rxn.backward_ts_graph,
-                                                  prd_key_dct)
+
+    rxn_cls = rxn.class_
+    forw_tsg = rxn.forward_ts_graph
+    back_tsg = rxn.backward_ts_graph
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
+    rcts_keys = tuple(tuple(map(rct_key_dct.__getitem__, keys))
+                      for keys in rxn.reactants_keys)
+    prds_keys = tuple(tuple(map(prd_key_dct.__getitem__, keys))
+                      for keys in rxn.products_keys)
+    forw_tsg = automol.graph.relabel(rxn.forward_ts_graph, rct_key_dct)
+    back_tsg = automol.graph.relabel(rxn.backward_ts_graph, prd_key_dct)
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
     return rxn
 
 
 def standard_keys_with_sorted_geometries(rxn, rct_geos, prd_geos):
     """ standardize keys and line up geometries to match
     """
-    rxn = rxn.copy()
     rct_idxs, prd_idxs = rxn.sort_order()
     rct_geos = tuple(map(rct_geos.__getitem__, rct_idxs))
     prd_geos = tuple(map(prd_geos.__getitem__, prd_idxs))
@@ -185,7 +188,6 @@ def standard_keys_with_sorted_geometries(rxn, rct_geos, prd_geos):
 def relabel(rxn, key_dct, product=False):
     """ relabel keys in the reactants or products
     """
-    rxn = rxn.copy()
     if product:
         tsg = rxn.backward_ts_graph
         keys_lst = rxn.products_keys
@@ -194,14 +196,58 @@ def relabel(rxn, key_dct, product=False):
         keys_lst = rxn.reactants_keys
 
     tsg = automol.graph.relabel(tsg, key_dct)
-    keys_lst = [list(map(key_dct.__getitem__, keys)) for keys in keys_lst]
+    keys_lst = [sorted(map(key_dct.__getitem__, keys)) for keys in keys_lst]
 
+    rxn_cls = rxn.class_
+    forw_tsg = rxn.forward_ts_graph
+    back_tsg = rxn.backward_ts_graph
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
     if product:
-        rxn.backward_ts_graph = tsg
-        rxn.products_keys = keys_lst
+        back_tsg = tsg
+        prds_keys = keys_lst
     else:
-        rxn.forward_ts_graph = tsg
-        rxn.reactants_keys = keys_lst
+        forw_tsg = tsg
+        rcts_keys = keys_lst
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    return rxn
+
+
+def add_dummy_atoms(rxn, dummy_key_dct, product=False):
+    """ add dummy atoms to the reactants or products
+
+    :param dummy_key_dct: dummy atom keys, by key of the atom they are
+        connected to
+    :param product: insert dummy atoms into the products instead of the
+        reactants?
+    """
+    if product:
+        tsg = rxn.backward_ts_graph
+        keys_lst = rxn.products_keys
+    else:
+        tsg = rxn.forward_ts_graph
+        keys_lst = rxn.reactants_keys
+
+    tsg = automol.graph.add_dummy_atoms(tsg, dummy_key_dct)
+    keys_lst = list(map(list, keys_lst))
+    for key, dummy_key in dummy_key_dct.items():
+        for keys in keys_lst:
+            if key in keys:
+                keys.append(dummy_key)
+                break
+
+    rxn_cls = rxn.class_
+    forw_tsg = rxn.forward_ts_graph
+    back_tsg = rxn.backward_ts_graph
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
+    if product:
+        back_tsg = tsg
+        prds_keys = keys_lst
+    else:
+        forw_tsg = tsg
+        rcts_keys = keys_lst
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
     return rxn
 
 
@@ -213,40 +259,35 @@ def insert_dummy_atoms(rxn, dummy_key_dct, product=False):
     :param product: insert dummy atoms into the products instead of the
         reactants?
     """
-    rxn = rxn.copy()
-    if product:
-        tsg = rxn.backward_ts_graph
-        keys_lst = rxn.products_keys
-    else:
-        tsg = rxn.forward_ts_graph
-        keys_lst = rxn.reactants_keys
-
-    tsg = automol.graph.add_bonded_dummy_atoms(tsg, dummy_key_dct)
-    keys_lst = list(map(list, keys_lst))
-    for key, dummy_key in dummy_key_dct.items():
-        for keys in keys_lst:
-            if key in keys:
-                keys.append(dummy_key)
-                break
-    keys_lst = tuple(map(tuple, map(sorted, keys_lst)))
-
-    if product:
-        rxn.backward_ts_graph = tsg
-        rxn.products_keys = keys_lst
-    else:
-        rxn.forward_ts_graph = tsg
-        rxn.reactants_keys = keys_lst
+    for key, dummy_key in reversed(sorted(dummy_key_dct.items())):
+        rxn = _insert_dummy_atom(rxn, key, dummy_key, product=product)
 
     return rxn
 
 
-def without_dummy_atoms(rxn, product=False):
-    """ return a reaction object with all dummy atoms removed, reindexed
-    accordingly
+def _insert_dummy_atom(rxn, key, dummy_key, product=False):
+    tsg = rxn.backward_ts_graph if product else rxn.forward_ts_graph
+    keys = sorted(automol.graph.atom_keys(tsg))
+    dummy_key_ = max(keys) + 1
+    rxn = add_dummy_atoms(rxn, {key: dummy_key_}, product=product)
 
-    :param product: do this for the products, instead of the reactants?
+    if dummy_key != dummy_key_:
+        assert dummy_key in keys
+        idx = keys.index(dummy_key)
+        key_dct = {}
+        key_dct.update({k: k for k in keys[:idx]})
+        key_dct[dummy_key_] = dummy_key
+        key_dct.update({k: k+1 for k in keys[idx:]})
+
+    rxn = relabel(rxn, key_dct)
+    return rxn
+
+
+def without_dummy_atoms(rxn, product=False):
+    """ remove dummy atoms from the reactants or products
+
+    :param product: do this do the products instead of the reactants?
     """
-    rxn = rxn.copy()
     if product:
         tsg = rxn.backward_ts_graph
         keys_lst = rxn.products_keys
@@ -258,13 +299,79 @@ def without_dummy_atoms(rxn, product=False):
 
     tsg = automol.graph.remove_atoms(tsg, dummy_keys)
     keys_lst = [[k for k in ks if k not in dummy_keys] for ks in keys_lst]
-    keys_lst = tuple(map(tuple, map(sorted, keys_lst)))
 
+    rxn_cls = rxn.class_
+    forw_tsg = rxn.forward_ts_graph
+    back_tsg = rxn.backward_ts_graph
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
     if product:
-        rxn.backward_ts_graph = tsg
-        rxn.products_keys = keys_lst
+        back_tsg = tsg
+        prds_keys = keys_lst
     else:
-        rxn.forward_ts_graph = tsg
-        rxn.reactants_keys = keys_lst
+        forw_tsg = tsg
+        rcts_keys = keys_lst
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    return rxn
 
+
+def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct):
+    """ relabel the reaction object to correspond with a z-matrix converted
+    from a geometry
+
+    :param rxn: the reaction object
+    :param zma_keys: graph keys in the order they appear in the z-matrix
+    :param dummy_key_dct: dummy keys introduced on z-matrix conversion, by atom
+        they are attached to
+    """
+    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    rxn = relabel(rxn, key_dct)
+    return rxn
+
+
+def relabel_for_geometry(rxn, product=False):
+    """ relabel the reaction object to correspond with a geometry converted
+    from a z-matrix
+
+    :param rxn: the reaction object
+    :param product: do this do the products instead of the reactants?
+    """
+    tsg = rxn.backward_ts_graph if product else rxn.forward_ts_graph
+    dummy_keys = sorted(automol.graph.atom_keys(tsg, sym='X'))
+
+    for dummy_key in reversed(dummy_keys):
+        rxn = _shift_remove_dummy_atom(rxn, dummy_key, product=product)
+    return rxn
+
+
+def _shift_remove_dummy_atom(rxn, dummy_key, product=False):
+    if product:
+        tsg = rxn.backward_ts_graph
+        keys_lst = rxn.products_keys
+    else:
+        tsg = rxn.forward_ts_graph
+        keys_lst = rxn.reactants_keys
+
+    keys = sorted(automol.graph.atom_keys(tsg))
+    idx = keys.index(dummy_key)
+    key_dct = {}
+    key_dct.update({k: k for k in keys[:idx]})
+    key_dct.update({k: k-1 for k in keys[(idx+1):]})
+    tsg = automol.graph.remove_atoms(tsg, [dummy_key])
+    keys_lst = [[k for k in ks if k != dummy_key] for ks in keys_lst]
+
+    rxn_cls = rxn.class_
+    forw_tsg = rxn.forward_ts_graph
+    back_tsg = rxn.backward_ts_graph
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
+    if product:
+        back_tsg = tsg
+        prds_keys = keys_lst
+    else:
+        forw_tsg = tsg
+        rcts_keys = keys_lst
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    rxn = relabel(rxn, key_dct)
     return rxn

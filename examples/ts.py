@@ -82,7 +82,7 @@ GEO = automol.zmat.geometry(ZMA, remove_dummy_atoms=True)
 
 # 6. Print some stuff
 print("Forward TS graph (lined up with zmatrix):")
-ZRXN = automol.reac.insert_dummy_atoms(RXN, DUMMY_IDX_DCT)
+ZRXN = automol.reac.add_dummy_atoms(RXN, DUMMY_IDX_DCT)
 ZRXN = automol.reac.relabel(ZRXN, dict(map(reversed, enumerate(ROW_KEYS))))
 ZTSG = ZRXN.forward_ts_graph
 print(automol.graph.string(ZTSG, one_indexed=False))

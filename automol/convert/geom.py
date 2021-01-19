@@ -19,12 +19,12 @@ def zmatrix(geo, ts_bnds=()):
     if ts_bnds:
         raise NotImplementedError
 
-    geo, dummy_idx_dct = automol.geom.insert_dummies_on_linear_atoms(geo)
+    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(geo)
     gra = connectivity_graph(geo, dummy_bonds=True)
-    vma, row_keys = automol.graph.vmat.vmatrix(gra)
-    geo = automol.geom.from_subset(geo, row_keys)
+    vma, zma_keys = automol.graph.vmat.vmatrix(gra)
+    geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, geo)
-    return zma
+    return zma, zma_keys, dummy_key_dct
 
 
 def zmatrix_x2z(geo, ts_bnds=()):
