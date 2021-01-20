@@ -6,7 +6,7 @@ from phydat import phycon, ptab
 
 
 def from_data(symbols, coordinates, angstrom=False):
-    """ Build the geometry data structure from atomic symbols and coordinates.
+    """ Build a geometry data structure from atomic symbols and coordinates.
 
         format:
             geo = (((sym1, (xcoord1, ycoord1, zcoord1)),...

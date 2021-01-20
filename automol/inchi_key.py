@@ -1,7 +1,6 @@
 """ InChIKeys
-
-(could be simplified like I did for automol.inchi, but for now this works)
 """
+
 import autoparse.pattern as app
 import autoparse.find as apf
 
@@ -37,11 +36,11 @@ def is_valid(ick):
 
 
 def first_hash(ick):
-    """ the first hash block, indicating connectivity
+    """ Parse InChIKey for the first hash block, indicating connectivity.
 
         :param ick: InChIKey
         :type ick: str
-        :rtype: bool
+        :rtype: str
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -50,11 +49,11 @@ def first_hash(ick):
 
 
 def second_hash(ick):
-    """ the second hash block, indicating stereochemistry etc.
+    """ Parse InChIKey for the second hash block, indicating stereochemistry.
 
         :param ick: InChIKey
         :type ick: str
-        :rtype: bool
+        :rtype: str
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -63,11 +62,11 @@ def second_hash(ick):
 
 
 def version_indicator(ick):
-    """ the version indicator following the second hash block
+    """ Parse InChIKey second-hash block for the InChIKey version indicator.
 
         :param ick: InChIKey
         :type ick: str
-        :rtype: bool
+        :rtype: str
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -76,11 +75,11 @@ def version_indicator(ick):
 
 
 def protonation_indicator(ick):
-    """ protonation indicator (last character of the key)
+    """ Parse final character of InChIKey for the protonation indicator.
 
         :param ick: InChIKey
         :type ick: str
-        :rtype: bool
+        :rtype: str
     """
     assert is_valid(ick)
     cap_dct = apf.first_named_capture(Parse.PATTERN, ick)
@@ -89,11 +88,11 @@ def protonation_indicator(ick):
 
 
 def second_hash_with_extension(ick):
-    """ second hash block with version and protonation indicators
+    """ Parse InChIKey second-hash block for version and protonation indicators.
 
         :param ick: InChIKey
         :type ick: str
-        :rtype: bool
+        :rtype: str
     """
     return (second_hash(ick) + version_indicator(ick) + '-' +
             protonation_indicator(ick))

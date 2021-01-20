@@ -1,4 +1,4 @@
-""" automol errors
+""" Library of automol errors.
 """
 
 

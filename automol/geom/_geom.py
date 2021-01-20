@@ -68,8 +68,7 @@ def coordinates(geo, idxs=None, angstrom=False):
         _, xyzs = zip(*geo)
     else:
         xyzs = ()
-    xyzs = xyzs if not angstrom else numpy.multiply(
-        xyzs, qcc.conversion_factor('bohr', 'angstrom'))
+    xyzs = xyzs if not angstrom else numpy.multiply(phycon.BOHR2ANG)
     xyzs = tuple(xyz for idx, xyz in enumerate(xyzs) if idx in idxs)
     return xyzs
 
@@ -383,9 +382,7 @@ def remove(geo, idxs=()):
 
 
 def join(geo1, geo2,
-         dist_cutoff=3.*qcc.conversion_factor('angstrom', 'bohr'),
-         theta=0.*qcc.conversion_factor('degree', 'radian'),
-         phi=0.*qcc.conversion_factor('degree', 'radian')):
+         dist_cutoff=3.0*phycon.ANG2BOHR, theta=0.0, phi=0.0):
     """ join two geometries together
     """
     if not geo1:
@@ -924,8 +921,7 @@ def masses(geo, amu=True):
     amas = list(map(ptab.to_mass, symbs))
 
     if not amu:
-        conv = qcc.conversion_factor("atomic_mass_unit", "electron_mass")
-        amas = numpy.multiply(amas, conv)
+        amas = numpy.multiply(amas, phycon.AMU2EMASS)
 
     amas = tuple(amas)
     return amas
@@ -1055,9 +1051,7 @@ def rotational_constants(geo, amu=True):
     """
 
     moms = moments_of_inertia(geo, amu=amu)
-    sol = (qcc.get('speed of light in vacuum') *
-           qcc.conversion_factor('meter / second', 'bohr hartree / h'))
-    cons = numpy.divide(1., moms) / 4. / numpy.pi / sol
+    cons = numpy.divide(1., moms) / 4. / numpy.pi / phycon.SOL
     cons = tuple(cons)
     return cons
 

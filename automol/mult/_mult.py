@@ -1,4 +1,4 @@
-""" spin multiplicities
+""" Calculate spins (2S) from spin multiplicities.
 """
 
 

@@ -92,7 +92,7 @@ def _slice_affine(mat):
 
 
 # I/O
-def string(mat, precision=3):
+def string(mat, val_format='{0:>8.3f}'):
     """ Write a matrix to a string.
 
         :param mat: matrix to form string with
@@ -102,12 +102,10 @@ def string(mat, precision=3):
         :rtype: str
     """
 
-    val_str = '{0:>'+str(precision+5)+'.'+str(precision)+'f}'
-
     mat_str = ''
     for row in mat:
-        mat_str += '  '.join(val_str.format(val) for val in row)
+        mat_str += ''.join(val_format.format(val) for val in row)
         mat_str += '\n'
-    mat_str.rstrip()
+    mat_str = mat_str.rstrip()
 
     return mat_str

@@ -1,4 +1,4 @@
-""" molecular spin multiplicity
+""" Molecular spin multiplicity
 """
 
 from automol.mult import ts

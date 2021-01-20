@@ -1,5 +1,6 @@
 """ InChI chemical identifiers
 """
+
 import itertools
 import functools
 import numpy
@@ -8,6 +9,7 @@ import autoparse.find as apf
 from autoparse import cast as ap_cast
 from automol.util import dict_
 import automol.convert.inchi
+
 
 NONSLASH = '[^/]'
 NONSLASHES = app.one_or_more(NONSLASH)
@@ -19,7 +21,21 @@ SLASH_OR_END = app.one_of_these([SLASH, app.STRING_END])
 # "constructor"
 def from_data(fml_slyr, main_dct=None, char_dct=None, ste_dct=None,
               iso_dct=None):
-    """ calculate an inchi string from layers
+    """ Construct an InChI string from its constituent layers, where
+        most layers are input as dictionary of prefixes for some part of the
+        sublayer and the corresponding string for that sublayer part.
+
+        :param fml_slyr: sublayer of InChI string containing molecular formula
+        :type fml_slyr: str
+        :param main_dct: information for connectivity layer of InChI
+        :type main_dct: dict[str: str]
+        :param char_dct: information for charge layer of InChI
+        :type char_dct: dict[str: str]
+        :param ste_dct: information for stereochemistry layer of InChI
+        :type ste_dct: dict[str: str]
+        :param iso_dct: information for isotope layer of InChI
+        :type iso_dct: dict[str: str]
+        :rtype: str
     """
     return automol.create.inchi.from_data(
         formula_sublayer=fml_slyr, main_sublayer_dct=main_dct,
@@ -29,10 +45,11 @@ def from_data(fml_slyr, main_dct=None, char_dct=None, ste_dct=None,
 
 # getters
 def version(ich):
-    """ version
+    """ Determine version of InChI the string corresponds to.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: str
     """
     ptt = app.capturing(_version_pattern())
     ver = apf.first_capture(ptt, ich)
@@ -40,10 +57,11 @@ def version(ich):
 
 
 def formula_sublayer(ich):
-    """ formula sublayer
+    """ Parse the InChI string for the formula sublayer.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: dict[str: str]
     """
     ptt = (_version_pattern() +
            SLASH + app.capturing(_formula_sublayer_pattern()))
@@ -52,75 +70,87 @@ def formula_sublayer(ich):
 
 
 def main_sublayers(ich):
-    """ main sublayers, by prefix
+    """ Parse the InChI string for the sublayers of the connectivity layer,
+        organized by prefix.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: dict[str: str]
     """
     return _sublayers(_main_layer(ich))
 
 
 def charge_sublayers(ich):
-    """ charge sublayers, by prefix
+    """ Parse the InChI string for the sublayers of the charge layer,
+        organized by prefix.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: dict[str: str]
     """
     return _sublayers(_charge_layer(ich))
 
 
 def stereo_sublayers(ich):
-    """ stereo sublayers, by prefix
+    """ Parse the InChI string for the sublayers of the stereochemisty layer,
+        organized by prefix.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: dict[str: str]
     """
     return _sublayers(_stereo_layer(ich))
 
 
 def isotope_sublayers(ich):
-    """ isotope sublayers, by prefix
+    """ Parse the InChI string for the sublayers of the isotope layer,
+        organized by prefix.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: dict[str: str]
     """
     return _sublayers(_isotope_layer(ich))
 
 
 # setters
-def standard_form(ich, remove_stereo=False):
-    """ return an inchi string in standard form
+def standard_form(ich, stereo=True):
+    """ Return an InChI string in standard form.
 
-    (eventually we should just designate standard-form as standard inchi
-    ordering for all but the hardcoded exceptions, which we can put at the end)
+        Eventually we should just designate standard-form as standard InChI
+        ordering for all but the hardcoded exceptions, put at the end.
 
         :param ich: InChI string
         :type ich: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: str
     """
-    if remove_stereo:
-        fml_slyr = formula_sublayer(ich)
-        main_dct = main_sublayers(ich)
-        char_dct = charge_sublayers(ich)
+
+    fml_slyr = formula_sublayer(ich)
+    main_dct = main_sublayers(ich)
+    char_dct = charge_sublayers(ich)
+
+    if stereo:
+        ste_dct = stereo_sublayers(ich)
+        iso_dct = isotope_sublayers(ich)
+    else:
         ste_dct = {}
         iso_dct = dict_.by_key(isotope_sublayers(ich),
                                automol.create.inchi.ISO_NONSTE_PFXS)
-    else:
-        fml_slyr = formula_sublayer(ich)
-        main_dct = main_sublayers(ich)
-        char_dct = charge_sublayers(ich)
-        ste_dct = stereo_sublayers(ich)
-        iso_dct = isotope_sublayers(ich)
 
     ich = from_data(fml_slyr, main_dct=main_dct, char_dct=char_dct,
                     ste_dct=ste_dct, iso_dct=iso_dct)
+
     return recalculate(ich)
 
 
 def has_stereo(ich):
-    """ does this inchi have stereo information?
+    """ Determine if the InChI string has stereochemistry information.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: bool
     """
     ste_dct = stereo_sublayers(ich)
     iso_dct = isotope_sublayers(ich)
@@ -129,38 +159,43 @@ def has_stereo(ich):
 
 
 def has_multiple_components(ich):
-    """ does this inchi have multiple components?
+    """ Determine if the InChI string has multiple components.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: bool
     """
     return len(split(ich)) > 1
 
 
 def is_standard_form(ich):
-    """ is this inchi closed?
+    """ Determine if the InChI string is closed.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: bool
     """
     return ich == standard_form(ich)
 
 
 def is_complete(ich):
-    """ is this inchi complete? (are all stereo-centers assigned?)
+    """ Determine if the InChI string is complete
+        (has all stereo-centers assigned).
 
         :param ich: InChI string
         :type ich: str
+        :rtype: bool
     """
     return equivalent(ich, standard_form(ich)) and not (
         has_stereo(ich) ^ has_stereo(recalculate(ich, force_stereo=True)))
 
 
 def is_chiral(ich):
-    """ is this inchi chiral?
+    """ Determine if the InChI string has chirality information.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: bool
     """
     ste_dct = stereo_sublayers(ich)
     iso_dct = isotope_sublayers(ich)
@@ -176,6 +211,7 @@ def equivalent(ich1, ich2):
         :type ich1: str
         :param ich2: InChI string 2
         :type ich2: str
+        :rtype: bool
     """
     return (formula_sublayer(ich1) == formula_sublayer(ich2) and
             main_sublayers(ich1) == main_sublayers(ich2) and
@@ -191,6 +227,7 @@ def same_connectivity(ich1, ich2):
         :type ich1: str
         :param ich2: InChI string 2
         :type ich2: str
+        :rtype: bool
     """
     return (standard_form(ich1, remove_stereo=True) ==
             standard_form(ich2, remove_stereo=True))
@@ -201,12 +238,13 @@ def sorted_(ichs):
 
         :param ichs: sequence of InChI strings
         :type ichs: tuple(str)
+        :rtype: tuple(str)
     """
     return tuple(ichs[idx] for idx in argsort(ichs))
 
 
 def argsort(ichs):
-    """ determine the sort order for the inchi standard form
+    """ Determine the sort order for the InChI standard form.
 
         :param ichs: sequence of InChI strings
         :type ichs: tuple(str)
@@ -220,15 +258,17 @@ def argsort(ichs):
 
 # transformations/operations
 def join(ichs):
-    """ join separate inchis into one multi-component inchi
+    """ Join separate InChI strings into one multi-component InChI string.
 
-    (fix this for /s [which should be removed in split/join operations] and /m,
-    which is joined as /m0110..  with no separators)
+        Currently:
+        (fix for /s [which should be removed in split/join operations] and /m,
+         which is joined as /m0110..  with no separators).
 
         :param ichs: sequence of InChI strings
         :type ichs: tuple(str)
         :rtype: str
     """
+
     # first, make sure they are completely split up
     ichs = list(itertools.chain(*map(split, ichs)))
     fmls = list(map(formula_sublayer, ichs))
@@ -237,11 +277,19 @@ def join(ichs):
     char_dct = _join_sublayers(list(map(charge_sublayers, ichs)))
     ste_dct = _join_sublayers(list(map(stereo_sublayers, ichs)))
     iso_dct = _join_sublayers(list(map(isotope_sublayers, ichs)))
+
     return from_data(fml_slyr=fml_slyr, main_dct=main_dct, char_dct=char_dct,
                      ste_dct=ste_dct, iso_dct=iso_dct)
 
 
 def _join_sublayers(dcts):
+    """ Join all of the components of an InChI sublayer.
+
+        :param dcts: sublayer components, grouped by prefix
+        :type dct: dict[str: str]
+        :rtype: dict[str: str] 
+    """
+
     pfxs = sorted(functools.reduce(set.union, map(set, dcts)))
     if 's' in pfxs:
         pfxs.remove('s')
@@ -250,6 +298,7 @@ def _join_sublayers(dcts):
     dct = {pfx: (_join_sublayer_strings(slyrs) if pfx != 'm' else
                  _join_m_sublayer_strings(slyrs))
            for pfx, slyrs in zip(pfxs, slyrs_lst)}
+
     return dct
 
 
@@ -259,7 +308,14 @@ def _join_m_sublayer_strings(m_slyrs):
 
 
 def _join_sublayer_strings(slyrs, count_sep='*', sep=';'):
-    """ join sublayer strings into one multi-component sublayer string
+    """ Join sublayer strings into one multi-component sublayer string.
+
+        :param slyrs: sublayers to join
+        :type slyrs: tuple(str)?
+        :param count_sep: delimiter for ???
+        :type count_sep: str
+        :param sep: delimiter for ???
+        :type sep: str
     """
     def _s(count, slyr):
         if count > 1 and slyr:
@@ -278,10 +334,14 @@ def _join_sublayer_strings(slyrs, count_sep='*', sep=';'):
 
 
 def split(ich):
-    """ split a multi-component inchi into inchis for each of its components
+    """ Split a multi-component InChI into InChIs for each of its components.
 
-    (fix this for /s [which should be removed in split/join operations] and /m,
-    which is joined as /m0110..  with no separators)
+        (fix this for /s [which should be removed in split/join operations]
+         and /m, which is joined as /m0110..  with no separators)
+        
+        :param ich: InChI string
+        :type ich: str
+        :rtype: tuple(str)
     """
     fml_slyr = formula_sublayer(ich)
     main_dct = main_sublayers(ich)
@@ -346,14 +406,16 @@ def _split_sublayer_string(slyr, count_sep_ptt=app.escape('*'),
 
 
 # conversions
-def recalculate(ich, force_stereo=False):
-    """ recalculate an inchi string
+def recalculate(ich, stereo=False):
+    """ Recalculate an InChI string.
 
         :param ich: InChI string
         :type ich: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
         :rtype: str
     """
-    return automol.convert.inchi.recalculate(ich, force_stereo=force_stereo)
+    return automol.convert.inchi.recalculate(ich, stereo=stereo)
 
 
 def geometry(ich):
@@ -371,19 +433,23 @@ def conformers(ich, nconfs=100):
 
         :param ich: InChI string
         :type ich: str
+        :param nconfs: number of conformers to generate
+        :type nconfs: int
         :rtype: tuple(automol geometry data structure)
     """
     return automol.convert.inchi.conformers(ich, nconfs)
 
 
-def graph(ich, no_stereo=False):
-    """ Generate a molecular graph from an InChI string. (stereo?)
+def graph(ich, stereo=True):
+    """ Generate a molecular graph from an InChI string.
 
         :param ich: InChI string
         :type ich: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
         :rtype: automol graph data structure
     """
-    return automol.convert.inchi.graph(ich, no_stereo=no_stereo)
+    return automol.convert.inchi.graph(ich, stereo=stereo)
 
 
 def smiles(ich):
@@ -420,16 +486,17 @@ def formula_string(ich):
 
         :param ich: InChI string
         :type ich: str
-        :rtype: dict[]
+        :rtype: str
     """
     return formula_sublayer(ich)
 
 
 def add_stereo(ich):
-    """ inchi => inchi after adding stereoinfo
+    """ Add a sterochemistry layer to an InChI string.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: str
     """
     gra = automol.inchi.graph(ich)
     stereo_gras = automol.graph.stereomers(gra)
@@ -437,7 +504,12 @@ def add_stereo(ich):
 
 
 def _sublayers(lyr):
-    """ get sublayers from a layer, by prefix
+    """ Parse the sublayers of the specified layer of an InChI string,
+        organized by prefix.
+
+        :param lyr: layer of the InChI string
+        :type lyr: str
+        :rtype: dict[str: str]
     """
     if lyr:
         ptt = _sublayer_pattern(key_ptt=app.capturing(app.LOWERCASE_LETTER),
@@ -449,10 +521,11 @@ def _sublayers(lyr):
 
 
 def _main_layer(ich):
-    """ main layer
+    """ Parse the InChI string for the connectivity layer.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: str 
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +
@@ -462,10 +535,11 @@ def _main_layer(ich):
 
 
 def _charge_layer(ich):
-    """ charge layer
+    """ Parse the InChI string for the charge layer.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +
@@ -476,10 +550,11 @@ def _charge_layer(ich):
 
 
 def _stereo_layer(ich):
-    """ stereo layer
+    """ Parse the InChI string for the stereochemisty layer.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +
@@ -491,10 +566,11 @@ def _stereo_layer(ich):
 
 
 def _isotope_layer(ich):
-    """ isotope layer
+    """ Parse the InChI string for the isotope layer.
 
         :param ich: InChI string
         :type ich: str
+        :rtype: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +
@@ -506,16 +582,44 @@ def _isotope_layer(ich):
     return lyr
 
 
-def _isotope_layer_pattern():
-    i_slyr_ptt = _sublayer_pattern(key_ptt='i')
+def _formula_sublayer_pattern():
+    """ Build the autoparse regex pattern for the chemical formual sublayer.
+
+        :rtype: str
+    """
+    ptt = _sublayer_pattern(key_ptt=app.not_followed_by(app.LOWERCASE_LETTER))
+    return ptt
+
+
+def _main_layer_pattern():
+    """ Build the autoparse regex pattern for the connectivity layer.
+
+        :rtype: str
+    """
+    c_slyr_ptt = _sublayer_pattern(key_ptt='c')
     h_slyr_ptt = _sublayer_pattern(key_ptt='h')
-    ptt = (i_slyr_ptt +
-           app.maybe(SLASH + h_slyr_ptt) +
-           app.maybe(SLASH + _stereo_layer_pattern()))
+    ptt = (app.one_of_these([c_slyr_ptt, h_slyr_ptt]) +
+           app.maybe(SLASH + h_slyr_ptt))
+    return ptt
+
+
+def _charge_layer_pattern():
+    """ Build the autoparse regex pattern for the charge layer.
+
+        :rtype: str
+    """
+    q_slyr_ptt = _sublayer_pattern(key_ptt='q')
+    p_slyr_ptt = _sublayer_pattern(key_ptt='p')
+    ptt = (app.one_of_these([q_slyr_ptt, p_slyr_ptt]) +
+           app.maybe(SLASH + p_slyr_ptt))
     return ptt
 
 
 def _stereo_layer_pattern():
+    """ Build the autoparse regex pattern for the stereochemistry layer.
+
+        :rtype: str
+    """
     b_slyr_ptt = _sublayer_pattern(key_ptt='b')
     t_slyr_ptt = _sublayer_pattern(key_ptt='t')
     m_slyr_ptt = _sublayer_pattern(key_ptt='m')
@@ -527,55 +631,32 @@ def _stereo_layer_pattern():
     return ptt
 
 
-def _charge_layer_pattern():
-    q_slyr_ptt = _sublayer_pattern(key_ptt='q')
-    p_slyr_ptt = _sublayer_pattern(key_ptt='p')
-    ptt = (app.one_of_these([q_slyr_ptt, p_slyr_ptt]) +
-           app.maybe(SLASH + p_slyr_ptt))
-    return ptt
+def _isotope_layer_pattern():
+    """ Build the autoparse regex pattern for the isotope layer.
 
-
-def _main_layer_pattern():
-    c_slyr_ptt = _sublayer_pattern(key_ptt='c')
+        :rtype: str
+    """
+    i_slyr_ptt = _sublayer_pattern(key_ptt='i')
     h_slyr_ptt = _sublayer_pattern(key_ptt='h')
-    ptt = (app.one_of_these([c_slyr_ptt, h_slyr_ptt]) +
-           app.maybe(SLASH + h_slyr_ptt))
-    return ptt
-
-
-def _formula_sublayer_pattern():
-    ptt = _sublayer_pattern(key_ptt=app.not_followed_by(app.LOWERCASE_LETTER))
+    ptt = (i_slyr_ptt +
+           app.maybe(SLASH + h_slyr_ptt) +
+           app.maybe(SLASH + _stereo_layer_pattern()))
     return ptt
 
 
 def _version_pattern():
+    """ Build the autoparse regex pattern for the InChI string version.
+
+        :rtype: str
+    """
     ptt = app.preceded_by('InChI=') + _sublayer_pattern()
     return ptt
 
 
 def _sublayer_pattern(key_ptt='',
                       val_ptt=NONSLASHES):
-    """ inchi sublayer pattern
+    """ Build the autoparse regex pattern for an arbitrary InChI sublayer.
+
+        :rtype: str
     """
     return key_ptt + val_ptt
-
-
-if __name__ == '__main__':
-    SMI = 'FC=CF'
-    ICH = automol.smiles.inchi(SMI)
-    print(automol.inchi.recalculate(ICH, force_stereo=True))
-
-    SMI = 'CCC=C[CH]CCCCCC'
-    ICH = automol.smiles.inchi(SMI)
-    print(automol.inchi.recalculate(ICH, force_stereo=True))
-
-    SMI = 'CCC=C[CH]CCCCCC'
-    ICH = automol.smiles.inchi(SMI)
-    GRA = automol.inchi.graph(ICH)
-    BND_KEYS = automol.graph.stereogenic_bond_keys(GRA)
-    print(BND_KEYS)
-
-    for SGR in automol.graph.stereomers(GRA):
-        BND_STE_PAR_DCT = automol.graph.bond_stereo_parities(SGR)
-        print(automol.util.dict_.by_key(BND_STE_PAR_DCT, BND_KEYS))
-        print(automol.graph.inchi(SGR))

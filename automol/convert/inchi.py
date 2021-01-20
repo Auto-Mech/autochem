@@ -162,19 +162,19 @@ def recalculate(ich, force_stereo=False):
     return ret
 
 
-def graph(ich, no_stereo=False):
+def graph(ich, stereo=True):
     """ Generate a molecular graph from an InChI string.
 
         :param ich: InChI string
         :type ich: str
-        :param remove_stereo: parameter to include stereochemistry information
-        :type remove_stereo: bool
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
         :rtype: automol molecular graph
     """
 
     # split it up to handle hard-coded molecules in multi-component inchis
     ichs = automol.inchi.split(ich)
-    gras = [_connected_graph(ich, no_stereo=no_stereo) for ich in ichs]
+    gras = [_connected_graph(ich, stereo=stereo) for ich in ichs]
     for idx, gra in enumerate(gras):
         if idx == 0:
             num = 0
@@ -199,12 +199,12 @@ def _connected_graph(ich, no_stereo=False):
     gra = object_from_hardcoded_inchi_by_key('graph', ich)
     if gra is None:
         ich = automol.inchi.standard_form(ich)
-        if no_stereo or not automol.inchi.has_stereo(ich):
-            rdm = _rdkit.from_inchi(ich)
-            gra = _rdkit.to_connectivity_graph(rdm)
-        else:
+        if stereo or automol.inchi.has_stereo(ich):
             geo = geometry(ich)
             gra = automol.convert.geom.graph(geo)
+        else:
+            rdm = _rdkit.from_inchi(ich)
+            gra = _rdkit.to_connectivity_graph(rdm)
 
     gra = automol.graph.implicit(gra)
     return gra
