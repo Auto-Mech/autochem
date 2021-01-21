@@ -31,16 +31,6 @@ def from_data(symbs, key_mat, name_mat=None, one_indexed=False):
 
 
 # getters
-def symbols(vma):
-    """ Obtain the atomic symbols for all atoms defined in the V-Matrix.
-
-        :param vma: V-Matrix
-        :type vma: automol V-Matrix data structure
-        :rtype: tuple(str)
-    """
-    return tuple(zip(*vma))[0] if vma else ()
-
-
 def count(vma):
     """ Obtain the number of rows of the V-Matrix, which corresponds to
         the number of atoms defined in the V-Matrix. This includes all
@@ -53,8 +43,18 @@ def count(vma):
     return len(symbols(vma))
 
 
+def symbols(vma):
+    """ Obtain the atomic symbols for all atoms defined in the V-Matrix.
+
+        :param vma: V-Matrix
+        :type vma: automol V-Matrix data structure
+        :rtype: tuple(str)
+    """
+    return tuple(zip(*vma))[0] if vma else ()
+
+
 def key_matrix(vma, shift=0):
-    """ Obtain the key matrix of the V-Matrix that containts the
+    """ Obtain the key matrix of the V-Matrix that contains the
         coordinate atom keys by row and column.
 
         :param vma: V-Matrix
@@ -80,13 +80,11 @@ def key_matrix(vma, shift=0):
 
 
 def name_matrix(vma):
-    """ Obtain the name matrix of the V-Matrix that containts the
+    """ Obtain the name matrix of the V-Matrix that contains the
         coordinate names by row and column.
 
         :param vma: V-Matrix
         :type vma: automol V-Matrix data structure
-        :param shift: value to shift the keys by when obtaining the key matrix
-        :type shift: int
         :rtype: tuple(tuple(str))
     """
 
@@ -101,7 +99,7 @@ def name_matrix(vma):
 
 
 def coordinate_key_matrix(vma, shift=0):
-    """ Obtain the coordinate key matrix of the V-Matrix that containts the
+    """ Obtain the coordinate key matrix of the V-Matrix that contains the
         coordinate keys by row and column.
 
         :param vma: V-Matrix
@@ -242,7 +240,7 @@ def dummy_coordinate_names(vma):
 
 # value setters
 def set_key_matrix(vma, key_mat):
-    """ Re-set the key matrix of a V-Matrix using the input.
+    """ Re-set the key matrix of a V-Matrix using the input key matrix.
 
         :param vma: V-Matrix
         :type vma: automol V-Matrix data structure
@@ -259,7 +257,7 @@ def set_key_matrix(vma, key_mat):
 
 
 def set_name_matrix(vma, name_mat):
-    """ Re-set the name matrix of a V-Matrix using the input.
+    """ Re-set the name matrix of a V-Matrix using the input name matrix.
 
         :param vma: V-Matrix
         :type vma: automol V-Matrix data structure

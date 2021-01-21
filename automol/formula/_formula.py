@@ -169,7 +169,7 @@ def sorted_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
     return tuple(sorted(seq, key=_sort_key))
 
 
-def argsort_symbols(seq, syms_first=('C', 'H'), syms_last=(), idx=None):
+def argsort_symbols(seq, symbs_first=('C', 'H'), symbs_last=(), idx=None):
     """ get the sort order for a sequence of atomic symbols
     """
 
@@ -184,12 +184,12 @@ def argsort_symbols(seq, syms_first=('C', 'H'), syms_last=(), idx=None):
             char = entry[0]
             rest = entry[1:]
 
-        if char in syms_first:
-            val = syms_first.index(char)
-        elif char in syms_last:
-            val = len(syms_first) + 1 + syms_last.index(char)
+        if char in symbs_first:
+            val = symbs_first.index(char)
+        elif char in symbs_last:
+            val = len(symbs_first) + 1 + symbs_last.index(char)
         else:
-            val = len(syms_first)
+            val = len(symbs_first)
         return (start, val, char, rest)
 
     return tuple(idx for (val, idx) in

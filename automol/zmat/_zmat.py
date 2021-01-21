@@ -13,7 +13,13 @@ from phydat import phycon
 
 # constructors
 def from_geometry(vma, geo):
-    """ determine a z-matrix from a vmatrix and a geometry
+    """  Build a Z-Matrix from a V-Matrix and a molecular geometry.
+
+        :param vma: V-Matrix
+        :type vma: automol V-Matrix data structure
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :rtype: automol Z-Matrix data structure
     """
     assert symbols(vma) == symbols(geo)
 
@@ -38,44 +44,82 @@ def from_geometry(vma, geo):
 
 
 # converters
-def geometry(zma, remove_dummy_atoms=True):
-    """ z-matrix => geometry
+def geometry(zma, dummy=False):
+    """ Convert a Z-Matrix to a molecular geometry.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :rtype: automol molecular geometry data structure
     """
-    if remove_dummy_atoms:
+
+    if dummy:
         geo, _ = automol.convert.zmat.geometry(zma)
     else:
         geo = automol.convert.zmat.geometry_with_dummy_atoms(zma)
+
     return geo
 
 
 # getters
 def count(zma):
-    """ the number of z-matrix rows (number of atoms or dummy atoms)
+    """ Obtain the number of rows of the Z-Matrix, which corresponds to
+        the number of atoms defined in the Z-Matrix. This includes all
+        real and dummy atoms.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :rtype: int
     """
     return vmat.count(zma)
 
 
 def symbols(zma):
-    """ atomic symbols, by z-matrix row
+    """ Obtain the atomic symbols for all atoms defined in the Z-Matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :rtype: tuple(str)
     """
     return vmat.symbols(zma)
 
 
 def key_matrix(zma, shift=0):
-    """ coordinate atom keys, by z-matrix row and column
+    """ Obtain the key matrix of the Z-Matrix that contains the
+        coordinate atom keys by row and column.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param shift: value to shift the keys by when obtaining the key matrix
+        :type shift: int
+        :rtype: tuple(tuple(int))
     """
     return vmat.key_matrix(zma, shift=shift)
 
 
 def name_matrix(zma):
-    """ coordinate names, by z-matrix row and column
+    """ Obtain the name matrix of the Z-Matrix that contains the
+        coordinate names by row and column.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :rtype: tuple(tuple(str))
     """
     return vmat.name_matrix(zma)
 
 
 def value_matrix(zma, angstrom=False, degree=False):
-    """ coordinate values, by z-matrix row and column
+    """ Obtain the value matrix of the Z-Matrix that contains the
+        values of the coordinates by row and column.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
+        :rtype: tuple(tuple(str))
     """
+
     if zma:
         val_mat = tuple(zip(*zma))[3]
 
@@ -92,31 +136,75 @@ def value_matrix(zma, angstrom=False, degree=False):
 
 
 def value_dictionary(zma, angstrom=False, degree=False):
-    """ coordinate values, by coordinate name (as a dictionary)
+    """ Obtain the values of the coordinates defined in the Z-Matrix
+        in the form of a dictionary.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
+        :rtype: dict[str: float]
     """
+
     names = numpy.ravel(name_matrix(zma))
     vals = numpy.ravel(value_matrix(zma, angstrom=angstrom, degree=degree))
     val_dct = dict(zip(names, vals))
     val_dct.pop(None)
+
     return val_dct
 
 
 def distance(zma, key1, key2, angstrom=False):
-    """ measure the distance between atoms
+    """ Measure the distance between two atoms defined in a Z-Matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: key of atom 1 in the pair to be measured
+        :type key1: int
+        :param key2: key of atom 2 in the pair to be measured
+        :type key2: int
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
     """
     geo = automol.convert.zmat.geometry(zma)
     return automol.geom.distance(geo, key1, key2, angstrom=angstrom)
 
 
 def central_angle(zma, key1, key2, key3, degree=False):
-    """ measure the angle inscribed by three atoms
+    """ Measure the angle inscribed by three atoms in a Z-Matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: key of atom 1 in the triplet to be measured
+        :type key1: int
+        :param key2: key of atom 2 in the triplet to be measured
+        :type key2: int
+        :param key3: key of atom 3 in the triplet to be measured
+        :type key3: int
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
     """
     geo = automol.convert.zmat.geometry(zma)
     return automol.geom.central_angle(geo, key1, key2, key3, degree=degree)
 
 
 def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
-    """ measure the angle inscribed by three atoms
+    """ Measure the angle inscribed by three atoms in a molecular geometry.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: key of atom 1 in the quartet to be measured
+        :type key1: int
+        :param key2: key of atom 2 in the quartet to be measured
+        :type key2: int
+        :param key3: key of atom 3 in the quartet to be measured
+        :type key3: int
+        :param key4: key of atom 4 in the quartet to be measured
+        :type key4: int
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
     """
     geo = automol.convert.zmat.geometry(zma)
     return automol.geom.dihedral_angle(geo, key1, key2, key3, key4,
@@ -125,38 +213,73 @@ def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
 
 # setters
 def set_key_matrix(zma, key_mat):
-    """ set the key matrix
+    """ Re-set the key matrix of a Z-Matrix using the input key matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param key_mat: matrix of Z-Matrix coordinate keys
+        :type key_mat: tuple(tuple(int))
+        :rtype: automol Z-Matrix data structure
     """
+
     syms = symbols(zma)
     val_mat = value_matrix(zma)
     name_mat = name_matrix(zma)
     zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+
     return zma
 
 
 def set_name_matrix(zma, name_mat):
-    """ set the name matrix
+    """ Re-set the name matrix of a Z-Matrix using the input name matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param name_mat: matrix of Z-Matrix coordinate names
+        :type name_mat: tuple(tuple(int))
+        :rtype: automol Z-Matrix data structure
     """
+
     syms = symbols(zma)
     val_mat = value_matrix(zma)
     key_mat = key_matrix(zma)
     zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+
     return zma
 
 
 def set_value_matrix(zma, val_mat):
-    """ set the name matrix
+    """ Re-set the name matrix of a Z-Matrix using the input value matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param val_mat: matrix of Z-Matrix coordinate values
+        :type val_mat: tuple(tuple(int))
+        :rtype: automol Z-Matrix data structure
     """
+
     syms = symbols(zma)
     key_mat = key_matrix(zma)
     name_mat = name_matrix(zma)
     zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+
     return zma
 
 
 def set_values_by_name(zma, val_dct, angstrom=True, degree=True):
-    """ set coordinate values for the z-matrix
+    """ Re-set the name matrix of a Z-Matrix using the input value dictionary.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param val_dct: dictionary of coordinate values
+        :type val_dct: dict[str: float]
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
+        :rtype: automol Z-Matrix data structure
     """
+
     val_mat = numpy.array(value_matrix(zma), dtype=numpy.object_)
     name_mat = numpy.array(name_matrix(zma), dtype=numpy.object_)
 
@@ -174,21 +297,47 @@ def set_values_by_name(zma, val_dct, angstrom=True, degree=True):
 
 
 def standard_name_matrix(zma, shift=0):
-    """ standard names for the coordinates (follows x2z format)
+    """ Builds a name matrix of the Z-Matrix where all of the
+        coordinate names have been standardized:
+            RN: (1<=N<=Ncoords)
+            AN: (2<=N<=Ncoords)
+            DN: (1<=N<=Ncoords)
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param shift: value to shift the keys by when obtaining the keys
+        :type shift: int
+        :rtype: tuple(tuple(str))
     """
     return vmat.standard_name_matrix(zma, shift=shift)
 
 
 def standard_form(zma, shift=0):
-    """ set standard variable names for the z-matrix (x2z format)
+    """ Build a Z-Matrix where all of the coordinate names of an input Z-Matrix
+        have been put into standard form:
+            RN: (1<=N<=Ncoords)
+            AN: (2<=N<=Ncoords)
+            DN: (1<=N<=Ncoords)
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param shift: value to shift the keys by when obtaining the keys
+        :type shift: int
     """
     name_mat = standard_name_matrix(zma, shift=shift)
     return set_name_matrix(zma, name_mat)
 
 
 def rename(zma, name_dct):
-    """ set coordinate names for the z-matrix
+    """ Rename a subset of the coordinates of a Z-Matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param name_dct: mapping from old coordinate names to new ones
+        :type name_dct: dict[str: str]
+        :rtype: automol Z-Matrix data strucutre
     """
+
     syms = symbols(zma)
     key_mat = key_matrix(zma)
     val_mat = value_matrix(zma)
@@ -197,14 +346,34 @@ def rename(zma, name_dct):
     name_mat = vmat.name_matrix(vma)
 
     zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+
     return zma
 
 
 # operations
 def add_atom(zma, sym, key_row, val_row, name_row=None,
              one_indexed=False, angstrom=True, degree=True):
-    """ add an atom to the z-matrix
+    """ Add an atom to a Z-Matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param symb: symbol of atom to add
+        :type symb: str
+        :param key_row: row of keys to define new atom added to key matrix
+        :type key_row: tuple(int)
+        :param val_row: row of values to define new atom added to name matrix
+        :type val_row: tuple(float)
+        :param name_row: row of names to define new atom added to name matrix
+        :type name_row: tuple(str)
+        :param one_indexed: parameter to store keys in one-indexing
+        :type one_indexed: bool
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
+        :rtype: automol Z-Matrix data structure
     """
+
     syms = symbols(zma)
     syms += (sym,)
 
@@ -219,14 +388,21 @@ def add_atom(zma, sym, key_row, val_row, name_row=None,
     zma = automol.create.zmat.from_data(
         syms, key_mat, val_mat, name_mat, one_indexed=one_indexed,
         angstrom=angstrom, degree=degree)
+
     return zma
 
 
 def remove_atom(zma, key):
-    """ remove an atom from the z-matrix
+    """ Remove an atom from a Z-Matrix. Error raised if attempting
+        to remove atom other atoms depend on.
 
-    complains if attempting to remove an atom that other atoms depend on
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param key: key of atom to remove
+        :type key: str
+        :rtype: automol Z-Matrix data structure
     """
+
     syms = list(symbols(zma))
     syms.pop(key)
 
@@ -248,16 +424,32 @@ def remove_atom(zma, key):
     name_mat.pop(key)
 
     zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
+
     return zma
 
 
 def join_replace_one(zma1, zma2, rep1_key, key_mat, val_mat, name_mat=None,
                      degree=True):
-    """ join two z-matrices, replacing the first atom in zma2 by an atom in zma1
+    """ Join two z-matrices together replacing the first atom in zma2
+        by an atom in zma1.
 
-    :param rep1_key: the key of the atom in zma1 that will replace the first
-        atom in zma2
+        :param zma1: Z-Matrix 1
+        :type zma: automol Z-Matrix data structure
+        :param zma2: Z-Matrix 2
+        :type zma: automol Z-Matrix data structure
+        :param rep1_key: the key of the atom in zma1 that will replace
+            the first atom in zma2
+        :type rep1_key: int
+        :param key_mat: matrix of Z-Matrix coordinate keys
+        :type key_mat: tuple(tuple(int))
+        :param val_mat: matrix of Z-Matrix coordinate values
+        :type val_mat: tuple(tuple(int))
+        :param name_mat: matrix of Z-Matrix coordinate names
+        :type name_mat: tuple(tuple(int))
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
     """
+
     rep2_key = count(zma1) - 1
 
     syms = symbols(zma1) + symbols(zma2)[1:]
@@ -288,14 +480,18 @@ def join_replace_one(zma1, zma2, rep1_key, key_mat, val_mat, name_mat=None,
         name_mat2 = tuple(map(tuple, name_mat2))
         name_mat = name_mat1 + name_mat2
 
-    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat,
-                                        degree=degree)
+    zma = automol.create.zmat.from_data(
+        syms, key_mat, val_mat, name_mat, degree=degree)
+
     return zma
 
 
 # conversions
 def vmatrix(zma):
-    """ convert z-matrix to v-matrix
+    """ Parse and return the V-Matrix component of a Z-Matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
     """
     return vmat.from_data(symbs=symbols(zma),
                           key_mat=key_matrix(zma),
@@ -304,17 +500,21 @@ def vmatrix(zma):
 
 # comparisons
 def almost_equal(zma1, zma2, dist_rtol=2e-5, ang_atol=2e-3, just_dist=False):
-    """ are these z-matrices numerically equal?
+    """ Assss if two Z-Matrices are numerically equal.
 
-    :param zma1: The first z-matrix
-    :param zma2: The second z-matrix
-    :param dist_rtol: Relative tolerance for the distances
-    :type dist_rtol: float
-    :param ang_atol: Absolute tolerance for the angles
-    :type ang_atol: float
-    :param just_dist: Only compare distances?
-    :type just_dist: bool
+        :param zma1: The first z-matrix
+        :type zma1: automol Z-Matrix data structure
+        :param zma2: The second z-matrix
+        :type zma2: automol Z-Matrix data structure
+        :param dist_rtol: Relative tolerance for the distances
+        :type dist_rtol: float
+        :param ang_atol: Absolute tolerance for the angles
+        :type ang_atol: float
+        :param just_dist: parameter to only compare distances
+        :type just_dist: bool
+        :rtype: bool
     """
+
     ret = False
     if vmatrix(zma1) == vmatrix(zma2):
         val_mat1 = numpy.array(value_matrix(zma1), dtype=float)
@@ -339,28 +539,47 @@ def almost_equal(zma1, zma2, dist_rtol=2e-5, ang_atol=2e-3, just_dist=False):
 
                 if numpy.allclose(ang_diffs, 0., atol=ang_atol):
                     ret = True
+
     return ret
 
 
 # I/O
 def from_string(zma_str, one_indexed=True, angstrom=True, degree=True):
-    """ read a z-matrix from a string
+    """ Parse a Z-Matrix object from a string.
+
+        :param zma_str: string containing a Z-Matrix
+        :type zma_str: str
+        :param one_indexed: parameter to store keys in one-indexing
+        :type one_indexed: bool
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
+        :rtype: automol Z-Matrix data structure
     """
-    syms, key_mat, name_mat, val_dct = ar.zmat.read(zma_str)
 
-    val_mat = tuple(tuple(val_dct[name] if name is not None else None
-                          for name in name_mat_row)
-                    for name_mat_row in name_mat)
-
+    syms, key_mat, name_mat, val_mat = ar.zmat.read(zma_str)
     zma = automol.create.zmat.from_data(
         syms, key_mat, val_mat, name_mat, one_indexed=one_indexed,
         angstrom=angstrom, degree=degree)
+
     return zma
 
 
 def string(zma, one_indexed=True, angstrom=True, degree=True):
-    """ write a z-matrix to a string
+    """ Write a Z-Matrix object to a string.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param one_indexed: parameter to store keys in one-indexing
+        :type one_indexed: bool
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :param degree: parameter to control radian->degree conversion
+        :type degree: bool
+        :rtype: str
     """
+
     shift = 1 if one_indexed else 0
     zma_str = aw.zmat.write(
         symbs=symbols(zma),
@@ -368,13 +587,19 @@ def string(zma, one_indexed=True, angstrom=True, degree=True):
         name_mat=name_matrix(zma),
         val_dct=value_dictionary(zma, angstrom=angstrom, degree=degree)
     )
+
     return zma_str
 
 
 # validators
 def is_valid(zma):
-    """ is this a valid vmatrix?
+    """ Assess if a Z-Matrix has proper structure.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :rtype: bool
     """
+
     ret = True
 
     try:
@@ -388,7 +613,15 @@ def is_valid(zma):
 
 
 def _is_sequence_of_quadruples(obj):
+    """ Assess if input object sequence has length of four.
+
+        :param obj: object with __len__ attribute
+        :type obj: list, tuple, dict
+        :rtype: bool
+    """
+
     ret = hasattr(obj, '__len__')
     if ret:
         ret = all(hasattr(item, '__len__') and len(item) == 4 for item in obj)
+
     return ret
