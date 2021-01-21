@@ -187,7 +187,7 @@ def is_complete(ich):
         :rtype: bool
     """
     return equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ has_stereo(recalculate(ich, force_stereo=True)))
+        has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
 
 
 def is_chiral(ich):

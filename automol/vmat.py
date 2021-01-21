@@ -497,7 +497,7 @@ def from_string(vma_str):
         :rtype: automol V-Matrix data structure
     """
 
-    symbs, key_mat, name_mat = ar.vmatrix.matrix.read(vma_str)
+    symbs, key_mat, name_mat = ar.vmat.read(vma_str)
     vma = from_data(symbs, key_mat, name_mat, one_indexed=True)
 
     return vma
@@ -514,7 +514,7 @@ def string(vma, one_indexed=True):
     """
 
     shift = 1 if one_indexed else 0
-    vma_str = aw.vmatrix.matrix_block(
+    vma_str = aw.vmat.write(
         symbs=symbols(vma),
         key_mat=key_matrix(vma, shift=shift),
         name_mat=name_matrix(vma),

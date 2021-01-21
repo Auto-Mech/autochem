@@ -58,7 +58,7 @@ def _connected_geometry(ich):
             if automol.inchi.has_stereo(ich):
                 raise ValueError
 
-            gra = automol.convert.inchi.graph(ich, no_stereo=True)
+            gra = automol.convert.inchi.graph(ich, stereo=False)
             gra = automol.graph.explicit(gra)
             geo = automol.graph.embed.geometry(gra)
             return geo
@@ -130,13 +130,13 @@ def conformers(ich, nconfs):
     return geos
 
 
-def recalculate(ich, force_stereo=False):
+def recalculate(ich, stereo=False):
     """ Recalculate an InChI string
 
         :param ich: InChI string
         :type ich: str
-        :param force_stereo: force the same stereochem in recalculated InChI
-        :type force_stereo: bool
+        :param stereo: force the same stereochem in recalculated InChI
+        :type stereo: bool
         :rtype: str
     """
 
@@ -156,9 +156,10 @@ def recalculate(ich, force_stereo=False):
 
     ret = object_from_hardcoded_inchi_by_key('inchi', ich)
     if ret is None:
-        _options = '-SUU' if force_stereo else ''
+        _options = '-SUU' if stereo else ''
         rdm = _rdkit.from_inchi(ich)
         ret = _rdkit.to_inchi(rdm, options=_options, with_aux_info=False)
+
     return ret
 
 
@@ -185,7 +186,7 @@ def graph(ich, stereo=True):
     return gra
 
 
-def _connected_graph(ich, no_stereo=False):
+def _connected_graph(ich, stereo=True):
     """ Generate a molecular graph from an InChI string where
         all all atoms are connected by at least one bond.
 
@@ -199,12 +200,12 @@ def _connected_graph(ich, no_stereo=False):
     gra = object_from_hardcoded_inchi_by_key('graph', ich)
     if gra is None:
         ich = automol.inchi.standard_form(ich)
-        if stereo or automol.inchi.has_stereo(ich):
-            geo = geometry(ich)
-            gra = automol.convert.geom.graph(geo)
-        else:
+        if not stereo or not automol.inchi.has_stereo(ich):
             rdm = _rdkit.from_inchi(ich)
             gra = _rdkit.to_connectivity_graph(rdm)
+        else:
+            geo = geometry(ich)
+            gra = automol.convert.geom.graph(geo)
 
     gra = automol.graph.implicit(gra)
     return gra
@@ -297,14 +298,16 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CH/h1H': {
         'inchi': 'InChI=1S/CH/h1H',
-        'geom': (('C', (0., 0., 0.)), ('H', (0., 0., 1.12 * phycon.ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)),
+                 ('H', (0., 0., 1.12 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 1, None)}, {}),
         'smiles': '[CH]',
         'formula': {'C': 1, 'H': 1},
     },
     'InChI=1S/CF/c1-2': {
         'inchi': 'InChI=1S/CF/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('F', (0., 0., 1.27 * phycon.ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)),
+                 ('F', (0., 0., 1.27 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('F', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]F',
@@ -312,7 +315,8 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CCl/c1-2': {
         'inchi': 'InChI=1S/CCl/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('Cl', (0., 0., 1.65 * phycon.ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)),
+                 ('Cl', (0., 0., 1.65 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('Cl', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]Cl',
@@ -320,7 +324,8 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CBr/c1-2': {
         'inchi': 'InChI=1S/CBr/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('Br', (0., 0., 1.8 * phycon.ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)),
+                 ('Br', (0., 0., 1.8 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('Br', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]Br',
@@ -328,7 +333,8 @@ HARDCODED_INCHI_DCT = {
     },
     'InChI=1S/CI/c1-2': {
         'inchi': 'InChI=1S/CI/c1-2',
-        'geom': (('C', (0., 0., 0.)), ('I', (0., 0., 1.8 * phycon.ANG2BOHR))),
+        'geom': (('C', (0., 0., 0.)),
+                 ('I', (0., 0., 1.8 * phycon.ANG2BOHR))),
         'graph': ({0: ('C', 0, None), 1: ('I', 0, None)},
                   {frozenset({0, 1}): (1, None)}),
         'smiles': '[C]I',

@@ -68,7 +68,7 @@ def coordinates(geo, idxs=None, angstrom=False):
         _, xyzs = zip(*geo)
     else:
         xyzs = ()
-    xyzs = xyzs if not angstrom else numpy.multiply(phycon.BOHR2ANG)
+    xyzs = xyzs if not angstrom else numpy.multiply(xyzs, phycon.BOHR2ANG)
     xyzs = tuple(xyz for idx, xyz in enumerate(xyzs) if idx in idxs)
     return xyzs
 
@@ -293,7 +293,7 @@ def from_xyz_trajectory_string(geo_str):
         comments += (block[1],)
         geoms += (from_string('\n'.join(block[2:])),)
 
-    return (geoms, comments)
+    return tuple(zip(geoms, comments))
 
 
 # representations

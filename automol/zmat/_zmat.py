@@ -297,7 +297,7 @@ def join_replace_one(zma1, zma2, rep1_key, key_mat, val_mat, name_mat=None,
 def vmatrix(zma):
     """ convert z-matrix to v-matrix
     """
-    return vmat.from_data(syms=symbols(zma),
+    return vmat.from_data(symbs=symbols(zma),
                           key_mat=key_matrix(zma),
                           name_mat=name_matrix(zma))
 
@@ -346,7 +346,7 @@ def almost_equal(zma1, zma2, dist_rtol=2e-5, ang_atol=2e-3, just_dist=False):
 def from_string(zma_str, one_indexed=True, angstrom=True, degree=True):
     """ read a z-matrix from a string
     """
-    syms, key_mat, name_mat, val_dct = ar.zmatrix.read(zma_str)
+    syms, key_mat, name_mat, val_dct = ar.zmat.read(zma_str)
 
     val_mat = tuple(tuple(val_dct[name] if name is not None else None
                           for name in name_mat_row)
@@ -362,8 +362,8 @@ def string(zma, one_indexed=True, angstrom=True, degree=True):
     """ write a z-matrix to a string
     """
     shift = 1 if one_indexed else 0
-    zma_str = aw.zmatrix.write(
-        syms=symbols(zma),
+    zma_str = aw.zmat.write(
+        symbs=symbols(zma),
         key_mat=key_matrix(zma, shift=shift),
         name_mat=name_matrix(zma),
         val_dct=value_dictionary(zma, angstrom=angstrom, degree=degree)
