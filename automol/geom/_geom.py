@@ -19,7 +19,7 @@ from automol import util
 def from_subset(geo, idxs):
     """ Generate a new molecular geometry from a subset of the atoms in an
         input geometry.
-    
+
         (Rename this and put it under operations?)
 
         :param geo: molecular geometry
@@ -61,7 +61,7 @@ def symbols(geo, idxs=None):
 
 
 def coordinates(geo, idxs=None, angstrom=False):
-    """ atomic coordinates
+    """ Obtain the Cartesian coordinates of atoms in the molecular geometry.
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
@@ -95,24 +95,30 @@ def count(geo):
 
 
 def atom_count(geo, symb, match=True):
-    """ Count the number of some atom type in the geometry.
+    """ Count the number of atoms of a particular type in the geometry.
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param symb: atomic symbol
         :type symb: str
-        :param match: return the count that match specified symbol ---
+        :param match: count symbols that match the type?
         :type match: bool
+        :rtype: tuple(int)
     """
     return len(atom_indices(geo, symb, match=match))
 
 
 def atom_indices(geo, symb, match=True):
-    """ indices for a particular atom type
+    """ Obtain the indices of a atoms of a particular type in the geometry.
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param match: grab idxs that match given atom type
+        :param symb: atomic symbol
+        :type symb: str
+        :param match: obtain indices of symbols that match the type?
+        :type match: bool
+        :rtype: tuple(int)
     """
 
     symbs = symbols(geo)
@@ -127,25 +133,31 @@ def atom_indices(geo, symb, match=True):
 
 
 def dummy_atom_indices(geo):
-    """ indices of dummy atoms in this geometry (Replace w/ above at some pt)
+    """ Obtain the indices of a atoms of a particular type in the geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :rtype: tuple(int)
     """
+
     symbs = symbols(geo)
     dummy_idxs = [idx for idx, symb in enumerate(symbs)
                   if not ptab.to_number(symb)]
+
     return tuple(dummy_idxs)
 
 
-def components_graph(geo, remove_stereo=False):
+def components_graph(geo, stereo=True):
     """ geometry => connected components graphs
     """
     return automol.graph.connected_components(
-        automol.convert.geom.graph(geo, remove_stereo=remove_stereo))
+        automol.convert.geom.graph(geo, stereo=stereo))
 
 
-def connected(geo, remove_stereo=False):
+def connected(geo, stereo=True):
     """ Determine if all atoms in geometry are completely connected
     """
-    comps = components_graph(geo, remove_stereo=remove_stereo)
+    comps = components_graph(geo, stereo=stereo)
     return bool(len(comps) == 1)
 
 
@@ -1097,17 +1109,3 @@ def permutation(geo, ref_geo, thresh=1e-4):
         perm_idxs = None
 
     return perm_idxs
-
-
-if __name__ == '__main__':
-    # ICH = automol.smiles.inchi('C=C=C')
-    ICH = automol.smiles.inchi('C#CCCCC#C')
-    # ICH = automol.smiles.inchi('C#C')
-    GEO = automol.inchi.geometry(ICH)
-    ZMA = automol.geom.zmatrix(GEO)
-    GEO = automol.zmat.geometry(ZMA)
-    GEO = automol.geom.without_dummy_atoms(GEO)
-    LIN_IDXS = linear_atoms(GEO)
-    print(LIN_IDXS)
-    GEO = insert_dummies_on_linear_atoms(GEO)
-    print(automol.geom.string(GEO))
