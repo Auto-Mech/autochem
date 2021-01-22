@@ -1,5 +1,6 @@
 """ smiles conversions
 """
+
 import automol.convert.inchi
 from automol.convert import _rdkit
 
@@ -23,7 +24,7 @@ def inchi(smi):
 # helpers
 def _compare(smi1, smi2):
     """ Check if two SMILES strings are similar.
-        
+
         :param smi1: SMILES string 1
         :type smi1: str
         :param smi2: SMILES string 2

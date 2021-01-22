@@ -16,7 +16,7 @@ def from_data(symbols, coordinates, angstrom=False):
         :type symbols: tuple(str)
         :param coordinates: xyz coordinates of the atoms
         :type coordinates: tuple(float)
-        :param angstrom: convert coordinates to Angstrom units
+        :param angstrom: parameter to control Bohr->Angstrom conversion
         :type angstrom: bool
     """
 

@@ -40,10 +40,13 @@ def from_subset(geo, idxs):
 
 # getters
 def symbols(geo, idxs=None):
-    """ atomic symbols
+    """ Obtain the atomic symbols atoms in the molecular geometry.
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
+        :param idxs: indexs of atoms to obtain information for
+        :type idxs: tuple(int)
+        :rtype: tuple(str)
     """
 
     idxs = list(range(count(geo))) if idxs is None else idxs
@@ -62,7 +65,13 @@ def coordinates(geo, idxs=None, angstrom=False):
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
+        :param idxs: indexs of atoms to obtain information for
+        :type idxs: tuple(int)
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :rtype: tuple(tuple(float))
     """
+
     idxs = list(range(count(geo))) if idxs is None else idxs
     if geo:
         _, xyzs = zip(*geo)
@@ -70,23 +79,30 @@ def coordinates(geo, idxs=None, angstrom=False):
         xyzs = ()
     xyzs = xyzs if not angstrom else numpy.multiply(xyzs, phycon.BOHR2ANG)
     xyzs = tuple(xyz for idx, xyz in enumerate(xyzs) if idx in idxs)
+
     return xyzs
 
 
 def count(geo):
-    """ count the number of atoms in the geometry
+    """ Obtain the number of rows of the molecular geometry, which corresponds to
+        the number of atoms in the geometry.
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
+        :rtype: int
     """
     return len(geo)
 
 
 def atom_count(geo, symb, match=True):
-    """ count the number of some atom type in the geometry
+    """ Count the number of some atom type in the geometry.
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
+        :param symb: atomic symbol
+        :type symb: str
+        :param match: return the count that match specified symbol ---
+        :type match: bool
     """
     return len(atom_indices(geo, symb, match=match))
 

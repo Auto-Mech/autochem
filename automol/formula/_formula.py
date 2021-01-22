@@ -149,11 +149,10 @@ def sorted_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
 
         :param seq: formula or sequence of atomic symbols
         :type seq: dict, list, or tuple
-        :param symbs: atomic symbols to place first
-        :type symbs: sequence of strings
-
-        :param symbs_last:
-
+        :param symbs_first: atomic symbols to place first
+        :type symbs_first: sequence of strings
+        :param symbs_last: atomic symbols to place last
+        :type symbs_last: sequence of strings
         :rtyp: tuple(str)
     """
 
@@ -170,7 +169,17 @@ def sorted_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
 
 
 def argsort_symbols(seq, symbs_first=('C', 'H'), symbs_last=(), idx=None):
-    """ get the sort order for a sequence of atomic symbols
+    """ Determine the sort order for a sequence of atomic symbols.
+
+        :param seq: formula or sequence of atomic symbols
+        :type seq: dict, list, or tuple
+        :param symbs_first: atomic symbols to place first
+        :type symbs_first: sequence of strings
+        :param symbs_last: atomic symbols to place last
+        :type symbs_last: sequence of strings
+        :param idx: index of symbol for sorting
+        :type idx: int
+        :rtype: tuple(int)
     """
 
     def _sort_key(entry):

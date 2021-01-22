@@ -131,7 +131,7 @@ def conformers(ich, nconfs):
 
 
 def recalculate(ich, stereo=False):
-    """ Recalculate an InChI string
+    """ Recalculate an InChI string.
 
         :param ich: InChI string
         :type ich: str
@@ -239,14 +239,18 @@ def _connected_smiles(ich):
         ich = automol.inchi.standard_form(ich)
         rdm = _rdkit.from_inchi(ich)
         smi = _rdkit.to_smiles(rdm)
+
     return smi
 
 
 def inchi_key(ich):
-    """ InChI => InChIKey
+    """ Generate an InChIKey from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: str
     """
-    ick = _rdkit.inchi_to_inchi_key(ich)
-    return ick
+    return _rdkit.inchi_to_inchi_key(ich)
 
 
 def formula(ich):
@@ -261,15 +265,25 @@ def formula(ich):
     ichs = automol.inchi.split(ich)
     fmls = list(map(_connected_formula, ichs))
     fml = functools.reduce(automol.formula.join, fmls)
+
     return fml
 
 
 def _connected_formula(ich):
+    """ Create a combined molecular from the formulas of a
+        multi-component InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: dict[str: int]
+    """
+
     fml = object_from_hardcoded_inchi_by_key('formula', ich)
     if fml is None:
         ich = automol.inchi.standard_form(ich)
         rdm = _rdkit.from_inchi(ich)
         fml = _rdkit.to_formula(rdm)
+
     return fml
 
 

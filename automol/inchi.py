@@ -19,28 +19,28 @@ SLASH_OR_END = app.one_of_these([SLASH, app.STRING_END])
 
 
 # "constructor"
-def from_data(fml_slyr, main_dct=None, char_dct=None, ste_dct=None,
-              iso_dct=None):
+def from_data(fml_slyr, main_lyr_dct=None, char_lyr_dct=None, ste_lyr_dct=None,
+              iso_lyr_dct=None):
     """ Construct an InChI string from its constituent layers, where
         most layers are input as dictionary of prefixes for some part of the
         sublayer and the corresponding string for that sublayer part.
 
         :param fml_slyr: sublayer of InChI string containing molecular formula
         :type fml_slyr: str
-        :param main_dct: information for connectivity layer of InChI
-        :type main_dct: dict[str: str]
-        :param char_dct: information for charge layer of InChI
-        :type char_dct: dict[str: str]
-        :param ste_dct: information for stereochemistry layer of InChI
-        :type ste_dct: dict[str: str]
-        :param iso_dct: information for isotope layer of InChI
-        :type iso_dct: dict[str: str]
+        :param main_lyr_dct: information for connectivity layer of InChI
+        :type main_lyr_dct: dict[str: str]
+        :param char_lyr_dct: information for charge layer of InChI
+        :type char_lyr_dct: dict[str: str]
+        :param ste_lyr_dct: information for stereochemistry layer of InChI
+        :type ste_lyr_dct: dict[str: str]
+        :param iso_lyr_dct: information for isotope layer of InChI
+        :type iso_lyr_dct: dict[str: str]
         :rtype: str
     """
     return automol.create.inchi.from_data(
-        formula_sublayer=fml_slyr, main_sublayer_dct=main_dct,
-        charge_sublayer_dct=char_dct, stereo_sublayer_dct=ste_dct,
-        isotope_sublayer_dct=iso_dct)
+        formula_slyr=fml_slyr, main_lyr_dct=main_lyr_dct,
+        charge_lyr_dct=char_lyr_dct, stereo_lyr_dct=ste_lyr_dct,
+        isotope_lyr_dct=iso_lyr_dct)
 
 
 # getters

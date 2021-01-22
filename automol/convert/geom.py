@@ -1,5 +1,6 @@
 """ geometry conversions
 """
+
 import itertools
 import numpy
 from automol import create
@@ -27,7 +28,7 @@ def zmatrix(geo, ts_bnds=()):
         raise NotImplementedError
 
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(geo)
-    gra = connectivity_graph(geo, dummy_bonds=True)
+    gra = connectivity_graph(geo, dummy=True)
     vma, zma_keys = automol.graph.vmat.vmatrix(gra)
     geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, geo)
@@ -43,6 +44,7 @@ def zmatrix_x2z(geo, ts_bnds=()):
         :param ts_bnds: keys for the breaking/forming bonds in a TS
         :type ts_bnds: tuple(frozenset(int))
     """
+
     symbs = automol.geom.symbols(geo)
     if len(symbs) == 1:
         key_mat = [[None, None, None]]
@@ -52,6 +54,7 @@ def zmatrix_x2z(geo, ts_bnds=()):
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         zma = _pyx2z.to_zmatrix(x2m)
     zma = automol.zmat.standard_form(zma)
+
     return zma
 
 
@@ -63,7 +66,9 @@ def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
         :type geo: automol geometry data structure
         :param ts_bnds: keys for the breaking/forming bonds in a TS
         :type ts_bnds: tuple(frozenset(int))
+        :rtype: tuple(str)
     """
+
     symbs = automol.geom.symbols(geo)
     if len(symbs) == 1:
         names = ()
@@ -74,6 +79,7 @@ def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
         zma = _pyx2z.to_zmatrix(x2m)
         name_dct = automol.zmat.standard_names(zma)
         names = tuple(map(name_dct.__getitem__, names))
+
     return names
 
 
@@ -88,37 +94,43 @@ def zmatrix_atom_ordering(geo, ts_bnds=()):
         :type ts_bnds: tuple(frozenset(int))
         :rtype: dict[int: int]
     """
+
     symbs = automol.geom.symbols(geo)
     if len(symbs) == 1:
         idxs = (0,)
     else:
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         idxs = _pyx2z.zmatrix_atom_ordering(x2m)
+
     return idxs
 
 
 def external_symmetry_factor(geo):
-    """ obtain external symmetry factor for a geometry using x2z
+    """ Obtain the external symmetry factor for a geometry using x2z interface
+        which determines the initial symmetry factor and then divides by the
+        enantiomeric factor.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: float
     """
-    # Get initial external symmetry number
+
     if automol.geom.is_atom(geo):
         ext_sym_fac = 1.
     else:
         oriented_geom = _pyx2z.to_oriented_geometry(geo)
         ext_sym_fac = oriented_geom.sym_num()
-        # Divide symmetry number by enantiomeric factor
         if oriented_geom.is_enantiomer():
             ext_sym_fac *= 0.5
+
     return ext_sym_fac
 
 
 # geometry => graph
-def connectivity_graph(geo, dummy_bonds=True,
+def connectivity_graph(geo, dummy=True,
                        rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ Generate a molecular graph from the molecular geometry that has information
         about bond connectivity.
-
-        (Kind of ugly -- should probably be cleaned up at some point)
 
         :param rqq_bond_max: maximum distance between heavy atoms
         :type rqq_bond_max: float
@@ -126,6 +138,8 @@ def connectivity_graph(geo, dummy_bonds=True,
         :type rqh_bond_max: float
         :param rhh_bond_max: maximum distance between hydrogens
         :type rhh_bond_max: float
+        :param dummy: parameter to incude bonds to dummy atoms
+        :type dummy: bool
         :rtype: automol molecular graph structure
     """
 
@@ -152,7 +166,7 @@ def connectivity_graph(geo, dummy_bonds=True,
 
     bnd_ord_dct = {bnd_key: 1 for bnd_key in bnd_keys}
 
-    if dummy_bonds:
+    if dummy:
         dummy_idxs = automol.geom.dummy_atom_indices(geo)
         for idx1 in dummy_idxs:
             idx2, dist = min(
@@ -168,47 +182,47 @@ def connectivity_graph(geo, dummy_bonds=True,
     return gra
 
 
-def graph(geo, remove_stereo=False):
+def graph(geo, stereo=True):
     """ Generate a molecular graph from the molecular geometry that has information
         about bond connectivity and if requested, stereochemistry.
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param remove_stereo: parameter to include stereochemistry information
-        :type remove_stereo: bool
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
         :rtype: automol molecular graph data structure
     """
 
     gra = connectivity_graph(geo)
-    if not remove_stereo:
+    if stereo:
         gra = automol.graph.set_stereo_from_geometry(gra, geo)
 
     return gra
 
 
 # geometry => inchi
-def inchi(geo, remove_stereo=False):
+def inchi(geo, stereo=True):
     """ Generate an InChI string from a molecular geometry.
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param remove_stereo: parameter to include stereochemistry information
-        :type remove_stereo: bool
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
         :rtype: str
     """
 
-    ich, _ = inchi_with_sort(geo, remove_stereo=remove_stereo)
+    ich, _ = inchi_with_sort(geo, stereo=stereo)
 
     return ich
 
 
-def inchi_with_sort(geo, remove_stereo=False):
+def inchi_with_sort(geo, stereo=True):
     """ Generate an InChI string from a molecular geometry. (Sort?)
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param remove_stereo: parameter to include stereochemistry information
-        :type remove_stereo: bool
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
         :rtype: str
     """
 
@@ -218,7 +232,7 @@ def inchi_with_sort(geo, remove_stereo=False):
 
     if ich is None:
         gra = connectivity_graph(geo)
-        if remove_stereo:
+        if not stereo:
             geo = None
             geo_idx_dct = None
         else:
