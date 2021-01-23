@@ -593,7 +593,7 @@ def string(zma, one_indexed=True, angstrom=True, degree=True):
 
 # validators
 def is_valid(zma):
-    """ Assess if a Z-Matrix has proper structure.
+    """ Assess if a Z-Matrix has proper data structure.
 
         :param zma: Z-Matrix
         :type zma: automol Z-Matrix data structure

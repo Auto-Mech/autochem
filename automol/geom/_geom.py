@@ -148,23 +148,41 @@ def dummy_atom_indices(geo):
 
 
 def components_graph(geo, stereo=True):
-    """ geometry => connected components graphs
+    """ Generate a list of molecular graphs where each element is a graph that 
+        consists of fully connected (bonded) atoms. Stereochemistry is included
+        if requested.
+    
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: automol molecular graph data structure
     """
     return automol.graph.connected_components(
         automol.convert.geom.graph(geo, stereo=stereo))
 
 
 def connected(geo, stereo=True):
-    """ Determine if all atoms in geometry are completely connected
+    """ Determine if all atoms in geometry are completely connected.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: bool
     """
-    comps = components_graph(geo, stereo=stereo)
-    return bool(len(comps) == 1)
+    return len(components_graph(geo, stereo=stereo)) == 1)
 
 
 # validation
 def is_valid(geo):
-    """ is this a valid geometry?
+    """ Assess if a molecular geometry has the proper data structure.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: bool
     """
+
     ret = hasattr(geo, '__iter__')
     if ret:
         ret = all(hasattr(obj, '__len__') and len(obj) == 2 for obj in geo)
@@ -174,13 +192,22 @@ def is_valid(geo):
                 automol.create.geom.from_data(symbs, xyzs)
             except AssertionError:
                 ret = False
+
     return ret
 
 
 # setters
 def set_coordinates(geo, xyz_dct):
-    """ set coordinate values for the geometry, using a dictionary by index
+    """ Set coordinate values for the molecular geometry,
+        using a dictionary by index.
+    
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param xyz_dct: new xyz values for a set of indices
+        :type xyz_dct: dict[int: tuple(float)]
+        :rtype: automol molecular graph data structure
     """
+
     symbs = symbols(geo)
     xyzs = coordinates(geo)
 
@@ -189,22 +216,24 @@ def set_coordinates(geo, xyz_dct):
 
     xyzs = [xyz_dct[idx] if idx in xyz_dct else xyz
             for idx, xyz in enumerate(xyzs)]
+
     return automol.create.geom.from_data(symbs, xyzs)
 
 
 def without_dummy_atoms(geo):
-    """ return a copy of the geometry without dummy atoms
+    """ Return a copy of the molecular geometry without dummy atoms.
     """
-    symbs = symbols(geo)
 
+    symbs = symbols(geo)
     non_dummy_idxs = [idx for idx, symb in enumerate(symbs)
                       if ptab.to_number(symb)]
+
     return from_subset(geo, non_dummy_idxs)
 
 
 # I/O
 def from_string(geo_str, angstrom=True):
-    """ Read a Cartesian geometry from a string comprised
+    """ Read a Cartesian molecular geometry from a string comprised
         of just the atomic symbols and coordinates.
 
         :param geo_str: string containing the geometry
@@ -216,11 +245,12 @@ def from_string(geo_str, angstrom=True):
 
     symbs, xyzs = ar.geom.read(geo_str)
     geo = automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
+
     return geo
 
 
 def from_xyz_string(xyz_str):
-    """ Read a Cartesian geometry from a string that matches the
+    """ Read a Cartesian molecular geometry from a string that matches the
         format of a string of a standard .xyz file.
 
         :param xyz_str: string obtained from reading the .xyz file
@@ -230,6 +260,7 @@ def from_xyz_string(xyz_str):
 
     symbs, xyzs = ar.geom.read_xyz(xyz_str)
     geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
+
     return geo
 
 
@@ -324,417 +355,6 @@ def from_xyz_trajectory_string(geo_str):
     return tuple(zip(geoms, comments))
 
 
-# representations
-def coulomb_spectrum(geo):
-    """ (sorted) coulomb matrix eigenvalue spectrum
-    """
-    mat = _coulomb_matrix(geo)
-    vals = tuple(sorted(numpy.linalg.eigvalsh(mat)))
-    return vals
-
-
-def _coulomb_matrix(geo):
-    nums = numpy.array(list(map(ptab.to_number, symbols(geo))))
-    xyzs = numpy.array(coordinates(geo))
-
-    _ = numpy.newaxis
-    natms = len(nums)
-    diag_idxs = numpy.diag_indices(natms)
-    tril_idxs = numpy.tril_indices(natms, -1)
-    triu_idxs = numpy.triu_indices(natms, 1)
-
-    zxz = numpy.outer(nums, nums)
-    rmr = numpy.linalg.norm(xyzs[:, _, :] - xyzs[_, :, :], axis=2)
-
-    mat = numpy.zeros((natms, natms))
-    mat[diag_idxs] = nums ** 2.4 / 2.
-    mat[tril_idxs] = zxz[tril_idxs] / rmr[tril_idxs]
-    mat[triu_idxs] = zxz[triu_idxs] / rmr[triu_idxs]
-    return mat
-
-
-# comparisons
-def almost_equal(geo1, geo2, rtol=2e-3):
-    """ are these geometries numerically equal?
-    """
-    ret = False
-    if symbols(geo1) == symbols(geo2):
-        ret = numpy.allclose(coordinates(geo1), coordinates(geo2), rtol=rtol)
-    return ret
-
-
-def minimum_distance(geo1, geo2):
-    """ get the minimum distance between atoms in geo1 and those in geo2
-    """
-    xyzs1 = coordinates(geo1)
-    xyzs2 = coordinates(geo2)
-    return min(util.vec.distance(xyz1, xyz2)
-               for xyz1, xyz2 in itertools.product(xyzs1, xyzs2))
-
-
-def almost_equal_coulomb_spectrum(geo1, geo2, rtol=1e-2):
-    """ do these geometries have similar coulomb spectrums?
-    """
-    ret = numpy.allclose(coulomb_spectrum(geo1), coulomb_spectrum(geo2),
-                         rtol=rtol)
-    return ret
-
-
-def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=1e-2):
-    """ get indices of unique geometries, by coulomb spectrum
-    """
-    comp_ = functools.partial(almost_equal_coulomb_spectrum, rtol=rtol)
-    idxs = _argunique(geos, comp_, seen_items=seen_geos)
-    return idxs
-
-
-def _argunique(items, comparison, seen_items=()):
-    """ get the indices of unique items using some comparison function
-    """
-    idxs = []
-    seen_items = list(seen_items)
-    for idx, item in enumerate(items):
-        if not any(comparison(item, seen_item) for seen_item in seen_items):
-            idxs.append(idx)
-            seen_items.append(item)
-    idxs = tuple(idxs)
-    return idxs
-
-
-# operations
-def remove(geo, idxs=()):
-    """ Remove idxs from a geometry
-    """
-    new_geo = tuple(row for i, row in enumerate(geo) if i not in idxs)
-    return new_geo
-
-
-def join(geo1, geo2,
-         dist_cutoff=3.0*phycon.ANG2BOHR, theta=0.0, phi=0.0):
-    """ join two geometries together
-    """
-    if not geo1:
-        symbs = symbols(geo2)
-        xyzs = coordinates(geo2)
-    elif not geo2:
-        symbs = symbols(geo1)
-        xyzs = coordinates(geo1)
-    else:
-        orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
-                                  numpy.sin(theta) * numpy.sin(phi),
-                                  numpy.cos(theta)])
-        neg_orient_vec = -1.0 * orient_vec
-
-        # get the correct distance apart
-        geo1 = mass_centered(geo1)
-        geo2 = mass_centered(geo2)
-        ext1 = max(numpy.vdot(orient_vec, xyz) for xyz in coordinates(geo1))
-        ext2 = max(numpy.vdot(neg_orient_vec, xyz)
-                   for xyz in coordinates(geo2))
-
-        cm_dist = ext1 + dist_cutoff + ext2
-        dist_grid = numpy.arange(cm_dist, 0., -0.1)
-        for dist in dist_grid:
-            trans_geo2 = translate(geo2, orient_vec * dist)
-            min_dist = minimum_distance(geo1, trans_geo2)
-            if numpy.abs(min_dist - dist_cutoff) < 0.1:
-                break
-
-        geo2 = trans_geo2
-
-        # now, join them together
-        symbs = symbols(geo1) + symbols(geo2)
-        xyzs = coordinates(geo1) + coordinates(geo2)
-
-    return automol.create.geom.from_data(symbs, xyzs)
-
-
-def reorder(geo, idx_dct):
-    """ Reorder the atoms of a molecular geometry using
-        the mapping of an input dictionary.
-
-        :param geo: The geometry
-        :param idx_dct: The new order of the atoms, by index
-        :type idx_dct: dict
-        :rtype: automol geometry data structure
-    """
-
-    symbs = symbols(geo)
-    xyzs = coordinates(geo)
-
-    idxs = [idx for idx, _ in sorted(idx_dct.items(), key=lambda x: x[1])]
-    assert len(symbs) == len(xyzs) == len(idxs)
-
-    symbs = [symbs[idx] for idx in idxs]
-    xyzs = [xyzs[idx] for idx in idxs]
-    return automol.create.geom.from_data(symbs, xyzs)
-
-
-def swap_coordinates(geo, idx1, idx2):
-    """ Swap the order of the coordinates of two atoms in a molecular geometry.
-
-        :param geo: molecular geometry
-        :type geo: automol molecular geometry data structure
-    """
-
-    geo = [list(x) for x in geo]
-    geo[idx1], geo[idx2] = geo[idx2], geo[idx1]
-    geo_swp = tuple(tuple(x) for x in geo)
-
-    return geo_swp
-
-
-def insert(geo, symb, xyz, idx=None, angstrom=False):
-    """ Insert an atom into a molecular geometry.
-        
-        :param geo: molecular geometry
-        :type geo: automol molecular geometry data structure
-        :param symb: symbol of atom to add
-        :type symb: str
-        :param xyz: xyz coordinates of atom to add
-        :type xyz: tuple(float)
-        :param idx: index of geometry to place atom
-        :type idx: int
-        :rtype: automol geometry date structure
-    """
-
-    symbs = list(symbols(geo))
-    xyzs = list(coordinates(geo, angstrom=angstrom))
-
-    idx = idx if idx is not None else len(symbs)
-
-    symbs.insert(idx, symb)
-    xyzs.insert(idx, xyz)
-
-    return automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
-
-
-def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
-                                   tol=5.):
-    """ Insert dummy atoms over linear atoms in the geometry
-
-    :param geo: the geometry
-    :param lin_idxs: the indices of the linear atoms; if None, indices will be
-        automatically determined from the geometry based on the graph
-    :param gra: the graph describing connectivity; if None, a connectivity
-        graph will be generated using default distance thresholds
-    :param dist: distance of the dummy atom from the linear atom, in angstroms
-    :param tol: the tolerance threshold for linearity, in degrees
-    :returns: the geometry with dummy atoms inserted, along with a dictionary
-        mapping the linear atoms onto their associated dummy atoms
-    """
-    lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
-    gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
-
-    dummy_ngb_idxs = set(automol.graph.dummy_atom_neighbor_keys(gra).values())
-    assert not dummy_ngb_idxs & set(lin_idxs), (
-        "Attempting to add dummy atoms on atoms that already have them: {}"
-        .format(dummy_ngb_idxs & set(lin_idxs)))
-
-    ngb_idxs_dct = automol.graph.sorted_atom_neighbor_keys(gra)
-
-    xyzs = coordinates(geo, angstrom=True)
-
-    def _perpendicular_direction(idxs):
-        """ find a nice perpendicular direction for a series of linear atoms
-        """
-        triplets = []
-        for idx in idxs:
-            for n1idx in ngb_idxs_dct[idx]:
-                for n2idx in ngb_idxs_dct[n1idx]:
-                    if n2idx != idx:
-                        ang = central_angle(geo, idx, n1idx, n2idx,
-                                            degree=True)
-                        if numpy.abs(ang - 180.) > tol:
-                            triplets.append((idx, n1idx, n2idx))
-
-        if triplets:
-            idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
-            xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
-            r12 = util.vec.unit_direction(xyz1, xyz2)
-            r23 = util.vec.unit_direction(xyz2, xyz3)
-            direc = util.vec.orthogonalize(r12, r23, normalize=True)
-        else:
-            assert len(idxs) >= 2, "This should never happen."
-            idx1, idx2 = idxs[:2]
-            xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
-            r12 = util.vec.unit_direction(xyz1, xyz2)
-            for i in range(3):
-                disp = numpy.zeros((3,))
-                disp[i] = -1.
-                alt = numpy.add(r12, disp)
-                direc = util.vec.unit_perpendicular(r12, alt)
-                if numpy.linalg.norm(direc) > 1e-2:
-                    break
-        return direc
-
-    # partition the linear atoms into adjacent groups, to be handled together
-    lin_idxs_lst = sorted(map(sorted, util.equivalence_partition(
-        lin_idxs, lambda x, y: x in ngb_idxs_dct[y])))
-
-    dummy_key_dct = {}
-
-    for idxs in lin_idxs_lst:
-        direc = _perpendicular_direction(idxs)
-        for idx in idxs:
-            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
-            dummy_key_dct[idx] = count(geo)
-
-            geo = insert(geo, 'X', xyz, angstrom=True)
-
-    return geo, dummy_key_dct
-
-
-def displace(geo, xyzs):
-    """ displacement of the geometry
-    """
-    symbs = symbols(geo)
-    orig_xyzs = coordinates(geo)
-    xyzs = numpy.add(orig_xyzs, xyzs)
-    return automol.create.geom.from_data(symbs, xyzs)
-
-
-def translate(geo, xyz):
-    """ Translate the coordinates of a molecular geometry along
-        a three-dimensiona vector.
-
-        :param geo: molecular geometry
-        :type geo: automol molecular geometry data structure
-        :param xyz: vector to translate along
-        :type xyz: tuple(float)
-        :rtype: automol molecular geometry data structure
-    """
-
-    symbs = symbols(geo)
-    xyzs = coordinates(geo)
-    xyzs = numpy.add(xyzs, xyz)
-    return automol.create.geom.from_data(symbs, xyzs)
-
-
-def invert(geo):
-    """ inversion of the geometry
-    """
-    symbs = symbols(geo)
-    xyzs = numpy.array(coordinates(geo))
-    xyzs *= -1.
-    xyzs = list(map(list, xyzs))
-    return automol.create.geom.from_data(symbs, xyzs)
-
-
-def transform(geo, func, idxs=None):
-    """ transform the coordinates of a geometry by a function
-
-    if transforming a subset, specify the atoms indices with `idxs`
-    """
-    idxs = list(range(count(geo))) if idxs is None else idxs
-    symbs = symbols(geo)
-    xyzs = coordinates(geo)
-    xyzs = [func(xyz) if idx in idxs else xyz for idx, xyz in enumerate(xyzs)]
-    return automol.create.geom.from_data(symbs, xyzs)
-
-
-def transform_by_matrix(geo, mat):
-    """ transform the coordinates of a geometry by a matrix
-    """
-    symbs = symbols(geo)
-    xyzs = coordinates(geo)
-    xyzs = numpy.dot(xyzs, numpy.transpose(mat))
-    return automol.create.geom.from_data(symbs, xyzs)
-
-
-def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
-    """ Rotate the coordinates of a molecular geometry about
-        an axis by a specified angle.
-    
-        if rotating a subset, specify the atoms indices with `idxs`
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param axis: axis to rotate about
-        :type axis: tuple(float)
-        :param angle: angle of rotation
-        :type angle: float
-        :param orig_xyz: xyz coordinates of the origin
-        :type orig_xyz: tuple(float)
-        :param idxs: indices of atoms whose coordinates are to be rotated
-        :type idxs: tuple(int)
-    """
-    func = util.vec.rotater(axis, angle, orig_xyz=orig_xyz)
-    return transform(geo, func, idxs=idxs)
-
-
-def euler_rotate(geo, theta, phi, psi):
-    """ Rotate the coordinates of a molecular geometry about
-        the three Euler angles.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param theta: angle to rotate about z-axis
-        :type theta: float
-        :param phi: angle to rotate about x'-axis
-        :type phi: float
-        :param psi: angle to rotate about z'-axis
-        :type psi: float
-        :rtype: automol geometry data structure
-    """
-
-    mat = util.mat.euler_rotation(theta, phi, psi)
-
-    return transform_by_matrix(geo, mat)
-
-
-def move_coordinates(geo, idx1, idx2):
-    """ move the atom at position idx1 to idx2, shifting all other atoms
-    """
-
-    # Get the coordinates at idx1 that are to be moved
-    geo = [list(x) for x in geo]
-    moving_coords = geo[idx1]
-
-    # move the coordinates to idx2
-    geo.remove(moving_coords)
-    geo.insert(idx2, moving_coords)
-    geo_move = tuple(tuple(x) for x in geo)
-    return geo_move
-
-
-def reflect_coordinates(geo, idxs, axes):
-    """ Reflect a specified set of coordinates of a molecular geometry
-        about some each of the requested axes.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param idxs: indices of atoms whose coordinates are to be reflected
-        :type idxs: tuple(int)
-        :param axes: axes to reflect about
-        :type axes: tuple(str)
-    """
-
-    # check input
-    assert all(idx < len(geo) for idx in idxs)
-    assert all(axis in ('x', 'y', 'z') for axis in axes)
-
-    # get coords
-    coords = coordinates(geo)
-
-    # convert x,y,z to nums
-    axis_dct = {'x': 0, 'y': 1, 'z': 2}
-    axes = [axis_dct[axis] for axis in axes]
-
-    # build set atom dct with relected coords
-    reflect_dct = {}
-    for idx in idxs:
-        coord_lst = list(coords[idx])
-        for axis in axes:
-            coord_lst[axis] *= -1.0
-        reflect_dct[idx] = coord_lst
-
-    # Reflect coords with dct
-    geo_reflected = set_coordinates(geo, reflect_dct)
-
-    return geo_reflected
-
-
 # geometric properties
 def distance(geo, idx1, idx2, angstrom=False):
     """ Measure the distance between two atoms in a molecular geometry.
@@ -747,6 +367,7 @@ def distance(geo, idx1, idx2, angstrom=False):
         :type idx2: int
         :param angstrom: parameter to control conversion to Angstrom
         :type angstrom: bool
+        :rtype: float
     """
 
     xyzs = coordinates(geo)
@@ -770,6 +391,7 @@ def central_angle(geo, idx1, idx2, idx3, degree=False):
         :type idx3: int
         :param degree: parameter to control conversion to degree
         :type degree: bool
+        :rtype: float
     """
 
     xyzs = coordinates(geo)
@@ -796,6 +418,7 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
         :type idx4: int
         :param degree: parameter to control conversion to degree
         :type degree: bool
+        :rtype: float
     """
 
     xyzs = coordinates(geo)
@@ -805,13 +428,28 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     xyz4 = xyzs[idx4]
     dih = util.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
     dih *= phycon.RAD2DEG if degree else 1
+
     return dih
 
 
 def zmatrix_row_values(geo, idx, idx1=None, idx2=None, idx3=None,
                        angstrom=True, degree=True):
-    """ get coordinate values for a row in a z-matrix
+    """ Get coordinate values for a row in a Z-Matrix.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param idx:
+        :type idx: int
+        :param idx1: 
+        :type idx1: int
+        :type idx2: int
+        :type idx3: int
+        :param angstrom: parameter to control Bohr->Angstrom conversion
+        :type angstrom: bool
+        :param degree: parameter to control conversion to degree
+        :type degree: bool
     """
+
     val_row = [None, None, None]
 
     if idx1 is not None:
@@ -826,17 +464,23 @@ def zmatrix_row_values(geo, idx, idx1=None, idx2=None, idx3=None,
         val_row[2] = dihedral_angle(geo, idx, idx1, idx2, idx3, degree=degree)
 
     val_row = tuple(val_row)
+
     return val_row
 
 
 def linear_atoms(geo, gra=None, tol=5.):
     """ find linear atoms in a geometry (atoms with 180 degree bond angle)
 
-    :param geo: the geometry
-    :param gra: the graph describing connectivity; if None, a connectivity
-        graph will be generated using default distance thresholds
-    :param tol: the tolerance threshold for linearity, in degrees
+        :param geo: the geometry
+        :type geo: automol geometry data structure
+        :param gra: the graph describing connectivity; if None, a connectivity
+            graph will be generated using default distance thresholds
+        :type gra: automol graph data structure
+        :param tol: the tolerance threshold for linearity, in degrees
+        :type tol: float
+        :rtype: tuple(int)
     """
+
     gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
     ngb_idxs_dct = automol.graph.atom_neighbor_keys(gra)
 
@@ -850,24 +494,8 @@ def linear_atoms(geo, gra=None, tol=5.):
                     lin_idxs.append(idx)
 
     lin_idxs = tuple(lin_idxs)
+
     return lin_idxs
-
-
-def distance_matrix(geo):
-    """ Form a Natom X Natom matrix containing the distance of all the
-        atoms in a molecular geometry.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :rtype: numpy.ndarray
-    """
-
-    mat = numpy.zeros((len(geo), len(geo)))
-    for i in range(len(geo)):
-        for j in range(len(geo)):
-            mat[i][j] = distance(geo, i, j)
-
-    return mat
 
 
 def closest_unbonded_atoms(geo, gra=None):
@@ -876,6 +504,9 @@ def closest_unbonded_atoms(geo, gra=None):
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
+        :param gra: the graph describing connectivity; if None, a connectivity
+            graph will be generated using default distance thresholds
+        :type gra: automol graph data structure
         :rtype: (frozenset(int), float)
     """
 
@@ -915,6 +546,8 @@ def is_linear(geo, tol=2.*phycon.DEG2RAD):
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
+        :param tol: tolerance of bond angle(s) for determing linearity 
+        :type tol: float
         :rtype: bool
     """
 
@@ -940,8 +573,8 @@ def masses(geo, amu=True):
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param amu: parameter to control mass conversion to amu
-        : bool
+        :param amu: parameter to control electron mass -> amu conversion
+        :type amu: bool
         :rtype: tuple(float)
     """
 
@@ -952,19 +585,20 @@ def masses(geo, amu=True):
         amas = numpy.multiply(amas, phycon.AMU2EMASS)
 
     amas = tuple(amas)
+
     return amas
 
 
-def total_mass(geo):
+def total_mass(geo, amu=True):
     """ Calculate the total mass of a molecular geometry.
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param amu: parameter to control mass conversion to amu
+        :param amu: parameter to control electron mass -> amu conversion
         :type amu: bool
         :rtype: tuple(float)
     """
-    return sum(masses(geo))
+    return sum(masses(geo, amu=amu))
 
 
 def center_of_mass(geo):
@@ -1009,8 +643,7 @@ def mass_centered(geo):
         :type geo: automol geometry data structure
         :rtype: tuple(float)
     """
-    geo = translate(geo, numpy.negative(center_of_mass(geo)))
-    return geo
+    return translate(geo, numpy.negative(center_of_mass(geo)))
 
 
 def inertia_tensor(geo, amu=True):
@@ -1018,7 +651,7 @@ def inertia_tensor(geo, amu=True):
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param amu: parameter to control mass conversion to amu
+        :param amu: parameter to control electron mass -> amu conversion
         :type amu: bool
         :rtype: tuple(tuple(float))
     """
@@ -1038,7 +671,7 @@ def principal_axes(geo, amu=True):
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param amu: parameter to control mass conversion to amu
+        :param amu: parameter to control electron mass -> amu conversion
         :type amu: bool
         :rtype: tuple(tuple(float))
     """
@@ -1056,7 +689,7 @@ def moments_of_inertia(geo, amu=True):
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param amu: parameter to control mass conversion to amu
+        :param amu: parameter to control electron mass -> amu conversion
         :type amu: bool
         :rtype: tuple(tuple(float))
     """
@@ -1064,6 +697,7 @@ def moments_of_inertia(geo, amu=True):
     ine = inertia_tensor(geo, amu=amu)
     moms, _ = numpy.linalg.eigh(ine)
     moms = tuple(moms)
+
     return moms
 
 
@@ -1073,7 +707,7 @@ def rotational_constants(geo, amu=True):
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
-        :param amu: parameter to control mass conversion to amu
+        :param amu: parameter to control electron mass -> amu conversion
         :type amu: bool
         :rtype: tuple(float)
     """
@@ -1085,10 +719,18 @@ def rotational_constants(geo, amu=True):
 
 
 def permutation(geo, ref_geo, thresh=1e-4):
-    """ determine the permutation of one geometry that reproduces another
+    """ Determine the permutation of one geometry that reproduces another
+        (if there isn't one -- the geometries are not aligned, return None).
 
-    (If there isn't one -- the geometries are not aligned, return None)
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param ref_geo: molecular geometry
+        :type ref_geo: automol molecular geometry data structure
+        :param thresh: theshold for assessing if permutation exists
+        :type thresh: float
+        :rtype: tuple(int)
     """
+
     natms = count(geo)
     symbs = symbols(geo)
     xyzs = coordinates(geo)
