@@ -10,6 +10,14 @@ from automol.geom._geom import distance
 
 def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Determine sym factor for terminal groups in a geometry
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param frm_bnd_keys: keys denoting atoms forming bond in TS
+        :type frm_bnd_keys: frozenset(int)
+        :param brk_bnd_keys: keys denoting atoms breaking bond in TS
+        :type brk_bnd_keys: frozenset(int)
+        :rtype: (automol geom data structure, float)
     """
 
     # Set saddle based on frm and brk keys existing
@@ -56,12 +64,21 @@ def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
             factor *= len(hyds)
             remove_atms.extend(hyds)
     geo = remove(geo, remove_atms)
+
     return geo, factor
 
 
 def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
-    """ convert an input geometry to a list of geometries
-        corresponding to the rotational permuations of all the terminal groups
+    """ Convert an input geometry to a list of geometries
+        corresponding to the rotational permuations of all the terminal groups.
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param frm_bnd_keys: keys denoting atoms forming bond in TS
+        :type frm_bnd_keys: frozenset(int)
+        :param brk_bnd_keys: keys denoting atoms breaking bond in TS
+        :type brk_bnd_keys: frozenset(int)
+        :rtype: tuple(automol geom data structure)
     """
 
     # Set saddle based on frm and brk keys existing
@@ -112,7 +129,13 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
 
 
 def _swap_for_one(geo, hyds):
-    """ rotational permuation for one rotational group
+    """ Rotational permuation for one rotational group.
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param hyd: list of hydrogen atom indices
+        :type hyd: tuple(int)
+        :rtype: tuple(automol molecular geometry data structure)
     """
 
     geo_lst = []
