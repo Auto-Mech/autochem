@@ -1,6 +1,9 @@
 """ test automol.reac
 """
+
 import automol
+
+
 # ZMA Bank
 C4H10_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('CCCC')))
@@ -606,11 +609,11 @@ def test__trans__is_stereo_compatible():
              frozenset({3, 6}): (1, None), frozenset({2, 4}): (1, None),
              frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
 
-    cgr1 = graph.explicit(cgr1)
-    cgr2 = graph.explicit(cgr2)
+    cgr1 = automol.graph.explicit(cgr1)
+    cgr2 = automol.graph.explicit(cgr2)
 
-    cgr1s = graph.connected_components(cgr1)
-    cgr2s = graph.connected_components(cgr2)
+    cgr1s = automol.graph.connected_components(cgr1)
+    cgr2s = automol.graph.connected_components(cgr2)
 
     ref_compat_lst = (
         True, False, True, False, True, False, True, False,
@@ -630,8 +633,8 @@ def test__prod__hydrogen_abstraction():
     """ test graph.reac.prod_hydrogen_abstraction
     """
 
-    c4h10_gra = automol.zmatrix.graph(C4H10_ZMA)
-    oh_gra = automol.zmatrix.graph(OH_ZMA)
+    c4h10_gra = automol.zmat.graph(C4H10_ZMA)
+    oh_gra = automol.zmat.graph(OH_ZMA)
 
     prod_gras = graph.reac.prod_hydrogen_abstraction(c4h10_gra, oh_gra)
 
@@ -657,9 +660,9 @@ def test__prod__hydrogen_migration():
     """ test graph.reac.prod_hydrogen migration
     """
 
-    ccccch2_gra = automol.zmatrix.graph(CCCCCH2_ZMA)
+    ccccch2_gra = automol.zmat.graph(CCCCCH2_ZMA)
 
-    prod_gras = graph.reac.prod_hydrogen_migration(ccccch2_gra)
+    prod_gras = automol.reac.prod_hydrogen_migration(ccccch2_gra)
 
     assert len(prod_gras) == 2
     assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
@@ -684,10 +687,10 @@ def test__prod__addition():
     """ test graph.reac.prod_addition
     """
 
-    ch2cch2_gra = automol.zmatrix.graph(CH2CCH2_ZMA)
-    h_gra = automol.zmatrix.graph(H_ZMA)
+    ch2cch2_gra = automol.zmat.graph(CH2CCH2_ZMA)
+    h_gra = automol.zmat.graph(H_ZMA)
 
-    prod_gras = graph.reac.prod_addition(ch2cch2_gra, h_gra)
+    prod_gras = automol.reac.prod_addition(ch2cch2_gra, h_gra)
 
     assert len(prod_gras) == 2
     assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
@@ -705,9 +708,9 @@ def test__prod__beta_scission():
     """ test graph.reac.prod_beta_scission
     """
 
-    ch3ch2ch2o_gra = automol.zmatrix.graph(CH3CH2CH2O_ZMA)
+    ch3ch2ch2o_gra = automol.zmat.graph(CH3CH2CH2O_ZMA)
 
-    prod_gras = graph.reac.prod_beta_scission(ch3ch2ch2o_gra)
+    prod_gras = automol.reac.prod_beta_scission(ch3ch2ch2o_gra)
 
     assert len(prod_gras) == 2
     assert all(len(prod_gra) == 2 for prod_gra in prod_gras)
@@ -728,9 +731,9 @@ def test__prod__homolytic_scission():
     """ test graph.reac.prod_homolytic_scission
     """
 
-    c4h10_gra = automol.zmatrix.graph(C4H10_ZMA)
+    c4h10_gra = automol.zmat.graph(C4H10_ZMA)
 
-    prod_gras = graph.reac.prod_homolytic_scission(c4h10_gra)
+    prod_gras = automol.reac.prod_homolytic_scission(c4h10_gra)
 
     assert len(prod_gras) == 4
     assert all(len(prod_gra) == 2 for prod_gra in prod_gras)
@@ -747,15 +750,3 @@ def test__prod__homolytic_scission():
           frozenset({1, 6}): (1, None), frozenset({8, 12}): (1, None),
           frozenset({9, 5}): (1, None), frozenset({8, 5}): (1, None)}),
         ({11: ('H', 0, None)}, {}))
-
-
-if __name__ == '__main__':
-    # test__species__demo()
-    # test__reac__hydrogen_migration()
-    # test__reac__beta_scission()
-    # test__reac__ring_forming_scission()
-    # test__reac__elimination()
-    # test__reac__hydrogen_abstraction()
-    # test__reac__addition()
-    # test__reac__insertion()
-    test__reac__substitution()
