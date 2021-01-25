@@ -30,7 +30,7 @@ def from_inchi(ich):
     """ Build a Pybel molecule object from an InChI string.
 
         :param ich: InChI string for a species
-        :type ich: str 
+        :type ich: str
         :rtype: Pybel molecule object
     """
     return pybel.readstring('inchi', ich)

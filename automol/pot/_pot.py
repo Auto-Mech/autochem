@@ -16,6 +16,7 @@ def points(grids):
         n = (n1, n2)
         p = mxn = ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1))
     """
+
     assert len(grids) in (1, 2, 3, 4), 'Rotor must be 1-4 dimensions'
 
     grid_points = ((i for i in range(len(grid)))
@@ -33,6 +34,7 @@ def coords(grids):
         p = mxn = ((m1, n1), (m1, n2), (m2, n1), (m2, n2), (m3, n1), (m3, n2))
 
     """
+
     assert len(grids) in (1, 2, 3, 4), 'Rotor must be 1-4 dimensions'
 
     grid_vals = ((x for x in grid)
@@ -95,7 +97,7 @@ def by_index(pot):
     remap_dcts = []
     for i in range(dim):
         _coords = sorted(list(set(lst[i] for lst in pot_keys)))
-        _idxs = [i for i in range(len(_coords))]
+        _idxs = list(range(len(_coords)))
         remap_dcts.append(dict(zip(_coords, _idxs)))
 
     new_dct = {}
@@ -155,7 +157,7 @@ def hrpot_spline_fitter(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
                 pot_success.append(max_thresh)
 
     if len(pot_success) > 3:
-    # Build a new potential list using a spline fit of the HR potential
+        # Build a new potential list using a spline fit of the HR potential
         pot_spl = interp1d(
             numpy.array(idx_success), numpy.array(pot_success), kind='cubic')
         for idx in range(lpot):
@@ -232,10 +234,9 @@ def valid(pot):
 
     dim = dimension(pot)
     for key, val in pot.items():
-        if (not isinstance(key, tuple) or
-            not len(key) == dim or
-            not isinstance(val, float)):
-            is_valid = False
+        if not isinstance(key, tuple) or not len(key) == dim:
+            if not isinstance(val, float):
+                is_valid = False
 
     return is_valid
 

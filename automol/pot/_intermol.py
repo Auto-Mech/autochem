@@ -5,6 +5,8 @@
 import numpy
 from phydat import phycon
 from automol.geom import count, symbols, distance
+from automol.util import dict_
+from automol.pot._lib import LJ_DCT, EXP6_DCT
 
 
 # POTENTIAL FORMS
@@ -83,6 +85,10 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
         :rtype: nd.array
     """
 
+    assert potential in ('exp6', 'lj_12_6'), (
+        'potenital {} != exp6 or lj_12_6'.format(potential)
+    )
+
     # Get the indexes and symbols
     idx1, idx2 = idx_pair
     if idx1 != idx2:
@@ -98,13 +104,13 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
 
         # Calculate the potential
         if potential == 'exp6':
-            params = _read_params(EXP6_DCT, symb1, symb2)
+            params = dict_.values_by_unordered_tuple(
+                EXP6_DCT, symb1, symb2)
             pot_val = exp6_potential(rdist, *params)
         elif potential == 'lj_12_6':
-            params = _read_params(LJ_DCT, symb1, symb2)
+            params = dict_.values_by_unordered_tuple(
+                LJ_DCT, symb1, symb2)
             pot_val = lj_potential(rdist, *params)
-        else:
-            pot_val = None
 
     else:
         pot_val = 1.0e10

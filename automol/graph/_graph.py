@@ -248,8 +248,8 @@ def sorted_atom_neighbor_keys(gra, symbs_first=('C',), symbs_last=('H',),
                 for o in ords]
         symbs = list(map(atm_symb_dct.__getitem__, keys))
         srt_vals = list(zip(ords, symbs))
-        srt = automol.formula.argsort_symbols(srt_vals, symbs_first, symbs_last,
-                                              idx=1)
+        srt = automol.formula.argsort_symbols(
+            srt_vals, symbs_first, symbs_last, idx=1)
         keys = tuple(map(keys.__getitem__, srt))
         return keys
 
@@ -1205,5 +1205,7 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
     bnd_symb_num_dct = dict(zip(bnd_keys, bnd_symb_nums))
 
     # fill in the rest of the bonds for completeness
-    bnd_symb_num_dct = dict_.by_key(bnd_symb_num_dct, bond_keys(gra), fill_val=1)
+    bnd_symb_num_dct = dict_.by_key(
+        bnd_symb_num_dct, bond_keys(gra), fill_val=1)
+
     return bnd_symb_num_dct

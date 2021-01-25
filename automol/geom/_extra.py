@@ -1,11 +1,9 @@
 """ extra geometry functions
 """
-import numpy
+
 import automol.convert.geom
 import automol.graph
-from automol.geom._geom import remove
-from automol.geom._geom import swap_coordinates
-from automol.geom._geom import distance
+from automol.geom import _trans as trans
 
 
 def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
@@ -23,7 +21,7 @@ def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     # Set saddle based on frm and brk keys existing
     saddle = bool(frm_bnd_keys or brk_bnd_keys)
 
-    gra = automol.convert.geom.graph(geo, remove_stereo=True)
+    gra = automol.convert.geom.graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
     neighbor_dct = automol.graph.atom_neighbor_keys(gra)
@@ -63,7 +61,7 @@ def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         if len(hyds) > 1:
             factor *= len(hyds)
             remove_atms.extend(hyds)
-    geo = remove(geo, remove_atms)
+    geo = trans.remove(geo, remove_atms)
 
     return geo, factor
 
@@ -84,7 +82,7 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     # Set saddle based on frm and brk keys existing
     saddle = bool(frm_bnd_keys or brk_bnd_keys)
 
-    gra = automol.convert.geom.graph(geo, remove_stereo=True)
+    gra = automol.convert.geom.graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
     neighbor_dct = automol.graph.atom_neighbor_keys(gra)
@@ -143,15 +141,15 @@ def _swap_for_one(geo, hyds):
         new_geo = geo
         if len(hyds) > 2:
             geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
+            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[1])
+            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[2])
             geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
+            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[1])
+            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[2])
             geo_lst.append(new_geo)
         else:
             geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
+            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[1])
             geo_lst.append(new_geo)
 
     return geo_lst

@@ -110,14 +110,14 @@ def join_sequence(fmls):
 
 
 def string(fml):
-    """ Convert formula dictionary to formula string in the Hill convention. 
+    """ Convert formula dictionary to formula string in the Hill convention.
         Resultant string is identical to InChI formula string.
 
         :param fml: stochiometric chemical formula
         :type fml: dict[str:int]
         :rtype: str
     """
-    
+
     fml_lst = [(symb, fml[symb]) for symb in sorted_symbols(fml.keys())]
 
     fml_str = ''.join(map(
@@ -145,7 +145,7 @@ def string2(fml):
 
 def sorted_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
     """ Produce a sorted list of atomic symbols; some elements given priority.
-        Be default, C placed first, then H, others follow in alphabetical order.
+        By default, C placed first, then H, then others in alphabetical order.
 
         :param seq: formula or sequence of atomic symbols
         :type seq: dict, list, or tuple

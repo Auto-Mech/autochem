@@ -40,7 +40,7 @@ def to_geometry(rdm):
 def to_conformers(rdm, nconfs):
     """ Generate molecular geometries for a set of conformers
         from am RDKit molecule object.
-   
+
         Currently not removing redundant conformers.
 
         :param rdm: molecule object
@@ -69,7 +69,9 @@ def to_conformers(rdm, nconfs):
             geos.append(
                 automol.create.geom.from_data(syms, xyzs, angstrom=True))
         # Sort geometries using the energies
-        geos = [x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])]
+        geos = [
+            x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])
+        ]
 
     return geos
 
@@ -97,7 +99,7 @@ def to_inchi(rdm, options='', with_aux_info=False):
 
         :param rdm: molecule object
         :type rdm: RDKit molecule object
-        :param options: 
+        :param options:
         :type options: str
         :param with_aux_info: include auxiliary information
         :type with_aux_info: bool

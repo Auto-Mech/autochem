@@ -7,10 +7,7 @@ from phydat import phycon
 import automol.graph
 import automol.convert.geom
 from automol.util import vec
-from automol.geom._geom import count
-from automol.geom._geom import symbols
-from automol.geom._geom import distance
-from automol.geom._geom import coordinates
+from automol.geom import _base as geom_base
 
 
 def distances(geos, bonds=True, angles=True, angstrom=True):
@@ -44,10 +41,10 @@ def bond_distances(geos, angstrom=True):
         gra = automol.convert.geom.connectivity_graph(geo)
         pairs = list(automol.graph.bond_keys(gra))
         keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
-        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
+        dists = [geom_base.distance(geo, *p, angstrom=angstrom) for p in pairs]
         dist_dct.update(dict(zip(keys, dists)))
 
-        shift += count(geo)
+        shift += geom_base.count(geo)
 
     return dist_dct
 
@@ -66,10 +63,10 @@ def angle_distances(geos, angstrom=True):
         gra = automol.convert.geom.connectivity_graph(geo)
         pairs = [(k1, k3) for k1, _, k3 in automol.graph.angle_keys(gra)]
         keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
-        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
+        dists = [geom_base.distance(geo, *p, angstrom=angstrom) for p in pairs]
         dist_dct.update(dict(zip(keys, dists)))
 
-        shift += count(geo)
+        shift += geom_base.count(geo)
 
     return dist_dct
 
@@ -82,7 +79,7 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     Variables set the coordinates for 1-2...3-4 where 1-2 are bonded atoms in
     geo1 and 3-4 are bonded atoms in geo2.
     """
-    key3 = key3 - count(geo1)
+    key3 = key3 - geom_base.count(geo1)
     a123 *= phycon.DEG2RAD if degree else 1
     a234 *= phycon.DEG2RAD if degree else 1
     d1234 *= phycon.DEG2RAD if degree else 1
@@ -93,10 +90,10 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     key4 = (automol.graph.atom_neighbor_key(gra2, key3) if key4 is None
             else key4)
 
-    syms1 = symbols(geo1)
-    syms2 = symbols(geo2)
-    xyzs1 = coordinates(geo1, angstrom=angstrom)
-    xyzs2 = coordinates(geo2, angstrom=angstrom)
+    syms1 = geom_base.symbols(geo1)
+    syms2 = geom_base.symbols(geo2)
+    xyzs1 = geom_base.coordinates(geo1, angstrom=angstrom)
+    xyzs2 = geom_base.coordinates(geo2, angstrom=angstrom)
 
     xyz1, xyz2 = map(xyzs1.__getitem__, (key1, key2))
     orig_xyz3, orig_xyz4 = map(xyzs2.__getitem__, (key3, key4))

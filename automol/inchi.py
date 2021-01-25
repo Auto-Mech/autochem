@@ -38,9 +38,9 @@ def from_data(fml_slyr, main_lyr_dct=None, char_lyr_dct=None, ste_lyr_dct=None,
         :rtype: str
     """
     return automol.create.inchi.from_data(
-        formula_slyr=fml_slyr, main_lyr_dct=main_lyr_dct,
-        charge_lyr_dct=char_lyr_dct, stereo_lyr_dct=ste_lyr_dct,
-        isotope_lyr_dct=iso_lyr_dct)
+        fml_slyr=fml_slyr, main_lyr_dct=main_lyr_dct,
+        char_lyr_dct=char_lyr_dct, ste_lyr_dct=ste_lyr_dct,
+        iso_lyr_dct=iso_lyr_dct)
 
 
 # getters
@@ -139,8 +139,11 @@ def standard_form(ich, stereo=True):
         iso_dct = dict_.by_key(isotope_sublayers(ich),
                                automol.create.inchi.ISO_NONSTE_PFXS)
 
-    ich = from_data(fml_slyr, main_dct=main_dct, char_dct=char_dct,
-                    ste_dct=ste_dct, iso_dct=iso_dct)
+    ich = from_data(fml_slyr,
+                    main_lyr_dct=main_dct,
+                    char_lyr_dct=char_dct,
+                    ste_lyr_dct=ste_dct,
+                    iso_lyr_dct=iso_dct)
 
     return recalculate(ich)
 
@@ -229,8 +232,8 @@ def same_connectivity(ich1, ich2):
         :type ich2: str
         :rtype: bool
     """
-    return (standard_form(ich1, remove_stereo=True) ==
-            standard_form(ich2, remove_stereo=True))
+    return (standard_form(ich1, stereo=False) ==
+            standard_form(ich2, stereo=False))
 
 
 def sorted_(ichs):
@@ -278,8 +281,11 @@ def join(ichs):
     ste_dct = _join_sublayers(list(map(stereo_sublayers, ichs)))
     iso_dct = _join_sublayers(list(map(isotope_sublayers, ichs)))
 
-    return from_data(fml_slyr=fml_slyr, main_dct=main_dct, char_dct=char_dct,
-                     ste_dct=ste_dct, iso_dct=iso_dct)
+    return from_data(fml_slyr=fml_slyr,
+                     main_lyr_dct=main_dct,
+                     char_lyr_dct=char_dct,
+                     ste_lyr_dct=ste_dct,
+                     iso_lyr_dct=iso_dct)
 
 
 def _join_sublayers(dcts):
@@ -287,7 +293,7 @@ def _join_sublayers(dcts):
 
         :param dcts: sublayer components, grouped by prefix
         :type dct: dict[str: str]
-        :rtype: dict[str: str] 
+        :rtype: dict[str: str]
     """
 
     pfxs = sorted(functools.reduce(set.union, map(set, dcts)))
@@ -338,7 +344,7 @@ def split(ich):
 
         (fix this for /s [which should be removed in split/join operations]
          and /m, which is joined as /m0110..  with no separators)
-        
+
         :param ich: InChI string
         :type ich: str
         :rtype: tuple(str)
@@ -357,8 +363,11 @@ def split(ich):
     ste_dcts = _split_sublayers(ste_dct, count)
     iso_dcts = _split_sublayers(iso_dct, count)
 
-    ichs = tuple(from_data(fml_slyr=fml_slyr, main_dct=main_dct,
-                           char_dct=char_dct, ste_dct=ste_dct, iso_dct=iso_dct)
+    ichs = tuple(from_data(fml_slyr=fml_slyr,
+                           main_lyr_dct=main_dct,
+                           char_lyr_dct=char_dct,
+                           ste_lyr_dct=ste_dct,
+                           iso_lyr_dct=iso_dct)
                  for fml_slyr, main_dct, char_dct, ste_dct, iso_dct
                  in zip(fml_slyrs, main_dcts, char_dcts, ste_dcts, iso_dcts))
     return ichs
@@ -525,7 +534,7 @@ def _main_layer(ich):
 
         :param ich: InChI string
         :type ich: str
-        :rtype: str 
+        :rtype: str
     """
     ptt = (_version_pattern() +
            SLASH + _formula_sublayer_pattern() +

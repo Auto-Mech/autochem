@@ -1,7 +1,6 @@
 """ pyx2z interface
 """
 
-import numpy
 import pyx2z
 import autoread as ar
 import autoparse.pattern as app
@@ -57,14 +56,14 @@ def to_zmatrix(x2m):
     """
 
     zma_str = pyx2z.zmatrix_string(x2m)
-    syms, key_mat, name_mat, val_dct = ar.zmatrix.read(
+    syms, key_mat, name_mat, val_mat = ar.zmat.read(
         zma_str,
         mat_entry_sep_ptt=',',
         mat_entry_start_ptt=',',
         setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
 
-    val_dct[None] = None
-    val_mat = numpy.vectorize(val_dct.__getitem__)(name_mat)
+    # val_dct[None] = None
+    # val_mat = numpy.vectorize(val_dct.__getitem__)(name_mat)
     zma = automol.create.zmat.from_data(
         syms, key_mat, val_mat, name_mat,
         one_indexed=True, angstrom=False, degree=True)
@@ -82,14 +81,14 @@ def to_zmatrix_old(x2m):
 
     zma_str = pyx2z.zmatrix_string(x2m)
 
-    syms, key_mat, name_mat, val_dct = ar.zmatrix.read(
+    syms, key_mat, name_mat, val_mat = ar.zmat.read(
         zma_str,
         mat_entry_sep_ptt=',',
         mat_entry_start_ptt=',',
         setv_sep_ptt=app.padded(app.one_of_these(['', app.NEWLINE])))
 
-    zma = automol.create.zmatrix.from_data(
-        syms, key_mat, name_mat, val_dct,
+    zma = automol.create.zmat.from_data(
+        syms, key_mat, name_mat, val_mat,
         one_indexed=True, angstrom=False, degree=True)
 
     return zma
@@ -107,8 +106,8 @@ def zmatrix_torsion_coordinate_names(x2m):
 
 
 def zmatrix_atom_ordering(x2m):
-    """ Build a dictionary that acts as a mapping from the order of atoms
-        in the x2z molecule object to the order of atoms in the reslutant Z-Matrix.
+    """ Build dictionary that acts as a mapping from the order of atoms in the
+        x2z molecule object to the order of atoms in the reslutant Z-Matrix.
 
         :param x2m: molecule object
         :type x2m: x2z molecule object

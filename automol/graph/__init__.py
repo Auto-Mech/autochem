@@ -229,10 +229,10 @@ def from_data(atm_sym_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
     )
 
 
-def inchi(gra, remove_stereo=True):
+def inchi(gra, stereo=False):
     """ graph => inchi
     """
-    return automol.convert.graph.inchi(gra, remove_stereo=remove_stereo)
+    return automol.convert.graph.inchi(gra, stereo=stereo)
 
 
 def geometry(gra):

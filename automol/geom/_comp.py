@@ -2,8 +2,14 @@
   Functions used for handling and comparing multiple geometries
 """
 
+import itertools
+import functools
 import numpy
-import automol
+from phydat import ptab
+import automol.zmat
+import automol.convert.geom
+from automol import util
+from automol.geom import _base as geom_base
 
 
 # Assessments of two geomeries
@@ -17,8 +23,8 @@ def minimum_distance(geo1, geo2):
         :rtype: float
     """
 
-    xyzs1 = coordinates(geo1)
-    xyzs2 = coordinates(geo2)
+    xyzs1 = geom_base.coordinates(geo1)
+    xyzs2 = geom_base.coordinates(geo2)
     return min(util.vec.distance(xyz1, xyz2)
                for xyz1, xyz2 in itertools.product(xyzs1, xyzs2))
 
@@ -40,7 +46,7 @@ def coulomb_spectrum(geo):
 
 
 def _coulomb_matrix(geo):
-    """ Calculate the Coulomb matrix wich describes the 
+    """ Calculate the Coulomb matrix wich describes the
         electrostatic interactions between nuclei:
 
         M[i,j] = 0.5Z_i^2.4 (i=j), Z_iZ_j/R_ij (i!=j
@@ -50,8 +56,8 @@ def _coulomb_matrix(geo):
         :rtype: tuple(tuple(float))
     """
 
-    nums = numpy.array(list(map(ptab.to_number, symbols(geo))))
-    xyzs = numpy.array(coordinates(geo))
+    nums = numpy.array(list(map(ptab.to_number, geom_base.symbols(geo))))
+    xyzs = numpy.array(geom_base.coordinates(geo))
 
     _ = numpy.newaxis
     natms = len(nums)
@@ -82,7 +88,7 @@ def distance_matrix(geo):
     mat = numpy.zeros((len(geo), len(geo)))
     for i in range(len(geo)):
         for j in range(len(geo)):
-            mat[i][j] = distance(geo, i, j)
+            mat[i][j] = geom_base.distance(geo, i, j)
 
     return mat
 
@@ -105,7 +111,7 @@ def almost_equal_coulomb_spectrum(geo1, geo2, rtol=1e-2):
 
 def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=1e-2):
     """ Get indices of unique geometries, by coulomb spectrum.
-        
+
         :param geos: list of molecular geometries
         :type geos: tuple(automol molecular geometry data structure)
         :param seen_geos: geometries that have been assessed
@@ -121,7 +127,7 @@ def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=1e-2):
 
 def _argunique(items, comparison, seen_items=()):
     """ Get the indices of unique items using some comparison function.
-        
+
         :param items: items to assess for uniqueness
         :type items: tuple(obj)
         :param comparison: function used to compare items
@@ -156,8 +162,11 @@ def almost_equal(geo1, geo2, rtol=2e-3):
     """
 
     ret = False
-    if symbols(geo1) == symbols(geo2):
-        ret = numpy.allclose(coordinates(geo1), coordinates(geo2), rtol=rtol)
+    if geom_base.symbols(geo1) == geom_base.symbols(geo2):
+        ret = numpy.allclose(
+            geom_base.coordinates(geo1),
+            geom_base.coordinates(geo2),
+            rtol=rtol)
 
     return ret
 
@@ -168,8 +177,8 @@ def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
 
     for i in range(len(geo1)):
         for j in range(len(geo1)):
-            dist_mat1_ij = distance(geo1, i, j)
-            dist_mat2_ij = distance(geo2, i, j)
+            dist_mat1_ij = geom_base.distance(geo1, i, j)
+            dist_mat2_ij = geom_base.distance(geo2, i, j)
             if abs(dist_mat1_ij - dist_mat2_ij) > thresh:
                 return False
 
@@ -182,13 +191,19 @@ def are_torsions_same(geo, geoi, ts_bnds=()):
 
     dtol = 0.09
     same_dihed = True
+
+    # Build the Z-Matrix torsion names
     zma = automol.geom.zmatrix(geo, ts_bnds=ts_bnds)
-    tors_names = automol.geom.zmatrix_torsion_coordinate_names(geo, ts_bnds=ts_bnds)
+    tors_names = automol.geom.zmatrix_torsion_coordinate_names(
+        geo, ts_bnds=ts_bnds)
     zmai = automol.geom.zmatrix(geoi)
-    tors_namesi = automol.geom.zmatrix_torsion_coordinate_names(geoi, ts_bnds=ts_bnds)
+    tors_namesi = automol.geom.zmatrix_torsion_coordinate_names(
+        geoi, ts_bnds=ts_bnds)
+
+    # Compare the torsions
     for idx, tors_name in enumerate(tors_names):
-        val = automol.zmatrix.values(zma)[tors_name]
-        vali = automol.zmatrix.values(zmai)[tors_namesi[idx]]
+        val = automol.zmat.value_dictionary(zma)[tors_name]
+        vali = automol.zmat.value_dictionary(zmai)[tors_namesi[idx]]
         valip = vali+2.*numpy.pi
         valim = vali-2.*numpy.pi
         vchk1 = abs(val - vali)
@@ -220,40 +235,39 @@ def is_unique(lst, lsti, check_dct):
 
 
 def _ene(lst, lsti, chk_arg=2e-5):
-    """
+    """ Compare the energies of two geometries.
     """
     ene, enei = lst[0], lsti[0]
     return abs(ene-enei) < chk_arg
 
 
 def _dist(lst, lsti, chk_arg=3e-1):
-    """
+    """ Compare the distance matrices of two geometries.
     """
     geo, geoi = lst[1], lsti[1]
-    return automol.geom.almost_equal_dist_matrix(
-        geo, geoi, thresh=chk_arg)
+    return almost_equal_dist_matrix(geo, geoi, thresh=chk_arg)
 
 
 def _tors(lst, lsti, chk_arg=()):
-    """
+    """ Compare the torsions of two geometries
     """
     geo, geoi = lst[1], lsti[1]
-    return are_torsions_same(geo, geoi, ts_bnd=chk_arg)
+    return are_torsions_same(geo, geoi, ts_bnds=chk_arg)
 
 
 def _stereo(lst, lsti):
+    """ Compare the stereochemistry of two geometries
     """
-    """
-    ich, ichi = automol.geom.inchi(lst[1]), automol.geom.inchi(lsti[1])
+    ich = automol.convert.geom.inchi(lst[1])
+    ichi = automol.convert.geom.inchi(lsti[1])
     return bool(ich == ichi)
 
 
 def _coloumb(lst, lsti, check_arg=1e-2):
-    """
+    """ Compare the Coulomb spectrum of geometries.
     """
     geo, geoi = lst[1], lsti[1]
-    return automol.geom.almost_equal_coulomb_spectrum(
-        geo, geoi, rtol=check_arg)
+    return almost_equal_coulomb_spectrum(geo, geoi, rtol=check_arg)
 
 
 CHECK_DCT = {

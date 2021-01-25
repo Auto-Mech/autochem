@@ -2,8 +2,6 @@
 """
 
 import itertools
-import functools
-import more_itertools as mit
 import numpy
 from phydat import phycon, ptab
 import autoread as ar
@@ -148,10 +146,10 @@ def dummy_atom_indices(geo):
 
 
 def components_graph(geo, stereo=True):
-    """ Generate a list of molecular graphs where each element is a graph that 
+    """ Generate a list of molecular graphs where each element is a graph that
         consists of fully connected (bonded) atoms. Stereochemistry is included
         if requested.
-    
+
         :param geo: molecular geometry
         :type geo: automol geometry data structure
         :param stereo: parameter to include stereochemistry information
@@ -171,7 +169,7 @@ def connected(geo, stereo=True):
         :type stereo: bool
         :rtype: bool
     """
-    return len(components_graph(geo, stereo=stereo)) == 1)
+    return len(components_graph(geo, stereo=stereo) == 1)
 
 
 # validation
@@ -200,7 +198,7 @@ def is_valid(geo):
 def set_coordinates(geo, xyz_dct):
     """ Set coordinate values for the molecular geometry,
         using a dictionary by index.
-    
+
         :param geo: molecular geometry
         :type geo: automol geometry data structure
         :param xyz_dct: new xyz values for a set of indices
@@ -440,7 +438,7 @@ def zmatrix_row_values(geo, idx, idx1=None, idx2=None, idx3=None,
         :type geo: automol geometry data structure
         :param idx:
         :type idx: int
-        :param idx1: 
+        :param idx1:
         :type idx1: int
         :type idx2: int
         :type idx3: int
@@ -527,227 +525,3 @@ def closest_unbonded_atoms(geo, gra=None):
             min_bnd_key = bnd_key
 
     return min_bnd_key, min_dist_val
-
-
-# chemical properties
-def is_atom(geo):
-    """ Determine if the molecular geometry corresponds to an atom.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :rtype: bool
-    """
-
-    return len(symbols(geo)) == 1
-
-
-def is_linear(geo, tol=2.*phycon.DEG2RAD):
-    """ Determine if the molecular geometry is linear.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param tol: tolerance of bond angle(s) for determing linearity 
-        :type tol: float
-        :rtype: bool
-    """
-
-    ret = True
-
-    if len(geo) == 1:
-        ret = False
-    elif len(geo) == 2:
-        ret = True
-    else:
-        keys = range(len(symbols(geo)))
-        for key1, key2, key3 in mit.windowed(keys, 3):
-            cangle = numpy.abs(central_angle(geo, key1, key2, key3))
-            if not (numpy.abs(cangle) < tol or
-                    numpy.abs(cangle - numpy.pi) < tol):
-                ret = False
-    return ret
-
-
-def masses(geo, amu=True):
-    """ Build a list of the atomic masses that corresponds to the list
-        of atomic sybmols of a molecular geometry.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param amu: parameter to control electron mass -> amu conversion
-        :type amu: bool
-        :rtype: tuple(float)
-    """
-
-    symbs = symbols(geo)
-    amas = list(map(ptab.to_mass, symbs))
-
-    if not amu:
-        amas = numpy.multiply(amas, phycon.AMU2EMASS)
-
-    amas = tuple(amas)
-
-    return amas
-
-
-def total_mass(geo, amu=True):
-    """ Calculate the total mass of a molecular geometry.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param amu: parameter to control electron mass -> amu conversion
-        :type amu: bool
-        :rtype: tuple(float)
-    """
-    return sum(masses(geo, amu=amu))
-
-
-def center_of_mass(geo):
-    """ Determine the center-of-mass for a molecular geometry.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :rtype: tuple(float)
-    """
-
-    xyzs = coordinates(geo)
-    amas = masses(geo)
-    cm_xyz = tuple(
-        sum(numpy.multiply(xyz, ama) for xyz, ama in zip(xyzs, amas)) /
-        sum(amas))
-
-    return cm_xyz
-
-
-def reduced_mass(geo1, geo2):
-    """ Calculate the reduced mass for two species.
-
-        :param geo1: geometry of species 1 (Bohr)
-        :type geo1: list(float)
-        :param geo2: geometry of species 2 (Bohr)
-        :type geo2: list(float)
-        :return: reduced mass (amu)
-        :rtype: float
-    """
-
-    mass1 = automol.geom.total_mass(geo1)
-    mass2 = automol.geom.total_mass(geo2)
-
-    return (mass1 * mass2) / (mass1 + mass2)
-
-
-def mass_centered(geo):
-    """ Generate a new geometry where the coordinates of the input geometry
-        have been translated to the center-of-mass.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :rtype: tuple(float)
-    """
-    return translate(geo, numpy.negative(center_of_mass(geo)))
-
-
-def inertia_tensor(geo, amu=True):
-    """ Build the moment-of-inertia tensor for a molecular geometry.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param amu: parameter to control electron mass -> amu conversion
-        :type amu: bool
-        :rtype: tuple(tuple(float))
-    """
-
-    geo = mass_centered(geo)
-    amas = masses(geo, amu=amu)
-    xyzs = coordinates(geo)
-    ine = tuple(map(tuple, sum(
-        ama * (numpy.vdot(xyz, xyz) * numpy.eye(3) - numpy.outer(xyz, xyz))
-        for ama, xyz in zip(amas, xyzs))))
-
-    return ine
-
-
-def principal_axes(geo, amu=True):
-    """ Determine the principal axes of rotation for a molecular geometry.
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param amu: parameter to control electron mass -> amu conversion
-        :type amu: bool
-        :rtype: tuple(tuple(float))
-    """
-
-    ine = inertia_tensor(geo, amu=amu)
-    _, paxs = numpy.linalg.eigh(ine)
-    paxs = tuple(map(tuple, paxs))
-
-    return paxs
-
-
-def moments_of_inertia(geo, amu=True):
-    """ Calculate the moments of inertia along the xyz axes
-        (these not sorted in to A,B,C).
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param amu: parameter to control electron mass -> amu conversion
-        :type amu: bool
-        :rtype: tuple(tuple(float))
-    """
-
-    ine = inertia_tensor(geo, amu=amu)
-    moms, _ = numpy.linalg.eigh(ine)
-    moms = tuple(moms)
-
-    return moms
-
-
-def rotational_constants(geo, amu=True):
-    """ Calculate the rotational constants.
-        (these not sorted in to A,B,C).
-
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param amu: parameter to control electron mass -> amu conversion
-        :type amu: bool
-        :rtype: tuple(float)
-    """
-
-    moms = moments_of_inertia(geo, amu=amu)
-    cons = numpy.divide(1., moms) / 4. / numpy.pi / phycon.SOL
-    cons = tuple(cons)
-    return cons
-
-
-def permutation(geo, ref_geo, thresh=1e-4):
-    """ Determine the permutation of one geometry that reproduces another
-        (if there isn't one -- the geometries are not aligned, return None).
-
-        :param geo: molecular geometry
-        :type geo: automol molecular geometry data structure
-        :param ref_geo: molecular geometry
-        :type ref_geo: automol molecular geometry data structure
-        :param thresh: theshold for assessing if permutation exists
-        :type thresh: float
-        :rtype: tuple(int)
-    """
-
-    natms = count(geo)
-    symbs = symbols(geo)
-    xyzs = coordinates(geo)
-
-    perm_idxs = [None] * natms
-    for idx, (symb, xyz) in enumerate(zip(symbs, xyzs)):
-        # Loop over atoms in the reference geometry with the same symbol
-        ref_idxs = atom_indices(ref_geo, symb=symb)
-        ref_xyzs = coordinates(ref_geo, idxs=ref_idxs)
-        perm_idx = next(
-            (ref_idx for ref_idx, ref_xyz in zip(ref_idxs, ref_xyzs)
-             if util.vec.distance(xyz, ref_xyz) < thresh), None)
-        perm_idxs[idx] = perm_idx
-
-    perm_idxs = tuple(perm_idxs)
-
-    if any(perm_idx is None for perm_idx in perm_idxs):
-        perm_idxs = None
-
-    return perm_idxs

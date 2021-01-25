@@ -6,7 +6,7 @@ import igraph
 import automol
 import automol.create.graph
 from automol.util import dict_
-from phydat import phycon
+from phydat import ptab
 
 
 def from_graph(gra):

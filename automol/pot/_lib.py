@@ -31,23 +31,3 @@ EXP6_DCT = {
     ('N', 'O'): (7.69e4, 3.6, 460.0, 0.8),
     ('N', 'C'): (7.69e4, 3.6, 460.0, 0.8)
 }
-
-
-def read_params(dct, symb1, symb2):
-    """ Read the parameters from one of the potential
-        parameter dictionaries
-
-        :param dct: potential parameter dct
-        :type dct: dict[(symbs):(params)]
-        :param symb1: atomic symbol of atom1 involved in the interaction
-        :param symb1: str
-        :param symb2: atomic symbol of atom2 involved in the interaction
-        :param symb2: str
-        :rtype: tuple(float)
-    """
-
-    params = dct.get((symb1, symb2), None)
-    if params is None:
-        params = dct.get((symb2, symb1), None)
-
-    return params
