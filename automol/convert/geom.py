@@ -106,7 +106,7 @@ def zmatrix_atom_ordering(geo, ts_bnds=()):
 
     symbs = automol.geom.symbols(geo)
     if len(symbs) == 1:
-        idxs = (0,)
+        idxs = {0: 0}
     else:
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         idxs = _pyx2z.zmatrix_atom_ordering(x2m)

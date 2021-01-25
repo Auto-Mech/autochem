@@ -234,9 +234,10 @@ def valid(pot):
 
     dim = dimension(pot)
     for key, val in pot.items():
-        if not isinstance(key, tuple) or not len(key) == dim:
-            if not isinstance(val, float):
-                is_valid = False
+        if (not isinstance(key, tuple) or
+                not len(key) == dim or
+                not isinstance(val, float)):
+            is_valid = False
 
     return is_valid
 

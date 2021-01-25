@@ -65,7 +65,7 @@ def graph(zma, stereo=True):
         :rtype: (automol molecular geometry data structure, dict[int, int])
     """
 
-    geo = geometry(zma)
+    geo, _ = geometry(zma)
     gra = automol.convert.geom.graph(geo, stereo=stereo)
 
     return gra

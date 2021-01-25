@@ -61,7 +61,7 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         if len(hyds) > 1:
             factor *= len(hyds)
             remove_atms.extend(hyds)
-    geo = trans.remove(geo, remove_atms)
+    geo = trans.remove_coordinates(geo, remove_atms)
 
     return geo, factor
 
