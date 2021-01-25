@@ -4,6 +4,8 @@ import numpy
 from automol import inchi
 
 AR_ICH = 'InChI=1S/Ar'
+# CH_H2_ICH = 'InChI=1S/CH.H2/h1H;h1H'
+CH4O_CH_ICH = 'InChI=1S/CH4O.CH/c1-2;/h2H,1H3;h1H'
 CH2O2_ICH = 'InChI=1S/CH2O2/c2-1-3/h1-2H/q+1/p+1'
 C2H6O_ICH = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3/i2D/t2-/m1/s1'
 C2H6O_ICH_NO_STEREO = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3/i2D'
@@ -145,13 +147,15 @@ def test__recalculate():
     assert inchi.recalculate(C2H2F2_ICH_NO_STEREO) == C2H2F2_ICH_NO_STEREO
     assert (inchi.recalculate(C2H2F2_ICH_NO_STEREO, force_stereo=True)
             == C2H2F2_ICH_STEREO_UNKNOWN)
+    # assert inchi.recalculate(CH4O_CH_ICH) == CH4O_CH_ICH
 
 
 if __name__ == '__main__':
     # test__from_data()
     # test__version()
     # test__join()
-    test__split()
+    test__recalculate()
+    # test__split()
     # test__standard_form()
     # test__has_stereo()
     # test__argsort()

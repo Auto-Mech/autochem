@@ -17,7 +17,7 @@ from automol.graph._util import filter_idxs
 from automol.graph._util import atom_idx_to_symb
 
 
-class Fgroup():
+class FunctionalGroup():
     """ Functional groups
     """
     ALCOHOL = 'alcohol'
@@ -39,6 +39,10 @@ class Fgroup():
 
 def functional_group_dct(gra):
     """ Determine the functional groups for a given molecule.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: dict[str: tuple(int)]
     """
 
     # Build a dictionary by calling all the functional group functions
@@ -46,7 +50,7 @@ def functional_group_dct(gra):
     peroxy_grps = peroxy_groups(gra)
     hydroperoxy_grps = hydroperoxy_groups(gra)
     ether_grps = ether_groups(gra)
-    epoxide_grps = epoxide_groups(gra)
+    epoxide_grps = epoxy_groups(gra)
     carbox_acid_grps = carboxylic_acid_groups(gra)
     ester_grps = ester_groups(gra)
     ether_grps = ether_groups(gra, filterlst=ester_grps)
@@ -61,20 +65,20 @@ def functional_group_dct(gra):
 
     # might have to filter it to remove ketone/oh if carbox acids are ther
     func_grp_dct = {
-        Fgroup.PEROXY: peroxy_grps,
-        Fgroup.HYDROPEROXY: hydroperoxy_grps,
-        Fgroup.ETHER: ether_grps,
-        Fgroup.EPOXIDE: epoxide_grps,
-        Fgroup.CARBOX_ACID: carbox_acid_grps,
-        Fgroup.ESTER: ester_grps,
-        Fgroup.ALCOHOL: alcohol_grps,
-        Fgroup.ALDEHYDE: aldehyde_grps,
-        Fgroup.KETONE: ketone_grps,
-        # Fgroup.AMINE: amine_grps,
-        Fgroup.AMIDE: amide_grps,
-        Fgroup.NITRO: nitro_grps,
-        Fgroup.HALIDE: halide_grps,
-        Fgroup.THIOL: thiol_grps
+        FunctionalGroup.PEROXY: peroxy_grps,
+        FunctionalGroup.HYDROPEROXY: hydroperoxy_grps,
+        FunctionalGroup.ETHER: ether_grps,
+        FunctionalGroup.EPOXIDE: epoxide_grps,
+        FunctionalGroup.CARBOX_ACID: carbox_acid_grps,
+        FunctionalGroup.ESTER: ester_grps,
+        FunctionalGroup.ALCOHOL: alcohol_grps,
+        FunctionalGroup.ALDEHYDE: aldehyde_grps,
+        FunctionalGroup.KETONE: ketone_grps,
+        # FunctionalGroup.AMINE: amine_grps,
+        FunctionalGroup.AMIDE: amide_grps,
+        FunctionalGroup.NITRO: nitro_grps,
+        FunctionalGroup.HALIDE: halide_grps,
+        FunctionalGroup.THIOL: thiol_grps
     }
 
     return func_grp_dct
@@ -84,15 +88,19 @@ def functional_group_dct(gra):
 def hydrocarbon_species(gra):
     """ Determine if molecule is a hydrocarbon.
 
-        :param uni_atoms: unique atomic symbols
-        :type uni_atoms: tuple
-        :rtype: boolean
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: bool
     """
     return bool(set(_unique_atoms(gra)) <= {'C', 'H'})
 
 
 def radical_species(gra):
-    """ Determine if molecule is a radical species
+    """ Determine if molecule is a radical species.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: bool
     """
     return bool(resonance_dominant_radical_atom_keys(gra))
 
@@ -100,38 +108,55 @@ def radical_species(gra):
 # SEARCH FOR REACTIVE SITES AND GROUPS
 def alkene_sites(gra):
     """ Determine the location alkene groups
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: bool
     """
-    return bonds_of_type(gra, asymb1='C', asymb2='C', mbond=2)
+    return bonds_of_type(gra, symb1='C', symb2='C', mbond=2)
 
 
 def alkyne_sites(gra):
     """ Determine the location alkyne groups
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: bool
     """
-    return bonds_of_type(gra, asymb1='C', asymb2='C', mbond=3)
+    return bonds_of_type(gra, symb1='C', symb2='C', mbond=3)
 
 
 def alcohol_groups(gra, filterlst=()):
-    """ Determine the location alcohol groups
+    """ Determine the location of alcohol groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-O-H atoms
+        of the group: (C-idx, O-idx, H-idx).
 
-        Returns a lsts of idxs of C-O-H groups
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
-    alc_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='H')
+
+    alc_grps = two_bond_idxs(gra, symb1='C', cent='O', symb2='H')
     alc_grps = filter_idxs(alc_grps, filterlst=filterlst)
 
     return alc_grps
 
 
 def peroxy_groups(gra):
-    """ Determine the location of hydroperoxy groups
+    """ Determine the location of peroxy groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-O-O atoms
+        of the group: (C-idx, O-idx, O-idx).
 
-        Returns a lsts of idxs of C-O-O groups
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     coo_r_grps = tuple()
 
     rad_idxs = resonance_dominant_radical_atom_keys(gra)
 
-    coo_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='O')
+    coo_grps = two_bond_idxs(gra, symb1='C', cent='O', symb2='O')
     for coo_grp in coo_grps:
         c_idx, o1_idx, o2_idx = coo_grp
         if o2_idx in rad_idxs:
@@ -141,17 +166,21 @@ def peroxy_groups(gra):
 
 
 def hydroperoxy_groups(gra):
-    """ Determine the location of hydroperoxy groups
+    """ Determine the location of hydroperoxy groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-O-O-H atoms
+        of the group: (C-idx, O-idx, O-idx, H-idx).
 
-        Returns a lsts of idxs of C-O-O-H groups
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     cooh_grps = tuple()
 
-    coo_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='O')
+    coo_grps = two_bond_idxs(gra, symb1='C', cent='O', symb2='O')
     for coo_grp in coo_grps:
         c_idx, o1_idx, o2_idx = coo_grp
-        o2_neighs = neighbors_of_type(gra, o2_idx, asymb='H')
+        o2_neighs = neighbors_of_type(gra, o2_idx, symb='H')
         if o2_neighs:
             cooh_grps += ((c_idx, o1_idx, o2_idx, o2_neighs[0]),)
 
@@ -159,9 +188,13 @@ def hydroperoxy_groups(gra):
 
 
 def ether_groups(gra, filterlst=()):
-    """ Determine the location of ether groups
+    """ Determine the location of ether groups. The locations are
+        specified as tuple of idxs indicating the C-O-C atoms
+        of the group: (C-idx, O-idx, C-idx).
 
-        Returns a lsts of idxs of C-O-C groups
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     ether_grps = tuple()
@@ -170,7 +203,7 @@ def ether_groups(gra, filterlst=()):
 
     _ring_idxs = ring_idxs(rings(gra))
 
-    coc_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='C')
+    coc_grps = two_bond_idxs(gra, symb1='C', cent='O', symb2='C')
     for coc_grp in coc_grps:
         c1_idx, o_idx, c2_idx = coc_grp
         if not _ring_idxs:
@@ -185,10 +218,14 @@ def ether_groups(gra, filterlst=()):
     return ether_grps
 
 
-def epoxide_groups(gra):
-    """ Determine the location of epoxide groups
+def epoxy_groups(gra):
+    """ Determine the location of 1,2-epoxy groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-O-C atoms
+        of the group: (C-idx, O-idx, C-idx).
 
-        Return C-O-C ring: only good for a 1,2-epoxide
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     epox_grps = tuple()
@@ -196,7 +233,7 @@ def epoxide_groups(gra):
     # Determing the indices of all rings in the molecule
     _ring_idxs = ring_idxs(rings(gra))
 
-    coc_grps = two_bond_idxs(gra, asymb1='C', cent='O', asymb2='C')
+    coc_grps = two_bond_idxs(gra, symb1='C', cent='O', symb2='C')
     for coc_grp in coc_grps:
         c1_idx, o_idx, c2_idx = coc_grp
         if _ring_idxs:
@@ -208,17 +245,21 @@ def epoxide_groups(gra):
 
 
 def aldehyde_groups(gra, filterlst=()):
-    """ Determine the location of aldehyde groups
+    """ Determine the location of aldehyde groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-O atoms
+        of the group: (C-idx, O-idx).
 
-        Returns C-O bond idxs
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     ald_grps = tuple()
 
-    co_bonds = bonds_of_type(gra, asymb1='C', asymb2='O', mbond=2)
+    co_bonds = bonds_of_type(gra, symb1='C', symb2='O', mbond=2)
     for co_bond in co_bonds:
         c_idx, o_idx = co_bond
-        c_neighs = neighbors_of_type(gra, c_idx, asymb='H')
+        c_neighs = neighbors_of_type(gra, c_idx, symb='H')
         if c_neighs:
             ald_grps += ((c_idx, o_idx),)
 
@@ -228,17 +269,21 @@ def aldehyde_groups(gra, filterlst=()):
 
 
 def ketone_groups(gra, filterlst=()):
-    """ Determine the location of ketone groups
+    """ Determine the location of ketone groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-O atoms
+        of the group: (C-idx, O-idx).
 
-        Returns C-O bond idxs
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     ket_grps = tuple()
 
-    co_bonds = bonds_of_type(gra, asymb1='C', asymb2='O', mbond=2)
+    co_bonds = bonds_of_type(gra, symb1='C', symb2='O', mbond=2)
     for co_bond in co_bonds:
         c_idx, o_idx = co_bond
-        c_neighs = neighbors_of_type(gra, c_idx, asymb='H')
+        c_neighs = neighbors_of_type(gra, c_idx, symb='H')
         if not c_neighs:
             ket_grps += ((c_idx, o_idx),)
 
@@ -248,8 +293,15 @@ def ketone_groups(gra, filterlst=()):
 
 
 def ester_groups(gra):
-    """ Determine the location of ester groups
-        Likely identifies anhydrides as an ester
+    """ Determine the location of ester groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C(O)-O-C atoms
+        of the group: (C-idx, O-idx, O-idx, C-idx).
+
+        Likely identifies anhydrides as an ester.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     ester_grps = tuple()
@@ -275,7 +327,13 @@ def ester_groups(gra):
 
 
 def carboxylic_acid_groups(gra):
-    """ Determine the location of carboxylic acid groups
+    """ Determine the location of ester groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C(O)-O-H atoms
+        of the group: (C-idx, O-idx, O-idx, H-idx).
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     carbox_grps = tuple()
@@ -294,13 +352,19 @@ def carboxylic_acid_groups(gra):
 
 
 def amide_groups(gra):
-    """ Determine the location of amide groups
+    """ Determine the location of amide groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C(O)-O-H atoms
+        of the group: (C-idx, O-idx, O-idx, H-idx).
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     amide_grps = tuple()
 
     ket_grps = ketone_groups(gra)
-    noc_grps = two_bond_idxs(gra, asymb1='N', cent='O', asymb2='C')
+    noc_grps = two_bond_idxs(gra, symb1='N', cent='O', symb2='C')
 
     for noc_grp in noc_grps:
         n_idx, o_idx, c_idx = noc_grp
@@ -311,15 +375,26 @@ def amide_groups(gra):
 
 
 def nitro_groups(gra):
-    """ Determine the location alcohol groups
+    """ Determine the location of nitro groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the O-N-O atoms
+        of the group: (N-idx, O-idx, O-idx).
 
-        Returns a lsts of idxs of NO2 groups
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
-    return two_bond_idxs(gra, asymb1='O', cent='N', asymb2='O')
+
+    return two_bond_idxs(gra, symb1='O', cent='N', symb2='O')
 
 
 def halide_groups(gra):
-    """ Determine the location of halide groups
+    """ Determine the location of halide groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-X atoms
+        of the group: (C-idx, X-idx).
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
 
     hal_grps = tuple()
@@ -329,37 +404,52 @@ def halide_groups(gra):
     for symb in ('F', 'Cl', 'Br', 'I'):
         hal_idxs = symb_idx_dct.get(symb, ())
         for hal_idx in hal_idxs:
-            hal_neighs = neighbors_of_type(gra, hal_idx, asymb='C')
+            hal_neighs = neighbors_of_type(gra, hal_idx, symb='C')
             hal_grps += ((hal_neighs[0], hal_idx),)
 
     return hal_grps
 
 
 def thiol_groups(gra):
-    """ Determine the location of thiol groups
+    """ Determine the location of thiol groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-S-H atoms
+        of the group: (C-idx, S-idx, H-idx).
 
-        Returns a lsts of idxs of C-S-H groups
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
     """
-    return two_bond_idxs(gra, asymb1='C', cent='S', asymb2='H')
+    return two_bond_idxs(gra, symb1='C', cent='S', symb2='H')
 
 
 # FIND GENERIC ATOM AND BOND GROUPS
 def _unique_atoms(gra):
-    """ Determine the symbols of unique atom types
+    """ Determine the symbols of unique atom types.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(str)
     """
+
     symb_idx_dct = atom_symbol_idxs(gra)
 
     return tuple(symb_idx_dct.keys())
 
 
-def chem_unique_atoms_of_type(gra, asymb):
+def chem_unique_atoms_of_type(gra, symb):
     """ For the given atom type, determine the idxs of all the
          chemically unique atoms.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :param symb: atomic symbol to determine symbols for
+        :type symb: str
+        :rtype: tuple(int)
     """
 
     # Get the indices for the atom type
     symb_idx_dct = atom_symbol_idxs(gra)
-    atom_idxs = symb_idx_dct[asymb]
+    atom_idxs = symb_idx_dct[symb]
 
     # Loop over each idx
     uni_idxs = tuple()
@@ -385,9 +475,19 @@ def chem_unique_atoms_of_type(gra, asymb):
     return uni_idxs
 
 
-def bonds_of_type(gra, asymb1='C', asymb2='C', mbond=1):
+def bonds_of_type(gra, symb1, symb2, mbond=1):
     """ Determine the indices of all a specific bond
-        specified by atom type and bond order
+        specified by atom type and bond order.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :param symb1: symbol of atom 1 in the bond
+        :type symb1: str
+        :param symb2: symbol of atom 2 in the bond
+        :type symb2: str
+        :param mbond: bond order of desired bond type
+        :type mbond: int
+        :rtype: tuple(int)
     """
 
     # Get the dict that relates atom indices to symbols
@@ -400,14 +500,20 @@ def bonds_of_type(gra, asymb1='C', asymb2='C', mbond=1):
     for bond in _bonds:
         idx1, idx2 = bond
         symb1, symb2 = idx_symb_dct[idx1], idx_symb_dct[idx2]
-        if (symb1, symb2) in ((asymb1, asymb2), (asymb2, asymb1)):
+        if (symb1, symb2) in ((symb1, symb2), (symb2, symb1)):
             _bonds_of_type += ((idx1, idx2),)
 
     return _bonds_of_type
 
 
 def bonds_of_order(gra, mbond=1):
-    """ Determine the indices of a certain
+    """ Determine the indices of all bonds in a molecule with
+        the specified bond order.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :param mbond: bond order of desired bond type
+        :type mbond: int
     """
 
     # Build resonance graph to get the bond orders
@@ -423,10 +529,19 @@ def bonds_of_order(gra, mbond=1):
     return mbond_idxs
 
 
-def two_bond_idxs(gra, asymb1='H', cent='C', asymb2='H'):
-    """ Determine triplet of idxs for describing bond
+def two_bond_idxs(gra, symb1, cent, symb2):
+    """ Determine the triplet of indices of atoms of specified
+        types that are connected in a chain by two bonds:
+        (symb1_idx, cent_idx, symb2_idx).
 
-        idxs = (asymb1_idx, cent_idx, asymb2_idx)
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :param symb1: symbol of atom at one end of chain
+        :type symb1: str
+        :param cent: symbol of atom in the middle of a chain
+        :type cent: str
+        :param symb2: symbol of atom at other end of chain
+        :type symb2: str
     """
 
     grps = tuple()
@@ -439,9 +554,9 @@ def two_bond_idxs(gra, asymb1='H', cent='C', asymb2='H'):
     for cent_idx in cent_idxs:
         neighs = tuple(neigh_dct[cent_idx])
         neigh_symbs = atom_idx_to_symb(neighs, idx_symb_dct)
-        if neigh_symbs == (asymb1, asymb2):
+        if neigh_symbs == (symb1, symb2):
             grp_idxs = (neighs[0], cent_idx, neighs[1])
-        elif neigh_symbs == (asymb2, asymb1):
+        elif neigh_symbs == (symb2, symb1):
             grp_idxs = (neighs[1], cent_idx, neighs[0])
         else:
             grp_idxs = ()
@@ -452,8 +567,16 @@ def two_bond_idxs(gra, asymb1='H', cent='C', asymb2='H'):
     return grps
 
 
-def neighbors_of_type(gra, aidx, asymb='H'):
-    """ Get the neighbor indices for a certain type
+def neighbors_of_type(gra, aidx, symb):
+    """ For a given atom, determine the indices of all the atoms
+        which neighbor it that are of the type specified.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :param aidx: index of atom for which to find neighbors
+        :type aidx: int
+        :param symb: symbols of desired atom types for neighbors
+        :type symb: str
     """
 
     idx_symb_dct = atom_symbols(gra)
@@ -462,7 +585,7 @@ def neighbors_of_type(gra, aidx, asymb='H'):
 
     idxs_of_type = tuple()
     for nidx, nsymb in zip(neighs, neigh_symbs):
-        if nsymb == asymb:
+        if nsymb == symb:
             idxs_of_type += (nidx,)
 
     return idxs_of_type

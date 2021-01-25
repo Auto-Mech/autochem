@@ -32,20 +32,20 @@ CHECK_DCT2 = {
     'stereo': None, 'coloumb': 1.5e-2}
 
 
-def test__newzma():
-    """ test
-    """
-
-    build_remdummy_shift_lst(zma)
-    shift_vals_from_dummy(vals, zma)
-    is_atom_closest_to_bond_atom(zma, idx_rad, bond_dist)
-    calc_rxn_angle(ts_zma, frm_bnd_keys, brk_bnd_keys, rxn_class)
-
-
-def test__comp():
-    """ test automol.comp.is_unique
-    """
-
-    assert is_unique(lst, lsti, check_dct)
-    assert not is_unique(lst, lsti, check_dct)
-    assert is_unique(lst, lsti, check_dct2)
+# def test__newzma():
+#     """ test
+#     """
+#
+#     build_remdummy_shift_lst(zma)
+#     shift_vals_from_dummy(vals, zma)
+#     is_atom_closest_to_bond_atom(zma, idx_rad, bond_dist)
+#     calc_rxn_angle(ts_zma, frm_bnd_keys, brk_bnd_keys, rxn_class)
+#
+#
+# def test__comp():
+#     """ test automol.comp.is_unique
+#     """
+#
+#     assert is_unique(lst, lsti, check_dct)
+#     assert not is_unique(lst, lsti, check_dct)
+#     assert is_unique(lst, lsti, check_dct2)

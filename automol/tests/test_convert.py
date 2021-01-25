@@ -40,7 +40,7 @@ def test__geom__no_stereo():
     ich = ICHS_WITH_STEREO[0]
     geo = automol.inchi.geometry(ich)
     sort_ich, nums = automol.convert.geom.inchi_with_sort(
-        geo, remove_stereo=True)
+        geo, stereo=False)
 
     assert sort_ich == ref_sort_ich
     assert nums == ref_nums
@@ -137,7 +137,7 @@ def test__smiles__from_geom():
         geo = automol.inchi.geometry(ref_ich)
         smi = automol.geom.smiles(geo)
         ich = automol.smiles.inchi(smi)
-        assert automol.inchi.standard_form(ich, remove_stereo=True) == ref_ich
+        assert automol.inchi.standard_form(ich, stereo=False) == ref_ich
 
 
 def test__graph__misc():
@@ -208,6 +208,13 @@ def test__inchi_geometry():
     assert ich == ref_ich
 
 
+def test__inchi_conformers():
+    """ test automol.inchi.conformers
+    """
+    ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
+    geos = automol.inchi.conformers(ref_ich)
+    ichs = tuple(automol.geom.inchi(geo) for geo in geos)
+    assert all(ich == ref_ich for ich in ichs)
 
 
 def test__multiple_rings():
@@ -270,18 +277,40 @@ def test__multiple_rings():
     assert ich == ref_ich
 
 
-if __name__ == '__main__':
-    # test__geom__graph()
-    # test__geom__inchi()
-    # test__graph__no_stereo()
-    # test__graph__with_stereo()
-    # test__zmatrix__with_stereo()
-    # test__smiles__with_stereo()
-    # test__geom__with_stereo()
-    # test__graph__with_stereo()
-    # test__graph__misc()
-    # test__geom__with_stereo()
-    # test__geom__zmatrix()
-    # test__geom__zmatrix_torsion_coordinate_names()
-    # test__multiple_rings()
-    test__inchi__geometry()
+def test__geom__zmatrix_torsion_coordinate_names():
+    """ test automol.geom.zmatrix_torsion_coordinate_names
+    """
+    geo = (('C', (-0.70116587131, 0.0146227007587, -0.016166607003)),
+           ('O', (1.7323365056, -0.9538524899, -0.5617192010)),
+           ('H', (-0.9827048283, 0.061897979239, 2.02901783816)),
+           ('H', (-0.8787925682, 1.91673409124, -0.80019507919)),
+           ('H', (-2.12093033745, -1.21447973767, -0.87411360631)),
+           ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
+    zma = automol.geom.zmatrix(geo)
+
+    tors_names = automol.geom.zmatrix_torsion_coordinate_names(geo)
+    assert set(tors_names) <= set(automol.zmat.dihedral_angle_names(zma))
+
+    geo2 = (('H', (2.9512589894, 0.17507745634, 0.22317665541)),)
+
+    tors_names2 = automol.geom.zmatrix_torsion_coordinate_names(geo2)
+    assert tors_names2 == ()
+
+
+def test__geom__zmatrix_atom_ordering():
+    """ test automol.geom.zmatrix_atom_ordering
+    """
+    geo = (('H', (-0.9827048283, 0.061897979239, 2.02901783816)),
+           ('O', (1.7323365056, -0.9538524899, -0.5617192010)),
+           ('H', (-0.8787925682, 1.91673409124, -0.80019507919)),
+           ('H', (-2.12093033745, -1.21447973767, -0.87411360631)),
+           ('C', (-0.70116587131, 0.0146227007587, -0.016166607003)),
+           ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
+
+    ordering = automol.geom.zmatrix_atom_ordering(geo)
+    assert ordering == {0: 0, 4: 1, 1: 2, 2: 3, 3: 4, 5: 5}
+
+    geo2 = (('H', (-0.9827048283, 0.061897979239, 2.02901783816)),)
+
+    ordering2 = automol.geom.zmatrix_atom_ordering(geo2)
+    assert ordering2 == {0: 0}

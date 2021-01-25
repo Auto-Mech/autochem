@@ -54,13 +54,12 @@ CCOOC_GRA = automol.geom.graph(
     automol.inchi.geometry(
         automol.smiles.inchi('CC(=O)OC')))
 
-GRAP = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('C[N+](=O)[O-]')))
-
-GRAP = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CC(=O)N')))
+# GRAP = automol.geom.graph(
+#     automol.inchi.geometry(
+#         automol.smiles.inchi('C[N+](=O)[O-]')))
+# GRAP = automol.geom.graph(
+#     automol.inchi.geometry(
+#         automol.smiles.inchi('CC(=O)N')))
 
 INI_FGRP_DCT = {
     automol.graph.FunctionalGroup.PEROXY: (),
@@ -176,8 +175,3 @@ def test_unique_atoms():
 
     uni_idxs2 = automol.graph.chem_unique_atoms_of_type(C4H10_GRA, 'C')
     assert uni_idxs2 == (0, 2)
-
-test_functional_group_dct()
-test_species_types()
-test_unique_atoms()
-

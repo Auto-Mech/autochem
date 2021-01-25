@@ -330,13 +330,13 @@ def test__without_ts_bonds():
 
 
 def test__electron_count():
-    """ test graph.hydrogen_count
+    """ test graph.electron_count
     """
     assert graph.electron_count(C8H13O_CGR) == 69
 
 
 def test__atom_count():
-    """ test graph.hydrogen_count
+    """ test graph.electron_count
     """
     assert graph.atom_count(C8H13O_CGR) == 22
     assert graph.atom_count(C8H13O_CGR, with_implicit=False) == 9
@@ -400,10 +400,10 @@ def test__atom_bond_keys():
 
 
 # # bond properties
-def test__bond_neighbor_bonds():
-    """ test graph.bond_neighbor_bonds
+def test__bond_neighbor_keys():
+    """ test graph.bond_neighbor_keys
     """
-    assert graph.bond_neighbor_bonds(C8H13O_CGR) == {
+    assert graph.bond_neighbor_keys(C8H13O_CGR) == {
         frozenset({1, 4}): frozenset({frozenset({4, 6})}),
         frozenset({4, 6}): frozenset({frozenset({6, 7}), frozenset({1, 4}),
                                       frozenset({2, 6})}),
@@ -776,6 +776,34 @@ def test__stereomers():
     assert graph.stereomers(C8H13O_CGR) == C8H13O_SGRS
 
 
+def test__heuristic_geometry():
+    """ test graph.heuristic_geometry
+    """
+    for sgr in C2H2CL2F2_SGRS:
+        sgr = graph.explicit(sgr)
+        cgr = graph.without_stereo_parities(sgr)
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
+
+    for sgr in C3H5N3_SGRS:
+        sgr = graph.explicit(sgr)
+        cgr = graph.without_stereo_parities(sgr)
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
+
+    for sgr in C3H3CL2F3_SGRS:
+        sgr = graph.explicit(sgr)
+        cgr = graph.without_stereo_parities(sgr)
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
+
+    for sgr in C8H13O_SGRS:
+        sgr = graph.explicit(sgr)
+        cgr = graph.without_stereo_parities(sgr)
+        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
+        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__set_atom_implicit_hydrogen_valences()
@@ -787,6 +815,7 @@ if __name__ == '__main__':
     # test__backbone_keys()
     # test__explicit_hydrogen_keys()
     # test__stereomers()
+    # test__heuristic_geometry()
     # test__connected_components()
     # test__unsaturated_atom_keys()
     # test__resonance_dominant_radical_atom_keys()
@@ -801,6 +830,4 @@ if __name__ == '__main__':
     # test__heavy_atom_count()
     # test__subresonances()
     # test__stereomers()
-    # test__without_ts_bonds()
-    # test__bond_neighbor_bonds()
-    test__atom_second_degree_neighbor_keys()
+    test__without_ts_bonds()
