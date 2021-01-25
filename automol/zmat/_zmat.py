@@ -168,7 +168,7 @@ def distance(zma, key1, key2, angstrom=False):
         :param angstrom: parameter to control Bohr->Angstrom conversion
         :type angstrom: bool
     """
-    geo = automol.convert.zmat.geometry(zma)
+    geo, _ = automol.convert.zmat.geometry(zma)
     return automol.geom.distance(geo, key1, key2, angstrom=angstrom)
 
 

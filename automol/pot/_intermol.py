@@ -105,11 +105,11 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
         # Calculate the potential
         if potential == 'exp6':
             params = dict_.values_by_unordered_tuple(
-                EXP6_DCT, symb1, symb2)
+                EXP6_DCT, (symb1, symb2))
             pot_val = exp6_potential(rdist, *params)
         elif potential == 'lj_12_6':
             params = dict_.values_by_unordered_tuple(
-                LJ_DCT, symb1, symb2)
+                LJ_DCT, (symb1, symb2))
             pot_val = lj_potential(rdist, *params)
 
     else:
