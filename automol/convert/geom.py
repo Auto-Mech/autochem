@@ -27,11 +27,20 @@ def zmatrix(geo, ts_bnds=()):
     if ts_bnds:
         raise NotImplementedError
 
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(geo)
-    gra = connectivity_graph(geo, dummy=True)
-    vma, zma_keys = automol.graph.vmat.vmatrix(gra)
-    geo = automol.geom.from_subset(geo, zma_keys)
-    zma = automol.zmat.from_geometry(vma, geo)
+    if automol.geom.is_atom(geo):
+        symbs = automol.geom.symbols(geo)
+        key_mat = [[None, None, None]]
+        val_mat = [[None, None, None]]
+        zma = create.zmat.from_data(symbs, key_mat, val_mat)
+        zma_keys = [0]
+        dummy_key_dct = {}
+    else:
+        geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(geo)
+        gra = connectivity_graph(geo, dummy=True)
+        vma, zma_keys = automol.graph.vmat.vmatrix(gra)
+        geo = automol.geom.from_subset(geo, zma_keys)
+        zma = automol.zmat.from_geometry(vma, geo)
+
     return zma, zma_keys, dummy_key_dct
 
 
@@ -45,8 +54,8 @@ def zmatrix_x2z(geo, ts_bnds=()):
         :type ts_bnds: tuple(frozenset(int))
     """
 
-    symbs = automol.geom.symbols(geo)
-    if len(symbs) == 1:
+    if automol.geom.is_atom(geo):
+        symbs = automol.geom.symbols(geo)
         key_mat = [[None, None, None]]
         val_mat = [[None, None, None]]
         zma = create.zmat.from_data(symbs, key_mat, val_mat)

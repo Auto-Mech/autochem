@@ -346,7 +346,9 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
             key4 = k3ns.pop(0)
 
             # Add the leading atom to the v-matrix
-            vma = automol.vmat.add_atom(vma, sym, key_row)
+            symb = symb_dct[key4]
+            key_row = list(map(zma_keys.index, (key3, key2, key1)))
+            vma = automol.vmat.add_atom(vma, symb, key_row)
             assert key4 not in zma_keys, ("Atom {:d} already in v-matrix."
                                           .format(key4))
             zma_keys.append(key4)

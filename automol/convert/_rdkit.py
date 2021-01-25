@@ -77,7 +77,7 @@ def to_conformers(rdm, nconfs):
 
 
 # inchi
-def from_inchi(ich, print_debug=True):
+def from_inchi(ich, print_debug=False):
     """ Generate an RDKit molecule object from an InChI string.
 
         :param ich: InChI string
@@ -115,7 +115,7 @@ def to_inchi(rdm, options='', with_aux_info=False):
 
 
 # smiles
-def from_smiles(smi, print_debug=True):
+def from_smiles(smi, print_debug=False):
     """ Generate an RDKit molecule object from a SMILES string.
 
         :param smi: SMILES string
@@ -165,7 +165,7 @@ def to_connectivity_graph(rdm):
 
 
 # molfile
-def from_molfile(mfl, print_debug=True):
+def from_molfile(mfl, print_debug=False):
     """ Generate an RDKit molecule object from a MOLFile string.
 
         :param mfl: MOLFile block string

@@ -6,7 +6,7 @@ import automol.graph
 from automol.geom import _trans as trans
 
 
-def end_group_sym_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
+def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Determine sym factor for terminal groups in a geometry
 
         :param geo: molecular geometry

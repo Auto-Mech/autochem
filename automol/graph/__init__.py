@@ -172,7 +172,7 @@ from automol.graph._rot import rotational_symmetry_number
 from automol.graph._rot import linear_segments_atom_keys
 
 # functional group library
-from automol.graph._func_group import Fgroup
+from automol.graph._func_group import FunctionalGroup
 from automol.graph._func_group import functional_group_dct
 from automol.graph._func_group import hydrocarbon_species
 from automol.graph._func_group import radical_species
@@ -424,7 +424,7 @@ __all__ = [
     'linear_segments_atom_keys',
 
     # functional group library
-    'Fgroup',
+    'FunctionalGroup',
     'functional_group_dct',
     'hydrocarbon_species',
     'radical_species',

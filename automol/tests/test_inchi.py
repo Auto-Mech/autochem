@@ -39,26 +39,26 @@ def test__from_data():
 
     assert CH2O2_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(CH2O2_ICH),
-        main_dct=inchi.main_sublayers(CH2O2_ICH),
-        char_dct=inchi.charge_sublayers(CH2O2_ICH),
+        main_lyr_dct=inchi.main_sublayers(CH2O2_ICH),
+        char_lyr_dct=inchi.charge_sublayers(CH2O2_ICH),
     ))
 
     assert C2H6O_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(C2H6O_ICH),
-        main_dct=inchi.main_sublayers(C2H6O_ICH),
-        iso_dct=inchi.isotope_sublayers(C2H6O_ICH),
+        main_lyr_dct=inchi.main_sublayers(C2H6O_ICH),
+        iso_lyr_dct=inchi.isotope_sublayers(C2H6O_ICH),
     ))
 
     assert C2H2F2_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(C2H2F2_ICH),
-        main_dct=inchi.main_sublayers(C2H2F2_ICH),
-        ste_dct=inchi.stereo_sublayers(C2H2F2_ICH),
+        main_lyr_dct=inchi.main_sublayers(C2H2F2_ICH),
+        ste_lyr_dct=inchi.stereo_sublayers(C2H2F2_ICH),
     ))
 
     assert C8H13O_ICH == inchi.standard_form(inchi.from_data(
         fml_slyr=inchi.formula_sublayer(C8H13O_ICH),
-        main_dct=inchi.main_sublayers(C8H13O_ICH),
-        ste_dct=inchi.stereo_sublayers(C8H13O_ICH),
+        main_lyr_dct=inchi.main_sublayers(C8H13O_ICH),
+        ste_lyr_dct=inchi.stereo_sublayers(C8H13O_ICH),
     ))
 
 
@@ -73,13 +73,13 @@ def test__version():
 def test__standard_form():
     """ test inchi.standard_form
     """
-    assert (inchi.standard_form(C2H6O_ICH, remove_stereo=True) ==
+    assert (inchi.standard_form(C2H6O_ICH, stereo=False) ==
             C2H6O_ICH_NO_STEREO)
-    assert (inchi.standard_form(C4H5F2O_ICH, remove_stereo=True) ==
+    assert (inchi.standard_form(C4H5F2O_ICH, stereo=False) ==
             C4H5F2O_ICH_NO_STEREO)
-    assert (inchi.standard_form(C2H2F2_ICH, remove_stereo=True) ==
+    assert (inchi.standard_form(C2H2F2_ICH, stereo=False) ==
             C2H2F2_ICH_NO_STEREO)
-    assert (inchi.standard_form(C8H13O_ICH, remove_stereo=True) ==
+    assert (inchi.standard_form(C8H13O_ICH, stereo=False) ==
             C8H13O_ICH_NO_STEREO)
 
 
@@ -91,13 +91,13 @@ def test__has_stereo():
     assert inchi.has_stereo(C2H2F2_ICH)
     assert inchi.has_stereo(C8H13O_ICH)
     assert not inchi.has_stereo(
-        inchi.standard_form(C2H6O_ICH, remove_stereo=True))
+        inchi.standard_form(C2H6O_ICH, stereo=False))
     assert not inchi.has_stereo(
-        inchi.standard_form(C4H5F2O_ICH, remove_stereo=True))
+        inchi.standard_form(C4H5F2O_ICH, stereo=False))
     assert not inchi.has_stereo(
-        inchi.standard_form(C2H2F2_ICH, remove_stereo=True))
+        inchi.standard_form(C2H2F2_ICH, stereo=False))
     assert not inchi.has_stereo(
-        inchi.standard_form(C8H13O_ICH, remove_stereo=True))
+        inchi.standard_form(C8H13O_ICH, stereo=False))
 
 
 def test__split():
@@ -145,7 +145,7 @@ def test__recalculate():
     """ inchi.recalculate
     """
     assert inchi.recalculate(C2H2F2_ICH_NO_STEREO) == C2H2F2_ICH_NO_STEREO
-    assert (inchi.recalculate(C2H2F2_ICH_NO_STEREO, force_stereo=True)
+    assert (inchi.recalculate(C2H2F2_ICH_NO_STEREO, stereo=True)
             == C2H2F2_ICH_STEREO_UNKNOWN)
     # assert inchi.recalculate(CH4O_CH_ICH) == CH4O_CH_ICH
 

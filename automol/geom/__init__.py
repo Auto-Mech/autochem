@@ -45,9 +45,9 @@ from automol.geom._prop import rotational_constants
 from automol.geom._prop import is_linear
 from automol.geom._prop import permutation
 # transformations and operations
-from automol.geom._trans import remove
+from automol.geom._trans import remove_coordinates
 from automol.geom._trans import join
-from automol.geom._trans import reorder
+from automol.geom._trans import reorder_coordinates
 from automol.geom._trans import swap_coordinates
 from automol.geom._trans import insert
 from automol.geom._trans import insert_dummies_on_linear_atoms
@@ -57,7 +57,6 @@ from automol.geom._trans import transform
 from automol.geom._trans import transform_by_matrix
 from automol.geom._trans import rotate
 from automol.geom._trans import euler_rotate
-from automol.geom._trans import move_coordinates
 from automol.geom._trans import reflect_coordinates
 from automol.geom._trans import mass_centered
 # comparisons
@@ -69,7 +68,7 @@ from automol.geom._comp import minimum_distance
 from automol.geom._comp import almost_equal_coulomb_spectrum
 from automol.geom._comp import argunique_coulomb_spectrum
 # extras
-from automol.geom._extra import end_group_sym_factor
+from automol.geom._extra import end_group_symmetry_factor
 from automol.geom._extra import rot_permutated_geoms
 
 # constructors
@@ -81,11 +80,11 @@ import automol.convert.geom
 from automol.geom import ts
 
 
-def from_data(syms, xyzs, angstrom=False):
+def from_data(symbs, xyzs, angstrom=False):
     """ geometry data structure from symbols and coordinates
     """
     return automol.create.geom.from_data(
-        symbols=syms, coordinates=xyzs, angstrom=angstrom)
+        symbols=symbs, coordinates=xyzs, angstrom=angstrom)
 
 
 # conversions
@@ -189,9 +188,9 @@ __all__ = [
     'is_linear',
     'permutation',
     # transformations and operations
-    'remove',
+    'remove_coordinates',
     'join',
-    'reorder',
+    'reorder_coordinates',
     'swap_coordinates',
     'insert',
     'insert_dummies_on_linear_atoms',
@@ -213,7 +212,7 @@ __all__ = [
     'argunique_coulomb_spectrum',
     'almost_equal_dist_matrix',
     # extras
-    'end_group_sym_factor',
+    'end_group_symmetry_factor',
     'rot_permutated_geoms',
     # submodules
     'ts'

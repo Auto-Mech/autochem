@@ -169,7 +169,7 @@ def connected(geo, stereo=True):
         :type stereo: bool
         :rtype: bool
     """
-    return len(components_graph(geo, stereo=stereo) == 1)
+    return len(components_graph(geo, stereo=stereo)) == 1
 
 
 # validation

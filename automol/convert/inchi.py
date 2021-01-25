@@ -65,6 +65,11 @@ def _connected_geometry(ich):
 
         for gen_ in [_gen1, _gen1, _gen1, _gen2, _gen3]:
             success = False
+            geo = gen_(ich)
+            geo_ich = automol.convert.geom.inchi(geo)
+            same_conn = automol.inchi.same_connectivity(ich, geo_ich)
+            conn = automol.geom.connected(geo)
+            has_stereo = automol.inchi.has_stereo(ich)
             try:
                 geo = gen_(ich)
                 geo_ich = automol.convert.geom.inchi(geo)

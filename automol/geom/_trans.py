@@ -51,7 +51,7 @@ def transform_by_matrix(geo, mat):
 
 
 # transformations
-def remove(geo, idxs=()):
+def remove_coordinates(geo, idxs=()):
     """ Remove atoms by from the molecular geometry by their indices.
 
         :param geo: molecular geometry
@@ -118,7 +118,7 @@ def join(geo1, geo2,
     return automol.create.geom.from_data(symbs, xyzs)
 
 
-def reorder(geo, idx_dct):
+def reorder_coordinates(geo, idx_dct):
     """ Reorder the atoms of a molecular geometry using
         the mapping of an input dictionary.
 
@@ -354,7 +354,7 @@ def euler_rotate(geo, theta, phi, psi):
     return transform_by_matrix(geo, mat)
 
 
-def move_coordinates(geo, idx1, idx2):
+def shift_atom_position(geo, idx1, idx2):
     """ Move the atom at position idx1 to idx2, shifting all other atoms.
 
         :param geo: molecular geometry

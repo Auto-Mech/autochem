@@ -35,7 +35,7 @@ def test__from_data():
     """ test vmat.from_data
     """
     vma = vmat.from_data(
-        syms=vmat.symbols(CH4O_VMA),
+        symbs=vmat.symbols(CH4O_VMA),
         key_mat=vmat.key_matrix(CH4O_VMA),
         name_mat=vmat.name_matrix(CH4O_VMA),
     )

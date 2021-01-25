@@ -403,18 +403,16 @@ def test__atom_bond_keys():
 def test__bond_neighbor_keys():
     """ test graph.bond_neighbor_keys
     """
+
     assert graph.bond_neighbor_keys(C8H13O_CGR) == {
-        frozenset({1, 4}): frozenset({frozenset({4, 6})}),
-        frozenset({4, 6}): frozenset({frozenset({6, 7}), frozenset({1, 4}),
-                                      frozenset({2, 6})}),
-        frozenset({2, 6}): frozenset({frozenset({6, 7}), frozenset({4, 6})}),
-        frozenset({0, 3}): frozenset({frozenset({3, 5})}),
-        frozenset({6, 7}): frozenset({frozenset({4, 6}), frozenset({8, 7}),
-                                      frozenset({5, 7}), frozenset({2, 6})}),
-        frozenset({8, 7}): frozenset({frozenset({6, 7}), frozenset({5, 7})}),
-        frozenset({3, 5}): frozenset({frozenset({5, 7}), frozenset({0, 3})}),
-        frozenset({5, 7}): frozenset({frozenset({6, 7}), frozenset({3, 5}),
-                                      frozenset({8, 7})})
+        frozenset({1, 4}): frozenset({6}),
+        frozenset({4, 6}): frozenset({1, 2, 7}),
+        frozenset({2, 6}): frozenset({4, 7}),
+        frozenset({0, 3}): frozenset({5}),
+        frozenset({6, 7}): frozenset({8, 2, 4, 5}),
+        frozenset({8, 7}): frozenset({5, 6}),
+        frozenset({3, 5}): frozenset({0, 7}),
+        frozenset({5, 7}): frozenset({8, 3, 6})
     }
 
 
@@ -776,34 +774,6 @@ def test__stereomers():
     assert graph.stereomers(C8H13O_CGR) == C8H13O_SGRS
 
 
-def test__heuristic_geometry():
-    """ test graph.heuristic_geometry
-    """
-    for sgr in C2H2CL2F2_SGRS:
-        sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
-
-    for sgr in C3H5N3_SGRS:
-        sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
-
-    for sgr in C3H3CL2F3_SGRS:
-        sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
-
-    for sgr in C8H13O_SGRS:
-        sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
-
-
 if __name__ == '__main__':
     # test__from_data()
     # test__set_atom_implicit_hydrogen_valences()
@@ -818,6 +788,7 @@ if __name__ == '__main__':
     # test__heuristic_geometry()
     # test__connected_components()
     # test__unsaturated_atom_keys()
+    test__bond_neighbor_keys()
     # test__resonance_dominant_radical_atom_keys()
     # test__remove_bonds()
     # test__resonance_dominant_atom_centered_cumulene_keys()
@@ -830,4 +801,4 @@ if __name__ == '__main__':
     # test__heavy_atom_count()
     # test__subresonances()
     # test__stereomers()
-    test__without_ts_bonds()
+    # test__without_ts_bonds()

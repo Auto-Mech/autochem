@@ -298,20 +298,6 @@ def test__translate():
     assert automol.geom.almost_equal_dist_matrix(geo1, ref_geo1, thresh=0.001)
 
 
-def test__invert():
-    """ test geom.invert
-    """
-    ref_geo1 = (('F', (-2.994881276150, 1.414434615111, 0.807144415388)),
-                ('C', (-1.170155936996, -0.359360756989, 0.513323178859)),
-                ('C', (1.201356763194, 0.347546894407, 0.3408392500119)),
-                ('Cl', (3.027970874978, -1.39211904938, 0.0492290974807)),
-                ('H', (-1.731596406235, -2.324260256203, 0.4292070203467)),
-                ('H', (1.66730598121, 2.31375855306, 0.433949091252)))
-    geo1 = automol.geom.invert(C2H2CLF_GEO)
-
-    assert automol.geom.almost_equal_dist_matrix(geo1, ref_geo1, thresh=0.001)
-
-
 def test__rotate():
     """ test geom.euler_rotate
     """
@@ -452,25 +438,27 @@ C    0.000000   0.000000   6.000000
 C    0.000000   0.000000   7.000000
 C    0.000000   0.000000   8.000000"""
 
-    geoms, comments = automol.geom.from_xyz_trajectory_string(ref_traj_str)
+    traj = automol.geom.from_xyz_trajectory_string(ref_traj_str)
+    geoms = tuple(geo for geo, _ in traj)
+    comments = tuple(comment for _, comment in traj)
     traj_str = automol.geom.xyz_trajectory_string(geoms, comments=comments)
     assert ref_traj_str == traj_str
 
 
 if __name__ == '__main__':
-    # test__from_data()
+    test__from_data()
     # test__is_valid()
     # test__struct_check()
-    test__mass()
-    test__rotation_properties()
+    # test__mass()
+    # test__rotation_properties()
     # test__atom_indices()
     # test__set_coordinates()
     # test__swap_coordinates()
-    # test__move_coordinates()
+    test__remove_coordinates()
     # test__dist_analysis()
     # test__symmetry_factor()
     # test__closest_unbonded_atoms()
     # test__rotate()
     # test__reflect_coordinates()
     test__permutations()
-    # test__traj()
+    test__traj()
