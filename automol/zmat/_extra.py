@@ -1,5 +1,6 @@
 """ functions for working with torsion axis (rotational bond)s and groups
 """
+
 from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import string
@@ -7,7 +8,16 @@ from automol.zmat._zmat import string
 
 def distance_coordinate_name(zma, key1, key2):
     """ get the name of a distance coordinate for a given bond
+
+        :param zma: the z-matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: the first key in the torsion axis (rotational bond)
+        :type key1: int
+        :param key2: the second key in the torsion axis (rotational bond)
+        :type key2: int
+        :rtype: str
     """
+
     key1, key2 = sorted([key1, key2])
     name_mat = name_matrix(zma)
     key_mat = key_matrix(zma)
@@ -15,36 +25,48 @@ def distance_coordinate_name(zma, key1, key2):
         "{:d}-{:d} is not a distance coordinate in this zmatrix:\n{}"
         .format(key1, key2, string(zma, one_indexed=False)))
     name = name_mat[key2][0]
+
     return name
 
 
 def torsion_coordinate_name(zma, key1, key2):
-    """ name for dihedral coordinate about a torsion axis (rotational bond)
+    """ Obtain the name for dihedral coordinate about a torsion axis
+        (rotational bond).
 
-    :param zma: the z-matrix
-    :param key1: the first key in the torsion axis (rotational bond)
-    :param key2: the second key in the torsion axis (rotational bond)
+        :param zma: the z-matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: the first key in the torsion axis (rotational bond)
+        :type key1: int
+        :param key2: the second key in the torsion axis (rotational bond)
+        :type key2: int
+        :rtype: str
     """
+
     key = torsion_leading_atom(zma, key1, key2)
     name_mat = name_matrix(zma)
     name = name_mat[key][-1]
+
     return name
 
 
 def torsion_leading_atom(zma, key1, key2):
-    """ leading atom for a torsion coordinate about a torsion axis
+    """ Obtain the leading atom for a torsion coordinate about a torsion axis.
 
-    :param zma: the z-matrix
-    :param key1: the first key in the torsion axis (rotational bond)
-    :param key2: the second key in the torsion axis (rotational bond)
+        The leading atom is the atom whose dihedral defines the torsional
+        coordinate, which must always be the first dihedral coordinate
+        for this bond.
 
-    The leading atom is the atom whose dihedral defines the torsional
-    coordinate, which must always be the first dihedral coordinate for this
-    bond
+        A bond is properly decoupled if all other dihedrals along this
+        bond depend on the leading atom.
 
-    A bond is properly decoupled if all other dihedrals along this bond depend
-    on the leading atom
+        :param zma: the z-matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: the first key in the torsion axis (rotational bond)
+        :type key1: int
+        :param key2: the second key in the torsion axis (rotational bond)
+        :type key2: int
     """
+
     key_mat = key_matrix(zma)
     krs1 = [(key, row) for key, row in enumerate(key_mat)
             if row[:2] == (key1, key2)]

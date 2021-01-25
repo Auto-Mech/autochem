@@ -1,4 +1,4 @@
-""" test automol.geom
+""" test automol.prop
 """
 
 import numpy
@@ -29,8 +29,3 @@ def test__polarizability():
     polar = prop.total_polarizability(polar_tensor)
 
     assert numpy.isclose(ref_polar, polar)
-
-
-if __name__ == '__main__':
-    test__dipole_moment()
-    test__polarizability()

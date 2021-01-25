@@ -2,11 +2,11 @@
 """
 
 import itertools
-from qcelemental import periodictable as pt
 import igraph
 import automol
 import automol.create.graph
 from automol.util import dict_
+from phydat import ptab
 
 
 def from_graph(gra):
@@ -64,7 +64,7 @@ def _encode_vertex_attributes(sym, imp_hyd_vlc, par):
         implicit hydrogen valence   <=> tens place
         parity                      <=> ones place (None->0, False->1, True->2)
     """
-    id3 = pt.to_Z(sym)
+    id3 = ptab.to_number(sym)
     id2 = imp_hyd_vlc
     id1 = 0 if par is None else 1 + int(par)
 
@@ -100,7 +100,7 @@ def _decode_vertex_attributes(color):
     color -= id2 * 10
     id1 = color // 1
 
-    sym = pt.to_E(id3)
+    sym = ptab.to_symbol(id3)
     imp_hyd_vlc = id2
     assert id1 in (0, 1, 2)
     par = None if id1 == 0 else bool(id1 - 1)

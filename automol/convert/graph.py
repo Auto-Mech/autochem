@@ -12,16 +12,23 @@ from automol.convert import _util
 
 
 # graph => inchi
-def inchi(gra, remove_stereo=True):
-    """ graph => inchi
+def inchi(gra, stereo=True):
+    """ Generate an InChI string from a molecular graph.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: str
     """
+
     ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
         'graph', gra, comp=_compare)
 
     if ich is None:
         if not automol.graph.has_stereo(gra):
             ich, _ = inchi_with_sort_from_geometry(gra)
-            ich = automol.inchi.standard_form(ich, remove_stereo=remove_stereo)
+            ich = automol.inchi.standard_form(ich, stereo=stereo)
         else:
             gra = automol.graph.explicit(gra)
             geo, geo_idx_dct = automol.graph.embed.fake_stereo_geometry(gra)
@@ -32,16 +39,34 @@ def inchi(gra, remove_stereo=True):
 
 
 def _compare(gra1, gra2):
+    """ Compare the backbone structure of two moleculare graphs.
+
+        :param gra1: molecular graph 1
+        :type gra1: automol graph data structure
+        :param gra2: molecular graph 2
+        :type gra2: automol graph data structure
+        :rtype: bool
+    """
+
     gra1 = automol.graph.without_dummy_atoms(gra1)
     gra2 = automol.graph.without_dummy_atoms(gra2)
+
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
 def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
-    """ connectivity graph => inchi conversion
+    """ Generate an InChI string from a molecular graph.
+        If coordinates are passed in, they are used to determine stereo.
 
-    (if coordinates are passed in, they are used to determine stereo)
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param geo_idx_dct:
+        :type geo_idx_dct: dict[:]
+        :rtype: (str, tuple(int))
     """
+
     gra = automol.graph.without_dummy_atoms(gra)
     gra = automol.graph.dominant_resonance(gra)
     atm_keys = sorted(automol.graph.atom_keys(gra))
@@ -68,6 +93,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     ich, aux_info = _rdkit.to_inchi(rdm, with_aux_info=True)
     nums = _parse_sort_order_from_aux_info(aux_info)
     nums = tuple(map(key_map_inv.__getitem__, nums))
+
     return ich, nums
 
 
@@ -80,17 +106,29 @@ def _parse_sort_order_from_aux_info(aux_info):
 
 
 def geometry(gra):
-    """ graph => geometry
+    """ Convert a molecular graph to a molecular geometry.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :rtype: automol molecular geometry data structure
     """
+
     gra = automol.graph.explicit(gra)
     geo = automol.graph.embed.geometry(gra)
+
     return geo
 
 
 def formula(gra):
-    """ graph  => formula
+    """ Generate a stoichiometric formula dictionary from a molecular graph.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :type: dict[str: int]
     """
+
     gra = automol.graph.explicit(gra)
     syms = automol.graph.atom_symbols(gra).values()
     fml = _util.formula(syms)
+
     return fml

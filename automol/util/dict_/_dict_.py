@@ -1,18 +1,30 @@
-""" dictionary helpers
+""" Helper functions for working with Python dictionaries
 """
+
+from itertools import permutations
 from itertools import starmap as _starmap
 
 
 def empty_if_none(obj):
-    """ return an empty dictionary if the object is None, otherwise return the
-    object
+    """ Returns an empty dictionary if input object is None,
+        otherwise return the object.
+
+        :param obj: generic object
+        :type obj: any
     """
     return dict() if obj is None else obj
 
 
 def right_update(dct1, dct2):
-    """ return the update of `dct1` by `dct2`
+    """ Updates the entries of `dct1` with those of `dct2`.
+
+        :param dct1: dictionary1 that will be updated
+        :type dct1: dict
+        :param dct2: dictionary2 whose entries will override dct1
+        :type dct2: dict
+        :rtype: dict
     """
+
     dct = {}
     dct.update(dct1)
     dct.update(dct2)
@@ -36,6 +48,24 @@ def values_by_key(dct, keys, fill_val=None):
     """ return dictionary values for specific keys, filling missing entries
     """
     return tuple(dct[key] if key in dct else fill_val for key in keys)
+
+
+def values_by_unordered_tuple(dct, key):
+    """ return dictionary values where keys are a tuple where either order
+        of tuple will access element
+
+        should really add a check if flipping key worder gives different vals
+    """
+
+    val = None
+    nkeys = len(key)
+    # vals = tuple(dct.get(key, None) for itertools.permutations(key, nkeys)))
+    for _key in permutations(key, nkeys):
+        val = dct.get(_key, None)
+        if val is not None:
+            break
+
+    return val
 
 
 def keys_by_value(dct, func):

@@ -8,29 +8,48 @@ from automol.graph._util import ring_idxs
 from automol.etrans._par import read_z_alpha_dct
 from automol.etrans._par import read_lj_dct
 from automol.etrans._fxn import troe_lj_collision_frequency
+from phydat import phycon
 
 
 # CALCULATE THE EFFECTIVE ALPHA VALUE
-def alpha(n_eff, zlj_dct, bath_model, tgt_model):
-    """ Calculate the alpha param using the method in Ahren's paper
+def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model):
+    """ Calculate the alpha param using the method Jasper, et al.
+
+        :param n_eff: number of effective rotors
+        :type n_eff: int
+        :param zlj_dct: lennard-jones collision frequencies (cm-1?)
+        :type zlj_dct: dict[float: float]
+        :param bath_model: InChI string for bath gas species
+        :type bath_model: str
+        :param target_model: string denoting some class of target species
+        :type target_model: str
     """
 
+    # Calculate the Lennard-Jones frequencies
+    red_mass = ((mass1 * mass2) / (mass1 + mass2)) * phycon.AMU2KG
+
     # Calculate Zalpha(Neff) at T = 300, 1000, 2000 K
-    z_alphas_n_eff = _calc_z_alpha(n_eff, bath_model, tgt_model)
+    z_alphas_n_eff = _calculate_z_alpha_terms(n_eff, bath_model, tgt_model)
 
     # Calculate alpha = Zalpha(Neff) / Z(N) at T = 300, 1000, 2000 K
     # Empirical correction factor of (1/2) used for 1D Master Equations
-    alphas = {}
+    alpha_dct = {}
     for temp, z_alpha_n_eff in z_alphas_n_eff.items():
-        alphas[temp] = (z_alpha_n_eff / zlj_dct[temp]) / 2.0
+        zlj = troe_lj_collision_frequency(eps, sig, red_mass, temp)
+        alpha_dct[temp] = (z_alpha_n_eff / zlj) / 2.0
 
     # Determine alpha and n for the e-down model
-    edown_alpha, edown_n = _calc_edown_expt(alphas)
+    edown_alpha, edown_n = _calculate_energy_down_exponent(alpha_dct)
+
+    # Print stuff
+    # print('    - Collisional frequencies from LJ parameters')
+    # for temp, val in zlj_dct.items():
+    #     print('       T = {0} K, zlj = {1:<.3e} cm3/s'.format(temp, val))
 
     return edown_alpha, edown_n
 
 
-def _calc_z_alpha(n_eff, bath_model, tgt_model):
+def _calculate_z_alpha_terms(n_eff, bath_model, tgt_model):
     """ Calculate the [Z*alpha](N_eff)
     """
 
@@ -53,33 +72,14 @@ def _calc_z_alpha(n_eff, bath_model, tgt_model):
     return z_alpha_dct
 
 
-def lj_collision_frequency(sig, eps, mass1, mass2,
-                           temps=(300., 1000., 2000.)):
-    """ Calculate the collisin freq by Troe formula
-    """
-
-    # Calculate the reduced mass
-    red_mass = ((mass1 * mass2) / (mass1 + mass2)) * 1.66053892173e-27
-    # red_mass = ((mass1 * mass2) / (mass1 + mass2)) * phydat.phycon.AMU2KG
-
-    #  Calculate the frequency at each temperature
-    zlj_dct = {}
-    for temp in temps:
-        zlj_dct[temp] = troe_lj_collision_frequency(eps, sig, red_mass, temp)
-
-    print('    - Collisional frequencies from LJ parameters')
-    for temp, val in zlj_dct.items():
-        print('       T = {0} K, zlj = {1:<.3e} cm3/s'.format(temp, val))
-
-    return zlj_dct
-
-
-def _calc_edown_expt(alpha_dct):
-    """ Calculate power n, for model:
-        E_down = E_down_300 * (T/300)**n
+def _calculate_energy_down_exponent(alpha_dct):
+    """ Calculate power n, for model: E_down = E_down_300 * (T/300)**n
 
         Does a least-squares for n to solve the linear equation
         ln(E_down/E_down_300) = [ln(T/300)] * n
+
+        :param alpha_dct: temperature-dependent alpha parameters
+        :type alpha_dct: dict[float: float]
     """
 
     assert 300 in alpha_dct, (
@@ -113,8 +113,15 @@ def _calc_edown_expt(alpha_dct):
 
 
 # CALCULATE THE EFFECTIVE LENNARD-JONES SIGMA AND EPSILON
-def lj_sig_eps(n_heavy, bath_model, tgt_model):
-    """ Returns in angstrom and cm-1
+def lennard_jones_params(n_heavy, bath_model, tgt_model):
+    """ Returns in angstrom and cm-1.
+
+        :param n_heavy: Number of heavy atoms for a species
+        :type n_heavy: int
+        :param bath_model: InChI string for bath gas species
+        :type bath_model: str
+        :param target_model: string denoting some class of target species
+        :type target_model: str
     """
 
     def _lj(param, n_heavy, expt):
@@ -137,10 +144,12 @@ def lj_sig_eps(n_heavy, bath_model, tgt_model):
 
 
 # DETERMINE N_EFF USED FOR ALPHA AND LJ PARAM CALCULATIONS
-def calc_n_eff(geo,
-               c_pp_ps_ss=1.0, c_pt_st=(2.0/3.0), c_pq_sq=(1.0/3.0),
-               c_tt_tq_qq=0.0, c_co_oo=(1.0/3.0), c_ss_ring=(1.0/2.0)):
-    """ Calculate an effective N parameter using the given parametrization
+def calculate_effective_rotor_count(geo):
+    """ Calculate an effective N parameter using the given parametrization.
+
+        :param geo: geometry (Bohr)
+        :type geo: automol geometry data structure
+        :rtype: float
     """
 
     # Conver the geo to a graph
@@ -148,12 +157,12 @@ def calc_n_eff(geo,
     symbs = automol.geom.symbols(geo)
 
     # Count the rotors
-    [n_pp, n_ps, n_pt, n_pq,
+    (n_pp, n_ps, n_pt, n_pq,
      n_ss, n_st, n_sq,
      n_tt, n_tq,
      n_qq,
      n_co, n_oo,
-     n_ss_ring, n_rings] = _rotor_counts(gra, symbs)
+     n_ss_ring, n_rings) = _rotor_counts(gra, symbs)
 
     print('    - Rotor Counts for N_eff:')
     print('       N_pp:{}, N_ps:{}, N_pt:{}, N_pq:{}'.format(
@@ -165,6 +174,8 @@ def calc_n_eff(geo,
     print('       N_ss_ring:{}, N_rings:{}'.format(n_ss_ring, n_rings))
 
     # Use the rotor counts and the coefficients to calculate Neff
+    c_pp_ps_ss, c_pt_st, c_pq_sq = 1.0, 2.0/3.0, 1.0/3.0
+    c_tt_tq_qq, c_co_oo, c_ss_ring = 0.0, 1.0/3.0, 1.0/2.0
     n_eff = 1.0 + (
         c_pp_ps_ss * (n_pp + n_ps + n_ss) +
         c_pt_st * (n_pt + n_st) +
@@ -178,7 +189,13 @@ def calc_n_eff(geo,
 
 
 def _rotor_counts(gra, symbs):
-    """ Count up various types of rotors
+    """ Count up various types of bonds for a structure.
+
+        :param gra: molecular graph of species
+        :type gra: automol graph data structure
+        :param symbs: atomic symbols of species
+        :type symbs: tuple(str)
+        :rtype: tuple(float)
     """
 
     # Initialize the rotor counts
@@ -200,16 +217,16 @@ def _rotor_counts(gra, symbs):
         key1, key2 = bnd
         spair = (symbs[key1], symbs[key2])
         if spair == ('C', 'C'):
-            # Figure out which neighbors are carbons and count the number
+            # Figure out which neighbors are not hydrogen and count the number
             atom1_neighbors = neighbors[key1]
             numc1 = 0
             for neighbor1 in atom1_neighbors:
-                if symbs[neighbor1] == 'C':
+                if symbs[neighbor1] != 'H':
                     numc1 += 1
             atom2_neighbors = neighbors[key2]
             numc2 = 0
             for neighbor2 in atom2_neighbors:
-                if symbs[neighbor2] == 'C':
+                if symbs[neighbor2] != 'H':
                     numc2 += 1
             # Determine appropriate term to increment
             npair = (numc1, numc2)
@@ -242,12 +259,12 @@ def _rotor_counts(gra, symbs):
             n_oo += 1
 
     # Compile counts into a tuple
-    return [n_pp, n_ps, n_pt, n_pq,
+    return (n_pp, n_ps, n_pt, n_pq,
             n_ss, n_st, n_sq,
             n_tt, n_tq,
             n_qq,
             n_co, n_oo,
-            n_ss_ring, n_rings]
+            n_ss_ring, n_rings)
 
 
 # CHECKERS
@@ -256,7 +273,7 @@ BAD_ICHS = (
 )
 
 
-def estimate_viable(well_ich, well_geo, bath_info):
+def determine_collision_model(tgt_info, bath_info):
     """ Assess whether we can estimate using the formula
     """
 
@@ -264,24 +281,25 @@ def estimate_viable(well_ich, well_geo, bath_info):
     bath_model = bath_info[0]
     tgt_model = None
 
-    # Build the graph
-    well_gra = automol.geom.graph(well_geo)
-
     # Identify the the target model
-    if well_ich not in BAD_ICHS:
-        if automol.graph.radical_species(well_gra):
+    tgt_ich = tgt_info[0]
+    tgt_gra = automol.geom.graph(
+        automol.inchi.geometry(tgt_ich))
+
+    if tgt_ich not in BAD_ICHS:
+        if automol.graph.radical_species(tgt_gra):
             tgt_model = '1-alkyl'
-        elif automol.graph.hydrocarbon_species(well_gra):
+        elif automol.graph.hydrocarbon_species(tgt_gra):
             tgt_model = 'n-alkane'
         else:
-            fgrp_dct = automol.graph.functional_group_dct(well_gra)
-            if fgrp_dct[automol.graph.Fgroup.HYDROPEROXY]:
+            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
+            if fgrp_dct[automol.graph.FunctionalGroup.HYDROPEROXY]:
                 tgt_model = 'n-hydroperoxide'
-            elif fgrp_dct[automol.graph.Fgroup.EPOXIDE]:
+            elif fgrp_dct[automol.graph.FunctionalGroup.EPOXIDE]:
                 tgt_model = 'epoxide'
-            elif fgrp_dct[automol.graph.Fgroup.ETHER]:
+            elif fgrp_dct[automol.graph.FunctionalGroup.ETHER]:
                 tgt_model = 'ether'
-            elif fgrp_dct[automol.graph.Fgroup.ALCOHOL]:
+            elif fgrp_dct[automol.graph.FunctionalGroup.ALCOHOL]:
                 tgt_model = 'n-alcohol'
 
         # For now, set model to alkanes if nothing found and set up return obj

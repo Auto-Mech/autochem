@@ -26,12 +26,11 @@ The function sample_raw_distance_geometry() below returns the result of step
 1-6. The actual work for these steps is handled in a separate module,
 automol.embed.
 """
+
 import itertools
 import more_itertools as mit
 import numpy
-import qcelemental as qce
-from qcelemental import constants as qcc
-from qcelemental import periodictable as pt
+from phydat import phycon, ptab
 import automol.create.geom
 import automol.geom
 from automol import error
@@ -59,9 +58,6 @@ from automol.graph._stereo_geom import _atom_stereo_parity_from_geometry
 from automol.graph._stereo_geom import _bond_stereo_parity_from_geometry
 from automol.graph._res import resonance_dominant_atom_hybridizations
 
-ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
-DEG2RAD = qcc.conversion_factor('degree', 'radian')
-RAD2DEG = qcc.conversion_factor('radian', 'degree')
 
 # bond distances
 XY_DIST = 1.5       # angstroms
@@ -79,16 +75,16 @@ def heuristic_bond_distance(gra, key1, key2, angstrom=True, check=False):
     if check:
         assert key1 in atom_neighbor_keys(gra)[key2]
 
-    sym_dct = atom_symbols(gra)
-    sym1 = sym_dct[key1]
-    sym2 = sym_dct[key2]
+    symb_dct = atom_symbols(gra)
+    symb1 = symb_dct[key1]
+    symb2 = symb_dct[key2]
 
-    if pt.to_Z(sym1) == 1 or pt.to_Z(sym2) == 1:
+    if ptab.to_number(symb1) == 1 or ptab.to_number(symb2) == 1:
         dist = XH_DIST
     else:
         dist = XY_DIST
 
-    dist *= 1 if angstrom else ANG2BOHR
+    dist *= 1 if angstrom else phycon.ANG2BOHR
 
     return dist
 
@@ -115,7 +111,7 @@ def heuristic_bond_angle(gra, key1, key2, key3, degree=False, check=False,
         assert hyb2 == 1
         ang = LIN_ANG
 
-    ang *= 1 if degree else DEG2RAD
+    ang *= 1 if degree else phycon.DEG2RAD
 
     return ang
 
@@ -140,7 +136,7 @@ def heuristic_bond_angle_distance(gra, key1, key2, key3,
         a123 = heuristic_bond_angle(
             gra, key1, key2, key3, degree=False, hyb_dct=hyb_dct)
     else:
-        a123 = a123 * DEG2RAD if degree else a123
+        a123 = a123 * phycon.DEG2RAD if degree else a123
 
     d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
     d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
@@ -164,7 +160,7 @@ def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4,
     if d1234 is None:
         d1234 = numpy.pi
     else:
-        d1234 *= DEG2RAD if degree else 1.
+        d1234 *= phycon.DEG2RAD if degree else 1.
 
     d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
     d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
@@ -187,9 +183,11 @@ def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4,
 def van_der_waals_radius(gra, key):
     """ van der waals radius for an atom in the graph (in angstroms)
     """
-    sym_dct = atom_symbols(gra)
-    sym = sym_dct[key]
-    rad = qce.vdwradii.get(sym, units='angstrom')
+
+    symb_dct = atom_symbols(gra)
+    symb = symb_dct[key]
+    rad = ptab.van_der_waals_radius(symb) * phycon.BOHR2ANG
+
     return rad
 
 
@@ -573,7 +571,7 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
     # Convert angles into distances
     dist_dct = dict_.transform_keys(dist_dct, frozenset)
     for (key1, key2, key3), a123 in ang_dct.items():
-        a123 *= DEG2RAD if degree else 1.
+        a123 *= phycon.DEG2RAD if degree else 1.
 
         k12 = frozenset({key1, key2})
         k23 = frozenset({key2, key3})
@@ -590,7 +588,7 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
 
     # Convert dihedrals into distances
     for (key1, key2, key3, key4), d1234 in dih_dct.items():
-        d1234 *= DEG2RAD if degree else 1.
+        d1234 *= phycon.DEG2RAD if degree else 1.
 
         k12 = frozenset({key1, key2})
         k23 = frozenset({key2, key3})
@@ -630,8 +628,8 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
 
         rsz = len(rng_keys)
         a123 = (rsz - 2.) * 180. / rsz
-        la123 = (a123 - 10.) * DEG2RAD
-        ua123 = (a123 + 10.) * DEG2RAD
+        la123 = (a123 - 10.) * phycon.DEG2RAD
+        ua123 = (a123 + 10.) * phycon.DEG2RAD
 
         for key1, key2, key3 in mit.windowed(rng_keys + rng_keys[:2], 3):
             k12 = frozenset({key1, key2})
@@ -691,27 +689,27 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
     """ a convergence checker for error minimization, checking that the
     geometry is qualitatively correct (correct connectivity and stereo)
     """
-    sym_dct = atom_symbols(gra)
+    symb_dct = atom_symbols(gra)
     pairs = set(map(frozenset, itertools.combinations(keys, 2)))
 
     bnd_keys = pairs & bond_keys(gra)
     nob_keys = pairs - bond_keys(gra)
 
-    nob_syms = tuple(tuple(map(sym_dct.__getitem__, nob_key))
-                     for nob_key in nob_keys)
-    bnd_syms = tuple(tuple(map(sym_dct.__getitem__, bnd_key))
-                     for bnd_key in bnd_keys)
+    nob_symbs = tuple(tuple(map(symb_dct.__getitem__, nob_key))
+                      for nob_key in nob_keys)
+    bnd_symbs = tuple(tuple(map(symb_dct.__getitem__, bnd_key))
+                      for bnd_key in bnd_keys)
     nob_idxs = tuple(tuple(map(keys.index, nob_key)) for nob_key in nob_keys)
     bnd_idxs = tuple(tuple(map(keys.index, bnd_key)) for bnd_key in bnd_keys)
 
-    bnd_udists = tuple((rqq_bond_max if 'H' not in sym else
-                        rhh_bond_max if set(sym) == {'H'} else
-                        rqh_bond_max) for sym in bnd_syms)
+    bnd_udists = tuple((rqq_bond_max if 'H' not in symb else
+                        rhh_bond_max if set(symb) == {'H'} else
+                        rqh_bond_max) for symb in bnd_symbs)
 
     diff = bond_nobond_diff
-    nob_ldists = tuple((rqq_bond_max+diff if 'H' not in sym else
-                        rhh_bond_max+diff if set(sym) == {'H'} else
-                        rqh_bond_max+diff) for sym in nob_syms)
+    nob_ldists = tuple((rqq_bond_max+diff if 'H' not in symb else
+                        rhh_bond_max+diff if set(symb) == {'H'} else
+                        rqh_bond_max+diff) for symb in nob_symbs)
 
     bnd_idxs += tuple(map(tuple, map(reversed, bnd_idxs)))
     bnd_idx_vecs = tuple(map(list, zip(*bnd_idxs)))
@@ -721,7 +719,7 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
     nob_idx_vecs = tuple(map(list, zip(*nob_idxs)))
     nob_ldists *= 2
 
-    syms = tuple(map(sym_dct.__getitem__, keys))
+    symbs = tuple(map(symb_dct.__getitem__, keys))
     geo_idx_dct = dict(map(reversed, enumerate(keys)))
     atm_ste_keys = atom_stereo_keys(gra) & set(keys)
     bnd_ste_keys = bond_stereo_keys(gra) & bnd_keys
@@ -741,7 +739,7 @@ def qualitative_convergence_checker_(gra, keys, rqq_bond_max=1.8,
              if nob_ldists else True))
 
         # check for correct stereo parities
-        geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
+        geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
         atom_stereo_check = all(
             (_atom_stereo_parity_from_geometry(gra, atm_key, geo, geo_idx_dct)
              == atm_ste_par_dct[atm_key])
@@ -829,10 +827,10 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
         "Use automol.graph.explicit() to convert to an explicit graph.")
 
     # 0. Get keys and symbols
-    sym_dct = atom_symbols(gra)
+    symb_dct = atom_symbols(gra)
 
     keys = sorted(atom_keys(gra)) if keys is None else keys
-    syms = tuple(map(sym_dct.__getitem__, keys))
+    symbs = tuple(map(symb_dct.__getitem__, keys))
 
     # 1. Generate bounds matrices
     lmat, umat = distance_bounds_matrices(gra, keys)
@@ -857,7 +855,7 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
 
     # 3. Generate a geometry data structure from the coordinates
     xyzs = xmat[:, :3]
-    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
+    geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
 
     return geo
 

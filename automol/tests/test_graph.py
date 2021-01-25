@@ -330,13 +330,13 @@ def test__without_ts_bonds():
 
 
 def test__electron_count():
-    """ test graph.hydrogen_count
+    """ test graph.electron_count
     """
     assert graph.electron_count(C8H13O_CGR) == 69
 
 
 def test__atom_count():
-    """ test graph.hydrogen_count
+    """ test graph.electron_count
     """
     assert graph.atom_count(C8H13O_CGR) == 22
     assert graph.atom_count(C8H13O_CGR, with_implicit=False) == 9
@@ -400,21 +400,19 @@ def test__atom_bond_keys():
 
 
 # # bond properties
-def test__bond_neighbor_bonds():
-    """ test graph.bond_neighbor_bonds
+def test__bond_neighbor_keys():
+    """ test graph.bond_neighbor_keys
     """
-    assert graph.bond_neighbor_bonds(C8H13O_CGR) == {
-        frozenset({1, 4}): frozenset({frozenset({4, 6})}),
-        frozenset({4, 6}): frozenset({frozenset({6, 7}), frozenset({1, 4}),
-                                      frozenset({2, 6})}),
-        frozenset({2, 6}): frozenset({frozenset({6, 7}), frozenset({4, 6})}),
-        frozenset({0, 3}): frozenset({frozenset({3, 5})}),
-        frozenset({6, 7}): frozenset({frozenset({4, 6}), frozenset({8, 7}),
-                                      frozenset({5, 7}), frozenset({2, 6})}),
-        frozenset({8, 7}): frozenset({frozenset({6, 7}), frozenset({5, 7})}),
-        frozenset({3, 5}): frozenset({frozenset({5, 7}), frozenset({0, 3})}),
-        frozenset({5, 7}): frozenset({frozenset({6, 7}), frozenset({3, 5}),
-                                      frozenset({8, 7})})
+
+    assert graph.bond_neighbor_keys(C8H13O_CGR) == {
+        frozenset({1, 4}): frozenset({6}),
+        frozenset({4, 6}): frozenset({1, 2, 7}),
+        frozenset({2, 6}): frozenset({4, 7}),
+        frozenset({0, 3}): frozenset({5}),
+        frozenset({6, 7}): frozenset({8, 2, 4, 5}),
+        frozenset({8, 7}): frozenset({5, 6}),
+        frozenset({3, 5}): frozenset({0, 7}),
+        frozenset({5, 7}): frozenset({8, 3, 6})
     }
 
 
@@ -787,8 +785,10 @@ if __name__ == '__main__':
     # test__backbone_keys()
     # test__explicit_hydrogen_keys()
     # test__stereomers()
+    # test__heuristic_geometry()
     # test__connected_components()
     # test__unsaturated_atom_keys()
+    test__bond_neighbor_keys()
     # test__resonance_dominant_radical_atom_keys()
     # test__remove_bonds()
     # test__resonance_dominant_atom_centered_cumulene_keys()
@@ -802,5 +802,3 @@ if __name__ == '__main__':
     # test__subresonances()
     # test__stereomers()
     # test__without_ts_bonds()
-    # test__bond_neighbor_bonds()
-    test__atom_second_degree_neighbor_keys()

@@ -52,6 +52,12 @@ from automol.reac._scan import addition_scan_coordinate
 from automol.reac._scan import insertion_scan_coordinate
 from automol.reac._scan import substitution_scan_coordinate
 from automol.reac._scan import scan_coordinate
+# reaction products
+from automol.reac._prod import prod_hydrogen_abstraction
+from automol.reac._prod import prod_addition
+from automol.reac._prod import prod_hydrogen_migration
+from automol.reac._prod import prod_beta_scission
+from automol.reac._prod import prod_homolytic_scission
 
 
 __all__ = [
@@ -107,4 +113,10 @@ __all__ = [
     'insertion_scan_coordinate',
     'substitution_scan_coordinate',
     'scan_coordinate',
+    # reaction products
+    'prod_hydrogen_abstraction',
+    'prod_addition',
+    'prod_hydrogen_migration',
+    'prod_beta_scission',
+    'prod_homolytic_scission'
 ]

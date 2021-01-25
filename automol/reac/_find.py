@@ -6,9 +6,9 @@ Function arguments:
     likewise for the product graphs. Otherwise, there would be no way to
     express the bonds broken and formed between reactants.
 """
+
 import itertools
 import more_itertools as mit
-from qcelemental import constants as qcc
 import automol.convert.graph
 import automol.geom.ts
 from automol import par
@@ -34,8 +34,6 @@ from automol.graph import rings_atom_keys
 from automol.graph import cycle_ring_atom_key_to_front
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
-
-ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
 
 
 def trivial(rct_gras, prd_gras):

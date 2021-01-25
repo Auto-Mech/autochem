@@ -10,6 +10,7 @@ from automol.zmat._zmat import symbols
 from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import value_matrix
+from automol.zmat._zmat import value_dictionary
 from automol.zmat._zmat import distance
 from automol.zmat._zmat import central_angle
 from automol.zmat._zmat import dihedral_angle
@@ -77,10 +78,10 @@ def torsion_coordinate_names(zma):
     return tors_names
 
 
-def graph(zma, remove_stereo=False):
+def graph(zma, stereo=True):
     """ z-matrix => graph
     """
-    return automol.convert.zmat.graph(zma, remove_stereo=remove_stereo)
+    return automol.convert.zmat.graph(zma, stereo=stereo)
 
 
 def connectivity_graph(zma,
@@ -110,6 +111,7 @@ __all__ = [
     'key_matrix',
     'name_matrix',
     'value_matrix',
+    'value_dictionary',
     'distance',
     'central_angle',
     'dihedral_angle',

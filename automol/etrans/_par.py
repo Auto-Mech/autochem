@@ -2,25 +2,16 @@
   Values to calculate effective parameters for energy transport
 """
 
-# Empirically determined parameters indexed by bath gas
-# prob need to be uncombined and units changed
-LJ_DCT = {
-    'InChI=1S/N2/c1-2': {
-        'InChI=1S/H': (162.69397, 1.72028),
-        'InChI=1S/H2/h1H': (91.51536, 2.38028),
-        'InChI=1S/N2/c1-2': (325.74586, 3.41972)
-    }
-}
-
-
-# Estimation 
 def read_lj_dct(bath, target):
-    """ Read the LJ_DCT
-    """
+    """ Read the parameters from the internal LJ_DCT that can be
+        used to caluclate an effective Lennard-Jones epsilon and sigma
+        values for the interaction of a bath and target.
 
-    print('lj dct')
-    print('bath', bath)
-    print('target', target)
+        :param bath: InChI string for bath gas species
+        :type bath: str
+        :param target: InChI string for target gas species
+        :type target: str
+    """
 
     bath_dct = LJ_EST_DCT.get(bath, None)
     if bath_dct is not None:
@@ -32,10 +23,17 @@ def read_lj_dct(bath, target):
 
 
 def read_z_alpha_dct(bath, target):
-    """ Read the LJ_DCT
+    """ Read the parameters from the internal Z_DCT that can be
+        used to caluclate an alpha parameter
+        for the collision of a bath and target.
+
+        :param bath: InChI string for bath gas species
+        :type bath: str
+        :param target: InChI string for target gas species
+        :type target: str
     """
 
-    target_dct = Z_EST_ALPHA_DCT.get(bath, None)
+    target_dct = Z_ALPHA_EST_DCT.get(bath, None)
     if target_dct is not None:
         z_alpha_params = target_dct.get(target, None)
     else:
@@ -43,6 +41,17 @@ def read_z_alpha_dct(bath, target):
 
     return z_alpha_params
 
+
+# Dictionaries of parameters
+# Empirically determined parameters indexed by bath gas
+# prob need to be uncombined and units changed
+LJ_DCT = {
+    'InChI=1S/N2/c1-2': {
+        'InChI=1S/H': (162.69397, 1.72028),
+        'InChI=1S/H2/h1H': (91.51536, 2.38028),
+        'InChI=1S/N2/c1-2': (325.74586, 3.41972)
+    }
+}
 
 LJ_EST_DCT = {
 

@@ -1,18 +1,13 @@
 """ generate ts geometries
 """
+
 import numpy
 import scipy
-from qcelemental import constants as qcc
+from phydat import phycon
 import automol.graph
 import automol.convert.geom
 from automol.util import vec
-from automol.geom._geom import count
-from automol.geom._geom import symbols
-from automol.geom._geom import distance
-from automol.geom._geom import coordinates
-
-DEG2RAD = qcc.conversion_factor('degree', 'radian')
-RAD2DEG = qcc.conversion_factor('radian', 'degree')
+from automol.geom import _base as geom_base
 
 
 def distances(geos, bonds=True, angles=True, angstrom=True):
@@ -46,10 +41,10 @@ def bond_distances(geos, angstrom=True):
         gra = automol.convert.geom.connectivity_graph(geo)
         pairs = list(automol.graph.bond_keys(gra))
         keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
-        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
+        dists = [geom_base.distance(geo, *p, angstrom=angstrom) for p in pairs]
         dist_dct.update(dict(zip(keys, dists)))
 
-        shift += count(geo)
+        shift += geom_base.count(geo)
 
     return dist_dct
 
@@ -68,10 +63,10 @@ def angle_distances(geos, angstrom=True):
         gra = automol.convert.geom.connectivity_graph(geo)
         pairs = [(k1, k3) for k1, _, k3 in automol.graph.angle_keys(gra)]
         keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
-        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
+        dists = [geom_base.distance(geo, *p, angstrom=angstrom) for p in pairs]
         dist_dct.update(dict(zip(keys, dists)))
 
-        shift += count(geo)
+        shift += geom_base.count(geo)
 
     return dist_dct
 
@@ -84,10 +79,10 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     Variables set the coordinates for 1-2...3-4 where 1-2 are bonded atoms in
     geo1 and 3-4 are bonded atoms in geo2.
     """
-    key3 = key3 - count(geo1)
-    a123 *= DEG2RAD if degree else 1
-    a234 *= DEG2RAD if degree else 1
-    d1234 *= DEG2RAD if degree else 1
+    key3 = key3 - geom_base.count(geo1)
+    a123 *= phycon.DEG2RAD if degree else 1
+    a234 *= phycon.DEG2RAD if degree else 1
+    d1234 *= phycon.DEG2RAD if degree else 1
 
     gra1, gra2 = map(automol.convert.geom.connectivity_graph, (geo1, geo2))
     key1 = (automol.graph.atom_neighbor_key(gra1, key2) if key1 is None
@@ -95,10 +90,10 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     key4 = (automol.graph.atom_neighbor_key(gra2, key3) if key4 is None
             else key4)
 
-    syms1 = symbols(geo1)
-    syms2 = symbols(geo2)
-    xyzs1 = coordinates(geo1, angstrom=angstrom)
-    xyzs2 = coordinates(geo2, angstrom=angstrom)
+    syms1 = geom_base.symbols(geo1)
+    syms2 = geom_base.symbols(geo2)
+    xyzs1 = geom_base.coordinates(geo1, angstrom=angstrom)
+    xyzs2 = geom_base.coordinates(geo2, angstrom=angstrom)
 
     xyz1, xyz2 = map(xyzs1.__getitem__, (key1, key2))
     orig_xyz3, orig_xyz4 = map(xyzs2.__getitem__, (key3, key4))
@@ -124,7 +119,7 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
                               dih=dih, xyz3=xyz0)
 
     # Don't use the dihedral angle if 1-2-3 are linear
-    if numpy.abs(a123 * RAD2DEG - 180.) > 5.:
+    if numpy.abs(a123 * phycon.RAD2DEG - 180.) > 5.:
         xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2,
                                   dih=d1234, xyz3=xyz1)
     else:
