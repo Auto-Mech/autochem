@@ -34,7 +34,7 @@ def grid(zma, tors_name, scan_increment, frm_bnd_keys=None, brk_bnd_keys=None):
     """ scan grids
     """
 
-    val_dct = automol.zmatrix.values(zma)
+    val_dct = automol.zmat.values(zma)
 
     linspace = _scan_linspace(
         zma, tors_name, scan_increment=scan_increment,
@@ -62,7 +62,7 @@ def axis(zma, tors_name):
     """ Determine the axis about which the rotational groups
         of the torsion group rotate: R1-X1-X2-R2
     """
-    coo_dct = automol.zmatrix.coordinates(zma, multi=False)
+    coo_dct = automol.zmat.coordinates(zma, multi=False)
     return coo_dct[tors_name][1:3]
 
 
@@ -75,7 +75,7 @@ def torsional_groups(zma, tors_name):
     tors_key, ts_bnd = _tors_key(tors_axis, frm_bnd_key=None, brk_bnd_key=None)
 
     # Initialize the group
-    gra = automol.zmatrix.graph(zma, remove_stereo=True)
+    gra = automol.zmat.graph(zma, remove_stereo=True)
     if ts_bnd not in automol.graph.bond_keys(gra):
         gra = automol.graph.add_ts_bonds(gra, keys=[ts_bnd])
     group = list(
@@ -122,7 +122,7 @@ def _tors_key(tors_axis, frm_bnd_keys=None, brk_bnd_keys=None):
 def _add_ts_bnd_to_torsional_group(zma, ts_bnd, rxn_class=None):
     """ Add the group for a torsion to rotational group
     """
-    n_atm = automol.zmatrix.count(zma)
+    n_atm = automol.zmat.count(zma)
     if 'addition' in rxn_class or 'abstraction' in rxn_class:
         group2 = []
         ts_bnd1 = min(ts_bnd)
@@ -188,8 +188,8 @@ def _dihedral_edge_keys(zma):
     """ dihedral bonds, by name
     """
 
-    coo_dct = automol.zmatrix.coordinates(zma)
-    dih_names = automol.zmatrix.dihedral_angle_names(zma)
+    coo_dct = automol.zmat.coordinates(zma)
+    dih_names = automol.zmat.dihedral_angle_names(zma)
     dih_keys_lst = tuple(map(coo_dct.__getitem__, dih_names))
     dih_edg_key_dct = {dih_name: frozenset(dih_key[1:3])
                        for dih_name, dih_keys in zip(dih_names, dih_keys_lst)

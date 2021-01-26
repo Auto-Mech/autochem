@@ -276,9 +276,9 @@ def _ts_bnd_len(ts_zma, trans, choice):
         ts_keys = automol.graph.trans.broken_bond_keys(trans)
 
     # Get the symbols of the atoms in the TS bond
-    ts_bnd_name = automol.zmatrix.bond_key_from_idxs(ts_zma, ts_keys)
-    dist_coo, = automol.zmatrix.coordinates(ts_zma)[ts_bnd_name]
-    symbs = automol.zmatrix.symbols(ts_zma)
+    ts_bnd_name = automol.zmat.bond_key_from_idxs(ts_zma, ts_keys)
+    dist_coo, = automol.zmat.coordinates(ts_zma)[ts_bnd_name]
+    symbs = automol.zmat.symbols(ts_zma)
     ts_bnd_symbs = tuple(sorted(map(symbs.__getitem__, dist_coo)))
 
     # Obtain the standard X-Y bond length for atoms X,Y in the TS Bond

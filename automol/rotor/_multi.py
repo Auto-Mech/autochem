@@ -54,7 +54,7 @@ def _is_methyl_rotor(zma, axis, grp1, grp2):
     """ Identify if the rotor
     """
 
-    symbs = automol.zmatrix.symbols(zma)
+    symbs = automol.zmat.symbols(zma)
     grp1_symbs = sorted(list(symbs[idx] for idx in grp1))
     grp2_symbs = sorted(list(symbs[idx] for idx in grp2))
 
