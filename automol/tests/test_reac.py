@@ -2,12 +2,10 @@
 """
 
 import automol
-import sys
 
 # ZMA Bank
 C4H10_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('CCCC')))
-print(C4H10_ZMA)
 OH_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('[OH]')))
 H_ZMA = automol.geom.zmatrix(
