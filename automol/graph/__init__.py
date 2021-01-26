@@ -18,6 +18,8 @@ from automol.graph._graph_base import set_bond_stereo_parities
 # I/O
 from automol.graph._graph_base import string
 from automol.graph._graph_base import from_string
+from automol.graph._graph_base import yaml_dictionary
+from automol.graph._graph_base import from_yaml_dictionary
 
 # graph theory library
 # setters
@@ -268,6 +270,8 @@ __all__ = [
     # I/O
     'string',
     'from_string',
+    'yaml_dictionary',
+    'from_yaml_dictionary',
 
     # setters
     'relabel',

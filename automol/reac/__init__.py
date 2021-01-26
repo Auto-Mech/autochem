@@ -2,6 +2,8 @@
 """
 # base reaction class
 from automol.reac._reac import Reaction
+from automol.reac._reac import string
+from automol.reac._reac import from_string
 from automol.reac._reac import reverse
 from automol.reac._reac import standard_keys
 from automol.reac._reac import standard_keys_with_sorted_geometries
@@ -63,6 +65,8 @@ from automol.reac._prod import prod_homolytic_scission
 __all__ = [
     # base reaction class
     'Reaction',
+    'string',
+    'from_string',
     'reverse',
     'standard_keys',
     'standard_keys_with_sorted_geometries',

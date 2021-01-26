@@ -7,6 +7,7 @@ Function arguments:
     express the bonds broken and formed between reactants.
 """
 import itertools
+import yaml
 import numpy
 import automol.convert.graph
 import automol.geom.ts
@@ -17,8 +18,6 @@ from automol.graph import ts
 
 class Reaction:
     """ Describes a specific reaction
-
-    Methods with trailing underscores have a side-effect
 
     :param class_: the name of the reaction class
     :type class_: str
@@ -138,6 +137,72 @@ class Reaction:
                    self.reactants_keys == other.reactants_keys and
                    self.products_keys == other.products_keys)
         return ret
+
+
+def string(rxn, one_indexed=True):
+    """ Write a reaction object to a string
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param one_indexed: parameter to store keys in one-indexing
+        :type one_indexed: bool
+        :rtype: str
+    """
+    rcts_keys = list(map(list, rxn.reactants_keys))
+    prds_keys = list(map(list, rxn.products_keys))
+
+    if one_indexed:
+        rcts_keys = [[k+1 for k in ks] for ks in rcts_keys]
+        prds_keys = [[k+1 for k in ks] for ks in prds_keys]
+
+    forw_ts_dct = automol.graph.yaml_dictionary(rxn.forward_ts_graph,
+                                                one_indexed=one_indexed)
+    back_ts_dct = automol.graph.yaml_dictionary(rxn.backward_ts_graph,
+                                                one_indexed=one_indexed)
+    yaml_dct = {}
+    yaml_dct['reaction class'] = rxn.class_
+    yaml_dct['forward TS atoms'] = forw_ts_dct['atoms']
+    yaml_dct['forward TS bonds'] = forw_ts_dct['bonds']
+    yaml_dct['reactants keys'] = rcts_keys
+    yaml_dct['backward TS atoms'] = back_ts_dct['atoms']
+    yaml_dct['backward TS bonds'] = back_ts_dct['bonds']
+    yaml_dct['products keys'] = prds_keys
+    rxn_str = yaml.dump(
+        yaml_dct, default_flow_style=None, sort_keys=False)
+    return rxn_str
+
+
+def from_string(rxn_str, one_indexed=True):
+    """ Write a reaction object to a string
+
+        :param rxn_str: string containing the reaction object
+        :type rxn_str: str
+        :param one_indexed: parameter to store keys in one-indexing
+        :type one_indexed: bool
+        :rtype: Reaction
+    """
+    yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
+
+    rxn_cls = yaml_dct['reaction class']
+    rcts_keys = yaml_dct['reactants keys']
+    prds_keys = yaml_dct['products keys']
+
+    if one_indexed:
+        rcts_keys = [[k-1 for k in ks] for ks in rcts_keys]
+        prds_keys = [[k-1 for k in ks] for ks in prds_keys]
+
+    forw_ts_dct = {
+        'atoms': yaml_dct['forward TS atoms'],
+        'bonds': yaml_dct['forward TS bonds']}
+    forw_tsg = automol.graph.from_yaml_dictionary(forw_ts_dct,
+                                                  one_indexed=one_indexed)
+    back_ts_dct = {
+        'atoms': yaml_dct['backward TS atoms'],
+        'bonds': yaml_dct['backward TS bonds']}
+    back_tsg = automol.graph.from_yaml_dictionary(back_ts_dct,
+                                                  one_indexed=one_indexed)
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    return rxn
 
 
 def reverse(rxn):
