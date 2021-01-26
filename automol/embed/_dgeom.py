@@ -76,6 +76,9 @@ def triangle_smooth_bounds_matrices(lmat, umat):
             if lmat[i, j] < lmat[j, k] - umat[k, i]:
                 lmat[i, j] = lmat[j, k] - umat[k, i]
 
+            if numpy.allclose(lmat[i, j], umat[i, j]):
+                lmat[i, j] = umat[i, j] = numpy.round(lmat[i, j], 6)
+
             assert lmat[i, j] <= umat[i, j], (
                 "Lower bound exceeds upper bound. Something is wrong!",
                 lmat[i, j], ">", umat[i, j])

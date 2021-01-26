@@ -1,13 +1,79 @@
 """ test automol.reac
 """
 
-import automol
 import sys
+import automol
+
+
+SUBSTITUTION_RXN_STR = """
+reaction class: substitution
+forward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 0.9, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 0, stereo_parity: null}
+  2-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  2-8: {order: 0.1, stereo_parity: null}
+  8-9: {order: 1, stereo_parity: null}
+  8-10: {order: 1, stereo_parity: null}
+  8-11: {order: 1, stereo_parity: null}
+  9-12: {order: 1, stereo_parity: null}
+  9-13: {order: 1, stereo_parity: null}
+  9-14: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7]
+- [8, 9, 10, 11, 12, 13, 14]
+backward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-3: {order: 0.9, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 1, stereo_parity: null}
+  1-6: {order: 1, stereo_parity: null}
+  1-12: {order: 0.1, stereo_parity: null}
+  2-3: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  2-8: {order: 1, stereo_parity: null}
+  2-9: {order: 1, stereo_parity: null}
+  3-10: {order: 1, stereo_parity: null}
+  3-11: {order: 1, stereo_parity: null}
+  12-13: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+- [12, 13]
+"""
 
 # ZMA Bank
 C4H10_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('CCCC')))
-print(C4H10_ZMA)
 OH_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('[OH]')))
 H_ZMA = automol.geom.zmatrix(
@@ -64,6 +130,14 @@ def test__species__demo():
         print('\tgroup 1:', groups[0])
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
+
+
+def test__reac__string():
+    """ test string conversion for reaction objects
+    """
+    rxn_str = SUBSTITUTION_RXN_STR.strip()
+    assert (automol.reac.string(automol.reac.from_string(rxn_str)).strip()
+            == rxn_str)
 
 
 def test__reac__hydrogen_migration():
@@ -751,3 +825,8 @@ def test__prod__homolytic_scission():
           frozenset({1, 6}): (1, None), frozenset({8, 12}): (1, None),
           frozenset({9, 5}): (1, None), frozenset({8, 5}): (1, None)}),
         ({11: ('H', 0, None)}, {}))
+
+
+if __name__ == '__main__':
+    # test__reac__string()
+    test__reac__substitution()
