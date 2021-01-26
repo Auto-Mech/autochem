@@ -67,6 +67,7 @@ from automol.geom._comp import almost_equal
 from automol.geom._comp import minimum_distance
 from automol.geom._comp import almost_equal_coulomb_spectrum
 from automol.geom._comp import argunique_coulomb_spectrum
+from automol.geom._comp import is_unique
 # extras
 from automol.geom._extra import end_group_symmetry_factor
 from automol.geom._extra import rot_permutated_geoms
@@ -200,7 +201,6 @@ __all__ = [
     'transform_by_matrix',
     'rotate',
     'euler_rotate',
-    'move_coordinates',
     'reflect_coordinates',
     'mass_centered',
     # comparisons
@@ -211,6 +211,7 @@ __all__ = [
     'almost_equal_coulomb_spectrum',
     'argunique_coulomb_spectrum',
     'almost_equal_dist_matrix',
+    'is_unique',
     # extras
     'end_group_symmetry_factor',
     'rot_permutated_geoms',
