@@ -175,8 +175,9 @@ def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
     """form distance matrix for a set of xyz coordinates
     """
 
-    for i in range(len(geo1)):
-        for j in range(len(geo1)):
+    natoms = len(geo1)
+    for i in range(natoms):
+        for j in range(natoms):
             dist_mat1_ij = geom_base.distance(geo1, i, j)
             dist_mat2_ij = geom_base.distance(geo2, i, j)
             if abs(dist_mat1_ij - dist_mat2_ij) > thresh:
@@ -216,62 +217,71 @@ def are_torsions_same(geo, geoi, ts_bnds=()):
 
 
 # Checks
-def is_unique(lst, lsti, check_dct):
+def is_unique(geo, geo_lst, check_dct=None):
     """ Compare one of many structure features of a geometry to that of
         a list of geometries to see if it is unique.
+
+        order of atoms also impacts the comparison as well
     """
+    
+    if check_dct is None:
+        check_dct = CHECK_DEFAULT_DCT
 
     unique = True
-    for pair in lsti:
-        for key, val in check_dct:
-            if key != 'stereo' or val is not None:
-                kwargs = {}
+    sym_idx = None
+    for idx, geoi in enumerate(geo_lst):
+        for key, val in check_dct.items():
+            if key == 'stereo':
+                if not _stereo(geo, geoi):
+                    unique = False
+                    like_idx = idx
+                    break
             else:
-                kwargs = {'chk_arg': val}
-            if not CHECK_DCT[key](lst, pair, **kwargs):
-                unique = False
+                kwargs = {'chk_arg': val} if val is not None else {}
+                if not CHECK_DCT[key](geo, geoi, **kwargs):
+                    unique = False
+                    like_idx = idx
+                    break
+        if not unique:
+            break
 
-    return unique
-
-
-def _ene(lst, lsti, chk_arg=2e-5):
-    """ Compare the energies of two geometries.
-    """
-    ene, enei = lst[0], lsti[0]
-    return abs(ene-enei) < chk_arg
+    return unique, like_idx
 
 
-def _dist(lst, lsti, chk_arg=3e-1):
+def _dist(geo, geoi, chk_arg=3e-1):
     """ Compare the distance matrices of two geometries.
     """
-    geo, geoi = lst[1], lsti[1]
     return almost_equal_dist_matrix(geo, geoi, thresh=chk_arg)
 
 
-def _tors(lst, lsti, chk_arg=()):
+def _tors(geo, geoi, chk_arg=()):
     """ Compare the torsions of two geometries
     """
-    geo, geoi = lst[1], lsti[1]
     return are_torsions_same(geo, geoi, ts_bnds=chk_arg)
 
 
-def _stereo(lst, lsti):
+def _stereo(geo, geoi):
     """ Compare the stereochemistry of two geometries
     """
-    ich = automol.convert.geom.inchi(lst[1])
-    ichi = automol.convert.geom.inchi(lsti[1])
+    ich = automol.convert.geom.inchi(geo)
+    ichi = automol.convert.geom.inchi(geoi)
     return bool(ich == ichi)
 
 
-def _coloumb(lst, lsti, check_arg=1e-2):
+def _coloumb(geo, geoi, chk_arg=1e-2):
     """ Compare the Coulomb spectrum of geometries.
     """
-    geo, geoi = lst[1], lsti[1]
-    return almost_equal_coulomb_spectrum(geo, geoi, rtol=check_arg)
+    return almost_equal_coulomb_spectrum(geo, geoi, rtol=chk_arg)
 
 
-CHECK_DCT = {
-    'ene': _ene,
+CHECK_DEFAULT_DCT = {
+    'dist': 3.5e-1,
+    'coloumb': 1.5e-2,
+    'stereo': None,
+    'tors': None
+}
+
+CHECK_FXN_DCT = {
     'dist': _dist,
     'tors': _tors,
     'stereo': _stereo,

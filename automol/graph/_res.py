@@ -203,9 +203,10 @@ def radical_group_dct(gra):
     for rad in rads:
         key = atms[rad][0]
         if key in groups:
-            groups[atms[rad][0]].append(atom_groups(gra, rad))
+            groups[atms[rad][0]] += (atom_groups(gra, rad),)
         else:
             groups[atms[rad][0]] = atom_groups(gra, rad)
+
     return groups
 
 
@@ -216,16 +217,15 @@ def radical_dissociation_prods(gra, pgra1):
     pgra2 = None
     rads = sing_res_dom_radical_atom_keys(gra)
     adj_atms = atom_neighbor_keys(gra)
+    # adj_idxs = tuple(adj_atms[rad] for rad in rads)
     for rad in rads:
         for adj in adj_atms[rad]:
-            groups = atom_groups(gra, adj)
-            if full_isomorphism(explicit(groups[0]), explicit(pgra1)):
-                pgra2 = remove_atoms(gra, atom_keys(groups[0]))
-                pgra2 = remove_bonds(pgra2, bond_keys(groups[0]))
-            elif full_isomorphism(explicit(groups[1]), explicit(pgra1)):
-                pgra2 = remove_atoms(gra, atom_keys(groups[1]))
-                if bond_keys(groups[1]) in pgra2:
-                    pgra2 = remove_bonds(pgra2, bond_keys(groups[1]))
+            for group in atom_groups(gra, adj):
+                if full_isomorphism(explicit(group), explicit(pgra1)):
+                    pgra2 = remove_atoms(gra, atom_keys(group))
+                    # pgra2 = remove_bonds(pgra2, bond_keys(group))
+                    if bond_keys(group) in pgra2:
+                        pgra2 = remove_bonds(pgra2, bond_keys(group))
     return (pgra1, pgra2)
 
 

@@ -28,3 +28,22 @@ def equivalence_partition(iterable, relation):
         if not found:  # it is in a new class
             classes.append(set([obj]))
     return classes
+
+
+# Useful functions on Python objects
+def value_similar_to(val, lst, thresh):
+    """ Check if a value is close to some lst of values within some threshold
+    """
+    return all(abs(val - vali) < thresh for vali in lst)
+
+
+def scale_iterable(iterable, scale_factor):
+    """ Scale some type of iterable of floats by a scale factor
+    """
+
+    if isinstance(iterable, list):
+        scaled_iterable = list(val * scale_factor for val in iterable)
+    elif isinstance(iterable, tuple):
+        scaled_iterable = tuple(val * scale_factor for val in iterable)
+
+    return scaled_iterable

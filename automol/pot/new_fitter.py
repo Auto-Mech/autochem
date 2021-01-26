@@ -1,8 +1,13 @@
 """
-
+ Handle fits to potentials
 """
 
-def _hrpot_spline_fitter(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
+
+import numpy
+from scipy.interpolate import interp1d
+
+
+def spline_fit(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     """ Get a physical hindered rotor potential via a series of spline fits
     """
 
@@ -16,25 +21,23 @@ def _hrpot_spline_fitter(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     print_pot = False
     if any(val > max_thresh for val in pot):
         print_pot = True
-        # max_pot = max(pot)
-        # ioprinter.warning_message(
-        #     'Found pot val of {0:.2f}'.format(max_pot),
-        #     ' which is larger than',
-        #     'the typical maximum for a torsional potential')
+        max_pot = max(pot)
+        print('Warning: Found pot val of {0:.2f}'.format(max_pot),
+              ' which is larger than',
+              'the typical maximum for a torsional potential')
     # reset any negative values for the first grid point to 0.
     if pot[0] < 0.:
-        # ioprinter.error_message('The first potential value should be 0.')
+        print('ERROR: The first potential value should be 0.')
         pot[0] = 0.
-    # if any(val < min_thresh for val in pot):
-        # print_pot = True
-        # min_pot = min(pot)
-        # ioprinter.warning_message(
-        #     'Found pot val of {0:.2f}'.format(min_pot),
-        #     ' which is below',
-        #     '{0} kcal. Refit w/ positives'.format(min_thresh))
+    if any(val < min_thresh for val in pot):
+        print_pot = True
+        min_pot = min(pot)
+        print('Warning: Found pot val of {0:.2f}'.format(min_pot),
+              ' which is below',
+              '{0} kcal. Refit w/ positives'.format(min_thresh))
 
-    # if print_pot:
-    #     ioprinter.debug_message('Potential before spline:', pot)
+    if print_pot:
+        print('Potential before spline:', pot)
 
     # Build a potential list from only successful calculations
     # First replace high potential values with max_thresh
@@ -50,7 +53,7 @@ def _hrpot_spline_fitter(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
                 pot_success.append(max_thresh)
 
     if len(pot_success) > 3:
-    # Build a new potential list using a spline fit of the HR potential
+        # Build a new potential list using a spline fit of the HR potential
         pot_spl = interp1d(
             numpy.array(idx_success), numpy.array(pot_success), kind='cubic')
         for idx in range(lpot):
@@ -58,9 +61,8 @@ def _hrpot_spline_fitter(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
 
     # Do second spline fit of only positive values if any negative values found
     if any(val < min_thresh for val in pot):
-        # ioprinter.warning_message(
-        #     'Still found negative potential values after first spline')
-        # ioprinter.debug_message('Potential after spline:', pot)
+        print('Still found negative potential values after first spline')
+        print('Potential after spline:', pot)
         if len(pot_success) > 3:
             x_pos = numpy.array([i for i in range(lpot)
                                  if pot[i] >= min_thresh])
@@ -75,11 +77,11 @@ def _hrpot_spline_fitter(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
             for idx in range(lpot):
                 pot_pos_fit.append(pot[idx])
 
-        ioprinter.debug_message('Potential after spline:', pot_pos_fit)
+        print('Potential after spline:', pot_pos_fit)
         # Perform second check to see if negative potentials have been fixed
         if any(val < min_thresh for val in pot_pos_fit):
-            ioprinter.warning_message('Still found negative potential values after second spline')
-            ioprinter.info_message('Replace with linear interpolation of positive values')
+            print('Still found negative potential values after second spline')
+            print('Replace with linear interpolation of positive values')
             neg_idxs = [i for i in range(lpot) if pot_pos_fit[i] < min_thresh]
             clean_pot = []
             for i in range(lpot):
@@ -118,3 +120,56 @@ def _hrpot_spline_fitter(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
 
     return fin_dct
 
+
+def spline_fitter(xarr, yarr):
+    """
+    """
+    x_pos = numpy.array([i for i in range(lpot)
+                         if pot[i] >= min_thresh])
+    y_pos = numpy.array([pot[i] for i in range(lpot)
+                         if pot[i] >= min_thresh])
+    pos_pot_spl = interp1d(x_pos, y_pos, kind='cubic')
+
+
+def linear_fitter(pot):
+    """ Do a one-dimensional linear fitter
+    """
+
+    neg_idxs = [i for i in range(lpot) if pot_pos_fit[i] < min_thresh]
+    clean_pot = []
+    if i in neg_idxs:
+        # Find the indices for positive vals around negative value
+        idx_0 = i - 1
+        while idx_0 in neg_idxs:
+            idx_0 = idx_0 - 1
+        for j in range(i, lpot):
+            if pot_pos_fit[j] >= min_thresh:
+                idx_1 = j
+                break
+        pot = _linear_fitter(pot)
+
+
+def _linear_fit(pot, idx_0, idx_1):
+    """ Linear fitter
+    """
+    interp_val = (
+        pot[idx_0] * (1.0-((i-idx_0)/(idx_1-idx_0))) +
+        pot[idx_1] * ((i-idx_0)/(idx_1-idx_0))
+    )
+
+
+def _re_set_high_values(pot, max_thresh=600., min_thresh=-0.0001):
+    """ Rebuild the potential
+    """
+
+    idx_success = []
+    pot_success = []
+    for idx in range(lpot):
+        if pot[idx] < 600. and pot[idx] > min_thresh:
+            idx_success.append(idx)
+            if pot[idx] < max_thresh:
+                pot_success.append(pot[idx])
+            else:
+                pot_success.append(max_thresh)
+
+    return pot
