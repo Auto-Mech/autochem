@@ -2,7 +2,8 @@
     Torsional parameters
 """
 
-class Torsion():
+
+class TorsionParam():
     """ Info which can define a new torsion (need new class name)
     """
 
@@ -17,7 +18,7 @@ class Torsion():
     ZMATRIX = 'zma'
 
 
-class Model():
+class TorsionModel():
     """ Torsional models
     """
     1DHR = '1dhr'

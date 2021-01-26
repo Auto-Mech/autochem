@@ -164,6 +164,12 @@ def test__transform_potential():
         assert numpy.isclose(val, ref_idx_pot2[key])
 
 
+def test__fitter():
+    """ test pot.
+    """
+    pot = automol.pot.spline_fit(pot_dct, min_thresh=-0.0001, max_thresh=50.0)
+
+
 def test__repulsion():
     """ test prop.low_repulsion_struct
     """

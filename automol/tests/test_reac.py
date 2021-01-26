@@ -70,6 +70,7 @@ products keys:
 - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 - [12, 13]
 """
+import automol
 
 # ZMA Bank
 C4H10_ZMA = automol.geom.zmatrix(
