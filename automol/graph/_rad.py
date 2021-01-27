@@ -4,7 +4,7 @@
 from automol.graph._graph import unsaturated_atom_keys
 from automol.graph._graph import add_atom_explicit_hydrogen_keys
 from automol.graph._graph import remove_atoms
-from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph_base import atom_symbols
 
@@ -30,7 +30,7 @@ def isomorphic_radical_graphs(gra):
                 gra, {unsat_key: [h_atm_key]})
 
             # Remove hydrogen from saturated atom
-            neighbors = atom_neighbor_keys(new_graph)
+            neighbors = atoms_neighbor_atom_keys(new_graph)
             for neigh in neighbors[aidx]:
                 if symbols[neigh] == 'H':
                     aneighbor = neigh

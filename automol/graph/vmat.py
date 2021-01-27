@@ -6,8 +6,8 @@ from automol.graph._graph import atom_count
 from automol.graph._graph import atom_keys
 from automol.graph._graph import atom_symbols
 from automol.graph._graph import remove_bonds
-from automol.graph._graph import atom_neighbor_keys
-from automol.graph._graph import sorted_atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
+from automol.graph._graph import atoms_sorted_neighbor_atom_keys
 from automol.graph._graph import is_connected
 from automol.graph._graph import terminal_heavy_atom_keys
 from automol.graph._graph import shortest_path_between_groups
@@ -273,7 +273,7 @@ def start_at(gra, key):
     missing from it
     """
     symb_dct = atom_symbols(gra)
-    ngb_keys_dct = sorted_atom_neighbor_keys(
+    ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
         gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,))
 
     ngb_keys = ngb_keys_dct[key]
@@ -334,7 +334,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
 
     zma_keys = list(zma_keys)
     symb_dct = atom_symbols(gra)
-    ngb_keys_dct = sorted_atom_neighbor_keys(
+    ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
         gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,))
 
     def _continue(key1, key2, key3, vma, zma_keys):
@@ -395,7 +395,7 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
     :param keys: keys in the chain; the first atom should already be specified
     :param zma_keys: keys currently in the v-matrix
     """
-    ngb_keys_dct = sorted_atom_neighbor_keys(
+    ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
         gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,))
 
     key3 = keys[0]
@@ -412,7 +412,7 @@ def _extend_chain_to_include_terminal_hydrogens(gra, keys,
     """ extend each end of a chain to include terminal hydrogens, if any
     """
     symb_dct = atom_symbols(gra)
-    atm_ngb_dct = atom_neighbor_keys(gra)
+    atm_ngb_dct = atoms_neighbor_atom_keys(gra)
 
     sta_ngbs = atm_ngb_dct[keys[0]] - {keys[1]}
     end_ngbs = atm_ngb_dct[keys[-1]] - {keys[-2]}
@@ -435,7 +435,7 @@ def _atoms_missing_neighbors(gra, zma_keys):
     """ get atoms from the list currently in the v-matrix with neighbors that
     are not in the v-matrix
     """
-    ngb_keys_dct = atom_neighbor_keys(gra)
+    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     keys = []
     for key in zma_keys:
         if any(k not in zma_keys for k in ngb_keys_dct[key]):

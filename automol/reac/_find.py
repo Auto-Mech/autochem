@@ -27,7 +27,7 @@ from automol.graph import full_isomorphism
 from automol.graph import union_from_sequence
 from automol.graph import unsaturated_atom_keys
 from automol.graph import without_stereo_parities
-from automol.graph import sorted_atom_neighbor_keys
+from automol.graph import atoms_sorted_neighbor_atom_keys
 from automol.graph import add_atom_explicit_hydrogen_keys
 from automol.graph import rings_bond_keys
 from automol.graph import rings_atom_keys
@@ -231,7 +231,7 @@ def eliminations(rct_gras, prd_gras):
         rgra, = rct_gras
         pgra = union_from_sequence(prd_gras)
 
-        rngb_keys = sorted_atom_neighbor_keys(rgra)
+        rngb_keys = atoms_sorted_neighbor_atom_keys(rgra)
 
         frm1_keys = atom_keys(rgra, excl_syms=('H',))
         frm2_keys = atom_keys(rgra)

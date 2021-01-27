@@ -12,7 +12,7 @@ from automol.graph._graph import remove_atoms
 from automol.graph._graph import bond_orders
 from automol.graph._graph import set_bond_orders
 from automol.graph._graph import without_bond_orders
-from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import atom_unsaturated_valences
 from automol.graph._graph import atom_bond_valences
 from automol.graph._graph import atom_lone_pair_counts
@@ -111,7 +111,7 @@ def _cumulene_chains(rgr):
     sp1_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
     sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
 
-    atm_ngb_keys_dct = atom_neighbor_keys(rgr)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(rgr)
 
     def _cumulene_chain(chain):
         ret = None
@@ -216,7 +216,7 @@ def radical_dissociation_prods(gra, pgra1):
 
     pgra2 = None
     rads = sing_res_dom_radical_atom_keys(gra)
-    adj_atms = atom_neighbor_keys(gra)
+    adj_atms = atoms_neighbor_atom_keys(gra)
     # adj_idxs = tuple(adj_atms[rad] for rad in rads)
     for rad in rads:
         for adj in adj_atms[rad]:

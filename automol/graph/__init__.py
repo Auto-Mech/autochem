@@ -45,12 +45,13 @@ from automol.graph._graph import electron_count
 from automol.graph._graph import atom_count
 from automol.graph._graph import atom_count_by_type
 from automol.graph._graph import heavy_atom_count
-from automol.graph._graph import atom_neighbor_keys
-from automol.graph._graph import atom_neighbor_key
-from automol.graph._graph import sorted_atom_neighbor_keys
-from automol.graph._graph import atom_second_degree_neighbor_keys
-from automol.graph._graph import dummy_atom_neighbor_keys
-from automol.graph._graph import atom_bond_keys
+from automol.graph._graph import atom_sorted_neighbor_atom_keys
+from automol.graph._graph import atom_neighbor_atom_key
+from automol.graph._graph import atoms_neighbor_atom_keys
+from automol.graph._graph import atoms_sorted_neighbor_atom_keys
+from automol.graph._graph import atoms_second_degree_neighbor_atom_keys
+from automol.graph._graph import dummy_atoms_neighbor_atom_key
+from automol.graph._graph import atoms_bond_keys
 from automol.graph._graph import angle_keys
 from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import atom_neighborhood
@@ -59,8 +60,8 @@ from automol.graph._res import radical_groups
 from automol.graph._res import radical_group_dct
 from automol.graph._res import radical_dissociation_prods
 # # bond properties
-from automol.graph._graph import bond_neighbor_keys
-from automol.graph._graph import bond_neighbor_bonds
+from automol.graph._graph import bonds_neighbor_atom_keys
+from automol.graph._graph import bonds_neighbor_bond_keys
 from automol.graph._graph import bond_neighborhoods
 # # other properties
 from automol.graph._graph import terminal_heavy_atom_keys
@@ -151,7 +152,7 @@ from automol.graph._stereo import stereogenic_bond_keys
 from automol.graph._stereo import sp2_bond_keys
 from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
-from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._stereo import atoms_stereo_sorted_neighbor_atom_keys
 
 # ring graph library
 from automol.graph._ring import rings
@@ -298,12 +299,13 @@ __all__ = [
     'atom_count',
     'atom_count_by_type',
     'heavy_atom_count',
-    'atom_neighbor_keys',
-    'atom_neighbor_key',
-    'sorted_atom_neighbor_keys',
-    'atom_second_degree_neighbor_keys',
-    'dummy_atom_neighbor_keys',
-    'atom_bond_keys',
+    'atom_sorted_neighbor_atom_keys',
+    'atom_neighbor_atom_key',
+    'atoms_neighbor_atom_keys',
+    'atoms_sorted_neighbor_atom_keys',
+    'atoms_second_degree_neighbor_atom_keys',
+    'dummy_atoms_neighbor_atom_key',
+    'atoms_bond_keys',
     'angle_keys',
     'atom_neighborhoods',
     'atom_neighborhood',
@@ -312,8 +314,8 @@ __all__ = [
     'radical_group_dct',
     'radical_dissociation_prods',
     # # bond properties
-    'bond_neighbor_keys',
-    'bond_neighbor_bonds',
+    'bonds_neighbor_atom_keys',
+    'bonds_neighbor_bond_keys',
     'bond_neighborhoods',
     # # other properties
     'terminal_heavy_atom_keys',
@@ -405,7 +407,7 @@ __all__ = [
     'sp2_bond_keys',
     'stereomers',
     'substereomers',
-    'stereo_sorted_atom_neighbor_keys',
+    'atoms_stereo_sorted_neighbor_atom_keys',
 
     # ring graph library
     'rings',

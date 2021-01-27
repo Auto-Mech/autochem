@@ -10,9 +10,9 @@ from automol.graph._ring import rings_atom_keys
 from automol.graph._stereo import has_stereo
 from automol.graph._stereo import stereogenic_atom_keys
 from automol.graph._stereo import stereogenic_bond_keys
-from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._stereo import atoms_stereo_sorted_neighbor_atom_keys
 from automol.graph._graph import atom_keys
-from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import explicit
 from automol.graph._graph import branch
 from automol.graph._graph import atom_stereo_parities
@@ -73,11 +73,11 @@ def _set_bond_stereo_from_geometry(gra, bnd_keys, geo, geo_idx_dct):
 def _atom_stereo_parity_from_geometry(gra, atm_key, geo, geo_idx_dct):
     """ get the current stereo parity of an atom from its geometry
     """
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]
 
     # sort the neighbor keys by stereo priority
-    atm_ngb_keys = stereo_sorted_atom_neighbor_keys(
+    atm_ngb_keys = atoms_stereo_sorted_neighbor_atom_keys(
         gra, atm_key, atm_ngb_keys)
 
     # determine the parity based on the coordinates
@@ -96,13 +96,13 @@ def _bond_stereo_parity_from_geometry(gra, bnd_key, geo, geo_idx_dct):
     """ get the current stereo parity of a bond from its geometry
     """
     atm1_key, atm2_key = bnd_key
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     atm1_ngb_keys = atm_ngb_keys_dct[atm1_key] - {atm2_key}
     atm2_ngb_keys = atm_ngb_keys_dct[atm2_key] - {atm1_key}
 
-    atm1_ngb_keys = stereo_sorted_atom_neighbor_keys(
+    atm1_ngb_keys = atoms_stereo_sorted_neighbor_atom_keys(
         gra, atm1_key, atm1_ngb_keys)
-    atm2_ngb_keys = stereo_sorted_atom_neighbor_keys(
+    atm2_ngb_keys = atoms_stereo_sorted_neighbor_atom_keys(
         gra, atm2_key, atm2_ngb_keys)
 
     # get the top priority neighbor keys on each side
@@ -163,7 +163,7 @@ def _atom_stereo_corrected_geometry(gra, atm_ste_par_dct, geo, geo_idx_dct):
     """ correct the atom stereo parities of a geometry, for a subset of atoms
     """
     ring_atm_keys = set(itertools.chain(*rings_atom_keys(gra)))
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
     atm_keys = list(atm_ste_par_dct.keys())
     for atm_key in atm_keys:

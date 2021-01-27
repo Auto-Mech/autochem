@@ -222,7 +222,35 @@ def atom_neighborhoods(gra):
     return atm_nbh_dct
 
 
-def atom_neighbor_keys(gra):
+def atom_sorted_neighbor_atom_keys(gra, atm_key, excl_atm_keys=(),
+                                   incl_atm_keys=None, symbs_first=('C',),
+                                   symbs_last=('H',)):
+    """ get the next in a sorted list of neighbor keys, excluding some
+    """
+    atm_symb_dct = atom_symbols(gra)
+    incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
+
+    atm_nbh = atom_neighborhood(gra, atm_key)
+    atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
+    atm_keys = [k for k in atm_keys if k in incl_atm_keys]
+
+    symbs = list(map(atm_symb_dct.__getitem__, atm_keys))
+    srt = automol.formula.argsort_symbols(symbs, symbs_first, symbs_last)
+    atm_keys = tuple(map(atm_keys.__getitem__, srt))
+    return atm_keys
+
+
+def atom_neighbor_atom_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
+                           symbs_first=('C',), symbs_last=('H',)):
+    """ get the next in a sorted list of neighbor keys, excluding some
+    """
+    atm_keys = atom_sorted_neighbor_atom_keys(
+        gra, atm_key, excl_atm_keys=excl_atm_keys, incl_atm_keys=incl_atm_keys,
+        symbs_first=symbs_first, symbs_last=symbs_last)
+    return atm_keys[0] if atm_keys else None
+
+
+def atoms_neighbor_atom_keys(gra):
     """ keys of neighboring atoms, by atom
     """
     def _neighbor_keys(atm_key, atm_nbh):
@@ -233,8 +261,8 @@ def atom_neighbor_keys(gra):
     return atm_ngb_keys_dct
 
 
-def sorted_atom_neighbor_keys(gra, symbs_first=('C',), symbs_last=('H',),
-                              ords_last=(0.1,)):
+def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
+                                    ords_last=(0.1,)):
     """ keys of neighboring atoms, by atom
     """
     atm_symb_dct = atom_symbols(gra)
@@ -258,29 +286,12 @@ def sorted_atom_neighbor_keys(gra, symbs_first=('C',), symbs_last=('H',),
     return atm_ngb_keys_dct
 
 
-def atom_neighbor_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
-                      symbs_first=('C',), symbs_last=('H',)):
-    """ get the next in a sorted list of neighbor keys, excluding some
-    """
-    atm_symb_dct = atom_symbols(gra)
-    incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
-
-    atm_nbh = atom_neighborhood(gra, atm_key)
-    atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
-    atm_keys = [k for k in atm_keys if k in incl_atm_keys]
-
-    symbs = list(map(atm_symb_dct.__getitem__, atm_keys))
-    srt = automol.formula.argsort_symbols(symbs, symbs_first, symbs_last)
-    atm_keys = tuple(map(atm_keys.__getitem__, srt))
-    return atm_keys[0] if atm_keys else None
-
-
-def atom_second_degree_neighbor_keys(gra):
+def atoms_second_degree_neighbor_atom_keys(gra):
     """ keys of second-degree neighboring atoms, by atom
 
     That is, atoms that are connected through an intermediate atom
     """
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     atm_ngb2_keys_dct = {}
     for atm_key, atm_ngb_keys in atm_ngb_keys_dct.items():
         # Union of neighbors of neighbors
@@ -293,12 +304,12 @@ def atom_second_degree_neighbor_keys(gra):
     return atm_ngb2_keys_dct
 
 
-def dummy_atom_neighbor_keys(gra):
+def dummy_atoms_neighbor_atom_key(gra):
     """ Atoms that are connected to dummy atoms, by dummy atom key
 
     (Requires that each dummy atom only be connected to one neighbor)
     """
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     dummy_atm_keys = atom_keys(gra, sym='X')
 
     dummy_ngb_key_dct = {}
@@ -312,7 +323,7 @@ def dummy_atom_neighbor_keys(gra):
     return dummy_ngb_key_dct
 
 
-def atom_bond_keys(gra):
+def atoms_bond_keys(gra):
     """ bond keys, by atom
     """
     return dict_.transform_values(atom_neighborhoods(gra), bond_keys)
@@ -337,7 +348,7 @@ def angle_keys(gra):
 
 
 # # bond properties
-def bond_neighbor_keys(gra):
+def bonds_neighbor_atom_keys(gra):
     """ keys of neighboring atoms, by bond
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
@@ -348,7 +359,7 @@ def bond_neighbor_keys(gra):
     return bnd_ngb_keys_dct
 
 
-def bond_neighbor_bonds(gra):
+def bonds_neighbor_bond_keys(gra):
     """ keys of neighboring bonds, by bond
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
@@ -381,7 +392,7 @@ def terminal_heavy_atom_keys(gra):
     """
     gra = implicit(gra)
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
-    atm_keys = [key for key, ngb_keys in atom_neighbor_keys(gra).items()
+    atm_keys = [key for key, ngb_keys in atoms_neighbor_atom_keys(gra).items()
                 if len(ngb_keys) == 1]
     atm_keys = sorted(atm_keys, key=atm_imp_hyd_vlc_dct.__getitem__,
                       reverse=True)
@@ -414,7 +425,7 @@ def branch_bond_keys(gra, atm_key, bnd_key):
     bnd_key = frozenset(bnd_key)
     assert atm_key in bnd_key
 
-    atm_bnd_keys_dct = atom_bond_keys(gra)
+    atm_bnd_keys_dct = atoms_bond_keys(gra)
 
     bnch_bnd_keys = {bnd_key}
     seen_bnd_keys = set()
@@ -422,7 +433,7 @@ def branch_bond_keys(gra, atm_key, bnd_key):
 
     new_bnd_keys = {bnd_key}
 
-    bnd_ngb_keys_dct = bond_neighbor_bonds(gra)
+    bnd_ngb_keys_dct = bonds_neighbor_bond_keys(gra)
 
     while new_bnd_keys:
         new_bnd_ngb_keys = set(
@@ -511,7 +522,7 @@ def atom_longest_chains(gra):
 def atom_longest_chain(gra, atm_key):
     """ longest chain for a specific atom
     """
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     atm_ngb_keys = atm_ngb_keys_dct[atm_key]
 
     chains_lst = []
@@ -719,7 +730,7 @@ def standard_keys_without_dummy_atoms(gra):
 
     Requires that graph follows z-matrix ordering (this is checked)
     """
-    dummy_ngb_key_dct = dummy_atom_neighbor_keys(gra)
+    dummy_ngb_key_dct = dummy_atoms_neighbor_atom_key(gra)
 
     dummy_keys_dct = {}
     last_dummy_key = -1
@@ -787,7 +798,7 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
 def atom_groups(gra, atm):
     """ return a list of groups off of one atom
     """
-    adj_atms = atom_neighbor_keys(gra)
+    adj_atms = atoms_neighbor_atom_keys(gra)
     keys = []
     for atmi in adj_atms[atm]:
         key = [atm, atmi]
@@ -902,7 +913,7 @@ def atom_explicit_hydrogen_keys(gra):
     """
     exp_hyd_keys = explicit_hydrogen_keys(gra)
     atm_exp_hyd_keys_dct = dict_.transform_values(
-        atom_neighbor_keys(gra), lambda x: x & exp_hyd_keys)
+        atoms_neighbor_atom_keys(gra), lambda x: x & exp_hyd_keys)
     return atm_exp_hyd_keys_dct
 
 
@@ -918,7 +929,7 @@ def explicit_hydrogen_keys(gra):
     """ explicit hydrogen keys (H types: explicit, implicit, backbone)
     """
     hyd_keys = dict_.keys_by_value(atom_symbols(gra), lambda x: x == 'H')
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
     def _is_backbone(hyd_key):
         is_h2 = all(ngb_key in hyd_keys and hyd_key < ngb_key
@@ -1173,7 +1184,7 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
                     tfr_atm = atm_f
 
         if tfr_atm:
-            neighbor_dct = atom_neighbor_keys(gra)
+            neighbor_dct = atoms_neighbor_atom_keys(gra)
             nei_tfr = neighbor_dct[tfr_atm]
 
             atms = gra[0]

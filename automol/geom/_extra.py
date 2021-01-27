@@ -24,7 +24,7 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     gra = automol.convert.geom.graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
-    neighbor_dct = automol.graph.atom_neighbor_keys(gra)
+    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
 
     # determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
@@ -85,7 +85,7 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     gra = automol.convert.geom.graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
-    neighbor_dct = automol.graph.atom_neighbor_keys(gra)
+    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
 
     # determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)

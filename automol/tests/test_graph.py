@@ -349,10 +349,10 @@ def test__heavy_atom_count():
     assert graph.heavy_atom_count(cgr) == 9
 
 
-def test__atom_neighbor_keys():
-    """ test graph.atom_neighbor_keys
+def test__atoms_neighbor_atom_keys():
+    """ test graph.atoms_neighbor_atom_keys
     """
-    assert graph.atom_neighbor_keys(C8H13O_CGR) == {
+    assert graph.atoms_neighbor_atom_keys(C8H13O_CGR) == {
         0: frozenset({3}),
         1: frozenset({4}),
         2: frozenset({6}),
@@ -365,10 +365,10 @@ def test__atom_neighbor_keys():
     }
 
 
-def test__atom_second_degree_neighbor_keys():
-    """ test graph.atom_neighbor_keys
+def test__atoms_second_degree_neighbor_atom_keys():
+    """ test graph.atoms_neighbor_atom_keys
     """
-    assert graph.atom_second_degree_neighbor_keys(C8H13O_CGR) == {
+    assert graph.atoms_second_degree_neighbor_atom_keys(C8H13O_CGR) == {
         0: frozenset({5}),
         1: frozenset({6}),
         2: frozenset({4, 7}),
@@ -381,10 +381,10 @@ def test__atom_second_degree_neighbor_keys():
     }
 
 
-def test__atom_bond_keys():
-    """ test graph.atom_neighbor_keys
+def test__atoms_bond_keys():
+    """ test graph.atoms_neighbor_atom_keys
     """
-    assert graph.atom_bond_keys(C8H13O_CGR) == {
+    assert graph.atoms_bond_keys(C8H13O_CGR) == {
         0: frozenset({frozenset({0, 3})}),
         1: frozenset({frozenset({1, 4})}),
         2: frozenset({frozenset({2, 6})}),
@@ -400,11 +400,11 @@ def test__atom_bond_keys():
 
 
 # # bond properties
-def test__bond_neighbor_keys():
-    """ test graph.bond_neighbor_keys
+def test__bonds_neighbor_atom_keys():
+    """ test graph.bonds_neighbor_atom_keys
     """
 
-    assert graph.bond_neighbor_keys(C8H13O_CGR) == {
+    assert graph.bonds_neighbor_atom_keys(C8H13O_CGR) == {
         frozenset({1, 4}): frozenset({6}),
         frozenset({4, 6}): frozenset({1, 2, 7}),
         frozenset({2, 6}): frozenset({4, 7}),
@@ -788,7 +788,7 @@ if __name__ == '__main__':
     # test__heuristic_geometry()
     # test__connected_components()
     # test__unsaturated_atom_keys()
-    test__bond_neighbor_keys()
+    test__bonds_neighbor_atom_keys()
     # test__resonance_dominant_radical_atom_keys()
     # test__remove_bonds()
     # test__resonance_dominant_atom_centered_cumulene_keys()

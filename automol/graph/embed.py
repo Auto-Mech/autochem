@@ -41,8 +41,8 @@ from automol.graph._graph import atom_symbols
 from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import atom_shortest_paths
-from automol.graph._graph import atom_neighbor_key
-from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atom_neighbor_atom_key
+from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import atom_neighborhoods
 from automol.graph._graph import bond_neighborhoods
 from automol.graph._graph import atom_stereo_parities
@@ -52,7 +52,7 @@ from automol.graph._graph import subgraph
 from automol.graph._stereo import atom_stereo_keys
 from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
-from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
+from automol.graph._stereo import atoms_stereo_sorted_neighbor_atom_keys
 from automol.graph._ring import rings_atom_keys
 from automol.graph._stereo_geom import _atom_stereo_parity_from_geometry
 from automol.graph._stereo_geom import _bond_stereo_parity_from_geometry
@@ -73,7 +73,7 @@ def heuristic_bond_distance(gra, key1, key2, angstrom=True, check=False):
     """ heuristic bond distance (in angstroms)
     """
     if check:
-        assert key1 in atom_neighbor_keys(gra)[key2]
+        assert key1 in atoms_neighbor_atom_keys(gra)[key2]
 
     symb_dct = atom_symbols(gra)
     symb1 = symb_dct[key1]
@@ -97,7 +97,7 @@ def heuristic_bond_angle(gra, key1, key2, key3, degree=False, check=False,
     hybridizations, so they don't need to be recalculated
     """
     if check:
-        assert {key1, key3} <= set(atom_neighbor_keys(gra)[key2])
+        assert {key1, key3} <= set(atoms_neighbor_atom_keys(gra)[key2])
 
     if hyb_dct is None:
         hyb_dct = resonance_dominant_atom_hybridizations(gra)
@@ -223,7 +223,7 @@ def path_distance_bounds_(gra):
 
     hyb_dct = resonance_dominant_atom_hybridizations(gra)
     rng_keys_lst = rings_atom_keys(gra)
-    atm_ngb_keys = atom_neighbor_keys(gra)
+    atm_ngb_keys = atoms_neighbor_atom_keys(gra)
 
     ste_bnd_keys = bond_stereo_keys(gra)
     bnd_par_dct = bond_stereo_parities(gra)
@@ -256,9 +256,9 @@ def path_distance_bounds_(gra):
                 bnd_key23 = frozenset({key2, key3})
                 # handle bond stereo here
                 if bnd_key23 in ste_bnd_keys:
-                    key2_ngbs = stereo_sorted_atom_neighbor_keys(
+                    key2_ngbs = atoms_stereo_sorted_neighbor_atom_keys(
                         gra, key2, atm_ngb_keys[key2]-{key3})
-                    key3_ngbs = stereo_sorted_atom_neighbor_keys(
+                    key3_ngbs = atoms_stereo_sorted_neighbor_atom_keys(
                         gra, key3, atm_ngb_keys[key3]-{key2})
                     pos2 = key2_ngbs.index(path[0])
                     pos3 = key3_ngbs.index(path[-1])
@@ -477,11 +477,11 @@ def chirality_constraint_bounds(gra, keys):
     """
     ste_keys = set(atom_stereo_keys(gra)) & set(keys)
     par_dct = atom_stereo_parities(gra)
-    ngb_key_dct = atom_neighbor_keys(gra)
+    ngb_key_dct = atoms_neighbor_atom_keys(gra)
 
     def _chirality_constraint(key):
         ngb_keys = ngb_key_dct[key]
-        ngb_keys = stereo_sorted_atom_neighbor_keys(gra, key, ngb_keys)
+        ngb_keys = atoms_stereo_sorted_neighbor_atom_keys(gra, key, ngb_keys)
         idxs = tuple(map(keys.index, ngb_keys))
         vol_range = (-999., -7.) if par_dct[key] else (+7., +999.)
         return idxs, vol_range
@@ -493,7 +493,7 @@ def chirality_constraint_bounds(gra, keys):
 def planarity_constraint_bounds(gra, keys):
     """ bounds for enforcing planarity restrictions
     """
-    ngb_key_dct = atom_neighbor_keys(gra)
+    ngb_key_dct = atoms_neighbor_atom_keys(gra)
     ngb_dct = bond_neighborhoods(gra)
     bnd_keys = [bnd_key for bnd_key in sp2_bond_keys(gra)
                 if atom_keys(ngb_dct[bnd_key]) <= set(keys)]
@@ -662,13 +662,13 @@ def angle_key_filler_(gra, keys=None, check=True):
         assert not any(k is None for k in mid_keys)
 
         if end1_key is None:
-            end1_key = atom_neighbor_key(gra, mid_keys[0],
-                                         excl_atm_keys=[end2_key]+mid_keys,
-                                         incl_atm_keys=keys)
+            end1_key = atom_neighbor_atom_key(
+                gra, mid_keys[0], excl_atm_keys=[end2_key]+mid_keys,
+                incl_atm_keys=keys)
         if end2_key is None:
-            end2_key = atom_neighbor_key(gra, mid_keys[-1],
-                                         excl_atm_keys=[end1_key]+mid_keys,
-                                         incl_atm_keys=keys)
+            end2_key = atom_neighbor_atom_key(
+                gra, mid_keys[-1], excl_atm_keys=[end1_key]+mid_keys,
+                incl_atm_keys=keys)
 
         ang_key = [end1_key] + mid_keys + [end2_key]
 

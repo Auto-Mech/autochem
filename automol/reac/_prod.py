@@ -13,7 +13,7 @@ from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import unsaturated_atom_keys
 from automol.graph._graph import add_atom_explicit_hydrogen_keys
-from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._res import resonance_dominant_radical_atom_keys
 from automol.graph._func_group import chem_unique_atoms_of_type
 from automol.graph._func_group import bonds_of_order
@@ -95,7 +95,7 @@ def prod_beta_scission(gra):
     single_bonds = bonds_of_order(gra, mbond=1)
 
     for rad_idx in rad_idxs:
-        rad_neighs = atom_neighbor_keys(gra)[rad_idx]
+        rad_neighs = atoms_neighbor_atom_keys(gra)[rad_idx]
         for single_bond in single_bonds:
             bond = frozenset(single_bond)
             if rad_neighs & bond and rad_idx not in bond:
