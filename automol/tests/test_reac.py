@@ -72,6 +72,66 @@ products keys:
 """
 import automol
 
+MIGRATION_RXN_STR = """
+reaction class: hydrogen migration
+forward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-7: {order: 1, stereo_parity: null}
+  2-5: {order: 1, stereo_parity: null}
+  5-6: {order: 0.1, stereo_parity: null}
+  6-7: {order: 0.9, stereo_parity: null}
+  7-8: {order: 1, stereo_parity: null}
+  7-9: {order: 1, stereo_parity: null}
+  8-10: {order: 1, stereo_parity: null}
+  8-11: {order: 1, stereo_parity: null}
+  8-12: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+backward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-6: {order: 1, stereo_parity: null}
+  1-7: {order: 1, stereo_parity: null}
+  1-8: {order: 1, stereo_parity: null}
+  2-3: {order: 1, stereo_parity: null}
+  2-9: {order: 1, stereo_parity: null}
+  2-12: {order: 0.1, stereo_parity: null}
+  3-5: {order: 1, stereo_parity: null}
+  3-10: {order: 1, stereo_parity: null}
+  3-11: {order: 1, stereo_parity: null}
+  4-5: {order: 1, stereo_parity: null}
+  4-12: {order: 0.9, stereo_parity: null}
+products keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+"""
+
 # ZMA Bank
 C4H10_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('CCCC')))
@@ -87,58 +147,161 @@ CH3CH2CH2O_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('CCC[O]')))
 
 
-def test__species__demo():
-    """ doesn't really belong here, but demonstrates equivalent functionality
-    for species
-    """
-    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
-    geo = automol.inchi.geometry(ich)
-    gra = automol.geom.graph(geo)
-
-    # graph aligned to z-matrix keys
-    # (for getting torsion coordinate names)
-    zma, zma_keys, dummy_key_dct = automol.convert.geom.zmatrix(geo)
-    gra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
-
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(gra).values())
-    bnd_keys = automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
-    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-    assert names == {'D9', 'D12', 'D15', 'D26'}
-    print(automol.zmat.string(zma, one_indexed=False))
-    print(names)
-
-    # graph aligned to geometry keys
-    # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    ggra = automol.graph.relabel_for_geometry(gra)
-
-    # Check that the geometry graph can be converted back, if needed
-    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
-    assert zgra == gra
-
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(ggra, lin_keys=lin_keys)
-    assert len(gbnd_keys) == len(bnd_keys)
-
-    axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(ggra, *a) for a in axes]
-    sym_nums = [
-        automol.graph.rotational_symmetry_number(ggra, *a, lin_keys=lin_keys)
-        for a in axes]
-    assert sym_nums == [3, 1, 1, 3]
-    for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
-        print('axis:', axis)
-        print('\tgroup 1:', groups[0])
-        print('\tgroup 2:', groups[1])
-        print('\tsymmetry number:', sym_num)
-
-
 def test__reac__string():
-    """ test string conversion for reaction objects
+    """ test reac.string
     """
-    rxn_str = SUBSTITUTION_RXN_STR.strip()
-    assert (automol.reac.string(automol.reac.from_string(rxn_str)).strip()
-            == rxn_str)
+    rxn_str = SUBSTITUTION_RXN_STR
+    rxn = automol.reac.from_string(rxn_str)
+    assert automol.reac.string(rxn).strip() == rxn_str.strip()
+
+
+def test__reac__forming_bond_keys():
+    """ test reac.forming_bond_keys
+    """
+    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    assert (automol.reac.forming_bond_keys(rxn) ==
+            frozenset({frozenset({1, 7})}))
+    assert (automol.reac.forming_bond_keys(rxn, rev=True) ==
+            frozenset({frozenset({0, 11})}))
+
+
+def test__reac__breaking_bond_keys():
+    """ test reac.breaking_bond_keys
+    """
+    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    assert (automol.reac.breaking_bond_keys(rxn) ==
+            frozenset({frozenset({0, 1})}))
+    assert (automol.reac.breaking_bond_keys(rxn, rev=True) ==
+            frozenset({frozenset({0, 2})}))
+
+
+def test__reac__forming_rings_atom_keys():
+    """ test reac.forming_rings_atom_keys
+    """
+    rxn = automol.reac.from_string(MIGRATION_RXN_STR)
+    assert automol.reac.forming_rings_atom_keys(rxn) == (
+        (0, 1, 4, 5, 6),
+    )
+    assert automol.reac.forming_rings_atom_keys(rxn, rev=True) == (
+        (1, 2, 4, 3, 11),
+    )
+
+
+def test__reac__forming_rings_bond_keys():
+    """ test reac.forming_rings_bond_keys
+    """
+    rxn = automol.reac.from_string(MIGRATION_RXN_STR)
+    assert automol.reac.forming_rings_bond_keys(rxn) == (
+        frozenset({frozenset({1, 4}), frozenset({0, 6}), frozenset({4, 5}),
+                   frozenset({0, 1}), frozenset({5, 6})}),
+    )
+    assert automol.reac.forming_rings_bond_keys(rxn, rev=True) == (
+        frozenset({frozenset({3, 4}), frozenset({1, 2}), frozenset({1, 11}),
+                   frozenset({2, 4}), frozenset({11, 3})}),
+    )
+
+
+def test__reac__breaking_rings_atom_keys():
+    """ test reac.breaking_rings_atom_keys
+    """
+    rxn = automol.reac.from_string(MIGRATION_RXN_STR)
+    assert automol.reac.breaking_rings_atom_keys(rxn) == (
+        (0, 1, 4, 5, 6),
+    )
+    assert automol.reac.breaking_rings_atom_keys(rxn, rev=True) == (
+        (1, 2, 4, 3, 11),
+    )
+
+
+def test__reac__breaking_rings_bond_keys():
+    """ test reac.breaking_rings_bond_keys
+    """
+    rxn = automol.reac.from_string(MIGRATION_RXN_STR)
+    assert automol.reac.breaking_rings_bond_keys(rxn) == (
+        frozenset({frozenset({1, 4}), frozenset({0, 6}), frozenset({4, 5}),
+                   frozenset({0, 1}), frozenset({5, 6})}),
+    )
+    assert automol.reac.breaking_rings_bond_keys(rxn, rev=True) == (
+        frozenset({frozenset({3, 4}), frozenset({1, 2}), frozenset({1, 11}),
+                   frozenset({2, 4}), frozenset({11, 3})}),
+    )
+
+
+def test__reac__reactant_graphs():
+    """ test reac.reactant_graphs
+    """
+    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    assert automol.reac.reactant_graphs(rxn) == (
+        ({0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
+          3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+          6: ('H', 0, None)},
+         {frozenset({1, 4}): (1, None), frozenset({0, 1}): (1, None),
+          frozenset({0, 2}): (1, None), frozenset({1, 5}): (1, None),
+          frozenset({1, 6}): (1, None), frozenset({1, 3}): (0, None)}),
+        ({7: ('C', 0, None), 8: ('C', 0, None), 9: ('H', 0, None),
+          10: ('H', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
+          13: ('H', 0, None)},
+         {frozenset({8, 11}): (1, None), frozenset({10, 7}): (1, None),
+          frozenset({9, 7}): (1, None), frozenset({8, 7}): (1, None),
+          frozenset({8, 13}): (1, None), frozenset({8, 12}): (1, None)})
+    )
+
+
+def test__reac__product_graphs():
+    """ test reac.product_graphs
+    """
+    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    assert automol.reac.product_graphs(rxn) == (
+        ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+          3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+          6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+          9: ('H', 0, None), 10: ('H', 0, None)},
+         {frozenset({1, 7}): (1, None), frozenset({10, 2}): (1, None),
+          frozenset({1, 2}): (1, None), frozenset({0, 3}): (1, None),
+          frozenset({0, 2}): (1, None), frozenset({0, 4}): (1, None),
+          frozenset({0, 5}): (1, None), frozenset({8, 1}): (1, None),
+          frozenset({1, 6}): (1, None), frozenset({9, 2}): (1, None)}),
+        ({11: ('O', 0, None), 12: ('H', 0, None)},
+         {frozenset({11, 12}): (1, None)})
+    )
+
+
+def test__reac__reactants_graph():
+    """ test reac.reactants_graph
+    """
+    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    assert automol.reac.reactants_graph(rxn) == (
+        {0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
+         3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+         6: ('H', 0, None), 7: ('C', 0, None), 8: ('C', 0, None),
+         9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+         12: ('H', 0, None), 13: ('H', 0, None)},
+        {frozenset({1, 4}): (1, None), frozenset({8, 11}): (1, None),
+         frozenset({10, 7}): (1, None), frozenset({0, 1}): (1, None),
+         frozenset({0, 2}): (1, None), frozenset({9, 7}): (1, None),
+         frozenset({8, 7}): (1, None), frozenset({1, 5}): (1, None),
+         frozenset({8, 13}): (1, None), frozenset({1, 6}): (1, None),
+         frozenset({1, 3}): (0, None), frozenset({8, 12}): (1, None)}
+    )
+
+
+def test__reac__products_graph():
+    """ test reac.product_graphs
+    """
+    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    assert automol.reac.products_graph(rxn) == (
+        {0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
+         3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+         6: ('H', 0, None), 7: ('C', 0, None), 8: ('C', 0, None),
+         9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+         12: ('H', 0, None), 13: ('H', 0, None)},
+        {frozenset({1, 4}): (1, None), frozenset({8, 11}): (1, None),
+         frozenset({10, 7}): (1, None), frozenset({0, 1}): (1, None),
+         frozenset({0, 2}): (1, None), frozenset({9, 7}): (1, None),
+         frozenset({8, 7}): (1, None), frozenset({1, 5}): (1, None),
+         frozenset({8, 13}): (1, None), frozenset({1, 6}): (1, None),
+         frozenset({1, 3}): (0, None), frozenset({8, 12}): (1, None)}
+    )
 
 
 def test__reac__hydrogen_migration():
@@ -574,6 +737,52 @@ def test__reac__substitution():
         print('\tsymmetry number:', sym_num)
 
 
+def test__species__demo():
+    """ doesn't really belong here, but demonstrates equivalent functionality
+    for species
+    """
+    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
+    geo = automol.inchi.geometry(ich)
+    gra = automol.geom.graph(geo)
+
+    # graph aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.convert.geom.zmatrix(geo)
+    gra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+
+    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(gra).values())
+    bnd_keys = automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    assert names == {'D9', 'D12', 'D15', 'D26'}
+    print(automol.zmat.string(zma, one_indexed=False))
+    print(names)
+
+    # graph aligned to geometry keys
+    # (for getting rotational groups and symmetry numbers)
+    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    ggra = automol.graph.relabel_for_geometry(gra)
+
+    # Check that the geometry graph can be converted back, if needed
+    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
+    assert zgra == gra
+
+    lin_keys = sorted(gdummy_key_dct.keys())
+    gbnd_keys = automol.graph.rotational_bond_keys(ggra, lin_keys=lin_keys)
+    assert len(gbnd_keys) == len(bnd_keys)
+
+    axes = sorted(map(sorted, gbnd_keys))
+    groups_lst = [automol.graph.rotational_groups(ggra, *a) for a in axes]
+    sym_nums = [
+        automol.graph.rotational_symmetry_number(ggra, *a, lin_keys=lin_keys)
+        for a in axes]
+    assert sym_nums == [3, 1, 1, 3]
+    for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
+        print('axis:', axis)
+        print('\tgroup 1:', groups[0])
+        print('\tgroup 2:', groups[1])
+        print('\tsymmetry number:', sym_num)
+
+
 def _from_smiles(rct_smis, prd_smis):
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
     prd_ichs = list(map(automol.smiles.inchi, prd_smis))
@@ -830,4 +1039,14 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    test__reac__substitution()
+    # test__reac__substitution()
+    # test__reac__hydrogen_migration()
+    # test__reac__forming_bond_keys()
+    # test__reac__breaking_bond_keys()
+    test__reac__forming_rings_atom_keys()
+    # test__reac__forming_rings_bond_keys()
+    # test__reac__reactant_graphs()
+    # test__reac__product_graphs()
+    # test__reac__reactants_graph()
+    # test__reac__products_graph()
+    sys.exit()

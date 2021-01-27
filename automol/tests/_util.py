@@ -4,6 +4,7 @@ Functions to read data files
 
 import os
 import numpy
+import pandas
 
 
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -25,3 +26,12 @@ def load_numpy_string_file(path_lst, file_name):
     file_lst = numpy.loadtxt(file_path, dtype=str)
 
     return file_lst
+
+
+def load_pandas_csv_string_file(path_lst, file_name):
+    """ Read a file with numpy
+    """
+    file_path = os.path.join(PATH, *path_lst, file_name)
+    file_df = pandas.read_csv(file_path, quotechar="'")
+
+    return file_df

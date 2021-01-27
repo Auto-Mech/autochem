@@ -56,22 +56,6 @@ def reverse(tsg, dummies=True):
                  brk_bnd_keys=forming_bond_keys(tsg))
 
 
-def reactants_graph(tsg):
-    """ get a graph of the reactants from a transition state graph
-    """
-    frm_bnd_keys = forming_bond_keys(tsg)
-    ord_dct = dict_.transform_values(bond_orders(tsg), func=round)
-    gra = set_bond_orders(tsg, ord_dct)
-    gra = remove_bonds(gra, frm_bnd_keys)
-    return gra
-
-
-def products_graph(tsg):
-    """ get a graph of the products from a transition state graph
-    """
-    return reactants_graph(reverse(tsg))
-
-
 def forming_rings_atom_keys(tsg):
     """ get the atom keys to rings forming in the TS graph
     """
@@ -106,3 +90,19 @@ def breaking_rings_bond_keys(tsg):
     brk_rngs_bnd_keys = tuple(bks for bks in rings_bond_keys(tsg)
                               if brk_bnd_keys & bks)
     return brk_rngs_bnd_keys
+
+
+def reactants_graph(tsg):
+    """ get a graph of the reactants from a transition state graph
+    """
+    frm_bnd_keys = forming_bond_keys(tsg)
+    ord_dct = dict_.transform_values(bond_orders(tsg), func=round)
+    gra = set_bond_orders(tsg, ord_dct)
+    gra = remove_bonds(gra, frm_bnd_keys)
+    return gra
+
+
+def products_graph(tsg):
+    """ get a graph of the products from a transition state graph
+    """
+    return reactants_graph(reverse(tsg))
