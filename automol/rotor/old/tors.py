@@ -48,7 +48,7 @@ def from_zmatrix(zma, tors_name,
     grid = torsional_grids()
 
     # Structures of torsion
-    # mode_idxs = automol.zmatrix.coord_idxs(zma, tname)
+    # mode_idxs = automol.zmat.coord_idxs(zma, tname)
     # mode_idxs = tuple((idx+1 for idx in mode_idxs))
 
     return rotor_dct

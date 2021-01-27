@@ -170,6 +170,6 @@ def check_hr_pot(tors_pots, tors_zmas, tors_paths, emax=-0.5, emin=-10.0):
                 print(' - New minimmum energy ZMA found for torsion')
                 print(' - Ene = {}'.format(pot))
                 print(' - Found at path: {}'.format(path))
-                print(automol.zmatrix.string(zma))
+                print(automol.zmat.string(zma))
 
     return new_min_zma

@@ -83,11 +83,12 @@ def _name_matrix(name_mat, natms):
     # Check dimensions and make sure there are Nones in the right places
     name_mat = [list(row) + [None]*(3-len(row)) for row in name_mat]
     name_mat = numpy.array(name_mat, dtype=numpy.object_)
+
     assert name_mat.ndim == 2 and name_mat.shape == (natms, 3)
     natms = name_mat.shape[0]
     triu_idxs = numpy.triu_indices(natms, m=3)
     tril_idxs = numpy.tril_indices(natms, -1, m=3)
-
+    
     assert all(isinstance(name, str) for name in name_mat[tril_idxs])
     name_mat[triu_idxs] = None
 

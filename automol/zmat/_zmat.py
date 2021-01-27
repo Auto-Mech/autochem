@@ -9,7 +9,7 @@ import automol.geom
 import autoread as ar
 import autowrite as aw
 from phydat import phycon
-
+from automol import vmat as _v_
 
 # constructors
 def from_geometry(vma, geo):
@@ -625,3 +625,167 @@ def _is_sequence_of_quadruples(obj):
         ret = all(hasattr(item, '__len__') and len(item) == 4 for item in obj)
 
     return ret
+
+
+def samples(zma, nsamp, range_dct):
+    """ randomly sample over torsional dihedrals
+    """
+    _names = tuple(range_dct.keys())
+    ranges = tuple(range_dct.values())
+    vals_lst = _sample_over_ranges(ranges, nsamp)
+
+    zmas = tuple(set_values_by_name(zma, dict(zip(_names, vals)))
+                 for vals in vals_lst)
+    return zmas
+
+
+def _sample_over_ranges(rngs, nsamp):
+    """ randomly sample over several ranges
+    """
+    nrng = len(rngs)
+    samp_mat = numpy.random.rand(nsamp, nrng)
+    for i, (start, stop) in enumerate(rngs):
+        samp_mat[:, i] = samp_mat[:, i] * (stop - start) + start
+    return tuple(map(tuple, samp_mat))
+
+
+# Functions that need to be here
+def coord_idxs(zma, key):
+    """give a bond length key, return the indices of involved bonded atoms
+    """
+    coords = coordinates(zma)
+    idxs = coords.get(key, [None])
+    return idxs[0]
+
+
+def bond_key_from_idxs(zma, idxs):
+    """given indices of involved bonded atoms, return bond name
+    """
+    idxs = list(idxs)
+    idxs.sort(reverse=True)
+    idxs = tuple(idxs)
+    bond_key = None
+    coords = coordinates(zma)
+    for key in coords:
+        for coord in coords.get(key, [None]):
+            if idxs == coord:
+                bond_key = key
+    return bond_key
+
+
+def get_babs1(zma, dist_name):
+    """ get name of torsional coordinate associated with babs1 pre-reformatting
+    """
+    idxs = coord_idxs(zma, dist_name)
+    idx = max(idxs)
+    babs1 = 'D{:g}'.format(idx)
+    return babs1
+
+
+def get_babs2(zma, dist_name):
+    """ get name of torsional coordinate associated with babs2 pre-reformatting
+    """
+    idxs = coord_idxs(zma, dist_name)
+    idx = max(idxs)
+    babs2 = 'D{:g}'.format(idx+1)
+    return babs2
+
+
+def atom_indices(zma, sym, match=True):
+    """ indices for a particular atom type
+        :param match: grab idxs that match given atom type
+    """
+
+    syms = symbols(zma)
+    idxs = tuple()
+    for idx, sym_ in enumerate(syms):
+        if sym_ == sym and match:
+            idxs += (idx,)
+        elif sym_ != sym and not match:
+            idxs += (idx,)
+
+    return idxs
+
+
+# wrappers to vmat
+def dummy_coordinate_names(zma):
+    """ names of dummy atom coordinates
+    """
+    return _v_.dummy_coordinate_names(vmatrix(zma))
+
+
+def coordinates(zma, shift=0, multi=True):
+    """ coordinate keys associated with each coordinate name, 
+        as a dictionary
+    """
+    return _v_.coordinates(vmatrix(zma), shift=shift, multi=multi)
+
+
+def dihedral_angle_names(zma):
+    """ dihedral angle coordinate names
+    """
+    return _v_.dihedral_angle_names(vmatrix(zma))
+
+
+# z-matrix torsional degrees of freedom
+def torsional_symmetry_numbers(zma, tors_names,
+                               frm_bnd_key=None, brk_bnd_key=None):
+    """ symmetry numbers for torsional dihedrals
+    """
+    dih_edg_key_dct = _dihedral_edge_keys(zma)
+    assert set(tors_names) <= set(dih_edg_key_dct.keys())
+    edg_keys = tuple(map(dih_edg_key_dct.__getitem__, tors_names))
+
+    gra = automol.convert.zmat.graph(zma, stereo=False)
+    bnd_sym_num_dct = automol.graph.bond_symmetry_numbers(
+        gra, frm_bnd_key, brk_bnd_key)
+    tors_sym_nums = []
+    for edg_key in edg_keys:
+        if edg_key in bnd_sym_num_dct.keys():
+            sym_num = bnd_sym_num_dct[edg_key]
+        else:
+            sym_num = 1
+        tors_sym_nums.append(sym_num)
+
+    tors_sym_nums = tuple(tors_sym_nums)
+    return tors_sym_nums
+
+
+def _dihedral_edge_keys(zma):
+    """ dihedral bonds, by name
+    """
+    coo_dct = coordinates(zma)
+    dih_names = dihedral_angle_names(zma)
+    dih_keys_lst = tuple(map(coo_dct.__getitem__, dih_names))
+    dih_edg_key_dct = {dih_name: frozenset(dih_key[1:3])
+                       for dih_name, dih_keys in zip(dih_names, dih_keys_lst)
+                       for dih_key in dih_keys}
+    return dih_edg_key_dct
+
+
+def torsional_sampling_ranges(tors_names):
+    """ sampling ranges for torsional dihedrals
+    """
+    # sym_nums = torsional_symmetry_numbers(zma, tors_names,
+    # frm_bnd_key=None, brk_bnd_key=None)
+    # return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
+    # originally restricted range by sym_num.
+    # But after all it appears that using the
+    # full range is best.
+    # after all it appears that using the full sampling range is most effective
+    sym_nums = 1.
+    return tuple((0, 2*numpy.pi/sym_nums) for tors_name in tors_names)
+
+
+def torsional_scan_linspaces(zma, tors_names, increment=0.5,
+                             frm_bnd_key=None, brk_bnd_key=None):
+    """ scan grids for torsional dihedrals
+    """
+    sym_nums = torsional_symmetry_numbers(
+        zma, tors_names, frm_bnd_key=frm_bnd_key, brk_bnd_key=brk_bnd_key)
+    intervals = tuple(2*numpy.pi/sym_num - increment for sym_num in sym_nums)
+    npoints_lst = tuple(
+        (int(interval / increment)+1) for interval in intervals)
+    return tuple((0, interval, npoints)
+                 for interval, npoints in zip(intervals, npoints_lst))
+

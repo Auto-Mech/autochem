@@ -13,7 +13,7 @@ def grid(zma, tors_name, scan_increment, sym, from_equil=False):
     _grid = _scan_linspace(zma, name, scan_increment, sym)
 
     if from_equil:
-        val_dct = automol.zmatrix.values(zma)
+        val_dct = automol.zmat.value_dictionary(zma)
         ini_val = val_dct[tors_name]
         _grid = tuple(val.item() + ini_val for val in _grid)
 
