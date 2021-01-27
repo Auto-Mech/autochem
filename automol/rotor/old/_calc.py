@@ -34,7 +34,7 @@ def grid(zma, tors_name, scan_increment, frm_bnd_keys=None, brk_bnd_keys=None):
     """ scan grids
     """
 
-    val_dct = automol.zmat.values(zma)
+    val_dct = automol.zmat.value_dictionary(zma)
 
     linspace = _scan_linspace(
         zma, tors_name, scan_increment=scan_increment,

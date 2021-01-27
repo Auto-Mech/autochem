@@ -45,6 +45,20 @@ import automol.create.zmat
 # conversions
 import automol.convert.zmat
 
+# to be depreciated
+from automol.zmat._zmat import samples
+from automol.zmat._zmat import torsional_symmetry_numbers
+from automol.zmat._zmat import torsional_sampling_ranges
+from automol.zmat._zmat import torsional_scan_linspaces
+from automol.zmat._zmat import dummy_coordinate_names
+from automol.zmat._zmat import coordinates
+from automol.zmat._zmat import dihedral_angle_names
+from automol.zmat._zmat import coord_idxs
+from automol.zmat._zmat import bond_key_from_idxs
+from automol.zmat._zmat import get_babs1
+from automol.zmat._zmat import get_babs2
+from automol.zmat._zmat import atom_indices
+
 
 def from_data(syms, key_mat, val_mat, name_mat=None,
               one_indexed=False, angstrom=False, degree=False):
@@ -147,4 +161,19 @@ __all__ = [
     'geometry',
     'graph',
     'formula',
+
+    # to be depreciated
+    'samples',
+    'torsional_symmetry_numbers',
+    'torsional_sampling_ranges',
+    'torsional_scan_linspaces',
+    'dummy_coordinate_names',
+    'coordinates',
+    'dihedral_angle_names',
+    'coord_idxs',
+    'bond_key_from_idxs',
+    'get_babs1',
+    'get_babs2',
+    'atom_indices',
 ]
+
