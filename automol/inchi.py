@@ -8,6 +8,7 @@ import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
 from automol.util import dict_
+import automol.convert.geom
 import automol.convert.inchi
 
 
@@ -501,11 +502,23 @@ def formula_string(ich):
 
 
 def add_stereo(ich):
-    """ Add a sterochemistry layer to an InChI string.
+    """ Add stereochemistry to an InChI string converting to/from geometry.
 
         :param ich: InChI string
         :type ich: str
         :rtype: str
+    """
+    geo = automol.convert.inchi.geometry(ich)
+    ich = automol.convert.geom.inchi(geo, stereo=True)
+    return ich
+
+
+def expand_stereo(ich):
+    """ Obtain all possible stereoisomers compatible with an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: list[str]
     """
     gra = automol.inchi.graph(ich)
     stereo_gras = automol.graph.stereomers(gra)
