@@ -6,8 +6,11 @@ import automol
 from automol.convert import _rdkit as rdkit
 from automol.convert import _pybel as pybel
 from _util import load_numpy_string_file
+from _util import load_pandas_csv_string_file
 
 
+BS_DF = load_pandas_csv_string_file(
+    ['data'], 'badspecies.csv')
 ICHS_NO_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_no_stereo.txt')
 ICHS_WITH_STEREO = load_numpy_string_file(
@@ -54,11 +57,14 @@ def test__graph__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         gra = automol.inchi.graph(ref_ich)
         ich = automol.graph.inchi(gra)
+        print(ich)
         assert ich == ref_ich
 
         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+        print()
 
 
 def test__graph__no_stereo():
@@ -315,3 +321,23 @@ def test__geom__zmatrix_atom_ordering():
 
     ordering2 = automol.geom.zmatrix_atom_ordering(geo2)
     assert ordering2 == {0: 0}
+
+
+def test__sarah_badpsecies():
+    """ test bad species list from sarah
+    """
+    bs_ichs = list(BS_DF['inchi'])
+
+    for ref_ich in bs_ichs:
+        print(ref_ich)
+        geo = automol.inchi.geometry(ref_ich)
+        print('got geometry')
+        gra = automol.geom.graph(geo)
+        print('got graph')
+        ich = automol.graph.inchi(gra)
+        print(ich)
+        print()
+
+
+if __name__ == '__main__':
+    test__sarah_badpsecies()

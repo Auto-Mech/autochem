@@ -5,6 +5,16 @@ from automol.reac._reac import Reaction
 from automol.reac._reac import string
 from automol.reac._reac import from_string
 from automol.reac._reac import reverse
+from automol.reac._reac import forming_bond_keys
+from automol.reac._reac import breaking_bond_keys
+from automol.reac._reac import forming_rings_atom_keys
+from automol.reac._reac import forming_rings_bond_keys
+from automol.reac._reac import breaking_rings_atom_keys
+from automol.reac._reac import breaking_rings_bond_keys
+from automol.reac._reac import reactant_graphs
+from automol.reac._reac import product_graphs
+from automol.reac._reac import reactants_graph
+from automol.reac._reac import products_graph
 from automol.reac._reac import standard_keys
 from automol.reac._reac import standard_keys_with_sorted_geometries
 from automol.reac._reac import relabel
@@ -68,6 +78,16 @@ __all__ = [
     'string',
     'from_string',
     'reverse',
+    'forming_bond_keys',
+    'breaking_bond_keys',
+    'forming_rings_atom_keys',
+    'forming_rings_bond_keys',
+    'breaking_rings_atom_keys',
+    'breaking_rings_bond_keys',
+    'reactant_graphs',
+    'product_graphs',
+    'reactants_graph',
+    'products_graph',
     'standard_keys',
     'standard_keys_with_sorted_geometries',
     'relabel',

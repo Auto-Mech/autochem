@@ -104,24 +104,8 @@ class Reaction:
             self.class_, self.forward_ts_graph, self.backward_ts_graph,
             self.reactants_keys, self.products_keys)
 
-    def reactant_graphs(self):
-        """ reactant graphs for this reaction, in order
-        """
-        rcts_gra = ts.reactants_graph(self.forward_ts_graph)
-        rct_gras = [automol.graph.subgraph(rcts_gra, keys)
-                    for keys in self.reactants_keys]
-        return tuple(rct_gras)
-
-    def product_graphs(self):
-        """ product graphs for this reaction, in order
-        """
-        prds_gra = ts.products_graph(self.forward_ts_graph)
-        prd_gras = [automol.graph.subgraph(prds_gra, keys)
-                    for keys in self.products_keys]
-        return tuple(prd_gras)
-
     def has_standard_keys(self):
-        """ has this Reaction been standard_keys?
+        """ Does this reaction have standard keys?
         """
         return self == standard_keys(self)
 
@@ -137,6 +121,11 @@ class Reaction:
                    self.reactants_keys == other.reactants_keys and
                    self.products_keys == other.products_keys)
         return ret
+
+    def __repr__(self):
+        """ string representation of the object
+        """
+        return string(self)
 
 
 def string(rxn, one_indexed=True):
@@ -206,7 +195,11 @@ def from_string(rxn_str, one_indexed=True):
 
 
 def reverse(rxn):
-    """ get the reaction object for the reverse reaction
+    """ Obtains the reaction object for the reverse reaction
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :rtype: Reaction
     """
     rxn_cls = par.reverse_reaction_class(rxn.class_)
     forw_tsg = rxn.backward_ts_graph
@@ -215,6 +208,164 @@ def reverse(rxn):
     prds_keys = rxn.reactants_keys
     rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
     return rxn
+
+
+def forming_bond_keys(rxn, rev=False):
+    """ Obtain forming bonds for the reaction.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: frozenset[frozenset[int]]
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.forming_bond_keys(tsg)
+
+
+def breaking_bond_keys(rxn, rev=False):
+    """ Obtain breaking bonds for the reaction.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: frozenset[frozenset[int]]
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.breaking_bond_keys(tsg)
+
+
+def forming_rings_atom_keys(rxn, rev=False):
+    """ Obtain atom keys for rings containing at least one forming bond.
+
+        Atom keys are sorted by connectivity.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: tuple[tuple[int]]
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.forming_rings_atom_keys(tsg)
+
+
+def forming_rings_bond_keys(rxn, rev=False):
+    """ Obtain bond keys for rings containing at least one forming bond.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: tuple[frozenset[frozenset[int]]]
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.forming_rings_bond_keys(tsg)
+
+
+def breaking_rings_atom_keys(rxn, rev=False):
+    """ Obtain atom keys for rings containing at least one breaking bond.
+
+        Atom keys are sorted by connectivity.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: tuple[tuple[int]]
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.breaking_rings_atom_keys(tsg)
+
+
+def breaking_rings_bond_keys(rxn, rev=False):
+    """ Obtain bond keys for rings containing at least one breaking bond.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: tuple[frozenset[frozenset[int]]]
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.breaking_rings_bond_keys(tsg)
+
+
+def reactant_graphs(rxn):
+    """ Obtain graphs of the reactants in this reaction.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :rtype: tuple of automol graph data structures
+    """
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
+    rct_gras = [automol.graph.subgraph(rcts_gra, keys)
+                for keys in rxn.reactants_keys]
+    return tuple(rct_gras)
+
+
+def product_graphs(rxn):
+    """ Obtain graphs of the products in this reaction.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :rtype: tuple of automol graph data structures
+    """
+    prds_gra = ts.reactants_graph(rxn.backward_ts_graph)
+    prd_gras = [automol.graph.subgraph(prds_gra, keys)
+                for keys in rxn.products_keys]
+    return tuple(prd_gras)
+
+
+def reactants_graph(rxn, rev=False):
+    """ Obtain a (single) graph of the reactants in this reaction.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: automol graph data structure
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.reactants_graph(tsg)
+
+
+def products_graph(rxn, rev=False):
+    """ Obtain a (single) graph of the products in this reaction.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: automol graph data structure
+    """
+    if rev:
+        tsg = rxn.backward_ts_graph
+    else:
+        tsg = rxn.forward_ts_graph
+    return ts.reactants_graph(tsg)
 
 
 def standard_keys(rxn):
