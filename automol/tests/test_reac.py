@@ -320,7 +320,8 @@ def test__reac__hydrogen_migration():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9'}
@@ -374,7 +375,8 @@ def test__reac__beta_scission():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D8', 'D11', 'D5'}
@@ -428,7 +430,8 @@ def test__reac__ring_forming_scission():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D8'}
@@ -482,7 +485,8 @@ def test__reac__elimination():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9'}
@@ -536,7 +540,8 @@ def test__reac__hydrogen_abstraction():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D11', 'D5', 'D8', 'D16'}
@@ -590,7 +595,8 @@ def test__reac__addition():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D11', 'D8', 'D5'}
@@ -644,7 +650,8 @@ def test__reac__insertion():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9'}
@@ -698,7 +705,8 @@ def test__reac__substitution():
     rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     tsg = rxn.forward_ts_graph
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(tsg).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D3', 'D8', 'D11'}
@@ -750,7 +758,8 @@ def test__species__demo():
     zma, zma_keys, dummy_key_dct = automol.convert.geom.zmatrix(geo)
     gra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(automol.graph.dummy_atom_neighbor_keys(gra).values())
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
     bnd_keys = automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9', 'D12', 'D15', 'D26'}

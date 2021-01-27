@@ -12,7 +12,7 @@ from automol.graph._graph import atom_keys
 from automol.graph._graph import bond_keys
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import is_connected
-from automol.graph._graph import atom_bond_keys
+from automol.graph._graph import atoms_bond_keys
 from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import union_from_sequence
 from automol.graph._graph import bond_induced_subgraph
@@ -109,8 +109,8 @@ def cycle_ring_atom_key_to_front(keys, key, end_key=None):
 def ring_arc_complement_atom_keys(gra, rng):
     """ non-intersecting arcs from a ring that shares segments with a graph
     """
-    gra_atm_bnd_dct = atom_bond_keys(gra)
-    rng_atm_bnd_dct = atom_bond_keys(rng)
+    gra_atm_bnd_dct = atoms_bond_keys(gra)
+    rng_atm_bnd_dct = atoms_bond_keys(rng)
 
     # 1. find divergence points, given by the atom at which the divergence
     # occurs and the bond followed by the ring as it diverges

@@ -212,7 +212,7 @@ def _rotor_counts(gra, symbs):
     n_rings = len(rings)
 
     # Loop over the bonds and count the number of atoms
-    neighbors = automol.graph.atom_neighbor_keys(gra)
+    neighbors = automol.graph.atoms_neighbor_atom_keys(gra)
     for bnd in automol.graph.bond_keys(gra):
         key1, key2 = bnd
         spair = (symbs[key1], symbs[key2])

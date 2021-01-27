@@ -12,8 +12,8 @@ from automol.graph._graph import subgraph
 from automol.graph._graph import connected_components
 from automol.graph._graph import terminal_heavy_atom_keys
 from automol.graph._graph import branch_atom_keys
-from automol.graph._graph import atom_neighbor_keys
-from automol.graph._graph import dummy_atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
+from automol.graph._graph import dummy_atoms_neighbor_atom_key
 from automol.graph._ring import rings_bond_keys
 from automol.graph._res import resonance_dominant_bond_orders
 
@@ -26,7 +26,7 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
     """
     gra = explicit(gra)
     sym_dct = atom_symbols(gra)
-    ngb_keys_dct = atom_neighbor_keys(gra)
+    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     bnd_ord_dct = resonance_dominant_bond_orders(gra)
     rng_bnd_keys = list(itertools.chain(*rings_bond_keys(gra)))
 
@@ -77,7 +77,7 @@ def rotational_symmetry_number(gra, key1, key2, lin_keys=None):
     :param key1: the first atom key
     :param key2: the second atom key
     """
-    ngb_keys_dct = atom_neighbor_keys(without_dummy_atoms(gra))
+    ngb_keys_dct = atoms_neighbor_atom_keys(without_dummy_atoms(gra))
     imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(implicit(gra))
 
     axis_keys = {key1, key2}
@@ -107,9 +107,9 @@ def rotational_symmetry_number(gra, key1, key2, lin_keys=None):
 def linear_segments_atom_keys(gra, lin_keys=None):
     """ atom keys for linear segments in the graph
     """
-    ngb_keys_dct = atom_neighbor_keys(without_dummy_atoms(gra))
+    ngb_keys_dct = atoms_neighbor_atom_keys(without_dummy_atoms(gra))
 
-    lin_keys = (dummy_atom_neighbor_keys(gra).values()
+    lin_keys = (dummy_atoms_neighbor_atom_key(gra).values()
                 if lin_keys is None else lin_keys)
 
     lin_keys = [k for k in lin_keys if len(ngb_keys_dct[k]) <= 2]
@@ -124,7 +124,7 @@ def linear_segments_atom_keys(gra, lin_keys=None):
             lin_keys_lst.append([key])
         else:
             end_key1, end_key2 = sorted(terminal_heavy_atom_keys(lin_seg))
-            ngb_keys_dct = atom_neighbor_keys(lin_seg)
+            ngb_keys_dct = atoms_neighbor_atom_keys(lin_seg)
 
             key = None
             keys = [end_key1]

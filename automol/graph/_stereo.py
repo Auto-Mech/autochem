@@ -17,7 +17,7 @@ from automol.graph._graph import without_bond_orders
 from automol.graph._graph import without_stereo_parities
 from automol.graph._graph import frozen
 from automol.graph._graph import atom_bond_valences
-from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import explicit
 from automol.graph._graph import implicit
 from automol.graph._graph import backbone_keys
@@ -65,7 +65,7 @@ def stereo_priority_vector(gra, atm_key, atm_ngb_key):
         assert frozenset({atm_key, atm_ngb_key}) in bnd_dct
 
         # here, switch to an implicit graph
-        atm_ngb_keys_dct = atom_neighbor_keys(gra)
+        atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
         def _priority_vector(atm1_key, atm2_key, seen_keys):
             # we keep a list of seen keys to cut off cycles, avoiding infinite
@@ -109,7 +109,7 @@ def stereogenic_atom_keys(gra):
     atm_keys = dict_.keys_by_value(atom_bond_valences(gra), lambda x: x == 4)
     atm_keys -= atom_stereo_keys(gra)
 
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
     def _is_stereogenic(atm_key):
         atm_ngb_keys = list(atm_ngb_keys_dct[atm_key])
@@ -138,7 +138,7 @@ def stereogenic_bond_keys(gra):
         frozenset.union,
         filter(lambda x: len(x) < 8, rings_bond_keys(gra)), frozenset())
 
-    atm_ngb_keys_dct = atom_neighbor_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
     def _is_stereogenic(bnd_key):
         atm1_key, atm2_key = bnd_key
@@ -235,7 +235,7 @@ def substereomers(gra):
     return sgrs
 
 
-def stereo_sorted_atom_neighbor_keys(gra, atm_key, atm_ngb_keys):
+def atoms_stereo_sorted_neighbor_atom_keys(gra, atm_key, atm_ngb_keys):
     """ get the neighbor keys of an atom sorted by stereo priority
     """
     atm_ngb_keys = list(atm_ngb_keys)

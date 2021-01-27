@@ -85,9 +85,9 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     d1234 *= phycon.DEG2RAD if degree else 1
 
     gra1, gra2 = map(automol.convert.geom.connectivity_graph, (geo1, geo2))
-    key1 = (automol.graph.atom_neighbor_key(gra1, key2) if key1 is None
+    key1 = (automol.graph.atom_neighbor_atom_key(gra1, key2) if key1 is None
             else key1)
-    key4 = (automol.graph.atom_neighbor_key(gra2, key3) if key4 is None
+    key4 = (automol.graph.atom_neighbor_atom_key(gra2, key3) if key4 is None
             else key4)
 
     syms1 = geom_base.symbols(geo1)

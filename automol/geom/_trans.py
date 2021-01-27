@@ -208,12 +208,13 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
     lin_idxs = geom_base.linear_atoms(geo) if lin_idxs is None else lin_idxs
     gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
 
-    dummy_ngb_idxs = set(automol.graph.dummy_atom_neighbor_keys(gra).values())
+    dummy_ngb_idxs = set(
+        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
     assert not dummy_ngb_idxs & set(lin_idxs), (
         "Attempting to add dummy atoms on atoms that already have them: {}"
         .format(dummy_ngb_idxs & set(lin_idxs)))
 
-    ngb_idxs_dct = automol.graph.sorted_atom_neighbor_keys(gra)
+    ngb_idxs_dct = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
 
     xyzs = geom_base.coordinates(geo, angstrom=True)
 

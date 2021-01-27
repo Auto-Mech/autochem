@@ -480,7 +480,7 @@ def linear_atoms(geo, gra=None, tol=5.):
     """
 
     gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
-    ngb_idxs_dct = automol.graph.atom_neighbor_keys(gra)
+    ngb_idxs_dct = automol.graph.atoms_neighbor_atom_keys(gra)
 
     lin_idxs = []
     for idx in range(count(geo)):

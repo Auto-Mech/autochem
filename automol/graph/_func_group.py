@@ -6,7 +6,7 @@ import itertools
 from automol.graph._graph_base import atom_symbols
 from automol.graph._graph_base import atom_symbol_idxs
 from automol.graph._ring import rings
-from automol.graph._graph import atom_neighbor_keys
+from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import full_isomorphism
 from automol.graph._res import dominant_resonance
@@ -546,7 +546,7 @@ def two_bond_idxs(gra, symb1, cent, symb2):
 
     grps = tuple()
 
-    neigh_dct = atom_neighbor_keys(gra)
+    neigh_dct = atoms_neighbor_atom_keys(gra)
     idx_symb_dct = atom_symbols(gra)
     symb_idx_dct = atom_symbol_idxs(gra)
 
@@ -580,7 +580,7 @@ def neighbors_of_type(gra, aidx, symb):
     """
 
     idx_symb_dct = atom_symbols(gra)
-    neighs = atom_neighbor_keys(gra)[aidx]
+    neighs = atoms_neighbor_atom_keys(gra)[aidx]
     neigh_symbs = atom_idx_to_symb(neighs, idx_symb_dct)
 
     idxs_of_type = tuple()
