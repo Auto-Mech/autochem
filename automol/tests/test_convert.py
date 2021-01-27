@@ -323,21 +323,13 @@ def test__geom__zmatrix_atom_ordering():
     assert ordering2 == {0: 0}
 
 
-def test__sarah_badpsecies():
-    """ test bad species list from sarah
-    """
-    bs_ichs = list(BS_DF['inchi'])
-
-    for ref_ich in bs_ichs:
-        print(ref_ich)
-        geo = automol.inchi.geometry(ref_ich)
-        print('got geometry')
-        gra = automol.geom.graph(geo)
-        print('got graph')
-        ich = automol.graph.inchi(gra)
-        print(ich)
-        print()
-
-
-if __name__ == '__main__':
-    test__sarah_badpsecies()
+# def test__sarah_badpsecies():
+#     """ test bad species list from sarah
+#     """
+#     bs_ichs = list(BS_DF['inchi'])
+#
+#     for ref_ich in bs_ichs:
+#         print(ref_ich)
+#         ich = automol.inchi.add_stereo(ref_ich)
+#         print(ich)
+#         print()
