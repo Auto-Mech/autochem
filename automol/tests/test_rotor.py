@@ -75,7 +75,8 @@ def test__():
     """ rotor
     """
 
-    rotors = automol.rotor.Rotor(SPC_ZMA)
+    rotors = automol.rotor.from_zma(SPC_ZMA)
+    print(rotors)
 
 
 if __name__ == '__main__':
