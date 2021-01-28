@@ -1,6 +1,7 @@
 """ rotor library
 """
 
+from automol.rotor._rotor import Rotor
 # from automol.rotor._build import hr_prep
 # from automol.rotor._build import build_rotors
 # from automol.rotor._build import _rotor_info
@@ -17,7 +18,9 @@
 # from automol.rotor import pot
 
 
-# __all__ = [
+__all__ = [
+    'Rotor'
+]
 #     'hr_prep',
 #     'build_rotors',
 #     '_rotor_info',
@@ -32,4 +35,3 @@
 #     'tors',
 #     'pot',
 # ]
-
