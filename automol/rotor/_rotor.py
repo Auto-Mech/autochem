@@ -1,53 +1,80 @@
 """
  Build the rotor and torsion objects
+
+ Rotor: (tors_obj_1, tors_obj_2, tors_obj_3)
 """
 
 import numpy
 import automol
-from automol.rotor._par import TorsionParam
-
-
-# add a grouping function for the rotor
-
-class Rotor:
-    """ Describes a Rotor
-    """
-
-    def __init__(self, zma, names=None, model=None, rotor_dct=None):
-        """ constructor
-        """
-        torsion_axes = all_torsion_axes(zma, names=names)
-        print(_torsion_bond_keys(zma))
-    # Use input rotor dct to construct all te torsion objects if there
-    # else
-    # Build the dict of tors  names {name: bnd_idx}
-    # Build the torsion objects for each name
-    # Group the names nad torsions according to model
-    # Rotor is a dct of torsion objects maybe?
+# from automol.rotor._par import TorsionParam
 
 
 class Torsion:
-    """ Describes a torsion
+    """ Describes a torsion, which one or more make up a rotor
     """
 
-    def __init__(self, name, zma, tors_dct=None):
+    def __init__(self, zma, name, axis, groups, symmetry):
         """ constructor
         """
+
         self.name = name
         self.zma = zma
-        if tors_dct is not None:
-            self.symmetry = tors_dct.get(TorsionParam.SYMMETRY, None)
-            self.span = tors_dct.get(TorsionParam.SPAN, None)
-            self.axis = tors_dct.get(TorsionParam.AXIS, None)
-            self.groups = tors_dct.get(TorsionParam.GROUPS, None)
-        else:
-            pass
-            # self.symmetry = symmetry_number(self)
-            # self.span = span(self)
-            # self.axis, self.groups = rotational_groups(self)
+        self.symmetry = symmetry
+        self.groups = groups
+        self.axis = axis
+        self.span = Torsion.span(symmetry)
+        self.indices = Torsion._indices(zma, name)
+
+        # Attributes defaulted to none
+        self.pot = None
+        self.grid = None
 
 
-def build_torsion_axes(zma, names=None):
+    def span(symmetry):
+        """ Obtain the torsional span
+        """
+        return (2.0 * numpy.pi) / symmetry
+
+
+    def _indices(zma, name):
+        """ Build indices for the torsion
+        """
+        mode_idxs = automol.zmat.coord_idxs(zma, name)
+        mode_idxs = tuple((idx+1 for idx in mode_idxs))
+
+
+# constructors
+def from_zma(zma, names=None, model=None):
+    """ Construct a list-of-lists of torsion objects
+    """
+
+    # add a grouping function for the rotor
+
+    # Build a graph that is used to get torsion object info
+    gra, lin_keys = _graph(zma)
+
+    # Build the torsion objects
+    tors_name_dct = torsion_name_dct(zma, gra, lin_keys, names=names)
+
+    rotors = ()
+    for name_grp in name_grps:
+        torsions = ()
+        for name in name_grp:
+            axis = tors_name_dct[name]
+            groups = torsion_groups(gra, axis)
+            symmetry = torsion_symmetry(gra, axis, lin_keys)
+            torsions += (Torsion(zma, name, axis, groups, symmetry),)
+        rotors += (torsions,)
+
+
+# def from_data(tors_dct, names=None):
+#     """ Build the rotors objects from existing data
+#     """
+#     assert set(tors_dct.keys) >= {'sym', 'span', 'group'}
+
+
+# Build fundamental info needed to build torsions from basis automol structures
+def torsion_name_dct(zma, gra, lin_keys, names=None):
     """ Generate the bond keys for the torsion
 
         or just get the torsion names and keys?
@@ -56,10 +83,6 @@ def build_torsion_axes(zma, names=None):
          split dcts into subdcts for groupings, including single torsion)
     """
 
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    gra = automol.geom.graph(geo)
-
-    lin_keys = sorted(gdummy_key_dct.keys())
     tors_keys = automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
 
     # Determine all of the torsion names, take subset if requested
@@ -72,8 +95,14 @@ def build_torsion_axes(zma, names=None):
     return dict(zip(tors_names, tors_keys))
 
 
+def torsion_axes(gra, lin_keys):
+    """ Build the torsion axes
+    """
+    return automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
+
+
 def torsion_groups(gra, axis):
-    """ Generate torsion groups
+    """ Generate torsion groups make generalizable to multiple axes
     """
     return automol.graph.rotational_groups(gra, *axis)
 
@@ -85,9 +114,13 @@ def torsion_symmetry(gra, axis, lin_keys):
         gra, *axis, lin_keys=lin_keys)
 
 
-def torsion_span(gra, axis, lin_keys):
-    """ Obtain the torsional span
+# Helpers
+def _graph(zma):
+    """ Generate the graph
     """
-    sym_num = automol.graph.rotational_symmetry_number(
-        gra, *axis, lin_keys=lin_keys)
-    return (2.0 * numpy.pi) / sym_num
+
+    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    gra = automol.geom.graph(geo)
+    lin_keys = sorted(gdummy_key_dct.keys())
+
+    return gra, lin_keys
