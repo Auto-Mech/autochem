@@ -4,11 +4,28 @@
 import itertools
 import copy
 import numpy
-from scipy.interpolate import interp1d
 import automol
 
 
-# Build the potential objects
+# Build the grirds ultimately used for building potentials
+def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
+    """ scan grids
+    """
+
+    # Set the space
+    interval = (span / symmetry) - increment
+    npoints = int(interval / increment) + 2
+    _grid = numpy.linspace(0.0, interval, npoints)
+
+    # Displace from the coordinates equilibrium value if desired
+    if from_equilibrium:
+        val_dct = automol.zmat.value_dictionary(zma)
+        ini_val = val_dct[coord_name]
+        grid_from_equil = tuple(val.item() + ini_val for val in _grid)
+
+    return grid_from_equil
+
+
 def points(grids):
     """ Determine the dimensions of the grid
 
@@ -19,8 +36,7 @@ def points(grids):
 
     assert len(grids) in (1, 2, 3, 4), 'Rotor must be 1-4 dimensions'
 
-    grid_points = ((i for i in range(len(grid)))
-                   for grid in grids)
+    grid_points = ((i for i in range(len(grid))) for grid in grids)
     grid_points = tuple(itertools.product(*grid_points))
 
     return grid_points
@@ -37,8 +53,7 @@ def coords(grids):
 
     assert len(grids) in (1, 2, 3, 4), 'Rotor must be 1-4 dimensions'
 
-    grid_vals = ((x for x in grid)
-                 for grid in grids)
+    grid_vals = ((x for x in grid) for grid in grids)
     grid_vals = tuple(itertools.product(*grid_vals))
 
     return grid_vals
