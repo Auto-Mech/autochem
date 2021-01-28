@@ -1,5 +1,40 @@
-""" handle multidimensional rotors
+""" Handle name groups
 """
+
+import automol
+
+
+def group_torsions_into_rotors(tors_dct, tors_names=None):
+    """ take a list of torsion objects and build the rotors
+
+        Uses the names to build the the lists
+    """
+
+    if tors_names is None:
+        name_grps = name_groups(list(tors_dct.keys()), model='1dhr')
+
+    rotors = ()
+    for name_grp in name_grps:
+        rotor = ()
+        for name in name_grp:
+            rotor += (tors_dct[name],)
+        rotors += (rotor,)
+
+    return rotors
+
+
+def name_groups(names, model):
+    """ Build the list of names
+    """
+
+    if model in ('1dhr', '1dhrf', '1dhrfa', 'tau'):
+        tors_names = [[name] for name in names]
+    else:
+        tors_names = [[name for name in names]]
+
+    tors_names = tuple(tuple(x) for x in tors_names)
+
+    return tors_names
 
 
 def mdhr_prep(zma, run_tors_names):
@@ -12,7 +47,7 @@ def mdhr_prep(zma, run_tors_names):
     # Check the dimensionality of each rotor to see if they are greater than 4
     # Call a function to reduce large rotors
     final_rotor_lst = []
-    for rotor in rotor_lst:
+    for torsion in rotor_lst:
         if len(rotor) > 4:
             for reduced_rotor in reduce_rotor_dimensionality(zma, rotor):
                 final_rotor_lst.append(reduced_rotor)
@@ -26,7 +61,6 @@ def reduce_rotor_dimensionality(zma, rotor):
     """ For rotors with a dimensionality greater than 4, try and take them out
     """
 
-    # Find the methyl rotors for that are a part of the MDHR
     reduced_rotor_lst = []
     methyl_rotors = []
     for tors in rotor:
