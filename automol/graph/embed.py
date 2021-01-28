@@ -288,7 +288,7 @@ def path_distance_bounds_(gra):
             # path is [] and there is no way to recover the keys
             assert len(path) > 2
             ldist = closest_approach(gra, path[0], path[-1])
-            udist = 999
+            udist = 999.
 
         return ldist, udist
 
@@ -530,6 +530,7 @@ def planarity_constraint_bounds(gra, keys):
 
 
 def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
+                                     open_dih_range=False,
                                      angstrom=True, degree=True,
                                      rings_keys=(), keys=None, check=True):
     """ generate a set of distance ranges from coordinate values
@@ -586,6 +587,9 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
 
         dist_dct[k13] = d13
 
+    # Convert convert fixed distances into ranges
+    dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
+
     # Convert dihedrals into distances
     for (key1, key2, key3, key4), d1234 in dih_dct.items():
         d1234 *= phycon.DEG2RAD if degree else 1.
@@ -617,10 +621,10 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
         d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) /
                          (2 * d23**2))
 
-        dist_dct[k14] = d14
-
-    # Convert convert fixed distances into ranges
-    dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
+        if open_dih_range:
+            dist_range_dct[k14] = (d14, 999.)
+        else:
+            dist_range_dct[k14] = (d14, d14)
 
     for rng_keys in rings_keys:
         assert hasattr(keys, '__iter__'), (

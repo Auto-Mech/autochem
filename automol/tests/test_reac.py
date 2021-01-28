@@ -422,7 +422,7 @@ def test__reac__ring_forming_scission():
     prd_smis = ['C1CO1', '[OH]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -1050,9 +1050,10 @@ if __name__ == '__main__':
     # test__reac__string()
     # test__reac__substitution()
     # test__reac__hydrogen_migration()
+    test__reac__ring_forming_scission()
     # test__reac__forming_bond_keys()
     # test__reac__breaking_bond_keys()
-    test__reac__forming_rings_atom_keys()
+    # test__reac__forming_rings_atom_keys()
     # test__reac__forming_rings_bond_keys()
     # test__reac__reactant_graphs()
     # test__reac__product_graphs()

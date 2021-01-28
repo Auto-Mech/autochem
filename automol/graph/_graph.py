@@ -479,6 +479,12 @@ def atom_shortest_paths(gra):
     return sp_dct
 
 
+def shortest_path_between_atoms(gra, key1, key2):
+    """ shortest path between a pair of atoms
+    """
+    return shortest_path_between_groups(gra, [key1], [key2])
+
+
 def shortest_path_between_groups(gra, keys1, keys2):
     """ shortest path between two groups of atoms
 

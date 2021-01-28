@@ -72,6 +72,7 @@ from automol.graph._graph import is_connected
 from automol.graph._graph import connected_components
 from automol.graph._graph import connected_components_atom_keys
 from automol.graph._graph import atom_shortest_paths
+from automol.graph._graph import shortest_path_between_atoms
 from automol.graph._graph import shortest_path_between_groups
 from automol.graph._graph import longest_chain
 from automol.graph._graph import atom_longest_chain
@@ -328,6 +329,7 @@ __all__ = [
     'connected_components',
     'connected_components_atom_keys',
     'atom_shortest_paths',
+    'shortest_path_between_atoms',
     'shortest_path_between_groups',
     'longest_chain',
     'atom_longest_chain',

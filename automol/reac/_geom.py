@@ -82,23 +82,31 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
     brk_bnd_dist = 1.5
-    a123 = 150.
-    a234 = 85.
-    d1234 = 170.
+    d1234 = 180.
 
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist
     dist_dct[brk_bnd_key] = brk_bnd_dist
 
-    key2, = frm_bnd_key & brk_bnd_key
-    key1, = frm_bnd_key - {key2}
-    key3, = brk_bnd_key - {key2}
-    ang_dct = {(key1, key2, key3): a123, (key2, key3, None): a234}
-    dih_dct = {(key1, key2, key3, None): d1234}
-
     gra = ts.reactants_graph(rxn.forward_ts_graph)
+
+    key2, = frm_bnd_key & brk_bnd_key
+    key4, = frm_bnd_key - {key2}
+    key1, = brk_bnd_key - {key2}
+    path14 = automol.graph.shortest_path_between_atoms(gra, key1, key4)
+    key3 = automol.graph.atom_neighbor_atom_key(
+        gra, key4, excl_atm_keys=(key1, key2, key4), incl_atm_keys=path14)
+
+    # Note: We can't set the exact dihedral angle yet, because the angles are
+    # as yet unknown. To get around this, we use a lower bound on the dihedral
+    # distance (to ensure that we don't end up with a dihedral angle less than
+    # 90) and enforce planarity. Perhaps there's a cleaner way to do this, but
+    # for now it seems to work.
+    dih_dct = {(key1, key2, key3, key4): d1234}
+    pla_dct = {(key1, key2, key3, key4): (0.0, 0.0)}
+
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, ang_dct=ang_dct, dih_dct=dih_dct, degree=True,
+        gra, dist_dct, dih_dct=dih_dct, open_dih_range=True, degree=True,
         angstrom=True)
 
     geo_init, = rct_geos
@@ -108,7 +116,9 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     geo = _geometry_from_info(
         gra, rct_geos, geo_init, dist_range_dct,
         relax_ang=relax_ang, relax_tors=relax_tors,
+        pla_dct=pla_dct,
         max_dist_err=max_dist_err, log=log)
+
     return geo
 
 
@@ -361,14 +371,17 @@ def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False):
 # helpers
 def _geometry_from_info(gra, rct_geos, geo_init, dist_range_dct,
                         relax_ang=False, relax_tors=False,
+                        pla_dct=None,
                         max_dist_err=2e-1, log=False):
     keys = sorted(atom_keys(gra))
     xmat = automol.geom.coordinates(geo_init, angstrom=True)
     lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
         gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
         relax_torsions=relax_tors)
+
+    pla_dct = {} if pla_dct is None else pla_dct
     chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
-    pla_dct = automol.graph.embed.planarity_constraint_bounds(gra, keys)
+    pla_dct.update(automol.graph.embed.planarity_constraint_bounds(gra, keys))
 
     xmat, conv = automol.embed.cleaned_up_coordinates(
         xmat, lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct,
