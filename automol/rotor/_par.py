@@ -7,15 +7,13 @@ class TorsionParam():
     """ Info which can define a new torsion (need new class name)
     """
 
-    GROUP1 = 'group1'
-    GROUP2 = 'group2'
-    AXIS1 = 'axis1'
-    AXIS2 = 'axis2'
+    GROUPS = 'group1'
+    AXIS = 'axis'
     SYMMETRY = 'symmetry'
     POTENTIAL = 'pot'
     SPAN = 'span'
-    GEOMETRY = 'geo'
-    ZMATRIX = 'zma'
+    GEOM = 'geo'
+    ZMAT = 'zma'
 
 
 # class TorsionModel():

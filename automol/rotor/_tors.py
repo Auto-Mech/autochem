@@ -4,23 +4,47 @@
  Rotor: (tors_obj_1, tors_obj_2, tors_obj_3)
 """
 
-import numpy
+# import numpy
+import yaml
 import automol
 # from automol.rotor._par import TorsionParam
+from phydat import phycon
+
+
+class Parameter():
+    """ Info which can define a new torsion (need new class name)
+    """
+    GROUPS = 'groups'
+    AXIS = 'axis'
+    SYMMETRY = 'symmetry'
+    POTENTIAL = 'pot'
+    SPAN = 'span'
+    GEOM = 'geo'
+    ZMAT = 'zma'
+
+
+# class Model():
+#     """ Torsional models
+#     """
+#     ONEDHR = '1dhr'
+#     ONEDHR_FRZ_TORS = '1dhrf'
+#     1DHR_FRZ_ALL = '1dhrfa'
+#     MDHR = 'mdhr'
+#     MDHR_VIB_ADIAB = 'mdhrv'
 
 
 class Torsion:
     """ Describes a torsion, which one or more make up a rotor
     """
 
-    def __init__(self, zma, name, axis, groups, symmetry):
+    def __init__(self, zma, name, axis, grps, symm):
         """ constructor
         """
 
         self.name = name
         self.zma = zma
-        self.symmetry = symmetry
-        self.groups = groups
+        self.symmetry = symm
+        self.groups = grps
         self.axis = axis
         # self.span = span(symmetry)
         # self.indices = Torsion._indices(zma, name)
@@ -29,18 +53,18 @@ class Torsion:
         self.pot = None
         self.grid = None
 
-    @staticmethod
-    def span(symmetry):
-        """ Obtain the torsional span
-        """
-        return (2.0 * numpy.pi) / symmetry
+    # @staticmethod
+    # def span(symmetry):
+    #     """ Obtain the torsional span
+    #     """
+    #     return (2.0 * numpy.pi) / symmetry
 
-    @staticmethod
-    def _indices(zma, name):
-        """ Build indices for the torsion
-        """
-        mode_idxs = automol.zmat.coord_idxs(zma, name)
-        mode_idxs = tuple((idx+1 for idx in mode_idxs))
+    # @staticmethod
+    # def _indices(zma, name):
+    #     """ Build indices for the torsion
+    #     """
+    #     mode_idxs = automol.zmat.coord_idxs(zma, name)
+    #     mode_idxs = tuple((idx+1 for idx in mode_idxs))
 
 
 # Build a converter from object to a dictionary
@@ -120,3 +144,56 @@ def symmetry(gra, axis, lin_keys):
     """
     return automol.graph.rotational_symmetry_number(
         gra, *axis, lin_keys=lin_keys)
+
+
+# I/O
+def string(tors_dct):
+    """ write the transformation to a string
+    """
+
+    def _encode_group(group_keys):
+        group_str = '-'.join(str(val) for val in group_keys)
+        return group_str
+
+    tors_names = _sort_tors_names(list(tors_dct.keys()))
+
+    str_dct = {}
+    for name in tors_names:
+        dct = tors_dct[name]
+        str_dct[name] = {
+            'axis': _encode_group(dct.get('axis', None)),
+            'group1': _encode_group(dct.get('group1', None)),
+            'group2': _encode_group(dct.get('group2', None)),
+            'symmetry': dct.get('symmetry', None),
+            'span': round(dct.get('span', None) * phycon.RAD2DEG, 2)
+        }
+
+    tors_str = yaml.dump(str_dct, sort_keys=False)
+
+    return tors_str
+
+
+def from_string(tors_str):
+    """ read the transformation from a string
+    """
+
+    def _decode_group(group_str):
+        group_keys = tuple(map(int, group_str.split('-')))
+        return group_keys
+
+    tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
+    for dct in tors_dct.values():
+        dct['axis'] = _decode_group(dct['axis'])
+        dct['group1'] = _decode_group(dct['group1'])
+        dct['group2'] = _decode_group(dct['group2'])
+        dct['span'] = dct['span'] * phycon.DEG2RAD
+
+    return tors_dct
+
+
+def _sort_tors_names(tors_names):
+    """ sort torsional names
+    """
+    tors_names = list(tors_names)
+    tors_names.sort(key=lambda x: int(x.split('D')[1]))
+    return tors_names
