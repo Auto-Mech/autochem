@@ -147,28 +147,22 @@ def symmetry(gra, axis, lin_keys):
 
 
 # I/O
-def string(tors_dct):
-    """ write the transformation to a string
+def string(torsion):
+    """ write the torsions to a string
     """
 
     def _encode_group(group_keys):
         group_str = '-'.join(str(val) for val in group_keys)
         return group_str
 
-    tors_names = _sort_tors_names(list(tors_dct.keys()))
+    tors_dct = {
+        'axis': _encode_group(torsion.axis),
+        'groups': _encode_group(torsion.groups),
+        'symmetry': torsion.symmetry,
+        # 'span': round(dct.get('span', None) * phycon.RAD2DEG, 2)
+    }
 
-    str_dct = {}
-    for name in tors_names:
-        dct = tors_dct[name]
-        str_dct[name] = {
-            'axis': _encode_group(dct.get('axis', None)),
-            'group1': _encode_group(dct.get('group1', None)),
-            'group2': _encode_group(dct.get('group2', None)),
-            'symmetry': dct.get('symmetry', None),
-            'span': round(dct.get('span', None) * phycon.RAD2DEG, 2)
-        }
-
-    tors_str = yaml.dump(str_dct, sort_keys=False)
+    tors_str = yaml.dump(tors_dct, sort_keys=False)
 
     return tors_str
 
@@ -181,14 +175,17 @@ def from_string(tors_str):
         group_keys = tuple(map(int, group_str.split('-')))
         return group_keys
 
-    tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
-    for dct in tors_dct.values():
-        dct['axis'] = _decode_group(dct['axis'])
-        dct['group1'] = _decode_group(dct['group1'])
-        dct['group2'] = _decode_group(dct['group2'])
-        dct['span'] = dct['span'] * phycon.DEG2RAD
+    torsions = ()
 
-    return tors_dct
+    tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
+    for name, dct in tors_dct.values():
+        axis = _decode_group(dct['axis'])
+        grps = _decode_group(dct['groups'])
+        symm = dct
+
+        torsions += (Torsion('', name, axis, grps, symm),)
+
+    return torsions
 
 
 def _sort_tors_names(tors_names):
