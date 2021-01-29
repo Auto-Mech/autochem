@@ -590,6 +590,55 @@ def test__reac__hydrogen_abstraction():
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
 
+    # Extra test cases:
+    rxn_smis_lst = [(['C', '[H]'], ['[CH3]', '[H][H]'])]
+    for rct_smis, prd_smis in rxn_smis_lst:
+        rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
+        geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+
+        # reaction object aligned to z-matrix keys
+        # (for getting torsion coordinate names)
+        zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+        rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+        tsg = rxn.forward_ts_graph
+
+        lin_keys = sorted(
+            automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
+        bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+        names = {automol.zmat.torsion_coordinate_name(zma, *k)
+                 for k in bnd_keys}
+        print(automol.zmat.string(zma, one_indexed=False))
+        print(names)
+
+        scan_name = automol.reac.scan_coordinate(rxn, zma)
+        const_names = automol.reac.constraint_coordinates(rxn, zma)
+        print(scan_name)
+        print(const_names)
+
+        # graph aligned to geometry keys
+        # (for getting rotational groups and symmetry numbers)
+        geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+        grxn = automol.reac.relabel_for_geometry(rxn)
+        gtsg = grxn.forward_ts_graph
+
+        # Check that the reaction object can be converted back, if needed
+        zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+
+        lin_keys = sorted(gdummy_key_dct.keys())
+        gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+
+        axes = sorted(map(sorted, gbnd_keys))
+        groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+        sym_nums = [
+            automol.graph.rotational_symmetry_number(gtsg, *a,
+                                                     lin_keys=lin_keys)
+            for a in axes]
+        for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
+            print('axis:', axis)
+            print('\tgroup 1:', groups[0])
+            print('\tgroup 2:', groups[1])
+            print('\tsymmetry number:', sym_num)
+
 
 def test__reac__addition():
     """ test addition functionality
@@ -1067,7 +1116,8 @@ if __name__ == '__main__':
     # test__reac__string()
     # test__reac__substitution()
     # test__reac__hydrogen_migration()
-    test__reac__ring_forming_scission()
+    # test__reac__ring_forming_scission()
+    test__reac__hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__forming_bond_keys()
     # test__reac__breaking_bond_keys()
