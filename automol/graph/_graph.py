@@ -780,6 +780,9 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
     ord_dct = {} if ord_dct is None else ord_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
 
+    ord_dct = dict_.transform_keys(ord_dct, frozenset)
+    ste_par_dct = dict_.transform_keys(ste_par_dct, frozenset)
+
     if check:
         assert not keys & bnd_keys, (
             '{} and {} have a non-empty intersection'.format(keys, bnd_keys)

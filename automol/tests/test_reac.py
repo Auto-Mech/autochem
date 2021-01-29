@@ -70,7 +70,6 @@ products keys:
 - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 - [12, 13]
 """
-import automol
 
 MIGRATION_RXN_STR = """
 reaction class: hydrogen migration
@@ -311,7 +310,7 @@ def test__reac__hydrogen_migration():
     prd_smis = ['C[CH]COO']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
     print(automol.geom.string(geo))
 
     # reaction object aligned to z-matrix keys
@@ -369,7 +368,7 @@ def test__reac__beta_scission():
     prd_smis = ['[O][O]', 'CC[CH2]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -426,7 +425,7 @@ def test__reac__ring_forming_scission():
     prd_smis = ['C1CCCO1', '[OH]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -484,7 +483,7 @@ def test__reac__elimination():
     prd_smis = ['CC=C', 'O[O]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -541,7 +540,7 @@ def test__reac__hydrogen_abstraction():
     prd_smis = ['[C](C)(C)C', 'O']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -594,7 +593,7 @@ def test__reac__hydrogen_abstraction():
     rxn_smis_lst = [(['C', '[H]'], ['[CH3]', '[H][H]'])]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-        geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+        geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
         # reaction object aligned to z-matrix keys
         # (for getting torsion coordinate names)
@@ -647,7 +646,7 @@ def test__reac__addition():
     prd_smis = ['CCCO[O]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -704,7 +703,7 @@ def test__reac__insertion():
     prd_smis = ['CCCO[O]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -761,7 +760,7 @@ def test__reac__substitution():
     prd_smis = ['CCC', '[OH]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -1114,11 +1113,11 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    # test__reac__substitution()
     # test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
-    test__reac__hydrogen_abstraction()
-    # test__reac__insertion()
+    # test__reac__hydrogen_abstraction()
+    test__reac__insertion()
+    test__reac__substitution()
     # test__reac__forming_bond_keys()
     # test__reac__breaking_bond_keys()
     # test__reac__forming_rings_atom_keys()
