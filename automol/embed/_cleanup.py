@@ -263,8 +263,8 @@ def line_search_alpha(err_, sd1, cd1):
 
 
 def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
-                           conv_=None, max_dist_err=2e-1, maxiter=None,
-                           chi_flip=True, dim4=True, log=False):
+                           conv_=None, max_dist_err=2e-1, grad_thresh=2e-1,
+                           maxiter=None, chi_flip=True, dim4=True, log=False):
     """ clean up coordinates by conjugate-gradients error minimization
 
     :param xmat: the initial guess coordinates to be cleaned up
@@ -279,6 +279,8 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
     :param conv_: a callable convergence checker function of xmat, err, and
         grad which returns True if the geometry is converged
     :param max_dist_err: maximum distance error for the geometry to be
+        considered converged
+    :param grad_thresh: maximum gradient norm for the geometry to be
         considered converged
     :param maxiter: maximum number of iterations; default is three times the
         number of coordinates
@@ -311,14 +313,28 @@ def cleaned_up_coordinates(xmat, lmat, umat, chi_dct=None, pla_dct=None,
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1., log=log)
     grad_ = error_function_gradient_(
         lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct, wdim4=1.)
-    conv_ = (distance_convergence_checker_(lmat, umat, max_dist_err)
-             if conv_ is None else conv_)
+    conv_ = (
+        default_convergence_checker_(lmat, umat, max_dist_err, grad_thresh)
+        if conv_ is None else conv_)
 
     xmat, conv = minimize_error(xmat, err_, grad_, conv_, maxiter)
     return xmat, conv
 
 
-def distance_convergence_checker_(lmat, umat, max_dist_err=0.5):
+def default_convergence_checker_(lmat, umat, max_dist_err=2e-1,
+                                 grad_thresh=2e-1):
+    """ default convergence checker
+    """
+    conv1_ = distance_convergence_checker_(lmat, umat, max_dist_err)
+    conv2_ = gradient_convergence_checker_(grad_thresh)
+
+    def _is_converged(xmat, err, grad):
+        return conv1_(xmat, err, grad) and conv2_(xmat, err, grad)
+
+    return _is_converged
+
+
+def distance_convergence_checker_(lmat, umat, max_dist_err=2e-1):
     """ convergence checker based on the maximum distance error
     """
 
@@ -329,6 +345,23 @@ def distance_convergence_checker_(lmat, umat, max_dist_err=0.5):
         dist_err_dct = greatest_distance_errors(dmat, lmat, umat, count=1)
         dist_err, = dist_err_dct.values()
         return dist_err <= max_dist_err
+
+    return _is_converged
+
+
+def planarity_convergence_checker_(pla_dct, max_vol_err=2e-1):
+    """ convergence checker based on the maximum planarity error
+    """
+
+    def _is_converged(xmat, err, grad):
+        assert err or not err
+        assert numpy.shape(xmat) == numpy.shape(grad)
+        vols = numpy.array(
+            [volume(xmat, idxs) for idxs in pla_dct.keys()])
+        lvols, uvols = map(numpy.array, zip(*pla_dct.values()))
+        lmax = numpy.amax((lvols - vols) * (vols < lvols))
+        umax = numpy.amax((vols - uvols) * (vols > uvols))
+        return max(lmax, umax) <= max_vol_err
 
     return _is_converged
 

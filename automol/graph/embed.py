@@ -27,6 +27,7 @@ The function sample_raw_distance_geometry() below returns the result of step
 automol.embed.
 """
 
+import numbers
 import itertools
 import more_itertools as mit
 import numpy
@@ -530,7 +531,6 @@ def planarity_constraint_bounds(gra, keys):
 
 
 def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
-                                     open_dih_range=False,
                                      angstrom=True, degree=True,
                                      rings_keys=(), keys=None, check=True):
     """ generate a set of distance ranges from coordinate values
@@ -591,7 +591,14 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
     dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
 
     # Convert dihedrals into distances
-    for (key1, key2, key3, key4), d1234 in dih_dct.items():
+    for (key1, key2, key3, key4), val in dih_dct.items():
+        # Allow user to leave dihedrals open-ended, as a lower or upper bound
+        if isinstance(val, numbers.Number):
+            d1234 = val
+        else:
+            assert hasattr(val, '__len__') and len(val) == 2
+            d1234 = next(v for v in val if v is not None)
+
         d1234 *= phycon.DEG2RAD if degree else 1.
 
         k12 = frozenset({key1, key2})
@@ -621,10 +628,16 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
         d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) /
                          (2 * d23**2))
 
-        if open_dih_range:
-            dist_range_dct[k14] = (d14, 999.)
-        else:
+        if isinstance(val, numbers.Number) or val[0] == val[1]:
             dist_range_dct[k14] = (d14, d14)
+        elif val[0] is None:
+            ld14 = closest_approach(gra, key1, key4)
+            dist_range_dct[k14] = (ld14, d14)
+        elif val[1] is None:
+            ud14 = 999.
+            dist_range_dct[k14] = (d14, ud14)
+        else:
+            raise ValueError("Invalid dih_dict: {}".format(str(dih_dct)))
 
     for rng_keys in rings_keys:
         assert hasattr(keys, '__iter__'), (

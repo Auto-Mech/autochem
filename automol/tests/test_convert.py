@@ -54,7 +54,11 @@ def test__graph__with_stereo():
     """
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+        ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
+
+    # AVC note to self -- fix this case:
+    ref_ichs.append(
+        'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1')
 
     for ref_ich in ref_ichs:
         print(ref_ich)
@@ -333,3 +337,7 @@ def test__geom__zmatrix_atom_ordering():
 #         ich = automol.inchi.add_stereo(ref_ich)
 #         print(ich)
 #         print()
+
+
+if __name__ == '__main__':
+    test__graph__with_stereo()
