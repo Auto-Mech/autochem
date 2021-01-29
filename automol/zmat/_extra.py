@@ -29,6 +29,64 @@ def distance_coordinate_name(zma, key1, key2):
     return name
 
 
+def central_angle_coordinate_name(zma, key1, key2, key3):
+    """ get the name of angle coordinate for a set of 3 atoms
+
+        :param zma: the z-matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: the first key
+        :type key1: int
+        :param key2: the second key (central atom)
+        :type key2: int
+        :param key3: the third key
+        :type key3: int
+        :rtype: str
+    """
+
+    key1, key3 = sorted([key1, key3])
+    name_mat = name_matrix(zma)
+    key_mat = key_matrix(zma)
+    assert key_mat[key3][0] == key2 and key_mat[key3][1] == key1, (
+        "{:d}-{:d}-{:d} is not a distance coordinate in this zmatrix:\n{}"
+        .format(key1, key2, key3, string(zma, one_indexed=False)))
+    name = name_mat[key3][1]
+
+    return name
+
+
+def dihedral_angle_coordinate_name(zma, key1, key2, key3, key4):
+    """ get the name of dihedral coordinate for a set of 4 atoms
+
+        :param zma: the z-matrix
+        :type zma: automol Z-Matrix data structure
+        :param key1: the first key
+        :type key1: int
+        :param key2: the second key
+        :type key2: int
+        :param key3: the third key
+        :type key3: int
+        :param key4: the fourth key
+        :type key4: int
+        :rtype: str
+    """
+
+    if key1 > key4:
+        key1, key2, key3, key4 = key4, key3, key2, key1
+
+    name_mat = name_matrix(zma)
+    key_mat = key_matrix(zma)
+    assert (
+        key_mat[key4][0] == key3 and key_mat[key4][1] == key2 and
+        key_mat[key4][2] == key1
+    ), (
+        "{:d}-{:d}-{:d}-{:d} is not a dihedral coordinate in this zmatrix:\n{}"
+        .format(key1, key2, key3, key4, string(zma, one_indexed=False)))
+
+    name = name_mat[key4][2]
+
+    return name
+
+
 def torsion_coordinate_name(zma, key1, key2):
     """ Obtain the name for dihedral coordinate about a torsion axis
         (rotational bond).

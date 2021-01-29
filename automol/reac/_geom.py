@@ -1,11 +1,13 @@
 """ TS geometries for specific reaction classes
 """
 import itertools
+import more_itertools as mit
 import automol.convert.graph
 import automol.geom.ts
 from automol import par
 from automol.graph import ts
 from automol.graph import atom_keys
+from automol.reac._util import ring_forming_scission_chain
 
 
 # Unimolecular reactions
@@ -80,7 +82,7 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
-    frm_bnd_dist = 1.7
+    frm_bnd_dist = 2.0
     brk_bnd_dist = 1.5
     d1234 = 180.
 
@@ -88,26 +90,15 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     dist_dct[frm_bnd_key] = frm_bnd_dist
     dist_dct[brk_bnd_key] = brk_bnd_dist
 
+    # Note that this will not set the angle to exactly 180, because we don't
+    # yet know the 1-3 and 2-4 distances.
+    chain_keys = ring_forming_scission_chain(rxn)
+    key1, key2, key3, key4 = chain_keys[:4]
+    dih_dct = {(key1, key2, key3, key4): (d1234, None)}
+
     gra = ts.reactants_graph(rxn.forward_ts_graph)
-
-    key2, = frm_bnd_key & brk_bnd_key
-    key4, = frm_bnd_key - {key2}
-    key1, = brk_bnd_key - {key2}
-    path14 = automol.graph.shortest_path_between_atoms(gra, key1, key4)
-    key3 = automol.graph.atom_neighbor_atom_key(
-        gra, key4, excl_atm_keys=(key1, key2, key4), incl_atm_keys=path14)
-
-    # Note: We can't set the exact dihedral angle yet, because the angles are
-    # as yet unknown. To get around this, we use a lower bound on the dihedral
-    # distance (to ensure that we don't end up with a dihedral angle less than
-    # 90) and enforce planarity. Perhaps there's a cleaner way to do this, but
-    # for now it seems to work.
-    dih_dct = {(key1, key2, key3, key4): d1234}
-    pla_dct = {(key1, key2, key3, key4): (0.0, 0.0)}
-
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, dih_dct=dih_dct, open_dih_range=True, degree=True,
-        angstrom=True)
+        gra, dist_dct, dih_dct=dih_dct, degree=True, angstrom=True)
 
     geo_init, = rct_geos
     relax_ang = True
@@ -115,6 +106,23 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
 
     geo = _geometry_from_info(
         gra, rct_geos, geo_init, dist_range_dct,
+        relax_ang=relax_ang, relax_tors=relax_tors,
+        max_dist_err=max_dist_err, log=log)
+
+    # Rerun the optimization, enforcing planarity on the ring
+    dist_dct = automol.geom.ts.distances([geo], angstrom=True)
+    dist_dct[frm_bnd_key] = frm_bnd_dist
+    dist_dct[brk_bnd_key] = brk_bnd_dist
+    pla_dct = {}
+    for key1, key2, key3, key4 in mit.windowed(chain_keys, 4):
+        pla_dct[(key1, key2, key3, key4)] = (0.0, 0.0)
+
+    gra = ts.reactants_graph(rxn.forward_ts_graph)
+    dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
+        gra, dist_dct, degree=True, angstrom=True)
+
+    geo = _geometry_from_info(
+        gra, [geo], geo, dist_range_dct,
         relax_ang=relax_ang, relax_tors=relax_tors,
         pla_dct=pla_dct,
         max_dist_err=max_dist_err, log=log)

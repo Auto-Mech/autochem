@@ -328,10 +328,12 @@ def test__reac__hydrogen_migration():
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
     assert scan_name == 'R5'
+    assert const_names == ('R4',)
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -383,10 +385,12 @@ def test__reac__beta_scission():
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
     assert scan_name == 'R8'
+    assert const_names == ()
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -418,11 +422,11 @@ def test__reac__beta_scission():
 def test__reac__ring_forming_scission():
     """ test ring-forming scission functionality
     """
-    rct_smis = ['[CH2]COO']
-    prd_smis = ['C1CO1', '[OH]']
+    rct_smis = ['[CH2]CCCOO']
+    prd_smis = ['C1CCCO1', '[OH]']
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=True)
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -434,20 +438,23 @@ def test__reac__ring_forming_scission():
         automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
     bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-    assert names == {'D8'}
+    assert names == {'D14'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
-    assert scan_name == 'R7'
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    assert scan_name == 'R13'
+    assert const_names == ('A4', 'A7', 'A10', 'D7', 'D10', 'D13')
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
     grxn = automol.reac.relabel_for_geometry(rxn)
     gtsg = grxn.forward_ts_graph
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
@@ -493,10 +500,12 @@ def test__reac__elimination():
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
     assert scan_name == 'R2'
+    assert const_names == ()
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -548,10 +557,12 @@ def test__reac__hydrogen_abstraction():
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
     assert scan_name == 'R15'
+    assert const_names == ()
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -603,10 +614,12 @@ def test__reac__addition():
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
     assert scan_name == 'R10'
+    assert const_names == ()
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -658,10 +671,12 @@ def test__reac__insertion():
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
     assert scan_name == 'R3'
+    assert const_names == ()
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -713,10 +728,12 @@ def test__reac__substitution():
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_bnd_key = automol.reac.scan_coordinate(rxn)
-    scan_name = automol.zmat.distance_coordinate_name(zma, *scan_bnd_key)
+    scan_name = automol.reac.scan_coordinate(rxn, zma)
+    const_names = automol.reac.constraint_coordinates(rxn, zma)
     assert scan_name == 'R7'
+    assert const_names == ()
     print(scan_name)
+    print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -1051,6 +1068,7 @@ if __name__ == '__main__':
     # test__reac__substitution()
     # test__reac__hydrogen_migration()
     test__reac__ring_forming_scission()
+    # test__reac__insertion()
     # test__reac__forming_bond_keys()
     # test__reac__breaking_bond_keys()
     # test__reac__forming_rings_atom_keys()

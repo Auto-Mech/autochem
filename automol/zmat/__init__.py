@@ -39,6 +39,8 @@ from automol.zmat._zmat import is_valid
 from automol.zmat._extra import torsion_coordinate_name
 from automol.zmat._extra import torsion_leading_atom
 from automol.zmat._extra import distance_coordinate_name
+from automol.zmat._extra import central_angle_coordinate_name
+from automol.zmat._extra import dihedral_angle_coordinate_name
 
 # constructors
 import automol.create.zmat
@@ -154,6 +156,8 @@ __all__ = [
     'torsion_coordinate_name',
     'torsion_leading_atom',
     'distance_coordinate_name',
+    'central_angle_coordinate_name',
+    'dihedral_angle_coordinate_name',
 
     # constructors
     'from_data',
