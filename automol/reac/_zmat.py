@@ -5,7 +5,9 @@ import automol.graph
 from automol import par
 from automol.graph import ts
 from automol.reac._reac import add_dummy_atoms
-from automol.reac._scan import insertion_scan_coordinate
+from automol.reac._util import hydrogen_migration_atom_keys
+from automol.reac._util import ring_forming_scission_atom_keys
+from automol.reac._util import insertion_forming_bond_keys
 
 
 # Unimolecular reactions
@@ -32,10 +34,7 @@ def hydrogen_migration_ts_zmatrix(rxn, ts_geo):
     # 4. Generate a z-matrix for the geometry
     # Start the z-matrix from the forming bond ring
     rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
-    hyd_key, = frm_bnd_key & brk_bnd_key
-    att_key, = frm_bnd_key - brk_bnd_key
+    att_key, hyd_key, _, _ = hydrogen_migration_atom_keys(rxn)
     # First, cycle the migrating h to the front of the ring keys and, if
     # needed, reverse the ring so that the attacking atom is last:
     #       (migrating h atom, ... , atom 1, atom 2, attackin atom)
@@ -105,10 +104,7 @@ def ring_forming_scission_ts_zmatrix(rxn, ts_geo):
 
     # 4. Generate a z-matrix for the geometry
     rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
-    tra_key, = frm_bnd_key & brk_bnd_key
-    att_key, = frm_bnd_key - brk_bnd_key
+    att_key, tra_key, _ = ring_forming_scission_atom_keys(rxn)
     # First, cycle the transferring atom to the front of the ring keys and, if
     # needed, reverse the ring so that the attacking atom is last
     #       (transferring atom, ... , atom, attackin atom)
@@ -269,9 +265,7 @@ def insertion_ts_zmatrix(rxn, ts_geo):
     # Drop one of the forming bonds from the z-matrix by sorting the ring atom
     # keys to exclude it. If one of the forming bonds intersects with the
     # breaking bond, choose that one.
-    frm_bnd_keys = ts.forming_bond_keys(rxn.forward_ts_graph)
-    scan_frm_bnd_key = insertion_scan_coordinate(rxn)
-    frm_bnd_key, = frm_bnd_keys - {scan_frm_bnd_key}
+    _, frm_bnd_key = insertion_forming_bond_keys(rxn)
     # Cycle the ring keys such that the atom closest to the breaking bond is
     # the beginning of the ring and the other atom is the end
     if frm_bnd_key & brk_bnd_key:

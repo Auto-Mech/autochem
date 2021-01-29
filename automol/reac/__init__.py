@@ -64,6 +64,9 @@ from automol.reac._scan import addition_scan_coordinate
 from automol.reac._scan import insertion_scan_coordinate
 from automol.reac._scan import substitution_scan_coordinate
 from automol.reac._scan import scan_coordinate
+from automol.reac._scan import hydrogen_migration_constraint_coordinates
+from automol.reac._scan import ring_forming_scission_constraint_coordinates
+from automol.reac._scan import constraint_coordinates
 # reaction products
 from automol.reac._prod import prod_hydrogen_abstraction
 from automol.reac._prod import prod_addition
@@ -137,6 +140,9 @@ __all__ = [
     'insertion_scan_coordinate',
     'substitution_scan_coordinate',
     'scan_coordinate',
+    'hydrogen_migration_constraint_coordinates',
+    'ring_forming_scission_constraint_coordinates',
+    'constraint_coordinates',
     # reaction products
     'prod_hydrogen_abstraction',
     'prod_addition',
