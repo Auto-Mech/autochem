@@ -201,3 +201,6 @@ def constraint_coordinates(rxn, zma):
     fun_ = function_dct[rxn.class_]
     ret = fun_(rxn, zma)
     return ret
+
+
+
