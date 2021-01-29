@@ -95,8 +95,13 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     xyzs1 = geom_base.coordinates(geo1, angstrom=angstrom)
     xyzs2 = geom_base.coordinates(geo2, angstrom=angstrom)
 
-    xyz1, xyz2 = map(xyzs1.__getitem__, (key1, key2))
-    orig_xyz3, orig_xyz4 = map(xyzs2.__getitem__, (key3, key4))
+    xyz1 = xyzs1[key1]
+    xyz2 = xyzs1[key2]
+    orig_xyz3 = xyzs2[key3]
+    if key4 is not None:
+        orig_xyz4 = xyzs2[key4]
+    else:
+        orig_xyz4 = [1., 1., 1.]
 
     r34 = vec.distance(orig_xyz3, orig_xyz4)
 

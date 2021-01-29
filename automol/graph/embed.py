@@ -532,7 +532,7 @@ def planarity_constraint_bounds(gra, keys):
 
 def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
                                      angstrom=True, degree=True,
-                                     rings_keys=(), keys=None, check=True):
+                                     rings_keys=(), keys=None, check=False):
     """ generate a set of distance ranges from coordinate values
 
     :param gra: molecular graph
@@ -694,8 +694,10 @@ def angle_key_filler_(gra, keys=None, check=True):
                 raise ValueError("Angle key {} couldn't be filled in"
                                  .format(str(ang_key)))
             ang_key = None
+        else:
+            ang_key = tuple(ang_key)
 
-        return tuple(ang_key)
+        return ang_key
 
     return _fill_in_angle_key
 
