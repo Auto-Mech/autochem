@@ -9,8 +9,8 @@ from automol.rotor._rotor import from_data
 # from automol.rotor._rotor import groups
 # from automol.rotor._rotor import symmetries
 # from automol.rotor._rotor import names_of_list
-from automol.rotor._rotor import string
-from automol.rotor._rotor import from_string
+# from automol.rotor._rotor import string
+# from automol.rotor._rotor import from_string
 
 
 __all__ = [

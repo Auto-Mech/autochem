@@ -238,7 +238,7 @@ def is_unique(geo, geo_lst, check_dct=None):
                     break
             else:
                 kwargs = {'chk_arg': val} if val is not None else {}
-                if not CHECK_DCT[key](geo, geoi, **kwargs):
+                if not CHECK_FXN_DCT[key](geo, geoi, **kwargs):
                     unique = False
                     like_idx = idx
                     break
