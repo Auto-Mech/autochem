@@ -36,7 +36,10 @@ def zmatrix(geo, ts_bnds=()):
         dummy_key_dct = {}
     else:
         geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(geo)
-        gra = connectivity_graph(geo, dummy=True)
+        gra = connectivity_graph(geo)
+        bnd_keys = tuple(dummy_key_dct.items())
+        ord_dct = {k: 0 for k in bnd_keys}
+        gra = automol.graph.add_bonds(gra, bnd_keys, ord_dct=ord_dct)
         vma, zma_keys = automol.graph.vmat.vmatrix(gra)
         geo = automol.geom.from_subset(geo, zma_keys)
         zma = automol.zmat.from_geometry(vma, geo)
@@ -136,7 +139,7 @@ def external_symmetry_factor(geo):
 
 
 # geometry => graph
-def connectivity_graph(geo, dummy=True,
+def connectivity_graph(geo,
                        rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ Generate a molecular graph from the molecular geometry that has information
         about bond connectivity.
@@ -147,8 +150,6 @@ def connectivity_graph(geo, dummy=True,
         :type rqh_bond_max: float
         :param rhh_bond_max: maximum distance between hydrogens
         :type rhh_bond_max: float
-        :param dummy: parameter to incude bonds to dummy atoms
-        :type dummy: bool
         :rtype: automol molecular graph structure
     """
 
@@ -174,17 +175,6 @@ def connectivity_graph(geo, dummy=True,
         map(frozenset, filter(_are_bonded, itertools.combinations(idxs, r=2))))
 
     bnd_ord_dct = {bnd_key: 1 for bnd_key in bnd_keys}
-
-    if dummy:
-        dummy_idxs = automol.geom.dummy_atom_indices(geo)
-        for idx1 in dummy_idxs:
-            idx2, dist = min(
-                [[i, _distance([idx1, i])] for i in idxs if i != idx1],
-                key=lambda x: x[1])
-            if dist < rhh_bond_max:
-                bnd_key = frozenset({idx1, idx2})
-                bnd_keys += (bnd_key,)
-                bnd_ord_dct[bnd_key] = 0
 
     gra = create.graph.from_data(atom_symbols=atm_symb_dct, bond_keys=bnd_keys,
                                  bond_orders=bnd_ord_dct)

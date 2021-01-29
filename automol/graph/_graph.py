@@ -44,7 +44,7 @@ def standard_keys_for_sequence(gras):
 
     shift = 0
     for gra in gras:
-        natms = atom_count(gra, with_dummy=True, with_implicit=False)
+        natms = atom_count(gra, dummy=True, with_implicit=False)
 
         atm_key_dct = {atm_key: idx+shift
                        for idx, atm_key in enumerate(sorted(atom_keys(gra)))}
@@ -163,12 +163,12 @@ def electron_count(gra, charge=0):
     return nelec
 
 
-def atom_count(gra, with_dummy=False, with_implicit=True):
+def atom_count(gra, dummy=False, with_implicit=True):
     """ count the number of atoms in this molecule
 
     by default, this includes implicit hydrogens and excludes dummy atoms
     """
-    if not with_dummy:
+    if not dummy:
         gra = without_dummy_atoms(gra)
     natms = len(atoms(gra))
     if with_implicit:
@@ -190,10 +190,10 @@ def atom_count_by_type(gra, sym, keys=None):
     return symbs.count(sym)
 
 
-def heavy_atom_count(gra, with_dummy=False):
+def heavy_atom_count(gra, dummy=False):
     """ the number of heavy atoms
     """
-    if not with_dummy:
+    if not dummy:
         gra = without_dummy_atoms(gra)
     atm_symb_dct = atom_symbols(gra)
     nhvy_atms = sum(ptab.to_number(sym) != 1 for sym in atm_symb_dct.values())
@@ -779,6 +779,9 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
     keys = set(map(frozenset, keys))
     ord_dct = {} if ord_dct is None else ord_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
+
+    ord_dct = dict_.transform_keys(ord_dct, frozenset)
+    ste_par_dct = dict_.transform_keys(ste_par_dct, frozenset)
 
     if check:
         assert not keys & bnd_keys, (

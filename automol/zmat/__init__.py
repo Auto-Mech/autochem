@@ -11,6 +11,8 @@ from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import value_matrix
 from automol.zmat._zmat import value_dictionary
+from automol.zmat._zmat import dummy_keys
+from automol.zmat._zmat import dummy_neighbor_keys
 from automol.zmat._zmat import distance
 from automol.zmat._zmat import central_angle
 from automol.zmat._zmat import dihedral_angle
@@ -128,6 +130,8 @@ __all__ = [
     'name_matrix',
     'value_matrix',
     'value_dictionary',
+    'dummy_keys',
+    'dummy_neighbor_keys',
     'distance',
     'central_angle',
     'dihedral_angle',
