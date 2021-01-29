@@ -121,12 +121,12 @@ def graph(geo, stereo=True):
         geo, stereo=stereo)
 
 
-def connectivity_graph(geo, dummy=True,
+def connectivity_graph(geo,
                        rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
     """ geometry => connectivity graph
     """
     gra = automol.convert.geom.connectivity_graph(
-        geo, dummy=dummy, rqq_bond_max=rqq_bond_max,
+        geo, rqq_bond_max=rqq_bond_max,
         rqh_bond_max=rqh_bond_max, rhh_bond_max=rhh_bond_max)
     return gra
 

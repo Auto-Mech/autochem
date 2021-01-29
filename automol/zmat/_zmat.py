@@ -9,7 +9,7 @@ import automol.geom
 import autoread as ar
 import autowrite as aw
 from phydat import phycon
-from automol import vmat as _v_
+
 
 # constructors
 def from_geometry(vma, geo):
@@ -154,6 +154,34 @@ def value_dictionary(zma, angstrom=False, degree=False):
     val_dct.pop(None)
 
     return val_dct
+
+
+def dummy_keys(zma):
+    """ Obtain keys to dummy atoms in the Z-Matrix.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :rtype: tuple[int]
+    """
+    keys = tuple(key for key, sym in enumerate(symbols(zma)) if sym == 'X')
+    return keys
+
+
+def dummy_neighbor_keys(zma):
+    """ Obtain keys to dummy atoms in the Z-Matrix, along with their
+        neighboring atoms.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :returns: a dictionary with the dummy atoms as keys and their neighbors
+            as values
+        :rtype: dict[int: int]
+    """
+    key_mat = key_matrix(zma)
+    dum_keys = dummy_keys(zma)
+    ngb_keys = [key_mat[k][0] for k in dum_keys]
+    key_dct = dict(zip(dum_keys, ngb_keys))
+    return key_dct
 
 
 def distance(zma, key1, key2, angstrom=False):
@@ -711,20 +739,20 @@ def atom_indices(zma, sym, match=True):
 def dummy_coordinate_names(zma):
     """ names of dummy atom coordinates
     """
-    return _v_.dummy_coordinate_names(vmatrix(zma))
+    return vmat.dummy_coordinate_names(vmatrix(zma))
 
 
 def coordinates(zma, shift=0, multi=True):
-    """ coordinate keys associated with each coordinate name, 
+    """ coordinate keys associated with each coordinate name,
         as a dictionary
     """
-    return _v_.coordinates(vmatrix(zma), shift=shift, multi=multi)
+    return vmat.coordinates(vmatrix(zma), shift=shift, multi=multi)
 
 
 def dihedral_angle_names(zma):
     """ dihedral angle coordinate names
     """
-    return _v_.dihedral_angle_names(vmatrix(zma))
+    return vmat.dihedral_angle_names(vmatrix(zma))
 
 
 # z-matrix torsional degrees of freedom
@@ -788,4 +816,3 @@ def torsional_scan_linspaces(zma, tors_names, increment=0.5,
         (int(interval / increment)+1) for interval in intervals)
     return tuple((0, interval, npoints)
                  for interval, npoints in zip(intervals, npoints_lst))
-
