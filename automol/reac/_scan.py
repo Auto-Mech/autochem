@@ -13,6 +13,27 @@ from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import insertion_forming_bond_keys
 
 
+# Wrapper function to obtain all of the scan data for a reaction 
+def build_scan_info(zrxn, zma):
+    """ Build all of the scan information
+    """
+    
+    # Obtain the reactions scan and constraint coordinates
+    scan_name = scan_coordinate(zrxn, zma)
+    const_names = constraint_coordinates(zrxn, zma)
+    
+    constraint_dct = automol.zmat.constraint_dct(zma, const_names)
+
+    # Build the grid
+    grid = scan_grid(zrxn, zma) 
+
+    # Set the update guess 
+    update_guess = UPDATE_GUESS_DCT[zrxn.class_]
+
+    return (scan_name,), constraint_dct, grid, update_guess
+
+
+# SCAN AND CONSTRAINT COORDINATES #
 # Unimolecular reactions
 # 1. Hydrogen migrations
 def hydrogen_migration_scan_coordinate(rxn, zma):
@@ -204,15 +225,15 @@ def constraint_coordinates(rxn, zma):
     ret = fun_(rxn, zma)
     return ret
 
+
 # GRIDS #
 # Unimolecular reactions
-def hydrogen_migration_scan(zrxn, zma, npoints=(18,)):
+def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
     """ Build forward 1D grid  for addition reaction
     """
 
     # Obtain the reactions scan and constraint coordinates
     scan_name = hydrogen_migration_scan_coordinate(zrxn, zma)
-    const_name = hydrogen_migration_constraint_coordinates(zrxn, zma)
 
     # Build the scan grid
     interval = 0.3*phycon.ANG2BOHR
@@ -234,13 +255,10 @@ def hydrogen_migration_scan(zrxn, zma, npoints=(18,)):
     grid2 = numpy.linspace(rmin1, rmin2, 18)
     grid = numpy.concatenate((grid1, grid2), axis=None)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = True
-
-    return scan_name, (const_name,), grid, update_guess
+    return grid
 
 
-def beta_scission_scan(zrxn, zma, npoints=(14,)):
+def beta_scission_grid(zrxn, zma, npoints=(14,)):
     """ Build forward 1D grid for a beta scission reaction
     """
 
@@ -259,13 +277,10 @@ def beta_scission_scan(zrxn, zma, npoints=(14,)):
         rmax = 2.0 * phycon.ANG2BOHR
     grid = numpy.linspace(rmin, rmax, npoints1)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = False
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
-def ring_forming_scission_scan(zrxn, zma, npoints=(7,)):
+def ring_forming_scission_grid(zrxn, zma, npoints=(7,)):
     """ Build forward WD grid for a ring forming scission reaction
         # the following allows for a 2-d grid search in the initial ts_search
         # for now try 1-d grid and see if it is effective
@@ -273,7 +288,6 @@ def ring_forming_scission_scan(zrxn, zma, npoints=(7,)):
 
     # Obtain the scan coordinate
     scan_name = ring_forming_scission_scan_coordinate(zrxn, zma)
-    const_name = ring_forming_scission_constraint_coordinates(zrxn, zma)
 
     # Build the grid
     npoints1 = npoints[0]
@@ -289,13 +303,10 @@ def ring_forming_scission_scan(zrxn, zma, npoints=(7,)):
     grid1 = numpy.linspace(r1min, r1max, npoints1)
     grid = tuple(val.item() for val in grid1)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = False
-
-    return scan_name, (const_name,), grid, update_guess
+    return grid
 
 
-def elimination_scan(zrxn, zma, npoints=(8, 4)):
+def elimination_grid(zrxn, zma, npoints=(8, 4)):
     """ Build forward 2D grid for elimination reaction
     """
 
@@ -305,16 +316,19 @@ def elimination_scan(zrxn, zma, npoints=(8, 4)):
     # Build the grid
     npoints1, npoints2 = npoints
 
-    frm_bnd_len = _ts_bnd_len(zrxn, zma, choice='frm')
-    brk_bnd_len = _ts_bnd_len(zrxn, zma, choice='brk')
-    if frm_bnd_len is not None and brk_bnd_len is not None:
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
+    # brk_bnd_len = _ts_bnd_len(zrxn, zma, choice='brk')
+    brk_bnd_len = None
+    if frm_bnd_len is not None:
         r1min = frm_bnd_len + 0.2
         r1max = frm_bnd_len + 1.4
-        r2min = brk_bnd_len + 0.2
-        r2max = brk_bnd_len + 0.8
     else:
         r1min = (1.54 + 0.2) * phycon.ANG2BOHR
         r1max = (1.54 + 1.4) * phycon.ANG2BOHR
+    if brk_bnd_len is not None:
+        r2min = brk_bnd_len + 0.2
+        r2max = brk_bnd_len + 0.8
+    else:
         r2min = (0.74 + 0.2) * phycon.ANG2BOHR
         r2max = (0.74 + 0.8) * phycon.ANG2BOHR
 
@@ -322,14 +336,11 @@ def elimination_scan(zrxn, zma, npoints=(8, 4)):
     grid2 = numpy.linspace(r2min, r2max, npoints2) * phycon.ANG2BOHR
     grid = (grid1, grid2)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = True
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
 # Bimolecular reactions
-def hydrogen_abstraction_scan(zrxn, zma, npoints=(8,)):
+def hydrogen_abstraction_grid(zrxn, zma, npoints=(8,)):
     """ Build forward 1D grid for hydrogen abstraction reaction
     """
 
@@ -339,7 +350,7 @@ def hydrogen_abstraction_scan(zrxn, zma, npoints=(8,)):
     # Build the grid
     npoints1 = npoints[0]
 
-    frm_bnd_len = _ts_bnd_len(zrxn, zma, choice='frm')
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
         rmin = frm_bnd_len + 0.2
         rmax = frm_bnd_len + 1.0 * phycon.ANG2BOHR
@@ -348,13 +359,10 @@ def hydrogen_abstraction_scan(zrxn, zma, npoints=(8,)):
         rmax = 2.2 * phycon.ANG2BOHR
     grid = numpy.linspace(rmin, rmax, npoints1)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = False
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
-def addition_scan(zrxn, zma, npoints=(14,)):
+def addition_grid(zrxn, zma, npoints=(14,)):
     """ Build forward 1D grid for addition reaction
     """
 
@@ -364,7 +372,7 @@ def addition_scan(zrxn, zma, npoints=(14,)):
     # Build the grid
     npoints1 = npoints[0]
 
-    frm_bnd_len = _ts_bnd_len(zrxn, zma, choice='frm')
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
         rmin = frm_bnd_len + 0.1 * phycon.ANG2BOHR
         rmax = frm_bnd_len + 1.2 * phycon.ANG2BOHR
@@ -375,13 +383,10 @@ def addition_scan(zrxn, zma, npoints=(14,)):
     grid = _geometric_progression(
         rmin, rmax, npoints1, gfact=1.1, rstp=0.05)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = False
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
-def insertion_scan(zrxn, zma, npoints=(16,)):
+def insertion_grid(zrxn, zma, npoints=(16,)):
     """ Build forward 1D grid for insertion reaction
     """
 
@@ -391,7 +396,7 @@ def insertion_scan(zrxn, zma, npoints=(16,)):
     # Build the grid
     npoints1 = npoints[0]
 
-    frm_bnd_len = _ts_bnd_len(zrxn, zma, choice='frm')
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
         rmin = frm_bnd_len
         rmax = frm_bnd_len + 1.4 * phycon.ANG2BOHR
@@ -401,13 +406,10 @@ def insertion_scan(zrxn, zma, npoints=(16,)):
 
     grid = numpy.linspace(rmin, rmax, npoints1)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = False
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
-def substitution_scan(zrxn, zma, npoints=(14,)):
+def substitution_grid(zrxn, zma, npoints=(14,)):
     """ Build forward 1D grid for substitution reaction
     """
 
@@ -417,7 +419,7 @@ def substitution_scan(zrxn, zma, npoints=(14,)):
     # Build the grid
     npoints1 = npoints[0]
 
-    frm_bnd_len = _ts_bnd_len(zrxn, zma, choice='frm')
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
         rmin = frm_bnd_len
         rmax = frm_bnd_len + 1.4 * phycon.ANG2BOHR
@@ -427,14 +429,11 @@ def substitution_scan(zrxn, zma, npoints=(14,)):
 
     grid = numpy.linspace(rmin, rmax, npoints1)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = False
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
 # Barrierless TS grid
-def radrad_addition_scan(zrxn, zma, npoints=(5, 6)):
+def radrad_addition_grid(zrxn, zma, npoints=(5, 6)):
     """ Build forward 1D grid for a beta scission reaction
     """
 
@@ -454,13 +453,10 @@ def radrad_addition_scan(zrxn, zma, npoints=(5, 6)):
     grid = [grid1, grid2]
     # grid = numpy.concatenate((grid1, grid2), axis=None)
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = True
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
-def radrad_hydrogen_abstraction_scan(zrxn, zma, npoints=(8, 4)):
+def radrad_hydrogen_abstraction_grid(zrxn, zma, npoints=(8, 4)):
     """ Build forward 1D grid for elimination reaction
     """
 
@@ -468,7 +464,7 @@ def radrad_hydrogen_abstraction_scan(zrxn, zma, npoints=(8, 4)):
     scan_name = hydrogen_abstraction_scan_coordinate(zrxn, zma)
 
     # Build the grid
-    npoints1, npoints2 = 8, 4
+    npoints1, npoints2 = npoints
 
     rstart = 2.4 * phycon.ANG2BOHR
     rend1 = 1.4 * phycon.ANG2BOHR
@@ -480,50 +476,9 @@ def radrad_hydrogen_abstraction_scan(zrxn, zma, npoints=(8, 4)):
     # grid = numpy.concatenate((grid1, grid2), axis=None)
     grid = [grid1, grid2]
 
-    # Set variable where optimization will use opt zmas at each step
-    update_guess = True
-
-    return scan_name, None, grid, update_guess
+    return grid
 
 
-def scan_information(zrxn, zma):
-    """ Set the grid for a transition state search
-
-        rclass = (typ, spin, radrad)
-        # Pass npoints as a 2-element list
-    """
-
-    scan_inf = TIGHT_TS_SCAN_BUILDER_DCT[zrxn.class_](zrxn, zma)
-
-    # Set the main type
-    # if radrad and spin == 'low':
-    #     grid, update_guess = VAR_TS_GRID_BUILDER_DCT[rtyp](
-    #         ts_zma, trans)
-    # else:
-    #     grid, update_guess = TIGHT_TS_GRID_BUILDER_DCT[rtyp](
-    #         ts_zma, trans)
-
-    return scan_inf
-
-
-TIGHT_TS_SCAN_BUILDER_DCT = {
-    ReactionClass.BETA_SCISSION: beta_scission_scan,
-    ReactionClass.ADDITION: addition_scan,
-    ReactionClass.HYDROGEN_MIGRATION: hydrogen_migration_scan,
-    ReactionClass.ELIMINATION: elimination_scan,
-    ReactionClass.RING_FORM_SCISSION: ring_forming_scission_scan,
-    ReactionClass.HYDROGEN_ABSTRACTION: hydrogen_abstraction_scan,
-    ReactionClass.SUBSTITUTION: substitution_scan,
-    ReactionClass.INSERTION: insertion_scan
-}
-
-VAR_TS_SCAN_BUILDER_DCT = {
-    ReactionClass.ADDITION: radrad_addition_scan,
-    ReactionClass.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_scan
-}
-
-
-# Helper functions
 def _ts_bnd_len(zma, scan_coord):
     """ Obtain the current value of the bond defined by the scam coordinate
     """
@@ -536,7 +491,6 @@ def _ts_bnd_len(zma, scan_coord):
     return ts_bnd_len
 
 
-# Special grid progressions
 def _geometric_progression(rmin, rmax, npoints, gfact=1.1, rstp=0.05):
     """ Build a grid using a geometric progresion
     """
@@ -551,3 +505,54 @@ def _geometric_progression(rmin, rmax, npoints, gfact=1.1, rstp=0.05):
     grid = numpy.array(grid)
 
     return grid
+
+
+def scan_grid(zrxn, zma):
+    """ Set the grid for a transition state search
+
+        rclass = (typ, spin, radrad)
+        # Pass npoints as a 2-element list
+    """
+
+    tight_ts_grid_builder_dct = {
+        ReactionClass.BETA_SCISSION: beta_scission_grid,
+        ReactionClass.ADDITION: addition_grid,
+        ReactionClass.HYDROGEN_MIGRATION: hydrogen_migration_grid,
+        ReactionClass.ELIMINATION: elimination_grid,
+        ReactionClass.RING_FORM_SCISSION: ring_forming_scission_grid,
+        ReactionClass.HYDROGEN_ABSTRACTION: hydrogen_abstraction_grid,
+        ReactionClass.SUBSTITUTION: substitution_grid,
+        ReactionClass.INSERTION: insertion_grid
+    }
+    
+    var_ts_grid_builder_dct = {
+        ReactionClass.ADDITION: radrad_addition_grid,
+        ReactionClass.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
+    }
+
+    grid = tight_ts_grid_builder_dct[zrxn.class_](zrxn, zma)
+
+    # Set the main type
+    # if radrad and spin == 'low':
+    #     grid, update_guess = VAR_TS_GRID_BUILDER_DCT[rtyp](
+    #         ts_zma, trans)
+    # else:
+    #     grid, update_guess = TIGHT_TS_GRID_BUILDER_DCT[rtyp](
+    #         ts_zma, trans)
+
+    return grid
+
+
+# UPDATE GUESS DICTIONARY #
+UPDATE_GUESS_DCT = {
+    ReactionClass.BETA_SCISSION: False,
+    ReactionClass.ADDITION: False,
+    ReactionClass.HYDROGEN_MIGRATION: True,
+    ReactionClass.ELIMINATION: False,
+    ReactionClass.RING_FORM_SCISSION: False,
+    ReactionClass.HYDROGEN_ABSTRACTION: False,
+    ReactionClass.SUBSTITUTION: False,
+    ReactionClass.INSERTION: False,
+    ReactionClass.ADDITION: True
+    ReactionClass.HYDROGEN_ABSTRACTION: True
+}

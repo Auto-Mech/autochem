@@ -4,20 +4,23 @@
 import automol
 
 
-def group_torsions_into_rotors(tors_dct, tors_names=None):
+def group_torsions_into_rotors(tors_lst, name_grps=None, tors_model=None):
     """ take a list of torsion objects and build the rotors
 
         Uses the names to build the the lists
     """
 
-    if tors_names is None:
-        name_grps = name_groups(list(tors_dct.keys()), model='1dhr')
+    tors_names = tuple(tors.name for tors in tors_lst)
+    name_tors_dct = dict(zip(tors_names, tors_lst))
+
+    if name_grps is None:
+        name_grps = name_groups(tors_names, model='1dhr')
 
     rotors = ()
     for name_grp in name_grps:
         rotor = ()
         for name in name_grp:
-            rotor += (tors_dct[name],)
+            rotor += (name_tors_dct[name],)
         rotors += (rotor,)
 
     return rotors

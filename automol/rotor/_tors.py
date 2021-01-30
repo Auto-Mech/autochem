@@ -8,43 +8,20 @@
 import yaml
 import automol
 # from automol.rotor._par import TorsionParam
-from phydat import phycon
-
-
-class Parameter():
-    """ Info which can define a new torsion (need new class name)
-    """
-    GROUPS = 'groups'
-    AXIS = 'axis'
-    SYMMETRY = 'symmetry'
-    POTENTIAL = 'pot'
-    SPAN = 'span'
-    GEOM = 'geo'
-    ZMAT = 'zma'
-
-
-# class Model():
-#     """ Torsional models
-#     """
-#     ONEDHR = '1dhr'
-#     ONEDHR_FRZ_TORS = '1dhrf'
-#     1DHR_FRZ_ALL = '1dhrfa'
-#     MDHR = 'mdhr'
-#     MDHR_VIB_ADIAB = 'mdhrv'
 
 
 class Torsion:
     """ Describes a torsion, which one or more make up a rotor
     """
 
-    def __init__(self, zma, name, axis, grps, symm):
+    def __init__(self, zma, name, axis, groups, symmetry):
         """ constructor
         """
 
         self.name = name
         self.zma = zma
-        self.symmetry = symm
-        self.groups = grps
+        self.symmetry = symmetry
+        self.groups = groups
         self.axis = axis
         # self.span = span(symmetry)
         # self.indices = Torsion._indices(zma, name)
@@ -70,20 +47,20 @@ class Torsion:
 # Build a converter from object to a dictionary
 
 
-def torsion_dct(zma, gra, lin_keys):
-    """  Build a dictionary of torsion objects indexed by name
+def torsion_lst(zma, gra, lin_keys):
+    """  Build a list of torsion objects
     """
 
     # Build the torsion objects
     _name_axis_dct = name_axis_dct(zma, gra, lin_keys)
 
-    tors_obj_dct = {}
+    tors_obj_lst = ()
     for name, axis in _name_axis_dct.items():
-        grps = groups(gra, axis)
-        symm = symmetry(gra, axis, lin_keys)
-        tors_obj_dct[name] = Torsion(zma, name, axis, grps, symm)
+        grps = torsion_groups(gra, axis)
+        symm = torsion_symmetry(gra, axis, lin_keys)
+        tors_obj_lst += (Torsion(zma, name, axis, grps, symm),)
 
-    return tors_obj_dct
+    return tors_obj_lst
 
 
 def name_axis_dct(zma, gra, lin_keys):
@@ -95,7 +72,7 @@ def name_axis_dct(zma, gra, lin_keys):
          split dcts into subdcts for groupings, including single torsion)
     """
 
-    tors_axes = all_axes(gra, lin_keys)
+    tors_axes = all_torsion_axes(gra, lin_keys)
 
     tors_names = tuple(automol.zmat.torsion_coordinate_name(zma, *keys)
                        for keys in tors_axes)
@@ -103,43 +80,43 @@ def name_axis_dct(zma, gra, lin_keys):
     return dict(zip(tors_names, tors_axes))
 
 
-def all_axes(gra, lin_keys):
+def all_torsion_axes(gra, lin_keys):
     """ Build the torsion axes
     """
     return automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
 
 
-def all_groups(gra, lin_keys):
+def all_torsion_groups(gra, lin_keys):
     """ Generate torsion groups make generalizable to multiple axes
     """
 
-    axes = all_axes(gra, lin_keys)
+    axes = all_torsion_axes(gra, lin_keys)
     grps = ()
     for axis in axes:
-        grps += (groups(gra, axis),)
+        grps += (torsion_groups(gra, axis),)
 
     return grps
 
 
-def all_symmetries(gra, lin_keys):
+def all_torsion_symmetries(gra, lin_keys):
     """ Generate torsion groups make generalizable to multiple axes
     """
 
-    axes = all_axes(gra, lin_keys)
+    axes = all_torsion_axes(gra, lin_keys)
     syms = ()
     for axis in axes:
-        syms += (symmetry(gra, axis, lin_keys),)
+        syms += (torsion_symmetry(gra, axis, lin_keys),)
 
     return syms
 
 
-def groups(gra, axis):
+def torsion_groups(gra, axis):
     """ Generate torsion groups make generalizable to multiple axes
     """
     return automol.graph.rotational_groups(gra, *axis)
 
 
-def symmetry(gra, axis, lin_keys):
+def torsion_symmetry(gra, axis, lin_keys):
     """ Obtain the symmetry number for the torsion
     """
     return automol.graph.rotational_symmetry_number(
@@ -147,20 +124,24 @@ def symmetry(gra, axis, lin_keys):
 
 
 # I/O
-def string(torsion):
-    """ write the torsions to a string
+def string(tors_lst):
+    """ Write a list torsions to a string
     """
 
-    def _encode_group(group_keys):
-        group_str = '-'.join(str(val) for val in group_keys)
-        return group_str
+    def _encode_idxs(idxs):
+        return '-'.join(str(val) for val in idxs)
 
-    tors_dct = {
-        'axis': _encode_group(torsion.axis),
-        'groups': _encode_group(torsion.groups),
-        'symmetry': torsion.symmetry,
-        # 'span': round(dct.get('span', None) * phycon.RAD2DEG, 2)
-    }
+    tors_dct = {}
+    for tors in tors_lst:
+        _axis = tors.axis
+        _grps = tors.groups
+        tors_dct[tors.name] = {
+                'axis1': _encode_idxs(_axis[0]),
+                'group1': _encode_idxs(_grps[0]),
+                'axis2': _encode_idxs(_axis[1]),
+                'group2': _encode_idxs(_grps[1]),
+                'symmetry': tors.symmetry,
+        }
 
     tors_str = yaml.dump(tors_dct, sort_keys=False)
 
@@ -171,21 +152,21 @@ def from_string(tors_str):
     """ read the transformation from a string
     """
 
-    def _decode_group(group_str):
-        group_keys = tuple(map(int, group_str.split('-')))
-        return group_keys
+    def _decode_idxs(idxs_str):
+        return tuple(map(int, idxs_str.split('-')))
 
-    torsions = ()
+    inf_dct = {}
 
     tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
-    for name, dct in tors_dct.values():
-        axis = _decode_group(dct['axis'])
-        grps = _decode_group(dct['groups'])
-        symm = dct
+    for name, dct in tors_dct.items():
+        _axis = (_decode_idxs(dct['axis1']), _decode_idxs(dct['axis2']))
+        _grps = (_decode_idxs(dct['group1']), _decode_idxs(dct['group2']))
+        symm = dct['symmetry']
 
-        torsions += (Torsion('', name, axis, grps, symm),)
+        inf_dct[name] = {'axis': _axis, 'groups': _grps, 'symmetry': symm}
+        # torsions += (Torsion('', name, _axis, _grps, symm),)
 
-    return torsions
+    return inf_dct
 
 
 def _sort_tors_names(tors_names):

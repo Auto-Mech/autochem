@@ -816,3 +816,49 @@ def torsional_scan_linspaces(zma, tors_names, increment=0.5,
         (int(interval / increment)+1) for interval in intervals)
     return tuple((0, interval, npoints)
                  for interval, npoints in zip(intervals, npoints_lst))
+
+
+    
+def constraint_dct(zma, const_names, var_names=()):
+    """ Build a dictionary of constraints
+
+        has to round the values for the filesystem
+    """
+
+    # Get the list names sorted for dictionary
+    rnames = (name for name in const_names if 'R' in name)
+    anames = (name for name in const_names if 'A' in name)
+    dnames = (name for name in const_names if 'D' in name)
+    rnames = tuple(sorted(rnames, key=lambda x: int(x.split('R')[1])))
+    anames = tuple(sorted(anames, key=lambda x: int(x.split('A')[1])))
+    dnames = tuple(sorted(dnames, key=lambda x: int(x.split('D')[1])))
+    constraint_names = rnames + anames + dnames
+
+    # Remove the scan coordinates so they are not placed in the dict
+    constraint_names = tuple(name for name in constraint_names
+                             if name not in var_names)
+
+    # Build dictionary
+    if constraint_names:
+        zma_vals = automol.zmat.value_dictionary(zma)
+        zma_coords = automol.zmat.coordinates(zma)
+        assert set(constraint_names) <= set(zma_coords.keys()), (
+            'Attempting to constrain coordinates not in zma:\n{}\n{}'.format(
+                constraint_names, zma_coords)
+        )
+        constraint_dct = dict(zip(
+            constraint_names,
+            (round(zma_vals[name], 2) for name in constraint_names)
+        ))
+    else:
+        constraint_dct = None
+
+    return constraint_dct
+
+
+# Functions to handle setting up groups and axes used to define torstions
+def set_tors_def_info(zma, tors_name, tors_sym, pot,
+                      frm_bnd_keys, brk_bnd_keys,
+                      rxn_class, saddle=False):
+    """ set stuff
+
