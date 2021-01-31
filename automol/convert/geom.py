@@ -191,7 +191,6 @@ def graph(geo, stereo=True):
         :type stereo: bool
         :rtype: automol molecular graph data structure
     """
-    print('geo in graph conv', geo)
     gra = connectivity_graph(geo)
     if stereo:
         gra = automol.graph.set_stereo_from_geometry(gra, geo)

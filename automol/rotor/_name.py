@@ -4,7 +4,7 @@
 import automol
 
 
-def group_torsions_into_rotors(tors_lst, name_grps=None, tors_model=None):
+def group_torsions_into_rotors(tors_lst, name_grps=None, multi=False):
     """ take a list of torsion objects and build the rotors
 
         Uses the names to build the the lists
@@ -14,7 +14,7 @@ def group_torsions_into_rotors(tors_lst, name_grps=None, tors_model=None):
     name_tors_dct = dict(zip(tors_names, tors_lst))
 
     if name_grps is None:
-        name_grps = name_groups(tors_names, model='1dhr')
+        name_grps = _name_groups(tors_names, multi=multi)
 
     rotors = ()
     for name_grp in name_grps:
@@ -23,77 +23,79 @@ def group_torsions_into_rotors(tors_lst, name_grps=None, tors_model=None):
             rotor += (name_tors_dct[name],)
         rotors += (rotor,)
 
+    # Split up the mdhrs if they are too big
+    if multi:
+        rotors = _assess_dimensionality(rotors)
+
     return rotors
 
 
-def name_groups(names, model):
+def _name_groups(names, multi=False):
     """ Build the list of names
     """
 
-    if model in ('1dhr', '1dhrf', '1dhrfa', 'tau'):
-        tors_names = [[name] for name in names]
+    if not multi:
+        tors_names = tuple((name,) for name in names)
     else:
-        tors_names = [[name for name in names]]
-
-    tors_names = tuple(tuple(x) for x in tors_names)
+        tors_names = (tuple(name for name in names),)
 
     return tors_names
 
 
-def mdhr_prep(zma, run_tors_names):
+def _assess_dimensionality(rotor_lst):
     """ Handle cases where the MDHR
     """
 
-    # Figure out set of torsions are to be used: defined or AMech generated
-    rotor_lst = run_tors_names
-
     # Check the dimensionality of each rotor to see if they are greater than 4
-    # Call a function to reduce large rotors
-    final_rotor_lst = []
-    for torsion in rotor_lst:
+    final_rotor = ()
+    for rotor in rotor_lst:
+        print(len(rotor))
         if len(rotor) > 4:
-            for reduced_rotor in reduce_rotor_dimensionality(zma, rotor):
-                final_rotor_lst.append(reduced_rotor)
+            final_rotor += _reduce_rotor_dimensionality(rotor)
         else:
-            final_rotor_lst.append(rotor)
+            final_rotor += (rotor,)
 
-    return final_rotor_lst
+    return final_rotor
 
 
-def reduce_rotor_dimensionality(zma, rotor):
+def _reduce_rotor_dimensionality(rotor):
     """ For rotors with a dimensionality greater than 4, try and take them out
     """
 
-    reduced_rotor_lst = []
-    methyl_rotors = []
-    for tors in rotor:
-        # If a methyl rotor add to methyl rotor list, or add to reduced lst
-        if is_methyl_rotor(zma, rotor):   # Add arguments when ID methyls
-            methyl_rotors.append(zma, tors)
-        else:
-            reduced_rotor_lst.append(tors)
+    # Get the indices of all the -CH3 rotors and non-CH3 rotors
+    methyl_idxs = ()
+    for idx, tors in enumerate(rotor):
+        if _is_methyl_rotor(tors):
+            methyl_idxs += (idx,)
 
-    # Add each of methyl rotors, if any exist
-    if methyl_rotors:
-        for methyl_rotor in methyl_rotors:
-            reduced_rotor_lst.append(methyl_rotor)
+    non_methyl_idxs = tuple(i for i in range(len(rotor))
+                            if i not in methyl_idxs)
 
-    # Check new dimensionality of list; if still high, flatten to lst of 1DHRs
-    if len(reduced_rotor_lst) > 4:
-        reduced_rotor_lst = [tors
-                             for rotor in reduced_rotor_lst
-                             for tors in rotor]
+    # Assess if ndim(reduce rotor) > 4; if yes flatten rotor instead of rebuild
+    if len(non_methyl_idxs) > 4:
+        reduced_rotor = ()
+        for tors in rotor:
+            reduced_rotor += ((tors,),)
+    else:
+        reduced_rotor = (tuple(rotor[idx] for idx in non_methyl_idxs),)
+        for idx in methyl_idxs:
+            reduced_rotor += ((rotor[idx],),)
 
-    return reduced_rotor_lst
+    return reduced_rotor
 
 
-def _is_methyl_rotor(zma, axis, grp1, grp2):
+def _is_methyl_rotor(tors):
     """ Identify if the rotor
     """
 
-    symbs = automol.zmat.symbols(zma)
-    grp1_symbs = sorted(list(symbs[idx] for idx in grp1))
-    grp2_symbs = sorted(list(symbs[idx] for idx in grp2))
+    symbs = automol.zmat.symbols(tors.zma)
+    axis = list(tors.axis)
+    grps = tors.groups
+    rgrp1 = [axis[0]] + list(grps[0])
+    rgrp2 = [axis[1]] + list(grps[1])
+    rgrp1_symbs = sorted(list(symbs[idx] for idx in rgrp1))
+    rgrp2_symbs = sorted(list(symbs[idx] for idx in rgrp2))
 
     return bool(
-        any(grp == ['C', 'H', 'H', 'H'] for grp in (grp1_symbs, grp2_symbs)))
+        any(grp == ['C', 'H', 'H', 'H'] for grp in (rgrp1_symbs, rgrp2_symbs))
+    )

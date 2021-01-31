@@ -553,6 +553,6 @@ UPDATE_GUESS_DCT = {
     ReactionClass.HYDROGEN_ABSTRACTION: False,
     ReactionClass.SUBSTITUTION: False,
     ReactionClass.INSERTION: False,
-    ReactionClass.ADDITION: True
+    ReactionClass.ADDITION: True,
     ReactionClass.HYDROGEN_ABSTRACTION: True
 }

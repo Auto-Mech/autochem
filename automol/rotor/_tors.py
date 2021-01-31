@@ -5,8 +5,8 @@
 """
 
 # import numpy
-import yaml
 import automol
+from automol.rotor._util import sort_tors_names
 # from automol.rotor._par import TorsionParam
 
 
@@ -54,8 +54,12 @@ def torsion_lst(zma, gra, lin_keys):
     # Build the torsion objects
     _name_axis_dct = name_axis_dct(zma, gra, lin_keys)
 
+    # Get the sorted tors names for building the list
+    sorted_tors_names = sort_tors_names(tuple(_name_axis_dct.keys()))
+
     tors_obj_lst = ()
-    for name, axis in _name_axis_dct.items():
+    for name in sorted_tors_names:
+        axis = _name_axis_dct[name]
         grps = torsion_groups(gra, axis)
         symm = torsion_symmetry(gra, axis, lin_keys)
         tors_obj_lst += (Torsion(zma, name, axis, grps, symm),)
@@ -121,57 +125,3 @@ def torsion_symmetry(gra, axis, lin_keys):
     """
     return automol.graph.rotational_symmetry_number(
         gra, *axis, lin_keys=lin_keys)
-
-
-# I/O
-def string(tors_lst):
-    """ Write a list torsions to a string
-    """
-
-    def _encode_idxs(idxs):
-        return '-'.join(str(val) for val in idxs)
-
-    tors_dct = {}
-    for tors in tors_lst:
-        _axis = tors.axis
-        _grps = tors.groups
-        tors_dct[tors.name] = {
-                'axis1': _encode_idxs(_axis[0]),
-                'group1': _encode_idxs(_grps[0]),
-                'axis2': _encode_idxs(_axis[1]),
-                'group2': _encode_idxs(_grps[1]),
-                'symmetry': tors.symmetry,
-        }
-
-    tors_str = yaml.dump(tors_dct, sort_keys=False)
-
-    return tors_str
-
-
-def from_string(tors_str):
-    """ read the transformation from a string
-    """
-
-    def _decode_idxs(idxs_str):
-        return tuple(map(int, idxs_str.split('-')))
-
-    inf_dct = {}
-
-    tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
-    for name, dct in tors_dct.items():
-        _axis = (_decode_idxs(dct['axis1']), _decode_idxs(dct['axis2']))
-        _grps = (_decode_idxs(dct['group1']), _decode_idxs(dct['group2']))
-        symm = dct['symmetry']
-
-        inf_dct[name] = {'axis': _axis, 'groups': _grps, 'symmetry': symm}
-        # torsions += (Torsion('', name, _axis, _grps, symm),)
-
-    return inf_dct
-
-
-def _sort_tors_names(tors_names):
-    """ sort torsional names
-    """
-    tors_names = list(tors_names)
-    tors_names.sort(key=lambda x: int(x.split('D')[1]))
-    return tors_names

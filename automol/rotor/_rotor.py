@@ -6,13 +6,15 @@
 """
 
 from itertools import chain
+import yaml
 from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
 from automol.rotor._util import graph_with_keys
+from automol.rotor._util import sort_tors_names
 
 
 # constructors
-def from_zma(zma, tors_names=None, tors_model=None):
+def from_zma(zma, tors_names=None, multi=False):
     """ Construct a list-of-lists of torsion objects
     """
 
@@ -24,7 +26,7 @@ def from_zma(zma, tors_names=None, tors_model=None):
 
     # Place the torsions into order based on rotors
     rotors = group_torsions_into_rotors(
-        tors_lst, name_grps=tors_names, tors_model=tors_model)
+        tors_lst, name_grps=tors_names, multi=multi)
 
     return rotors
 
@@ -35,7 +37,7 @@ def from_data(zma, tors_inf_dct, tors_names=None):
 
     tors_lst = ()
     for name, dct in tors_inf_dct.items():
-        assert set(dct.keys) >= {'symmetry', 'axis', 'groups'}
+        # assert set(dct.keys) >= {'symmetry', 'axis', 'groups'}
         tors_lst += (tors.Torsion(zma, name, **dct),)
 
     rotors = group_torsions_into_rotors(tors_lst, name_grps=tors_names)
@@ -50,7 +52,7 @@ def names(rotor_lst, flat=False):
     _names = tuple(tuple(torsion.name for torsion in rotor)
                    for rotor in rotor_lst)
     if flat:
-        _names = chain(*_names)
+        _names = tuple(chain(*_names))
     return _names
 
 
@@ -73,3 +75,63 @@ def symmetries(rotor_lst):
     """
     return tuple(tuple(torsion.symmetry for torsion in rotor)
                  for rotor in rotor_lst)
+
+
+# I/O
+def string(rotor_lst):
+    """ Write a list torsions to a string
+    """
+
+    def _encode_idxs(idxs):
+        if len(idxs) == 1:
+            idx_str = idxs[0]
+        else:
+            idx_str = '-'.join(str(val) for val in idxs)
+        return idx_str
+
+    tors_dct = {}
+    for rotor in rotor_lst:
+        for torsion in rotor:
+            _axis = tuple(torsion.axis)
+            _grps = torsion.groups
+            tors_dct[torsion.name] = {
+                    'axis1': _axis[0],
+                    'group1': _encode_idxs(_grps[0]),
+                    'axis2': _axis[1],
+                    'group2': _encode_idxs(_grps[1]),
+                    'symmetry': torsion.symmetry,
+            }
+
+    sort_tors_dct = {}
+    tors_names = sort_tors_names(list(tors_dct.keys()))
+    for name in tors_names:
+        sort_tors_dct[name] = tors_dct[name]
+
+    tors_str = yaml.dump(sort_tors_dct, sort_keys=False)
+
+    return tors_str
+
+
+def from_string(tors_str):
+    """ read the transformation from a string
+    """
+
+    def _decode_idxs(idxs_str):
+        if isinstance(idxs_str, int):
+            idxs = idxs_str
+        else:
+            idxs = tuple(map(int, idxs_str.split('-')))
+        return idxs
+
+    inf_dct = {}
+
+    tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
+    for name, dct in tors_dct.items():
+        _axis = frozenset({dct['axis1'], dct['axis2']})
+        _grps = (_decode_idxs(dct['group1']), _decode_idxs(dct['group2']))
+        symm = dct['symmetry']
+
+        inf_dct[name] = {'axis': _axis, 'groups': _grps, 'symmetry': symm}
+        # torsions += (Torsion('', name, _axis, _grps, symm),)
+
+    return inf_dct

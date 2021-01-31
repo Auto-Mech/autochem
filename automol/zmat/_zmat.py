@@ -854,11 +854,3 @@ def constraint_dct(zma, const_names, var_names=()):
         constraint_dct = None
 
     return constraint_dct
-
-
-# Functions to handle setting up groups and axes used to define torstions
-def set_tors_def_info(zma, tors_name, tors_sym, pot,
-                      frm_bnd_keys, brk_bnd_keys,
-                      rxn_class, saddle=False):
-    """ set stuff
-
