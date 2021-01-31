@@ -416,6 +416,15 @@ def _split_sublayer_string(slyr, count_sep_ptt=app.escape('*'),
 
 
 # conversions
+def low_spin_multiplicity(ich):
+    """ Guess spin multiplicity based on the number of electrons.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: int
+    """
+    return automol.convert.inchi.low_spin_multiplicity(ich)
+
 def recalculate(ich, stereo=False):
     """ Recalculate an InChI string.
 
