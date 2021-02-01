@@ -818,7 +818,6 @@ def torsional_scan_linspaces(zma, tors_names, increment=0.5,
                  for interval, npoints in zip(intervals, npoints_lst))
 
 
-    
 def constraint_dct(zma, const_names, var_names=()):
     """ Build a dictionary of constraints
 

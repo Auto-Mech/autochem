@@ -4,33 +4,36 @@
 import math
 import numpy
 import more_itertools as mit
-from phydat import phycon
+from phydat import phycon, bnd
 from automol.graph import ts
 from automol.par import ReactionClass
 import automol.zmat
+from automol.util import dict_
 from automol.reac._util import hydrogen_migration_atom_keys
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import insertion_forming_bond_keys
 
 
-# Wrapper function to obtain all of the scan data for a reaction 
+# Wrapper function to obtain all of the scan data for a reaction
 def build_scan_info(zrxn, zma):
     """ Build all of the scan information
     """
-    
+
     # Obtain the reactions scan and constraint coordinates
     scan_name = scan_coordinate(zrxn, zma)
     const_names = constraint_coordinates(zrxn, zma)
-    
+
     constraint_dct = automol.zmat.constraint_dct(zma, const_names)
 
     # Build the grid
-    grid = scan_grid(zrxn, zma) 
+    grid = scan_grid(zrxn, zma)
 
-    # Set the update guess 
+    # Set the update guess
     update_guess = UPDATE_GUESS_DCT[zrxn.class_]
 
-    return (scan_name,), constraint_dct, grid, update_guess
+    print('grid', grid)
+
+    return (scan_name,), constraint_dct, (grid,), update_guess
 
 
 # SCAN AND CONSTRAINT COORDINATES #
@@ -238,7 +241,7 @@ def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
     # Build the scan grid
     interval = 0.3*phycon.ANG2BOHR
 
-    frm_bnd_len = _ts_bnd_len(zrxn, zma, choice='frm')
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
     rmin1 = 2.0*phycon.ANG2BOHR
     rmin2 = frm_bnd_len + 0.05 * phycon.ANG2BOHR
     rmax = frm_bnd_len
@@ -268,7 +271,7 @@ def beta_scission_grid(zrxn, zma, npoints=(14,)):
     # Build the scan grid
     npoints1 = npoints[0]
 
-    frm_bnd_len = _ts_bnd_len(zrxn, zma, choice='frm')
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
         rmin = frm_bnd_len + 0.1 * phycon.ANG2BOHR
         rmax = frm_bnd_len + 0.8 * phycon.ANG2BOHR
@@ -292,7 +295,7 @@ def ring_forming_scission_grid(zrxn, zma, npoints=(7,)):
     # Build the grid
     npoints1 = npoints[0]
 
-    brk_bnd_len = _ts_bnd_len(zrxn, zma, choice='brk')
+    brk_bnd_len = _ts_bnd_len(zma, scan_name)
     if brk_bnd_len is not None:
         r1min = brk_bnd_len + 0.1 * phycon.ANG2BOHR
         r1max = brk_bnd_len + 0.7 * phycon.ANG2BOHR
@@ -433,12 +436,12 @@ def substitution_grid(zrxn, zma, npoints=(14,)):
 
 
 # Barrierless TS grid
-def radrad_addition_grid(zrxn, zma, npoints=(5, 6)):
+def radrad_addition_grid(npoints=(5, 6)):
     """ Build forward 1D grid for a beta scission reaction
     """
 
     # Obtain the scan coordinate
-    scan_name = addition_scan_coordinate(zrxn, zma)
+    # scan_name = addition_scan_coordinate(zrxn, zma)
 
     # Build the grid
     npoints1, npoints2 = npoints
@@ -456,12 +459,12 @@ def radrad_addition_grid(zrxn, zma, npoints=(5, 6)):
     return grid
 
 
-def radrad_hydrogen_abstraction_grid(zrxn, zma, npoints=(8, 4)):
+def radrad_hydrogen_abstraction_grid(npoints=(8, 4)):
     """ Build forward 1D grid for elimination reaction
     """
 
     # Obtain the scan coordinate
-    scan_name = hydrogen_abstraction_scan_coordinate(zrxn, zma)
+    # scan_name = hydrogen_abstraction_scan_coordinate(zrxn, zma)
 
     # Build the grid
     npoints1, npoints2 = npoints
@@ -486,7 +489,7 @@ def _ts_bnd_len(zma, scan_coord):
     symbs = automol.zmat.symbols(zma)
     dist_coo, = automol.zmat.coordinates(zma)[scan_coord]
     ts_bnd_symbs = tuple(sorted(map(symbs.__getitem__, dist_coo)))
-    ts_bnd_len = dict_.values_by_unordered_tuple(bnd.DCT, ts_bnd_symbs)
+    ts_bnd_len = dict_.values_by_unordered_tuple(bnd.LEN_DCT, ts_bnd_symbs)
 
     return ts_bnd_len
 
@@ -524,11 +527,11 @@ def scan_grid(zrxn, zma):
         ReactionClass.SUBSTITUTION: substitution_grid,
         ReactionClass.INSERTION: insertion_grid
     }
-    
-    var_ts_grid_builder_dct = {
-        ReactionClass.ADDITION: radrad_addition_grid,
-        ReactionClass.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
-    }
+
+    # var_ts_grid_builder_dct = {
+    #     ReactionClass.ADDITION: radrad_addition_grid,
+    #     ReactionClass.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
+    # }
 
     grid = tight_ts_grid_builder_dct[zrxn.class_](zrxn, zma)
 

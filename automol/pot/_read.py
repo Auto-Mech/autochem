@@ -3,10 +3,11 @@
 
 import numpy
 from scipy.signal import argrelextrema
+from phydat import phycon
 
 
 # Functions to build lists potential sadpts
-def find_max1d(enes_lst, ethresh=0.3):
+def find_max1d(enes_lst, ethresh=0.3*phycon.KCAL2EH):
     """ Look along a vtst potential and determine if sadpt there
         (need to make the generic version)
     """
@@ -20,6 +21,7 @@ def find_max1d(enes_lst, ethresh=0.3):
         sadpt_idx = sadpt_idxs[max_idx][1]
     else:
         sadpt_idx = None
+    print('sadpt_idx', sadpt_idx)
 
     return sadpt_idx
 
@@ -31,19 +33,21 @@ def _potential_sadpt(evals, ethresh=0.3):
 
     # Determine the idxs for all of the local extrema
     loc_max, loc_min = _local_extrema(evals)
-
+    print('locpot', loc_max, loc_min)
     # Find min1-max-min2 triplets for each local maxima
     final_idx = len(evals) - 1
     extrema = _extrema_triplets(loc_max, loc_min, final_idx)
-
+    print('ext', extrema)
     # Determine which local maxima should be considered for a sadpt search
     sadpt_idxs, sadpt_enes = _potential_sadpt_triplets(
         extrema, evals, ethresh=ethresh)
+    print('idxs, enes', sadpt_idxs, sadpt_enes)
 
     return sadpt_idxs, sadpt_enes
 
 
-def _potential_sadpt_triplets(extrema_trips, evals, ethresh=0.3):
+def _potential_sadpt_triplets(extrema_trips, evals,
+                              ethresh=0.3*phycon.KCAL2EH):
     """ Find triplets to look for sadpts
     """
 
@@ -54,6 +58,9 @@ def _potential_sadpt_triplets(extrema_trips, evals, ethresh=0.3):
         emin1, emax, emin2 = evals[minidx1], evals[maxidx], evals[minidx2]
         edif1 = abs(emax - emin1)
         edif2 = abs(emax - emin2)
+        print(ethresh)
+        print(edif1)
+        print(edif2)
         if edif1 >= ethresh or edif2 >= ethresh:
             sadpt_idxs += (trip,)
             sadpt_enes += (emax,)

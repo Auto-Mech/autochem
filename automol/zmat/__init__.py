@@ -62,6 +62,7 @@ from automol.zmat._zmat import bond_key_from_idxs
 from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
 from automol.zmat._zmat import atom_indices
+from automol.zmat._zmat import constraint_dct
 
 
 def from_data(syms, key_mat, val_mat, name_mat=None,

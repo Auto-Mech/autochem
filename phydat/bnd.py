@@ -4,17 +4,6 @@
 from phydat.phycon import ANG2BOHR
 
 
-def read_len(bnd_atoms):
-    """ Read the dct
-    """
-    bnd_len = LEN_DCT.get(bnd_atoms, None)
-    if bnd_len is None:
-        bnd_atoms_flip = (bnd_atoms[1], bnd_atoms[0])
-        bnd_len = LEN_DCT.get(bnd_atoms_flip, None)
-
-    return bnd_len
-
-
 # Dictionary of A-B single bond lengths
 LEN_DCT = {
     ('H', 'H'): 0.74 * ANG2BOHR,

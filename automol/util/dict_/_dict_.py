@@ -50,7 +50,7 @@ def values_by_key(dct, keys, fill_val=None):
     return tuple(dct[key] if key in dct else fill_val for key in keys)
 
 
-def values_by_unordered_tuple(dct, key):
+def values_by_unordered_tuple(dct, key, fill_val=None):
     """ return dictionary values where keys are a tuple where either order
         of tuple will access element
 
@@ -64,6 +64,9 @@ def values_by_unordered_tuple(dct, key):
         val = dct.get(_key, None)
         if val is not None:
             break
+
+    if val is None:
+        val = fill_val
 
     return val
 
