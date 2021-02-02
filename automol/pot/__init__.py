@@ -2,6 +2,7 @@
   Libraries for calculating inter- and intramolecular interactions
 """
 
+from automol.pot._pot import grid
 from automol.pot._pot import points
 from automol.pot._pot import coords
 from automol.pot._pot import scale
@@ -20,6 +21,7 @@ from automol.pot._read import find_max1d
 
 
 __all__ = [
+    'grid',
     'points',
     'coords',
     'scale',

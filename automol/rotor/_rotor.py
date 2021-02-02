@@ -5,8 +5,10 @@
  Rotor: (tors_obj_1, tors_obj_2, ..., tors_obj_N)
 """
 
+import numpy
 from itertools import chain
 import yaml
+import automol.pot
 from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
 from automol.rotor._util import graph_with_keys
@@ -77,6 +79,27 @@ def symmetries(rotor_lst):
                  for rotor in rotor_lst)
 
 
+def grids(rotor_lst, flat=False):
+    """ Build a list of list of grids
+    """
+    span = 2.0 * numpy.pi
+    increment = 0.523599 
+    rgrids = ()
+    for rotor in rotor_lst:
+        grids = ()
+        for tors in rotor:
+            grids += (
+                automol.pot.grid(
+                    tors.zma, tors.name,
+                    span, tors.symmetry, increment, from_equilibrium=True),
+            )
+        rgrids += (grids,)
+    if flat:
+        rgrids = tuple(chain(*rgrids))
+
+    return rgrids
+
+
 # I/O
 def string(rotor_lst):
     """ Write a list torsions to a string
@@ -84,9 +107,9 @@ def string(rotor_lst):
 
     def _encode_idxs(idxs):
         if len(idxs) == 1:
-            idx_str = idxs[0]
+            idx_str = idxs[0]+1
         else:
-            idx_str = '-'.join(str(val) for val in idxs)
+            idx_str = '-'.join(str(val+1) for val in idxs)
         return idx_str
 
     tors_dct = {}
@@ -118,9 +141,10 @@ def from_string(tors_str):
 
     def _decode_idxs(idxs_str):
         if isinstance(idxs_str, int):
-            idxs = idxs_str
+            idxs = int(idxs_str)-1
         else:
             idxs = tuple(map(int, idxs_str.split('-')))
+            idxs = (val-1 for val in idxs)
         return idxs
 
     inf_dct = {}

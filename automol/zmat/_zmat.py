@@ -53,9 +53,9 @@ def geometry(zma, dummy=False):
     """
 
     if dummy:
-        geo, _ = automol.convert.zmat.geometry(zma)
-    else:
         geo = automol.convert.zmat.geometry_with_dummy_atoms(zma)
+    else:
+        geo, _ = automol.convert.zmat.geometry(zma)
 
     return geo
 

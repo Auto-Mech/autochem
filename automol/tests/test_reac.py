@@ -590,7 +590,10 @@ def test__reac__hydrogen_abstraction():
         print('\tsymmetry number:', sym_num)
 
     # Extra test cases:
-    rxn_smis_lst = [(['C', '[H]'], ['[CH3]', '[H][H]'])]
+    rxn_smis_lst = [
+        (['C', '[H]'], ['[CH3]', '[H][H]']),
+        (['C', '[OH]'], ['[CH3]', 'O'])
+    ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
         geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
@@ -1115,9 +1118,9 @@ if __name__ == '__main__':
     # test__reac__string()
     # test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
-    # test__reac__hydrogen_abstraction()
-    test__reac__insertion()
-    test__reac__substitution()
+    test__reac__hydrogen_abstraction()
+    # test__reac__insertion()
+    # test__reac__substitution()
     # test__reac__forming_bond_keys()
     # test__reac__breaking_bond_keys()
     # test__reac__forming_rings_atom_keys()
@@ -1126,4 +1129,3 @@ if __name__ == '__main__':
     # test__reac__product_graphs()
     # test__reac__reactants_graph()
     # test__reac__products_graph()
-    sys.exit()
