@@ -5,13 +5,19 @@
 import automol
 
 
-def graph_with_keys(zma):
+def graph_with_keys(zma, zrxn=None):
     """ Generate the graph
     """
 
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    gra = automol.geom.graph(geo)
-    lin_keys = sorted(gdummy_key_dct.keys())
+    if zrxn is None:
+        geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+        gra = automol.geom.graph(geo)
+        # print('conv test')
+        # print(automol.graph.string(gra))
+        # import sys
+        lin_keys = sorted(gdummy_key_dct.keys())
+    else:
+        pass
 
     return gra, lin_keys
 

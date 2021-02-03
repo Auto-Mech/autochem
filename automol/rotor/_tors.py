@@ -41,7 +41,7 @@ class Torsion:
         """ Build indices for the torsion
         """
         self.indices = automol.zmat.coord_idxs(self.zma, self.name)
-    
+
     def copy(self):
         """ return a copy of this Reaction
         """
@@ -63,10 +63,19 @@ def torsion_lst(zma, gra, lin_keys):
 
     tors_obj_lst = ()
     for name in sorted_tors_names:
+
+        # Determine constituent rotor pieces in graph system
         axis = _name_axis_dct[name]
         grps = torsion_groups(gra, axis)
         symm = torsion_symmetry(gra, axis, lin_keys)
-        tors_obj_lst += (Torsion(zma, name, axis, grps, symm),)
+
+        # Shift the axis and groups to be in the zma system
+        zaxis = automol.util.dummy.shift_up(zma, axis)
+        zgrps = tuple(automol.util.dummy.shift_up(zma, grp)
+                      for grp in grps)
+
+        # Build the torsion object and add to the list
+        tors_obj_lst += (Torsion(zma, name, zaxis, zgrps, symm),)
 
     return tors_obj_lst
 
@@ -137,53 +146,14 @@ def relabel_for_geometry(torsion):
         from a z-matrix
     """
 
-    # Build the geom that will be returned
-    geo = automol.zmat.geometry(torsion.zma)
-    
-    # Build a remdummy list that tells how to shift the groups
-    remdummy = _remove_dummy_lst(torsion.zma)
-    if remdummy is not None:
-        torsion = _shift_remove_dummy_atom(torsion, remdummy)
-
-    return geo, torsion
-
-
-def _shift_remove_dummy_atom(torsion, dummy_key, product=False):
-    """ shift the values of the torsion groups
-    """
-
     name = torsion.name
     zma = torsion.zma
     symmetry = torsion.symmetry
-    groups = tuple(_shift_vals(grp, remdummy) for grp in torsion.groups)
-    axis = _shift_vals(torsion.axis, remdummy)
-    indices = _shift_vals(torsion.indices, remdummy)
+    ggrps = tuple(automol.util.dummy.shift_down(zma, grp)
+                  for grp in torsion.groups)
+    gaxis = automol.util.dummy.shift_down(zma, torsion.axis)
+    gindices = automol.util.dummy.shift_down(zma, torsion.indices)
 
-    torsion = Torsion(zma, name, axis, groups, symmetry, indices=indices)
+    gtorsion = Torsion(zma, name, gaxis, ggrps, symmetry, indices=gindices)
 
-    return torsion
-
-
-def _remove_dummy_lst(zma):
-    """
-    Build a remdummy list that tells how to shift the groups
-    """
-
-    dummy_idxs = sorted(automol.zmat.atom_indices(zma, 'X', match=True))
-
-    if dummy_idxs:
-        remdummy = [0 for _ in range(automol.zmat.count(zma))]
-        for dummy in dummy_idxs:
-            for idx, _ in enumerate(remdummy):
-                if dummy < idx:
-                    remdummy[idx] += 1
-    else:
-        remdummy = None
-
-    return remdummy
-
-
-def _shift_vals(vals, remdummy):
-    """ Shift the values using the remdummy list
-    """
-    return tuple(val-remdummy[val-1] for val in vals)
+    return gtorsion

@@ -47,4 +47,3 @@ def calc_rxn_angle(ts_zma, frm_bnd_keys, brk_bnd_keys, rxn_class):
                     geom, *ang_atms)
 
     return angle
-

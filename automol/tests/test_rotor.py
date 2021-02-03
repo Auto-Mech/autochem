@@ -212,10 +212,42 @@ def test__mdhr():
     # test break up when multi is not given but names are
 
 
+def test__relabel():
+    """
+    """
+
+    rotors = automol.rotor.from_zma(TS_ZMA)
+    geo, rotors = automol.rotor.relabel_for_geometry(rotors)
+
+    print(automol.zmat.string(TS_ZMA, one_indexed=False))
+    print()
+    # print(automol.geom.string(geo))
+    # print()
+
+    rotor_axes = automol.rotor.axes(rotors)
+    print(rotor_axes)
+    # assert rotor_axes == (
+    #     (frozenset({0, 1}),),
+    #     (frozenset({1, 5}),),
+    #     (frozenset({9, 3}),))
+
+    rotor_groups = automol.rotor.groups(rotors)
+    print(rotor_groups)
+    # assert rotor_groups == (
+    #     (((2, 3, 4, 9, 10, 11, 12), (5, 6, 7, 8)),),
+    #     (((0, 2, 3, 4, 6, 7, 9, 10, 11, 12), (8,)),),
+    #     (((10, 11, 12), (0, 1, 2, 4, 5, 6, 7, 8)),))
+
+    rotor_symms = automol.rotor.symmetries(rotors)
+    print(rotor_symms)
+    # assert rotor_symms == ((1,), (1,), (3,))
+
+
 if __name__ == '__main__':
     # test__tors()
-    test__rotor()
+    # test__rotor()
     # test__ts()
     # test__string()
     # test__name_input()
     # test__mdhr()
+    test__relabel()

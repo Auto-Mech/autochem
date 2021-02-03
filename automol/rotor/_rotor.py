@@ -8,6 +8,7 @@
 from itertools import chain
 import yaml
 import numpy
+import automol.zmat
 import automol.pot
 from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
@@ -99,6 +100,19 @@ def grids(rotor_lst, span=2.0*numpy.pi, increment=0.523599, flat=False):
         rotor_lst_grids = tuple(chain(*rotor_lst_grids))
 
     return rotor_lst_grids
+
+
+# Manipulate the torsion objects
+def relabel_for_geometry(rotor_lst):
+    """ relabel the torsion objec tto correspond with a geometry converted
+        from a z-matrix
+    """
+    geo = automol.zmat.geometry(rotor_lst[0][0].zma)
+    geo_rotor_lst = tuple(
+        tuple(tors.relabel_for_geometry(torsion) for torsion in rotor)
+        for rotor in rotor_lst)
+
+    return geo, geo_rotor_lst
 
 
 # I/O

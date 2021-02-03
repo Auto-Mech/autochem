@@ -9,6 +9,7 @@ from automol.rotor._rotor import axes
 from automol.rotor._rotor import groups
 from automol.rotor._rotor import symmetries
 from automol.rotor._rotor import grids
+from automol.rotor._rotor import relabel_for_geometry
 from automol.rotor._rotor import string
 from automol.rotor._rotor import from_string
 from automol.rotor._tors import all_torsion_axes
@@ -27,6 +28,7 @@ __all__ = [
     'groups',
     'symmetries',
     'grids',
+    'relabel_for_geometry',
     'string',
     'from_string',
     'all_torsion_axes',
