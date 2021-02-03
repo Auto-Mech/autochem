@@ -5,9 +5,9 @@
  Rotor: (tors_obj_1, tors_obj_2, ..., tors_obj_N)
 """
 
-import numpy
 from itertools import chain
 import yaml
+import numpy
 import automol.pot
 from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
@@ -39,7 +39,9 @@ def from_data(zma, tors_inf_dct, tors_names=None):
 
     tors_lst = ()
     for name, dct in tors_inf_dct.items():
-        # assert set(dct.keys) >= {'symmetry', 'axis', 'groups'}
+        assert set(dct.keys()) >= {'symmetry', 'axis', 'groups'}, (
+            'must have symmetry, axis, and groups in dct tp build torsions'
+        )
         tors_lst += (tors.Torsion(zma, name, **dct),)
 
     rotors = group_torsions_into_rotors(tors_lst, name_grps=tors_names)
@@ -79,25 +81,24 @@ def symmetries(rotor_lst):
                  for rotor in rotor_lst)
 
 
-def grids(rotor_lst, flat=False):
+def grids(rotor_lst, span=2.0*numpy.pi, increment=0.523599, flat=False):
     """ Build a list of list of grids
     """
-    span = 2.0 * numpy.pi
-    increment = 0.523599 
-    rgrids = ()
-    for rotor in rotor_lst:
-        grids = ()
-        for tors in rotor:
-            grids += (
-                automol.pot.grid(
-                    tors.zma, tors.name,
-                    span, tors.symmetry, increment, from_equilibrium=True),
-            )
-        rgrids += (grids,)
-    if flat:
-        rgrids = tuple(chain(*rgrids))
 
-    return rgrids
+    rotor_lst_grids = ()
+    for rotor in rotor_lst:
+        rotor_grids = ()
+        for torsion in rotor:
+            rotor_grids += (
+                automol.pot.grid(
+                    torsion.zma, torsion.name,
+                    span, torsion.symmetry, increment, from_equilibrium=True),
+            )
+        rotor_lst_grids += (grids,)
+    if flat:
+        rotor_lst_grids = tuple(chain(*rotor_lst_grids))
+
+    return rotor_lst_grids
 
 
 # I/O

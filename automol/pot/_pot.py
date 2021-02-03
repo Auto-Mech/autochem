@@ -60,7 +60,7 @@ def coords(grids):
 
 
 # Manipulate potentiasls
-def scale(pot, scale_coeff, num_tors):
+def scale(pot, scale_factor):
     """ Scale the potential by scaling factor
 
         :param pot: potential along a coordinate
@@ -71,8 +71,6 @@ def scale(pot, scale_coeff, num_tors):
         :type num_tors: int
         :rtype:
     """
-
-    scale_factor = scale_coeff**(2.0/num_tors)
 
     new_pot = {}
     for idx, val in pot.items():

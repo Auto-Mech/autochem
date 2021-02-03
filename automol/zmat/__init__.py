@@ -7,6 +7,7 @@ from automol.zmat._zmat import geometry
 # getters
 from automol.zmat._zmat import count
 from automol.zmat._zmat import symbols
+from automol.zmat._zmat import atom_indices
 from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import value_matrix

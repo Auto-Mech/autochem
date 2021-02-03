@@ -53,6 +53,30 @@ def symbols(vma):
     return tuple(zip(*vma))[0] if vma else ()
 
 
+def atom_indices(vma, symb, match=True):
+    """ Obtain the indices of a atoms of a particular type in the geometry.
+
+        :param vma: V-Matrix
+        :type vma: automol V-Matrix data structure
+        :param match: grab idxs that match given atom type
+        :param symb: atomic symbol
+        :type symb: str
+        :param match: obtain indices of symbols that match the type?
+        :type match: bool
+        :rtype: tuple(int)
+    """
+
+    symbs = symbols(vma)
+    idxs = tuple()
+    for idx, symb_ in enumerate(symbs):
+        if symb_ == symb and match:
+            idxs += (idx,)
+        elif symb_ != symb and not match:
+            idxs += (idx,)
+
+    return idxs
+
+
 def key_matrix(vma, shift=0):
     """ Obtain the key matrix of the V-Matrix that contains the
         coordinate atom keys by row and column.

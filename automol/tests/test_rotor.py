@@ -76,6 +76,11 @@ def test__rotor():
 
     rotors = automol.rotor.from_zma(C3H7OH_ZMA)
 
+    for rotor in rotors:
+        for tors in rotor:
+            print(tors.span)
+            print(tors.indices)
+    
     rotor_names1 = automol.rotor.names(rotors)
     assert rotor_names1 == (('D5',), ('D8',), ('D11',))
 
@@ -208,9 +213,9 @@ def test__mdhr():
 
 
 if __name__ == '__main__':
-    test__tors()
+    # test__tors()
     test__rotor()
-    test__ts()
-    test__string()
-    test__name_input()
-    test__mdhr()
+    # test__ts()
+    # test__string()
+    # test__name_input()
+    # test__mdhr()

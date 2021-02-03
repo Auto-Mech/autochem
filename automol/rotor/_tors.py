@@ -4,7 +4,7 @@
  Rotor: (tors_obj_1, tors_obj_2, tors_obj_3)
 """
 
-# import numpy
+import numpy
 import automol
 from automol.rotor._util import sort_tors_names
 # from automol.rotor._par import TorsionParam
@@ -14,7 +14,8 @@ class Torsion:
     """ Describes a torsion, which one or more make up a rotor
     """
 
-    def __init__(self, zma, name, axis, groups, symmetry):
+    def __init__(self, zma, name, axis, groups, symmetry,
+                 indices=None):
         """ constructor
         """
 
@@ -23,30 +24,33 @@ class Torsion:
         self.symmetry = symmetry
         self.groups = groups
         self.axis = axis
-        # self.span = span(symmetry)
-        # self.indices = Torsion._indices(zma, name)
+        self.set_span()
+        if indices is None:
+            self.set_indices()
+        else:
+            self.indices = indices
+        # self.pot = None
+        # self.grid = None
 
-        # Attributes defaulted to none
-        self.pot = None
-        self.grid = None
+    def set_span(self):
+        """ Obtain the torsional span
+        """
+        self.span = (2.0 * numpy.pi) / self.symmetry
 
-    # @staticmethod
-    # def span(symmetry):
-    #     """ Obtain the torsional span
-    #     """
-    #     return (2.0 * numpy.pi) / symmetry
-
-    # @staticmethod
-    # def _indices(zma, name):
-    #     """ Build indices for the torsion
-    #     """
-    #     mode_idxs = automol.zmat.coord_idxs(zma, name)
-    #     mode_idxs = tuple((idx+1 for idx in mode_idxs))
-
-
-# Build a converter from object to a dictionary
+    def set_indices(self):
+        """ Build indices for the torsion
+        """
+        self.indices = automol.zmat.coord_idxs(self.zma, self.name)
+    
+    def copy(self):
+        """ return a copy of this Reaction
+        """
+        return Torsion(
+            self.zma, self.name, self.axis, self.groups,
+            self.symmetry, self.span, self.indices)
 
 
+# Build functions
 def torsion_lst(zma, gra, lin_keys):
     """  Build a list of torsion objects
     """
@@ -125,3 +129,61 @@ def torsion_symmetry(gra, axis, lin_keys):
     """
     return automol.graph.rotational_symmetry_number(
         gra, *axis, lin_keys=lin_keys)
+
+
+# Manipulate the torsion objects
+def relabel_for_geometry(torsion):
+    """ relabel the torsion objec tto correspond with a geometry converted
+        from a z-matrix
+    """
+
+    # Build the geom that will be returned
+    geo = automol.zmat.geometry(torsion.zma)
+    
+    # Build a remdummy list that tells how to shift the groups
+    remdummy = _remove_dummy_lst(torsion.zma)
+    if remdummy is not None:
+        torsion = _shift_remove_dummy_atom(torsion, remdummy)
+
+    return geo, torsion
+
+
+def _shift_remove_dummy_atom(torsion, dummy_key, product=False):
+    """ shift the values of the torsion groups
+    """
+
+    name = torsion.name
+    zma = torsion.zma
+    symmetry = torsion.symmetry
+    groups = tuple(_shift_vals(grp, remdummy) for grp in torsion.groups)
+    axis = _shift_vals(torsion.axis, remdummy)
+    indices = _shift_vals(torsion.indices, remdummy)
+
+    torsion = Torsion(zma, name, axis, groups, symmetry, indices=indices)
+
+    return torsion
+
+
+def _remove_dummy_lst(zma):
+    """
+    Build a remdummy list that tells how to shift the groups
+    """
+
+    dummy_idxs = sorted(automol.zmat.atom_indices(zma, 'X', match=True))
+
+    if dummy_idxs:
+        remdummy = [0 for _ in range(automol.zmat.count(zma))]
+        for dummy in dummy_idxs:
+            for idx, _ in enumerate(remdummy):
+                if dummy < idx:
+                    remdummy[idx] += 1
+    else:
+        remdummy = None
+
+    return remdummy
+
+
+def _shift_vals(vals, remdummy):
+    """ Shift the values using the remdummy list
+    """
+    return tuple(val-remdummy[val-1] for val in vals)

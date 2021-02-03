@@ -83,6 +83,22 @@ def symbols(zma):
     return vmat.symbols(zma)
 
 
+def atom_indices(zma, symb, match=True):
+    """ Obtain the indices of a atoms of a particular type in the geometry.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param match: grab idxs that match given atom type
+        :param symb: atomic symbol
+        :type symb: str
+        :param match: obtain indices of symbols that match the type?
+        :type match: bool
+    """
+    return vmat.atom_indices(zma, symb, match=match)
+
+
+
+
 def key_matrix(zma, shift=0):
     """ Obtain the key matrix of the Z-Matrix that contains the
         coordinate atom keys by row and column.
