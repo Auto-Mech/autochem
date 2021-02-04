@@ -1,36 +1,18 @@
-""" New functions that are unsorted
+""" random functions that I am gonna distribute to other parts of automol
 """
 
-def z_atom_closest_to(zma, idx1, idx2, chk_idxs):
-    """
-    """
-    geo = automol.zmat.geometry(zma) 
-    return def atom_closest_to(geo, idx1, idx2, chk_idxs)
-
-
-def atom_closest_to(geo, idx1, idx2, chk_idxs):
-    """ Check to see whether the radical atom is still closest to the bond
-        formation site.
-    """
-
-    atom_closest = True
-
-    dist1 = automol.geom.distance(geo, idx1, idx2)
-    for idx in chk_idxs:
-        if dist1 < automol.geom.distance(geo, idx1, idx) - 0.01:
-                atom_closest = False
-
-    return atom_closest
-
-
-def calc_rxn_angle(ts_zma, frm_bnd_keys, brk_bnd_keys, rxn_class):
+def rxn_angle(grxn, zma):
     """ Calculate the angle over a forming-and-breaking bond
     """
 
-    angle = None
-    if 'abstraction' in rxn_class or 'addition' in rxn_class:
-        if frm_bnd_keys and brk_bnd_keys:
+    geo = automol.zmat.geometry(zma)
 
+    frm_bnd_keys = automol.reac.forming_bond_keys(grxn)
+    brk_bnd_keys = automol.reac.breaking_bond_keys(grxn)
+
+    angle = None
+    if 'abstraction' in grxn.class_ or 'addition' in grxn.class_:
+        if frm_bnd_keys and brk_bnd_keys:
             ang_atms = [0, 0, 0]
             cent_atm = list(set(brk_bnd_keys) & set(frm_bnd_keys))
             if cent_atm:

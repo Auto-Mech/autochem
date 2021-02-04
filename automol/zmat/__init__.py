@@ -50,6 +50,9 @@ import automol.create.zmat
 # conversions
 import automol.convert.zmat
 
+# to be moved to permanent file upon cleanup
+from automol.zmat._zmat import is_atom_closest_to_bond_atom
+
 # to be depreciated
 from automol.zmat._zmat import samples
 from automol.zmat._zmat import torsional_symmetry_numbers
@@ -64,6 +67,7 @@ from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
 from automol.zmat._zmat import atom_indices
 from automol.zmat._zmat import constraint_dct
+
 
 
 def from_data(syms, key_mat, val_mat, name_mat=None,
@@ -171,6 +175,9 @@ __all__ = [
     'geometry',
     'graph',
     'formula',
+
+    # to be moved to permanent file upon cleanup
+    'is_atom_closest_to_bond_atom',
 
     # to be depreciated
     'samples',

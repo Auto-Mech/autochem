@@ -51,6 +51,12 @@ def from_data(zma, tors_inf_dct, tors_names=None):
 
 
 # Getters
+def dimensions(rotor_lst, flat=False):
+    """ Get the dimensions of each of the rotors
+    """
+    return tuple(len(rotor) for rotor in rotor_lst)
+
+
 def names(rotor_lst, flat=False):
     """ Get a flat list of names for list of rotors
     """
