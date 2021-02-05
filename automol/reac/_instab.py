@@ -12,7 +12,7 @@ def instability_product_zmas(zma):
     """
 
     disconn_zmas = ()
-    for gra in product_graphs(automol.zmat.graph(zma)):
+    for gra in instability_product_graphs(automol.zmat.graph(zma)):
         ich = automol.graph.inchi(gra)
         geo_tmp = automol.inchi.geometry(ich)
         zma = automol.geom.zmatrix(geo_tmp)

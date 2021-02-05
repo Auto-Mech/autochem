@@ -17,7 +17,7 @@ from automol.rotor._util import sort_tors_names
 
 
 # constructors
-def from_zma(zma, tors_names=None, multi=False):
+def from_zmatrix(zma, tors_names=None, multi=False):
     """ Construct a list-of-lists of torsion objects
     """
 
@@ -34,7 +34,7 @@ def from_zma(zma, tors_names=None, multi=False):
     return rotors
 
 
-def from_data(zma, tors_inf_dct, tors_names=None):
+def from_data(zma, tors_inf_dct, tors_names=None, multi=False):
     """ Build the rotors objects from existing data
     """
 
@@ -45,13 +45,14 @@ def from_data(zma, tors_inf_dct, tors_names=None):
         )
         tors_lst += (tors.Torsion(zma, name, **dct),)
 
-    rotors = group_torsions_into_rotors(tors_lst, name_grps=tors_names)
+    rotors = group_torsions_into_rotors(
+        tors_lst, name_grps=tors_names, multi=multi)
 
     return rotors
 
 
 # Getters
-def dimensions(rotor_lst, flat=False):
+def dimensions(rotor_lst):
     """ Get the dimensions of each of the rotors
     """
     return tuple(len(rotor) for rotor in rotor_lst)
@@ -67,25 +68,34 @@ def names(rotor_lst, flat=False):
     return _names
 
 
-def axes(rotor_lst):
+def axes(rotor_lst, flat=False):
     """ Build a list of list of axes(
     """
-    return tuple(tuple(torsion.axis for torsion in rotor)
-                 for rotor in rotor_lst)
+    _axes = tuple(tuple(torsion.axis for torsion in rotor)
+                  for rotor in rotor_lst)
+    if flat:
+        _axes = tuple(chain(*_axes))
+    return _axes
 
 
-def groups(rotor_lst):
+def groups(rotor_lst, flat=False):
     """ Build a list of list of axes(
     """
-    return tuple(tuple(torsion.groups for torsion in rotor)
+    grps = tuple(tuple(torsion.groups for torsion in rotor)
                  for rotor in rotor_lst)
+    if flat:
+        grps = tuple(chain(*grps))
+    return grps
 
 
-def symmetries(rotor_lst):
+def symmetries(rotor_lst, flat=False):
     """ Build a list of list of axes(
     """
-    return tuple(tuple(torsion.symmetry for torsion in rotor)
-                 for rotor in rotor_lst)
+    symms = tuple(tuple(torsion.symmetry for torsion in rotor)
+                  for rotor in rotor_lst)
+    if flat:
+        symms = tuple(chain(*symms))
+    return symms
 
 
 def grids(rotor_lst, span=2.0*numpy.pi, increment=0.523599, flat=False):
@@ -101,11 +111,17 @@ def grids(rotor_lst, span=2.0*numpy.pi, increment=0.523599, flat=False):
                     torsion.zma, torsion.name,
                     span, torsion.symmetry, increment, from_equilibrium=True),
             )
-        rotor_lst_grids += (grids,)
+        rotor_lst_grids += (rotor_grids,)
     if flat:
         rotor_lst_grids = tuple(chain(*rotor_lst_grids))
 
     return rotor_lst_grids
+
+
+def zmatrix(rotor_lst):
+    """ Get the Z-Matrix for the rotors
+    """
+    return rotor_lst[0][0].zma
 
 
 # Manipulate the torsion objects

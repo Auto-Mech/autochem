@@ -34,8 +34,6 @@ def points(grids):
         p = mxn = ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1))
     """
 
-    assert len(grids) in (1, 2, 3, 4), 'Rotor must be 1-4 dimensions'
-
     grid_points = ((i for i in range(len(grid))) for grid in grids)
     grid_points = tuple(itertools.product(*grid_points))
 
@@ -53,8 +51,9 @@ def coords(grids):
 
     assert len(grids) in (1, 2, 3, 4), 'Rotor must be 1-4 dimensions'
 
-    grid_vals = ((x for x in grid) for grid in grids)
-    grid_vals = tuple(itertools.product(*grid_vals))
+    # grid_vals = ((x for x in grid) for grid in grids)
+    # grid_vals = tuple(itertools.product(*grid_vals))
+    grid_vals = tuple(itertools.product(*grids))
 
     return grid_vals
 

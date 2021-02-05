@@ -51,7 +51,7 @@ import automol.create.zmat
 import automol.convert.zmat
 
 # to be moved to permanent file upon cleanup
-from automol.zmat._zmat import is_atom_closest_to_bond_atom
+from automol.zmat._new import is_atom_closest_to_bond_atom
 
 # to be depreciated
 from automol.zmat._zmat import samples
@@ -65,7 +65,6 @@ from automol.zmat._zmat import coord_idxs
 from automol.zmat._zmat import bond_key_from_idxs
 from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
-from automol.zmat._zmat import atom_indices
 from automol.zmat._zmat import constraint_dct
 
 
@@ -191,6 +190,6 @@ __all__ = [
     'bond_key_from_idxs',
     'get_babs1',
     'get_babs2',
-    'atom_indices',
+    'constraint_dct',
 ]
 
