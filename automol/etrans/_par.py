@@ -2,46 +2,6 @@
   Values to calculate effective parameters for energy transport
 """
 
-def read_lj_dct(bath, target):
-    """ Read the parameters from the internal LJ_DCT that can be
-        used to caluclate an effective Lennard-Jones epsilon and sigma
-        values for the interaction of a bath and target.
-
-        :param bath: InChI string for bath gas species
-        :type bath: str
-        :param target: InChI string for target gas species
-        :type target: str
-    """
-
-    bath_dct = LJ_EST_DCT.get(bath, None)
-    if bath_dct is not None:
-        lj_params = bath_dct.get(target, None)
-    else:
-        lj_params = None
-
-    return lj_params
-
-
-def read_z_alpha_dct(bath, target):
-    """ Read the parameters from the internal Z_DCT that can be
-        used to caluclate an alpha parameter
-        for the collision of a bath and target.
-
-        :param bath: InChI string for bath gas species
-        :type bath: str
-        :param target: InChI string for target gas species
-        :type target: str
-    """
-
-    target_dct = Z_ALPHA_EST_DCT.get(bath, None)
-    if target_dct is not None:
-        z_alpha_params = target_dct.get(target, None)
-    else:
-        z_alpha_params = None
-
-    return z_alpha_params
-
-
 # Dictionaries of parameters
 # Empirically determined parameters indexed by bath gas
 # prob need to be uncombined and units changed

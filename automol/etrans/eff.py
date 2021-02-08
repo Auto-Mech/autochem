@@ -5,8 +5,8 @@ Calculate an effective alpha parameter using certain rules
 import numpy
 import automol
 from automol.graph._util import ring_idxs
-from automol.etrans._par import read_z_alpha_dct
-from automol.etrans._par import read_lj_dct
+from automol.util import dict_
+from automol.etrans._par import LJ_DCT, LJ_EST_DCT, Z_ALPHA_EST_DCT
 from automol.etrans._fxn import troe_lj_collision_frequency
 from phydat import phycon
 
@@ -17,7 +17,7 @@ def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model):
 
         :param n_eff: number of effective rotors
         :type n_eff: int
-        :param zlj_dct: lennard-jones collision frequencies (cm-1?)
+        :p`aram zlj_dct: lennard-jones collision frequencies (cm-1?)
         :type zlj_dct: dict[float: float]
         :param bath_model: InChI string for bath gas species
         :type bath_model: str
@@ -62,7 +62,8 @@ def _calculate_z_alpha_terms(n_eff, bath_model, tgt_model):
                  coeff[3]) / 1.0e9)
 
     # Read the proper coefficients from the moldriver dct
-    coeff_dct = read_z_alpha_dct(bath_model, tgt_model)
+    coeff_dct = dict_.values_in_multilevel_dct(
+        Z_ALPHA_EST_DCT, bath_model, tgt_model)
 
     # Calculate the three alpha terms
     z_alpha_dct = {}
@@ -129,22 +130,29 @@ def lennard_jones_params(n_heavy, bath_model, tgt_model):
         """
         return param * n_heavy**(expt)
 
-    # Read the proper coefficients from the moldriver dct
-    coeffs = read_lj_dct(bath_model, tgt_model)
+    # print('target in etrans', tgt_model)
+    # sigma, eps = dict_.values_in_multilevel_dct(
+    #     LJ_DCT, bath_model, tgt_model[0])
+    sig, eps = None, None
 
-    # Calculate the effective sigma and epsilon values
-    sigma = _lj(coeffs[0], n_heavy, coeffs[1])
-    epsilon = _lj(coeffs[2], n_heavy, coeffs[3])
+    if sig is None and eps is None:
+        # Read the proper coefficients from the moldriver dct
+        coeffs = dict_.values_in_multilevel_dct(
+            LJ_EST_DCT, bath_model, tgt_model)
+
+        # Calculate the effective sigma and epsilon values
+        sig = _lj(coeffs[0], n_heavy, coeffs[1])
+        eps = _lj(coeffs[2], n_heavy, coeffs[3])
 
     # Put in a check for zeros
-    if sigma == 0 or epsilon == 0:
-        sigma, epsilon = None, None
+    if sig == 0 or eps == 0:
+        sig, eps = None, None
 
-    return sigma, epsilon
+    return sig, eps
 
 
 # DETERMINE N_EFF USED FOR ALPHA AND LJ PARAM CALCULATIONS
-def calculate_effective_rotor_count(geo):
+def effective_rotor_count(geo):
     """ Calculate an effective N parameter using the given parametrization.
 
         :param geo: geometry (Bohr)

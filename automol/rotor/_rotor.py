@@ -129,6 +129,9 @@ def relabel_for_geometry(rotor_lst):
     """ relabel the torsion objec tto correspond with a geometry converted
         from a z-matrix
     """
+    for rotor in rotor_lst:
+        for tor in rotor:
+            print(tor.pot)
     geo = automol.zmat.geometry(rotor_lst[0][0].zma)
     geo_rotor_lst = tuple(
         tuple(tors.relabel_for_geometry(torsion) for torsion in rotor)
@@ -152,12 +155,12 @@ def string(rotor_lst):
     tors_dct = {}
     for rotor in rotor_lst:
         for torsion in rotor:
-            _axis = tuple(torsion.axis)
+            _axis = torsion.axis
             _grps = torsion.groups
             tors_dct[torsion.name] = {
-                    'axis1': _axis[0],
+                    'axis1': _axis[0]+1,
                     'group1': _encode_idxs(_grps[0]),
-                    'axis2': _axis[1],
+                    'axis2': _axis[1]+1,
                     'group2': _encode_idxs(_grps[1]),
                     'symmetry': torsion.symmetry,
             }
@@ -181,14 +184,14 @@ def from_string(tors_str):
             idxs = int(idxs_str)-1
         else:
             idxs = tuple(map(int, idxs_str.split('-')))
-            idxs = (val-1 for val in idxs)
+            idxs = tuple(val-1 for val in idxs)
         return idxs
 
     inf_dct = {}
 
     tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
     for name, dct in tors_dct.items():
-        _axis = frozenset({dct['axis1'], dct['axis2']})
+        _axis = (dct['axis1']-1, dct['axis2']-1)
         _grps = (_decode_idxs(dct['group1']), _decode_idxs(dct['group2']))
         symm = dct['symmetry']
 

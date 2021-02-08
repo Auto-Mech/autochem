@@ -4,6 +4,7 @@
  Rotor: (tors_obj_1, tors_obj_2, tors_obj_3)
 """
 
+import copy
 import numpy
 import automol
 from automol.rotor._util import sort_tors_names
@@ -29,8 +30,7 @@ class Torsion:
             self.set_indices()
         else:
             self.indices = indices
-        # self.pot = None
-        # self.grid = None
+        self.pot = None
 
     def set_span(self):
         """ Obtain the torsional span
@@ -90,6 +90,7 @@ def name_axis_dct(zma, gra, lin_keys):
     """
 
     tors_axes = all_torsion_axes(gra, lin_keys)
+    print('tors_axes test', tors_axes)
 
     tors_names = tuple(automol.zmat.torsion_coordinate_name(zma, *keys)
                        for keys in tors_axes)
@@ -100,7 +101,8 @@ def name_axis_dct(zma, gra, lin_keys):
 def all_torsion_axes(gra, lin_keys):
     """ Build the torsion axes
     """
-    return automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
+    tors_keys = automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
+    return tuple(tuple(keys) for keys in tors_keys)
 
 
 def all_torsion_groups(gra, lin_keys):
@@ -141,6 +143,12 @@ def torsion_symmetry(gra, axis, lin_keys):
 
 
 # Manipulate the torsion objects
+def copy_pot(pot):
+    """ dumb function to copy pot
+    """
+    return copy.deepcopy(pot)
+
+
 def relabel_for_geometry(torsion):
     """ relabel the torsion objec tto correspond with a geometry converted
         from a z-matrix
@@ -155,5 +163,6 @@ def relabel_for_geometry(torsion):
     gindices = automol.util.dummy.shift_down(zma, torsion.indices)
 
     gtorsion = Torsion(zma, name, gaxis, ggrps, symmetry, indices=gindices)
+    gtorsion.pot = copy_pot(torsion.pot)
 
     return gtorsion

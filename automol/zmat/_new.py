@@ -1,6 +1,10 @@
 """ random functions that I am gonna distribute to other parts of automol
 """
 
+import automol.geom
+import automol.zmat
+
+
 # def z_atom_closest_to(zma, idx1, idx2, chk_idxs):
 #     """
 #     """
