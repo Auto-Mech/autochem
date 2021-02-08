@@ -7,6 +7,7 @@ from automol.zmat._zmat import geometry
 # getters
 from automol.zmat._zmat import count
 from automol.zmat._zmat import symbols
+from automol.zmat._zmat import atom_indices
 from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import value_matrix
@@ -49,6 +50,9 @@ import automol.create.zmat
 # conversions
 import automol.convert.zmat
 
+# to be moved to permanent file upon cleanup
+from automol.zmat._new import is_atom_closest_to_bond_atom
+
 # to be depreciated
 from automol.zmat._zmat import samples
 from automol.zmat._zmat import torsional_symmetry_numbers
@@ -61,7 +65,8 @@ from automol.zmat._zmat import coord_idxs
 from automol.zmat._zmat import bond_key_from_idxs
 from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
-from automol.zmat._zmat import atom_indices
+from automol.zmat._zmat import constraint_dct
+
 
 
 def from_data(syms, key_mat, val_mat, name_mat=None,
@@ -170,6 +175,9 @@ __all__ = [
     'graph',
     'formula',
 
+    # to be moved to permanent file upon cleanup
+    'is_atom_closest_to_bond_atom',
+
     # to be depreciated
     'samples',
     'torsional_symmetry_numbers',
@@ -182,6 +190,6 @@ __all__ = [
     'bond_key_from_idxs',
     'get_babs1',
     'get_babs2',
-    'atom_indices',
+    'constraint_dct',
 ]
 

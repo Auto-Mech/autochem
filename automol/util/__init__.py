@@ -9,6 +9,7 @@ from automol.util._util import scale_iterable
 from automol.util import vec
 from automol.util import mat
 from automol.util import dict_
+from automol.util import dummy
 
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     # submodules
     'vec',
     'mat',
-    'dict_'
+    'dict_',
+    'dummy'
 ]

@@ -113,8 +113,13 @@ def geometry(gra):
         :rtype: automol molecular geometry data structure
     """
 
-    gra = automol.graph.explicit(gra)
-    geo = automol.graph.embed.geometry(gra)
+    symbs = automol.graph.atom_symbols(gra)
+    if len(symbs) != 1:
+        gra = automol.graph.explicit(gra)
+        geo = automol.graph.embed.geometry(gra)
+    else:
+        symb = list(symbs.keys())[0]
+        geo = ((symb, (0.00, 0.00, 0.00)),)
 
     return geo
 

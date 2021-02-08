@@ -11,10 +11,10 @@ from automol import smiles
 from automol import formula
 from automol import reac
 from automol import mult
-from automol import instab
 from automol import prop
 from automol import pot
 from automol import etrans
+from automol import rotor
 
 
 __all__ = [
@@ -29,8 +29,8 @@ __all__ = [
     'formula',
     'reac',
     'mult',
-    'instab',
     'prop',
     'pot',
-    'etrans'
+    'etrans',
+    'rotor'
 ]

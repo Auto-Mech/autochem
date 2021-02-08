@@ -88,15 +88,19 @@ def test__build_potential():
         test automol.pot.coords
     """
 
-    ref_grid_pts = ((0, 0), (0, 1),
-                    (1, 0), (1, 1),
-                    (2, 0), (2, 1),
-                    (3, 0), (3, 1))
-    ref_grid_coords = ((1.0, 0.1), (1.0, 0.2),
-                       (2.0, 0.1), (2.0, 0.2),
-                       (3.0, 0.1), (3.0, 0.2),
-                       (4.0, 0.1), (4.0, 0.2))
+    ref_1dgrid_pts = (0, 1, 2, 3)
+    ref_1dgrid_coords = (1.0, 2.0, 3.0, 4.0)
 
+    ref_2dgrid_pts = ((0, 0), (0, 1),
+                      (1, 0), (1, 1),
+                      (2, 0), (2, 1),
+                      (3, 0), (3, 1))
+    ref_2dgrid_coords = ((1.0, 0.1), (1.0, 0.2),
+                         (2.0, 0.1), (2.0, 0.2),
+                         (3.0, 0.1), (3.0, 0.2),
+                         (4.0, 0.1), (4.0, 0.2))
+
+    print(automol.pot.coords((PCOORDS1,)))
     assert automol.pot.points((PCOORDS1, PCOORDS2)) == ref_grid_pts
     assert automol.pot.coords((PCOORDS1, PCOORDS2)) == ref_grid_coords
 
@@ -181,7 +185,7 @@ def test__repulsion():
 
 
 if __name__ == '__main__':
-    test__valid_potential()
+    # test__valid_potential()
     test__build_potential()
-    test__transform_potential()
-    test__repulsion()
+    # test__transform_potential()
+    # test__repulsion()

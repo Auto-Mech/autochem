@@ -1,20 +1,114 @@
-loop
-1
-1 fgrps ('InChI=1S/HO2/c1-2/h1H', 'InChI=1S/NO3/c2-1(3)4')
-2
-2 grp ich InChI=1S/C
-2
-2 grp ich InChI=1S/HO2/c1-2/h1H
-loop
-1
-1 fgrps ('InChI=1S/HO2/c1-2/h1H', 'InChI=1S/NO3/c2-1(3)4')
-2
-2 grp ich InChI=1S/C
-2
-2 grp ich InChI=1S/NO3/c2-1(3)4
-instab 1
-(('O', (None, None, None), (None, None, None), (None, None, None)), ('H', (0, None, None), ('R1', None, None), (1.847788877632985, None, None)))
-(('C', (None, None, None), (None, None, None), (None, None, None)), ('O', (0, None, None), ('R1', None, None), (2.3142184670910955, None, None)), ('H', (0, 1, None), ('R2', 'A2', None), (2.081910294028233, 2.1334159256991865, None)), ('H', (0, 1, 2), ('R3', 'A3', 'D3'), (2.0819105104503435, 2.1334159293636286, 3.141592653589793)))
-instab 2
-(('O', (None, None, None), (None, None, None), (None, None, None)), ('N', (0, None, None), ('R1', None, None), (2.6908226786788956, None, None)), ('O', (1, 0, None), ('R2', 'A2', None), (2.690824057320017, 1.8901908487803016, None)))
-(('C', (None, None, None), (None, None, None), (None, None, None)), ('O', (0, None, None), ('R1', None, None), (2.314218121713856, None, None)), ('H', (0, 1, None), ('R2', 'A2', None), (2.081910657025832, 2.133415907619935, None)), ('H', (0, 1, 2), ('R3', 'A3', 'D3'), (2.081910076584056, 2.133416208019412, 3.141594388471524)))
+conv test
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.509600
+H    0.000000   0.995013  -0.451842
+H   -1.152204  -0.527793  -0.364820
+H    0.757126  -0.654187  -0.437836
+O   -0.071734  -1.303634   2.052545
+H   -0.820248   0.633960   1.883943
+H    0.933775   0.426865   1.895088
+H   -0.887869  -1.704007   1.729037
+C   -2.374871  -1.084624  -0.656066
+H   -2.627247  -0.691998  -1.640526
+H   -3.050565  -0.739943   0.127821
+H   -2.218140  -2.163699  -0.654162
+atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  2-8: {order: 1, stereo_parity: null}
+  4-10: {order: 1, stereo_parity: null}
+  6-9: {order: 1, stereo_parity: null}
+  10-11: {order: 1, stereo_parity: null}
+  10-12: {order: 1, stereo_parity: null}
+  10-13: {order: 1, stereo_parity: null}
+
+remdummy [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+remdummy [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+remdummy [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+C  
+C  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+O  2    R5  1    A5  3    D5 
+H  2    R6  1    A6  6    D6 
+H  2    R7  1    A7  6    D7 
+H  6    R8  2    A8  1    D8 
+X  4    R9  1    A9  2    D9 
+C  4   R10  10   A10  1   D10 
+H  11   R11  4   A11  10   D11 
+H  11   R12  12   A12  4   D12 
+H  11   R13  12   A13  13   D13 
+
+R1   =   1.509600
+R2   =   1.092800
+R3   =   1.318800
+R4   =   1.092200
+R5   =   1.414000
+R6   =   1.102200
+R7   =   1.096700
+R8   =   0.964900
+R9   =   1.000000
+R10  =   1.374700
+R11  =   1.089500
+R12  =   1.090800
+R13  =   1.090400
+A2   = 114.423100
+A3   = 106.059200
+A4   = 113.632900
+A5   = 112.580300
+A6   = 109.854500
+A7   = 110.579000
+A8   = 107.260800
+A9   =  90.000000
+A10  =  93.827700
+A11  = 104.565700
+A12  = 113.078100
+A13  = 113.048100
+D3   = 245.388800
+D4   = 130.828300
+D5   = 176.850400
+D6   = 235.449600
+D7   = 117.716600
+D8   = 300.627100
+D9   = 180.000000
+D10  = 179.877000
+D11  = 334.055300
+D12  = 114.502300
+D13  = 130.872400
+
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.509600
+H    0.000000   0.995013  -0.451842
+H   -1.152204  -0.527793  -0.364820
+H    0.757126  -0.654187  -0.437836
+O   -0.071734  -1.303634   2.052545
+H   -0.820248   0.633960   1.883943
+H    0.933775   0.426865   1.895088
+H   -0.887869  -1.704007   1.729037
+C   -2.374871  -1.084624  -0.656066
+H   -2.627247  -0.691998  -1.640526
+H   -3.050565  -0.739943   0.127821
+H   -2.218140  -2.163699  -0.654162
+
+(((0, 1),), ((1, 5),), ((9, 3),))
+((((2, 3, 4, 9, 9, 10, 11), (5, 6, 7, 8)),), (((0, 2, 3, 4, 6, 7, 9, 9, 10, 11), (8,)),), (((9, 10, 11), (0, 1, 2, 4, 5, 6, 7, 8)),))
+((1,), (1,), (3,))

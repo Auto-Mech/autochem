@@ -55,6 +55,7 @@ from automol.reac._zmat import insertion_ts_zmatrix
 from automol.reac._zmat import substitution_ts_zmatrix
 from automol.reac._zmat import ts_zmatrix
 # scan coordinates
+from automol.reac._scan import build_scan_info
 from automol.reac._scan import hydrogen_migration_scan_coordinate
 from automol.reac._scan import beta_scission_scan_coordinate
 from automol.reac._scan import ring_forming_scission_scan_coordinate
@@ -73,6 +74,10 @@ from automol.reac._prod import prod_addition
 from automol.reac._prod import prod_hydrogen_migration
 from automol.reac._prod import prod_beta_scission
 from automol.reac._prod import prod_homolytic_scission
+# species instability transformations
+from automol.reac._instab import instability_product_zmas
+from automol.reac._instab import instability_product_graphs
+from automol.reac._instab import instability_transformation
 
 
 __all__ = [
@@ -131,6 +136,7 @@ __all__ = [
     'substitution_ts_zmatrix',
     'ts_zmatrix',
     # scan coordinates
+    'build_scan_info',
     'hydrogen_migration_scan_coordinate',
     'beta_scission_scan_coordinate',
     'ring_forming_scission_scan_coordinate',
@@ -149,4 +155,8 @@ __all__ = [
     'prod_hydrogen_migration',
     'prod_beta_scission',
     'prod_homolytic_scission'
+    # species instability transformations
+    'instability_product_zmas',
+    'instability_product_graphs',
+    'instability_transformation'
 ]

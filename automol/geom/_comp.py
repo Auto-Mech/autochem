@@ -223,55 +223,54 @@ def is_unique(geo, geo_lst, check_dct=None):
 
         order of atoms also impacts the comparison as well
     """
-    
+
+    # Set default check values if none are provided
     if check_dct is None:
         check_dct = CHECK_DEFAULT_DCT
 
     unique = True
-    sym_idx = None
+    like_idx = None
     for idx, geoi in enumerate(geo_lst):
+        # Perform all of the desired comparison checks for similarity
+        sim_chk_results = []
         for key, val in check_dct.items():
-            if key == 'stereo':
-                if not _stereo(geo, geoi):
-                    unique = False
-                    like_idx = idx
-                    break
-            else:
-                kwargs = {'chk_arg': val} if val is not None else {}
-                if not CHECK_DCT[key](geo, geoi, **kwargs):
-                    unique = False
-                    like_idx = idx
-                    break
-        if not unique:
+            kwargs = {'arg': val} if val is not None else {}
+            sim_chk_results.append(CHECK_FXN_DCT[key](geo, geoi, **kwargs))
+        # If all checks come back as True, than geoms are the same
+        print('chk results', sim_chk_results)
+        if all(sim_chk_results):
+            unique = False
+            like_idx = idx
             break
 
     return unique, like_idx
 
 
-def _dist(geo, geoi, chk_arg=3e-1):
+def _similar_dist(geo, geoi, arg=3e-1):
     """ Compare the distance matrices of two geometries.
     """
-    return almost_equal_dist_matrix(geo, geoi, thresh=chk_arg)
+    return almost_equal_dist_matrix(geo, geoi, thresh=arg)
 
 
-def _tors(geo, geoi, chk_arg=()):
+def _similar_tors(geo, geoi, arg=()):
     """ Compare the torsions of two geometries
     """
-    return are_torsions_same(geo, geoi, ts_bnds=chk_arg)
+    return are_torsions_same(geo, geoi, ts_bnds=arg)
 
 
-def _stereo(geo, geoi):
+def _similar_stereo(geo, geoi, arg=None):
     """ Compare the stereochemistry of two geometries
     """
+    _ = arg  # Added just to make wrapper function work
     ich = automol.convert.geom.inchi(geo)
     ichi = automol.convert.geom.inchi(geoi)
     return bool(ich == ichi)
 
 
-def _coloumb(geo, geoi, chk_arg=1e-2):
+def _similar_coloumb(geo, geoi, arg=1e-2):
     """ Compare the Coulomb spectrum of geometries.
     """
-    return almost_equal_coulomb_spectrum(geo, geoi, rtol=chk_arg)
+    return almost_equal_coulomb_spectrum(geo, geoi, rtol=arg)
 
 
 CHECK_DEFAULT_DCT = {
@@ -282,8 +281,8 @@ CHECK_DEFAULT_DCT = {
 }
 
 CHECK_FXN_DCT = {
-    'dist': _dist,
-    'tors': _tors,
-    'stereo': _stereo,
-    'coloumb': _coloumb
+    'dist': _similar_dist,
+    'tors': _similar_tors,
+    'stereo': _similar_stereo,
+    'coloumb': _similar_coloumb
 }

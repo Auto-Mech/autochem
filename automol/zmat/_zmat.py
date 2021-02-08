@@ -53,9 +53,9 @@ def geometry(zma, dummy=False):
     """
 
     if dummy:
-        geo, _ = automol.convert.zmat.geometry(zma)
-    else:
         geo = automol.convert.zmat.geometry_with_dummy_atoms(zma)
+    else:
+        geo, _ = automol.convert.zmat.geometry(zma)
 
     return geo
 
@@ -81,6 +81,22 @@ def symbols(zma):
         :rtype: tuple(str)
     """
     return vmat.symbols(zma)
+
+
+def atom_indices(zma, symb, match=True):
+    """ Obtain the indices of a atoms of a particular type in the geometry.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :param match: grab idxs that match given atom type
+        :param symb: atomic symbol
+        :type symb: str
+        :param match: obtain indices of symbols that match the type?
+        :type match: bool
+    """
+    return vmat.atom_indices(zma, symb, match=match)
+
+
 
 
 def key_matrix(zma, shift=0):
@@ -816,3 +832,40 @@ def torsional_scan_linspaces(zma, tors_names, increment=0.5,
         (int(interval / increment)+1) for interval in intervals)
     return tuple((0, interval, npoints)
                  for interval, npoints in zip(intervals, npoints_lst))
+
+
+def constraint_dct(zma, const_names, var_names=()):
+    """ Build a dictionary of constraints
+
+        has to round the values for the filesystem
+    """
+
+    # Get the list names sorted for dictionary
+    rnames = (name for name in const_names if 'R' in name)
+    anames = (name for name in const_names if 'A' in name)
+    dnames = (name for name in const_names if 'D' in name)
+    rnames = tuple(sorted(rnames, key=lambda x: int(x.split('R')[1])))
+    anames = tuple(sorted(anames, key=lambda x: int(x.split('A')[1])))
+    dnames = tuple(sorted(dnames, key=lambda x: int(x.split('D')[1])))
+    constraint_names = rnames + anames + dnames
+
+    # Remove the scan coordinates so they are not placed in the dict
+    constraint_names = tuple(name for name in constraint_names
+                             if name not in var_names)
+
+    # Build dictionary
+    if constraint_names:
+        zma_vals = automol.zmat.value_dictionary(zma)
+        zma_coords = automol.zmat.coordinates(zma)
+        assert set(constraint_names) <= set(zma_coords.keys()), (
+            'Attempting to constrain coordinates not in zma:\n{}\n{}'.format(
+                constraint_names, zma_coords)
+        )
+        constraint_dct = dict(zip(
+            constraint_names,
+            (round(zma_vals[name], 2) for name in constraint_names)
+        ))
+    else:
+        constraint_dct = None
+
+    return constraint_dct

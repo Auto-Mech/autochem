@@ -7,6 +7,7 @@ from automol.util.dict_._dict_ import by_key
 from automol.util.dict_._dict_ import by_value
 from automol.util.dict_._dict_ import values_by_key
 from automol.util.dict_._dict_ import values_by_unordered_tuple
+from automol.util.dict_._dict_ import values_in_multilevel_dct
 from automol.util.dict_._dict_ import keys_by_value
 from automol.util.dict_._dict_ import transform_keys
 from automol.util.dict_._dict_ import transform_values

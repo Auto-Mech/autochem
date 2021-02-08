@@ -2,6 +2,7 @@
   Libraries for calculating inter- and intramolecular interactions
 """
 
+from automol.pot._pot import grid
 from automol.pot._pot import points
 from automol.pot._pot import coords
 from automol.pot._pot import scale
@@ -15,16 +16,18 @@ from automol.pot._intermol import lj_potential
 from automol.pot._intermol import exp6_potential
 from automol.pot._intermol import pairwise_potential_matrix
 from automol.pot._intermol import low_repulsion_struct
+from automol.pot._read import find_max1d
 # from automol.pot._fitter import fit_1d_potential
 
 
 __all__ = [
+    'grid',
     'points',
     'coords',
     'scale',
     'truncate',
     'by_index',
-    'hrpot_spline_fitter',
+    # 'hrpot_spline_fitter',
     'valid',
     'dimension',
     'string',
@@ -33,5 +36,6 @@ __all__ = [
     'exp6_potential',
     'pairwise_potential_matrix',
     'low_repulsion_struct',
-    # 'fit_1d_potential'
+    # 'fit_1d_potential',
+    'find_max1d'
 ]

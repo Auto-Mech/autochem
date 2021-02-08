@@ -1,102 +1,201 @@
 """
- Build the rotor and torsion objects
+ Handle rotor objects
+
+ Rotors: (Rotor1, Rotor2, ..., RotorN)
+ Rotor: (tors_obj_1, tors_obj_2, ..., tors_obj_N)
 """
 
-import automol
-from automol.rotor._par import TorsionParam
+from itertools import chain
+import yaml
+import numpy
+import automol.zmat
+import automol.pot
+from automol.rotor import _tors as tors
+from automol.rotor._name import group_torsions_into_rotors
+from automol.rotor._util import graph_with_keys
+from automol.rotor._util import sort_tors_names
 
 
-class Rotor:
-    """ Describes a Rotor
+# constructors
+def from_zmatrix(zma, tors_names=None, multi=False):
+    """ Construct a list-of-lists of torsion objects
     """
 
-    def __init__(self, zma, names=None, model=None, rotor_dct=None):
-        """ constructor
-        """
-        self.names = names
-        self.zma = zma
+    # Build a graph that is used to get torsion object info
+    gra, lin_keys = graph_with_keys(zma)
 
-        torsions = ()
-        for name in names:
+    # Build the torsion objects
+    tors_lst = tors.torsion_lst(zma, gra, lin_keys)
 
-    # Use input rotor dct to construct all te torsion objects if there
-    # else
-    # Build the dict of tors  names {name: bnd_idx}
-    # Build the torsion objects for each name
-    # Group the names nad torsions according to model
-    # Rotor is a dct of torsion objects maybe?
+    # Place the torsions into order based on rotors
+    rotors = group_torsions_into_rotors(
+        tors_lst, name_grps=tors_names, multi=multi)
+
+    return rotors
 
 
-class Torsion:
-    """ Describes a torsion
+def from_data(zma, tors_inf_dct, tors_names=None, multi=False):
+    """ Build the rotors objects from existing data
     """
 
-    def __init__(self, name, zma, tors_dct=None):
-        """ constructor
-        """
-        self.name = name
-        self.zma = zma
-        if tors_dct is not None:
-            self.symmetry = tors_dct.get(TorsionParam.ZMA, None)
-            self.span = tors_dct.get(TorsionParam.ZMA, None)
-            self.axis = tors_dct.get(TorsionParam.ZMA, None)
-            self.groups = tors_dct.get(TorsionParam.ZMA, None)
+    tors_lst = ()
+    for name, dct in tors_inf_dct.items():
+        assert set(dct.keys()) >= {'symmetry', 'axis', 'groups'}, (
+            'must have symmetry, axis, and groups in dct tp build torsions'
+        )
+        tors_lst += (tors.Torsion(zma, name, **dct),)
+
+    rotors = group_torsions_into_rotors(
+        tors_lst, name_grps=tors_names, multi=multi)
+
+    return rotors
+
+
+# Getters
+def dimensions(rotor_lst):
+    """ Get the dimensions of each of the rotors
+    """
+    return tuple(len(rotor) for rotor in rotor_lst)
+
+
+def names(rotor_lst, flat=False):
+    """ Get a flat list of names for list of rotors
+    """
+    _names = tuple(tuple(torsion.name for torsion in rotor)
+                   for rotor in rotor_lst)
+    if flat:
+        _names = tuple(chain(*_names))
+    return _names
+
+
+def axes(rotor_lst, flat=False):
+    """ Build a list of list of axes(
+    """
+    _axes = tuple(tuple(torsion.axis for torsion in rotor)
+                  for rotor in rotor_lst)
+    if flat:
+        _axes = tuple(chain(*_axes))
+    return _axes
+
+
+def groups(rotor_lst, flat=False):
+    """ Build a list of list of axes(
+    """
+    grps = tuple(tuple(torsion.groups for torsion in rotor)
+                 for rotor in rotor_lst)
+    if flat:
+        grps = tuple(chain(*grps))
+    return grps
+
+
+def symmetries(rotor_lst, flat=False):
+    """ Build a list of list of axes(
+    """
+    symms = tuple(tuple(torsion.symmetry for torsion in rotor)
+                  for rotor in rotor_lst)
+    if flat:
+        symms = tuple(chain(*symms))
+    return symms
+
+
+def grids(rotor_lst, span=2.0*numpy.pi, increment=0.523599, flat=False):
+    """ Build a list of list of grids
+    """
+
+    rotor_lst_grids = ()
+    for rotor in rotor_lst:
+        rotor_grids = ()
+        for torsion in rotor:
+            rotor_grids += (
+                automol.pot.grid(
+                    torsion.zma, torsion.name,
+                    span, torsion.symmetry, increment, from_equilibrium=True),
+            )
+        rotor_lst_grids += (rotor_grids,)
+    if flat:
+        rotor_lst_grids = tuple(chain(*rotor_lst_grids))
+
+    return rotor_lst_grids
+
+
+def zmatrix(rotor_lst):
+    """ Get the Z-Matrix for the rotors
+    """
+    return rotor_lst[0][0].zma
+
+
+# Manipulate the torsion objects
+def relabel_for_geometry(rotor_lst):
+    """ relabel the torsion objec tto correspond with a geometry converted
+        from a z-matrix
+    """
+    for rotor in rotor_lst:
+        for tor in rotor:
+            print(tor.pot)
+    geo = automol.zmat.geometry(rotor_lst[0][0].zma)
+    geo_rotor_lst = tuple(
+        tuple(tors.relabel_for_geometry(torsion) for torsion in rotor)
+        for rotor in rotor_lst)
+
+    return geo, geo_rotor_lst
+
+
+# I/O
+def string(rotor_lst):
+    """ Write a list torsions to a string
+    """
+
+    def _encode_idxs(idxs):
+        if len(idxs) == 1:
+            idx_str = idxs[0]+1
         else:
-            self.symmetry = symmetry_number(self)
-            self.span = span(self)
-            self.axis, self.groups = rotational_groups(self)
+            idx_str = '-'.join(str(val+1) for val in idxs)
+        return idx_str
+
+    tors_dct = {}
+    for rotor in rotor_lst:
+        for torsion in rotor:
+            _axis = torsion.axis
+            _grps = torsion.groups
+            tors_dct[torsion.name] = {
+                    'axis1': _axis[0]+1,
+                    'group1': _encode_idxs(_grps[0]),
+                    'axis2': _axis[1]+1,
+                    'group2': _encode_idxs(_grps[1]),
+                    'symmetry': torsion.symmetry,
+            }
+
+    sort_tors_dct = {}
+    tors_names = sort_tors_names(list(tors_dct.keys()))
+    for name in tors_names:
+        sort_tors_dct[name] = tors_dct[name]
+
+    tors_str = yaml.dump(sort_tors_dct, sort_keys=False)
+
+    return tors_str
 
 
-def torsion_axis():
-
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(ggra, lin_keys=lin_keys)
-    assert len(gbnd_keys) == len(bnd_keys)
-
-    axes = sorted(map(sorted, gbnd_keys))
-
-
-def torsion_groups(gra, axis=None):
-
-    if axis is None:
-        axis = torsion_axis()
-
-    return automol.graph.rotational_groups(ggra, axis)
-
-
-def torsion_symmetry(gra, axis=None):
-    """ Obtain the symmetry number for the torsion
+def from_string(tors_str):
+    """ read the transformation from a string
     """
 
-    if axis is None:
-        axis = torsion_axis()
+    def _decode_idxs(idxs_str):
+        if isinstance(idxs_str, int):
+            idxs = int(idxs_str)-1
+        else:
+            idxs = tuple(map(int, idxs_str.split('-')))
+            idxs = tuple(val-1 for val in idxs)
+        return idxs
 
-    return automol.graph.rotational_symmetry_number(
-        ggra, axis, lin_keys=lin_keys)
+    inf_dct = {}
 
+    tors_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
+    for name, dct in tors_dct.items():
+        _axis = (dct['axis1']-1, dct['axis2']-1)
+        _grps = (_decode_idxs(dct['group1']), _decode_idxs(dct['group2']))
+        symm = dct['symmetry']
 
-def span(sym_num):
-    """
-    """
-    return (2.0 * numpy.pi) / sym_num
+        inf_dct[name] = {'axis': _axis, 'groups': _grps, 'symmetry': symm}
+        # torsions += (Torsion('', name, _axis, _grps, symm),)
 
-
-def _torsion_bond_keys(zma, tors_name):
-    """ Generate the bond keys for the torsion
-
-        or just get the torsion names and keys?
-        build a dictionary (build full dct for all tors in rotor
-                            split dcts into subdcts for groupings (including single torsion)
-    """
-
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    gra = automol.geom.graph(geo)
-
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(ggra, lin_keys=lin_keys)
-
-    # names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-    for keys in gbnd_keys:
-        name = automol.zmat.torsion_coordinate_name(zma, keys)
-
-
+    return inf_dct

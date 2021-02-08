@@ -6,13 +6,13 @@ import automol
 from phydat import instab_fgrps
 
 
-def product_zmas(zma):
+def instability_product_zmas(zma):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
 
     disconn_zmas = ()
-    for gra in product_graphs(automol.zmat.graph(zma)):
+    for gra in instability_product_graphs(automol.zmat.graph(zma)):
         ich = automol.graph.inchi(gra)
         geo_tmp = automol.inchi.geometry(ich)
         zma = automol.geom.zmatrix(geo_tmp)
@@ -21,7 +21,7 @@ def product_zmas(zma):
     return disconn_zmas
 
 
-def product_graphs(gra):
+def instability_product_graphs(gra):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
@@ -48,18 +48,8 @@ def product_graphs(gra):
     return prd_gras
 
 
-# def _instab_info(conn_zma, disconn_zmas):
-#     """ Determine keys corresponding to breaking bond for the instabiliity
-#     """
-#
-#     # Get the zma for the connected graph
-#     rct_zmas = [conn_zma]
-#
-#     # Get the zmas used for the identification
-#     prd_zmas = disconn_zmas
-#
-#     # Get the keys
-#     ret = beta_scission(rct_zmas, prd_zmas)
-#     zma, _, brk_bnd_keys, _, rcts_gra = ret
-#
-#     return zma, brk_bnd_keys, rcts_gra
+def instability_transformation(conn_zma, disconn_zmas):
+    """ Build the reaction objects for an instability
+    """
+    return automol.reac.rxn_obj_from_zmatrix(
+        [conn_zma], disconn_zmas)

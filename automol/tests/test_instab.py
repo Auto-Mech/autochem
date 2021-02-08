@@ -88,9 +88,9 @@ def test__instab():
           (2.081910076584056, 2.133416208019412, 3.141594388471524)))
     )
 
-    instab_zmas1 = automol.instab.product_zmas(ZMA1)
-    instab_zmas2 = automol.instab.product_zmas(ZMA2)
-    instab_zmas3 = automol.instab.product_zmas(ZMA3)
+    instab_zmas1 = automol.reac.instability_product_zmas(ZMA1)
+    instab_zmas2 = automol.reac.instability_product_zmas(ZMA2)
+    instab_zmas3 = automol.reac.instability_product_zmas(ZMA3)
 
     for zma, ref_zma in zip(instab_zmas1, ref_instab_zmas1):
         assert automol.zmat.almost_equal(zma, ref_zma)
