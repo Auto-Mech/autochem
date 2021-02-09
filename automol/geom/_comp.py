@@ -237,7 +237,6 @@ def is_unique(geo, geo_lst, check_dct=None):
             kwargs = {'arg': val} if val is not None else {}
             sim_chk_results.append(CHECK_FXN_DCT[key](geo, geoi, **kwargs))
         # If all checks come back as True, than geoms are the same
-        print('chk results', sim_chk_results)
         if all(sim_chk_results):
             unique = False
             like_idx = idx
