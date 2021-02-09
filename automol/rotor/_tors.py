@@ -1,5 +1,5 @@
 """
- Build the rotor and torsion objects
+ Build the rotor and torsion objects.
 
  Rotor: (tors_obj_1, tors_obj_2, tors_obj_3)
 """
