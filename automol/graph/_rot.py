@@ -14,6 +14,7 @@ from automol.graph._graph import terminal_heavy_atom_keys
 from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import dummy_atoms_neighbor_atom_key
+from automol.graph._graph import atom_neighbor_atom_key
 from automol.graph._ring import rings_bond_keys
 from automol.graph._res import resonance_dominant_bond_orders
 
@@ -46,10 +47,30 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
     rot_bnd_keys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
 
     lin_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys)
+    dum_keys = tuple(atom_keys(gra, sym='X'))
     for keys in lin_keys_lst:
         bnd_keys = sorted((k for k in rot_bnd_keys if k & set(keys)),
                           key=sorted)
-        rot_bnd_keys -= set(bnd_keys[:-1])
+
+        # Check whether there are neighboring atoms on either side of the
+        # linear segment
+        excl_keys = set(keys) | set(dum_keys)
+
+        end_key1 = atom_neighbor_atom_key(
+            gra, keys[0], excl_atm_keys=excl_keys)
+
+        excl_keys |= {end_key1}
+        end_key2 = atom_neighbor_atom_key(
+            gra, keys[-1], excl_atm_keys=excl_keys)
+
+        end_keys = {end_key1, end_key2}
+        ngb_keys_lst = [ngb_keys_dct[k] - excl_keys for k in end_keys]
+        has_neighbors = all(ngb_keys_lst)
+
+        if not has_neighbors:
+            rot_bnd_keys -= set(bnd_keys)
+        else:
+            rot_bnd_keys -= set(bnd_keys[:-1])
 
     return rot_bnd_keys
 
@@ -140,13 +161,12 @@ def linear_segments_atom_keys(gra, lin_keys=None):
 if __name__ == '__main__':
     import automol
     TSG = ({0: ('C', 0, None), 1: ('H', 0, None), 2: ('H', 0, None),
-            3: ('H', 0, None), 4: ('H', 0, None), 5: ('O', 0, None),
+            3: ('H', 0, None), 4: ('H', 0, None), 5: ('X', 0, None),
             6: ('H', 0, None)},
-           {frozenset({5, 6}): (1, None), frozenset({0, 3}): (1, None),
-            frozenset({4, 5}): (0.1, None), frozenset({0, 1}): (1, None),
+           {frozenset({4, 5}): (0, None), frozenset({0, 3}): (1, None),
+            frozenset({4, 6}): (0.1, None), frozenset({0, 1}): (1, None),
             frozenset({0, 2}): (1, None), frozenset({0, 4}): (0.9, None)})
-    # TSG = ({0: ('H', 0, None), 1: ('H', 0, None)},
-    #        {frozenset({0, 1}): (1, None)})
-    print(automol.graph.implicit(TSG))
-    print(automol.graph.explicit_hydrogen_keys(TSG))
-    print(rotational_symmetry_number(TSG, 0, 4))
+    print(automol.graph.string(TSG, one_indexed=False))
+    LIN_KEYS = [4]
+    BND_KEYS = rotational_bond_keys(TSG, lin_keys=LIN_KEYS)
+    print(BND_KEYS)
