@@ -19,7 +19,6 @@ from automol.graph._graph import atom_lone_pair_counts
 from automol.graph._graph import maximum_spin_multiplicity
 from automol.graph._graph import explicit
 from automol.graph._graph import implicit
-from automol.graph._graph import atom_explicit_hydrogen_valences
 from automol.graph._graph import atoms
 from automol.graph._graph import atom_groups
 from automol.graph._graph import full_isomorphism
@@ -356,30 +355,3 @@ def _add_pi_bonds(rgr, bnd_ord_inc_dct):
     bnd_ord_dct = dict(zip(bnd_keys, new_bnd_ords))
     rgr = set_bond_orders(rgr, bnd_ord_dct)
     return rgr
-
-
-# other utilities
-def rotational_bond_keys(gra, with_h_rotors=True):
-    """ determine rotational bonds in this molecular graph
-    """
-    gra = explicit(gra)
-    atm_bnd_vlc_dct = atom_bond_valences(gra, bond_order=False)
-    atm_exp_hyd_vlc_dct = atom_explicit_hydrogen_valences(gra)
-    res_dom_bnd_ords_dct = resonance_dominant_bond_orders(gra)
-
-    bnd_keys = []
-    for bnd_key, bnd_ords in res_dom_bnd_ords_dct.items():
-        if all(bnd_ord <= 1 for bnd_ord in bnd_ords):
-            atm_keys = list(bnd_key)
-            bnd_ord = min(bnd_ords)
-            rot_vlcs = numpy.array(
-                list(map(atm_bnd_vlc_dct.__getitem__, atm_keys)))
-            rot_vlcs -= bnd_ord
-            if not with_h_rotors:
-                atm_exp_hyd_vlcs = numpy.array(list(
-                    map(atm_exp_hyd_vlc_dct.__getitem__, atm_keys)))
-                rot_vlcs -= atm_exp_hyd_vlcs
-            if all(rot_vlcs):
-                bnd_keys.append(bnd_key)
-
-    return frozenset(bnd_keys)

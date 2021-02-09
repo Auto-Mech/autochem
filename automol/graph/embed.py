@@ -795,6 +795,7 @@ def fake_stereo_geometry(gra, ntries=5, max_dist_err=0.5):
     geo_idx_dct = {}
     geo = ()
     for group in ste_groups:
+        print(group)
         group_geo = geometry(gra, keys=group, ntries=ntries,
                              max_dist_err=max_dist_err)
         group_natms = len(group)
@@ -880,7 +881,10 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
 
 
 if __name__ == '__main__':
-    ICH = automol.smiles.inchi('OO')
-    GRA = automol.graph.explicit(automol.inchi.graph(ICH))
-    print(string(GRA, one_indexed=False))
-    print(heuristic_torsion_angle_distance(GRA, 2, 0, 1, 3, d1234=0.))
+    import automol
+    ICH = 'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1'
+    GEO = automol.inchi.geometry(ICH)
+    GRA = automol.geom.graph(GEO)
+    GROUP = [0, 1, 2, 3, 4, 7, 15, 16]
+    SUBGEO = automol.geom.from_subset(GEO, GROUP)
+    print(automol.geom.string(SUBGEO))

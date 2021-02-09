@@ -579,8 +579,6 @@ def test__reac__hydrogen_abstraction():
     print('graphs')
     print(automol.graph.string(gtsg))
     print(automol.graph.string(ztsg))
-    import sys
-    sys.exit()
     lin_keys = sorted(gdummy_key_dct.keys())
     gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
     # assert len(gbnd_keys) == len(bnd_keys)

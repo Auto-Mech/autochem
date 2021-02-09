@@ -57,8 +57,10 @@ def test__graph__with_stereo():
         ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
 
     # AVC note to self -- fix this case:
-    ref_ichs.append(
-        'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1')
+    ref_ichs += [
+        'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1',
+        'InChI=1S/C7H14O3/c1-2-6-5-7(10-6)3-4-9-8/h6-8H,2-5H2,1H3/t6-,7+/m1/s1'
+    ]
 
     for ref_ich in ref_ichs:
         print(ref_ich)
@@ -340,5 +342,5 @@ def test__geom__zmatrix_atom_ordering():
 
 
 if __name__ == '__main__':
-    # test__graph__with_stereo()
-    test__graph__misc()
+    # test__graph__misc()
+    test__graph__with_stereo()
