@@ -34,6 +34,7 @@ from automol.reac._find import additions
 from automol.reac._find import insertions
 from automol.reac._find import substitutions
 from automol.reac._find import find
+from automol.reac._find import find_from_inchis
 # TS geometries
 from automol.reac._geom import hydrogen_migration_ts_geometry
 from automol.reac._geom import beta_scission_ts_geometry
@@ -115,6 +116,7 @@ __all__ = [
     'insertions',
     'substitutions',
     'find',
+    'find_from_inchis',
     # TS geometries
     'hydrogen_migration_ts_geometry',
     'beta_scission_ts_geometry',
@@ -154,9 +156,9 @@ __all__ = [
     'prod_addition',
     'prod_hydrogen_migration',
     'prod_beta_scission',
-    'prod_homolytic_scission'
+    'prod_homolytic_scission',
     # species instability transformations
     'instability_product_zmas',
     'instability_product_graphs',
-    'instability_transformation'
+    'instability_transformation',
 ]
