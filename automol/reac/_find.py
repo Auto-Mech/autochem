@@ -10,6 +10,8 @@ Function arguments:
 import itertools
 import more_itertools as mit
 import automol.convert.graph
+import automol.convert.inchi
+import automol.convert.geom
 import automol.geom.ts
 from automol import par
 from automol.graph import ts
@@ -115,8 +117,8 @@ def hydrogen_migrations(rct_gras, prd_gras):
                 gra2, {atm_key2: [h_atm_key2]})
 
             iso_dct = full_isomorphism(gra1_h, gra2_h)
-            inv_dct = dict(map(reversed, iso_dct.items()))
-            if inv_dct:
+            if iso_dct:
+                inv_dct = dict(map(reversed, iso_dct.items()))
                 f_frm_bnd_key = (atm_key1, inv_dct[h_atm_key2])
                 f_brk_bnd_key = (inv_dct[atm_key2], inv_dct[h_atm_key2])
                 b_frm_bnd_key = (atm_key2, iso_dct[h_atm_key1])
@@ -499,6 +501,13 @@ def substitutions(rct_gras, prd_gras):
 
 def find(rct_gras, prd_gras):
     """ find all reactions consistent with these reactants and products
+
+    :param rct_gras: graphs for the reactants, without stereo and without
+        overlapping keys
+    :param prd_gras: graphs for the products, without stereo and without
+        overlapping keys
+    :returns: a list of Reaction objects
+    :rtype: tuple[Reaction]
     """
     # check whether this is a valid reaction
     rct_fmls = list(map(automol.convert.graph.formula, rct_gras))
@@ -526,6 +535,29 @@ def find(rct_gras, prd_gras):
     rxns = tuple(itertools.chain(*(f_(rct_gras, prd_gras) for f_ in finders_)))
 
     return rxns
+
+
+def find_from_inchis(rct_ichs, prd_ichs):
+    """ find all reaction classes consistent with these reactants and products
+
+    :param rct_ichs: inchis for the reactants
+    :param prd_ichs: inchis for the products
+    :returns: a list of reaction classes
+    :rtype: tuple[str]
+    """
+    rct_geos = list(map(automol.convert.inchi.geometry, rct_ichs))
+    prd_geos = list(map(automol.convert.inchi.geometry, prd_ichs))
+    print(automol.geom.string(rct_geos[0]))
+    print(automol.geom.string(prd_geos[0]))
+    rct_gras = list(map(automol.convert.geom.connectivity_graph, rct_geos))
+    prd_gras = list(map(automol.convert.geom.connectivity_graph, prd_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+    rxns = automol.reac.find(rct_gras, prd_gras)
+    rxn_classes = [rxn.class_ for rxn in rxns]
+    rxn_classes = [c for i, c in enumerate(rxn_classes)
+                   if c not in rxn_classes[:i]]
+    return tuple(rxn_classes)
 
 
 # helpers
@@ -584,3 +616,14 @@ def _argsort_reactants(gras):
 
     idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
     return idxs
+
+
+if __name__ == '__main__':
+    import automol
+    RXN_ICHS_LST = list(
+        map(eval, open('luna_inchislist.txt').read().splitlines()))
+
+    for RXN_ICHS in RXN_ICHS_LST:
+        print(RXN_ICHS)
+        RXN_CLASSES = find_from_inchis(*RXN_ICHS)
+        print(RXN_CLASSES)
