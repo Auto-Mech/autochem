@@ -8,6 +8,7 @@
 from itertools import chain
 import yaml
 import numpy
+from phydat import phycon
 import automol.zmat
 import automol.pot
 from automol.rotor import _tors as tors
@@ -98,7 +99,8 @@ def symmetries(rotor_lst, flat=False):
     return symms
 
 
-def grids(rotor_lst, span=2.0*numpy.pi, increment=0.523599, flat=False):
+def grids(rotor_lst,
+          span=2.0*numpy.pi, increment=30.0*phycon.DEG2RAD, flat=False):
     """ Build a list of list of grids
     """
 
@@ -129,9 +131,6 @@ def relabel_for_geometry(rotor_lst):
     """ relabel the torsion objec tto correspond with a geometry converted
         from a z-matrix
     """
-    for rotor in rotor_lst:
-        for tor in rotor:
-            print(tor.pot)
     geo = automol.zmat.geometry(rotor_lst[0][0].zma)
     geo_rotor_lst = tuple(
         tuple(tors.relabel_for_geometry(torsion) for torsion in rotor)

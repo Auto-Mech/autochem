@@ -90,7 +90,6 @@ def name_axis_dct(zma, gra, lin_keys):
     """
 
     tors_axes = all_torsion_axes(gra, lin_keys)
-    print('tors_axes test', tors_axes)
 
     tors_names = tuple(automol.zmat.torsion_coordinate_name(zma, *keys)
                        for keys in tors_axes)
