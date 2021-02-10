@@ -286,7 +286,8 @@ def test__multiple_rings():
           16-17: {order: 1, stereo_parity: null}
           16-21: {order: 1, stereo_parity: null}
     """)
-    ich = automol.graph.inchi(gra)
+    ich = automol.graph.inchi(gra, stereo=True)
+    print(ich)
     assert ich == ref_ich
 
 
@@ -343,4 +344,5 @@ def test__geom__zmatrix_atom_ordering():
 
 if __name__ == '__main__':
     # test__graph__misc()
-    test__graph__with_stereo()
+    # test__graph__with_stereo()
+    test__multiple_rings()
