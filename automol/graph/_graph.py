@@ -200,22 +200,23 @@ def heavy_atom_count(gra, dummy=False):
     return nhvy_atms
 
 
-def atom_neighborhood(gra, atm_key, bnd_keys=None):
+def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False):
     """ neighborhood subgraph for a specific atom
     """
     bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
-    nbh = bond_induced_subgraph(gra, nbh_bnd_keys)
+    nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
     return nbh
 
 
-def atom_neighborhoods(gra):
+def atom_neighborhoods(gra, stereo=False):
     """ neighborhood subgraphs, by atom
     """
     bnd_keys = bond_keys(gra)
 
     def _neighborhood(atm_key):
-        return atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys)
+        return atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys,
+                                 stereo=stereo)
 
     atm_keys = list(atom_keys(gra))
     atm_nbh_dct = dict(zip(atm_keys, map(_neighborhood, atm_keys)))
@@ -373,14 +374,14 @@ def bonds_neighbor_bond_keys(gra):
     return bnd_ngb_keys_dct
 
 
-def bond_neighborhoods(gra):
+def bond_neighborhoods(gra, stereo=False):
     """ neighborhood subgraphs, by bond
     """
     bnd_keys = list(bond_keys(gra))
 
     def _neighborhood(bnd_key):
         nbh_bnd_keys = set(filter(lambda x: bnd_key & x, bnd_keys))
-        return bond_induced_subgraph(gra, nbh_bnd_keys)
+        return bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
 
     bnd_nbh_dct = dict(zip(bnd_keys, map(_neighborhood, bnd_keys)))
     return bnd_nbh_dct
@@ -406,7 +407,7 @@ def branch(gra, atm_key, bnd_key):
     """ branch extending along `bnd_key` away from `atm_key`
     """
     return bond_induced_subgraph(
-        gra, branch_bond_keys(gra, atm_key, bnd_key))
+        gra, branch_bond_keys(gra, atm_key, bnd_key), stereo=True)
 
 
 def branch_atom_keys(gra, atm_key, bnd_key):
@@ -456,7 +457,7 @@ def connected_components(gra):
     """ connected components in the graph
     """
     cmp_gra_atm_keys_lst = connected_components_atom_keys(gra)
-    cmp_gras = tuple(subgraph(gra, cmp_gra_atm_keys)
+    cmp_gras = tuple(subgraph(gra, cmp_gra_atm_keys, stereo=True)
                      for cmp_gra_atm_keys in cmp_gra_atm_keys_lst)
     return cmp_gras
 
@@ -597,7 +598,7 @@ def subgraph(gra, atm_keys, stereo=False):
     return sub
 
 
-def bond_induced_subgraph(gra, bnd_keys):
+def bond_induced_subgraph(gra, bnd_keys, stereo=False):
     """ the subgraph induced by a subset of the bonds
     """
     atm_keys = set(itertools.chain(*bnd_keys))
@@ -605,7 +606,10 @@ def bond_induced_subgraph(gra, bnd_keys):
     assert atm_keys <= atom_keys(gra)
     atm_dct = dict_.by_key(atoms(gra), atm_keys)
     bnd_dct = dict_.by_key(bonds(gra), bnd_keys)
-    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+    sub = _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+    if not stereo:
+        sub = without_stereo_parities(sub)
+    return sub
 
 
 # # transformations
@@ -764,7 +768,7 @@ def standard_keys_without_dummy_atoms(gra):
     return gra, dummy_keys_dct
 
 
-def remove_atoms(gra, atm_keys, check=True):
+def remove_atoms(gra, atm_keys, check=True, stereo=False):
     """ remove atoms from the molecular graph
     """
     all_atm_keys = atom_keys(gra)
@@ -774,7 +778,7 @@ def remove_atoms(gra, atm_keys, check=True):
         assert atm_keys <= all_atm_keys
 
     atm_keys_left = all_atm_keys - atm_keys
-    return subgraph(gra, atm_keys_left)
+    return subgraph(gra, atm_keys_left, stereo=stereo)
 
 
 def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
@@ -847,7 +851,7 @@ def without_dummy_atoms(gra):
     atm_symb_dct = atom_symbols(gra)
     atm_keys = [key for key, sym in atm_symb_dct.items()
                 if ptab.to_number(sym)]
-    return subgraph(gra, atm_keys)
+    return subgraph(gra, atm_keys, stereo=True)
 
 
 def add_ts_bonds(gra, keys):

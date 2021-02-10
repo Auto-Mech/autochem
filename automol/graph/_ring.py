@@ -163,7 +163,7 @@ def ring_arc_complement_atom_keys(gra, rng):
 def ring_systems(gra):
     """ polycyclic ring systems in the graph
     """
-    gras = [bond_induced_subgraph(gra, bnd_keys)
+    gras = [bond_induced_subgraph(gra, bnd_keys, stereo=True)
             for bnd_keys in ring_systems_bond_keys(gra)]
     return tuple(sorted(gras, key=frozen))
 

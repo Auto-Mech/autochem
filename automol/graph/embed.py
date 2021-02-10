@@ -306,7 +306,7 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
     """
     assert set(keys) <= set(atom_keys(gra))
 
-    sub_gra = subgraph(gra, keys)
+    sub_gra = subgraph(gra, keys, stereo=True)
     sp_dct = atom_shortest_paths(sub_gra) if sp_dct is None else sp_dct
 
     bounds_ = path_distance_bounds_(gra)
