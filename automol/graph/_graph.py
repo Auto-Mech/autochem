@@ -578,15 +578,23 @@ def union_from_sequence(gras, check=True):
     return tuple(functools.reduce(_union, gras))
 
 
-def subgraph(gra, atm_keys):
+def subgraph(gra, atm_keys, stereo=False):
     """ the subgraph induced by a subset of the atoms
+
+    :param gra: the graph
+    :param atm_keys: the atom keys to be included in the subgraph
+    :param stereo: whether or not to include stereo in the subgraph
+    :returns: the subgraph
     """
     atm_keys = set(atm_keys)
     assert atm_keys <= atom_keys(gra)
     bnd_keys = set(filter(lambda x: x <= atm_keys, bond_keys(gra)))
     atm_dct = dict_.by_key(atoms(gra), atm_keys)
     bnd_dct = dict_.by_key(bonds(gra), bnd_keys)
-    return _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+    sub = _create.from_atoms_and_bonds(atm_dct, bnd_dct)
+    if not stereo:
+        sub = without_stereo_parities(sub)
+    return sub
 
 
 def bond_induced_subgraph(gra, bnd_keys):
