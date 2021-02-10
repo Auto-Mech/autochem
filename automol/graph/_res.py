@@ -202,7 +202,7 @@ def radical_group_dct(gra):
     for rad in rads:
         key = atms[rad][0]
         if key in groups:
-            groups[atms[rad][0]] += (atom_groups(gra, rad),)
+            groups[atms[rad][0]] += atom_groups(gra, rad)
         else:
             groups[atms[rad][0]] = atom_groups(gra, rad)
 
