@@ -318,7 +318,7 @@ def reactant_graphs(rxn):
         :rtype: tuple of automol graph data structures
     """
     rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
-    rct_gras = [automol.graph.subgraph(rcts_gra, keys)
+    rct_gras = [automol.graph.subgraph(rcts_gra, keys, stereo=True)
                 for keys in rxn.reactants_keys]
     return tuple(rct_gras)
 
@@ -331,7 +331,7 @@ def product_graphs(rxn):
         :rtype: tuple of automol graph data structures
     """
     prds_gra = ts.reactants_graph(rxn.backward_ts_graph)
-    prd_gras = [automol.graph.subgraph(prds_gra, keys)
+    prd_gras = [automol.graph.subgraph(prds_gra, keys, stereo=True)
                 for keys in rxn.products_keys]
     return tuple(prd_gras)
 
