@@ -1,31 +1,104 @@
-C  
+O  
 C  1    R1 
 H  1    R2  2    A2 
-H  1    R3  2    A3  3    D3 
-H  1    R4  2    A4  3    D4 
-O  2    R5  1    A5  3    D5 
-H  2    R6  1    A6  6    D6 
-H  2    R7  1    A7  6    D7 
-H  6    R8  2    A8  1    D8 
+C  2    R3  1    A3  3    D3 
+H  2    R4  1    A4  4    D4 
+H  2    R5  1    A5  4    D5 
+C  4    R6  2    A6  1    D6 
+H  4    R7  2    A7  7    D7 
+H  4    R8  2    A8  7    D8 
+X  7    R9  4    A9  2    D9 
+C  7   R10  10   A10  4   D10 
+X  11   R11  7   A11  10   D11 
+H  11   R12  12   A12  7   D12 
 
-R1   =   1.514604
-R2   =   1.094971
-R3   =   1.093560
-R4   =   1.094948
-R5   =   1.420178
-R6   =   1.094207
-R7   =   1.093867
-R8   =   0.972421
-A2   = 110.700641
-A3   = 110.888202
-A4   = 110.601031
-A5   = 109.979214
-A6   = 111.022947
-A7   = 110.485774
-A8   = 107.545229
-D3   = 239.181206
-D4   = 118.298844
-D5   = 299.881832
-D6   = 120.372386
-D7   = 240.656454
-D8   =  59.856084
+R1   =   1.425674
+R2   =   0.973948
+R3   =   1.527183
+R4   =   1.094519
+R5   =   1.095343
+R6   =   1.473859
+R7   =   1.095863
+R8   =   1.095610
+R9   =   1.000000
+R10  =   1.200911
+R11  =   1.000000
+R12  =   1.066115
+A2   = 107.071967
+A3   = 111.269008
+A4   = 107.088788
+A5   = 108.549338
+A6   = 111.542056
+A7   = 109.842408
+A8   = 109.255843
+A9   =  90.000000
+A10  =  90.224286
+A11  =  89.775714
+A12  =  90.539662
+D3   =  59.200895
+D4   = 119.866053
+D5   = 236.306189
+D6   = 287.980910
+D7   = 121.172775
+D8   = 239.370395
+D9   =   0.000001
+D10  = 180.020992
+D11  =   0.000000
+D12  = 179.939375
+gra
+ atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 1, stereo_parity: null}
+  2-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  4-7: {order: 1, stereo_parity: null}
+  4-8: {order: 1, stereo_parity: null}
+  4-9: {order: 1, stereo_parity: null}
+  7-10: {order: 0, stereo_parity: null}
+  7-11: {order: 1, stereo_parity: null}
+  11-12: {order: 0, stereo_parity: null}
+  11-13: {order: 1, stereo_parity: null}
+
+linkeys [6, 10]
+a [9, 11]
+b [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]
+c (3,)
+d (3,)
+a [9, 11]
+b [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]
+c (4, 5, 6, 7, 8, 9, 11, 12, 14, 15)
+Traceback (most recent call last):
+  File "test_rotor.py", line 227, in <module>
+    test__rotor_wdummy()
+  File "test_rotor.py", line 146, in test__rotor_wdummy
+    _, grotors = automol.rotor.relabel_for_geometry(rotors)
+  File "/lcrc/project/CMRP/amech/autochem/automol/rotor/_rotor.py", line 137, in relabel_for_geometry
+    for rotor in rotor_lst)
+  File "/lcrc/project/CMRP/amech/autochem/automol/rotor/_rotor.py", line 137, in <genexpr>
+    for rotor in rotor_lst)
+  File "/lcrc/project/CMRP/amech/autochem/automol/rotor/_rotor.py", line 136, in <genexpr>
+    tuple(tors.relabel_for_geometry(torsion) for torsion in rotor)
+  File "/lcrc/project/CMRP/amech/autochem/automol/rotor/_tors.py", line 159, in relabel_for_geometry
+    for grp in torsion.groups)
+  File "/lcrc/project/CMRP/amech/autochem/automol/rotor/_tors.py", line 159, in <genexpr>
+    for grp in torsion.groups)
+  File "/lcrc/project/CMRP/amech/autochem/automol/util/dummy.py", line 26, in shift_down
+    vals2 = tuple(val-remdummy[val-1] for val in vals1)
+  File "/lcrc/project/CMRP/amech/autochem/automol/util/dummy.py", line 26, in <genexpr>
+    vals2 = tuple(val-remdummy[val-1] for val in vals1)
+IndexError: list index out of range

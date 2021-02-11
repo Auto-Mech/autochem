@@ -12,16 +12,19 @@ def shift_down(zma, vals):
     """
 
     dummy_idxs = sorted(automol.zmat.atom_indices(zma, 'X', match=True))
-
+    print('a', dummy_idxs)
     if dummy_idxs:
         remdummy = [0 for _ in range(automol.zmat.count(zma))]
         for dummy in dummy_idxs:
             for idx, _ in enumerate(remdummy):
                 if dummy < idx:
                     remdummy[idx] += 1
+        print('b', remdummy)
 
         vals1 = tuple(val+1 for val in vals)
+        print('c', vals1)
         vals2 = tuple(val-remdummy[val-1] for val in vals1)
+        print('d', vals2)
         shift_vals = tuple(val-1 for val in vals2)
 
     else:
