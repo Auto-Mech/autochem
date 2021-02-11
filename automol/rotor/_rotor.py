@@ -18,12 +18,12 @@ from automol.rotor._util import sort_tors_names
 
 
 # constructors
-def from_zmatrix(zma, tors_names=None, multi=False):
+def from_zmatrix(zma, zrxn=None, tors_names=None, multi=False):
     """ Construct a list-of-lists of torsion objects
     """
 
     # Build a graph that is used to get torsion object info
-    gra, lin_keys = graph_with_keys(zma)
+    gra, lin_keys = graph_with_keys(zma, zrxn=zrxn)
 
     # Build the torsion objects
     tors_lst = tors.torsion_lst(zma, gra, lin_keys)
