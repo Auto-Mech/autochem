@@ -55,6 +55,7 @@ def test__tors():
     gra, lin_keys = automol.rotor.graph_with_keys(C2H5OH_ZMA)
 
     all_axes = automol.rotor.all_torsion_axes(gra, lin_keys)
+    print(all_axes)
     assert all_axes == frozenset({frozenset({0, 1}), frozenset({1, 5})})
 
     all_groups = automol.rotor.all_torsion_groups(gra, lin_keys)
@@ -74,13 +75,13 @@ def test__rotor():
     """ rotor
     """
 
-    rotors = automol.rotor.from_zma(C3H7OH_ZMA)
+    rotors = automol.rotor.from_zmatrix(C3H7OH_ZMA)
 
     for rotor in rotors:
         for tors in rotor:
             print(tors.span)
             print(tors.indices)
-    
+
     rotor_names1 = automol.rotor.names(rotors)
     assert rotor_names1 == (('D5',), ('D8',), ('D11',))
 
@@ -107,7 +108,9 @@ def test__ts():
     """ test a transition state build of rotor obj
     """
 
-    rotors = automol.rotor.from_zma(TS_ZMA)
+    # Replace with a zrxn object or just steal from test_reac
+
+    rotors = automol.rotor.from_zmatrix(TS_ZMA)
 
     rotor_names1 = automol.rotor.names(rotors)
     assert rotor_names1 == (('D5',), ('D8',), ('D10',))
@@ -136,7 +139,7 @@ def test__string():
         test.automol.rotor.tors.from_string
     """
 
-    rotors = automol.rotor.from_zma(C3H7OH_ZMA)
+    rotors = automol.rotor.from_zmatrix(C3H7OH_ZMA)
     tors_str = automol.rotor.string(rotors)
     print(tors_str)
     tors_dct = automol.rotor.from_string(tors_str)
@@ -150,7 +153,7 @@ def test__name_input():
     """
 
     inp_names1 = (('D5',), ('D11',), ('D8', 'D14', 'D17', 'D20'))
-    rotors1 = automol.rotor.from_zma(C6H13OH_ZMA, tors_names=inp_names1)
+    rotors1 = automol.rotor.from_zmatrix(C6H13OH_ZMA, tors_names=inp_names1)
     assert automol.rotor.names(rotors1) == (
         ('D5',), ('D11',), ('D8', 'D14', 'D17', 'D20'))
     assert automol.rotor.axes(rotors1) == (
@@ -162,7 +165,7 @@ def test__name_input():
         (3,), (3,), (1, 1, 1, 1))
 
     inp_names2 = (('D5',), ('D11',))
-    rotors2 = automol.rotor.from_zma(C6H13OH_ZMA, tors_names=inp_names2)
+    rotors2 = automol.rotor.from_zmatrix(C6H13OH_ZMA, tors_names=inp_names2)
     assert automol.rotor.names(rotors2) == (
         ('D5',), ('D11',))
     assert automol.rotor.axes(rotors2) == (
@@ -171,7 +174,7 @@ def test__name_input():
         (3,), (3,))
 
     inp_names3 = (('D8', 'D14', 'D17', 'D20'),)
-    rotors3 = automol.rotor.from_zma(C6H13OH_ZMA, tors_names=inp_names3)
+    rotors3 = automol.rotor.from_zmatrix(C6H13OH_ZMA, tors_names=inp_names3)
     assert automol.rotor.names(rotors3) == (
         ('D8', 'D14', 'D17', 'D20'),)
     assert automol.rotor.axes(rotors3) == (
@@ -185,7 +188,7 @@ def test__mdhr():
     """ building mdhr with the sorting
     """
 
-    rotors = automol.rotor.from_zma(C6H13OH_ZMA, multi=True)
+    rotors = automol.rotor.from_zmatrix(C6H13OH_ZMA, multi=True)
     assert automol.rotor.names(rotors) == (
         ('D8', 'D14', 'D17', 'D20'), ('D5',), ('D11',))
     assert automol.rotor.axes(rotors) == (
@@ -216,7 +219,7 @@ def test__relabel():
     """
     """
 
-    rotors = automol.rotor.from_zma(TS_ZMA)
+    rotors = automol.rotor.from_zmatrix(TS_ZMA)
     geo, rotors = automol.rotor.relabel_for_geometry(rotors)
 
     print(automol.zmat.string(TS_ZMA, one_indexed=False))
@@ -244,10 +247,10 @@ def test__relabel():
 
 
 if __name__ == '__main__':
-    # test__tors()
-    # test__rotor()
+    test__tors()
+    test__rotor()
     # test__ts()
     # test__string()
     # test__name_input()
     # test__mdhr()
-    test__relabel()
+    # test__relabel()
