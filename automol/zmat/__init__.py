@@ -101,10 +101,10 @@ def torsion_coordinate_names(zma):
     return tors_names
 
 
-def graph(zma, stereo=True):
+def graph(zma, stereo=True, dummy=False):
     """ z-matrix => graph
     """
-    return automol.convert.zmat.graph(zma, stereo=stereo)
+    return automol.convert.zmat.graph(zma, stereo=stereo, dummy=dummy)
 
 
 def connectivity_graph(zma,

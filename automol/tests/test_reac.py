@@ -609,6 +609,7 @@ def test__reac__hydrogen_abstraction():
         zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
         rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
         tsg = rxn.forward_ts_graph
+        print('zma\n', zma)
 
         lin_keys = sorted(
             automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
@@ -1124,7 +1125,7 @@ if __name__ == '__main__':
     # test__reac__string()
     # test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
-    test__reac__hydrogen_abstraction()
+    # test__reac__hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__forming_bond_keys()
@@ -1135,3 +1136,4 @@ if __name__ == '__main__':
     # test__reac__product_graphs()
     # test__reac__reactants_graph()
     # test__reac__products_graph()
+    test__species__demo()

@@ -88,8 +88,8 @@ def test__build_potential():
         test automol.pot.coords
     """
 
-    ref_1dgrid_pts = (0, 1, 2, 3)
-    ref_1dgrid_coords = (1.0, 2.0, 3.0, 4.0)
+    ref_1dgrid_pts = ((0,), (1,), (2,), (3,))
+    ref_1dgrid_coords = ((1.0,), (2.0,), (3.0,), (4.0,))
 
     ref_2dgrid_pts = ((0, 0), (0, 1),
                       (1, 0), (1, 1),
@@ -100,9 +100,10 @@ def test__build_potential():
                          (3.0, 0.1), (3.0, 0.2),
                          (4.0, 0.1), (4.0, 0.2))
 
-    print(automol.pot.coords((PCOORDS1,)))
-    assert automol.pot.points((PCOORDS1, PCOORDS2)) == ref_grid_pts
-    assert automol.pot.coords((PCOORDS1, PCOORDS2)) == ref_grid_coords
+    assert automol.pot.points((PCOORDS1,)) == ref_1dgrid_pts
+    assert automol.pot.coords((PCOORDS1,)) == ref_1dgrid_coords
+    assert automol.pot.points((PCOORDS1, PCOORDS2)) == ref_2dgrid_pts
+    assert automol.pot.coords((PCOORDS1, PCOORDS2)) == ref_2dgrid_coords
 
 
 def test__transform_potential():
@@ -112,19 +113,19 @@ def test__transform_potential():
 
     # Test scaling
     ref_pot_scaled = {(0.0,): 0.0,
-                      (0.52359878,): 0.89350585047046,
-                      (1.04719755,): 1.8798434776131758,
-                      (1.57079633,): 1.0443574875628754,
-                      (2.0943951,): 0.011603972084031949,
-                      (2.61799388,): 0.7078422971259488,
-                      (3.14159265,): 1.7405958126047922,
-                      (3.66519143,): 1.1487932363191629,
-                      (4.1887902,): 0.37132710668902236,
-                      (4.71238898,): 1.0327535154788434,
-                      (5.23598776,): 1.7638037567728562,
-                      (5.75958653,): 0.8586939342183642}
+                      (0.52359878,): 0.9625,
+                      (1.04719755,): 2.0250,
+                      (1.57079633,): 1.1250,
+                      (2.0943951,): 0.0125,
+                      (2.61799388,): 0.7625,
+                      (3.14159265,): 1.8750,
+                      (3.66519143,): 1.2375,
+                      (4.1887902,): 0.4000,
+                      (4.71238898,): 1.1125,
+                      (5.23598776,): 1.900,
+                      (5.75958653,): 0.9250}
 
-    pot_scaled = automol.pot.scale(POT1, SCALE_COEFF, NUM_TORS)
+    pot_scaled = automol.pot.scale(POT1, SCALE_COEFF)
 
     assert numpy.allclose(list(pot_scaled.keys()), list(ref_pot_scaled.keys()))
     for key, val in pot_scaled.items():
@@ -168,10 +169,11 @@ def test__transform_potential():
         assert numpy.isclose(val, ref_idx_pot2[key])
 
 
-def test__fitter():
-    """ test pot.
-    """
-    pot = automol.pot.spline_fit(pot_dct, min_thresh=-0.0001, max_thresh=50.0)
+# def test__fitter():
+#     """ test pot.
+#     """
+#     pot = automol.pot.spline_fit(
+#   pot_dct, min_thresh=-0.0001, max_thresh=50.0)
 
 
 def test__repulsion():
@@ -185,7 +187,7 @@ def test__repulsion():
 
 
 if __name__ == '__main__':
-    # test__valid_potential()
+    test__valid_potential()
     test__build_potential()
-    # test__transform_potential()
-    # test__repulsion()
+    test__transform_potential()
+    test__repulsion()

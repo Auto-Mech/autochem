@@ -26,7 +26,7 @@ def test__estimate():
     assert model == (BATH_INFO[0], 'n-alcohol')
 
     # Build the effective N parameter
-    n_eff = automol.etrans.eff.calculate_effective_rotor_count(TGT_GEO)
+    n_eff = automol.etrans.eff.effective_rotor_count(TGT_GEO)
     ref_n_eff = 2.333333333333
     assert numpy.isclose(n_eff, ref_n_eff)
 
