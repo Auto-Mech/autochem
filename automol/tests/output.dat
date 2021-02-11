@@ -75,6 +75,10 @@ bonds:
   11-13: {order: 1, stereo_parity: null}
 
 linkeys [6, 10]
+(('D3',), ('D6',))
+(((0, 1),), ((1, 3),))
+((((2,), (3, 4, 5, 6, 7, 8, 10, 11, 13, 14)),), (((0, 2, 4, 5), (6, 7, 8, 10, 11, 13, 14)),))
+((1,), (1,))
 a [9, 11]
 b [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]
 c (3,)
@@ -83,9 +87,9 @@ a [9, 11]
 b [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]
 c (4, 5, 6, 7, 8, 9, 11, 12, 14, 15)
 Traceback (most recent call last):
-  File "test_rotor.py", line 227, in <module>
+  File "test_rotor.py", line 224, in <module>
     test__rotor_wdummy()
-  File "test_rotor.py", line 146, in test__rotor_wdummy
+  File "test_rotor.py", line 143, in test__rotor_wdummy
     _, grotors = automol.rotor.relabel_for_geometry(rotors)
   File "/lcrc/project/CMRP/amech/autochem/automol/rotor/_rotor.py", line 137, in relabel_for_geometry
     for rotor in rotor_lst)
