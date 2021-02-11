@@ -4,6 +4,7 @@
 # Rotor
 from automol.rotor._rotor import from_zmatrix
 from automol.rotor._rotor import from_data
+from automol.rotor._rotor import dimensions
 from automol.rotor._rotor import names
 from automol.rotor._rotor import axes
 from automol.rotor._rotor import groups
@@ -24,6 +25,7 @@ from automol.rotor._util import graph_with_keys
 __all__ = [
     'from_zmatrix',
     'from_data',
+    'dimensions',
     'names',
     'axes',
     'groups',
