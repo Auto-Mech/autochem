@@ -75,13 +75,17 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
     return rot_bnd_keys
 
 
-def rotational_groups(gra, key1, key2):
+def rotational_groups(gra, key1, key2, dummy=False):
     """ get the rotational groups for a given rotational axis
 
     :param gra: the graph
     :param key1: the first atom key
     :param key2: the second atom key
     """
+
+    if not dummy:
+        gra = without_dummy_atoms(gra)
+
     bnd_key = frozenset({key1, key2})
     assert bnd_key in bond_keys(gra)
     grp1 = branch_atom_keys(gra, key2, bnd_key) - {key1}
