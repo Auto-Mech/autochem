@@ -16,8 +16,6 @@ def graph_with_keys(zma, zrxn=None):
         gra = automol.zmat.graph(zma, stereo=True, dummy=True)
         lin_keys = sorted(
             automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
-        print('gra\n', automol.graph.string(gra))
-        print('linkeys', lin_keys)
     else:
         gra = zrxn.forward_ts_graph
         lin_keys = sorted(
