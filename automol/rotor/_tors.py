@@ -70,12 +70,12 @@ def torsion_lst(zma, gra, lin_keys):
         symm = torsion_symmetry(gra, axis, lin_keys)
 
         # Shift the axis and groups to be in the zma system
-        zaxis = automol.util.dummy.shift_up(zma, axis)
-        zgrps = tuple(automol.util.dummy.shift_up(zma, grp)
-                      for grp in grps)
+        # zaxis = automol.util.dummy.shift_up(zma, axis)
+        # zgrps = tuple(automol.util.dummy.shift_up(zma, grp)
+        #               for grp in grps)
 
         # Build the torsion object and add to the list
-        tors_obj_lst += (Torsion(zma, name, zaxis, zgrps, symm),)
+        tors_obj_lst += (Torsion(zma, name, axis, grps, symm),)
 
     return tors_obj_lst
 
@@ -90,6 +90,7 @@ def name_axis_dct(zma, gra, lin_keys):
     """
 
     tors_axes = all_torsion_axes(gra, lin_keys)
+    print('tors_axes', tors_axes)
     tors_names = tuple(automol.zmat.torsion_coordinate_name(zma, *keys)
                        for keys in tors_axes)
 
