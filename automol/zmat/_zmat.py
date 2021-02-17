@@ -574,10 +574,9 @@ def almost_equal(zma1, zma2, dist_rtol=2e-5, ang_atol=2e-3, just_dist=False):
                 # now compare the angles
                 # see https://gamedev.stackexchange.com/a/4472
                 ang_vals1 = numpy.hstack((val_mat1[2:, 1], val_mat1[3:, 2]))
-                ang_vals2 = numpy.hstack((val_mat1[2:, 1], val_mat1[3:, 2]))
+                ang_vals2 = numpy.hstack((val_mat2[2:, 1], val_mat2[3:, 2]))
                 ang_vals1 = numpy.mod(ang_vals1, 2*numpy.pi)
                 ang_vals2 = numpy.mod(ang_vals2, 2*numpy.pi)
-
                 ang_diffs = numpy.abs(ang_vals1 - ang_vals2)
                 ang_diffs = numpy.pi - numpy.abs(ang_diffs - numpy.pi)
 
