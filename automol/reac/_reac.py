@@ -555,41 +555,14 @@ def relabel_for_geometry(rxn, product=False):
     :param rxn: the reaction object
     :param product: do this do the products instead of the reactants?
     """
-    tsg = rxn.backward_ts_graph if product else rxn.forward_ts_graph
-    dummy_keys = sorted(automol.graph.atom_keys(tsg, sym='X'))
+    rxn = without_dummy_atoms(rxn, product=product)
 
-    for dummy_key in reversed(dummy_keys):
-        rxn = _shift_remove_dummy_atom(rxn, dummy_key, product=product)
-    return rxn
-
-
-def _shift_remove_dummy_atom(rxn, dummy_key, product=False):
     if product:
         tsg = rxn.backward_ts_graph
-        keys_lst = rxn.products_keys
     else:
         tsg = rxn.forward_ts_graph
-        keys_lst = rxn.reactants_keys
 
     keys = sorted(automol.graph.atom_keys(tsg))
-    idx = keys.index(dummy_key)
-    key_dct = {}
-    key_dct.update({k: k for k in keys[:idx]})
-    key_dct.update({k: k-1 for k in keys[(idx+1):]})
-    tsg = automol.graph.remove_atoms(tsg, [dummy_key])
-    keys_lst = [[k for k in ks if k != dummy_key] for ks in keys_lst]
-
-    rxn_cls = rxn.class_
-    forw_tsg = rxn.forward_ts_graph
-    back_tsg = rxn.backward_ts_graph
-    rcts_keys = rxn.reactants_keys
-    prds_keys = rxn.products_keys
-    if product:
-        back_tsg = tsg
-        prds_keys = keys_lst
-    else:
-        forw_tsg = tsg
-        rcts_keys = keys_lst
-    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
-    rxn = relabel(rxn, key_dct)
+    key_dct = dict(map(reversed, enumerate(keys)))
+    rxn = relabel(rxn, key_dct, product=product)
     return rxn
