@@ -131,6 +131,7 @@ from automol.graph._res import linear_atom_keys
 from automol.graph._res import resonance_dominant_atom_centered_cumulene_keys
 from automol.graph._res import resonance_dominant_bond_centered_cumulene_keys
 from automol.graph._res import nonresonant_radical_atom_keys
+from automol.graph._res import sigma_radical_atom_keys
 from automol.graph._res import resonance_dominant_radical_atom_keys
 from automol.graph._res import sing_res_dom_radical_atom_keys
 # # bond properties
@@ -387,6 +388,7 @@ __all__ = [
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
     'nonresonant_radical_atom_keys',
+    'sigma_radical_atom_keys',
     'resonance_dominant_radical_atom_keys',
     'sing_res_dom_radical_atom_keys',
     # # bond properties

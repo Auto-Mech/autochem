@@ -682,6 +682,30 @@ def test__resonance_dominant_radical_atom_keys():
         {8})
 
 
+def test__sigma_radical_atom_keys():
+    """ test graph.sigma_radical_atom_keys
+    """
+    # CCC#[C]
+    gra = ({0: ('C', 3, None), 1: ('C', 0, None), 2: ('C', 2, None),
+            3: ('C', 0, None)},
+           {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
+            frozenset({2, 3}): (1, None)})
+    assert graph.sigma_radical_atom_keys(gra) == frozenset({1})
+
+    # [C]#CC(CC)(CCC#[C])CC#[C]
+    gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 3, None),
+            3: ('C', 0, None), 4: ('C', 0, None), 5: ('C', 0, None),
+            6: ('C', 2, None), 7: ('C', 0, None), 8: ('C', 2, None),
+            9: ('C', 2, None), 10: ('C', 2, None), 11: ('C', 0, None)},
+           {frozenset({8, 4}): (1, None), frozenset({3, 7}): (1, None),
+            frozenset({2, 6}): (1, None), frozenset({0, 4}): (1, None),
+            frozenset({8, 10}): (1, None), frozenset({9, 11}): (1, None),
+            frozenset({1, 5}): (1, None), frozenset({9, 5}): (1, None),
+            frozenset({11, 7}): (1, None), frozenset({10, 11}): (1, None),
+            frozenset({11, 6}): (1, None)})
+    assert graph.sigma_radical_atom_keys(gra) == frozenset({0, 1, 3})
+
+
 # # bond properties
 def test__resonance_dominant_bond_orders():
     """ test graph.resonance_dominant_bond_orders
@@ -788,7 +812,7 @@ if __name__ == '__main__':
     # test__heuristic_geometry()
     # test__connected_components()
     # test__unsaturated_atom_keys()
-    test__bonds_neighbor_atom_keys()
+    # test__bonds_neighbor_atom_keys()
     # test__resonance_dominant_radical_atom_keys()
     # test__remove_bonds()
     # test__resonance_dominant_atom_centered_cumulene_keys()
@@ -802,3 +826,4 @@ if __name__ == '__main__':
     # test__subresonances()
     # test__stereomers()
     # test__without_ts_bonds()
+    test__sigma_radical_atom_keys()
