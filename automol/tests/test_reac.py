@@ -580,9 +580,9 @@ def test__reac__hydrogen_abstraction():
     # Extra test cases:
     rxn_smis_lst = [
         (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
-        # (['C', '[H]'], ['[CH3]', '[H][H]']),
-        # (['C', '[OH]'], ['[CH3]', 'O']),
-        # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
+        (['C', '[H]'], ['[CH3]', '[H][H]']),
+        (['C', '[OH]'], ['[CH3]', 'O']),
+        (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
