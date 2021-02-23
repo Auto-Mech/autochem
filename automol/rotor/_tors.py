@@ -90,7 +90,10 @@ def name_axis_dct(zma, gra, lin_keys):
     """
 
     tors_axes = all_torsion_axes(gra, lin_keys)
-    print('tors_axes', tors_axes)
+    print('tors_axes:')
+    for ax in tors_axes:
+        print(ax)
+        print(automol.zmat.torsion_coordinate_name(zma, *ax))
     tors_names = tuple(automol.zmat.torsion_coordinate_name(zma, *keys)
                        for keys in tors_axes)
 
@@ -100,6 +103,8 @@ def name_axis_dct(zma, gra, lin_keys):
 def all_torsion_axes(gra, lin_keys):
     """ Build the torsion axes
     """
+    print(automol.graph.string(gra))
+    print(lin_keys)
     tors_keys = automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
     return tuple(tuple(keys) for keys in tors_keys)
 
