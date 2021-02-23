@@ -1180,3 +1180,17 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
+    # test__reac__hydrogen_migration()
+    # test__reac__ring_forming_scission()
+    test__reac__hydrogen_abstraction()
+    # test__reac__insertion()
+    # test__reac__substitution()
+    test__reac__sigma_hydrogen_abstraction()
+    test__reac__hydrogen_migration()
+    test__reac__beta_scission()
+    test__reac__ring_forming_scission()
+    test__reac__elimination()
+    test__reac__hydrogen_abstraction()
+    test__reac__addition()
+    test__reac__insertion()
+    test__reac__substitution()
