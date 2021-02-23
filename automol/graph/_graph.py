@@ -854,36 +854,11 @@ def without_dummy_atoms(gra):
     return subgraph(gra, atm_keys, stereo=True)
 
 
-def add_ts_bonds(gra, keys):
-    """ add order-0 bonds to represent a transition state structure
-
-    Makes it so that other functions (such as branch and other functions) will
-    work along with this one.
-
-    To determine which keys are ts bonds, use ts_bond_keys().
-
-    To remove the ts bonds again, use without_ts_bonds().
+def without_fractional_bonds(gra):
+    """ rounds fractional bonds in the graph
     """
-    keys = list(map(frozenset, keys))
-    ord_dct = {key: 0 for key in keys}
-    gra = add_bonds(gra, keys, ord_dct=ord_dct)
-    return gra
-
-
-def ts_bond_keys(gra):
-    """ get keys for all order-0 bonds in the graph
-    """
-    bnd_ord_dct = bond_orders(gra)
-    ts_bnd_keys = tuple(
-        bnd_key for bnd_key, bnd_ord in bnd_ord_dct.items() if bnd_ord == 0)
-    return ts_bnd_keys
-
-
-def without_ts_bonds(gra):
-    """ remove order-0 bonds from the graph
-    """
-    ts_bnd_keys = ts_bond_keys(gra)
-    gra = remove_bonds(gra, ts_bnd_keys)
+    ord_dct = dict_.transform_values(bond_orders(gra), func=round)
+    gra = set_bond_orders(gra, ord_dct)
     return gra
 
 

@@ -317,18 +317,6 @@ def test__without_stereo_parities():
     assert C8H13O_CGR == graph.without_stereo_parities(C8H13O_SGR)
 
 
-def test__without_ts_bonds():
-    """ test graph.without_ts_bonds
-    """
-    ts_bnd_key = frozenset({6, 0})
-    gra = ({0: ('C', 2, None), 1: ('C', 2, None), 6: ('C', 3, None)},
-           {frozenset({0, 1}): (1, None)})
-
-    ts_gra = graph.add_ts_bonds(gra, keys=[ts_bnd_key])
-    assert graph.ts_bond_keys(ts_gra) == (ts_bnd_key,)
-    assert graph.without_ts_bonds(ts_gra) == gra
-
-
 def test__electron_count():
     """ test graph.electron_count
     """
@@ -424,14 +412,6 @@ def test__branch():
         {1: ('C', 2, None), 4: ('C', 1, None), 6: ('C', 1, None)},
         {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None)}
     )
-
-    # Test that this works for TS graphs
-    gra = ({0: ('C', 2, None), 1: ('C', 2, None), 6: ('C', 3, None)},
-           {frozenset({0, 1}): (1, None)})
-    ts_bnd_key = frozenset({6, 0})
-    ts_gra = graph.add_ts_bonds(gra, keys=[ts_bnd_key])
-    assert graph.branch_atom_keys(ts_gra, 6, ts_bnd_key) == frozenset({0, 1})
-    assert graph.branch_atom_keys(ts_gra, 0, ts_bnd_key) == frozenset({6})
 
 
 def test__connected_components():
@@ -825,5 +805,4 @@ if __name__ == '__main__':
     # test__heavy_atom_count()
     # test__subresonances()
     # test__stereomers()
-    # test__without_ts_bonds()
     test__sigma_radical_atom_keys()

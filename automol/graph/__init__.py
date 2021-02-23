@@ -85,9 +85,7 @@ from automol.graph._graph import bond_induced_subgraph
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import without_dummy_atoms
-from automol.graph._graph import add_ts_bonds
-from automol.graph._graph import ts_bond_keys
-from automol.graph._graph import without_ts_bonds
+from automol.graph._graph import without_fractional_bonds
 # implicit/explicit hydrogen functions
 # # atom properties
 from automol.graph._graph import atom_explicit_hydrogen_valences
@@ -343,9 +341,7 @@ __all__ = [
     'remove_atoms',
     'remove_bonds',
     'without_dummy_atoms',
-    'add_ts_bonds',
-    'ts_bond_keys',
-    'without_ts_bonds',
+    'without_fractional_bonds',
 
     # implicit/explicit hydrogen functions
     # # atom properties

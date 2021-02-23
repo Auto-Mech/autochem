@@ -10,9 +10,11 @@ ZMA = autofile.data_types.sread.zmatrix(ZMA_STR)
 ZRXN = autofile.data_types.sread.reaction(ZRXN_STR)
 
 # # You can also do this to determine linear atoms from zmatrix:
-# bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+# bnd_keys = automol.reac.rotational_bond_keys(ZRXN, zma=ZMA)
 ZBND_KEYS = automol.reac.rotational_bond_keys(ZRXN)
+
 NAMES = {automol.zmat.torsion_coordinate_name(ZMA, *k) for k in ZBND_KEYS}
+print('zma:\n', automol.zmat.string(ZMA, one_indexed=False))
 print('torsion coordinate names:', NAMES)
 
 scan_name = automol.reac.scan_coordinate(ZRXN, ZMA)
@@ -25,26 +27,22 @@ print('constraint names:', const_names)
 GEO, _ = automol.convert.zmat.geometry(ZMA)
 GRXN = automol.reac.relabel_for_geometry(ZRXN)
 print('geo:\n', automol.geom.string(GEO))
-
-print('ZRXN')
-print(ZRXN)
-print('GRXN')
-print(GRXN)
-
-GEO, GDUMMY_KEY_DCT = automol.convert.zmat.geometry(ZMA)
-ZRXN_NEW = automol.reac.insert_dummy_atoms(GRXN, GDUMMY_KEY_DCT)
-
-GBND_KEYS = automol.reac.rotational_bond_keys(GRXN)
-
-AXES = sorted(map(sorted, GBND_KEYS))
-for axis in AXES:
-    print('axis:', axis)
-    GROUPS = automol.reac.rotational_groups(GRXN, *axis)
-    print('\tgroup 1:', GROUPS[0])
-    print('\tgroup 2:', GROUPS[1])
-    SYM_NUM = automol.reac.rotational_symmetry_number(GRXN, *axis)
-    print('\tsymmetry number:', SYM_NUM)
-
-
-ROTORS = automol.rotor.from_zmatrix(ZMA, zrxn=ZRXN)
-print(ROTORS)
+#
+# GEO, GDUMMY_KEY_DCT = automol.convert.zmat.geometry(ZMA)
+# ZRXN_NEW = automol.reac.insert_dummy_atoms(GRXN, GDUMMY_KEY_DCT)
+# assert ZRXN == ZRXN_NEW
+#
+# GBND_KEYS = automol.reac.rotational_bond_keys(GRXN)
+#
+# AXES = sorted(map(sorted, GBND_KEYS))
+# for axis in AXES:
+#     print('axis:', axis)
+#     GROUPS = automol.reac.rotational_groups(GRXN, *axis)
+#     print('\tgroup 1:', GROUPS[0])
+#     print('\tgroup 2:', GROUPS[1])
+#     SYM_NUM = automol.reac.rotational_symmetry_number(GRXN, *axis)
+#     print('\tsymmetry number:', SYM_NUM)
+#
+#
+# ROTORS = automol.rotor.from_zmatrix(ZMA, zrxn=ZRXN)
+# print(ROTORS)
