@@ -16,6 +16,7 @@ from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import atom_unsaturated_valences
 from automol.graph._graph import atom_bond_valences
 from automol.graph._graph import atom_lone_pair_counts
+from automol.graph._graph import atoms_bond_keys
 from automol.graph._graph import maximum_spin_multiplicity
 from automol.graph._graph import explicit
 from automol.graph._graph import implicit
@@ -151,6 +152,22 @@ def nonresonant_radical_atom_keys(rgr):
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
                              in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc)
     return atm_rad_keys
+
+
+def sigma_radical_atom_keys(rgr):
+    """ keys for sigma radical atoms
+    """
+    atm_rad_keys = nonresonant_radical_atom_keys(rgr)
+    bnd_ords_dct = resonance_dominant_bond_orders(rgr)
+    atm_bnd_keys_dct = atoms_bond_keys(rgr)
+    atm_sig_keys = []
+    for atm_key in atm_rad_keys:
+        for bnd_key in atm_bnd_keys_dct[atm_key]:
+            if 3 in bnd_ords_dct[bnd_key]:
+                atm_sig_keys.append(atm_key)
+                break
+    atm_sig_keys = frozenset(atm_sig_keys)
+    return atm_sig_keys
 
 
 def resonance_dominant_radical_atom_keys(rgr):
@@ -355,3 +372,12 @@ def _add_pi_bonds(rgr, bnd_ord_inc_dct):
     bnd_ord_dct = dict(zip(bnd_keys, new_bnd_ords))
     rgr = set_bond_orders(rgr, bnd_ord_dct)
     return rgr
+
+
+if __name__ == '__main__':
+    import automol
+
+    ICH = automol.smiles.inchi('[C]#CC(CC)(CCC#[C])CC#[C]')
+    GRA = automol.inchi.graph(ICH)
+    print(GRA)
+    print(sigma_radical_atom_keys(GRA))
