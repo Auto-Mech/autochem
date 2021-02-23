@@ -1,4 +1,4 @@
-""" test automol.reac
+""" test automol.reac BRUH
 """
 
 import sys
