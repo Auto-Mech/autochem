@@ -60,6 +60,23 @@ def ring_forming_scission_chain(rxn):
     return tuple(path)
 
 
+def hydrogen_abstraction_atom_keys(rxn):
+    """ Obtain the atoms involved in a hydrogen abstraction, sorted in
+    canonical order.
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: the attacking atom, the transferring atom, the donating atom
+    :rtype: (int, int, int)
+    """
+    frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
+    hyd_key, = frm_bnd_key & brk_bnd_key
+    att_key, = frm_bnd_key - brk_bnd_key
+    don_key, = brk_bnd_key - frm_bnd_key
+    return att_key, hyd_key, don_key
+
+
 def hydrogen_abstraction_is_sigma(rxn):
     """ Is this a sigma radical hydrogen abstraction?
 
@@ -96,6 +113,23 @@ def insertion_forming_bond_keys(rxn):
     frm_bnd_keys = sorted(frm_bnd_keys,
                           key=lambda x: len(x & brk_bnd_key))
     return tuple(frm_bnd_keys)
+
+
+def substitution_atom_keys(rxn):
+    """ Obtain the atoms involved in a substitution reaction, sorted in
+        canonical order.
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: the attacking atom, the transferring atom, the leaving atom
+    :rtype: (int, int, int)
+    """
+    frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
+    tra_key, = frm_bnd_key & brk_bnd_key
+    att_key, = frm_bnd_key - brk_bnd_key
+    lea_key, = brk_bnd_key - frm_bnd_key
+    return att_key, tra_key, lea_key
 
 
 # Get a reaction object from various identifiers

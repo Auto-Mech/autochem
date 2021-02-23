@@ -23,6 +23,7 @@ from automol.graph._graph import implicit
 from automol.graph._graph import atoms
 from automol.graph._graph import atom_groups
 from automol.graph._graph import full_isomorphism
+from automol.graph._graph import dummy_atoms_neighbor_atom_key
 
 
 # atom properties
@@ -55,12 +56,25 @@ def resonance_dominant_atom_hybridizations(rgr):
     return atm_hyb_dct
 
 
-def linear_atom_keys(rgr):
+def linear_atom_keys(rgr, dummy=True):
     """ atoms forming linear bonds, based on their hybridization
+
+    :param rgr: the graph
+    :param dummy: whether or not to consider atoms connected to dummy atoms as
+        linear, if different from what would be predicted based on their
+        hybridization
+    :returns: the linear atom keys
+    :rtype: tuple[int]
     """
     atm_hyb_dct = resonance_dominant_atom_hybridizations(implicit(rgr))
-    atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
-    return atm_keys
+    lin_atm_keys = set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
+
+    if dummy:
+        dum_ngb_key_dct = dummy_atoms_neighbor_atom_key(rgr)
+        lin_atm_keys |= set(dum_ngb_key_dct.values())
+
+    lin_atm_keys = tuple(sorted(lin_atm_keys))
+    return lin_atm_keys
 
 
 def resonance_dominant_atom_centered_cumulene_keys(rgr):

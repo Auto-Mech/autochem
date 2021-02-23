@@ -8,7 +8,9 @@ from automol.reac._reac import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
 from automol.reac._util import ring_forming_scission_atom_keys
 from automol.reac._util import insertion_forming_bond_keys
+from automol.reac._util import hydrogen_abstraction_atom_keys
 from automol.reac._util import hydrogen_abstraction_is_sigma
+from automol.reac._util import substitution_atom_keys
 
 
 # Unimolecular reactions
@@ -187,15 +189,12 @@ def hydrogen_abstraction_ts_zmatrix(rxn, ts_geo):
     # 1. Get keys to linear or near-linear atoms
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
     # Add a dummy atom over the transferring hydrogen
-    frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
-    hyd_idx, = frm_bnd_key & brk_bnd_key
-    lin_idxs.append(hyd_idx)
+    att_key, hyd_key, _ = hydrogen_abstraction_atom_keys(rxn)
+    lin_idxs.append(hyd_key)
 
     if hydrogen_abstraction_is_sigma(rxn):
-        rad_idx, = frm_bnd_key - brk_bnd_key
-        if rad_idx not in lin_idxs:
-            lin_idxs.append(rad_idx)
+        if att_key not in lin_idxs:
+            lin_idxs.append(att_key)
 
     lin_idxs = sorted(lin_idxs)
 
@@ -309,10 +308,8 @@ def substitution_ts_zmatrix(rxn, ts_geo):
     # 1. Get keys to linear or near-linear atoms
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
     # Add a dummy atom over the transferring hydrogen
-    frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
-    hyd_idx, = frm_bnd_key & brk_bnd_key
-    lin_idxs.append(hyd_idx)
+    _, tra_key, _ = substitution_atom_keys(rxn)
+    lin_idxs.append(tra_key)
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)

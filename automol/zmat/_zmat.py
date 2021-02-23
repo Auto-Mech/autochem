@@ -200,6 +200,20 @@ def dummy_neighbor_keys(zma):
     return key_dct
 
 
+def linear_atom_keys(zma):
+    """ Obtain keys to linear atoms in the Z-matrix. Any atom neighboring a
+        dummy atom is considered to be linear.
+
+        :param zma: Z-Matrix
+        :type zma: automol Z-Matrix data structure
+        :returns: the linear atom keys
+        :rtype: tuple[int]
+    """
+    lin_key_dct = dummy_neighbor_keys(zma)
+    lin_keys = tuple(sorted(lin_key_dct.values()))
+    return lin_keys
+
+
 def distance(zma, key1, key2, angstrom=False):
     """ Measure the distance between two atoms defined in a Z-Matrix.
 
