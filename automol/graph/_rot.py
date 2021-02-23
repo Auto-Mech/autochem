@@ -10,7 +10,6 @@ from automol.graph._graph import implicit
 from automol.graph._graph import without_dummy_atoms
 from automol.graph._graph import subgraph
 from automol.graph._graph import connected_components
-from automol.graph._graph import terminal_heavy_atom_keys
 from automol.graph._graph import branch_atom_keys
 from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import dummy_atoms_neighbor_atom_key
@@ -148,7 +147,10 @@ def linear_segments_atom_keys(gra, lin_keys=None):
             key, = lin_seg_keys
             lin_keys_lst.append([key])
         else:
-            end_key1, end_key2 = sorted(terminal_heavy_atom_keys(lin_seg))
+            end_key1, end_key2 = sorted([
+                key for key, ngb_keys in
+                atoms_neighbor_atom_keys(lin_seg).items()
+                if len(ngb_keys) == 1])
             ngb_keys_dct = atoms_neighbor_atom_keys(lin_seg)
 
             key = None

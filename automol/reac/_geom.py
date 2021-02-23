@@ -8,6 +8,7 @@ from automol import par
 from automol.graph import ts
 from automol.graph import atom_keys
 from automol.reac._util import ring_forming_scission_chain
+from automol.reac._util import hydrogen_abstraction_is_sigma
 
 
 # Unimolecular reactions
@@ -175,7 +176,10 @@ def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.6
     a123 = 170.
-    a234 = 85.
+    if hydrogen_abstraction_is_sigma(rxn):
+        a234 = 180.
+    else:
+        a234 = 85.
 
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist

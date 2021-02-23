@@ -60,6 +60,24 @@ def ring_forming_scission_chain(rxn):
     return tuple(path)
 
 
+def hydrogen_abstraction_is_sigma(rxn):
+    """ Is this a sigma radical hydrogen abstraction?
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :rtype: bool
+    """
+    assert rxn.class_ == par.ReactionClass.HYDROGEN_ABSTRACTION
+    tsg = rxn.forward_ts_graph
+    rct_gra = automol.graph.ts.reactants_graph(tsg)
+    sig_rad_keys = automol.graph.sigma_radical_atom_keys(rct_gra)
+
+    brk_bnd_key, = ts.breaking_bond_keys(tsg)
+    frm_bnd_key, = ts.forming_bond_keys(tsg)
+    rad_key, = frm_bnd_key - brk_bnd_key
+    return rad_key in sig_rad_keys
+
+
 def insertion_forming_bond_keys(rxn):
     """ Obtain the forming bonds for an insertion reaction, sorted in canonical
     order.
