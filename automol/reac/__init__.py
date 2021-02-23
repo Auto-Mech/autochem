@@ -36,39 +36,18 @@ from automol.reac._find import substitutions
 from automol.reac._find import find
 from automol.reac._find import find_from_inchis
 # TS geometries
-from automol.reac._geom import hydrogen_migration_ts_geometry
-from automol.reac._geom import beta_scission_ts_geometry
-from automol.reac._geom import ring_forming_scission_ts_geometry
-from automol.reac._geom import elimination_ts_geometry
-from automol.reac._geom import hydrogen_abstraction_ts_geometry
-from automol.reac._geom import addition_ts_geometry
-from automol.reac._geom import insertion_ts_geometry
-from automol.reac._geom import substitution_ts_geometry
 from automol.reac._geom import ts_geometry
 # TS zmatrices
-from automol.reac._zmat import hydrogen_migration_ts_zmatrix
-from automol.reac._zmat import beta_scission_ts_zmatrix
-from automol.reac._zmat import ring_forming_scission_ts_zmatrix
-from automol.reac._zmat import elimination_ts_zmatrix
-from automol.reac._zmat import hydrogen_abstraction_ts_zmatrix
-from automol.reac._zmat import addition_ts_zmatrix
-from automol.reac._zmat import insertion_ts_zmatrix
-from automol.reac._zmat import substitution_ts_zmatrix
 from automol.reac._zmat import ts_zmatrix
 # scan coordinates
 from automol.reac._scan import build_scan_info
-from automol.reac._scan import hydrogen_migration_scan_coordinate
-from automol.reac._scan import beta_scission_scan_coordinate
-from automol.reac._scan import ring_forming_scission_scan_coordinate
-from automol.reac._scan import elimination_scan_coordinate
-from automol.reac._scan import hydrogen_abstraction_scan_coordinate
-from automol.reac._scan import addition_scan_coordinate
-from automol.reac._scan import insertion_scan_coordinate
-from automol.reac._scan import substitution_scan_coordinate
 from automol.reac._scan import scan_coordinate
-from automol.reac._scan import hydrogen_migration_constraint_coordinates
-from automol.reac._scan import ring_forming_scission_constraint_coordinates
 from automol.reac._scan import constraint_coordinates
+# rotational bonds & torsions
+from automol.reac._rot import linear_atom_keys
+from automol.reac._rot import rotational_bond_keys
+from automol.reac._rot import rotational_groups
+from automol.reac._rot import rotational_symmetry_number
 # reaction products
 from automol.reac._prod import prod_hydrogen_abstraction
 from automol.reac._prod import prod_addition
@@ -118,39 +97,18 @@ __all__ = [
     'find',
     'find_from_inchis',
     # TS geometries
-    'hydrogen_migration_ts_geometry',
-    'beta_scission_ts_geometry',
-    'ring_forming_scission_ts_geometry',
-    'elimination_ts_geometry',
-    'hydrogen_abstraction_ts_geometry',
-    'addition_ts_geometry',
-    'insertion_ts_geometry',
-    'substitution_ts_geometry',
     'ts_geometry',
     # TS zmatrices
-    'hydrogen_migration_ts_zmatrix',
-    'beta_scission_ts_zmatrix',
-    'ring_forming_scission_ts_zmatrix',
-    'elimination_ts_zmatrix',
-    'hydrogen_abstraction_ts_zmatrix',
-    'addition_ts_zmatrix',
-    'insertion_ts_zmatrix',
-    'substitution_ts_zmatrix',
     'ts_zmatrix',
     # scan coordinates
     'build_scan_info',
-    'hydrogen_migration_scan_coordinate',
-    'beta_scission_scan_coordinate',
-    'ring_forming_scission_scan_coordinate',
-    'elimination_scan_coordinate',
-    'hydrogen_abstraction_scan_coordinate',
-    'addition_scan_coordinate',
-    'insertion_scan_coordinate',
-    'substitution_scan_coordinate',
     'scan_coordinate',
-    'hydrogen_migration_constraint_coordinates',
-    'ring_forming_scission_constraint_coordinates',
     'constraint_coordinates',
+    # rotational bonds & torsions
+    'linear_atom_keys',
+    'rotational_bond_keys',
+    'rotational_groups',
+    'rotational_symmetry_number',
     # reaction products
     'prod_hydrogen_abstraction',
     'prod_addition',

@@ -311,24 +311,22 @@ def test__reac__hydrogen_migration():
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
     geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
-    print(automol.geom.string(geo))
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
     assert scan_name == 'R5'
     assert const_names == ('R4',)
     print(scan_name)
@@ -337,22 +335,21 @@ def test__reac__hydrogen_migration():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
     assert sym_nums == [3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -373,19 +370,18 @@ def test__reac__beta_scission():
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D8', 'D11', 'D5'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
     assert scan_name == 'R8'
     assert const_names == ()
     print(scan_name)
@@ -394,22 +390,21 @@ def test__reac__beta_scission():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
     assert sym_nums == [3, 1, 1]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -430,19 +425,18 @@ def test__reac__ring_forming_scission():
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D14'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
     assert scan_name == 'R13'
     assert const_names == ('A4', 'A7', 'A10', 'D7', 'D10', 'D13')
     print(scan_name)
@@ -451,23 +445,21 @@ def test__reac__ring_forming_scission():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
     assert sym_nums == [1]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -488,19 +480,18 @@ def test__reac__elimination():
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
     assert scan_name == 'R2'
     assert const_names == ()
     print(scan_name)
@@ -509,22 +500,21 @@ def test__reac__elimination():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
     assert sym_nums == [3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -536,8 +526,6 @@ def test__reac__elimination():
 def test__reac__hydrogen_abstraction():
     """ test hydrogen abstraction functionality
     """
-    # rct_smis = ['C(C)(C)C', '[OH]']
-    # prd_smis = ['[C](C)(C)C', 'O']
     rct_smis = ['CCO', '[CH3]']
     prd_smis = ['[CH2]CO', 'C']
 
@@ -547,48 +535,42 @@ def test__reac__hydrogen_abstraction():
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-    # assert names == {'D11', 'D5', 'D8', 'D16'}
+    assert names == {'D11', 'D3', 'D6'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
-    # assert scan_name == 'R15'
-    # assert const_names == ()
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
+    assert scan_name == 'R10'
+    assert const_names == ()
     print(scan_name)
     print(const_names)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    ztsg = zrxn.forward_ts_graph
-    # assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    print('graphs')
-    print(automol.graph.string(gtsg))
-    print(automol.graph.string(ztsg))
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
-    # assert len(gbnd_keys) == len(bnd_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
-    # assert sym_nums == [3, 3, 3, 1]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    assert sym_nums == [1, 1, 3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
         print('\tgroup 1:', groups[0])
@@ -597,6 +579,7 @@ def test__reac__hydrogen_abstraction():
 
     # Extra test cases:
     rxn_smis_lst = [
+        (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
         # (['C', '[H]'], ['[CH3]', '[H][H]']),
         # (['C', '[OH]'], ['[CH3]', 'O']),
         # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
@@ -608,58 +591,37 @@ def test__reac__hydrogen_abstraction():
         # reaction object aligned to z-matrix keys
         # (for getting torsion coordinate names)
         zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-        rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-        tsg = rxn.forward_ts_graph
-        print('zma\n', zma)
+        zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-        lin_keys = sorted(
-            automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-        bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+        # You can also do this to determine linear atoms from zmatrix:
+        # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+        bnd_keys = automol.reac.rotational_bond_keys(zrxn)
         names = {automol.zmat.torsion_coordinate_name(zma, *k)
                  for k in bnd_keys}
         print(automol.zmat.string(zma, one_indexed=False))
         print(names)
 
-        scan_name = automol.reac.scan_coordinate(rxn, zma)
-        const_names = automol.reac.constraint_coordinates(rxn, zma)
+        scan_name = automol.reac.scan_coordinate(zrxn, zma)
+        const_names = automol.reac.constraint_coordinates(zrxn, zma)
         print(scan_name)
         print(const_names)
 
         # graph aligned to geometry keys
         # (for getting rotational groups and symmetry numbers)
-        geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-        grxn = automol.reac.relabel_for_geometry(rxn)
-        gtsg = grxn.forward_ts_graph
-
-        print(automol.graph.ts.forming_bond_keys(gtsg))
-        print(automol.graph.ts.breaking_bond_keys(gtsg))
+        geo, _ = automol.convert.zmat.geometry(zma)
+        grxn = automol.reac.relabel_for_geometry(zrxn)
         print(automol.geom.string(geo))
 
-        # Check that the reaction object can be converted back, if needed
-        zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-
-        lin_keys = sorted(gdummy_key_dct.keys())
-        gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+        gbnd_keys = automol.reac.rotational_bond_keys(grxn)
 
         axes = sorted(map(sorted, gbnd_keys))
-        groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
-        sym_nums = [
-            automol.graph.rotational_symmetry_number(gtsg, *a,
-                                                     lin_keys=lin_keys)
-            for a in axes]
-        for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
-            print('axis:', axis)
-            print('\tgroup 1:', groups[0])
-            print('\tgroup 2:', groups[1])
-            print('\tsymmetry number:', sym_num)
-
-        zbnd_keys = automol.graph.rotational_bond_keys(ztsg)
-
-        axes = sorted(map(sorted, zbnd_keys))
         for axis in axes:
             print('axis:', axis)
-            name = automol.zmat.torsion_coordinate_name(zma, *axis)
-            print('\tname:', name)
+            groups = automol.reac.rotational_groups(grxn, *axis)
+            print('\tgroup 1:', groups[0])
+            print('\tgroup 2:', groups[1])
+            sym_num = automol.reac.rotational_symmetry_number(grxn, *axis)
+            print('\tsymmetry number:', sym_num)
 
 
 def test__reac__sigma_hydrogen_abstraction():
@@ -670,20 +632,17 @@ def test__reac__sigma_hydrogen_abstraction():
 
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
     geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
-    print(automol.geom.string(geo))
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    ztsg = zrxn.forward_ts_graph
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(ztsg).values())
-    print(lin_keys)
-    print(dummy_key_dct)
-    bnd_keys = automol.graph.rotational_bond_keys(ztsg, lin_keys=lin_keys)
-    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k)
+             for k in bnd_keys}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
@@ -694,33 +653,19 @@ def test__reac__sigma_hydrogen_abstraction():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, _ = automol.convert.zmat.geometry(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
-    gtsg = grxn.forward_ts_graph
+    print(automol.geom.string(geo))
 
-    # Check that the reaction object can be converted back, if needed
-    old_zrxn = zrxn
-    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    ztsg = zrxn.forward_ts_graph
-    assert zrxn == old_zrxn
-
-    print('graphs')
-    print(automol.graph.string(gtsg))
-    print(automol.graph.string(ztsg))
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
-    # assert len(gbnd_keys) == len(bnd_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
-    sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
-    # assert sym_nums == [3, 3, 3, 1]
-    for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
+    for axis in axes:
         print('axis:', axis)
+        groups = automol.reac.rotational_groups(grxn, *axis)
         print('\tgroup 1:', groups[0])
         print('\tgroup 2:', groups[1])
+        sym_num = automol.reac.rotational_symmetry_number(grxn, *axis)
         print('\tsymmetry number:', sym_num)
 
 
@@ -736,19 +681,18 @@ def test__reac__addition():
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D11', 'D8', 'D5'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
     assert scan_name == 'R10'
     assert const_names == ()
     print(scan_name)
@@ -757,22 +701,21 @@ def test__reac__addition():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
     assert sym_nums == [3, 1, 1]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -793,19 +736,18 @@ def test__reac__insertion():
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
     assert scan_name == 'R3'
     assert const_names == ()
     print(scan_name)
@@ -814,22 +756,21 @@ def test__reac__insertion():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
     assert sym_nums == [3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -850,19 +791,18 @@ def test__reac__substitution():
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    tsg = rxn.forward_ts_graph
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(tsg).values())
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys)
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D3', 'D8', 'D11'}
     print(automol.zmat.string(zma, one_indexed=False))
     print(names)
 
-    scan_name = automol.reac.scan_coordinate(rxn, zma)
-    const_names = automol.reac.constraint_coordinates(rxn, zma)
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
     assert scan_name == 'R7'
     assert const_names == ()
     print(scan_name)
@@ -871,22 +811,21 @@ def test__reac__substitution():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(rxn)
-    gtsg = grxn.forward_ts_graph
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    assert zrxn == rxn
+    assert zrxn == old_zrxn
 
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
     axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
-        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
-        for a in axes]
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
     assert sym_nums == [1, 1, 3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -1198,11 +1137,6 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    # test__reac__hydrogen_migration()
-    # test__reac__ring_forming_scission()
-    # test__reac__hydrogen_abstraction()
-    # test__reac__insertion()
-    # test__reac__substitution()
     # test__reac__forming_bond_keys()
     # test__reac__breaking_bond_keys()
     # test__reac__forming_rings_atom_keys()
@@ -1213,3 +1147,11 @@ if __name__ == '__main__':
     # test__reac__products_graph()
     # test__species__demo()
     test__reac__sigma_hydrogen_abstraction()
+    test__reac__hydrogen_migration()
+    test__reac__beta_scission()
+    test__reac__ring_forming_scission()
+    test__reac__elimination()
+    test__reac__hydrogen_abstraction()
+    test__reac__addition()
+    test__reac__insertion()
+    test__reac__substitution()
