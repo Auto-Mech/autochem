@@ -24,12 +24,14 @@ from automol.graph._graph import atoms
 from automol.graph._graph import atom_groups
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import dummy_atoms_neighbor_atom_key
+from automol.graph._graph import without_fractional_bonds
 
 
 # atom properties
 def atom_hybridizations(rgr):
     """ atom hybridizations, by atom
     """
+    rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_unsat_vlc_dct = atom_unsaturated_valences(rgr, bond_order=True)
     atm_bnd_vlc_dct = atom_bond_valences(rgr, bond_order=False)     # note!!
@@ -47,6 +49,7 @@ def atom_hybridizations(rgr):
 def resonance_dominant_atom_hybridizations(rgr):
     """ resonance-dominant atom hybridizations, by atom
     """
+    rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_hybs_by_res = [
         dict_.values_by_key(atom_hybridizations(dom_rgr), atm_keys)
@@ -66,6 +69,7 @@ def linear_atom_keys(rgr, dummy=True):
     :returns: the linear atom keys
     :rtype: tuple[int]
     """
+    rgr = without_fractional_bonds(rgr)
     atm_hyb_dct = resonance_dominant_atom_hybridizations(implicit(rgr))
     lin_atm_keys = set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
 
@@ -85,6 +89,7 @@ def resonance_dominant_atom_centered_cumulene_keys(rgr):
     where the first pair contains the sp2 atoms at the cumulene ends and
     `cent_atm_key` is the key of the central atom
     """
+    rgr = without_fractional_bonds(rgr)
     cum_chains = _cumulene_chains(rgr)
     cum_keys = set()
     for cum_chain in cum_chains:
@@ -107,6 +112,7 @@ def resonance_dominant_bond_centered_cumulene_keys(rgr):
     where the first pair contains the sp2 atoms at the cumulene ends and the
     second pair is the bond key for the central bond
     """
+    rgr = without_fractional_bonds(rgr)
     cum_chains = _cumulene_chains(rgr)
     cum_keys = set()
     for cum_chain in cum_chains:
@@ -158,6 +164,7 @@ def _cumulene_chains(rgr):
 def nonresonant_radical_atom_keys(rgr):
     """ keys for radical atoms that are not in resonance
     """
+    rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
         dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
@@ -171,6 +178,7 @@ def nonresonant_radical_atom_keys(rgr):
 def sigma_radical_atom_keys(rgr):
     """ keys for sigma radical atoms
     """
+    rgr = without_fractional_bonds(rgr)
     atm_rad_keys = nonresonant_radical_atom_keys(rgr)
     bnd_ords_dct = resonance_dominant_bond_orders(rgr)
     atm_bnd_keys_dct = atoms_bond_keys(rgr)
@@ -189,6 +197,7 @@ def resonance_dominant_radical_atom_keys(rgr):
 
     (keys of resonance-dominant radical sites)
     """
+    rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
         dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
@@ -202,6 +211,7 @@ def resonance_dominant_radical_atom_keys(rgr):
 def sing_res_dom_radical_atom_keys(rgr):
     """ resonance-dominant radical atom keys,for one resonance
     """
+    rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
         dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
@@ -216,6 +226,7 @@ def sing_res_dom_radical_atom_keys(rgr):
 def radical_groups(gra):
     """ returns a list of lists of groups attached each radical
     """
+    gra = without_fractional_bonds(gra)
 
     groups = []
     rads = sing_res_dom_radical_atom_keys(gra)
@@ -227,6 +238,8 @@ def radical_groups(gra):
 def radical_group_dct(gra):
     """ return a dictionary of lists of groups attached each radical
     """
+    gra = without_fractional_bonds(gra)
+
     groups = {}
     rads = list(sing_res_dom_radical_atom_keys(gra))
     atms = atoms(gra)
@@ -243,6 +256,7 @@ def radical_group_dct(gra):
 def radical_dissociation_prods(gra, pgra1):
     """ given a dissociation product, determine the other product
     """
+    gra = without_fractional_bonds(gra)
 
     pgra2 = None
     rads = sing_res_dom_radical_atom_keys(gra)
@@ -263,6 +277,7 @@ def radical_dissociation_prods(gra, pgra1):
 def resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
+    rgr = without_fractional_bonds(rgr)
     bnd_keys = list(bond_keys(rgr))
     bnd_ords_by_res = [
         dict_.values_by_key(bond_orders(dom_rgr), bnd_keys)
@@ -275,6 +290,7 @@ def resonance_dominant_bond_orders(rgr):
 def one_resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
+    rgr = without_fractional_bonds(rgr)
     bnd_keys = list(bond_keys(rgr))
     bnd_ords_by_res = [
         dict_.values_by_key(bond_orders(dom_rgr), bnd_keys)
@@ -288,6 +304,7 @@ def one_resonance_dominant_bond_orders(rgr):
 def resonance_avg_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
+    rgr = without_fractional_bonds(rgr)
     bnd_keys = list(bond_keys(rgr))
     bnd_ords_by_res = [
         dict_.values_by_key(bond_orders(dom_rgr), bnd_keys)
@@ -309,6 +326,7 @@ def dominant_resonance(rgr):
 def dominant_resonances(rgr):
     """ all dominant (minimum spin/maximum pi) resonance graphs
     """
+    rgr = without_fractional_bonds(rgr)
     rgrs = resonances(rgr)
     mult_min = min(map(maximum_spin_multiplicity, rgrs))
     dom_rgrs = tuple(
@@ -325,6 +343,7 @@ def resonances(rgr):
 def subresonances(rgr):
     """ this connected graph and its lower-spin (more pi-bonded) resonances
     """
+    rgr = without_fractional_bonds(rgr)
     # get the bond capacities (room for increasing bond order), filtering out
     # the negative ones to avoid complications with hypervalent atoms in TSs
     bnd_cap_dct = dict_.by_value(_bond_capacities(rgr), lambda x: x > 0)
