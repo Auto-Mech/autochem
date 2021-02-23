@@ -558,6 +558,10 @@ def test__reac__hydrogen_abstraction():
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
+    print(rxn)
+    print(zrxn)
+    print(grxn)
+
     # Check that the reaction object can be converted back, if needed
     old_zrxn = zrxn
     zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
@@ -813,6 +817,10 @@ def test__reac__substitution():
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
+
+    print(rxn)
+    print(zrxn)
+    print(grxn)
 
     # Check that the reaction object can be converted back, if needed
     old_zrxn = zrxn
@@ -1142,12 +1150,11 @@ if __name__ == '__main__':
     test__reac__hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
-    test__reac__sigma_hydrogen_abstraction()
-    test__reac__hydrogen_migration()
-    test__reac__beta_scission()
-    test__reac__ring_forming_scission()
-    test__reac__elimination()
-    test__reac__hydrogen_abstraction()
-    test__reac__addition()
-    test__reac__insertion()
+    # test__reac__sigma_hydrogen_abstraction()
+    # test__reac__hydrogen_migration()
+    # test__reac__beta_scission()
+    # test__reac__ring_forming_scission()
+    # test__reac__elimination()
+    # test__reac__addition()
+    # test__reac__insertion()
     test__reac__substitution()
