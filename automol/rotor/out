@@ -1,0 +1,525 @@
+zma:
+ C  
+C  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+C  2    R5  1    A5  3    D5 
+H  2    R6  1    A6  6    D6 
+C  6    R7  2    A7  1    D7 
+H  6    R8  2    A8  8    D8 
+C  8    R9  6    A9  2    D9 
+H  8   R10  6   A10  10   D10 
+H  8   R11  6   A11  10   D11 
+C  10   R12  8   A12  6   D12 
+H  10   R13  8   A13  13   D13 
+H  10   R14  8   A14  13   D14 
+C  13   R15  10   A15  8   D15 
+H  13   R16  10   A16  16   D16 
+H  13   R17  10   A17  16   D17 
+C  16   R18  13   A18  10   D18 
+H  16   R19  13   A19  19   D19 
+H  16   R20  13   A20  19   D20 
+C  19   R21  16   A21  13   D21 
+H  19   R22  16   A22  22   D22 
+H  19   R23  16   A23  22   D23 
+C  22   R24  19   A24  16   D24 
+H  22   R25  19   A25  25   D25 
+H  22   R26  19   A26  25   D26 
+H  25   R27  22   A27  19   D27 
+H  25   R28  22   A28  28   D28 
+H  25   R29  22   A29  28   D29 
+X  11   R30  8   A30  10   D30 
+C  11   R31  31   A31  8   D31 
+H  32   R32  11   A32  31   D32 
+H  32   R33  33   A33  11   D33 
+H  32   R34  33   A34  34   D34 
+
+R1   =   1.499700
+R2   =   1.094900
+R3   =   1.097200
+R4   =   1.097400
+R5   =   1.338500
+R6   =   1.090100
+R7   =   1.481400
+R8   =   1.091400
+R9   =   1.520400
+R10  =   1.249400
+R11  =   1.096600
+R12  =   1.533300
+R13  =   1.098400
+R14  =   1.097000
+R15  =   1.531600
+R16  =   1.097400
+R17  =   1.098100
+R18  =   1.530200
+R19  =   1.098400
+R20  =   1.099600
+R21  =   1.529100
+R22  =   1.098300
+R23  =   1.100100
+R24  =   1.527600
+R25  =   1.098300
+R26  =   1.098300
+R27  =   1.095000
+R28  =   1.096200
+R29  =   1.096200
+R30  =   1.000000
+R31  =   1.481100
+R32  =   1.088400
+R33  =   1.088400
+R34  =   1.088300
+A2   = 111.451700
+A3   = 111.250600
+A4   = 111.143800
+A5   = 124.571700
+A6   = 115.867500
+A7   = 126.739700
+A8   = 117.883700
+A9   = 118.475100
+A10  = 106.453000
+A11  = 111.512800
+A12  = 113.467500
+A13  = 108.678100
+A14  = 109.180500
+A15  = 114.023400
+A16  = 109.413100
+A17  = 108.406700
+A18  = 114.163000
+A19  = 108.775400
+A20  = 109.519500
+A21  = 113.089000
+A22  = 110.100500
+A23  = 109.157200
+A24  = 112.914800
+A25  = 109.158700
+A26  = 109.207300
+A27  = 111.486000
+A28  = 110.976000
+A29  = 110.994800
+A30  =  90.000000
+A31  =  95.511200
+A32  = 104.474200
+A33  = 114.870300
+A34  = 114.882800
+D3   = 120.669300
+D4   = 239.477400
+D5   =  -0.051400
+D6   = 180.471000
+D7   = 177.360400
+D8   = 182.949300
+D9   = 376.452800
+D10  = 242.122900
+D11  = 131.785000
+D12  =  70.239100
+D13  = 121.313500
+D14  = 236.368700
+D15  = 180.466900
+D16  = 122.813300
+D17  = 238.197300
+D18  =  66.512000
+D19  = 121.501600
+D20  = 237.128200
+D21  = 175.346900
+D22  = 121.920200
+D23  = 238.138900
+D24  = 179.648200
+D25  = 237.877200
+D26  = 122.175100
+D27  = 179.868800
+D28  = 239.798600
+D29  = 120.208700
+D30  = 180.000000
+D31  = 180.877400
+D32  =-121.202600
+D33  = 111.244700
+D34  = 136.317100
+torsion coordinate names: {'D21', 'D5', 'D9', 'D18', 'D15', 'D27', 'D24', 'D12', 'D32'}
+scan name: R31
+constraint names: ()
+rxn obj
+atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  17: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  18: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  19: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  20: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  21: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  22: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  23: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  24: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  25: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  26: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  27: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  28: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  29: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  30: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  32: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  33: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  34: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  35: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  6-8: {order: 1, stereo_parity: null}
+  6-9: {order: 1, stereo_parity: null}
+  8-10: {order: 1, stereo_parity: null}
+  8-11: {order: 0.9, stereo_parity: null}
+  8-12: {order: 1, stereo_parity: null}
+  10-13: {order: 1, stereo_parity: null}
+  10-14: {order: 1, stereo_parity: null}
+  10-15: {order: 1, stereo_parity: null}
+  11-32: {order: 0.1, stereo_parity: null}
+  13-16: {order: 1, stereo_parity: null}
+  13-17: {order: 1, stereo_parity: null}
+  13-18: {order: 1, stereo_parity: null}
+  16-19: {order: 1, stereo_parity: null}
+  16-20: {order: 1, stereo_parity: null}
+  16-21: {order: 1, stereo_parity: null}
+  19-22: {order: 1, stereo_parity: null}
+  19-23: {order: 1, stereo_parity: null}
+  19-24: {order: 1, stereo_parity: null}
+  22-25: {order: 1, stereo_parity: null}
+  22-26: {order: 1, stereo_parity: null}
+  22-27: {order: 1, stereo_parity: null}
+  25-28: {order: 1, stereo_parity: null}
+  25-29: {order: 1, stereo_parity: null}
+  25-30: {order: 1, stereo_parity: null}
+  32-33: {order: 1, stereo_parity: null}
+  32-34: {order: 1, stereo_parity: null}
+  32-35: {order: 1, stereo_parity: null}
+
+
+atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  17: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  18: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  19: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  20: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  21: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  22: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  23: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  24: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  25: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  26: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  27: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  28: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  29: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  30: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  32: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  33: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  34: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  35: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  6-8: {order: 1, stereo_parity: null}
+  6-9: {order: 1, stereo_parity: null}
+  8-10: {order: 1, stereo_parity: null}
+  8-11: {order: 0.9, stereo_parity: null}
+  8-12: {order: 1, stereo_parity: null}
+  10-13: {order: 1, stereo_parity: null}
+  10-14: {order: 1, stereo_parity: null}
+  10-15: {order: 1, stereo_parity: null}
+  11-32: {order: 0.1, stereo_parity: null}
+  13-16: {order: 1, stereo_parity: null}
+  13-17: {order: 1, stereo_parity: null}
+  13-18: {order: 1, stereo_parity: null}
+  16-19: {order: 1, stereo_parity: null}
+  16-20: {order: 1, stereo_parity: null}
+  16-21: {order: 1, stereo_parity: null}
+  19-22: {order: 1, stereo_parity: null}
+  19-23: {order: 1, stereo_parity: null}
+  19-24: {order: 1, stereo_parity: null}
+  22-25: {order: 1, stereo_parity: null}
+  22-26: {order: 1, stereo_parity: null}
+  22-27: {order: 1, stereo_parity: null}
+  25-28: {order: 1, stereo_parity: null}
+  25-29: {order: 1, stereo_parity: null}
+  25-30: {order: 1, stereo_parity: null}
+  32-33: {order: 1, stereo_parity: null}
+  32-34: {order: 1, stereo_parity: null}
+  32-35: {order: 1, stereo_parity: null}
+
+geo:
+ C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.499700
+H    0.000000   1.019052  -0.400423
+H    0.879560  -0.521607  -0.397678
+H   -0.881690  -0.519824  -0.395843
+C    0.000989   1.102143   2.259215
+H    0.007183  -0.980852   1.975301
+C   -0.053632   1.158948   3.738517
+H   -0.003358   2.069830   1.754520
+C    0.261293  -0.103821   4.524554
+H   -1.233154   1.441339   4.038489
+H    0.492663   2.026317   4.128085
+C    1.739877  -0.505750   4.467528
+H   -0.024460   0.054195   5.573296
+H   -0.372218  -0.922198   4.160781
+C    2.069333  -1.782904   5.246075
+H    2.044157  -0.629294   3.420419
+H    2.340178   0.323467   4.864844
+C    1.439673  -3.050722   4.664973
+H    3.159943  -1.911427   5.269215
+H    1.752424  -1.667272   6.292649
+C    1.874555  -4.323692   5.392003
+H    0.344325  -2.979135   4.701736
+H    1.706598  -3.131246   3.600789
+C    1.237063  -5.585949   4.814185
+H    1.618174  -4.236352   6.456382
+H    2.968515  -4.409973   5.346513
+H    1.565832  -6.482592   5.349877
+H    1.501347  -5.710687   3.757659
+H    0.143791  -5.538711   4.878843
+C   -2.637708   1.648249   4.460477
+H   -2.584941   1.745478   5.543240
+H   -3.122726   0.740868   4.105467
+H   -2.926702   2.555146   3.932823
+axis: [0, 1]
+	group 1: (2, 3, 4)
+	group 2: (5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34)
+	symmetry number: 3
+axis: [5, 7]
+	group 1: (0, 1, 2, 3, 4, 6, 8)
+	group 2: (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34)
+	symmetry number: 1
+axis: [7, 9]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 31, 32, 33, 34)
+	group 2: (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29)
+	symmetry number: 1
+axis: [9, 12]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 31, 32, 33, 34)
+	group 2: (15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29)
+	symmetry number: 1
+axis: [10, 31]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29)
+	group 2: (32, 33, 34)
+	symmetry number: 3
+axis: [12, 15]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 16, 17, 31, 32, 33, 34)
+	group 2: (18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29)
+	symmetry number: 1
+axis: [15, 18]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 20, 31, 32, 33, 34)
+	group 2: (21, 22, 23, 24, 25, 26, 27, 28, 29)
+	symmetry number: 1
+axis: [18, 21]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 22, 23, 31, 32, 33, 34)
+	group 2: (24, 25, 26, 27, 28, 29)
+	symmetry number: 1
+axis: [21, 24]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 25, 26, 31, 32, 33, 34)
+	group 2: (27, 28, 29)
+	symmetry number: 3
+((<automol.rotor._tors.Torsion object at 0x2b536b912e50>,), (<automol.rotor._tors.Torsion object at 0x2b536b9b7dd0>,), (<automol.rotor._tors.Torsion object at 0x2b536b9844d0>,), (<automol.rotor._tors.Torsion object at 0x2b536b984050>,), (<automol.rotor._tors.Torsion object at 0x2b536b984990>,), (<automol.rotor._tors.Torsion object at 0x2b536b984b90>,), (<automol.rotor._tors.Torsion object at 0x2b536b984dd0>,), (<automol.rotor._tors.Torsion object at 0x2b536b9846d0>,), (<automol.rotor._tors.Torsion object at 0x2b536b984150>,))
+zma:
+ C  
+C  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+C  2    R5  1    A5  3    D5 
+H  2    R6  1    A6  6    D6 
+C  6    R7  2    A7  1    D7 
+H  6    R8  2    A8  8    D8 
+C  8    R9  6    A9  2    D9 
+H  8   R10  6   A10  10   D10 
+H  8   R11  6   A11  10   D11 
+C  10   R12  8   A12  6   D12 
+H  10   R13  8   A13  13   D13 
+H  10   R14  8   A14  13   D14 
+C  13   R15  10   A15  8   D15 
+H  13   R16  10   A16  16   D16 
+H  13   R17  10   A17  16   D17 
+C  16   R18  13   A18  10   D18 
+H  16   R19  13   A19  19   D19 
+H  16   R20  13   A20  19   D20 
+C  19   R21  16   A21  13   D21 
+H  19   R22  16   A22  22   D22 
+H  19   R23  16   A23  22   D23 
+C  22   R24  19   A24  16   D24 
+H  22   R25  19   A25  25   D25 
+H  22   R26  19   A26  25   D26 
+H  25   R27  22   A27  19   D27 
+H  25   R28  22   A28  28   D28 
+H  25   R29  22   A29  28   D29 
+X  11   R30  8   A30  10   D30 
+C  11   R31  31   A31  8   D31 
+H  32   R32  11   A32  31   D32 
+H  32   R33  33   A33  11   D33 
+H  32   R34  33   A34  34   D34 
+
+R1   =   1.499700
+R2   =   1.094900
+R3   =   1.097200
+R4   =   1.097400
+R5   =   1.338500
+R6   =   1.090100
+R7   =   1.481400
+R8   =   1.091400
+R9   =   1.520400
+R10  =   1.249400
+R11  =   1.096600
+R12  =   1.533300
+R13  =   1.098400
+R14  =   1.097000
+R15  =   1.531600
+R16  =   1.097400
+R17  =   1.098100
+R18  =   1.530200
+R19  =   1.098400
+R20  =   1.099600
+R21  =   1.529100
+R22  =   1.098300
+R23  =   1.100100
+R24  =   1.527600
+R25  =   1.098300
+R26  =   1.098300
+R27  =   1.095000
+R28  =   1.096200
+R29  =   1.096200
+R30  =   1.000000
+R31  =   1.481100
+R32  =   1.088400
+R33  =   1.088400
+R34  =   1.088300
+A2   = 111.451700
+A3   = 111.250600
+A4   = 111.143800
+A5   = 124.571700
+A6   = 115.867500
+A7   = 126.739700
+A8   = 117.883700
+A9   = 118.475100
+A10  = 106.453000
+A11  = 111.512800
+A12  = 113.467500
+A13  = 108.678100
+A14  = 109.180500
+A15  = 114.023400
+A16  = 109.413100
+A17  = 108.406700
+A18  = 114.163000
+A19  = 108.775400
+A20  = 109.519500
+A21  = 113.089000
+A22  = 110.100500
+A23  = 109.157200
+A24  = 112.914800
+A25  = 109.158700
+A26  = 109.207300
+A27  = 111.486000
+A28  = 110.976000
+A29  = 110.994800
+A30  =  90.000000
+A31  =  95.511200
+A32  = 104.474200
+A33  = 114.870300
+A34  = 114.882800
+D3   = 120.669300
+D4   = 239.477400
+D5   =  -0.051400
+D6   = 180.471000
+D7   = 177.360400
+D8   = 182.949300
+D9   = 376.452800
+D10  = 242.122900
+D11  = 131.785000
+D12  =  70.239100
+D13  = 121.313500
+D14  = 236.368700
+D15  = 180.466900
+D16  = 122.813300
+D17  = 238.197300
+D18  =  66.512000
+D19  = 121.501600
+D20  = 237.128200
+D21  = 175.346900
+D22  = 121.920200
+D23  = 238.138900
+D24  = 179.648200
+D25  = 237.877200
+D26  = 122.175100
+D27  = 179.868800
+D28  = 239.798600
+D29  = 120.208700
+D30  = 180.000000
+D31  = 180.877400
+D32  =-121.202600
+D33  = 111.244700
+D34  = 136.317100
+D5
+(0, 1)
+((2, 3, 4), (5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34))
+3
+D9
+(5, 7)
+((0, 1, 2, 3, 4, 6, 8), (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34))
+1
+D12
+(7, 9)
+((0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 31, 32, 33, 34), (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29))
+1
+D15
+(9, 12)
+((0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 31, 32, 33, 34), (15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29))
+1
+D18
+(12, 15)
+((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 16, 17, 31, 32, 33, 34), (18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29))
+1
+D21
+(15, 18)
+((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 20, 31, 32, 33, 34), (21, 22, 23, 24, 25, 26, 27, 28, 29))
+1
+D24
+(18, 21)
+((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 22, 23, 31, 32, 33, 34), (24, 25, 26, 27, 28, 29))
+1
+D27
+(21, 24)
+((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 25, 26, 31, 32, 33, 34), (27, 28, 29))
+3
+D32
+(10, 31)
+((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29), (32, 33, 34))
+3

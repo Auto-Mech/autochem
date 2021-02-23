@@ -69,13 +69,44 @@ def torsion_lst(zma, gra, lin_keys):
         grps = torsion_groups(gra, axis)
         symm = torsion_symmetry(gra, axis, lin_keys)
 
-        # Shift the axis and groups to be in the zma system
-        # zaxis = automol.util.dummy.shift_up(zma, axis)
-        # zgrps = tuple(automol.util.dummy.shift_up(zma, grp)
-        #               for grp in grps)
-
         # Build the torsion object and add to the list
         tors_obj_lst += (Torsion(zma, name, axis, grps, symm),)
+
+    return tors_obj_lst
+
+
+def reaction_torsion_lst(zma, zrxn):
+    """ torsions from zrxn obj
+    """
+
+    zbnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    tors_axes = tuple(tuple(keys) for keys in zbnd_keys)
+    tors_names = tuple(automol.zmat.torsion_coordinate_name(zma, *keys)
+                       for keys in tors_axes)
+
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    tors_axes = tuple(tuple(keys) for keys in gbnd_keys)
+
+    # Get the sorted tors names for building the list
+    name_dct = dict(zip(tors_names, tors_axes))
+
+    tors_obj_lst = ()
+    sorted_tors_names = sort_tors_names(tuple(name_dct.keys()))
+    for name in sorted_tors_names:
+
+        gaxis = name_dct[name]
+        gaxis = tuple(sorted(gaxis))
+        ggrps = automol.reac.rotational_groups(grxn, *gaxis)
+        symm = automol.reac.rotational_symmetry_number(grxn, *gaxis)
+
+        # not for filesys
+        # zgrps = tuple(automol.util.dummy.shift_up(zma, grp)
+        #               for grp in ggrps)
+        # zaxis = automol.util.dummy.shift_up(zma, gaxis)
+
+        # Build the torsion object and add to the list
+        tors_obj_lst += (Torsion(zma, name, gaxis, ggrps, symm),)
 
     return tors_obj_lst
 
