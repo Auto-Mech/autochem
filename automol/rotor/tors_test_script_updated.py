@@ -26,6 +26,14 @@ GEO, _ = automol.convert.zmat.geometry(ZMA)
 GRXN = automol.reac.relabel_for_geometry(ZRXN)
 print('geo:\n', automol.geom.string(GEO))
 
+print('ZRXN')
+print(ZRXN)
+print('GRXN')
+print(GRXN)
+
+GEO, GDUMMY_KEY_DCT = automol.convert.zmat.geometry(ZMA)
+ZRXN_NEW = automol.reac.insert_dummy_atoms(GRXN, GDUMMY_KEY_DCT)
+
 GBND_KEYS = automol.reac.rotational_bond_keys(GRXN)
 
 AXES = sorted(map(sorted, GBND_KEYS))
