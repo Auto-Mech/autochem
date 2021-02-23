@@ -74,14 +74,16 @@ class Reaction:
         if len(self.reactants_keys) == 1:
             rct_idxs = [0]
         else:
-            rct_keys = list(map(tuple, map(sorted, self.reactants_keys)))
-            rct_idxs = numpy.argsort(numpy.array(rct_keys, dtype=object))
+            rct_keys = numpy.empty((len(self.reactants_keys),), dtype=object)
+            rct_keys[:] = list(map(tuple, map(sorted, self.reactants_keys)))
+            rct_idxs = numpy.argsort(rct_keys)
 
         if len(self.products_keys) == 1:
             prd_idxs = [0]
         else:
-            prd_keys = list(map(tuple, map(sorted, self.products_keys)))
-            prd_idxs = numpy.argsort(numpy.array(prd_keys, dtype=object))
+            prd_keys = numpy.empty((len(self.reactants_keys),), dtype=object)
+            prd_keys[:] = list(map(tuple, map(sorted, self.reactants_keys)))
+            prd_idxs = numpy.argsort(prd_keys)
 
         rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
         return rct_idxs, prd_idxs

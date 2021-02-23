@@ -8,6 +8,7 @@ from automol.reac._reac import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
 from automol.reac._util import ring_forming_scission_atom_keys
 from automol.reac._util import insertion_forming_bond_keys
+from automol.reac._util import hydrogen_abstraction_is_sigma
 
 
 # Unimolecular reactions
@@ -190,6 +191,13 @@ def hydrogen_abstraction_ts_zmatrix(rxn, ts_geo):
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     hyd_idx, = frm_bnd_key & brk_bnd_key
     lin_idxs.append(hyd_idx)
+
+    if hydrogen_abstraction_is_sigma(rxn):
+        rad_idx, = frm_bnd_key - brk_bnd_key
+        if rad_idx not in lin_idxs:
+            lin_idxs.append(rad_idx)
+
+    lin_idxs = sorted(lin_idxs)
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)

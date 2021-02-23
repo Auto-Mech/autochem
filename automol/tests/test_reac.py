@@ -599,7 +599,7 @@ def test__reac__hydrogen_abstraction():
     rxn_smis_lst = [
         # (['C', '[H]'], ['[CH3]', '[H][H]']),
         # (['C', '[OH]'], ['[CH3]', 'O']),
-        (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
+        # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
@@ -660,6 +660,68 @@ def test__reac__hydrogen_abstraction():
             print('axis:', axis)
             name = automol.zmat.torsion_coordinate_name(zma, *axis)
             print('\tname:', name)
+
+
+def test__reac__sigma_hydrogen_abstraction():
+    """ test sigma hydrogen abstraction functionality
+    """
+    rct_smis = ['CCO', 'C#[C]']
+    prd_smis = ['CC[O]', 'C#C']
+
+    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    print(automol.geom.string(geo))
+
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+    ztsg = zrxn.forward_ts_graph
+
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(ztsg).values())
+    print(lin_keys)
+    print(dummy_key_dct)
+    bnd_keys = automol.graph.rotational_bond_keys(ztsg, lin_keys=lin_keys)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    print(automol.zmat.string(zma, one_indexed=False))
+    print(names)
+
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
+    print(scan_name)
+    print(const_names)
+
+    # graph aligned to geometry keys
+    # (for getting rotational groups and symmetry numbers)
+    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    gtsg = grxn.forward_ts_graph
+
+    # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
+    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    ztsg = zrxn.forward_ts_graph
+    assert zrxn == old_zrxn
+
+    print('graphs')
+    print(automol.graph.string(gtsg))
+    print(automol.graph.string(ztsg))
+    lin_keys = sorted(gdummy_key_dct.keys())
+    gbnd_keys = automol.graph.rotational_bond_keys(gtsg, lin_keys=lin_keys)
+    # assert len(gbnd_keys) == len(bnd_keys)
+
+    axes = sorted(map(sorted, gbnd_keys))
+    groups_lst = [automol.graph.rotational_groups(gtsg, *a) for a in axes]
+    sym_nums = [
+        automol.graph.rotational_symmetry_number(gtsg, *a, lin_keys=lin_keys)
+        for a in axes]
+    # assert sym_nums == [3, 3, 3, 1]
+    for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
+        print('axis:', axis)
+        print('\tgroup 1:', groups[0])
+        print('\tgroup 2:', groups[1])
+        print('\tsymmetry number:', sym_num)
 
 
 def test__reac__addition():
@@ -1138,7 +1200,7 @@ if __name__ == '__main__':
     # test__reac__string()
     # test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
-    test__reac__hydrogen_abstraction()
+    # test__reac__hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__forming_bond_keys()
@@ -1150,3 +1212,4 @@ if __name__ == '__main__':
     # test__reac__reactants_graph()
     # test__reac__products_graph()
     # test__species__demo()
+    test__reac__sigma_hydrogen_abstraction()
