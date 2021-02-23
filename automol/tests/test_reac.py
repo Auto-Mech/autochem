@@ -580,9 +580,9 @@ def test__reac__hydrogen_abstraction():
     # Extra test cases:
     rxn_smis_lst = [
         (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
-        # (['C', '[H]'], ['[CH3]', '[H][H]']),
-        # (['C', '[OH]'], ['[CH3]', 'O']),
-        # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
+        (['C', '[H]'], ['[CH3]', '[H][H]']),
+        (['C', '[OH]'], ['[CH3]', 'O']),
+        (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
@@ -1137,15 +1137,11 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    # test__reac__forming_bond_keys()
-    # test__reac__breaking_bond_keys()
-    # test__reac__forming_rings_atom_keys()
-    # test__reac__forming_rings_bond_keys()
-    # test__reac__reactant_graphs()
-    # test__reac__product_graphs()
-    # test__reac__reactants_graph()
-    # test__reac__products_graph()
-    # test__species__demo()
+    # test__reac__hydrogen_migration()
+    # test__reac__ring_forming_scission()
+    test__reac__hydrogen_abstraction()
+    # test__reac__insertion()
+    # test__reac__substitution()
     test__reac__sigma_hydrogen_abstraction()
     test__reac__hydrogen_migration()
     test__reac__beta_scission()
