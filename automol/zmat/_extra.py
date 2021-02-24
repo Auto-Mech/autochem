@@ -141,7 +141,7 @@ def torsion_leading_atom(zma, key1, key2):
                 "Torsion coordinate along bond {:d}-{:d} not decoupled:\n{}"
                 .format(key1, key2, string(zma, one_indexed=False)))
             if rows[0][-1] is not None:
-                assert lead_key is None
-                lead_key = start_key
+                lead_key = (start_key if lead_key is None
+                            else min(start_key, lead_key))
 
     return lead_key
