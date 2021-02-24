@@ -8,7 +8,8 @@ ZRXN_STR = autofile.io_.read_file('1/zmat.r.yaml')
 
 ZMA = autofile.data_types.sread.zmatrix(ZMA_STR)
 ZRXN = autofile.data_types.sread.reaction(ZRXN_STR)
-print('zma:\n', automol.zmat.string(ZMA))
+print('zrxn:\n', ZRXN)
+print('\nzma:\n', automol.zmat.string(ZMA))
 
 RCT_GRAS = automol.reac.reactant_graphs(ZRXN)
 PRD_GRAS = automol.reac.product_graphs(ZRXN)
@@ -24,6 +25,11 @@ print(PRD_SMIS)
 # # You can also do this to determine linear atoms from zmatrix:
 # bnd_keys = automol.reac.rotational_bond_keys(ZRXN, zma=ZMA)
 ZBND_KEYS = automol.reac.rotational_bond_keys(ZRXN)
+# print('rot bond_keys:', ZBND_KEYS)
+print('rot bond_keys:')
+for key in ZBND_KEYS:
+    print(key)
+    automol.zmat.torsion_coordinate_name(ZMA, *key)
 
 NAMES = {automol.zmat.torsion_coordinate_name(ZMA, *k) for k in ZBND_KEYS}
 print('zma:\n', automol.zmat.string(ZMA, one_indexed=False))
