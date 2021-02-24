@@ -537,6 +537,8 @@ def test__reac__hydrogen_abstraction():
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
+    print('zrxn\n', zrxn)
+
     # You can also do this to determine linear atoms from zmatrix:
     # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
     bnd_keys = automol.reac.rotational_bond_keys(zrxn)
@@ -557,10 +559,6 @@ def test__reac__hydrogen_abstraction():
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
-
-    print(rxn)
-    print(zrxn)
-    print(grxn)
 
     # Check that the reaction object can be converted back, if needed
     old_zrxn = zrxn
@@ -1157,4 +1155,4 @@ if __name__ == '__main__':
     # test__reac__elimination()
     # test__reac__addition()
     # test__reac__insertion()
-    test__reac__substitution()
+    # test__reac__substitution()
