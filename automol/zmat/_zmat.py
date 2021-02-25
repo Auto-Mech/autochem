@@ -691,7 +691,7 @@ def samples(zma, nsamp, range_dct):
     ranges = tuple(range_dct.values())
     vals_lst = _sample_over_ranges(ranges, nsamp)
 
-    zmas = tuple(set_values_by_name(zma, dict(zip(_names, vals)))
+    zmas = tuple(set_values_by_name(zma, dict(zip(_names, vals)), degree=False)
                  for vals in vals_lst)
     return zmas
 
