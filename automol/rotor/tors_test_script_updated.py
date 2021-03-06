@@ -3,8 +3,8 @@
 import autofile
 import automol
 
-ZMA_STR = autofile.io_.read_file('3/zmat.zmat')
-ZRXN_STR = autofile.io_.read_file('3/zmat.r.yaml')
+ZMA_STR = autofile.io_.read_file('1/zmat.zmat')
+ZRXN_STR = autofile.io_.read_file('1/zmat.r.yaml')
 
 ZMA = autofile.data_types.sread.zmatrix(ZMA_STR)
 ZRXN = autofile.data_types.sread.reaction(ZRXN_STR)

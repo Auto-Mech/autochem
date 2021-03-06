@@ -1,6 +1,7 @@
 """ functions for working with torsion axis (rotational bond)s and groups
 """
-
+import automol.convert.zmat
+import automol.graph
 from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import string
@@ -87,7 +88,7 @@ def dihedral_angle_coordinate_name(zma, key1, key2, key3, key4):
     return name
 
 
-def torsion_coordinate_name(zma, key1, key2):
+def torsion_coordinate_name(zma, key1, key2, zgra=None):
     """ Obtain the name for dihedral coordinate about a torsion axis
         (rotational bond).
 
@@ -97,17 +98,19 @@ def torsion_coordinate_name(zma, key1, key2):
         :type key1: int
         :param key2: the second key in the torsion axis (rotational bond)
         :type key2: int
+        :param gra: an automol graph data structure, aligned to the z-matrix;
+            used to check connectivity when necessary
         :rtype: str
     """
 
-    key = torsion_leading_atom(zma, key1, key2)
+    key = torsion_leading_atom(zma, key1, key2, zgra=zgra)
     name_mat = name_matrix(zma)
     name = name_mat[key][-1]
 
     return name
 
 
-def torsion_leading_atom(zma, key1, key2):
+def torsion_leading_atom(zma, key1, key2, zgra=None):
     """ Obtain the leading atom for a torsion coordinate about a torsion axis.
 
         The leading atom is the atom whose dihedral defines the torsional
@@ -123,6 +126,9 @@ def torsion_leading_atom(zma, key1, key2):
         :type key1: int
         :param key2: the second key in the torsion axis (rotational bond)
         :type key2: int
+        :param gra: an automol graph data structure, aligned to the z-matrix;
+            used to check connectivity when necessary
+        :rtype: int
     """
 
     key_mat = key_matrix(zma)
@@ -148,9 +154,26 @@ def torsion_leading_atom(zma, key1, key2):
     elif len(lead_key_candidates) == 1:
         lead_key = lead_key_candidates[0]
     else:
-        # print('candidates', key1, key2)
-        # for k in lead_key_candidates:
-        #     print(k, key_mat[k])
-        lead_key = min(lead_key_candidates)
+        # If we get to this point, then the z-matrix includes dihedrals across
+        # the key1-key2 bond in both directions and we have to choose which
+        # dihedral to use. This mans there will be two lead_key_candidates.
+        zgra = automol.convert.zmat.graph(zma) if zgra is None else zgra
+
+        # Let key0 be the lead key and let (key1, key2, key3) be its key row in
+        # the z-matrix. For the torsion coordinate, key0-key1-key2-key3 should
+        # all be connected in a line. For subsidiary dihedral coordinates, key3
+        # will be connected to key1 instead of key2.
+        # A simple solution is therefore to choose the lead key based on
+        # whether or not key2 and key3 are connected, which is what this code
+        # does.
+        bnd_keys = automol.graph.bond_keys(zgra)
+        lead_key = next((k for k in lead_key_candidates if
+                         frozenset(key_mat[k][-2:]) in bnd_keys), None)
+
+        # If that fails, choose the key that appears earlier. It's possible
+        # that it would be better to choose the later one, in which case we
+        # would replace the min() here with a max().
+        if lead_key is None:
+            lead_key = min(lead_key_candidates)
 
     return lead_key
