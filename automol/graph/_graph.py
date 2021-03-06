@@ -862,6 +862,14 @@ def without_fractional_bonds(gra):
     return gra
 
 
+def without_dummy_bonds(gra):
+    """ remove 0-order bonds from the graph
+    """
+    ord_dct = dict_.filter_by_value(bond_orders(gra), func=lambda x: x == 0)
+    gra = remove_bonds(gra, ord_dct.keys())
+    return gra
+
+
 def move_idx_to_top(gra, idx1, idx2):
     """ move indexing for atm at idx1 to idx2
     """

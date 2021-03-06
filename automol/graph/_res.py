@@ -25,6 +25,7 @@ from automol.graph._graph import atom_groups
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import dummy_atoms_neighbor_atom_key
 from automol.graph._graph import without_fractional_bonds
+from automol.graph._graph import without_dummy_bonds
 
 
 # atom properties
@@ -381,6 +382,7 @@ def subresonances(rgr):
 def _bond_capacities(rgr):
     """ the number of electron pairs available for further pi-bonding, by bond
     """
+    rgr = without_dummy_bonds(rgr)
     atm_unsat_vlc_dct = atom_unsaturated_valences(rgr)
 
     def _pi_capacities(bnd_key):
