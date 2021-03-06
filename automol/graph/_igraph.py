@@ -12,11 +12,8 @@ from phydat import ptab
 def from_graph(gra):
     """ igraph object from a molecular graph
     """
-    atm_labels = sorted(automol.graph.atom_keys(gra))
-    bnd_labels = list(sorted(map(sorted, automol.graph.bond_keys(gra))))
-
-    atm_keys = atm_labels
-    bnd_keys = list(map(frozenset, bnd_labels))
+    atm_keys = sorted(automol.graph.atom_keys(gra))
+    bnd_keys = sorted(automol.graph.bond_keys(gra), key=sorted)
 
     atm_vals = dict_.values_by_key(automol.graph.atoms(gra), atm_keys)
     bnd_vals = dict_.values_by_key(automol.graph.bonds(gra), bnd_keys)
@@ -24,11 +21,11 @@ def from_graph(gra):
     atm_colors = list(itertools.starmap(_encode_vertex_attributes, atm_vals))
     bnd_colors = list(itertools.starmap(_encode_edge_attributes, bnd_vals))
 
-    igr = igraph.Graph(bnd_labels)
+    atm_idx_dct = dict(map(reversed, enumerate(atm_keys)))
+    bnd_idxs = [sorted(map(atm_idx_dct.__getitem__, k)) for k in bnd_keys]
+    igr = igraph.Graph(bnd_idxs)
 
-    igr.vs['label'] = atm_labels
-    igr.es['label'] = bnd_labels
-
+    igr.vs['keys'] = atm_keys
     igr.vs['color'] = atm_colors
     igr.es['color'] = bnd_colors
 
@@ -38,14 +35,14 @@ def from_graph(gra):
 def to_graph(igr):
     """ igraph object from a molecular graph
     """
-    atm_labels = igr.vs['label']
-    bnd_labels = igr.es['label']
+    atm_keys = igr.vs['keys']
+    atm_key_dct = dict(enumerate(atm_keys))
+
+    bnd_idxs = [e.tuple for e in igr.es]
+    bnd_keys = [frozenset(map(atm_key_dct.__getitem__, k)) for k in bnd_idxs]
 
     atm_colors = igr.vs['color']
     bnd_colors = igr.es['color']
-
-    atm_keys = atm_labels
-    bnd_keys = list(map(frozenset, bnd_labels))
 
     atm_vals = list(map(_decode_vertex_attributes, atm_colors))
     bnd_vals = list(map(_decode_edge_attributes, bnd_colors))
@@ -126,15 +123,31 @@ def _decode_edge_attributes(color):
     return order, par
 
 
+def isomorphisms(igr1, igr2):
+    """ get the list of automorphisms for an igraph object
+    """
+    atm_colors1 = igr1.vs['color']
+    bnd_colors1 = igr1.es['color']
+    atm_colors2 = igr2.vs['color']
+    bnd_colors2 = igr2.es['color']
+    isos = igr2.get_isomorphisms_vf2(
+        other=igr1,
+        color1=atm_colors2, color2=atm_colors1,
+        edge_color1=bnd_colors2, edge_color2=bnd_colors1,
+    )
+
+    atm_keys1 = igr1.vs['keys']
+    atm_keys2 = igr2.vs['keys']
+    atm_keys2_dct = dict(enumerate(atm_keys2))
+    iso_dcts = [dict(zip(atm_keys1, map(atm_keys2_dct.__getitem__, i)))
+                for i in isos]
+    return iso_dcts
+
+
 def automorphisms(igr):
     """ get the list of automorphisms for an igraph object
     """
-    atm_keys = igr.vs['label']
-    atm_colors = igr.vs['color']
-    bnd_colors = igr.es['color']
-    auts = igr.get_automorphisms_vf2(color=atm_colors, edge_color=bnd_colors)
-    aut_dcts = [dict(zip(atm_keys, aut)) for aut in auts]
-    return aut_dcts
+    return isomorphisms(igr, igr)
 
 
 def canonical_permutation(igr):
@@ -148,3 +161,19 @@ def canonical_permutation(igr):
     perm = igr.canonical_permutation(color=atm_colors)
     perm_dct = dict(zip(atm_keys, perm))
     return perm_dct
+
+
+if __name__ == '__main__':
+    import automol
+    GRA1 = ({0: ('C', 0, None), 1: ('H', 0, None), 2: ('H', 0, None),
+             3: ('H', 0, None), 4: ('H', 0, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({0, 4}): (1, None), frozenset({0, 3}): (1, None)})
+    GRA2 = automol.graph.relabel(GRA1, {0: 1, 1: 0})
+    GRA2 = automol.graph.relabel(GRA2, dict(enumerate(range(5, 10))))
+    print(automol.graph.string(GRA2, one_indexed=False))
+    IGR1 = from_graph(GRA1)
+    IGR2 = from_graph(GRA2)
+    isomorphisms(IGR1, IGR2)
+    # print(IGR1)
+    # print(IGR2)
