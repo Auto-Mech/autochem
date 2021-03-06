@@ -1,37 +1,27 @@
 """ script testing the torsion code for problem case
 """
-import autofile
+# import autofile
 import automol
 
-ZMA_STR = autofile.io_.read_file('3/zmat.zmat')
-ZRXN_STR = autofile.io_.read_file('3/zmat.r.yaml')
+ICH = automol.smiles.inchi("CCCC")
+GEO = automol.inchi.geometry(ICH)
+GRA = automol.geom.graph(GEO)
 
-ZMA = autofile.data_types.sread.zmatrix(ZMA_STR)
-ZRXN = autofile.data_types.sread.reaction(ZRXN_STR)
+ZMA, ZMA_KEYS, DUMMY_KEY_DCT = automol.convert.geom.zmatrix(GEO)
+ZGRA = automol.graph.relabel_for_zmatrix(GRA, ZMA_KEYS, DUMMY_KEY_DCT)
 
-RCT_GRAS = automol.reac.reactant_graphs(ZRXN)
-PRD_GRAS = automol.reac.product_graphs(ZRXN)
+LIN_KEYS = sorted(
+    automol.graph.dummy_atoms_neighbor_atom_key(ZGRA).values())
+BND_KEYS = automol.graph.rotational_bond_keys(ZGRA, lin_keys=LIN_KEYS)
 
-RCT_ICHS = list(map(automol.graph.inchi, RCT_GRAS))
-PRD_ICHS = list(map(automol.graph.inchi, PRD_GRAS))
-
-RCT_SMIS = list(map(automol.inchi.smiles, RCT_ICHS))
-PRD_SMIS = list(map(automol.inchi.smiles, PRD_ICHS))
-print(RCT_SMIS)
-print(PRD_SMIS)
-
-# # You can also do this to determine linear atoms from zmatrix:
-# bnd_keys = automol.reac.rotational_bond_keys(ZRXN, zma=ZMA)
-ZBND_KEYS = automol.reac.rotational_bond_keys(ZRXN)
-
-NAMES = {automol.zmat.torsion_coordinate_name(ZMA, *k) for k in ZBND_KEYS}
+NAMES = {automol.zmat.torsion_coordinate_name(ZMA, *k) for k in BND_KEYS}
 print('zma:\n', automol.zmat.string(ZMA, one_indexed=False))
 print('torsion coordinate names:', NAMES)
 
 # graph aligned to geometry keys
 # (for getting rotational groups and symmetry numbers)
 GEO, _ = automol.convert.zmat.geometry(ZMA)
-GRXN = automol.reac.relabel_for_geometry(ZRXN)
+GGRA = automol.graph.relabel_for_geometry(ZGRA)
 print('geo:\n', automol.geom.string(GEO))
 
 # scan_name = automol.reac.scan_coordinate(ZRXN, ZMA)

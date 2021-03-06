@@ -131,7 +131,7 @@ def torsion_leading_atom(zma, key1, key2):
     krs2 = [(key, row) for key, row in enumerate(key_mat)
             if row[:2] == (key2, key1)]
 
-    lead_key = None
+    lead_key_candidates = []
 
     for krs in (krs1, krs2):
         if krs:
@@ -141,7 +141,16 @@ def torsion_leading_atom(zma, key1, key2):
                 "Torsion coordinate along bond {:d}-{:d} not decoupled:\n{}"
                 .format(key1, key2, string(zma, one_indexed=False)))
             if rows[0][-1] is not None:
-                lead_key = (start_key if lead_key is None
-                            else min(start_key, lead_key))
+                lead_key_candidates.append(start_key)
+
+    if not lead_key_candidates:
+        lead_key = None
+    elif len(lead_key_candidates) == 1:
+        lead_key = lead_key_candidates[0]
+    else:
+        # print('candidates', key1, key2)
+        # for k in lead_key_candidates:
+        #     print(k, key_mat[k])
+        lead_key = min(lead_key_candidates)
 
     return lead_key
