@@ -725,7 +725,7 @@ def test__reac__addition():
 
     # Extra test cases:
     rxn_smis_lst = [
-        (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
+        # (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
