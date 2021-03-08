@@ -140,10 +140,10 @@ def rxn_obj_from_inchi(rct_ichs, prd_ichs, indexing='geo'):
     rct_geos = list(map(automol.inchi.geometry, rct_ichs))
     prd_geos = list(map(automol.inchi.geometry, prd_ichs))
 
-    rxn, struct = rxn_obj_from_geometry(
+    rxn, geo, rct_geos, prd_geos = rxn_obj_from_geometry(
         rct_geos, prd_geos, indexing=indexing)
 
-    return rxn, struct
+    return rxn, geo, rct_geos, prd_geos
 
 
 def rxn_obj_from_smiles(rct_smis, prd_smis, indexing='geo'):
@@ -152,35 +152,32 @@ def rxn_obj_from_smiles(rct_smis, prd_smis, indexing='geo'):
 
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
     prd_ichs = list(map(automol.smiles.inchi, prd_smis))
-    
+
     rct_geos = list(map(automol.inchi.geometry, rct_ichs))
     prd_geos = list(map(automol.inchi.geometry, prd_ichs))
 
-    rxn, struct = rxn_obj_from_geometry(
+    rxn, geo, rct_geos, prd_geos = rxn_obj_from_geometry(
         rct_geos, prd_geos, indexing=indexing)
 
-    return rxn, struct
+    return rxn, geo, rct_geos, prd_geos
 
 
 def rxn_obj_from_zmatrix(rct_zmas, prd_zmas, indexing='geo'):
     """ Generate rxn obj
     """
 
-    rct_geos = list(map(automol.zmatrix.geometry, rct_zmas))
-    prd_geos = list(map(automol.zmatrix.geometry, prd_zmas))
+    rct_geos = list(map(automol.zmat.geometry, rct_zmas))
+    prd_geos = list(map(automol.zmat.geometry, prd_zmas))
 
-    rxn, struct = rxn_obj_from_geometry(
+    rxn, geo, rct_geos, prd_geos = rxn_obj_from_geometry(
         rct_geos, prd_geos, indexing=indexing)
 
-    return rxn, struct
+    return rxn, geo, rct_geos, prd_geos
 
 
 def rxn_obj_from_geometry(rct_geos, prd_geos, indexing='geo'):
-    """ from 
+    """ from
     """
-
-    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
 
     rct_gras = list(map(automol.graph.without_stereo_parities,
                         map(automol.geom.graph, rct_geos)))
@@ -197,9 +194,9 @@ def rxn_obj_from_geometry(rct_geos, prd_geos, indexing='geo'):
         automol.reac.standard_keys_with_sorted_geometries(
             rxn, rct_geos, prd_geos))
     geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
-   
+
     if indexing == 'zma':
-        zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+        _, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
         rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    return rxn, rct_geos, prd_geos
+    return rxn, geo, rct_geos, prd_geos
