@@ -24,3 +24,4 @@ requirements:
         - rdkit::rdkit
         - openbabel::openbabel
         - conda-forge::qcelemental
+        - conda-forge::python-igraph
