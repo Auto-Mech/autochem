@@ -1,4 +1,4 @@
-""" test automol.reac
+""" test automol.reac BRUH
 """
 
 import sys
@@ -537,6 +537,8 @@ def test__reac__hydrogen_abstraction():
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
+    print('zrxn\n', zrxn)
+
     # You can also do this to determine linear atoms from zmatrix:
     # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
     bnd_keys = automol.reac.rotational_bond_keys(zrxn)
@@ -580,9 +582,9 @@ def test__reac__hydrogen_abstraction():
     # Extra test cases:
     rxn_smis_lst = [
         (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
-        # (['C', '[H]'], ['[CH3]', '[H][H]']),
-        # (['C', '[OH]'], ['[CH3]', 'O']),
-        # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
+        (['C', '[H]'], ['[CH3]', '[H][H]']),
+        (['C', '[OH]'], ['[CH3]', 'O']),
+        (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
@@ -856,6 +858,10 @@ def test__reac__substitution():
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
+
+    print(rxn)
+    print(zrxn)
+    print(grxn)
 
     # Check that the reaction object can be converted back, if needed
     old_zrxn = zrxn
@@ -1180,21 +1186,16 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    # test__reac__forming_bond_keys()
-    # test__reac__breaking_bond_keys()
-    # test__reac__forming_rings_atom_keys()
-    # test__reac__forming_rings_bond_keys()
-    # test__reac__reactant_graphs()
-    # test__reac__product_graphs()
-    # test__reac__reactants_graph()
-    # test__reac__products_graph()
-    # test__species__demo()
+    # test__reac__hydrogen_migration()
+    # test__reac__ring_forming_scission()
+    test__reac__hydrogen_abstraction()
+    # test__reac__insertion()
+    # test__reac__substitution()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
-    # test__reac__hydrogen_abstraction()
-    test__reac__addition()
+    # test__reac__addition()
     # test__reac__insertion()
     # test__reac__substitution()

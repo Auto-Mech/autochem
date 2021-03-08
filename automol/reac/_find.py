@@ -139,6 +139,10 @@ def hydrogen_migrations(rct_gras, prd_gras):
                     prds_keys=[atom_keys(gra2)],
                 ))
 
+    for i,x in enumerate(rxns):
+        print(i)
+        print(x)
+
     return tuple(rxns)
 
 
