@@ -97,6 +97,31 @@ def test__mat():
 
     assert mat_str == ref_mat_str
 
-test__vec()
-test__mat()
 
+def test__highd_mat():
+    """ test automol.util.highd_mat.from_string
+        test automol.util.highd_mat.string
+        test automol.util.highd_mat.string_submat_3d
+        test automol.util.highd_mat.string_submat_4d
+    """
+
+    # Basic Operations
+    with open('inmat') as fobj:
+        arr_str = fobj.read()
+    arr = automol.util.highd_mat.from_string(arr_str)
+    arr_str2 = automol.util.highd_mat.string(arr)
+
+    print(arr_str)
+    print(arr)
+    print(arr_str2)
+
+    # fancy operations
+    arr_str3 = automol.util.highd_mat.string_submat_3d(arr)
+    print(arr_str3)
+    with open('outmat', 'w') as fobj:
+        fobj.write(arr_str3)
+
+    arr_str4 = automol.util.highd_mat.string_submat_4d(arr)
+    print(arr_str4)
+    with open('outmat2', 'w') as fobj:
+        fobj.write(arr_str4)

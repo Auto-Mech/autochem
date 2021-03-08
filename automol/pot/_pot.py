@@ -150,22 +150,6 @@ def dimension(pot):
     return len(list(pot.keys())[0])
 
 
-# I/O
-def string(tors_pots):
-    """ Check hr pot to see if a new mimnimum is needed
-    """
-
-    print('\nHR potentials...')
-    for name in tors_pots:
-
-        print('- Rotor {}'.format(name))
-        pot_str = ''
-        for pot in tors_pots[name].values():
-            pot_str += ' {0:.2f}'.format(pot)
-
-        print('- Pot:{}'.format(pot_str))
-
-
 def check_hr_pot(tors_pots, tors_zmas, tors_paths, emax=-0.5, emin=-10.0):
     """ Check hr pot to see if a new mimnimum is needed
     """
@@ -189,3 +173,18 @@ def check_hr_pot(tors_pots, tors_zmas, tors_paths, emax=-0.5, emin=-10.0):
                 print(automol.zmat.string(zma))
 
     return new_min_zma
+
+
+# I/O
+def string(pot):
+    """ Write a string for the potential
+        maybe add a way to print coords and values?
+        right now its just values
+        call util.vec.string
+    """
+
+    pot_str = ''
+    for val in pot.values():
+        pot_str += ' {0:.6f}'.format(pot)
+
+    return pot_str

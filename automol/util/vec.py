@@ -342,7 +342,7 @@ def _augmented(xyz):
 
 
 # I/O
-def string(vec, num_per_row=3, val_format='{0:>8.3f}'):
+def string(vec, num_per_row=None, val_format='{0:>8.3f}'):
     """ Write a vector to a string.
 
         :param vec: vector to form string with
@@ -351,6 +351,9 @@ def string(vec, num_per_row=3, val_format='{0:>8.3f}'):
         :type num_per_row: int
         :rtype: str
     """
+
+    if num_per_row is None:
+        num_per_row = len(vec)
 
     assert isinstance(num_per_row, int), 'num_per_row must be an integer'
 
