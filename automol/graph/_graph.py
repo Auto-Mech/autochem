@@ -24,6 +24,7 @@ from automol.graph._graph_base import set_bond_orders
 from automol.graph._graph_base import set_bond_stereo_parities
 from automol.graph._graph_base import relabel
 from automol.graph import _networkx
+from automol.graph import _igraph
 import automol.create.graph as _create
 
 
@@ -862,6 +863,14 @@ def without_fractional_bonds(gra):
     return gra
 
 
+def without_dummy_bonds(gra):
+    """ remove 0-order bonds from the graph
+    """
+    ord_dct = dict_.filter_by_value(bond_orders(gra), func=lambda x: x == 0)
+    gra = remove_bonds(gra, ord_dct.keys())
+    return gra
+
+
 def move_idx_to_top(gra, idx1, idx2):
     """ move indexing for atm at idx1 to idx2
     """
@@ -994,13 +1003,29 @@ def explicit(gra, atm_keys=None):
 
 
 # # comparisons
-def full_isomorphism(gra1, gra2):
+# def isomorphisms(gra1, gra2):
+#     """ isomorphisms between two graphs
+#     """
+#     assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
+#     igr1 = _igraph.from_graph(gra1)
+#     igr2 = _igraph.from_graph(gra2)
+#     iso_dcts = _igraph.isomorphisms(igr1, igr2)
+#     return iso_dcts
+
+
+def full_isomorphism(gra1, gra2, igraph=True):
     """ full graph isomorphism
     """
     assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
-    nxg1 = _networkx.from_graph(gra1)
-    nxg2 = _networkx.from_graph(gra2)
-    iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    if igraph:
+        igr1 = _igraph.from_graph(gra1)
+        igr2 = _igraph.from_graph(gra2)
+        iso_dcts = _igraph.isomorphisms(igr1, igr2)
+        iso_dct = iso_dcts[0] if iso_dcts else None
+    else:
+        nxg1 = _networkx.from_graph(gra1)
+        nxg2 = _networkx.from_graph(gra2)
+        iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
@@ -1020,7 +1045,7 @@ def backbone_isomorphic(gra1, gra2):
     return backbone_isomorphism(gra1, gra2) is not None
 
 
-def backbone_isomorphism(gra1, gra2):
+def backbone_isomorphism(gra1, gra2, igraph=True):
     """ graph backbone isomorphism
 
     for implicit graphs, this is the relabeling of `gra1` to produce `gra2`
@@ -1028,9 +1053,15 @@ def backbone_isomorphism(gra1, gra2):
     """
     gra1 = implicit(gra1)
     gra2 = implicit(gra2)
-    nxg1 = _networkx.from_graph(gra1)
-    nxg2 = _networkx.from_graph(gra2)
-    iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    if igraph:
+        igr1 = _igraph.from_graph(gra1)
+        igr2 = _igraph.from_graph(gra2)
+        iso_dcts = _igraph.isomorphisms(igr1, igr2)
+        iso_dct = iso_dcts[0] if iso_dcts else None
+    else:
+        nxg1 = _networkx.from_graph(gra1)
+        nxg2 = _networkx.from_graph(gra2)
+        iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 

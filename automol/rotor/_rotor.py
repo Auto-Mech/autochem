@@ -183,7 +183,7 @@ def from_string(tors_str):
 
     def _decode_idxs(idxs_str):
         if isinstance(idxs_str, int):
-            idxs = int(idxs_str)-1
+            idxs = (int(idxs_str)-1,)
         else:
             idxs = tuple(map(int, idxs_str.split('-')))
             idxs = tuple(val-1 for val in idxs)

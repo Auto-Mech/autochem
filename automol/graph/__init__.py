@@ -86,6 +86,7 @@ from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import without_dummy_atoms
 from automol.graph._graph import without_fractional_bonds
+from automol.graph._graph import without_dummy_bonds
 # implicit/explicit hydrogen functions
 # # atom properties
 from automol.graph._graph import atom_explicit_hydrogen_valences
@@ -342,6 +343,7 @@ __all__ = [
     'remove_bonds',
     'without_dummy_atoms',
     'without_fractional_bonds',
+    'without_dummy_bonds',
 
     # implicit/explicit hydrogen functions
     # # atom properties

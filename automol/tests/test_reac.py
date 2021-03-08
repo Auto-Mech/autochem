@@ -725,6 +725,49 @@ def test__reac__addition():
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
 
+    # Extra test cases:
+    rxn_smis_lst = [
+        # (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
+    ]
+    for rct_smis, prd_smis in rxn_smis_lst:
+        rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
+        geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+
+        # reaction object aligned to z-matrix keys
+        # (for getting torsion coordinate names)
+        zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+        zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+        # You can also do this to determine linear atoms from zmatrix:
+        # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+        bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+        names = {automol.zmat.torsion_coordinate_name(zma, *k)
+                 for k in bnd_keys}
+        print(automol.zmat.string(zma, one_indexed=False))
+        print(names)
+
+        scan_name = automol.reac.scan_coordinate(zrxn, zma)
+        const_names = automol.reac.constraint_coordinates(zrxn, zma)
+        print(scan_name)
+        print(const_names)
+
+        # graph aligned to geometry keys
+        # (for getting rotational groups and symmetry numbers)
+        geo, _ = automol.convert.zmat.geometry(zma)
+        grxn = automol.reac.relabel_for_geometry(zrxn)
+        print(automol.geom.string(geo))
+
+        gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+
+        axes = sorted(map(sorted, gbnd_keys))
+        for axis in axes:
+            print('axis:', axis)
+            groups = automol.reac.rotational_groups(grxn, *axis)
+            print('\tgroup 1:', groups[0])
+            print('\tgroup 2:', groups[1])
+            sym_num = automol.reac.rotational_symmetry_number(grxn, *axis)
+            print('\tsymmetry number:', sym_num)
+
 
 def test__reac__insertion():
     """ test insertion functionality

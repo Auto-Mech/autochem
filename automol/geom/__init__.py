@@ -68,6 +68,7 @@ from automol.geom._comp import minimum_distance
 from automol.geom._comp import almost_equal_coulomb_spectrum
 from automol.geom._comp import argunique_coulomb_spectrum
 from automol.geom._comp import is_unique
+from automol.geom._comp import are_torsions_same
 # extras
 from automol.geom._extra import end_group_symmetry_factor
 from automol.geom._extra import rot_permutated_geoms
@@ -212,6 +213,7 @@ __all__ = [
     'argunique_coulomb_spectrum',
     'almost_equal_dist_matrix',
     'is_unique',
+    'are_torsions_same',
     # extras
     'end_group_symmetry_factor',
     'rot_permutated_geoms',
