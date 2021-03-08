@@ -8,9 +8,9 @@ source:
 
 requirements:
     build:
-        - python
+        - python=3.7
     run:
-        - python
+        - python=3.7
         - numpy
         - networkx
         - pytest
@@ -18,8 +18,8 @@ requirements:
         - future
         - flake8
         - pylint
-        - kevinmooreiii::autoparse
-        - kevinmooreiii::autoio
+        - auto-mech::autoparse
+        - auto-mech::autoio
         - auto-mech::x2z
         - rdkit::rdkit
         - openbabel::openbabel

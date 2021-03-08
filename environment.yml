@@ -17,6 +17,8 @@ dependencies:
     - flake8
     - pylint
     - kevinmooreiii::autoparse
+    - auto-mech::autoread
+    - auto-mech::autowrite
     - auto-mech::x2z
     - rdkit::rdkit
     - openbabel::openbabel

@@ -67,6 +67,7 @@ from automol.zmat._zmat import bond_key_from_idxs
 from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
 from automol.zmat._zmat import constraint_dct
+from automol.zmat._zmat import distance_names
 
 
 
@@ -193,5 +194,6 @@ __all__ = [
     'get_babs1',
     'get_babs2',
     'constraint_dct',
+    'distance_names',
 ]
 
