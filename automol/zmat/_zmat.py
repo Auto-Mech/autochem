@@ -764,6 +764,12 @@ def atom_indices(zma, sym, match=True):
     return idxs
 
 
+def distance_names(zma):
+    """ distance coordinate names
+    """
+    return vmat.distance_names(vmatrix(zma))
+
+
 # wrappers to vmat
 def dummy_coordinate_names(zma):
     """ names of dummy atom coordinates

@@ -1013,7 +1013,7 @@ def explicit(gra, atm_keys=None):
 #     return iso_dcts
 
 
-def full_isomorphism(gra1, gra2, igraph=True):
+def full_isomorphism(gra1, gra2, igraph=False): #True):
     """ full graph isomorphism
     """
     assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
@@ -1045,7 +1045,7 @@ def backbone_isomorphic(gra1, gra2):
     return backbone_isomorphism(gra1, gra2) is not None
 
 
-def backbone_isomorphism(gra1, gra2, igraph=True):
+def backbone_isomorphism(gra1, gra2, igraph=False): #True):
     """ graph backbone isomorphism
 
     for implicit graphs, this is the relabeling of `gra1` to produce `gra2`
