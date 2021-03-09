@@ -49,7 +49,6 @@ def _assess_dimensionality(rotor_lst):
     # Check the dimensionality of each rotor to see if they are greater than 4
     final_rotor = ()
     for rotor in rotor_lst:
-        print(len(rotor))
         if len(rotor) > 4:
             final_rotor += _reduce_rotor_dimensionality(rotor)
         else:

@@ -9,7 +9,7 @@ import automol.util.vec
 
 # I/O
 def string(arr, include_zeros=False, include_perms=False,
-           val_format='{>16.8f}'):
+           val_format='{0:>16.8f}'):
     """ Write a higher dimensional array (3 or more) to a string.
 
         :param arr: higher dimensions matrix

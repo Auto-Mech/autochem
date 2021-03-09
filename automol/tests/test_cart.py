@@ -27,11 +27,12 @@ def test__vec():
     perp = automol.util.vec.unit_perpendicular(
         MAT[0], MAT[1], allow_parallel=False)
     assert numpy.allclose(perp, ref_perp)
+
     ref_perp = (0.000, 0.000, 0.000)
     perp = automol.util.vec.unit_perpendicular(
         MAT[0], MAT[0], allow_parallel=True)
-    print(perp)
     assert numpy.allclose(perp, ref_perp)
+
     with pytest.raises(ValueError):
         automol.util.vec.unit_perpendicular(
             MAT[0], MAT[0], allow_parallel=False)
@@ -105,23 +106,37 @@ def test__highd_mat():
         test automol.util.highd_mat.string_submat_4d
     """
 
-    # Basic Operations
-    with open('inmat') as fobj:
-        arr_str = fobj.read()
-    arr = automol.util.highd_mat.from_string(arr_str)
-    arr_str2 = automol.util.highd_mat.string(arr)
+    def _chk_mat_strs(str1, str2):
+        """ Check if two matrix strings are similar
+        """
+        match = True
+        for line1, line2 in zip(str1.splitlines(), str2.splitlines()):
+            vals1 = tuple(float(val) for val in line1.strip().split())
+            vals2 = tuple(float(val) for val in line2.strip().split())
+            if not numpy.allclose(vals1, vals2):
+                match = False
+        return match
 
-    print(arr_str)
-    print(arr)
-    print(arr_str2)
+    ref_3d_str = read_file(['data'], 'ch4_h.cubic')
+    ref_4d_str = read_file(['data'], 'ch4_h.quartic')
 
-    # fancy operations
-    arr_str3 = automol.util.highd_mat.string_submat_3d(arr)
-    print(arr_str3)
-    with open('outmat', 'w') as fobj:
-        fobj.write(arr_str3)
+    # Handle reprentations with full matrices and strings printed by indices
+    test_3d_mat = automol.util.highd_mat.from_string(ref_3d_str)
+    test_4d_mat = automol.util.highd_mat.from_string(ref_4d_str)
 
-    arr_str4 = automol.util.highd_mat.string_submat_4d(arr)
-    print(arr_str4)
-    with open('outmat2', 'w') as fobj:
-        fobj.write(arr_str4)
+    test_3d_str = automol.util.highd_mat.string(test_3d_mat)
+    test_4d_str = automol.util.highd_mat.string(test_4d_mat)
+
+    assert _chk_mat_strs(test_3d_str, ref_3d_str)
+    assert _chk_mat_strs(test_4d_str, ref_4d_str)
+
+    # Handle string representations printed by submatrices (finish)
+    test_3d_submat_str = automol.util.highd_mat.string_submat_3d(test_3d_mat)
+    with open('data/ch4_h.cubic_submat', 'w') as fobj:
+        fobj.write(test_3d_submat_str)
+    assert test_3d_submat_str == read_file(['data'], 'ch4_h.cubic_submat')
+
+    test_4d_submat_str = automol.util.highd_mat.string_submat_4d(test_4d_mat)
+    with open('data/ch4_h.quartic_submat', 'w') as fobj:
+        fobj.write(test_4d_submat_str)
+    assert test_4d_submat_str == read_file(['data'], 'ch4_h.quartic_submat')
