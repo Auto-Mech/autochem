@@ -2,7 +2,9 @@
     test automol.rotor
 """
 
+import numpy
 import automol
+from _util import read_file
 
 
 # Species Z-Matrix
@@ -76,7 +78,7 @@ def test__rotor():
 
     rotor_grids1 = automol.rotor.grids(rotors)
     rotor_grids2 = automol.rotor.grids(rotors, flat=True)
-    assert rotor_grids1 == (
+    ref_rotor_grids1 = (
         ((1.0274898979189644, 1.5510886735172633,
           2.074687449115562, 2.5982862247138607),),
         ((1.0913723623432035, 1.6149711379415024,
@@ -91,7 +93,7 @@ def test__rotor():
           4.162362969850445, 4.685961745448744,
           5.2095605210470435, 5.733159296645342,
           6.25675807224364, 6.78035684784194),))
-    assert rotor_grids2 == (
+    ref_rotor_grids2 = (
         (1.0274898979189644, 1.5510886735172633,
          2.074687449115562, 2.5982862247138607),
         (1.0913723623432035, 1.6149711379415024,
@@ -106,6 +108,11 @@ def test__rotor():
          4.162362969850445, 4.685961745448744,
          5.2095605210470435, 5.733159296645342,
          6.25675807224364, 6.78035684784194))
+
+    for grid1, grid2 in zip(rotor_grids1, ref_rotor_grids1):
+        assert numpy.allclose(grid1[0], grid2[0])
+    for grid1, grid2 in zip(rotor_grids2, ref_rotor_grids2):
+        assert numpy.allclose(grid1, grid2)
 
     # Test the  geometry labeling
     _, grotors = automol.rotor.relabel_for_geometry(rotors)
@@ -124,28 +131,45 @@ def test__rotor_wdummy():
     """ rotor
     """
 
-    # Build with ZMA
-    print(automol.zmat.string(C4H5OH_ZMA))
     rotors = automol.rotor.from_zmatrix(C4H5OH_ZMA)
 
     rotor_names = automol.rotor.names(rotors)
-    print(rotor_names)
+    assert rotor_names == (('D3',), ('D6',))
+
     rotor_axes = automol.rotor.axes(rotors)
-    print(rotor_axes)
+    assert rotor_axes == (((0, 1),), ((1, 3),))
 
     rotor_groups = automol.rotor.groups(rotors)
-    print(rotor_groups)
+    assert rotor_groups == (
+        (((2,), (3, 4, 5, 6, 7, 8, 10, 12)),),
+        (((0, 2, 4, 5), (6, 7, 8, 10, 12)),))
 
     rotor_symms = automol.rotor.symmetries(rotors)
-    print(rotor_symms)
+    assert rotor_symms == ((1,), (1,))
 
     # Test the  geometry labeling
-    _, grotors = automol.rotor.relabel_for_geometry(rotors)
+    geo, grotors = automol.rotor.relabel_for_geometry(rotors)
 
     grotor_axes = automol.rotor.axes(grotors)
     grotor_groups = automol.rotor.groups(grotors)
-    print(grotor_axes)
-    print(grotor_groups)
+    assert grotor_axes == (((0, 1),), ((1, 3),))
+    assert grotor_groups == (
+        (((2,), (3, 4, 5, 6, 7, 8, 9, 10)),),
+        (((0, 2, 4, 5), (6, 7, 8, 9, 10)),))
+
+    ref_geo = (
+        ('O', (0.0, 0.0, 0.0)),
+        ('C', (0.0, 0.0, 2.6941333373677034)),
+        ('H', (0.0, 1.7593975265450918, -0.5403191975073645)),
+        ('C', (-2.3100974340819165, 1.377045516992001, 3.741006171991692)),
+        ('H', (-0.03219407720602452, -1.9767630683576234, 3.301922244650277)),
+        ('H', (1.7710989178514662, 0.8450396808504071, 3.352611617148113)),
+        ('C', (-2.1162003829276244, 4.130152816827782, 3.3667203257479437)),
+        ('H', (-4.024229336688327, 0.6833531454812631, 2.8087567663093145)),
+        ('H', (-2.4815515628720064, 0.9809785625992995, 5.765926625839295)),
+        ('C', (-1.9664798243987545, 6.374404811200907, 3.0649505853232615)),
+        ('H', (-1.8424489549600154, 8.368226794166402, 2.8038654223022195)))
+    assert automol.geom.almost_equal_dist_matrix(geo, ref_geo, thresh=0.001)
 
 
 def test__name_input():
@@ -209,19 +233,23 @@ def test__string():
         test.automol.rotor.tors.from_string
     """
 
-    rotors = automol.rotor.from_zmatrix(C3H7OH_ZMA)
-    tors_str = automol.rotor.string(rotors)
-    print(tors_str)
-    tors_dct = automol.rotor.from_string(tors_str)
-    print(tors_dct)
+    rtors = automol.rotor.from_zmatrix(C3H7OH_ZMA)
 
-    # assert rotors == automol.rotor.from_data(C3H7OH_ZMA, tors_dct)
+    tors_str = automol.rotor.string(rtors)
+    assert tors_str == read_file(['data'], 'c3h7oh.tors')
+
+    tors_dct = automol.rotor.from_string(tors_str)
+    rtors2 = automol.rotor.from_data(C3H7OH_ZMA, tors_dct)
+    assert automol.rotor.names(rtors) == automol.rotor.names(rtors2)
+    assert automol.rotor.groups(rtors) == automol.rotor.groups(rtors2)
+    assert automol.rotor.axes(rtors) == automol.rotor.axes(rtors2)
+    assert automol.rotor.symmetries(rtors) == automol.rotor.symmetries(rtors2)
 
 
 if __name__ == '__main__':
-    # test__tors()
-    # test__rotor()
+    test__tors()
+    test__rotor()
     test__rotor_wdummy()
-    # test__name_input()
-    # test__mdhr()
-    # test__string()
+    test__name_input()
+    test__mdhr()
+    test__string()

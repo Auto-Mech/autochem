@@ -795,7 +795,6 @@ def fake_stereo_geometry(gra, ntries=5, max_dist_err=0.5):
     geo_idx_dct = {}
     geo = ()
     for group in ste_groups:
-        print(group)
         group_geo = geometry(gra, keys=group, ntries=ntries,
                              max_dist_err=max_dist_err)
         group_natms = len(group)

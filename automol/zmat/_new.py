@@ -37,5 +37,4 @@ def is_atom_closest_to_bond_atom(zma, idx_rad, bond_dist):
             distance = automol.geom.distance(geo, idx, idx_rad)
             if distance < bond_dist-0.01:
                 atom_closest = False
-                # print('idx test:', idx, distance, bond_dist)
     return atom_closest

@@ -10,9 +10,6 @@ def graph_with_keys(zma, zrxn=None):
     """
 
     if zrxn is None:
-        # geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-        # gra = automol.geom.graph(geo)
-        # lin_keys = sorted(gdummy_key_dct.keys())
         gra = automol.zmat.graph(zma, stereo=True, dummy=True)
         lin_keys = sorted(
             automol.graph.dummy_atoms_neighbor_atom_key(gra).values())

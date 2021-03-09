@@ -16,15 +16,12 @@ def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
     interval = (span / symmetry) - increment
 
     npoints = int(round(interval / increment, 0)) + 1
-    print('npoints', npoints)
     _grid = numpy.linspace(0.0, interval, npoints)
-    print('grid', _grid)
 
     # Displace from the coordinates equilibrium value if desired
     if from_equilibrium:
         val_dct = automol.zmat.value_dictionary(zma)
         ini_val = val_dct[coord_name]
-        print('init_val', ini_val)
         grid_from_equil = tuple(val.item() + ini_val for val in _grid)
 
     return grid_from_equil
