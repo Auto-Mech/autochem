@@ -62,6 +62,10 @@ from automol.reac._instab import instability_transformation
 from automol.reac import tunnel
 # util
 from automol.reac import _util as util
+from automol.reac._util import rxn_objs_from_inchi
+from automol.reac._util import rxn_objs_from_smiles
+from automol.reac._util import rxn_objs_from_zmatrix
+from automol.reac._util import rxn_objs_from_geometry
 
 
 __all__ = [
@@ -127,4 +131,8 @@ __all__ = [
     'tunnel',
     # util
     'util',
+    'rxn_objs_from_inchi',
+    'rxn_objs_from_smiles',
+    'rxn_objs_from_zmatrix',
+    'rxn_objs_from_geometry'
 ]

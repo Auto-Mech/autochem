@@ -34,6 +34,7 @@ from automol.graph import add_atom_explicit_hydrogen_keys
 from automol.graph import rings_bond_keys
 from automol.graph import rings_atom_keys
 from automol.graph import cycle_ring_atom_key_to_front
+from automol.graph import isomorphic_radical_graphs
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
 
@@ -105,39 +106,48 @@ def hydrogen_migrations(rct_gras, prd_gras):
     if len(rct_gras) == 1 and len(prd_gras) == 1:
         gra1, = rct_gras
         gra2, = prd_gras
+
+        # Get the keys for the reactant graph
         h_atm_key1 = max(atom_keys(gra1)) + 1
-        h_atm_key2 = max(atom_keys(gra2)) + 1
-
         atm_keys1 = unsaturated_atom_keys(gra1)
-        atm_keys2 = unsaturated_atom_keys(gra2)
-        for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
-            gra1_h = add_atom_explicit_hydrogen_keys(
-                gra1, {atm_key1: [h_atm_key1]})
-            gra2_h = add_atom_explicit_hydrogen_keys(
-                gra2, {atm_key2: [h_atm_key2]})
 
-            iso_dct = full_isomorphism(gra1_h, gra2_h)
-            if iso_dct:
-                inv_dct = dict(map(reversed, iso_dct.items()))
-                f_frm_bnd_key = (atm_key1, inv_dct[h_atm_key2])
-                f_brk_bnd_key = (inv_dct[atm_key2], inv_dct[h_atm_key2])
-                b_frm_bnd_key = (atm_key2, iso_dct[h_atm_key1])
-                b_brk_bnd_key = (iso_dct[atm_key1], iso_dct[h_atm_key1])
-                forw_tsg = ts.graph(gra1,
-                                    frm_bnd_keys=[f_frm_bnd_key],
-                                    brk_bnd_keys=[f_brk_bnd_key])
-                back_tsg = ts.graph(gra2,
-                                    frm_bnd_keys=[b_frm_bnd_key],
-                                    brk_bnd_keys=[b_brk_bnd_key])
+        # Generate reactions for all isomorphic graphs of products
+        gra2_lst = (gra2,) + isomorphic_radical_graphs(gra2)
 
-                # Create the reaction object
-                rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
-                    forw_tsg=forw_tsg,
-                    back_tsg=back_tsg,
-                    rcts_keys=[atom_keys(gra1)],
-                    prds_keys=[atom_keys(gra2)],
-                ))
+        for _gra2 in gra2_lst:
+            # Find keys for product graph
+            h_atm_key2 = max(atom_keys(_gra2)) + 1
+            atm_keys2 = unsaturated_atom_keys(_gra2)
+
+            # Run identifier
+            for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
+                gra1_h = add_atom_explicit_hydrogen_keys(
+                    gra1, {atm_key1: [h_atm_key1]})
+                gra2_h = add_atom_explicit_hydrogen_keys(
+                    _gra2, {atm_key2: [h_atm_key2]})
+
+                iso_dct = full_isomorphism(gra1_h, gra2_h)
+                if iso_dct:
+                    inv_dct = dict(map(reversed, iso_dct.items()))
+                    f_frm_bnd_key = (atm_key1, inv_dct[h_atm_key2])
+                    f_brk_bnd_key = (inv_dct[atm_key2], inv_dct[h_atm_key2])
+                    b_frm_bnd_key = (atm_key2, iso_dct[h_atm_key1])
+                    b_brk_bnd_key = (iso_dct[atm_key1], iso_dct[h_atm_key1])
+                    forw_tsg = ts.graph(gra1,
+                                        frm_bnd_keys=[f_frm_bnd_key],
+                                        brk_bnd_keys=[f_brk_bnd_key])
+                    back_tsg = ts.graph(_gra2,
+                                        frm_bnd_keys=[b_frm_bnd_key],
+                                        brk_bnd_keys=[b_brk_bnd_key])
+
+                    # Create the reaction object
+                    rxns.append(Reaction(
+                        rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
+                        forw_tsg=forw_tsg,
+                        back_tsg=back_tsg,
+                        rcts_keys=[atom_keys(gra1)],
+                        prds_keys=[atom_keys(_gra2)],
+                    ))
 
     return tuple(rxns)
 

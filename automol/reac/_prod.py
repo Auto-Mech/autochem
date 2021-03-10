@@ -5,17 +5,15 @@
 import itertools
 import automol.graph
 from automol.graph._graph_base import atom_symbol_idxs
-from automol.graph._graph import atom_keys
 from automol.graph._graph import union
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import add_bonds
 from automol.graph._graph import remove_atoms
 from automol.graph._graph import remove_bonds
 from automol.graph._graph import unsaturated_atom_keys
-from automol.graph._graph import add_atom_explicit_hydrogen_keys
 from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._res import resonance_dominant_radical_atom_keys
-from automol.graph._func_group import chem_unique_atoms_of_type
+from automol.graph._rad import nonisomorphic_radical_graphs
 from automol.graph._func_group import bonds_of_order
 
 
@@ -63,24 +61,7 @@ def prod_hydrogen_migration(gra):
     """ products of hydrogen migration
     """
 
-    prod_gras = tuple()
-
-    keys = atom_keys(gra)
-
-    num_keys = len(keys)
-    if num_keys > 2:
-        rad_idxs = resonance_dominant_radical_atom_keys(gra)
-        uni_h_idxs = chem_unique_atoms_of_type(gra, 'H')
-
-        h_atm_key = max(keys) + 1
-
-        for h_idx in uni_h_idxs:
-            for rad_idx in rad_idxs:
-                gra2 = remove_atoms(gra, [h_idx])
-                gra2_h = add_atom_explicit_hydrogen_keys(
-                    gra2, {rad_idx: [h_atm_key]})
-                if not full_isomorphism(gra, gra2_h):
-                    prod_gras += ((gra2_h,),)
+    prod_gras = nonisomorphic_radical_graphs(gra, iso=False)
 
     return _unique_gras(prod_gras)
 
