@@ -11,6 +11,9 @@ from automol.geom import _prop as prop
 from automol.geom import _comp as comp
 
 
+AXIS_DCT = {'x': 0, 'y': 1, 'z': 2}
+
+
 # General transformation functions
 def transform(geo, func, idxs=None):
     """ Transform the coordinates of a geometry by a function.
@@ -284,7 +287,7 @@ def displace(geo, xyzs):
 
     return automol.create.geom.from_data(symbs, xyzs)
 
-
+# redundant with above
 def translate(geo, xyz):
     """ Translate the coordinates of a molecular geometry along
         a three-dimensiona vector.
@@ -300,6 +303,25 @@ def translate(geo, xyz):
     xyzs = geom_base.coordinates(geo)
     xyzs = numpy.add(xyzs, xyz)
     return automol.create.geom.from_data(symbs, xyzs)
+
+
+def perturb(geo, atm_idx, pert_xyz):
+    """ Perturb the position of one atom by
+        changing the value of an xyz coord by some amount.
+    """
+
+    # Get the xyz coordinates of the atom to perturb
+    atm_coords = list(geom_base.coordinates(geo)[atm_idx])
+
+    # Get the perturbed set of atomic coordinates
+    for idx, val in enumerate(pert_xyz):
+        atm_coords[idx] += val
+    pert_dct = {atm_idx: atm_coords}
+
+    # Perturb the coordinates of the atom
+    pert_geo = geom_base.set_coordinates(geo, pert_dct)
+
+    return pert_geo
 
 
 def mass_centered(geo):
@@ -402,8 +424,7 @@ def reflect_coordinates(geo, idxs, axes):
     coords = geom_base.coordinates(geo)
 
     # convert x,y,z to nums
-    axis_dct = {'x': 0, 'y': 1, 'z': 2}
-    axes = [axis_dct[axis] for axis in axes]
+    axes = [AXIS_DCT[axis] for axis in axes]
 
     # build set atom dct with relected coords
     reflect_dct = {}

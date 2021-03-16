@@ -1,7 +1,6 @@
 """ test automol.reac BRUH
 """
 
-import sys
 import automol
 
 
@@ -309,8 +308,8 @@ def test__reac__hydrogen_migration():
     rct_smis = ['CCCO[O]']
     prd_smis = ['C[CH]COO']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -358,14 +357,95 @@ def test__reac__hydrogen_migration():
         print('\tsymmetry number:', sym_num)
 
 
+def hmig():
+    """
+    """
+
+    rct_smis = ['CCC[CH2]']
+    prd_smis = ['CC[CH]C']
+
+    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+    print('zma\n', automol.zmat.string(zma))
+    print('zrxn\n', zrxn)
+
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    print(automol.zmat.string(zma, one_indexed=False))
+    print(names)
+
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
+    print(scan_name)
+    print(const_names)
+
+
+def test__reac__2ts_hydrogen_migration():
+    """ test hydrogen migration functionality
+    """
+
+    rct_smis = ['CCCC[CH2]']
+    prd_smis = ['CCC[CH]C']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+
+    # Deal with rxn object 1
+    rxn1, ts_geo1, _, _ = rxn_objs[0]
+    print(rxn1)
+    print(automol.geom.string(ts_geo1))
+    zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
+    zrxn1 = automol.reac.relabel_for_zmatrix(rxn1, zma_keys1, dummy_key_dct1)
+    print(automol.zmat.string(zma1))
+    print(zrxn1)
+
+    bnd_keys1 = automol.reac.rotational_bond_keys(zrxn1)
+    names1 = {
+        automol.zmat.torsion_coordinate_name(zma1, *k) for k in bnd_keys1}
+    # assert names1 == {}
+    print(names1)
+
+    scan_name1 = automol.reac.scan_coordinate(zrxn1, zma1)
+    const_names1 = automol.reac.constraint_coordinates(zrxn1, zma1)
+    # assert scan_name1 == ''
+    # assert const_names1 == ()
+    print(scan_name1)
+    print(const_names1)
+
+    # Deal with rxn object 2
+    rxn2, ts_geo2, _, _ = rxn_objs[1]
+    zma2, zma_keys2, dummy_key_dct2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
+    zrxn2 = automol.reac.relabel_for_zmatrix(rxn2, zma_keys2, dummy_key_dct2)
+
+    bnd_keys2 = automol.reac.rotational_bond_keys(zrxn2)
+    names2 = {
+        automol.zmat.torsion_coordinate_name(zma2, *k) for k in bnd_keys2}
+    # assert names2 == {'D8', 'D22', 'D5'}
+    print(names2)
+
+    scan_name2 = automol.reac.scan_coordinate(zrxn2, zma2)
+    const_names2 = automol.reac.constraint_coordinates(zrxn2, zma2)
+    # assert scan_name2 == 'R8'
+    # assert const_names2 == ()
+    print(scan_name2)
+    print(const_names2)
+
+
 def test__reac__beta_scission():
     """ test beta scission functionality
     """
     rct_smis = ['CCCO[O]']
     prd_smis = ['[O][O]', 'CC[CH2]']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, rct_geos, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -419,8 +499,8 @@ def test__reac__ring_forming_scission():
     rct_smis = ['[CH2]CCCOO']
     prd_smis = ['C1CCCO1', '[OH]']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -474,8 +554,8 @@ def test__reac__elimination():
     rct_smis = ['CCCO[O]']
     prd_smis = ['CC=C', 'O[O]']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -529,8 +609,8 @@ def test__reac__hydrogen_abstraction():
     rct_smis = ['CCO', '[CH3]']
     prd_smis = ['[CH2]CO', 'C']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -587,8 +667,8 @@ def test__reac__hydrogen_abstraction():
         (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-        geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn, geo, _, _ = rxn_objs[0]
 
         # reaction object aligned to z-matrix keys
         # (for getting torsion coordinate names)
@@ -632,8 +712,8 @@ def test__reac__sigma_hydrogen_abstraction():
     rct_smis = ['CCO', 'C#[C]']
     prd_smis = ['CC[O]', 'C#C']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, rct_geos, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -677,8 +757,8 @@ def test__reac__addition():
     rct_smis = ['CC[CH2]', '[O][O]']
     prd_smis = ['CCCO[O]']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -775,8 +855,8 @@ def test__reac__insertion():
     rct_smis = ['CC=C', 'O[O]']
     prd_smis = ['CCCO[O]']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -830,8 +910,8 @@ def test__reac__substitution():
     rct_smis = ['CO', '[CH2]C']
     prd_smis = ['CCC', '[OH]']
 
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -970,61 +1050,6 @@ def test__mult():
     assert automol.mult.spin(mult) == 2
 
 
-# def test__trans():
-#     """ test automol.trans.string
-#         test automol.trans.from_string
-#     """
-#
-#     ref_trans = (
-#         'hydrogen abstraction',
-#         frozenset({1, 6}),
-#         frozenset({0, 1})
-#     )
-#
-#     # Test relabeling
-#     ref_relabel_trans = (
-#         'hydrogen abstraction',
-#         frozenset({3, 6}),
-#         frozenset({0, 3})
-#     )
-#     relabel_dct = {1: 3, 8: 10}
-#     relabel_trans = automol.graph.trans.relabel(ref_trans, relabel_dct)
-#     assert automol.graph.trans.from_string(relabel_trans) == ref_relabel_trans
-#
-#     # Test I/O
-#     trans_str = automol.graph.trans.string(ref_trans)
-#     assert automol.graph.trans.from_string(trans_str) == ref_trans
-#
-#     # apply code for rct gra test
-#     # ref_gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-#     #             3: ('C', 0, None), 4: ('C', 0, None), 5: ('C', 0, None),
-#     #             6: ('C', 0, None), 8: ('H', 0, None), 9: ('H', 0, None),
-#     #             10: ('H', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
-#     #             13: ('H', 0, None), 14: ('H', 0, None), 15: ('H', 0, None),
-#     #             16: ('H', 0, None), 17: ('H', 0, None), 18: ('H', 0, None),
-#     #             19: ('H', 0, None), 20: ('H', 0, None), 21: ('H', 0, None),
-#     #             22: ('H', 0, None), 7: ('O', 0, None)},
-#     #            {frozenset({4, 6}): (1, None), frozenset({21, 6}): (1, None),
-#     #             frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
-#     #             frozenset({5, 6}): (1, None), frozenset({17, 4}): (1, None),
-#     #             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None),
-#     #             frozenset({20, 6}): (1, None), frozenset({0, 10}): (1, None),
-#     #             frozenset({1, 12}): (1, None), frozenset({2, 14}): (1, None),
-#     #             frozenset({18, 5}): (1, None), frozenset({1, 13}): (1, None),
-#     #             frozenset({0, 8}): (1, None), frozenset({0, 9}): (1, None),
-#     #             frozenset({3, 15}): (1, None), frozenset({1, 11}): (1, None),
-#     #             frozenset({19, 5}): (1, None), frozenset({16, 3}): (1, None),
-#     #             frozenset({22, 7}): (1, None)})
-#
-#     # rct_atm_keys_lst = automol.graph.connected_components_atom_keys(rct_gra)
-#     # print(rct_atm_keys_lst)
-#
-#     # # this is how we can get the product graph
-#     # prd_gra = automol.graph.trans.apply(tra, rct_gra)
-#     # prd_atm_keys_lst = automol.graph.connected_components_atom_keys(prd_gra)
-#     # print(prd_atm_keys_lst)
-
-
 # def test__trans__is_stereo_compatible():
 #     """ test graph.trans.is_stereo_compatible
 #     """
@@ -1118,12 +1143,12 @@ def test__prod__hydrogen_migration():
 # def test__prod__addition():
 #     """ test graph.reac.prod_addition
 #     """
-# 
+#
 #     ch2cch2_gra = automol.zmat.graph(CH2CCH2_ZMA)
 #     h_gra = automol.zmat.graph(H_ZMA)
-# 
+#
 #     prod_gras = automol.reac.prod_addition(ch2cch2_gra, h_gra)
-# 
+#
 #     assert len(prod_gras) == 2
 #     assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
 #     assert prod_gras[0] == (
@@ -1186,13 +1211,15 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    test__reac__hydrogen_migration()
+    # test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
     # test__reac__hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__sigma_hydrogen_abstraction()
+    hmig()
     # test__reac__hydrogen_migration()
+    # test__reac__2ts_hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()

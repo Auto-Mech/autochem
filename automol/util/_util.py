@@ -31,6 +31,16 @@ def equivalence_partition(iterable, relation):
 
 
 # Useful functions on Python objects
+def separate_negatives(lst):
+    """ Seperate a list of numbers into negative and nonnegative (>= 0)
+    """
+
+    neg_lst = tuple(val for val in lst if val < 0)
+    pos_lst = tuple(val for val in lst if val >= 0)
+
+    return neg_lst, pos_lst
+
+
 def value_similar_to(val, lst, thresh):
     """ Check if a value is close to some lst of values within some threshold
     """

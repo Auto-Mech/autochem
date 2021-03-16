@@ -1,0 +1,218 @@
+zma
+ C  
+C  1    R1 
+C  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+H  2    R5  1    A5  3    D5 
+H  2    R6  1    A6  6    D6 
+C  3    R7  1    A7  2    D7 
+H  3    R8  1    A8  8    D8 
+H  3    R9  1    A9  8    D9 
+H  8   R10  3   A10  1   D10 
+H  8   R11  3   A11  11   D11 
+H  8   R12  3   A12  11   D12 
+
+R1   =   1.451561
+R2   =   1.511991
+R3   =   1.080632
+R4   =   1.057435
+R5   =   1.117404
+R6   =   1.082821
+R7   =   1.523798
+R8   =   1.095592
+R9   =   1.091830
+R10  =   1.093559
+R11  =   1.091429
+R12  =   1.092280
+A2   = 114.201102
+A3   = 112.210288
+A4   =  89.839913
+A5   = 118.292344
+A6   = 126.464451
+A7   = 111.307577
+A8   = 108.101450
+A9   = 111.675926
+A10  = 110.690481
+A11  = 109.285951
+A12  = 111.687240
+D3   = 131.735021
+D4   = 245.299328
+D5   = 309.984962
+D6   = 202.423369
+D7   =  77.064204
+D8   = 119.189712
+D9   = 237.183830
+D10  =  54.938975
+D11  = 119.274679
+D12  = 238.849439
+zrxn
+ reaction class: hydrogen migration
+forward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 0.9, stereo_parity: null}
+  2-5: {order: 0.1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  3-8: {order: 1, stereo_parity: null}
+  3-9: {order: 1, stereo_parity: null}
+  3-10: {order: 1, stereo_parity: null}
+  8-11: {order: 1, stereo_parity: null}
+  8-12: {order: 1, stereo_parity: null}
+  8-13: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+backward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-3: {order: 1, stereo_parity: null}
+  1-5: {order: 1, stereo_parity: null}
+  1-6: {order: 1, stereo_parity: null}
+  1-7: {order: 0.9, stereo_parity: null}
+  2-4: {order: 1, stereo_parity: null}
+  2-8: {order: 1, stereo_parity: null}
+  2-9: {order: 1, stereo_parity: null}
+  2-10: {order: 1, stereo_parity: null}
+  3-4: {order: 1, stereo_parity: null}
+  3-7: {order: 0.1, stereo_parity: null}
+  3-11: {order: 1, stereo_parity: null}
+  4-12: {order: 1, stereo_parity: null}
+  4-13: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+C  
+C  0    R1 
+C  0    R2  1    A2 
+H  0    R3  1    A3  2    D3 
+H  0    R4  1    A4  2    D4 
+H  1    R5  0    A5  2    D5 
+H  1    R6  0    A6  5    D6 
+C  2    R7  0    A7  1    D7 
+H  2    R8  0    A8  7    D8 
+H  2    R9  0    A9  7    D9 
+H  7   R10  2   A10  0   D10 
+H  7   R11  2   A11  10   D11 
+H  7   R12  2   A12  10   D12 
+
+R1   =   1.451561
+R2   =   1.511991
+R3   =   1.080632
+R4   =   1.057435
+R5   =   1.117404
+R6   =   1.082821
+R7   =   1.523798
+R8   =   1.095592
+R9   =   1.091830
+R10  =   1.093559
+R11  =   1.091429
+R12  =   1.092280
+A2   = 114.201102
+A3   = 112.210288
+A4   =  89.839913
+A5   = 118.292344
+A6   = 126.464451
+A7   = 111.307577
+A8   = 108.101450
+A9   = 111.675926
+A10  = 110.690481
+A11  = 109.285951
+A12  = 111.687240
+D3   = 131.735021
+D4   = 245.299328
+D5   = 309.984962
+D6   = 202.423369
+D7   =  77.064204
+D8   = 119.189712
+D9   = 237.183830
+D10  =  54.938975
+D11  = 119.274679
+D12  = 238.849439
+{'D7', 'D10'}
+Traceback (most recent call last):
+  File "test_reac.py", line 1219, in <module>
+    hmig()
+  File "test_reac.py", line 385, in hmig
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+  File "/lcrc/project/CMRP/amech/autochem/automol/reac/_scan.py", line 196, in scan_coordinate
+    ret = fun_(rxn, zma)
+  File "/lcrc/project/CMRP/amech/autochem/automol/reac/_scan.py", line 48, in hydrogen_migration_scan_coordinate
+    scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
+  File "/lcrc/project/CMRP/amech/autochem/automol/zmat/_extra.py", line 27, in distance_coordinate_name
+    .format(key1, key2, string(zma, one_indexed=False)))
+AssertionError: 1-4 is not a distance coordinate in this zmatrix:
+C  
+C  0    R1 
+C  0    R2  1    A2 
+H  0    R3  1    A3  2    D3 
+H  0    R4  1    A4  2    D4 
+H  1    R5  0    A5  2    D5 
+H  1    R6  0    A6  5    D6 
+C  2    R7  0    A7  1    D7 
+H  2    R8  0    A8  7    D8 
+H  2    R9  0    A9  7    D9 
+H  7   R10  2   A10  0   D10 
+H  7   R11  2   A11  10   D11 
+H  7   R12  2   A12  10   D12 
+
+R1   =   1.451561
+R2   =   1.511991
+R3   =   1.080632
+R4   =   1.057435
+R5   =   1.117404
+R6   =   1.082821
+R7   =   1.523798
+R8   =   1.095592
+R9   =   1.091830
+R10  =   1.093559
+R11  =   1.091429
+R12  =   1.092280
+A2   = 114.201102
+A3   = 112.210288
+A4   =  89.839913
+A5   = 118.292344
+A6   = 126.464451
+A7   = 111.307577
+A8   = 108.101450
+A9   = 111.675926
+A10  = 110.690481
+A11  = 109.285951
+A12  = 111.687240
+D3   = 131.735021
+D4   = 245.299328
+D5   = 309.984962
+D6   = 202.423369
+D7   =  77.064204
+D8   = 119.189712
+D9   = 237.183830
+D10  =  54.938975
+D11  = 119.274679
+D12  = 238.849439

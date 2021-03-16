@@ -133,20 +133,18 @@ def substitution_atom_keys(rxn):
 
 
 # Get a reaction object from various identifiers
-def rxn_obj_from_inchi(rct_ichs, prd_ichs, indexing='geo'):
+def rxn_objs_from_inchi(rct_ichs, prd_ichs, indexing='geo'):
     """ Generate obj
     """
 
     rct_geos = list(map(automol.inchi.geometry, rct_ichs))
     prd_geos = list(map(automol.inchi.geometry, prd_ichs))
 
-    rxn, geo, rct_geos, prd_geos = rxn_obj_from_geometry(
+    return rxn_objs_from_geometry(
         rct_geos, prd_geos, indexing=indexing)
 
-    return rxn, geo, rct_geos, prd_geos
 
-
-def rxn_obj_from_smiles(rct_smis, prd_smis, indexing='geo'):
+def rxn_objs_from_smiles(rct_smis, prd_smis, indexing='geo'):
     """ Generate obj
     """
 
@@ -156,29 +154,26 @@ def rxn_obj_from_smiles(rct_smis, prd_smis, indexing='geo'):
     rct_geos = list(map(automol.inchi.geometry, rct_ichs))
     prd_geos = list(map(automol.inchi.geometry, prd_ichs))
 
-    rxn, geo, rct_geos, prd_geos = rxn_obj_from_geometry(
+    return rxn_objs_from_geometry(
         rct_geos, prd_geos, indexing=indexing)
 
-    return rxn, geo, rct_geos, prd_geos
 
-
-def rxn_obj_from_zmatrix(rct_zmas, prd_zmas, indexing='geo'):
+def rxn_objs_from_zmatrix(rct_zmas, prd_zmas, indexing='geo'):
     """ Generate rxn obj
     """
 
     rct_geos = list(map(automol.zmat.geometry, rct_zmas))
     prd_geos = list(map(automol.zmat.geometry, prd_zmas))
 
-    rxn, geo, rct_geos, prd_geos = rxn_obj_from_geometry(
+    return rxn_objs_from_geometry(
         rct_geos, prd_geos, indexing=indexing)
 
-    return rxn, geo, rct_geos, prd_geos
 
-
-def rxn_obj_from_geometry(rct_geos, prd_geos, indexing='geo'):
+def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
     """ from
     """
 
+    # Identify the reaction based on the reactants and products
     rct_gras = list(map(automol.graph.without_stereo_parities,
                         map(automol.geom.graph, rct_geos)))
     prd_gras = list(map(automol.graph.without_stereo_parities,
@@ -188,15 +183,26 @@ def rxn_obj_from_geometry(rct_geos, prd_geos, indexing='geo'):
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
     rxns = automol.reac.find(rct_gras, prd_gras)
-    rxn = rxns[0]
 
-    rxn, rct_geos, prd_geos = (
-        automol.reac.standard_keys_with_sorted_geometries(
-            rxn, rct_geos, prd_geos))
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+    # Obtain the reaction objects and structures to return
+    rxn_objs = tuple()
+    for rxn in rxns:
+        std_rxn, std_rgeos, std_pgeos = (
+            automol.reac.standard_keys_with_sorted_geometries(
+                rxn, rct_geos, prd_geos))
+        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
-    if indexing == 'zma':
-        _, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-        rxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+        # Determine which geometries to store
+        if indexing == 'geo':
+            rxn_objs += ((std_rxn, ts_geo, std_rgeos, std_pgeos),)
+        elif indexing == 'zma':
+            ts_zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
+                std_rxn, ts_geo)
+            std_zrxn = automol.reac.relabel_for_zmatrix(
+                std_rxn, zma_keys, dummy_key_dct)
+            rct_zmas = tuple(map(automol.geom.zmatrix, rct_geos))
+            prd_zmas = tuple(map(automol.geom.zmatrix, prd_geos))
 
-    return rxn, geo, rct_geos, prd_geos
+            rxn_objs += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
+
+    return rxn_objs
