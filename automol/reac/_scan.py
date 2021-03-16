@@ -31,8 +31,6 @@ def build_scan_info(zrxn, zma):
     # Set the update guess
     update_guess = UPDATE_GUESS_DCT[zrxn.class_]
 
-    print('grid', grid)
-
     return (scan_name,), constraint_dct, (grid,), update_guess
 
 

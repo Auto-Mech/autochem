@@ -327,10 +327,10 @@ def test__reac__hydrogen_migration():
 
     scan_name = automol.reac.scan_coordinate(zrxn, zma)
     const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    assert scan_name == 'R5'
-    assert const_names == ('R4',)
     print(scan_name)
     print(const_names)
+    assert scan_name == 'R2'
+    assert const_names == ('R1',)
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -1186,9 +1186,9 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    # test__reac__hydrogen_migration()
+    test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
-    test__reac__hydrogen_abstraction()
+    # test__reac__hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__sigma_hydrogen_abstraction()

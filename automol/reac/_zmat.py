@@ -37,16 +37,14 @@ def hydrogen_migration_ts_zmatrix(rxn, ts_geo):
     # 4. Generate a z-matrix for the geometry
     # Start the z-matrix from the forming bond ring
     rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    att_key, hyd_key, _, _ = hydrogen_migration_atom_keys(rxn)
-    # First, cycle the migrating h to the front of the ring keys and, if
-    # needed, reverse the ring so that the attacking atom is last:
-    #       (migrating h atom, ... , atom 1, atom 2, attackin atom)
+    _, hyd_key, don_key, _ = hydrogen_migration_atom_keys(rxn)
+    # Cycle the migrating h to the front of the ring keys and, if
+    # needed, reverse the ring so that the donating atom is last:
+    #       (migrating h atom, attacking atom, ... , donating atom)
+    # This ensures that the forming bond coordinate is included in the z-matrix
+    # and drops the breaking bond coordinate from the z-matrix.
     rng_keys = automol.graph.cycle_ring_atom_key_to_front(
-        rng_keys, hyd_key, end_key=att_key)
-    # Now, cycle the third-to-last key to the front so that the ring order is:
-    #       (atom 1, atom 2, attacking atom, migrating h atom, ....)
-    rng_keys = automol.graph.cycle_ring_atom_key_to_front(
-        rng_keys, rng_keys[-3])
+        rng_keys, hyd_key, end_key=don_key)
     vma, zma_keys = automol.graph.vmat.vmatrix(
         rxn.forward_ts_graph, rng_keys=rng_keys)
 
