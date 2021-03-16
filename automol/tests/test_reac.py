@@ -357,24 +357,85 @@ def test__reac__hydrogen_migration():
         print('\tsymmetry number:', sym_num)
 
 
-def test__reac__2ts_hydrogen_migration():
-    """ test hydrogen migration functionality
+def hmig():
+    """
     """
 
     rct_smis = ['CCC[CH2]']
     prd_smis = ['CC[CH]C']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-    rxn1, ts_geo1, _, _ = rxn_objs[0]
-    rxn2, ts_geo2, _, _ = rxn_objs[1]
+    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
+    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
-    print('geo1')
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+    print('zma\n', automol.zmat.string(zma))
+    print('zrxn\n', zrxn)
+
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    print(automol.zmat.string(zma, one_indexed=False))
+    print(names)
+
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
+    print(scan_name)
+    print(const_names)
+
+
+def test__reac__2ts_hydrogen_migration():
+    """ test hydrogen migration functionality
+    """
+
+    rct_smis = ['CCCC[CH2]']
+    prd_smis = ['CCC[CH]C']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+
+    # Deal with rxn object 1
+    rxn1, ts_geo1, _, _ = rxn_objs[0]
     print(rxn1)
     print(automol.geom.string(ts_geo1))
-    print()
-    print('geo2')
-    print(rxn2)
-    print(automol.geom.string(ts_geo2))
+    zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
+    zrxn1 = automol.reac.relabel_for_zmatrix(rxn1, zma_keys1, dummy_key_dct1)
+    print(automol.zmat.string(zma1))
+    print(zrxn1)
+
+    bnd_keys1 = automol.reac.rotational_bond_keys(zrxn1)
+    names1 = {
+        automol.zmat.torsion_coordinate_name(zma1, *k) for k in bnd_keys1}
+    # assert names1 == {}
+    print(names1)
+
+    scan_name1 = automol.reac.scan_coordinate(zrxn1, zma1)
+    const_names1 = automol.reac.constraint_coordinates(zrxn1, zma1)
+    # assert scan_name1 == ''
+    # assert const_names1 == ()
+    print(scan_name1)
+    print(const_names1)
+
+    # Deal with rxn object 2
+    rxn2, ts_geo2, _, _ = rxn_objs[1]
+    zma2, zma_keys2, dummy_key_dct2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
+    zrxn2 = automol.reac.relabel_for_zmatrix(rxn2, zma_keys2, dummy_key_dct2)
+
+    bnd_keys2 = automol.reac.rotational_bond_keys(zrxn2)
+    names2 = {
+        automol.zmat.torsion_coordinate_name(zma2, *k) for k in bnd_keys2}
+    # assert names2 == {'D8', 'D22', 'D5'}
+    print(names2)
+
+    scan_name2 = automol.reac.scan_coordinate(zrxn2, zma2)
+    const_names2 = automol.reac.constraint_coordinates(zrxn2, zma2)
+    # assert scan_name2 == 'R8'
+    # assert const_names2 == ()
+    print(scan_name2)
+    print(const_names2)
 
 
 def test__reac__beta_scission():
@@ -1156,8 +1217,9 @@ if __name__ == '__main__':
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__sigma_hydrogen_abstraction()
+    hmig()
     # test__reac__hydrogen_migration()
-    test__reac__2ts_hydrogen_migration()
+    # test__reac__2ts_hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()

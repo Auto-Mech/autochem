@@ -113,6 +113,7 @@ def hydrogen_migrations(rct_gras, prd_gras):
 
         # Generate reactions for all isomorphic graphs of products
         gra2_lst = (gra2,) + isomorphic_radical_graphs(gra2)
+        # gra2_lst = (gra2,)
 
         for _gra2 in gra2_lst:
             # Find keys for product graph

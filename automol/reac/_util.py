@@ -190,18 +190,19 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
         std_rxn, std_rgeos, std_pgeos = (
             automol.reac.standard_keys_with_sorted_geometries(
                 rxn, rct_geos, prd_geos))
-        ts_geo = automol.reac.ts_geometry(std_rxn, rct_geos, log=False)
+        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Determine which geometries to store
         if indexing == 'geo':
             rxn_objs += ((std_rxn, ts_geo, std_rgeos, std_pgeos),)
         elif indexing == 'zma':
-            _, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
+            ts_zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
                 std_rxn, ts_geo)
             std_zrxn = automol.reac.relabel_for_zmatrix(
                 std_rxn, zma_keys, dummy_key_dct)
+            rct_zmas = tuple(map(automol.geom.zmatrix, rct_geos))
+            prd_zmas = tuple(map(automol.geom.zmatrix, prd_geos))
 
-            rxn_objs += ((std_zrxn, ts_geo, std_rgeos, std_pgeos),)
-            # convert to zma
+            rxn_objs += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
 
     return rxn_objs

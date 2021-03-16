@@ -531,7 +531,12 @@ def expand_stereo(ich):
     """
     gra = automol.inchi.graph(ich)
     stereo_gras = automol.graph.stereomers(gra)
-    return list(map(automol.graph.inchi, stereo_gras))
+
+    stereo_ichs = []
+    for gra in stereo_gras:
+        stereo_ichs.append(automol.graph.inchi(gra, stereo=True))
+    return stereo_ichs
+    # return list(map(automol.graph.inchi, stereo_gras))
 
 
 def _sublayers(lyr):

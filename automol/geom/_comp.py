@@ -266,7 +266,7 @@ def _similar_stereo(geo, geoi, arg=None):
     return bool(ich == ichi)
 
 
-def _similar_coloumb(geo, geoi, arg=1e-2):
+def _similar_coulomb(geo, geoi, arg=1e-2):
     """ Compare the Coulomb spectrum of geometries.
     """
     return almost_equal_coulomb_spectrum(geo, geoi, rtol=arg)
@@ -274,7 +274,7 @@ def _similar_coloumb(geo, geoi, arg=1e-2):
 
 CHECK_DEFAULT_DCT = {
     'dist': 3.5e-1,
-    'coloumb': 1.5e-2,
+    'coulomb': 1.5e-2,
     'stereo': None,
     'tors': None
 }
@@ -283,5 +283,5 @@ CHECK_FXN_DCT = {
     'dist': _similar_dist,
     'tors': _similar_tors,
     'stereo': _similar_stereo,
-    'coloumb': _similar_coloumb
+    'coulomb': _similar_coulomb
 }
