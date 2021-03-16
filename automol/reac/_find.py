@@ -558,6 +558,8 @@ def find_from_inchis(rct_ichs, prd_ichs):
     """
     rct_geos = list(map(automol.convert.inchi.geometry, rct_ichs))
     prd_geos = list(map(automol.convert.inchi.geometry, prd_ichs))
+    print(automol.geom.string(rct_geos[0]))
+    print(automol.geom.string(prd_geos[0]))
     rct_gras = list(map(automol.convert.geom.connectivity_graph, rct_geos))
     prd_gras = list(map(automol.convert.geom.connectivity_graph, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
