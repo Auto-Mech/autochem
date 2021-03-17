@@ -335,7 +335,8 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
     zma_keys = list(zma_keys)
     symb_dct = atom_symbols(gra)
     ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
-        gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,))
+        gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,),
+        prioritize_keys=branch_keys)
 
     def _continue(key1, key2, key3, vma, zma_keys):
         k3ns = list(ngb_keys_dct[key3])
