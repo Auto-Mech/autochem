@@ -462,10 +462,10 @@ def test__reac__beta_scission():
 
     scan_name = automol.reac.scan_coordinate(zrxn, zma)
     const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    assert scan_name == 'R8'
-    assert const_names == ()
     print(scan_name)
     print(const_names)
+    assert scan_name == 'R8'
+    assert const_names == ()
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -974,11 +974,11 @@ def test__species__demo():
     # graph aligned to z-matrix keys
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.convert.geom.zmatrix(geo)
-    gra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
 
     lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
-    bnd_keys = automol.graph.rotational_bond_keys(gra, lin_keys=lin_keys)
+        automol.graph.dummy_atoms_neighbor_atom_key(zgra).values())
+    bnd_keys = automol.graph.rotational_bond_keys(zgra, lin_keys=lin_keys)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
     assert names == {'D9', 'D12', 'D15', 'D26'}
     print(automol.zmat.string(zma, one_indexed=False))
@@ -987,11 +987,18 @@ def test__species__demo():
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    ggra = automol.graph.relabel_for_geometry(gra)
+    ggra = automol.graph.relabel_for_geometry(zgra)
+    print(automol.geom.string(geo))
 
     # Check that the geometry graph can be converted back, if needed
+    old_zgra = zgra
     zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
-    assert zgra == gra
+    print('old_zgra:')
+    print(automol.graph.string(old_zgra, one_indexed=False))
+    print('zgra:')
+    print(automol.graph.string(zgra, one_indexed=False))
+    print(gdummy_key_dct)
+    assert zgra == old_zgra
 
     lin_keys = sorted(gdummy_key_dct.keys())
     gbnd_keys = automol.graph.rotational_bond_keys(ggra, lin_keys=lin_keys)
@@ -1217,12 +1224,12 @@ if __name__ == '__main__':
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__sigma_hydrogen_abstraction()
-    hmig()
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
-    # test__reac__beta_scission()
+    test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
     # test__reac__addition()
     # test__reac__insertion()
     # test__reac__substitution()
+    test__species__demo()
