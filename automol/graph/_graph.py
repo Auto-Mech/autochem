@@ -264,8 +264,15 @@ def atoms_neighbor_atom_keys(gra):
 
 
 def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
-                                    ords_last=(0.1,)):
+                                    ords_last=(0.1,), prioritize_keys=()):
     """ keys of neighboring atoms, by atom
+
+    :param gra: the graph
+    :param symbs_first: atomic symbols to put put first in the sort order
+    :param symbs_last: atomic symbols to put last in the sort order
+    :param ords_last: neighors connected with a bond of this order will be put
+        last in the sort order
+    :param prioritize_keys: keys to put first no matter what
     """
     atm_symb_dct = atom_symbols(gra)
     bnd_ord_dct = bond_orders(gra)
@@ -277,7 +284,8 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
         ords = [-1 if o not in ords_last else ords_last.index(o)
                 for o in ords]
         symbs = list(map(atm_symb_dct.__getitem__, keys))
-        srt_vals = list(zip(ords, symbs))
+        pris = [0 if k in prioritize_keys else 1 for k in keys]
+        srt_vals = list(zip(ords, pris, symbs))
         srt = automol.formula.argsort_symbols(
             srt_vals, symbs_first, symbs_last, idx=1)
         keys = tuple(map(keys.__getitem__, srt))
