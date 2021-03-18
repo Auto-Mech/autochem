@@ -287,7 +287,7 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
         pris = [0 if k in prioritize_keys else 1 for k in keys]
         srt_vals = list(zip(ords, pris, symbs))
         srt = automol.formula.argsort_symbols(
-            srt_vals, symbs_first, symbs_last, idx=1)
+            srt_vals, symbs_first, symbs_last, idx=2)
         keys = tuple(map(keys.__getitem__, srt))
         return keys
 
