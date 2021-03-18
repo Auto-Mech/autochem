@@ -62,6 +62,7 @@ from automol.zmat._zmat import torsional_scan_linspaces
 from automol.zmat._zmat import dummy_coordinate_names
 from automol.zmat._zmat import coordinates
 from automol.zmat._zmat import dihedral_angle_names
+from automol.zmat._zmat import dihedral_axis_name
 from automol.zmat._zmat import coord_idxs
 from automol.zmat._zmat import bond_key_from_idxs
 from automol.zmat._zmat import get_babs1
@@ -189,6 +190,7 @@ __all__ = [
     'dummy_coordinate_names',
     'coordinates',
     'dihedral_angle_names',
+    'dihedral_axis_name',
     'coord_idxs',
     'bond_key_from_idxs',
     'get_babs1',

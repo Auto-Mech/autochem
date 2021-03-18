@@ -97,8 +97,6 @@ def atom_indices(zma, symb, match=True):
     return vmat.atom_indices(zma, symb, match=match)
 
 
-
-
 def key_matrix(zma, shift=0):
     """ Obtain the key matrix of the Z-Matrix that contains the
         coordinate atom keys by row and column.
@@ -769,6 +767,19 @@ def distance_names(zma):
     """ distance coordinate names
     """
     return vmat.distance_names(vmatrix(zma))
+
+
+def dihedral_axis_name(zma, axis):
+    coords = coordinates(zma)
+    angles = dihedral_angle_names(zma)
+    name = None
+    for ang in angles:
+        coord_idxs = coords[ang]
+        print(ang, coord_idxs, list(coord_idxs[0][1:3]))
+        if tuple(list(coord_idxs[0])[1:3]) == axis or tuple(list(coord_idxs[0])[3:1:-1]) == axis:
+            name = ang
+            break
+    return name
 
 
 # wrappers to vmat

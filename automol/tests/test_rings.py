@@ -94,8 +94,172 @@ def test__ring_systems_decomposed_atom_keys():
     assert decomps == (((0, 1, 4, 5), (0, 2, 3, 5), (1, 7, 6, 3)),
                        ((8, 9, 13, 12, 11), (13, 14, 17, 16, 15, 12)))
 
+# a1 = +/-q
+# a2 = +/-a1
+
+
+def test__ring_puckering():
+    smi = 'C1CCCCC1'
+    import automol
+    import numpy
+    ich = automol.smiles.inchi(smi)
+    # gra = automol.inchi.graph(ich)
+    # zma = automol.graph.zmatrix(gra)
+    geo = automol.inchi.geometry(ich)
+    zma = automol.geom.zmatrix(geo)
+    gra = automol.zmat.graph(zma)
+    rings_atoms = automol.graph.rings_atom_keys(gra)
+    val_dct = automol.zmat.value_dictionary(zma)
+    print(automol.geom.string(automol.zmat.geometry(zma)))
+    print(automol.zmat.string(zma))
+    coos = automol.zmat.coordinates(zma)
+    da_names = automol.zmat.dihedral_angle_names(zma)
+    ring_value_dct = {}
+    for ring_atoms in rings_atoms:
+        # ring_atoms = list(map(lambda l: l+1, list(ring_atoms)))
+        for da in da_names:
+            da_idxs = list(coos[da])[0]
+            if len(list(set(da_idxs) & set(ring_atoms))) == 4:
+                print(da, da_idxs)
+                ring_value_dct[da] = val_dct[da]
+
+        ring_atoms = list(ring_atoms)
+        print(ring_value_dct)
+        defined_atoms = []
+        for da in ring_value_dct:
+            defined_atoms.append(list(coos[da])[0][0])
+
+        plane_idxs = [atom for atom in ring_atoms if atom not in defined_atoms]
+        print(plane_idxs, ring_atoms)
+        alpha_to_plane_idxs = []
+        for atm in plane_idxs:
+            idx = ring_atoms.index(atm)
+            pos = ring_atoms[0 if idx+1 == len(ring_atoms) else idx+1]
+            neg = ring_atoms[idx-1]
+            if pos not in plane_idxs:
+                alpha_to_plane_idxs.append(pos)
+            if neg not in plane_idxs:
+                alpha_to_plane_idxs.append(neg)
+        print('adj to plane', alpha_to_plane_idxs)
+        alpha_to_plane_da = []
+        for da in ring_value_dct:
+            if list(coos[da])[0][0] in alpha_to_plane_idxs:
+                alpha_to_plane_da.append(da)
+        print('adj to plane angles', alpha_to_plane_da)
+
+        beta_to_plane_da = []
+        for atm in alpha_to_plane_idxs:
+            idx = ring_atoms.index(atm)
+            pos = ring_atoms[0 if idx+1 == len(ring_atoms) else idx+1]
+            neg = ring_atoms[idx-1]
+            if pos not in plane_idxs + alpha_to_plane_idxs:
+                for da in ring_value_dct:
+                    if list(coos[da])[0][0] == pos and da not in beta_to_plane_da:
+                        beta_to_plane_da.append(da)
+            if neg not in plane_idxs + alpha_to_plane_idxs:
+                for da in ring_value_dct:
+                    if list(coos[da])[0][0] == neg and da not in beta_to_plane_da:
+                        beta_to_plane_da.append(da)
+        
+        print('beta to plane angles', beta_to_plane_da)
+        val_dct_perms = [{}]
+        if len(beta_to_plane_da) == 0:
+            if len(alpha_to_plane_da) == 1:
+                alpha1 = alpha_to_plane_da[0]
+                q = ring_value_dct[alpha1]
+                val_dct_perms = [{alpha1: q}, {alpha1: -q}]
+            if len(alpha_to_plane_da) == 2:
+                alpha1 = alpha_to_plane_da[0]
+                alpha2 = alpha_to_plane_da[1]
+                q = abs(ring_value_dct[alpha1])
+                val_dct_perms = [
+                    {alpha1: q, alpha2: -q}, # envelope
+                    {alpha1: -q, alpha2: q}, # envelope (inverted)
+                    {alpha1: q + numpy.pi/8, alpha2: -q}, # half-chair
+                    {alpha1: -q - numpy.pi/8, alpha2: q}, # half-chair
+                    {alpha2: q + numpy.pi/8, alpha1: -q}, # half-chair
+                    {alpha2: -q - numpy.pi/8, alpha1: q}] # half-chair
+            # if len(beta_to_plane_da) == 1:
+                    
+        elif len(beta_to_plane_da) == 1:
+            for val_dct_perm in val_dct_perms:         
+                if len(beta_to_plane_da) == 1:
+                    alpha1 = alpha_to_plane_da[0]
+                    alpha2 = alpha_to_plane_da[1]
+                    beta1 = beta_to_plane_da[0]
+                    q = abs(ring_value_dct[alpha1])
+                    val_dct_perms = [
+                        {alpha1: q, alpha2: q, beta1: -q},  # III
+                        {alpha1: -q, alpha2: -q, beta1: q}, # III (inverted)
+                        {alpha1: q, alpha2: -q, beta1: 0},  # IV 
+                        {alpha1: -q, alpha2: q, beta1: 0},  # IV (inverted)
+                        {alpha1: q, alpha2: 0, beta1: 0},   # VII
+                        {alpha1: -q, alpha2: 0, beta1: 0},  # VII (inverted)
+                        {alpha1: 0, alpha2: 0, beta1: q},   # VII (inverted2)
+                        {alpha1: 0, alpha2: 0, beta1: -q},  # VII (inverted3)
+                        {alpha1: -q, alpha2: 0, beta1: q},  # IV (inverted2)
+                        {alpha1: -q, alpha2: 0, beta1: q},  # IV (inverted3)
+                        {alpha1: 0, alpha2: -q*2, beta1: q},  # 
+                        {alpha1: q, alpha2: q, beta1: -q*2}  # 
+                    ]
+                    #    {alpha1: -q, alpha2: q},
+                    #    {alpha1: -q, alpha2: q},
+                    #    {alpha1: q + numpy.pi/8, alpha2: -q},
+                    #    {alpha1: -q - numpy.pi/8, alpha2: q},
+                    #    {alpha2: q + numpy.pi/8, alpha1: -q},
+                    #    {alpha2: -q - numpy.pi/8, alpha1: q}]
+        # for alpha_da in alpha_to_plane_da:
+        #     val_dct_perms_loop = val_dct_perms.copy()
+        #     for val_dct_perm in val_dct_perms_loop:
+        #         val_dct_perm[alpha_da] = q    
+        #         val_dct_perm_j = val_dct_perm.copy()
+        #         val_dct_perm_j[alpha_da] = - q
+        #         val_dct_perms.append(val_dct_perm_j)
+        # for beta_da in beta_to_plane_da:
+        #     val_dct_perms_loop = val_dct_perms.copy()
+        #     for val_dct_perm in val_dct_perms_loop:
+        #         print('heere', val_dct_perm)
+        #         val_dct_perm[beta_da] = q
+        #         val_dct_perm_j = val_dct_perm.copy()
+        #         val_dct_perm_j[beta_da] = - q
+        #         val_dct_perm_k = val_dct_perm.copy()
+        #         val_dct_perm_k[beta_da] = 0
+        #         val_dct_perms.extend([val_dct_perm_j, val_dct_perm_k])
+        print(val_dct_perms)
+    
+        for val_dct in val_dct_perms:
+            print(val_dct)
+            new_zma = automol.zmat.set_values_by_name(zma, val_dct, degree=False)
+            new_geo = automol.zmat.geometry(new_zma)
+            print(automol.geom.string(new_geo))
+ 
+        #for i in range(len(ring_atoms)):
+    #    subset = ring_atoms[i: min(i + 4, len(ring_atoms))] + ring_atoms[0: max(0, i + 4 - len(ring_atoms))]
+    #    print(subset)
+    #    found = False
+    #    for da in ring_value_dct:
+    #        print(coos[da])
+    #        if len(list(set(list(coos[da])[0]) & set(subset))) == 3:
+    #            found = True
+    #    if not found:
+    #        print('found plane', subset)
+    #        plane_idxs = subset
+    print(plane_idxs)
+    print(ring_value_dct)
+    # print('values', ring_value_dct.values())
+    # for i, dai in enumerate(ring_value_dct):
+    #     for j, daj in enumerate(ring_value_dct):
+    #         if i > j:
+    #             da_vali = ring_value_dct[dai]
+    #             da_valj = ring_value_dct[daj]
+    #             print(dai, daj)
+    #             new_zma = automol.zmat.set_values_by_name(zma, {dai: 0, daj: 0}, degree=False)
+    #             new_geo = automol.zmat.geometry(new_zma)
+    #             print(automol.geom.string(new_geo))
+
 
 if __name__ == '__main__':
-    test__rings()
-    test__ring_systems()
-    test__ring_systems_decomposed_atom_keys()
+    # test__rings()
+    # test__ring_systems()
+    # test__ring_systems_decomposed_atom_keys()
+    test__ring_puckering()
