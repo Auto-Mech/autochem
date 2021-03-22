@@ -30,14 +30,15 @@ def _anharm_zpve_from_scaling(freq, scaled_freq):
     return (freq / 2.0) - (1.0 / 8.0) * (scaled_freq - freq)
 
 
-def harm_gen_pot_scaling_factor():
+def rotor_scale_factor_from_harmonics(harm_freqs, tors_freqs):
     """ scaling factor for rotor potentials to map them into harmonic
     """
 
     # Create a scaling factor for the frequencies
     # First sort tors frequencies in ascending order
     sort_tors_freqs = sorted(tors_freqs)
-    # keep only freqs whose RRHO freqs are above a threshold
+
+    # Keep only freqs whose RRHO freqs are above a threshold
     freq_thresh = 50.
     log_rt_freq = 0.0
     nfreq_remove = 0
@@ -70,10 +71,11 @@ def harm_gen_pot_scaling_factor():
 
     # generate the scaling factor
     factor = numpy.exp(log_rt_freq - log_freq - log_tors_freq)
-    ioprinter.info_message('freq test:', freqs, tors_freqs, rt_freqs1)
-    # generate the set of indices for torsions that are two be scales
+    # ioprinter.info_message('freq test:', freqs, tors_freqs, rt_freqs1)
+
+    # Generate the set of indices for torsions that are two be scales
     scale_factor = (idx_remove, factor)
-    ioprinter.info_message('scale fact test', scale_factor)
+    # ioprinter.info_message('scale fact test', scale_factor)
 
     return scale_factor
 
@@ -101,6 +103,3 @@ def _three_coeff_scaling(freqs, method, basis):
 SCALE_METHODS = {
     'c3': _three_coeff_scaling
 }
-
-
-
