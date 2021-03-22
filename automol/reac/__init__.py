@@ -58,6 +58,9 @@ from automol.reac._prod import prod_homolytic_scission
 from automol.reac._instab import instability_product_zmas
 from automol.reac._instab import instability_product_graphs
 from automol.reac._instab import instability_transformation
+# phase space theory
+from automol.reac._pst import pst_kt
+from automol.reac._pst import calc_cn_for_pst
 # tunneling treatments
 from automol.reac import tunnel
 # util
@@ -127,6 +130,9 @@ __all__ = [
     'instability_product_zmas',
     'instability_product_graphs',
     'instability_transformation',
+    # phase space theory
+    'pst_kt',
+    'calc_cn_for_pst',
     # tunneling treatments
     'tunnel',
     # util

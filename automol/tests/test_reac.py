@@ -357,43 +357,14 @@ def test__reac__hydrogen_migration():
         print('\tsymmetry number:', sym_num)
 
 
-def hmig():
-    """
+def test__reac__2ts_hydrogen_migration():
+    """ test hydrogen migration functionality
+
+        EXPAND OT GET ALL OF THE STUFF NEEDED
     """
 
     rct_smis = ['CCC[CH2]']
     prd_smis = ['CC[CH]C']
-
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
-
-    # reaction object aligned to z-matrix keys
-    # (for getting torsion coordinate names)
-    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-
-    print('zma\n', automol.zmat.string(zma))
-    print('zrxn\n', zrxn)
-
-    # You can also do this to determine linear atoms from zmatrix:
-    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
-    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
-    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-    print(automol.zmat.string(zma, one_indexed=False))
-    print(names)
-
-    scan_name = automol.reac.scan_coordinate(zrxn, zma)
-    const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    print(scan_name)
-    print(const_names)
-
-
-def test__reac__2ts_hydrogen_migration():
-    """ test hydrogen migration functionality
-    """
-
-    rct_smis = ['CCCC[CH2]']
-    prd_smis = ['CCC[CH]C']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
 
@@ -963,6 +934,27 @@ def test__reac__substitution():
         print('\tsymmetry number:', sym_num)
 
 
+def test__reac_util()
+    """
+    """
+
+    rct_smis = ['CC', '[H]']
+    prd_smis = ['C[CH2]', '[HH]']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(
+        rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
+    zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn1 = automol.reac.relabel_for_zmatrix(rxn, zma_keys1, dummy_key_dct)
+    
+    zrxn_objs = automol.reac.rxn_objs_from_smiles(
+        rct_smis, prd_smis, indexing='zma')
+    zrxn2, zma2, _, _ = zrxn_objs[0]
+
+    assert zrxn1 = zrxn2 
+    # assert zma1 == zma2
+
+
 def test__species__demo():
     """ doesn't really belong here, but demonstrates equivalent functionality
     for species
@@ -1227,6 +1219,10 @@ if __name__ == '__main__':
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
     test__reac__beta_scission()
+    # hmig()
+    # test__reac__hydrogen_migration()
+    test__reac__2ts_hydrogen_migration()
+    # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
     # test__reac__addition()

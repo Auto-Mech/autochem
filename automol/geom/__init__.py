@@ -151,6 +151,13 @@ def formula(geo):
     return automol.convert.geom.formula(geo)
 
 
+def formula_string(geo):
+    """ geometry => formula_string
+    """
+    return automol.convert.geom.formula_string(geo)
+
+
+
 __all__ = [
     # Base geometry functions
     'from_subset',
