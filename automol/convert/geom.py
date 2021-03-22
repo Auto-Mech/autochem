@@ -270,3 +270,18 @@ def formula(geo):
     fml = _util.formula(symbs)
 
     return fml
+
+
+def formula_string(geo):
+    """ Generate a stoichiometric formula string from a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :type: dict[str: int]
+    """
+
+    symbs = automol.geom.symbols(geo)
+    fml = _util.formula(symbs)
+    fml_str = automol.formula.string(fml)
+
+    return fml_str
