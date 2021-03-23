@@ -15,6 +15,7 @@ from automol import prop
 from automol import pot
 from automol import etrans
 from automol import rotor
+from automol import combine
 
 
 __all__ = [
@@ -32,5 +33,6 @@ __all__ = [
     'prop',
     'pot',
     'etrans',
-    'rotor'
+    'rotor',
+    'combine'
 ]
