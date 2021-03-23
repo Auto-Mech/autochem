@@ -8,14 +8,6 @@ import automol.geom
 import automol.formula
 
 
-# Build fake
-def fake_vdw_well(geo1, geo2):
-    """ Build fake van-der-Waals well with two geometries
-    """
-    return (fake_geometry(geo1, geo2), fake_frequencies(geo1, geo2))
-
-
-# Various combiner functions
 # Combines via geometry
 def formula_string(geo1, geo2):
     """ get the overall combined stoichiometry
@@ -29,7 +21,7 @@ def formula_string(geo1, geo2):
     return fml_str
 
 
-def fake_geometry(geo1, geo2):
+def fake_vdw_geometry(geo1, geo2):
     """ put two geometries together in a fake well
     """
 
@@ -43,7 +35,7 @@ def fake_geometry(geo1, geo2):
     return geom
 
 
-def fake_frequencies(geo1, geo2):
+def fake_vdw_frequencies(geo1, geo2):
     """ Set fake frequencies
     """
 

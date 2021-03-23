@@ -45,8 +45,7 @@ def test__geo_combiners():
         ('H', (2.1972712765396953, 0.1922944277301287, -1.8778395029874426)),
         ('H', (2.121312248031497, -1.7927029137609576, 0.8231123911174519)),
         ('O', (-0.3560094121, -0.0911704723, 7.877838042762068)),
-        ('H', (1.5152996925, -0.0911704723, 7.877838042762068)))
-
+s
     ref_vdw_geo2 = (
         ('C', (-1.428303532056334, 0.01342534373554644, -0.03030215889669468)),
         ('C', (1.4283027358735494, -0.013425597530894248, 0.0303022919384165)),
@@ -57,30 +56,25 @@ def test__geo_combiners():
         ('H', (2.1972712765396953, 0.1922944277301287, -1.8778395029874426)),
         ('H', (2.121312248031497, -1.7927029137609576, 0.8231123911174519)),
         ('O', (1.0, 1.0, 7.877838042762068)))
-
     ref_vdw_geo3 = (
         ('H', (0.0, 0.0, 0.0)),
         ('O', (1.0, 1.0, 6.0)))
 
+    # May need to reverse for code coverage
+    vdw_geo1 = automol.combine.fake_vdw_geometry(C2H6_GEO, OH_GEO)
+    vdw_geo2 = automol.combine.fake_vdw_geometry(C2H6_GEO, O_GEO)
+    vdw_geo3 = automol.combine.fake_vdw_geometry(H_GEO, O_GEO)
+    assert automol.geom.almost_equal_dist_matrix(vdw_geo1, ref_vdw_geo1)
+    assert automol.geom.almost_equal_dist_matrix(vdw_geo2, ref_vdw_geo2)
+    assert automol.geom.almost_equal_dist_matrix(vdw_geo3, ref_vdw_geo3)
+    
     ref_vdw_freqs1 = (30, 50, 70)
     ref_vdw_freqs2 = (30, 50)
     ref_vdw_freqs3 = ()
 
-    # May need to reverse for code coverage
-    vdw_geo1, vdw_freqs1 = automol.combine.fake_vdw_well(C2H6_GEO, OH_GEO)
-    vdw_geo2, vdw_freqs2 = automol.combine.fake_vdw_well(C2H6_GEO, O_GEO)
-    vdw_geo3, vdw_freqs3 = automol.combine.fake_vdw_well(H_GEO, O_GEO)
-
-    print(vdw_geo1)
-    print(vdw_geo2)
-    print(vdw_geo3)
-    print(vdw_freqs1)
-    print(vdw_freqs2)
-    print(vdw_freqs3)
-
-    assert automol.geom.almost_equal_dist_matrix(vdw_geo1, ref_vdw_geo1)
-    assert automol.geom.almost_equal_dist_matrix(vdw_geo2, ref_vdw_geo2)
-    assert automol.geom.almost_equal_dist_matrix(vdw_geo3, ref_vdw_geo3)
+    vdw_freqs1 = automol.combine.fake_vdw_frequencies(C2H6_GEO, OH_GEO)
+    vdw_freqs2 = automol.combine.fake_vdw_frequencies(C2H6_GEO, O_GEO)
+    vdw_freqs3 = automol.combine.fake_vdw_frequencies(H_GEO, O_GEO)
     assert numpy.allclose(vdw_freqs1, ref_vdw_freqs1)
     assert numpy.allclose(vdw_freqs2, ref_vdw_freqs2)
     assert numpy.allclose(vdw_freqs3, ref_vdw_freqs3)
