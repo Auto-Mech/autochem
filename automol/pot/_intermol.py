@@ -86,7 +86,7 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
     """
 
     assert potential in ('exp6', 'lj_12_6'), (
-        'potenital {} != exp6 or lj_12_6'.format(potential)
+        'potential {} != exp6 or lj_12_6'.format(potential)
     )
 
     # Get the indexes and symbols
@@ -147,6 +147,9 @@ def low_repulsion_struct(geo_ref, geo_samp,
     for (idx1, idx2) in pairs:
         sum_ref += pot_mat[idx1, idx2]
         sum_samp += pot_mat_samp[idx1, idx2]
+
+    print('long_range_pots {:.2f} {:.2f} {:.2f}'.format(
+        sum_ref, sum_samp, sum_samp-sum_ref))
 
     # Check if the potentials are within threshold
     low_repulsion = bool((sum_samp - sum_ref) <= thresh)
