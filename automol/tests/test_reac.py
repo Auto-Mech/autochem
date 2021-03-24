@@ -934,7 +934,7 @@ def test__reac__substitution():
         print('\tsymmetry number:', sym_num)
 
 
-def test__reac_util()
+def test__reac_util():
     """
     """
 
@@ -951,7 +951,7 @@ def test__reac_util()
         rct_smis, prd_smis, indexing='zma')
     zrxn2, zma2, _, _ = zrxn_objs[0]
 
-    assert zrxn1 = zrxn2 
+    assert zrxn1 == zrxn2 
     # assert zma1 == zma2
 
 
@@ -1047,6 +1047,22 @@ def test__mult():
 
     mult = 3
     assert automol.mult.spin(mult) == 2
+
+
+def test__stereo():
+    """ test stereo functionality
+    """
+    rct_smis = ['FC=CC=CF', '[OH]']
+    prd_smis = ['FC=C[CH]C(O)F']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, _, rct_geos, prd_geos = rxn_objs[0]
+
+    srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
+    print(automol.reac.string(srxn, one_indexed=False))
+
+    automol.reac.is_stereo_consistent(srxn)
+    # automol.reac.substereomers(rxn)
 
 
 # def test__trans__is_stereo_compatible():
@@ -1218,14 +1234,15 @@ if __name__ == '__main__':
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
-    test__reac__beta_scission()
+    # test__reac__beta_scission()
     # hmig()
     # test__reac__hydrogen_migration()
-    test__reac__2ts_hydrogen_migration()
+    # test__reac__2ts_hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
     # test__reac__addition()
     # test__reac__insertion()
     # test__reac__substitution()
-    test__species__demo()
+    # test__species__demo()
+    test__stereo()
