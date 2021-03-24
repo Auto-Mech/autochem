@@ -56,9 +56,12 @@ class Reaction:
             "{} != {}".format(str(all_prds_keys), str(back_keys)))
 
         # Check that the reactants and products are consistent
+        forw_tsg_comp = automol.graph.without_dummy_atoms(
+            automol.graph.without_stereo_parities(forw_tsg))
+        back_tsg_comp = automol.graph.without_dummy_atoms(
+            automol.graph.without_stereo_parities(back_tsg))
         assert automol.graph.full_isomorphism(
-            ts.reverse(forw_tsg, dummies=False),
-            automol.graph.without_dummy_atoms(back_tsg))
+            ts.reverse(forw_tsg_comp), back_tsg_comp)
 
         # Set attributes
         self.class_ = rxn_cls

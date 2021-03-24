@@ -48,6 +48,10 @@ from automol.reac._rot import linear_atom_keys
 from automol.reac._rot import rotational_bond_keys
 from automol.reac._rot import rotational_groups
 from automol.reac._rot import rotational_symmetry_number
+# stereo-specific reactions
+from automol.reac._stereo import add_stereo_from_geometries
+from automol.reac._stereo import is_stereo_consistent
+from automol.reac._stereo import substereomers
 # reaction products
 from automol.reac._prod import prod_hydrogen_abstraction
 from automol.reac._prod import prod_addition
@@ -120,6 +124,10 @@ __all__ = [
     'rotational_bond_keys',
     'rotational_groups',
     'rotational_symmetry_number',
+    # stereo-specific reactions
+    'add_stereo_from_geometries',
+    'is_stereo_consistent',
+    'substereomers',
     # reaction products
     'prod_hydrogen_abstraction',
     'prod_addition',
