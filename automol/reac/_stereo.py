@@ -52,6 +52,33 @@ def add_stereo_from_geometries(rxn, rct_geos, prd_geos):
     return srxn
 
 
+def conserved_atom_stereo_keys(rxn):
+    """ Determine the atom stereo keys which are conserved by the reaction (are
+    stereo centers for both reactants and products)
+
+    :param rxn: a Reaction object
+    :returns: The conserved stereo atom keys as a dictionary. Dictionary keys
+        are atom keys for the reactants; dictionary values are atom keys for
+        the products.
+    :rtype: dict
+    """
+    forw_tsg = rxn.forward_ts_graph
+    back_tsg = rxn.backward_ts_graph
+
+    # Relabel the backward TSG to correspond to the atom ordering of the
+    # forward TSG. At this point, if there is symmetry in the connectivity
+    # graph, there is no guarantee that symmetric stereo centers won't be
+    # swapped.
+    iso_dct = automol.graph.isomorphism(
+        ts.reverse(back_tsg), forw_tsg, stereo=False, dummy=False)
+    back_tsg = automol.graph.relabel(back_tsg, iso_dct)
+
+    ste_atm_keys = sorted(automol.graph.atom_stereo_keys(forw_tsg) &
+                          automol.graph.atom_stereo_keys(back_tsg))
+    print(iso_dct)
+    print(ste_atm_keys)
+
+
 def is_stereo_consistent(rxn):
     """ Determine if the reaction has mutually consistent stereo assignments
     for reactants and products.
@@ -60,10 +87,6 @@ def is_stereo_consistent(rxn):
     :returns: True if the stereo assignments are consistent; otherwise False
     :rtype: bool
     """
-    # 1. Determine the isomorphism taking reactant atoms into product atoms
-    iso_dct = automol.graph.full_isomorphism(
-        rxn.forward_ts_graph, ts.reverse(rxn.backward_ts_graph))
-    print(iso_dct)
 
 
 def substereomers(rxn):

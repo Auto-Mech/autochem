@@ -1052,8 +1052,12 @@ def test__mult():
 def test__stereo():
     """ test stereo functionality
     """
-    rct_smis = ['FC=CC=CF', '[OH]']
-    prd_smis = ['FC=C[CH]C(O)F']
+    # # example 1
+    # rct_smis = ['FC=CC=CF', '[OH]']
+    # prd_smis = ['FC=C[CH]C(O)F']
+    # example 2
+    rct_smis = ['FC=C(C(O)F)C(O)F', '[OH]']
+    prd_smis = ['FC(O)[C](C(O)F)C(O)F']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
@@ -1061,7 +1065,8 @@ def test__stereo():
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
     print(automol.reac.string(srxn, one_indexed=False))
 
-    automol.reac.is_stereo_consistent(srxn)
+    automol.reac.conserved_atom_stereo_keys(srxn)
+    # automol.reac.is_stereo_consistent(srxn)
     # automol.reac.substereomers(rxn)
 
 

@@ -4,6 +4,7 @@ import itertools
 import functools
 import numpy
 from automol.util import dict_
+import automol.util
 from automol.graph._res import resonance_dominant_atom_hybridizations
 from automol.graph._res import resonance_dominant_bond_orders
 from automol.graph._ring import rings_bond_keys
@@ -235,7 +236,7 @@ def substereomers(gra):
     return sgrs
 
 
-def atoms_stereo_sorted_neighbor_atom_keys(gra, atm_key, atm_ngb_keys):
+def atom_stereo_sorted_neighbor_atom_keys(gra, atm_key, atm_ngb_keys):
     """ get the neighbor keys of an atom sorted by stereo priority
     """
     atm_ngb_keys = list(atm_ngb_keys)
@@ -249,3 +250,111 @@ def atoms_stereo_sorted_neighbor_atom_keys(gra, atm_key, atm_ngb_keys):
     sort_idxs = numpy.argsort(atm_pri_vecs)
     sorted_atm_ngb_keys = tuple(map(atm_ngb_keys.__getitem__, sort_idxs))
     return sorted_atm_ngb_keys
+
+
+def atoms_stereo_sorted_neighbor_atom_keys(sgr):
+    """ Obtain neighbor atom keys for all stereo atoms, sorted by stereo
+    priority.
+
+    Includes all stereo atoms and atoms constituting stereo bonds. For stereo
+    bonds, the neighbors for each atom in the bond exclude the other atom in
+    the bond.
+
+    :param sgr: the graph
+    :returns: Neighbor atom keys, sorted by stereo priority, keyed by atom.
+    :rtype: dict
+    """
+    atm_ste_keys = atom_stereo_keys(sgr)
+    bnd_ste_keys = bond_stereo_keys(sgr)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(sgr)
+
+    ste_atm_ngb_keys_dct = {}
+    for atm_key in atm_ste_keys:
+        atm_ngb_keys = atm_ngb_keys_dct[atm_key]
+
+        ste_atm_ngb_keys_dct[atm_key] = atom_stereo_sorted_neighbor_atom_keys(
+            sgr, atm_key, atm_ngb_keys)
+
+    for bnd_key in bnd_ste_keys:
+        atm1_key, atm2_key = sorted(bnd_key)
+
+        atm1_ngb_keys = atm_ngb_keys_dct[atm1_key] - bnd_key
+        atm2_ngb_keys = atm_ngb_keys_dct[atm2_key] - bnd_key
+
+        ste_atm_ngb_keys_dct[atm1_key] = atom_stereo_sorted_neighbor_atom_keys(
+            sgr, atm1_key, atm1_ngb_keys)
+        ste_atm_ngb_keys_dct[atm2_key] = atom_stereo_sorted_neighbor_atom_keys(
+            sgr, atm2_key, atm2_ngb_keys)
+
+    return ste_atm_ngb_keys_dct
+
+
+def to_index_based_stereo(sgr):
+    """ Convert a graph to index-based stereo assignments, where parities are
+    defined relative to the ordering of indices rather than the absolute stereo
+    priority.
+
+    :param sgr: a graph with absolute stereo assignments
+    :returns: a graph with index-based stereo assignments
+    """
+    abs_srt_keys_dct = atoms_stereo_sorted_neighbor_atom_keys(sgr)
+    atm_ste_keys = atom_stereo_keys(sgr)
+    bnd_ste_keys = bond_stereo_keys(sgr)
+
+    abs_atm_ste_par_dct = atom_stereo_parities(sgr)
+    abs_bnd_ste_par_dct = bond_stereo_parities(sgr)
+
+    idx_atm_ste_par_dct = {}
+    idx_bnd_ste_par_dct = {}
+
+    # Determine index-based stereo assignments for atoms
+    for atm_key in atm_ste_keys:
+        abs_srt_keys = abs_srt_keys_dct[atm_key]
+        idx_srt_keys = sorted(abs_srt_keys)
+
+        if automol.util.is_even_permutation(idx_srt_keys, abs_srt_keys):
+            idx_atm_ste_par_dct[atm_key] = abs_atm_ste_par_dct[atm_key]
+        else:
+            idx_atm_ste_par_dct[atm_key] = not abs_atm_ste_par_dct[atm_key]
+
+    # Determine index-based stereo assignments for bonds
+    for bnd_key in bnd_ste_keys:
+        atm1_key, atm2_key = sorted(bnd_key)
+
+        atm1_abs_srt_keys = abs_srt_keys_dct[atm1_key]
+        atm2_abs_srt_keys = abs_srt_keys_dct[atm2_key]
+        atm1_idx_srt_keys = sorted(atm1_abs_srt_keys)
+        atm2_idx_srt_keys = sorted(atm2_abs_srt_keys)
+
+        if not ((atm1_idx_srt_keys[0] != atm1_abs_srt_keys[0]) ^
+                (atm2_idx_srt_keys[0] != atm2_abs_srt_keys[0])):
+            idx_bnd_ste_par_dct[bnd_key] = abs_bnd_ste_par_dct[bnd_key]
+        else:
+            idx_bnd_ste_par_dct[bnd_key] = not abs_bnd_ste_par_dct[bnd_key]
+
+    sgr = set_atom_stereo_parities(sgr, idx_atm_ste_par_dct)
+    sgr = set_bond_stereo_parities(sgr, idx_bnd_ste_par_dct)
+    return sgr
+
+
+if __name__ == '__main__':
+    # atom stereo
+    GRA = ({0: ('C', 0, None), 1: ('C', 0, True), 2: ('F', 0, None),
+            3: ('O', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({0, 4}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({0, 6}): (1, None),
+            frozenset({1, 2}): (1, None), frozenset({1, 3}): (1, None),
+            frozenset({1, 7}): (1, None), frozenset({8, 3}): (1, None)})
+    # # bond stereo
+    # GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+    #         3: ('F', 0, None), 4: ('O', 0, None), 5: ('H', 0, None),
+    #         6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+    #         9: ('H', 0, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None),
+    #         frozenset({0, 6}): (1, None), frozenset({0, 7}): (1, None),
+    #         frozenset({1, 2}): (1, False), frozenset({8, 1}): (1, None),
+    #         frozenset({2, 3}): (1, None), frozenset({2, 4}): (1, None),
+    #         frozenset({9, 4}): (1, None)})
+
+    print(to_index_based_stereo(GRA))
