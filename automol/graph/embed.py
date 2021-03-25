@@ -53,7 +53,7 @@ from automol.graph._graph import subgraph
 from automol.graph._stereo import atom_stereo_keys
 from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import sp2_bond_keys
-from automol.graph._stereo import atoms_stereo_sorted_neighbor_atom_keys
+from automol.graph._stereo import atom_stereo_sorted_neighbor_atom_keys
 from automol.graph._ring import rings_atom_keys
 from automol.graph._stereo_geom import _atom_stereo_parity_from_geometry
 from automol.graph._stereo_geom import _bond_stereo_parity_from_geometry
@@ -257,9 +257,9 @@ def path_distance_bounds_(gra):
                 bnd_key23 = frozenset({key2, key3})
                 # handle bond stereo here
                 if bnd_key23 in ste_bnd_keys:
-                    key2_ngbs = atoms_stereo_sorted_neighbor_atom_keys(
+                    key2_ngbs = atom_stereo_sorted_neighbor_atom_keys(
                         gra, key2, atm_ngb_keys[key2]-{key3})
-                    key3_ngbs = atoms_stereo_sorted_neighbor_atom_keys(
+                    key3_ngbs = atom_stereo_sorted_neighbor_atom_keys(
                         gra, key3, atm_ngb_keys[key3]-{key2})
                     pos2 = key2_ngbs.index(path[0])
                     pos3 = key3_ngbs.index(path[-1])
@@ -482,7 +482,7 @@ def chirality_constraint_bounds(gra, keys):
 
     def _chirality_constraint(key):
         ngb_keys = ngb_key_dct[key]
-        ngb_keys = atoms_stereo_sorted_neighbor_atom_keys(gra, key, ngb_keys)
+        ngb_keys = atom_stereo_sorted_neighbor_atom_keys(gra, key, ngb_keys)
         idxs = tuple(map(keys.index, ngb_keys))
         vol_range = (-999., -7.) if par_dct[key] else (+7., +999.)
         return idxs, vol_range

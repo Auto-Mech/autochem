@@ -1021,6 +1021,48 @@ def explicit(gra, atm_keys=None):
 #     return iso_dcts
 
 
+def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
+    """ Obtain an isomorphism between two graphs
+
+    :param backbone_only: Compare backbone atoms only?
+    :type backbone_only: bool
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: The isomorphism mapping `gra1` onto `gra2`
+    :rtype: dict
+    """
+    if backbone_only:
+        gra1 = implicit(gra1)
+        gra2 = implicit(gra2)
+
+    if not stereo:
+        gra1 = without_stereo_parities(gra1)
+        gra2 = without_stereo_parities(gra2)
+
+    if not dummy:
+        gra1 = without_dummy_atoms(gra1)
+        gra2 = without_dummy_atoms(gra2)
+
+    return _isomorphism(gra1, gra2)
+
+
+def _isomorphism(gra1, gra2, igraph=False):
+    """
+    """
+    if igraph:
+        igr1 = _igraph.from_graph(gra1)
+        igr2 = _igraph.from_graph(gra2)
+        iso_dcts = _igraph.isomorphisms(igr1, igr2)
+        iso_dct = iso_dcts[0] if iso_dcts else None
+    else:
+        nxg1 = _networkx.from_graph(gra1)
+        nxg2 = _networkx.from_graph(gra2)
+        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    return iso_dct
+
+
 def full_isomorphism(gra1, gra2, igraph=False): #True):
     """ full graph isomorphism
     """

@@ -99,6 +99,7 @@ from automol.graph._graph import add_atom_explicit_hydrogen_keys
 from automol.graph._graph import implicit
 from automol.graph._graph import explicit
 # # comparisons
+from automol.graph._graph import isomorphism
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import backbone_isomorphic
@@ -154,6 +155,7 @@ from automol.graph._stereo import stereogenic_bond_keys
 from automol.graph._stereo import sp2_bond_keys
 from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
+from automol.graph._stereo import atom_stereo_sorted_neighbor_atom_keys
 from automol.graph._stereo import atoms_stereo_sorted_neighbor_atom_keys
 
 # ring graph library
@@ -359,6 +361,7 @@ __all__ = [
     'explicit',
     # # comparisons
     'full_subgraph_isomorphism',
+    'isomorphism',
     'full_isomorphism',
     'full_subgraph_isomorphism',
     'backbone_isomorphic',
@@ -411,6 +414,7 @@ __all__ = [
     'sp2_bond_keys',
     'stereomers',
     'substereomers',
+    'atom_stereo_sorted_neighbor_atom_keys',
     'atoms_stereo_sorted_neighbor_atom_keys',
 
     # ring graph library

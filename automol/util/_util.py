@@ -2,6 +2,30 @@
 """
 
 
+def is_even_permutation(seq1, seq2):
+    """ Determine whether a permutation of a sequence is even or odd.
+
+    :param seq1: the first sequence
+    :param seq2: the second sequence, which must be a permuation of the first
+    :returns: True if the permutation is even, False if it is odd
+    :rtype: bool
+    """
+    size = len(seq1)
+    assert sorted(seq1) == sorted(seq2) and len(set(seq1)) == size
+    perm = [seq2.index(val) for val in seq1]
+
+    sgn = 1
+    for idx in range(size):
+        if perm[idx] != idx:
+            sgn *= -1
+            swap_idx = perm.index(idx)
+            perm[idx], perm[swap_idx] = perm[swap_idx], perm[idx]
+
+    parity = (sgn == 1)
+
+    return parity
+
+
 def equivalence_partition(iterable, relation):
     """Partitions a set of objects into equivalence classes
 

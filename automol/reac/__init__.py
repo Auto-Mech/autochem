@@ -50,6 +50,7 @@ from automol.reac._rot import rotational_groups
 from automol.reac._rot import rotational_symmetry_number
 # stereo-specific reactions
 from automol.reac._stereo import add_stereo_from_geometries
+from automol.reac._stereo import conserved_atom_stereo_keys
 from automol.reac._stereo import is_stereo_consistent
 from automol.reac._stereo import substereomers
 # reaction products
