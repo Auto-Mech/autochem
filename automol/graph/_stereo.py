@@ -360,22 +360,27 @@ def from_index_based_stereo(sgr):
         idx_atm_ste_par_dct = atom_stereo_parities(sgr)
         idx_bnd_ste_par_dct = bond_stereo_parities(sgr)
 
-        abs_atm_ste_par_dct = {}
-        abs_bnd_ste_par_dct = {}
+        atm_ngb_keys_dct = atoms_neighbor_atom_keys(sgr)
 
-        abs_srt_keys_dct = atoms_stereo_sorted_neighbor_atom_keys(sgr)
+        atm_keys = set()
+        bnd_keys = set()
+
+        last_gra = None
 
         # Do the assignments iteratively to handle higher-order stereo
-        for _ in range(10):
-            atm_ste_keys = stereogenic_atom_keys(gra)
-            bnd_ste_keys = stereogenic_bond_keys(gra)
+        while last_gra != gra:
+            last_gra = gra
 
-            atm_keys = atm_ste_keys & atm_keys_pool
-            bnd_keys = bnd_ste_keys & bnd_keys_pool
+            abs_atm_ste_par_dct = {}
+            abs_bnd_ste_par_dct = {}
+
+            atm_keys.update(stereogenic_atom_keys(gra) & atm_keys_pool)
+            bnd_keys.update(stereogenic_bond_keys(gra) & bnd_keys_pool)
 
             # Determine absolute stereo assignments for atoms
             for atm_key in atm_keys:
-                abs_srt_keys = abs_srt_keys_dct[atm_key]
+                abs_srt_keys = atom_stereo_sorted_neighbor_atom_keys(
+                    gra, atm_key, atm_ngb_keys_dct[atm_key])
                 idx_srt_keys = sorted(abs_srt_keys)
 
                 if automol.util.is_even_permutation(idx_srt_keys,
@@ -390,8 +395,10 @@ def from_index_based_stereo(sgr):
             for bnd_key in bnd_keys:
                 atm1_key, atm2_key = sorted(bnd_key)
 
-                atm1_abs_srt_keys = abs_srt_keys_dct[atm1_key]
-                atm2_abs_srt_keys = abs_srt_keys_dct[atm2_key]
+                atm1_abs_srt_keys = atom_stereo_sorted_neighbor_atom_keys(
+                    gra, atm1_key, atm_ngb_keys_dct[atm1_key] - bnd_key)
+                atm2_abs_srt_keys = atom_stereo_sorted_neighbor_atom_keys(
+                    gra, atm2_key, atm_ngb_keys_dct[atm2_key] - bnd_key)
                 atm1_idx_srt_keys = sorted(atm1_abs_srt_keys)
                 atm2_idx_srt_keys = sorted(atm2_abs_srt_keys)
 
@@ -406,10 +413,6 @@ def from_index_based_stereo(sgr):
             gra = set_atom_stereo_parities(gra, abs_atm_ste_par_dct)
             gra = set_bond_stereo_parities(gra, abs_bnd_ste_par_dct)
 
-            if atom_stereo_keys(gra) == atm_keys_pool and (
-                    bond_stereo_keys(gra) == bnd_keys_pool):
-                break
-
     atm_ste_keys = atom_stereo_keys(gra)
     bnd_ste_keys = bond_stereo_keys(gra)
     assert atm_ste_keys == atm_keys_pool, (
@@ -423,14 +426,14 @@ def from_index_based_stereo(sgr):
 
 
 if __name__ == '__main__':
-    # atom stereo
-    SGR1 = ({0: ('C', 0, None), 1: ('C', 0, True), 2: ('F', 0, None),
-             3: ('O', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-             6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},
-            {frozenset({0, 1}): (1, None), frozenset({0, 4}): (1, None),
-             frozenset({0, 5}): (1, None), frozenset({0, 6}): (1, None),
-             frozenset({1, 2}): (1, None), frozenset({1, 3}): (1, None),
-             frozenset({1, 7}): (1, None), frozenset({8, 3}): (1, None)})
+    # # atom stereo
+    # SGR1 = ({0: ('C', 0, None), 1: ('C', 0, True), 2: ('F', 0, None),
+    #          3: ('O', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+    #          6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},
+    #         {frozenset({0, 1}): (1, None), frozenset({0, 4}): (1, None),
+    #          frozenset({0, 5}): (1, None), frozenset({0, 6}): (1, None),
+    #          frozenset({1, 2}): (1, None), frozenset({1, 3}): (1, None),
+    #          frozenset({1, 7}): (1, None), frozenset({8, 3}): (1, None)})
     # # bond stereo
     # SGR1 = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
     #          3: ('F', 0, None), 4: ('O', 0, None), 5: ('H', 0, None),
@@ -441,6 +444,16 @@ if __name__ == '__main__':
     #          frozenset({1, 2}): (1, False), frozenset({8, 1}): (1, None),
     #          frozenset({2, 3}): (1, None), frozenset({2, 4}): (1, None),
     #          frozenset({9, 4}): (1, None)})
+    # higher-order stereo
+    SGR1 = ({0: ('C', 0, False), 1: ('C', 0, False), 2: ('C', 0, True),
+             3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+             6: ('F', 0, None), 7: ('F', 0, None), 8: ('H', 0, None),
+             9: ('H', 0, None), 10: ('H', 0, None)},
+            {frozenset({1, 9}): (1, None), frozenset({2, 10}): (1, None),
+             frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({2, 7}): (1, None), frozenset({0, 5}): (1, None),
+             frozenset({2, 4}): (1, None), frozenset({1, 6}): (1, None),
+             frozenset({1, 3}): (1, None), frozenset({0, 8}): (1, None)})
 
     SGR2 = to_index_based_stereo(SGR1)
     SGR1_ = from_index_based_stereo(SGR2)

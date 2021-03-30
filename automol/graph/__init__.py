@@ -157,6 +157,8 @@ from automol.graph._stereo import stereomers
 from automol.graph._stereo import substereomers
 from automol.graph._stereo import atom_stereo_sorted_neighbor_atom_keys
 from automol.graph._stereo import atoms_stereo_sorted_neighbor_atom_keys
+from automol.graph._stereo import to_index_based_stereo
+from automol.graph._stereo import from_index_based_stereo
 
 # ring graph library
 from automol.graph._ring import rings
@@ -416,6 +418,8 @@ __all__ = [
     'substereomers',
     'atom_stereo_sorted_neighbor_atom_keys',
     'atoms_stereo_sorted_neighbor_atom_keys',
+    'to_index_based_stereo',
+    'from_index_based_stereo',
 
     # ring graph library
     'rings',
