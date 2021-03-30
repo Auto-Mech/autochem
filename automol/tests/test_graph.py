@@ -773,6 +773,17 @@ def test__stereomers():
     """ test graph.stereomers
     """
     assert graph.stereomers(C2H2CL2F2_CGR) == C2H2CL2F2_SGRS
+
+    print('ONE')
+    for SGR in graph.stereomers(C3H3CL2F3_CGR):
+        print(graph.string(SGR, one_indexed=False))
+        print()
+
+    print('TWO')
+    for SGR in C3H3CL2F3_SGRS:
+        print(graph.string(SGR, one_indexed=False))
+        print()
+
     assert graph.stereomers(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
     assert graph.stereomers(C3H5N3_CGR) == C3H5N3_SGRS
     assert graph.stereomers(C8H13O_CGR) == C8H13O_SGRS
@@ -804,5 +815,5 @@ if __name__ == '__main__':
     # test__atom_count()
     # test__heavy_atom_count()
     # test__subresonances()
-    # test__stereomers()
-    test__sigma_radical_atom_keys()
+    # test__sigma_radical_atom_keys()
+    test__stereomers()

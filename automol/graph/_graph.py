@@ -984,7 +984,7 @@ def implicit(gra, atm_keys=None):
     gra = add_atom_implicit_hydrogen_valences(gra, inc_imp_hyd_keys_dct)
 
     exp_hyd_keys = set(itertools.chain(*atm_exp_hyd_keys_dct.values()))
-    gra = remove_atoms(gra, exp_hyd_keys)
+    gra = remove_atoms(gra, exp_hyd_keys, stereo=True)
     return gra
 
 
