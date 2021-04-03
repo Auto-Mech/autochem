@@ -53,6 +53,7 @@ from automol.reac._rot import rotational_symmetry_number
 from automol.reac._stereo import add_stereo_from_geometries
 from automol.reac._stereo import expand_stereo
 from automol.reac._stereo import expand_product_stereo
+from automol.reac._stereo import is_stereo_consistent
 # reaction products
 from automol.reac._prod import prod_hydrogen_abstraction
 from automol.reac._prod import prod_addition
@@ -130,6 +131,7 @@ __all__ = [
     'add_stereo_from_geometries',
     'expand_stereo',
     'expand_product_stereo',
+    'is_stereo_consistent',
     # reaction products
     'prod_hydrogen_abstraction',
     'prod_addition',
