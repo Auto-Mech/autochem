@@ -2,8 +2,9 @@
 """
 import automol
 
-rct_smis = ['CCC[CH2]']
-prd_smis = ['CC[CH]C']
+rct_smis = ['[CH2]CCCCCCCCC', '[H][H]']
+prd_smis = ['CCCCCCCCCC', '[H]']
+# rct_smis, prd_smis = prd_smis, rct_smis
 
 rct_ichs = list(map(automol.smiles.inchi, rct_smis))
 prd_ichs = list(map(automol.smiles.inchi, prd_smis))
@@ -27,9 +28,14 @@ rxn, rct_geos, prd_geos = (
         rxn, rct_geos, prd_geos))
 
 geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+print(automol.geom.string(geo))
 
 zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+print(automol.zmat.string(zma, one_indexed=False))
 zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
 scan_name = automol.reac.scan_coordinate(zrxn, zma)
 print(scan_name)
+
+geo = automol.zmat.geometry(zma, dummy=True)
+print(automol.geom.string(geo))

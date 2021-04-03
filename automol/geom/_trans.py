@@ -241,8 +241,12 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
             r23 = util.vec.unit_direction(xyz2, xyz3)
             direc = util.vec.orthogonalize(r12, r23, normalize=True)
         else:
-            assert len(idxs) >= 2, "This should never happen."
-            idx1, idx2 = idxs[:2]
+            if len(idxs) > 1:
+                idx1, idx2 = idxs[:2]
+            else:
+                idx1, = idxs
+                idx2, = ngb_idxs_dct[idx1]
+
             xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
             r12 = util.vec.unit_direction(xyz1, xyz2)
             for i in range(3):
@@ -252,6 +256,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
                 direc = util.vec.unit_perpendicular(r12, alt)
                 if numpy.linalg.norm(direc) > 1e-2:
                     break
+
         return direc
 
     # partition the linear atoms into adjacent groups, to be handled together
@@ -286,6 +291,7 @@ def displace(geo, xyzs):
     xyzs = numpy.add(orig_xyzs, xyzs)
 
     return automol.create.geom.from_data(symbs, xyzs)
+
 
 # redundant with above
 def translate(geo, xyz):
