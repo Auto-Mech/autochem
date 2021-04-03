@@ -1074,11 +1074,13 @@ def test__stereo():
         print(prd_ichs)
         print()
 
-    # Add stereo from geometries and expand stereo possibilities consistent
-    # with the reactants. Note that the original stereo assignments from the
-    # product geometries will often be inconsistent with the reactant stereo
-    # assignments.
+    # Assign reactant and product stereo from geometries.
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
+    # Note that the original stereo assignments from the product geometries
+    # could be inconsistent with the reactant stereo assignments.
+    print('Consistent?', automol.reac.is_stereo_consistent(srxn))
+    # Add stereo from geometries and expand stereo possibilities consistent
+    # with the reactants.
     srxns = automol.reac.expand_product_stereo(srxn)
     print(len(srxns))
     assert len(srxns) == 2
@@ -1114,11 +1116,13 @@ def test__stereo():
         print(prd_ichs)
         print()
 
-    # Add stereo from geometries and expand stereo possibilities consistent
-    # with the reactants. Note that the original stereo assignments from the
-    # product geometries will often be inconsistent with the reactant stereo
-    # assignments.
+    # Assign reactant and product stereo from geometries.
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
+    # Note that the original stereo assignments from the product geometries
+    # could be inconsistent with the reactant stereo assignments.
+    print('Consistent?', automol.reac.is_stereo_consistent(srxn))
+    # Add stereo from geometries and expand stereo possibilities consistent
+    # with the reactants.
     srxns = automol.reac.expand_product_stereo(srxn)
     print(len(srxns))
     assert len(srxns) == 4

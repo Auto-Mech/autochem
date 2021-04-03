@@ -64,52 +64,85 @@ def expand_stereo(rxn):
     :rtype: Reaction
     """
     rxn_cls = rxn.class_
+    forw_tsg = rxn.forward_ts_graph
+    back_tsg = rxn.backward_ts_graph
     rcts_keys = rxn.reactants_keys
     prds_keys = rxn.products_keys
 
     key_dct = atom_mapping(rxn)
 
-    forw_tsg = rxn.forward_ts_graph
     forw_ste_tsgs = ts.stereomers(forw_tsg)
 
-    ste_rxns = []
+    srxns = []
     for forw_ste_tsg in forw_ste_tsgs:
         for back_ste_tsg in ts.compatible_reverse_stereomers(forw_ste_tsg):
             back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
-            ste_rxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
-                               rcts_keys, prds_keys)
-            ste_rxns.append(ste_rxn)
+            # But for dummy atoms, we could just do the conversion directly,
+            # but this avoids loss of dummy atoms from the products graph.
+            back_ste_tsg = automol.graph.set_atom_stereo_parities(
+                back_tsg, automol.graph.atom_stereo_parities(back_ste_tsg))
+            back_ste_tsg = automol.graph.set_bond_stereo_parities(
+                back_tsg, automol.graph.bond_stereo_parities(back_ste_tsg))
 
-    ste_rxns = tuple(ste_rxns)
-    return ste_rxns
+            srxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
+                            rcts_keys, prds_keys)
+            srxns.append(srxn)
+
+    srxns = tuple(srxns)
+    return srxns
 
 
-def expand_product_stereo(rxn):
+def expand_product_stereo(srxn):
     """ Expand all possible stereo assignments for the products of this
     reaction, given a set of stereo assignments for the reactants. Stereo
     assignments for the products will be ignored.
 
-    :param rxn: a reaction object
-    :type rxn: Reaction
+    :param srxn: a reaction object with stereo assignments
+    :type srxn: Reaction
     :returns: a sequence reaction objects with stereo assignments
     :rtype: Reaction
     """
-    rxn_cls = rxn.class_
-    rcts_keys = rxn.reactants_keys
-    prds_keys = rxn.products_keys
+    rxn_cls = srxn.class_
+    back_tsg = srxn.backward_ts_graph
+    rcts_keys = srxn.reactants_keys
+    prds_keys = srxn.products_keys
 
-    key_dct = atom_mapping(rxn)
+    key_dct = atom_mapping(srxn)
 
-    forw_ste_tsg = rxn.forward_ts_graph
+    forw_ste_tsg = srxn.forward_ts_graph
 
-    ste_rxns = []
+    srxns = []
     for back_ste_tsg in ts.compatible_reverse_stereomers(forw_ste_tsg):
         back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
-        ste_rxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
-                           rcts_keys, prds_keys)
-        ste_rxns.append(ste_rxn)
+        # But for dummy atoms, we could just do the conversion directly, but
+        # this avoids loss of dummy atoms from the products graph.
+        back_ste_tsg = automol.graph.set_atom_stereo_parities(
+            back_tsg, automol.graph.atom_stereo_parities(back_ste_tsg))
+        back_ste_tsg = automol.graph.set_bond_stereo_parities(
+            back_tsg, automol.graph.bond_stereo_parities(back_ste_tsg))
 
-    ste_rxns = tuple(ste_rxns)
-    return ste_rxns
+        srxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
+                        rcts_keys, prds_keys)
+        srxns.append(srxn)
+
+    srxns = tuple(srxns)
+    return srxns
+
+
+def is_stereo_consistent(srxn):
+    """ Does this reaction have consistent stereo assignments for reactants and
+    products?
+
+    :param srxn: a reaction object with stereo assignments
+    :type srxn: Reaction
+    :returns: True if stereo assignments are consisent, False if not
+    :rtype: bool
+    """
+    back_tsg = srxn.backward_ts_graph
+
+    srxns = expand_product_stereo(srxn)
+    return any(
+        automol.graph.isomorphism(back_tsg, s.backward_ts_graph, stereo=True)
+        for s in srxns)
