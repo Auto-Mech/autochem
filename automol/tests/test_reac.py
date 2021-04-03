@@ -1052,74 +1052,85 @@ def test__mult():
 def test__stereo():
     """ test stereo functionality
     """
-    # # example 1
-    rct_smis = ['FC=CC=CF', '[OH]']
-    prd_smis = ['FC=C[CH]C(O)F']
-    # example 2
-    # rct_smis = ['FC=C(C(O)F)C(O)F', '[OH]']
-    # prd_smis = ['FC(O)[C](C(O)F)C(O)F']
+    # example 1
+    rct_smis = ['FC=C(C(O)F)C(O)F', '[OH]']
+    prd_smis = ['FC(O)[C](C(O)F)C(O)F']
+    print("Reaction:", rct_smis, "=>", prd_smis)
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
 
+    # Complete stereo expansion for the reaction
+    srxns = automol.reac.expand_stereo(rxn)
+    print(len(srxns))
+    assert len(srxns) == 16
+    print("Complete stereo expansion for the reaction:")
+    for srxn in srxns:
+        rct_gras = automol.reac.reactant_graphs(srxn)
+        prd_gras = automol.reac.product_graphs(srxn)
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
+        print(rct_ichs)
+        print(prd_ichs)
+        print()
+
+    # Add stereo from geometries and expand stereo possibilities consistent
+    # with the reactants. Note that the original stereo assignments from the
+    # product geometries will often be inconsistent with the reactant stereo
+    # assignments.
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
-    print(automol.reac.string(srxn, one_indexed=False))
+    srxns = automol.reac.expand_product_stereo(srxn)
+    print(len(srxns))
+    assert len(srxns) == 2
+    print("Product expansion for reactant geometry stereo assignments:")
+    for srxn in srxns:
+        rct_gras = automol.reac.reactant_graphs(srxn)
+        prd_gras = automol.reac.product_graphs(srxn)
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
+        print(rct_ichs)
+        print(prd_ichs)
+        print()
 
-    forw_tsg = srxn.forward_ts_graph
-    print(forw_tsg)
+    # example 2
+    rct_smis = ['FC=CC=CF', '[OH]']
+    prd_smis = ['FC=C[CH]C(O)F']
+    print("Reaction:", rct_smis, "=>", prd_smis)
 
-    nc_atm_keys = automol.graph.ts.nonconserved_atom_stereo_keys(forw_tsg)
-    nc_bnd_keys = automol.graph.ts.nonconserved_bond_stereo_keys(forw_tsg)
-    print(nc_atm_keys)
-    print(nc_bnd_keys)
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, _, rct_geos, prd_geos = rxn_objs[0]
 
-    # cre_atm_ste_keys = automol.reac.created_atom_stereo_keys(srxn)
-    # des_atm_ste_keys = automol.reac.destroyed_atom_stereo_keys(srxn)
-    # cre_bnd_ste_keys = automol.reac.created_bond_stereo_keys(srxn)
-    # des_bnd_ste_keys = automol.reac.destroyed_bond_stereo_keys(srxn)
-    # print(cre_atm_ste_keys)
-    # print(des_atm_ste_keys)
-    # print(cre_bnd_ste_keys)
-    # print(des_bnd_ste_keys)
+    # Complete stereo expansion for the reaction
+    srxns = automol.reac.expand_stereo(rxn)
+    print(len(srxns))
+    assert len(srxns) == 16
+    print("Complete stereo expansion for the reaction:")
+    for srxn in srxns:
+        rct_gras = automol.reac.reactant_graphs(srxn)
+        prd_gras = automol.reac.product_graphs(srxn)
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
+        print(rct_ichs)
+        print(prd_ichs)
+        print()
 
-    # automol.reac.is_stereo_consistent(srxn)
-    # automol.reac.substereomers(rxn)
-
-
-# def test__trans__is_stereo_compatible():
-#     """ test graph.trans.is_stereo_compatible
-#     """
-#     cgr1 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
-#              3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
-#              6: ('O', 1, None)},
-#             {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-#              frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
-#              frozenset({1, 3}): (1, None)})
-#     cgr2 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
-#              3: ('C', 1, None), 4: ('F', 0, None), 5: ('F', 0, None),
-#              6: ('O', 1, None)},
-#             {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-#              frozenset({3, 6}): (1, None), frozenset({2, 4}): (1, None),
-#              frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
-#
-#     cgr1 = automol.graph.explicit(cgr1)
-#     cgr2 = automol.graph.explicit(cgr2)
-#
-#     cgr1s = automol.graph.connected_components(cgr1)
-#     cgr2s = automol.graph.connected_components(cgr2)
-#
-#     ref_compat_lst = (
-#         True, False, True, False, True, False, True, False,
-#         True, False, True, False, True, False, True, False
-#     )
-#     tras, _, _ = graph.reac.addition(cgr1s, cgr2s)
-#     for tra in tras:
-#         assert graph.backbone_isomorphic(graph.trans.apply(tra, cgr1), cgr2)
-#
-#         sgr1 = graph.stereomers(cgr1)[0]
-#         for idx, sgr2 in enumerate(graph.stereomers(cgr2)):
-#             assert ref_compat_lst[idx] == (
-#                 graph.trans.is_stereo_compatible(tra, sgr1, sgr2))
+    # Add stereo from geometries and expand stereo possibilities consistent
+    # with the reactants. Note that the original stereo assignments from the
+    # product geometries will often be inconsistent with the reactant stereo
+    # assignments.
+    srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
+    srxns = automol.reac.expand_product_stereo(srxn)
+    print(len(srxns))
+    assert len(srxns) == 4
+    print("Product expansion for reactant geometry stereo assignments:")
+    for srxn in srxns:
+        rct_gras = automol.reac.reactant_graphs(srxn)
+        prd_gras = automol.reac.product_graphs(srxn)
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
+        print(rct_ichs)
+        print(prd_ichs)
+        print()
 
 
 def test__prod__hydrogen_abstraction():
