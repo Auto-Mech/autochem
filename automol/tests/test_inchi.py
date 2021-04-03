@@ -150,12 +150,25 @@ def test__recalculate():
     # assert inchi.recalculate(CH4O_CH_ICH) == CH4O_CH_ICH
 
 
+def test__expand_stereo():
+    """ inchi.expand_stereo
+    """
+    assert len(inchi.expand_stereo(C8H13O_ICH_NO_STEREO)) == 8
+
+    # some cases that were breaking
+    inchi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')
+    inchi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')
+    inchi.expand_stereo('InChI=1S/C2/c1-2')
+    inchi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__version()
     # test__join()
-    test__recalculate()
+    # test__recalculate()
     # test__split()
     # test__standard_form()
     # test__has_stereo()
     # test__argsort()
+    test__expand_stereo()

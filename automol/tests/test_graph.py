@@ -60,8 +60,6 @@ C2_RGRS = (
      {frozenset({0, 1}): (2, None)}),
     ({0: ('C', 0, None), 1: ('C', 0, None)},
      {frozenset({0, 1}): (3, None)}),
-    ({0: ('C', 0, None), 1: ('C', 0, None)},
-     {frozenset({0, 1}): (4, None)}),
 )
 
 CH2FH2H_CGR_IMP = (
