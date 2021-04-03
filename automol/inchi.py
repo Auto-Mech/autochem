@@ -425,6 +425,7 @@ def low_spin_multiplicity(ich):
     """
     return automol.convert.inchi.low_spin_multiplicity(ich)
 
+
 def recalculate(ich, stereo=False):
     """ Recalculate an InChI string.
 
@@ -530,13 +531,9 @@ def expand_stereo(ich):
         :rtype: list[str]
     """
     gra = automol.inchi.graph(ich)
-    stereo_gras = automol.graph.stereomers(gra)
-
-    stereo_ichs = []
-    for gra in stereo_gras:
-        stereo_ichs.append(automol.graph.inchi(gra, stereo=True))
-    return stereo_ichs
-    # return list(map(automol.graph.inchi, stereo_gras))
+    sgrs = automol.graph.stereomers(gra)
+    ste_ichs = [automol.graph.stereo_inchi(sgr) for sgr in sgrs]
+    return ste_ichs
 
 
 def _sublayers(lyr):

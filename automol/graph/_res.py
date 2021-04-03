@@ -365,11 +365,14 @@ def subresonances(rgr):
             bnd_ord_inc_dct = dict(zip(bnd_keys, bnd_ord_incs))
             ret_rgr = _add_pi_bonds(rgr, bnd_ord_inc_dct)
 
+            max_bnd_ord = max(bond_orders(ret_rgr).values())
+
             atm_unsat_vlcs = dict_.values_by_key(
                 atom_unsaturated_valences(ret_rgr), atm_keys)
 
             if not any(atm_unsat_vlc < 0 for atm_unsat_vlc in atm_unsat_vlcs):
-                ret_rgrs.append(ret_rgr)
+                if max_bnd_ord < 4:
+                    ret_rgrs.append(ret_rgr)
 
     if not ret_rgrs:
         ret_rgrs = (rgr,)

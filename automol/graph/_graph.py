@@ -144,8 +144,10 @@ def frozen(gra):
     bnd_keys = sorted(bond_keys(gra), key=sorted)
 
     # make it sortable by replacing Nones with -infinity
-    atm_vals = numpy.array(dict_.values_by_key(atoms(gra), atm_keys))
-    bnd_vals = numpy.array(dict_.values_by_key(bonds(gra), bnd_keys))
+    atm_vals = numpy.array(dict_.values_by_key(atoms(gra), atm_keys),
+                           dtype=numpy.object)
+    bnd_vals = numpy.array(dict_.values_by_key(bonds(gra), bnd_keys),
+                           dtype=numpy.object)
     atm_vals[numpy.equal(atm_vals, None)] = -numpy.inf
     bnd_vals[numpy.equal(bnd_vals, None)] = -numpy.inf
 
