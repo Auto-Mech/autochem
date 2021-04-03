@@ -15,6 +15,8 @@ from automol.graph._graph_base import set_atom_implicit_hydrogen_valences
 from automol.graph._graph_base import set_atom_stereo_parities
 from automol.graph._graph_base import set_bond_orders
 from automol.graph._graph_base import set_bond_stereo_parities
+from automol.graph._graph_base import remove_atom_stereo_parities
+from automol.graph._graph_base import remove_bond_stereo_parities
 # I/O
 from automol.graph._graph_base import string
 from automol.graph._graph_base import from_string
@@ -274,6 +276,8 @@ __all__ = [
     'set_atom_stereo_parities',
     'set_bond_orders',
     'set_bond_stereo_parities',
+    'remove_atom_stereo_parities',
+    'remove_bond_stereo_parities',
     # I/O
     'string',
     'from_string',

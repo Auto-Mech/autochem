@@ -134,6 +134,26 @@ def set_bond_stereo_parities(sgr, bnd_par_dct):
     return _create.from_atoms_and_bonds(atoms(sgr), bnd_dct)
 
 
+def remove_atom_stereo_parities(gra, atm_keys):
+    """ Remove stereo parities for certain atoms
+
+    :param gra: the graph
+    :param atm_keys: the keys for which to remove stereo parities
+    :param gra: the resulting graph
+    """
+    return set_atom_stereo_parities(gra, {k: None for k in atm_keys})
+
+
+def remove_bond_stereo_parities(gra, bnd_keys):
+    """ Remove stereo parities for certain bonds
+
+    :param gra: the graph
+    :param bnd_keys: the keys for which to remove stereo parities
+    :param gra: the resulting graph
+    """
+    return set_bond_stereo_parities(gra, {k: None for k in bnd_keys})
+
+
 def relabel(gra, atm_key_dct):
     """ relabel the graph with new atom keys
     """
