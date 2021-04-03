@@ -1065,7 +1065,15 @@ def test__stereo():
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
     print(automol.reac.string(srxn, one_indexed=False))
 
-    automol.reac.conserved_atom_stereo_keys(srxn)
+    forw_nc_atm_keys, back_nc_atm_keys = (
+        automol.reac.nonconserved_atom_stereo_keys(srxn))
+    print(forw_nc_atm_keys)
+    print(back_nc_atm_keys)
+
+    forw_nc_bnd_keys, back_nc_bnd_keys = (
+        automol.reac.nonconserved_bond_stereo_keys(srxn))
+    print(forw_nc_bnd_keys)
+    print(back_nc_bnd_keys)
     # automol.reac.is_stereo_consistent(srxn)
     # automol.reac.substereomers(rxn)
 
