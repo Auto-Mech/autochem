@@ -5,6 +5,7 @@ from automol.reac._reac import Reaction
 from automol.reac._reac import string
 from automol.reac._reac import from_string
 from automol.reac._reac import reverse
+from automol.reac._reac import atom_mapping
 from automol.reac._reac import forming_bond_keys
 from automol.reac._reac import breaking_bond_keys
 from automol.reac._reac import forming_rings_atom_keys
@@ -50,12 +51,8 @@ from automol.reac._rot import rotational_groups
 from automol.reac._rot import rotational_symmetry_number
 # stereo-specific reactions
 from automol.reac._stereo import add_stereo_from_geometries
-from automol.reac._stereo import created_atom_stereo_keys
-from automol.reac._stereo import destroyed_atom_stereo_keys
-from automol.reac._stereo import created_bond_stereo_keys
-from automol.reac._stereo import destroyed_bond_stereo_keys
-from automol.reac._stereo import is_stereo_consistent
-from automol.reac._stereo import substereomers
+from automol.reac._stereo import expand_stereo
+from automol.reac._stereo import expand_product_stereo
 # reaction products
 from automol.reac._prod import prod_hydrogen_abstraction
 from automol.reac._prod import prod_addition
@@ -85,6 +82,7 @@ __all__ = [
     'string',
     'from_string',
     'reverse',
+    'atom_mapping',
     'forming_bond_keys',
     'breaking_bond_keys',
     'forming_rings_atom_keys',
@@ -130,12 +128,8 @@ __all__ = [
     'rotational_symmetry_number',
     # stereo-specific reactions
     'add_stereo_from_geometries',
-    'created_atom_stereo_keys',
-    'destroyed_atom_stereo_keys',
-    'created_bond_stereo_keys',
-    'destroyed_bond_stereo_keys',
-    'is_stereo_consistent',
-    'substereomers',
+    'expand_stereo',
+    'expand_product_stereo',
     # reaction products
     'prod_hydrogen_abstraction',
     'prod_addition',

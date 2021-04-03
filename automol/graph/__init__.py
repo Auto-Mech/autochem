@@ -246,6 +246,12 @@ def inchi(gra, stereo=False):
     return automol.convert.graph.inchi(gra, stereo=stereo)
 
 
+def stereo_inchi(gra):
+    """ graph => inchi
+    """
+    return automol.convert.graph.inchi(gra, stereo=True)
+
+
 def geometry(gra):
     """ graph => geometry
     """

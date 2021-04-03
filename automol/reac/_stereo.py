@@ -2,8 +2,8 @@
 """
 import automol.graph
 from automol.reac._reac import Reaction
-from automol.reac._reac import string
 from automol.reac._reac import reverse
+from automol.reac._reac import atom_mapping
 from automol.reac._reac import reactant_graphs
 from automol.reac._reac import product_graphs
 from automol.reac._reac import forming_bond_keys
@@ -14,10 +14,11 @@ from automol.graph import ts
 def add_stereo_from_geometries(rxn, rct_geos, prd_geos):
     """ Add stereo assignments to this reaction object from geometries.
 
-    :param rxn: a Reaction object
+    :param rxn: a reaction object
+    :type rxn: Reaction
     :param rct_geos: the reactant geometries
     :param prd_geos: the product geometries
-    :returns: a Reaction object with stereo assignments
+    :returns: a reaction object with stereo assignments
     :rtype: Reaction
     """
     rct_gras = list(reactant_graphs(rxn))
@@ -52,179 +53,63 @@ def add_stereo_from_geometries(rxn, rct_geos, prd_geos):
     return srxn
 
 
-def created_atom_stereo_keys(rxn):
-    """ Determine atoms which become stereogenic for the products.
+def expand_stereo(rxn):
+    """ Expand all possible stereo assignments for the reactants and products
+    of this reaction. Only includes possibilities that are mutually consistent
+    with each other.
 
-    :param rxn: a Reaction object
-    :returns: Atoms which become stereogenic for the products.
-    :rtype: frozenset
+    :param rxn: a reaction object
+    :type rxn: Reaction
+    :returns: a sequence reaction objects with stereo assignments
+    :rtype: Reaction
     """
+    rxn_cls = rxn.class_
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
+
+    key_dct = atom_mapping(rxn)
+
     forw_tsg = rxn.forward_ts_graph
-    back_tsg = rxn.backward_ts_graph
+    forw_ste_tsgs = ts.stereomers(forw_tsg)
 
-    # Relabel the backward TSG to correspond to the atom ordering of the
-    # forward TSG. At this point, if there is symmetry in the connectivity
-    # graph, there is no guarantee that symmetric stereo centers won't be
-    # swapped.
-    iso_dct = automol.graph.isomorphism(
-        ts.reverse(back_tsg), forw_tsg, stereo=False, dummy=False)
-    back_tsg = automol.graph.relabel(back_tsg, iso_dct)
+    ste_rxns = []
+    for forw_ste_tsg in forw_ste_tsgs:
+        for back_ste_tsg in ts.compatible_reverse_stereomers(forw_ste_tsg):
+            back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
-    keys1 = automol.graph.atom_stereo_keys(forw_tsg)
-    keys2 = automol.graph.atom_stereo_keys(back_tsg)
+            ste_rxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
+                               rcts_keys, prds_keys)
+            ste_rxns.append(ste_rxn)
 
-    cre_ste_atm_keys = frozenset(keys2 - keys1)
-
-    return cre_ste_atm_keys
+    ste_rxns = tuple(ste_rxns)
+    return ste_rxns
 
 
-def destroyed_atom_stereo_keys(rxn):
-    """ Determine atoms which are no longer stereogenic for the products.
+def expand_product_stereo(rxn):
+    """ Expand all possible stereo assignments for the products of this
+    reaction, given a set of stereo assignments for the reactants. Stereo
+    assignments for the products will be ignored.
 
-    :param rxn: a Reaction object
-    :returns: Atoms which are no longer stereogenic for the products.
-    :rtype: frozenset
+    :param rxn: a reaction object
+    :type rxn: Reaction
+    :returns: a sequence reaction objects with stereo assignments
+    :rtype: Reaction
     """
-    forw_tsg = rxn.forward_ts_graph
-    back_tsg = rxn.backward_ts_graph
+    rxn_cls = rxn.class_
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
 
-    # Relabel the backward TSG to correspond to the atom ordering of the
-    # forward TSG. At this point, if there is symmetry in the connectivity
-    # graph, there is no guarantee that symmetric stereo centers won't be
-    # swapped.
-    iso_dct = automol.graph.isomorphism(
-        ts.reverse(back_tsg), forw_tsg, stereo=False, dummy=False)
-    back_tsg = automol.graph.relabel(back_tsg, iso_dct)
+    key_dct = atom_mapping(rxn)
 
-    keys1 = automol.graph.atom_stereo_keys(forw_tsg)
-    keys2 = automol.graph.atom_stereo_keys(back_tsg)
+    forw_ste_tsg = rxn.forward_ts_graph
 
-    des_ste_atm_keys = frozenset(keys1 - keys2)
+    ste_rxns = []
+    for back_ste_tsg in ts.compatible_reverse_stereomers(forw_ste_tsg):
+        back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
-    return des_ste_atm_keys
+        ste_rxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
+                           rcts_keys, prds_keys)
+        ste_rxns.append(ste_rxn)
 
-
-def created_bond_stereo_keys(rxn):
-    """ Determine bonds which become stereogenic for the products.
-
-    :param rxn: a Reaction object
-    :returns: Atoms which become stereogenic for the products.
-    :rtype: frozenset
-    """
-    forw_tsg = rxn.forward_ts_graph
-    back_tsg = rxn.backward_ts_graph
-
-    # Relabel the backward TSG to correspond to the bond ordering of the
-    # forward TSG. At this point, if there is symmetry in the connectivity
-    # graph, there is no guarantee that symmetric stereo centers won't be
-    # swapped.
-    iso_dct = automol.graph.isomorphism(
-        ts.reverse(back_tsg), forw_tsg, stereo=False, dummy=False)
-    back_tsg = automol.graph.relabel(back_tsg, iso_dct)
-
-    keys1 = automol.graph.bond_stereo_keys(forw_tsg)
-    keys2 = automol.graph.bond_stereo_keys(back_tsg)
-
-    cre_ste_bnd_keys = frozenset(keys2 - keys1)
-
-    return cre_ste_bnd_keys
-
-
-def destroyed_bond_stereo_keys(rxn):
-    """ Determine bonds which are no longer stereogenic for the products.
-
-    :param rxn: a Reaction object
-    :returns: Atoms which are no longer stereogenic for the products.
-    :rtype: frozenset
-    """
-    forw_tsg = rxn.forward_ts_graph
-    back_tsg = rxn.backward_ts_graph
-
-    # Relabel the backward TSG to correspond to the bond ordering of the
-    # forward TSG. At this point, if there is symmetry in the connectivity
-    # graph, there is no guarantee that symmetric stereo centers won't be
-    # swapped.
-    iso_dct = automol.graph.isomorphism(
-        ts.reverse(back_tsg), forw_tsg, stereo=False, dummy=False)
-    back_tsg = automol.graph.relabel(back_tsg, iso_dct)
-
-    keys1 = automol.graph.bond_stereo_keys(forw_tsg)
-    keys2 = automol.graph.bond_stereo_keys(back_tsg)
-
-    des_ste_bnd_keys = frozenset(keys1 - keys2)
-
-    return des_ste_bnd_keys
-
-
-def expand_stereo_from_reactants(rxn):
-    """ Determine possible products that are consistent with the stereo
-    assignments of the reactants.
-    """
-
-
-def reaction_isomorphism(rxn, stereo=True, dummy=False):
-    """ Determine the isomorphism taking mapping reactant atoms to product
-    atoms.
-
-    If the `stereo` flag is set to `True`, incompatible stereo parities on the
-    reactants and products will result in a `None` for the isomorphism. This is
-    a way of testing for stereo compatibility.
-
-    :param rxn: a Reaction object
-    :param stereo: Consider stereo?
-    :type stereo: bool
-    :param dummy: Consider dummy atoms?
-    :type dummy: bool
-    :returns: The isomorphism mapping reactant atoms to product atoms.
-    :rtype: dict
-    """
-    forw_tsg = rxn.forward_ts_graph
-    back_tsg = rxn.backward_ts_graph
-
-    nca_keys1, nca_keys2 = nonconserved_atom_stereo_keys(rxn)
-    ncb_keys1, ncb_keys2 = nonconserved_bond_stereo_keys(rxn)
-
-    tsg1 = forw_tsg
-    tsg2 = back_tsg
-
-    if stereo:
-        # Remove nonconserved stereo parities and relabel, in case there are
-        # higher-order stereo assignments which depend on these.
-        tsg1 = automol.graph.to_index_based_stereo(tsg1)
-        tsg1 = automol.graph.remove_atom_stereo_parities(tsg1, nca_keys1)
-        tsg1 = automol.graph.remove_bond_stereo_parities(tsg1, ncb_keys1)
-        tsg1 = automol.graph.from_index_based_stereo(tsg1)
-
-        # Remove nonconserved stereo parities, reverse the TS graph, and
-        # relabel. This results in a TS graph whose stereo parities can be
-        # directly compared to the one above.
-        tsg2 = automol.graph.to_index_based_stereo(tsg2)
-        tsg2 = automol.graph.remove_atom_stereo_parities(tsg2, nca_keys2)
-        tsg2 = automol.graph.remove_bond_stereo_parities(tsg2, ncb_keys2)
-        tsg2 = ts.reverse(tsg2)
-        tsg2 = automol.graph.from_index_based_stereo(tsg2)
-
-    iso_dct = automol.graph.isomorphism(tsg1, tsg2, stereo=stereo, dummy=dummy)
-    return iso_dct
-
-
-def is_stereo_consistent(rxn):
-    """ Determine if the reaction has mutually consistent stereo assignments
-    for reactants and products.
-
-    :param rxn: a Reaction object
-    :returns: True if the stereo assignments are consistent; otherwise False
-    :rtype: bool
-    """
-
-
-def substereomers(rxn):
-    """ Obtain all stereomer combinations compatible with the current
-    assignments (if any)
-
-    :param rxn: a Reaction object
-    :returns: a list of stereo-specific reaction objects
-    :rtype: tuple[Reaction]
-    """
-    print(string(rxn))
-    print('Hi')
+    ste_rxns = tuple(ste_rxns)
+    return ste_rxns

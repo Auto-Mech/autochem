@@ -215,6 +215,27 @@ def reverse(rxn):
     return rxn
 
 
+def atom_mapping(rxn, rev=False):
+    """ Determine the (/a) mapping from reaction atoms to product atoms.
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :returns: the mapping from reactant atoms to product atoms
+        :rtype: dict
+    """
+    tsg1 = rxn.forward_ts_graph
+    tsg2 = ts.reverse(rxn.backward_ts_graph)
+
+    iso_dct = automol.graph.isomorphism(tsg1, tsg2, stereo=False, dummy=False)
+
+    if rev:
+        iso_dct = dict(map(reversed, iso_dct.items()))
+
+    return iso_dct
+
+
 def forming_bond_keys(rxn, rev=False):
     """ Obtain forming bonds for the reaction.
 
