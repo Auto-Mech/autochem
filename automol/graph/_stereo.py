@@ -103,13 +103,24 @@ def _replace_nones_with_negative_infinity(seq):
     return [-numpy.inf if val is None else val for val in seq]
 
 
-def stereogenic_atom_keys(gra):
-    """ (unassigned) stereogenic atoms in this graph
+def stereogenic_atom_keys(gra, assigned=False):
+    """ Find stereogenic atoms in this graph.
+
+    If the `assigned` flag is set to `False`, only  unassigned stereogenic
+    atoms will be detected.
+
+    :param gra: the graph
+    :param assigned: Include atoms that already have stereo assignments?
+    :param assigned: bool
+    :returns: the stereogenic atom keys
+    :rtype: frozenset
     """
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     atm_keys = dict_.keys_by_value(atom_bond_valences(gra), lambda x: x == 4)
-    atm_keys -= atom_stereo_keys(gra)
+    if not assigned:
+        # Remove assigned stereo keys
+        atm_keys -= atom_stereo_keys(gra)
 
     atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
@@ -125,8 +136,17 @@ def stereogenic_atom_keys(gra):
     return ste_gen_atm_keys
 
 
-def stereogenic_bond_keys(gra):
-    """ (unassigned) stereogenic bonds in this graph
+def stereogenic_bond_keys(gra, assigned=False):
+    """ Find stereogenic bonds in this graph.
+
+    If the `assigned` flag is set to `False`, only  unassigned stereogenic
+    bonds will be detected.
+
+    :param gra: the graph
+    :param assigned: Include bonds that already have stereo assignments?
+    :param assigned: bool
+    :returns: the stereogenic bond keys
+    :rtype: frozenset
     """
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
@@ -134,8 +154,10 @@ def stereogenic_bond_keys(gra):
     # get candidates: planar bonds
     bnd_keys = sp2_bond_keys(gra)
 
-    # remove bonds that already have stereo assignments
-    bnd_keys -= bond_stereo_keys(gra)
+    if not assigned:
+        # remove bonds that already have stereo assignments
+        bnd_keys -= bond_stereo_keys(gra)
+
     bnd_keys -= functools.reduce(  # remove double bonds in small rings
         frozenset.union,
         filter(lambda x: len(x) < 8, rings_bond_keys(gra)), frozenset())

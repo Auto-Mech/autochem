@@ -1053,11 +1053,11 @@ def test__stereo():
     """ test stereo functionality
     """
     # # example 1
-    # rct_smis = ['FC=CC=CF', '[OH]']
-    # prd_smis = ['FC=C[CH]C(O)F']
+    rct_smis = ['FC=CC=CF', '[OH]']
+    prd_smis = ['FC=C[CH]C(O)F']
     # example 2
-    rct_smis = ['FC=C(C(O)F)C(O)F', '[OH]']
-    prd_smis = ['FC(O)[C](C(O)F)C(O)F']
+    # rct_smis = ['FC=C(C(O)F)C(O)F', '[OH]']
+    # prd_smis = ['FC(O)[C](C(O)F)C(O)F']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
@@ -1065,15 +1065,23 @@ def test__stereo():
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
     print(automol.reac.string(srxn, one_indexed=False))
 
-    forw_nc_atm_keys, back_nc_atm_keys = (
-        automol.reac.nonconserved_atom_stereo_keys(srxn))
-    print(forw_nc_atm_keys)
-    print(back_nc_atm_keys)
+    forw_tsg = srxn.forward_ts_graph
+    print(forw_tsg)
 
-    forw_nc_bnd_keys, back_nc_bnd_keys = (
-        automol.reac.nonconserved_bond_stereo_keys(srxn))
-    print(forw_nc_bnd_keys)
-    print(back_nc_bnd_keys)
+    nc_atm_keys = automol.graph.ts.nonconserved_atom_stereo_keys(forw_tsg)
+    nc_bnd_keys = automol.graph.ts.nonconserved_bond_stereo_keys(forw_tsg)
+    print(nc_atm_keys)
+    print(nc_bnd_keys)
+
+    # cre_atm_ste_keys = automol.reac.created_atom_stereo_keys(srxn)
+    # des_atm_ste_keys = automol.reac.destroyed_atom_stereo_keys(srxn)
+    # cre_bnd_ste_keys = automol.reac.created_bond_stereo_keys(srxn)
+    # des_bnd_ste_keys = automol.reac.destroyed_bond_stereo_keys(srxn)
+    # print(cre_atm_ste_keys)
+    # print(des_atm_ste_keys)
+    # print(cre_bnd_ste_keys)
+    # print(des_bnd_ste_keys)
+
     # automol.reac.is_stereo_consistent(srxn)
     # automol.reac.substereomers(rxn)
 
