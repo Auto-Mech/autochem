@@ -891,11 +891,27 @@ def constraint_dct(zma, const_names, var_names=()):
             'Attempting to constrain coordinates not in zma:\n{}\n{}'.format(
                 constraint_names, zma_coords)
         )
-        constraint_dct = dict(zip(
+        _dct = dict(zip(
             constraint_names,
             (round(zma_vals[name], 2) for name in constraint_names)
         ))
     else:
-        constraint_dct = None
+        _dct = None
 
-    return constraint_dct
+    return _dct
+
+
+def set_constraint_names(zma, tors_names, tors_model):
+    """ Determine the names of constraints along a torsion scan
+    """
+
+    const_names = tuple()
+    if tors_names and tors_model in ('1dhrf', '1dhrfa'):
+        if tors_model == '1dhrf':
+            const_names = tuple(
+                itertools.chain(*tors_names))
+        elif tors_model == '1dhrfa':
+            coords = list(automol.zmat.coordinates(zma))
+            const_names = tuple(coord for coord in coords)
+
+    return const_names

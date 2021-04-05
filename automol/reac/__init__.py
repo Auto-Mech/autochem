@@ -69,7 +69,7 @@ from automol.reac._instab import instability_product_graphs
 from automol.reac._instab import instability_transformation
 # phase space theory
 from automol.reac._pst import pst_kt
-from automol.reac._pst import calc_cn_for_pst
+from automol.reac._pst import pst_cn
 # tunneling treatments
 from automol.reac import tunnel
 # util
@@ -148,7 +148,7 @@ __all__ = [
     'instability_transformation',
     # phase space theory
     'pst_kt',
-    'calc_cn_for_pst',
+    'pst_cnt',
     # tunneling treatments
     'tunnel',
     # util

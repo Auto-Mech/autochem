@@ -763,6 +763,8 @@ def test__reac__addition():
     """
     rct_smis = ['CC[CH2]', '[O][O]']
     prd_smis = ['CCCO[O]']
+    rct_smis = ['C[CH2]', '[H]']
+    prd_smis = ['CC']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     rxn, geo, _, _ = rxn_objs[0]
@@ -855,6 +857,61 @@ def test__reac__addition():
             print('\tgroup 2:', groups[1])
             sym_num = automol.reac.rotational_symmetry_number(grxn, *axis)
             print('\tsymmetry number:', sym_num)
+
+
+def test__reac__radrad_addition():
+    """ test addition functionality
+    """
+    rct_smis = ['C[CH2]', '[H]']
+    prd_smis = ['CC']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
+
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    # assert names == {'D11', 'D8', 'D5'}
+    print(automol.zmat.string(zma, one_indexed=False))
+    print(names)
+
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
+    # assert scan_name == 'R10'
+    # assert const_names == ()
+    print(scan_name)
+    print(const_names)
+
+    # graph aligned to geometry keys
+    # (for getting rotational groups and symmetry numbers)
+    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
+
+    # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
+    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    assert zrxn == old_zrxn
+
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    assert len(gbnd_keys) == len(bnd_keys)
+
+    axes = sorted(map(sorted, gbnd_keys))
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
+    sym_nums = [
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    assert sym_nums == [3, 1, 1]
+    for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
+        print('axis:', axis)
+        print('\tgroup 1:', groups[0])
+        print('\tgroup 2:', groups[1])
+        print('\tsymmetry number:', sym_num)
 
 
 def test__reac__insertion():
@@ -984,13 +1041,12 @@ def test__reac_util():
     rxn, geo, _, _ = rxn_objs[0]
     zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn, geo)
     zrxn1 = automol.reac.relabel_for_zmatrix(rxn, zma_keys1, dummy_key_dct)
-    
+
     zrxn_objs = automol.reac.rxn_objs_from_smiles(
         rct_smis, prd_smis, indexing='zma')
     zrxn2, zma2, _, _ = zrxn_objs[0]
 
     assert zrxn1 == zrxn2 
-    # assert zma1 == zma2
 
 
 def test__species__demo():
@@ -1313,6 +1369,8 @@ if __name__ == '__main__':
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
+    test__reac__radrad_addition()
+    # test__reac__addition()
     # test__reac__insertion()
     # test__species__demo()
     # test__stereo()

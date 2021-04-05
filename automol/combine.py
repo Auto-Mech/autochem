@@ -16,7 +16,7 @@ def formula_string(geo1, geo2):
     fml1 = automol.geom.formula(geo1)
     fml2 = automol.geom.formula(geo2)
     fml = automol.formula.join(fml1, fml2)
-    fml_str = automol.formula.string(fml)
+    fml_str = automol.formula.string2(fml)
 
     return fml_str
 

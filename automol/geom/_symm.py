@@ -1,12 +1,13 @@
 """ extra geometry functions
 """
 
+import automol.geom
 import automol.convert.geom
 import automol.graph
 from automol.geom import _trans as trans
 
 
-def int_sym_num_from_sampling(sym_geos, grxn=None):
+def internal_symmetry_number_from_sample(sym_geos, grxn=None):
     """ Determine the symmetry number for a given conformer geometry.
     (1) Explore the saved conformers to find the list of similar conformers -
         i.e. those with a coulomb matrix and energy that are equivalent
@@ -28,7 +29,7 @@ def int_sym_num_from_sampling(sym_geos, grxn=None):
     # this will be accounted for separately as multiplicative factor
     mod_sym_geos = []
     for geo_sym_i in sym_geos:
-        ret = automol.geom.end_group_symmetry_factor(
+        ret = _end_group_symmetry_factor(
             geo_sym_i, frm_bnd_keys, brk_bnd_keys)
         mod_geo_sym_i, end_group_factor = ret
         # ioprinter.info_message('end_group_factor test:', end_group_factor)
@@ -54,7 +55,7 @@ def int_sym_num_from_sampling(sym_geos, grxn=None):
     return int_sym_num
 
 
-def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
+def _end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Determine sym factor for terminal groups in a geometry
 
         :param geo: molecular geometry

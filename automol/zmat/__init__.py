@@ -38,6 +38,8 @@ from automol.zmat._zmat import from_string
 from automol.zmat._zmat import string
 # validators
 from automol.zmat._zmat import is_valid
+# extra names we need to change
+from automol.zmat._zmat import set_constraint_names
 
 # extra things to be added into the module
 from automol.zmat._extra import torsion_coordinate_name
@@ -164,6 +166,8 @@ __all__ = [
     'string',
     # validator
     'is_valid',
+    # extra stuff 
+    'set_constraint_names',
 
     # extras
     'torsion_coordinate_name',
