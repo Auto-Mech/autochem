@@ -24,6 +24,7 @@ from automol.reac._reac import insert_dummy_atoms
 from automol.reac._reac import without_dummy_atoms
 from automol.reac._reac import relabel_for_zmatrix
 from automol.reac._reac import relabel_for_geometry
+from automol.reac._reac import reaction_class
 # finders
 from automol.reac._find import trivial
 from automol.reac._find import hydrogen_migrations
@@ -102,6 +103,7 @@ __all__ = [
     'without_dummy_atoms',
     'relabel_for_zmatrix',
     'relabel_for_geometry',
+    'reaction_class',
     # finders
     'trivial',
     'hydrogen_migrations',

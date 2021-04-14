@@ -590,3 +590,12 @@ def relabel_for_geometry(rxn, product=False):
     key_dct = dict(map(reversed, enumerate(keys)))
     rxn = relabel(rxn, key_dct, product=product)
     return rxn
+
+
+def reaction_class(rxn, product=False):
+    """return the reaction class string
+
+    :param rxn: the reaction object
+    :param product: do this do the products instead of the reactants?
+    """
+    return rxn.class_
