@@ -148,6 +148,7 @@ def rxn_objs_from_smiles(rct_smis, prd_smis, indexing='geo'):
     """ Generate obj
     """
 
+    # Is this adding stero? prob should?
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
     prd_ichs = list(map(automol.smiles.inchi, prd_smis))
 
@@ -190,7 +191,6 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
         std_rxn, std_rgeos, std_pgeos = (
             automol.reac.standard_keys_with_sorted_geometries(
                 rxn, rct_geos, prd_geos))
-        print(std_rxn)
         ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Determine which geometries to store

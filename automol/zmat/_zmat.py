@@ -1,6 +1,7 @@
 """ z-matrix
 """
 
+import itertools
 import numpy
 from automol import vmat
 import automol.create.zmat
@@ -915,3 +916,10 @@ def set_constraint_names(zma, tors_names, tors_model):
             const_names = tuple(coord for coord in coords)
 
     return const_names
+
+
+if __name__ == '__main__':
+    with open('test.zma', 'r') as fobj:
+        tzma = from_string(fobj.read())
+    const_names = set_constraint_names(tzma, ('D30',), '1dhrfa')
+    print(constraint_dct(tzma, const_names=const_names, var_names=('D30',)))
