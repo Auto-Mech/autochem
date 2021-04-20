@@ -548,6 +548,9 @@ def test__reac__beta_scission():
     # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+    print('forming', automol.reac.forming_bond_keys(zrxn))
+    print('breaking', automol.reac.breaking_bond_keys(zrxn))
+    print('graph', automol.graph.string(zrxn.forward_ts_graph))
 
     # You can also do this to determine linear atoms from zmatrix:
     # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
@@ -1388,7 +1391,7 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    test__reac__hydrogen_migration()
+    # test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
     # test__reac__hydrogen_abstraction()
     # test__reac__insertion()
@@ -1400,13 +1403,13 @@ if __name__ == '__main__':
     # hmig()
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
-    # test__reac__beta_scission()
+    test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
-    # test__reac__addition()
+    #test__reac__addition()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__species__demo()
-    test__stereo()
+    # test__stereo()
     # test__species__demo()
     # test__reac__forming_rings_atom_keys()

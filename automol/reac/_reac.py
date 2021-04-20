@@ -394,6 +394,40 @@ def products_graph(rxn, rev=False):
     return ts.reactants_graph(tsg)
 
 
+def is_radical_radical(zrxn, rev=False):
+    """ Is this a radical radical reaction
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: boolean
+    """
+    _is_rad_rad = False
+    tsg = reactant_graphs(rxn, rev=rev)
+    if len(tsg) == 2:
+        rct_i, rct_j = tsg
+        if automol.graph.radical_species(rct_i) and automol.graph.radical_species(rct_i):
+            _is_rad_rad = True
+    return _is_rad_rad 
+
+
+def is_barrierless(zrxn, rev=False):
+    """ Is this a barrierless reaction
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: boolean
+    """
+    _is_barr = False
+    if is_radical_radical(zrxn, rev=rev):
+        _is_barr = True
+    # Add other examples
+    return _is_barr
+
+    
 def standard_keys(rxn):
     """ standardize keys for the reaction object
     """
