@@ -2,8 +2,8 @@
 """
 import automol
 
-rct_smis = ['[CH2]CCCCCCCCC', '[H][H]']
-prd_smis = ['CCCCCCCCCC', '[H]']
+rct_smis = ['CC[CH2]', '[H]']
+prd_smis = ['CCC']
 # rct_smis, prd_smis = prd_smis, rct_smis
 
 rct_ichs = list(map(automol.smiles.inchi, rct_smis))
