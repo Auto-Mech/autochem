@@ -566,7 +566,7 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
 
     # Fill in dihedral keys
     dih_dct = dict_.transform_keys(dih_dct, ang_key_filler_)
-    if None in ang_dct:
+    if None in dih_dct:
         dih_dct.pop(None)
 
     # Convert angles into distances
