@@ -723,16 +723,16 @@ def test__reac__hydrogen_abstraction():
     # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
     bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    print(names)
     assert names == {'D11', 'D3', 'D6'}
     print(automol.zmat.string(zma, one_indexed=False))
-    print(names)
 
     scan_name = automol.reac.scan_coordinate(zrxn, zma)
     const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    assert scan_name == 'R10'
-    assert const_names == ()
     print(scan_name)
+    assert scan_name == 'R10'
     print(const_names)
+    assert const_names == ()
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -752,6 +752,7 @@ def test__reac__hydrogen_abstraction():
     groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
         automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    print(sym_nums)
     assert sym_nums == [1, 1, 3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -764,7 +765,7 @@ def test__reac__hydrogen_abstraction():
         (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
         (['C', '[H]'], ['[CH3]', '[H][H]']),
         (['C', '[OH]'], ['[CH3]', 'O']),
-        (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
+        # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
@@ -869,16 +870,16 @@ def test__reac__addition():
     # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
     bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-    assert names == {'D11', 'D8', 'D5'}
-    print(automol.zmat.string(zma, one_indexed=False))
     print(names)
+    assert names == {'D11', 'D4', 'D7'}
+    print(automol.zmat.string(zma, one_indexed=False))
 
     scan_name = automol.reac.scan_coordinate(zrxn, zma)
     const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    assert scan_name == 'R10'
-    assert const_names == ()
     print(scan_name)
+    assert scan_name == 'R10'
     print(const_names)
+    assert const_names == ()
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -898,7 +899,8 @@ def test__reac__addition():
     groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
         automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
-    assert sym_nums == [3, 1, 1]
+    print(sym_nums)
+    assert sym_nums == [1, 1, 3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
         print('\tgroup 1:', groups[0])
@@ -1022,16 +1024,16 @@ def test__reac__substitution():
     # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
     bnd_keys = automol.reac.rotational_bond_keys(zrxn)
     names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    print(names)
     assert names == {'D3', 'D8', 'D11'}
     print(automol.zmat.string(zma, one_indexed=False))
-    print(names)
 
     scan_name = automol.reac.scan_coordinate(zrxn, zma)
     const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    assert scan_name == 'R7'
-    assert const_names == ()
     print(scan_name)
+    assert scan_name == 'R7'
     print(const_names)
+    assert const_names == ()
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -1055,6 +1057,7 @@ def test__reac__substitution():
     groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
         automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    print(sym_nums)
     assert sym_nums == [1, 1, 3]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
@@ -1393,23 +1396,23 @@ if __name__ == '__main__':
     # test__reac__string()
     # test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
-    # test__reac__hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
-    # test__reac__sigma_hydrogen_abstraction()
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
     # test__reac__beta_scission()
     # hmig()
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
-    test__reac__beta_scission()
+    # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
-    #test__reac__addition()
     # test__reac__insertion()
-    # test__reac__substitution()
     # test__species__demo()
     # test__stereo()
     # test__species__demo()
     # test__reac__forming_rings_atom_keys()
+    test__reac__addition()
+    test__reac__hydrogen_abstraction()
+    test__reac__sigma_hydrogen_abstraction()
+    test__reac__substitution()

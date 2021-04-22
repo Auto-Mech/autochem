@@ -800,6 +800,24 @@ def test__to_index_based_stereo():
         assert sgr == graph.from_index_based_stereo(idx_sgr)
 
 
+def test__ring_systems():
+    """ test graph.vmat.vmatrix
+    """
+    ich = automol.smiles.inchi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
+    gra = automol.inchi.graph(ich)
+    rsys = sorted(graph.ring_systems(gra), key=graph.atom_count)
+    assert list(map(graph.atom_count, rsys)) == [7, 12, 21]
+
+
+def test__vmat__vmatrix():
+    """ test graph.vmat.vmatrix
+    """
+    ich = automol.smiles.inchi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
+    gra = automol.inchi.graph(ich)
+    _, zma_keys = graph.vmat.vmatrix(gra)
+    assert set(zma_keys) == graph.atom_keys(gra)
+
+
 # FC=CC=CF + [OH] => FC=C[CH]C(O)F
 C4H5F2O_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
                 3: ('C', 0, None), 4: ('F', 0, None), 5: ('F', 0, None),
@@ -896,4 +914,5 @@ if __name__ == '__main__':
     # test__to_index_based_stereo()
     # test__ts__nonconserved_atom_stereo_keys()
     # test__ts__nonconserved_bond_stereo_keys()
-    test__ts__compatible_reverse_stereomers()
+    # test__ts__compatible_reverse_stereomers()
+    test__vmat__vmatrix()

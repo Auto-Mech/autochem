@@ -205,7 +205,11 @@ def hydrogen_abstraction_ts_zmatrix(rxn, ts_geo):
     rxn = add_dummy_atoms(rxn, dummy_key_dct)
 
     # 4. Generate a z-matrix for the geometry
-    vma, zma_keys = automol.graph.vmat.vmatrix(rxn.forward_ts_graph)
+    tsg = rxn.forward_ts_graph
+    rct1_keys, rct2_keys = rxn.reactants_keys
+    vma, zma_keys = automol.graph.vmat.vmatrix(tsg, rct1_keys)
+    vma, zma_keys = automol.graph.vmat.continue_vmatrix(
+        tsg, rct2_keys, vma, zma_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
@@ -235,7 +239,11 @@ def addition_ts_zmatrix(rxn, ts_geo):
     rxn = add_dummy_atoms(rxn, dummy_key_dct)
 
     # 4. Generate a z-matrix for the geometry
-    vma, zma_keys = automol.graph.vmat.vmatrix(rxn.forward_ts_graph)
+    tsg = rxn.forward_ts_graph
+    rct1_keys, rct2_keys = rxn.reactants_keys
+    vma, zma_keys = automol.graph.vmat.vmatrix(tsg, rct1_keys)
+    vma, zma_keys = automol.graph.vmat.continue_vmatrix(
+        tsg, rct2_keys, vma, zma_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
@@ -279,7 +287,6 @@ def insertion_ts_zmatrix(rxn, ts_geo):
     else:
         path = automol.graph.shortest_path_between_groups(
             rxn.forward_ts_graph, frm_bnd_key, brk_bnd_key)
-        key1, = frm_bnd_key & set(path)
         key2, = frm_bnd_key - set(path)
     rng_keys = automol.graph.cycle_ring_atom_key_to_front(
         rng_keys, key1, end_key=key2)
@@ -318,7 +325,11 @@ def substitution_ts_zmatrix(rxn, ts_geo):
     rxn = add_dummy_atoms(rxn, dummy_key_dct)
 
     # 4. Generate a z-matrix for the geometry
-    vma, zma_keys = automol.graph.vmat.vmatrix(rxn.forward_ts_graph)
+    tsg = rxn.forward_ts_graph
+    rct1_keys, rct2_keys = rxn.reactants_keys
+    vma, zma_keys = automol.graph.vmat.vmatrix(tsg, rct1_keys)
+    vma, zma_keys = automol.graph.vmat.continue_vmatrix(
+        tsg, rct2_keys, vma, zma_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
