@@ -353,7 +353,7 @@ def hydrogen_abstraction_grid(zrxn, zma, npoints=(8,)):
 
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
-        rmin = frm_bnd_len + 0.2
+        rmin = frm_bnd_len + 0.1 * phycon.ANG2BOHR
         rmax = frm_bnd_len + 1.0 * phycon.ANG2BOHR
     else:
         rmin = 0.7 * phycon.ANG2BOHR
@@ -553,7 +553,8 @@ UPDATE_GUESS_DCT = {
     ReactionClass.RING_FORM_SCISSION: False,
     ReactionClass.HYDROGEN_ABSTRACTION: False,
     ReactionClass.SUBSTITUTION: False,
-    ReactionClass.INSERTION: False,
-    ReactionClass.ADDITION: True,
-    ReactionClass.HYDROGEN_ABSTRACTION: True
+    ReactionClass.INSERTION: False
+    # ReactionClass.ADDITION: True,
+    # ReactionClass.HYDROGEN_ABSTRACTION: True
+    # These should be for radical-radical cases of the two - add later
 }
