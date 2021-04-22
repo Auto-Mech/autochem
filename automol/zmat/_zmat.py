@@ -247,7 +247,7 @@ def central_angle(zma, key1, key2, key3, degree=False):
 
 
 def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
-    """ Measure the angle inscribed by three atoms in a molecular geometry.
+    """ Measure the angle inscribed by four atoms in a molecular geometry.
 
         :param zma: Z-Matrix
         :type zma: automol Z-Matrix data structure
@@ -775,7 +775,6 @@ def dihedral_axis_name(zma, axis):
     name = None
     for ang in angles:
         coord_idxs = coords[ang]
-        print(ang, coord_idxs, list(coord_idxs[0][1:3]))
         if tuple(list(coord_idxs[0])[1:3]) == axis or tuple(list(coord_idxs[0])[3:1:-1]) == axis:
             name = ang
             break
