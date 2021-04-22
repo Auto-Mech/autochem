@@ -7,9 +7,12 @@ from phydat import phycon
 
 
 # Functions to build lists potential sadpts
-def find_max1d(enes_lst, ethresh=0.3*phycon.KCAL2EH):
+def find_max1d(enes_lst, ethresh=0.01*phycon.KCAL2EH, include_endpts=True):
     """ Look along a vtst potential and determine if sadpt there
         (need to make the generic version)
+
+        Right now simply takes max of all possible saddple-points
+        If no saddlepoint found, take one of the endpoints if requested
     """
 
     # Locate all potential sadpts
@@ -17,12 +20,15 @@ def find_max1d(enes_lst, ethresh=0.3*phycon.KCAL2EH):
 
     if sadpt_idxs and sadpt_enes:
         # For now, find the greatest max for the saddle point
-        max_idx = sadpt_enes.index(max(sadpt_enes))
-        sadpt_idx = sadpt_idxs[max_idx][1]
+        sadpt_idx = sadpt_enes.index(max(sadpt_enes))
+        max_idx = sadpt_idxs[sadpt_idx][1]
     else:
-        sadpt_idx = None
+        if include_endpts:
+            max_idx = 0 if enes_lst[0] > enes_lst[-1] else -1
+        else:
+            max_idx = None
 
-    return sadpt_idx
+    return max_idx
 
 
 def _potential_sadpt(evals, ethresh=0.3):

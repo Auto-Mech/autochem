@@ -59,6 +59,7 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
                         nonh_neighs.append(nei)
                 if len(nonh_neighs) < 2 and len(h_neighs) > 1:
                     term_atms[atm] = h_neighs
+                    print('terminal atom accepted:', atm, h_neighs)
     factor = 1.
     remove_atms = []
     for atm in term_atms:
@@ -91,6 +92,11 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     term_atms = {}
     all_hyds = []
     neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
+    ts_atms = []
+    for bnd in frm_bnd_keys:
+        ts_atms.extend(list(bnd))
+    for bnd in brk_bnd_keys:
+        ts_atms.extend(list(bnd))
 
     # determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
@@ -109,7 +115,8 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         if atm in unsat_atms and atm not in rad_atms:
             pass
         else:
-            if atm not in frm_bnd_keys and atm not in brk_bnd_keys:
+            print('atm test:', atm, ts_atms)
+            if atm not in ts_atms:
                 nonh_neighs = []
                 h_neighs = []
                 neighs = neighbor_dct[atm]
