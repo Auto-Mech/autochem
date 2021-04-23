@@ -45,7 +45,7 @@ def test__geo_combiners():
         ('H', (2.1972712765396953, 0.1922944277301287, -1.8778395029874426)),
         ('H', (2.121312248031497, -1.7927029137609576, 0.8231123911174519)),
         ('O', (-0.3560094121, -0.0911704723, 7.877838042762068)),
-s
+        ('H', (1.5152996925, -0.0911704723, 7.877838042762068)))
     ref_vdw_geo2 = (
         ('C', (-1.428303532056334, 0.01342534373554644, -0.03030215889669468)),
         ('C', (1.4283027358735494, -0.013425597530894248, 0.0303022919384165)),
@@ -67,7 +67,7 @@ s
     assert automol.geom.almost_equal_dist_matrix(vdw_geo1, ref_vdw_geo1)
     assert automol.geom.almost_equal_dist_matrix(vdw_geo2, ref_vdw_geo2)
     assert automol.geom.almost_equal_dist_matrix(vdw_geo3, ref_vdw_geo3)
-    
+
     ref_vdw_freqs1 = (30, 50, 70)
     ref_vdw_freqs2 = (30, 50)
     ref_vdw_freqs3 = ()

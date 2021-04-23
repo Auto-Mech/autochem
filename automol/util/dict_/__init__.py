@@ -17,8 +17,9 @@ from automol.util.dict_._dict_ import transform_values
 from automol.util.dict_._dict_ import transform_items_to_values
 from automol.util.dict_._dict_ import keys_sorted_by_value
 from automol.util.dict_._dict_ import filter_by_value
-from automol.util.dict_._dict_ import merge_sequence
 from automol.util.dict_._dict_ import filter_keys
+from automol.util.dict_._dict_ import merge_sequence
+
 # submodules
 from automol.util.dict_ import multi
 
@@ -26,11 +27,11 @@ __all__ = [
     # functions
     'invert',
     'empty_if_none', 'right_update', 'by_key', 'by_value',
-    'values_by_key', 'values_by_unordered_tuple',
+    'values_by_key', 'values_by_unordered_tuple', 'values_in_multilevel_dct',
     'keys_by_value', 'transform_keys', 'transform_values',
     'separate_subdct', 'merge_subdct',
     'transform_items_to_values', 'keys_sorted_by_value', 'filter_by_value',
-    'merge_sequence', 'filter_keys'
+    'merge_sequence', 'filter_keys',
     # submodules
     'multi',
 ]
