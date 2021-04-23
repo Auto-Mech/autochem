@@ -470,12 +470,20 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
     :param zma_keys: keys currently in the v-matrix
     """
     ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
-        gra, symbs_first=('C',), symbs_last=('H', 'X'), ords_last=(0.1,))
+        gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,))
+
+    symb_dct = atom_symbols(gra)
 
     key3 = keys[0]
     assert key3 in zma_keys
     key2 = next(k for k in ngb_keys_dct[key3] if k in zma_keys)
-    key1 = next(k for k in ngb_keys_dct[key2] if k in zma_keys and k != key3)
+
+    if symb_dct[key2] == 'X':
+        key1 = next(k for k in ngb_keys_dct[key3][1:] if k in zma_keys)
+    else:
+        key1 = next(k for k in ngb_keys_dct[key2]
+                    if k in zma_keys and k != key3)
+
     keys = (key1, key2,) + tuple(keys)
 
     return keys
