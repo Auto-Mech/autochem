@@ -118,7 +118,8 @@ def geometry(gra):
         gra = automol.graph.explicit(gra)
         geo = automol.graph.embed.geometry(gra)
     else:
-        symb = list(symbs.keys())[0]
+        symb = list(symbs.values())[0]
+        #symb = list(symbs.keys())[0]
         geo = ((symb, (0.00, 0.00, 0.00)),)
 
     return geo
