@@ -262,6 +262,16 @@ def from_xyz_string(xyz_str):
     return geo
 
 
+def xyz_string_comment(xyz_str):
+    """ Read the comment line of a string of a standard .xyz file.
+
+        :param xyz_str: string obtained from reading the .xyz file
+        :type xyz_str: str
+        :rtype: str
+    """
+    return xyz_str.splitlines()[1].strip()
+
+
 def string(geo, angstrom=True):
     """ Write a molecular geometry to a string:
            symb1  xyz1 xyz2 xyz3

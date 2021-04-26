@@ -671,6 +671,7 @@ def test__reac__hydrogen_abstraction():
         (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
         (['C', '[H]'], ['[CH3]', '[H][H]']),
         (['C', '[OH]'], ['[CH3]', 'O']),
+        (['CC', '[H]'], ['C[CH2]', '[H][H]']),
         # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
@@ -687,7 +688,7 @@ def test__reac__hydrogen_abstraction():
         bnd_keys = automol.reac.rotational_bond_keys(zrxn)
         names = {automol.zmat.torsion_coordinate_name(zma, *k)
                  for k in bnd_keys}
-        print(automol.zmat.string(zma, one_indexed=False))
+        print(automol.zmat.string(zma, one_indexed=True))
         print(names)
 
         scan_name = automol.reac.scan_coordinate(zrxn, zma)
@@ -1384,10 +1385,10 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    test__reac__hydrogen_migration()
+    #  test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
     # test__reac__hydrogen_abstraction()
-    test__reac__addition()
+    # test__reac__addition()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__hydrogen_migration()
@@ -1402,5 +1403,5 @@ if __name__ == '__main__':
     # test__reac__forming_rings_atom_keys()
     test__reac__addition()
     test__reac__hydrogen_abstraction()
-    test__reac__sigma_hydrogen_abstraction()
-    test__reac__substitution()
+    # test__reac__sigma_hydrogen_abstraction()
+    # test__reac__substitution()

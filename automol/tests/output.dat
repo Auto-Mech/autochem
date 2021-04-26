@@ -1,0 +1,367 @@
+zrxn
+ reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 1, stereo_parity: null}
+  2-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  4-7: {order: 0.9, stereo_parity: null}
+  4-8: {order: 1, stereo_parity: null}
+  4-9: {order: 1, stereo_parity: null}
+  7-10: {order: 0, stereo_parity: null}
+  7-11: {order: 0.1, stereo_parity: null}
+  11-12: {order: 1, stereo_parity: null}
+  11-13: {order: 1, stereo_parity: null}
+  11-14: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+- [11, 12, 13, 14]
+backward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 0.9, stereo_parity: null}
+  5-6: {order: 0.1, stereo_parity: null}
+  6-7: {order: 1, stereo_parity: null}
+  6-9: {order: 1, stereo_parity: null}
+  6-10: {order: 1, stereo_parity: null}
+  7-8: {order: 1, stereo_parity: null}
+  7-11: {order: 1, stereo_parity: null}
+  7-12: {order: 1, stereo_parity: null}
+  8-13: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3, 4, 5]
+- [6, 7, 8, 9, 10, 11, 12, 13]
+
+{'D3', 'D11', 'D6'}
+O  
+C  0    R1 
+H  0    R2  1    A2 
+C  1    R3  0    A3  2    D3 
+H  1    R4  0    A4  3    D4 
+H  1    R5  0    A5  3    D5 
+H  3    R6  1    A6  0    D6 
+H  3    R7  1    A7  6    D7 
+H  3    R8  1    A8  6    D8 
+X  6    R9  3    A9  1    D9 
+C  6   R10  3   A10  9   D10 
+H  10   R11  6   A11  3   D11 
+H  10   R12  6   A12  11   D12 
+H  10   R13  6   A13  11   D13 
+
+R1   =   1.420787
+R2   =   0.973446
+R3   =   1.509741
+R4   =   1.092454
+R5   =   1.095047
+R6   =   1.096940
+R7   =   1.102399
+R8   =   1.090022
+R9   =   1.000000
+R10  =   1.643236
+R11  =   1.076607
+R12  =   1.080241
+R13  =   1.118146
+A2   = 107.171765
+A3   = 110.401517
+A4   = 108.580737
+A5   = 108.221440
+A6   = 112.389394
+A7   = 110.776877
+A8   = 111.497704
+A9   =  90.000000
+A10  = 164.864667
+A11  =  79.210503
+A12  =  66.189181
+A13  = 159.135888
+D3   = 298.637434
+D4   = 122.334198
+D5   = 240.170870
+D6   =  54.240588
+D7   = 246.553968
+D8   = 123.173313
+D9   =   0.000000
+D10  = 102.211644
+D11  = 156.951290
+D12  = 147.135056
+D13  = 229.476183
+R10
+()
+O    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.420787
+H    0.000000   0.930054  -0.287398
+C    1.241937   0.678179   1.947078
+H   -0.905429   0.502474   1.768887
+H   -0.021632  -1.039911   1.763197
+H    1.372532   1.687249   1.537199
+H    2.149406   0.164923   1.588815
+H    1.238624   0.728509   3.035932
+C    1.416113   3.314344   1.311618
+H    2.145545   2.991051   0.588782
+H    0.442333   2.938577   1.589960
+H    1.481613   4.402356   1.561000
+[1, 1, 3]
+axis: [0, 1]
+	group 1: (2,)
+	group 2: (3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+	symmetry number: 1
+axis: [1, 3]
+	group 1: (0, 2, 4, 5)
+	group 2: (6, 7, 8, 9, 10, 11, 12)
+	symmetry number: 1
+axis: [6, 9]
+	group 1: (0, 1, 2, 3, 4, 5, 7, 8)
+	group 2: (10, 11, 12)
+	symmetry number: 3
+C  
+C  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+C  2    R5  1    A5  3    D5 
+C  2    R6  1    A6  6    D6 
+H  2    R7  1    A7  6    D7 
+H  6    R8  2    A8  1    D8 
+H  6    R9  2    A9  9    D9 
+H  6   R10  2   A10  9   D10 
+H  7   R11  2   A11  1   D11 
+H  7   R12  2   A12  12   D12 
+H  7   R13  2   A13  12   D13 
+X  8   R14  2   A14  1   D14 
+O  8   R15  2   A15  15   D15 
+H  16   R16  8   A16  2   D16 
+
+R1   =   1.527078
+R2   =   1.095133
+R3   =   1.095133
+R4   =   1.095381
+R5   =   1.527077
+R6   =   1.527078
+R7   =   1.096881
+R8   =   1.095380
+R9   =   1.095133
+R10  =   1.095133
+R11  =   1.095132
+R12  =   1.095133
+R13  =   1.095380
+R14  =   1.000000
+R15  =   1.600000
+R16  =   0.977808
+A2   = 110.781847
+A3   = 110.781753
+A4   = 111.340738
+A5   = 110.586222
+A6   = 110.586217
+A7   = 108.331820
+A8   = 111.340716
+A9   = 110.781856
+A10  = 110.781876
+A11  = 110.781921
+A12  = 110.781825
+A13  = 111.340731
+A14  =  90.000000
+A15  = 170.000000
+A16  =  85.000000
+D3   = 240.441098
+D4   = 120.220736
+D5   = 178.359489
+D6   = 122.840073
+D7   = 241.420006
+D8   =  61.419971
+D9   = 120.220457
+D10  = 239.779509
+D11  =  58.800334
+D12  = 119.559108
+D13  = 239.779493
+D14  =   0.000000
+D15  =   2.456164
+D16  =  85.000000
+{'D16', 'D5', 'D8', 'D11'}
+R15
+()
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.527078
+H    0.000000   1.023881  -0.388565
+H   -0.890623  -0.505100  -0.388563
+H    0.881611  -0.513537  -0.398624
+C   -0.040926  -1.428979   2.064024
+C    1.222805   0.740544   2.064024
+H   -0.899709   0.524074   1.872069
+H    0.839063  -1.999193   1.747269
+H   -0.070336  -1.432025   3.158757
+H   -0.932116  -1.953928   1.704128
+H    1.239791   1.774710   1.704126
+H    1.210944   0.767631   3.158757
+H    2.152920   0.256384   1.747272
+O   -2.273592   1.310572   2.104160
+H   -2.689497   0.427451   2.047345
+axis: [0, 1]
+	group 1: (2, 3, 4)
+	group 2: (5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+	symmetry number: 3
+axis: [1, 5]
+	group 1: (0, 2, 3, 4, 6, 7, 11, 12, 13, 14, 15)
+	group 2: (8, 9, 10)
+	symmetry number: 3
+axis: [1, 6]
+	group 1: (0, 2, 3, 4, 5, 7, 8, 9, 10, 14, 15)
+	group 2: (11, 12, 13)
+	symmetry number: 3
+axis: [7, 14]
+	group 1: (0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13)
+	group 2: (15,)
+	symmetry number: 1
+C  
+H  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+X  5    R5  1    A5  2    D5 
+H  5    R6  1    A6  6    D6 
+
+R1   =   1.092199
+R2   =   1.092199
+R3   =   1.092199
+R4   =   1.092199
+R5   =   1.000000
+R6   =   1.600000
+A2   = 109.471221
+A3   = 109.471223
+A4   = 109.471228
+A5   =  90.000000
+A6   = 170.000000
+D3   = 119.999999
+D4   = 239.999998
+D5   =   0.000000
+D6   = 357.994301
+set()
+R6
+()
+C    0.000000   0.000000   0.000000
+H    0.000000   0.000000   1.092199
+H    0.000000   1.029735  -0.364066
+H    0.891777  -0.514868  -0.364067
+H   -0.891777  -0.514868  -0.364067
+H   -2.253618  -1.312355  -0.627511
+C  
+H  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+X  5    R5  1    A5  2    D5 
+O  5    R6  1    A6  6    D6 
+H  7    R7  5    A7  1    D7 
+
+R1   =   1.092198
+R2   =   1.092199
+R3   =   1.092199
+R4   =   1.092199
+R5   =   1.000000
+R6   =   1.600000
+R7   =   0.977808
+A2   = 109.471128
+A3   = 109.471145
+A4   = 109.471456
+A5   =  90.000000
+A6   = 170.000000
+A7   =  85.000000
+D3   = 119.999621
+D4   = 239.999876
+D5   =   0.000000
+D6   = 342.251780
+D7   =  85.000000
+{'D7'}
+R6
+()
+C    0.000000   0.000000   0.000000
+H    0.000000   0.000000   1.092198
+H    0.000000   1.029736  -0.364065
+H    0.891781  -0.514862  -0.364065
+H   -0.891774  -0.514869  -0.364070
+O   -2.212359  -1.375109  -0.639828
+H   -2.687719  -0.606610  -0.266264
+axis: [4, 5]
+	group 1: (0, 1, 2, 3)
+	group 2: (6,)
+	symmetry number: 3
+C  
+C  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+H  2    R5  1    A5  3    D5 
+H  2    R6  1    A6  6    D6 
+H  2    R7  1    A7  6    D7 
+X  8    R8  2    A8  1    D8 
+H  8    R9  2    A9  9    D9 
+
+R1   =   1.512058
+R2   =   1.094084
+R3   =   1.094085
+R4   =   1.094084
+R5   =   1.094084
+R6   =   1.094084
+R7   =   1.094084
+R8   =   1.000000
+R9   =   1.600000
+A2   = 110.567989
+A3   = 110.567938
+A4   = 110.567946
+A5   = 110.567933
+A6   = 110.567946
+A7   = 110.567981
+A8   =  90.000000
+A9   = 170.000000
+D3   = 120.000079
+D4   = 240.000054
+D5   =  59.999876
+D6   = 240.000022
+D7   = 119.999981
+D8   =   0.000000
+D9   = 179.999987
+{'D5'}
+R9
+()
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.512058
+H    0.000000   1.024343  -0.384372
+H    0.887107  -0.512173  -0.384371
+H   -0.887108  -0.512171  -0.384371
+H   -0.887106   0.512173   1.896429
+H    0.887108   0.512170   1.896429
+H   -0.000003  -1.024343   1.896430
+H   -0.000006  -2.401985   2.710126
+axis: [0, 1]
+	group 1: (2, 3, 4)
+	group 2: (5, 6, 7, 8)
+	symmetry number: 3

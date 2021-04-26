@@ -184,7 +184,6 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
     rxns = automol.reac.find(rct_gras, prd_gras)
-    print(len(rxns))
 
     # Obtain the reaction objects and structures to return
     rxn_objs = tuple()
