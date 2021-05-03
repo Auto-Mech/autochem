@@ -134,3 +134,18 @@ def merge_sequence(dcts):
     for dct in dcts:
         merged_dct.update(dct)
     return merged_dct
+
+
+def filter_keys(dct_1, dct_2):
+    """ filters out from 1 all entries present in 2
+    """
+
+    keys_topop = list(dct_2.keys())
+
+    for key in keys_topop:
+        try:
+            dct_1.pop(key, None)
+        except KeyError:
+            continue
+
+    return dct_1
