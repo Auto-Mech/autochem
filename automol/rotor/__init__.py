@@ -19,6 +19,7 @@ from automol.rotor._tors import all_torsion_groups
 from automol.rotor._tors import all_torsion_symmetries
 from automol.rotor._tors import torsion_groups
 from automol.rotor._tors import torsion_symmetry
+from automol.rotor._tors import reaction_torsion_lst
 from automol.rotor._util import graph_with_keys
 
 
@@ -40,5 +41,6 @@ __all__ = [
     'all_torsion_symmetries',
     'torsion_groups',
     'torsion_symmetry',
+    'reaction_torsion_lst',
     'graph_with_keys'
 ]

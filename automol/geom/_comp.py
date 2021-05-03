@@ -186,6 +186,22 @@ def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
     return True
 
 
+def are_torsions_same2(geo, geoi, idxs_lst):
+    dtol = 0.09
+    same_dihed = True
+    for idxs in idxs_lst:
+        val = automol.geom.dihedral_angle(geo, *idxs)
+        vali = automol.geom.dihedral_angle(geoi, *idxs)
+        valip = vali+2.*numpy.pi
+        valim = vali-2.*numpy.pi
+        vchk1 = abs(val - vali)
+        vchk2 = abs(val - valip)
+        vchk3 = abs(val - valim)
+        if vchk1 > dtol and vchk2 > dtol and vchk3 > dtol:
+            same_dihed = False
+    return same_dihed
+        
+
 def are_torsions_same(geo, geoi, ts_bnds=()):
     """ compare all torsional angle values
     """

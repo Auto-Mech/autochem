@@ -6,6 +6,7 @@ from automol.pot._pot import grid
 from automol.pot._pot import points
 from automol.pot._pot import coords
 from automol.pot._pot import scale
+from automol.pot._pot import relax_scale
 from automol.pot._pot import truncate
 from automol.pot._pot import by_index
 from automol.pot._pot import valid
@@ -25,6 +26,7 @@ __all__ = [
     'points',
     'coords',
     'scale',
+    'relax_scale',
     'truncate',
     'by_index',
     # 'hrpot_spline_fitter',

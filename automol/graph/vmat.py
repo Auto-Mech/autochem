@@ -2,6 +2,7 @@
 """
 import automol.vmat
 from automol.graph._graph_base import string
+from automol.graph._graph import subgraph
 from automol.graph._graph import atom_count
 from automol.graph._graph import atom_keys
 from automol.graph._graph import atom_symbols
@@ -19,19 +20,22 @@ from automol.graph._ring import ring_system_decomposed_atom_keys
 from automol.graph._ring import cycle_ring_atom_key_to_front
 
 
-def vmatrix(gra, rng_keys=None):
+def vmatrix(gra, keys=None, rng_keys=None):
     """ v-matrix for a connected graph
 
     :param gra: the graph
+    :param keys: restrict the v-matrix to a subset of keys, which must span a
+        connected graph
     :param rng_keys: keys for a ring to start from
     """
-    assert is_connected(gra), "Graph must be connected!"
+    if keys is not None:
+        gra = subgraph(gra, keys)
 
-    rsys = sorted(ring_systems(gra), key=atom_count)
+    assert is_connected(gra), "Graph must be connected!"
 
     # Start with the ring systems and their connections. If there aren't any,
     # start with the first terminal atom
-    if rsys:
+    if ring_systems(gra):
         vma, zma_keys = connected_ring_systems(gra, rng_keys=rng_keys)
     else:
         term_keys = sorted(terminal_heavy_atom_keys(gra))
@@ -41,6 +45,20 @@ def vmatrix(gra, rng_keys=None):
             start_key = sorted(atom_keys(gra))[0]
 
         vma, zma_keys = start_at(gra, start_key)
+
+    rem_keys = atom_keys(gra) - set(zma_keys)
+    vma, zma_keys = continue_vmatrix(gra, rem_keys, vma, zma_keys)
+    return vma, zma_keys
+
+
+def continue_vmatrix(gra, keys, vma, zma_keys):
+    """ continue a v-matrix for a subset of keys, starting from a partial
+    v-matrix
+    """
+    gra = subgraph(gra, set(keys) | set(zma_keys))
+
+    vma, zma_keys = continue_connected_ring_systems(
+        gra, keys, vma, zma_keys)
 
     # Complete any incomplete branches
     branch_keys = _atoms_missing_neighbors(gra, zma_keys)
@@ -77,6 +95,39 @@ def connected_ring_systems(gra, rng_keys=None, check=True):
 
     vma, zma_keys = ring_system(gra, keys_lst)
 
+    keys = atom_keys(gra) - set(zma_keys)
+
+    vma, zma_keys = continue_connected_ring_systems(
+        gra, keys, vma, zma_keys, rsys=rsys, check=False)
+
+    return vma, zma_keys
+
+
+def continue_connected_ring_systems(gra, keys, vma, zma_keys, rsys=None,
+                                    check=True):
+    """ generate the connected ring systems for a subset of keys, continuing on
+    from a partial v-matrix
+
+    The subset must have at least one neighbor that already exists in the
+    v-matrix
+
+    :param gra: the graph for which the v-matrix will be constructed
+    :param keys: the subset of keys to be added to the v-matrix
+    :param vma: a partial v-matrix from which to continue
+    :param zma_keys: row keys for the partial v-matrix, identifying the atom
+        specified by each row of `vma` in order
+    :param rsys: optionally, pass the ring systems in to avoid recalculating
+    """
+    gra = subgraph(gra, set(keys) | set(zma_keys))
+    sub = subgraph(gra, keys)
+    if check:
+        assert is_connected(gra), "Graph must be connected!"
+
+    if rsys is None:
+        rsys = sorted(ring_systems(sub), key=atom_count)
+
+    rsys = list(rsys)
+
     while rsys:
         # Find the next ring system with a connection to the current
         # v-vmatrix and connect them
@@ -94,7 +145,7 @@ def connected_ring_systems(gra, rng_keys=None, check=True):
             else:
                 # see if the ring systems are connected by a chain
                 keys = shortest_path_between_groups(
-                    gra, zma_keys, atom_keys(rsy))
+                    gra, zma_keys, rsy_keys)
 
                 # if so, build a bridge from the current v-matrix to this next
                 # ring system
@@ -168,7 +219,8 @@ def continue_ring_system(gra, keys_lst, vma, zma_keys):
     for keys in keys_lst:
         # Note that the atoms on each end of the arc are already in the
         # v-matrix, so we ignore those
-        vma, zma_keys = continue_chain(gra, keys[1:-1], vma, zma_keys)
+        vma, zma_keys = continue_chain(gra, keys[1:-1], vma, zma_keys,
+                                       term_hydrogens=False)
 
     return vma, zma_keys
 
@@ -228,12 +280,16 @@ def chain(gra, keys, term_hydrogens=True):
     # 1. Start the chain
     vma, zma_keys = start_at(gra, keys[0])
 
-    start_key, = set(keys) & set(_atoms_missing_neighbors(gra, zma_keys))
-    keys = keys[keys.index(start_key):]
+    # If the chain isn't complete, continue it
+    if set(keys) - set(zma_keys):
+        miss_keys = set(_atoms_missing_neighbors(gra, zma_keys))
+        start_key, = set(keys) & miss_keys
+        keys = keys[keys.index(start_key):]
 
-    # 2. Continue the chain
-    if keys:
-        vma, zma_keys = continue_chain(gra, keys, vma=vma, zma_keys=zma_keys)
+        # 2. Continue the chain
+        if keys:
+            vma, zma_keys = continue_chain(gra, keys, vma=vma,
+                                           zma_keys=zma_keys)
 
     return vma, zma_keys
 
@@ -338,6 +394,17 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
         gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,),
         prioritize_keys=branch_keys)
 
+    # If this z-matrix is being continued from a partial z-matrix, the leading
+    # atom for a torsion may have already be defined. To handle this case, I
+    # make a dictionary of these leading atoms and use them below where needed.
+    lead_key_dct = {}
+    for idx, key_row in enumerate(automol.vmat.key_matrix(vma)):
+        axis = key_row[:2]
+        if None not in axis:
+            axis = tuple(map(zma_keys.__getitem__, axis))
+            if axis not in lead_key_dct:
+                lead_key_dct[axis] = zma_keys[idx]
+
     def _continue(key1, key2, key3, vma, zma_keys):
         k3ns = list(ngb_keys_dct[key3])
         for k3n in set(k3ns) & set(zma_keys):
@@ -346,23 +413,29 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
         if k3ns:
             key4 = k3ns.pop(0)
 
+            lead_key = None
+            if (key3, key2) in lead_key_dct:
+                lead_key = lead_key_dct[(key3, key2)]
+
             # Add the leading atom to the v-matrix
             symb = symb_dct[key4]
-            key_row = list(map(zma_keys.index, (key3, key2, key1)))
+            dkey = key1 if lead_key is None else lead_key
+            key_row = list(map(zma_keys.index, (key3, key2, dkey)))
             vma = automol.vmat.add_atom(vma, symb, key_row)
             assert key4 not in zma_keys, ("Atom {:d} already in v-matrix."
                                           .format(key4))
             zma_keys.append(key4)
 
+            dkey = key4 if lead_key is None else lead_key
             # Add the neighbors of atom 3 (if any) to the v-matrix, decoupled
             # from atom 1 for properly decopuled torsions
             for k3n in k3ns:
                 sym = symb_dct[k3n]
 
-                if symb_dct[key4] == 'X':
-                    key_row = list(map(zma_keys.index, (key3, key4, key2)))
+                if symb_dct[dkey] == 'X':
+                    key_row = list(map(zma_keys.index, (key3, dkey, key2)))
                 else:
-                    key_row = list(map(zma_keys.index, (key3, key2, key4)))
+                    key_row = list(map(zma_keys.index, (key3, key2, dkey)))
 
                 vma = automol.vmat.add_atom(vma, sym, key_row)
                 assert k3n not in zma_keys, ("Atom {:d} already in v-matrix."
@@ -399,10 +472,18 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
     ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
         gra, symbs_first=('X', 'C',), symbs_last=('H',), ords_last=(0.1,))
 
+    symb_dct = atom_symbols(gra)
+
     key3 = keys[0]
     assert key3 in zma_keys
     key2 = next(k for k in ngb_keys_dct[key3] if k in zma_keys)
-    key1 = next(k for k in ngb_keys_dct[key2] if k in zma_keys and k != key3)
+
+    if symb_dct[key2] == 'X':
+        key1 = next(k for k in ngb_keys_dct[key3][1:] if k in zma_keys)
+    else:
+        key1 = next(k for k in ngb_keys_dct[key2]
+                    if k in zma_keys and k != key3)
+
     keys = (key1, key2,) + tuple(keys)
 
     return keys
@@ -443,3 +524,18 @@ def _atoms_missing_neighbors(gra, zma_keys):
             keys.append(key)
     keys = tuple(keys)
     return keys
+
+
+if __name__ == '__main__':
+    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('N', 0, None),
+            3: ('N', 0, None), 4: ('O', 0, None), 5: ('O', 0, None),
+            6: ('O', 0, None), 7: ('O', 0, None)},
+           {frozenset({1, 7}): (1, None), frozenset({2, 3}): (1, None),
+            frozenset({0, 3}): (1, None), frozenset({4, 5}): (1, None),
+            frozenset({6, 7}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({0, 4}): (1, None), frozenset({1, 5}): (1, None),
+            frozenset({1, 6}): (1, None)})
+    VMA, ZMA_KEYS = vmatrix(GRA, keys=(0, 2, 3))
+    VMA, ZMA_KEYS = continue_vmatrix(GRA, (1, 4, 5, 6, 7), VMA, ZMA_KEYS)
+    print(automol.vmat.string(VMA))
+    print(ZMA_KEYS)

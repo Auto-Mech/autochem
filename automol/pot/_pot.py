@@ -59,7 +59,7 @@ def coords(grids):
     return grid_vals
 
 
-# Manipulate potentiasls
+# Manipulate potentials
 def scale(pot, scale_factor):
     """ Scale the potential by scaling factor
 
@@ -74,6 +74,27 @@ def scale(pot, scale_factor):
 
     new_pot = {}
     for idx, val in pot.items():
+        new_pot[idx] = val * scale_factor
+
+    return new_pot
+
+
+# Manipulate potentials
+def relax_scale(pot):
+    """ Scale the potential by scaling factor
+
+        :param pot: potential along a coordinate
+        :type pot: dict[tuple(float)] = float
+        :param scale_coeff: initial scaling coeffcient
+        :type scael_coeff: float
+        :param num_tors: number of torsions used in scaling
+        :type num_tors: int
+        :rtype:
+    """
+
+    new_pot = {}
+    for idx, val in pot.items():
+        scale_factor = 1.0/(1+0.11*val)
         new_pot[idx] = val * scale_factor
 
     return new_pot
