@@ -527,6 +527,20 @@ def longest_chain(gra):
     return max_chain
 
 
+def is_branched(gra):
+    """ determine is the molecule has a branched chain
+    """
+    is_branched = False
+    gra = implicit(gra)
+    chain_length = len(longest_chain(gra))
+    natoms = atom_count(gra, with_implicit=False)
+    print ('natoms test:', chain_length, natoms)
+
+    if natoms != chain_length:
+        is_branched = True
+    return is_branched
+
+
 def atom_longest_chains(gra):
     """ longest chains, by atom
     """

@@ -77,6 +77,7 @@ from automol.graph._graph import atom_shortest_paths
 from automol.graph._graph import shortest_path_between_atoms
 from automol.graph._graph import shortest_path_between_groups
 from automol.graph._graph import longest_chain
+from automol.graph._graph import is_branched
 from automol.graph._graph import atom_longest_chain
 from automol.graph._graph import atom_longest_chains
 from automol.graph._graph import union
@@ -347,6 +348,7 @@ __all__ = [
     'shortest_path_between_atoms',
     'shortest_path_between_groups',
     'longest_chain',
+    'is_branched',
     'atom_longest_chain',
     'atom_longest_chains',
     'union',
