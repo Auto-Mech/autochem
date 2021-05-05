@@ -60,10 +60,7 @@ def prod_addition(x_gra, y_gra):
 def prod_hydrogen_migration(gra):
     """ products of hydrogen migration
     """
-
-    prod_gras = nonisomorphic_radical_graphs(gra, iso=False)
-
-    return _unique_gras(prod_gras)
+    return _unique_gras(nonisomorphic_radical_graphs(gra))
 
 
 def prod_beta_scission(gra):

@@ -58,3 +58,7 @@ def test__freqs():
     freqs3, azpve3 = prop.freq.anharm_by_scaling(FREQS, METHOD3, BASIS3)
     assert numpy.allclose(freqs3, ref_freqs3)
     assert numpy.isclose(azpve3, ref_azpve3)
+
+    # ref_scale_factor = ()
+    # scale_factor = prop.freq.rotor_scale_from_harmonics()
+    # assert numpy.allclose(scale_factor, ref_scale_factor)

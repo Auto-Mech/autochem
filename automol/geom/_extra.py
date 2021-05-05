@@ -8,7 +8,6 @@ from automol.geom import _trans as trans
 
 def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Determine sym factor for terminal groups in a geometry
-
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param frm_bnd_keys: keys denoting atoms forming bond in TS
@@ -75,7 +74,6 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
 def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Convert an input geometry to a list of geometries
         corresponding to the rotational permuations of all the terminal groups.
-
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param frm_bnd_keys: keys denoting atoms forming bond in TS
@@ -140,7 +138,6 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
 
 def _swap_for_one(geo, hyds):
     """ Rotational permuation for one rotational group.
-
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param hyd: list of hydrogen atom indices

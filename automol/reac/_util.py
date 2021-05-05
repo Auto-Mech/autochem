@@ -148,6 +148,7 @@ def rxn_objs_from_smiles(rct_smis, prd_smis, indexing='geo'):
     """ Generate obj
     """
 
+    # Is this adding stero? prob should?
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
     prd_ichs = list(map(automol.smiles.inchi, prd_smis))
 

@@ -132,11 +132,7 @@ def test__highd_mat():
 
     # Handle string representations printed by submatrices (finish)
     test_3d_submat_str = automol.util.highd_mat.string_submat_3d(test_3d_mat)
-    with open('data/ch4_h.cubic_submat', 'w') as fobj:
-        fobj.write(test_3d_submat_str)
     assert test_3d_submat_str == read_file(['data'], 'ch4_h.cubic_submat')
 
     test_4d_submat_str = automol.util.highd_mat.string_submat_4d(test_4d_mat)
-    with open('data/ch4_h.quartic_submat', 'w') as fobj:
-        fobj.write(test_4d_submat_str)
     assert test_4d_submat_str == read_file(['data'], 'ch4_h.quartic_submat')

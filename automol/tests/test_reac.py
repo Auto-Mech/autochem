@@ -671,6 +671,7 @@ def test__reac__hydrogen_abstraction():
         (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
         (['C', '[H]'], ['[CH3]', '[H][H]']),
         (['C', '[OH]'], ['[CH3]', 'O']),
+        (['CC', '[H]'], ['C[CH2]', '[H][H]']),
         # (['[O]O', 'CCC=C[CH]CCCCC'], ['O=O', 'CCCC=CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
@@ -687,7 +688,7 @@ def test__reac__hydrogen_abstraction():
         bnd_keys = automol.reac.rotational_bond_keys(zrxn)
         names = {automol.zmat.torsion_coordinate_name(zma, *k)
                  for k in bnd_keys}
-        print(automol.zmat.string(zma, one_indexed=False))
+        print(automol.zmat.string(zma, one_indexed=True))
         print(names)
 
         scan_name = automol.reac.scan_coordinate(zrxn, zma)
@@ -761,16 +762,25 @@ def test__reac__sigma_hydrogen_abstraction():
 def test__reac__addition():
     """ test addition functionality
     """
-    rct_smis = ['CC[CH2]', '[O][O]']
-    prd_smis = ['CCCO[O]']
+    rct_smis = ['CCCC[CH]CCCCC', '[O][O]']
+    prd_smis = ['CCCCCC(CCCC)O[O]']
+    # prd_smis = ['CCCO[O]']
+    # rct_smis = ['CC=C', '[OH]']
+    # prd_smis = ['C[CH]CO']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-    rxn, geo, _, _ = rxn_objs[0]
+    print(len(rxn_objs))
+    # rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
-    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+    for rxn_obj in rxn_objs:
+        rxn, geo, _, _ = rxn_obj
+        zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+        zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+        print('---')
+        print(zrxn)
+        print(automol.zmat.string(zma))
 
     # You can also do this to determine linear atoms from zmatrix:
     # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
@@ -815,7 +825,7 @@ def test__reac__addition():
 
     # Extra test cases:
     rxn_smis_lst = [
-        # (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
+        (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
@@ -855,6 +865,82 @@ def test__reac__addition():
             print('\tgroup 2:', groups[1])
             sym_num = automol.reac.rotational_symmetry_number(grxn, *axis)
             print('\tsymmetry number:', sym_num)
+
+
+def test__reac__radrad_addition():
+    """ test addition functionality
+    """
+    rct_smis = ['CC[CH2]', '[H]']
+    prd_smis = ['CCC']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
+
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+
+def test__reac__radrad_hydrogen_abstraction():
+    """ test addition functionality
+    """
+    rct_smis = ['CCC', '[H]']
+    prd_smis = ['CC[CH2]', '[HH]']
+    # rct_smis = ['CC[CH2]', '[H]']
+    # prd_smis = ['CC=C', '[HH]']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
+
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+    print(zma)
+    print(tomol.reac.scan_coordinate(zrxn, zma))
+
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    assert names == {'D7', 'D4'}
+    # print(automol.zmat.string(zma, one_indexed=False))
+    print(automol.zmat.string(zma, one_indexed=True))
+    print(names)
+
+    scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    const_names = automol.reac.constraint_coordinates(zrxn, zma)
+    assert scan_name == 'R11'
+    assert const_names == ()
+    print(scan_name)
+    print(const_names)
+
+    # graph aligned to geometry keys
+    # (for getting rotational groups and symmetry numbers)
+    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
+
+    # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
+    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    assert zrxn == old_zrxn
+
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    assert len(gbnd_keys) == len(bnd_keys)
+
+    axes = sorted(map(sorted, gbnd_keys))
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
+    sym_nums = [
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    assert sym_nums == [1, 3]
+    for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
+        print('axis:', axis)
+        print('\tgroup 1:', groups[0])
+        print('\tgroup 2:', groups[1])
+        print('\tsymmetry number:', sym_num)
 
 
 def test__reac__insertion():
@@ -973,7 +1059,7 @@ def test__reac__substitution():
 
 
 def test__reac_util():
-    """
+    """ test if the internal converter in the reac.util functions work
     """
 
     rct_smis = ['CC', '[H]']
@@ -982,15 +1068,14 @@ def test__reac_util():
     rxn_objs = automol.reac.rxn_objs_from_smiles(
         rct_smis, prd_smis)
     rxn, geo, _, _ = rxn_objs[0]
-    zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn, geo)
-    zrxn1 = automol.reac.relabel_for_zmatrix(rxn, zma_keys1, dummy_key_dct)
-    
+    _, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn1 = automol.reac.relabel_for_zmatrix(rxn, zma_keys1, dummy_key_dct1)
+
     zrxn_objs = automol.reac.rxn_objs_from_smiles(
         rct_smis, prd_smis, indexing='zma')
-    zrxn2, zma2, _, _ = zrxn_objs[0]
+    zrxn2, _, _, _ = zrxn_objs[0]
 
-    assert zrxn1 == zrxn2 
-    # assert zma1 == zma2
+    assert zrxn1 == zrxn2
 
 
 def test__species__demo():
@@ -1300,25 +1385,23 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    test__reac__hydrogen_migration()
+    #  test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
+    # test__reac__hydrogen_abstraction()
+    # test__reac__addition()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
     # test__reac__beta_scission()
-    # hmig()
-    # test__reac__hydrogen_migration()
-    # test__reac__2ts_hydrogen_migration()
-    # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
-    # test__reac__insertion()
-    # test__species__demo()
+    # test__reac__radrad_addition()
+    # test__reac__radrad_hydrogen_abstraction()
     # test__stereo()
     # test__species__demo()
     # test__reac__forming_rings_atom_keys()
     test__reac__addition()
     test__reac__hydrogen_abstraction()
-    test__reac__sigma_hydrogen_abstraction()
-    test__reac__substitution()
+    # test__reac__sigma_hydrogen_abstraction()
+    # test__reac__substitution()

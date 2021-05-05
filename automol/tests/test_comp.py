@@ -52,9 +52,9 @@ GEO_LST4 = (GEO1_CC_STRETCH,)
 GEO_LST5 = (GEO1_DIFF_ATOM_ORDER, GEO1_CC_STRETCH)
 
 CHECK_DCT = {
-    'dist': None, 'stereo': None, 'coloumb': None}
+    'dist': None, 'stereo': None, 'coulomb': None}
 CHECK_DCT2 = {
-    'dist': 3.5e-1, 'stereo': None, 'coloumb': 1.5e-2}
+    'dist': 3.5e-1, 'stereo': None, 'coulomb': 1.5e-2}
 
 
 # def test__newzma():

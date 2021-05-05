@@ -1,6 +1,7 @@
 """  Functions to deal with vibrational frequencies
 """
 
+import numpy
 from phydat import phycon
 
 
@@ -30,7 +31,7 @@ def _anharm_zpve_from_scaling(freq, scaled_freq):
     return (freq / 2.0) - (1.0 / 8.0) * (scaled_freq - freq)
 
 
-def rotor_scale_factor_from_harmonics(harm_freqs, tors_freqs):
+def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
     """ scaling factor for rotor potentials to map them into harmonic
     """
 
@@ -42,13 +43,13 @@ def rotor_scale_factor_from_harmonics(harm_freqs, tors_freqs):
     freq_thresh = 50.
     log_rt_freq = 0.0
     nfreq_remove = 0
-    for freq in rt_freqs1:
+    for freq in rt_freqs:
         if freq > freq_thresh:
             log_rt_freq += numpy.log(freq)
         else:
             nfreq_remove += 1
 
-    log_freq = [numpy.log(freq) for freq in freqs]
+    log_freq = [numpy.log(freq) for freq in rth_freqs]
     log_freq = sum(log_freq)
 
     log_tors_freq = 0.0
@@ -63,19 +64,16 @@ def rotor_scale_factor_from_harmonics(harm_freqs, tors_freqs):
     # log_rt_freq = sum(log_rt_freq)
     # log_tors_freq = [numpy.log(freq) for freq in tors_freqs]
     # log_tors_freq = sum(log_tors_freq)
-    #unproj_prod = numpy.prod(rt_freqs1)
-    #proj_prod = numpy.prod(freqs) * numpy.prod(tors_freqs)
-    #print('proj_prod test:', unproj_prod, proj_prod)
-    # ioprinter.info_message('log_freq_tests:', log_rt_freq, log_freq, log_tors_freq)
-    #scale_factor = unproj_prod / proj_prod
+    # unproj_prod = numpy.prod(rt_freqs1)
+    # proj_prod = numpy.prod(freqs) * numpy.prod(tors_freqs)
+    # print('proj_prod test:', unproj_prod, proj_prod)
+    # scale_factor = unproj_prod / proj_prod
 
     # generate the scaling factor
     factor = numpy.exp(log_rt_freq - log_freq - log_tors_freq)
-    # ioprinter.info_message('freq test:', freqs, tors_freqs, rt_freqs1)
 
     # Generate the set of indices for torsions that are two be scales
     scale_factor = (idx_remove, factor)
-    # ioprinter.info_message('scale fact test', scale_factor)
 
     return scale_factor
 

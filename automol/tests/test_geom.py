@@ -316,7 +316,6 @@ def test__rotate():
 
 def test__symmetry_factor():
     """ test geom.external_symmety_factor
-        test geom.end_group_symmetry_factor
     """
     ref_sym_num1 = 12
     ref_sym_num2 = 1
@@ -345,43 +344,6 @@ def test__symmetry_factor():
     assert h_sym_num == ref_sym_num2
     assert c2h5of_sym_num == ref_sym_num3
     assert c2h2clf_sym_num == ref_sym_num4
-
-    ref_end_sym_num1 = 1.0
-    ref_end_sym_num2 = 1.0
-
-    prop_geo = (('C', (-1.271060, -0.260158, 0.000015)),
-                ('C', (0.000030, 0.588062, 0.000031)),
-                ('H', (-1.310561, -0.906763, -0.884416)),
-                ('H', (-2.170753, 0.364089, -0.000108)),
-                ('H', (-1.310878, -0.906697, 0.884491)),
-                ('C', (1.271039, -0.260179, 0.000001)),
-                ('H', (0.000092, 1.246476, 0.877632)),
-                ('H', (0.000037, 1.246109, -0.877909)),
-                ('H', (1.310415, -0.906937, -0.884321)),
-                ('H', (2.170786, 0.363983, -0.000215)),
-                ('H', (1.310810, -0.906613, 0.884564)))
-
-    prop_h_geo = (('H', (-2.925536, 0.892159, 0.000083)),
-                  ('H', (-2.235843, 0.265746, 0.000083)),
-                  ('C', (-1.087894, -0.458479, -0.000022)),
-                  ('C', (0.048056, 0.535538, -0.000030)),
-                  ('H', (-1.181615, -1.061889, -0.906084)),
-                  ('H', (-1.181466, -1.061854, 0.906078)),
-                  ('C', (1.420131, -0.148928, 0.000015)),
-                  ('H', (-0.035403, 1.185804, -0.879125)),
-                  ('H', (-0.035486, 1.185744, 0.879103)),
-                  ('H', (1.542921, -0.783078, 0.884904)),
-                  ('H', (1.543226, -0.782626, -0.885152)),
-                  ('H', (2.227441, 0.591206, 0.000337)))
-
-    _, end_sym_num1 = automol.geom.end_group_symmetry_factor(prop_geo)
-    _, end_sym_num2 = automol.geom.end_group_symmetry_factor(
-        prop_h_geo,
-        frm_bnd_keys=frozenset({0, 1}),
-        brk_bnd_keys=frozenset({1, 2}))
-
-    assert numpy.isclose(end_sym_num1, ref_end_sym_num1)
-    assert numpy.isclose(end_sym_num2, ref_end_sym_num2)
 
 
 def test__closest_unbonded_atoms():
