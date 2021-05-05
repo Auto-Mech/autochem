@@ -17,13 +17,26 @@ jobs:
                     source activate automol-env
                     python setup.py install
             - run:
-                name: Test automol
+                name: Test autochem
                 command: |
                     source activate automol-env
-                    cd automol
-                    # pytest -v --disable-pytest-warnings --cov=automol --pyargs automol
+                    pytest . -v --disable-pytest-warnings --cov=automol --pyargs autochem
                     flake8 --exit-zero autommol
                     pylint --rcfile=../.pylintrc automol
+            - run:
+                name: Test phydat
+                command: |
+                    source activate automol-env
+                    pytest . -v --disable-pytest-warnings --cov=phydat --pyargs phydat
+                    flake8 --exit-zero phydat
+                    pylint --rcfile=../.pylintrc phydat
+            - run:
+                name: Test transformations
+                command: |
+                    source activate automol-env
+                    pytest . -v --disable-pytest-warnings --cov=transformations --pyargs transformations
+                    flake8 --exit-zero transformations
+                    pylint --rcfile=../.pylintrc transformations
 workflows:
     version: 2
     build-all:

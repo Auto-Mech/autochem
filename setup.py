@@ -4,7 +4,7 @@ from distutils.core import setup
 
 
 setup(name='automol',
-      version='0.1.1',
+      version='0.5.2',
       packages=['automol',
                 'automol.cart',
                 'automol.convert',
@@ -31,4 +31,6 @@ setup(name='automol',
       package_dir={'automol': 'automol',
                    'phydat': 'phydat',
                    'transformations': 'transformations'},
-      package_data={'automol': ['tests/data/*.txt']})
+      package_data={'automol': ['tests/data/*.txt',
+                                'tests/data/*.csv',
+                                'tests/data/*.cubic']})

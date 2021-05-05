@@ -99,7 +99,6 @@ def relax_scale(pot):
 
     return new_pot
 
-
 def truncate(pot, sym_num):
     """ Take a potential and limit it's terms by the symmetry number
     """

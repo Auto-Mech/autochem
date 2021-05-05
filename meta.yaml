@@ -1,7 +1,7 @@
-# cmd: conda build . -c kevinmooreiii -c auto-mech -c rdkit -c openbabel -c conda-forge
+# cmd: conda build . -c auto-mech -c rdkit -c openbabel -c conda-forge -c psi4
 package:
     name: automol
-    version: "0.5.0"
+    version: "0.5.2"
 
 source:
     path: .
@@ -10,17 +10,26 @@ requirements:
     build:
         - python=3.7
     run:
+        - gfortran_linux-64  # [linux]
         - python=3.7
         - numpy
+        - scipy
+        - pyyaml
+        - mako
         - networkx
+        - matplotlib
         - pytest
         - pytest-cov
         - future
         - flake8
         - pylint
+        # - auto-mech::automol
+        - auto-mech::autorun
         - auto-mech::autoparse
         - auto-mech::autoio
+        - auto-mech::elstruct
         - auto-mech::x2z
+        - psi4::psi4
         - rdkit::rdkit
         - openbabel::openbabel
         - conda-forge::qcelemental

@@ -1,25 +1,33 @@
 name: automol-env
 
 channels:
-    - kevinmooreiii
     - auto-mech
+    - psi4
     - rdkit
     - openbabel
     - conda-forge
 
 dependencies:
+    - gfortran_linux-64  # [linux]
     - python=3.7
     - numpy
+    - scipy
+    - pyyaml
+    - mako
     - networkx
+    - matplotlib
     - pytest
     - pytest-cov
     - future
     - flake8
     - pylint
-    - kevinmooreiii::autoparse
-    - auto-mech::autoread
-    - auto-mech::autowrite
+    # - auto-mech::automol
+    - auto-mech::autorun
+    - auto-mech::autoparse
+    - auto-mech::autoio
+    - auto-mech::elstruct
     - auto-mech::x2z
+    - psi4::psi4
     - rdkit::rdkit
     - openbabel::openbabel
     - conda-forge::qcelemental

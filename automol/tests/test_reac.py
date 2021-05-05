@@ -314,100 +314,6 @@ def test__reac__hydrogen_migration():
     # reaction object aligned to z-matrix keys
     rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
     geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
-    #orig_geo = tuple(list(geo))
-    #print(automol.geom.string(geo))
-    #rings = automol.reac.forming_rings_bond_keys(rxn)
-    #print('ring bonds', rings)
-    #gra = automol.geom.graph(geo)
-    #bnd_keys = automol.graph.bond_keys(gra)
-    #atoms = [*range(automol.geom.count(geo))]
-    #print('count', atoms)
-    #for ring_bnds in rings:
-    #    ring_atoms = []
-    #    for bnd in ring_bnds:
-    #        atma, atmb = bnd
-    #        if not atma in ring_atoms:
-    #            ring_atoms.append(atma)
-    #        if not atmb in ring_atoms:
-    #            ring_atoms.append(atmb)
-    #    print('ring atoms', ring_atoms, '\nall atoms',  atoms)
-    #    for i in range(20):
-    #        bnd_count = len(ring_bnds)
-    #        for bnd in ring_bnds:
-    #            bnd_count -= 1
-    #            if bnd_count > 2:
-    #                #bnd = tuple(bnd)
-    #                if bnd in bnd_keys:
-    #                    atma, atmb = bnd
-    #                    new_bnd = []
-    #                    for atm in ring_atoms:
-    #                        if atm == atma:
-    #                            new_bnd.append(atma)
-    #                        if atm == atmb:
-    #                            new_bnd.append(atmb)
-    #                    atma, atmb = new_bnd
-    #                    groupa, groupb = automol.rotor.torsion_groups(gra, bnd)
-    #                    xyz_coords = automol.geom.coordinates(geo)
-    #                    xyz_atma = xyz_coords[atma]
-    #                    xyz_atmb = xyz_coords[atmb]
-
-    #                    # translate to center atma
-    #                    translate_xyz = tuple(map(lambda x: -x, list(xyz_atma)))
-    #                    geo = automol.geom.translate(geo, translate_xyz)
-    #                    xyz_coords = automol.geom.coordinates(geo)
-    #                    xyz_atma = xyz_coords[atma]
-    #                    xyz_atmb = xyz_coords[atmb]
-    #                    
-    #                    groupsb = automol.graph.atom_groups(gra, atmb)
-    #                    groupb = [atmb]
-    #                    for group in groupsb:
-    #                        group_atms = automol.graph.atom_keys(group)
-    #                        if not list(set(ring_atoms) & set(group_atms)):
-    #                            groupb.extend(group_atms)
-    #                    bngb = None
-    #                    for bbnd in ring_bnds:
-    #                        if atmb in bbnd and atma not in bbnd:
-    #                            bngb = list(set(bbnd) - set([atmb]))[0]
-    #                    
-    #                    groupsa = automol.graph.atom_groups(gra, atma)
-    #                    groupa = [atma]
-    #                    for group in groupsa:
-    #                        group_atms = automol.graph.atom_keys(group)
-    #                        if not list(set(ring_atoms) & set(group_atms)):
-    #                            groupa.extend(group_atms)
-    #                    angb = None
-    #                    for abnd in ring_bnds:
-    #                        if atma in abnd and atmb not in abnd:
-    #                            angb = list(set(abnd) - set([atma]))[0]
-
-    #                    groupsangb = automol.graph.atom_groups(gra, angb)
-    #                    groupangb = [angb]
-    #                    for group in groupsangb:
-    #                        group_atms = automol.graph.atom_keys(group)
-    #                        if not list(set(ring_atoms) & set(group_atms)):
-    #                            groupangb.extend(group_atms)
-
-    #                    rotate_groups = set(groupa + groupangb)
-    #                    rotate_angle = automol.geom.dihedral_angle(orig_geo, bngb, atmb, atma, angb)
-    #                    rotate_angle = 2*numpy.pi - rotate_angle
-    #                    rotate_angle = numpy.mod(rotate_angle, 2*numpy.pi)
-    #                    rotate_angle = numpy.mod(rotate_angle, 2*numpy.pi) / 10.
-    #                    #groupa = []
-    #                    #for atm in atoms:
-    #                    #    if atm not in groupb:
-    #                    #        groupa.append(atm)
-    #                    # print('atoma', atma, groupa)
-    #                    # print('atomb', atmb, groupb)
-    #                    print('rotate groups', rotate_groups)
-    #                    # print('dihedral', angb, atma, atmb, bngb)
-    #                    print('rotate angle', rotate_angle * 180./numpy.pi)
-
-    #                    # rotate around the vector to atomb
-    #                    rotate_xyzs = tuple(map(lambda x: -x, list(xyz_atmb)))
-    #                    geo = automol.geom.rotate(geo, rotate_xyzs, rotate_angle, xyz_atma, rotate_groups)
-    #        print('new geo\n', automol.geom.string(geo))
-    ## reaction object aligned to z-matrix keys
-    # (for getting torsion coordinate names)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
@@ -450,37 +356,37 @@ def test__reac__hydrogen_migration():
         print('\tgroup 1:', groups[0])
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
-   # scan_name = automol.reac.scan_coordinate(zrxn, zma)
-   # const_names = automol.reac.constraint_coordinates(zrxn, zma)
-   # assert scan_name == 'R5'
-   # assert const_names == ('R4',)
-   # print(scan_name)
-   # print(const_names)
+    # scan_name = automol.reac.scan_coordinate(zrxn, zma)
+    # const_names = automol.reac.constraint_coordinates(zrxn, zma)
+    # assert scan_name == 'R5'
+    # assert const_names == ('R4',)
+    # print(scan_name)
+    # print(const_names)
 
-   # # graph aligned to geometry keys
-   # # (for getting rotational groups and symmetry numbers)
-   # geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-   # grxn = automol.reac.relabel_for_geometry(zrxn)
-   # print(automol.geom.string(geo))
+    # # graph aligned to geometry keys
+    # # (for getting rotational groups and symmetry numbers)
+    # geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    # grxn = automol.reac.relabel_for_geometry(zrxn)
+    # print(automol.geom.string(geo))
 
-   # # Check that the reaction object can be converted back, if needed
-   # old_zrxn = zrxn
-   # zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-   # assert zrxn == old_zrxn
+    # # Check that the reaction object can be converted back, if needed
+    # old_zrxn = zrxn
+    # zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    # assert zrxn == old_zrxn
 
-   # gbnd_keys = automol.reac.rotational_bond_keys(grxn)
-   # assert len(gbnd_keys) == len(bnd_keys)
+    # gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    # assert len(gbnd_keys) == len(bnd_keys)
 
-   # axes = sorted(map(sorted, gbnd_keys))
-   # groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
-   # sym_nums = [
-   #     automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
-   # assert sym_nums == [3]
-   # for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
-   #     print('axis:', axis)
-   #     print('\tgroup 1:', groups[0])
-   #     print('\tgroup 2:', groups[1])
-   #     print('\tsymmetry number:', sym_num)
+    # axes = sorted(map(sorted, gbnd_keys))
+    # groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
+    # sym_nums = [
+    #     automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    # assert sym_nums == [3]
+    # for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
+    #     print('axis:', axis)
+    #     print('\tgroup 1:', groups[0])
+    #     print('\tgroup 2:', groups[1])
+    #     print('\tsymmetry number:', sym_num)
 
 
 def test__reac__2ts_hydrogen_migration():
@@ -1394,7 +1300,7 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-     test__reac__hydrogen_migration()
+    test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
     # test__reac__insertion()
     # test__reac__substitution()
