@@ -9,13 +9,20 @@ from automol.graph._graph import full_isomorphism
 from automol.graph._graph import atom_neighbor_keys
 from automol.graph._graph import add_bonds
 from automol.graph._graph import remove_bonds
+from automol.graph._graph import _connected_components
+from automol.graph._graph import _explicit
+from automol.graph._graph import _unsaturated_atom_keys
+from automol.graph._graph import _atom_keys
+from automol.graph._graph import _resonance_dominant_radical_atom_keys
+from automol.graph._graph import _add_atom_explicit_hydrogen_keys
+from automol.graph._graph import _full_isomorphism
 from automol.graph._stereo import atom_stereo_keys
 from automol.graph._stereo import bond_stereo_keys
 from automol.graph._graph import atom_stereo_parities
 from automol.graph._graph import bond_stereo_parities
 from automol.graph._graph import without_stereo_parities
 from automol.graph._stereo import stereo_sorted_atom_neighbor_keys
-from automol.graph.reac import reverse_class
+from reac import reverse_class
 
 
 # old
@@ -407,12 +414,12 @@ def addition(xgr1, xgr2):
         xgr2, = xgrs2
         x_atm_keys = _unsaturated_atom_keys(x_xgr)
         y_atm_keys = _unsaturated_atom_keys(y_xgr)
-        xgeo = automol.graph.geometry(xgr2)
+        xgeo = geometry(xgr2)
         for x_atm_key, y_atm_key in itertools.product(x_atm_keys, y_atm_keys):
             xy_xgr = _add_bonds(
                 _union(x_xgr, y_xgr), [{x_atm_key, y_atm_key}])
         
-            xgeo = automol.graph.geometry(xy_xgr)
+            xgeo = geometry(xy_xgr)
             atm_key_dct = _full_isomorphism(xy_xgr, xgr2)
             if atm_key_dct:
                 tra = from_data(frm_bnd_keys=[{x_atm_key, y_atm_key}],
@@ -433,11 +440,11 @@ def elimination(xgr1, xgr2):
     print('length test:', len(xgrs1), len(xgrs2))
     tras = []
     if len(xgrs1) == 1 and len(xgrs2) == 2:
-        atms = automol.graph.atoms(xgr1)
-        neighs = automol.graph.atom_neighbor_keys(xgr1)
-        bnds = automol.graph.bond_keys(xgr1)
+        atms = atoms(xgr1)
+        neighs = atom_neighbor_keys(xgr1)
+        bnds = bond_keys(xgr1)
         radicals = _resonance_dominant_radical_atom_keys(xgr1)
-        lonepairs = automol.graph.atom_lone_pair_counts(xgr1)
+        lonepairs = atom_lone_pair_counts(xgr1)
         print('radicals:', radicals)
         print('lonepairs:', lonepairs)
         print('atms:', atms)
@@ -447,16 +454,16 @@ def elimination(xgr1, xgr2):
             i_neighs = neighs[atmi]
             for atmj in i_neighs:
                 bnd_break_key_ij = _get_bnd_key(atmi, atmj, bnds)
-                new_xgr = automol.graph.remove_bonds(xgr1, [bnd_break_key_ij])
+                new_xgr = remove_bonds(xgr1, [bnd_break_key_ij])
                 new_xgrs = _connected_components(new_xgr)
                 if len(new_xgrs) == 2:
                     xgrA, xgrB = new_xgrs
-                    atmsA = automol.graph.atoms(xgrA)
+                    atmsA = atoms(xgrA)
                     if atmi not in atmsA.keys():
                         xgrB, xgrA = xgrA, xgrB
-                        atmsA = automol.graph.atoms(xgrA)
-                    neighsA = automol.graph.atom_neighbor_keys(xgrA)
-                    atmsB = automol.graph.atoms(xgrB)
+                        atmsA = atoms(xgrA)
+                    neighsA = atom_neighbor_keys(xgrA)
+                    atmsB = atoms(xgrB)
                     neighs_i = neighsA[atmi]
                     for atmk in atmsB:
                         if atmk in radicals:
@@ -465,8 +472,8 @@ def elimination(xgr1, xgr2):
                                 if atml != atmj:
                                     bnd_break_key_il = _get_bnd_key(atmi, atml, bnds)
                                     bnd_form_key_kl = frozenset({atmk, atml})
-                                    newnew_xgr = automol.graph.remove_bonds(new_xgr, [bnd_break_key_il])
-                                    newnew_xgr = automol.graph.add_bonds(newnew_xgr, [bnd_form_key_kl])
+                                    newnew_xgr = remove_bonds(new_xgr, [bnd_break_key_il])
+                                    newnew_xgr = add_bonds(newnew_xgr, [bnd_form_key_kl])
                                     atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
                                     if atm_key_dct:
                                         tra = [[bnd_form_key_kl], [bnd_break_key_ij, bnd_break_key_il]]
@@ -475,8 +482,8 @@ def elimination(xgr1, xgr2):
                                     if atmm != atmi:
                                         bnd_break_key_lm = _get_bnd_key(atml, atmm, bnds)
                                         bnd_form_key_km = frozenset({atmk, atmm})
-                                        newnew_xgr = automol.graph.remove_bonds(new_xgr, [bnd_break_key_lm])
-                                        newnew_xgr = automol.graph.add_bonds(newnew_xgr, [bnd_form_key_km])
+                                        newnew_xgr = remove_bonds(new_xgr, [bnd_break_key_lm])
+                                        newnew_xgr = add_bonds(newnew_xgr, [bnd_form_key_km])
                                         atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
                                         if atm_key_dct:
                                             tras.append([[bnd_form_key_km], [bnd_break_key_ij, bnd_break_key_lm]])
@@ -486,16 +493,16 @@ def elimination(xgr1, xgr2):
             print('i_neighs test:', i_neighs)
             for atmj in i_neighs:
                 bnd_break_key_ij = _get_bnd_key(atmi, atmj, bnds)
-                new_xgr = automol.graph.remove_bonds(xgr1, [bnd_break_key_ij])
+                new_xgr = remove_bonds(xgr1, [bnd_break_key_ij])
                 new_xgrs = _connected_components(new_xgr)
                 if len(new_xgrs) == 2:
                     xgrA, xgrB = new_xgrs
-                    atmsA = automol.graph.atoms(xgrA)
+                    atmsA = atoms(xgrA)
                     if atmi not in atmsA.keys():
                         xgrB, xgrA = xgrA, xgrB
-                        atmsA = automol.graph.atoms(xgrA)
-                    neighsA = automol.graph.atom_neighbor_keys(xgrA)
-                    atmsB = automol.graph.atoms(xgrB)
+                        atmsA = atoms(xgrA)
+                    neighsA = atom_neighbor_keys(xgrA)
+                    atmsB = atoms(xgrB)
                     neighs_i = neighsA[atmi]
                     print('len atmsB test:', len(atmsB))
                     for atmk in atmsB:
@@ -511,8 +518,8 @@ def elimination(xgr1, xgr2):
                                 if atml != atmj:
                                     bnd_break_key_il = _get_bnd_key(atmi, atml, bnds)
                                     bnd_form_key_kl = frozenset({atmk, atml})
-                                    newnew_xgr = automol.graph.remove_bonds(new_xgr, [bnd_break_key_il])
-                                    newnew_xgr = automol.graph.add_bonds(newnew_xgr, [bnd_form_key_kl])
+                                    newnew_xgr = remove_bonds(new_xgr, [bnd_break_key_il])
+                                    newnew_xgr = add_bonds(newnew_xgr, [bnd_form_key_kl])
                                     atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
                                     if atm_key_dct:
                                         tra = [[bnd_form_key_kl], [bnd_break_key_ij, bnd_break_key_il]]
@@ -521,8 +528,8 @@ def elimination(xgr1, xgr2):
                                     if atmm != atmi:
                                         bnd_break_key_lm = _get_bnd_key(atml, atmm, bnds)
                                         bnd_form_key_km = frozenset({atmk, atmm})
-                                        newnew_xgr = automol.graph.remove_bonds(new_xgr, [bnd_break_key_lm])
-                                        newnew_xgr = automol.graph.add_bonds(newnew_xgr, [bnd_form_key_km])
+                                        newnew_xgr = remove_bonds(new_xgr, [bnd_break_key_lm])
+                                        newnew_xgr = add_bonds(newnew_xgr, [bnd_form_key_km])
                                         atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
                                         if atm_key_dct:
                                             tras.append([[bnd_form_key_km], [bnd_break_key_ij, bnd_break_key_lm]])
@@ -547,18 +554,18 @@ def substitution(xgr1, xgr2):
     if len(xgrs1) == 2 and len(xgrs2) == 2:
         xgrA, xgrB = xgrs1
         xgrC, xgrD = xgrs2
-        atmsA = automol.graph.atoms(xgrA)
-        neighsA = automol.graph.atom_neighbor_keys(xgrA)
-        bndsA = automol.graph.bond_keys(xgrA)
-        atmsB = automol.graph.atoms(xgrB)
-        neighsB = automol.graph.atom_neighbor_keys(xgrB)
-        bndsB = automol.graph.bond_keys(xgrB)
-        atmsC = automol.graph.atoms(xgrC)
-        neighsC = automol.graph.atom_neighbor_keys(xgrC)
-        bndsC = automol.graph.bond_keys(xgrC)
-        atmsD = automol.graph.atoms(xgrD)
-        neighsD = automol.graph.atom_neighbor_keys(xgrD)
-        bndsD = automol.graph.bond_keys(xgrD)
+        atmsA = atoms(xgrA)
+        neighsA = atom_neighbor_keys(xgrA)
+        bndsA = bond_keys(xgrA)
+        atmsB = atoms(xgrB)
+        neighsB = atom_neighbor_keys(xgrB)
+        bndsB = bond_keys(xgrB)
+        atmsC = atoms(xgrC)
+        neighsC = atom_neighbor_keys(xgrC)
+        bndsC = bond_keys(xgrC)
+        atmsD = atoms(xgrD)
+        neighsD = atom_neighbor_keys(xgrD)
+        bndsD = bond_keys(xgrD)
         tra = _substitution(atmsA, neighsA, bndsA, atmsB, neighsB, xgr1, xgr2)
         idxs = [[0, 1], [0, 1]]
         if not tra:
@@ -574,7 +581,7 @@ def substitution(xgr1, xgr2):
                         idxs = None
 
         # return not substitution for radical + unsaturated reactions
-        unsat_atm_keys = automol.graph.unsaturated_atom_keys(xgrA)
+        unsat_atm_keys = unsaturated_atom_keys(xgrA)
         # print('unsat test:', tra[0][0], unsat_atm_keys)
         tra_list = list(tra[0])
         for key in unsat_atm_keys:
@@ -592,11 +599,11 @@ def _substitution(atmsA, neighsA, bndsA, atmsB, neighsB, xgr1, xgr2):
             i_neighs = neighsA[atmi]
             for atmj in i_neighs:
                 bnd_break_key_ij = _get_bnd_key(atmi, atmj, bndsA)
-                new_xgr = automol.graph.remove_bonds(xgr1, [bnd_break_key_ij])
+                new_xgr = remove_bonds(xgr1, [bnd_break_key_ij])
                 for atmk in atmsB:
                     if atmk != atmi and atmk != atmj:# and not atmi in neighsB[atmk] and not atmj in neighsB[atmk]:
                         bnd_form_key_ik = frozenset({atmi, atmk})
-                        newnew_xgr = automol.graph.add_bonds(new_xgr, [bnd_form_key_ik])
+                        newnew_xgr = add_bonds(new_xgr, [bnd_form_key_ik])
                         atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
                         if atm_key_dct:
                             tra = [[bnd_form_key_ik], [bnd_break_key_ij]]
@@ -614,12 +621,12 @@ def insertion(xgr1, xgr2):
     xgrs2 = _connected_components(xgr2)
     if len(xgrs1) == 2 and len(xgrs2) == 1:
         xgrA, xgrB = xgrs1
-        atmsA = automol.graph.atoms(xgrA)
-        atmsB = automol.graph.atoms(xgrB)
-        neighsA = automol.graph.atom_neighbor_keys(xgrA)
-        neighsB = automol.graph.atom_neighbor_keys(xgrB)
-        bndsA = automol.graph.bond_keys(xgrA)
-        bndsB = automol.graph.bond_keys(xgrB)
+        atmsA = atoms(xgrA)
+        atmsB = atoms(xgrB)
+        neighsA = atom_neighbor_keys(xgrA)
+        neighsB = atom_neighbor_keys(xgrB)
+        bndsA = bond_keys(xgrA)
+        bndsB = bond_keys(xgrB)
         tra = _insertion(atmsA, neighsA, bndsA, atmsB, neighsB, xgr1, xgr2)
         idxs = [0, 1]
         if not tra:
@@ -631,9 +638,9 @@ def insertion(xgr1, xgr2):
     elif len(xgrs1) == 1 and len(xgrs2) == 1:
         xgrA = xgr1
         idxs = [0]
-        atmsA = automol.graph.atoms(xgrA)
-        neighsA = automol.graph.atom_neighbor_keys(xgrA)
-        bndsA = automol.graph.bond_keys(xgrA)
+        atmsA = atoms(xgrA)
+        neighsA = atom_neighbor_keys(xgrA)
+        bndsA = bond_keys(xgrA)
         tra = _insertion(atmsA, neighsA, bndsA, atmsA, neighsA, xgr1, xgr2)
     return tra, idxs
 
@@ -646,12 +653,12 @@ def _insertion(atmsA, neighsA, bndsA, atmsB, neighsB, xgr1, xgr2):
             i_neighs = neighsA[i]
             for j in i_neighs:
                 bnd_break_key_ij = _get_bnd_key(i, j, bndsA)
-                new_xgr = automol.graph.remove_bonds(xgr1, [bnd_break_key_ij])
+                new_xgr = remove_bonds(xgr1, [bnd_break_key_ij])
                 for k in atmsB:
                     if _is_heavy(k, atmsB) and k != i and k != j and not i in neighsB[k] and not j in neighsB[k]:
                         bnd_form_key_ik = {i, k}
                         bnd_form_key_jk = {j, k}
-                        newnew_xgr = automol.graph.add_bonds(new_xgr, [bnd_form_key_ik, bnd_form_key_jk])
+                        newnew_xgr = add_bonds(new_xgr, [bnd_form_key_ik, bnd_form_key_jk])
                         atm_key_dct = _full_isomorphism(newnew_xgr, xgr2)
                         if atm_key_dct:
                             tra = [[bnd_form_key_ik, bnd_form_key_jk], [bnd_break_key_ij]]
@@ -703,9 +710,6 @@ def hydrogen_abstraction(xgr1, xgr2):
                 brk_bnd_keys=broken_bond_keys(q1_tra))
 
     return tra
->>>>>>> elimination improvements
-
-    return parity
 
 
 def _is_bond_key(obj):
