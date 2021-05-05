@@ -1,63 +1,13 @@
 """ extra geometry functions
 """
 
-import automol.geom
 import automol.convert.geom
 import automol.graph
 from automol.geom import _trans as trans
 
 
-def internal_symmetry_number_from_sample(sym_geos, grxn=None):
-    """ Determine the symmetry number for a given conformer geometry.
-    (1) Explore the saved conformers to find the list of similar conformers -
-        i.e. those with a coulomb matrix and energy that are equivalent
-        to those for the reference geometry.
-    (2) Expand each of those similar conformers by applying
-        rotational permutations to each of the terminal groups.
-    (3) Count how many distinct distance matrices there are in
-        the fully expanded conformer list.
-    """
-
-    if grxn is not None:
-        frm_bnd_keys = automol.reac.forming_bond_keys(grxn)
-        brk_bnd_keys = automol.reac.breaking_bond_keys(grxn)
-    else:
-        frm_bnd_keys, brk_bnd_keys = frozenset({}), frozenset({})
-
-    int_sym_num = 0
-    # modify geometries to remove H's from rotatable XHn end group
-    # this will be accounted for separately as multiplicative factor
-    mod_sym_geos = []
-    for geo_sym_i in sym_geos:
-        ret = _end_group_symmetry_factor(
-            geo_sym_i, frm_bnd_keys, brk_bnd_keys)
-        mod_geo_sym_i, end_group_factor = ret
-        # ioprinter.info_message('end_group_factor test:', end_group_factor)
-
-        new_geom = True
-        for mod_geo_sym_j in mod_sym_geos:
-            if automol.geom.almost_equal_dist_matrix(
-                    mod_geo_sym_i, mod_geo_sym_j, thresh=3e-1):
-                if grxn is not None:
-                    new_geom = False
-                    break
-                tors_same = automol.geom.are_torsions_same(
-                    mod_geo_sym_i, mod_geo_sym_j, ts_bnds=())
-                if tors_same:
-                    new_geom = False
-                    break
-        if new_geom:
-            mod_sym_geos.append(mod_geo_sym_i)
-            int_sym_num += 1
-
-    int_sym_num *= end_group_factor
-
-    return int_sym_num
-
-
-def _end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
+def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Determine sym factor for terminal groups in a geometry
-
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param frm_bnd_keys: keys denoting atoms forming bond in TS
@@ -124,7 +74,6 @@ def _end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
 def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     """ Convert an input geometry to a list of geometries
         corresponding to the rotational permuations of all the terminal groups.
-
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param frm_bnd_keys: keys denoting atoms forming bond in TS
@@ -189,7 +138,6 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
 
 def _swap_for_one(geo, hyds):
     """ Rotational permuation for one rotational group.
-
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param hyd: list of hydrogen atom indices
