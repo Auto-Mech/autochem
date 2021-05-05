@@ -118,7 +118,7 @@ def merge_subdct(dct, key='global', keep_subdct=False):
     """
 
     if list(dct.keys()) == [key]:
-        new_dct = dct[key]
+        new_dct = {key: dct[key]}
     else:
         new_dct, sub_dct = separate_subdct(dct, key=key)
         for new_key in new_dct:
