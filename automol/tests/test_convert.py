@@ -15,7 +15,7 @@ ICHS_NO_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_no_stereo.txt')
 ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt')
-NSAMP = 50
+NSAMP = 720
 
 
 def test__geom__with_stereo():
@@ -65,12 +65,11 @@ def test__graph__with_stereo():
     for ref_ich in ref_ichs:
         print(ref_ich)
         gra = automol.inchi.graph(ref_ich)
-        ich = automol.graph.inchi(gra)
-        print(ich)
+        ich = automol.graph.inchi(gra, stereo=True)
+        print(ref_ich,'\n')
         assert ich == ref_ich
 
         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
-        print()
 
 
 def test__graph__no_stereo():
@@ -90,39 +89,39 @@ def test__graph__no_stereo():
         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
-# def test__zmatrix__with_stereo():
-#     """ test zmatrix conversions
-#     """
-#     ref_ichs = ICHS_WITH_STEREO
-#     if NSAMP is not None:
-#         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-#
-#     for ref_ich in ref_ichs:
-#         ref_geo = automol.inchi.geometry(ref_ich)
-#         zma = automol.geom.zmatrix(ref_geo)
-#         geo = automol.zmat.geometry(zma)
-#         ich = automol.geom.inchi(geo)
-#         assert ich == ref_ich
-#
-#         assert automol.zmat.formula(zma) == automol.inchi.formula(ich)
-#
-#     # Test dummy
-#     zma = (
-#         ('X', (None, None, None), (None, None, None),
-#          (None, None, None)),
-#         ('C', (0, None, None), ('R1', None, None),
-#          (1.8897261254578281, None, None)),
-#         ('O', (1, 0, None), ('R2', 'A1', None),
-#          (2.2601124460475623, 1.5707963267948966, None)),
-#         ('O', (1, 0, 2), ('R2', 'A1', 'D1'),
-#          (2.2601124460475623, 1.5707963267948966, 3.141592653589793)))
-#
-#     ref_geo = (('C', (0.0, 0.0, 1.8897261254578281)),
-#                ('O', (0.0, 2.2601124460475623, 1.889726125457828)),
-#                ('O', (0.0, -2.2601124460475623, 1.889726125457828)))
-#     geo = automol.zmat.geometry(zma, dummy=False)
-#
-#     assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
+def test__zmatrix__with_stereo():
+    """ test zmatrix conversions
+    """
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+
+    for ref_ich in ref_ichs:
+        ref_geo = automol.inchi.geometry(ref_ich)
+        zma = automol.geom.zmatrix(ref_geo)
+        geo = automol.zmat.geometry(zma)
+        ich = automol.geom.inchi(geo)
+        assert ich == ref_ich
+
+        assert automol.zmat.formula(zma) == automol.inchi.formula(ich)
+
+    # Test dummy
+    zma = (
+        ('X', (None, None, None), (None, None, None),
+         (None, None, None)),
+        ('C', (0, None, None), ('R1', None, None),
+         (1.8897261254578281, None, None)),
+        ('O', (1, 0, None), ('R2', 'A1', None),
+         (2.2601124460475623, 1.5707963267948966, None)),
+        ('O', (1, 0, 2), ('R2', 'A1', 'D1'),
+         (2.2601124460475623, 1.5707963267948966, 3.141592653589793)))
+
+    ref_geo = (('C', (0.0, 0.0, 1.8897261254578281)),
+               ('O', (0.0, 2.2601124460475623, 1.889726125457828)),
+               ('O', (0.0, -2.2601124460475623, 1.889726125457828)))
+    geo = automol.zmat.geometry(zma, dummy=False)
+
+    assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
 
 
 def test__smiles__with_stereo():
@@ -164,13 +163,13 @@ def test__graph__misc():
 
     ref_ich = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H/b3-1-,4-2-;'
     gra = automol.inchi.graph(ref_ich)
-    ich = automol.graph.inchi(gra)
+    ich = automol.graph.inchi(gra, stereo=True)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C4H8/c1-3-4-2/h3-4H,1-2H3/b4-3+'
     geo = automol.inchi.geometry(ref_ich)
     gra = automol.geom.graph(geo)
-    ich = automol.graph.inchi(gra)
+    ich = automol.graph.inchi(gra, stereo=True)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C2H4O/c1-2-3/h2-3H,1H2'
@@ -345,4 +344,14 @@ def test__geom__zmatrix_atom_ordering():
 if __name__ == '__main__':
     # test__graph__misc()
     # test__graph__with_stereo()
-    test__multiple_rings()
+    # test__graph__no_stereo()
+    # test__geom__with_stereo()
+    # test__geom__no_stereo()
+    # test__multiple_rings()
+    # test__smiles__with_stereo()
+    test__zmatrix__with_stereo()
+    # test__smiles__from_geom()
+    # test__inchi_geometry()
+    # test__inchi_conformers()
+    # test__geom__zmatrix_torsion_coordinate_names()
+    # test__geom__zmatrix_atom_ordering()

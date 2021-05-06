@@ -20,7 +20,7 @@ jobs:
                 name: Test autochem
                 command: |
                     source activate automol-env
-                    pytest . -v --disable-pytest-warnings --cov=automol --pyargs autochem
+                    pytest . -v --disable-pytest-warnings --cov=automol --pyargs automol
                     flake8 --exit-zero autommol
                     pylint --rcfile=../.pylintrc automol
             - run:

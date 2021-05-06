@@ -33,4 +33,5 @@ setup(name='automol',
                    'transformations': 'transformations'},
       package_data={'automol': ['tests/data/*.txt',
                                 'tests/data/*.csv',
+                                'tests/data/*.quartic',
                                 'tests/data/*.cubic']})

@@ -914,5 +914,5 @@ if __name__ == '__main__':
     # test__to_index_based_stereo()
     # test__ts__nonconserved_atom_stereo_keys()
     # test__ts__nonconserved_bond_stereo_keys()
-    # test__ts__compatible_reverse_stereomers()
-    test__vmat__vmatrix()
+    test__ts__compatible_reverse_stereomers()
+    # test__vmat__vmatrix()
