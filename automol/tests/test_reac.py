@@ -762,11 +762,10 @@ def test__reac__sigma_hydrogen_abstraction():
 def test__reac__addition():
     """ test addition functionality
     """
-    rct_smis = ['CCCC[CH]CCCCC', '[O][O]']
-    prd_smis = ['CCCCCC(CCCC)O[O]']
-    # prd_smis = ['CCCO[O]']
-    # rct_smis = ['CC=C', '[OH]']
-    # prd_smis = ['C[CH]CO']
+    # rct_smis = ['CCCC[CH]CCCCC', '[O][O]']
+    # prd_smis = ['CCCCCC(CCCC)O[O]']
+    rct_smis = ['CC[CH2]', '[O][O]']
+    prd_smis = ['CCCO[O]']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     print(len(rxn_objs))
@@ -914,10 +913,10 @@ def test__reac__radrad_hydrogen_abstraction():
 
     scan_name = automol.reac.scan_coordinate(zrxn, zma)
     const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    assert scan_name == 'R11'
-    assert const_names == ()
     print(scan_name)
     print(const_names)
+    assert scan_name == 'R12'
+    assert const_names == ()
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -937,7 +936,8 @@ def test__reac__radrad_hydrogen_abstraction():
     groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
     sym_nums = [
         automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
-    assert sym_nums == [1, 3]
+    print(sym_nums)
+    assert sym_nums == [3, 1]
     for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
         print('axis:', axis)
         print('\tgroup 1:', groups[0])
@@ -1389,7 +1389,6 @@ if __name__ == '__main__':
     #  test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
     # test__reac__hydrogen_abstraction()
-    # test__reac__addition()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__reac__hydrogen_migration()
@@ -1398,8 +1397,7 @@ if __name__ == '__main__':
     # test__reac__ring_forming_scission()
     # test__reac__elimination()
     # test__reac__radrad_addition()
-    # test__reac__radrad_hydrogen_abstraction()
-    test__prod__hydrogen_migration()
+    # test__prod__hydrogen_migration()
     # test__stereo()
     # test__species__demo()
     # test__reac__forming_rings_atom_keys()
@@ -1407,3 +1405,5 @@ if __name__ == '__main__':
     # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__substitution()
+    # test__reac__addition()
+    test__reac__radrad_hydrogen_abstraction()

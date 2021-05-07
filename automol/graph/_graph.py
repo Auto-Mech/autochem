@@ -534,7 +534,6 @@ def is_branched(gra):
     gra = implicit(gra)
     chain_length = len(longest_chain(gra))
     natoms = atom_count(gra, with_implicit=False)
-    print ('natoms test:', chain_length, natoms)
 
     if natoms != chain_length:
         is_branched = True
@@ -761,6 +760,10 @@ def insert_dummy_atoms(gra, dummy_key_dct):
         must not overlap with already existing atoms
     """
     for key, dummy_key in reversed(sorted(dummy_key_dct.items())):
+        # If the dummy key comes first, the anchor key will be offset by 1
+        if dummy_key < key:
+            key -= 1
+
         gra = insert_bonded_atom(
             gra, 'X', key, bnd_atm_key=dummy_key, bnd_ord=0)
 
@@ -779,9 +782,9 @@ def standard_keys_without_dummy_atoms(gra):
     last_dummy_key = -1
     decr = 0
     for dummy_key, key in sorted(dummy_ngb_key_dct.items()):
-        assert last_dummy_key <= key < dummy_key, (
-            "{:d} must follow previous dummy {:d} and preced next dummy {:d}"
-            .format(key, last_dummy_key, dummy_key))
+        assert last_dummy_key <= key, (
+            "{:d} must follow previous dummy {:d}"
+            .format(key, last_dummy_key))
 
         dummy_keys_dct[key-decr] = dummy_key-decr
         gra = remove_atoms(gra, [dummy_key])
