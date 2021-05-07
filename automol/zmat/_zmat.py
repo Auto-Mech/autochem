@@ -194,8 +194,14 @@ def dummy_neighbor_keys(zma):
     """
     key_mat = key_matrix(zma)
     dum_keys = dummy_keys(zma)
-    ngb_keys = [key_mat[k][0] for k in dum_keys]
-    key_dct = dict(zip(dum_keys, ngb_keys))
+    key_dct = {}
+    for dum_key in dum_keys:
+        ngb_key = key_mat[dum_key][0]
+        if ngb_key is None:
+            ngb_key = next(row for row, (k, _, _) in enumerate(key_mat)
+                           if k == dum_key)
+
+        key_dct[dum_key] = ngb_key
     return key_dct
 
 

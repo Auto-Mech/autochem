@@ -207,3 +207,11 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
             rxn_objs += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
 
     return rxn_objs
+
+
+if __name__ == '__main__':
+    rct_ichs, prd_ichs = [
+        ['InChI=1S/C7H14/c1-6(2)5-7(3)4/h7H,1,5H2,2-4H3',
+         'InChI=1S/CH3/h1H3'],
+        ['InChI=1S/C8H17/c1-7(2)6-8(3,4)5/h7H,3,6H2,1-2,4-5H3']]
+    rxn_objs_from_inchi(rct_ichs, prd_ichs)

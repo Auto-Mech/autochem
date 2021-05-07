@@ -247,9 +247,9 @@ def test__string():
 
 
 if __name__ == '__main__':
-    test__tors()
-    test__rotor()
+    # test__tors()
+    # test__name_input()
+    # test__mdhr()
+    # test__string()
+    # test__rotor()
     test__rotor_wdummy()
-    test__name_input()
-    test__mdhr()
-    test__string()
