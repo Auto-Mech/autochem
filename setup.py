@@ -4,12 +4,11 @@ from distutils.core import setup
 
 
 setup(name='automol',
-      version='0.5.2',
+      version='0.5.3',
       packages=['automol',
                 'automol.cart',
                 'automol.convert',
                 'automol.create',
-                'automol.dict_',
                 'automol.embed',
                 'automol.etrans',
                 'automol.formula',

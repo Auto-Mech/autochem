@@ -238,7 +238,7 @@ def apply(tra, xgr):
 
 # NEED TO FIX THIS FUNCTION (NEED REVERSE REaCTION ID CODE)
 # def reverse(tra, xgr1, xgr2):
-#     """ reverse a transformation to get the one taking products into reactants
+#     """ reverse a transformation to get the one taking products intoreactants
 #     """
 #     rxn_class = reaction_class(tra)
 #     frm_bnd_keys = formed_bond_keys(tra)

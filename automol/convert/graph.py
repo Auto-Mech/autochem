@@ -92,7 +92,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     atm_rad_vlcs = dict_.values_by_key(
         atom_unsaturated_valences(gra), atm_keys)
     bnd_ords = dict_.values_by_key(bond_orders(gra), bnd_keys)
-    
+
     if geo is not None:
         assert geo_idx_dct is not None
         atm_xyzs = coordinates(geo)
@@ -100,7 +100,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
                     else (0., 0., 0.) for atm_key in atm_keys]
     else:
         atm_xyzs = None
-    
+
     mlf, key_map_inv = _molfile.from_data(
         atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs, bnd_ords,
         atm_xyzs=atm_xyzs)
@@ -108,7 +108,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     ich, aux_info = _rdkit.to_inchi(rdm, with_aux_info=True)
     nums = _parse_sort_order_from_aux_info(aux_info)
     nums = tuple(map(key_map_inv.__getitem__, nums))
-    
+
     return ich, nums
 
 

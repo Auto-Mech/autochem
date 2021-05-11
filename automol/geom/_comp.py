@@ -100,7 +100,7 @@ def _ts_compare(ref_zma, zma, zrxn):
             if bnd_key in frm_bnd_keys:
                 # Check if radical atom is closer to some atom
                 # other than the bonding atom
-                cls = atom_closest_to_bond_atom(
+                cls = is_atom_closest_to_bond_atom(
                     zma, bnd_key2, cnf_dist)
                 if not cls:
                     print('distance', ref_dist, cnf_dist)

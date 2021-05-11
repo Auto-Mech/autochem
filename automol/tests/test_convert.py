@@ -348,17 +348,14 @@ def test__geom__zmatrix_atom_ordering():
 
 if __name__ == '__main__':
     # test__graph__no_stereo()
-<<<<<<< HEAD
     # test__geom__no_stereo()
     # test__multiple_rings()
     # test__smiles__with_stereo()
-=======
     test__geom__with_stereo()
     # test__geom__no_stereo()
     # test__multiple_rings()
     # test__smiles__with_stereo()
     # test__zmatrix__with_stereo()
->>>>>>> removes circular imports
     # test__smiles__from_geom()
     # test__inchi_geometry()
     # test__inchi_conformers()

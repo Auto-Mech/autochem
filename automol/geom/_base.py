@@ -2,9 +2,9 @@
 """
 
 import itertools
-from phydat import phycon, ptab
 import autoread as ar
 import autowrite as aw
+from phydat import ptab
 from automol.graph._graph_dep import atom_keys
 from automol.graph._graph_dep import bond_keys
 from automol.graph.geom import symbols as _symbols
@@ -20,7 +20,6 @@ from automol.convert.geom import distance as _distance
 from automol.convert.geom import dihedral_angle as _dihedral_angle
 from automol.convert.geom import linear_atoms as _linear_atoms
 import automol.create as _create
-from automol import util
 
 
 # constructors

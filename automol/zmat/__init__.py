@@ -71,6 +71,7 @@ from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
 from automol.zmat._zmat import constraint_dct
 from automol.zmat._zmat import distance_names
+from automol.zmat._zmat import shift_down
 
 
 def from_data(syms, key_mat, val_mat, name_mat=None,
@@ -200,5 +201,6 @@ __all__ = [
     'get_babs1',
     'get_babs2',
     'constraint_dct',
-    'distance_names'
+    'distance_names',
+    'shift_down'
 ]

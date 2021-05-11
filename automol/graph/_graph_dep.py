@@ -206,7 +206,6 @@ def add_atoms(gra, symb_dct, imp_hyd_vlc_dct=None, ste_par_dct=None):
     return gra
 
 
-
 def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
     """ add bonds to this molecular graph
     """

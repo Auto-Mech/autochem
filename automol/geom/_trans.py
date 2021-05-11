@@ -166,7 +166,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
             mapping the linear atoms onto their associated dummy atoms
         :rtype: automol molecular geometry data structure
     """
-    return automol.convert.geom.insert_dummies_on_linear(
+    return automol.convert.geom.insert_dummies_on_linear_atoms(
         geo, lin_idxs=lin_idxs, gra=gra, dist=dist, tol=tol)
 
 

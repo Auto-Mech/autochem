@@ -42,7 +42,7 @@ from automol.graph._embed_dep import closest_approach
 from automol.graph._embed_dep import (
     fake_stereo_geometry as _fake_stereo_geometry)
 from automol.graph._embed_dep import geometry as _geometry
-from automol.graph._embed_dep import(
+from automol.graph._embed_dep import (
     distance_bounds_matrices as _distance_bounds_matrices)
 from automol.graph._embed_dep import (
     chirality_constraint_bounds as _chirality_constraint_bounds)
