@@ -3,10 +3,21 @@ Calculate an effective alpha parameter using certain rules
 """
 
 import numpy
-import automol
+from automol.geom import graph
+from automol.geom import symbols
+from automol.inchi import geometry
 from automol.graph._util import ring_idxs
+from automol.graph import radical_species
+from automol.graph import hydrocarbon_species
+from automol.graph import functional_group_dct
+from automol.graph import FunctionalGroup
+from automol.graph import rings as _rings
+from automol.graph import atoms_neighbor_atom_keys
+from automol.graph import bond_keys
 from automol.util import dict_
-from automol.etrans._par import LJ_DCT, LJ_EST_DCT, Z_ALPHA_EST_DCT
+# from automol.etrans._par import LJ_DCT
+from automol.etrans._par import LJ_EST_DCT
+from automol.etrans._par import Z_ALPHA_EST_DCT
 from automol.etrans._fxn import troe_lj_collision_frequency
 from phydat import phycon
 
@@ -161,8 +172,8 @@ def effective_rotor_count(geo):
     """
 
     # Conver the geo to a graph
-    gra = automol.geom.graph(geo)
-    symbs = automol.geom.symbols(geo)
+    gra = graph(geo)
+    symbs = symbols(geo)
 
     # Count the rotors
     (n_pp, n_ps, n_pt, n_pq,
@@ -215,13 +226,13 @@ def _rotor_counts(gra, symbs):
     n_ss_ring, n_rings = 0, 0
 
     # Get the rings  and the number
-    rings = automol.graph.rings(gra)
-    ring_keys = set(ring_idxs(automol.graph.rings(gra)))
+    rings = _rings(gra)
+    ring_keys = set(ring_idxs(_rings(gra)))
     n_rings = len(rings)
 
     # Loop over the bonds and count the number of atoms
-    neighbors = automol.graph.atoms_neighbor_atom_keys(gra)
-    for bnd in automol.graph.bond_keys(gra):
+    neighbors = atoms_neighbor_atom_keys(gra)
+    for bnd in bond_keys(gra):
         key1, key2 = bnd
         spair = (symbs[key1], symbs[key2])
         if spair == ('C', 'C'):
@@ -291,23 +302,22 @@ def determine_collision_model(tgt_info, bath_info):
 
     # Identify the the target model
     tgt_ich = tgt_info[0]
-    tgt_gra = automol.geom.graph(
-        automol.inchi.geometry(tgt_ich))
+    tgt_gra = graph(geometry(tgt_ich))
 
     if tgt_ich not in BAD_ICHS:
-        if automol.graph.radical_species(tgt_gra):
+        if radical_species(tgt_gra):
             tgt_model = '1-alkyl'
-        elif automol.graph.hydrocarbon_species(tgt_gra):
+        elif hydrocarbon_species(tgt_gra):
             tgt_model = 'n-alkane'
         else:
-            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
-            if fgrp_dct[automol.graph.FunctionalGroup.HYDROPEROXY]:
+            fgrp_dct = functional_group_dct(tgt_gra)
+            if fgrp_dct[FunctionalGroup.HYDROPEROXY]:
                 tgt_model = 'n-hydroperoxide'
-            elif fgrp_dct[automol.graph.FunctionalGroup.EPOXIDE]:
+            elif fgrp_dct[FunctionalGroup.EPOXIDE]:
                 tgt_model = 'epoxide'
-            elif fgrp_dct[automol.graph.FunctionalGroup.ETHER]:
+            elif fgrp_dct[FunctionalGroup.ETHER]:
                 tgt_model = 'ether'
-            elif fgrp_dct[automol.graph.FunctionalGroup.ALCOHOL]:
+            elif fgrp_dct[FunctionalGroup.ALCOHOL]:
                 tgt_model = 'n-alcohol'
 
         # For now, set model to alkanes if nothing found and set up return obj

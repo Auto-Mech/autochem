@@ -106,6 +106,8 @@ __all__ = [
     'relabel_for_zmatrix',
     'relabel_for_geometry',
     'reaction_class',
+    'is_radical_radical',
+    'is_barrierless',
     # finders
     'trivial',
     'hydrogen_migrations',
@@ -148,7 +150,7 @@ __all__ = [
     'instability_transformation',
     # phase space theory
     'pst_kt',
-    'pst_cnt',
+    'pst_cn',
     # tunneling treatments
     'tunnel',
     # util

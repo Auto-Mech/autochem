@@ -336,14 +336,17 @@ def breaking_rings_bond_keys(rxn, rev=False):
     return ts.breaking_rings_bond_keys(tsg)
 
 
-def reactant_graphs(rxn):
+def reactant_graphs(rxn, rev=False):
     """ Obtain graphs of the reactants in this reaction.
 
         :param rxn: the reaction object
         :type rxn: Reaction
         :rtype: tuple of automol graph data structures
     """
-    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
+    if rev:
+        rcts_gra = ts.product_graph(rxn.forward_ts_graph)
+    else:
+        rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     rct_gras = [automol.graph.subgraph(rcts_gra, keys, stereo=True)
                 for keys in rxn.reactants_keys]
     return tuple(rct_gras)
@@ -404,12 +407,13 @@ def is_radical_radical(zrxn, rev=False):
         :rtype: boolean
     """
     _is_rad_rad = False
-    tsg = reactant_graphs(rxn, rev=rev)
+    tsg = reactant_graphs(zrxn, rev=rev)
     if len(tsg) == 2:
         rct_i, rct_j = tsg
-        if automol.graph.radical_species(rct_i) and automol.graph.radical_species(rct_i):
+        if (automol.graph.radical_species(rct_i)
+                and automol.graph.radical_species(rct_j)):
             _is_rad_rad = True
-    return _is_rad_rad 
+    return _is_rad_rad
 
 
 def is_barrierless(zrxn, rev=False):
@@ -427,7 +431,7 @@ def is_barrierless(zrxn, rev=False):
     # Add other examples
     return _is_barr
 
-    
+
 def standard_keys(rxn):
     """ standardize keys for the reaction object
     """
@@ -626,7 +630,7 @@ def relabel_for_geometry(rxn, product=False):
     return rxn
 
 
-def reaction_class(rxn, product=False):
+def reaction_class(rxn):
     """return the reaction class string
 
     :param rxn: the reaction object

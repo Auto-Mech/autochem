@@ -163,7 +163,7 @@ def test__expand_stereo():
 
 
 if __name__ == '__main__':
-    # test__from_data()
+    test__from_data()
     # test__version()
     # test__join()
     # test__recalculate()
@@ -171,4 +171,4 @@ if __name__ == '__main__':
     # test__standard_form()
     # test__has_stereo()
     # test__argsort()
-    test__expand_stereo()
+    # test__expand_stereo()

@@ -7,7 +7,8 @@ import functools
 import numpy
 from phydat import ptab
 from phydat import bnd
-import automol.zmat
+from automol.zmat._zmat import value_dictionary
+from automol.zmat._new import is_atom_closest_to_bond_atom
 import automol.convert.geom
 from automol import util
 from automol.geom import _base as geom_base
@@ -99,7 +100,7 @@ def _ts_compare(ref_zma, zma, zrxn):
             if bnd_key in frm_bnd_keys:
                 # Check if radical atom is closer to some atom
                 # other than the bonding atom
-                cls = automol.zmat.is_atom_closest_to_bond_atom(
+                cls = atom_closest_to_bond_atom(
                     zma, bnd_key2, cnf_dist)
                 if not cls:
                     print('distance', ref_dist, cnf_dist)
@@ -307,6 +308,9 @@ def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
 
 
 def are_torsions_same2(geo, geoi, idxs_lst):
+    """ Are torsions the same with torsions identified
+        by a list of 1x4 lists of atom indices
+    """
     dtol = 0.09
     same_dihed = True
     for idxs in idxs_lst:
@@ -320,7 +324,7 @@ def are_torsions_same2(geo, geoi, idxs_lst):
         if vchk1 > dtol and vchk2 > dtol and vchk3 > dtol:
             same_dihed = False
     return same_dihed
-        
+
 
 def are_torsions_same(geo, geoi, ts_bnds=()):
     """ compare all torsional angle values
@@ -339,8 +343,8 @@ def are_torsions_same(geo, geoi, ts_bnds=()):
 
     # Compare the torsions
     for idx, tors_name in enumerate(tors_names):
-        val = automol.zmat.value_dictionary(zma)[tors_name]
-        vali = automol.zmat.value_dictionary(zmai)[tors_namesi[idx]]
+        val = value_dictionary(zma)[tors_name]
+        vali = value_dictionary(zmai)[tors_namesi[idx]]
         valip = vali+2.*numpy.pi
         valim = vali-2.*numpy.pi
         vchk1 = abs(val - vali)

@@ -4,7 +4,7 @@
 import itertools
 import copy
 import numpy
-import automol
+import automol.zmat
 
 
 # Build the grirds ultimately used for building potentials
@@ -98,6 +98,7 @@ def relax_scale(pot):
         new_pot[idx] = val * scale_factor
 
     return new_pot
+
 
 def truncate(pot, sym_num):
     """ Take a potential and limit it's terms by the symmetry number
@@ -202,6 +203,6 @@ def string(pot):
 
     pot_str = ''
     for val in pot.values():
-        pot_str += ' {0:.6f}'.format(pot)
+        pot_str += ' {0:.6f}'.format(val)
 
     return pot_str

@@ -5,9 +5,9 @@ import numpy
 import scipy
 from phydat import phycon
 import automol.graph
-import automol.convert.geom
 from automol.util import vec
 from automol.geom import _base as geom_base
+import automol.convert.geom
 
 
 def distances(geos, bonds=True, angles=True, angstrom=True):

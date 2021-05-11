@@ -121,55 +121,55 @@ def spline_fit(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     return fin_dct
 
 
-def spline_fitter(xarr, yarr):
-    """
-    """
-    x_pos = numpy.array([i for i in range(lpot)
-                         if pot[i] >= min_thresh])
-    y_pos = numpy.array([pot[i] for i in range(lpot)
-                         if pot[i] >= min_thresh])
-    pos_pot_spl = interp1d(x_pos, y_pos, kind='cubic')
-
-
-def linear_fitter(pot):
-    """ Do a one-dimensional linear fitter
-    """
-
-    neg_idxs = [i for i in range(lpot) if pot_pos_fit[i] < min_thresh]
-    clean_pot = []
-    if i in neg_idxs:
-        # Find the indices for positive vals around negative value
-        idx_0 = i - 1
-        while idx_0 in neg_idxs:
-            idx_0 = idx_0 - 1
-        for j in range(i, lpot):
-            if pot_pos_fit[j] >= min_thresh:
-                idx_1 = j
-                break
-        pot = _linear_fitter(pot)
-
-
-def _linear_fit(pot, idx_0, idx_1):
-    """ Linear fitter
-    """
-    interp_val = (
-        pot[idx_0] * (1.0-((i-idx_0)/(idx_1-idx_0))) +
-        pot[idx_1] * ((i-idx_0)/(idx_1-idx_0))
-    )
-
-
-def _re_set_high_values(pot, max_thresh=600., min_thresh=-0.0001):
-    """ Rebuild the potential
-    """
-
-    idx_success = []
-    pot_success = []
-    for idx in range(lpot):
-        if pot[idx] < 600. and pot[idx] > min_thresh:
-            idx_success.append(idx)
-            if pot[idx] < max_thresh:
-                pot_success.append(pot[idx])
-            else:
-                pot_success.append(max_thresh)
-
-    return pot
+# def spline_fitter(xarr, yarr):
+#     """
+#     """
+#     x_pos = numpy.array([i for i in range(lpot)
+#                          if pot[i] >= min_thresh])
+#     y_pos = numpy.array([pot[i] for i in range(lpot)
+#                          if pot[i] >= min_thresh])
+#     pos_pot_spl = interp1d(x_pos, y_pos, kind='cubic')
+#
+#
+# def linear_fitter(pot):
+#     """ Do a one-dimensional linear fitter
+#     """
+#
+#     neg_idxs = [i for i in range(lpot) if pot_pos_fit[i] < min_thresh]
+#     clean_pot = []
+#     if i in neg_idxs:
+#         # Find the indices for positive vals around negative value
+#         idx_0 = i - 1
+#         while idx_0 in neg_idxs:
+#             idx_0 = idx_0 - 1
+#         for j in range(i, lpot):
+#             if pot_pos_fit[j] >= min_thresh:
+#                 idx_1 = j
+#                 break
+#         pot = _linear_fitter(pot)
+#
+#
+# def _linear_fit(pot, idx_0, idx_1):
+#     """ Linear fitter
+#     """
+#     interp_val = (
+#         pot[idx_0] * (1.0-((i-idx_0)/(idx_1-idx_0))) +
+#         pot[idx_1] * ((i-idx_0)/(idx_1-idx_0))
+#     )
+#
+#
+# def _re_set_high_values(pot, max_thresh=600., min_thresh=-0.0001):
+#     """ Rebuild the potential
+#     """
+#
+#     idx_success = []
+#     pot_success = []
+#     for idx in range(lpot):
+#         if pot[idx] < 600. and pot[idx] > min_thresh:
+#             idx_success.append(idx)
+#             if pot[idx] < max_thresh:
+#                 pot_success.append(pot[idx])
+#             else:
+#                 pot_success.append(max_thresh)
+#
+#     return pot

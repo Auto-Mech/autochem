@@ -5,102 +5,23 @@ import functools
 import numpy
 from automol.util import dict_
 import automol.util
-from automol.graph._res import resonance_dominant_atom_hybridizations
-from automol.graph._res import resonance_dominant_bond_orders
-from automol.graph._ring import rings_bond_keys
-from automol.graph._graph import atoms
-from automol.graph._graph import bonds
-from automol.graph._graph import atom_stereo_parities
-from automol.graph._graph import bond_stereo_parities
-from automol.graph._graph import set_atom_stereo_parities
-from automol.graph._graph import set_bond_stereo_parities
-from automol.graph._graph import without_bond_orders
-from automol.graph._graph import without_stereo_parities
+from automol.graph._embed_dep import rings_bond_keys
+from automol.graph._graph_dep import atom_stereo_parities
+from automol.graph._graph_dep import bond_stereo_parities
+from automol.graph._graph_dep import set_atom_stereo_parities
+from automol.graph._graph_dep import set_bond_stereo_parities
+from automol.graph._graph_dep import without_bond_orders
+from automol.graph._graph_dep import without_stereo_parities
+from automol.graph._graph_dep import atom_bond_valences
+from automol.graph._graph_dep import atoms_neighbor_atom_keys
+from automol.graph._graph_dep import string
+from automol.graph._graph_dep import has_stereo
+from automol.graph._graph_dep import atom_stereo_keys
+from automol.graph._graph_dep import bond_stereo_keys
+from automol.graph._graph_dep import stereo_priority_vector
+from automol.graph._graph_dep import explicit
+from automol.graph._graph_dep import sp2_bond_keys
 from automol.graph._graph import frozen
-from automol.graph._graph import atom_bond_valences
-from automol.graph._graph import atoms_neighbor_atom_keys
-from automol.graph._graph import explicit
-from automol.graph._graph import implicit
-from automol.graph._graph import backbone_keys
-from automol.graph._graph import explicit_hydrogen_keys
-from automol.graph._graph_base import string
-
-
-def has_stereo(gra):
-    """ does this graph have stereo of any kind?
-    """
-    return bool(atom_stereo_keys(gra) or bond_stereo_keys(gra))
-
-
-def atom_stereo_keys(sgr):
-    """ keys to atom stereo-centers
-    """
-    atm_ste_keys = dict_.keys_by_value(atom_stereo_parities(sgr),
-                                       lambda x: x in [True, False])
-    return atm_ste_keys
-
-
-def bond_stereo_keys(sgr):
-    """ keys to bond stereo-centers
-    """
-    bnd_ste_keys = dict_.keys_by_value(bond_stereo_parities(sgr),
-                                       lambda x: x in [True, False])
-    return bnd_ste_keys
-
-
-def stereo_priority_vector(gra, atm_key, atm_ngb_key):
-    """ generates a sortable one-to-one representation of the branch extending
-    from `atm_key` through its bonded neighbor `atm_ngb_key`
-    """
-    bbn_keys = backbone_keys(gra)
-    exp_hyd_keys = explicit_hydrogen_keys(gra)
-
-    if atm_ngb_key not in bbn_keys:
-        assert atm_ngb_key in exp_hyd_keys
-        assert frozenset({atm_key, atm_ngb_key}) in bonds(gra)
-        pri_vec = ()
-    else:
-        gra = implicit(gra)
-        atm_dct = atoms(gra)
-        bnd_dct = bonds(gra)
-        assert atm_key in bbn_keys
-        assert frozenset({atm_key, atm_ngb_key}) in bnd_dct
-
-        # here, switch to an implicit graph
-        atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-
-        def _priority_vector(atm1_key, atm2_key, seen_keys):
-            # we keep a list of seen keys to cut off cycles, avoiding infinite
-            # loops
-
-            bnd_val = bnd_dct[frozenset({atm1_key, atm2_key})]
-            atm_val = atm_dct[atm2_key]
-
-            bnd_val = _replace_nones_with_negative_infinity(bnd_val)
-            atm_val = _replace_nones_with_negative_infinity(atm_val)
-
-            if atm2_key in seen_keys:
-                ret = (bnd_val,)
-            else:
-                seen_keys.update({atm1_key, atm2_key})
-                atm3_keys = atm_ngb_keys_dct[atm2_key] - {atm1_key}
-                if atm3_keys:
-                    next_vals, seen_keys = zip(*[
-                        _priority_vector(atm2_key, atm3_key, seen_keys)
-                        for atm3_key in atm3_keys])
-                    ret = (bnd_val, atm_val) + next_vals
-                else:
-                    ret = (bnd_val, atm_val)
-
-            return ret, seen_keys
-
-        pri_vec, _ = _priority_vector(atm_key, atm_ngb_key, set())
-
-    return pri_vec
-
-
-def _replace_nones_with_negative_infinity(seq):
-    return [-numpy.inf if val is None else val for val in seq]
 
 
 def stereogenic_atom_keys(gra, assigned=False):
@@ -186,21 +107,6 @@ def stereogenic_bond_keys(gra, assigned=False):
 
     ste_gen_bnd_keys = frozenset(filter(_is_stereogenic, bnd_keys))
     return ste_gen_bnd_keys
-
-
-def sp2_bond_keys(gra):
-    """ determine the sp2 bonds in this graph
-    """
-    gra = without_bond_orders(gra)
-    bnd_keys = dict_.keys_by_value(
-        resonance_dominant_bond_orders(gra), lambda x: 2 in x)
-
-    # make sure both ends are sp^2 (excludes cumulenes)
-    atm_hyb_dct = resonance_dominant_atom_hybridizations(gra)
-    sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
-    bnd_keys = frozenset({bnd_key for bnd_key in bnd_keys
-                          if bnd_key <= sp2_atm_keys})
-    return bnd_keys
 
 
 def stereomers(gra):

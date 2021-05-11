@@ -78,7 +78,6 @@ def test__rotor():
 
     rotor_grids1 = automol.rotor.grids(rotors)
     rotor_grids2 = automol.rotor.grids(rotors, flat=True)
-    print(rotor_grids1)
 
     ref_rotor_grids1 = (
         ((3.115026662166982, 3.6386254377652807,
@@ -115,7 +114,6 @@ def test__rotor():
         assert numpy.allclose(grid1[0], grid2[0])
     for grid1, grid2 in zip(rotor_grids2, ref_rotor_grids2):
         assert numpy.allclose(grid1, grid2)
-
     # Test the  geometry labeling
     _, grotors = automol.rotor.relabel_for_geometry(rotors)
 
@@ -253,3 +251,8 @@ if __name__ == '__main__':
     # test__string()
     # test__rotor()
     test__rotor_wdummy()
+    # test__rotor()
+    # test__rotor_wdummy()
+    # test__name_input()
+    # test__mdhr()
+    # test__string()

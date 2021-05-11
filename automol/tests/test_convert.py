@@ -15,7 +15,7 @@ ICHS_NO_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_no_stereo.txt')
 ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt')
-NSAMP = 50
+NSAMP = 10
 
 
 def test__geom__with_stereo():
@@ -28,6 +28,7 @@ def test__geom__with_stereo():
     for ref_ich in ref_ichs:
         print(ref_ich)
         geo = automol.inchi.geometry(ref_ich)
+        print(ref_ich)
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich
 
@@ -347,9 +348,17 @@ def test__geom__zmatrix_atom_ordering():
 
 if __name__ == '__main__':
     # test__graph__no_stereo()
+<<<<<<< HEAD
     # test__geom__no_stereo()
     # test__multiple_rings()
     # test__smiles__with_stereo()
+=======
+    test__geom__with_stereo()
+    # test__geom__no_stereo()
+    # test__multiple_rings()
+    # test__smiles__with_stereo()
+    # test__zmatrix__with_stereo()
+>>>>>>> removes circular imports
     # test__smiles__from_geom()
     # test__inchi_geometry()
     # test__inchi_conformers()

@@ -7,6 +7,12 @@ from itertools import starmap as _starmap
 
 
 def invert(dct):
+    """ Transposes the keys and values in a dictionary
+
+    :param dct: dictionary to transpose
+    :tupe dct: dict
+    :rtype: dict
+    """
     return {val: key for key, val in dct.items()}
 
 
@@ -103,12 +109,12 @@ def separate_subdct(dct, key='global'):
     dct2.pop(key, None)
 
     return dct2, sub_dct
-    
+
 
 def merge_subdct(dct, key='global', keep_subdct=False):
     """ Obtain a sub-dictionary indexed by a given key and merge its contents
         with all of the other sub-dictionaries in the main dictionary.
-    
+
         :param dct: dictionary containing several sub-dictionaries
         :type dct: dict[str: dict]
         :param key: key for the sub-dictionary to be merged
@@ -199,18 +205,3 @@ def merge_sequence(dcts):
     for dct in dcts:
         merged_dct.update(dct)
     return merged_dct
-
-
-def filter_keys(dct_1, dct_2):
-    """ filters out from 1 all entries present in 2
-    """
-
-    keys_topop = list(dct_2.keys())
-
-    for key in keys_topop:
-        try:
-            dct_1.pop(key, None)
-        except KeyError:
-            continue
-
-    return dct_1

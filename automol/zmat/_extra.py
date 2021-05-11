@@ -1,7 +1,7 @@
 """ functions for working with torsion axis (rotational bond)s and groups
 """
 import automol.convert.zmat
-import automol.graph
+from automol.graph._graph import bond_keys
 from automol.zmat._zmat import key_matrix
 from automol.zmat._zmat import name_matrix
 from automol.zmat._zmat import string
@@ -166,7 +166,7 @@ def torsion_leading_atom(zma, key1, key2, zgra=None):
         # A simple solution is therefore to choose the lead key based on
         # whether or not key2 and key3 are connected, which is what this code
         # does.
-        bnd_keys = automol.graph.bond_keys(zgra)
+        bnd_keys = bond_keys(zgra)
         lead_key = next((k for k in lead_key_candidates if
                          frozenset(key_mat[k][-2:]) in bnd_keys), None)
 

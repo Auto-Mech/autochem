@@ -2,24 +2,24 @@
 """
 import itertools
 import numpy
-from automol.util import dict_
-import automol.geom
+from automol.graph.geom import coordinates
 import automol.create.geom
 from automol import util
-from automol.graph._ring import rings_atom_keys
-from automol.graph._stereo import has_stereo
+from automol.graph._embed_dep import rings_atom_keys
+from automol.graph._embed_dep import _atom_stereo_parity_from_geometry
+from automol.graph._graph_dep import has_stereo
+from automol.graph._graph_dep import atom_stereo_sorted_neighbor_atom_keys
+from automol.graph._graph_dep import atom_keys
+from automol.graph._graph_dep import atoms_neighbor_atom_keys
+from automol.graph._graph_dep import explicit
+from automol.graph._graph_dep import atom_stereo_parities
+from automol.graph._graph_dep import bond_stereo_parities
+from automol.graph._graph_dep import without_stereo_parities
+from automol.graph._graph_dep import set_atom_stereo_parities
+from automol.graph._graph_dep import set_bond_stereo_parities
 from automol.graph._stereo import stereogenic_atom_keys
 from automol.graph._stereo import stereogenic_bond_keys
-from automol.graph._stereo import atom_stereo_sorted_neighbor_atom_keys
-from automol.graph._graph import atom_keys
-from automol.graph._graph import atoms_neighbor_atom_keys
-from automol.graph._graph import explicit
 from automol.graph._graph import branch
-from automol.graph._graph import atom_stereo_parities
-from automol.graph._graph import bond_stereo_parities
-from automol.graph._graph import without_stereo_parities
-from automol.graph._graph import set_atom_stereo_parities
-from automol.graph._graph import set_bond_stereo_parities
 
 
 # stereo setting code
@@ -70,28 +70,6 @@ def _set_bond_stereo_from_geometry(gra, bnd_keys, geo, geo_idx_dct):
 
 
 # stereo parity evaluation code
-def _atom_stereo_parity_from_geometry(gra, atm_key, geo, geo_idx_dct):
-    """ get the current stereo parity of an atom from its geometry
-    """
-    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-    atm_ngb_keys = atm_ngb_keys_dct[atm_key]
-
-    # sort the neighbor keys by stereo priority
-    atm_ngb_keys = atom_stereo_sorted_neighbor_atom_keys(
-        gra, atm_key, atm_ngb_keys)
-
-    # determine the parity based on the coordinates
-    xyzs = automol.geom.coordinates(geo)
-    atm_ngb_idxs = dict_.values_by_key(geo_idx_dct, atm_ngb_keys)
-    atm_ngb_xyzs = [xyzs[idx] for idx in atm_ngb_idxs]
-    det_mat = numpy.ones((4, 4))
-    det_mat[:, :3] = atm_ngb_xyzs
-    det_val = numpy.linalg.det(det_mat)
-    assert det_val != 0.  # for now, assume no four-atom planes
-    par = det_val > 0.
-    return par
-
-
 def _bond_stereo_parity_from_geometry(gra, bnd_key, geo, geo_idx_dct):
     """ get the current stereo parity of a bond from its geometry
     """
@@ -110,7 +88,7 @@ def _bond_stereo_parity_from_geometry(gra, bnd_key, geo, geo_idx_dct):
     atm2_ngb_key = atm2_ngb_keys[0]
 
     # determine the parity based on the coordinates
-    xyzs = automol.geom.coordinates(geo)
+    xyzs = coordinates(geo)
     atm1_xyz = xyzs[geo_idx_dct[atm1_key]]
     atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
     atm1_ngb_xyz = xyzs[geo_idx_dct[atm1_ngb_key]]
@@ -180,7 +158,7 @@ def _atom_stereo_corrected_geometry(gra, atm_ste_par_dct, geo, geo_idx_dct):
             atm3_key, atm4_key = atm_piv_keys
 
             # get coordinates
-            xyzs = automol.geom.coordinates(geo)
+            xyzs = coordinates(geo)
             atm_xyz = xyzs[geo_idx_dct[atm_key]]
             atm3_xyz = xyzs[geo_idx_dct[atm3_key]]
             atm4_xyz = xyzs[geo_idx_dct[atm4_key]]

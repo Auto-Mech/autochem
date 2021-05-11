@@ -11,7 +11,6 @@ from automol.util import vec
 from automol.util import mat
 from automol.util import highd_mat
 from automol.util import dict_
-from automol.util import dummy
 
 
 __all__ = [
@@ -25,5 +24,4 @@ __all__ = [
     'mat',
     'highd_mat',
     'dict_',
-    'dummy'
 ]

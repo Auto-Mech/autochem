@@ -20,21 +20,16 @@ jobs:
                 name: Test autochem
                 command: |
                     source activate automol-env
-                    pytest . -v --disable-pytest-warnings --cov=automol --pyargs automol
-                    flake8 --exit-zero autommol
-                    pylint --rcfile=../.pylintrc automol
+                    cd automol
+                    pytest . -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=transformations --pyargs automol
             - run:
-                name: Test phydat
+                name: Test autochem format
                 command: |
                     source activate automol-env
-                    pytest . -v --disable-pytest-warnings --cov=phydat --pyargs phydat
+                    flake8 --exit-zero automol
+                    pylint --rcfile=../.pylintrc automol
                     flake8 --exit-zero phydat
                     pylint --rcfile=../.pylintrc phydat
-            - run:
-                name: Test transformations
-                command: |
-                    source activate automol-env
-                    pytest . -v --disable-pytest-warnings --cov=transformations --pyargs transformations
                     flake8 --exit-zero transformations
                     pylint --rcfile=../.pylintrc transformations
 workflows:

@@ -7,9 +7,9 @@ from phydat import phycon
 import automol.create.geom
 from automol import util
 from automol.geom import _base as geom_base
-from automol.geom import _prop as prop
-from automol.geom import _comp as comp
-
+from automol.graph.geom import center_of_mass
+from automol.graph.geom import translate as _translate
+from automol.graph.geom import geometry_join as _geometry_join
 
 AXIS_DCT = {'x': 0, 'y': 1, 'z': 2}
 
@@ -83,42 +83,8 @@ def join(geo1, geo2,
         :type phi: float
         :rtype: automol molecular geometry data structure
     """
-
-    if not geo1:
-        symbs = geom_base.symbols(geo2)
-        xyzs = geom_base.coordinates(geo2)
-    elif not geo2:
-        symbs = geom_base.symbols(geo1)
-        xyzs = geom_base.coordinates(geo1)
-    else:
-        orient_vec = numpy.array([numpy.sin(theta) * numpy.cos(phi),
-                                  numpy.sin(theta) * numpy.sin(phi),
-                                  numpy.cos(theta)])
-        neg_orient_vec = -1.0 * orient_vec
-
-        # get the correct distance apart
-        geo1 = mass_centered(geo1)
-        geo2 = mass_centered(geo2)
-        ext1 = max(numpy.vdot(orient_vec, xyz)
-                   for xyz in geom_base.coordinates(geo1))
-        ext2 = max(numpy.vdot(neg_orient_vec, xyz)
-                   for xyz in geom_base.coordinates(geo2))
-
-        cm_dist = ext1 + dist_cutoff + ext2
-        dist_grid = numpy.arange(cm_dist, 0., -0.1)
-        for dist in dist_grid:
-            trans_geo2 = translate(geo2, orient_vec * dist)
-            min_dist = comp.minimum_distance(geo1, trans_geo2)
-            if numpy.abs(min_dist - dist_cutoff) < 0.1:
-                break
-
-        geo2 = trans_geo2
-
-        # now, join them together
-        symbs = geom_base.symbols(geo1) + geom_base.symbols(geo2)
-        xyzs = geom_base.coordinates(geo1) + geom_base.coordinates(geo2)
-
-    return automol.create.geom.from_data(symbs, xyzs)
+    return _geometry_join(
+        geo1, geo2, dist_cutoff=dist_cutoff, theta=theta, phi=phi)
 
 
 def reorder_coordinates(geo, idx_dct):
@@ -176,15 +142,8 @@ def insert(geo, symb, xyz, idx=None, angstrom=False):
         :rtype: automol geometry date structure
     """
 
-    symbs = list(geom_base.symbols(geo))
-    xyzs = list(geom_base.coordinates(geo, angstrom=angstrom))
-
-    idx = idx if idx is not None else len(symbs)
-
-    symbs.insert(idx, symb)
-    xyzs.insert(idx, xyz)
-
-    return automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
+    return automol.convert.geom.insert(
+        geo, symb, xyz, idx=idx, angstrom=angstrom)
 
 
 def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
@@ -207,73 +166,8 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
             mapping the linear atoms onto their associated dummy atoms
         :rtype: automol molecular geometry data structure
     """
-
-    lin_idxs = geom_base.linear_atoms(geo) if lin_idxs is None else lin_idxs
-    gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
-
-    dummy_ngb_idxs = set(
-        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
-    assert not dummy_ngb_idxs & set(lin_idxs), (
-        "Attempting to add dummy atoms on atoms that already have them: {}"
-        .format(dummy_ngb_idxs & set(lin_idxs)))
-
-    ngb_idxs_dct = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
-
-    xyzs = geom_base.coordinates(geo, angstrom=True)
-
-    def _perpendicular_direction(idxs):
-        """ find a nice perpendicular direction for a series of linear atoms
-        """
-        triplets = []
-        for idx in idxs:
-            for n1idx in ngb_idxs_dct[idx]:
-                for n2idx in ngb_idxs_dct[n1idx]:
-                    if n2idx != idx:
-                        ang = geom_base.central_angle(
-                            geo, idx, n1idx, n2idx, degree=True)
-                        if numpy.abs(ang - 180.) > tol:
-                            triplets.append((idx, n1idx, n2idx))
-
-        if triplets:
-            idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
-            xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
-            r12 = util.vec.unit_direction(xyz1, xyz2)
-            r23 = util.vec.unit_direction(xyz2, xyz3)
-            direc = util.vec.orthogonalize(r12, r23, normalize=True)
-        else:
-            if len(idxs) > 1:
-                idx1, idx2 = idxs[:2]
-            else:
-                idx1, = idxs
-                idx2, = ngb_idxs_dct[idx1]
-
-            xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
-            r12 = util.vec.unit_direction(xyz1, xyz2)
-            for i in range(3):
-                disp = numpy.zeros((3,))
-                disp[i] = -1.
-                alt = numpy.add(r12, disp)
-                direc = util.vec.unit_perpendicular(r12, alt)
-                if numpy.linalg.norm(direc) > 1e-2:
-                    break
-
-        return direc
-
-    # partition the linear atoms into adjacent groups, to be handled together
-    lin_idxs_lst = sorted(map(sorted, util.equivalence_partition(
-        lin_idxs, lambda x, y: x in ngb_idxs_dct[y])))
-
-    dummy_key_dct = {}
-
-    for idxs in lin_idxs_lst:
-        direc = _perpendicular_direction(idxs)
-        for idx in idxs:
-            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
-            dummy_key_dct[idx] = geom_base.count(geo)
-
-            geo = insert(geo, 'X', xyz, angstrom=True)
-
-    return geo, dummy_key_dct
+    return automol.convert.geom.insert_dummies_on_linear(
+        geo, lin_idxs=lin_idxs, gra=gra, dist=dist, tol=tol)
 
 
 def displace(geo, xyzs):
@@ -304,11 +198,7 @@ def translate(geo, xyz):
         :type xyz: tuple(float)
         :rtype: automol molecular geometry data structure
     """
-
-    symbs = geom_base.symbols(geo)
-    xyzs = geom_base.coordinates(geo)
-    xyzs = numpy.add(xyzs, xyz)
-    return automol.create.geom.from_data(symbs, xyzs)
+    return _translate(geo, xyz)
 
 
 def perturb(geo, atm_idx, pert_xyz):
@@ -338,7 +228,7 @@ def mass_centered(geo):
         :type geo: automol geometry data structure
         :rtype: tuple(float)
     """
-    return translate(geo, numpy.negative(prop.center_of_mass(geo)))
+    return translate(geo, numpy.negative(center_of_mass(geo)))
 
 
 def rotate(geo, axis, angle, orig_xyz=None, idxs=None):

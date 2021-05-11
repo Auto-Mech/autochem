@@ -11,10 +11,12 @@ import numpy
 from phydat import phycon
 import automol.zmat
 import automol.pot
+import automol.reac
 from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
 from automol.rotor._util import graph_with_keys
 from automol.rotor._util import sort_tors_names
+import autofile.io_
 
 
 # constructors
@@ -160,11 +162,11 @@ def string(rotor_lst):
             _axis = torsion.axis
             _grps = torsion.groups
             tors_dct[torsion.name] = {
-                    'axis1': _axis[0]+1,
-                    'group1': _encode_idxs(_grps[0]),
-                    'axis2': _axis[1]+1,
-                    'group2': _encode_idxs(_grps[1]),
-                    'symmetry': torsion.symmetry,
+                'axis1': _axis[0]+1,
+                'group1': _encode_idxs(_grps[0]),
+                'axis2': _axis[1]+1,
+                'group2': _encode_idxs(_grps[1]),
+                'symmetry': torsion.symmetry,
             }
 
     sort_tors_dct = {}
@@ -204,9 +206,6 @@ def from_string(tors_str):
 
 
 if __name__ == '__main__':
-    import autofile
-    import automol
-
     # RCT_ICHS = list(map(automol.smiles.inchi, ['[O]O', 'CCC=C[CH]CCCCC']))
     # PRD_ICHS = list(map(automol.smiles.inchi, ['O=O', 'CCCC=CCCCCC']))
 

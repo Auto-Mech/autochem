@@ -3,7 +3,7 @@
 
 import pybel
 from phydat import ptab
-import automol.create
+from automol import create
 
 
 # geometry
@@ -20,7 +20,7 @@ def to_geometry(pbm):
     nums = [atm.atomicnum for atm in pbm.atoms]
     symbs = list(map(ptab.to_symbol, nums))
     xyzs = tuple(tuple(atm.coords) for atm in pbm.atoms)
-    geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
+    geo = create.geom.from_data(symbs, xyzs, angstrom=True)
 
     return geo
 

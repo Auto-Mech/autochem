@@ -1,20 +1,20 @@
 """ functions for working with rotational bonds and groups
 """
 import itertools
-from automol.graph._graph_base import atom_keys
-from automol.graph._graph_base import bond_keys
-from automol.graph._graph_base import atom_symbols
-from automol.graph._graph_base import atom_implicit_hydrogen_valences
-from automol.graph._graph import explicit
-from automol.graph._graph import implicit
-from automol.graph._graph import without_dummy_atoms
-from automol.graph._graph import subgraph
+from automol.graph._graph_dep import atom_keys
+from automol.graph._graph_dep import bond_keys
+from automol.graph._graph_dep import atom_symbols
+from automol.graph._graph_dep import atom_implicit_hydrogen_valences
+from automol.graph._graph_dep import explicit
+from automol.graph._graph_dep import implicit
+from automol.graph._graph_dep import without_dummy_atoms
+from automol.graph._graph_dep import subgraph
+from automol.graph._graph_dep import atoms_neighbor_atom_keys
+from automol.graph._graph_dep import atom_neighbor_atom_key
+from automol.graph._graph_dep import dummy_atoms_neighbor_atom_key
 from automol.graph._graph import connected_components
 from automol.graph._graph import branch_atom_keys
-from automol.graph._graph import atoms_neighbor_atom_keys
-from automol.graph._graph import dummy_atoms_neighbor_atom_key
-from automol.graph._graph import atom_neighbor_atom_key
-from automol.graph._ring import rings_bond_keys
+from automol.graph._embed_dep import rings_bond_keys
 from automol.graph._res import resonance_dominant_bond_orders
 
 
@@ -162,17 +162,17 @@ def linear_segments_atom_keys(gra, lin_keys=None):
 
     lin_keys_lst = tuple(map(tuple, lin_keys_lst))
     return lin_keys_lst
-
-
-if __name__ == '__main__':
-    import automol
-    TSG = ({0: ('C', 0, None), 1: ('H', 0, None), 2: ('H', 0, None),
-            3: ('H', 0, None), 4: ('H', 0, None), 5: ('X', 0, None),
-            6: ('H', 0, None)},
-           {frozenset({4, 5}): (0, None), frozenset({0, 3}): (1, None),
-            frozenset({4, 6}): (0.1, None), frozenset({0, 1}): (1, None),
-            frozenset({0, 2}): (1, None), frozenset({0, 4}): (0.9, None)})
-    print(automol.graph.string(TSG, one_indexed=False))
-    LIN_KEYS = [4]
-    BND_KEYS = rotational_bond_keys(TSG, lin_keys=LIN_KEYS)
-    print(BND_KEYS)
+#
+#
+# if __name__ == '__main__':
+#     import automol
+#     TSG = ({0: ('C', 0, None), 1: ('H', 0, None), 2: ('H', 0, None),
+#             3: ('H', 0, None), 4: ('H', 0, None), 5: ('X', 0, None),
+#             6: ('H', 0, None)},
+#            {frozenset({4, 5}): (0, None), frozenset({0, 3}): (1, None),
+#             frozenset({4, 6}): (0.1, None), frozenset({0, 1}): (1, None),
+#             frozenset({0, 2}): (1, None), frozenset({0, 4}): (0.9, None)})
+#     print(automol.graph.string(TSG, one_indexed=False))
+#     LIN_KEYS = [4]
+#     BND_KEYS = rotational_bond_keys(TSG, lin_keys=LIN_KEYS)
+#     print(BND_KEYS)

@@ -3,17 +3,15 @@
 """
 
 import itertools
-from automol.graph._graph_base import atom_symbols
 from automol.graph._graph_base import atom_symbol_idxs
 from automol.graph._ring import rings
-from automol.graph._graph import atom_keys
-from automol.graph._graph import atoms_neighbor_atom_keys
-from automol.graph._graph import add_atom_explicit_hydrogen_keys
-from automol.graph._graph import remove_atoms
+from automol.graph._graph_dep import atom_symbols
+from automol.graph._graph_dep import remove_atoms
+from automol.graph._graph_dep import atoms_neighbor_atom_keys
+from automol.graph._graph_dep import bond_orders
+from automol.graph._graph_dep import dominant_resonance
 from automol.graph._graph import full_isomorphism
-from automol.graph._res import dominant_resonance
 from automol.graph._res import resonance_dominant_radical_atom_keys
-from automol.graph._res import bond_orders
 from automol.graph._util import ring_idxs
 from automol.graph._util import filter_idxs
 from automol.graph._util import atom_idx_to_symb

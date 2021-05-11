@@ -94,20 +94,20 @@ def from_data(symbs, xyzs, angstrom=False):
 def zmatrix(geo, ts_bnds=()):
     """ geometry => z-matrix
     """
-    zma, _, _ = automol.convert.geom.zmatrix(geo, ts_bnds)
+    zma, _, _ = automol.convert.zmat.zmatrix(geo, ts_bnds)
     return zma
 
 
 def zmatrix_torsion_coordinate_names(geo, ts_bnds=()):
     """ z-matrix torsional coordinate names
     """
-    return automol.convert.geom.zmatrix_torsion_coordinate_names(geo, ts_bnds)
+    return automol.convert.zmat.zmatrix_torsion_coordinate_names(geo, ts_bnds)
 
 
 def zmatrix_atom_ordering(geo, ts_bnds=()):
     """ z-matrix atom ordering
     """
-    return automol.convert.geom.zmatrix_atom_ordering(geo, ts_bnds)
+    return automol.convert.zmat.zmatrix_atom_ordering(geo, ts_bnds)
 
 
 def external_symmetry_factor(geo):

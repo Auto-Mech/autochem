@@ -2,14 +2,24 @@
 """
 
 import itertools
-import numpy
 from phydat import phycon, ptab
 import autoread as ar
 import autowrite as aw
-import automol.graph
-import automol.create.geom
-import automol.convert.geom
-import automol.convert.inchi
+from automol.graph._graph_dep import atom_keys
+from automol.graph._graph_dep import bond_keys
+from automol.graph.geom import symbols as _symbols
+from automol.graph.geom import coordinates as _coordinates
+from automol.graph.geom import count as _count
+from automol.convert.geom import from_subset as _from_subset
+from automol.convert.geom import connected as _connected
+from automol.convert.geom import components_graph as _components_graph
+from automol.convert.geom import connectivity_graph as _connectivity_graph
+from automol.convert.geom import without_dummy_atoms as _without_dummy_atoms
+from automol.convert.geom import central_angle as _central_angle
+from automol.convert.geom import distance as _distance
+from automol.convert.geom import dihedral_angle as _dihedral_angle
+from automol.convert.geom import linear_atoms as _linear_atoms
+import automol.create as _create
 from automol import util
 
 
@@ -26,14 +36,7 @@ def from_subset(geo, idxs):
         :type idxs: tuple(int)
         :rtype: automol moleculer geometry data structure
     """
-
-    symbs = symbols(geo)
-    xyzs = coordinates(geo)
-
-    symbs = list(map(symbs.__getitem__, idxs))
-    xyzs = list(map(xyzs.__getitem__, idxs))
-
-    return automol.create.geom.from_data(symbs, xyzs)
+    return _from_subset(geo, idxs)
 
 
 # getters
@@ -46,16 +49,7 @@ def symbols(geo, idxs=None):
         :type idxs: tuple(int)
         :rtype: tuple(str)
     """
-
-    idxs = list(range(count(geo))) if idxs is None else idxs
-
-    if geo:
-        symbs, _ = zip(*geo)
-    else:
-        symbs = ()
-
-    symbs = tuple(symb for idx, symb in enumerate(symbs) if idx in idxs)
-    return symbs
+    return _symbols(geo, idxs=idxs)
 
 
 def coordinates(geo, idxs=None, angstrom=False):
@@ -69,16 +63,7 @@ def coordinates(geo, idxs=None, angstrom=False):
         :type angstrom: bool
         :rtype: tuple(tuple(float))
     """
-
-    idxs = list(range(count(geo))) if idxs is None else idxs
-    if geo:
-        _, xyzs = zip(*geo)
-    else:
-        xyzs = ()
-    xyzs = xyzs if not angstrom else numpy.multiply(xyzs, phycon.BOHR2ANG)
-    xyzs = tuple(xyz for idx, xyz in enumerate(xyzs) if idx in idxs)
-
-    return xyzs
+    return _coordinates(geo, idxs=idxs, angstrom=angstrom)
 
 
 def count(geo):
@@ -89,7 +74,7 @@ def count(geo):
         :type geo: automol molecular geometry data structure
         :rtype: int
     """
-    return len(geo)
+    return _count(geo)
 
 
 def atom_count(geo, symb, match=True):
@@ -156,8 +141,7 @@ def components_graph(geo, stereo=True):
         :type stereo: bool
         :rtype: automol molecular graph data structure
     """
-    return automol.graph.connected_components(
-        automol.convert.geom.graph(geo, stereo=stereo))
+    return _components_graph(geo, stereo=stereo)
 
 
 def connected(geo, stereo=True):
@@ -169,7 +153,7 @@ def connected(geo, stereo=True):
         :type stereo: bool
         :rtype: bool
     """
-    return len(components_graph(geo, stereo=stereo)) == 1
+    return _connected(geo, stereo=stereo)
 
 
 # validation
@@ -187,7 +171,7 @@ def is_valid(geo):
         if ret:
             symbs, xyzs = zip(*geo)
             try:
-                automol.create.geom.from_data(symbs, xyzs)
+                _create.geom.from_data(symbs, xyzs)
             except AssertionError:
                 ret = False
 
@@ -215,18 +199,14 @@ def set_coordinates(geo, xyz_dct):
     xyzs = [xyz_dct[idx] if idx in xyz_dct else xyz
             for idx, xyz in enumerate(xyzs)]
 
-    return automol.create.geom.from_data(symbs, xyzs)
+    return _create.geom.from_data(symbs, xyzs)
 
 
 def without_dummy_atoms(geo):
     """ Return a copy of the molecular geometry without dummy atoms.
     """
 
-    symbs = symbols(geo)
-    non_dummy_idxs = [idx for idx, symb in enumerate(symbs)
-                      if ptab.to_number(symb)]
-
-    return from_subset(geo, non_dummy_idxs)
+    return _without_dummy_atoms(geo)
 
 
 # I/O
@@ -242,7 +222,7 @@ def from_string(geo_str, angstrom=True):
     """
 
     symbs, xyzs = ar.geom.read(geo_str)
-    geo = automol.create.geom.from_data(symbs, xyzs, angstrom=angstrom)
+    geo = _create.geom.from_data(symbs, xyzs, angstrom=angstrom)
 
     return geo
 
@@ -257,7 +237,7 @@ def from_xyz_string(xyz_str):
     """
 
     symbs, xyzs = ar.geom.read_xyz(xyz_str)
-    geo = automol.create.geom.from_data(symbs, xyzs, angstrom=True)
+    geo = _create.geom.from_data(symbs, xyzs, angstrom=True)
 
     return geo
 
@@ -326,7 +306,8 @@ def xyz_trajectory_string(geo_lst, comments=None):
     symbs_lst = [symbols(geo) for geo in geo_lst]
     xyzs_lst = [coordinates(geo, angstrom=True) for geo in geo_lst]
     assert len(set(symbs_lst)) == 1, (
-            'set {} \n symbol lists {}'.format(set(symbs_lst),symbs_lst))
+        'set {} \n symbol lists {}'.format(
+            set(symbs_lst), symbs_lst))
     symbs = symbs_lst[0]
     xyz_traj_str = aw.geom.write_xyz_trajectory(symbs, xyzs_lst,
                                                 comments=comments)
@@ -379,12 +360,8 @@ def distance(geo, idx1, idx2, angstrom=False):
         :rtype: float
     """
 
-    xyzs = coordinates(geo)
-    xyz1 = xyzs[idx1]
-    xyz2 = xyzs[idx2]
-    dist = util.vec.distance(xyz1, xyz2)
-    dist *= phycon.BOHR2ANG if angstrom else 1
-    return dist
+    return _distance(
+        geo, idx1, idx2, angstrom=angstrom)
 
 
 def central_angle(geo, idx1, idx2, idx3, degree=False):
@@ -403,13 +380,8 @@ def central_angle(geo, idx1, idx2, idx3, degree=False):
         :rtype: float
     """
 
-    xyzs = coordinates(geo)
-    xyz1 = xyzs[idx1]
-    xyz2 = xyzs[idx2]
-    xyz3 = xyzs[idx3]
-    ang = util.vec.central_angle(xyz1, xyz2, xyz3)
-    ang *= phycon.RAD2DEG if degree else 1
-    return ang
+    return _central_angle(
+        geo, idx1, idx2, idx3, degree=degree)
 
 
 def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
@@ -430,15 +402,8 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
         :rtype: float
     """
 
-    xyzs = coordinates(geo)
-    xyz1 = xyzs[idx1]
-    xyz2 = xyzs[idx2]
-    xyz3 = xyzs[idx3]
-    xyz4 = xyzs[idx4]
-    dih = util.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
-    dih *= phycon.RAD2DEG if degree else 1
-
-    return dih
+    return _dihedral_angle(
+        geo, idx1, idx2, idx3, idx4, degree=degree)
 
 
 def zmatrix_row_values(geo, idx, idx1=None, idx2=None, idx3=None,
@@ -489,22 +454,7 @@ def linear_atoms(geo, gra=None, tol=5.):
         :type tol: float
         :rtype: tuple(int)
     """
-
-    gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
-    ngb_idxs_dct = automol.graph.atoms_neighbor_atom_keys(gra)
-
-    lin_idxs = []
-    for idx in range(count(geo)):
-        nidxs = ngb_idxs_dct[idx]
-        if len(nidxs) >= 2:
-            for nidx1, nidx2 in itertools.combinations(nidxs, 2):
-                ang = central_angle(geo, nidx1, idx, nidx2, degree=True)
-                if numpy.abs(ang - 180.) < tol:
-                    lin_idxs.append(idx)
-
-    lin_idxs = tuple(lin_idxs)
-
-    return lin_idxs
+    return _linear_atoms(geo, gra=gra, tol=tol)
 
 
 def closest_unbonded_atoms(geo, gra=None):
@@ -519,9 +469,9 @@ def closest_unbonded_atoms(geo, gra=None):
         :rtype: (frozenset(int), float)
     """
 
-    gra = automol.convert.geom.connectivity_graph(geo) if gra is None else gra
-    atm_keys = automol.graph.atom_keys(gra)
-    bnd_keys = automol.graph.bond_keys(gra)
+    gra = _connectivity_graph(geo) if gra is None else gra
+    atm_keys = atom_keys(gra)
+    bnd_keys = bond_keys(gra)
     poss_bnd_keys = set(map(frozenset, itertools.combinations(atm_keys, r=2)))
 
     # The set of candidates includes all unbonded pairs of atoms
