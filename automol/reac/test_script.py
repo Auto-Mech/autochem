@@ -11,6 +11,8 @@ import automol
 
 # rct_ichs = list(map(automol.smiles.inchi, rct_smis))
 # prd_ichs = list(map(automol.smiles.inchi, prd_smis))
+
+
 rct_ichs, prd_ichs = [
     ['InChI=1S/C7H14/c1-6(2)5-7(3)4/h7H,1,5H2,2-4H3', 'InChI=1S/CH3/h1H3'],
     ['InChI=1S/C8H17/c1-7(2)6-8(3,4)5/h7H,3,6H2,1-2,4-5H3']]
@@ -44,10 +46,10 @@ zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 geo = automol.zmat.geometry(zma, dummy=True)
 print(automol.geom.string(geo))
 
-scan_name = automol.reac.scan_coordinate(zrxn, zma)
-print(scan_name)
-
-bnd_keys = automol.reac.rotational_bond_keys(zrxn)
-print(bnd_keys)
-names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-print(names)
+# scan_name = automol.reac.scan_coordinate(zrxn, zma)
+# print(scan_name)
+#
+# bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+# print(bnd_keys)
+# names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+# print(names)

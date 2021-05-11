@@ -1,7 +1,7 @@
 """ smiles conversions
 """
 
-import automol.convert.inchi
+from automol.convert.inchi import object_to_hardcoded_inchi_by_key
 from automol.convert import _rdkit
 
 
@@ -13,7 +13,7 @@ def inchi(smi):
         :rtype: str
     """
 
-    ich = automol.convert.inchi.object_to_hardcoded_inchi_by_key(
+    ich = object_to_hardcoded_inchi_by_key(
         'smiles', smi, comp=_compare)
     if ich is None:
         rdm = _rdkit.from_smiles(smi)

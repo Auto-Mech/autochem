@@ -1,18 +1,19 @@
 [MASTER]
-extension-pkg-whitelist=
-    rdkit,
-    pyx2z
+max-module-lines=1500
+max-branches=50
+max-nested-blocks=10
+ignored-modules=pyx2z, rdkit
 disable=
     too-few-public-methods,
-    no-init,
-    broad-except,
-    old-style-class,
     too-many-arguments,
-    too-many-statements,
     too-many-locals,
-    too-many-branches,
-    too-many-nested-blocks,
-    assignment-from-no-return,
+    too-many-statements,
+    too-many-instance-attributes,
+    superfluous-parens,
+    deprecated-method,
     duplicate-code,
-    cyclic-import,
-    arguments-out-of-order
+    no-member,
+    global-statement,
+    arguments-out-of-order,
+    too-many-function-args
+ 

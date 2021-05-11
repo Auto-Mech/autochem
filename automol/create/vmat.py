@@ -88,7 +88,7 @@ def _name_matrix(name_mat, natms):
     natms = name_mat.shape[0]
     triu_idxs = numpy.triu_indices(natms, m=3)
     tril_idxs = numpy.tril_indices(natms, -1, m=3)
-    
+
     assert all(isinstance(name, str) for name in name_mat[tril_idxs])
     name_mat[triu_idxs] = None
 

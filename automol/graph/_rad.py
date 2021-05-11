@@ -1,12 +1,12 @@
 """ radical library
 """
 
+from automol.graph._graph_dep import add_atom_explicit_hydrogen_keys
+from automol.graph._graph_dep import remove_atoms
+from automol.graph._graph_dep import atoms_neighbor_atom_keys
+from automol.graph._graph_dep import atom_symbols
 from automol.graph._graph import unsaturated_atom_keys
-from automol.graph._graph import add_atom_explicit_hydrogen_keys
-from automol.graph._graph import remove_atoms
-from automol.graph._graph import atoms_neighbor_atom_keys
 from automol.graph._graph import full_isomorphism
-from automol.graph._graph_base import atom_symbols
 
 
 def isomorphic_radical_graphs(gra):

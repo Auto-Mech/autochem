@@ -6,8 +6,10 @@
 
 import copy
 import numpy
-import automol
 from automol.rotor._util import sort_tors_names
+import automol.graph
+import automol.zmat
+import automol.reac
 # from automol.rotor._par import TorsionParam
 
 
@@ -101,9 +103,9 @@ def reaction_torsion_lst(zma, zrxn):
         symm = automol.reac.rotational_symmetry_number(grxn, *gaxis)
 
         # not for filesys
-        # zgrps = tuple(automol.util.dummy.shift_up(zma, grp)
+        # zgrps = tuple(automol.zmat.shift_up(zma, grp)
         #               for grp in ggrps)
-        # zaxis = automol.util.dummy.shift_up(zma, gaxis)
+        # zaxis = automol.zmat.shift_up(zma, gaxis)
 
         # Build the torsion object and add to the list
         tors_obj_lst += (Torsion(zma, name, gaxis, ggrps, symm),)
@@ -186,10 +188,10 @@ def relabel_for_geometry(torsion):
     name = torsion.name
     zma = torsion.zma
     symmetry = torsion.symmetry
-    ggrps = tuple(automol.util.dummy.shift_down(zma, grp)
+    ggrps = tuple(automol.zmat.shift_down(zma, grp)
                   for grp in torsion.groups)
-    gaxis = automol.util.dummy.shift_down(zma, torsion.axis)
-    gindices = automol.util.dummy.shift_down(zma, torsion.indices)
+    gaxis = automol.zmat.shift_down(zma, torsion.axis)
+    gindices = automol.zmat.shift_down(zma, torsion.indices)
 
     gtorsion = Torsion(zma, name, gaxis, ggrps, symmetry, indices=gindices)
     gtorsion.pot = copy_pot(torsion.pot)

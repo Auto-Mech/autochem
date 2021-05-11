@@ -3,13 +3,15 @@
 
 import itertools
 import numpy
-from automol import vmat
-import automol.create.zmat
-import automol.convert.zmat
-import automol.geom
 import autoread as ar
 import autowrite as aw
 from phydat import phycon
+from automol import vmat
+import automol.convert.zmat
+import automol.create.zmat
+from automol.geom._base import distance as _distance
+from automol.geom._base import central_angle as _central_angle
+from automol.geom._base import dihedral_angle as _dihedral_angle
 
 
 # constructors
@@ -22,26 +24,7 @@ def from_geometry(vma, geo):
         :type geo: automol molecular geometry data structure
         :rtype: automol Z-Matrix data structure
     """
-    assert symbols(vma) == symbols(geo)
-
-    syms = symbols(vma)
-    key_mat = key_matrix(vma)
-    name_mat = name_matrix(vma)
-    val_mat = numpy.empty(numpy.shape(key_mat), dtype=numpy.object_)
-
-    for row, key_row in enumerate(key_mat):
-        if row > 0:
-            val_mat[row, 0] = automol.geom.distance(geo, row,
-                                                    *key_row[:1])
-        if row > 1:
-            val_mat[row, 1] = automol.geom.central_angle(geo, row,
-                                                         *key_row[:2])
-        if row > 2:
-            val_mat[row, 2] = automol.geom.dihedral_angle(geo, row,
-                                                          *key_row[:3])
-
-    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
-    return zma
+    return automol.convert.zmat.from_geometry(vma, geo)
 
 
 # converters
@@ -134,20 +117,8 @@ def value_matrix(zma, angstrom=False, degree=False):
         :type degree: bool
         :rtype: tuple(tuple(str))
     """
-
-    if zma:
-        val_mat = tuple(zip(*zma))[3]
-
-        val_mat = [list(row) + [None]*(3-len(row)) for row in val_mat]
-        val_mat = numpy.array(val_mat, dtype=numpy.object_)
-
-        val_mat[1:, 0] *= phycon.BOHR2ANG if angstrom else 1
-        val_mat[2:, 1] *= phycon.RAD2DEG if degree else 1
-        val_mat[3:, 2] *= phycon.RAD2DEG if degree else 1
-    else:
-        val_mat = ()
-
-    return tuple(map(tuple, val_mat))
+    return automol.convert.zmat.value_matrix(
+        zma, angstrom=angstrom, degree=degree)
 
 
 def value_dictionary(zma, angstrom=False, degree=False):
@@ -178,8 +149,7 @@ def dummy_keys(zma):
         :type zma: automol Z-Matrix data structure
         :rtype: tuple[int]
     """
-    keys = tuple(key for key, sym in enumerate(symbols(zma)) if sym == 'X')
-    return keys
+    return automol.convert.zmat.dummy_keys(zma)
 
 
 def dummy_neighbor_keys(zma):
@@ -192,17 +162,7 @@ def dummy_neighbor_keys(zma):
             as values
         :rtype: dict[int: int]
     """
-    key_mat = key_matrix(zma)
-    dum_keys = dummy_keys(zma)
-    key_dct = {}
-    for dum_key in dum_keys:
-        ngb_key = key_mat[dum_key][0]
-        if ngb_key is None:
-            ngb_key = next(row for row, (k, _, _) in enumerate(key_mat)
-                           if k == dum_key)
-
-        key_dct[dum_key] = ngb_key
-    return key_dct
+    return automol.convert.zmat.dummy_neighbor_keys(zma)
 
 
 def linear_atom_keys(zma):
@@ -232,7 +192,7 @@ def distance(zma, key1, key2, angstrom=False):
         :type angstrom: bool
     """
     geo, _ = automol.convert.zmat.geometry(zma)
-    return automol.geom.distance(geo, key1, key2, angstrom=angstrom)
+    return _distance(geo, key1, key2, angstrom=angstrom)
 
 
 def central_angle(zma, key1, key2, key3, degree=False):
@@ -250,7 +210,7 @@ def central_angle(zma, key1, key2, key3, degree=False):
         :type degree: bool
     """
     geo = automol.convert.zmat.geometry(zma)
-    return automol.geom.central_angle(geo, key1, key2, key3, degree=degree)
+    return _central_angle(geo, key1, key2, key3, degree=degree)
 
 
 def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
@@ -270,8 +230,7 @@ def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
         :type degree: bool
     """
     geo = automol.convert.zmat.geometry(zma)
-    return automol.geom.dihedral_angle(geo, key1, key2, key3, key4,
-                                       degree=degree)
+    return _dihedral_angle(geo, key1, key2, key3, key4, degree=degree)
 
 
 # setters
@@ -302,13 +261,7 @@ def set_name_matrix(zma, name_mat):
         :type name_mat: tuple(tuple(int))
         :rtype: automol Z-Matrix data structure
     """
-
-    syms = symbols(zma)
-    val_mat = value_matrix(zma)
-    key_mat = key_matrix(zma)
-    zma = automol.create.zmat.from_data(syms, key_mat, val_mat, name_mat)
-
-    return zma
+    return automol.convert.zmat.set_name_matrix(zma, name_mat)
 
 
 def set_value_matrix(zma, val_mat):
@@ -387,8 +340,7 @@ def standard_form(zma, shift=0):
         :param shift: value to shift the keys by when obtaining the keys
         :type shift: int
     """
-    name_mat = standard_name_matrix(zma, shift=shift)
-    return set_name_matrix(zma, name_mat)
+    return automol.convert.zmat.standard_form(zma, shift=shift)
 
 
 def rename(zma, name_dct):
@@ -752,22 +704,22 @@ def get_babs2(zma, dist_name):
     idx = max(idxs)
     babs2 = 'D{:g}'.format(idx+1)
     return babs2
-
-
-def atom_indices(zma, sym, match=True):
-    """ indices for a particular atom type
-        :param match: grab idxs that match given atom type
-    """
-
-    syms = symbols(zma)
-    idxs = tuple()
-    for idx, sym_ in enumerate(syms):
-        if sym_ == sym and match:
-            idxs += (idx,)
-        elif sym_ != sym and not match:
-            idxs += (idx,)
-
-    return idxs
+#
+#
+# def atom_indices(zma, sym, match=True):
+#     """ indices for a particular atom type
+#         :param match: grab idxs that match given atom type
+#     """
+#
+#     syms = symbols(zma)
+#     idxs = tuple()
+#     for idx, sym_ in enumerate(syms):
+#         if sym_ == sym and match:
+#             idxs += (idx,)
+#         elif sym_ != sym and not match:
+#             idxs += (idx,)
+#
+#     return idxs
 
 
 def distance_names(zma):
@@ -777,12 +729,16 @@ def distance_names(zma):
 
 
 def dihedral_axis_name(zma, axis):
+    """ gives this name of a dihedral angle that has
+        the given axis atoms
+    """
     coords = coordinates(zma)
     angles = dihedral_angle_names(zma)
     name = None
     for ang in angles:
-        coord_idxs = coords[ang]
-        if tuple(list(coord_idxs[0])[1:3]) == axis or tuple(list(coord_idxs[0])[3:1:-1]) == axis:
+        _coord_idxs = coords[ang]
+        if (tuple(list(_coord_idxs[0])[1:3]) == axis
+                or tuple(list(_coord_idxs[0])[3:1:-1]) == axis):
             name = ang
             break
     return name
@@ -924,8 +880,49 @@ def set_constraint_names(zma, tors_names, tors_model):
     return const_names
 
 
+# Add the downshift function from rotor
+def shift_down(zma, vals):
+    """
+    Build a remdummy list that tells how to shift the groups
+    """
+
+    dummy_idxs = sorted(atom_indices(zma, 'X', match=True))
+    if dummy_idxs:
+        remdummy = [0 for _ in range(count(zma))]
+        for dummy in dummy_idxs:
+            for idx, _ in enumerate(remdummy):
+                if dummy < idx:
+                    remdummy[idx] += 1
+
+        vals1 = tuple(val+1 for val in vals)
+        vals2 = tuple(val-remdummy[val-1] for val in vals1)
+        shift_vals = tuple(val-1 for val in vals2)
+
+    else:
+        shift_vals = vals
+
+    return shift_vals
+
+
+def shift_up(zma, idxs):
+    """ shift up from the dummy idxs
+    """
+
+    dummy_idxs = sorted(atom_indices(zma, 'X', match=True))
+
+    shift_idxs = []
+    for idx in idxs:
+        new_idx = idx
+        for dummy_idx in dummy_idxs:
+            if idx >= dummy_idx:
+                new_idx += 1
+        shift_idxs.append(new_idx)
+
+    return tuple(shift_idxs)
+
+
 if __name__ == '__main__':
     with open('test.zma', 'r') as fobj:
         tzma = from_string(fobj.read())
-    const_names = set_constraint_names(tzma, ('D30',), '1dhrfa')
-    print(constraint_dct(tzma, const_names=const_names, var_names=('D30',)))
+    const_names_ = set_constraint_names(tzma, ('D30',), '1dhrfa')
+    print(constraint_dct(tzma, const_names=const_names_, var_names=('D30',)))

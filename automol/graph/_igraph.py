@@ -1,11 +1,10 @@
 """ igraph interface
 """
 
-import itertools
+# import itertools
 import igraph
-import automol
 import automol.create.graph
-from automol.util import dict_
+# from automol.util import dict_
 from phydat import ptab
 
 
@@ -15,19 +14,19 @@ def from_graph(gra):
     atm_keys = sorted(automol.graph.atom_keys(gra))
     bnd_keys = sorted(automol.graph.bond_keys(gra), key=sorted)
 
-    atm_vals = dict_.values_by_key(automol.graph.atoms(gra), atm_keys)
-    bnd_vals = dict_.values_by_key(automol.graph.bonds(gra), bnd_keys)
-
-    atm_colors = list(itertools.starmap(_encode_vertex_attributes, atm_vals))
-    bnd_colors = list(itertools.starmap(_encode_edge_attributes, bnd_vals))
-
     atm_idx_dct = dict(map(reversed, enumerate(atm_keys)))
     bnd_idxs = [sorted(map(atm_idx_dct.__getitem__, k)) for k in bnd_keys]
     igr = igraph.Graph(bnd_idxs)
 
-    igr.vs['keys'] = atm_keys
-    igr.vs['color'] = atm_colors
-    igr.es['color'] = bnd_colors
+    # atm_vals = dict_.values_by_key(automol.graph.atoms(gra), atm_keys)
+    # bnd_vals = dict_.values_by_key(automol.graph.bonds(gra), bnd_keys)
+
+    # atm_colors = list(itertools.starmap(_encode_vertex_attributes, atm_vals))
+    # bnd_colors = list(itertools.starmap(_encode_edge_attributes, bnd_vals))
+
+    # igr.vs['keys'] = atm_keys
+    # igr.vs['color'] = atm_colors
+    # igr.es['color'] = bnd_colors
 
     return igr
 
@@ -161,19 +160,18 @@ def canonical_permutation(igr):
     perm = igr.canonical_permutation(color=atm_colors)
     perm_dct = dict(zip(atm_keys, perm))
     return perm_dct
-
-
-if __name__ == '__main__':
-    import automol
-    GRA1 = ({0: ('C', 0, None), 1: ('H', 0, None), 2: ('H', 0, None),
-             3: ('H', 0, None), 4: ('H', 0, None)},
-            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-             frozenset({0, 4}): (1, None), frozenset({0, 3}): (1, None)})
-    GRA2 = automol.graph.relabel(GRA1, {0: 1, 1: 0})
-    GRA2 = automol.graph.relabel(GRA2, dict(enumerate(range(5, 10))))
-    print(automol.graph.string(GRA2, one_indexed=False))
-    IGR1 = from_graph(GRA1)
-    IGR2 = from_graph(GRA2)
-    isomorphisms(IGR1, IGR2)
-    # print(IGR1)
-    # print(IGR2)
+#
+#
+# if __name__ == '__main__':
+#     GRA1 = ({0: ('C', 0, None), 1: ('H', 0, None), 2: ('H', 0, None),
+#              3: ('H', 0, None), 4: ('H', 0, None)},
+#             {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+#              frozenset({0, 4}): (1, None), frozenset({0, 3}): (1, None)})
+#     GRA2 = automol.graph.relabel(GRA1, {0: 1, 1: 0})
+#     GRA2 = automol.graph.relabel(GRA2, dict(enumerate(range(5, 10))))
+#     print(automol.graph.string(GRA2, one_indexed=False))
+#     IGR1 = from_graph(GRA1)
+#     IGR2 = from_graph(GRA2)
+#     isomorphisms(IGR1, IGR2)
+#     # print(IGR1)
+#     # print(IGR2)

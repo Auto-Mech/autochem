@@ -71,7 +71,7 @@ from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
 from automol.zmat._zmat import constraint_dct
 from automol.zmat._zmat import distance_names
-
+from automol.zmat._zmat import shift_down
 
 
 def from_data(syms, key_mat, val_mat, name_mat=None,
@@ -101,7 +101,7 @@ def torsion_coordinate_names(zma):
     name_dct = standard_names(zma)
     inv_name_dct = dict(map(reversed, name_dct.items()))
     geo = automol.geom.without_dummy_atoms(geometry(zma))
-    tors_names = automol.convert.geom.zmatrix_torsion_coordinate_names(geo)
+    tors_names = automol.convert.zmat.zmatrix_torsion_coordinate_names(geo)
     tors_names = tuple(map(inv_name_dct.__getitem__, tors_names))
     return tors_names
 
@@ -136,6 +136,7 @@ __all__ = [
     # getters
     'count',
     'symbols',
+    'atom_indices',
     'key_matrix',
     'name_matrix',
     'value_matrix',
@@ -166,7 +167,7 @@ __all__ = [
     'string',
     # validator
     'is_valid',
-    # extra stuff 
+    # extra stuff
     'set_constraint_names',
 
     # extras
@@ -201,5 +202,5 @@ __all__ = [
     'get_babs2',
     'constraint_dct',
     'distance_names',
+    'shift_down'
 ]
-

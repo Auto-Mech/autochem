@@ -19,7 +19,7 @@ class TorsionParam():
 # class TorsionModel():
 #     """ Torsional models
 #     """
-# 
+#
 #     1DHR = '1dhr'
 #     1DHR_FRZ_TORS = '1dhrf'
 #     1DHR_FRZ_ALL = '1dhrfa'

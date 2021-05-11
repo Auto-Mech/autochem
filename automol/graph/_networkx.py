@@ -2,13 +2,13 @@
 """
 import operator
 import networkx
-from automol.graph._graph_base import atom_keys
-from automol.graph._graph_base import bond_keys
-from automol.graph._graph_base import atom_symbols
-from automol.graph._graph_base import atom_implicit_hydrogen_valences
-from automol.graph._graph_base import atom_stereo_parities
-from automol.graph._graph_base import bond_orders
-from automol.graph._graph_base import bond_stereo_parities
+from automol.graph._graph_dep import atom_keys
+from automol.graph._graph_dep import bond_keys
+from automol.graph._graph_dep import atom_symbols
+from automol.graph._graph_dep import atom_implicit_hydrogen_valences
+from automol.graph._graph_dep import atom_stereo_parities
+from automol.graph._graph_dep import bond_orders
+from automol.graph._graph_dep import bond_stereo_parities
 
 
 def from_graph(gra):

@@ -1,14 +1,16 @@
 """ random functions that I am gonna distribute to other parts of automol
 """
+from automol import reac
+from automol import zmat
+from automol import geom
+
 
 def rxn_angle(grxn, zma):
     """ Calculate the angle over a forming-and-breaking bond
     """
 
-    geo = automol.zmat.geometry(zma)
-
-    frm_bnd_keys = automol.reac.forming_bond_keys(grxn)
-    brk_bnd_keys = automol.reac.breaking_bond_keys(grxn)
+    frm_bnd_keys = reac.forming_bond_keys(grxn)
+    brk_bnd_keys = reac.breaking_bond_keys(grxn)
 
     angle = None
     if 'abstraction' in grxn.class_ or 'addition' in grxn.class_:
@@ -24,8 +26,8 @@ def rxn_angle(grxn, zma):
                     if idx != ang_atms[1]:
                         ang_atms[2] = idx
 
-                geom = automol.zmatrix.geometry(ts_zma)
-                angle = automol.geom.central_angle(
-                    geom, *ang_atms)
+                geo = zmat.geometry(zma)
+                angle = geom.central_angle(
+                    geo, *ang_atms)
 
     return angle

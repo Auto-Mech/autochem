@@ -5,7 +5,6 @@ from automol import smiles
 from automol import inchi
 from automol import geom
 from automol import zmat
-from automol import pot
 import numpy
 
 

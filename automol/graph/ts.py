@@ -6,19 +6,19 @@ Breaking bonds are encoded as 0.9-order bonds
 Otherwise, this is equivalent to any other graph
 """
 from automol.util import dict_
-from automol.graph._graph_base import atom_stereo_parities
-from automol.graph._graph_base import bond_stereo_parities
-from automol.graph._graph_base import bond_orders
-from automol.graph._graph_base import set_bond_orders
-from automol.graph._graph import add_bonds
-from automol.graph._graph import remove_bonds
-from automol.graph._graph import without_dummy_atoms
-from automol.graph._graph import without_stereo_parities
-from automol.graph._ring import rings_bond_keys
-from automol.graph._ring import sorted_ring_atom_keys_from_bond_keys
+from automol.graph._graph_dep import atom_stereo_parities
+from automol.graph._graph_dep import bond_stereo_parities
+from automol.graph._graph_dep import bond_orders
+from automol.graph._graph_dep import set_bond_orders
+from automol.graph._graph_dep import add_bonds
+from automol.graph._graph_dep import remove_bonds
+from automol.graph._graph_dep import without_dummy_atoms
+from automol.graph._graph_dep import without_stereo_parities
+from automol.graph._graph_dep import atom_stereo_keys
+from automol.graph._graph_dep import bond_stereo_keys
+from automol.graph._embed_dep import rings_bond_keys
+from automol.graph._embed_dep import sorted_ring_atom_keys_from_bond_keys
 from automol.graph._stereo import stereomers as _stereomers
-from automol.graph._stereo import atom_stereo_keys
-from automol.graph._stereo import bond_stereo_keys
 from automol.graph._stereo import stereogenic_atom_keys
 from automol.graph._stereo import stereogenic_bond_keys
 from automol.graph._stereo import (to_index_based_stereo as

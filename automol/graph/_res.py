@@ -1,65 +1,28 @@
 """ resonance graph library
 """
 
-import itertools
-import functools
-import numpy
 from automol.util import dict_
-from automol.graph._graph import atom_keys
-from automol.graph._graph import bond_keys
-from automol.graph._graph import remove_bonds
-from automol.graph._graph import remove_atoms
-from automol.graph._graph import bond_orders
-from automol.graph._graph import set_bond_orders
-from automol.graph._graph import without_bond_orders
-from automol.graph._graph import atoms_neighbor_atom_keys
-from automol.graph._graph import atom_unsaturated_valences
-from automol.graph._graph import atom_bond_valences
-from automol.graph._graph import atom_lone_pair_counts
+from automol.graph._graph_dep import atom_keys
+from automol.graph._graph_dep import bond_keys
+from automol.graph._graph_dep import remove_bonds
+from automol.graph._graph_dep import remove_atoms
+from automol.graph._graph_dep import bond_orders
+from automol.graph._graph_dep import atoms_neighbor_atom_keys
+from automol.graph._graph_dep import atom_unsaturated_valences
+from automol.graph._graph_dep import explicit
+from automol.graph._graph_dep import implicit
+from automol.graph._graph_dep import atoms
+from automol.graph._graph_dep import dummy_atoms_neighbor_atom_key
+from automol.graph._graph_dep import without_fractional_bonds
+from automol.graph._graph_dep import dominant_resonances
+from automol.graph._graph_dep import resonance_dominant_bond_orders
+from automol.graph._graph_dep import resonance_dominant_atom_hybridizations
 from automol.graph._graph import atoms_bond_keys
-from automol.graph._graph import maximum_spin_multiplicity
-from automol.graph._graph import explicit
-from automol.graph._graph import implicit
-from automol.graph._graph import atoms
 from automol.graph._graph import atom_groups
 from automol.graph._graph import full_isomorphism
-from automol.graph._graph import dummy_atoms_neighbor_atom_key
-from automol.graph._graph import without_fractional_bonds
-from automol.graph._graph import without_dummy_bonds
 
 
 # atom properties
-def atom_hybridizations(rgr):
-    """ atom hybridizations, by atom
-    """
-    rgr = without_fractional_bonds(rgr)
-    atm_keys = list(atom_keys(rgr))
-    atm_unsat_vlc_dct = atom_unsaturated_valences(rgr, bond_order=True)
-    atm_bnd_vlc_dct = atom_bond_valences(rgr, bond_order=False)     # note!!
-    atm_unsat_vlcs = numpy.array(
-        dict_.values_by_key(atm_unsat_vlc_dct, atm_keys))
-    atm_bnd_vlcs = numpy.array(dict_.values_by_key(atm_bnd_vlc_dct, atm_keys))
-    atm_lpcs = numpy.array(
-        dict_.values_by_key(atom_lone_pair_counts(rgr), atm_keys))
-    atm_hybs = atm_unsat_vlcs + atm_bnd_vlcs + atm_lpcs - 1
-    atm_hyb_dct = dict_.transform_values(
-        dict(zip(atm_keys, atm_hybs)), int)
-    return atm_hyb_dct
-
-
-def resonance_dominant_atom_hybridizations(rgr):
-    """ resonance-dominant atom hybridizations, by atom
-    """
-    rgr = without_fractional_bonds(rgr)
-    atm_keys = list(atom_keys(rgr))
-    atm_hybs_by_res = [
-        dict_.values_by_key(atom_hybridizations(dom_rgr), atm_keys)
-        for dom_rgr in dominant_resonances(rgr)]
-    atm_hybs = [min(hybs) for hybs in zip(*atm_hybs_by_res)]
-    atm_hyb_dct = dict(zip(atm_keys, atm_hybs))
-    return atm_hyb_dct
-
-
 def linear_atom_keys(rgr, dummy=True):
     """ atoms forming linear bonds, based on their hybridization
 
@@ -275,19 +238,6 @@ def radical_dissociation_prods(gra, pgra1):
 
 
 # bond properties
-def resonance_dominant_bond_orders(rgr):
-    """ resonance-dominant bond orders, by bond
-    """
-    rgr = without_fractional_bonds(rgr)
-    bnd_keys = list(bond_keys(rgr))
-    bnd_ords_by_res = [
-        dict_.values_by_key(bond_orders(dom_rgr), bnd_keys)
-        for dom_rgr in dominant_resonances(rgr)]
-    bnd_ords_lst = list(map(frozenset, zip(*bnd_ords_by_res)))
-    bnd_dom_res_ords_dct = dict(zip(bnd_keys, bnd_ords_lst))
-    return bnd_dom_res_ords_dct
-
-
 def one_resonance_dominant_bond_orders(rgr):
     """ resonance-dominant bond orders, by bond
     """
@@ -318,104 +268,10 @@ def resonance_avg_bond_orders(rgr):
 
 
 # transformations
-def dominant_resonance(rgr):
-    """ *a* dominant (minimum spin/maximum pi) resonance graph
-    """
-    return next(iter(dominant_resonances(rgr)))
-
-
-def dominant_resonances(rgr):
-    """ all dominant (minimum spin/maximum pi) resonance graphs
-    """
-    rgr = without_fractional_bonds(rgr)
-    rgrs = resonances(rgr)
-    mult_min = min(map(maximum_spin_multiplicity, rgrs))
-    dom_rgrs = tuple(
-        rgr for rgr in rgrs if maximum_spin_multiplicity(rgr) == mult_min)
-    return dom_rgrs
-
-
-def resonances(rgr):
-    """ all resonance graphs with this connectivity
-    """
-    return subresonances(without_bond_orders(rgr))
-
-
-def subresonances(rgr):
-    """ this connected graph and its lower-spin (more pi-bonded) resonances
-    """
-    rgr = without_fractional_bonds(rgr)
-    # get the bond capacities (room for increasing bond order), filtering out
-    # the negative ones to avoid complications with hypervalent atoms in TSs
-    bnd_cap_dct = dict_.by_value(_bond_capacities(rgr), lambda x: x > 0)
-
-    ret_rgrs = []
-    if bnd_cap_dct:
-        bnd_keys, bnd_caps = zip(*bnd_cap_dct.items())
-        atm_keys = list(functools.reduce(frozenset.union, bnd_keys))
-
-        # Loop over all possible combinations of bond order increments (amounts
-        # by which to increase the bond order), filtering out combinations that
-        # exceed the valences of the atoms involved.
-        # (Note that we are only testing the bonds with available pi electrons,
-        # so this is compatible with having hypervalent atoms elsewhere in the
-        # molecule)
-        bnd_ord_inc_ranges = [range(bnd_cap+1) for bnd_cap in bnd_caps]
-        for bnd_ord_incs in itertools.product(*bnd_ord_inc_ranges):
-            bnd_ord_inc_dct = dict(zip(bnd_keys, bnd_ord_incs))
-            ret_rgr = _add_pi_bonds(rgr, bnd_ord_inc_dct)
-
-            max_bnd_ord = max(bond_orders(ret_rgr).values())
-
-            atm_unsat_vlcs = dict_.values_by_key(
-                atom_unsaturated_valences(ret_rgr), atm_keys)
-
-            if not any(atm_unsat_vlc < 0 for atm_unsat_vlc in atm_unsat_vlcs):
-                if max_bnd_ord < 4:
-                    ret_rgrs.append(ret_rgr)
-
-    if not ret_rgrs:
-        ret_rgrs = (rgr,)
-    else:
-        ret_rgrs = tuple(ret_rgrs)
-
-    return ret_rgrs
-
-
-def _bond_capacities(rgr):
-    """ the number of electron pairs available for further pi-bonding, by bond
-    """
-    rgr = without_dummy_bonds(rgr)
-    atm_unsat_vlc_dct = atom_unsaturated_valences(rgr)
-
-    def _pi_capacities(bnd_key):
-        return min(map(atm_unsat_vlc_dct.__getitem__, bnd_key))
-
-    bnd_keys = list(bond_keys(rgr))
-    bnd_caps = tuple(map(_pi_capacities, bnd_keys))
-    bnd_cap_dct = dict(zip(bnd_keys, bnd_caps))
-    return bnd_cap_dct
-
-
-def _add_pi_bonds(rgr, bnd_ord_inc_dct):
-    """ add pi bonds to this graph
-    """
-    bnd_keys = bond_keys(rgr)
-    assert set(bnd_ord_inc_dct.keys()) <= bnd_keys
-
-    bnd_keys = list(bnd_keys)
-    bnd_ords = dict_.values_by_key(bond_orders(rgr), bnd_keys)
-    bnd_ord_incs = dict_.values_by_key(bnd_ord_inc_dct, bnd_keys, fill_val=0)
-    new_bnd_ords = numpy.add(bnd_ords, bnd_ord_incs)
-    bnd_ord_dct = dict(zip(bnd_keys, new_bnd_ords))
-    rgr = set_bond_orders(rgr, bnd_ord_dct)
-    return rgr
-
-
-if __name__ == '__main__':
-    import automol
-
-    ICH = automol.smiles.inchi('[C]#CC(CC)(CCC#[C])CC#[C]')
-    GRA = automol.inchi.graph(ICH)
-    print(GRA)
-    print(sigma_radical_atom_keys(GRA))
+# if __name__ == '__main__':
+#     import automol
+#
+#     ICH = automol.smiles.inchi('[C]#CC(CC)(CCC#[C])CC#[C]')
+#     GRA = automol.inchi.graph(ICH)
+#     print(GRA)
+#     print(sigma_radical_atom_keys(GRA))

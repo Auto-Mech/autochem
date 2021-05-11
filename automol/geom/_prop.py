@@ -7,7 +7,8 @@ import numpy
 from phydat import phycon, ptab
 from automol import util
 from automol.geom import _base as geom_base
-from automol.geom import _trans as trans
+from automol.graph.geom import mass_centered
+from automol.graph.geom import is_atom as _is_atom
 
 
 def is_atom(geo):
@@ -18,7 +19,7 @@ def is_atom(geo):
         :rtype: bool
     """
 
-    return len(geom_base.symbols(geo)) == 1
+    return _is_atom(geo)
 
 
 def is_linear(geo, tol=2.*phycon.DEG2RAD):
@@ -125,7 +126,7 @@ def inertia_tensor(geo, amu=True):
         :rtype: tuple(tuple(float))
     """
 
-    geo = trans.mass_centered(geo)
+    geo = mass_centered(geo)
     amas = masses(geo, amu=amu)
     xyzs = geom_base.coordinates(geo)
     ine = tuple(map(tuple, sum(

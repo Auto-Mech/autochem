@@ -2,7 +2,8 @@
  Various utility functions
 """
 
-import automol
+import automol.graph
+import automol.zmat
 
 
 def graph_with_keys(zma, zrxn=None):

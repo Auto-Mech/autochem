@@ -7,7 +7,6 @@ import numpy
 import autoread as ar
 import autowrite as aw
 import automol.create.vmat
-import automol.geom
 from phydat import ptab
 
 

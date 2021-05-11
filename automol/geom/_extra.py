@@ -4,6 +4,10 @@
 import automol.convert.geom
 import automol.graph
 from automol.geom import _trans as trans
+from automol.graph._graph import atoms_neighbor_atom_keys
+from automol.graph._graph import unsaturated_atom_keys
+from automol.graph._res import sing_res_dom_radical_atom_keys
+from automol.graph._res import resonance_dominant_radical_atom_keys
 
 
 def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
@@ -23,7 +27,7 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     gra = automol.convert.geom.graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
-    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
+    neighbor_dct = atoms_neighbor_atom_keys(gra)
 
     ts_atms = []
     for bnd in frm_bnd_keys:
@@ -31,10 +35,10 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     for bnd in brk_bnd_keys:
         ts_atms.extend(list(bnd))
     # determine if atom is a part of a double bond
-    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
+    unsat_atms = unsaturated_atom_keys(gra)
     if not saddle:
-        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
+        rad_atms = sing_res_dom_radical_atom_keys(gra)
+        res_rad_atms = resonance_dominant_radical_atom_keys(gra)
         rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []
@@ -89,7 +93,7 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     gra = automol.convert.geom.graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
-    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
+    neighbor_dct = atoms_neighbor_atom_keys(gra)
     ts_atms = []
     for bnd in frm_bnd_keys:
         ts_atms.extend(list(bnd))
@@ -97,10 +101,10 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         ts_atms.extend(list(bnd))
 
     # determine if atom is a part of a double bond
-    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
+    unsat_atms = unsaturated_atom_keys(gra)
     if not saddle:
-        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
+        rad_atms = sing_res_dom_radical_atom_keys(gra)
+        res_rad_atms = resonance_dominant_radical_atom_keys(gra)
         rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []

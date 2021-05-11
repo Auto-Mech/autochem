@@ -20,7 +20,7 @@ def from_data(atom_symbols, bond_keys, atom_implicit_hydrogen_valences=None,
         :type atom_symbols: dict
         :param bond_keys: bond keys
         :type bond_keys: set
-        :param atom_implicit_hydrogen_valences: the number of implicit hydrogens
+        :param atom_implicit_hydrogen_valences: the no. of implicit hydrogens
             associated with each atom, by atom key
         :type atom_implicit_hydrogen_valences: dict
         :param atom_stereo_parities: atom stereo parities, by atom key
@@ -56,7 +56,7 @@ def atoms_from_data(atom_symbols, atom_implicit_hydrogen_valences=None,
 
         :param atom_symbols: atomic symbols, by atom key
         :type atom_symbols: dict
-        :param atom_implicit_hydrogen_valences: the number of implicit hydrogens
+        :param atom_implicit_hydrogen_valences: the no. of implicit hydrogens
             associated with each atom, by atom key
         :type atom_implicit_hydrogen_valences: dict
         :param atom_stereo_parities: atom stereo parities, by atom key
