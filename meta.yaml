@@ -1,7 +1,7 @@
 # cmd: conda build . -c auto-mech -c rdkit -c openbabel -c conda-forge -c psi4
 package:
     name: automol
-    version: "0.5.3"
+    version: "0.5.4"
 
 source:
     path: .
@@ -23,7 +23,7 @@ requirements:
         - future
         - flake8
         - pylint
-        - auto-mech::autorun
+        - auto-mech::autorun>=0.1.2
         - auto-mech::autoparse
         - auto-mech::autoio
         - auto-mech::elstruct

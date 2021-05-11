@@ -22,7 +22,7 @@ dependencies:
     - flake8
     - pylint
     # - auto-mech::automol
-    - auto-mech::autorun
+    - auto-mech::autorun>=0.1.2
     - auto-mech::autoparse
     - auto-mech::autoio
     - auto-mech::elstruct
