@@ -39,7 +39,7 @@ def fake_vdw_frequencies(geo1, geo2):
     """ Set fake frequencies
     """
 
-    freqs = [30, 50, 70, 100, 200]
+    freqs = [30.0, 50.0, 70.0, 100.0, 200.0]
     ntrans = 5
 
     # Check atom types

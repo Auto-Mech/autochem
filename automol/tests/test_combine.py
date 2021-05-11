@@ -68,8 +68,8 @@ def test__geo_combiners():
     assert automol.geom.almost_equal_dist_matrix(vdw_geo2, ref_vdw_geo2)
     assert automol.geom.almost_equal_dist_matrix(vdw_geo3, ref_vdw_geo3)
 
-    ref_vdw_freqs1 = (30, 50, 70)
-    ref_vdw_freqs2 = (30, 50)
+    ref_vdw_freqs1 = (30.0, 50.0, 70.0)
+    ref_vdw_freqs2 = (30.0, 50.0)
     ref_vdw_freqs3 = ()
 
     vdw_freqs1 = automol.combine.fake_vdw_frequencies(C2H6_GEO, OH_GEO)
