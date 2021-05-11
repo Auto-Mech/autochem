@@ -126,6 +126,7 @@ def test__distance():
     """ test zmat.distance
     """
     dist16 = zmat.distance(CH4O2_ZMA, 1, 6, angstrom=True)
+    print(dist16)
     assert numpy.isclose(dist16, 2.6363)
 
 

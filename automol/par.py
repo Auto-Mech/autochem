@@ -1,31 +1,46 @@
+""" common automol parameters
 """
-  Parameters
-"""
-
 import inspect
 import itertools
 
 
-class REACTION_CLASS():
+class ReactionClass:
     """ Names of supported reaction classes
     """
     TRIVIAL = 'trivial'
     # Unimolecular reactions
-    BETA_SCISSION = 'beta scission'
-    ELIMINATION = 'elimination'
-    RING_FORM_SCISSION = 'ring forming scission'
-    # Bimolecular reactions
     HYDROGEN_MIGRATION = 'hydrogen migration'
+    BETA_SCISSION = 'beta scission'
+    RING_FORM_SCISSION = 'ring forming scission'
+    ELIMINATION = 'elimination'
+    # Bimolecular reactions
     HYDROGEN_ABSTRACTION = 'hydrogen abstraction'
     ADDITION = 'addition'
     INSERTION = 'insertion'
     SUBSTITUTION = 'substitution'
 
 
-def is_reation_class(rclass):
+REVERSE_REACTION_DCT = {
+    ReactionClass.HYDROGEN_MIGRATION: ReactionClass.HYDROGEN_MIGRATION,
+    ReactionClass.HYDROGEN_ABSTRACTION: ReactionClass.HYDROGEN_ABSTRACTION,
+    ReactionClass.ADDITION: ReactionClass.BETA_SCISSION,
+    ReactionClass.BETA_SCISSION: ReactionClass.ADDITION,
+    ReactionClass.ELIMINATION: ReactionClass.INSERTION,
+    ReactionClass.INSERTION: ReactionClass.ELIMINATION,
+    # ReactionClass.SUBSTITUTION: ?
+}
+
+
+def is_reaction_class(rxn_class):
     """ Check if class in list of REACTION CLASS
     """
-    return rclass in _values(REACTION_CLASS)
+    return rxn_class in _values(ReactionClass)
+
+
+def reverse_reaction_class(rxn_class):
+    """ determine the reverse of a reaction class
+    """
+    return REVERSE_REACTION_DCT.get(rxn_class, None)
 
 
 def _values(cls):

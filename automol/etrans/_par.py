@@ -2,6 +2,7 @@
   Values to calculate effective parameters for energy transport
 """
 
+# Dictionaries of parameters
 # Empirically determined parameters indexed by bath gas
 # prob need to be uncombined and units changed
 LJ_DCT = {
@@ -11,38 +12,6 @@ LJ_DCT = {
         'InChI=1S/N2/c1-2': (325.74586, 3.41972)
     }
 }
-
-
-# Estimation 
-def read_lj_dct(bath, target):
-    """ Read the LJ_DCT
-    """
-
-    print('lj dct')
-    print('bath', bath)
-    print('target', target)
-
-    bath_dct = LJ_EST_DCT.get(bath, None)
-    if bath_dct is not None:
-        lj_params = bath_dct.get(target, None)
-    else:
-        lj_params = None
-
-    return lj_params
-
-
-def read_z_alpha_dct(bath, target):
-    """ Read the LJ_DCT
-    """
-
-    target_dct = Z_EST_ALPHA_DCT.get(bath, None)
-    if target_dct is not None:
-        z_alpha_params = target_dct.get(target, None)
-    else:
-        z_alpha_params = None
-
-    return z_alpha_params
-
 
 LJ_EST_DCT = {
 
@@ -68,7 +37,7 @@ LJ_EST_DCT = {
         'epoxide': (2.90, 0.23, 75.0, 0.50),
         'n-hydroperoxide': (3.05, 0.20, 110.0, 0.39),
         '1-alkyl': (3.50, 0.17, 90.0, 0.38),
-        'ether': (3.15, 0.22, 110.0, 0.15) 
+        'ether': (3.15, 0.22, 110.0, 0.15)
     },
 
     # H2 Bath Gas

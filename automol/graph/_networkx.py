@@ -2,13 +2,13 @@
 """
 import operator
 import networkx
-from automol.graph._graph_base import atom_keys
-from automol.graph._graph_base import bond_keys
-from automol.graph._graph_base import atom_symbols
-from automol.graph._graph_base import atom_implicit_hydrogen_valences
-from automol.graph._graph_base import atom_stereo_parities
-from automol.graph._graph_base import bond_orders
-from automol.graph._graph_base import bond_stereo_parities
+from automol.graph._graph_dep import atom_keys
+from automol.graph._graph_dep import bond_keys
+from automol.graph._graph_dep import atom_symbols
+from automol.graph._graph_dep import atom_implicit_hydrogen_valences
+from automol.graph._graph_dep import atom_stereo_parities
+from automol.graph._graph_dep import bond_orders
+from automol.graph._graph_dep import bond_stereo_parities
 
 
 def from_graph(gra):
@@ -41,6 +41,12 @@ def connected_component_atom_keys(nxg):
     """ atom keys for the connected components in this graph
     """
     return tuple(map(frozenset, networkx.algorithms.connected_components(nxg)))
+
+
+def all_pairs_shortest_path(nxg):
+    """ shortest path between any two vertices in the graph
+    """
+    return networkx.all_pairs_shortest_path(nxg)
 
 
 def isomorphism(nxg1, nxg2):

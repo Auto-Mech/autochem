@@ -1,6 +1,7 @@
 """ inchi "constructor"
 """
-from automol import dict_
+
+from automol.util import dict_
 
 
 MAIN_PFXS = ('c', 'h')
@@ -10,17 +11,29 @@ ISO_NONSTE_PFXS = ('i', 'h')
 ISO_PFXS = ISO_NONSTE_PFXS + STE_PFXS
 
 
-def from_data(formula_sublayer, main_sublayer_dct=None,
-              charge_sublayer_dct=None, stereo_sublayer_dct=None,
-              isotope_sublayer_dct=None):
-    """ calculate an inchi string from layers
-    """
-    main_dct = dict_.empty_if_none(main_sublayer_dct)
-    char_dct = dict_.empty_if_none(charge_sublayer_dct)
-    ste_dct = dict_.empty_if_none(stereo_sublayer_dct)
-    iso_dct = dict_.empty_if_none(isotope_sublayer_dct)
+def from_data(fml_slyr, main_lyr_dct=None,
+              char_lyr_dct=None, ste_lyr_dct=None,
+              iso_lyr_dct=None):
+    """ Build an InChI string from each of the various layers.
 
-    fml_slyr = formula_sublayer
+        :param fml_slyr: sublayer of InChI string containing molecular formula
+        :type fml_slyr: str
+        :param main_lyr_dct: information for connectivity layer of InChI
+        :type main_lyr_dct: dict[str: str]
+        :param char_lyr_dct: information for charge layer of InChI
+        :type char_lyr_dct: dict[str: str]
+        :param ste_lyr_dct: information for stereochemistry layer of InChI
+        :type ste_lyr_dct: dict[str: str]
+        :param iso_lyr_dct: information for isotope layer of InChI
+        :type iso_lyr_dct: dict[str: str]
+        :rtype: str
+    """
+
+    main_dct = dict_.empty_if_none(main_lyr_dct)
+    char_dct = dict_.empty_if_none(char_lyr_dct)
+    ste_dct = dict_.empty_if_none(ste_lyr_dct)
+    iso_dct = dict_.empty_if_none(iso_lyr_dct)
+
     main_slyrs = [
         pfx + slyr for pfx, slyr
         in zip(MAIN_PFXS, dict_.values_by_key(main_dct, MAIN_PFXS)) if slyr]
@@ -36,4 +49,5 @@ def from_data(formula_sublayer, main_sublayer_dct=None,
 
     ich = '/'.join(['InChI=1', fml_slyr] + main_slyrs + char_slyrs +
                    ste_slyrs + iso_slyrs)
+
     return ich

@@ -60,8 +60,6 @@ C2_RGRS = (
      {frozenset({0, 1}): (2, None)}),
     ({0: ('C', 0, None), 1: ('C', 0, None)},
      {frozenset({0, 1}): (3, None)}),
-    ({0: ('C', 0, None), 1: ('C', 0, None)},
-     {frozenset({0, 1}): (4, None)}),
 )
 
 CH2FH2H_CGR_IMP = (
@@ -317,26 +315,14 @@ def test__without_stereo_parities():
     assert C8H13O_CGR == graph.without_stereo_parities(C8H13O_SGR)
 
 
-def test__without_ts_bonds():
-    """ test graph.without_ts_bonds
-    """
-    ts_bnd_key = frozenset({6, 0})
-    gra = ({0: ('C', 2, None), 1: ('C', 2, None), 6: ('C', 3, None)},
-           {frozenset({0, 1}): (1, None)})
-
-    ts_gra = graph.add_ts_bonds(gra, keys=[ts_bnd_key])
-    assert graph.ts_bond_keys(ts_gra) == (ts_bnd_key,)
-    assert graph.without_ts_bonds(ts_gra) == gra
-
-
 def test__electron_count():
-    """ test graph.hydrogen_count
+    """ test graph.electron_count
     """
     assert graph.electron_count(C8H13O_CGR) == 69
 
 
 def test__atom_count():
-    """ test graph.hydrogen_count
+    """ test graph.electron_count
     """
     assert graph.atom_count(C8H13O_CGR) == 22
     assert graph.atom_count(C8H13O_CGR, with_implicit=False) == 9
@@ -349,10 +335,10 @@ def test__heavy_atom_count():
     assert graph.heavy_atom_count(cgr) == 9
 
 
-def test__atom_neighbor_keys():
-    """ test graph.atom_neighbor_keys
+def test__atoms_neighbor_atom_keys():
+    """ test graph.atoms_neighbor_atom_keys
     """
-    assert graph.atom_neighbor_keys(C8H13O_CGR) == {
+    assert graph.atoms_neighbor_atom_keys(C8H13O_CGR) == {
         0: frozenset({3}),
         1: frozenset({4}),
         2: frozenset({6}),
@@ -365,10 +351,26 @@ def test__atom_neighbor_keys():
     }
 
 
-def test__atom_bond_keys():
-    """ test graph.atom_neighbor_keys
+def test__atoms_second_degree_neighbor_atom_keys():
+    """ test graph.atoms_neighbor_atom_keys
     """
-    assert graph.atom_bond_keys(C8H13O_CGR) == {
+    assert graph.atoms_second_degree_neighbor_atom_keys(C8H13O_CGR) == {
+        0: frozenset({5}),
+        1: frozenset({6}),
+        2: frozenset({4, 7}),
+        3: frozenset({7}),
+        4: frozenset({2, 7}),
+        5: frozenset({0, 8, 6}),
+        6: frozenset({8, 1, 5}),
+        7: frozenset({2, 3, 4}),
+        8: frozenset({5, 6}),
+    }
+
+
+def test__atoms_bond_keys():
+    """ test graph.atoms_neighbor_atom_keys
+    """
+    assert graph.atoms_bond_keys(C8H13O_CGR) == {
         0: frozenset({frozenset({0, 3})}),
         1: frozenset({frozenset({1, 4})}),
         2: frozenset({frozenset({2, 6})}),
@@ -384,21 +386,19 @@ def test__atom_bond_keys():
 
 
 # # bond properties
-def test__bond_neighbor_keys():
-    """ test graph.bond_neighbor_keys
+def test__bonds_neighbor_atom_keys():
+    """ test graph.bonds_neighbor_atom_keys
     """
-    assert graph.bond_neighbor_keys(C8H13O_CGR) == {
-        frozenset({1, 4}): frozenset({frozenset({4, 6})}),
-        frozenset({4, 6}): frozenset({frozenset({6, 7}), frozenset({1, 4}),
-                                      frozenset({2, 6})}),
-        frozenset({2, 6}): frozenset({frozenset({6, 7}), frozenset({4, 6})}),
-        frozenset({0, 3}): frozenset({frozenset({3, 5})}),
-        frozenset({6, 7}): frozenset({frozenset({4, 6}), frozenset({8, 7}),
-                                      frozenset({5, 7}), frozenset({2, 6})}),
-        frozenset({8, 7}): frozenset({frozenset({6, 7}), frozenset({5, 7})}),
-        frozenset({3, 5}): frozenset({frozenset({5, 7}), frozenset({0, 3})}),
-        frozenset({5, 7}): frozenset({frozenset({6, 7}), frozenset({3, 5}),
-                                      frozenset({8, 7})})
+
+    assert graph.bonds_neighbor_atom_keys(C8H13O_CGR) == {
+        frozenset({1, 4}): frozenset({6}),
+        frozenset({4, 6}): frozenset({1, 2, 7}),
+        frozenset({2, 6}): frozenset({4, 7}),
+        frozenset({0, 3}): frozenset({5}),
+        frozenset({6, 7}): frozenset({8, 2, 4, 5}),
+        frozenset({8, 7}): frozenset({5, 6}),
+        frozenset({3, 5}): frozenset({0, 7}),
+        frozenset({5, 7}): frozenset({8, 3, 6})
     }
 
 
@@ -410,14 +410,6 @@ def test__branch():
         {1: ('C', 2, None), 4: ('C', 1, None), 6: ('C', 1, None)},
         {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None)}
     )
-
-    # Test that this works for TS graphs
-    gra = ({0: ('C', 2, None), 1: ('C', 2, None), 6: ('C', 3, None)},
-           {frozenset({0, 1}): (1, None)})
-    ts_bnd_key = frozenset({6, 0})
-    ts_gra = graph.add_ts_bonds(gra, keys=[ts_bnd_key])
-    assert graph.branch_atom_keys(ts_gra, 6, ts_bnd_key) == frozenset({0, 1})
-    assert graph.branch_atom_keys(ts_gra, 0, ts_bnd_key) == frozenset({6})
 
 
 def test__connected_components():
@@ -668,6 +660,30 @@ def test__resonance_dominant_radical_atom_keys():
         {8})
 
 
+def test__sigma_radical_atom_keys():
+    """ test graph.sigma_radical_atom_keys
+    """
+    # CCC#[C]
+    gra = ({0: ('C', 3, None), 1: ('C', 0, None), 2: ('C', 2, None),
+            3: ('C', 0, None)},
+           {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
+            frozenset({2, 3}): (1, None)})
+    assert graph.sigma_radical_atom_keys(gra) == frozenset({1})
+
+    # [C]#CC(CC)(CCC#[C])CC#[C]
+    gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 3, None),
+            3: ('C', 0, None), 4: ('C', 0, None), 5: ('C', 0, None),
+            6: ('C', 2, None), 7: ('C', 0, None), 8: ('C', 2, None),
+            9: ('C', 2, None), 10: ('C', 2, None), 11: ('C', 0, None)},
+           {frozenset({8, 4}): (1, None), frozenset({3, 7}): (1, None),
+            frozenset({2, 6}): (1, None), frozenset({0, 4}): (1, None),
+            frozenset({8, 10}): (1, None), frozenset({9, 11}): (1, None),
+            frozenset({1, 5}): (1, None), frozenset({9, 5}): (1, None),
+            frozenset({11, 7}): (1, None), frozenset({10, 11}): (1, None),
+            frozenset({11, 6}): (1, None)})
+    assert graph.sigma_radical_atom_keys(gra) == frozenset({0, 1, 3})
+
+
 # # bond properties
 def test__resonance_dominant_bond_orders():
     """ test graph.resonance_dominant_bond_orders
@@ -760,32 +776,111 @@ def test__stereomers():
     assert graph.stereomers(C8H13O_CGR) == C8H13O_SGRS
 
 
-def test__heuristic_geometry():
-    """ test graph.heuristic_geometry
+def test__to_index_based_stereo():
+    """ test graph.stereomers
     """
     for sgr in C2H2CL2F2_SGRS:
         sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
-
-    for sgr in C3H5N3_SGRS:
-        sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
+        idx_sgr = graph.to_index_based_stereo(sgr)
+        assert sgr == graph.from_index_based_stereo(idx_sgr)
 
     for sgr in C3H3CL2F3_SGRS:
         sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
+        idx_sgr = graph.to_index_based_stereo(sgr)
+        assert sgr == graph.from_index_based_stereo(idx_sgr)
+
+    for sgr in C3H5N3_SGRS:
+        sgr = graph.explicit(sgr)
+        idx_sgr = graph.to_index_based_stereo(sgr)
+        assert sgr == graph.from_index_based_stereo(idx_sgr)
 
     for sgr in C8H13O_SGRS:
         sgr = graph.explicit(sgr)
-        cgr = graph.without_stereo_parities(sgr)
-        geo, geo_idx_dct = graph.heuristic_geometry(sgr)
-        assert graph.set_stereo_from_geometry(cgr, geo, geo_idx_dct) == sgr
+        idx_sgr = graph.to_index_based_stereo(sgr)
+        assert sgr == graph.from_index_based_stereo(idx_sgr)
+
+
+def test__ring_systems():
+    """ test graph.vmat.vmatrix
+    """
+    ich = automol.smiles.inchi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
+    gra = automol.inchi.graph(ich)
+    rsys = sorted(graph.ring_systems(gra), key=graph.atom_count)
+    assert list(map(graph.atom_count, rsys)) == [7, 12, 21]
+
+
+def test__vmat__vmatrix():
+    """ test graph.vmat.vmatrix
+    """
+    ich = automol.smiles.inchi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
+    gra = automol.inchi.graph(ich)
+    _, zma_keys = graph.vmat.vmatrix(gra)
+    assert set(zma_keys) == graph.atom_keys(gra)
+
+
+# FC=CC=CF + [OH] => FC=C[CH]C(O)F
+C4H5F2O_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+                3: ('C', 0, None), 4: ('F', 0, None), 5: ('F', 0, None),
+                6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+                9: ('H', 0, None), 10: ('O', 0, None), 11: ('H', 0, None)},
+               {frozenset({8, 2}): (1, None), frozenset({2, 10}): (0.1, None),
+                frozenset({0, 6}): (1, None), frozenset({1, 7}): (1, None),
+                frozenset({9, 3}): (1, None), frozenset({0, 1}): (1, None),
+                frozenset({0, 2}): (1, True), frozenset({2, 4}): (1, None),
+                frozenset({3, 5}): (1, None), frozenset({10, 11}): (1, None),
+                frozenset({1, 3}): (1, False)})
+
+# FC=C(C(O)F)C(O)F + [OH] => FC(O)[C](C(O)F)C(O)F
+C4H5F3O2_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, False),
+                 3: ('C', 0, True), 4: ('F', 0, None), 5: ('F', 0, None),
+                 6: ('F', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
+                 9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+                 12: ('H', 0, None), 13: ('H', 0, None), 14: ('O', 0, None),
+                 15: ('H', 0, None)},
+                {frozenset({12, 7}): (1, None), frozenset({2, 10}): (1, None),
+                 frozenset({1, 2}): (1, None), frozenset({0, 1}): (1, True),
+                 frozenset({3, 6}): (1, None), frozenset({2, 7}): (1, None),
+                 frozenset({2, 5}): (1, None), frozenset({0, 4}): (1, None),
+                 frozenset({8, 3}): (1, None), frozenset({0, 14}): (0.1, None),
+                 frozenset({8, 13}): (1, None), frozenset({14, 15}): (1, None),
+                 frozenset({11, 3}): (1, None), frozenset({1, 3}): (1, None),
+                 frozenset({0, 9}): (1, None)})
+
+
+def test__ts__nonconserved_atom_stereo_keys():
+    """ test graph.ts.nonconserved_atom_stereo_keys
+    """
+    assert graph.ts.nonconserved_atom_stereo_keys(C4H5F2O_TSG) == (
+        (frozenset({2}), frozenset()))
+    assert graph.ts.nonconserved_atom_stereo_keys(C4H5F3O2_TSG) == (
+        (frozenset({0}), frozenset()))
+
+
+def test__ts__nonconserved_bond_stereo_keys():
+    """ test graph.ts.nonconserved_bond_stereo_keys
+    """
+    assert graph.ts.nonconserved_bond_stereo_keys(C4H5F2O_TSG) == (
+        (frozenset({frozenset({0, 1})}), frozenset({frozenset({0, 2})})))
+    assert graph.ts.nonconserved_bond_stereo_keys(C4H5F3O2_TSG) == (
+        (frozenset(), frozenset({frozenset({0, 1})})))
+
+
+def test__ts__compatible_reverse_stereomers():
+    """ test graph.ts.stereo_expand_reverse_graphs
+    """
+    for ste_tsg in graph.ts.stereomers(C4H5F2O_TSG):
+        ste_tsgs = [
+            s
+            for r in graph.ts.compatible_reverse_stereomers(ste_tsg)
+            for s in graph.ts.compatible_reverse_stereomers(r)]
+        assert any(s == ste_tsg for s in ste_tsgs)
+
+    for ste_tsg in graph.ts.stereomers(C4H5F3O2_TSG):
+        ste_tsgs = [
+            s
+            for r in graph.ts.compatible_reverse_stereomers(ste_tsg)
+            for s in graph.ts.compatible_reverse_stereomers(r)]
+        assert any(s == ste_tsg for s in ste_tsgs)
 
 
 if __name__ == '__main__':
@@ -802,6 +897,7 @@ if __name__ == '__main__':
     # test__heuristic_geometry()
     # test__connected_components()
     # test__unsaturated_atom_keys()
+    # test__bonds_neighbor_atom_keys()
     # test__resonance_dominant_radical_atom_keys()
     # test__remove_bonds()
     # test__resonance_dominant_atom_centered_cumulene_keys()
@@ -813,5 +909,11 @@ if __name__ == '__main__':
     # test__atom_count()
     # test__heavy_atom_count()
     # test__subresonances()
+    # test__sigma_radical_atom_keys()
     # test__stereomers()
-    test__without_ts_bonds()
+    # test__to_index_based_stereo()
+    # test__ts__nonconserved_atom_stereo_keys()
+    # test__ts__nonconserved_bond_stereo_keys()
+    # test__ts__compatible_reverse_stereomers()
+    # test__vmat__vmatrix()
+    test__branch()

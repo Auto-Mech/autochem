@@ -1,6 +1,11 @@
-""" test ring functionality in automol.graph
+""" test ring functionality in graph
 """
 from automol import graph
+from automol import smiles
+from automol import inchi
+from automol import geom
+from automol import zmat
+import numpy
 
 
 def test__rings():
@@ -33,7 +38,7 @@ def test__rings():
 
 
 def test__ring_systems():
-    """ test automol.graph.ring_systems
+    """ test graph.ring_systems
     """
     # molecule:
     # InChI=1S/C19H30/c1-2-4-14-10-12(9-13(14)3-1)5-7-17-16-8-6-15-11-
@@ -65,7 +70,7 @@ def test__ring_systems():
 
 
 def test__ring_systems_decomposed_atom_keys():
-    """ test automol.graph.ring_systems_decomposed_atom_keys
+    """ test graph.ring_systems_decomposed_atom_keys
     """
     # molecule:
     # InChI=1S/C19H30/c1-2-4-14-10-12(9-13(14)3-1)5-7-17-16-8-6-15-11-
@@ -94,8 +99,49 @@ def test__ring_systems_decomposed_atom_keys():
     assert decomps == (((0, 1, 4, 5), (0, 2, 3, 5), (1, 7, 6, 3)),
                        ((8, 9, 13, 12, 11), (13, 14, 17, 16, 15, 12)))
 
+# a1 = +/-q
+# a2 = +/-a1
+
+
+def test__ring_puckering():
+    smi = 'CC1CCCCC1'
+    ich = smiles.inchi(smi)
+    geo = inchi.geometry(ich)
+    zma = geom.zmatrix(geo)
+    gra = zmat.graph(zma)
+    rings_atoms = graph.rings_atom_keys(gra)
+    val_dct = zmat.value_dictionary(zma)
+    coos = zmat.coordinates(zma)
+    geo = zmat.geometry(zma)
+    da_names = zmat.dihedral_angle_names(zma)
+
+    for ring_atoms in rings_atoms:
+        rotate_hyds = []
+        ngbs = graph.atom_sorted_neighbor_atom_keys(gra, ring_atoms[0])
+        symbs = geom.symbols(geo)
+        for ngb in ngbs:
+            if symbs[ngb] == 'H':
+                rotate_hyds.append(ngb)
+        ring_value_dct = {}
+        for da_name in da_names:
+            da_idxs = list(coos[da_name])[0]
+            if len(list(set(da_idxs) & set(ring_atoms))) == 4:
+                print(da_name, da_idxs)
+                ring_value_dct[da_name] = val_dct[da_name]
+        dist_value_dct = {}
+        for i, _ in enumerate(ring_atoms):
+            dist_value_dct[i] = zmat.distance(
+                zma, ring_atoms[i-1], ring_atoms[i])
+
+        samp_range_dct = {}
+        for key, value in ring_value_dct.items():
+            samp_range_dct[key] = (value - numpy.pi/4, value + numpy.pi/4)
+
+        print(zmat.samples(zma, 5, samp_range_dct))
+
 
 if __name__ == '__main__':
-    test__rings()
-    test__ring_systems()
-    test__ring_systems_decomposed_atom_keys()
+    # test__rings()
+    # test__ring_systems()
+    # test__ring_systems_decomposed_atom_keys()
+    test__ring_puckering()
