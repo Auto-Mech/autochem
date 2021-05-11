@@ -4,7 +4,7 @@ from distutils.core import setup
 
 
 setup(name='automol',
-      version='0.5.3',
+      version='0.5.4',
       packages=['automol',
                 'automol.convert',
                 'automol.create',

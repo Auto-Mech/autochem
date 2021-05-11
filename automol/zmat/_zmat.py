@@ -728,6 +728,12 @@ def distance_names(zma):
     return vmat.distance_names(vmatrix(zma))
 
 
+def central_angle_names(zma):
+    """ distance coordinate names
+    """
+    return vmat.central_angle_names(vmatrix(zma))
+
+
 def dihedral_axis_name(zma, axis):
     """ gives this name of a dihedral angle that has
         the given axis atoms

@@ -71,6 +71,7 @@ from automol.zmat._zmat import get_babs1
 from automol.zmat._zmat import get_babs2
 from automol.zmat._zmat import constraint_dct
 from automol.zmat._zmat import distance_names
+from automol.zmat._zmat import central_angle_names
 from automol.zmat._zmat import shift_down
 
 
@@ -202,5 +203,6 @@ __all__ = [
     'get_babs2',
     'constraint_dct',
     'distance_names',
+    'central_angle_names',
     'shift_down'
 ]
