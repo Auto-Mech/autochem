@@ -22,7 +22,6 @@ def distance_coordinate_name(zma, key1, key2):
     key1, key2 = sorted([key1, key2])
     name_mat = name_matrix(zma)
     key_mat = key_matrix(zma)
-    print('key_mat', key_mat)
     assert key_mat[key2][0] == key1, (
         "{:d}-{:d} is not a distance coordinate in this zmatrix:\n{}"
         .format(key1, key2, string(zma, one_indexed=False)))
