@@ -23,7 +23,6 @@ requirements:
         - future
         - flake8
         - pylint
-        # - auto-mech::automol
         - auto-mech::autorun
         - auto-mech::autoparse
         - auto-mech::autoio
