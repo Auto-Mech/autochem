@@ -159,7 +159,7 @@ def inchi_with_sort(geo, stereo=True):
             geo_idx_dct = dict(enumerate(range(count(geo))))
         ich, nums = inchi_with_sort_from_geometry(
             gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
- 
+
     return ich, nums
 
 
@@ -501,6 +501,7 @@ def conformers(ich, nconfs):
     geo = object_from_hardcoded_inchi_by_key('geom', ich)
     if geo is None:
         ich = standard_form(ich)
+
         def _gen1(ich):
             rdm = _rdkit.from_inchi(ich)
             geos = _rdkit.to_conformers(rdm, nconfs)

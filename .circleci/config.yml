@@ -27,11 +27,11 @@ jobs:
                 command: |
                     source activate automol-env
                     flake8 --exit-zero automol
-                    pylint --rcfile=../.pylintrc automol
+                    pylint --rcfile=./.pylintrc automol
                     flake8 --exit-zero phydat
-                    pylint --rcfile=../.pylintrc phydat
+                    pylint --rcfile=./.pylintrc phydat
                     flake8 --exit-zero transformations
-                    pylint --rcfile=../.pylintrc transformations
+                    pylint --rcfile=./.pylintrc transformations
 workflows:
     version: 2
     build-all:
