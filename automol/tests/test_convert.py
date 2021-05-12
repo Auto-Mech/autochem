@@ -5,16 +5,17 @@ import numpy
 import automol
 from automol.convert import _rdkit as rdkit
 from automol.convert import _pybel as pybel
-from _util import load_numpy_string_file
-from _util import load_pandas_csv_string_file
+from ioformat import load_numpy_string_file
 
+PATH = os.path.dirname(os.path.realpath(__file__))
 
 BS_DF = load_pandas_csv_string_file(
-    ['data'], 'badspecies.csv')
+    ['data'], 'badspecies.csv', path=PATH)
 ICHS_NO_STEREO = load_numpy_string_file(
-    ['data'], 'heptane_inchis_no_stereo.txt')
+    ['data'], 'heptane_inchis_no_stereo.txt', path=PATH)
 ICHS_WITH_STEREO = load_numpy_string_file(
-    ['data'], 'heptane_inchis_with_stereo.txt')
+PATH = os.path.dirname(os.path.realpath(__file__))
+    ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 NSAMP = 10
 
 
@@ -334,6 +335,13 @@ def test__geom__zmatrix_atom_ordering():
     assert ordering2 == {0: 0}
 
 
+def load_pandas_csv_string_file(path_lst, file_name, path=PATH):
+    """ Read a file with numpy
+    """
+    file_path = os.path.join(PATH, *path_lst, file_name)
+    file_df = pandas.read_csv(file_path, quotechar="'")
+
+    return file_df
 # def test__sarah_badpsecies():
 #     """ test bad species list from sarah
 #     """

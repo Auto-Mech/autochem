@@ -5,14 +5,15 @@ import numpy
 from phydat import phycon
 import automol.reac
 from automol.util import highd_mat
-from _util import read_file
+from ioformat import read_text_file
 
+PATH = os.path.dirname(os.path.realpath(__file__))
 
 # Obtain cubic and quartic force constants
-CUBIC_STR = read_file(['data'], 'ch4_h.cubic')
+CUBIC_STR = read_text_file(['data'], 'ch4_h.cubic', path=PATH)
 CUBIC_MAT = highd_mat.from_string(
     CUBIC_STR, fill_perms=True)
-QUARTIC_STR = read_file(['data'], 'ch4_h.quartic')
+QUARTIC_STR = read_text_file(['data'], 'ch4_h.quartic', path=PATH)
 QUARTIC_MAT = highd_mat.from_string(
     QUARTIC_STR, fill_perms=True)
 
