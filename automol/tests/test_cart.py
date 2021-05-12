@@ -1,6 +1,7 @@
 """ test automol.cart not utilized by other tests
 """
 
+import os
 import pytest
 import numpy
 import automol.util.mat

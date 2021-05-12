@@ -1,6 +1,7 @@
 """ tunneling
 """
 
+import os
 import numpy
 from phydat import phycon
 import automol.reac
