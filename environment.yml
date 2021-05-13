@@ -1,4 +1,4 @@
-name: automol-env
+name: autochem-env
 
 channels:
     - auto-mech
@@ -21,14 +21,17 @@ dependencies:
     - future
     - flake8
     - pylint
-    # - auto-mech::automol
-    - auto-mech::autorun>=0.1.2
-    - auto-mech::autoparse
-    - auto-mech::autoio
-    - auto-mech::elstruct
-    - auto-mech::x2z
     - psi4::psi4
     - rdkit::rdkit
     - openbabel::openbabel
     - conda-forge::qcelemental
     - conda-forge::python-igraph
+    # - auto-mech::autochem
+    - auto-mech::autoio-base
+    # - auto-mech::autoio-interfaces
+    # - auto-mech::mechanalyzer
+    - auto-mech::x2z
+    # - auto-mech::mess
+    # - auto-mech::projrot
+    # - auto-mech::pac99
+    # - auto-mech::thermp
