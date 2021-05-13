@@ -1,20 +1,40 @@
 """ test automol.automol.convert
 """
 
+import os
+import pandas
 import numpy
 import automol
 from automol.convert import _rdkit as rdkit
 from automol.convert import _pybel as pybel
-from _util import load_numpy_string_file
-from _util import load_pandas_csv_string_file
+
+PATH = os.path.dirname(os.path.realpath(__file__))
+
+
+def load_pandas_csv_string_file(path_lst, file_name, path=PATH):
+    """ Read a file with numpy
+    """
+    file_path = os.path.join(path, *path_lst, file_name)
+    file_df = pandas.read_csv(file_path, quotechar="'")
+
+    return file_df
+
+
+def load_numpy_string_file(path_lst, file_name, path=PATH):
+    """ Read a file with numpy
+    """
+    file_path = os.path.join(path, *path_lst, file_name)
+    file_lst = numpy.loadtxt(file_path, dtype=str)
+
+    return file_lst
 
 
 BS_DF = load_pandas_csv_string_file(
-    ['data'], 'badspecies.csv')
+    ['data'], 'badspecies.csv', path=PATH)
 ICHS_NO_STEREO = load_numpy_string_file(
-    ['data'], 'heptane_inchis_no_stereo.txt')
+    ['data'], 'heptane_inchis_no_stereo.txt', path=PATH)
 ICHS_WITH_STEREO = load_numpy_string_file(
-    ['data'], 'heptane_inchis_with_stereo.txt')
+    ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 NSAMP = 10
 
 

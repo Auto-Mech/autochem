@@ -36,16 +36,16 @@ rxn, rct_geos, prd_geos = (
     automol.reac.standard_keys_with_sorted_geometries(
         rxn, rct_geos, prd_geos))
 
-geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
-print(automol.geom.string(geo))
-
-zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-print(automol.zmat.string(zma, one_indexed=False))
-zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-
-geo = automol.zmat.geometry(zma, dummy=True)
-print(automol.geom.string(geo))
-
+# geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
+# print(automol.geom.string(geo))
+#
+# zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+# print(automol.zmat.string(zma, one_indexed=False))
+# zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+#
+# geo = automol.zmat.geometry(zma, dummy=True)
+# print(automol.geom.string(geo))
+#
 # scan_name = automol.reac.scan_coordinate(zrxn, zma)
 # print(scan_name)
 #
