@@ -14,18 +14,18 @@ jobs:
             - run:
                 name: Build/install automol
                 command: |
-                    source activate automol-env
+                    source activate autocheml-env
                     python setup.py install
             - run:
                 name: Test autochem
                 command: |
-                    source activate automol-env
+                    source activate autocheml-env
                     cd automol
                     pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=transformations 
             - run:
                 name: Test autochem format
                 command: |
-                    source activate automol-env
+                    source activate autochem-env
                     flake8 --exit-zero automol
                     pylint --rcfile=./.pylintrc automol
                     flake8 --exit-zero phydat
