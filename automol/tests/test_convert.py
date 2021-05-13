@@ -5,8 +5,6 @@ import os
 import pandas
 import numpy
 import automol
-from automol.convert import _rdkit as rdkit
-from automol.convert import _pybel as pybel
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -227,21 +225,16 @@ def test__inchi_geometry():
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
     assert ich == ref_ich
 
-    ref_ich = 'InChI=1S/Cl2/c1-2'
+    ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
     assert ich == ref_ich
 
-    ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
-    pbm = pybel.from_inchi(ref_ich)
-    ich = pybel.to_inchi(pbm)
-    assert ich == ref_ich
-    rdm = rdkit.from_inchi(ref_ich)
-    ich = automol.geom.inchi(rdkit.to_geometry(rdm))
+    ref_ich = 'InChI=1S/Ar'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
     assert ich == ref_ich
 
-    ref_ich = 'InChI=1S/Ar'
-    rdm = rdkit.from_inchi(ref_ich)
-    ich = automol.geom.inchi(rdkit.to_geometry(rdm))
+    ref_ich = 'InChI=1S/Cl2/c1-2'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
     assert ich == ref_ich
 
 
@@ -371,17 +364,17 @@ if __name__ == '__main__':
     # test__geom__no_stereo()
     # test__multiple_rings()
     # test__smiles__with_stereo()
-    test__geom__with_stereo()
+    # test__geom__with_stereo()
     # test__geom__no_stereo()
     # test__multiple_rings()
     # test__smiles__with_stereo()
     # test__zmatrix__with_stereo()
     # test__smiles__from_geom()
-    # test__inchi_geometry()
     # test__inchi_conformers()
     # test__geom__zmatrix_torsion_coordinate_names()
     # test__geom__zmatrix_atom_ordering()
     # test__graph__with_stereo()
     # test__geom__with_stereo()
     # test__graph__misc()
-    test__zmatrix__with_stereo()
+    # test__zmatrix__with_stereo()
+    test__inchi_geometry()
