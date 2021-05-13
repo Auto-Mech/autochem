@@ -14,12 +14,12 @@ jobs:
             - run:
                 name: Build/install automol
                 command: |
-                    source activate autocheml-env
+                    source activate autochem-env
                     python setup.py install
             - run:
                 name: Test autochem
                 command: |
-                    source activate autocheml-env
+                    source activate autochem-env
                     cd automol
                     pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=transformations 
             - run:
