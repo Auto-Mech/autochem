@@ -228,11 +228,9 @@ if __name__ == '__main__':
     #         RXN, RCT_GEOS, PRD_GEOS))
 
     # GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=False)
-
-    # print(automol.geom.string(GEO))
-
     # with open('zmat.xyz', 'r') as f:
-    #     GEO_STR = f.read()
+    #    GEO_STR = f.read()
+    print('buuggh')
     # with open('zmat.r.yaml', 'r') as f:
     #     RXN_STR = f.read()
     # GEO = autofile.data_types.sread.geometry(GEO_STR)
