@@ -455,7 +455,7 @@ def _connected_geometry(ich):
             if has_stereo(ich):
                 raise ValueError
 
-            gra = graph(ich, stereo=False)
+            gra = inchi_graph(ich, stereo=False)
             gra = explicit(gra)
             geo = automol.graph.embed.geometry(gra)
             return geo
