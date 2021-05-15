@@ -801,12 +801,51 @@ def test__to_index_based_stereo():
 
 
 def test__ring_systems():
-    """ test graph.vmat.vmatrix
+    """ test graph.ring_systems
     """
     ich = automol.smiles.inchi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
     gra = automol.inchi.graph(ich)
     rsys = sorted(graph.ring_systems(gra), key=graph.atom_count)
     assert list(map(graph.atom_count, rsys)) == [7, 12, 21]
+
+
+# ISOBUTANE
+C4H10_GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+              3: ('C', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+              6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+              9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+              12: ('H', 0, None), 13: ('H', 0, None)},
+             {frozenset({0, 3}): (1, None), frozenset({0, 4}): (1, None),
+              frozenset({0, 5}): (1, None), frozenset({0, 6}): (1, None),
+              frozenset({1, 3}): (1, None), frozenset({1, 7}): (1, None),
+              frozenset({8, 1}): (1, None), frozenset({1, 9}): (1, None),
+              frozenset({2, 3}): (1, None), frozenset({2, 10}): (1, None),
+              frozenset({2, 11}): (1, None), frozenset({2, 12}): (1, None),
+              frozenset({3, 13}): (1, None)})
+
+
+def test__equivalent_atoms():
+    """ test graph.equivalent_atoms
+    """
+    # central carbon
+    assert graph.equivalent_atoms(C4H10_GRA, 3) == {3}
+    # central hydrogen
+    assert graph.equivalent_atoms(C4H10_GRA, 13) == {13}
+    # terminal carbons
+    assert graph.equivalent_atoms(C4H10_GRA, 0) == {0, 1, 2}
+    assert graph.equivalent_atoms(C4H10_GRA, 1) == {0, 1, 2}
+    assert graph.equivalent_atoms(C4H10_GRA, 2) == {0, 1, 2}
+    # terminal hydrogens
+    assert graph.equivalent_atoms(C4H10_GRA, 4) == {4, 5, 6, 7, 8, 9, 10,
+                                                    11, 12}
+    assert graph.equivalent_atoms(C4H10_GRA, 5) == {4, 5, 6, 7, 8, 9, 10,
+                                                    11, 12}
+    assert graph.equivalent_atoms(C4H10_GRA, 6) == {4, 5, 6, 7, 8, 9, 10,
+                                                    11, 12}
+    assert graph.equivalent_atoms(C4H10_GRA, 11) == {4, 5, 6, 7, 8, 9, 10,
+                                                     11, 12}
+    assert graph.equivalent_atoms(C4H10_GRA, 12) == {4, 5, 6, 7, 8, 9, 10,
+                                                     11, 12}
 
 
 def test__vmat__vmatrix():
@@ -916,4 +955,5 @@ if __name__ == '__main__':
     # test__ts__nonconserved_bond_stereo_keys()
     # test__ts__compatible_reverse_stereomers()
     # test__vmat__vmatrix()
-    test__branch()
+    # test__branch()
+    test__equivalent_atoms()

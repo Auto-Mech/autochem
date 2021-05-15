@@ -37,6 +37,7 @@ from automol.graph import cycle_ring_atom_key_to_front
 from automol.graph import isomorphic_radical_graphs
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
+from automol.reac._reac import ts_unique
 
 
 def trivial(rct_gras, prd_gras):
@@ -113,6 +114,10 @@ def hydrogen_migrations(rct_gras, prd_gras):
 
         # Generate reactions for all isomorphic graphs of products
         gra2_lst = (gra2,) + isomorphic_radical_graphs(gra2)
+        for _gra in gra2_lst:
+            print(automol.graph.implicit(_gra))
+            print(automol.graph.string(automol.graph.implicit(_gra)))
+            print()
         # gra2_lst = (gra2,)
 
         for _gra2 in gra2_lst:
@@ -150,7 +155,7 @@ def hydrogen_migrations(rct_gras, prd_gras):
                         prds_keys=[atom_keys(_gra2)],
                     ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # 2. Beta scissions
@@ -219,7 +224,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
                             prds_keys=[atom_keys(pgra1), atom_keys(pgra2)],
                         ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # 4. Eliminations
@@ -432,7 +437,7 @@ def additions(rct_gras, prd_gras):
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # 3. Insertions
@@ -562,7 +567,8 @@ def find_from_inchis(rct_ichs, prd_ichs):
     prd_gras = list(map(connectivity_graph, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
-    rxns = automol.reac.find(rct_gras, prd_gras)
+    rxns = find(rct_gras, prd_gras)
+    print(len(rxns))
     rxn_classes = [rxn.class_ for rxn in rxns]
     rxn_classes = [c for i, c in enumerate(rxn_classes)
                    if c not in rxn_classes[:i]]
@@ -625,14 +631,14 @@ def _argsort_reactants(gras):
 
     idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
     return idxs
-#
-#
-# if __name__ == '__main__':
-#     import automol
-#     RXN_ICHS_LST = list(
-#         map(eval, open('luna_inchislist.txt').read().splitlines()))
-#
-#     for RXN_ICHS in RXN_ICHS_LST:
-#         print(RXN_ICHS)
-#         RXN_CLASSES = find_from_inchis(*RXN_ICHS)
-#         print(RXN_CLASSES)
+
+
+if __name__ == '__main__':
+    import automol
+    RXN_SMIS = (['C[CH]CC'],
+                ['[CH2]CCC'])
+    # RXN_SMIS = (['[CH2]CCCN(O)O'],
+    #             ['C1CCCN1O', '[OH]'])
+
+    RXN_ICHS = [list(map(automol.smiles.inchi, smis)) for smis in RXN_SMIS]
+    find_from_inchis(*RXN_ICHS)
