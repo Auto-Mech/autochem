@@ -327,7 +327,7 @@ def eliminations(rct_gras, prd_gras):
                                 prds_keys=prds_atm_keys,
                             ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # Bimolecular reactions
@@ -392,7 +392,7 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # 2. Additions
@@ -522,7 +522,7 @@ def substitutions(rct_gras, prd_gras):
                             prds_keys=prds_atm_keys,
                         ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 def find(rct_gras, prd_gras):
