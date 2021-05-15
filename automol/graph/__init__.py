@@ -142,6 +142,7 @@ from automol.graph._graph import atom_explicit_hydrogen_valences
 # # comparisons
 from automol.graph._graph import isomorphism
 from automol.graph._graph import equivalent_atoms
+from automol.graph._graph import equivalent_bonds
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import backbone_unique
@@ -440,6 +441,7 @@ __all__ = [
     # # comparisons
     'isomorphism',
     'equivalent_atoms',
+    'equivalent_bonds',
     'full_subgraph_isomorphism',
     'full_isomorphism',
     'full_subgraph_isomorphism',

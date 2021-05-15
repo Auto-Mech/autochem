@@ -663,8 +663,7 @@ def _isomorphism(gra1, gra2, igraph=False):
     return iso_dct
 
 
-def equivalent_atoms(gra, atm_key, backbone_only=False, stereo=True,
-                     dummy=True):
+def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
     """ Identify sets of isomorphically equivalent atoms
 
     Two atoms are equivalent if they transform into each other under an
@@ -672,8 +671,6 @@ def equivalent_atoms(gra, atm_key, backbone_only=False, stereo=True,
 
     :param gra: A graph
     :param atm_key: An atom key for the graph
-    :param backbone_only: Compare backbone atoms only?
-    :type backbone_only: bool
     :param stereo: Consider stereo?
     :type stereo: bool
     :param dummy: Consider dummy atoms?
@@ -681,8 +678,8 @@ def equivalent_atoms(gra, atm_key, backbone_only=False, stereo=True,
     :returns: Keys to equivalent atoms
     :rtype: frozenset
     """
-    if backbone_only:
-        assert atm_key in atom_keys(implicit(gra))
+    assert atm_key in atom_keys(gra), (
+        "{} not in {}".format(atm_key, atom_keys(gra)))
 
     atm_symb_dct = atom_symbols(gra)
     atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
@@ -706,11 +703,64 @@ def equivalent_atoms(gra, atm_key, backbone_only=False, stereo=True,
     atm_keys = []
     for key in cand_keys:
         comp_gra = set_atom_symbols(gra, {key: 'Ts'})
-        if isomorphism(ref_gra, comp_gra, backbone_only=backbone_only,
-                       stereo=stereo, dummy=dummy):
+        if isomorphism(ref_gra, comp_gra, stereo=stereo, dummy=dummy):
             atm_keys.append(key)
 
     return frozenset(atm_keys)
+
+
+def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
+    """ Identify sets of isomorphically equivalent bonds
+
+    Two bonds are equivalent if they transform into each other under an
+    automorphism
+
+    :param gra: A graph
+    :param bnd_key: An bond key for the graph, which may be sorted or unsorted
+    :param backbone_only: Compare backbone atoms only?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: Keys to equivalent bonds
+    :rtype: frozenset
+    """
+    bnd_key = tuple(bnd_key)
+    bnd_keys = list(map(tuple, map(sorted, bond_keys(gra))))
+    bnd_keys += list(map(tuple, map(reversed, bnd_keys)))
+    assert bnd_key in bnd_keys, "{} not in {}".format(bnd_key, bnd_keys)
+
+    atm_symb_dct = atom_symbols(gra)
+    atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
+
+    def _symbols(bnd_key):
+        return list(map(atm_symb_dct.__getitem__, bnd_key))
+
+    def _neighbor_symbols(bnd_key):
+        key1, key2 = bnd_key
+        nsymbs1 = sorted(map(atm_symb_dct.__getitem__, atm_ngbs_dct[key1]))
+        nsymbs2 = sorted(map(atm_symb_dct.__getitem__, atm_ngbs_dct[key2]))
+        return nsymbs1, nsymbs2
+
+    # 1. Find bonds with the same atom types
+    bnd_symbs = _symbols(bnd_key)
+    cand_keys = [k for k in bnd_keys if _symbols(k) == bnd_symbs]
+
+    # 2. Of those, find bonds with the same neighboring atom types
+    bnd_ngb_symbs = _neighbor_symbols(bnd_key)
+    cand_keys = [k for k in cand_keys
+                 if _neighbor_symbols(k) == bnd_ngb_symbs]
+
+    # 3. Find the equivalent bonds from the list of candidates.
+    # Strategy: Change the atom symbols to 'Lv' and 'Ts' and check for
+    # isomorphism.  Assumes none of the compounds have element 116 or 117.
+    ref_gra = set_atom_symbols(gra, {bnd_key[0]: 'Lv', bnd_key[1]: 'Ts'})
+    bnd_keys = []
+    for key in cand_keys:
+        comp_gra = set_atom_symbols(gra, {key[0]: 'Lv', key[1]: 'Ts'})
+        if isomorphism(ref_gra, comp_gra, stereo=stereo, dummy=dummy):
+            bnd_keys.append(key)
+
+    return frozenset(bnd_keys)
 
 
 # def full_isomorphism(gra1, gra2, igraph=True):
@@ -851,7 +901,7 @@ if __name__ == '__main__':
             frozenset({2, 3}): (1, None), frozenset({2, 10}): (1, None),
             frozenset({2, 11}): (1, None), frozenset({2, 12}): (1, None),
             frozenset({3, 13}): (1, None)})
-    print(equivalent_atoms(GRA, 13))
+    print(equivalent_bonds(GRA, [0, 3]))
     # GRA1 = ({0: ('Z', 3, None), 1: ('C', 3, None), 2: ('C', 2, None),
     #          3: ('C', 2, None)},
     #         {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),

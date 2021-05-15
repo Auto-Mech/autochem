@@ -848,6 +848,13 @@ def test__equivalent_atoms():
                                                      11, 12}
 
 
+def test__equivalent_bonds():
+    """ test graph.equivalent_atoms
+    """
+    assert graph.equivalent_bonds(C4H10_GRA, (2, 3)) == {
+        (0, 3), (1, 3), (2, 3)}
+
+
 def test__vmat__vmatrix():
     """ test graph.vmat.vmatrix
     """
@@ -957,3 +964,4 @@ if __name__ == '__main__':
     # test__vmat__vmatrix()
     # test__branch()
     test__equivalent_atoms()
+    test__equivalent_bonds()
