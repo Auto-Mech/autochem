@@ -16,7 +16,6 @@ from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
 from automol.rotor._util import graph_with_keys
 from automol.rotor._util import sort_tors_names
-import autofile.io_
 
 
 # constructors
@@ -229,33 +228,32 @@ if __name__ == '__main__':
     #         RXN, RCT_GEOS, PRD_GEOS))
 
     # GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=False)
+    # with open('zmat.xyz', 'r') as f:
+    #    GEO_STR = f.read()
+    print('buuggh')
+    # with open('zmat.r.yaml', 'r') as f:
+    #     RXN_STR = f.read()
+    # GEO = autofile.data_types.sread.geometry(GEO_STR)
+    # RXN = autofile.data_types.sread.reaction(RXN_STR)
 
-    # print(automol.geom.string(GEO))
+    # ZMA, ZMA_KEYS, DUMMY_KEY_DCT = automol.reac.ts_zmatrix(RXN, GEO)
 
-    GEO_STR = autofile.io_.read_file('zmat.xyz')
-    RXN_STR = autofile.io_.read_file('zmat.r.yaml')
+    # ZRXN = automol.reac.relabel_for_zmatrix(RXN, ZMA_KEYS, DUMMY_KEY_DCT)
+    # ZTSG = ZRXN.forward_ts_graph
 
-    GEO = autofile.data_types.sread.geometry(GEO_STR)
-    RXN = autofile.data_types.sread.reaction(RXN_STR)
+    # print('zma:\n', automol.zmat.string(ZMA))
 
-    ZMA, ZMA_KEYS, DUMMY_KEY_DCT = automol.reac.ts_zmatrix(RXN, GEO)
+    # LIN_KEYS = sorted(
+    #     automol.graph.dummy_atoms_neighbor_atom_key(ZTSG).values())
+    # BND_KEYS = automol.graph.rotational_bond_keys(ZTSG, lin_keys=LIN_KEYS)
+    # print(LIN_KEYS)
+    # print(BND_KEYS)
 
-    ZRXN = automol.reac.relabel_for_zmatrix(RXN, ZMA_KEYS, DUMMY_KEY_DCT)
-    ZTSG = ZRXN.forward_ts_graph
+    # NAMES = [automol.zmat.torsion_coordinate_name(ZMA, *k) for k in BND_KEYS]
+    # print(NAMES)
 
-    print('zma:\n', automol.zmat.string(ZMA))
-
-    LIN_KEYS = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(ZTSG).values())
-    BND_KEYS = automol.graph.rotational_bond_keys(ZTSG, lin_keys=LIN_KEYS)
-    print(LIN_KEYS)
-    print(BND_KEYS)
-
-    NAMES = [automol.zmat.torsion_coordinate_name(ZMA, *k) for k in BND_KEYS]
-    print(NAMES)
-
-    ROTORS = from_zmatrix(ZMA, zrxn=ZRXN)
-    print(ROTORS)
+    # ROTORS = from_zmatrix(ZMA, zrxn=ZRXN)
+    # print(ROTORS)
 
     # ZMA_STR = autofile.io_.read_file('zmat.zmat')
     # ZMA = autofile.data_types.sread.zmatrix(ZMA_STR)

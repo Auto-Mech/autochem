@@ -14,24 +14,25 @@ jobs:
             - run:
                 name: Build/install automol
                 command: |
-                    source activate automol-env
+                    source activate autochem-env
                     python setup.py install
             - run:
                 name: Test autochem
+                no_output_timeout: 60m
                 command: |
-                    source activate automol-env
+                    source activate autochem-env
                     cd automol
                     pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=transformations 
             - run:
                 name: Test autochem format
                 command: |
-                    source activate automol-env
+                    source activate autochem-env
                     flake8 --exit-zero automol
-                    pylint --rcfile=./.pylintrc automol
+                    pylint --rcfile=automol/.pylintrc automol
                     flake8 --exit-zero phydat
-                    pylint --rcfile=./.pylintrc phydat
+                    pylint --rcfile=phydat/.pylintrc phydat
                     flake8 --exit-zero transformations
-                    pylint --rcfile=./.pylintrc transformations
+                    pylint --rcfile=transformations/.pylintrc transformations
 workflows:
     version: 2
     build-all:
