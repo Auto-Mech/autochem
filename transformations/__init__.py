@@ -1785,7 +1785,7 @@ def unit_vector(data, axis=None, out=None):
         if out is not data:
             out[:] = numpy.array(data, copy=False)
         data = out
-    if not ret:
+    if ret == []:
         length = numpy.atleast_1d(numpy.sum(data*data, axis))
         numpy.sqrt(length, length)
         if axis is not None:
