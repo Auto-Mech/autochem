@@ -171,7 +171,9 @@ def test__rotor_wdummy():
         ('H', (1.6428761932166758, 2.0162818347750626, 5.821438019614233)),
         ('C', (6.684012875738011, 0.26149696963358493, 2.970348313582893)),
         ('H', (8.56769243388105, -0.3688713748782012, 2.63788068500042)))
-    assert automol.geom.almost_equal_dist_matrix(geo, ref_geo, thresh=0.001)
+    ref_ich = automol.geom.inchi(ref_geo)
+    ich = automol.geom.inchi(geo)
+    assert ich == ref_ich
 
 
 def test__name_input():

@@ -1288,30 +1288,30 @@ def test__prod__hydrogen_abstraction():
           {frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None)}),))
 
 
-def test__prod__hydrogen_migration():
-    """ test graph.reac.prod_hydrogen migration
-    """
-
-    ccccch2_gra = automol.zmat.graph(CCCCCH2_ZMA)
-    prod_gras = automol.reac.prod_hydrogen_migration(ccccch2_gra)
-
-    assert len(prod_gras) == 1
-    assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
-    assert prod_gras[0] == (
-        ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-          3: ('H', 0, None), 4: ('C', 0, None), 6: ('H', 0, None),
-          7: ('C', 0, None), 8: ('H', 0, None), 9: ('H', 0, None),
-          10: ('C', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
-          13: ('H', 0, None), 14: ('H', 0, None), 15: ('H', 0, None),
-          16: ('H', 0, None)},
-         {frozenset({12, 7}): (1, None), frozenset({1, 4}): (1, None),
-          frozenset({10, 15}): (1, None), frozenset({10, 7}): (1, None),
-          frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
-          frozenset({0, 2}): (1, None), frozenset({0, 16}): (1, None),
-          frozenset({10, 13}): (1, None), frozenset({10, 14}): (1, None),
-          frozenset({9, 4}): (1, None), frozenset({1, 6}): (1, None),
-          frozenset({11, 7}): (1, None), frozenset({8, 4}): (1, None),
-          frozenset({4, 7}): (1, None)}),)
+# def test__prod__hydrogen_migration():
+#     """ test graph.reac.prod_hydrogen migration
+#     """
+#
+#     ccccch2_gra = automol.zmat.graph(CCCCCH2_ZMA)
+#     prod_gras = automol.reac.prod_hydrogen_migration(ccccch2_gra)
+#
+#     assert len(prod_gras) == 1
+#     assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
+#     assert prod_gras[0] == (
+#         ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
+#           3: ('H', 0, None), 4: ('C', 0, None), 6: ('H', 0, None),
+#           7: ('C', 0, None), 8: ('H', 0, None), 9: ('H', 0, None),
+#           10: ('C', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
+#           13: ('H', 0, None), 14: ('H', 0, None), 15: ('H', 0, None),
+#           16: ('H', 0, None)},
+#          {frozenset({12, 7}): (1, None), frozenset({1, 4}): (1, None),
+#           frozenset({10, 15}): (1, None), frozenset({10, 7}): (1, None),
+#           frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
+#           frozenset({0, 2}): (1, None), frozenset({0, 16}): (1, None),
+#           frozenset({10, 13}): (1, None), frozenset({10, 14}): (1, None),
+#           frozenset({9, 4}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({11, 7}): (1, None), frozenset({8, 4}): (1, None),
+#           frozenset({4, 7}): (1, None)}),)
 
 
 # def test__prod__addition():
@@ -1385,7 +1385,6 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    #  test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
     # test__reac__hydrogen_abstraction()
     # test__reac__insertion()
@@ -1405,4 +1404,5 @@ if __name__ == '__main__':
     # test__reac__addition()
     # test__reac__radrad_hydrogen_abstraction()
     # test__reac__hydrogen_migration()
-    test__prod__hydrogen_migration()
+    # test__prod__hydrogen_migration()
+    test__reac__hydrogen_migration()
