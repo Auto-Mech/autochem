@@ -634,6 +634,25 @@ def reaction_class(rxn):
     """return the reaction class string
 
     :param rxn: the reaction object
-    :param product: do this do the products instead of the reactants?
     """
     return rxn.class_
+
+
+def ts_unique(rxns):
+    """ return reactions with isomorphically unique TSs
+
+    :param rxns: a sequence of reaction objects
+    :returns: unique reaction objects
+    """
+    all_rxns = rxns
+    rxns = []
+
+    def _isomorphism(rxn1, rxn2):
+        return automol.graph.full_isomorphism(rxn1.forward_ts_graph,
+                                              rxn2.forward_ts_graph)
+
+    for rxn in all_rxns:
+        if not any(_isomorphism(rxn, r) for r in rxns):
+            rxns.append(rxn)
+
+    return tuple(rxns)

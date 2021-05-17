@@ -385,6 +385,14 @@ def without_stereo_parities(gra):
     return gra
 
 
+def set_atom_symbols(sgr, atm_symb_dct):
+    """ set atom parities
+    """
+    atm_dct = mdict.set_by_key_by_position(atoms(sgr), atm_symb_dct,
+                                           ATM_SYM_POS)
+    return _create.from_atoms_and_bonds(atm_dct, bonds(sgr))
+
+
 def set_atom_stereo_parities(sgr, atm_par_dct):
     """ set atom parities
     """

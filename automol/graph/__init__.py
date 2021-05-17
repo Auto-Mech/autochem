@@ -10,6 +10,7 @@ from automol.graph._graph_dep import atom_implicit_hydrogen_valences
 from automol.graph._graph_dep import atom_stereo_parities
 from automol.graph._graph_dep import bond_orders
 from automol.graph._graph_dep import bond_stereo_parities
+from automol.graph._graph_dep import set_atom_symbols
 from automol.graph._graph_dep import set_atom_implicit_hydrogen_valences
 from automol.graph._graph_dep import set_atom_stereo_parities
 from automol.graph._graph_dep import set_bond_orders
@@ -140,6 +141,8 @@ from automol.graph._graph import union_from_sequence
 from automol.graph._graph import atom_explicit_hydrogen_valences
 # # comparisons
 from automol.graph._graph import isomorphism
+from automol.graph._graph import equivalent_atoms
+from automol.graph._graph import equivalent_bonds
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import backbone_unique
@@ -320,6 +323,7 @@ __all__ = [
     'atom_stereo_parities',
     'bond_orders',
     'bond_stereo_parities',
+    'set_atom_symbols',
     'set_atom_implicit_hydrogen_valences',
     'set_atom_stereo_parities',
     'set_bond_orders',
@@ -435,8 +439,10 @@ __all__ = [
     'atom_explicit_hydrogen_valences',
     'atom_explicit_hydrogen_keys',
     # # comparisons
-    'full_subgraph_isomorphism',
     'isomorphism',
+    'equivalent_atoms',
+    'equivalent_bonds',
+    'full_subgraph_isomorphism',
     'full_isomorphism',
     'full_subgraph_isomorphism',
     'backbone_unique',
