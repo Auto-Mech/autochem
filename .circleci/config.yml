@@ -18,6 +18,7 @@ jobs:
                     python setup.py install
             - run:
                 name: Test autochem
+                no_output_timeout: 60m
                 command: |
                     source activate autochem-env
                     cd automol
