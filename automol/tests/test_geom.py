@@ -407,20 +407,61 @@ C    0.000000   0.000000   8.000000"""
     assert ref_traj_str == traj_str
 
 
+def test__insert_dummies():
+    """ test geom.insert_dummies
+    """
+    # 1. Generate a z-matrix to start with
+    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
+    zma = automol.geom.zmatrix(automol.inchi.geometry(ich))
+
+    # 2. Convert to cartesians and remove dummy atoms
+    geo = automol.zmat.geometry(zma)
+
+    # Assume this geometry was changed somehow, such as by optimization, and we
+    # want to update the z-matrix from it. The problem is that the geometry
+    # doesn't contain the dummy atoms in the z-matrix.
+
+    # 3. Determine dummy atom keys from the original z-matrix
+    dummy_key_dct = automol.zmat.dummy_key_dictionary(zma)
+
+    # 4. Insert dummy atoms to the new geometry at the appropriate positions
+    geo_wdummy = automol.geom.insert_dummies(geo, dummy_key_dct)
+    print(automol.geom.symbols(geo_wdummy))
+    print(automol.zmat.symbols(zma))
+    assert automol.geom.symbols(geo_wdummy) == automol.zmat.symbols(zma)
+
+    # 5. Update the z-matrix from the geometry.
+    zma_new = automol.zmat.from_geometry(zma, geo_wdummy)
+    print('original z-matrix:')
+    print(automol.zmat.string(zma))
+    print('new z-matrix:')
+    print(automol.zmat.string(zma_new))
+
+    # 6. Check that the geometry was correctly encoded by converting the new
+    # z-matrix back and comparing.
+    geo_new = automol.zmat.geometry(zma_new)
+    print('original geometry:')
+    print(automol.geom.string(geo))
+    print('new geometry:')
+    print(automol.geom.string(geo_new))
+    assert automol.geom.almost_equal_dist_matrix(geo, geo_new)
+
+
 if __name__ == '__main__':
-    test__from_data()
-    test__is_valid()
-    test__struct_check()
-    test__mass()
-    test__rotation_properties()
-    test__atom_indices()
-    test__set_coordinates()
-    test__swap_coordinates()
-    test__remove_coordinates()
-    test__dist_analysis()
-    test__symmetry_factor()
-    test__closest_unbonded_atoms()
-    test__rotate()
-    test__reflect_coordinates()
-    test__permutations()
-    test__traj()
+    # test__from_data()
+    # test__is_valid()
+    # test__struct_check()
+    # test__mass()
+    # test__rotation_properties()
+    # test__atom_indices()
+    # test__set_coordinates()
+    # test__swap_coordinates()
+    # test__remove_coordinates()
+    # test__dist_analysis()
+    # test__symmetry_factor()
+    # test__closest_unbonded_atoms()
+    # test__rotate()
+    # test__reflect_coordinates()
+    # test__permutations()
+    # test__traj()
+    test__insert_dummies()
