@@ -21,6 +21,7 @@ from automol.graph import connected_components
 from automol.graph import unsaturated_atom_keys
 from automol.graph import atom_neighbor_atom_key
 from automol.graph import atoms_neighbor_atom_keys
+from automol.graph import atom_equivalence_class_reps
 from automol.graph import resonance_avg_bond_orders
 from automol.reac._reac import Reaction
 from automol.reac._reac import ts_unique
@@ -243,6 +244,75 @@ def eliminations(rct_gras, viable_only=True):
 
 
 # Bimolecular reactions
+# 1. Hydrogen abstractions
+def hydrogen_abstractions(rct_gras, viable_only=True):
+    """ find hydrogen abstraction products for these reactants
+
+    :param rct_gras: graphs for the reactants, without stereo and without
+        overlapping keys
+    :param viable_only: Filter out reactions with non-viable products?
+    :type viable_only: bool
+    :returns: a list of Reaction objects
+    :rtype: tuple[Reaction]
+
+    Hydrogen abstractions are enumerated by looping over unique unsaturated
+    atoms on one molecule and abstracting from unique atoms on the other.
+    """
+    assert_is_valid_reagent_graph_list(rct_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 2:
+        for q1h_gra, q2_gra in itertools.permutations(rct_gras):
+            hyd_keys = atom_keys(q1h_gra, sym='H')
+
+            # Identify unique heavy atoms as potential donors
+            don_keys = atom_keys(q1h_gra, excl_syms=('H',))
+            don_keys = atom_equivalence_class_reps(q1h_gra, don_keys)
+
+            # Identify unique unsaturated atoms as potential attackers
+            att_keys = unsaturated_atom_keys(q2_gra)
+            att_keys = atom_equivalence_class_reps(q2_gra, att_keys)
+
+            for don_key, att_key in itertools.product(don_keys, att_keys):
+                hyd_key = atom_neighbor_atom_key(
+                    q1h_gra, don_key, symbs_first=['H'], symbs_last=[])
+                if hyd_key in hyd_keys:
+                    # Remove a hydrogen from the donor site
+                    q1_gra = remove_atoms(q1h_gra, {hyd_key})
+                    # Add a hydrogen atom to the attacker site
+                    q2h_gra = add_bonded_atom(
+                        q2_gra, 'H', att_key, bnd_atm_key=hyd_key)
+
+                    rcts_gra = union(q1h_gra, q2_gra)
+                    prds_gra = union(q2h_gra, q1_gra)
+
+                    forw_tsg = ts.graph(rcts_gra,
+                                        frm_bnd_keys=[(att_key, hyd_key)],
+                                        brk_bnd_keys=[(don_key, hyd_key)])
+
+                    back_tsg = ts.graph(prds_gra,
+                                        frm_bnd_keys=[(don_key, hyd_key)],
+                                        brk_bnd_keys=[(att_key, hyd_key)])
+
+                    rcts_atm_keys = list(map(atom_keys, [q1h_gra, q2_gra]))
+                    prds_atm_keys = list(map(atom_keys, [q2h_gra, q1_gra]))
+
+                    # Create the reaction object
+                    rxns.append(Reaction(
+                        rxn_cls=par.ReactionClass.HYDROGEN_ABSTRACTION,
+                        forw_tsg=forw_tsg,
+                        back_tsg=back_tsg,
+                        rcts_keys=rcts_atm_keys,
+                        prds_keys=prds_atm_keys,
+                    ))
+
+    if viable_only:
+        rxns = filter_viable_reactions(rxns)
+
+    return ts_unique(rxns)
+
+
 # 2. Additions
 def additions(rct_gras, viable_only=True):
     """ find all possible addition products for these reactants
@@ -318,7 +388,7 @@ def enumerate_reactions(rct_gras, viable_only=True):
         # ring_forming_scissions,
         eliminations,
         # bimolecular reactions
-        # hydrogen_abstractions,
+        hydrogen_abstractions,
         additions,
         # insertions,
         # substitutions,
@@ -330,24 +400,25 @@ def enumerate_reactions(rct_gras, viable_only=True):
     return rxns
 
 
-if __name__ == "__main__":
-    import automol
-
-    # RCT_SMIS = ['C=CCC[CH2]']         # hydrogen migration
-    # RCT_SMIS = ['C=C[CH]CC']          # beta scission
-    # RCT_SMIS = ['C=CC=C', '[CH3]']    # addition
-    RCT_SMIS = ['CCCO[O]']            # elimination
-    RCT_ICHS = list(map(automol.smiles.inchi, RCT_SMIS))
-    RCT_GEOS = list(map(automol.convert.geom.geometry, RCT_ICHS))
-    RCT_GRAS = list(map(automol.convert.geom.connectivity_graph, RCT_GEOS))
-    RCT_GRAS, _ = automol.graph.standard_keys_for_sequence(RCT_GRAS)
-
-    # RXNS = enumerate_reactions(RCT_GRAS)
-    RXNS = eliminations(RCT_GRAS)
-    print(len(RXNS))
-
-    for rxn in RXNS:
-        print(automol.graph.string(rxn.forward_ts_graph))
-        print()
-
-    print(len(RXNS))
+# if __name__ == "__main__":
+#     import automol
+#
+#     # RCT_SMIS = ['C=CCC[CH2]']         # hydrogen migration
+#     # RCT_SMIS = ['C=C[CH]CC']          # beta scission
+#     # RCT_SMIS = ['CCCO[O]']            # elimination
+#     RCT_SMIS = ['CC(=O)C', '[CH3]']      # hydrogen abstractions
+#     # RCT_SMIS = ['C=CC=C', '[CH3]']    # addition
+#     RCT_ICHS = list(map(automol.smiles.inchi, RCT_SMIS))
+#     RCT_GEOS = list(map(automol.convert.geom.geometry, RCT_ICHS))
+#     RCT_GRAS = list(map(automol.convert.geom.connectivity_graph, RCT_GEOS))
+#     RCT_GRAS, _ = automol.graph.standard_keys_for_sequence(RCT_GRAS)
+#
+#     # RXNS = enumerate_reactions(RCT_GRAS)
+#     RXNS = hydrogen_abstractions(RCT_GRAS)
+#     print(len(RXNS))
+#
+#     for rxn in RXNS:
+#         print(automol.graph.string(rxn.forward_ts_graph))
+#         print()
+#
+#     print(len(RXNS))

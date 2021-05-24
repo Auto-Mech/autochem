@@ -8,6 +8,7 @@ import collections.abc
 import numpy
 from phydat import ptab
 import automol.formula
+from automol import util
 from automol.util import dict_
 from automol.graph._graph_dep import atoms
 from automol.graph._graph_dep import bonds
@@ -667,8 +668,10 @@ def _isomorphism(gra1, gra2, igraph=False):
 
 def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
     """ Identify sets of isomorphically equivalent atoms
+
     Two atoms are equivalent if they transform into each other under an
     automorphism
+
     :param gra: A graph
     :param atm_key: An atom key for the graph
     :param stereo: Consider stereo?
@@ -709,8 +712,10 @@ def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
 
 def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
     """ Identify sets of isomorphically equivalent bonds
+
     Two bonds are equivalent if they transform into each other under an
     automorphism
+
     :param gra: A graph
     :param bnd_key: An bond key for the graph, which may be sorted or unsorted
     :param backbone_only: Compare backbone atoms only?
@@ -759,8 +764,10 @@ def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
 
 def are_equivalent_atoms(gra, atm1_key, atm2_key, stereo=True, dummy=True):
     """ Determine whether two atoms are isomorphically equivalent.
+
     Two atoms are equivalent if they transform into each other under an
     automorphism
+
     :param gra: A graph
     :param atm1_key: The first atom
     :type atm1_key: int
@@ -781,8 +788,10 @@ def are_equivalent_atoms(gra, atm1_key, atm2_key, stereo=True, dummy=True):
 
 def are_equivalent_bonds(gra, bnd1_key, bnd2_key, stereo=True, dummy=True):
     """ Determine whether two bonds are isomorphically equivalent.
+
     Two bonds are equivalent if they transform into each other under an
     automorphism
+
     :param gra: A graph
     :param bnd1_key: The first atom
     :type bnd1_key: int
@@ -810,6 +819,68 @@ def are_equivalent_bonds(gra, bnd1_key, bnd2_key, stereo=True, dummy=True):
         are_equiv |= bool(isomorphism(gra1, gra2, stereo=stereo, dummy=dummy))
 
     return are_equiv
+
+
+def atom_equivalence_class_reps(gra, atm_keys=None, stereo=True, dummy=True):
+    """ Find equivalence class representatives for atoms in the class
+
+    This function identifies isomorphically unique atoms, which do not
+    transform into each other under an automorphism.
+
+    Optionally, a subset of atoms can be passed in to consider class
+    representatives from within that list.
+
+    :param gra: A graph
+    :param atm_keys: An optional list of atom keys from which to determine
+        equivalence class representatives. If None, the full set of atom keys
+        will be used.
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: The list of equivalence class reprentatives/unique atoms.
+    :rtype: frozenset[int]
+    """
+    atm_keys = atom_keys(gra) if atm_keys is None else atm_keys
+
+    def _equiv(atm1_key, atm2_key):
+        return are_equivalent_atoms(gra, atm1_key, atm2_key, stereo=stereo,
+                                    dummy=dummy)
+
+    eq_classes = util.equivalence_partition(atm_keys, _equiv)
+    class_reps = frozenset(next(iter(c)) for c in eq_classes)
+    return class_reps
+
+
+def bond_equivalence_class_reps(gra, bnd_keys=None, stereo=True, dummy=True):
+    """ Find equivalence class representatives for bonds in the class
+
+    This function identifies isomorphically unique bonds, which do not
+    transform into each other under an automorphism.
+
+    Optionally, a subset of bonds can be passed in to consider class
+    representatives from within that list.
+
+    :param gra: A graph
+    :param bnd_keys: An optional list of bond keys from which to determine
+        equivalence class representatives. If None, the full set of bond keys
+        will be used.
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: The list of equivalence class reprentatives/unique bonds.
+    :rtype: frozenset[int]
+    """
+    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+
+    def _equiv(bnd1_key, bnd2_key):
+        return are_equivalent_bonds(gra, bnd1_key, bnd2_key, stereo=stereo,
+                                    dummy=dummy)
+
+    eq_classes = util.equivalence_partition(bnd_keys, _equiv)
+    class_reps = frozenset(next(iter(c)) for c in eq_classes)
+    return class_reps
 
 
 # def full_isomorphism(gra1, gra2, igraph=True):

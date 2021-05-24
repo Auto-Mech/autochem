@@ -146,6 +146,8 @@ from automol.graph._graph import equivalent_atoms
 from automol.graph._graph import equivalent_bonds
 from automol.graph._graph import are_equivalent_atoms
 from automol.graph._graph import are_equivalent_bonds
+from automol.graph._graph import atom_equivalence_class_reps
+from automol.graph._graph import bond_equivalence_class_reps
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import backbone_unique
@@ -457,6 +459,8 @@ __all__ = [
     'equivalent_bonds',
     'are_equivalent_atoms',
     'are_equivalent_bonds',
+    'atom_equivalence_class_reps',
+    'bond_equivalence_class_reps',
     'full_subgraph_isomorphism',
     'full_isomorphism',
     'full_subgraph_isomorphism',
