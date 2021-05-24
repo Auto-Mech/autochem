@@ -287,18 +287,17 @@ def test__reac__products_graph():
     """
     rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
     assert automol.reac.products_graph(rxn) == (
-        {0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-         3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-         6: ('H', 0, None), 7: ('C', 0, None), 8: ('C', 0, None),
-         9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-         12: ('H', 0, None), 13: ('H', 0, None)},
-        {frozenset({1, 4}): (1, None), frozenset({8, 11}): (1, None),
-         frozenset({10, 7}): (1, None), frozenset({0, 1}): (1, None),
-         frozenset({0, 2}): (1, None), frozenset({9, 7}): (1, None),
-         frozenset({8, 7}): (1, None), frozenset({1, 5}): (1, None),
-         frozenset({8, 13}): (1, None), frozenset({1, 6}): (1, None),
-         frozenset({1, 3}): (0, None), frozenset({8, 12}): (1, None)}
-    )
+        {0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+         3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+         6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+         9: ('H', 0, None), 10: ('H', 0, None), 11: ('O', 0, None),
+         12: ('H', 0, None)},
+        {frozenset({1, 7}): (1, None), frozenset({10, 2}): (1, None),
+         frozenset({1, 2}): (1, None), frozenset({0, 3}): (1, None),
+         frozenset({11, 12}): (1, None), frozenset({0, 2}): (1, None),
+         frozenset({0, 4}): (1, None), frozenset({0, 5}): (1, None),
+         frozenset({8, 1}): (1, None), frozenset({1, 6}): (1, None),
+         frozenset({9, 2}): (1, None)})
 
 
 def test__reac__hydrogen_migration():
@@ -1392,6 +1391,28 @@ def test__prod__beta_scission():
         assert any(r.class_ == 'beta scission' for r in rxns_)
 
 
+def test__prod__elimination():
+    """ test elimination product enumeration
+    """
+    rct_smis = ['CCCO[O]']
+    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
+    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+
+    rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
+            if r.class_ == 'elimination']
+    print('number of eliminations:', len(rxns))
+    assert rxns
+
+    for rxn in rxns:
+        rct_gras_ = automol.reac.reactant_graphs(rxn)
+        prd_gras_ = automol.reac.product_graphs(rxn)
+        assert rct_gras_ == rct_gras
+        rxns_ = automol.reac.find(rct_gras_, prd_gras_)
+        assert any(r.class_ == 'elimination' for r in rxns_)
+
+
 def test__prod__addition():
     """ test addition product enumeration
     """
@@ -1463,6 +1484,8 @@ if __name__ == '__main__':
     # test__reac__hydrogen_migration()
     # test__reac__elimination()
     # test__reac__insertion()
-    test__prod__hydrogen_migration()
-    test__prod__beta_scission()
-    test__prod__addition()
+    # test__prod__hydrogen_migration()
+    # test__prod__beta_scission()
+    # test__prod__elimination()
+    # test__prod__addition()
+    test__reac__products_graph()

@@ -140,6 +140,20 @@ def geometry(gra):
     return geo
 
 
+def rdkit_molecule(gra):
+    """ Convert a molecular graph to an RDKit molecule.
+
+    This is mainly useful for quick visualization with IPython, which can be
+    done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_molecule(gra))
+
+    :param gra: the graph
+    :returns: the RDKit molecule
+    """
+    return _rdkit.from_inchi(inchi(gra))
+
+
 def formula(gra):
     """ Generate a stoichiometric formula dictionary from a molecular graph.
 

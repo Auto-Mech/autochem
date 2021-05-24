@@ -381,19 +381,14 @@ def reactants_graph(rxn, rev=False):
     return ts.reactants_graph(tsg)
 
 
-def products_graph(rxn, rev=False):
+def products_graph(rxn):
     """ Obtain a (single) graph of the products in this reaction.
 
         :param rxn: the reaction object
         :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
         :rtype: automol graph data structure
     """
-    if rev:
-        tsg = rxn.backward_ts_graph
-    else:
-        tsg = rxn.forward_ts_graph
+    tsg = rxn.backward_ts_graph
     return ts.reactants_graph(tsg)
 
 

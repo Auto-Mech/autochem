@@ -226,6 +226,7 @@ import automol.create as _create
 from automol.convert.graph import inchi as _inchi
 from automol.convert.graph import geometry as _geometry
 from automol.convert.graph import formula as _formula
+from automol.convert.graph import rdkit_molecule as _rdkit_molecule
 
 # util fxns
 from automol.graph._util import ring_idxs
@@ -285,6 +286,12 @@ def formula(gra):
     """ graph => formula
     """
     return _formula(gra)
+
+
+def rdkit_molecule(gra):
+    """ graph => RDKit molecule
+    """
+    return _rdkit_molecule(gra)
 
 
 __all__ = [
