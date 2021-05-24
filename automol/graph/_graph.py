@@ -4,6 +4,7 @@
 import operator
 import itertools
 import functools
+import collections.abc
 import numpy
 from phydat import ptab
 import automol.formula
@@ -66,8 +67,9 @@ def standard_keys_for_sequence(gras):
 
         shift += natms
 
-    gras = [relabel(gra, atm_key_dct)
-            for gra, atm_key_dct in zip(gras, atm_key_dcts)]
+    gras = tuple(relabel(gra, atm_key_dct)
+                 for gra, atm_key_dct in zip(gras, atm_key_dcts))
+    atm_key_dcts = tuple(atm_key_dcts)
 
     return gras, atm_key_dcts
 
@@ -665,10 +667,8 @@ def _isomorphism(gra1, gra2, igraph=False):
 
 def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
     """ Identify sets of isomorphically equivalent atoms
-
     Two atoms are equivalent if they transform into each other under an
     automorphism
-
     :param gra: A graph
     :param atm_key: An atom key for the graph
     :param stereo: Consider stereo?
@@ -699,11 +699,9 @@ def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
     # 3. Find the equivalent atoms from the list of candidates.
     # Strategy: Change the atom symbol to 'Ts' and check for isomorphism.
     # Assumes none of the compounds have element 117.
-    ref_gra = set_atom_symbols(gra, {atm_key: 'Ts'})
     atm_keys = []
     for key in cand_keys:
-        comp_gra = set_atom_symbols(gra, {key: 'Ts'})
-        if isomorphism(ref_gra, comp_gra, stereo=stereo, dummy=dummy):
+        if are_equivalent_atoms(gra, atm_key, key, stereo=stereo, dummy=dummy):
             atm_keys.append(key)
 
     return frozenset(atm_keys)
@@ -711,10 +709,8 @@ def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
 
 def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
     """ Identify sets of isomorphically equivalent bonds
-
     Two bonds are equivalent if they transform into each other under an
     automorphism
-
     :param gra: A graph
     :param bnd_key: An bond key for the graph, which may be sorted or unsorted
     :param backbone_only: Compare backbone atoms only?
@@ -753,14 +749,67 @@ def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
     # 3. Find the equivalent bonds from the list of candidates.
     # Strategy: Change the atom symbols to 'Lv' and 'Ts' and check for
     # isomorphism.  Assumes none of the compounds have element 116 or 117.
-    ref_gra = set_atom_symbols(gra, {bnd_key[0]: 'Lv', bnd_key[1]: 'Ts'})
     bnd_keys = []
     for key in cand_keys:
-        comp_gra = set_atom_symbols(gra, {key[0]: 'Lv', key[1]: 'Ts'})
-        if isomorphism(ref_gra, comp_gra, stereo=stereo, dummy=dummy):
+        if are_equivalent_bonds(gra, bnd_key, key, stereo=stereo, dummy=dummy):
             bnd_keys.append(key)
 
     return frozenset(bnd_keys)
+
+
+def are_equivalent_atoms(gra, atm1_key, atm2_key, stereo=True, dummy=True):
+    """ Determine whether two atoms are isomorphically equivalent.
+    Two atoms are equivalent if they transform into each other under an
+    automorphism
+    :param gra: A graph
+    :param atm1_key: The first atom
+    :type atm1_key: int
+    :param atm2_key: The first atom
+    :type atm2_key: int
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: True if the atoms are equivalent, False otherwise
+    :rtype: bool
+    """
+    gra1 = set_atom_symbols(gra, {atm1_key: 'Ts'})
+    gra2 = set_atom_symbols(gra, {atm2_key: 'Ts'})
+    are_equiv = bool(isomorphism(gra1, gra2, stereo=stereo, dummy=dummy))
+    return are_equiv
+
+
+def are_equivalent_bonds(gra, bnd1_key, bnd2_key, stereo=True, dummy=True):
+    """ Determine whether two bonds are isomorphically equivalent.
+    Two bonds are equivalent if they transform into each other under an
+    automorphism
+    :param gra: A graph
+    :param bnd1_key: The first atom
+    :type bnd1_key: int
+    :param bnd2_key: The first atom
+    :type bnd2_key: int
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: True if the atoms are equivalent, False otherwise
+    :rtype: bool
+    """
+    order_matters = (isinstance(bnd1_key, collections.abc.Sequence) and
+                     isinstance(bnd2_key, collections.abc.Sequence))
+
+    bnd1_key = list(bnd1_key)
+    bnd2_key = list(bnd2_key)
+    gra1 = set_atom_symbols(gra, {bnd1_key[0]: 'Lv', bnd1_key[1]: 'Ts'})
+    gra2 = set_atom_symbols(gra, {bnd2_key[0]: 'Lv', bnd2_key[1]: 'Ts'})
+    are_equiv = bool(isomorphism(gra1, gra2, stereo=stereo, dummy=dummy))
+
+    # If order doesn't matter, check swap atoms and check again
+    if not order_matters:
+        gra2 = set_atom_symbols(gra, {bnd2_key[1]: 'Lv', bnd2_key[2]: 'Ts'})
+        are_equiv |= bool(isomorphism(gra1, gra2, stereo=stereo, dummy=dummy))
+
+    return are_equiv
 
 
 # def full_isomorphism(gra1, gra2, igraph=True):

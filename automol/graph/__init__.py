@@ -144,6 +144,8 @@ from automol.graph._graph import atom_explicit_hydrogen_valences
 from automol.graph._graph import isomorphism
 from automol.graph._graph import equivalent_atoms
 from automol.graph._graph import equivalent_bonds
+from automol.graph._graph import are_equivalent_atoms
+from automol.graph._graph import are_equivalent_bonds
 from automol.graph._graph import full_isomorphism
 from automol.graph._graph import full_subgraph_isomorphism
 from automol.graph._graph import backbone_unique
@@ -165,6 +167,8 @@ from automol.graph._graph import bond_symmetry_numbers
 from automol.graph._res import linear_atom_keys
 from automol.graph._res import resonance_dominant_atom_centered_cumulene_keys
 from automol.graph._res import resonance_dominant_bond_centered_cumulene_keys
+from automol.graph._res import radical_atom_keys
+from automol.graph._res import has_separated_radical_sites
 from automol.graph._res import nonresonant_radical_atom_keys
 from automol.graph._res import sigma_radical_atom_keys
 from automol.graph._res import resonance_dominant_radical_atom_keys
@@ -444,6 +448,8 @@ __all__ = [
     'isomorphism',
     'equivalent_atoms',
     'equivalent_bonds',
+    'are_equivalent_atoms',
+    'are_equivalent_bonds',
     'full_subgraph_isomorphism',
     'full_isomorphism',
     'full_subgraph_isomorphism',
@@ -464,6 +470,8 @@ __all__ = [
     'linear_atom_keys',
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
+    'radical_atom_keys',
+    'has_separated_radical_sites',
     'nonresonant_radical_atom_keys',
     'sigma_radical_atom_keys',
     'resonance_dominant_radical_atom_keys',
