@@ -71,6 +71,8 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
 
     # generate the scaling factor
     factor = numpy.exp(log_rt_freq - log_freq - log_tors_freq)
+    # tau_factor = numpy.exp(log_rt_freq - log_freq)
+    # tau_factor_mode = tau_factor
 
     # Generate the set of indices for torsions that are two be scales
     scale_factor = (idx_remove, factor)

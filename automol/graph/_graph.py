@@ -14,6 +14,7 @@ from automol.graph._graph_dep import atom_keys
 from automol.graph._graph_dep import bond_keys
 from automol.graph._graph_dep import atom_symbols
 from automol.graph._graph_dep import atom_implicit_hydrogen_valences
+from automol.graph._graph_dep import set_atom_symbols
 from automol.graph._graph_dep import relabel
 from automol.graph._graph_dep import without_stereo_parities
 from automol.graph._graph_dep import atom_explicit_hydrogen_keys
@@ -549,9 +550,11 @@ def standard_keys_without_dummy_atoms(gra):
     return gra, dummy_keys_dct
 
 
-def atom_groups(gra, atm):
+def atom_groups(gra, atm, stereo=False):
     """ return a list of groups off of one atom
     """
+    if not stereo:
+        gra = without_stereo_parities(gra) 
     adj_atms = atoms_neighbor_atom_keys(gra)
     keys = []
     for atmi in adj_atms[atm]:
@@ -621,6 +624,8 @@ def atom_explicit_hydrogen_valences(gra):
 def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
     """ Obtain an isomorphism between two graphs
 
+    This should eventually replace the other isomorphism functions.
+
     :param backbone_only: Compare backbone atoms only?
     :type backbone_only: bool
     :param stereo: Consider stereo?
@@ -658,6 +663,106 @@ def _isomorphism(gra1, gra2, igraph=False):
         nxg2 = _networkx.from_graph(gra2)
         iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
+
+
+def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
+    """ Identify sets of isomorphically equivalent atoms
+
+    Two atoms are equivalent if they transform into each other under an
+    automorphism
+
+    :param gra: A graph
+    :param atm_key: An atom key for the graph
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: Keys to equivalent atoms
+    :rtype: frozenset
+    """
+    assert atm_key in atom_keys(gra), (
+        "{} not in {}".format(atm_key, atom_keys(gra)))
+
+    atm_symb_dct = atom_symbols(gra)
+    atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
+
+    def _neighbor_symbols(key):
+        return sorted(map(atm_symb_dct.__getitem__, atm_ngbs_dct[key]))
+
+    # 1. Find atoms with the same symbols
+    atm_symb = atm_symb_dct[atm_key]
+    cand_keys = atom_keys(gra, sym=atm_symb)
+
+    # 2. Of those, find atoms with the same neighboring atom types
+    atm_ngb_symbs = _neighbor_symbols(atm_key)
+    cand_keys = [k for k in cand_keys
+                 if _neighbor_symbols(k) == atm_ngb_symbs]
+
+    # 3. Find the equivalent atoms from the list of candidates.
+    # Strategy: Change the atom symbol to 'Ts' and check for isomorphism.
+    # Assumes none of the compounds have element 117.
+    ref_gra = set_atom_symbols(gra, {atm_key: 'Ts'})
+    atm_keys = []
+    for key in cand_keys:
+        comp_gra = set_atom_symbols(gra, {key: 'Ts'})
+        if isomorphism(ref_gra, comp_gra, stereo=stereo, dummy=dummy):
+            atm_keys.append(key)
+
+    return frozenset(atm_keys)
+
+
+def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
+    """ Identify sets of isomorphically equivalent bonds
+
+    Two bonds are equivalent if they transform into each other under an
+    automorphism
+
+    :param gra: A graph
+    :param bnd_key: An bond key for the graph, which may be sorted or unsorted
+    :param backbone_only: Compare backbone atoms only?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: Keys to equivalent bonds
+    :rtype: frozenset
+    """
+    bnd_key = tuple(bnd_key)
+    bnd_keys = list(map(tuple, map(sorted, bond_keys(gra))))
+    bnd_keys += list(map(tuple, map(reversed, bnd_keys)))
+    assert bnd_key in bnd_keys, "{} not in {}".format(bnd_key, bnd_keys)
+
+    atm_symb_dct = atom_symbols(gra)
+    atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
+
+    def _symbols(bnd_key):
+        return list(map(atm_symb_dct.__getitem__, bnd_key))
+
+    def _neighbor_symbols(bnd_key):
+        key1, key2 = bnd_key
+        nsymbs1 = sorted(map(atm_symb_dct.__getitem__, atm_ngbs_dct[key1]))
+        nsymbs2 = sorted(map(atm_symb_dct.__getitem__, atm_ngbs_dct[key2]))
+        return nsymbs1, nsymbs2
+
+    # 1. Find bonds with the same atom types
+    bnd_symbs = _symbols(bnd_key)
+    cand_keys = [k for k in bnd_keys if _symbols(k) == bnd_symbs]
+
+    # 2. Of those, find bonds with the same neighboring atom types
+    bnd_ngb_symbs = _neighbor_symbols(bnd_key)
+    cand_keys = [k for k in cand_keys
+                 if _neighbor_symbols(k) == bnd_ngb_symbs]
+
+    # 3. Find the equivalent bonds from the list of candidates.
+    # Strategy: Change the atom symbols to 'Lv' and 'Ts' and check for
+    # isomorphism.  Assumes none of the compounds have element 116 or 117.
+    ref_gra = set_atom_symbols(gra, {bnd_key[0]: 'Lv', bnd_key[1]: 'Ts'})
+    bnd_keys = []
+    for key in cand_keys:
+        comp_gra = set_atom_symbols(gra, {key[0]: 'Lv', key[1]: 'Ts'})
+        if isomorphism(ref_gra, comp_gra, stereo=stereo, dummy=dummy):
+            bnd_keys.append(key)
+
+    return frozenset(bnd_keys)
 
 
 # def full_isomorphism(gra1, gra2, igraph=True):
@@ -783,3 +888,28 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
         bnd_symb_num_dct, bond_keys(gra), fill_val=1)
 
     return bnd_symb_num_dct
+
+
+if __name__ == '__main__':
+    GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+            12: ('H', 0, None), 13: ('H', 0, None)},
+           {frozenset({0, 3}): (1, None), frozenset({0, 4}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({0, 6}): (1, None),
+            frozenset({1, 3}): (1, None), frozenset({1, 7}): (1, None),
+            frozenset({8, 1}): (1, None), frozenset({1, 9}): (1, None),
+            frozenset({2, 3}): (1, None), frozenset({2, 10}): (1, None),
+            frozenset({2, 11}): (1, None), frozenset({2, 12}): (1, None),
+            frozenset({3, 13}): (1, None)})
+    print(equivalent_bonds(GRA, [0, 3]))
+    # GRA1 = ({0: ('Z', 3, None), 1: ('C', 3, None), 2: ('C', 2, None),
+    #          3: ('C', 2, None)},
+    #         {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
+    #          frozenset({2, 3}): (1, None)})
+    # GRA2 = ({0: ('C', 3, None), 1: ('Z', 3, None), 2: ('C', 2, None),
+    #          3: ('C', 2, None)},
+    #         {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
+    #          frozenset({2, 3}): (1, None)})
+    # print(isomorphism(GRA1, GRA2))

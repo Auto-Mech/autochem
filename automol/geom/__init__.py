@@ -50,6 +50,7 @@ from automol.geom._trans import join
 from automol.geom._trans import reorder_coordinates
 from automol.geom._trans import swap_coordinates
 from automol.geom._trans import insert
+from automol.geom._trans import insert_dummies
 from automol.geom._trans import insert_dummies_on_linear_atoms
 from automol.geom._trans import displace
 from automol.geom._trans import translate
@@ -202,6 +203,7 @@ __all__ = [
     'reorder_coordinates',
     'swap_coordinates',
     'insert',
+    'insert_dummies',
     'insert_dummies_on_linear_atoms',
     'displace',
     'translate',

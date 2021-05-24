@@ -1,0 +1,22 @@
+[MASTER]
+max-module-lines=2000
+max-branches=50
+max-nested-blocks=10
+ignored-modules=pyx2z, rdkit, numpy
+disable=
+    invalid-name,
+    pointless-statement,
+    useless-object-inheritance,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-locals,
+    too-many-statements,
+    too-many-instance-attributes,
+    superfluous-parens,
+    deprecated-method,
+    duplicate-code,
+    no-member,
+    global-statement,
+    arguments-out-of-order,
+    too-many-function-args
+ 

@@ -8,7 +8,6 @@ Function arguments:
 """
 
 import itertools
-import more_itertools as mit
 from automol.convert.graph import formula as graph_formula
 from automol.convert.geom import geometry as ich_geometry
 from automol.convert.geom import connectivity_graph
@@ -25,18 +24,20 @@ from automol.graph import union
 from automol.graph import explicit
 from automol.graph import add_bonds
 from automol.graph import remove_bonds
-from automol.graph import full_isomorphism
+from automol.graph import isomorphism
+from automol.graph import equivalent_atoms
 from automol.graph import union_from_sequence
 from automol.graph import unsaturated_atom_keys
 from automol.graph import without_stereo_parities
-from automol.graph import atoms_sorted_neighbor_atom_keys
+from automol.graph import atom_neighbor_atom_key
+from automol.graph import atoms_neighbor_atom_keys
+from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogen_keys
 from automol.graph import rings_bond_keys
 from automol.graph import rings_atom_keys
-from automol.graph import cycle_ring_atom_key_to_front
-from automol.graph import isomorphic_radical_graphs
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
+from automol.reac._reac import ts_unique
 
 
 def trivial(rct_gras, prd_gras):
@@ -57,7 +58,7 @@ def trivial(rct_gras, prd_gras):
         # get the right sort order
         for rct_idx, rct_gra in enumerate(rct_gras):
             prd_idx = next((idx for idx, prd_gra in enumerate(prd_gras)
-                            if full_isomorphism(rct_gra, prd_gra)), None)
+                            if isomorphism(rct_gra, prd_gra)), None)
 
             if prd_idx is not None:
                 rct_idxs.append(rct_idx)
@@ -104,53 +105,65 @@ def hydrogen_migrations(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 1 and len(prd_gras) == 1:
-        gra1, = rct_gras
-        gra2, = prd_gras
+        rct_gra, = rct_gras
+        prd_gra, = prd_gras
 
-        # Get the keys for the reactant graph
-        h_atm_key1 = max(atom_keys(gra1)) + 1
-        atm_keys1 = unsaturated_atom_keys(gra1)
+        # Find keys for reactant graph
+        rct_h_key = max(atom_keys(rct_gra)) + 1
+        rct_rad_keys = unsaturated_atom_keys(rct_gra)
 
-        # Generate reactions for all isomorphic graphs of products
-        gra2_lst = (gra2,) + isomorphic_radical_graphs(gra2)
-        # gra2_lst = (gra2,)
+        # Find keys for product graph
+        prd_h_key = max(atom_keys(prd_gra)) + 1
+        prd_rad_keys = unsaturated_atom_keys(prd_gra)
 
-        for _gra2 in gra2_lst:
-            # Find keys for product graph
-            h_atm_key2 = max(atom_keys(_gra2)) + 1
-            atm_keys2 = unsaturated_atom_keys(_gra2)
+        for rct_rad_key, prd_rad_key in (
+                itertools.product(rct_rad_keys, prd_rad_keys)):
+            # Add hydrogens to each radical site and see if the result matches
+            rct_h_gra = add_bonded_atom(
+                rct_gra, 'H', rct_rad_key, bnd_atm_key=rct_h_key)
+            prd_h_gra = add_bonded_atom(
+                prd_gra, 'H', prd_rad_key, bnd_atm_key=prd_h_key)
 
-            # Run identifier
-            for atm_key1, atm_key2 in itertools.product(atm_keys1, atm_keys2):
-                gra1_h = add_atom_explicit_hydrogen_keys(
-                    gra1, {atm_key1: [h_atm_key1]})
-                gra2_h = add_atom_explicit_hydrogen_keys(
-                    _gra2, {atm_key2: [h_atm_key2]})
+            iso_dct = isomorphism(rct_h_gra, prd_h_gra)
+            if iso_dct:
+                inv_dct = dict(map(reversed, iso_dct.items()))
 
-                iso_dct = full_isomorphism(gra1_h, gra2_h)
-                if iso_dct:
-                    inv_dct = dict(map(reversed, iso_dct.items()))
-                    f_frm_bnd_key = (atm_key1, inv_dct[h_atm_key2])
-                    f_brk_bnd_key = (inv_dct[atm_key2], inv_dct[h_atm_key2])
-                    b_frm_bnd_key = (atm_key2, iso_dct[h_atm_key1])
-                    b_brk_bnd_key = (iso_dct[atm_key1], iso_dct[h_atm_key1])
-                    forw_tsg = ts.graph(gra1,
-                                        frm_bnd_keys=[f_frm_bnd_key],
-                                        brk_bnd_keys=[f_brk_bnd_key])
-                    back_tsg = ts.graph(_gra2,
-                                        frm_bnd_keys=[b_frm_bnd_key],
-                                        brk_bnd_keys=[b_brk_bnd_key])
+                rct_don_key = inv_dct[prd_rad_key]
+                prd_don_key = iso_dct[rct_rad_key]
 
-                    # Create the reaction object
-                    rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
-                        forw_tsg=forw_tsg,
-                        back_tsg=back_tsg,
-                        rcts_keys=[atom_keys(gra1)],
-                        prds_keys=[atom_keys(_gra2)],
-                    ))
+                # Check equivalent donor atoms for other possible TSs
+                rct_don_keys = equivalent_atoms(rct_h_gra, rct_don_key)
+                prd_don_keys = equivalent_atoms(prd_h_gra, prd_don_key)
 
-    return tuple(rxns)
+                for rct_don_key, prd_don_key in (
+                        itertools.product(rct_don_keys, prd_don_keys)):
+                    rct_hyd_key = atom_neighbor_atom_key(
+                        rct_gra, rct_don_key, symbs_first=('H',),
+                        symbs_last=())
+                    prd_hyd_key = atom_neighbor_atom_key(
+                        prd_gra, prd_don_key, symbs_first=('H',),
+                        symbs_last=())
+
+                    forw_tsg = ts.graph(
+                        rct_gra,
+                        frm_bnd_keys=[(rct_rad_key, rct_hyd_key)],
+                        brk_bnd_keys=[(rct_don_key, rct_hyd_key)])
+
+                    back_tsg = ts.graph(
+                        prd_gra,
+                        frm_bnd_keys=[(prd_rad_key, prd_hyd_key)],
+                        brk_bnd_keys=[(prd_don_key, prd_hyd_key)])
+
+                    if isomorphism(forw_tsg, ts.reverse(back_tsg)):
+                        rxns.append(Reaction(
+                            rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
+                            forw_tsg=forw_tsg,
+                            back_tsg=back_tsg,
+                            rcts_keys=[atom_keys(rct_gra)],
+                            prds_keys=[atom_keys(prd_gra)],
+                        ))
+
+    return ts_unique(rxns)
 
 
 # 2. Beta scissions
@@ -195,7 +208,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
                 for end_key in bnd_key:
                     # Add to one end of the broken ring
                     fgra = add_bonds(gra, [(atm_key, end_key)])
-                    inv_dct = full_isomorphism(fgra, rgra)
+                    inv_dct = isomorphism(fgra, rgra)
                     if inv_dct:
                         other_end_key, = bnd_key - {end_key}
                         f_frm_bnd_key = (inv_dct[end_key],
@@ -219,7 +232,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
                             prds_keys=[atom_keys(pgra1), atom_keys(pgra2)],
                         ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # 4. Eliminations
@@ -241,14 +254,14 @@ def eliminations(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 1 and len(prd_gras) == 2:
-        rgra, = rct_gras
-        pgra = union_from_sequence(prd_gras)
+        rct_gra, = rct_gras
+        prds_gra = union_from_sequence(prd_gras)
 
-        rngb_keys = atoms_sorted_neighbor_atom_keys(rgra)
+        ngb_keys_dct = atoms_neighbor_atom_keys(rct_gra)
 
-        frm1_keys = atom_keys(rgra, excl_syms=('H',))
-        frm2_keys = atom_keys(rgra)
-        bnd_keys = bond_keys(rgra)
+        frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
+        frm2_keys = atom_keys(rct_gra)
+        bnd_keys = bond_keys(rct_gra)
 
         frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
                         in itertools.product(frm1_keys, frm2_keys)
@@ -257,62 +270,56 @@ def eliminations(rct_gras, prd_gras):
 
         for frm1_key, frm2_key in frm_bnd_keys:
             # Bond the radical atom to the hydrogen atom
-            rgra_ = add_bonds(rgra, [(frm2_key, frm1_key)])
+            gra_ = add_bonds(rct_gra, [(frm2_key, frm1_key)])
 
             # Get keys to the ring formed by this extra bond
-            rng_keys = next((ks for ks in rings_atom_keys(rgra_)
+            rng_keys = next((ks for ks in rings_atom_keys(gra_)
                              if frm2_key in ks and frm1_key in ks), None)
-            if rng_keys is not None:
-                for nfrm2_key in rngb_keys[frm2_key]:
-                    # Break the bond between the attacked atom and its neighbor
-                    rgra_ = remove_bonds(rgra_, [(frm2_key, nfrm2_key)])
+            # Eliminations (as far as I can tell) only happen through TSs with
+            # 3- or 4-membered rings
+            if rng_keys is not None and len(rng_keys) < 5:
+                frm1_ngb_key, = ngb_keys_dct[frm1_key] & set(rng_keys)
+                frm2_ngb_key, = ngb_keys_dct[frm2_key] & set(rng_keys)
 
-                    # Sort the ring keys so that they start with the radical
-                    # atom and end with the hydrogen atom
-                    keys = cycle_ring_atom_key_to_front(rng_keys, frm1_key,
-                                                        end_key=frm2_key)
+                # Break the bonds on either side of the newly formed bond
+                gra_ = remove_bonds(gra_, [(frm1_key, frm1_ngb_key)])
+                gra_ = remove_bonds(gra_, [(frm2_key, frm2_ngb_key)])
 
-                    # Break one ring bond at a time, starting from the rind,
-                    # and see what we get
-                    for brk_key1, brk_key2 in mit.windowed(keys[:-1], 2):
-                        gra = remove_bonds(rgra_, [(brk_key1, brk_key2)])
+                inv_dct = isomorphism(gra_, prds_gra)
+                if inv_dct:
+                    f_frm_bnd_key = (frm1_key, frm2_key)
+                    f_brk_bnd_key1 = (frm1_key, frm1_ngb_key)
+                    f_brk_bnd_key2 = (frm2_key, frm2_ngb_key)
+                    inv_ = inv_dct.__getitem__
+                    b_frm_bnd_key1 = tuple(map(inv_, f_brk_bnd_key1))
+                    b_frm_bnd_key2 = tuple(map(inv_, f_brk_bnd_key2))
+                    b_brk_bnd_key = tuple(map(inv_, f_frm_bnd_key))
 
-                        inv_dct = full_isomorphism(gra, pgra)
-                        if inv_dct:
-                            f_frm_bnd_key = (frm2_key, frm1_key)
-                            f_brk_bnd_key1 = (frm2_key, nfrm2_key)
-                            f_brk_bnd_key2 = (brk_key1, brk_key2)
-                            b_frm_bnd_key1 = (inv_dct[frm2_key],
-                                              inv_dct[nfrm2_key])
-                            b_frm_bnd_key2 = (inv_dct[brk_key1],
-                                              inv_dct[brk_key2])
-                            b_brk_bnd_key = (inv_dct[frm2_key],
-                                             inv_dct[frm1_key])
-                            forw_tsg = ts.graph(rgra,
-                                                frm_bnd_keys=[f_frm_bnd_key],
-                                                brk_bnd_keys=[f_brk_bnd_key1,
-                                                              f_brk_bnd_key2])
-                            back_tsg = ts.graph(pgra,
-                                                frm_bnd_keys=[b_frm_bnd_key1,
-                                                              b_frm_bnd_key2],
-                                                brk_bnd_keys=[b_brk_bnd_key])
+                    forw_tsg = ts.graph(rct_gra,
+                                        frm_bnd_keys=[f_frm_bnd_key],
+                                        brk_bnd_keys=[f_brk_bnd_key1,
+                                                      f_brk_bnd_key2])
+                    back_tsg = ts.graph(prds_gra,
+                                        frm_bnd_keys=[b_frm_bnd_key1,
+                                                      b_frm_bnd_key2],
+                                        brk_bnd_keys=[b_brk_bnd_key])
 
-                            rcts_atm_keys = list(map(atom_keys, rct_gras))
-                            prds_atm_keys = list(map(atom_keys, prd_gras))
+                    rcts_atm_keys = list(map(atom_keys, rct_gras))
+                    prds_atm_keys = list(map(atom_keys, prd_gras))
 
-                            if inv_dct[frm2_key] not in prds_atm_keys[1]:
-                                prds_atm_keys = list(reversed(prds_atm_keys))
+                    if inv_dct[frm2_key] not in prds_atm_keys[1]:
+                        prds_atm_keys = list(reversed(prds_atm_keys))
 
-                            # Create the reaction object
-                            rxns.append(Reaction(
-                                rxn_cls=par.ReactionClass.ELIMINATION,
-                                forw_tsg=forw_tsg,
-                                back_tsg=back_tsg,
-                                rcts_keys=rcts_atm_keys,
-                                prds_keys=prds_atm_keys,
-                            ))
+                    # Create the reaction object
+                    rxns.append(Reaction(
+                        rxn_cls=par.ReactionClass.ELIMINATION,
+                        forw_tsg=forw_tsg,
+                        back_tsg=back_tsg,
+                        rcts_keys=rcts_atm_keys,
+                        prds_keys=prds_atm_keys,
+                    ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # Bimolecular reactions
@@ -377,7 +384,7 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # 2. Additions
@@ -406,7 +413,7 @@ def additions(rct_gras, prd_gras):
             xy_gra = add_bonds(
                 union(x_gra, y_gra), [{x_atm_key, y_atm_key}])
 
-            iso_dct = full_isomorphism(xy_gra, prd_gra)
+            iso_dct = isomorphism(xy_gra, prd_gra)
             if iso_dct:
                 rcts_gra = union_from_sequence(rct_gras)
                 prds_gra = prd_gra
@@ -432,7 +439,7 @@ def additions(rct_gras, prd_gras):
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 # 3. Insertions
@@ -477,7 +484,7 @@ def substitutions(rct_gras, prd_gras):
                 for brk_key1 in bnd_key:
                     gra = add_bonds(gra, [(brk_key1, rad_key)])
 
-                    inv_dct = full_isomorphism(gra, prd_gra)
+                    inv_dct = isomorphism(gra, prd_gra)
                     if inv_dct:
                         brk_key2, = bnd_key - {brk_key1}
                         f_frm_bnd_key = (brk_key1, rad_key)
@@ -507,7 +514,7 @@ def substitutions(rct_gras, prd_gras):
                             prds_keys=prds_atm_keys,
                         ))
 
-    return tuple(rxns)
+    return ts_unique(rxns)
 
 
 def find(rct_gras, prd_gras):
@@ -562,7 +569,7 @@ def find_from_inchis(rct_ichs, prd_ichs):
     prd_gras = list(map(connectivity_graph, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
-    rxns = automol.reac.find(rct_gras, prd_gras)
+    rxns = find(rct_gras, prd_gras)
     rxn_classes = [rxn.class_ for rxn in rxns]
     rxn_classes = [c for i, c in enumerate(rxn_classes)
                    if c not in rxn_classes[:i]]
@@ -578,7 +585,7 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
     for atm_key in uns_atm_keys:
         q_gra_h = add_atom_explicit_hydrogen_keys(
             q_gra, {atm_key: [h_atm_key]})
-        inv_atm_key_dct = full_isomorphism(q_gra_h, qh_gra)
+        inv_atm_key_dct = isomorphism(q_gra_h, qh_gra)
         if inv_atm_key_dct:
             qh_q_atm_key = inv_atm_key_dct[atm_key]
             qh_h_atm_key = inv_atm_key_dct[h_atm_key]
@@ -625,14 +632,3 @@ def _argsort_reactants(gras):
 
     idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
     return idxs
-#
-#
-# if __name__ == '__main__':
-#     import automol
-#     RXN_ICHS_LST = list(
-#         map(eval, open('luna_inchislist.txt').read().splitlines()))
-#
-#     for RXN_ICHS in RXN_ICHS_LST:
-#         print(RXN_ICHS)
-#         RXN_CLASSES = find_from_inchis(*RXN_ICHS)
-#         print(RXN_CLASSES)

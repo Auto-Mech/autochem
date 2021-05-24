@@ -607,6 +607,49 @@ def test__reac__elimination():
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
 
+    # Extra test cases:
+    rxn_smis_lst = [
+        (['CCC'], ['CC', '[CH2]']),
+    ]
+    for rct_smis, prd_smis in rxn_smis_lst:
+        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn, geo, _, _ = rxn_objs[0]
+
+        # reaction object aligned to z-matrix keys
+        # (for getting torsion coordinate names)
+        zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+        zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+        # You can also do this to determine linear atoms from zmatrix:
+        # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+        bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+        names = {automol.zmat.torsion_coordinate_name(zma, *k)
+                 for k in bnd_keys}
+        print(automol.zmat.string(zma, one_indexed=True))
+        print(names)
+
+        scan_name = automol.reac.scan_coordinate(zrxn, zma)
+        const_names = automol.reac.constraint_coordinates(zrxn, zma)
+        print(scan_name)
+        print(const_names)
+
+        # graph aligned to geometry keys
+        # (for getting rotational groups and symmetry numbers)
+        geo, _ = automol.convert.zmat.geometry(zma)
+        grxn = automol.reac.relabel_for_geometry(zrxn)
+        print(automol.geom.string(geo))
+
+        gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+
+        axes = sorted(map(sorted, gbnd_keys))
+        for axis in axes:
+            print('axis:', axis)
+            groups = automol.reac.rotational_groups(grxn, *axis)
+            print('\tgroup 1:', groups[0])
+            print('\tgroup 2:', groups[1])
+            sym_num = automol.reac.rotational_symmetry_number(grxn, *axis)
+            print('\tsymmetry number:', sym_num)
+
 
 def test__reac__hydrogen_abstraction():
     """ test hydrogen abstraction functionality
@@ -998,6 +1041,50 @@ def test__reac__insertion():
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
 
+    # Extra test cases:
+    rxn_smis_lst = [
+        (['CC', '[CH2]'], ['CCC']),
+    ]
+    for rct_smis, prd_smis in rxn_smis_lst:
+        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn, geo, _, _ = rxn_objs[0]
+
+        # reaction object aligned to z-matrix keys
+        # (for getting torsion coordinate names)
+        zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+        zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+        # You can also do this to determine linear atoms from zmatrix:
+        # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+        bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+        names = {automol.zmat.torsion_coordinate_name(zma, *k)
+                 for k in bnd_keys}
+        print(automol.zmat.string(zma, one_indexed=True))
+        print(bnd_keys)
+        print(names)
+
+        scan_name = automol.reac.scan_coordinate(zrxn, zma)
+        const_names = automol.reac.constraint_coordinates(zrxn, zma)
+        print(scan_name)
+        print(const_names)
+
+        # graph aligned to geometry keys
+        # (for getting rotational groups and symmetry numbers)
+        geo, _ = automol.convert.zmat.geometry(zma)
+        grxn = automol.reac.relabel_for_geometry(zrxn)
+        print(automol.geom.string(geo))
+
+        gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+
+        axes = sorted(map(sorted, gbnd_keys))
+        for axis in axes:
+            print('axis:', axis)
+            groups = automol.reac.rotational_groups(grxn, *axis)
+            print('\tgroup 1:', groups[0])
+            print('\tgroup 2:', groups[1])
+            sym_num = automol.reac.rotational_symmetry_number(grxn, *axis)
+            print('\tsymmetry number:', sym_num)
+
 
 def test__reac__substitution():
     """ test substitution functionality
@@ -1288,30 +1375,30 @@ def test__prod__hydrogen_abstraction():
           {frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None)}),))
 
 
-def test__prod__hydrogen_migration():
-    """ test graph.reac.prod_hydrogen migration
-    """
-
-    ccccch2_gra = automol.zmat.graph(CCCCCH2_ZMA)
-    prod_gras = automol.reac.prod_hydrogen_migration(ccccch2_gra)
-
-    assert len(prod_gras) == 1
-    assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
-    assert prod_gras[0] == (
-        ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-          3: ('H', 0, None), 4: ('C', 0, None), 6: ('H', 0, None),
-          7: ('C', 0, None), 8: ('H', 0, None), 9: ('H', 0, None),
-          10: ('C', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
-          13: ('H', 0, None), 14: ('H', 0, None), 15: ('H', 0, None),
-          16: ('H', 0, None)},
-         {frozenset({12, 7}): (1, None), frozenset({1, 4}): (1, None),
-          frozenset({10, 15}): (1, None), frozenset({10, 7}): (1, None),
-          frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
-          frozenset({0, 2}): (1, None), frozenset({0, 16}): (1, None),
-          frozenset({10, 13}): (1, None), frozenset({10, 14}): (1, None),
-          frozenset({9, 4}): (1, None), frozenset({1, 6}): (1, None),
-          frozenset({11, 7}): (1, None), frozenset({8, 4}): (1, None),
-          frozenset({4, 7}): (1, None)}),)
+# def test__prod__hydrogen_migration():
+#     """ test graph.reac.prod_hydrogen migration
+#     """
+#
+#     ccccch2_gra = automol.zmat.graph(CCCCCH2_ZMA)
+#     prod_gras = automol.reac.prod_hydrogen_migration(ccccch2_gra)
+#
+#     assert len(prod_gras) == 1
+#     assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
+#     assert prod_gras[0] == (
+#         ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
+#           3: ('H', 0, None), 4: ('C', 0, None), 6: ('H', 0, None),
+#           7: ('C', 0, None), 8: ('H', 0, None), 9: ('H', 0, None),
+#           10: ('C', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
+#           13: ('H', 0, None), 14: ('H', 0, None), 15: ('H', 0, None),
+#           16: ('H', 0, None)},
+#          {frozenset({12, 7}): (1, None), frozenset({1, 4}): (1, None),
+#           frozenset({10, 15}): (1, None), frozenset({10, 7}): (1, None),
+#           frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
+#           frozenset({0, 2}): (1, None), frozenset({0, 16}): (1, None),
+#           frozenset({10, 13}): (1, None), frozenset({10, 14}): (1, None),
+#           frozenset({9, 4}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({11, 7}): (1, None), frozenset({8, 4}): (1, None),
+#           frozenset({4, 7}): (1, None)}),)
 
 
 # def test__prod__addition():
@@ -1385,18 +1472,13 @@ def test__prod__homolytic_scission():
 
 if __name__ == '__main__':
     # test__reac__string()
-    #  test__reac__hydrogen_migration()
     # test__reac__ring_forming_scission()
     # test__reac__hydrogen_abstraction()
-    # test__reac__insertion()
     # test__reac__substitution()
-    # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
-    # test__reac__elimination()
     # test__reac__radrad_addition()
-    # test__prod__hydrogen_migration()
     # test__stereo()
     # test__species__demo()
     # test__reac__forming_rings_atom_keys()
@@ -1405,4 +1487,9 @@ if __name__ == '__main__':
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__substitution()
     # test__reac__addition()
-    test__reac__radrad_hydrogen_abstraction()
+    # test__reac__radrad_hydrogen_abstraction()
+    # test__reac__hydrogen_migration()
+    # test__prod__hydrogen_migration()
+    # test__reac__hydrogen_migration()
+    test__reac__elimination()
+    test__reac__insertion()

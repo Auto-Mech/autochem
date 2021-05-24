@@ -109,6 +109,25 @@ def reorder_coordinates(geo, idx_dct):
     return automol.create.geom.from_data(symbs, xyzs)
 
 
+def move_atom(geo, idx1, idx2):
+    """ Move an atom to a different position in the geometry
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param idx1: index of the atom to be moved
+        :type idx1: int
+        :param idx2: new position that the atom should be moved to
+        :type idx2: int
+        :returns: the transformed geometry
+        :rtype: molecular geometry
+    """
+    symbs = list(geom_base.symbols(geo))
+    xyzs = list(geom_base.coordinates(geo))
+    symbs.insert(idx2, symbs.pop(idx1))
+    xyzs.insert(idx2, xyzs.pop(idx1))
+    return automol.create.geom.from_data(symbs, xyzs)
+
+
 def swap_coordinates(geo, idx1, idx2):
     """ Swap the order of the coordinates of two atoms in a molecular geometry.
 
@@ -144,6 +163,39 @@ def insert(geo, symb, xyz, idx=None, angstrom=False):
 
     return automol.convert.geom.insert(
         geo, symb, xyz, idx=idx, angstrom=angstrom)
+
+
+def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
+    """ Insert dummy atoms over atoms in a geometry in a particular order.
+
+        :param geo: the geometry
+        :type geo: automol molecular geometry data structure
+        :param dummy_key_dct: the linear atoms and the desired positions of the
+            dummy atoms for each; linear atom indexing should follow what they
+            *will* be after the dummy atoms are moved to the appropriate
+            positions
+        :param dummy_key_dct: dict
+        :param dist: distance of dummy atom from the linear atom, in angstroms
+        :type dist: float
+        :param tol: the tolerance threshold for linearity, in degrees
+        :type tol: float
+        :returns: geometry with dummy atoms inserted, along with a dictionary
+            mapping the linear atoms onto their associated dummy atoms
+        :rtype: automol molecular geometry data structure
+    """
+    lin_keys, dum_keys = zip(
+        *sorted(dummy_key_dct.items(), key=lambda x: x[1]))
+    dum_keys = numpy.array(list(dum_keys))
+    lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
+    geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
+        geo, lin_idxs=lin_idxs, dist=dist, tol=tol)
+
+    for lin_idx, lin_key in zip(lin_idxs, lin_keys):
+        orig_idx = orig_dummy_key_dct[lin_idx]
+        new_idx = dummy_key_dct[lin_key]
+        geo = move_atom(geo, orig_idx, new_idx)
+
+    return geo
 
 
 def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,

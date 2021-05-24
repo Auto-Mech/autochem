@@ -95,6 +95,26 @@ def hydrogen_abstraction_is_sigma(rxn):
     return rad_key in sig_rad_keys
 
 
+def elimination_breaking_bond_keys(rxn):
+    """ Obtain the breaking bonds for an elimination reaction, sorted in canonical
+    order.
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: the breaking bond keys
+    :rtype: (frozenset[int], frozenset[int])
+    """
+    assert rxn.class_ == par.ReactionClass.ELIMINATION
+    # Choose the breaking bond with the fewest neighbors, to get the terminal
+    # atom if there is one.
+    tsg = rxn.forward_ts_graph
+    brk_bnd_keys = reversed(sorted(ts.breaking_bond_keys(tsg), key=sorted))
+    brk_bnd_keys = sorted(
+        brk_bnd_keys, key=lambda x: automol.graph.atom_count(
+            automol.graph.bond_neighborhood(tsg, x)))
+    return tuple(brk_bnd_keys)
+
+
 def insertion_forming_bond_keys(rxn):
     """ Obtain the forming bonds for an insertion reaction, sorted in canonical
     order.
@@ -105,13 +125,19 @@ def insertion_forming_bond_keys(rxn):
     :rtype: (frozenset[int], frozenset[int])
     """
     assert rxn.class_ == par.ReactionClass.INSERTION
-    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
-    # Choose the forming bond that doesn't intersect with the breaking bond, if
-    # one of them does
-    frm_bnd_keys = sorted(ts.forming_bond_keys(rxn.forward_ts_graph),
-                          key=sorted)
-    frm_bnd_keys = sorted(frm_bnd_keys,
-                          key=lambda x: len(x & brk_bnd_key))
+    # Choose the forming bond with the fewest neighbors, to get the terminal
+    # atom if there is one.
+    tsg = rxn.forward_ts_graph
+    # For tricky reasons, we need to sort in descending order here.
+    # The reason is that the ordering of bonds here determines the ordering of
+    # atoms in the z-matrix, which means this function could otherwise yield
+    # inconsistent results (i.e. the two bonds will reverse order).
+    # If needed, we could add sorting that is based on the symbols of the
+    # atoms instead.
+    frm_bnd_keys = reversed(sorted(ts.forming_bond_keys(tsg), key=sorted))
+    frm_bnd_keys = sorted(
+        frm_bnd_keys, key=lambda x: automol.graph.atom_count(
+            automol.graph.bond_neighborhood(tsg, x)))
     return tuple(frm_bnd_keys)
 
 
@@ -209,9 +235,12 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
     return rxn_objs
 
 
-if __name__ == '__main__':
-    rct_ichs, prd_ichs = [
-        ['InChI=1S/C7H14/c1-6(2)5-7(3)4/h7H,1,5H2,2-4H3',
-         'InChI=1S/CH3/h1H3'],
-        ['InChI=1S/C8H17/c1-7(2)6-8(3,4)5/h7H,3,6H2,1-2,4-5H3']]
-    rxn_objs_from_inchi(rct_ichs, prd_ichs)
+# if __name__ == '__main__':
+#     rct_ichs, prd_ichs = [
+#         ['InChI=1S/C7H14/c1-6(2)5-7(3)4/h7H,1,5H2,2-4H3',
+#          'InChI=1S/CH3/h1H3'],
+#         ['InChI=1S/C8H17/c1-7(2)6-8(3,4)5/h7H,3,6H2,1-2,4-5H3']]
+#     rct_ichs, prd_ichs = [
+#         ['InChI=1S/C7H14O/c1-6(8)5-7(2,3)4/h5H2,1-4H3', 'InChI=1S/CH3/h1H3'],
+#         ['InChI=1S/C8H17O/c1-7(2,3)6-8(4,5)9/h6H2,1-5H3']]
+#     rxn_objs_from_inchi(rct_ichs, prd_ichs)

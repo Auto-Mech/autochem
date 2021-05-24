@@ -62,24 +62,49 @@ LIN_ANG = 180.      # degrees
 
 
 def fake_stereo_geometry(gra, ntries=5, max_dist_err=0.5):
+    """ generate a fake stereo geometry
+    """
     return _fake_stereo_geometry(
         gra, ntries=ntries, max_dist_err=max_dist_err)
 
 
 def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
+    """ sample a qualitatively-correct stereo geometry
+
+    :param gra: the graph, which may or may not have stereo
+    :param keys: graph keys, in the order in which they should appear in the
+        geometry
+    :param ntries: number of tries for finding a valid geometry
+    :param max_dist_err: maximum distance error convergence threshold
+
+    Qualitatively-correct means it has the right connectivity and the right
+    stero parities, but its bond lengths and bond angles may not be
+    quantitatively realistic
+    """
     return _geometry(
         gra, keys=keys, ntries=ntries, max_dist_err=max_dist_err)
 
 
 def distance_bounds_matrices(gra, keys, sp_dct=None):
+    """ initial distance bounds matrices
+
+    :param gra: molecular graph
+    :param keys: atom keys specifying the order of indices in the matrix
+    :param sp_dct: a 2d dictionary giving the shortest path between any pair of
+        atoms in the graph
+    """
     return _distance_bounds_matrices(gra, keys, sp_dct=sp_dct)
 
 
 def chirality_constraint_bounds(gra, keys):
+    """ bounds for enforcing chirality restrictions
+    """
     return _chirality_constraint_bounds(gra, keys)
 
 
 def planarity_constraint_bounds(gra, keys):
+    """ bounds for enforcing planarity restrictions
+    """
     return _planarity_constraint_bounds(gra, keys)
 
 

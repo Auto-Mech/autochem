@@ -1,10 +1,10 @@
-""" Install automol
+""" Install autochem
 """
 from distutils.core import setup
 
 
-setup(name='automol',
-      version='0.5.4',
+setup(name='autochem',
+      version='0.7.0',
       packages=['automol',
                 'automol.convert',
                 'automol.create',
