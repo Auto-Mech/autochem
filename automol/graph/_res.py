@@ -228,7 +228,7 @@ def radical_dissociation_prods(gra, pgra1):
     # adj_idxs = tuple(adj_atms[rad] for rad in rads)
     for rad in rads:
         for adj in adj_atms[rad]:
-            for group in atom_groups(gra, adj):
+            for group in atom_groups(gra, adj, stereo=False):
                 if full_isomorphism(explicit(group), explicit(pgra1)):
                     pgra2 = remove_atoms(gra, atom_keys(group))
                     # pgra2 = remove_bonds(pgra2, bond_keys(group))

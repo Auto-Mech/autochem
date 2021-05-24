@@ -550,9 +550,11 @@ def standard_keys_without_dummy_atoms(gra):
     return gra, dummy_keys_dct
 
 
-def atom_groups(gra, atm):
+def atom_groups(gra, atm, stereo=False):
     """ return a list of groups off of one atom
     """
+    if not stereo:
+        gra = without_stereo_parities(gra) 
     adj_atms = atoms_neighbor_atom_keys(gra)
     keys = []
     for atmi in adj_atms[atm]:
