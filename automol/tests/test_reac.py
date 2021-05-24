@@ -287,18 +287,17 @@ def test__reac__products_graph():
     """
     rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
     assert automol.reac.products_graph(rxn) == (
-        {0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-         3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-         6: ('H', 0, None), 7: ('C', 0, None), 8: ('C', 0, None),
-         9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-         12: ('H', 0, None), 13: ('H', 0, None)},
-        {frozenset({1, 4}): (1, None), frozenset({8, 11}): (1, None),
-         frozenset({10, 7}): (1, None), frozenset({0, 1}): (1, None),
-         frozenset({0, 2}): (1, None), frozenset({9, 7}): (1, None),
-         frozenset({8, 7}): (1, None), frozenset({1, 5}): (1, None),
-         frozenset({8, 13}): (1, None), frozenset({1, 6}): (1, None),
-         frozenset({1, 3}): (0, None), frozenset({8, 12}): (1, None)}
-    )
+        {0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+         3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+         6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+         9: ('H', 0, None), 10: ('H', 0, None), 11: ('O', 0, None),
+         12: ('H', 0, None)},
+        {frozenset({1, 7}): (1, None), frozenset({10, 2}): (1, None),
+         frozenset({1, 2}): (1, None), frozenset({0, 3}): (1, None),
+         frozenset({11, 12}): (1, None), frozenset({0, 2}): (1, None),
+         frozenset({0, 4}): (1, None), frozenset({0, 5}): (1, None),
+         frozenset({8, 1}): (1, None), frozenset({1, 6}): (1, None),
+         frozenset({9, 2}): (1, None)})
 
 
 def test__reac__hydrogen_migration():
@@ -355,37 +354,6 @@ def test__reac__hydrogen_migration():
         print('\tgroup 1:', groups[0])
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
-    # scan_name = automol.reac.scan_coordinate(zrxn, zma)
-    # const_names = automol.reac.constraint_coordinates(zrxn, zma)
-    # assert scan_name == 'R5'
-    # assert const_names == ('R4',)
-    # print(scan_name)
-    # print(const_names)
-
-    # # graph aligned to geometry keys
-    # # (for getting rotational groups and symmetry numbers)
-    # geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
-    # grxn = automol.reac.relabel_for_geometry(zrxn)
-    # print(automol.geom.string(geo))
-
-    # # Check that the reaction object can be converted back, if needed
-    # old_zrxn = zrxn
-    # zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
-    # assert zrxn == old_zrxn
-
-    # gbnd_keys = automol.reac.rotational_bond_keys(grxn)
-    # assert len(gbnd_keys) == len(bnd_keys)
-
-    # axes = sorted(map(sorted, gbnd_keys))
-    # groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
-    # sym_nums = [
-    #     automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
-    # assert sym_nums == [3]
-    # for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
-    #     print('axis:', axis)
-    #     print('\tgroup 1:', groups[0])
-    #     print('\tgroup 2:', groups[1])
-    #     print('\tsymmetry number:', sym_num)
 
 
 def test__reac__2ts_hydrogen_migration():
@@ -447,7 +415,7 @@ def test__reac__beta_scission():
     prd_smis = ['[O][O]', 'CC[CH2]']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-    rxn, geo, rct_geos, _ = rxn_objs[0]
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -763,7 +731,7 @@ def test__reac__sigma_hydrogen_abstraction():
     prd_smis = ['CC[O]', 'C#C']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-    rxn, geo, rct_geos, _ = rxn_objs[0]
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -919,7 +887,7 @@ def test__reac__radrad_addition():
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
-    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    _, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
     print(zrxn)
 
@@ -1348,148 +1316,131 @@ def test__stereo():
         print()
 
 
-def test__prod__hydrogen_abstraction():
-    """ test graph.reac.prod_hydrogen_abstraction
+def test__prod__hydrogen_migration():
+    """ test hydrogen migration product enumeration
     """
+    rct_smis = ['C=CCC[CH2]']
+    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
+    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
-    c4h10_gra = automol.zmat.graph(C4H10_ZMA)
-    oh_gra = automol.zmat.graph(OH_ZMA)
+    # Enumerate all possible reactions, but select the hydrogen migrations
+    rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
+            if r.class_ == 'hydrogen migration']
+    print('number of migrations:', len(rxns))
+    assert rxns
 
-    prod_gras = automol.reac.prod_hydrogen_abstraction(c4h10_gra, oh_gra)
-
-    assert len(prod_gras) == 2
-    assert all(len(prod_gra) == 2 for prod_gra in prod_gras)
-    assert prod_gras[0] == (
-        (({0: ('C', 0, None), 1: ('C', 0, None), 3: ('H', 0, None),
-           4: ('H', 0, None), 5: ('C', 0, None), 6: ('H', 0, None),
-           7: ('H', 0, None), 8: ('C', 0, None), 9: ('H', 0, None),
-           10: ('H', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
-           13: ('H', 0, None)},
-          {frozenset({8, 11}): (1, None), frozenset({1, 7}): (1, None),
-           frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
-           frozenset({0, 4}): (1, None), frozenset({1, 5}): (1, None),
-           frozenset({10, 5}): (1, None), frozenset({8, 13}): (1, None),
-           frozenset({1, 6}): (1, None), frozenset({8, 12}): (1, None),
-           frozenset({9, 5}): (1, None), frozenset({8, 5}): (1, None)}),),
-        (({0: ('O', 0, None), 1: ('H', 0, None), 5: ('H', 0, None)},
-          {frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None)}),))
-
-
-# def test__prod__hydrogen_migration():
-#     """ test graph.reac.prod_hydrogen migration
-#     """
-#
-#     ccccch2_gra = automol.zmat.graph(CCCCCH2_ZMA)
-#     prod_gras = automol.reac.prod_hydrogen_migration(ccccch2_gra)
-#
-#     assert len(prod_gras) == 1
-#     assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
-#     assert prod_gras[0] == (
-#         ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-#           3: ('H', 0, None), 4: ('C', 0, None), 6: ('H', 0, None),
-#           7: ('C', 0, None), 8: ('H', 0, None), 9: ('H', 0, None),
-#           10: ('C', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
-#           13: ('H', 0, None), 14: ('H', 0, None), 15: ('H', 0, None),
-#           16: ('H', 0, None)},
-#          {frozenset({12, 7}): (1, None), frozenset({1, 4}): (1, None),
-#           frozenset({10, 15}): (1, None), frozenset({10, 7}): (1, None),
-#           frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
-#           frozenset({0, 2}): (1, None), frozenset({0, 16}): (1, None),
-#           frozenset({10, 13}): (1, None), frozenset({10, 14}): (1, None),
-#           frozenset({9, 4}): (1, None), frozenset({1, 6}): (1, None),
-#           frozenset({11, 7}): (1, None), frozenset({8, 4}): (1, None),
-#           frozenset({4, 7}): (1, None)}),)
-
-
-# def test__prod__addition():
-#     """ test graph.reac.prod_addition
-#     """
-#
-#     ch2cch2_gra = automol.zmat.graph(CH2CCH2_ZMA)
-#     h_gra = automol.zmat.graph(H_ZMA)
-#
-#     prod_gras = automol.reac.prod_addition(ch2cch2_gra, h_gra)
-#
-#     assert len(prod_gras) == 2
-#     assert all(len(prod_gra) == 1 for prod_gra in prod_gras)
-#     assert prod_gras[0] == (
-#         ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-#           3: ('H', 0, None), 4: ('X', 0, None), 5: ('C', 0, None),
-#           6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},
-#          {frozenset({5, 6}): (1, None), frozenset({1, 5}): (1, None),
-#           frozenset({0, 8}): (1, None), frozenset({0, 3}): (1, None),
-#           frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-#           frozenset({5, 7}): (1, None)}),)
+    # Verify the enumerated reactions with the classifier
+    for rxn in rxns:
+        rct_gras_ = automol.reac.reactant_graphs(rxn)
+        prd_gras_ = automol.reac.product_graphs(rxn)
+        assert rct_gras_ == rct_gras
+        rxns_ = automol.reac.find(rct_gras_, prd_gras_)
+        assert any(r.class_ == 'hydrogen migration' for r in rxns_)
 
 
 def test__prod__beta_scission():
-    """ test graph.reac.prod_beta_scission
+    """ test beta scission product enumeration
     """
+    rct_smis = ['C=C[CH]CC']
+    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
+    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
-    ch3ch2ch2o_gra = automol.zmat.graph(CH3CH2CH2O_ZMA)
+    # Enumerate all possible reactions, but select the beta scissions
+    rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
+            if r.class_ == 'beta scission']
+    print('number of beta scissions:', len(rxns))
+    assert rxns
 
-    prod_gras = automol.reac.prod_beta_scission(ch3ch2ch2o_gra)
-
-    assert len(prod_gras) == 2
-    assert all(len(prod_gra) == 2 for prod_gra in prod_gras)
-    assert prod_gras[0] == (
-        ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-          3: ('H', 0, None), 4: ('H', 0, None), 6: ('H', 0, None),
-          7: ('H', 0, None)},
-         {frozenset({1, 7}): (1, None), frozenset({0, 3}): (1, None),
-          frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-          frozenset({0, 4}): (1, None), frozenset({1, 6}): (1, None)}),
-        ({5: ('C', 0, None), 8: ('O', 0, None), 9: ('H', 0, None),
-          10: ('H', 0, None)},
-         {frozenset({8, 5}): (1, None), frozenset({10, 5}): (1, None),
-          frozenset({9, 5}): (1, None)}))
+    # Verify the enumerated reactions with the classifier
+    for rxn in rxns:
+        rct_gras_ = automol.reac.reactant_graphs(rxn)
+        prd_gras_ = automol.reac.product_graphs(rxn)
+        assert rct_gras_ == rct_gras
+        rxns_ = automol.reac.find(rct_gras_, prd_gras_)
+        assert any(r.class_ == 'beta scission' for r in rxns_)
 
 
-def test__prod__homolytic_scission():
-    """ test graph.reac.prod_homolytic_scission
+def test__prod__elimination():
+    """ test elimination product enumeration
     """
+    rct_smis = ['CCCO[O]']
+    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
+    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
-    c4h10_gra = automol.zmat.graph(C4H10_ZMA)
+    # Enumerate all possible reactions, but select the eliminations
+    rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
+            if r.class_ == 'elimination']
+    print('number of eliminations:', len(rxns))
+    assert rxns
 
-    prod_gras = automol.reac.prod_homolytic_scission(c4h10_gra)
+    # Verify the enumerated reactions with the classifier
+    for rxn in rxns:
+        rct_gras_ = automol.reac.reactant_graphs(rxn)
+        prd_gras_ = automol.reac.product_graphs(rxn)
+        assert rct_gras_ == rct_gras
+        rxns_ = automol.reac.find(rct_gras_, prd_gras_)
+        assert any(r.class_ == 'elimination' for r in rxns_)
 
-    assert len(prod_gras) == 4
-    assert all(len(prod_gra) == 2 for prod_gra in prod_gras)
-    assert prod_gras[0] == (
-        ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-          3: ('H', 0, None), 4: ('H', 0, None), 5: ('C', 0, None),
-          6: ('H', 0, None), 7: ('H', 0, None), 8: ('C', 0, None),
-          9: ('H', 0, None), 10: ('H', 0, None), 12: ('H', 0, None),
-          13: ('H', 0, None)},
-         {frozenset({1, 7}): (1, None), frozenset({0, 3}): (1, None),
-          frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-          frozenset({0, 4}): (1, None), frozenset({1, 5}): (1, None),
-          frozenset({10, 5}): (1, None), frozenset({8, 13}): (1, None),
-          frozenset({1, 6}): (1, None), frozenset({8, 12}): (1, None),
-          frozenset({9, 5}): (1, None), frozenset({8, 5}): (1, None)}),
-        ({11: ('H', 0, None)}, {}))
+
+def test__prod__hydrogen_abstraction():
+    """ test hydrogen abstraction product enumeration
+    """
+    rct_smis = ['CC(=O)C', '[CH3]']
+    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
+    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+
+    # Enumerate all possible reactions, but select the hydrogen abstractions
+    rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
+            if r.class_ == 'hydrogen abstraction']
+    print('number of hydrogen abstractions:', len(rxns))
+    assert rxns
+
+    # Verify the enumerated reactions with the classifier
+    for rxn in rxns:
+        rct_gras_ = automol.reac.reactant_graphs(rxn)
+        prd_gras_ = automol.reac.product_graphs(rxn)
+        assert rct_gras_ == rct_gras
+        rxns_ = automol.reac.find(rct_gras_, prd_gras_)
+        assert any(r.class_ == 'hydrogen abstraction' for r in rxns_)
+
+
+def test__prod__addition():
+    """ test addition product enumeration
+    """
+    rct_smis = ['C=CC=C', '[CH3]']
+    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
+    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+
+    # Enumerate all possible reactions, but select the additions
+    rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
+            if r.class_ == 'addition']
+    print('number of additions:', len(rxns))
+    assert rxns
+
+    # Verify the enumerated reactions with the classifier
+    for rxn in rxns:
+        rct_gras_ = automol.reac.reactant_graphs(rxn)
+        prd_gras_ = automol.reac.product_graphs(rxn)
+        assert rct_gras_ == rct_gras
+        rxns_ = automol.reac.find(rct_gras_, prd_gras_)
+        assert any(r.class_ == 'addition' for r in rxns_)
 
 
 if __name__ == '__main__':
-    # test__reac__string()
-    # test__reac__ring_forming_scission()
-    # test__reac__hydrogen_abstraction()
-    # test__reac__substitution()
-    # test__reac__2ts_hydrogen_migration()
-    # test__reac__beta_scission()
-    # test__reac__ring_forming_scission()
-    # test__reac__radrad_addition()
-    # test__stereo()
-    # test__species__demo()
-    # test__reac__forming_rings_atom_keys()
-    # test__reac__addition()
-    # test__reac__hydrogen_abstraction()
-    # test__reac__sigma_hydrogen_abstraction()
-    # test__reac__substitution()
-    # test__reac__addition()
-    # test__reac__radrad_hydrogen_abstraction()
-    # test__reac__hydrogen_migration()
+    # test__reac__elimination()
+    # test__reac__insertion()
     # test__prod__hydrogen_migration()
-    # test__reac__hydrogen_migration()
-    test__reac__elimination()
-    test__reac__insertion()
+    # test__prod__beta_scission()
+    # test__prod__elimination()
+    test__prod__hydrogen_abstraction()
+    # test__prod__addition()

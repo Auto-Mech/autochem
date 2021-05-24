@@ -14,6 +14,7 @@ from automol.graph._graph_dep import implicit
 from automol.graph._graph_dep import atoms
 from automol.graph._graph_dep import dummy_atoms_neighbor_atom_key
 from automol.graph._graph_dep import without_fractional_bonds
+from automol.graph._graph_dep import dominant_resonance
 from automol.graph._graph_dep import dominant_resonances
 from automol.graph._graph_dep import resonance_dominant_bond_orders
 from automol.graph._graph_dep import resonance_dominant_atom_hybridizations
@@ -123,6 +124,65 @@ def _cumulene_chains(rgr):
 
     cum_chains = tuple(map(tuple, cum_chains))
     return cum_chains
+
+
+def radical_atom_keys(gra, single_res=False):
+    """ Radical atom keys for this molecular graph
+
+    Radical atoms are based on the lowest-spin resonance structures for this
+    graph. If the `single_res` flag is set, a single low-spin resonance
+    structure will be chosen when there are multiple such structures.
+
+    This function should eventually replace both
+    `resonance_dominant_radical_atom_keys` and
+    `sing_res_dom_radical_atom_keys` for a more user-friendly interface.
+
+    Note that this function ignores the bond orders in `gra`. If you wish to
+    identify radical atom keys based on the bond orders in `gra`, this can be
+    done by using the `atom_unsaturated_valences` function.
+
+    :param gra: the molecular graph
+    :param single_res: only include radical keys for a single (arbitrary)
+        resonance structure, or include all atoms that are radicals in any of
+        the low-spin resonance structures?
+    :type single_res: bool
+    :returns: the radical atom keys
+    :rtype: frozenset[int]
+
+    """
+    gra = without_fractional_bonds(gra)
+    atm_keys = list(atom_keys(gra))
+
+    if single_res:
+        atm_rad_vlcs = dict_.values_by_key(
+            atom_unsaturated_valences(dominant_resonance(gra)), atm_keys)
+    else:
+        atm_rad_vlcs_by_res = [
+            dict_.values_by_key(atom_unsaturated_valences(dom_gra), atm_keys)
+            for dom_gra in dominant_resonances(gra)]
+        atm_rad_vlcs = [
+            max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
+
+    atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
+                             in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc)
+    return atm_rad_keys
+
+
+def has_separated_radical_sites(gra):
+    """ does this radical have two or more separated radical sites?
+
+    The identification is performed based on one of its lowest-spin resonance
+    structures. It shouldn't matter which of the low-spin resonance structures
+    is used -- if one of them has separated radical sites, they all should.
+
+    This identifies polyradical molecules, but excludes things like carbenes.
+
+    :param gra: the graph
+    :returns: True if it has, False if not
+    :rtype: bool
+    """
+    rad_atm_keys = radical_atom_keys(gra, single_res=True)
+    return len(rad_atm_keys) > 1
 
 
 def nonresonant_radical_atom_keys(rgr):

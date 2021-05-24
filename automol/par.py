@@ -21,11 +21,14 @@ class ReactionClass:
 
 
 REVERSE_REACTION_DCT = {
+    # unimolecular
     ReactionClass.HYDROGEN_MIGRATION: ReactionClass.HYDROGEN_MIGRATION,
+    ReactionClass.BETA_SCISSION: ReactionClass.ADDITION,
+    # ReactionClass.RING_FORM_SCISSION: ?
+    ReactionClass.ELIMINATION: ReactionClass.INSERTION,
+    # bimolecular
     ReactionClass.HYDROGEN_ABSTRACTION: ReactionClass.HYDROGEN_ABSTRACTION,
     ReactionClass.ADDITION: ReactionClass.BETA_SCISSION,
-    ReactionClass.BETA_SCISSION: ReactionClass.ADDITION,
-    ReactionClass.ELIMINATION: ReactionClass.INSERTION,
     ReactionClass.INSERTION: ReactionClass.ELIMINATION,
     # ReactionClass.SUBSTITUTION: ?
 }
