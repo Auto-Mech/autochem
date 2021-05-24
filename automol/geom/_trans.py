@@ -6,7 +6,6 @@ import numpy
 from phydat import phycon
 import automol.create.geom
 from automol import util
-from automol.util import dict_
 from automol.geom import _base as geom_base
 from automol.graph.geom import center_of_mass
 from automol.graph.geom import translate as _translate
@@ -184,7 +183,8 @@ def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
             mapping the linear atoms onto their associated dummy atoms
         :rtype: automol molecular geometry data structure
     """
-    lin_keys, dum_keys = zip(*sorted(dummy_key_dct.items(), key=lambda x: x[1]))
+    lin_keys, dum_keys = zip(
+        *sorted(dummy_key_dct.items(), key=lambda x: x[1]))
     dum_keys = numpy.array(list(dum_keys))
     lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
     geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
