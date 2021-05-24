@@ -2,7 +2,6 @@
     test automol.rotor
 """
 import os
-import numpy
 import automol
 from ioformat import read_text_file
 

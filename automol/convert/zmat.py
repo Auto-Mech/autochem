@@ -253,7 +253,7 @@ def dummy_keys(zma):
     return keys
 
 
-def dummy_neighbor_keys(zma, geom_indexing=False):
+def dummy_neighbor_keys(zma):
     """ Obtain keys to dummy atoms in the Z-Matrix, along with their
         neighboring atoms.
 

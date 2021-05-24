@@ -7,6 +7,7 @@ from automol.graph import ts
 from automol.reac._reac import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
 from automol.reac._util import ring_forming_scission_atom_keys
+from automol.reac._util import elimination_breaking_bond_keys
 from automol.reac._util import insertion_forming_bond_keys
 from automol.reac._util import hydrogen_abstraction_atom_keys
 from automol.reac._util import hydrogen_abstraction_is_sigma
@@ -146,12 +147,7 @@ def elimination_ts_zmatrix(rxn, ts_geo):
     # 4. Generate a z-matrix for the geometry
     rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
-    # Drop one of the breaking bonds from the z-matrix by sorting the ring atom
-    # keys to exclude it. If one of the breaking bonds intersects with the
-    # forming bond, choose the other one.
-    brk_bnd_keys = sorted(ts.breaking_bond_keys(rxn.forward_ts_graph),
-                          key=lambda x: len(x & frm_bnd_key))
-    brk_bnd_key = brk_bnd_keys[0]
+    _, brk_bnd_key = elimination_breaking_bond_keys(rxn)
     # Cycle the ring keys such that the atom closest to the forming bond is the
     # beginning of the ring and the other atom is the end
     if brk_bnd_key & frm_bnd_key:
@@ -276,8 +272,7 @@ def insertion_ts_zmatrix(rxn, ts_geo):
     rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     # Drop one of the forming bonds from the z-matrix by sorting the ring atom
-    # keys to exclude it. If one of the forming bonds intersects with the
-    # breaking bond, choose that one.
+    # keys to exclude it.
     _, frm_bnd_key = insertion_forming_bond_keys(rxn)
     # Cycle the ring keys such that the atom closest to the breaking bond is
     # the beginning of the ring and the other atom is the end
