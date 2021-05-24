@@ -657,14 +657,30 @@ def _add_pi_bonds(rgr, bnd_ord_inc_dct):
     return rgr
 
 
+def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False):
+    """ neighborhood subgraph for a specific bond
+
+    :param gra: the graph
+    :param bnd_key: the bond key
+    :type bnd_key: frozenset[int]
+    :param bnd_keys: optionally, restrict this to a subset of the bond keys
+    :tupe bnd_keys: tuple[frozenset[int]]
+    :returns: the neighborhood subgraph
+    """
+    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    nbh_bnd_keys = set(filter(lambda x: bnd_key & x, bnd_keys))
+    nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
+    return nbh
+
+
 def bond_neighborhoods(gra, stereo=False):
     """ neighborhood subgraphs, by bond
     """
     bnd_keys = list(bond_keys(gra))
 
     def _neighborhood(bnd_key):
-        nbh_bnd_keys = set(filter(lambda x: bnd_key & x, bnd_keys))
-        return bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
+        return bond_neighborhood(gra, bnd_key, bnd_keys=bnd_keys,
+                                 stereo=stereo)
 
     bnd_nbh_dct = dict(zip(bnd_keys, map(_neighborhood, bnd_keys)))
     return bnd_nbh_dct

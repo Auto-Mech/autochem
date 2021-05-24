@@ -38,6 +38,7 @@ from automol.graph._graph_dep import atom_unsaturated_valences
 from automol.graph._graph_dep import maximum_spin_multiplicity
 from automol.graph._graph_dep import explicit_hydrogen_keys
 from automol.graph._graph_dep import atom_neighborhood
+from automol.graph._graph_dep import bond_neighborhood
 from automol.graph._graph_dep import atom_neighborhoods
 from automol.graph._graph_dep import bond_neighborhoods
 from automol.graph._graph_dep import atom_sorted_neighbor_atom_keys
@@ -302,6 +303,7 @@ __all__ = [
     'maximum_spin_multiplicity',
     'explicit_hydrogen_keys',
     'atom_neighborhood',
+    'bond_neighborhood',
     'atom_neighborhoods',
     'bond_neighborhoods',
     'atom_sorted_neighbor_atom_keys',

@@ -8,7 +8,6 @@ Function arguments:
 """
 
 import itertools
-import more_itertools as mit
 from automol.convert.graph import formula as graph_formula
 from automol.convert.geom import geometry as ich_geometry
 from automol.convert.geom import connectivity_graph
@@ -31,12 +30,11 @@ from automol.graph import union_from_sequence
 from automol.graph import unsaturated_atom_keys
 from automol.graph import without_stereo_parities
 from automol.graph import atom_neighbor_atom_key
-from automol.graph import atoms_sorted_neighbor_atom_keys
+from automol.graph import atoms_neighbor_atom_keys
 from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogen_keys
 from automol.graph import rings_bond_keys
 from automol.graph import rings_atom_keys
-from automol.graph import cycle_ring_atom_key_to_front
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
 from automol.reac._reac import ts_unique
@@ -256,14 +254,14 @@ def eliminations(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 1 and len(prd_gras) == 2:
-        rgra, = rct_gras
-        pgra = union_from_sequence(prd_gras)
+        rct_gra, = rct_gras
+        prds_gra = union_from_sequence(prd_gras)
 
-        rngb_keys = atoms_sorted_neighbor_atom_keys(rgra)
+        ngb_keys_dct = atoms_neighbor_atom_keys(rct_gra)
 
-        frm1_keys = atom_keys(rgra, excl_syms=('H',))
-        frm2_keys = atom_keys(rgra)
-        bnd_keys = bond_keys(rgra)
+        frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
+        frm2_keys = atom_keys(rct_gra)
+        bnd_keys = bond_keys(rct_gra)
 
         frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
                         in itertools.product(frm1_keys, frm2_keys)
@@ -272,60 +270,54 @@ def eliminations(rct_gras, prd_gras):
 
         for frm1_key, frm2_key in frm_bnd_keys:
             # Bond the radical atom to the hydrogen atom
-            rgra_ = add_bonds(rgra, [(frm2_key, frm1_key)])
+            gra_ = add_bonds(rct_gra, [(frm2_key, frm1_key)])
 
             # Get keys to the ring formed by this extra bond
-            rng_keys = next((ks for ks in rings_atom_keys(rgra_)
+            rng_keys = next((ks for ks in rings_atom_keys(gra_)
                              if frm2_key in ks and frm1_key in ks), None)
-            if rng_keys is not None:
-                for nfrm2_key in rngb_keys[frm2_key]:
-                    # Break the bond between the attacked atom and its neighbor
-                    rgra_ = remove_bonds(rgra_, [(frm2_key, nfrm2_key)])
+            # Eliminations (as far as I can tell) only happen through TSs with
+            # 3- or 4-membered rings
+            if rng_keys is not None and len(rng_keys) < 5:
+                frm1_ngb_key, = ngb_keys_dct[frm1_key] & set(rng_keys)
+                frm2_ngb_key, = ngb_keys_dct[frm2_key] & set(rng_keys)
 
-                    # Sort the ring keys so that they start with the radical
-                    # atom and end with the hydrogen atom
-                    keys = cycle_ring_atom_key_to_front(rng_keys, frm1_key,
-                                                        end_key=frm2_key)
+                # Break the bonds on either side of the newly formed bond
+                gra_ = remove_bonds(gra_, [(frm1_key, frm1_ngb_key)])
+                gra_ = remove_bonds(gra_, [(frm2_key, frm2_ngb_key)])
 
-                    # Break one ring bond at a time, starting from the rind,
-                    # and see what we get
-                    for brk_key1, brk_key2 in mit.windowed(keys[:-1], 2):
-                        gra = remove_bonds(rgra_, [(brk_key1, brk_key2)])
+                inv_dct = isomorphism(gra_, prds_gra)
+                if inv_dct:
+                    f_frm_bnd_key = (frm1_key, frm2_key)
+                    f_brk_bnd_key1 = (frm1_key, frm1_ngb_key)
+                    f_brk_bnd_key2 = (frm2_key, frm2_ngb_key)
+                    inv_ = inv_dct.__getitem__
+                    b_frm_bnd_key1 = tuple(map(inv_, f_brk_bnd_key1))
+                    b_frm_bnd_key2 = tuple(map(inv_, f_brk_bnd_key2))
+                    b_brk_bnd_key = tuple(map(inv_, f_frm_bnd_key))
 
-                        inv_dct = isomorphism(gra, pgra)
-                        if inv_dct:
-                            f_frm_bnd_key = (frm2_key, frm1_key)
-                            f_brk_bnd_key1 = (frm2_key, nfrm2_key)
-                            f_brk_bnd_key2 = (brk_key1, brk_key2)
-                            b_frm_bnd_key1 = (inv_dct[frm2_key],
-                                              inv_dct[nfrm2_key])
-                            b_frm_bnd_key2 = (inv_dct[brk_key1],
-                                              inv_dct[brk_key2])
-                            b_brk_bnd_key = (inv_dct[frm2_key],
-                                             inv_dct[frm1_key])
-                            forw_tsg = ts.graph(rgra,
-                                                frm_bnd_keys=[f_frm_bnd_key],
-                                                brk_bnd_keys=[f_brk_bnd_key1,
-                                                              f_brk_bnd_key2])
-                            back_tsg = ts.graph(pgra,
-                                                frm_bnd_keys=[b_frm_bnd_key1,
-                                                              b_frm_bnd_key2],
-                                                brk_bnd_keys=[b_brk_bnd_key])
+                    forw_tsg = ts.graph(rct_gra,
+                                        frm_bnd_keys=[f_frm_bnd_key],
+                                        brk_bnd_keys=[f_brk_bnd_key1,
+                                                      f_brk_bnd_key2])
+                    back_tsg = ts.graph(prds_gra,
+                                        frm_bnd_keys=[b_frm_bnd_key1,
+                                                      b_frm_bnd_key2],
+                                        brk_bnd_keys=[b_brk_bnd_key])
 
-                            rcts_atm_keys = list(map(atom_keys, rct_gras))
-                            prds_atm_keys = list(map(atom_keys, prd_gras))
+                    rcts_atm_keys = list(map(atom_keys, rct_gras))
+                    prds_atm_keys = list(map(atom_keys, prd_gras))
 
-                            if inv_dct[frm2_key] not in prds_atm_keys[1]:
-                                prds_atm_keys = list(reversed(prds_atm_keys))
+                    if inv_dct[frm2_key] not in prds_atm_keys[1]:
+                        prds_atm_keys = list(reversed(prds_atm_keys))
 
-                            # Create the reaction object
-                            rxns.append(Reaction(
-                                rxn_cls=par.ReactionClass.ELIMINATION,
-                                forw_tsg=forw_tsg,
-                                back_tsg=back_tsg,
-                                rcts_keys=rcts_atm_keys,
-                                prds_keys=prds_atm_keys,
-                            ))
+                    # Create the reaction object
+                    rxns.append(Reaction(
+                        rxn_cls=par.ReactionClass.ELIMINATION,
+                        forw_tsg=forw_tsg,
+                        back_tsg=back_tsg,
+                        rcts_keys=rcts_atm_keys,
+                        prds_keys=prds_atm_keys,
+                    ))
 
     return ts_unique(rxns)
 
@@ -578,7 +570,6 @@ def find_from_inchis(rct_ichs, prd_ichs):
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
     rxns = find(rct_gras, prd_gras)
-    print(len(rxns))
     rxn_classes = [rxn.class_ for rxn in rxns]
     rxn_classes = [c for i, c in enumerate(rxn_classes)
                    if c not in rxn_classes[:i]]
@@ -641,14 +632,3 @@ def _argsort_reactants(gras):
 
     idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
     return idxs
-
-
-if __name__ == '__main__':
-    import automol
-    RXN_SMIS = (['C[CH]CC'],
-                ['[CH2]CCC'])
-    # RXN_SMIS = (['[CH2]CCCN(O)O'],
-    #             ['C1CCCN1O', '[OH]'])
-
-    RXN_ICHS = [list(map(automol.smiles.inchi, smis)) for smis in RXN_SMIS]
-    find_from_inchis(*RXN_ICHS)
