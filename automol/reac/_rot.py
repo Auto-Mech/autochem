@@ -1,5 +1,6 @@
 """ rotational bond/torsion info for specific reaction classes
 """
+
 from automol.par import ReactionClass
 import automol.zmat
 from automol.reac._util import hydrogen_abstraction_atom_keys
@@ -76,16 +77,16 @@ def linear_atom_keys(rxn, zma=None):
 
     function_dct = {
         # unimolecular
-        ReactionClass.HYDROGEN_MIGRATION: _default,
-        ReactionClass.BETA_SCISSION: _default,
-        ReactionClass.RING_FORM_SCISSION: _default,
-        ReactionClass.ELIMINATION: _default,
+        ReactionClass.Typ.HYDROGEN_MIGRATION: _default,
+        ReactionClass.Typ.BETA_SCISSION: _default,
+        ReactionClass.Typ.RING_FORM_SCISSION: _default,
+        ReactionClass.Typ.ELIMINATION: _default,
         # bimolecular
-        ReactionClass.HYDROGEN_ABSTRACTION:
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
         hydrogen_abstraction_linear_atom_keys,
-        ReactionClass.ADDITION: _default,
-        ReactionClass.INSERTION: _default,
-        ReactionClass.SUBSTITUTION: substitution_linear_atom_keys,
+        ReactionClass.Typ.ADDITION: _default,
+        ReactionClass.Typ.INSERTION: _default,
+        ReactionClass.Typ.SUBSTITUTION: substitution_linear_atom_keys,
     }
 
     fun_ = function_dct[rxn.class_]

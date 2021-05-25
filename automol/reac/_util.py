@@ -1,9 +1,10 @@
 """ Common utilities for reaction classes
 """
+
 import itertools
 import automol.graph
 from automol.graph import ts
-from automol import par
+from automol.par import ReactionClass
 
 
 def hydrogen_migration_atom_keys(rxn):
@@ -85,7 +86,7 @@ def hydrogen_abstraction_is_sigma(rxn):
     :type rxn: Reaction
     :rtype: bool
     """
-    assert rxn.class_ == par.ReactionClass.HYDROGEN_ABSTRACTION
+    assert rxn.class_ == ReactionClass.Typ.HYDROGEN_ABSTRACTION
     tsg = rxn.forward_ts_graph
     rct_gra = automol.graph.ts.reactants_graph(tsg)
     sig_rad_keys = automol.graph.sigma_radical_atom_keys(rct_gra)
@@ -125,6 +126,7 @@ def insertion_forming_bond_keys(rxn):
     :returns: the forming bond keys
     :rtype: (frozenset[int], frozenset[int])
     """
+<<<<<<< HEAD
     assert rxn.class_ == par.ReactionClass.INSERTION
     # Choose the forming bond with the fewest neighbors, to get the terminal
     # atom if there is one.
@@ -139,6 +141,16 @@ def insertion_forming_bond_keys(rxn):
     frm_bnd_keys = sorted(
         frm_bnd_keys, key=lambda x: automol.graph.atom_count(
             automol.graph.bond_neighborhood(tsg, x)))
+=======
+    assert rxn.class_ == ReactionClass.Typ.INSERTION
+    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
+    # Choose the forming bond that doesn't intersect with the breaking bond, if
+    # one of them does
+    frm_bnd_keys = sorted(ts.forming_bond_keys(rxn.forward_ts_graph),
+                          key=sorted)
+    frm_bnd_keys = sorted(frm_bnd_keys,
+                          key=lambda x: len(x & brk_bnd_key))
+>>>>>>> update rclass
     return tuple(frm_bnd_keys)
 
 

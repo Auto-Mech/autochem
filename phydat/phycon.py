@@ -19,6 +19,7 @@ SOL = (qcc.get('speed of light in vacuum') *
 KCAL2CAL = qcc.conversion_factor('kcal/mol', 'cal/mol')
 J2CAL = qcc.conversion_factor('J/mol', 'cal/mol')
 KJ2CAL = qcc.conversion_factor('kJ/mol', 'cal/mol')
+KJ2KCAL = qcc.conversion_factor('kJ/mol', 'kcal/mol')
 KJ2EH = qcc.conversion_factor('kJ/mol', 'hartree')
 K2EH = qcc.conversion_factor('kelvin', 'hartree')
 KEL2CAL = qcc.conversion_factor('kelvin', 'cal/mol')
