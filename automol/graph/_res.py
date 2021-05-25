@@ -126,7 +126,7 @@ def _cumulene_chains(rgr):
     return cum_chains
 
 
-def radical_atom_keys(gra, single_res=False):
+def radical_atom_keys(gra, single_res=False, min_valence=1.):
     """ Radical atom keys for this molecular graph
 
     Radical atoms are based on the lowest-spin resonance structures for this
@@ -146,6 +146,9 @@ def radical_atom_keys(gra, single_res=False):
         resonance structure, or include all atoms that are radicals in any of
         the low-spin resonance structures?
     :type single_res: bool
+    :param min_valence: optionally, specify that only sites with at least a
+        certain number of radical electrons be included
+    :type min_valence: int
     :returns: the radical atom keys
     :rtype: frozenset[int]
 
@@ -164,7 +167,8 @@ def radical_atom_keys(gra, single_res=False):
             max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
 
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
-                             in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc)
+                             in zip(atm_keys, atm_rad_vlcs)
+                             if atm_rad_vlc >= min_valence)
     return atm_rad_keys
 
 

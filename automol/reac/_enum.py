@@ -17,23 +17,26 @@ from automol.graph import backbone_keys
 from automol.graph import add_bonds
 from automol.graph import add_bonded_atom
 from automol.graph import rings_atom_keys
+from automol.graph import radical_atom_keys
 from automol.graph import connected_components
 from automol.graph import unsaturated_atom_keys
 from automol.graph import atom_neighbor_atom_key
 from automol.graph import atoms_neighbor_atom_keys
 from automol.graph import atom_equivalence_class_reps
+from automol.graph import bond_equivalence_class_reps
 from automol.graph import resonance_avg_bond_orders
+from automol.graph import are_equivalent_atoms
 from automol.reac._reac import Reaction
 from automol.reac._reac import ts_unique
 from automol.reac._reac import filter_viable_reactions
-from automol.reac._util import argsort_reagents
+from automol.reac._util import sort_reagents
 from automol.reac._util import assert_is_valid_reagent_graph_list
 
 
 # Unimolecular reactions
 # 1. Hydrogen migrations
 def hydrogen_migrations(rct_gras, viable_only=True):
-    """ find all possible hydrogen migration products for these reactants
+    """ find all possible hydrogen migration reactions for these reactants
 
     :param rct_gras: graphs for the reactants, without stereo and without
         overlapping keys
@@ -98,7 +101,7 @@ def hydrogen_migrations(rct_gras, viable_only=True):
 
 # 2. Beta scissions
 def beta_scissions(rct_gras, viable_only=True):
-    """ find all possible beta scission products for these reactants
+    """ find all possible beta scission reactions for these reactants
 
     :param rct_gras: graphs for the reactants, without stereo and without
         overlapping keys
@@ -128,8 +131,7 @@ def beta_scissions(rct_gras, viable_only=True):
             prd_gras = connected_components(prds_gra)
 
             if len(prd_gras) == 2:
-                prd_gras = list(map(prd_gras.__getitem__,
-                                    argsort_reagents(prd_gras)))
+                prd_gras = sort_reagents(prd_gras)
 
                 forw_tsg = ts.graph(rct_gra,
                                     frm_bnd_keys=[],
@@ -158,7 +160,7 @@ def beta_scissions(rct_gras, viable_only=True):
 
 # 4. Eliminations
 def eliminations(rct_gras, viable_only=True):
-    """ find all possible elimination products for these reactants
+    """ find all possible elimination reactions for these reactants
 
     :param rct_gras: graphs for the reactants, without stereo and without
         overlapping keys
@@ -246,7 +248,7 @@ def eliminations(rct_gras, viable_only=True):
 # Bimolecular reactions
 # 1. Hydrogen abstractions
 def hydrogen_abstractions(rct_gras, viable_only=True):
-    """ find hydrogen abstraction products for these reactants
+    """ find hydrogen abstraction reactions for these reactants
 
     :param rct_gras: graphs for the reactants, without stereo and without
         overlapping keys
@@ -315,7 +317,7 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
 
 # 2. Additions
 def additions(rct_gras, viable_only=True):
-    """ find all possible addition products for these reactants
+    """ find all possible addition reactions for these reactants
 
     :param rct_gras: graphs for the reactants, without stereo and without
         overlapping keys
@@ -332,7 +334,8 @@ def additions(rct_gras, viable_only=True):
     rxns = []
 
     if len(rct_gras) == 2:
-        rct1_gra, rct2_gra, = rct_gras
+        rct_gras = sort_reagents(rct_gras)
+        rct1_gra, rct2_gra = rct_gras
 
         rct1_atm_keys = unsaturated_atom_keys(rct1_gra)
         rct2_atm_keys = unsaturated_atom_keys(rct2_gra)
@@ -357,6 +360,103 @@ def additions(rct_gras, viable_only=True):
                 rcts_keys=list(map(atom_keys, rct_gras)),
                 prds_keys=list(map(atom_keys, prd_gras)),
             ))
+
+    if viable_only:
+        rxns = filter_viable_reactions(rxns)
+
+    return ts_unique(rxns)
+
+
+# 3. Insertions
+def insertions(rct_gras, viable_only=True):
+    """ find all possible insertion reactions for these reactants
+
+    :param rct_gras: graphs for the reactants, without stereo and without
+        overlapping keys
+    :param viable_only: Filter out reactions with non-viable products?
+    :type viable_only: bool
+    :returns: a list of Reaction objects
+    :rtype: tuple[Reaction]
+
+    Insertions are enumerated by looping over carbenes and multiple bonds on
+    one reactant, which serve as a source of potential "attacking" atoms for
+    the insertion, and looping over single bonds that could be inserted into on
+    the other reactant. For lack of a better term, we can call these "donating
+    atoms". The insertion then looks as follows:
+
+        A1=A2         A1
+        .  .    or    .
+        .  .         .  .
+        D1-D2        D1-D2
+
+    where two bonds are formed between the A and D atoms and the bond between
+    the two D atoms is broken.
+    """
+    assert_is_valid_reagent_graph_list(rct_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 2:
+        for rct1_gra, rct2_gra in itertools.permutations(rct_gras):
+            rcts_gra = union(rct1_gra, rct2_gra)
+
+            # Carbenes on R1 are potential attacking atoms
+            atm_keys = radical_atom_keys(rct1_gra, min_valence=2.)
+            atm_keys = tuple(atm_keys)
+            # So are atoms on either side of a multiple bond
+            bnd_keys = dict_.keys_by_value(
+                resonance_avg_bond_orders(rct1_gra), lambda x: x > 1.)
+            bnd_keys = bond_equivalence_class_reps(rct1_gra, bnd_keys)
+            # Use this to form a list of attacking atom pairs for R1
+            att_pairs = list(map(tuple, map(sorted, bnd_keys)))
+            att_pairs += list(zip(atm_keys, atm_keys))
+
+            # As donor pairs, consider single bonds on R2
+            don_bnd_keys = dict_.keys_by_value(
+                resonance_avg_bond_orders(rct2_gra), lambda x: x == 1.)
+            don_bnd_keys = bond_equivalence_class_reps(rct2_gra, don_bnd_keys)
+            don_pairs = list(map(tuple, map(sorted, don_bnd_keys)))
+
+            for att_pair, don_pair in itertools.product(att_pairs, don_pairs):
+                if not (are_equivalent_atoms(rct1_gra, *att_pair) or
+                        are_equivalent_atoms(rct2_gra, *don_pair)):
+                    don_pairs_ = list(itertools.permutations(don_pair))
+                else:
+                    don_pairs_ = [don_pair]
+
+                for don_pair_ in don_pairs_:
+                    att1_key, att2_key = att_pair
+                    don1_key, don2_key = don_pair_
+
+                    prds_gra = rcts_gra
+                    prds_gra = add_bonds(prds_gra, [(att1_key, don1_key),
+                                                    (att2_key, don2_key)])
+                    prds_gra = remove_bonds(prds_gra, [(don1_key, don2_key)])
+
+                    prd_gras = connected_components(prds_gra)
+
+                    if len(prd_gras) == 1:
+                        forw_tsg = ts.graph(
+                            rcts_gra,
+                            frm_bnd_keys=[(att1_key, don1_key),
+                                          (att2_key, don2_key)],
+                            brk_bnd_keys=[(don1_key, don2_key)])
+                        back_tsg = ts.graph(
+                            prds_gra,
+                            frm_bnd_keys=[(don1_key, don2_key)],
+                            brk_bnd_keys=[(att1_key, don1_key),
+                                          (att2_key, don2_key)])
+
+                        # Create the reaction object
+                        rcts_keys = list(map(atom_keys, [rct1_gra, rct2_gra]))
+                        prds_keys = list(map(atom_keys, prd_gras))
+                        rxns.append(Reaction(
+                            rxn_cls=par.ReactionClass.INSERTION,
+                            forw_tsg=forw_tsg,
+                            back_tsg=back_tsg,
+                            rcts_keys=rcts_keys,
+                            prds_keys=prds_keys,
+                        ))
 
     if viable_only:
         rxns = filter_viable_reactions(rxns)
@@ -390,7 +490,7 @@ def enumerate_reactions(rct_gras, viable_only=True):
         # bimolecular reactions
         hydrogen_abstractions,
         additions,
-        # insertions,
+        insertions,
         # substitutions,
     ]
 
@@ -406,15 +506,17 @@ def enumerate_reactions(rct_gras, viable_only=True):
 #     # RCT_SMIS = ['C=CCC[CH2]']         # hydrogen migration
 #     # RCT_SMIS = ['C=C[CH]CC']          # beta scission
 #     # RCT_SMIS = ['CCCO[O]']            # elimination
-#     RCT_SMIS = ['CC(=O)C', '[CH3]']      # hydrogen abstractions
+#     # RCT_SMIS = ['CC(=O)C', '[CH3]']   # hydrogen abstractions
 #     # RCT_SMIS = ['C=CC=C', '[CH3]']    # addition
+#     RCT_SMIS = ['CC=C', 'O[O]']       # insertion
+#     # RCT_SMIS = ['CC', '[CH2]']        # insertion
 #     RCT_ICHS = list(map(automol.smiles.inchi, RCT_SMIS))
 #     RCT_GEOS = list(map(automol.convert.geom.geometry, RCT_ICHS))
 #     RCT_GRAS = list(map(automol.convert.geom.connectivity_graph, RCT_GEOS))
 #     RCT_GRAS, _ = automol.graph.standard_keys_for_sequence(RCT_GRAS)
 #
 #     # RXNS = enumerate_reactions(RCT_GRAS)
-#     RXNS = hydrogen_abstractions(RCT_GRAS)
+#     RXNS = insertions(RCT_GRAS)
 #     print(len(RXNS))
 #
 #     for rxn in RXNS:

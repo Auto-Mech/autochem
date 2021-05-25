@@ -110,6 +110,7 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
 
     def _distance_norm(dih):  # objective function for minimization
+        dih, = dih
         xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
                                   dih=dih, xyz3=xyz0)
         dist_norm = numpy.linalg.norm(numpy.subtract(xyzs1, xyz3))

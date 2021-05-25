@@ -33,7 +33,7 @@ from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
 from automol.reac._reac import ts_unique
 from automol.reac._util import assert_is_valid_reagent_graph_list
-from automol.reac._util import argsort_reagents
+from automol.reac._util import sort_reagents
 
 
 def trivial(rct_gras, prd_gras):
@@ -302,8 +302,11 @@ def eliminations(rct_gras, prd_gras):
                     rcts_atm_keys = list(map(atom_keys, rct_gras))
                     prds_atm_keys = list(map(atom_keys, prd_gras))
 
-                    if inv_dct[frm2_key] not in prds_atm_keys[1]:
+                    if inv_dct[frm1_key] not in prds_atm_keys[1]:
                         prds_atm_keys = list(reversed(prds_atm_keys))
+
+                    assert inv_dct[frm1_key] in prds_atm_keys[1]
+                    assert inv_dct[frm2_key] in prds_atm_keys[1]
 
                     # Create the reaction object
                     rxns.append(Reaction(
@@ -399,6 +402,7 @@ def additions(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
+        rct_gras = sort_reagents(rct_gras)
         x_gra, y_gra = rct_gras
         prd_gra, = prd_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
@@ -420,10 +424,6 @@ def additions(rct_gras, prd_gras):
                 back_tsg = ts.graph(prds_gra,
                                     frm_bnd_keys=[],
                                     brk_bnd_keys=[b_brk_bnd_key])
-
-                # sort the reactants so that the largest species is first
-                rct_idxs = argsort_reagents(rct_gras)
-                rct_gras = list(map(rct_gras.__getitem__, rct_idxs))
 
                 # Create the reaction object
                 rxns.append(Reaction(

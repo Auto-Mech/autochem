@@ -1436,11 +1436,36 @@ def test__prod__addition():
         assert any(r.class_ == 'addition' for r in rxns_)
 
 
+def test__prod__insertion():
+    """ test insertion product enumeration
+    """
+    rct_smis = ['CC=C', 'O[O]']
+    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
+    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+
+    # Enumerate all possible reactions, but select the insertions
+    rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
+            if r.class_ == 'insertion']
+    print('number of insertions:', len(rxns))
+    assert rxns
+
+    # Verify the enumerated reactions with the classifier
+    for rxn in rxns:
+        rct_gras_ = automol.reac.reactant_graphs(rxn)
+        prd_gras_ = automol.reac.product_graphs(rxn)
+        assert rct_gras_ == rct_gras
+        rxns_ = automol.reac.find(rct_gras_, prd_gras_)
+        assert any(r.class_ == 'insertion' for r in rxns_)
+
+
 if __name__ == '__main__':
     # test__reac__elimination()
     # test__reac__insertion()
     # test__prod__hydrogen_migration()
     # test__prod__beta_scission()
     # test__prod__elimination()
-    test__prod__hydrogen_abstraction()
+    # test__prod__hydrogen_abstraction()
     # test__prod__addition()
+    test__prod__insertion()

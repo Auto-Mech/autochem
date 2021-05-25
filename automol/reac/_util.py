@@ -274,7 +274,7 @@ def _have_no_common_atom_keys(gras):
 
 
 def argsort_reagents(gras):
-    """ sort reagents by size, from largest to smallest
+    """ Get indices to sort reagents by size, from largest to smallest
 
     :param gras: the reagent (i.e. reactant or product) graphs
     :returns: indices for sorting the reagents
@@ -290,6 +290,18 @@ def argsort_reagents(gras):
 
     idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
     return idxs
+
+
+def sort_reagents(gras):
+    """ Sort reagents by size, from largest to smallest
+
+    :param gras: the reagent (i.e. reactant or product) graphs
+    :returns: the reagent graphs, in sorted order
+    """
+    gras = tuple(gras)
+    idxs = argsort_reagents(gras)
+    gras = tuple(map(gras.__getitem__, idxs))
+    return gras
 
 
 # if __name__ == '__main__':

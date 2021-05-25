@@ -22,13 +22,11 @@ def coordinates(geo, idxs=None, angstrom=False):
 
     idxs = list(range(count(geo))) if idxs is None else idxs
     if geo:
-        # print(geo)
-        # print(*geo)
         _, xyzs = zip(*geo)
     else:
         xyzs = ()
     xyzs = xyzs if not angstrom else numpy.multiply(xyzs, phycon.BOHR2ANG)
-    xyzs = tuple(xyz for idx, xyz in enumerate(xyzs) if idx in idxs)
+    xyzs = tuple(tuple(xyz) for idx, xyz in enumerate(xyzs) if idx in idxs)
 
     return xyzs
 
