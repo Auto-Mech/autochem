@@ -815,7 +815,7 @@ def are_equivalent_bonds(gra, bnd1_key, bnd2_key, stereo=True, dummy=True):
 
     # If order doesn't matter, check swap atoms and check again
     if not order_matters:
-        gra2 = set_atom_symbols(gra, {bnd2_key[1]: 'Lv', bnd2_key[2]: 'Ts'})
+        gra2 = set_atom_symbols(gra, {bnd2_key[1]: 'Lv', bnd2_key[0]: 'Ts'})
         are_equiv |= bool(isomorphism(gra1, gra2, stereo=stereo, dummy=dummy))
 
     return are_equiv
