@@ -381,19 +381,14 @@ def reactants_graph(rxn, rev=False):
     return ts.reactants_graph(tsg)
 
 
-def products_graph(rxn, rev=False):
+def products_graph(rxn):
     """ Obtain a (single) graph of the products in this reaction.
 
         :param rxn: the reaction object
         :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
         :rtype: automol graph data structure
     """
-    if rev:
-        tsg = rxn.backward_ts_graph
-    else:
-        tsg = rxn.forward_ts_graph
+    tsg = rxn.backward_ts_graph
     return ts.reactants_graph(tsg)
 
 
@@ -653,6 +648,46 @@ def ts_unique(rxns):
 
     for rxn in all_rxns:
         if not any(_isomorphism(rxn, r) for r in rxns):
+            rxns.append(rxn)
+
+    return tuple(rxns)
+
+
+def filter_viable_reactions(rxns):
+    """ Filter a list of reactions to only include the viable ones
+
+    Currently, filters reactions where:
+     - One or more products has separated radical sites
+     - The high-spin multiplicity of the products as a whole is greater than 3.
+
+    :param rxns: a sequence of reactions
+    :type rxns: tuple[Reaction]
+    :returns: reactions with viable products
+    :rtype: tuple[Reaction]
+    """
+    all_rxns = rxns
+    rxns = []
+
+    def _produces_separated_radical_sites(rxn):
+        prd_gras = product_graphs(rxn)
+        sep_rad = any(automol.graph.has_separated_radical_sites(prd_gra)
+                      for prd_gra in prd_gras)
+        return sep_rad
+
+    def _high_spin_products(rxn):
+        prd_gras = product_graphs(rxn)
+        mult = sum(map(automol.graph.maximum_spin_multiplicity,
+                       map(automol.graph.dominant_resonance, prd_gras)))
+        return mult > 3
+
+    for rxn in all_rxns:
+        # Check for separated radical sites
+        sep_rad = _produces_separated_radical_sites(rxn)
+        hi_spin = _high_spin_products(rxn)
+
+        # Add more conditions here, as needed ...
+
+        if not (sep_rad or hi_spin):
             rxns.append(rxn)
 
     return tuple(rxns)
