@@ -311,7 +311,7 @@ def eliminations(rct_gras, prd_gras):
 
                     # Create the reaction object
                     rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.Typ.ELIMINATION,
+                        rxn_cls=ReactionClass.Typ.ELIMINATION,
                         forw_tsg=forw_tsg,
                         back_tsg=back_tsg,
                         rcts_keys=rcts_atm_keys,

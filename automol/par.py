@@ -63,8 +63,36 @@ def reaction_class_from_data(class_typ, class_spin, class_radrad):
         :type class_spin: str
         :param class_radrad: radical-radical type designation
         :type class_radrad: bool
+        :rtype: (str, str, bool)
     """
     return (class_typ, class_spin, class_radrad)
+
+
+def need_spin_designation(class_typ):
+    """ Determine if a spin-state string designation in the full reaction
+        class description based on the class typ
+
+        :param class_typ: reaction type designation
+        :type class_typ: str
+        :rtype: bool
+    """
+    need_spins = (
+        ReactionClass.Typ.ADDITION,
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION
+    )
+    return class_typ in need_spins
+
+
+def need_wells(rxn_class):
+    """ Determine if a reaction is appropriately described
+        by the presence of entrance- or exit-channel van der Waals
+        wells.
+    """
+    _need_wells = (
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+        ReactionClass.Typ.SUBSTITUTION
+    )
+    return typ(rxn_class) in _need_wells
 
 
 # Get designations from the reaction class
@@ -145,7 +173,7 @@ def has_nobarrier(rxn_class):
 def is_reaction_class(rxn_class):
     """ Check if class in list of REACTION CLASS
     """
-    return rxn_class in _values(ReactionClass)
+    return rxn_class in _values(ReactionClass.Typ)
 
 
 def reverse_reaction_class(rxn_class):
