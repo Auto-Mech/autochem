@@ -207,11 +207,14 @@ def reverse(rxn):
         :rtype: Reaction
     """
     rxn_cls = par.reverse_reaction_class(rxn.class_)
-    forw_tsg = rxn.backward_ts_graph
-    back_tsg = rxn.forward_ts_graph
-    rcts_keys = rxn.products_keys
-    prds_keys = rxn.reactants_keys
-    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    if rxn_cls is not None:
+        forw_tsg = rxn.backward_ts_graph
+        back_tsg = rxn.forward_ts_graph
+        rcts_keys = rxn.products_keys
+        prds_keys = rxn.reactants_keys
+        rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    else:
+        rxn = None
     return rxn
 
 
@@ -590,7 +593,7 @@ def without_dummy_atoms(rxn, product=False):
     return rxn
 
 
-def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct):
+def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct, product=False):
     """ relabel the reaction object to correspond with a z-matrix converted
     from a geometry
 
@@ -598,10 +601,12 @@ def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct):
     :param zma_keys: graph keys in the order they appear in the z-matrix
     :param dummy_key_dct: dummy keys introduced on z-matrix conversion, by atom
         they are attached to
+    :param product: do this for the products instead of the reactants?
+    :type product: bool
     """
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = add_dummy_atoms(rxn, dummy_key_dct, product=product)
     key_dct = dict(map(reversed, enumerate(zma_keys)))
-    rxn = relabel(rxn, key_dct)
+    rxn = relabel(rxn, key_dct, product=product)
     return rxn
 
 
