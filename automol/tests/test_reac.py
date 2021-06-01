@@ -1461,6 +1461,7 @@ def test__prod__insertion():
 
 
 if __name__ == '__main__':
+    test__reac__hydrogen_abstraction()
     # test__reac__elimination()
     # test__reac__insertion()
     # test__prod__hydrogen_migration()
@@ -1468,4 +1469,4 @@ if __name__ == '__main__':
     # test__prod__elimination()
     # test__prod__hydrogen_abstraction()
     # test__prod__addition()
-    test__prod__insertion()
+    # test__prod__insertion()
