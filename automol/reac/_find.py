@@ -12,7 +12,7 @@ from automol.convert.graph import formula as graph_formula
 from automol.convert.geom import geometry as ich_geometry
 from automol.convert.geom import connectivity_graph
 import automol.geom.ts
-from automol import par
+from automol.par import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_keys
 from automol.graph import bond_keys
@@ -71,7 +71,7 @@ def trivial(rct_gras, prd_gras):
             prds_gra = union_from_sequence(prd_gras)
 
             rxns.append(Reaction(
-                rxn_cls=par.ReactionClass.TRIVIAL,
+                rxn_cls=ReactionClass.Typ.TRIVIAL,
                 forw_tsg=ts.graph(rcts_gra, [], []),
                 back_tsg=ts.graph(prds_gra, [], []),
                 rcts_keys=list(map(atom_keys, rct_gras)),
@@ -151,7 +151,7 @@ def hydrogen_migrations(rct_gras, prd_gras):
 
                     if isomorphism(forw_tsg, ts.reverse(back_tsg)):
                         rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
+                            rxn_cls=ReactionClass.Typ.HYDROGEN_MIGRATION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=[atom_keys(rct_gra)],
@@ -220,7 +220,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
 
                         # Create the reaction object
                         rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.RING_FORM_SCISSION,
+                            rxn_cls=ReactionClass.Typ.RING_FORM_SCISSION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=[atom_keys(rgra)],
@@ -270,6 +270,7 @@ def eliminations(rct_gras, prd_gras):
             # Get keys to the ring formed by this extra bond
             rng_keys = next((ks for ks in rings_atom_keys(prds_gra_)
                              if frm2_key in ks and frm1_key in ks), None)
+
             # Eliminations (as far as I can tell) only happen through TSs with
             # 3- or 4-membered rings
             if rng_keys is not None and len(rng_keys) < 5:
@@ -310,7 +311,7 @@ def eliminations(rct_gras, prd_gras):
 
                     # Create the reaction object
                     rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.ELIMINATION,
+                        rxn_cls=ReactionClass.Typ.ELIMINATION,
                         forw_tsg=forw_tsg,
                         back_tsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
@@ -375,7 +376,7 @@ def hydrogen_abstractions(rct_gras, prd_gras):
 
                 # Create the reaction object
                 rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.HYDROGEN_ABSTRACTION,
+                    rxn_cls=ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -427,7 +428,7 @@ def additions(rct_gras, prd_gras):
 
                 # Create the reaction object
                 rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.ADDITION,
+                    rxn_cls=ReactionClass.Typ.ADDITION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -502,7 +503,7 @@ def substitutions(rct_gras, prd_gras):
 
                         # Create the reaction object
                         rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.SUBSTITUTION,
+                            rxn_cls=ReactionClass.Typ.SUBSTITUTION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=rcts_atm_keys,

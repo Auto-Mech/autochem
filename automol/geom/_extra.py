@@ -1,6 +1,7 @@
 """ extra geometry functions
 """
 
+import numpy
 import automol.convert.geom
 import automol.graph
 from automol.geom import _trans as trans
@@ -166,3 +167,56 @@ def _swap_for_one(geo, hyds):
             geo_lst.append(new_geo)
 
     return geo_lst
+
+
+def minimum_volume_geometry(geos):
+    """ Generate the geometry with smallest volume from a set
+        of geometrties for a given species.
+
+        :param geos: molecular geometries
+        :type geos: tuple(geo obj)
+        :rtype: geo obj
+    """
+
+    # Get lines for the output string
+    geoms_string = '\n'.join([automol.geom.xyz_string(geom)
+                              for geom in geos])
+    lines = geoms_string.splitlines()
+
+    # Get the number of atoms
+    natom = int(lines[0])
+
+    # loop over the lines to find the smallest geometry
+    rrminmax = 1.0e10
+    ngeom = 0
+    small_geo_idx = 0
+    while ngeom*(natom+2) < len(lines):
+        rrmax = 0.0
+        for i in range(natom):
+            for j in range(i+1, natom):
+                # Get the line
+                xyz1 = lines[i+ngeom*(natom+2)+2].split()[1:]
+                xyz2 = lines[j+ngeom*(natom+2)+2].split()[1:]
+                # Get the coordinates
+                atom1 = [float(val) for val in xyz1]
+                atom2 = [float(val) for val in xyz2]
+                # Calculate the interatomic distance
+                rrtest = numpy.sqrt((atom1[0]-atom2[0])**2 +
+                                    (atom1[1]-atom2[1])**2 +
+                                    (atom1[2]-atom2[2])**2)
+                # Check and see if distance is more than max
+                if rrtest > rrmax:
+                    rrmax = rrtest
+        # If max below moving threshold, set to smallest geom
+        if rrmax < rrminmax:
+            rrminmax = rrmax
+            small_geo_idx = ngeom
+        ngeom += 1
+
+    # Set the output geometry
+    geom_str = ''
+    for i in range(natom):
+        geom_str += lines[i+small_geo_idx*(natom+2)+2] + '\n'
+    round_geom = automol.geom.from_string(geom_str)
+
+    return round_geom

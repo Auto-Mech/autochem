@@ -347,7 +347,7 @@ def reactant_graphs(rxn, rev=False):
         :rtype: tuple of automol graph data structures
     """
     if rev:
-        rcts_gra = ts.product_graph(rxn.forward_ts_graph)
+        rcts_gra = ts.products_graph(rxn.forward_ts_graph)
     else:
         rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     rct_gras = [automol.graph.subgraph(rcts_gra, keys, stereo=True)

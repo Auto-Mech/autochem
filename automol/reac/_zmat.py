@@ -2,7 +2,7 @@
 """
 import automol.geom
 import automol.graph
-from automol import par
+from automol.par import ReactionClass
 from automol.graph import ts
 from automol.reac._reac import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
@@ -341,16 +341,16 @@ def ts_zmatrix(rxn, ts_geo):
     """
     function_dct = {
         # unimolecular
-        par.ReactionClass.HYDROGEN_MIGRATION: hydrogen_migration_ts_zmatrix,
-        par.ReactionClass.BETA_SCISSION: beta_scission_ts_zmatrix,
-        par.ReactionClass.RING_FORM_SCISSION: ring_forming_scission_ts_zmatrix,
-        par.ReactionClass.ELIMINATION: elimination_ts_zmatrix,
+        ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migration_ts_zmatrix,
+        ReactionClass.Typ.BETA_SCISSION: beta_scission_ts_zmatrix,
+        ReactionClass.Typ.RING_FORM_SCISSION: ring_forming_scission_ts_zmatrix,
+        ReactionClass.Typ.ELIMINATION: elimination_ts_zmatrix,
         # bimolecular
-        par.ReactionClass.HYDROGEN_ABSTRACTION:
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
         hydrogen_abstraction_ts_zmatrix,
-        par.ReactionClass.ADDITION: addition_ts_zmatrix,
-        par.ReactionClass.INSERTION: insertion_ts_zmatrix,
-        par.ReactionClass.SUBSTITUTION: substitution_ts_zmatrix,
+        ReactionClass.Typ.ADDITION: addition_ts_zmatrix,
+        ReactionClass.Typ.INSERTION: insertion_ts_zmatrix,
+        ReactionClass.Typ.SUBSTITUTION: substitution_ts_zmatrix,
     }
 
     fun_ = function_dct[rxn.class_]

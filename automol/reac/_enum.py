@@ -86,7 +86,7 @@ def hydrogen_migrations(rct_gras, viable_only=True):
                         brk_bnd_keys=[(rct_rad_key, rct_hyd_key)])
 
                     rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
+                        rxn_cls=par.ReactionClass.Typ.HYDROGEN_MIGRATION,
                         forw_tsg=forw_tsg,
                         back_tsg=back_tsg,
                         rcts_keys=[atom_keys(rct_gra)],
@@ -142,7 +142,7 @@ def beta_scissions(rct_gras, viable_only=True):
 
                 # Create the reaction object
                 rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.BETA_SCISSION,
+                    rxn_cls=par.ReactionClass.Typ.BETA_SCISSION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -232,7 +232,7 @@ def eliminations(rct_gras, viable_only=True):
 
                     # Create the reaction object
                     rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.ELIMINATION,
+                        rxn_cls=par.ReactionClass.Typ.ELIMINATION,
                         forw_tsg=forw_tsg,
                         back_tsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
@@ -302,7 +302,7 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
 
                     # Create the reaction object
                     rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.HYDROGEN_ABSTRACTION,
+                        rxn_cls=par.ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                         forw_tsg=forw_tsg,
                         back_tsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
@@ -354,7 +354,7 @@ def additions(rct_gras, viable_only=True):
 
             # Create the reaction object
             rxns.append(Reaction(
-                rxn_cls=par.ReactionClass.ADDITION,
+                rxn_cls=par.ReactionClass.Typ.ADDITION,
                 forw_tsg=forw_tsg,
                 back_tsg=back_tsg,
                 rcts_keys=list(map(atom_keys, rct_gras)),
@@ -451,7 +451,7 @@ def insertions(rct_gras, viable_only=True):
                         rcts_keys = list(map(atom_keys, [rct1_gra, rct2_gra]))
                         prds_keys = list(map(atom_keys, prd_gras))
                         rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.INSERTION,
+                            rxn_cls=par.ReactionClass.Typ.INSERTION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=rcts_keys,

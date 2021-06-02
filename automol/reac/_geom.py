@@ -4,7 +4,7 @@ import itertools
 import more_itertools as mit
 import automol.convert.graph
 import automol.geom.ts
-from automol import par
+from automol.par import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_keys
 from automol.reac._util import ring_forming_scission_chain
@@ -19,7 +19,7 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.HYDROGEN_MIGRATION
+    assert rxn.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
@@ -49,7 +49,7 @@ def beta_scission_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.BETA_SCISSION
+    assert rxn.class_ == ReactionClass.Typ.BETA_SCISSION
     assert rxn.has_standard_keys()
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     brk_bnd_dist = 1.5
@@ -79,7 +79,7 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.RING_FORM_SCISSION
+    assert rxn.class_ == ReactionClass.Typ.RING_FORM_SCISSION
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
@@ -138,7 +138,7 @@ def elimination_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.ELIMINATION
+    assert rxn.class_ == ReactionClass.Typ.ELIMINATION
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.6
@@ -171,7 +171,7 @@ def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.HYDROGEN_ABSTRACTION
+    assert rxn.class_ == ReactionClass.Typ.HYDROGEN_ABSTRACTION
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.6
@@ -213,7 +213,7 @@ def addition_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.ADDITION
+    assert rxn.class_ == ReactionClass.Typ.ADDITION
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.9
@@ -256,7 +256,7 @@ def insertion_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.INSERTION
+    assert rxn.class_ == ReactionClass.Typ.INSERTION
     assert rxn.has_standard_keys()
 
     # set the formed bond distance based on the number of hydrogens
@@ -310,7 +310,7 @@ def substitution_ts_geometry(rxn, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == par.ReactionClass.SUBSTITUTION
+    assert rxn.class_ == ReactionClass.Typ.SUBSTITUTION
     assert rxn.has_standard_keys()
 
     # set the formed bond distance based on the number of hydrogens
@@ -362,17 +362,17 @@ def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False):
     """
     function_dct = {
         # unimolecular
-        par.ReactionClass.HYDROGEN_MIGRATION: hydrogen_migration_ts_geometry,
-        par.ReactionClass.BETA_SCISSION: beta_scission_ts_geometry,
-        par.ReactionClass.RING_FORM_SCISSION:
+        ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migration_ts_geometry,
+        ReactionClass.Typ.BETA_SCISSION: beta_scission_ts_geometry,
+        ReactionClass.Typ.RING_FORM_SCISSION:
         ring_forming_scission_ts_geometry,
-        par.ReactionClass.ELIMINATION: elimination_ts_geometry,
+        ReactionClass.Typ.ELIMINATION: elimination_ts_geometry,
         # bimolecular
-        par.ReactionClass.HYDROGEN_ABSTRACTION:
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
         hydrogen_abstraction_ts_geometry,
-        par.ReactionClass.ADDITION: addition_ts_geometry,
-        par.ReactionClass.INSERTION: insertion_ts_geometry,
-        par.ReactionClass.SUBSTITUTION: substitution_ts_geometry,
+        ReactionClass.Typ.ADDITION: addition_ts_geometry,
+        ReactionClass.Typ.INSERTION: insertion_ts_geometry,
+        ReactionClass.Typ.SUBSTITUTION: substitution_ts_geometry,
     }
 
     fun_ = function_dct[rxn.class_]
