@@ -2,7 +2,6 @@
 """
 import itertools
 import more_itertools as mit
-import automol.convert.graph
 import automol.geom.ts
 from automol.par import ReactionClass
 from automol.graph import ts
@@ -403,5 +402,6 @@ def _geometry_from_info(gra, rct_geos, geo_init, dist_range_dct,
         print("Converged!" if conv else "Did not converge.")
 
     syms = list(itertools.chain(*map(automol.geom.symbols, rct_geos)))
-    geo = automol.embed.geometry_from_coordinates(xmat, syms)
+    xyzs = xmat[:, :3]
+    geo = automol.geom.from_data(syms, xyzs, angstrom=True)
     return geo

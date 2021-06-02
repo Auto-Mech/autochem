@@ -8,14 +8,14 @@ Function arguments:
 """
 
 import itertools
-from automol.convert.graph import formula as graph_formula
-from automol.convert.geom import geometry as ich_geometry
-from automol.convert.geom import connectivity_graph
+import automol.geom
 import automol.geom.ts
+import automol.inchi
 from automol.par import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_keys
 from automol.graph import bond_keys
+from automol.graph import formula
 from automol.graph import union
 from automol.graph import add_bonds
 from automol.graph import remove_bonds
@@ -341,8 +341,8 @@ def hydrogen_abstractions(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 2:
-        rct_fmls = list(map(graph_formula, rct_gras))
-        prd_fmls = list(map(graph_formula, prd_gras))
+        rct_fmls = list(map(formula, rct_gras))
+        prd_fmls = list(map(formula, prd_gras))
 
         ret = automol.formula.reac.argsort_hydrogen_abstraction(
             rct_fmls, prd_fmls)
@@ -524,8 +524,8 @@ def find(rct_gras, prd_gras):
     :rtype: tuple[Reaction]
     """
     # check whether this is a valid reaction
-    rct_fmls = list(map(graph_formula, rct_gras))
-    prd_fmls = list(map(graph_formula, prd_gras))
+    rct_fmls = list(map(formula, rct_gras))
+    prd_fmls = list(map(formula, prd_gras))
     rct_strs = list(map(automol.formula.string, rct_fmls))
     prd_strs = list(map(automol.formula.string, prd_fmls))
     assert automol.formula.reac.is_valid_reaction(rct_fmls, prd_fmls), (
@@ -559,10 +559,10 @@ def find_from_inchis(rct_ichs, prd_ichs):
     :returns: a list of reaction classes
     :rtype: tuple[str]
     """
-    rct_geos = list(map(ich_geometry, rct_ichs))
-    prd_geos = list(map(ich_geometry, prd_ichs))
-    rct_gras = list(map(connectivity_graph, rct_geos))
-    prd_gras = list(map(connectivity_graph, prd_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
+    rct_gras = list(map(automol.geom.connectivity_graph, rct_geos))
+    prd_gras = list(map(automol.geom.connectivity_graph, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
     rxns = find(rct_gras, prd_gras)

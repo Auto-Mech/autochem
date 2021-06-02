@@ -163,5 +163,5 @@ def test__transformation():
 
 
 if __name__ == '__main__':
-    test__prod_zmas()
+    # test__prod_zmas()
     test__transformation()

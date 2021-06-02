@@ -53,7 +53,7 @@ def test__from_data():
     """ test zmat.from_data
     """
     zma1 = zmat.from_data(
-        syms=zmat.symbols(CH4O2_ZMA),
+        symbs=zmat.symbols(CH4O2_ZMA),
         key_mat=zmat.key_matrix(CH4O2_ZMA),
         val_mat=zmat.value_matrix(CH4O2_ZMA),
         name_mat=zmat.name_matrix(CH4O2_ZMA),
@@ -61,7 +61,7 @@ def test__from_data():
     assert zma1 == CH4O2_ZMA
 
     zma2 = zmat.from_data(
-        syms=zmat.symbols(CH4O2_ZMA_NO_NONES),
+        symbs=zmat.symbols(CH4O2_ZMA_NO_NONES),
         key_mat=zmat.key_matrix(CH4O2_ZMA_NO_NONES),
         val_mat=zmat.value_matrix(CH4O2_ZMA_NO_NONES),
         name_mat=zmat.name_matrix(CH4O2_ZMA_NO_NONES),

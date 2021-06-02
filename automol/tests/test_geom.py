@@ -273,13 +273,13 @@ def test__reflect_coordinates():
     assert automol.geom.almost_equal_dist_matrix(geo3, ref_geo3, thresh=0.001)
 
 
-def test__remove_coordinates():
-    """ test geom.remove_coordinates
+def test__remove():
+    """ test geom.remove
     """
     ref_geo1 = (('C', (1.170155936996, 0.359360756989, -0.513323178859)),
                 ('Cl', (-3.027970874978, 1.39211904938, -0.0492290974807)),
                 ('H', (-1.66730598121, -2.31375855306, -0.433949091252)))
-    geo1 = automol.geom.remove_coordinates(C2H2CLF_GEO, [0, 2, 4])
+    geo1 = automol.geom.remove(C2H2CLF_GEO, [0, 2, 4])
 
     assert automol.geom.almost_equal_dist_matrix(geo1, ref_geo1, thresh=0.001)
 
@@ -456,7 +456,6 @@ if __name__ == '__main__':
     # test__atom_indices()
     # test__set_coordinates()
     # test__swap_coordinates()
-    # test__remove_coordinates()
     # test__dist_analysis()
     # test__symmetry_factor()
     # test__closest_unbonded_atoms()
@@ -464,4 +463,5 @@ if __name__ == '__main__':
     # test__reflect_coordinates()
     # test__permutations()
     # test__traj()
-    test__insert_dummies()
+    # test__insert_dummies()
+    test__remove()

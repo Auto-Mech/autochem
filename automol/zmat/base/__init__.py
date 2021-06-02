@@ -1,17 +1,10 @@
-""" Z-Matrices
-
-Level 2 Z-Matrix functions belong in geom/base/*.py. These do not require
-converion to other basic types (geom, graph, zmat, inchi).
-
-Level 4 Z-Matrix functions belong in geom/*.py. These **do** require
-converion to other basic types (geom, graph, zmat, inchi).
+""" Level 2 Z-Matrix functions
 
 Import hierarchy:
-    _conv       no dependencies
-    _extra      dependencies: _conv
+    _core       no dependencies
+    _extra      dependencies: _core
 """
 
-# L2
 # common v-matrix/z-matrix functions:
 from automol.vmat import symbols
 from automol.vmat import key_matrix
@@ -77,29 +70,9 @@ from automol.zmat.base._extra import coord_idxs
 from automol.zmat.base._extra import bond_key_from_idxs
 from automol.zmat.base._extra import get_babs1
 from automol.zmat.base._extra import get_babs2
-# L4
-# conversion functions
-# # conversions
-from automol.zmat._conv import graph
-from automol.zmat._conv import connectivity_graph
-from automol.zmat._conv import geometry
-from automol.zmat._conv import geometry_with_conversion_info
-from automol.zmat._conv import geometry_with_dummy_atoms
-# # derived properties
-from automol.zmat._conv import distance
-from automol.zmat._conv import central_angle
-from automol.zmat._conv import dihedral_angle
-# # torsions
-from automol.zmat._conv import torsion_coordinate_name
-from automol.zmat._conv import torsion_leading_atom
-# extra functions:
-from automol.zmat._extra import torsional_symmetry_numbers
-from automol.zmat._extra import torsional_scan_linspaces
-from automol.zmat._extra import is_atom_closest_to_bond_atom
 
 
 __all__ = [
-    # L2
     # common v-matrix/z-matrix functions:
     'symbols',
     'key_matrix',
@@ -165,23 +138,4 @@ __all__ = [
     'bond_key_from_idxs',
     'get_babs1',
     'get_babs2',
-    # L4
-    # conversion functions
-    # # conversions
-    'graph',
-    'connectivity_graph',
-    'geometry',
-    'geometry_with_conversion_info',
-    'geometry_with_dummy_atoms',
-    # # derived properties
-    'distance',
-    'central_angle',
-    'dihedral_angle',
-    # # torsions
-    'torsion_coordinate_name',
-    'torsion_leading_atom',
-    # extra functions:
-    'torsional_symmetry_numbers',
-    'torsional_scan_linspaces',
-    'is_atom_closest_to_bond_atom',
 ]

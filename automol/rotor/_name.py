@@ -1,7 +1,7 @@
 """ Handle name groups
 """
 
-from automol.zmat import symbols
+import automol.zmat
 
 
 def group_torsions_into_rotors(tors_lst, name_grps=None, multi=False):
@@ -87,7 +87,7 @@ def _is_methyl_rotor(tors):
     """ Identify if the rotor
     """
 
-    symbs = symbols(tors.zma)
+    symbs = automol.zmat.symbols(tors.zma)
     axis = list(tors.axis)
     grps = tors.groups
     rgrp1 = [axis[0]] + list(grps[0])

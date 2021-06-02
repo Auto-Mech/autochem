@@ -498,29 +498,3 @@ def enumerate_reactions(rct_gras, viable_only=True):
                                    for f_ in finders_)))
 
     return rxns
-
-
-# if __name__ == "__main__":
-#     import automol
-#
-#     # RCT_SMIS = ['C=CCC[CH2]']         # hydrogen migration
-#     # RCT_SMIS = ['C=C[CH]CC']          # beta scission
-#     # RCT_SMIS = ['CCCO[O]']            # elimination
-#     # RCT_SMIS = ['CC(=O)C', '[CH3]']   # hydrogen abstractions
-#     # RCT_SMIS = ['C=CC=C', '[CH3]']    # addition
-#     RCT_SMIS = ['CC=C', 'O[O]']       # insertion
-#     # RCT_SMIS = ['CC', '[CH2]']        # insertion
-#     RCT_ICHS = list(map(automol.smiles.inchi, RCT_SMIS))
-#     RCT_GEOS = list(map(automol.convert.geom.geometry, RCT_ICHS))
-#     RCT_GRAS = list(map(automol.convert.geom.connectivity_graph, RCT_GEOS))
-#     RCT_GRAS, _ = automol.graph.standard_keys_for_sequence(RCT_GRAS)
-#
-#     # RXNS = enumerate_reactions(RCT_GRAS)
-#     RXNS = insertions(RCT_GRAS)
-#     print(len(RXNS))
-#
-#     for rxn in RXNS:
-#         print(automol.graph.string(rxn.forward_ts_graph))
-#         print()
-#
-#     print(len(RXNS))

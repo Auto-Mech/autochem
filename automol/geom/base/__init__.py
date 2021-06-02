@@ -1,19 +1,10 @@
-""" cartesian geometries
-
-Level 2 geometry functions belong in geom/base/*.py. These do not require
-converion to other basic types (geom, graph, zmat, inchi).
-
-Level 4 geometry functions belong in geom/*.py. These **do** require
-converion to other basic types (geom, graph, zmat, inchi).
+""" Level 2 geometry functions (no dependencies on extern or other types)
 
 Import hierarchy:
-    _pyx2z      no dependencies
-    _conv       dependencies: automol.graph, _pyx2z
-    _extra      dependencies: automol.graph, _pyx2z, _conv
-    ts          dependencies: automol.graph
+    _core       no dependencies
+    _comp       dependencies: _core
 """
 
-# L2
 # core functions
 # # constructors
 from automol.geom.base._core import from_data
@@ -87,40 +78,9 @@ from automol.geom.base._comp import almost_equal_coulomb_spectrum
 from automol.geom.base._comp import argunique_coulomb_spectrum
 from automol.geom.base._comp import almost_equal_dist_matrix
 from automol.geom.base._comp import minimum_volume_geometry
-# L4
-# conversion functions:
-# # conversions
-from automol.geom._conv import graph
-from automol.geom._conv import connectivity_graph
-from automol.geom._conv import zmatrix
-from automol.geom._conv import zmatrix_with_conversion_info
-from automol.geom._conv import x2z_zmatrix
-from automol.geom._conv import inchi
-from automol.geom._conv import inchi_with_sort
-from automol.geom._conv import smiles
-# # derived properties
-from automol.geom._conv import linear_atoms
-from automol.geom._conv import closest_unbonded_atoms
-from automol.geom._conv import external_symmetry_factor
-from automol.geom._conv import x2z_torsion_coordinate_names
-from automol.geom._conv import x2z_atom_ordering
-# # derived operations
-from automol.geom._conv import insert_dummies_on_linear_atoms
-from automol.geom._conv import insert_dummies
-# extra functions:
-from automol.geom._extra import components_graph
-from automol.geom._extra import connected
-from automol.geom._extra import end_group_symmetry_factor
-from automol.geom._extra import rot_permutated_geoms
-from automol.geom._extra import are_torsions_same2
-from automol.geom._extra import are_torsions_same
-from automol.geom._extra import is_unique
-# ts submodule
-from automol.geom import ts
 
 
 __all__ = [
-    # L2
     # core functions
     # # constructors
     'from_data',
@@ -194,34 +154,4 @@ __all__ = [
     'argunique_coulomb_spectrum',
     'almost_equal_dist_matrix',
     'minimum_volume_geometry',
-    # L4
-    # conversion functions:
-    # # conversions
-    'graph',
-    'connectivity_graph',
-    'zmatrix',
-    'zmatrix_with_conversion_info',
-    'x2z_zmatrix',
-    'inchi',
-    'inchi_with_sort',
-    'smiles',
-    # # derived properties
-    'linear_atoms',
-    'closest_unbonded_atoms',
-    'external_symmetry_factor',
-    'x2z_torsion_coordinate_names',
-    'x2z_atom_ordering',
-    # # derived operations
-    'insert_dummies_on_linear_atoms',
-    'insert_dummies',
-    # extra functions:
-    'components_graph',
-    'connected',
-    'end_group_symmetry_factor',
-    'rot_permutated_geoms',
-    'are_torsions_same2',
-    'are_torsions_same',
-    'is_unique',
-    # ts submodule
-    'ts',
 ]

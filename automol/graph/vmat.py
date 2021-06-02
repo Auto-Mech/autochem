@@ -1,23 +1,23 @@
 """ graph-based z-matrix builder
 """
 import automol.vmat
-from automol.graph._graph_dep import string
-from automol.graph._graph_dep import subgraph
-from automol.graph._graph_dep import atom_keys
-from automol.graph._graph_dep import atom_symbols
-from automol.graph._graph_dep import remove_bonds
-from automol.graph._graph_dep import atoms_neighbor_atom_keys
-from automol.graph._graph_dep import atoms_sorted_neighbor_atom_keys
-from automol.graph._graph import atom_count
-from automol.graph._graph import is_connected
-from automol.graph._graph import terminal_heavy_atom_keys
-from automol.graph._graph import shortest_path_between_groups
-from automol.graph._embed_dep import rings_atom_keys
-from automol.graph._embed_dep import sorted_ring_atom_keys
-from automol.graph._ring import rings
-from automol.graph._ring import ring_systems
-from automol.graph._ring import ring_system_decomposed_atom_keys
-from automol.graph._ring import cycle_ring_atom_key_to_front
+from automol.graph.base import string
+from automol.graph.base import subgraph
+from automol.graph.base import atom_keys
+from automol.graph.base import atom_symbols
+from automol.graph.base import remove_bonds
+from automol.graph.base import atoms_neighbor_atom_keys
+from automol.graph.base import atoms_sorted_neighbor_atom_keys
+from automol.graph.base import atom_count
+from automol.graph.base import is_connected
+from automol.graph.base import terminal_heavy_atom_keys
+from automol.graph.base import shortest_path_between_groups
+from automol.graph.base import rings_atom_keys
+from automol.graph.base import sorted_ring_atom_keys
+from automol.graph.base import rings
+from automol.graph.base import ring_systems
+from automol.graph.base import ring_system_decomposed_atom_keys
+from automol.graph.base import cycle_ring_atom_key_to_front
 
 
 def vmatrix(gra, keys=None, rng_keys=None):

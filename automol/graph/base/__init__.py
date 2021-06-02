@@ -1,19 +1,24 @@
-""" molecular graphs
+""" Level 2 graph functions (no dependencies on extern or other types)
 
 Import hierarchy:
-    vmat        no dependencies
-    zmat        no dependencies
-    embed       no dependencies
-    _conv       dependencies: vmat
+    _core       no dependencies
+    _networkx   dependencies: _core
+    _igraph     dependencies: _core
+    _algo       dependencies: _core, _networkx, _igraph
+    _resonance  dependencies: _core, _networkx, _igraph, _algo
+    _func_group dependencies: _core, _networkx, _igraph, _algo, _resonance
+    _rot        dependencies: _core, _networkx, _igraph, _algo, _resonance
+    _stereo     dependencies: _core, _networkx, _igraph, _algo, _resonance
+    ts          dependencies: _core, _networkx, _igraph, _algo, _resonance,
+                              _stereo
 
-Level 2 graph functions belong in graph/base/*.py. These have no dependencies
-on automol.extern or on other automol types (geom, zmat, etc.)
+Each next submodule in the hierarchy may depend on the ones before it, but
+**not** the ones after. This avoids circular dependencies.
 
-Level 4 graph functions, which do depend on these things, belong in graph/*.py
-
+Please obey this hierarchy strictly and raise an issue to the group if
+something needs to be updated or altered in it.
 """
 
-# L2
 # core functions:
 # # constructors
 from automol.graph.base._core import from_data
@@ -241,21 +246,9 @@ from automol.graph.base._stereo import atom_stereo_parity_from_geometry
 from automol.graph.base._stereo import bond_stereo_parity_from_geometry
 # TS graph submodule:
 from automol.graph.base import ts
-# L4
-# conversion functions:
-# # conversions
-from automol.graph._conv import geometry
-from automol.graph._conv import inchi
-from automol.graph._conv import stereo_inchi
-from automol.graph._conv import inchi_with_sort_from_geometry
-from automol.graph._conv import rdkit_molecule
-# submodules:
-from automol.graph import vmat
-from automol.graph import embed
 
 
 __all__ = [
-    # L2
     # core functions:
     # # constructors
     'from_data',
@@ -480,15 +473,4 @@ __all__ = [
     'bond_stereo_parity_from_geometry',
     # TS graph submodule:
     'ts',
-    # L4
-    # conversion functions:
-    # # conversions
-    'geometry',
-    'inchi',
-    'stereo_inchi',
-    'inchi_with_sort_from_geometry',
-    'rdkit_molecule',
-    # submodules:
-    'vmat',
-    'embed',
 ]

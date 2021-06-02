@@ -9,7 +9,6 @@ Function arguments:
 import itertools
 import yaml
 import numpy
-import automol.convert.graph
 import automol.geom.ts
 import automol.graph
 from automol import par
