@@ -34,7 +34,6 @@ this module.
 """
 import itertools
 import numpy
-import automol.create.geom
 
 
 def sample_raw_distance_coordinates(lmat, umat, dim4=True):
@@ -205,16 +204,6 @@ def distance_matrix_from_coordinates(xmat, dim4=True):
         dmat[i, j] = numpy.linalg.norm(xmat[i] - xmat[j])
 
     return dmat
-
-
-def geometry_from_coordinates(xmat, syms):
-    """ returns the geometry from the coordinates and the graph
-    """
-    xmat = numpy.array(xmat)
-
-    xyzs = xmat[:, :3]
-    geo = automol.create.geom.from_data(syms, xyzs, angstrom=True)
-    return geo
 
 
 def greatest_distance_errors(dmat, lmat, umat, count=10):

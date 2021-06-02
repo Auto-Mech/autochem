@@ -1,7 +1,7 @@
 """ SMILES
 """
-
-import automol.convert.smiles
+import automol.inchi.base
+from automol.extern import rdkit_
 
 
 def inchi(smi):
@@ -11,4 +11,34 @@ def inchi(smi):
         :type smi: str
         :rtype: str
     """
-    return automol.convert.smiles.inchi(smi)
+
+    ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
+        'smiles', smi, comp=_compare)
+
+    if ich is None:
+        rdm = rdkit_.from_smiles(smi)
+        ich = rdkit_.to_inchi(rdm)
+    return ich
+
+
+# helpers
+def _compare(smi1, smi2):
+    """ Check if two SMILES strings are similar.
+
+        :param smi1: SMILES string 1
+        :type smi1: str
+        :param smi2: SMILES string 2
+        :type smi2: str
+        :rtype: bool
+    """
+    return _canonicalize(smi1) == _canonicalize(smi2)
+
+
+def _canonicalize(smi):
+    """ Convert a SMILES string into its canonical form.
+
+        :param smi: SMILES string
+        :type smi: str
+        :rtype: str
+    """
+    return rdkit_.to_smiles(rdkit_.from_smiles(smi))

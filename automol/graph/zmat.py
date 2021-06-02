@@ -1,11 +1,11 @@
 """ graph-based z-matrix builder
 """
 import automol.vmat
-from automol.graph._graph_dep import atom_keys
-from automol.graph._graph_dep import atom_symbols
-from automol.graph._graph_dep import remove_bonds
-from automol.graph._graph_dep import atoms_neighbor_atom_keys
-from automol.graph._graph_dep import atoms_sorted_neighbor_atom_keys
+from automol.graph.base import atom_keys
+from automol.graph.base import atom_symbols
+from automol.graph.base import remove_bonds
+from automol.graph.base import atoms_neighbor_atom_keys
+from automol.graph.base import atoms_sorted_neighbor_atom_keys
 
 
 def ring(gra, keys):

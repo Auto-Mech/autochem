@@ -332,7 +332,7 @@ def test__reac__hydrogen_migration():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -442,7 +442,7 @@ def test__reac__beta_scission():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -497,7 +497,7 @@ def test__reac__ring_forming_scission():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -552,7 +552,7 @@ def test__reac__elimination():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -603,7 +603,7 @@ def test__reac__elimination():
 
         # graph aligned to geometry keys
         # (for getting rotational groups and symmetry numbers)
-        geo, _ = automol.convert.zmat.geometry(zma)
+        geo, _ = automol.zmat.geometry_with_conversion_info(zma)
         grxn = automol.reac.relabel_for_geometry(zrxn)
         print(automol.geom.string(geo))
 
@@ -652,7 +652,7 @@ def test__reac__hydrogen_abstraction():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -708,7 +708,7 @@ def test__reac__hydrogen_abstraction():
 
         # graph aligned to geometry keys
         # (for getting rotational groups and symmetry numbers)
-        geo, _ = automol.convert.zmat.geometry(zma)
+        geo, _ = automol.zmat.geometry_with_conversion_info(zma)
         grxn = automol.reac.relabel_for_geometry(zrxn)
         print(automol.geom.string(geo))
 
@@ -753,7 +753,7 @@ def test__reac__sigma_hydrogen_abstraction():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, _ = automol.convert.zmat.geometry(zma)
+    geo, _ = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -808,7 +808,7 @@ def test__reac__addition():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -860,7 +860,7 @@ def test__reac__addition():
 
         # graph aligned to geometry keys
         # (for getting rotational groups and symmetry numbers)
-        geo, _ = automol.convert.zmat.geometry(zma)
+        geo, _ = automol.zmat.geometry_with_conversion_info(zma)
         grxn = automol.reac.relabel_for_geometry(zrxn)
         print(automol.geom.string(geo))
 
@@ -930,7 +930,7 @@ def test__reac__radrad_hydrogen_abstraction():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -986,7 +986,7 @@ def test__reac__insertion():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -1038,7 +1038,7 @@ def test__reac__insertion():
 
         # graph aligned to geometry keys
         # (for getting rotational groups and symmetry numbers)
-        geo, _ = automol.convert.zmat.geometry(zma)
+        geo, _ = automol.zmat.geometry_with_conversion_info(zma)
         grxn = automol.reac.relabel_for_geometry(zrxn)
         print(automol.geom.string(geo))
 
@@ -1085,7 +1085,7 @@ def test__reac__substitution():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     print(automol.geom.string(geo))
 
@@ -1144,7 +1144,8 @@ def test__species__demo():
 
     # graph aligned to z-matrix keys
     # (for getting torsion coordinate names)
-    zma, zma_keys, dummy_key_dct = automol.convert.zmat.zmatrix(geo)
+    zma, zma_keys, dummy_key_dct = (
+        automol.geom.zmatrix_with_conversion_info(geo))
     zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
 
     lin_keys = sorted(
@@ -1157,7 +1158,7 @@ def test__species__demo():
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.convert.zmat.geometry(zma)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     ggra = automol.graph.relabel_for_geometry(zgra)
     print(automol.geom.string(geo))
 
@@ -1321,8 +1322,8 @@ def test__prod__hydrogen_migration():
     """
     rct_smis = ['C=CCC[CH2]']
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
-    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.geom.connectivity_graph, rct_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
     # Enumerate all possible reactions, but select the hydrogen migrations
@@ -1345,8 +1346,8 @@ def test__prod__beta_scission():
     """
     rct_smis = ['C=C[CH]CC']
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
-    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.geom.connectivity_graph, rct_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
     # Enumerate all possible reactions, but select the beta scissions
@@ -1369,8 +1370,8 @@ def test__prod__elimination():
     """
     rct_smis = ['CCCO[O]']
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
-    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.geom.connectivity_graph, rct_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
     # Enumerate all possible reactions, but select the eliminations
@@ -1393,8 +1394,8 @@ def test__prod__hydrogen_abstraction():
     """
     rct_smis = ['CC(=O)C', '[CH3]']
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
-    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.geom.connectivity_graph, rct_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
     # Enumerate all possible reactions, but select the hydrogen abstractions
@@ -1417,8 +1418,8 @@ def test__prod__addition():
     """
     rct_smis = ['C=CC=C', '[CH3]']
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
-    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.geom.connectivity_graph, rct_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
     # Enumerate all possible reactions, but select the additions
@@ -1441,8 +1442,8 @@ def test__prod__insertion():
     """
     rct_smis = ['CC=C', 'O[O]']
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    rct_geos = list(map(automol.convert.geom.geometry, rct_ichs))
-    rct_gras = tuple(map(automol.convert.geom.connectivity_graph, rct_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    rct_gras = tuple(map(automol.geom.connectivity_graph, rct_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
     # Enumerate all possible reactions, but select the insertions
