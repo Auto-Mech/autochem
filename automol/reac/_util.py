@@ -1,8 +1,10 @@
 """ Common utilities for reaction classes
 """
+
+import itertools
 import automol.graph
 from automol.graph import ts
-from automol import par
+from automol.par import ReactionClass
 
 
 def hydrogen_migration_atom_keys(rxn):
@@ -84,7 +86,7 @@ def hydrogen_abstraction_is_sigma(rxn):
     :type rxn: Reaction
     :rtype: bool
     """
-    assert rxn.class_ == par.ReactionClass.HYDROGEN_ABSTRACTION
+    assert rxn.class_ == ReactionClass.Typ.HYDROGEN_ABSTRACTION
     tsg = rxn.forward_ts_graph
     rct_gra = automol.graph.ts.reactants_graph(tsg)
     sig_rad_keys = automol.graph.sigma_radical_atom_keys(rct_gra)
@@ -104,7 +106,7 @@ def elimination_breaking_bond_keys(rxn):
     :returns: the breaking bond keys
     :rtype: (frozenset[int], frozenset[int])
     """
-    assert rxn.class_ == par.ReactionClass.ELIMINATION
+    assert rxn.class_ == ReactionClass.Typ.ELIMINATION
     # Choose the breaking bond with the fewest neighbors, to get the terminal
     # atom if there is one.
     tsg = rxn.forward_ts_graph
@@ -124,7 +126,8 @@ def insertion_forming_bond_keys(rxn):
     :returns: the forming bond keys
     :rtype: (frozenset[int], frozenset[int])
     """
-    assert rxn.class_ == par.ReactionClass.INSERTION
+
+    assert rxn.class_ == ReactionClass.Typ.INSERTION
     # Choose the forming bond with the fewest neighbors, to get the terminal
     # atom if there is one.
     tsg = rxn.forward_ts_graph
@@ -138,6 +141,7 @@ def insertion_forming_bond_keys(rxn):
     frm_bnd_keys = sorted(
         frm_bnd_keys, key=lambda x: automol.graph.atom_count(
             automol.graph.bond_neighborhood(tsg, x)))
+
     return tuple(frm_bnd_keys)
 
 
@@ -233,6 +237,74 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
             rxn_objs += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
 
     return rxn_objs
+
+
+def assert_is_valid_reagent_graph_list(gras):
+    """ Assert that a sequence of graphs has the appropriate form for reactants
+    or products in a reaction object
+
+    The sequence is appropriate if every graph is explicit and without stereo
+    assignments, and none of them have overlapping atom keys.
+
+    :param gras: the graphs
+    :type gras: list
+
+    """
+    gras_str = '\n---\n'.join(map(automol.graph.string, gras))
+    assert _are_all_explicit(gras), (
+        "Implicit hydrogens are not allowed here!\nGraphs:\n{}"
+        .format(gras_str))
+    assert _have_no_stereo_assignments(gras), (
+        "Stereo assignments are not allowed here!\nGraphs:\n{}"
+        .format(gras_str))
+    assert _have_no_common_atom_keys(gras), (
+        "Overlapping atom keys are not allowed here!\nGraphs:\n{}"
+        .format(gras_str))
+
+
+def _are_all_explicit(gras):
+    return all(gra == automol.graph.explicit(gra) for gra in gras)
+
+
+def _have_no_stereo_assignments(gras):
+    return all(gra == automol.graph.without_stereo_parities(gra)
+               for gra in gras)
+
+
+def _have_no_common_atom_keys(gras):
+    atm_keys = list(itertools.chain(*map(automol.graph.atom_keys, gras)))
+    return len(atm_keys) == len(set(atm_keys))
+
+
+def argsort_reagents(gras):
+    """ Get indices to sort reagents by size, from largest to smallest
+
+    :param gras: the reagent (i.e. reactant or product) graphs
+    :returns: indices for sorting the reagents
+    :rtype: tuple[int]
+    """
+
+    def __sort_value(args):
+        _, gra = args
+        val = (-automol.graph.heavy_atom_count(gra),
+               -automol.graph.atom_count(gra),
+               -automol.graph.electron_count(gra))
+        return val
+
+    idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
+    return idxs
+
+
+def sort_reagents(gras):
+    """ Sort reagents by size, from largest to smallest
+
+    :param gras: the reagent (i.e. reactant or product) graphs
+    :returns: the reagent graphs, in sorted order
+    """
+    gras = tuple(gras)
+    idxs = argsort_reagents(gras)
+    gras = tuple(map(gras.__getitem__, idxs))
+    return gras
 
 
 # if __name__ == '__main__':

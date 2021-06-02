@@ -16,6 +16,10 @@ BATH_MASS = automol.geom.total_mass(BATH_GEO)
 TGT_N_HEAVY = automol.geom.atom_count(TGT_GEO, 'H', match=False)
 TEMPS = (300., 1000., 2000.)
 
+# Fake LJ parameters to test combining
+AB_EPS, BB_EPS = 218.7, 156.3
+AB_SIG, BB_SIG = 3.6, 2.4
+
 
 def test__estimate():
     """ test automol.etrans.eff
@@ -47,4 +51,15 @@ def test__estimate():
     assert numpy.isclose(edown_n, ref_edown_n)
 
 
-test__estimate()
+def test__combine():
+    """ test automol.etrans.combine.epsilon
+        test automol.etrans.combine.sigma
+    """
+
+    ref_aa_eps = 306.01209213051817
+    ref_aa_sig = 4.800000000000001
+    aa_eps = automol.etrans.combine.epsilon(AB_EPS, BB_EPS)
+    aa_sig = automol.etrans.combine.sigma(AB_SIG, BB_SIG)
+
+    assert numpy.isclose(aa_eps, ref_aa_eps)
+    assert numpy.isclose(aa_sig, ref_aa_sig)

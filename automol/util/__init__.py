@@ -6,6 +6,7 @@ from automol.util._util import is_even_permutation
 from automol.util._util import equivalence_partition
 from automol.util._util import value_similar_to
 from automol.util._util import scale_iterable
+from automol.util._util import formula_from_symbols
 # submodules
 from automol.util import vec
 from automol.util import mat
@@ -19,6 +20,7 @@ __all__ = [
     'equivalence_partition',
     'value_similar_to',
     'scale_iterable',
+    'formula_from_symbols',
     # submodules
     'vec',
     'mat',

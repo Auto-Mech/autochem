@@ -2,15 +2,14 @@
  Build unstable products
 """
 
+from phydat import instab_fgrps
 import automol.graph
 from automol.reac._util import rxn_objs_from_zmatrix
-from automol.convert.zmat import graph as zgraph
-from automol.convert.geom import graph as ggraph
-from automol.convert.zmat import zmatrix
-from automol.convert.geom import geometry
-from automol.graph._res import radical_dissociation_prods
-from automol.graph._res import radical_group_dct
-from phydat import instab_fgrps
+import automol.geom
+import automol.inchi
+import automol.zmat
+from automol.graph import radical_dissociation_prods
+from automol.graph import radical_group_dct
 
 
 def instability_product_zmas(zma):
@@ -19,10 +18,10 @@ def instability_product_zmas(zma):
     """
 
     disconn_zmas = ()
-    for gra in instability_product_graphs(zgraph(zma)):
+    for gra in instability_product_graphs(automol.zmat.graph(zma)):
         ich = automol.graph.inchi(gra)
-        geo_tmp = geometry(ich)
-        zma, _, _ = zmatrix(geo_tmp)
+        geo_tmp = automol.inchi.geometry(ich)
+        zma = automol.geom.zmatrix(geo_tmp)
         disconn_zmas += (zma,)
 
     return disconn_zmas
@@ -46,8 +45,8 @@ def instability_product_graphs(gra):
                 if grp_ich in fgrps:
                     # If instability found, determine prod of the instability
                     prd_ich = prds[fgrps.index(grp_ich)]
-                    prd_geo = geometry(prd_ich)
-                    prd_gra = ggraph(prd_geo)
+                    prd_geo = automol.inchi.geometry(prd_ich)
+                    prd_gra = automol.geom.graph(prd_geo)
                     prd_gras = radical_dissociation_prods(
                         gra, prd_gra)
                     break

@@ -1,210 +1,187 @@
-""" z-matrix
+""" Z-Matrices
+
+Level 2 Z-Matrix functions belong in geom/base/*.py. These do not require
+converion to other basic types (geom, graph, zmat, inchi).
+
+Level 4 Z-Matrix functions belong in geom/*.py. These **do** require
+converion to other basic types (geom, graph, zmat, inchi).
+
+Import hierarchy:
+    _conv       no dependencies
+    _extra      dependencies: _conv
 """
-# constructors
-from automol.zmat._zmat import from_geometry
-# converters
-from automol.zmat._zmat import geometry
-# getters
-from automol.zmat._zmat import count
-from automol.zmat._zmat import symbols
-from automol.zmat._zmat import atom_indices
-from automol.zmat._zmat import key_matrix
-from automol.zmat._zmat import name_matrix
-from automol.zmat._zmat import value_matrix
-from automol.zmat._zmat import value_dictionary
-from automol.zmat._zmat import dummy_keys
-from automol.zmat._zmat import dummy_neighbor_keys
-from automol.zmat._zmat import dummy_key_dictionary
-from automol.zmat._zmat import linear_atom_keys
-from automol.zmat._zmat import distance
-from automol.zmat._zmat import central_angle
-from automol.zmat._zmat import dihedral_angle
-# setters
-from automol.zmat._zmat import set_key_matrix
-from automol.zmat._zmat import set_name_matrix
-from automol.zmat._zmat import set_value_matrix
-from automol.zmat._zmat import set_values_by_name
-from automol.zmat._zmat import standard_name_matrix
-from automol.zmat._zmat import standard_form
-from automol.zmat._zmat import rename
+
+# L2
+# common v-matrix/z-matrix functions:
+from automol.vmat import symbols
+from automol.vmat import key_matrix
+from automol.vmat import name_matrix
+from automol.vmat import count
+from automol.vmat import atom_indices
+from automol.vmat import coordinate_key_matrix
+from automol.vmat import coordinates
+from automol.vmat import names
+from automol.vmat import distance_names
+from automol.vmat import central_angle_names
+from automol.vmat import dihedral_angle_names
+from automol.vmat import angle_names
+from automol.vmat import dummy_coordinate_names
 from automol.vmat import standard_names
-# operations
-from automol.zmat._zmat import add_atom
-from automol.zmat._zmat import remove_atom
-from automol.zmat._zmat import join_replace_one
-# comparisons
-from automol.zmat._zmat import almost_equal
-# I/O
-from automol.zmat._zmat import from_string
-from automol.zmat._zmat import string
-# validators
-from automol.zmat._zmat import is_valid
-# extra names we need to change
-from automol.zmat._zmat import set_constraint_names
-
-# extra things to be added into the module
-from automol.zmat._extra import torsion_coordinate_name
-from automol.zmat._extra import torsion_leading_atom
-from automol.zmat._extra import distance_coordinate_name
-from automol.zmat._extra import central_angle_coordinate_name
-from automol.zmat._extra import dihedral_angle_coordinate_name
-
-# constructors
-import automol.create.zmat
-# conversions
-import automol.convert.zmat
-
-# to be moved to permanent file upon cleanup
-from automol.zmat._new import is_atom_closest_to_bond_atom
-
-# to be depreciated
-from automol.zmat._zmat import samples
-from automol.zmat._zmat import torsional_symmetry_numbers
-from automol.zmat._zmat import torsional_sampling_ranges
-from automol.zmat._zmat import torsional_scan_linspaces
-from automol.zmat._zmat import dummy_coordinate_names
-from automol.zmat._zmat import coordinates
-from automol.zmat._zmat import dihedral_angle_names
-from automol.zmat._zmat import dihedral_axis_name
-from automol.zmat._zmat import coord_idxs
-from automol.zmat._zmat import bond_key_from_idxs
-from automol.zmat._zmat import get_babs1
-from automol.zmat._zmat import get_babs2
-from automol.zmat._zmat import constraint_dct
-from automol.zmat._zmat import distance_names
-from automol.zmat._zmat import central_angle_names
-from automol.zmat._zmat import shift_down
-
-
-def from_data(syms, key_mat, val_mat, name_mat=None,
-              one_indexed=False, angstrom=False, degree=False):
-    """ z-matrix constructor
-
-    :param syms: atomic symbols
-    :type syms: tuple[str]
-    :param key_mat: key/index columns of the z-matrix, zero-indexed
-    :type key_mat: tuple[tuple[int, int or None, int or None]]
-    :param val_mat: z-matrix coordinate values
-    :type val_mat: tuple[tuple[float, float or None, float or None]]
-    :param name_mat: coordinate name columns of the z-matrix
-    :type name_mat; tuple[tuple[str, str or None, str or None]]
-    """
-    return automol.create.zmat.from_data(
-        symbols=syms, key_matrix=key_mat, value_matrix=val_mat,
-        name_matrix=name_mat, one_indexed=one_indexed, angstrom=angstrom,
-        degree=degree)
-
-
-def torsion_coordinate_names(zma):
-    """ z-matrix torsional coordinate names
-
-    (currently assumes torsional coordinates generated through x2z)
-    """
-    name_dct = standard_names(zma)
-    inv_name_dct = dict(map(reversed, name_dct.items()))
-    geo = automol.geom.without_dummy_atoms(geometry(zma))
-    tors_names = automol.convert.zmat.zmatrix_torsion_coordinate_names(geo)
-    tors_names = tuple(map(inv_name_dct.__getitem__, tors_names))
-    return tors_names
-
-
-def graph(zma, stereo=True, dummy=False):
-    """ z-matrix => graph
-    """
-    return automol.convert.zmat.graph(zma, stereo=stereo, dummy=dummy)
-
-
-def connectivity_graph(zma,
-                       rqq_bond_max=3.5, rqh_bond_max=2.6, rhh_bond_max=1.9):
-    """ z-matrix => connectivity graph
-    """
-    gra = automol.convert.zmat.connectivity_graph(
-        zma, rqq_bond_max=rqq_bond_max, rqh_bond_max=rqh_bond_max,
-        rhh_bond_max=rhh_bond_max)
-    return gra
-
-
-def formula(zma):
-    """ zmatrix => formula
-    """
-    return automol.convert.zmat.formula(zma)
+from automol.vmat import standard_name_matrix
+# core functions
+# # constructors
+from automol.zmat.base._core import from_data
+from automol.zmat.base._core import from_geometry
+# # getters
+from automol.zmat.base._core import value_matrix
+from automol.zmat.base._core import value_dictionary
+# # setters
+from automol.zmat.base._core import set_key_matrix
+from automol.zmat.base._core import set_name_matrix
+from automol.zmat.base._core import set_value_matrix
+from automol.zmat.base._core import set_values_by_name
+# # I/O
+from automol.zmat.base._core import string
+from automol.zmat.base._core import from_string
+# # validation
+from automol.zmat.base._core import is_valid
+# # conversions
+from automol.zmat.base._core import vmatrix
+from automol.zmat.base._core import formula
+# # relabelling
+from automol.zmat.base._core import rename
+from automol.zmat.base._core import standard_form
+# # add/remove atoms
+from automol.zmat.base._core import add_atom
+from automol.zmat.base._core import remove_atom
+# # comparisons
+from automol.zmat.base._core import almost_equal
+# # coordinate names
+from automol.zmat.base._core import distance_coordinate_name
+from automol.zmat.base._core import central_angle_coordinate_name
+from automol.zmat.base._core import dihedral_angle_coordinate_name
+from automol.zmat.base._core import dihedral_axis_name
+# # dummy atom functions
+from automol.zmat.base._core import dummy_keys
+from automol.zmat.base._core import dummy_key_dictionary
+from automol.zmat.base._core import dummy_neighbor_keys
+from automol.zmat.base._core import linear_atom_keys
+from automol.zmat.base._core import shift_down
+from automol.zmat.base._core import shift_up
+# extra functions
+from automol.zmat.base._extra import samples
+from automol.zmat.base._extra import torsional_sampling_ranges
+from automol.zmat.base._extra import constraint_dct
+from automol.zmat.base._extra import set_constraint_names
+from automol.zmat.base._extra import coord_idxs
+from automol.zmat.base._extra import bond_key_from_idxs
+from automol.zmat.base._extra import get_babs1
+from automol.zmat.base._extra import get_babs2
+# L4
+# conversion functions
+# # conversions
+from automol.zmat._conv import graph
+from automol.zmat._conv import connectivity_graph
+from automol.zmat._conv import geometry
+from automol.zmat._conv import geometry_with_conversion_info
+from automol.zmat._conv import geometry_with_dummy_atoms
+# # derived properties
+from automol.zmat._conv import distance
+from automol.zmat._conv import central_angle
+from automol.zmat._conv import dihedral_angle
+# # torsions
+from automol.zmat._conv import torsion_coordinate_name
+from automol.zmat._conv import torsion_leading_atom
+# extra functions:
+from automol.zmat._extra import torsional_symmetry_numbers
+from automol.zmat._extra import torsional_scan_linspaces
+from automol.zmat._extra import is_atom_closest_to_bond_atom
 
 
 __all__ = [
-    # constructors
-    'from_geometry',
-    # converters
-    'geometry',
-    # getters
-    'count',
+    # L2
+    # common v-matrix/z-matrix functions:
     'symbols',
-    'atom_indices',
     'key_matrix',
     'name_matrix',
+    'count',
+    'atom_indices',
+    'coordinate_key_matrix',
+    'coordinates',
+    'names',
+    'distance_names',
+    'central_angle_names',
+    'dihedral_angle_names',
+    'angle_names',
+    'dummy_coordinate_names',
+    'standard_names',
+    'standard_name_matrix',
+    # core functions
+    # # constructors
+    'from_data',
+    'from_geometry',
+    # # getters
     'value_matrix',
     'value_dictionary',
-    'dummy_keys',
-    'dummy_neighbor_keys',
-    'dummy_key_dictionary',
-    'linear_atom_keys',
-    'distance',
-    'central_angle',
-    'dihedral_angle',
-    # setters
+    # # setters
     'set_key_matrix',
     'set_name_matrix',
     'set_value_matrix',
     'set_values_by_name',
-    'standard_name_matrix',
+    # # I/O
+    'string',
+    'from_string',
+    # # validation
+    'is_valid',
+    # # conversions
+    'vmatrix',
+    'formula',
+    # # relabelling
     'rename',
     'standard_form',
-    'standard_names',
-    # operations
+    # # add/remove atoms
     'add_atom',
     'remove_atom',
-    'join_replace_one',
-    # comparisons
+    # # comparisons
     'almost_equal',
-    # I/O
-    'from_string',
-    'string',
-    # validator
-    'is_valid',
-    # extra stuff
-    'set_constraint_names',
-
-    # extras
-    'torsion_coordinate_name',
-    'torsion_leading_atom',
+    # # coordinate names
     'distance_coordinate_name',
     'central_angle_coordinate_name',
     'dihedral_angle_coordinate_name',
-
-    # constructors
-    'from_data',
-    # conversions,
-    'geometry',
-    'graph',
-    'formula',
-
-    # to be moved to permanent file upon cleanup
-    'is_atom_closest_to_bond_atom',
-
-    # to be depreciated
-    'samples',
-    'torsional_symmetry_numbers',
-    'torsional_sampling_ranges',
-    'torsional_scan_linspaces',
-    'dummy_coordinate_names',
-    'coordinates',
-    'dihedral_angle_names',
     'dihedral_axis_name',
+    # # dummy atom functions
+    'dummy_keys',
+    'dummy_key_dictionary',
+    'dummy_neighbor_keys',
+    'linear_atom_keys',
+    'shift_down',
+    'shift_up',
+    # extra functions
+    'samples',
+    'torsional_sampling_ranges',
+    'constraint_dct',
+    'set_constraint_names',
     'coord_idxs',
     'bond_key_from_idxs',
     'get_babs1',
     'get_babs2',
-    'constraint_dct',
-    'distance_names',
-    'central_angle_names',
-    'shift_down'
+    # L4
+    # conversion functions
+    # # conversions
+    'graph',
+    'connectivity_graph',
+    'geometry',
+    'geometry_with_conversion_info',
+    'geometry_with_dummy_atoms',
+    # # derived properties
+    'distance',
+    'central_angle',
+    'dihedral_angle',
+    # # torsions
+    'torsion_coordinate_name',
+    'torsion_leading_atom',
+    # extra functions:
+    'torsional_symmetry_numbers',
+    'torsional_scan_linspaces',
+    'is_atom_closest_to_bond_atom',
 ]

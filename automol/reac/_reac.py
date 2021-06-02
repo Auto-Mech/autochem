@@ -9,7 +9,6 @@ Function arguments:
 import itertools
 import yaml
 import numpy
-import automol.convert.graph
 import automol.geom.ts
 import automol.graph
 from automol import par
@@ -84,8 +83,8 @@ class Reaction:
         if len(self.products_keys) == 1:
             prd_idxs = [0]
         else:
-            prd_keys = numpy.empty((len(self.reactants_keys),), dtype=object)
-            prd_keys[:] = list(map(tuple, map(sorted, self.reactants_keys)))
+            prd_keys = numpy.empty((len(self.products_keys),), dtype=object)
+            prd_keys[:] = list(map(tuple, map(sorted, self.products_keys)))
             prd_idxs = numpy.argsort(prd_keys)
 
         rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
@@ -207,11 +206,14 @@ def reverse(rxn):
         :rtype: Reaction
     """
     rxn_cls = par.reverse_reaction_class(rxn.class_)
-    forw_tsg = rxn.backward_ts_graph
-    back_tsg = rxn.forward_ts_graph
-    rcts_keys = rxn.products_keys
-    prds_keys = rxn.reactants_keys
-    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    if rxn_cls is not None:
+        forw_tsg = rxn.backward_ts_graph
+        back_tsg = rxn.forward_ts_graph
+        rcts_keys = rxn.products_keys
+        prds_keys = rxn.reactants_keys
+        rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    else:
+        rxn = None
     return rxn
 
 
@@ -344,7 +346,7 @@ def reactant_graphs(rxn, rev=False):
         :rtype: tuple of automol graph data structures
     """
     if rev:
-        rcts_gra = ts.product_graph(rxn.forward_ts_graph)
+        rcts_gra = ts.products_graph(rxn.forward_ts_graph)
     else:
         rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     rct_gras = [automol.graph.subgraph(rcts_gra, keys, stereo=True)
@@ -381,19 +383,14 @@ def reactants_graph(rxn, rev=False):
     return ts.reactants_graph(tsg)
 
 
-def products_graph(rxn, rev=False):
+def products_graph(rxn):
     """ Obtain a (single) graph of the products in this reaction.
 
         :param rxn: the reaction object
         :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
         :rtype: automol graph data structure
     """
-    if rev:
-        tsg = rxn.backward_ts_graph
-    else:
-        tsg = rxn.forward_ts_graph
+    tsg = rxn.backward_ts_graph
     return ts.reactants_graph(tsg)
 
 
@@ -595,7 +592,7 @@ def without_dummy_atoms(rxn, product=False):
     return rxn
 
 
-def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct):
+def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct, product=False):
     """ relabel the reaction object to correspond with a z-matrix converted
     from a geometry
 
@@ -603,10 +600,12 @@ def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct):
     :param zma_keys: graph keys in the order they appear in the z-matrix
     :param dummy_key_dct: dummy keys introduced on z-matrix conversion, by atom
         they are attached to
+    :param product: do this for the products instead of the reactants?
+    :type product: bool
     """
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = add_dummy_atoms(rxn, dummy_key_dct, product=product)
     key_dct = dict(map(reversed, enumerate(zma_keys)))
-    rxn = relabel(rxn, key_dct)
+    rxn = relabel(rxn, key_dct, product=product)
     return rxn
 
 
@@ -653,6 +652,46 @@ def ts_unique(rxns):
 
     for rxn in all_rxns:
         if not any(_isomorphism(rxn, r) for r in rxns):
+            rxns.append(rxn)
+
+    return tuple(rxns)
+
+
+def filter_viable_reactions(rxns):
+    """ Filter a list of reactions to only include the viable ones
+
+    Currently, filters reactions where:
+     - One or more products has separated radical sites
+     - The high-spin multiplicity of the products as a whole is greater than 3.
+
+    :param rxns: a sequence of reactions
+    :type rxns: tuple[Reaction]
+    :returns: reactions with viable products
+    :rtype: tuple[Reaction]
+    """
+    all_rxns = rxns
+    rxns = []
+
+    def _produces_separated_radical_sites(rxn):
+        prd_gras = product_graphs(rxn)
+        sep_rad = any(automol.graph.has_separated_radical_sites(prd_gra)
+                      for prd_gra in prd_gras)
+        return sep_rad
+
+    def _high_spin_products(rxn):
+        prd_gras = product_graphs(rxn)
+        mult = sum(map(automol.graph.maximum_spin_multiplicity,
+                       map(automol.graph.dominant_resonance, prd_gras)))
+        return mult > 3
+
+    for rxn in all_rxns:
+        # Check for separated radical sites
+        sep_rad = _produces_separated_radical_sites(rxn)
+        hi_spin = _high_spin_products(rxn)
+
+        # Add more conditions here, as needed ...
+
+        if not (sep_rad or hi_spin):
             rxns.append(rxn)
 
     return tuple(rxns)

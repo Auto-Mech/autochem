@@ -1,13 +1,85 @@
 """ extra geometry functions
 """
 
-import automol.convert.geom
+import numpy
 import automol.graph
-from automol.geom import _trans as trans
-from automol.graph._graph import atoms_neighbor_atom_keys
-from automol.graph._graph import unsaturated_atom_keys
-from automol.graph._res import sing_res_dom_radical_atom_keys
-from automol.graph._res import resonance_dominant_radical_atom_keys
+import automol.zmat.base
+from automol.geom._conv import graph
+from automol.geom._conv import inchi
+from automol.geom._conv import x2z_zmatrix
+from automol.geom._conv import x2z_torsion_coordinate_names
+from automol.geom.base import remove
+from automol.geom.base import swap_coordinates
+from automol.geom.base import dihedral_angle
+from automol.geom.base import almost_equal_dist_matrix
+from automol.geom.base import almost_equal_coulomb_spectrum
+
+
+CHECK_DEFAULT_DCT = {
+    'dist': 3.5e-1,
+    'coulomb': 1.5e-2,
+    'stereo': None,
+    'tors': None
+}
+
+
+def _similar_dist(geo, geoi, arg=3e-1):
+    """ Compare the distance matrices of two geometries.
+    """
+    return almost_equal_dist_matrix(geo, geoi, thresh=arg)
+
+
+def _similar_tors(geo, geoi, arg=()):
+    """ Compare the torsions of two geometries
+    """
+    return are_torsions_same(geo, geoi, ts_bnds=arg)
+
+
+def _similar_stereo(geo, geoi, arg=None):
+    """ Compare the stereochemistry of two geometries
+    """
+    _ = arg  # Added just to make wrapper function work
+    ich = inchi(geo)
+    ichi = inchi(geoi)
+    return bool(ich == ichi)
+
+
+def _similar_coulomb(geo, geoi, arg=1e-2):
+    """ Compare the Coulomb spectrum of geometries.
+    """
+    return almost_equal_coulomb_spectrum(geo, geoi, rtol=arg)
+
+
+CHECK_FXN_DCT = {
+    'dist': _similar_dist,
+    'tors': _similar_tors,
+    'stereo': _similar_stereo,
+    'coulomb': _similar_coulomb
+}
+
+
+def components_graph(geo, stereo=True):
+    """ Generate a list of molecular graphs where each element is a graph that
+        consists of fully connected (bonded) atoms. Stereochemistry is included
+        if requested.
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: automol molecular graph data structure
+    """
+    return automol.graph.connected_components(graph(geo, stereo=stereo))
+
+
+def connected(geo, stereo=True):
+    """ Determine if all atoms in geometry are completely connected.
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: bool
+    """
+    return len(components_graph(geo, stereo=stereo)) == 1
 
 
 def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
@@ -24,21 +96,21 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     # Set saddle based on frm and brk keys existing
     saddle = bool(frm_bnd_keys or brk_bnd_keys)
 
-    gra = automol.convert.geom.graph(geo, stereo=False)
+    gra = graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
-    neighbor_dct = atoms_neighbor_atom_keys(gra)
+    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
 
     ts_atms = []
-    for bnd in frm_bnd_keys:
-        ts_atms.extend(list(bnd))
-    for bnd in brk_bnd_keys:
-        ts_atms.extend(list(bnd))
+    for bnd_ in frm_bnd_keys:
+        ts_atms.extend(list(bnd_))
+    for bnd_ in brk_bnd_keys:
+        ts_atms.extend(list(bnd_))
     # determine if atom is a part of a double bond
-    unsat_atms = unsaturated_atom_keys(gra)
+    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
     if not saddle:
-        rad_atms = sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = resonance_dominant_radical_atom_keys(gra)
+        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
+        res_rad_atms = automol.raph.resonance_dominant_radical_atom_keys(gra)
         rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []
@@ -70,7 +142,7 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         if len(hyds) > 1:
             factor *= len(hyds)
             remove_atms.extend(hyds)
-    geo = trans.remove_coordinates(geo, remove_atms)
+    geo = remove(geo, remove_atms)
 
     return geo, factor, remove_atms
 
@@ -90,21 +162,21 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     # Set saddle based on frm and brk keys existing
     saddle = bool(frm_bnd_keys or brk_bnd_keys)
 
-    gra = automol.convert.geom.graph(geo, stereo=False)
+    gra = graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
-    neighbor_dct = atoms_neighbor_atom_keys(gra)
+    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
     ts_atms = []
-    for bnd in frm_bnd_keys:
-        ts_atms.extend(list(bnd))
-    for bnd in brk_bnd_keys:
-        ts_atms.extend(list(bnd))
+    for bnd_ in frm_bnd_keys:
+        ts_atms.extend(list(bnd_))
+    for bnd_ in brk_bnd_keys:
+        ts_atms.extend(list(bnd_))
 
     # determine if atom is a part of a double bond
-    unsat_atms = unsaturated_atom_keys(gra)
+    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
     if not saddle:
-        rad_atms = sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = resonance_dominant_radical_atom_keys(gra)
+        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
+        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
         rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []
@@ -154,15 +226,93 @@ def _swap_for_one(geo, hyds):
         new_geo = geo
         if len(hyds) > 2:
             geo_lst.append(new_geo)
-            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[2])
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
             geo_lst.append(new_geo)
-            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[2])
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
             geo_lst.append(new_geo)
         else:
             geo_lst.append(new_geo)
-            new_geo = trans.swap_coordinates(new_geo, hyds[0], hyds[1])
+            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
             geo_lst.append(new_geo)
 
     return geo_lst
+
+
+def are_torsions_same2(geo, geoi, idxs_lst):
+    """ Are torsions the same with torsions identified
+        by a list of 1x4 lists of atom indices
+    """
+    dtol = 0.09
+    same_dihed = True
+    for idxs in idxs_lst:
+        val = dihedral_angle(geo, *idxs)
+        vali = dihedral_angle(geoi, *idxs)
+        valip = vali+2.*numpy.pi
+        valim = vali-2.*numpy.pi
+        vchk1 = abs(val - vali)
+        vchk2 = abs(val - valip)
+        vchk3 = abs(val - valim)
+        if vchk1 > dtol and vchk2 > dtol and vchk3 > dtol:
+            same_dihed = False
+    return same_dihed
+
+
+def are_torsions_same(geo, geoi, ts_bnds=()):
+    """ compare all torsional angle values
+    """
+
+    dtol = 0.09
+    same_dihed = True
+
+    # Build the Z-Matrix torsion names
+    zma = x2z_zmatrix(geo, ts_bnds=ts_bnds)
+    tors_names = x2z_torsion_coordinate_names(
+        geo, ts_bnds=ts_bnds)
+    zmai = x2z_zmatrix(geoi)
+    tors_namesi = x2z_torsion_coordinate_names(
+        geoi, ts_bnds=ts_bnds)
+
+    # Compare the torsions
+    for idx, tors_name in enumerate(tors_names):
+        val = automol.zmat.base.value_dictionary(zma)[tors_name]
+        vali = automol.zmat.base.value_dictionary(zmai)[tors_namesi[idx]]
+        valip = vali+2.*numpy.pi
+        valim = vali-2.*numpy.pi
+        vchk1 = abs(val - vali)
+        vchk2 = abs(val - valip)
+        vchk3 = abs(val - valim)
+        if vchk1 > dtol and vchk2 > dtol and vchk3 > dtol:
+            same_dihed = False
+
+    return same_dihed
+
+
+# Checks
+def is_unique(geo, geo_lst, check_dct=None):
+    """ Compare one of many structure features of a geometry to that of
+        a list of geometries to see if it is unique.
+
+        order of atoms also impacts the comparison as well
+    """
+
+    # Set default check values if none are provided
+    if check_dct is None:
+        check_dct = CHECK_DEFAULT_DCT
+
+    unique = True
+    like_idx = None
+    for idx, geoi in enumerate(geo_lst):
+        # Perform all of the desired comparison checks for similarity
+        sim_chk_results = []
+        for key, val in check_dct.items():
+            kwargs = {'arg': val} if val is not None else {}
+            sim_chk_results.append(CHECK_FXN_DCT[key](geo, geoi, **kwargs))
+        # If all checks come back as True, than geoms are the same
+        if all(sim_chk_results):
+            unique = False
+            like_idx = idx
+            break
+
+    return unique, like_idx
