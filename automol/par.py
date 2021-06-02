@@ -30,6 +30,15 @@ class ReactionClass:
         ADDITION = 'addition'
         INSERTION = 'insertion'
         SUBSTITUTION = 'substitution'
+    class MechTyp:
+        """ Names of roles reaction serves in a mechanism
+        """
+        PROPAGATION = 'propagation'
+        TERMINATION = 'termination'
+        BRANCHING = 'branching'
+        LUMPED = 'lumped'
+
+    # class Prop:
     RADRAD = 'radical-radical'
     LOWSPIN = 'low-spin'
     HIGHSPIN = 'high-spin'
