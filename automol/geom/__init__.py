@@ -115,6 +115,9 @@ from automol.geom._extra import rot_permutated_geoms
 from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
+# ring functions
+from automol.geom._ring import ring_angles_passes
+from automol.geom._ring import fragment_ring_geo
 # ts submodule
 from automol.geom import ts
 
@@ -222,6 +225,9 @@ __all__ = [
     'are_torsions_same2',
     'are_torsions_same',
     'is_unique',
+    # ring functions
+    'ring_angles_passes',
+    'fragment_ring_geo',
     # ts submodule
     'ts',
 ]
