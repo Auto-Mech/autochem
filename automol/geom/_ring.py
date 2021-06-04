@@ -38,7 +38,6 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     for i, _ in enumerate(ring_atoms):
         _atoms = [ring_atoms[i], ring_atoms[i-1], ring_atoms[i-2]]
         cangle = automol.geom.central_angle(geo, *_atoms, degree=False)
-        print('ang check i', cangle, thresh)
         if cangle < thresh:
             condition = False
 

@@ -97,6 +97,7 @@ from automol.zmat._extra import torsional_symmetry_numbers
 from automol.zmat._extra import torsional_scan_linspaces
 from automol.zmat._extra import is_atom_closest_to_bond_atom
 # ring functions:
+<<<<<<< HEAD
 from automol.zmat._ring import all_rings_atoms
 from automol.zmat._ring import all_rings_distances
 from automol.zmat._ring import all_rings_dihedrals
@@ -105,6 +106,13 @@ from automol.zmat._ring import all_rings_distances_reasonable
 from automol.zmat._ring import ring_distances
 from automol.zmat._ring import ring_dihedrals
 from automol.zmat._ring import ring_distances_reasonable
+=======
+from automol.zmat._ring import ring_atoms
+from automol.zmat._ring import ring_dihedrals
+from automol.zmat._ring import ring_distances
+from automol.zmat._ring import ring_samp_ranges
+from automol.zmat._ring import distances_passes
+>>>>>>> fix ich<->fml bug; add ring code
 
 
 __all__ = [
