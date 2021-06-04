@@ -96,6 +96,12 @@ from automol.zmat._conv import torsion_leading_atom
 from automol.zmat._extra import torsional_symmetry_numbers
 from automol.zmat._extra import torsional_scan_linspaces
 from automol.zmat._extra import is_atom_closest_to_bond_atom
+# ring functions:
+from automol.zmat._ring import ring_atoms
+from automol.zmat._ring import ring_dihedrals
+from automol.zmat._ring import ring_distances
+from automol.zmat._ring import ring_samp_ranges
+from automol.zmat._ring import distances_passes
 
 
 __all__ = [
@@ -184,4 +190,10 @@ __all__ = [
     'torsional_symmetry_numbers',
     'torsional_scan_linspaces',
     'is_atom_closest_to_bond_atom',
+    # ring functions
+    'ring_atoms',
+    'ring_dihedrals',
+    'ring_distances',
+    'ring_samp_ranges',
+    'distances_passes'
 ]

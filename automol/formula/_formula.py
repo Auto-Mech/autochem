@@ -5,6 +5,7 @@
 import functools
 import itertools
 import collections
+import re
 from phydat import ptab
 
 
@@ -109,6 +110,7 @@ def join_sequence(fmls):
     return functools.reduce(join, fmls)
 
 
+# Str<->Dict Converters
 def string(fml):
     """ Convert formula dictionary to formula string in the Hill convention.
         Resultant string is identical to InChI formula string.
@@ -141,6 +143,24 @@ def string2(fml):
     fml_str = ''.join(map(str, itertools.chain.from_iterable(fml.items())))
 
     return fml_str
+
+
+def from_string(fml_str):
+    """ Convert formula string to formula dictionary.
+
+        :param fml_str: stochiometric chemical formula string
+        :type fml_str: str
+        :rtype: dict[str:int]
+    """
+
+    # Search for alpha-integer pairs
+    search_str = r"([A-Z][a-z]?)(\d+)?"
+
+    # Obtain a dictionary for the number associated with atom symbol
+    atom_counts_dict = {k: int(v) if v else 1
+                        for k, v in re.findall(search_str, fml_str)}
+
+    return atom_counts_dict
 
 
 def sorted_symbols(seq, symbs_first=('C', 'H'), symbs_last=()):
