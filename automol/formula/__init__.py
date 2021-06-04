@@ -10,6 +10,7 @@ from automol.formula._formula import join
 from automol.formula._formula import join_sequence
 from automol.formula._formula import string
 from automol.formula._formula import string2
+from automol.formula._formula import from_string
 # submodules
 from automol.formula import reac
 
@@ -24,6 +25,7 @@ __all__ = [
     'join_sequence',
     'string',
     'string2',
+    'from_string',
     # submodules
     'reac',
 ]
