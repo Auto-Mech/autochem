@@ -1,4 +1,56 @@
+span {
+    font-size:18px;
 }
+
+dl.py.class{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd.field-odd ul.simple li p{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd.field-even ul.simple li p{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd p{
+  color:gray;
+  margin-bottom:0px;
+  margin-top: 4px;
+}
+
+dd.field-odd p{
+  font-size:16px;
+  font-family: monospace;
+  color: black;
+}
+
+dd.field-even p{
+  font-size:16px;
+  font-family: monospace;
+  color: black;
+}
+
+dl.py.method{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dl.field-list.simple{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dl { 
+  font-size:18px;
+  font-family: Optima, sans-serif;
+  font-family: monospace;
+}
+
 html{
 	 scroll-behavior: smooth;
 }
@@ -85,6 +137,12 @@ p strong {
     color: #B33C7E;
     color: #ff9481;
     font-weight: bold
+}
+
+img.logo {
+    width:80%;
+    height:auto;
+    object-fit: contain;
 }
 
 table.tight-table{
@@ -179,6 +237,13 @@ div.body {
   padding-right: 20%;
 }
 
+div.footer {
+  margin-left: 250px; /* Same as the width of the sidebar */
+  margin-top: 100px;
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
 /* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
 @media screen and (max-height: 450px) {
   div.sphinxsidebar {padding-top: 15px;}
@@ -223,3 +288,4 @@ div.admonition.note{
 div.toctree-wrapper.compound{
     background: GhostWhite;
 }
+

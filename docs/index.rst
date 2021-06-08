@@ -452,12 +452,14 @@ The first step is to make sure the installation was successful by importing some
     >>> import phydat
     >>> import transformations
 
-Then we can move on to using the autoio modules:
+Then we can move on to using the autochem modules:
 
-* Automol Tutorial\: :ref:`base-tutorial-hub`
+* Automol Tutorial\: :ref:`tutorial-hub`
     * :ref:`ioformat-tutorial-doc`
     * :ref:`autoparse-tutorial-doc`
     * :ref:`autoread-tutorial-doc`
+* PhyDat tutorial
+* Transformations tutorial
 
 
 Documentation
