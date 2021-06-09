@@ -54,6 +54,7 @@ html_theme = 'alabaster'
 html_logo = 'logo.png'
 html_style = 'css/automech.css'
 html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'] }
+html_permalinks = ''
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
