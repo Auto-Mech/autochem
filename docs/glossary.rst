@@ -129,7 +129,7 @@ Compulsory information is identified with an asterisk.
    :widths: 10 20 10 20
    :header-rows: 0
 
-   * - `init_geom`_\* *\*compulsory for new species only*
+   * - `init_geom`_\* *\*for new species*
      - initialize a geometry for a new species
      - spc
      - runlvl\*, retryfail, overwrite
