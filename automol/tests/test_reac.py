@@ -527,7 +527,8 @@ def test__reac__elimination():
     rct_smis = ['CCCO[O]']
     prd_smis = ['CC=C', 'O[O]']
 
-    , geo, _, _ = rxn_objs[0]
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
