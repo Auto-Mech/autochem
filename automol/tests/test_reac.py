@@ -307,17 +307,12 @@ def test__reac__hydrogen_migration():
     rct_smis = ['CCCO[O]']
     prd_smis = ['C[CH]COO']
 
-    rct_smis = ['CC', '[OH]']
-    prd_smis = ['C[CH2]', 'O']
-
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-    print(zrxn)
-
     print(zrxn)
 
     # You can also do this to determine linear atoms from zmatrix:
@@ -843,7 +838,7 @@ def test__reac__addition():
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-        rxn, rct_geos, _ = rxn_objs[0]
+        rxn, rct_geos, _, _ = rxn_objs[0]
         geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
         # reaction object aligned to z-matrix keys
