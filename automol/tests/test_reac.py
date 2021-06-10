@@ -527,7 +527,8 @@ def test__reac__elimination():
     rct_smis = ['CCCO[O]']
     prd_smis = ['CC=C', 'O[O]']
 
-    , geo, _, _ = rxn_objs[0]
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -836,7 +837,8 @@ def test__reac__addition():
         (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn, rct_geos, _ = rxn_objs[0]
         geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
         # reaction object aligned to z-matrix keys
