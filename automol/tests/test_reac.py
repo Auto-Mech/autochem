@@ -1,4 +1,4 @@
-""" test automol.reac BRUH
+""" test automol.reac
 """
 
 import automol
