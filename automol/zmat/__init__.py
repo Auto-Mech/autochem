@@ -195,5 +195,5 @@ __all__ = [
     'ring_dihedrals',
     'ring_distances',
     'ring_samp_ranges',
-    'distances_passes',
+    'distances_passes'
 ]
