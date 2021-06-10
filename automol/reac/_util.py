@@ -5,6 +5,7 @@ import itertools
 import automol.graph
 from automol.graph import ts
 from automol.par import ReactionClass
+from automol.reac._reac import reactant_graphs, product_graphs
 
 
 def hydrogen_migration_atom_keys(rxn):
@@ -160,6 +161,17 @@ def substitution_atom_keys(rxn):
     att_key, = frm_bnd_key - brk_bnd_key
     lea_key, = brk_bnd_key - frm_bnd_key
     return att_key, tra_key, lea_key
+
+
+# Conversion stuff
+def reaction_inchis(rxn, stereo=True):
+    """ Get inchis for one side of reactions
+    """
+    rct_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
+                     for gra in reactant_graphs(rxn))
+    prd_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
+                     for gra in product_graphs(rxn))
+    return (rct_ichs, prd_ichs)
 
 
 # Get a reaction object from various identifiers
