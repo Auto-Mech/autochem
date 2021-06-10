@@ -78,6 +78,18 @@ def reaction_class_from_data(class_typ, class_spin, class_radrad):
     return (class_typ, class_spin, class_radrad)
 
 
+def string(rxn_class):
+    """ Write class to string
+
+        :param rxn_class: reaction class including type, spin, radrad
+        :type rxn_class:
+        :rtype: str
+    """
+    radrad_str = '' if not radrad(rxn_class) else 'radical-radical'
+    return '{} {} {}'.format(radrad_str, spin(rxn_class), typ(rxn_class))
+
+
+# Checks for building/using class
 def need_spin_designation(class_typ):
     """ Determine if a spin-state string designation in the full reaction
         class description based on the class typ

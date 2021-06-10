@@ -303,21 +303,16 @@ def test__reac__products_graph():
 def test__reac__hydrogen_migration():
     """ test hydrogen migration functionality
     """
+
     rct_smis = ['CCCO[O]']
     prd_smis = ['C[CH]COO']
-
-    rct_smis = ['CC', '[OH]']
-    prd_smis = ['C[CH2]', 'O']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     rxn, geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
-    rxn, rct_geos, _ = _from_smiles(rct_smis, prd_smis)
-    geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
-
     print(zrxn)
 
     # You can also do this to determine linear atoms from zmatrix:
@@ -532,8 +527,7 @@ def test__reac__elimination():
     rct_smis = ['CCCO[O]']
     prd_smis = ['CC=C', 'O[O]']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-    rxn, geo, _, _ = rxn_objs[0]
+    , geo, _, _ = rxn_objs[0]
 
     # reaction object aligned to z-matrix keys
     # (for getting torsion coordinate names)
@@ -1192,30 +1186,6 @@ def test__species__demo():
         print('\tgroup 1:', groups[0])
         print('\tgroup 2:', groups[1])
         print('\tsymmetry number:', sym_num)
-
-
-def _from_smiles(rct_smis, prd_smis):
-    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    prd_ichs = list(map(automol.smiles.inchi, prd_smis))
-
-    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
-
-    rct_gras = list(map(automol.graph.without_stereo_parities,
-                        map(automol.geom.graph, rct_geos)))
-    prd_gras = list(map(automol.graph.without_stereo_parities,
-                        map(automol.geom.graph, prd_geos)))
-
-    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
-    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
-
-    rxns = automol.reac.find(rct_gras, prd_gras)
-    rxn = rxns[0]
-
-    rxn, rct_geos, prd_geos = (
-        automol.reac.standard_keys_with_sorted_geometries(
-            rxn, rct_geos, prd_geos))
-    return rxn, rct_geos, prd_geos
 
 
 def test__mult():
