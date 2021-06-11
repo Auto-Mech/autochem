@@ -7,7 +7,7 @@ import numpy
 from scipy.interpolate import interp1d
 
 
-def spline_fit(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
+def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     """ Get a physical hindered rotor potential via a series of spline fits
     """
 

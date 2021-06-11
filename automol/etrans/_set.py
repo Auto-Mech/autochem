@@ -4,8 +4,13 @@
 import automol.geom
 import automol.graph
 
+# Break checks
+BAD_ICHS = (
+    'InChI=1S/H2/h1H'
+)
 
-def set_series_model(well_ich, well_geo, bath_info):
+
+def effective_model(well_ich, well_geo, bath_info):
     """ For the collision between a given well and bath species, determine
         which effective series would be the most suitable model for
         estimating the energy transfer parameters

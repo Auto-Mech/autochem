@@ -839,6 +839,7 @@ def test__reac__addition():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
         rxn, rct_geos, _, _ = rxn_objs[0]
+        print(rct_geos)
         geo = automol.reac.ts_geometry(rxn, rct_geos, log=False)
 
         # reaction object aligned to z-matrix keys
@@ -1439,7 +1440,8 @@ def test__prod__insertion():
 
 
 if __name__ == '__main__':
-    test__reac__hydrogen_abstraction()
+    # test__reac__hydrogen_abstraction()
+    test__reac__addition()
     # test__reac__elimination()
     # test__reac__insertion()
     # test__prod__hydrogen_migration()
