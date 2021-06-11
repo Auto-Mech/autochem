@@ -1,5 +1,5 @@
 """
-  Libraries for calculating inter- and intramolecular interactions
+  Libraries for constructing and manipulating potentials
 """
 
 from automol.pot._pot import grid
@@ -18,7 +18,7 @@ from automol.pot._intermol import exp6_potential
 from automol.pot._intermol import pairwise_potential_matrix
 from automol.pot._intermol import low_repulsion_struct
 from automol.pot._read import find_max1d
-# from automol.pot._fitter import fit_1d_potential
+from automol.pot._fit import fit_1d_potential
 
 
 __all__ = [
@@ -38,6 +38,6 @@ __all__ = [
     'exp6_potential',
     'pairwise_potential_matrix',
     'low_repulsion_struct',
-    # 'fit_1d_potential',
+    'fit_1d_potential',
     'find_max1d'
 ]

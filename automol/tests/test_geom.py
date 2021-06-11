@@ -343,7 +343,14 @@ def test__symmetry_factor():
     assert methane_sym_num == ref_sym_num1
     assert h_sym_num == ref_sym_num2
     assert c2h5of_sym_num == ref_sym_num3
-    assert c2h2clf_sym_num == ref_sym_num4
+    assert c2h2clf_sym_num 
+
+    # Add internal code TODO
+    # print(automol.geom.internal_symm_from_sampling(
+    #     symm_geos, rotors, grxn=None, zma=None
+    # print(automol.geom.reduce_internal_symm(
+    #     int_symm, ext_symm, end_group_factor, geo))
+    # print(automol.geom.rotor_reduced_symm_factor(sym_factor, rotor_symms):
 
 
 def test__closest_unbonded_atoms():

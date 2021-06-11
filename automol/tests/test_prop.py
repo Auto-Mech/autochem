@@ -17,6 +17,17 @@ METHOD1, BASIS1 = ('b2plypd3', 'cc-pvtz')
 METHOD2, BASIS2 = ('wb97xd', '6-31g*')
 METHOD3, BASIS3 = ('b3lyp', '6-31g*')
 
+HARM_FREQS = (
+    269.39, 325.04, 429.05, 818.35, 913.01, 1084.71, 1116.71,
+    1169.23, 1307.13, 1408.92, 1434.56, 1459.29, 1527.27,
+    1531.68, 1555.98, 3020.12, 3062.32, 3121.51, 3142.58,
+    3160.32, 3841.83)
+PROJ_FREQS = (
+    428.01, 815.69, 912.95, 1084.7, 1116.7, 1169.2, 1306.78,
+    1408.87, 1434.54, 1459.25, 1527.25, 1531.57, 1555.97,
+    3020.11, 3062.31, 3121.51, 3142.57, 3160.32, 3841.82)
+TORS_FREQS = (263.39, 320.923)
+
 
 def test__dipole_moment():
     """ test prop.total_dipole_moment
@@ -34,7 +45,7 @@ def test__dipole_moment():
     assert numpy.isclose(ref_polar, polar)
 
 
-def test__freqs():
+def test__freq_anharm():
     """ test prop.freq.anharm_by_scaling
     """
 
@@ -59,6 +70,17 @@ def test__freqs():
     assert numpy.allclose(freqs3, ref_freqs3)
     assert numpy.isclose(azpve3, ref_azpve3)
 
-    # ref_scale_factor = ()
-    # scale_factor = prop.freq.rotor_scale_from_harmonics()
-    # assert numpy.allclose(scale_factor, ref_scale_factor)
+
+def test__freq_scale():
+    """ test automol.prop.freq.
+    """
+
+    ref_scale_factor = ([], 1.0423855517115035)
+    scale_factor = prop.freq.rotor_scale_factor_from_harmonics(
+        HARM_FREQS, PROJ_FREQS, TORS_FREQS)
+
+    assert not scale_factor[0]
+    assert numpy.isclose(scale_factor[1], ref_scale_factor[1])
+
+    # need tests where idx remove list nonempty
+    # nce to have 1DHRFA from large molecule

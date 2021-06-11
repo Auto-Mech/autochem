@@ -118,6 +118,10 @@ from automol.geom._extra import is_unique
 # ring functions
 from automol.geom._ring import ring_angles_passes
 from automol.geom._ring import fragment_ring_geo
+# symmetry functions
+from automol.geom._symm import internal_symm_from_sampling
+from automol.geom._symm import reduce_internal_symm
+from automol.geom._symm import rotor_reduced_symm_factor
 # ts submodule
 from automol.geom import ts
 
@@ -228,6 +232,10 @@ __all__ = [
     # ring functions
     'ring_angles_passes',
     'fragment_ring_geo',
+    # symmetry
+    'internal_symm_from_sampling',
+    'reduce_internal_symm',
+    'rotor_reduced_symm_factor',
     # ts submodule
     'ts',
 ]
