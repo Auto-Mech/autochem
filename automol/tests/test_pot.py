@@ -169,11 +169,47 @@ def test__transform_potential():
         assert numpy.isclose(val, ref_idx_pot2[key])
 
 
-# def test__fitter():
-#     """ test pot.
-#     """
-#     pot = automol.pot.spline_fit(
-#   pot_dct, min_thresh=-0.0001, max_thresh=50.0)
+def test__fit_potential():
+    """ test automol.pot.fit_1d_potential
+    """
+
+    # full potential
+    init_pot1 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
+                 (4,): 2.045, (5,): 3.052, (6,): 3.949, (7,): 2.655,
+                 (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 1.289}
+    # one negative
+    init_pot2 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
+                 (4,): 2.045, (5,): -10.0, (6,): 3.949, (7,): 2.655,
+                 (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 1.289}
+    # two negatives
+    init_pot3 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
+                 (4,): 2.045, (5,): -10.0, (6,): 3.949, (7,): 2.655,
+                 (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): -10.0}
+    # need one with max threshold closed
+
+    pot1 = automol.pot.fit_1d_potential(
+        init_pot1, min_thresh=-0.0001, max_thresh=50.0)
+    pot2 = automol.pot.fit_1d_potential(
+        init_pot2, min_thresh=-0.0001, max_thresh=50.0)
+    pot3 = automol.pot.fit_1d_potential(
+        init_pot3, min_thresh=-0.0001, max_thresh=50.0)
+
+    ref_pot1 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.78,
+                (4,): 2.045, (5,): 3.052, (6,): 3.949, (7,): 2.655,
+                (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 1.289}
+    ref_pot2 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.78,
+                (4,): 2.045, (5,): 3.091, (6,): 3.949, (7,): 2.655,
+                (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 1.289}
+    ref_pot3 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.78,
+                (4,): 2.045, (5,): 3.089, (6,): 3.949, (7,): 2.655,
+                (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 2.273}
+
+    assert tuple(pot1.keys()) == tuple(ref_pot1.keys())
+    assert numpy.allclose(tuple(pot1.values()), tuple(ref_pot1.values()))
+    assert tuple(pot2.keys()) == tuple(ref_pot2.keys())
+    assert numpy.allclose(tuple(pot2.values()), tuple(ref_pot2.values()))
+    assert tuple(pot3.keys()) == tuple(ref_pot3.keys())
+    assert numpy.allclose(tuple(pot3.values()), tuple(ref_pot3.values()))
 
 
 def test__repulsion():
@@ -187,7 +223,8 @@ def test__repulsion():
 
 
 if __name__ == '__main__':
-    test__valid_potential()
-    test__build_potential()
-    test__transform_potential()
-    test__repulsion()
+    # test__valid_potential()
+    # test__build_potential()
+    test__fit_potential()
+    # test__transform_potential()
+    # test__repulsion()

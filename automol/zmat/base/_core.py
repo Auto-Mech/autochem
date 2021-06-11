@@ -118,13 +118,16 @@ def value_dictionary(zma, angstrom=False, degree=False):
         :type angstrom: bool
         :param degree: parameter to control radian->degree conversion
         :type degree: bool
-        :rtype: dict[str: float]
+        :rtype: dict[str: tuple(float)]
     """
 
     names = numpy.ravel(name_matrix(zma))
     vals = numpy.ravel(value_matrix(zma, angstrom=angstrom, degree=degree))
     val_dct = dict(zip(names, vals))
+
+    # Remove None entries from the None in name mat, convert npflatt to float
     val_dct.pop(None)
+    val_dct = {name: float(val) for name, val in val_dct.items()}
 
     return val_dct
 

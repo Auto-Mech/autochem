@@ -97,11 +97,11 @@ from automol.zmat._extra import torsional_symmetry_numbers
 from automol.zmat._extra import torsional_scan_linspaces
 from automol.zmat._extra import is_atom_closest_to_bond_atom
 # ring functions:
-from automol.zmat._ring import ring_atoms
-from automol.zmat._ring import ring_dihedrals
-from automol.zmat._ring import ring_distances
-from automol.zmat._ring import ring_samp_ranges
-from automol.zmat._ring import distances_passes
+from automol.zmat._ring import all_rings_atoms
+from automol.zmat._ring import all_rings_distances
+from automol.zmat._ring import all_rings_dihedrals
+from automol.zmat._ring import all_rings_dct
+from automol.zmat._ring import all_rings_distances_reasonable
 
 
 __all__ = [
@@ -191,9 +191,9 @@ __all__ = [
     'torsional_scan_linspaces',
     'is_atom_closest_to_bond_atom',
     # ring functions
-    'ring_atoms',
-    'ring_dihedrals',
-    'ring_distances',
-    'ring_samp_ranges',
-    'distances_passes'
+    'all_rings_atoms',
+    'all_rings_distances',
+    'all_rings_dihedrals',
+    'all_rings_dct',
+    'all_rings_distances_reasonable'
 ]

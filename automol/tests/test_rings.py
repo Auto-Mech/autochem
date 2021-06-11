@@ -1,11 +1,29 @@
 """ test ring functionality in graph
 """
+
 from automol import graph
 from automol import smiles
 from automol import inchi
 from automol import geom
 from automol import zmat
 import numpy
+
+# cyclohexane
+ICH1 = 'InChI=1S/C6H12/c1-2-4-6-5-3-1/h1-6H2'
+# benzene
+ICH2 = 'InChI=1S/C6H6/c1-2-4-6-5-3-1/h1-6H'
+# cyclic-ether
+ICH3 = 'InChI=1S/C7H14O/c1-2-4-6-8-7-5-3-1/h1-7H2'
+# 1-propylcyclopentane
+ICH4 = 'InChI=1S/C8H16/c1-2-5-8-6-3-4-7-8/h8H,2-7H2,1H3'
+# polycycle: cyclohexane+cyclopentane
+ICH5 = 'InChI=1S/C9H16/c1-2-5-9-7-3-6-8(9)4-1/h8-9H,1-7H2/t8-,9-/m1/s1'
+
+ZMA1 = geom.zmatrix(inchi.geometry(ICH1))
+ZMA2 = geom.zmatrix(inchi.geometry(ICH2))
+ZMA3 = geom.zmatrix(inchi.geometry(ICH3))
+ZMA4 = geom.zmatrix(inchi.geometry(ICH4))
+ZMA5 = geom.zmatrix(inchi.geometry(ICH5))
 
 
 def test__rings():
@@ -104,6 +122,8 @@ def test__ring_systems_decomposed_atom_keys():
 
 
 def test__ring_puckering():
+    """ ring pucker
+    """
     smi = 'CC1CCCCC1'
     ich = smiles.inchi(smi)
     geo = inchi.geometry(ich)
@@ -140,8 +160,75 @@ def test__ring_puckering():
         print(zmat.samples(zma, 5, samp_range_dct))
 
 
+def test__zmat_ring():
+    """  test (add TS)
+    """
+
+    ref_rng_dct1 = {
+        '1-2-5-8-11-14': {'D7': [0.16168073524433701, 1.7324770620392336],
+                          'D10': [4.550708773750596, 6.121505100545493],
+                          'D13': [0.16167968490856266, 1.7324760117034592]}
+    }
+    ref_rng_dct2 = {
+        '1-2-4-6-8-10': {'D5': [5.497778966967656, 7.068575293762552],
+                         'D7': [-0.7853916433944105, 0.7854046834004861],
+                         'D9': [-0.7853965979951805, 0.7853997287997161]}
+    }
+    ref_rng_dct3 = {
+        '1-2-5-8-11-14-15-18': {'D7': [4.107068942834604, 5.677865269629501],
+                                'D10': [0.2823332978102957, 1.853129624605192],
+                                'D13': [3.7747759383709774, 5.345572265165874],
+                                'D14': [1.3922420091755172, 2.963038335970413],
+                                'D17': [4.0726811920433565, 5.643477518838253]}
+    }
+    ref_rng_dct4 = {
+        '1-2-5-8-11': {'D7': [4.965369609998152, 6.536165936793049],
+                       'D10': [-0.06067570281684087, 1.5101206239780556]}
+    }
+    ref_rng_dct5 = {
+        '1-2-5-8-11': {'D7': [4.877800020154778, 6.4485963469496745],
+                       'D10': [-0.012877983213259836, 1.5579183435816368]},
+        '5-8-21-18-15-9': {'D17': [-0.33350277464453076, 1.2372935521503658],
+                           'D20': [4.488064445840583, 6.058860772635479]}}
+
+    # Get lists of atoms in the ring
+    rng_atoms1 = zmat.all_rings_atoms(ZMA1, zrxn=None)
+    rng_atoms2 = zmat.all_rings_atoms(ZMA2, zrxn=None)
+    rng_atoms3 = zmat.all_rings_atoms(ZMA3, zrxn=None)
+    rng_atoms4 = zmat.all_rings_atoms(ZMA4, zrxn=None)
+    rng_atoms5 = zmat.all_rings_atoms(ZMA5, zrxn=None)
+
+    # Sampling ranges (includes dihedral calls)
+    rng_dct1 = zmat.all_rings_dct(ZMA1, rng_atoms1)
+    rng_dct2 = zmat.all_rings_dct(ZMA2, rng_atoms2)
+    rng_dct3 = zmat.all_rings_dct(ZMA3, rng_atoms3)
+    rng_dct4 = zmat.all_rings_dct(ZMA4, rng_atoms4)
+    rng_dct5 = zmat.all_rings_dct(ZMA5, rng_atoms5)
+
+    # Check distances (includes distance calc)
+    # still need a dist check failure for testing
+    rng_chk1 = zmat.all_rings_distances_reasonable(ZMA1, rng_atoms1)
+    rng_chk2 = zmat.all_rings_distances_reasonable(ZMA2, rng_atoms2)
+    rng_chk3 = zmat.all_rings_distances_reasonable(ZMA3, rng_atoms3)
+    rng_chk4 = zmat.all_rings_distances_reasonable(ZMA4, rng_atoms4)
+    rng_chk5 = zmat.all_rings_distances_reasonable(ZMA5, rng_atoms5)
+
+
+# TODO
+# def __fragment_ring():
+#     """ test
+#     """
+#     # automol.geom.fragment_ring_geo(geo)
+#     pass
+# def __ring_check():
+#     """ test
+#     """
+#     # automol.geom.ring_angles_passes(geo, ring_atoms, thresh=ATHRESH):
+
+
 if __name__ == '__main__':
     # test__rings()
     # test__ring_systems()
     # test__ring_systems_decomposed_atom_keys()
-    test__ring_puckering()
+    # test__ring_puckering()
+    test__zmat_ring()
