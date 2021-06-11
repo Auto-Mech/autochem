@@ -19,6 +19,7 @@ ICH4 = 'InChI=1S/C8H16/c1-2-5-8-6-3-4-7-8/h8H,2-7H2,1H3'
 # polycycle: cyclohexane+cyclopentane
 ICH5 = 'InChI=1S/C9H16/c1-2-5-9-7-3-6-8(9)4-1/h8-9H,1-7H2/t8-,9-/m1/s1'
 
+<<<<<<< HEAD
 GEO1 = inchi.geometry(ICH1)
 GEO2 = inchi.geometry(ICH2)
 GEO3 = inchi.geometry(ICH3)
@@ -29,6 +30,13 @@ ZMA2 = geom.zmatrix(GEO2)
 ZMA3 = geom.zmatrix(GEO3)
 ZMA4 = geom.zmatrix(GEO4)
 ZMA5 = geom.zmatrix(GEO5)
+=======
+ZMA1 = geom.zmatrix(inchi.geometry(ICH1))
+ZMA2 = geom.zmatrix(inchi.geometry(ICH2))
+ZMA3 = geom.zmatrix(inchi.geometry(ICH3))
+ZMA4 = geom.zmatrix(inchi.geometry(ICH4))
+ZMA5 = geom.zmatrix(inchi.geometry(ICH5))
+>>>>>>> update pot, geom, freqs, zmat
 
 
 def test__rings():
@@ -169,6 +177,7 @@ def test__zmat_ring():
     """  test (add TS)
     """
 
+<<<<<<< HEAD
     def _chk_ring_dct(ring_dct, ref_ring_dct):
         """ Ring dictionaries by checking the keys and subkeys and tha
             the floats match in the arrays.
@@ -180,6 +189,8 @@ def test__zmat_ring():
                 assert key2 == rkey2
                 assert numpy.allclose(rdct[key2], ref_dct[rkey2])
 
+=======
+>>>>>>> update pot, geom, freqs, zmat
     ref_rng_dct1 = {
         '1-2-5-8-11-14': {'D7': [0.16168073524433701, 1.7324770620392336],
                           'D10': [4.550708773750596, 6.121505100545493],

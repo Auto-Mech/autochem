@@ -116,9 +116,14 @@ from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
 # ring functions
+<<<<<<< HEAD
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
 from automol.geom._ring import ring_fragments_geometry
+=======
+from automol.geom._ring import ring_angles_passes
+from automol.geom._ring import fragment_ring_geo
+>>>>>>> update pot, geom, freqs, zmat
 # symmetry functions
 from automol.geom._symm import internal_symm_from_sampling
 from automol.geom._symm import reduce_internal_symm

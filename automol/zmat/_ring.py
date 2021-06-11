@@ -42,7 +42,6 @@ def all_rings_distances(zma, rings_atoms):
         :type rng_atoms: list
     """
     return tuple(ring_distances(zma, ring_atoms)
-                 for ring_atoms in rings_atoms)
 
 
 def all_rings_distances_reasonable(zma, rings_atoms):
@@ -74,7 +73,6 @@ def all_rings_dihedrals(zma, rings_atoms):
         :type rng_atoms: list
     """
     return tuple(ring_dihedrals(zma, ring_atoms)
-                 for ring_atoms in rings_atoms)
 
 
 def all_rings_dct(zma, rings_atoms):
