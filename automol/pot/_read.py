@@ -18,15 +18,22 @@ def find_max1d(enes_lst, ethresh=0.01*phycon.KCAL2EH, include_endpts=True):
     # Locate all potential sadpts
     sadpt_idxs, sadpt_enes = _potential_sadpt(enes_lst, ethresh=ethresh)
 
+    max_idx = None
     if sadpt_idxs and sadpt_enes:
         # For now, find the greatest max for the saddle point
         sadpt_idx = sadpt_enes.index(max(sadpt_enes))
         max_idx = sadpt_idxs[sadpt_idx][1]
-    else:
-        if include_endpts:
-            max_idx = 0 if enes_lst[0] > enes_lst[-1] else -1
+    if include_endpts:
+        if max_idx is None:
+            if enes_lst[0] > enes_lst[-1]:
+                max_idx = 0
+            else:
+                max_idx = -1
         else:
-            max_idx = None
+            if enes_lst[0] > max(enes_lst[max_idx], enes_lst[-1]):
+                max_idx = 0
+            elif enes_lst[-1] > max(enes_lst[max_idx], enes_lst[0]):
+                max_idx = -1
 
     return max_idx
 
@@ -102,5 +109,7 @@ def _local_extrema(grid):
 
     loc_max = tuple(argrelextrema(numpy.array(grid), numpy.greater)[0])
     loc_min = tuple(argrelextrema(numpy.array(grid), numpy.less)[0])
+
+    print('local stat pt test:', loc_max, loc_min)
 
     return loc_max, loc_min

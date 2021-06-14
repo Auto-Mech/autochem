@@ -62,7 +62,6 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
                         nonh_neighs.append(nei)
                 if len(nonh_neighs) == 1 and len(h_neighs) > 1:
                     term_atms[atm] = h_neighs
-                    print('terminal atom accepted:', atm, h_neighs)
     factor = 1.
     remove_atms = []
     for atm in term_atms:
@@ -117,7 +116,6 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         if atm in unsat_atms and atm not in rad_atms:
             pass
         else:
-            print('atm test:', atm, ts_atms)
             if atm not in ts_atms:
                 nonh_neighs = []
                 h_neighs = []

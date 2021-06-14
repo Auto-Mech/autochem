@@ -335,7 +335,8 @@ def elimination_grid(zrxn, zma, npoints=(8, 4)):
 
     grid1 = numpy.linspace(r1min, r1max, npoints1) * phycon.ANG2BOHR
     grid2 = numpy.linspace(r2min, r2max, npoints2) * phycon.ANG2BOHR
-    grid = (grid1, grid2)
+    # grid = numpy.concatenate(grid1, grid2)
+    grid = numpy.concatenate((grid1, grid2), axis=None)
 
     return grid
 
