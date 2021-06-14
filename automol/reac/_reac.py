@@ -398,7 +398,7 @@ def products_graph(rxn, rev=False):
 
 
 def is_radical_radical(zrxn, rev=False):
-    """ Is this a radical radical reaction
+    """ Is this a radical-radical reaction
 
         :param rxn: the reaction object
         :type rxn: Reaction
