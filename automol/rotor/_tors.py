@@ -56,7 +56,6 @@ class Torsion:
 def torsion_lst(zma, gra, lin_keys):
     """  Build a list of torsion objects
     """
-
     # Build the torsion objects
     _name_axis_dct = name_axis_dct(zma, gra, lin_keys)
 
@@ -81,7 +80,7 @@ def reaction_torsion_lst(zma, zrxn):
     """ torsions from zrxn obj
     """
 
-    zbnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    zbnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
     tors_axes = tuple(tuple(keys) for keys in zbnd_keys)
     tors_names = tuple(automol.zmat.torsion_coordinate_name(zma, *keys)
                        for keys in tors_axes)

@@ -1,0 +1,380 @@
+span {
+    font-size:18px;
+}
+
+li p {
+   margin-top: 2px;
+   margin-bottom: 2px;
+}
+.compulsory{
+  text-decoration: underline;
+}
+
+dl.py.class{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd.field-odd ul.simple li p{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd.field-even ul.simple li p{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd p{
+  color:gray;
+  margin-bottom:0px;
+  margin-top: 4px;
+}
+
+dd.field-odd p{
+  font-size:16px;
+  font-family: monospace;
+  color: black;
+}
+
+dd.field-even p{
+  font-size:16px;
+  font-family: monospace;
+  color: black;
+}
+
+dl.py.method{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dl.field-list.simple{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dl { 
+  font-size:18px;
+  font-family: Optima, sans-serif;
+  font-family: monospace;
+}
+
+html{
+	 scroll-behavior: smooth;
+}
+
+hr {
+  border-color:#132639;
+}
+
+h1 {
+  color:IndianRed;
+  color:MediumSeaGreen;
+  font-weight:bold;
+  font-size:48px;
+  padding-top:50px;
+  text-decoration: none; 
+  font-family: Optima, sans-serif;
+}
+
+h2 {
+  color:black;
+  font-weight:bold;
+  font-size:32px;
+  font-family: Optima, sans-serif;
+}
+
+h3 {
+  font-weight:bold;
+  font-family: Optima, sans-serif;
+}
+
+a {
+    color: black; 
+    text-decoration: None;
+    text-shadow: .5px .5px #ff0000;
+ 
+}
+
+a:hover {
+    color:gray;
+    text-decoration: underline;
+}
+
+a:visited {
+    color:gray;
+    text-decoration: none; 
+}
+
+p {
+  color:black;
+  font-size: 17px;
+  font-family: Optima, sans-serif;
+}
+
+p.centered {
+    text-align: center;
+}
+
+p strong {
+    color: #B33C7E;
+    color: #ff9481;
+    color: black;
+    font-weight: bold
+}
+
+div.highlight-python.notranslate{
+    margin-left: 20px;
+    margin-right: 20px; 
+}
+
+div.highlight{
+    border: inset;
+    font-size: 10px;
+    background-color: GhostWhite;
+    box-shadow: 
+        -2px -2px 6px rgba(#fff, .6),
+        2px 2px 12px #c8d8e7;
+    margin-left: 20px;
+    margin-right: 20px;
+    font-decoration: verbatim; 
+}
+
+div.highlight pre{
+    margin: 5px;
+}
+
+div.highlight pre span{
+    margin-top: 15px;
+}
+
+img.logo {
+    width:80%;
+    height:auto;
+    object-fit: contain;
+}
+
+table #id22, #id22, #id23{
+    border-spacing: 0px;
+    width=100%;
+    margin-right: 10px;
+    margin-left: 15px;
+    border-collapse: collapse;
+    min-width: 400px;
+    border-radius:5px;
+    -moz-border-radius: 5px !important;
+}
+
+table #id22 caption, #id22 caption, #id23 caption{
+    font-size: 60px;
+    background-color:MediumSeaGreen;
+    color:White;
+}
+table #id22 caption span, #id22 caption span, #id23 caption span{
+    font-size: 30px;
+    font-family: Optima, sans-serif;
+}
+
+table #id22 colgroup, #id22 colgroup, #id23 colgroup{
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table #id22 thead th, #id22 thead th, #id23 thead th{
+    margin-left: auto;
+    margin-right: auto;
+    border: thin solid white;
+}
+
+table #id22 td, th , #id22 td, th , #id23 td, th {
+    border-left: thin solid white;
+    border: thin solid white;
+    border: thin solid white;
+}
+
+table #id22, #id24, #id25, #id26, #id28, #id27 {
+    width=100%;
+    border-spacing: 0px;
+    margin-right: 10px;
+    margin-left: 15px;
+    border-collapse: collapse;
+    min-width: 400px;
+    border-radius:5px;
+    -moz-border-radius: 5px !important;
+}
+
+table #id22 caption,  #id24 caption, #id25 caption, #id26 caption, #id28 caption, #id27 caption  {
+    font-size: 60px;
+    background-color:MediumSeaGreen;
+    background-color: #80d4a5; 
+    color:white;
+}
+
+table #id22 caption span, #id24 caption span, #id25 caption span, #id26 caption span, #id28 caption span, #id27 caption span  {
+    font-size: 30px;
+    font-family: Optima, sans-serif;
+}
+
+table #id24 colgroup, #id25 colgroup, #id26 colgroup, #id28 colgroup, #id27 colgroup{
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table #id24 thead th, #id25 thead th, #id26 thead th, #id28 thead th, #id27 thead th{
+    margin-left: auto;
+    margin-right: auto;
+    border: thin solid white;
+}
+
+
+table #id24 tr.row-even,  #id24 tr.row-even, #id25 tr.row-even, #id26 tr.row-even, #id28 tr.row-even, #id27 tr.row-even{
+    margin-left: auto;
+    margin-right: auto;
+    border: thin solid white;
+    background-color: #fff4f2;
+
+}
+table #id24 td, th , #id25 td, th , #id26 td, th , #id28  td, th, #id27  td, th  {
+    border-left: thin solid white;
+    border: thin solid white;
+}
+
+
+table  #id22 tbody tr:last-of-type , #id24 tbody tr:last-of-type , #id25 tbody tr:last-of-type , #id26 tbody tr:last-of-type, #id27 tbody tr:last-of-type {
+    border-bottom: 0px solid MediumSeaGreen;
+}
+
+table tr.row-even {
+    margin-left: auto;
+    margin-right: auto;
+    border: thin solid white;
+    background-color: #fff4f2;
+}
+
+table tr.row-odd {
+    margin-left: auto;
+    margin-right: auto;
+    border: thin solid white;
+    background-color: white;
+}
+
+section {
+    font-size: 20px;
+}
+
+/* The sidebar menu */
+
+table tbody tr:last-of-type {
+    border-bottom: 18px solid MediumSeaGreen;
+}
+
+section {
+    font-size: 20px;
+}
+
+/* The sidebar menu */
+div.sphinxsidebar {
+  height: 100%; /* Full-height: remove this if you want "auto" height */
+  width: 250px; /* Set the width of the sidebar */
+  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-color:#03070a;
+  background-color:#000e1f;
+  background-image: url("https://www.transparenttextures.com/patterns/light-honeycomb-dark.png");
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 50px;
+  padding-left: 10%;
+  padding-right: 5%;
+  font-family: Optima, sans-serif;
+}
+
+div.sphinxsidebarwrapper {
+  color: #f1f1f1;
+}
+div.sphinxsidebar a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #f1f1f1;
+  display: block;
+}
+
+div.sphinxsidebar ul {
+  list-style-type: none; /* Remove bullets */
+  padding: 0;
+}
+
+div.sphinxsidebar h3 {
+  text-transform: uppercase;
+  text-transform: full-width;
+  font-size:14pt;
+  padding: 8px;
+}
+
+div.sphinxsidebar ul a:hover {
+  color: gray;
+}
+
+div.sphinxsidebar a:hover {
+  color: gray;
+  background-color:#132639;
+}
+
+div.sphinxsidebar a:visited {
+  color: #f1f1f1;
+}
+
+input[type='submit']{
+  background-color: #ff9481; /* Green */
+  border: none;
+  color: white;
+  color: #03070a;
+  border-color: #03070a;
+  padding: 2px 12px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Style page content */
+div.body {
+  margin-left: 250px; /* Same as the width of the sidebar */
+  padding: 0px 10px;
+  padding-left: 20%;
+  padding-right: 10%;
+}
+
+div.footer {
+  margin-left: 250px; /* Same as the width of the sidebar */
+  margin-top: 100px;
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  div.sphinxsidebar {padding-top: 15px;}
+  div.sphinxsidebarwrapper a {font-size: 18px;}
+}
+
+
+div.admonition.note{
+     -moz-border-radius: 6px;
+     -webkit-border-radius: 6px;
+     background-color: #c4e8d4;
+     background-image: url('https://css.gg/notes.css');
+     background-position: 9px 0px;
+     background-repeat: no-repeat;
+     border: solid 1px MediumSeaGreen;
+     border-radius: 6px;
+     line-height: 18px;
+     overflow: hidden;
+     padding: 10px 40px;
+}
+
+div.toctree-wrapper.compound{
+    background: GhostWhite;
+}
+
