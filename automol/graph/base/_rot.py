@@ -44,9 +44,7 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
 
         return is_single and has_neighbors and not_in_ring and (
             not is_h_rotor or with_h_rotors)
-
     rot_bnd_keys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
-
     lin_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys)
     dum_keys = tuple(atom_keys(gra, sym='X'))
     for keys in lin_keys_lst:
@@ -61,13 +59,14 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
             gra, keys[0], excl_atm_keys=excl_keys)
 
         excl_keys |= {end_key1}
+        
         end_key2 = atom_neighbor_atom_key(
             gra, keys[-1], excl_atm_keys=excl_keys)
 
         end_keys = {end_key1, end_key2}
         ngb_keys_lst = [ngb_keys_dct[k] - excl_keys for k in end_keys]
         has_neighbors = all(ngb_keys_lst)
-
+ 
         if not has_neighbors:
             rot_bnd_keys -= set(bnd_keys)
         else:
