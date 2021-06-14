@@ -115,6 +115,14 @@ from automol.geom._extra import rot_permutated_geoms
 from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
+# ring functions
+from automol.geom._ring import all_rings_angles_reasonable
+from automol.geom._ring import ring_angles_reasonable
+from automol.geom._ring import ring_fragments_geometry
+# symmetry functions
+from automol.geom._symm import internal_symm_from_sampling
+from automol.geom._symm import reduce_internal_symm
+from automol.geom._symm import rotor_reduced_symm_factor
 # ts submodule
 from automol.geom import ts
 
@@ -222,6 +230,14 @@ __all__ = [
     'are_torsions_same2',
     'are_torsions_same',
     'is_unique',
+    # ring functions
+    'all_rings_angles_reasonable',
+    'ring_angles_reasonable',
+    'ring_fragments_geometry',
+    # symmetry
+    'internal_symm_from_sampling',
+    'reduce_internal_symm',
+    'rotor_reduced_symm_factor',
     # ts submodule
     'ts',
 ]

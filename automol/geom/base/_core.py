@@ -315,8 +315,7 @@ def formula_string(geo):
         :type: dict[str: int]
     """
 
-    symbs = symbols(geo)
-    fml = formula(symbs)
+    fml = formula(geo)
     fml_str = automol.formula.string(fml)
 
     return fml_str

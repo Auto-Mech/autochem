@@ -69,8 +69,11 @@ from automol.reac._pst import pst_kt
 from automol.reac._pst import pst_cn
 # tunneling treatments
 from automol.reac import tunnel
+# comp functions
+from automol.reac._zma_comp import similar_saddle_point_structure
 # util
 from automol.reac import _util as util
+from automol.reac._util import reaction_inchis
 from automol.reac._util import rxn_objs_from_inchi
 from automol.reac._util import rxn_objs_from_smiles
 from automol.reac._util import rxn_objs_from_zmatrix
@@ -147,8 +150,11 @@ __all__ = [
     'pst_cn',
     # tunneling treatments
     'tunnel',
+    # comp functions
+    'similar_saddle_point_structure',
     # util
     'util',
+    'reaction_inchis',
     'rxn_objs_from_inchi',
     'rxn_objs_from_smiles',
     'rxn_objs_from_zmatrix',
