@@ -102,6 +102,9 @@ from automol.zmat._ring import all_rings_distances
 from automol.zmat._ring import all_rings_dihedrals
 from automol.zmat._ring import all_rings_dct
 from automol.zmat._ring import all_rings_distances_reasonable
+from automol.zmat._ring import ring_distances
+from automol.zmat._ring import ring_dihedrals
+from automol.zmat._ring import ring_distances_reasonable
 
 
 __all__ = [
@@ -195,5 +198,9 @@ __all__ = [
     'all_rings_distances',
     'all_rings_dihedrals',
     'all_rings_dct',
-    'all_rings_distances_reasonable'
+    'all_rings_distances_reasonable',
+    'ring_atoms',
+    'ring_distances',
+    'ring_dihedrals',
+    'ring_distances_reasonable'
 ]

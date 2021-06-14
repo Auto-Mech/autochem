@@ -116,8 +116,9 @@ from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
 # ring functions
-from automol.geom._ring import ring_angles_passes
-from automol.geom._ring import fragment_ring_geo
+from automol.geom._ring import all_rings_angles_reasonable
+from automol.geom._ring import ring_angles_reasonable
+from automol.geom._ring import ring_fragments_geometry
 # symmetry functions
 from automol.geom._symm import internal_symm_from_sampling
 from automol.geom._symm import reduce_internal_symm
@@ -230,8 +231,9 @@ __all__ = [
     'are_torsions_same',
     'is_unique',
     # ring functions
-    'ring_angles_passes',
-    'fragment_ring_geo',
+    'all_rings_angles_reasonable',
+    'ring_angles_reasonable',
+    'ring_fragments_geometry',
     # symmetry
     'internal_symm_from_sampling',
     'reduce_internal_symm',
