@@ -19,11 +19,16 @@ ICH4 = 'InChI=1S/C8H16/c1-2-5-8-6-3-4-7-8/h8H,2-7H2,1H3'
 # polycycle: cyclohexane+cyclopentane
 ICH5 = 'InChI=1S/C9H16/c1-2-5-9-7-3-6-8(9)4-1/h8-9H,1-7H2/t8-,9-/m1/s1'
 
-ZMA1 = geom.zmatrix(inchi.geometry(ICH1))
-ZMA2 = geom.zmatrix(inchi.geometry(ICH2))
-ZMA3 = geom.zmatrix(inchi.geometry(ICH3))
-ZMA4 = geom.zmatrix(inchi.geometry(ICH4))
-ZMA5 = geom.zmatrix(inchi.geometry(ICH5))
+GEO1 = inchi.geometry(ICH1)
+GEO2 = inchi.geometry(ICH2)
+GEO3 = inchi.geometry(ICH3)
+GEO4 = inchi.geometry(ICH4)
+GEO5 = inchi.geometry(ICH5)
+ZMA1 = geom.zmatrix(GEO1)
+ZMA2 = geom.zmatrix(GEO2)
+ZMA3 = geom.zmatrix(GEO3)
+ZMA4 = geom.zmatrix(GEO4)
+ZMA5 = geom.zmatrix(GEO5)
 
 
 def test__rings():
@@ -164,6 +169,17 @@ def test__zmat_ring():
     """  test (add TS)
     """
 
+    def _chk_ring_dct(ring_dct, ref_ring_dct):
+        """ Ring dictionaries by checking the keys and subkeys and tha
+            the floats match in the arrays.
+        """
+        for key, rkey in zip(ring_dct.keys(), ref_ring_dct.keys()):
+            assert key == rkey
+            rdct, ref_dct = ring_dct[key], ref_ring_dct[rkey]
+            for key2, rkey2 in zip(rdct.keys(), ref_dct.keys()):
+                assert key2 == rkey2
+                assert numpy.allclose(rdct[key2], ref_dct[rkey2])
+
     ref_rng_dct1 = {
         '1-2-5-8-11-14': {'D7': [0.16168073524433701, 1.7324770620392336],
                           'D10': [4.550708773750596, 6.121505100545493],
@@ -189,7 +205,8 @@ def test__zmat_ring():
         '1-2-5-8-11': {'D7': [4.877800020154778, 6.4485963469496745],
                        'D10': [-0.012877983213259836, 1.5579183435816368]},
         '5-8-21-18-15-9': {'D17': [-0.33350277464453076, 1.2372935521503658],
-                           'D20': [4.488064445840583, 6.058860772635479]}}
+                           'D20': [4.488064445840583, 6.058860772635479]}
+    }
 
     # Get lists of atoms in the ring
     rng_atoms1 = zmat.all_rings_atoms(ZMA1, zrxn=None)
@@ -205,25 +222,105 @@ def test__zmat_ring():
     rng_dct4 = zmat.all_rings_dct(ZMA4, rng_atoms4)
     rng_dct5 = zmat.all_rings_dct(ZMA5, rng_atoms5)
 
+    _chk_ring_dct(rng_dct1, ref_rng_dct1)
+    _chk_ring_dct(rng_dct2, ref_rng_dct2)
+    _chk_ring_dct(rng_dct3, ref_rng_dct3)
+    _chk_ring_dct(rng_dct4, ref_rng_dct4)
+    _chk_ring_dct(rng_dct5, ref_rng_dct5)
+
     # Check distances (includes distance calc)
     # still need a dist check failure for testing
-    rng_chk1 = zmat.all_rings_distances_reasonable(ZMA1, rng_atoms1)
-    rng_chk2 = zmat.all_rings_distances_reasonable(ZMA2, rng_atoms2)
-    rng_chk3 = zmat.all_rings_distances_reasonable(ZMA3, rng_atoms3)
-    rng_chk4 = zmat.all_rings_distances_reasonable(ZMA4, rng_atoms4)
-    rng_chk5 = zmat.all_rings_distances_reasonable(ZMA5, rng_atoms5)
+    assert zmat.all_rings_distances_reasonable(ZMA1, rng_atoms1)
+    assert zmat.all_rings_distances_reasonable(ZMA2, rng_atoms2)
+    assert zmat.all_rings_distances_reasonable(ZMA3, rng_atoms3)
+    assert zmat.all_rings_distances_reasonable(ZMA4, rng_atoms4)
+    assert zmat.all_rings_distances_reasonable(ZMA5, rng_atoms5)
 
 
-# TODO
-# def __fragment_ring():
-#     """ test
-#     """
-#     # automol.geom.fragment_ring_geo(geo)
-#     pass
-# def __ring_check():
-#     """ test
-#     """
-#     # automol.geom.ring_angles_passes(geo, ring_atoms, thresh=ATHRESH):
+def test__geom_ring():
+    """ test
+    """
+
+    # Check fragments
+    ref_frag1 = (
+        ('C', (-4.678309211005585, 0.9507582225493368, 1.3283943630808774)),
+        ('C', (-5.121751782500965, -0.938130104907219, -0.8105253645907926)),
+        ('C', (-1.8183184542355333, 1.124802798603796, 1.679473859905406)),
+        ('H', (-5.596045421215773, 0.3417726406642164, 3.080387789063853)),
+        ('H', (-5.472315138734762, 2.795412023268741, 0.8240154865962166)),
+        ('C', (-2.5431899261233295, -2.0739380012437003, -1.3930195681295054)),
+        ('H', (-5.852499087712589, 0.05531532655919256, -2.475545119599078)),
+        ('H', (-6.503039672160678, -2.388190468828352, -0.2948252443802334)),
+        ('C', (-0.7061241675458045, 0.061496234243248286, -0.764480412567453)),
+        ('H', (-2.394903577788051, -2.688224956361526, -3.3620755359797467)),
+        ('H', (-2.2076515854285743, -3.721079537831081, -0.17992394099843007)),
+        ('C', (2.0244139428425885, -0.8586191572573748, -0.5328743916778614)),
+        ('H', (-0.8215175624787503, 1.5073535945698067, -2.249882522830806)),
+        ('H', (-1.2484554395000416, -0.024690004182670054, 3.307711745513383)),
+        ('H', (-1.213466703672248, 3.0695743548570653, 2.0397346958319655)))
+    ref_frag2 = (
+        ('C', (-4.75275159254756, -0.8859368224809074, 0.05204272094591431)),
+        ('C', (-2.6316145805140074, -2.781457031057775, 0.617675595973341)),
+        ('C', (-3.469373724017983, 1.644203318184678, -0.5508463526763928)),
+        ('H', (-6.020017911796573, -0.6793342485754604, 1.6757584497553977)),
+        ('H', (-5.894535909176483, -1.541597262442682, -1.545311764072632)),
+        ('C', (-0.2860088109004335, -1.148940006016929, 0.961220215463222)),
+        ('H', (-3.0413520136248446, -3.922314862417004, 2.293255681709448)),
+        ('H', (-2.4141209511227446, -4.0740160313602765, -0.9873049704822309)),
+        ('C', (2.2490731922647558, -2.457979419683331, 0.5439361499900985)),
+        ('C', (-0.7009866699077159, 0.9649583926305777, -0.9504147216562486)),
+        ('H', (-0.3133961766730456, -0.3543813002328926, 2.882320427181015)),
+        ('C', (1.200527146395269, 3.101000420082161, -0.5817249641001333)),
+        ('H', (-0.4809624718722801, 0.2063149270378129, -2.873628003146178)),
+        ('H', (-4.297962624106833, 2.5542573283204937, -2.212847874618906)),
+        ('H', (-3.6981964276399215, 2.9346249752146134, 1.054281230413613)),
+        ('C', (4.277907565282426, -0.6204973771653151, -0.42814819707015134)),
+        ('C', (3.775171063722607, 2.1216311210353376, 0.3399582461004284)),
+        ('H', (4.349010775297676, -0.7282474510540757, -2.4981877728699335)),
+        ('H', (6.139118315609488, -1.2222378958530145, 0.25232279110138667)),
+        ('H', (3.8464710144147634, 2.255925498026601, 2.408439361912304)),
+        ('H', (5.279790586767728, 3.3507823389200784, -0.3773631616284865)),
+        ('H', (1.4381199118411645, 4.1005566214301385, -2.3820194923439555)),
+        ('H', (0.5015487139955048, 4.508608348000816, 0.7687730045421981)),
+        ('H', (2.075693517927493, -4.028187328133698, -0.7970212520506802)),
+        ('H', (2.8688480603817905, -3.297736252410089, 2.3348346516273333)))
+
+    frag1 = geom.ring_fragments_geometry(GEO4)
+    frag2 = geom.ring_fragments_geometry(GEO5)
+
+    assert geom.almost_equal_dist_matrix(frag1, ref_frag1)
+    assert geom.almost_equal_dist_matrix(frag2, ref_frag2)
+
+    # Check angles passing
+    # rng_atoms1 = zmat.all_rings_atoms(ZMA1, zrxn=None)
+    # rng_atoms2 = zmat.all_rings_atoms(ZMA2, zrxn=None)
+    # rng_atoms3 = zmat.all_rings_atoms(ZMA3, zrxn=None)
+    # rng_atoms4 = zmat.all_rings_atoms(ZMA4, zrxn=None)
+    # rng_atoms5 = zmat.all_rings_atoms(ZMA5, zrxn=None)
+    # assert geom.all_rings_angles_reasonable(GEO1, rng_atoms1)
+    # assert geom.all_rings_angles_reasonable(GEO2, rng_atoms2)
+    # assert geom.all_rings_angles_reasonable(GEO3, rng_atoms3)
+    # assert geom.all_rings_angles_reasonable(GEO4, rng_atoms4)
+    # assert geom.all_rings_angles_reasonable(GEO5, rng_atoms5)
+    # # Make fake ring with a bad angle
+    # bad_geo = (
+    #     ('C',  (-5.5877937580, -0.9968691886, -0.4989724332)),
+    #     ('C',  (-2.7396917422, -0.5869879179, -0.3495489041)),
+    #     ('H',  (-6.2131071344, -2.2170574292, 1.0990444734)),
+    #     ('H',  (-6.2375188836, -1.8516712887, -2.3026059381)),
+    #     ('C',  (-5.5653523999, 1.1009499352, 0.6068939227)),
+    #     ('H',  (-1.6185907638, -2.3610282320, -0.3017615543)),
+    #     ('C',  (-2.5439758909, 0.9534327614, 2.0676109788)),
+    #     ('H',  (-2.1053962916, 0.5765661495, -1.9857880223)),
+    #     ('C',  (-4.8046407570, 2.7722969017, 1.9610434891)),
+    #     ('H',  (-7.3189290824, 1.5474187146, 1.4538721624)),
+    #     ('H',  (-5.6843643376, 2.5317510457, -1.5414484200)),
+    #     ('H',  (-0.6915593935, 1.8574930579, 2.4592560449)),
+    #     ('H',  (-2.9167136073, -0.4107171297, 3.6299854071)),
+    #     ('H',  (-5.7060177389, 2.8094515351, 3.8587924532)),
+    #     ('H',  (-4.2677394999, 4.7261055569, 1.4049815516)))
+    # rng_atoms = ((0, 1, 4, 6, 8),)
+    # assert not geom.all_rings_angles_reasonable(bad_geo, rng_atoms)
 
 
 if __name__ == '__main__':
@@ -232,3 +329,4 @@ if __name__ == '__main__':
     # test__ring_systems_decomposed_atom_keys()
     # test__ring_puckering()
     test__zmat_ring()
+    test__geom_ring()
