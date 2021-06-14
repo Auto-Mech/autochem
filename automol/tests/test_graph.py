@@ -258,7 +258,7 @@ def test__from_data():
     """ test getters
     """
     cgr = automol.graph.from_data(
-        atm_sym_dct=graph.atom_symbols(C8H13O_CGR),
+        atm_symb_dct=graph.atom_symbols(C8H13O_CGR),
         bnd_keys=graph.bond_keys(C8H13O_CGR),
         atm_imp_hyd_vlc_dct=(
             graph.atom_implicit_hydrogen_valences(C8H13O_CGR)),
@@ -266,7 +266,7 @@ def test__from_data():
     assert cgr == C8H13O_CGR
 
     rgr = automol.graph.from_data(
-        atm_sym_dct=graph.atom_symbols(C8H13O_RGR),
+        atm_symb_dct=graph.atom_symbols(C8H13O_RGR),
         bnd_keys=graph.bond_keys(C8H13O_RGR),
         atm_imp_hyd_vlc_dct=(
             graph.atom_implicit_hydrogen_valences(C8H13O_RGR)),
@@ -275,7 +275,7 @@ def test__from_data():
     assert rgr == C8H13O_RGR
 
     sgr = automol.graph.from_data(
-        atm_sym_dct=graph.atom_symbols(C8H13O_SGR),
+        atm_symb_dct=graph.atom_symbols(C8H13O_SGR),
         bnd_keys=graph.bond_keys(C8H13O_SGR),
         atm_imp_hyd_vlc_dct=(
             graph.atom_implicit_hydrogen_valences(C8H13O_SGR)),

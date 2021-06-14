@@ -8,27 +8,21 @@ Function arguments:
 """
 
 import itertools
-from automol.convert.graph import formula as graph_formula
-from automol.convert.geom import geometry as ich_geometry
-from automol.convert.geom import connectivity_graph
+import automol.geom
 import automol.geom.ts
-from automol import par
+import automol.inchi
+from automol.par import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_keys
 from automol.graph import bond_keys
-from automol.graph import string
-from automol.graph import atom_count
-from automol.graph import heavy_atom_count
-from automol.graph import electron_count
+from automol.graph import formula
 from automol.graph import union
-from automol.graph import explicit
 from automol.graph import add_bonds
 from automol.graph import remove_bonds
 from automol.graph import isomorphism
 from automol.graph import equivalent_atoms
 from automol.graph import union_from_sequence
 from automol.graph import unsaturated_atom_keys
-from automol.graph import without_stereo_parities
 from automol.graph import atom_neighbor_atom_key
 from automol.graph import atoms_neighbor_atom_keys
 from automol.graph import add_bonded_atom
@@ -38,32 +32,33 @@ from automol.graph import rings_atom_keys
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
 from automol.reac._reac import ts_unique
+from automol.reac._util import assert_is_valid_reagent_graph_list
+from automol.reac._util import sort_reagents
 
 
 def trivial(rct_gras, prd_gras):
     """ find a trivial reaction, with the same reactants and products
     """
-    _assert_is_valid_reagent_graph_list(rct_gras)
-    _assert_is_valid_reagent_graph_list(prd_gras)
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
     if len(rct_gras) == len(prd_gras):
-        prd_gras = list(prd_gras)
-
         rct_idxs = []
         prd_idxs = []
 
         # One at a time, find matches for each reactant; track the positions to
         # get the right sort order
+        prd_gras_pool = list(prd_gras)
         for rct_idx, rct_gra in enumerate(rct_gras):
-            prd_idx = next((idx for idx, prd_gra in enumerate(prd_gras)
+            prd_idx = next((idx for idx, prd_gra in enumerate(prd_gras_pool)
                             if isomorphism(rct_gra, prd_gra)), None)
 
             if prd_idx is not None:
                 rct_idxs.append(rct_idx)
                 prd_idxs.append(prd_idx)
-                prd_gras.pop(prd_idx)
+                prd_gras_pool.pop(prd_idx)
             else:
                 break
 
@@ -76,7 +71,7 @@ def trivial(rct_gras, prd_gras):
             prds_gra = union_from_sequence(prd_gras)
 
             rxns.append(Reaction(
-                rxn_cls=par.ReactionClass.TRIVIAL,
+                rxn_cls=ReactionClass.Typ.TRIVIAL,
                 forw_tsg=ts.graph(rcts_gra, [], []),
                 back_tsg=ts.graph(prds_gra, [], []),
                 rcts_keys=list(map(atom_keys, rct_gras)),
@@ -99,8 +94,8 @@ def hydrogen_migrations(rct_gras, prd_gras):
     product and seeing if they match up. If so, we have a hydrogen migration
     between these two sites.
     """
-    _assert_is_valid_reagent_graph_list(rct_gras)
-    _assert_is_valid_reagent_graph_list(prd_gras)
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
@@ -156,7 +151,7 @@ def hydrogen_migrations(rct_gras, prd_gras):
 
                     if isomorphism(forw_tsg, ts.reverse(back_tsg)):
                         rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.HYDROGEN_MIGRATION,
+                            rxn_cls=ReactionClass.Typ.HYDROGEN_MIGRATION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=[atom_keys(rct_gra)],
@@ -189,8 +184,8 @@ def ring_forming_scissions(rct_gras, prd_gras):
     Ring-forming scissions are found by breaking ring-bonds on one product and
     joining the ends to unsaturated sites on the other product
     """
-    _assert_is_valid_reagent_graph_list(rct_gras)
-    _assert_is_valid_reagent_graph_list(prd_gras)
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
@@ -225,7 +220,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
 
                         # Create the reaction object
                         rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.RING_FORM_SCISSION,
+                            rxn_cls=ReactionClass.Typ.RING_FORM_SCISSION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=[atom_keys(rgra)],
@@ -248,8 +243,8 @@ def eliminations(rct_gras, prd_gras):
     the ring, downstream of the attacking heavy atom, away from the attacked
     atom.
     """
-    _assert_is_valid_reagent_graph_list(rct_gras)
-    _assert_is_valid_reagent_graph_list(prd_gras)
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
@@ -270,11 +265,12 @@ def eliminations(rct_gras, prd_gras):
 
         for frm1_key, frm2_key in frm_bnd_keys:
             # Bond the radical atom to the hydrogen atom
-            gra_ = add_bonds(rct_gra, [(frm2_key, frm1_key)])
+            prds_gra_ = add_bonds(rct_gra, [(frm2_key, frm1_key)])
 
             # Get keys to the ring formed by this extra bond
-            rng_keys = next((ks for ks in rings_atom_keys(gra_)
+            rng_keys = next((ks for ks in rings_atom_keys(prds_gra_)
                              if frm2_key in ks and frm1_key in ks), None)
+
             # Eliminations (as far as I can tell) only happen through TSs with
             # 3- or 4-membered rings
             if rng_keys is not None and len(rng_keys) < 5:
@@ -282,10 +278,10 @@ def eliminations(rct_gras, prd_gras):
                 frm2_ngb_key, = ngb_keys_dct[frm2_key] & set(rng_keys)
 
                 # Break the bonds on either side of the newly formed bond
-                gra_ = remove_bonds(gra_, [(frm1_key, frm1_ngb_key)])
-                gra_ = remove_bonds(gra_, [(frm2_key, frm2_ngb_key)])
+                prds_gra_ = remove_bonds(prds_gra_, [(frm1_key, frm1_ngb_key)])
+                prds_gra_ = remove_bonds(prds_gra_, [(frm2_key, frm2_ngb_key)])
 
-                inv_dct = isomorphism(gra_, prds_gra)
+                inv_dct = isomorphism(prds_gra_, prds_gra)
                 if inv_dct:
                     f_frm_bnd_key = (frm1_key, frm2_key)
                     f_brk_bnd_key1 = (frm1_key, frm1_ngb_key)
@@ -307,12 +303,15 @@ def eliminations(rct_gras, prd_gras):
                     rcts_atm_keys = list(map(atom_keys, rct_gras))
                     prds_atm_keys = list(map(atom_keys, prd_gras))
 
-                    if inv_dct[frm2_key] not in prds_atm_keys[1]:
+                    if inv_dct[frm1_key] not in prds_atm_keys[1]:
                         prds_atm_keys = list(reversed(prds_atm_keys))
+
+                    assert inv_dct[frm1_key] in prds_atm_keys[1]
+                    assert inv_dct[frm2_key] in prds_atm_keys[1]
 
                     # Create the reaction object
                     rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.ELIMINATION,
+                        rxn_cls=ReactionClass.Typ.ELIMINATION,
                         forw_tsg=forw_tsg,
                         back_tsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
@@ -336,14 +335,14 @@ def hydrogen_abstractions(rct_gras, prd_gras):
     to unsaturated sites of the R1 product to see if we get the R1H reactant.
     We then do the same for the R2 reactant and the R2H product.
     """
-    _assert_is_valid_reagent_graph_list(rct_gras)
-    _assert_is_valid_reagent_graph_list(prd_gras)
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 2:
-        rct_fmls = list(map(graph_formula, rct_gras))
-        prd_fmls = list(map(graph_formula, prd_gras))
+        rct_fmls = list(map(formula, rct_gras))
+        prd_fmls = list(map(formula, prd_gras))
 
         ret = automol.formula.reac.argsort_hydrogen_abstraction(
             rct_fmls, prd_fmls)
@@ -377,7 +376,7 @@ def hydrogen_abstractions(rct_gras, prd_gras):
 
                 # Create the reaction object
                 rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.HYDROGEN_ABSTRACTION,
+                    rxn_cls=ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -398,12 +397,13 @@ def additions(rct_gras, prd_gras):
     an unsaturated site on the other. If the result matches the products, this
     is an addition reaction.
     """
-    _assert_is_valid_reagent_graph_list(rct_gras)
-    _assert_is_valid_reagent_graph_list(prd_gras)
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
+        rct_gras = sort_reagents(rct_gras)
         x_gra, y_gra = rct_gras
         prd_gra, = prd_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
@@ -426,13 +426,9 @@ def additions(rct_gras, prd_gras):
                                     frm_bnd_keys=[],
                                     brk_bnd_keys=[b_brk_bnd_key])
 
-                # sort the reactants so that the largest species is first
-                rct_idxs = _argsort_reactants(rct_gras)
-                rct_gras = list(map(rct_gras.__getitem__, rct_idxs))
-
                 # Create the reaction object
                 rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.ADDITION,
+                    rxn_cls=ReactionClass.Typ.ADDITION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -465,8 +461,8 @@ def substitutions(rct_gras, prd_gras):
     Substitutions are identified by breaking one bond in the reactants and one
     bond from the products and checking for isomorphism.
     """
-    _assert_is_valid_reagent_graph_list(rct_gras)
-    _assert_is_valid_reagent_graph_list(prd_gras)
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
@@ -507,7 +503,7 @@ def substitutions(rct_gras, prd_gras):
 
                         # Create the reaction object
                         rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.SUBSTITUTION,
+                            rxn_cls=ReactionClass.Typ.SUBSTITUTION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=rcts_atm_keys,
@@ -528,8 +524,8 @@ def find(rct_gras, prd_gras):
     :rtype: tuple[Reaction]
     """
     # check whether this is a valid reaction
-    rct_fmls = list(map(graph_formula, rct_gras))
-    prd_fmls = list(map(graph_formula, prd_gras))
+    rct_fmls = list(map(formula, rct_gras))
+    prd_fmls = list(map(formula, prd_gras))
     rct_strs = list(map(automol.formula.string, rct_fmls))
     prd_strs = list(map(automol.formula.string, prd_fmls))
     assert automol.formula.reac.is_valid_reaction(rct_fmls, prd_fmls), (
@@ -563,10 +559,10 @@ def find_from_inchis(rct_ichs, prd_ichs):
     :returns: a list of reaction classes
     :rtype: tuple[str]
     """
-    rct_geos = list(map(ich_geometry, rct_ichs))
-    prd_geos = list(map(ich_geometry, prd_ichs))
-    rct_gras = list(map(connectivity_graph, rct_geos))
-    prd_gras = list(map(connectivity_graph, prd_geos))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
+    rct_gras = list(map(automol.geom.connectivity_graph, rct_geos))
+    prd_gras = list(map(automol.geom.connectivity_graph, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
     rxns = find(rct_gras, prd_gras)
@@ -593,42 +589,3 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
             rets.append((qh_q_atm_key, qh_h_atm_key, q_q_atm_key))
 
     return rets
-
-
-def _assert_is_valid_reagent_graph_list(gras):
-    gras_str = '\n---\n'.join(map(string, gras))
-    assert _are_all_explicit(gras), (
-        "Implicit hydrogens are not allowed here!\nGraphs:\n{}"
-        .format(gras_str))
-    assert _have_no_stereo_assignments(gras), (
-        "Stereo assignments are not allowed here!\nGraphs:\n{}"
-        .format(gras_str))
-    assert _have_no_common_atom_keys(gras), (
-        "Overlapping atom keys are not allowed here!\nGraphs:\n{}"
-        .format(gras_str))
-
-
-def _are_all_explicit(gras):
-    return all(gra == explicit(gra) for gra in gras)
-
-
-def _have_no_stereo_assignments(gras):
-    return all(gra == without_stereo_parities(gra) for gra in gras)
-
-
-def _have_no_common_atom_keys(gras):
-    atm_keys = list(itertools.chain(*map(atom_keys, gras)))
-    return len(atm_keys) == len(set(atm_keys))
-
-
-def _argsort_reactants(gras):
-
-    def __sort_value(args):
-        _, gra = args
-        val = (-heavy_atom_count(gra),
-               -atom_count(gra),
-               -electron_count(gra))
-        return val
-
-    idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
-    return idxs

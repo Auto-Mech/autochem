@@ -1,0 +1,471 @@
+""" Level 4 geometry functions
+"""
+
+import itertools
+import numpy
+import automol.graph
+import automol.zmat.base
+import automol.inchi.base
+from automol import util
+from automol.geom import _pyx2z
+from automol.geom.base import from_subset
+from automol.geom.base import symbols
+from automol.geom.base import coordinates
+from automol.geom.base import is_atom
+from automol.geom.base import count
+from automol.geom.base import distance
+from automol.geom.base import central_angle
+from automol.geom.base import insert
+from automol.geom.base import move_atom
+
+
+# # conversions
+def graph(geo, stereo=True):
+    """ Generate a molecular graph from the molecular geometry that has information
+        about bond connectivity and if requested, stereochemistry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: automol molecular graph data structure
+    """
+    gra = connectivity_graph(geo)
+    if stereo:
+        gra = automol.graph.set_stereo_from_geometry(gra, geo)
+
+    return gra
+
+
+def connectivity_graph(geo,
+                       rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
+    """ Generate a molecular graph from the molecular geometry that has information
+        about bond connectivity.
+
+        :param rqq_bond_max: maximum distance between heavy atoms
+        :type rqq_bond_max: float
+        :param rqh_bond_max: maximum distance between heavy atoms and hydrogens
+        :type rqh_bond_max: float
+        :param rhh_bond_max: maximum distance between hydrogens
+        :type rhh_bond_max: float
+        :rtype: automol molecular graph structure
+    """
+
+    symbs = symbols(geo)
+    xyzs = coordinates(geo)
+
+    def _distance(idx_pair):
+        xyz1, xyz2 = map(xyzs.__getitem__, idx_pair)
+        dist = numpy.linalg.norm(numpy.subtract(xyz1, xyz2))
+        return dist
+
+    def _are_bonded(idx_pair):
+        sym1, sym2 = map(symbs.__getitem__, idx_pair)
+        dist = _distance(idx_pair)
+        return (False if 'X' in (sym1, sym2) else
+                (dist < rqh_bond_max) if 'H' in (sym1, sym2) else
+                (dist < rhh_bond_max) if (sym1 == 'H' and sym2 == 'H') else
+                (dist < rqq_bond_max))
+
+    idxs = range(len(xyzs))
+    atm_symb_dct = dict(enumerate(symbs))
+    bnd_keys = tuple(
+        map(frozenset, filter(_are_bonded, itertools.combinations(idxs, r=2))))
+
+    bnd_ord_dct = {bnd_key: 1 for bnd_key in bnd_keys}
+
+    gra = automol.graph.from_data(
+        atm_symb_dct=atm_symb_dct, bnd_keys=bnd_keys, bnd_ord_dct=bnd_ord_dct)
+    return gra
+
+
+def zmatrix(geo, ts_bnds=()):
+    """ Generate a corresponding Z-Matrix for a molecular geometry
+        using internal autochem procedures.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param ts_bnds: keys for the breaking/forming bonds in a TS
+        :type ts_bnds: tuple(frozenset(int))
+        :returns: automol Z-Matrix data structure
+    """
+    zma, _, _ = zmatrix_with_conversion_info(geo, ts_bnds=ts_bnds)
+    return zma
+
+
+def zmatrix_with_conversion_info(geo, ts_bnds=()):
+    """ Generate a corresponding Z-Matrix for a molecular geometry
+        using internal autochem procedures.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param ts_bnds: keys for the breaking/forming bonds in a TS
+        :type ts_bnds: tuple(frozenset(int))
+        :returns: automol Z-Matrix data structure, Z-Matrix atom ordering, and
+            a dictionary mapping linear atoms onto their associated dummy atoms
+    """
+
+    if ts_bnds:
+        raise NotImplementedError
+
+    if is_atom(geo):
+        symbs = symbols(geo)
+        key_mat = [[None, None, None]]
+        val_mat = [[None, None, None]]
+        zma = automol.zmat.base.from_data(symbs, key_mat, val_mat)
+        zma_keys = [0]
+        dummy_key_dct = {}
+    else:
+        geo, dummy_key_dct = insert_dummies_on_linear_atoms(geo)
+        gra = connectivity_graph(geo)
+        bnd_keys = tuple(dummy_key_dct.items())
+        ord_dct = {k: 0 for k in bnd_keys}
+        gra = automol.graph.add_bonds(gra, bnd_keys, ord_dct=ord_dct)
+        vma, zma_keys = automol.graph.vmat.vmatrix(gra)
+        geo = from_subset(geo, zma_keys)
+        zma = automol.zmat.base.from_geometry(vma, geo)
+
+    return zma, zma_keys, dummy_key_dct
+
+
+def x2z_zmatrix(geo, ts_bnds=()):
+    """ Generate a corresponding Z-Matrix for a molecular geometry
+        using x2z interface.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param ts_bnds: keys for the breaking/forming bonds in a TS
+        :type ts_bnds: tuple(frozenset(int))
+    """
+
+    if is_atom(geo):
+        symbs = automol.geom.base.symbols(geo)
+        key_mat = [[None, None, None]]
+        val_mat = [[None, None, None]]
+        zma = automol.zmat.base.from_data(symbs, key_mat, val_mat)
+    else:
+        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
+        zma = _pyx2z.to_zmatrix(x2m)
+    zma = automol.zmat.base.standard_form(zma)
+
+    return zma
+
+
+def inchi(geo, stereo=True):
+    """ Generate an InChI string from a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: str
+    """
+    ich, _ = inchi_with_sort(geo, stereo=stereo)
+
+    return ich
+
+
+def inchi_with_sort(geo, stereo=True):
+    """ Generate an InChI string from a molecular geometry. (Sort?)
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: str
+    """
+    ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
+        'geom', geo, comp=_compare)
+    nums = None
+    if ich is None:
+        gra = connectivity_graph(geo)
+        if not stereo:
+            geo = None
+            geo_idx_dct = None
+        else:
+            geo_idx_dct = dict(enumerate(range(count(geo))))
+        ich, nums = automol.graph.inchi_with_sort_from_geometry(
+            gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
+
+    return ich, nums
+
+
+def _compare(geo1, geo2):
+    """ Check if the backbone atoms of two molecular geometries are similar.
+
+        :param geo1: molecular geometry 1
+        :type geo1: automol geometry data structure
+        :param geo2: molecular geometry 2
+        :type geo2: automol geometry data structure
+        :rtype: bool
+    """
+    gra1 = automol.graph.without_dummy_atoms(connectivity_graph(geo1))
+    gra2 = automol.graph.without_dummy_atoms(connectivity_graph(geo2))
+
+    return automol.graph.backbone_isomorphic(gra1, gra2)
+
+
+def smiles(geo, stereo=True):
+    """ Generate a SMILES string from a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: str
+    """
+    ich = inchi(geo, stereo=stereo)
+    return automol.inchi.base.smiles(ich)
+
+
+# # derived properties
+def linear_atoms(geo, gra=None, tol=5.):
+    """ find linear atoms in a geometry (atoms with 180 degree bond angle)
+
+        :param geo: the geometry
+        :type geo: automol geometry data structure
+        :param gra: the graph describing connectivity; if None, a connectivity
+            graph will be generated using default distance thresholds
+        :type gra: automol graph data structure
+        :param tol: the tolerance threshold for linearity, in degrees
+        :type tol: float
+        :rtype: tuple(int)
+    """
+
+    gra = connectivity_graph(geo) if gra is None else gra
+    ngb_idxs_dct = automol.graph.atoms_neighbor_atom_keys(gra)
+
+    lin_idxs = []
+    for idx in range(count(geo)):
+        nidxs = ngb_idxs_dct[idx]
+        if len(nidxs) >= 2:
+            for nidx1, nidx2 in itertools.combinations(nidxs, 2):
+                ang = central_angle(geo, nidx1, idx, nidx2, degree=True)
+                if numpy.abs(ang - 180.) < tol:
+                    lin_idxs.append(idx)
+
+    lin_idxs = tuple(lin_idxs)
+
+    return lin_idxs
+
+
+def closest_unbonded_atoms(geo, gra=None):
+    """ Determine which pair of unbonded atoms in a molecular geometry
+        are closest together.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param gra: the graph describing connectivity; if None, a connectivity
+            graph will be generated using default distance thresholds
+        :type gra: automol graph data structure
+        :rtype: (frozenset(int), float)
+    """
+
+    gra = connectivity_graph(geo) if gra is None else gra
+    atm_keys = automol.graph.atom_keys(gra)
+    bnd_keys = automol.graph.bond_keys(gra)
+    poss_bnd_keys = set(map(frozenset, itertools.combinations(atm_keys, r=2)))
+
+    # The set of candidates includes all unbonded pairs of atoms
+    cand_bnd_keys = poss_bnd_keys - bnd_keys
+
+    min_bnd_key = None
+    min_dist_val = 1000.
+    for bnd_key in cand_bnd_keys:
+        dist_val = distance(geo, *bnd_key)
+        if dist_val < min_dist_val:
+            min_dist_val = dist_val
+            min_bnd_key = bnd_key
+
+    return min_bnd_key, min_dist_val
+
+
+def external_symmetry_factor(geo):
+    """ Obtain the external symmetry factor for a geometry using x2z interface
+        which determines the initial symmetry factor and then divides by the
+        enantiomeric factor.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: float
+    """
+
+    if is_atom(geo):
+        ext_sym_fac = 1.
+    else:
+        oriented_geom = _pyx2z.to_oriented_geometry(geo)
+        ext_sym_fac = oriented_geom.sym_num()
+        if oriented_geom.is_enantiomer():
+            ext_sym_fac *= 0.5
+
+    return ext_sym_fac
+
+
+def x2z_torsion_coordinate_names(geo, ts_bnds=()):
+    """ Generate a list of torsional coordinates using x2z interface. These
+        names corresond to the Z-Matrix generated using the same algorithm.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param ts_bnds: keys for the breaking/forming bonds in a TS
+        :type ts_bnds: tuple(frozenset(int))
+        :rtype: tuple(str)
+    """
+
+    symbs = symbols(geo)
+    if len(symbs) == 1:
+        names = ()
+    else:
+        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
+        names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
+
+        zma = _pyx2z.to_zmatrix(x2m)
+        name_dct = automol.zmat.base.standard_names(zma)
+        names = tuple(map(name_dct.__getitem__, names))
+
+    return names
+
+
+def x2z_atom_ordering(geo, ts_bnds=()):
+    """ Generate a dictionary which maps the order of atoms from the input
+        molecular geometry to the order of atoms of the resulting Z-Matrix
+        that is generated by the x2z interface.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param ts_bnds: keys for the breaking/forming bonds in a TS
+        :type ts_bnds: tuple(frozenset(int))
+        :rtype: dict[int: int]
+    """
+
+    symbs = symbols(geo)
+    if len(symbs) == 1:
+        idxs = {0: 0}
+    else:
+        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
+        idxs = _pyx2z.zmatrix_atom_ordering(x2m)
+
+    return idxs
+
+
+# # derived operations
+def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
+                                   tol=5.):
+    """ Insert dummy atoms over linear atoms in the geometry.
+
+        :param geo: the geometry
+        :type geo: automol molecular geometry data structure
+        :param lin_idxs: the indices of the linear atoms; if None, indices are
+            automatically determined from the geometry based on the graph
+        :type lin_idxs: tuple(int)
+        :param gra: the graph describing connectivity; if None, a connectivity
+            graph will be generated using default distance thresholds
+        :type gra: automol molecular graph data structure
+        :param dist: distance of dummy atom from the linear atom, in angstroms
+        :type dist: float
+        :param tol: the tolerance threshold for linearity, in degrees
+        :type tol: float
+        :returns: geometry with dummy atoms inserted, along with a dictionary
+            mapping the linear atoms onto their associated dummy atoms
+        :rtype: automol molecular geometry data structure
+    """
+
+    lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
+    gra = connectivity_graph(geo) if gra is None else gra
+
+    dummy_ngb_idxs = set(
+        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
+    assert not dummy_ngb_idxs & set(lin_idxs), (
+        "Attempting to add dummy atoms on atoms that already have them: {}"
+        .format(dummy_ngb_idxs & set(lin_idxs)))
+
+    ngb_idxs_dct = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
+
+    xyzs = coordinates(geo, angstrom=True)
+
+    def _perpendicular_direction(idxs):
+        """ find a nice perpendicular direction for a series of linear atoms
+        """
+        triplets = []
+        for idx in idxs:
+            for n1idx in ngb_idxs_dct[idx]:
+                for n2idx in ngb_idxs_dct[n1idx]:
+                    if n2idx != idx:
+                        ang = central_angle(
+                            geo, idx, n1idx, n2idx, degree=True)
+                        if numpy.abs(ang - 180.) > tol:
+                            triplets.append((idx, n1idx, n2idx))
+
+        if triplets:
+            idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
+            xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
+            r12 = util.vec.unit_direction(xyz1, xyz2)
+            r23 = util.vec.unit_direction(xyz2, xyz3)
+            direc = util.vec.orthogonalize(r12, r23, normalize=True)
+        else:
+            if len(idxs) > 1:
+                idx1, idx2 = idxs[:2]
+            else:
+                idx1, = idxs
+                idx2, = ngb_idxs_dct[idx1]
+
+            xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
+            r12 = util.vec.unit_direction(xyz1, xyz2)
+            for i in range(3):
+                disp = numpy.zeros((3,))
+                disp[i] = -1.
+                alt = numpy.add(r12, disp)
+                direc = util.vec.unit_perpendicular(r12, alt)
+                if numpy.linalg.norm(direc) > 1e-2:
+                    break
+
+        return direc
+
+    # partition the linear atoms into adjacent groups, to be handled together
+    lin_idxs_lst = sorted(map(sorted, util.equivalence_partition(
+        lin_idxs, lambda x, y: x in ngb_idxs_dct[y])))
+
+    dummy_key_dct = {}
+
+    for idxs in lin_idxs_lst:
+        direc = _perpendicular_direction(idxs)
+        for idx in idxs:
+            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
+            dummy_key_dct[idx] = count(geo)
+
+            geo = insert(geo, 'X', xyz, angstrom=True)
+
+    return geo, dummy_key_dct
+
+
+def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
+    """ Insert dummy atoms over atoms in a geometry in a particular order.
+
+        :param geo: the geometry
+        :type geo: automol molecular geometry data structure
+        :param dummy_key_dct: the linear atoms and the desired positions of the
+            dummy atoms for each; linear atom indexing should follow what they
+            *will* be after the dummy atoms are moved to the appropriate
+            positions
+        :param dummy_key_dct: dict
+        :param dist: distance of dummy atom from the linear atom, in angstroms
+        :type dist: float
+        :param tol: the tolerance threshold for linearity, in degrees
+        :type tol: float
+        :returns: geometry with dummy atoms inserted, along with a dictionary
+            mapping the linear atoms onto their associated dummy atoms
+        :rtype: automol molecular geometry data structure
+    """
+    lin_keys, dum_keys = zip(
+        *sorted(dummy_key_dct.items(), key=lambda x: x[1]))
+    dum_keys = numpy.array(list(dum_keys))
+    lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
+    geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
+        geo, lin_idxs=lin_idxs, dist=dist, tol=tol)
+
+    for lin_idx, lin_key in zip(lin_idxs, lin_keys):
+        orig_idx = orig_dummy_key_dct[lin_idx]
+        new_idx = dummy_key_dct[lin_key]
+        geo = move_atom(geo, orig_idx, new_idx)
+
+    return geo

@@ -1,0 +1,291 @@
+span {
+    font-size:18px;
+}
+
+dl.py.class{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd.field-odd ul.simple li p{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd.field-even ul.simple li p{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dd p{
+  color:gray;
+  margin-bottom:0px;
+  margin-top: 4px;
+}
+
+dd.field-odd p{
+  font-size:16px;
+  font-family: monospace;
+  color: black;
+}
+
+dd.field-even p{
+  font-size:16px;
+  font-family: monospace;
+  color: black;
+}
+
+dl.py.method{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dl.field-list.simple{
+  font-size:16px;
+  font-family: monospace;
+}
+
+dl { 
+  font-size:18px;
+  font-family: Optima, sans-serif;
+  font-family: monospace;
+}
+
+html{
+	 scroll-behavior: smooth;
+}
+
+hr {
+  border-color:#132639;
+}
+
+h1 {
+  color:IndianRed;
+  color:MediumSeaGreen;
+  font-weight:bold;
+  font-size:48px;
+  padding-top:50px;
+  text-decoration: none; 
+  font-family: Optima, sans-serif;
+}
+
+h1 a {
+    color: white;
+    font-size:2px;
+}
+
+h1 a:visited {
+    color: white;
+}
+
+h2 {
+  color:black;
+  font-weight:bold;
+  font-size:32px;
+  font-family: Optima, sans-serif;
+}
+
+h2 a {
+    color: white;
+    font-size:2px;
+}
+
+h2 a:visited {
+    color: white;
+}
+
+h3 {
+  font-weight:bold;
+  font-family: Optima, sans-serif;
+}
+
+h3 a {
+    color: white;
+    font-size:2px;
+}
+
+h3 a:visited {
+    color: white;
+}
+
+a {
+    color: black; 
+    text-decoration: none; 
+}
+
+a:hover {
+    color:gray;
+    text-decoration: underline;
+}
+
+a:visited {
+    color:gray;
+    text-decoration: none; 
+}
+
+p {
+  color:black;
+  font-size: 17px;
+  font-family: Optima, sans-serif;
+}
+
+p.centered {
+    text-align: center;
+}
+
+p strong {
+    color: #B33C7E;
+    color: #ff9481;
+    font-weight: bold
+}
+
+img.logo {
+    width:80%;
+    height:auto;
+    object-fit: contain;
+}
+
+table.tight-table{
+    padding-right: 60px;
+    padding-left: 60px;
+    border-spacing: 0px;
+}
+table.tight-table tr{
+    border-bottom: 0px solid #ddd;
+}
+table.tight-table td{
+    border-bottom: 0px solid #ddd;
+}
+table.tight-table tr:nth-child(even) {
+    background-color: ghostwhite}
+
+section {
+    font-size: 20px;
+}
+
+/* The sidebar menu */
+div.sphinxsidebar {
+  height: 100%; /* Full-height: remove this if you want "auto" height */
+  width: 250px; /* Set the width of the sidebar */
+  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-color:#03070a;
+  background-color:#000e1f;
+  background-image: url("https://www.transparenttextures.com/patterns/light-honeycomb-dark.png");
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 50px;
+  padding-left: 10%;
+  padding-right: 5%;
+  font-family: Optima, sans-serif;
+}
+
+div.sphinxsidebarwrapper {
+  color: #f1f1f1;
+}
+div.sphinxsidebar a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #f1f1f1;
+  display: block;
+}
+
+div.sphinxsidebar ul {
+  list-style-type: none; /* Remove bullets */
+  padding: 0;
+}
+
+div.sphinxsidebar h3 {
+  text-transform: uppercase;
+  text-transform: full-width;
+  font-size:14pt;
+  padding: 8px;
+}
+
+div.sphinxsidebar ul a:hover {
+  color: gray;
+}
+
+div.sphinxsidebar a:hover {
+  color: gray;
+  background-color:#132639;
+}
+
+div.sphinxsidebar a:visited {
+  color: #f1f1f1;
+}
+
+input[type='submit']{
+  background-color: #ff9481; /* Green */
+  border: none;
+  color: white;
+  color: #03070a;
+  border-color: #03070a;
+  padding: 2px 12px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Style page content */
+div.body {
+  margin-left: 250px; /* Same as the width of the sidebar */
+  padding: 0px 10px;
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
+div.footer {
+  margin-left: 250px; /* Same as the width of the sidebar */
+  margin-top: 100px;
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  div.sphinxsidebar {padding-top: 15px;}
+  div.sphinxsidebarwrapper a {font-size: 18px;}
+}
+
+th, td {
+  text-align: left;
+  padding-right: 50px;
+  padding-left: 25px;
+  border-bottom: 1px solid #ddd;
+}
+tr:nth-child(even) {background-color: #f2f2f2;}
+thead th {
+  background-color:IndianRed;
+  background-color:MediumSeaGreen;
+  color: white;
+}
+thead th p{
+  color: white;
+}
+
+table{
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.admonition.note{
+     -moz-border-radius: 6px;
+     -webkit-border-radius: 6px;
+     background-color: #c4e8d4;
+     background-image: url('https://css.gg/notes.css');
+     background-position: 9px 0px;
+     background-repeat: no-repeat;
+     border: solid 1px MediumSeaGreen;
+     border-radius: 6px;
+     line-height: 18px;
+     overflow: hidden;
+     padding: 10px 40px;
+}
+
+div.toctree-wrapper.compound{
+    background: GhostWhite;
+}
+

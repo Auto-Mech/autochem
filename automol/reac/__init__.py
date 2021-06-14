@@ -27,6 +27,7 @@ from automol.reac._reac import relabel_for_geometry
 from automol.reac._reac import reaction_class
 from automol.reac._reac import is_radical_radical
 from automol.reac._reac import is_barrierless
+from automol.reac._reac import ts_unique
 # finders
 from automol.reac._find import trivial
 from automol.reac._find import hydrogen_migrations
@@ -58,11 +59,7 @@ from automol.reac._stereo import expand_stereo
 from automol.reac._stereo import expand_product_stereo
 from automol.reac._stereo import is_stereo_consistent
 # reaction products
-from automol.reac._prod import prod_hydrogen_abstraction
-from automol.reac._prod import prod_addition
-from automol.reac._prod import prod_hydrogen_migration
-from automol.reac._prod import prod_beta_scission
-from automol.reac._prod import prod_homolytic_scission
+from automol.reac._enum import enumerate_reactions
 # species instability transformations
 from automol.reac._instab import instability_product_zmas
 from automol.reac._instab import instability_product_graphs
@@ -72,8 +69,11 @@ from automol.reac._pst import pst_kt
 from automol.reac._pst import pst_cn
 # tunneling treatments
 from automol.reac import tunnel
+# comp functions
+from automol.reac._zma_comp import similar_saddle_point_structure
 # util
 from automol.reac import _util as util
+from automol.reac._util import reaction_inchis
 from automol.reac._util import rxn_objs_from_inchi
 from automol.reac._util import rxn_objs_from_smiles
 from automol.reac._util import rxn_objs_from_zmatrix
@@ -108,6 +108,7 @@ __all__ = [
     'reaction_class',
     'is_radical_radical',
     'is_barrierless',
+    'ts_unique',
     # finders
     'trivial',
     'hydrogen_migrations',
@@ -139,11 +140,7 @@ __all__ = [
     'expand_product_stereo',
     'is_stereo_consistent',
     # reaction products
-    'prod_hydrogen_abstraction',
-    'prod_addition',
-    'prod_hydrogen_migration',
-    'prod_beta_scission',
-    'prod_homolytic_scission',
+    'enumerate_reactions',
     # species instability transformations
     'instability_product_zmas',
     'instability_product_graphs',
@@ -153,8 +150,11 @@ __all__ = [
     'pst_cn',
     # tunneling treatments
     'tunnel',
+    # comp functions
+    'similar_saddle_point_structure',
     # util
     'util',
+    'reaction_inchis',
     'rxn_objs_from_inchi',
     'rxn_objs_from_smiles',
     'rxn_objs_from_zmatrix',

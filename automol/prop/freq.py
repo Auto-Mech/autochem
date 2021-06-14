@@ -60,19 +60,17 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
         else:
             idx_remove.append(tors_freqs.index(freq))
 
-    # log_rt_freq = [numpy.log(freq) for freq in rt_freqs1]
-    # log_rt_freq = sum(log_rt_freq)
-    # log_tors_freq = [numpy.log(freq) for freq in tors_freqs]
-    # log_tors_freq = sum(log_tors_freq)
-    # unproj_prod = numpy.prod(rt_freqs1)
-    # proj_prod = numpy.prod(freqs) * numpy.prod(tors_freqs)
-    # print('proj_prod test:', unproj_prod, proj_prod)
-    # scale_factor = unproj_prod / proj_prod
-
-    # generate the scaling factor
+    # Generate the scaling factor
     factor = numpy.exp(log_rt_freq - log_freq - log_tors_freq)
-    # tau_factor = numpy.exp(log_rt_freq - log_freq)
-    # tau_factor_mode = tau_factor
+    scale_factor = (idx_remove, factor)
+
+    # generate the set of indices for torsions that are two be scales
+    tau_factor = numpy.exp(log_rt_freq - log_freq)
+    tau_factor_mode = tau_factor
+    print(
+        'TAU FACTOR {:4.6f} \t {:g} \t {:3.6f} {} '.format(
+            tau_factor_mode, len(tors_freqs), factor,
+            '-'.join([str(ridx) for ridx in idx_remove])))
 
     # Generate the set of indices for torsions that are two be scales
     scale_factor = (idx_remove, factor)

@@ -8,10 +8,10 @@ from qcelemental import constants as qcc
 # Physical Constants
 NAVO = 6.0221409e+23
 RC = 1.98720425864083  # gas constant in cal/(mol.K)
-RC_kcal = 1.98720425864083e-3  # gas constant in kcal/(mol.K)
+RC_KCAL = 1.98720425864083e-3  # gas constant in kcal/(mol.K)
 RC2 = 82.0573660809596  # gas constant in cm^3.atm/(mol.K)
-RC_cal = 1.98720425864083  # gas constant in cal/(mol.K)
-RC_atm = 82.0573660809596  # gas constant in cm^3.atm/(mol.K)
+RC_CAL = 1.98720425864083  # gas constant in cal/(mol.K)
+RC_ATM = 82.0573660809596  # gas constant in cm^3.atm/(mol.K)
 SOL = (qcc.get('speed of light in vacuum') *
        qcc.conversion_factor('meter / second', 'bohr hartree / h'))
 
@@ -19,11 +19,14 @@ SOL = (qcc.get('speed of light in vacuum') *
 KCAL2CAL = qcc.conversion_factor('kcal/mol', 'cal/mol')
 J2CAL = qcc.conversion_factor('J/mol', 'cal/mol')
 KJ2CAL = qcc.conversion_factor('kJ/mol', 'cal/mol')
+KJ2KCAL = qcc.conversion_factor('kJ/mol', 'kcal/mol')
 KJ2EH = qcc.conversion_factor('kJ/mol', 'hartree')
 K2EH = qcc.conversion_factor('kelvin', 'hartree')
 KEL2CAL = qcc.conversion_factor('kelvin', 'cal/mol')
 WAVEN2KCAL = qcc.conversion_factor('wavenumber', 'kcal/mol')
 KCAL2WAVEN = qcc.conversion_factor('kcal/mol', 'wavenumber')
+WAVEN2KEL = 1.4388
+KEL2WAVEN = 1.0 / WAVEN2KEL
 EH2KCAL = qcc.conversion_factor('hartree', 'kcal/mol')
 KCAL2EH = qcc.conversion_factor('kcal/mol', 'hartree')
 KCAL2KJ = qcc.conversion_factor('kcal/mol', 'kJ/mol')

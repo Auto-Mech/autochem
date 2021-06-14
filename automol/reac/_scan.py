@@ -178,18 +178,18 @@ def scan_coordinate(rxn, zma):
     """
     function_dct = {
         # unimolecular
-        ReactionClass.HYDROGEN_MIGRATION:
+        ReactionClass.Typ.HYDROGEN_MIGRATION:
         hydrogen_migration_scan_coordinate,
-        ReactionClass.BETA_SCISSION: beta_scission_scan_coordinate,
-        ReactionClass.RING_FORM_SCISSION:
+        ReactionClass.Typ.BETA_SCISSION: beta_scission_scan_coordinate,
+        ReactionClass.Typ.RING_FORM_SCISSION:
         ring_forming_scission_scan_coordinate,
-        ReactionClass.ELIMINATION: elimination_scan_coordinate,
+        ReactionClass.Typ.ELIMINATION: elimination_scan_coordinate,
         # bimolecular
-        ReactionClass.HYDROGEN_ABSTRACTION:
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
         hydrogen_abstraction_scan_coordinate,
-        ReactionClass.ADDITION: addition_scan_coordinate,
-        ReactionClass.INSERTION: insertion_scan_coordinate,
-        ReactionClass.SUBSTITUTION: substitution_scan_coordinate,
+        ReactionClass.Typ.ADDITION: addition_scan_coordinate,
+        ReactionClass.Typ.INSERTION: insertion_scan_coordinate,
+        ReactionClass.Typ.SUBSTITUTION: substitution_scan_coordinate,
     }
 
     fun_ = function_dct[rxn.class_]
@@ -208,18 +208,18 @@ def constraint_coordinates(rxn, zma):
 
     function_dct = {
         # unimolecular
-        ReactionClass.HYDROGEN_MIGRATION:
+        ReactionClass.Typ.HYDROGEN_MIGRATION:
         hydrogen_migration_constraint_coordinates,
-        ReactionClass.BETA_SCISSION: _return_empty_tuple,
-        ReactionClass.RING_FORM_SCISSION:
+        ReactionClass.Typ.BETA_SCISSION: _return_empty_tuple,
+        ReactionClass.Typ.RING_FORM_SCISSION:
         ring_forming_scission_constraint_coordinates,
-        ReactionClass.ELIMINATION: _return_empty_tuple,
+        ReactionClass.Typ.ELIMINATION: _return_empty_tuple,
         # bimolecular
-        ReactionClass.HYDROGEN_ABSTRACTION:
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
         _return_empty_tuple,
-        ReactionClass.ADDITION: _return_empty_tuple,
-        ReactionClass.INSERTION: _return_empty_tuple,
-        ReactionClass.SUBSTITUTION: _return_empty_tuple,
+        ReactionClass.Typ.ADDITION: _return_empty_tuple,
+        ReactionClass.Typ.INSERTION: _return_empty_tuple,
+        ReactionClass.Typ.SUBSTITUTION: _return_empty_tuple,
     }
 
     fun_ = function_dct[rxn.class_]
@@ -517,19 +517,19 @@ def scan_grid(zrxn, zma):
     """
 
     tight_ts_grid_builder_dct = {
-        ReactionClass.BETA_SCISSION: beta_scission_grid,
-        ReactionClass.ADDITION: addition_grid,
-        ReactionClass.HYDROGEN_MIGRATION: hydrogen_migration_grid,
-        ReactionClass.ELIMINATION: elimination_grid,
-        ReactionClass.RING_FORM_SCISSION: ring_forming_scission_grid,
-        ReactionClass.HYDROGEN_ABSTRACTION: hydrogen_abstraction_grid,
-        ReactionClass.SUBSTITUTION: substitution_grid,
-        ReactionClass.INSERTION: insertion_grid
+        ReactionClass.Typ.BETA_SCISSION: beta_scission_grid,
+        ReactionClass.Typ.ADDITION: addition_grid,
+        ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migration_grid,
+        ReactionClass.Typ.ELIMINATION: elimination_grid,
+        ReactionClass.Typ.RING_FORM_SCISSION: ring_forming_scission_grid,
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstraction_grid,
+        ReactionClass.Typ.SUBSTITUTION: substitution_grid,
+        ReactionClass.Typ.INSERTION: insertion_grid
     }
 
     # var_ts_grid_builder_dct = {
-    #     ReactionClass.ADDITION: radrad_addition_grid,
-    #     ReactionClass.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
+    #  ReactionClass.Typ.ADDITION: radrad_addition_grid,
+    #  ReactionClass.Typ.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
     # }
 
     grid = tight_ts_grid_builder_dct[zrxn.class_](zrxn, zma)
@@ -547,15 +547,15 @@ def scan_grid(zrxn, zma):
 
 # UPDATE GUESS DICTIONARY #
 UPDATE_GUESS_DCT = {
-    ReactionClass.BETA_SCISSION: False,
-    ReactionClass.ADDITION: False,
-    ReactionClass.HYDROGEN_MIGRATION: True,
-    ReactionClass.ELIMINATION: False,
-    ReactionClass.RING_FORM_SCISSION: False,
-    ReactionClass.HYDROGEN_ABSTRACTION: False,
-    ReactionClass.SUBSTITUTION: False,
-    ReactionClass.INSERTION: False
+    ReactionClass.Typ.BETA_SCISSION: False,
+    ReactionClass.Typ.ADDITION: False,
+    ReactionClass.Typ.HYDROGEN_MIGRATION: True,
+    ReactionClass.Typ.ELIMINATION: False,
+    ReactionClass.Typ.RING_FORM_SCISSION: False,
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION: False,
+    ReactionClass.Typ.SUBSTITUTION: False,
+    ReactionClass.Typ.INSERTION: False
 }
-# ReactionClass.ADDITION: True,
-# ReactionClass.HYDROGEN_ABSTRACTION: True
+# ReactionClass.Typ.ADDITION: True,
+# ReactionClass.Typ.HYDROGEN_ABSTRACTION: True
 # These should be for radical-radical cases of the two - add later
