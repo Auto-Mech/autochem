@@ -9,7 +9,19 @@ import automol.geom
 ATHRESH = 94.0 * phycon.DEG2RAD
 
 
-def ring_angles_passes(geo, ring_atoms, thresh=ATHRESH):
+def all_rings_angles_reasonable(geo, rings_atoms, thresh=ATHRESH):
+    """ Assess if all angles of ring are cool
+    """
+
+    condition = True
+    for ring_atoms in rings_atoms:
+        condition = ring_angles_reasonable(
+            geo, ring_atoms, thresh=thresh)
+
+    return condition
+
+
+def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     """ Assess whether any of the angles of the prospective rings of a geometry
         are bent at unphysical angles.
 
@@ -25,14 +37,15 @@ def ring_angles_passes(geo, ring_atoms, thresh=ATHRESH):
     condition = True
     for i, _ in enumerate(ring_atoms):
         _atoms = [ring_atoms[i], ring_atoms[i-1], ring_atoms[i-2]]
-        cangle = automol.geom.central_angle(geo, *_atoms, degree=True)
+        cangle = automol.geom.central_angle(geo, *_atoms, degree=False)
+        print('ang check i', cangle, thresh)
         if cangle < thresh:
             condition = False
 
     return condition
 
 
-def fragment_ring_geo(geo):
+def ring_fragments_geometry(geo):
     """ Fragment out the ring and its neighbors in a geometry.(?)
 
         :param geo: molecular geometry

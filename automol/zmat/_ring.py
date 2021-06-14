@@ -41,7 +41,7 @@ def all_rings_distances(zma, rings_atoms):
         :param rng_atoms: idxs for atoms inside rings
         :type rng_atoms: list
     """
-    return tuple(single_ring_distances(zma, ring_atoms)
+    return tuple(ring_distances(zma, ring_atoms)
                  for ring_atoms in rings_atoms)
 
 
@@ -57,9 +57,9 @@ def all_rings_distances_reasonable(zma, rings_atoms):
 
     condition = True
     for ring_atoms in rings_atoms:
-        dist_val_dct = single_ring_distances(
+        dist_val_dct = ring_distances(
             zma, ring_atoms)
-        condition = single_ring_distances_reasonable(
+        condition = ring_distances_reasonable(
             zma, ring_atoms, dist_val_dct)
 
     return condition
@@ -73,7 +73,7 @@ def all_rings_dihedrals(zma, rings_atoms):
         :param rng_atoms: idxs for atoms inside rings
         :type rng_atoms: list
     """
-    return tuple(single_ring_dihedrals(zma, ring_atoms)
+    return tuple(ring_dihedrals(zma, ring_atoms)
                  for ring_atoms in rings_atoms)
 
 
@@ -87,13 +87,13 @@ def all_rings_dct(zma, rings_atoms):
     ring_dct = {}
     for ring_atoms in rings_atoms:
         dct_label = '-'.join(str(atm+1) for atm in ring_atoms)
-        ring_dct[dct_label] = single_ring_samp_ranges(zma, ring_atoms)
+        ring_dct[dct_label] = ring_samp_ranges(zma, ring_atoms)
 
     return ring_dct
 
 
 # Functions for a single ring
-def single_ring_distances(zma, rng_atoms):
+def ring_distances(zma, rng_atoms):
     """ Return the distances between each pair of ring atoms.
 
         :param zma: Z-Matrix
@@ -110,7 +110,7 @@ def single_ring_distances(zma, rng_atoms):
     return dist_value_dct
 
 
-def single_ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
+def ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
     """ Are the distances between ring atoms reasonable?
 
         :param zma: Z-Matrix
@@ -131,7 +131,7 @@ def single_ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
     return condition
 
 
-def single_ring_dihedrals(zma, rng_atoms):
+def ring_dihedrals(zma, rng_atoms):
     """ Get ring dihedral names and their angle values
 
         :param zma: Z-Matrix
@@ -153,7 +153,7 @@ def single_ring_dihedrals(zma, rng_atoms):
     return ring_value_dct
 
 
-def single_ring_samp_ranges(zma, rng_atoms):
+def ring_samp_ranges(zma, rng_atoms):
     """ Set sampling range for ring dihedrals.
 
         :param zma: Z-Matrix
@@ -163,7 +163,7 @@ def single_ring_samp_ranges(zma, rng_atoms):
     """
 
     samp_range_dct = {}
-    ring_value_dct = single_ring_dihedrals(zma, rng_atoms)
+    ring_value_dct = ring_dihedrals(zma, rng_atoms)
     for key, value in ring_value_dct.items():
         samp_range_dct[key] = [value - math.pi/4, value + math.pi/4]
 
