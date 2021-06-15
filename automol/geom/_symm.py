@@ -63,7 +63,7 @@ def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
     return int_sym_num, end_group_factor
 
 
-def reduce_internal_symm(int_symm, ext_symm, end_group_factor, geo):
+def reduce_internal_symm(geo, int_symm, ext_symm, end_group_factor):
     """ Reduce symm if external sym is 3??
     """
     if ext_symm % 3 == 0 and end_group_factor > 1:
