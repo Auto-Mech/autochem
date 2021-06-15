@@ -178,7 +178,8 @@ def test__zmat_ring():
             rdct, ref_dct = ring_dct[key], ref_ring_dct[rkey]
             for key2, rkey2 in zip(rdct.keys(), ref_dct.keys()):
                 assert key2 == rkey2
-                assert numpy.allclose(rdct[key2], ref_dct[rkey2])
+                assert numpy.allclose(rdct[key2], ref_dct[rkey2],
+                                      atol=0.0001, rtol=0.0)
 
     ref_rng_dct1 = {
         '1-2-5-8-11-14': {'D7': [0.16168073524433701, 1.7324770620392336],
@@ -288,6 +289,8 @@ def test__geom_ring():
     frag1 = geom.ring_fragments_geometry(GEO4)
     frag2 = geom.ring_fragments_geometry(GEO5)
 
+    print(frag1)
+    print(ref_frag1)
     assert geom.almost_equal_dist_matrix(frag1, ref_frag1)
     assert geom.almost_equal_dist_matrix(frag2, ref_frag2)
 

@@ -1,6 +1,7 @@
 """ Determine effective model
 """
 
+import automol.inchi
 import automol.geom
 import automol.graph
 
@@ -26,6 +27,7 @@ def effective_model(well_ich, well_geo, bath_info):
 
     # Identify the the target model
     if well_ich not in BAD_ICHS:
+        # Set model based on broad values
         if automol.graph.radical_species(well_gra):
             tgt_model = '1-alkyl'
         elif automol.graph.hydrocarbon_species(well_gra):
