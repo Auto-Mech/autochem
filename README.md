@@ -28,7 +28,7 @@ Our pytest tests serve as an example for building filesystems
 
 ## Package: transformations
 ### Description
-The Python package "transformations" is developed externally by Christoph Gohlke
+The Python package "transformations" is developed externally by Christoph Gohlke.
 A README is provided with this package. Further copyright information is provided in 
 _transformations.py
 
