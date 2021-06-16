@@ -11,22 +11,10 @@ def test__formula():
     """ test automol.formula.
     """
 
-    # Test counters
-    ref_n_elec = 26
-    n_elec = formula.electron_count(FORMULA)
+    assert formula.electron_count(FORMULA) == 26
 
-    assert n_elec == ref_n_elec
+    assert formula.element_count(FORMULA, 'C') == 2
+    assert  formula.element_count(FORMULA, 'H') == 6
 
-    ref_n_carbon = 2
-    ref_n_hydrogen = 6
-    n_carbon = formula.element_count(FORMULA, 'C')
-    n_hydrogen = formula.element_count(FORMULA, 'H')
-
-    assert n_carbon == ref_n_carbon
-    assert n_hydrogen == ref_n_hydrogen
-
-    # Test string
-    fml_str1 = formula.string(FORMULA)
-    fml_str2 = formula.string2(FORMULA)
-    print(fml_str1)
-    print(fml_str2)
+    assert formula.string(FORMULA) == 'C2H6O'
+    assert formula.string2(FORMULA) == 'C2H6O1'

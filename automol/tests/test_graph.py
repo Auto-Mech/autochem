@@ -253,6 +253,48 @@ C8H13O_SGRS = (
       frozenset({3, 5}): (1, True), frozenset({5, 7}): (1, None)}),
 )
 
+# FC=CC=CF + [OH] => FC=C[CH]C(O)F
+C4H5F2O_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+                3: ('C', 0, None), 4: ('F', 0, None), 5: ('F', 0, None),
+                6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+                9: ('H', 0, None), 10: ('O', 0, None), 11: ('H', 0, None)},
+               {frozenset({8, 2}): (1, None), frozenset({2, 10}): (0.1, None),
+                frozenset({0, 6}): (1, None), frozenset({1, 7}): (1, None),
+                frozenset({9, 3}): (1, None), frozenset({0, 1}): (1, None),
+                frozenset({0, 2}): (1, True), frozenset({2, 4}): (1, None),
+                frozenset({3, 5}): (1, None), frozenset({10, 11}): (1, None),
+                frozenset({1, 3}): (1, False)})
+
+# FC=C(C(O)F)C(O)F + [OH] => FC(O)[C](C(O)F)C(O)F
+C4H5F3O2_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, False),
+                 3: ('C', 0, True), 4: ('F', 0, None), 5: ('F', 0, None),
+                 6: ('F', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
+                 9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+                 12: ('H', 0, None), 13: ('H', 0, None), 14: ('O', 0, None),
+                 15: ('H', 0, None)},
+                {frozenset({12, 7}): (1, None), frozenset({2, 10}): (1, None),
+                 frozenset({1, 2}): (1, None), frozenset({0, 1}): (1, True),
+                 frozenset({3, 6}): (1, None), frozenset({2, 7}): (1, None),
+                 frozenset({2, 5}): (1, None), frozenset({0, 4}): (1, None),
+                 frozenset({8, 3}): (1, None), frozenset({0, 14}): (0.1, None),
+                 frozenset({8, 13}): (1, None), frozenset({14, 15}): (1, None),
+                 frozenset({11, 3}): (1, None), frozenset({1, 3}): (1, None),
+                 frozenset({0, 9}): (1, None)})
+
+# ISOBUTANE
+C4H10_GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+              3: ('C', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+              6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+              9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+              12: ('H', 0, None), 13: ('H', 0, None)},
+             {frozenset({0, 3}): (1, None), frozenset({0, 4}): (1, None),
+              frozenset({0, 5}): (1, None), frozenset({0, 6}): (1, None),
+              frozenset({1, 3}): (1, None), frozenset({1, 7}): (1, None),
+              frozenset({8, 1}): (1, None), frozenset({1, 9}): (1, None),
+              frozenset({2, 3}): (1, None), frozenset({2, 10}): (1, None),
+              frozenset({2, 11}): (1, None), frozenset({2, 12}): (1, None),
+              frozenset({3, 13}): (1, None)})
+
 
 def test__from_data():
     """ test getters
@@ -623,7 +665,8 @@ def test__resonance_dominant_atom_hybridizations():
            {frozenset({1, 4}): (1, None), frozenset({1, 2}): (1, None),
             frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
             frozenset({2, 5}): (1, None)})
-    print(graph.resonance_dominant_atom_hybridizations(cgr))
+    assert graph.resonance_dominant_atom_hybridizations(cgr) == {
+        0: 2, 1: 2, 2: 3, 3: 0, 4: 0, 5: 0, 6: -1}
 
 
 def test__resonance_dominant_atom_centered_cumulene_keys():
@@ -759,8 +802,6 @@ def test__stereogenic_atom_keys():
 def test__stereogenic_bond_keys():
     """ test graph.stereogenic_bond_keys
     """
-    print(graph.stereogenic_bond_keys(C8H13O_CGR))
-    print(graph.stereogenic_bond_keys(C3H5N3_CGR))
     assert graph.stereogenic_bond_keys(C8H13O_CGR) == frozenset(
         {frozenset({3, 5})})
     assert graph.stereogenic_bond_keys(C3H5N3_CGR) == frozenset(
@@ -809,21 +850,6 @@ def test__ring_systems():
     assert list(map(graph.atom_count, rsys)) == [7, 12, 21]
 
 
-# ISOBUTANE
-C4H10_GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-              3: ('C', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-              6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-              9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-              12: ('H', 0, None), 13: ('H', 0, None)},
-             {frozenset({0, 3}): (1, None), frozenset({0, 4}): (1, None),
-              frozenset({0, 5}): (1, None), frozenset({0, 6}): (1, None),
-              frozenset({1, 3}): (1, None), frozenset({1, 7}): (1, None),
-              frozenset({8, 1}): (1, None), frozenset({1, 9}): (1, None),
-              frozenset({2, 3}): (1, None), frozenset({2, 10}): (1, None),
-              frozenset({2, 11}): (1, None), frozenset({2, 12}): (1, None),
-              frozenset({3, 13}): (1, None)})
-
-
 def test__equivalent_atoms():
     """ test graph.equivalent_atoms
     """
@@ -864,35 +890,6 @@ def test__vmat__vmatrix():
     assert set(zma_keys) == graph.atom_keys(gra)
 
 
-# FC=CC=CF + [OH] => FC=C[CH]C(O)F
-C4H5F2O_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-                3: ('C', 0, None), 4: ('F', 0, None), 5: ('F', 0, None),
-                6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-                9: ('H', 0, None), 10: ('O', 0, None), 11: ('H', 0, None)},
-               {frozenset({8, 2}): (1, None), frozenset({2, 10}): (0.1, None),
-                frozenset({0, 6}): (1, None), frozenset({1, 7}): (1, None),
-                frozenset({9, 3}): (1, None), frozenset({0, 1}): (1, None),
-                frozenset({0, 2}): (1, True), frozenset({2, 4}): (1, None),
-                frozenset({3, 5}): (1, None), frozenset({10, 11}): (1, None),
-                frozenset({1, 3}): (1, False)})
-
-# FC=C(C(O)F)C(O)F + [OH] => FC(O)[C](C(O)F)C(O)F
-C4H5F3O2_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, False),
-                 3: ('C', 0, True), 4: ('F', 0, None), 5: ('F', 0, None),
-                 6: ('F', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
-                 9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-                 12: ('H', 0, None), 13: ('H', 0, None), 14: ('O', 0, None),
-                 15: ('H', 0, None)},
-                {frozenset({12, 7}): (1, None), frozenset({2, 10}): (1, None),
-                 frozenset({1, 2}): (1, None), frozenset({0, 1}): (1, True),
-                 frozenset({3, 6}): (1, None), frozenset({2, 7}): (1, None),
-                 frozenset({2, 5}): (1, None), frozenset({0, 4}): (1, None),
-                 frozenset({8, 3}): (1, None), frozenset({0, 14}): (0.1, None),
-                 frozenset({8, 13}): (1, None), frozenset({14, 15}): (1, None),
-                 frozenset({11, 3}): (1, None), frozenset({1, 3}): (1, None),
-                 frozenset({0, 9}): (1, None)})
-
-
 def test__ts__nonconserved_atom_stereo_keys():
     """ test graph.ts.nonconserved_atom_stereo_keys
     """
@@ -930,38 +927,4 @@ def test__ts__compatible_reverse_stereomers():
 
 
 if __name__ == '__main__':
-    # test__from_data()
-    # test__set_atom_implicit_hydrogen_valences()
-    # test__without_bond_orders()
-    # test__without_stereo_parities()
-    # test__atom_explicit_hydrogen_valences()
-    # test__atom_explicit_hydrogen_keys()
-    # test__explicit()
-    # test__backbone_keys()
-    # test__explicit_hydrogen_keys()
-    # test__stereomers()
-    # test__heuristic_geometry()
-    # test__connected_components()
-    # test__unsaturated_atom_keys()
-    # test__bonds_neighbor_atom_keys()
-    # test__resonance_dominant_radical_atom_keys()
-    # test__remove_bonds()
-    # test__resonance_dominant_atom_centered_cumulene_keys()
-    # test__resonance_dominant_bond_centered_cumulene_keys()
-    # test__stereogenic_bond_keys()
-    # test__resonance_dominant_atom_hybridizations()
-    # test__rotational_bond_keys()
-    # test__electron_count()
-    # test__atom_count()
-    # test__heavy_atom_count()
-    # test__subresonances()
-    # test__sigma_radical_atom_keys()
-    # test__stereomers()
-    # test__to_index_based_stereo()
-    # test__ts__nonconserved_atom_stereo_keys()
-    # test__ts__nonconserved_bond_stereo_keys()
-    # test__ts__compatible_reverse_stereomers()
-    # test__vmat__vmatrix()
-    # test__branch()
-    test__equivalent_atoms()
-    test__equivalent_bonds()
+    test__resonance_dominant_atom_hybridizations()

@@ -111,25 +111,7 @@ def bond_key_from_idxs(zma, idxs):
     return bond_key
 
 
-def get_babs1(zma, dist_name):
-    """ get name of torsional coordinate associated with babs1 pre-reformatting
-    """
-    idxs = coord_idxs(zma, dist_name)
-    idx = max(idxs)
-    babs1 = 'D{:g}'.format(idx)
-    return babs1
-
-
-def get_babs2(zma, dist_name):
-    """ get name of torsional coordinate associated with babs2 pre-reformatting
-    """
-    idxs = coord_idxs(zma, dist_name)
-    idx = max(idxs)
-    babs2 = 'D{:g}'.format(idx+1)
-    return babs2
-
-
-# # helpers
+# helpers
 def _sample_over_ranges(rngs, nsamp):
     """ randomly sample over several ranges
     """

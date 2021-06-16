@@ -1,7 +1,9 @@
 """ test inchi_key
 """
+
 from automol import inchi
 from automol import inchi_key
+
 
 C2H2F2_ICH = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H/b2-1+'
 C2H2F2_ICH_NO_STEREO = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H'
@@ -50,8 +52,3 @@ def test__protonation_indicator():
     assert inchi_key.protonation_indicator(inchi.inchi_key(ich1)) == 'N'
     assert inchi_key.protonation_indicator(inchi.inchi_key(ich2)) == 'M'
     assert inchi_key.protonation_indicator(inchi.inchi_key(ich3)) == 'O'
-
-
-if __name__ == '__main__':
-    print(C2H2F2_ICH_STEREO_UNKNOWN)
-    print(inchi.inchi_key(C2H2F2_ICH_STEREO_UNKNOWN))
