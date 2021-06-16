@@ -312,6 +312,7 @@ def test__reac__hydrogen_migration():
     prd_smis = ['C[CH]COO']
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
 
+<<<<<<< HEAD
     ref_scan_names = ('R2',)
     ref_constraint_dct = {'R1': 2.65}
     ref_scan_grid = (numpy.array([
@@ -327,6 +328,45 @@ def test__reac__hydrogen_migration():
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
+=======
+    # reaction object aligned to z-matrix keys
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    assert names == {'D9'}
+
+    # Get scan information
+    scan_info = automol.reac.build_scan_info(zrxn, zma)
+    scan_names, constraint_dct, grid, update_guess = scan_info
+
+    assert scan_names == ('R2',)
+    print('hmig grid', constraint_dct)
+    print('hmig grid', grid)
+    assert update_guess
+
+    # graph aligned to geometry keys
+    # (for getting rotational groups and symmetry numbers)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+
+    # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
+    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    assert zrxn == old_zrxn
+
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    assert len(gbnd_keys) == len(bnd_keys)
+
+    axes = sorted(map(sorted, gbnd_keys))
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
+    sym_nums = [
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    assert sym_nums == [3]
+>>>>>>> clean and update tests
 
 
 def test__reac__2ts_hydrogen_migration():
@@ -379,6 +419,7 @@ def test__reac__beta_scission():
     rct_smis = ['CCCO[O]']
     prd_smis = ['[O][O]', 'CC[CH2]']
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+<<<<<<< HEAD
 
     ref_scan_names = ('R8',)
     ref_constraint_dct = None
@@ -394,6 +435,47 @@ def test__reac__beta_scission():
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
+=======
+    rxn, geo, _, _ = rxn_objs[0]
+
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+    # You can also do this to determine linear atoms from zmatrix:
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    assert names == {'D8', 'D11', 'D5'}
+
+    # Get scan information
+    scan_info = automol.reac.build_scan_info(zrxn, zma)
+    scan_names, constraint_dct, grid, update_guess = scan_info
+
+    assert scan_names == ('R8',)
+    assert not constraint_dct
+    print('beta sci grid', grid)
+    assert not update_guess
+
+    # graph aligned to geometry keys
+    # (for getting rotational groups and symmetry numbers)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+
+    # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
+    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    assert zrxn == old_zrxn
+
+    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    assert len(gbnd_keys) == len(bnd_keys)
+
+    axes = sorted(map(sorted, gbnd_keys))
+    groups_lst = [automol.reac.rotational_groups(grxn, *a) for a in axes]
+    sym_nums = [
+        automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    assert sym_nums == [3, 1, 1]
+>>>>>>> clean and update tests
 
 
 def test__reac__ring_forming_scission():
@@ -403,6 +485,41 @@ def test__reac__ring_forming_scission():
     rct_smis = ['[CH2]CCCOO']
     prd_smis = ['C1CCCO1', '[OH]']
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+<<<<<<< HEAD
+=======
+    rxn, geo, _, _ = rxn_objs[0]
+
+    # reaction object aligned to z-matrix keys
+    # (for getting torsion coordinate names)
+    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+
+    # You can also do this to determine linear atoms from zmatrix:
+    # bnd_keys = automol.reac.rotational_bond_keys(zrxn, zma=zma)
+    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
+    assert names == {'D14'}
+
+    # Get scan information
+    scan_info = automol.reac.build_scan_info(zrxn, zma)
+    scan_names, constraint_dct, grid, update_guess = scan_info
+
+    assert scan_names == ('R13',)
+    print('rform grid', constraint_dct)
+    # assert const_names == ('A4', 'A7', 'A10', 'D7', 'D10', 'D13')
+    print('rform grid', grid)
+    assert not update_guess
+
+    # graph aligned to geometry keys
+    # (for getting rotational groups and symmetry numbers)
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+
+    # Check that the reaction object can be converted back, if needed
+    old_zrxn = zrxn
+    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    assert zrxn == old_zrxn
+>>>>>>> clean and update tests
 
     ref_scan_names = ('R13',)
     ref_constraint_dct = {'A4': 1.85, 'A7': 2.15, 'A10': 1.91,

@@ -177,6 +177,9 @@ def test__transformation():
     assert zrxn == ref_zrxn
     assert automol.zmat.almost_equal(zma, INSTAB_ZRXN_ZMA)
 
+    zrxn, zma = automol.reac.instability_transformation(ZMA1, BAD_PROD_ZMAS)
+    assert zrxn is None and zma is None
+
 
 if __name__ == '__main__':
     # test__prod_zmas()
