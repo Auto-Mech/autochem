@@ -2,33 +2,6 @@
   Values to calculate effective parameters for energy transport
 """
 
-
-def read_lj_dct(bath, target):
-    """ Read the LJ_DCT
-    """
-
-    bath_dct = LJ_DCT.get(bath, None)
-    if bath_dct is not None:
-        lj_params = bath_dct.get(target, None)
-    else:
-        lj_params = None
-
-    return lj_params
-
-
-def read_z_alpha_dct(bath, target):
-    """ Read the LJ_DCT
-    """
-
-    target_dct = Z_ALPHA_DCT.get(bath, None)
-    if target_dct is not None:
-        z_alpha_params = target_dct.get(target, None)
-    else:
-        z_alpha_params = None
-
-    return z_alpha_params
-
-
 LJ_DCT = {
 
     # N2 Bath Gas

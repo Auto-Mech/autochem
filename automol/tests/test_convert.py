@@ -44,9 +44,7 @@ def test__geom__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
         geo = automol.inchi.geometry(ref_ich)
-        print(ref_ich)
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich
 
@@ -84,10 +82,8 @@ def test__geom__no_stereo():
 #     ]
 #
 #     for ref_ich in ref_ichs:
-#         print(ref_ich)
 #         gra = automol.inchi.graph(ref_ich)
 #         ich = automol.graph.inchi(gra, stereo=True)
-#         print(ref_ich, '\n')
 #         assert ich == ref_ich
 #
 #         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
@@ -118,7 +114,6 @@ def test__zmatrix__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmat.geometry(zma)
@@ -138,7 +133,6 @@ def test__zmatrix__with_stereo():
         ('O', (1, 0, 2), ('R2', 'A1', 'D1'),
          (2.2601124460475623, 1.5707963267948966, 3.141592653589793)))
 
-    print(automol.zmat.string(zma))
     ref_geo = (('C', (0.0, 0.0, 1.8897261254578281)),
                ('O', (0.0, 2.2601124460475623, 1.889726125457828)),
                ('O', (0.0, -2.2601124460475623, 1.889726125457828)))
@@ -304,7 +298,6 @@ def test__multiple_rings():
           16-21: {order: 1, stereo_parity: null}
     """)
     ich = automol.graph.inchi(gra, stereo=True)
-    print(ich)
     assert ich == ref_ich
 
 
@@ -319,7 +312,6 @@ def test__geom__x2z_torsion_coordinate_names():
            ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
 
     tors_names = automol.geom.x2z_torsion_coordinate_names(geo)
-    print(tors_names)
     assert tors_names
 
     geo2 = (('H', (2.9512589894, 0.17507745634, 0.22317665541)),)
@@ -347,37 +339,7 @@ def test__geom__x2z_atom_ordering():
     assert ordering2 == {0: 0}
 
 
-# def test__sarah_badpsecies():
-#     """ test bad species list from sarah
-#     """
-#     bs_ichs = list(BS_DF['inchi'])
-#
-#     for ref_ich in bs_ichs:
-#         print(ref_ich)
-#         ich = automol.inchi.add_stereo(ref_ich)
-#         print(ich)
-#         print()
-
-
 if __name__ == '__main__':
-    # test__graph__no_stereo()
-    # test__geom__no_stereo()
-    # test__multiple_rings()
-    # test__smiles__with_stereo()
-    # test__geom__with_stereo()
-    # test__geom__no_stereo()
-    # test__multiple_rings()
-    # test__smiles__with_stereo()
-    # test__zmatrix__with_stereo()
-    # test__smiles__from_geom()
-    # test__inchi_conformers()
-    # test__geom__zmatrix_torsion_coordinate_names()
-    # test__geom__zmatrix_atom_ordering()
-    # test__graph__with_stereo()
-    # test__geom__with_stereo()
-    # test__graph__misc()
-    # test__zmatrix__with_stereo()
-    # test__inchi_geometry()
     test__geom__no_stereo()
     test__geom__x2z_torsion_coordinate_names()
     test__geom__x2z_atom_ordering()
