@@ -18,7 +18,7 @@ QUARTIC_STR = read_text_file(['data'], 'ch4_h.quartic', path=PATH)
 QUARTIC_MAT = highd_mat.from_string(
     QUARTIC_STR, fill_perms=True)
 
-ENES = numpy.arange(0.0, 17.0, 0.5) * phycon.KCAL2EH
+ENES = numpy.arange(-0.5, 17.5, 0.5) * phycon.KCAL2EH
 FREQS = [-1354.5, 569.5, 571.9, 1117.2, 1209.1, 1209.4,
          1465.7, 1465.9, 1788.0, 3114.7, 3262.8, 3263.3]
 RXN_FREQ = -1*FREQS[0]

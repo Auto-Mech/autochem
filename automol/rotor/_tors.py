@@ -10,7 +10,6 @@ from automol.rotor._util import sort_tors_names
 import automol.graph
 import automol.zmat
 import automol.reac
-# from automol.rotor._par import TorsionParam
 
 
 class Torsion:

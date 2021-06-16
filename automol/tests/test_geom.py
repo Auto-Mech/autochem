@@ -345,13 +345,6 @@ def test__symmetry_factor():
     assert c2h5of_sym_num == ref_sym_num3
     assert c2h2clf_sym_num 
 
-    # Add internal code TODO
-    # print(automol.geom.internal_symm_from_sampling(
-    #     symm_geos, rotors, grxn=None, zma=None
-    # print(automol.geom.reduce_internal_symm(
-    #     int_symm, ext_symm, end_group_factor, geo))
-    # print(automol.geom.rotor_reduced_symm_factor(sym_factor, rotor_symms):
-
 
 def test__closest_unbonded_atoms():
     """ test geom.closest_unbonded_atoms
@@ -433,42 +426,18 @@ def test__insert_dummies():
 
     # 4. Insert dummy atoms to the new geometry at the appropriate positions
     geo_wdummy = automol.geom.insert_dummies(geo, dummy_key_dct)
-    print(automol.geom.symbols(geo_wdummy))
-    print(automol.zmat.symbols(zma))
     assert automol.geom.symbols(geo_wdummy) == automol.zmat.symbols(zma)
 
     # 5. Update the z-matrix from the geometry.
     zma_new = automol.zmat.from_geometry(zma, geo_wdummy)
-    print('original z-matrix:')
-    print(automol.zmat.string(zma))
     print('new z-matrix:')
     print(automol.zmat.string(zma_new))
 
     # 6. Check that the geometry was correctly encoded by converting the new
     # z-matrix back and comparing.
     geo_new = automol.zmat.geometry(zma_new)
-    print('original geometry:')
-    print(automol.geom.string(geo))
-    print('new geometry:')
-    print(automol.geom.string(geo_new))
     assert automol.geom.almost_equal_dist_matrix(geo, geo_new)
 
 
 if __name__ == '__main__':
-    # test__from_data()
-    # test__is_valid()
-    # test__struct_check()
-    # test__mass()
-    # test__rotation_properties()
-    # test__atom_indices()
-    # test__set_coordinates()
-    # test__swap_coordinates()
-    # test__dist_analysis()
-    # test__symmetry_factor()
-    # test__closest_unbonded_atoms()
-    # test__rotate()
-    # test__reflect_coordinates()
-    # test__permutations()
-    # test__traj()
-    # test__insert_dummies()
     test__remove()

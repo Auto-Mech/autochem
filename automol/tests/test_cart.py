@@ -122,7 +122,7 @@ def test__highd_mat():
     ref_3d_str = read_text_file(['data'], 'ch4_h.cubic', path=PATH)
     ref_4d_str = read_text_file(['data'], 'ch4_h.quartic', path=PATH)
 
-    # Handle reprentations with full matrices and strings printed by indices
+    # Handle reprentations with full matrices and strings
     test_3d_mat = automol.util.highd_mat.from_string(ref_3d_str)
     test_4d_mat = automol.util.highd_mat.from_string(ref_4d_str)
 
@@ -132,7 +132,7 @@ def test__highd_mat():
     assert _chk_mat_strs(test_3d_str, ref_3d_str)
     assert _chk_mat_strs(test_4d_str, ref_4d_str)
 
-    # Handle string representations printed by submatrices (finish)
+    # Handle string representations by submatrices (finish)
     test_3d_submat_str = automol.util.highd_mat.string_submat_3d(test_3d_mat)
     assert (test_3d_submat_str ==
             read_text_file(['data'], 'ch4_h.cubic_submat', path=PATH))

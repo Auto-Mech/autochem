@@ -1,7 +1,6 @@
 """ I/O operations for higher dimension matrices of 3 or higher
 """
 
-from io import StringIO as _StringIO
 import itertools
 import numpy as np
 import automol.util.vec
@@ -138,7 +137,6 @@ def string_submat_3d(arr):
         # just get a single vector of elements and print to a line
         flat_sub_arr = sub_arr.flatten()
         sub_arr_str = automol.util.vec.string(flat_sub_arr)
-        # sub_arr_str = _np_arr_string(sub_arr)
         arr_str += sub_arr_str
         arr_str += '\n'
     arr_str.rstrip()
@@ -177,7 +175,6 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
     ndim = len(mat_idxs[0])
 
     dims = tuple(ncoords for _ in range(ndim))
-    # print('dims', dims)
 
     # Build the force constant matrix
     mat = np.zeros(dims)
@@ -187,15 +184,3 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
         mat[idxs] = val
 
     return mat
-
-
-def _np_arr_string(arr):
-    """ Use numpy to write an array
-    """
-
-    arr_str_io = _StringIO()
-    np.savetxt(arr_str_io, arr)
-    arr_str = arr_str_io.getvalue()
-    arr_str_io.close()
-
-    return arr_str
