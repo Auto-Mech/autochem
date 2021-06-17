@@ -272,7 +272,7 @@ def test__reac__reagents_graph():
     rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
 
     rcts_gra = automol.reac.reactants_graph(rxn)
-    prds_gra = automol.reac.reactants_graph(rxn)
+    prds_gra = automol.reac.products_graph(rxn)
 
     assert rcts_gra == (
         {0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
@@ -302,13 +302,6 @@ def test__reac__reagents_graph():
          frozenset({9, 2}): (1, None)})
 
     assert prds_gra == automol.reac.reactants_graph(rxn, rev=True)
-
-
-def test__check_radrad():
-    """ test automol.reac.is_radical_radical
-        test automol.reac.is_barrierless
-    """
-    pass
 
 
 def test__reac__hydrogen_migration():
@@ -443,6 +436,7 @@ def test__reac__elimination():
             3.77045681, 4.09440986, 4.41836291, 4.74231596, 5.06626901,
             5.39022206, 5.71417511, 6.03812816]),
         numpy.array([3.35680094, 4.07101391, 4.78522687, 5.49943984])),)
+    # ^ correct grid shape?
     ref_update_guess = False
     ref_tors_names = {'D9'}
     ref_tors_symms = [3]
@@ -561,10 +555,7 @@ def test__reac__radrad_addition():
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
-    ref_scan_grid = (numpy.array([
-        2.24877409, 2.29877409, 2.35377409, 2.41427409, 2.48082409,
-        2.55402909, 2.63455459, 2.72313264, 2.82056849, 2.92774793,
-        3.04564532, 3.17533244, 3.31798828, 3.4749097, 3.64752326]),)
+    ref_scan_grid = None  # not calling the radrad builder
     ref_update_guess = False
     ref_tors_names = {'D7', 'D4'}
     ref_tors_symms = [3, 3]
@@ -585,9 +576,7 @@ def test__reac__radrad_hydrogen_abstraction():
 
     ref_scan_names = ('R12',)
     ref_constraint_dct = None
-    ref_scan_grid = (numpy.array([
-        1.58736995, 1.83033473, 2.07329952, 2.31626431, 2.5592291,
-        2.80219388, 3.04515867, 3.28812346]),)
+    ref_scan_grid = None  # not calling the radrad builder
     ref_update_guess = False
     ref_tors_names = {'D8', 'D5'}
     ref_tors_symms = [3, 1]
@@ -674,53 +663,6 @@ def test__reac_util():
     zrxn2, _, _, _ = zrxn_objs[0]
 
     assert zrxn1 == zrxn2
-
-
-def test__species__demo():
-    """ doesn't really belong here, but demonstrates equivalent functionality
-    for species
-    """
-    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
-    geo = automol.inchi.geometry(ich)
-    gra = automol.geom.graph(geo)
-
-    # graph aligned to z-matrix keys
-    # (for getting torsion coordinate names)
-    zma, zma_keys, dummy_key_dct = (
-        automol.geom.zmatrix_with_conversion_info(geo))
-    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
-
-    lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(zgra).values())
-    bnd_keys = automol.graph.rotational_bond_keys(zgra, lin_keys=lin_keys)
-    names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
-    assert names == {'D9', 'D12', 'D15', 'D26'}
-
-    # graph aligned to geometry keys
-    # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
-    ggra = automol.graph.relabel_for_geometry(zgra)
-
-    # Check that the geometry graph can be converted back, if needed
-    old_zgra = zgra
-    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
-    assert zgra == old_zgra
-
-    lin_keys = sorted(gdummy_key_dct.keys())
-    gbnd_keys = automol.graph.rotational_bond_keys(ggra, lin_keys=lin_keys)
-    assert len(gbnd_keys) == len(bnd_keys)
-
-    axes = sorted(map(sorted, gbnd_keys))
-    groups_lst = [automol.graph.rotational_groups(ggra, *a) for a in axes]
-    sym_nums = [
-        automol.graph.rotational_symmetry_number(ggra, *a, lin_keys=lin_keys)
-        for a in axes]
-    assert sym_nums == [3, 1, 1, 3]
-    for axis, groups, sym_num in zip(axes, groups_lst, sym_nums):
-        print('axis:', axis)
-        print('\tgroup 1:', groups[0])
-        print('\tgroup 2:', groups[1])
-        print('\tsymmetry number:', sym_num)
 
 
 def test__mult():
@@ -906,7 +848,7 @@ def _check_reaction(rxn_obj,
 
     # Get scan information
     scan_info = automol.reac.build_scan_info(zrxn, zma)
-    scan_names, constraint_dct, grid, update_guess = scan_info
+    scan_names, constraint_dct, scan_grid, update_guess = scan_info
 
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
@@ -929,9 +871,14 @@ def _check_reaction(rxn_obj,
     if ref_scan_names is not None:
         assert scan_names == ref_scan_names
     if ref_constraint_dct is not None:
-        assert constraint_dct == ref_constraint_dct
+        assert set(constraint_dct.keys()) == set(ref_constraint_dct.keys())
     if ref_scan_grid is not None:
-        assert grid == ref_scan_grid
+        for rgrd, grd in zip(ref_scan_grid, scan_grid):
+            if rxn.class_ != 'elimination':
+                assert(numpy.allclose(rgrd, grd))
+            else:
+                for sub_rgrd, sub_grd in zip(rgrd, grd):
+                    assert(numpy.allclose(sub_rgrd, sub_grd))
     if ref_update_guess is not None:
         assert update_guess == ref_update_guess
     if ref_tors_names is not None:

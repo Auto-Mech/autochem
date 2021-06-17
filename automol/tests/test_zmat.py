@@ -332,7 +332,8 @@ def test__standardize():
         ('H', (12, 6, 1), ('R2150', 'A2150', 'D2150'),
          (1.8758293656194, 1.8624105681328567, 1.2477273554765336)))
 
-    assert zmat.almost_equal(C5H8O_ZMA, nonstandard_zma)
+    assert zmat.almost_equal(
+        C5H8O_ZMA, zmat.standard_form(nonstandard_zma))
 
 
 def test__names():

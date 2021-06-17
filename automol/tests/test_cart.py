@@ -44,10 +44,10 @@ def test__vec():
         MAT[0], MAT[1], MAT[2])
     assert numpy.isclose(angle, ref_angle)
 
-    assert automol.util.vec.are_parallel(
-        (1.0, 1.0, 1.0), (2.0, 2.0, 2.0))
-    assert not automol.util.vec.are_parallel(
-        (1.0, 1.0, 1.0), (1.0, 2.0, 2.0))
+    # assert automol.util.vec.are_parallel(
+    #     (1.0, 1.0, 1.0), (2.0, 2.0, 2.0))
+    # assert not automol.util.vec.are_parallel(
+    #     (1.0, 1.0, 1.0), (1.0, 2.0, 2.0))
 
     # Test the string writer
     ref_vec_str = read_text_file(['data'], 'vec.dat', path=PATH)
