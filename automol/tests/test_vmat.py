@@ -108,9 +108,7 @@ def test__standardize():
         ('H', (6, 1, 12), ('R150', 'A150', 'D150')),
         ('H', (12, 6, 1), ('R160', 'A160', 'D160')))
 
-    # assert zmat.almost_equal(C5H8O_VMA, nonstandard_vma)
-    assert C5H8O_VMA == vmat.standard_form(
-        nonstandard_vma)
+    assert C5H8O_VMA == vmat.standard_form(nonstandard_vma)
 
 
 def test__remove_atom():

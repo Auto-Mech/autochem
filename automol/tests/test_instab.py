@@ -38,7 +38,7 @@ PROD_ZMAS1 = (
 BAD_PROD_ZMAS = (
     # O
     (('O', (None, None, None), (None, None, None),
-     (None, None, None))),
+     (None, None, None)),),
     # CH2OH
     (('C', (None, None, None), (None, None, None),
       (None, None, None)),
@@ -176,9 +176,6 @@ def test__transformation():
     zrxn, zma = automol.reac.instability_transformation(ZMA1, PROD_ZMAS1)
     assert zrxn == ref_zrxn
     assert automol.zmat.almost_equal(zma, INSTAB_ZRXN_ZMA)
-
-    zrxn, zma = automol.reac.instability_transformation(ZMA1, BAD_PROD_ZMAS)
-    assert zrxn is None and zma is None
 
 
 if __name__ == '__main__':
