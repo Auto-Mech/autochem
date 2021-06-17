@@ -289,8 +289,6 @@ def __geom_ring():
     frag1 = geom.ring_fragments_geometry(GEO4)
     frag2 = geom.ring_fragments_geometry(GEO5)
 
-    print(frag1)
-    print(ref_frag1)
     assert geom.almost_equal_dist_matrix(frag1, ref_frag1)
     assert geom.almost_equal_dist_matrix(frag2, ref_frag2)
 
