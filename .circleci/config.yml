@@ -5,7 +5,7 @@ jobs:
             - image: continuumio/miniconda3
         steps:
             - checkout  # checkout the code
-            - run: 
+            - run:
                 name: Create conda environment
                 command: |
                     apt-get update --yes
@@ -23,6 +23,7 @@ jobs:
                     source activate autochem-env
                     cd automol
                     pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=transformations --cov-report=html
+                    coverage report
             - run:
                 name: Test autochem format
                 command: |
