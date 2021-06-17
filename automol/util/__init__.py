@@ -4,6 +4,7 @@
 # functions
 from automol.util._util import is_even_permutation
 from automol.util._util import equivalence_partition
+from automol.util._util import separate_negatives
 from automol.util._util import value_similar_to
 from automol.util._util import scale_iterable
 from automol.util._util import formula_from_symbols
@@ -18,6 +19,7 @@ __all__ = [
     # functions
     'is_even_permutation',
     'equivalence_partition',
+    'separate_negatives',
     'value_similar_to',
     'scale_iterable',
     'formula_from_symbols',

@@ -53,6 +53,14 @@ BAD_GEO = ((2.994881276150, -1.414434615111),
            (1.170155936996, 0.359360756989),
            (-1.201356763194, -0.347546894407))
 
+GEO_STR = """4
+Energy:  1.25828 kJ/mol (UFF)
+O       -0.9741512421      0.1822933377     -0.1126377411
+O        0.3289735103      0.1763176636     -0.3024822120
+H       -1.2826135304     -0.6998243267     -0.4438019186
+H        0.4659939252      0.6943122175     -1.1366628384
+"""
+
 
 def test__from_data():
     """ test getters
@@ -66,9 +74,15 @@ def test__from_data():
 def test__is_valid():
     """ test geom.is_valid
     """
+
+    # Check validity
     assert geom.is_valid(C2H2CLF_GEO)
     # with pytest.raises(ValueError):
     #     geom.is_valid(BAD_GEO)
+
+    # Check empty geom returns empty information
+    assert not geom.symbols(())
+    assert not geom.coordinates(())
 
 
 def test__struct_check():
@@ -111,6 +125,8 @@ def test__from_xyz_string():
     """
     assert geom.almost_equal(
         geom.from_xyz_string(geom.xyz_string(C2H2CLF_GEO)), C2H2CLF_GEO)
+
+    assert geom.xyz_string_comment(GEO_STR) == 'Energy:  1.25828 kJ/mol (UFF)'
 
 
 def test__formula():
@@ -343,7 +359,7 @@ def test__symmetry_factor():
     assert methane_sym_num == ref_sym_num1
     assert h_sym_num == ref_sym_num2
     assert c2h5of_sym_num == ref_sym_num3
-    assert c2h2clf_sym_num 
+    assert c2h2clf_sym_num == ref_sym_num4
 
 
 def test__closest_unbonded_atoms():
@@ -430,14 +446,8 @@ def test__insert_dummies():
 
     # 5. Update the z-matrix from the geometry.
     zma_new = automol.zmat.from_geometry(zma, geo_wdummy)
-    print('new z-matrix:')
-    print(automol.zmat.string(zma_new))
 
     # 6. Check that the geometry was correctly encoded by converting the new
     # z-matrix back and comparing.
     geo_new = automol.zmat.geometry(zma_new)
     assert automol.geom.almost_equal_dist_matrix(geo, geo_new)
-
-
-if __name__ == '__main__':
-    test__remove()
