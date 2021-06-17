@@ -22,7 +22,7 @@ jobs:
                 command: |
                     source activate autochem-env
                     cd automol
-                    pytest -vv --disable-pytest-warnings --cov=automol --cov=phydat --cov-report=html
+                    pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov-report=html
                     coverage report
             - run:
                 name: Test autochem format
