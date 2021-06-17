@@ -142,31 +142,31 @@ def test__separate_and_merge():
 
     # Merge subdictionaries
     ref_mergedct1 = {
-        'global': {
-            'subkey1': 'subvalg1',
-            'subkey3': 'subvalg3'
-        },
         'key1': {
-            'subkey1': 'subvalg1',
-            'subkey2': 'subval1-2',
-            'subkey3': 'subvalg3'
+            'subkey1': 'subval1-1',
+            'subkey3': 'subvalg3',
+            'subkey2': 'subval1-2'
         },
         'key2': {
+            'subkey1': 'subval2-1',
+            'subkey3': 'subvalg3',
+            'subkey2': 'subval2-2'
+        },
+        'global': {
             'subkey1': 'subvalg1',
-            'subkey2': 'subval2-2',
             'subkey3': 'subvalg3'
         }
     }
     ref_mergedct2 = {
         'key1': {
-            'subkey1': 'subvalg1',
+            'subkey1': 'subval1-1',
+            'subkey3': 'subvalg3',
             'subkey2': 'subval1-2',
-            'subkey3': 'subvalg3'
         },
         'key2': {
-            'subkey1': 'subvalg1',
+            'subkey1': 'subval2-1',
+            'subkey3': 'subvalg3',
             'subkey2': 'subval2-2',
-            'subkey3': 'subvalg3'
         }
     }
 

@@ -17,7 +17,7 @@ def test__separate_negatives():
     nlst2, plst2 = automol.util.separate_negatives(alst2)
     nlst3, plst3 = automol.util.separate_negatives(alst3)
     assert nlst1 == () and plst1 == (1.0, 2.0, 3.0)
-    assert nlst2 == (1.0, 2.0, 3.0) and plst2 == ()
+    assert nlst2 == (-1.0, -2.0, -3.0) and plst2 == ()
     assert nlst3 == (-3.0,) and plst3 == (1.0, 2.0)
 
 
@@ -51,4 +51,4 @@ def test__scale_iterable():
     assert numpy.allclose(ref_scale_iter, scale_iter1)
     assert numpy.allclose(ref_scale_iter, scale_iter2)
     assert isinstance(scale_iter1, list)
-    assert isinstance(scale_iter1, tuple)
+    assert isinstance(scale_iter2, tuple)

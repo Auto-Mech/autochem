@@ -57,10 +57,10 @@ def instability_product_graphs(gra):
 def instability_transformation(conn_zma, disconn_zmas):
     """ Build the reaction objects for an instability
     """
+
+    zrxn, zma = None, None
     zrxn_objs = rxn_objs_from_zmatrix(
         [conn_zma], disconn_zmas, indexing='zma')
     if zrxn_objs:
         zrxn, zma, _, _ = zrxn_objs[0]
-    else:
-        zrxn, zma = None, None
     return zrxn, zma

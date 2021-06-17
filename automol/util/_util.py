@@ -69,7 +69,7 @@ def separate_negatives(lst):
 def value_similar_to(val, lst, thresh):
     """ Check if a value is close to some lst of values within some threshold
     """
-    return all(abs(val - vali) < thresh for vali in lst)
+    return any(abs(val - vali) < thresh for vali in lst)
 
 
 def scale_iterable(iterable, scale_factor):

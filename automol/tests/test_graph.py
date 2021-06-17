@@ -785,6 +785,26 @@ def test__rotational_bond_keys():
             frozenset({frozenset({2, 3})}))
 
 
+def test__species__graph_conversion():
+    """ test interchanging between graphs aligned by zma and geo
+    """
+
+    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
+    geo = automol.inchi.geometry(ich)
+    gra = automol.geom.graph(geo)
+
+    zma, zma_keys, dummy_key_dct = (
+        automol.geom.zmatrix_with_conversion_info(geo))
+    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
+    ggra = automol.graph.relabel_for_geometry(zgra)
+
+    old_zgra = zgra
+    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
+    assert zgra == old_zgra
+
+
 # stereo graph library
 def test__stereogenic_atom_keys():
     """ test graph.stereogenic_atom_keys
@@ -924,7 +944,3 @@ def test__ts__compatible_reverse_stereomers():
             for r in graph.ts.compatible_reverse_stereomers(ste_tsg)
             for s in graph.ts.compatible_reverse_stereomers(r)]
         assert any(s == ste_tsg for s in ste_tsgs)
-
-
-if __name__ == '__main__':
-    test__resonance_dominant_atom_hybridizations()
