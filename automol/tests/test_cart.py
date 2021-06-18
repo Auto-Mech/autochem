@@ -145,5 +145,3 @@ def test__highd_mat():
     test_4d_submat_str = automol.util.highd_mat.string_submat_4d(test_4d_mat)
     assert (test_4d_submat_str ==
             read_text_file(['data'], 'ch4_h.quartic_submat', path=PATH))
-
-test__vec()
