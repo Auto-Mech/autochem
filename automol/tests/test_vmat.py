@@ -73,16 +73,33 @@ def test__from_data():
     assert vma == C5H8O_VMA
 
 
+def test__atom_indices():
+    """ test vmat.atom_indices
+    """
+
+    angle_idxs = vmat.atom_indices(C5H8O_VMA, 'C', match=False)
+    assert angle_idxs == (2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15)
+
+
 def test__coordinates():
     """ test vmat.angle_names
         test vmat.dummy_coordinate_names
     """
 
+    names = vmat.names(C5H8O_VMA)
     angle_names = vmat.angle_names(C5H8O_VMA)
     dummy_coord_names = vmat.dummy_coordinate_names(C5H8O_VMA)
 
-    print(angle_names)
-    print(dummy_coord_names)
+    assert names == ('R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9',
+                     'R10', 'R11', 'R12', 'R13', 'R14', 'R15', 'A2', 'A3',
+                     'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12',
+                     'A13', 'A14', 'A15', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8',
+                     'D9', 'D10', 'D11', 'D12', 'D13', 'D14', 'D15')
+    assert angle_names == ('A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8',
+                           'A9', 'A10', 'A11', 'A12', 'A13', 'A14',
+                           'A15', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8',
+                           'D9', 'D10', 'D11', 'D12', 'D13', 'D14', 'D15')
+    assert dummy_coord_names == ('R8', 'A8', 'D8', 'R10', 'A10', 'D10')
 
 
 def test__standardize():
@@ -109,6 +126,7 @@ def test__standardize():
         ('H', (12, 6, 1), ('R160', 'A160', 'D160')))
 
     assert C5H8O_VMA == vmat.standard_form(nonstandard_vma)
+    assert vmat.is_standard_form(C5H8O_VMA)
 
 
 def test__remove_atom():
@@ -116,12 +134,27 @@ def test__remove_atom():
     """
 
     # Remove a terminal hydrogen
-    new_vma = vmat.remove_atom(C5H8O_VMA, 13)
-    print('NEW VMA', new_vma)
+    ref_vma = (
+        ('C', (None, None, None), (None, None, None)),
+        ('C', (0, None, None), ('R1', None, None)),
+        ('H', (0, 1, None), ('R2', 'A2', None)),
+        ('H', (0, 1, 2), ('R3', 'A3', 'D3')),
+        ('H', (0, 1, 2), ('R4', 'A4', 'D4')),
+        ('C', (1, 0, 2), ('R5', 'A5', 'D5')),
+        ('C', (1, 0, 5), ('R6', 'A6', 'D6')),
+        ('H', (1, 0, 5), ('R7', 'A7', 'D7')),
+        ('X', (5, 1, 0), ('R8', 'A8', 'D8')),
+        ('C', (5, 8, 1), ('R9', 'A9', 'D9')),
+        ('X', (9, 5, 8), ('R10', 'A10', 'D10')),
+        ('H', (9, 10, 5), ('R11', 'A11', 'D11')),
+        ('O', (6, 1, 0), ('R12', 'A12', 'D12')),
+        ('H', (6, 1, 12), ('R14', 'A14', 'D14')),
+        ('H', (12, 6, 1), ('R15', 'A15', 'D15')))
+    assert ref_vma == vmat.remove_atom(C5H8O_VMA, 13)
 
     # remove O atom from OH group; should break
     with pytest.raises(ValueError):
-        new_vma = vmat.remove_atom(C5H8O_VMA, 12)
+        _ = vmat.remove_atom(C5H8O_VMA, 12)
 
 
 def test__from_string():
@@ -142,3 +175,9 @@ def test_valid():
 
     assert vmat.is_valid(C5H8O_VMA)
     assert not vmat.is_valid(BAD_C5H8O_VMA)
+
+
+test__remove_atom()
+test__atom_indices()
+test__coordinates()
+test__standardize()
