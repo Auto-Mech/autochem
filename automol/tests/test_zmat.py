@@ -7,8 +7,6 @@ import numpy
 from automol import zmat
 # from automol import geom
 
-
-
 CH4O2_ZMA = (
     ('C', (None, None, None), (None, None, None), (None, None, None)),
     ('O', (0, None, None), ('R1', None, None), (2.659, None, None)),
