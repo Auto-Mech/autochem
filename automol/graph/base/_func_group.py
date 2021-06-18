@@ -1,5 +1,7 @@
 """
   Use graph structures to identify chemical functional groups
+
+  Note: Code requires explicit graphs to work
 """
 
 import itertools

@@ -14,6 +14,14 @@ C4H10_GRA = automol.geom.graph(
     automol.inchi.geometry(
         automol.smiles.inchi('CCCC')))
 
+C4H6_GRA = automol.geom.graph(
+    automol.inchi.geometry(
+        automol.smiles.inchi('C=CC=C')))
+
+C4H2_GRA = automol.geom.graph(
+    automol.inchi.geometry(
+        automol.smiles.inchi('C#CC#C')))
+
 C2H5OH_GRA = automol.geom.graph(
     automol.inchi.geometry(
         automol.smiles.inchi('CCO')))
@@ -152,6 +160,17 @@ def test_functional_group_dct():
     })
     fgrps = automol.graph.functional_group_dct(CCOOC_GRA)
     assert fgrps == ref_fgrps
+
+
+def test__sites():
+    """ test automol.graph._func_group.alkene_sites
+        test automol.graph._func_group.alkene_sites
+    """
+
+    assert automol.graph.alkene_sites(C4H6_GRA) == ((0, 2), (1, 3))
+    assert automol.graph.alkyne_sites(C4H2_GRA) == ((0, 2), (1, 3))
+    assert not automol.graph.alkene_sites(C4H2_GRA)
+    assert not automol.graph.alkyne_sites(C4H6_GRA)
 
 
 def test_species_types():

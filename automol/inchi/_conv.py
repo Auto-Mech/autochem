@@ -45,7 +45,7 @@ def _inchi_connected_graph(ich, stereo=True):
         all all atoms are connected by at least one bond.
 
         :param ich: InChI string
-  d      :type ich: str
+        :type ich: str
         :param remove_stereo: parameter to include stereochemistry information
         :type remove_stereo: bool
         :rtype: automol molecular graph

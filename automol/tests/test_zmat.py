@@ -5,7 +5,7 @@
 import pytest
 import numpy
 from automol import zmat
-
+from automol import geom
 
 CH4O2_ZMA = (
     ('C', (None, None, None), (None, None, None), (None, None, None)),
@@ -24,6 +24,27 @@ CH4O2_ZMA_NO_NONES = (
     ('H', (0, 1, 2), ('R4', 'A4', 'D4'), (2.065, 1.894, 2.06)),
     ('H', (1, 0, 2), ('R5', 'A5', 'D5'), (1.831, 1.867, 1.44)),
     ('H', (2, 0, 1), ('R6', 'A6', 'D6'), (1.831, 1.867, 4.84)))
+
+C2H5OH_ZMA = (
+    ('C', (None, None, None), (None, None, None),
+     (None, None, None)),
+    ('C', (0, None, None), ('R1', None, None),
+     (2.8621866421132123, None, None)),
+    ('H', (0, 1, None), ('R2', 'A2', None),
+     (2.0691950317120837, 1.9320905931404335, None)),
+    ('H', (0, 1, 2), ('R3', 'A3', 'D3'),
+     (2.0665277363750003, 1.9353637583977303, 2.108686322109069)),
+    ('H', (0, 1, 2), ('R4', 'A4', 'D4'),
+     (2.069152234029259, 1.930351996269131, 4.218481783495319)),
+    ('O', (1, 0, 2), ('R5', 'A5', 'D5'),
+     (2.683747067528887, 1.9194991329920528, 1.0492575691901376)),
+    ('H', (1, 0, 5), ('R6', 'A6', 'D6'),
+     (2.067751813667005, 1.9377163905267163, 4.182292202036946)),
+    ('H', (1, 0, 5), ('R7', 'A7', 'D7'),
+     (2.0671092193398275, 1.928341045304867, 2.082936263972801)),
+    ('H', (5, 1, 0), ('R8', 'A8', 'D8'),
+     (1.8376095698733521, 1.8770195234414855, 5.238498010242486)))
+
 
 CH4O2_ZMA_STR = """
 C
@@ -336,7 +357,7 @@ def test__standardize():
         C5H8O_ZMA, zmat.standard_form(nonstandard_zma))
 
 
-def test__names():
+def test_rename():
     """ test vmat.rename
     """
 
@@ -407,16 +428,50 @@ def test__string():
     assert zmat.almost_equal(zma, CH4O2_ZMA)
 
 
-def test__distance():
+def test__coord_values():
     """ test zmat.distance
+        test zmat.central_angle
+        test zmat.dihedral_angle
     """
-    dist16 = zmat.distance(CH4O2_ZMA, 1, 6, angstrom=True)
-    print(dist16)
-    assert numpy.isclose(dist16, 2.6363)
+
+    dist1 = zmat.distance(CH4O2_ZMA, 1, 6, angstrom=False)
+    dist2 = zmat.distance(CH4O2_ZMA, 1, 6, angstrom=True)
+    assert numpy.isclose(dist1, 4.981884412572709)
+    assert numpy.isclose(dist2, 2.636299697325578)
+
+    cangle1 = zmat.central_angle(CH4O2_ZMA, 1, 0, 2, degree=False)
+    cangle2 = zmat.central_angle(CH4O2_ZMA, 1, 0, 2, degree=True)
+    assert numpy.isclose(cangle1, 1.907)
+    assert numpy.isclose(cangle2, 109.26305153144799)
+
+    dangle1 = zmat.dihedral_angle(CH4O2_ZMA, 1, 0, 2, 6, degree=False)
+    dangle2 = zmat.dihedral_angle(CH4O2_ZMA, 1, 0, 2, 6, degree=True)
+    assert numpy.isclose(dangle1, 4.84)
+    assert numpy.isclose(dangle2, 277.31157284331846)
+
+
+def __dihedral():
+    """ test zmat.dihedral_axis_name
+    """
+
+    assert zmat.dihedral_axis_name(C2H5OH_ZMA, (0, 1)) == 'D3'
+    assert zmat.dihedral_axis_name(C2H5OH_ZMA, (5, 1)) == 'D8'
+    # wrong?
+
+
+def __linear_atom_keys():
+    """ test zmat.linear_atom_keys
+    """
+    assert zmat.linear_atom_keys(C5H8O_ZMA) == (5, 9)
+    assert zmat.linear_atom_keys(C5H8O_ZMA, geom_indexing=True) == (5, 8)
+    # wrong?
+
+
+def test__shift():
+    """ test.zmat.shift_up
+    """
+    assert zmat.shift_up(C5H8O_ZMA, (3, 9, 12)) == (3, 10, 14)
 
 
 if __name__ == '__main__':
-    test__from_data()
-    test__string()
-    test__add_atom()
-    test__distance()
+    test__coord_values()
