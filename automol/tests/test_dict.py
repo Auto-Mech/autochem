@@ -223,5 +223,6 @@ def test__invert():
         'val2': 'key2',
         'val3': 'key3'
     }
+
     inv_dct = dict_.invert(GDCT1)
     assert ref_inv_dct == inv_dct

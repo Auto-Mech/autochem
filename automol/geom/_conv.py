@@ -407,7 +407,8 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
                 idx1, idx2 = idxs[:2]
             else:
                 idx1, = idxs
-                idx2, = ngb_idxs_dct[idx1]
+                idx2 = ngb_idxs_dct[idx1][0]
+                # idx2, = ngb_idxs_dct[idx1]
 
             xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
             r12 = util.vec.unit_direction(xyz1, xyz2)
