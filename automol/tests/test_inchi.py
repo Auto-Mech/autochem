@@ -164,16 +164,27 @@ def test__stereo():
         test inchi.expand_stereo
     """
 
-    # Add
-    assert inchi.add_stereo(C8H13O_ICH_NO_STEREO) in (
+    # Add and Expand stereo to C8H13O
+    c8h13o_ste = (
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4-/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m1/s1'),
         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
          'b5-3+,6-4+/t8-/m0/s1'),
         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-         'b5-3+,6-4+/t8-/m1/s1')
+         'b5-3+,6-4-/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m0/s1')
     )
-
-    # Expand
-    assert len(inchi.expand_stereo(C8H13O_ICH_NO_STEREO)) == 8
+    assert inchi.add_stereo(C8H13O_ICH_NO_STEREO) in c8h13o_ste
+    assert set(inchi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
 
     # some cases that were breaking
     assert set(inchi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')) == {

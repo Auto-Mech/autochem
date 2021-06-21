@@ -187,15 +187,17 @@ def filter_keys(dct_1, dct_2):
         :rtype: dict[]
     """
 
+    dct_ret = deepcopy(dct_1)
+
     keys_topop = list(dct_2.keys())
 
     for key in keys_topop:
         try:
-            dct_1.pop(key, None)
+            dct_ret.pop(key, None)
         except KeyError:
             continue
 
-    return dct_1
+    return dct_ret
 
 
 def merge_sequence(dcts):

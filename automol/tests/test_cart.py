@@ -4,12 +4,14 @@
 import os
 import pytest
 import numpy
+from ioformat import pathtools
 import automol.util.mat
 import automol.util.vec
-from ioformat import read_text_file
 
 
 PATH = os.path.dirname(os.path.realpath(__file__))
+DAT_PATH = os.path.join(PATH, 'data')
+
 MAT = (
     (-2.3779010433, 5.2665623735, 0.0368733734),
     (-1.7871641824, 4.2084900234, -0.6608528628),
@@ -50,7 +52,7 @@ def test__vec():
     #     (1.0, 1.0, 1.0), (1.0, 2.0, 2.0))
 
     # Test the string writer
-    ref_vec_str = read_text_file(['data'], 'vec.dat', path=PATH)
+    ref_vec_str = pathtools.read_file(DAT_PATH, 'vec.dat')
     vec_str = automol.util.vec.string((MAT[0] + MAT[1]), num_per_row=3)
 
     assert vec_str == ref_vec_str
@@ -100,7 +102,7 @@ def test__mat():
     assert numpy.allclose(superimp_mat, ref_superimp_mat)
 
     # Test the string writer
-    ref_mat_str = read_text_file(['data'], 'mat.dat', path=PATH)
+    ref_mat_str = pathtools.read_file(DAT_PATH, 'mat.dat')
     mat_str = automol.util.mat.string(MAT)
 
     assert mat_str == ref_mat_str
@@ -124,8 +126,8 @@ def test__highd_mat():
                 match = False
         return match
 
-    ref_3d_str = read_text_file(['data'], 'ch4_h.cubic', path=PATH)
-    ref_4d_str = read_text_file(['data'], 'ch4_h.quartic', path=PATH)
+    ref_3d_str = pathtools.read_file(DAT_PATH, 'ch4_h.cubic')
+    ref_4d_str = pathtools.read_file(DAT_PATH, 'ch4_h.quartic')
 
     # Handle reprentations with full matrices and strings
     test_3d_mat = automol.util.highd_mat.from_string(ref_3d_str)
@@ -140,8 +142,8 @@ def test__highd_mat():
     # Handle string representations by submatrices (finish)
     test_3d_submat_str = automol.util.highd_mat.string_submat_3d(test_3d_mat)
     assert (test_3d_submat_str ==
-            read_text_file(['data'], 'ch4_h.cubic_submat', path=PATH))
+            pathtools.read_file(DAT_PATH, 'ch4_h.cubic_submat'))
 
     test_4d_submat_str = automol.util.highd_mat.string_submat_4d(test_4d_mat)
     assert (test_4d_submat_str ==
-            read_text_file(['data'], 'ch4_h.quartic_submat', path=PATH))
+            pathtools.read_file(DAT_PATH, 'ch4_h.quartic_submat'))
