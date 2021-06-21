@@ -1,12 +1,15 @@
 """
     test automol.rotor
 """
+
 import os
 import automol
-from ioformat import read_text_file
+from ioformat import pathtools
 
 
 PATH = os.path.dirname(os.path.realpath(__file__))
+DAT_PATH = os.path.join(PATH, 'data')
+
 
 # Species Z-Matrix
 C2H5OH_ZMA = automol.geom.zmatrix(
@@ -376,7 +379,7 @@ def test__string():
     rtors = automol.rotor.from_zmatrix(C3H7OH_ZMA)
 
     tors_str = automol.rotor.string(rtors)
-    assert tors_str == read_text_file(['data'], 'c3h7oh.tors', path=PATH)
+    assert tors_str == pathtools.read_file(DAT_PATH, 'c3h7oh.tors')
 
     tors_dct = automol.rotor.from_string(tors_str)
     rtors2 = automol.rotor.from_data(C3H7OH_ZMA, tors_dct)
