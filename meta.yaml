@@ -1,7 +1,7 @@
 # cmd: conda build . -c auto-mech -c rdkit -c openbabel -c conda-forge -c psi4
 package:
     name: autochem
-    version: "0.7.5"
+    version: "0.7.6"
 
 source:
     path: .
@@ -28,12 +28,5 @@ requirements:
         - openbabel::openbabel
         - conda-forge::qcelemental
         - conda-forge::python-igraph
-        # - auto-mech::autochem
         - auto-mech::autoio-base
-        # - auto-mech::autoio-interfaces
-        # - auto-mech::mechanalyzer
         - auto-mech::x2z
-        # - auto-mech::mess
-        # - auto-mech::projrot
-        # - auto-mech::pac99
-        # - auto-mech::thermp

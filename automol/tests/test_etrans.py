@@ -7,12 +7,16 @@ import automol
 
 # Info for various target species
 # Closed-Shell Hydrocarbons with different C-C p,s,t,q connectivities
-CH_INF = ('InChI=1S/C8H18/c1-3-5-7-8-6-4-2/h3-8H2,1-2H3', 1, 0)  # CCCCCCCC
-DMB_INF = ('InChI=1S/C6H14/c1-5-6(2,3)4/h5H2,1-4H3', 1, 0)       # CCC(C)(C)C
+CH1_INF = ('InChI=1S/C2H6/c1-2/h1-2H3', 1, 0)                     # CC
+CH2_INF = ('InChI=1S/C8H18/c1-3-5-7-8-6-4-2/h3-8H2,1-2H3', 1, 0)  # CCCCCCCC
+CYC_INF = ('InChI=1S/C6H12/c1-2-4-6-5-3-1/h1-6H2', 1, 0)          # C1CCCCC1
+DMB_INF = ('InChI=1S/C6H14/c1-5-6(2,3)4/h5H2,1-4H3', 1, 0)        # CCC(C)(C)C
+DMB2_INF = ('InChI=1S/C6H14/c1-5(2)6(3)4/h5-6H,1-4H3', 1, 0)      # CC(C)C(C)C
 TRMB_INF = ('InChI=1S/C7H16/c1-6(2)7(3,4)5/h6H,1-5H3', 1, 0)
 # ^ CC(C)C(C)(C)C
 TEMB_INF = ('InChI=1S/C8H18/c1-7(2,3)8(4,5)6/h1-6H3', 1, 0)
 # ^ CC(C)(C)C(C)(C)C
+ISOPENT_INF = ('InChI=1S/C5H12/c1-4-5(2)3/h5H,4H2,1-3H3', 1, 0)  # CCC(C)C
 
 # Open-Shell C,H and C,H,O species
 RAD1_INF = ('InChI=1S/C3H5/c1-3-2/h3H2,1H3', 2, 0)               # CC[C]
@@ -37,7 +41,7 @@ def test__model():
     """
 
     # Assess different targets for model selection
-    model = automol.etrans.effective_model(CH_INF[0], BATH_INF[0])
+    model = automol.etrans.effective_model(CH1_INF[0], BATH_INF[0])
     assert model == (BATH_INF[0], 'n-alkane')
 
     model = automol.etrans.effective_model(RAD1_INF[0], BATH_INF[0])
@@ -66,7 +70,7 @@ def test__model():
     assert model == (BATH_INF[0], 'n-alkane')
 
     # Use a different bath gas
-    model = automol.etrans.effective_model(CH_INF[0], BATH_INF2[0])
+    model = automol.etrans.effective_model(CH1_INF[0], BATH_INF2[0])
     assert model == (BATH_INF2[0], 'n-alkane')
 
 
@@ -75,7 +79,11 @@ def test__effective_rotor():
     """
 
     n_eff = automol.etrans.eff.effective_rotor_count(
-        automol.inchi.geometry(CH_INF[0]))
+        automol.inchi.geometry(CH1_INF[0]))
+    assert numpy.isclose(2.0, n_eff)
+
+    n_eff = automol.etrans.eff.effective_rotor_count(
+        automol.inchi.geometry(CH2_INF[0]))
     assert numpy.isclose(8.0, n_eff)
 
     n_eff = automol.etrans.eff.effective_rotor_count(
@@ -89,6 +97,18 @@ def test__effective_rotor():
     n_eff = automol.etrans.eff.effective_rotor_count(
         automol.inchi.geometry(DMB_INF[0]))
     assert numpy.isclose(3.3333333, n_eff)
+
+    n_eff = automol.etrans.eff.effective_rotor_count(
+        automol.inchi.geometry(DMB2_INF[0]))
+    assert numpy.isclose(3.6666666, n_eff)
+
+    n_eff = automol.etrans.eff.effective_rotor_count(
+        automol.inchi.geometry(CYC_INF[0]))
+    assert numpy.isclose(3.0, n_eff)
+
+    n_eff = automol.etrans.eff.effective_rotor_count(
+        automol.inchi.geometry(ISOPENT_INF[0]))
+    assert numpy.isclose(4.0, n_eff)
 
     n_eff = automol.etrans.eff.effective_rotor_count(
         automol.inchi.geometry(COOH_INF[0]))
@@ -161,3 +181,6 @@ def test__combine():
 
     assert numpy.isclose(aa_eps, ref_aa_eps)
     assert numpy.isclose(aa_sig, ref_aa_sig)
+
+
+test__effective_rotor()

@@ -8,7 +8,6 @@ from automol.geom._conv import graph
 from automol.geom._conv import inchi
 from automol.geom._conv import x2z_zmatrix
 from automol.geom._conv import x2z_torsion_coordinate_names
-from automol.geom.base import remove
 from automol.geom.base import swap_coordinates
 from automol.geom.base import dihedral_angle
 from automol.geom.base import almost_equal_dist_matrix
@@ -80,70 +79,6 @@ def connected(geo, stereo=True):
         :rtype: bool
     """
     return len(components_graph(geo, stereo=stereo)) == 1
-
-
-def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
-    """ Determine sym factor for terminal groups in a geometry
-        :param geo: molecular geometry
-        :type geo: automol molecular geometry data structure
-        :param frm_bnd_keys: keys denoting atoms forming bond in TS
-        :type frm_bnd_keys: frozenset(int)
-        :param brk_bnd_keys: keys denoting atoms breaking bond in TS
-        :type brk_bnd_keys: frozenset(int)
-        :rtype: (automol geom data structure, float)
-    """
-
-    # Set saddle based on frm and brk keys existing
-    saddle = bool(frm_bnd_keys or brk_bnd_keys)
-
-    gra = graph(geo, stereo=False)
-    term_atms = {}
-    all_hyds = []
-    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
-
-    ts_atms = []
-    for bnd_ in frm_bnd_keys:
-        ts_atms.extend(list(bnd_))
-    for bnd_ in brk_bnd_keys:
-        ts_atms.extend(list(bnd_))
-    # determine if atom is a part of a double bond
-    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
-    if not saddle:
-        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
-        rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
-    else:
-        rad_atms = []
-
-    gra = gra[0]
-    for atm in gra:
-        if gra[atm][0] == 'H':
-            all_hyds.append(atm)
-    for atm in gra:
-        if atm in unsat_atms and atm not in rad_atms:
-            pass
-        else:
-            if atm not in ts_atms:
-                nonh_neighs = []
-                h_neighs = []
-                neighs = neighbor_dct[atm]
-                for nei in neighs:
-                    if nei in all_hyds:
-                        h_neighs.append(nei)
-                    else:
-                        nonh_neighs.append(nei)
-                if len(nonh_neighs) == 1 and len(h_neighs) > 1:
-                    term_atms[atm] = h_neighs
-    factor = 1.
-    remove_atms = []
-    for atm in term_atms:
-        hyds = term_atms[atm]
-        if len(hyds) > 1:
-            factor *= len(hyds)
-            remove_atms.extend(hyds)
-    geo = remove(geo, remove_atms)
-
-    return geo, factor, remove_atms
 
 
 def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
