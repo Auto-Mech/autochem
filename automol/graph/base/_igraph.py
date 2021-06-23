@@ -30,9 +30,12 @@ def from_graph(gra):
     bnd_idxs = [sorted(map(atm_idx_dct.__getitem__, k)) for k in bnd_keys]
     igr = igraph.Graph(bnd_idxs)
 
-    igr.vs['keys'] = atm_keys
-    igr.vs['color'] = atm_colors
-    igr.es['color'] = bnd_colors
+    igr.vs.__setitem__('keys', atm_keys)
+    igr.vs.__setitem__('color', atm_colors)
+    igr.es.__setitem__('color', bnd_colors)
+    # igr.vs['keys'] = atm_keys  # sends false pylint errors for some reason
+    # igr.vs['color'] = atm_colors
+    # igr.es['color'] = bnd_colors
 
     return igr
 
@@ -166,18 +169,3 @@ def canonical_permutation(igr):
     perm = igr.canonical_permutation(color=atm_colors)
     perm_dct = dict(zip(atm_keys, perm))
     return perm_dct
-#
-#
-# if __name__ == '__main__':
-#     GRA1 = ({0: ('C', 0, None), 1: ('H', 0, None), 2: ('H', 0, None),
-#              3: ('H', 0, None), 4: ('H', 0, None)},
-#             {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-#              frozenset({0, 4}): (1, None), frozenset({0, 3}): (1, None)})
-#     GRA2 = automol.graph.relabel(GRA1, {0: 1, 1: 0})
-#     GRA2 = automol.graph.relabel(GRA2, dict(enumerate(range(5, 10))))
-#     print(automol.graph.string(GRA2, one_indexed=False))
-#     IGR1 = from_graph(GRA1)
-#     IGR2 = from_graph(GRA2)
-#     isomorphisms(IGR1, IGR2)
-#     # print(IGR1)
-#     # print(IGR2)

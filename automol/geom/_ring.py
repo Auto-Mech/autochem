@@ -3,7 +3,9 @@
 
 from phydat import phycon
 import automol.graph
-import automol.geom
+from automol.geom._conv import graph
+from automol.geom.base import central_angle
+from automol.geom.base import from_subset
 
 
 ATHRESH = 94.0 * phycon.DEG2RAD
@@ -37,7 +39,7 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     condition = True
     for i, _ in enumerate(ring_atoms):
         _atoms = [ring_atoms[i], ring_atoms[i-1], ring_atoms[i-2]]
-        cangle = automol.geom.central_angle(geo, *_atoms, degree=False)
+        cangle = central_angle(geo, *_atoms, degree=False)
         if cangle < thresh:
             condition = False
 
@@ -51,7 +53,7 @@ def ring_fragments_geometry(geo):
         :type geo: automol.geom object
     """
 
-    gra = automol.geom.graph(geo)
+    gra = graph(geo)
     rings_atoms = automol.graph.rings_atom_keys(gra)
     ngbs = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
 
@@ -66,6 +68,6 @@ def ring_fragments_geometry(geo):
                 if ngb not in ring_idxs:
                     ring_idxs.append(ngb)
     if ring_idxs:
-        ret = automol.geom.from_subset(geo, ring_idxs)
+        ret = from_subset(geo, ring_idxs)
 
     return ret

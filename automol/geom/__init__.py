@@ -110,7 +110,6 @@ from automol.geom._conv import insert_dummies
 # extra functions:
 from automol.geom._extra import components_graph
 from automol.geom._extra import connected
-from automol.geom._extra import end_group_symmetry_factor
 from automol.geom._extra import rot_permutated_geoms
 from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
@@ -119,10 +118,6 @@ from automol.geom._extra import is_unique
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
 from automol.geom._ring import ring_fragments_geometry
-# symmetry functions
-from automol.geom._symm import internal_symm_from_sampling
-from automol.geom._symm import reduce_internal_symm
-from automol.geom._symm import rotor_reduced_symm_factor
 # ts submodule
 from automol.geom import ts
 
@@ -225,7 +220,6 @@ __all__ = [
     # extra functions:
     'components_graph',
     'connected',
-    'end_group_symmetry_factor',
     'rot_permutated_geoms',
     'are_torsions_same2',
     'are_torsions_same',
@@ -234,10 +228,6 @@ __all__ = [
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
     'ring_fragments_geometry',
-    # symmetry
-    'internal_symm_from_sampling',
-    'reduce_internal_symm',
-    'rotor_reduced_symm_factor',
     # ts submodule
     'ts',
 ]

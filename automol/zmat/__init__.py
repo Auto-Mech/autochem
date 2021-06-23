@@ -195,7 +195,6 @@ __all__ = [
     'all_rings_dihedrals',
     'all_rings_dct',
     'all_rings_distances_reasonable',
-    'ring_atoms',
     'ring_distances',
     'ring_dihedrals',
     'ring_distances_reasonable'
