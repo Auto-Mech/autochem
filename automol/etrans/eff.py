@@ -134,6 +134,8 @@ def lennard_jones_params(n_heavy, bath_model, tgt_model):
     # Need to put special values in for H2 here
 
     # Read the proper coefficients from the moldriver dct
+    print(bath_model)
+    print(tgt_model)
     coeffs = dict_.values_in_multilevel_dct(
         LJ_EST_DCT, bath_model, tgt_model)
 

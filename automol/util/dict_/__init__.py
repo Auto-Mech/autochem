@@ -9,6 +9,7 @@ from automol.util.dict_._dict_ import by_value
 from automol.util.dict_._dict_ import values_by_key
 from automol.util.dict_._dict_ import values_by_unordered_tuple
 from automol.util.dict_._dict_ import values_in_multilevel_dct
+from automol.util.dict_._dict_ import value_in_floatkey_dct
 from automol.util.dict_._dict_ import separate_subdct
 from automol.util.dict_._dict_ import merge_subdct
 from automol.util.dict_._dict_ import keys_by_value
@@ -27,7 +28,8 @@ __all__ = [
     # functions
     'invert',
     'empty_if_none', 'right_update', 'by_key', 'by_value',
-    'values_by_key', 'values_by_unordered_tuple', 'values_in_multilevel_dct',
+    'values_by_key', 'values_by_unordered_tuple',
+    'values_in_multilevel_dct', 'value_in_floatkey_dct',
     'keys_by_value', 'transform_keys', 'transform_values',
     'separate_subdct', 'merge_subdct',
     'transform_items_to_values', 'keys_sorted_by_value', 'filter_by_value',
