@@ -16,7 +16,8 @@ from automol.etrans._fxn import troe_lj_collision_frequency
 
 
 # CALCULATE THE EFFECTIVE ALPHA VALUE
-def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model):
+def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model,
+          empirical_factor=2.0):
     """ Calculate the alpha param using the method Jasper, et al.
 
         :param n_eff: number of effective rotors
@@ -27,6 +28,8 @@ def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model):
         :type bath_model: str
         :param target_model: string denoting some class of target species
         :type target_model: str
+        :param empirical_factor: correction for using 1DME versus 2DM2
+        :type empirical_factor: float
     """
 
     # Calculate the Lennard-Jones frequencies
@@ -40,15 +43,10 @@ def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model):
     alpha_dct = {}
     for temp, z_alpha_n_eff in z_alphas_n_eff.items():
         zlj = troe_lj_collision_frequency(eps, sig, red_mass, temp)
-        alpha_dct[temp] = (z_alpha_n_eff / zlj) / 2.0
+        alpha_dct[temp] = (z_alpha_n_eff / zlj) / empirical_factor
 
     # Determine alpha and n for the e-down model
     edown_alpha, edown_n = _calculate_energy_down_exponent(alpha_dct)
-
-    # Print stuff
-    # print('    - Collisional frequencies from LJ parameters')
-    # for temp, val in zlj_dct.items():
-    #     print('       T = {0} K, zlj = {1:<.3e} cm3/s'.format(temp, val))
 
     return edown_alpha, edown_n
 
@@ -65,14 +63,17 @@ def _calculate_z_alpha_terms(n_eff, bath_model, tgt_model):
                  coeff[2] * n_eff**(1) +
                  coeff[3]) / 1.0e9)
 
+    # Need to put special values in for H2 here
+
     # Read the proper coefficients from the moldriver dct
     coeff_dct = dict_.values_in_multilevel_dct(
         Z_ALPHA_EST_DCT, bath_model, tgt_model)
 
-    # Calculate the three alpha terms
-    z_alpha_dct = {}
-    for temp, coeffs in coeff_dct.items():
-        z_alpha_dct[temp] = _z_alpha(coeffs, n_eff)
+    if coeff_dct is not None:
+        # Calculate the three alpha terms
+        z_alpha_dct = {}
+        for temp, coeffs in coeff_dct.items():
+            z_alpha_dct[temp] = _z_alpha(coeffs, n_eff)
 
     return z_alpha_dct
 
@@ -110,10 +111,6 @@ def _calculate_energy_down_exponent(alpha_dct):
     # Set the the edown n value to the fitting parameter
     edown_n = theta[0]
 
-    print('    - Alpha parameters from estimation')
-    for temp, val in alpha_dct.items():
-        print('       T = {0} K, alpha = {1:<.3f} cm-1'.format(temp, val))
-
     return edown_alpha, edown_n
 
 
@@ -134,22 +131,19 @@ def lennard_jones_params(n_heavy, bath_model, tgt_model):
         """
         return param * n_heavy**(expt)
 
-    # print('target in etrans', tgt_model)
-    # sigma, eps = dict_.values_in_multilevel_dct(
-    #     LJ_DCT, bath_model, tgt_model[0])
-    sig, eps = None, None
+    # Need to put special values in for H2 here
 
-    if sig is None and eps is None:
-        # Read the proper coefficients from the moldriver dct
-        coeffs = dict_.values_in_multilevel_dct(
-            LJ_EST_DCT, bath_model, tgt_model)
+    # Read the proper coefficients from the moldriver dct
+    print(bath_model)
+    print(tgt_model)
+    coeffs = dict_.values_in_multilevel_dct(
+        LJ_EST_DCT, bath_model, tgt_model)
 
+    if coeffs is not None:
         # Calculate the effective sigma and epsilon values
         sig = _lj(coeffs[0], n_heavy, coeffs[1])
         eps = _lj(coeffs[2], n_heavy, coeffs[3])
-
-    # Put in a check for zeros
-    if sig == 0 or eps == 0:
+    else:
         sig, eps = None, None
 
     return sig, eps
@@ -176,14 +170,14 @@ def effective_rotor_count(geo):
      n_co, n_oo,
      n_ss_ring, n_rings) = _rotor_counts(gra, symbs)
 
-    print('    - Rotor Counts for N_eff:')
-    print('       N_pp:{}, N_ps:{}, N_pt:{}, N_pq:{}'.format(
-        n_pp, n_ps, n_pt, n_pq))
-    print('       N_ss:{}, N_st:{}, N_sq:{}'.format(n_ss, n_st, n_sq))
-    print('       N_tt:{}, N_tq:{}'.format(n_tt, n_tq))
-    print('       N_qq:{}'.format(n_qq))
-    print('       N_co:{}, N_oo:{}'.format(n_co, n_oo))
-    print('       N_ss_ring:{}, N_rings:{}'.format(n_ss_ring, n_rings))
+    # print('    - Rotor Counts for N_eff:')
+    # print('       N_pp:{}, N_ps:{}, N_pt:{}, N_pq:{}'.format(
+    #     n_pp, n_ps, n_pt, n_pq))
+    # print('       N_ss:{}, N_st:{}, N_sq:{}'.format(n_ss, n_st, n_sq))
+    # print('       N_tt:{}, N_tq:{}'.format(n_tt, n_tq))
+    # print('       N_qq:{}'.format(n_qq))
+    # print('       N_co:{}, N_oo:{}'.format(n_co, n_oo))
+    # print('       N_ss_ring:{}, N_rings:{}'.format(n_ss_ring, n_rings))
 
     # Use the rotor counts and the coefficients to calculate Neff
     c_pp_ps_ss, c_pt_st, c_pq_sq = 1.0, 2.0/3.0, 1.0/3.0
@@ -277,48 +271,3 @@ def _rotor_counts(gra, symbs):
             n_qq,
             n_co, n_oo,
             n_ss_ring, n_rings)
-
-
-# CHECKERS
-BAD_ICHS = (
-    'InChI=1S/H2/h1H'
-)
-
-
-def determine_collision_model(tgt_info, bath_info):
-    """ Assess whether we can estimate using the formula
-    """
-
-    # Initialize the models
-    bath_model = bath_info[0]
-    tgt_model = None
-
-    # Identify the the target model
-    tgt_ich = tgt_info[0]
-    tgt_gra = automol.geom.graph(automol.inchi.geometry(tgt_ich))
-
-    if tgt_ich not in BAD_ICHS:
-        if automol.graph.radical_species(tgt_gra):
-            tgt_model = '1-alkyl'
-        elif automol.graph.hydrocarbon_species(tgt_gra):
-            tgt_model = 'n-alkane'
-        else:
-            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
-            if fgrp_dct[automol.graph.FunctionalGroup.HYDROPEROXY]:
-                tgt_model = 'n-hydroperoxide'
-            elif fgrp_dct[automol.graph.FunctionalGroup.EPOXIDE]:
-                tgt_model = 'epoxide'
-            elif fgrp_dct[automol.graph.FunctionalGroup.ETHER]:
-                tgt_model = 'ether'
-            elif fgrp_dct[automol.graph.FunctionalGroup.ALCOHOL]:
-                tgt_model = 'n-alcohol'
-
-        # For now, set model to alkanes if nothing found and set up return obj
-        if tgt_model is None:
-            tgt_model = 'n-alkane'
-
-        ret = (bath_model, tgt_model)
-    else:
-        ret = None
-
-    return ret

@@ -558,6 +558,9 @@ def dihedral_angle_coordinate_name(zma, key1, key2, key3, key4):
 def dihedral_axis_name(zma, axis):
     """ gives this name of a dihedral angle that has
         the given axis atoms
+
+        currently fails if indices of axis not in zma, i.e.
+        if 5,1 in zma, code fails if 1,5 given
     """
     coords = coordinates(zma)
     angles = dihedral_angle_names(zma)

@@ -4,21 +4,24 @@
 import os
 import numpy
 from phydat import phycon
+from ioformat import pathtools
 import automol.reac
 from automol.util import highd_mat
-from ioformat import read_text_file
+
 
 PATH = os.path.dirname(os.path.realpath(__file__))
+DAT_PATH = os.path.join(PATH, 'data')
+
 
 # Obtain cubic and quartic force constants
-CUBIC_STR = read_text_file(['data'], 'ch4_h.cubic', path=PATH)
+CUBIC_STR = pathtools.read_file(DAT_PATH, 'ch4_h.cubic')
 CUBIC_MAT = highd_mat.from_string(
     CUBIC_STR, fill_perms=True)
-QUARTIC_STR = read_text_file(['data'], 'ch4_h.quartic', path=PATH)
+QUARTIC_STR = pathtools.read_file(DAT_PATH, 'ch4_h.quartic')
 QUARTIC_MAT = highd_mat.from_string(
     QUARTIC_STR, fill_perms=True)
 
-ENES = numpy.arange(0.0, 17.0, 0.5) * phycon.KCAL2EH
+ENES = numpy.arange(-0.5, 17.5, 0.5) * phycon.KCAL2EH
 FREQS = [-1354.5, 569.5, 571.9, 1117.2, 1209.1, 1209.4,
          1465.7, 1465.9, 1788.0, 3114.7, 3262.8, 3263.3]
 RXN_FREQ = -1*FREQS[0]

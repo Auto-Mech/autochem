@@ -35,6 +35,60 @@ ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 NSAMP = 10
 
+C5H8O_ZMA = (
+    ('C', (None, None, None), (None, None, None),
+     (None, None, None)),
+    ('C', (0, None, None), ('R1', None, None),
+     (2.894126135733367, None, None)),
+    ('H', (0, 1, None), ('R2', 'A2', None),
+     (2.1002551784038714, 1.9218361502726833, None)),
+    ('H', (0, 1, 2), ('R3', 'A3', 'D3'),
+     (2.1008326855365818, 1.932519243247544, 4.182194537966691)),
+    ('H', (0, 1, 2), ('R4', 'A4', 'D4'),
+     (2.0985632786105715, 1.9267905467443245, 2.078543469899091)),
+    ('C', (1, 0, 2), ('R5', 'A5', 'D5'),
+     (2.7809944542976193, 1.9090367411091194, 1.0264175778482927)),
+    ('C', (1, 0, 5), ('R6', 'A6', 'D6'),
+     (2.905905476629344, 1.9462477957117656, 2.1246205025559037)),
+    ('H', (1, 0, 5), ('R7', 'A7', 'D7'),
+     (2.1005624282579265, 1.8988979609840009, 4.223022677525844)),
+    ('X', (5, 1, 0), ('R8', 'A8', 'D8'),
+     (1.8897261254578288, 1.5707963267948968, 4.216836292856281)),
+    ('C', (5, 8, 1), ('R9', 'A9', 'D9'),
+     (2.2778505841014964, 1.5732722619955628, 3.1519457859137696)),
+    ('X', (9, 5, 8), ('R10', 'A10', 'D10'),
+     (1.8897261254578286, 1.56832039159423, 0.0)),
+    ('H', (9, 10, 5), ('R11', 'A11', 'D11'),
+     (2.0003442808863467, 1.57550991099349, 3.14859478950736)),
+    ('O', (6, 1, 0), ('R12', 'A12', 'D12'),
+     (2.65076899334649, 1.9387190313618887, 1.0262708014428483)),
+    ('H', (6, 1, 12), ('R13', 'A13', 'D13'),
+     (2.1058345184525726, 1.9323237957467607, 2.129177885999989)),
+    ('H', (6, 1, 12), ('R14', 'A14', 'D14'),
+     (2.1010240316411886, 1.9207088798352128, 4.1894956154070275)),
+    ('H', (12, 6, 1), ('R15', 'A15', 'D15'),
+     (1.8758293656194, 1.8624105681328567, 1.2477273554765336)))
+
+# HOOH ZMAs
+HOOH_ZMA_C2 = (
+    ('O', (None, None, None), (None, None, None),
+     (None, None, None)),
+    ('O', (0, None, None), ('R1', None, None),
+     (2.747759350307364, None, None)),
+    ('H', (0, 1, None), ('R2', 'A2', None),
+     (1.8445107263893656, 1.6890062361073546, None)),
+    ('H', (1, 0, 2), ('R3', 'A3', 'D3'),
+     (1.8445105807874629, 1.6890041579036852, 2.2578840834994196)))
+HOOH_ZMA_CS = (
+    ('O', (None, None, None), (None, None, None),
+     (None, None, None)),
+    ('O', (0, None, None), ('R1', None, None),
+     (2.747759350307364, None, None)),
+    ('H', (0, 1, None), ('R2', 'A2', None),
+     (1.8445107263893656, 1.6890062361073546, None)),
+    ('H', (1, 0, 2), ('R3', 'A3', 'D3'),
+     (1.8445105807874629, 1.6890041579036852, 0.0000)))
+
 
 def test__geom__with_stereo():
     """ test geom conversions
@@ -44,9 +98,7 @@ def test__geom__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
         geo = automol.inchi.geometry(ref_ich)
-        print(ref_ich)
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich
 
@@ -84,10 +136,8 @@ def test__geom__no_stereo():
 #     ]
 #
 #     for ref_ich in ref_ichs:
-#         print(ref_ich)
 #         gra = automol.inchi.graph(ref_ich)
 #         ich = automol.graph.inchi(gra, stereo=True)
-#         print(ref_ich, '\n')
 #         assert ich == ref_ich
 #
 #         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
@@ -118,7 +168,6 @@ def test__zmatrix__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmat.geometry(zma)
@@ -138,7 +187,6 @@ def test__zmatrix__with_stereo():
         ('O', (1, 0, 2), ('R2', 'A1', 'D1'),
          (2.2601124460475623, 1.5707963267948966, 3.141592653589793)))
 
-    print(automol.zmat.string(zma))
     ref_geo = (('C', (0.0, 0.0, 1.8897261254578281)),
                ('O', (0.0, 2.2601124460475623, 1.889726125457828)),
                ('O', (0.0, -2.2601124460475623, 1.889726125457828)))
@@ -304,8 +352,43 @@ def test__multiple_rings():
           16-21: {order: 1, stereo_parity: null}
     """)
     ich = automol.graph.inchi(gra, stereo=True)
-    print(ich)
     assert ich == ref_ich
+
+
+def test__geom__x2z_zmatrix():
+    """ test automol.geom.x2z_zmatrix
+    """
+
+    ref_zma = (
+        ('C', (None, None, None), (None, None, None),
+         (None, None, None)),
+        ('O', (0, None, None), ('R1', None, None),
+         (2.67535, None, None)),
+        ('H', (0, 1, None), ('R2', 'A2', None),
+         (2.06501, 1.9116242231243494, None)),
+        ('H', (0, 1, 2), ('R3', 'A3', 'D3'),
+         (2.06501, 1.9116242231243494, 2.1084973627493095)),
+        ('H', (0, 1, 2), ('R4', 'A4', 'D4'),
+         (2.06458, 1.9020947254084601, 4.195841334964448)),
+        ('H', (1, 0, 2), ('R5', 'A5', 'D5'),
+         (1.83748, 1.8690905492532472, 5.2289366258049315)))
+
+    geo = (('C', (-0.70116587131, 0.0146227007587, -0.016166607003)),
+           ('O', (1.7323365056, -0.9538524899, -0.5617192010)),
+           ('H', (-0.9827048283, 0.061897979239, 2.02901783816)),
+           ('H', (-0.8787925682, 1.91673409124, -0.80019507919)),
+           ('H', (-2.12093033745, -1.21447973767, -0.87411360631)),
+           ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
+
+    zma = automol.geom.x2z_zmatrix(geo)
+    assert automol.zmat.almost_equal(ref_zma, zma)
+
+    ref_zma2 = (
+        ('H', (None, None, None), (None, None, None), (None, None, None)),)
+
+    geo2 = (('H', (2.9512589894, 0.17507745634, 0.22317665541)),)
+    zma2 = automol.geom.x2z_zmatrix(geo2)
+    assert automol.zmat.almost_equal(ref_zma2, zma2)
 
 
 def test__geom__x2z_torsion_coordinate_names():
@@ -319,8 +402,7 @@ def test__geom__x2z_torsion_coordinate_names():
            ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
 
     tors_names = automol.geom.x2z_torsion_coordinate_names(geo)
-    print(tors_names)
-    assert tors_names
+    assert tors_names == ('D5',)
 
     geo2 = (('H', (2.9512589894, 0.17507745634, 0.22317665541)),)
 
@@ -347,37 +429,48 @@ def test__geom__x2z_atom_ordering():
     assert ordering2 == {0: 0}
 
 
-# def test__sarah_badpsecies():
-#     """ test bad species list from sarah
-#     """
-#     bs_ichs = list(BS_DF['inchi'])
-#
-#     for ref_ich in bs_ichs:
-#         print(ref_ich)
-#         ich = automol.inchi.add_stereo(ref_ich)
-#         print(ich)
-#         print()
+def test__zmat_conv_dummy():
+    """ test automol.zmat.geom
+    """
+
+    ref_gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
+                3: ('H', 0, None), 4: ('H', 0, None), 5: ('C', 0, None),
+                6: ('C', 0, None), 7: ('H', 0, None), 8: ('X', 0, None),
+                9: ('C', 0, None), 10: ('X', 0, None), 11: ('H', 0, None),
+                12: ('O', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
+                15: ('H', 0, None)},
+               {frozenset({1, 7}): (1, None), frozenset({9, 10}): (0, None),
+                frozenset({0, 3}): (1, None), frozenset({12, 15}): (1, None),
+                frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+                frozenset({6, 14}): (1, None), frozenset({0, 4}): (1, None),
+                frozenset({13, 6}): (1, None), frozenset({9, 11}): (1, None),
+                frozenset({1, 5}): (1, None), frozenset({12, 6}): (1, None),
+                frozenset({1, 6}): (1, None), frozenset({9, 5}): (1, None),
+                frozenset({8, 5}): (0, None)})
+    ref_geo = (
+        ('C', (0.0, 0.0, 0.0)),
+        ('C', (0.0, 0.0, 2.894126135733367)),
+        ('H', (0.0, 1.972172485464683, -0.7222239971008525)),
+        ('H', (-1.6951231876875892, -0.9936443210097795, -0.7434556573917012)),
+        ('H', (1.7188336567949982, -0.9563671208828152, -0.7313963526678268)),
+        ('C', (-2.2442053651761964, 1.3586361565617329, 3.8169371823900766)),
+        ('C', (0.025535203206634938, -2.7033658002133003, 3.959700132572027)),
+        ('H', (1.7085691873013926, 1.017330677567275, 3.5710250496737017)),
+        ('X', (-1.1281908592835943, 2.626314426891954, 4.664621236037264)),
+        ('C', (-4.085691887320963, 2.4807763649694308, 4.5506483141888445)),
+        ('X', (-2.96967738142836, 3.7484546352996513, 5.398332367836032)),
+        ('H', (-5.7053556919673625, 3.47091721106787, 5.181273009931513)),
+        ('O', (2.1539110648484963, -4.040151863741559, 3.117325235021031)),
+        ('H', (-0.002031340007772098, -2.6743735223267073, 6.065154609074555)),
+        ('H', (-1.693646530214367, -3.738866587983746, 3.3380456726570835)),
+        ('H', (3.635541963584469, -3.3116189027191543, 4.007687753063454)))
+
+    gra = automol.zmat.connectivity_graph(C5H8O_ZMA, dummy=True)
+    geo = automol.zmat.geometry(C5H8O_ZMA, dummy=True)
+
+    assert ref_gra == gra
+    assert automol.geom.almost_equal_dist_matrix(ref_geo, geo)
 
 
 if __name__ == '__main__':
-    # test__graph__no_stereo()
-    # test__geom__no_stereo()
-    # test__multiple_rings()
-    # test__smiles__with_stereo()
-    # test__geom__with_stereo()
-    # test__geom__no_stereo()
-    # test__multiple_rings()
-    # test__smiles__with_stereo()
-    # test__zmatrix__with_stereo()
-    # test__smiles__from_geom()
-    # test__inchi_conformers()
-    # test__geom__zmatrix_torsion_coordinate_names()
-    # test__geom__zmatrix_atom_ordering()
-    # test__graph__with_stereo()
-    # test__geom__with_stereo()
-    # test__graph__misc()
-    # test__zmatrix__with_stereo()
-    # test__inchi_geometry()
-    test__geom__no_stereo()
-    test__geom__x2z_torsion_coordinate_names()
-    test__geom__x2z_atom_ordering()
+    test__zmat_conv_dummy()

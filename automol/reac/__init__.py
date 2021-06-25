@@ -70,7 +70,7 @@ from automol.reac._pst import pst_cn
 # tunneling treatments
 from automol.reac import tunnel
 # comp functions
-from automol.reac._zma_comp import similar_saddle_point_structure
+from automol.reac._comp import similar_saddle_point_structure
 # util
 from automol.reac import _util as util
 from automol.reac._util import reaction_inchis

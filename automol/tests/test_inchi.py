@@ -62,6 +62,16 @@ def test__from_data():
     ))
 
 
+def test__formula_string():
+    """ inchi.formula_string
+    """
+
+    assert inchi.formula_string(AR_ICH) == 'Ar'
+    assert inchi.formula_string(CH4O_CH_ICH) == 'CH4O.CH'
+    assert inchi.formula_string(CH2O2_ICH) == 'CH2O2'
+    assert inchi.formula_string(C2H6O_ICH) == 'C2H6O'
+
+
 def test__version():
     """ inchi.version
     """
@@ -147,28 +157,50 @@ def test__recalculate():
     assert inchi.recalculate(C2H2F2_ICH_NO_STEREO) == C2H2F2_ICH_NO_STEREO
     assert (inchi.recalculate(C2H2F2_ICH_NO_STEREO, stereo=True)
             == C2H2F2_ICH_STEREO_UNKNOWN)
-    # assert inchi.recalculate(CH4O_CH_ICH) == CH4O_CH_ICH
 
 
-def test__expand_stereo():
-    """ inchi.expand_stereo
+def test__stereo():
+    """ test inchi.add_stereo
+        test inchi.expand_stereo
     """
-    assert len(inchi.expand_stereo(C8H13O_ICH_NO_STEREO)) == 8
+
+    # Add and Expand stereo to C8H13O
+    c8h13o_ste = (
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4-/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4+/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4-/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m0/s1')
+    )
+    assert inchi.add_stereo(C8H13O_ICH_NO_STEREO) in c8h13o_ste
+    assert set(inchi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
 
     # some cases that were breaking
-    inchi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')
-    inchi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')
-    inchi.expand_stereo('InChI=1S/C2/c1-2')
-    inchi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')
+    assert set(inchi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')) == {
+        'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
+        'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
+    assert set(inchi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
+        'InChI=1S/CH2N/c1-2/h1-2H',
+        'InChI=1S/CH2N/c1-2/h1-2H'}
+    assert set(inchi.expand_stereo('InChI=1S/C2/c1-2')) == {
+        'InChI=1S/C2/c1-2'}
+    assert set(inchi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')) == {
+        'InChI=1S/C3H3/c1-3-2/h1-3H',
+        'InChI=1S/C3H3/c1-3-2/h1-3H',
+        'InChI=1S/C3H3/c1-3-2/h1-3H',
+        'InChI=1S/C3H3/c1-3-2/h1-3H'}
 
 
 if __name__ == '__main__':
-    test__from_data()
-    # test__version()
-    # test__join()
-    # test__recalculate()
-    # test__split()
-    # test__standard_form()
-    # test__has_stereo()
-    # test__argsort()
-    # test__expand_stereo()
+    test__stereo()

@@ -1,10 +1,15 @@
 """ Deal with comparisons
 """
 
-import automol.zmat
-import automol.geom
-import automol.reac
 from phydat import bnd
+import automol.zmat
+from automol.geom import symbols
+from automol.geom import distance
+from automol.geom import central_angle
+from automol.util import dict_
+from automol.reac._reac import forming_bond_keys
+from automol.reac._reac import breaking_bond_keys
+from automol.reac._reac import relabel_for_geometry
 
 
 def similar_saddle_point_structure(zma, ref_zma, zrxn):
@@ -18,10 +23,10 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
     # Get the bond dists and calculate the distance of bond being formed
     ref_geo = automol.zmat.geometry(ref_zma)
     cnf_geo = automol.zmat.geometry(zma)
-    grxn = automol.reac.relabel_for_geometry(zrxn)
+    grxn = relabel_for_geometry(zrxn)
 
-    frm_bnd_keys = automol.reac.forming_bond_keys(grxn)
-    brk_bnd_keys = automol.reac.breaking_bond_keys(grxn)
+    frm_bnd_keys = forming_bond_keys(grxn)
+    brk_bnd_keys = breaking_bond_keys(grxn)
 
     cnf_dist_lst = []
     ref_dist_lst = []
@@ -30,16 +35,16 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
     ref_ang_lst = []
     for frm_bnd_key in frm_bnd_keys:
         frm_idx1, frm_idx2 = list(frm_bnd_key)
-        cnf_dist = automol.geom.distance(cnf_geo, frm_idx1, frm_idx2)
-        ref_dist = automol.geom.distance(ref_geo, frm_idx1, frm_idx2)
+        cnf_dist = distance(cnf_geo, frm_idx1, frm_idx2)
+        ref_dist = distance(ref_geo, frm_idx1, frm_idx2)
         cnf_dist_lst.append(cnf_dist)
         ref_dist_lst.append(ref_dist)
         bnd_key_lst.append(frm_bnd_key)
 
     for brk_bnd_key in brk_bnd_keys:
         brk_idx1, brk_idx2 = list(brk_bnd_key)
-        cnf_dist = automol.geom.distance(cnf_geo, brk_idx1, brk_idx2)
-        ref_dist = automol.geom.distance(ref_geo, brk_idx1, brk_idx2)
+        cnf_dist = distance(cnf_geo, brk_idx1, brk_idx2)
+        ref_dist = distance(ref_geo, brk_idx1, brk_idx2)
         cnf_dist_lst.append(cnf_dist)
         ref_dist_lst.append(ref_dist)
         bnd_key_lst.append(brk_bnd_key)
@@ -52,10 +57,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
                         idx2 = frm_idx
                         idx1 = list(frm_bnd_key - frozenset({idx2}))[0]
                         idx3 = list(brk_bnd_key - frozenset({idx2}))[0]
-                        cnf_ang = automol.geom.central_angle(
-                            cnf_geo, idx1, idx2, idx3)
-                        ref_ang = automol.geom.central_angle(
-                            ref_geo, idx1, idx2, idx3)
+                        cnf_ang = central_angle(cnf_geo, idx1, idx2, idx3)
+                        ref_ang = central_angle(ref_geo, idx1, idx2, idx3)
                         cnf_ang_lst.append(cnf_ang)
                         ref_ang_lst.append(ref_ang)
 
@@ -75,13 +78,13 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
                 # ioprinter.diverged_ts('angle', ref_angle, cnf_angle)
                 viable = False
 
-    symbols = automol.geom.symbols(cnf_geo)
+    symbs = symbols(cnf_geo)
     lst_info = zip(ref_dist_lst, cnf_dist_lst, bnd_key_lst)
     for ref_dist, cnf_dist, bnd_key in lst_info:
         if 'add' in grxn.class_ or 'abst' in grxn.class_:
             bnd_key1, bnd_key2 = min(list(bnd_key)), max(list(bnd_key))
-            symb1 = symbols[bnd_key1]
-            symb2 = symbols[bnd_key2]
+            symb1 = symbs[bnd_key1]
+            symb2 = symbs[bnd_key2]
 
             if bnd_key in frm_bnd_keys:
                 # Check if radical atom is closer to some atom
@@ -99,7 +102,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
                     viable = False
 
             # Check distance relative to equi. bond
-            equi_bnd = automol.util.dict_.values_by_unordered_tuple(
+            equi_bnd = dict_.values_by_unordered_tuple(
                 bnd.LEN_DCT, (symb1, symb2), fill_val=0.0)
             displace_from_equi = cnf_dist - equi_bnd
             dchk1 = abs(cnf_dist - ref_dist) > 0.1

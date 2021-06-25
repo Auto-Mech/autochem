@@ -52,8 +52,9 @@ Level 5: L1-4 dependencies; hierarchical interdependency (descending)
  - combine
  - reac
  - rotor        [L5 dependencies: reac]
-
+ - symm         [L5 dependencies: reac, rotor]
 """
+
 # L1
 from automol import par
 from automol import util
@@ -79,6 +80,7 @@ from automol import etrans
 from automol import combine
 from automol import reac
 from automol import rotor
+from automol import symm
 
 
 __all__ = [
@@ -107,4 +109,5 @@ __all__ = [
     'combine',
     'reac',
     'rotor',
+    'symm'
 ]

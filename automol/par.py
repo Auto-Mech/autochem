@@ -10,7 +10,6 @@
 """
 
 import inspect
-import itertools
 
 
 class ReactionClass:
@@ -86,23 +85,22 @@ def string(rxn_class):
         :rtype: str
     """
     radrad_str = '' if not radrad(rxn_class) else 'radical-radical'
-    return '{} {} {}'.format(radrad_str, spin(rxn_class), typ(rxn_class))
+    out_str = '{} {} {}'.format(radrad_str, spin(rxn_class), typ(rxn_class))
+    return out_str.strip()
 
 
 # Checks for building/using class
-def need_spin_designation(class_typ):
+def need_spin_designation(rxn_class):
     """ Determine if a spin-state string designation in the full reaction
         class description based on the class typ
 
-        :param class_typ: reaction type designation
-        :type class_typ: str
         :rtype: bool
     """
     need_spins = (
         ReactionClass.Typ.ADDITION,
         ReactionClass.Typ.HYDROGEN_ABSTRACTION
     )
-    return class_typ in need_spins
+    return typ(rxn_class) in need_spins
 
 
 def need_wells(rxn_class):
@@ -211,16 +209,6 @@ def _values(cls):
     assert inspect.isclass(cls)
     vals = tuple(val for val in _public_attributes(cls)
                  if not inspect.isclass(val))
-    return vals
-
-
-def all_values(cls):
-    """ recursively list the values of a parameter class tree
-    """
-    assert inspect.isclass(cls)
-    vals = tuple(itertools.chain(*(
-        [val] if not inspect.isclass(val) else all_values(val)
-        for val in _public_attributes(cls))))
     return vals
 
 

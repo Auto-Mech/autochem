@@ -75,8 +75,6 @@ from automol.zmat.base._extra import constraint_dct
 from automol.zmat.base._extra import set_constraint_names
 from automol.zmat.base._extra import coord_idxs
 from automol.zmat.base._extra import bond_key_from_idxs
-from automol.zmat.base._extra import get_babs1
-from automol.zmat.base._extra import get_babs2
 # L4
 # conversion functions
 # # conversions
@@ -172,8 +170,6 @@ __all__ = [
     'set_constraint_names',
     'coord_idxs',
     'bond_key_from_idxs',
-    'get_babs1',
-    'get_babs2',
     # L4
     # conversion functions
     # # conversions
@@ -199,7 +195,6 @@ __all__ = [
     'all_rings_dihedrals',
     'all_rings_dct',
     'all_rings_distances_reasonable',
-    'ring_atoms',
     'ring_distances',
     'ring_dihedrals',
     'ring_distances_reasonable'

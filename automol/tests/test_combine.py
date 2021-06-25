@@ -21,11 +21,7 @@ O_GEO = (
     ('O', (1.0000000000, 1.0000000000, 1.0000000000)),)
 H_GEO = (
     ('H', (0.0000000000, 0.0000000000, 0.0000000000)),)
-C2H6_FREQS = (
-    314.8, 841.1, 841.1, 1026.1, 1240.4, 1240.4, 1436.0, 1465.3,
-    1539.6, 1539.6, 1541.9, 1541.9, 3070.0, 3071.0, 3134.2, 3134.2,
-    3156.9, 3156.9)
-OH_FREQS = (3742.1,)
+
 C2H6_ELVLS = ((0., 1),)
 OH_ELVLS = ((0., 2), (138.9, 2))
 O_ELVLS = ((0., 5), (158.5, 3), (226.5, 1))
@@ -70,34 +66,42 @@ def test__geo_combiners():
 
     ref_vdw_freqs1 = (30.0, 50.0, 70.0)
     ref_vdw_freqs2 = (30.0, 50.0)
-    ref_vdw_freqs3 = ()
+    ref_vdw_freqs3 = (30.0,)
+    ref_vdw_freqs4 = ()
 
     vdw_freqs1 = automol.combine.fake_vdw_frequencies(C2H6_GEO, OH_GEO)
     vdw_freqs2 = automol.combine.fake_vdw_frequencies(C2H6_GEO, O_GEO)
-    vdw_freqs3 = automol.combine.fake_vdw_frequencies(H_GEO, O_GEO)
+    vdw_freqs3 = automol.combine.fake_vdw_frequencies(H_GEO, OH_GEO)
+    vdw_freqs4 = automol.combine.fake_vdw_frequencies(H_GEO, O_GEO)
     assert numpy.allclose(vdw_freqs1, ref_vdw_freqs1)
     assert numpy.allclose(vdw_freqs2, ref_vdw_freqs2)
     assert numpy.allclose(vdw_freqs3, ref_vdw_freqs3)
+    assert numpy.allclose(vdw_freqs4, ref_vdw_freqs4)
 
 
 def test__elec_levels_combiners():
-    """ automol.combine
+    """ test automol.combine.electronic_energy_levels
     """
 
     ref_elvls1 = ((0.0, 2), (138.9, 2))
     ref_elvls2 = ((0.0, 5), (158.5, 3), (226.5, 1))
     ref_elvls3 = ((0.0, 10), (138.9, 10), (158.5, 6),
                   (226.5, 2), (297.4, 6), (365.4, 2))
+    ref_elvls4 = ((0.0, 4), (138.9, 8), (277.8, 4))
 
     elvls1 = automol.combine.electronic_energy_levels(C2H6_ELVLS, OH_ELVLS)
     elvls2 = automol.combine.electronic_energy_levels(C2H6_ELVLS, O_ELVLS)
     elvls3 = automol.combine.electronic_energy_levels(OH_ELVLS, O_ELVLS)
+    elvls4 = automol.combine.electronic_energy_levels(OH_ELVLS, OH_ELVLS)
 
     assert numpy.allclose(elvls1, ref_elvls1)
     assert numpy.allclose(elvls2, ref_elvls2)
     assert numpy.allclose(elvls3, ref_elvls3)
+    assert numpy.allclose(elvls4, ref_elvls4)
 
 
-if __name__ == '__main__':
-    test__geo_combiners()
-    test__elec_levels_combiners()
+def test__formula_combiners():
+    """ test automol.combine.formula_string
+    """
+
+    assert automol.combine.formula_string(C2H6_GEO, OH_GEO) == 'C2H7O1'

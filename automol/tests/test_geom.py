@@ -53,6 +53,14 @@ BAD_GEO = ((2.994881276150, -1.414434615111),
            (1.170155936996, 0.359360756989),
            (-1.201356763194, -0.347546894407))
 
+GEO_STR = """4
+Energy:  1.25828 kJ/mol (UFF)
+O       -0.9741512421      0.1822933377     -0.1126377411
+O        0.3289735103      0.1763176636     -0.3024822120
+H       -1.2826135304     -0.6998243267     -0.4438019186
+H        0.4659939252      0.6943122175     -1.1366628384
+"""
+
 
 def test__from_data():
     """ test getters
@@ -66,9 +74,15 @@ def test__from_data():
 def test__is_valid():
     """ test geom.is_valid
     """
+
+    # Check validity
     assert geom.is_valid(C2H2CLF_GEO)
     # with pytest.raises(ValueError):
     #     geom.is_valid(BAD_GEO)
+
+    # Check empty geom returns empty information
+    assert not geom.symbols(())
+    assert not geom.coordinates(())
 
 
 def test__struct_check():
@@ -111,6 +125,8 @@ def test__from_xyz_string():
     """
     assert geom.almost_equal(
         geom.from_xyz_string(geom.xyz_string(C2H2CLF_GEO)), C2H2CLF_GEO)
+
+    assert geom.xyz_string_comment(GEO_STR) == 'Energy:  1.25828 kJ/mol (UFF)'
 
 
 def test__formula():
@@ -314,45 +330,6 @@ def test__rotate():
     assert automol.geom.almost_equal_dist_matrix(geo1, ref_geo1, thresh=0.001)
 
 
-def test__symmetry_factor():
-    """ test geom.external_symmety_factor
-    """
-    ref_sym_num1 = 12
-    ref_sym_num2 = 1
-    ref_sym_num3 = 0.5
-    ref_sym_num4 = 1
-
-    methane_geo = (('C', (1.2069668249, 1.9997649792, -0.0000004209)),
-                   ('H', (3.3034303116, 1.9997688296, -0.0000006619)),
-                   ('H', (0.5081497935, 0.1480118251, 0.6912478445)),
-                   ('H', (0.5081445849, 2.3270011544, -1.9492882688)),
-                   ('H', (0.5081426638, 3.5242779889, 1.2580393046)))
-    c2h5of_geo = (('C', (-4.67963119210, -2.785693400767, -0.04102938592633)),
-                  ('C', (-1.806009533535, -2.594940600449, -0.1025157659970)),
-                  ('H', (-5.39544527869, -3.740953123044, -1.774996188159)),
-                  ('H', (-5.501156952723, -0.854962636480, -0.01317371318990)),
-                  ('O', (-5.48010155525, -4.07121874876, 2.132641999777597)),
-                  ('H', (-1.208455201406, -1.52313066520, -1.804561025201)),
-                  ('F', (-0.745999108314, -4.9827454242, -0.1878162481225)),
-                  ('H', (-1.11738479998, -1.591763680324, 1.607521773704)),
-                  ('H', (-5.30771129777, -5.90407965309, 1.771303996279)))
-    methane_sym_num = automol.geom.external_symmetry_factor(methane_geo)
-    h_sym_num = automol.geom.external_symmetry_factor(H_GEO)
-    c2h5of_sym_num = automol.geom.external_symmetry_factor(c2h5of_geo)
-    c2h2clf_sym_num = automol.geom.external_symmetry_factor(C2H2CLF_GEO)
-    assert methane_sym_num == ref_sym_num1
-    assert h_sym_num == ref_sym_num2
-    assert c2h5of_sym_num == ref_sym_num3
-    assert c2h2clf_sym_num 
-
-    # Add internal code TODO
-    # print(automol.geom.internal_symm_from_sampling(
-    #     symm_geos, rotors, grxn=None, zma=None
-    # print(automol.geom.reduce_internal_symm(
-    #     int_symm, ext_symm, end_group_factor, geo))
-    # print(automol.geom.rotor_reduced_symm_factor(sym_factor, rotor_symms):
-
-
 def test__closest_unbonded_atoms():
     """ test geom.closest_unbonded_atoms
     """
@@ -433,42 +410,12 @@ def test__insert_dummies():
 
     # 4. Insert dummy atoms to the new geometry at the appropriate positions
     geo_wdummy = automol.geom.insert_dummies(geo, dummy_key_dct)
-    print(automol.geom.symbols(geo_wdummy))
-    print(automol.zmat.symbols(zma))
     assert automol.geom.symbols(geo_wdummy) == automol.zmat.symbols(zma)
 
     # 5. Update the z-matrix from the geometry.
     zma_new = automol.zmat.from_geometry(zma, geo_wdummy)
-    print('original z-matrix:')
-    print(automol.zmat.string(zma))
-    print('new z-matrix:')
-    print(automol.zmat.string(zma_new))
 
     # 6. Check that the geometry was correctly encoded by converting the new
     # z-matrix back and comparing.
     geo_new = automol.zmat.geometry(zma_new)
-    print('original geometry:')
-    print(automol.geom.string(geo))
-    print('new geometry:')
-    print(automol.geom.string(geo_new))
     assert automol.geom.almost_equal_dist_matrix(geo, geo_new)
-
-
-if __name__ == '__main__':
-    # test__from_data()
-    # test__is_valid()
-    # test__struct_check()
-    # test__mass()
-    # test__rotation_properties()
-    # test__atom_indices()
-    # test__set_coordinates()
-    # test__swap_coordinates()
-    # test__dist_analysis()
-    # test__symmetry_factor()
-    # test__closest_unbonded_atoms()
-    # test__rotate()
-    # test__reflect_coordinates()
-    # test__permutations()
-    # test__traj()
-    # test__insert_dummies()
-    test__remove()

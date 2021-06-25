@@ -2,6 +2,9 @@
   Values to calculate effective parameters for energy transport
 """
 
+from automol.graph import FunctionalGroup
+
+
 # Dictionaries of parameters
 # Empirically determined parameters indexed by bath gas
 # prob need to be uncombined and units changed
@@ -136,16 +139,12 @@ Z_ALPHA_EST_DCT = {
 }
 
 # Bond dissociation energies (kcal/mol)
-D0_DCT = {
-    'm-peroxide': 35.0,
-    'ro2_qooh': 35.0,
-    'qooh': 35.0,
-    'ketohydroperoxide': (35.0, 51.0),
-    '1-alkyl': 40.0,
-    'n-hydroperoxide': 45.0,
-    'epoxide': 60.0,
-    'm-ether': 82.0,
-    'n-alcohol': 90.0,
-    'n-alkane': 95.0,
-    'n-alkene': 95.0,
-}
+D0_GRP_LST = (
+    (FunctionalGroup.HYDROPEROXY, 'n-hydroperoxide'),  # 35.0
+    # FunctionalGroup.'ketohydroperoxide':             # (35.0, 51.0)
+    # FunctionalGroup.'1-alkyl':                       # 40.0
+    # FunctionalGroup.'n-hydroperoxide':               # 45.0
+    (FunctionalGroup.EPOXIDE, 'epoxide'),              # 60.0
+    (FunctionalGroup.ETHER, 'ether'),                  # 82.0
+    (FunctionalGroup.ALCOHOL, 'n-alcohol')             # 90.0
+)
