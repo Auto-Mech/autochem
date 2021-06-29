@@ -78,7 +78,7 @@ def from_string(arr_str, fill_perms=False):
         tmp = line.strip().split()
         idxs = tuple(int(val)-1 for val in tmp[:-1])
         val = float(tmp[-1])
-        # Store values in the arrays
+        # Store values
         mat_idxs.append(idxs)
         mat_vals.append(val)
 
@@ -166,15 +166,18 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
 
         return full_idxs, full_vals
 
-    # Convert the types of the force constant data
+    # Build out the idxs and vals to include permutations, if needed
     if fill_perms:
         mat_idxs, mat_vals = _gen_idxs(mat_idxs, mat_vals)
 
-    # Get dimensionality of force constants (assumes 0 idx of mat)
+    # Get dimensionality of matrix (assumes 0 idx of mat)
     ncoords = max((max(idxs) for idxs in mat_idxs))+1
+    print(ncoords)
     ndim = len(mat_idxs[0])
+    print(ndim)
 
     dims = tuple(ncoords for _ in range(ndim))
+    print(dims)
 
     # Build the force constant matrix
     mat = np.zeros(dims)

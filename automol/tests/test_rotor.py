@@ -132,7 +132,9 @@ def test__tors():
     """ Various torsion builders
     """
 
-    gra, lin_keys = automol.rotor.graph_with_keys(C2H5OH_ZMA)
+    gra = automol.zmat.graph(C2H5OH_ZMA, stereo=True, dummy=True)
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
 
     all_axes = automol.rotor.all_torsion_axes(gra, lin_keys)
     assert all_axes == ((0, 1), (1, 5))
