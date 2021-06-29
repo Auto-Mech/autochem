@@ -67,16 +67,19 @@ def test__geo_combiners():
     ref_vdw_freqs1 = (30.0, 50.0, 70.0)
     ref_vdw_freqs2 = (30.0, 50.0)
     ref_vdw_freqs3 = (30.0,)
-    ref_vdw_freqs4 = ()
+    # ref_vdw_freqs4 = (30.0,)
+    ref_vdw_freqs5 = ()
 
     vdw_freqs1 = automol.combine.fake_vdw_frequencies(C2H6_GEO, OH_GEO)
     vdw_freqs2 = automol.combine.fake_vdw_frequencies(C2H6_GEO, O_GEO)
     vdw_freqs3 = automol.combine.fake_vdw_frequencies(H_GEO, OH_GEO)
-    vdw_freqs4 = automol.combine.fake_vdw_frequencies(H_GEO, O_GEO)
+    # vdw_freqs4 = automol.combine.fake_vdw_frequencies(OH_GEO, OH_GEO)
+    vdw_freqs5 = automol.combine.fake_vdw_frequencies(H_GEO, O_GEO)
     assert numpy.allclose(vdw_freqs1, ref_vdw_freqs1)
     assert numpy.allclose(vdw_freqs2, ref_vdw_freqs2)
     assert numpy.allclose(vdw_freqs3, ref_vdw_freqs3)
-    assert numpy.allclose(vdw_freqs4, ref_vdw_freqs4)
+    # assert numpy.allclose(vdw_freqs4, ref_vdw_freqs4)
+    assert numpy.allclose(vdw_freqs5, ref_vdw_freqs5)
 
 
 def test__elec_levels_combiners():
