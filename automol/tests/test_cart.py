@@ -126,6 +126,7 @@ def test__highd_mat():
                 match = False
         return match
 
+    # Read formatted files
     ref_3d_str = pathtools.read_file(DAT_PATH, 'ch4_h.cubic')
     ref_4d_str = pathtools.read_file(DAT_PATH, 'ch4_h.quartic')
 
