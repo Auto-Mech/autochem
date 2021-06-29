@@ -872,10 +872,10 @@ def _check_reaction(rxn_obj,
     if ref_scan_grid is not None:
         for rgrd, grd in zip(ref_scan_grid, scan_grid):
             if rxn.class_ != 'elimination':
-                assert(numpy.allclose(rgrd, grd))
+                assert numpy.allclose(rgrd, grd)
             else:
                 for sub_rgrd, sub_grd in zip(rgrd, grd):
-                    assert(numpy.allclose(sub_rgrd, sub_grd))
+                    assert numpy.allclose(sub_rgrd, sub_grd)
     if ref_update_guess is not None:
         assert update_guess == ref_update_guess
     if ref_tors_names is not None:

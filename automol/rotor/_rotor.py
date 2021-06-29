@@ -23,12 +23,9 @@ def from_zmatrix(zma, zrxn=None, tors_names=None, multi=False):
     """ Construct a list-of-lists of torsion objects
     """
 
+    # Build the initial list of torsion objects
     if zrxn is None:
-        # Build a graph that is used to get torsion object info
-        gra, lin_keys = graph_with_keys(zma, zrxn=zrxn)
-        print('lin keys back here', lin_keys)
-        # Build the torsion objects
-        tors_lst = tors.torsion_lst(zma, gra, lin_keys)
+        tors_lst = tors.torsion_lst(zma)
     else:
         tors_lst = tors.reaction_torsion_lst(zma, zrxn)
 
