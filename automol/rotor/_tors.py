@@ -43,18 +43,17 @@ class Torsion:
         """
         self.indices = automol.zmat.coord_idxs(self.zma, self.name)
 
-    def copy(self):
-        """ return a copy of this Reaction
-        """
-        return Torsion(
-            self.zma, self.name, self.axis, self.groups,
-            self.symmetry, self.span, self.indices)
-
 
 # Build functions
-def torsion_lst(zma, gra, lin_keys):
+def torsion_lst(zma):
     """  Build a list of torsion objects
     """
+
+    # Get the necessary graph and lin keys
+    gra = automol.zmat.graph(zma, stereo=True, dummy=True)
+    lin_keys = sorted(
+        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
+
     # Build the torsion objects
     _name_axis_dct = name_axis_dct(zma, gra, lin_keys)
 
@@ -99,11 +98,6 @@ def reaction_torsion_lst(zma, zrxn):
         gaxis = tuple(sorted(gaxis))
         ggrps = automol.reac.rotational_groups(grxn, *gaxis)
         symm = automol.reac.rotational_symmetry_number(grxn, *gaxis)
-
-        # not for filesys
-        # zgrps = tuple(automol.zmat.shift_up(zma, grp)
-        #               for grp in ggrps)
-        # zaxis = automol.zmat.shift_up(zma, gaxis)
 
         # Build the torsion object and add to the list
         tors_obj_lst += (Torsion(zma, name, gaxis, ggrps, symm),)

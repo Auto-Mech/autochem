@@ -22,15 +22,13 @@ def samples(zma, nsamp, range_dct):
 
 
 def torsional_sampling_ranges(tors_names):
-    """ sampling ranges for torsional dihedrals
+    """ Generate the min and max for a range of values that can be used
+        to sample the torsional angle, relative to the equibrium structure.
+
+        Function originally restricted the range by the torsional symmetry
+        number; however, it seems most effective to sample the full space
+        of values from  0 to 2*pi.
     """
-    # sym_nums = torsional_symmetry_numbers(zma, tors_names,
-    # frm_bnd_key=None, brk_bnd_key=None)
-    # return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
-    # originally restricted range by sym_num.
-    # But after all it appears that using the
-    # full range is best.
-    # after all it appears that using the full sampling range is most effective
     sym_nums = 1.
     return tuple((0, 2*numpy.pi/sym_nums) for tors_name in tors_names)
 
