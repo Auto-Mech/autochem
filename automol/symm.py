@@ -11,6 +11,7 @@ from automol.geom._conv import external_symmetry_factor
 from automol.geom._conv import graph
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import are_torsions_same2
+from automol.graph._conv import inchi
 
 
 # external
@@ -194,3 +195,57 @@ def _modify_idxs(idxs_lst, removed_atms, dummy_atms):
                 mod_idxs.append(mod_idx)
             mod_idxs_lst.append(mod_idxs)
     return mod_idxs_lst
+
+
+ICH_DCT = {'C': 'InChI=1S/C', 'O': 'InChI=1S/O'}
+
+
+def oxygenated_hydrocarbon_symm_num(geo):
+    int_symm = 1.
+    chiral_center = 0
+    gra = graph(geo)
+    gra = automol.graph.base.explicit(gra)
+    atms = automol.graph.base.atom_keys(gra)
+    atm_vals = automol.graph.base.unsaturated_atom_keys(gra)
+    ring_atms = automol.graph.base.rings_atom_keys(gra)
+    ring_atms = [x for ring in ring_atms for x in ring]
+    atm_rads = automol.graph.base.radical_atom_keys(gra)
+    atm_syms = automol.graph.base.atom_symbols(gra)
+    atms = [x for x in atms if atm_syms[x] != 'H']
+    for atm in atms:
+        if atm in atm_vals and atm not in atm_rads:
+            continue
+        if atm in ring_atms:
+            atm_groups = automol.graph.base.ring_atom_chirality(gra, atm, ring_atms)
+        else:
+            atm_groups = automol.graph.base.atom_groups(gra, atm)
+        group_dct = {}
+        for group in atm_groups:
+            group_smi = inchi(group)
+            if group_smi in group_dct:
+                group_dct[group_smi] += 1
+            else:
+                group_dct[group_smi] = 1
+        # remove atom inchi from dct
+        atm_sym = atm_syms[atm]
+        atm_ich = ICH_DCT[atm_sym]
+        group_dct[atm_ich] -= 1
+        group_dct = {x: y for x, y in group_dct.items() if y != 0}
+        if len(group_dct) == 4:
+            chiral_center += 1
+        if atm in ring_atms:
+            continue
+        if len(group_dct) == 2:
+            chain_group = None
+            symm_groups = None
+            for group in group_dct.keys():
+                if group_dct[group] == 1:
+                    chain_group = group
+                else:
+                    symm_groups = group
+            if chain_group and symm_groups:
+                atm_symm = group_dct[symm_groups]
+                int_symm *= atm_symm
+        ext_symm = external_symmetry_factor(
+            geo, chiral_center=chiral_center > 0.)
+        return int_symm * ext_symm

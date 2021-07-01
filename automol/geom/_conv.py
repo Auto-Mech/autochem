@@ -280,7 +280,7 @@ def closest_unbonded_atoms(geo, gra=None):
     return min_bnd_key, min_dist_val
 
 
-def external_symmetry_factor(geo):
+def external_symmetry_factor(geo, chiral_center=True):
     """ Obtain the external symmetry factor for a geometry using x2z interface
         which determines the initial symmetry factor and then divides by the
         enantiomeric factor.
@@ -295,7 +295,7 @@ def external_symmetry_factor(geo):
     else:
         oriented_geom = _pyx2z.to_oriented_geometry(geo)
         ext_sym_fac = oriented_geom.sym_num()
-        if oriented_geom.is_enantiomer():
+        if oriented_geom.is_enantiomer() and chiral_center:
             ext_sym_fac *= 0.5
 
     return ext_sym_fac
