@@ -248,4 +248,4 @@ def oxygenated_hydrocarbon_symm_num(geo):
                 int_symm *= atm_symm
         ext_symm = external_symmetry_factor(
             geo, chiral_center=chiral_center > 0.)
-        return int_symm * ext_symm
+        return int_symm, ext_symm
