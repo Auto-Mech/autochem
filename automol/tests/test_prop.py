@@ -46,7 +46,7 @@ def test__dipole_moment():
 
 
 def test__freq_anharm():
-    """ test prop.freq.anharm_by_scaling
+    """ test prop.freq.scale_frequencies_and_zpe
     """
 
     ref_freqs1 = (273.43142708773354, 328.85656224799163, 431.8542979569497,
@@ -58,7 +58,8 @@ def test__freq_anharm():
                   2989.4806388332413, 3005.682287877595, 3624.4549007715855)
     ref_azpve1 = 0.08204583799871529
 
-    freqs1, azpve1 = prop.freq.anharm_by_scaling(HARM_FREQS, METHOD1, BASIS1)
+    freqs1, azpve1 = prop.freq.scale_frequencies_and_zpe(
+        HARM_FREQS, METHOD1, BASIS1)
     assert numpy.allclose(freqs1, ref_freqs1)
     assert numpy.isclose(azpve1, ref_azpve1)
 
@@ -71,7 +72,8 @@ def test__freq_anharm():
                   2974.0209754448047, 2990.4347795393846, 3619.4624102348403)
     ref_azpve2 = 0.08223967624517627
 
-    freqs2, azpve2 = prop.freq.anharm_by_scaling(HARM_FREQS, METHOD2, BASIS2)
+    freqs2, azpve2 = prop.freq.scale_frequencies_and_zpe(
+        HARM_FREQS, METHOD2, BASIS2)
     assert numpy.allclose(freqs2, ref_freqs2)
     assert numpy.isclose(azpve2, ref_azpve2)
 
@@ -81,12 +83,14 @@ def test__freq_anharm():
                   3160.32, 3841.83)
     ref_azpve3 = 0.08132830609426457
 
-    freqs3, azpve3 = prop.freq.anharm_by_scaling(HARM_FREQS, METHOD3, BASIS3)
+    freqs3, azpve3 = prop.freq.scale_frequencies_and_zpe(
+        HARM_FREQS, METHOD3, BASIS3)
     assert numpy.allclose(freqs3, ref_freqs3)
     assert numpy.isclose(azpve3, ref_azpve3)
 
-    freqs4, azpve4 = prop.freq.anharm_by_scaling(HARM_FREQS, METHOD1, BASIS1,
-                                                 scale_method=None)
+    freqs4, azpve4 = prop.freq.scale_frequencies_and_zpe(
+        HARM_FREQS, METHOD1, BASIS1,
+        scale_method=None)
     assert numpy.allclose(freqs4, ref_freqs3)
     assert numpy.isclose(azpve4, ref_azpve3)
 
