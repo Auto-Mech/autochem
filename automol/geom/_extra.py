@@ -135,8 +135,7 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
                 if len(nonh_neighs) < 2 and len(h_neighs) > 1:
                     term_atms[atm] = h_neighs
     geo_final_lst = [geo]
-    for atm in term_atms:
-        hyds = term_atms[atm]
+    for hyds in term_atms.values():
         geo_lst = []
         for geom in geo_final_lst:
             geo_lst.extend(_swap_for_one(geom, hyds))
