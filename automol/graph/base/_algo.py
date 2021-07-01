@@ -527,6 +527,35 @@ def longest_chain(gra):
 
 
 # # branches and groups
+def ring_atom_chirality(gra, atm, ring_atms, stereo=False):
+    """is this ring atom a chiral center?
+    """
+    if not stereo:
+        gra = without_stereo_parities(gra)
+    adj_atms = atoms_neighbor_atom_keys(gra)
+    keys = []
+    for atmi in adj_atms[atm]:
+        key = [atm, atmi]
+        key.sort()
+        key = frozenset(key)
+        keys.append(key)
+        if atmi in ring_atms:
+            for atmj in adj_atms[atmi]:
+                if atmj in ring_atms:
+                    key = [atmj, atmi]
+                    key.sort()
+                    key = frozenset(key)
+                    keys.append(key)
+    gras = remove_bonds(gra, keys)
+    cgras = connected_components(gras)
+    ret_gras = []
+    for gra_i in cgras:
+        atms_i = atom_keys(gra_i)
+        if [x for x in atms_i if x in adj_atms[atm] or x == atm]:
+            ret_gras.append(gra_i)
+    return ret_gras
+
+
 def atom_groups(gra, atm, stereo=False):
     """ return a list of groups off of one atom
 
