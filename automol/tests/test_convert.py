@@ -4,6 +4,7 @@
 import os
 import pandas
 import numpy
+import pytest
 import automol
 
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -27,6 +28,7 @@ def load_numpy_string_file(path_lst, file_name, path=PATH):
     return file_lst
 
 
+# InChIs
 BS_DF = load_pandas_csv_string_file(
     ['data'], 'badspecies.csv', path=PATH)
 ICHS_NO_STEREO = load_numpy_string_file(
@@ -35,6 +37,19 @@ ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 NSAMP = 10
 
+# Geometries
+C2H6_H_GEO = (
+    ('C', (1.5794198675747746, 0.2458382511130598, -0.0)),
+    ('C', (-1.1217055232753832, -0.6604252657772527, -0.0)),
+    ('H', (2.9000776470644833, -1.3544800976831528, 7.180959276739747e-05)),
+    ('H', (1.9865651407569145, 1.3905530796920174, 1.6742255375628683)),
+    ('H', (1.9866142736361765, 1.390449144755117, -1.6742878985250085)),
+    ('H', (-1.7333607372068203, -1.636440463684339, -1.7110355127606616)),
+    ('H', (-1.7333909728248273, -1.6363724335438226, 1.7110600792002923)),
+    ('H', (-2.5967029046096086, 1.4251728623104047, -1.5117809003662624e-05)),
+    ('H', (-3.556090402338792, 2.9086399961389326, -1.5117809003662624e-05)))
+
+# Z-Matrices
 C5H8O_ZMA = (
     ('C', (None, None, None), (None, None, None),
      (None, None, None)),
@@ -69,7 +84,6 @@ C5H8O_ZMA = (
     ('H', (12, 6, 1), ('R15', 'A15', 'D15'),
      (1.8758293656194, 1.8624105681328567, 1.2477273554765336)))
 
-# HOOH ZMAs
 HOOH_ZMA_C2 = (
     ('O', (None, None, None), (None, None, None),
      (None, None, None)),
@@ -119,6 +133,11 @@ def test__geom__no_stereo():
 
     assert sort_ich == ref_sort_ich
     assert nums == ref_nums
+
+    # Test failed zmatrix call
+    with pytest.raises(NotImplementedError):
+        automol.geom.zmatrix_with_conversion_info(
+            C2H6_H_GEO, ts_bnds=frozenset({7, 8}))
 
 
 # def test__graph__with_stereo():
@@ -473,4 +492,4 @@ def test__zmat_conv_dummy():
 
 
 if __name__ == '__main__':
-    test__zmat_conv_dummy()
+    test__geom__no_stereo()

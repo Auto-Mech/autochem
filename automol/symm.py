@@ -156,8 +156,7 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
                     term_atms[atm] = h_neighs
     factor = 1.
     remove_atms = []
-    for atm in term_atms:
-        hyds = term_atms[atm]
+    for hyds in term_atms.values():
         if len(hyds) > 1:
             factor *= len(hyds)
             remove_atms.extend(hyds)
