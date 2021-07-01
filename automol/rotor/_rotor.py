@@ -14,7 +14,6 @@ import automol.pot
 import automol.reac
 from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
-from automol.rotor._util import graph_with_keys
 from automol.rotor._util import sort_tors_names
 
 
