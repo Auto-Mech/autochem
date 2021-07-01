@@ -46,16 +46,21 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     return condition
 
 
-def ring_fragments_geometry(geo):
+def ring_fragments_geometry(geo, rings_atoms=None, ngbs=None):
     """ Fragment out the ring and its neighbors in a geometry.(?)
 
         :param geo: molecular geometry
         :type geo: automol.geom object
     """
 
-    gra = graph(geo)
-    rings_atoms = automol.graph.rings_atom_keys(gra)
-    ngbs = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
+    gra = automol.geom.graph(geo)
+    if rings_atoms is None:
+        rings_atoms = automol.graph.rings_atom_keys(gra)
+    if ngbs is None:
+        ngbs = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
+    # print('geo in ring_frag_geo:', automol.geom.string(geo))
+    # print('rings_atoms:', rings_atoms)
+    # print('ngbs:', ngbs)
 
     ring_idxs = []
     ret = None
@@ -67,6 +72,7 @@ def ring_fragments_geometry(geo):
             for ngb in ring_ngbs:
                 if ngb not in ring_idxs:
                     ring_idxs.append(ngb)
+    # print('ring idxs:', ring_idxs)
     if ring_idxs:
         ret = from_subset(geo, ring_idxs)
 
