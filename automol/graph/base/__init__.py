@@ -146,6 +146,7 @@ from automol.graph.base._algo import atom_longest_chains
 from automol.graph.base._algo import atom_longest_chain
 from automol.graph.base._algo import longest_chain
 # # branches and groups
+from automol.graph.base._algo import ring_atom_chirality
 from automol.graph.base._algo import atom_groups
 from automol.graph.base._algo import branch
 from automol.graph.base._algo import branch_atom_keys
@@ -376,6 +377,7 @@ __all__ = [
     'atom_longest_chain',
     'longest_chain',
     # # branches and groups
+    "ring_atom_chirality"
     'atom_groups',
     'branch',
     'branch_atom_keys',
