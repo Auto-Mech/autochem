@@ -246,6 +246,6 @@ def oxygenated_hydrocarbon_symm_num(geo):
             if chain_group and symm_groups:
                 atm_symm = group_dct[symm_groups]
                 int_symm *= atm_symm
-        ext_symm = external_symmetry_factor(
-            geo, chiral_center=chiral_center > 0.)
-        return int_symm, ext_symm
+    ext_symm = external_symmetry_factor(
+        geo, chiral_center=chiral_center > 0.)
+    return int_symm, ext_symm
