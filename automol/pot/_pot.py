@@ -94,6 +94,7 @@ def relax_scale(pot):
 
     new_pot = {}
     for idx, val in pot.items():
+        # scale_factor = 1.0/(1+0.05*val)
         scale_factor = 1.0/(1+0.11*val)
         new_pot[idx] = val * scale_factor
 

@@ -116,6 +116,8 @@ def _three_coeff_harm_scaling(freqs, method, basis):
     for freq in freqs:
         scale_factor = cf1 - (cf2 * freq**cf3)
         scaled_freqs += (freq * scale_factor,)
+        # print('m3 test:', freq,scale_factor)
+    # print('scaled freq test:',scaled_freqs)
     return scaled_freqs
 
 
