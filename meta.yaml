@@ -10,7 +10,7 @@ requirements:
     build:
         - python=3.7
     run:
-        - gfortran_linux-64  # [linux]
+        - gfortran_linux-64  # linux
         - python=3.7
         - numpy=1.15.4
         - scipy=1.5.0
