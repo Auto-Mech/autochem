@@ -125,12 +125,16 @@ def truncate(pot, sym_num):
 
 
 def by_index(pot):
-    """ Build a new potential where coordinates change by index
+    """ Build a new potential where the keys of the potential dictionary
+        correspond to the indices along values of n-dimensional grids,
+        rather than, possibly, the coordinate values of the grids themselves.
+
+        Key Transformation:
+        ((grid_val_i, grid_val_j, ...)_i,) -> ((i, j, ...)_i,)
 
         :param pot: potential along a coordinate
         :type pot: dict[tuple(float)] = float
-        :param coords: coordinates of potential
-
+        :rtype: dict[tuple(int)] = float
     """
 
     pot_keys = list(pot.keys())
