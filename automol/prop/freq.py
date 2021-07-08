@@ -87,6 +87,7 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
 M3_COEFFS_ANHARM = {
     ('b2plypd3', 'cc-pvtz'): (1.066, 0.008045, 0.33),
     ('wb97xd', '6-31g*'): (1.657244, 0.56000691, 0.029624)
+    ('wb97xd', 'cc-pvtz'): (1.053471, 0.01186224, 0.26174883)
 }
 
 M3_COEFFS_HARM = {
