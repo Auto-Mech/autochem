@@ -84,6 +84,12 @@ def scale_iterable(iterable, scale_factor):
     return scaled_iterable
 
 
+def numpy_to_float(iterable):
+    """ Convert a numpy array to a tuple of floats
+    """
+    return tuple(val.item() for val in iterable)
+
+
 def formula_from_symbols(symbs):
     """ Build a molecular formula from a list of atomic symbols.
 
