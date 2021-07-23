@@ -234,8 +234,6 @@ def elimination_grid(zrxn, zma, npoints=(8, 4)):
 
     frm_bnd_len = _ts_bnd_len(zma, frm_name)
     brk_bnd_len = _ts_bnd_len(zma, brk_name)
-    print('frm len', frm_name, frm_bnd_len)
-    print('brk len', brk_name, brk_bnd_len)
     if frm_bnd_len is not None:
         r1min = frm_bnd_len + (0.2 * phycon.ANG2BOHR)
         r1max = frm_bnd_len + (1.4 * phycon.ANG2BOHR)
