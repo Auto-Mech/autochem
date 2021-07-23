@@ -125,7 +125,6 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         if atm in unsat_atms and atm not in rad_atms:
             pass
         else:
-            print('atm test:', atm, ts_atms)
             if atm not in ts_atms:
                 nonh_neighs = []
                 h_neighs = []

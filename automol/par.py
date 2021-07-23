@@ -42,6 +42,7 @@ class ReactionClass:
     RADRAD = 'radical-radical'
     LOWSPIN = 'low-spin'
     HIGHSPIN = 'high-spin'
+    ISC = 'intersystem-crossing'
 
 
 REVERSE_REACTION_DCT = {
@@ -72,9 +73,11 @@ def reaction_class_from_data(class_typ, class_spin, class_radrad):
         :type class_spin: str
         :param class_radrad: radical-radical type designation
         :type class_radrad: bool
-        :rtype: (str, str, bool)
+        :param class_isc: intersystem-crossing designation
+        :type class_isc: bool
+        :rtype: (str, str, bool, bool)
     """
-    return (class_typ, class_spin, class_radrad)
+    return (class_typ, class_spin, class_radrad)  # , class_isc)
 
 
 def string(rxn_class):
@@ -85,6 +88,7 @@ def string(rxn_class):
         :rtype: str
     """
     radrad_str = '' if not radrad(rxn_class) else 'radical-radical'
+    # isc_str = '' if not isc(rxn_class) else 'intersystem-crossing'
     out_str = '{} {} {}'.format(radrad_str, spin(rxn_class), typ(rxn_class))
     return out_str.strip()
 
