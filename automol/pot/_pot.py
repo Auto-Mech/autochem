@@ -5,6 +5,7 @@ import itertools
 import copy
 import numpy
 import automol.zmat
+import automol.util
 
 
 # Build the grirds ultimately used for building potentials
@@ -22,7 +23,8 @@ def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
     if from_equilibrium:
         val_dct = automol.zmat.value_dictionary(zma)
         ini_val = val_dct[coord_name]
-        grid_from_equil = tuple(val.item() + ini_val for val in _grid)
+        _grid = automol.util.numpy_to_float(_grid)
+        grid_from_equil = tuple(val + ini_val for val in _grid)
 
     return grid_from_equil
 

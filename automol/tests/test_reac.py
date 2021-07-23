@@ -425,21 +425,27 @@ def test__reac__elimination():
     """ test elimination functionality
     """
 
-    rct_smis = ['CCCO[O]']
-    prd_smis = ['CC=C', 'O[O]']
+    rct_smis = ['CCCCO[O]']
+    prd_smis = ['CCC=C', 'O[O]']
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
 
-    ref_scan_names = ('R2',)
+    # rxn_obj = rxn_objs[0][0]
+    # print(rxn_obj)
+    # print()
+    # ts_geo = rxn_objs[0][1]
+    # print(automol.geom.string(ts_geo))
+    # print()
+
+    ref_scan_names = ('R2', 'R3')
     ref_constraint_dct = None
-    ref_scan_grid = ((
+    ref_scan_grid = (
         numpy.array([
             3.77045681, 4.09440986, 4.41836291, 4.74231596, 5.06626901,
             5.39022206, 5.71417511, 6.03812816]),
-        numpy.array([3.35680094, 4.07101391, 4.78522687, 5.49943984])),)
-    # ^ correct grid shape?
-    ref_update_guess = False
-    ref_tors_names = {'D9'}
-    ref_tors_symms = [3]
+        numpy.array([5.48456793, 5.86251316, 6.24045838, 6.61840361]))
+    ref_update_guess = False  # correct?
+    ref_tors_names = {'D9', 'D12'}
+    ref_tors_symms = [1, 3]
 
     _check_reaction(rxn_objs[0],
                     ref_scan_names, ref_constraint_dct,
@@ -452,6 +458,7 @@ def test__reac__elimination():
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        print(rxn_objs)
         _check_reaction(rxn_objs[0])
 
 
@@ -564,6 +571,17 @@ def test__reac__radrad_addition():
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
+
+
+def test__reac__isc_addition():
+    """ test addition functionality
+    """
+
+    rct_smis = ['N#N', '[O]']
+    prd_smis = ['[N-]=[N+]=O']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    print(rxn_objs)
 
 
 def test__reac__radrad_hydrogen_abstraction():
@@ -874,6 +892,7 @@ def _check_reaction(rxn_obj,
         assert set(constraint_dct.keys()) == set(ref_constraint_dct.keys())
     if ref_scan_grid is not None:
         for rgrd, grd in zip(ref_scan_grid, scan_grid):
+            # assert numpy.allclose(rgrd, grd)  correct?
             if rxn.class_ != 'elimination':
                 assert numpy.allclose(rgrd, grd)
             else:
@@ -912,14 +931,15 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
 
 if __name__ == '__main__':
-    test__reac__hydrogen_migration()
-    test__reac__beta_scission()
-    test__reac__ring_forming_scission()
+    # test__reac__hydrogen_migration()
+    # test__reac__beta_scission()
+    # test__reac__ring_forming_scission()
     test__reac__elimination()
-    test__reac__hydrogen_abstraction()
-    test__reac__sigma_hydrogen_abstraction()
-    test__reac__addition()
-    test__reac__radrad_addition()
-    test__reac__radrad_hydrogen_abstraction()
-    test__reac__insertion()
-    test__reac__substitution()
+    # test__reac__hydrogen_abstraction()
+    # test__reac__sigma_hydrogen_abstraction()
+    # test__reac__addition()
+    # test__reac__radrad_addition()
+    # test__reac__isc_addition()
+    # test__reac__radrad_hydrogen_abstraction()
+    # test__reac__insertion()
+    # test__reac__substitution()
