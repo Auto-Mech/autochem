@@ -68,13 +68,14 @@ def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
 
     # Obtain the reactions scan and constraint coordinates
     scan_name, = hydrogen_migration_scan_coordinate(zrxn, zma)
-
+    
     # Build the scan grid
-    interval = 0.3*phycon.ANG2BOHR
+    npoints1 = npoints[0]
+    interval = 0.3 * phycon.ANG2BOHR
 
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
-    rmin1 = 2.0*phycon.ANG2BOHR
-    rmin2 = frm_bnd_len + 0.05 * phycon.ANG2BOHR
+    rmin1 = 2.0 * phycon.ANG2BOHR
+    rmin2 = frm_bnd_len + (0.05 * phycon.ANG2BOHR)
     rmax = frm_bnd_len
 
     if rmax > rmin1:
@@ -86,7 +87,7 @@ def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
     else:
         grid1 = []
 
-    grid2 = numpy.linspace(rmin1, rmin2, 18)
+    grid2 = numpy.linspace(rmin1, rmin2, npoints1)
     grid = numpy.concatenate((grid1, grid2), axis=None)
 
     return (grid,)
@@ -117,8 +118,8 @@ def beta_scission_grid(zrxn, zma, npoints=(14,)):
 
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
-        rmin = frm_bnd_len + 0.1 * phycon.ANG2BOHR
-        rmax = frm_bnd_len + 0.8 * phycon.ANG2BOHR
+        rmin = frm_bnd_len + (0.1 * phycon.ANG2BOHR)
+        rmax = frm_bnd_len + (0.8 * phycon.ANG2BOHR)
     else:
         rmin = 1.4 * phycon.ANG2BOHR
         rmax = 2.0 * phycon.ANG2BOHR
@@ -172,8 +173,8 @@ def ring_forming_scission_grid(zrxn, zma, npoints=(7,)):
 
     brk_bnd_len = _ts_bnd_len(zma, scan_name)
     if brk_bnd_len is not None:
-        r1min = brk_bnd_len + 0.1 * phycon.ANG2BOHR
-        r1max = brk_bnd_len + 0.7 * phycon.ANG2BOHR
+        r1min = brk_bnd_len + (0.1 * phycon.ANG2BOHR)
+        r1max = brk_bnd_len + (0.7 * phycon.ANG2BOHR)
     else:
         r1min = (1.54 + 0.1) * phycon.ANG2BOHR
         r1max = (1.54 + 0.7) * phycon.ANG2BOHR
@@ -194,13 +195,28 @@ def elimination_scan_coordinate(rxn, zma):
     """
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     brk_bnd_keys = ts.breaking_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
     print(automol.zmat.string(zma))
 
-    # Two bonds breaking, use the one that does not involve atoms from frm bond
-    scn_brk_bnd_key = None
-    for brk_bnd_key in brk_bnd_keys:
-        if not brk_bnd_key.intersection(frm_bnd_key):
-            scn_brk_bnd_key = brk_bnd_key
+    # Two bonds breaking in eliminations, need to choose brk bnd
+    if len(frm_bnd_key | brk_bnd_key1 | brk_bnd_key2) > 3:
+        # for ring_size > 3: use brk-bnd that doesn't involve atoms in frm bond
+        scn_brk_bnd_key = None
+        for brk_bnd_key in brk_bnd_keys:
+            if not frm_bnd_key & brk_bnd_key:
+                scn_brk_bnd_key = brk_bnd_key
+    else:
+        # if one brk bnd doesn't have H, use that, else use arbitrary brk bnd
+        scn_brk_bnd_key = None
+        symbs = automol.zmat.symbols(zma)
+        for brk_bnd_key in brk_bnd_keys:
+            brk_symbs = tuple(symbs[key] for key in brk_bnd_key1)
+            if 'H' not in brk_symbs:
+                scn_brk_bnd_key = brk_bnd_key
+                break
+        if scn_brk_bnd_key is None:
+            scn_brk_bnd_key = brk_bnd_key1
+
     print('test')
     print('frm', frm_bnd_key)
     print('brk', brk_bnd_keys)
@@ -225,15 +241,17 @@ def elimination_grid(zrxn, zma, npoints=(8, 4)):
 
     frm_bnd_len = _ts_bnd_len(zma, frm_name)
     brk_bnd_len = _ts_bnd_len(zma, brk_name)
+    print('frm len', frm_name, frm_bnd_len)
+    print('brk len', brk_name, brk_bnd_len)
     if frm_bnd_len is not None:
-        r1min = frm_bnd_len + 0.2
-        r1max = frm_bnd_len + 1.4
+        r1min = frm_bnd_len + (0.2 * phycon.ANG2BOHR)
+        r1max = frm_bnd_len + (1.4 * phycon.ANG2BOHR)
     else:
         r1min = (1.54 + 0.2) * phycon.ANG2BOHR
         r1max = (1.54 + 1.4) * phycon.ANG2BOHR
     if brk_bnd_len is not None:
-        r2min = brk_bnd_len + 0.2
-        r2max = brk_bnd_len + 0.8
+        r2min = brk_bnd_len + (0.2 * phycon.ANG2BOHR)
+        r2max = brk_bnd_len + (0.8 * phycon.ANG2BOHR)
     else:
         r2min = (0.74 + 0.2) * phycon.ANG2BOHR
         r2max = (0.74 + 0.8) * phycon.ANG2BOHR
@@ -272,8 +290,8 @@ def hydrogen_abstraction_grid(zrxn, zma, npoints=(8,)):
 
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
-        rmin = frm_bnd_len + 0.1 * phycon.ANG2BOHR
-        rmax = frm_bnd_len + 1.0 * phycon.ANG2BOHR
+        rmin = frm_bnd_len + (0.1 * phycon.ANG2BOHR)
+        rmax = frm_bnd_len + (1.0 * phycon.ANG2BOHR)
     else:
         rmin = 0.7 * phycon.ANG2BOHR
         rmax = 2.2 * phycon.ANG2BOHR
@@ -325,8 +343,8 @@ def addition_grid(zrxn, zma, npoints=(14,)):
 
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
-        rmin = frm_bnd_len + 0.1 * phycon.ANG2BOHR
-        rmax = frm_bnd_len + 1.2 * phycon.ANG2BOHR
+        rmin = frm_bnd_len + (0.1 * phycon.ANG2BOHR)
+        rmax = frm_bnd_len + (1.2 * phycon.ANG2BOHR)
     else:
         rmin = 1.6 * phycon.ANG2BOHR
         rmax = 2.8 * phycon.ANG2BOHR
@@ -384,7 +402,7 @@ def insertion_grid(zrxn, zma, npoints=(16,)):
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
         rmin = frm_bnd_len
-        rmax = frm_bnd_len + 1.4 * phycon.ANG2BOHR
+        rmax = frm_bnd_len + (1.4 * phycon.ANG2BOHR)
     else:
         rmin = 1.4 * phycon.ANG2BOHR
         rmax = 2.4 * phycon.ANG2BOHR
@@ -420,7 +438,7 @@ def substitution_grid(zrxn, zma, npoints=(14,)):
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
         rmin = frm_bnd_len
-        rmax = frm_bnd_len + 1.4 * phycon.ANG2BOHR
+        rmax = frm_bnd_len + (1.4 * phycon.ANG2BOHR)
     else:
         rmin = 0.7 * phycon.ANG2BOHR
         rmax = 2.4 * phycon.ANG2BOHR

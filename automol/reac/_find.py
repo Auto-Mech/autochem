@@ -271,7 +271,7 @@ def eliminations(rct_gras, prd_gras):
                 # Ensure to preclude the forming-bond from this set
                 brk_bnds = tuple(
                     bond for bond in itertools.combinations(rng_bnd_keys, 2)
-                    if frozenset({frm1_key, frm2_key}) != bond)
+                    if frozenset({frm1_key, frm2_key}) not in bond)
 
                 for brk_bnd_1, brk_bnd_2 in brk_bnds:
                     prds_gra_2_ = prds_gra_
