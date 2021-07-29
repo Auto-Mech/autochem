@@ -975,3 +975,6 @@ if __name__ == '__main__':
     # test__reac__radrad_hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
+    # test__prod__homolytic_scission()
+    test__prod__beta_scission()
+    # test__prod__ring_forming_scission()

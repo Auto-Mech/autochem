@@ -68,7 +68,7 @@ def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
 
     # Obtain the reactions scan and constraint coordinates
     scan_name, = hydrogen_migration_scan_coordinate(zrxn, zma)
-
+    
     # Build the scan grid
     npoints1 = npoints[0]
     interval = 0.3 * phycon.ANG2BOHR
@@ -234,6 +234,8 @@ def elimination_grid(zrxn, zma, npoints=(8, 4)):
 
     frm_bnd_len = _ts_bnd_len(zma, frm_name)
     brk_bnd_len = _ts_bnd_len(zma, brk_name)
+    print('frm len', frm_name, frm_bnd_len)
+    print('brk len', brk_name, brk_bnd_len)
     if frm_bnd_len is not None:
         r1min = frm_bnd_len + (0.2 * phycon.ANG2BOHR)
         r1max = frm_bnd_len + (1.4 * phycon.ANG2BOHR)
@@ -247,6 +249,11 @@ def elimination_grid(zrxn, zma, npoints=(8, 4)):
         r2min = (0.74 + 0.2) * phycon.ANG2BOHR
         r2max = (0.74 + 0.8) * phycon.ANG2BOHR
 
+<<<<<<< HEAD
+=======
+    print('rmax', r1min, r1max, r2min, r2max)
+
+>>>>>>> update pot, prop; update reac, prod search for elims, beta-scis, ringform-scis
     grid1 = numpy.linspace(r1min, r1max, npoints1)
     grid2 = numpy.linspace(r2min, r2max, npoints2)
 
