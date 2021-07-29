@@ -24,7 +24,10 @@ def find_max1d(enes_lst, ethresh=0.01*phycon.KCAL2EH, include_endpts=True):
         max_idx = sadpt_idxs[sadpt_idx][1]
     else:
         if include_endpts:
-            max_idx = 0 if enes_lst[0] > enes_lst[-1] else -1
+            if enes_lst:
+                max_idx = 0 if enes_lst[0] > enes_lst[-1] else -1
+            else:
+                max_idx = None
         else:
             max_idx = None
 

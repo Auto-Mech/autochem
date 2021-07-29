@@ -22,6 +22,7 @@ class ReactionClass:
         # Unimolecular reactions
         HYDROGEN_MIGRATION = 'hydrogen migration'
         BETA_SCISSION = 'beta scission'
+        HOMOLYT_SCISSION = 'homolytic scission'
         RING_FORM_SCISSION = 'ring forming scission'
         ELIMINATION = 'elimination'
         # Bimolecular reactions
@@ -56,6 +57,13 @@ REVERSE_REACTION_DCT = {
     ReactionClass.Typ.INSERTION: ReactionClass.Typ.ELIMINATION,
     ReactionClass.Typ.SUBSTITUTION: None
 }
+
+BIMOL_REACTIONS = [
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+    ReactionClass.Typ.ADDITION,
+    ReactionClass.Typ.INSERTION,
+    ReactionClass.Typ.SUBSTITUTION
+]
 
 
 # Builders
@@ -204,6 +212,13 @@ def reverse_reaction_class(rxn_class):
     """ determine the reverse of a reaction class
     """
     return REVERSE_REACTION_DCT.get(rxn_class, None)
+
+
+# Functions for just the reactant type
+def isbimol(rxn_typ):
+    """ Determine if a type is a bimolecular reaction
+    """
+    return rxn_typ in BIMOL_REACTIONS
 
 
 # Other Utility Functions
