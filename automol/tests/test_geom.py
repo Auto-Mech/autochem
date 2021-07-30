@@ -419,3 +419,13 @@ def test__insert_dummies():
     # z-matrix back and comparing.
     geo_new = automol.zmat.geometry(zma_new)
     assert automol.geom.almost_equal_dist_matrix(geo, geo_new)
+
+
+def test__hydrogen_bonded_structure():
+    ich = automol.smiles.inchi('CCCC[O]')
+    geo = automol.inchi.geometry(ich)
+    print(automol.geom.hydrogen_bonded_structure(geo))
+
+
+if __name__ == '__main__':
+    test__hydrogen_bonded_structure()
