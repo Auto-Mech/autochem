@@ -94,9 +94,16 @@ def relax_scale(pot):
 
     new_pot = {}
     for idx, val in pot.items():
+        # scale_factor = 1.0
         # scale_factor = 1.0/(1+0.05*val)
-        scale_factor = 1.0/(1+0.11*val)
+        # scale_factor = 1.0/(1+0.01*val**1.5)
+        # scale_factor = 1.0/(1+0.09*val)
+        scale_factor = 1.0/(1+0.07*val)
+        # original - may be overscaling at low E
+        # scale_factor = 1.0/(1+0.11*val)
         new_pot[idx] = val * scale_factor
+        # tanh_scale_factor = 0.05
+        # new_pot[idx] = numpy.tanh(val * tanh_scale_factor)/tanh_scale_factor
 
     return new_pot
 
