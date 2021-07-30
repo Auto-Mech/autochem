@@ -38,6 +38,8 @@ def right_update(dct1, dct2):
     """
 
     dct = {}
+    dct1 = empty_if_none(dct1)
+    dct2 = empty_if_none(dct2)
     dct.update(dct1)
     dct.update(dct2)
     return dct

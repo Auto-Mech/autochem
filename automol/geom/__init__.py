@@ -114,6 +114,8 @@ from automol.geom._extra import rot_permutated_geoms
 from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
+from automol.geom._extra import hydrogen_bonded_structure
+from automol.geom._extra import hydrogen_bonded_idxs
 # ring functions
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
@@ -224,6 +226,8 @@ __all__ = [
     'are_torsions_same2',
     'are_torsions_same',
     'is_unique',
+    'hydrogen_bonded_structure',
+    'hydrogen_bonded_idxs',
     # ring functions
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
