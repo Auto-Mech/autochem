@@ -10,8 +10,10 @@ from automol.geom._conv import x2z_zmatrix
 from automol.geom._conv import x2z_torsion_coordinate_names
 from automol.geom.base import swap_coordinates
 from automol.geom.base import dihedral_angle
+from automol.geom.base import central_angle
 from automol.geom.base import almost_equal_dist_matrix
 from automol.geom.base import almost_equal_coulomb_spectrum
+from automol.geom.base import distance_matrix
 
 
 CHECK_DEFAULT_DCT = {
@@ -249,3 +251,51 @@ def is_unique(geo, geo_lst, check_dct=None):
             break
 
     return unique, like_idx
+
+
+def hydrogen_bonded_structure(geo, dist_thresh=5.3, angle_thresh=2.):
+    """ Compare bond lengths in structure to determine if there
+        is a hydrogen bond
+
+        :param geo: geometry object
+        :type geo: geo object (tuple of tuples)
+        :param dist_thresh: cutoff value for hbond length (Angstrom)
+        :type dist_thresh: float
+        :param angle_thresh: cutoff value for hbond angle (Bohr)
+        :type angle_thresh: float
+        :rtype: boolean
+    """
+    hydrogen_bond = hydrogen_bonded_idxs(geo, dist_thresh, angle_thresh)
+    return hydrogen_bond is not None
+
+
+def hydrogen_bonded_idxs(geo, dist_thresh=5.3, angle_thresh=2.):
+    """ Compare bond lengths in structure to determine if there
+        is a hydrogen bond
+
+        :param geo: geometry object
+        :type geo: geo object (tuple of tuples)
+        :param dist_thresh: cutoff value for hbond length (Angstrom)
+        :type dist_thresh: float
+        :param angle_thresh: cutoff value for hbond angle (Bohr)
+        :type angle_thresh: float
+        :rtype: tuple
+    """
+    hydrogen_bond = None
+    gra = graph(geo)
+    dist_mat = distance_matrix(geo)
+    adj_atm_dct = automol.graph.atoms_neighbor_atom_keys(gra)
+    h_idxs = automol.graph.atom_keys(gra, sym='H')
+    acceptor_idxs = list(
+        automol.graph.resonance_dominant_radical_atom_keys(gra))
+    acceptor_idxs.extend(list(automol.graph.atom_keys(gra, sym='O')))
+    for h_idx in h_idxs:
+        for acceptor_idx in acceptor_idxs:
+            donor_idx = list(adj_atm_dct[h_idx])[0]
+            if acceptor_idx in adj_atm_dct[donor_idx]:
+                continue
+            if dist_mat[h_idx][acceptor_idx] < dist_thresh:
+                if central_angle(
+                        geo, donor_idx, h_idx, acceptor_idx) > angle_thresh:
+                    hydrogen_bond = (donor_idx, h_idx, acceptor_idx,)
+    return hydrogen_bond
