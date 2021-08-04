@@ -149,9 +149,8 @@ def homolytic_scissions(rct_gras, viable_only=True):
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
 
-    # filter removes all reactions
-    # if viable_only:
-    #    rxns = filter_viable_reactions(rxns)
+    if viable_only:
+       rxns = filter_viable_reactions(rxns)
 
     return ts_unique(rxns)
 
@@ -251,14 +250,19 @@ def ring_forming_scissions(rct_gras, viable_only=True):
         rad_keys = radical_atom_keys(rct_gra)
         cooh_grps = hydroperoxy_groups(rct_gra)
 
+        # Get the bnd keys for filtering
+        bnd_keys = bond_keys(rct_gra)
+
         # Set the forming and breaking bonds by looping over COOH groups
         rxn_bnd_keys = ()
         for cooh_grp in cooh_grps:
             brk_bnd_key = frozenset(cooh_grp[1:3])
             for rad_key in rad_keys:
                 frm_bnd_key = frozenset({rad_key, cooh_grp[1]})
-
-                rxn_bnd_keys += ((frm_bnd_key, brk_bnd_key),)
+                # Only includ frm bnd if it does not exist
+                # e.g., CC[C]OO already has frm bnd -> no rxn possible
+                if frm_bnd_key not in bnd_keys:
+                    rxn_bnd_keys += ((frm_bnd_key, brk_bnd_key),)
 
         # Form reactions with all combinations of frm and brk bnds
         for frm_bnd_key, brk_bnd_key in rxn_bnd_keys:
@@ -610,7 +614,7 @@ FINDERS = {
     par.ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstractions,
     par.ReactionClass.Typ.ADDITION: additions,
     par.ReactionClass.Typ.INSERTION: insertions,
-    par.ReactionClass.Typ.SUBSTITUTION: substitutions,
+    # par.ReactionClass.Typ.SUBSTITUTION: substitutions,
 }
 
 

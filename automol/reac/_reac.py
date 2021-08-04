@@ -682,7 +682,9 @@ def filter_viable_reactions(rxns):
         prd_gras = product_graphs(rxn)
         mult = sum(map(automol.graph.maximum_spin_multiplicity,
                        map(automol.graph.dominant_resonance, prd_gras)))
-        return mult > 3
+        # 4 allows for singlet+triplet or doublet+doublet products
+        # 5 maybe best, allow for triplet+doublet (high-spin alkylrad+O2 HAbs)
+        return mult > 4
 
     for rxn in all_rxns:
         # Check for separated radical sites
