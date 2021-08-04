@@ -239,7 +239,6 @@ def ring_forming_scissions(rct_gras, viable_only=True):
     C-O-O-H groups and forming a bond between the O of the C-O bond
     and radical sites of the species, while breaking the O-O bond.
     """
-<<<<<<< HEAD
 
     assert_is_valid_reagent_graph_list(rct_gras)
 
@@ -282,47 +281,6 @@ def ring_forming_scissions(rct_gras, viable_only=True):
                 back_tsg = ts.graph(prds_gra,
                                     frm_bnd_keys=[brk_bnd_key],
                                     brk_bnd_keys=[frm_bnd_key])
-
-=======
-
-    assert_is_valid_reagent_graph_list(rct_gras)
-
-    rxns = []
-
-    if len(rct_gras) == 1:
-        rct_gra, = rct_gras
-
-        # Identify the radical sites and COOH groups
-        rad_keys = radical_atom_keys(rct_gra)
-        cooh_grps = hydroperoxy_groups(rct_gra)
-
-        # Set the forming and breaking bonds by looping over COOH groups
-        rxn_bnd_keys = ()
-        for cooh_grp in cooh_grps:
-            brk_bnd_key = frozenset(cooh_grp[1:3])
-            for rad_key in rad_keys:
-                frm_bnd_key = frozenset({rad_key, cooh_grp[1]})
-
-                rxn_bnd_keys += ((frm_bnd_key, brk_bnd_key),)
-
-        # Form reactions with all combinations of frm and brk bnds
-        for frm_bnd_key, brk_bnd_key in rxn_bnd_keys:
-            prds_gra = rct_gra
-            prds_gra = add_bonds(prds_gra, [frm_bnd_key])
-            prds_gra = remove_bonds(prds_gra, [brk_bnd_key])
-            prd_gras = connected_components(prds_gra)
-
-            if len(prd_gras) == 2:
-                prd_gras = sort_reagents(prd_gras)
-
-                forw_tsg = ts.graph(rct_gra,
-                                    frm_bnd_keys=[frm_bnd_key],
-                                    brk_bnd_keys=[brk_bnd_key])
-                back_tsg = ts.graph(prds_gra,
-                                    frm_bnd_keys=[brk_bnd_key],
-                                    brk_bnd_keys=[frm_bnd_key])
-
->>>>>>> update pot, prop; update reac, prod search for elims, beta-scis, ringform-scis
                 # Create the reaction object
                 rxns.append(Reaction(
                     rxn_cls=par.ReactionClass.Typ.RING_FORM_SCISSION,
@@ -657,10 +615,14 @@ FINDERS = {
     par.ReactionClass.Typ.ADDITION: additions,
     par.ReactionClass.Typ.INSERTION: insertions,
 <<<<<<< HEAD
+<<<<<<< HEAD
     # par.ReactionClass.Typ.SUBSTITUTION: substitutions,
 =======
     par.ReactionClass.Typ.SUBSTITUTION: substitutions,
 >>>>>>> update pot, prop; update reac, prod search for elims, beta-scis, ringform-scis
+=======
+    # par.ReactionClass.Typ.SUBSTITUTION: substitutions,
+>>>>>>> update ring form scission product finder
 }
 
 
