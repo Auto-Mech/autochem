@@ -148,10 +148,16 @@ def homolytic_scissions(rct_gras, viable_only=True):
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
+<<<<<<< HEAD
     
     # filter removes all reactions
     # if viable_only:
     #    rxns = filter_viable_reactions(rxns)
+=======
+
+    if viable_only:
+        rxns = filter_viable_reactions(rxns)
+>>>>>>> clean pylint
 
     return ts_unique(rxns)
 
@@ -614,15 +620,7 @@ FINDERS = {
     par.ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstractions,
     par.ReactionClass.Typ.ADDITION: additions,
     par.ReactionClass.Typ.INSERTION: insertions,
-<<<<<<< HEAD
-<<<<<<< HEAD
     # par.ReactionClass.Typ.SUBSTITUTION: substitutions,
-=======
-    par.ReactionClass.Typ.SUBSTITUTION: substitutions,
->>>>>>> update pot, prop; update reac, prod search for elims, beta-scis, ringform-scis
-=======
-    # par.ReactionClass.Typ.SUBSTITUTION: substitutions,
->>>>>>> update ring form scission product finder
 }
 
 

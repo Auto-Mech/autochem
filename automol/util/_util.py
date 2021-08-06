@@ -127,4 +127,3 @@ def _unique_item_counts(iterable):
     items = tuple(iterable)
 
     return {item: items.count(item) for item in sorted(set(items))}
-
