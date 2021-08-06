@@ -68,7 +68,7 @@ def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
 
     # Obtain the reactions scan and constraint coordinates
     scan_name, = hydrogen_migration_scan_coordinate(zrxn, zma)
-    
+
     # Build the scan grid
     npoints1 = npoints[0]
     interval = 0.3 * phycon.ANG2BOHR

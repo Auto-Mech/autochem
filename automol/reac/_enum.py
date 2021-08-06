@@ -150,7 +150,7 @@ def homolytic_scissions(rct_gras, viable_only=True):
                 ))
 
     if viable_only:
-       rxns = filter_viable_reactions(rxns)
+        rxns = filter_viable_reactions(rxns)
 
     return ts_unique(rxns)
 

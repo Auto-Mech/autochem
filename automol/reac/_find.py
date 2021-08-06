@@ -24,11 +24,9 @@ from automol.graph import equivalent_atoms
 from automol.graph import union_from_sequence
 from automol.graph import unsaturated_atom_keys
 from automol.graph import atom_neighbor_atom_key
-from automol.graph import atoms_neighbor_atom_keys
 from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogen_keys
 from automol.graph import rings_bond_keys
-from automol.graph import rings_atom_keys
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
 from automol.reac._reac import ts_unique
