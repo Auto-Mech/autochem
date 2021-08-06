@@ -49,25 +49,25 @@ def exp6_potential(rdist, apar, bpar, cpar, rcut):
 
 
 # Pairwise potential calculators
-def low_repulsion_struct(geo_ref, geo_samp,
+def low_repulsion_struct(ref_geo, test_geo,
                          potential='exp6', thresh=40.0):
     """ Check if the long-range interaction energy for the sample structure
         exceeds that for the reference structure by more than given threshold.
 
-        :param geo_ref: reference structure against which repulsion is assessed
-        :type geo_ref: automol geometry data structure
-        :param geo_samp: test geometry to assess repulsion
-        :type geo_samp: automol geometry data structure
+        :param ref_geo: reference structure against which repulsion is assessed
+        :type ref_geo: automol geometry data structure
+        :param test_geo: test geometry to assess repulsion
+        :type test_geo: automol geometry data structure
         :param thresh: threshold for determining level of repulsion (kcal/mol)
         :type thesh: float
         :rtype: bool
     """
-    
+
     ref_pot = intramol_interaction_potential_sum(
         ref_geo, potential=potential)
     test_pot = intramol_interaction_potential_sum(
-            test_geo, potential=potential)
-   
+        test_geo, potential=potential)
+
     return bool((test_pot - ref_pot) <= thresh)
 
 
