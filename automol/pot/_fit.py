@@ -29,7 +29,7 @@ def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
         print('Warning: Found pot val of {0:.2f}'.format(max_pot),
               ' which is larger than',
               'the typical maximum for a torsional potential')
-        
+
     # reset any negative values for the first grid point to 0.
     if pot[0] < 0.:
         print('ERROR: The first potential value should be 0.')

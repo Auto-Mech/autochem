@@ -201,6 +201,8 @@ ICH_DCT = {'C': 'InChI=1S/C', 'O': 'InChI=1S/O'}
 
 
 def oxygenated_hydrocarbon_symm_num(geo):
+    """ determine the symmetry number of a CHO molecule
+    """
     int_symm = 1.
     chiral_center = 0
     gra = graph(geo)
@@ -216,7 +218,8 @@ def oxygenated_hydrocarbon_symm_num(geo):
         if atm in atm_vals and atm not in atm_rads:
             continue
         if atm in ring_atms:
-            atm_groups = automol.graph.base.ring_atom_chirality(gra, atm, ring_atms)
+            atm_groups = automol.graph.base.ring_atom_chirality(
+                gra, atm, ring_atms)
         else:
             atm_groups = automol.graph.base.atom_groups(gra, atm)
         group_dct = {}

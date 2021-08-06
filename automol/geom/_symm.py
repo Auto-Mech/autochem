@@ -18,7 +18,7 @@ def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
         (3) Count how many distinct distance matrices there are in
             the fully expanded conformer list.
 
-        :param symm_geos: geometries that are symmetrically similar to one another
+        :param symm_geos: geometries are symmetrically similar to one another
     """
 
     if grxn is not None:
