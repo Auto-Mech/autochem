@@ -78,28 +78,3 @@ def subgraph_isomorphism(nxg1, nxg2):
         iso_dct = dict(matcher.mapping)
 
     return iso_dct
-
-
-if __name__ == '__main__':
-    GRA = (
-        {0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
-         3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
-         6: ('C', 1, False), 7: ('C', 1, False), 8: ('O', 0, None)},
-        {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None),
-         frozenset({0, 3}): (1, None), frozenset({2, 6}): (1, None),
-         frozenset({6, 7}): (1, None), frozenset({8, 7}): (1, None),
-         frozenset({3, 5}): (1, False), frozenset({5, 7}): (1, None)})
-
-    GRA2 = (
-        {0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
-         3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
-         6: ('C', 1, False), 7: ('C', 1, False), 8: ('O', 0, None)},
-        {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None),
-         frozenset({0, 3}): (1, None), frozenset({2, 6}): (1, None),
-         frozenset({6, 7}): (1, None), frozenset({8, 7}): (1, None),
-         frozenset({3, 5}): (1, False), frozenset({5, 7}): (1, None)})
-
-    NXG = from_graph(GRA)
-    NXG2 = from_graph(GRA2)
-    print(isomorphism(NXG, NXG2))
-    networkx.write_yaml(NXG, 'test.g.yaml')

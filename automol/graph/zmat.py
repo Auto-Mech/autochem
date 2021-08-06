@@ -252,13 +252,3 @@ def _atoms_missing_neighbors(gra, zma_keys):
             keys.append(key)
     keys = tuple(keys)
     return keys
-#
-#
-# if __name__ == '__main__':
-#     import automol
-#     ICH = 'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1'
-#     GEO = automol.inchi.geometry(ICH)
-#     GRA = automol.geom.graph(GEO)
-#     KEYS = [0, 1, 2, 3, 4, 7, 15, 16]
-#     SUBGEO = automol.geom.from_subset(GEO, KEYS)
-#     print(automol.geom.string(SUBGEO))

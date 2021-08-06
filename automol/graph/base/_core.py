@@ -216,7 +216,6 @@ def atoms(gra):
 def bonds(gra):
     """ bonds, as a dictionary
     """
-    # print(gra)
     _, bnd_dct = gra
     return bnd_dct
 
