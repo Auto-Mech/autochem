@@ -224,5 +224,3 @@ def test__intmol():
         PROP_GEO1, PROP_GEO2, thresh=40.0, potential='exp6')
     assert automol.pot.low_repulsion_struct(
         PROP_GEO1, PROP_GEO2, thresh=40.0, potential='lj_12_6')
-
-test__intmol()
