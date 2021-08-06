@@ -48,7 +48,52 @@ def exp6_potential(rdist, apar, bpar, cpar, rcut):
     return pot_val
 
 
-# change to a dictionary
+# Pairwise potential calculators
+def low_repulsion_struct(geo_ref, geo_samp,
+                         potential='exp6', thresh=40.0):
+    """ Check if the long-range interaction energy for the sample structure
+        exceeds that for the reference structure by more than given threshold.
+
+        :param geo_ref: reference structure against which repulsion is assessed
+        :type geo_ref: automol geometry data structure
+        :param geo_samp: test geometry to assess repulsion
+        :type geo_samp: automol geometry data structure
+        :param thresh: threshold for determining level of repulsion (kcal/mol)
+        :type thesh: float
+        :rtype: bool
+    """
+    
+    ref_pot = intramol_interaction_potential_sum(
+        ref_geo, potential=potential)
+    test_pot = intramol_interaction_potential_sum(
+            test_geo, potential=potential)
+   
+    return bool((test_pot - ref_pot) <= thresh)
+
+
+def intramol_interaction_potential_sum(geo, potential='exp6'):
+    """ Check if the long-range interaction energy for the sample structure
+        exceeds that for the reference structure by more than given threshold.
+
+        :param geo: geometry to calculate sum
+        :type geo: automol geometry data structure
+        :rtype: bool
+    """
+
+    # Calculate the pairwise potential matrix
+    pot_mat = pairwise_potential_matrix(geo, potential=potential)
+
+    # Generate the pairs for the potentials
+    pairs = _generate_pairs(geo)
+
+    # Calculate sum of potentials
+    pot_sum = 0.0
+    for (idx1, idx2) in pairs:
+        pot_sum += pot_mat[idx1, idx2]
+
+    return pot_sum
+
+
 def pairwise_potential_matrix(geo, potential='exp6'):
     """ Build a matrix of values describing the interaction potential
         of all atoms in a geometry.
@@ -116,45 +161,6 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
         pot_val = 1.0e10
 
     return pot_val
-
-
-# Check the repulsion
-def low_repulsion_struct(geo_ref, geo_samp,
-                         potential='exp6', thresh=40.0,):
-    """ Check if the long-range interaction energy for the sample structure
-        exceeds that for the reference structure by more than given threshold.
-
-        :param geo_ref: reference structure against which repulsion is assessed
-        :type geo_ref: automol geometry data structure
-        :param geo_samp: test geometry to assess repulsion
-        :type geo_samp: automol geometry data structure
-        :param pairs: pair choosing algorithm
-        :type pairs: str
-        :param thresh: threshold for determining level of repulsion (kcal/mol)
-        :type thesh: float
-        :rtype: bool
-    """
-
-    # Calculate the pairwise potentials
-    pot_mat = pairwise_potential_matrix(geo_ref, potential=potential)
-    pot_mat_samp = pairwise_potential_matrix(geo_samp, potential=potential)
-
-    # Generate the pairs for the potentials
-    pairs = _generate_pairs(geo_ref)
-
-    # Calculate sum of potentials
-    sum_ref, sum_samp = 0.0, 0.0
-    for (idx1, idx2) in pairs:
-        sum_ref += pot_mat[idx1, idx2]
-        sum_samp += pot_mat_samp[idx1, idx2]
-
-    print('long_range_pots {:.2f} {:.2f} {:.2f}'.format(
-        sum_ref, sum_samp, sum_samp-sum_ref))
-
-    # Check if the potentials are within threshold
-    low_repulsion = bool((sum_samp - sum_ref) <= thresh)
-
-    return low_repulsion
 
 
 def _generate_pairs(geo):

@@ -215,19 +215,12 @@ def test__fit_potential():
         tuple(pot3.values()), tuple(ref_pot3.values()), atol=1.0e-2)
 
 
-def test__repulsion():
-    """ test prop.low_repulsion_struct
+def test__intmol():
+    """ test pot.low_repulsion_struct
+        test pot.intramol_interaction_potential_sum
     """
 
     assert automol.pot.low_repulsion_struct(
         PROP_GEO1, PROP_GEO2, thresh=40.0, potential='exp6')
     assert automol.pot.low_repulsion_struct(
         PROP_GEO1, PROP_GEO2, thresh=40.0, potential='lj_12_6')
-
-
-if __name__ == '__main__':
-    # test__valid_potential()
-    # test__build_potential()
-    test__fit_potential()
-    # test__transform_potential()
-    # test__repulsion()
