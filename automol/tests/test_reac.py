@@ -605,7 +605,7 @@ def test__reac__radrad_hydrogen_abstraction():
                     ref_tors_names, ref_tors_symms)
 
 
-def test__reac__insertion():
+def __reac__insertion():
     """ test insertion functionality
     """
 
@@ -796,7 +796,7 @@ def test__prod__hydrogen_migration():
     _check_products(rct_gras, rclass, nprods)
 
 
-def test__prod__homolytic_scission():
+def __prod__homolytic_scission():
     """ test homolytic scission product enumeration
     """
     rct_gras = _gras_for_prod_tests(['CCCl'])
