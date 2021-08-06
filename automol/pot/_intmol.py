@@ -71,8 +71,7 @@ def low_repulsion_struct(ref_geo, test_geo,
 
 
 def intramol_interaction_potential_sum(geo, potential='exp6'):
-    """ Check if the long-range interaction energy for the sample structure
-        exceeds that for the reference structure by more than given threshold.
+    """ Calculate long-range interaction energy sum for the sample structure
 
         :param geo: geometry to calculate sum
         :type geo: automol geometry data structure
