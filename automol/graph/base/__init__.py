@@ -377,7 +377,7 @@ __all__ = [
     'atom_longest_chain',
     'longest_chain',
     # # branches and groups
-    "ring_atom_chirality"
+    'ring_atom_chirality',
     'atom_groups',
     'branch',
     'branch_atom_keys',
