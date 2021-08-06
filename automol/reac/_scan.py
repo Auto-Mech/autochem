@@ -196,7 +196,6 @@ def elimination_scan_coordinate(rxn, zma):
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     brk_bnd_keys = ts.breaking_bond_keys(rxn.forward_ts_graph)
     brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
-    print(automol.zmat.string(zma))
 
     # Two bonds breaking in eliminations, need to choose brk bnd
     if len(frm_bnd_key | brk_bnd_key1 | brk_bnd_key2) > 3:
@@ -217,14 +216,8 @@ def elimination_scan_coordinate(rxn, zma):
         if scn_brk_bnd_key is None:
             scn_brk_bnd_key = brk_bnd_key1
 
-    print('test')
-    print('frm', frm_bnd_key)
-    print('brk', brk_bnd_keys)
-    print('scnbrk', scn_brk_bnd_key)
     frm_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     brk_name = automol.zmat.distance_coordinate_name(zma, *scn_brk_bnd_key)
-    print(frm_name, brk_name)
-    print(automol.zmat.string(zma))
 
     return (frm_name, brk_name)
 
