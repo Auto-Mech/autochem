@@ -252,7 +252,7 @@ def is_unique(geo, geo_lst, check_dct=None):
     return unique, like_idx
 
 
-def hydrogen_bonded_structure(geo, dist_thresh=5.3, angle_thresh=2.):
+def hydrogen_bonded_structure(geo, dist_thresh=5.3, angle_thresh=1.9):
     """ Compare bond lengths in structure to determine if there
         is a hydrogen bond
 
@@ -268,7 +268,7 @@ def hydrogen_bonded_structure(geo, dist_thresh=5.3, angle_thresh=2.):
     return hydrogen_bond is not None
 
 
-def hydrogen_bonded_idxs(geo, dist_thresh=5.3, angle_thresh=2.):
+def hydrogen_bonded_idxs(geo, dist_thresh=5.3, angle_thresh=1.9):
     """ Compare bond lengths in structure to determine if there
         is a hydrogen bond
 
