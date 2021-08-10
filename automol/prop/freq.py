@@ -10,12 +10,20 @@ def scale_frequencies_and_zpe(freqs, method, basis, scale_method='c3'):
         obtain a corrected zpe
     """
     scaled_freqs = scale_frequencies(
-        freqs,  method, basis, scale_method=scale_method)
-    # Calculate the anharmonic zpe using the scaled freqs (anharm zpve)
+        freqs, method, basis, scale_method=scale_method)
+
     scaled_zpe = 0.0
-    for freq, scfreq in zip(freqs, scaled_freqs):
-        scaled_zpe += _anharm_zpve_from_scaling(freq, scfreq)
-    scaled_zpe *= phycon.WAVEN2EH
+    if 'harm' in scale_method:
+        # Calculate harmonic zpe using scaled frequencies
+        scaled_zpe = sum(scaled_freqs)/2.0 * phycon.WAVEN2EH
+    else:
+        # Calculate the anharmonic zpe using the scaled anharmonic freqs
+        # but you have to get harmonic version of those freqs first
+        harm_sfreqs = scale_frequencies(
+            freqs, method, basis, scale_method=HARM_OF_SM[scale_method])
+        for freq, scfreq in zip(harm_sfreqs, scaled_freqs):
+            scaled_zpe += _anharm_zpve_from_scaling(freq, scfreq)
+        scaled_zpe *= phycon.WAVEN2EH
     return scaled_freqs, scaled_zpe
 
 
@@ -33,7 +41,7 @@ def scale_frequencies(freqs, method, basis, scale_method='c3'):
 def _anharm_zpve_from_scaling(freq, scaled_freq):
     """ Determine what the anharmonic ZPVE should be after scaling
     """
-    return (freq / 2.0) - (1.0 / 8.0) * (scaled_freq - freq)
+    return (freq / 2.0) + (1.0 / 8.0) * (scaled_freq - freq)
 
 
 def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
@@ -85,7 +93,8 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
 
 # Library of vibrational frequency scaling methods
 M3_COEFFS_ANHARM = {
-    ('b2plypd3', 'cc-pvtz'): (1.066, 0.008045, 0.33),
+    # ('b2plypd3', 'cc-pvtz'): (1.066, 0.008045, 0.33),
+    ('b2plypd3', 'cc-pvtz'): (1.045, 0.00851, 0.292),
     ('wb97xd', '6-31g*'): (1.657244, 0.56000691, 0.029624),
     ('wb97xd', 'cc-pvtz'): (1.053471, 0.01186224, 0.26174883)
 }
@@ -124,4 +133,8 @@ def _three_coeff_harm_scaling(freqs, method, basis):
 SCALE_METHODS = {
     'c3': _three_coeff_anharm_scaling,
     'c3_harm':  _three_coeff_harm_scaling
+}
+
+HARM_OF_SM = {
+    'c3': 'c3_harm'
 }
