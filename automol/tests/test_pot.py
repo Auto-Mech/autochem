@@ -55,6 +55,18 @@ POT2 = {
     (4.71238898,): 1.72, (5.23598776,): 3.60, (5.75958653,): 1.60
 }
 POT3 = {
+    (0.00000000,): 0.00, (0.52359878,): None, (1.04719755,): 3.58,
+    (1.57079633,): None, (2.09439510,): 0.01, (2.61799388,): 1.75,
+    (3.14159265,): 3.59, (3.66519143,): 1.69, (4.18879020,): 0.02,
+    (4.71238898,): 1.72, (5.23598776,): 3.60, (5.75958653,): None
+}
+POT4 = {
+    (0.00000000,): None, (0.52359878,): None, (1.04719755,): None,
+    (1.57079633,): None, (2.09439510,): None, (2.61799388,): None,
+    (3.14159265,): None, (3.66519143,): None, (4.18879020,): None,
+    (4.71238898,): None, (5.23598776,): None, (5.75958653,): None
+}
+POT5 = {
     (1.0, 0.1): 1.1, (1.0, 0.2): 1.2,
     (2.0, 0.1): 1.3, (2.0, 0.2): 1.4,
     (3.0, 0.1): 1.5, (3.0, 0.2): 1.6,
@@ -159,7 +171,7 @@ def test__transform_potential():
                     (2, 0): 1.5, (2, 1): 1.6,
                     (3, 0): 1.7, (3, 1): 1.8}
     idx_pot1 = automol.pot.by_index(POT1)
-    idx_pot2 = automol.pot.by_index(POT3)
+    idx_pot2 = automol.pot.by_index(POT5)
 
     assert numpy.allclose(list(idx_pot1.keys()), list(ref_idx_pot1.keys()))
     assert numpy.allclose(list(idx_pot2.keys()), list(ref_idx_pot2.keys()))
@@ -167,6 +179,29 @@ def test__transform_potential():
         assert numpy.isclose(val, ref_idx_pot1[key])
     for key, val in idx_pot2.items():
         assert numpy.isclose(val, ref_idx_pot2[key])
+
+
+def test__empty_terms_in_potential():
+    """ test automol.pot.is_nonempty
+        test automol.pot.remove_empty_terms
+    """
+
+    assert automol.pot.is_nonempty(POT1)
+    assert not automol.pot.is_nonempty(POT4)
+
+    ref_filt_pot = {
+        (0.00000000,): 0.00, (1.04719755,): 3.58,
+        (2.09439510,): 0.01, (2.61799388,): 1.75,
+        (3.14159265,): 3.59, (3.66519143,): 1.69,
+        (4.18879020,): 0.02, (4.71238898,): 1.72,
+        (5.23598776,): 3.60
+    }
+
+    filt_pot = automol.pot.remove_empty_terms(POT3)
+    assert numpy.allclose(
+        tuple(filt_pot.keys()), tuple(ref_filt_pot.keys()), atol=1.0e-2)
+    assert numpy.allclose(
+        tuple(filt_pot.values()), tuple(ref_filt_pot.values()), atol=1.0e-2)
 
 
 def test__fit_potential():

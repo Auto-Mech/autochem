@@ -99,6 +99,17 @@ def symmetries(rotor_lst, flat=False):
     return symms
 
 
+def potentials(rotor_lst, flat=False):
+    """ Build a list of list of potentials
+        Only really works for potentials
+    """
+    pots = tuple(tuple(torsion.pot for torsion in rotor)
+                 for rotor in rotor_lst)
+    if flat:
+        pots = tuple(chain(*pots))
+    return pots
+
+
 def grids(rotor_lst,
           span=2.0*numpy.pi, increment=30.0*phycon.DEG2RAD, flat=False):
     """ Build a list of list of grids
