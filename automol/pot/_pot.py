@@ -81,7 +81,6 @@ def scale(pot, scale_factor):
     return new_pot
 
 
-# Manipulate potentials
 def relax_scale(pot):
     """ Scale the potential by scaling factor
 
@@ -124,6 +123,13 @@ def truncate(pot, sym_num):
                 potr[key] = pot[key]
 
     return potr
+
+
+def remove_empty_terms(pot):
+    """ Remove terms from the potential that do not have
+        a value associated with them
+    """
+    return {k: v for k, v in pot.items() if v is not None}
 
 
 def by_index(pot):
@@ -176,35 +182,16 @@ def valid(pot):
     return is_valid
 
 
+def is_nonempty(pot):
+    """ Determine if the potential has any values
+    """
+    return any(val is not None for val in pot.values())
+
+
 def dimension(pot):
     """ Find the dimension of the potential
     """
     return len(list(pot.keys())[0])
-
-
-def check_hr_pot(tors_pots, tors_zmas, tors_paths, emax=-0.5, emin=-10.0):
-    """ Check hr pot to see if a new mimnimum is needed
-    """
-
-    new_min_zma = None
-
-    print('\nAssessing the HR potential...')
-    for name in tors_pots:
-
-        print('- Rotor {}'.format(name))
-        pots = tors_pots[name].values()
-        zmas = tors_zmas[name].values()
-        paths = tors_paths[name].values()
-        for pot, zma, path in zip(pots, zmas, paths):
-            if emin < pot < emax:
-                new_min_zma = zma
-                emin = pot
-                print(' - New minimmum energy ZMA found for torsion')
-                print(' - Ene = {}'.format(pot))
-                print(' - Found at path: {}'.format(path))
-                print(automol.zmat.string(zma))
-
-    return new_min_zma
 
 
 # I/O
