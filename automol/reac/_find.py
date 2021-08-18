@@ -615,3 +615,18 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
             rets.append((qh_q_atm_key, qh_h_atm_key, q_q_atm_key))
 
     return rets
+
+
+# Analyze changes in the spin state to ID the spin crossing
+def intersystem_crossing(rxn_muls):
+    """ Assess if there is a difference between the reactant and
+        product multiplicities to see if there is a change in spin
+    """
+
+    rct_spin_sum, prd_spin_sum = 0, 0
+    for rct_mul in rxn_muls[0]:
+        rct_spin_sum += (rct_mul - 1.)/2.
+    for prd_mul in rxn_muls[1]:
+        prd_spin_sum += (prd_mul - 1.)/2.
+
+    return (rct_spin_sum != prd_spin_sum)
