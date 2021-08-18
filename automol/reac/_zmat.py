@@ -4,6 +4,7 @@ import automol.geom
 import automol.graph
 from automol.par import ReactionClass
 from automol.graph import ts
+from automol.zmat import distance_coordinate_name
 from automol.reac._reac import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
 from automol.reac._util import ring_forming_scission_atom_keys
@@ -356,3 +357,33 @@ def ts_zmatrix(rxn, ts_geo):
     fun_ = function_dct[rxn.class_]
     ret = fun_(rxn, ts_geo)
     return ret
+
+
+# Z-Matrix coordinate functions
+def zmatrix_coordinate_names(zrxn, zma):
+    """ Get the Z-matrix coordinate names for the forming and
+        breaking bonds of a reaction
+
+        It is not always guaranteed that the bond keys will be
+        present in the transition state Z-Matrix. For these cases,
+        the name will be returned as None.
+
+        :param zrxn: a Reaction object
+        :rtype: str
+    """
+
+    def _zma_names(zma, bnd_keys):
+        _names = ()
+        for keys in bnd_keys:
+            try:
+                name = distance_coordinate_name(zma, *keys)
+            except AssertionError:
+                name = None
+            _names += (name,)
+
+        return _names
+
+    frm_bnd_keys = ts.forming_bond_keys(zrxn.forward_ts_graph)
+    brk_bnd_keys = ts.breaking_bond_keys(zrxn.forward_ts_graph)
+  
+    return (_zma_names(zma, frm_bnd_keys), _zma_names(zma, brk_bnd_keys))
