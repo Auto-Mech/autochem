@@ -8,28 +8,40 @@ from automol.par import ReactionClass
 
 RCLASS1 = (ReactionClass.Typ.HYDROGEN_ABSTRACTION,
            ReactionClass.HIGHSPIN,
+           False,
            False)
 RCLASS2 = (ReactionClass.Typ.HYDROGEN_ABSTRACTION,
            ReactionClass.LOWSPIN,
-           True)
+           True,
+           False)
 RCLASS3 = (ReactionClass.Typ.HYDROGEN_ABSTRACTION,
            ReactionClass.HIGHSPIN,
-           True)
+           True,
+           False)
 RCLASS4 = (ReactionClass.Typ.ADDITION,
            ReactionClass.HIGHSPIN,
+           False,
            False)
 RCLASS5 = (ReactionClass.Typ.ADDITION,
            ReactionClass.LOWSPIN,
-           True)
+           True,
+           False)
 RCLASS6 = (ReactionClass.Typ.SUBSTITUTION,
            ReactionClass.LOWSPIN,
-           True)
+           True,
+           False)
 RCLASS7 = (ReactionClass.Typ.HYDROGEN_MIGRATION,
            '',
+           False,
            False)
-RCLASS7 = (ReactionClass.Typ.ELIMINATION,
+RCLASS8 = (ReactionClass.Typ.ELIMINATION,
            '',
+           False,
            False)
+RCLASS9 = (ReactionClass.Typ.ADDITION,
+           None,
+           False,
+           True)
 
 
 def test__build():
@@ -39,11 +51,13 @@ def test__build():
     assert RCLASS1 == automol.par.reaction_class_from_data(
         ReactionClass.Typ.HYDROGEN_ABSTRACTION,
         ReactionClass.HIGHSPIN,
+        False,
         False)
     assert RCLASS5 == automol.par.reaction_class_from_data(
         ReactionClass.Typ.ADDITION,
         ReactionClass.LOWSPIN,
-        True)
+        True,
+        False)
 
 
 def test__get():
@@ -57,12 +71,20 @@ def test__get():
     assert automol.par.spin(RCLASS1) == (
             ReactionClass.HIGHSPIN)
     assert not automol.par.radrad(RCLASS1)
+    assert not automol.par.isc(RCLASS1)
 
     assert automol.par.typ(RCLASS6) == (
             ReactionClass.Typ.SUBSTITUTION)
     assert automol.par.spin(RCLASS6) == (
             ReactionClass.LOWSPIN)
     assert automol.par.radrad(RCLASS6)
+    assert not automol.par.isc(RCLASS1)
+
+    assert automol.par.typ(RCLASS9) == (
+            ReactionClass.Typ.ADDITION)
+    assert automol.par.spin(RCLASS9) is None
+    assert not automol.par.radrad(RCLASS9)
+    assert automol.par.isc(RCLASS9)
 
 
 def test__prop():
@@ -83,6 +105,9 @@ def test__prop():
     assert not automol.par.has_nobarrier(RCLASS1)
     assert automol.par.has_nobarrier(RCLASS2)
     assert not automol.par.has_nobarrier(RCLASS3)
+
+    assert not automol.par.is_isc(RCLASS1)
+    assert automol.par.is_isc(RCLASS9)
 
 
 def test__need():
@@ -107,3 +132,5 @@ def test__string():
         'high-spin hydrogen abstraction')
     assert automol.par.string(RCLASS2) == (
          'radical-radical low-spin hydrogen abstraction')
+    assert automol.par.string(RCLASS9) == (
+         'intersystem-crossing addition')

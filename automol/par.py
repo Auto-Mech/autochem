@@ -96,10 +96,16 @@ def string(rxn_class):
         :type rxn_class:
         :rtype: str
     """
+    spin_str = '' if spin(rxn_class) is None else spin(rxn_class)
     radrad_str = '' if not radrad(rxn_class) else 'radical-radical'
     isc_str = '' if not isc(rxn_class) else 'intersystem-crossing'
-    out_str = '{} {} {} {}'.format(
-        isc_str, radrad_str, spin(rxn_class), typ(rxn_class))
+    cls_str = typ(rxn_class)
+
+    out_str = ''
+    for string in (isc_str, radrad_str, spin_str, cls_str):
+        if string:
+            out_str += '{} '.format(string)
+
     return out_str.strip()
 
 
@@ -114,7 +120,7 @@ def need_spin_designation(rxn_class):
         ReactionClass.Typ.ADDITION,
         ReactionClass.Typ.HYDROGEN_ABSTRACTION
     )
-    return typ(rxn_class) in need_spins
+    return (typ(rxn_class) in need_spins) and not isc(rxn_class)
 
 
 def need_wells(rxn_class):
@@ -214,7 +220,7 @@ def has_nobarrier(rxn_class):
 
 
 def is_isc(rxn_class):
-    """ Return boolean for whether a reaction is an 
+    """ Return boolean for whether a reaction is an
         intrsystem crossing reaction
 
         :param rxn_class: reaction class including type, spin, radrad
