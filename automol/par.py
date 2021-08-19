@@ -22,6 +22,7 @@ class ReactionClass:
         # Unimolecular reactions
         HYDROGEN_MIGRATION = 'hydrogen migration'
         BETA_SCISSION = 'beta scission'
+        HOMOLYT_SCISSION = 'homolytic scission'
         RING_FORM_SCISSION = 'ring forming scission'
         ELIMINATION = 'elimination'
         # Bimolecular reactions
@@ -42,6 +43,7 @@ class ReactionClass:
     RADRAD = 'radical-radical'
     LOWSPIN = 'low-spin'
     HIGHSPIN = 'high-spin'
+    ISC = 'intersystem-crossing'
 
 
 REVERSE_REACTION_DCT = {
@@ -56,9 +58,17 @@ REVERSE_REACTION_DCT = {
     ReactionClass.Typ.SUBSTITUTION: None
 }
 
+BIMOL_REACTIONS = [
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+    ReactionClass.Typ.ADDITION,
+    ReactionClass.Typ.INSERTION,
+    ReactionClass.Typ.SUBSTITUTION
+]
+
 
 # Builders
-def reaction_class_from_data(class_typ, class_spin, class_radrad):
+def reaction_class_from_data(class_typ, class_spin,
+                             class_radrad, class_isc):
     """ Build a full-class description including the following useful
         descriptors of the reaction class:
 
@@ -72,9 +82,11 @@ def reaction_class_from_data(class_typ, class_spin, class_radrad):
         :type class_spin: str
         :param class_radrad: radical-radical type designation
         :type class_radrad: bool
-        :rtype: (str, str, bool)
+        :param class_isc: intersystem-crossing designation
+        :type class_isc: bool
+        :rtype: (str, str, bool, bool)
     """
-    return (class_typ, class_spin, class_radrad)
+    return (class_typ, class_spin, class_radrad, class_isc)
 
 
 def string(rxn_class):
@@ -85,7 +97,9 @@ def string(rxn_class):
         :rtype: str
     """
     radrad_str = '' if not radrad(rxn_class) else 'radical-radical'
-    out_str = '{} {} {}'.format(radrad_str, spin(rxn_class), typ(rxn_class))
+    isc_str = '' if not isc(rxn_class) else 'intersystem-crossing'
+    out_str = '{} {} {} {}'.format(
+        isc_str, radrad_str, spin(rxn_class), typ(rxn_class))
     return out_str.strip()
 
 
@@ -146,6 +160,16 @@ def radrad(rxn_class):
     return rxn_class[2]
 
 
+def isc(rxn_class):
+    """ Get the intersystem crossing designation from the reaction class.
+
+        :param rxn_class: reaction class including type, spin, radrad
+        :type rxn_class:
+        :rtype: bool
+    """
+    return rxn_class[3]
+
+
 def is_high_spin(rxn_class):
     """ Return boolean for whether a reaction is a high-spin reaction
         based on the spin designation in its class description.
@@ -189,6 +213,17 @@ def has_nobarrier(rxn_class):
     return is_radrad(rxn_class) and not is_high_spin(rxn_class)
 
 
+def is_isc(rxn_class):
+    """ Return boolean for whether a reaction is an 
+        intrsystem crossing reaction
+
+        :param rxn_class: reaction class including type, spin, radrad
+        :type rxn_class:
+        :rtype: bool
+    """
+    return isc(rxn_class)
+
+
 # Handle Reaction Class IDs
 def is_reaction_class(rxn_class):
     """ Check if class in list of REACTION CLASS
@@ -200,6 +235,13 @@ def reverse_reaction_class(rxn_class):
     """ determine the reverse of a reaction class
     """
     return REVERSE_REACTION_DCT.get(rxn_class, None)
+
+
+# Functions for just the reactant type
+def isbimol(rxn_typ):
+    """ Determine if a type is a bimolecular reaction
+    """
+    return rxn_typ in BIMOL_REACTIONS
 
 
 # Other Utility Functions

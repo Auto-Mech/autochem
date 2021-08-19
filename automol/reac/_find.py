@@ -24,11 +24,9 @@ from automol.graph import equivalent_atoms
 from automol.graph import union_from_sequence
 from automol.graph import unsaturated_atom_keys
 from automol.graph import atom_neighbor_atom_key
-from automol.graph import atoms_neighbor_atom_keys
 from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogen_keys
 from automol.graph import rings_bond_keys
-from automol.graph import rings_atom_keys
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
 from automol.reac._reac import ts_unique
@@ -243,6 +241,79 @@ def eliminations(rct_gras, prd_gras):
     the ring, downstream of the attacking heavy atom, away from the attacked
     atom.
     """
+
+    def _identify(frm1_keys, frm2_keys, bnd_keys):
+        """ Try and identify elmination from some set of keys
+        """
+
+        _rxns = []
+
+        frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
+                        in itertools.product(frm1_keys, frm2_keys)
+                        if frm1_key != frm2_key and
+                        not frozenset({frm1_key, frm2_key}) in bnd_keys]
+
+        for frm1_key, frm2_key in frm_bnd_keys:
+
+            prds_gra_ = add_bonds(rct_gra, [(frm2_key, frm1_key)])
+
+            # Get keys of all bonds in the ring formed by this extra bond
+            rng_bnd_keys = next(
+                (ks for ks in rings_bond_keys(prds_gra_)
+                 if frozenset({frm1_key, frm2_key}) in ks), None)
+
+            if rng_bnd_keys is not None:
+
+                # Elims break two bonds of the ring formed by the forming bond
+                # Loop over all ring bond-pairs, break bonds, see if prods form
+                # Ensure to preclude the forming-bond from this set
+                brk_bnds = tuple(
+                    bond for bond in itertools.combinations(rng_bnd_keys, 2)
+                    if frozenset({frm1_key, frm2_key}) not in bond)
+
+                for brk_bnd_1, brk_bnd_2 in brk_bnds:
+                    prds_gra_2_ = prds_gra_
+                    prds_gra_2_ = remove_bonds(prds_gra_2_, [brk_bnd_1])
+                    prds_gra_2_ = remove_bonds(prds_gra_2_, [brk_bnd_2])
+
+                    inv_dct = isomorphism(prds_gra_2_, prds_gra)
+                    if inv_dct:
+                        f_frm_bnd_key = (frm1_key, frm2_key)
+
+                        inv_ = inv_dct.__getitem__
+                        b_frm_bnd_key1 = tuple(map(inv_, brk_bnd_1))
+                        b_frm_bnd_key2 = tuple(map(inv_, brk_bnd_2))
+                        b_brk_bnd_key = tuple(map(inv_, f_frm_bnd_key))
+
+                        forw_tsg = ts.graph(rct_gra,
+                                            frm_bnd_keys=[f_frm_bnd_key],
+                                            brk_bnd_keys=[brk_bnd_1,
+                                                          brk_bnd_2])
+                        back_tsg = ts.graph(prds_gra,
+                                            frm_bnd_keys=[b_frm_bnd_key1,
+                                                          b_frm_bnd_key2],
+                                            brk_bnd_keys=[b_brk_bnd_key])
+
+                        rcts_atm_keys = list(map(atom_keys, rct_gras))
+                        prds_atm_keys = list(map(atom_keys, prd_gras))
+
+                        if inv_dct[frm1_key] not in prds_atm_keys[1]:
+                            prds_atm_keys = list(reversed(prds_atm_keys))
+
+                        assert inv_dct[frm1_key] in prds_atm_keys[1]
+                        assert inv_dct[frm2_key] in prds_atm_keys[1]
+
+                        # Create the reaction object
+                        _rxns.append(Reaction(
+                            rxn_cls=ReactionClass.Typ.ELIMINATION,
+                            forw_tsg=forw_tsg,
+                            back_tsg=back_tsg,
+                            rcts_keys=rcts_atm_keys,
+                            prds_keys=prds_atm_keys,
+                        ))
+
+        return _rxns
+
     assert_is_valid_reagent_graph_list(rct_gras)
     assert_is_valid_reagent_graph_list(prd_gras)
 
@@ -252,71 +323,25 @@ def eliminations(rct_gras, prd_gras):
         rct_gra, = rct_gras
         prds_gra = union_from_sequence(prd_gras)
 
-        ngb_keys_dct = atoms_neighbor_atom_keys(rct_gra)
+        # ngb_keys_dct = atoms_neighbor_atom_keys(rct_gra)
 
-        frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
-        frm2_keys = atom_keys(rct_gra)
+        # Generate keys all bonds and 1/2 the forming bond
+        frm1_keys = atom_keys(rct_gra)
         bnd_keys = bond_keys(rct_gra)
 
-        frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
-                        in itertools.product(frm1_keys, frm2_keys)
-                        if frm1_key != frm2_key and
-                        not frozenset({frm1_key, frm2_key}) in bnd_keys]
-
-        for frm1_key, frm2_key in frm_bnd_keys:
-            # Bond the radical atom to the hydrogen atom
-            prds_gra_ = add_bonds(rct_gra, [(frm2_key, frm1_key)])
-
-            # Get keys to the ring formed by this extra bond
-            rng_keys = next((ks for ks in rings_atom_keys(prds_gra_)
-                             if frm2_key in ks and frm1_key in ks), None)
-
-            # Eliminations (as far as I can tell) only happen through TSs with
-            # 3- or 4-membered rings
-            if rng_keys is not None and len(rng_keys) < 5:
-                frm1_ngb_key, = ngb_keys_dct[frm1_key] & set(rng_keys)
-                frm2_ngb_key, = ngb_keys_dct[frm2_key] & set(rng_keys)
-
-                # Break the bonds on either side of the newly formed bond
-                prds_gra_ = remove_bonds(prds_gra_, [(frm1_key, frm1_ngb_key)])
-                prds_gra_ = remove_bonds(prds_gra_, [(frm2_key, frm2_ngb_key)])
-
-                inv_dct = isomorphism(prds_gra_, prds_gra)
-                if inv_dct:
-                    f_frm_bnd_key = (frm1_key, frm2_key)
-                    f_brk_bnd_key1 = (frm1_key, frm1_ngb_key)
-                    f_brk_bnd_key2 = (frm2_key, frm2_ngb_key)
-                    inv_ = inv_dct.__getitem__
-                    b_frm_bnd_key1 = tuple(map(inv_, f_brk_bnd_key1))
-                    b_frm_bnd_key2 = tuple(map(inv_, f_brk_bnd_key2))
-                    b_brk_bnd_key = tuple(map(inv_, f_frm_bnd_key))
-
-                    forw_tsg = ts.graph(rct_gra,
-                                        frm_bnd_keys=[f_frm_bnd_key],
-                                        brk_bnd_keys=[f_brk_bnd_key1,
-                                                      f_brk_bnd_key2])
-                    back_tsg = ts.graph(prds_gra,
-                                        frm_bnd_keys=[b_frm_bnd_key1,
-                                                      b_frm_bnd_key2],
-                                        brk_bnd_keys=[b_brk_bnd_key])
-
-                    rcts_atm_keys = list(map(atom_keys, rct_gras))
-                    prds_atm_keys = list(map(atom_keys, prd_gras))
-
-                    if inv_dct[frm1_key] not in prds_atm_keys[1]:
-                        prds_atm_keys = list(reversed(prds_atm_keys))
-
-                    assert inv_dct[frm1_key] in prds_atm_keys[1]
-                    assert inv_dct[frm2_key] in prds_atm_keys[1]
-
-                    # Create the reaction object
-                    rxns.append(Reaction(
-                        rxn_cls=ReactionClass.Typ.ELIMINATION,
-                        forw_tsg=forw_tsg,
-                        back_tsg=back_tsg,
-                        rcts_keys=rcts_atm_keys,
-                        prds_keys=prds_atm_keys,
-                    ))
+        # To make the function general, try to ID reaction
+        # with different types of keys for the attacking atom
+        # (1) unsaturated atom sites
+        frm2_keys = unsaturated_atom_keys(rct_gra)
+        rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
+        if not rxns:
+            # (2) remaining saturated atom sites
+            frm2_keys = atom_keys(rct_gra, excl_syms=('H',)) - frm2_keys
+            rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
+            # if not rxns:  # Ignoring H2 formation for now for speed
+            #     # (3) H atoms
+            #     frm1_keys = atom_keys(rct_gra, sym='H')
+            #     rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
 
     return ts_unique(rxns)
 
@@ -397,6 +422,7 @@ def additions(rct_gras, prd_gras):
     an unsaturated site on the other. If the result matches the products, this
     is an addition reaction.
     """
+
     assert_is_valid_reagent_graph_list(rct_gras)
     assert_is_valid_reagent_graph_list(prd_gras)
 
@@ -589,3 +615,18 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
             rets.append((qh_q_atm_key, qh_h_atm_key, q_q_atm_key))
 
     return rets
+
+
+# Analyze changes in the spin state to ID the spin crossing
+def intersystem_crossing(rxn_muls):
+    """ Assess if there is a difference between the reactant and
+        product multiplicities to see if there is a change in spin
+    """
+
+    rct_spin_sum, prd_spin_sum = 0, 0
+    for rct_mul in rxn_muls[0]:
+        rct_spin_sum += (rct_mul - 1.)/2.
+    for prd_mul in rxn_muls[1]:
+        prd_spin_sum += (prd_mul - 1.)/2.
+
+    return (rct_spin_sum != prd_spin_sum)

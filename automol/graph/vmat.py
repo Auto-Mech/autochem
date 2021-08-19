@@ -524,18 +524,3 @@ def _atoms_missing_neighbors(gra, zma_keys):
             keys.append(key)
     keys = tuple(keys)
     return keys
-
-
-if __name__ == '__main__':
-    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('N', 0, None),
-            3: ('N', 0, None), 4: ('O', 0, None), 5: ('O', 0, None),
-            6: ('O', 0, None), 7: ('O', 0, None)},
-           {frozenset({1, 7}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({0, 3}): (1, None), frozenset({4, 5}): (1, None),
-            frozenset({6, 7}): (1, None), frozenset({0, 2}): (1, None),
-            frozenset({0, 4}): (1, None), frozenset({1, 5}): (1, None),
-            frozenset({1, 6}): (1, None)})
-    VMA, ZMA_KEYS = vmatrix(GRA, keys=(0, 2, 3))
-    VMA, ZMA_KEYS = continue_vmatrix(GRA, (1, 4, 5, 6, 7), VMA, ZMA_KEYS)
-    print(automol.vmat.string(VMA))
-    print(ZMA_KEYS)

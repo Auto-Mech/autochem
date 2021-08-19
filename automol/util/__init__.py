@@ -7,7 +7,9 @@ from automol.util._util import equivalence_partition
 from automol.util._util import separate_negatives
 from automol.util._util import value_similar_to
 from automol.util._util import scale_iterable
+from automol.util._util import remove_duplicates_with_order
 from automol.util._util import formula_from_symbols
+from automol.util._util import numpy_to_float
 # submodules
 from automol.util import vec
 from automol.util import mat
@@ -22,7 +24,9 @@ __all__ = [
     'separate_negatives',
     'value_similar_to',
     'scale_iterable',
+    'remove_duplicates_with_order',
     'formula_from_symbols',
+    'numpy_to_float',
     # submodules
     'vec',
     'mat',

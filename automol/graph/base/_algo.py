@@ -35,7 +35,8 @@ from automol.graph.base._core import bonds_neighbor_bond_keys
 
 
 # # isomorphisms and equivalence
-def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
+def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True,
+                igraph=False):
     """ Obtain an isomorphism between two graphs
 
     This should eventually replace the other isomorphism functions.
@@ -61,7 +62,7 @@ def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
         gra1 = without_dummy_atoms(gra1)
         gra2 = without_dummy_atoms(gra2)
 
-    return _isomorphism(gra1, gra2)
+    return _isomorphism(gra1, gra2, igraph=igraph)
 
 
 def _isomorphism(gra1, gra2, igraph=False):
@@ -70,8 +71,9 @@ def _isomorphism(gra1, gra2, igraph=False):
     if igraph:
         igr1 = _igraph.from_graph(gra1)
         igr2 = _igraph.from_graph(gra2)
-        iso_dcts = _igraph.isomorphisms(igr1, igr2)
-        iso_dct = iso_dcts[0] if iso_dcts else None
+        iso_dct = _igraph.isomorphisms(igr1, igr2)
+        # iso_dcts = _igraph.isomorphisms(igr1, igr2)
+        # iso_dct = iso_dcts[0] if iso_dcts else None
     else:
         nxg1 = _networkx.from_graph(gra1)
         nxg2 = _networkx.from_graph(gra2)

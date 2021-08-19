@@ -9,6 +9,7 @@ from automol.rotor._rotor import names
 from automol.rotor._rotor import axes
 from automol.rotor._rotor import groups
 from automol.rotor._rotor import symmetries
+from automol.rotor._rotor import potentials
 from automol.rotor._rotor import grids
 from automol.rotor._rotor import zmatrix
 from automol.rotor._rotor import relabel_for_geometry
@@ -31,6 +32,7 @@ __all__ = [
     'axes',
     'groups',
     'symmetries',
+    'potentials',
     'grids',
     'zmatrix',
     'relabel_for_geometry',

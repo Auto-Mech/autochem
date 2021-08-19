@@ -84,6 +84,23 @@ def scale_iterable(iterable, scale_factor):
     return scaled_iterable
 
 
+def numpy_to_float(iterable):
+    """ Convert a numpy array to a tuple of floats
+    """
+    return tuple(val.item() for val in iterable)
+
+
+def remove_duplicates_with_order(lst):
+    """ Remove all duplicates of a list while not reordering the list.
+    """
+    if isinstance(lst, list):
+        lst = list(n for i, n in enumerate(lst) if n not in lst[:i])
+    if isinstance(lst, tuple):
+        lst = tuple(n for i, n in enumerate(lst) if n not in lst[:i])
+
+    return lst
+
+
 def formula_from_symbols(symbs):
     """ Build a molecular formula from a list of atomic symbols.
 

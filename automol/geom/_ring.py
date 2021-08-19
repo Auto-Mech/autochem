@@ -3,7 +3,6 @@
 
 from phydat import phycon
 import automol.graph
-from automol.geom._conv import graph
 from automol.geom.base import central_angle
 from automol.geom.base import from_subset
 
