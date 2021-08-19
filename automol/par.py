@@ -86,11 +86,7 @@ def reaction_class_from_data(class_typ, class_spin,
         :type class_isc: bool
         :rtype: (str, str, bool, bool)
     """
-<<<<<<< HEAD
     return (class_typ, class_spin, class_radrad, class_isc)
-=======
-    return (class_typ, class_spin, class_radrad)  # , class_isc)
->>>>>>> bfbd2d351cf796f61406109777a18a8b6900f980
 
 
 def string(rxn_class):
@@ -101,14 +97,9 @@ def string(rxn_class):
         :rtype: str
     """
     radrad_str = '' if not radrad(rxn_class) else 'radical-radical'
-<<<<<<< HEAD
     isc_str = '' if not isc(rxn_class) else 'intersystem-crossing'
     out_str = '{} {} {} {}'.format(
         isc_str, radrad_str, spin(rxn_class), typ(rxn_class))
-=======
-    # isc_str = '' if not isc(rxn_class) else 'intersystem-crossing'
-    out_str = '{} {} {}'.format(radrad_str, spin(rxn_class), typ(rxn_class))
->>>>>>> bfbd2d351cf796f61406109777a18a8b6900f980
     return out_str.strip()
 
 
