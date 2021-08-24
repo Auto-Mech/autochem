@@ -15,9 +15,10 @@ RC_ATM = 82.0573660809596  # gas constant in cm^3.atm/(mol.K)
 SOL = (qcc.get('speed of light in vacuum') *
        qcc.conversion_factor('meter / second', 'bohr hartree / h'))
 SOLMS = qcc.get('speed of light in vacuum')
-KB = qcc.get('kb')  # The Boltzmann constant (JK$^{-1}$)
-H = qcc.get('h')  # The Planck constant (Js)
-HBAR = qcc.get('hbar')  # The Planck constant (Js) over 2pi
+KB = qcc.get('kb') # The Boltzmann constant (JK$^{-1}$)
+H = qcc.get('h') # The Planck constant (Js)
+HBAR = qcc.get('hbar') # The Planck constant (Js) over 2pi
+
 
 # Energy Conversion factors
 KCAL2CAL = qcc.conversion_factor('kcal/mol', 'cal/mol')
@@ -37,6 +38,7 @@ KCAL2EH = qcc.conversion_factor('kcal/mol', 'hartree')
 KCAL2KJ = qcc.conversion_factor('kcal/mol', 'kJ/mol')
 WAVEN2EH = qcc.conversion_factor('wavenumber', 'hartree')
 EH2WAVEN = qcc.conversion_factor('hartree', 'wavenumber')
+EH2KJ = qcc.conversion_factor('hartree', 'kJ/mol')
 
 # Length/Angle Conversion Factors
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
