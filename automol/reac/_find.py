@@ -621,7 +621,11 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
 def intersystem_crossing(rxn_muls):
     """ Assess if there is a difference between the reactant and
         product multiplicities to see if there is a change in spin
+    
+         NOT CORRECT
     """
+
+    print('rxn_muls', rxn_muls)
 
     rct_spin_sum, prd_spin_sum = 0, 0
     for rct_mul in rxn_muls[0]:
