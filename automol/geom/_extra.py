@@ -278,7 +278,7 @@ def hydrogen_bonded_structure(geo, grxn=None,
 def hydrogen_bonded_idxs(geo, grxn=None,
                          dist_thresh=5.3, angle_thresh=1.92):
     """ Compare bond lengths in structure to determine if there
-        is a hydrogen bond
+        is a hydrogen bond.
 
         :param geo: geometry object
         :type geo: geo object (tuple of tuples)
