@@ -1,5 +1,6 @@
 """ miscellaneous utilities
 """
+import itertools
 from phydat import ptab
 
 
@@ -27,7 +28,7 @@ def is_even_permutation(seq1, seq2):
     return parity
 
 
-def equivalence_partition(iterable, relation):
+def equivalence_partition(iterable, relation, perfect=False):
     """Partitions a set of objects into equivalence classes
 
     canned function taken from https://stackoverflow.com/a/38924631
@@ -36,10 +37,15 @@ def equivalence_partition(iterable, relation):
         iterable: collection of objects to be partitioned
         relation: equivalence relation. I.e. relation(o1,o2) evaluates to True
             if and only if o1 and o2 are equivalent
+        perfect: is this a perfect equivalence relation, where a = c and b = c
+            guarantees a = b? if not, an extra search is performed to make sure
+            that a, b, and c still end up in the same class
 
     Returns: classes, partitions
         classes: A sequence of sets. Each one is an equivalence class
     """
+    # 1. This part only works assuming it is a 'perfect' equivalence relation,
+    # where a = c and b = c implies a = b
     classes = []
     for obj in iterable:  # for each object
         # find the class it is in
@@ -52,6 +58,24 @@ def equivalence_partition(iterable, relation):
                 break
         if not found:  # it is in a new class
             classes.append(set([obj]))
+    # 2. Now, account for the possibility of 'imperfect' equivalence relations,
+    # where the relation gives a = c and b = c, but not a = b, and yet we still
+    # want a, b, and c to end up in the same class
+    if not perfect:
+        new_classes = []
+        while True:
+            new_classes = classes.copy()
+            for cls1, cls2 in itertools.combinations(classes, r=2):
+                if any(relation(o1, o2)
+                       for o1, o2 in itertools.product(cls1, cls2)):
+                    new_classes.remove(cls2)
+                    cls1 |= cls2
+
+            if classes == new_classes:
+                break
+
+            classes = new_classes
+
     return classes
 
 
