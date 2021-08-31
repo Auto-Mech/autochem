@@ -239,6 +239,7 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
         if indexing == 'geo':
             rxn_objs += ((std_rxn, ts_geo, std_rgeos, std_pgeos),)
         elif indexing == 'zma':
+            print(std_rxn)
             ts_zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
                 std_rxn, ts_geo)
             std_zrxn = automol.reac.relabel_for_zmatrix(
