@@ -197,11 +197,17 @@ def elimination_scan_coordinate(rxn, zma):
     brk_bnd_keys = ts.breaking_bond_keys(rxn.forward_ts_graph)
     brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
 
+    # print('rxn')
+    # print(rxn)
+    # print(automol.zmat.string(zma))
+
     # Two bonds breaking in eliminations, need to choose brk bnd
     if len(frm_bnd_key | brk_bnd_key1 | brk_bnd_key2) > 3:
+        # print('frm key', frm_bnd_key)
         # for ring_size > 3: use brk-bnd that doesn't involve atoms in frm bond
         scn_brk_bnd_key = None
         for brk_bnd_key in brk_bnd_keys:
+            # print('brk key', brk_bnd_key)
             if not frm_bnd_key & brk_bnd_key:
                 scn_brk_bnd_key = brk_bnd_key
     else:
@@ -234,8 +240,6 @@ def elimination_grid(zrxn, zma, npoints=(8, 4)):
 
     frm_bnd_len = _ts_bnd_len(zma, frm_name)
     brk_bnd_len = _ts_bnd_len(zma, brk_name)
-    print('frm len', frm_name, frm_bnd_len)
-    print('brk len', brk_name, brk_bnd_len)
     if frm_bnd_len is not None:
         r1min = frm_bnd_len + (0.2 * phycon.ANG2BOHR)
         r1max = frm_bnd_len + (1.4 * phycon.ANG2BOHR)
