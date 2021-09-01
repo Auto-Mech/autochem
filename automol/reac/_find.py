@@ -471,7 +471,11 @@ def insertions(rct_gras, prd_gras):
     :param rct_gras: reactant graphs (must have non-overlapping keys)
     :param prd_gras: product graphs (must have non-overlapping keys)
 
-    Implemented as the reverse of an addition reaction.
+    Implemented as the reverse of an elimination reaction.
+
+    Currently leads to some weird identifications:
+    ['C[CH]C(C)OO', 'O=O'] -> ['CC(O[O])C(C)OO']
+
     """
     rxns = tuple(map(reverse, eliminations(prd_gras, rct_gras)))
     return rxns
@@ -568,7 +572,7 @@ def find(rct_gras, prd_gras):
         # bimolecular reactions
         hydrogen_abstractions,
         additions,
-        insertions,
+        # insertions,  # not fully functional, see function
         substitutions,
     ]
 
@@ -621,11 +625,11 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
 def intersystem_crossing(rxn_muls):
     """ Assess if there is a difference between the reactant and
         product multiplicities to see if there is a change in spin
-    
+
          NOT CORRECT
     """
 
-    print('rxn_muls', rxn_muls)
+    # print('rxn_muls', rxn_muls)
 
     rct_spin_sum, prd_spin_sum = 0, 0
     for rct_mul in rxn_muls[0]:
