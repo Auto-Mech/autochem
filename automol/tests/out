@@ -1,0 +1,450 @@
+O  
+C  1    R1 
+H  1    R2  2    A2 
+C  2    R3  1    A3  3    D3 
+H  2    R4  1    A4  4    D4 
+H  2    R5  1    A5  4    D5 
+H  4    R6  2    A6  1    D6 
+H  4    R7  2    A7  7    D7 
+H  4    R8  2    A8  7    D8 
+X  7    R9  4    A9  2    D9 
+C  7   R10  10   A10  4   D10 
+H  11   R11  7   A11  10   D11 
+H  11   R12  7   A12  12   D12 
+H  11   R13  7   A13  12   D13 
+
+R1   =   1.420787
+R2   =   0.973446
+R3   =   1.509741
+R4   =   1.092454
+R5   =   1.095047
+R6   =   1.096940
+R7   =   1.102399
+R8   =   1.090022
+R9   =   1.000000
+R10  =   1.643236
+R11  =   1.076607
+R12  =   1.080241
+R13  =   1.118146
+A2   = 107.171765
+A3   = 110.401517
+A4   = 108.580737
+A5   = 108.221440
+A6   = 112.389394
+A7   = 110.776877
+A8   = 111.497704
+A9   =  90.000000
+A10  =  93.165984
+A11  =  79.210503
+A12  =  66.189181
+A13  = 159.135888
+D3   = 298.637434
+D4   = 122.334198
+D5   = 240.170870
+D6   =  54.240588
+D7   = 246.553968
+D8   = 123.173312
+D9   =   0.000000
+D10  = 194.808074
+D11  = 258.751415
+D12  = 147.135056
+D13  = 229.476183
+reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 1, stereo_parity: null}
+  2-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  4-7: {order: 0.9, stereo_parity: null}
+  4-8: {order: 1, stereo_parity: null}
+  4-9: {order: 1, stereo_parity: null}
+  7-10: {order: 0, stereo_parity: null}
+  7-11: {order: 0.1, stereo_parity: null}
+  11-12: {order: 1, stereo_parity: null}
+  11-13: {order: 1, stereo_parity: null}
+  11-14: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+- [11, 12, 13, 14]
+backward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 0.9, stereo_parity: null}
+  5-6: {order: 0.1, stereo_parity: null}
+  6-7: {order: 1, stereo_parity: null}
+  6-9: {order: 1, stereo_parity: null}
+  6-10: {order: 1, stereo_parity: null}
+  7-8: {order: 1, stereo_parity: null}
+  7-11: {order: 1, stereo_parity: null}
+  7-12: {order: 1, stereo_parity: null}
+  8-13: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3, 4, 5]
+- [6, 7, 8, 9, 10, 11, 12, 13]
+
+scan grid (array([2.24877409, 2.49173888, 2.73470366, 2.97766845, 3.22063324,
+       3.46359803, 3.70656281, 3.9495276 ]),)
+O    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.420787
+H    0.000000   0.930054  -0.287398
+C    1.241937   0.678179   1.947078
+H   -0.905429   0.502474   1.768887
+H   -0.021632  -1.039911   1.763197
+H    1.372532   1.687249   1.537199
+H    2.149406   0.164923   1.588815
+H    1.238624   0.728509   3.035932
+C    1.416113   3.314344   1.311618
+H    2.145545   2.991051   0.588782
+H    0.442333   2.938577   1.589960
+H    1.481613   4.402356   1.561000
+zaxes [[0, 1], [1, 3], [6, 10]]
+gaxes [[0, 1], [1, 3], [6, 9]]
+C  
+C  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+C  2    R5  1    A5  3    D5 
+H  2    R6  1    A6  6    D6 
+H  2    R7  1    A7  6    D7 
+C  6    R8  2    A8  1    D8 
+H  6    R9  2    A9  9    D9 
+H  6   R10  2   A10  9   D10 
+H  9   R11  6   A11  2   D11 
+H  9   R12  6   A12  12   D12 
+H  9   R13  6   A13  12   D13 
+X  14   R14  9   A14  6   D14 
+O  14   R15  15   A15  9   D15 
+H  16   R16  14   A16  15   D16 
+
+R1   =   1.520344
+R2   =   1.094496
+R3   =   1.094691
+R4   =   1.094691
+R5   =   1.527353
+R6   =   1.096257
+R7   =   1.096257
+R8   =   1.520344
+R9   =   1.096257
+R10  =   1.096257
+R11  =   1.094691
+R12  =   1.094691
+R13  =   1.094496
+R14  =   1.000000
+R15  =   1.600000
+R16  =   0.977808
+A2   = 110.262258
+A3   = 111.001244
+A4   = 111.001219
+A5   = 111.493726
+A6   = 109.153817
+A7   = 109.153813
+A8   = 111.493696
+A9   = 109.868690
+A10  = 109.868707
+A11  = 111.001266
+A12  = 111.001246
+A13  = 110.262227
+A14  =  90.000000
+A15  = 100.000000
+A16  =  85.000000
+D3   = 119.740147
+D4   = 240.259881
+D5   = 180.000054
+D6   = 238.436255
+D7   = 121.563736
+D8   = 179.999956
+D9   = 121.148060
+D10  = 238.851965
+D11  = 299.740180
+D12  = 120.519738
+D13  = 240.259869
+D14  =   0.000000
+D15  = 179.999993
+D16  = 265.000041
+reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  17: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  2-8: {order: 1, stereo_parity: null}
+  6-9: {order: 1, stereo_parity: null}
+  6-10: {order: 1, stereo_parity: null}
+  6-11: {order: 1, stereo_parity: null}
+  9-12: {order: 1, stereo_parity: null}
+  9-13: {order: 1, stereo_parity: null}
+  9-14: {order: 0.9, stereo_parity: null}
+  14-15: {order: 0, stereo_parity: null}
+  14-16: {order: 0.1, stereo_parity: null}
+  16-17: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+- [16, 17]
+backward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 0.9, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 0.1, stereo_parity: null}
+  4-6: {order: 1, stereo_parity: null}
+  4-8: {order: 1, stereo_parity: null}
+  4-9: {order: 1, stereo_parity: null}
+  5-7: {order: 1, stereo_parity: null}
+  5-10: {order: 1, stereo_parity: null}
+  5-11: {order: 1, stereo_parity: null}
+  5-12: {order: 1, stereo_parity: null}
+  6-7: {order: 1, stereo_parity: null}
+  6-13: {order: 1, stereo_parity: null}
+  6-14: {order: 1, stereo_parity: null}
+  7-15: {order: 1, stereo_parity: null}
+  7-16: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3]
+- [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+
+scan grid (array([1.98421243, 2.22717722, 2.47014201, 2.71310679, 2.95607158,
+       3.19903637, 3.44200116, 3.68496594]),)
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.520344
+H    0.000000   1.026766  -0.379043
+H    0.887363  -0.506967  -0.392324
+H   -0.887364  -0.506967  -0.392324
+C    0.000001  -1.421137   2.079965
+H   -0.882366   0.542065   1.880032
+H    0.882365   0.542066   1.880032
+C    0.000002  -1.421136   3.600309
+H   -0.882364  -1.963204   1.720278
+H    0.882367  -1.963203   1.720277
+H    0.887365  -0.914168   3.992633
+H   -0.887361  -0.914170   3.992634
+H    0.000004  -2.447902   3.979352
+O    0.000007  -3.829866   4.785686
+H   -0.970374  -3.713475   4.816066
+zaxes [[0, 1], [1, 5], [5, 8], [13, 15]]
+gaxes [[0, 1], [1, 5], [5, 8], [13, 14]]
+C  
+C  1    R1 
+H  1    R2  2    A2 
+H  1    R3  2    A3  3    D3 
+H  1    R4  2    A4  3    D4 
+C  2    R5  1    A5  3    D5 
+H  2    R6  1    A6  6    D6 
+H  2    R7  1    A7  6    D7 
+C  6    R8  2    A8  1    D8 
+H  6    R9  2    A9  9    D9 
+H  6   R10  2   A10  9   D10 
+H  9   R11  6   A11  2   D11 
+H  9   R12  6   A12  12   D12 
+H  9   R13  6   A13  12   D13 
+X  8   R14  2   A14  1   D14 
+O  8   R15  15   A15  2   D15 
+H  16   R16  8   A16  15   D16 
+
+R1   =   1.520344
+R2   =   1.094496
+R3   =   1.094690
+R4   =   1.094691
+R5   =   1.527353
+R6   =   1.096257
+R7   =   1.096257
+R8   =   1.520344
+R9   =   1.096257
+R10  =   1.096258
+R11  =   1.094691
+R12  =   1.094496
+R13  =   1.094691
+R14  =   1.000000
+R15  =   1.600000
+R16  =   0.977808
+A2   = 110.262207
+A3   = 111.001241
+A4   = 111.001266
+A5   = 111.493742
+A6   = 109.153778
+A7   = 109.153801
+A8   = 111.493716
+A9   = 109.868714
+A10  = 109.868691
+A11  = 111.001257
+A12  = 110.262203
+A13  = 111.001277
+A14  =  90.000000
+A15  =  84.640055
+A16  =  85.000000
+D3   = 240.260013
+D4   = 119.740101
+D5   = 179.999670
+D6   = 121.563778
+D7   = 238.436260
+D8   = 179.999906
+D9   = 238.851951
+D10  = 121.148031
+D11  = 299.740075
+D12  = 240.259918
+D13  = 120.519820
+D14  =   0.000000
+D15  = 171.545420
+D16  =  27.147051
+reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  17: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  2-7: {order: 1, stereo_parity: null}
+  2-8: {order: 0.9, stereo_parity: null}
+  6-9: {order: 1, stereo_parity: null}
+  6-10: {order: 1, stereo_parity: null}
+  6-11: {order: 1, stereo_parity: null}
+  8-15: {order: 0, stereo_parity: null}
+  8-16: {order: 0.1, stereo_parity: null}
+  9-12: {order: 1, stereo_parity: null}
+  9-13: {order: 1, stereo_parity: null}
+  9-14: {order: 1, stereo_parity: null}
+  16-17: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+- [16, 17]
+backward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 0.9, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-6: {order: 0.1, stereo_parity: null}
+  4-6: {order: 1, stereo_parity: null}
+  4-8: {order: 1, stereo_parity: null}
+  4-9: {order: 1, stereo_parity: null}
+  4-10: {order: 1, stereo_parity: null}
+  5-7: {order: 1, stereo_parity: null}
+  5-11: {order: 1, stereo_parity: null}
+  5-12: {order: 1, stereo_parity: null}
+  5-13: {order: 1, stereo_parity: null}
+  6-7: {order: 1, stereo_parity: null}
+  6-14: {order: 1, stereo_parity: null}
+  7-15: {order: 1, stereo_parity: null}
+  7-16: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3]
+- [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+
+scan grid (array([1.98421243, 2.22717722, 2.47014201, 2.71310679, 2.95607158,
+       3.19903637, 3.44200116, 3.68496594]),)
+C    0.000000   0.000000   0.000000
+C    0.000000   0.000000   1.520344
+H    0.000000   1.026766  -0.379042
+H   -0.887364  -0.506965  -0.392324
+H    0.887364  -0.506967  -0.392325
+C   -0.000008  -1.421137   2.079965
+H    0.882369   0.542061   1.880031
+H   -0.882363   0.542071   1.880031
+C   -0.000006  -1.421136   3.600309
+H    0.882353  -1.963209   1.720277
+H   -0.882378  -1.963198   1.720279
+H    0.887362  -0.914175   3.992632
+H   -0.000012  -2.447902   3.979352
+H   -0.887366  -0.914164   3.992635
+O   -2.069801   1.546441   2.255838
+H   -2.472301   1.249145   1.415769
+zaxes [[0, 1], [1, 5], [5, 8], [7, 15]]
+gaxes [[0, 1], [1, 5], [5, 8], [7, 14]]

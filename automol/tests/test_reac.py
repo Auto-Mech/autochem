@@ -486,10 +486,12 @@ def test__reac__hydrogen_abstraction():
 
     # Extra test cases:
     rxn_smis_lst = [
-        (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
-        (['C', '[H]'], ['[CH3]', '[H][H]']),
-        (['C', '[OH]'], ['[CH3]', 'O']),
-        (['CC', '[H]'], ['C[CH2]', '[H][H]']),
+        # (['C(C)(C)C', '[OH]'], ['[C](C)(C)C', 'O']),
+        # (['C', '[H]'], ['[CH3]', '[H][H]']),
+        # (['C', '[OH]'], ['[CH3]', 'O']),
+        # (['CC', '[H]'], ['C[CH2]', '[H][H]']),
+        (['CCCC', '[OH]'], ['CCC[CH2]', 'O']),
+        (['CCCC', '[OH]'], ['CC[CH]C', 'O']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
@@ -889,6 +891,9 @@ def _check_reaction(rxn_obj,
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
+    print(automol.zmat.string(zma))
+    print(zrxn)
+
     # Get scan information
     scan_info = automol.reac.build_scan_info(zrxn, zma)
     scan_names, constraint_dct, scan_grid, update_guess = scan_info
@@ -897,6 +902,7 @@ def _check_reaction(rxn_obj,
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.string(geo))
 
     # Get torsion information
     bnd_keys = automol.reac.rotational_bond_keys(zrxn)
@@ -906,9 +912,12 @@ def _check_reaction(rxn_obj,
     gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
+    zaxes = sorted(map(sorted, bnd_keys))
     axes = sorted(map(sorted, gbnd_keys))
     tors_symms = [automol.reac.rotational_symmetry_number(grxn, *a)
                   for a in axes]
+    print('zaxes', zaxes)
+    print('gaxes', axes)
 
     # Check that the information is correct, requested
     if ref_scan_names is not None:
@@ -967,7 +976,7 @@ if __name__ == '__main__':
     # test__reac__hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
-    # test__reac__hydrogen_abstraction()
+    test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
     # test__reac__radrad_addition()
@@ -976,5 +985,5 @@ if __name__ == '__main__':
     # test__reac__insertion()
     # test__reac__substitution()
     # test__prod__homolytic_scission()
-    test__prod__beta_scission()
+    # test__prod__beta_scission()
     # test__prod__ring_forming_scission()
