@@ -24,9 +24,9 @@ def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
         val_dct = automol.zmat.value_dictionary(zma)
         ini_val = val_dct[coord_name]
         _grid = automol.util.numpy_to_float(_grid)
-        grid_from_equil = tuple(val + ini_val for val in _grid)
+        _grid = tuple(val + ini_val for val in _grid)
 
-    return grid_from_equil
+    return _grid
 
 
 def points(grids):

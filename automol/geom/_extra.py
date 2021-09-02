@@ -252,37 +252,66 @@ def is_unique(geo, geo_lst, check_dct=None):
     return unique, like_idx
 
 
-def hydrogen_bonded_structure(geo, dist_thresh=4.55, angle_thresh=1.92):
-# def hydrogen_bonded_structure(geo, dist_thresh=4.92, angle_thresh=1.92):
-# def hydrogen_bonded_structure(geo, dist_thresh=5.3, angle_thresh=1.92):
+# def hydrogen_bonded_structure(geo, grxn=None,
+#                               dist_thresh=4.92, angle_thresh=1.92):
+# def hydrogen_bonded_structure(geo, grxn=None,
+#                               dist_thresh=5.3, angle_thresh=1.92):
+def hydrogen_bonded_structure(geo, grxn=None,
+                              dist_thresh=4.55, angle_thresh=1.92):
     """ Compare bond lengths in structure to determine if there
         is a hydrogen bond
 
         :param geo: geometry object
         :type geo: geo object (tuple of tuples)
-        :param dist_thresh: cutoff value for hbond length (Angstrom)
+        :param grxn: reaction object (geo indexing)
+        :type grxn: automol.reac.Reaction object
+        :param dist_thresh: cutoff value for hbond length (Bohr)
         :type dist_thresh: float
-        :param angle_thresh: cutoff value for hbond angle (Bohr)
+        :param angle_thresh: cutoff value for hbond angle (Radian)
         :type angle_thresh: float
         :rtype: boolean
     """
-    hydrogen_bond = hydrogen_bonded_idxs(geo, dist_thresh, angle_thresh)
+    hydrogen_bond = hydrogen_bonded_idxs(
+        geo, grxn, dist_thresh, angle_thresh)
     return hydrogen_bond is not None
 
 
-def hydrogen_bonded_idxs(geo, dist_thresh=5.3, angle_thresh=1.92):
+def hydrogen_bonded_idxs(geo, grxn=None,
+                         dist_thresh=5.3, angle_thresh=1.92):
     """ Compare bond lengths in structure to determine if there
         is a hydrogen bond
 
         :param geo: geometry object
         :type geo: geo object (tuple of tuples)
-        :param dist_thresh: cutoff value for hbond length (Angstrom)
+        :param grxn: reaction object (geo indexing)
+        :type grxn: automol.reac.Reaction object
+        :param dist_thresh: cutoff value for hbond length (Bohr)
         :type dist_thresh: float
-        :param angle_thresh: cutoff value for hbond angle (Bohr)
+        :param angle_thresh: cutoff value for hbond angle (Radian)
         :type angle_thresh: float
         :rtype: tuple
     """
+
+    # Initialize the hydrogen bond list to None
     hydrogen_bond = None
+
+    # Get the forming/breaking bond idxs if possible
+    if grxn is not None:
+        frm_bnd_keys = automol.graph.ts.forming_bond_keys(
+            grxn.forward_ts_graph)
+        brk_bnd_keys = automol.graph.ts.breaking_bond_keys(
+            grxn.forward_ts_graph)
+        rxn_keys = set()
+        for key in frm_bnd_keys:
+            rxn_keys = rxn_keys | key
+        for key in brk_bnd_keys:
+            rxn_keys = rxn_keys | key
+        rxn_h_idxs = tuple(rxn_keys)
+        print('rxn h idxs test', frm_bnd_keys, brk_bnd_keys, rxn_h_idxs)
+    else:
+        rxn_h_idxs = ()
+
+    # Get all potential indices for HB interactions
     gra = graph(geo)
     dist_mat = distance_matrix(geo)
     adj_atm_dct = automol.graph.atoms_neighbor_atom_keys(gra)
@@ -290,7 +319,12 @@ def hydrogen_bonded_idxs(geo, dist_thresh=5.3, angle_thresh=1.92):
     acceptor_idxs = list(
         automol.graph.resonance_dominant_radical_atom_keys(gra))
     acceptor_idxs.extend(list(automol.graph.atom_keys(gra, sym='O')))
-    for h_idx in h_idxs:
+
+    # Loop over indices, ignoring H-idxs in reacting bonds
+    hb_idxs = tuple(idx for idx in h_idxs
+                    if idx not in rxn_h_idxs)
+    print('hbond h idxs test', h_idxs, hb_idxs)
+    for h_idx in hb_idxs:
         for acceptor_idx in acceptor_idxs:
             donor_idx = list(adj_atm_dct[h_idx])[0]
             if acceptor_idx in adj_atm_dct[donor_idx]:

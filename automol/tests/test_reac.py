@@ -4,7 +4,7 @@
 import numpy
 import automol
 from automol.par import ReactionClass
-
+from automol.graph import ts
 
 SUBSTITUTION_RXN_STR = """
 reaction class: substitution
@@ -892,6 +892,12 @@ def _check_reaction(rxn_obj,
     print(automol.zmat.string(zma))
     print(zrxn)
 
+    frm_bnd_keys = ts.forming_bond_keys(zrxn.forward_ts_graph)
+    brk_bnd_keys = ts.breaking_bond_keys(zrxn.forward_ts_graph)
+    print('keys')
+    print(frm_bnd_keys)
+    print(brk_bnd_keys)
+
     # Get scan information
     scan_info = automol.reac.build_scan_info(zrxn, zma)
     scan_names, constraint_dct, scan_grid, update_guess = scan_info
@@ -971,10 +977,10 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
 
 if __name__ == '__main__':
-    # test__reac__hydrogen_migration()
+    test__reac__hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
-    test__reac__hydrogen_abstraction()
+    # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
     # test__reac__radrad_addition()
