@@ -119,14 +119,17 @@ def grids(rotor_lst,
     for rotor in rotor_lst:
         rotor_grids = ()
         for torsion in rotor:
+            print('rotor grids input test:', torsion.zma, torsion.name, span, torsion.symmetry, increment)
             rotor_grids += (
                 automol.pot.grid(
                     torsion.zma, torsion.name,
                     span, torsion.symmetry, increment, from_equilibrium=True),
             )
+            print('torsion and rotor grids:', torsion, rotor_grids)
         rotor_lst_grids += (rotor_grids,)
     if flat:
         rotor_lst_grids = tuple(chain(*rotor_lst_grids))
+    print('rotor_lst_grids:', rotor_lst_grids)
 
     return rotor_lst_grids
 
