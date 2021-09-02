@@ -61,6 +61,154 @@ H       -1.2826135304     -0.6998243267     -0.4438019186
 H        0.4659939252      0.6943122175     -1.1366628384
 """
 
+HABS_ZRXN_STR1 = """
+reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  17: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 1, stereo_parity: null}
+  2-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  4-7: {order: 1, stereo_parity: null}
+  4-8: {order: 1, stereo_parity: null}
+  4-9: {order: 1, stereo_parity: null}
+  7-10: {order: 1, stereo_parity: null}
+  7-11: {order: 1, stereo_parity: null}
+  10-12: {order: 0.9, stereo_parity: null}
+  10-13: {order: 1, stereo_parity: null}
+  10-14: {order: 1, stereo_parity: null}
+  12-15: {order: 0, stereo_parity: null}
+  12-16: {order: 0.1, stereo_parity: null}
+  16-17: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+- [16, 17]
+backward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 0.9, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 0.1, stereo_parity: null}
+  4-7: {order: 1, stereo_parity: null}
+  4-10: {order: 1, stereo_parity: null}
+  4-11: {order: 1, stereo_parity: null}
+  5-6: {order: 1, stereo_parity: null}
+  5-7: {order: 1, stereo_parity: null}
+  5-12: {order: 1, stereo_parity: null}
+  5-13: {order: 1, stereo_parity: null}
+  6-8: {order: 1, stereo_parity: null}
+  6-14: {order: 1, stereo_parity: null}
+  6-15: {order: 1, stereo_parity: null}
+  7-9: {order: 1, stereo_parity: null}
+  8-16: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3]
+- [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+"""
+HABS_GEO1 = (
+    ('O', (0.0, 0.0, 0.0)),
+    ('C', (0.0, 0.0, 2.6914294153467657)),
+    ('H', (0.0, 1.7534707783960422, -0.5517555484489822)),
+    ('C', (-2.623299394112204, 0.6566385034518767, 3.6480149247207985)),
+    ('H', (0.5636237182797816, -1.88605768213913, 3.3289129545424223)),
+    ('H', (1.4260767249009725, 1.345507128950089, 3.35470487715432)),
+    ('C', (-2.746065179408126, 0.6724245480726039, 6.5028326846462985)),
+    ('H', (-3.1961339563014963, 2.518941659280532, 2.9483507693607525)),
+    ('H', (-3.988069056064281, -0.7224120831906182, 2.9241998624297434)),
+    ('C', (-5.340762043167491, 0.8914938898502375, 7.652631925159079)),
+    ('O', (-0.845554426010156, 0.5689858109064159, 7.8373344196418655)),
+    ('H', (-6.502001079557306, -0.7071271436769692, 7.052333079032717)),
+    ('H', (-6.21125009870658, 2.6681404185712547, 7.061161472892827)),
+    ('H', (-5.194262776062822, 0.8701632805783928, 9.713822470820245)),
+    ('O', (-8.5007619646225, -2.928405157276118, 6.591025292968647)),
+    ('H', (-9.48421314672397, -1.6400034467104858, 5.7038001145820685))
+)
+
+
+HABS_ZRXN_STR2 = """
+reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 0.9, stereo_parity: null}
+  5-6: {order: 0, stereo_parity: null}
+  5-7: {order: 0.1, stereo_parity: null}
+  7-8: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6]
+- [7, 8]
+backward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 0.9, stereo_parity: null}
+  3-4: {order: 0.1, stereo_parity: null}
+  4-5: {order: 1, stereo_parity: null}
+  4-6: {order: 1, stereo_parity: null}
+  4-7: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3]
+- [4, 5, 6, 7]
+"""
+HABS_GEO2 = (
+    ('C', (0.0, 0.0, 0.0)),
+    ('H', (0.0, 0.0, 2.0639575202459945)),
+    ('H', (0.0, 1.9459185282046763, -0.6879842041977405)),
+    ('H', (-1.6852142339096723, -0.9729596887682943, -0.687986206970089)),
+    ('H', (1.6852153438276314, -0.9729582966864149, -0.687984673708243)),
+    ('O', (3.875541447997114, -2.4707898221289817, -2.1374322380005975)),
+    ('H', (4.3062792658506215, -0.8227905834100768, -2.8535934936888445))
+)
+
 
 def test__from_data():
     """ test getters
@@ -422,9 +570,25 @@ def test__insert_dummies():
 
 
 def test__hydrogen_bonded_structure():
+    """ test automol.geom.hydrogen_bonded_strcure
+    """
+
     ich = automol.smiles.inchi('CCCC[O]')
     geo = automol.inchi.geometry(ich)
-    print(automol.geom.hydrogen_bonded_structure(geo))
+    print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
+
+    ich = automol.smiles.inchi('CC(=O)CO')
+    geo = automol.inchi.geometry(ich)
+    print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
+
+    # H-abstraction with OH. (1) Has internal H-Bond, (2) No internal H-Bond
+    zrxn = automol.reac.from_string(HABS_ZRXN_STR1)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.hydrogen_bonded_structure(HABS_GEO1, grxn=grxn))
+
+    zrxn = automol.reac.from_string(HABS_ZRXN_STR2)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.hydrogen_bonded_structure(HABS_GEO2, grxn=grxn))
 
 
 def __align():
@@ -473,4 +637,4 @@ def __align():
 
 if __name__ == '__main__':
     test__hydrogen_bonded_structure()
-    __align()
+    # __align()
