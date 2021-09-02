@@ -186,6 +186,7 @@ def add_stereo(ich):
         :rtype: str
     """
     geo = geometry(ich)
+    print ('geometry test:',automol.geom.string(geo))
     ich = automol.geom.inchi(geo, stereo=True)
     return ich
 
