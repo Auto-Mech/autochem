@@ -100,7 +100,10 @@ def hydrogen_migrations(rct_gras, viable_only=True):
 
 
 # 2. Homolytic scissions
-def homolytic_scissions(rct_gras, viable_only=True):
+# AVC comment: replaced commented-out if statement by changing the default here
+# to False. Is the viability check broken for this case?
+# def homolytic_scissions(rct_gras, viable_only=True):
+def homolytic_scissions(rct_gras, viable_only=False):
     """ find all possible homolytic scission reactions for these reactants
 
     :param rct_gras: graphs for the reactants, without stereo and without
@@ -149,8 +152,8 @@ def homolytic_scissions(rct_gras, viable_only=True):
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
     # filter removes all reactions
-    # if viable_only:
-    #    rxns = filter_viable_reactions(rxns)
+    if viable_only:
+        rxns = filter_viable_reactions(rxns)
 
     return ts_unique(rxns)
 

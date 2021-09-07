@@ -108,14 +108,34 @@ def elimination_breaking_bond_keys(rxn):
     :rtype: (frozenset[int], frozenset[int])
     """
     assert rxn.class_ == ReactionClass.Typ.ELIMINATION
-    # Choose the breaking bond with the fewest neighbors, to get the terminal
-    # atom if there is one.
     tsg = rxn.forward_ts_graph
-    brk_bnd_keys = reversed(sorted(ts.breaking_bond_keys(tsg), key=sorted))
-    brk_bnd_keys = sorted(
-        brk_bnd_keys, key=lambda x: automol.graph.atom_count(
-            automol.graph.bond_neighborhood(tsg, x)))
-    return tuple(brk_bnd_keys)
+    frm_bnd_key, = ts.forming_bond_keys(tsg)
+    brk_bnd_keys = ts.breaking_bond_keys(tsg)
+    brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
+
+    symbs = automol.graph.atom_symbols(tsg)
+
+    if len(frm_bnd_key | brk_bnd_key1 | brk_bnd_key2) > 3:
+        # for ring_size > 3: use brk-bnd that doesn't involve atoms in frm bond
+        scn_brk_bnd_key = None
+        for brk_bnd_key in brk_bnd_keys:
+            if not frm_bnd_key & brk_bnd_key:
+                scn_brk_bnd_key = brk_bnd_key
+    else:
+        # if one brk bnd doesn't have H, use that, else use arbitrary brk bnd
+        scn_brk_bnd_key = None
+        for brk_bnd_key in brk_bnd_keys:
+            brk_symbs = tuple(symbs[key] for key in brk_bnd_key1)
+            if 'H' not in brk_symbs:
+                scn_brk_bnd_key = brk_bnd_key
+                break
+        if scn_brk_bnd_key is None:
+            scn_brk_bnd_key = brk_bnd_key1
+
+    brk_bnd_key1 = scn_brk_bnd_key
+    brk_bnd_key2, = brk_bnd_keys - {brk_bnd_key1}
+
+    return brk_bnd_key1, brk_bnd_key2
 
 
 def insertion_forming_bond_keys(rxn):
@@ -320,11 +340,12 @@ def sort_reagents(gras):
 
 
 # if __name__ == '__main__':
-#     rct_ichs, prd_ichs = [
-#         ['InChI=1S/C7H14/c1-6(2)5-7(3)4/h7H,1,5H2,2-4H3',
-#          'InChI=1S/CH3/h1H3'],
-#         ['InChI=1S/C8H17/c1-7(2)6-8(3,4)5/h7H,3,6H2,1-2,4-5H3']]
-#     rct_ichs, prd_ichs = [
-#         ['InChI=1S/C7H14O/c1-6(8)5-7(2,3)4/h5H2,1-4H3', 'InChI=1S/CH3/h1H3'],
-#         ['InChI=1S/C8H17O/c1-7(2,3)6-8(4,5)9/h6H2,1-5H3']]
-#     rxn_objs_from_inchi(rct_ichs, prd_ichs)
+#     import automol
+#
+#     RCT_SMIS = ['CCC(CO[O])OO']
+#     PRD_SMIS = ['C=C(CC)OO', 'O[O]']
+#
+#     rxn_objs = automol.reac.rxn_objs_from_smiles(
+#         RCT_SMIS, PRD_SMIS, indexing='zma')
+#     zrxn, zma, _, _ = rxn_objs[0]
+#     scan_inf = automol.reac.build_scan_info(zrxn, zma)
