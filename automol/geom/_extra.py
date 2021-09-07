@@ -252,7 +252,6 @@ def is_unique(geo, geo_lst, check_dct=None):
     return unique, like_idx
 
 
-<<<<<<< HEAD
 # def hydrogen_bonded_structure(geo, grxn=None,
 #                               dist_thresh=4.55, angle_thresh=1.92):
 def hydrogen_bonded_structure(geo, grxn=None,
