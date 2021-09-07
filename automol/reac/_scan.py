@@ -13,6 +13,7 @@ from automol.util import dict_
 from automol.reac._util import hydrogen_migration_atom_keys
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import insertion_forming_bond_keys
+from automol.reac._util import elimination_breaking_bond_keys
 
 
 # Wrapper function to obtain all of the scan data for a reaction
@@ -194,36 +195,11 @@ def elimination_scan_coordinate(rxn, zma):
     :rtype: str
     """
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_keys = ts.breaking_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
 
-    # print('rxn')
-    # print(rxn)
-    # print(automol.zmat.string(zma))
-
-    # Two bonds breaking in eliminations, need to choose brk bnd
-    if len(frm_bnd_key | brk_bnd_key1 | brk_bnd_key2) > 3:
-        # print('frm key', frm_bnd_key)
-        # for ring_size > 3: use brk-bnd that doesn't involve atoms in frm bond
-        scn_brk_bnd_key = None
-        for brk_bnd_key in brk_bnd_keys:
-            # print('brk key', brk_bnd_key)
-            if not frm_bnd_key & brk_bnd_key:
-                scn_brk_bnd_key = brk_bnd_key
-    else:
-        # if one brk bnd doesn't have H, use that, else use arbitrary brk bnd
-        scn_brk_bnd_key = None
-        symbs = automol.zmat.symbols(zma)
-        for brk_bnd_key in brk_bnd_keys:
-            brk_symbs = tuple(symbs[key] for key in brk_bnd_key1)
-            if 'H' not in brk_symbs:
-                scn_brk_bnd_key = brk_bnd_key
-                break
-        if scn_brk_bnd_key is None:
-            scn_brk_bnd_key = brk_bnd_key1
+    brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
 
     frm_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
-    brk_name = automol.zmat.distance_coordinate_name(zma, *scn_brk_bnd_key)
+    brk_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key1)
 
     return (frm_name, brk_name)
 
