@@ -385,5 +385,5 @@ def zmatrix_coordinate_names(zrxn, zma):
 
     frm_bnd_keys = ts.forming_bond_keys(zrxn.forward_ts_graph)
     brk_bnd_keys = ts.breaking_bond_keys(zrxn.forward_ts_graph)
-  
+
     return (_zma_names(zma, frm_bnd_keys), _zma_names(zma, brk_bnd_keys))

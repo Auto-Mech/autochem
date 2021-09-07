@@ -119,7 +119,8 @@ def grids(rotor_lst,
     for rotor in rotor_lst:
         rotor_grids = ()
         for torsion in rotor:
-            print('rotor grids input test:', torsion.zma, torsion.name, span, torsion.symmetry, increment)
+            print('rotor grids input test:', torsion.zma, torsion.name,
+                  span, torsion.symmetry, increment)
             rotor_grids += (
                 automol.pot.grid(
                     torsion.zma, torsion.name,
