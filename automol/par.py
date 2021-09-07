@@ -102,9 +102,9 @@ def string(rxn_class):
     cls_str = typ(rxn_class)
 
     out_str = ''
-    for string in (isc_str, radrad_str, spin_str, cls_str):
-        if string:
-            out_str += '{} '.format(string)
+    for str_ in (isc_str, radrad_str, spin_str, cls_str):
+        if str_:
+            out_str += '{} '.format(str_)
 
     return out_str.strip()
 

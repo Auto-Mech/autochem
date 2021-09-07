@@ -233,7 +233,7 @@ def elimination_grid(zrxn, zma, npoints=(7, 5)):
 
     grid1 = numpy.linspace(r1min, r1max, npoints1)
     grid2 = numpy.linspace(r2min, r2max, npoints2)
-    
+
     print(automol.zmat.string(zma))
     print(frm_name, frm_bnd_len)
     print(grid1)

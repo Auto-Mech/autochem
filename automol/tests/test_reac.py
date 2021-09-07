@@ -4,7 +4,7 @@
 import numpy
 import automol
 from automol.par import ReactionClass
-from automol.graph import ts
+# from automol.graph import ts
 
 SUBSTITUTION_RXN_STR = """
 reaction class: substitution
@@ -894,8 +894,8 @@ def _check_reaction(rxn_obj,
     # print(automol.zmat.string(zma))
     # print(zrxn)
 
-    frm_bnd_keys = ts.forming_bond_keys(zrxn.forward_ts_graph)
-    brk_bnd_keys = ts.breaking_bond_keys(zrxn.forward_ts_graph)
+    # frm_bnd_keys = ts.forming_bond_keys(zrxn.forward_ts_graph)
+    # brk_bnd_keys = ts.breaking_bond_keys(zrxn.forward_ts_graph)
     # print('keys')
     # print(frm_bnd_keys)
     # print(brk_bnd_keys)
@@ -918,7 +918,7 @@ def _check_reaction(rxn_obj,
     gbnd_keys = automol.reac.rotational_bond_keys(grxn)
     assert len(gbnd_keys) == len(bnd_keys)
 
-    zaxes = sorted(map(sorted, bnd_keys))
+    # zaxes = sorted(map(sorted, bnd_keys))
     axes = sorted(map(sorted, gbnd_keys))
     tors_symms = [automol.reac.rotational_symmetry_number(grxn, *a)
                   for a in axes]
