@@ -228,7 +228,7 @@ def elimination_scan_coordinate(rxn, zma):
     return (frm_name, brk_name)
 
 
-def elimination_grid(zrxn, zma, npoints=(8, 4)):
+def elimination_grid(zrxn, zma, npoints=(7, 5)):
     """ Build forward 2D grid for elimination reaction
     """
 
@@ -238,20 +238,22 @@ def elimination_grid(zrxn, zma, npoints=(8, 4)):
     # Build the grid
     npoints1, npoints2 = npoints
 
+    print(automol.zmat.string(zma))
+
     frm_bnd_len = _ts_bnd_len(zma, frm_name)
     brk_bnd_len = _ts_bnd_len(zma, brk_name)
     if frm_bnd_len is not None:
-        r1min = frm_bnd_len + (0.2 * phycon.ANG2BOHR)
-        r1max = frm_bnd_len + (1.4 * phycon.ANG2BOHR)
+        r1min = frm_bnd_len + (0.1 * phycon.ANG2BOHR)
+        r1max = frm_bnd_len + (0.6 * phycon.ANG2BOHR)
     else:
-        r1min = (1.54 + 0.2) * phycon.ANG2BOHR
-        r1max = (1.54 + 1.4) * phycon.ANG2BOHR
+        r1min = (0.85 + 0.1) * phycon.ANG2BOHR
+        r1max = (0.85 + 0.8) * phycon.ANG2BOHR
     if brk_bnd_len is not None:
-        r2min = brk_bnd_len + (0.2 * phycon.ANG2BOHR)
-        r2max = brk_bnd_len + (0.8 * phycon.ANG2BOHR)
+        r2min = brk_bnd_len + (0.3 * phycon.ANG2BOHR)
+        r2max = brk_bnd_len + (1.2 * phycon.ANG2BOHR)
     else:
-        r2min = (0.74 + 0.2) * phycon.ANG2BOHR
-        r2max = (0.74 + 0.8) * phycon.ANG2BOHR
+        r2min = (1.50 + 0.3) * phycon.ANG2BOHR
+        r2max = (1.50 + 1.2) * phycon.ANG2BOHR
 
     grid1 = numpy.linspace(r1min, r1max, npoints1) * phycon.ANG2BOHR
     grid2 = numpy.linspace(r2min, r2max, npoints2) * phycon.ANG2BOHR

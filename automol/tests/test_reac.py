@@ -447,12 +447,12 @@ def test__reac__elimination():
 
     # Extra test cases:
     rxn_smis_lst = [
-        # HONO elim.; use dbl bnd to make the forming bond in TS
-        (['CCCON(=O)=O'], ['CCC=O', 'N(=O)O']),
-        # CH2 elim.; 3-member ring in TS (forms C-C, not C-H as it should?)
-        (['CCC'], ['CC', '[CH2]']),
-        # H2 elim.; 3-member ring in TS
-        (['C=O'], ['[C-]#[O+]', '[HH]'])
+        # # HONO elim.; use dbl bnd to make the forming bond in TS
+        # (['CCCON(=O)=O'], ['CCC=O', 'N(=O)O']),
+        # # CH2 elim.; 3-member ring in TS (forms C-C, not C-H as it should?)
+        # (['CCC'], ['CC', '[CH2]']),
+        # # H2 elim.; 3-member ring in TS
+        # (['C=O'], ['[C-]#[O+]', '[HH]'])
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         print('\n\nRXN ID FOR', rct_smis, prd_smis)
@@ -889,24 +889,24 @@ def _check_reaction(rxn_obj,
     zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
     zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
 
-    print(automol.zmat.string(zma))
-    print(zrxn)
+    # print(automol.zmat.string(zma))
+    # print(zrxn)
 
     frm_bnd_keys = ts.forming_bond_keys(zrxn.forward_ts_graph)
     brk_bnd_keys = ts.breaking_bond_keys(zrxn.forward_ts_graph)
-    print('keys')
-    print(frm_bnd_keys)
-    print(brk_bnd_keys)
+    # print('keys')
+    # print(frm_bnd_keys)
+    # print(brk_bnd_keys)
 
     # Get scan information
     scan_info = automol.reac.build_scan_info(zrxn, zma)
     scan_names, constraint_dct, scan_grid, update_guess = scan_info
-    print('scan grid', scan_grid)
+    # print('scan grid', scan_grid)
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
-    print(automol.geom.string(geo))
+    # print(automol.geom.string(geo))
 
     # Get torsion information
     bnd_keys = automol.reac.rotational_bond_keys(zrxn)
@@ -920,8 +920,8 @@ def _check_reaction(rxn_obj,
     axes = sorted(map(sorted, gbnd_keys))
     tors_symms = [automol.reac.rotational_symmetry_number(grxn, *a)
                   for a in axes]
-    print('zaxes', zaxes)
-    print('gaxes', axes)
+    # print('zaxes', zaxes)
+    # print('gaxes', axes)
 
     # Check that the information is correct, requested
     if ref_scan_names is not None:
@@ -977,9 +977,10 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
 
 if __name__ == '__main__':
-    test__reac__hydrogen_migration()
+    # test__reac__hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
+    test__reac__elimination()
     # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
