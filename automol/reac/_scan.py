@@ -214,8 +214,6 @@ def elimination_grid(zrxn, zma, npoints=(7, 5)):
     # Build the grid
     npoints1, npoints2 = npoints
 
-    print(automol.zmat.string(zma))
-
     frm_bnd_len = _ts_bnd_len(zma, frm_name)
     brk_bnd_len = _ts_bnd_len(zma, brk_name)
     if frm_bnd_len is not None:
@@ -233,12 +231,6 @@ def elimination_grid(zrxn, zma, npoints=(7, 5)):
 
     grid1 = numpy.linspace(r1min, r1max, npoints1)
     grid2 = numpy.linspace(r2min, r2max, npoints2)
-
-    print(automol.zmat.string(zma))
-    print(frm_name, frm_bnd_len)
-    print(grid1)
-    print(brk_name, brk_bnd_len)
-    print(grid2)
 
     return (grid1, grid2)
 
