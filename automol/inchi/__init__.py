@@ -21,7 +21,7 @@ from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
 # # properties
 from automol.inchi.base._core import is_standard_form
-from automol.inchi.base._core import is_complete
+# from automol.inchi.base._core import is_complete
 from automol.inchi.base._core import has_multiple_components
 from automol.inchi.base._core import is_chiral
 from automol.inchi.base._core import has_stereo
@@ -48,6 +48,9 @@ from automol.inchi._conv import conformers
 # # derived transformations
 from automol.inchi._conv import add_stereo
 from automol.inchi._conv import expand_stereo
+
+# temp
+from automol.inchi._conv import is_complete
 
 
 __all__ = [
