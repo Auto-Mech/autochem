@@ -15,6 +15,8 @@ from automol.inchi.base import same_connectivity
 from automol.inchi.base import equivalent
 from automol.inchi.base import hardcoded_object_from_inchi_by_key
 
+from automol.inchi.base import recalculate
+
 
 # # conversions
 def graph(ich, stereo=True):
@@ -201,3 +203,26 @@ def expand_stereo(ich):
     sgrs = automol.graph.stereomers(gra)
     ste_ichs = [automol.graph.stereo_inchi(sgr) for sgr in sgrs]
     return ste_ichs
+
+
+# temp
+def is_complete(ich):
+    """ Determine if the InChI string is complete
+        (has all stereo-centers assigned).
+
+        Currently only checks species that does not have any
+        resonance structures.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: bool
+    """
+
+    gra = graph(ich, stereo=True)
+    if len(automol.graph.dominant_resonances(gra)) == 1:
+        _complete = equivalent(ich, standard_form(ich)) and not (
+            has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
+    else:
+        _complete = True
+
+    return _complete
