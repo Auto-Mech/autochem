@@ -80,10 +80,12 @@ def expand_stereo(rxn):
 
             # But for dummy atoms, we could just do the conversion directly,
             # but this avoids loss of dummy atoms from the products graph.
-            back_ste_tsg = automol.graph.set_atom_stereo_parities(
-                back_tsg, automol.graph.atom_stereo_parities(back_ste_tsg))
-            back_ste_tsg = automol.graph.set_bond_stereo_parities(
-                back_tsg, automol.graph.bond_stereo_parities(back_ste_tsg))
+            tsg_ = back_tsg
+            tsg_ = automol.graph.set_atom_stereo_parities(
+                tsg_, automol.graph.atom_stereo_parities(back_ste_tsg))
+            tsg_ = automol.graph.set_bond_stereo_parities(
+                tsg_, automol.graph.bond_stereo_parities(back_ste_tsg))
+            back_ste_tsg = tsg_
 
             srxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
                             rcts_keys, prds_keys)
@@ -118,10 +120,12 @@ def expand_product_stereo(srxn):
 
         # But for dummy atoms, we could just do the conversion directly, but
         # this avoids loss of dummy atoms from the products graph.
-        back_ste_tsg = automol.graph.set_atom_stereo_parities(
-            back_tsg, automol.graph.atom_stereo_parities(back_ste_tsg))
-        back_ste_tsg = automol.graph.set_bond_stereo_parities(
-            back_tsg, automol.graph.bond_stereo_parities(back_ste_tsg))
+        tsg_ = back_tsg
+        tsg_ = automol.graph.set_atom_stereo_parities(
+            tsg_, automol.graph.atom_stereo_parities(back_ste_tsg))
+        tsg_ = automol.graph.set_bond_stereo_parities(
+            tsg_, automol.graph.bond_stereo_parities(back_ste_tsg))
+        back_ste_tsg = tsg_
 
         srxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
                         rcts_keys, prds_keys)
