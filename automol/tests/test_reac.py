@@ -863,6 +863,48 @@ def test__prod__insertion():
     _check_products(rct_gras, rclass, nprods)
 
 
+def test__expand_stereo():
+    """ test reaction stereo expansion
+    """
+    rct_smis = ['CC(F)CCCC', '[H]']
+    prd_smis = ['CC(F)CCC[CH2]', '[HH]']
+    rxn_obj = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
+
+    srxn_objs = automol.reac.expand_stereo(rxn_obj)
+    rct_ichs = list(map(automol.graph.stereo_inchi,
+                        map(automol.graph.union_from_sequence,
+                            map(automol.reac.reactant_graphs, srxn_objs))))
+    prd_ichs = list(map(automol.graph.stereo_inchi,
+                        map(automol.graph.union_from_sequence,
+                            map(automol.reac.reactant_graphs, srxn_objs))))
+    rxn_ichs_lst = tuple(zip(rct_ichs, prd_ichs))
+    for rxn_ichs in rxn_ichs_lst:
+        print(rxn_ichs)
+    assert rxn_ichs_lst == (
+        ('InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m0./s1',
+         'InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m0./s1'),
+        ('InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m1./s1',
+         'InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m1./s1'))
+
+
+def test__expand_product_stereo():
+    """ test reaction stereo expansion
+    """
+    # This is kind of a trivial example -- we should find one with multiple
+    # possible products
+    rct_smis = ['CC(F)CCCC', '[H]']
+    prd_smis = ['CC(F)CCC[CH2]', '[HH]']
+    rxn_obj = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
+
+    # Use the regular expander to get stereo for reactants
+    srxn_obj = automol.reac.expand_stereo(rxn_obj)[0]
+
+    # Stereo assignments for products will be ignored and re-expanded
+    srxn_objs = automol.reac.expand_product_stereo(srxn_obj)
+    assert len(srxn_objs) == 1
+    assert srxn_objs[0] == srxn_obj
+
+
 # Utility functions for building information
 def _gras_for_prod_tests(rct_smis):
     """ Get reactant graphs from smiles
@@ -982,7 +1024,7 @@ if __name__ == '__main__':
     # test__reac__hydrogen_migration()
     # test__reac__beta_scission()
     # test__reac__ring_forming_scission()
-    test__reac__elimination()
+    # test__reac__elimination()
     # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
@@ -994,3 +1036,5 @@ if __name__ == '__main__':
     # test__prod__homolytic_scission()
     # test__prod__beta_scission()
     # test__prod__ring_forming_scission()
+    test__expand_stereo()
+    test__expand_product_stereo()
