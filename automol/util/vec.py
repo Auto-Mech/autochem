@@ -219,7 +219,14 @@ def central_angle(xyz1, xyz2, xyz3):
     """
     uxyz21 = unit_direction(xyz2, xyz1)
     uxyz23 = unit_direction(xyz2, xyz3)
-    ang = numpy.arccos(numpy.dot(uxyz21, uxyz23))
+    cos = numpy.dot(uxyz21, uxyz23)
+    if cos < -1.0:
+        assert numpy.allclose(cos, -1.0)
+        cos = -1.0
+    elif cos > 1.0:
+        assert numpy.allclose(cos, 1.0)
+        cos = 1.0
+    ang = numpy.arccos(cos)
     return ang
 
 
@@ -238,8 +245,14 @@ def projected_central_angle(xyz1, xyz2, xyz3):
 
     uxyz21 = unit_perpendicular(xyz2, xyz1)
     uxyz23 = unit_perpendicular(xyz2, xyz3)
-    ang = numpy.arccos(numpy.dot(uxyz21, uxyz23))
-
+    cos = numpy.dot(uxyz21, uxyz23)
+    if cos < -1.0:
+        assert numpy.allclose(cos, -1.0)
+        cos = -1.0
+    elif cos > 1.0:
+        assert numpy.allclose(cos, 1.0)
+        cos = 1.0
+    ang = numpy.arccos(cos)
     return ang
 
 

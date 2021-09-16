@@ -117,11 +117,15 @@ def _connected_geometry(ich):
             geo = automol.graph.embed.geometry(gra)
             return geo
 
+        print('starting gen loop:')
         for gen_ in [_gen1, _gen1, _gen1, _gen2, _gen3]:
             success = False
             try:
+                # print('gen loop, ich:', ich)
                 geo = gen_(ich)
+                # print('geo test:', automol.geom.string(geo))
                 geo_ich = automol.geom.inchi(geo)
+                # print('geo_ich test:', geo_ich)
                 # Check connectivity
                 same_conn = same_connectivity(ich, geo_ich)
                 conn = automol.geom.connected(geo)
@@ -218,11 +222,13 @@ def is_complete(ich):
         :rtype: bool
     """
 
-    gra = graph(ich, stereo=True)
-    if len(automol.graph.dominant_resonances(gra)) == 1:
-        _complete = equivalent(ich, standard_form(ich)) and not (
-            has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
-    else:
-        _complete = True
+    # gra = graph(ich, stereo=True)
+    # if len(automol.graph.dominant_resonances(gra)) == 1:
+    #     _complete = equivalent(ich, standard_form(ich)) and not (
+    #         has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
+    # else:
+    #     _complete = True
+    _complete = equivalent(ich, standard_form(ich)) and not (
+        has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
 
     return _complete
