@@ -123,6 +123,7 @@ from automol.graph.base._core import bonds_neighbor_bond_keys
 # algorithm functions:
 # # isomorphisms and equivalence
 from automol.graph.base._algo import isomorphism
+from automol.graph.base._algo import sequence_isomorphism
 from automol.graph.base._algo import full_isomorphism
 from automol.graph.base._algo import full_subgraph_isomorphism
 from automol.graph.base._algo import backbone_isomorphism
@@ -354,6 +355,7 @@ __all__ = [
     # algorithm functions:
     # # isomorphisms and equivalence
     'isomorphism',
+    'sequence_isomorphism',
     'full_isomorphism',
     'full_subgraph_isomorphism',
     'backbone_isomorphism',
