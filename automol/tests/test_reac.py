@@ -905,6 +905,53 @@ def test__expand_product_stereo():
     assert srxn_objs[0] == srxn_obj
 
 
+def test__add_stereo_from_unordered_geometries():
+    """ test automol.reac.add_stereo_from_unordered_geometries()
+    """
+    rct_smis = ['C(F)(Cl)C(F)(Cl)', '[OH]']
+    prd_smis = ['C(F)(Cl)[C](F)(Cl)', 'O']
+    rxn = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
+
+    rct_geos = list(map(automol.inchi.geometry,
+                        map(automol.smiles.inchi, rct_smis)))
+    prd_geos = list(map(automol.inchi.geometry,
+                        map(automol.smiles.inchi, prd_smis)))
+
+    # mix the geometries up a bit so they no longer correspond
+    def randomize_atom_ordering(geo):
+        """ randomize atom ordering in a geometry
+        """
+        natms = automol.geom.count(geo)
+        ord_dct = dict(enumerate(numpy.random.permutation(natms)))
+        return automol.geom.reorder(geo, ord_dct)
+
+    rct_geos = list(map(randomize_atom_ordering, reversed(rct_geos)))
+    prd_geos = list(map(randomize_atom_ordering, reversed(prd_geos)))
+
+    # This would break because the order doesn't match:
+    # srxn = automol.reac.add_stereo_from_geometries(srxn, rct_geos, prd_geos)
+
+    # We do this instead:
+    srxn, order = automol.reac.add_stereo_from_unordered_geometries(
+        rxn, rct_geos, prd_geos)
+    if srxn is None:
+        # The stereo must be inconsistent -- reflect coordinates for the
+        # products (Only guaranteed to work for this particular reaction)
+        prd_geos = list(map(automol.geom.reflect_coordinates, prd_geos))
+        srxn, order = automol.reac.add_stereo_from_unordered_geometries(
+            rxn, rct_geos, prd_geos)
+    print(automol.reac.string(srxn))
+    print(order)
+
+    # Here's how we would reorder our geometries to match the reaction object:
+    rct_order, prd_order = order
+    rct_geos = [rct_geos[i] for i in rct_order]
+    prd_geos = [prd_geos[i] for i in prd_order]
+
+    # Now this should work:
+    srxn = automol.reac.add_stereo_from_geometries(srxn, rct_geos, prd_geos)
+
+
 # Utility functions for building information
 def _gras_for_prod_tests(rct_smis):
     """ Get reactant graphs from smiles
@@ -1036,5 +1083,6 @@ if __name__ == '__main__':
     # test__prod__homolytic_scission()
     # test__prod__beta_scission()
     # test__prod__ring_forming_scission()
-    test__expand_stereo()
-    test__expand_product_stereo()
+    # test__expand_stereo()
+    # test__expand_product_stereo()
+    test__add_stereo_from_unordered_geometries()

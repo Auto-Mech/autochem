@@ -81,6 +81,49 @@ def _isomorphism(gra1, gra2, igraph=False):
     return iso_dct
 
 
+def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
+                         dummy=True, igraph=False):
+    """ Obtain an isomorphism between two sequences of graphs
+
+    :param backbone_only: Compare backbone atoms only?
+    :type backbone_only: bool
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: First, a sequence of integers mapping each graph in `gras1` to an
+        isomorph in `gras2`, followes by a sequence of dictionaries mapping
+        their atoms onto each other.
+    :rtype: tuple[int], tuple[dict]
+    """
+    gras1_pool = dict(enumerate(gras1))
+    order = []
+    iso_dcts = []
+    for gra2 in gras2:
+        found_match = False
+        for idx, gra1 in gras1_pool.items():
+            iso_dct = isomorphism(gra2, gra1, backbone_only=backbone_only,
+                                  stereo=stereo, dummy=dummy, igraph=igraph)
+            if iso_dct is not None:
+                found_match = True
+                order.append(idx)
+                iso_dcts.append(iso_dct)
+                gras1_pool.pop(idx)
+                break
+
+        if not found_match:
+            break
+
+    if not found_match:
+        order = None
+        iso_dcts = None
+    else:
+        order = tuple(order)
+        iso_dcts = tuple(iso_dcts)
+
+    return order, iso_dcts
+
+
 def full_isomorphism(gra1, gra2, igraph=False):
     """ full graph isomorphism
 

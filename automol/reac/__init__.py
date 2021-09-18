@@ -57,6 +57,8 @@ from automol.reac._rot import rotational_groups
 from automol.reac._rot import rotational_symmetry_number
 # stereo-specific reactions
 from automol.reac._stereo import add_stereo_from_geometries
+from automol.reac._stereo import add_stereo_from_inchis
+from automol.reac._stereo import add_stereo_from_unordered_geometries
 from automol.reac._stereo import expand_stereo
 from automol.reac._stereo import expand_product_stereo
 from automol.reac._stereo import is_stereo_consistent
@@ -140,6 +142,8 @@ __all__ = [
     'rotational_symmetry_number',
     # stereo-specific reactions
     'add_stereo_from_geometries',
+    'add_stereo_from_inchis',
+    'add_stereo_from_unordered_geometries',
     'expand_stereo',
     'expand_product_stereo',
     'is_stereo_consistent',
