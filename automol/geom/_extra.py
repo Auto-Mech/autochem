@@ -329,6 +329,10 @@ def hydrogen_bonded_idxs(geo, grxn=None,
                 donor_idx = list(adj_atm_dct[h_idx])[0]
                 if acceptor_idx in adj_atm_dct[donor_idx]:
                     continue
+                if hydrogen_bond is not None:
+                    _, j, k = hydrogen_bond
+                    if dist_mat[h_idx][acceptor_idx] > dist_mat[j][k]:
+                        continue
                 if dist_mat[h_idx][acceptor_idx] < dist_thresh:
                     if central_angle(
                             geo, donor_idx, h_idx, acceptor_idx) > angle_thresh:
