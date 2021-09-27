@@ -117,15 +117,11 @@ def _connected_geometry(ich):
             geo = automol.graph.embed.geometry(gra)
             return geo
 
-        print('starting gen loop:')
         for gen_ in [_gen1, _gen1, _gen1, _gen2, _gen3]:
             success = False
             try:
-                # print('gen loop, ich:', ich)
                 geo = gen_(ich)
-                # print('geo test:', automol.geom.string(geo))
                 geo_ich = automol.geom.inchi(geo)
-                # print('geo_ich test:', geo_ich)
                 # Check connectivity
                 same_conn = same_connectivity(ich, geo_ich)
                 conn = automol.geom.connected(geo)
@@ -210,6 +206,7 @@ def expand_stereo(ich):
 
 
 # temp
+# def is_complete(ich, geo=None):
 def is_complete(ich):
     """ Determine if the InChI string is complete
         (has all stereo-centers assigned).
@@ -228,7 +225,15 @@ def is_complete(ich):
     #         has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
     # else:
     #     _complete = True
+    # print(ich, standard_form(ich), has_stereo(ich), has_stereo(recalculate(ich,stereo=True)))
+    # if geo:
+    #    ich_s = automol.geom.inchi(geo, stereo=True)
+    # else:
+    #    ich_s = add_stereo(ich)
+    ich_s = add_stereo(ich)
     _complete = equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
+        has_stereo(ich) ^ has_stereo(ich_s))
+    # _complete = equivalent(ich, standard_form(ich)) and not (
+    #    has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
 
     return _complete
