@@ -323,7 +323,9 @@ def test__reac__hydrogen_migration():
     ref_tors_names = {'D9'}
     ref_tors_symms = [3]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_MIGRATION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -340,8 +342,12 @@ def test__reac__2ts_hydrogen_migration():
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
 
+    # Ensure there are two objects
+    assert len(rxn_objs) == 2
+
     # Deal with rxn object 1
     rxn1, ts_geo1, _, _ = rxn_objs[0]
+    assert rxn1.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
     zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
     zrxn1 = automol.reac.relabel_for_zmatrix(rxn1, zma_keys1, dummy_key_dct1)
     print(zrxn1)
@@ -358,6 +364,7 @@ def test__reac__2ts_hydrogen_migration():
 
     # Deal with rxn object 2
     rxn2, ts_geo2, _, _ = rxn_objs[1]
+    assert rxn2.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
     zma2, zma_keys2, dummy_key_dct2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
     zrxn2 = automol.reac.relabel_for_zmatrix(rxn2, zma_keys2, dummy_key_dct2)
 
@@ -390,7 +397,9 @@ def test__reac__beta_scission():
     ref_tors_names = {'D11', 'D5', 'D8'}
     ref_tors_symms = [3, 1, 1]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.BETA_SCISSION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -415,7 +424,9 @@ def test__reac__ring_forming_scission():
     ref_tors_names = {'D14'}
     ref_tors_symms = [1]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.RING_FORM_SCISSION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -440,7 +451,9 @@ def test__reac__elimination():
     ref_tors_names = {'D9'}
     ref_tors_symms = [3]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.ELIMINATION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -458,7 +471,8 @@ def test__reac__elimination():
         print('\n\nRXN ID FOR', rct_smis, prd_smis)
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
         print(rxn_objs)
-        _check_reaction(rxn_objs[0])
+        assert len(rxn_objs) == 1
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.ELIMINATION)
 
 
 def test__reac__hydrogen_abstraction():
@@ -478,7 +492,9 @@ def test__reac__hydrogen_abstraction():
     ref_tors_names = {'D3', 'D11', 'D6'}
     ref_tors_symms = [1, 1, 3]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -494,7 +510,8 @@ def test__reac__hydrogen_abstraction():
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-        _check_reaction(rxn_objs[0])
+        assert len(rxn_objs) == 1
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION)
 
 
 def test__reac__sigma_hydrogen_abstraction():
@@ -514,7 +531,9 @@ def test__reac__sigma_hydrogen_abstraction():
     ref_tors_names = {'D8', 'D5'}
     ref_tors_symms = [3, 1]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -538,7 +557,9 @@ def test__reac__addition():
     ref_tors_names = {'D7', 'D11', 'D4'}
     ref_tors_symms = [1, 1, 3]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -549,7 +570,8 @@ def test__reac__addition():
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-        _check_reaction(rxn_objs[0])
+        assert len(rxn_objs) == 1
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION)
 
 
 def test__reac__radrad_addition():
@@ -567,13 +589,15 @@ def test__reac__radrad_addition():
     ref_tors_names = {'D7', 'D4'}
     ref_tors_symms = [3, 3]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
 
 
-def test__reac__isc_addition():
+def __reac__isc_addition():
     """ test addition functionality
     """
 
@@ -581,7 +605,10 @@ def test__reac__isc_addition():
     prd_smis = ['[N-]=[N+]=O']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-    print(rxn_objs)
+    assert len(rxn_objs) == 1
+
+    # z-matrix build dies
+    # _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION)
 
 
 def test__reac__radrad_hydrogen_abstraction():
@@ -599,7 +626,9 @@ def test__reac__radrad_hydrogen_abstraction():
     ref_tors_names = {'D8', 'D5'}
     ref_tors_symms = [3, 1]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -624,7 +653,9 @@ def __reac__insertion():
     ref_tors_names = {'D9'}
     ref_tors_symms = [3]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -635,7 +666,8 @@ def __reac__insertion():
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
-        _check_reaction(rxn_objs[0])
+        assert len(rxn_objs) == 1
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION)
 
 
 def test__reac__substitution():
@@ -657,10 +689,21 @@ def test__reac__substitution():
     ref_tors_names = {'D8', 'D3', 'D11'}
     ref_tors_symms = [1, 1, 3]
 
-    _check_reaction(rxn_objs[0],
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
+
+    # Extra test cases:
+    rxn_smis_lst = [
+        (['OO', '[H]'], ['O', '[OH]']),
+    ]
+    for rct_smis, prd_smis in rxn_smis_lst:
+        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        assert len(rxn_objs) == 1
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION)
 
 
 def test__reac_util():
@@ -851,7 +894,7 @@ def test__prod__addition():
     _check_products(rct_gras, rclass, nprods)
 
 
-def test__prod__insertion():
+def __prod__insertion():
     """ test insertion product enumeration
     """
 
@@ -964,7 +1007,7 @@ def _gras_for_prod_tests(rct_smis):
 
 
 # Checker functions for assessing if tests output correct information
-def _check_reaction(rxn_obj,
+def _check_reaction(rxn_obj, ref_class,
                     ref_scan_names=None, ref_constraint_dct=None,
                     ref_scan_grid=None, ref_update_guess=None,
                     ref_tors_names=None, ref_tors_symms=None):
@@ -1013,11 +1056,15 @@ def _check_reaction(rxn_obj,
     # print('gaxes', axes)
 
     # Check that the information is correct, requested
+    assert rxn.class_ == ref_class
     if ref_scan_names is not None:
         assert scan_names == ref_scan_names
     if ref_constraint_dct is not None:
         assert set(constraint_dct.keys()) == set(ref_constraint_dct.keys())
     if ref_scan_grid is not None:
+        print('---')
+        print(ref_scan_grid)
+        print(scan_grid)
         for rgrd, grd in zip(ref_scan_grid, scan_grid):
             # assert numpy.allclose(rgrd, grd)  correct?
             if rxn.class_ != 'elimination':
@@ -1066,10 +1113,6 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
 
 if __name__ == '__main__':
-    # test__reac__hydrogen_migration()
-    # test__reac__beta_scission()
-    # test__reac__ring_forming_scission()
-    # test__reac__elimination()
     # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
