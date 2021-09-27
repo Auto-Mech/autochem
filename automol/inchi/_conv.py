@@ -206,6 +206,7 @@ def expand_stereo(ich):
 
 
 # temp
+# def is_complete(ich, geo=None):
 def is_complete(ich):
     """ Determine if the InChI string is complete
         (has all stereo-centers assigned).
@@ -218,11 +219,21 @@ def is_complete(ich):
         :rtype: bool
     """
 
-    gra = graph(ich, stereo=True)
-    if len(automol.graph.dominant_resonances(gra)) == 1:
-        _complete = equivalent(ich, standard_form(ich)) and not (
-            has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
-    else:
-        _complete = True
+    # gra = graph(ich, stereo=True)
+    # if len(automol.graph.dominant_resonances(gra)) == 1:
+    #     _complete = equivalent(ich, standard_form(ich)) and not (
+    #         has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
+    # else:
+    #     _complete = True
+    # print(ich, standard_form(ich), has_stereo(ich), has_stereo(recalculate(ich,stereo=True)))
+    # if geo:
+    #    ich_s = automol.geom.inchi(geo, stereo=True)
+    # else:
+    #    ich_s = add_stereo(ich)
+    ich_s = add_stereo(ich)
+    _complete = equivalent(ich, standard_form(ich)) and not (
+        has_stereo(ich) ^ has_stereo(ich_s))
+    # _complete = equivalent(ich, standard_form(ich)) and not (
+    #    has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
 
     return _complete
