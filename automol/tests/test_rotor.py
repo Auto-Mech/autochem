@@ -364,11 +364,11 @@ def test__ts():
         C2H5OH_CH3_ZMA, zrxn=C2H5OH_CH3_ZRXN)
 
     assert automol.rotor.names(rotors) == (('D3',), ('D6',), ('D11',))
-    assert automol.rotor.axes(rotors) == (((0, 1),), ((1, 3),), ((6, 9),))
+    assert automol.rotor.axes(rotors) == (((0, 1),), ((1, 3),), ((6, 10),))
     assert automol.rotor.groups(rotors) == (
-        (((2,), (3, 4, 5, 6, 7, 8, 9, 10, 11, 12)),),
-        (((0, 2, 4, 5), (6, 7, 8, 9, 10, 11, 12)),),
-        (((0, 1, 2, 3, 4, 5, 7, 8), (10, 11, 12)),))
+        (((2,), (3, 4, 5, 6, 7, 8, 10, 11, 12, 13)),),
+        (((0, 2, 4, 5), (6, 7, 8, 10, 11, 12, 13)),),
+        (((0, 1, 2, 3, 4, 5, 7, 8), (11, 12, 13)),))
     assert automol.rotor.symmetries(rotors) == ((1,), (1,), (3,))
     assert automol.rotor.dimensions(rotors) == (1, 1, 1)
 
