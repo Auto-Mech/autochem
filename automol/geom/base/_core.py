@@ -1018,7 +1018,7 @@ def transform_by_matrix(geo, mat):
     return from_data(symbs, xyzs)
 
 
-def reflect_coordinates(geo, idxs, axes):
+def reflect_coordinates(geo, idxs=None, axes=('x',)):
     """ Reflect a specified set of coordinates of a molecular geometry
         about some each of the requested axes.
 
@@ -1032,6 +1032,8 @@ def reflect_coordinates(geo, idxs, axes):
         :type axes: tuple(str)
         :rtype: automol geometry data structure
     """
+
+    idxs = list(range(count(geo))) if idxs is None else idxs
 
     # check input
     assert all(idx < len(geo) for idx in idxs)
