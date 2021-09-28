@@ -490,6 +490,14 @@ def substitutions(rct_gras, prd_gras):
 
     Substitutions are identified by breaking one bond in the reactants and one
     bond from the products and checking for isomorphism.
+
+    Currently it assumes that one of the reactants has a radical site that
+    can attack the other reactants, forming a bond and breaking another.
+
+    From the perspective of breaking and forming breaking bonds, substitutions
+    are equivalent with hydrogen abstractions. Hence, we remove all cases where
+    the forming bond involves a hydrogen atom off the reactant in which a bond
+    is breaking.
     """
     assert_is_valid_reagent_graph_list(rct_gras)
     assert_is_valid_reagent_graph_list(prd_gras)
@@ -500,23 +508,33 @@ def substitutions(rct_gras, prd_gras):
         rct_gra = union_from_sequence(rct_gras)
         prd_gra = union_from_sequence(prd_gras)
 
+        # Loop over both orders of reactants: A+B and B+A
         for rgra1, rgra2 in itertools.permutations(rct_gras):
             bnd_keys = bond_keys(rgra1)
+            atom_symb_dct = automol.graph.atom_symbols(rgra1)
             rad_keys = unsaturated_atom_keys(rgra2)
 
+            # Break all possible bonds in total reactant
             for bnd_key, rad_key in itertools.product(bnd_keys, rad_keys):
                 gra = remove_bonds(rct_gra, [bnd_key])
 
-                for brk_key1 in bnd_key:
-                    gra = add_bonds(gra, [(brk_key1, rad_key)])
+                # Form all possible bonds between rad site and non-H atoms
+                frm_keys = ()
+                for key in bnd_key:
+                    frm_symb = atom_symb_dct[key]
+                    if frm_symb != 'H':
+                        frm_keys += (key,)
+
+                for frm_key in frm_keys:
+                    gra = add_bonds(gra, [(frm_key, rad_key)])
 
                     inv_dct = isomorphism(gra, prd_gra)
                     if inv_dct:
-                        brk_key2, = bnd_key - {brk_key1}
-                        f_frm_bnd_key = (brk_key1, rad_key)
-                        f_brk_bnd_key = (brk_key1, brk_key2)
-                        b_frm_bnd_key = (inv_dct[brk_key1], inv_dct[brk_key2])
-                        b_brk_bnd_key = (inv_dct[brk_key1], inv_dct[rad_key])
+                        brk_key2, = bnd_key - {frm_key}
+                        f_frm_bnd_key = (frm_key, rad_key)
+                        f_brk_bnd_key = (frm_key, brk_key2)
+                        b_frm_bnd_key = (inv_dct[frm_key], inv_dct[brk_key2])
+                        b_brk_bnd_key = (inv_dct[frm_key], inv_dct[rad_key])
 
                         forw_tsg = ts.graph(rct_gra,
                                             frm_bnd_keys=[f_frm_bnd_key],
