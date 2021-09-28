@@ -246,8 +246,9 @@ def torsion_leading_atom(zma, key1, key2, zgra=None):
             keys, rows = zip(*krs)
             start_key = keys[0]
             assert all(row[-1] == start_key for row in rows[1:]), (
-                "Torsion coordinate along bond {:d}-{:d} not decoupled:\n{}"
-                .format(key1, key2, string(zma, one_indexed=False)))
+                "Torsion coordinate along bond "
+                f"{key1:d}-{key2:d} not decoupled:\n"
+                f"{string(zma, one_indexed=False)}")
             if rows[0][-1] is not None:
                 lead_key_candidates.append(start_key)
 

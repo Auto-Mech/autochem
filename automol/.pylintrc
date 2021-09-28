@@ -16,4 +16,5 @@ disable=
     global-statement,
     arguments-out-of-order,
     too-many-function-args
+    logging-fstring-interpolation
  

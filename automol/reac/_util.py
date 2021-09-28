@@ -284,14 +284,11 @@ def assert_is_valid_reagent_graph_list(gras):
     """
     gras_str = '\n---\n'.join(map(automol.graph.string, gras))
     assert _are_all_explicit(gras), (
-        "Implicit hydrogens are not allowed here!\nGraphs:\n{}"
-        .format(gras_str))
+        f"Implicit hydrogens are not allowed here!\nGraphs:\n{gras_str}")
     assert _have_no_stereo_assignments(gras), (
-        "Stereo assignments are not allowed here!\nGraphs:\n{}"
-        .format(gras_str))
+        f"Stereo assignments are not allowed here!\nGraphs:\n{gras_str}")
     assert _have_no_common_atom_keys(gras), (
-        "Overlapping atom keys are not allowed here!\nGraphs:\n{}"
-        .format(gras_str))
+        f"Overlapping atom keys are not allowed here!\nGraphs:\n{gras_str}")
 
 
 def _are_all_explicit(gras):

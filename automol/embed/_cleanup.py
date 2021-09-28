@@ -373,8 +373,8 @@ def gradient_convergence_checker_(thresh=1e-1):
     def _is_converged(xmat, err, grad):
         assert numpy.shape(xmat) == numpy.shape(grad)
         grad_max = numpy.amax(numpy.abs(grad))
-        logging.info('\tError: {:f}'.format(err))
-        logging.info('\tMax gradient: {:f}'.format(grad_max))
+        logging.info(f'\tError: {err:f}')
+        logging.info(f'\tMax gradient: {grad_max:f}')
         logging.info('\n')
         return grad_max < thresh
 
@@ -396,12 +396,12 @@ def minimize_error(xmat, err_, grad_, conv_, maxiter=None):
 
     sd0 = None
     cd0 = None
-    logging.info('Initial error: {:f}'.format(err_(xmat)))
+    logging.info(f'Initial error: {err_(xmat):f}')
 
     converged = False
 
     for niter in range(maxiter):
-        logging.info('Iteration {:d}'.format(niter))
+        logging.info(f'Iteration {niter:d}')
 
         # 1. Calculate the steepest direction
         sd1 = -grad_(xmat)
@@ -430,8 +430,8 @@ def minimize_error(xmat, err_, grad_, conv_, maxiter=None):
         sd0 = sd1
         cd0 = cd1
 
-    logging.info('Niter: {:d}'.format(niter))
-    logging.info('Converged: {:s}'.format('Yes' if converged else 'No'))
+    logging.info(f'Niter: {niter:d}')
+    logging.info(f"Converged: {('Yes' if converged else 'No'):s}")
     logging.info('\n')
 
     return xmat, converged

@@ -205,6 +205,6 @@ def string(pot):
 
     pot_str = ''
     for val in pot.values():
-        pot_str += ' {0:.6f}'.format(val)
+        pot_str += f' {val:.6f}'
 
     return pot_str

@@ -687,8 +687,7 @@ def relabel(gra, atm_key_dct):
     """
     orig_atm_keys = atom_keys(gra)
     assert set(atm_key_dct.keys()) <= orig_atm_keys, (
-        '{}\n{}'.format(set(atm_key_dct.keys()), orig_atm_keys)
-    )
+        f'{set(atm_key_dct.keys())}\n{orig_atm_keys}')
 
     new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
     new_atm_key_dct.update(atm_key_dct)
@@ -835,8 +834,7 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
 
     if check:
         assert not keys & bnd_keys, (
-            '{} and {} have a non-empty intersection'.format(keys, bnd_keys)
-        )
+            f'{keys} and {bnd_keys} have a non-empty intersection')
 
     assert set(ord_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
@@ -921,8 +919,9 @@ def add_atom_explicit_hydrogen_keys(gra, atm_exp_hyd_keys_dct):
     """ add explicit hydrogens by atom
     """
     assert set(atm_exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
-        '{} !<= {}'.format(
-            set(atm_exp_hyd_keys_dct.keys()), atom_keys(gra))
+        f'{set(atm_exp_hyd_keys_dct.keys())}'
+        ' !<= '
+        f'{atom_keys(gra)}'
     )
     for atm_key, atm_exp_hyd_keys in atm_exp_hyd_keys_dct.items():
         assert not set(atm_exp_hyd_keys) & atom_keys(gra)
@@ -1036,8 +1035,7 @@ def standard_keys_without_dummy_atoms(gra):
     decr = 0
     for dummy_key, key in sorted(dummy_ngb_key_dct.items()):
         assert last_dummy_key <= key, (
-            "{:d} must follow previous dummy {:d}"
-            .format(key, last_dummy_key))
+            f"{key:d} must follow previous dummy {last_dummy_key:d}")
 
         dummy_keys_dct[key-decr] = dummy_key-decr
         gra = remove_atoms(gra, [dummy_key])

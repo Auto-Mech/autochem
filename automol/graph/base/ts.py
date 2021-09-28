@@ -140,9 +140,9 @@ def nonconserved_atom_stereo_keys(ste_tsg, check=True):
         ste_atm_keys = stereogenic_atom_keys(rcts_gra)
         ste_bnd_keys = stereogenic_bond_keys(rcts_gra)
         assert not ste_atm_keys, (
-            "Unassigned atom stereo centers: {}".format(str(ste_atm_keys)))
+            f"Unassigned atom stereo centers: {str(ste_atm_keys)}")
         assert not ste_bnd_keys, (
-            "Unassigned bond stereo centers: {}".format(str(ste_bnd_keys)))
+            f"Unassigned bond stereo centers: {str(ste_bnd_keys)}")
 
     keys1 = atom_stereo_keys(rcts_gra)
     keys2 = stereogenic_atom_keys(prds_gra, assigned=True)
@@ -171,9 +171,9 @@ def nonconserved_bond_stereo_keys(ste_tsg, check=True):
         ste_atm_keys = stereogenic_atom_keys(rcts_gra)
         ste_bnd_keys = stereogenic_bond_keys(rcts_gra)
         assert not ste_atm_keys, (
-            "Unassigned atom stereo centers: {}".format(str(ste_atm_keys)))
+            f"Unassigned atom stereo centers: {str(ste_atm_keys)}")
         assert not ste_bnd_keys, (
-            "Unassigned bond stereo centers: {}".format(str(ste_bnd_keys)))
+            f"Unassigned bond stereo centers: {str(ste_bnd_keys)}")
 
     keys1 = bond_stereo_keys(rcts_gra)
     keys2 = stereogenic_bond_keys(prds_gra, assigned=True)

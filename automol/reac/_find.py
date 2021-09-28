@@ -577,7 +577,7 @@ def find(rct_gras, prd_gras):
     rct_strs = list(map(automol.formula.string, rct_fmls))
     prd_strs = list(map(automol.formula.string, prd_fmls))
     assert automol.formula.reac.is_valid_reaction(rct_fmls, prd_fmls), (
-        "Invalid reaction: {:s} -> {:s}".format(str(rct_strs), str(prd_strs)))
+        f"Invalid reaction: {str(rct_strs):s} -> {str(prd_strs):s}")
 
     # Cycle through the different finders and gather all possible reactions
     finders_ = [
