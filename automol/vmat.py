@@ -289,13 +289,13 @@ def standard_names(vma, shift=0):
     dih_ang_names = dihedral_angle_names(vma)
     name_dct = {}
     name_dct.update({
-        dist_name: 'R{:d}'.format(num + shift + 1)
+        dist_name: f'R{num+shift+1:d}'
         for num, dist_name in enumerate(dist_names)})
     name_dct.update({
-        cent_ang_name: 'A{:d}'.format(num + shift + 2)
+        cent_ang_name: f'A{num+shift+2:d}'
         for num, cent_ang_name in enumerate(cent_ang_names)})
     name_dct.update({
-        dih_ang_name: 'D{:d}'.format(num + shift + 3)
+        dih_ang_name: f'D{num+shift+3:d}'
         for num, dih_ang_name in enumerate(dih_ang_names)})
 
     return name_dct
@@ -319,11 +319,11 @@ def standard_name_matrix(vma, shift=0):
 
     name_mat = numpy.array(name_matrix(vma), dtype=numpy.object_)
     name_mat[1:, 0] = [
-        'R{:d}'.format(num + shift) for num in range(1, natms)]
+        f'R{num+shift:d}' for num in range(1, natms)]
     name_mat[2:, 1] = [
-        'A{:d}'.format(num + shift) for num in range(2, natms)]
+        f'A{num+shift:d}' for num in range(2, natms)]
     name_mat[3:, 2] = [
-        'D{:d}'.format(num + shift) for num in range(3, natms)]
+        f'D{num+shift:d}' for num in range(3, natms)]
 
     name_mat = tuple(map(tuple, name_mat))
 
@@ -459,8 +459,7 @@ def remove_atom(vma, key):
     key_mat = numpy.array(key_mat, dtype=numpy.object_)
 
     if (key_mat == key).any():
-        raise ValueError("Other atoms in z-matrix depend on atom {}"
-                         .format(key))
+        raise ValueError(f"Other atoms in z-matrix depend on atom {key}")
 
     key_map = numpy.vectorize(lambda x: x if (x is None or x < key) else x-1)
     key_mat = key_map(key_mat)
@@ -586,11 +585,11 @@ def _name_matrix(name_mat, natms):
         name_mat = numpy.empty((natms, 3), dtype=numpy.object_)
         for row in range(0, natms):
             if row > 0:
-                name_mat[row, 0] = 'R{:d}'.format(row)
+                name_mat[row, 0] = f'R{row:d}'
             if row > 1:
-                name_mat[row, 1] = 'A{:d}'.format(row)
+                name_mat[row, 1] = f'A{row:d}'
             if row > 2:
-                name_mat[row, 2] = 'D{:d}'.format(row)
+                name_mat[row, 2] = f'D{row:d}'
 
     # Check dimensions and make sure there are Nones in the right places
     name_mat = [list(row) + [None]*(3-len(row)) for row in name_mat]

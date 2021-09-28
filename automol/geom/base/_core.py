@@ -189,8 +189,8 @@ def xyz_trajectory_string(geo_lst, comments=None):
     symbs_lst = [symbols(geo) for geo in geo_lst]
     xyzs_lst = [coordinates(geo, angstrom=True) for geo in geo_lst]
     assert len(set(symbs_lst)) == 1, (
-        'set {} \n symbol lists {}'.format(
-            set(symbs_lst), symbs_lst))
+        f'set {set(symbs_lst)} \n symbol lists {symbs_lst}'
+    )
     symbs = symbs_lst[0]
     xyz_traj_str = aw.geom.write_xyz_trajectory(symbs, xyzs_lst,
                                                 comments=comments)

@@ -104,7 +104,7 @@ def string(rxn_class):
     out_str = ''
     for str_ in (isc_str, radrad_str, spin_str, cls_str):
         if str_:
-            out_str += '{} '.format(str_)
+            out_str += f'{str_} '
 
     return out_str.strip()
 

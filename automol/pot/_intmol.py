@@ -129,7 +129,7 @@ def _pairwise_potentials(geo, idx_pair, potential='exp6'):
     """
 
     assert potential in ('exp6', 'lj_12_6'), (
-        'potential {} != exp6 or lj_12_6'.format(potential)
+        f'potential {potential} != exp6 or lj_12_6'
     )
 
     # Get the indexes and symbols

@@ -375,9 +375,11 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
 
     dummy_ngb_idxs = set(
         automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
-    assert not dummy_ngb_idxs & set(lin_idxs), (
-        "Attempting to add dummy atoms on atoms that already have them: {}"
-        .format(dummy_ngb_idxs & set(lin_idxs)))
+    atoms_already_have_dummys = dummy_ngb_idxs & set(lin_idxs)
+    assert not atoms_already_have_dummys, (
+        'Attempting to add dummy atoms on atoms that already have them'
+        f'{atoms_already_have_dummys}'
+    )
 
     ngb_idxs_dct = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
 

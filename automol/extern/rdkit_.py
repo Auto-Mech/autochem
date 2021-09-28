@@ -26,7 +26,7 @@ def from_inchi(ich, print_debug=False):
 
     rdm = _rd_chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
     if rdm is None and print_debug:
-        print('rdm fails for {} by returning {}'.format(ich, rdm))
+        print(f'rdm fails for {ich} by returning {rdm}')
 
     return rdm
 
@@ -64,7 +64,7 @@ def from_smiles(smi, print_debug=False):
 
     rdm = _rd_chem.MolFromSmiles(smi)
     if rdm is not None and print_debug:
-        print('rdm fails for {} by returning {}'.format(smi, rdm))
+        print(f'rdm fails for {smi} by returning {rdm}')
 
     return rdm
 
@@ -92,7 +92,7 @@ def from_molfile(mfl, print_debug=False):
 
     rdm = _rd_chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
     if rdm is None and print_debug:
-        print('Warning: rdm fails for {} by returning {}'.format(mfl, rdm))
+        print(f'Warning: rdm fails for {mfl} by returning {rdm}')
 
     return rdm
 

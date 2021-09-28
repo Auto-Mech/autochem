@@ -310,7 +310,7 @@ def hydrogen_bonded_idxs(geo, grxn=None,
             print('rxn h idxs test', frm_bnd_keys, brk_bnd_keys, rxn_h_idxs)
         else:
             rxn_h_idxs = ()
-    
+
         # Get all potential indices for HB interactions
         gra = graph(geo)
         dist_mat = distance_matrix(geo)
@@ -319,7 +319,7 @@ def hydrogen_bonded_idxs(geo, grxn=None,
         acceptor_idxs = list(
             automol.graph.resonance_dominant_radical_atom_keys(gra))
         acceptor_idxs.extend(list(automol.graph.atom_keys(gra, sym='O')))
-    
+
         # Loop over indices, ignoring H-idxs in reacting bonds
         hb_idxs = tuple(idx for idx in h_idxs
                         if idx not in rxn_h_idxs)
