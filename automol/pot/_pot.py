@@ -18,7 +18,7 @@ def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
 
     npoints = int(round(interval / increment, 0)) + 1
     _grid = numpy.linspace(0.0, interval, npoints)
-    print('automol pot test:', _grid, interval, npoints, from_equilibrium)
+    # print('automol pot test:', _grid, interval, npoints, from_equilibrium)
 
     # Displace from the coordinates equilibrium value if desired
     if from_equilibrium:
