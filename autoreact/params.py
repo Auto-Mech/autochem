@@ -1,6 +1,7 @@
 """ Handle RxnParams objects
 """
 
+import numpy
 
 class RxnParams:
     """ Store and manipulate parameters that correspond to
@@ -8,155 +9,173 @@ class RxnParams:
         reaction rate constants for some range of temperature and pressure
     """
 
-    def __init__(self):
-        self.arrhenius = None
+    def __init__(self, arr_dct=None, plog_dct=None, cheb_dct=None,
+                 troe_dct=None, lind_dct=None):
+
+        self.arr = None
         self.plog = None
-        self.chebyshev = None
+        self.cheb = None
         self.troe = None
-        self.lindemann = None
-        self.colliders = None
+        self.lind = None
+
+        if arr_dct is not None:
+            self.set_arr(arr_dct)
+        if plog_dct is not None:
+            self.set_plog(plog_dct)
+        if cheb_dct is not None:
+            self.set_cheb(cheb_dct)
+        if troe_dct is not None:
+            pass
 
     # Parameter setting functions
-    def set_arr(self, arr_params):
+    def set_arr(self, arr_dct):
         """ Sets Arrhenius parameters
 
-            :param arr_params: Arrhenius parameters
-            :type arr_params: list [A, n, Ea]
         """
 
-        RxnParams.check_arrhenius(arr_params)
-        if self.arrhenius is None:
-            self.arrhenius = tuple(tuple(par) for par in arr_params)
+        for key in arr_dct.keys():
+            assert key in ('arr_tuples', 'arr_collid'), (
+                f'arr_dct keys should be "arr_tuples" or "arr_collid", not "{key}"')        
+
+        arr_tuples = arr_dct.get('arr_tuples')
+        self.arr_collid = arr_dct.get('arr_collid')
+        self.check_arr(arr_tuples)
+        if self.arr is None:
+            self.arr = tuple(tuple(arr_tuple) for arr_tuple in arr_tuples)
         else:
-            self.arrhenius += arr_params
+            self.arr += arr_tuples
+
 
     def set_plog(self, plog_dct):
-        """ Sets PLog parameters.
+        """ Sets PLOG parameters.
 
             :param plog_dct: Arrhenius fitting parameters at pressures
             :type plog_dct: dict[float: tuple(tuple(float))]
         """
 
-        RxnParams.check_plog(plog_dct)
+        # Check for the bad_dup flag; if found, remove from plog_dct and flag
+        self.bad_dup = False
+        if 'bad_dup' in plog_dct:
+            plog_dct.pop('bad_dup')
+            self.bad_dup = True
+
+        # Add the PLOG parameters to the RxnParams object
+        self.check_plog(plog_dct)
         if self.plog is None:
-            self.plog = {pressure: params
-                         for pressure, params in plog_dct.items()
+            self.plog = {pressure: arr_tuples
+                         for pressure, arr_tuples in plog_dct.items()
                          if pressure != 'high'}
         else:
-            print("Only allowed one PLog set")
-            # for pressure in plog_dct.keys():
-            #     if pressure == 'high':
-            #         self_pressure = 'high'
-            #     else:
-            #         pass
-            #         # for
-            #     if pressure in self.plog:
-            #         self.plog[self_pressure] += plog_dct[pressure]
-            #     else:
-            #         self.plog[self_pressure] = plog_dct[pressure]
+            print("Only allowed one PLOG set")
 
-    def set_chebyshev(self, highp_arr, lowp_arr, tlim, plim, alpha):
-        """ Sets Chebyshev parameters. """
 
-        RxnParams.check_chebyshev(highp_arr, lowp_arr, tlim, plim, alpha)
-        if self.chebyshev is None:
-            self.chebyshev = {
-                'highp_arr': highp_arr,
-                'lowp_arr': lowp_arr,
-                'tlim': tlim,
-                'plim': plim,
-                'alpha': alpha
-            }
+    def set_cheb(self, cheb_dct):
+        """ Sets Chebyshev parameters. 
+        """
+
+        self.check_cheb(cheb_dct)
+
+        # Fill the one_atm_arr field if it's None (this may be redundant)
+        if cheb_dct.get('one_atm_arr') is None:
+            cheb_dct['one_atm_arr'] = None
+
+        if self.cheb is None:
+            self.cheb = cheb_dct
         else:
             print("Only allowed one Chebyshev set")
 
-    def set_troe(self, highp_arr, lowp_arr,
-                 alpha, troe_params, colliders=None):
+
+    def set_troe(self, troe_dct): 
         """ Sets Troe parameters. """
 
         RxnParams.check_troe_lind(highp_arr, lowp_arr,
                                   troe_params=troe_params, alpha=alpha)
         if self.troe is None:
-            self.troe = {
-                'highp_arr': highp_arr,
-                'lowp_arr': lowp_arr,
-                'alpha': alpha,
-                'troe_params': troe_params
-            }
-            self.colliders = colliders
+            self.troe = troe_dct
         else:
             print("Only allowed one Troe set")
 
-    def set_lindemann(self, highp_arr, lowp_arr, colliders=None):
+
+    def set_lind(self, highp_arr, lowp_arr, colliders=None):
         """ Sets Lindemann parameters. """
 
         RxnParams.check_troe_lind(highp_arr, lowp_arr)
-        if self.lindemann is None:
-            self.lindemann = {
+        if self.lind is None:
+            self.lind = {
                 'highp_arr': highp_arr,
                 'lowp_arr': lowp_arr,
             }
             self.colliders = colliders
         else:
             print("Only allowed one Lindemann set")
+            
 
-    @staticmethod
-    def check_arrhenius(arr_params):
-        """ Ensure that input Arrhenius parameters have correct form:
+    def check_arr(self, arr_tuples):
+        """ Ensures that input Arrhenius parameters have correct form:
             ((a1, n1, e1), (a2, n2, e2), ...)
 
-            :param arr_params: arrhenius parameters
-            :type arr_params: tuple(tuple(float))
+            :param arr_tuples: Arrhenius parameters
+            :type arr_tuples: tuple(tuple(float))
         """
-        assert isinstance(arr_params, (list, tuple)), (
-            'arr_params should be a list-of-lists or tuple-of-tuples')
-        for params in arr_params:
-            assert isinstance(params, (list, tuple)), (
-                'params should be a list-of-lists or tuple-of-tuples')
-            assert len(params) == 3, (
-                'length of each params should be three')
-            assert all(isinstance(x, (int, float)) for x in params), (
+        assert isinstance(arr_tuples, (list, tuple)), (
+            'arr_tuples should be a list-of-lists or tuple-of-tuples')
+        for arr_tuple in arr_tuples:
+            assert isinstance(arr_tuple, (list, tuple)), (
+                'arr_tuple should be a list or tuple')
+            assert len(arr_tuple) == 3, (
+                'length of each arr_tuple should be three')
+            assert all(isinstance(x, (int, float)) for x in arr_tuple), (
                 'each parameter in the param set should be a float')
 
-    @staticmethod
-    def check_plog(plog_dct):
-        """ Ensure that input PLog dictionary has the correct form:
+
+    def check_plog(self, plog_dct):
+        """ Ensures that input PLOG dictionary has the correct form:
             {'high'/pressure: ((a1, n1, e1), (a2, n2, e2), ...)}
 
             :param plog_dct: Arrhenius fitting parameters at pressures
             :type plog_dct: dict[float: tuple(tuple(float))]
         """
         assert isinstance(plog_dct, dict)
-        for key, val in plog_dct.items():
-            assert key == 'high' or isinstance(key, float)
-            RxnParams.check_arrhenius(val)
+        for pressure, arr_tuples in plog_dct.items():
+            assert pressure == 'high' or isinstance(pressure, float)
+            self.check_arr(arr_tuples)
 
-    @staticmethod
-    def check_chebyshev(highp_arr, lowp_arr, tlim, plim, alpha):
+
+    def check_cheb(self, cheb_dct):
         """ Ensure that the Chebyshev parameters are of the proper form
         """
-        RxnParams.check_arrhenius(highp_arr)
-        RxnParams.check_arrhenius(lowp_arr)
+
+        tlim = cheb_dct.get('tlim')
+        plim = cheb_dct.get('plim')
+        alpha= cheb_dct.get('alpha')
+        one_atm_arr = cheb_dct.get('one_atm_arr')
+
+        if one_atm_arr is not None:  # the one atm rates are not required
+            self.check_arr(one_atm_arr)        
         assert isinstance(tlim, (list, tuple))
         assert isinstance(plim, (list, tuple))
         assert all(isinstance(x, (int, float)) for x in tlim)
         assert all(isinstance(x, (int, float)) for x in plim)
-        assert isinstance(alpha, (list, tuple))
+        assert isinstance(alpha, (list, tuple, numpy.ndarray))
         for row in alpha:
-            assert isinstance(row, (list, tuple))
+            assert isinstance(row, (list, tuple, numpy.ndarray))
             assert all(isinstance(x, (int, float)) for x in row)
 
-    @staticmethod
-    def check_troe_lind(highp_arr, lowp_arr, alpha=None, troe_params=None):
-        """ Enusre that the Troe or Lindemann parameters are of proper form
+
+    def check_troe_lind(self, param_dct):
+        """ Ensures that the Troe or Lindemann parameters are of proper form
         """
-        RxnParams.check_arrhenius(highp_arr)
-        RxnParams.check_arrhenius(lowp_arr)
-        if alpha is not None:
-            isinstance(alpha, float)
+
+        highp_arr = param_dct['highp_arr']
+        lowp_arr = param_dct['lowp_arr']
+        troe_params = param_dct.get('troe_params')
+
+        check_arr(highp_arr)
+        check_arr(lowp_arr)
         if troe_params is not None:
             assert len(troe_params) in (3, 4)
             assert all(isinstance(x, float) for x in troe_params)
+
 
     def existing_parameters(self):
         """ Return a list of all the types of parameters contained
@@ -164,16 +183,16 @@ class RxnParams:
         """
 
         _existing = ()
-        if self.arrhenius is not None:
-            _existing += ('arrhenius',)
+        if self.arr is not None:
+            _existing += ('arr',)
         if self.plog is not None:
             _existing += ('plog',)
-        if self.chebyshev is not None:
-            _existing += ('chebyshev',)
+        if self.cheb is not None:
+            _existing += ('cheb',)
         if self.troe is not None:
             _existing += ('troe',)
-        if self.lindemann is not None:
-            _existing += ('lindemann',)
+        if self.lind is not None:
+            _existing += ('lind',)
 
         return _existing
 
@@ -188,14 +207,14 @@ class RxnParams:
         if _existing_params:
             if 'plog' in _existing_params:
                 _write = 'plog'
-            elif 'chebyshev' in _existing_params:
-                _write = 'chebyshev'
+            elif 'cheb' in _existing_params:
+                _write = 'cheb'
             elif 'troe' in _existing_params:
                 _write = 'troe'
-            elif 'lindemann' in _existing_params:
-                _write = 'lindemann'
-            elif 'arrhenius' in _existing_params:
-                _write = 'arrhenius'
+            elif 'lind' in _existing_params:
+                _write = 'lind'
+            elif 'arr' in _existing_params:
+                _write = 'arr'
         else:
             _write = None
 
