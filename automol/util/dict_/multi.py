@@ -23,7 +23,7 @@ def by_key_by_position(mdct, keys, pos):
     """
     assert is_multidict(mdct)
     assert set(keys) <= set(mdct.keys())
-    dct = dict()
+    dct = {}
     if keys:
         keys = list(keys)
         vals = numpy.array(_values_by_key(mdct, keys))
