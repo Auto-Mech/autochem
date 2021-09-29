@@ -254,9 +254,17 @@ def is_unique(geo, geo_lst, check_dct=None):
 
 
 def hydrogen_bonded_structure(geo, grxn=None,
+<<<<<<< HEAD
 #                               dist_thresh=4.55, angle_thresh=1.92):
                               dist_thresh=4.92, angle_thresh=1.92):
 #                               dist_thresh=5.3, angle_thresh=1.92):
+=======
+                               dist_thresh=4.55, angle_thresh=1.92):
+# def hydrogen_bonded_structure(geo, grxn=None,
+#                               dist_thresh=5.3, angle_thresh=1.92):
+#def hydrogen_bonded_structure(geo, grxn=None,
+#                              dist_thresh=4.92, angle_thresh=1.92):
+>>>>>>> in the middle of testing this
     """ Compare bond lengths in structure to determine if there
         is a hydrogen bond
 
@@ -289,12 +297,10 @@ def hydrogen_bonded_idxs(geo, grxn=None,
         :param angle_thresh: cutoff value for hbond angle (Radian)
         :type angle_thresh: float
         :rtype: tuple
-    """
-
+    """   
     # Initialize the hydrogen bond list to None
     hydrogen_bond = None
     if count(geo) > 1:
-
         # Get the forming/breaking bond idxs if possible
         if grxn is not None:
             frm_bnd_keys = automol.graph.ts.forming_bond_keys(
@@ -323,16 +329,11 @@ def hydrogen_bonded_idxs(geo, grxn=None,
         # Loop over indices, ignoring H-idxs in reacting bonds
         hb_idxs = tuple(idx for idx in h_idxs
                         if idx not in rxn_h_idxs)
-        # print('hbond h idxs test', h_idxs, hb_idxs)
         for h_idx in hb_idxs:
             for acceptor_idx in acceptor_idxs:
                 donor_idx = list(adj_atm_dct[h_idx])[0]
                 if acceptor_idx in adj_atm_dct[donor_idx]:
                     continue
-                if hydrogen_bond is not None:
-                    _, j, k = hydrogen_bond
-                    if dist_mat[h_idx][acceptor_idx] > dist_mat[j][k]:
-                        continue
                 if dist_mat[h_idx][acceptor_idx] < dist_thresh:
                     if central_angle(
                             geo, donor_idx, h_idx, acceptor_idx) > angle_thresh:
