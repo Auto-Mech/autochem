@@ -289,7 +289,7 @@ def hydrogen_bonded_idxs(
         :param angle_thresh: cutoff value for hbond angle (Radian)
         :type angle_thresh: float
         :rtype: tuple
-    """
+    """   
     # Initialize the hydrogen bond list to None
     hydrogen_bond = None
     if count(geo) > 1:
@@ -326,10 +326,6 @@ def hydrogen_bonded_idxs(
                 donor_idx = list(adj_atm_dct[h_idx])[0]
                 if acceptor_idx in adj_atm_dct[donor_idx]:
                     continue
-                if hydrogen_bond is not None:
-                    _, j, k = hydrogen_bond
-                    if dist_mat[h_idx][acceptor_idx] > dist_mat[j][k]:
-                        continue
                 if dist_mat[h_idx][acceptor_idx] < dist_thresh:
                     ang = central_angle(geo, donor_idx, h_idx, acceptor_idx)
                     if ang > angle_thresh:
