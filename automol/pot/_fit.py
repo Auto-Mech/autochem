@@ -105,6 +105,21 @@ def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     # Build a new potential list using a spline fit of the HR potential
     pot = _spline_cap_max_thresh(pot, lpot, max_thresh, min_thresh)
 
+    # if len(pot_success) > 3:
+    #     # Build a new potential list using a spline fit of the HR potential
+
+    #     spline_vals = pot_success[:-1]
+    #     mid_idx = round(len(spline_vals)/2)
+    #     spline_vals = spline_vals[mid_idx:] + spline_vals[:mid_idx]
+    #     pot_spl = interp1d(
+    #         numpy.array(idx_success[:-1]), numpy.array(spline_vals), kind='cubic')
+    #     for idx in range(lpot):
+    #         pot[idx] = float(pot_spl(idx))
+    #     if not mid_idx % 2:
+    #         pot = pot[mid_idx+1:] + pot[:mid_idx+1]
+    #     else:
+    #         pot = pot[mid_idx:] + pot[:mid_idx]
+    #     pot.append(0.0)
     # Do second spline fit of only positive values if any negative values found
     if any(val < min_thresh for val in pot):
         print('Still found negative potential values after first spline')
