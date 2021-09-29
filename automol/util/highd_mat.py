@@ -43,7 +43,7 @@ def string(arr, include_zeros=False, include_perms=False,
     arr_str = ''
     for idxs, val in _chk_idxs(arr):
         if _chk_zero(val, include_zeros):
-            val_str = ''.join(('{0:<6d}'.format(idx+1) for idx in idxs))
+            val_str = ''.join((f'{idx+1:<6d}' for idx in idxs))
             val_str += val_format.format(val)
             val_str += '\n'
 
@@ -109,7 +109,7 @@ def string_submat_4d(arr):
         bmat_str = string_submat_3d(sub_arr)
 
         # Write index
-        arr_str += '{0:>6d}'.format(idx+1)
+        arr_str += f'{idx+1:>6d}'
         arr_str += bmat_str
         arr_str += '\n'
 

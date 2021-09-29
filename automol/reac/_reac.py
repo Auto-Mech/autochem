@@ -6,6 +6,7 @@ Function arguments:
     likewise for the product graphs. Otherwise, there would be no way to
     express the bonds broken and formed between reactants.
 """
+
 import itertools
 import yaml
 import numpy
@@ -40,19 +41,19 @@ class Reaction:
 
         # Check the reaction class
         assert par.is_reaction_class(rxn_cls), (
-            "{} is not a reaction class".format(rxn_cls))
+            f"{rxn_cls} is not a reaction class")
 
         # Check the reactant keys and the forward transition state graph
         all_rcts_keys = set(itertools.chain(*rcts_keys))
         forw_keys = automol.graph.atom_keys(forw_tsg)
         assert all_rcts_keys == forw_keys, (
-            "{} != {}".format(str(all_rcts_keys), str(forw_keys)))
+            f"{str(all_rcts_keys)} != {str(forw_keys)}")
 
         # Check the product keys and the backward transition state graph
         all_prds_keys = set(itertools.chain(*prds_keys))
         back_keys = automol.graph.atom_keys(back_tsg)
         assert all_prds_keys == back_keys, (
-            "{} != {}".format(str(all_prds_keys), str(back_keys)))
+            f"{str(all_prds_keys)} != {str(back_keys)}")
 
         # Check that the reactants and products are consistent
         forw_tsg_comp = automol.graph.without_dummy_atoms(

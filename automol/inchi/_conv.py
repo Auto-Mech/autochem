@@ -15,7 +15,7 @@ from automol.inchi.base import same_connectivity
 from automol.inchi.base import equivalent
 from automol.inchi.base import hardcoded_object_from_inchi_by_key
 
-from automol.inchi.base import recalculate
+# from automol.inchi.base import recalculate
 
 
 # # conversions

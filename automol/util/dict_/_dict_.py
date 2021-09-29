@@ -24,7 +24,7 @@ def empty_if_none(obj):
         :param obj: generic object
         :type obj: any
     """
-    return dict() if obj is None else obj
+    return {} if obj is None else obj
 
 
 def right_update(dct1, dct2):

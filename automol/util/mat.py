@@ -28,8 +28,8 @@ def axis_alignment_matrix(xyz1, xyz2):
         :rtype: tuple(tuple(float))
     """
 
-    assert numpy.linalg.norm(xyz1) > 1e-3, 'norm({}) != 0'.format(xyz1)
-    assert numpy.linalg.norm(xyz2) > 1e-3, 'norm({}) != 0'.format(xyz2)
+    assert numpy.linalg.norm(xyz1) > 1e-3, f'norm({xyz1}) != 0'
+    assert numpy.linalg.norm(xyz2) > 1e-3, f'norm({xyz2}) != 0'
     mat = numpy.zeros((3, 3))
     mat[0] = automol.util.vec.unit_norm(xyz1)
     mat[2] = automol.util.vec.unit_perpendicular(xyz1, xyz2)
