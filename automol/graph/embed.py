@@ -285,8 +285,7 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
 
         assert lmat[idx1, idx2] <= umat[idx1, idx2], (
             "Lower bound exceeds upper bound. This is a bug!\n"
-            "{}\npath: {}\n"
-            .format(string(gra, one_indexed=False), str(path)))
+            f"{string(gra, one_indexed=False)}\npath: {str(path)}\n")
 
     return lmat, umat
 
@@ -595,7 +594,7 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
             ud14 = 999.
             dist_range_dct[k14] = (d14, ud14)
         else:
-            raise ValueError("Invalid dih_dict: {}".format(str(dih_dct)))
+            raise ValueError(f"Invalid dih_dict: {str(dih_dct)}")
 
     for rng_keys in rings_keys:
         assert hasattr(keys, '__iter__'), (
@@ -856,8 +855,8 @@ def angle_key_filler_(gra, keys=None, check=True):
 
         if any(k is None for k in ang_key):
             if check:
-                raise ValueError("Angle key {} couldn't be filled in"
-                                 .format(str(ang_key)))
+                raise ValueError(
+                    f"Angle key {str(ang_key)} couldn't be filled in")
             ang_key = None
         else:
             ang_key = tuple(ang_key)

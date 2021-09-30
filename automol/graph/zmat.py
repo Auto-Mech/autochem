@@ -159,8 +159,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
             symb = symb_dct[key4]
             key_row = list(map(zma_keys.index, (key3, key2, key1)))
             vma = automol.vmat.add_atom(vma, symb, key_row)
-            assert key4 not in zma_keys, ("Atom {:d} already in v-matrix."
-                                          .format(key4))
+            assert key4 not in zma_keys, f"Atom {key4:d} already in v-matrix"
             zma_keys.append(key4)
 
             # Add the neighbors of atom 3 (if any) to the v-matrix, decoupled
@@ -174,8 +173,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
                     key_row = list(map(zma_keys.index, (key3, key2, key4)))
 
                 vma = automol.vmat.add_atom(vma, sym, key_row)
-                assert k3n not in zma_keys, ("Atom {:d} already in v-matrix."
-                                             .format(k3n))
+                assert k3n not in zma_keys, f"Atom {k3n:d} already in v-matrix"
                 zma_keys.append(k3n)
 
             # Recursion
@@ -191,7 +189,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
 
         return vma, zma_keys
 
-    key1, key2, key3 = keys[:3]
+    key1, key2, key3 = keys[0], keys[1], keys[2]
     vma, zma_keys = _continue(key1, key2, key3, vma, zma_keys)
 
     return vma, zma_keys

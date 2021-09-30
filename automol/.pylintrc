@@ -15,5 +15,6 @@ disable=
     no-member,
     global-statement,
     arguments-out-of-order,
-    too-many-function-args
+    too-many-function-args,
+    logging-fstring-interpolation
  

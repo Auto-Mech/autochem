@@ -218,7 +218,7 @@ def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
     :rtype: frozenset
     """
     assert atm_key in atom_keys(gra), (
-        "{} not in {}".format(atm_key, atom_keys(gra)))
+        f"{atm_key} not in {atom_keys(gra)}")
 
     atm_symb_dct = atom_symbols(gra)
     atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
@@ -264,7 +264,7 @@ def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
     bnd_key = tuple(bnd_key)
     bnd_keys = list(map(tuple, map(sorted, bond_keys(gra))))
     bnd_keys += list(map(tuple, map(reversed, bnd_keys)))
-    assert bnd_key in bnd_keys, "{} not in {}".format(bnd_key, bnd_keys)
+    assert bnd_key in bnd_keys, f"{bnd_key} not in {bnd_keys}"
 
     atm_symb_dct = atom_symbols(gra)
     atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
@@ -508,8 +508,9 @@ def shortest_path_between_groups(gra, keys1, keys2):
     Returns the atom pair from these groups that are nearest to each other and
     returns the path between them.
     """
-    assert not set(keys1) & set(keys2), ("{:s} overlaps with {:s}"
-                                         .format(*map(str, [keys1, keys2])))
+    assert not set(keys1) & set(keys2), (
+        f"{str(keys1):s} overlaps with {str(keys2):s}"
+    )
 
     sp_dct = atom_shortest_paths(gra)
     keys = None
@@ -749,15 +750,14 @@ def cycle_ring_atom_key_to_front(keys, key, end_key=None):
     :param end_key: optionally, ensure that another key is the last key in the
         ring; note that this is only possible if key and end_key are adjacent
     """
-    assert key in keys, ("{:d} is not in {:s}".format(key, str(keys)))
+    assert key in keys, (f"{key:d} is not in {str(keys):s}")
     keys = tuple(itertools.islice(
         itertools.dropwhile(lambda x: x != key, itertools.cycle(keys)),
         len(keys)))
 
     if end_key is not None and keys[-1] != end_key:
         assert keys[1] == end_key, (
-            "end_key {:d} is not adjacent to {:d} in the ring"
-            .format(key, end_key))
+            f"end_key {key:d} is not adjacent to {end_key:d} in the ring")
         keys = list(reversed(keys))
         keys = cycle_ring_atom_key_to_front(keys, key)
 
@@ -881,12 +881,13 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
 
         # check that the graph is actually a ring system
         assert is_ring_system(rsy), (
-            "This is not a ring system graph:\n{:s}".format(string(rsy)))
+            f"This is not a ring system graph:\n{string(rsy):s}")
 
         # check that rng is a subgraph of rsy
         assert set(rng_keys) <= atom_keys(rsy), (
-            "{}\n^ Rings system doesn't contain ring as subgraph:\n{}"
-            .format(string(rsy, one_indexed=False), str(rng_keys)))
+            f"{string(rsy, one_indexed=False)}\n^ "
+            "Rings system doesn't contain ring as subgraph:\n"
+            f"{str(rng_keys)}")
 
     bnd_keys = list(mit.windowed(rng_keys + rng_keys[:1], 2))
 

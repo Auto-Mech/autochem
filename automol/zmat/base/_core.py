@@ -412,8 +412,7 @@ def remove_atom(zma, key):
     key_mat = numpy.array(key_mat, dtype=numpy.object_)
 
     if (key_mat == key).any():
-        raise ValueError("Other atoms in z-matrix depend on atom {}"
-                         .format(key))
+        raise ValueError(f"Other atoms in z-matrix depend on atom {key}")
 
     key_map = numpy.vectorize(lambda x: x if (x is None or x < key) else x-1)
     key_mat = key_map(key_mat)
@@ -490,8 +489,8 @@ def distance_coordinate_name(zma, key1, key2):
     name_mat = name_matrix(zma)
     key_mat = key_matrix(zma)
     assert key_mat[key2][0] == key1, (
-        "{:d}-{:d} is not a distance coordinate in this zmatrix:\n{}"
-        .format(key1, key2, string(zma, one_indexed=False)))
+        f"{key1:d}-{key2:d} is not a distance coordinate in this zmatrix:"
+        f"\n{string(zma, one_indexed=False)}")
     name = name_mat[key2][0]
 
     return name
@@ -515,8 +514,9 @@ def central_angle_coordinate_name(zma, key1, key2, key3):
     name_mat = name_matrix(zma)
     key_mat = key_matrix(zma)
     assert key_mat[key3][0] == key2 and key_mat[key3][1] == key1, (
-        "{:d}-{:d}-{:d} is not a distance coordinate in this zmatrix:\n{}"
-        .format(key1, key2, key3, string(zma, one_indexed=False)))
+        f"{key1:d}-{key2:d}-{key3:d} "
+        "is not a angle coordinate in this zmatrix:"
+        f"\n{string(zma, one_indexed=False)}")
     name = name_mat[key3][1]
 
     return name
@@ -547,8 +547,9 @@ def dihedral_angle_coordinate_name(zma, key1, key2, key3, key4):
         key_mat[key4][0] == key3 and key_mat[key4][1] == key2 and
         key_mat[key4][2] == key1
     ), (
-        "{:d}-{:d}-{:d}-{:d} is not a dihedral coordinate in this zmatrix:\n{}"
-        .format(key1, key2, key3, key4, string(zma, one_indexed=False)))
+        f"{key1:d}-{key2:d}-{key3:d}-{key4:d} "
+        "is not a dihedral coordinate in this zmatrix:"
+        f"\n{string(zma, one_indexed=False)}")
 
     name = name_mat[key4][2]
 

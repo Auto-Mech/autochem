@@ -25,8 +25,7 @@ def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     print_pot = False
     if any(val > max_thresh for val in pot):
         print_pot = True
-        max_pot = max(pot)
-        print('Warning: Found pot val of {0:.2f}'.format(max_pot),
+        print(f'Warning: Found pot val of {max(pot):.2f}',
               ' which is larger than',
               'the typical maximum for a torsional potential')
 
@@ -36,10 +35,9 @@ def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
         pot[0] = 0.
     if any(val < min_thresh for val in pot):
         print_pot = True
-        min_pot = min(pot)
-        print('Warning: Found pot val of {0:.2f}'.format(min_pot),
+        print(f'Warning: Found pot val of {min(pot):.2f}',
               ' which is below',
-              '{0} kcal. Refit w/ positives'.format(min_thresh))
+              f'{min_thresh} kcal. Refit w/ positives')
 
     if print_pot:
         print('Potential before spline:', pot)

@@ -691,7 +691,7 @@ def _split_sublayers(dct, count):
         dcts = tuple({pfx: slyr for pfx, slyr in zip(pfxs, slyrs) if slyr}
                      for slyrs in zip(*slyrs_lst))
     else:
-        return (dict(),) * count
+        return ({},) * count
     return dcts
 
 
@@ -731,7 +731,7 @@ def _sublayers(lyr):
                                 val_ptt=app.capturing(NONSLASHES))
         dct = dict(apf.all_captures(ptt, lyr))
     else:
-        dct = dict()
+        dct = {}
     return dct
 
 

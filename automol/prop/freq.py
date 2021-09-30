@@ -80,10 +80,11 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
     # generate the set of indices for torsions that are two be scales
     tau_factor = numpy.exp(log_rt_freq - log_freq)
     tau_factor_mode = tau_factor
-    print(
-        'TAU FACTOR {:4.6f} \t {:g} \t {:3.6f} {} '.format(
-            tau_factor_mode, len(tors_freqs), factor,
-            '-'.join([str(ridx) for ridx in idx_remove])))
+    tau_str = '-'.join([str(ridx) for ridx in idx_remove])
+    print(f'TAU FACTOR {tau_factor_mode:4.6f} \t '
+          f'{len(tors_freqs):g} \t '
+          f'{factor:3.6f} '
+          f'{tau_str}')
 
     # Generate the set of indices for torsions that are two be scales
     scale_factor = (idx_remove, factor)

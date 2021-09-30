@@ -106,7 +106,8 @@ def rotational_bond_keys(rxn, zma=None, with_h_rotors=True):
     """
     tsg = rxn.forward_ts_graph
     lin_keys = linear_atom_keys(rxn, zma=zma)
-    bnd_keys = automol.graph.rotational_bond_keys(tsg, lin_keys=lin_keys, with_h_rotors=with_h_rotors)
+    bnd_keys = automol.graph.rotational_bond_keys(
+        tsg, lin_keys=lin_keys, with_h_rotors=with_h_rotors)
     return bnd_keys
 
 

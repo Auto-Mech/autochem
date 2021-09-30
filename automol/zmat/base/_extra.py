@@ -57,9 +57,8 @@ def constraint_dct(zma, const_names, var_names=()):
         zma_vals = value_dictionary(zma)
         zma_coords = coordinates(zma)
         assert set(constraint_names) <= set(zma_coords.keys()), (
-            'Attempting to constrain coordinates not in zma:\n{}\n{}'.format(
-                constraint_names, zma_coords)
-        )
+            'Attempting to constrain coordinates not in zma:'
+            f'\n{constraint_names}\n{zma_coords}')
         _dct = dict(zip(
             constraint_names,
             (round(zma_vals[name], 2) for name in constraint_names)

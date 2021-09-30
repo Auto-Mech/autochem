@@ -87,8 +87,9 @@ def connected_ring_systems(gra, rng_keys=None, check=True):
         idx = next((i for i, ks in enumerate(map(atom_keys, rsys))
                     if set(rng_keys) <= ks), None)
         assert idx is not None, (
-            "The ring {} is not in this graph:\n{}"
-            .format(str(rng_keys), string(gra, one_indexed=False)))
+            f'The ring {str(rng_keys)}'
+            f' is not in this graph:\n{string(gra, one_indexed=False)}'
+        )
         rsy = rsys.pop(idx)
 
     keys_lst = list(ring_system_decomposed_atom_keys(rsy, rng_keys=rng_keys))
@@ -137,8 +138,9 @@ def continue_connected_ring_systems(gra, keys, vma, zma_keys, rsys=None,
                 # ring systems are connected by one bond -- no chain needed
                 keys = set(zma_keys) & rsy_keys
                 assert len(keys) == 1, (
-                    "Attempting to add redundant keys to v-matrix: {}"
-                    .format(str(keys)))
+                    'Attempting to add redundant keys to v-matrix: '
+                    f'{str(keys)}'
+                )
                 key, = keys
 
                 conn = True
@@ -422,8 +424,8 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
             dkey = key1 if lead_key is None else lead_key
             key_row = list(map(zma_keys.index, (key3, key2, dkey)))
             vma = automol.vmat.add_atom(vma, symb, key_row)
-            assert key4 not in zma_keys, ("Atom {:d} already in v-matrix."
-                                          .format(key4))
+            assert key4 not in zma_keys, (
+                f'Atom {key4:d} already in v-matrix.')
             zma_keys.append(key4)
 
             dkey = key4 if lead_key is None else lead_key
@@ -438,8 +440,8 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
                     key_row = list(map(zma_keys.index, (key3, key2, dkey)))
 
                 vma = automol.vmat.add_atom(vma, sym, key_row)
-                assert k3n not in zma_keys, ("Atom {:d} already in v-matrix."
-                                             .format(k3n))
+                assert k3n not in zma_keys, (
+                    f'Atom {k3n:d} already in v-matrix.')
                 zma_keys.append(k3n)
 
             # Recursion
@@ -455,7 +457,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
 
         return vma, zma_keys
 
-    key1, key2, key3 = keys[:3]
+    key1, key2, key3 = keys[0], keys[1], keys[2]
     vma, zma_keys = _continue(key1, key2, key3, vma, zma_keys)
 
     return vma, zma_keys

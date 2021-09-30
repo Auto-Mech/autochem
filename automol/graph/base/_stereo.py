@@ -239,7 +239,7 @@ def to_index_based_stereo(sgr):
     :returns: a graph with index-based stereo assignments
     """
     assert sgr == explicit(sgr), (
-        "Not an explicit graph:\n{}".format(string(sgr, one_indexed=False)))
+        f"Not an explicit graph:\n{string(sgr, one_indexed=False)}")
 
     abs_srt_keys_dct = atoms_stereo_sorted_neighbor_atom_keys(sgr)
     atm_ste_keys = atom_stereo_keys(sgr)
@@ -289,7 +289,7 @@ def from_index_based_stereo(sgr):
     :returns: a graph with absolute stereo assignments
     """
     assert sgr == explicit(sgr), (
-        "Not an explicit graph:\n{}".format(string(sgr, one_indexed=False)))
+        f"Not an explicit graph:\n{string(sgr, one_indexed=False)}")
 
     gra = without_stereo_parities(sgr)
 
@@ -356,10 +356,10 @@ def from_index_based_stereo(sgr):
     bnd_ste_keys = bond_stereo_keys(gra)
     assert atm_ste_keys == atm_keys_pool, (
         "Index-based to absolute stereo conversion failed:\n"
-        "{} != {}".format(str(atm_ste_keys), str(atm_keys_pool)))
+        f"{str(atm_ste_keys)} != {str(atm_keys_pool)}")
     assert bnd_ste_keys == bnd_keys_pool, (
         "Index-based to absolute stereo conversion failed:\n"
-        "{} != {}".format(str(bnd_ste_keys), str(bnd_keys_pool)))
+        f"{str(bnd_ste_keys)} != {str(bnd_keys_pool)}")
 
     return gra
 
