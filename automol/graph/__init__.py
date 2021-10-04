@@ -250,6 +250,7 @@ from automol.graph._conv import geometry
 from automol.graph._conv import inchi
 from automol.graph._conv import stereo_inchi
 from automol.graph._conv import inchi_with_sort_from_geometry
+from automol.graph._conv import molfile_with_atom_mapping
 from automol.graph._conv import rdkit_molecule
 # submodules:
 from automol.graph import vmat
@@ -491,6 +492,7 @@ __all__ = [
     'inchi',
     'stereo_inchi',
     'inchi_with_sort_from_geometry',
+    'molfile_with_atom_mapping',
     'rdkit_molecule',
     # submodules:
     'vmat',
