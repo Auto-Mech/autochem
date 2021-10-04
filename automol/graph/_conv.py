@@ -104,6 +104,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     """
     if geo is not None:
         print(automol.geom.string(geo))
+
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
                                                  geo_idx_dct=geo_idx_dct)
     rdm = rdkit_.from_molfile(mlf)
