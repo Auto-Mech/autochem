@@ -92,6 +92,30 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
         :type geo_idx_dct: dict[:]
         :rtype: (str, tuple(int))
     """
+    mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
+                                                 geo_idx_dct=geo_idx_dct)
+    rdm = rdkit_.from_molfile(mlf)
+    ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
+    nums = _parse_sort_order_from_aux_info(aux_info)
+    nums = tuple(map(key_map_inv.__getitem__, nums))
+
+    return ich, nums
+
+
+def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
+    """ Generate an MOLFile from a molecular graph.
+        If coordinates are passed in, they are used to determine stereo.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param geo_idx_dct:
+        :type geo_idx_dct: dict[:]
+        :returns: the MOLFile string, followed by a mapping from MOLFile atoms
+            to atoms in the graph
+        :rtype: (str, dict)
+    """
     gra = without_dummy_atoms(gra)
     gra = dominant_resonance(gra)
     atm_keys = sorted(atom_keys(gra))
@@ -114,12 +138,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
     mlf, key_map_inv = molfile.from_data(
         atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs, bnd_ords,
         atm_xyzs=atm_xyzs)
-    rdm = rdkit_.from_molfile(mlf)
-    ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
-    nums = _parse_sort_order_from_aux_info(aux_info)
-    nums = tuple(map(key_map_inv.__getitem__, nums))
-
-    return ich, nums
+    return mlf, key_map_inv
 
 
 def rdkit_molecule(gra):
