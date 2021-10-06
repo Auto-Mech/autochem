@@ -13,6 +13,7 @@ import automol.geom.ts
 import automol.inchi
 from automol.par import ReactionClass
 from automol.graph import ts
+from automol.graph import atom_symbols
 from automol.graph import atom_keys
 from automol.graph import bond_keys
 from automol.graph import formula
@@ -329,19 +330,26 @@ def eliminations(rct_gras, prd_gras):
         frm1_keys = atom_keys(rct_gra)
         bnd_keys = bond_keys(rct_gra)
 
+        frm2_keys = unsaturated_atom_keys(rct_gra)
+        rct_symbs = atom_symbols(rct_gra)
+        frm2_keys_o = frozenset(key for key in frm2_keys
+                                if rct_symbs[key] == 'O')
+        rxns.extend(_identify(frm1_keys, frm2_keys_o, bnd_keys))
+
+        # OLD WAY. More IDs but more mistakes
         # To make the function general, try to ID reaction
         # with different types of keys for the attacking atom
         # (1) unsaturated atom sites
-        frm2_keys = unsaturated_atom_keys(rct_gra)
-        rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
-        if not rxns:
-            # (2) remaining saturated atom sites
-            frm2_keys = atom_keys(rct_gra, excl_syms=('H',)) - frm2_keys
-            rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
-            # if not rxns:  # Ignoring H2 formation for now for speed
-            #     # (3) H atoms
-            #     frm1_keys = atom_keys(rct_gra, sym='H')
-            #     rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
+        # frm2_keys = unsaturated_atom_keys(rct_gra)
+        # rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
+        # if not rxns:
+        #     # (2) remaining saturated atom sites
+        #     frm2_keys = atom_keys(rct_gra, excl_syms=('H',)) - frm2_keys
+        #     rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
+        #     # if not rxns:  # Ignoring H2 formation for now for speed
+        #     #     # (3) H atoms
+        #     #     frm1_keys = atom_keys(rct_gra, sym='H')
+        #     #     rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
 
     return ts_unique(rxns)
 
