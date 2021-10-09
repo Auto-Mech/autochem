@@ -1,4 +1,4 @@
-""" extra geometry functions
+""" extra geom functions
 """
 
 import numpy
