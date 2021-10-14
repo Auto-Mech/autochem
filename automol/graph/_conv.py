@@ -17,9 +17,14 @@ from automol.graph.base import atom_bond_valences
 from automol.graph.base import atom_unsaturated_valences
 from automol.graph.base import has_stereo
 from automol.graph.base import explicit
+from automol.graph.base import implicit
+from automol.graph.base import relabel
 from automol.graph.base import without_dummy_atoms
 from automol.graph.base import backbone_isomorphic
 from automol.graph.base import dominant_resonance
+from automol.graph.base import bond_stereo_keys
+from automol.graph.base import bond_stereo_parities
+from automol.graph.base import bond_stereo_sorted_neighbor_atom_keys
 
 
 # # conversions
@@ -63,8 +68,26 @@ def inchi(gra, stereo=False):
         else:
             gra = explicit(gra)
             geo, geo_idx_dct = automol.graph.embed.fake_stereo_geometry(gra)
-            ich, _ = inchi_with_sort_from_geometry(
+            ich, nums = inchi_with_sort_from_geometry(
                 gra, geo=geo, geo_idx_dct=geo_idx_dct)
+
+            # First, do a check to see if the InChI is missing stereo relative
+            # to the graph.
+            # >>> check here
+
+            # Convert to an implicit graph and relabel based on the InChI sort
+            gra = implicit(gra)
+            atm_key_dct = dict(map(reversed, enumerate(nums)))
+            print(atm_key_dct)
+            print(nums)
+            gra = relabel(gra, atm_key_dct)
+            print(automol.graph.string(gra))
+
+            ste_dct = bond_stereo_parities(gra)
+            ste_keys = sorted(map(sorted, bond_stereo_keys(gra)))
+            ste_vals = dict_.values_by_key(ste_dct, map(frozenset, ste_keys))
+            print(ste_keys)
+            print(ste_vals)
 
     return ich
 
@@ -90,6 +113,8 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
         :type geo: automol geometry data structure
         :param geo_idx_dct:
         :type geo_idx_dct: dict[:]
+        :returns: the inchi string, along with the InChI sort order of the
+            atoms
         :rtype: (str, tuple(int))
     """
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,

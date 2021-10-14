@@ -160,6 +160,23 @@ def test__geom__no_stereo():
 #         assert ich == ref_ich
 #
 #         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+def test__graph__with_stereo():
+    """ test graph conversions
+    """
+    def randomize_atom_ordering(geo):
+        """ randomize atom ordering in a geometry
+        """
+        natms = automol.geom.count(geo)
+        ord_dct = dict(enumerate(numpy.random.permutation(natms)))
+        return automol.geom.reorder(geo, ord_dct)
+
+    smi = 'CC([O])=CCO'
+    geo = automol.inchi.geometry(automol.smiles.inchi(smi))
+    geo = randomize_atom_ordering(geo)
+    gra = automol.geom.graph(geo)
+    ich = automol.graph.inchi(gra, stereo=True)
+    print(ich)
+    # print(automol.graph.string(gra))
 
 
 def test__graph__no_stereo():
@@ -492,4 +509,5 @@ def test__zmat_conv_dummy():
 
 
 if __name__ == '__main__':
-    test__geom__no_stereo()
+    # test__geom__no_stereo()
+    test__graph__with_stereo()
