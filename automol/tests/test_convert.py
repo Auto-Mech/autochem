@@ -163,6 +163,7 @@ def test__geom__no_stereo():
             C2H6_H_GEO, ts_bnds=frozenset({7, 8}))
 
 
+<<<<<<< HEAD
 def test__graph__with_stereo():
     """ test graph conversions
     """
@@ -186,6 +187,45 @@ def test__graph__with_stereo():
         assert ich == ref_ich
 
         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+=======
+# def test__graph__with_stereo():
+#     """ test graph conversions
+#     """
+#     ref_ichs = []
+#     # ref_ichs = ICHS_WITH_STEREO
+#     # if NSAMP is not None:
+#     #     ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
+#
+#     # AVC note to self -- fix this case:
+#     ref_ichs += [
+#         'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1',
+#         'InChI=1S/C7H14O3/c1-2-6-5-7(10-6)3-4-9-8/h6-8H,2-5H2,1H3/t6-,7+/m1/s1'
+#     ]
+#
+#     for ref_ich in ref_ichs:
+#         gra = automol.inchi.graph(ref_ich)
+#         ich = automol.graph.inchi(gra, stereo=True)
+#         assert ich == ref_ich
+#
+#         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+def test__graph__with_stereo():
+    """ test graph conversions
+    """
+    def randomize_atom_ordering(geo):
+        """ randomize atom ordering in a geometry
+        """
+        natms = automol.geom.count(geo)
+        ord_dct = dict(enumerate(numpy.random.permutation(natms)))
+        return automol.geom.reorder(geo, ord_dct)
+
+    smi = 'CC([O])=CCO'
+    geo = automol.inchi.geometry(automol.smiles.inchi(smi))
+    geo = randomize_atom_ordering(geo)
+    gra = automol.geom.graph(geo)
+    ich = automol.graph.inchi(gra, stereo=True)
+    print(ich)
+    # print(automol.graph.string(gra))
+>>>>>>> Adds stereo functions; InChI stereo hack in progress
 
 
 def test__graph__no_stereo():
