@@ -944,3 +944,7 @@ def test__ts__compatible_reverse_stereomers():
             for r in graph.ts.compatible_reverse_stereomers(ste_tsg)
             for s in graph.ts.compatible_reverse_stereomers(r)]
         assert any(s == ste_tsg for s in ste_tsgs)
+
+
+if __name__ == '__main__':
+    test__to_index_based_stereo()

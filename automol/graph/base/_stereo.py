@@ -365,9 +365,12 @@ def from_index_based_stereo(sgr):
 
 
 # # derived properties
-def atom_stereo_sorted_neighbor_atom_keys(gra, atm_key, atm_ngb_keys):
+def atom_stereo_sorted_neighbor_atom_keys(gra, atm_key, atm_ngb_keys=None):
     """ get the neighbor keys of an atom sorted by stereo priority
     """
+    if atm_ngb_keys is None:
+        atm_ngb_keys = atoms_neighbor_atom_keys(gra)[atm_key]
+
     atm_ngb_keys = list(atm_ngb_keys)
 
     # explicitly create an object array because otherwise the argsort
@@ -379,6 +382,28 @@ def atom_stereo_sorted_neighbor_atom_keys(gra, atm_key, atm_ngb_keys):
     sort_idxs = numpy.argsort(atm_pri_vecs)
     sorted_atm_ngb_keys = tuple(map(atm_ngb_keys.__getitem__, sort_idxs))
     return sorted_atm_ngb_keys
+
+
+def bond_stereo_sorted_neighbor_atom_keys(gra, atm1_key, atm2_key,
+                                          atm1_ngb_keys=None,
+                                          atm2_ngb_keys=None):
+    """ get the neighbor keys of a bond's atoms sorted by stereo priority
+    """
+    bnd_key = frozenset({atm1_key, atm2_key})
+    if atm1_ngb_keys is None:
+        atm1_ngb_keys = atoms_neighbor_atom_keys(gra)[atm1_key]
+
+    if atm2_ngb_keys is None:
+        atm2_ngb_keys = atoms_neighbor_atom_keys(gra)[atm2_key]
+
+    atm1_ngb_keys -= bnd_key
+    atm2_ngb_keys -= bnd_key
+
+    ste_atm1_ngb_keys = atom_stereo_sorted_neighbor_atom_keys(
+        gra, atm1_key, atm1_ngb_keys)
+    ste_atm2_ngb_keys = atom_stereo_sorted_neighbor_atom_keys(
+        gra, atm2_key, atm2_ngb_keys)
+    return (ste_atm1_ngb_keys, ste_atm2_ngb_keys)
 
 
 def atoms_stereo_sorted_neighbor_atom_keys(sgr):
@@ -399,21 +424,21 @@ def atoms_stereo_sorted_neighbor_atom_keys(sgr):
 
     ste_atm_ngb_keys_dct = {}
     for atm_key in atm_ste_keys:
-        atm_ngb_keys = atm_ngb_keys_dct[atm_key]
+        atm_ngb_keys = atom_stereo_sorted_neighbor_atom_keys(
+            sgr, atm_key, atm_ngb_keys_dct[atm_key])
 
-        ste_atm_ngb_keys_dct[atm_key] = atom_stereo_sorted_neighbor_atom_keys(
-            sgr, atm_key, atm_ngb_keys)
+        ste_atm_ngb_keys_dct[atm_key] = atm_ngb_keys
 
     for bnd_key in bnd_ste_keys:
         atm1_key, atm2_key = sorted(bnd_key)
 
-        atm1_ngb_keys = atm_ngb_keys_dct[atm1_key] - bnd_key
-        atm2_ngb_keys = atm_ngb_keys_dct[atm2_key] - bnd_key
+        atm1_ngb_keys, atm2_ngb_keys = bond_stereo_sorted_neighbor_atom_keys(
+            sgr, atm1_key, atm2_key,
+            atm1_ngb_keys=atm_ngb_keys_dct[atm1_key],
+            atm2_ngb_keys=atm_ngb_keys_dct[atm2_key])
 
-        ste_atm_ngb_keys_dct[atm1_key] = atom_stereo_sorted_neighbor_atom_keys(
-            sgr, atm1_key, atm1_ngb_keys)
-        ste_atm_ngb_keys_dct[atm2_key] = atom_stereo_sorted_neighbor_atom_keys(
-            sgr, atm2_key, atm2_ngb_keys)
+        ste_atm_ngb_keys_dct[atm1_key] = atm1_ngb_keys
+        ste_atm_ngb_keys_dct[atm2_key] = atm2_ngb_keys
 
     return ste_atm_ngb_keys_dct
 
