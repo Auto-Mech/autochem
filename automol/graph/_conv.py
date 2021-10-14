@@ -77,20 +77,39 @@ def inchi(gra, stereo=False):
             # First, do a check to see if the InChI is missing stereo relative
             # to the graph.
             # >>> check here
+            if False:
+                # Convert to an implicit graph and relabel based on the InChI
+                # sort
+                gra = implicit(gra)
+                atm_key_dct = dict(map(reversed, enumerate(nums)))
+                print(atm_key_dct)
+                print(nums)
+                gra = relabel(gra, atm_key_dct)
+                print(automol.graph.string(gra))
 
-            # Convert to an implicit graph and relabel based on the InChI sort
-            gra = implicit(gra)
-            atm_key_dct = dict(map(reversed, enumerate(nums)))
-            print(atm_key_dct)
-            print(nums)
-            gra = relabel(gra, atm_key_dct)
-            print(automol.graph.string(gra))
+                ste_dct = bond_stereo_parities(gra)
+                ste_keys = tuple(sorted(
+                    tuple(reversed(sorted(k))) for k in bond_stereo_keys(gra)))
+                blyr_strs = []
+                # ste_strs = []
+                for atm1_key, atm2_key in ste_keys:
+                    our_par = ste_dct[frozenset({atm1_key, atm2_key})]
+                    our_srt1, our_srt2 = bond_stereo_sorted_neighbor_atom_keys(
+                        gra, atm1_key, atm2_key)
+                    ich_srt1 = tuple(reversed(our_srt1))
+                    ich_srt2 = tuple(reversed(our_srt2))
+                    if not ((our_srt1[0] != ich_srt1[0]) ^
+                            (our_srt2[0] != ich_srt2[0])):
+                        ich_par = our_par
+                    else:
+                        ich_par = not our_par
 
-            ste_dct = bond_stereo_parities(gra)
-            ste_keys = sorted(map(sorted, bond_stereo_keys(gra)))
-            ste_vals = dict_.values_by_key(ste_dct, map(frozenset, ste_keys))
-            print(ste_keys)
-            print(ste_vals)
+                    blyr_strs.append(
+                        f"{atm1_key+1}-{atm2_key+1}{'+' if ich_par else '-'}")
+
+                blyr_str = ','.join(blyr_strs)
+                print(blyr_str)
+                print(ste_keys)
 
     return ich
 
