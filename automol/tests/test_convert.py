@@ -218,6 +218,7 @@ def test__graph__with_stereo():
         ord_dct = dict(enumerate(numpy.random.permutation(natms)))
         return automol.geom.reorder(geo, ord_dct)
 
+    # smi = 'FC=C(C=CC=CF)C=CC=CF'
     smi = 'CC([O])=CCO'
     geo = automol.inchi.geometry(automol.smiles.inchi(smi))
     geo = randomize_atom_ordering(geo)
