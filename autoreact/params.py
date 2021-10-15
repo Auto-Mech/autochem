@@ -54,6 +54,7 @@ class RxnParams:
         if lind_dct is not None:
             self.set_lind(lind_dct)
 
+
     def set_arr(self, arr_dct):
         """ Sets Arrhenius parameters
 
@@ -80,6 +81,7 @@ class RxnParams:
             self.arr += arr_tuples
         self.arr_collid = collid
 
+
     def set_plog(self, plog_dct):
         """ Sets PLOG parameters
 
@@ -100,6 +102,7 @@ class RxnParams:
                 self.plog_dups = [plog_dct]
             else:  # append new dups to other dups
                 self.plog_dups.append(plog_dct)
+
 
     def set_cheb(self, cheb_dct):
         """ Sets Chebyshev parameters
@@ -166,6 +169,7 @@ class RxnParams:
             else:  # append new dups to other dups
                 self.lind_dups.append(lind_dct)
 
+
     def check_arr(self, arr_tuples):
         """ Ensures that Arrhenius parameters have correct form:
             ((A1, n1, Ea1), (A2, n2, Ea2), ...)
@@ -183,6 +187,7 @@ class RxnParams:
                 'Length of each arr_tuple should be 3')
             assert all(isinstance(x, (int, float)) for x in arr_tuple), (
                 'Each arr_tuple param should be a float or an int')
+
 
     def check_plog(self, plog_dct):
         """ Ensures that a PLOG dictionary has the correct form:
@@ -232,6 +237,7 @@ class RxnParams:
             assert all(isinstance(x, (int, float)) for x in row), (
                 'Cheb params should be floats or ints')
 
+
     def check_troe(self, troe_dct):
         """ Ensures that a Troe dictionary is of proper form:
             {'highp_arr': highp_arr, 'lowp_arr': lowp_arr,
@@ -257,6 +263,7 @@ class RxnParams:
             'Troe params should be floats or ints')
         if collid is not None:
             self.check_collid(collid)
+
 
     def check_lind(self, lind_dct):
         """ Ensures that a Lindemann dictionary is of proper form:
