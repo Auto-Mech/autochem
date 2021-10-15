@@ -22,7 +22,7 @@ jobs:
                 command: |
                     source activate autochem-env
                     cd automol
-                    pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov-report=html
+                    pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=autoreact --cov-report=html
                     coverage report
             - run:
                 name: Test autochem format
@@ -32,6 +32,8 @@ jobs:
                     pylint --rcfile=.pylintrc automol 
                     flake8 --exit-zero phydat
                     pylint --rcfile=.pylintrc phydat
+                    pylint --rcfile=.pylintrc autoreact
+                    flake8 --exit-zero autoreact
             - store_artifacts:
                     path: automol/htmlcov
 workflows:
