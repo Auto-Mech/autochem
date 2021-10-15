@@ -29,9 +29,9 @@ jobs:
                 command: |
                     source activate autochem-env
                     flake8 --exit-zero automol
-                    pylint --rcfile=automol/.pylintrc automol
+                    pylint --rcfile=.pylintrc automol 
                     flake8 --exit-zero phydat
-                    pylint --rcfile=phydat/.pylintrc phydat
+                    pylint --rcfile=.pylintrc phydat
             - store_artifacts:
                     path: automol/htmlcov
 workflows:
