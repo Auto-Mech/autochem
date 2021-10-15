@@ -42,7 +42,6 @@ def test_plog():
     dups, _ = params2.check_for_dups()
     assert dups
 
-
 def test_cheb():
     """ Tests various functions involving Chebyshev params
     """
@@ -88,7 +87,6 @@ def test_troe():
     assert len(params4.troe_dups) == 1
     dups, _ = params4.check_for_dups()
     assert dups
-
 
 def test_lind():
     """ Tests various functions involving Lindemann params
