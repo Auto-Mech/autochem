@@ -15,8 +15,6 @@ from automol.inchi.base import same_connectivity
 from automol.inchi.base import equivalent
 from automol.inchi.base import hardcoded_object_from_inchi_by_key
 
-# from automol.inchi.base import recalculate
-
 
 # # conversions
 def graph(ich, stereo=True):
@@ -179,6 +177,30 @@ def conformers(ich, nconfs=1):
     return geos
 
 
+# # derived properties
+def is_complete(ich):
+    """ Determine if the InChI string is complete
+        (has all stereo-centers assigned).
+
+        Currently only checks species that does not have any
+        resonance structures.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: bool
+    """
+
+    gra = graph(ich, stereo=False)
+    ste_atm_keys = automol.graph.stereogenic_atom_keys(gra)
+    ste_bnd_keys = automol.graph.stereogenic_bond_keys(gra)
+    graph_has_stereo = bool(ste_atm_keys or ste_bnd_keys)
+
+    _complete = equivalent(ich, standard_form(ich)) and not (
+        has_stereo(ich) ^ graph_has_stereo)
+
+    return _complete
+
+
 # # derived transformations
 def add_stereo(ich):
     """ Add stereochemistry to an InChI string converting to/from geometry.
@@ -203,37 +225,3 @@ def expand_stereo(ich):
     sgrs = automol.graph.stereomers(gra)
     ste_ichs = [automol.graph.stereo_inchi(sgr) for sgr in sgrs]
     return ste_ichs
-
-
-# temp
-# def is_complete(ich, geo=None):
-def is_complete(ich):
-    """ Determine if the InChI string is complete
-        (has all stereo-centers assigned).
-
-        Currently only checks species that does not have any
-        resonance structures.
-
-        :param ich: InChI string
-        :type ich: str
-        :rtype: bool
-    """
-
-    # gra = graph(ich, stereo=True)
-    # if len(automol.graph.dominant_resonances(gra)) == 1:
-    #     _complete = equivalent(ich, standard_form(ich)) and not (
-    #         has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
-    # else:
-    #     _complete = True
-    # print(ich, standard_form(ich), has_stereo(ich), has_stereo(recalculate(ich,stereo=True)))
-    # if geo:
-    #    ich_s = automol.geom.inchi(geo, stereo=True)
-    # else:
-    #    ich_s = add_stereo(ich)
-    ich_s = add_stereo(ich)
-    _complete = equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ has_stereo(ich_s))
-    # _complete = equivalent(ich, standard_form(ich)) and not (
-    #    has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
-
-    return _complete

@@ -182,7 +182,7 @@ def recalculate(ich, stereo=False):
 
         :param ich: InChI string
         :type ich: str
-        :param stereo: force the same stereochem in recalculated InChI
+        :param stereo: force stereochem in recalculated InChI
         :type stereo: bool
         :rtype: str
     """
@@ -210,7 +210,7 @@ def recalculate(ich, stereo=False):
     return ret
 
 
-def standard_form(ich, stereo=True):
+def standard_form(ich, stereo=True, ste_dct=None):
     """ Return an InChI string in standard form.
 
         Eventually we should just designate standard-form as standard InChI
@@ -220,11 +220,16 @@ def standard_form(ich, stereo=True):
         :type ich: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param ste_dct: a dictionary to overwrite stereo information; layers
+            not overwritten will be left in tact
+        :type ste_dct: dict
         :rtype: str
     """
     fml_slyr = formula_sublayer(ich)
     main_dct = main_sublayers(ich)
     char_dct = charge_sublayers(ich)
+
+    extra_ste_dct = ste_dct
 
     if stereo:
         ste_dct = stereo_sublayers(ich)
@@ -232,12 +237,17 @@ def standard_form(ich, stereo=True):
     else:
         ste_dct = {}
         iso_dct = dict_.by_key(isotope_sublayers(ich), ISO_NONSTE_PFXS)
+
+    if extra_ste_dct is not None:
+        ste_dct.update(extra_ste_dct)
+
     ich = from_data(fml_slyr,
                     main_lyr_dct=main_dct,
                     char_lyr_dct=char_dct,
                     ste_lyr_dct=ste_dct,
                     iso_lyr_dct=iso_dct)
-    return recalculate(ich)
+    ich = recalculate(ich)
+    return ich
 
 
 # # getters
@@ -318,6 +328,75 @@ def isotope_sublayers(ich):
         :rtype: dict[str: str]
     """
     return _sublayers(_isotope_layer(ich))
+
+
+def stereo_atoms(ich, iso=True, one_indexed=False):
+    """ Parse the stereo atoms from the stereochemistry layer.
+
+    :param iso: Include isotope stereochemistry?
+    :type iso: bool
+    :param one_indexed: Return indices in one-indexing?
+    :type one_indexed: bool
+    """
+    if len(split(ich)) > 1:
+        raise NotImplementedError("Multicomponent InChIs not implemented."
+                                  "Call inchi.split() first")
+
+    atm_ptt = (app.capturing(app.UNSIGNED_INTEGER) +
+               app.one_of_these(list(map(app.escape, '+-'))))
+
+    ste_dct = stereo_sublayers(ich)
+    iso_dct = isotope_sublayers(ich)
+
+    tlyr = ''
+    if 't' in ste_dct:
+        tlyr += ste_dct['t']
+
+    if iso and 't' in iso_dct:
+        tlyr += ',' + iso_dct['t']
+
+    atms = ()
+    if tlyr:
+        atms = ap_cast(apf.all_captures(atm_ptt, tlyr))
+
+    if not one_indexed:
+        atms = tuple(i-1 for i in atms)
+
+    return atms
+
+
+def stereo_bonds(ich, iso=True, one_indexed=False):
+    """ Parse the stereo bonds from the stereochemistry layer.
+
+    :param iso: Include isotope stereochemistry?
+    :type iso: bool
+    :param one_indexed: Return indices in one-indexing?
+    :type one_indexed: bool
+    """
+    if len(split(ich)) > 1:
+        raise NotImplementedError("Multicomponent InChIs not implemented."
+                                  "Call inchi.split() first")
+
+    bnd_ptt = '-'.join([app.capturing(app.UNSIGNED_INTEGER)]*2)
+
+    ste_dct = stereo_sublayers(ich)
+    iso_dct = isotope_sublayers(ich)
+
+    blyr = ''
+    if 'b' in ste_dct:
+        blyr += ste_dct['b']
+
+    if iso and 'b' in iso_dct:
+        blyr += ',' + iso_dct['b']
+
+    bnds = ()
+    if blyr:
+        bnds = ap_cast(apf.all_captures(bnd_ptt, blyr))
+
+    if not one_indexed:
+        bnds = tuple((i-1, j-1) for i, j in bnds)
+
+    return bnds
 
 
 # # conversions
@@ -406,18 +485,6 @@ def is_standard_form(ich):
         :rtype: bool
     """
     return ich == standard_form(ich)
-
-
-def is_complete(ich):
-    """ Determine if the InChI string is complete
-        (has all stereo-centers assigned).
-
-        :param ich: InChI string
-        :type ich: str
-        :rtype: bool
-    """
-    return equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ has_stereo(recalculate(ich, stereo=True)))
 
 
 def has_multiple_components(ich):

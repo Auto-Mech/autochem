@@ -176,7 +176,7 @@ def inchi_with_sort(geo, stereo=True):
     """
     ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
         'geom', geo, comp=_compare)
-    nums = None
+    nums_lst = None
     if ich is None:
         gra = connectivity_graph(geo)
         if not stereo:
@@ -184,10 +184,10 @@ def inchi_with_sort(geo, stereo=True):
             geo_idx_dct = None
         else:
             geo_idx_dct = dict(enumerate(range(count(geo))))
-        ich, nums = automol.graph.inchi_with_sort_from_geometry(
+        ich, nums_lst = automol.graph.inchi_with_sort_from_geometry(
             gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
-    return ich, nums
+    return ich, nums_lst
 
 
 def _compare(geo1, geo2):
