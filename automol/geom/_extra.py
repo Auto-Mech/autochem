@@ -253,10 +253,6 @@ def is_unique(geo, geo_lst, check_dct=None):
     return unique, like_idx
 
 
-#def hydrogen_bonded_structure(geo, grxn=None,
-#                               dist_thresh=4.55, angle_thresh=1.92):
-# def hydrogen_bonded_structure(geo, grxn=None,
-#                               dist_thresh=5.3, angle_thresh=1.92):
 def hydrogen_bonded_structure(
         geo, dist_thresh=4.82, angle_thresh=1.92,
         grxn=None):
@@ -293,7 +289,7 @@ def hydrogen_bonded_idxs(
         :param angle_thresh: cutoff value for hbond angle (Radian)
         :type angle_thresh: float
         :rtype: tuple
-    """   
+    """
     # Initialize the hydrogen bond list to None
     hydrogen_bond = None
     if count(geo) > 1:
@@ -331,7 +327,7 @@ def hydrogen_bonded_idxs(
                 if acceptor_idx in adj_atm_dct[donor_idx]:
                     continue
                 if dist_mat[h_idx][acceptor_idx] < dist_thresh:
-                    if central_angle(
-                            geo, donor_idx, h_idx, acceptor_idx) > angle_thresh:
+                    ang = central_angle(geo, donor_idx, h_idx, acceptor_idx)
+                    if ang > angle_thresh:
                         hydrogen_bond = (donor_idx, h_idx, acceptor_idx,)
     return hydrogen_bond

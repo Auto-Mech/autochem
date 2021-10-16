@@ -65,30 +65,34 @@ def _inchi_connected_graph(ich, stereo=True):
     return gra
 
 
-def geometry(ich):
+def geometry(ich, check=True):
     """ Generate a molecular geometry from an InChI string.
 
         :param ich: InChI string
         :type ich: str
+        :param check: check stereo and connectivity?
+        :type check: bool
         :rtype: automol molecular geometry data structure
     """
 
     # rdkit fails for multi-component inchis, so we split it up and space out
     # the geometries
     ichs = split(ich)
-    geos = list(map(_connected_geometry, ichs))
+    geos = [_connected_geometry(ich, check=check) for ich in ichs]
     geos = [automol.geom.translate(geo, [50. * idx, 0., 0.])
             for idx, geo in enumerate(geos)]
     geo = functools.reduce(automol.geom.join, geos)
     return geo
 
 
-def _connected_geometry(ich):
+def _connected_geometry(ich, check=True):
     """ Generate a molecular geometry from an InChI string where
         all atoms are connected by at least one bond.
 
         :param ich: InChI string
         :type ich: str
+        :param check: check stereo and connectivity?
+        :type check: bool
         :rtype: automol molecular geometry data structure
     """
 
@@ -125,7 +129,11 @@ def _connected_geometry(ich):
                 conn = automol.geom.connected(geo)
                 _has_stereo = has_stereo(ich)
                 ich_equiv = equivalent(ich, geo_ich)
-                if (same_conn and conn) and (not _has_stereo or ich_equiv):
+                print('original ich', ich)
+                print('geometry ich', geo_ich)
+                checks_pass = ((same_conn and conn) and
+                               (not _has_stereo or ich_equiv))
+                if not check or checks_pass:
                     success = True
                     break
             except (RuntimeError, TypeError, ValueError):

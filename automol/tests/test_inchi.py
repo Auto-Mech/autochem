@@ -225,6 +225,6 @@ def test__stereo():
 
 
 if __name__ == '__main__':
-    # test__stereo()
-    test__stereo_atoms()
-    test__stereo_bonds()
+    # test__stereo_atoms()
+    # test__stereo_bonds()
+    test__stereo()

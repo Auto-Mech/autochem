@@ -1,3 +1,5 @@
+""" <fill in this module docstring>
+"""
 from autoreact import params
 
 __all__ = [
