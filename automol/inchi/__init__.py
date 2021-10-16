@@ -17,10 +17,7 @@ from automol.inchi.base._core import stereo_sublayers
 from automol.inchi.base._core import isotope_sublayers
 from automol.inchi.base._core import stereo_atoms
 from automol.inchi.base._core import stereo_bonds
-<<<<<<< HEAD
 from automol.inchi.base._core import unassigned_stereo_bonds
-=======
->>>>>>> Completes implementation of InChI stereo fix
 # # conversions
 from automol.inchi.base._core import inchi_key
 from automol.inchi.base._core import smiles
@@ -74,10 +71,7 @@ __all__ = [
     'isotope_sublayers',
     'stereo_atoms',
     'stereo_bonds',
-<<<<<<< HEAD
     'unassigned_stereo_bonds',
-=======
->>>>>>> Completes implementation of InChI stereo fix
     # # conversions
     'inchi_key',
     'smiles',
