@@ -86,3 +86,7 @@ def test__comp():
     # Test CHECK DCT with values
     unique6, idx6 = automol.geom.is_unique(GEO1, GEO_LST1, CHECK_DCT2)
     assert not unique6 and idx6 == 0
+
+
+if __name__ == '__main__':
+    test__comp()

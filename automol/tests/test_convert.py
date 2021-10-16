@@ -124,15 +124,15 @@ def test__geom__no_stereo():
     """
 
     ref_sort_ich = 'InChI=1S/C3H7O2/c1-3(2)5-4/h3-4H,1H2,2H3'
-    ref_nums = (0, 1, 2, 3, 4)
+    ref_nums_lst = ((0, 1, 2, 3, 4),)
 
     ich = ICHS_WITH_STEREO[0]
     geo = automol.inchi.geometry(ich)
-    sort_ich, nums = automol.geom.inchi_with_sort(
+    sort_ich, nums_lst = automol.geom.inchi_with_sort(
         geo, stereo=False)
 
     assert sort_ich == ref_sort_ich
-    assert nums == ref_nums
+    assert nums_lst == ref_nums_lst
 
     # Test failed zmatrix call
     with pytest.raises(NotImplementedError):
@@ -171,13 +171,15 @@ def test__graph__with_stereo():
         return automol.geom.reorder(geo, ord_dct)
 
     # smi = 'FC=C(C=CC=CF)C=CC=CF'
-    smi = 'CC([O])=CCO'
-    geo = automol.inchi.geometry(automol.smiles.inchi(smi))
+    # smi = 'FC=CC=CC=CF'
+    # ich = automol.smiles.inchi('CC([O])=CCO')
+    ich = automol.smiles.inchi('CC([O])=CCO.O')
+    geo = automol.inchi.geometry(ich)
     geo = randomize_atom_ordering(geo)
     gra = automol.geom.graph(geo)
     ich = automol.graph.inchi(gra, stereo=True)
     print(ich)
-    # print(automol.graph.string(gra))
+    # assert ich == 'InChI=1S/C4H7O2/c1-4(6)2-3-5/h2,5H,3H2,1H3/b4-2-'
 
 
 def test__graph__no_stereo():
@@ -308,19 +310,39 @@ def test__inchi_geometry():
     """
     ref_ich = 'InChI=1S/H2S/h1H2'
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/Ar'
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/Cl2/c1-2'
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
     assert ich == ref_ich
+
+    # Extra test case for broken InChI conversion
+    ich = automol.smiles.inchi('CC([O])=CCO')
+    geo = automol.inchi.geometry(ich)
+    ich = automol.geom.inchi(geo, stereo=True)
+    print(ich)
+    assert ich in ('InChI=1S/C4H7O2/c1-4(6)2-3-5/h2,5H,3H2,1H3/b4-2-',
+                   'InChI=1S/C4H7O2/c1-4(6)2-3-5/h2,5H,3H2,1H3/b4-2+')
+
+    # Extra test case for broken InChI conversion
+    ich = automol.smiles.inchi('CC([O])=CCO.[OH]')
+    geo = automol.inchi.geometry(ich)
+    ich = automol.geom.inchi(geo, stereo=True)
+    print(ich)
+    assert ich in ('InChI=1S/C4H7O2.HO/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H/b4-2-;'
+                   'InChI=1S/C4H7O2.HO/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H/b4-2+;')
 
 
 def test__inchi_conformers():
@@ -511,4 +533,5 @@ def test__zmat_conv_dummy():
 
 if __name__ == '__main__':
     # test__geom__no_stereo()
-    test__graph__with_stereo()
+    # test__graph__with_stereo()
+    test__inchi_geometry()

@@ -24,6 +24,8 @@ C2H2F2_ICH = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H/b2-1+'
 C2H2F2_ICH_NO_STEREO = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H'
 C2H2F2_ICH_STEREO_UNKNOWN = 'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1?'
 
+C2H4F2O2_ICH = 'InChI=1S/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m0/s1'
+
 C8H13O_ICH = (
     'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
     'b5-3-,6-4-/t8-/m0/s1')
@@ -159,6 +161,26 @@ def test__recalculate():
             == C2H2F2_ICH_STEREO_UNKNOWN)
 
 
+def test__stereo_atoms():
+    """ test inchi.stereo_atoms
+    """
+    atms = inchi.stereo_atoms(C2H6O_ICH)
+    print(atms)
+    assert atms == (1,)
+
+    atms = inchi.stereo_atoms(C2H4F2O2_ICH)
+    print(atms)
+    assert atms == (0, 1)
+
+
+def test__stereo_bonds():
+    """ test inchi.stereo_bonds
+    """
+    bnds = inchi.stereo_bonds(C8H13O_ICH)
+    print(bnds)
+    assert bnds == ((4, 2), (5, 3))
+
+
 def test__stereo():
     """ test inchi.add_stereo
         test inchi.expand_stereo
@@ -203,4 +225,6 @@ def test__stereo():
 
 
 if __name__ == '__main__':
-    test__stereo()
+    # test__stereo()
+    test__stereo_atoms()
+    test__stereo_bonds()
