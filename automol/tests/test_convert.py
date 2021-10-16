@@ -219,14 +219,20 @@ def test__graph__with_stereo():
         return automol.geom.reorder(geo, ord_dct)
 
     # smi = 'FC=C(C=CC=CF)C=CC=CF'
-    smi = 'CC([O])=CCO'
-    geo = automol.inchi.geometry(automol.smiles.inchi(smi))
+    # smi = 'FC=CC=CC=CF'
+    # ich = automol.smiles.inchi('CC([O])=CCO')
+    ich = automol.smiles.inchi('CC([O])=CCO.O')
+    geo = automol.inchi.geometry(ich)
     geo = randomize_atom_ordering(geo)
     gra = automol.geom.graph(geo)
     ich = automol.graph.inchi(gra, stereo=True)
     print(ich)
+<<<<<<< HEAD
     # print(automol.graph.string(gra))
 >>>>>>> Adds stereo functions; InChI stereo hack in progress
+=======
+    # assert ich == 'InChI=1S/C4H7O2/c1-4(6)2-3-5/h2,5H,3H2,1H3/b4-2-'
+>>>>>>> Completes implementation of InChI stereo fix
 
 
 def test__graph__no_stereo():
@@ -408,6 +414,7 @@ def test__inchi_geometry():
     print(ich)
     assert ich == ref_ich
 
+<<<<<<< HEAD
     ich = 'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3'
     geo = automol.inchi.geometry(ich)
     ich = automol.geom.inchi(geo, stereo=True)
@@ -422,6 +429,8 @@ def test__inchi_geometry():
     assert ich in ('InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5+',
                    'InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5-')
 
+=======
+>>>>>>> Completes implementation of InChI stereo fix
     # Extra test case for broken InChI conversion
     ich = automol.smiles.inchi('CC([O])=CCO')
     geo = automol.inchi.geometry(ich)
