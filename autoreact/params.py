@@ -3,6 +3,7 @@
 
 import numpy
 
+
 class RxnParams:
     """ Stores and manipulates parameters that correspond to
         various functional form expressions used to represent
@@ -53,7 +54,6 @@ class RxnParams:
         if lind_dct is not None:
             self.set_lind(lind_dct)
 
-
     def set_arr(self, arr_dct):
         """ Sets Arrhenius parameters
 
@@ -80,8 +80,6 @@ class RxnParams:
             self.arr += arr_tuples
         self.arr_collid = collid
 
-
-
     def set_plog(self, plog_dct):
         """ Sets PLOG parameters
 
@@ -102,7 +100,6 @@ class RxnParams:
                 self.plog_dups = [plog_dct]
             else:  # append new dups to other dups
                 self.plog_dups.append(plog_dct)
-
 
     def set_cheb(self, cheb_dct):
         """ Sets Chebyshev parameters
@@ -127,7 +124,6 @@ class RxnParams:
             else:  # append new dups to other dups
                 self.cheb_dups.append(cheb_dct)
 
-
     def set_troe(self, troe_dct):
         """ Sets Troe parameters
 
@@ -150,7 +146,6 @@ class RxnParams:
             else:  # append new dups to other dups
                 self.troe_dups.append(troe_dct)
 
-
     def set_lind(self, lind_dct):
         """ Sets Lindemann parameters
 
@@ -171,7 +166,6 @@ class RxnParams:
             else:  # append new dups to other dups
                 self.lind_dups.append(lind_dct)
 
-
     def check_arr(self, arr_tuples):
         """ Ensures that Arrhenius parameters have correct form:
             ((A1, n1, Ea1), (A2, n2, Ea2), ...)
@@ -190,7 +184,6 @@ class RxnParams:
             assert all(isinstance(x, (int, float)) for x in arr_tuple), (
                 'Each arr_tuple param should be a float or an int')
 
-
     def check_plog(self, plog_dct):
         """ Ensures that a PLOG dictionary has the correct form:
             {'high'/pressure: ((A1, n1, Ea1), (A2, n2, Ea2), ...),
@@ -206,7 +199,6 @@ class RxnParams:
                 "PLOG pressures should be 'high' or floats")
             self.check_arr(arr_tuples)
 
-
     def check_cheb(self, cheb_dct):
         """ Ensures that a Chebyshev dictionary is of the proper form:
             {'tlim': (tmin, tmax), 'plim': (pmin, pmax), 'alpha': alpha,
@@ -219,7 +211,7 @@ class RxnParams:
 
         tlim = cheb_dct.get('tlim')
         plim = cheb_dct.get('plim')
-        alpha= cheb_dct.get('alpha')
+        alpha = cheb_dct.get('alpha')
         one_atm_arr = cheb_dct.get('one_atm_arr')
 
         if one_atm_arr is not None:  # the one atm rates are not required
@@ -239,7 +231,6 @@ class RxnParams:
                 'Cheb rows should be lists, tuples, or Numpy arrays')
             assert all(isinstance(x, (int, float)) for x in row), (
                 'Cheb params should be floats or ints')
-
 
     def check_troe(self, troe_dct):
         """ Ensures that a Troe dictionary is of proper form:
@@ -267,7 +258,6 @@ class RxnParams:
         if collid is not None:
             self.check_collid(collid)
 
-
     def check_lind(self, lind_dct):
         """ Ensures that a Lindemann dictionary is of proper form:
             {'highp_arr': highp_arr, 'lowp_arr': lowp_arr,
@@ -287,7 +277,6 @@ class RxnParams:
         if collid is not None:
             self.check_collid(collid)
 
-
     def check_collid(self, collid):
         """ Ensures that a collider dictionary is of proper form:
             {spc1: eff1, spc2: ...}
@@ -301,7 +290,6 @@ class RxnParams:
             'collid keys (i.e., spcs) should be strings')
         assert all(isinstance(eff, (int, float)) for eff in collid.values()), (
             'collid values (i.e., efficiences) should be floats or ints')
-
 
     def get_existing_forms(self):
         """ Return a list of all the types of parameters contained
@@ -325,7 +313,6 @@ class RxnParams:
 
         return forms
 
-
     def combine_objects(self, other_params):
         """ Combines another RxnParams instance with the current one. This is
             used in the combining of duplicates when parsing mechanism files.
@@ -337,7 +324,8 @@ class RxnParams:
 
         # Get the forms to be added from the existing object
         form_to_be_added = other_params.get_existing_forms()
-        assert len(form_to_be_added) == 1, (f'The object to be appended should'
+        assert len(form_to_be_added) == 1, (
+            f'The object to be appended should'
             f' only have one functional form but has {form_to_be_added}.')
 
         # Combine the dictionaries depending on the form
@@ -361,10 +349,10 @@ class RxnParams:
             else:
                 self.lind_dups.append(new_lind)
 
-
     def check_for_dups(self):
         """ Checks for unsual cases of duplicates: either mixed forms (e.g.,
-            PLOG and Arrhenius) or more than one of some form (e.g., two PLOGS).
+            PLOG and Arrhenius) or more than one of some form (e.g., two
+            PLOGS).
             Note that this does not check for duplicate Arrhenius, as that info
             is readily contain by the arr attribute and is an acceptable case
 

@@ -102,6 +102,8 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
             atoms
         :rtype: (str, tuple(int))
     """
+    if geo is not None:
+        print(automol.geom.string(geo))
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
                                                  geo_idx_dct=geo_idx_dct)
     rdm = rdkit_.from_molfile(mlf)
@@ -149,10 +151,13 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
     ich_ste_keys = automol.inchi.stereo_bonds(ich)
     our_ste_keys = bond_stereo_keys(gra)
 
+    miss_ich_ste_keys = automol.inchi.unassigned_stereo_bonds(ich)
+
     if len(ich_ste_keys) > len(our_ste_keys):
         raise Exception("Our code is missing stereo bonds")
 
-    if len(ich_ste_keys) < len(our_ste_keys):
+    if len(ich_ste_keys) < len(our_ste_keys) or miss_ich_ste_keys:
+        print(automol.graph.string(gra))
         # Convert to implicit graph and relabel based on InChI sort
         atm_key_dct = dict(map(reversed, enumerate(nums)))
         gra = relabel(gra, atm_key_dct)
@@ -169,14 +174,13 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
                 gra, atm1_key, atm2_key)
             ich_srt1 = tuple(reversed(our_srt1))
             ich_srt2 = tuple(reversed(our_srt2))
-            if not ((our_srt1[0] != ich_srt1[0]) ^
-                    (our_srt2[0] != ich_srt2[0])):
+            if not ((our_srt1 != ich_srt1) ^ (our_srt2 != ich_srt2)):
                 ich_par = our_par
             else:
                 ich_par = not our_par
 
             blyr_strs.append(
-                f"{atm1_key+1}-{atm2_key+1}{'+' if ich_par else '-'}")
+                f"{atm1_key+1}-{atm2_key+1}{'-' if ich_par else '+'}")
 
         # After forming the b-layer string, generate the new InChI
         blyr_str = ','.join(blyr_strs)

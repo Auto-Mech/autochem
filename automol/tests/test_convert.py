@@ -9,6 +9,10 @@ import automol
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
+# PROBLEM CASES:
+# InChI=1/C7H11/c1-3-5-7-6-4-2/h1,3-4,6H,5,7H2,2H3/b3-1+,6-4+
+# InChI=1S/C5H5O/c1-2-3-4-5-6/h1-5H/b2-1?,4-3+
+
 
 def load_pandas_csv_string_file(path_lst, file_name, path=PATH):
     """ Read a file with numpy
@@ -35,6 +39,8 @@ ICHS_NO_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_no_stereo.txt', path=PATH)
 ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
+# Use NSAMP = None to test everything
+# NSAMP = None
 NSAMP = 10
 
 # Geometries
@@ -107,11 +113,14 @@ HOOH_ZMA_CS = (
 def test__geom__with_stereo():
     """ test geom conversions
     """
+    print('geom with stereo')
+
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         geo = automol.inchi.geometry(ref_ich)
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich
@@ -122,6 +131,7 @@ def test__geom__with_stereo():
 def test__geom__no_stereo():
     """ test geom conversions
     """
+    print('geom no stereo')
 
     ref_sort_ich = 'InChI=1S/C3H7O2/c1-3(2)5-4/h3-4H,1H2,2H3'
     ref_nums_lst = ((0, 1, 2, 3, 4),)
@@ -140,56 +150,42 @@ def test__geom__no_stereo():
             C2H6_H_GEO, ts_bnds=frozenset({7, 8}))
 
 
-# def test__graph__with_stereo():
-#     """ test graph conversions
-#     """
-#     ref_ichs = []
-#     # ref_ichs = ICHS_WITH_STEREO
-#     # if NSAMP is not None:
-#     #     ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
-#
-#     # AVC note to self -- fix this case:
-#     ref_ichs += [
-#         'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1',
-#         'InChI=1S/C7H14O3/c1-2-6-5-7(10-6)3-4-9-8/h6-8H,2-5H2,1H3/t6-,7+/m1/s1'
-#     ]
-#
-#     for ref_ich in ref_ichs:
-#         gra = automol.inchi.graph(ref_ich)
-#         ich = automol.graph.inchi(gra, stereo=True)
-#         assert ich == ref_ich
-#
-#         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 def test__graph__with_stereo():
     """ test graph conversions
     """
-    def randomize_atom_ordering(geo):
-        """ randomize atom ordering in a geometry
-        """
-        natms = automol.geom.count(geo)
-        ord_dct = dict(enumerate(numpy.random.permutation(natms)))
-        return automol.geom.reorder(geo, ord_dct)
+    print('graph with stereo')
 
-    # smi = 'FC=C(C=CC=CF)C=CC=CF'
-    # smi = 'FC=CC=CC=CF'
-    # ich = automol.smiles.inchi('CC([O])=CCO')
-    ich = automol.smiles.inchi('CC([O])=CCO.O')
-    geo = automol.inchi.geometry(ich)
-    geo = randomize_atom_ordering(geo)
-    gra = automol.geom.graph(geo)
-    ich = automol.graph.inchi(gra, stereo=True)
-    print(ich)
-    # assert ich == 'InChI=1S/C4H7O2/c1-4(6)2-3-5/h2,5H,3H2,1H3/b4-2-'
+    ref_ichs = []
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
+
+    # AVC note to self -- fix this case:
+    ref_ichs += [
+        'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1',
+        'InChI=1S/C7H14O3/c1-2-6-5-7(10-6)3-4-9-8/h6-8H,2-5H2,1H3/t6-,7+/m1/s1'
+    ]
+
+    for ref_ich in ref_ichs:
+        print(ref_ich)
+        gra = automol.inchi.graph(ref_ich)
+        ich = automol.graph.inchi(gra, stereo=True)
+        assert ich == ref_ich
+
+        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
 def test__graph__no_stereo():
     """ test graph conversions
     """
+    print("graph no stereo")
+
     ref_ichs = ICHS_NO_STEREO
     if NSAMP is not None:
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         gra = automol.inchi.graph(ref_ich)
         gra = automol.graph.without_stereo_parities(gra)
         # gra <=> ich
@@ -202,11 +198,14 @@ def test__graph__no_stereo():
 def test__zmatrix__with_stereo():
     """ test zmatrix conversions
     """
+    print("zmatrix with stereo")
+
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmat.geometry(zma)
@@ -237,11 +236,14 @@ def test__zmatrix__with_stereo():
 def test__smiles__with_stereo():
     """ test smiles conversions
     """
+    print("smiles with stereo")
+
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         smi = automol.inchi.smiles(ref_ich)
         ich = automol.smiles.inchi(smi)
         assert ich == ref_ich
@@ -250,11 +252,14 @@ def test__smiles__with_stereo():
 def test__smiles__from_geom():
     """ test smiles conversions
     """
+    print("smiles from geom")
+
     ref_ichs = ICHS_NO_STEREO
     if NSAMP is not None:
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print(ref_ich)
         # geo <=> smi
         geo = automol.inchi.geometry(ref_ich)
         smi = automol.geom.smiles(geo)
@@ -304,6 +309,27 @@ def test__graph__misc():
     geo = automol.graph.geometry(gra)
     assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
 
+    # Test stereo
+    def randomize_atom_ordering(geo):
+        """ randomize atom ordering in a geometry
+        """
+        natms = automol.geom.count(geo)
+        ord_dct = dict(enumerate(numpy.random.permutation(natms)))
+        return automol.geom.reorder(geo, ord_dct)
+
+    # smi = 'FC=C(C=CC=CF)C=CC=CF'
+    # smi = 'FC=CC=CC=CF'
+    # ich = automol.smiles.inchi('CC([O])=CCO')
+    ich = automol.smiles.inchi('CC([O])=CCO.O')
+    geo = automol.inchi.geometry(ich)
+    geo = randomize_atom_ordering(geo)
+    gra = automol.geom.graph(geo)
+    ich = automol.graph.inchi(gra, stereo=True)
+    print(ich)
+    assert ich in (
+        'InChI=1S/C4H7O2.H2O/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H2/b4-2-;',
+        'InChI=1S/C4H7O2.H2O/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H2/b4-2+;')
+
 
 def test__inchi_geometry():
     """ test automol.inchi.geometry
@@ -327,6 +353,20 @@ def test__inchi_geometry():
     ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
     print(ich)
     assert ich == ref_ich
+
+    ich = 'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3'
+    geo = automol.inchi.geometry(ich)
+    ich = automol.geom.inchi(geo, stereo=True)
+    print(ich)
+    assert ich in ('InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5+',
+                   'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5-')
+
+    ich = 'InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3'
+    geo = automol.inchi.geometry(ich)
+    ich = automol.geom.inchi(geo, stereo=True)
+    print(ich)
+    assert ich in ('InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5+',
+                   'InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5-')
 
     # Extra test case for broken InChI conversion
     ich = automol.smiles.inchi('CC([O])=CCO')
@@ -534,4 +574,12 @@ def test__zmat_conv_dummy():
 if __name__ == '__main__':
     # test__geom__no_stereo()
     # test__graph__with_stereo()
-    test__inchi_geometry()
+    # test__inchi_geometry()
+    test__geom__with_stereo()
+    test__geom__no_stereo()
+    test__graph__with_stereo()
+    test__graph__no_stereo()
+    test__zmatrix__with_stereo()
+    test__smiles__with_stereo()
+    test__smiles__from_geom()
+    # test__graph__misc()

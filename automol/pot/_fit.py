@@ -4,7 +4,7 @@
 
 
 import numpy
-from scipy.interpolate import interp1d
+# from scipy.interpolate import interp1d
 from scipy.interpolate import CubicSpline
 
 
@@ -100,7 +100,7 @@ def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     """ Get a physical hindered rotor potential via a series of spline fits
     """
     # unpack potential dictionary
-    grid_vals, pot, lpot = _initialize_pot(pot_dct)
+    _, pot, lpot = _initialize_pot(pot_dct)
     pot = _round_near_zero(pot, max_thresh, min_thresh)
     # Build a new potential list using a spline fit of the HR potential
     pot = _spline_cap_max_thresh(pot, lpot, max_thresh, min_thresh)
@@ -150,21 +150,25 @@ def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
         # check for quadratic behavior around minimum
     else:
         final_potential = pot.copy()
-    #if lpot > 7:
-    #    pos = final_potential[1]
-    #    neg = final_potential[-2]
-    #    if abs(pos - neg)/(pos + neg) > 0.3:
-    #        print('Refitting potentials near the minimum to a quadratic')
-    #        pos_1 = final_potential[2]
-    #        neg_1 = final_potential[-3]
-    #        quad_pots = [neg_1, neg, 0, pos, pos_1]
-    #        quad_idxs = [0, 1, 2, 3, 4]
-    #        quad_pot_coeffs = numpy.polyfit(quad_idxs, quad_pots, 2)
-    #        print(quad_pots)
-    #        print(quad_pot_coeffs)
-    #        final_potential[-2] = quad_pot_coeffs[2] + quad_pot_coeffs[1] * 1 + quad_pot_coeffs[0] * 1**2
-    #        final_potential[1] = quad_pot_coeffs[2] + quad_pot_coeffs[1] * 3 + quad_pot_coeffs[0] * 3**2
-    #        print('Potential to fit quadratic', final_potential)
+    # if lpot > 7:
+    #     pos = final_potential[1]
+    #     neg = final_potential[-2]
+    #     if abs(pos - neg)/(pos + neg) > 0.3:
+    #         print('Refitting potentials near the minimum to a quadratic')
+    #         pos_1 = final_potential[2]
+    #         neg_1 = final_potential[-3]
+    #         quad_pots = [neg_1, neg, 0, pos, pos_1]
+    #         quad_idxs = [0, 1, 2, 3, 4]
+    #         quad_pot_coeffs = numpy.polyfit(quad_idxs, quad_pots, 2)
+    #         print(quad_pots)
+    #         print(quad_pot_coeffs)
+    #         final_potential[-2] = (quad_pot_coeffs[2] +
+    #                                quad_pot_coeffs[1] * 1 +
+    #                                quad_pot_coeffs[0] * 1**2)
+    #         final_potential[1] = (quad_pot_coeffs[2] +
+    #                               quad_pot_coeffs[1] * 3 +
+    #                               quad_pot_coeffs[0] * 3**2)
+    #         print('Potential to fit quadratic', final_potential)
 
     final_potential = final_potential[:-1]
 
