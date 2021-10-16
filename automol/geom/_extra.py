@@ -289,7 +289,7 @@ def hydrogen_bonded_idxs(
         :param angle_thresh: cutoff value for hbond angle (Radian)
         :type angle_thresh: float
         :rtype: tuple
-    """   
+    """
     # Initialize the hydrogen bond list to None
     hydrogen_bond = None
     if count(geo) > 1:
