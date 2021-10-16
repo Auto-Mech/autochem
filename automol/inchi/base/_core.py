@@ -201,6 +201,7 @@ def standard_form(ich, stereo=True, ste_dct=None):
 
     if extra_ste_dct is not None:
         ste_dct.update(extra_ste_dct)
+
     ich = from_data(fml_slyr,
                     main_lyr_dct=main_dct,
                     char_lyr_dct=char_dct,
