@@ -14,13 +14,15 @@ from automol.inchi.base._core import main_sublayers
 from automol.inchi.base._core import charge_sublayers
 from automol.inchi.base._core import stereo_sublayers
 from automol.inchi.base._core import isotope_sublayers
+from automol.inchi.base._core import stereo_atoms
+from automol.inchi.base._core import stereo_bonds
+from automol.inchi.base._core import unassigned_stereo_bonds
 # # conversions
 from automol.inchi.base._core import inchi_key
 from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
 # # properties
 from automol.inchi.base._core import is_standard_form
-from automol.inchi.base._core import is_complete
 from automol.inchi.base._core import has_multiple_components
 from automol.inchi.base._core import is_chiral
 from automol.inchi.base._core import has_stereo
@@ -55,13 +57,15 @@ __all__ = [
     'charge_sublayers',
     'stereo_sublayers',
     'isotope_sublayers',
+    'stereo_atoms',
+    'stereo_bonds',
+    'unassigned_stereo_bonds',
     # # conversions
     'inchi_key',
     'smiles',
     'formula',
     # # properties
     'is_standard_form',
-    'is_complete',
     'has_multiple_components',
     'is_chiral',
     'has_stereo',

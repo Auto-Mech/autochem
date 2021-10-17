@@ -32,8 +32,8 @@ jobs:
                     pylint --rcfile=.pylintrc automol 
                     flake8 --exit-zero phydat
                     pylint --rcfile=.pylintrc phydat
-                    pylint --rcfile=.pylintrc autoreact
                     flake8 --exit-zero autoreact
+                    pylint --rcfile=.pylintrc autoreact
             - store_artifacts:
                     path: automol/htmlcov
 workflows:

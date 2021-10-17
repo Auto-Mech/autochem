@@ -1,3 +1,5 @@
+""" testing autoreact functions
+"""
 import numpy
 from autoreact.params import RxnParams
 
@@ -26,11 +28,11 @@ def test_plog():
 
     # Test simple functions
     plog_dct = {'high': [[1e12, 1.5, 50000], [1e12, 1.5, 50000]],
-                1.0:    [[1e12, 1.5, 50000],],
+                1.0:    [[1e12, 1.5, 50000]],
                 10.0:   [[1e12, 1.5, 50000], [1e12, 1.5, 50000]]}
     params2 = RxnParams(plog_dct=plog_dct)
     assert params2.get_existing_forms() == ('plog',)
-    for pressure, arr_tuples in params2.plog.items():
+    for _, arr_tuples in params2.plog.items():
         for arr_tuple in arr_tuples:
             assert numpy.allclose([1e12, 1.5, 50000], arr_tuple)
 
@@ -39,7 +41,7 @@ def test_plog():
     assert len(params2.plog_dups) == 1
     dups, _ = params2.check_for_dups()
     assert dups
-    
+
 
 def test_cheb():
     """ Tests various functions involving Chebyshev params
@@ -56,8 +58,8 @@ def test_cheb():
     cheb_dct = {'alpha': ref_alpha,
                 'tlim': (300, 2500),
                 'plim': (0.01, 100),
-                'one_atm_arr': [[1,0,0],]}
-    params3 = RxnParams(cheb_dct=cheb_dct) 
+                'one_atm_arr': [[1, 0, 0]]}
+    params3 = RxnParams(cheb_dct=cheb_dct)
     assert params3.get_existing_forms() == ('cheb',)
     alpha = params3.cheb['alpha']
     for idx, array in enumerate(alpha):
@@ -74,8 +76,8 @@ def test_troe():
     """ Tests various functions involving Troe params
     """
 
-    troe_dct = {'highp_arr': [[1e12, 1.5, 50000],],
-                'lowp_arr': [[1e12, 1.5, 50000],],
+    troe_dct = {'highp_arr': [[1e12, 1.5, 50000]],
+                'lowp_arr': [[1e12, 1.5, 50000]],
                 'troe_params': [1.5, 8000, 100, 1000],
                 'collid': {'AR': 1.4, 'N2': 1.7}}
     params4 = RxnParams(troe_dct=troe_dct)
@@ -86,14 +88,14 @@ def test_troe():
     assert len(params4.troe_dups) == 1
     dups, _ = params4.check_for_dups()
     assert dups
-    
+
 
 def test_lind():
     """ Tests various functions involving Lindemann params
     """
 
-    lind_dct = {'highp_arr': [[1e12, 1.5, 50000],],
-                'lowp_arr': [[1e12, 1.5, 50000],],
+    lind_dct = {'highp_arr': [[1e12, 1.5, 50000]],
+                'lowp_arr': [[1e12, 1.5, 50000]],
                 'collid': {'AR': 1.4, 'N2': 1.7}}
     params5 = RxnParams(lind_dct=lind_dct)
     assert params5.get_existing_forms() == ('lind',)

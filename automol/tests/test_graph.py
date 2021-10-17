@@ -6,6 +6,17 @@ import automol
 from automol import graph
 
 
+# Vinyl radical with E/Z stereo
+C3H5_SGR = (
+    {0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+     3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+     6: ('H', 0, None), 7: ('H', 0, None)},
+    {frozenset({0, 2}): (1, False), frozenset({0, 3}): (1, None),
+     frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, None),
+     frozenset({1, 5}): (1, None), frozenset({1, 6}): (1, None),
+     frozenset({2, 7}): (1, None)})
+
+
 C8H13O_CGR = (
     {0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
      3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
@@ -840,6 +851,10 @@ def test__stereomers():
 def test__to_index_based_stereo():
     """ test graph.stereomers
     """
+    sgr = graph.explicit(C3H5_SGR)
+    idx_sgr = graph.to_index_based_stereo(sgr)
+    assert sgr == graph.from_index_based_stereo(idx_sgr)
+
     for sgr in C2H2CL2F2_SGRS:
         sgr = graph.explicit(sgr)
         idx_sgr = graph.to_index_based_stereo(sgr)
@@ -944,3 +959,7 @@ def test__ts__compatible_reverse_stereomers():
             for r in graph.ts.compatible_reverse_stereomers(ste_tsg)
             for s in graph.ts.compatible_reverse_stereomers(r)]
         assert any(s == ste_tsg for s in ste_tsgs)
+
+
+if __name__ == '__main__':
+    test__to_index_based_stereo()
