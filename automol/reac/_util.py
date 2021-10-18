@@ -253,6 +253,7 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
         std_rxn, std_rgeos, std_pgeos = (
             automol.reac.standard_keys_with_sorted_geometries(
                 rxn, rct_geos, prd_geos))
+        print(std_pgeos[0])
         ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Determine which geometries to store
@@ -269,6 +270,52 @@ def rxn_objs_from_geometry(rct_geos, prd_geos, indexing='geo'):
             rxn_objs += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
 
     return rxn_objs
+
+
+def rxn_obj_add_stereo(rxn_obj_set):
+    """ add rxn and stereo to the reaction object and check them
+
+        :param rxn_obj_set
+
+        # The stereo must be inconsistent -- reflect coordinates for the
+        # products (Only guaranteed to work for this particular reaction)
+        # What happens if there is no consistency in the reaction, e.g. R->S
+        # Just get None a second time?
+    """
+
+    # Unpack the reaction object
+    rxn, ts_geo, rct_geos, prd_geos = rxn_obj_set
+
+    # print('Assessing the stereochemistry of the reaction')
+    print(rxn)
+
+    # We do this instead:
+    srxn, order = automol.reac.add_stereo_from_unordered_geometries(
+        rxn, rct_geos, prd_geos)
+    if srxn is None:
+        # print('Failed to add stereo, trying again with reflected prd coords')
+        prd_geos = list(map(automol.geom.reflect_coordinates, prd_geos))
+        srxn, _ = automol.reac.add_stereo_from_unordered_geometries(
+            rxn, rct_geos, prd_geos)
+    print(srxn)
+    print(order)
+
+    print(rct_geos[0])
+    print()
+    print(rct_geos[1])
+    print()
+    print(prd_geos[0])
+    print()
+    print(prd_geos[1])
+
+    if srxn is not None:
+        srxn_obj = (srxn, ts_geo, rct_geos, prd_geos)
+    else:
+        # print('No valid stereochemistry conversion allowed')
+        # print('Check the stereochem of your reactants and products')
+        srxn_obj = None
+
+    return srxn_obj
 
 
 def assert_is_valid_reagent_graph_list(gras):
