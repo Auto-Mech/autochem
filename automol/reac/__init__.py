@@ -82,6 +82,7 @@ from automol.reac._util import rxn_objs_from_inchi
 from automol.reac._util import rxn_objs_from_smiles
 from automol.reac._util import rxn_objs_from_zmatrix
 from automol.reac._util import rxn_objs_from_geometry
+from automol.reac._util import rxn_obj_add_stereo
 
 
 __all__ = [
@@ -166,5 +167,6 @@ __all__ = [
     'rxn_objs_from_inchi',
     'rxn_objs_from_smiles',
     'rxn_objs_from_zmatrix',
-    'rxn_objs_from_geometry'
+    'rxn_objs_from_geometry',
+    'rxn_obj_add_stereo'
 ]
