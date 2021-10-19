@@ -564,11 +564,24 @@ def equivalent(ich1, ich2):
         :type ich2: str
         :rtype: bool
     """
-    return (formula_sublayer(ich1) == formula_sublayer(ich2) and
-            main_sublayers(ich1) == main_sublayers(ich2) and
-            charge_sublayers(ich1) == charge_sublayers(ich2) and
-            stereo_sublayers(ich1) == stereo_sublayers(ich2) and
-            isotope_sublayers(ich1) == isotope_sublayers(ich2))
+    fml_dct1 = formula_sublayer(ich1)
+    fml_dct2 = formula_sublayer(ich2)
+    conn_dct1 = main_sublayers(ich1)
+    conn_dct2 = main_sublayers(ich2)
+    chg_dct1 = charge_sublayers(ich1)
+    chg_dct2 = charge_sublayers(ich2)
+    ste_dct1 = stereo_sublayers(ich1)
+    ste_dct2 = stereo_sublayers(ich2)
+    iso_dct1 = isotope_sublayers(ich1)
+    iso_dct2 = isotope_sublayers(ich2)
+    # Stereo layers get dropped upon split/joins, so remove these from the
+    # equivalence test
+    for dct in (ste_dct1, ste_dct2, iso_dct1, iso_dct2):
+        if 's' in dct:
+            dct.pop('s')
+    return (fml_dct1 == fml_dct2 and conn_dct1 == conn_dct2 and
+            chg_dct1 == chg_dct2 and ste_dct1 == ste_dct2 and
+            iso_dct1 == iso_dct2)
 
 
 # # sort

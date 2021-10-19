@@ -9,9 +9,22 @@ import automol
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
-# PROBLEM CASES:
+# PROBLEM CASES
+# (failing with inchi -> geom conversion sometimes):
 # InChI=1/C7H11/c1-3-5-7-6-4-2/h1,3-4,6H,5,7H2,2H3/b3-1+,6-4+
 # InChI=1S/C5H5O/c1-2-3-4-5-6/h1-5H/b2-1?,4-3+
+# (failing with graph -> inchi conversion sometimes):
+# InChI=1S/C4H8O4/c1-4(8-6)2-7-3(4)5/h3,5-6H,2H2,1H3/t3-,4+/m0/s1
+# InChI=1S/C5H10O/c1-4-3-5(2)6-4/h4-5H,3H2,1-2H3/t4-,5-/m1/s1
+# InChI=1S/C6H12O3/c1-2-5-3-6(9-5)4-8-7/h5-7H,2-4H2,1H3/t5-,6+/m1/s1
+# InChI=1S/C6H12O3/c1-4-3-6(8-4)5(2)9-7/h4-7H,3H2,1-2H3/t4-,5-,6-/m0/s1
+# InChI=1S/C4H8O3/c1-3-4(7-5)2-6-3/h3-5H,2H2,1H3/t3-,4+/m1/s1
+# InChI=1S/C6H12O3/c1-5-4-6(9-5)2-3-8-7/h5-7H,2-4H2,1H3/t5-,6-/m1/s1
+# InChI=1S/C5H10O3/c1-2-4-5(8-6)3-7-4/h4-6H,2-3H2,1H3/t4-,5+/m1/s1
+# InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1
+# InChI=1S/C5H9O/c1-4-3-5(2)6-4/h4-5H,1,3H2,2H3/t4-,5-/m1/s1
+# InChI=1S/C5H10O3/c1-4-5(2,8-6)3-7-4/h4,6H,3H2,1-2H3/t4-,5+/m1/s1
+# InChI=1S/C7H14O3/c1-5-3-7(9-5)4-6(2)10-8/h5-8H,3-4H2,1-2H3/t5-,6+,7-/m0/s1
 
 
 def load_pandas_csv_string_file(path_lst, file_name, path=PATH):
@@ -27,7 +40,7 @@ def load_numpy_string_file(path_lst, file_name, path=PATH):
     """ Read a file with numpy
     """
     file_path = os.path.join(path, *path_lst, file_name)
-    file_lst = numpy.loadtxt(file_path, dtype=str)
+    file_lst = list(numpy.loadtxt(file_path, dtype=str))
 
     return file_lst
 
@@ -120,7 +133,7 @@ def test__geom__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
+        print(ref_ich, flush=True)
         geo = automol.inchi.geometry(ref_ich)
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich
@@ -167,7 +180,7 @@ def test__graph__with_stereo():
     ]
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
+        print(ref_ich, flush=True)
         gra = automol.inchi.graph(ref_ich)
         ich = automol.graph.inchi(gra, stereo=True)
         assert ich == ref_ich
@@ -185,7 +198,7 @@ def test__graph__no_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
+        print(ref_ich, flush=True)
         gra = automol.inchi.graph(ref_ich)
         gra = automol.graph.without_stereo_parities(gra)
         # gra <=> ich
@@ -205,7 +218,7 @@ def test__zmatrix__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
+        print(ref_ich, flush=True)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmat.geometry(zma)
@@ -243,7 +256,7 @@ def test__smiles__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
+        print(ref_ich, flush=True)
         smi = automol.inchi.smiles(ref_ich)
         ich = automol.smiles.inchi(smi)
         assert ich == ref_ich
@@ -259,7 +272,7 @@ def test__smiles__from_geom():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
+        print(ref_ich, flush=True)
         # geo <=> smi
         geo = automol.inchi.geometry(ref_ich)
         smi = automol.geom.smiles(geo)
