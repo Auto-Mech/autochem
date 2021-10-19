@@ -95,10 +95,10 @@ def _connected_geometry(ich, check=True):
         :type check: bool
         :rtype: automol molecular geometry data structure
     """
+    print("inchi in:", ich)
 
     geo = hardcoded_object_from_inchi_by_key('geom', ich)
     if geo is None:
-        ich = standard_form(ich)
 
         def _gen1(ich):
             rdm = rdkit_.from_inchi(ich)
@@ -129,10 +129,10 @@ def _connected_geometry(ich, check=True):
                 conn = automol.geom.connected(geo)
                 _has_stereo = has_stereo(ich)
                 ich_equiv = equivalent(ich, geo_ich)
-                print('original ich', ich)
-                print('geometry ich', geo_ich)
                 checks_pass = ((same_conn and conn) and
                                (not _has_stereo or ich_equiv))
+                print('original inchi', ich)
+                print('geometry inchi', geo_ich)
                 if not check or checks_pass:
                     success = True
                     break
