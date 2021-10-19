@@ -213,9 +213,9 @@ def test__graph__with_stereo():
     ]
 
     for ref_ich in ref_ichs:
-        print(ref_ich)
         gra = automol.inchi.graph(ref_ich)
         ich = automol.graph.inchi(gra, stereo=True)
+        print(ref_ich, ich)
         assert ich == ref_ich
 
         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
