@@ -1,32 +1,35 @@
-# cmd: conda build . -c auto-mech -c rdkit -c openbabel -c conda-forge -c psi4
+# cmd: conda build . -c auto-mech -c psi4 -c rdkit -c openbabel -c conda-forge
 package:
     name: autochem
-    version: "0.8.2"
+    version: "0.9.0"
 
 source:
     path: .
 
 requirements:
     build:
-        - python=3.7
+        - conda-forge::python=3.9
     run:
-        - gfortran_linux-64  # linux
-        - python=3.7
-        - numpy=1.15.4
-        - scipy=1.5.0
-        - pyyaml
-        - mako
-        - networkx
-        - matplotlib
-        - pytest
-        - pytest-cov
-        - future
-        - flake8
-        - pylint
+        - auto-mech::autoio-base
+        - auto-mech::x2z
         - psi4::psi4
         - rdkit::rdkit
         - openbabel::openbabel
-        - conda-forge::qcelemental
+        - conda-forge::python=3.9
+        - conda-forge::numpy=1.21.2
+        - conda-forge::scipy=1.7.1
+        - conda-forge::pyyaml
+        - conda-forge::mako
+        - conda-forge::networkx
         - conda-forge::python-igraph
-        - auto-mech::autoio-base
-        - auto-mech::x2z
+        - conda-forge::matplotlib
+        - conda-forge::pytest
+        - conda-forge::pytest-cov
+        - conda-forge::future
+        - conda-forge::flake8
+        - conda-forge::pylint
+        - conda-forge::qcelemental
+        - conda-forge::cmake=3.21.3
+        - conda-forge::gcc_linux-64=7.5.0
+        - conda-forge::gxx_linux-64=7.5.0
+        - conda-forge::gfortran_linux-64=7.5.0
