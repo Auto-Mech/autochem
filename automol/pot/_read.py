@@ -1,4 +1,4 @@
-""" Build the grids for transition state searches
+""" Build grids for transition state searches
 """
 
 import numpy
