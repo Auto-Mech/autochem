@@ -63,9 +63,6 @@ def find_max1d(enes_lst,
         if max_type == 'global':
             max_idx = _global_maximum(sadpt_idxs, sadpt_enes)
         elif max_type == 'innermost':
-            # print('sadpt info')
-            # print(sadpt_idxs)
-            # print(sadpt_enes)
             max_idx = _innermost_maximum(sadpt_idxs)
     else:
         if include_endpts:
