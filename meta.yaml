@@ -1,4 +1,4 @@
-# cmd: conda build . -c auto-mech -c psi4 -c rdkit -c openbabel -c conda-forge
+#  cmd: conda build . -c auto-mech -c psi4 -c rdkit -c openbabel -c conda-forge
 package:
     name: autochem
     version: "0.9.0"
