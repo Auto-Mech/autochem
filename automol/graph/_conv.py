@@ -102,12 +102,14 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
             atoms
         :rtype: (str, tuple(int))
     """
-    if geo is not None:
-        print(automol.geom.string(geo))
+    # if geo is not None:
+    #     print(automol.geom.string(geo))
+
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
                                                  geo_idx_dct=geo_idx_dct)
     rdm = rdkit_.from_molfile(mlf)
     ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
+
     nums_lst = _parse_sort_order_from_aux_info(aux_info)
     nums_lst = tuple(tuple(map(key_map_inv.__getitem__, nums))
                      for nums in nums_lst)
@@ -157,7 +159,8 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         raise Exception("Our code is missing stereo bonds")
 
     if len(ich_ste_keys) < len(our_ste_keys) or miss_ich_ste_keys:
-        print(automol.graph.string(gra))
+        # print(automol.graph.string(gra))
+
         # Convert to implicit graph and relabel based on InChI sort
         atm_key_dct = dict(map(reversed, enumerate(nums)))
         gra = relabel(gra, atm_key_dct)

@@ -7,21 +7,66 @@ from phydat import phycon
 
 
 # Functions to build lists potential sadpts
-def find_max1d(enes_lst, ethresh=0.01*phycon.KCAL2EH, include_endpts=True):
-    """ Look along a vtst potential and determine if sadpt there
-        (need to make the generic version)
-
-        Right now simply takes max of all possible saddple-points
-        If no saddlepoint found, take one of the endpoints if requested
+def find_max1d(enes_lst,
+               max_type='global',
+               ethresh=0.01*phycon.KCAL2EH,
+               include_endpts=True):
+    """ Find the desired local maximum along a 1D-potential. This maximum
+        could correspond to the innmermost local maximum or simply the
+        global maximum.
     """
+
+    def _global_maximum(idxs, enes):
+        """ Determine the index of the global max of a 1D-potential from a
+            list of (idx, ene) pairs of local maxima for that potential.
+
+            :param idxs: triplet sets for each local maximum
+                (left endpt, max, right endpt), where each is idx for pot lst
+            :type idxs: tuple(tuple(int))
+            :param enes: energies for each local maximum
+            :type enes: tuple(float)
+        """
+        idx = enes.index(max(enes))
+        max_idx = idxs[idx][1]
+        return max_idx
+
+    def _innermost_maximum(idxs):
+        """ Determine the index of the innermost max of a 1D-potential from a
+            list of (idx, ene) pairs of local maxima for that potential.
+
+            :param idxs: triplet sets for each local maximum
+                (left endpt, max, right endpt), where each is idx for pot lst
+            :type idxs: tuple(tuple(int))
+        """
+        # for each local maximum idx_set (endpt, max, endpt):
+        # find distance b/w middle of potential and max
+        mid_idx = int(len(idxs)/2) - 1  # mid idx in 0-indexing
+        dist_from_mid_idx = tuple(abs(idx_set[1]-mid_idx)
+                                  for idx_set in idxs)
+        # determine which local maximum idx_set is closest to middle of pot
+        set_idx_of_low_dist = dist_from_mid_idx.index(min(dist_from_mid_idx))
+        # Grab the value for max in (endpt, max, endpt) set, this is the idx
+        # of the innermost local maximum on potential (idx for whole pot lst)
+        max_idx = idxs[set_idx_of_low_dist][1]
+        # print('idx_test')
+        # print(idxs)
+        # print(dist_from_mid_idx)
+        # print(set_idx_of_low_dist)
+        # print(max_idx)
+        return max_idx
 
     # Locate all potential sadpts
     sadpt_idxs, sadpt_enes = _potential_sadpt(enes_lst, ethresh=ethresh)
 
+    # Determine which of local maxima located meet desired specs; return this
     if sadpt_idxs and sadpt_enes:
-        # For now, find the greatest max for the saddle point
-        sadpt_idx = sadpt_enes.index(max(sadpt_enes))
-        max_idx = sadpt_idxs[sadpt_idx][1]
+        if max_type == 'global':
+            max_idx = _global_maximum(sadpt_idxs, sadpt_enes)
+        elif max_type == 'innermost':
+            # print('  sadpt info')
+            # print(sadpt_idxs)
+            # print(sadpt_enes)
+            max_idx = _innermost_maximum(sadpt_idxs)
     else:
         if include_endpts:
             if enes_lst:
