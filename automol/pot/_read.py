@@ -48,11 +48,6 @@ def find_max1d(enes_lst,
         # Grab the value for max in (endpt, max, endpt) set, this is the idx
         # of the innermost local maximum on potential (idx for whole pot lst)
         max_idx = idxs[set_idx_of_low_dist][1]
-        # print('idx_test')
-        # print(idxs)
-        # print(dist_from_mid_idx)
-        # print(set_idx_of_low_dist)
-        # print(max_idx)
         return max_idx
 
     # Locate all potential sadpts
