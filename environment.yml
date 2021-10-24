@@ -11,7 +11,7 @@ dependencies:
     - auto-mech::autoio-base
     - auto-mech::x2z
     - psi4::psi4
-    - rdkit::rdkit
+    - rdkit::rdkit=2020.09.1.0
     - openbabel::openbabel
     # - conda-forge::python=3.9
     # - conda-forge::numpy=1.21.2
@@ -30,7 +30,7 @@ dependencies:
     - conda-forge::flake8
     - conda-forge::pylint
     - conda-forge::qcelemental
-    - conda-forge::cmake=3.21.3
+    - conda-forge::cmake=3.20.2
     - conda-forge::gcc_linux-64=7.5.0
     - conda-forge::gxx_linux-64=7.5.0
     - conda-forge::gfortran_linux-64=7.5.0
