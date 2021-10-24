@@ -8,6 +8,7 @@ from automol.util import dict_
 from automol.graph import ts
 from automol.graph import relabel
 from automol.graph import union
+from automol.graph import atom_symbols
 from automol.graph import atom_keys
 from automol.graph import bond_keys
 from automol.graph import remove_atoms
@@ -325,12 +326,16 @@ def eliminations(rct_gras, viable_only=True):
 
         ngb_keys_dct = atoms_neighbor_atom_keys(rct_gra)
 
-        frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
+        # frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
+        frm1_keys = unsaturated_atom_keys(rct_gra)
+        rct_symbs = atom_symbols(rct_gra)
+        frm1_keys_o = frozenset(key for key in frm1_keys
+                                if rct_symbs[key] == 'O')
         frm2_keys = atom_keys(rct_gra)
         bnd_keys = bond_keys(rct_gra)
 
         frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
-                        in itertools.product(frm1_keys, frm2_keys)
+                        in itertools.product(frm1_keys_o, frm2_keys)
                         if frm1_key != frm2_key and
                         not frozenset({frm1_key, frm2_key}) in bnd_keys]
 
