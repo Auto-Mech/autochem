@@ -459,16 +459,17 @@ def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
             mapping the linear atoms onto their associated dummy atoms
         :rtype: automol molecular geometry data structure
     """
-    lin_keys, dum_keys = zip(
-        *sorted(dummy_key_dct.items(), key=lambda x: x[1]))
-    dum_keys = numpy.array(list(dum_keys))
-    lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
-    geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
-        geo, lin_idxs=lin_idxs, dist=dist, tol=tol)
+    if dummy_key_dct:
+        lin_keys, dum_keys = zip(
+            *sorted(dummy_key_dct.items(), key=lambda x: x[1]))
+        dum_keys = numpy.array(list(dum_keys))
+        lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
+        geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
+            geo, lin_idxs=lin_idxs, dist=dist, tol=tol)
 
-    for lin_idx, lin_key in zip(lin_idxs, lin_keys):
-        orig_idx = orig_dummy_key_dct[lin_idx]
-        new_idx = dummy_key_dct[lin_key]
-        geo = move_atom(geo, orig_idx, new_idx)
+        for lin_idx, lin_key in zip(lin_idxs, lin_keys):
+            orig_idx = orig_dummy_key_dct[lin_idx]
+            new_idx = dummy_key_dct[lin_key]
+            geo = move_atom(geo, orig_idx, new_idx)
 
     return geo
