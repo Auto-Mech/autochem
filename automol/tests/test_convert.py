@@ -25,6 +25,12 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 # InChI=1S/C5H9O/c1-4-3-5(2)6-4/h4-5H,1,3H2,2H3/t4-,5-/m1/s1
 # InChI=1S/C5H10O3/c1-4-5(2,8-6)3-7-4/h4,6H,3H2,1-2H3/t4-,5+/m1/s1
 # InChI=1S/C7H14O3/c1-5-3-7(9-5)4-6(2)10-8/h5-8H,3-4H2,1-2H3/t5-,6+,7-/m0/s1
+# InChI=1S/C7H14O3/c1-2-6-5-7(10-6)3-4-9-8/h6-8H,2-5H2,1H3/t6-,7+/m1/s1
+# InChI=1S/C6H12O3/c1-3-5-6(9-7)4(2)8-5/h4-7H,3H2,1-2H3/t4-,5-,6-/m1/s1
+# InChI=1S/C5H10O3/c1-4-5(2-7-4)3-8-6/h4-6H,2-3H2,1H3/t4-,5+/m0/s1
+# InChI=1S/C5H10O3/c1-3-5(8-6)4(2)7-3/h3-6H,1-2H3/t3-,4+,5-
+# InChI=1S/C7H14O/c1-3-6-5-7(4-2)8-6/h6-7H,3-5H2,1-2H3/t6-,7+
+# InChI=1S/C6H12O/c1-3-6-4-5(2)7-6/h5-6H,3-4H2,1-2H3/t5-,6+/m1/s1
 
 
 def load_pandas_csv_string_file(path_lst, file_name, path=PATH):
@@ -53,8 +59,8 @@ ICHS_NO_STEREO = load_numpy_string_file(
 ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 # Use NSAMP = None to test everything
-# NSAMP = None
-NSAMP = 10
+NSAMP = None
+# NSAMP = 10
 
 # Geometries
 C2H6_H_GEO = (
@@ -172,12 +178,6 @@ def test__graph__with_stereo():
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
         ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
-
-    # AVC note to self -- fix this case:
-    ref_ichs += [
-        'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1',
-        'InChI=1S/C7H14O3/c1-2-6-5-7(10-6)3-4-9-8/h6-8H,2-5H2,1H3/t6-,7+/m1/s1'
-    ]
 
     for ref_ich in ref_ichs:
         print(ref_ich, flush=True)
