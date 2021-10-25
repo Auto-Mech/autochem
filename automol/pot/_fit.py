@@ -9,7 +9,7 @@ from scipy.interpolate import CubicSpline
 
 
 def _initialize_pot(pot_dct):
-    grid_vals, pot = zip(*pot_dct.items())
+    grid_vals, pot = pot_dct.keys(), pot_dct.values()
     pot = list(pot)
     # Check if all values are bad
     if all(numpy.isclose(-10.0, val) for val in pot):
