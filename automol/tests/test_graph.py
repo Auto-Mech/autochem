@@ -794,6 +794,8 @@ def test__rotational_bond_keys():
                        frozenset({2, 3})}))
     assert (automol.graph.rotational_bond_keys(cgr, with_h_rotors=False) ==
             frozenset({frozenset({2, 3})}))
+    assert (automol.graph.rotational_bond_keys(cgr, with_chx_rotors=False) ==
+            frozenset({frozenset({2, 3})}))
 
 
 def test__species__graph_conversion():
