@@ -94,7 +94,7 @@ def linear_atom_keys(rxn, zma=None):
     return ret
 
 
-def rotational_bond_keys(rxn, zma=None, with_h_rotors=True):
+def rotational_bond_keys(rxn, zma=None, with_h_rotors=True, with_chx_rotors=True):
     """ Obtain the rotational bond keys
 
     :param rxn: a hydrogen migration Reaction object
@@ -107,7 +107,8 @@ def rotational_bond_keys(rxn, zma=None, with_h_rotors=True):
     tsg = rxn.forward_ts_graph
     lin_keys = linear_atom_keys(rxn, zma=zma)
     bnd_keys = automol.graph.rotational_bond_keys(
-        tsg, lin_keys=lin_keys, with_h_rotors=with_h_rotors)
+        tsg, lin_keys=lin_keys, with_h_rotors=with_h_rotors,
+        with_chx_rotors=with_chx_rotors)
     return bnd_keys
 
 
