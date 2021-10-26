@@ -1101,6 +1101,7 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
     print('num prods\n', len(rxns))
 
     assert rxns
+    assert num_rxns is not None or num_rxns is None
     # assert len(rxns) == num_rxns
 
     # Verify the enumerated reactions with the classifier
@@ -1114,13 +1115,13 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
         print('\n\n')
         assert rct_gras_ == rct_gras
         rxns_ = automol.reac.find(rct_gras_, prd_gras_)
-        for x in rxns_:
-            print(x.class_)
+        for rxn_ in rxns_:
+            print(rxn_.class_)
         assert any(r.class_ == rxn_class_typ for r in rxns_)
 
 
 if __name__ == '__main__':
-    # test__reac__hydrogen_abstraction()
+    test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
     # test__reac__radrad_addition()
@@ -1131,7 +1132,6 @@ if __name__ == '__main__':
     # test__prod__homolytic_scission()
     # test__prod__beta_scission()
     # test__prod__ring_forming_scission()
-    test__prod__elimination()
     # test__expand_stereo()
     # test__expand_product_stereo()
     # test__add_stereo_from_unordered_geometries()
