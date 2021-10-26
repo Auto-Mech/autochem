@@ -635,6 +635,38 @@ def __align():
     assert automol.geom.almost_equal_dist_matrix(ref_aligned_geo, aligned_geo)
 
 
+def test__change_zmatrix_row_values():
+    """ test automol.geom.change_zmatrix_row_values
+    """
+    ref_geo = (('O', (0.0, 0.0, 0.0)),
+               ('C', (0.0, 0.0, 2.6100437640951895)),
+               ('H', (0.0, 1.795784435, -0.9004532847666584)),
+               ('N', (2.149523799, 1.6103368939, 3.8411840715311034)),
+               ('H', (3.101869570, 0.04614797866, 4.810112185573969)),
+               ('H', (1.052147147, 2.2771937846, 5.430572110076959)))
+    ref_zma = geom.zmatrix(ref_geo)
+    ref_vals = geom.zmatrix_row_values(ref_geo, 3, idx1=1, idx2=0, idx3=2)
+
+    geo = geom.change_zmatrix_row_values(ref_geo, 3,
+                                         dist=1.0, idx1=1,
+                                         ang=120., idx2=0,
+                                         dih=0., idx3=2)
+
+    # First, check that the change resulted in these values
+    vals = geom.zmatrix_row_values(geo, 3, idx1=1, idx2=0, idx3=2)
+    assert numpy.allclose(vals, (1., 120., 0.))
+
+    # Now, check that the other z-matrix values weren't affected. To do so,
+    # change back to the original values and compare z-matrices.
+    geo = geom.change_zmatrix_row_values(geo, 3,
+                                         dist=ref_vals[0], idx1=1,
+                                         ang=ref_vals[1], idx2=0,
+                                         dih=ref_vals[2], idx3=2)
+    zma = geom.zmatrix(geo)
+    assert automol.zmat.almost_equal(zma, ref_zma)
+
+
 if __name__ == '__main__':
-    test__hydrogen_bonded_structure()
+    # test__hydrogen_bonded_structure()
     # __align()
+    test__change_zmatrix_row_values()

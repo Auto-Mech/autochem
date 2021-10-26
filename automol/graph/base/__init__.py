@@ -183,6 +183,7 @@ from automol.graph.base._resonance import linear_segments_atom_keys
 from automol.graph.base._resonance import radical_atom_keys
 from automol.graph.base._resonance import has_separated_radical_sites
 from automol.graph.base._resonance import nonresonant_radical_atom_keys
+from automol.graph.base._resonance import vinyl_radical_atom_keys
 from automol.graph.base._resonance import sigma_radical_atom_keys
 from automol.graph.base._resonance import resonance_dominant_radical_atom_keys
 from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
@@ -416,6 +417,7 @@ __all__ = [
     'radical_atom_keys',
     'has_separated_radical_sites',
     'nonresonant_radical_atom_keys',
+    'vinyl_radical_atom_keys',
     'sigma_radical_atom_keys',
     'resonance_dominant_radical_atom_keys',
     'sing_res_dom_radical_atom_keys',
