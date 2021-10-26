@@ -107,6 +107,7 @@ from automol.geom._conv import x2z_atom_ordering
 # # derived operations
 from automol.geom._conv import insert_dummies_on_linear_atoms
 from automol.geom._conv import insert_dummies
+from automol.geom._conv import change_zmatrix_row_values
 # extra functions:
 from automol.geom._extra import components_graph
 from automol.geom._extra import connected
@@ -221,6 +222,7 @@ __all__ = [
     # # derived operations
     'insert_dummies_on_linear_atoms',
     'insert_dummies',
+    'change_zmatrix_row_values',
     # extra functions:
     'components_graph',
     'connected',

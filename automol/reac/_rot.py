@@ -94,7 +94,8 @@ def linear_atom_keys(rxn, zma=None):
     return ret
 
 
-def rotational_bond_keys(rxn, zma=None, with_h_rotors=True, with_chx_rotors=True):
+def rotational_bond_keys(rxn, zma=None, with_h_rotors=True,
+                         with_chx_rotors=True):
     """ Obtain the rotational bond keys
 
     :param rxn: a hydrogen migration Reaction object
