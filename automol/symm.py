@@ -1,6 +1,10 @@
 """ Handle symmetry factor stuff
 """
 
+
+import random
+import string
+
 import automol.zmat.base
 import automol.graph.base
 from automol.rotor import names as rotor_names
@@ -224,7 +228,16 @@ def oxygenated_hydrocarbon_symm_num(geo):
             atm_groups = automol.graph.base.atom_groups(gra, atm)
         group_dct = {}
         for group in atm_groups:
-            group_smi = inchi(group)
+            try:
+                group_smi = inchi(group)
+            except Exception as e:
+                # This excepts rdkit errors, assumes the group is complicated enough
+                # that is is unique
+                if not str(e).startswith('Python argument types in'):
+                    print('error when evaluating atom group in symmetry number routine')
+                    print('This symmetry number could be incorrect as a result, group is')
+                    print(group)
+                group_smi = ''.join(random.choice(string.ascii_letters) for i in range(10))
             if group_smi in group_dct:
                 group_dct[group_smi] += 1
             else:
