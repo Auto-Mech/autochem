@@ -195,8 +195,8 @@ class RxnParams:
 
         assert isinstance(plog_dct, dict)
         for pressure, arr_tuples in plog_dct.items():
-            assert pressure == 'high' or isinstance(pressure, float), (
-                "PLOG pressures should be 'high' or floats")
+            assert pressure == 'high' or isinstance(pressure, (float, int)), (
+                "PLOG pressures should be 'high', floats, or ints")
             self.check_arr(arr_tuples)
 
     def check_cheb(self, cheb_dct):
