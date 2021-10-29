@@ -279,6 +279,10 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
 
                 rxn_objs += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
 
+    # Set to None if no objects found
+    if not rxn_objs:
+        rxn_objs = None
+
     return rxn_objs
 
 
