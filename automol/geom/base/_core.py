@@ -927,7 +927,12 @@ def translate(geo, xyz, idxs=None, angstrom=False):
     else:
         disp = [xyz if i in idxs else [0., 0., 0.] for i in range(natm)]
 
+    print('xyzs test:\n', xyzs)
+
     xyzs = numpy.add(xyzs, disp)
+    print('\n\nxyzs test2a:\n', xyzs)
+    print('\n\nxyzs test2b:\n', disp)
+    print('DIM', numpy.ndim(xyzs), numpy.shape(xyzs))
     return from_data(symbs, xyzs, angstrom=angstrom)
 
 
