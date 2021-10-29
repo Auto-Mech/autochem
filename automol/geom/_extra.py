@@ -305,7 +305,6 @@ def hydrogen_bonded_idxs(
             for key in brk_bnd_keys:
                 rxn_keys = rxn_keys | key
             rxn_h_idxs = tuple(rxn_keys)
-            print('rxn h idxs test', frm_bnd_keys, brk_bnd_keys, rxn_h_idxs)
         else:
             rxn_h_idxs = ()
 
