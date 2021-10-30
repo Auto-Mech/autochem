@@ -28,6 +28,7 @@ from automol.graph.base import bond_stereo_keys
 from automol.graph.base import bond_stereo_parities
 from automol.graph.base import bond_stereo_sorted_neighbor_atom_keys
 from automol.graph.base import set_stereo_from_geometry
+from automol.graph.base import explicit_hydrogen_keys
 
 
 # # conversions
@@ -102,13 +103,11 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
             atoms
         :rtype: (str, tuple(int))
     """
-    # if geo is not None:
-    #     print(automol.geom.string(geo))
-
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
                                                  geo_idx_dct=geo_idx_dct)
     rdm = rdkit_.from_molfile(mlf)
     ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
+    print('rdkit inchi:', ich)
 
     nums_lst = _parse_sort_order_from_aux_info(aux_info)
     nums_lst = tuple(tuple(map(key_map_inv.__getitem__, nums))
@@ -116,22 +115,30 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
 
     # Assuming the MolFile InChI works, the above code is all we need. What
     # follows is to correct cases where it fails.
-    # Limitation: This code could fail in cases where the InChI string is
-    # missing two double bonds that are isomorphically equivalent.
+    # This only appears to work sometimes, so when it doesn't, we fall back on
+    # the original inchi output.
     if geo is not None:
         gra = set_stereo_from_geometry(gra, geo, geo_idx_dct=geo_idx_dct)
         gra = implicit(gra)
         sub_ichs = automol.inchi.split(ich)
+
+        failed = False
 
         new_sub_ichs = []
         for sub_ich, nums in zip(sub_ichs, nums_lst):
             sub_gra = subgraph(gra, nums, stereo=True)
             sub_ich = _connected_inchi_with_graph_stereo(
                 sub_ich, sub_gra, nums)
+            if sub_ich is None:
+                failed = True
+                break
+
             new_sub_ichs.append(sub_ich)
 
-        ich = automol.inchi.join(new_sub_ichs)
-        ich = automol.inchi.standard_form(ich)
+        # If it worked, replace the InChI with our forced-stereo InChI.
+        if not failed:
+            ich = automol.inchi.join(new_sub_ichs)
+            ich = automol.inchi.standard_form(ich)
 
     return ich, nums_lst
 
@@ -159,11 +166,13 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         raise Exception("Our code is missing stereo bonds")
 
     if len(ich_ste_keys) < len(our_ste_keys) or miss_ich_ste_keys:
-        # print(automol.graph.string(gra))
-
         # Convert to implicit graph and relabel based on InChI sort
         atm_key_dct = dict(map(reversed, enumerate(nums)))
         gra = relabel(gra, atm_key_dct)
+        gra = explicit(gra)
+        exp_h_keys = explicit_hydrogen_keys(gra)
+        exp_h_key_dct = {k: -k for k in exp_h_keys}
+        gra = relabel(gra, exp_h_key_dct)
 
         # Translate internal stereo parities into InChI stereo parities
         # and generate the appropriate b-layer string for the InChI
@@ -175,8 +184,8 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
             our_par = ste_dct[frozenset({atm1_key, atm2_key})]
             our_srt1, our_srt2 = bond_stereo_sorted_neighbor_atom_keys(
                 gra, atm1_key, atm2_key)
-            ich_srt1 = tuple(reversed(our_srt1))
-            ich_srt2 = tuple(reversed(our_srt2))
+            ich_srt1 = tuple(reversed(sorted(our_srt1)))
+            ich_srt2 = tuple(reversed(sorted(our_srt2)))
             if not ((our_srt1 != ich_srt1) ^ (our_srt2 != ich_srt2)):
                 ich_par = our_par
             else:
@@ -188,7 +197,9 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         # After forming the b-layer string, generate the new InChI
         blyr_str = ','.join(blyr_strs)
         ste_dct = {'b': blyr_str}
+        # print(ste_dct)
         ich = automol.inchi.standard_form(ich, ste_dct=ste_dct)
+        # print('out:', ich)
 
     return ich
 
