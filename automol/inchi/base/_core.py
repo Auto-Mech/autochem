@@ -182,7 +182,8 @@ def standard_form(ich, stereo=True, ste_dct=None):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
         :param ste_dct: a dictionary to overwrite stereo information; layers
-            not overwritten will be left in tact
+            not overwritten will be left in tact; if the attempted overwrite
+            fails, the function will return None
         :type ste_dct: dict
         :rtype: str
     """
@@ -201,12 +202,22 @@ def standard_form(ich, stereo=True, ste_dct=None):
 
     if extra_ste_dct is not None:
         ste_dct.update(extra_ste_dct)
+
     ich = from_data(fml_slyr,
                     main_lyr_dct=main_dct,
                     char_lyr_dct=char_dct,
                     ste_lyr_dct=ste_dct,
                     iso_lyr_dct=iso_dct)
     ich = recalculate(ich)
+
+    recalc_ste_dct = stereo_sublayers(ich)
+    if 's' in recalc_ste_dct:
+        recalc_ste_dct.pop('s')
+
+    # If we were attempting to force special stereo and it failed, return None
+    if extra_ste_dct is not None and recalc_ste_dct != ste_dct:
+        ich = None
+
     return ich
 
 
