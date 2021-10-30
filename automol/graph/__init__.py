@@ -236,6 +236,7 @@ from automol.graph.base._stereo import to_index_based_stereo
 from automol.graph.base._stereo import from_index_based_stereo
 # # derived properties
 from automol.graph.base._stereo import atom_stereo_sorted_neighbor_atom_keys
+from automol.graph.base._stereo import bond_stereo_sorted_neighbor_atom_keys
 from automol.graph.base._stereo import atoms_stereo_sorted_neighbor_atom_keys
 # # stereo setting code
 from automol.graph.base._stereo import set_stereo_from_geometry
@@ -479,6 +480,7 @@ __all__ = [
     'from_index_based_stereo',
     # # derived properties
     'atom_stereo_sorted_neighbor_atom_keys',
+    'bond_stereo_sorted_neighbor_atom_keys',
     'atoms_stereo_sorted_neighbor_atom_keys',
     # # stereo setting code
     'set_stereo_from_geometry',

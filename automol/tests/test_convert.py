@@ -140,6 +140,7 @@ def test__geom__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print()
         print(ref_ich, flush=True)
         geo = automol.inchi.geometry(ref_ich)
         ich = automol.geom.inchi(geo)
@@ -219,12 +220,13 @@ def test__zmatrix__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print()
         print(ref_ich, flush=True)
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmat.geometry(zma)
         ich = automol.geom.inchi(geo)
-        assert ich == ref_ich
+        assert ich == ref_ich, (f'{ich} != {ref_ich}')
 
         assert automol.zmat.formula(zma) == automol.inchi.formula(ich)
 
@@ -257,6 +259,7 @@ def test__smiles__with_stereo():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print()
         print(ref_ich, flush=True)
         smi = automol.inchi.smiles(ref_ich)
         ich = automol.smiles.inchi(smi)
@@ -273,6 +276,7 @@ def test__smiles__from_geom():
         ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
 
     for ref_ich in ref_ichs:
+        print()
         print(ref_ich, flush=True)
         # geo <=> smi
         geo = automol.inchi.geometry(ref_ich)
@@ -589,10 +593,9 @@ if __name__ == '__main__':
     # test__geom__no_stereo()
     # test__graph__with_stereo()
     # test__inchi_geometry()
-    test__geom__with_stereo()
-    test__geom__no_stereo()
-    # test__graph__with_stereo()
-    test__graph__no_stereo()
+    # test__geom__with_stereo()
+    # test__geom__no_stereo()
+    # test__graph__no_stereo()
     test__zmatrix__with_stereo()
     test__smiles__with_stereo()
     test__smiles__from_geom()
