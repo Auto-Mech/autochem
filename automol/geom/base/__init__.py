@@ -61,6 +61,7 @@ from automol.geom.base._core import move_atom
 from automol.geom.base._core import swap_coordinates
 # # transformations
 from automol.geom.base._core import translate
+from automol.geom.base._core import translate_along_matrix
 from automol.geom.base._core import perturb
 from automol.geom.base._core import rotate
 from automol.geom.base._core import euler_rotate
@@ -137,6 +138,7 @@ __all__ = [
     'swap_coordinates',
     # # transformations
     'translate',
+    'translate_along_matrix',
     'perturb',
     'rotate',
     'euler_rotate',
