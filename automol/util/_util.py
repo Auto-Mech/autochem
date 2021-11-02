@@ -125,6 +125,38 @@ def remove_duplicates_with_order(lst):
     return lst
 
 
+def sort_by_list(lst, ref_lst, include_missing=True):
+    """ Order the elements of the list by using the priorities given
+        by some reference lst.
+
+        if include_missing:
+        a=[q, a, e, x, f, t], ref=[x, a, q, e] -> sort_a=[x, a, q, e, f, t]
+        if not include_missing:
+        a=[q, a, e, x, f], ref=[x, a, q, e] -> sort_a=[x, a, q, e]
+
+        Note that any element in the original list not in original list is
+        dropped if the user specifies not to include it.
+
+        :param lst: list to sort
+        :type lst: tuple
+        :param ref_lst: list which sets the order of the previous list
+        :type ref_lst: tuple
+        :rtype: tuple
+    """
+
+    # Split input list by elements in and not in reference list
+    x_in_ref = tuple(x for x in lst if x in ref_lst)
+    x_missing = tuple(x for x in lst if x not in ref_lst)
+
+    # Sorted list of elements in th reference
+    sort_lst = tuple(sorted(list(x_in_ref), key=lambda x: ref_lst.index(x)))
+
+    # If request append the missing elements
+    if include_missing:
+        sort_lst += x_missing
+
+    return sort_lst
+
 def formula_from_symbols(symbs):
     """ Build a molecular formula from a list of atomic symbols.
 
