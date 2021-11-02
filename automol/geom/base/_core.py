@@ -931,6 +931,28 @@ def translate(geo, xyz, idxs=None, angstrom=False):
     return from_data(symbs, xyzs, angstrom=angstrom)
 
 
+def translate_along_matrix(geo, disp_mat, angstrom=False):
+    """ Translate the coordinates of a molecular geometry along
+        a matrix.
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param xyz: vector to translate along
+        :type xyz: tuple(float)
+        :param idxs: indices of atoms whose coordinates are to be translated
+        :type idxs: tuple(int)
+        :param angstrom: whether or not the translation is in angstrom
+        :type angstrom: bool
+        :rtype: automol molecular geometry data structure
+    """
+
+    symbs = symbols(geo)
+    xyzs = coordinates(geo, angstrom=angstrom)
+    xyzs = numpy.add(xyzs, disp_mat)
+
+    return from_data(symbs, xyzs, angstrom=angstrom)
+
+
+
 def perturb(geo, atm_idx, pert_xyz):
     """ Perturb the position of one atom by
         changing the value of an xyz coord by some amount.
