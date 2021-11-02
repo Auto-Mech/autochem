@@ -24,7 +24,6 @@ def coulomb_spectrum(geo):
 
     mat = _coulomb_matrix(geo)
     vals = tuple(sorted(numpy.linalg.eigvalsh(mat)))
-
     return vals
 
 
@@ -112,7 +111,7 @@ def almost_equal_coulomb_spectrum(geo1, geo2, rtol=1e-2):
         :rtype: bool
     """
     return numpy.allclose(
-        coulomb_spectrum(geo1), coulomb_spectrum(geo2), rtol=rtol)
+        coulomb_spectrum(geo1), coulomb_spectrum(geo2), atol=rtol)
 
 
 def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=1e-2):
