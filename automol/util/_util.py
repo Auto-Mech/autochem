@@ -157,6 +157,7 @@ def sort_by_list(lst, ref_lst, include_missing=True):
 
     return sort_lst
 
+
 def formula_from_symbols(symbs):
     """ Build a molecular formula from a list of atomic symbols.
 
