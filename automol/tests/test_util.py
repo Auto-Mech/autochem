@@ -52,3 +52,16 @@ def test__scale_iterable():
     assert numpy.allclose(ref_scale_iter, scale_iter2)
     assert isinstance(scale_iter1, list)
     assert isinstance(scale_iter2, tuple)
+
+
+def test__sort_by_lst():
+    """ test automol.util.sort_by_lst()
+    """
+
+    lst = ('q', 'a', 'e', 'x', 'f', 't')
+    ref_lst = ('x', 'a', 'q', 'e')
+
+    assert ('x', 'a', 'q', 'e', 'f', 't') == automol.util.sort_by_list(
+        lst, ref_lst, include_missing=True)
+    assert ('x', 'a', 'q', 'e') == automol.util.sort_by_list(
+        lst, ref_lst, include_missing=False)
