@@ -230,14 +230,15 @@ def oxygenated_hydrocarbon_symm_num(geo):
         for group in atm_groups:
             try:
                 group_smi = inchi(group)
-            except Exception as e:
-                # This excepts rdkit errors, assumes the group is complicated enough
+            except Exception as err:
+                # Excepts rdkit errors, assumes group is complicated enough
                 # that is is unique
-                if not str(e).startswith('Python argument types in'):
-                    print('error when evaluating atom group in symmetry number routine')
-                    print('This symmetry number could be incorrect as a result, group is')
-                    print(group)
-                group_smi = ''.join(random.choice(string.ascii_letters) for i in range(10))
+                if not str(err).startswith('Python argument types in'):
+                    print('Error evaluating atom group in symm number routine')
+                    print('Symmetry number may be incorrect as a result,'
+                          'group is', group)
+                group_smi = ''.join(random.choice(string.ascii_letters)
+                                    for i in range(10))
             if group_smi in group_dct:
                 group_dct[group_smi] += 1
             else:

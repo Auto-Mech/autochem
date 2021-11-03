@@ -8,6 +8,7 @@ from automol.util._util import separate_negatives
 from automol.util._util import value_similar_to
 from automol.util._util import scale_iterable
 from automol.util._util import remove_duplicates_with_order
+from automol.util._util import sort_by_list
 from automol.util._util import formula_from_symbols
 from automol.util._util import numpy_to_float
 # submodules
@@ -25,6 +26,7 @@ __all__ = [
     'value_similar_to',
     'scale_iterable',
     'remove_duplicates_with_order',
+    'sort_by_list',
     'formula_from_symbols',
     'numpy_to_float',
     # submodules
