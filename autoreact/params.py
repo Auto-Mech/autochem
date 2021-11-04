@@ -1,4 +1,4 @@
-""" Handle RxnParams objects
+""" Build and Manipulate RxnParams objects
 """
 
 import numpy
