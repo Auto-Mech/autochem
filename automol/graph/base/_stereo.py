@@ -352,14 +352,14 @@ def from_index_based_stereo(sgr):
             gra = set_atom_stereo_parities(gra, abs_atm_ste_par_dct)
             gra = set_bond_stereo_parities(gra, abs_bnd_ste_par_dct)
 
-    atm_ste_keys = atom_stereo_keys(gra)
-    bnd_ste_keys = bond_stereo_keys(gra)
-    assert atm_ste_keys == atm_keys_pool, (
-        "Index-based to absolute stereo conversion failed:\n"
-        f"{str(atm_ste_keys)} != {str(atm_keys_pool)}")
-    assert bnd_ste_keys == bnd_keys_pool, (
-        "Index-based to absolute stereo conversion failed:\n"
-        f"{str(bnd_ste_keys)} != {str(bnd_keys_pool)}")
+        atm_ste_keys = atom_stereo_keys(gra)
+        bnd_ste_keys = bond_stereo_keys(gra)
+        assert atm_ste_keys == atm_keys_pool, (
+            "Index-based to absolute stereo conversion failed:\n"
+            f"{str(atm_ste_keys)} != {str(atm_keys_pool)}")
+        assert bnd_ste_keys == bnd_keys_pool, (
+            "Index-based to absolute stereo conversion failed:\n"
+            f"{str(bnd_ste_keys)} != {str(bnd_keys_pool)}")
 
     return gra
 
