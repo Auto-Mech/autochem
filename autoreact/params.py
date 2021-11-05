@@ -253,8 +253,10 @@ class RxnParams:
         self.check_arr(lowp_arr)
         assert len(troe_params) in (3, 4), (
             f'Troe params should be 3 or 4 entries, not {len(troe_params)}')
-        assert all(isinstance(x, (float, int)) for x in troe_params), (
-            'Troe params should be floats or ints')
+        for troe_param in troe_params:
+            if troe_param is not None:  # 4th entry can be None
+                assert isinstance(troe_param, (float, int)), (
+                    'Troe params should be floats or ints')
         if collid is not None:
             self.check_collid(collid)
 
