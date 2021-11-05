@@ -171,7 +171,7 @@ def recalculate(ich, stereo=False):
     return ret
 
 
-def standard_form(ich, stereo=True, ste_dct=None):
+def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
     """ Return an InChI string in standard form.
 
         Eventually we should just designate standard-form as standard InChI
@@ -184,6 +184,9 @@ def standard_form(ich, stereo=True, ste_dct=None):
         :param ste_dct: a dictionary to overwrite stereo information; layers
             not overwritten will be left in tact; if the attempted overwrite
             fails, the function will return None
+        :param ste_dct: a dictionary to overwrite isotope stereo information;
+            layers not overwritten will be left in tact; if the attempted
+            overwrite fails, the function will return None
         :type ste_dct: dict
         :rtype: str
     """
@@ -192,6 +195,7 @@ def standard_form(ich, stereo=True, ste_dct=None):
     char_dct = charge_sublayers(ich)
 
     extra_ste_dct = ste_dct
+    extra_iso_dct = iso_dct
 
     if stereo:
         ste_dct = stereo_sublayers(ich)
@@ -203,6 +207,9 @@ def standard_form(ich, stereo=True, ste_dct=None):
     if extra_ste_dct is not None:
         ste_dct.update(extra_ste_dct)
 
+    if extra_iso_dct is not None:
+        iso_dct.update(extra_iso_dct)
+
     ich = from_data(fml_slyr,
                     main_lyr_dct=main_dct,
                     char_lyr_dct=char_dct,
@@ -213,9 +220,20 @@ def standard_form(ich, stereo=True, ste_dct=None):
     recalc_ste_dct = stereo_sublayers(ich)
     if 's' in recalc_ste_dct:
         recalc_ste_dct.pop('s')
+    if 's' in ste_dct:
+        ste_dct.pop('s')
+
+    recalc_iso_dct = isotope_sublayers(ich)
+    if 's' in recalc_iso_dct:
+        recalc_iso_dct.pop('s')
+    if 's' in iso_dct:
+        iso_dct.pop('s')
 
     # If we were attempting to force special stereo and it failed, return None
     if extra_ste_dct is not None and recalc_ste_dct != ste_dct:
+        ich = None
+
+    if extra_iso_dct is not None and recalc_iso_dct != iso_dct:
         ich = None
 
     return ich
@@ -304,10 +322,12 @@ def isotope_sublayers(ich):
 def stereo_atoms(ich, iso=True, one_indexed=False):
     """ Parse the stereo atoms from the stereochemistry layer.
 
-    :param iso: Include isotope stereochemistry?
-    :type iso: bool
-    :param one_indexed: Return indices in one-indexing?
-    :type one_indexed: bool
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :param one_indexed: Return indices in one-indexing?
+        :type one_indexed: bool
     """
     if len(split(ich)) > 1:
         raise NotImplementedError("Multicomponent InChIs not implemented."
@@ -340,10 +360,12 @@ def stereo_atoms(ich, iso=True, one_indexed=False):
 def stereo_bonds(ich, iso=True, one_indexed=False):
     """ Parse the stereo bonds from the stereochemistry layer.
 
-    :param iso: Include isotope stereochemistry?
-    :type iso: bool
-    :param one_indexed: Return indices in one-indexing?
-    :type one_indexed: bool
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :param one_indexed: Return indices in one-indexing?
+        :type one_indexed: bool
     """
     if len(split(ich)) > 1:
         raise NotImplementedError("Multicomponent InChIs not implemented."
@@ -376,10 +398,12 @@ def unassigned_stereo_bonds(ich, iso=True, one_indexed=False):
     """ Parse the stereo bonds wth missing assignments from the stereochemistry
     layer.
 
-    :param iso: Include isotope stereochemistry?
-    :type iso: bool
-    :param one_indexed: Return indices in one-indexing?
-    :type one_indexed: bool
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :param one_indexed: Return indices in one-indexing?
+        :type one_indexed: bool
     """
     if len(split(ich)) > 1:
         raise NotImplementedError("Multicomponent InChIs not implemented."
@@ -407,6 +431,54 @@ def unassigned_stereo_bonds(ich, iso=True, one_indexed=False):
         bnds = tuple((i-1, j-1) for i, j in bnds)
 
     return bnds
+
+
+def is_enantiomer(ich, iso=True):
+    """ Is this InChI an enantiomer?
+
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: whether or not the InChI is enantiomeric
+        :rtype: bool
+    """
+    ste_dct = stereo_sublayers(ich)
+    ret = 'm' in ste_dct
+    if iso:
+        iso_dct = isotope_sublayers(ich)
+        ret = ret or 'm' in iso_dct
+    return ret
+
+
+def reflect(ich, iso=True):
+    """ If this is an enantiomer, flip to the other enantiomer by changing the
+        m-layer
+
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: the other enantiomer
+        :rtype: bool
+    """
+    if is_enantiomer(ich, iso=iso):
+        ste_dct = stereo_sublayers(ich)
+        iso_dct = isotope_sublayers(ich)
+
+        ste_upd_dct = None
+        if 'm' in ste_dct:
+            val = int(ste_dct['m'])
+            ste_upd_dct = {'m': '{}'.format(abs(val-1))}
+
+        iso_upd_dct = None
+        if iso and 'm' in iso_dct:
+            val = int(iso_dct['m'])
+            iso_upd_dct = {'m': '{}'.format(abs(val-1))}
+
+        ich = standard_form(ich, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
+
+    return ich
 
 
 # # conversions
