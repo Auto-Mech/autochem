@@ -952,7 +952,6 @@ def translate_along_matrix(geo, disp_mat, angstrom=False):
     return from_data(symbs, xyzs, angstrom=angstrom)
 
 
-
 def perturb(geo, atm_idx, pert_xyz):
     """ Perturb the position of one atom by
         changing the value of an xyz coord by some amount.

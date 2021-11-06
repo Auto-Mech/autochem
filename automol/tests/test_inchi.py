@@ -276,7 +276,8 @@ def test__filter_enantiomer_reactions():
     ref_rxn_ichs_lst = numpy.array(ref_rxn_ichs_lst, dtype=object)
     ref_rxn_ichs_lsts = [
         [numpy.random.permutation(r)
-         for r in numpy.random.permutation(ref_rxn_ichs_lst)] for _ in range(10)]
+         for r in numpy.random.permutation(ref_rxn_ichs_lst)]
+        for _ in range(10)]
     for ref_rxn_ich_lst_ in ref_rxn_ichs_lsts:
         rxn_ichs_lst_ = inchi.filter_enantiomer_reactions(ref_rxn_ich_lst_)
         rxn_ichs_lst_ = inchi.sort_reactions(rxn_ichs_lst_)
