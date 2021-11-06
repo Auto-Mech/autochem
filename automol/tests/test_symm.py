@@ -48,6 +48,8 @@ def test__external_symmetry_factor():
     assert automol.symm.external_symm(C2H5OF_GEO) == 0.5
     assert automol.symm.external_symm(C2H2CLF_GEO) == 1
 
-def test__hco_symm_num():
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(TS_GEO))
 
+def test__hco_symm_num():
+    """ test
+    """
+    print(automol.symm.oxygenated_hydrocarbon_symm_num(TS_GEO))
