@@ -140,8 +140,7 @@ def _connected_geometry(ich, check=True):
                 continue
 
         if not success:
-            print('Failed InChI:', ich)
-            raise error.FailedGeometryGenerationError
+            raise error.FailedGeometryGenerationError('Failed InChI:', ich)
 
     return geo
 
