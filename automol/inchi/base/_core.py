@@ -469,12 +469,12 @@ def reflect(ich, iso=True):
         ste_upd_dct = None
         if 'm' in ste_dct:
             val = int(ste_dct['m'])
-            ste_upd_dct = {'m': '{}'.format(abs(val-1))}
+            ste_upd_dct = {'m': f'{abs(val-1)}'}
 
         iso_upd_dct = None
         if iso and 'm' in iso_dct:
             val = int(iso_dct['m'])
-            iso_upd_dct = {'m': '{}'.format(abs(val-1))}
+            iso_upd_dct = {'m': f'{abs(val-1)}'}
 
         ich = standard_form(ich, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
 
