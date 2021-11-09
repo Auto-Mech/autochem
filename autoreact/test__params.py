@@ -1,7 +1,8 @@
 """ testing autoreact functions
 """
+
 import numpy
-from autoreact.params import RxnParams
+import autoreact
 
 
 def test_arr():
@@ -10,7 +11,7 @@ def test_arr():
 
     # Test simple functions
     arr_dct = {'arr_tuples': [[1e12, 1.5, 50000], [1e12, 1.5, 50000]]}
-    params1 = RxnParams(arr_dct=arr_dct)
+    params1 = autoreact.params.RxnParams(arr_dct=arr_dct)
     assert params1.get_existing_forms() == ('arr',)
     for arr_tuple in params1.arr:
         assert numpy.allclose([1e12, 1.5, 50000], arr_tuple)
@@ -30,7 +31,7 @@ def test_plog():
     plog_dct = {'high': [[1e12, 1.5, 50000], [1e12, 1.5, 50000]],
                 1.0:    [[1e12, 1.5, 50000]],
                 10.0:   [[1e12, 1.5, 50000], [1e12, 1.5, 50000]]}
-    params2 = RxnParams(plog_dct=plog_dct)
+    params2 = autoreact.params.RxnParams(plog_dct=plog_dct)
     assert params2.get_existing_forms() == ('plog',)
     for _, arr_tuples in params2.plog.items():
         for arr_tuple in arr_tuples:
@@ -58,7 +59,7 @@ def test_cheb():
                 'tlim': (300, 2500),
                 'plim': (0.01, 100),
                 'one_atm_arr': [[1, 0, 0]]}
-    params3 = RxnParams(cheb_dct=cheb_dct)
+    params3 = autoreact.params.RxnParams(cheb_dct=cheb_dct)
     assert params3.get_existing_forms() == ('cheb',)
     alpha = params3.cheb['alpha']
     for idx, array in enumerate(alpha):
@@ -79,7 +80,7 @@ def test_troe():
                 'lowp_arr': [[1e12, 1.5, 50000]],
                 'troe_params': [1.5, 8000, 100, 1000],
                 'collid': {'AR': 1.4, 'N2': 1.7}}
-    params4 = RxnParams(troe_dct=troe_dct)
+    params4 = autoreact.params.RxnParams(troe_dct=troe_dct)
     assert params4.get_existing_forms() == ('troe',)
 
     # Test duplicates
@@ -95,7 +96,7 @@ def test_lind():
     lind_dct = {'highp_arr': [[1e12, 1.5, 50000]],
                 'lowp_arr': [[1e12, 1.5, 50000]],
                 'collid': {'AR': 1.4, 'N2': 1.7}}
-    params5 = RxnParams(lind_dct=lind_dct)
+    params5 = autoreact.params.RxnParams(lind_dct=lind_dct)
     assert params5.get_existing_forms() == ('lind',)
 
     # Test duplicates
