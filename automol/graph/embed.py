@@ -59,6 +59,7 @@ from automol.graph.base import sp2_bond_keys
 from automol.graph.base import rings_atom_keys
 from automol.graph.base import atom_stereo_parity_from_geometry
 from automol.graph.base import bond_stereo_parity_from_geometry
+from automol.graph.base import string
 
 
 # bond distances
@@ -114,7 +115,7 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
             break
 
     if not conv:
-        raise error.FailedGeometryGenerationError
+        raise error.FailedGeometryGenerationError(f'Bad gra string(gra)')
 
     # 3. Generate a geometry data structure from the coordinates
     xyzs = xmat[:, :3]
@@ -295,7 +296,7 @@ def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
                                   sp_dct=None, angstrom=True):
     """ distance bounds matrices for joining multiple geometries
 
-    :param gra: molecular graph:wq
+    :param gra: molecular graph:
     :param keys: atom keys specifying the order of indices in the matrix
     :param dist_range_dct: distance ranges for specific atoms in the graph
     :param geos: (optional) geometries which will be used to fix the bond
