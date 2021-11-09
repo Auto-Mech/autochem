@@ -59,7 +59,6 @@ from automol.graph.base import sp2_bond_keys
 from automol.graph.base import rings_atom_keys
 from automol.graph.base import atom_stereo_parity_from_geometry
 from automol.graph.base import bond_stereo_parity_from_geometry
-from automol.graph.base import string
 
 
 # bond distances
@@ -115,7 +114,7 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
             break
 
     if not conv:
-        raise error.FailedGeometryGenerationError(f'Bad gra string(gra)')
+        raise error.FailedGeometryGenerationError(f'Bad gra {string(gra)}')
 
     # 3. Generate a geometry data structure from the coordinates
     xyzs = xmat[:, :3]
