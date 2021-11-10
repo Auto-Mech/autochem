@@ -857,6 +857,7 @@ def ring_systems_bond_keys(gra):
 def is_ring_system(gra):
     """ is this graph a ring system?
     """
+    gra = without_stereo_parities(gra)
     return union_from_sequence(rings(gra), check=False) == gra
 
 
