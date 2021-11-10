@@ -111,7 +111,7 @@ def almost_equal_coulomb_spectrum(geo1, geo2, rtol=1e-2):
         :rtype: bool
     """
     return numpy.allclose(
-        coulomb_spectrum(geo1), coulomb_spectrum(geo2), atol=rtol)
+        coulomb_spectrum(geo1), coulomb_spectrum(geo2), rtol=rtol)
 
 
 def argunique_coulomb_spectrum(geos, seen_geos=(), rtol=1e-2):
