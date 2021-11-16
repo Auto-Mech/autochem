@@ -73,12 +73,14 @@ def set_constraint_names(zma, tors_names, tors_model):
     """ Determine the names of constraints along a torsion scan
     """
 
+    constraint_models = ('1dhrf', '1dhrfa', 'tau-1dhrf', 'tau-1dhrfa')
+
     const_names = tuple()
-    if tors_names and tors_model in ('1dhrf', '1dhrfa'):
-        if tors_model == '1dhrf':
+    if tors_names and tors_model in constraint_models:
+        if tors_model in ('1dhrf', 'tau-1dhrf'):
             const_names = tuple(
                 itertools.chain(*tors_names))
-        elif tors_model == '1dhrfa':
+        elif tors_model in ('1dhrfa', 'tau-1dhrfa'):
             coords = list(coordinates(zma))
             const_names = tuple(coord for coord in coords)
 

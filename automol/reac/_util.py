@@ -257,12 +257,14 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
         std_rxn, std_rgeos, std_pgeos = (
             automol.reac.standard_keys_with_sorted_geometries(
                 rxn, rct_geos, prd_geos))
-        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Add stereochemistry, if requested
         if stereo:
             std_rxn, _ = automol.reac.add_stereo_from_unordered_geometries(
                 std_rxn, std_rgeos, std_pgeos)
+
+        # Form the transition state geom using the rxn object
+        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Add rxn object set to master list
         if std_rxn is not None:
