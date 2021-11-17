@@ -240,6 +240,8 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
     """ from
     """
 
+    print('stereo', stereo)
+
     # Identify the reaction based on the reactants and products
     rct_gras = list(map(automol.graph.without_stereo_parities,
                         map(automol.geom.graph, rct_geos)))
@@ -257,6 +259,8 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
         std_rxn, std_rgeos, std_pgeos = (
             automol.reac.standard_keys_with_sorted_geometries(
                 rxn, rct_geos, prd_geos))
+        # Form the transition state geom using the rxn object
+        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Add stereochemistry, if requested
         if stereo:
@@ -264,7 +268,7 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
                 std_rxn, std_rgeos, std_pgeos)
 
         # Form the transition state geom using the rxn object
-        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
+        # ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Add rxn object set to master list
         if std_rxn is not None:
@@ -274,6 +278,8 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
             elif indexing == 'zma':
                 ts_zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
                     std_rxn, ts_geo)
+                print(ts_zma)
+                print(automol.zmat.string(ts_zma))
                 std_zrxn = automol.reac.relabel_for_zmatrix(
                     std_rxn, zma_keys, dummy_key_dct)
                 rct_zmas = tuple(map(automol.geom.zmatrix, std_rgeos))
