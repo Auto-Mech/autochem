@@ -7,7 +7,7 @@ from automol.graph import ts
 from automol.zmat import distance_coordinate_name
 from automol.reac._reac import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
-from automol.reac._util import ring_forming_scission_atom_keys
+from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import elimination_breaking_bond_keys
 from automol.reac._util import insertion_forming_bond_keys
 from automol.reac._util import hydrogen_abstraction_atom_keys
@@ -106,18 +106,10 @@ def ring_forming_scission_ts_zmatrix(rxn, ts_geo):
     rxn = add_dummy_atoms(rxn, dummy_key_dct)
 
     # 4. Generate a z-matrix for the geometry
-    rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    att_key, tra_key, _ = ring_forming_scission_atom_keys(rxn)
-    # First, cycle the transferring atom to the front of the ring keys and, if
-    # needed, reverse the ring so that the attacking atom is last
-    #       (transferring atom, ... , atom, attackin atom)
-    rng_keys = automol.graph.cycle_ring_atom_key_to_front(
-        rng_keys, tra_key, end_key=att_key)
-    # Now, cycle the secont-to-last key to the front so that the ring order is:
-    #       (atom, attacking atom, transferring atom, ....)
-    rng_keys = automol.graph.cycle_ring_atom_key_to_front(
-        rng_keys, rng_keys[-2])
-    vma, zma_keys = automol.graph.vmat.vmatrix(rxn.forward_ts_graph)
+    chain_keys = ring_forming_scission_chain(rxn)
+    rng_keys = list(reversed(chain_keys[1:]))
+    vma, zma_keys = automol.graph.vmat.vmatrix(rxn.forward_ts_graph,
+                                               rng_keys=rng_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)

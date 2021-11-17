@@ -1121,7 +1121,7 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
 
 if __name__ == '__main__':
-    test__reac__hydrogen_abstraction()
+    # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
     # test__reac__radrad_addition()
@@ -1131,7 +1131,7 @@ if __name__ == '__main__':
     # test__reac__substitution()
     # test__prod__homolytic_scission()
     # test__prod__beta_scission()
-    # test__prod__ring_forming_scission()
+    test__prod__ring_forming_scission()
     # test__expand_stereo()
     # test__expand_product_stereo()
     # test__add_stereo_from_unordered_geometries()
