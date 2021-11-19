@@ -599,6 +599,16 @@ def test__reac__radrad_addition():
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
 
+    # # Extra test cases:
+    # rxn_smis_lst = [
+    #     (['[H]', '[OH]'], ['O']),
+    #     (['[CH3]', '[OH]'], ['CO']),
+    # ]
+    # for rct_smis, prd_smis in rxn_smis_lst:
+    #     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    #     assert len(rxn_objs) == 1
+    #     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION)
+
 
 def __reac__isc_addition():
     """ test addition functionality
@@ -1124,14 +1134,14 @@ if __name__ == '__main__':
     # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
-    # test__reac__radrad_addition()
+    test__reac__radrad_addition()
     # test__reac__isc_addition()
     # test__reac__radrad_hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__prod__homolytic_scission()
     # test__prod__beta_scission()
-    test__prod__ring_forming_scission()
+    # test__prod__ring_forming_scission()
     # test__expand_stereo()
     # test__expand_product_stereo()
     # test__add_stereo_from_unordered_geometries()
