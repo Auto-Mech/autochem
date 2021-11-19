@@ -253,6 +253,8 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
 
     rxns = automol.reac.find(rct_gras, prd_gras)
 
+    print('ID REACTION TEST:\n', rxns)
+
     # Obtain the reaction objects and structures to return
     rxn_objs = tuple()
     for rxn in rxns:
@@ -260,7 +262,7 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
             automol.reac.standard_keys_with_sorted_geometries(
                 rxn, rct_geos, prd_geos))
         # Form the transition state geom using the rxn object
-        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
+        # ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Add stereochemistry, if requested
         if stereo:
@@ -268,7 +270,7 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
                 std_rxn, std_rgeos, std_pgeos)
 
         # Form the transition state geom using the rxn object
-        # ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
+        ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
 
         # Add rxn object set to master list
         if std_rxn is not None:
