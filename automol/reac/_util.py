@@ -253,11 +253,12 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
 
     rxns = automol.reac.find(rct_gras, prd_gras)
 
-    print('ID REACTION TEST:\n', rxns)
+    # print('ID REACTION TEST:\n', len(rxns))
 
     # Obtain the reaction objects and structures to return
     rxn_objs = tuple()
     for rxn in rxns:
+        # print('rxn obj', rxn)
         std_rxn, std_rgeos, std_pgeos = (
             automol.reac.standard_keys_with_sorted_geometries(
                 rxn, rct_geos, prd_geos))
@@ -280,8 +281,8 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
             elif indexing == 'zma':
                 ts_zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
                     std_rxn, ts_geo)
-                print(ts_zma)
-                print(automol.zmat.string(ts_zma))
+                # print(ts_zma)
+                # print(automol.zmat.string(ts_zma))
                 std_zrxn = automol.reac.relabel_for_zmatrix(
                     std_rxn, zma_keys, dummy_key_dct)
                 rct_zmas = tuple(map(automol.geom.zmatrix, std_rgeos))
