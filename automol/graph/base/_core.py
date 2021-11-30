@@ -508,6 +508,13 @@ def atom_lone_pair_counts(gra):
     return atm_lpc_dct
 
 
+def lone_pair_atom_keys(gra):
+    """ keys for atoms that one-or-more lone-pairs
+    """
+    lpc_dct = atom_lone_pair_counts(gra)
+    return frozenset(key for key, lpc in lpc_dct.items() if lpc > 0)
+
+
 def atom_van_der_waals_radius(gra, key):
     """ van der waals radius for an atom in the graph (in angstroms)
     """
