@@ -653,7 +653,7 @@ def terminal_heavy_atom_keys(gra):
     gra = implicit(gra)
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
     atm_keys = [key for key, ngb_keys in atoms_neighbor_atom_keys(gra).items()
-                if len(ngb_keys) == 1]
+                if len(ngb_keys) <= 1]
     atm_keys = sorted(atm_keys, key=atm_imp_hyd_vlc_dct.__getitem__,
                       reverse=True)
     atm_symbs = dict_.values_by_key(atom_symbols(gra), atm_keys)
