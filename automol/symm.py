@@ -210,9 +210,10 @@ def oxygenated_hydrocarbon_symm_num(geo):
     int_symm = 1.
     chiral_center = 0
     gra = graph(geo)
-    ethane_gra = ({0: ('C', 3, None), 1: ('C', 3, None)}, {frozenset({0, 1}): (1, None)})
+    ethane_gra = ({0: ('C', 3, None), 1: ('C', 3, None)},
+                  {frozenset({0, 1}): (1, None)})
     if automol.graph.base.implicit(gra) == ethane_gra:
-        int_symm = 3.    
+        int_symm = 3.
         ext_symm = external_symmetry_factor(geo)
     else:
         gra = automol.graph.base.explicit(gra)
@@ -239,7 +240,8 @@ def oxygenated_hydrocarbon_symm_num(geo):
                     # Excepts rdkit errors, assumes group is complicated enough
                     # that is is unique
                     if not str(err).startswith('Python argument types in'):
-                        print('Error evaluating atom group in symm number routine')
+                        print('Error evaluating atom group in symm number '
+                              'routine')
                         print('Symmetry number may be incorrect as a result,'
                               'group is', group)
                     group_smi = ''.join(random.choice(string.ascii_letters)
@@ -261,7 +263,7 @@ def oxygenated_hydrocarbon_symm_num(geo):
                 chain_group = None
                 symm_groups = None
                 for group in group_dct.keys():
-                    if group_dct[group] == 1:# and group != 'InChI=1S/H':
+                    if group_dct[group] == 1:  # and group != 'InChI=1S/H':
                         chain_group = group
                     else:
                         symm_groups = group
