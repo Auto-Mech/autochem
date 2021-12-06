@@ -122,8 +122,6 @@ from automol.geom._extra import hydrogen_bonded_idxs
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
 from automol.geom._ring import ring_fragments_geometry
-# align functions
-from automol.geom._align import align
 # ts submodule
 from automol.geom import ts
 
@@ -238,8 +236,6 @@ __all__ = [
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
     'ring_fragments_geometry',
-    # align
-    'align',
     # ts submodule
     'ts',
 ]

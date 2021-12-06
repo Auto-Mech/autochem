@@ -3,14 +3,12 @@
 Import hierarchy:
     _core       no dependencies
     _networkx   dependencies: _core
-    _igraph     dependencies: _core
-    _algo       dependencies: _core, _networkx, _igraph
-    _resonance  dependencies: _core, _networkx, _igraph, _algo
-    _func_group dependencies: _core, _networkx, _igraph, _algo, _resonance
-    _rot        dependencies: _core, _networkx, _igraph, _algo, _resonance
-    _stereo     dependencies: _core, _networkx, _igraph, _algo, _resonance
-    ts          dependencies: _core, _networkx, _igraph, _algo, _resonance,
-                              _stereo
+    _algo       dependencies: _core, _networkx
+    _resonance  dependencies: _core, _networkx, _algo
+    _func_group dependencies: _core, _networkx, _algo, _resonance
+    _rot        dependencies: _core, _networkx, _algo, _resonance
+    _stereo     dependencies: _core, _networkx, _algo, _resonance
+    ts          dependencies: _core, _networkx, _algo, _resonance, _stereo
 
 Each next submodule in the hierarchy may depend on the ones before it, but
 **not** the ones after. This avoids circular dependencies.

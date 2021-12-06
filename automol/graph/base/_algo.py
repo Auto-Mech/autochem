@@ -11,7 +11,6 @@ import more_itertools as mit
 from automol import util
 from automol.util import dict_
 from automol.graph.base import _networkx
-from automol.graph.base import _igraph
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import atom_symbols
@@ -35,8 +34,7 @@ from automol.graph.base._core import bonds_neighbor_bond_keys
 
 
 # # isomorphisms and equivalence
-def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True,
-                igraph=False):
+def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
     """ Obtain an isomorphism between two graphs
 
     This should eventually replace the other isomorphism functions.
@@ -62,27 +60,20 @@ def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True,
         gra1 = without_dummy_atoms(gra1)
         gra2 = without_dummy_atoms(gra2)
 
-    return _isomorphism(gra1, gra2, igraph=igraph)
+    return _isomorphism(gra1, gra2)
 
 
-def _isomorphism(gra1, gra2, igraph=False):
+def _isomorphism(gra1, gra2):
     """
     """
-    if igraph:
-        igr1 = _igraph.from_graph(gra1)
-        igr2 = _igraph.from_graph(gra2)
-        iso_dct = _igraph.isomorphisms(igr1, igr2)
-        # iso_dcts = _igraph.isomorphisms(igr1, igr2)
-        # iso_dct = iso_dcts[0] if iso_dcts else None
-    else:
-        nxg1 = _networkx.from_graph(gra1)
-        nxg2 = _networkx.from_graph(gra2)
-        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    nxg1 = _networkx.from_graph(gra1)
+    nxg2 = _networkx.from_graph(gra2)
+    iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
 def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
-                         dummy=True, igraph=False):
+                         dummy=True):
     """ Obtain an isomorphism between two sequences of graphs
 
     :param backbone_only: Compare backbone atoms only?
@@ -103,7 +94,7 @@ def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
         found_match = False
         for idx, gra1 in gras1_pool.items():
             iso_dct = isomorphism(gra2, gra1, backbone_only=backbone_only,
-                                  stereo=stereo, dummy=dummy, igraph=igraph)
+                                  stereo=stereo, dummy=dummy)
             if iso_dct is not None:
                 found_match = True
                 order.append(idx)
@@ -124,21 +115,15 @@ def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
     return order, iso_dcts
 
 
-def full_isomorphism(gra1, gra2, igraph=False):
+def full_isomorphism(gra1, gra2):
     """ full graph isomorphism
 
     TODO: DEPRECATE
     """
     assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
-    if igraph:
-        igr1 = _igraph.from_graph(gra1)
-        igr2 = _igraph.from_graph(gra2)
-        iso_dcts = _igraph.isomorphisms(igr1, igr2)
-        iso_dct = iso_dcts[0] if iso_dcts else None
-    else:
-        nxg1 = _networkx.from_graph(gra1)
-        nxg2 = _networkx.from_graph(gra2)
-        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    nxg1 = _networkx.from_graph(gra1)
+    nxg2 = _networkx.from_graph(gra2)
+    iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
@@ -154,7 +139,7 @@ def full_subgraph_isomorphism(gra1, gra2):
     return iso_dct
 
 
-def backbone_isomorphism(gra1, gra2, igraph=False):
+def backbone_isomorphism(gra1, gra2):
     """ graph backbone isomorphism
 
     TODO: DEPRECATE
@@ -164,15 +149,9 @@ def backbone_isomorphism(gra1, gra2, igraph=False):
     """
     gra1 = implicit(gra1)
     gra2 = implicit(gra2)
-    if igraph:
-        igr1 = _igraph.from_graph(gra1)
-        igr2 = _igraph.from_graph(gra2)
-        iso_dcts = _igraph.isomorphisms(igr1, igr2)
-        iso_dct = iso_dcts[0] if iso_dcts else None
-    else:
-        nxg1 = _networkx.from_graph(gra1)
-        nxg2 = _networkx.from_graph(gra2)
-        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    nxg1 = _networkx.from_graph(gra1)
+    nxg2 = _networkx.from_graph(gra2)
+    iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
