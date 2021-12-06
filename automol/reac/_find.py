@@ -557,7 +557,7 @@ def two_bond_additions(rct_gras, prd_gras):
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
 
-        return ts_unique(rxns)
+    return ts_unique(rxns)
 
 
 # 3. Insertions

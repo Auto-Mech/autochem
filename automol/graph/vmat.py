@@ -336,7 +336,7 @@ def start_at(gra, key):
 
     ngb_keys = ngb_keys_dct[key]
     if not ngb_keys:
-        zma_keys = []
+        zma_keys = [key]
     elif len(ngb_keys) == 1:
         # Need special handling for atoms with only one neighbor
         if symb_dct[key] in ('H', 'X'):
@@ -422,7 +422,8 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
             # Add the leading atom to the v-matrix
             symb = symb_dct[key4]
             dkey = key1 if lead_key is None else lead_key
-            key_row = list(map(zma_keys.index, (key3, key2, dkey)))
+            key_row = [zma_keys.index(k) if k is not None else None
+                       for k in (key3, key2, dkey)]
             vma = automol.vmat.add_atom(vma, symb, key_row)
             assert key4 not in zma_keys, (
                 f'Atom {key4:d} already in v-matrix.')
@@ -478,13 +479,15 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
 
     key3 = keys[0]
     assert key3 in zma_keys
-    key2 = next(k for k in ngb_keys_dct[key3] if k in zma_keys)
+    key2 = next((k for k in ngb_keys_dct[key3] if k in zma_keys), None)
 
-    if symb_dct[key2] == 'X':
-        key1 = next(k for k in ngb_keys_dct[key3][1:] if k in zma_keys)
+    if key2 is None:
+        key1 = None
+    elif symb_dct[key2] == 'X':
+        key1 = next((k for k in ngb_keys_dct[key3][1:] if k in zma_keys), None)
     else:
-        key1 = next(k for k in ngb_keys_dct[key2]
-                    if k in zma_keys and k != key3)
+        key1 = next((k for k in ngb_keys_dct[key2]
+                     if k in zma_keys and k != key3), None)
 
     keys = (key1, key2,) + tuple(keys)
 

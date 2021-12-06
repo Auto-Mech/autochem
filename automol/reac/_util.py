@@ -365,10 +365,13 @@ def sort_reagents(gras):
 # if __name__ == '__main__':
 #     import automol
 #
-#     RCT_SMIS = ['CCC(CO[O])OO']
-#     PRD_SMIS = ['C=C(CC)OO', 'O[O]']
+#     RCT_SMIS = ['[CH3]', '[OH]']
+#     PRD_SMIS = ['CO']
 #
 #     rxn_objs = automol.reac.rxn_objs_from_smiles(
 #         RCT_SMIS, PRD_SMIS, indexing='zma')
 #     zrxn, zma, _, _ = rxn_objs[0]
 #     scan_inf = automol.reac.build_scan_info(zrxn, zma)
+#     print(automol.zmat.string(zma))
+#     geo = automol.zmat.geometry(zma)
+#     print(automol.geom.string(geo))
