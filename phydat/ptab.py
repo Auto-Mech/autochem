@@ -26,6 +26,16 @@ def to_number(atom):
     return periodictable.to_Z(atom)
 
 
+def to_mass_number(atom):
+    """ Obtain the mass number for a given atom.
+
+        :param atom: atom representation (symbol, number, mass)
+        :type atom: str/int
+        :rtype: int
+    """
+    return periodictable.to_A(atom)
+
+
 def to_mass(atom):
     """ Obtain the atomic mass for a given atom (in amu).
 
