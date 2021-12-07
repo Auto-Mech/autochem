@@ -409,7 +409,7 @@ def formula(gra):
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :type: dict[str: int]
+        :rtype: dict[str: int]
     """
 
     gra = explicit(gra)
@@ -485,6 +485,22 @@ def has_stereo(gra):
     """ does this graph have stereo of any kind?
     """
     return bool(atom_stereo_keys(gra) or bond_stereo_keys(gra))
+
+
+def atomic_numbers(gra):
+    """ atomic numbers, by atom
+    """
+    symb_dct = atom_symbols(gra)
+    anum_dct = dict_.transform_values(symb_dct, ptab.to_number)
+    return anum_dct
+
+
+def mass_numbers(gra):
+    """ mass numbers, by atom
+    """
+    symb_dct = atom_symbols(gra)
+    mnum_dct = dict_.transform_values(symb_dct, ptab.to_mass_number)
+    return mnum_dct
 
 
 def atom_element_valences(gra):

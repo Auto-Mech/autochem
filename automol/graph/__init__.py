@@ -52,6 +52,8 @@ from automol.graph.base._core import electron_count
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import atomic_numbers
+from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import atom_element_valences
 from automol.graph.base._core import atom_lone_pair_counts
 from automol.graph.base._core import atom_van_der_waals_radius
@@ -300,6 +302,8 @@ __all__ = [
     'atom_stereo_keys',
     'bond_stereo_keys',
     'has_stereo',
+    'atomic_numbers',
+    'mass_numbers',
     'atom_element_valences',
     'atom_lone_pair_counts',
     'atom_van_der_waals_radius',
