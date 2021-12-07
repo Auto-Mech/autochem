@@ -1,6 +1,9 @@
 """ canonicalization functions
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
+
+Reference:
+Schneider, Sayle, Landrum. J. Chem. Inf. Model. 2015, 55, 10, 2111–2120
 """
 import itertools
 import numpy
@@ -9,29 +12,59 @@ from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import implicit
+from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
+from automol.graph.base._algo import is_connected
 
 
+# def canonical_keys(gra, backbone_only=True):
 def canonical_keys(gra):
     """ Determine canonical keys for this graph.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
+        :param backbone_only: Consider backbone atoms only?
+        :type backbone_only: bool
         :rtype: dict[int: int]
     """
+    assert is_connected(gra), "Cannot canonicalize disconnected graph."
+
+    gra = without_dummy_atoms(gra)
     gra = implicit(gra)
+
+    # 1. Initial partition: all atoms in one class, with index 0.
+    # idx_dct maps individual atom keys onto their class indices
+    idx_dct = dict_.by_key({}, atom_keys(gra), fill_val=0)
+
+    # 2. Relax class indices based on atom invariants
+    idx_dct = relax_class_indices(
+        gra, idx_dct, srt_eval_=sort_evaluator_atom_invariants_(gra))
+
+    # 3. Break ties based on keys.
+    idx_dct = relax_class_indices(
+        gra, idx_dct, srt_eval_=sort_evaluator_tie_breaking_(gra))
+
+    return idx_dct
+
+
+def relax_class_indices(gra, idx_dct, srt_eval_):
+    """ Relax the class indices for this graph based on some sort value.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param idx_dct: A dictionary mapping atom keys to class indices.
+        :type idx_dct: dict
+        :param srt_eval_: An evaluator for sort values, based on current class
+            indices. Curried such that srt_val_(idx_dct)(key) returns the sort
+            value.
+    """
     ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
-    # 1. Initial partition: all atoms in one class, with index 0
-    # idx_dct maps individual atom keys onto their class indices
-    # cla_dct maps class indices onto the full set of keys for that class,
-    # stored as a tuple.
-    idx_dct = dict_.by_key({}, atom_keys(gra), fill_val=0)
-    cla_dct = {0: tuple(atom_keys(gra))}
+    cla_dct = class_dict_from_index_dict(idx_dct)
 
     # 2. Set up the new_clas list, containing class indices and class keys that
     # are up for re-evaluation.
@@ -46,7 +79,7 @@ def canonical_keys(gra):
         # indices of neighboring atoms.  After the first iteration, the atom
         # invariants have no effect -- only the neighboring class indices cause
         # further subdivision.
-        srt_val_ = sort_value_atom_invariants_(gra, idx_dct)
+        srt_val_ = srt_eval_(idx_dct)
         cla = sorted(cla, key=srt_val_)
         parts = [tuple(ks) for _, ks in itertools.groupby(cla, srt_val_)]
 
@@ -84,115 +117,29 @@ def canonical_keys(gra):
                 ngb_idxs -= {new_idx}
                 ngb_idxs -= frozenset(dict(new_clas))
 
-            print(sorted(ngb_idxs))
             for ngb_idx in sorted(ngb_idxs):
                 ngb_cla = cla_dct[ngb_idx]
                 if len(ngb_cla) > 1:
                     new_clas.insert(0, (ngb_idx, cla_dct[ngb_idx]))
 
-        print()
-        print("IDX_DCT", idx_dct.values())
-        print("CLA_DCT", cla_dct)
-        print("NEW_CLAS", new_clas)
+    return idx_dct
 
 
-def canonical_keys_old(gra):
-    """ Determine canonical keys for this graph.
+# Sort evaluators
+def sort_evaluator_atom_invariants_(gra):
+    """ A sort function based on atom invariants with two levels of currying.
+
+        To get the sort value for a specific key, use
+            srt_val = sort_evaluator_atom_invariants_(gra)(idx_dct)(key)
+
+        My reasoning for doing things this way is that `gra` never changes, but
+        `idx_dct` does, so we need to be able to update the function with new
+        index dictionaries. Ultimately, it is convenient to return a function
+        of `key` only because this can be passed to standard python sorting and
+        grouping functions such as `sorted()` and `itertools.groupby()`.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :rtype: dict[int: int]
-    """
-    # orig_gra = gra
-
-    gra = implicit(gra)
-    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-
-    # 1. INITIAL PARTITION: ALL ATOMS
-    idx_dct = dict_.by_key({}, atom_keys(gra), fill_val=0)
-    cla_dct = {0: atom_keys(gra)}
-
-    # 1B. SET UP NEW_CLAS (CLASSES UP FOR RE-EVALUATION)
-    new_clas = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1).items()
-    new_clas = sorted(new_clas, reverse=True)
-
-    # 1C. POP THE FIRST (ONLY) CLASS IN NEW_CLAS
-    idx, cla = new_clas.pop(0)
-
-    # 2. GROUP/SORT BY INITIAL ATOM INVARIANT
-    srt_val_ = sort_value_atom_invariants_(gra, idx_dct)
-    res = sorted(
-        (v, list(ks)) for v, ks in itertools.groupby(cla, srt_val_))
-
-    # 2B. UPDATE CLASS INDICES AND RECORD NEIGHBORS
-    new_idx = idx
-    ngb_keys = frozenset()
-    for _, new_cla in res:
-        cla_dct[new_idx] = new_cla
-        idx_dct.update({k: new_idx for k in new_cla})
-
-        # Set the next index
-        new_idx += len(new_cla)
-
-        # Update the list of neighbors potentially affected by this change
-        ngb_keys |= frozenset.union(*map(ngb_keys_dct.__getitem__, new_cla))
-
-    print(idx_dct.values())
-    print(cla_dct)
-    print(ngb_keys)
-
-    # 2C. IDENTIFY CLASSES UP FOR RE-EVALUATION
-    ngb_idxs = frozenset(map(idx_dct.__getitem__, ngb_keys))
-
-    # 2D. SET UP NEW_CLAS (CLASSES UP FOR RE-EVALUATION)
-    new_cla_dct = dict_.by_key(cla_dct, ngb_idxs)
-    new_clas = dict_.filter_by_value(new_cla_dct, lambda v: len(v) > 1).items()
-    print(new_clas)
-    new_clas = sorted(new_clas, reverse=True)
-    print(new_clas)
-
-    old_clas = None
-
-    # 3. RELAXATION: CONTINUE TO UPDATE BASED ON NEIGHBORS
-    while new_clas != old_clas:
-        print('NEW', new_clas)
-        print('OLD', new_clas)
-        idx, cla = new_clas.pop(0)
-        print(idx, cla)
-
-        # 3A. GROUP/SORT BY NEIGHBOR CLASS INDICES
-        srt_val_ = sort_value_atom_invariants_(gra, idx_dct)
-        cla = sorted(cla, key=srt_val_)
-        grps = [(v, tuple(ks)) for v, ks in itertools.groupby(cla, srt_val_)]
-
-        # 3B. UPDATE CLASS INDICES AND RECORD NEIGHBORS
-        new_idx = idx
-        ngb_keys = frozenset()
-        for _, new_cla in grps:
-            cla_dct[new_idx] = new_cla
-            idx_dct.update({k: new_idx for k in new_cla})
-
-            # Set the next index
-            new_idx += len(new_cla)
-
-            # Update the list of neighbors potentially affected by this change
-            ngb_keys |= frozenset.union(
-                *map(ngb_keys_dct.__getitem__, new_cla))
-
-        print(idx_dct.values())
-        print(cla_dct)
-        print(ngb_keys)
-        # IDENTIFY CLASSES UP FOR RE-EVALUATION AND SET UP NEW_CLAS
-        ngb_idxs = frozenset(map(idx_dct.__getitem__, ngb_keys))
-        new_cla_dct = dict_.by_key(cla_dct, ngb_idxs)
-        new_cla_dct = dict_.filter_by_value(new_cla_dct, lambda v: len(v) > 1)
-
-        old_clas = new_clas
-        new_clas = sorted(new_cla_dct.items(), reverse=True) + new_clas
-
-
-def sort_value_atom_invariants_(gra, idx_dct):
-    """ Returns a function returning sort values based on atom invariants
     """
 
     def _replace_none(val):
@@ -215,17 +162,81 @@ def sort_value_atom_invariants_(gra, idx_dct):
 
     bpars_dct = dict_.transform_values(bnds_dct, _sortable_bond_stereo_values)
 
-    def _value(key):
-        deg = len(bnds_dct[key])
-        anum = anum_dct[key]
-        mnum = mnum_dct[key]
-        hnum = hnum_dct[key]
-        apar = apar_dct[key]
-        bpars = bpars_dct[key]
-        ngb_idxs = tuple(sorted(map(idx_dct.__getitem__, ngb_keys_dct[key])))
-        return (deg, anum, mnum, hnum, apar, bpars, ngb_idxs)
+    def _evaluator(idx_dct):
+        """ Sort value evaluator based on current class indices.
 
-    return _value
+            :param idx_dct: A dictionary mapping atom keys to class indices.
+            :type idx_dct: dict
+        """
+
+        def _value(key):
+            deg = len(bnds_dct[key])
+            anum = anum_dct[key]
+            mnum = mnum_dct[key]
+            hnum = hnum_dct[key]
+            apar = apar_dct[key]
+            bpars = bpars_dct[key]
+            ngb_idxs = tuple(
+                sorted(map(idx_dct.__getitem__, ngb_keys_dct[key])))
+            return (deg, anum, mnum, hnum, apar, bpars, ngb_idxs)
+
+        return _value
+
+    return _evaluator
+
+
+def sort_evaluator_tie_breaking_(gra):
+    """ A sort function for tie-breaking with two levels of currying.
+
+        This function is to be called last, after the only remaining classes
+        with multiple members are indeed perfectly interchangeable.
+
+        To get the sort value for a specific key, use
+            srt_val = sort_evaluator_atom_invariants_(gra)(idx_dct)(key)
+
+        My reasoning for doing things this way is that `gra` never changes, but
+        `idx_dct` does, so we need to be able to update the function with new
+        index dictionaries. Ultimately, it is convenient to return a function
+        of `key` only because this can be passed to standard python sorting and
+        grouping functions such as `sorted()` and `itertools.groupby()`.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+    """
+
+    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
+
+    def _evaluator(idx_dct):
+        """ Sort value evaluator based on current class indices.
+
+            :param idx_dct: A dictionary mapping atom keys to class indices.
+            :type idx_dct: dict
+        """
+
+        def _value(key):
+            ngb_idxs = tuple(
+                sorted(map(idx_dct.__getitem__, ngb_keys_dct[key])))
+            return (key, ngb_idxs)
+
+        return _value
+
+    return _evaluator
+
+
+# Helpers
+def class_dict_from_index_dict(idx_dct):
+    """ Obtain a class dictionary from a class index dictionary.
+
+        :param idx_dct: A dictionary mapping atom keys to class indices.
+        :type idx_dct: dict
+        :returns: A dictionary mapping class indices onto the full set of keys
+            for that class, as a sorted tuple.
+        :rtype: dict[int: tuple]
+    """
+    clas = sorted(idx_dct.keys(), key=idx_dct.__getitem__)
+    cla_dct = {i: tuple(c)
+               for i, c in itertools.groupby(clas, key=idx_dct.__getitem__)}
+    return cla_dct
 
 
 if __name__ == '__main__':
@@ -253,4 +264,5 @@ H   -0.298317  -1.979180  -0.863934
     GEO = automol.geom.from_string(GEO_STR)
     GRA = automol.geom.graph(GEO)
     GRA = automol.graph.implicit(GRA)
-    canonical_keys(GRA)
+    IDX_DCT = canonical_keys(GRA)
+    print("Canonical keys:", IDX_DCT.values())
