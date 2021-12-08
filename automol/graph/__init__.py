@@ -166,6 +166,8 @@ from automol.graph.base._algo import ring_systems_bond_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
+# canonicalization functions:
+from automol.graph.base._canon import canonical_keys
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -416,6 +418,8 @@ __all__ = [
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
+    # canonicalization functions:
+    'canonical_keys',
     # resonance functions:
     # # core functions
     'dominant_resonance',

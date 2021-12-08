@@ -16,13 +16,13 @@ from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import atom_implicit_hydrogen_valences
+from automol.graph.base._core import atom_explicit_hydrogen_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._algo import is_connected
 
 
-# def canonical_keys(gra, backbone_only=True):
-def canonical_keys(gra):
+def canonical_keys(gra, backbone_only=True):
     """ Determine canonical keys for this graph.
 
         :param gra: molecular graph
@@ -34,6 +34,10 @@ def canonical_keys(gra):
     assert is_connected(gra), "Cannot canonicalize disconnected graph."
 
     gra = without_dummy_atoms(gra)
+    orig_gra = gra
+
+    # Work with the implicit graph to determine canonical keys for backbone
+    # atoms
     gra = implicit(gra)
 
     # 1. Initial partition: all atoms in one class, with index 0.
@@ -47,6 +51,16 @@ def canonical_keys(gra):
     # 3. Break ties based on keys.
     idx_dct = relax_class_indices(
         gra, idx_dct, srt_eval_=sort_evaluator_tie_breaking_(gra))
+
+    if not backbone_only:
+        bbn_keys = atom_keys(gra)
+        offset = len(bbn_keys)
+
+        exp_hyd_keys_dct = atom_explicit_hydrogen_keys(orig_gra)
+        srt_exp_hyd_keys = [k
+                            for b in sorted(bbn_keys, key=idx_dct.__getitem__)
+                            for k in sorted(exp_hyd_keys_dct[b])]
+        idx_dct.update({k: i+offset for i, k in enumerate(srt_exp_hyd_keys)})
 
     return idx_dct
 
@@ -241,60 +255,28 @@ def class_dict_from_index_dict(idx_dct):
 
 if __name__ == '__main__':
     import automol
-#     GEO_STR = """
-# C    2.440274   0.058933  -0.692740
-# C    1.618916  -0.527269   0.445319
-# C    0.152639  -0.210756   0.299288
-# C   -0.692099  -1.069400  -0.416694
-# C   -2.046782  -0.767410  -0.565130
-# C   -2.568232   0.396733  -0.003897
-# C   -1.735380   1.260916   0.704387
-# C   -0.380457   0.960485   0.853801
-# H    2.346592   1.149592  -0.729644
-# H    3.498847  -0.186225  -0.560715
-# H    2.118103  -0.338675  -1.661135
-# H    1.985880  -0.141512   1.404270
-# H    1.759752  -1.614397   0.482401
-# H   -3.622800   0.631472  -0.120266
-# H   -2.140445   2.170539   1.139680
-# H   -2.694807  -1.440309  -1.120329
-# H    0.258316   1.646462   1.405337
-# H   -0.298317  -1.979180  -0.863934
-# """
     GEO_STR = """
-C     -2.651015   -0.803730    0.673174
-C     -1.413459   -0.639646   -0.207699
-C     -1.308553    0.802979   -0.732125
-C      0.100737    1.208965   -1.205400
-C      0.766611    2.166082   -0.212732
-C      0.984615   -0.005960   -1.515734
-C      1.078078   -1.049159   -0.387249
-C      2.374484   -0.923565    0.413812
-C     -0.143650   -1.041648    0.544259
-H     -3.557123   -0.525575    0.124704
-H     -2.589066   -0.176029    1.568637
-H     -2.761236   -1.843940    0.997280
-H      0.193800    3.097169   -0.139006
-H      0.831674    1.741898    0.792568
-H      1.778295    2.426720   -0.540834
-H      2.438998   -1.714246    1.169043
-H      2.444292    0.038985    0.928421
-H      3.246275   -1.019060   -0.242139
-H     -1.664837    1.512279    0.026061
-H     -2.005562    0.903671   -1.574988
-H     -0.261382   -2.041315    0.981612
-H      0.014703   -0.358487    1.388182
-H      0.551474   -0.505544   -2.394009
-H      1.983942    0.318361   -1.831221
-H     -1.531490   -1.312428   -1.068114
-H     -0.014962    1.776522   -2.138918
-H      1.114357   -2.033299   -0.875520
+C    2.440274   0.058933  -0.692740
+C    1.618916  -0.527269   0.445319
+C    0.152639  -0.210756   0.299288
+C   -0.692099  -1.069400  -0.416694
+C   -2.046782  -0.767410  -0.565130
+C   -2.568232   0.396733  -0.003897
+C   -1.735380   1.260916   0.704387
+C   -0.380457   0.960485   0.853801
+H    2.346592   1.149592  -0.729644
+H    3.498847  -0.186225  -0.560715
+H    2.118103  -0.338675  -1.661135
+H    1.985880  -0.141512   1.404270
+H    1.759752  -1.614397   0.482401
+H   -3.622800   0.631472  -0.120266
+H   -2.140445   2.170539   1.139680
+H   -2.694807  -1.440309  -1.120329
+H    0.258316   1.646462   1.405337
+H   -0.298317  -1.979180  -0.863934
 """
     GEO = automol.geom.from_string(GEO_STR)
-    print(automol.geom.string(GEO))
-    GRA = automol.geom.graph(GEO, stereo=True)
-    print(automol.graph.string(GRA))
-    GRA = automol.graph.implicit(GRA)
-    print(automol.graph.string(GRA))
-    # IDX_DCT = canonical_keys(GRA)
-    # print("Canonical keys:", IDX_DCT.values())
+    GRA = automol.geom.graph(GEO)
+    IDX_DCT = canonical_keys(GRA, backbone_only=True)
+    print("Canonical keys:", IDX_DCT.values())
+    print(IDX_DCT)
