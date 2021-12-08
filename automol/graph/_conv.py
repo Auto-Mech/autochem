@@ -103,6 +103,10 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
             atoms
         :rtype: (str, tuple(int))
     """
+    atm_keys = sorted(atom_keys(gra))
+    geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
+                   else {atm_key: idx for idx, atm_key in enumerate(atm_keys)})
+
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
                                                  geo_idx_dct=geo_idx_dct)
     rdm = rdkit_.from_molfile(mlf)

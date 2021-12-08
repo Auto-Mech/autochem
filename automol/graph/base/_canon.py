@@ -4,16 +4,20 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 Reference:
 Schneider, Sayle, Landrum. J. Chem. Inf. Model. 2015, 55, 10, 2111–2120
+
+The canonical order has been modified relative to the one used by
+Scheider (2015) to be more InChI-like (following Hill ordering).
 """
 import itertools
 import numpy
+import ptab
 from automol.util import dict_
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import implicit
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import atomic_numbers
+from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import atom_explicit_hydrogen_keys
@@ -152,6 +156,9 @@ def sort_evaluator_atom_invariants_(gra):
         of `key` only because this can be passed to standard python sorting and
         grouping functions such as `sorted()` and `itertools.groupby()`.
 
+        The canonical order has been modified relative to the one used by
+        Scheider (2015) to be more InChI-like (following Hill ordering).
+
         :param gra: molecular graph
         :type gra: automol graph data structure
     """
@@ -159,12 +166,25 @@ def sort_evaluator_atom_invariants_(gra):
     def _replace_none(val):
         return numpy.inf if val is None else val
 
+    def _hill_normalize_symbol(symb):
+        """ normalize atomic symbols to make them sort according to the hill
+            system
+            (C first, H second, others in alphabetical order)
+        """
+        symb = ptab.to_symbol(symb)
+        if symb == 'C':
+            symb = ''
+        if symb == 'H':
+            symb = '1'
+        return symb
+
     ngb_keys_dct = atoms_neighbor_atom_keys(gra)
     bnds_dct = atoms_bond_keys(gra)
 
-    anum_dct = atomic_numbers(gra)
-    mnum_dct = mass_numbers(gra)
+    symb_dct = dict_.transform_values(
+        atom_symbols(gra), _hill_normalize_symbol)
     hnum_dct = atom_implicit_hydrogen_valences(gra)
+    mnum_dct = mass_numbers(gra)
     apar_dct = dict_.transform_values(atom_stereo_parities(gra), _replace_none)
 
     bnd_par_dct = bond_stereo_parities(gra)
@@ -184,15 +204,15 @@ def sort_evaluator_atom_invariants_(gra):
         """
 
         def _value(key):
-            deg = len(bnds_dct[key])
-            anum = anum_dct[key]
+            symb = symb_dct[key]        # symbol
+            deg = len(bnds_dct[key])    # number of bonds
+            hnum = hnum_dct[key]        # number of hydrogens
             mnum = mnum_dct[key]
-            hnum = hnum_dct[key]
             apar = apar_dct[key]
             bpars = bpars_dct[key]
             ngb_idxs = tuple(
                 sorted(map(idx_dct.__getitem__, ngb_keys_dct[key])))
-            return (deg, anum, mnum, hnum, apar, bpars, ngb_idxs)
+            return (symb, deg, hnum, mnum, apar, bpars, ngb_idxs)
 
         return _value
 
@@ -255,28 +275,11 @@ def class_dict_from_index_dict(idx_dct):
 
 if __name__ == '__main__':
     import automol
-    GEO_STR = """
-C    2.440274   0.058933  -0.692740
-C    1.618916  -0.527269   0.445319
-C    0.152639  -0.210756   0.299288
-C   -0.692099  -1.069400  -0.416694
-C   -2.046782  -0.767410  -0.565130
-C   -2.568232   0.396733  -0.003897
-C   -1.735380   1.260916   0.704387
-C   -0.380457   0.960485   0.853801
-H    2.346592   1.149592  -0.729644
-H    3.498847  -0.186225  -0.560715
-H    2.118103  -0.338675  -1.661135
-H    1.985880  -0.141512   1.404270
-H    1.759752  -1.614397   0.482401
-H   -3.622800   0.631472  -0.120266
-H   -2.140445   2.170539   1.139680
-H   -2.694807  -1.440309  -1.120329
-H    0.258316   1.646462   1.405337
-H   -0.298317  -1.979180  -0.863934
-"""
-    GEO = automol.geom.from_string(GEO_STR)
+    ICH = automol.smiles.inchi('C=CC(CCC)C')
+    GEO = automol.inchi.geometry(ICH)
     GRA = automol.geom.graph(GEO)
+    _, NUMS_LST = automol.graph.inchi_with_sort_from_geometry(GRA, GEO)
     IDX_DCT = canonical_keys(GRA, backbone_only=True)
     print("Canonical keys:", IDX_DCT.values())
     print(IDX_DCT)
+    print(NUMS_LST)
