@@ -4,13 +4,10 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 Reference:
 Schneider, Sayle, Landrum. J. Chem. Inf. Model. 2015, 55, 10, 2111–2120
-
-The canonical order has been modified relative to the one used by
-Scheider (2015) to be more InChI-like (following Hill ordering).
 """
 import itertools
 import numpy
-import ptab
+from phydat import ptab
 from automol.util import dict_
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
@@ -23,7 +20,15 @@ from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import atom_explicit_hydrogen_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
+from automol.graph.base._core import relabel
 from automol.graph.base._algo import is_connected
+
+
+def canonical(gra):
+    """ A graph relabeled with canonical keys
+    """
+    can_key_dct = canonical_keys(gra, backbone_only=False)
+    return relabel(gra, can_key_dct)
 
 
 def canonical_keys(gra, backbone_only=True):
@@ -250,7 +255,7 @@ def sort_evaluator_tie_breaking_(gra):
         def _value(key):
             ngb_idxs = tuple(
                 sorted(map(idx_dct.__getitem__, ngb_keys_dct[key])))
-            return (key, ngb_idxs)
+            return (ngb_idxs, key)
 
         return _value
 
@@ -271,15 +276,3 @@ def class_dict_from_index_dict(idx_dct):
     cla_dct = {i: tuple(c)
                for i, c in itertools.groupby(clas, key=idx_dct.__getitem__)}
     return cla_dct
-
-
-if __name__ == '__main__':
-    import automol
-    ICH = automol.smiles.inchi('C=CC(CCC)C')
-    GEO = automol.inchi.geometry(ICH)
-    GRA = automol.geom.graph(GEO)
-    _, NUMS_LST = automol.graph.inchi_with_sort_from_geometry(GRA, GEO)
-    IDX_DCT = canonical_keys(GRA, backbone_only=True)
-    print("Canonical keys:", IDX_DCT.values())
-    print(IDX_DCT)
-    print(NUMS_LST)

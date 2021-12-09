@@ -167,6 +167,7 @@ from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
 # canonicalization functions:
+from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
 # resonance functions:
 # # core functions
@@ -419,6 +420,7 @@ __all__ = [
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
     # canonicalization functions:
+    'canonical',
     'canonical_keys',
     # resonance functions:
     # # core functions
