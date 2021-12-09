@@ -5,7 +5,6 @@ Import hierarchy:
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
     _canon      dependencies: _core, _networkx, _algo
-    _amchi      dependencies: _core, _networkx, _algo, _canon
     _resonance  dependencies: _core, _networkx, _algo
     _func_group dependencies: _core, _networkx, _algo, _resonance
     _rot        dependencies: _core, _networkx, _algo, _resonance
@@ -171,9 +170,6 @@ from automol.graph.base._algo import ring_systems_bond_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
-# canonicalization functions:
-from automol.graph.base._canon import canonical
-from automol.graph.base._canon import canonical_keys
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -411,9 +407,6 @@ __all__ = [
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
-    # canonicalization functions:
-    'canonical',
-    'canonical_keys',
     # resonance functions:
     # # core functions
     'dominant_resonance',
