@@ -326,6 +326,7 @@ def test__reac__hydrogen_migration():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_MIGRATION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -400,6 +401,7 @@ def test__reac__beta_scission():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.BETA_SCISSION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -427,6 +429,7 @@ def test__reac__ring_forming_scission():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.RING_FORM_SCISSION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -454,6 +457,7 @@ def test__reac__elimination():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.ELIMINATION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -472,7 +476,7 @@ def test__reac__elimination():
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
         print(rxn_objs)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.ELIMINATION)
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.ELIMINATION, False)
 
 
 def test__reac__hydrogen_abstraction():
@@ -495,6 +499,7 @@ def test__reac__hydrogen_abstraction():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -511,7 +516,8 @@ def test__reac__hydrogen_abstraction():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION)
+        _check_reaction(
+            rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION, False)
 
 
 def test__reac__sigma_hydrogen_abstraction():
@@ -534,6 +540,7 @@ def test__reac__sigma_hydrogen_abstraction():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -560,6 +567,7 @@ def test__reac__addition():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -571,7 +579,7 @@ def test__reac__addition():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION)
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION, False)
 
 
 def test__reac__radrad_addition():
@@ -584,14 +592,15 @@ def test__reac__radrad_addition():
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
-    ref_scan_grid = None  # not calling the radrad builder
-    ref_update_guess = False
+    ref_scan_grid = None
+    ref_update_guess = True
     ref_tors_names = {'D7', 'D4'}
     ref_tors_symms = [3, 3]
 
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
+                    True,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -604,7 +613,7 @@ def test__reac__radrad_addition():
     # for rct_smis, prd_smis in rxn_smis_lst:
     #     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
     #     assert len(rxn_objs) == 1
-    #     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION)
+    #     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION, False)
 
 
 def __reac__isc_addition():
@@ -631,14 +640,15 @@ def test__reac__radrad_hydrogen_abstraction():
 
     ref_scan_names = ('R12',)
     ref_constraint_dct = None
-    ref_scan_grid = None  # not calling the radrad builder
-    ref_update_guess = False
+    ref_scan_grid = None
+    ref_update_guess = True
     ref_tors_names = {'D8', 'D5'}
     ref_tors_symms = [3, 1]
 
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+                    True,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -666,6 +676,7 @@ def __reac__insertion():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -677,7 +688,7 @@ def __reac__insertion():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION)
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION, False)
 
 
 def test__reac__substitution():
@@ -702,6 +713,7 @@ def test__reac__substitution():
     assert len(rxn_objs) == 1
 
     _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION,
+                    False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
                     ref_tors_names, ref_tors_symms)
@@ -713,7 +725,7 @@ def test__reac__substitution():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION)
+        _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION, False)
 
 
 def test__reac_util():
@@ -1017,7 +1029,7 @@ def _gras_for_prod_tests(rct_smis):
 
 
 # Checker functions for assessing if tests output correct information
-def _check_reaction(rxn_obj, ref_class,
+def _check_reaction(rxn_obj, ref_class, var,
                     ref_scan_names=None, ref_constraint_dct=None,
                     ref_scan_grid=None, ref_update_guess=None,
                     ref_tors_names=None, ref_tors_symms=None):
@@ -1041,7 +1053,7 @@ def _check_reaction(rxn_obj, ref_class,
     # print(brk_bnd_keys)
 
     # Get scan information
-    scan_info = automol.reac.build_scan_info(zrxn, zma)
+    scan_info = automol.reac.build_scan_info(zrxn, zma, var=var)
     scan_names, constraint_dct, scan_grid, update_guess = scan_info
     # print('scan grid', scan_grid)
     # graph aligned to geometry keys
@@ -1076,7 +1088,6 @@ def _check_reaction(rxn_obj, ref_class,
         print(ref_scan_grid)
         print(scan_grid)
         for rgrd, grd in zip(ref_scan_grid, scan_grid):
-            # assert numpy.allclose(rgrd, grd)  correct?
             if rxn.class_ != 'elimination':
                 assert numpy.allclose(rgrd, grd)
             else:
@@ -1133,7 +1144,7 @@ if __name__ == '__main__':
     # test__reac__addition()
     test__reac__radrad_addition()
     # test__reac__isc_addition()
-    # test__reac__radrad_hydrogen_abstraction()
+    test__reac__radrad_hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__prod__homolytic_scission()

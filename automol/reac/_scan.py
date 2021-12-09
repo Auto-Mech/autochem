@@ -17,7 +17,7 @@ from automol.reac._util import elimination_breaking_bond_keys
 
 
 # Wrapper function to obtain all of the scan data for a reaction
-def build_scan_info(zrxn, zma):
+def build_scan_info(zrxn, zma, var=False):
     """ Build all of the scan information
     """
 
@@ -28,10 +28,10 @@ def build_scan_info(zrxn, zma):
     constraint_dct = automol.zmat.constraint_dct(zma, const_names)
 
     # Build the grid
-    grids = scan_grid(zrxn, zma)
+    grids = scan_grid(zrxn, zma, var=var)
 
     # Set the update guess
-    update_guess = UPDATE_GUESS_DCT[zrxn.class_]
+    update_guess = scan_update_guess(zrxn, var=var)
 
     return scan_names, constraint_dct, grids, update_guess
 
@@ -273,20 +273,32 @@ def hydrogen_abstraction_grid(zrxn, zma, npoints=(8,)):
     return (grid,)
 
 
-def radrad_hydrogen_abstraction_grid(npoints=(8, 4)):
+def radrad_hydrogen_abstraction_grid(zrxn, zma, npoints=(8, 4)):
     """ Build forward 1D grid for elimination reaction
     """
+
+    # Obtain the scan coordinate
+    scan_name, = hydrogen_abstraction_scan_coordinate(zrxn, zma)
 
     # Build the grid
     npoints1, npoints2 = npoints
 
-    rstart = 2.4 * phycon.ANG2BOHR
-    rend1 = 1.4 * phycon.ANG2BOHR
-    rend2 = 3.0 * phycon.ANG2BOHR
+    # Get the first grid from close to the mid
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
+    if frm_bnd_len is not None:
+        rmin = frm_bnd_len + (0.1 * phycon.ANG2BOHR)
+        rmax = frm_bnd_len + (1.0 * phycon.ANG2BOHR)
+    else:
+        rmin = 0.7 * phycon.ANG2BOHR
+        rmax = 2.2 * phycon.ANG2BOHR
 
-    grid1 = numpy.linspace(rstart, rend1, npoints1)
-    grid2 = numpy.linspace(rstart, rend2, npoints2)
-    grid2 = numpy.delete(grid2, 0)
+    grid1 = numpy.linspace(rmin, rmax, npoints1)
+    grid1 = numpy.flip(grid1)
+
+    # Get the outer grid from mid to long-distance
+    rend2 = 4.0 * phycon.ANG2BOHR
+    grid2 = numpy.linspace(rmax, rend2, npoints2+1)
+    # grid2 = numpy.delete(grid2, 0)
 
     return (grid1, grid2)
 
@@ -328,22 +340,34 @@ def addition_grid(zrxn, zma, npoints=(14,)):
     return (grid,)
 
 
-def radrad_addition_grid(npoints=(5, 6)):
+def radrad_addition_grid(zrxn, zma, npoints=(8, 4)):
     """ Build forward 1D grid for a beta scission reaction
     """
 
     # Obtain the scan coordinate
-    # scan_name = addition_scan_coordinate(zrxn, zma)
+    scan_name, = addition_scan_coordinate(zrxn, zma)
 
     # Build the grid
     npoints1, npoints2 = npoints
 
-    rstart = 2.6 * phycon.ANG2BOHR
-    rend1 = 1.8 * phycon.ANG2BOHR
-    rend2 = 3.85 * phycon.ANG2BOHR
+    # Get the first grid from close to the mid
+    frm_bnd_len = _ts_bnd_len(zma, scan_name)
+    if frm_bnd_len is not None:
+        rmin = frm_bnd_len + (0.1 * phycon.ANG2BOHR)
+        rmax = frm_bnd_len + (1.2 * phycon.ANG2BOHR)
+    else:
+        rmin = 1.6 * phycon.ANG2BOHR
+        rmax = 2.8 * phycon.ANG2BOHR
 
-    grid1 = numpy.linspace(rstart, rend1, npoints1)
-    grid2 = numpy.linspace(rstart, rend2, npoints2)
+    grid1 = numpy.linspace(rmin, rmax, npoints1)
+    grid1 = numpy.flip(grid1)
+    # grid1 = _geometric_progression(
+    #     rmin, rmax, npoints1, gfact=1.1, rstp=0.05)
+
+    # Get the outer grid from mid to long-distance
+    # Add extra point since initial will be dropped
+    rend2 = 4.00 * phycon.ANG2BOHR
+    grid2 = numpy.linspace(rmax, rend2, npoints2+1)
     # grid2 = numpy.delete(grid2, 0)
 
     return (grid1, grid2)
@@ -421,31 +445,54 @@ def substitution_grid(zrxn, zma, npoints=(14,)):
     return (grid,)
 
 
+# Aux function to return empty tuple when info not require for class
+def _return_empty_tuple(*_):
+    """ Return empty tuple
+    """
+    return ()
+
+
 # Wrapper functions to handle rxn obj and zma for any reaction class
+SCAN_COORD_DCT = {
+    # unimolecular
+    ReactionClass.Typ.HYDROGEN_MIGRATION:
+    hydrogen_migration_scan_coordinate,
+    ReactionClass.Typ.BETA_SCISSION: beta_scission_scan_coordinate,
+    ReactionClass.Typ.RING_FORM_SCISSION:
+    ring_forming_scission_scan_coordinate,
+    ReactionClass.Typ.ELIMINATION: elimination_scan_coordinate,
+    # bimolecular
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION:
+    hydrogen_abstraction_scan_coordinate,
+    ReactionClass.Typ.ADDITION: addition_scan_coordinate,
+    ReactionClass.Typ.INSERTION: insertion_scan_coordinate,
+    ReactionClass.Typ.SUBSTITUTION: substitution_scan_coordinate,
+}
+
+
 def scan_coordinate(rxn, zma):
     """ Obtain the scan coordinates
 
     :param rxn: a hydrogen migration Reaction object
     """
-    function_dct = {
-        # unimolecular
-        ReactionClass.Typ.HYDROGEN_MIGRATION:
-        hydrogen_migration_scan_coordinate,
-        ReactionClass.Typ.BETA_SCISSION: beta_scission_scan_coordinate,
-        ReactionClass.Typ.RING_FORM_SCISSION:
-        ring_forming_scission_scan_coordinate,
-        ReactionClass.Typ.ELIMINATION: elimination_scan_coordinate,
-        # bimolecular
-        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
-        hydrogen_abstraction_scan_coordinate,
-        ReactionClass.Typ.ADDITION: addition_scan_coordinate,
-        ReactionClass.Typ.INSERTION: insertion_scan_coordinate,
-        ReactionClass.Typ.SUBSTITUTION: substitution_scan_coordinate,
-    }
+    return SCAN_COORD_DCT[rxn.class_](rxn, zma)
 
-    fun_ = function_dct[rxn.class_]
-    ret = fun_(rxn, zma)
-    return ret
+
+CONSTRAINT_COORD_DCT = {
+    # unimolecular
+    ReactionClass.Typ.HYDROGEN_MIGRATION:
+    hydrogen_migration_constraint_coordinates,
+    ReactionClass.Typ.BETA_SCISSION: _return_empty_tuple,
+    ReactionClass.Typ.RING_FORM_SCISSION:
+    ring_forming_scission_constraint_coordinates,
+    ReactionClass.Typ.ELIMINATION: _return_empty_tuple,
+    # bimolecular
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION:
+    _return_empty_tuple,
+    ReactionClass.Typ.ADDITION: _return_empty_tuple,
+    ReactionClass.Typ.INSERTION: _return_empty_tuple,
+    ReactionClass.Typ.SUBSTITUTION: _return_empty_tuple,
+}
 
 
 def constraint_coordinates(rxn, zma):
@@ -453,69 +500,39 @@ def constraint_coordinates(rxn, zma):
 
     :param rxn: a hydrogen migration Reaction object
     """
-
-    def _return_empty_tuple(*_):
-        return ()
-
-    function_dct = {
-        # unimolecular
-        ReactionClass.Typ.HYDROGEN_MIGRATION:
-        hydrogen_migration_constraint_coordinates,
-        ReactionClass.Typ.BETA_SCISSION: _return_empty_tuple,
-        ReactionClass.Typ.RING_FORM_SCISSION:
-        ring_forming_scission_constraint_coordinates,
-        ReactionClass.Typ.ELIMINATION: _return_empty_tuple,
-        # bimolecular
-        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
-        _return_empty_tuple,
-        ReactionClass.Typ.ADDITION: _return_empty_tuple,
-        ReactionClass.Typ.INSERTION: _return_empty_tuple,
-        ReactionClass.Typ.SUBSTITUTION: _return_empty_tuple,
-    }
-
-    fun_ = function_dct[rxn.class_]
-    ret = fun_(rxn, zma)
-    return ret
+    return CONSTRAINT_COORD_DCT[rxn.class_](rxn, zma)
 
 
-def scan_grid(zrxn, zma):
+TIGHT_TS_GRID_DCT = {
+    ReactionClass.Typ.BETA_SCISSION: beta_scission_grid,
+    ReactionClass.Typ.ADDITION: addition_grid,
+    ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migration_grid,
+    ReactionClass.Typ.ELIMINATION: elimination_grid,
+    ReactionClass.Typ.RING_FORM_SCISSION: ring_forming_scission_grid,
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstraction_grid,
+    ReactionClass.Typ.SUBSTITUTION: substitution_grid,
+    ReactionClass.Typ.INSERTION: insertion_grid
+}
+VAR_TS_GRID_DCT = {
+    ReactionClass.Typ.ADDITION: radrad_addition_grid,
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
+}
+
+
+def scan_grid(zrxn, zma, var=False):
     """ Set the grid for a transition state search
-
-        rclass = (typ, spin, radrad)
-        # Pass npoints as a 2-element list
     """
 
-    tight_ts_grid_builder_dct = {
-        ReactionClass.Typ.BETA_SCISSION: beta_scission_grid,
-        ReactionClass.Typ.ADDITION: addition_grid,
-        ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migration_grid,
-        ReactionClass.Typ.ELIMINATION: elimination_grid,
-        ReactionClass.Typ.RING_FORM_SCISSION: ring_forming_scission_grid,
-        ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstraction_grid,
-        ReactionClass.Typ.SUBSTITUTION: substitution_grid,
-        ReactionClass.Typ.INSERTION: insertion_grid
-    }
-
-    # var_ts_grid_builder_dct = {
-    #  ReactionClass.Typ.ADDITION: radrad_addition_grid,
-    #  ReactionClass.Typ.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
-    # }
-
-    grid = tight_ts_grid_builder_dct[zrxn.class_](zrxn, zma)
-
-    # Set the main type
-    # if radrad and spin == 'low':
-    #     grid, update_guess = VAR_TS_GRID_BUILDER_DCT[rtyp](
-    #         ts_zma, trans)
-    # else:
-    #     grid, update_guess = TIGHT_TS_GRID_BUILDER_DCT[rtyp](
-    #         ts_zma, trans)
+    if not var:
+        grid = TIGHT_TS_GRID_DCT[zrxn.class_](zrxn, zma)
+    else:
+        grid = VAR_TS_GRID_DCT[zrxn.class_](zrxn, zma)
 
     return grid
 
 
 # UPDATE GUESS DICTIONARY #
-UPDATE_GUESS_DCT = {
+TIGHT_TS_UPDATE_GUESS_DCT = {
     ReactionClass.Typ.BETA_SCISSION: False,
     ReactionClass.Typ.ADDITION: False,
     ReactionClass.Typ.HYDROGEN_MIGRATION: True,
@@ -525,9 +542,24 @@ UPDATE_GUESS_DCT = {
     ReactionClass.Typ.SUBSTITUTION: False,
     ReactionClass.Typ.INSERTION: False
 }
-# ReactionClass.Typ.ADDITION: True,
-# ReactionClass.Typ.HYDROGEN_ABSTRACTION: True
-# These should be for radical-radical cases of the two - add later
+VAR_TS_UPDATE_GUESS_DCT = {
+    ReactionClass.Typ.ADDITION: True,
+    ReactionClass.Typ.HYDROGEN_ABSTRACTION: True
+}
+
+
+def scan_update_guess(zrxn, var=False):
+    """ Set boolean to control whether the initial guess structure for
+        optimization updates along scan, i.e., uses optimized geometry
+        from previous grid point
+    """
+
+    if not var:
+        _update = TIGHT_TS_UPDATE_GUESS_DCT[zrxn.class_]
+    else:
+        _update = VAR_TS_UPDATE_GUESS_DCT[zrxn.class_]
+
+    return _update
 
 
 # Helper functions

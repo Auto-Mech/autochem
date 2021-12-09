@@ -1,4 +1,6 @@
-""" Build potential grid for transition state searches
+""" Finds different types of maxima along potentials. Currently works
+    with lists of energies instead of the standard potential dict in
+    other functions.
 """
 
 import numpy
@@ -6,17 +8,55 @@ from scipy.signal import argrelextrema
 from phydat import phycon
 
 
+ETHRESH = 0.01 * phycon.KCAL2EH
+
+
 # Functions to build lists potential sadpts
-def find_max1d(enes_lst,
-               max_type='global',
-               ethresh=0.01*phycon.KCAL2EH,
-               include_endpts=True):
-    """ Find the desired local maximum along a 1D-potential. This maximum
+def find_max1d(enes_lst, max_type,
+               ethresh=ETHRESH, include_endpts=True):
+    """ Find the desired maxima along a 1D-potential.
+
+        This maximum
         could correspond to the innmermost local maximum or simply the
         global maximum.
     """
 
-    def _global_maximum(idxs, enes):
+    if max_type in ('sadpt-global', 'sadpt-innermost'):
+        typ = max_type.split('-')[1]
+        max_idx = saddle_point_maximum(
+            enes_lst,
+            max_type=typ, ethresh=ethresh,
+            include_endpts=include_endpts)
+    elif max_type == 'full-global':
+        max_idx = global_maximum(enes_lst, include_endpts=include_endpts)
+    else:
+        raise NotImplementedError(f'No max_type: {max_type}')
+
+    return max_idx
+
+
+# Functions for global searches
+def global_maximum(enes_lst, include_endpts=False):
+    """ Find the global maxima.
+    """
+
+    if include_endpts:
+        max_ene = max(enes_lst)
+    else:
+        max_ene = max(enes_lst[1:-1])
+
+    return enes_lst.index(max_ene)
+
+
+# Functions to locate maxima corresponding to saddle points
+def saddle_point_maximum(enes_lst,
+                         max_type='global',
+                         ethresh=ETHRESH,
+                         include_endpts=True):
+    """ Find maxima along potential
+    """
+
+    def _global_max(idxs, enes):
         """ Determine the index of the global max of a 1D-potential from a
             list of (idx, ene) pairs of local maxima for that potential.
 
@@ -30,7 +70,7 @@ def find_max1d(enes_lst,
         max_idx = idxs[idx][1]
         return max_idx
 
-    def _innermost_maximum(idxs):
+    def _innermost_max(idxs):
         """ Determine the index of the innermost max of a 1D-potential from a
             list of (idx, ene) pairs of local maxima for that potential.
 
@@ -56,9 +96,9 @@ def find_max1d(enes_lst,
     # Determine which of local maxima located meet desired specs; return this
     if sadpt_idxs and sadpt_enes:
         if max_type == 'global':
-            max_idx = _global_maximum(sadpt_idxs, sadpt_enes)
+            max_idx = _global_max(sadpt_idxs, sadpt_enes)
         elif max_type == 'innermost':
-            max_idx = _innermost_maximum(sadpt_idxs)
+            max_idx = _innermost_max(sadpt_idxs)
     else:
         if include_endpts:
             if enes_lst:
@@ -74,7 +114,7 @@ def find_max1d(enes_lst,
     return max_idx
 
 
-def _potential_sadpt(evals, ethresh=0.3):
+def _potential_sadpt(evals, ethresh=ETHRESH):
     """ Determine points on a 1D-grid that could correspond to
         a saddle point
     """
@@ -92,7 +132,7 @@ def _potential_sadpt(evals, ethresh=0.3):
 
 
 def _potential_sadpt_triplets(extrema_trips, evals,
-                              ethresh=0.3*phycon.KCAL2EH):
+                              ethresh=ETHRESH):
     """ Find triplets to look for sadpts
     """
 
