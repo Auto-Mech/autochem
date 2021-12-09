@@ -5,7 +5,7 @@ Import hierarchy:
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
     _canon      dependencies: _core, _networkx, _algo
-    amchi       dependencies: _core, _networkx, _algo, _canon
+    _amchi      dependencies: _core, _networkx, _algo, _canon
     _resonance  dependencies: _core, _networkx, _algo
     _func_group dependencies: _core, _networkx, _algo, _resonance
     _rot        dependencies: _core, _networkx, _algo, _resonance
