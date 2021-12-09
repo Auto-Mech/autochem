@@ -240,8 +240,6 @@ def rxn_objs_from_geometry(rct_geos, prd_geos,
     """ from
     """
 
-    print('stereo', stereo)
-
     # Identify the reaction based on the reactants and products
     rct_gras = list(map(automol.graph.without_stereo_parities,
                         map(automol.geom.graph, rct_geos)))
