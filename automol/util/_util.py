@@ -58,6 +58,7 @@ def equivalence_partition(iterable, relation, perfect=False):
                 break
         if not found:  # it is in a new class
             classes.append(set([obj]))
+
     # 2. Now, account for the possibility of 'imperfect' equivalence relations,
     # where the relation gives a = c and b = c, but not a = b, and yet we still
     # want a, b, and c to end up in the same class
@@ -68,8 +69,9 @@ def equivalence_partition(iterable, relation, perfect=False):
             for cls1, cls2 in itertools.combinations(classes, r=2):
                 if any(relation(o1, o2)
                        for o1, o2 in itertools.product(cls1, cls2)):
-                    new_classes.remove(cls2)
-                    cls1 |= cls2
+                    if cls2 in new_classes:
+                        new_classes.remove(cls2)
+                        cls1 |= cls2
 
             if classes == new_classes:
                 break
