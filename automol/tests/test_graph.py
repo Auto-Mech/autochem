@@ -963,5 +963,39 @@ def test__ts__compatible_reverse_stereomers():
         assert any(s == ste_tsg for s in ste_tsgs)
 
 
+def test__canonical():
+    """ test graph.canonical
+    """
+
+    def _test_from_smiles(smi):
+        ich = automol.smiles.inchi(smi)
+        geo = automol.inchi.geometry(ich)
+        gra = automol.geom.graph(geo)
+
+        gra = automol.graph.implicit(gra)
+
+        can_gra = automol.graph.canonical(gra)
+        print(automol.graph.string(can_gra, one_indexed=True))
+
+        natms = len(automol.graph.atom_keys(gra))
+
+        for _ in range(10):
+            pmt = list(map(int, numpy.random.permutation(natms)))
+            print(pmt)
+            print(dict(enumerate(pmt)))
+            pmt_gra = automol.graph.relabel(gra, dict(enumerate(pmt)))
+            can_pmt_gra = automol.graph.canonical(pmt_gra)
+            print(automol.graph.string(can_pmt_gra, one_indexed=True))
+            assert can_pmt_gra == can_gra
+
+    # More tests can be added here
+    smis = [
+        'c1ccccc1CC',
+    ]
+    for smi in smis:
+        _test_from_smiles(smi)
+
+
 if __name__ == '__main__':
-    test__to_index_based_stereo()
+    # test__to_index_based_stereo()
+    test__canonical()
