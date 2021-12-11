@@ -1,4 +1,4 @@
-""" InChI chemical identifiers
+""" InChI strings
 """
 
 # L3
