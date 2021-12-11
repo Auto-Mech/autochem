@@ -19,4 +19,5 @@ disable=
     logging-fstring-interpolation,
     no-self-use,
     broad-except,
-    unnecessary-lambda
+    unnecessary-lambda,
+    consider-using-f-string
