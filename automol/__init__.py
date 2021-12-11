@@ -16,6 +16,7 @@ Level 1: No dependencies; no interdependencies
  - mult
  - formula
  - inchi_key
+ - amchi_key
  - vmat
  - prop
  - embed
@@ -25,8 +26,8 @@ Level 2: L1 dependencies; hierarchical interdependency (descending)
 *The base modules contain functions that do not require convertion to another
 basic type.*
 
- - geom.base
  - amchi.base
+ - geom.base
  - graph.base   [L2 dependencies: geom.base, amchi.base]
  - zmat.base    [L2 dependencies: geom.base]
 
