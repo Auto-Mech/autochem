@@ -35,23 +35,23 @@ def amchi(gra, stereo=True, can_key_dct=None):
     can_key_dct = canonical_keys(gra) if can_key_dct is None else can_key_dct
 
     ach = automol.amchi.base.from_data(
-        fml_lyr=amchi_formula_layer(gra),
+        fml_str=amchi_formula_string(gra),
         main_lyr_dct=amchi_main_layers(gra, can_key_dct=can_key_dct),
     )
 
     return ach
 
 
-# # helper functions (O)
-def amchi_formula_layer(gra):
+# # output (AMChI string generation) helper functions
+def amchi_formula_string(gra):
     """ AMChI formula layer from graph
 
         :param gra: molecular graph
         :type gra: automol graph data structure
     """
     fml = formula(gra)
-    fml_lyr = automol.formula.string(fml)
-    return fml_lyr
+    fml_str = automol.formula.string(fml)
+    return fml_str
 
 
 def amchi_main_layers(gra, can_key_dct=None):
@@ -62,7 +62,7 @@ def amchi_main_layers(gra, can_key_dct=None):
         :param can_key_dct: optionally, pass in known canonical keys to avoid
             recalculating them; if None, they will be calculated
         :type can_key_dct: dict[int: int]
-        :returns: the 'c' and 'h' AMChI layers, as a dictionary
+        :returns: the 'c' and 'h' layers, as a dictionary
         :rtype: str
     """
     # Don't recalculate canonical keys unless we have to
@@ -144,7 +144,6 @@ def amchi_hydrogen_layer(gra, can_key_dct=None):
     return nhyd_lyr
 
 
-# # private helper functions
 def _connection_layer_and_list(gra, can_key_dct=None):
     """ AMChI connection layer and list from graph
 
