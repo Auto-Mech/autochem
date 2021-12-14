@@ -47,6 +47,9 @@ def instability_product_graphs(gra):
                     prd_ich = prds[fgrps.index(grp_ich)]
                     prd_geo = automol.inchi.geometry(prd_ich)
                     prd_gra = automol.geom.graph(prd_geo)
+                    # Build pair of product gras:
+                    # gra1; prd_gra :small molec from instab_fgrps_DCT
+                    # gra2; complementary mol from removing small mol from spc
                     prd_gras = radical_dissociation_prods(
                         gra, prd_gra)
                     break
