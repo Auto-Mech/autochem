@@ -43,6 +43,7 @@ along with additional functions requiring conversion to another basic type.*
 
  - geom
  - graph
+ - amchi        [L4 dependencies: graph]
  - inchi        [L4 dependencies: graph]
  - smiles
  - zmat         [L4 dependencies: graph, geom]
@@ -73,6 +74,7 @@ from automol import extern
 # L4
 from automol import graph
 from automol import geom
+from automol import amchi
 from automol import inchi
 from automol import smiles
 from automol import zmat
@@ -102,6 +104,7 @@ __all__ = [
     # L4
     'graph',
     'geom',
+    'amchi',
     'inchi',
     'smiles',
     'zmat',

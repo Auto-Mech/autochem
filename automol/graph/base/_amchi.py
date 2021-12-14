@@ -13,8 +13,36 @@ from automol.graph.base._core import implicit
 from automol.graph.base._core import relabel
 from automol.graph.base._canon import canonical_keys
 from automol.graph.base._algo import is_connected
+import automol.amchi.base
 
 
+# # main functions
+def amchi(gra, stereo=True, can_key_dct=None):
+    """ AMChI string from graph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param can_key_dct: optionally, pass in known canonical keys to avoid
+            recalculating them; if None, they will be calculated
+        :type can_key_dct: dict[int: int]
+        :returns: the AMChI string
+        :rtype: str
+    """
+    if stereo:
+        raise NotImplementedError
+
+    # Don't recalculate canonical keys unless we have to
+    can_key_dct = canonical_keys(gra) if can_key_dct is None else can_key_dct
+
+    ach = automol.amchi.base.from_data(
+        fml_lyr=amchi_formula_layer(gra),
+        main_lyr_dct=amchi_main_layers(gra, can_key_dct=can_key_dct),
+    )
+
+    return ach
+
+
+# # helper functions (O)
 def amchi_formula_layer(gra):
     """ AMChI formula layer from graph
 
@@ -26,14 +54,22 @@ def amchi_formula_layer(gra):
     return fml_lyr
 
 
-def amchi_main_layers(gra):
+def amchi_main_layers(gra, can_key_dct=None):
     """ Determine the main layers, describing the connectivity of the molecule.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
+        :param can_key_dct: optionally, pass in known canonical keys to avoid
+            recalculating them; if None, they will be calculated
+        :type can_key_dct: dict[int: int]
+        :returns: the 'c' and 'h' AMChI layers, as a dictionary
+        :rtype: str
     """
-    conn_lyr = amchi_connection_layer(gra)
-    nhyd_lyr = amchi_hydrogen_layer(gra)
+    # Don't recalculate canonical keys unless we have to
+    can_key_dct = canonical_keys(gra) if can_key_dct is None else can_key_dct
+
+    conn_lyr = amchi_connection_layer(gra, can_key_dct=can_key_dct)
+    nhyd_lyr = amchi_hydrogen_layer(gra, can_key_dct=can_key_dct)
     main_lyr_dct = {'c': conn_lyr, 'h': nhyd_lyr}
     return main_lyr_dct
 
@@ -99,13 +135,16 @@ def amchi_hydrogen_layer(gra, can_key_dct=None):
         parts = sorted(map(sorted, parts))
         strs = ['{:d}-{:d}'.format(min(p), max(p)) if len(p) > 1
                 else '{:d}'.format(p[0]) for p in parts]
-        slyrs.append(','.join(strs) + f'H{nhyd}')
+        if nhyd == 1:
+            slyrs.append(','.join(strs) + 'H')
+        else:
+            slyrs.append(','.join(strs) + f'H{nhyd}')
 
     nhyd_lyr = ','.join(slyrs)
     return nhyd_lyr
 
 
-# String generators
+# # private helper functions
 def _connection_layer_and_list(gra, can_key_dct=None):
     """ AMChI connection layer and list from graph
 
@@ -120,10 +159,6 @@ def _connection_layer_and_list(gra, can_key_dct=None):
     assert is_connected(gra), (
         "Cannot form connection layer for disconnected graph.")
 
-    def _join_with_dashes(nums):
-        print('nums', nums)
-        return '-'.join(map('{:d}'.format, nums))
-
     # Don't recalculate canonical keys unless we have to
     can_key_dct = canonical_keys(gra) if can_key_dct is None else can_key_dct
 
@@ -131,9 +166,8 @@ def _connection_layer_and_list(gra, can_key_dct=None):
     gra = implicit(gra)
     gra = relabel(gra, can_key_dct)
 
-    # Get a one-indexed neighbor keys dictionary. Sort the neighbors so that
-    # they come out in the right order when we form the connection layer.
-    nkeys_dct = {k+1: sorted(n+1 for n in ns) for k, ns in
+    # Get a one-indexed neighbor keys dictionary.
+    nkeys_dct = {k+1: [n+1 for n in ns] for k, ns in
                  atoms_neighbor_atom_keys(gra).items()}
 
     def _recurse_connection_layer(conn_lyr, conn_lst, key, just_seen=None):
@@ -180,13 +214,19 @@ def _connection_layer_and_list(gra, can_key_dct=None):
             # If there are multiple neighbors, we join it as
             #   k(n1-...,n2-...)n3-...
             else:
+                # Sort the list of branches by length and index values.
+                srt_idxs = sorted(
+                    range(len(sub_lsts)),
+                    key=lambda i: (len(sub_lsts[i]), sub_lsts[i]))
+
+                # Apply the sort to both layers and lists.
+                sub_lyrs = list(map(sub_lyrs.__getitem__, srt_idxs))
+                sub_lsts = list(map(sub_lsts.__getitem__, srt_idxs))
+
                 # Extend the layer string.
                 conn_lyr += f"({','.join(sub_lyrs[:-1])}){sub_lyrs[-1]}"
 
-                # Append the lists of neighboring branches.  They have been
-                # pre-sorted above where we formed the nkeys_dct, so for a
-                # given length they will be sorted by index.
-                sub_lsts = sorted(sub_lsts, key=len)
+                # Append the lists of neighboring brancches.
                 conn_lst.append(sub_lsts)
 
         return conn_lyr, conn_lst

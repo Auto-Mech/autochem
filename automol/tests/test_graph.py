@@ -996,6 +996,23 @@ def test__canonical():
         _test_from_smiles(smi)
 
 
+def test__amchi():
+    """ test graph.amchi
+    """
+
+    ich = automol.smiles.inchi('CC(C(O)CCl)CF')
+    geo = automol.inchi.geometry(ich)
+    gra = automol.geom.graph(geo)
+    _, (nums,) = automol.graph.inchi_with_sort_from_geometry(gra, geo=geo)
+    ich_can_key_dct = dict(enumerate(nums))
+    ach = automol.graph.amchi(gra, stereo=False, can_key_dct=ich_can_key_dct)
+    print(ich)
+    print(ach)
+
+    assert ich.split('/')[1:] == ach.split('/')[1:]
+
+
 if __name__ == '__main__':
     # test__to_index_based_stereo()
-    test__canonical()
+    # test__canonical()
+    test__amchi()
