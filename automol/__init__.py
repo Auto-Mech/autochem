@@ -16,6 +16,7 @@ Level 1: No dependencies; no interdependencies
  - mult
  - formula
  - inchi_key
+ - amchi_key
  - vmat
  - prop
  - embed
@@ -25,8 +26,9 @@ Level 2: L1 dependencies; hierarchical interdependency (descending)
 *The base modules contain functions that do not require convertion to another
 basic type.*
 
+ - amchi.base
  - geom.base
- - graph.base   [L2 dependencies: geom.base]
+ - graph.base   [L2 dependencies: geom.base, amchi.base]
  - zmat.base    [L2 dependencies: geom.base]
 
 Level 3: L1-2 dependencies; hierarchical interdependency (descending)
@@ -40,7 +42,8 @@ Level 4: L1-3 dependencies; hierarchical interdependency (descending)
 along with additional functions requiring conversion to another basic type.*
 
  - geom
- - graph        [L4 dependencies: graph]
+ - graph
+ - amchi        [L4 dependencies: graph]
  - inchi        [L4 dependencies: graph]
  - smiles
  - zmat         [L4 dependencies: graph, geom]
@@ -71,6 +74,7 @@ from automol import extern
 # L4
 from automol import graph
 from automol import geom
+from automol import amchi
 from automol import inchi
 from automol import smiles
 from automol import zmat
@@ -100,6 +104,7 @@ __all__ = [
     # L4
     'graph',
     'geom',
+    'amchi',
     'inchi',
     'smiles',
     'zmat',

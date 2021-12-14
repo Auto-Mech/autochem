@@ -12,7 +12,6 @@ from automol.util import dict_
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
-from automol.graph.base._core import implicit
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import mass_numbers
@@ -20,12 +19,18 @@ from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import atom_explicit_hydrogen_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
+from automol.graph.base._core import implicit
 from automol.graph.base._core import relabel
 from automol.graph.base._algo import is_connected
 
 
 def canonical(gra):
     """ A graph relabeled with canonical keys
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: a new molecular graph with canonical keys; if explicit
+            hydrogens are included, they will be relabeled as well
     """
     can_key_dct = canonical_keys(gra, backbone_only=False)
     return relabel(gra, can_key_dct)
@@ -38,6 +43,7 @@ def canonical_keys(gra, backbone_only=True):
         :type gra: automol graph data structure
         :param backbone_only: Consider backbone atoms only?
         :type backbone_only: bool
+        :returns: a dictionary of canonical keys by atom key
         :rtype: dict[int: int]
     """
     assert is_connected(gra), "Cannot canonicalize disconnected graph."

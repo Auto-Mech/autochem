@@ -169,6 +169,8 @@ from automol.graph.base._algo import ring_systems_decomposed_atom_keys
 # canonicalization functions:
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
+# AMChI functions:
+from automol.graph.base._amchi import amchi
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -422,6 +424,8 @@ __all__ = [
     # canonicalization functions:
     'canonical',
     'canonical_keys',
+    # AMChI functions:
+    'amchi',
     # resonance functions:
     # # core functions
     'dominant_resonance',
