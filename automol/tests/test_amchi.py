@@ -29,6 +29,11 @@ C8H13O_CHI = (
     'b5-3-,6-4-/t8-/m0/s1')
 C8H13O_CHI_NO_STEREO = 'AMChI=1/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3'
 
+C3H8FNO2_CHI = 'InChI=1S/C3H8FNO2/c1-3(4,2-5)7-6/h6H,2,5H2,1H3'
+C10H14CLFO_CHI = (
+    'AMChI=1/C10H14ClFO/c1-7(9(6-12)10(13)5-11)8-3-2-4-8'
+    '/h2-4,7,9-10,13H,5-6H2,1H3')
+
 
 def test__from_data():
     """ test getters
@@ -107,17 +112,36 @@ def test__has_stereo():
     assert not amchi.has_stereo(C2H6O_CHI_NO_STEREO)
 
 
-def test__join():
-    """ test amchi.join
+def test__symbols():
+    """ test amchi.symbols
     """
-    assert amchi.join(amchi.split(C4H10ZN_CHI)) == C4H10ZN_CHI
-    assert amchi.join(amchi.split(C4H5F2O_CHI)) == C4H5F2O_CHI
+    symb_dct = amchi.symbols(C3H8FNO2_CHI)
+    print(symb_dct)
+    assert symb_dct == {0: 'C', 1: 'C', 2: 'C', 3: 'F', 4: 'N', 5: 'O', 6: 'O'}
 
-    chi = ('AMChI=1/C3H7O4.C2H5FO/c1-3(7-5)2-6-4;1-2(3)4/'
-           'h3,5H,2H2,1H3;2,4H,1H3/t3-;2-/m01/s1')
-    print(chi[:-3])
-    print(amchi.join(amchi.split(chi)))
-    assert amchi.join(amchi.split(chi)) == chi[:-3]
+    symb_dct = amchi.symbols(C10H14CLFO_CHI)
+    print(symb_dct)
+    assert symb_dct == {0: 'C', 1: 'C', 2: 'C', 3: 'C', 4: 'C', 5: 'C', 6: 'C',
+                        7: 'C', 8: 'C', 9: 'C', 10: 'Cl', 11: 'F', 12: 'O'}
+
+
+def test__bonds():
+    """ test amchi.bonds
+    """
+    bnds = amchi.bonds(C3H8FNO2_CHI, one_indexed=True)
+    print(bnds)
+    assert bnds == {
+        frozenset({1, 3}), frozenset({3, 4}), frozenset({3, 2}),
+        frozenset({2, 5}), frozenset({3, 7}), frozenset({7, 6})}
+
+    bnds = amchi.bonds(C10H14CLFO_CHI, one_indexed=True)
+    print(bnds)
+    assert bnds == {
+        frozenset({1, 7}), frozenset({7, 9}), frozenset({7, 8}),
+        frozenset({8, 3}), frozenset({3, 2}), frozenset({2, 4}),
+        frozenset({4, 8}), frozenset({9, 6}), frozenset({9, 10}),
+        frozenset({6, 12}), frozenset({10, 13}), frozenset({10, 5}),
+        frozenset({5, 11})}
 
 
 def test__stereo_atoms():
@@ -140,5 +164,19 @@ def test__stereo_bonds():
     assert bnds == ((4, 2), (5, 3))
 
 
+def test__join():
+    """ test amchi.join
+    """
+    assert amchi.join(amchi.split(C4H10ZN_CHI)) == C4H10ZN_CHI
+    assert amchi.join(amchi.split(C4H5F2O_CHI)) == C4H5F2O_CHI
+
+    chi = ('AMChI=1/C3H7O4.C2H5FO/c1-3(7-5)2-6-4;1-2(3)4/'
+           'h3,5H,2H2,1H3;2,4H,1H3/t3-;2-/m01/s1')
+    print(chi[:-3])
+    print(amchi.join(amchi.split(chi)))
+    assert amchi.join(amchi.split(chi)) == chi[:-3]
+
+
 if __name__ == '__main__':
-    test__formula()
+    test__symbols()
+    test__bonds()

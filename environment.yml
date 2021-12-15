@@ -34,3 +34,4 @@ dependencies:
     - conda-forge::gcc_linux-64=7.5.0
     - conda-forge::gxx_linux-64=7.5.0
     - conda-forge::gfortran_linux-64=7.5.0
+    - conda-forge::pyparsing

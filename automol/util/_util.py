@@ -82,6 +82,16 @@ def equivalence_partition(iterable, relation, perfect=False):
 
 
 # Useful functions on Python objects
+def breakby(lst, elem):
+    """ Break a list by element, dropping the element itself.
+
+    Analogous to '<char>'.split('<string>') for strings.
+    """
+    lsts = tuple(tuple(g) for k, g in
+                 itertools.groupby(lst, lambda x: x == elem) if not k)
+    return lsts
+
+
 def separate_negatives(lst):
     """ Seperate a list of numbers into negative and nonnegative (>= 0)
     """
