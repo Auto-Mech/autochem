@@ -1424,6 +1424,8 @@ def _from_atoms_and_bonds(atm_dct, bnd_dct):
     bnd_dct = dict(bnd_dct)
     atm_keys = set(atm_dct.keys())
     bnd_keys = set(bnd_dct.keys())
-    assert all(bnd_key <= atm_keys for bnd_key in bnd_keys)
+
+    assert all(bnd_key <= atm_keys for bnd_key in bnd_keys), (
+        f"\natm_keys: {atm_keys}\nbnd_keys: {bnd_keys}")
 
     return (atm_dct, bnd_dct)

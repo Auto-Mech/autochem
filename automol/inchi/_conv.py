@@ -1,4 +1,4 @@
-""" Level 4 functions depending on other basic types (graph, geom, zmat)
+""" Level 4 functions depending on other basic types (graph, geom)
 """
 
 import functools
