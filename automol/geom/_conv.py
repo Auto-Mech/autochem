@@ -76,10 +76,8 @@ def connectivity_graph(geo,
     bnd_keys = tuple(
         map(frozenset, filter(_are_bonded, itertools.combinations(idxs, r=2))))
 
-    bnd_ord_dct = {bnd_key: 1 for bnd_key in bnd_keys}
+    gra = automol.graph.from_data(atm_symb_dct=atm_symb_dct, bnd_keys=bnd_keys)
 
-    gra = automol.graph.from_data(
-        atm_symb_dct=atm_symb_dct, bnd_keys=bnd_keys, bnd_ord_dct=bnd_ord_dct)
     return gra
 
 

@@ -332,7 +332,7 @@ def bonds(chi, one_indexed=False):
     dash = pp.Suppress('-')
     chain = integer + pp.ZeroOrMore(dash + integer)
     chains = chain + pp.ZeroOrMore(',' + chain)
-    parser = chain + pp.nestedExpr('(', ')', content=chains) + chain
+    parser = pp.Opt(chain + pp.nestedExpr('(', ')', content=chains) + chain)
 
     # Do the parsing. This produces a nested list of numbers and commas
     # mirroring the connection layer
@@ -343,8 +343,8 @@ def bonds(chi, one_indexed=False):
     shift = 0 if one_indexed else -1
 
     def _recurse_find_bonds(bnds, conn_lst):
-        # Pop the current key
-        key = conn_lst.pop(0) + shift
+        # Pop the current idx
+        idx = conn_lst.pop(0) + shift
 
         # If there are elements left, continue
         if conn_lst:
@@ -365,12 +365,12 @@ def bonds(chi, one_indexed=False):
                 # each sub list from the split
                 for lst in map(list, lsts):
                     nei = lst[0] + shift
-                    bnds.add(frozenset({key, nei}))
+                    bnds.add(frozenset({idx, nei}))
 
                     _recurse_find_bonds(bnds, lst)
 
                 # Now that the list has been dealt with, continue with the
-                # element following it, which is also bonded to `key`
+                # element following it, which is also bonded to `idx`
                 nei = conn_lst[0] + shift
 
                 # Check that this is an integer (it should always be)
@@ -378,7 +378,7 @@ def bonds(chi, one_indexed=False):
                     f"Something is wrong. {nei} should be an integer.")
 
                 # Add the bond
-                bnds.add(frozenset({key, nei}))
+                bnds.add(frozenset({idx, nei}))
 
                 # Continue the recursion
                 bnds = _recurse_find_bonds(bnds, conn_lst)
@@ -387,8 +387,8 @@ def bonds(chi, one_indexed=False):
                 # In this case, we are continuing along a chain
 
                 # Add the bond
-                nei = obj - shift
-                bnds.add(frozenset({key, nei}))
+                nei = obj + shift
+                bnds.add(frozenset({idx, nei}))
 
                 # Continue the recursion
                 bnds = _recurse_find_bonds(bnds, conn_lst)
@@ -410,10 +410,38 @@ def hydrogen_valences(chi, one_indexed=False):
         :returns: a dictionary of hydrogen valences, keyed by canonical index
         :rtype: dict[int: int]
     """
-    idxs = canonical_indices(chi)
-    print(chi)
-    print(idxs)
-    print(one_indexed)
+    # Set up the parser
+    integer = pp.Word(pp.nums)
+    sep = '-' | pp.Suppress(',')
+    block = integer + pp.ZeroOrMore(sep + integer) + 'H' + pp.Opt(integer)
+    parser = pp.Opt(pp.Group(block) + pp.ZeroOrMore(sep + pp.Group(block)))
+
+    # Do the parsing
+    main_lyr_dct = main_layers(chi)
+    nhyd_lyr = main_lyr_dct['h'] if 'h' in main_lyr_dct else ''
+    nhyd_lsts = ap_cast(parser.parseString(nhyd_lyr).asList())
+
+    # Interpret the list
+    shift = 0 if one_indexed else -1
+    all_idxs = canonical_indices(chi, one_indexed=one_indexed)
+    nhyd_dct = dict_.by_key({}, all_idxs, fill_val=0)
+    for nhyd_lst in nhyd_lsts:
+        if isinstance(nhyd_lst[-1], int):
+            nhyd = nhyd_lst[-1]
+            nhyd_lst = nhyd_lst[:-2]
+        else:
+            nhyd = 1
+            nhyd_lst = nhyd_lst[:-1]
+
+        lsts = list(map(list, automol.util.breakby(nhyd_lst, '-')))
+        idxs = lsts.pop(0)
+        for lst in lsts:
+            idxs.extend(range(idxs[-1]+1, lst[0]))
+            idxs.extend(lst)
+        idxs = [k+shift for k in idxs]
+        nhyd_dct.update({k: nhyd for k in idxs})
+
+    return nhyd_dct
 
 
 def stereo_atoms(chi, iso=True, one_indexed=False):
@@ -782,13 +810,9 @@ if __name__ == '__main__':
     ICH = ('InChI=1S/C10H14ClFO/c1-7(8-3-2-4-8)9(6-12)10(13)5-11'
            '/h2-4,7,9-10,13H,5-6H2,1H3')
     ICH2 = 'InChI=1S/C3H8FNO2/c1-3(4,2-5)7-6/h6H,2,5H2,1H3'
-    SYMB_DCT = symbols(ACH)
+    SYMB_DCT = symbols(ACH, one_indexed=True)
+    BNDS = bonds(ACH, one_indexed=True)
+    NHYD_DCT = hydrogen_valences(ACH, one_indexed=True)
     print(SYMB_DCT)
-    # hydrogen_valences(ACH, one_indexed=True)
-    print(ACH)
-    # bonds(ACH)
-    bonds(ICH2)
-    print(bonds(ICH2, one_indexed=True) == {
-        frozenset({1, 3}), frozenset({3, 4}), frozenset({3, 2}),
-        frozenset({2, 5}), frozenset({3, 7}), frozenset({7, 6})})
-    print(bonds(ICH2, one_indexed=False))
+    print(BNDS)
+    print(NHYD_DCT)
