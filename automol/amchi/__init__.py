@@ -21,6 +21,10 @@ from automol.amchi.base._core import has_stereo
 from automol.amchi.base._core import has_multiple_components
 from automol.amchi.base._core import charge
 from automol.amchi.base._core import low_spin_multiplicity
+from automol.amchi.base._core import canonical_indices
+from automol.amchi.base._core import symbols
+from automol.amchi.base._core import bonds
+from automol.amchi.base._core import hydrogen_valences
 from automol.amchi.base._core import stereo_atoms
 from automol.amchi.base._core import stereo_bonds
 from automol.amchi.base._core import unassigned_stereo_bonds
@@ -50,6 +54,10 @@ __all__ = [
     'has_multiple_components',
     'charge',
     'low_spin_multiplicity',
+    'canonical_indices',
+    'symbols',
+    'bonds',
+    'hydrogen_valences',
     'stereo_atoms',
     'stereo_bonds',
     'unassigned_stereo_bonds',

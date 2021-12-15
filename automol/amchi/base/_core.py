@@ -6,9 +6,12 @@ documentation simply refers to "ChI" strings.
 
 import itertools
 import functools
+from collections import abc
+import pyparsing as pp
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
+import automol.util
 from automol.util import dict_
 import automol.formula
 
@@ -316,6 +319,87 @@ def symbols(chi, one_indexed=False):
     return symb_dct
 
 
+def bonds(chi, one_indexed=False):
+    """ Determine bonds between backbone atoms in a ChI string
+
+        :param chi: ChI string
+        :type chi: str
+        :param one_indexed: use one-indexing?
+        :type one_indexed: bool
+    """
+    # Set up the pyparsing parser
+    integer = pp.Word(pp.nums)
+    dash = pp.Suppress('-')
+    chain = integer + pp.ZeroOrMore(dash + integer)
+    chains = chain + pp.ZeroOrMore(',' + chain)
+    parser = chain + pp.nestedExpr('(', ')', content=chains) + chain
+
+    # Do the parsing. This produces a nested list of numbers and commas
+    # mirroring the connection layer
+    main_lyr_dct = main_layers(chi)
+    conn_lyr = main_lyr_dct['c'] if 'c' in main_lyr_dct else ''
+    conn_lst = list(ap_cast(parser.parseString(conn_lyr).asList()))
+
+    shift = 0 if one_indexed else -1
+
+    def _recurse_find_bonds(bnds, conn_lst):
+        # Pop the current key
+        key = conn_lst.pop(0) + shift
+
+        # If there are elements left, continue
+        if conn_lst:
+            # Look at the next element
+            obj = conn_lst[0]
+
+            # Deal with the case where obj is a sequence
+            if isinstance(obj, abc.Sequence):
+                # In this case, we have multiple branches
+
+                # Pop the sequence
+                obj = conn_lst.pop(0)
+
+                # Split the sequence at commas
+                lsts = automol.util.breakby(obj, ',')
+
+                # Add bonds to the first element and continue the recursion for
+                # each sub list from the split
+                for lst in map(list, lsts):
+                    nei = lst[0] + shift
+                    bnds.add(frozenset({key, nei}))
+
+                    _recurse_find_bonds(bnds, lst)
+
+                # Now that the list has been dealt with, continue with the
+                # element following it, which is also bonded to `key`
+                nei = conn_lst[0] + shift
+
+                # Check that this is an integer (it should always be)
+                assert isinstance(nei, int), (
+                    f"Something is wrong. {nei} should be an integer.")
+
+                # Add the bond
+                bnds.add(frozenset({key, nei}))
+
+                # Continue the recursion
+                bnds = _recurse_find_bonds(bnds, conn_lst)
+            # Deal with the case where obj is a number
+            else:
+                # In this case, we are continuing along a chain
+
+                # Add the bond
+                nei = obj - shift
+                bnds.add(frozenset({key, nei}))
+
+                # Continue the recursion
+                bnds = _recurse_find_bonds(bnds, conn_lst)
+
+        return bnds
+
+    bnds = _recurse_find_bonds(set(), conn_lst)
+
+    return bnds
+
+
 def hydrogen_valences(chi, one_indexed=False):
     """ Determine the hydrogen valences of backbone atoms in a ChI string
 
@@ -329,23 +413,7 @@ def hydrogen_valences(chi, one_indexed=False):
     idxs = canonical_indices(chi)
     print(chi)
     print(idxs)
-
-
-def bonds(chi, one_indexed=False):
-    """ Determine bonds between backbone atoms in a ChI string
-
-        :param chi: ChI string
-        :type chi: str
-        :param one_indexed: use one-indexing?
-        :type one_indexed: bool
-    """
-    # TODO: use apf.all_captures_with_spans to find all indices in the
-    # connection layer and identify what comes before/after
-    main_lyr_dct = main_layers(chi)
-    conn_lyr = main_lyr_dct['c'] if 'c' in main_lyr_dct else ''
-    ptt = app.capturing(app.UNSIGNED_INTEGER)
-    lst = apf.all_captures_with_spans(ptt, conn_lyr)
-    print(lst)
+    print(one_indexed)
 
 
 def stereo_atoms(chi, iso=True, one_indexed=False):
@@ -713,8 +781,14 @@ if __name__ == '__main__':
            '/h2-4,7,9-10,13H,5-6H2,1H3')
     ICH = ('InChI=1S/C10H14ClFO/c1-7(8-3-2-4-8)9(6-12)10(13)5-11'
            '/h2-4,7,9-10,13H,5-6H2,1H3')
+    ICH2 = 'InChI=1S/C3H8FNO2/c1-3(4,2-5)7-6/h6H,2,5H2,1H3'
     SYMB_DCT = symbols(ACH)
     print(SYMB_DCT)
     # hydrogen_valences(ACH, one_indexed=True)
     print(ACH)
-    bonds(ACH)
+    # bonds(ACH)
+    bonds(ICH2)
+    print(bonds(ICH2, one_indexed=True) == {
+        frozenset({1, 3}), frozenset({3, 4}), frozenset({3, 2}),
+        frozenset({2, 5}), frozenset({3, 7}), frozenset({7, 6})})
+    print(bonds(ICH2, one_indexed=False))
