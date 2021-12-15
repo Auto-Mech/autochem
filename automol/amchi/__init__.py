@@ -31,6 +31,9 @@ from automol.amchi.base._core import unassigned_stereo_bonds
 # # split/join
 from automol.amchi.base._core import split
 from automol.amchi.base._core import join
+# L5
+# # conversions
+from automol.amchi._conv import connected_graph
 
 
 __all__ = [
@@ -64,4 +67,7 @@ __all__ = [
     # # split/join
     'split',
     'join',
+    # L5
+    # # conversions
+    'connected_graph',
 ]

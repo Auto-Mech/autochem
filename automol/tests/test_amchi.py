@@ -1,7 +1,11 @@
 """ test automol.amchi
 """
+import numpy
+import automol
 from automol import amchi
 
+# Note: Many of these are not canonical AMChIs. I just copied the InChIs over
+# and relabeled them.
 AR_CHI = 'AMChI=1/Ar'
 CH4O_CH_CHI = 'AMChI=1/CH4O.CH/c1-2;/h2H,1H3;h1H'
 CH2O2_CHI = 'AMChI=1/CH2O2/c2-1-3/h1-2H/q+1/p+1'
@@ -144,6 +148,19 @@ def test__bonds():
         frozenset({5, 11})}
 
 
+def test__hydrogen_valences():
+    """ test amchi.hydrogen_valences
+    """
+    nhyd_dct = amchi.hydrogen_valences(C3H8FNO2_CHI, one_indexed=True)
+    print(nhyd_dct)
+    assert nhyd_dct == {1: 3, 2: 2, 3: 0, 4: 0, 5: 2, 6: 1, 7: 0}
+
+    nhyd_dct = amchi.hydrogen_valences(C10H14CLFO_CHI, one_indexed=True)
+    print(nhyd_dct)
+    assert nhyd_dct == {1: 3, 2: 1, 3: 1, 4: 1, 5: 2, 6: 2, 7: 1, 8: 0, 9: 1,
+                        10: 1, 11: 0, 12: 0, 13: 1}
+
+
 def test__stereo_atoms():
     """ test amchi.stereo_atoms
     """
@@ -177,6 +194,28 @@ def test__join():
     assert amchi.join(amchi.split(chi)) == chi[:-3]
 
 
+def test__graph():
+    """ test amchi.graph
+    """
+    # A canonical AMChI string:
+    chi = ('AMChI=1/C10H14ClFO/c1-8(9(5-12)10(13)6-11)7-3-2-4-7/'
+           'h2-4,8-10,13H,5-6H2,1H3')
+
+    gra = amchi.connected_graph(chi, stereo=False)
+
+    natms = len(automol.graph.atom_keys(gra))
+
+    for _ in range(10):
+        pmt = list(map(int, numpy.random.permutation(natms)))
+        pmt_gra = automol.graph.relabel(gra, dict(enumerate(pmt)))
+        pmt_chi = automol.graph.amchi(pmt_gra, stereo=False)
+        print(automol.graph.string(pmt_gra))
+        print(pmt_chi)
+        assert pmt_chi == chi
+
+
 if __name__ == '__main__':
-    test__symbols()
-    test__bonds()
+    # test__symbols()
+    # test__bonds()
+    # test__hydrogen_valences()
+    test__graph()
