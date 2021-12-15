@@ -29,7 +29,7 @@ SLASH_OR_END = app.one_of_these([SLASH, app.STRING_END])
 def from_data(fml_str, main_lyr_dct=None,
               char_lyr_dct=None, ste_lyr_dct=None,
               iso_lyr_dct=None):
-    """ Build an ChI string from each of the various layers.
+    """ Build a ChI string from each of the various layers.
 
         :param fml_str: formula string, in Hill-sort order
         :type fml_str: str
@@ -178,7 +178,7 @@ def isotope_layers(chi):
 
 # # conversions
 def formula(ich):
-    """ Generate a formula dictionary from an ChI string.
+    """ Generate a formula dictionary from a ChI string.
 
         :param ich: ChI string
         :type ich: str
@@ -285,6 +285,67 @@ def low_spin_multiplicity(chi):
         mult = 2
 
     return mult
+
+
+def canonical_indices(chi, one_indexed=False):
+    """ Determine the list of canonical indices for a ChI string
+    """
+    idxs = sorted(symbols(chi, one_indexed=one_indexed).keys())
+    return idxs
+
+
+def symbols(chi, one_indexed=False):
+    """ Determine the atomic symbols of backbone atoms in a ChI string
+
+        :param chi: ChI string
+        :type chi: str
+        :param one_indexed: use one-indexing?
+        :type one_indexed: bool
+        :returns: a dictionary of atomic symbols, keyed by canonical index
+        :rtype: dict[int: str]
+    """
+    fml = formula(chi)
+    pool = list(automol.formula.sorted_symbols(fml.keys(), symbs_first=['C']))
+    if 'H' in pool:
+        pool.remove('H')
+
+    symbs = [s for symb in pool for s in itertools.repeat(symb, fml[symb])]
+
+    shift = 1 if one_indexed else 0
+    symb_dct = {k+shift: s for k, s in enumerate(symbs)}
+    return symb_dct
+
+
+def hydrogen_valences(chi, one_indexed=False):
+    """ Determine the hydrogen valences of backbone atoms in a ChI string
+
+        :param chi: ChI string
+        :type chi: str
+        :param one_indexed: use one-indexing?
+        :type one_indexed: bool
+        :returns: a dictionary of hydrogen valences, keyed by canonical index
+        :rtype: dict[int: int]
+    """
+    idxs = canonical_indices(chi)
+    print(chi)
+    print(idxs)
+
+
+def bonds(chi, one_indexed=False):
+    """ Determine bonds between backbone atoms in a ChI string
+
+        :param chi: ChI string
+        :type chi: str
+        :param one_indexed: use one-indexing?
+        :type one_indexed: bool
+    """
+    # TODO: use apf.all_captures_with_spans to find all indices in the
+    # connection layer and identify what comes before/after
+    main_lyr_dct = main_layers(chi)
+    conn_lyr = main_lyr_dct['c'] if 'c' in main_lyr_dct else ''
+    ptt = app.capturing(app.UNSIGNED_INTEGER)
+    lst = apf.all_captures_with_spans(ptt, conn_lyr)
+    print(lst)
 
 
 def stereo_atoms(chi, iso=True, one_indexed=False):
@@ -457,7 +518,7 @@ def join(chis):
 
 # # parsing helpers
 def _layers(lyrs_str):
-    """ Parse the layers of the specified layer of an ChI string to a
+    """ Parse the layers of the specified layer of a ChI string to a
         dictionary, keyed by prefix.
 
         :param lyrs_str: a string containing one or more ChI layers
@@ -556,7 +617,7 @@ def _layer_pattern(key_ptt='', val_ptt=NONSLASHES):
 
 # # split/join helpers
 def _join_layers(dcts):
-    """ Join all of the components of an ChI layer.
+    """ Join all of the components of a ChI layer.
 
         :param dcts: layer components, grouped by prefix
         :type dct: dict[str: str]
@@ -648,20 +709,12 @@ def _split_layer_string(lyr, count_sep_ptt=app.escape('*'),
 
 
 if __name__ == '__main__':
-    # ACH = ('AMChI=1/C10H14ClFO/c1-7(9(6-12)10(13)5-11)8-3-2-4-8'
-    #        '/h2-4,7,9-10,13H,5-6H2,1H3')
-    # ICH = ('InChI=1S/C10H14ClFO/c1-7(8-3-2-4-8)9(6-12)10(13)5-11'
-    #        '/h2-4,7,9-10,13H,5-6H2,1H3')
-    # for CHI in [ACH, ICH]:
-    #     print(CHI)
-    #     print(prefix(CHI))
-    #     print(version(CHI))
-    #     print(formula_string(CHI))
-    #     print(main_layers(CHI))
-    #     print(charge_layers(CHI))
-    #     print(stereo_layers(CHI))
-    #     print(isotope_layers(CHI))
-    #     print()
-    CHI = 'AMChI=1/H2O/h1H2/q+1'
-    print(charge(CHI))
-    print(low_spin_multiplicity(CHI))
+    ACH = ('AMChI=1/C10H14ClFO/c1-7(9(6-12)10(13)5-11)8-3-2-4-8'
+           '/h2-4,7,9-10,13H,5-6H2,1H3')
+    ICH = ('InChI=1S/C10H14ClFO/c1-7(8-3-2-4-8)9(6-12)10(13)5-11'
+           '/h2-4,7,9-10,13H,5-6H2,1H3')
+    SYMB_DCT = symbols(ACH)
+    print(SYMB_DCT)
+    # hydrogen_valences(ACH, one_indexed=True)
+    print(ACH)
+    bonds(ACH)
