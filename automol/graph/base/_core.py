@@ -598,6 +598,31 @@ def atom_hybridizations(rgr):
     return atm_hyb_dct
 
 
+def tetrahedral_atom_keys(gra):
+    """ Keys to tetrahedral atoms (possible stereo centers).
+
+        Atoms will be considered tetrahedral if either:
+            a. They are bonded to 4 other atoms.
+            b. They are bonded to 3 other atoms and have one lone pair.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+    """
+    gra = without_fractional_bonds(gra)
+    bnd_vlc_dct = atom_bond_valences(gra)
+    lpc_dct = atom_lone_pair_counts(gra)
+
+    def _is_tetrahedral(key):
+        bnd_vlc = bnd_vlc_dct[key]
+        lpc = lpc_dct[key]
+
+        ret = (lpc == 0) and (bnd_vlc == 4) or (lpc == 1) and (bnd_vlc == 3)
+        return ret
+
+    tet_atm_keys = frozenset(filter(_is_tetrahedral, atom_keys(gra)))
+    return tet_atm_keys
+
+
 def maximum_spin_multiplicity(gra, bond_order=True):
     """ the highest possible spin multiplicity for this molecular graph
     """

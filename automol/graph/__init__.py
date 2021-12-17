@@ -61,6 +61,7 @@ from automol.graph.base._core import atom_bond_valences
 from automol.graph.base._core import atom_unsaturated_valences
 from automol.graph.base._core import atom_explicit_hydrogen_valences
 from automol.graph.base._core import atom_hybridizations
+from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
 from automol.graph.base._core import atom_symbol_keys
@@ -316,6 +317,7 @@ __all__ = [
     'atom_unsaturated_valences',
     'atom_explicit_hydrogen_valences',
     'atom_hybridizations',
+    'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
     'atom_symbol_keys',

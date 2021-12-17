@@ -5,11 +5,11 @@ Import hierarchy:
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
     _canon      dependencies: _core, _networkx, _algo
-    _amchi      dependencies: _core, _networkx, _algo, _canon
     _resonance  dependencies: _core, _networkx, _algo
     _func_group dependencies: _core, _networkx, _algo, _resonance
     _rot        dependencies: _core, _networkx, _algo, _resonance
     _stereo     dependencies: _core, _networkx, _algo, _resonance
+    _amchi      dependencies: _core, _networkx, _algo, _canon, _stereo
     ts          dependencies: _core, _networkx, _algo, _resonance, _stereo
 
 Each next submodule in the hierarchy may depend on the ones before it, but
@@ -66,6 +66,7 @@ from automol.graph.base._core import atom_bond_valences
 from automol.graph.base._core import atom_unsaturated_valences
 from automol.graph.base._core import atom_explicit_hydrogen_valences
 from automol.graph.base._core import atom_hybridizations
+from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
 from automol.graph.base._core import atom_symbol_keys
@@ -174,8 +175,6 @@ from automol.graph.base._algo import ring_systems_decomposed_atom_keys
 # canonicalization functions:
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
-# AMChI functions:
-from automol.graph.base._amchi import amchi
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -256,6 +255,8 @@ from automol.graph.base._stereo import set_stereo_from_geometry
 # # stereo parity evaluation code
 from automol.graph.base._stereo import atom_stereo_parity_from_geometry
 from automol.graph.base._stereo import bond_stereo_parity_from_geometry
+# AMChI functions:
+from automol.graph.base._amchi import amchi
 # TS graph submodule:
 from automol.graph.base import ts
 
@@ -308,6 +309,7 @@ __all__ = [
     'atom_unsaturated_valences',
     'atom_explicit_hydrogen_valences',
     'atom_hybridizations',
+    'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
     'atom_symbol_keys',
@@ -416,8 +418,6 @@ __all__ = [
     # canonicalization functions:
     'canonical',
     'canonical_keys',
-    # AMChI functions:
-    'amchi',
     # resonance functions:
     # # core functions
     'dominant_resonance',
@@ -495,6 +495,8 @@ __all__ = [
     # # stereo parity evaluation code
     'atom_stereo_parity_from_geometry',
     'bond_stereo_parity_from_geometry',
+    # AMChI functions:
+    'amchi',
     # TS graph submodule:
     'ts',
 ]
