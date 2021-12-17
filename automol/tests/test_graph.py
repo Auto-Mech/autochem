@@ -969,6 +969,7 @@ def test__canonical():
 
     def _test_from_smiles(smi):
         ich = automol.smiles.inchi(smi)
+        print(ich)
         geo = automol.inchi.geometry(ich)
         gra = automol.geom.graph(geo)
 
@@ -982,7 +983,6 @@ def test__canonical():
         for _ in range(10):
             pmt = list(map(int, numpy.random.permutation(natms)))
             print(pmt)
-            print(dict(enumerate(pmt)))
             pmt_gra = automol.graph.relabel(gra, dict(enumerate(pmt)))
             can_pmt_gra = automol.graph.canonical(pmt_gra)
             print(automol.graph.string(can_pmt_gra, one_indexed=True))
@@ -991,6 +991,8 @@ def test__canonical():
     # More tests can be added here
     smis = [
         'c1ccccc1CC',
+        'F[C@@H]([C@@H](F)Cl)[C@H](F)Cl',
+        r'[H]/N=C\C(\C=N\[H])=N\[H]',
     ]
     for smi in smis:
         _test_from_smiles(smi)
@@ -1014,5 +1016,5 @@ def test__amchi():
 
 if __name__ == '__main__':
     # test__to_index_based_stereo()
-    # test__canonical()
-    test__amchi()
+    test__canonical()
+    # test__amchi()
