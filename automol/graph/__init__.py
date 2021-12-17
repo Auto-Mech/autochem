@@ -167,9 +167,6 @@ from automol.graph.base._algo import ring_systems_bond_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
-# canonicalization functions:
-from automol.graph.base._canon import canonical
-from automol.graph.base._canon import canonical_keys
 # AMChI functions:
 from automol.graph.base._amchi import amchi
 # resonance functions:
@@ -201,6 +198,12 @@ from automol.graph.base._resonance import (
         resonance_dominant_atom_centered_cumulene_keys)
 from automol.graph.base._resonance import (
         resonance_dominant_bond_centered_cumulene_keys)
+# canonicalization functions:
+from automol.graph.base._canon import canonical
+from automol.graph.base._canon import canonical_keys
+from automol.graph.base._canon import canonical_keys_and_stereo_parities
+from automol.graph.base._canon import atom_parity_evaluator_from_geometry_
+from automol.graph.base._canon import bond_parity_evaluator_from_geometry_
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -423,9 +426,6 @@ __all__ = [
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
-    # canonicalization functions:
-    'canonical',
-    'canonical_keys',
     # AMChI functions:
     'amchi',
     # resonance functions:
@@ -454,6 +454,12 @@ __all__ = [
     'resonance_dominant_atom_hybridizations',
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
+    # canonicalization functions:
+    'canonical',
+    'canonical_keys',
+    'canonical_keys_and_stereo_parities',
+    'atom_parity_evaluator_from_geometry_',
+    'bond_parity_evaluator_from_geometry_',
     # functional groups code:
     # # core functions
     'FunctionalGroup',
