@@ -10,9 +10,15 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import formula
 from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import implicit
+from automol.graph.base._core import explicit
 from automol.graph.base._core import relabel
+from automol.graph.base._core import atom_stereo_keys
+from automol.graph.base._core import atom_stereo_parities
+from automol.graph.base._core import bond_stereo_keys
+from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._canon import canonical_keys
 from automol.graph.base._algo import is_connected
+from automol.graph.base._stereo import to_index_based_stereo
 import automol.amchi.base
 
 
@@ -34,15 +40,16 @@ def amchi(gra, stereo=True, can_key_dct=None):
     # Don't recalculate canonical keys unless we have to
     can_key_dct = canonical_keys(gra) if can_key_dct is None else can_key_dct
 
-    ach = automol.amchi.base.from_data(
-        fml_str=amchi_formula_string(gra),
-        main_lyr_dct=amchi_main_layers(gra, can_key_dct=can_key_dct),
-    )
+    fml_str = amchi_formula_string(gra)
+    main_lyr_dct = amchi_main_layers(gra, can_key_dct=can_key_dct)
+
+    ach = automol.amchi.base.from_data(fml_str=fml_str,
+                                       main_lyr_dct=main_lyr_dct)
 
     return ach
 
 
-# # output (AMChI string generation) helper functions
+# # AMChI layer functions
 def amchi_formula_string(gra):
     """ AMChI formula layer from graph
 
@@ -75,7 +82,7 @@ def amchi_main_layers(gra, can_key_dct=None):
 
 
 def amchi_connection_layer(gra, can_key_dct=None):
-    """ AMChI connection layer from graph
+    """ AMChI connection (c) layer from graph
 
         :param gra: molecular graph
         :type gra: automol graph data structure
@@ -89,23 +96,8 @@ def amchi_connection_layer(gra, can_key_dct=None):
     return conn_lyr
 
 
-def amchi_connection_list(gra, can_key_dct=None):
-    """ AMChI connection list from graph
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param can_key_dct: optionally, pass in known canonical keys to avoid
-            recalculating them; if None, they will be calculated
-        :type can_key_dct: dict[int: int]
-        :returns: the connection list
-        :rtype: list
-    """
-    _, conn_lst = _connection_layer_and_list(gra, can_key_dct=can_key_dct)
-    return conn_lst
-
-
 def amchi_hydrogen_layer(gra, can_key_dct=None):
-    """ AMChI hydrogen layer from graph
+    """ AMChI hydrogen (h) layer from graph
 
         :param gra: molecular graph
         :type gra: automol graph data structure
@@ -144,6 +136,91 @@ def amchi_hydrogen_layer(gra, can_key_dct=None):
     return nhyd_lyr
 
 
+def amchi_bond_stereo_layer(gra, can_key_dct=None, can_stereo=False):
+    """ AMChI bond stereo (b) layer from graph
+
+        trans   = '+' = False
+        cis     = '-' = True
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param can_key_dct: optionally, pass in known canonical keys to avoid
+            recalculating them; if None, they will be calculated
+        :type can_key_dct: dict[int: int]
+        :param can_stereo: is this graph using canonical stereo? if not, we
+            must convert to canonical stereo
+        :type can_stereo: bool
+        :returns: the bond stereo layer, without prefix
+        :rtype: str
+    """
+    # Don't recalculate canonical keys unless we have to
+    can_key_dct = canonical_keys(gra) if can_key_dct is None else can_key_dct
+
+    # Convert to a canonical graph
+    gra = implicit(gra)
+    gra = relabel(gra, can_key_dct)
+
+    # If stereo isn't canonical, convert to canonical stereo before proceeding.
+    if not can_stereo:
+        gra = explicit(gra)
+        gra = to_index_based_stereo(gra)
+        gra = implicit(gra)
+
+    # Generate the bond stereo layer string
+    bnd_keys = sorted(sorted(k, reverse=True) for k in bond_stereo_keys(gra))
+    bnd_par_dct = bond_stereo_parities(gra)
+
+    bnd_pars = list(map(bnd_par_dct.__getitem__, map(frozenset, bnd_keys)))
+    bnd_sgns = ['-' if p else '+' for p in bnd_pars]
+    bnd_strs = [f'{i+1}-{j+1}{s}' for (i, j), s in zip(bnd_keys, bnd_sgns)]
+
+    bnd_ste_lyr = ','.join(bnd_strs)
+    return bnd_ste_lyr
+
+
+def amchi_atom_stereo_layers(gra, can_key_dct=None, can_stereo=False):
+    """ AMChI atom stereo (t, m) layer from graph
+
+        R = clockwise        = '@@' = '+' = False
+        S = counterclockwise = '@'  = '-' = True
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param can_key_dct: optionally, pass in known canonical keys to avoid
+            recalculating them; if None, they will be calculated
+        :type can_key_dct: dict[int: int]
+        :param can_stereo: is this graph using canonical stereo? if not, we
+            must convert to canonical stereo
+        :type can_stereo: bool
+        :returns: the atom stereo layers, t and m, without prefix
+        :rtype: (str, str)
+    """
+    # Don't recalculate canonical keys unless we have to
+    can_key_dct = canonical_keys(gra) if can_key_dct is None else can_key_dct
+
+    # Convert to a canonical graph
+    gra = implicit(gra)
+    gra = relabel(gra, can_key_dct)
+
+    # If stereo isn't canonical, convert to canonical stereo before proceeding.
+    if not can_stereo:
+        gra = explicit(gra)
+        gra = to_index_based_stereo(gra)
+        gra = implicit(gra)
+
+    # Generate the atom stereo layer strings
+    atm_keys = sorted(atom_stereo_keys(gra))
+    atm_par_dct = atom_stereo_parities(gra)
+
+    atm_pars = list(map(atm_par_dct.__getitem__, atm_keys))
+    atm_sgns = ['-' if p else '+' for p in atm_pars]
+    atm_strs = [f'{i+1}{s}' for i, s in zip(atm_keys, atm_sgns)]
+
+    atm_ste_lyr = ','.join(atm_strs)
+    return atm_ste_lyr
+
+
+# # private helpers
 def _connection_layer_and_list(gra, can_key_dct=None):
     """ AMChI connection layer and list from graph
 
@@ -232,3 +309,25 @@ def _connection_layer_and_list(gra, can_key_dct=None):
 
     conn_lyr, conn_lst = _recurse_connection_layer('', [], 1)
     return conn_lyr, conn_lst
+
+
+if __name__ == '__main__':
+    # # bond stereo
+    # GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
+    #         3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
+    #        {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
+    #         frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
+    #         frozenset({2, 5}): (1, False)})
+    # CAN_KEY_DCT = dict(enumerate(range(6)))
+    # print(amchi_bond_stereo_layer(GRA, can_key_dct=CAN_KEY_DCT))
+
+    # atom stereo
+    GRA = ({0: ('C', 1, None), 1: ('C', 1, False), 2: ('C', 1, False),
+            3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+            6: ('F', 0, None), 7: ('F', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+            frozenset({2, 7}): (1, None)})
+    CAN_KEY_DCT = dict(enumerate(range(8)))
+    amchi_atom_stereo_layers(GRA, can_key_dct=CAN_KEY_DCT)
