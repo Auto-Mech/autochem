@@ -969,6 +969,7 @@ def test__canonical():
 
     def _test_from_smiles(smi):
         ich = automol.smiles.inchi(smi)
+        print(ich)
         geo = automol.inchi.geometry(ich)
         gra = automol.geom.graph(geo)
 
@@ -982,7 +983,6 @@ def test__canonical():
         for _ in range(10):
             pmt = list(map(int, numpy.random.permutation(natms)))
             print(pmt)
-            print(dict(enumerate(pmt)))
             pmt_gra = automol.graph.relabel(gra, dict(enumerate(pmt)))
             can_pmt_gra = automol.graph.canonical(pmt_gra)
             print(automol.graph.string(can_pmt_gra, one_indexed=True))
@@ -991,9 +991,61 @@ def test__canonical():
     # More tests can be added here
     smis = [
         'c1ccccc1CC',
+        'F[C@@H]([C@@H](F)Cl)[C@H](F)Cl',
+        r'[H]/N=C\C(\C=N\[H])=N\[H]',
     ]
     for smi in smis:
         _test_from_smiles(smi)
+
+
+def test__canonical_keys_and_stereo_parities():
+    """ test graph.canonical_keys_and_stereo_parities
+    """
+
+    def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
+        ich = automol.smiles.inchi(smi)
+        print(ich)
+        geo = automol.inchi.geometry(ich)
+        gra = automol.geom.graph(geo)
+
+        atm_par_eval_ = graph.atom_parity_evaluator_from_geometry_(gra, geo)
+        bnd_par_eval_ = graph.bond_parity_evaluator_from_geometry_(gra, geo)
+
+        can_key_dct, atm_par_dct, bnd_par_dct = (
+            graph.canonical_keys_and_stereo_parities(
+                gra, atm_par_eval_=atm_par_eval_, bnd_par_eval_=bnd_par_eval_)
+        )
+        print(can_key_dct)
+
+        atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
+        bnd_pars = [p for k, p in sorted(bnd_par_dct.items()) if p is not None]
+
+        print(atm_pars, bnd_pars)
+        assert atm_pars == ref_atm_pars
+        assert bnd_pars == ref_bnd_pars
+
+    # More tests can be added here
+    args = [
+        # Atom stereo tests
+        ('C[C@@](F)(N)O', [True], []),  # R = clock  = '+' => True
+        ('C[C@](F)(N)O', [False], []),  # S = aclock = '-' => False
+        ('[C@@H](F)(N)O', [True], []),  # R = clock  = '+' => True
+        ('[C@H](F)(N)O', [False], []),  # S = aclock = '-' => False
+        # Bond stereo tests
+        (r'F/C=C/F', [], [True]),           # trans = '+' => True
+        (r'F/C=C\F', [], [False]),          # cis   = '-' => False
+        (r'[H]/N=C(Cl)/F', [], [True]),     # trans = '+' => True
+        (r'[H]/N=C(Cl)\F', [], [False]),    # cis   = '-' => False
+        (r'[H]/N=C/F', [], [True]),         # trans = '+' => True
+        (r'[H]/N=C\F', [], [False]),        # cis   = '-' => False
+        (r'[H]/N=N/[H]', [], [True]),       # trans = '+' => True
+        (r'[H]/N=N\[H]', [], [False]),      # cis   = '-' => False
+        # Advanced tests
+        ('F[C@@H]([C@@H](F)Cl)[C@H](F)Cl', [True, True, False], []),
+        (r'[H]/N=C\C(\C=N\[H])=N\[H]', [], [True, False, False]),
+    ]
+    for smi, ref_atm_pars, ref_bnd_pars in args:
+        _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars)
 
 
 def test__amchi():
@@ -1015,4 +1067,5 @@ def test__amchi():
 if __name__ == '__main__':
     # test__to_index_based_stereo()
     # test__canonical()
-    test__amchi()
+    # test__amchi()
+    test__canonical_keys_and_stereo_parities()

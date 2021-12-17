@@ -298,6 +298,252 @@ def stereogenic_bond_keys(gra, idx_dct=None, assigned=False):
     return ste_gen_bnd_keys
 
 
+# Parity evaluators
+def atom_parity_evaluator_from_geometry_(gra, geo, geo_idx_dct=None):
+    r""" A stereo parity evaluator for atoms in a geometry
+
+        Parity is defined as follows:
+
+        The four keys passed in are apices of a tetrahedron. Looking at 2, 3,
+        and 4 from 1, they will either ascend in clockwise or counterclockwise
+        order.
+
+        If ascending in counterclockwise order, the parity is False ('-').
+        If ascending in clockwise order, the parity is True ('+').
+
+              2                   2
+             /1\                 /1\
+            3---4               4---3
+
+            counterclockwise    clockwise
+            False               True
+            '-'                 '+'
+
+        (Viewed looking down from 1)
+
+        If only three keys are passed in, they will be treated as keys 2, 3,
+        and 4 above and it will be assumed that there is a lone pair at 1.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param geo_idx_dct: If they don't already match, specify which graph
+            keys correspond to which geometry indices.
+        :type geo_idx_dct: dict[int: int]
+        :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
+            returns the parity for a given atom, given a set of class indices.
+    """
+    assert gra == explicit(gra), (
+        "Explicit graph should be used when getting parities from geometry.")
+
+    atm_keys = sorted(atom_keys(gra))
+    geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
+                   else {k: i for i, k in enumerate(atm_keys)})
+
+    xyzs = automol.geom.base.coordinates(geo)
+    xyz_dct = {k: xyzs[geo_idx_dct[k]] for k in atm_keys}
+
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+    def _evaluator(idx_dct):
+        """ Parity evaluator based on current class indices.
+
+            :param idx_dct: A dictionary mapping atom keys to class indices.
+            :type idx_dct: dict
+        """
+        idx_dct = add_hydrogen_keys_to_index_dict(gra, idx_dct,
+                                                  break_ties=False, neg=True)
+
+        def _parity(key):
+            # Get the neighboring keys
+            nkeys = nkeys_dct[key]
+
+            # Sort them by class index
+            nkeys = sorted(nkeys, key=idx_dct.__getitem__)
+
+            # If there are only three groups, use the stereo atom itself as the
+            # top apex of the tetrahedron.
+            if len(nkeys) == 4:
+                keys = nkeys
+            else:
+                assert len(nkeys) == 3
+                keys = [key] + list(nkeys)
+
+            xyzs = list(map(list, map(xyz_dct.__getitem__, keys)))
+            det_mat = numpy.ones((4, 4))
+            det_mat[:, 1:] = xyzs
+            det_val = numpy.linalg.det(det_mat)
+            assert det_val != 0.  # for now, assume no four-atom planes
+            par = det_val > 0.
+            return par
+
+        return _parity
+
+    return _evaluator
+
+
+def bond_parity_evaluator_from_geometry_(gra, geo, geo_idx_dct=None):
+    r""" A stereo parity evaluator for bonds in a geometry
+
+        Parity is defined as follows:
+
+        For each atom in the double bond, find the heavy-atom neighbor with the
+        higher canonical number. Althrough hydrogen atoms have higher canonical
+        numbers, they are always given lowest priority.
+
+        If the neighbors are cis to each other, the parity is False ('-').
+        If the neighbors are trans to each other, the parity is True ('+').
+
+            max    max      max    min
+              \   /           \   /
+               A=B             A=B
+              /   \           /   \
+            min    min      min    max
+
+            cis             trans
+            False           True
+            '-'             '+'
+
+        If one side only has a single neighbor, then it is compared with the
+        maximum neighbor on the other side.
+
+            max    nei      max
+              \   /           \
+               A=B             A=B
+              /               /   \
+            min             min    nei
+
+            cis             trans
+            False           True
+            '-'             '+'
+
+        If both sides have only single neighbors, then they are compared to
+        each other.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param geo_idx_dct: If they don't already match, specify which graph
+            keys correspond to which geometry indices.
+        :type geo_idx_dct: dict[int: int]
+        :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
+            returns the parity for a given bond, given a set of class indices.
+    """
+    assert gra == explicit(gra), (
+        "Explicit graph should be used when getting parities from geometry.")
+
+    atm_keys = sorted(atom_keys(gra))
+    geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
+                   else {k: i for i, k in enumerate(atm_keys)})
+
+    xyzs = automol.geom.base.coordinates(geo)
+    xyz_dct = {k: xyzs[geo_idx_dct[k]] for k in atm_keys}
+
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+    def _evaluator(idx_dct):
+        """ Parity evaluator based on current class indices.
+
+            :param idx_dct: A dictionary mapping bond keys to class indices.
+            :type idx_dct: dict
+        """
+        idx_dct = add_hydrogen_keys_to_index_dict(gra, idx_dct,
+                                                  break_ties=False, neg=True)
+
+        def _parity(key):
+            key1, key2 = key
+            nkey1s = nkeys_dct[key1] - {key2}
+            nkey2s = nkeys_dct[key2] - {key1}
+
+            nmax1 = max(nkey1s, key=idx_dct.__getitem__)
+            nmax2 = max(nkey2s, key=idx_dct.__getitem__)
+
+            xyz1 = xyz_dct[key1]
+            xyz2 = xyz_dct[key2]
+            nxyz1 = xyz_dct[nmax1]
+            nxyz2 = xyz_dct[nmax2]
+
+            bnd1_vec = numpy.subtract(nxyz1, xyz1)
+            bnd2_vec = numpy.subtract(nxyz2, xyz2)
+
+            dot_val = numpy.vdot(bnd1_vec, bnd2_vec)
+            assert dot_val != 0.    # for now, assume not collinear
+            par = dot_val < 0.
+            return par
+
+        return _parity
+
+    return _evaluator
+
+
+def atom_parity_evaluator_from_canonical_stereo_graph_(gra):
+    """ A stereo parity evaluator atoms in a graph with canonical stereo
+
+        Stereo is already assumed to be canonical, so the class indices passed
+        in are ignored.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
+            returns the parity for a given atom, given a set of class indices.
+    """
+    atm_par_dct = atom_stereo_parities(gra)
+
+    def _evaluator(idx_dct):
+        """ Parity evaluator based on current class indices
+
+            Class indices are ignored, since the parities are assumed to be
+            canonical.
+
+            :param idx_dct: A dictionary mapping atom keys to class indices.
+            :type idx_dct: dict
+        """
+        # Do-nothing line to prevent linting complaint
+        assert idx_dct or not idx_dct
+
+        def _parity(key):
+            return atm_par_dct[key]
+
+        return _parity
+
+    return _evaluator
+
+
+def bond_parity_evaluator_from_canonical_stereo_graph_(gra):
+    """ A stereo parity evaluator bonds in a graph with canonical stereo
+
+        Stereo is already assumed to be canonical, so the class indices passed
+        in are ignored.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
+            returns the parity for a given bond, given a set of class indices.
+    """
+    bnd_par_dct = bond_stereo_parities(gra)
+
+    def _evaluator(idx_dct):
+        """ Parity evaluator based on current class indices
+
+            Class indices are ignored, since the parities are assumed to be
+            canonical.
+
+            :param idx_dct: A dictionary mapping bond keys to class indices.
+            :type idx_dct: dict
+        """
+        # Do-nothing line to prevent linting complaint
+        assert idx_dct or not idx_dct
+
+        def _parity(key):
+            return bnd_par_dct[key]
+
+        return _parity
+
+    return _evaluator
+
+
 # Sort evaluators
 def sort_evaluator_atom_invariants_(gra):
     """ A sort function based on atom invariants with two levels of currying.
@@ -412,146 +658,6 @@ def sort_evaluator_tie_breaking_(gra):
     return _evaluator
 
 
-# Parity evaluators
-def atom_parity_evaluator_from_geometry_(gra, geo, geo_idx_dct=None):
-    r""" A stereo parity evaluator for atoms in a geometry
-
-        Parity is defined as follows:
-
-        The four keys passed in are apices of a tetrahedron. Looking at 2, 3,
-        and 4 from 1, they will either ascend in clockwise or counterclockwise
-        order.
-
-        If ascending in clockwise order, the parity is True ('+').
-        If ascending in counterclockwise order, the parity is False ('-').
-
-             2              2
-            /1\            /1\
-           4---3          3---4
-           clockwise      counterclockwise
-           True           False
-           '+'            '-'
-
-        (Viewed looking down from 1)
-
-        If only three keys are passed in, they will be treated as keys 2, 3,
-        and 4 above and it will be assumed that there is a lone pair at 1.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
-            returns the parity for a given atom, given a set of class indices.
-    """
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
-                   else {k: i for i, k in enumerate(atm_keys)})
-
-    xyzs = automol.geom.base.coordinates(geo)
-    xyz_dct = {k: xyzs[geo_idx_dct[k]] for k in atm_keys}
-
-    def _evaluator(idx_dct):
-        """ Parity evaluator based on current class indices.
-
-            :param idx_dct: A dictionary mapping atom keys to class indices.
-            :type idx_dct: dict
-        """
-        idx_dct = add_hydrogen_keys_to_index_dict(gra, idx_dct,
-                                                  break_ties=False)
-
-        def _parity(key, keys):
-            # Sort the keys by class index
-            keys = sorted(keys, key=idx_dct.__getitem__)
-
-            # If there are only three groups, use the stereo atom itself as the
-            # top apex of the tetrahedron.
-            if len(keys) != 4:
-                assert len(keys) == 3
-                keys = [key] + list(keys)
-
-            xyzs = list(map(list, map(xyz_dct.__getitem__, keys)))
-            det_mat = numpy.ones((4, 4))
-            det_mat[:, 1:] = xyzs
-            det_val = numpy.linalg.det(det_mat)
-            assert det_val != 0.  # for now, assume no four-atom planes
-            par = det_val > 0.
-            return par
-
-        return _parity
-
-    return _evaluator
-
-
-def atom_parity_evaluator_from_canonical_stereo_graph_(gra):
-    """ A stereo parity evaluator atoms in a graph with canonical stereo
-
-        Stereo is already assumed to be canonical, so the class indices passed
-        in are ignored.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
-            returns the parity for a given atom, given a set of class indices.
-    """
-    atm_par_dct = atom_stereo_parities(gra)
-
-    def _evaluator(idx_dct):
-        """ Parity evaluator based on current class indices
-
-            Class indices are ignored, since the parities are assumed to be
-            canonical.
-
-            :param idx_dct: A dictionary mapping atom keys to class indices.
-            :type idx_dct: dict
-        """
-        # Do-nothing line to prevent linting complaint
-        assert idx_dct or not idx_dct
-
-        def _parity(key):
-            return atm_par_dct[key]
-
-        return _parity
-
-    return _evaluator
-
-
-def bond_parity_evaluator_from_canonical_stereo_graph_(gra):
-    """ A stereo parity evaluator bonds in a graph with canonical stereo
-
-        Stereo is already assumed to be canonical, so the class indices passed
-        in are ignored.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
-            returns the parity for a given bond, given a set of class indices.
-    """
-    bnd_par_dct = bond_stereo_parities(gra)
-
-    def _evaluator(idx_dct):
-        """ Parity evaluator based on current class indices
-
-            Class indices are ignored, since the parities are assumed to be
-            canonical.
-
-            :param idx_dct: A dictionary mapping bond keys to class indices.
-            :type idx_dct: dict
-        """
-        # Do-nothing line to prevent linting complaint
-        assert idx_dct or not idx_dct
-
-        def _parity(key):
-            return bnd_par_dct[key]
-
-        return _parity
-
-    return _evaluator
-
-
 # Canonicalization helpers
 def relax_class_indices(gra, idx_dct, srt_eval_):
     """ Relax the class indices for this graph based on some sort value.
@@ -627,12 +733,18 @@ def relax_class_indices(gra, idx_dct, srt_eval_):
     return idx_dct
 
 
-def add_hydrogen_keys_to_index_dict(gra, idx_dct, break_ties=False):
+def add_hydrogen_keys_to_index_dict(gra, idx_dct, break_ties=False, neg=False):
     """ Add explicit hydrogen keys to the class index dictionary
+
+        :param neg: Negate the keys, to give them minimum (rather than maximum)
+            priority?
+        :param neg: bool
     """
     idx_dct = idx_dct.copy()
 
     hyd_keys_pool = explicit_hydrogen_keys(gra)
+
+    sgn = -1 if neg else +1
 
     if hyd_keys_pool:
         bbn_keys = sorted(backbone_keys(gra), key=idx_dct.__getitem__)
@@ -653,13 +765,13 @@ def add_hydrogen_keys_to_index_dict(gra, idx_dct, break_ties=False):
                 list(itertools.chain(*map(get_hyd_key_, bbn_part)))
                 for bbn_part in bbn_parts]
             for hyd_part in hyd_parts:
-                hyd_idx_dct.update({k: next_idx for k in hyd_part})
+                hyd_idx_dct.update({k: sgn*next_idx for k in hyd_part})
                 next_idx += len(hyd_part)
         # Otherwise, give each hydrogen a unique label.
         else:
             srt_hyd_keys = itertools.chain(
                 *map(hyd_keys_dct.__getitem__, bbn_keys))
-            hyd_idx_dct.update({k: i+next_idx for i, k in
+            hyd_idx_dct.update({k: sgn*(i+next_idx) for i, k in
                                 enumerate(srt_hyd_keys)})
 
         hyd_idx_dct = dict_.by_key(hyd_idx_dct, hyd_keys_pool)
@@ -702,16 +814,32 @@ def sorted_classes_from_index_dict(idx_dct):
 
 # if __name__ == '__main__':
 #     import automol
-#     # ICH = automol.smiles.inchi('C[C@](F)(N)O')
 #     # ICH = automol.smiles.inchi('N(Br)(Cl)F')
 #     # ICH = automol.smiles.inchi(r'[H]/N=C\C(\C=N\[H])=N\[H]')
-#     ICH = automol.smiles.inchi('F[C@@H]([C@@H](F)Cl)[C@H](F)Cl')
+#     # ICH = automol.smiles.inchi('F[C@@H]([C@@H](F)Cl)[C@H](F)Cl')
+#
+#     # # test bond stereo priorities
+#     # ICH = automol.smiles.inchi(r'F/C=C/F')  # trans = '+' => True
+#     # ICH = automol.smiles.inchi(r'F/C=C\F')  # cis   = '-' => False
+#     # ICH = automol.smiles.inchi(r'[H]/N=C(Cl)/F')  # trans = '+' => True
+#     # ICH = automol.smiles.inchi(r'[H]/N=C(Cl)\F')  # cis   = '-' => False
+#     # ICH = automol.smiles.inchi(r'[H]/N=C/F')  # trans = '+' => True
+#     # ICH = automol.smiles.inchi(r'[H]/N=C\F')  # cis   = '-' => False
+#     # ICH = automol.smiles.inchi(r'[H]/N=N/[H]')  # trans = '+' => True
+#     # ICH = automol.smiles.inchi(r'[H]/N=N\[H]')  # cis   = '-' => False
+#
+#     # test atom stereo priorities
+#     ICH = automol.smiles.inchi('C[C@@](F)(N)O')  # R = clock  = '+' => True
+#     ICH = automol.smiles.inchi('C[C@](F)(N)O')   # S = aclock = '-' => False
+#     ICH = automol.smiles.inchi('[C@@H](F)(N)O')  # R = clock  = '+' => True
+#     ICH = automol.smiles.inchi('[C@H](F)(N)O')   # S = aclock = '-' => False
+#
 #     print(ICH)
 #     GEO = automol.inchi.geometry(ICH)
 #     print(automol.geom.string(GEO))
 #     GRA = automol.geom.graph(GEO, stereo=True)
 #     canonical_keys_and_stereo_parities(
 #         GRA,
-#         atm_par_eval_=atom_parity_evaluator_from_canonical_stereo_graph_(GRA),
-#         bnd_par_eval_=bond_parity_evaluator_from_canonical_stereo_graph_(GRA),
+#         atm_par_eval_=atom_parity_evaluator_from_geometry_(GRA, GEO),
+#         bnd_par_eval_=bond_parity_evaluator_from_geometry_(GRA, GEO),
 #     )
