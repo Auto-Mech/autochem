@@ -201,7 +201,7 @@ from automol.graph.base._resonance import (
 # canonicalization functions:
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
-from automol.graph.base._canon import canonical_keys_and_stereo_parities
+from automol.graph.base._canon import class_indices_and_stereo_parities
 from automol.graph.base._canon import atom_parity_evaluator_from_geometry_
 from automol.graph.base._canon import bond_parity_evaluator_from_geometry_
 # functional groups code:
@@ -457,7 +457,7 @@ __all__ = [
     # canonicalization functions:
     'canonical',
     'canonical_keys',
-    'canonical_keys_and_stereo_parities',
+    'class_indices_and_stereo_parities',
     'atom_parity_evaluator_from_geometry_',
     'bond_parity_evaluator_from_geometry_',
     # functional groups code:
