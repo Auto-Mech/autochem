@@ -851,7 +851,7 @@ def test__stereomers():
 
 
 def test__to_index_based_stereo():
-    """ test graph.stereomers
+    """ test graph.to_index_based_stereo
     """
     sgr = graph.explicit(C3H5_SGR)
     idx_sgr = graph.to_index_based_stereo(sgr)
@@ -1050,6 +1050,69 @@ def test__class_indices_and_stereo_parities():
         _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars)
 
 
+def test__to_local_stereo():
+    """ test graph.to_local_stereo
+    """
+    # Atom parity test:
+    # Indices 3 and 4 are swapped so that local stereo will have opposite
+    # parity
+    can_gra = ({0: ('C', 3, None), 1: ('C', 0, True), 2: ('F', 0, None),
+                4: ('N', 2, None), 3: ('O', 1, None)},
+               {frozenset({0, 1}): (1, None), frozenset({1, 4}): (1, None),
+                frozenset({1, 3}): (1, None), frozenset({1, 2}): (1, None)})
+    can_par = graph.atom_stereo_parities(can_gra)[1]
+
+    loc_gra = graph.to_local_stereo(can_gra)
+    loc_par = graph.atom_stereo_parities(loc_gra)[1]
+    print(can_par, loc_par)
+    assert can_par is True
+    assert loc_par is False
+
+    # Bond parity test:
+    # Indices 3 and 5 are swapped so that local stereo will have opposite
+    # parity
+    can_gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('Cl', 0, None),
+                5: ('Cl', 0, None), 4: ('F', 0, None), 3: ('F', 0, None)},
+               {frozenset({0, 1}): (1, True), frozenset({0, 2}): (1, None),
+                frozenset({0, 4}): (1, None), frozenset({1, 3}): (1, None),
+                frozenset({1, 5}): (1, None)})
+    can_par = graph.bond_stereo_parities(can_gra)[frozenset({0, 1})]
+
+    loc_gra = graph.to_local_stereo(can_gra)
+    loc_par = graph.bond_stereo_parities(loc_gra)[frozenset({0, 1})]
+    print(can_par, loc_par)
+    assert can_par is True
+    assert loc_par is False
+
+
+def test__from_local_stereo():
+    """ test graph.from_local_stereo
+    """
+    gra = graph.explicit(C3H5_SGR)
+    loc_gra = graph.to_local_stereo(gra)
+    assert gra == graph.from_local_stereo(loc_gra)
+
+    for gra in C2H2CL2F2_SGRS:
+        gra = graph.explicit(gra)
+        loc_gra = graph.to_local_stereo(gra)
+        assert gra == graph.from_local_stereo(loc_gra)
+
+    for gra in C3H3CL2F3_SGRS:
+        gra = graph.explicit(gra)
+        loc_gra = graph.to_local_stereo(gra)
+        assert gra == graph.from_local_stereo(loc_gra)
+
+    for gra in C3H5N3_SGRS:
+        gra = graph.explicit(gra)
+        loc_gra = graph.to_local_stereo(gra)
+        assert gra == graph.from_local_stereo(loc_gra)
+
+    for gra in C8H13O_SGRS:
+        gra = graph.explicit(gra)
+        loc_gra = graph.to_local_stereo(gra)
+        assert gra == graph.from_local_stereo(loc_gra)
+
+
 def test__amchi():
     """ test graph.amchi
     """
@@ -1067,7 +1130,16 @@ def test__amchi():
 
 
 if __name__ == '__main__':
-    # test__to_index_based_stereo()
     # test__amchi()
-    test__canonical()
-    test__class_indices_and_stereo_parities()
+    # test__canonical()
+    # test__class_indices_and_stereo_parities()
+    # test__to_local_stereo()
+    import time
+    start = time.perf_counter()
+    test__to_index_based_stereo()
+    end = time.perf_counter()
+    print('time1:', end - start)
+    start = time.perf_counter()
+    test__from_local_stereo()
+    end = time.perf_counter()
+    print('time2:', end - start)

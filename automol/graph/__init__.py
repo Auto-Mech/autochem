@@ -199,11 +199,22 @@ from automol.graph.base._resonance import (
 from automol.graph.base._resonance import (
         resonance_dominant_bond_centered_cumulene_keys)
 # canonicalization functions:
+# # canonical key functions
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
+# # canonical stereo functions
+from automol.graph.base._canon import to_local_stereo
+from automol.graph.base._canon import from_local_stereo
+# # symmetry class functions
+from automol.graph.base._canon import class_indices
 from automol.graph.base._canon import class_indices_and_stereo_parities
+# # parity evaluators
 from automol.graph.base._canon import atom_parity_evaluator_from_geometry_
 from automol.graph.base._canon import bond_parity_evaluator_from_geometry_
+from automol.graph.base._canon import atom_parity_evaluator_to_local_stereo_
+from automol.graph.base._canon import bond_parity_evaluator_to_local_stereo_
+from automol.graph.base._canon import atom_parity_evaluator_from_local_stereo_
+from automol.graph.base._canon import bond_parity_evaluator_from_local_stereo_
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -455,11 +466,22 @@ __all__ = [
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
     # canonicalization functions:
+    # # canonical key functions
     'canonical',
     'canonical_keys',
+    # # canonical stereo functions
+    'to_local_stereo',
+    'from_local_stereo',
+    # # symmetry class functions
+    'class_indices',
     'class_indices_and_stereo_parities',
+    # # parity evaluators
     'atom_parity_evaluator_from_geometry_',
     'bond_parity_evaluator_from_geometry_',
+    'atom_parity_evaluator_to_local_stereo_',
+    'bond_parity_evaluator_to_local_stereo_',
+    'atom_parity_evaluator_from_local_stereo_',
+    'bond_parity_evaluator_from_local_stereo_',
     # functional groups code:
     # # core functions
     'FunctionalGroup',
