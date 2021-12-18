@@ -998,8 +998,8 @@ def test__canonical():
         _test_from_smiles(smi)
 
 
-def test__canonical_keys_and_stereo_parities():
-    """ test graph.canonical_keys_and_stereo_parities
+def test__class_indices_and_stereo_parities():
+    """ test graph.class_indices_and_stereo_parities
     """
 
     def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
@@ -1012,8 +1012,10 @@ def test__canonical_keys_and_stereo_parities():
         bnd_par_eval_ = graph.bond_parity_evaluator_from_geometry_(gra, geo)
 
         can_key_dct, atm_par_dct, bnd_par_dct = (
-            graph.canonical_keys_and_stereo_parities(
-                gra, atm_par_eval_=atm_par_eval_, bnd_par_eval_=bnd_par_eval_)
+            graph.class_indices_and_stereo_parities(
+                gra,
+                atm_par_eval1_=atm_par_eval_,
+                bnd_par_eval1_=bnd_par_eval_)
         )
         print(can_key_dct)
 
@@ -1066,6 +1068,6 @@ def test__amchi():
 
 if __name__ == '__main__':
     # test__to_index_based_stereo()
-    # test__canonical()
     # test__amchi()
-    test__canonical_keys_and_stereo_parities()
+    test__canonical()
+    test__class_indices_and_stereo_parities()
