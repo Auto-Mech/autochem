@@ -53,6 +53,66 @@ def canonical(gra):
     return relabel(gra, can_key_dct)
 
 
+def canonical_enantiomer(gra):
+    """ Determine the canonical graph of the canonical enantiomer.
+
+        Graphs with stereo will be reflected.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: a canonicalized graph of the canonical enantiomer, along with
+            a boolean flag indicating whether or not the graph has been
+            reflected; `True` indicates it has been, `False` indicates it
+            hasn't, and `None` indicates that it isn't an enantiomer
+        :rtype: (automol graph data structure, bool)
+    """
+    if not has_stereo(gra):
+        can_enant_gra = canonical(gra)
+        is_reflected = None
+    else:
+        # Calculate canonical keys for the unreflected graph
+        ugra = gra
+        uloc_gra, ucan_key_dct = _to_local_stereo_with_class_indices(
+            ugra, break_ties=True)
+
+        # Reflect the graph in the local stereo representation
+        atm_par_dct = atom_stereo_parities(uloc_gra)
+        atm_par_dct = dict_.transform_values(
+            atm_par_dct, lambda x: x if x is None else not x)
+        rloc_gra = set_atom_stereo_parities(uloc_gra, atm_par_dct)
+
+        # Determine canonical keys for the reflected graph
+        rgra, rcan_key_dct = _from_local_stereo_with_class_indices(
+            rloc_gra, break_ties=True)
+
+        # Convert both to canonical graphs
+        ucan_gra = relabel(ugra, ucan_key_dct)
+        rcan_gra = relabel(rgra, rcan_key_dct)
+
+        # Read and compare their parities
+        ste_atm_keys = sorted(atom_stereo_keys(gra))
+        uatm_par_dct = atom_stereo_parities(ucan_gra)
+        ratm_par_dct = atom_stereo_parities(rcan_gra)
+
+        uatm_pars = dict_.values_by_key(uatm_par_dct, ste_atm_keys)
+        ratm_pars = dict_.values_by_key(ratm_par_dct, ste_atm_keys)
+
+        # If the parities are the same, this is not an enantiomer
+        if uatm_pars == ratm_pars:
+            can_enant_gra = ucan_gra
+            is_reflected = None
+        # If the unreflected parities have lower sort order, don't reflect
+        elif uatm_pars < ratm_pars:
+            can_enant_gra = ucan_gra
+            is_reflected = False
+        # If the reflected parities have lower sort order, reflect
+        else:
+            can_enant_gra = rcan_gra
+            is_reflected = True
+
+    return can_enant_gra, is_reflected
+
+
 def canonical_keys(gra, backbone_only=True):
     """ Determine canonical keys for this graph.
 
@@ -199,6 +259,114 @@ def _stereogenic_bond_keys(gra, idx_dct, assigned=False):
     return ste_bnd_keys
 
 
+def reflect(gra):
+    """ Reflect the graph, locally inverting all stereo centers.
+
+        To replicate the effect of reflecting the geometry, we convert to local
+        stereo before reflecting and then convert back.
+
+        :param gra: molecular graph with canonical stereo parities
+        :type gra: automol graph data structure
+    """
+    loc_gra = to_local_stereo(gra)
+
+    atm_par_dct = atom_stereo_parities(loc_gra)
+    atm_par_dct = dict_.transform_values(
+        atm_par_dct, lambda x: x if x is None else not x)
+    loc_gra = set_atom_stereo_parities(loc_gra, atm_par_dct)
+
+    gra = from_local_stereo(loc_gra)
+    return gra
+
+
+def to_local_stereo(gra):
+    """ Convert canonical stereo parities to local ones
+
+        :param gra: molecular graph with canonical stereo parities
+        :type gra: automol graph data structure
+        :returns: molecular graph with local stereo parities
+        :rtype: automol graph data structure
+    """
+    can_gra = gra
+    loc_gra, _ = _to_local_stereo_with_class_indices(can_gra)
+    return loc_gra
+
+
+def _to_local_stereo_with_class_indices(gra, break_ties=False):
+    atm_par_dct0 = dict_.filter_by_value(
+        atom_stereo_parities(gra), lambda x: x is not None)
+    bnd_par_dct0 = dict_.filter_by_value(
+        bond_stereo_parities(gra), lambda x: x is not None)
+
+    idx_dct, atm_par_dct, bnd_par_dct = class_indices_and_stereo_parities(
+        gra, backbone_only=False, break_ties=break_ties,
+        atm_par_eval1_=atom_parity_evaluator_from_canonical_stereo_(gra),
+        bnd_par_eval1_=bond_parity_evaluator_from_canonical_stereo_(gra),
+        atm_par_eval2_=atom_parity_evaluator_to_local_stereo_(gra),
+        bnd_par_eval2_=bond_parity_evaluator_to_local_stereo_(gra))
+
+    assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
+        f"Something went wrong. Atom stereo keys don't match up:\n"
+        f"input stereo atoms: {set(atm_par_dct0.keys())}\n"
+        f"return stereo atoms: {set(atm_par_dct.keys())}\n"
+    )
+
+    assert set(bnd_par_dct.keys()) == set(bnd_par_dct0.keys()), (
+        f"Something went wrong. Bond stereo keys don't match up:\n"
+        f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
+        f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
+    )
+
+    gra = set_atom_stereo_parities(gra, atm_par_dct)
+    gra = set_bond_stereo_parities(gra, bnd_par_dct)
+
+    return gra, idx_dct
+
+
+def from_local_stereo(gra):
+    """ Convert local stereo parities to canonical ones
+
+        :param gra: molecular graph with local stereo parities
+        :type gra: automol graph data structure
+        :returns: molecular graph with canonical stereo parities
+        :rtype: automol graph data structure
+    """
+    loc_gra = gra
+    can_gra, _ = _from_local_stereo_with_class_indices(loc_gra)
+    return can_gra
+
+
+def _from_local_stereo_with_class_indices(gra, break_ties=False):
+    atm_par_dct0 = dict_.filter_by_value(
+        atom_stereo_parities(gra), lambda x: x is not None)
+    bnd_par_dct0 = dict_.filter_by_value(
+        bond_stereo_parities(gra), lambda x: x is not None)
+
+    idx_dct, atm_par_dct, bnd_par_dct = class_indices_and_stereo_parities(
+        gra, backbone_only=False, break_ties=break_ties,
+        atm_par_eval1_=atom_parity_evaluator_from_local_stereo_(gra),
+        bnd_par_eval1_=bond_parity_evaluator_from_local_stereo_(gra),
+        atm_par_eval2_=atom_parity_evaluator_from_local_stereo_(gra),
+        bnd_par_eval2_=bond_parity_evaluator_from_local_stereo_(gra))
+
+    assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
+        f"Something went wrong. Atom stereo keys don't match up:\n"
+        f"input stereo atoms: {set(atm_par_dct0.keys())}\n"
+        f"return stereo atoms: {set(atm_par_dct.keys())}\n"
+    )
+
+    assert set(bnd_par_dct.keys()) == set(bnd_par_dct0.keys()), (
+        f"Something went wrong. Bond stereo keys don't match up:\n"
+        f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
+        f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
+    )
+
+    gra = set_atom_stereo_parities(gra, atm_par_dct)
+    gra = set_bond_stereo_parities(gra, bnd_par_dct)
+
+    return gra, idx_dct
+
+
 def from_geometry(gra, geo, geo_idx_dct=None):
     """ Determine stereo parities from a geometry
 
@@ -223,82 +391,6 @@ def from_geometry(gra, geo, geo_idx_dct=None):
     gra = without_stereo_parities(gra)
     gra = set_atom_stereo_parities(gra, atm_par_dct)
     gra = set_bond_stereo_parities(gra, bnd_par_dct)
-    return gra
-
-
-def to_local_stereo(gra):
-    """ Convert canonical stereo parities to local ones
-
-        :param gra: molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
-        :returns: molecular graph with local stereo parities
-        :rtype: automol graph data structure
-    """
-    atm_par_dct0 = dict_.filter_by_value(
-        atom_stereo_parities(gra), lambda x: x is not None)
-    bnd_par_dct0 = dict_.filter_by_value(
-        bond_stereo_parities(gra), lambda x: x is not None)
-
-    _, atm_par_dct, bnd_par_dct = class_indices_and_stereo_parities(
-        gra, backbone_only=False,
-        atm_par_eval1_=atom_parity_evaluator_from_canonical_stereo_(gra),
-        bnd_par_eval1_=bond_parity_evaluator_from_canonical_stereo_(gra),
-        atm_par_eval2_=atom_parity_evaluator_to_local_stereo_(gra),
-        bnd_par_eval2_=bond_parity_evaluator_to_local_stereo_(gra))
-
-    assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
-        f"Something went wrong. Atom stereo keys don't match up:\n"
-        f"input stereo atoms: {set(atm_par_dct0.keys())}\n"
-        f"return stereo atoms: {set(atm_par_dct.keys())}\n"
-    )
-
-    assert set(bnd_par_dct.keys()) == set(bnd_par_dct0.keys()), (
-        f"Something went wrong. Bond stereo keys don't match up:\n"
-        f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
-        f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
-    )
-
-    gra = set_atom_stereo_parities(gra, atm_par_dct)
-    gra = set_bond_stereo_parities(gra, bnd_par_dct)
-
-    return gra
-
-
-def from_local_stereo(gra):
-    """ Convert local stereo parities to canonical ones
-
-        :param gra: molecular graph with local stereo parities
-        :type gra: automol graph data structure
-        :returns: molecular graph with canonical stereo parities
-        :rtype: automol graph data structure
-    """
-    atm_par_dct0 = dict_.filter_by_value(
-        atom_stereo_parities(gra), lambda x: x is not None)
-    bnd_par_dct0 = dict_.filter_by_value(
-        bond_stereo_parities(gra), lambda x: x is not None)
-
-    _, atm_par_dct, bnd_par_dct = class_indices_and_stereo_parities(
-        gra, backbone_only=False,
-        atm_par_eval1_=atom_parity_evaluator_from_local_stereo_(gra),
-        bnd_par_eval1_=bond_parity_evaluator_from_local_stereo_(gra),
-        atm_par_eval2_=atom_parity_evaluator_from_local_stereo_(gra),
-        bnd_par_eval2_=bond_parity_evaluator_from_local_stereo_(gra))
-
-    assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
-        f"Something went wrong. Atom stereo keys don't match up:\n"
-        f"input stereo atoms: {set(atm_par_dct0.keys())}\n"
-        f"return stereo atoms: {set(atm_par_dct.keys())}\n"
-    )
-
-    assert set(bnd_par_dct.keys()) == set(bnd_par_dct0.keys()), (
-        f"Something went wrong. Bond stereo keys don't match up:\n"
-        f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
-        f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
-    )
-
-    gra = set_atom_stereo_parities(gra, atm_par_dct)
-    gra = set_bond_stereo_parities(gra, bnd_par_dct)
-
     return gra
 
 
@@ -1132,3 +1224,61 @@ def sorted_classes_from_index_dict(idx_dct):
     cla_dct = tuple(
         tuple(c) for _, c in itertools.groupby(clas, key=idx_dct.__getitem__))
     return cla_dct
+
+
+# if __name__ == '__main__':
+#     import automol
+#
+#     GRAS = (
+#         ({0: ('C', 1, None), 1: ('C', 1, False), 2: ('C', 1, False),
+#           3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+#           6: ('F', 0, None), 7: ('F', 0, None)},
+#          {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+#           frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+#           frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({2, 7}): (1, None)}),
+#         ({0: ('C', 1, None), 1: ('C', 1, True), 2: ('C', 1, True),
+#           3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+#           6: ('F', 0, None), 7: ('F', 0, None)},
+#          {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+#           frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+#           frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({2, 7}): (1, None)}),
+#         ({0: ('C', 1, False), 1: ('C', 1, False), 2: ('C', 1, True),
+#           3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+#           6: ('F', 0, None), 7: ('F', 0, None)},
+#          {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+#           frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+#           frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({2, 7}): (1, None)}),
+#         ({0: ('C', 1, False), 1: ('C', 1, True), 2: ('C', 1, False),
+#           3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+#           6: ('F', 0, None), 7: ('F', 0, None)},
+#          {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+#           frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+#           frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({2, 7}): (1, None)}),
+#         ({0: ('C', 1, True), 1: ('C', 1, False), 2: ('C', 1, True),
+#           3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+#           6: ('F', 0, None), 7: ('F', 0, None)},
+#          {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+#           frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+#           frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({2, 7}): (1, None)}),
+#         ({0: ('C', 1, True), 1: ('C', 1, True), 2: ('C', 1, False),
+#           3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+#           6: ('F', 0, None), 7: ('F', 0, None)},
+#          {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+#           frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+#           frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+#           frozenset({2, 7}): (1, None)}),
+#     )
+#
+#     for GRA in GRAS:
+#         ICH = automol.graph.inchi(GRA, stereo=True)
+#         CAN_GRA, IS_REFLECTED = canonical_enantiomer(GRA)
+#         print('Canonical:')
+#         print(automol.graph.string(CAN_GRA))
+#         print("Reflected?", IS_REFLECTED)
+#         print(ICH)
+#         print()
