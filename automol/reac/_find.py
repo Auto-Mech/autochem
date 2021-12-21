@@ -687,7 +687,7 @@ def find(rct_gras, prd_gras):
         hydrogen_abstractions,
         additions,
         # two_bond_additions,
-        insertions,  # not fully functional if elims broken
+        # insertions,  # not fully functional if elims broken
         substitutions,
     ]
 

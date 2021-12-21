@@ -24,9 +24,14 @@ def all_rings_atoms(zma, zrxn=None):
         for ring_bnds in rings:
             ring_atoms = []
             for ring_bnd in ring_bnds:
-                atma, _ = ring_bnd
+                # atma, _ = ring_bnd
+                # if atma not in ring_atoms:
+                #     ring_atoms.append(atma)
+                atma, atmb = ring_bnd
                 if atma not in ring_atoms:
                     ring_atoms.append(atma)
+                if atmb not in ring_atoms:
+                    ring_atoms.append(atmb)
             rings_atoms.append(ring_atoms)
 
     return rings_atoms
