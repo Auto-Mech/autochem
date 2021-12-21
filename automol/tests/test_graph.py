@@ -1116,30 +1116,43 @@ def test__from_local_stereo():
 def test__amchi():
     """ test graph.amchi
     """
+    # bond stereo
+    gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
+            3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
+           {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
+            frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
+            frozenset({2, 5}): (1, False)})
+    chi = graph.amchi(gra)
+    print(chi)
 
-    ich = automol.smiles.inchi('CC(C(O)CCl)CF')
-    geo = automol.inchi.geometry(ich)
-    gra = automol.geom.graph(geo)
-    _, (nums,) = automol.graph.inchi_with_sort_from_geometry(gra, geo=geo)
-    ich_can_key_dct = dict(enumerate(nums))
-    ach = automol.graph.amchi(gra, stereo=False, can_key_dct=ich_can_key_dct)
-    print(ich)
-    print(ach)
+    assert chi == 'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-'
 
-    assert ich.split('/')[1:] == ach.split('/')[1:]
+    # atom stereo
+    gra = ({0: ('C', 1, None), 1: ('C', 1, True), 2: ('C', 1, True),
+            3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+            6: ('F', 0, None), 7: ('F', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+            frozenset({2, 7}): (1, None)})
+    chi = graph.amchi(gra)
+    print(chi)
+
+    assert chi == 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
 
 
 if __name__ == '__main__':
-    # test__amchi()
+    test__amchi()
     # test__canonical()
     # test__class_indices_and_stereo_parities()
     # test__to_local_stereo()
-    import time
-    start = time.perf_counter()
-    test__to_index_based_stereo()
-    end = time.perf_counter()
-    print('time1:', end - start)
-    start = time.perf_counter()
-    test__from_local_stereo()
-    end = time.perf_counter()
-    print('time2:', end - start)
+
+    # import time
+    # start = time.perf_counter()
+    # test__to_index_based_stereo()
+    # end = time.perf_counter()
+    # print('time1:', end - start)
+    # start = time.perf_counter()
+    # test__from_local_stereo()
+    # end = time.perf_counter()
+    # print('time2:', end - start)
