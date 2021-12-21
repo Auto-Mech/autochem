@@ -66,7 +66,8 @@ def canonical_enantiomer(gra):
             hasn't, and `None` indicates that it isn't an enantiomer
         :rtype: (automol graph data structure, bool)
     """
-    if not has_stereo(gra):
+    ste_atm_keys = atom_stereo_keys(gra)
+    if not ste_atm_keys:
         can_enant_gra = canonical(gra)
         is_reflected = None
     else:
