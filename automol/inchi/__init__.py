@@ -57,7 +57,9 @@ from automol.inchi._conv import is_complete
 # # derived transformations
 from automol.inchi._conv import add_stereo
 from automol.inchi._conv import expand_stereo
-
+# drawing tools
+from automol.inchi._draw import draw
+from automol.inchi._draw import draw_grid
 
 __all__ = [
     # L3
@@ -116,4 +118,7 @@ __all__ = [
     # # derived transformations
     'add_stereo',
     'expand_stereo',
+    # # ddrawing tools
+    'draw',
+    'draw_grid'
 ]
