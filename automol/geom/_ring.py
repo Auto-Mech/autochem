@@ -41,6 +41,7 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
         cangle = central_angle(geo, *_atoms, degree=False)
         if cangle < thresh:
             condition = False
+            break
 
     return condition
 

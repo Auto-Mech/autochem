@@ -18,20 +18,30 @@ def all_rings_atoms(zma, zrxn=None):
     if zrxn is None:
         rings_atoms = automol.graph.rings_atom_keys(automol.zmat.graph(zma))
     else:
-        rings = automol.reac.forming_rings_bond_keys(zrxn)
-
         rings_atoms = []
-        for ring_bnds in rings:
-            ring_atoms = []
-            for ring_bnd in ring_bnds:
-                # atma, _ = ring_bnd
-                # if atma not in ring_atoms:
-                #     ring_atoms.append(atma)
-                atma, atmb = ring_bnd
-                if atma not in ring_atoms:
-                    ring_atoms.append(atma)
-                if atmb not in ring_atoms:
-                    ring_atoms.append(atmb)
+        for ring in automol.reac.forming_rings_bond_keys(zrxn):
+
+            # Determine number of atoms in the ring
+            all_atoms = set()
+            for ring_bnd in ring:
+                all_atoms = all_atoms | ring_bnd
+            natoms = len(all_atoms)
+
+            # intialize list with indices from first bond
+            atma, atmb = list(ring)[0]
+            ring_atoms = [atma, atmb]
+
+            # Iteratively add to ring idx list by finding with bnd has
+            # the idx at end of current list to maintain connectivity
+            while len(ring_atoms) != natoms:
+                for ring_bnd in ring:
+                    atma, atmb = ring_bnd
+                    if atma == ring_atoms[-1] and atmb not in ring_atoms:
+                        ring_atoms.append(atmb)
+                    elif atmb == ring_atoms[-1] and atma not in ring_atoms:
+                        ring_atoms.append(atma)
+
+            # Add to overall list
             rings_atoms.append(ring_atoms)
 
     return rings_atoms
