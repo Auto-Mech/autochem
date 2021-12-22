@@ -332,7 +332,8 @@ def bonds(chi, one_indexed=False):
     dash = pp.Suppress('-')
     chain = integer + pp.ZeroOrMore(dash + integer)
     chains = chain + pp.ZeroOrMore(',' + chain)
-    parser = pp.Opt(chain + pp.nestedExpr('(', ')', content=chains) + chain)
+    side_chain = pp.nestedExpr('(', ')', content=chains)
+    parser = pp.Opt(chain + pp.ZeroOrMore(side_chain + chain))
 
     # Do the parsing. This produces a nested list of numbers and commas
     # mirroring the connection layer
