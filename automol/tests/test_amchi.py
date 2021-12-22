@@ -26,6 +26,8 @@ C2H2F2_CHI = 'AMChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1+'
 C2H2F2_CHI_NO_STEREO = 'AMChI=1/C2H2F2/c3-1-2-4/h1-2H'
 C2H2F2_CHI_STEREO_UNKNOWN = 'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1?'
 
+C3H3CL2F3_CHI = 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
+
 C2H4F2O2_CHI = 'AMChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m0/s1'
 
 C8H13O_CHI = (
@@ -146,6 +148,13 @@ def test__bonds():
         frozenset({4, 8}), frozenset({9, 6}), frozenset({9, 10}),
         frozenset({6, 12}), frozenset({10, 13}), frozenset({10, 5}),
         frozenset({5, 11})}
+
+    bnds = amchi.bonds(C3H3CL2F3_CHI, one_indexed=True)
+    print(bnds)
+    assert bnds == {
+        frozenset({4, 2}), frozenset({2, 7}), frozenset({2, 1}),
+        frozenset({1, 6}), frozenset({1, 3}), frozenset({3, 5}),
+        frozenset({3, 8})}
 
 
 def test__hydrogen_valences():

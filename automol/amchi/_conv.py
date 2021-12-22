@@ -32,18 +32,15 @@ def connected_graph(chi, stereo=True):
 
 
 if __name__ == '__main__':
-    import numpy
-
-    ACH = ('AMChI=1/C10H14ClFO/c1-8(9(5-12)10(13)6-11)7-3-2-4-7/'
-           'h2-4,8-10,13H,5-6H2,1H3')
-    GRA = connected_graph(ACH, stereo=False)
-
-    NATMS = len(automol.graph.base.atom_keys(GRA))
-
-    for _ in range(10):
-        PMT = list(map(int, numpy.random.permutation(NATMS)))
-        PMT_GRA = automol.graph.base.relabel(GRA, dict(enumerate(PMT)))
-        PMT_ACH = automol.graph.base.amchi(PMT_GRA, stereo=False)
-        print(automol.graph.base.string(PMT_GRA))
-        print(PMT_ACH)
-        assert PMT_ACH == ACH
+    GRA = ({0: ('C', 1, None), 1: ('C', 1, True), 2: ('C', 1, True),
+            3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+            6: ('F', 0, None), 7: ('F', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+            frozenset({2, 7}): (1, None)})
+    print(automol.graph.string(GRA))
+    CHI = automol.graph.amchi(GRA)
+    print(CHI)
+    GRA = connected_graph(CHI, stereo=False)
+    print(automol.graph.string(GRA))
