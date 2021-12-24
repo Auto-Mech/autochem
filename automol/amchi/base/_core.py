@@ -206,97 +206,7 @@ def formula(ich):
 
 
 # # properties
-def is_chiral(chi):
-    """ Determine if the ChI string has chirality information.
-
-        :param chi: ChI string
-        :type chi: str
-        :rtype: bool
-    """
-    ste_dct = stereo_layers(chi)
-    iso_dct = isotope_layers(chi)
-    return ste_dct['s'] == '1' or iso_dct['s'] == '1'
-
-
-def is_enantiomer(chi, iso=True):
-    """ Is this ChI an enantiomer?
-
-        :param chi: ChI string
-        :type chi: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
-        :returns: whether or not the ChI is enantiomeric
-        :rtype: bool
-    """
-    ste_dct = stereo_layers(chi)
-    ret = 'm' in ste_dct
-    if iso:
-        iso_dct = isotope_layers(chi)
-        ret = ret or 'm' in iso_dct
-    return ret
-
-
-def has_stereo(chi):
-    """ Determine if the ChI string has stereochemistry information.
-
-        :param chi: ChI string
-        :type chi: str
-        :rtype: bool
-    """
-    ste_dct = stereo_layers(chi)
-    iso_dct = isotope_layers(chi)
-    return bool(ste_dct or
-                any(pfx in iso_dct for pfx in STE_PFXS))
-
-
-def has_multiple_components(chi):
-    """ Determine if the ChI string has multiple components.
-
-        :param chi: ChI string
-        :type chi: str
-        :rtype: bool
-    """
-    return len(split(chi)) > 1
-
-
-def charge(chi):
-    """ Determine charge from the ChI string
-
-        :param chi: ChI string
-        :type chi: str
-        :rtype: int
-    """
-    char_lyr_dct = charge_layers(chi)
-    char = int(char_lyr_dct['q'])
-    return char
-
-
-def low_spin_multiplicity(chi):
-    """ Guess spin multiplicity based on the number of electrons.
-
-        :param chi: ChI string
-        :type chi: str
-        :rtype: int
-    """
-
-    fml = formula(chi)
-    nelec = automol.formula.electron_count(fml) - charge(chi)
-
-    if (nelec % 2) == 0:
-        mult = 1
-    else:
-        mult = 2
-
-    return mult
-
-
-def canonical_indices(chi, one_indexed=False):
-    """ Determine the list of canonical indices for a ChI string
-    """
-    idxs = sorted(symbols(chi, one_indexed=one_indexed).keys())
-    return idxs
-
-
+# # # formula layer
 def symbols(chi, one_indexed=False):
     """ Determine the atomic symbols of backbone atoms in a ChI string
 
@@ -319,6 +229,14 @@ def symbols(chi, one_indexed=False):
     return symb_dct
 
 
+def canonical_indices(chi, one_indexed=False):
+    """ Determine the list of canonical indices for a ChI string
+    """
+    idxs = sorted(symbols(chi, one_indexed=one_indexed).keys())
+    return idxs
+
+
+# # # main layers
 def bonds(chi, one_indexed=False):
     """ Determine bonds between backbone atoms in a ChI string
 
@@ -329,8 +247,7 @@ def bonds(chi, one_indexed=False):
     """
     # Set up the pyparsing parser
     integer = pp.Word(pp.nums)
-    dash = pp.Suppress('-')
-    chain = integer + pp.ZeroOrMore(dash + integer)
+    chain = pp.delimitedList(integer, delim='-')
     chains = chain + pp.ZeroOrMore(',' + chain)
     side_chain = pp.nestedExpr('(', ')', content=chains)
     parser = pp.Opt(chain + pp.ZeroOrMore(side_chain + chain))
@@ -445,115 +362,152 @@ def hydrogen_valences(chi, one_indexed=False):
     return nhyd_dct
 
 
-def stereo_atoms(chi, iso=True, one_indexed=False):
-    """ Parse the stereo atoms from the stereochemistry layer.
+# # # charge layers
+def charge(chi):
+    """ Determine charge from the ChI string
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: int
+    """
+    char_lyr_dct = charge_layers(chi)
+    char = int(char_lyr_dct['q'])
+    return char
+
+
+# # # stereo layers
+def bond_stereo_parities(chi, one_indexed=False):
+    """ Parse the bond stereo parities from the stereochemistry layers.
+
+        :param chi: ChI string
+        :type chi: str
+        :param one_indexed: Return indices in one-indexing?
+        :type one_indexed: bool
+        :returns: A dictionary mapping bond keys onto parities
+        :rtype: dict[frozenset[int]: bool]
+    """
+    ste_lyr_dct = stereo_layers(chi)
+    bnd_ste_dct = _bond_stereo_parities(ste_lyr_dct, one_indexed=one_indexed)
+    return bnd_ste_dct
+
+
+def atom_stereo_parities(chi, one_indexed=False):
+    """ Parse the atom stereo parities from the stereochemistry layers.
+
+        :param chi: ChI string
+        :type chi: str
+        :param one_indexed: Return indices in one-indexing?
+        :type one_indexed: bool
+        :returns: A dictionary mapping atom keys onto parities
+        :rtype: dict[int: bool]
+    """
+    ste_lyr_dct = stereo_layers(chi)
+    atm_ste_dct = _atom_stereo_parities(ste_lyr_dct, one_indexed=one_indexed)
+    return atm_ste_dct
+
+
+def is_inverted_enantiomer(chi):
+    """ Determine enantiomer inversion from the stereo layers.
 
         :param chi: ChI string
         :type chi: str
         :param iso: Include isotope stereochemistry?
         :type iso: bool
-        :param one_indexed: Return indices in one-indexing?
-        :type one_indexed: bool
+        :returns: whether or not the ChI is inverted; returns None if not an
+            enantiomer
+        :rtype: bool
     """
-    assert len(split(chi)) == 1, (
-        "Not for multicomponent ChIs. Call inchi.split() first.")
-
-    atm_ptt = (app.capturing(app.UNSIGNED_INTEGER) +
-               app.one_of_these(list(map(app.escape, '+-'))))
-
-    ste_dct = stereo_layers(chi)
-    iso_dct = isotope_layers(chi)
-
-    tlyr = ''
-    if 't' in ste_dct:
-        tlyr += ste_dct['t']
-
-    if iso and 't' in iso_dct:
-        tlyr += ',' + iso_dct['t']
-
-    atms = ()
-    if tlyr:
-        atms = ap_cast(apf.all_captures(atm_ptt, tlyr))
-
-    if not one_indexed:
-        atms = tuple(i-1 for i in atms)
-        atms = atms if atms is not None else ()
-
-    return atms
+    ste_lyr_dct = stereo_layers(chi)
+    is_inv = _is_inverted_enantiomer(ste_lyr_dct)
+    return is_inv
 
 
-def stereo_bonds(chi, iso=True, one_indexed=False):
-    """ Parse the stereo bonds from the stereochemistry layer.
+# # # isotope layers
+def bond_isotope_stereo_parities(chi, one_indexed=False):
+    """ Parse the bond stereo parities from the isotope layers.
 
         :param chi: ChI string
         :type chi: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
         :param one_indexed: Return indices in one-indexing?
         :type one_indexed: bool
+        :returns: A dictionary mapping bond keys onto parities
+        :rtype: dict[frozenset[int]: bool]
     """
-    assert len(split(chi)) == 1, (
-        "Not for multicomponent ChIs. Call inchi.split() first.")
-
-    bnd_ptt = '-'.join([app.capturing(app.UNSIGNED_INTEGER)]*2)
-
-    ste_dct = stereo_layers(chi)
-    iso_dct = isotope_layers(chi)
-
-    blyr = ''
-    if 'b' in ste_dct:
-        blyr += ste_dct['b']
-
-    if iso and 'b' in iso_dct:
-        blyr += ',' + iso_dct['b']
-
-    bnds = ()
-    if blyr:
-        bnds = ap_cast(apf.all_captures(bnd_ptt, blyr))
-
-    if not one_indexed:
-        bnds = tuple((i-1, j-1) for i, j in bnds)
-        bnds = bnds if bnds is not None else ()
-
-    return bnds
+    iso_lyr_dct = isotope_layers(chi)
+    bnd_ste_dct = _bond_stereo_parities(iso_lyr_dct, one_indexed=one_indexed)
+    return bnd_ste_dct
 
 
-def unassigned_stereo_bonds(chi, iso=True, one_indexed=False):
-    """ Parse the stereo bonds wth missing assignments from the stereochemistry
-    layer.
+def atom_isotope_stereo_parities(chi, one_indexed=False):
+    """ Parse the atom stereo parities from the isotope layers.
 
         :param chi: ChI string
         :type chi: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
         :param one_indexed: Return indices in one-indexing?
         :type one_indexed: bool
+        :returns: A dictionary mapping atom keys onto parities
+        :rtype: dict[int: bool]
     """
-    assert len(split(chi)) == 1, (
-        "Not for multicomponent ChIs. Call inchi.split() first.")
+    iso_lyr_dct = isotope_layers(chi)
+    atm_ste_dct = _atom_stereo_parities(iso_lyr_dct, one_indexed=one_indexed)
+    return atm_ste_dct
 
-    bnd_ptt = ('-'.join([app.capturing(app.UNSIGNED_INTEGER)]*2) +
-               app.escape('?'))
 
+def is_inverted_isotope_enantiomer(chi):
+    """ Determine enantiomer inversion from the isotope layers.
+
+        :param chi: ChI string
+        :type chi: str
+        :returns: whether or not the ChI is inverted; returns None if not an
+            enantiomer
+        :rtype: bool
+    """
+    iso_lyr_dct = isotope_layers(chi)
+    is_inv = _is_inverted_enantiomer(iso_lyr_dct)
+    return is_inv
+
+
+# # other properties
+def has_stereo(chi):
+    """ Determine if the ChI string has stereochemistry information.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: bool
+    """
     ste_dct = stereo_layers(chi)
     iso_dct = isotope_layers(chi)
+    return bool(ste_dct or
+                any(pfx in iso_dct for pfx in STE_PFXS))
 
-    blyr = ''
-    if 'b' in ste_dct:
-        blyr += ste_dct['b']
 
-    if iso and 'b' in iso_dct:
-        blyr += ',' + iso_dct['b']
+def has_multiple_components(chi):
+    """ Determine if the ChI string has multiple components.
 
-    bnds = ()
-    if blyr:
-        bnds = ap_cast(apf.all_captures(bnd_ptt, blyr))
-        bnds = bnds if bnds is not None else ()
+        :param chi: ChI string
+        :type chi: str
+        :rtype: bool
+    """
+    return len(split(chi)) > 1
 
-    if not one_indexed:
-        bnds = tuple((i-1, j-1) for i, j in bnds)
 
-    return bnds
+def low_spin_multiplicity(chi):
+    """ Guess spin multiplicity based on the number of electrons.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: int
+    """
+
+    fml = formula(chi)
+    nelec = automol.formula.electron_count(fml) - charge(chi)
+
+    if (nelec % 2) == 0:
+        mult = 1
+    else:
+        mult = 2
+
+    return mult
 
 
 # # split/join
@@ -611,6 +565,68 @@ def join(chis):
                      char_lyr_dct=char_dct,
                      ste_lyr_dct=ste_dct,
                      iso_lyr_dct=iso_dct)
+
+
+# # common multilayer properties
+def _bond_stereo_parities(lyr_dct, one_indexed=False):
+    """ Parse bond stereo parities from a given layer dictionary
+    """
+    if 'b' not in lyr_dct:
+        bnd_ste_dct = {}
+    else:
+        lyr = lyr_dct['b']
+
+        # Set up the parser
+        integer = pp.Word(pp.nums)
+        bond = integer + pp.Suppress('-') + integer
+        parity = pp.Or(['+', '-'])
+        term = pp.Group(pp.Group(bond) + parity)
+        parser = pp.Opt(pp.delimitedList(term, delim=','))
+
+        # Do the parsing
+        lst = ap_cast(parser.parseString(lyr).asList())
+
+        # Interpret the list
+        shift = 0 if one_indexed else -1
+        bnd_ste_dct = {frozenset({k1+shift, k2+shift}): (p == '+')
+                       for (k1, k2), p in lst}
+    return bnd_ste_dct
+
+
+def _atom_stereo_parities(lyr_dct, one_indexed=False):
+    """ Parse atom stereo parities from a given layer dictionary
+    """
+    if 't' not in lyr_dct:
+        atm_ste_dct = {}
+    else:
+        lyr = lyr_dct['t']
+
+        # Set up the parser
+        integer = pp.Word(pp.nums)
+        parity = pp.Or(['+', '-'])
+        term = pp.Group(integer + parity)
+        parser = pp.Opt(pp.delimitedList(term, delim=','))
+
+        # Do the parsing
+        lst = ap_cast(parser.parseString(lyr).asList())
+
+        # Interpret the list
+        shift = 0 if one_indexed else -1
+        atm_ste_dct = {k+shift: (p == '+') for k, p in lst}
+    return atm_ste_dct
+
+
+def _is_inverted_enantiomer(lyr_dct):
+    """ Determine enantiomer inversion from a given layer dictionary.
+    """
+    is_inv = None
+    if 'm' in lyr_dct:
+        if lyr_dct['m'] == '1':
+            is_inv = True
+        else:
+            assert lyr_dct['m'] == '0'
+            is_inv = False
+    return is_inv
 
 
 # # parsing helpers
@@ -806,14 +822,24 @@ def _split_layer_string(lyr, count_sep_ptt=app.escape('*'),
 
 
 if __name__ == '__main__':
-    ACH = ('AMChI=1/C10H14ClFO/c1-7(9(6-12)10(13)5-11)8-3-2-4-8'
-           '/h2-4,7,9-10,13H,5-6H2,1H3')
-    ICH = ('InChI=1S/C10H14ClFO/c1-7(8-3-2-4-8)9(6-12)10(13)5-11'
-           '/h2-4,7,9-10,13H,5-6H2,1H3')
-    ICH2 = 'InChI=1S/C3H8FNO2/c1-3(4,2-5)7-6/h6H,2,5H2,1H3'
-    SYMB_DCT = symbols(ACH, one_indexed=True)
-    BNDS = bonds(ACH, one_indexed=True)
-    NHYD_DCT = hydrogen_valences(ACH, one_indexed=True)
-    print(SYMB_DCT)
-    print(BNDS)
-    print(NHYD_DCT)
+    # ACH = ('AMChI=1/C10H14ClFO/c1-7(9(6-12)10(13)5-11)8-3-2-4-8'
+    #        '/h2-4,7,9-10,13H,5-6H2,1H3')
+    # ICH2 = 'InChI=1S/C3H8FNO2/c1-3(4,2-5)7-6/h6H,2,5H2,1H3'
+    # BNDS = bonds(ACH, one_indexed=True)
+    # print(BNDS)
+
+    # Atom stereo
+    CHI = 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
+    print(atom_stereo_parities(CHI, one_indexed=True))
+    print(is_inverted_enantiomer(CHI))
+    CHI = 'InChI=1S/C3H8O/c1-3(2)4/h3-4H,1-2H3/i1+0,2+1/t3-/m1/s1'
+    print(atom_stereo_parities(CHI, one_indexed=True))
+    print(atom_isotope_stereo_parities(CHI, one_indexed=True))
+    print(is_inverted_enantiomer(CHI))
+    print(is_inverted_isotope_enantiomer(CHI))
+
+    # # Bond stereo
+    # CHI = 'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-'
+    # print(bond_stereo_parities(CHI, one_indexed=True))
+    # CHI = 'InChI=1S/C3H6/c1-3-2/h3H,1H2,2H3/i1D/b3-1+'
+    # print(bond_isotope_stereo_parities(CHI, one_indexed=True))

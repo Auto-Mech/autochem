@@ -203,6 +203,8 @@ from automol.graph.base._resonance import (
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
 # # canonical stereo functions
+from automol.graph.base._canon import reflect
+from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import from_local_stereo
 # # symmetry class functions
@@ -470,6 +472,8 @@ __all__ = [
     'canonical',
     'canonical_keys',
     # # canonical stereo functions
+    'reflect',
+    'reflect_local_stereo',
     'to_local_stereo',
     'from_local_stereo',
     # # symmetry class functions
