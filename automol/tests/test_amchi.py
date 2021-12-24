@@ -26,6 +26,8 @@ C2H2F2_CHI = 'AMChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1+'
 C2H2F2_CHI_NO_STEREO = 'AMChI=1/C2H2F2/c3-1-2-4/h1-2H'
 C2H2F2_CHI_STEREO_UNKNOWN = 'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1?'
 
+C3H3CL2F3_CHI = 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
+
 C2H4F2O2_CHI = 'AMChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m0/s1'
 
 C8H13O_CHI = (
@@ -96,15 +98,6 @@ def test__formula():
     assert amchi.formula(C2H6O_CHI) == {'C': 2, 'H': 6, 'O': 1}
 
 
-def test__is_enantiomer():
-    """ test amchi.is_enantiomer
-    """
-    chi1 = 'AMChI=1/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1'
-    chi2 = 'AMChI=1/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3'
-    assert amchi.is_enantiomer(chi1)
-    assert not amchi.is_enantiomer(chi2)
-
-
 def test__has_stereo():
     """ test amchi.has_stereo
     """
@@ -132,12 +125,14 @@ def test__symbols():
 def test__bonds():
     """ test amchi.bonds
     """
+    print(C3H8FNO2_CHI)
     bnds = amchi.bonds(C3H8FNO2_CHI, one_indexed=True)
     print(bnds)
     assert bnds == {
         frozenset({1, 3}), frozenset({3, 4}), frozenset({3, 2}),
         frozenset({2, 5}), frozenset({3, 7}), frozenset({7, 6})}
 
+    print(C10H14CLFO_CHI)
     bnds = amchi.bonds(C10H14CLFO_CHI, one_indexed=True)
     print(bnds)
     assert bnds == {
@@ -146,6 +141,14 @@ def test__bonds():
         frozenset({4, 8}), frozenset({9, 6}), frozenset({9, 10}),
         frozenset({6, 12}), frozenset({10, 13}), frozenset({10, 5}),
         frozenset({5, 11})}
+
+    print(C3H3CL2F3_CHI)
+    bnds = amchi.bonds(C3H3CL2F3_CHI, one_indexed=True)
+    print(bnds)
+    assert bnds == {
+        frozenset({4, 2}), frozenset({2, 7}), frozenset({2, 1}),
+        frozenset({1, 6}), frozenset({1, 3}), frozenset({3, 5}),
+        frozenset({3, 8})}
 
 
 def test__hydrogen_valences():
@@ -161,24 +164,38 @@ def test__hydrogen_valences():
                         10: 1, 11: 0, 12: 0, 13: 1}
 
 
-def test__stereo_atoms():
-    """ test amchi.stereo_atoms
+def test__atom_stereo_parities():
+    """ test amchi.atom_stereo_parities
     """
-    atms = amchi.stereo_atoms(C2H6O_CHI)
-    print(atms)
-    assert atms == (1,)
+    atm_par_dct = amchi.atom_stereo_parities(C2H6O_CHI)
+    print(atm_par_dct)
+    assert atm_par_dct == {}
 
-    atms = amchi.stereo_atoms(C2H4F2O2_CHI)
-    print(atms)
-    assert atms == (0, 1)
+    atm_par_dct = amchi.atom_isotope_stereo_parities(C2H6O_CHI)
+    print(atm_par_dct)
+    assert atm_par_dct == {1: False}
+
+    atm_par_dct = amchi.atom_stereo_parities(C2H4F2O2_CHI)
+    print(atm_par_dct)
+    assert atm_par_dct == {0: False, 1: False}
 
 
-def test__stereo_bonds():
-    """ test amchi.stereo_bonds
+def test__bond_stereo_parities():
+    """ test amchi.bond_stereo_parities
     """
-    bnds = amchi.stereo_bonds(C8H13O_CHI)
-    print(bnds)
-    assert bnds == ((4, 2), (5, 3))
+    bnd_par_dct = amchi.bond_stereo_parities(C8H13O_CHI)
+    assert bnd_par_dct == {frozenset({2, 4}): False, frozenset({3, 5}): False}
+
+
+def test__is_inverted_enantiomer():
+    """ test amchi.is_inverted_enantiomer
+    """
+    chi1 = 'AMChI=1/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1'
+    chi2 = 'AMChI=1/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1'
+    chi3 = 'AMChI=1/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3'
+    assert amchi.is_inverted_enantiomer(chi1) is True
+    assert amchi.is_inverted_enantiomer(chi2) is False
+    assert amchi.is_inverted_enantiomer(chi3) is None
 
 
 def test__join():
@@ -197,25 +214,34 @@ def test__join():
 def test__graph():
     """ test amchi.graph
     """
-    # A canonical AMChI string:
-    chi = ('AMChI=1/C10H14ClFO/c1-8(9(5-12)10(13)6-11)7-3-2-4-7/'
-           'h2-4,8-10,13H,5-6H2,1H3')
+    # A canonical AMChI string (no stereo):
+    chis = [
+        'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t1-,2-,3+',
+        'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-',
+        'AMChI=1/C10H14ClFO/c1-8(9(5-12)10(13)6-11)7-3-2-4-7/'
+        'h2-4,8-10,13H,5-6H2,1H3',
+        'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m0/s1',
+    ]
 
-    gra = amchi.connected_graph(chi, stereo=False)
+    for chi in chis:
+        gra = amchi.connected_graph(chi)
 
-    natms = len(automol.graph.atom_keys(gra))
+        natms = len(automol.graph.atom_keys(gra))
 
-    for _ in range(10):
-        pmt = list(map(int, numpy.random.permutation(natms)))
-        pmt_gra = automol.graph.relabel(gra, dict(enumerate(pmt)))
-        pmt_chi = automol.graph.amchi(pmt_gra, stereo=False)
-        print(automol.graph.string(pmt_gra))
-        print(pmt_chi)
-        assert pmt_chi == chi
+        for _ in range(5):
+            print()
+            pmt = list(map(int, numpy.random.permutation(natms)))
+            pmt_gra = automol.graph.relabel(gra, dict(enumerate(pmt)))
+            pmt_chi = automol.graph.amchi(pmt_gra)
+            print(automol.graph.string(pmt_gra))
+            print(chi)
+            print(pmt_chi)
+            assert pmt_chi == chi
 
 
 if __name__ == '__main__':
-    # test__symbols()
     # test__bonds()
-    # test__hydrogen_valences()
+    # test__atom_stereo_parities()
+    # test__bond_stereo_parities()
+    # test__is_inverted_enantiomer()
     test__graph()
