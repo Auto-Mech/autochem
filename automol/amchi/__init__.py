@@ -15,19 +15,26 @@ from automol.amchi.base._core import isotope_layers
 # # conversions
 from automol.amchi.base._core import formula
 # # properties
-from automol.amchi.base._core import is_chiral
-from automol.amchi.base._core import is_enantiomer
-from automol.amchi.base._core import has_stereo
-from automol.amchi.base._core import has_multiple_components
-from automol.amchi.base._core import charge
-from automol.amchi.base._core import low_spin_multiplicity
-from automol.amchi.base._core import canonical_indices
+# # # formula layer
 from automol.amchi.base._core import symbols
+from automol.amchi.base._core import canonical_indices
+# # # main layers
 from automol.amchi.base._core import bonds
 from automol.amchi.base._core import hydrogen_valences
-from automol.amchi.base._core import stereo_atoms
-from automol.amchi.base._core import stereo_bonds
-from automol.amchi.base._core import unassigned_stereo_bonds
+# # # charge layers
+from automol.amchi.base._core import charge
+# # # stereo layers
+from automol.amchi.base._core import bond_stereo_parities
+from automol.amchi.base._core import atom_stereo_parities
+from automol.amchi.base._core import is_inverted_enantiomer
+# # # isotope layers
+from automol.amchi.base._core import bond_isotope_stereo_parities
+from automol.amchi.base._core import atom_isotope_stereo_parities
+from automol.amchi.base._core import is_inverted_isotope_enantiomer
+# # other properties
+from automol.amchi.base._core import has_stereo
+from automol.amchi.base._core import has_multiple_components
+from automol.amchi.base._core import low_spin_multiplicity
 # # split/join
 from automol.amchi.base._core import split
 from automol.amchi.base._core import join
@@ -51,19 +58,26 @@ __all__ = [
     # # conversions
     'formula',
     # # properties
-    'is_chiral',
-    'is_enantiomer',
-    'has_stereo',
-    'has_multiple_components',
-    'charge',
-    'low_spin_multiplicity',
-    'canonical_indices',
+    # # # formula layer
     'symbols',
+    'canonical_indices',
+    # # # main layers
     'bonds',
     'hydrogen_valences',
-    'stereo_atoms',
-    'stereo_bonds',
-    'unassigned_stereo_bonds',
+    # # # charge layers
+    'charge',
+    # # # stereo layers
+    'bond_stereo_parities',
+    'atom_stereo_parities',
+    'is_inverted_enantiomer',
+    # # # isotope layers
+    'bond_isotope_stereo_parities',
+    'atom_isotope_stereo_parities',
+    'is_inverted_isotope_enantiomer',
+    # # other properties
+    'has_stereo',
+    'has_multiple_components',
+    'low_spin_multiplicity',
     # # split/join
     'split',
     'join',

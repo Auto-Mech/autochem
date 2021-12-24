@@ -77,10 +77,7 @@ def canonical_enantiomer(gra):
             ugra, break_ties=True)
 
         # Reflect the graph in the local stereo representation
-        atm_par_dct = atom_stereo_parities(uloc_gra)
-        atm_par_dct = dict_.transform_values(
-            atm_par_dct, lambda x: x if x is None else not x)
-        rloc_gra = set_atom_stereo_parities(uloc_gra, atm_par_dct)
+        rloc_gra = reflect_local_stereo(uloc_gra)
 
         # Determine canonical keys for the reflected graph
         rgra, rcan_key_dct = _from_local_stereo_with_class_indices(
@@ -91,7 +88,9 @@ def canonical_enantiomer(gra):
         rcan_gra = relabel(rgra, rcan_key_dct)
 
         # Read and compare their parities
-        ste_atm_keys = sorted(atom_stereo_keys(gra))
+        ste_atm_keys = sorted(atom_stereo_keys(ucan_gra))
+        assert ste_atm_keys == sorted(atom_stereo_keys(rcan_gra)), (
+            "Sanity check. This should always be true.")
         uatm_par_dct = atom_stereo_parities(ucan_gra)
         ratm_par_dct = atom_stereo_parities(rcan_gra)
 
@@ -270,13 +269,23 @@ def reflect(gra):
         :type gra: automol graph data structure
     """
     loc_gra = to_local_stereo(gra)
+    loc_gra = reflect_local_stereo(loc_gra)
+    gra = from_local_stereo(loc_gra)
+    return gra
 
-    atm_par_dct = atom_stereo_parities(loc_gra)
+
+def reflect_local_stereo(gra):
+    """ Reflect a graph with local stereo parities.
+
+        Assuming local stereo parities, the parities can simply be reversed.
+
+        :param gra: molecular graph with canonical stereo parities
+        :type gra: automol graph data structure
+    """
+    atm_par_dct = atom_stereo_parities(gra)
     atm_par_dct = dict_.transform_values(
         atm_par_dct, lambda x: x if x is None else not x)
-    loc_gra = set_atom_stereo_parities(loc_gra, atm_par_dct)
-
-    gra = from_local_stereo(loc_gra)
+    gra = set_atom_stereo_parities(gra, atm_par_dct)
     return gra
 
 
@@ -547,8 +556,7 @@ def class_indices_and_stereo_parities(gra,
 
     # 3. If requested, break ties based on keys.
     if break_ties:
-        idx_dct = relax_class_indices(
-            gra, idx_dct, srt_eval_=sort_evaluator_tie_breaking_(gra))
+        idx_dct = break_symmetry_class_ties(gra, idx_dct)
 
     # 4. If requested, add in class indices for explicit hydrogens.
     if not backbone_only:
@@ -797,13 +805,22 @@ def atom_parity_evaluator_from_local_stereo_(gra):
         stereo parities from each other as the graph is manipulated in other
         ways.
 
+        Note that, for consistency with InChI and other systems, hydrogen keys
+        are treated as having lowest priority. This is done by setting their
+        sort value to negative infinity.
+
         :param gra: molecular graph with local stereo parities
         :type gra: automol graph data structure
         :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
             returns the parity for a given atom, given a set of class indices.
     """
+    gra = explicit(gra)
     atm_par_dct = atom_stereo_parities(gra)
     nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+    loc_idx_dct = {}
+    loc_idx_dct.update({k: k for k in backbone_keys(gra)})
+    loc_idx_dct.update({k: -numpy.inf for k in explicit_hydrogen_keys(gra)})
 
     def _evaluator(idx_dct):
         """ Parity evaluator based on current class indices
@@ -820,7 +837,7 @@ def atom_parity_evaluator_from_local_stereo_(gra):
         def _parity(key):
             par = atm_par_dct[key]
 
-            loc_srt_nkeys = sorted(nkeys_dct[key])
+            loc_srt_nkeys = sorted(nkeys_dct[key], key=loc_idx_dct.__getitem__)
             can_srt_nkeys = sorted(nkeys_dct[key], key=idx_dct.__getitem__)
 
             if util.is_even_permutation(loc_srt_nkeys, can_srt_nkeys):
@@ -846,13 +863,22 @@ def bond_parity_evaluator_from_local_stereo_(gra):
         stereo parities from each other as the graph is manipulated in other
         ways.
 
+        Note that, for consistency with InChI and other systems, hydrogen keys
+        are treated as having lowest priority. This is done by setting their
+        sort value to negative infinity.
+
         :param gra: molecular graph with local stereo parities
         :type gra: automol graph data structure
         :returns: A parity evaluator, curried such that par_eval_(idx_dct)(key)
             returns the parity for a given bond, given a set of class indices.
     """
+    gra = explicit(gra)
     bnd_par_dct = bond_stereo_parities(gra)
     nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+    loc_idx_dct = {}
+    loc_idx_dct.update({k: k for k in backbone_keys(gra)})
+    loc_idx_dct.update({k: -numpy.inf for k in explicit_hydrogen_keys(gra)})
 
     def _evaluator(idx_dct):
         """ Parity evaluator based on current class indices
@@ -873,8 +899,8 @@ def bond_parity_evaluator_from_local_stereo_(gra):
             nkey1s = nkeys_dct[key1] - {key2}
             nkey2s = nkeys_dct[key2] - {key1}
 
-            loc_nmax1 = max(nkey1s)
-            loc_nmax2 = max(nkey2s)
+            loc_nmax1 = max(nkey1s, key=loc_idx_dct.__getitem__)
+            loc_nmax2 = max(nkey2s, key=loc_idx_dct.__getitem__)
             can_nmax1 = max(nkey1s, key=idx_dct.__getitem__)
             can_nmax2 = max(nkey2s, key=idx_dct.__getitem__)
 
@@ -1071,6 +1097,48 @@ def sort_evaluator_tie_breaking_(gra):
 
 
 # # symmetry class helpers
+def break_symmetry_class_ties(gra, idx_dct):
+    """ Break ties between symmetry classes.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param idx_dct: A dictionary mapping atom keys to class indices.
+        :type idx_dct: dict
+        :param srt_eval_: An evaluator for sort values, based on current class
+            indices. Curried such that srt_val_(idx_dct)(key) returns the sort
+            value.
+    """
+    idx_dct = idx_dct.copy()
+
+    cla_dct = class_dict_from_index_dict(idx_dct)
+
+    # 2. Set up the new_clas list, containing class indices and class keys that
+    # are up for re-evaluation.
+    new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
+    new_clas = sorted(new_cla_dct.items(), reverse=True)
+
+    while new_clas:
+        # Get the partition with highest symmetry class
+        idx, cla = new_clas.pop(0)
+        cla = list(cla)
+
+        # Give the last element of this symmetry class a new index
+        new_idx = idx + len(cla) - 1
+        idx_dct[cla[-1]] = new_idx
+
+        # Now, refine partitions based on the change just made.
+        cla_dct = class_dict_from_index_dict(idx_dct)
+        idx_dct = relax_class_indices(
+            gra, idx_dct, srt_eval_=sort_evaluator_atom_invariants_(gra))
+
+        # Update the list of classes needing further tie breaking
+        cla_dct = class_dict_from_index_dict(idx_dct)
+        new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
+        new_clas = sorted(new_cla_dct.items(), reverse=True)
+
+    return idx_dct
+
+
 def relax_class_indices(gra, idx_dct, srt_eval_):
     """ Relax the class indices for this graph based on some sort value.
 
@@ -1097,10 +1165,9 @@ def relax_class_indices(gra, idx_dct, srt_eval_):
         # Pop the next class for re-evaluation
         idx, cla = new_clas.pop(0)
 
-        # Sort and partition the class based on atom invariants and class
-        # indices of neighboring atoms.  After the first iteration, the atom
-        # invariants have no effect -- only the neighboring class indices cause
-        # further subdivision.
+        # Sort and partition the class based on sort values. After the first
+        # iteration, only the neighboring class indices cause further
+        # subdivision.
         srt_val_ = srt_eval_(idx_dct)
         cla = sorted(cla, key=srt_val_)
         parts = [tuple(ks) for _, ks in itertools.groupby(cla, srt_val_)]
@@ -1121,6 +1188,7 @@ def relax_class_indices(gra, idx_dct, srt_eval_):
                 # members in this one, so that that class indices are stable.
                 new_idx += len(part)
 
+            # THIS PART MIGHT BE THE PROBLEM
             # Identify indices of classes with neighboring atoms, as these may
             # be affected by the re-classification.
             ngb_idxs = frozenset()
