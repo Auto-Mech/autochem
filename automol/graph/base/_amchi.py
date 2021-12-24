@@ -22,18 +22,17 @@ import automol.amchi.base
 
 
 # AMChI functions
-def amchi(gra, stereo=True, can=False, is_reflected=None):
+def amchi(gra, stereo=True, can=True, is_reflected=None):
     """ AMChI string from graph
 
         :param gra: molecular graph
         :type gra: automol graph data structure
         :param stereo: Include stereo in the AMChI string, if present?
         :type stereo: bool
-        :param can: True indicates that the graph is already canonical and
-            doesn't need to be canonicalized. If so, it must be a canonical
-            enantiomer as well and the `is_reflected` flag must be set for a
-            canonical result. Otherwise, the graph will be canonicalized and
-            enantiomer reflection will be determined automatically.
+        :param can: Canonicalize the graph? Set to True by default, causing the
+            graph to be canonicalized. If setting to False to avoid
+            re-canonicalization, the `is_reflected` flag must be set for a
+            canonical result.
         :type can: bool
         :param is_reflected: If using pre-canonicalized graph, is it a
             reflected enantiomer? If True, yes; if False, it's an enantiomer
@@ -46,13 +45,13 @@ def amchi(gra, stereo=True, can=False, is_reflected=None):
         "Cannot form connection layer for disconnected graph.")
 
     if not stereo:
-        stereo = without_stereo_parities(gra)
+        gra = without_stereo_parities(gra)
 
     # Convert to implicit graph
     gra = implicit(gra)
 
-    # Canonicalize and determine canonical enantiomer (if relevant)
-    if not can:
+    # Canonicalize and determine canonical enantiomer
+    if can:
         gra, is_reflected = canonical_enantiomer(gra)
 
     fml_str = _formula_string(gra)
@@ -203,7 +202,7 @@ def _connection_layer_and_list(gra):
                 # Extend the layer string.
                 conn_lyr += f"({','.join(sub_lyrs[:-1])}){sub_lyrs[-1]}"
 
-                # Append the lists of neighboring brancches.
+                # Append the lists of neighboring branches.
                 conn_lst.append(sub_lsts)
 
         return conn_lyr, conn_lst

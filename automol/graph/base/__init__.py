@@ -5,11 +5,12 @@ Import hierarchy:
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
     _resonance  dependencies: _core, _networkx, _algo
-    _canon      dependencies: _core, _networkx, _algo, _resonance
     _func_group dependencies: _core, _networkx, _algo, _resonance
     _rot        dependencies: _core, _networkx, _algo, _resonance
     _stereo     dependencies: _core, _networkx, _algo, _resonance
-    _amchi      dependencies: _core, _networkx, _algo, _canon, _stereo
+    _canon      dependencies: _core, _networkx, _algo, _resonance
+    _amchi      dependencies: _core, _networkx, _algo, _canon, _resonance
+    _smiles     dependencies: _core, _networkx, _algo, _canon, _resonance
     ts          dependencies: _core, _networkx, _algo, _resonance, _stereo
 
 Each next submodule in the hierarchy may depend on the ones before it, but
@@ -185,6 +186,7 @@ from automol.graph.base._resonance import resonance_avg_bond_orders
 from automol.graph.base._resonance import linear_atom_keys
 from automol.graph.base._resonance import linear_segments_atom_keys
 from automol.graph.base._resonance import radical_atom_keys
+from automol.graph.base._resonance import radical_atom_keys_from_resonance
 from automol.graph.base._resonance import has_separated_radical_sites
 from automol.graph.base._resonance import nonresonant_radical_atom_keys
 from automol.graph.base._resonance import vinyl_radical_atom_keys
@@ -444,6 +446,7 @@ __all__ = [
     'linear_atom_keys',
     'linear_segments_atom_keys',
     'radical_atom_keys',
+    'radical_atom_keys_from_resonance',
     'has_separated_radical_sites',
     'nonresonant_radical_atom_keys',
     'vinyl_radical_atom_keys',
