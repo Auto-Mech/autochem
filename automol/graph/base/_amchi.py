@@ -288,29 +288,3 @@ def _atom_stereo_layer(gra):
 
     atm_ste_lyr = ','.join(atm_strs)
     return atm_ste_lyr
-
-
-if __name__ == '__main__':
-    # bond stereo
-    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
-            3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
-           {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
-            frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
-            frozenset({2, 5}): (1, False)})
-    CHI = amchi(GRA)
-    print(CHI)
-    ICH = automol.graph.inchi(GRA, stereo=True)
-    print(ICH)
-
-    # atom stereo
-    GRA = ({0: ('C', 1, None), 1: ('C', 1, True), 2: ('C', 1, True),
-            3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
-            6: ('F', 0, None), 7: ('F', 0, None)},
-           {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-            frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
-            frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
-            frozenset({2, 7}): (1, None)})
-    CHI = amchi(GRA)
-    print(CHI)
-    ICH = automol.graph.inchi(GRA, stereo=True)
-    print(ICH)
