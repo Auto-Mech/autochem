@@ -10,10 +10,12 @@ from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import terminal_heavy_atom_keys
+from automol.graph.base._core import string
 from automol.graph.base._core import implicit
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import rings_atom_keys
+from automol.graph.base._algo import cycle_ring_atom_key_to_front
 from automol.graph.base._resonance import dominant_resonance
 from automol.graph.base._resonance import radical_atom_keys_from_resonance
 from automol.graph.base._canon import canonical
@@ -85,12 +87,15 @@ def smiles(gra, stereo=True, can=False):
                 raise ValueError("Bond orders greater than 3 not permitted.")
         return rep
 
+    # Get the pool of rings for the graph and set up a dictionary for storing
+    # their tags. As the SMILES is built, each next ring that is encountered
+    # will be given a tag, removed from the pool, and transferred to the tag
+    # dictionary.
+    rng_pool = list(rings_atom_keys(rgr))
+    rng_tag_dct = {}
+
     # Determine neighboring keys
     nkeys_dct = dict_.transform_values(atoms_neighbor_atom_keys(rgr), list)
-
-    # Find rings for the graph
-    rng_atm_keys_lst = list(rings_atom_keys(rgr))
-    tagged_rngs_dct = {}
 
     def _recurse_smiles(smi, lst, key, just_seen=None):
         nkeys = nkeys_dct.pop(key) if key in nkeys_dct else []
@@ -100,12 +105,40 @@ def smiles(gra, stereo=True, can=False):
         if just_seen in nkeys:
             nkeys.remove(just_seen)
 
+        # Check for new rings in the ring pool. If a new ring is found, create
+        # a tag, add it to the tags dictionary, and drop it from the rings
+        # pool.
+        for new_rng in rng_pool:
+            if key in new_rng:
+                # Choose a neighbor key for SMILES ring closure
+                clos_nkey = sorted(set(new_rng) & set(nkeys))[0]
+
+                # Add it to the ring tag dictionary with the current key first
+                # and the closure key last
+                tag = max(rng_tag_dct.values(), default=0) + 1
+                assert tag < 10, (
+                    f"Ring tag exceeds 10 for this graph:\n{string(gra)}")
+                rng = cycle_ring_atom_key_to_front(new_rng, key, clos_nkey)
+                rng_tag_dct[rng] = tag
+
+                # Remove it from the pool of unseen rings
+                rng_pool.remove(new_rng)
+
+        tags = []
+        for rng, tag in rng_tag_dct.items():
+            if key == rng[-1]:
+                nkeys.remove(rng[0])
+                tags.append(tag)
+            if key == rng[0]:
+                nkeys.remove(rng[-1])
+                tags.append(tag)
+
         # Start the SMILES string and connection list. The connection list is
         # used for sorting.
         brep = _bond_representation(just_seen, key)
         arep = _atom_representation(key)
-        print(f'key, arep, brep: {key} {arep} {brep}')
-        smi = f'{brep}{arep}'
+        rrep = ''.join(map(str, tags))
+        smi = f'{brep}{arep}{rrep}'
         lst = [key]
 
         # Now, extend the layer/list along the neighboring atoms.
@@ -134,7 +167,6 @@ def smiles(gra, stereo=True, can=False):
 
                 # Extend the SMILES string
                 smi += f'{sub_smi}'
-                print(smi)
 
                 # Extend the list
                 lst.extend(sub_lst)
@@ -142,8 +174,6 @@ def smiles(gra, stereo=True, can=False):
             #   {arep1}({brep2}{arep2}...)({brep3}{arep3}...){brep4}{arep4}...
             else:
                 assert len(sub_lsts) > 1
-                print('sub_lsts', sub_lsts)
-                print('sub_smis', sub_smis)
 
                 # Sort the list of branches by length and index values.
                 srt_idxs = sorted(
@@ -161,9 +191,6 @@ def smiles(gra, stereo=True, can=False):
                 # Append the lists of neighboring branches.
                 lst.append(sub_lsts)
 
-        print(f'smi {smi}')
-        print(f'lst {lst}')
-
         return smi, lst
 
     # If there are terminal atoms, start from the first one
@@ -171,21 +198,25 @@ def smiles(gra, stereo=True, can=False):
     term_keys = terminal_heavy_atom_keys(gra)
     start_key = min(term_keys) if term_keys else min(atm_keys)
 
-    smi, lst = _recurse_smiles('', [], start_key)
-    print(lst)
+    smi, _ = _recurse_smiles('', [], start_key)
 
     return smi
 
 
-if __name__ == '__main__':
-    import automol
-
-    ICH = automol.smiles.inchi('C1=C(O[O])NC1=C[CH2]')
-    GRA = automol.inchi.graph(ICH)
-    SMI = smiles(GRA)
-    print(SMI)
-
-    SICH = automol.smiles.inchi(SMI)
-    print(ICH)
-    print(SICH)
-    assert SICH == ICH
+# if __name__ == '__main__':
+#     import automol
+#
+#     # ICH = automol.smiles.inchi('C1=C(O[O])NC1=C[CH2]')
+#     ICH = automol.smiles.inchi('C123C(O1)(CCO2)CNC3')
+#     print(ICH)
+#     # ICH = automol.smiles.inchi('C1CC1')
+#     GRA = automol.inchi.graph(ICH)
+#     SMI = smiles(GRA)
+#     print(SMI)
+#
+#     SICH = automol.smiles.inchi(SMI)
+#     print(ICH)
+#     print(SICH)
+#     # print(automol.graph.string(GRA, one_indexed=True))
+#     print(automol.graph.rings_atom_keys(GRA))
+#     # assert SICH == ICH
