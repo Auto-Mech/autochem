@@ -4,6 +4,17 @@ import itertools
 from phydat import ptab
 
 
+def is_odd_permutation(seq1, seq2):
+    """ Determine whether a permutation of a sequence is odd.
+
+    :param seq1: the first sequence
+    :param seq2: the second sequence, which must be a permuation of the first
+    :returns: True if the permutation is even, False if it is odd
+    :rtype: bool
+    """
+    return not is_even_permutation(seq1, seq2)
+
+
 def is_even_permutation(seq1, seq2):
     """ Determine whether a permutation of a sequence is even or odd.
 

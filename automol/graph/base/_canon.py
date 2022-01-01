@@ -41,18 +41,6 @@ from automol.graph.base._resonance import sp2_bond_keys
 
 
 # # canonical key functions
-def canonical(gra):
-    """ A graph relabeled with canonical keys
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: a new molecular graph with canonical keys; if explicit
-            hydrogens are included, they will be relabeled as well
-    """
-    can_key_dct = canonical_keys(gra, backbone_only=False)
-    return relabel(gra, can_key_dct)
-
-
 def canonical_enantiomer(gra):
     """ Determine the canonical graph of the canonical enantiomer.
 
@@ -111,6 +99,18 @@ def canonical_enantiomer(gra):
             is_reflected = True
 
     return can_enant_gra, is_reflected
+
+
+def canonical(gra):
+    """ A graph relabeled with canonical keys
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: a new molecular graph with canonical keys; if explicit
+            hydrogens are included, they will be relabeled as well
+    """
+    can_key_dct = canonical_keys(gra, backbone_only=False)
+    return relabel(gra, can_key_dct)
 
 
 def canonical_keys(gra, backbone_only=True):
