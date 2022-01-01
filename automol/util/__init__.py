@@ -2,6 +2,7 @@
 """
 
 # functions
+from automol.util._util import is_odd_permutation
 from automol.util._util import is_even_permutation
 from automol.util._util import equivalence_partition
 from automol.util._util import breakby
@@ -21,6 +22,7 @@ from automol.util import dict_
 
 __all__ = [
     # functions
+    'is_odd_permutation',
     'is_even_permutation',
     'equivalence_partition',
     'breakby',
