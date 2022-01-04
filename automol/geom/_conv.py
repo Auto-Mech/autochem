@@ -443,7 +443,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
     return geo, dummy_key_dct
 
 
-def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
+def insert_dummies(geo, dummy_key_dct, gra=None, dist=1., tol=5.):
     """ Insert dummy atoms over atoms in a geometry in a particular order.
 
         :param geo: the geometry
@@ -467,7 +467,7 @@ def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
         dum_keys = numpy.array(list(dum_keys))
         lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
         geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
-            geo, lin_idxs=lin_idxs, dist=dist, tol=tol)
+            geo, lin_idxs=lin_idxs, gra=gra, dist=dist, tol=tol)
 
         for lin_idx, lin_key in zip(lin_idxs, lin_keys):
             orig_idx = orig_dummy_key_dct[lin_idx]
