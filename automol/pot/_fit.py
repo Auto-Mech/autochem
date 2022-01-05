@@ -96,6 +96,24 @@ def _spline_no_alteration(pot, lpot, min_thresh):
     return pot if spl_fit else spl_fit
 
 
+def setup_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
+    """ Get a physical hindered rotor potential via a series of spline fits
+        but just drop negative potentials instead of fitting them
+    """
+    # unpack potential dictionary
+    _, pot, lpot = _initialize_pot(pot_dct)
+    pot = _round_near_zero(pot, max_thresh, min_thresh)
+
+    x_idxs, y_pots = _cap_max_thresh_drop_neg(
+        pot, lpot, min_thresh, max_thresh)
+
+    new_pot = {}
+    for idx, x_val in enumerate(x_idxs[:-1]):
+        new_pot[(x_val,)] = y_pots[idx]
+    
+    return new_pot
+
+
 def fit_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     """ Get a physical hindered rotor potential via a series of spline fits
     """

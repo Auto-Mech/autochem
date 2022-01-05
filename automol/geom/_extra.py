@@ -1,6 +1,5 @@
 """ extra high-level geometry library functions
 """
-
 import numpy
 import automol.graph
 import automol.zmat.base
@@ -316,7 +315,6 @@ def hydrogen_bonded_idxs(
         acceptor_idxs = list(
             automol.graph.resonance_dominant_radical_atom_keys(gra))
         acceptor_idxs.extend(list(automol.graph.atom_keys(gra, sym='O')))
-
         # Loop over indices, ignoring H-idxs in reacting bonds
         hb_idxs = tuple(idx for idx in h_idxs
                         if idx not in rxn_h_idxs)
@@ -329,4 +327,5 @@ def hydrogen_bonded_idxs(
                     ang = central_angle(geo, donor_idx, h_idx, acceptor_idx)
                     if ang > angle_thresh:
                         hydrogen_bond = (donor_idx, h_idx, acceptor_idx,)
+                        dist_thresh = dist_mat[h_idx][acceptor_idx]
     return hydrogen_bond
