@@ -53,7 +53,7 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
     sort_tors_freqs = sorted(tors_freqs)
 
     # Keep only freqs whose RRHO freqs are above a threshold
-    freq_thresh = 50.
+    freq_thresh = 20.
     log_rt_freq = 0.0
     nfreq_remove = 0
     for freq in rt_freqs:
