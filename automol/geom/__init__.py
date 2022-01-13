@@ -118,6 +118,8 @@ from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
 from automol.geom._extra import hydrogen_bonded_structure
 from automol.geom._extra import hydrogen_bonded_idxs
+# align
+from automol.geom._align import align
 # ring functions
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
@@ -232,6 +234,8 @@ __all__ = [
     'is_unique',
     'hydrogen_bonded_structure',
     'hydrogen_bonded_idxs',
+    # align
+    'align',
     # ring functions
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
