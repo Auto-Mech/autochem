@@ -52,6 +52,16 @@ def all_pairs_shortest_path(nxg):
     return networkx.all_pairs_shortest_path(nxg)
 
 
+def all_isomorphisms(nxg1, nxg2):
+    """ Find all possible isomorphisms between two graphs
+    """
+
+    matcher = networkx.algorithms.isomorphism.GraphMatcher(
+        nxg1, nxg2, node_match=operator.eq, edge_match=operator.eq)
+
+    return tuple(matcher.isomorphisms_iter())
+
+
 def isomorphism(nxg1, nxg2):
     """ graph isomorphism
     """
