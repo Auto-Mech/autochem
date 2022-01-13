@@ -677,7 +677,7 @@ def find(rct_gras, prd_gras):
 
     # Cycle through the different finders and gather all possible reactions
     finders_ = [
-        trivial,
+        # trivial,
         # unimolecular reactions
         hydrogen_migrations,
         beta_scissions,
