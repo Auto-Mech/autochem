@@ -165,17 +165,10 @@ def ring_forming_scission_grid(zrxn, zma, npoints=(7,)):
         # the following allows for a 2-d grid search in the initial ts_search
         # for now try 1-d grid and see if it is effective
     """
-<<<<<<< HEAD
 
     # Obtain the scan coordinate
     scan_name, = ring_forming_scission_scan_coordinate(zrxn, zma)
 
-=======
-
-    # Obtain the scan coordinate
-    scan_name, = ring_forming_scission_scan_coordinate(zrxn, zma)
-
->>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
     # Build the grid
     npoints1 = npoints[0]
 
@@ -202,15 +195,9 @@ def elimination_scan_coordinate(rxn, zma):
     :rtype: str
     """
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
-<<<<<<< HEAD
 
     brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
 
-=======
-
-    brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
-
->>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
     frm_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     brk_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key1)
 
