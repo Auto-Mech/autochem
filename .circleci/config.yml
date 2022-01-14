@@ -4,7 +4,7 @@ jobs:
         docker:
             - image: continuumio/miniconda3
         steps:
-            - checkout  # checkout code
+            - checkout  # checkout the code
             - run:
                 name: Create conda environment
                 command: |

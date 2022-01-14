@@ -104,7 +104,7 @@ def saddle_point_maximum(enes_lst,
             if enes_lst:
                 max_idx = 0 if enes_lst[0] > enes_lst[-1] else -1
             else:
-                max_idx = -1
+                max_idx = None
         else:
             if enes_lst[0] > max(enes_lst[max_idx], enes_lst[-1]):
                 max_idx = 0
