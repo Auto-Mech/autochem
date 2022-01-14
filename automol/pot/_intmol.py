@@ -1,5 +1,4 @@
-"""
-  Various potential interaction forms
+""" Various potential interaction forms
 """
 
 import numpy

@@ -43,7 +43,10 @@ def test_plog():
     dups, _ = params2.check_for_dups()
     assert dups
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
 def test_cheb():
     """ Tests various functions involving Chebyshev params
     """
@@ -90,7 +93,10 @@ def test_troe():
     dups, _ = params4.check_for_dups()
     assert dups
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
 def test_lind():
     """ Tests various functions involving Lindemann params
     """

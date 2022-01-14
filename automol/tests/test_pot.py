@@ -1,4 +1,4 @@
-""" test automol.intmol
+""" test automol.pot
 """
 
 import numpy

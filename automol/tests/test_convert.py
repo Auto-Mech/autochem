@@ -1,4 +1,4 @@
-""" test type conversions
+""" test automol type conversions
 """
 
 import os

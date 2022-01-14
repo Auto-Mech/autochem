@@ -106,7 +106,10 @@ def saddle_point_maximum(enes_lst,
             else:
                 max_idx = None
         else:
-            max_idx = None
+            if enes_lst[0] > max(enes_lst[max_idx], enes_lst[-1]):
+                max_idx = 0
+            elif enes_lst[-1] > max(enes_lst[max_idx], enes_lst[0]):
+                max_idx = -1
 
     return max_idx
 
@@ -182,5 +185,7 @@ def _local_extrema(grid):
 
     loc_max = tuple(argrelextrema(numpy.array(grid), numpy.greater)[0])
     loc_min = tuple(argrelextrema(numpy.array(grid), numpy.less)[0])
+
+    print('local stat pt test:', loc_max, loc_min)
 
     return loc_max, loc_min

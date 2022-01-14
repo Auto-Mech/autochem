@@ -165,10 +165,17 @@ def ring_forming_scission_grid(zrxn, zma, npoints=(7,)):
         # the following allows for a 2-d grid search in the initial ts_search
         # for now try 1-d grid and see if it is effective
     """
+<<<<<<< HEAD
 
     # Obtain the scan coordinate
     scan_name, = ring_forming_scission_scan_coordinate(zrxn, zma)
 
+=======
+
+    # Obtain the scan coordinate
+    scan_name, = ring_forming_scission_scan_coordinate(zrxn, zma)
+
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
     # Build the grid
     npoints1 = npoints[0]
 
@@ -195,9 +202,15 @@ def elimination_scan_coordinate(rxn, zma):
     :rtype: str
     """
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
+<<<<<<< HEAD
 
     brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
 
+=======
+
+    brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
+
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
     frm_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     brk_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key1)
 
@@ -229,8 +242,8 @@ def elimination_grid(zrxn, zma, npoints=(7, 5)):
         r2min = (1.50 + 0.3) * phycon.ANG2BOHR
         r2max = (1.50 + 1.2) * phycon.ANG2BOHR
 
-    grid1 = numpy.linspace(r1min, r1max, npoints1)
-    grid2 = numpy.linspace(r2min, r2max, npoints2)
+    grid1 = numpy.linspace(r1min, r1max, npoints1) * phycon.ANG2BOHR
+    grid2 = numpy.linspace(r2min, r2max, npoints2) * phycon.ANG2BOHR
 
     return (grid1, grid2)
 
@@ -516,7 +529,6 @@ VAR_TS_GRID_DCT = {
     ReactionClass.Typ.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
 }
 
-
 def scan_grid(zrxn, zma, var=False):
     """ Set the grid for a transition state search
     """
@@ -558,7 +570,6 @@ def scan_update_guess(zrxn, var=False):
         _update = VAR_TS_UPDATE_GUESS_DCT[zrxn.class_]
 
     return _update
-
 
 # Helper functions
 def _ts_bnd_len(zma, scan_coord):

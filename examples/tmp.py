@@ -1,5 +1,6 @@
 """ testing fake_stereo_geometry function
 """
+
 import automol
 
 # ICH = automol.smiles.inchi('FC=C(F)N')

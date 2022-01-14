@@ -303,7 +303,10 @@ def test__reac__reagents_graph():
          frozenset({9, 2}): (1, None)})
 
     assert prds_gra == automol.reac.reactants_graph(rxn, rev=True)
+<<<<<<< HEAD
+=======
 
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
 
 def test__reac__hydrogen_migration():
     """ test hydrogen migration functionality
@@ -448,13 +451,12 @@ def test__reac__elimination():
     ref_constraint_dct = None
     ref_scan_grid = (
         numpy.array([
-            1.98421243, 2.14168961, 2.29916679, 2.45664396,
-            2.61412114, 2.77159832, 2.92907549]),
-        numpy.array([
-            3.2692262, 3.69441458, 4.11960295, 4.54479133, 4.96997971]))
-    ref_update_guess = False  # correct?
-    ref_tors_names = {'D9', 'D12'}
-    ref_tors_symms = [1, 3]
+            3.77045681, 4.09440986, 4.41836291, 4.74231596, 5.06626901,
+            5.39022206, 5.71417511, 6.03812816]),
+        numpy.array([3.35680094, 4.07101391, 4.78522687, 5.49943984])),)
+    ref_update_guess = False
+    ref_tors_names = {'D9'}
+    ref_tors_symms = [3]
 
     assert len(rxn_objs) == 1
 
@@ -555,6 +557,7 @@ def test__reac__addition():
     rct_smis = ['CC[CH2]', '[O][O]']
     prd_smis = ['CCCO[O]']
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+<<<<<<< HEAD
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -568,6 +571,21 @@ def test__reac__addition():
 
     assert len(rxn_objs) == 1
 
+=======
+
+    ref_scan_names = ('R10',)
+    ref_constraint_dct = None
+    ref_scan_grid = (numpy.array([
+        2.89128097, 2.94128097, 2.99628097, 3.05678097, 3.12333097,
+        3.19653597, 3.27706147, 3.36563952, 3.46307538, 3.57025482,
+        3.6881522, 3.81783933, 3.96049516, 4.11741658, 4.29003014]),)
+    ref_update_guess = False
+    ref_tors_names = {'D7', 'D11', 'D4'}
+    ref_tors_symms = [1, 1, 3]
+
+    assert len(rxn_objs) == 1
+
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
                     False,
                     ref_scan_names, ref_constraint_dct,
@@ -592,6 +610,38 @@ def test__reac__radrad_addition():
     prd_smis = ['CCC']
 
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+<<<<<<< HEAD
+    ref_scan_names = ('R10',)
+    ref_constraint_dct = None
+    ref_scan_grid = None
+    ref_update_guess = True
+    ref_tors_names = {'D7', 'D4'}
+    ref_tors_symms = [3, 3]
+
+    assert len(rxn_objs) == 1
+
+    _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
+                    True,
+                    ref_scan_names, ref_constraint_dct,
+                    ref_scan_grid, ref_update_guess,
+                    ref_tors_names, ref_tors_symms)
+
+    # # Extra test cases:
+    # rxn_smis_lst = [
+    #     (['[H]', '[OH]'], ['O']),
+    #     (['[CH3]', '[OH]'], ['CO']),
+    # ]
+    # for rct_smis, prd_smis in rxn_smis_lst:
+    #     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    #     assert len(rxn_objs) == 1
+    #     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION, False)
+
+
+def __reac__isc_addition():
+    """ test addition functionality
+    """
+
+=======
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -623,6 +673,7 @@ def __reac__isc_addition():
     """ test addition functionality
     """
 
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
     rct_smis = ['N#N', '[O]']
     prd_smis = ['[N-]=[N+]=O']
 
@@ -647,9 +698,15 @@ def test__reac__radrad_hydrogen_abstraction():
     ref_update_guess = True
     ref_tors_names = {'D8', 'D5'}
     ref_tors_symms = [3, 1]
+<<<<<<< HEAD
 
     assert len(rxn_objs) == 1
 
+=======
+
+    assert len(rxn_objs) == 1
+
+>>>>>>> b4ca122c1ad9f7e248bf53074f90b73c7f7cf8b4
     _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                     True,
                     ref_scan_names, ref_constraint_dct,

@@ -1,4 +1,3 @@
-
 """ test automol.zmat
 """
 
@@ -6,7 +5,6 @@ import pytest
 import numpy
 from automol import zmat
 # from automol import geom
-
 
 CH4O2_ZMA = (
     ('C', (None, None, None), (None, None, None), (None, None, None)),
