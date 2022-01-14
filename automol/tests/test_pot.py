@@ -1,4 +1,4 @@
-""" test automol.intmol
+""" test automol.pot
 """
 
 import numpy
@@ -55,6 +55,18 @@ POT2 = {
     (4.71238898,): 1.72, (5.23598776,): 3.60, (5.75958653,): 1.60
 }
 POT3 = {
+    (0.00000000,): 0.00, (0.52359878,): None, (1.04719755,): 3.58,
+    (1.57079633,): None, (2.09439510,): 0.01, (2.61799388,): 1.75,
+    (3.14159265,): 3.59, (3.66519143,): 1.69, (4.18879020,): 0.02,
+    (4.71238898,): 1.72, (5.23598776,): 3.60, (5.75958653,): None
+}
+POT4 = {
+    (0.00000000,): None, (0.52359878,): None, (1.04719755,): None,
+    (1.57079633,): None, (2.09439510,): None, (2.61799388,): None,
+    (3.14159265,): None, (3.66519143,): None, (4.18879020,): None,
+    (4.71238898,): None, (5.23598776,): None, (5.75958653,): None
+}
+POT5 = {
     (1.0, 0.1): 1.1, (1.0, 0.2): 1.2,
     (2.0, 0.1): 1.3, (2.0, 0.2): 1.4,
     (3.0, 0.1): 1.5, (3.0, 0.2): 1.6,
@@ -159,7 +171,7 @@ def test__transform_potential():
                     (2, 0): 1.5, (2, 1): 1.6,
                     (3, 0): 1.7, (3, 1): 1.8}
     idx_pot1 = automol.pot.by_index(POT1)
-    idx_pot2 = automol.pot.by_index(POT3)
+    idx_pot2 = automol.pot.by_index(POT5)
 
     assert numpy.allclose(list(idx_pot1.keys()), list(ref_idx_pot1.keys()))
     assert numpy.allclose(list(idx_pot2.keys()), list(ref_idx_pot2.keys()))
@@ -167,6 +179,29 @@ def test__transform_potential():
         assert numpy.isclose(val, ref_idx_pot1[key])
     for key, val in idx_pot2.items():
         assert numpy.isclose(val, ref_idx_pot2[key])
+
+
+def test__empty_terms_in_potential():
+    """ test automol.pot.is_nonempty
+        test automol.pot.remove_empty_terms
+    """
+
+    assert automol.pot.is_nonempty(POT1)
+    assert not automol.pot.is_nonempty(POT4)
+
+    ref_filt_pot = {
+        (0.00000000,): 0.00, (1.04719755,): 3.58,
+        (2.09439510,): 0.01, (2.61799388,): 1.75,
+        (3.14159265,): 3.59, (3.66519143,): 1.69,
+        (4.18879020,): 0.02, (4.71238898,): 1.72,
+        (5.23598776,): 3.60
+    }
+
+    filt_pot = automol.pot.remove_empty_terms(POT3)
+    assert numpy.allclose(
+        tuple(filt_pot.keys()), tuple(ref_filt_pot.keys()), atol=1.0e-2)
+    assert numpy.allclose(
+        tuple(filt_pot.values()), tuple(ref_filt_pot.values()), atol=1.0e-2)
 
 
 def test__fit_potential():
@@ -194,15 +229,18 @@ def test__fit_potential():
     pot3 = automol.pot.fit_1d_potential(
         init_pot3, min_thresh=-0.0001, max_thresh=50.0)
 
-    ref_pot1 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
+    ref_pot1 = {(0,): 0.0, (1,): 1.299, (2,): 3.085, (3,): 2.78,
                 (4,): 2.045, (5,): 3.052, (6,): 3.949, (7,): 2.655,
-                (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 1.289}
-    ref_pot2 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
-                (4,): 2.045, (5,): 3.091, (6,): 3.949, (7,): 2.655,
-                (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 1.289}
-    ref_pot3 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
-                (4,): 2.045, (5,): 3.089, (6,): 3.949, (7,): 2.655,
-                (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 2.273}
+                (8,): 1.48, (9,): 2.358, (10,): 2.948, (11,): 1.289}
+    ref_pot2 = {(0,): 0.0, (1,): 1.299, (2,): 3.085, (3,): 2.78,
+                (4,): 2.045, (5,): 2.997, (6,): 3.949, (7,): 2.655,
+                (8,): 1.48, (9,): 2.358, (10,): 2.948, (11,): 1.289}
+    # ref_pot3 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
+    #             (4,): 2.045, (5,): 3.089, (6,): 3.949, (7,): 2.655,
+    #             (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 2.273}
+    ref_pot3 = {(0,): 0.0, (1,): 1.299, (2,): 3.085, (3,): 2.78,
+                (4,): 2.045, (5,): 2.997, (6,): 3.949, (7,): 2.655,
+                (8,): 1.48, (9,): 2.358, (10,): 2.948, (11,): 1.474}
 
     assert tuple(pot1.keys()) == tuple(ref_pot1.keys())
     assert numpy.allclose(
@@ -215,19 +253,12 @@ def test__fit_potential():
         tuple(pot3.values()), tuple(ref_pot3.values()), atol=1.0e-2)
 
 
-def test__repulsion():
-    """ test prop.low_repulsion_struct
+def test__intmol():
+    """ test pot.low_repulsion_struct
+        test pot.intramol_interaction_potential_sum
     """
 
     assert automol.pot.low_repulsion_struct(
         PROP_GEO1, PROP_GEO2, thresh=40.0, potential='exp6')
     assert automol.pot.low_repulsion_struct(
         PROP_GEO1, PROP_GEO2, thresh=40.0, potential='lj_12_6')
-
-
-if __name__ == '__main__':
-    # test__valid_potential()
-    # test__build_potential()
-    test__fit_potential()
-    # test__transform_potential()
-    # test__repulsion()

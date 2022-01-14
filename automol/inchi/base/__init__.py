@@ -14,13 +14,17 @@ from automol.inchi.base._core import main_sublayers
 from automol.inchi.base._core import charge_sublayers
 from automol.inchi.base._core import stereo_sublayers
 from automol.inchi.base._core import isotope_sublayers
+from automol.inchi.base._core import stereo_atoms
+from automol.inchi.base._core import stereo_bonds
+from automol.inchi.base._core import unassigned_stereo_bonds
+from automol.inchi.base._core import is_enantiomer
+from automol.inchi.base._core import reflect
 # # conversions
 from automol.inchi.base._core import inchi_key
 from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
 # # properties
 from automol.inchi.base._core import is_standard_form
-from automol.inchi.base._core import is_complete
 from automol.inchi.base._core import has_multiple_components
 from automol.inchi.base._core import is_chiral
 from automol.inchi.base._core import has_stereo
@@ -39,6 +43,9 @@ from automol.inchi.base._core import hardcoded_object_from_inchi_by_key
 from automol.inchi.base._core import hardcoded_object_to_inchi_by_key
 # # helpers
 from automol.inchi.base._core import version_pattern
+# reaction functions
+from automol.inchi.base._reac import filter_enantiomer_reactions
+from automol.inchi.base._reac import sort_reactions
 
 
 __all__ = [
@@ -55,13 +62,17 @@ __all__ = [
     'charge_sublayers',
     'stereo_sublayers',
     'isotope_sublayers',
+    'stereo_atoms',
+    'stereo_bonds',
+    'unassigned_stereo_bonds',
+    'is_enantiomer',
+    'reflect',
     # # conversions
     'inchi_key',
     'smiles',
     'formula',
     # # properties
     'is_standard_form',
-    'is_complete',
     'has_multiple_components',
     'is_chiral',
     'has_stereo',
@@ -80,4 +91,7 @@ __all__ = [
     'hardcoded_object_to_inchi_by_key',
     # # helpers
     'version_pattern',
+    # reaction functions
+    'filter_enantiomer_reactions',
+    'sort_reactions',
 ]

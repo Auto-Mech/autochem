@@ -4,6 +4,7 @@
 from copy import deepcopy
 from itertools import permutations
 from itertools import starmap as _starmap
+import numpy
 
 
 def invert(dct):
@@ -23,7 +24,7 @@ def empty_if_none(obj):
         :param obj: generic object
         :type obj: any
     """
-    return dict() if obj is None else obj
+    return {} if obj is None else obj
 
 
 def right_update(dct1, dct2):
@@ -37,6 +38,8 @@ def right_update(dct1, dct2):
     """
 
     dct = {}
+    dct1 = empty_if_none(dct1)
+    dct2 = empty_if_none(dct2)
     dct.update(dct1)
     dct.update(dct2)
     return dct
@@ -78,6 +81,23 @@ def values_by_unordered_tuple(dct, key, fill_val=None):
 
     if val is None:
         val = fill_val
+
+    return val
+
+
+def value_in_floatkey_dct(dct, key, tol=1.0e-5):
+    """ Access value in a dictionary that may have floats with large numbers of
+        decimal places or strings
+    """
+
+    if isinstance(key, float):
+        val = None
+        for dkey in dct:
+            if isinstance(dkey, float):
+                if numpy.isclose(key, dkey, atol=tol):
+                    val = dct[dkey]
+    else:
+        val = dct.get(key, None)
 
     return val
 
@@ -165,12 +185,6 @@ def keys_sorted_by_value(dct):
     return tuple(key for key, _ in sorted(dct.items(), key=lambda x: x[1]))
 
 
-# def filter_by_key(dct, func):
-#     """ filter dictionary entries by their keys
-#     """
-#     return {key: val for key, val in dct.items() if func(key)}
-
-
 def filter_by_value(dct, func=lambda val: val):
     """ filter dictionary entries by their values
     """
@@ -187,15 +201,17 @@ def filter_keys(dct_1, dct_2):
         :rtype: dict[]
     """
 
+    dct_ret = deepcopy(dct_1)
+
     keys_topop = list(dct_2.keys())
 
     for key in keys_topop:
         try:
-            dct_1.pop(key, None)
+            dct_ret.pop(key, None)
         except KeyError:
             continue
 
-    return dct_1
+    return dct_ret
 
 
 def merge_sequence(dcts):

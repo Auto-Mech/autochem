@@ -9,6 +9,7 @@ from automol.rotor._rotor import names
 from automol.rotor._rotor import axes
 from automol.rotor._rotor import groups
 from automol.rotor._rotor import symmetries
+from automol.rotor._rotor import potentials
 from automol.rotor._rotor import grids
 from automol.rotor._rotor import zmatrix
 from automol.rotor._rotor import relabel_for_geometry
@@ -19,8 +20,8 @@ from automol.rotor._tors import all_torsion_groups
 from automol.rotor._tors import all_torsion_symmetries
 from automol.rotor._tors import torsion_groups
 from automol.rotor._tors import torsion_symmetry
+from automol.rotor._tors import torsion_lst
 from automol.rotor._tors import reaction_torsion_lst
-from automol.rotor._util import graph_with_keys
 
 
 __all__ = [
@@ -31,6 +32,7 @@ __all__ = [
     'axes',
     'groups',
     'symmetries',
+    'potentials',
     'grids',
     'zmatrix',
     'relabel_for_geometry',
@@ -41,6 +43,6 @@ __all__ = [
     'all_torsion_symmetries',
     'torsion_groups',
     'torsion_symmetry',
+    'torsion_lst',
     'reaction_torsion_lst',
-    'graph_with_keys'
 ]

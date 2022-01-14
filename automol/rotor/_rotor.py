@@ -14,7 +14,6 @@ import automol.pot
 import automol.reac
 from automol.rotor import _tors as tors
 from automol.rotor._name import group_torsions_into_rotors
-from automol.rotor._util import graph_with_keys
 from automol.rotor._util import sort_tors_names
 
 
@@ -23,12 +22,9 @@ def from_zmatrix(zma, zrxn=None, tors_names=None, multi=False):
     """ Construct a list-of-lists of torsion objects
     """
 
+    # Build the initial list of torsion objects
     if zrxn is None:
-        # Build a graph that is used to get torsion object info
-        gra, lin_keys = graph_with_keys(zma, zrxn=zrxn)
-        print('lin keys back here', lin_keys)
-        # Build the torsion objects
-        tors_lst = tors.torsion_lst(zma, gra, lin_keys)
+        tors_lst = tors.torsion_lst(zma)
     else:
         tors_lst = tors.reaction_torsion_lst(zma, zrxn)
 
@@ -103,6 +99,17 @@ def symmetries(rotor_lst, flat=False):
     return symms
 
 
+def potentials(rotor_lst, flat=False):
+    """ Build a list of list of potentials
+        Only really works for potentials
+    """
+    pots = tuple(tuple(torsion.pot for torsion in rotor)
+                 for rotor in rotor_lst)
+    if flat:
+        pots = tuple(chain(*pots))
+    return pots
+
+
 def grids(rotor_lst,
           span=2.0*numpy.pi, increment=30.0*phycon.DEG2RAD, flat=False):
     """ Build a list of list of grids
@@ -112,14 +119,18 @@ def grids(rotor_lst,
     for rotor in rotor_lst:
         rotor_grids = ()
         for torsion in rotor:
+            # print('rotor grids input test:', torsion.zma, torsion.name,
+            #       span, torsion.symmetry, increment)
             rotor_grids += (
                 automol.pot.grid(
                     torsion.zma, torsion.name,
                     span, torsion.symmetry, increment, from_equilibrium=True),
             )
+            # print('torsion and rotor grids:', torsion, rotor_grids)
         rotor_lst_grids += (rotor_grids,)
     if flat:
         rotor_lst_grids = tuple(chain(*rotor_lst_grids))
+    # print('rotor_lst_grids:', rotor_lst_grids)
 
     return rotor_lst_grids
 
@@ -199,79 +210,5 @@ def from_string(tors_str):
         symm = dct['symmetry']
 
         inf_dct[name] = {'axis': _axis, 'groups': _grps, 'symmetry': symm}
-        # torsions += (Torsion('', name, _axis, _grps, symm),)
 
     return inf_dct
-
-
-if __name__ == '__main__':
-    # RCT_ICHS = list(map(automol.smiles.inchi, ['[O]O', 'CCC=C[CH]CCCCC']))
-    # PRD_ICHS = list(map(automol.smiles.inchi, ['O=O', 'CCCC=CCCCCC']))
-
-    # RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))
-    # PRD_GEOS = list(map(automol.inchi.geometry, PRD_ICHS))
-
-    # RCT_GRAS = list(map(automol.geom.graph, RCT_GEOS))
-    # PRD_GRAS = list(map(automol.geom.graph, PRD_GEOS))
-
-    # RCT_GRAS = list(map(automol.graph.without_stereo_parities, RCT_GRAS))
-    # PRD_GRAS = list(map(automol.graph.without_stereo_parities, PRD_GRAS))
-
-    # RCT_GRAS, _ = automol.graph.standard_keys_for_sequence(RCT_GRAS)
-    # PRD_GRAS, _ = automol.graph.standard_keys_for_sequence(PRD_GRAS)
-
-    # RXNS = automol.reac.find(RCT_GRAS, PRD_GRAS)
-    # RXN = RXNS[0]
-
-    # RXN, RCT_GEOS, PRD_GEOS = (
-    #     automol.reac.standard_keys_with_sorted_geometries(
-    #         RXN, RCT_GEOS, PRD_GEOS))
-
-    # GEO = automol.reac.ts_geometry(RXN, RCT_GEOS, log=False)
-    # with open('zmat.xyz', 'r') as f:
-    #    GEO_STR = f.read()
-    print('buuggh')
-    # with open('zmat.r.yaml', 'r') as f:
-    #     RXN_STR = f.read()
-    # GEO = autofile.data_types.sread.geometry(GEO_STR)
-    # RXN = autofile.data_types.sread.reaction(RXN_STR)
-
-    # ZMA, ZMA_KEYS, DUMMY_KEY_DCT = automol.reac.ts_zmatrix(RXN, GEO)
-
-    # ZRXN = automol.reac.relabel_for_zmatrix(RXN, ZMA_KEYS, DUMMY_KEY_DCT)
-    # ZTSG = ZRXN.forward_ts_graph
-
-    # print('zma:\n', automol.zmat.string(ZMA))
-
-    # LIN_KEYS = sorted(
-    #     automol.graph.dummy_atoms_neighbor_atom_key(ZTSG).values())
-    # BND_KEYS = automol.graph.rotational_bond_keys(ZTSG, lin_keys=LIN_KEYS)
-    # print(LIN_KEYS)
-    # print(BND_KEYS)
-
-    # NAMES = [automol.zmat.torsion_coordinate_name(ZMA, *k) for k in BND_KEYS]
-    # print(NAMES)
-
-    # ROTORS = from_zmatrix(ZMA, zrxn=ZRXN)
-    # print(ROTORS)
-
-    # ZMA_STR = autofile.io_.read_file('zmat.zmat')
-    # ZMA = autofile.data_types.sread.zmatrix(ZMA_STR)
-    # GEO = automol.zmat.geometry(ZMA)
-    # R1GEO = GEO[:3]
-    # R2GEO = GEO[3:]
-    # R1GRA = automol.geom.graph(R1GEO)
-    # R2GRA = automol.geom.graph(R2GEO)
-
-    # RXN_STR = autofile.io_.read_file('zmat.r.yaml')
-
-    # RXN = autofile.data_types.sread.reaction(RXN_STR)
-    # RCT_GRAS = automol.reac.reactant_graphs(RXN)
-    # ISO1 = automol.graph.full_isomorphism(RCT_GRAS[0], R1GRA)
-    # ISO2 = automol.graph.full_isomorphism(RCT_GRAS[1], R2GRA)
-    # print(automol.graph.inchi(RCT_GRAS[1]))
-    # print(automol.graph.inchi(R2GRA))
-    # ISO = {**ISO1, **ISO2}
-    # print(ISO)
-
-    # # from_zmatrix(ZMA, zrxn=RXN)

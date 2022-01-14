@@ -11,7 +11,6 @@ import more_itertools as mit
 from automol import util
 from automol.util import dict_
 from automol.graph.base import _networkx
-from automol.graph.base import _igraph
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import atom_symbols
@@ -64,36 +63,67 @@ def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
     return _isomorphism(gra1, gra2)
 
 
-def _isomorphism(gra1, gra2, igraph=False):
+def _isomorphism(gra1, gra2):
     """
     """
-    if igraph:
-        igr1 = _igraph.from_graph(gra1)
-        igr2 = _igraph.from_graph(gra2)
-        iso_dcts = _igraph.isomorphisms(igr1, igr2)
-        iso_dct = iso_dcts[0] if iso_dcts else None
-    else:
-        nxg1 = _networkx.from_graph(gra1)
-        nxg2 = _networkx.from_graph(gra2)
-        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    nxg1 = _networkx.from_graph(gra1)
+    nxg2 = _networkx.from_graph(gra2)
+    iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
-def full_isomorphism(gra1, gra2, igraph=False):
+def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
+                         dummy=True):
+    """ Obtain an isomorphism between two sequences of graphs
+
+    :param backbone_only: Compare backbone atoms only?
+    :type backbone_only: bool
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: First, a sequence of integers mapping each graph in `gras1` to an
+        isomorph in `gras2`, followes by a sequence of dictionaries mapping
+        their atoms onto each other.
+    :rtype: tuple[int], tuple[dict]
+    """
+    gras1_pool = dict(enumerate(gras1))
+    order = []
+    iso_dcts = []
+    for gra2 in gras2:
+        found_match = False
+        for idx, gra1 in gras1_pool.items():
+            iso_dct = isomorphism(gra2, gra1, backbone_only=backbone_only,
+                                  stereo=stereo, dummy=dummy)
+            if iso_dct is not None:
+                found_match = True
+                order.append(idx)
+                iso_dcts.append(iso_dct)
+                gras1_pool.pop(idx)
+                break
+
+        if not found_match:
+            break
+
+    if not found_match:
+        order = None
+        iso_dcts = None
+    else:
+        order = tuple(order)
+        iso_dcts = tuple(iso_dcts)
+
+    return order, iso_dcts
+
+
+def full_isomorphism(gra1, gra2):
     """ full graph isomorphism
 
     TODO: DEPRECATE
     """
     assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
-    if igraph:
-        igr1 = _igraph.from_graph(gra1)
-        igr2 = _igraph.from_graph(gra2)
-        iso_dcts = _igraph.isomorphisms(igr1, igr2)
-        iso_dct = iso_dcts[0] if iso_dcts else None
-    else:
-        nxg1 = _networkx.from_graph(gra1)
-        nxg2 = _networkx.from_graph(gra2)
-        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    nxg1 = _networkx.from_graph(gra1)
+    nxg2 = _networkx.from_graph(gra2)
+    iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
@@ -109,7 +139,7 @@ def full_subgraph_isomorphism(gra1, gra2):
     return iso_dct
 
 
-def backbone_isomorphism(gra1, gra2, igraph=False):
+def backbone_isomorphism(gra1, gra2):
     """ graph backbone isomorphism
 
     TODO: DEPRECATE
@@ -119,15 +149,9 @@ def backbone_isomorphism(gra1, gra2, igraph=False):
     """
     gra1 = implicit(gra1)
     gra2 = implicit(gra2)
-    if igraph:
-        igr1 = _igraph.from_graph(gra1)
-        igr2 = _igraph.from_graph(gra2)
-        iso_dcts = _igraph.isomorphisms(igr1, igr2)
-        iso_dct = iso_dcts[0] if iso_dcts else None
-    else:
-        nxg1 = _networkx.from_graph(gra1)
-        nxg2 = _networkx.from_graph(gra2)
-        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    nxg1 = _networkx.from_graph(gra1)
+    nxg2 = _networkx.from_graph(gra2)
+    iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
@@ -173,7 +197,7 @@ def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
     :rtype: frozenset
     """
     assert atm_key in atom_keys(gra), (
-        "{} not in {}".format(atm_key, atom_keys(gra)))
+        f"{atm_key} not in {atom_keys(gra)}")
 
     atm_symb_dct = atom_symbols(gra)
     atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
@@ -219,7 +243,7 @@ def equivalent_bonds(gra, bnd_key, stereo=True, dummy=True):
     bnd_key = tuple(bnd_key)
     bnd_keys = list(map(tuple, map(sorted, bond_keys(gra))))
     bnd_keys += list(map(tuple, map(reversed, bnd_keys)))
-    assert bnd_key in bnd_keys, "{} not in {}".format(bnd_key, bnd_keys)
+    assert bnd_key in bnd_keys, f"{bnd_key} not in {bnd_keys}"
 
     atm_symb_dct = atom_symbols(gra)
     atm_ngbs_dct = atoms_neighbor_atom_keys(gra)
@@ -463,8 +487,9 @@ def shortest_path_between_groups(gra, keys1, keys2):
     Returns the atom pair from these groups that are nearest to each other and
     returns the path between them.
     """
-    assert not set(keys1) & set(keys2), ("{:s} overlaps with {:s}"
-                                         .format(*map(str, [keys1, keys2])))
+    assert not set(keys1) & set(keys2), (
+        f"{str(keys1):s} overlaps with {str(keys2):s}"
+    )
 
     sp_dct = atom_shortest_paths(gra)
     keys = None
@@ -527,6 +552,35 @@ def longest_chain(gra):
 
 
 # # branches and groups
+def ring_atom_chirality(gra, atm, ring_atms, stereo=False):
+    """is this ring atom a chiral center?
+    """
+    if not stereo:
+        gra = without_stereo_parities(gra)
+    adj_atms = atoms_neighbor_atom_keys(gra)
+    keys = []
+    for atmi in adj_atms[atm]:
+        key = [atm, atmi]
+        key.sort()
+        key = frozenset(key)
+        keys.append(key)
+        if atmi in ring_atms:
+            for atmj in adj_atms[atmi]:
+                if atmj in ring_atms:
+                    key = [atmj, atmi]
+                    key.sort()
+                    key = frozenset(key)
+                    keys.append(key)
+    gras = remove_bonds(gra, keys)
+    cgras = connected_components(gras)
+    ret_gras = []
+    for gra_i in cgras:
+        atms_i = atom_keys(gra_i)
+        if [x for x in atms_i if x in adj_atms[atm] or x == atm]:
+            ret_gras.append(gra_i)
+    return ret_gras
+
+
 def atom_groups(gra, atm, stereo=False):
     """ return a list of groups off of one atom
 
@@ -675,15 +729,14 @@ def cycle_ring_atom_key_to_front(keys, key, end_key=None):
     :param end_key: optionally, ensure that another key is the last key in the
         ring; note that this is only possible if key and end_key are adjacent
     """
-    assert key in keys, ("{:d} is not in {:s}".format(key, str(keys)))
+    assert key in keys, (f"{key:d} is not in {str(keys):s}")
     keys = tuple(itertools.islice(
         itertools.dropwhile(lambda x: x != key, itertools.cycle(keys)),
         len(keys)))
 
     if end_key is not None and keys[-1] != end_key:
         assert keys[1] == end_key, (
-            "end_key {:d} is not adjacent to {:d} in the ring"
-            .format(key, end_key))
+            f"end_key {key:d} is not adjacent to {end_key:d} in the ring")
         keys = list(reversed(keys))
         keys = cycle_ring_atom_key_to_front(keys, key)
 
@@ -783,6 +836,7 @@ def ring_systems_bond_keys(gra):
 def is_ring_system(gra):
     """ is this graph a ring system?
     """
+    gra = without_stereo_parities(gra)
     return union_from_sequence(rings(gra), check=False) == gra
 
 
@@ -807,12 +861,13 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
 
         # check that the graph is actually a ring system
         assert is_ring_system(rsy), (
-            "This is not a ring system graph:\n{:s}".format(string(rsy)))
+            f"This is not a ring system graph:\n{string(rsy):s}")
 
         # check that rng is a subgraph of rsy
         assert set(rng_keys) <= atom_keys(rsy), (
-            "{}\n^ Rings system doesn't contain ring as subgraph:\n{}"
-            .format(string(rsy, one_indexed=False), str(rng_keys)))
+            f"{string(rsy, one_indexed=False)}\n^ "
+            "Rings system doesn't contain ring as subgraph:\n"
+            f"{str(rng_keys)}")
 
     bnd_keys = list(mit.windowed(rng_keys + rng_keys[:1], 2))
 

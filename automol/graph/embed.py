@@ -114,7 +114,7 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
             break
 
     if not conv:
-        raise error.FailedGeometryGenerationError
+        raise error.FailedGeometryGenerationError(f'Bad gra {string(gra)}')
 
     # 3. Generate a geometry data structure from the coordinates
     xyzs = xmat[:, :3]
@@ -285,8 +285,7 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
 
         assert lmat[idx1, idx2] <= umat[idx1, idx2], (
             "Lower bound exceeds upper bound. This is a bug!\n"
-            "{}\npath: {}\n"
-            .format(string(gra, one_indexed=False), str(path)))
+            f"{string(gra, one_indexed=False)}\npath: {str(path)}\n")
 
     return lmat, umat
 
@@ -296,7 +295,7 @@ def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
                                   sp_dct=None, angstrom=True):
     """ distance bounds matrices for joining multiple geometries
 
-    :param gra: molecular graph:wq
+    :param gra: molecular graph:
     :param keys: atom keys specifying the order of indices in the matrix
     :param dist_range_dct: distance ranges for specific atoms in the graph
     :param geos: (optional) geometries which will be used to fix the bond
@@ -595,7 +594,7 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
             ud14 = 999.
             dist_range_dct[k14] = (d14, ud14)
         else:
-            raise ValueError("Invalid dih_dict: {}".format(str(dih_dct)))
+            raise ValueError(f"Invalid dih_dict: {str(dih_dct)}")
 
     for rng_keys in rings_keys:
         assert hasattr(keys, '__iter__'), (
@@ -856,8 +855,8 @@ def angle_key_filler_(gra, keys=None, check=True):
 
         if any(k is None for k in ang_key):
             if check:
-                raise ValueError("Angle key {} couldn't be filled in"
-                                 .format(str(ang_key)))
+                raise ValueError(
+                    f"Angle key {str(ang_key)} couldn't be filled in")
             ang_key = None
         else:
             ang_key = tuple(ang_key)
@@ -875,14 +874,3 @@ def shared_ring_size(keys, rng_keys_lst):
                      if set(keys) <= set(rng_keys)), ())
     natms = len(rng_keys)
     return natms
-
-
-#
-# if __name__ == '__main__':
-#     import automol
-#     ICH = 'InChI=1S/C5H10O3/c1-4-2-5(8-4)3-7-6/h4-6H,2-3H2,1H3/t4-,5-/m1/s1'
-#     GEO = automol.inchi.geometry(ICH)
-#     GRA = automol.geom.graph(GEO)
-#     GROUP = [0, 1, 2, 3, 4, 7, 15, 16]
-#     SUBGEO = automol.geom.from_subset(GEO, GROUP)
-#     print(automol.geom.string(SUBGEO))

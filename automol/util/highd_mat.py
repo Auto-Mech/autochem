@@ -1,7 +1,6 @@
 """ I/O operations for higher dimension matrices of 3 or higher
 """
 
-from io import StringIO as _StringIO
 import itertools
 import numpy as np
 import automol.util.vec
@@ -44,7 +43,7 @@ def string(arr, include_zeros=False, include_perms=False,
     arr_str = ''
     for idxs, val in _chk_idxs(arr):
         if _chk_zero(val, include_zeros):
-            val_str = ''.join(('{0:<6d}'.format(idx+1) for idx in idxs))
+            val_str = ''.join((f'{idx+1:<6d}' for idx in idxs))
             val_str += val_format.format(val)
             val_str += '\n'
 
@@ -79,7 +78,7 @@ def from_string(arr_str, fill_perms=False):
         tmp = line.strip().split()
         idxs = tuple(int(val)-1 for val in tmp[:-1])
         val = float(tmp[-1])
-        # Store values in the arrays
+        # Store values
         mat_idxs.append(idxs)
         mat_vals.append(val)
 
@@ -110,7 +109,7 @@ def string_submat_4d(arr):
         bmat_str = string_submat_3d(sub_arr)
 
         # Write index
-        arr_str += '{0:>6d}'.format(idx+1)
+        arr_str += f'{idx+1:>6d}'
         arr_str += bmat_str
         arr_str += '\n'
 
@@ -138,7 +137,6 @@ def string_submat_3d(arr):
         # just get a single vector of elements and print to a line
         flat_sub_arr = sub_arr.flatten()
         sub_arr_str = automol.util.vec.string(flat_sub_arr)
-        # sub_arr_str = _np_arr_string(sub_arr)
         arr_str += sub_arr_str
         arr_str += '\n'
     arr_str.rstrip()
@@ -168,16 +166,18 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
 
         return full_idxs, full_vals
 
-    # Convert the types of the force constant data
+    # Build out the idxs and vals to include permutations, if needed
     if fill_perms:
         mat_idxs, mat_vals = _gen_idxs(mat_idxs, mat_vals)
 
-    # Get dimensionality of force constants (assumes 0 idx of mat)
+    # Get dimensionality of matrix (assumes 0 idx of mat)
     ncoords = max((max(idxs) for idxs in mat_idxs))+1
+    print(ncoords)
     ndim = len(mat_idxs[0])
+    print(ndim)
 
     dims = tuple(ncoords for _ in range(ndim))
-    # print('dims', dims)
+    print(dims)
 
     # Build the force constant matrix
     mat = np.zeros(dims)
@@ -187,15 +187,3 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
         mat[idxs] = val
 
     return mat
-
-
-def _np_arr_string(arr):
-    """ Use numpy to write an array
-    """
-
-    arr_str_io = _StringIO()
-    np.savetxt(arr_str_io, arr)
-    arr_str = arr_str_io.getvalue()
-    arr_str_io.close()
-
-    return arr_str

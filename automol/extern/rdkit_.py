@@ -2,6 +2,7 @@
 """
 
 from rdkit import RDLogger
+from rdkit.Chem import Draw
 import rdkit.Chem as _rd_chem
 import rdkit.Chem.AllChem as _rd_all_chem
 from automol import util
@@ -26,7 +27,7 @@ def from_inchi(ich, print_debug=False):
 
     rdm = _rd_chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
     if rdm is None and print_debug:
-        print('rdm fails for {} by returning {}'.format(ich, rdm))
+        print(f'rdm fails for {ich} by returning {rdm}')
 
     return rdm
 
@@ -64,7 +65,7 @@ def from_smiles(smi, print_debug=False):
 
     rdm = _rd_chem.MolFromSmiles(smi)
     if rdm is not None and print_debug:
-        print('rdm fails for {} by returning {}'.format(smi, rdm))
+        print(f'rdm fails for {smi} by returning {rdm}')
 
     return rdm
 
@@ -92,7 +93,7 @@ def from_molfile(mfl, print_debug=False):
 
     rdm = _rd_chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
     if rdm is None and print_debug:
-        print('Warning: rdm fails for {} by returning {}'.format(mfl, rdm))
+        print(f'Warning: rdm fails for {mfl} by returning {rdm}')
 
     return rdm
 
@@ -209,3 +210,37 @@ def to_connectivity_graph(rdm):
     gra = automol.graph.base.from_data(atm_symb_dct=sym_dct, bnd_keys=bnds)
 
     return gra
+
+
+# draw operations
+def draw(rdm):
+    """ Draw
+    """
+    return Draw.MolToImage(
+        rdm, size=(300, 300),
+        kekulize=True,
+        wedgeBonds=True,
+        fitImage=False,
+        options=None,
+        canvas=None)
+
+
+def draw_grid(rdms, names=None):
+    """ Draw a grid
+    """
+    if names is None:
+        names = tuple(i+1 for i in range(len(rdms)))
+    return Draw.MolsToGridImage(
+        rdms,
+        molsPerRow=3,
+        subImgSize=(200, 200),
+        legends=names)
+
+
+def draw_mult(rdms):
+    """ Draw multiple
+    """
+    return Draw.MolsToImage(
+        rdms,
+        subImgSize=(200, 200),
+        legends=None)

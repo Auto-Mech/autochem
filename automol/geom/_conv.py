@@ -3,6 +3,7 @@
 
 import itertools
 import numpy
+from phydat import phycon
 import automol.graph
 import automol.zmat.base
 import automol.inchi.base
@@ -15,8 +16,11 @@ from automol.geom.base import is_atom
 from automol.geom.base import count
 from automol.geom.base import distance
 from automol.geom.base import central_angle
+from automol.geom.base import dihedral_angle
 from automol.geom.base import insert
 from automol.geom.base import move_atom
+from automol.geom.base import translate
+from automol.geom.base import rotate
 
 
 # # conversions
@@ -72,10 +76,8 @@ def connectivity_graph(geo,
     bnd_keys = tuple(
         map(frozenset, filter(_are_bonded, itertools.combinations(idxs, r=2))))
 
-    bnd_ord_dct = {bnd_key: 1 for bnd_key in bnd_keys}
+    gra = automol.graph.from_data(atm_symb_dct=atm_symb_dct, bnd_keys=bnd_keys)
 
-    gra = automol.graph.from_data(
-        atm_symb_dct=atm_symb_dct, bnd_keys=bnd_keys, bnd_ord_dct=bnd_ord_dct)
     return gra
 
 
@@ -176,7 +178,7 @@ def inchi_with_sort(geo, stereo=True):
     """
     ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
         'geom', geo, comp=_compare)
-    nums = None
+    nums_lst = None
     if ich is None:
         gra = connectivity_graph(geo)
         if not stereo:
@@ -184,10 +186,10 @@ def inchi_with_sort(geo, stereo=True):
             geo_idx_dct = None
         else:
             geo_idx_dct = dict(enumerate(range(count(geo))))
-        ich, nums = automol.graph.inchi_with_sort_from_geometry(
+        ich, nums_lst = automol.graph.inchi_with_sort_from_geometry(
             gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
-    return ich, nums
+    return ich, nums_lst
 
 
 def _compare(geo1, geo2):
@@ -280,7 +282,7 @@ def closest_unbonded_atoms(geo, gra=None):
     return min_bnd_key, min_dist_val
 
 
-def external_symmetry_factor(geo):
+def external_symmetry_factor(geo, chiral_center=True):
     """ Obtain the external symmetry factor for a geometry using x2z interface
         which determines the initial symmetry factor and then divides by the
         enantiomeric factor.
@@ -295,7 +297,7 @@ def external_symmetry_factor(geo):
     else:
         oriented_geom = _pyx2z.to_oriented_geometry(geo)
         ext_sym_fac = oriented_geom.sym_num()
-        if oriented_geom.is_enantiomer():
+        if oriented_geom.is_enantiomer() and chiral_center:
             ext_sym_fac *= 0.5
 
     return ext_sym_fac
@@ -375,9 +377,11 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
 
     dummy_ngb_idxs = set(
         automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
-    assert not dummy_ngb_idxs & set(lin_idxs), (
-        "Attempting to add dummy atoms on atoms that already have them: {}"
-        .format(dummy_ngb_idxs & set(lin_idxs)))
+    atoms_already_have_dummys = dummy_ngb_idxs & set(lin_idxs)
+    assert not atoms_already_have_dummys, (
+        'Attempting to add dummy atoms on atoms that already have them'
+        f'{atoms_already_have_dummys}'
+    )
 
     ngb_idxs_dct = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
 
@@ -407,7 +411,8 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
                 idx1, idx2 = idxs[:2]
             else:
                 idx1, = idxs
-                idx2, = ngb_idxs_dct[idx1]
+                idx2 = ngb_idxs_dct[idx1][0]
+                # idx2, = ngb_idxs_dct[idx1]
 
             xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
             r12 = util.vec.unit_direction(xyz1, xyz2)
@@ -438,7 +443,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.,
     return geo, dummy_key_dct
 
 
-def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
+def insert_dummies(geo, dummy_key_dct, gra=None, dist=1., tol=5.):
     """ Insert dummy atoms over atoms in a geometry in a particular order.
 
         :param geo: the geometry
@@ -456,16 +461,112 @@ def insert_dummies(geo, dummy_key_dct, dist=1., tol=5.):
             mapping the linear atoms onto their associated dummy atoms
         :rtype: automol molecular geometry data structure
     """
-    lin_keys, dum_keys = zip(
-        *sorted(dummy_key_dct.items(), key=lambda x: x[1]))
-    dum_keys = numpy.array(list(dum_keys))
-    lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
-    geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
-        geo, lin_idxs=lin_idxs, dist=dist, tol=tol)
+    if dummy_key_dct:
+        lin_keys, dum_keys = zip(
+            *sorted(dummy_key_dct.items(), key=lambda x: x[1]))
+        dum_keys = numpy.array(list(dum_keys))
+        lin_idxs = [k-sum(k > dum_keys) for k in lin_keys]
+        geo, orig_dummy_key_dct = insert_dummies_on_linear_atoms(
+            geo, lin_idxs=lin_idxs, gra=gra, dist=dist, tol=tol)
 
-    for lin_idx, lin_key in zip(lin_idxs, lin_keys):
-        orig_idx = orig_dummy_key_dct[lin_idx]
-        new_idx = dummy_key_dct[lin_key]
-        geo = move_atom(geo, orig_idx, new_idx)
+        for lin_idx, lin_key in zip(lin_idxs, lin_keys):
+            orig_idx = orig_dummy_key_dct[lin_idx]
+            new_idx = dummy_key_dct[lin_key]
+            geo = move_atom(geo, orig_idx, new_idx)
+
+    return geo
+
+
+def change_zmatrix_row_values(geo, idx, dist=None, idx1=None,
+                              ang=None, idx2=None, dih=None, idx3=None,
+                              angstrom=True, degree=True, gra=None):
+    """ Change the z-matrix coordinates of a given atom, shifting those
+        connected to it accordingly.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param idx: the atom to be shifted
+        :type idx: int
+        :param dist: the distance coordinate; if None, use the current distance
+        :type dist: float
+        :param idx1: the atom used to specify the distance coordinate
+        :type idx1: int
+        :param ang: the central angle coordinate
+        :type ang: float
+        :param idx2: the atom used to specify the central angle coordinate
+        :type idx2: int
+        :param dih: the dihedral angle coordinate
+        :type ang: float
+        :param idx3: the atom used to specify the dihedral angle coordinate
+        :type idx3: int
+        :param angstrom: are distances in angstrom? If not, assume bohr.
+        :type angstrom: bool
+        :param degree: are angles in degrees? If not, assume radians.
+        :type degree: bool
+        :param gra: molecular graph for tracking connectivity (will be
+            generated if None)
+        :type gra: automol molecular graph data structure
+        :rtype: automol geometry data structure
+    """
+    gra = gra if gra is not None else connectivity_graph(geo)
+    dist = dist if dist is not None or idx1 is None else (
+        distance(geo, idx, idx1, angstrom=angstrom))
+    ang = ang if ang is not None or idx2 is None else (
+        central_angle(geo, idx, idx1, idx2, degree=degree))
+    dih = dih if dih is not None or idx3 is None else (
+        dihedral_angle(geo, idx, idx1, idx2, idx3, degree=degree))
+
+    dist = dist if not angstrom else dist * phycon.ANG2BOHR
+    ang = ang if not degree else ang * phycon.DEG2RAD
+    dih = dih if not degree else dih * phycon.DEG2RAD
+    tol = 2. * phycon.DEG2RAD
+    lin = numpy.pi
+
+    idxs = automol.graph.branch_atom_keys(gra, idx1, [idx1, idx])
+
+    # Note that the coordinates will change throughout, but the change
+    # shouldn't affect the operations so we can work in terms of the inital set
+    xyzs = coordinates(geo)
+
+    if idx1 is not None:
+        # First, adjust the distance
+        vec0 = numpy.subtract(xyzs[idx], xyzs[idx1])
+        vec = dist * vec0 / numpy.linalg.norm(vec0)
+        disp = vec - vec0
+        geo = translate(geo, disp, idxs=idxs)
+
+    if idx2 is not None:
+        assert idx1 is not None, "idx1 is required if changing an angle"
+        # Second, adjust the angle
+        ang0 = central_angle(geo, idx, idx1, idx2)
+        ang_diff = ang - ang0
+        # If idx-idx1-idx2 is not linear, use the normal to this plane,
+        # otherwise, use the normal to the idx1-idx2-idx3 plane
+        if not numpy.abs(ang0) < tol or numpy.abs(ang0 - lin) < tol:
+            axis = util.vec.unit_perpendicular(xyzs[idx], xyzs[idx2],
+                                               orig_xyz=xyzs[idx1])
+        else:
+            axis = util.vec.unit_perpendicular(xyzs[idx1], xyzs[idx3],
+                                               orig_xyz=xyzs[idx1])
+        # I don't know how to figure out which way to rotate, so just try both
+        # and see which one works
+        for dang in [-ang_diff, ang_diff]:
+            geo_ = rotate(geo, axis, dang, orig_xyz=xyzs[idx1], idxs=idxs)
+            ang_out = central_angle(geo_, idx, idx1, idx2)
+            abs_diff = numpy.abs(numpy.mod(ang, 2*numpy.pi) -
+                                 numpy.mod(ang_out, 2*numpy.pi))
+            ang_comp = numpy.abs(numpy.pi - numpy.abs(abs_diff - numpy.pi))
+            if ang_comp < tol:
+                geo = geo_
+                break
+
+    if idx3 is not None:
+        assert idx1 is not None, "idx1 is required if changing a dihedral"
+        assert idx2 is not None, "idx2 is required if changing a dihedral"
+        # Third, adjust the dihedral
+        dih0 = dihedral_angle(geo, idx, idx1, idx2, idx3)
+        ddih = dih - dih0
+        axis = numpy.subtract(xyzs[idx1], xyzs[idx2])
+        geo = rotate(geo, axis, ddih, orig_xyz=xyzs[idx1], idxs=idxs)
 
     return geo

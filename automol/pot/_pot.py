@@ -5,6 +5,7 @@ import itertools
 import copy
 import numpy
 import automol.zmat
+import automol.util
 
 
 # Build the grirds ultimately used for building potentials
@@ -17,14 +18,16 @@ def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
 
     npoints = int(round(interval / increment, 0)) + 1
     _grid = numpy.linspace(0.0, interval, npoints)
+    # print('automol pot test:', _grid, interval, npoints, from_equilibrium)
 
     # Displace from the coordinates equilibrium value if desired
     if from_equilibrium:
         val_dct = automol.zmat.value_dictionary(zma)
         ini_val = val_dct[coord_name]
-        grid_from_equil = tuple(val.item() + ini_val for val in _grid)
+        _grid = automol.util.numpy_to_float(_grid)
+        _grid = tuple(val + ini_val for val in _grid)
 
-    return grid_from_equil
+    return _grid
 
 
 def points(grids):
@@ -79,7 +82,6 @@ def scale(pot, scale_factor):
     return new_pot
 
 
-# Manipulate potentials
 def relax_scale(pot):
     """ Scale the potential by scaling factor
 
@@ -94,8 +96,16 @@ def relax_scale(pot):
 
     new_pot = {}
     for idx, val in pot.items():
-        scale_factor = 1.0/(1+0.11*val)
+        # scale_factor = 1.0
+        # scale_factor = 1.0/(1+0.05*val)
+        # scale_factor = 1.0/(1+0.01*val**1.5)
+        # scale_factor = 1.0/(1+0.09*val)
+        scale_factor = 1.0/(1+0.07*val)
+        # original - may be overscaling at low E
+        # scale_factor = 1.0/(1+0.11*val)
         new_pot[idx] = val * scale_factor
+        # tanh_scale_factor = 0.05
+        # new_pot[idx] = numpy.tanh(val * tanh_scale_factor)/tanh_scale_factor
 
     return new_pot
 
@@ -116,13 +126,24 @@ def truncate(pot, sym_num):
     return potr
 
 
+def remove_empty_terms(pot):
+    """ Remove terms from the potential that do not have
+        a value associated with them
+    """
+    return {k: v for k, v in pot.items() if v is not None}
+
+
 def by_index(pot):
-    """ Build a new potential where coordinates change by index
+    """ Build a new potential where the keys of the potential dictionary
+        correspond to the indices along values of n-dimensional grids,
+        rather than, possibly, the coordinate values of the grids themselves.
+
+        Key Transformation:
+        ((grid_val_i, grid_val_j, ...)_i,) -> ((i, j, ...)_i,)
 
         :param pot: potential along a coordinate
         :type pot: dict[tuple(float)] = float
-        :param coords: coordinates of potential
-
+        :rtype: dict[tuple(int)] = float
     """
 
     pot_keys = list(pot.keys())
@@ -162,35 +183,16 @@ def valid(pot):
     return is_valid
 
 
+def is_nonempty(pot):
+    """ Determine if the potential has any values
+    """
+    return any(val is not None for val in pot.values())
+
+
 def dimension(pot):
     """ Find the dimension of the potential
     """
     return len(list(pot.keys())[0])
-
-
-def check_hr_pot(tors_pots, tors_zmas, tors_paths, emax=-0.5, emin=-10.0):
-    """ Check hr pot to see if a new mimnimum is needed
-    """
-
-    new_min_zma = None
-
-    print('\nAssessing the HR potential...')
-    for name in tors_pots:
-
-        print('- Rotor {}'.format(name))
-        pots = tors_pots[name].values()
-        zmas = tors_zmas[name].values()
-        paths = tors_paths[name].values()
-        for pot, zma, path in zip(pots, zmas, paths):
-            if emin < pot < emax:
-                new_min_zma = zma
-                emin = pot
-                print(' - New minimmum energy ZMA found for torsion')
-                print(' - Ene = {}'.format(pot))
-                print(' - Found at path: {}'.format(path))
-                print(automol.zmat.string(zma))
-
-    return new_min_zma
 
 
 # I/O
@@ -203,6 +205,6 @@ def string(pot):
 
     pot_str = ''
     for val in pot.values():
-        pot_str += ' {0:.6f}'.format(val)
+        pot_str += f' {val:.6f}'
 
     return pot_str

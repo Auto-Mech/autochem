@@ -20,7 +20,8 @@ from automol.graph.base._algo import branch_atom_keys
 from automol.graph.base._algo import rings_bond_keys
 
 
-def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
+def rotational_bond_keys(
+        gra, lin_keys=None, with_h_rotors=True, with_chx_rotors=True):
     """ get all rotational bonds for a graph
 
     :param gra: the graph
@@ -41,9 +42,13 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
 
         is_h_rotor = any(set(map(sym_dct.__getitem__, ks)) == {'H'}
                          for ks in ngb_keys_lst)
+        is_chx_rotor = is_h_rotor and any(
+            sym_dct[k] == 'C' for k in bnd_key)
 
         return is_single and has_neighbors and not_in_ring and (
-            not is_h_rotor or with_h_rotors)
+            not is_h_rotor or with_h_rotors) and (
+            not is_chx_rotor or with_chx_rotors)
+
     rot_bnd_keys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
     lin_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys)
     dum_keys = tuple(atom_keys(gra, sym='X'))
@@ -59,14 +64,14 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True):
             gra, keys[0], excl_atm_keys=excl_keys)
 
         excl_keys |= {end_key1}
-        
+
         end_key2 = atom_neighbor_atom_key(
             gra, keys[-1], excl_atm_keys=excl_keys)
 
         end_keys = {end_key1, end_key2}
         ngb_keys_lst = [ngb_keys_dct[k] - excl_keys for k in end_keys]
         has_neighbors = all(ngb_keys_lst)
- 
+
         if not has_neighbors:
             rot_bnd_keys -= set(bnd_keys)
         else:

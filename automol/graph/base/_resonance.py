@@ -205,11 +205,11 @@ def radical_atom_keys(gra, single_res=False, min_valence=1.):
 
     This function should eventually replace both
     `resonance_dominant_radical_atom_keys` and
-    `sing_res_dom_radical_atom_keys` for a more user-friendly interface.
+    `sing_res_dom_radical_atom_keys`.
 
-    Note that this function ignores the bond orders in `gra`. If you wish to
-    identify radical atom keys based on the bond orders in `gra`, this can be
-    done by using the `atom_unsaturated_valences` function.
+    If you wish to identify radical atom keys based on the bond orders in
+    `gra`, this can be done by using the `radical_atom_keys_from_resonance`
+    function.
 
     :param gra: the molecular graph
     :param single_res: only include radical keys for a single (arbitrary)
@@ -235,6 +235,31 @@ def radical_atom_keys(gra, single_res=False, min_valence=1.):
             for dom_gra in dominant_resonances(gra)]
         atm_rad_vlcs = [
             max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
+
+    atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
+                             in zip(atm_keys, atm_rad_vlcs)
+                             if atm_rad_vlc >= min_valence)
+    return atm_rad_keys
+
+
+def radical_atom_keys_from_resonance(rgr, min_valence=1.):
+    """ Radical atom keys for a resonance molecular graph
+
+    Assumes the graph has already been assinged to a resonance structure.
+
+    :param rgr: a resonance-structure molecular graph
+    :param min_valence: optionally, specify that only sites with at least a
+        certain number of radical electrons be included
+    :type min_valence: int
+    :returns: the radical atom keys
+    :rtype: frozenset[int]
+
+    """
+    rgr = without_fractional_bonds(rgr)
+    atm_keys = list(atom_keys(rgr))
+
+    atm_rad_vlcs = dict_.values_by_key(
+        atom_unsaturated_valences(rgr), atm_keys)
 
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
                              in zip(atm_keys, atm_rad_vlcs)
@@ -273,8 +298,33 @@ def nonresonant_radical_atom_keys(rgr):
     return atm_rad_keys
 
 
+def vinyl_radical_atom_keys(rgr):
+    """ Vinyl radical atom keys for this molecular graph
+
+    :param rgr: the molecular graph
+    :returns: the vinyl radical atom keys
+    :rtype: frozenset[int]
+    """
+    rgr = without_fractional_bonds(rgr)
+    atm_rad_keys = nonresonant_radical_atom_keys(rgr)
+    bnd_ords_dct = resonance_dominant_bond_orders(rgr)
+    atm_bnd_keys_dct = atoms_bond_keys(rgr)
+    atm_vin_keys = []
+    for atm_key in atm_rad_keys:
+        for bnd_key in atm_bnd_keys_dct[atm_key]:
+            if 2 in bnd_ords_dct[bnd_key]:
+                atm_vin_keys.append(atm_key)
+                break
+    atm_vin_keys = frozenset(atm_vin_keys)
+    return atm_vin_keys
+
+
 def sigma_radical_atom_keys(rgr):
     """ keys for sigma radical atoms
+
+    :param rgr: the molecular graph
+    :returns: the sigma radical atom keys
+    :rtype: frozenset[int]
     """
     rgr = without_fractional_bonds(rgr)
     atm_rad_keys = nonresonant_radical_atom_keys(rgr)

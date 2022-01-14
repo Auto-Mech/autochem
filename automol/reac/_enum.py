@@ -8,7 +8,7 @@ from automol.util import dict_
 from automol.graph import ts
 from automol.graph import relabel
 from automol.graph import union
-from automol.graph import implicit
+from automol.graph import atom_symbols
 from automol.graph import atom_keys
 from automol.graph import bond_keys
 from automol.graph import remove_atoms
@@ -26,6 +26,7 @@ from automol.graph import atom_equivalence_class_reps
 from automol.graph import bond_equivalence_class_reps
 from automol.graph import resonance_avg_bond_orders
 from automol.graph import are_equivalent_atoms
+from automol.graph import hydroperoxy_groups
 from automol.reac._reac import Reaction
 from automol.reac._reac import ts_unique
 from automol.reac._reac import filter_viable_reactions
@@ -99,7 +100,67 @@ def hydrogen_migrations(rct_gras, viable_only=True):
     return ts_unique(rxns)
 
 
-# 2. Beta scissions
+# 2. Homolytic scissions
+# AVC comment: replaced commented-out if statement by changing the default here
+# to False. Is the viability check broken for this case?
+# def homolytic_scissions(rct_gras, viable_only=True):
+def homolytic_scissions(rct_gras, viable_only=False):
+    """ find all possible homolytic scission reactions for these reactants
+
+    :param rct_gras: graphs for the reactants, without stereo and without
+        overlapping keys
+    :param viable_only: Filter out reactions with non-viable products?
+    :type viable_only: bool
+    :returns: a list of Reaction objects
+    :rtype: tuple[Reaction]
+
+    Homolytic scissions are enumerated by identifying all pure single bonds
+    (single bonds with no resonances), and looping over the results of
+    breaking each of them. If this gives rise to two distinct
+    fragments, the reaction is added to the list.
+    """
+    assert_is_valid_reagent_graph_list(rct_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 1:
+        rct_gra, = rct_gras
+
+        # Identify all pure single bonds involving radical site neighbor
+        avg_bnd_ord_dct = resonance_avg_bond_orders(rct_gra)
+        brk_bnd_keys = dict_.keys_by_value(avg_bnd_ord_dct, lambda x: x == 1)
+
+        for brk_bnd_key in brk_bnd_keys:
+            prds_gra = remove_bonds(rct_gra, [brk_bnd_key])
+            prd_gras = connected_components(prds_gra)
+
+            if len(prd_gras) == 2:
+                prd_gras = sort_reagents(prd_gras)
+
+                forw_tsg = ts.graph(rct_gra,
+                                    frm_bnd_keys=[],
+                                    brk_bnd_keys=[brk_bnd_key])
+                back_tsg = ts.graph(prds_gra,
+                                    frm_bnd_keys=[brk_bnd_key],
+                                    brk_bnd_keys=[])
+
+                # Create the reaction object
+                rxns.append(Reaction(
+                    rxn_cls=par.ReactionClass.Typ.HOMOLYT_SCISSION,
+                    forw_tsg=forw_tsg,
+                    back_tsg=back_tsg,
+                    rcts_keys=list(map(atom_keys, rct_gras)),
+                    prds_keys=list(map(atom_keys, prd_gras)),
+                ))
+    
+    # filter removes all reactions
+    # if viable_only:
+    #    rxns = filter_viable_reactions(rxns)
+
+    return ts_unique(rxns)
+
+
+# 3. Beta scissions
 def beta_scissions(rct_gras, viable_only=True):
     """ find all possible beta scission reactions for these reactants
 
@@ -110,6 +171,7 @@ def beta_scissions(rct_gras, viable_only=True):
     :returns: a list of Reaction objects
     :rtype: tuple[Reaction]
 
+    FIX DESCRIPTION:
     Beta scissions are enumerated by identifying all pure single bonds (single
     bonds with no resonances), and looping over the results of breaking each of
     them. If this gives rise to two distinct fragments, the reaction is added
@@ -122,11 +184,22 @@ def beta_scissions(rct_gras, viable_only=True):
     if len(rct_gras) == 1:
         rct_gra, = rct_gras
 
-        # Identify all pure single bonds
-        avg_bnd_ord_dct = resonance_avg_bond_orders(implicit(rct_gra))
+        # Identify all atom keys that neighbor radical sites
+        rad_neighs = frozenset({})
+        neigh_dct = atoms_neighbor_atom_keys(rct_gra)
+        for rad_key in radical_atom_keys(rct_gra):
+            rad_neighs = rad_neighs | neigh_dct[rad_key]
+
+        # Identify all pure single bonds involving radical site neighbor
+        avg_bnd_ord_dct = resonance_avg_bond_orders(rct_gra)
         brk_bnd_keys = dict_.keys_by_value(avg_bnd_ord_dct, lambda x: x == 1)
 
+        beta_bnd_keys = ()
         for brk_bnd_key in brk_bnd_keys:
+            if brk_bnd_key & rad_neighs:
+                beta_bnd_keys += (brk_bnd_key,)
+
+        for brk_bnd_key in beta_bnd_keys:
             prds_gra = remove_bonds(rct_gra, [brk_bnd_key])
             prd_gras = connected_components(prds_gra)
 
@@ -155,10 +228,79 @@ def beta_scissions(rct_gras, viable_only=True):
     return ts_unique(rxns)
 
 
-# 3. Ring-forming scissions (skip for now)
+# 4. Ring-forming scissions (skip for now)
+def ring_forming_scissions(rct_gras, viable_only=True):
+    """ find all possible ring-forming scission reactions for these reactants
+
+    :param rct_gras: graphs for the reactants, without stereo and without
+        overlapping keys
+    :param viable_only: Filter out reactions with non-viable products?
+    :type viable_only: bool
+    :returns: a list of Reaction objects
+    :rtype: tuple[Reaction]
+
+    Right now it takes the lazy, chemically specific approach of finding
+    C-O-O-H groups and forming a bond between the O of the C-O bond
+    and radical sites of the species, while breaking the O-O bond.
+    """
+
+    assert_is_valid_reagent_graph_list(rct_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 1:
+        rct_gra, = rct_gras
+
+        # Identify the radical sites and COOH groups
+        rad_keys = radical_atom_keys(rct_gra)
+        cooh_grps = hydroperoxy_groups(rct_gra)
+
+        # Get the bnd keys for filtering
+        bnd_keys = bond_keys(rct_gra)
+
+        # Set the forming and breaking bonds by looping over COOH groups
+        rxn_bnd_keys = ()
+        for cooh_grp in cooh_grps:
+            brk_bnd_key = frozenset(cooh_grp[1:3])
+            for rad_key in rad_keys:
+                frm_bnd_key = frozenset({rad_key, cooh_grp[1]})
+                # Only includ frm bnd if it does not exist
+                # e.g., CC[C]OO already has frm bnd -> no rxn possible
+                if frm_bnd_key not in bnd_keys:
+                    rxn_bnd_keys += ((frm_bnd_key, brk_bnd_key),)
+
+        # Form reactions with all combinations of frm and brk bnds
+        for frm_bnd_key, brk_bnd_key in rxn_bnd_keys:
+            prds_gra = rct_gra
+            prds_gra = add_bonds(prds_gra, [frm_bnd_key])
+            prds_gra = remove_bonds(prds_gra, [brk_bnd_key])
+            prd_gras = connected_components(prds_gra)
+
+            if len(prd_gras) == 2:
+                prd_gras = sort_reagents(prd_gras)
+
+                forw_tsg = ts.graph(rct_gra,
+                                    frm_bnd_keys=[frm_bnd_key],
+                                    brk_bnd_keys=[brk_bnd_key])
+                back_tsg = ts.graph(prds_gra,
+                                    frm_bnd_keys=[brk_bnd_key],
+                                    brk_bnd_keys=[frm_bnd_key])
+                # Create the reaction object
+                rxns.append(Reaction(
+                    rxn_cls=par.ReactionClass.Typ.RING_FORM_SCISSION,
+                    forw_tsg=forw_tsg,
+                    back_tsg=back_tsg,
+                    rcts_keys=list(map(atom_keys, rct_gras)),
+                    prds_keys=list(map(atom_keys, prd_gras)),
+                ))
+
+    if viable_only:
+        rxns = filter_viable_reactions(rxns)
+
+    return ts_unique(rxns)
 
 
-# 4. Eliminations
+# 5. Eliminations
 def eliminations(rct_gras, viable_only=True):
     """ find all possible elimination reactions for these reactants
 
@@ -184,12 +326,16 @@ def eliminations(rct_gras, viable_only=True):
 
         ngb_keys_dct = atoms_neighbor_atom_keys(rct_gra)
 
-        frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
+        # frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
+        frm1_keys = unsaturated_atom_keys(rct_gra)
+        rct_symbs = atom_symbols(rct_gra)
+        frm1_keys_o = frozenset(key for key in frm1_keys
+                                if rct_symbs[key] == 'O')
         frm2_keys = atom_keys(rct_gra)
         bnd_keys = bond_keys(rct_gra)
 
         frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
-                        in itertools.product(frm1_keys, frm2_keys)
+                        in itertools.product(frm1_keys_o, frm2_keys)
                         if frm1_key != frm2_key and
                         not frozenset({frm1_key, frm2_key}) in bnd_keys]
 
@@ -464,7 +610,23 @@ def insertions(rct_gras, viable_only=True):
     return ts_unique(rxns)
 
 
-def enumerate_reactions(rct_gras, viable_only=True):
+# Cycle through the different finders and gather all possible reactions
+FINDERS = {
+    # unimolecular reactions
+    par.ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migrations,
+    par.ReactionClass.Typ.HOMOLYT_SCISSION: homolytic_scissions,
+    par.ReactionClass.Typ.BETA_SCISSION: beta_scissions,
+    par.ReactionClass.Typ.RING_FORM_SCISSION: ring_forming_scissions,
+    par.ReactionClass.Typ.ELIMINATION: eliminations,
+    # bimolecular reactions
+    par.ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstractions,
+    par.ReactionClass.Typ.ADDITION: additions,
+    par.ReactionClass.Typ.INSERTION: insertions,
+    # par.ReactionClass.Typ.SUBSTITUTION: substitutions,
+}
+
+
+def enumerate_reactions(rct_gras, rxn_type=None, viable_only=True):
     """ enumerate all possible reactions that a given set of reactants might
         undergo
 
@@ -480,21 +642,12 @@ def enumerate_reactions(rct_gras, viable_only=True):
     :rtype: tuple[Reaction]
     """
 
-    # Cycle through the different finders and gather all possible reactions
-    finders_ = [
-        # unimolecular reactions
-        hydrogen_migrations,
-        beta_scissions,
-        # ring_forming_scissions,
-        eliminations,
-        # bimolecular reactions
-        hydrogen_abstractions,
-        additions,
-        insertions,
-        # substitutions,
-    ]
-
-    rxns = tuple(itertools.chain(*(f_(rct_gras, viable_only=viable_only)
-                                   for f_ in finders_)))
+    if rxn_type is not None:
+        rxns = FINDERS[rxn_type](rct_gras, viable_only=viable_only)
+    else:
+        # Cycle through the different finders and gather all possible reactions
+        finders_ = tuple(FINDERS.values())
+        rxns = tuple(itertools.chain(*(f_(rct_gras, viable_only=viable_only)
+                                       for f_ in finders_)))
 
     return rxns

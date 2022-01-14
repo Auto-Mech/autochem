@@ -70,6 +70,7 @@ from automol.geom.base._core import move_atom
 from automol.geom.base._core import swap_coordinates
 # # transformations
 from automol.geom.base._core import translate
+from automol.geom.base._core import translate_along_matrix
 from automol.geom.base._core import perturb
 from automol.geom.base._core import rotate
 from automol.geom.base._core import euler_rotate
@@ -107,22 +108,22 @@ from automol.geom._conv import x2z_atom_ordering
 # # derived operations
 from automol.geom._conv import insert_dummies_on_linear_atoms
 from automol.geom._conv import insert_dummies
+from automol.geom._conv import change_zmatrix_row_values
 # extra functions:
 from automol.geom._extra import components_graph
 from automol.geom._extra import connected
-from automol.geom._extra import end_group_symmetry_factor
 from automol.geom._extra import rot_permutated_geoms
 from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
+from automol.geom._extra import hydrogen_bonded_structure
+from automol.geom._extra import hydrogen_bonded_idxs
+# align
+from automol.geom._align import align
 # ring functions
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
 from automol.geom._ring import ring_fragments_geometry
-# symmetry functions
-from automol.geom._symm import internal_symm_from_sampling
-from automol.geom._symm import reduce_internal_symm
-from automol.geom._symm import rotor_reduced_symm_factor
 # ts submodule
 from automol.geom import ts
 
@@ -185,6 +186,7 @@ __all__ = [
     'swap_coordinates',
     # # transformations
     'translate',
+    'translate_along_matrix',
     'perturb',
     'rotate',
     'euler_rotate',
@@ -222,22 +224,22 @@ __all__ = [
     # # derived operations
     'insert_dummies_on_linear_atoms',
     'insert_dummies',
+    'change_zmatrix_row_values',
     # extra functions:
     'components_graph',
     'connected',
-    'end_group_symmetry_factor',
     'rot_permutated_geoms',
     'are_torsions_same2',
     'are_torsions_same',
     'is_unique',
+    'hydrogen_bonded_structure',
+    'hydrogen_bonded_idxs',
+    # align
+    'align',
     # ring functions
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
     'ring_fragments_geometry',
-    # symmetry
-    'internal_symm_from_sampling',
-    'reduce_internal_symm',
-    'rotor_reduced_symm_factor',
     # ts submodule
     'ts',
 ]

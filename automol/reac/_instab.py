@@ -47,6 +47,9 @@ def instability_product_graphs(gra):
                     prd_ich = prds[fgrps.index(grp_ich)]
                     prd_geo = automol.inchi.geometry(prd_ich)
                     prd_gra = automol.geom.graph(prd_geo)
+                    # Build pair of product gras:
+                    # gra1; prd_gra :small molec from instab_fgrps_DCT
+                    # gra2; complementary mol from removing small mol from spc
                     prd_gras = radical_dissociation_prods(
                         gra, prd_gra)
                     break
@@ -57,10 +60,10 @@ def instability_product_graphs(gra):
 def instability_transformation(conn_zma, disconn_zmas):
     """ Build the reaction objects for an instability
     """
+
+    zrxn, zma = None, None
     zrxn_objs = rxn_objs_from_zmatrix(
         [conn_zma], disconn_zmas, indexing='zma')
     if zrxn_objs:
         zrxn, zma, _, _ = zrxn_objs[0]
-    else:
-        zrxn, zma = None, None
     return zrxn, zma

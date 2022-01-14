@@ -53,6 +53,162 @@ BAD_GEO = ((2.994881276150, -1.414434615111),
            (1.170155936996, 0.359360756989),
            (-1.201356763194, -0.347546894407))
 
+GEO_STR = """4
+Energy:  1.25828 kJ/mol (UFF)
+O       -0.9741512421      0.1822933377     -0.1126377411
+O        0.3289735103      0.1763176636     -0.3024822120
+H       -1.2826135304     -0.6998243267     -0.4438019186
+H        0.4659939252      0.6943122175     -1.1366628384
+"""
+
+HABS_ZRXN_STR1 = """
+reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  17: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 1, stereo_parity: null}
+  2-5: {order: 1, stereo_parity: null}
+  2-6: {order: 1, stereo_parity: null}
+  4-7: {order: 1, stereo_parity: null}
+  4-8: {order: 1, stereo_parity: null}
+  4-9: {order: 1, stereo_parity: null}
+  7-10: {order: 1, stereo_parity: null}
+  7-11: {order: 1, stereo_parity: null}
+  10-12: {order: 0.9, stereo_parity: null}
+  10-13: {order: 1, stereo_parity: null}
+  10-14: {order: 1, stereo_parity: null}
+  12-15: {order: 0, stereo_parity: null}
+  12-16: {order: 0.1, stereo_parity: null}
+  16-17: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+- [16, 17]
+backward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  9: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  15: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  16: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 0.9, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  2-4: {order: 0.1, stereo_parity: null}
+  4-7: {order: 1, stereo_parity: null}
+  4-10: {order: 1, stereo_parity: null}
+  4-11: {order: 1, stereo_parity: null}
+  5-6: {order: 1, stereo_parity: null}
+  5-7: {order: 1, stereo_parity: null}
+  5-12: {order: 1, stereo_parity: null}
+  5-13: {order: 1, stereo_parity: null}
+  6-8: {order: 1, stereo_parity: null}
+  6-14: {order: 1, stereo_parity: null}
+  6-15: {order: 1, stereo_parity: null}
+  7-9: {order: 1, stereo_parity: null}
+  8-16: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3]
+- [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+"""
+HABS_GEO1 = (
+    ('O', (0.0, 0.0, 0.0)),
+    ('C', (0.0, 0.0, 2.6914294153467657)),
+    ('H', (0.0, 1.7534707783960422, -0.5517555484489822)),
+    ('C', (-2.623299394112204, 0.6566385034518767, 3.6480149247207985)),
+    ('H', (0.5636237182797816, -1.88605768213913, 3.3289129545424223)),
+    ('H', (1.4260767249009725, 1.345507128950089, 3.35470487715432)),
+    ('C', (-2.746065179408126, 0.6724245480726039, 6.5028326846462985)),
+    ('H', (-3.1961339563014963, 2.518941659280532, 2.9483507693607525)),
+    ('H', (-3.988069056064281, -0.7224120831906182, 2.9241998624297434)),
+    ('C', (-5.340762043167491, 0.8914938898502375, 7.652631925159079)),
+    ('O', (-0.845554426010156, 0.5689858109064159, 7.8373344196418655)),
+    ('H', (-6.502001079557306, -0.7071271436769692, 7.052333079032717)),
+    ('H', (-6.21125009870658, 2.6681404185712547, 7.061161472892827)),
+    ('H', (-5.194262776062822, 0.8701632805783928, 9.713822470820245)),
+    ('O', (-8.5007619646225, -2.928405157276118, 6.591025292968647)),
+    ('H', (-9.48421314672397, -1.6400034467104858, 5.7038001145820685))
+)
+
+
+HABS_ZRXN_STR2 = """
+reaction class: hydrogen abstraction
+forward TS atoms:
+  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+forward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 1, stereo_parity: null}
+  1-4: {order: 1, stereo_parity: null}
+  1-5: {order: 0.9, stereo_parity: null}
+  5-6: {order: 0, stereo_parity: null}
+  5-7: {order: 0.1, stereo_parity: null}
+  7-8: {order: 1, stereo_parity: null}
+reactants keys:
+- [1, 2, 3, 4, 5, 6]
+- [7, 8]
+backward TS atoms:
+  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+backward TS bonds:
+  1-2: {order: 1, stereo_parity: null}
+  1-3: {order: 0.9, stereo_parity: null}
+  3-4: {order: 0.1, stereo_parity: null}
+  4-5: {order: 1, stereo_parity: null}
+  4-6: {order: 1, stereo_parity: null}
+  4-7: {order: 1, stereo_parity: null}
+products keys:
+- [1, 2, 3]
+- [4, 5, 6, 7]
+"""
+HABS_GEO2 = (
+    ('C', (0.0, 0.0, 0.0)),
+    ('H', (0.0, 0.0, 2.0639575202459945)),
+    ('H', (0.0, 1.9459185282046763, -0.6879842041977405)),
+    ('H', (-1.6852142339096723, -0.9729596887682943, -0.687986206970089)),
+    ('H', (1.6852153438276314, -0.9729582966864149, -0.687984673708243)),
+    ('O', (3.875541447997114, -2.4707898221289817, -2.1374322380005975)),
+    ('H', (4.3062792658506215, -0.8227905834100768, -2.8535934936888445))
+)
+
 
 def test__from_data():
     """ test getters
@@ -66,9 +222,15 @@ def test__from_data():
 def test__is_valid():
     """ test geom.is_valid
     """
+
+    # Check validity
     assert geom.is_valid(C2H2CLF_GEO)
     # with pytest.raises(ValueError):
     #     geom.is_valid(BAD_GEO)
+
+    # Check empty geom returns empty information
+    assert not geom.symbols(())
+    assert not geom.coordinates(())
 
 
 def test__struct_check():
@@ -111,6 +273,8 @@ def test__from_xyz_string():
     """
     assert geom.almost_equal(
         geom.from_xyz_string(geom.xyz_string(C2H2CLF_GEO)), C2H2CLF_GEO)
+
+    assert geom.xyz_string_comment(GEO_STR) == 'Energy:  1.25828 kJ/mol (UFF)'
 
 
 def test__formula():
@@ -314,45 +478,6 @@ def test__rotate():
     assert automol.geom.almost_equal_dist_matrix(geo1, ref_geo1, thresh=0.001)
 
 
-def test__symmetry_factor():
-    """ test geom.external_symmety_factor
-    """
-    ref_sym_num1 = 12
-    ref_sym_num2 = 1
-    ref_sym_num3 = 0.5
-    ref_sym_num4 = 1
-
-    methane_geo = (('C', (1.2069668249, 1.9997649792, -0.0000004209)),
-                   ('H', (3.3034303116, 1.9997688296, -0.0000006619)),
-                   ('H', (0.5081497935, 0.1480118251, 0.6912478445)),
-                   ('H', (0.5081445849, 2.3270011544, -1.9492882688)),
-                   ('H', (0.5081426638, 3.5242779889, 1.2580393046)))
-    c2h5of_geo = (('C', (-4.67963119210, -2.785693400767, -0.04102938592633)),
-                  ('C', (-1.806009533535, -2.594940600449, -0.1025157659970)),
-                  ('H', (-5.39544527869, -3.740953123044, -1.774996188159)),
-                  ('H', (-5.501156952723, -0.854962636480, -0.01317371318990)),
-                  ('O', (-5.48010155525, -4.07121874876, 2.132641999777597)),
-                  ('H', (-1.208455201406, -1.52313066520, -1.804561025201)),
-                  ('F', (-0.745999108314, -4.9827454242, -0.1878162481225)),
-                  ('H', (-1.11738479998, -1.591763680324, 1.607521773704)),
-                  ('H', (-5.30771129777, -5.90407965309, 1.771303996279)))
-    methane_sym_num = automol.geom.external_symmetry_factor(methane_geo)
-    h_sym_num = automol.geom.external_symmetry_factor(H_GEO)
-    c2h5of_sym_num = automol.geom.external_symmetry_factor(c2h5of_geo)
-    c2h2clf_sym_num = automol.geom.external_symmetry_factor(C2H2CLF_GEO)
-    assert methane_sym_num == ref_sym_num1
-    assert h_sym_num == ref_sym_num2
-    assert c2h5of_sym_num == ref_sym_num3
-    assert c2h2clf_sym_num 
-
-    # Add internal code TODO
-    # print(automol.geom.internal_symm_from_sampling(
-    #     symm_geos, rotors, grxn=None, zma=None
-    # print(automol.geom.reduce_internal_symm(
-    #     int_symm, ext_symm, end_group_factor, geo))
-    # print(automol.geom.rotor_reduced_symm_factor(sym_factor, rotor_symms):
-
-
 def test__closest_unbonded_atoms():
     """ test geom.closest_unbonded_atoms
     """
@@ -433,42 +558,115 @@ def test__insert_dummies():
 
     # 4. Insert dummy atoms to the new geometry at the appropriate positions
     geo_wdummy = automol.geom.insert_dummies(geo, dummy_key_dct)
-    print(automol.geom.symbols(geo_wdummy))
-    print(automol.zmat.symbols(zma))
     assert automol.geom.symbols(geo_wdummy) == automol.zmat.symbols(zma)
 
     # 5. Update the z-matrix from the geometry.
     zma_new = automol.zmat.from_geometry(zma, geo_wdummy)
-    print('original z-matrix:')
-    print(automol.zmat.string(zma))
-    print('new z-matrix:')
-    print(automol.zmat.string(zma_new))
 
     # 6. Check that the geometry was correctly encoded by converting the new
     # z-matrix back and comparing.
     geo_new = automol.zmat.geometry(zma_new)
-    print('original geometry:')
-    print(automol.geom.string(geo))
-    print('new geometry:')
-    print(automol.geom.string(geo_new))
     assert automol.geom.almost_equal_dist_matrix(geo, geo_new)
 
 
+def test__hydrogen_bonded_structure():
+    """ test automol.geom.hydrogen_bonded_strcure
+    """
+
+    ich = automol.smiles.inchi('CCCC[O]')
+    geo = automol.inchi.geometry(ich)
+    print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
+
+    ich = automol.smiles.inchi('CC(=O)CO')
+    geo = automol.inchi.geometry(ich)
+    print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
+
+    # H-abstraction with OH. (1) Has internal H-Bond, (2) No internal H-Bond
+    zrxn = automol.reac.from_string(HABS_ZRXN_STR1)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.hydrogen_bonded_structure(HABS_GEO1, grxn=grxn))
+
+    zrxn = automol.reac.from_string(HABS_ZRXN_STR2)
+    grxn = automol.reac.relabel_for_geometry(zrxn)
+    print(automol.geom.hydrogen_bonded_structure(HABS_GEO2, grxn=grxn))
+
+
+def test__change_zmatrix_row_values():
+    """ test automol.geom.change_zmatrix_row_values
+    """
+    ref_geo = (('O', (0.0, 0.0, 0.0)),
+               ('C', (0.0, 0.0, 2.6100437640951895)),
+               ('H', (0.0, 1.795784435, -0.9004532847666584)),
+               ('N', (2.149523799, 1.6103368939, 3.8411840715311034)),
+               ('H', (3.101869570, 0.04614797866, 4.810112185573969)),
+               ('H', (1.052147147, 2.2771937846, 5.430572110076959)))
+    ref_zma = geom.zmatrix(ref_geo)
+    ref_vals = geom.zmatrix_row_values(ref_geo, 3, idx1=1, idx2=0, idx3=2)
+
+    geo = geom.change_zmatrix_row_values(ref_geo, 3,
+                                         dist=1.0, idx1=1,
+                                         ang=120., idx2=0,
+                                         dih=0., idx3=2)
+
+    # First, check that the change resulted in these values
+    vals = geom.zmatrix_row_values(geo, 3, idx1=1, idx2=0, idx3=2)
+    assert numpy.allclose(vals, (1., 120., 0.))
+
+    # Now, check that the other z-matrix values weren't affected. To do so,
+    # change back to the original values and compare z-matrices.
+    geo = geom.change_zmatrix_row_values(geo, 3,
+                                         dist=ref_vals[0], idx1=1,
+                                         ang=ref_vals[1], idx2=0,
+                                         dih=ref_vals[2], idx3=2)
+    zma = geom.zmatrix(geo)
+    assert automol.zmat.almost_equal(zma, ref_zma)
+
+
+def __align():
+    """ test automol.geom.align
+    """
+
+    geo_to_align = (
+        ('O', (4.086645332783601, -0.36560905722875314, 1.9674675821390657)),
+        ('H', (-3.1954897459756855, 1.410644267833961, -1.9862581016465297)),
+        ('H', (0.8593162300475073, 0.5566427082660068, 3.8838481626935937)),
+        ('C', (-2.318366740031556, 0.6246331977930337, -0.3075158448225017)),
+        ('H', (0.8695454413416718, -2.532034809669027, 2.4839148729322207)),
+        ('H', (-3.51469182439878, -0.09175981338750572, 1.1982037017376532)),
+        ('C', (1.453081848189258, -0.5309000086082638, 2.1899070931886166)),
+        ('H', (1.341025025249128, 1.279348036441019, -1.652984415735705)),
+        ('H', (4.618732841698623, -1.7570808221744014, 0.8262771634598443)),
+        ('C', (0.19562374326160434, 0.5478619879207052, -0.11405311034385705)))
+
+    geo_to_align_to = (
+        ('C', (-2.138784469888668, 0.2694957324776663, -0.5586880803609796)),
+        ('C', (0.15217964488311891, 0.9488522745797555, 0.22028348471849357)),
+        ('C', (1.5375076318382452, -0.28592123196014574, 2.3702305668302412)),
+        ('H', (0.376762256537029, -1.8123853043212155, 3.1796871937656)),
+        ('H', (1.8913947536266074, 1.0862977248626797, 3.878337839608614)),
+        ('O', (3.956752025184486, -1.1651578858041605, 1.6363421979258153)),
+        ('H', (-3.0787682597616497, 1.2122215149586877, -2.120888763480582)),
+        ('H', (-3.1760664785092225, -1.2516884450888743, 0.3580955418697566)),
+        ('H', (1.167030604394489, 2.4678746054587726, -0.7285782384918892)),
+        ('H', (3.707415891013204, -2.3278440098362223, 0.25398675016603395)))
+
+    ref_aligned_geo = (
+        ('C', (-2.318366740031556, 0.6246331977930337, -0.3075158448225017)),
+        ('C', (0.19562374326160434, 0.5478619879207052, -0.11405311034385705)),
+        ('C', (1.453081848189258, -0.5309000086082638, 2.1899070931886166)),
+        ('H', (0.8695454413416718, -2.532034809669027, 2.4839148729322207)),
+        ('H', (0.8593162300475073, 0.5566427082660068, 3.8838481626935937)),
+        ('O', (4.086645332783601, -0.36560905722875314, 1.9674675821390657)),
+        ('H', (-3.1954897459756855, 1.410644267833961, -1.9862581016465297)),
+        ('H', (-3.51469182439878, -0.09175981338750572, 1.1982037017376532)),
+        ('H', (1.341025025249128, 1.279348036441019, -1.652984415735705)),
+        ('H', (4.618732841698623, -1.7570808221744014, 0.8262771634598443)))
+
+    aligned_geo = automol.geom.align(geo_to_align, geo_to_align_to)
+    assert automol.geom.almost_equal_dist_matrix(ref_aligned_geo, aligned_geo)
+
+
 if __name__ == '__main__':
-    # test__from_data()
-    # test__is_valid()
-    # test__struct_check()
-    # test__mass()
-    # test__rotation_properties()
-    # test__atom_indices()
-    # test__set_coordinates()
-    # test__swap_coordinates()
-    # test__dist_analysis()
-    # test__symmetry_factor()
-    # test__closest_unbonded_atoms()
-    # test__rotate()
-    # test__reflect_coordinates()
-    # test__permutations()
-    # test__traj()
-    # test__insert_dummies()
-    test__remove()
+    __align()
+    # test__hydrogen_bonded_structure()
+    # test__change_zmatrix_row_values()

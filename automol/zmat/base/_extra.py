@@ -22,15 +22,13 @@ def samples(zma, nsamp, range_dct):
 
 
 def torsional_sampling_ranges(tors_names):
-    """ sampling ranges for torsional dihedrals
+    """ Generate the min and max for a range of values that can be used
+        to sample the torsional angle, relative to the equibrium structure.
+
+        Function originally restricted the range by the torsional symmetry
+        number; however, it seems most effective to sample the full space
+        of values from  0 to 2*pi.
     """
-    # sym_nums = torsional_symmetry_numbers(zma, tors_names,
-    # frm_bnd_key=None, brk_bnd_key=None)
-    # return tuple((0, 2*numpy.pi/sym_num) for sym_num in sym_nums)
-    # originally restricted range by sym_num.
-    # But after all it appears that using the
-    # full range is best.
-    # after all it appears that using the full sampling range is most effective
     sym_nums = 1.
     return tuple((0, 2*numpy.pi/sym_nums) for tors_name in tors_names)
 
@@ -59,9 +57,8 @@ def constraint_dct(zma, const_names, var_names=()):
         zma_vals = value_dictionary(zma)
         zma_coords = coordinates(zma)
         assert set(constraint_names) <= set(zma_coords.keys()), (
-            'Attempting to constrain coordinates not in zma:\n{}\n{}'.format(
-                constraint_names, zma_coords)
-        )
+            'Attempting to constrain coordinates not in zma:'
+            f'\n{constraint_names}\n{zma_coords}')
         _dct = dict(zip(
             constraint_names,
             (round(zma_vals[name], 2) for name in constraint_names)
@@ -76,12 +73,14 @@ def set_constraint_names(zma, tors_names, tors_model):
     """ Determine the names of constraints along a torsion scan
     """
 
+    constraint_models = ('1dhrf', '1dhrfa', 'tau-1dhrf', 'tau-1dhrfa')
+
     const_names = tuple()
-    if tors_names and tors_model in ('1dhrf', '1dhrfa'):
-        if tors_model == '1dhrf':
+    if tors_names and tors_model in constraint_models:
+        if tors_model in ('1dhrf', 'tau-1dhrf'):
             const_names = tuple(
                 itertools.chain(*tors_names))
-        elif tors_model == '1dhrfa':
+        elif tors_model in ('1dhrfa', 'tau-1dhrfa'):
             coords = list(coordinates(zma))
             const_names = tuple(coord for coord in coords)
 
@@ -111,25 +110,7 @@ def bond_key_from_idxs(zma, idxs):
     return bond_key
 
 
-def get_babs1(zma, dist_name):
-    """ get name of torsional coordinate associated with babs1 pre-reformatting
-    """
-    idxs = coord_idxs(zma, dist_name)
-    idx = max(idxs)
-    babs1 = 'D{:g}'.format(idx)
-    return babs1
-
-
-def get_babs2(zma, dist_name):
-    """ get name of torsional coordinate associated with babs2 pre-reformatting
-    """
-    idxs = coord_idxs(zma, dist_name)
-    idx = max(idxs)
-    babs2 = 'D{:g}'.format(idx+1)
-    return babs2
-
-
-# # helpers
+# helpers
 def _sample_over_ranges(rngs, nsamp):
     """ randomly sample over several ranges
     """

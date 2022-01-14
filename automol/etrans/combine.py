@@ -14,13 +14,7 @@ def epsilon(ab_eps, bb_eps):
         :type ab_eps: float
         :rtype: float
     """
-
-    if ab_eps is not None and bb_eps is not None:
-        aa_eps = ab_eps**2 / bb_eps
-    else:
-        aa_eps = None
-
-    return aa_eps
+    return ab_eps**2 / bb_eps
 
 
 def sigma(ab_sig, bb_sig):
@@ -33,10 +27,4 @@ def sigma(ab_sig, bb_sig):
         :type ab_sig: float
         :rtype: float
     """
-
-    if ab_sig is not None and bb_sig is not None:
-        aa_sig = 2.0 * ab_sig - bb_sig
-    else:
-        aa_sig = None
-
-    return aa_sig
+    return 2.0 * ab_sig - bb_sig

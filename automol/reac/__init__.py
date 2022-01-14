@@ -40,10 +40,12 @@ from automol.reac._find import insertions
 from automol.reac._find import substitutions
 from automol.reac._find import find
 from automol.reac._find import find_from_inchis
+from automol.reac._find import intersystem_crossing
 # TS geometries
 from automol.reac._geom import ts_geometry
 # TS zmatrices
 from automol.reac._zmat import ts_zmatrix
+from automol.reac._zmat import zmatrix_coordinate_names
 # scan coordinates
 from automol.reac._scan import build_scan_info
 from automol.reac._scan import scan_coordinate
@@ -55,6 +57,8 @@ from automol.reac._rot import rotational_groups
 from automol.reac._rot import rotational_symmetry_number
 # stereo-specific reactions
 from automol.reac._stereo import add_stereo_from_geometries
+from automol.reac._stereo import add_stereo_from_inchis
+from automol.reac._stereo import add_stereo_from_unordered_geometries
 from automol.reac._stereo import expand_stereo
 from automol.reac._stereo import expand_product_stereo
 from automol.reac._stereo import is_stereo_consistent
@@ -70,7 +74,7 @@ from automol.reac._pst import pst_cn
 # tunneling treatments
 from automol.reac import tunnel
 # comp functions
-from automol.reac._zma_comp import similar_saddle_point_structure
+from automol.reac._comp import similar_saddle_point_structure
 # util
 from automol.reac import _util as util
 from automol.reac._util import reaction_inchis
@@ -121,10 +125,12 @@ __all__ = [
     'substitutions',
     'find',
     'find_from_inchis',
+    'intersystem_crossing',
     # TS geometries
     'ts_geometry',
     # TS zmatrices
     'ts_zmatrix',
+    'zmatrix_coordinate_names',
     # scan coordinates
     'build_scan_info',
     'scan_coordinate',
@@ -136,6 +142,8 @@ __all__ = [
     'rotational_symmetry_number',
     # stereo-specific reactions
     'add_stereo_from_geometries',
+    'add_stereo_from_inchis',
+    'add_stereo_from_unordered_geometries',
     'expand_stereo',
     'expand_product_stereo',
     'is_stereo_consistent',
@@ -158,5 +166,5 @@ __all__ = [
     'rxn_objs_from_inchi',
     'rxn_objs_from_smiles',
     'rxn_objs_from_zmatrix',
-    'rxn_objs_from_geometry'
+    'rxn_objs_from_geometry',
 ]

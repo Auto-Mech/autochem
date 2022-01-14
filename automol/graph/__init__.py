@@ -52,6 +52,8 @@ from automol.graph.base._core import electron_count
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import atomic_numbers
+from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import atom_element_valences
 from automol.graph.base._core import atom_lone_pair_counts
 from automol.graph.base._core import atom_van_der_waals_radius
@@ -59,6 +61,7 @@ from automol.graph.base._core import atom_bond_valences
 from automol.graph.base._core import atom_unsaturated_valences
 from automol.graph.base._core import atom_explicit_hydrogen_valences
 from automol.graph.base._core import atom_hybridizations
+from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
 from automol.graph.base._core import atom_symbol_keys
@@ -67,6 +70,7 @@ from automol.graph.base._core import atom_explicit_hydrogen_keys
 from automol.graph.base._core import explicit_hydrogen_keys
 from automol.graph.base._core import terminal_heavy_atom_keys
 from automol.graph.base._core import unsaturated_atom_keys
+from automol.graph.base._core import lone_pair_atom_keys
 from automol.graph.base._core import angle_keys
 # # relabeling and changing keys
 from automol.graph.base._core import relabel
@@ -118,6 +122,7 @@ from automol.graph.base._core import bonds_neighbor_bond_keys
 # algorithm functions:
 # # isomorphisms and equivalence
 from automol.graph.base._algo import isomorphism
+from automol.graph.base._algo import sequence_isomorphism
 from automol.graph.base._algo import full_isomorphism
 from automol.graph.base._algo import full_subgraph_isomorphism
 from automol.graph.base._algo import backbone_isomorphism
@@ -141,6 +146,7 @@ from automol.graph.base._algo import atom_longest_chains
 from automol.graph.base._algo import atom_longest_chain
 from automol.graph.base._algo import longest_chain
 # # branches and groups
+from automol.graph.base._algo import ring_atom_chirality
 from automol.graph.base._algo import atom_groups
 from automol.graph.base._algo import branch
 from automol.graph.base._algo import branch_atom_keys
@@ -161,6 +167,8 @@ from automol.graph.base._algo import ring_systems_bond_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
+# AMChI functions:
+from automol.graph.base._amchi import amchi
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -174,8 +182,10 @@ from automol.graph.base._resonance import resonance_avg_bond_orders
 from automol.graph.base._resonance import linear_atom_keys
 from automol.graph.base._resonance import linear_segments_atom_keys
 from automol.graph.base._resonance import radical_atom_keys
+from automol.graph.base._resonance import radical_atom_keys_from_resonance
 from automol.graph.base._resonance import has_separated_radical_sites
 from automol.graph.base._resonance import nonresonant_radical_atom_keys
+from automol.graph.base._resonance import vinyl_radical_atom_keys
 from automol.graph.base._resonance import sigma_radical_atom_keys
 from automol.graph.base._resonance import resonance_dominant_radical_atom_keys
 from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
@@ -189,6 +199,25 @@ from automol.graph.base._resonance import (
         resonance_dominant_atom_centered_cumulene_keys)
 from automol.graph.base._resonance import (
         resonance_dominant_bond_centered_cumulene_keys)
+# canonicalization functions:
+# # canonical key functions
+from automol.graph.base._canon import canonical
+from automol.graph.base._canon import canonical_keys
+# # canonical stereo functions
+from automol.graph.base._canon import reflect
+from automol.graph.base._canon import reflect_local_stereo
+from automol.graph.base._canon import to_local_stereo
+from automol.graph.base._canon import from_local_stereo
+# # symmetry class functions
+from automol.graph.base._canon import class_indices
+from automol.graph.base._canon import class_indices_and_stereo_parities
+# # parity evaluators
+from automol.graph.base._canon import atom_parity_evaluator_from_geometry_
+from automol.graph.base._canon import bond_parity_evaluator_from_geometry_
+from automol.graph.base._canon import atom_parity_evaluator_to_local_stereo_
+from automol.graph.base._canon import bond_parity_evaluator_to_local_stereo_
+from automol.graph.base._canon import atom_parity_evaluator_from_local_stereo_
+from automol.graph.base._canon import bond_parity_evaluator_from_local_stereo_
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -233,6 +262,7 @@ from automol.graph.base._stereo import to_index_based_stereo
 from automol.graph.base._stereo import from_index_based_stereo
 # # derived properties
 from automol.graph.base._stereo import atom_stereo_sorted_neighbor_atom_keys
+from automol.graph.base._stereo import bond_stereo_sorted_neighbor_atom_keys
 from automol.graph.base._stereo import atoms_stereo_sorted_neighbor_atom_keys
 # # stereo setting code
 from automol.graph.base._stereo import set_stereo_from_geometry
@@ -248,6 +278,7 @@ from automol.graph._conv import geometry
 from automol.graph._conv import inchi
 from automol.graph._conv import stereo_inchi
 from automol.graph._conv import inchi_with_sort_from_geometry
+from automol.graph._conv import molfile_with_atom_mapping
 from automol.graph._conv import rdkit_molecule
 # submodules:
 from automol.graph import vmat
@@ -294,6 +325,8 @@ __all__ = [
     'atom_stereo_keys',
     'bond_stereo_keys',
     'has_stereo',
+    'atomic_numbers',
+    'mass_numbers',
     'atom_element_valences',
     'atom_lone_pair_counts',
     'atom_van_der_waals_radius',
@@ -301,6 +334,7 @@ __all__ = [
     'atom_unsaturated_valences',
     'atom_explicit_hydrogen_valences',
     'atom_hybridizations',
+    'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
     'atom_symbol_keys',
@@ -309,6 +343,7 @@ __all__ = [
     'explicit_hydrogen_keys',
     'terminal_heavy_atom_keys',
     'unsaturated_atom_keys',
+    'lone_pair_atom_keys',
     'angle_keys',
     # # relabeling and changing keys
     'relabel',
@@ -360,6 +395,7 @@ __all__ = [
     # algorithm functions:
     # # isomorphisms and equivalence
     'isomorphism',
+    'sequence_isomorphism',
     'full_isomorphism',
     'full_subgraph_isomorphism',
     'backbone_isomorphism',
@@ -383,6 +419,7 @@ __all__ = [
     'atom_longest_chain',
     'longest_chain',
     # # branches and groups
+    'ring_atom_chirality',
     'atom_groups',
     'branch',
     'branch_atom_keys',
@@ -403,6 +440,8 @@ __all__ = [
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
+    # AMChI functions:
+    'amchi',
     # resonance functions:
     # # core functions
     'dominant_resonance',
@@ -416,8 +455,10 @@ __all__ = [
     'linear_atom_keys',
     'linear_segments_atom_keys',
     'radical_atom_keys',
+    'radical_atom_keys_from_resonance',
     'has_separated_radical_sites',
     'nonresonant_radical_atom_keys',
+    'vinyl_radical_atom_keys',
     'sigma_radical_atom_keys',
     'resonance_dominant_radical_atom_keys',
     'sing_res_dom_radical_atom_keys',
@@ -428,6 +469,25 @@ __all__ = [
     'resonance_dominant_atom_hybridizations',
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
+    # canonicalization functions:
+    # # canonical key functions
+    'canonical',
+    'canonical_keys',
+    # # canonical stereo functions
+    'reflect',
+    'reflect_local_stereo',
+    'to_local_stereo',
+    'from_local_stereo',
+    # # symmetry class functions
+    'class_indices',
+    'class_indices_and_stereo_parities',
+    # # parity evaluators
+    'atom_parity_evaluator_from_geometry_',
+    'bond_parity_evaluator_from_geometry_',
+    'atom_parity_evaluator_to_local_stereo_',
+    'bond_parity_evaluator_to_local_stereo_',
+    'atom_parity_evaluator_from_local_stereo_',
+    'bond_parity_evaluator_from_local_stereo_',
     # functional groups code:
     # # core functions
     'FunctionalGroup',
@@ -472,6 +532,7 @@ __all__ = [
     'from_index_based_stereo',
     # # derived properties
     'atom_stereo_sorted_neighbor_atom_keys',
+    'bond_stereo_sorted_neighbor_atom_keys',
     'atoms_stereo_sorted_neighbor_atom_keys',
     # # stereo setting code
     'set_stereo_from_geometry',
@@ -487,6 +548,7 @@ __all__ = [
     'inchi',
     'stereo_inchi',
     'inchi_with_sort_from_geometry',
+    'molfile_with_atom_mapping',
     'rdkit_molecule',
     # submodules:
     'vmat',

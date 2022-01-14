@@ -99,41 +99,53 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     xyzs1 = coordinates(geo1, angstrom=angstrom)
     xyzs2 = coordinates(geo2, angstrom=angstrom)
 
-    xyz1 = xyzs1[key1]
+    xyz1 = xyzs1[key1] if key1 is not None else None
     xyz2 = xyzs1[key2]
     orig_xyz3 = xyzs2[key3]
-    if key4 is not None:
-        orig_xyz4 = xyzs2[key4]
+    orig_xyz4 = xyzs2[key4] if key4 is not None else [1., 1., 1.]
+
+    if key1 is None:
+        # If the first fragment is monatomic, we can place the other one
+        # anywhere we want (direction doesn't matter)
+        xyz3 = numpy.add(xyz2, [0., 0., r23])
     else:
-        orig_xyz4 = [1., 1., 1.]
+        # If the first fragment isn't monatomic, we need to take some care in
+        # where we place the second one.
+        # r23 and a123 are fixed, so the only degree of freedom we have to do
+        # this is to optimize a dihedral angle relative to an arbitrary point
+        # xyz0.
+        # This dihedral angle is optimized to maximize the distance of xyz3
+        # from all of the atoms in fragment 1 (xyzs1).
+        xyz1 = xyzs1[key1]
+
+        # Place xyz3 as far away from the atoms in geo1 as possible by
+        # optimizing the undetermined dihedral angle
+        xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
+
+        def _distance_norm(dih):  # objective function for minimization
+            dih, = dih
+            xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
+                                      dih=dih, xyz3=xyz0)
+            dist_norm = numpy.linalg.norm(numpy.subtract(xyzs1, xyz3))
+            # return the negative norm so that minimum value gives maximum
+            # distance
+            return -dist_norm
+
+        res = scipy.optimize.basinhopping(_distance_norm, 0.)
+        dih = res.x[0]
+
+        # Now, get the next position with the optimized dihedral angle
+        xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
+                                  dih=dih, xyz3=xyz0)
 
     r34 = vec.distance(orig_xyz3, orig_xyz4)
 
-    # Place xyz3 as far away from the atoms in geo1 as possible by optimizing
-    # the undetermined dihedral angle
-    xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
-
-    def _distance_norm(dih):  # objective function for minimization
-        dih, = dih
-        xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
-                                  dih=dih, xyz3=xyz0)
-        dist_norm = numpy.linalg.norm(numpy.subtract(xyzs1, xyz3))
-        # return the negative norm so that minimum value gives maximum distance
-        return -dist_norm
-
-    res = scipy.optimize.basinhopping(_distance_norm, 0.)
-    dih = res.x[0]
-
-    # Now, get the next position with the optimized dihedral angle
-    xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
-                              dih=dih, xyz3=xyz0)
-
-    # Don't use the dihedral angle if 1-2-3 are linear
-    if numpy.abs(a123 * phycon.RAD2DEG - 180.) > 5.:
+    # If 2 doen't have neighbors or 1-2-3 are linear, ignore the dihedral angle
+    if key1 is None or numpy.abs(a123 * phycon.RAD2DEG - 180.) < 5.:
+        xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2)
+    else:
         xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2,
                                   dih=d1234, xyz3=xyz1)
-    else:
-        xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2)
 
     align_ = vec.aligner(orig_xyz3, orig_xyz4, xyz3, xyz4)
     xyzs2 = tuple(map(align_, xyzs2))

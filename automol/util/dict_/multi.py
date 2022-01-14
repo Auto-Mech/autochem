@@ -2,10 +2,8 @@
 
 dictionary values must all be tuples of the same length
 """
-try:
-    from collections.abc import Mapping as _Mapping
-except ImportError:
-    from collections import Mapping as _Mapping
+
+from collections.abc import Mapping as _Mapping
 import numpy
 from automol.util.dict_._dict_ import values_by_key as _values_by_key
 from automol.util.dict_._dict_ import transform_values as _transform_values
@@ -25,7 +23,7 @@ def by_key_by_position(mdct, keys, pos):
     """
     assert is_multidict(mdct)
     assert set(keys) <= set(mdct.keys())
-    dct = dict()
+    dct = {}
     if keys:
         keys = list(keys)
         vals = numpy.array(_values_by_key(mdct, keys))

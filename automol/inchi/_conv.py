@@ -1,4 +1,4 @@
-""" Level 4 functions depending on other basic types (graph, geom, zmat)
+""" Level 4 functions depending on other basic types (graph, geom)
 """
 
 import functools
@@ -45,7 +45,7 @@ def _inchi_connected_graph(ich, stereo=True):
         all all atoms are connected by at least one bond.
 
         :param ich: InChI string
-  d      :type ich: str
+        :type ich: str
         :param remove_stereo: parameter to include stereochemistry information
         :type remove_stereo: bool
         :rtype: automol molecular graph
@@ -65,36 +65,40 @@ def _inchi_connected_graph(ich, stereo=True):
     return gra
 
 
-def geometry(ich):
+def geometry(ich, check=True):
     """ Generate a molecular geometry from an InChI string.
 
         :param ich: InChI string
         :type ich: str
+        :param check: check stereo and connectivity?
+        :type check: bool
         :rtype: automol molecular geometry data structure
     """
 
     # rdkit fails for multi-component inchis, so we split it up and space out
     # the geometries
     ichs = split(ich)
-    geos = list(map(_connected_geometry, ichs))
+    geos = [_connected_geometry(ich, check=check) for ich in ichs]
     geos = [automol.geom.translate(geo, [50. * idx, 0., 0.])
             for idx, geo in enumerate(geos)]
     geo = functools.reduce(automol.geom.join, geos)
     return geo
 
 
-def _connected_geometry(ich):
+def _connected_geometry(ich, check=True):
     """ Generate a molecular geometry from an InChI string where
         all atoms are connected by at least one bond.
 
         :param ich: InChI string
         :type ich: str
+        :param check: check stereo and connectivity?
+        :type check: bool
         :rtype: automol molecular geometry data structure
     """
+    # print("inchi in:", ich)
 
     geo = hardcoded_object_from_inchi_by_key('geom', ich)
     if geo is None:
-        ich = standard_form(ich)
 
         def _gen1(ich):
             rdm = rdkit_.from_inchi(ich)
@@ -125,14 +129,18 @@ def _connected_geometry(ich):
                 conn = automol.geom.connected(geo)
                 _has_stereo = has_stereo(ich)
                 ich_equiv = equivalent(ich, geo_ich)
-                if (same_conn and conn) and (not _has_stereo or ich_equiv):
+                checks_pass = ((same_conn and conn) and
+                               (not _has_stereo or ich_equiv))
+                # print('original inchi', ich)
+                # print('geometry inchi', geo_ich)
+                if not check or checks_pass:
                     success = True
                     break
             except (RuntimeError, TypeError, ValueError):
                 continue
 
         if not success:
-            raise error.FailedGeometryGenerationError
+            raise error.FailedGeometryGenerationError('Failed InChI:', ich)
 
     return geo
 
@@ -175,6 +183,30 @@ def conformers(ich, nconfs=1):
             raise error.FailedGeometryGenerationError
 
     return geos
+
+
+# # derived properties
+def is_complete(ich):
+    """ Determine if the InChI string is complete
+        (has all stereo-centers assigned).
+
+        Currently only checks species that does not have any
+        resonance structures.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: bool
+    """
+
+    gra = graph(ich, stereo=False)
+    ste_atm_keys = automol.graph.stereogenic_atom_keys(gra)
+    ste_bnd_keys = automol.graph.stereogenic_bond_keys(gra)
+    graph_has_stereo = bool(ste_atm_keys or ste_bnd_keys)
+
+    _complete = equivalent(ich, standard_form(ich)) and not (
+        has_stereo(ich) ^ graph_has_stereo)
+
+    return _complete
 
 
 # # derived transformations

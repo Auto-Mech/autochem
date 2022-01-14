@@ -216,7 +216,6 @@ def atoms(gra):
 def bonds(gra):
     """ bonds, as a dictionary
     """
-    # print(gra)
     _, bnd_dct = gra
     return bnd_dct
 
@@ -410,7 +409,7 @@ def formula(gra):
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :type: dict[str: int]
+        :rtype: dict[str: int]
     """
 
     gra = explicit(gra)
@@ -488,6 +487,22 @@ def has_stereo(gra):
     return bool(atom_stereo_keys(gra) or bond_stereo_keys(gra))
 
 
+def atomic_numbers(gra):
+    """ atomic numbers, by atom
+    """
+    symb_dct = atom_symbols(gra)
+    anum_dct = dict_.transform_values(symb_dct, ptab.to_number)
+    return anum_dct
+
+
+def mass_numbers(gra):
+    """ mass numbers, by atom
+    """
+    symb_dct = atom_symbols(gra)
+    mnum_dct = dict_.transform_values(symb_dct, ptab.to_mass_number)
+    return mnum_dct
+
+
 def atom_element_valences(gra):
     """ element valences (# possible single bonds), by atom
     """
@@ -507,6 +522,13 @@ def atom_lone_pair_counts(gra):
                                          LONE_PAIR_COUNTS_DCT.__getitem__)
     atm_lpc_dct = dict_.transform_values(atm_lpc_dct, int)
     return atm_lpc_dct
+
+
+def lone_pair_atom_keys(gra):
+    """ keys for atoms that one-or-more lone-pairs
+    """
+    lpc_dct = atom_lone_pair_counts(gra)
+    return frozenset(key for key, lpc in lpc_dct.items() if lpc > 0)
 
 
 def atom_van_der_waals_radius(gra, key):
@@ -574,6 +596,31 @@ def atom_hybridizations(rgr):
     atm_hyb_dct = dict_.transform_values(
         dict(zip(atm_keys, atm_hybs)), int)
     return atm_hyb_dct
+
+
+def tetrahedral_atom_keys(gra):
+    """ Keys to tetrahedral atoms (possible stereo centers).
+
+        Atoms will be considered tetrahedral if either:
+            a. They are bonded to 4 other atoms.
+            b. They are bonded to 3 other atoms and have one lone pair.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+    """
+    gra = without_fractional_bonds(gra)
+    bnd_vlc_dct = atom_bond_valences(gra)
+    lpc_dct = atom_lone_pair_counts(gra)
+
+    def _is_tetrahedral(key):
+        bnd_vlc = bnd_vlc_dct[key]
+        lpc = lpc_dct[key]
+
+        ret = (lpc == 0) and (bnd_vlc == 4) or (lpc == 1) and (bnd_vlc == 3)
+        return ret
+
+    tet_atm_keys = frozenset(filter(_is_tetrahedral, atom_keys(gra)))
+    return tet_atm_keys
 
 
 def maximum_spin_multiplicity(gra, bond_order=True):
@@ -647,7 +694,7 @@ def terminal_heavy_atom_keys(gra):
     gra = implicit(gra)
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
     atm_keys = [key for key, ngb_keys in atoms_neighbor_atom_keys(gra).items()
-                if len(ngb_keys) == 1]
+                if len(ngb_keys) <= 1]
     atm_keys = sorted(atm_keys, key=atm_imp_hyd_vlc_dct.__getitem__,
                       reverse=True)
     atm_symbs = dict_.values_by_key(atom_symbols(gra), atm_keys)
@@ -688,8 +735,7 @@ def relabel(gra, atm_key_dct):
     """
     orig_atm_keys = atom_keys(gra)
     assert set(atm_key_dct.keys()) <= orig_atm_keys, (
-        '{}\n{}'.format(set(atm_key_dct.keys()), orig_atm_keys)
-    )
+        f'{set(atm_key_dct.keys())}\n{orig_atm_keys}')
 
     new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
     new_atm_key_dct.update(atm_key_dct)
@@ -836,8 +882,7 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
 
     if check:
         assert not keys & bnd_keys, (
-            '{} and {} have a non-empty intersection'.format(keys, bnd_keys)
-        )
+            f'{keys} and {bnd_keys} have a non-empty intersection')
 
     assert set(ord_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
@@ -922,8 +967,9 @@ def add_atom_explicit_hydrogen_keys(gra, atm_exp_hyd_keys_dct):
     """ add explicit hydrogens by atom
     """
     assert set(atm_exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
-        '{} !<= {}'.format(
-            set(atm_exp_hyd_keys_dct.keys()), atom_keys(gra))
+        f'{set(atm_exp_hyd_keys_dct.keys())}'
+        ' !<= '
+        f'{atom_keys(gra)}'
     )
     for atm_key, atm_exp_hyd_keys in atm_exp_hyd_keys_dct.items():
         assert not set(atm_exp_hyd_keys) & atom_keys(gra)
@@ -1037,8 +1083,7 @@ def standard_keys_without_dummy_atoms(gra):
     decr = 0
     for dummy_key, key in sorted(dummy_ngb_key_dct.items()):
         assert last_dummy_key <= key, (
-            "{:d} must follow previous dummy {:d}"
-            .format(key, last_dummy_key))
+            f"{key:d} must follow previous dummy {last_dummy_key:d}")
 
         dummy_keys_dct[key-decr] = dummy_key-decr
         gra = remove_atoms(gra, [dummy_key])
@@ -1404,6 +1449,8 @@ def _from_atoms_and_bonds(atm_dct, bnd_dct):
     bnd_dct = dict(bnd_dct)
     atm_keys = set(atm_dct.keys())
     bnd_keys = set(bnd_dct.keys())
-    assert all(bnd_key <= atm_keys for bnd_key in bnd_keys)
+
+    assert all(bnd_key <= atm_keys for bnd_key in bnd_keys), (
+        f"\natm_keys: {atm_keys}\nbnd_keys: {bnd_keys}")
 
     return (atm_dct, bnd_dct)

@@ -8,30 +8,30 @@ channels:
     - conda-forge
 
 dependencies:
-    - gfortran_linux-64  # [linux]
-    - python=3.7
-    - numpy=1.15.4
-    - scipy=1.5.0
-    - pyyaml
-    - mako
-    - networkx
-    - matplotlib
-    - pytest
-    - pytest-cov
-    - future
-    - flake8
-    - pylint
-    - psi4::psi4
-    - rdkit::rdkit
-    - openbabel::openbabel
-    - conda-forge::qcelemental
-    - conda-forge::python-igraph
-    # - auto-mech::autochem
     - auto-mech::autoio-base
-    # - auto-mech::autoio-interfaces
-    # - auto-mech::mechanalyzer
     - auto-mech::x2z
-    # - auto-mech::mess
-    # - auto-mech::projrot
-    # - auto-mech::pac99
-    # - auto-mech::thermp
+    - psi4::psi4
+    - rdkit::rdkit=2020.09.1.0
+    - openbabel::openbabel
+    # - conda-forge::python=3.9
+    # - conda-forge::numpy=1.21.2
+    # - conda-forge::scipy=1.7.1
+    - conda-forge::python=3.7
+    - conda-forge::numpy=1.15.4
+    - conda-forge::scipy=1.5.0
+    - conda-forge::pyyaml
+    - conda-forge::mako
+    - conda-forge::networkx
+    - conda-forge::python-igraph
+    - conda-forge::matplotlib
+    - conda-forge::pytest
+    - conda-forge::pytest-cov
+    - conda-forge::future
+    - conda-forge::flake8
+    - conda-forge::pylint
+    - conda-forge::qcelemental
+    - conda-forge::cmake=3.20.2
+    - conda-forge::gcc_linux-64=7.5.0
+    - conda-forge::gxx_linux-64=7.5.0
+    - conda-forge::gfortran_linux-64=7.5.0
+    - conda-forge::pyparsing

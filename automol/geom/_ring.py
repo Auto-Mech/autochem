@@ -3,7 +3,8 @@
 
 from phydat import phycon
 import automol.graph
-import automol.geom
+from automol.geom.base import central_angle
+from automol.geom.base import from_subset
 
 
 ATHRESH = 94.0 * phycon.DEG2RAD
@@ -37,14 +38,15 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     condition = True
     for i, _ in enumerate(ring_atoms):
         _atoms = [ring_atoms[i], ring_atoms[i-1], ring_atoms[i-2]]
-        cangle = automol.geom.central_angle(geo, *_atoms, degree=False)
+        cangle = central_angle(geo, *_atoms, degree=False)
         if cangle < thresh:
             condition = False
+            break
 
     return condition
 
 
-def ring_fragments_geometry(geo):
+def ring_fragments_geometry(geo, rings_atoms=None, ngbs=None):
     """ Fragment out the ring and its neighbors in a geometry.(?)
 
         :param geo: molecular geometry
@@ -52,8 +54,13 @@ def ring_fragments_geometry(geo):
     """
 
     gra = automol.geom.graph(geo)
-    rings_atoms = automol.graph.rings_atom_keys(gra)
-    ngbs = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
+    if rings_atoms is None:
+        rings_atoms = automol.graph.rings_atom_keys(gra)
+    if ngbs is None:
+        ngbs = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
+    # print('geo in ring_frag_geo:', automol.geom.string(geo))
+    # print('rings_atoms:', rings_atoms)
+    # print('ngbs:', ngbs)
 
     ring_idxs = []
     ret = None
@@ -65,7 +72,8 @@ def ring_fragments_geometry(geo):
             for ngb in ring_ngbs:
                 if ngb not in ring_idxs:
                     ring_idxs.append(ngb)
+    # print('ring idxs:', ring_idxs)
     if ring_idxs:
-        ret = automol.geom.from_subset(geo, ring_idxs)
+        ret = from_subset(geo, ring_idxs)
 
     return ret

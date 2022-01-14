@@ -75,8 +75,6 @@ from automol.zmat.base._extra import constraint_dct
 from automol.zmat.base._extra import set_constraint_names
 from automol.zmat.base._extra import coord_idxs
 from automol.zmat.base._extra import bond_key_from_idxs
-from automol.zmat.base._extra import get_babs1
-from automol.zmat.base._extra import get_babs2
 # L4
 # conversion functions
 # # conversions
@@ -93,8 +91,6 @@ from automol.zmat._conv import dihedral_angle
 from automol.zmat._conv import torsion_coordinate_name
 from automol.zmat._conv import torsion_leading_atom
 # extra functions:
-from automol.zmat._extra import torsional_symmetry_numbers
-from automol.zmat._extra import torsional_scan_linspaces
 from automol.zmat._extra import is_atom_closest_to_bond_atom
 # ring functions:
 from automol.zmat._ring import all_rings_atoms
@@ -165,15 +161,13 @@ __all__ = [
     'linear_atom_keys',
     'shift_down',
     'shift_up',
-    # extra functions
+    # extra base functions
     'samples',
     'torsional_sampling_ranges',
     'constraint_dct',
     'set_constraint_names',
     'coord_idxs',
     'bond_key_from_idxs',
-    'get_babs1',
-    'get_babs2',
     # L4
     # conversion functions
     # # conversions
@@ -190,8 +184,6 @@ __all__ = [
     'torsion_coordinate_name',
     'torsion_leading_atom',
     # extra functions:
-    'torsional_symmetry_numbers',
-    'torsional_scan_linspaces',
     'is_atom_closest_to_bond_atom',
     # ring functions
     'all_rings_atoms',
@@ -199,7 +191,6 @@ __all__ = [
     'all_rings_dihedrals',
     'all_rings_dct',
     'all_rings_distances_reasonable',
-    'ring_atoms',
     'ring_distances',
     'ring_dihedrals',
     'ring_distances_reasonable'

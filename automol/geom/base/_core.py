@@ -189,8 +189,8 @@ def xyz_trajectory_string(geo_lst, comments=None):
     symbs_lst = [symbols(geo) for geo in geo_lst]
     xyzs_lst = [coordinates(geo, angstrom=True) for geo in geo_lst]
     assert len(set(symbs_lst)) == 1, (
-        'set {} \n symbol lists {}'.format(
-            set(symbs_lst), symbs_lst))
+        f'set {set(symbs_lst)} \n symbol lists {symbs_lst}'
+    )
     symbs = symbs_lst[0]
     xyz_traj_str = aw.geom.write_xyz_trajectory(symbs, xyzs_lst,
                                                 comments=comments)
@@ -903,20 +903,53 @@ def swap_coordinates(geo, idx1, idx2):
 
 
 # # transformations
-def translate(geo, xyz):
+def translate(geo, xyz, idxs=None, angstrom=False):
     """ Translate the coordinates of a molecular geometry along
         a three-dimensiona vector.
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure
         :param xyz: vector to translate along
         :type xyz: tuple(float)
+        :param idxs: indices of atoms whose coordinates are to be translated
+        :type idxs: tuple(int)
+        :param angstrom: whether or not the translation is in angstrom
+        :type angstrom: bool
         :rtype: automol molecular geometry data structure
     """
 
     symbs = symbols(geo)
-    xyzs = coordinates(geo)
-    xyzs = numpy.add(xyzs, xyz)
-    return from_data(symbs, xyzs)
+    xyzs = coordinates(geo, angstrom=angstrom)
+
+    natm = len(symbs)
+    xyz = list(xyz)
+    if idxs is None:
+        disp = [xyz] * natm
+    else:
+        disp = [xyz if i in idxs else [0., 0., 0.] for i in range(natm)]
+
+    xyzs = numpy.add(xyzs, disp)
+    return from_data(symbs, xyzs, angstrom=angstrom)
+
+
+def translate_along_matrix(geo, disp_mat, angstrom=False):
+    """ Translate the coordinates of a molecular geometry along
+        a matrix.
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param xyz: vector to translate along
+        :type xyz: tuple(float)
+        :param idxs: indices of atoms whose coordinates are to be translated
+        :type idxs: tuple(int)
+        :param angstrom: whether or not the translation is in angstrom
+        :type angstrom: bool
+        :rtype: automol molecular geometry data structure
+    """
+
+    symbs = symbols(geo)
+    xyzs = coordinates(geo, angstrom=angstrom)
+    xyzs = numpy.add(xyzs, disp_mat)
+
+    return from_data(symbs, xyzs, angstrom=angstrom)
 
 
 def perturb(geo, atm_idx, pert_xyz):
@@ -938,7 +971,7 @@ def perturb(geo, atm_idx, pert_xyz):
     return pert_geo
 
 
-def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
+def rotate(geo, axis, angle, orig_xyz=None, idxs=None, degree=False):
     """ Rotate the coordinates of a molecular geometry about
         an axis by a specified angle. A set of `idxs` can be supplied
         to transform a subset of coordinates.
@@ -953,7 +986,10 @@ def rotate(geo, axis, angle, orig_xyz=None, idxs=None):
         :type orig_xyz: tuple(float)
         :param idxs: indices of atoms whose coordinates are to be rotated
         :type idxs: tuple(int)
+        :param degree: is the rotation angle in degrees? If not, radians.
+        :type degree: bool
     """
+    angle = angle if not degree else angle * phycon.DEG2RAD
 
     func = util.vec.rotater(axis, angle, orig_xyz=orig_xyz)
 
@@ -1018,7 +1054,7 @@ def transform_by_matrix(geo, mat):
     return from_data(symbs, xyzs)
 
 
-def reflect_coordinates(geo, idxs, axes):
+def reflect_coordinates(geo, idxs=None, axes=('x',)):
     """ Reflect a specified set of coordinates of a molecular geometry
         about some each of the requested axes.
 
@@ -1032,6 +1068,8 @@ def reflect_coordinates(geo, idxs, axes):
         :type axes: tuple(str)
         :rtype: automol geometry data structure
     """
+
+    idxs = list(range(count(geo))) if idxs is None else idxs
 
     # check input
     assert all(idx < len(geo) for idx in idxs)

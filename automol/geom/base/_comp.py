@@ -24,7 +24,6 @@ def coulomb_spectrum(geo):
 
     mat = _coulomb_matrix(geo)
     vals = tuple(sorted(numpy.linalg.eigvalsh(mat)))
-
     return vals
 
 

@@ -24,6 +24,8 @@ C2H2F2_ICH = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H/b2-1+'
 C2H2F2_ICH_NO_STEREO = 'InChI=1S/C2H2F2/c3-1-2-4/h1-2H'
 C2H2F2_ICH_STEREO_UNKNOWN = 'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1?'
 
+C2H4F2O2_ICH = 'InChI=1S/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m0/s1'
+
 C8H13O_ICH = (
     'InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
     'b5-3-,6-4-/t8-/m0/s1')
@@ -60,6 +62,16 @@ def test__from_data():
         main_lyr_dct=inchi.main_sublayers(C8H13O_ICH),
         ste_lyr_dct=inchi.stereo_sublayers(C8H13O_ICH),
     ))
+
+
+def test__formula_string():
+    """ inchi.formula_string
+    """
+
+    assert inchi.formula_string(AR_ICH) == 'Ar'
+    assert inchi.formula_string(CH4O_CH_ICH) == 'CH4O.CH'
+    assert inchi.formula_string(CH2O2_ICH) == 'CH2O2'
+    assert inchi.formula_string(C2H6O_ICH) == 'C2H6O'
 
 
 def test__version():
@@ -147,28 +159,142 @@ def test__recalculate():
     assert inchi.recalculate(C2H2F2_ICH_NO_STEREO) == C2H2F2_ICH_NO_STEREO
     assert (inchi.recalculate(C2H2F2_ICH_NO_STEREO, stereo=True)
             == C2H2F2_ICH_STEREO_UNKNOWN)
-    # assert inchi.recalculate(CH4O_CH_ICH) == CH4O_CH_ICH
 
 
-def test__expand_stereo():
-    """ inchi.expand_stereo
+def test__stereo_atoms():
+    """ test inchi.stereo_atoms
     """
-    assert len(inchi.expand_stereo(C8H13O_ICH_NO_STEREO)) == 8
+    atms = inchi.stereo_atoms(C2H6O_ICH)
+    print(atms)
+    assert atms == (1,)
+
+    atms = inchi.stereo_atoms(C2H4F2O2_ICH)
+    print(atms)
+    assert atms == (0, 1)
+
+
+def test__stereo_bonds():
+    """ test inchi.stereo_bonds
+    """
+    bnds = inchi.stereo_bonds(C8H13O_ICH)
+    print(bnds)
+    assert bnds == ((4, 2), (5, 3))
+
+
+def test__is_enantiomer():
+    """ test inchi.is_enantiomer
+    """
+    ich1 = 'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1'
+    ich2 = 'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3'
+    assert inchi.is_enantiomer(ich1)
+    assert not inchi.is_enantiomer(ich2)
+
+
+def test__reflect():
+    """ test inchi.reflect
+    """
+    ich1 = 'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1'
+    ich2 = 'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3'
+    assert (inchi.reflect(ich1) ==
+            'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1')
+    assert inchi.reflect(ich2) == ich2
+
+
+def test__stereo():
+    """ test inchi.add_stereo
+        test inchi.expand_stereo
+    """
+
+    # Add and Expand stereo to C8H13O
+    c8h13o_ste = (
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4-/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4+/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4-/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m0/s1')
+    )
+    assert inchi.add_stereo(C8H13O_ICH_NO_STEREO) in c8h13o_ste
+    assert set(inchi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
 
     # some cases that were breaking
-    inchi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')
-    inchi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')
-    inchi.expand_stereo('InChI=1S/C2/c1-2')
-    inchi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')
+    assert set(inchi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')) == {
+        'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
+        'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
+    assert set(inchi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
+        'InChI=1S/CH2N/c1-2/h1-2H',
+        'InChI=1S/CH2N/c1-2/h1-2H'}
+    assert set(inchi.expand_stereo('InChI=1S/C2/c1-2')) == {
+        'InChI=1S/C2/c1-2'}
+    assert set(inchi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')) == {
+        'InChI=1S/C3H3/c1-3-2/h1-3H',
+        'InChI=1S/C3H3/c1-3-2/h1-3H',
+        'InChI=1S/C3H3/c1-3-2/h1-3H',
+        'InChI=1S/C3H3/c1-3-2/h1-3H'}
+
+
+def test__filter_enantiomer_reactions():
+    """ test inchi.filter_enantiomer_reactions()
+    """
+    ref_rxn_ichs_lst = (
+        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m0/s1',),
+         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
+          'InChI=1S/HO2/c1-2/h1H')),
+        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m0/s1',),
+         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
+          'InChI=1S/HO2/c1-2/h1H')),
+        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m1/s1',),
+         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
+          'InChI=1S/HO2/c1-2/h1H')),
+        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m1/s1',),
+         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
+          'InChI=1S/HO2/c1-2/h1H')),
+    )
+
+    # normal usage:
+    rxn_ichs_lst = inchi.filter_enantiomer_reactions(ref_rxn_ichs_lst)
+    assert len(rxn_ichs_lst) == 2
+
+    # checking that order doesn't matter
+    print('before:')
+    for rct_ichs, prd_ichs in rxn_ichs_lst:
+        print('r', rct_ichs)
+        print('p', prd_ichs)
+    print()
+    rxn_ichs_lst = set(map(frozenset, rxn_ichs_lst))
+
+    ref_rxn_ichs_lst = numpy.array(ref_rxn_ichs_lst, dtype=object)
+    ref_rxn_ichs_lsts = [
+        [numpy.random.permutation(r)
+         for r in numpy.random.permutation(ref_rxn_ichs_lst)]
+        for _ in range(10)]
+    for ref_rxn_ich_lst_ in ref_rxn_ichs_lsts:
+        rxn_ichs_lst_ = inchi.filter_enantiomer_reactions(ref_rxn_ich_lst_)
+        rxn_ichs_lst_ = inchi.sort_reactions(rxn_ichs_lst_)
+        print('after:')
+        for rct_ichs, prd_ichs in rxn_ichs_lst_:
+            print('r', rct_ichs)
+            print('p', prd_ichs)
+        print()
+
+        rxn_ichs_lst_ = set(map(frozenset, rxn_ichs_lst))
+        assert rxn_ichs_lst_ == rxn_ichs_lst
 
 
 if __name__ == '__main__':
-    test__from_data()
-    # test__version()
-    # test__join()
-    # test__recalculate()
-    # test__split()
-    # test__standard_form()
-    # test__has_stereo()
-    # test__argsort()
-    # test__expand_stereo()
+    # test__stereo_atoms()
+    # test__stereo_bonds()
+    # test__stereo()
+    # test__is_enantiomer()
+    # test__reflect()
+    test__filter_enantiomer_reactions()

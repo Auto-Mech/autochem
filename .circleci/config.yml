@@ -5,7 +5,7 @@ jobs:
             - image: continuumio/miniconda3
         steps:
             - checkout  # checkout the code
-            - run: 
+            - run:
                 name: Create conda environment
                 command: |
                     apt-get update --yes
@@ -22,17 +22,22 @@ jobs:
                 command: |
                     source activate autochem-env
                     cd automol
-                    pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=transformations 
+                    pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=autoreact --cov-report=html
+                    coverage report
             - run:
                 name: Test autochem format
                 command: |
                     source activate autochem-env
                     flake8 --exit-zero automol
-                    pylint --rcfile=automol/.pylintrc automol
+                    pylint --rcfile=.pylintrc automol 
                     flake8 --exit-zero phydat
-                    pylint --rcfile=phydat/.pylintrc phydat
+                    pylint --rcfile=.pylintrc phydat
+                    flake8 --exit-zero autoreact
+                    pylint --rcfile=.pylintrc autoreact
+            - store_artifacts:
+                    path: automol/htmlcov
 workflows:
     version: 2
     build-all:
         jobs:
-            - build-debian
+            - build-debian  # expand out
