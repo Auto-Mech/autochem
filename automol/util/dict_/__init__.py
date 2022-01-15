@@ -17,6 +17,7 @@ from automol.util.dict_._dict_ import transform_keys
 from automol.util.dict_._dict_ import transform_values
 from automol.util.dict_._dict_ import transform_items_to_values
 from automol.util.dict_._dict_ import keys_sorted_by_value
+from automol.util.dict_._dict_ import filter_by_key
 from automol.util.dict_._dict_ import filter_by_value
 from automol.util.dict_._dict_ import filter_keys
 from automol.util.dict_._dict_ import merge_sequence
@@ -32,7 +33,9 @@ __all__ = [
     'values_in_multilevel_dct', 'value_in_floatkey_dct',
     'keys_by_value', 'transform_keys', 'transform_values',
     'separate_subdct', 'merge_subdct',
-    'transform_items_to_values', 'keys_sorted_by_value', 'filter_by_value',
+    'transform_items_to_values', 'keys_sorted_by_value',
+    'filter_by_key',
+    'filter_by_value',
     'merge_sequence', 'filter_keys',
     # submodules
     'multi',
