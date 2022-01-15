@@ -74,6 +74,7 @@ from automol.graph.base._core import atom_symbol_keys
 from automol.graph.base._core import backbone_keys
 from automol.graph.base._core import atom_explicit_hydrogen_keys
 from automol.graph.base._core import explicit_hydrogen_keys
+from automol.graph.base._core import terminal_atom_keys
 from automol.graph.base._core import terminal_heavy_atom_keys
 from automol.graph.base._core import unsaturated_atom_keys
 from automol.graph.base._core import lone_pair_atom_keys
@@ -334,6 +335,7 @@ __all__ = [
     'backbone_keys',
     'atom_explicit_hydrogen_keys',
     'explicit_hydrogen_keys',
+    'terminal_atom_keys',
     'terminal_heavy_atom_keys',
     'unsaturated_atom_keys',
     'lone_pair_atom_keys',

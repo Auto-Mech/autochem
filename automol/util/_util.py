@@ -93,6 +93,20 @@ def equivalence_partition(iterable, relation, perfect=False):
 
 
 # Useful functions on Python objects
+def move_item_to_front(lst, item):
+    """ Move an item to the front of a list.
+
+        :param lst: the list
+        :type lst: list or tuple
+        :param item: the item, which must be in `lst`
+        :returns: the list, with the item moved to front
+        :rtype: tuple
+    """
+    lst = list(lst)
+    lst.insert(0, lst.pop(lst.index(item)))
+    return tuple(lst)
+
+
 def breakby(lst, elem):
     """ Break a list by element, dropping the element itself.
 
