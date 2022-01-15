@@ -597,6 +597,6 @@ if __name__ == '__main__':
     # test__geom__no_stereo()
     # test__graph__no_stereo()
     test__zmatrix__with_stereo()
-    test__smiles__with_stereo()
-    test__smiles__from_geom()
+    # test__smiles__with_stereo()
+    # test__smiles__from_geom()
     # test__graph__misc()
