@@ -204,12 +204,15 @@ def _modify_idxs(idxs_lst, removed_atms, dummy_atms):
 ICH_DCT = {'C': 'InChI=1S/C', 'O': 'InChI=1S/O'}
 
 
-def oxygenated_hydrocarbon_symm_num(geo):
+def oxygenated_hydrocarbon_symm_num(geo, zrxn=None):
     """ determine the symmetry number of a CHO molecule
     """
     int_symm = 1.
     chiral_center = 0
-    gra = graph(geo)
+    if zrxn is not None:
+        gra = zrxn.forward_ts_graph
+    else:
+        gra = graph(geo)
     ethane_gra = ({0: ('C', 3, None), 1: ('C', 3, None)},
                   {frozenset({0, 1}): (1, None)})
     if automol.graph.base.implicit(gra) == ethane_gra:
