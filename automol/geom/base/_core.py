@@ -344,6 +344,17 @@ def is_atom(geo):
     return count(geo) == 1
 
 
+def is_diatomic(geo):
+    """ Determine if the molecular geometry corresponds to diatomic species..
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :rtype: bool
+    """
+
+    return count(geo) == 2
+
+
 def is_linear(geo, tol=2.*phycon.DEG2RAD):
     """ Determine if the molecular geometry is linear.
 
