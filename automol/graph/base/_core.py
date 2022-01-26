@@ -688,10 +688,12 @@ def explicit_hydrogen_keys(gra):
     return exp_hyd_keys
 
 
-def terminal_heavy_atom_keys(gra):
+def terminal_atom_keys(gra, heavy=True):
     """ terminal heavy atoms, sorted by atom type and hydrogen count
     """
-    gra = implicit(gra)
+    if heavy:
+        gra = implicit(gra)
+
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
     atm_keys = [key for key, ngb_keys in atoms_neighbor_atom_keys(gra).items()
                 if len(ngb_keys) <= 1]
@@ -701,6 +703,14 @@ def terminal_heavy_atom_keys(gra):
     srt = automol.formula.argsort_symbols(atm_symbs, symbs_first=('C',))
     atm_keys = tuple(map(atm_keys.__getitem__, srt))
     return atm_keys
+
+
+def terminal_heavy_atom_keys(gra):
+    """ terminal heavy atoms, sorted by atom type and hydrogen count
+
+    (Deprecate: Replace with terminal_atom_keys()
+    """
+    return terminal_atom_keys(gra, heavy=True)
 
 
 def unsaturated_atom_keys(gra):

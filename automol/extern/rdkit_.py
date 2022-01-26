@@ -225,19 +225,24 @@ def draw(rdm):
         canvas=None)
 
 
-def draw_grid(rdms, names=None):
+def draw_grid(rdms, img_per_row=3, sub_img_size=(200, 200), legends=None):
     """ Draw a grid
     """
-    if names is None:
-        names = tuple(i+1 for i in range(len(rdms)))
+    # Set various options for drawing the grid
+    if legends is None:
+        legends = tuple(i+1 for i in range(len(rdms)))
+    else:
+        assert len(rdms) == len(legends), (
+            "User provided ichs and legends are not the same length")
+
     return Draw.MolsToGridImage(
         rdms,
-        molsPerRow=3,
-        subImgSize=(200, 200),
-        legends=names)
+        molsPerRow=img_per_row,
+        subImgSize=sub_img_size,
+        legends=legends)
 
 
-def draw_mult(rdms):
+def draw_mult(rdms, img_size=(200, 200)):
     """ Draw multiple
     """
     return Draw.MolsToImage(

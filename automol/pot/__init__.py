@@ -21,6 +21,7 @@ from automol.pot._intmol import intramol_interaction_potential_sum
 from automol.pot._intmol import pairwise_potential_matrix
 from automol.pot._read import find_max1d
 from automol.pot._fit import fit_1d_potential
+from automol.pot._fit import setup_1d_potential
 
 
 __all__ = [
@@ -41,6 +42,7 @@ __all__ = [
     'low_repulsion_struct',
     'intramol_interaction_potential_sum',
     'pairwise_potential_matrix',
-    'fit_1d_potential',
     'find_max1d'
+    'fit_1d_potential',
+    'setup_1d_potential',
 ]

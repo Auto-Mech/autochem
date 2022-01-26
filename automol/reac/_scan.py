@@ -516,6 +516,7 @@ VAR_TS_GRID_DCT = {
     ReactionClass.Typ.HYDROGEN_ABSTRACTION: radrad_hydrogen_abstraction_grid
 }
 
+
 def scan_grid(zrxn, zma, var=False):
     """ Set the grid for a transition state search
     """
@@ -557,6 +558,7 @@ def scan_update_guess(zrxn, var=False):
         _update = VAR_TS_UPDATE_GUESS_DCT[zrxn.class_]
 
     return _update
+
 
 # Helper functions
 def _ts_bnd_len(zma, scan_coord):
