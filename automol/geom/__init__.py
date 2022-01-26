@@ -39,6 +39,7 @@ from automol.geom.base._core import formula_string
 # # properties
 from automol.geom.base._core import count
 from automol.geom.base._core import is_atom
+from automol.geom.base._core import is_diatomic
 from automol.geom.base._core import is_linear
 from automol.geom.base._core import atom_count
 from automol.geom.base._core import atom_indices
@@ -155,6 +156,7 @@ __all__ = [
     # # properties
     'count',
     'is_atom',
+    'is_diatomic',
     'is_linear',
     'atom_count',
     'atom_indices',
