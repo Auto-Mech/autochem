@@ -418,8 +418,8 @@ def radical_dissociation_prods(gra, pgra1):
     adj_atms = atoms_neighbor_atom_keys(gra)
     # adj_idxs = tuple(adj_atms[rad] for rad in rads)
     for rad in rads:
-        for i, adj in enumerate(adj_atms[rad]):
-            for j, group in enumerate(atom_groups(gra, adj, stereo=False)):  
+        for _, adj in enumerate(adj_atms[rad]):
+            for _, group in enumerate(atom_groups(gra, adj, stereo=False)):
                 # print('\n', i, j)
                 # print(group)
                 # print(pgra1)
