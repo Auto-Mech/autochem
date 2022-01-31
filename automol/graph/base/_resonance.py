@@ -407,6 +407,9 @@ def radical_group_dct(gra):
 
 def radical_dissociation_prods(gra, pgra1):
     """ given a dissociation product, determine the other product
+
+        stereo has been turned on atom_groups call to see if we
+        can return the graphs with stereo, previously it was off
     """
     gra = without_fractional_bonds(gra)
 
@@ -415,8 +418,11 @@ def radical_dissociation_prods(gra, pgra1):
     adj_atms = atoms_neighbor_atom_keys(gra)
     # adj_idxs = tuple(adj_atms[rad] for rad in rads)
     for rad in rads:
-        for adj in adj_atms[rad]:
-            for group in atom_groups(gra, adj, stereo=False):
+        for i, adj in enumerate(adj_atms[rad]):
+            for j, group in enumerate(atom_groups(gra, adj, stereo=False)):  
+                # print('\n', i, j)
+                # print(group)
+                # print(pgra1)
                 if isomorphism(group, pgra1, backbone_only=True):
                     pgra2 = remove_atoms(gra, atom_keys(group))
                     # pgra2 = remove_bonds(pgra2, bond_keys(group))

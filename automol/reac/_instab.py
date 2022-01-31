@@ -50,8 +50,12 @@ def instability_product_graphs(gra):
                     # Build pair of product gras:
                     # gra1; prd_gra :small molec from instab_fgrps_DCT
                     # gra2; complementary mol from removing small mol from spc
+                    # print('prd_gra\n', automol.graph.string(prd_gra))
                     prd_gras = radical_dissociation_prods(
                         gra, prd_gra)
+                    # for _gra in prd_gras:
+                    #     print(' - prd_gras -')
+                    #     print(automol.graph.string(_gra))
                     break
 
     return prd_gras

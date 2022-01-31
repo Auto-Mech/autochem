@@ -129,6 +129,7 @@ def need_wells(rxn_class):
         wells.
     """
     _need_wells = (
+        ReactionClass.Typ.ADDITION,
         ReactionClass.Typ.HYDROGEN_ABSTRACTION,
         ReactionClass.Typ.SUBSTITUTION
     )
