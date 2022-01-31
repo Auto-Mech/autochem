@@ -6,7 +6,7 @@ from distutils.core import setup
 
 setup(
     name='autochem',
-    version='0.13.1',
+    version='0.13.2',
     packages=[
         'automol',
         # L1
@@ -26,6 +26,7 @@ setup(
         # L4
         'automol.graph',
         'automol.geom',
+        'automol.amchi',
         'automol.inchi',
         'automol.zmat',
         # L5
