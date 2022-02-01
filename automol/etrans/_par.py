@@ -148,3 +148,19 @@ D0_GRP_LST = (
     (FunctionalGroup.ETHER, 'ether'),                  # 82.0
     (FunctionalGroup.ALCOHOL, 'n-alcohol')             # 90.0
 )
+
+# Rotational Relaxation Numbers at 298 K
+ZROT_DCT = {
+    'InChI=1S/H': 0,
+    'InChI=1S/C': 0,
+    'InChI=1S/O': 0,
+    'InChI=1S/He': 2,
+    'InChI=1S/Ar': 2,
+    'InChI=1S/H2/h1H': 280,
+    'InChI=1S/N2/c1-2': 4,
+    'InChI=1S/O2/c1-2': 3.8,
+    'InChI=1S/HO/h1H': 0,
+    'InChI=1S/H2O/c1-2/h1H2': 4,
+    'InChI=1S/HO2/c1-2/h1H': 3.8,
+    'InChI=1S/H2O2/c1-2/h1-2H': 3.8
+}

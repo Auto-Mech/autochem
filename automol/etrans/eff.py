@@ -12,6 +12,8 @@ from automol.util import dict_
 # from automol.etrans._par import LJ_DCT
 from automol.etrans._par import LJ_EST_DCT
 from automol.etrans._par import Z_ALPHA_EST_DCT
+from automol.etrans._par import D0_GRP_LST
+from automol.etrans._par import ZROT_DCT
 from automol.etrans._fxn import troe_lj_collision_frequency
 
 
@@ -269,3 +271,54 @@ def _rotor_counts(gra, symbs):
             n_qq,
             n_co, n_oo,
             n_ss_ring, n_rings)
+
+
+# Rotational relaxation number
+def rotational_relaxation_number(tgt_ich):
+    """ Get the rotational relaxation number at 298 K for a given species.
+        Currently, this is read from internal library or set to 1.
+
+        :param tgt_ich: InChI string of species
+        :type tgt_ich: str
+        :rtype: float
+    """
+    return ZROT_DCT.get(tgt_ich, 1.0)
+
+
+# Determine which effective model series to use
+def determine_collision_model_series(tgt_ich, bath_ich):
+    """ For the collision between a given tgt and bath species, determine
+        which effective series would be the most suitable model for
+        estimating the energy transfer parameters
+    """
+
+    # Initialize the model
+    tgt_model = None
+
+    # Build the graph
+    tgt_gra = automol.geom.graph(automol.inchi.geometry(tgt_ich))
+
+    # Identify the the target model
+    if tgt_ich not in BAD_ICHS:
+        # Set model based on broad values
+        if automol.graph.radical_species(tgt_gra):
+            tgt_model = '1-alkyl'
+        elif automol.graph.hydrocarbon_species(tgt_gra):
+            tgt_model = 'n-alkane'
+        else:
+            # Set priority based on bond-dissociation energies
+            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
+            for (fgrp, model) in D0_GRP_LST:
+                if fgrp_dct[fgrp]:
+                    tgt_model = model
+                    break
+
+        # For now, set model to alkanes if nothing found and set up return obj
+        if tgt_model is None:
+            tgt_model = 'n-alkane'
+
+        ret = (bath_ich, tgt_model)
+    else:
+        ret = None
+
+    return ret
