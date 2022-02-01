@@ -1,12 +1,19 @@
-"""
-List of funcitonal groups attached to radical atoms that cause instabilities
+""" Dictionary that details what functional groups will yield
+    electronically unstable species when they are attached to
+    specified radical atoms. For a given X.-FGRP dissociation,
+    we also denote one of the expected products.
 
-atm_symb: ( (instab_grp1, instab_grp2, ...),
-            (instab_prd1, instab_prd2, instab_prd3) )
-
+DCT = {
+    atm_symb: {
+        instab_grp1: instab_prd1_from_grp1,
+        instab_grp2: instab_prd1_from_grp2
+    }
+}
 """
 
 DCT = {
-    'C': (('InChI=1S/HO2/c1-2/h1H', 'InChI=1S/NO3/c2-1(3)4'),
-          ('InChI=1S/HO/h1H', 'InChI=1S/NO2/c2-1-3'))
+    'C': {
+        'InChI=1S/HO2/c1-2/h1H': 'InChI=1S/HO/h1H',
+        'InChI=1S/NO3/c2-1(3)4': 'InChI=1S/NO2/c2-1-3'
+    }
 }
