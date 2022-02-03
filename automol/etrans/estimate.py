@@ -1,5 +1,5 @@
-"""
-Calculate an effective alpha parameter using certain rules
+""" Use various estimation formula of Jasper to determine
+    energy transfer parameters: sigma, epsilon, and alpha
 """
 
 import itertools
@@ -8,8 +8,7 @@ from phydat import phycon
 import automol.geom
 import automol.inchi
 import automol.graph
-from automol.util import dict_
-# from automol.etrans._par import LJ_DCT
+from automol.etrans._par import LJ_DCT
 from automol.etrans._par import LJ_EST_DCT
 from automol.etrans._par import Z_ALPHA_EST_DCT
 from automol.etrans._par import D0_GRP_LST
@@ -18,18 +17,14 @@ from automol.etrans._fxn import troe_lj_collision_frequency
 
 
 # CALCULATE THE EFFECTIVE ALPHA VALUE
-def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model,
+def alpha(n_eff, eps, sig, mass1, mass2, collider_set,
           empirical_factor=2.0):
     """ Calculate the alpha param using the method Jasper, et al.
 
         :param n_eff: number of effective rotors
         :type n_eff: int
-        :p`aram zlj_dct: lennard-jones collision frequencies (cm-1?)
+        :param zlj_dct: lennard-jones collision frequencies (cm-1?)
         :type zlj_dct: dict[float: float]
-        :param bath_model: InChI string for bath gas species
-        :type bath_model: str
-        :param target_model: string denoting some class of target species
-        :type target_model: str
         :param empirical_factor: correction for using 1DME versus 2DM2
         :type empirical_factor: float
     """
@@ -38,7 +33,7 @@ def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model,
     red_mass = ((mass1 * mass2) / (mass1 + mass2)) * phycon.AMU2KG
 
     # Calculate Zalpha(Neff) at T = 300, 1000, 2000 K
-    z_alphas_n_eff = _calculate_z_alpha_terms(n_eff, bath_model, tgt_model)
+    z_alphas_n_eff = _calculate_z_alpha_terms(n_eff, collider_set)
 
     # Calculate alpha = Zalpha(Neff) / Z(N) at T = 300, 1000, 2000 K
     # Empirical correction factor of (1/2) used for 1D Master Equations
@@ -53,7 +48,7 @@ def alpha(n_eff, eps, sig, mass1, mass2, bath_model, tgt_model,
     return edown_alpha, edown_n
 
 
-def _calculate_z_alpha_terms(n_eff, bath_model, tgt_model):
+def _calculate_z_alpha_terms(n_eff, collider_set):
     """ Calculate the [Z*alpha](N_eff)
     """
 
@@ -68,9 +63,7 @@ def _calculate_z_alpha_terms(n_eff, bath_model, tgt_model):
     # Need to put special values in for H2 here
 
     # Read the proper coefficients from the moldriver dct
-    coeff_dct = dict_.values_in_multilevel_dct(
-        Z_ALPHA_EST_DCT, bath_model, tgt_model)
-
+    coeff_dct = Z_ALPHA_EST_DCT.get(collider_set, None)
     if coeff_dct is not None:
         # Calculate the three alpha terms
         z_alpha_dct = {}
@@ -117,7 +110,7 @@ def _calculate_energy_down_exponent(alpha_dct):
 
 
 # CALCULATE THE EFFECTIVE LENNARD-JONES SIGMA AND EPSILON
-def lennard_jones_params(n_heavy, bath_model, tgt_model):
+def lennard_jones_params(n_heavy, calc_model, collider_set):
     """ Returns in angstrom and cm-1.
 
         :param n_heavy: Number of heavy atoms for a species
@@ -133,18 +126,17 @@ def lennard_jones_params(n_heavy, bath_model, tgt_model):
         """
         return param * n_heavy**(expt)
 
-    # Need to put special values in for H2 here
-
     # Read the proper coefficients from the moldriver dct
-    coeffs = dict_.values_in_multilevel_dct(
-        LJ_EST_DCT, bath_model, tgt_model)
-
-    if coeffs is not None:
-        # Calculate the effective sigma and epsilon values
-        sig = _lj(coeffs[0], n_heavy, coeffs[1])
-        eps = _lj(coeffs[2], n_heavy, coeffs[3])
+    if calc_model == 'estimate':
+        coeffs = LJ_EST_DCT[collider_set]
+        if coeffs is not None:
+            # Calculate the effective sigma and epsilon values
+            sig = _lj(coeffs[0], n_heavy, coeffs[1])
+            eps = _lj(coeffs[2], n_heavy, coeffs[3])
+        else:
+            sig, eps = None, None
     else:
-        sig, eps = None, None
+        sig, eps = LJ_DCT.get(collider_set, (None, None))
 
     return sig, eps
 
@@ -289,18 +281,22 @@ def rotational_relaxation_number(tgt_ich):
 def determine_collision_model_series(tgt_ich, bath_ich):
     """ For the collision between a given tgt and bath species, determine
         which effective series would be the most suitable model for
-        estimating the energy transfer parameters
+        determining the energy transfer parameters
     """
 
-    # Initialize the model
-    tgt_model = None
+    # First check if one should use standard numbers instead of estimating
+    collider_set = frozenset({tgt_ich, bath_ich})
 
-    # Build the graph
-    tgt_gra = automol.geom.graph(automol.inchi.geometry(tgt_ich))
+    if collider_set in LJ_DCT:
+        ret = ('use standard', frozenset({tgt_ich, bath_ich}))
+    else:
+        # Initialize the model
+        tgt_model = None
 
-    # Identify the the target model
-    if tgt_ich not in BAD_ICHS:
-        # Set model based on broad values
+        # Build the graph
+        tgt_gra = automol.geom.graph(automol.inchi.geometry(tgt_ich))
+
+        # Identify the the target model
         if automol.graph.radical_species(tgt_gra):
             tgt_model = '1-alkyl'
         elif automol.graph.hydrocarbon_species(tgt_gra):
@@ -317,8 +313,6 @@ def determine_collision_model_series(tgt_ich, bath_ich):
         if tgt_model is None:
             tgt_model = 'n-alkane'
 
-        ret = (bath_ich, tgt_model)
-    else:
-        ret = None
+        ret = ('estimate', frozenset({tgt_model, bath_ich}))
 
     return ret
