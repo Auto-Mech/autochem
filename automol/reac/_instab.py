@@ -16,13 +16,29 @@ def instability_product_zmas(zma):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
+    print('init gra')
+    print(automol.graph.string(automol.zmat.graph(zma)))
 
     disconn_zmas = ()
+    disconn_geos = ()
+    print('instab gras')
     for gra in instability_product_graphs(automol.zmat.graph(zma)):
+        print(automol.graph.string(gra))
+        print('--')
         ich = automol.graph.inchi(gra)
-        geo_tmp = automol.inchi.geometry(ich)
-        zma = automol.geom.zmatrix(geo_tmp)
-        disconn_zmas += (zma,)
+        _geo = automol.inchi.geometry(ich)
+        _zma = automol.geom.zmatrix(_geo)
+        disconn_zmas += (_zma,)
+        disconn_geos += (_geo,)
+
+    print('\ninit geo')
+    print(automol.geom.string(automol.zmat.geometry(zma)))
+    print('instab geos')
+    for geo in disconn_geos:
+        print(automol.geom.string(geo))
+        print('--')
+
+    # print('ichs test', ichs)
 
     return disconn_zmas
 
