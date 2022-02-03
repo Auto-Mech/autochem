@@ -192,7 +192,6 @@ from automol.graph.base._resonance import resonance_dominant_radical_atom_keys
 from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
 from automol.graph.base._resonance import radical_groups
 from automol.graph.base._resonance import radical_group_dct
-from automol.graph.base._resonance import radical_dissociation_prods
 from automol.graph.base._resonance import sp2_bond_keys
 from automol.graph.base._resonance import (
         resonance_dominant_atom_hybridizations)
@@ -242,6 +241,7 @@ from automol.graph.base._func_group import amide_groups
 from automol.graph.base._func_group import nitro_groups
 from automol.graph.base._func_group import halide_groups
 from automol.graph.base._func_group import thiol_groups
+from automol.graph.base._func_group import radical_dissociation_products
 # # helper functions
 from automol.graph.base._func_group import bonds_of_type
 from automol.graph.base._func_group import bonds_of_order
@@ -466,7 +466,6 @@ __all__ = [
     'sing_res_dom_radical_atom_keys',
     'radical_groups',
     'radical_group_dct',
-    'radical_dissociation_prods',
     'sp2_bond_keys',
     'resonance_dominant_atom_hybridizations',
     'resonance_dominant_atom_centered_cumulene_keys',
@@ -513,6 +512,7 @@ __all__ = [
     'nitro_groups',
     'halide_groups',
     'thiol_groups',
+    'radical_dissociation_products',
     # # helper functions
     'bonds_of_type',
     'bonds_of_order',

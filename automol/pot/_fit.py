@@ -110,7 +110,7 @@ def setup_1d_potential(pot_dct, min_thresh=-0.0001, max_thresh=50.0):
     new_pot = {}
     for idx, x_val in enumerate(x_idxs[:-1]):
         new_pot[(x_val,)] = y_pots[idx]
-    
+
     return new_pot
 
 

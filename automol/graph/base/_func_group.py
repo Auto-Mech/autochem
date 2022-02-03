@@ -7,11 +7,22 @@
 import itertools
 from automol.graph.base._resonance import dominant_resonance
 from automol.graph.base._resonance import resonance_dominant_radical_atom_keys
+from automol.graph.base._algo import atom_groups
 from automol.graph.base._algo import rings_atom_keys
+from automol.graph.base._algo import isomorphism
+from automol.graph.base._core import atom_keys
+from automol.graph.base._core import bond_keys
 from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import atom_symbol_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import bond_orders
+from automol.graph.base._core import remove_atoms
+from automol.graph.base._core import remove_bonds
+from automol.graph.base._core import without_fractional_bonds
+from automol.graph.base._core import subgraph
+from automol.graph.base._stereo import to_index_based_stereo
+from automol.graph.base._stereo import from_index_based_stereo
+from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
 
 
 # # core functions
@@ -535,6 +546,45 @@ def neighbors_of_type(gra, aidx, symb):
             idxs_of_type += (nidx,)
 
     return idxs_of_type
+
+
+def radical_dissociation_products(gra, pgra1):
+    """ For a given species, determine the products of a dissociation
+        occuring around a radical site. We assume one of the
+        dissociation products is known, and we attempt to find the
+        corresponding product.
+
+        Currently, we assume that the input pgra1 is appropriately
+        stereolabeled.
+
+        :param gra: species undergoing dissociation
+        :type gra: automol.graph object
+        :param pgra1: one of the known products of dissociation
+        :type pgra1: automol.graph object
+        :rtype: tuple(automol.graph.object)
+    """
+
+    # Remove gractional bonds for functions to work
+    gra = without_fractional_bonds(gra)
+
+    # Attempt to find a graph of product corresponding to pgra1
+    pgra2 = None
+    for rad in sing_res_dom_radical_atom_keys(gra):
+        for adj in atoms_neighbor_atom_keys(gra)[rad]:
+            for group in atom_groups(gra, adj, stereo=False):
+                if isomorphism(group, pgra1, backbone_only=True):
+                    pgra2 = remove_atoms(gra, atom_keys(group))
+                    if bond_keys(group) in pgra2:
+                        pgra2 = remove_bonds(pgra2, bond_keys(group))
+
+    # If pgra2 is ID'd, rebuild the two product graphs with stereo labels
+    if pgra2 is not None:
+        keys2 = atom_keys(pgra2)
+        idx_gra = to_index_based_stereo(gra)
+        idx_pgra2 = subgraph(idx_gra, keys2, stereo=True)
+        pgra2 = from_index_based_stereo(idx_pgra2)
+
+    return pgra1, pgra2
 
 
 # helpers

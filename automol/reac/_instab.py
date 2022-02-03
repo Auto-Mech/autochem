@@ -8,7 +8,7 @@ from automol.reac._util import rxn_objs_from_zmatrix
 import automol.geom
 import automol.inchi
 import automol.zmat
-from automol.graph import radical_dissociation_prods
+from automol.graph import radical_dissociation_products
 from automol.graph import radical_group_dct
 
 
@@ -16,13 +16,29 @@ def instability_product_zmas(zma):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
+    print('init gra')
+    print(automol.graph.string(automol.zmat.graph(zma)))
 
     disconn_zmas = ()
+    disconn_geos = ()
+    print('instab gras')
     for gra in instability_product_graphs(automol.zmat.graph(zma)):
+        print(automol.graph.string(gra))
+        print('--')
         ich = automol.graph.inchi(gra)
-        geo_tmp = automol.inchi.geometry(ich)
-        zma = automol.geom.zmatrix(geo_tmp)
-        disconn_zmas += (zma,)
+        _geo = automol.inchi.geometry(ich)
+        _zma = automol.geom.zmatrix(_geo)
+        disconn_zmas += (_zma,)
+        disconn_geos += (_geo,)
+
+    print('\ninit geo')
+    print(automol.geom.string(automol.zmat.geometry(zma)))
+    print('instab geos')
+    for geo in disconn_geos:
+        print(automol.geom.string(geo))
+        print('--')
+
+    # print('ichs test', ichs)
 
     return disconn_zmas
 
@@ -39,19 +55,15 @@ def instability_product_graphs(gra):
     prd_gras = ()
     for atm, grps in rad_grp_dct.items():
         if atm in instab_fgrps.DCT:
-            fgrps, prds = instab_fgrps.DCT[atm]
+            fgrps_dct = instab_fgrps.DCT[atm]
             for grp in grps:
-                grp_ich = automol.graph.inchi(grp)
-                if grp_ich in fgrps:
+                grp_ich = automol.graph.inchi(grp, stereo=True)
+                if grp_ich in fgrps_dct:
                     # If instability found, determine prod of the instability
-                    prd_ich = prds[fgrps.index(grp_ich)]
+                    prd_ich = fgrps_dct[grp_ich]
                     prd_geo = automol.inchi.geometry(prd_ich)
                     prd_gra = automol.geom.graph(prd_geo)
-                    # Build pair of product gras:
-                    # gra1; prd_gra :small molec from instab_fgrps_DCT
-                    # gra2; complementary mol from removing small mol from spc
-                    prd_gras = radical_dissociation_prods(
-                        gra, prd_gra)
+                    prd_gras = radical_dissociation_products(gra, prd_gra)
                     break
 
     return prd_gras
@@ -61,9 +73,11 @@ def instability_transformation(conn_zma, disconn_zmas):
     """ Build the reaction objects for an instability
     """
 
-    zrxn, zma = None, None
     zrxn_objs = rxn_objs_from_zmatrix(
-        [conn_zma], disconn_zmas, indexing='zma')
+        [conn_zma], disconn_zmas, indexing='zma', stereo=True)
     if zrxn_objs:
         zrxn, zma, _, _ = zrxn_objs[0]
+    else:
+        zrxn, zma = None, None
+
     return zrxn, zma

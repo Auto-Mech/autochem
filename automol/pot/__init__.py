@@ -42,7 +42,7 @@ __all__ = [
     'low_repulsion_struct',
     'intramol_interaction_potential_sum',
     'pairwise_potential_matrix',
-    'find_max1d'
+    'find_max1d',
     'fit_1d_potential',
     'setup_1d_potential',
 ]
