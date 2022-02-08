@@ -38,6 +38,7 @@ KCAL2KJ = qcc.conversion_factor('kcal/mol', 'kJ/mol')
 WAVEN2EH = qcc.conversion_factor('wavenumber', 'hartree')
 EH2WAVEN = qcc.conversion_factor('hartree', 'wavenumber')
 EH2KJ = qcc.conversion_factor('hartree', 'kJ/mol')
+EH2K = qcc.conversion_factor('hartree', 'kelvin')
 
 # Length/Angle Conversion Factors
 ANG2BOHR = qcc.conversion_factor('angstrom', 'bohr')
