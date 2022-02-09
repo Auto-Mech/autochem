@@ -214,7 +214,7 @@ def to_connectivity_graph(rdm):
 
 # draw operations
 def draw(rdm):
-    """ Draw
+    """ Convert the RdKit molecule object to a PNG image.
     """
     return Draw.MolToImage(
         rdm, size=(300, 300),
@@ -242,10 +242,10 @@ def draw_grid(rdms, img_per_row=3, sub_img_size=(200, 200), legends=None):
         legends=legends)
 
 
-def draw_mult(rdms, img_size=(200, 200)):
+def draw_mult(rdms, sub_img_size=(200, 200)):
     """ Draw multiple
     """
     return Draw.MolsToImage(
         rdms,
-        subImgSize=(200, 200),
+        subImgSize=sub_img_size,
         legends=None)

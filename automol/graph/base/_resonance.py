@@ -7,7 +7,6 @@ import functools
 import numpy
 from automol.util import dict_
 from automol.graph.base._algo import atom_groups
-from automol.graph.base._algo import isomorphism
 from automol.graph.base._algo import connected_components
 from automol.graph.base._core import atoms
 from automol.graph.base._core import atom_keys
@@ -16,8 +15,6 @@ from automol.graph.base._core import bond_orders
 from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import atom_hybridizations
 from automol.graph.base._core import atom_unsaturated_valences
-from automol.graph.base._core import remove_atoms
-from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_bonds
@@ -403,26 +400,6 @@ def radical_group_dct(gra):
             groups[atms[rad][0]] = atom_groups(gra, rad)
 
     return groups
-
-
-def radical_dissociation_prods(gra, pgra1):
-    """ given a dissociation product, determine the other product
-    """
-    gra = without_fractional_bonds(gra)
-
-    pgra2 = None
-    rads = sing_res_dom_radical_atom_keys(gra)
-    adj_atms = atoms_neighbor_atom_keys(gra)
-    # adj_idxs = tuple(adj_atms[rad] for rad in rads)
-    for rad in rads:
-        for adj in adj_atms[rad]:
-            for group in atom_groups(gra, adj, stereo=False):
-                if isomorphism(group, pgra1, backbone_only=True):
-                    pgra2 = remove_atoms(gra, atom_keys(group))
-                    # pgra2 = remove_bonds(pgra2, bond_keys(group))
-                    if bond_keys(group) in pgra2:
-                        pgra2 = remove_bonds(pgra2, bond_keys(group))
-    return (pgra1, pgra2)
 
 
 def sp2_bond_keys(gra):
