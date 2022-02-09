@@ -42,45 +42,45 @@ def test__model():
 
     # Assess different targets for model selection
     model = automol.etrans.estimate.determine_collision_model_series(
-        CH1_INF[0], BATH_INF[0])
+        CH1_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], 'n-alkane'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        RAD1_INF[0], BATH_INF[0])
+        RAD1_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], '1-alkyl'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        RAD2_INF[0], BATH_INF[0])
-    assert model == frozenset({BATH_INF[0], '1-alkyl'})
+        RAD2_INF[0], BATH_INF[0], 'lj')
+    assert model == frozenset({BATH_INF[0], 'peroxy'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        COOH_INF[0], BATH_INF[0])
+        COOH_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], 'n-hydroperoxide'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        ETH_INF[0], BATH_INF[0])
+        ETH_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], 'ether'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        COOH_ETH_INF[0], BATH_INF[0])
+        COOH_ETH_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], 'n-hydroperoxide'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        ALC_INF[0], BATH_INF[0])
+        ALC_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], 'n-alcohol'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        EPOX_INF[0], BATH_INF[0])
+        EPOX_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], 'epoxide'})
 
     # Halide groups have no model, just using alkanes
     model = automol.etrans.estimate.determine_collision_model_series(
-        CX_INF[0], BATH_INF[0])
+        CX_INF[0], BATH_INF[0], 'lj')
     assert model == frozenset({BATH_INF[0], 'n-alkane'})
 
     # Use a different bath gas
     model = automol.etrans.estimate.determine_collision_model_series(
-        CH1_INF[0], BATH_INF2[0])
+        CH1_INF[0], BATH_INF2[0], 'lj')
     assert model == frozenset({BATH_INF2[0], 'n-alkane'})
 
 
@@ -139,6 +139,7 @@ def test__estimate():
 
     # Set values for calculation
     collider_set = frozenset({BATH_INF[0], 'n-alcohol'})
+    collider_set2 = frozenset({BATH_INF[0], BATH_INF2[0]})
     n_eff = 2.333333333333
 
     tgt_geo = automol.inchi.geometry(ALC_INF[0])
@@ -150,17 +151,24 @@ def test__estimate():
 
     # Build the Lennard-Jones parameters
     sig, eps = automol.etrans.estimate.lennard_jones_params(
-        tgt_n_heavy, 'estimate', collider_set)
-    ref_sig = 3.799479365827328
-    ref_eps = 206.2796676062968
+        tgt_n_heavy, collider_set)
+    ref_sig = 7.179975420741842
+    ref_eps = 0.0009398793214436292
+    assert numpy.isclose(sig, ref_sig)
+    assert numpy.isclose(eps, ref_eps)
+
+    sig, eps = automol.etrans.estimate.lennard_jones_params(
+        tgt_n_heavy, collider_set2)
+    ref_sig = 6.462334225750644
+    ref_eps = 0.001484207345360904
     assert numpy.isclose(sig, ref_sig)
     assert numpy.isclose(eps, ref_eps)
 
     # Build the alpha parameters
     edown_alpha, edown_n = automol.etrans.estimate.alpha(
         n_eff, eps, sig, tgt_mass, bath_mass, collider_set)
-    ref_edown_alpha = 138.20750436962405
-    ref_edown_n = 0.6659477362988162
+    ref_edown_alpha = 229.66891072423212
+    ref_edown_n = 0.47233211063037017
     assert numpy.isclose(edown_alpha, ref_edown_alpha)
     assert numpy.isclose(edown_n, ref_edown_n)
 
@@ -173,7 +181,7 @@ def test__estimate_no_model():
     nheavy = 3
     collider_set = frozenset({'InChI=1S/Kr', 'n-alkane'})
     sig, eps = automol.etrans.estimate.lennard_jones_params(
-        nheavy, 'estimate', collider_set)
+        nheavy, collider_set)
     assert sig is None and eps is None
 
 
@@ -182,11 +190,11 @@ def test__combine():
         test automol.etrans.combine.sigma
     """
 
-    ab_eps, bb_eps = 218.7, 156.3
-    ab_sig, bb_sig = 3.6, 2.4
+    ab_eps, bb_eps = 0.000996471, 0.000712155
+    ab_sig, bb_sig = 6.80301, 4.53534
 
-    ref_aa_eps = 306.01209213051817
-    ref_aa_sig = 4.800000000000001
+    ref_aa_eps = 0.0013942954186111
+    ref_aa_sig = 9.07068
     aa_eps = automol.etrans.combine.epsilon(ab_eps, bb_eps)
     aa_sig = automol.etrans.combine.sigma(ab_sig, bb_sig)
 

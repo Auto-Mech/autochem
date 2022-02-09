@@ -128,7 +128,7 @@ def lennard_jones_params(n_heavy, collider_set):
     if params is not None:
         sig, eps = params
     else:
-        coeffs = LJ_EST_DCT[collider_set]
+        coeffs = LJ_EST_DCT.get(collider_set, None)
         if coeffs is not None:
             # Calculate the effective sigma and epsilon values
             sig = _lj(n_heavy, coeffs[0], coeffs[1])
@@ -137,8 +137,10 @@ def lennard_jones_params(n_heavy, collider_set):
             sig, eps = None, None
 
     # Convert the units to what they should be internally
-    sig *= phycon.ANG2BOHR
-    eps *= phycon.WAVEN2EH
+    if sig is not None:
+        sig *= phycon.ANG2BOHR
+    if eps is not None:
+        eps *= phycon.WAVEN2EH
 
     return sig, eps
 
