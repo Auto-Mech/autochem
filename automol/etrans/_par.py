@@ -1,5 +1,9 @@
 """
   Values to calculate effective parameters for energy transport
+
+  Units: epsilon [cm-1], sigma [Ang]
+  Epsilon is converted to Hartrees as it is passed around to code
+  Sigma is converted to Bohr as it is passed around to code
 """
 
 from automol.graph import FunctionalGroup
@@ -7,13 +11,20 @@ from automol.graph import FunctionalGroup
 
 # Dictionaries of parameters
 # Empirically determined parameters indexed by bath gas
-# prob need to be uncombined and units changed
+# (Sigma, Epsilon)
 LJ_DCT = {
-    frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/H'}): (162.69397, 1.72028),
-    frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/H2/h1H'}): (91.51536, 2.38028),
-    frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/N2/c1-2'}): (325.74586, 3.41972)
+    frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/H'}): (1.72028, 162.69397),
+    frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/H2/h1H'}): (2.38028, 91.51536),
+    frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/N2/c1-2'}): (3.41972, 325.74586),
+    frozenset({'InChI=1S/He', 'InChI=1S/He'}): (2.576, 10.2),
+    frozenset({'InChI=1S/Ar', 'InChI=1S/Ar'}): (3.462, 116.719),
+    # These are hacks to make Ar work with small molecules
+    frozenset({'InChI=1S/Ar', 'InChI=1S/H'}): (1.72028, 162.69397),
+    frozenset({'InChI=1S/Ar', 'InChI=1S/H2/h1H'}): (2.38028, 91.51536),
+    frozenset({'InChI=1S/Ar', 'InChI=1S/N2/c1-2'}): (3.41972, 325.74586),
 }
 
+# coeffs used in formula to estimate (Sigma r1, Sigma r2, Eps r1, Eps r2)
 LJ_EST_DCT = {
     # N2 Bath Gas
     frozenset({'InChI=1S/N2/c1-2', 'n-alkane'}): (3.68, 0.16, 100.0, 0.25),
@@ -31,6 +42,7 @@ LJ_EST_DCT = {
     frozenset({'InChI=1S/Ar', 'n-hydroperoxide'}): (3.05, 0.20, 110.0, 0.39),
     frozenset({'InChI=1S/Ar', '1-alkyl'}): (3.50, 0.17, 90.0, 0.38),
     frozenset({'InChI=1S/Ar', 'ether'}): (3.15, 0.22, 110.0, 0.15),
+    frozenset({'InChI=1S/Ar', 'peroxy'}): (3.33, 0.155, 40.0, 0.74),
     # H2 Bath Gas
     frozenset({'InChI=1S/H2/h1H', 'n-alkane'}): (3.15, 0.18, 75.0, 0.30)
 }
@@ -104,6 +116,11 @@ Z_ALPHA_EST_DCT = {
         1000: (0.7488, -25.8914, 247.3055, 25.3337),
         2000: (0.896, -30.0515, 262.9319, 412.6931)
     },
+    frozenset({'InChI=1S/Ar', 'peroxy'}): {
+        300: (0.1676, -5.6383, 60.2593, -60.0794),
+        1000: (0.2414, -8.5787, 89.9802, 56.7483),
+        2000: (0.2105, -8.5265, 89.1314, 366.7726)
+    },
     # H2 Bath Gas
     frozenset({'InChI=1S/H2/h1H', 'n-alkane'}): {
         300: (0.185, -7.2964, 102.6128, 46.6884),
@@ -114,6 +131,7 @@ Z_ALPHA_EST_DCT = {
 
 # Bond dissociation energies (kcal/mol)
 D0_GRP_LST = (
+    # (FunctionalGroup.PEROXY, 'peroxy'),              # 35.0
     (FunctionalGroup.HYDROPEROXY, 'n-hydroperoxide'),  # 35.0
     # FunctionalGroup.'ketohydroperoxide':             # (35.0, 51.0)
     # FunctionalGroup.'1-alkyl':                       # 40.0
