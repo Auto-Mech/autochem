@@ -1,6 +1,90 @@
-""" SMILES (Simplified Molecular Input Line Entry System) functions
+r""" SMILES (Simplified Molecular Input Line Entry System) functions
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
+
+
+Protocol for encoding resonance double bond stereo into the SMILES string:
+
+    As an example, consider FC=C-C=C-[CH]F.
+
+    All four of the explicitly written bonds has stereo, but SMILES only
+    recognizes the explicit double bonds as stereogenic.
+
+    According to SMILES, the four possibilities are
+
+    1.   trans,     *, trans,     *: F/C=C/C=C/[CH]F
+    2.   trans,     *,   cis,     *: F/C=C/C=C\[CH]F
+    3.     cis,     *, trans,     *: F/C=C\C=C\[CH]F
+    4.     cis,     *,   cis,     *: F/C=C\C=C/[CH]F
+
+    However, due to resonance, the single bonds following each double bond can
+    be cis or trans as well.
+
+    The parity of these bonds is specified as follows:
+
+    A.  If the bond is trans with respect to the double bonds on either side,
+        it is marked with a '~'.
+    B.  If the bond is cis with respect to the double bonds on either side,
+        it is marked with a '^'
+    C.  If one side doesn't have a double bond, but it has a directional bond,
+        then that becomes the basis for the stereo parity.
+    D.  If one side doesn't have a double bond or a directional bond, then the
+        bond which is the basis for the stereo perity is marked with a '*'.
+
+    In this case, first stereo single bond has double bonds on either side, so
+    it is marked cis or trans with respect to those. The second bond has
+    neither a double bond nor a directional bond on the right. To handle this
+    scenario, we mark the bond to F with a * and use this as the basis for the
+    stereo parity.
+
+    Enumerating all possible cases, we get the following:
+
+        1AA. trans, trans, trans, trans: F/C=C/~C=C/~[CH]*F
+        1AB. trans, trans, trans,   cis: F/C=C/~C=C/^[CH]*F
+        2AA. trans, trans,   cis, trans: F/C=C/~C=C\~[CH]*F
+        2AB. trans, trans,   cis,   cis: F/C=C/~C=C\^[CH]*F
+        1BA. trans,   cis, trans, trans: F/C=C/^C=C/~[CH]*F
+        1BB. trans,   cis, trans,   cis: F/C=C/^C=C/^[CH]*F
+        2BA. trans,   cis,   cis, trans: F/C=C/^C=C\~[CH]*F
+        2BB. trans,   cis,   cis,   cis: F/C=C/^C=C\^[CH]*F
+        3AA.   cis, trans, trans, trans: F/C=C\~C=C\~[CH]*F
+        3AB.   cis, trans, trans,   cis: F/C=C\~C=C\^[CH]*F
+        4AA.   cis, trans,   cis, trans: F/C=C\~C=C/~[CH]*F
+        4AB.   cis, trans,   cis,   cis: F/C=C\~C=C/^[CH]*F
+        3BA.   cis,   cis, trans, trans: F/C=C\^C=C\~[CH]*F
+        3BB.   cis,   cis, trans,   cis: F/C=C\^C=C\^[CH]*F
+        4BA.   cis,   cis,   cis, trans: F/C=C\^C=C/~[CH]*F
+        4BB.   cis,   cis,   cis,   cis: F/C=C\^C=C/^[CH]*F
+
+    An alternative resonance structure would be FC=C-[CH]-C=CF. In this case,
+    the two bonds in the middle become stereo single bonds.  Both have a double
+    bond on one side and a directional bond on the other, so the parity is
+    specified with respect to these.
+
+    Enumerating all possible cases for this second resonance structure gives
+    the following, which are equivalent to the alternative resonance structure
+    above.
+
+        1AA. trans, trans, trans, trans: F/C=C/~[CH]/~C=C/F
+        1AB. trans, trans, trans,   cis: F/C=C/~[CH]/~C=C\F
+        1BA. trans,   cis, trans, trans: F/C=C/^[CH]/~C=C/F
+        1BB. trans,   cis, trans,   cis: F/C=C/^[CH]/~C=C\F
+        2AA. trans, trans,   cis, trans: F/C=C/~[CH]/^C=C/F
+        2AB. trans, trans,   cis,   cis: F/C=C/~[CH]/^C=C\F
+        2BA. trans,   cis,   cis, trans: F/C=C/^[CH]/^C=C/F
+        2BB. trans,   cis,   cis,   cis: F/C=C/^[CH]/^C=C\F
+        3AA.   cis, trans, trans, trans: F/C=C\~[CH]/~C=C/F
+        3AB.   cis, trans, trans,   cis: F/C=C\~[CH]/~C=C\F
+        3BA.   cis,   cis, trans, trans: F/C=C\^[CH]/~C=C/F
+        3BB.   cis,   cis, trans,   cis: F/C=C\^[CH]/~C=C\F
+        4AA.   cis, trans,   cis, trans: F/C=C\~[CH]/^C=C/F
+        4AB.   cis, trans,   cis,   cis: F/C=C\~[CH]/^C=C\F
+        4BA.   cis,   cis,   cis, trans: F/C=C\^[CH]/^C=C/F
+        4BB.   cis,   cis,   cis,   cis: F/C=C\^[CH]/^C=C\F
+
+To recover a standard SMILES string from one of these, one simply deletes
+all of the '~', '^', and '*' characters.
+
 """
 import numpy
 from phydat import ptab
@@ -90,12 +174,8 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=False):
 
     # Remove stereo parities if requested
     if not res_stereo:
-        print('before')
-        print(bnd_par_dct)
         bnd_par_dct = dict_.filter_by_key(
             bnd_par_dct, lambda x: bnd_ord_dct[x] == 2)
-        print('after')
-        print(bnd_par_dct)
     else:
         raise NotImplementedError("Not yet implemented!")
 
@@ -174,6 +254,7 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=False):
             # Determine parity
             can_par = bnd_par_dct[bnd_key]
             smi_par = can_par if nkey1 == nmax1 else not can_par
+            print('bnd_key, can_par, smi_par', bnd_key, can_par, smi_par)
 
             # Determine bond directions
             drep1 = drep if drep else '/'
@@ -372,23 +453,26 @@ if __name__ == '__main__':
     # GRA = automol.inchi.graph(ICH)
 
     # Test stereo bonds:
-    # ICH = automol.smiles.inchi(r'CC/C=C/C=C/[CH]F')
     # ICH = automol.smiles.inchi(r'CC/C=C/C=C/CF')
     # ICH = automol.smiles.inchi(r'C1CCCCCCCCCC/N=N/1')
     # ICH = automol.smiles.inchi(r'[H]/N=N/[H]')
     # ICH = automol.smiles.inchi(r'[H]/N=N/N=N\[H]')
-    ICH = automol.smiles.inchi(r'F[CH2]/C=C/F')
+    # # problem cases
+    ICH = automol.smiles.inchi(r'F[CH]/C=C/F')
+    # ICH = automol.smiles.inchi(r'CC/C=C/C=C/[CH]F')
     GEO = automol.inchi.geometry(ICH)
-    GRA = automol.geom.graph(GEO)
+    GRA = automol.geom.graph(GEO, new=True)
+    print(automol.graph.string(GRA))
+    print(automol.geom.string(GEO))
     SMI = smiles(GRA)
-    print(SMI)
+    print('smiles from code:', SMI)
 
     ICH_SMI = automol.inchi.smiles(ICH)
-    print(ICH)
-    print(ICH_SMI)
+    print('inchi:', ICH)
+    print('smiles from inchi:', ICH_SMI)
 
     SICH = automol.smiles.inchi(SMI)
-    print(SICH)
+    print('inchi from smiles:', SICH)
     # print(automol.graph.string(GRA, one_indexed=True))
     print(automol.graph.rings_atom_keys(GRA))
     assert SICH == ICH

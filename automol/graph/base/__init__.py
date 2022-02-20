@@ -212,6 +212,7 @@ from automol.graph.base._canon import reflect
 from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import from_local_stereo
+from automol.graph.base._canon import from_geometry
 # # symmetry class functions
 from automol.graph.base._canon import class_indices
 from automol.graph.base._canon import class_indices_and_stereo_parities
@@ -470,6 +471,7 @@ __all__ = [
     'reflect_local_stereo',
     'to_local_stereo',
     'from_local_stereo',
+    'from_geometry',
     # # symmetry class functions
     'class_indices',
     'class_indices_and_stereo_parities',

@@ -24,7 +24,7 @@ from automol.geom.base import rotate
 
 
 # # conversions
-def graph(geo, stereo=True):
+def graph(geo, stereo=True, new=False):
     """ Generate a molecular graph from the molecular geometry that has information
         about bond connectivity and if requested, stereochemistry.
 
@@ -36,7 +36,10 @@ def graph(geo, stereo=True):
     """
     gra = connectivity_graph(geo)
     if stereo:
-        gra = automol.graph.set_stereo_from_geometry(gra, geo)
+        if new:
+            gra = automol.graph.from_geometry(gra, geo)
+        else:
+            gra = automol.graph.set_stereo_from_geometry(gra, geo)
 
     return gra
 
