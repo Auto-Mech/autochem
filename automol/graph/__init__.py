@@ -170,6 +170,8 @@ from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
 # AMChI functions:
 from automol.graph.base._amchi import amchi
+# SMILES functions:
+from automol.graph.base._smiles import rsmiles
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -445,6 +447,8 @@ __all__ = [
     'ring_systems_decomposed_atom_keys',
     # AMChI functions:
     'amchi',
+    # SMILES functions:
+    'rsmiles',
     # resonance functions:
     # # core functions
     'dominant_resonance',

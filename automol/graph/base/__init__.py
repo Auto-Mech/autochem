@@ -277,6 +277,8 @@ from automol.graph.base._stereo import atom_stereo_parity_from_geometry
 from automol.graph.base._stereo import bond_stereo_parity_from_geometry
 # AMChI functions:
 from automol.graph.base._amchi import amchi
+# SMILES functions:
+from automol.graph.base._smiles import rsmiles
 # TS graph submodule:
 from automol.graph.base import ts
 
@@ -536,6 +538,8 @@ __all__ = [
     'bond_stereo_parity_from_geometry',
     # AMChI functions:
     'amchi',
+    # SMILES functions:
+    'rsmiles',
     # TS graph submodule:
     'ts',
 ]
