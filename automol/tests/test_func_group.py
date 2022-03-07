@@ -70,6 +70,8 @@ CCOOC_GRA = automol.geom.graph(
 #         automol.smiles.inchi('CC(=O)N')))
 
 INI_FGRP_DCT = {
+    automol.graph.FunctionalGroup.ALKENE: (),
+    automol.graph.FunctionalGroup.ALKOXY: (),
     automol.graph.FunctionalGroup.PEROXY: (),
     automol.graph.FunctionalGroup.HYDROPEROXY: (),
     automol.graph.FunctionalGroup.ETHER: (),
