@@ -2,6 +2,9 @@
 
 The parsing functions apply equally well to InChI or AMChI strings, so the
 documentation simply refers to "ChI" strings.
+
+Future task: Rewrite all of this to use the pyparsing module, rather than
+autoparse. It will be much cleaner.
 """
 
 import itertools

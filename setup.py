@@ -18,6 +18,7 @@ setup(
         'automol.embed',
         # L2
         'automol.amchi.base',
+        'automol.rsmiles.base',
         'automol.geom.base',
         'automol.graph.base',
         'automol.zmat.base',
@@ -29,6 +30,7 @@ setup(
         'automol.geom',
         'automol.amchi',
         'automol.inchi',
+        'automol.rsmiles',
         'automol.zmat',
         # L5
         'automol.pot',
