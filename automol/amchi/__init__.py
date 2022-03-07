@@ -1,4 +1,7 @@
 """ AMChI (AutoMech Chemical Identifier) strings
+
+Closely follows the InChI format, although canonicalizations may differ.
+Extends InChI to allow for resonance double-bond stereo.
 """
 
 # L2
@@ -38,7 +41,7 @@ from automol.amchi.base._core import low_spin_multiplicity
 # # split/join
 from automol.amchi.base._core import split
 from automol.amchi.base._core import join
-# L5
+# L4
 # # conversions
 from automol.amchi._conv import connected_graph
 

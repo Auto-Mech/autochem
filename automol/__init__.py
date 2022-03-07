@@ -27,6 +27,7 @@ Level 2: L1 dependencies; hierarchical interdependency (descending)
 basic type.*
 
  - amchi.base
+ - rsmiles.base
  - geom.base
  - graph.base   [L2 dependencies: geom.base, amchi.base]
  - zmat.base    [L2 dependencies: geom.base]
@@ -43,9 +44,10 @@ along with additional functions requiring conversion to another basic type.*
 
  - geom
  - graph
- - amchi        [L4 dependencies: graph]
  - inchi        [L4 dependencies: graph]
+ - amchi        [L4 dependencies: graph]
  - smiles
+ - rsmiles      [L4 dependencies: graph]
  - zmat         [L4 dependencies: graph, geom]
 
 Level 5: L1-4 dependencies; hierarchical interdependency (descending)
@@ -77,6 +79,7 @@ from automol import geom
 from automol import amchi
 from automol import inchi
 from automol import smiles
+from automol import rsmiles
 from automol import zmat
 # L5
 from automol import pot
@@ -107,6 +110,7 @@ __all__ = [
     'amchi',
     'inchi',
     'smiles',
+    'rsmiles',
     'zmat',
     # L5
     'pot',

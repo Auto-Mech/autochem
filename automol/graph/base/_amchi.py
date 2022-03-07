@@ -212,6 +212,8 @@ def _connection_layer_and_list(gra):
     term_keys = terminal_heavy_atom_keys(gra)
     start_key = min(term_keys) + 1 if term_keys else 1
     conn_lyr, conn_lst = _recurse_connection_layer('', [], start_key)
+    conn_lyr = conn_lyr if conn_lyr != '1' else ''
+
     return conn_lyr, conn_lst
 
 
