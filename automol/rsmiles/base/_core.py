@@ -5,7 +5,9 @@ documentation simply refers to SMILES strings.
 """
 
 import pyparsing as pp
+import numpy
 from phydat import ptab
+from automol import util
 
 # Not currently dealing with aromatics
 # organic atoms
@@ -16,12 +18,12 @@ ORGANIC_ATOM = pp.Or(ORGANIC_SUBSET)('symb')
 ISO = pp.Opt(pp.Word(pp.nums))
 SYMBOL = pp.Combine(
     pp.Char(pp.alphas.upper()) + pp.Opt(pp.Char(pp.alphas.lower())))
-CHIRAL = pp.Opt(pp.Or(('@', '@@')))
+PARITY = pp.Opt(pp.Or(('@', '@@')))
 NHYD = pp.Opt(pp.Combine(pp.Char('H') + pp.Opt(pp.Char(pp.nums))))
 CHARGE = pp.Opt(pp.Or((pp.OneOrMore('+') + pp.Opt(pp.nums),
                        pp.OneOrMore('-') + pp.Opt(pp.nums))))
 GENERAL_ATOM = (pp.Char('[')('bracket') + ISO('iso') + SYMBOL('symb') +
-                CHIRAL('chi') + NHYD('nhyd') + CHARGE('charge') + pp.Char(']'))
+                PARITY('par') + NHYD('nhyd') + CHARGE('charge') + pp.Char(']'))
 
 # atoms
 ATOM = pp.Combine(pp.Or((ORGANIC_ATOM, GENERAL_ATOM)))
@@ -64,9 +66,14 @@ def parse_properties(smi):
     symb_dct = {}
     bnd_ord_dct = {}
     nhyd_dct = {}
+    atm_par_dct = {}
+    bnd_par_dct = {}
 
     # helper dictionaries
     rng_clos_dct = {}  # ring closures: {tag: (bnd_key, bnd_ord)}
+    atm_par_info_dct = {}
+    # atom parity info:
+    #   {key: (parity, source_key, [hkeys], [ring tags], [nkeys])}
 
     def _recurse_parse(lst, source_key=None):
         # Pop the next atom environment string and parse it
@@ -95,7 +102,27 @@ def parse_properties(smi):
             bnd_ord = _bond_order_from_string(atm_env_str)
             bnd_ord_dct[bnd_key] = bnd_ord
 
+        # Explicit hydrogens become explicit hydrogens in the graph
+        hkeys = []
+        if 'bracket' in atm_env_dct['atom']:
+            if 'nhyd' in atm_env_dct['atom']:
+                nhyd_str = atm_env_dct['atom']['nhyd']
+                nhyd = _hydrogen_count_from_string(nhyd_str)
+                hkey = key
+                for _ in range(nhyd):
+                    hkey += 1
+                    symb_dct[hkey] = 'H'
+                    bnd_ord_dct[frozenset({key, hkey})] = 1
+
+                    # Save the hydrogen keys for stereo purposes
+                    hkeys.append(hkey)
+
+            # Since we've added explicit hydrogens, set the number of implicit
+            # hydrogens to zero
+            nhyd_dct[key] = 0
+
         # Read ring closure bonds and update bnd_ord_dct
+        rng_tags = []
         rng_clos_strs = []
         if 'ring_clos' in atm_env_dct:
             rng_clos_strs = atm_env_dct['ring_clos']
@@ -115,20 +142,25 @@ def parse_properties(smi):
                                     if o is not None), 1)
                     bnd_ord_dct[bnd_key] = bnd_ord
 
-        # Explicit hydrogens become explicit hydrogens in the graph
-        if 'bracket' in atm_env_dct['atom']:
-            if 'nhyd' in atm_env_dct['atom']:
-                nhyd_str = atm_env_dct['atom']['nhyd']
-                nhyd = _hydrogen_count_from_string(nhyd_str)
-                hyd_key = key
-                for _ in range(nhyd):
-                    hyd_key += 1
-                    symb_dct[hyd_key] = 'H'
-                    bnd_ord_dct[frozenset({key, hyd_key})] = 1
+                    rng_clos_dct[rng_tag] = (bnd_key, bnd_ord)
 
-            # Since we've added explicit hydrogens, set the number of implicit
-            # hydrogens to zero
-            nhyd_dct[key] = 0
+                # Save the tags in order for stereo purposes
+                rng_tags.append(rng_tag)
+
+        # Fill out atom parity information for this atom
+        if 'par' in atm_env_dct['atom']:
+            # Read the parity from the SMILES string
+            smi_par = (atm_env_dct['atom']['par'] == '@@')
+
+            # Save information for interpreting the parity
+            atm_par_info_dct[key] = (smi_par, source_key, hkeys, rng_tags, [])
+
+        # If the source atom has stereo, add this atom to the list of neighbors
+        if source_key in atm_par_info_dct:
+            if symb != 'H':
+                atm_par_info_dct[source_key][-1].append(key)
+            else:
+                atm_par_info_dct[source_key][-1].append(-numpy.inf)
 
         # Iterate over branches and recursively call this function
         for branch_lst in branch_lsts:
@@ -136,13 +168,33 @@ def parse_properties(smi):
 
     _recurse_parse(lst)
 
-    # Fill in the missing implicit hydrogens
+    # Fill in the missing implicit hydrogens, updating nhyd_dct
     for key, symb in symb_dct.items():
         if key not in nhyd_dct:
             nbnds = sum(o for k, o in bnd_ord_dct.items() if key in k)
             nhyd_dct[key] = ptab.valence(symb) - nbnds
 
-    return symb_dct, nhyd_dct, bnd_ord_dct
+    # Determine local parities and fill in atm_par_dct
+    for key, vals in atm_par_info_dct.items():
+        smi_par, source_key, hkeys, rng_tags, nkeys = vals
+
+        # process source key
+        source_keys = [] if source_key is None else [source_key]
+
+        # set hydrogen key to negative infinity
+        hkeys = [-numpy.inf for _ in hkeys]
+
+        # process ring tags
+        rng_keys = []
+        for rng_tag in rng_tags:
+            rng_key, = rng_clos_dct[rng_tag][0] - {key}
+            rng_keys.append(rng_key)
+
+        skeys = source_keys + hkeys + rng_keys + nkeys
+        atm_par = smi_par ^ util.is_odd_permutation(skeys, sorted(skeys))
+        atm_par_dct[key] = atm_par
+
+    return symb_dct, nhyd_dct, bnd_ord_dct, atm_par_dct, bnd_par_dct
 
 
 # helpers
@@ -191,28 +243,35 @@ def _hydrogen_count_from_string(nhyd_str):
 # if __name__ == '__main__':
 #     import automol
 #
-#     # SMI = r'FC=CC=C[CH]O'
-#     # SMI = r'C(=O)C'
-#     # SMI = r'C=1(OO2)CC2=1'
-#     # SMI = r'C=1(OO2)CC2-1'
-#     # SMI = r'[C@H](N)(O)(F)'
-#     # SMI = r'[C@](O)(Cl)(F)(Br)'
-#     # SMI = 'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O'
-#     SMI = r'CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O'
-#     # SMI = r'C1CC=1'
-#     SYMB_DCT, NHYD_DCT, BND_ORD_DCT = parse_properties(SMI)
-#     print(SYMB_DCT)
-#     print(NHYD_DCT)
-#     print(BND_ORD_DCT)
+#     SMIS = [
+#         r'[C@H](N)(O)(F)',
+#         r'[C@H]1(OO2)C[C@H]12',
+#         r'[C@H]1(OO2)C[C@@H]12',
+#         r'[C@@H]1(OO2)C[C@H]12',
+#         r'[C@@H]1(OO2)C[C@@H]12',
+#         r'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O',
+#     ]
 #
-#     GRA = automol.graph.from_data(
-#         SYMB_DCT, BND_ORD_DCT.keys(),
-#         atm_imp_hyd_vlc_dct=NHYD_DCT,
-#         bnd_ord_dct=BND_ORD_DCT
-#     )
-#     print(automol.graph.string(GRA))
+#     for SMI in SMIS:
+#         SYMB_DCT, NHYD_DCT, BND_ORD_DCT, ATM_PAR_DCT, BND_PAR_DCT = (
+#             parse_properties(SMI))
+#         print(SYMB_DCT)
+#         # print(NHYD_DCT)
+#         # print(BND_ORD_DCT)
+#         print(ATM_PAR_DCT)
 #
-#     RSMI = automol.graph.rsmiles(GRA)
-#     print(RSMI)
+#         LOC_GRA = automol.graph.from_data(
+#             SYMB_DCT, BND_ORD_DCT.keys(),
+#             atm_imp_hyd_vlc_dct=NHYD_DCT,
+#             bnd_ord_dct=BND_ORD_DCT,
+#             atm_ste_par_dct=ATM_PAR_DCT,
+#         )
+#         GRA = automol.graph.from_local_stereo(LOC_GRA)
+#         # print(automol.graph.string(GRA))
 #
-#     assert automol.smiles.inchi(SMI) == automol.smiles.inchi(RSMI)
+#         RSMI = automol.graph.rsmiles(GRA)
+#         print(RSMI)
+#
+#         REF_ICH = automol.smiles.inchi(SMI)
+#         ICH = automol.smiles.inchi(RSMI)
+#         assert ICH == REF_ICH, f"\n{ICH} !=\n{REF_ICH}"

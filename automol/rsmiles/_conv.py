@@ -14,21 +14,22 @@ def connected_graph(smi, stereo=True):
         :type stereo: bool
         :rtype: automol molecular graph
     """
-    symb_dct, atm_imp_hyd_vlc_dct, bnd_ord_dct = parse_properties(smi)
+    symb_dct, nhyd_dct, bnd_ord_dct, atm_par_dct, bnd_par_dct = (
+        parse_properties(smi))
     bnd_keys = bnd_ord_dct.keys()
 
     if stereo:
         raise NotImplementedError("Not yet implemented.")
     else:
-        atm_ste_par_dct = None
-        bnd_ste_par_dct = None
+        atm_par_dct = None
+        bnd_par_dct = None
 
     gra = automol.graph.base.from_data(
         atm_symb_dct=symb_dct,
         bnd_keys=bnd_keys,
-        atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
-        atm_ste_par_dct=atm_ste_par_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct,
+        atm_imp_hyd_vlc_dct=nhyd_dct,
+        atm_ste_par_dct=atm_par_dct,
+        bnd_ste_par_dct=bnd_par_dct,
     )
 
     return gra
