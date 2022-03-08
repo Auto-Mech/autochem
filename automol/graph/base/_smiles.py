@@ -42,6 +42,8 @@ from automol.graph.base._canon import canonical
 
 ORGANIC_SUBSET = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']
 
+BOND_ORDER_2_BOND_STR = {1: '', 2: '=', 3: '#'}
+
 
 def rsmiles(gra, local_stereo=False):
     """ SMILES string with resonance stereo from graph
@@ -330,14 +332,7 @@ def bond_representation_generator_(rgr, ste_bnd_key_pool, direc_dct):
             # If there is a bond to the previous atom, determin the order and
             # set the representation accordingly.
             bnd_ord = bnd_ord_dct[frozenset({key0, key1})]
-            if bnd_ord == 1:
-                rep = ''
-            elif bnd_ord == 2:
-                rep = '='
-            elif bnd_ord == 3:
-                rep = '#'
-            else:
-                raise ValueError("Bond orders greater than 3 not permitted.")
+            rep = BOND_ORDER_2_BOND_STR[bnd_ord]
 
         # Determine if a direction has been assigned to this bond.
         direc = direc_dct[(key0, key1)] if (key0, key1) in direc_dct else ''
@@ -424,6 +419,9 @@ def ring_representation_generator_(rgr, direc_dct, rng_pool, rng_tag_dct):
             indicating the up/down direction that was chosen for the ring, if
             applicable.
     """
+    # Determine bond orders for this resonance
+    bnd_ord_dct = bond_orders(rgr)
+
     def _generator(key, nkeys=()):
         nkeys = nkeys.copy()
 
@@ -452,12 +450,13 @@ def ring_representation_generator_(rgr, direc_dct, rng_pool, rng_tag_dct):
             if key == rng[-1]:
                 nkeys.remove(rng[0])
                 closures.append(rng[0])
+                bnd_ord = bnd_ord_dct[frozenset({rng[-1], rng[0]})]
+                bnd_rep = BOND_ORDER_2_BOND_STR[bnd_ord]
                 # Handle the special case where the last ring bond has stereo
                 if (rng[-1], rng[0]) in direc_dct:
                     direc = direc_dct[(rng[-1], rng[0])]
-                    tags.append(f'{direc}{tag}')
-                else:
-                    tags.append(f'{tag}')
+                    bnd_rep = bnd_rep + direc
+                tags.append(f'{bnd_rep}{tag}')
             if key == rng[0]:
                 nkeys.remove(rng[-1])
                 closures.append(rng[-1])

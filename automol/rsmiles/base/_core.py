@@ -14,13 +14,14 @@ ORGANIC_ATOM = pp.Or(ORGANIC_SUBSET)('symb')
 
 # general atoms
 ISO = pp.Opt(pp.Word(pp.nums))
-SYMBOL = pp.Word(pp.alphas, excludeChars='H')
+SYMBOL = pp.Combine(
+    pp.Char(pp.alphas.upper()) + pp.Opt(pp.Char(pp.alphas.lower())))
 CHIRAL = pp.Opt(pp.Or(('@', '@@')))
-NHYD = pp.Opt(pp.Combine('H' + pp.Opt(pp.nums)))
+NHYD = pp.Opt(pp.Combine(pp.Char('H') + pp.Opt(pp.Char(pp.nums))))
 CHARGE = pp.Opt(pp.Or((pp.OneOrMore('+') + pp.Opt(pp.nums),
                        pp.OneOrMore('-') + pp.Opt(pp.nums))))
-GENERAL_ATOM = ('[' + ISO('iso') + SYMBOL('symb') + CHIRAL('chi') +
-                NHYD('nhyd') + CHARGE('charge') + ']')
+GENERAL_ATOM = (pp.Char('[')('bracket') + ISO('iso') + SYMBOL('symb') +
+                CHIRAL('chi') + NHYD('nhyd') + CHARGE('charge') + pp.Char(']'))
 
 # atoms
 ATOM = pp.Combine(pp.Or((ORGANIC_ATOM, GENERAL_ATOM)))
@@ -115,13 +116,15 @@ def parse_properties(smi):
                     bnd_ord_dct[bnd_key] = bnd_ord
 
         # Explicit hydrogens become explicit hydrogens in the graph
-        if 'nhyd' in atm_env_dct['atom']:
-            nhyd_str = atm_env_dct['atom']['nhyd']
-            nhyd = _hydrogen_count_from_string(nhyd_str)
-            hyd_key = key + 1
-            for _ in range(nhyd):
-                symb_dct[hyd_key] = 'H'
-                bnd_ord_dct[frozenset({key, hyd_key})] = 1
+        if 'bracket' in atm_env_dct['atom']:
+            if 'nhyd' in atm_env_dct['atom']:
+                nhyd_str = atm_env_dct['atom']['nhyd']
+                nhyd = _hydrogen_count_from_string(nhyd_str)
+                hyd_key = key
+                for _ in range(nhyd):
+                    hyd_key += 1
+                    symb_dct[hyd_key] = 'H'
+                    bnd_ord_dct[frozenset({key, hyd_key})] = 1
 
             # Since we've added explicit hydrogens, set the number of implicit
             # hydrogens to zero
@@ -185,16 +188,31 @@ def _hydrogen_count_from_string(nhyd_str):
     return nhyd
 
 
-if __name__ == '__main__':
-    # SMI = r'FC=CC=C[CH]O'
-    # SMI = r'C(=O)C'
-    # SMI = r'C=1(OO2)CC2=1'
-    SMI = r'C1-C-C=1'
-    # SMI = r'C=1(OO2)CC2-1'
-    # SMI = r'[C@H](N)(O)(F)'
-    # SMI = 'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O'
-    # SMI = r'[C@](O)(Cl)(F)(Br)'
-    SYMB_DCT, NHYD_DCT, BND_ORD_DCT = parse_properties(SMI)
-    print(SYMB_DCT)
-    print(NHYD_DCT)
-    print(BND_ORD_DCT)
+# if __name__ == '__main__':
+#     import automol
+#
+#     # SMI = r'FC=CC=C[CH]O'
+#     # SMI = r'C(=O)C'
+#     # SMI = r'C=1(OO2)CC2=1'
+#     # SMI = r'C=1(OO2)CC2-1'
+#     # SMI = r'[C@H](N)(O)(F)'
+#     # SMI = r'[C@](O)(Cl)(F)(Br)'
+#     # SMI = 'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O'
+#     SMI = r'CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O'
+#     # SMI = r'C1CC=1'
+#     SYMB_DCT, NHYD_DCT, BND_ORD_DCT = parse_properties(SMI)
+#     print(SYMB_DCT)
+#     print(NHYD_DCT)
+#     print(BND_ORD_DCT)
+#
+#     GRA = automol.graph.from_data(
+#         SYMB_DCT, BND_ORD_DCT.keys(),
+#         atm_imp_hyd_vlc_dct=NHYD_DCT,
+#         bnd_ord_dct=BND_ORD_DCT
+#     )
+#     print(automol.graph.string(GRA))
+#
+#     RSMI = automol.graph.rsmiles(GRA)
+#     print(RSMI)
+#
+#     assert automol.smiles.inchi(SMI) == automol.smiles.inchi(RSMI)

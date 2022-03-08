@@ -28,12 +28,12 @@ def connected_graph(chi, stereo=True, can=False):
     if isotope_layers(chi):
         raise NotImplementedError("Isotopic graph conversion not implemented")
 
-    if not stereo:
-        atm_ste_par_dct = None
-        bnd_ste_par_dct = None
-    else:
+    if stereo:
         bnd_ste_par_dct = bond_stereo_parities(chi)
         atm_ste_par_dct = atom_stereo_parities(chi)
+    else:
+        atm_ste_par_dct = None
+        bnd_ste_par_dct = None
 
     is_inv = is_inverted_enantiomer(chi)
 
