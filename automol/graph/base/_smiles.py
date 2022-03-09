@@ -97,7 +97,7 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=False):
     gra = _insert_stereo_hydrogens(gra)
 
     # Find a dominant resonance
-    rgr = dominant_resonance(gra)
+    rgr = dominant_resonance(gra, max_stereo_overlap=True)
 
     # Determine bond orders for this resonance
     bnd_ord_dct = bond_orders(rgr)
