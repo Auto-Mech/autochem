@@ -24,6 +24,7 @@ from automol.inchi.base._core import reflect
 from automol.inchi.base._core import inchi_key
 from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
+from automol.inchi.base._core import connectivity
 # # properties
 from automol.inchi.base._core import is_standard_form
 from automol.inchi.base._core import has_multiple_components
@@ -60,6 +61,8 @@ from automol.inchi._conv import expand_stereo
 # drawing tools
 from automol.inchi._draw import draw
 from automol.inchi._draw import draw_grid
+# assessment tools
+from automol.inchi._assess import is_valid_inchi_multiplicity
 
 __all__ = [
     # L3
@@ -85,6 +88,7 @@ __all__ = [
     'inchi_key',
     'smiles',
     'formula',
+    'connectivity',
     # # properties
     'is_standard_form',
     'has_multiple_components',
@@ -120,5 +124,7 @@ __all__ = [
     'expand_stereo',
     # # ddrawing tools
     'draw',
-    'draw_grid'
+    'draw_grid',
+    # assessment tools
+    'is_valid_inchi_multiplicity'
 ]
