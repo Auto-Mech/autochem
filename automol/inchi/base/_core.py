@@ -558,6 +558,39 @@ def _connected_formula(ich):
     return fml
 
 
+def connectivity(ich, parse_connection_layer=True, parse_h_layer=True):
+    """ Return the 'c' and 'h' layers of the connectivity string
+
+        The user may also specify what combination of the two layers
+        that they wish to return
+    """
+
+    # Read the two sublayers that are requested to be parsed
+    conn_slyrs = main_sublayers(ich)
+
+    if parse_connection_layer:
+        cslyr = conn_slyrs.get('c', '')
+    else:
+        cslyr = ''
+
+    if parse_h_layer:
+        hslyr = conn_slyrs.get('h', '')
+    else:
+        hslyr = ''
+
+    # Write the parts of the connectivity string based on what was parsed
+    if cslyr and hslyr:
+        _str = f'c{cslyr}/h{hslyr}'
+    elif cslyr:
+        _str = f'c{cslyr}'
+    elif hslyr:
+        _str = f'h{hslyr}'
+    else:
+        _str = None
+
+    return _str
+
+
 # # properties
 def is_standard_form(ich):
     """ Determine if the InChI string is closed.
