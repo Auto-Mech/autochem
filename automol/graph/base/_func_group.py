@@ -1,7 +1,7 @@
 """
   Use graph structures to identify chemical functional groups
 
-  Note: Code requires explicit graphs to work
+  Note: Code requires dominant-resonance explicit graphs to work
 """
 
 import itertools
@@ -20,6 +20,7 @@ from automol.graph.base._core import remove_atoms
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import subgraph
+from automol.graph.base._core import explicit
 from automol.graph.base._stereo import to_index_based_stereo
 from automol.graph.base._stereo import from_index_based_stereo
 from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
@@ -48,6 +49,18 @@ class FunctionalGroup():
     NITRO = 'nitro'
 
 
+def functional_group_count_dct(gra):
+    """ Return a dictionary that contains a count of the number of each of the functional
+        groups in a species.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: dict[str: int]
+    """
+    fgrp_dct = functional_group_dct(gra)
+    return {fgrp: len(grp_idx_lst) for fgrp, grp_idx_lst in fgrp_dct.items()}
+
+
 def functional_group_dct(gra):
     """ Determine the functional groups for a given molecule.
 
@@ -55,6 +68,9 @@ def functional_group_dct(gra):
         :type gra: molecular graph data structure
         :rtype: dict[str: tuple(int)]
     """
+
+    # Convert to dominant-resonance explicit graph for the functions to work
+    gra = dominant_resonance(explicit(gra))
 
     # Build a dictionary by calling all the functional group functions
     # Certain smaller groups are removed when they are a part of larger groups
@@ -504,8 +520,6 @@ def bonds_of_order(gra, mbond=1):
         :type mbond: int
     """
 
-    # Build resonance graph to get the bond orders
-    gra = dominant_resonance(gra)
     bond_order_dct = bond_orders(gra)
 
     mbond_idxs = tuple()
@@ -577,6 +591,28 @@ def neighbors_of_type(gra, aidx, symb):
             idxs_of_type += (nidx,)
 
     return idxs_of_type
+
+
+def radicals_of_type(gra, symb):
+    """ Obtain the keys for atoms of the desired symbol that
+        correspond to a radical site.
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :param aidx: index of atom for which to find neighbors
+        :type aidx: int
+        :param symb: symbols of desired atom types for neighbors
+        :type symb: str
+    """
+
+    idx_symb_dct = atom_symbols(gra)
+
+    rad_keys = ()
+    for rad in sing_res_dom_radical_atom_keys(gra):
+        if idx_symb_dct[rad] == symb:
+            rad_keys += (rad,)
+
+    return rad_keys
 
 
 def radical_dissociation_products(gra, pgra1):

@@ -301,9 +301,9 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
         if automol.graph.radical_species(tgt_gra):
             # Determine if peroxy,hydroperoxy groups present to use RO2 series
             # otherwise just use alkyl radical series
-            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
-            fgrps = set(fgrp for fgrp, grp_idxs in fgrp_dct.items()
-                        if grp_idxs)
+            fgrp_cnt_dct = automol.graph.functional_group_count_dct(tgt_gra)
+            fgrps = set(fgrp for fgrp, count in fgrp_cnt_dct.items()
+                        if count > 0)
             print('fgrps test', fgrps)
             _ro2_fgrps = {FunctionalGroup.PEROXY, FunctionalGroup.HYDROPEROXY}
             if _ro2_fgrps & fgrps:
@@ -316,9 +316,12 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
             # Set priority based on bond-dissociation energies
             # Loop through D0 dct (ordered by ene) and try to find func. grp
             tgt_model = None
-            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
+            fgrp_cnt_dct = automol.graph.functional_group_count_dct(tgt_gra)
+            fgrps = set(fgrp for fgrp, count in fgrp_cnt_dct.items()
+                        if count > 0)
+            print('fgrps test', fgrps)
             for (fgrp, model) in D0_GRP_LST:
-                if fgrp_dct[fgrp]:
+                if fgrp in fgrps:
                     tgt_model = model
                     break
 

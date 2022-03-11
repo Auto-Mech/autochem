@@ -227,6 +227,7 @@ from automol.graph.base._canon import bond_parity_evaluator_from_local_stereo_
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
 from automol.graph.base._func_group import functional_group_dct
+from automol.graph.base._func_group import functional_group_count_dct
 # # finders for overaching types
 from automol.graph.base._func_group import hydrocarbon_species
 from automol.graph.base._func_group import radical_species
@@ -252,6 +253,7 @@ from automol.graph.base._func_group import bonds_of_type
 from automol.graph.base._func_group import bonds_of_order
 from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
+from automol.graph.base._func_group import radicals_of_type
 # torsion/rotational bond functions:
 from automol.graph.base._rot import rotational_bond_keys
 from automol.graph.base._rot import rotational_groups
@@ -488,6 +490,7 @@ __all__ = [
     # # core functions
     'FunctionalGroup',
     'functional_group_dct',
+    'functional_group_count_dct',
     # # finders for overaching types
     'hydrocarbon_species',
     'radical_species',
@@ -513,6 +516,7 @@ __all__ = [
     'bonds_of_order',
     'two_bond_idxs',
     'neighbors_of_type',
+    'radicals_of_type',
     # torsion/rotational bond functions:
     'rotational_bond_keys',
     'rotational_groups',
