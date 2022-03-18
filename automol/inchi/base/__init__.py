@@ -18,6 +18,7 @@ from automol.inchi.base._core import stereo_atoms
 from automol.inchi.base._core import stereo_bonds
 from automol.inchi.base._core import unassigned_stereo_bonds
 from automol.inchi.base._core import is_enantiomer
+from automol.inchi.base._core import are_enantiomers
 from automol.inchi.base._core import reflect
 # # conversions
 from automol.inchi.base._core import inchi_key
@@ -67,6 +68,7 @@ __all__ = [
     'stereo_bonds',
     'unassigned_stereo_bonds',
     'is_enantiomer',
+    'are_enantiomers',
     'reflect',
     # # conversions
     'inchi_key',
