@@ -451,6 +451,30 @@ def is_enantiomer(ich, iso=True):
     return ret
 
 
+def are_enantiomers(ich_a, ich_b):
+    """ Are these InChI enantiomers of eachother?
+
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: whether or not the InChI is enantiomeric
+        :rtype: bool
+    """
+    ste_dct_a = stereo_sublayers(ich_a)
+    ste_dct_b = stereo_sublayers(ich_b)
+    enant = False
+    if (len(ste_dct_b.keys()) == len(ste_dct_a.keys())
+            and 'm' in ste_dct_a.keys()):
+        if ste_dct_a['m'] != ste_dct_b['m']:
+            if 't' in ste_dct_a.keys():
+                if ste_dct_a['t'] == ste_dct_b['t']:
+                    enant = True
+            else:
+                enant = True
+    return enant
+
+
 def reflect(ich, iso=True):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
