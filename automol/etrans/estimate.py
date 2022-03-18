@@ -31,7 +31,7 @@ def alpha(n_eff, eps, sig, mass1, mass2, collider_set,
     """
 
     # Calculate the Lennard-Jones frequencies
-    red_mass = ((mass1 * mass2) / (mass1 + mass2)) * phycon.AMU2KG
+    red_mass = ((mass1 * mass2) / (mass1 + mass2))
 
     # Calculate Zalpha(Neff) at T = 300, 1000, 2000 K
     z_alphas_n_eff = _calculate_z_alpha_terms(n_eff, collider_set)
@@ -41,6 +41,7 @@ def alpha(n_eff, eps, sig, mass1, mass2, collider_set,
     alpha_dct = {}
     for temp, z_alpha_n_eff in z_alphas_n_eff.items():
         zlj = troe_lj_collision_frequency(eps, sig, red_mass, temp)
+        zlj *= 100**3  # conv. m^3/s to cm^3/ for below
         alpha_dct[temp] = (z_alpha_n_eff / zlj) / empirical_factor
 
     # Determine alpha and n for the e-down model

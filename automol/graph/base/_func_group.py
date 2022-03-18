@@ -58,7 +58,8 @@ def functional_group_count_dct(gra):
         :rtype: dict[str: int]
     """
     fgrp_dct = functional_group_dct(gra)
-    return {fgrp: len(grp_idx_lst) for fgrp, grp_idx_lst in fgrp_dct.items()}
+    return {fgrp: len(grp_idx_lst) for fgrp, grp_idx_lst in fgrp_dct.items()
+            if grp_idx_lst}
 
 
 def functional_group_dct(gra):

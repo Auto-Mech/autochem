@@ -12,38 +12,25 @@ from automol.graph import radical_dissociation_products
 from automol.graph import radical_group_dct
 
 
-def instability_product_zmas(zma):
+def instability_product_zmas(zma, stereo=True):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
-    print('init gra')
-    print(automol.graph.string(automol.zmat.graph(zma)))
 
-    disconn_zmas = ()
-    disconn_geos = ()
-    print('instab gras')
-    for gra in instability_product_graphs(automol.zmat.graph(zma)):
-        print(automol.graph.string(gra))
-        print('--')
+    disconn_zmas, disconn_geos = (), ()
+    unstab_gras = instability_product_graphs(
+        automol.zmat.graph(zma), stereo=stereo)
+    for gra in unstab_gras:
         ich = automol.graph.inchi(gra)
         _geo = automol.inchi.geometry(ich)
         _zma = automol.geom.zmatrix(_geo)
         disconn_zmas += (_zma,)
         disconn_geos += (_geo,)
 
-    print('\ninit geo')
-    print(automol.geom.string(automol.zmat.geometry(zma)))
-    print('instab geos')
-    for geo in disconn_geos:
-        print(automol.geom.string(geo))
-        print('--')
-
-    # print('ichs test', ichs)
-
     return disconn_zmas
 
 
-def instability_product_graphs(gra):
+def instability_product_graphs(gra, stereo=True):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
@@ -57,7 +44,7 @@ def instability_product_graphs(gra):
         if atm in instab_fgrps.DCT:
             fgrps_dct = instab_fgrps.DCT[atm]
             for grp in grps:
-                grp_ich = automol.graph.inchi(grp, stereo=True)
+                grp_ich = automol.graph.inchi(grp, stereo=stereo)
                 if grp_ich in fgrps_dct:
                     # If instability found, determine prod of the instability
                     prd_ich = fgrps_dct[grp_ich]
