@@ -564,6 +564,13 @@ def formula(ich):
     return fml
 
 
+def without_stereo(ich):
+    """ Remove all stereo layers
+    """
+
+    return standard_form(ich, stereo=False)
+
+
 def _connected_formula(ich):
     """ Create a combined molecular from the formulas of a
         multi-component InChI string.
