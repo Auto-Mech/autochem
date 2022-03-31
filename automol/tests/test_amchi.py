@@ -206,9 +206,8 @@ def test__join():
 
     chi = ('AMChI=1/C3H7O4.C2H5FO/c1-3(7-5)2-6-4;1-2(3)4/'
            'h3,5H,2H2,1H3;2,4H,1H3/t3-;2-/m01/s1')
-    print(chi[:-3])
     print(amchi.join(amchi.split(chi)))
-    assert amchi.join(amchi.split(chi)) == chi[:-3]
+    assert amchi.join(amchi.split(chi)) == chi
 
 
 def test__graph():
