@@ -3,22 +3,20 @@
 import automol.inchi.base
 import automol.graph.base
 from automol.extern import rdkit_
-from automol.rsmiles.base import split
-from automol.rsmiles.base import parse_connected_molecule_properties
+from automol.smiles.base import split
+from automol.smiles.base import parse_connected_molecule_properties
 
 
 # # conversions
-def amchi(smi, stereo=True):
+def amchi(smi):
     """ Generate an AMChI string from a connected SMILES string.
 
         :param smi: SMILES string
         :type smi: str
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
         :returns: AMChI string
         :rtype: str
     """
-    gra = graph(smi, stereo=stereo, can=True)
+    gra = graph(smi, stereo=True, can=True)
     ach = automol.graph.base.amchi(gra)
     return ach
 
@@ -38,6 +36,24 @@ def inchi(smi):
         rdm = rdkit_.from_smiles(smi)
         ich = rdkit_.to_inchi(rdm)
     return ich
+
+
+def chi(smi):
+    """ Convert a SMILES string to an AMChI or InChI string.
+
+        Currently only uses AMChI for resonance bond stereo.
+
+        :param smi: SMILES string
+        :type smi: str
+        :rtype: str
+    """
+    gra = graph(smi, stereo=True, can=True)
+    if automol.graph.base.has_resonance_bond_stereo(gra):
+        ret = automol.graph.base.amchi(gra)
+    else:
+        ret = inchi(smi)
+
+    return ret
 
 
 def graph(smi, stereo=True, can=True):
