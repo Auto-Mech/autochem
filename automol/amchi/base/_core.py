@@ -683,16 +683,21 @@ def split(chi):
     return chis
 
 
-def join(chis):
+def join(chis, sort=True):
     """ Join separate ChI strings into one multi-component ChI string.
 
         :param chis: sequence of ChI strings
         :type chis: tuple[str]
+        :param sort: sort the ChI strings in the standard sort order?
+        :type sort: bool
         :returns: the joined ChI string
         :rtype: str
     """
     # first, make sure they are completely split up
     chis = list(itertools.chain(*map(split, chis)))
+    if sort:
+        chis = sorted_(chis)
+
     fml_strs = list(map(formula_string, chis))
     fml_str = _join_layer_strings(fml_strs, count_sep='', sep='.')
     main_dct = _join_layers(list(map(main_layers, chis)))

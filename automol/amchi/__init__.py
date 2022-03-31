@@ -57,7 +57,7 @@ from automol.amchi.base._reac import filter_enantiomer_reactions
 from automol.amchi.base._reac import sort_reactions
 # L4
 # # conversions
-from automol.amchi._conv import connected_graph
+from automol.amchi._conv import graph
 
 
 __all__ = [
@@ -114,5 +114,5 @@ __all__ = [
     'sort_reactions',
     # L4
     # # conversions
-    'connected_graph',
+    'graph',
 ]
