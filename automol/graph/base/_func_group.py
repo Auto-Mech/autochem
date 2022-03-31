@@ -52,8 +52,8 @@ class FunctionalGroup():
 
 
 def functional_group_count_dct(gra):
-    """ Return a dictionary that contains a count of the number of each of the functional
-        groups in a species.
+    """ Return a dictionary that contains a count of the number of each of the
+        functional groups in a species.
 
         :param gra: molecular graph
         :type gra: molecular graph data structure
