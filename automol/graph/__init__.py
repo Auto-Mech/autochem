@@ -245,6 +245,7 @@ from automol.graph.base._func_group import amide_groups
 from automol.graph.base._func_group import nitro_groups
 from automol.graph.base._func_group import halide_groups
 from automol.graph.base._func_group import thiol_groups
+from automol.graph.base._func_group import methyl_groups
 from automol.graph.base._func_group import radical_dissociation_products
 # # helper functions
 from automol.graph.base._func_group import bonds_of_type
@@ -521,6 +522,7 @@ __all__ = [
     'nitro_groups',
     'halide_groups',
     'thiol_groups',
+    'methyl_groups',
     'radical_dissociation_products',
     # # helper functions
     'bonds_of_type',

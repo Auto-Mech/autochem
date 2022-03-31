@@ -464,14 +464,15 @@ def are_enantiomers(ich_a, ich_b):
     ste_dct_a = stereo_sublayers(ich_a)
     ste_dct_b = stereo_sublayers(ich_b)
     enant = False
-    if (len(ste_dct_b.keys()) == len(ste_dct_a.keys())
-            and 'm' in ste_dct_a.keys()):
-        if ste_dct_a['m'] != ste_dct_b['m']:
-            if 't' in ste_dct_a.keys():
-                if ste_dct_a['t'] == ste_dct_b['t']:
+    if main_sublayers(ich_a) == main_sublayers(ich_b):
+        if (len(ste_dct_b.keys()) == len(ste_dct_a.keys())
+                and 'm' in ste_dct_a.keys()):
+            if ste_dct_a['m'] != ste_dct_b['m']:
+                if 't' in ste_dct_a.keys():
+                    if ste_dct_a['t'] == ste_dct_b['t']:
+                        enant = True
+                else:
                     enant = True
-            else:
-                enant = True
     return enant
 
 
