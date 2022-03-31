@@ -249,23 +249,6 @@ def test__zmatrix__with_stereo():
     assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
 
 
-def test__smiles__with_stereo():
-    """ test smiles conversions
-    """
-    print("smiles with stereo")
-
-    ref_ichs = ICHS_WITH_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    for ref_ich in ref_ichs:
-        print()
-        print(ref_ich, flush=True)
-        smi = automol.inchi.smiles(ref_ich)
-        ich = automol.smiles.inchi(smi)
-        assert ich == ref_ich
-
-
 def test__smiles__from_geom():
     """ test smiles conversions
     """
@@ -589,10 +572,10 @@ def test__zmat_conv_dummy():
     assert automol.geom.almost_equal_dist_matrix(ref_geo, geo)
 
 
-def test__rsmiles__no_stereo():
-    """ test rsmiles conversions
+def test__smiles__no_stereo():
+    """ test smiles conversions
     """
-    print("rsmiles no stereo")
+    print("smiles no stereo")
 
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
@@ -603,20 +586,20 @@ def test__rsmiles__no_stereo():
         print()
         print(ref_ich, flush=True)
         gra = automol.amchi.graph(ref_ich, stereo=False)
-        smi = automol.graph.rsmiles(gra)
+        smi = automol.graph.smiles(gra)
         print(smi)
-        gra = automol.rsmiles.graph(smi, stereo=False)
-        smi = automol.graph.rsmiles(gra)
+        gra = automol.smiles.graph(smi, stereo=False)
+        smi = automol.graph.smiles(gra)
         ich = automol.smiles.inchi(smi)
         print(smi)
         print(ich)
         assert ich == ref_ich, f"\n{ich} !=\n{ref_ich}"
 
 
-def test__rsmiles__with_stereo():
-    """ test rsmiles conversions
+def test__smiles__with_stereo():
+    """ test smiles conversions
     """
-    print("rsmiles with stereo")
+    print("smiles with stereo")
 
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
@@ -627,10 +610,10 @@ def test__rsmiles__with_stereo():
         print()
         print(ref_ich, flush=True)
         gra = automol.amchi.graph(ref_ich, stereo=True)
-        smi = automol.graph.rsmiles(gra)
+        smi = automol.graph.smiles(gra)
         print(smi)
-        gra = automol.rsmiles.graph(smi, stereo=True)
-        smi = automol.graph.rsmiles(gra)
+        gra = automol.smiles.graph(smi, stereo=True)
+        smi = automol.graph.smiles(gra)
         ich = automol.smiles.inchi(smi)
         print(smi)
         print(ich)
@@ -654,8 +637,7 @@ if __name__ == '__main__':
     # test__geom__no_stereo()
     # test__graph__no_stereo()
     # test__zmatrix__with_stereo()
-    # test__smiles__with_stereo()
     # test__smiles__from_geom()
     # test__graph__misc()
-    test__rsmiles__no_stereo()
-    test__rsmiles__with_stereo()
+    test__smiles__no_stereo()
+    test__smiles__with_stereo()

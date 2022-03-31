@@ -390,7 +390,7 @@ def _neighbor_key_and_direction_from_dict(key1, key2, direc_dct):
 #         GRA = automol.graph.from_local_stereo(LOC_GRA)
 #         # print(automol.graph.string(GRA))
 #
-#         RSMI = automol.graph.rsmiles(GRA)
+#         RSMI = automol.graph.smiles(GRA)
 #         print(RSMI)
 #
 #         REF_ICH = automol.smiles.inchi(SMI)

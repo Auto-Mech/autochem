@@ -171,7 +171,7 @@ from automol.graph.base._algo import ring_systems_decomposed_atom_keys
 # AMChI functions:
 from automol.graph.base._amchi import amchi
 # SMILES functions:
-from automol.graph.base._smiles import rsmiles
+from automol.graph.base._smiles import smiles
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -186,6 +186,7 @@ from automol.graph.base._resonance import linear_atom_keys
 from automol.graph.base._resonance import linear_segments_atom_keys
 from automol.graph.base._resonance import radical_atom_keys
 from automol.graph.base._resonance import radical_atom_keys_from_resonance
+from automol.graph.base._resonance import has_resonance_bond_stereo
 from automol.graph.base._resonance import has_separated_radical_sites
 from automol.graph.base._resonance import nonresonant_radical_atom_keys
 from automol.graph.base._resonance import vinyl_radical_atom_keys
@@ -453,7 +454,7 @@ __all__ = [
     # AMChI functions:
     'amchi',
     # SMILES functions:
-    'rsmiles',
+    'smiles',
     # resonance functions:
     # # core functions
     'dominant_resonance',
@@ -468,6 +469,7 @@ __all__ = [
     'linear_segments_atom_keys',
     'radical_atom_keys',
     'radical_atom_keys_from_resonance',
+    'has_resonance_bond_stereo',
     'has_separated_radical_sites',
     'nonresonant_radical_atom_keys',
     'vinyl_radical_atom_keys',

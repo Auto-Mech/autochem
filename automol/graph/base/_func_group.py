@@ -529,7 +529,7 @@ def phenyl_groups(gra):
     """
     phenyl_grps = ()
     rngs_atm_keys = rings_atom_keys(gra)
-    srt_rngs_atm_keys = [sorted(atm_keys) for atm_keys in  rngs_atm_keys]
+    srt_rngs_atm_keys = [sorted(atm_keys) for atm_keys in rngs_atm_keys]
     cc2_grps = bonds_of_type(gra, symb1='C', symb2='C', mbond=2)
     for cc2_x, cc2_y, cc2_z in itertools.combinations(cc2_grps, r=3):
         if sorted(cc2_x + cc2_y + cc2_z) in srt_rngs_atm_keys:
@@ -553,9 +553,9 @@ def ring_substituents(gra):
     """ Determine substituent groups on a ring
         to produce a graph of graphs where the top level
         key of a ring_gra is the order of the atm keys
-        that define the ring  
+        that define the ring
         aka (a1, a2, a3, a4, a5, a6) a1 is the 0th position of the ring
-        so a3-a5 have a 1-3 interaction.  The nested dictionary has 
+        so a3-a5 have a 1-3 interaction.  The nested dictionary has
         atm key: tuple of groups 
 
         (a1, a2, a3, a4, a5, a6): {
@@ -833,14 +833,14 @@ def _filter_idxs(idxs_lst, filterlst=()):
     return filtered_lst
 
 
-if __name__ == '__main__':
-    import automol.smiles
-    import automol.inchi
-    import automol.graph
-    smi = 'NCC(N)C'
-    smi = 'C=C'
-    smi = 'C1=C(O)C(C)=CC=C1C=C'
-    gra = automol.inchi.graph(automol.smiles.inchi(smi))
-    gra = dominant_resonance(explicit(gra))
-    print(automol.graph.string(gra))
-    print(ring_substituents(gra))
+# if __name__ == '__main__':
+#     import automol.smiles
+#     import automol.inchi
+#     import automol.graph
+#     smi = 'NCC(N)C'
+#     smi = 'C=C'
+#     smi = 'C1=C(O)C(C)=CC=C1C=C'
+#     gra = automol.inchi.graph(automol.smiles.inchi(smi))
+#     gra = dominant_resonance(explicit(gra))
+#     print(automol.graph.string(gra))
+#     print(ring_substituents(gra))

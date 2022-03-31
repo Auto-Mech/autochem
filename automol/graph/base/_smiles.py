@@ -45,25 +45,7 @@ ORGANIC_SUBSET = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']
 BOND_ORDER_2_BOND_STR = {1: '', 2: '=', 3: '#'}
 
 
-def rsmiles(gra, local_stereo=False):
-    """ SMILES string with resonance stereo from graph
-
-        If there are resonance single bonds with stereo, this will return a
-        non-standard SMILES string.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param local_stereo: Is the graph using local stereo assignments? That
-            is, are they based on atom keys rather than canonical keys?
-        :type local_stereo: bool
-        :returns: the SMILES string
-        :rtype: str
-    """
-    return smiles(gra, stereo=True, local_stereo=local_stereo,
-                  res_stereo=True)
-
-
-def smiles(gra, stereo=True, local_stereo=False, res_stereo=False):
+def smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
     """ SMILES string from graph
 
         :param gra: molecular graph

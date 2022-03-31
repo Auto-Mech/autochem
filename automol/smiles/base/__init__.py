@@ -2,10 +2,10 @@
 """
 
 # # split/join
-from automol.rsmiles.base._core import split
-from automol.rsmiles.base._core import join
+from automol.smiles.base._core import split
+from automol.smiles.base._core import join
 # # properties
-from automol.rsmiles.base._core import parse_connected_molecule_properties
+from automol.smiles.base._core import parse_connected_molecule_properties
 
 __all__ = [
     # # split/join

@@ -1114,6 +1114,22 @@ def test__from_local_stereo():
         assert gra == graph.from_local_stereo(loc_gra)
 
 
+def test__has_resonance_bond_stereo():
+    """ test graph.has_resonance_bond_stereo
+    """
+    gra = ({0: ('F', 0, None), 1: ('C', 1, None), 3: ('C', 1, None),
+            4: ('C', 1, None), 5: ('F', 0, None)},
+           {frozenset({3, 4}): (1, True), frozenset({0, 1}): (1, None),
+            frozenset({1, 3}): (1, True), frozenset({4, 5}): (1, None)})
+    assert graph.has_resonance_bond_stereo(gra)
+
+    gra = ({0: ('F', 0, None), 1: ('C', 2, None), 4: ('C', 1, None),
+            5: ('C', 1, None), 6: ('F', 0, None)},
+           {frozenset({4, 5}): (1, True), frozenset({0, 1}): (1, None),
+            frozenset({1, 4}): (1, None), frozenset({5, 6}): (1, None)})
+    assert not graph.has_resonance_bond_stereo(gra)
+
+
 def test__amchi():
     """ test graph.amchi
     """
@@ -1171,7 +1187,7 @@ def test__smiles():
         gra = automol.geom.graph(geo, new=True)
         print(automol.graph.string(gra))
         print(automol.geom.string(geo))
-        smi = automol.graph.rsmiles(gra)
+        smi = automol.graph.smiles(gra)
         print('smiles from code:', smi)
 
         ich_smi = automol.inchi.smiles(ich)
@@ -1185,13 +1201,13 @@ def test__smiles():
         assert sich == ich
 
 
-def test__rsmiles():
-    """ test graph.rsmiles
+def test__smiles__with_resonance():
+    """ test graph.smiles
     """
 
     smis = [
         r'FC=C-C=C-[CH]O',
-        # r'F[CH]C=CF',
+        r'F[CH]C=CF',
     ]
     for smi in smis:
         print()
@@ -1212,14 +1228,14 @@ def test__rsmiles():
             gra = automol.graph.set_bond_stereo_parities(gra, bnd_par_dct)
             ach = automol.graph.amchi(gra)
             print('amchi:', ach)
-            smi = automol.graph.rsmiles(gra)
+            smi = automol.graph.smiles(gra)
             print('smiles from code:', smi)
             print()
 
 
 if __name__ == '__main__':
-    test__smiles()
-    test__rsmiles()
+    # test__smiles()
+    # test__smiles()
     # test__canonical()
     # test__class_indices_and_stereo_parities()
     # test__to_local_stereo()
@@ -1233,3 +1249,4 @@ if __name__ == '__main__':
     # test__from_local_stereo()
     # end = time.perf_counter()
     # print('time2:', end - start)
+    test__has_resonance_bond_stereo()
