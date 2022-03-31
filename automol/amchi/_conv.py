@@ -9,11 +9,27 @@ from automol.amchi.base import atom_stereo_parities
 from automol.amchi.base import bond_stereo_parities
 from automol.amchi.base import is_inverted_enantiomer
 from automol.amchi.base import has_stereo
+from automol.amchi.base import split
 
 
 # # conversions
-def connected_graph(chi, stereo=True, can=False):
+def graph(chi, stereo=True, can=False):
     """ Generate a molecular graph from a ChI string.
+
+        :param chi: ChI string
+        :type chi: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: automol molecular graph
+    """
+    chis = split(chi)
+    gras = [_connected_graph(c, stereo=stereo, can=can) for c in chis]
+    gra = automol.graph.base.union_from_sequence(gras, shift_keys=True)
+    return gra
+
+
+def _connected_graph(chi, stereo=True, can=False):
+    """ Generate a connected molecular graph from a single-component ChI string.
 
         :param chi: ChI string
         :type chi: str
@@ -72,5 +88,5 @@ if __name__ == '__main__':
     print(automol.graph.string(GRA))
     CHI = automol.graph.amchi(GRA)
     print(CHI)
-    GRA = connected_graph(CHI)
+    GRA = _connected_graph(CHI)
     print(automol.graph.string(GRA))

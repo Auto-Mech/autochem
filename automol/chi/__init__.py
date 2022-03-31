@@ -50,9 +50,9 @@ from automol.amchi.base import version_pattern
 # reaction functions
 from automol.chi.base._core import filter_enantiomer_reactions
 from automol.chi.base._core import sort_reactions
-# # L4
-# # # conversions
-# from automol.chi._conv import graph
+# L4
+# # conversions
+from automol.amchi import graph
 # from automol.chi._conv import geometry
 # from automol.chi._conv import conformers
 # # # derived properties
@@ -117,9 +117,9 @@ __all__ = [
     # reaction functions
     'filter_enantiomer_reactions',
     'sort_reactions',
-    # # L4
-    # # # conversions
-    # 'graph',
+    # L4
+    # # conversions
+    'graph',
     # 'geometry',
     # 'conformers',
     # # # derived properties
