@@ -213,17 +213,17 @@ def test__join():
 def test__graph():
     """ test amchi.graph
     """
-    # A canonical AMChI string (no stereo):
     chis = [
         'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t1-,2-,3+',
         'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-',
         'AMChI=1/C10H14ClFO/c1-8(9(5-12)10(13)6-11)7-3-2-4-7/'
         'h2-4,8-10,13H,5-6H2,1H3',
         'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m0/s1',
+        'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m0/s1',
     ]
 
     for chi in chis:
-        gra = amchi.connected_graph(chi)
+        gra = amchi.graph(chi)
 
         natms = len(automol.graph.atom_keys(gra))
 

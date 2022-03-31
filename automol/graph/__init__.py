@@ -203,6 +203,7 @@ from automol.graph.base._resonance import (
         resonance_dominant_bond_centered_cumulene_keys)
 # canonicalization functions:
 # # canonical key functions
+from automol.graph.base._canon import canonical_enantiomer
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
 # # canonical stereo functions
@@ -480,6 +481,7 @@ __all__ = [
     'resonance_dominant_bond_centered_cumulene_keys',
     # canonicalization functions:
     # # canonical key functions
+    'canonical_enantiomer',
     'canonical',
     'canonical_keys',
     # # canonical stereo functions

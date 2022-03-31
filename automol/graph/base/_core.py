@@ -1177,11 +1177,18 @@ def union(gra1, gra2, check=True):
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def union_from_sequence(gras, check=True):
+def union_from_sequence(gras, check=True, shift_keys=False):
     """ a union of all parts of a sequence of graphs
+
+        :param gras: a sequence of molecular graphs
+        :param check: check that no keys overlap?
+        :param shift_keys: shift keys to prevent key overlap?
     """
     def _union(gra1, gra2):
         return union(gra1, gra2, check=check)
+
+    if shift_keys:
+        gras, _ = standard_keys_for_sequence(gras)
 
     return tuple(functools.reduce(_union, gras))
 
