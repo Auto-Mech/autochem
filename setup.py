@@ -25,11 +25,13 @@ setup(
         # L3
         'automol.extern',
         'automol.inchi.base',
+        'automol.chi.base',
         # L4
         'automol.graph',
         'automol.geom',
         'automol.amchi',
         'automol.inchi',
+        'automol.chi',
         'automol.rsmiles',
         'automol.zmat',
         # L5

@@ -16,7 +16,6 @@ Level 1: No dependencies; no interdependencies
  - mult
  - formula
  - inchi_key
- - amchi_key
  - vmat
  - prop
  - embed
@@ -36,6 +35,7 @@ Level 3: L1-2 dependencies; hierarchical interdependency (descending)
 
  - extern       [contains RDKit interface needed for working with InChIs]
  - inchi.base   [L3 dependencies: extern]
+ - chi.base     [L3 dependencies: extern, inchi.base]
 
 Level 4: L1-3 dependencies; hierarchical interdependency (descending)
 
@@ -44,8 +44,9 @@ along with additional functions requiring conversion to another basic type.*
 
  - geom
  - graph
- - inchi        [L4 dependencies: graph]
  - amchi        [L4 dependencies: graph]
+ - inchi        [L4 dependencies: graph]
+ - chi          [L4 dependencies: amchi, inchi, graph]
  - smiles
  - rsmiles      [L4 dependencies: graph]
  - zmat         [L4 dependencies: graph, geom]

@@ -7,6 +7,8 @@ Extends InChI to allow for resonance double-bond stereo.
 # L2
 # # constructor
 from automol.amchi.base._core import from_data
+# # recalculate/standardize
+from automol.amchi.base._core import standard_form
 # # getters
 from automol.amchi.base._core import prefix
 from automol.amchi.base._core import version
@@ -15,6 +17,7 @@ from automol.amchi.base._core import main_layers
 from automol.amchi.base._core import charge_layers
 from automol.amchi.base._core import stereo_layers
 from automol.amchi.base._core import isotope_layers
+from automol.amchi.base._core import reflect
 # # conversions
 from automol.amchi.base._core import formula
 # # properties
@@ -35,12 +38,23 @@ from automol.amchi.base._core import bond_isotope_stereo_parities
 from automol.amchi.base._core import atom_isotope_stereo_parities
 from automol.amchi.base._core import is_inverted_isotope_enantiomer
 # # other properties
-from automol.amchi.base._core import has_stereo
 from automol.amchi.base._core import has_multiple_components
-from automol.amchi.base._core import low_spin_multiplicity
+from automol.amchi.base._core import has_stereo
+from automol.amchi.base._core import is_chiral
+# # comparisons
+from automol.amchi.base._core import same_connectivity
+from automol.amchi.base._core import equivalent
 # # split/join
 from automol.amchi.base._core import split
 from automol.amchi.base._core import join
+# # sort
+from automol.amchi.base._core import sorted_
+from automol.amchi.base._core import argsort
+# # helpers
+from automol.amchi.base._core import version_pattern
+# reaction functions
+from automol.amchi.base._reac import filter_enantiomer_reactions
+from automol.amchi.base._reac import sort_reactions
 # L4
 # # conversions
 from automol.amchi._conv import connected_graph
@@ -50,6 +64,8 @@ __all__ = [
     # L2
     # # constructor
     'from_data',
+    # # recalculate/standardize
+    'standard_form',
     # # getters
     'prefix',
     'version',
@@ -58,6 +74,7 @@ __all__ = [
     'charge_layers',
     'stereo_layers',
     'isotope_layers',
+    'reflect',
     # # conversions
     'formula',
     # # properties
@@ -78,13 +95,24 @@ __all__ = [
     'atom_isotope_stereo_parities',
     'is_inverted_isotope_enantiomer',
     # # other properties
-    'has_stereo',
     'has_multiple_components',
-    'low_spin_multiplicity',
+    'has_stereo',
+    'is_chiral',
+    # # comparisons
+    'same_connectivity',
+    'equivalent',
     # # split/join
     'split',
     'join',
-    # L5
+    # # sort
+    'sorted_',
+    'argsort',
+    # # helpers
+    'version_pattern',
+    # reaction functions
+    'filter_enantiomer_reactions',
+    'sort_reactions',
+    # L4
     # # conversions
     'connected_graph',
 ]
