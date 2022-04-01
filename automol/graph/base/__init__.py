@@ -207,6 +207,7 @@ from automol.graph.base._resonance import (
 # canonicalization functions:
 # # canonical key functions
 from automol.graph.base._canon import canonical_enantiomer
+from automol.graph.base._canon import canonical_enantiomer_with_keys
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
 # # canonical stereo functions
@@ -214,7 +215,6 @@ from automol.graph.base._canon import reflect
 from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import from_local_stereo
-from automol.graph.base._canon import from_geometry
 # # symmetry class functions
 from automol.graph.base._canon import class_indices
 from automol.graph.base._canon import class_indices_and_stereo_parities
@@ -265,24 +265,28 @@ from automol.graph.base._rot import rotational_symmetry_number
 from automol.graph.base._rot import bond_symmetry_numbers
 # stereo functions:
 # # core functions
-from automol.graph.base._stereo import stereo_priority_vector
-from automol.graph.base._stereo import stereogenic_atom_keys
-from automol.graph.base._stereo import stereogenic_bond_keys
 from automol.graph.base._stereo import stereomers
 from automol.graph.base._stereo import substereomers
-from automol.graph.base._stereo import to_index_based_stereo
-from automol.graph.base._stereo import from_index_based_stereo
-# # derived properties
-from automol.graph.base._stereo import atom_stereo_sorted_neighbor_atom_keys
-from automol.graph.base._stereo import bond_stereo_sorted_neighbor_atom_keys
-from automol.graph.base._stereo import atoms_stereo_sorted_neighbor_atom_keys
+# # stereo evaluation
+from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
+from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
+# # stereo correction
+from automol.graph.base._stereo import stereo_corrected_geometry
+# # core functions
+from automol.graph.base._canon import stereogenic_atom_keys
+from automol.graph.base._canon import stereogenic_bond_keys
 # # stereo setting code
-from automol.graph.base._stereo import set_stereo_from_geometry
-# # stereo parity evaluation code
-from automol.graph.base._stereo import atom_stereo_parity_from_geometry
-from automol.graph.base._stereo import bond_stereo_parity_from_geometry
+from automol.graph.base._canon import set_stereo_from_geometry
+# # deprecated
+from automol.graph.base._old_stereo import (
+    atom_stereo_sorted_neighbor_atom_keys)
+from automol.graph.base._old_stereo import (
+    bond_stereo_sorted_neighbor_atom_keys)
+from automol.graph.base._old_stereo import (
+    atoms_stereo_sorted_neighbor_atom_keys)
 # AMChI functions:
 from automol.graph.base._amchi import amchi
+from automol.graph.base._amchi import amchi_with_indices
 # SMILES functions:
 from automol.graph.base._smiles import smiles
 # TS graph submodule:
@@ -474,6 +478,7 @@ __all__ = [
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',
+    'canonical_enantiomer_with_keys',
     'canonical',
     'canonical_keys',
     # # canonical stereo functions
@@ -481,7 +486,6 @@ __all__ = [
     'reflect_local_stereo',
     'to_local_stereo',
     'from_local_stereo',
-    'from_geometry',
     # # symmetry class functions
     'class_indices',
     'class_indices_and_stereo_parities',
@@ -532,24 +536,25 @@ __all__ = [
     'bond_symmetry_numbers',
     # stereo functions:
     # # core functions
-    'stereo_priority_vector',
-    'stereogenic_atom_keys',
-    'stereogenic_bond_keys',
     'stereomers',
     'substereomers',
-    'to_index_based_stereo',
-    'from_index_based_stereo',
+    # # stereo evaluation
+    'local_atom_stereo_parity_from_geometry',
+    'local_bond_stereo_parity_from_geometry',
+    # # stereo correction
+    'stereo_corrected_geometry',
+    # # core functions
+    'stereogenic_atom_keys',
+    'stereogenic_bond_keys',
     # # derived properties
     'atom_stereo_sorted_neighbor_atom_keys',
     'bond_stereo_sorted_neighbor_atom_keys',
     'atoms_stereo_sorted_neighbor_atom_keys',
     # # stereo setting code
     'set_stereo_from_geometry',
-    # # stereo parity evaluation code
-    'atom_stereo_parity_from_geometry',
-    'bond_stereo_parity_from_geometry',
     # AMChI functions:
     'amchi',
+    'amchi_with_indices',
     # SMILES functions:
     'smiles',
     # TS graph submodule:

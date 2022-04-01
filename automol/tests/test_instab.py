@@ -237,7 +237,7 @@ forward TS atoms:
   3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
   7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
@@ -274,7 +274,7 @@ backward TS atoms:
   3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: false}
+  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
   7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
   9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
@@ -342,4 +342,9 @@ def test__stereo():
 
     ref_zrxn = automol.reac.from_string(STE_INSTAB_ZRXN_STR)
     zrxn, zma = automol.reac.instability_transformation(STE_ZMA, STE_PROD_ZMAS)
+    print(automol.reac.string(zrxn))
     assert zrxn == ref_zrxn
+
+
+if __name__ == '__main__':
+    test__stereo()

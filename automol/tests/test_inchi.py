@@ -329,3 +329,4 @@ if __name__ == '__main__':
     # test__is_enantiomer()
     # test__reflect()
     # test__filter_enantiomer_reactions()
+    test__stereo()
