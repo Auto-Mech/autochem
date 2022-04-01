@@ -21,8 +21,8 @@ from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import subgraph
 from automol.graph.base._core import explicit
-from automol.graph.base._stereo import to_index_based_stereo
-from automol.graph.base._stereo import from_index_based_stereo
+from automol.graph.base._canon import to_local_stereo
+from automol.graph.base._canon import from_local_stereo
 from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
 
 
@@ -772,9 +772,9 @@ def radical_dissociation_products(gra, pgra1):
     # If pgra2 is ID'd, rebuild the two product graphs with stereo labels
     if pgra2 is not None:
         keys2 = atom_keys(pgra2)
-        idx_gra = to_index_based_stereo(gra)
+        idx_gra = to_local_stereo(gra)
         idx_pgra2 = subgraph(idx_gra, keys2, stereo=True)
-        pgra2 = from_index_based_stereo(idx_pgra2)
+        pgra2 = from_local_stereo(idx_pgra2)
 
     return pgra1, pgra2
 

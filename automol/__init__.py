@@ -44,9 +44,9 @@ along with additional functions requiring conversion to another basic type.*
 
  - geom
  - graph
- - amchi        [L4 dependencies: graph]
- - inchi        [L4 dependencies: graph]
- - chi          [L4 dependencies: amchi, inchi, graph]
+ - amchi        [L4 dependencies: graph, geom]
+ - inchi        [L4 dependencies: amchi, graph, geom]
+ - chi          [L4 dependencies: amchi, inchi, graph, geom]
  - smiles       [L4 dependencies: graph]
  - zmat         [L4 dependencies: graph, geom]
 
