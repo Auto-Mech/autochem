@@ -720,7 +720,7 @@ def sorted_(chis):
         :type chis: tuple(str)
         :rtype: tuple(str)
     """
-    return tuple(chis[idx] for idx in argsort(chis))
+    return tuple(chis[i] for i in argsort(chis))
 
 
 def argsort(chis):

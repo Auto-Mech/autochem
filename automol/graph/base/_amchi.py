@@ -19,7 +19,7 @@ from automol.graph.base._core import terminal_heavy_atom_keys
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
-from automol.graph.base._canon import canonical_enantiomer
+from automol.graph.base._canon import canonical_enantiomer_with_keys
 import automol.amchi.base
 
 
@@ -34,13 +34,33 @@ def amchi(gra, stereo=True):
         :returns: the AMChI string
         :rtype: str
     """
+    chi, _ = amchi_with_indices(gra, stereo=stereo)
+    return chi
+
+
+def amchi_with_indices(gra, stereo=True):
+    """ AMChI string and AMChI canonical indices from graph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: Include stereo in the AMChI string, if present?
+        :type stereo: bool
+        :returns: the AMChI string and the AMChI canonical indices for each
+            connected component (components in multi-component AMChI ordering)
+        :rtype: (str, tuple[dct[int: int]])
+    """
     gras = connected_components(gra)
-    achs = [connected_amchi(g, stereo=stereo) for g in gras]
-    ach = automol.amchi.join(achs, sort=True)
-    return ach
+    chis, chi_idx_dcts = zip(
+        *(connected_amchi_with_indices(g, stereo=stereo) for g in gras))
+    srt_idxs = automol.amchi.argsort(chis)
+    chis = tuple(chis[i] for i in srt_idxs)
+    chi_idx_dcts = tuple(chi_idx_dcts[i] for i in srt_idxs)
+    chi = automol.amchi.join(chis, sort=False)
+    return chi, chi_idx_dcts
 
 
-def connected_amchi(gra, stereo=True, can=True, is_reflected=None):
+def connected_amchi_with_indices(gra, stereo=True, can=True,
+                                 is_reflected=None):
     """ single-component AMChI string from a connected graph
 
         :param gra: molecular graph
@@ -67,7 +87,7 @@ def connected_amchi(gra, stereo=True, can=True, is_reflected=None):
 
     # Canonicalize and determine canonical enantiomer
     if can:
-        gra, is_reflected = canonical_enantiomer(gra)
+        gra, is_reflected, chi_idx_dct = canonical_enantiomer_with_keys(gra)
 
     fml_str = _formula_string(gra)
     main_lyr_dct = _main_layers(gra)
@@ -76,7 +96,8 @@ def connected_amchi(gra, stereo=True, can=True, is_reflected=None):
     chi = automol.amchi.base.from_data(fml_str=fml_str,
                                        main_lyr_dct=main_lyr_dct,
                                        ste_lyr_dct=ste_lyr_dct)
-    return chi
+
+    return chi, chi_idx_dct
 
 
 # # AMChI layer functions
