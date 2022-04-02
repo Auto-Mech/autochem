@@ -26,10 +26,10 @@ from automol.amchi.base import isotope_layers as isotope_sublayers
 from automol.chi.base._core import is_enantiomer
 from automol.chi.base._core import reflect
 # # setters
-from automol.chi.base._core import with_inchi_prefix
+from automol.amchi.base._core import with_inchi_prefix
 # # conversions
-from automol.chi.base._core import chi_key
-# from automol.chi.base._core import smiles  # goes in L4
+# from automol.chi.base._core import inchi_key  # goes in L4
+# from automol.chi.base._core import smiles     # goes in L4
 from automol.amchi.base import formula
 # # # properties
 from automol.chi.base._core import is_standard_form
@@ -81,7 +81,7 @@ __all__ = [
     # # setters
     'with_inchi_prefix',
     # # conversions
-    'chi_key',
+    # 'inchi_key',
     # 'smiles',
     'formula',
     # # # properties

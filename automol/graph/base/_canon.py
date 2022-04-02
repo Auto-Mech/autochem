@@ -476,26 +476,25 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
             parities already present will be wiped out
         :rtype: automol graph data structure
     """
+    ret_gra = without_stereo_parities(gra)
+    gra = without_dummy_atoms(gra)
+
     atm_keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(atm_keys)})
 
-    def _set_stereo_for_connected_component(gra):
+    for comp in connected_components(gra):
         _, atm_par_dct, bnd_par_dct = class_indices_and_stereo_parities(
-            gra, backbone_only=False,
+            comp, backbone_only=False,
             atm_par_eval1_=atom_parity_evaluator_from_geometry_(
-                gra, geo, geo_idx_dct=geo_idx_dct),
+                comp, geo, geo_idx_dct=geo_idx_dct),
             bnd_par_eval1_=bond_parity_evaluator_from_geometry_(
-                gra, geo, geo_idx_dct=geo_idx_dct),
+                comp, geo, geo_idx_dct=geo_idx_dct),
         )
-        gra = without_stereo_parities(gra)
-        gra = set_atom_stereo_parities(gra, atm_par_dct)
-        gra = set_bond_stereo_parities(gra, bnd_par_dct)
-        return gra
+        ret_gra = set_atom_stereo_parities(ret_gra, atm_par_dct)
+        ret_gra = set_bond_stereo_parities(ret_gra, bnd_par_dct)
 
-    gras = map(_set_stereo_for_connected_component, connected_components(gra))
-    gra = union_from_sequence(gras, shift_keys=False)
-    return gra
+    return ret_gra
 
 
 # # symmetry class functions

@@ -25,17 +25,17 @@ from automol.amchi.base import isotope_layers as isotope_sublayers
 from automol.chi.base._core import is_enantiomer
 from automol.chi.base._core import reflect
 # # setters
-from automol.chi.base._core import with_inchi_prefix
+from automol.amchi.base._core import with_inchi_prefix
 # # conversions
-from automol.chi.base._core import chi_key
-# from automol.chi.base._core import smiles  # goes in L4
+# from automol.chi.base._core import inchi_key  # below in L4
+# from automol.chi.base._core import smiles     # below in L4
 from automol.amchi.base import formula
 # # # properties
 from automol.chi.base._core import is_standard_form
 from automol.amchi.base import has_multiple_components
-# from automol.chi.base._core import is_chiral                  # excluded
+from automol.amchi.base import is_chiral
 from automol.amchi.base import has_stereo
-# from automol.amchi.base import low_spin_multiplicity          # excluded
+from automol.amchi.base import low_spin_multiplicity
 # # comparisons
 from automol.amchi.base import same_connectivity
 from automol.amchi.base import equivalent
@@ -52,17 +52,21 @@ from automol.chi.base._core import filter_enantiomer_reactions
 from automol.chi.base._core import sort_reactions
 # L4
 # # conversions
+from automol.amchi._conv import amchi_key as inchi_key
+from automol.amchi import smiles
 from automol.amchi import graph
-# from automol.chi._conv import geometry
-# from automol.chi._conv import conformers
-# # # derived properties
-# from automol.chi._conv import is_complete
-# # # derived transformations
-# from automol.chi._conv import add_stereo
-# from automol.chi._conv import expand_stereo
-# # drawing tools
-# from automol.chi._draw import draw
-# from automol.chi._draw import draw_grid
+from automol.amchi import geometry
+from automol.amchi import conformers
+# # derived properties
+from automol.chi._conv import is_complete
+# # derived transformations
+from automol.chi._conv import add_stereo
+from automol.chi._conv import expand_stereo
+# drawing tools
+from automol.amchi import draw
+from automol.amchi import draw_grid
+# assessment tools
+from automol.amchi import is_valid_multiplicity as is_valid_inchi_multiplicity
 
 
 def formula_sublayer(*args, **kwargs):
@@ -94,15 +98,15 @@ __all__ = [
     # # setters
     'with_inchi_prefix',
     # # conversions
-    'chi_key',
+    # 'inchi_key',
     # 'smiles',
     'formula',
     # # # properties
     'is_standard_form',
     'has_multiple_components',
-    # 'is_chiral',
+    'is_chiral',
     'has_stereo',
-    # 'low_spin_multiplicity',
+    'low_spin_multiplicity',
     # # comparisons
     'same_connectivity',
     'equivalent',
@@ -119,15 +123,19 @@ __all__ = [
     'sort_reactions',
     # L4
     # # conversions
+    'inchi_key',
+    'smiles',
     'graph',
-    # 'geometry',
-    # 'conformers',
-    # # # derived properties
-    # 'is_complete',
-    # # # derived transformations
-    # 'add_stereo',
-    # 'expand_stereo',
-    # # # ddrawing tools
-    # 'draw',
-    # 'draw_grid'
+    'geometry',
+    'conformers',
+    # # derived properties
+    'is_complete',
+    # # derived transformations
+    'add_stereo',
+    'expand_stereo',
+    # drawing tools
+    'draw',
+    'draw_grid',
+    # assessment tools
+    'is_valid_inchi_multiplicity',
 ]

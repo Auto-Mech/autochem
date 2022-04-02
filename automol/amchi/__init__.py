@@ -17,7 +17,9 @@ from automol.amchi.base._core import main_layers
 from automol.amchi.base._core import charge_layers
 from automol.amchi.base._core import stereo_layers
 from automol.amchi.base._core import isotope_layers
+# # setters
 from automol.amchi.base._core import reflect
+from automol.amchi.base._core import with_inchi_prefix
 # # conversions
 from automol.amchi.base._core import formula
 # # properties
@@ -40,6 +42,7 @@ from automol.amchi.base._core import is_inverted_isotope_enantiomer
 # # other properties
 from automol.amchi.base._core import has_multiple_components
 from automol.amchi.base._core import has_stereo
+from automol.amchi.base._core import low_spin_multiplicity
 from automol.amchi.base._core import is_chiral
 # # comparisons
 from automol.amchi.base._core import same_connectivity
@@ -57,8 +60,19 @@ from automol.amchi.base._reac import filter_enantiomer_reactions
 from automol.amchi.base._reac import sort_reactions
 # L4
 # # conversions
+from automol.amchi._conv import amchi_key
 from automol.amchi._conv import smiles
 from automol.amchi._conv import graph
+from automol.amchi._conv import geometry
+from automol.amchi._conv import conformers
+# # derived transformations
+from automol.amchi._conv import add_stereo
+from automol.amchi._conv import expand_stereo
+# drawing tools
+from automol.amchi._draw import draw
+from automol.amchi._draw import draw_grid
+# assessment tools
+from automol.amchi._assess import is_valid_multiplicity
 
 
 __all__ = [
@@ -75,7 +89,9 @@ __all__ = [
     'charge_layers',
     'stereo_layers',
     'isotope_layers',
+    # # setters
     'reflect',
+    'with_inchi_prefix',
     # # conversions
     'formula',
     # # properties
@@ -98,6 +114,7 @@ __all__ = [
     # # other properties
     'has_multiple_components',
     'has_stereo',
+    'low_spin_multiplicity',
     'is_chiral',
     # # comparisons
     'same_connectivity',
@@ -115,6 +132,17 @@ __all__ = [
     'sort_reactions',
     # L4
     # # conversions
+    'amchi_key',
     'smiles',
     'graph',
+    'geometry',
+    'conformers',
+    # # derived transformations
+    'add_stereo',
+    'expand_stereo',
+    # drawing tools
+    'draw',
+    'draw_grid',
+    # assessment tools
+    'is_valid_multiplicity',
 ]

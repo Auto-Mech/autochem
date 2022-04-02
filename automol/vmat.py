@@ -165,7 +165,8 @@ def coordinates(vma, shift=0, multi=True):
     """
 
     _names = numpy.ravel(name_matrix(vma))
-    coo_keys = numpy.ravel(coordinate_key_matrix(vma, shift))
+    coo_keys = numpy.ravel(
+        numpy.array(coordinate_key_matrix(vma, shift), dtype=object))
 
     if not multi:
         coo_dct = dict(zip(_names, coo_keys))

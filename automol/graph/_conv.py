@@ -22,6 +22,8 @@ from automol.graph.base import backbone_isomorphic
 from automol.graph.base import dominant_resonance
 from automol.graph.base import set_stereo_from_geometry
 from automol.graph.base import smiles
+from automol.graph.base import amchi
+from automol.graph.base import has_resonance_bond_stereo
 
 
 # # conversions
@@ -95,6 +97,24 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
                      for nums in nums_lst)
 
     return ich, nums_lst
+
+
+def chi(gra, stereo=True):
+    """ Generate a ChI string from a molecular graph.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :returns: ChI string
+        :rtype: str
+    """
+    if has_resonance_bond_stereo(gra):
+        ret = amchi(gra, stereo=stereo)
+    else:
+        ret = inchi(gra, stereo=stereo)
+
+    return ret
 
 
 def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
