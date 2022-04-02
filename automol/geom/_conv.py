@@ -6,6 +6,7 @@ import numpy
 from phydat import phycon
 import automol.graph
 import automol.zmat.base
+import automol.amchi.base
 import automol.inchi.base
 from automol import util
 from automol.geom import _pyx2z
@@ -261,6 +262,9 @@ def chi_with_sort(geo, stereo=True, gra=None):
         chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
     else:
         chi_, nums_lst = inchi_with_sort(geo, stereo=stereo, gra=gra)
+        # If the InChI has mobile hydrogens, revert back to AMChI
+        if automol.amchi.base.has_mobile_hydrogens(chi_):
+            chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
     return chi_, nums_lst
 
 
@@ -279,17 +283,21 @@ def _compare(geo1, geo2):
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
-def smiles(geo, stereo=True):
+def smiles(geo, stereo=True, res_stereo=True):
     """ Generate a SMILES string from a molecular geometry.
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
+        :returns: the SMILES string
         :rtype: str
     """
-    ich = inchi(geo, stereo=stereo)
-    return automol.inchi.base.smiles(ich)
+    gra = graph(geo, stereo=stereo)
+    smi = automol.graph.base.smiles(gra, stereo=stereo, res_stereo=res_stereo)
+    return smi
 
 
 # # derived properties
