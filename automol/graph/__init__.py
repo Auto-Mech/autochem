@@ -270,13 +270,6 @@ from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
 # # stereo setting code
 from automol.graph.base._canon import set_stereo_from_geometry
-# # deprecated
-from automol.graph.base._old_stereo import (
-    atom_stereo_sorted_neighbor_atom_keys)
-from automol.graph.base._old_stereo import (
-    bond_stereo_sorted_neighbor_atom_keys)
-from automol.graph.base._old_stereo import (
-    atoms_stereo_sorted_neighbor_atom_keys)
 # AMChI functions:
 from automol.graph.base._amchi import amchi
 from automol.graph.base._amchi import amchi_with_indices
@@ -290,6 +283,7 @@ from automol.graph.base import ts
 from automol.graph._conv import geometry
 from automol.graph._conv import inchi
 from automol.graph._conv import inchi_with_sort_from_geometry
+from automol.graph._conv import chi
 from automol.graph._conv import molfile_with_atom_mapping
 from automol.graph._conv import rdkit_molecule
 # submodules:
@@ -550,10 +544,6 @@ __all__ = [
     # # core functions
     'stereogenic_atom_keys',
     'stereogenic_bond_keys',
-    # # derived properties
-    'atom_stereo_sorted_neighbor_atom_keys',
-    'bond_stereo_sorted_neighbor_atom_keys',
-    'atoms_stereo_sorted_neighbor_atom_keys',
     # # stereo setting code
     'set_stereo_from_geometry',
     # AMChI functions:
@@ -569,6 +559,7 @@ __all__ = [
     'geometry',
     'inchi',
     'inchi_with_sort_from_geometry',
+    'chi',
     'molfile_with_atom_mapping',
     'rdkit_molecule',
     # submodules:

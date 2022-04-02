@@ -60,8 +60,8 @@ ICHS_NO_STEREO = load_numpy_string_file(
 ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 # Use NSAMP = None to test everything
-# NSAMP = None
-NSAMP = 10
+NSAMP = None
+# NSAMP = 10
 
 # Geometries
 C2H6_H_GEO = (
@@ -171,23 +171,23 @@ def test__geom__no_stereo():
             C2H6_H_GEO, ts_bnds=frozenset({7, 8}))
 
 
-# def test__graph__with_stereo():
-#     """ test graph conversions
-#     """
-#     print('graph with stereo')
-#
-#     ref_ichs = []
-#     ref_ichs = ICHS_WITH_STEREO
-#     if NSAMP is not None:
-#         ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
-#
-#     for ref_ich in ref_ichs:
-#         print(ref_ich, flush=True)
-#         gra = automol.inchi.graph(ref_ich)
-#         ich = automol.graph.inchi(gra, stereo=True)
-#         assert ich == ref_ich
-#
-#         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+def test__graph__with_stereo():
+    """ test graph conversions
+    """
+    print('graph with stereo')
+
+    ref_ichs = []
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
+
+    for ref_ich in ref_ichs:
+        print(ref_ich, flush=True)
+        gra = automol.inchi.graph(ref_ich)
+        ich = automol.graph.inchi(gra, stereo=True)
+        assert ich == ref_ich
+
+        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
 def test__graph__no_stereo():
@@ -335,29 +335,30 @@ def test__graph__misc():
 def test__inchi_geometry():
     """ test automol.inchi.geometry
     """
-    ref_ich = 'InChI=1S/H2S/h1H2'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    print(ich)
-    assert ich == ref_ich
+    # ref_ich = 'InChI=1S/H2S/h1H2'
+    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    # print(ich)
+    # assert ich == ref_ich
 
-    ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    print(ich)
-    assert ich == ref_ich
+    # ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
+    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    # print(ich)
+    # assert ich == ref_ich
 
-    ref_ich = 'InChI=1S/Ar'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    print(ich)
-    assert ich == ref_ich
+    # ref_ich = 'InChI=1S/Ar'
+    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    # print(ich)
+    # assert ich == ref_ich
 
-    ref_ich = 'InChI=1S/Cl2/c1-2'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    print(ich)
-    assert ich == ref_ich
+    # ref_ich = 'InChI=1S/Cl2/c1-2'
+    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    # print(ich)
+    # assert ich == ref_ich
 
     ich = 'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3'
     geo = automol.inchi.geometry(ich)
     ich = automol.geom.inchi(geo, stereo=True)
+    print(automol.geom.chi(geo, stereo=True))
     print(ich)
     assert ich in ('InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5+',
                    'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5-')
@@ -583,15 +584,17 @@ def test__smiles__with_stereo():
 
 
 if __name__ == '__main__':
-    # test__geom__no_stereo()
-    # test__graph__with_stereo()
+    test__geom__with_stereo()
+    test__geom__no_stereo()
+    test__graph__with_stereo()
+    test__graph__no_stereo()
+    test__zmatrix__with_stereo()
+    test__smiles__from_geom()
+    test__graph__misc()
     # test__inchi_geometry()
-    # test__geom__with_stereo()
+    test__inchi_conformers()
+    test__multiple_rings()
     # test__geom__no_stereo()
-    # test__graph__no_stereo()
-    # test__zmatrix__with_stereo()
-    # test__smiles__from_geom()
-    # test__graph__misc()
     # test__smiles__no_stereo()
     # test__smiles__with_stereo()
-    test__multiple_rings()
+    # test__inchi_geometry()

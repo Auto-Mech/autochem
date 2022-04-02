@@ -5,11 +5,11 @@ import automol
 rct_smis = ['CC', '[O][O]']
 prd_smis = ['C[CH2]', 'O[O]']
 
-rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-prd_ichs = list(map(automol.smiles.inchi, prd_smis))
+rct_ichs = list(map(automol.smiles.chi, rct_smis))
+prd_ichs = list(map(automol.smiles.chi, prd_smis))
 
-rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-prd_geos = list(map(automol.inchi.geometry, prd_ichs))
+rct_geos = list(map(automol.chi.geometry, rct_ichs))
+prd_geos = list(map(automol.chi.geometry, prd_ichs))
 
 rct_gras = list(map(automol.graph.without_stereo_parities,
                     map(automol.geom.graph, rct_geos)))

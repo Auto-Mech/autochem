@@ -200,3 +200,7 @@ def test__combine():
 
     assert numpy.isclose(aa_eps, ref_aa_eps)
     assert numpy.isclose(aa_sig, ref_aa_sig)
+
+
+if __name__ == "__main__":
+    test__estimate()
