@@ -35,6 +35,7 @@ from automol.chi.base._core import is_standard_form
 from automol.amchi.base import has_multiple_components
 from automol.amchi.base import is_chiral
 from automol.amchi.base import has_stereo
+from automol.amchi.base import has_mobile_hydrogens
 from automol.amchi.base import low_spin_multiplicity
 # # comparisons
 from automol.amchi.base import same_connectivity
@@ -106,6 +107,7 @@ __all__ = [
     'has_multiple_components',
     'is_chiral',
     'has_stereo',
+    'has_mobile_hydrogens',
     'low_spin_multiplicity',
     # # comparisons
     'same_connectivity',

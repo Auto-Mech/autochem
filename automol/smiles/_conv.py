@@ -52,6 +52,9 @@ def chi(smi):
         ret = automol.graph.base.amchi(gra)
     else:
         ret = inchi(smi)
+        # If the InChI has mobile hydrogens, revert back to AMChI
+        if automol.amchi.base.has_mobile_hydrogens(ret):
+            ret = automol.graph.base.amchi(gra)
 
     return ret
 

@@ -632,6 +632,18 @@ def has_stereo(chi):
                 any(pfx in iso_dct for pfx in STE_PFXS))
 
 
+def has_mobile_hydrogens(chi):
+    """ Determine if the ChI string has mobile hydrogens.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: bool
+    """
+    main_lyr_dct = main_layers(chi)
+    nhyd_lyr = main_lyr_dct['h'] if 'h' in main_lyr_dct else ''
+    return '(' in nhyd_lyr
+
+
 def low_spin_multiplicity(chi):
     """ Guess spin multiplicity based on the number of electrons.
 
