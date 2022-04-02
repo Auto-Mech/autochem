@@ -200,6 +200,9 @@ def chi(gra, stereo=True):
         ret = amchi(gra, stereo=stereo)
     else:
         ret = inchi(gra, stereo=stereo)
+        # If the InChI has mobile hydrogens, revert back to AMChI
+        if automol.amchi.base.has_mobile_hydrogens(ret):
+            ret = amchi(gra, stereo=stereo)
 
     return ret
 

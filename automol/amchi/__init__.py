@@ -42,6 +42,7 @@ from automol.amchi.base._core import is_inverted_isotope_enantiomer
 # # other properties
 from automol.amchi.base._core import has_multiple_components
 from automol.amchi.base._core import has_stereo
+from automol.amchi.base._core import has_mobile_hydrogens
 from automol.amchi.base._core import low_spin_multiplicity
 from automol.amchi.base._core import is_chiral
 # # comparisons
@@ -114,6 +115,7 @@ __all__ = [
     # # other properties
     'has_multiple_components',
     'has_stereo',
+    'has_mobile_hydrogens',
     'low_spin_multiplicity',
     'is_chiral',
     # # comparisons
