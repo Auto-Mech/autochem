@@ -109,6 +109,21 @@ def test__has_stereo():
     assert not amchi.has_stereo(C2H6O_CHI_NO_STEREO)
 
 
+def test__has_mobile_hydrogens():
+    """ test amchi.has_mobile_hydrogens
+    """
+    ich1 = 'InChI=1S/CHO2/c2-1-3/h(H,2,3)'
+    ich2 = 'InChI=1S/C5H5N5O/c6-5-9-3-2(4(11)10-5)7-1-8-3/h1,7H,(H3,6,8,9,10)'
+    assert not amchi.has_mobile_hydrogens(C2H6O_CHI)
+    assert not amchi.has_mobile_hydrogens(C4H5F2O_CHI)
+    assert not amchi.has_mobile_hydrogens(C2H2F2_CHI)
+    assert not amchi.has_mobile_hydrogens(C8H13O_CHI)
+    assert not amchi.has_mobile_hydrogens(AR_CHI)
+    assert not amchi.has_mobile_hydrogens(C2H6O_CHI_NO_STEREO)
+    assert amchi.has_mobile_hydrogens(ich1)
+    assert amchi.has_mobile_hydrogens(ich2)
+
+
 def test__symbols():
     """ test amchi.symbols
     """
