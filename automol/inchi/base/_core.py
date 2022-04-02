@@ -868,7 +868,7 @@ def version_pattern():
 
         :rtype: str
     """
-    ptt = app.preceded_by('InChI=') + _sublayer_pattern()
+    ptt = app.preceded_by('=') + _sublayer_pattern()
     return ptt
 
 

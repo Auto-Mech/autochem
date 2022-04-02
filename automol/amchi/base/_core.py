@@ -450,8 +450,15 @@ def hydrogen_valences(chi, one_indexed=False):
     # Set up the parser
     integer = pp.Word(pp.nums)
     sep = '-' | pp.Suppress(',')
-    block = integer + pp.ZeroOrMore(sep + integer) + 'H' + pp.Opt(integer)
-    parser = pp.Opt(pp.Group(block) + pp.ZeroOrMore(sep + pp.Group(block)))
+    fixedh = integer + pp.ZeroOrMore(sep + integer) + 'H' + pp.Opt(integer)
+    mobileh = pp.Combine(pp.Suppress('(') + 'H' + pp.Opt(integer) +
+                         pp.OneOrMore(',' + integer) + pp.Suppress(')'))
+    parser = pp.Opt(
+        pp.Opt(pp.Group(fixedh) + pp.ZeroOrMore(sep + pp.Group(fixedh))) +
+        pp.Opt(sep) + pp.ZeroOrMore(mobileh))
+
+    mobileh_parser = (pp.Combine('H' + pp.Opt(integer)) + sep +
+                      pp.Group(pp.delimitedList(integer, delim=',')))
 
     # Do the parsing
     main_lyr_dct = main_layers(chi)
@@ -462,21 +469,36 @@ def hydrogen_valences(chi, one_indexed=False):
     shift = 0 if one_indexed else -1
     all_idxs = canonical_indices(chi, one_indexed=one_indexed)
     nhyd_dct = dict_.by_key({}, all_idxs, fill_val=0)
+    mob_lsts = []
     for nhyd_lst in nhyd_lsts:
-        if isinstance(nhyd_lst[-1], int):
-            nhyd = nhyd_lst[-1]
-            nhyd_lst = nhyd_lst[:-2]
+        # Mobile hydrogen blocks will be strings instead of lists
+        if isinstance(nhyd_lst, str) and nhyd_lst.startswith('H'):
+            mob_lsts.append(nhyd_lst)
+        # Otherwise, this is not a mobile hydrogen block -- proceed as usual
         else:
-            nhyd = 1
-            nhyd_lst = nhyd_lst[:-1]
+            if isinstance(nhyd_lst[-1], int):
+                nhyd = nhyd_lst[-1]
+                nhyd_lst = nhyd_lst[:-2]
+            else:
+                nhyd = 1
+                nhyd_lst = nhyd_lst[:-1]
 
-        lsts = list(map(list, automol.util.breakby(nhyd_lst, '-')))
-        idxs = lsts.pop(0)
-        for lst in lsts:
-            idxs.extend(range(idxs[-1]+1, lst[0]))
-            idxs.extend(lst)
-        idxs = [k+shift for k in idxs]
-        nhyd_dct.update({k: nhyd for k in idxs})
+            lsts = list(map(list, automol.util.breakby(nhyd_lst, '-')))
+            idxs = lsts.pop(0)
+            for lst in lsts:
+                idxs.extend(range(idxs[-1]+1, lst[0]))
+                idxs.extend(lst)
+            idxs = [k+shift for k in idxs]
+            nhyd_dct.update({k: nhyd for k in idxs})
+
+    # Add in mobile hydrogens after we get the others
+    for mob_lst in mob_lsts:
+        mob_lst = ap_cast(mobileh_parser.parseString(nhyd_lst).asList())
+        nmob_str = mob_lst[0][1:]
+        nmob = int(nmob_str) if nmob_str else 1
+        # Add available mobile hydrogens to the first nmob atoms
+        idxs = [k+shift for k in mob_lst[1]][:nmob]
+        nhyd_dct.update({k: nhyd_dct[k] + 1 for k in idxs})
 
     return nhyd_dct
 
@@ -1094,78 +1116,9 @@ def _split_layer_string(lyr, count_sep_ptt=app.escape('*'),
 
 
 if __name__ == '__main__':
-    # # ACH = ('AMChI=1/C10H14ClFO/c1-7(9(6-12)10(13)5-11)8-3-2-4-8'
-    # #        '/h2-4,7,9-10,13H,5-6H2,1H3')
-    # # ICH2 = 'InChI=1S/C3H8FNO2/c1-3(4,2-5)7-6/h6H,2,5H2,1H3'
-    # # BNDS = bonds(ICH2, one_indexed=True)
-    # # print(BNDS)
-
-    # # Atom stereo
-    # CHI = 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
-    # print(atom_stereo_parities(CHI, one_indexed=True))
-    # print(is_inverted_enantiomer(CHI))
-    # CHI = 'InChI=1S/C3H8O/c1-3(2)4/h3-4H,1-2H3/i1+0,2+1/t3-/m1/s1'
-    # print(atom_stereo_parities(CHI, one_indexed=True))
-    # print(atom_isotope_stereo_parities(CHI, one_indexed=True))
-    # print(is_inverted_enantiomer(CHI))
-    # print(is_inverted_isotope_enantiomer(CHI))
-
-    # # # Bond stereo
-    # # CHI = 'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-'
-    # # print(bond_stereo_parities(CHI, one_indexed=True))
-    # # CHI = 'InChI=1S/C3H6/c1-3-2/h3H,1H2,2H3/i1D/b3-1+'
-    # # print(bond_isotope_stereo_parities(CHI, one_indexed=True))
-
-    # Multicomponents
-    # formula
-    CHIS = [
-        'InChI=1/CH4/h1H4',
-        'InChI=1/C2H6/c1-2/h1-2H3',
-        'InChI=1/C3H8/c1-3-2/h3H2,1-2H3',
-        'InChI=1/C3H8O2/c1-2-3-5-4/h4H,2-3H2,1H3',
-        'InChI=1/C4H10/c1-3-4-2/h3-4H2,1-2H3',
-        'InChI=1/C4H10/c1-4(2)3/h4H,1-3H3',
-        'InChI=1/H3N/h1H3',
-        'InChI=1/BH3/h1H3',
-        'InChI=1/CH3/h1H3',
-    ]
-    # should give
-    # InChI=1S/2C4H10.C3H8O2.C3H8.C2H6.CH4.CH3.BH3.H3N/c1-4(2)3;1-3-4-2;
-    # 1-2-3-5-4;1-3-2;1-2;;;;/h4H,1-3H3;3-4H2,1-2H3;4H,2-3H2,1H3;3H2,1-2
-    # H3;1-2H3;1H4;3*1H3
-
-    # connectivity
-    CHIS = [
-        'InChI=1/C6H14/c1-3-5-6-4-2/h3-6H2,1-2H3',
-        'InChI=1/C6H14/c1-4-5-6(2)3/h6H,4-5H2,1-3H3',
-        'InChI=1/C6H14/c1-4-6(3)5-2/h6H,4-5H2,1-3H3',
-    ]
-
-    # hydrogens
-    CHIS = [
-        'InChI=1/C5H11/c1-4-5(2)3/h5H,1,4H2,2-3H3',
-        'InChI=1/C5H11/c1-4-5(2)3/h5H,2,4H2,1,3H3',
-        'InChI=1/C5H11/c1-4-5(2)3/h4-5H,1-3H3',
-        'InChI=1/C5H11/c1-4-5(2)3/h4H2,1-3H3',
-    ]
-
-    # bond stereo
-    CHIS = [
-        'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1-',
-        'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1+',
-    ]
-
-    # atom stereo
-    CHIS = [
-        'InChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2+/m.',
-        'InChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m1',
-    ]
-
-    # enantiomers
-    CHIS = [
-        'InChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m1',
-        'InChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m0'
-    ]
-
-    CHIS = sorted_(CHIS)
-    print(join(CHIS))
+    ICH = ('InChI=1S/C5H5N5O/c6-5-9-3-2(4(11)10-5)7-1-8-3/'
+           'h1H,(H4,6,7,8,9,10,11)')
+    ICH = ('InChI=1S/C18H20N2O4/c1-9-5-13(21)6-10(2)15(9)19-17(23)18(24)20-16'
+           '-11(3)7-14(22)8-12(16)4/h5-8,21-22H,1-4H3,(H,19,23)(H,20,24)')
+    # ICH = 'InChI=1S/CHO2/c2-1-3/h(H,2,3)'
+    print(hydrogen_valences(ICH))
