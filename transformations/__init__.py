@@ -1775,7 +1775,7 @@ def unit_vector(data, axis=None, out=None):
     [1.0]
 
     """
-    ret = []
+    ret = None
     if out is None:
         data = numpy.array(data, dtype=numpy.float64, copy=True)
         if data.ndim == 1:
@@ -1785,7 +1785,7 @@ def unit_vector(data, axis=None, out=None):
         if out is not data:
             out[:] = numpy.array(data, copy=False)
         data = out
-    if ret == []:
+    if ret is None:
         length = numpy.atleast_1d(numpy.sum(data*data, axis))
         numpy.sqrt(length, length)
         if axis is not None:

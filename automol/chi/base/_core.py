@@ -2,7 +2,6 @@
 """
 import automol.inchi.base
 import automol.amchi.base
-from automol.extern import rdkit_
 
 
 # # "constructor"
@@ -135,36 +134,6 @@ def reflect(chi, iso=True):
     else:
         raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
     return ret
-
-
-# # setters
-def with_inchi_prefix(chi):
-    """ Return a ChI with InChI prefix, whether AMChI or InChI.
-
-        :param chi: ChI string
-        :type chi: str
-        :returns: InChI string
-        :rtype: str
-    """
-    pfx = prefix(chi)
-    if pfx == 'AMChI':
-        chi = 'InChI' + chi[5:]
-    else:
-        assert pfx == 'InChI', (
-            f"ChI string '{chi}' has unknown prefix '{pfx}'.")
-    return chi
-
-
-# # conversions
-def chi_key(chi):
-    """ Generate a ChIKey from a ChI string.
-
-        :param chi: InChI string
-        :type chi: str
-        :rtype: str
-    """
-    ich = with_inchi_prefix(chi)
-    return rdkit_.inchi_to_inchi_key(ich)
 
 
 # # properties

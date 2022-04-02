@@ -780,7 +780,7 @@ def test__stereo():
     # Complete stereo expansion for the reaction
     srxns = automol.reac.expand_stereo(rxn)
     print(len(srxns))
-    # assert len(srxns) == 16
+    assert len(srxns) == 12
     print("Complete stereo expansion for the reaction:")
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
@@ -1142,10 +1142,12 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
 
 if __name__ == '__main__':
+    import warnings
+    warnings.filterwarnings("error")
+
     # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
-    # test__reac__radrad_addition()
     # test__reac__isc_addition()
     # test__reac__radrad_hydrogen_abstraction()
     # test__reac__insertion()
@@ -1156,4 +1158,5 @@ if __name__ == '__main__':
     # test__expand_stereo()
     # test__expand_product_stereo()
     # test__add_stereo_from_unordered_geometries()
-    test__stereo()
+    # test__stereo()
+    test__reac__radrad_addition()

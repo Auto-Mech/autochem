@@ -114,13 +114,13 @@ def test__reflect():
     assert chi.reflect(ich2) == ich2
 
 
-def test__chi_key():
-    """ test chi.chi_key
+def test__inchi_key():
+    """ test chi.inchi_key
     """
     ich = 'InChI=1S/C4H7FO/c1-4(6)2-3-5/h2-4,6H,1H3/b3-2+/t4-/m1/s1'
     ach = 'AMChI=1/C4H7FO/c1-4(6)2-3-5/h2-4,6H,1H3/b3-2+/t4-/m1/s1'
-    ick = chi.chi_key(ich)
-    ack = chi.chi_key(ach)
+    ick = chi.inchi_key(ich)
+    ack = chi.inchi_key(ach)
     print(ick)
     print(ack)
 
@@ -400,63 +400,64 @@ def test__filter_enantiomer_reactions():
         assert rxn_achs_lst_ == rxn_achs_lst
 
 
-# def test__stereo():
-#     """ test chi.add_stereo
-#         test chi.expand_stereo
-#     """
-#
-#     # Add and Expand stereo to C8H13O
-#     c8h13o_ste = (
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3+,6-4+/t8-/m1/s1'),
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3+,6-4-/t8-/m1/s1'),
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3-,6-4+/t8-/m1/s1'),
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3-,6-4-/t8-/m1/s1'),
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3+,6-4+/t8-/m0/s1'),
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3+,6-4-/t8-/m0/s1'),
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3-,6-4+/t8-/m0/s1'),
-#         ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
-#          'b5-3-,6-4-/t8-/m0/s1')
-#     )
-#     assert chi.add_stereo(C8H13O_ICH_NO_STEREO) in c8h13o_ste
-#     assert set(chi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
-#
-#     # some cases that were breaking
-#     assert set(chi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')) == {
-#         'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
-#         'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
-#     assert set(chi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
-#         'InChI=1S/CH2N/c1-2/h1-2H',
-#         'InChI=1S/CH2N/c1-2/h1-2H'}
-#     assert set(chi.expand_stereo('InChI=1S/C2/c1-2')) == {
-#         'InChI=1S/C2/c1-2'}
-#     assert set(chi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')) == {
-#         'InChI=1S/C3H3/c1-3-2/h1-3H',
-#         'InChI=1S/C3H3/c1-3-2/h1-3H',
-#         'InChI=1S/C3H3/c1-3-2/h1-3H',
-#         'InChI=1S/C3H3/c1-3-2/h1-3H'}
+def test__stereo():
+    """ test chi.add_stereo
+        test chi.expand_stereo
+    """
+
+    # Add and Expand stereo to C8H13O
+    c8h13o_ste = (
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4-/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m1/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4+/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3+,6-4-/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4+/t8-/m0/s1'),
+        ('InChI=1S/C8H13O/c1-3-5-7-8(9)6-4-2/h3-6,8H,7H2,1-2H3/'
+         'b5-3-,6-4-/t8-/m0/s1')
+    )
+    assert chi.add_stereo(C8H13O_ICH_NO_STEREO) in c8h13o_ste
+    assert set(chi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
+
+    # some cases that were breaking
+    assert set(chi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')) == {
+        'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
+        'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
+    assert set(chi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
+        'InChI=1S/CH2N/c1-2/h1-2H',
+        'InChI=1S/CH2N/c1-2/h1-2H'}
+    assert set(chi.expand_stereo('InChI=1S/C2/c1-2')) == {
+        'InChI=1S/C2/c1-2'}
+    assert set(chi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')) == {
+        'AMChI=1/C3H3/c1-3-2/h1-3H/b3-1-,3-2-',
+        'AMChI=1/C3H3/c1-3-2/h1-3H/b3-1-,3-2+',
+        'AMChI=1/C3H3/c1-3-2/h1-3H/b3-1-,3-2+',
+        'AMChI=1/C3H3/c1-3-2/h1-3H/b3-1+,3-2+'}
 
 
 if __name__ == '__main__':
-    test__from_data()
-    test__formula_string()
-    test__version()
-    test__standard_form()
-    test__is_enantiomer()
-    test__reflect()
-    test__chi_key()
-    test__formula()
-    test__is_standard_form()
-    test__has_multiple_components()
-    test__has_stereo()
-    test__same_connectivity()
-    test__equivalent()
-    test__sorted_()
-    test__recalculate()
-    test__filter_enantiomer_reactions()
+    # test__from_data()
+    # test__formula_string()
+    # test__version()
+    # test__standard_form()
+    # test__is_enantiomer()
+    # test__reflect()
+    # test__inchi_key()
+    # test__formula()
+    # test__is_standard_form()
+    # test__has_multiple_components()
+    # test__has_stereo()
+    # test__same_connectivity()
+    # test__equivalent()
+    # test__sorted_()
+    # test__recalculate()
+    # test__filter_enantiomer_reactions()
+    test__stereo()

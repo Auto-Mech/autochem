@@ -9,16 +9,16 @@ import automol
 # rct_smis = ['CCO', '[CH3]']
 # prd_smis = ['[CH2]CO', 'C']
 
-# rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-# prd_ichs = list(map(automol.smiles.inchi, prd_smis))
+# rct_ichs = list(map(automol.smiles.chi, rct_smis))
+# prd_ichs = list(map(automol.smiles.chi, prd_smis))
 
 
 rct_ichs, prd_ichs = [
     ['InChI=1S/C7H14/c1-6(2)5-7(3)4/h7H,1,5H2,2-4H3', 'InChI=1S/CH3/h1H3'],
     ['InChI=1S/C8H17/c1-7(2)6-8(3,4)5/h7H,3,6H2,1-2,4-5H3']]
 
-rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-prd_geos = list(map(automol.inchi.geometry, prd_ichs))
+rct_geos = list(map(automol.chi.geometry, rct_ichs))
+prd_geos = list(map(automol.chi.geometry, prd_ichs))
 
 rct_gras = list(map(automol.graph.without_stereo_parities,
                     map(automol.geom.graph, rct_geos)))
