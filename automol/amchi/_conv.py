@@ -171,8 +171,17 @@ def _connected_geometry(chi, check=True):
         geo = pybel_.to_geometry(pbm)
         return geo
 
+    def _gen3():
+        if has_stereo(chi):
+            raise ValueError
+
+        gra = graph(chi, stereo=False)
+        gra = automol.graph.explicit(gra)
+        geo = automol.graph.embed.geometry(gra)
+        return geo
+
     success = False
-    for gen_ in (_gen1, _gen1, _gen1, _gen2):
+    for gen_ in (_gen1, _gen1, _gen1, _gen2, _gen3):
         try:
             geo = gen_()
         except (RuntimeError, TypeError, ValueError):
@@ -201,11 +210,8 @@ def _connected_geometry(chi, check=True):
                 geo = automol.graph.stereo_corrected_geometry(
                     gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
 
-                # Check if the assignment worked.
-                gra_ = automol.graph.set_stereo_from_geometry(gra_, geo)
-                if automol.graph.isomorphism(gra, gra_):
-                    success = True
-                    break
+                success = True
+                break
 
     if not success:
         raise error.FailedGeometryGenerationError('Failed AMChI:', chi)
