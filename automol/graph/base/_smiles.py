@@ -33,6 +33,7 @@ from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import add_bonded_atom
 from automol.graph.base._core import set_atom_implicit_hydrogen_valences
 from automol.graph.base._algo import is_connected
+from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
 from automol.graph.base._resonance import dominant_resonance
@@ -45,25 +46,29 @@ ORGANIC_SUBSET = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']
 BOND_ORDER_2_BOND_STR = {1: '', 2: '=', 3: '#'}
 
 
-def rsmiles(gra, local_stereo=False):
-    """ SMILES string with resonance stereo from graph
-
-        If there are resonance single bonds with stereo, this will return a
-        non-standard SMILES string.
+def smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
+    """ SMILES string from graph
 
         :param gra: molecular graph
         :type gra: automol graph data structure
+        :param stereo: Include stereo?
+        :type stereo: bool
         :param local_stereo: Is the graph using local stereo assignments? That
             is, are they based on atom keys rather than canonical keys?
         :type local_stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
         :returns: the SMILES string
         :rtype: str
     """
-    return smiles(gra, stereo=True, local_stereo=local_stereo,
-                  res_stereo=True)
+    gras = connected_components(gra)
+    smis = [_connected_smiles(g, stereo=stereo, local_stereo=local_stereo,
+                              res_stereo=res_stereo) for g in gras]
+    smi = '.'.join(smis)
+    return smi
 
 
-def smiles(gra, stereo=True, local_stereo=False, res_stereo=False):
+def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
     """ SMILES string from graph
 
         :param gra: molecular graph

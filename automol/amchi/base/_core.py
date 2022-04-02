@@ -11,6 +11,7 @@ import itertools
 import functools
 from collections import abc
 import pyparsing as pp
+import numpy
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
@@ -73,6 +74,54 @@ def from_data(fml_str, main_lyr_dct=None,
     chi = '/'.join(['AMChI=1', fml_str] + main_lyrs + char_lyrs +
                    ste_lyrs + iso_lyrs)
 
+    return chi
+
+
+# # recalculate/standardize
+def standard_form(chi, stereo=True, ste_dct=None, iso_dct=None):
+    """ Return a ChI string in standard form.
+
+        Includes only the standard layers.
+
+        :param chi: ChI string
+        :type chi: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :param ste_dct: a dictionary to overwrite stereo information; layers
+            not overwritten will be left in tact; if the attempted overwrite
+            fails, the function will return None
+        :type ste_dct: dict
+        :param iso_dct: a dictionary to overwrite isotope stereo information;
+            layers not overwritten will be left intact; if the attempted
+            overwrite fails, the function will return None
+        :type iso_dct: dict
+        :rtype: str
+    """
+    fml_slyr = formula_string(chi)
+    main_dct = main_layers(chi)
+    char_dct = charge_layers(chi)
+
+    extra_ste_dct = ste_dct
+    extra_iso_dct = iso_dct
+
+    if stereo:
+        ste_dct = stereo_layers(chi)
+        iso_dct = isotope_layers(chi)
+    else:
+        ste_dct = {}
+        iso_dct = dict_.by_key(isotope_layers(chi), ISO_NONSTE_PFXS)
+
+    if extra_ste_dct is not None:
+        ste_dct.update(extra_ste_dct)
+
+    if extra_iso_dct is not None:
+        iso_dct.update(extra_iso_dct)
+
+    chi = from_data(fml_slyr,
+                    main_lyr_dct=main_dct,
+                    char_lyr_dct=char_dct,
+                    ste_lyr_dct=ste_dct,
+                    iso_lyr_dct=iso_dct)
     return chi
 
 
@@ -182,27 +231,75 @@ def isotope_layers(chi):
     return _layers(lyrs_str)
 
 
+# # setters
+def with_inchi_prefix(chi):
+    """ Return a ChI with InChI prefix, whether AMChI or InChI.
+
+        :param chi: ChI string
+        :type chi: str
+        :returns: InChI string
+        :rtype: str
+    """
+    pfx = prefix(chi)
+    if pfx == 'AMChI':
+        chi = 'InChI' + chi[5:]
+    else:
+        assert pfx == 'InChI', (
+            f"ChI string '{chi}' has unknown prefix '{pfx}'.")
+    return chi
+
+
+def reflect(chi, iso=True):
+    """ If this is an enantiomer, flip to the other enantiomer by changing the
+        m-layer
+
+        :param chi: InChI string
+        :type chi: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: the other enantiomer
+        :rtype: bool
+    """
+    ste_upd_dct = None
+    iso_upd_dct = None
+
+    ste_is_inv = is_inverted_enantiomer(chi)
+    if ste_is_inv is not None:
+        inv_code = '0' if ste_is_inv else '1'
+        ste_upd_dct = {'m': inv_code}
+
+    if iso:
+        iso_is_inv = is_inverted_isotope_enantiomer(chi)
+        if iso_is_inv is not None:
+            inv_code = '0' if iso_is_inv else '1'
+            iso_upd_dct = {'m': inv_code}
+
+    chi = standard_form(chi, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
+
+    return chi
+
+
 # # conversions
-def formula(ich):
+def formula(chi):
     """ Generate a formula dictionary from a ChI string.
 
-        :param ich: ChI string
-        :type ich: str
+        :param chi: ChI string
+        :type chi: str
         :rtype: dict[str: int]
     """
     sym_ptt = app.UPPERCASE_LETTER + app.zero_or_more(app.LOWERCASE_LETTER)
     num_ptt = app.maybe(app.UNSIGNED_INTEGER)
     ptt = app.capturing(sym_ptt) + app.capturing(num_ptt)
 
-    def _connected_formula(ich):
-        fml_str = formula_string(ich)
+    def _connected_formula(chi):
+        fml_str = formula_string(chi)
         fml = {s: int(n) if n else 1
                for s, n in apf.all_captures(ptt, fml_str)}
         return fml
 
-    # split it up to handle hard-coded molecules in multi-component inchis
-    ichs = split(ich)
-    fmls = list(map(_connected_formula, ichs))
+    # split it up to handle hard-coded molecules in multi-component chis
+    chis = split(chi)
+    fmls = list(map(_connected_formula, chis))
     fml = functools.reduce(automol.formula.join, fmls)
 
     return fml
@@ -222,10 +319,14 @@ def symbols(chi, one_indexed=False):
     """
     fml = formula(chi)
     pool = list(automol.formula.sorted_symbols(fml.keys(), symbs_first=['C']))
-    if 'H' in pool:
-        pool.remove('H')
 
-    symbs = [s for symb in pool for s in itertools.repeat(symb, fml[symb])]
+    # If there are only hydrogens, then one of them must be a backbone atom
+    if set(pool) == {'H'}:
+        symbs = ['H']
+    # Otherwise, remove all hydrogens from the list of backbone atom symbols
+    else:
+        symbs = [s for symb in pool for s in itertools.repeat(symb, fml[symb])
+                 if symb != 'H']
 
     shift = 1 if one_indexed else 0
     symb_dct = {k+shift: s for k, s in enumerate(symbs)}
@@ -322,6 +423,20 @@ def bonds(chi, one_indexed=False):
     return bnds
 
 
+def adjacency_list(chi):
+    """ Generate an adjacency list for backbone atoms in a ChI string
+
+        :param chi: ChI string
+        :type chi: str
+        :param one_indexed: use one-indexing?
+        :type one_indexed: bool
+    """
+    idxs = canonical_indices(chi, one_indexed=False)
+    bnds = bonds(chi, one_indexed=False)
+    adjs = [sorted(next(iter(b-{i})) for b in bnds if i in b) for i in idxs]
+    return adjs
+
+
 def hydrogen_valences(chi, one_indexed=False):
     """ Determine the hydrogen valences of backbone atoms in a ChI string
 
@@ -335,8 +450,15 @@ def hydrogen_valences(chi, one_indexed=False):
     # Set up the parser
     integer = pp.Word(pp.nums)
     sep = '-' | pp.Suppress(',')
-    block = integer + pp.ZeroOrMore(sep + integer) + 'H' + pp.Opt(integer)
-    parser = pp.Opt(pp.Group(block) + pp.ZeroOrMore(sep + pp.Group(block)))
+    fixedh = integer + pp.ZeroOrMore(sep + integer) + 'H' + pp.Opt(integer)
+    mobileh = pp.Combine(pp.Suppress('(') + 'H' + pp.Opt(integer) +
+                         pp.OneOrMore(',' + integer) + pp.Suppress(')'))
+    parser = pp.Opt(
+        pp.Opt(pp.Group(fixedh) + pp.ZeroOrMore(sep + pp.Group(fixedh))) +
+        pp.Opt(sep) + pp.ZeroOrMore(mobileh))
+
+    mobileh_parser = (pp.Combine('H' + pp.Opt(integer)) + sep +
+                      pp.Group(pp.delimitedList(integer, delim=',')))
 
     # Do the parsing
     main_lyr_dct = main_layers(chi)
@@ -347,21 +469,36 @@ def hydrogen_valences(chi, one_indexed=False):
     shift = 0 if one_indexed else -1
     all_idxs = canonical_indices(chi, one_indexed=one_indexed)
     nhyd_dct = dict_.by_key({}, all_idxs, fill_val=0)
+    mob_lsts = []
     for nhyd_lst in nhyd_lsts:
-        if isinstance(nhyd_lst[-1], int):
-            nhyd = nhyd_lst[-1]
-            nhyd_lst = nhyd_lst[:-2]
+        # Mobile hydrogen blocks will be strings instead of lists
+        if isinstance(nhyd_lst, str) and nhyd_lst.startswith('H'):
+            mob_lsts.append(nhyd_lst)
+        # Otherwise, this is not a mobile hydrogen block -- proceed as usual
         else:
-            nhyd = 1
-            nhyd_lst = nhyd_lst[:-1]
+            if isinstance(nhyd_lst[-1], int):
+                nhyd = nhyd_lst[-1]
+                nhyd_lst = nhyd_lst[:-2]
+            else:
+                nhyd = 1
+                nhyd_lst = nhyd_lst[:-1]
 
-        lsts = list(map(list, automol.util.breakby(nhyd_lst, '-')))
-        idxs = lsts.pop(0)
-        for lst in lsts:
-            idxs.extend(range(idxs[-1]+1, lst[0]))
-            idxs.extend(lst)
-        idxs = [k+shift for k in idxs]
-        nhyd_dct.update({k: nhyd for k in idxs})
+            lsts = list(map(list, automol.util.breakby(nhyd_lst, '-')))
+            idxs = lsts.pop(0)
+            for lst in lsts:
+                idxs.extend(range(idxs[-1]+1, lst[0]))
+                idxs.extend(lst)
+            idxs = [k+shift for k in idxs]
+            nhyd_dct.update({k: nhyd for k in idxs})
+
+    # Add in mobile hydrogens after we get the others
+    for mob_lst in mob_lsts:
+        mob_lst = ap_cast(mobileh_parser.parseString(nhyd_lst).asList())
+        nmob_str = mob_lst[0][1:]
+        nmob = int(nmob_str) if nmob_str else 1
+        # Add available mobile hydrogens to the first nmob atoms
+        idxs = [k+shift for k in mob_lst[1]][:nmob]
+        nhyd_dct.update({k: nhyd_dct[k] + 1 for k in idxs})
 
     return nhyd_dct
 
@@ -375,7 +512,7 @@ def charge(chi):
         :rtype: int
     """
     char_lyr_dct = charge_layers(chi)
-    char = int(char_lyr_dct['q'])
+    char = int(char_lyr_dct['q']) if 'q' in char_lyr_dct else 0
     return char
 
 
@@ -472,6 +609,16 @@ def is_inverted_isotope_enantiomer(chi):
 
 
 # # other properties
+def has_multiple_components(chi):
+    """ Determine if the ChI string has multiple components.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: bool
+    """
+    return len(split(chi)) > 1
+
+
 def has_stereo(chi):
     """ Determine if the ChI string has stereochemistry information.
 
@@ -485,14 +632,16 @@ def has_stereo(chi):
                 any(pfx in iso_dct for pfx in STE_PFXS))
 
 
-def has_multiple_components(chi):
-    """ Determine if the ChI string has multiple components.
+def has_mobile_hydrogens(chi):
+    """ Determine if the ChI string has mobile hydrogens.
 
         :param chi: ChI string
         :type chi: str
         :rtype: bool
     """
-    return len(split(chi)) > 1
+    main_lyr_dct = main_layers(chi)
+    nhyd_lyr = main_lyr_dct['h'] if 'h' in main_lyr_dct else ''
+    return '(' in nhyd_lyr
 
 
 def low_spin_multiplicity(chi):
@@ -504,7 +653,7 @@ def low_spin_multiplicity(chi):
     """
 
     fml = formula(chi)
-    nelec = automol.formula.electron_count(fml) - charge(chi)
+    nelec = automol.formula.electron_count(fml)
 
     if (nelec % 2) == 0:
         mult = 1
@@ -512,6 +661,68 @@ def low_spin_multiplicity(chi):
         mult = 2
 
     return mult
+
+
+def is_chiral(chi, iso=True):
+    """ Determine if this ChI is chiral (has a non-superimposable mirror image).
+
+        :param chi: ChI string
+        :type chi: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: whether or not the ChI is inverted; returns None if not an
+            enantiomer
+        :rtype: bool
+    """
+    ret = automol.amchi.base.is_inverted_enantiomer(chi) in (True, False)
+    if iso:
+        ret |= (automol.amchi.base.is_inverted_isotope_enantiomer(chi)
+                in (True, False))
+    return ret
+
+
+# # comparisons
+def same_connectivity(chi1, chi2):
+    """ Determine if two ChI strings have the same connectivity.
+
+        :param chi1: ChI string 1
+        :type chi1: str
+        :param chi2: ChI string 2
+        :type chi2: str
+        :rtype: bool
+    """
+    return (standard_form(chi1, stereo=False) ==
+            standard_form(chi2, stereo=False))
+
+
+def equivalent(chi1, chi2):
+    """ Determine if two ChI strings are equivalent. Currently
+        the srings are only checked up to the isotope sublayer.
+
+        :param chi1: ChI string 1
+        :type chi1: str
+        :param chi2: ChI string 2
+        :type chi2: str
+        :rtype: bool
+    """
+    fml_str1 = formula_string(chi1)
+    fml_str2 = formula_string(chi2)
+    conn_dct1 = main_layers(chi1)
+    conn_dct2 = main_layers(chi2)
+    chg_dct1 = charge_layers(chi1)
+    chg_dct2 = charge_layers(chi2)
+    ste_dct1 = stereo_layers(chi1)
+    ste_dct2 = stereo_layers(chi2)
+    iso_dct1 = isotope_layers(chi1)
+    iso_dct2 = isotope_layers(chi2)
+    # Stereo layers get dropped upon split/joins, so remove these from the
+    # equivalence test
+    for dct in (ste_dct1, ste_dct2, iso_dct1, iso_dct2):
+        if 's' in dct:
+            dct.pop('s')
+    return (fml_str1 == fml_str2 and conn_dct1 == conn_dct2 and
+            chg_dct1 == chg_dct2 and ste_dct1 == ste_dct2 and
+            iso_dct1 == iso_dct2)
 
 
 # # split/join
@@ -547,16 +758,21 @@ def split(chi):
     return chis
 
 
-def join(chis):
+def join(chis, sort=True):
     """ Join separate ChI strings into one multi-component ChI string.
 
         :param chis: sequence of ChI strings
         :type chis: tuple[str]
+        :param sort: sort the ChI strings in the standard sort order?
+        :type sort: bool
         :returns: the joined ChI string
         :rtype: str
     """
     # first, make sure they are completely split up
     chis = list(itertools.chain(*map(split, chis)))
+    if sort:
+        chis = sorted_(chis)
+
     fml_strs = list(map(formula_string, chis))
     fml_str = _join_layer_strings(fml_strs, count_sep='', sep='.')
     main_dct = _join_layers(list(map(main_layers, chis)))
@@ -569,6 +785,85 @@ def join(chis):
                      char_lyr_dct=char_dct,
                      ste_lyr_dct=ste_dct,
                      iso_lyr_dct=iso_dct)
+
+
+# # sort
+def sorted_(chis):
+    """ Sort a sequence of ChI strings in the standard sort order (see argsort)
+
+        :param chis: sequence of ChI strings
+        :type chis: tuple(str)
+        :rtype: tuple(str)
+    """
+    return tuple(chis[i] for i in argsort(chis))
+
+
+def argsort(chis):
+    """ Determine the standard sort order for multiple ChIs.
+
+        Follows the sort order for multicomponent InChIs as much as possible.
+
+        :param chis: sequence of ChI strings
+        :type chis: tuple(str)
+    """
+    # 1. Formula sort values
+    fmls = list(map(formula, chis))
+    symbs = set(itertools.chain(*[f.keys() for f in fmls]))
+    symbs = automol.formula.sorted_symbols(symbs, symbs_first=('C'))
+    fml_vecs = [automol.formula.sort_vector(fml, symbs=symbs) for fml in fmls]
+
+    # 2. Connectivity sort values
+    conn_vecs = list(map(adjacency_list, chis))
+
+    # 3. Hydrogen sort values
+    idxs_lst = list(map(canonical_indices, chis))
+    nhyd_dcts = list(map(hydrogen_valences, chis))
+    nhyd_vecs = [
+        list(map(h.__getitem__, i)) for i, h in zip(idxs_lst, nhyd_dcts)]
+
+    # 4. Charge sort values
+    char_vecs = list(map(charge, chis))
+
+    # 5. Bond stereo sort values
+    def _sorted_bond_keys(bnd_keys):
+        srt_bnd_keys = sorted(sorted(k, reverse=True) for k in bnd_keys)
+        return map(frozenset, srt_bnd_keys)
+
+    bste_dcts = list(map(bond_stereo_parities, chis))
+    bkeys_lst = list(map(_sorted_bond_keys, bste_dcts))
+    bste_vecs = [
+        list(map(s.__getitem__, k)) for k, s in zip(bkeys_lst, bste_dcts)]
+
+    # 6. Atom stereo sort values
+    aste_dcts = list(map(atom_stereo_parities, chis))
+    akeys_lst = list(map(sorted, aste_dcts))
+    aste_vecs = [
+        list(map(s.__getitem__, k)) for k, s in zip(akeys_lst, aste_dcts)]
+
+    # 7. Enantiomeric inversions
+    inv_vecs = list(map(is_inverted_enantiomer, chis))
+
+    # 8. Stop here for now. Add isotope layers when we actually need them.
+    if any(map(isotope_layers, chis)):
+        raise NotImplementedError("Isotope layers not yet implemented,"
+                                  "but could easily be added.")
+
+    # Do the actual sorting
+    arr = numpy.empty(len(chis), dtype=object)
+    arr[:] = list(zip(fml_vecs, conn_vecs, nhyd_vecs, char_vecs,
+                      bste_vecs, aste_vecs, inv_vecs))
+    idxs = tuple(reversed(numpy.argsort(arr)))
+
+    return idxs
+
+
+# # helpers
+def version_pattern():
+    """ Build the autoparse regex pattern for the ChI string version.
+
+        :rtype: str
+    """
+    return _version_pattern()
 
 
 # # common multilayer properties
@@ -749,6 +1044,8 @@ def _join_layers(dcts):
     dct = {pfx: (_join_layer_strings(lyrs) if pfx != 'm' else
                  _join_m_layer_strings(lyrs))
            for pfx, lyrs in zip(pfxs, lyrs_lst)}
+    if 'm' in dct:
+        dct['s'] = '1'
 
     return dct
 
@@ -795,8 +1092,13 @@ def _split_layers(dct, count):
             _split_layer_string(dct[pfx]) if pfx != 'm'
             else _split_m_layer_string(dct[pfx]) for pfx in pfxs]
         assert all(len(lyrs) == count for lyrs in lyrs_lst)
-        dcts = tuple({pfx: lyr for pfx, lyr in zip(pfxs, lyrs) if lyr}
-                     for lyrs in zip(*lyrs_lst))
+        dcts = list({pfx: lyr for pfx, lyr in zip(pfxs, lyrs) if lyr}
+                    for lyrs in zip(*lyrs_lst))
+        for idx, _ in enumerate(dcts):
+            if 'm' in dcts[idx] and dcts[idx]['m'] == '.':
+                dcts[idx].pop('m')
+            if 'm' in dcts[idx]:
+                dcts[idx]['s'] = '1'
     else:
         return ({},) * count
     return dcts
@@ -826,24 +1128,9 @@ def _split_layer_string(lyr, count_sep_ptt=app.escape('*'),
 
 
 if __name__ == '__main__':
-    # ACH = ('AMChI=1/C10H14ClFO/c1-7(9(6-12)10(13)5-11)8-3-2-4-8'
-    #        '/h2-4,7,9-10,13H,5-6H2,1H3')
-    # ICH2 = 'InChI=1S/C3H8FNO2/c1-3(4,2-5)7-6/h6H,2,5H2,1H3'
-    # BNDS = bonds(ACH, one_indexed=True)
-    # print(BNDS)
-
-    # Atom stereo
-    CHI = 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
-    print(atom_stereo_parities(CHI, one_indexed=True))
-    print(is_inverted_enantiomer(CHI))
-    CHI = 'InChI=1S/C3H8O/c1-3(2)4/h3-4H,1-2H3/i1+0,2+1/t3-/m1/s1'
-    print(atom_stereo_parities(CHI, one_indexed=True))
-    print(atom_isotope_stereo_parities(CHI, one_indexed=True))
-    print(is_inverted_enantiomer(CHI))
-    print(is_inverted_isotope_enantiomer(CHI))
-
-    # # Bond stereo
-    # CHI = 'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-'
-    # print(bond_stereo_parities(CHI, one_indexed=True))
-    # CHI = 'InChI=1S/C3H6/c1-3-2/h3H,1H2,2H3/i1D/b3-1+'
-    # print(bond_isotope_stereo_parities(CHI, one_indexed=True))
+    ICH = ('InChI=1S/C5H5N5O/c6-5-9-3-2(4(11)10-5)7-1-8-3/'
+           'h1H,(H4,6,7,8,9,10,11)')
+    ICH = ('InChI=1S/C18H20N2O4/c1-9-5-13(21)6-10(2)15(9)19-17(23)18(24)20-16'
+           '-11(3)7-14(22)8-12(16)4/h5-8,21-22H,1-4H3,(H,19,23)(H,20,24)')
+    # ICH = 'InChI=1S/CHO2/c2-1-3/h(H,2,3)'
+    print(hydrogen_valences(ICH))

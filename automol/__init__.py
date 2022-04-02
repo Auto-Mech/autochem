@@ -16,7 +16,6 @@ Level 1: No dependencies; no interdependencies
  - mult
  - formula
  - inchi_key
- - amchi_key
  - vmat
  - prop
  - embed
@@ -27,7 +26,7 @@ Level 2: L1 dependencies; hierarchical interdependency (descending)
 basic type.*
 
  - amchi.base
- - rsmiles.base
+ - smiles.base
  - geom.base
  - graph.base   [L2 dependencies: geom.base, amchi.base]
  - zmat.base    [L2 dependencies: geom.base]
@@ -36,6 +35,7 @@ Level 3: L1-2 dependencies; hierarchical interdependency (descending)
 
  - extern       [contains RDKit interface needed for working with InChIs]
  - inchi.base   [L3 dependencies: extern]
+ - chi.base     [L3 dependencies: extern, inchi.base]
 
 Level 4: L1-3 dependencies; hierarchical interdependency (descending)
 
@@ -44,10 +44,10 @@ along with additional functions requiring conversion to another basic type.*
 
  - geom
  - graph
- - inchi        [L4 dependencies: graph]
- - amchi        [L4 dependencies: graph]
- - smiles
- - rsmiles      [L4 dependencies: graph]
+ - amchi        [L4 dependencies: graph, geom]
+ - inchi        [L4 dependencies: amchi, graph, geom]
+ - chi          [L4 dependencies: amchi, inchi, graph, geom]
+ - smiles       [L4 dependencies: graph]
  - zmat         [L4 dependencies: graph, geom]
 
 Level 5: L1-4 dependencies; hierarchical interdependency (descending)
@@ -79,7 +79,6 @@ from automol import geom
 from automol import amchi
 from automol import inchi
 from automol import smiles
-from automol import rsmiles
 from automol import zmat
 # L5
 from automol import pot
@@ -110,7 +109,7 @@ __all__ = [
     'amchi',
     'inchi',
     'smiles',
-    'rsmiles',
+    'smiles',
     'zmat',
     # L5
     'pot',

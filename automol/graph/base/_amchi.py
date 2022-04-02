@@ -16,14 +16,52 @@ from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import terminal_heavy_atom_keys
-from automol.graph.base._algo import is_connected
-from automol.graph.base._canon import canonical_enantiomer
+from automol.graph.base._algo import connected_components
+from automol.graph.base._algo import rings_atom_keys
+from automol.graph.base._algo import cycle_ring_atom_key_to_front
+from automol.graph.base._canon import canonical_enantiomer_with_keys
 import automol.amchi.base
 
 
 # AMChI functions
-def amchi(gra, stereo=True, can=True, is_reflected=None):
+def amchi(gra, stereo=True):
     """ AMChI string from graph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: Include stereo in the AMChI string, if present?
+        :type stereo: bool
+        :returns: the AMChI string
+        :rtype: str
+    """
+    chi, _ = amchi_with_indices(gra, stereo=stereo)
+    return chi
+
+
+def amchi_with_indices(gra, stereo=True):
+    """ AMChI string and AMChI canonical indices from graph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: Include stereo in the AMChI string, if present?
+        :type stereo: bool
+        :returns: the AMChI string and the AMChI canonical indices for each
+            connected component (components in multi-component AMChI ordering)
+        :rtype: (str, tuple[dct[int: int]])
+    """
+    gras = connected_components(gra)
+    chis, chi_idx_dcts = zip(
+        *(connected_amchi_with_indices(g, stereo=stereo) for g in gras))
+    srt_idxs = automol.amchi.argsort(chis)
+    chis = tuple(chis[i] for i in srt_idxs)
+    chi_idx_dcts = tuple(chi_idx_dcts[i] for i in srt_idxs)
+    chi = automol.amchi.join(chis, sort=False)
+    return chi, chi_idx_dcts
+
+
+def connected_amchi_with_indices(gra, stereo=True, can=True,
+                                 is_reflected=None):
+    """ single-component AMChI string from a connected graph
 
         :param gra: molecular graph
         :type gra: automol graph data structure
@@ -41,9 +79,6 @@ def amchi(gra, stereo=True, can=True, is_reflected=None):
         :returns: the AMChI string
         :rtype: str
     """
-    assert is_connected(gra), (
-        "Cannot form connection layer for disconnected graph.")
-
     if not stereo:
         gra = without_stereo_parities(gra)
 
@@ -52,7 +87,7 @@ def amchi(gra, stereo=True, can=True, is_reflected=None):
 
     # Canonicalize and determine canonical enantiomer
     if can:
-        gra, is_reflected = canonical_enantiomer(gra)
+        gra, is_reflected, chi_idx_dct = canonical_enantiomer_with_keys(gra)
 
     fml_str = _formula_string(gra)
     main_lyr_dct = _main_layers(gra)
@@ -61,7 +96,8 @@ def amchi(gra, stereo=True, can=True, is_reflected=None):
     chi = automol.amchi.base.from_data(fml_str=fml_str,
                                        main_lyr_dct=main_lyr_dct,
                                        ste_lyr_dct=ste_lyr_dct)
-    return chi
+
+    return chi, chi_idx_dct
 
 
 # # AMChI layer functions
@@ -146,6 +182,9 @@ def _connection_layer_and_list(gra):
     nkeys_dct = {k+1: [n+1 for n in ns] for k, ns in
                  atoms_neighbor_atom_keys(gra).items()}
 
+    # Get a one-indexed list of ring keys
+    rng_keys_lst = [[k+1 for k in ks] for ks in rings_atom_keys(gra)]
+
     def _recurse_connection_layer(conn_lyr, conn_lst, key, just_seen=None):
         nkeys = nkeys_dct.pop(key) if key in nkeys_dct else []
 
@@ -174,8 +213,15 @@ def _connection_layer_and_list(gra):
 
                 # If this is a ring, remove the neighbor on the other side of
                 # `key` to prevent repetition as we go around the ring.
-                if sub_lst[-1] == key:
-                    nkeys.remove(sub_lst[-2])
+                # I can't think of a cleaner way to do this right now.
+                flat_sub_lst = list(util.flatten(sub_lst))
+                if key in flat_sub_lst:
+                    for rng_keys in rng_keys_lst:
+                        if key in rng_keys and nkey in rng_keys:
+                            rkeys = cycle_ring_atom_key_to_front(
+                                rng_keys, key, end_key=nkey)
+                            if rkeys[1] in nkeys:
+                                nkeys.remove(rkeys[1])
 
             # Now, join the sub-layers and lists together.
             # If there is only one neighbor, we join it as
