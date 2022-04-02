@@ -335,25 +335,25 @@ def test__graph__misc():
 def test__inchi_geometry():
     """ test automol.inchi.geometry
     """
-    # ref_ich = 'InChI=1S/H2S/h1H2'
-    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    # print(ich)
-    # assert ich == ref_ich
+    ref_ich = 'InChI=1S/H2S/h1H2'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
+    assert ich == ref_ich
 
-    # ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
-    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    # print(ich)
-    # assert ich == ref_ich
+    ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
+    assert ich == ref_ich
 
-    # ref_ich = 'InChI=1S/Ar'
-    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    # print(ich)
-    # assert ich == ref_ich
+    ref_ich = 'InChI=1S/Ar'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
+    assert ich == ref_ich
 
-    # ref_ich = 'InChI=1S/Cl2/c1-2'
-    # ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
-    # print(ich)
-    # assert ich == ref_ich
+    ref_ich = 'InChI=1S/Cl2/c1-2'
+    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    print(ich)
+    assert ich == ref_ich
 
     ich = 'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3'
     geo = automol.inchi.geometry(ich)
