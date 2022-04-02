@@ -225,6 +225,7 @@ def test__zmatrix__with_stereo():
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmat.geometry(zma)
+        print(automol.geom.string(geo))
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich, (f'{ich} != {ref_ich}')
 
@@ -584,16 +585,16 @@ def test__smiles__with_stereo():
 
 
 if __name__ == '__main__':
-    test__geom__with_stereo()
-    test__geom__no_stereo()
-    test__graph__with_stereo()
-    test__graph__no_stereo()
+    # test__geom__with_stereo()
+    # test__geom__no_stereo()
+    # test__graph__with_stereo()
+    # test__graph__no_stereo()
     test__zmatrix__with_stereo()
-    test__smiles__from_geom()
-    test__graph__misc()
+    # test__smiles__from_geom()
+    # test__graph__misc()
     # test__inchi_geometry()
-    test__inchi_conformers()
-    test__multiple_rings()
+    # test__inchi_conformers()
+    # test__multiple_rings()
     # test__geom__no_stereo()
     # test__smiles__no_stereo()
     # test__smiles__with_stereo()
