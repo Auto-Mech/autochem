@@ -78,13 +78,13 @@ def from_data(fml_str, main_lyr_dct=None,
 
 
 # # recalculate/standardize
-def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
+def standard_form(chi, stereo=True, ste_dct=None, iso_dct=None):
     """ Return a ChI string in standard form.
 
         Includes only the standard layers.
 
-        :param ich: ChI string
-        :type ich: str
+        :param chi: ChI string
+        :type chi: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
         :param ste_dct: a dictionary to overwrite stereo information; layers
@@ -92,24 +92,24 @@ def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
             fails, the function will return None
         :type ste_dct: dict
         :param iso_dct: a dictionary to overwrite isotope stereo information;
-            layers not overwritten will be left in tact; if the attempted
+            layers not overwritten will be left intact; if the attempted
             overwrite fails, the function will return None
         :type iso_dct: dict
         :rtype: str
     """
-    fml_slyr = formula_string(ich)
-    main_dct = main_layers(ich)
-    char_dct = charge_layers(ich)
+    fml_slyr = formula_string(chi)
+    main_dct = main_layers(chi)
+    char_dct = charge_layers(chi)
 
     extra_ste_dct = ste_dct
     extra_iso_dct = iso_dct
 
     if stereo:
-        ste_dct = stereo_layers(ich)
-        iso_dct = isotope_layers(ich)
+        ste_dct = stereo_layers(chi)
+        iso_dct = isotope_layers(chi)
     else:
         ste_dct = {}
-        iso_dct = dict_.by_key(isotope_layers(ich), ISO_NONSTE_PFXS)
+        iso_dct = dict_.by_key(isotope_layers(chi), ISO_NONSTE_PFXS)
 
     if extra_ste_dct is not None:
         ste_dct.update(extra_ste_dct)
@@ -117,12 +117,12 @@ def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
     if extra_iso_dct is not None:
         iso_dct.update(extra_iso_dct)
 
-    ich = from_data(fml_slyr,
+    chi = from_data(fml_slyr,
                     main_lyr_dct=main_dct,
                     char_lyr_dct=char_dct,
                     ste_lyr_dct=ste_dct,
                     iso_lyr_dct=iso_dct)
-    return ich
+    return chi
 
 
 # # getters
@@ -231,12 +231,30 @@ def isotope_layers(chi):
     return _layers(lyrs_str)
 
 
-def reflect(ich, iso=True):
+# # setters
+def with_inchi_prefix(chi):
+    """ Return a ChI with InChI prefix, whether AMChI or InChI.
+
+        :param chi: ChI string
+        :type chi: str
+        :returns: InChI string
+        :rtype: str
+    """
+    pfx = prefix(chi)
+    if pfx == 'AMChI':
+        chi = 'InChI' + chi[5:]
+    else:
+        assert pfx == 'InChI', (
+            f"ChI string '{chi}' has unknown prefix '{pfx}'.")
+    return chi
+
+
+def reflect(chi, iso=True):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
 
-        :param ich: InChI string
-        :type ich: str
+        :param chi: InChI string
+        :type chi: str
         :param iso: Include isotope stereochemistry?
         :type iso: bool
         :returns: the other enantiomer
@@ -245,43 +263,43 @@ def reflect(ich, iso=True):
     ste_upd_dct = None
     iso_upd_dct = None
 
-    ste_is_inv = is_inverted_enantiomer(ich)
+    ste_is_inv = is_inverted_enantiomer(chi)
     if ste_is_inv is not None:
         inv_code = '0' if ste_is_inv else '1'
         ste_upd_dct = {'m': inv_code}
 
     if iso:
-        iso_is_inv = is_inverted_isotope_enantiomer(ich)
+        iso_is_inv = is_inverted_isotope_enantiomer(chi)
         if iso_is_inv is not None:
             inv_code = '0' if iso_is_inv else '1'
             iso_upd_dct = {'m': inv_code}
 
-    ich = standard_form(ich, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
+    chi = standard_form(chi, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
 
-    return ich
+    return chi
 
 
 # # conversions
-def formula(ich):
+def formula(chi):
     """ Generate a formula dictionary from a ChI string.
 
-        :param ich: ChI string
-        :type ich: str
+        :param chi: ChI string
+        :type chi: str
         :rtype: dict[str: int]
     """
     sym_ptt = app.UPPERCASE_LETTER + app.zero_or_more(app.LOWERCASE_LETTER)
     num_ptt = app.maybe(app.UNSIGNED_INTEGER)
     ptt = app.capturing(sym_ptt) + app.capturing(num_ptt)
 
-    def _connected_formula(ich):
-        fml_str = formula_string(ich)
+    def _connected_formula(chi):
+        fml_str = formula_string(chi)
         fml = {s: int(n) if n else 1
                for s, n in apf.all_captures(ptt, fml_str)}
         return fml
 
     # split it up to handle hard-coded molecules in multi-component chis
-    ichs = split(ich)
-    fmls = list(map(_connected_formula, ichs))
+    chis = split(chi)
+    fmls = list(map(_connected_formula, chis))
     fml = functools.reduce(automol.formula.join, fmls)
 
     return fml
@@ -301,10 +319,14 @@ def symbols(chi, one_indexed=False):
     """
     fml = formula(chi)
     pool = list(automol.formula.sorted_symbols(fml.keys(), symbs_first=['C']))
-    if 'H' in pool:
-        pool.remove('H')
 
-    symbs = [s for symb in pool for s in itertools.repeat(symb, fml[symb])]
+    # If there are only hydrogens, then one of them must be a backbone atom
+    if set(pool) == {'H'}:
+        symbs = ['H']
+    # Otherwise, remove all hydrogens from the list of backbone atom symbols
+    else:
+        symbs = [s for symb in pool for s in itertools.repeat(symb, fml[symb])
+                 if symb != 'H']
 
     shift = 1 if one_indexed else 0
     symb_dct = {k+shift: s for k, s in enumerate(symbs)}
@@ -586,6 +608,25 @@ def has_stereo(chi):
     iso_dct = isotope_layers(chi)
     return bool(ste_dct or
                 any(pfx in iso_dct for pfx in STE_PFXS))
+
+
+def low_spin_multiplicity(chi):
+    """ Guess spin multiplicity based on the number of electrons.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: int
+    """
+
+    fml = formula(chi)
+    nelec = automol.formula.electron_count(fml)
+
+    if (nelec % 2) == 0:
+        mult = 1
+    else:
+        mult = 2
+
+    return mult
 
 
 def is_chiral(chi, iso=True):

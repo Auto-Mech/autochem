@@ -132,5 +132,5 @@ __all__ = [
     'draw',
     'draw_grid',
     # assessment tools
-    'is_valid_inchi_multiplicity'
+    'is_valid_inchi_multiplicity',
 ]

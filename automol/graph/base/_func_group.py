@@ -153,9 +153,9 @@ def alkene_sites(gra):
     cc2_bnds = bonds_of_type(gra, symb1='C', symb2='C', mbond=2)
     phenyl_grps = phenyl_groups(gra)
     for bnd in cc2_bnds:
-        if not any([
+        if not any(
                 bnd in itertools.permutations(phen, r=2)
-                for phen in phenyl_grps]):
+                for phen in phenyl_grps):
             alk_groups += (bnd,)
     return alk_groups
 
@@ -556,7 +556,7 @@ def ring_substituents(gra):
         that define the ring
         aka (a1, a2, a3, a4, a5, a6) a1 is the 0th position of the ring
         so a3-a5 have a 1-3 interaction.  The nested dictionary has
-        atm key: tuple of groups 
+        atm key: tuple of groups
 
         (a1, a2, a3, a4, a5, a6): {
             a1: (group1, )

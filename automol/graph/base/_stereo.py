@@ -134,7 +134,7 @@ def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
 
 
 # # stereo correction
-def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, loc=False):
+def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     """ Obtain a geometry corrected for stereo parities based on a graph
 
         :param gra: molecular graph with stereo parities
@@ -144,11 +144,12 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, loc=False):
         :param geo_idx_dct: If they don't already match, specify which graph
             keys correspond to which geometry indices.
         :type geo_idx_dct: dict[int: int]
-        :param loc: is this graph using local instead of canonical stereo?
-        :type loc: bool
+        :param local_stereo: is this graph using local instead of canonical
+            stereo?
+        :type local_stereo: bool
         :returns: a molecular geometry with corrected stereo
     """
-    sgr = gra if loc else to_local_stereo(gra)
+    sgr = gra if local_stereo else to_local_stereo(gra)
     gra = without_stereo_parities(gra)
 
     if has_stereo(sgr):

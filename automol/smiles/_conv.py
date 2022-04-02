@@ -16,7 +16,7 @@ def amchi(smi):
         :returns: AMChI string
         :rtype: str
     """
-    gra = graph(smi, stereo=True, can=True)
+    gra = graph(smi, stereo=True, local_stereo=False)
     ach = automol.graph.base.amchi(gra)
     return ach
 
@@ -47,7 +47,7 @@ def chi(smi):
         :type smi: str
         :rtype: str
     """
-    gra = graph(smi, stereo=True, can=True)
+    gra = graph(smi, stereo=True, local_stereo=False)
     if automol.graph.base.has_resonance_bond_stereo(gra):
         ret = automol.graph.base.amchi(gra)
     else:
@@ -56,34 +56,33 @@ def chi(smi):
     return ret
 
 
-def graph(smi, stereo=True, can=True):
+def graph(smi, stereo=True, local_stereo=False):
     """ Generate a molecular graph from a SMILES string.
 
         :param smi: SMILES string
         :type smi: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
-        :param can: use canonical stereo? otherwise, a graph with local stereo
-            will be returned
-        :type can: bool
+        :param local_stereo: assign local stereo parities?
+        :type local_stereo: bool
         :rtype: automol molecular graph
     """
     smis = split(smi)
-    gras = [_connected_graph(s, stereo=stereo, can=can) for s in smis]
+    gras = [_connected_graph(s, stereo=stereo, local_stereo=local_stereo)
+            for s in smis]
     gra = automol.graph.base.union_from_sequence(gras, shift_keys=True)
     return gra
 
 
-def _connected_graph(smi, stereo=True, can=True):
+def _connected_graph(smi, stereo=True, local_stereo=False):
     """ Generate a connected molecular graph from a connected SMILES string.
 
         :param smi: SMILES string
         :type smi: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
-        :param can: use canonical stereo? otherwise, a graph with local stereo
-            will be returned
-        :type can: bool
+        :param local_stereo: assign local stereo parities?
+        :type local_stereo: bool
         :rtype: automol molecular graph
     """
     symb_dct, bnd_ord_dct, atm_par_dct, bnd_par_dct = (
@@ -112,7 +111,7 @@ def _connected_graph(smi, stereo=True, can=True):
         bnd_keys = ste_bnd_keys - sp2_bnd_keys
         gra = automol.graph.base.remove_bond_stereo_parities(gra, bnd_keys)
 
-        if can:
+        if not local_stereo:
             # Convert from local to canonical stereo
             gra = automol.graph.base.from_local_stereo(gra)
 

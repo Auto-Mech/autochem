@@ -189,13 +189,13 @@ def add_stereo(ich):
 
 
 def expand_stereo(ich):
-    """ Obtain all possible stereoisomers compatible with an InChI string.
+    """ Obtain all possible stereoisomers of an InChI string.
 
         :param ich: InChI string
         :type ich: str
         :rtype: list[str]
     """
-    gra = graph(ich)
+    gra = graph(ich, stereo=False)
     sgrs = automol.graph.stereomers(gra)
     ste_ichs = [automol.graph.inchi(sgr, stereo=True) for sgr in sgrs]
     return ste_ichs

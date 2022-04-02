@@ -1,7 +1,9 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
+import functools
 import automol.graph
 import automol.geom
+from automol import error
 from automol.extern import rdkit_
 from automol.extern import pybel_
 from automol.amchi.base import isotope_layers
@@ -13,9 +15,21 @@ from automol.amchi.base import bond_stereo_parities
 from automol.amchi.base import is_inverted_enantiomer
 from automol.amchi.base import has_stereo
 from automol.amchi.base import split
+from automol.amchi.base import with_inchi_prefix
 
 
 # # conversions
+def amchi_key(chi):
+    """ Generate a ChIKey from a ChI string.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: str
+    """
+    ich = with_inchi_prefix(chi)
+    return rdkit_.inchi_to_inchi_key(ich)
+
+
 def smiles(chi, res_stereo=True):
     """ Convert a ChI string into a SMILES string.
 
@@ -42,33 +56,39 @@ def _connected_smiles(chi, res_stereo=True):
         :returns: the SMILES string
         :rtype: str
     """
-    gra = _connected_graph(chi, stereo=True, can=False)
-    smi = automol.graph.smiles(gra, stereo=True, res_stereo=res_stereo)
+    gra = _connected_graph(chi, stereo=True, local_stereo=True)
+    smi = automol.graph.smiles(gra, stereo=True, local_stereo=True,
+                               res_stereo=res_stereo)
     return smi
 
 
-def graph(chi, stereo=True, can=False):
+def graph(chi, stereo=True, local_stereo=False):
     """ Generate a molecular graph from a ChI string.
 
         :param chi: ChI string
         :type chi: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param local_stereo: assign local stereo parities?
+        :type local_stereo: bool
         :rtype: automol molecular graph
     """
     chis = split(chi)
-    gras = [_connected_graph(c, stereo=stereo, can=can) for c in chis]
+    gras = [_connected_graph(c, stereo=stereo, local_stereo=local_stereo)
+            for c in chis]
     gra = automol.graph.union_from_sequence(gras, shift_keys=True)
     return gra
 
 
-def _connected_graph(chi, stereo=True, can=False):
+def _connected_graph(chi, stereo=True, local_stereo=False):
     """ Generate a connected molecular graph from a single-component ChI string.
 
         :param chi: ChI string
         :type chi: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param local_stereo: assign local stereo parities?
+        :type local_stereo: bool
         :rtype: automol molecular graph
     """
     symb_dct = symbols(chi)
@@ -97,30 +117,46 @@ def _connected_graph(chi, stereo=True, can=False):
 
     if is_inv is True:
         gra = automol.graph.reflect_local_stereo(gra)
-        gra = automol.graph.from_local_stereo(gra)
-    elif has_stereo(chi) and not can:
+
+    if has_stereo(chi) and not local_stereo:
         gra = automol.graph.from_local_stereo(gra)
 
     return gra
 
 
-# def geometry(ich, check=True):
-#     """ Generate a molecular geometry from a ChI string
-#     """
+def geometry(chi, check=True):
+    """ Generate a molecular geometry from a ChI string.
+
+        :param chi: ChI string
+        :type chi: str
+        :param check: check stereo and connectivity?
+        :type check: bool
+        :rtype: automol molecular geometry data structure
+    """
+
+    # rdkit fails for multi-component molecules, so we split it up and space
+    # out the geometries
+    chis = split(chi)
+    geos = [_connected_geometry(chi, check=check) for chi in chis]
+    geos = [automol.geom.translate(geo, [50. * idx, 0., 0.])
+            for idx, geo in enumerate(geos)]
+    geo = functools.reduce(automol.geom.join, geos)
+    return geo
+
+
 def _connected_geometry(chi, check=True):
     """ Generate a connected molecular geometry from a single-component ChI
         string.
 
         :param chi: ChI string
         :type chi: str
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
+        :param check: check stereo and connectivity?
+        :type check: bool
         :rtype: automol molecular geometry
     """
     # Convert graph to local stereo to avoid multiple recanonicalizations
-    gra = _connected_graph(chi, stereo=True)
+    gra = _connected_graph(chi, stereo=True, local_stereo=True)
     gra = automol.graph.explicit(gra)
-    gra = automol.graph.to_local_stereo(gra)
 
     smi = _connected_smiles(chi, res_stereo=False)
     has_ste = has_stereo(chi)
@@ -135,30 +171,142 @@ def _connected_geometry(chi, check=True):
         geo = pybel_.to_geometry(pbm)
         return geo
 
-    # for gen_ in (_gen1, _gen1, _gen1, _gen2):
-    #     success = False
-    #     try:
+    success = False
+    for gen_ in (_gen1, _gen1, _gen1, _gen2):
+        try:
+            geo = gen_()
+        except (RuntimeError, TypeError, ValueError):
+            continue
 
-    geo = _gen1()
+        # If the ChI has stereo, enforce correct stereo on the geometry.
+        if check:
+            if not has_ste:
+                # If there wasn't stereo, only check connectivity
+                gra_ = automol.geom.graph(geo, stereo=False)
+                if automol.graph.isomorphism(gra, gra_, stereo=False):
+                    success = True
+                    break
+            else:
+                # There is stereo.
+                # First, check connectivity.
+                gra_ = automol.geom.graph(geo)
+                geo_idx_dct = automol.graph.isomorphism(
+                        gra, gra_, stereo=False)
 
-    # If the ChI had stereo, enforce correct stereo on the geometry. For
-    # resonance bonds in particular, the stereo parity of the geometry is
-    # arbitrary and needs to be corrected.
-    if has_stereo(gra):
-        gra_ = automol.geom.graph(geo)
-        geo_idx_dct = automol.graph.isomorphism(gra, gra_, stereo=False)
-        geo = automol.graph.stereo_corrected_geometry(
-            gra, geo, geo_idx_dct=geo_idx_dct, loc=True)
+                if geo_idx_dct is None:
+                    continue
 
-    # Check to see if the geometry matches
+                # Enforce correct stereo parities. This is necessary for
+                # resonance bond stereo.
+                geo = automol.graph.stereo_corrected_geometry(
+                    gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
 
-    print(automol.graph.string(gra))
-    print(automol.geom.string(geo))
-    print(has_ste)
-    print(geo_idx_dct)
+                # Check if the assignment worked.
+                gra_ = automol.graph.set_stereo_from_geometry(gra_, geo)
+                if automol.graph.isomorphism(gra, gra_):
+                    success = True
+                    break
+
+    if not success:
+        raise error.FailedGeometryGenerationError('Failed AMChI:', chi)
+
+    return geo
+
+
+def conformers(chi, nconfs=1, check=True, accept_fewer=False):
+    """ Generate a connected molecular geometry from a single-component ChI
+        string.
+
+        :param chi: ChI string
+        :type chi: str
+        :param nconfs: number of conformer structures to generate
+        :type nconfs: int
+        :param check: check stereo and connectivity?
+        :type check: bool
+        :param accept_fewer: accept fewer than nconfs conformers?
+        :type accept_fewer: bool
+        :rtype: automol molecular geometry
+    """
+    # Convert graph to local stereo to avoid multiple recanonicalizations
+    gra = _connected_graph(chi, stereo=True, local_stereo=True)
+    gra = automol.graph.explicit(gra)
+
+    smi = _connected_smiles(chi, res_stereo=False)
+    has_ste = has_stereo(chi)
+
+    try:
+        rdm = rdkit_.from_smiles(smi)
+        geos = rdkit_.to_conformers(rdm, nconfs=nconfs)
+    except (RuntimeError, TypeError, ValueError) as err:
+        raise error.FailedGeometryGenerationError(
+            'Failed AMChI:', chi) from err
+
+    ret_geos = []
+
+    # If the ChI has stereo, enforce correct stereo on the geometry.
+    if check:
+        for geo in geos:
+            if not has_ste:
+                # If there wasn't stereo, only check connectivity
+                gra_ = automol.geom.graph(geo, stereo=False)
+                if automol.graph.isomorphism(gra, gra_, stereo=False):
+                    ret_geos.append(geo)
+            else:
+                # There is stereo.
+                # First, check connectivity.
+                gra_ = automol.geom.graph(geo)
+                geo_idx_dct = automol.graph.isomorphism(
+                        gra, gra_, stereo=False)
+
+                if geo_idx_dct is not None:
+                    # Enforce correct stereo parities. This is necessary for
+                    # resonance bond stereo.
+                    geo = automol.graph.stereo_corrected_geometry(
+                        gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
+
+                    # Check if the assignment worked.
+                    gra_ = automol.graph.set_stereo_from_geometry(gra_, geo)
+                    if automol.graph.isomorphism(gra, gra_):
+                        ret_geos.append(geo)
+
+    if len(ret_geos) < nconfs and not accept_fewer:
+        raise error.FailedGeometryGenerationError('Failed AMChI:', chi)
+
+    return ret_geos
+
+
+# # derived transformations
+def add_stereo(chi):
+    """ Add stereochemistry to a ChI string converting to/from geometry.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: str
+    """
+    geo = geometry(chi)
+    chi = automol.geom.amchi(geo, stereo=True)
+    return chi
+
+
+def expand_stereo(chi):
+    """ Obtain all possible stereoisomers of a ChI string.
+
+        :param chi: ChI string
+        :type chi: str
+        :rtype: list[str]
+    """
+    gra = graph(chi, stereo=False)
+    sgrs = automol.graph.stereomers(gra)
+    ste_chis = [automol.graph.amchi(sgr, stereo=True) for sgr in sgrs]
+    return ste_chis
 
 
 if __name__ == '__main__':
     CHI = 'AMChI=1/C5H6FO/c6-4-2-1-3-5-7/h1-5,7H/b2-1-,3-1-,4-2-,5-3+'
     CHI = 'AMChI=1/C5H6FO/c6-4-2-1-3-5-7/h1-5,7H/b2-1+,3-1+,4-2+,5-3+'
-    _connected_geometry(CHI, check=True)
+    # GEO = geometry(CHI, check=True)
+    # print(automol.geom.string(GEO))
+
+    for GEO in conformers(CHI, nconfs=5):
+        print(automol.geom.string(GEO))
+        print()

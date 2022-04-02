@@ -187,9 +187,9 @@ def substitution_atom_keys(rxn):
 def reaction_inchis(rxn, stereo=True):
     """ Get inchis for one side of reactions
     """
-    rct_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
+    rct_ichs = tuple(automol.graph.chi(gra, stereo=stereo)
                      for gra in reactant_graphs(rxn))
-    prd_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
+    prd_ichs = tuple(automol.graph.chi(gra, stereo=stereo)
                      for gra in product_graphs(rxn))
     return (rct_ichs, prd_ichs)
 
@@ -200,8 +200,8 @@ def rxn_objs_from_inchi(rct_ichs, prd_ichs,
     """ Generate obj
     """
 
-    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
+    rct_geos = list(map(automol.chi.geometry, rct_ichs))
+    prd_geos = list(map(automol.chi.geometry, prd_ichs))
 
     return rxn_objs_from_geometry(
         rct_geos, prd_geos, indexing=indexing, stereo=stereo)
@@ -213,11 +213,11 @@ def rxn_objs_from_smiles(rct_smis, prd_smis,
     """
 
     # Is this adding stero? prob should?
-    rct_ichs = list(map(automol.smiles.inchi, rct_smis))
-    prd_ichs = list(map(automol.smiles.inchi, prd_smis))
+    rct_ichs = list(map(automol.smiles.chi, rct_smis))
+    prd_ichs = list(map(automol.smiles.chi, prd_smis))
 
-    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
+    rct_geos = list(map(automol.chi.geometry, rct_ichs))
+    prd_geos = list(map(automol.chi.geometry, prd_ichs))
 
     return rxn_objs_from_geometry(
         rct_geos, prd_geos, indexing=indexing, stereo=stereo)
