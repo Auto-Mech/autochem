@@ -226,6 +226,7 @@ from automol.graph.base._canon import bond_parity_evaluator_from_local_stereo_
 from automol.graph.base._func_group import FunctionalGroup
 from automol.graph.base._func_group import functional_group_dct
 from automol.graph.base._func_group import functional_group_count_dct
+from automol.graph.base._func_group import ring_substituents
 # # finders for overaching types
 from automol.graph.base._func_group import hydrocarbon_species
 from automol.graph.base._func_group import radical_species
@@ -503,6 +504,7 @@ __all__ = [
     'FunctionalGroup',
     'functional_group_dct',
     'functional_group_count_dct',
+    'ring_substituents',
     # # finders for overaching types
     'hydrocarbon_species',
     'radical_species',

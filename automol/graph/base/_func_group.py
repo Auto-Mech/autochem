@@ -97,7 +97,6 @@ def functional_group_dct(gra):
     methyl_grps = methyl_groups(gra)
     phenyl_grps = phenyl_groups(gra)
     amine_grps = amine_groups(gra)
-
     # might have to filter it to remove ketone/oh if carbox acids are ther
     return {
         FunctionalGroup.ALKENE: alkene_grps,
@@ -494,7 +493,7 @@ def nitro_groups(gra):
         :rtype: tuple(int)
     """
 
-    return two_bond_idxs(gra, symb1='O', cent='N', symb2='O')
+    return two_bond_idxs(gra, symb1='O', cent='N', symb2='O', allow_cent_conn=True)
 
 
 def halide_groups(gra):
@@ -589,8 +588,11 @@ def ring_substituents(gra):
                 idented = False
                 for grp, grp_idx_lst in func_grp_dct.items():
                     for idx_lst in grp_idx_lst:
-                        if satm in idx_lst:
-                            groups += (grp,)
+                        if satm in idx_lst and atm:
+                            if grp == FunctionalGroup.HALIDE:
+                                groups += (atm_symb_dct[satm],)
+                            else:
+                                groups += (grp,)
                             idented = True
                             break
                     if idented:
@@ -656,7 +658,7 @@ def bonds_of_order(gra, mbond=1):
     return mbond_idxs
 
 
-def two_bond_idxs(gra, symb1, cent, symb2):
+def two_bond_idxs(gra, symb1, cent, symb2, allow_cent_conn=False):
     """ Determine the triplet of indices of atoms of specified
         types that are connected in a chain by two bonds:
         (symb1_idx, cent_idx, symb2_idx).
@@ -685,6 +687,16 @@ def two_bond_idxs(gra, symb1, cent, symb2):
             grp_idxs = (neighs[0], cent_idx, neighs[1])
         elif neigh_symbs == (symb2, symb1):
             grp_idxs = (neighs[1], cent_idx, neighs[0])
+        elif allow_cent_conn and symb1 in neigh_symbs and symb2 in neigh_symbs:
+            idx_1 = None
+            idx_2 = None
+            for idx in neighs:
+                if idx_symb_dct[idx] == symb1 and idx_1 is None:
+                    idx_1 = idx
+                elif idx_symb_dct[idx] == symb2:
+                    idx_2 = idx
+            if idx_1 is not None and idx_2 is not None:
+                grp_idxs = (idx_1, cent_idx, idx_2)
         else:
             grp_idxs = ()
 
