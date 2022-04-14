@@ -36,7 +36,7 @@ class FunctionalGroup():
     PEROXY = 'peroxy'
     HYDROPEROXY = 'hydroperoxy'
     ETHER = 'ether'
-    EPOXIDE = 'epoxide'
+    CYCLIC_ETHER = 'cyclic_ether'
     ALDEHYDE = 'aldehyde'
     KETONE = 'ketone'
     ESTER = 'ester'
@@ -52,8 +52,8 @@ class FunctionalGroup():
 
 
 def functional_group_count_dct(gra):
-    """ Return a dictionary that contains a count of the number of each of the functional
-        groups in a species.
+    """ Return a dictionary that contains a count of the number
+        of each of the functional groups in a species.
 
         :param gra: molecular graph
         :type gra: molecular graph data structure
@@ -82,7 +82,7 @@ def functional_group_dct(gra):
     peroxy_grps = peroxy_groups(gra)
     hydroperoxy_grps = hydroperoxy_groups(gra)
     ether_grps = ether_groups(gra)
-    epoxide_grps = epoxy_groups(gra)
+    cyc_ether_grps = cyclic_ether_groups(gra)
     carbox_acid_grps = carboxylic_acid_groups(gra)
     ester_grps = ester_groups(gra)
     ether_grps = ether_groups(gra, filterlst=ester_grps)
@@ -104,13 +104,12 @@ def functional_group_dct(gra):
         FunctionalGroup.PEROXY: peroxy_grps,
         FunctionalGroup.HYDROPEROXY: hydroperoxy_grps,
         FunctionalGroup.ETHER: ether_grps,
-        FunctionalGroup.EPOXIDE: epoxide_grps,
+        FunctionalGroup.CYCLIC_ETHER: cyc_ether_grps,
         FunctionalGroup.CARBOX_ACID: carbox_acid_grps,
         FunctionalGroup.ESTER: ester_grps,
         FunctionalGroup.ALCOHOL: alcohol_grps,
         FunctionalGroup.ALDEHYDE: aldehyde_grps,
         FunctionalGroup.KETONE: ketone_grps,
-        # FunctionalGroup.AMINE: amine_grps,
         FunctionalGroup.AMIDE: amide_grps,
         FunctionalGroup.NITRO: nitro_grps,
         FunctionalGroup.HALIDE: halide_grps,
@@ -288,8 +287,8 @@ def ether_groups(gra, filterlst=()):
     return ether_grps
 
 
-def epoxy_groups(gra):
-    """ Determine the location of 1,2-epoxy groups. The locations are
+def cyclic_ether_groups(gra):
+    """ Determine the location of cyclic ether groups. The locations are
         specified as tuple-of-tuple of idxs indicating the C-O-C atoms
         of the group: (C-idx, O-idx, C-idx).
 

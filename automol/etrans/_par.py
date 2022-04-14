@@ -136,7 +136,7 @@ D0_GRP_LST = (
     # FunctionalGroup.'ketohydroperoxide':             # (35.0, 51.0)
     # FunctionalGroup.'1-alkyl':                       # 40.0
     # FunctionalGroup.'n-hydroperoxide':               # 45.0
-    (FunctionalGroup.EPOXIDE, 'epoxide'),              # 60.0
+    (FunctionalGroup.CYCLIC_ETHER, 'cyclic_ether'),    # 60.0
     (FunctionalGroup.ETHER, 'ether'),                  # 82.0
     (FunctionalGroup.ALCOHOL, 'n-alcohol')             # 90.0
 )
