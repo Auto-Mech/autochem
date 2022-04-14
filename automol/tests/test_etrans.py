@@ -31,7 +31,7 @@ CX_INF = ('InChI=1S/C4H9Cl/c1-2-3-4-5/h2-4H2,1H3', 1, 0)             # CCCCCl
 CYC_ETH_INF = ('InChI=1S/C7H14O/c1-3-4-5-7(2)6-8-7/h3-6H2,1-2H3', 1, 0)
 # ^ CCCCC1(CO1)C
 
-# Info for various baths (need to set a default of bath not viable
+# Info for baths (need to set a default of bath not viable
 BATH_INF = ('InChI=1S/Ar', 0, 1)
 BATH_INF2 = ('InChI=1S/N2/c1-2', 0, 1)
 
