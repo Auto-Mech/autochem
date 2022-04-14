@@ -71,7 +71,7 @@ def test__model():
 
     model = automol.etrans.estimate.determine_collision_model_series(
         CYC_ETH_INF[0], BATH_INF[0], 'lj')
-    assert model == frozenset({BATH_INF[0], 'epoxide'})
+    assert model == frozenset({BATH_INF[0], 'cyclic_ether'})
 
     # Halide groups have no model, just using alkanes
     model = automol.etrans.estimate.determine_collision_model_series(

@@ -297,7 +297,7 @@ def cyclic_ether_groups(gra):
         :rtype: tuple(int)
     """
 
-    epox_grps = tuple()
+    cyc_ether_grps = tuple()
 
     # Determing the indices of all rings in the molecule
     _ring_idxs = rings_atom_keys(gra)
@@ -308,9 +308,9 @@ def cyclic_ether_groups(gra):
         if _ring_idxs:
             for idxs in _ring_idxs:
                 if set(coc_grp) <= set(idxs):
-                    epox_grps += ((c1_idx, o_idx, c2_idx),)
+                    cyc_ether_grps += ((c1_idx, o_idx, c2_idx),)
 
-    return epox_grps
+    return cyc_ether_grps
 
 
 def aldehyde_groups(gra, filterlst=()):

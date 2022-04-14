@@ -239,7 +239,7 @@ from automol.graph.base._func_group import alcohol_groups
 from automol.graph.base._func_group import peroxy_groups
 from automol.graph.base._func_group import hydroperoxy_groups
 from automol.graph.base._func_group import ether_groups
-from automol.graph.base._func_group import epoxy_groups
+from automol.graph.base._func_group import cyclic_ether_groups
 from automol.graph.base._func_group import aldehyde_groups
 from automol.graph.base._func_group import ketone_groups
 from automol.graph.base._func_group import ester_groups
@@ -504,7 +504,7 @@ __all__ = [
     'peroxy_groups',
     'hydroperoxy_groups',
     'ether_groups',
-    'epoxy_groups',
+    'cyclic_ether_groups',
     'aldehyde_groups',
     'ketone_groups',
     'ester_groups',
