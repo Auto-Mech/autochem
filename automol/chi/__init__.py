@@ -23,6 +23,7 @@ from automol.amchi.base import isotope_layers as isotope_sublayers
 # from automol.chi.base._core import stereo_bonds               # excluded
 # from automol.chi.base._core import unassigned_stereo_bonds    # excluded
 from automol.chi.base._core import is_enantiomer
+from automol.chi.base._core import are_enantiomers
 from automol.chi.base._core import reflect
 # # setters
 from automol.amchi.base._core import with_inchi_prefix
@@ -30,6 +31,8 @@ from automol.amchi.base._core import with_inchi_prefix
 # from automol.chi.base._core import inchi_key  # below in L4
 # from automol.chi.base._core import smiles     # below in L4
 from automol.amchi.base import formula
+from automol.amchi.base import connectivity
+from automol.amchi.base import without_stereo
 # # # properties
 from automol.chi.base._core import is_standard_form
 from automol.amchi.base import has_multiple_components
@@ -95,6 +98,7 @@ __all__ = [
     # 'stereo_bonds',
     # 'unassigned_stereo_bonds',
     'is_enantiomer',
+    'are_enantiomers',
     'reflect',
     # # setters
     'with_inchi_prefix',
@@ -102,6 +106,8 @@ __all__ = [
     # 'inchi_key',
     # 'smiles',
     'formula',
+    'connectivity',
+    'without_stereo',
     # # # properties
     'is_standard_form',
     'has_multiple_components',

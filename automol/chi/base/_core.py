@@ -115,6 +115,26 @@ def is_enantiomer(chi, iso=True):
     return ret
 
 
+def are_enantiomers(chi_a, chi_b):
+    """ Assess if ChI string for two species are enantiomers of one another.
+
+        :param chi: ChI string
+        :type chi: str
+    """
+    pfx_a, pfx_b = prefix(chi_a), prefix(chi_b)
+    if pfx_a == pfx_b:
+        if all(pfx == 'AMChI' for pfx in (pfx_a, pfx_b)):
+            ret = automol.amchi.are_enantiomers(chi_a, chi_b)
+        elif all(pfx == 'InChI' for pfx in (pfx_a, pfx_b)):
+            ret = automol.inchi.are_enantiomers(chi_a, chi_b)
+        else:
+            raise ValueError(
+                f"ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
+    else:
+        raise ValueError(f"Prefixes for {chi_a} and {chi_b} do not match")
+    return ret
+
+
 def reflect(chi, iso=True):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
@@ -212,9 +232,9 @@ def argsort(chis):
     """
     pfxs = list(map(prefix, chis))
     if 'AMChI' in pfxs:
-        ret = automol.amchi.base.sorted_(chis)
+        ret = automol.amchi.base.argsort(chis)
     elif set(pfxs) == {'InChI'}:
-        ret = automol.inchi.base.sorted_(chis)
+        ret = automol.inchi.base.argsort(chis)
     else:
         raise ValueError(f"One of these has an unknown prefix: {chis}.")
     return ret

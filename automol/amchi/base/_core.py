@@ -305,6 +305,67 @@ def formula(chi):
     return fml
 
 
+def without_stereo(chi):
+    """ Remove all stereo layers
+    """
+
+    return standard_form(chi, stereo=False)
+
+
+def connectivity(chi, parse_connection_layer=True, parse_h_layer=True):
+    """ Return the 'c' and 'h' layers of the connectivity string
+
+        The user may also specify what combination of the two layers
+        that they wish to return
+    """
+
+    # Read the two sublayers that are requested to be parsed
+    conn_slyrs = main_layers(chi)
+
+    if parse_connection_layer:
+        cslyr = conn_slyrs.get('c', '')
+    else:
+        cslyr = ''
+
+    if parse_h_layer:
+        hslyr = conn_slyrs.get('h', '')
+    else:
+        hslyr = ''
+
+    # Write the parts of the connectivity string based on what was parsed
+    if cslyr and hslyr:
+        _str = f'c{cslyr}/h{hslyr}'
+    elif cslyr:
+        _str = f'c{cslyr}'
+    elif hslyr:
+        _str = f'h{hslyr}'
+    else:
+        _str = None
+
+    return _str
+
+
+def are_enantiomers(chi_a, chi_b):
+    """ Are these InChI enantiomers of eachother?
+
+        :param chi: InChI string
+        :type chi: str
+    """
+    ste_dct_a = stereo_layers(chi_a)
+    ste_dct_b = stereo_layers(chi_b)
+    enant = False
+    if main_layers(chi_a) == main_layers(chi_b):
+        if (len(ste_dct_b.keys()) == len(ste_dct_a.keys())
+                and 'm' in ste_dct_a.keys()):
+            if ste_dct_a['m'] != ste_dct_b['m']:
+                if 't' in ste_dct_a.keys():
+                    if ste_dct_a['t'] == ste_dct_b['t']:
+                        enant = True
+                else:
+                    enant = True
+    return enant
+
+
 # # properties
 # # # formula layer
 def symbols(chi, one_indexed=False):
