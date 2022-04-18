@@ -19,7 +19,7 @@ def instability_product_zmas(zma, stereo=True):
         could cause molecule instabilities
     """
 
-    ich = automol.zmat.inchi(zma)
+    ich = automol.geom.inchi(automol.zmat.geometry(ich))
     instab_ichs = instability_product_inchis(ich, stereo=stereo)
 
     if instab_ichs is not None:
