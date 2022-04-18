@@ -18,6 +18,9 @@ from automol.amchi.base._core import reflect
 from automol.amchi.base._core import with_inchi_prefix
 # # conversions
 from automol.amchi.base._core import formula
+from automol.amchi.base._core import connectivity
+from automol.amchi.base._core import without_stereo
+from automol.amchi.base._core import are_enantiomers
 # # properties
 # # # formula layer
 from automol.amchi.base._core import symbols
@@ -75,6 +78,9 @@ __all__ = [
     'with_inchi_prefix',
     # # conversions
     'formula',
+    'connectivity',
+    'without_stereo',
+    'are_enantiomers',
     # # properties
     # # # formula layer
     'symbols',
