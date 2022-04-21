@@ -19,11 +19,11 @@ def instability_product_zmas(zma, stereo=True):
         could cause molecule instabilities
     """
 
-    ich = automol.geom.inchi(automol.zmat.geometry(zma))
+    ich = automol.geom.chi(automol.zmat.geometry(zma))
     instab_ichs = instability_product_inchis(ich, stereo=stereo)
 
     if instab_ichs is not None:
-        instab_zmas = tuple(automol.inchi.zmatrix(ich)
+        instab_zmas = tuple(automol.chi.zmatrix(ich)
                             for ich in instab_ichs)
     else:
         instab_zmas = None
@@ -38,14 +38,14 @@ def instability_product_inchis(ich, stereo=True):
 
     instab_ichs = None
 
-    gra = automol.graph.explicit(automol.inchi.graph(ich))
+    gra = automol.graph.explicit(automol.chi.graph(ich))
     instab_gras = instability_product_graphs(
         gra, stereo=False)
 
     if instab_gras:
-        instab_ichs = [automol.graph.inchi(gra) for gra in instab_gras]
-        ste_prd1_ichs = automol.inchi.expand_stereo(instab_ichs[0])
-        ste_prd2_ichs = automol.inchi.expand_stereo(instab_ichs[1])
+        instab_ichs = [automol.graph.chi(gra) for gra in instab_gras]
+        ste_prd1_ichs = automol.chi.expand_stereo(instab_ichs[0])
+        ste_prd2_ichs = automol.chi.expand_stereo(instab_ichs[1])
         prd_ichs_lst = itertools.product(ste_prd1_ichs, ste_prd2_ichs)
 
         for prd_ichs in prd_ichs_lst:

@@ -89,47 +89,47 @@ def test__effective_rotor():
     """
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(CH1_INF[0]))
+        automol.chi.geometry(CH1_INF[0]))
     assert numpy.isclose(2.0, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(CH2_INF[0]))
+        automol.chi.geometry(CH2_INF[0]))
     assert numpy.isclose(8.0, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(TRMB_INF[0]))
+        automol.chi.geometry(TRMB_INF[0]))
     assert numpy.isclose(3.3333333, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(TEMB_INF[0]))
+        automol.chi.geometry(TEMB_INF[0]))
     assert numpy.isclose(3.0, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(DMB_INF[0]))
+        automol.chi.geometry(DMB_INF[0]))
     assert numpy.isclose(3.3333333, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(DMB2_INF[0]))
+        automol.chi.geometry(DMB2_INF[0]))
     assert numpy.isclose(3.6666666, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(CYC_INF[0]))
+        automol.chi.geometry(CYC_INF[0]))
     assert numpy.isclose(3.0, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(ISOPENT_INF[0]))
+        automol.chi.geometry(ISOPENT_INF[0]))
     assert numpy.isclose(4.0, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(COOH_INF[0]))
+        automol.chi.geometry(COOH_INF[0]))
     assert numpy.isclose(3.666666, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(COOH_ETH_INF[0]))
+        automol.chi.geometry(COOH_ETH_INF[0]))
     assert numpy.isclose(3.333333, n_eff)
 
     n_eff = automol.etrans.estimate.effective_rotor_count(
-        automol.inchi.geometry(ALC_INF[0]))
+        automol.chi.geometry(ALC_INF[0]))
     assert numpy.isclose(2.333333, n_eff)
 
 
@@ -142,8 +142,8 @@ def test__estimate():
     collider_set2 = frozenset({BATH_INF[0], BATH_INF2[0]})
     n_eff = 2.333333333333
 
-    tgt_geo = automol.inchi.geometry(ALC_INF[0])
-    bath_geo = automol.inchi.geometry(BATH_INF[0])
+    tgt_geo = automol.chi.geometry(ALC_INF[0])
+    bath_geo = automol.chi.geometry(BATH_INF[0])
     tgt_mass = automol.geom.total_mass(tgt_geo)
     bath_mass = automol.geom.total_mass(bath_geo)
 

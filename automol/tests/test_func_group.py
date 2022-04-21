@@ -7,67 +7,67 @@ import automol
 
 # Graphs used to inspect for functional groups
 C2H6_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CC')))
+    automol.chi.geometry(
+        automol.smiles.chi('CC')))
 
 C4H10_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCCC')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCCC')))
 
 C4H6_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('C=CC=C')))
+    automol.chi.geometry(
+        automol.smiles.chi('C=CC=C')))
 
 C4H2_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('C#CC#C')))
+    automol.chi.geometry(
+        automol.smiles.chi('C#CC#C')))
 
 C2H5OH_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCO')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCO')))
 
 C2H5CL_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCCl')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCCl')))
 
 C2H5SH_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCS')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCS')))
 
 CH3OCH3_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('COC')))
+    automol.chi.geometry(
+        automol.smiles.chi('COC')))
 
 CYC_ETHER_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CC1CO1')))
+    automol.chi.geometry(
+        automol.smiles.chi('CC1CO1')))
 
 C2H5OOH_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCOO')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCOO')))
 
 C2H5OO_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCO[O]')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCO[O]')))
 
 CCOCCO_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CC(=O)CC=O')))
+    automol.chi.geometry(
+        automol.smiles.chi('CC(=O)CC=O')))
 
 C2H5CO_OH_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CC(=O)O')))
+    automol.chi.geometry(
+        automol.smiles.chi('CC(=O)O')))
 
 CCOOC_GRA = automol.geom.graph(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CC(=O)OC')))
+    automol.chi.geometry(
+        automol.smiles.chi('CC(=O)OC')))
 
 # GRAP = automol.geom.graph(
-#     automol.inchi.geometry(
-#         automol.smiles.inchi('C[N+](=O)[O-]')))
+#     automol.chi.geometry(
+#         automol.smiles.chi('C[N+](=O)[O-]')))
 # GRAP = automol.geom.graph(
-#     automol.inchi.geometry(
-#         automol.smiles.inchi('CC(=O)N')))
+#     automol.chi.geometry(
+#         automol.smiles.chi('CC(=O)N')))
 
 INI_FGRP_DCT = {
     automol.graph.FunctionalGroup.ALKENE: (),

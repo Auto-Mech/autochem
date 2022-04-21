@@ -578,8 +578,8 @@ def test__insert_dummies():
     """ test geom.insert_dummies
     """
     # 1. Generate a z-matrix to start with
-    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
-    zma = automol.geom.zmatrix(automol.inchi.geometry(ich))
+    ich = automol.smiles.chi('CC#CC#CCCCC#CC')
+    zma = automol.geom.zmatrix(automol.chi.geometry(ich))
 
     # 2. Convert to cartesians and remove dummy atoms
     geo = automol.zmat.geometry(zma)
@@ -608,12 +608,12 @@ def test__hydrogen_bonded_structure():
     """ test automol.geom.hydrogen_bonded_strcure
     """
 
-    ich = automol.smiles.inchi('CCCC[O]')
-    geo = automol.inchi.geometry(ich)
+    ich = automol.smiles.chi('CCCC[O]')
+    geo = automol.chi.geometry(ich)
     print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
 
-    ich = automol.smiles.inchi('CC(=O)CO')
-    geo = automol.inchi.geometry(ich)
+    ich = automol.smiles.chi('CC(=O)CO')
+    geo = automol.chi.geometry(ich)
     print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
 
     # H-abstraction with OH. (1) Has internal H-Bond, (2) No internal H-Bond
