@@ -21,6 +21,7 @@ from automol.amchi.base._core import formula
 from automol.amchi.base._core import connectivity
 from automol.amchi.base._core import without_stereo
 from automol.amchi.base._core import are_enantiomers
+from automol.amchi.base._core import are_diastereomers
 # # properties
 # # # formula layer
 from automol.amchi.base._core import symbols
@@ -81,6 +82,7 @@ __all__ = [
     'connectivity',
     'without_stereo',
     'are_enantiomers',
+    'are_diastereomers',
     # # properties
     # # # formula layer
     'symbols',

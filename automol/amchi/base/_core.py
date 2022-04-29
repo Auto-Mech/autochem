@@ -366,6 +366,33 @@ def are_enantiomers(chi_a, chi_b):
     return enant
 
 
+def are_diastereomers(chi_a, chi_b):
+    """ Are these InChI diastereomers of each other?
+
+        Checks if main layer is the same, if so then checks
+        if the stereo layers differ in any way.
+
+        :returns: whether or not the InChI is enantiomeric
+        :rtype: bool
+    """
+
+    diast = False
+    if chi_a != chi_b:  # chk not same InChIs
+        if main_layers(chi_a) == main_layers(chi_b):
+            ste_dct_a = stereo_layers(chi_a)
+            ste_dct_b = stereo_layers(chi_b)
+            # b-lyr are diastereomers; t-lyr may be, need check
+            if len(ste_dct_a.keys()) == len(ste_dct_b.keys()):
+                if 'b' in ste_dct_a.keys():
+                    if ste_dct_a['b'] != ste_dct_b['b']:
+                        diast = True
+                elif 't' in ste_dct_a.keys():
+                    if ste_dct_a['t'] != ste_dct_b['t']:
+                        diast = True
+
+    return diast
+
+
 # # properties
 # # # formula layer
 def symbols(chi, one_indexed=False):

@@ -135,6 +135,26 @@ def are_enantiomers(chi_a, chi_b):
     return ret
 
 
+def are_diastereomers(chi_a, chi_b):
+    """ Assess if ChI string for two species are diastereomers of one another.
+
+        :param chi: ChI string
+        :type chi: str
+    """
+    pfx_a, pfx_b = prefix(chi_a), prefix(chi_b)
+    if pfx_a == pfx_b:
+        if all(pfx == 'AMChI' for pfx in (pfx_a, pfx_b)):
+            ret = automol.amchi.are_diastereomers(chi_a, chi_b)
+        elif all(pfx == 'InChI' for pfx in (pfx_a, pfx_b)):
+            ret = automol.inchi.are_diastereomers(chi_a, chi_b)
+        else:
+            raise ValueError(
+                f"ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
+    else:
+        raise ValueError(f"Prefixes for {chi_a} and {chi_b} do not match")
+    return ret
+
+
 def reflect(chi, iso=True):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer

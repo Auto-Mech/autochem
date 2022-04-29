@@ -25,6 +25,7 @@ from automol.amchi.base import isotope_layers as isotope_sublayers
 # from automol.chi.base._core import unassigned_stereo_bonds    # excluded
 from automol.chi.base._core import is_enantiomer
 from automol.chi.base._core import are_enantiomers
+from automol.chi.base._core import are_diastereomers
 from automol.chi.base._core import reflect
 # # setters
 from automol.amchi.base._core import with_inchi_prefix
@@ -80,6 +81,7 @@ __all__ = [
     # 'unassigned_stereo_bonds',
     'is_enantiomer',
     'are_enantiomers',
+    'are_diastereomers',
     'reflect',
     # # setters
     'with_inchi_prefix',
