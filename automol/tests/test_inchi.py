@@ -200,6 +200,36 @@ def test__reflect():
     assert inchi.reflect(ich2) == ich2
 
 
+def test__are_diastereomers():
+    """ test inchi.diasteromer
+    """
+
+    assert not inchi.are_diastereomers(
+        'InChI=1S/C4H8O3/c1-3(5)4(2)7-6/h4,6H,1-2H3/t4-/m0/s1',
+        'InChI=1S/C4H8O3/c1-4(7-6)2-3-5/h3-4,6H,2H2,1H3/t4-/m0/s1'
+    )
+    assert not inchi.are_diastereomers(
+        'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
+        'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1'
+    )
+    assert not inchi.are_diastereomers(
+        'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
+        'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1'
+    )
+    assert inchi.are_diastereomers(
+        'InChI=1S/C4H8O3/c1-3-4(7-3)2-6-5/h3-5H,2H2,1H3/t3-,4-/m0/s1',
+        'InChI=1S/C4H8O3/c1-3-4(7-3)2-6-5/h3-5H,2H2,1H3/t3-,4+/m0/s1'
+    )
+    assert inchi.are_diastereomers(
+        'InChI=1S/C4H8O2/c1-2-3-4-6-5/h3-5H,2H2,1H3/b4-3-',
+        'InChI=1S/C4H8O2/c1-2-3-4-6-5/h3-5H,2H2,1H3/b4-3+'
+    )
+    assert inchi.are_diastereomers(
+        'InChI=1S/C4H7O2/c1-4(6)2-3-5/h2-5H,1H3/b3-2-/t4-/m0/s1',
+        'InChI=1S/C4H7O2/c1-4(6)2-3-5/h2-5H,1H3/b3-2+/t4-/m0/s1'
+    )
+
+
 def test__stereo():
     """ test inchi.add_stereo
         test inchi.expand_stereo
@@ -295,6 +325,7 @@ if __name__ == '__main__':
     # test__stereo_atoms()
     # test__stereo_bonds()
     # test__stereo()
+    test__are_diastereomers()
     # test__is_enantiomer()
     # test__reflect()
     # test__filter_enantiomer_reactions()
