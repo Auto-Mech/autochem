@@ -476,6 +476,37 @@ def are_enantiomers(ich_a, ich_b):
     return enant
 
 
+def are_diastereomers(ich_a, ich_b):
+    """ Are these InChI diastereomers of each other?
+
+        Checks if main layer is the same, if so then checks
+        if the stereo layers differ in any way.
+
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: whether or not the InChI is enantiomeric
+        :rtype: bool
+    """
+
+    diast = False
+    if ich_a != ich_b:  # chk not same InChIs
+        if main_sublayers(ich_a) == main_sublayers(ich_b):
+            ste_dct_a = stereo_sublayers(ich_a)
+            ste_dct_b = stereo_sublayers(ich_b)
+            # b-lyr are diastereomers; t-lyr may be, need check
+            if len(ste_dct_a.keys()) == len(ste_dct_b.keys()):
+                if 'b' in ste_dct_a.keys():
+                    if ste_dct_a['b'] != ste_dct_b['b']:
+                        diast = True
+                elif 't' in ste_dct_a.keys():
+                    if ste_dct_a['t'] != ste_dct_b['t']:
+                        diast = True
+
+    return diast
+
+
 def reflect(ich, iso=True):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
