@@ -115,7 +115,7 @@ def is_enantiomer(chi, iso=True):
     return ret
 
 
-def are_enantiomers(chi_a, chi_b):
+def are_enantiomers(chi_a, chi_b, log=False):
     """ Assess if ChI string for two species are enantiomers of one another.
 
         :param chi: ChI string
@@ -128,14 +128,17 @@ def are_enantiomers(chi_a, chi_b):
         elif all(pfx == 'InChI' for pfx in (pfx_a, pfx_b)):
             ret = automol.inchi.are_enantiomers(chi_a, chi_b)
         else:
-            raise ValueError(
-                f"ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
+            if log:
+                print("ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
     else:
-        raise ValueError(f"Prefixes for {chi_a} and {chi_b} do not match")
+        if log:
+            print("ChI string prefixes of '{chi_a}' and '{chi_b}' do not match")
+        ret = False
+
     return ret
 
 
-def are_diastereomers(chi_a, chi_b):
+def are_diastereomers(chi_a, chi_b, log=False):
     """ Assess if ChI string for two species are diastereomers of one another.
 
         :param chi: ChI string
@@ -148,10 +151,13 @@ def are_diastereomers(chi_a, chi_b):
         elif all(pfx == 'InChI' for pfx in (pfx_a, pfx_b)):
             ret = automol.inchi.are_diastereomers(chi_a, chi_b)
         else:
-            raise ValueError(
-                f"ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
+            if log:
+                print("ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
     else:
-        raise ValueError(f"Prefixes for {chi_a} and {chi_b} do not match")
+        if log:
+            print("ChI string prefixes of '{chi_a}' and '{chi_b}' do not match")
+        ret = False
+
     return ret
 
 
