@@ -143,7 +143,6 @@ def conserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
                                   idx_dct=prds_idx_dct)
 
     cons_ste_atm_keys = frozenset(keys1 & keys2)
-    print(cons_ste_atm_keys)
 
     return cons_ste_atm_keys
 
@@ -170,7 +169,6 @@ def conserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
                                   idx_dct=prds_idx_dct)
 
     cons_ste_bnd_keys = frozenset(keys1 & keys2)
-    print(cons_ste_bnd_keys)
 
     return cons_ste_bnd_keys
 
