@@ -286,7 +286,7 @@ def compatible_reverse_stereomers(can_tsg):
     """ Given a TS graph with stereo assignments, expand all possible reverse
     graphs compatble with the forward graph.
 
-    :param can_tsg: The TS graph, with stereo assignments.
+    :param can_tsg: A TS graph, with canonical stereo assignments.
     :returns: All possible reverse TS graphs.
     """
     prds_gra = products_graph(can_tsg)
@@ -299,34 +299,32 @@ def compatible_reverse_stereomers(can_tsg):
     cons_bnd_keys = sorted(
         conserved_bond_stereo_keys(can_tsg, prds_idx_dct=prds_idx_dct))
 
-    # 1. Determine index-based stereo assignments for conserved stereo centers
+    # 1. Determine local stereo assignments for conserved stereo centers
     loc_tsg = to_local_stereo(can_tsg)
-    cons_idx_atm_pars = dict_.values_by_key(
+    cons_loc_atm_pars = dict_.values_by_key(
         atom_stereo_parities(loc_tsg), cons_atm_keys)
-    cons_idx_bnd_pars = dict_.values_by_key(
+    cons_loc_bnd_pars = dict_.values_by_key(
         bond_stereo_parities(loc_tsg), cons_bnd_keys)
 
-    # 2. Determine all possible index-based stereo assignments for the reverse
-    #    reaction.
+    # 2. Expand all possibile assignments for the products and convert them to
+    #    local stereo assignments.
     prds_gra = without_stereo_parities(products_graph(can_tsg))
-    prds_sgrs = _stereomers(prds_gra)
-    prds_idx_sgrs = list(map(_to_local_stereo, prds_sgrs))
-    rev_loc_tsgs_pool = [
-        graph(p, brk_bnd_keys, frm_bnd_keys) for p in prds_idx_sgrs]
+    prds_can_gras = list(_stereomers(prds_gra))
+    prds_loc_gras = list(map(_to_local_stereo, prds_can_gras))
 
     # 3. Find possibilities which match the assignments for the conserved
     #    stereo centers.
-    rev_loc_tsgs = []
-    for rev_loc_tsg in rev_loc_tsgs_pool:
-        rev_cons_idx_atm_pars = dict_.values_by_key(
-            atom_stereo_parities(rev_loc_tsg), cons_atm_keys)
-        rev_cons_idx_bnd_pars = dict_.values_by_key(
-            bond_stereo_parities(rev_loc_tsg), cons_bnd_keys)
-        if (rev_cons_idx_atm_pars == cons_idx_atm_pars and
-                rev_cons_idx_bnd_pars == cons_idx_bnd_pars):
-            rev_loc_tsgs.append(rev_loc_tsg)
+    rev_can_tsgs = []
+    for prds_can_gra, prds_loc_gra in zip(prds_can_gras, prds_loc_gras):
+        prd_cons_loc_atm_pars = dict_.values_by_key(
+            atom_stereo_parities(prds_loc_gra), cons_atm_keys)
+        prd_cons_loc_bnd_pars = dict_.values_by_key(
+            bond_stereo_parities(prds_loc_gra), cons_bnd_keys)
 
-    # 4. Convert the matching reverse graphs back from index-based stereo
-    #    assignments to absolute stereo assignments.
-    rev_can_tsgs = list(map(from_local_stereo, rev_loc_tsgs))
+        if (prd_cons_loc_atm_pars == cons_loc_atm_pars and
+                prd_cons_loc_bnd_pars == cons_loc_bnd_pars):
+            # Form the reverse graph, with canonical stereo assignments
+            rev_can_tsg = graph(prds_can_gra, brk_bnd_keys, frm_bnd_keys)
+            rev_can_tsgs.append(rev_can_tsg)
+
     return rev_can_tsgs
