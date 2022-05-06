@@ -831,16 +831,3 @@ def _filter_idxs(idxs_lst, filterlst=()):
             filtered_lst += (idxs,)
 
     return filtered_lst
-
-
-# if __name__ == '__main__':
-#     import automol.smiles
-#     import automol.chi
-#     import automol.graph
-#     smi = 'NCC(N)C'
-#     smi = 'C=C'
-#     smi = 'C1=C(O)C(C)=CC=C1C=C'
-#     gra = automol.chi.graph(automol.smiles.chi(smi))
-#     gra = dominant_resonance(explicit(gra))
-#     print(automol.graph.string(gra))
-#     print(ring_substituents(gra))

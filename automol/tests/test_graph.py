@@ -833,6 +833,22 @@ def test__stereogenic_atom_keys():
     print(graph.stereogenic_atom_keys(cgr))
     assert graph.stereogenic_atom_keys(cgr) == frozenset({2})
 
+    # Bug fix:
+    cgr = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 2, None),
+            3: ('C', 2, None), 4: ('C', 2, None), 5: ('C', 2, None),
+            6: ('C', 2, None), 7: ('C', 2, None), 8: ('C', 2, None),
+            9: ('C', 2, None), 10: ('C', 1, None), 11: ('C', 1, None),
+            12: ('O', 0, None)},
+           {frozenset({4, 6}): (1, None), frozenset({11, 12}): (1, None),
+            frozenset({8, 9}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({10, 6}): (1, None), frozenset({8, 10}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({9, 11}): (1, None),
+            frozenset({10, 12}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({11, 7}): (1, None), frozenset({1, 3}): (1, None),
+            frozenset({5, 7}): (1, None)})
+    print(graph.stereogenic_atom_keys(cgr))
+    assert graph.stereogenic_atom_keys(cgr) == frozenset({10, 11})
+
 
 def test__stereogenic_bond_keys():
     """ test graph.stereogenic_bond_keys
