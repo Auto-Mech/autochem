@@ -310,12 +310,13 @@ def compatible_reverse_stereomers(can_tsg):
     #    local stereo assignments.
     prds_gra = without_stereo_parities(products_graph(can_tsg))
     prds_can_gras = list(_stereomers(prds_gra))
-    prds_loc_gras = list(map(_to_local_stereo, prds_can_gras))
 
     # 3. Find possibilities which match the assignments for the conserved
     #    stereo centers.
     rev_can_tsgs = []
-    for prds_can_gra, prds_loc_gra in zip(prds_can_gras, prds_loc_gras):
+    for prds_can_gra in prds_can_gras:
+        prds_loc_gra = _to_local_stereo(prds_can_gra)
+
         prd_cons_loc_atm_pars = dict_.values_by_key(
             atom_stereo_parities(prds_loc_gra), cons_atm_keys)
         prd_cons_loc_bnd_pars = dict_.values_by_key(
