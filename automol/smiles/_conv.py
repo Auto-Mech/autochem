@@ -4,6 +4,7 @@ import automol.inchi.base
 import automol.graph.base
 from automol.extern import rdkit_
 from automol.smiles.base import split
+from automol.smiles.base import without_resonance_stereo
 from automol.smiles.base import parse_connected_molecule_properties
 
 
@@ -28,6 +29,7 @@ def inchi(smi):
         :type smi: str
         :rtype: str
     """
+    smi = without_resonance_stereo(smi)
 
     ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
         'smiles', smi, comp=_compare)
