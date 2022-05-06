@@ -121,10 +121,6 @@ def products_graph(tsg):
     return reactants_graph(reverse(tsg))
 
 
-<<<<<<< HEAD
-def nonconserved_atom_stereo_keys(can_tsg, check=False,
-                                  rcts_idx_dct=None, prds_idx_dct=None):
-=======
 def conserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
     """ Determine atom stereo centers which are conserved by the reaction.
 
@@ -178,7 +174,6 @@ def conserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
 
 
 def nonconserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
->>>>>>> f5b0152592eef556f030238f30b4e01422c84456
     """ Determine atom stereo centers which are not conserved by the reaction.
 
     This includes atoms which are stereogenic for the products but not for the
@@ -186,12 +181,7 @@ def nonconserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
     the reactants but not for the products ("destroyed" stereo centers).
 
     :param can_tsg: The TS graph, with stereo assignments.
-<<<<<<< HEAD
-    :parm rcts_idx_dct: Symmetry class indices for the reactants, to avoid
-        recalculating
-=======
->>>>>>> f5b0152592eef556f030238f30b4e01422c84456
-    :parm prds_idx_dct: Symmetry class indices for the products, to avoid
+    :param prds_idx_dct: Symmetry class indices for the products, to avoid
         recalculating
     :returns: Created and destroyed atom stereo centers, respectively.
     :rtype: (frozenset, frozenset)
@@ -200,19 +190,6 @@ def nonconserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
     prds_gra = products_graph(can_tsg)
     prds_idx_dct = (class_indices(prds_gra, backbone_only=False) if
                     prds_idx_dct is None else prds_idx_dct)
-<<<<<<< HEAD
-
-    if check:
-        rcts_idx_dct = (class_indices(rcts_gra, backbone_only=False) if
-                        rcts_idx_dct is None else rcts_idx_dct)
-        ste_atm_keys = stereogenic_atom_keys(rcts_gra, idx_dct=rcts_idx_dct)
-        ste_bnd_keys = stereogenic_bond_keys(rcts_gra, idx_dct=rcts_idx_dct)
-        assert not ste_atm_keys, (
-            f"Unassigned atom stereo centers: {str(ste_atm_keys)}")
-        assert not ste_bnd_keys, (
-            f"Unassigned bond stereo centers: {str(ste_bnd_keys)}")
-=======
->>>>>>> f5b0152592eef556f030238f30b4e01422c84456
 
     keys1 = atom_stereo_keys(rcts_gra)
     keys2 = stereogenic_atom_keys(prds_gra, assigned=True,
@@ -224,12 +201,7 @@ def nonconserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
     return cre_ste_atm_keys, des_ste_atm_keys
 
 
-<<<<<<< HEAD
-def nonconserved_bond_stereo_keys(can_tsg, check=False,
-                                  rcts_idx_dct=None, prds_idx_dct=None):
-=======
 def nonconserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
->>>>>>> f5b0152592eef556f030238f30b4e01422c84456
     """ Determine bond stereo centers which are not conserved by the reaction.
 
     This includes bonds which are stereogenic for the products but not for the
@@ -237,12 +209,7 @@ def nonconserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
     the reactants but not for the products ("destroyed" stereo centers).
 
     :param can_tsg: The TS graph, with stereo assignments.
-<<<<<<< HEAD
-    :parm rcts_idx_dct: Symmetry class indices for the reactants, to avoid
-        recalculating
-=======
->>>>>>> f5b0152592eef556f030238f30b4e01422c84456
-    :parm prds_idx_dct: Symmetry class indices for the products, to avoid
+    :param prds_idx_dct: Symmetry class indices for the products, to avoid
         recalculating
     :returns: Created and destroyed bond stereo centers, respectively.
     :rtype: (frozenset, frozenset)
@@ -251,19 +218,6 @@ def nonconserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
     prds_gra = products_graph(can_tsg)
     prds_idx_dct = (class_indices(prds_gra, backbone_only=False) if
                     prds_idx_dct is None else prds_idx_dct)
-<<<<<<< HEAD
-
-    if check:
-        rcts_idx_dct = (class_indices(rcts_gra, backbone_only=False) if
-                        rcts_idx_dct is None else rcts_idx_dct)
-        ste_atm_keys = stereogenic_atom_keys(rcts_gra, idx_dct=rcts_idx_dct)
-        ste_bnd_keys = stereogenic_bond_keys(rcts_gra, idx_dct=rcts_idx_dct)
-        assert not ste_atm_keys, (
-            f"Unassigned atom stereo centers: {str(ste_atm_keys)}")
-        assert not ste_bnd_keys, (
-            f"Unassigned bond stereo centers: {str(ste_bnd_keys)}")
-=======
->>>>>>> f5b0152592eef556f030238f30b4e01422c84456
 
     keys1 = bond_stereo_keys(rcts_gra)
     keys2 = stereogenic_bond_keys(prds_gra, assigned=True,
