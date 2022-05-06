@@ -1288,14 +1288,13 @@ def relax_class_indices(gra, idx_dct, srt_eval_):
                 cla_dct[new_idx] = part
                 idx_dct.update({k: new_idx for k in part})
 
-                # Track the set of nex indices
+                # Track the set of new indices
                 new_idxs.append(new_idx)
 
                 # Increment the index for the next class by the number of
                 # members in this one, so that that class indices are stable.
                 new_idx += len(part)
 
-            # THIS PART MIGHT BE THE PROBLEM
             # Identify indices of classes with neighboring atoms, as these may
             # be affected by the re-classification.
             ngb_idxs = frozenset()
@@ -1311,7 +1310,6 @@ def relax_class_indices(gra, idx_dct, srt_eval_):
 
                 # Don't revert back to this class, and don't include classes
                 # that were already up for re-evaluation.
-                ngb_idxs -= {new_idx}
                 ngb_idxs -= frozenset(dict(new_clas))
 
             for ngb_idx in sorted(ngb_idxs):
