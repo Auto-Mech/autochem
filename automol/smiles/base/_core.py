@@ -54,6 +54,21 @@ SUBCHAINS = pp.ZeroOrMore(pp.nestedExpr('(', ')', content=CHAIN))
 SMILES_PARSER = pp.OneOrMore(CHAIN + SUBCHAINS)
 
 
+# # conversions
+def without_resonance_stereo(smi):
+    """ Generate a SMILES string without resonance stereo.
+
+        :param smi: SMILES string
+        :type smi: str
+        :returns: A SMILES without resonance stereo, which will be readable by
+            other codes.
+        :rtype: str
+    """
+    smi = smi.replace('=/', '=')
+    smi = smi.replace('=\\', '=')
+    return smi
+
+
 # # split/join
 def split(smi):
     """ Split a SMILES string into connected components
