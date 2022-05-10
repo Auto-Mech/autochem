@@ -14,6 +14,7 @@ from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import terminal_heavy_atom_keys
 from automol.graph.base._algo import connected_components
@@ -79,6 +80,8 @@ def connected_amchi_with_indices(gra, stereo=True, can=True,
         :returns: the AMChI string
         :rtype: str
     """
+    gra = without_dummy_atoms(gra)
+
     if not stereo:
         gra = without_stereo_parities(gra)
 

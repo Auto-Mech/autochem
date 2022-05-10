@@ -29,6 +29,7 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import terminal_atom_keys
 from automol.graph.base._core import string
 from automol.graph.base._core import implicit
+from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import add_bonded_atom
 from automol.graph.base._core import set_atom_implicit_hydrogen_valences
@@ -83,6 +84,8 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
         :returns: the SMILES string
         :rtype: str
     """
+    gra = without_dummy_atoms(gra)
+
     assert is_connected(gra), (
         "Cannot determine SMILES for disconnected graph.")
 
