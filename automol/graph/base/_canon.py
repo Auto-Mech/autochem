@@ -36,6 +36,7 @@ from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import union_from_sequence
+from automol.graph.base._core import string as graph_string
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
@@ -583,7 +584,12 @@ def class_indices_and_stereo_parities(gra,
         :rtype: dict[int: int], dict[int: bool], dict[frozenset: bool]
     """
     assert is_connected(gra), "Not for disconnected graphs."
-    assert gra == without_dummy_atoms(gra), "Remove dummy atoms."
+    assert gra == without_dummy_atoms(gra), (
+        ("Remove dummy atoms:\n"
+         f"{graph_string(gra)}\n"
+         f"{graph_string(without_dummy_atoms(gra))}\n"
+        )
+    )
 
     # Work with an implicit graph to determine class indices for backbone atoms
     # Remove stereo parities for consistent class index determination /
