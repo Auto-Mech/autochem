@@ -1165,87 +1165,7 @@ def sort_evaluator_atom_invariants_(gra):
     return _evaluator
 
 
-def sort_evaluator_tie_breaking_(gra):
-    """ A sort function for tie-breaking with two levels of currying.
-
-        This function is to be called last, after the only remaining classes
-        with multiple members are indeed perfectly interchangeable.
-
-        To get the sort value for a specific key, use
-            srt_val = sort_evaluator_atom_invariants_(gra)(idx_dct)(key)
-
-        My reasoning for doing things this way is that `gra` never changes, but
-        `idx_dct` does, so we need to be able to update the function with new
-        index dictionaries. Ultimately, it is convenient to return a function
-        of `key` only because this can be passed to standard python sorting and
-        grouping functions such as `sorted()` and `itertools.groupby()`.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-    """
-
-    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-
-    def _evaluator(idx_dct):
-        """ Sort value evaluator based on current class indices.
-
-            :param idx_dct: A dictionary mapping atom keys to class indices.
-            :type idx_dct: dict
-        """
-
-        def _value(key):
-            ngb_idxs = tuple(
-                sorted(map(idx_dct.__getitem__, ngb_keys_dct[key])))
-            return (ngb_idxs, key)
-
-        return _value
-
-    return _evaluator
-
-
 # # symmetry class helpers
-def break_symmetry_class_ties(gra, idx_dct):
-    """ Break ties between symmetry classes.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param idx_dct: A dictionary mapping atom keys to class indices.
-        :type idx_dct: dict
-        :param srt_eval_: An evaluator for sort values, based on current class
-            indices. Curried such that srt_val_(idx_dct)(key) returns the sort
-            value.
-    """
-    idx_dct = idx_dct.copy()
-
-    cla_dct = class_dict_from_index_dict(idx_dct)
-
-    # 2. Set up the new_clas list, containing class indices and class keys that
-    # are up for re-evaluation.
-    new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
-    new_clas = sorted(new_cla_dct.items(), reverse=True)
-
-    while new_clas:
-        # Get the partition with highest symmetry class
-        idx, cla = new_clas.pop(0)
-        cla = list(cla)
-
-        # Give the last element of this symmetry class a new index
-        new_idx = idx + len(cla) - 1
-        idx_dct[cla[-1]] = new_idx
-
-        # Now, refine partitions based on the change just made.
-        cla_dct = class_dict_from_index_dict(idx_dct)
-        idx_dct = refine_class_indices(
-            gra, idx_dct, srt_eval_=sort_evaluator_atom_invariants_(gra))
-
-        # Update the list of classes needing further tie breaking
-        cla_dct = class_dict_from_index_dict(idx_dct)
-        new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
-        new_clas = sorted(new_cla_dct.items(), reverse=True)
-
-    return idx_dct
-
-
 def refine_class_indices(gra, idx_dct, srt_eval_):
     """ Refine the class indices for this graph based on some sort value.
 
@@ -1308,14 +1228,55 @@ def refine_class_indices(gra, idx_dct, srt_eval_):
                 # Get class indices of these neighboring atoms.
                 ngb_idxs |= frozenset(map(idx_dct.__getitem__, ngb_keys))
 
-                # Don't revert back to this class, and don't include classes
-                # that were already up for re-evaluation.
+                # Don't include classes that were already up for re-evaluation.
                 ngb_idxs -= frozenset(dict(new_clas))
 
             for ngb_idx in sorted(ngb_idxs):
                 ngb_cla = cla_dct[ngb_idx]
                 if len(ngb_cla) > 1:
                     new_clas.insert(0, (ngb_idx, cla_dct[ngb_idx]))
+
+    return idx_dct
+
+
+def break_symmetry_class_ties(gra, idx_dct):
+    """ Break ties between symmetry classes.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param idx_dct: A dictionary mapping atom keys to class indices.
+        :type idx_dct: dict
+        :param srt_eval_: An evaluator for sort values, based on current class
+            indices. Curried such that srt_val_(idx_dct)(key) returns the sort
+            value.
+    """
+    idx_dct = idx_dct.copy()
+
+    cla_dct = class_dict_from_index_dict(idx_dct)
+
+    # 2. Set up the new_clas list, containing class indices and class keys that
+    # are up for re-evaluation.
+    new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
+    new_clas = sorted(new_cla_dct.items(), reverse=True)
+
+    while new_clas:
+        # Get the partition with highest symmetry class
+        idx, cla = new_clas.pop(0)
+        cla = list(cla)
+
+        # Give the last element of this symmetry class a new index
+        new_idx = idx + len(cla) - 1
+        idx_dct[cla[-1]] = new_idx
+
+        # Now, refine partitions based on the change just made.
+        cla_dct = class_dict_from_index_dict(idx_dct)
+        idx_dct = refine_class_indices(
+            gra, idx_dct, srt_eval_=sort_evaluator_atom_invariants_(gra))
+
+        # Update the list of classes needing further tie breaking
+        cla_dct = class_dict_from_index_dict(idx_dct)
+        new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
+        new_clas = sorted(new_cla_dct.items(), reverse=True)
 
     return idx_dct
 
