@@ -153,7 +153,7 @@ def canonical_keys(gra, backbone_only=True):
         :type gra: automol graph data structure
         :param backbone_only: Consider backbone atoms only?
         :type backbone_only: bool
-        :param break_ties: Break ties after keys have been relaxed?
+        :param break_ties: Break ties after keys have been refined?
         :type break_ties: bool
         :returns: a dictionary of canonical keys by atom key
         :rtype: dict[int: int]
@@ -506,7 +506,7 @@ def class_indices(gra, backbone_only=True, break_ties=False,
         :type gra: automol graph data structure
         :param backbone_only: Consider backbone atoms only?
         :type backbone_only: bool
-        :param break_ties: Break ties after keys have been relaxed?
+        :param break_ties: Break ties after keys have been refined?
         :type break_ties: bool
         :param idx_dct: Optionally, pass in initial class indices by key, which
             will be refined.
@@ -544,7 +544,7 @@ def class_indices_and_stereo_parities(gra,
         :type gra: automol graph data structure
         :param backbone_only: Consider backbone atoms only?
         :type backbone_only: bool
-        :param break_ties: Break ties after keys have been relaxed?
+        :param break_ties: Break ties after keys have been refined?
         :type break_ties: bool
         :param atm_par_eval1_: An evaluator for atom stereo parities, based on
             the current class indices. Curried such that
@@ -588,7 +588,7 @@ def class_indices_and_stereo_parities(gra,
     # Work with an implicit graph to determine class indices for backbone atoms
     # Remove stereo parities for consistent class index determination /
     # canonicalization. Parities will be iteratively introduced as the class
-    # indices are relaxed.
+    # indices are refined.
     gra0 = gra
     gra = implicit(gra)
     gra = without_stereo_parities(gra)
@@ -608,8 +608,8 @@ def class_indices_and_stereo_parities(gra,
     idx_dct = (dict_.by_key({}, atom_keys(gra), fill_val=0)
                if idx_dct is None else idx_dct)
 
-    # 1. Relax initial class indices based on atom invariants, without stereo.
-    idx_dct = relax_class_indices(
+    # 1. Refine initial class indices based on atom invariants, without stereo.
+    idx_dct = refine_class_indices(
         gra, idx_dct, srt_eval_=sort_evaluator_atom_invariants_(gra))
 
     # 2. Iteratively refine class indices while introducing stereo parities
@@ -652,7 +652,7 @@ def class_indices_and_stereo_parities(gra,
 
             # e. Further refine class indices based on the new assignments
             last_idx_dct = idx_dct
-            idx_dct = relax_class_indices(
+            idx_dct = refine_class_indices(
                 gra, idx_dct, srt_eval_=sort_evaluator_atom_invariants_(gra))
 
     # 3. If requested, break ties based on keys.
@@ -1235,7 +1235,7 @@ def break_symmetry_class_ties(gra, idx_dct):
 
         # Now, refine partitions based on the change just made.
         cla_dct = class_dict_from_index_dict(idx_dct)
-        idx_dct = relax_class_indices(
+        idx_dct = refine_class_indices(
             gra, idx_dct, srt_eval_=sort_evaluator_atom_invariants_(gra))
 
         # Update the list of classes needing further tie breaking
@@ -1246,8 +1246,8 @@ def break_symmetry_class_ties(gra, idx_dct):
     return idx_dct
 
 
-def relax_class_indices(gra, idx_dct, srt_eval_):
-    """ Relax the class indices for this graph based on some sort value.
+def refine_class_indices(gra, idx_dct, srt_eval_):
+    """ Refine the class indices for this graph based on some sort value.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
