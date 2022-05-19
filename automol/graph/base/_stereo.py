@@ -102,10 +102,10 @@ def local_atom_stereo_parity_from_geometry(gra, atm_key, geo,
         :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
-    idx_dct = dict(zip(atm_keys, atm_keys))
+    pri_dct = dict(zip(atm_keys, atm_keys))
     par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    par = par_eval_(idx_dct)(atm_key)
+    par = par_eval_(pri_dct)(atm_key)
     return par
 
 
@@ -127,10 +127,10 @@ def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
         :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
-    idx_dct = dict(zip(atm_keys, atm_keys))
+    pri_dct = dict(zip(atm_keys, atm_keys))
     par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    par = par_eval_(idx_dct)(bnd_key)
+    par = par_eval_(pri_dct)(bnd_key)
     return par
 
 
@@ -201,10 +201,10 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
                    else {k: i for i, k in enumerate(atm_keys)})
 
     # Create a parity evaluator
-    idx_dct = dict(zip(atm_keys, atm_keys))
+    pri_dct = dict(zip(atm_keys, atm_keys))
     par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    par_ = par_eval_(idx_dct)
+    par_ = par_eval_(pri_dct)
 
     ste_atm_keys = list(atm_par_dct.keys())
     for atm_key in ste_atm_keys:
@@ -263,11 +263,11 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(atm_keys)})
 
-    # Create a parity evaluator
-    idx_dct = dict(zip(atm_keys, atm_keys))
+    # Create a local parity evaluator
+    pri_dct = dict(zip(atm_keys, atm_keys))
     par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    par_ = par_eval_(idx_dct)
+    par_ = par_eval_(pri_dct)
 
     for bnd_key in bnd_keys:
         par = bnd_par_dct[bnd_key]

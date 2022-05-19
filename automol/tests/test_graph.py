@@ -988,8 +988,8 @@ def test__canonical():
         _test_from_smiles(smi)
 
 
-def test__class_indices_and_stereo_parities():
-    """ test graph.class_indices_and_stereo_parities
+def test__canonical_priorities_and_stereo_parities():
+    """ test graph.canonical_priorities_and_stereo_parities
     """
 
     def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
@@ -998,15 +998,11 @@ def test__class_indices_and_stereo_parities():
         geo = automol.inchi.geometry(ich)
         gra = automol.geom.graph(geo)
 
-        atm_par_eval_ = graph.atom_parity_evaluator_from_geometry_(gra, geo)
-        bnd_par_eval_ = graph.bond_parity_evaluator_from_geometry_(gra, geo)
+        par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
 
         can_key_dct, atm_par_dct, bnd_par_dct = (
-            graph.class_indices_and_stereo_parities(
-                gra,
-                atm_par_eval1_=atm_par_eval_,
-                bnd_par_eval1_=bnd_par_eval_)
-        )
+            graph.canonical_priorities_and_stereo_parities(
+                gra, par_eval_=par_eval_))
         print(can_key_dct)
 
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
@@ -1267,7 +1263,7 @@ if __name__ == '__main__':
     # test__smiles()
     # test__smiles()
     # test__canonical()
-    # test__class_indices_and_stereo_parities()
+    test__canonical_priorities_and_stereo_parities()
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
@@ -1275,4 +1271,4 @@ if __name__ == '__main__':
     # test__stereogenic_atom_keys()
     # test__ts__nonconserved_atom_stereo_keys()
     # test__ts__compatible_reverse_stereomers()
-    test__stereogenic_atom_keys()
+    # test__stereogenic_atom_keys()
