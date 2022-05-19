@@ -23,8 +23,7 @@ from automol.graph.base._algo import branch
 from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import to_local_stereo
-from automol.graph.base._canon import atom_parity_evaluator_from_geometry_
-from automol.graph.base._canon import bond_parity_evaluator_from_geometry_
+from automol.graph.base._canon import parity_evaluator_from_geometry_
 
 
 # # core functions
@@ -103,10 +102,11 @@ def local_atom_stereo_parity_from_geometry(gra, atm_key, geo,
         :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
-    atm_par_eval_ = atom_parity_evaluator_from_geometry_(
+    idx_dct = dict(zip(atm_keys, atm_keys))
+    par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    atm_par_ = atm_par_eval_(dict(zip(atm_keys, atm_keys)))
-    return atm_par_(atm_key)
+    par = par_eval_(idx_dct)(atm_key)
+    return par
 
 
 def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
@@ -127,10 +127,11 @@ def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
         :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
-    bnd_par_eval_ = bond_parity_evaluator_from_geometry_(
+    idx_dct = dict(zip(atm_keys, atm_keys))
+    par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    bnd_par_ = bnd_par_eval_(dict(zip(atm_keys, atm_keys)))
-    return bnd_par_(bnd_key)
+    par = par_eval_(idx_dct)(bnd_key)
+    return par
 
 
 # # stereo correction
@@ -200,14 +201,15 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
                    else {k: i for i, k in enumerate(atm_keys)})
 
     # Create a parity evaluator
-    atm_par_eval_ = atom_parity_evaluator_from_geometry_(
+    idx_dct = dict(zip(atm_keys, atm_keys))
+    par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    atm_par_ = atm_par_eval_(dict(zip(atm_keys, atm_keys)))
+    par_ = par_eval_(idx_dct)
 
     ste_atm_keys = list(atm_par_dct.keys())
     for atm_key in ste_atm_keys:
         par = atm_par_dct[atm_key]
-        curr_par = atm_par_(atm_key)
+        curr_par = par_(atm_key)
 
         if curr_par != par:
             atm_ngb_keys = atm_ngb_keys_dct[atm_key]
@@ -262,13 +264,14 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
                    else {k: i for i, k in enumerate(atm_keys)})
 
     # Create a parity evaluator
-    bnd_par_eval_ = bond_parity_evaluator_from_geometry_(
+    idx_dct = dict(zip(atm_keys, atm_keys))
+    par_eval_ = parity_evaluator_from_geometry_(
         gra, geo, geo_idx_dct=geo_idx_dct)
-    bnd_par_ = bnd_par_eval_(dict(zip(atm_keys, atm_keys)))
+    par_ = par_eval_(idx_dct)
 
     for bnd_key in bnd_keys:
         par = bnd_par_dct[bnd_key]
-        curr_par = bnd_par_(bnd_key)
+        curr_par = par_(bnd_key)
 
         if curr_par != par:
             xyzs = automol.geom.base.coordinates(geo)
