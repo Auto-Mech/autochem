@@ -337,10 +337,10 @@ def test__multiple_rings():
 
 
 if __name__ == '__main__':
-    # test__geom__with_stereo()
-    # test__graph__with_stereo()
-    # test__smiles__with_stereo()
-    test__graph__misc()
-    test__inchi_geometry()
-    test__inchi_conformers()
-    test__multiple_rings()
+    test__geom__with_stereo()
+    test__graph__with_stereo()
+    test__smiles__with_stereo()
+    # test__graph__misc()
+    # test__inchi_geometry()
+    # test__inchi_conformers()
+    # test__multiple_rings()
