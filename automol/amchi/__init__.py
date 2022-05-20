@@ -1,9 +1,14 @@
 """ AMChI (AutoMech Chemical Identifier) strings
+
+Closely follows the InChI format, although canonicalizations may differ.
+Extends InChI to allow for resonance double-bond stereo.
 """
 
 # L2
 # # constructor
 from automol.amchi.base._core import from_data
+# # recalculate/standardize
+from automol.amchi.base._core import standard_form
 # # getters
 from automol.amchi.base._core import prefix
 from automol.amchi.base._core import version
@@ -12,6 +17,9 @@ from automol.amchi.base._core import main_layers
 from automol.amchi.base._core import charge_layers
 from automol.amchi.base._core import stereo_layers
 from automol.amchi.base._core import isotope_layers
+# # setters
+from automol.amchi.base._core import reflect
+from automol.amchi.base._core import with_inchi_prefix
 # # conversions
 from automol.amchi.base._core import formula
 # # properties
@@ -32,21 +40,50 @@ from automol.amchi.base._core import bond_isotope_stereo_parities
 from automol.amchi.base._core import atom_isotope_stereo_parities
 from automol.amchi.base._core import is_inverted_isotope_enantiomer
 # # other properties
-from automol.amchi.base._core import has_stereo
 from automol.amchi.base._core import has_multiple_components
+from automol.amchi.base._core import has_stereo
+from automol.amchi.base._core import has_mobile_hydrogens
 from automol.amchi.base._core import low_spin_multiplicity
+from automol.amchi.base._core import is_chiral
+# # comparisons
+from automol.amchi.base._core import same_connectivity
+from automol.amchi.base._core import equivalent
 # # split/join
 from automol.amchi.base._core import split
 from automol.amchi.base._core import join
-# L5
+# # sort
+from automol.amchi.base._core import sorted_
+from automol.amchi.base._core import argsort
+# # helpers
+from automol.amchi.base._core import version_pattern
+# reaction functions
+from automol.amchi.base._reac import filter_enantiomer_reactions
+from automol.amchi.base._reac import sort_reactions
+# L4
 # # conversions
-from automol.amchi._conv import connected_graph
+from automol.amchi._conv import amchi_key
+from automol.amchi._conv import smiles
+from automol.amchi._conv import graph
+from automol.amchi._conv import geometry
+from automol.amchi._conv import conformers
+# # derived properties
+from automol.amchi._conv import is_complete
+# # derived transformations
+from automol.amchi._conv import add_stereo
+from automol.amchi._conv import expand_stereo
+# drawing tools
+from automol.amchi._draw import draw
+from automol.amchi._draw import draw_grid
+# assessment tools
+from automol.amchi._assess import is_valid_multiplicity
 
 
 __all__ = [
     # L2
     # # constructor
     'from_data',
+    # # recalculate/standardize
+    'standard_form',
     # # getters
     'prefix',
     'version',
@@ -55,6 +92,9 @@ __all__ = [
     'charge_layers',
     'stereo_layers',
     'isotope_layers',
+    # # setters
+    'reflect',
+    'with_inchi_prefix',
     # # conversions
     'formula',
     # # properties
@@ -75,13 +115,40 @@ __all__ = [
     'atom_isotope_stereo_parities',
     'is_inverted_isotope_enantiomer',
     # # other properties
-    'has_stereo',
     'has_multiple_components',
+    'has_stereo',
+    'has_mobile_hydrogens',
     'low_spin_multiplicity',
+    'is_chiral',
+    # # comparisons
+    'same_connectivity',
+    'equivalent',
     # # split/join
     'split',
     'join',
-    # L5
+    # # sort
+    'sorted_',
+    'argsort',
+    # # helpers
+    'version_pattern',
+    # reaction functions
+    'filter_enantiomer_reactions',
+    'sort_reactions',
+    # L4
     # # conversions
-    'connected_graph',
+    'amchi_key',
+    'smiles',
+    'graph',
+    'geometry',
+    'conformers',
+    # # derived properties
+    'is_complete',
+    # # derived transformations
+    'add_stereo',
+    'expand_stereo',
+    # drawing tools
+    'draw',
+    'draw_grid',
+    # assessment tools
+    'is_valid_multiplicity',
 ]

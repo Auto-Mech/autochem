@@ -171,23 +171,23 @@ def test__geom__no_stereo():
             C2H6_H_GEO, ts_bnds=frozenset({7, 8}))
 
 
-# def test__graph__with_stereo():
-#     """ test graph conversions
-#     """
-#     print('graph with stereo')
-#
-#     ref_ichs = []
-#     ref_ichs = ICHS_WITH_STEREO
-#     if NSAMP is not None:
-#         ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
-#
-#     for ref_ich in ref_ichs:
-#         print(ref_ich, flush=True)
-#         gra = automol.inchi.graph(ref_ich)
-#         ich = automol.graph.inchi(gra, stereo=True)
-#         assert ich == ref_ich
-#
-#         assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+def test__graph__with_stereo():
+    """ test graph conversions
+    """
+    print('graph with stereo')
+
+    ref_ichs = []
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
+
+    for ref_ich in ref_ichs:
+        print(ref_ich, flush=True)
+        gra = automol.inchi.graph(ref_ich)
+        ich = automol.graph.inchi(gra, stereo=True)
+        assert ich == ref_ich
+
+        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
 
 
 def test__graph__no_stereo():
@@ -225,6 +225,7 @@ def test__zmatrix__with_stereo():
         ref_geo = automol.inchi.geometry(ref_ich)
         zma = automol.geom.zmatrix(ref_geo)
         geo = automol.zmat.geometry(zma)
+        print(automol.geom.string(geo))
         ich = automol.geom.inchi(geo)
         assert ich == ref_ich, (f'{ich} != {ref_ich}')
 
@@ -247,23 +248,6 @@ def test__zmatrix__with_stereo():
     geo = automol.zmat.geometry(zma, dummy=False)
 
     assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
-
-
-def test__smiles__with_stereo():
-    """ test smiles conversions
-    """
-    print("smiles with stereo")
-
-    ref_ichs = ICHS_WITH_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    for ref_ich in ref_ichs:
-        print()
-        print(ref_ich, flush=True)
-        smi = automol.inchi.smiles(ref_ich)
-        ich = automol.smiles.inchi(smi)
-        assert ich == ref_ich
 
 
 def test__smiles__from_geom():
@@ -375,6 +359,7 @@ def test__inchi_geometry():
     ich = 'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3'
     geo = automol.inchi.geometry(ich)
     ich = automol.geom.inchi(geo, stereo=True)
+    print(automol.geom.chi(geo, stereo=True))
     print(ich)
     assert ich in ('InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5+',
                    'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5-')
@@ -418,57 +403,10 @@ def test__multiple_rings():
     ref_ich = ('InChI=1S/C17H19NO3/c1-18-7-6-17-10-3-5-13(20)16(17)21-15-12(19'
                ')4-2-9(14(15)17)8-11(10)18/h2-5,10-11,13,16,19-20H,6-8H2,1H3/'
                't10-,11-,13-,16+,17+/m1/s1')
-    gra = automol.graph.from_string("""
-        atoms:
-          1: {symbol: C, implicit_hydrogen_valence: 3, stereo_parity: null}
-          2: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: null}
-          3: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: null}
-          4: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: null}
-          5: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: null}
-          6: {symbol: C, implicit_hydrogen_valence: 2, stereo_parity: null}
-          7: {symbol: C, implicit_hydrogen_valence: 2, stereo_parity: null}
-          8: {symbol: C, implicit_hydrogen_valence: 2, stereo_parity: null}
-          9: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          10: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: false}
-          11: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: true}
-          12: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          13: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: false}
-          14: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          15: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-          16: {symbol: C, implicit_hydrogen_valence: 1, stereo_parity: false}
-          17: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: true}
-          18: {symbol: N, implicit_hydrogen_valence: 0, stereo_parity: null}
-          19: {symbol: O, implicit_hydrogen_valence: 1, stereo_parity: null}
-          20: {symbol: O, implicit_hydrogen_valence: 1, stereo_parity: null}
-          21: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-        bonds:
-          1-18: {order: 1, stereo_parity: null}
-          2-4: {order: 1, stereo_parity: null}
-          2-9: {order: 1, stereo_parity: null}
-          3-5: {order: 1, stereo_parity: null}
-          3-10: {order: 1, stereo_parity: null}
-          4-12: {order: 1, stereo_parity: null}
-          5-13: {order: 1, stereo_parity: null}
-          6-7: {order: 1, stereo_parity: null}
-          6-17: {order: 1, stereo_parity: null}
-          7-18: {order: 1, stereo_parity: null}
-          8-9: {order: 1, stereo_parity: null}
-          8-11: {order: 1, stereo_parity: null}
-          9-14: {order: 1, stereo_parity: null}
-          10-11: {order: 1, stereo_parity: null}
-          10-17: {order: 1, stereo_parity: null}
-          11-18: {order: 1, stereo_parity: null}
-          12-15: {order: 1, stereo_parity: null}
-          12-19: {order: 1, stereo_parity: null}
-          13-16: {order: 1, stereo_parity: null}
-          13-20: {order: 1, stereo_parity: null}
-          14-15: {order: 1, stereo_parity: null}
-          14-17: {order: 1, stereo_parity: null}
-          15-21: {order: 1, stereo_parity: null}
-          16-17: {order: 1, stereo_parity: null}
-          16-21: {order: 1, stereo_parity: null}
-    """)
+    gra = automol.inchi.graph(ref_ich)
     ich = automol.graph.inchi(gra, stereo=True)
+    print(ref_ich)
+    print(ich)
     assert ich == ref_ich
 
 
@@ -589,14 +527,75 @@ def test__zmat_conv_dummy():
     assert automol.geom.almost_equal_dist_matrix(ref_geo, geo)
 
 
+def test__smiles__no_stereo():
+    """ test smiles conversions
+    """
+    print("smiles no stereo")
+
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+
+    for ref_ich in ref_ichs:
+        ref_ich = automol.inchi.standard_form(ref_ich, stereo=False)
+        print()
+        print(ref_ich, flush=True)
+        gra = automol.amchi.graph(ref_ich, stereo=False)
+        smi = automol.graph.smiles(gra)
+        print(smi)
+        gra = automol.smiles.graph(smi, stereo=False)
+        smi = automol.graph.smiles(gra)
+        ich = automol.smiles.inchi(smi)
+        print(smi)
+        print(ich)
+        assert ich == ref_ich, f"\n{ich} !=\n{ref_ich}"
+
+
+def test__smiles__with_stereo():
+    """ test smiles conversions
+    """
+    print("smiles with stereo")
+
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+
+    failed = []
+    for ref_ich in ref_ichs:
+        print()
+        print(ref_ich, flush=True)
+        gra = automol.amchi.graph(ref_ich, stereo=True)
+        smi = automol.graph.smiles(gra)
+        print(smi)
+        gra = automol.smiles.graph(smi, stereo=True)
+        smi = automol.graph.smiles(gra)
+        ich = automol.smiles.inchi(smi)
+        print(smi)
+        print(ich)
+        try:
+            assert ich == ref_ich, f"\n{ich} !=\n{ref_ich}"
+        except AssertionError:
+            print("FAILED")
+            print(f"\n{ich} !=\n{ref_ich}")
+            failed.append((ref_ich, ich))
+
+    print("FAILED:")
+    for ref_ich, ich in failed:
+        print(ref_ich)
+
+
 if __name__ == '__main__':
-    # test__geom__no_stereo()
-    # test__graph__with_stereo()
-    # test__inchi_geometry()
     # test__geom__with_stereo()
     # test__geom__no_stereo()
+    # test__graph__with_stereo()
     # test__graph__no_stereo()
     test__zmatrix__with_stereo()
-    # test__smiles__with_stereo()
     # test__smiles__from_geom()
     # test__graph__misc()
+    # test__inchi_geometry()
+    # test__inchi_conformers()
+    # test__multiple_rings()
+    # test__geom__no_stereo()
+    # test__smiles__no_stereo()
+    # test__smiles__with_stereo()
+    # test__inchi_geometry()

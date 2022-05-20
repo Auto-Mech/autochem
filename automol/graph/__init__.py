@@ -168,8 +168,6 @@ from automol.graph.base._algo import ring_systems_bond_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
-# AMChI functions:
-from automol.graph.base._amchi import amchi
 # resonance functions:
 # # core functions
 from automol.graph.base._resonance import dominant_resonance
@@ -184,6 +182,7 @@ from automol.graph.base._resonance import linear_atom_keys
 from automol.graph.base._resonance import linear_segments_atom_keys
 from automol.graph.base._resonance import radical_atom_keys
 from automol.graph.base._resonance import radical_atom_keys_from_resonance
+from automol.graph.base._resonance import has_resonance_bond_stereo
 from automol.graph.base._resonance import has_separated_radical_sites
 from automol.graph.base._resonance import nonresonant_radical_atom_keys
 from automol.graph.base._resonance import vinyl_radical_atom_keys
@@ -201,27 +200,31 @@ from automol.graph.base._resonance import (
         resonance_dominant_bond_centered_cumulene_keys)
 # canonicalization functions:
 # # canonical key functions
+from automol.graph.base._canon import canonical_enantiomer
+from automol.graph.base._canon import canonical_enantiomer_with_keys
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
 # # canonical stereo functions
+from automol.graph.base._canon import stereogenic_atom_keys
+from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import reflect
 from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import from_local_stereo
+from automol.graph.base._canon import set_stereo_from_geometry
 # # symmetry class functions
-from automol.graph.base._canon import class_indices
-from automol.graph.base._canon import class_indices_and_stereo_parities
+from automol.graph.base._canon import canonical_priorities
+from automol.graph.base._canon import calculate_priorities_and_assign_parities
 # # parity evaluators
-from automol.graph.base._canon import atom_parity_evaluator_from_geometry_
-from automol.graph.base._canon import bond_parity_evaluator_from_geometry_
-from automol.graph.base._canon import atom_parity_evaluator_to_local_stereo_
-from automol.graph.base._canon import bond_parity_evaluator_to_local_stereo_
-from automol.graph.base._canon import atom_parity_evaluator_from_local_stereo_
-from automol.graph.base._canon import bond_parity_evaluator_from_local_stereo_
+from automol.graph.base._canon import parity_evaluator_from_canonical_stereo_
+from automol.graph.base._canon import parity_evaluator_from_geometry_
+from automol.graph.base._canon import parity_evaluator_to_or_from_local_stereo_
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
 from automol.graph.base._func_group import functional_group_dct
+from automol.graph.base._func_group import functional_group_count_dct
+from automol.graph.base._func_group import ring_substituents
 # # finders for overaching types
 from automol.graph.base._func_group import hydrocarbon_species
 from automol.graph.base._func_group import radical_species
@@ -232,7 +235,7 @@ from automol.graph.base._func_group import alcohol_groups
 from automol.graph.base._func_group import peroxy_groups
 from automol.graph.base._func_group import hydroperoxy_groups
 from automol.graph.base._func_group import ether_groups
-from automol.graph.base._func_group import epoxy_groups
+from automol.graph.base._func_group import cyclic_ether_groups
 from automol.graph.base._func_group import aldehyde_groups
 from automol.graph.base._func_group import ketone_groups
 from automol.graph.base._func_group import ester_groups
@@ -241,12 +244,14 @@ from automol.graph.base._func_group import amide_groups
 from automol.graph.base._func_group import nitro_groups
 from automol.graph.base._func_group import halide_groups
 from automol.graph.base._func_group import thiol_groups
+from automol.graph.base._func_group import methyl_groups
 from automol.graph.base._func_group import radical_dissociation_products
 # # helper functions
 from automol.graph.base._func_group import bonds_of_type
 from automol.graph.base._func_group import bonds_of_order
 from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
+from automol.graph.base._func_group import radicals_of_type
 # torsion/rotational bond functions:
 from automol.graph.base._rot import rotational_bond_keys
 from automol.graph.base._rot import rotational_groups
@@ -254,22 +259,18 @@ from automol.graph.base._rot import rotational_symmetry_number
 from automol.graph.base._rot import bond_symmetry_numbers
 # stereo functions:
 # # core functions
-from automol.graph.base._stereo import stereo_priority_vector
-from automol.graph.base._stereo import stereogenic_atom_keys
-from automol.graph.base._stereo import stereogenic_bond_keys
 from automol.graph.base._stereo import stereomers
 from automol.graph.base._stereo import substereomers
-from automol.graph.base._stereo import to_index_based_stereo
-from automol.graph.base._stereo import from_index_based_stereo
-# # derived properties
-from automol.graph.base._stereo import atom_stereo_sorted_neighbor_atom_keys
-from automol.graph.base._stereo import bond_stereo_sorted_neighbor_atom_keys
-from automol.graph.base._stereo import atoms_stereo_sorted_neighbor_atom_keys
-# # stereo setting code
-from automol.graph.base._stereo import set_stereo_from_geometry
-# # stereo parity evaluation code
-from automol.graph.base._stereo import atom_stereo_parity_from_geometry
-from automol.graph.base._stereo import bond_stereo_parity_from_geometry
+# # stereo evaluation
+from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
+from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
+# # stereo correction
+from automol.graph.base._stereo import stereo_corrected_geometry
+# AMChI functions:
+from automol.graph.base._amchi import amchi
+from automol.graph.base._amchi import amchi_with_indices
+# SMILES functions:
+from automol.graph.base._smiles import smiles
 # TS graph submodule:
 from automol.graph.base import ts
 # L4
@@ -277,8 +278,8 @@ from automol.graph.base import ts
 # # conversions
 from automol.graph._conv import geometry
 from automol.graph._conv import inchi
-from automol.graph._conv import stereo_inchi
 from automol.graph._conv import inchi_with_sort_from_geometry
+from automol.graph._conv import chi
 from automol.graph._conv import molfile_with_atom_mapping
 from automol.graph._conv import rdkit_molecule
 # submodules:
@@ -442,8 +443,6 @@ __all__ = [
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
-    # AMChI functions:
-    'amchi',
     # resonance functions:
     # # core functions
     'dominant_resonance',
@@ -458,6 +457,7 @@ __all__ = [
     'linear_segments_atom_keys',
     'radical_atom_keys',
     'radical_atom_keys_from_resonance',
+    'has_resonance_bond_stereo',
     'has_separated_radical_sites',
     'nonresonant_radical_atom_keys',
     'vinyl_radical_atom_keys',
@@ -472,6 +472,8 @@ __all__ = [
     'resonance_dominant_bond_centered_cumulene_keys',
     # canonicalization functions:
     # # canonical key functions
+    'canonical_enantiomer',
+    'canonical_enantiomer_with_keys',
     'canonical',
     'canonical_keys',
     # # canonical stereo functions
@@ -480,19 +482,18 @@ __all__ = [
     'to_local_stereo',
     'from_local_stereo',
     # # symmetry class functions
-    'class_indices',
-    'class_indices_and_stereo_parities',
+    'canonical_priorities',
+    'calculate_priorities_and_assign_parities',
     # # parity evaluators
-    'atom_parity_evaluator_from_geometry_',
-    'bond_parity_evaluator_from_geometry_',
-    'atom_parity_evaluator_to_local_stereo_',
-    'bond_parity_evaluator_to_local_stereo_',
-    'atom_parity_evaluator_from_local_stereo_',
-    'bond_parity_evaluator_from_local_stereo_',
+    'parity_evaluator_from_canonical_stereo_',
+    'parity_evaluator_from_geometry_',
+    'parity_evaluator_to_or_from_local_stereo_',
     # functional groups code:
     # # core functions
     'FunctionalGroup',
     'functional_group_dct',
+    'functional_group_count_dct',
+    'ring_substituents',
     # # finders for overaching types
     'hydrocarbon_species',
     'radical_species',
@@ -503,7 +504,7 @@ __all__ = [
     'peroxy_groups',
     'hydroperoxy_groups',
     'ether_groups',
-    'epoxy_groups',
+    'cyclic_ether_groups',
     'aldehyde_groups',
     'ketone_groups',
     'ester_groups',
@@ -512,12 +513,14 @@ __all__ = [
     'nitro_groups',
     'halide_groups',
     'thiol_groups',
+    'methyl_groups',
     'radical_dissociation_products',
     # # helper functions
     'bonds_of_type',
     'bonds_of_order',
     'two_bond_idxs',
     'neighbors_of_type',
+    'radicals_of_type',
     # torsion/rotational bond functions:
     'rotational_bond_keys',
     'rotational_groups',
@@ -525,22 +528,23 @@ __all__ = [
     'bond_symmetry_numbers',
     # stereo functions:
     # # core functions
-    'stereo_priority_vector',
-    'stereogenic_atom_keys',
-    'stereogenic_bond_keys',
     'stereomers',
     'substereomers',
-    'to_index_based_stereo',
-    'from_index_based_stereo',
-    # # derived properties
-    'atom_stereo_sorted_neighbor_atom_keys',
-    'bond_stereo_sorted_neighbor_atom_keys',
-    'atoms_stereo_sorted_neighbor_atom_keys',
+    # # stereo evaluation
+    'local_atom_stereo_parity_from_geometry',
+    'local_bond_stereo_parity_from_geometry',
+    # # stereo correction
+    'stereo_corrected_geometry',
+    # # core functions
+    'stereogenic_atom_keys',
+    'stereogenic_bond_keys',
     # # stereo setting code
     'set_stereo_from_geometry',
-    # # stereo parity evaluation code
-    'atom_stereo_parity_from_geometry',
-    'bond_stereo_parity_from_geometry',
+    # AMChI functions:
+    'amchi',
+    'amchi_with_indices',
+    # SMILES functions:
+    'smiles',
     # TS graph submodule:
     'ts',
     # L4
@@ -548,8 +552,8 @@ __all__ = [
     # # conversions
     'geometry',
     'inchi',
-    'stereo_inchi',
     'inchi_with_sort_from_geometry',
+    'chi',
     'molfile_with_atom_mapping',
     'rdkit_molecule',
     # submodules:

@@ -66,6 +66,7 @@ from automol.reac._stereo import is_stereo_consistent
 from automol.reac._enum import enumerate_reactions
 # species instability transformations
 from automol.reac._instab import instability_product_zmas
+from automol.reac._instab import instability_product_inchis
 from automol.reac._instab import instability_product_graphs
 from automol.reac._instab import instability_transformation
 # phase space theory
@@ -151,6 +152,7 @@ __all__ = [
     'enumerate_reactions',
     # species instability transformations
     'instability_product_zmas',
+    'instability_product_inchis',
     'instability_product_graphs',
     'instability_transformation',
     # phase space theory

@@ -30,6 +30,7 @@ from automol.graph import hydroperoxy_groups
 from automol.reac._reac import Reaction
 from automol.reac._reac import ts_unique
 from automol.reac._reac import filter_viable_reactions
+from automol.reac._instab import instability_product_graphs
 from automol.reac._util import sort_reagents
 from automol.reac._util import assert_is_valid_reagent_graph_list
 
@@ -330,14 +331,16 @@ def eliminations(rct_gras, viable_only=True):
 
         # frm1_keys = atom_keys(rct_gra, excl_syms=('H',))
         frm1_keys = unsaturated_atom_keys(rct_gra)
+        frm2_keys = atom_keys(rct_gra)
         rct_symbs = atom_symbols(rct_gra)
         frm1_keys_o = frozenset(key for key in frm1_keys
                                 if rct_symbs[key] == 'O')
-        frm2_keys = atom_keys(rct_gra)
+        frm2_keys_h = frozenset(key for key in frm2_keys
+                                if rct_symbs[key] == 'H')
         bnd_keys = bond_keys(rct_gra)
 
         frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
-                        in itertools.product(frm1_keys_o, frm2_keys)
+                        in itertools.product(frm1_keys_o, frm2_keys_h)
                         if frm1_key != frm2_key and
                         not frozenset({frm1_key, frm2_key}) in bnd_keys]
 
@@ -348,28 +351,38 @@ def eliminations(rct_gras, viable_only=True):
             # Get keys to the ring formed by this extra bond
             rng_keys = next((ks for ks in rings_atom_keys(prds_gra)
                              if frm2_key in ks and frm1_key in ks), None)
-            # Eliminations (as far as I can tell) only happen through TSs with
-            # 3- or 4-membered rings
-            if rng_keys is not None and len(rng_keys) < 5:
-                frm1_ngb_key, = ngb_keys_dct[frm1_key] & set(rng_keys)
-                frm2_ngb_key, = ngb_keys_dct[frm2_key] & set(rng_keys)
 
-                # Break the bonds on either side of the newly formed bond
-                prds_gra = remove_bonds(prds_gra, [(frm1_key, frm1_ngb_key)])
-                prds_gra = remove_bonds(prds_gra, [(frm2_key, frm2_ngb_key)])
+            # HO2 Eliminations only happen through TSs with
+            # 5-membered rings
+            if rng_keys is not None and len(rng_keys) == 5:
+                # Get breaking bondsRemove bond
+                # Endpoints of ring
+                brk_keys1 = (rng_keys[0], rng_keys[-1])
+                # two ring
+                brk_keys2 = ()
+                for neigh1 in ngb_keys_dct[rng_keys[0]]:
+                    for neigh2 in ngb_keys_dct[neigh1]:
+                        if (
+                            neigh2 in rng_keys and
+                            neigh2 not in brk_keys1
+                        ):
+                            brk_keys2 = (neigh1, neigh2)
+                            break
 
+                # Remove bond
+                prds_gra = remove_bonds(prds_gra, [brk_keys1, brk_keys2])
                 prd_gras = connected_components(prds_gra)
 
                 if len(prd_gras) == 2:
                     forw_tsg = ts.graph(
                         rct_gra,
                         frm_bnd_keys=[(frm1_key, frm2_key)],
-                        brk_bnd_keys=[(frm1_key, frm1_ngb_key),
-                                      (frm2_key, frm2_ngb_key)])
+                        brk_bnd_keys=[brk_keys1,
+                                      brk_keys2])
                     back_tsg = ts.graph(
                         prds_gra,
-                        frm_bnd_keys=[(frm1_key, frm1_ngb_key),
-                                      (frm2_key, frm2_ngb_key)],
+                        frm_bnd_keys=[brk_keys1,
+                                      brk_keys2],
                         brk_bnd_keys=[(frm1_key, frm2_key)])
 
                     rcts_atm_keys = list(map(atom_keys, rct_gras))
@@ -644,12 +657,20 @@ def enumerate_reactions(rct_gras, rxn_type=None, viable_only=True):
     :rtype: tuple[Reaction]
     """
 
-    if rxn_type is not None:
-        rxns = FINDERS[rxn_type](rct_gras, viable_only=viable_only)
+    # Check if the reactants are unstable and should yield no reactants
+    unstable = any(bool(instability_product_graphs(gra)) for gra in rct_gras)
+
+    # Determine products of the reactions if those are possible
+    if not unstable:
+        if rxn_type is not None:
+            rxns = FINDERS[rxn_type](rct_gras, viable_only=viable_only)
+        else:
+            # Cycle through the all finders and gather all possible reactions
+            finders_ = tuple(FINDERS.values())
+            rxns = tuple(
+                itertools.chain(*(f_(rct_gras, viable_only=viable_only)
+                                for f_ in finders_)))
     else:
-        # Cycle through the different finders and gather all possible reactions
-        finders_ = tuple(FINDERS.values())
-        rxns = tuple(itertools.chain(*(f_(rct_gras, viable_only=viable_only)
-                                       for f_ in finders_)))
+        rxns = ()
 
     return rxns
