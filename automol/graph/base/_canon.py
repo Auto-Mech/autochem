@@ -440,10 +440,8 @@ def calculate_priorities_and_assign_parities(
 
         Requires a connected graph.
 
-        The parity evaluators determine the parity of an atom or bond based on
-        the current set of priorities as `par_eval_(pri_dct)(key)`, where
-        `pri_dct` is the dictionary of priorities and `key` is the atom or
-        bond key to be evaluated.
+        The parity evaluators are called as `par_eval_(pri_dct)(key)`, which
+        returns the parity for the atom or bond with this key.
 
         :param gra: a connected molecular graph
         :type gra: automol graph data structure
@@ -453,7 +451,8 @@ def calculate_priorities_and_assign_parities(
         :param ret_par_eval_: An optional alternative evaluator for the parity
             assignment, if different from the one used to determine canonical
             priorities.
-        :param break_ties: Break ties after keys have been refined?
+        :param break_ties: Break ties to determine canonical keys from
+            canonical priorities?
         :type break_ties: bool
         :param backbone_only: Consider backbone atoms only?
         :type backbone_only: bool
@@ -461,7 +460,7 @@ def calculate_priorities_and_assign_parities(
         :type pri_dct: dict[int: int]
         :returns: A dictionary of canonical priorities by atom key and a graph
             with stereo assignments.
-        :rtype: dict[int: int], dict[int: bool], dict[frozenset: bool]
+        :rtype: dict[int: int], molecular graph data structure
     """
     assert is_connected(gra), "Not for disconnected graphs."
     assert gra == without_dummy_atoms(gra), (

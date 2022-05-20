@@ -59,8 +59,8 @@ ICHS_NO_STEREO = load_numpy_string_file(
 ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 # Use NSAMP = None to test everything
-# NSAMP = 10
-NSAMP = None
+NSAMP = 10
+# NSAMP = None
 
 # Geometries
 C2H6_H_GEO = (
