@@ -432,8 +432,8 @@ def test__stereo():
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
     assert set(chi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
-        'InChI=1S/CH2N/c1-2/h1-2H',
-        'InChI=1S/CH2N/c1-2/h1-2H'}
+        'AMChI=1/CH2N/c1-2/h1-2H/b2-1-',
+        'AMChI=1/CH2N/c1-2/h1-2H/b2-1+'}
     assert set(chi.expand_stereo('InChI=1S/C2/c1-2')) == {
         'InChI=1S/C2/c1-2'}
     assert set(chi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')) == {

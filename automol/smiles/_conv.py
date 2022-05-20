@@ -50,13 +50,9 @@ def chi(smi):
         :rtype: str
     """
     gra = graph(smi, stereo=True, local_stereo=False)
-    if automol.graph.base.has_resonance_bond_stereo(gra):
+    ret = inchi(smi)
+    if automol.graph.base.inchi_is_bad(gra, ret):
         ret = automol.graph.base.amchi(gra)
-    else:
-        ret = inchi(smi)
-        # If the InChI has mobile hydrogens, revert back to AMChI
-        if automol.amchi.base.has_mobile_hydrogens(ret):
-            ret = automol.graph.base.amchi(gra)
 
     return ret
 

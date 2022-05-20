@@ -258,13 +258,9 @@ def chi_with_sort(geo, stereo=True, gra=None):
         :rtype: (str, tuple[tuple[int]])
     """
     gra = graph(geo, stereo=stereo) if gra is None else gra
-    if automol.graph.has_resonance_bond_stereo(gra):
+    chi_, nums_lst = inchi_with_sort(geo, stereo=stereo, gra=gra)
+    if automol.graph.inchi_is_bad(gra, chi_):
         chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
-    else:
-        chi_, nums_lst = inchi_with_sort(geo, stereo=stereo, gra=gra)
-        # If the InChI has mobile hydrogens, revert back to AMChI
-        if automol.amchi.base.has_mobile_hydrogens(chi_):
-            chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
     return chi_, nums_lst
 
 

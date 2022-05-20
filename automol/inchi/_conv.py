@@ -171,9 +171,6 @@ def is_complete(ich):
     """ Determine if the InChI string is complete
         (has all stereo-centers assigned).
 
-        Currently only checks species that does not have any
-        resonance structures.
-
         :param ich: InChI string
         :type ich: str
         :rtype: bool
