@@ -659,7 +659,7 @@ def enumerate_reactions(rct_gras, rxn_type=None, viable_only=True):
 
     # Check if the reactants are unstable and should yield no reactants
     unstable = any(bool(instability_product_graphs(gra)) for gra in rct_gras)
-        
+
     # Determine products of the reactions if those are possible
     if not unstable:
         if rxn_type is not None:

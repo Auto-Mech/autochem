@@ -4,7 +4,7 @@
 
 import numbers
 import automol.graph
-import automol.inchi
+from automol.inchi._conv import graph
 
 
 def is_valid_inchi_multiplicity(ich, mul):
@@ -19,4 +19,4 @@ def is_valid_inchi_multiplicity(ich, mul):
     """
     assert isinstance(mul, numbers.Integral)
     return mul in automol.graph.possible_spin_multiplicities(
-        automol.inchi.graph(ich, stereo=False))
+        graph(ich, stereo=False))

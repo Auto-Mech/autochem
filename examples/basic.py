@@ -27,11 +27,11 @@ print()
 
 # 4. Sample a geometry from the bounds matrices
 XMAT = automol.embed.sample_raw_distance_coordinates(LMAT, UMAT, dim4=True)
-GEO_INIT = automol.embed.geometry_from_coordinates(XMAT, SYMS)
+GEO_INIT = automol.geom.base.from_data(SYMS, XMAT[:, :3], angstrom=True)
 
 # 5. Clean up the sample's coordinates
 XMAT, CONV = automol.embed.cleaned_up_coordinates(XMAT, LMAT, UMAT)
-GEO = automol.embed.geometry_from_coordinates(XMAT, SYMS)
+GEO = automol.geom.base.from_data(SYMS, XMAT[:, :3], angstrom=True)
 
 # 6. Print geometries
 print("Sample geometry:")

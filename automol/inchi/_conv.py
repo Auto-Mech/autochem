@@ -6,6 +6,7 @@ from automol import error
 import automol.formula
 import automol.geom
 import automol.graph
+import automol.amchi
 from automol.extern import rdkit_
 from automol.extern import pybel_
 from automol.inchi.base import standard_form
@@ -26,43 +27,8 @@ def graph(ich, stereo=True):
         :type stereo: bool
         :rtype: automol molecular graph
     """
-
-    # split it up to handle hard-coded molecules in multi-component inchis
-    ichs = split(ich)
-    gras = [_inchi_connected_graph(ich, stereo=stereo) for ich in ichs]
-    for idx, gra in enumerate(gras):
-        if idx == 0:
-            num = 0
-        else:
-            num = max(map(max, map(automol.graph.atom_keys, gras[:idx]))) + 1
-        gras[idx] = automol.graph.transform_keys(gra, num.__add__)
-    gra = functools.reduce(automol.graph.union, gras)
-    return gra
-
-
-def _inchi_connected_graph(ich, stereo=True):
-    """ Generate a molecular graph from an InChI string where
-        all all atoms are connected by at least one bond.
-
-        :param ich: InChI string
-        :type ich: str
-        :param remove_stereo: parameter to include stereochemistry information
-        :type remove_stereo: bool
-        :rtype: automol molecular graph
-    """
-
-    gra = hardcoded_object_from_inchi_by_key('graph', ich)
-    if gra is None:
-        ich = standard_form(ich)
-        if not stereo or not has_stereo(ich):
-            rdm = rdkit_.from_inchi(ich)
-            gra = rdkit_.to_connectivity_graph(rdm)
-        else:
-            geo = geometry(ich)
-            gra = automol.geom.graph(geo, stereo=stereo)
-
-    gra = automol.graph.implicit(gra)
-    return gra
+    ich = automol.amchi.graph(ich, stereo=stereo)
+    return ich
 
 
 def geometry(ich, check=True):
@@ -185,6 +151,21 @@ def conformers(ich, nconfs=1):
     return geos
 
 
+def zmatrix(ich, check=True):
+    """ Generate a z-matrix from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :param check: check stereo and connectivity?
+        :type check: bool
+        :rtype: automol z-matrix data structure
+    """
+
+    geo = geometry(ich, check=check)
+    zma = automol.geom.zmatrix(geo)
+    return zma
+
+
 # # derived properties
 def is_complete(ich):
     """ Determine if the InChI string is complete
@@ -223,13 +204,13 @@ def add_stereo(ich):
 
 
 def expand_stereo(ich):
-    """ Obtain all possible stereoisomers compatible with an InChI string.
+    """ Obtain all possible stereoisomers of an InChI string.
 
         :param ich: InChI string
         :type ich: str
         :rtype: list[str]
     """
-    gra = graph(ich)
+    gra = graph(ich, stereo=False)
     sgrs = automol.graph.stereomers(gra)
-    ste_ichs = [automol.graph.stereo_inchi(sgr) for sgr in sgrs]
+    ste_ichs = [automol.graph.inchi(sgr, stereo=True) for sgr in sgrs]
     return ste_ichs

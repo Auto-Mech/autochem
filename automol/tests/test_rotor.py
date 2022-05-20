@@ -392,4 +392,5 @@ def test__string():
 
 
 if __name__ == '__main__':
-    test__mdhr()
+    # test__mdhr()
+    test__rotor_wdummy()

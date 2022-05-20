@@ -830,7 +830,24 @@ def test__stereogenic_atom_keys():
             3: ('O', 1, None)},
            {frozenset({0, 2}): (1, None), frozenset({2, 3}): (1, None),
             frozenset({1, 2}): (1, None)})
+    print(graph.stereogenic_atom_keys(cgr))
     assert graph.stereogenic_atom_keys(cgr) == frozenset({2})
+
+    # Bug fix:
+    cgr = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 2, None),
+            3: ('C', 2, None), 4: ('C', 2, None), 5: ('C', 2, None),
+            6: ('C', 2, None), 7: ('C', 2, None), 8: ('C', 2, None),
+            9: ('C', 2, None), 10: ('C', 1, None), 11: ('C', 1, None),
+            12: ('O', 0, None)},
+           {frozenset({4, 6}): (1, None), frozenset({11, 12}): (1, None),
+            frozenset({8, 9}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({10, 6}): (1, None), frozenset({8, 10}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({9, 11}): (1, None),
+            frozenset({10, 12}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({11, 7}): (1, None), frozenset({1, 3}): (1, None),
+            frozenset({5, 7}): (1, None)})
+    print(graph.stereogenic_atom_keys(cgr))
+    assert graph.stereogenic_atom_keys(cgr) == frozenset({10, 11})
 
 
 def test__stereogenic_bond_keys():
@@ -849,34 +866,6 @@ def test__stereomers():
     assert graph.stereomers(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
     assert graph.stereomers(C3H5N3_CGR) == C3H5N3_SGRS
     assert graph.stereomers(C8H13O_CGR) == C8H13O_SGRS
-
-
-def test__to_index_based_stereo():
-    """ test graph.to_index_based_stereo
-    """
-    sgr = graph.explicit(C3H5_SGR)
-    idx_sgr = graph.to_index_based_stereo(sgr)
-    assert sgr == graph.from_index_based_stereo(idx_sgr)
-
-    for sgr in C2H2CL2F2_SGRS:
-        sgr = graph.explicit(sgr)
-        idx_sgr = graph.to_index_based_stereo(sgr)
-        assert sgr == graph.from_index_based_stereo(idx_sgr)
-
-    for sgr in C3H3CL2F3_SGRS:
-        sgr = graph.explicit(sgr)
-        idx_sgr = graph.to_index_based_stereo(sgr)
-        assert sgr == graph.from_index_based_stereo(idx_sgr)
-
-    for sgr in C3H5N3_SGRS:
-        sgr = graph.explicit(sgr)
-        idx_sgr = graph.to_index_based_stereo(sgr)
-        assert sgr == graph.from_index_based_stereo(idx_sgr)
-
-    for sgr in C8H13O_SGRS:
-        sgr = graph.explicit(sgr)
-        idx_sgr = graph.to_index_based_stereo(sgr)
-        assert sgr == graph.from_index_based_stereo(idx_sgr)
 
 
 def test__ring_systems():
@@ -999,8 +988,8 @@ def test__canonical():
         _test_from_smiles(smi)
 
 
-def test__class_indices_and_stereo_parities():
-    """ test graph.class_indices_and_stereo_parities
+def test__calculate_priorities_and_assign_parities():
+    """ test graph.calculate_priorities_and_assign_parities
     """
 
     def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
@@ -1009,16 +998,17 @@ def test__class_indices_and_stereo_parities():
         geo = automol.inchi.geometry(ich)
         gra = automol.geom.graph(geo)
 
-        atm_par_eval_ = graph.atom_parity_evaluator_from_geometry_(gra, geo)
-        bnd_par_eval_ = graph.bond_parity_evaluator_from_geometry_(gra, geo)
+        par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
 
-        can_key_dct, atm_par_dct, bnd_par_dct = (
-            graph.class_indices_and_stereo_parities(
-                gra,
-                atm_par_eval1_=atm_par_eval_,
-                bnd_par_eval1_=bnd_par_eval_)
-        )
-        print(can_key_dct)
+        pri_dct, gra = graph.calculate_priorities_and_assign_parities(
+                gra, par_eval_=par_eval_)
+
+        print(pri_dct)
+
+        atm_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.atom_stereo_parities(gra), lambda x: x is not None)
+        bnd_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.bond_stereo_parities(gra), lambda x: x is not None)
 
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
         bnd_pars = [p for k, p in sorted(bnd_par_dct.items()) if p is not None]
@@ -1114,6 +1104,22 @@ def test__from_local_stereo():
         assert gra == graph.from_local_stereo(loc_gra)
 
 
+def test__has_resonance_bond_stereo():
+    """ test graph.has_resonance_bond_stereo
+    """
+    gra = ({0: ('F', 0, None), 1: ('C', 1, None), 3: ('C', 1, None),
+            4: ('C', 1, None), 5: ('F', 0, None)},
+           {frozenset({3, 4}): (1, True), frozenset({0, 1}): (1, None),
+            frozenset({1, 3}): (1, True), frozenset({4, 5}): (1, None)})
+    assert graph.has_resonance_bond_stereo(gra)
+
+    gra = ({0: ('F', 0, None), 1: ('C', 2, None), 4: ('C', 1, None),
+            5: ('C', 1, None), 6: ('F', 0, None)},
+           {frozenset({4, 5}): (1, True), frozenset({0, 1}): (1, None),
+            frozenset({1, 4}): (1, None), frozenset({5, 6}): (1, None)})
+    assert not graph.has_resonance_bond_stereo(gra)
+
+
 def test__amchi():
     """ test graph.amchi
     """
@@ -1142,6 +1148,47 @@ def test__amchi():
     assert chi == 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
 
 
+def test__amchi_with_indices():
+    """ test graph.amchi
+    """
+    # bond stereo
+    gra1 = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
+             3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
+            {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
+             frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
+             frozenset({2, 5}): (1, False)})
+    chi1, chi1_idx_dcts = graph.amchi_with_indices(gra1)
+    print(chi1)
+    print(chi1_idx_dcts)
+
+    assert chi1 == 'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-'
+
+    # atom stereo
+    gra2 = ({0: ('C', 1, None), 1: ('C', 1, True), 2: ('C', 1, True),
+             3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
+             6: ('F', 0, None), 7: ('F', 0, None)},
+            {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
+             frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
+             frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
+             frozenset({2, 7}): (1, None)})
+    chi2, chi2_idx_dcts = graph.amchi_with_indices(gra2)
+    print(chi2)
+    print(chi2_idx_dcts)
+
+    assert chi2 == 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
+
+    gra = automol.graph.union_from_sequence([gra1, gra2], shift_keys=True)
+    chi, chi_idx_dcts = graph.amchi_with_indices(gra)
+    print(chi)
+    print(chi_idx_dcts)
+
+    assert chi == ('AMChI=1/C3H3Cl2F3.C3H5N3/c4-2(7)1(6)3(5)8;4-1-3(6)2-5/'
+                   'h1-3H;1-2,4-6H/b;4-1-,5-2+,6-3-/t2-,3-;/m1./s1')
+    assert chi_idx_dcts == (
+        {6: 0, 7: 1, 8: 2, 9: 3, 10: 4, 11: 5, 12: 6, 13: 7},
+        {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
+
+
 def test__smiles():
     """ test graph.smiles
     """
@@ -1168,10 +1215,10 @@ def test__smiles():
         print("STARTING SMILES:", smi)
         ich = automol.smiles.inchi(smi)
         geo = automol.inchi.geometry(ich)
-        gra = automol.geom.graph(geo, new=True)
+        gra = automol.geom.graph(geo)
         print(automol.graph.string(gra))
         print(automol.geom.string(geo))
-        smi = automol.graph.rsmiles(gra)
+        smi = automol.graph.smiles(gra)
         print('smiles from code:', smi)
 
         ich_smi = automol.inchi.smiles(ich)
@@ -1185,20 +1232,20 @@ def test__smiles():
         assert sich == ich
 
 
-def test__rsmiles():
-    """ test graph.rsmiles
+def test__smiles__with_resonance():
+    """ test graph.smiles
     """
 
     smis = [
         r'FC=C-C=C-[CH]O',
-        # r'F[CH]C=CF',
+        r'F[CH]C=CF',
     ]
     for smi in smis:
         print()
-        print("STARTING smiLES:", smi)
+        print("STARTING SMILES:", smi)
         ich = automol.smiles.inchi(smi)
         geo = automol.inchi.geometry(ich)
-        gra = automol.geom.graph(geo, new=True)
+        gra = automol.geom.graph(geo)
         print(automol.graph.string(gra))
         print(automol.geom.string(geo))
 
@@ -1212,24 +1259,21 @@ def test__rsmiles():
             gra = automol.graph.set_bond_stereo_parities(gra, bnd_par_dct)
             ach = automol.graph.amchi(gra)
             print('amchi:', ach)
-            smi = automol.graph.rsmiles(gra)
+            smi = automol.graph.smiles(gra)
             print('smiles from code:', smi)
             print()
 
 
 if __name__ == '__main__':
-    test__smiles()
-    test__rsmiles()
+    # test__smiles()
+    # test__smiles()
     # test__canonical()
-    # test__class_indices_and_stereo_parities()
+    test__calculate_priorities_and_assign_parities()
     # test__to_local_stereo()
 
-    # import time
-    # start = time.perf_counter()
-    # test__to_index_based_stereo()
-    # end = time.perf_counter()
-    # print('time1:', end - start)
-    # start = time.perf_counter()
-    # test__from_local_stereo()
-    # end = time.perf_counter()
-    # print('time2:', end - start)
+    # test__has_resonance_bond_stereo()
+    # test__amchi_with_indices()
+    # test__stereogenic_atom_keys()
+    # test__ts__nonconserved_atom_stereo_keys()
+    # test__ts__compatible_reverse_stereomers()
+    # test__stereogenic_atom_keys()

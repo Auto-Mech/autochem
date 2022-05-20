@@ -54,8 +54,46 @@ SUBCHAINS = pp.ZeroOrMore(pp.nestedExpr('(', ')', content=CHAIN))
 SMILES_PARSER = pp.OneOrMore(CHAIN + SUBCHAINS)
 
 
+# # conversions
+def without_resonance_stereo(smi):
+    """ Generate a SMILES string without resonance stereo.
+
+        :param smi: SMILES string
+        :type smi: str
+        :returns: A SMILES without resonance stereo, which will be readable by
+            other codes.
+        :rtype: str
+    """
+    smi = smi.replace('=/', '=')
+    smi = smi.replace('=\\', '=')
+    return smi
+
+
+# # split/join
+def split(smi):
+    """ Split a SMILES string into connected components
+
+        :param smi: SMILES string
+        :type smi: str
+        :returns: the component SMILES strings
+        :rtype: tuple[str]
+    """
+    return smi.split('.')
+
+
+def join(smis):
+    """ Join multiple SMILES strings into one multi-component SMILES.
+
+        :param smis: SMILES strings
+        :type smis: tuple[str]
+        :returns: the multi-component SMILES string
+        :rtype: str
+    """
+    return '.'.join(smis)
+
+
 # # properties
-def parse_properties(smi):
+def parse_connected_molecule_properties(smi):
     """ Parse all properties from a SMILES string
 
         :param smi: SMILES string
@@ -64,6 +102,8 @@ def parse_properties(smi):
             bond orders by bond key
         :rtype: (dict, dict, dict)
     """
+    assert '.' not in smi, f"{smi} is not a connected molecule."
+
     lst = SMILES_PARSER.parseString(smi).asList()
 
     # property dictionaries
@@ -354,7 +394,7 @@ def _neighbor_key_and_direction_from_dict(key1, key2, direc_dct):
 #
 #     for SMI in SMIS:
 #         SYMB_DCT, BND_ORD_DCT, ATM_PAR_DCT, BND_PAR_DCT = (
-#                 parse_properties(SMI))
+#                 parse_connected_molecule_properties(SMI))
 #
 #         LOC_GRA = automol.graph.from_data(
 #             SYMB_DCT, BND_ORD_DCT.keys(),
@@ -365,7 +405,7 @@ def _neighbor_key_and_direction_from_dict(key1, key2, direc_dct):
 #         GRA = automol.graph.from_local_stereo(LOC_GRA)
 #         # print(automol.graph.string(GRA))
 #
-#         RSMI = automol.graph.rsmiles(GRA)
+#         RSMI = automol.graph.smiles(GRA)
 #         print(RSMI)
 #
 #         REF_ICH = automol.smiles.inchi(SMI)

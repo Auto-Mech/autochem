@@ -184,10 +184,11 @@ def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
         :param ste_dct: a dictionary to overwrite stereo information; layers
             not overwritten will be left in tact; if the attempted overwrite
             fails, the function will return None
-        :param ste_dct: a dictionary to overwrite isotope stereo information;
+        :type ste_dct: dict
+        :param iso_dct: a dictionary to overwrite isotope stereo information;
             layers not overwritten will be left in tact; if the attempted
             overwrite fails, the function will return None
-        :type ste_dct: dict
+        :type iso_dct: dict
         :rtype: str
     """
     fml_slyr = formula_sublayer(ich)
@@ -763,30 +764,6 @@ def equivalent(ich1, ich2):
             iso_dct1 == iso_dct2)
 
 
-# # sort
-def sorted_(ichs):
-    """ Sort a sequence of InChI strings in their standard form sort order.
-
-        :param ichs: sequence of InChI strings
-        :type ichs: tuple(str)
-        :rtype: tuple(str)
-    """
-    return tuple(ichs[idx] for idx in argsort(ichs))
-
-
-def argsort(ichs):
-    """ Determine the sort order for the InChI standard form.
-
-        :param ichs: sequence of InChI strings
-        :type ichs: tuple(str)
-    """
-
-    assert not any(map(has_multiple_components, ichs))
-    ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
-    idxs = tuple(numpy.argsort(list(map(ref_ichs.index, ichs))))
-    return idxs
-
-
 # # split/join
 def split(ich):
     """ Split a multi-component InChI into InChIs for each of its components.
@@ -849,6 +826,30 @@ def join(ichs):
                      iso_lyr_dct=iso_dct)
 
 
+# # sort
+def sorted_(ichs):
+    """ Sort a sequence of InChI strings in their standard form sort order.
+
+        :param ichs: sequence of InChI strings
+        :type ichs: tuple(str)
+        :rtype: tuple(str)
+    """
+    return tuple(ichs[idx] for idx in argsort(ichs))
+
+
+def argsort(ichs):
+    """ Determine the sort order for the InChI standard form.
+
+        :param ichs: sequence of InChI strings
+        :type ichs: tuple(str)
+    """
+
+    assert not any(map(has_multiple_components, ichs))
+    ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
+    idxs = tuple(numpy.argsort(list(map(ref_ichs.index, ichs))))
+    return idxs
+
+
 # # hardcoded inchi workarounds
 def hardcoded_object_from_inchi_by_key(key, ich):
     """ Obtains the requested structural identifier object
@@ -898,7 +899,7 @@ def version_pattern():
 
         :rtype: str
     """
-    ptt = app.preceded_by('InChI=') + _sublayer_pattern()
+    ptt = app.preceded_by('=') + _sublayer_pattern()
     return ptt
 
 

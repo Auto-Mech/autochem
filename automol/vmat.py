@@ -165,7 +165,8 @@ def coordinates(vma, shift=0, multi=True):
     """
 
     _names = numpy.ravel(name_matrix(vma))
-    coo_keys = numpy.ravel(coordinate_key_matrix(vma, shift))
+    coo_keys = numpy.ravel(
+        numpy.array(coordinate_key_matrix(vma, shift), dtype=object))
 
     if not multi:
         coo_dct = dict(zip(_names, coo_keys))
@@ -317,7 +318,7 @@ def standard_name_matrix(vma, shift=0):
 
     natms = count(vma)
 
-    name_mat = numpy.array(name_matrix(vma), dtype=numpy.object_)
+    name_mat = numpy.array(name_matrix(vma), dtype=object)
     name_mat[1:, 0] = [
         f'R{num+shift:d}' for num in range(1, natms)]
     name_mat[2:, 1] = [
@@ -385,7 +386,7 @@ def rename(vma, name_dct):
     name_dct.update({orig_name: orig_name for orig_name in orig_names
                      if orig_name not in name_dct})
 
-    name_mat = numpy.empty(orig_name_mat.shape, dtype=numpy.object_)
+    name_mat = numpy.empty(orig_name_mat.shape, dtype=object)
     name_mat[tril_idxs] = list(map(name_dct.__getitem__,
                                    orig_name_mat[tril_idxs]))
 
@@ -456,7 +457,7 @@ def remove_atom(vma, key):
 
     key_mat = list(key_matrix(vma))
     key_mat.pop(key)
-    key_mat = numpy.array(key_mat, dtype=numpy.object_)
+    key_mat = numpy.array(key_mat, dtype=object)
 
     if (key_mat == key).any():
         raise ValueError(f"Other atoms in z-matrix depend on atom {key}")
@@ -556,7 +557,7 @@ def _key_matrix(key_mat, natms, one_indexed):
 
     # Check dimensions and ensure proper formatting
     key_mat = [list(row) + [None]*(3-len(row)) for row in key_mat]
-    key_mat = numpy.array(key_mat, dtype=numpy.object_)
+    key_mat = numpy.array(key_mat, dtype=object)
 
     assert key_mat.ndim == 2 and key_mat.shape == (natms, 3)
     triu_idxs = numpy.triu_indices(natms, m=3)
@@ -582,7 +583,7 @@ def _name_matrix(name_mat, natms):
     """
 
     if name_mat is None:
-        name_mat = numpy.empty((natms, 3), dtype=numpy.object_)
+        name_mat = numpy.empty((natms, 3), dtype=object)
         for row in range(0, natms):
             if row > 0:
                 name_mat[row, 0] = f'R{row:d}'
@@ -593,7 +594,7 @@ def _name_matrix(name_mat, natms):
 
     # Check dimensions and make sure there are Nones in the right places
     name_mat = [list(row) + [None]*(3-len(row)) for row in name_mat]
-    name_mat = numpy.array(name_mat, dtype=numpy.object_)
+    name_mat = numpy.array(name_mat, dtype=object)
 
     assert name_mat.ndim == 2 and name_mat.shape == (natms, 3)
     natms = name_mat.shape[0]

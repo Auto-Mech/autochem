@@ -2,6 +2,7 @@
 """
 import automol.graph
 import automol.geom
+import automol.chi
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
 from automol.reac._reac import atom_mapping
@@ -71,13 +72,13 @@ def add_stereo_from_inchis(rxn, rct_ichs, prd_ichs, check=True):
     :rtype: Reaction
     """
     if check:
-        assert all(map(automol.inchi.is_complete, rct_ichs)), (
+        assert all(map(automol.chi.is_complete, rct_ichs)), (
             f"Some inchis are not complete: {rct_ichs}")
-        assert all(map(automol.inchi.is_complete, prd_ichs)), (
+        assert all(map(automol.chi.is_complete, prd_ichs)), (
             f"Some inchis are not complete: {prd_ichs}")
 
-    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
+    rct_geos = list(map(automol.chi.geometry, rct_ichs))
+    prd_geos = list(map(automol.chi.geometry, prd_ichs))
     srxn, _ = add_stereo_from_unordered_geometries(rxn, rct_geos, prd_geos,
                                                    reorder_atoms=False)
     return srxn

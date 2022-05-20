@@ -278,6 +278,24 @@ def radical_atom_keys_from_resonance(rgr, min_valence=1.):
     return atm_rad_keys
 
 
+def has_resonance_bond_stereo(gra):
+    """ does this graph have stereo at a resonance bond?
+
+        :param gra: the molecular graph
+        :rtype: bool
+    """
+    ste_bnd_keys = bond_stereo_keys(gra)
+    res_bnd_ords_dct = resonance_dominant_bond_orders(gra)
+
+    ret = False
+    for bnd_key in ste_bnd_keys:
+        if bnd_key in res_bnd_ords_dct and 1 in res_bnd_ords_dct[bnd_key]:
+            ret = True
+            break
+
+    return ret
+
+
 def has_separated_radical_sites(gra):
     """ does this radical have two or more separated radical sites?
 

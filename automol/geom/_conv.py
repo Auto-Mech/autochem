@@ -6,6 +6,7 @@ import numpy
 from phydat import phycon
 import automol.graph
 import automol.zmat.base
+import automol.amchi.base
 import automol.inchi.base
 from automol import util
 from automol.geom import _pyx2z
@@ -24,7 +25,7 @@ from automol.geom.base import rotate
 
 
 # # conversions
-def graph(geo, stereo=True, new=False):
+def graph(geo, stereo=True):
     """ Generate a molecular graph from the molecular geometry that has information
         about bond connectivity and if requested, stereochemistry.
 
@@ -36,10 +37,7 @@ def graph(geo, stereo=True, new=False):
     """
     gra = connectivity_graph(geo)
     if stereo:
-        if new:
-            gra = automol.graph.from_geometry(gra, geo)
-        else:
-            gra = automol.graph.set_stereo_from_geometry(gra, geo)
+        gra = automol.graph.set_stereo_from_geometry(gra, geo)
 
     return gra
 
@@ -156,6 +154,39 @@ def x2z_zmatrix(geo, ts_bnds=()):
     return zma
 
 
+def amchi(geo, stereo=True):
+    """ Generate an AMChI string from a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: str
+    """
+    ach, _ = amchi_with_sort(geo, stereo=stereo)
+
+    return ach
+
+
+def amchi_with_sort(geo, stereo=True, gra=None):
+    """ Determine the AMChI string and sort order for a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :param gra: molecular graph (to avoid recalculating)
+        :type gra: automol molecular graph data structure
+        :returns: the AMChI string and AMChI canonical sort ordering for each
+            connected component (components in multi-component AMChI ordering)
+        :rtype: (str, tuple[tuple[int]])
+    """
+    gra = graph(geo, stereo=stereo) if gra is None else gra
+    ach, ach_idx_dcts = automol.graph.amchi_with_indices(gra, stereo=stereo)
+    nums_lst = tuple(map(util.dict_.keys_sorted_by_value, ach_idx_dcts))
+    return ach, nums_lst
+
+
 def inchi(geo, stereo=True):
     """ Generate an InChI string from a molecular geometry.
 
@@ -170,20 +201,24 @@ def inchi(geo, stereo=True):
     return ich
 
 
-def inchi_with_sort(geo, stereo=True):
-    """ Generate an InChI string from a molecular geometry. (Sort?)
+def inchi_with_sort(geo, stereo=True, gra=None):
+    """ Determine the InChI string and sort order for a molecular geometry.
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
-        :rtype: str
+        :param gra: molecular graph (to avoid recalculating)
+        :type gra: automol molecular graph data structure
+        :returns: the InChI string and InChI canonical sort ordering for each
+            connected component (components in multi-component InChI ordering)
+        :rtype: (str, tuple[tuple[int]])
     """
     ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
         'geom', geo, comp=_compare)
     nums_lst = None
     if ich is None:
-        gra = connectivity_graph(geo)
+        gra = connectivity_graph(geo) if gra is None else gra
         if not stereo:
             geo = None
             geo_idx_dct = None
@@ -193,6 +228,44 @@ def inchi_with_sort(geo, stereo=True):
             gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
     return ich, nums_lst
+
+
+def chi(geo, stereo=True):
+    """ Generate a ChI string from a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :rtype: str
+    """
+    chi_, _ = chi_with_sort(geo, stereo=stereo)
+
+    return chi_
+
+
+def chi_with_sort(geo, stereo=True, gra=None):
+    """ Determine the ChI string and sort order for a molecular geometry.
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :param gra: molecular graph (to avoid recalculating)
+        :type gra: automol molecular graph data structure
+        :returns: the AMChI string and AMChI canonical sort ordering for each
+            connected component (components in multi-component AMChI ordering)
+        :rtype: (str, tuple[tuple[int]])
+    """
+    gra = graph(geo, stereo=stereo) if gra is None else gra
+    if automol.graph.has_resonance_bond_stereo(gra):
+        chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
+    else:
+        chi_, nums_lst = inchi_with_sort(geo, stereo=stereo, gra=gra)
+        # If the InChI has mobile hydrogens, revert back to AMChI
+        if automol.amchi.base.has_mobile_hydrogens(chi_):
+            chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
+    return chi_, nums_lst
 
 
 def _compare(geo1, geo2):
@@ -210,17 +283,21 @@ def _compare(geo1, geo2):
     return automol.graph.backbone_isomorphic(gra1, gra2)
 
 
-def smiles(geo, stereo=True):
+def smiles(geo, stereo=True, res_stereo=True):
     """ Generate a SMILES string from a molecular geometry.
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
+        :returns: the SMILES string
         :rtype: str
     """
-    ich = inchi(geo, stereo=stereo)
-    return automol.inchi.base.smiles(ich)
+    gra = graph(geo, stereo=stereo)
+    smi = automol.graph.base.smiles(gra, stereo=stereo, res_stereo=res_stereo)
+    return smi
 
 
 # # derived properties
