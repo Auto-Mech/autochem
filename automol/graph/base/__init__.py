@@ -220,7 +220,7 @@ from automol.graph.base._canon import from_local_stereo
 from automol.graph.base._canon import set_stereo_from_geometry
 # # symmetry class functions
 from automol.graph.base._canon import canonical_priorities
-from automol.graph.base._canon import canonical_priorities_and_stereo_parities
+from automol.graph.base._canon import calculate_priorities_and_assign_parities
 # # parity evaluators
 from automol.graph.base._canon import parity_evaluator_from_canonical_stereo_
 from automol.graph.base._canon import parity_evaluator_from_geometry_
@@ -476,7 +476,7 @@ __all__ = [
     'from_local_stereo',
     # # symmetry class functions
     'canonical_priorities',
-    'canonical_priorities_and_stereo_parities',
+    'calculate_priorities_and_assign_parities',
     # # parity evaluators
     'parity_evaluator_from_canonical_stereo_',
     'parity_evaluator_from_geometry_',

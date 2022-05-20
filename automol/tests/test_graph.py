@@ -988,8 +988,8 @@ def test__canonical():
         _test_from_smiles(smi)
 
 
-def test__canonical_priorities_and_stereo_parities():
-    """ test graph.canonical_priorities_and_stereo_parities
+def test__calculate_priorities_and_assign_parities():
+    """ test graph.calculate_priorities_and_assign_parities
     """
 
     def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
@@ -1001,7 +1001,7 @@ def test__canonical_priorities_and_stereo_parities():
         par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
 
         can_key_dct, atm_par_dct, bnd_par_dct = (
-            graph.canonical_priorities_and_stereo_parities(
+            graph.calculate_priorities_and_assign_parities(
                 gra, par_eval_=par_eval_))
         print(can_key_dct)
 
@@ -1263,7 +1263,7 @@ if __name__ == '__main__':
     # test__smiles()
     # test__smiles()
     # test__canonical()
-    test__canonical_priorities_and_stereo_parities()
+    test__calculate_priorities_and_assign_parities()
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()

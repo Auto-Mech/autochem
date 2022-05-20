@@ -162,14 +162,14 @@ def canonical_keys(gra, backbone_only=True):
         :returns: a dictionary of canonical keys by atom key
         :rtype: dict[int: int]
     """
-    can_key_dct, atm_par_dct, bnd_par_dct = (
-        canonical_priorities_and_stereo_parities(
-            gra, backbone_only=backbone_only, break_ties=True))
+    atm_par_dct0 = atom_stereo_parities(gra)
+    bnd_par_dct0 = bond_stereo_parities(gra)
 
-    atm_par_dct0 = dict_.filter_by_value(
-        atom_stereo_parities(gra), lambda x: x is not None)
-    bnd_par_dct0 = dict_.filter_by_value(
-        bond_stereo_parities(gra), lambda x: x is not None)
+    can_key_dct, gra = calculate_priorities_and_assign_parities(
+        gra, backbone_only=backbone_only, break_ties=True)
+
+    atm_par_dct = atom_stereo_parities(gra)
+    bnd_par_dct = bond_stereo_parities(gra)
 
     assert atm_par_dct == atm_par_dct0, (
         f"Atom stereo parities don't match input. Something is wrong:\n"
@@ -288,15 +288,19 @@ def to_local_stereo(gra):
 
 def _to_local_stereo_with_canonical_priorities(gra, break_ties=False):
     atm_par_dct0 = dict_.filter_by_value(
-        atom_stereo_parities(gra), lambda x: x is not None)
+            atom_stereo_parities(gra), lambda x: x is not None)
     bnd_par_dct0 = dict_.filter_by_value(
-        bond_stereo_parities(gra), lambda x: x is not None)
+            bond_stereo_parities(gra), lambda x: x is not None)
 
-    pri_dct, atm_par_dct, bnd_par_dct = (
-        canonical_priorities_and_stereo_parities(
+    pri_dct, gra = calculate_priorities_and_assign_parities(
             gra, backbone_only=False, break_ties=break_ties,
             par_eval_=parity_evaluator_from_canonical_stereo_(gra),
-            ret_par_eval_=parity_evaluator_to_or_from_local_stereo_(gra)))
+            ret_par_eval_=parity_evaluator_to_or_from_local_stereo_(gra))
+
+    atm_par_dct = dict_.filter_by_value(
+            atom_stereo_parities(gra), lambda x: x is not None)
+    bnd_par_dct = dict_.filter_by_value(
+            bond_stereo_parities(gra), lambda x: x is not None)
 
     assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
         f"Something went wrong. Atom stereo keys don't match up:\n"
@@ -309,9 +313,6 @@ def _to_local_stereo_with_canonical_priorities(gra, break_ties=False):
         f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
         f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
     )
-
-    gra = set_atom_stereo_parities(gra, atm_par_dct)
-    gra = set_bond_stereo_parities(gra, bnd_par_dct)
 
     return gra, pri_dct
 
@@ -339,15 +340,19 @@ def from_local_stereo(gra):
 
 def _from_local_stereo_with_canonical_priorities(gra, break_ties=False):
     atm_par_dct0 = dict_.filter_by_value(
-        atom_stereo_parities(gra), lambda x: x is not None)
+            atom_stereo_parities(gra), lambda x: x is not None)
     bnd_par_dct0 = dict_.filter_by_value(
-        bond_stereo_parities(gra), lambda x: x is not None)
+            bond_stereo_parities(gra), lambda x: x is not None)
 
-    pri_dct, atm_par_dct, bnd_par_dct = (
-        canonical_priorities_and_stereo_parities(
+    pri_dct, gra = calculate_priorities_and_assign_parities(
             gra, backbone_only=False, break_ties=break_ties,
             par_eval_=parity_evaluator_to_or_from_local_stereo_(gra),
-            ret_par_eval_=parity_evaluator_to_or_from_local_stereo_(gra)))
+            ret_par_eval_=parity_evaluator_to_or_from_local_stereo_(gra))
+
+    atm_par_dct = dict_.filter_by_value(
+            atom_stereo_parities(gra), lambda x: x is not None)
+    bnd_par_dct = dict_.filter_by_value(
+            bond_stereo_parities(gra), lambda x: x is not None)
 
     assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
         f"Something went wrong. Atom stereo keys don't match up:\n"
@@ -360,9 +365,6 @@ def _from_local_stereo_with_canonical_priorities(gra, break_ties=False):
         f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
         f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
     )
-
-    gra = set_atom_stereo_parities(gra, atm_par_dct)
-    gra = set_bond_stereo_parities(gra, bnd_par_dct)
 
     return gra, pri_dct
 
@@ -391,10 +393,10 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
     for comp in connected_components(gra):
         par_eval_ = parity_evaluator_from_geometry_(
             comp, geo, geo_idx_dct=geo_idx_dct)
-        _, atm_par_dct, bnd_par_dct = canonical_priorities_and_stereo_parities(
+        _, comp = calculate_priorities_and_assign_parities(
             comp, backbone_only=False, par_eval_=par_eval_)
-        ret_gra = set_atom_stereo_parities(ret_gra, atm_par_dct)
-        ret_gra = set_bond_stereo_parities(ret_gra, bnd_par_dct)
+        ret_gra = set_atom_stereo_parities(ret_gra, atom_stereo_parities(comp))
+        ret_gra = set_bond_stereo_parities(ret_gra, bond_stereo_parities(comp))
 
     return ret_gra
 
@@ -420,14 +422,14 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
                 for ks in map(atom_keys, gras)]
     pri_dct = {}
     for gra_, pri_dct_ in zip(gras, pri_dcts):
-        pri_dct_, _, _ = canonical_priorities_and_stereo_parities(
+        pri_dct_, _ = calculate_priorities_and_assign_parities(
             gra_, backbone_only=backbone_only, break_ties=break_ties,
             pri_dct=pri_dct_)
         pri_dct.update(pri_dct_)
     return pri_dct
 
 
-def canonical_priorities_and_stereo_parities(
+def calculate_priorities_and_assign_parities(
         gra, par_eval_=None, ret_par_eval_=None, break_ties=False,
         backbone_only=True, pri_dct=None):
     """ Determine canonical priorities and assign stereo parities to this graph.
@@ -456,9 +458,8 @@ def canonical_priorities_and_stereo_parities(
         :type backbone_only: bool
         :param pri_dct: Optional initial priorities, to be refined.
         :type pri_dct: dict[int: int]
-        :returns: A dictionary of canonical priorities by atom key, a
-            dictionary of atom stereo parities by atom key, and a dictionary of
-            bond stereo parities by bond key.
+        :returns: A dictionary of canonical priorities by atom key and a graph
+            with stereo assignments.
         :rtype: dict[int: int], dict[int: bool], dict[frozenset: bool]
     """
     assert is_connected(gra), "Not for disconnected graphs."
@@ -483,7 +484,7 @@ def canonical_priorities_and_stereo_parities(
         pri_dct = {k: 0 for k in atom_keys(gra)}
 
     # 1. Refine the initial priorities based on atom invariants, without stereo
-    pri_dct = refine_canonical_priorities(gra, pri_dct)
+    pri_dct = refine_priorities(gra, pri_dct)
 
     # 2. Iteratively refine priorities while introducing stereo parities
     ret_atm_par_dct = {}
@@ -514,7 +515,7 @@ def canonical_priorities_and_stereo_parities(
 
             # e. Further refine priorities based on the new assignments
             last_pri_dct = pri_dct
-            pri_dct = refine_canonical_priorities(gra, pri_dct)
+            pri_dct = refine_priorities(gra, pri_dct)
 
     # 3. If requested, break ties based on keys.
     if break_ties:
@@ -525,16 +526,12 @@ def canonical_priorities_and_stereo_parities(
         pri_dct = augment_priority_dict_with_hydrogen_keys(
             gra0, pri_dct, break_ties=break_ties)
 
-    # Remove Nones if there wasn't any stereo there
-    ret_atm_par_dct = dict_.filter_by_value(
-        ret_atm_par_dct, lambda x: x is not None)
-    ret_bnd_par_dct = dict_.filter_by_value(
-        ret_bnd_par_dct, lambda x: x is not None)
-
-    return pri_dct, ret_atm_par_dct, ret_bnd_par_dct
+    ret_gra = set_atom_stereo_parities(gra0, ret_atm_par_dct)
+    ret_gra = set_bond_stereo_parities(ret_gra, ret_bnd_par_dct)
+    return pri_dct, ret_gra
 
 
-def refine_canonical_priorities(gra, pri_dct, srt_eval_=None):
+def refine_priorities(gra, pri_dct, srt_eval_=None):
     """ Refine the canonical priorities for this graph based on some sort value.
 
         :param gra: molecular graph
@@ -716,7 +713,7 @@ def break_priority_ties(gra, pri_dct):
 
         # Now, refine partitions based on the change just made.
         cla_dct = class_dict_from_priority_dict(pri_dct)
-        pri_dct = refine_canonical_priorities(gra, pri_dct)
+        pri_dct = refine_priorities(gra, pri_dct)
 
         # Update the list of classes needing further tie breaking
         cla_dct = class_dict_from_priority_dict(pri_dct)
