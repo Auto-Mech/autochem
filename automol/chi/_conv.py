@@ -19,7 +19,7 @@ def is_complete(chi):
     """
     pfx = automol.amchi.base.prefix(chi)
     if pfx == 'AMChI':
-        ret = True
+        ret = automol.amchi.is_compoete(chi)
     elif pfx == 'InChI':
         ret = automol.inchi.is_compoete(chi)
     else:

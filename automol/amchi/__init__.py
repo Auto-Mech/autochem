@@ -66,6 +66,8 @@ from automol.amchi._conv import smiles
 from automol.amchi._conv import graph
 from automol.amchi._conv import geometry
 from automol.amchi._conv import conformers
+# # derived properties
+from automol.amchi._conv import is_complete
 # # derived transformations
 from automol.amchi._conv import add_stereo
 from automol.amchi._conv import expand_stereo
@@ -139,6 +141,8 @@ __all__ = [
     'graph',
     'geometry',
     'conformers',
+    # # derived properties
+    'is_complete',
     # # derived transformations
     'add_stereo',
     'expand_stereo',

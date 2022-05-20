@@ -1000,10 +1000,15 @@ def test__calculate_priorities_and_assign_parities():
 
         par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
 
-        can_key_dct, atm_par_dct, bnd_par_dct = (
-            graph.calculate_priorities_and_assign_parities(
-                gra, par_eval_=par_eval_))
-        print(can_key_dct)
+        pri_dct, gra = graph.calculate_priorities_and_assign_parities(
+                gra, par_eval_=par_eval_)
+
+        print(pri_dct)
+
+        atm_par_dct = automol.util.dict_.filter_by_values(
+            automol.graph.atom_stereo_parities(gra), lambda x: x is not None)
+        bnd_par_dct = automol.util.dict_.filter_by_values(
+            automol.graph.bond_stereo_parities(gra), lambda x: x is not None)
 
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
         bnd_pars = [p for k, p in sorted(bnd_par_dct.items()) if p is not None]
