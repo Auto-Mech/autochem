@@ -21,6 +21,7 @@ from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
 from automol.graph.base._canon import canonical_enantiomer_with_keys
+from automol.graph.base._resonance import has_resonance_bond_stereo
 import automol.amchi.base
 
 
@@ -101,6 +102,34 @@ def connected_amchi_with_indices(gra, stereo=True, can=True,
                                        ste_lyr_dct=ste_lyr_dct)
 
     return chi, chi_idx_dct
+
+
+# # inchi checker
+def inchi_is_bad(gra, ich):
+    """ Check if this is a bad InChI by comparing it to a graph with stereo
+
+        The InChI is currently considered 'bad' if it:
+        1. Is missing stereo
+        2. Has mobile hydrogens
+
+        :param gra: molecular graph, with stereo
+        :type gra: automol graph data structure
+        :param chi: ChI string
+        :type chi: str
+        :returns: True if the InChI is bad, otherwise False
+        :rtype: bool
+    """
+    gra_natm_ste = len(atom_stereo_keys(gra))
+    gra_nbnd_ste = len(bond_stereo_keys(gra))
+    ich_natm_ste = len(automol.amchi.base.atom_stereo_parities(ich))
+    ich_nbnd_ste = len(automol.amchi.base.bond_stereo_parities(ich))
+
+    is_bad = (ich_natm_ste < gra_natm_ste or
+              ich_nbnd_ste < gra_nbnd_ste or
+              has_resonance_bond_stereo(gra) or
+              automol.amchi.base.has_mobile_hydrogens(ich))
+
+    return is_bad
 
 
 # # AMChI layer functions

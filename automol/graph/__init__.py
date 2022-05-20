@@ -257,6 +257,8 @@ from automol.graph.base._rot import rotational_bond_keys
 from automol.graph.base._rot import rotational_groups
 from automol.graph.base._rot import rotational_symmetry_number
 from automol.graph.base._rot import bond_symmetry_numbers
+# geometry functions:
+from automol.graph.base._geom import linear_vinyl_corrected_geometry
 # stereo functions:
 # # core functions
 from automol.graph.base._stereo import stereomers
@@ -269,6 +271,7 @@ from automol.graph.base._stereo import stereo_corrected_geometry
 # AMChI functions:
 from automol.graph.base._amchi import amchi
 from automol.graph.base._amchi import amchi_with_indices
+from automol.graph.base._amchi import inchi_is_bad
 # SMILES functions:
 from automol.graph.base._smiles import smiles
 # TS graph submodule:
@@ -526,6 +529,8 @@ __all__ = [
     'rotational_groups',
     'rotational_symmetry_number',
     'bond_symmetry_numbers',
+    # geometry functions:
+    'linear_vinyl_corrected_geometry',
     # stereo functions:
     # # core functions
     'stereomers',
@@ -543,6 +548,7 @@ __all__ = [
     # AMChI functions:
     'amchi',
     'amchi_with_indices',
+    'inchi_is_bad',
     # SMILES functions:
     'smiles',
     # TS graph submodule:

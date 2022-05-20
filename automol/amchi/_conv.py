@@ -191,29 +191,29 @@ def _connected_geometry(chi, check=True):
 
         # If the ChI has stereo, enforce correct stereo on the geometry.
         if check:
+            # There is stereo.
+            # First, check connectivity.
+            gra_ = automol.geom.graph(geo)
+            geo_idx_dct = automol.graph.isomorphism(
+                    gra, gra_, stereo=False)
+
+            if geo_idx_dct is None:
+                continue
+
+            geo = automol.graph.linear_vinyl_corrected_geometry(
+                gra, geo, geo_idx_dct=geo_idx_dct)
+
             if not has_ste:
-                # If there wasn't stereo, only check connectivity
-                gra_ = automol.geom.graph(geo, stereo=False)
-                if automol.graph.isomorphism(gra, gra_, stereo=False):
-                    success = True
-                    break
-            else:
-                # There is stereo.
-                # First, check connectivity.
-                gra_ = automol.geom.graph(geo)
-                geo_idx_dct = automol.graph.isomorphism(
-                        gra, gra_, stereo=False)
-
-                if geo_idx_dct is None:
-                    continue
-
-                # Enforce correct stereo parities. This is necessary for
-                # resonance bond stereo.
-                geo = automol.graph.stereo_corrected_geometry(
-                    gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
-
                 success = True
                 break
+
+            # Enforce correct stereo parities. This is necessary for
+            # resonance bond stereo.
+            geo = automol.graph.stereo_corrected_geometry(
+                gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
+
+            success = True
+            break
 
     if not success:
         raise error.FailedGeometryGenerationError('Failed AMChI:', chi)

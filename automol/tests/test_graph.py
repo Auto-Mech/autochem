@@ -1120,6 +1120,41 @@ def test__has_resonance_bond_stereo():
     assert not graph.has_resonance_bond_stereo(gra)
 
 
+def test__inchi_is_bad():
+    """ test graph.inchi_is_bad
+    """
+    # This species is missing resonance bond stereo
+    gra = ({0: ('F', 0, None), 1: ('C', 1, None), 3: ('C', 1, None),
+            4: ('C', 1, None), 5: ('F', 0, None)},
+           {frozenset({3, 4}): (1, True), frozenset({0, 1}): (1, None),
+            frozenset({1, 3}): (1, True), frozenset({4, 5}): (1, None)})
+    ich = graph.inchi(gra)
+    print(ich)
+    assert graph.inchi_is_bad(gra, ich)
+
+    # This species is missing vinyl radical bond stereo
+    gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 2, None),
+            3: ('C', 1, None), 4: ('C', 0, None), 5: ('C', 1, None),
+            6: ('C', 1, None), 7: ('C', 0, None), 8: ('C', 1, None),
+            9: ('C', 1, None), 10: ('C', 0, None)},
+           {frozenset({9, 6}): (1, None), frozenset({9, 10}): (1, None),
+            frozenset({10, 7}): (1, None), frozenset({1, 2}): (1, None),
+            frozenset({0, 1}): (1, True), frozenset({3, 6}): (1, None),
+            frozenset({8, 10}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({3, 5}): (1, None), frozenset({8, 5}): (1, None),
+            frozenset({4, 7}): (1, None)})
+    ich = graph.inchi(gra)
+    print(ich)
+    assert graph.inchi_is_bad(gra, ich)
+
+    # This species has mobile hydrogens
+    gra = ({0: ('C', 0, None), 1: ('O', 1, None), 2: ('O', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None)})
+    ich = graph.inchi(gra)
+    print(ich)
+    assert graph.inchi_is_bad(gra, ich)
+
+
 def test__amchi():
     """ test graph.amchi
     """
@@ -1268,7 +1303,7 @@ if __name__ == '__main__':
     # test__smiles()
     # test__smiles()
     # test__canonical()
-    test__calculate_priorities_and_assign_parities()
+    # test__calculate_priorities_and_assign_parities()
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
@@ -1277,3 +1312,4 @@ if __name__ == '__main__':
     # test__ts__nonconserved_atom_stereo_keys()
     # test__ts__compatible_reverse_stereomers()
     # test__stereogenic_atom_keys()
+    test__inchi_is_bad()
