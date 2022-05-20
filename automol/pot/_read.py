@@ -186,4 +186,6 @@ def _local_extrema(grid):
     loc_max = tuple(argrelextrema(numpy.array(grid), numpy.greater)[0])
     loc_min = tuple(argrelextrema(numpy.array(grid), numpy.less)[0])
 
+    print('local stat pt test:', loc_max, loc_min)
+
     return loc_max, loc_min

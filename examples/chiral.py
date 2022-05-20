@@ -1,6 +1,6 @@
 """ Basic demo of distance geometry functionality
 """
-# import sys
+import sys
 import numpy
 import automol
 
@@ -16,7 +16,7 @@ def main(ich):
     geo_in = automol.inchi.geometry(ich)
     gra = automol.geom.graph(geo_in)
 
-    geo = automol.graph.embed.geometry(gra)
+    geo = automol.graph.embed.qualitative_stereo_geometry(gra)
 
     print("Geometry in:")
     print(automol.geom.string(geo_in))
@@ -46,7 +46,7 @@ def main(ich):
 ICHS = [
     automol.smiles.inchi(r'CC[C@@H](C)O'),
     automol.smiles.inchi(r'CC[C@H](C)O'),
-    # automol.smiles.inchi(r'C1C[C@@H]2CN[C@H]1OO2'),
+    automol.smiles.inchi(r'C1C[C@@H]2CN[C@H]1OO2'),
     automol.smiles.inchi(r'F[C@@H](Cl)[C@@H](F)Cl'),
     automol.smiles.inchi(r'F[C@@H](Cl)[C@H](F)Cl'),
     automol.smiles.inchi(r'F[C@H](Cl)[C@H](F)Cl'),

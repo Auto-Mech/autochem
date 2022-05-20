@@ -70,12 +70,10 @@ CCOOC_GRA = automol.geom.graph(
 #         automol.smiles.inchi('CC(=O)N')))
 
 INI_FGRP_DCT = {
-    automol.graph.FunctionalGroup.ALKENE: (),
-    automol.graph.FunctionalGroup.ALKOXY: (),
     automol.graph.FunctionalGroup.PEROXY: (),
     automol.graph.FunctionalGroup.HYDROPEROXY: (),
     automol.graph.FunctionalGroup.ETHER: (),
-    automol.graph.FunctionalGroup.CYCLIC_ETHER: (),
+    automol.graph.FunctionalGroup.EPOXIDE: (),
     automol.graph.FunctionalGroup.CARBOX_ACID: (),
     automol.graph.FunctionalGroup.ESTER: (),
     automol.graph.FunctionalGroup.ALCOHOL: (),
@@ -84,10 +82,7 @@ INI_FGRP_DCT = {
     automol.graph.FunctionalGroup.AMIDE: (),
     automol.graph.FunctionalGroup.NITRO: (),
     automol.graph.FunctionalGroup.HALIDE: (),
-    automol.graph.FunctionalGroup.THIOL: (),
-    automol.graph.FunctionalGroup.METHYL: (),
-    automol.graph.FunctionalGroup.PHENYL: (),
-    automol.graph.FunctionalGroup.AMINE: (),
+    automol.graph.FunctionalGroup.THIOL: ()
 }
 
 
@@ -125,7 +120,7 @@ def test_functional_group_dct():
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.CYCLIC_ETHER: ((1, 3, 2),)
+        automol.graph.FunctionalGroup.EPOXIDE: ((1, 3, 2),)
     })
     fgrps = automol.graph.functional_group_dct(CYC_ETHER_GRA)
     assert fgrps == ref_fgrps

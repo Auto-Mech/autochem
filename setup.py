@@ -18,21 +18,17 @@ setup(
         'automol.embed',
         # L2
         'automol.amchi.base',
-        'automol.smiles.base',
         'automol.geom.base',
         'automol.graph.base',
         'automol.zmat.base',
         # L3
         'automol.extern',
         'automol.inchi.base',
-        'automol.chi.base',
         # L4
         'automol.graph',
         'automol.geom',
         'automol.amchi',
         'automol.inchi',
-        'automol.chi',
-        'automol.smiles',
         'automol.zmat',
         # L5
         'automol.pot',

@@ -15,7 +15,7 @@ AXIS_DCT = {'x': 0, 'y': 1, 'z': 2}
 
 
 # # constructors
-def from_data(symbs, xyzs, angstrom=False, check=True):
+def from_data(symbs, xyzs, angstrom=False):
     """ Build a geometry data structure from atomic symbols and coordinates.
 
         format:
@@ -28,20 +28,16 @@ def from_data(symbs, xyzs, angstrom=False, check=True):
         :type xyzs: tuple(float)
         :param angstrom: parameter to control Bohr->Angstrom conversion
         :type angstrom: bool
-        :param check: check that argument values make sense?
-        :type check: bool
     """
 
     symbs = list(map(ptab.to_symbol, symbs))
     natms = len(symbs)
 
     xyzs = numpy.array(xyzs, dtype=float)
-    if check:
-        assert numpy.ndim(xyzs) == 2 and numpy.shape(xyzs) == (natms, 3)
-
+    assert numpy.ndim(xyzs) == 2 and numpy.shape(xyzs) == (natms, 3)
     xyzs = (xyzs if not angstrom else
             numpy.multiply(xyzs, phycon.ANG2BOHR))
-    xyzs = [tuple(xyz[:3]) for xyz in xyzs]
+    xyzs = list(map(tuple, xyzs))
     geo = tuple(zip(symbs, xyzs))
 
     return geo

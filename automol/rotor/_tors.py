@@ -32,7 +32,6 @@ class Torsion:
         else:
             self.indices = indices
         self.pot = None
-        self.scan_geos = None
 
     def set_span(self):
         """ Obtain the torsional span

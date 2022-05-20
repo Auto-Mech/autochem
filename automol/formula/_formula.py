@@ -225,21 +225,6 @@ def argsort_symbols(seq, symbs_first=('C', 'H'), symbs_last=(), idx=None):
                  sorted(((v, i) for (i, v) in enumerate(seq)), key=_sort_key))
 
 
-def sort_vector(fml, symbs=None):
-    """ Generate a sort vector for sorting various formulas against each other
-
-        :param fml_str: stochiometric chemical formula string
-        :type fml_str: str
-        :param symbs: atomic symbols in the desired sort order (optional)
-        :type symbs: list[str]
-    """
-    if symbs is None:
-        symbs = sorted_symbols(fml.keys())
-
-    vec = tuple(fml[s] if s in fml else 0 for s in symbs)
-    return vec
-
-
 def _is_standard(fml):
     """ Assess if the formula conforms to the standard form.
 

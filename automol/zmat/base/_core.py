@@ -62,7 +62,7 @@ def from_geometry(vma, geo):
     symbs = symbols(vma)
     key_mat = key_matrix(vma)
     name_mat = name_matrix(vma)
-    val_mat = numpy.empty(numpy.shape(key_mat), dtype=object)
+    val_mat = numpy.empty(numpy.shape(key_mat), dtype=numpy.object_)
 
     for row, key_row in enumerate(key_mat):
         if row > 0:
@@ -97,7 +97,7 @@ def value_matrix(zma, angstrom=False, degree=False):
         val_mat = tuple(zip(*zma))[3]
 
         val_mat = [list(row) + [None]*(3-len(row)) for row in val_mat]
-        val_mat = numpy.array(val_mat, dtype=object)
+        val_mat = numpy.array(val_mat, dtype=numpy.object_)
 
         val_mat[1:, 0] *= phycon.BOHR2ANG if angstrom else 1
         val_mat[2:, 1] *= phycon.RAD2DEG if degree else 1
@@ -201,8 +201,8 @@ def set_values_by_name(zma, val_dct, angstrom=True, degree=True):
         :rtype: automol Z-Matrix data structure
     """
 
-    val_mat = numpy.array(value_matrix(zma), dtype=object)
-    name_mat = numpy.array(name_matrix(zma), dtype=object)
+    val_mat = numpy.array(value_matrix(zma), dtype=numpy.object_)
+    name_mat = numpy.array(name_matrix(zma), dtype=numpy.object_)
 
     for (row, col), name in numpy.ndenumerate(name_mat):
         if name in val_dct:
@@ -409,7 +409,7 @@ def remove_atom(zma, key):
 
     key_mat = list(key_matrix(zma))
     key_mat.pop(key)
-    key_mat = numpy.array(key_mat, dtype=object)
+    key_mat = numpy.array(key_mat, dtype=numpy.object_)
 
     if (key_mat == key).any():
         raise ValueError(f"Other atoms in z-matrix depend on atom {key}")
@@ -699,7 +699,7 @@ def _value_matrix(val_mat, angstrom, degree):
 
     # Check dimensions and ensure proper formatting
     val_mat = [list(row) + [None]*(3-len(row)) for row in val_mat]
-    val_mat = numpy.array(val_mat, dtype=object)
+    val_mat = numpy.array(val_mat, dtype=numpy.object_)
     natms = val_mat.shape[0]
 
     assert val_mat.ndim == 2 and val_mat.shape == (natms, 3)

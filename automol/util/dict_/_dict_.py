@@ -185,12 +185,6 @@ def keys_sorted_by_value(dct):
     return tuple(key for key, _ in sorted(dct.items(), key=lambda x: x[1]))
 
 
-def values_sorted_by_key(dct):
-    """ dictionary values sorted by their associated keys
-    """
-    return tuple(val for _, val in sorted(dct.items()))
-
-
 def filter_by_key(dct, func=lambda val: val):
     """ filter dictionary entries by their values
     """

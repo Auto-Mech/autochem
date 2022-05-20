@@ -20,5 +20,4 @@ disable=
     no-self-use,
     broad-except,
     unnecessary-lambda,
-    consider-using-f-string,
-    no-else-raise
+    consider-using-f-string

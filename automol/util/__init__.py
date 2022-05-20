@@ -2,7 +2,6 @@
 """
 
 # functions
-from automol.util._util import flatten
 from automol.util._util import is_odd_permutation
 from automol.util._util import is_even_permutation
 from automol.util._util import equivalence_partition
@@ -24,7 +23,6 @@ from automol.util import dict_
 
 __all__ = [
     # functions
-    'flatten',
     'is_odd_permutation',
     'is_even_permutation',
     'equivalence_partition',

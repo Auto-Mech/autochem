@@ -779,14 +779,13 @@ def test__stereo():
 
     # Complete stereo expansion for the reaction
     srxns = automol.reac.expand_stereo(rxn)
-    print(len(srxns))
-    assert len(srxns) == 12
+    assert len(srxns) == 16
     print("Complete stereo expansion for the reaction:")
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
         print(rct_ichs)
         print(prd_ichs)
         print()
@@ -806,8 +805,8 @@ def test__stereo():
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
         print(rct_ichs)
         print(prd_ichs)
         print()
@@ -828,8 +827,8 @@ def test__stereo():
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
         print(rct_ichs)
         print(prd_ichs)
         print()
@@ -848,8 +847,8 @@ def test__stereo():
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
+        rct_ichs = list(map(automol.graph.stereo_inchi, rct_gras))
+        prd_ichs = list(map(automol.graph.stereo_inchi, prd_gras))
         print(rct_ichs)
         print(prd_ichs)
         print()
@@ -937,10 +936,10 @@ def test__expand_stereo():
     rxn_obj = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
 
     srxn_objs = automol.reac.expand_stereo(rxn_obj)
-    rct_ichs = list(map(automol.graph.inchi,
+    rct_ichs = list(map(automol.graph.stereo_inchi,
                         map(automol.graph.union_from_sequence,
                             map(automol.reac.reactant_graphs, srxn_objs))))
-    prd_ichs = list(map(automol.graph.inchi,
+    prd_ichs = list(map(automol.graph.stereo_inchi,
                         map(automol.graph.union_from_sequence,
                             map(automol.reac.reactant_graphs, srxn_objs))))
     rxn_ichs_lst = tuple(zip(rct_ichs, prd_ichs))
@@ -1142,14 +1141,12 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
 
 if __name__ == '__main__':
-    import warnings
-    warnings.filterwarnings("error")
-
     # test__reac__hydrogen_abstraction()
     # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
+    test__reac__radrad_addition()
     # test__reac__isc_addition()
-    # test__reac__radrad_hydrogen_abstraction()
+    test__reac__radrad_hydrogen_abstraction()
     # test__reac__insertion()
     # test__reac__substitution()
     # test__prod__homolytic_scission()
@@ -1158,8 +1155,4 @@ if __name__ == '__main__':
     # test__expand_stereo()
     # test__expand_product_stereo()
     # test__add_stereo_from_unordered_geometries()
-    # test__stereo()
-    # test__reac__radrad_addition()
     test__stereo()
-    test__expand_stereo()
-    test__expand_product_stereo()

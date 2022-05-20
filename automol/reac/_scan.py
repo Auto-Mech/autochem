@@ -351,10 +351,10 @@ def radrad_addition_grid(zrxn, zma, npoints=(8, 4)):
     # Get the first grid from close to the mid
     frm_bnd_len = _ts_bnd_len(zma, scan_name)
     if frm_bnd_len is not None:
-        rmin = frm_bnd_len + (0.2 * phycon.ANG2BOHR)
+        rmin = frm_bnd_len + (0.1 * phycon.ANG2BOHR)
         rmax = frm_bnd_len + (1.2 * phycon.ANG2BOHR)
     else:
-        rmin = 1.5 * phycon.ANG2BOHR
+        rmin = 1.6 * phycon.ANG2BOHR
         rmax = 2.8 * phycon.ANG2BOHR
 
     grid1 = numpy.linspace(rmin, rmax, npoints1)

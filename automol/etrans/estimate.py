@@ -31,7 +31,7 @@ def alpha(n_eff, eps, sig, mass1, mass2, collider_set,
     """
 
     # Calculate the Lennard-Jones frequencies
-    red_mass = ((mass1 * mass2) / (mass1 + mass2))
+    red_mass = ((mass1 * mass2) / (mass1 + mass2)) * phycon.AMU2KG
 
     # Calculate Zalpha(Neff) at T = 300, 1000, 2000 K
     z_alphas_n_eff = _calculate_z_alpha_terms(n_eff, collider_set)
@@ -41,7 +41,6 @@ def alpha(n_eff, eps, sig, mass1, mass2, collider_set,
     alpha_dct = {}
     for temp, z_alpha_n_eff in z_alphas_n_eff.items():
         zlj = troe_lj_collision_frequency(eps, sig, red_mass, temp)
-        zlj *= 100**3  # conv. m^3/s to cm^3/ for below
         alpha_dct[temp] = (z_alpha_n_eff / zlj) / empirical_factor
 
     # Determine alpha and n for the e-down model
@@ -302,9 +301,9 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
         if automol.graph.radical_species(tgt_gra):
             # Determine if peroxy,hydroperoxy groups present to use RO2 series
             # otherwise just use alkyl radical series
-            fgrp_cnt_dct = automol.graph.functional_group_count_dct(tgt_gra)
-            fgrps = set(fgrp for fgrp, count in fgrp_cnt_dct.items()
-                        if count > 0)
+            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
+            fgrps = set(fgrp for fgrp, grp_idxs in fgrp_dct.items()
+                        if grp_idxs)
             print('fgrps test', fgrps)
             _ro2_fgrps = {FunctionalGroup.PEROXY, FunctionalGroup.HYDROPEROXY}
             if _ro2_fgrps & fgrps:
@@ -317,12 +316,9 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
             # Set priority based on bond-dissociation energies
             # Loop through D0 dct (ordered by ene) and try to find func. grp
             tgt_model = None
-            fgrp_cnt_dct = automol.graph.functional_group_count_dct(tgt_gra)
-            fgrps = set(fgrp for fgrp, count in fgrp_cnt_dct.items()
-                        if count > 0)
-            print('fgrps test', fgrps)
+            fgrp_dct = automol.graph.functional_group_dct(tgt_gra)
             for (fgrp, model) in D0_GRP_LST:
-                if fgrp in fgrps:
+                if fgrp_dct[fgrp]:
                     tgt_model = model
                     break
 

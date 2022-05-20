@@ -260,8 +260,6 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None):
             group_dct = {x: y for x, y in group_dct.items() if y != 0}
             if len(group_dct) == 4:
                 chiral_center += 1
-            elif len(group_dct) == 3 and atm in atm_rads:
-                chiral_center += 1
             if atm in ring_atms:
                 continue
             if len(group_dct) == 2:

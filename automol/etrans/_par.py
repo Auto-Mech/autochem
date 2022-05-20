@@ -38,7 +38,7 @@ LJ_EST_DCT = {
     frozenset({'InChI=1S/Ar', 'n-alkane'}): (3.40, 0.18, 113.0, 0.31),
     frozenset({'InChI=1S/Ar', 'n-alcohol'}): (3.05, 0.20, 150.0, 0.29),
     frozenset({'InChI=1S/Ar', 'n-peroxide'}): (2.90, 0.25, 85.0, 0.32),
-    frozenset({'InChI=1S/Ar', 'cyclic_ether'}): (2.90, 0.23, 75.0, 0.50),
+    frozenset({'InChI=1S/Ar', 'epoxide'}): (2.90, 0.23, 75.0, 0.50),
     frozenset({'InChI=1S/Ar', 'n-hydroperoxide'}): (3.05, 0.20, 110.0, 0.39),
     frozenset({'InChI=1S/Ar', '1-alkyl'}): (3.50, 0.17, 90.0, 0.38),
     frozenset({'InChI=1S/Ar', 'ether'}): (3.15, 0.22, 110.0, 0.15),
@@ -111,7 +111,7 @@ Z_ALPHA_EST_DCT = {
         1000: (0.0116, -2.2454, 40.9493, 251.0031),
         2000: (-0.1170, -0.4961, 40.0212, 580.5769)
     },
-    frozenset({'InChI=1S/Ar', 'cyclic_ether'}): {
+    frozenset({'InChI=1S/Ar', 'epoxide'}): {
         300: (0.5025, -18.4928, 200.3532, -246.9419),
         1000: (0.7488, -25.8914, 247.3055, 25.3337),
         2000: (0.896, -30.0515, 262.9319, 412.6931)
@@ -136,7 +136,7 @@ D0_GRP_LST = (
     # FunctionalGroup.'ketohydroperoxide':             # (35.0, 51.0)
     # FunctionalGroup.'1-alkyl':                       # 40.0
     # FunctionalGroup.'n-hydroperoxide':               # 45.0
-    (FunctionalGroup.CYCLIC_ETHER, 'cyclic_ether'),    # 60.0
+    (FunctionalGroup.EPOXIDE, 'epoxide'),              # 60.0
     (FunctionalGroup.ETHER, 'ether'),                  # 82.0
     (FunctionalGroup.ALCOHOL, 'n-alcohol')             # 90.0
 )

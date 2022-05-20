@@ -14,7 +14,6 @@ from automol.pot._pot import valid
 from automol.pot._pot import is_nonempty
 from automol.pot._pot import dimension
 from automol.pot._pot import string
-from automol.pot._pot import is_symmetric
 from automol.pot._intmol import lj_potential
 from automol.pot._intmol import exp6_potential
 from automol.pot._intmol import low_repulsion_struct
@@ -38,7 +37,6 @@ __all__ = [
     'is_nonempty',
     'dimension',
     'string',
-    'is_symmetric',
     'lj_potential',
     'exp6_potential',
     'low_repulsion_struct',

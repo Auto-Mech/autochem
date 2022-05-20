@@ -1,7 +1,7 @@
 """
   Use graph structures to identify chemical functional groups
 
-  Note: Code requires dominant-resonance explicit graphs to work
+  Note: Code requires explicit graphs to work
 """
 
 import itertools
@@ -20,9 +20,8 @@ from automol.graph.base._core import remove_atoms
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import subgraph
-from automol.graph.base._core import explicit
-from automol.graph.base._canon import to_local_stereo
-from automol.graph.base._canon import from_local_stereo
+from automol.graph.base._stereo import to_index_based_stereo
+from automol.graph.base._stereo import from_index_based_stereo
 from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
 
 
@@ -30,13 +29,11 @@ from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
 class FunctionalGroup():
     """ Functional groups
     """
-    ALKENE = 'alkene'
-    ALKOXY = 'alkoxy'
     ALCOHOL = 'alcohol'
     PEROXY = 'peroxy'
     HYDROPEROXY = 'hydroperoxy'
     ETHER = 'ether'
-    CYCLIC_ETHER = 'cyclic_ether'
+    EPOXIDE = 'epoxide'
     ALDEHYDE = 'aldehyde'
     KETONE = 'ketone'
     ESTER = 'ester'
@@ -47,21 +44,6 @@ class FunctionalGroup():
     AMINE = 'amine'
     AMIDE = 'amide'
     NITRO = 'nitro'
-    METHYL = 'methyl'
-    PHENYL = 'phenyl'
-
-
-def functional_group_count_dct(gra):
-    """ Return a dictionary that contains a count of the number
-        of each of the functional groups in a species.
-
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :rtype: dict[str: int]
-    """
-    fgrp_dct = functional_group_dct(gra)
-    return {fgrp: len(grp_idx_lst) for fgrp, grp_idx_lst in fgrp_dct.items()
-            if grp_idx_lst}
 
 
 def functional_group_dct(gra):
@@ -72,17 +54,12 @@ def functional_group_dct(gra):
         :rtype: dict[str: tuple(int)]
     """
 
-    # Convert to dominant-resonance explicit graph for the functions to work
-    gra = dominant_resonance(explicit(gra))
-
     # Build a dictionary by calling all the functional group functions
     # Certain smaller groups are removed when they are a part of larger groups
-    alkene_grps = alkene_sites(gra)
-    alkoxy_grps = alkoxy_groups(gra)
     peroxy_grps = peroxy_groups(gra)
     hydroperoxy_grps = hydroperoxy_groups(gra)
     ether_grps = ether_groups(gra)
-    cyc_ether_grps = cyclic_ether_groups(gra)
+    epoxide_grps = epoxy_groups(gra)
     carbox_acid_grps = carboxylic_acid_groups(gra)
     ester_grps = ester_groups(gra)
     ether_grps = ether_groups(gra, filterlst=ester_grps)
@@ -94,30 +71,26 @@ def functional_group_dct(gra):
     nitro_grps = nitro_groups(gra)
     halide_grps = halide_groups(gra)
     thiol_grps = thiol_groups(gra)
-    methyl_grps = methyl_groups(gra)
-    phenyl_grps = phenyl_groups(gra)
-    amine_grps = amine_groups(gra)
+
     # might have to filter it to remove ketone/oh if carbox acids are ther
-    return {
-        FunctionalGroup.ALKENE: alkene_grps,
-        FunctionalGroup.ALKOXY: alkoxy_grps,
+    func_grp_dct = {
         FunctionalGroup.PEROXY: peroxy_grps,
         FunctionalGroup.HYDROPEROXY: hydroperoxy_grps,
         FunctionalGroup.ETHER: ether_grps,
-        FunctionalGroup.CYCLIC_ETHER: cyc_ether_grps,
+        FunctionalGroup.EPOXIDE: epoxide_grps,
         FunctionalGroup.CARBOX_ACID: carbox_acid_grps,
         FunctionalGroup.ESTER: ester_grps,
         FunctionalGroup.ALCOHOL: alcohol_grps,
         FunctionalGroup.ALDEHYDE: aldehyde_grps,
         FunctionalGroup.KETONE: ketone_grps,
+        # FunctionalGroup.AMINE: amine_grps,
         FunctionalGroup.AMIDE: amide_grps,
         FunctionalGroup.NITRO: nitro_grps,
         FunctionalGroup.HALIDE: halide_grps,
-        FunctionalGroup.THIOL: thiol_grps,
-        FunctionalGroup.METHYL: methyl_grps,
-        FunctionalGroup.PHENYL: phenyl_grps,
-        FunctionalGroup.AMINE: amine_grps
+        FunctionalGroup.THIOL: thiol_grps
     }
+
+    return func_grp_dct
 
 
 # # finders for overaching types
@@ -149,15 +122,7 @@ def alkene_sites(gra):
         :type gra: molecular graph data structure
         :rtype: bool
     """
-    alk_groups = ()
-    cc2_bnds = bonds_of_type(gra, symb1='C', symb2='C', mbond=2)
-    phenyl_grps = phenyl_groups(gra)
-    for bnd in cc2_bnds:
-        if not any(
-                bnd in itertools.permutations(phen, r=2)
-                for phen in phenyl_grps):
-            alk_groups += (bnd,)
-    return alk_groups
+    return bonds_of_type(gra, symb1='C', symb2='C', mbond=2)
 
 
 def alkyne_sites(gra):
@@ -184,31 +149,6 @@ def alcohol_groups(gra, filterlst=()):
     alc_grps = _filter_idxs(alc_grps, filterlst=filterlst)
 
     return alc_grps
-
-
-def alkoxy_groups(gra):
-    """ Determine the location of alkoxy groups. The locations are
-        specified as tuple-of-tuple of idxs indicating the C-O atoms
-        of the group: (C-idx, O-idx).
-
-        Here the O-idx corresponds to a radical site.
-
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :rtype: tuple(int)
-    """
-
-    alkox_grps = tuple()
-
-    rad_keys = resonance_dominant_radical_atom_keys(gra)
-
-    co_bonds = bonds_of_type(gra, symb1='C', symb2='O', mbond=1)
-    for co_bond in co_bonds:
-        c_idx, o_idx = co_bond
-        if o_idx in rad_keys:
-            alkox_grps += ((c_idx, o_idx),)
-
-    return alkox_grps
 
 
 def peroxy_groups(gra):
@@ -287,8 +227,8 @@ def ether_groups(gra, filterlst=()):
     return ether_grps
 
 
-def cyclic_ether_groups(gra):
-    """ Determine the location of cyclic ether groups. The locations are
+def epoxy_groups(gra):
+    """ Determine the location of 1,2-epoxy groups. The locations are
         specified as tuple-of-tuple of idxs indicating the C-O-C atoms
         of the group: (C-idx, O-idx, C-idx).
 
@@ -297,7 +237,7 @@ def cyclic_ether_groups(gra):
         :rtype: tuple(int)
     """
 
-    cyc_ether_grps = tuple()
+    epox_grps = tuple()
 
     # Determing the indices of all rings in the molecule
     _ring_idxs = rings_atom_keys(gra)
@@ -308,9 +248,9 @@ def cyclic_ether_groups(gra):
         if _ring_idxs:
             for idxs in _ring_idxs:
                 if set(coc_grp) <= set(idxs):
-                    cyc_ether_grps += ((c1_idx, o_idx, c2_idx),)
+                    epox_grps += ((c1_idx, o_idx, c2_idx),)
 
-    return cyc_ether_grps
+    return epox_grps
 
 
 def aldehyde_groups(gra, filterlst=()):
@@ -443,45 +383,6 @@ def amide_groups(gra):
     return amide_grps
 
 
-def methyl_groups(gra):
-    """ Determine the location of methyl groups. The locations are
-        specified as tuple-of-tuple of idxs indicating the -CH3 atoms
-        of the group: (C-idx, H-idx, H-idx, H-idx).
-
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :rtype: tuple(int)
-    """
-    methyl_grps = tuple()
-    ch_bonds = bonds_of_type(gra, symb1='C', symb2='H', mbond=1)
-    for ch_x, ch_y, ch_z in itertools.combinations(ch_bonds, r=3):
-        c_x, h_x = ch_x
-        c_y, h_y = ch_y
-        c_z, h_z = ch_z
-        if c_x == c_y and c_x == c_z:
-            methyl_grps += ((c_x, h_x, h_y, h_z),)
-    return methyl_grps
-
-
-def amine_groups(gra):
-    """ Determine the location of amine groups. The locations are
-        specified as tuple-of-tuple of idxs indicating the -CH3 atoms
-        of the group: (N-idx, H-idx, H-idx).
-
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :rtype: tuple(int)
-    """
-    amine_grps = tuple()
-    nh_bonds = bonds_of_type(gra, symb1='N', symb2='H', mbond=1)
-    for nh_x, nh_y in itertools.combinations(nh_bonds, r=2):
-        n_x, h_x = nh_x
-        n_y, h_y = nh_y
-        if n_x == n_y:
-            amine_grps += ((n_x, h_x, h_y),)
-    return amine_grps
-
-
 def nitro_groups(gra):
     """ Determine the location of nitro groups. The locations are
         specified as tuple-of-tuple of idxs indicating the O-N-O atoms
@@ -492,8 +393,7 @@ def nitro_groups(gra):
         :rtype: tuple(int)
     """
 
-    return two_bond_idxs(gra, symb1='O', cent='N', symb2='O',
-                         allow_cent_conn=True)
+    return two_bond_idxs(gra, symb1='O', cent='N', symb2='O')
 
 
 def halide_groups(gra):
@@ -519,25 +419,6 @@ def halide_groups(gra):
     return hal_grps
 
 
-def phenyl_groups(gra):
-    """ Determine the location of phenyl groups. The locations are
-        specified as tuple-of-tuple of idxs indicating the C-X atoms
-        of the group: (C-idx, X-idx).
-
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :rtype: tuple(int)
-    """
-    phenyl_grps = ()
-    rngs_atm_keys = rings_atom_keys(gra)
-    srt_rngs_atm_keys = [sorted(atm_keys) for atm_keys in rngs_atm_keys]
-    cc2_grps = bonds_of_type(gra, symb1='C', symb2='C', mbond=2)
-    for cc2_x, cc2_y, cc2_z in itertools.combinations(cc2_grps, r=3):
-        if sorted(cc2_x + cc2_y + cc2_z) in srt_rngs_atm_keys:
-            phenyl_grps += ((cc2_x + cc2_y + cc2_z),)
-    return phenyl_grps
-
-
 def thiol_groups(gra):
     """ Determine the location of thiol groups. The locations are
         specified as tuple-of-tuple of idxs indicating the C-S-H atoms
@@ -548,59 +429,6 @@ def thiol_groups(gra):
         :rtype: tuple(int)
     """
     return two_bond_idxs(gra, symb1='C', cent='S', symb2='H')
-
-
-def ring_substituents(gra):
-    """ Determine substituent groups on a ring
-        to produce a graph of graphs where the top level
-        key of a ring_gra is the order of the atm keys
-        that define the ring
-        aka (a1, a2, a3, a4, a5, a6) a1 is the 0th position of the ring
-        so a3-a5 have a 1-3 interaction.  The nested dictionary has
-        atm key: tuple of groups
-
-        (a1, a2, a3, a4, a5, a6): {
-            a1: (group1, )
-            a2: (group1, group2, )
-            a3: ()
-            a4: ()
-            a5: ()
-            a6: (group1,)
-        }
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :rtype: tuple(int)
-    """
-    rngs_subst_gras = {}
-    rngs_atm_keys = rings_atom_keys(gra)
-    func_grp_dct = functional_group_dct(gra)
-    atm_symb_dct = atom_symbols(gra)
-    ngb_atms_dct = atoms_neighbor_atom_keys(gra)
-    for rng_keys in rngs_atm_keys:
-        rngs_subst_gras[rng_keys] = {}
-        for atm in rng_keys:
-            groups = ()
-            sub_atms = [
-                natm for natm in ngb_atms_dct[atm] if natm not in rng_keys]
-            for satm in sub_atms:
-                if atm_symb_dct[satm] == 'H':
-                    continue
-                idented = False
-                for grp, grp_idx_lst in func_grp_dct.items():
-                    for idx_lst in grp_idx_lst:
-                        if satm in idx_lst and atm:
-                            if grp == FunctionalGroup.HALIDE:
-                                groups += (atm_symb_dct[satm],)
-                            else:
-                                groups += (grp,)
-                            idented = True
-                            break
-                    if idented:
-                        break
-                if not idented:
-                    groups += (atm_symb_dct[satm] + '-chain',)
-            rngs_subst_gras[rng_keys][atm] = groups
-    return rngs_subst_gras
 
 
 # # helper functions
@@ -628,11 +456,9 @@ def bonds_of_type(gra, symb1, symb2, mbond=1):
     _bonds = bonds_of_order(gra, mbond=mbond)
     for bond in _bonds:
         idx1, idx2 = bond
-        _symb1, _symb2 = idx_symb_dct[idx1], idx_symb_dct[idx2]
-        if (_symb1, _symb2) == (symb1, symb2):
+        symb1, symb2 = idx_symb_dct[idx1], idx_symb_dct[idx2]
+        if (symb1, symb2) in ((symb1, symb2), (symb2, symb1)):
             _bonds_of_type += ((idx1, idx2),)
-        elif (_symb1, _symb2) == (symb2, symb1):
-            _bonds_of_type += ((idx2, idx1),)
 
     return _bonds_of_type
 
@@ -647,6 +473,8 @@ def bonds_of_order(gra, mbond=1):
         :type mbond: int
     """
 
+    # Build resonance graph to get the bond orders
+    gra = dominant_resonance(gra)
     bond_order_dct = bond_orders(gra)
 
     mbond_idxs = tuple()
@@ -658,7 +486,7 @@ def bonds_of_order(gra, mbond=1):
     return mbond_idxs
 
 
-def two_bond_idxs(gra, symb1, cent, symb2, allow_cent_conn=False):
+def two_bond_idxs(gra, symb1, cent, symb2):
     """ Determine the triplet of indices of atoms of specified
         types that are connected in a chain by two bonds:
         (symb1_idx, cent_idx, symb2_idx).
@@ -687,16 +515,6 @@ def two_bond_idxs(gra, symb1, cent, symb2, allow_cent_conn=False):
             grp_idxs = (neighs[0], cent_idx, neighs[1])
         elif neigh_symbs == (symb2, symb1):
             grp_idxs = (neighs[1], cent_idx, neighs[0])
-        elif allow_cent_conn and symb1 in neigh_symbs and symb2 in neigh_symbs:
-            idx_1 = None
-            idx_2 = None
-            for idx in neighs:
-                if idx_symb_dct[idx] == symb1 and idx_1 is None:
-                    idx_1 = idx
-                elif idx_symb_dct[idx] == symb2:
-                    idx_2 = idx
-            if idx_1 is not None and idx_2 is not None:
-                grp_idxs = (idx_1, cent_idx, idx_2)
         else:
             grp_idxs = ()
 
@@ -728,28 +546,6 @@ def neighbors_of_type(gra, aidx, symb):
             idxs_of_type += (nidx,)
 
     return idxs_of_type
-
-
-def radicals_of_type(gra, symb):
-    """ Obtain the keys for atoms of the desired symbol that
-        correspond to a radical site.
-
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :param aidx: index of atom for which to find neighbors
-        :type aidx: int
-        :param symb: symbols of desired atom types for neighbors
-        :type symb: str
-    """
-
-    idx_symb_dct = atom_symbols(gra)
-
-    rad_keys = ()
-    for rad in sing_res_dom_radical_atom_keys(gra):
-        if idx_symb_dct[rad] == symb:
-            rad_keys += (rad,)
-
-    return rad_keys
 
 
 def radical_dissociation_products(gra, pgra1):
@@ -784,9 +580,9 @@ def radical_dissociation_products(gra, pgra1):
     # If pgra2 is ID'd, rebuild the two product graphs with stereo labels
     if pgra2 is not None:
         keys2 = atom_keys(pgra2)
-        idx_gra = to_local_stereo(gra)
+        idx_gra = to_index_based_stereo(gra)
         idx_pgra2 = subgraph(idx_gra, keys2, stereo=True)
-        pgra2 = from_local_stereo(idx_pgra2)
+        pgra2 = from_index_based_stereo(idx_pgra2)
 
     return pgra1, pgra2
 
@@ -832,16 +628,3 @@ def _filter_idxs(idxs_lst, filterlst=()):
             filtered_lst += (idxs,)
 
     return filtered_lst
-
-
-# if __name__ == '__main__':
-#     import automol.smiles
-#     import automol.inchi
-#     import automol.graph
-#     smi = 'NCC(N)C'
-#     smi = 'C=C'
-#     smi = 'C1=C(O)C(C)=CC=C1C=C'
-#     gra = automol.inchi.graph(automol.smiles.inchi(smi))
-#     gra = dominant_resonance(explicit(gra))
-#     print(automol.graph.string(gra))
-#     print(ring_substituents(gra))

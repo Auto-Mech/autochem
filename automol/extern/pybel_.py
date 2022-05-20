@@ -44,23 +44,3 @@ def to_inchi(pbm):
         :rtype: str
     """
     return pbm.write('inchi').strip()
-
-
-def from_smiles(smi):
-    """ Build a Pybel molecule object from an SMILES string.
-
-        :param smi: SMILES string for a species
-        :type smi: str
-        :rtype: Pybel molecule object
-    """
-    return pybel.readstring('smiles', smi)
-
-
-def to_smiles(pbm):
-    """ Build an SMILES string from a Pybel molecule object.
-
-        :param pbm: Pybel molecule object
-        :type pbm: Pybel object
-        :rtype: str
-    """
-    return pbm.write('smiles').strip()

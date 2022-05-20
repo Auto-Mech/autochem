@@ -28,7 +28,7 @@ Reaction ID Classes:
 import itertools
 import automol.geom
 import automol.geom.ts
-import automol.chi
+import automol.inchi
 from automol.par import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_symbols
@@ -704,8 +704,8 @@ def find_from_inchis(rct_ichs, prd_ichs):
     :returns: a list of reaction classes
     :rtype: tuple[str]
     """
-    rct_geos = list(map(automol.chi.geometry, rct_ichs))
-    prd_geos = list(map(automol.chi.geometry, prd_ichs))
+    rct_geos = list(map(automol.inchi.geometry, rct_ichs))
+    prd_geos = list(map(automol.inchi.geometry, prd_ichs))
     rct_gras = list(map(automol.geom.connectivity_graph, rct_geos))
     prd_gras = list(map(automol.geom.connectivity_graph, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)

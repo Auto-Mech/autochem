@@ -13,7 +13,6 @@ from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import set_bond_orders
-from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import atom_hybridizations
 from automol.graph.base._core import atom_unsaturated_valences
 from automol.graph.base._core import without_dummy_atoms
@@ -29,23 +28,10 @@ from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 
 
 # # core functions
-def dominant_resonance(rgr, max_stereo_overlap=True):
+def dominant_resonance(rgr):
     """ *a* dominant (minimum spin/maximum pi) resonance graph
     """
-    ste_bnd_keys = bond_stereo_keys(rgr)
-
-    def _count_stereo_double_bonds(rgr):
-        bnd_ord_dct = bond_orders(rgr)
-        count = sum(bnd_ord_dct[k] == 2 for k in ste_bnd_keys)
-        return count
-
-    rgrs = dominant_resonances(rgr)
-    if not max_stereo_overlap:
-        rgr = next(iter(rgrs))
-    else:
-        rgr = max(rgrs, key=_count_stereo_double_bonds)
-
-    return rgr
+    return next(iter(dominant_resonances(rgr)))
 
 
 def dominant_resonances(rgr):
@@ -276,24 +262,6 @@ def radical_atom_keys_from_resonance(rgr, min_valence=1.):
                              in zip(atm_keys, atm_rad_vlcs)
                              if atm_rad_vlc >= min_valence)
     return atm_rad_keys
-
-
-def has_resonance_bond_stereo(gra):
-    """ does this graph have stereo at a resonance bond?
-
-        :param gra: the molecular graph
-        :rtype: bool
-    """
-    ste_bnd_keys = bond_stereo_keys(gra)
-    res_bnd_ords_dct = resonance_dominant_bond_orders(gra)
-
-    ret = False
-    for bnd_key in ste_bnd_keys:
-        if bnd_key in res_bnd_ords_dct and 1 in res_bnd_ords_dct[bnd_key]:
-            ret = True
-            break
-
-    return ret
 
 
 def has_separated_radical_sites(gra):

@@ -23,6 +23,30 @@ ATM_STE_PAR_POS = 2
 BND_ORD_POS = 0
 BND_STE_PAR_POS = 1
 
+VALENCE_DCT = {
+    None: 0,
+    1: 1,   # H
+    2: 2,   # Be
+    13: 3,  # B
+    14: 4,  # C
+    15: 3,  # N
+    16: 2,  # O
+    17: 1,  # F
+    18: 0,  # He
+}
+
+LONE_PAIR_COUNTS_DCT = {
+    None: 0,
+    1: 0,   # H
+    2: 0,   # Be
+    13: 0,  # B
+    14: 0,  # C
+    15: 1,  # N
+    16: 2,  # O
+    17: 3,  # F
+    18: 4,  # He
+}
+
 ATM_PROP_NAMES = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity')
 BND_PROP_NAMES = ('order', 'stereo_parity')
 
@@ -369,9 +393,9 @@ def frozen(gra):
 
     # make it sortable by replacing Nones with -infinity
     atm_vals = numpy.array(dict_.values_by_key(atoms(gra), atm_keys),
-                           dtype=object)
+                           dtype=numpy.object)
     bnd_vals = numpy.array(dict_.values_by_key(bonds(gra), bnd_keys),
-                           dtype=object)
+                           dtype=numpy.object)
     atm_vals[numpy.equal(atm_vals, None)] = -numpy.inf
     bnd_vals[numpy.equal(bnd_vals, None)] = -numpy.inf
 
@@ -483,7 +507,9 @@ def atom_element_valences(gra):
     """ element valences (# possible single bonds), by atom
     """
     atm_symb_dct = atom_symbols(gra)
-    atm_elem_vlc_dct = dict_.transform_values(atm_symb_dct, ptab.valence)
+    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, ptab.to_group)
+    atm_elem_vlc_dct = dict_.transform_values(atm_group_idx_dct,
+                                              VALENCE_DCT.__getitem__)
     return atm_elem_vlc_dct
 
 
@@ -491,7 +517,10 @@ def atom_lone_pair_counts(gra):
     """ lone pair counts, by atom
     """
     atm_symb_dct = atom_symbols(gra)
-    atm_lpc_dct = dict_.transform_values(atm_symb_dct, ptab.lone_pair_count)
+    atm_group_idx_dct = dict_.transform_values(atm_symb_dct, ptab.to_group)
+    atm_lpc_dct = dict_.transform_values(atm_group_idx_dct,
+                                         LONE_PAIR_COUNTS_DCT.__getitem__)
+    atm_lpc_dct = dict_.transform_values(atm_lpc_dct, int)
     return atm_lpc_dct
 
 
@@ -1177,18 +1206,11 @@ def union(gra1, gra2, check=True):
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def union_from_sequence(gras, check=True, shift_keys=False):
+def union_from_sequence(gras, check=True):
     """ a union of all parts of a sequence of graphs
-
-        :param gras: a sequence of molecular graphs
-        :param check: check that no keys overlap?
-        :param shift_keys: shift keys to prevent key overlap?
     """
     def _union(gra1, gra2):
         return union(gra1, gra2, check=check)
-
-    if shift_keys:
-        gras, _ = standard_keys_for_sequence(gras)
 
     return tuple(functools.reduce(_union, gras))
 
