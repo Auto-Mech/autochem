@@ -56,6 +56,7 @@ from automol.inchi.base._reac import sort_reactions
 from automol.inchi._conv import graph
 from automol.inchi._conv import geometry
 from automol.inchi._conv import conformers
+from automol.inchi._conv import zmatrix
 # # derived properties
 from automol.inchi._conv import is_complete
 # # derived transformations
@@ -123,6 +124,7 @@ __all__ = [
     'graph',
     'geometry',
     'conformers',
+    'zmatrix',
     # # derived properties
     'is_complete',
     # # derived transformations

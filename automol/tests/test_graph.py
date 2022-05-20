@@ -1005,9 +1005,9 @@ def test__calculate_priorities_and_assign_parities():
 
         print(pri_dct)
 
-        atm_par_dct = automol.util.dict_.filter_by_values(
+        atm_par_dct = automol.util.dict_.filter_by_value(
             automol.graph.atom_stereo_parities(gra), lambda x: x is not None)
-        bnd_par_dct = automol.util.dict_.filter_by_values(
+        bnd_par_dct = automol.util.dict_.filter_by_value(
             automol.graph.bond_stereo_parities(gra), lambda x: x is not None)
 
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
