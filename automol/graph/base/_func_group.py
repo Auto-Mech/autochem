@@ -492,7 +492,8 @@ def nitro_groups(gra):
         :rtype: tuple(int)
     """
 
-    return two_bond_idxs(gra, symb1='O', cent='N', symb2='O', allow_cent_conn=True)
+    return two_bond_idxs(gra, symb1='O', cent='N', symb2='O',
+                         allow_cent_conn=True)
 
 
 def halide_groups(gra):

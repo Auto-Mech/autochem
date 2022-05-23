@@ -21,7 +21,7 @@ from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._stereo import stereomers as _stereomers
-from automol.graph.base._canon import class_indices
+from automol.graph.base._canon import canonical_priorities
 from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
@@ -121,59 +121,59 @@ def products_graph(tsg):
     return reactants_graph(reverse(tsg))
 
 
-def conserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
+def conserved_atom_stereo_keys(can_tsg, prds_pri_dct=None):
     """ Determine atom stereo centers which are conserved by the reaction.
 
     'Conserved' means these atoms are stereogenic for both the reactants and
     the products.
 
     :param can_tsg: The TS graph, with stereo assignments.
-    :parm prds_idx_dct: Symmetry class indices for the products, to avoid
+    :parm prds_pri_dct: Canonical priorities for the products, to avoid
         recalculating
     :returns: Conserved atom stereo centers.
     :rtype: frozenset
     """
     rcts_gra = reactants_graph(can_tsg)
     prds_gra = products_graph(can_tsg)
-    prds_idx_dct = (class_indices(prds_gra, backbone_only=False) if
-                    prds_idx_dct is None else prds_idx_dct)
+    prds_pri_dct = (canonical_priorities(prds_gra, backbone_only=False) if
+                    prds_pri_dct is None else prds_pri_dct)
 
     keys1 = atom_stereo_keys(rcts_gra)
     keys2 = stereogenic_atom_keys(prds_gra, assigned=True,
-                                  idx_dct=prds_idx_dct)
+                                  pri_dct=prds_pri_dct)
 
     cons_ste_atm_keys = frozenset(keys1 & keys2)
 
     return cons_ste_atm_keys
 
 
-def conserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
+def conserved_bond_stereo_keys(can_tsg, prds_pri_dct=None):
     """ Determine bond stereo centers which are conserved by the reaction.
 
     'Conserved' means these bonds are stereogenic for both the reactants and
     the products.
 
     :param can_tsg: The TS graph, with stereo assignments.
-    :parm prds_idx_dct: Symmetry class indices for the products, to avoid
+    :parm prds_pri_dct: Canonical priorities for the products, to avoid
         recalculating
     :returns: Conserved bond stereo centers.
     :rtype: frozenset
     """
     rcts_gra = reactants_graph(can_tsg)
     prds_gra = products_graph(can_tsg)
-    prds_idx_dct = (class_indices(prds_gra, backbone_only=False) if
-                    prds_idx_dct is None else prds_idx_dct)
+    prds_pri_dct = (canonical_priorities(prds_gra, backbone_only=False) if
+                    prds_pri_dct is None else prds_pri_dct)
 
     keys1 = bond_stereo_keys(rcts_gra)
     keys2 = stereogenic_bond_keys(prds_gra, assigned=True,
-                                  idx_dct=prds_idx_dct)
+                                  pri_dct=prds_pri_dct)
 
     cons_ste_bnd_keys = frozenset(keys1 & keys2)
 
     return cons_ste_bnd_keys
 
 
-def nonconserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
+def nonconserved_atom_stereo_keys(can_tsg, prds_pri_dct=None):
     """ Determine atom stereo centers which are not conserved by the reaction.
 
     This includes atoms which are stereogenic for the products but not for the
@@ -181,19 +181,19 @@ def nonconserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
     the reactants but not for the products ("destroyed" stereo centers).
 
     :param can_tsg: The TS graph, with stereo assignments.
-    :param prds_idx_dct: Symmetry class indices for the products, to avoid
+    :parm prds_pri_dct: Canonical priorities for the products, to avoid
         recalculating
     :returns: Created and destroyed atom stereo centers, respectively.
     :rtype: (frozenset, frozenset)
     """
     rcts_gra = reactants_graph(can_tsg)
     prds_gra = products_graph(can_tsg)
-    prds_idx_dct = (class_indices(prds_gra, backbone_only=False) if
-                    prds_idx_dct is None else prds_idx_dct)
+    prds_pri_dct = (canonical_priorities(prds_gra, backbone_only=False) if
+                    prds_pri_dct is None else prds_pri_dct)
 
     keys1 = atom_stereo_keys(rcts_gra)
     keys2 = stereogenic_atom_keys(prds_gra, assigned=True,
-                                  idx_dct=prds_idx_dct)
+                                  pri_dct=prds_pri_dct)
 
     cre_ste_atm_keys = frozenset(keys2 - keys1)
     des_ste_atm_keys = frozenset(keys1 - keys2)
@@ -201,7 +201,7 @@ def nonconserved_atom_stereo_keys(can_tsg, prds_idx_dct=None):
     return cre_ste_atm_keys, des_ste_atm_keys
 
 
-def nonconserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
+def nonconserved_bond_stereo_keys(can_tsg, prds_pri_dct=None):
     """ Determine bond stereo centers which are not conserved by the reaction.
 
     This includes bonds which are stereogenic for the products but not for the
@@ -209,19 +209,19 @@ def nonconserved_bond_stereo_keys(can_tsg, prds_idx_dct=None):
     the reactants but not for the products ("destroyed" stereo centers).
 
     :param can_tsg: The TS graph, with stereo assignments.
-    :param prds_idx_dct: Symmetry class indices for the products, to avoid
+    :parm prds_pri_dct: Canonical priorities for the products, to avoid
         recalculating
     :returns: Created and destroyed bond stereo centers, respectively.
     :rtype: (frozenset, frozenset)
     """
     rcts_gra = reactants_graph(can_tsg)
     prds_gra = products_graph(can_tsg)
-    prds_idx_dct = (class_indices(prds_gra, backbone_only=False) if
-                    prds_idx_dct is None else prds_idx_dct)
+    prds_pri_dct = (canonical_priorities(prds_gra, backbone_only=False) if
+                    prds_pri_dct is None else prds_pri_dct)
 
     keys1 = bond_stereo_keys(rcts_gra)
     keys2 = stereogenic_bond_keys(prds_gra, assigned=True,
-                                  idx_dct=prds_idx_dct)
+                                  pri_dct=prds_pri_dct)
 
     cre_ste_bnd_keys = frozenset(keys2 - keys1)
     des_ste_bnd_keys = frozenset(keys1 - keys2)
@@ -288,14 +288,14 @@ def compatible_reverse_stereomers(can_tsg):
     :returns: All possible reverse TS graphs.
     """
     prds_gra = products_graph(can_tsg)
-    prds_idx_dct = class_indices(prds_gra, backbone_only=False)
+    prds_pri_dct = canonical_priorities(prds_gra, backbone_only=False)
 
     frm_bnd_keys = forming_bond_keys(can_tsg)
     brk_bnd_keys = breaking_bond_keys(can_tsg)
     cons_atm_keys = sorted(
-        conserved_atom_stereo_keys(can_tsg, prds_idx_dct=prds_idx_dct))
+        conserved_atom_stereo_keys(can_tsg, prds_pri_dct=prds_pri_dct))
     cons_bnd_keys = sorted(
-        conserved_bond_stereo_keys(can_tsg, prds_idx_dct=prds_idx_dct))
+        conserved_bond_stereo_keys(can_tsg, prds_pri_dct=prds_pri_dct))
 
     # 1. Determine local stereo assignments for conserved stereo centers
     loc_tsg = to_local_stereo(can_tsg)

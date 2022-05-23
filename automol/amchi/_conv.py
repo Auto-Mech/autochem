@@ -16,6 +16,8 @@ from automol.amchi.base import is_inverted_enantiomer
 from automol.amchi.base import has_stereo
 from automol.amchi.base import split
 from automol.amchi.base import with_inchi_prefix
+from automol.amchi.base import equivalent
+from automol.amchi.base import standard_form
 
 
 # # conversions
@@ -189,29 +191,29 @@ def _connected_geometry(chi, check=True):
 
         # If the ChI has stereo, enforce correct stereo on the geometry.
         if check:
+            # There is stereo.
+            # First, check connectivity.
+            gra_ = automol.geom.graph(geo)
+            geo_idx_dct = automol.graph.isomorphism(
+                    gra, gra_, stereo=False)
+
+            if geo_idx_dct is None:
+                continue
+
+            geo = automol.graph.linear_vinyl_corrected_geometry(
+                gra, geo, geo_idx_dct=geo_idx_dct)
+
             if not has_ste:
-                # If there wasn't stereo, only check connectivity
-                gra_ = automol.geom.graph(geo, stereo=False)
-                if automol.graph.isomorphism(gra, gra_, stereo=False):
-                    success = True
-                    break
-            else:
-                # There is stereo.
-                # First, check connectivity.
-                gra_ = automol.geom.graph(geo)
-                geo_idx_dct = automol.graph.isomorphism(
-                        gra, gra_, stereo=False)
-
-                if geo_idx_dct is None:
-                    continue
-
-                # Enforce correct stereo parities. This is necessary for
-                # resonance bond stereo.
-                geo = automol.graph.stereo_corrected_geometry(
-                    gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
-
                 success = True
                 break
+
+            # Enforce correct stereo parities. This is necessary for
+            # resonance bond stereo.
+            geo = automol.graph.stereo_corrected_geometry(
+                gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
+
+            success = True
+            break
 
     if not success:
         raise error.FailedGeometryGenerationError('Failed AMChI:', chi)
@@ -279,6 +281,30 @@ def conformers(chi, nconfs=1, check=True, accept_fewer=False):
         raise error.FailedGeometryGenerationError('Failed AMChI:', chi)
 
     return ret_geos
+
+
+# # derived properties
+def is_complete(ich):
+    """ Determine if the InChI string is complete
+        (has all stereo-centers assigned).
+
+        Currently only checks species that does not have any
+        resonance structures.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: bool
+    """
+
+    gra = graph(ich, stereo=False)
+    ste_atm_keys = automol.graph.stereogenic_atom_keys(gra)
+    ste_bnd_keys = automol.graph.stereogenic_bond_keys(gra)
+    graph_has_stereo = bool(ste_atm_keys or ste_bnd_keys)
+
+    _complete = equivalent(ich, standard_form(ich)) and not (
+        has_stereo(ich) ^ graph_has_stereo)
+
+    return _complete
 
 
 # # derived transformations

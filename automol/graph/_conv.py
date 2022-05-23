@@ -23,7 +23,7 @@ from automol.graph.base import dominant_resonance
 from automol.graph.base import set_stereo_from_geometry
 from automol.graph.base import smiles
 from automol.graph.base import amchi
-from automol.graph.base import has_resonance_bond_stereo
+from automol.graph.base import inchi_is_bad
 from automol.graph.base import implicit
 from automol.graph.base import to_local_stereo
 from automol.graph.base import subgraph
@@ -196,13 +196,20 @@ def chi(gra, stereo=True):
         :returns: ChI string
         :rtype: str
     """
-    if has_resonance_bond_stereo(gra):
+    
+    # old implementation
+    # if has_resonance_bond_stereo(gra):
+    #     ret = amchi(gra, stereo=stereo)
+    # else:
+    #     ret = inchi(gra, stereo=stereo)
+    #     # If the InChI has mobile hydrogens, revert back to AMChI
+    #     if automol.amchi.base.has_mobile_hydrogens(ret):
+    #         ret = amchi(gra, stereo=stereo)
+
+    # new implementation
+    ret = inchi(gra, stereo=stereo)
+    if inchi_is_bad(gra, ret):
         ret = amchi(gra, stereo=stereo)
-    else:
-        ret = inchi(gra, stereo=stereo)
-        # If the InChI has mobile hydrogens, revert back to AMChI
-        if automol.amchi.base.has_mobile_hydrogens(ret):
-            ret = amchi(gra, stereo=stereo)
 
     return ret
 

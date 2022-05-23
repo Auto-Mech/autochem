@@ -205,20 +205,20 @@ from automol.graph.base._canon import canonical_enantiomer_with_keys
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
 # # canonical stereo functions
+from automol.graph.base._canon import stereogenic_atom_keys
+from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import reflect
 from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import from_local_stereo
+from automol.graph.base._canon import set_stereo_from_geometry
 # # symmetry class functions
-from automol.graph.base._canon import class_indices
-from automol.graph.base._canon import class_indices_and_stereo_parities
+from automol.graph.base._canon import canonical_priorities
+from automol.graph.base._canon import calculate_priorities_and_assign_parities
 # # parity evaluators
-from automol.graph.base._canon import atom_parity_evaluator_from_geometry_
-from automol.graph.base._canon import bond_parity_evaluator_from_geometry_
-from automol.graph.base._canon import atom_parity_evaluator_to_local_stereo_
-from automol.graph.base._canon import bond_parity_evaluator_to_local_stereo_
-from automol.graph.base._canon import atom_parity_evaluator_from_local_stereo_
-from automol.graph.base._canon import bond_parity_evaluator_from_local_stereo_
+from automol.graph.base._canon import parity_evaluator_from_canonical_stereo_
+from automol.graph.base._canon import parity_evaluator_from_geometry_
+from automol.graph.base._canon import parity_evaluator_to_or_from_local_stereo_
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -257,6 +257,8 @@ from automol.graph.base._rot import rotational_bond_keys
 from automol.graph.base._rot import rotational_groups
 from automol.graph.base._rot import rotational_symmetry_number
 from automol.graph.base._rot import bond_symmetry_numbers
+# geometry functions:
+from automol.graph.base._geom import linear_vinyl_corrected_geometry
 # stereo functions:
 # # core functions
 from automol.graph.base._stereo import stereomers
@@ -266,14 +268,10 @@ from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
 from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
 # # stereo correction
 from automol.graph.base._stereo import stereo_corrected_geometry
-# # core functions
-from automol.graph.base._canon import stereogenic_atom_keys
-from automol.graph.base._canon import stereogenic_bond_keys
-# # stereo setting code
-from automol.graph.base._canon import set_stereo_from_geometry
 # AMChI functions:
 from automol.graph.base._amchi import amchi
 from automol.graph.base._amchi import amchi_with_indices
+from automol.graph.base._amchi import inchi_is_bad
 # SMILES functions:
 from automol.graph.base._smiles import smiles
 # TS graph submodule:
@@ -487,15 +485,12 @@ __all__ = [
     'to_local_stereo',
     'from_local_stereo',
     # # symmetry class functions
-    'class_indices',
-    'class_indices_and_stereo_parities',
+    'canonical_priorities',
+    'calculate_priorities_and_assign_parities',
     # # parity evaluators
-    'atom_parity_evaluator_from_geometry_',
-    'bond_parity_evaluator_from_geometry_',
-    'atom_parity_evaluator_to_local_stereo_',
-    'bond_parity_evaluator_to_local_stereo_',
-    'atom_parity_evaluator_from_local_stereo_',
-    'bond_parity_evaluator_from_local_stereo_',
+    'parity_evaluator_from_canonical_stereo_',
+    'parity_evaluator_from_geometry_',
+    'parity_evaluator_to_or_from_local_stereo_',
     # functional groups code:
     # # core functions
     'FunctionalGroup',
@@ -534,6 +529,8 @@ __all__ = [
     'rotational_groups',
     'rotational_symmetry_number',
     'bond_symmetry_numbers',
+    # geometry functions:
+    'linear_vinyl_corrected_geometry',
     # stereo functions:
     # # core functions
     'stereomers',
@@ -551,6 +548,7 @@ __all__ = [
     # AMChI functions:
     'amchi',
     'amchi_with_indices',
+    'inchi_is_bad',
     # SMILES functions:
     'smiles',
     # TS graph submodule:

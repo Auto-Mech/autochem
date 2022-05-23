@@ -988,8 +988,8 @@ def test__canonical():
         _test_from_smiles(smi)
 
 
-def test__class_indices_and_stereo_parities():
-    """ test graph.class_indices_and_stereo_parities
+def test__calculate_priorities_and_assign_parities():
+    """ test graph.calculate_priorities_and_assign_parities
     """
 
     def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
@@ -998,16 +998,17 @@ def test__class_indices_and_stereo_parities():
         geo = automol.inchi.geometry(ich)
         gra = automol.geom.graph(geo)
 
-        atm_par_eval_ = graph.atom_parity_evaluator_from_geometry_(gra, geo)
-        bnd_par_eval_ = graph.bond_parity_evaluator_from_geometry_(gra, geo)
+        par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
 
-        can_key_dct, atm_par_dct, bnd_par_dct = (
-            graph.class_indices_and_stereo_parities(
-                gra,
-                atm_par_eval1_=atm_par_eval_,
-                bnd_par_eval1_=bnd_par_eval_)
-        )
-        print(can_key_dct)
+        pri_dct, gra = graph.calculate_priorities_and_assign_parities(
+                gra, par_eval_=par_eval_)
+
+        print(pri_dct)
+
+        atm_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.atom_stereo_parities(gra), lambda x: x is not None)
+        bnd_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.bond_stereo_parities(gra), lambda x: x is not None)
 
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
         bnd_pars = [p for k, p in sorted(bnd_par_dct.items()) if p is not None]
@@ -1117,6 +1118,41 @@ def test__has_resonance_bond_stereo():
            {frozenset({4, 5}): (1, True), frozenset({0, 1}): (1, None),
             frozenset({1, 4}): (1, None), frozenset({5, 6}): (1, None)})
     assert not graph.has_resonance_bond_stereo(gra)
+
+
+def test__inchi_is_bad():
+    """ test graph.inchi_is_bad
+    """
+    # This species is missing resonance bond stereo
+    gra = ({0: ('F', 0, None), 1: ('C', 1, None), 3: ('C', 1, None),
+            4: ('C', 1, None), 5: ('F', 0, None)},
+           {frozenset({3, 4}): (1, True), frozenset({0, 1}): (1, None),
+            frozenset({1, 3}): (1, True), frozenset({4, 5}): (1, None)})
+    ich = graph.inchi(gra)
+    print(ich)
+    assert graph.inchi_is_bad(gra, ich)
+
+    # This species is missing vinyl radical bond stereo
+    gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 2, None),
+            3: ('C', 1, None), 4: ('C', 0, None), 5: ('C', 1, None),
+            6: ('C', 1, None), 7: ('C', 0, None), 8: ('C', 1, None),
+            9: ('C', 1, None), 10: ('C', 0, None)},
+           {frozenset({9, 6}): (1, None), frozenset({9, 10}): (1, None),
+            frozenset({10, 7}): (1, None), frozenset({1, 2}): (1, None),
+            frozenset({0, 1}): (1, True), frozenset({3, 6}): (1, None),
+            frozenset({8, 10}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({3, 5}): (1, None), frozenset({8, 5}): (1, None),
+            frozenset({4, 7}): (1, None)})
+    ich = graph.inchi(gra)
+    print(ich)
+    assert graph.inchi_is_bad(gra, ich)
+
+    # This species has mobile hydrogens
+    gra = ({0: ('C', 0, None), 1: ('O', 1, None), 2: ('O', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None)})
+    ich = graph.inchi(gra)
+    print(ich)
+    assert graph.inchi_is_bad(gra, ich)
 
 
 def test__amchi():
@@ -1267,11 +1303,13 @@ if __name__ == '__main__':
     # test__smiles()
     # test__smiles()
     # test__canonical()
-    # test__class_indices_and_stereo_parities()
+    # test__calculate_priorities_and_assign_parities()
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
     # test__amchi_with_indices()
     # test__stereogenic_atom_keys()
     # test__ts__nonconserved_atom_stereo_keys()
-    test__ts__compatible_reverse_stereomers()
+    # test__ts__compatible_reverse_stereomers()
+    # test__stereogenic_atom_keys()
+    test__inchi_is_bad()

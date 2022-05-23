@@ -19,7 +19,7 @@ def is_complete(chi):
     """
     pfx = automol.amchi.base.prefix(chi)
     if pfx == 'AMChI':
-        ret = True
+        ret = automol.amchi.is_complete(chi)
     elif pfx == 'InChI':
         ret = automol.inchi.is_complete(chi)
     else:
@@ -36,29 +36,27 @@ def add_stereo(chi):
         :rtype: str
     """
 
-    # Code does not correct for InChI stereo issues if InChI is given
+    # old implementation
     # pfx = automol.amchi.base.prefix(chi)
     # if pfx == 'AMChI':
-    #     ret = automol.amchi.add_stereo(chi)
+    #     gra = automol.amchi.graph(chi)
     # elif pfx == 'InChI':
-    #     ret = automol.inchi.add_stereo(chi)
+    #     gra = automol.inchi.graph(chi)
     # else:
     #     raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
 
-    pfx = automol.amchi.base.prefix(chi)
-    if pfx == 'AMChI':
-        gra = automol.amchi.graph(chi)
-    elif pfx == 'InChI':
-        gra = automol.inchi.graph(chi)
-    else:
-        raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
+    # if automol.graph.has_resonance_bond_stereo(gra):
+    #     ste_chi = automol.graph.amchi(gra, stereo=True)
+    # else:
+    #     ste_chi = automol.graph.inchi(gra, stereo=True)
 
-    if automol.graph.has_resonance_bond_stereo(gra):
-        ste_chi = automol.graph.amchi(gra, stereo=True)
-    else:
-        ste_chi = automol.graph.inchi(gra, stereo=True)
+    # return ste_chi
 
-    return ste_chi
+    # new implementation
+    geo = automol.amchi.geometry(chi)
+    chi = automol.geom.chi(geo, stereo=True)
+
+    return chi
 
 
 def expand_stereo(chi):
@@ -72,11 +70,20 @@ def expand_stereo(chi):
     sgrs = automol.graph.stereomers(gra)
     ste_chis = []
     for sgr in sgrs:
-        # If the graph has resonance bond stereo, use an AMChI string
-        if automol.graph.has_resonance_bond_stereo(sgr):
+        
+        # old implementation
+        # # If the graph has resonance bond stereo, use an AMChI string
+        # if automol.graph.has_resonance_bond_stereo(sgr):
+        #     ste_chi = automol.graph.amchi(sgr, stereo=True)
+        # else:
+        #     ste_chi = automol.graph.inchi(sgr, stereo=True)
+        
+        # new implementation
+        ste_chi = automol.graph.inchi(sgr, stereo=True)
+
+        # Check if the InChI is bad
+        if automol.graph.base.inchi_is_bad(sgr, ste_chi):
             ste_chi = automol.graph.amchi(sgr, stereo=True)
-        else:
-            ste_chi = automol.graph.inchi(sgr, stereo=True)
 
         ste_chis.append(ste_chi)
 
