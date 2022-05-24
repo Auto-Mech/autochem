@@ -283,6 +283,21 @@ def conformers(chi, nconfs=1, check=True, accept_fewer=False):
     return ret_geos
 
 
+def zmatrix(chi, check=True):
+    """ Generate a z-matrix from an InChI string.
+
+        :param chi: InChI string
+        :type chi: str
+        :param check: check stereo and connectivity?
+        :type check: bool
+        :rtype: automol z-matrix data structure
+    """
+
+    geo = geometry(chi, check=check)
+    zma = automol.geom.zmatrix(geo)
+    return zma
+
+
 # # derived properties
 def is_complete(ich):
     """ Determine if the InChI string is complete

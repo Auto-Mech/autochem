@@ -97,77 +97,87 @@ def test_functional_group_dct():
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.ALCOHOL: ((1, 2, 8),)
+        automol.graph.FunctionalGroup.ALCOHOL: ((1, 2, 8),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 3, 4, 5),)
     })
     fgrps = automol.graph.functional_group_dct(C2H5OH_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.HALIDE: ((1, 2),)
+        automol.graph.FunctionalGroup.HALIDE: ((1, 2),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 3, 4, 5),)
     })
     fgrps = automol.graph.functional_group_dct(C2H5CL_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.THIOL: ((1, 2, 8),)
+        automol.graph.FunctionalGroup.THIOL: ((1, 2, 8),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 3, 4, 5),)
     })
     fgrps = automol.graph.functional_group_dct(C2H5SH_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.ETHER: ((0, 2, 1),)
+        automol.graph.FunctionalGroup.ETHER: ((0, 1, 2),),
+        automol.graph.FunctionalGroup.METHYL: ((2, 8, 6, 7), (0, 3, 4, 5))
     })
     fgrps = automol.graph.functional_group_dct(CH3OCH3_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.CYCLIC_ETHER: ((1, 3, 2),)
+        automol.graph.FunctionalGroup.CYCLIC_ETHER: ((1, 2, 3),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 6, 4, 5),),
     })
     fgrps = automol.graph.functional_group_dct(CYC_ETHER_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.HYDROPEROXY: ((1, 3, 2, 9),)
+        automol.graph.FunctionalGroup.HYDROPEROXY: ((1, 2, 3, 9),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 6, 4, 5),)
     })
     fgrps = automol.graph.functional_group_dct(C2H5OOH_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.PEROXY: ((1, 3, 2),)
+        automol.graph.FunctionalGroup.PEROXY: ((1, 2, 3),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 6, 4, 5),)
     })
     fgrps = automol.graph.functional_group_dct(C2H5OO_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.ALDEHYDE: ((2, 4),),
-        automol.graph.FunctionalGroup.KETONE: ((3, 5),)
+        automol.graph.FunctionalGroup.ALDEHYDE: ((3, 4),),
+        automol.graph.FunctionalGroup.KETONE: ((1, 5),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 6, 7, 8),)
     })
     fgrps = automol.graph.functional_group_dct(CCOCCO_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.CARBOX_ACID: ((2, 1, 3, 7),)
+        automol.graph.FunctionalGroup.CARBOX_ACID: ((2, 1, 3, 7),),
+        automol.graph.FunctionalGroup.METHYL: ((0, 6, 4, 5),)
     })
     fgrps = automol.graph.functional_group_dct(C2H5CO_OH_GRA)
     assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
-        automol.graph.FunctionalGroup.ESTER: ((3, 2, 4, 1),)
+        automol.graph.FunctionalGroup.ESTER: ((2, 1, 3, 4),),
+        automol.graph.FunctionalGroup.METHYL: ((4, 10, 9, 8), (0, 6, 5, 7))
     })
     fgrps = automol.graph.functional_group_dct(CCOOC_GRA)
     assert fgrps == ref_fgrps
 
 
-def test__sites():
+def __sites():
     """ test automol.graph._func_group.alkene_sites
         test automol.graph._func_group.alkene_sites
     """
@@ -195,7 +205,7 @@ def test_unique_atoms():
     """
 
     uni_idxs1 = automol.graph.chem_unique_atoms_of_type(C4H10_GRA, 'H')
-    assert uni_idxs1 == (4, 10)
+    assert uni_idxs1 == (4, 7)
 
     uni_idxs2 = automol.graph.chem_unique_atoms_of_type(C4H10_GRA, 'C')
-    assert uni_idxs2 == (0, 2)
+    assert uni_idxs2 == (0, 1)

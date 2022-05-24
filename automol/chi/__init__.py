@@ -62,6 +62,7 @@ from automol.amchi import smiles
 from automol.amchi import graph
 from automol.amchi import geometry
 from automol.amchi import conformers
+from automol.amchi import zmatrix
 # # derived properties
 from automol.chi._conv import is_complete
 # # derived transformations
@@ -138,6 +139,7 @@ __all__ = [
     'graph',
     'geometry',
     'conformers',
+    'zmatrix',
     # # derived properties
     'is_complete',
     # # derived transformations

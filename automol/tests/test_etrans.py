@@ -167,8 +167,8 @@ def test__estimate():
     # Build the alpha parameters
     edown_alpha, edown_n = automol.etrans.estimate.alpha(
         n_eff, eps, sig, tgt_mass, bath_mass, collider_set)
-    ref_edown_alpha = 229.66891072423212
-    ref_edown_n = 0.47233211063037017
+    ref_edown_alpha = 457.24552400133837
+    ref_edown_n = 0.70088400006973
     assert numpy.isclose(edown_alpha, ref_edown_alpha)
     assert numpy.isclose(edown_n, ref_edown_n)
 
