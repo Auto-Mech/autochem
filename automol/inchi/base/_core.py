@@ -451,6 +451,62 @@ def is_enantiomer(ich, iso=True):
     return ret
 
 
+def are_enantiomers(ich_a, ich_b):
+    """ Are these InChI enantiomers of eachother?
+
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: whether or not the InChI is enantiomeric
+        :rtype: bool
+    """
+    ste_dct_a = stereo_sublayers(ich_a)
+    ste_dct_b = stereo_sublayers(ich_b)
+    enant = False
+    if main_sublayers(ich_a) == main_sublayers(ich_b):
+        if (len(ste_dct_b.keys()) == len(ste_dct_a.keys())
+                and 'm' in ste_dct_a.keys()):
+            if ste_dct_a['m'] != ste_dct_b['m']:
+                if 't' in ste_dct_a.keys():
+                    if ste_dct_a['t'] == ste_dct_b['t']:
+                        enant = True
+                else:
+                    enant = True
+    return enant
+
+
+def are_diastereomers(ich_a, ich_b):
+    """ Are these InChI diastereomers of each other?
+
+        Checks if main layer is the same, if so then checks
+        if the stereo layers differ in any way.
+
+        :param ich: InChI string
+        :type ich: str
+        :param iso: Include isotope stereochemistry?
+        :type iso: bool
+        :returns: whether or not the InChI is enantiomeric
+        :rtype: bool
+    """
+
+    diast = False
+    if ich_a != ich_b:  # chk not same InChIs
+        if main_sublayers(ich_a) == main_sublayers(ich_b):
+            ste_dct_a = stereo_sublayers(ich_a)
+            ste_dct_b = stereo_sublayers(ich_b)
+            # b-lyr are diastereomers; t-lyr may be, need check
+            if len(ste_dct_a.keys()) == len(ste_dct_b.keys()):
+                if 'b' in ste_dct_a.keys():
+                    if ste_dct_a['b'] != ste_dct_b['b']:
+                        diast = True
+                elif 't' in ste_dct_a.keys():
+                    if ste_dct_a['t'] != ste_dct_b['t']:
+                        diast = True
+
+    return diast
+
+
 def reflect(ich, iso=True):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
@@ -540,6 +596,13 @@ def formula(ich):
     return fml
 
 
+def without_stereo(ich):
+    """ Remove all stereo layers
+    """
+
+    return standard_form(ich, stereo=False)
+
+
 def _connected_formula(ich):
     """ Create a combined molecular from the formulas of a
         multi-component InChI string.
@@ -556,6 +619,39 @@ def _connected_formula(ich):
         fml = rdkit_.to_formula(rdm)
 
     return fml
+
+
+def connectivity(ich, parse_connection_layer=True, parse_h_layer=True):
+    """ Return the 'c' and 'h' layers of the connectivity string
+
+        The user may also specify what combination of the two layers
+        that they wish to return
+    """
+
+    # Read the two sublayers that are requested to be parsed
+    conn_slyrs = main_sublayers(ich)
+
+    if parse_connection_layer:
+        cslyr = conn_slyrs.get('c', '')
+    else:
+        cslyr = ''
+
+    if parse_h_layer:
+        hslyr = conn_slyrs.get('h', '')
+    else:
+        hslyr = ''
+
+    # Write the parts of the connectivity string based on what was parsed
+    if cslyr and hslyr:
+        _str = f'c{cslyr}/h{hslyr}'
+    elif cslyr:
+        _str = f'c{cslyr}'
+    elif hslyr:
+        _str = f'h{hslyr}'
+    else:
+        _str = None
+
+    return _str
 
 
 # # properties

@@ -2,6 +2,7 @@
  Build unstable products
 """
 
+import itertools
 from phydat import instab_fgrps
 import automol.graph
 from automol.reac._util import rxn_objs_from_zmatrix
@@ -12,38 +13,52 @@ from automol.graph import radical_dissociation_products
 from automol.graph import radical_group_dct
 
 
-def instability_product_zmas(zma):
+# Identify instability products
+def instability_product_zmas(zma, stereo=True):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
-    print('init gra')
-    print(automol.graph.string(automol.zmat.graph(zma)))
 
-    disconn_zmas = ()
-    disconn_geos = ()
-    print('instab gras')
-    for gra in instability_product_graphs(automol.zmat.graph(zma)):
-        print(automol.graph.string(gra))
-        print('--')
-        ich = automol.graph.inchi(gra)
-        _geo = automol.inchi.geometry(ich)
-        _zma = automol.geom.zmatrix(_geo)
-        disconn_zmas += (_zma,)
-        disconn_geos += (_geo,)
+    ich = automol.geom.inchi(automol.zmat.geometry(zma))
+    instab_ichs = instability_product_inchis(ich, stereo=stereo)
 
-    print('\ninit geo')
-    print(automol.geom.string(automol.zmat.geometry(zma)))
-    print('instab geos')
-    for geo in disconn_geos:
-        print(automol.geom.string(geo))
-        print('--')
+    if instab_ichs is not None:
+        instab_zmas = tuple(automol.inchi.zmatrix(ich)
+                            for ich in instab_ichs)
+    else:
+        instab_zmas = None
 
-    # print('ichs test', ichs)
-
-    return disconn_zmas
+    return instab_zmas
 
 
-def instability_product_graphs(gra):
+def instability_product_inchis(ich, stereo=True):
+    """ Generate ichs for instable inchi. Also validates if
+        the decomposition is valid by ID'd it as a beta-scission
+    """
+
+    instab_ichs = None
+
+    gra = automol.graph.explicit(automol.inchi.graph(ich))
+    instab_gras = instability_product_graphs(
+        gra, stereo=False)
+
+    if instab_gras:
+        instab_ichs = [automol.graph.inchi(gra) for gra in instab_gras]
+        ste_prd1_ichs = automol.inchi.expand_stereo(instab_ichs[0])
+        ste_prd2_ichs = automol.inchi.expand_stereo(instab_ichs[1])
+        prd_ichs_lst = itertools.product(ste_prd1_ichs, ste_prd2_ichs)
+
+        for prd_ichs in prd_ichs_lst:
+            rxn_objs = automol.reac.rxn_objs_from_inchi(
+                (ich,), prd_ichs, stereo=stereo)
+            if rxn_objs is not None:
+                instab_ichs = prd_ichs
+                break
+
+    return instab_ichs
+
+
+def instability_product_graphs(gra, stereo=True):
     """ Determine if the species has look for functional group attachments that
         could cause molecule instabilities
     """
@@ -57,7 +72,7 @@ def instability_product_graphs(gra):
         if atm in instab_fgrps.DCT:
             fgrps_dct = instab_fgrps.DCT[atm]
             for grp in grps:
-                grp_ich = automol.graph.inchi(grp, stereo=True)
+                grp_ich = automol.graph.inchi(grp, stereo=stereo)
                 if grp_ich in fgrps_dct:
                     # If instability found, determine prod of the instability
                     prd_ich = fgrps_dct[grp_ich]
@@ -69,6 +84,7 @@ def instability_product_graphs(gra):
     return prd_gras
 
 
+# Build transformation object for instability
 def instability_transformation(conn_zma, disconn_zmas):
     """ Build the reaction objects for an instability
     """

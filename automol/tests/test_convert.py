@@ -589,6 +589,63 @@ def test__zmat_conv_dummy():
     assert automol.geom.almost_equal_dist_matrix(ref_geo, geo)
 
 
+def test__rsmiles__no_stereo():
+    """ test rsmiles conversions
+    """
+    print("rsmiles no stereo")
+
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+
+    for ref_ich in ref_ichs:
+        ref_ich = automol.inchi.standard_form(ref_ich, stereo=False)
+        print()
+        print(ref_ich, flush=True)
+        gra = automol.amchi.connected_graph(ref_ich, stereo=False)
+        smi = automol.graph.rsmiles(gra)
+        print(smi)
+        gra = automol.rsmiles.connected_graph(smi, stereo=False)
+        smi = automol.graph.rsmiles(gra)
+        ich = automol.smiles.inchi(smi)
+        print(smi)
+        print(ich)
+        assert ich == ref_ich, f"\n{ich} !=\n{ref_ich}"
+
+
+def test__rsmiles__with_stereo():
+    """ test rsmiles conversions
+    """
+    print("rsmiles with stereo")
+
+    ref_ichs = ICHS_WITH_STEREO
+    if NSAMP is not None:
+        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
+
+    failed = []
+    for ref_ich in ref_ichs:
+        print()
+        print(ref_ich, flush=True)
+        gra = automol.amchi.connected_graph(ref_ich, stereo=True)
+        smi = automol.graph.rsmiles(gra)
+        print(smi)
+        gra = automol.rsmiles.connected_graph(smi, stereo=True)
+        smi = automol.graph.rsmiles(gra)
+        ich = automol.smiles.inchi(smi)
+        print(smi)
+        print(ich)
+        try:
+            assert ich == ref_ich, f"\n{ich} !=\n{ref_ich}"
+        except AssertionError:
+            print("FAILED")
+            print(f"\n{ich} !=\n{ref_ich}")
+            failed.append((ref_ich, ich))
+
+    print("FAILED:")
+    for ref_ich, ich in failed:
+        print(ref_ich)
+
+
 if __name__ == '__main__':
     # test__geom__no_stereo()
     # test__graph__with_stereo()
@@ -596,7 +653,9 @@ if __name__ == '__main__':
     # test__geom__with_stereo()
     # test__geom__no_stereo()
     # test__graph__no_stereo()
-    test__zmatrix__with_stereo()
+    # test__zmatrix__with_stereo()
     # test__smiles__with_stereo()
     # test__smiles__from_geom()
     # test__graph__misc()
+    # test__rsmiles__no_stereo()
+    test__rsmiles__with_stereo()

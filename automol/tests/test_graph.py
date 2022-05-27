@@ -1,6 +1,7 @@
 """ test automol.graph
 """
 
+import itertools
 import numpy
 import automol
 from automol import graph
@@ -1141,8 +1142,84 @@ def test__amchi():
     assert chi == 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
 
 
+def test__smiles():
+    """ test graph.smiles
+    """
+    smis = [
+        # Rings:
+        'C1[C@@]2(C3)O[C@@]2(C[N@H]3)OC1',
+        r'[CH2]/C=C1\[N@H]C(=C1)O[O]',
+        'C1CC1',
+        # Stereo atoms:
+        'N[C@](C)(F)C(=O)O',
+        'N[C@H](C)C(=O)O',
+        'C[C@H]1CCCCO1',
+        # Stereo bonds:
+        r'F/C=C/F',
+        r'F/C=C\F',
+        r'CC/C=C/C=C/CF',
+        r'C1CCCCCCCCCC/N=N/1',
+        r'[H]/N=N/[H]',
+        r'[H]/N=N/N=N\[H]',
+    ]
+
+    for smi in smis:
+        print()
+        print("STARTING SMILES:", smi)
+        ich = automol.smiles.inchi(smi)
+        geo = automol.inchi.geometry(ich)
+        gra = automol.geom.graph(geo, new=True)
+        print(automol.graph.string(gra))
+        print(automol.geom.string(geo))
+        smi = automol.graph.rsmiles(gra)
+        print('smiles from code:', smi)
+
+        ich_smi = automol.inchi.smiles(ich)
+        print('inchi:', ich)
+        print('smiles from inchi:', ich_smi)
+
+        sich = automol.smiles.inchi(smi)
+        print('inchi from smiles:', sich)
+        # print(automol.graph.string(GRA, one_indexed=True))
+        print(automol.graph.rings_atom_keys(gra))
+        assert sich == ich
+
+
+def test__rsmiles():
+    """ test graph.rsmiles
+    """
+
+    smis = [
+        r'FC=C-C=C-[CH]O',
+        # r'F[CH]C=CF',
+    ]
+    for smi in smis:
+        print()
+        print("STARTING smiLES:", smi)
+        ich = automol.smiles.inchi(smi)
+        geo = automol.inchi.geometry(ich)
+        gra = automol.geom.graph(geo, new=True)
+        print(automol.graph.string(gra))
+        print(automol.geom.string(geo))
+
+        ste_keys = automol.graph.bond_stereo_keys(gra)
+        nste = len(ste_keys)
+        ste_pars_lst = list(
+            itertools.product(map(bool, range(2)), repeat=nste))
+        for ste_pars in ste_pars_lst:
+            bnd_par_dct = dict(zip(ste_keys, ste_pars))
+            print(bnd_par_dct)
+            gra = automol.graph.set_bond_stereo_parities(gra, bnd_par_dct)
+            ach = automol.graph.amchi(gra)
+            print('amchi:', ach)
+            smi = automol.graph.rsmiles(gra)
+            print('smiles from code:', smi)
+            print()
+
+
 if __name__ == '__main__':
-    test__amchi()
+    test__smiles()
+    test__rsmiles()
     # test__canonical()
     # test__class_indices_and_stereo_parities()
     # test__to_local_stereo()

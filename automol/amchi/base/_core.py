@@ -2,6 +2,9 @@
 
 The parsing functions apply equally well to InChI or AMChI strings, so the
 documentation simply refers to "ChI" strings.
+
+Future task: Rewrite all of this to use the pyparsing module, rather than
+autoparse. It will be much cleaner.
 """
 
 import itertools
@@ -262,7 +265,8 @@ def bonds(chi, one_indexed=False):
 
     def _recurse_find_bonds(bnds, conn_lst):
         # Pop the current idx
-        idx = conn_lst.pop(0) + shift
+        if conn_lst:
+            idx = conn_lst.pop(0) + shift
 
         # If there are elements left, continue
         if conn_lst:

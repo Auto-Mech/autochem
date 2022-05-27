@@ -212,6 +212,7 @@ from automol.graph.base._canon import reflect
 from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import from_local_stereo
+from automol.graph.base._canon import from_geometry
 # # symmetry class functions
 from automol.graph.base._canon import class_indices
 from automol.graph.base._canon import class_indices_and_stereo_parities
@@ -226,6 +227,8 @@ from automol.graph.base._canon import bond_parity_evaluator_from_local_stereo_
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
 from automol.graph.base._func_group import functional_group_dct
+from automol.graph.base._func_group import functional_group_count_dct
+from automol.graph.base._func_group import ring_substituents
 # # finders for overaching types
 from automol.graph.base._func_group import hydrocarbon_species
 from automol.graph.base._func_group import radical_species
@@ -236,7 +239,7 @@ from automol.graph.base._func_group import alcohol_groups
 from automol.graph.base._func_group import peroxy_groups
 from automol.graph.base._func_group import hydroperoxy_groups
 from automol.graph.base._func_group import ether_groups
-from automol.graph.base._func_group import epoxy_groups
+from automol.graph.base._func_group import cyclic_ether_groups
 from automol.graph.base._func_group import aldehyde_groups
 from automol.graph.base._func_group import ketone_groups
 from automol.graph.base._func_group import ester_groups
@@ -245,12 +248,14 @@ from automol.graph.base._func_group import amide_groups
 from automol.graph.base._func_group import nitro_groups
 from automol.graph.base._func_group import halide_groups
 from automol.graph.base._func_group import thiol_groups
+from automol.graph.base._func_group import methyl_groups
 from automol.graph.base._func_group import radical_dissociation_products
 # # helper functions
 from automol.graph.base._func_group import bonds_of_type
 from automol.graph.base._func_group import bonds_of_order
 from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
+from automol.graph.base._func_group import radicals_of_type
 # torsion/rotational bond functions:
 from automol.graph.base._rot import rotational_bond_keys
 from automol.graph.base._rot import rotational_groups
@@ -276,6 +281,8 @@ from automol.graph.base._stereo import atom_stereo_parity_from_geometry
 from automol.graph.base._stereo import bond_stereo_parity_from_geometry
 # AMChI functions:
 from automol.graph.base._amchi import amchi
+# SMILES functions:
+from automol.graph.base._smiles import rsmiles
 # TS graph submodule:
 from automol.graph.base import ts
 
@@ -470,6 +477,7 @@ __all__ = [
     'reflect_local_stereo',
     'to_local_stereo',
     'from_local_stereo',
+    'from_geometry',
     # # symmetry class functions
     'class_indices',
     'class_indices_and_stereo_parities',
@@ -484,6 +492,8 @@ __all__ = [
     # # core functions
     'FunctionalGroup',
     'functional_group_dct',
+    'functional_group_count_dct',
+    'ring_substituents',
     # # finders for overaching types
     'hydrocarbon_species',
     'radical_species',
@@ -494,7 +504,7 @@ __all__ = [
     'peroxy_groups',
     'hydroperoxy_groups',
     'ether_groups',
-    'epoxy_groups',
+    'cyclic_ether_groups',
     'aldehyde_groups',
     'ketone_groups',
     'ester_groups',
@@ -503,12 +513,14 @@ __all__ = [
     'nitro_groups',
     'halide_groups',
     'thiol_groups',
+    'methyl_groups',
     'radical_dissociation_products',
     # # helper functions
     'bonds_of_type',
     'bonds_of_order',
     'two_bond_idxs',
     'neighbors_of_type',
+    'radicals_of_type',
     # torsion/rotational bond functions:
     'rotational_bond_keys',
     'rotational_groups',
@@ -534,6 +546,8 @@ __all__ = [
     'bond_stereo_parity_from_geometry',
     # AMChI functions:
     'amchi',
+    # SMILES functions:
+    'rsmiles',
     # TS graph submodule:
     'ts',
 ]

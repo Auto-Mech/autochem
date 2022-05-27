@@ -6,7 +6,7 @@ from automol.inchi.base._core import is_enantiomer
 from automol.inchi.base._core import reflect
 
 
-def filter_enantiomer_reactions(rxn_ichs_lst):
+def filter_enantiomer_reactions(rxn_ichs_lst, spc_prio_lst=None):
     """ Filter out mirror images from a list of reaction InChIs
 
         Redundant reactions are identified by inverting the enantiomers on both
@@ -16,7 +16,7 @@ def filter_enantiomer_reactions(rxn_ichs_lst):
         The list is sorted first, so that the same enantiomers will be chosen
         regardless of the order of their appearance.
     """
-    rxn_ichs_lst = sort_reactions(rxn_ichs_lst)
+    rxn_ichs_lst = sort_reactions(rxn_ichs_lst, spc_prio_lst)
 
     uniq_rxn_ichs_lst = []
     seen_rxn_ichs_lst = []
@@ -48,7 +48,7 @@ def filter_enantiomer_reactions(rxn_ichs_lst):
     return uniq_rxn_ichs_lst
 
 
-def sort_reactions(rxn_ichs_lst):
+def sort_reactions(rxn_ichs_lst, spc_prio_lst=None):
     """ Sort reactions such that enantiomeric versions always appear in the
         same order.
     """
@@ -64,5 +64,18 @@ def sort_reactions(rxn_ichs_lst):
         # Return the fully sorted reaction
         return (ichs1, ichs2)
 
+    def _overlap_with_prio_lst(rxn_ichs, spc_prio_lst):
+        # Return the number of overlapping species names ith
+        # species in the priority list
+        # ichs = [richs[0] for richs  in rxn_ichs if len(richs) == 1]
+        ichs1, ichs2 = rxn_ichs
+        ichs = ichs1 + ichs2
+        return len(list(set(ichs) & set(spc_prio_lst)))
+
     rxn_ichs_lst = sorted(rxn_ichs_lst, key=_sort_key)
+    if spc_prio_lst is not None:
+        rxn_ichs_lst.sort(
+            key=lambda x: _overlap_with_prio_lst(x, spc_prio_lst),
+            reverse=True)
+
     return rxn_ichs_lst

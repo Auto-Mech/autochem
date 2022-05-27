@@ -13,6 +13,7 @@ from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import set_bond_orders
+from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import atom_hybridizations
 from automol.graph.base._core import atom_unsaturated_valences
 from automol.graph.base._core import without_dummy_atoms
@@ -28,10 +29,23 @@ from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 
 
 # # core functions
-def dominant_resonance(rgr):
+def dominant_resonance(rgr, max_stereo_overlap=True):
     """ *a* dominant (minimum spin/maximum pi) resonance graph
     """
-    return next(iter(dominant_resonances(rgr)))
+    ste_bnd_keys = bond_stereo_keys(rgr)
+
+    def _count_stereo_double_bonds(rgr):
+        bnd_ord_dct = bond_orders(rgr)
+        count = sum(bnd_ord_dct[k] == 2 for k in ste_bnd_keys)
+        return count
+
+    rgrs = dominant_resonances(rgr)
+    if not max_stereo_overlap:
+        rgr = next(iter(rgrs))
+    else:
+        rgr = max(rgrs, key=_count_stereo_double_bonds)
+
+    return rgr
 
 
 def dominant_resonances(rgr):

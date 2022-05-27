@@ -28,7 +28,7 @@ ETH_INF = ('InChI=1S/C4H10O/c1-3-5-4-2/h3-4H2,1-2H3', 1, 0)      # CCOCC
 COOH_ETH_INF = ('InChI=1S/C3H8O3/c1-5-2-3-6-4/h4H,2-3H2,1H3', 1, 0)  # COCCOO
 ALC_INF = ('InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3', 0, 1)                # CCO
 CX_INF = ('InChI=1S/C4H9Cl/c1-2-3-4-5/h2-4H2,1H3', 1, 0)             # CCCCCl
-EPOX_INF = ('InChI=1S/C7H14O/c1-3-4-5-7(2)6-8-7/h3-6H2,1-2H3', 1, 0)
+CYC_ETH_INF = ('InChI=1S/C7H14O/c1-3-4-5-7(2)6-8-7/h3-6H2,1-2H3', 1, 0)
 # ^ CCCCC1(CO1)C
 
 # Info for various baths (need to set a default of bath not viable
@@ -70,8 +70,8 @@ def test__model():
     assert model == frozenset({BATH_INF[0], 'n-alcohol'})
 
     model = automol.etrans.estimate.determine_collision_model_series(
-        EPOX_INF[0], BATH_INF[0], 'lj')
-    assert model == frozenset({BATH_INF[0], 'epoxide'})
+        CYC_ETH_INF[0], BATH_INF[0], 'lj')
+    assert model == frozenset({BATH_INF[0], 'cyclic_ether'})
 
     # Halide groups have no model, just using alkanes
     model = automol.etrans.estimate.determine_collision_model_series(
