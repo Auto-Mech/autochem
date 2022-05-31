@@ -469,7 +469,14 @@ def are_enantiomers(ich_a, ich_b):
         if (len(ste_dct_b.keys()) == len(ste_dct_a.keys())
                 and 'm' in ste_dct_a.keys()):
             if ste_dct_a['m'] != ste_dct_b['m']:
-                if 't' in ste_dct_a.keys():
+                if 'b' in ste_dct_a.keys():
+                    if ste_dct_a['b'] == ste_dct_b['b']:
+                        if 't' in ste_dct_a.keys():
+                            if ste_dct_a['t'] == ste_dct_b['t']:
+                                enant = True
+                        else:
+                            enant = True
+                elif 't' in ste_dct_a.keys():
                     if ste_dct_a['t'] == ste_dct_b['t']:
                         enant = True
                 else:

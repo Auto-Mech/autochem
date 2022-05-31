@@ -52,7 +52,7 @@ def _round_near_zero(pot, max_thresh, min_thresh):
     return pot
 
 
-def _cap_max_thresh_drop_neg(pot, lpot, min_thresh, max_thresh):
+def _cap_max_thresh_drop_neg(pot, lpot, min_thresh, max_thresh, zero_thresh=-5):
     x_idxs = []
     y_pots = []
     for idx in range(lpot):
@@ -62,6 +62,9 @@ def _cap_max_thresh_drop_neg(pot, lpot, min_thresh, max_thresh):
                 y_pots.append(pot[idx])
             else:
                 y_pots.append(max_thresh)
+        elif pot[idx] < 600. and pot[idx] > zero_thresh:
+            x_idxs.append(idx)
+            y_pots.append(0)
     return numpy.array(x_idxs), numpy.array(y_pots)
 
 
