@@ -70,14 +70,14 @@ def expand_stereo(chi):
     sgrs = automol.graph.stereomers(gra)
     ste_chis = []
     for sgr in sgrs:
-        
+
         # old implementation
         # # If the graph has resonance bond stereo, use an AMChI string
         # if automol.graph.has_resonance_bond_stereo(sgr):
         #     ste_chi = automol.graph.amchi(sgr, stereo=True)
         # else:
         #     ste_chi = automol.graph.inchi(sgr, stereo=True)
-        
+
         # new implementation
         ste_chi = automol.graph.inchi(sgr, stereo=True)
 

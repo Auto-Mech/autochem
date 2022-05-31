@@ -132,7 +132,7 @@ def are_enantiomers(chi_a, chi_b, log=False):
                 print("ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
     else:
         if log:
-            print("ChI string prefixes of '{chi_a}' and '{chi_b}' do not match")
+            print("ChI string prefixes of '{chi_a}' and '{chi_b}' don't match")
         ret = False
 
     return ret
@@ -155,7 +155,7 @@ def are_diastereomers(chi_a, chi_b, log=False):
                 print("ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
     else:
         if log:
-            print("ChI string prefixes of '{chi_a}' and '{chi_b}' do not match")
+            print("ChI string prefixes of '{chi_a}' and '{chi_b}' don't match")
         ret = False
 
     return ret

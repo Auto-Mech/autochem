@@ -258,7 +258,7 @@ def chi_with_sort(geo, stereo=True, gra=None):
         :rtype: (str, tuple[tuple[int]])
     """
     gra = graph(geo, stereo=stereo) if gra is None else gra
-    
+
     # old implementation
     # if automol.graph.has_resonance_bond_stereo(gra):
     #     chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
