@@ -196,7 +196,7 @@ def dimension(pot):
 
 
 def is_symmetric(pot, thresh=0.6):
-    """ Find if a pot is symmetric 
+    """ Find if a pot is symmetric
     """
     pot_keys = sorted(list(pot.keys()))
     symm_fac = abs(
@@ -204,6 +204,7 @@ def is_symmetric(pot, thresh=0.6):
         (pot[pot_keys[1]] + pot[pot_keys[-1]]))
     print('SYMM FAC IS', symm_fac)
     return symm_fac > thresh
+
 
 # I/O
 def string(pot):

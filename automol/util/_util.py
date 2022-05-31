@@ -1,7 +1,20 @@
 """ miscellaneous utilities
 """
 import itertools
+from collections.abc import Iterable
 from phydat import ptab
+
+
+def flatten(lst):
+    """ Flatten an arbitrarily nested list of lists (iterator)
+
+    Source: https://stackoverflow.com/a/2158532
+    """
+    for elem in lst:
+        if isinstance(elem, Iterable) and not isinstance(elem, (str, bytes)):
+            yield from flatten(elem)
+        else:
+            yield elem
 
 
 def is_odd_permutation(seq1, seq2):

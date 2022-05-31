@@ -6,7 +6,7 @@ import itertools
 import numpy
 from phydat import phycon
 import automol.geom
-import automol.inchi
+import automol.chi
 import automol.graph
 from automol.graph import FunctionalGroup
 from automol.etrans._par import LJ_DCT
@@ -296,7 +296,7 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
             identify the best representative series to use for estimation
         """
         # Build the graph
-        tgt_gra = automol.geom.graph(automol.inchi.geometry(tgt_ich))
+        tgt_gra = automol.geom.graph(automol.chi.geometry(tgt_ich))
 
         # Identify the the target model
         if automol.graph.radical_species(tgt_gra):

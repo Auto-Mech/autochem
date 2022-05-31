@@ -52,6 +52,41 @@ HCCH_GEO = (('C', (-1.13372239064879, 0.0082038553557789, 0.268047200455629)),
 BAD_GEO = ((2.994881276150, -1.414434615111),
            (1.170155936996, 0.359360756989),
            (-1.201356763194, -0.347546894407))
+C8H13O_H2O_GEO = (
+        ('O', (-0.001115, 0.126195, 10.150609)),
+        ('H', (1.451536, -0.988657, 10.150609)),
+        ('H', (-1.433842, -1.014149, 10.150609)),
+        ('C', (5.694037, 0.707578, 1.823403)),
+        ('C', (-5.192738, 2.441790, -0.424198)),
+        ('C', (-1.880155, -0.195066, 3.332912)),
+        ('C', (4.047796, 1.839241, -0.164289)),
+        ('C', (-3.900368, 0.350529, -1.033707)),
+        ('C', (1.927204, 0.860013, -1.167226)),
+        ('C', (-2.099146, -1.204297, 0.610480)),
+        ('C', (0.635468, -1.626340, -0.542637)),
+        ('O', (0.462110, -2.868036, -2.712400)),
+        ('H', (5.064806, -1.143413, 2.479269)),
+        ('H', (5.769325, 1.967463, 3.462118)),
+        ('H', (7.617148, 0.494142, 1.091906)),
+        ('H', (-5.065290, 3.298044, 1.429104)),
+        ('H', (-6.384394, 3.351125, -1.820310)),
+        ('H', (-3.735593, -0.122969, 4.249480)),
+        ('H', (-1.058438, 1.703526, 3.390036)),
+        ('H', (-0.686796, -1.437356, 4.481431)),
+        ('H', (4.669660, 3.654768, -0.894466)),
+        ('H', (-4.086873, -0.391626, -2.946693)),
+        ('H', (0.993065, 1.966796, -2.633473)),
+        ('H', (-2.990446, -3.078316, 0.781614)),
+        ('H', (1.703077, -2.530068, 0.987755)),
+)
+C3H3F2_GEO = (('C', (-0.056525, -0.089448, 0.964756)),
+              ('C', (2.219404, -0.010591, -0.108619)),
+              ('C', (-2.357662, 0.061704, -0.425423)),
+              ('F', (4.341494, -0.160316, 1.284127)),
+              ('F', (-2.344976, 0.297512, -2.955317)),
+              ('H', (-0.199472, -0.278100, 3.001771)),
+              ('H', (2.644598, 0.171034, -2.098498)),
+              ('H', (-4.246862, 0.008206, 0.337203)),)
 
 GEO_STR = """4
 Energy:  1.25828 kJ/mol (UFF)
@@ -543,8 +578,8 @@ def test__insert_dummies():
     """ test geom.insert_dummies
     """
     # 1. Generate a z-matrix to start with
-    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
-    zma = automol.geom.zmatrix(automol.inchi.geometry(ich))
+    ich = automol.smiles.chi('CC#CC#CCCCC#CC')
+    zma = automol.geom.zmatrix(automol.chi.geometry(ich))
 
     # 2. Convert to cartesians and remove dummy atoms
     geo = automol.zmat.geometry(zma)
@@ -573,12 +608,12 @@ def test__hydrogen_bonded_structure():
     """ test automol.geom.hydrogen_bonded_strcure
     """
 
-    ich = automol.smiles.inchi('CCCC[O]')
-    geo = automol.inchi.geometry(ich)
+    ich = automol.smiles.chi('CCCC[O]')
+    geo = automol.chi.geometry(ich)
     print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
 
-    ich = automol.smiles.inchi('CC(=O)CO')
-    geo = automol.inchi.geometry(ich)
+    ich = automol.smiles.chi('CC(=O)CO')
+    geo = automol.chi.geometry(ich)
     print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
 
     # H-abstraction with OH. (1) Has internal H-Bond, (2) No internal H-Bond
@@ -666,7 +701,53 @@ def __align():
     assert automol.geom.almost_equal_dist_matrix(ref_aligned_geo, aligned_geo)
 
 
+def test__inchi_with_sort():
+    """ test automol.geom.inchi_with_sort
+    """
+    ich, nums_lst = automol.geom.inchi_with_sort(C8H13O_H2O_GEO)
+    print(ich)
+    print(nums_lst)
+
+    assert ich == ('InChI=1S/C8H13O.H2O/c1-4-6-8(9)7(3)5-2;/'
+                   'h4-8H,2H2,1,3H3;1H2/b6-4-;/t7-,8-;/m0./s1')
+    assert nums_lst == ((3, 4, 5, 6, 7, 8, 9, 10, 11), (0,))
+
+
+def test__amchi_with_sort():
+    """ test automol.geom.amchi_with_sort
+    """
+    ach, nums_lst = automol.geom.amchi_with_sort(C8H13O_H2O_GEO)
+    print(ach)
+    print(nums_lst)
+
+    assert ach == ('AMChI=1/C8H13O.H2O/c1-4-7(3)8(9)6-5-2;/'
+                   'h4-8H,1H2,2-3H3;1H2/b6-5-;/t7-,8-;/m0./s1')
+    assert nums_lst == ((4, 3, 5, 7, 6, 8, 9, 10, 11), (0,))
+
+
+def test__chi_with_sort():
+    """ test automol.geom.chi_with_sort
+    """
+    chi, nums_lst = automol.geom.chi_with_sort(C8H13O_H2O_GEO)
+    print(chi)
+    print(nums_lst)
+
+    assert chi == ('InChI=1S/C8H13O.H2O/c1-4-6-8(9)7(3)5-2;/'
+                   'h4-8H,2H2,1,3H3;1H2/b6-4-;/t7-,8-;/m0./s1')
+    assert nums_lst == ((3, 4, 5, 6, 7, 8, 9, 10, 11), (0,))
+
+    # Here's a case where InChI fails and AMChI is used instead
+    chi, nums_lst = automol.geom.chi_with_sort(C3H3F2_GEO)
+    print(chi)
+    print(nums_lst)
+    assert chi == 'AMChI=1/C3H3F2/c4-2-1-3-5/h1-3H/b2-1-,3-1+'
+    assert nums_lst == ((0, 2, 1, 4, 3),)
+
+
 if __name__ == '__main__':
     __align()
     # test__hydrogen_bonded_structure()
     # test__change_zmatrix_row_values()
+    test__inchi_with_sort()
+    test__amchi_with_sort()
+    test__chi_with_sort()

@@ -97,8 +97,12 @@ from automol.geom._conv import connectivity_graph
 from automol.geom._conv import zmatrix
 from automol.geom._conv import zmatrix_with_conversion_info
 from automol.geom._conv import x2z_zmatrix
+from automol.geom._conv import amchi
+from automol.geom._conv import amchi_with_sort
 from automol.geom._conv import inchi
 from automol.geom._conv import inchi_with_sort
+from automol.geom._conv import chi
+from automol.geom._conv import chi_with_sort
 from automol.geom._conv import smiles
 # # derived properties
 from automol.geom._conv import linear_atoms
@@ -214,8 +218,12 @@ __all__ = [
     'zmatrix',
     'zmatrix_with_conversion_info',
     'x2z_zmatrix',
+    'amchi',
+    'amchi_with_sort',
     'inchi',
     'inchi_with_sort',
+    'chi',
+    'chi_with_sort',
     'smiles',
     # # derived properties
     'linear_atoms',

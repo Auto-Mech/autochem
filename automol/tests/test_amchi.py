@@ -109,6 +109,21 @@ def test__has_stereo():
     assert not amchi.has_stereo(C2H6O_CHI_NO_STEREO)
 
 
+def test__has_mobile_hydrogens():
+    """ test amchi.has_mobile_hydrogens
+    """
+    ich1 = 'InChI=1S/CHO2/c2-1-3/h(H,2,3)'
+    ich2 = 'InChI=1S/C5H5N5O/c6-5-9-3-2(4(11)10-5)7-1-8-3/h1,7H,(H3,6,8,9,10)'
+    assert not amchi.has_mobile_hydrogens(C2H6O_CHI)
+    assert not amchi.has_mobile_hydrogens(C4H5F2O_CHI)
+    assert not amchi.has_mobile_hydrogens(C2H2F2_CHI)
+    assert not amchi.has_mobile_hydrogens(C8H13O_CHI)
+    assert not amchi.has_mobile_hydrogens(AR_CHI)
+    assert not amchi.has_mobile_hydrogens(C2H6O_CHI_NO_STEREO)
+    assert amchi.has_mobile_hydrogens(ich1)
+    assert amchi.has_mobile_hydrogens(ich2)
+
+
 def test__symbols():
     """ test amchi.symbols
     """
@@ -206,25 +221,24 @@ def test__join():
 
     chi = ('AMChI=1/C3H7O4.C2H5FO/c1-3(7-5)2-6-4;1-2(3)4/'
            'h3,5H,2H2,1H3;2,4H,1H3/t3-;2-/m01/s1')
-    print(chi[:-3])
     print(amchi.join(amchi.split(chi)))
-    assert amchi.join(amchi.split(chi)) == chi[:-3]
+    assert amchi.join(amchi.split(chi)) == chi
 
 
 def test__graph():
     """ test amchi.graph
     """
-    # A canonical AMChI string (no stereo):
     chis = [
         'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t1-,2-,3+',
         'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-',
         'AMChI=1/C10H14ClFO/c1-8(9(5-12)10(13)6-11)7-3-2-4-7/'
         'h2-4,8-10,13H,5-6H2,1H3',
         'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m0/s1',
+        'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m0/s1',
     ]
 
     for chi in chis:
-        gra = amchi.connected_graph(chi)
+        gra = amchi.graph(chi)
 
         natms = len(automol.graph.atom_keys(gra))
 
@@ -239,9 +253,33 @@ def test__graph():
             assert pmt_chi == chi
 
 
+def test__smiles():
+    """ test amchi.smiles
+    """
+    chis = [
+        'AMChI=1/CH3.H2O/h1H3;1H2',
+        'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t1-,2-,3+',
+        'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-',
+        'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m0/s1',
+        'AMChI=1/C5H6FO/c6-4-2-1-3-5-7/h1-5,7H/b2-1-,3-1-,4-2-,5-3+',
+        'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m0/s1',
+        'AMChI=1/C10H14ClFO/c1-8(9(5-12)10(13)6-11)7-3-2-4-7/'
+        'h2-4,8-10,13H,5-6H2,1H3',
+    ]
+
+    for ref_chi in chis:
+        smi = amchi.smiles(ref_chi)
+        chi = automol.smiles.amchi(smi)
+        print(chi)
+        print(ref_chi)
+        assert chi == ref_chi
+        print()
+
+
 if __name__ == '__main__':
     # test__bonds()
     # test__atom_stereo_parities()
     # test__bond_stereo_parities()
     # test__is_inverted_enantiomer()
-    test__graph()
+    # test__graph()
+    test__smiles()

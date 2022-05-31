@@ -13,19 +13,19 @@ DAT_PATH = os.path.join(PATH, 'data')
 
 # Species Z-Matrix
 C2H5OH_ZMA = automol.geom.zmatrix(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCO')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCO')))
 C3H7OH_ZMA = automol.geom.zmatrix(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCCO')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCCO')))
 C4H5OH_ZMA = automol.geom.zmatrix(
-    automol.inchi.geometry(
-        automol.smiles.inchi('C#CCCO')))
+    automol.chi.geometry(
+        automol.smiles.chi('C#CCCO')))
 C6H13OH_ZMA = automol.geom.zmatrix(
-    automol.inchi.geometry(
-        automol.smiles.inchi('CCC(C)CCO')))
+    automol.chi.geometry(
+        automol.smiles.chi('CCC(C)CCO')))
 C7H16O2_ZMA = automol.geom.zmatrix(
-    automol.inchi.geometry(
+    automol.chi.geometry(
         'InChI=1S/C7H16O2/c1-3-5-7(9,4-2)6-8/h8-9H,3-6H2,1-2H3/t7-/m1/s1'))
 
 
@@ -277,8 +277,8 @@ def test__rotor_wdummy():
         ('H', (1.6428761932166758, 2.0162818347750626, 5.821438019614233)),
         ('C', (6.684012875738011, 0.26149696963358493, 2.970348313582893)),
         ('H', (8.56769243388105, -0.3688713748782012, 2.63788068500042)))
-    ref_ich = automol.geom.inchi(ref_geo)
-    ich = automol.geom.inchi(geo)
+    ref_ich = automol.geom.chi(ref_geo)
+    ich = automol.geom.chi(geo)
     assert ich == ref_ich
 
 
@@ -392,4 +392,5 @@ def test__string():
 
 
 if __name__ == '__main__':
-    test__mdhr()
+    # test__mdhr()
+    test__rotor_wdummy()

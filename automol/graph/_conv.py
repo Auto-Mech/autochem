@@ -16,19 +16,21 @@ from automol.graph.base import atom_symbols
 from automol.graph.base import bond_orders
 from automol.graph.base import atom_bond_valences
 from automol.graph.base import atom_unsaturated_valences
-from automol.graph.base import has_stereo
 from automol.graph.base import explicit
-from automol.graph.base import implicit
-from automol.graph.base import relabel
-from automol.graph.base import subgraph
 from automol.graph.base import without_dummy_atoms
 from automol.graph.base import backbone_isomorphic
 from automol.graph.base import dominant_resonance
-from automol.graph.base import bond_stereo_keys
-from automol.graph.base import bond_stereo_parities
-from automol.graph.base import bond_stereo_sorted_neighbor_atom_keys
 from automol.graph.base import set_stereo_from_geometry
+from automol.graph.base import smiles
+from automol.graph.base import amchi
+from automol.graph.base import inchi_is_bad
+from automol.graph.base import implicit
+from automol.graph.base import to_local_stereo
+from automol.graph.base import subgraph
+from automol.graph.base import relabel
+from automol.graph.base import bond_stereo_keys
 from automol.graph.base import explicit_hydrogen_keys
+from automol.graph.base import bond_stereo_parities
 
 
 # # conversions
@@ -52,7 +54,7 @@ def geometry(gra):
     return geo
 
 
-def inchi(gra, stereo=False):
+def inchi(gra, stereo=True):
     """ Generate an InChI string from a molecular graph.
 
         :param gra: molecular graph
@@ -61,32 +63,15 @@ def inchi(gra, stereo=False):
         :type stereo: bool
         :rtype: str
     """
+    smi = smiles(gra, stereo=stereo, res_stereo=False)
 
     ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
-        'graph', gra, comp=_compare)
+        'smiles', smi, comp=_compare_smiles)
 
     if ich is None:
-        if not stereo or not has_stereo(gra):
-            ich, _ = inchi_with_sort_from_geometry(gra)
-            ich = automol.inchi.base.standard_form(ich, stereo=stereo)
-        else:
-            gra = explicit(gra)
-            geo, geo_idx_dct = automol.graph.embed.fake_stereo_geometry(gra)
-            ich, _ = inchi_with_sort_from_geometry(
-                gra, geo=geo, geo_idx_dct=geo_idx_dct)
-
+        rdm = rdkit_.from_smiles(smi)
+        ich = rdkit_.to_inchi(rdm)
     return ich
-
-
-def stereo_inchi(gra):
-    """ Generate an InChI string from a molecular graph, including stereo
-        information.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :rtype: str
-    """
-    return inchi(gra, stereo=True)
 
 
 def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
@@ -107,6 +92,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
         natms = automol.geom.base.count(geo)
         geo_idx_dct = (dict(enumerate(range(natms)))
                        if geo_idx_dct is None else geo_idx_dct)
+        gra = set_stereo_from_geometry(gra, geo, geo_idx_dct=geo_idx_dct)
 
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
                                                  geo_idx_dct=geo_idx_dct)
@@ -150,10 +136,8 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
 def _connected_inchi_with_graph_stereo(ich, gra, nums):
     """ For a connected inchi/graph, check if the inchi is missing stereo; If so,
     add stereo based on the graph.
-
     Currently only checks for missing bond stereo, since this is all we have
     seen so far, but could be generalized.
-
     :param ich: the inchi string
     :param gra: the graph
     :param nums: graph indices to backbone atoms in canonical inchi order
@@ -178,6 +162,8 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         exp_h_key_dct = {k: -k for k in exp_h_keys}
         gra = relabel(gra, exp_h_key_dct)
 
+        gra = to_local_stereo(gra)
+
         # Translate internal stereo parities into InChI stereo parities
         # and generate the appropriate b-layer string for the InChI
         ste_dct = bond_stereo_parities(gra)
@@ -185,18 +171,10 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
                                 for k in bond_stereo_keys(gra)))
         blyr_strs = []
         for atm1_key, atm2_key in ste_keys:
-            our_par = ste_dct[frozenset({atm1_key, atm2_key})]
-            our_srt1, our_srt2 = bond_stereo_sorted_neighbor_atom_keys(
-                gra, atm1_key, atm2_key)
-            ich_srt1 = tuple(reversed(sorted(our_srt1)))
-            ich_srt2 = tuple(reversed(sorted(our_srt2)))
-            if not ((our_srt1 != ich_srt1) ^ (our_srt2 != ich_srt2)):
-                ich_par = our_par
-            else:
-                ich_par = not our_par
+            par = ste_dct[frozenset({atm1_key, atm2_key})]
 
             blyr_strs.append(
-                f"{atm1_key+1}-{atm2_key+1}{'-' if ich_par else '+'}")
+                f"{atm1_key+1}-{atm2_key+1}{'+' if par else '-'}")
 
         # After forming the b-layer string, generate the new InChI
         blyr_str = ','.join(blyr_strs)
@@ -206,6 +184,34 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         # print('out:', ich)
 
     return ich
+
+
+def chi(gra, stereo=True):
+    """ Generate a ChI string from a molecular graph.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :returns: ChI string
+        :rtype: str
+    """
+    
+    # old implementation
+    # if has_resonance_bond_stereo(gra):
+    #     ret = amchi(gra, stereo=stereo)
+    # else:
+    #     ret = inchi(gra, stereo=stereo)
+    #     # If the InChI has mobile hydrogens, revert back to AMChI
+    #     if automol.amchi.base.has_mobile_hydrogens(ret):
+    #         ret = amchi(gra, stereo=stereo)
+
+    # new implementation
+    ret = inchi(gra, stereo=stereo)
+    if inchi_is_bad(gra, ret):
+        ret = amchi(gra, stereo=stereo)
+
+    return ret
 
 
 def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
@@ -284,3 +290,25 @@ def _compare(gra1, gra2):
     gra2 = without_dummy_atoms(gra2)
 
     return backbone_isomorphic(gra1, gra2)
+
+
+def _compare_smiles(smi1, smi2):
+    """ Check if two SMILES strings are similar.
+
+        :param smi1: SMILES string 1
+        :type smi1: str
+        :param smi2: SMILES string 2
+        :type smi2: str
+        :rtype: bool
+    """
+    return _canonicalize_smiles(smi1) == _canonicalize_smiles(smi2)
+
+
+def _canonicalize_smiles(smi):
+    """ Convert a SMILES string into its canonical form.
+
+        :param smi: SMILES string
+        :type smi: str
+        :rtype: str
+    """
+    return rdkit_.to_smiles(rdkit_.from_smiles(smi))
