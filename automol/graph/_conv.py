@@ -196,7 +196,7 @@ def chi(gra, stereo=True):
         :returns: ChI string
         :rtype: str
     """
-    
+
     # old implementation
     # if has_resonance_bond_stereo(gra):
     #     ret = amchi(gra, stereo=stereo)
