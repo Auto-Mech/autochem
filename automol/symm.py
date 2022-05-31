@@ -224,7 +224,7 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None):
         atm_vals = automol.graph.base.unsaturated_atom_keys(gra)
         ring_atms = automol.graph.base.rings_atom_keys(gra)
         ring_atms = [x for ring in ring_atms for x in ring]
-        atm_rads = automol.graph.base.radical_atom_keys(gra)
+        atm_rads = automol.graph.base.nonresonant_radical_atom_keys(gra)
         atm_syms = automol.graph.base.atom_symbols(gra)
         atms = [x for x in atms if atm_syms[x] != 'H']
         for atm in atms:
