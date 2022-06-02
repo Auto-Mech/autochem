@@ -36,7 +36,7 @@ def add_stereo(chi):
         :rtype: str
     """
 
-    ste_slyrs = automol.amchi.stereo_sublayers(chi)
+    ste_slyrs = automol.amchi.stereo_layers(chi)
     if not ste_slyrs:
         geo = automol.amchi.geometry(chi)
         chi = automol.geom.chi(geo, stereo=True)
@@ -91,7 +91,7 @@ def inchi_to_amchi(ich, printlog=True):
 
     chi = ich
     if automol.amchi.base.prefix(ich) == 'InChI':
-        if automol.amchi.stereo_sublayers(ich):
+        if automol.amchi.stereo_layers(ich):
             gra = automol.inchi.graph(ich)
             if automol.graph.has_resonance_bond_stereo(gra):
                 geo = automol.chi.geometry(ich)
