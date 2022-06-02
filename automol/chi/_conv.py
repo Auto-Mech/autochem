@@ -36,25 +36,10 @@ def add_stereo(chi):
         :rtype: str
     """
 
-    # old implementation
-    # pfx = automol.amchi.base.prefix(chi)
-    # if pfx == 'AMChI':
-    #     gra = automol.amchi.graph(chi)
-    # elif pfx == 'InChI':
-    #     gra = automol.inchi.graph(chi)
-    # else:
-    #     raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
-
-    # if automol.graph.has_resonance_bond_stereo(gra):
-    #     ste_chi = automol.graph.amchi(gra, stereo=True)
-    # else:
-    #     ste_chi = automol.graph.inchi(gra, stereo=True)
-
-    # return ste_chi
-
-    # new implementation
-    geo = automol.amchi.geometry(chi)
-    chi = automol.geom.chi(geo, stereo=True)
+    ste_slyrs = automol.amchi.stereo_sublayers(chi)
+    if not ste_slyrs:
+        geo = automol.amchi.geometry(chi)
+        chi = automol.geom.chi(geo, stereo=True)
 
     return chi
 
@@ -88,3 +73,34 @@ def expand_stereo(chi):
         ste_chis.append(ste_chi)
 
     return ste_chis
+
+
+# # InCHI string converters
+def inchi_to_amchi(ich, printlog=True):
+    """ For an InChI string with stereo convert to an AMChI
+
+        Since stereo conversions are expensive, function checks
+        if input string is an InChI, w/ stereo, for species
+        with resonance stabilization. Then it attempts the
+        conversion.
+
+        Note that these results still depend on the InChI code
+        algorithm not building an incorrect geometry, so this
+        conversion is not guaranteed to work.
+    """
+
+    chi = ich
+    if automol.amchi.base.prefix(ich) == 'InChI':
+        if automol.amchi.stereo_sublayers(ich):
+            gra = automol.inchi.graph(ich)
+            if automol.graph.has_resonance_bond_stereo(gra):
+                geo = automol.chi.geometry(ich)
+                chi = automol.geom.chi(geo)
+
+                # Print a warning since conversion not guaranteed
+                if printlog:
+                    if automol.amchi.base.prefix(chi) == 'AMChI':
+                        print('Check accuracy of InChI -> AMChI conversion:'
+                              f'{ich} -> {chi}')
+
+    return chi

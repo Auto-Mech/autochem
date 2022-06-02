@@ -68,6 +68,7 @@ from automol.chi._conv import is_complete
 # # derived transformations
 from automol.chi._conv import add_stereo
 from automol.chi._conv import expand_stereo
+from automol.chi._conv import inchi_to_amchi
 # drawing tools
 from automol.amchi import draw
 from automol.amchi import draw_grid
@@ -145,6 +146,7 @@ __all__ = [
     # # derived transformations
     'add_stereo',
     'expand_stereo',
+    'inchi_to_amchi',
     # drawing tools
     'draw',
     'draw_grid',
