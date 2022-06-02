@@ -15,9 +15,9 @@ from automol.graph import FunctionalGroup
 LJ_DCT = {
     frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/H'}): (1.72028, 162.69397),
     frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/H2/h1H'}): (2.38028, 91.51536),
-    frozenset({'InChI=1S/N2/c1-2', 'InChI=1S/N2/c1-2'}): (3.41972, 325.74586),
-    frozenset({'InChI=1S/He', 'InChI=1S/He'}): (2.576, 10.2),
-    frozenset({'InChI=1S/Ar', 'InChI=1S/Ar'}): (3.462, 116.719),
+    frozenset({'InChI=1S/N2/c1-2'}): (3.41972, 325.74586),
+    frozenset({'InChI=1S/He'}): (2.576, 10.2),
+    frozenset({'InChI=1S/Ar'}): (3.462, 116.719),
     # These are hacks to make Ar work with small molecules
     frozenset({'InChI=1S/Ar', 'InChI=1S/H'}): (1.72028, 162.69397),
     frozenset({'InChI=1S/Ar', 'InChI=1S/H2/h1H'}): (2.38028, 91.51536),

@@ -1182,11 +1182,11 @@ def _split_layers(dct, count):
         assert all(len(lyrs) == count for lyrs in lyrs_lst)
         dcts = list({pfx: lyr for pfx, lyr in zip(pfxs, lyrs) if lyr}
                     for lyrs in zip(*lyrs_lst))
-        for idx, _ in enumerate(dcts):
-            if 'm' in dcts[idx] and dcts[idx]['m'] == '.':
-                dcts[idx].pop('m')
-            if 'm' in dcts[idx]:
-                dcts[idx]['s'] = '1'
+        for dct_ in dcts:
+            if 'm' in dct_ and dct_['m'] == '.':
+                dct_.pop('m')
+            if 'm' in dct:
+                dct_['s'] = '1'
     else:
         return ({},) * count
     return dcts
