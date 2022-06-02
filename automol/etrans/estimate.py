@@ -305,7 +305,6 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
             fgrp_cnt_dct = automol.graph.functional_group_count_dct(tgt_gra)
             fgrps = set(fgrp for fgrp, count in fgrp_cnt_dct.items()
                         if count > 0)
-            print('fgrps test', fgrps)
             _ro2_fgrps = {FunctionalGroup.PEROXY, FunctionalGroup.HYDROPEROXY}
             if _ro2_fgrps & fgrps:
                 tgt_model = 'peroxy'
@@ -320,7 +319,6 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
             fgrp_cnt_dct = automol.graph.functional_group_count_dct(tgt_gra)
             fgrps = set(fgrp for fgrp, count in fgrp_cnt_dct.items()
                         if count > 0)
-            print('fgrps test', fgrps)
             for (fgrp, model) in D0_GRP_LST:
                 if fgrp in fgrps:
                     tgt_model = model
@@ -328,6 +326,8 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
 
             # Set target model to alkanes if nothing found
             if tgt_model is None:
+                print('No info found for functional group {fgrps}')
+                print("Using default model 'n-alkane'")
                 tgt_model = 'n-alkane'
 
         return frozenset({tgt_model, bath_ich})
