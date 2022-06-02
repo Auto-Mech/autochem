@@ -356,6 +356,12 @@ def bond_representation_generator_(rgr, ste_bnd_key_pool, direc_dct):
             # Remove the new stereo bond from the pool.
             ste_bnd_key_pool.remove(ste_bnd_key)
 
+            # Handle the special case where this is the second directional bond
+            # extending from this atom
+            same_atom_direc = next((d for k, d in direc_dct.items()
+                                    if k[1] == just_seen), None)
+            direc = direc if same_atom_direc is None else same_atom_direc
+
             # Determine the atoms of the stereo bond and the neighbors that
             # will be assigned directional bonds:
             #   nkey1-key1=key2-nkey2
@@ -515,3 +521,16 @@ def _flip_direction(direc, flip=True):
     else:
         ret = '\\' if direc == '/' else '/'
     return ret
+
+
+if __name__ == '__main__':
+    GRA = ({0: ('H', 0, None), 1: ('N', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('C', 0, None), 5: ('N', 0, None),
+            6: ('H', 0, None), 7: ('N', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None)},
+           {frozenset({3, 4}): (1, None), frozenset({10, 4}): (1, None),
+            frozenset({2, 3}): (1, None), frozenset({3, 7}): (1, False),
+            frozenset({1, 2}): (1, False), frozenset({4, 5}): (1, True),
+            frozenset({0, 1}): (1, None), frozenset({8, 7}): (1, None),
+            frozenset({5, 6}): (1, None), frozenset({9, 2}): (1, None)})
+    print(smiles(GRA))

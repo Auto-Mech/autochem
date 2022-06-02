@@ -36,8 +36,8 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     """
 
     condition = True
-    for i, _ in enumerate(ring_atoms):
-        _atoms = [ring_atoms[i], ring_atoms[i-1], ring_atoms[i-2]]
+    for i, ring_atom in enumerate(ring_atoms):
+        _atoms = [ring_atom, ring_atoms[i-1], ring_atoms[i-2]]
         cangle = central_angle(geo, *_atoms, degree=False)
         if cangle < thresh:
             condition = False

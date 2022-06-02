@@ -135,10 +135,10 @@ def ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
     """
 
     condition = True
-    for i, _ in enumerate(rng_atoms):
+    for i, rng_atom in enumerate(rng_atoms):
         chk_dist = (
             dist_value_dct[i] -
-            automol.zmat.distance(zma, rng_atoms[i-1], rng_atoms[i])
+            automol.zmat.distance(zma, rng_atoms[i-1], rng_atom)
         )
         if abs(chk_dist) > .3:
             condition = False
