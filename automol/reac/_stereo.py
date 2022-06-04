@@ -107,6 +107,7 @@ def add_stereo_from_unordered_geometries(rxn, rct_geos, prd_geos,
     found_srxn = None
     order = None
 
+    print(automol.graph.string(rxn.forward_ts_graph, one_indexed=False))
     for srxn in expand_stereo(rxn):
         comp_rct_gras = reactant_graphs(srxn)
         comp_prd_gras = product_graphs(srxn)

@@ -425,6 +425,9 @@ def test__stereo():
          'b5-3-,6-4-/t8-/m0/s1')
     )
     assert chi.add_stereo(C8H13O_ICH_NO_STEREO) in c8h13o_ste
+    print(set(chi.expand_stereo(C8H13O_ICH_NO_STEREO)))
+    print(len(set(chi.expand_stereo(C8H13O_ICH_NO_STEREO))))
+    print(len(c8h13o_ste))
     assert set(chi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
 
     # some cases that were breaking

@@ -9,56 +9,89 @@ import numpy
 from automol import util
 import automol.geom.base    # !!!!
 from automol.util import dict_
+from automol.graph.base.util import sort_keys
+from automol.graph.base.util import sort_keys_representation
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import stereo_parities
+from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
+from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import frozen
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import has_fractional_bonds
 from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import without_dummy_bonds
+from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import branch
 from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
+from automol.graph.base._canon import stereogenic_keys
 from automol.graph.base._canon import to_local_stereo
+from automol.graph.base._canon import refine_priorities
 from automol.graph.base._canon import parity_evaluator_from_geometry_
 
 
 # # core functions
-def stereomers(gra):
-    """ all stereomers, ignoring this graph's assignments
+def stereomers(gra, sym_filter=True):
+    """ all stereoisomers, ignoring this graph's assignments
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param sym_filter: filter for symmetrically equivalent stereoisomers?
+        :type sym_filter: bool
+        :returns: a series of molecular graphs for the stereoisomers
     """
-    bool_vals = (False, True)
+    bools = (False, True)
+    gra = without_stereo_parities(gra)
 
-    def _expand_atom_stereo(sgr):
-        atm_ste_keys = stereogenic_atom_keys(sgr)
-        nste_atms = len(atm_ste_keys)
-        sgrs = [set_atom_stereo_parities(sgr, dict(zip(atm_ste_keys,
-                                                       atm_ste_par_vals)))
-                for atm_ste_par_vals
-                in itertools.product(bool_vals, repeat=nste_atms)]
-        return sgrs
+    is_ts = has_fractional_bonds(gra)
 
-    def _expand_bond_stereo(sgr):
-        bnd_ste_keys = stereogenic_bond_keys(sgr)
-        nste_bnds = len(bnd_ste_keys)
-        sgrs = [set_bond_stereo_parities(sgr, dict(zip(bnd_ste_keys,
-                                                       bnd_ste_par_vals)))
-                for bnd_ste_par_vals
-                in itertools.product(bool_vals, repeat=nste_bnds)]
-        return sgrs
+    gps0 = None
+    gps = [(gra, None, None)]
 
-    last_sgrs = []
-    sgrs = [without_stereo_parities(gra)]
+    while gps0 != gps:
+        gps0 = gps
+        gps = []
 
-    while sgrs != last_sgrs:
-        last_sgrs = sgrs
-        sgrs = list(itertools.chain(*map(_expand_atom_stereo, sgrs)))
-        sgrs = list(itertools.chain(*map(_expand_bond_stereo, sgrs)))
+        seen_assignments = []
+        for gra1, pri_dct1, pri_dct2 in gps0:
+            pri_dct1 = refine_priorities(gra1, pri_dct=pri_dct1)
+            par_dct = stereo_parities(gra1)
+            keys, pris = zip(*pri_dct1.items())
 
-    return tuple(sorted(sgrs, key=frozen))
+            keys = stereo_keys(gra1)
+            keys = sort_keys(keys, func=pri_dct1.__getitem__)
+            pris = sort_keys_representation(keys, func=pri_dct1.__getitem__)
+            pars = dict_.values_by_key(par_dct, keys)
+            assignment = sorted(zip(pris, pars))
+
+            if not sym_filter or assignment not in seen_assignments:
+                # For TS graphs, we need to exclude the forming/breaking bonds
+                # when identifying stereogenic atoms and bonds, so a separate
+                # priority refinement is required
+                if is_ts:
+                    gra2 = without_dummy_bonds(without_fractional_bonds(gra1))
+                    pri_dct2 = refine_priorities(gra2, pri_dct=pri_dct2)
+                else:
+                    pri_dct2 = pri_dct1
+
+                keys = stereogenic_keys(gra1, pri_dct=pri_dct2)
+                par_dcts = [dict(zip(keys, pars)) for pars in
+                            itertools.product(bools, repeat=len(keys))]
+
+                gra1s = [set_stereo_parities(gra1, par_dct)
+                         for par_dct in par_dcts]
+                gps.extend([(gra1, pri_dct1, pri_dct2) for gra1 in gra1s])
+                seen_assignments.append(assignment)
+
+    gras = [g for g, _, _ in gps]
+
+    return tuple(sorted(gras, key=frozen))
 
 
 def substereomers(gra):
@@ -79,7 +112,7 @@ def substereomers(gra):
                               set(bnd_ste_par_dct.items()))
         return _compat_atm_assgns and _compat_bnd_assgns
 
-    sgrs = tuple(filter(_is_compatible, stereomers(gra)))
+    sgrs = tuple(filter(_is_compatible, stereomers(gra, sym_filter=False)))
     return sgrs
 
 

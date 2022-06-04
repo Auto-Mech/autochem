@@ -16,6 +16,7 @@ from automol.util import dict_
 import automol.geom.base
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import backbone_keys
+from automol.graph.base._core import bond_orders
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import atom_stereo_parities
@@ -37,6 +38,8 @@ from automol.graph.base._core import relabel
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
+from automol.graph.base._core import without_dummy_bonds
+from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import union_from_sequence
 from automol.graph.base._core import string as graph_string
 from automol.graph.base._algo import is_connected
@@ -203,18 +206,11 @@ def stereogenic_atom_keys(gra, pri_dct=None, assigned=False):
         :returns: the stereogenic atom keys
         :rtype: frozenset
     """
-    gras = connected_components(gra)
-    ste_atm_keys = set()
-
-    for gra_ in gras:
-        atm_keys = backbone_keys(gra_)
-        pri_dct_ = (canonical_priorities(gra_, backbone_only=False)
-                    if pri_dct is None else dict_.by_key(pri_dct, atm_keys))
-
-        ste_atm_keys |= stereogenic_atom_keys_from_priorities(
-            gra_, pri_dct=pri_dct_, assigned=assigned)
-
-    return frozenset(ste_atm_keys)
+    pri_dct = (canonical_priorities(gra, backbone_only=False)
+               if pri_dct is None else pri_dct)
+    ste_atm_keys = stereogenic_atom_keys_from_priorities(
+        gra, pri_dct=pri_dct, assigned=assigned)
+    return ste_atm_keys
 
 
 def stereogenic_bond_keys(gra, pri_dct=None, assigned=False):
@@ -232,18 +228,34 @@ def stereogenic_bond_keys(gra, pri_dct=None, assigned=False):
         :returns: the stereogenic bond keys
         :rtype: frozenset
     """
-    gras = connected_components(gra)
-    ste_bnd_keys = set()
+    pri_dct = (canonical_priorities(gra, backbone_only=False)
+               if pri_dct is None else pri_dct)
+    ste_bnd_keys = stereogenic_bond_keys_from_priorities(
+        gra, pri_dct=pri_dct, assigned=assigned)
+    return ste_bnd_keys
 
-    for gra_ in gras:
-        atm_keys = backbone_keys(gra_)
-        pri_dct_ = (canonical_priorities(gra_, backbone_only=False)
-                    if pri_dct is None else dict_.by_key(pri_dct, atm_keys))
 
-        ste_bnd_keys |= stereogenic_bond_keys_from_priorities(
-            gra_, pri_dct=pri_dct_, assigned=assigned)
+def stereogenic_keys(gra, pri_dct=None, assigned=False):
+    """ Find stereogenic atoms and bonds in this graph.
 
-    return frozenset(ste_bnd_keys)
+        If the `assigned` flag is set to `False`, only  unassigned stereogenic
+        atoms will be detected.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param pri_dct: priorities, to avoid recalculating
+        :type pri_dct: dict[int: int]
+        :param assigned: Include atoms/bonds that already have assignments?
+        :param assigned: bool
+        :returns: keys to stereogenic atoms and bonds
+        :rtype: frozenset
+    """
+    ste_atm_keys = stereogenic_atom_keys(gra, pri_dct=pri_dct,
+                                         assigned=assigned)
+    ste_bnd_keys = stereogenic_bond_keys(gra, pri_dct=pri_dct,
+                                         assigned=assigned)
+    ste_keys = ste_atm_keys | ste_bnd_keys
+    return ste_keys
 
 
 def reflect(gra):
@@ -535,7 +547,7 @@ def calculate_priorities_and_assign_parities(
     return pri_dct, gra2
 
 
-def refine_priorities(gra, pri_dct, srt_eval_=None):
+def refine_priorities(gra, pri_dct=None, srt_eval_=None):
     """ Refine the canonical priorities for this graph based on some sort value.
 
         :param gra: molecular graph
@@ -546,6 +558,9 @@ def refine_priorities(gra, pri_dct, srt_eval_=None):
             priorities. Curried such that srt_val_(pri_dct)(key) returns the
             sort value.
     """
+    if pri_dct is None:
+        pri_dct = {k: 0 for k in atom_keys(gra)}
+
     if srt_eval_ is None:
         srt_eval_ = sort_evaluator_atom_invariants_(gra)
 
@@ -663,6 +678,15 @@ def sort_evaluator_atom_invariants_(gra):
 
     bpars_dct = dict_.transform_values(bnds_dct, _sortable_bond_stereo_values)
 
+    bnd_ord_dct = bond_orders(gra)
+
+    def _sortable_bond_orders(bnd_keys):
+        bords = dict_.values_by_key(bnd_ord_dct, bnd_keys)
+        bords = tuple(sorted(map(_replace_none, bords)))
+        return bords
+
+    bords_dct = dict_.transform_values(bnds_dct, _sortable_bond_orders)
+
     def _evaluator(pri_dct):
         """ Sort value evaluator based on current priorities.
 
@@ -677,9 +701,10 @@ def sort_evaluator_atom_invariants_(gra):
             mnum = mnum_dct[key]
             apar = apar_dct[key]
             bpars = bpars_dct[key]
+            bords = bords_dct[key]
             ngb_idxs = tuple(
                 sorted(map(pri_dct.__getitem__, ngb_keys_dct[key])))
-            return (symb, deg, hnum, mnum, apar, bpars, ngb_idxs)
+            return (symb, deg, hnum, mnum, apar, bpars, bords, ngb_idxs)
 
         return _value
 
@@ -1017,6 +1042,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
         :returns: the stereogenic atom keys
         :rtype: frozenset
     """
+    gra = without_dummy_bonds(without_fractional_bonds(gra))
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,
@@ -1053,11 +1079,11 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
         :returns: the stereogenic bond keys
         :rtype: frozenset
     """
+    gra = without_dummy_bonds(without_fractional_bonds(gra))
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,
                                                        break_ties=False)
-
     bnd_keys = sp2_bond_keys(gra)
     if not assigned:
         # Remove assigned stereo keys
@@ -1116,7 +1142,7 @@ def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
 
         hyd_keys_dct = atom_explicit_hydrogen_keys(gra)
 
-        next_idx = len(bbn_keys)
+        next_idx = max(pri_dct.values()) + 1
 
         # If not breaking ties, assign equal priority to hydrogens bonded to
         # atoms from the same priority class.
