@@ -17,9 +17,11 @@ from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
+from automol.graph.base._core import frozen
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
-from automol.graph.base._stereo import expand_stereo
+from automol.graph.base._stereo import (
+    expand_stereo_with_assignment_representations)
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
 from automol.graph.base._canon import from_local_stereo as _from_local_stereo
 
@@ -126,12 +128,12 @@ def products_graph(tsg):
 
 
 def to_local_stereo(tsg):
-    """ Convert a TS graph to index-based stereo assignments, where parities
-    are defined relative to the ordering of indices rather than the absolute
-    stereo priority.
+    """ Convert a TS graph to local stereo assignments, where parities are
+        defined relative to the ordering of indices rather than the canonical
+        stereo priority.
 
-    :param tsg: a TS graph with absolute stereo assignments
-    :returns: a TS graph with index-based stereo assignments
+    :param tsg: a TS graph with canonical stereo assignments
+    :returns: a TS graph with local stereo assignments
     """
     rgra = reactants_graph(tsg)
     frm_bnd_keys = forming_bond_keys(tsg)
@@ -143,11 +145,11 @@ def to_local_stereo(tsg):
 
 
 def from_local_stereo(loc_tsg):
-    """ Convert a TS graph from index-based stereo assignments back to absolute
+    """ Convert a TS graph from local stereo assignments back to canonical
     stereo assignments, where parities are independent of atom ordering.
 
-    :param loc_tsg: a TS graph with index-based stereo assignments
-    :returns: a TS graph with absolute stereo assignments
+    :param loc_tsg: a TS graph with local stereo assignments
+    :returns: a TS graph with canonical stereo assignments
     """
     rgra = reactants_graph(loc_tsg)
     frm_bnd_keys = forming_bond_keys(loc_tsg)
@@ -158,12 +160,31 @@ def from_local_stereo(loc_tsg):
     return tsg
 
 
-def expand_compatible_reverse_stereo(tsg):
+def expand_stereo(tsg, sym_filter=True):
+    """ Obtain all possible stereoisomers of a TS graph, ignoring its assignments
+
+        :param tsg: A TS graph, with canonical stereo assignments.
+        :type tsg: automol graph data structure
+        :param sym_filter: filter for symmetrically equivalent stereoisomers?
+        :type sym_filter: bool
+        :returns: a series of molecular graphs for the stereoisomers
+    """
+    grs = expand_stereo_with_assignment_representations(tsg,
+                                                        sym_filter=sym_filter)
+    tsgs = [g for g, r in grs]
+    return tuple(sorted(tsgs, key=frozen))
+
+
+def expand_compatible_reverse_stereo(tsg, sym_filter=True):
     """ Given a TS graph with stereo assignments, expand all possible reverse
     graphs compatble with the forward graph.
 
-    :param tsg: A TS graph, with canonical stereo assignments.
-    :returns: All possible reverse TS graphs.
+        :param tsg: A TS graph, with canonical stereo assignments.
+        :type tsg: automol graph data structure
+        :param sym_filter: filter for symmetrically equivalent stereoisomers?
+        :type sym_filter: bool
+        :returns: All reverse TS graph stereoisomers with compatible stereo to
+            this forward TS graph.
     """
     ftsg = tsg
     fste_keys = stereo_keys(ftsg)
@@ -171,8 +192,12 @@ def expand_compatible_reverse_stereo(tsg):
 
     fpar_dct = stereo_parities(to_local_stereo(ftsg))
 
+    grs = expand_stereo_with_assignment_representations(
+        reverse(tsg), sym_filter=False)
+
     rtsgs = []
-    for rtsg in expand_stereo(reverse(tsg), sym_filter=False):
+    seen_reps = []
+    for (rtsg, rep) in grs:
         rste_keys = stereo_keys(rtsg)
         cons_keys = list(fste_keys & rste_keys)
         assert not reac_keys & set(util.flatten(cons_keys)), (
@@ -185,6 +210,8 @@ def expand_compatible_reverse_stereo(tsg):
         fpars = list(map(fpar_dct.__getitem__, cons_keys))
         rpars = list(map(rpar_dct.__getitem__, cons_keys))
         if fpars == rpars:
-            rtsgs.append(rtsg)
+            if not sym_filter or rep not in seen_reps:
+                rtsgs.append(rtsg)
+                seen_reps.append(rep)
 
     return tuple(rtsgs)
