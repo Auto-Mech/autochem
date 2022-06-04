@@ -19,7 +19,7 @@ from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
-from automol.graph.base._stereo import stereomers
+from automol.graph.base._stereo import expand_stereo
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
 from automol.graph.base._canon import from_local_stereo as _from_local_stereo
 
@@ -158,7 +158,7 @@ def from_local_stereo(loc_tsg):
     return tsg
 
 
-def compatible_reverse_stereomers(tsg):
+def expand_compatible_reverse_stereo(tsg):
     """ Given a TS graph with stereo assignments, expand all possible reverse
     graphs compatble with the forward graph.
 
@@ -172,7 +172,7 @@ def compatible_reverse_stereomers(tsg):
     fpar_dct = stereo_parities(to_local_stereo(ftsg))
 
     rtsgs = []
-    for rtsg in stereomers(reverse(tsg), sym_filter=False):
+    for rtsg in expand_stereo(reverse(tsg), sym_filter=False):
         rste_keys = stereo_keys(rtsg)
         cons_keys = list(fste_keys & rste_keys)
         assert not reac_keys & set(util.flatten(cons_keys)), (

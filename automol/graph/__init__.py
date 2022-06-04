@@ -264,8 +264,7 @@ from automol.graph.base._rot import bond_symmetry_numbers
 from automol.graph.base._geom import linear_vinyl_corrected_geometry
 # stereo functions:
 # # core functions
-from automol.graph.base._stereo import stereomers
-from automol.graph.base._stereo import substereomers
+from automol.graph.base._stereo import expand_stereo
 # # stereo evaluation
 from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
 from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
@@ -540,8 +539,7 @@ __all__ = [
     'linear_vinyl_corrected_geometry',
     # stereo functions:
     # # core functions
-    'stereomers',
-    'substereomers',
+    'expand_stereo',
     # # stereo evaluation
     'local_atom_stereo_parity_from_geometry',
     'local_bond_stereo_parity_from_geometry',

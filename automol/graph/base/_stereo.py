@@ -3,7 +3,6 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
-import functools
 import itertools
 import numpy
 from automol import util
@@ -37,7 +36,7 @@ from automol.graph.base._canon import parity_evaluator_from_geometry_
 
 
 # # core functions
-def stereomers(gra, sym_filter=True):
+def expand_stereo(gra, sym_filter=True):
     """ all stereoisomers, ignoring this graph's assignments
 
         :param gra: molecular graph
@@ -92,28 +91,6 @@ def stereomers(gra, sym_filter=True):
     gras = [g for g, _, _ in gps]
 
     return tuple(sorted(gras, key=frozen))
-
-
-def substereomers(gra):
-    """ all stereomers compatible with this graph's assignments
-    """
-    _assigned = functools.partial(
-        dict_.filter_by_value, func=lambda x: x is not None)
-
-    known_atm_ste_par_dct = _assigned(atom_stereo_parities(gra))
-    known_bnd_ste_par_dct = _assigned(bond_stereo_parities(gra))
-
-    def _is_compatible(sgr):
-        atm_ste_par_dct = _assigned(atom_stereo_parities(sgr))
-        bnd_ste_par_dct = _assigned(bond_stereo_parities(sgr))
-        _compat_atm_assgns = (set(known_atm_ste_par_dct.items()) <=
-                              set(atm_ste_par_dct.items()))
-        _compat_bnd_assgns = (set(known_bnd_ste_par_dct.items()) <=
-                              set(bnd_ste_par_dct.items()))
-        return _compat_atm_assgns and _compat_bnd_assgns
-
-    sgrs = tuple(filter(_is_compatible, stereomers(gra, sym_filter=False)))
-    return sgrs
 
 
 # # stereo evaluation

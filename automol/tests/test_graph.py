@@ -830,13 +830,13 @@ def test__stereogenic_bond_keys():
         {frozenset({1, 4}), frozenset({0, 3})})
 
 
-def test__stereomers():
-    """ test graph.stereomers
+def test__expand_stereo():
+    """ test graph.expand_stereo
     """
-    assert graph.stereomers(C2H2CL2F2_CGR) == C2H2CL2F2_SGRS
-    assert graph.stereomers(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
-    assert graph.stereomers(C3H5N3_CGR) == C3H5N3_SGRS
-    assert graph.stereomers(C8H13O_CGR) == C8H13O_SGRS
+    assert graph.expand_stereo(C2H2CL2F2_CGR) == C2H2CL2F2_SGRS
+    assert graph.expand_stereo(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
+    assert graph.expand_stereo(C3H5N3_CGR) == C3H5N3_SGRS
+    assert graph.expand_stereo(C8H13O_CGR) == C8H13O_SGRS
 
 
 def test__ring_systems():
@@ -888,21 +888,21 @@ def test__vmat__vmatrix():
     assert set(zma_keys) == graph.atom_keys(gra)
 
 
-def test__ts__compatible_reverse_stereomers():
+def test__ts__expand_compatible_reverse_stereo():
     """ test graph.ts.stereo_expand_reverse_graphs
     """
-    for ste_tsg in graph.ts.stereomers(C4H5F2O_TSG):
+    for ste_tsg in graph.ts.expand_stereo(C4H5F2O_TSG):
         ste_tsgs = [
             s
-            for r in graph.ts.compatible_reverse_stereomers(ste_tsg)
-            for s in graph.ts.compatible_reverse_stereomers(r)]
+            for r in graph.ts.expand_compatible_reverse_stereo(ste_tsg)
+            for s in graph.ts.expand_compatible_reverse_stereo(r)]
         assert any(s == ste_tsg for s in ste_tsgs)
 
-    for ste_tsg in graph.ts.stereomers(C4H5F3O2_TSG):
+    for ste_tsg in graph.ts.expand_stereo(C4H5F3O2_TSG):
         ste_tsgs = [
             s
-            for r in graph.ts.compatible_reverse_stereomers(ste_tsg)
-            for s in graph.ts.compatible_reverse_stereomers(r)]
+            for r in graph.ts.expand_compatible_reverse_stereo(ste_tsg)
+            for s in graph.ts.expand_compatible_reverse_stereo(r)]
         assert any(s == ste_tsg for s in ste_tsgs)
 
 
@@ -1263,7 +1263,7 @@ if __name__ == '__main__':
     # test__amchi_with_indices()
     # test__stereogenic_atom_keys()
     # test__ts__nonconserved_atom_stereo_keys()
-    # test__ts__compatible_reverse_stereomers()
+    # test__ts__expand_compatible_reverse_stereo()
     # test__stereogenic_atom_keys()
-    # test__stereomers()
-    test__ts__compatible_reverse_stereomers()
+    # test__expand_stereo()
+    test__ts__expand_compatible_reverse_stereo()

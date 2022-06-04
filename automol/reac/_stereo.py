@@ -107,7 +107,6 @@ def add_stereo_from_unordered_geometries(rxn, rct_geos, prd_geos,
     found_srxn = None
     order = None
 
-    print(automol.graph.string(rxn.forward_ts_graph, one_indexed=False))
     for srxn in expand_stereo(rxn):
         comp_rct_gras = reactant_graphs(srxn)
         comp_prd_gras = product_graphs(srxn)
@@ -160,11 +159,11 @@ def expand_stereo(rxn):
 
     key_dct = atom_mapping(rxn)
 
-    forw_ste_tsgs = ts.stereomers(forw_tsg)
+    forw_ste_tsgs = ts.expand_stereo(forw_tsg)
 
     srxns = []
     for forw_ste_tsg in forw_ste_tsgs:
-        for back_ste_tsg in ts.compatible_reverse_stereomers(forw_ste_tsg):
+        for back_ste_tsg in ts.expand_compatible_reverse_stereo(forw_ste_tsg):
             back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
             # But for dummy atoms, we could just do the conversion directly,
@@ -204,7 +203,7 @@ def expand_product_stereo(srxn):
     forw_ste_tsg = srxn.forward_ts_graph
 
     srxns = []
-    for back_ste_tsg in ts.compatible_reverse_stereomers(forw_ste_tsg):
+    for back_ste_tsg in ts.expand_compatible_reverse_stereo(forw_ste_tsg):
         back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
         # But for dummy atoms, we could just do the conversion directly, but

@@ -208,6 +208,6 @@ def expand_stereo(ich):
         :rtype: list[str]
     """
     gra = graph(ich, stereo=False)
-    sgrs = automol.graph.stereomers(gra)
+    sgrs = automol.graph.expand_stereo(gra)
     ste_ichs = [automol.graph.inchi(sgr, stereo=True) for sgr in sgrs]
     return ste_ichs
