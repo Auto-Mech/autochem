@@ -3,18 +3,16 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
+import numbers
 import itertools
 import numpy
 from automol import util
 import automol.geom.base    # !!!!
 from automol.util import dict_
-from automol.graph.base.util import sort_keys
-from automol.graph.base.util import sort_keys_representation
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import stereo_parities
-from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import set_stereo_parities
@@ -37,7 +35,7 @@ from automol.graph.base._canon import parity_evaluator_from_geometry_
 
 # # core functions
 def expand_stereo(gra, sym_filter=True):
-    """ all stereoisomers, ignoring this graph's assignments
+    """ Obtain all possible stereoisomers of a graph, ignoring its assignments
 
         :param gra: molecular graph
         :type gra: automol graph data structure
@@ -45,34 +43,40 @@ def expand_stereo(gra, sym_filter=True):
         :type sym_filter: bool
         :returns: a series of molecular graphs for the stereoisomers
     """
+    grs = expand_stereo_with_assignment_representations(gra,
+                                                        sym_filter=sym_filter)
+    gras = [g for g, r in grs]
+    return tuple(sorted(gras, key=frozen))
+
+
+def expand_stereo_with_assignment_representations(gra, sym_filter=False):
+    """ Obtain all possible stereoisomers, along with canonical representations
+        of the assignments, for filtering out symmetrically redundant ones
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param sym_filter: filter for symmetrically equivalent stereoisomers?
+        :type sym_filter: bool
+    """
     bools = (False, True)
     gra = without_stereo_parities(gra)
 
     is_ts = has_fractional_bonds(gra)
 
-    gps0 = None
-    gps = [(gra, None, None)]
+    gpprs0 = None
+    gpprs = [(gra, None, None, None)]
 
-    while gps0 != gps:
-        gps0 = gps
-        gps = []
+    while gpprs0 != gpprs:
+        gpprs0 = gpprs
+        gpprs = []
 
-        seen_assignments = []
-        for gra1, pri_dct1, pri_dct2 in gps0:
+        seen_reps = []
+        for gra1, pri_dct1, pri_dct2, _ in gpprs0:
             pri_dct1 = refine_priorities(gra1, pri_dct=pri_dct1)
-            par_dct = stereo_parities(gra1)
-            keys, pris = zip(*pri_dct1.items())
+            par_dct1 = stereo_parities(gra1)
 
-            keys = stereo_keys(gra1)
-            keys = sort_keys(keys, func=pri_dct1.__getitem__)
-            pris = sort_keys_representation(keys, func=pri_dct1.__getitem__)
-            pars = dict_.values_by_key(par_dct, keys)
-            assignment = sorted(zip(pris, pars))
-
-            if not sym_filter or assignment not in seen_assignments:
-                # For TS graphs, we need to exclude the forming/breaking bonds
-                # when identifying stereogenic atoms and bonds, so a separate
-                # priority refinement is required
+            rep = canonical_assignment_representation(pri_dct1, par_dct1)
+            if not sym_filter or rep not in seen_reps:
                 if is_ts:
                     gra2 = without_dummy_bonds(without_fractional_bonds(gra1))
                     pri_dct2 = refine_priorities(gra2, pri_dct=pri_dct2)
@@ -80,17 +84,40 @@ def expand_stereo(gra, sym_filter=True):
                     pri_dct2 = pri_dct1
 
                 keys = stereogenic_keys(gra1, pri_dct=pri_dct2)
-                par_dcts = [dict(zip(keys, pars)) for pars in
-                            itertools.product(bools, repeat=len(keys))]
+                gras = [set_stereo_parities(gra1, dict(zip(keys, pars)))
+                        for pars in itertools.product(bools, repeat=len(keys))]
 
-                gra1s = [set_stereo_parities(gra1, par_dct)
-                         for par_dct in par_dcts]
-                gps.extend([(gra1, pri_dct1, pri_dct2) for gra1 in gra1s])
-                seen_assignments.append(assignment)
+                gpprs.extend([(g, pri_dct1, pri_dct2, rep) for g in gras])
+                seen_reps.append(rep)
 
-    gras = [g for g, _, _ in gps]
+    grs = tuple((g, r) for g, _, _, r in gpprs)
+    return grs
 
-    return tuple(sorted(gras, key=frozen))
+
+def canonical_assignment_representation(pri_dct, par_dct):
+    """ Generate a canonical representation of a stereo assignment, for
+        checking for symmetric equivalence
+
+        :param pri_dct: A dictionary mapping atom keys to priorities
+        :type pri_dct: dict
+        :param par_dct: A dictionary mapping atom and bond keys to parities
+        :type par_dct: dict
+        :returns: A canonical representation of the assignment
+    """
+    def _key_rep(key):
+        if isinstance(key, numbers.Number):
+            ret = [pri_dct[key]]
+        else:
+            ret = sorted(map(pri_dct.__getitem__, key))
+        return ret
+
+    keys = [k for k, p in par_dct.items() if p is not None]
+    keys = sorted(keys, key=_key_rep)
+
+    pris = list(map(_key_rep, keys))
+    pars = dict_.values_by_key(par_dct, keys)
+    rep = sorted(zip(pris, pars))
+    return rep
 
 
 # # stereo evaluation

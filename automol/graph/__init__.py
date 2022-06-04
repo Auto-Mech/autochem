@@ -278,7 +278,6 @@ from automol.graph.base._amchi import inchi_is_bad
 from automol.graph.base._smiles import smiles
 # TS graph submodule:
 from automol.graph.base import ts
-from automol.graph.base import util
 # L4
 # conversion functions:
 # # conversions
@@ -558,7 +557,6 @@ __all__ = [
     'smiles',
     # TS graph submodule:
     'ts',
-    'util',
     # L4
     # conversion functions:
     # # conversions

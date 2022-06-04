@@ -1,7 +1,6 @@
 """ Level 2 graph functions (no dependencies on extern or other types)
 
 Import hierarchy:
-    util        no dependencies
     _core       no dependencies
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
@@ -286,7 +285,6 @@ from automol.graph.base._amchi import inchi_is_bad
 from automol.graph.base._smiles import smiles
 # TS graph submodule:
 from automol.graph.base import ts
-from automol.graph.base import util
 
 
 __all__ = [
@@ -553,5 +551,4 @@ __all__ = [
     'smiles',
     # TS graph submodule:
     'ts',
-    'util',
 ]
