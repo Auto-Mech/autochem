@@ -3,6 +3,7 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
+import numbers
 import itertools
 import functools
 import operator
@@ -247,6 +248,14 @@ def bond_stereo_parities(gra):
                                     BND_STE_PAR_POS)
 
 
+def stereo_parities(gra):
+    """ atom and bond stereo parities, as a dictionary
+    """
+    par_dct = atom_stereo_parities(gra)
+    par_dct.update(bond_stereo_parities(gra))
+    return par_dct
+
+
 # # setters
 def set_atom_symbols(sgr, atm_symb_dct):
     """ set atom parities
@@ -287,6 +296,23 @@ def set_bond_stereo_parities(sgr, bnd_par_dct):
     bnd_dct = mdict.set_by_key_by_position(bonds(sgr), bnd_par_dct,
                                            BND_STE_PAR_POS)
     return from_atoms_and_bonds(atoms(sgr), bnd_dct)
+
+
+def set_stereo_parities(gra, par_dct):
+    """ set stereo parities for atoms and bonds
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+    """
+    atm_par_dct = dict_.filter_by_key(
+        par_dct, lambda x: isinstance(x, numbers.Number))
+    bnd_par_dct = dict_.filter_by_key(
+        par_dct, lambda x: not isinstance(x, numbers.Number))
+    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct,
+                                           ATM_STE_PAR_POS)
+    bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct,
+                                           BND_STE_PAR_POS)
+    return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
 # # I/O
@@ -457,10 +483,27 @@ def bond_stereo_keys(sgr):
     return bnd_ste_keys
 
 
+def stereo_keys(gra):
+    """ keys to atom and/or bond stereo-centers
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+    """
+    ste_keys = atom_stereo_keys(gra) | bond_stereo_keys(gra)
+    return ste_keys
+
+
 def has_stereo(gra):
     """ does this graph have stereo of any kind?
     """
     return bool(atom_stereo_keys(gra) or bond_stereo_keys(gra))
+
+
+def has_fractional_bonds(gra):
+    """ does this graph have any fractional (non-integer-order) bonds?
+    """
+    ords = bond_orders(gra).values()
+    return any(o != round(o) for o in ords)
 
 
 def atomic_numbers(gra):

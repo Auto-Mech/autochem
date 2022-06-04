@@ -102,11 +102,6 @@ C2H2CL2F2_SGRS = (
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
       frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
       frozenset({1, 5}): (1, None)}),
-    ({0: ('C', 1, True), 1: ('C', 1, False), 2: ('F', 0, None),
-      3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
-     {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-      frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
-      frozenset({1, 5}): (1, None)}),
     ({0: ('C', 1, True), 1: ('C', 1, True), 2: ('F', 0, None),
       3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
@@ -144,21 +139,7 @@ C3H3CL2F3_SGRS = (
       frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
       frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
       frozenset({2, 7}): (1, None)}),
-    ({0: ('C', 1, False), 1: ('C', 1, True), 2: ('C', 1, False),
-      3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
-      6: ('F', 0, None), 7: ('F', 0, None)},
-     {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-      frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
-      frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
-      frozenset({2, 7}): (1, None)}),
     ({0: ('C', 1, True), 1: ('C', 1, False), 2: ('C', 1, True),
-      3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
-      6: ('F', 0, None), 7: ('F', 0, None)},
-     {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-      frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
-      frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
-      frozenset({2, 7}): (1, None)}),
-    ({0: ('C', 1, True), 1: ('C', 1, True), 2: ('C', 1, False),
       3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
       6: ('F', 0, None), 7: ('F', 0, None)},
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
@@ -179,16 +160,6 @@ C3H5N3_SGRS = (
      {frozenset({1, 4}): (1, False), frozenset({1, 2}): (1, None),
       frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
       frozenset({2, 5}): (1, None)}),
-    ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
-      3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
-     {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
-      frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
-      frozenset({2, 5}): (1, False)}),
-    ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
-      3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
-     {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
-      frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
-      frozenset({2, 5}): (1, True)}),
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
       3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
      {frozenset({1, 4}): (1, False), frozenset({1, 2}): (1, None),
@@ -917,24 +888,6 @@ def test__vmat__vmatrix():
     assert set(zma_keys) == graph.atom_keys(gra)
 
 
-def test__ts__nonconserved_atom_stereo_keys():
-    """ test graph.ts.nonconserved_atom_stereo_keys
-    """
-    assert graph.ts.nonconserved_atom_stereo_keys(C4H5F2O_TSG) == (
-        (frozenset({2}), frozenset()))
-    assert graph.ts.nonconserved_atom_stereo_keys(C4H5F3O2_TSG) == (
-        (frozenset({0}), frozenset()))
-
-
-def test__ts__nonconserved_bond_stereo_keys():
-    """ test graph.ts.nonconserved_bond_stereo_keys
-    """
-    assert graph.ts.nonconserved_bond_stereo_keys(C4H5F2O_TSG) == (
-        (frozenset({frozenset({0, 1})}), frozenset({frozenset({0, 2})})))
-    assert graph.ts.nonconserved_bond_stereo_keys(C4H5F3O2_TSG) == (
-        (frozenset(), frozenset({frozenset({0, 1})})))
-
-
 def test__ts__compatible_reverse_stereomers():
     """ test graph.ts.stereo_expand_reverse_graphs
     """
@@ -1312,4 +1265,5 @@ if __name__ == '__main__':
     # test__ts__nonconserved_atom_stereo_keys()
     # test__ts__compatible_reverse_stereomers()
     # test__stereogenic_atom_keys()
-    test__inchi_is_bad()
+    # test__stereomers()
+    test__ts__compatible_reverse_stereomers()

@@ -780,16 +780,52 @@ def test__stereo():
     # Complete stereo expansion for the reaction
     srxns = automol.reac.expand_stereo(rxn)
     print(len(srxns))
-    assert len(srxns) == 12
     print("Complete stereo expansion for the reaction:")
+    srxn_chis = []
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
-        print(rct_ichs)
-        print(prd_ichs)
+        rct_chis = tuple(map(automol.graph.chi, rct_gras))
+        prd_chis = tuple(map(automol.graph.chi, prd_gras))
+        srxn_chis.append((rct_chis, prd_chis))
+        print(rct_chis)
+        print(prd_chis)
         print()
+
+    assert set(srxn_chis) == {
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          'b2-1-/t3-,4+/m0/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4+/m0/s1',)),
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          'b2-1-/t3-,4+/m0/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4+/m1/s1',)),
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          'b2-1-/t3-,4+/m1/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4+/m0/s1',)),
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          'b2-1-/t3-,4+/m1/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4+/m1/s1',)),
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          't3-,4-/m0/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4+/m0/s1',)),
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          't3-,4-/m0/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4-/m0/s1',)),
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          't3-,4-/m1/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4+/m1/s1',)),
+        (('InChI=1S/C4H5F3O2/c5-1-2(3(6)8)4(7)9/h1,3-4,8-9H/'
+          't3-,4-/m1/s1', 'InChI=1S/HO/h1H'),
+         ('InChI=1S/C4H6F3O3/c5-2(8)1(3(6)9)4(7)10/h2-4,8-10H/'
+          't2-,3-,4-/m1/s1',)),
+    }
 
     # Assign reactant and product stereo from geometries.
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
@@ -801,16 +837,19 @@ def test__stereo():
     # with the reactants.
     srxns = automol.reac.expand_product_stereo(srxn)
     print(len(srxns))
-    assert len(srxns) == 2
     print("Product expansion for reactant geometry stereo assignments:")
+    srxn_chis = []
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
-        print(rct_ichs)
-        print(prd_ichs)
+        rct_chis = tuple(map(automol.graph.chi, rct_gras))
+        prd_chis = tuple(map(automol.graph.chi, prd_gras))
+        srxn_chis.append((rct_chis, prd_chis))
+        print(rct_chis)
+        print(prd_chis)
         print()
+
+    assert len(set(srxn_chis)) == 2
 
     # example 2
     rct_smis = ['FC=CC=CF', '[OH]']
@@ -823,16 +862,52 @@ def test__stereo():
     # Complete stereo expansion for the reaction
     srxns = automol.reac.expand_stereo(rxn)
     print(len(srxns))
-    assert len(srxns) == 16
     print("Complete stereo expansion for the reaction:")
+    srxn_chis = []
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
-        print(rct_ichs)
-        print(prd_ichs)
+        rct_chis = tuple(map(automol.graph.chi, rct_gras))
+        prd_chis = tuple(map(automol.graph.chi, prd_gras))
+        srxn_chis.append((rct_chis, prd_chis))
+        print(rct_chis)
+        print(prd_chis)
         print()
+
+    assert set(srxn_chis) == {
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1+,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1+/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1+,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1+/t4-/m1/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1+,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1+/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1+,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1+/t4-/m1/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1+/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1+/t4-/m1/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1-/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1-/t4-/m1/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1+/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1+/t4-/m1/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1-/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2+', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1-/t4-/m1/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2-', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1-/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2-', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1+,3-1-/t4-/m1/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2-', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1-/t4-/m0/s1',)),
+        (('InChI=1S/C4H4F2/c5-3-1-2-4-6/h1-4H/b3-1-,4-2-', 'InChI=1S/HO/h1H'),
+         ('AMChI=1/C4H5F2O/c5-3-1-2-4(6)7/h1-4,7H/b2-1-,3-1-/t4-/m1/s1',)),
+    }
 
     # Assign reactant and product stereo from geometries.
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
@@ -843,16 +918,20 @@ def test__stereo():
     # with the reactants.
     srxns = automol.reac.expand_product_stereo(srxn)
     print(len(srxns))
-    assert len(srxns) == 4
     print("Product expansion for reactant geometry stereo assignments:")
+    srxn_chis = []
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)
         prd_gras = automol.reac.product_graphs(srxn)
-        rct_ichs = list(map(automol.graph.inchi, rct_gras))
-        prd_ichs = list(map(automol.graph.inchi, prd_gras))
-        print(rct_ichs)
-        print(prd_ichs)
+        rct_chis = tuple(map(automol.graph.chi, rct_gras))
+        prd_chis = tuple(map(automol.graph.chi, prd_gras))
+        srxn_chis.append((rct_chis, prd_chis))
+        print(rct_chis)
+        print(prd_chis)
         print()
+
+    print(len(set(srxn_chis)))
+    assert len(set(srxn_chis)) == 4
 
 
 def test__prod__hydrogen_migration():
@@ -1160,5 +1239,5 @@ if __name__ == '__main__':
     # test__add_stereo_from_unordered_geometries()
     # test__stereo()
     test__stereo()
-    test__expand_stereo()
-    test__expand_product_stereo()
+    # test__expand_stereo()
+    # test__expand_product_stereo()

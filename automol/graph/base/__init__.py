@@ -1,6 +1,7 @@
 """ Level 2 graph functions (no dependencies on extern or other types)
 
 Import hierarchy:
+    util        no dependencies
     _core       no dependencies
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
@@ -37,6 +38,7 @@ from automol.graph.base._core import bond_orders
 from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import stereo_parities
 # # setters
 from automol.graph.base._core import set_atom_symbols
 from automol.graph.base._core import set_bond_orders
@@ -58,7 +60,9 @@ from automol.graph.base._core import heavy_atom_count
 from automol.graph.base._core import electron_count
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
+from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import has_fractional_bonds
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import atom_element_valences
@@ -283,6 +287,7 @@ from automol.graph.base._amchi import inchi_is_bad
 from automol.graph.base._smiles import smiles
 # TS graph submodule:
 from automol.graph.base import ts
+from automol.graph.base import util
 
 
 __all__ = [
@@ -302,6 +307,7 @@ __all__ = [
     'atom_implicit_hydrogen_valences',
     'atom_stereo_parities',
     'bond_stereo_parities',
+    'stereo_parities',
     # # setters
     'set_atom_symbols',
     'set_bond_orders',
@@ -323,7 +329,9 @@ __all__ = [
     'electron_count',
     'atom_stereo_keys',
     'bond_stereo_keys',
+    'stereo_keys',
     'has_stereo',
+    'has_fractional_bonds',
     'atomic_numbers',
     'mass_numbers',
     'atom_element_valences',
@@ -547,4 +555,5 @@ __all__ = [
     'smiles',
     # TS graph submodule:
     'ts',
+    'util',
 ]
