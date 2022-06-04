@@ -52,7 +52,7 @@ def expand_stereo(chi):
         :rtype: list[str]
     """
     gra = automol.amchi.graph(chi, stereo=False)
-    sgrs = automol.graph.stereomers(gra)
+    sgrs = automol.graph.expand_stereo(gra)
     ste_chis = []
     for sgr in sgrs:
 
