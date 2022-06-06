@@ -17,13 +17,13 @@ from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import frozen
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
-from automol.graph.base._stereo import (
-    expand_stereo_with_assignment_representations)
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
 from automol.graph.base._canon import from_local_stereo as _from_local_stereo
+from automol.graph.base._stereo import expand_stereo as _expand_stereo
+from automol.graph.base._stereo import expand_stereo_with_priorities
+from automol.graph.base._stereo import canonical_assignment_representation
 
 
 def graph(gra, frm_bnd_keys, brk_bnd_keys):
@@ -169,10 +169,7 @@ def expand_stereo(tsg, sym_filter=True):
         :type sym_filter: bool
         :returns: a series of molecular graphs for the stereoisomers
     """
-    grs = expand_stereo_with_assignment_representations(tsg,
-                                                        sym_filter=sym_filter)
-    tsgs = [g for g, r in grs]
-    return tuple(sorted(tsgs, key=frozen))
+    return _expand_stereo(tsg, sym_filter=sym_filter)
 
 
 def expand_compatible_reverse_stereo(tsg, sym_filter=True):
@@ -192,12 +189,12 @@ def expand_compatible_reverse_stereo(tsg, sym_filter=True):
 
     fpar_dct = stereo_parities(to_local_stereo(ftsg))
 
-    grs = expand_stereo_with_assignment_representations(
-        reverse(tsg), sym_filter=False)
+    gps = expand_stereo_with_priorities(reverse(tsg))
 
     rtsgs = []
     seen_reps = []
-    for (rtsg, rep) in grs:
+    for (rtsg, pri_dct) in gps:
+        rep = canonical_assignment_representation(rtsg, pri_dct)
         rste_keys = stereo_keys(rtsg)
         cons_keys = list(fste_keys & rste_keys)
         assert not reac_keys & set(util.flatten(cons_keys)), (
