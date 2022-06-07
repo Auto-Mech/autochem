@@ -152,32 +152,29 @@ def expand_stereo(rxn):
     :rtype: Reaction
     """
     rxn_cls = rxn.class_
-    forw_tsg = rxn.forward_ts_graph
+    forw_tsg = automol.graph.without_stereo_parities(rxn.forward_ts_graph)
     back_tsg = rxn.backward_ts_graph
     rcts_keys = rxn.reactants_keys
     prds_keys = rxn.products_keys
 
     key_dct = atom_mapping(rxn)
 
-    forw_ste_tsgs = ts.expand_stereo(forw_tsg)
-
     srxns = []
-    for forw_ste_tsg in forw_ste_tsgs:
-        for back_ste_tsg in ts.expand_compatible_reverse_stereo(forw_ste_tsg):
-            back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
+    for forw_ste_tsg, back_ste_tsg in ts.expand_reaction_stereo(forw_tsg):
+        back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
-            # But for dummy atoms, we could just do the conversion directly,
-            # but this avoids loss of dummy atoms from the products graph.
-            tsg_ = back_tsg
-            tsg_ = automol.graph.set_atom_stereo_parities(
-                tsg_, automol.graph.atom_stereo_parities(back_ste_tsg))
-            tsg_ = automol.graph.set_bond_stereo_parities(
-                tsg_, automol.graph.bond_stereo_parities(back_ste_tsg))
-            back_ste_tsg = tsg_
+        # But for dummy atoms, we could just do the conversion directly,
+        # but this avoids loss of dummy atoms from the products graph.
+        tsg_ = back_tsg
+        tsg_ = automol.graph.set_atom_stereo_parities(
+            tsg_, automol.graph.atom_stereo_parities(back_ste_tsg))
+        tsg_ = automol.graph.set_bond_stereo_parities(
+            tsg_, automol.graph.bond_stereo_parities(back_ste_tsg))
+        back_ste_tsg = tsg_
 
-            srxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
-                            rcts_keys, prds_keys)
-            srxns.append(srxn)
+        srxn = Reaction(rxn_cls, forw_ste_tsg, back_ste_tsg,
+                        rcts_keys, prds_keys)
+        srxns.append(srxn)
 
     srxns = tuple(srxns)
     return srxns
@@ -203,7 +200,7 @@ def expand_product_stereo(srxn):
     forw_ste_tsg = srxn.forward_ts_graph
 
     srxns = []
-    for back_ste_tsg in ts.expand_compatible_reverse_stereo(forw_ste_tsg):
+    for _, back_ste_tsg in ts.expand_reaction_stereo(forw_ste_tsg):
         back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
         # But for dummy atoms, we could just do the conversion directly, but

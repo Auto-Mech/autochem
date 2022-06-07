@@ -1239,5 +1239,5 @@ if __name__ == '__main__':
     # test__add_stereo_from_unordered_geometries()
     # test__stereo()
     test__stereo()
-    # test__expand_stereo()
-    # test__expand_product_stereo()
+    test__expand_stereo()
+    test__expand_product_stereo()

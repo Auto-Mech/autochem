@@ -39,7 +39,7 @@ def expand_stereo(gra, sym_filter=True):
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :param sym_filter: filter for symmetrically equivalent stereoisomers?
+        :param sym_filter: filter out symmetrically equivalent stereoisomers?
         :type sym_filter: bool
         :returns: a series of molecular graphs for the stereoisomers
     """

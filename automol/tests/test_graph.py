@@ -888,21 +888,21 @@ def test__vmat__vmatrix():
     assert set(zma_keys) == graph.atom_keys(gra)
 
 
-def test__ts__expand_compatible_reverse_stereo():
+def test__ts__expand_reaction_stereo():
     """ test graph.ts.stereo_expand_reverse_graphs
     """
     for ste_tsg in graph.ts.expand_stereo(C4H5F2O_TSG):
         ste_tsgs = [
             s
-            for r in graph.ts.expand_compatible_reverse_stereo(ste_tsg)
-            for s in graph.ts.expand_compatible_reverse_stereo(r)]
+            for _, r in graph.ts.expand_reaction_stereo(ste_tsg)
+            for _, s in graph.ts.expand_reaction_stereo(r)]
         assert any(s == ste_tsg for s in ste_tsgs)
 
     for ste_tsg in graph.ts.expand_stereo(C4H5F3O2_TSG):
         ste_tsgs = [
             s
-            for r in graph.ts.expand_compatible_reverse_stereo(ste_tsg)
-            for s in graph.ts.expand_compatible_reverse_stereo(r)]
+            for _, r in graph.ts.expand_reaction_stereo(ste_tsg)
+            for _, s in graph.ts.expand_reaction_stereo(r)]
         assert any(s == ste_tsg for s in ste_tsgs)
 
 
@@ -1263,7 +1263,7 @@ if __name__ == '__main__':
     # test__amchi_with_indices()
     # test__stereogenic_atom_keys()
     # test__ts__nonconserved_atom_stereo_keys()
-    # test__ts__expand_compatible_reverse_stereo()
+    # test__ts__expand_reaction_stereo()
     # test__stereogenic_atom_keys()
     # test__expand_stereo()
-    test__ts__expand_compatible_reverse_stereo()
+    test__ts__expand_reaction_stereo()
