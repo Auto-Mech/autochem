@@ -17,10 +17,12 @@ from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
+from automol.graph.base._core import has_stereo
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
 from automol.graph.base._canon import from_local_stereo as _from_local_stereo
+from automol.graph.base._canon import stereogenic_keys
 from automol.graph.base._stereo import expand_stereo as _expand_stereo
 from automol.graph.base._stereo import expand_stereo_with_priorities
 from automol.graph.base._stereo import canonical_assignment_representation
@@ -163,52 +165,80 @@ def from_local_stereo(loc_tsg):
 def expand_stereo(tsg, sym_filter=True):
     """ Obtain all possible stereoisomers of a TS graph, ignoring its assignments
 
-        :param tsg: A TS graph, with canonical stereo assignments.
+        :param tsg: A TS graph, without stereo
         :type tsg: automol graph data structure
-        :param sym_filter: filter for symmetrically equivalent stereoisomers?
+        :param sym_filter: filter out symmetrically equivalent stereoisomers?
         :type sym_filter: bool
         :returns: a series of molecular graphs for the stereoisomers
     """
     return _expand_stereo(tsg, sym_filter=sym_filter)
 
 
-def expand_compatible_reverse_stereo(tsg, sym_filter=True):
-    """ Given a TS graph with stereo assignments, expand all possible reverse
-    graphs compatble with the forward graph.
+def expand_reaction_stereo(tsg, sym_filter=True):
+    """ Obtain all possible stereoisomer combinations for a reaction, encoding
+        reactant and product stereo assignments in forward and reverse TS
+        graphs, respectively
 
-        :param tsg: A TS graph, with canonical stereo assignments.
+        :param tsg: A TS graph; If it has stereo assignments, they will be
+            assumed to be for the reactants, and all compatible products
+            assignments will be exapnded
         :type tsg: automol graph data structure
-        :param sym_filter: filter for symmetrically equivalent stereoisomers?
+        :param sym_filter: filter out symmetrically equivalent stereoisomers?
         :type sym_filter: bool
-        :returns: All reverse TS graph stereoisomers with compatible stereo to
-            this forward TS graph.
+        :returns: a series of pairs of forward and reverse graphs containing
+            mutually compatible stereo assignments
     """
-    ftsg = tsg
-    fste_keys = stereo_keys(ftsg)
-    reac_keys = reacting_atoms(ftsg)
+    if has_stereo(tsg):
+        assert not stereogenic_keys(tsg)
+        ftsgs = [tsg]
+    else:
+        ftsgs = expand_stereo(tsg, sym_filter=True)
 
-    fpar_dct = stereo_parities(to_local_stereo(ftsg))
+    rtsgs, rpri_dcts = zip(*expand_stereo_with_priorities(reverse(tsg)))
 
-    gps = expand_stereo_with_priorities(reverse(tsg))
+    pairs = []
 
-    rtsgs = []
-    seen_reps = []
-    for (rtsg, pri_dct) in gps:
-        rep = canonical_assignment_representation(rtsg, pri_dct)
-        rste_keys = stereo_keys(rtsg)
-        cons_keys = list(fste_keys & rste_keys)
-        assert not reac_keys & set(util.flatten(cons_keys)), (
-            f"Assumption fails! Conserved stereo sites include reacting atoms:"
-            f"\nConserved stereo sites: {cons_keys}"
-            f"\nReacting atoms: {reac_keys}")
+    for ftsg in ftsgs:
+        ftsg_loc = to_local_stereo(ftsg)
 
-        rpar_dct = stereo_parities(to_local_stereo(rtsg))
+        seen_rreps = []
+        for rtsg, rpri_dct in zip(rtsgs, rpri_dcts):
+            rrep = canonical_assignment_representation(rtsg, rpri_dct)
+            rtsg_loc = to_local_stereo(rtsg)
 
-        fpars = list(map(fpar_dct.__getitem__, cons_keys))
-        rpars = list(map(rpar_dct.__getitem__, cons_keys))
-        if fpars == rpars:
-            if not sym_filter or rep not in seen_reps:
-                rtsgs.append(rtsg)
-                seen_reps.append(rep)
+            if reaction_has_consistent_stereo(ftsg_loc, rtsg_loc):
+                if not sym_filter or rrep not in seen_rreps:
+                    pairs.append((ftsg, rtsg))
+                    seen_rreps.append(rrep)
 
-    return tuple(rtsgs)
+    return pairs
+
+
+def reaction_has_consistent_stereo(ftsg_loc, rtsg_loc):
+    """ Does this reaction have consistent stereo?
+
+        :param ftsg_loc: a forward TS graph, with local stereo assignments for
+            the reactants
+        :type ftsg_loc: automol graph data structure
+        :param ftsg_loc: a forward TS graph, with local stereo assignments for
+            the products
+        :type rtsg_loc: automol graph data structure
+        :rtype: bool
+    """
+    reac_keys = reacting_atoms(ftsg_loc)
+
+    fste_keys = stereo_keys(ftsg_loc)
+    rste_keys = stereo_keys(rtsg_loc)
+    cons_keys = list(fste_keys & rste_keys)
+    assert not reac_keys & set(util.flatten(cons_keys)), (
+        f"Assumption fails! Conserved stereo sites include reacting atoms:"
+        f"\nConserved stereo sites: {cons_keys}"
+        f"\nReacting atoms: {reac_keys}")
+
+    floc_par_dct = stereo_parities(ftsg_loc)
+    rloc_par_dct = stereo_parities(rtsg_loc)
+
+    floc_cons_pars = list(map(floc_par_dct.__getitem__, cons_keys))
+    rloc_cons_pars = list(map(rloc_par_dct.__getitem__, cons_keys))
+
+    return floc_cons_pars == rloc_cons_pars
