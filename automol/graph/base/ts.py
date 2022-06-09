@@ -203,7 +203,7 @@ def expand_reaction_stereo(tsg, sym_filter=True):
     # their priorities (for symmetry filtering)
     rtsgs, rpri_dcts = zip(*expand_stereo_with_priorities(reverse(tsg)))
 
-    pairs = []
+    reacs = []
     # 2. Loop over forward TS graphs (reactant stereo assignments)
     for ftsg in ftsgs:
         # 3. Convert the forward TS graph to local stereo.
@@ -217,25 +217,25 @@ def expand_reaction_stereo(tsg, sym_filter=True):
 
             # 6. Check if the local stereo assignments match for conserved
             # stereo centers.
-            if reaction_has_consistent_stereo(ftsg_loc, rtsg_loc):
+            if stereo_compatible(ftsg_loc, rtsg_loc):
                 # 7. Check if this is a unique assignment for the reverse
                 # reaction. If so, add the forward and reverse graphs to the
-                # list of pairs.
+                # list of reacs.
                 rrep = canonical_assignment_representation(rtsg, rpri_dct)
                 if not sym_filter or rrep not in seen_rreps:
-                    pairs.append((ftsg, rtsg))
+                    reacs.append((ftsg, rtsg))
                     seen_rreps.append(rrep)
 
-    return pairs
+    return reacs
 
 
-def reaction_has_consistent_stereo(ftsg_loc, rtsg_loc):
-    """ Does this reaction have consistent stereo?
+def stereo_compatible(ftsg_loc, rtsg_loc):
+    """ Does this pair of forward and reverse reactions have compatible stereo?
 
         :param ftsg_loc: a forward TS graph, with local stereo assignments for
             the reactants
         :type ftsg_loc: automol graph data structure
-        :param ftsg_loc: a forward TS graph, with local stereo assignments for
+        :param rtsg_loc: a reverse TS graph, with local stereo assignments for
             the products
         :type rtsg_loc: automol graph data structure
         :rtype: bool
