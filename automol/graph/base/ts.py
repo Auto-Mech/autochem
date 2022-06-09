@@ -188,25 +188,40 @@ def expand_reaction_stereo(tsg, sym_filter=True):
         :returns: a series of pairs of forward and reverse graphs containing
             mutually compatible stereo assignments
     """
+    # If the input graph has stereo, this fixes the stereo of the reactants.
+    # A limited expansion over compatible products will be performed.
     if has_stereo(tsg):
         assert not stereogenic_keys(tsg)
         ftsgs = [tsg]
+    # Otherwise, the stereo of the reactants is unspecified. Expand all unique
+    # stereo assignments for the reactants.
+    # A complete expansion over all unique reactions will be performed.
     else:
         ftsgs = expand_stereo(tsg, sym_filter=True)
 
+    # 1. Expand all possible reverse (product) stereo assignments, along with
+    # their priorities (for symmetry filtering)
     rtsgs, rpri_dcts = zip(*expand_stereo_with_priorities(reverse(tsg)))
 
     pairs = []
-
+    # 2. Loop over forward TS graphs (reactant stereo assignments)
     for ftsg in ftsgs:
+        # 3. Convert the forward TS graph to local stereo.
         ftsg_loc = to_local_stereo(ftsg)
 
         seen_rreps = []
+        # 4. Loop over reverse TS graphs (product stereo assignments)
         for rtsg, rpri_dct in zip(rtsgs, rpri_dcts):
-            rrep = canonical_assignment_representation(rtsg, rpri_dct)
+            # 5. Convert the reverse TS graph to local stereo.
             rtsg_loc = to_local_stereo(rtsg)
 
+            # 6. Check if the local stereo assignments match for conserved
+            # stereo centers.
             if reaction_has_consistent_stereo(ftsg_loc, rtsg_loc):
+                # 7. Check if this is a unique assignment for the reverse
+                # reaction. If so, add the forward and reverse graphs to the
+                # list of pairs.
+                rrep = canonical_assignment_representation(rtsg, rpri_dct)
                 if not sym_filter or rrep not in seen_rreps:
                     pairs.append((ftsg, rtsg))
                     seen_rreps.append(rrep)
