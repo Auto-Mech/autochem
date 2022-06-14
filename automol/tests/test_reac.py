@@ -933,6 +933,39 @@ def test__stereo():
     print(len(set(srxn_chis)))
     assert len(set(srxn_chis)) == 4
 
+    # example 3
+    rct_smis = ['C(F)(Cl)-C(F)(Cl)O[O]']
+    prd_smis = ['C(F)(Cl)=C(F)(Cl)', 'O[O]']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, _, rct_geos, prd_geos = rxn_objs[0]
+
+    # Complete stereo expansion for the reaction
+    srxns = automol.reac.expand_stereo(rxn)
+    print(len(srxns))
+    print("Complete stereo expansion for the reaction:")
+    srxn_chis = []
+    for srxn in srxns:
+        rcts_gra = automol.reac.reactants_graph(srxn)
+        prds_gra = automol.reac.products_graph(srxn)
+        rcts_chi = automol.graph.chi(rcts_gra)
+        prds_chi = automol.graph.chi(prds_gra)
+        srxn_chis.append((rcts_chi, prds_chi))
+        print(rcts_chi)
+        print(prds_chi)
+        print()
+
+    assert set(srxn_chis) == {
+        ('InChI=1S/C2HCl2F2O2/c3-1(5)2(4,6)8-7/h1H/t1-,2-/m0/s1',
+         'InChI=1S/C2Cl2F2.HO2/c3-1(5)2(4)6;1-2/h;1H/b2-1-;'),
+        ('InChI=1S/C2HCl2F2O2/c3-1(5)2(4,6)8-7/h1H/t1-,2+/m0/s1',
+         'InChI=1S/C2Cl2F2.HO2/c3-1(5)2(4)6;1-2/h;1H/b2-1+;'),
+        ('InChI=1S/C2HCl2F2O2/c3-1(5)2(4,6)8-7/h1H/t1-,2+/m1/s1',
+         'InChI=1S/C2Cl2F2.HO2/c3-1(5)2(4)6;1-2/h;1H/b2-1+;'),
+        ('InChI=1S/C2HCl2F2O2/c3-1(5)2(4,6)8-7/h1H/t1-,2-/m1/s1',
+         'InChI=1S/C2Cl2F2.HO2/c3-1(5)2(4)6;1-2/h;1H/b2-1-;'),
+    }
+
 
 def test__prod__hydrogen_migration():
     """ test hydrogen migration product enumeration
@@ -1239,5 +1272,5 @@ if __name__ == '__main__':
     # test__add_stereo_from_unordered_geometries()
     # test__stereo()
     test__stereo()
-    test__expand_stereo()
-    test__expand_product_stereo()
+    # test__expand_stereo()
+    # test__expand_product_stereo()

@@ -120,6 +120,21 @@ def move_item_to_front(lst, item):
     return tuple(lst)
 
 
+def move_items_to_front(lst, items):
+    """ Move an item to the front of a list.
+
+        :param lst: the list
+        :type lst: list or tuple
+        :param item: the item, which must be in `lst`
+        :returns: the list, with the item moved to front
+        :rtype: tuple
+    """
+    lst = list(lst)
+    for item in reversed(items):
+        lst.insert(0, lst.pop(lst.index(item)))
+    return tuple(lst)
+
+
 def breakby(lst, elem):
     """ Break a list by element, dropping the element itself.
 
