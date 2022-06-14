@@ -8,16 +8,22 @@ Otherwise, this is equivalent to any other graph
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
+import numpy
 from automol import util
 from automol.util import dict_
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import stereo_keys
+from automol.graph.base._core import atom_stereo_keys
+from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import atoms_neighbor_atom_keys
+from automol.graph.base._core import backbone_keys
+from automol.graph.base._core import explicit_hydrogen_keys
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
@@ -174,7 +180,7 @@ def expand_stereo(tsg, sym_filter=True):
     return _expand_stereo(tsg, sym_filter=sym_filter)
 
 
-def expand_reaction_stereo(tsg, sym_filter=True):
+def expand_reaction_stereo(tsg, sym_filter=True, const=True):
     """ Obtain all possible stereoisomer combinations for a reaction, encoding
         reactant and product stereo assignments in forward and reverse TS
         graphs, respectively
@@ -185,6 +191,8 @@ def expand_reaction_stereo(tsg, sym_filter=True):
         :type tsg: automol graph data structure
         :param sym_filter: filter out symmetrically equivalent stereoisomers?
         :type sym_filter: bool
+        :param const: Constrain bond stereo based on reactant atom stereo?
+        :type const: bool
         :returns: a series of pairs of forward and reverse graphs containing
             mutually compatible stereo assignments
     """
@@ -217,7 +225,7 @@ def expand_reaction_stereo(tsg, sym_filter=True):
 
             # 6. Check if the local stereo assignments match for conserved
             # stereo centers.
-            if stereo_compatible(ftsg_loc, rtsg_loc):
+            if reaction_has_consistent_stereo(ftsg_loc, rtsg_loc, const=const):
                 # 7. Check if this is a unique assignment for the reverse
                 # reaction. If so, add the forward and reverse graphs to the
                 # list of reacs.
@@ -229,7 +237,7 @@ def expand_reaction_stereo(tsg, sym_filter=True):
     return reacs
 
 
-def stereo_compatible(ftsg_loc, rtsg_loc):
+def reaction_has_consistent_stereo(ftsg_loc, rtsg_loc, const=True):
     """ Does this pair of forward and reverse reactions have compatible stereo?
 
         :param ftsg_loc: a forward TS graph, with local stereo assignments for
@@ -238,8 +246,11 @@ def stereo_compatible(ftsg_loc, rtsg_loc):
         :param rtsg_loc: a reverse TS graph, with local stereo assignments for
             the products
         :type rtsg_loc: automol graph data structure
+        :param const: Constrain bond stereo based on reactant atom stereo?
+        :type const: bool
         :rtype: bool
     """
+    # 1. Check conserved stereo sites
     reac_keys = reacting_atoms(ftsg_loc)
 
     fste_keys = stereo_keys(ftsg_loc)
@@ -256,4 +267,58 @@ def stereo_compatible(ftsg_loc, rtsg_loc):
     floc_cons_pars = list(map(floc_par_dct.__getitem__, cons_keys))
     rloc_cons_pars = list(map(rloc_par_dct.__getitem__, cons_keys))
 
-    return floc_cons_pars == rloc_cons_pars
+    is_consistent = floc_cons_pars == rloc_cons_pars
+
+    # 2. Check for constrained bond stereo
+    if const:
+        perms = itertools.permutations((ftsg_loc, rtsg_loc))
+        for tsg_loc, rev_tsg_loc in perms:
+            loc_par_dct = stereo_parities(tsg_loc)
+            rev_loc_par_dct = stereo_parities(rev_tsg_loc)
+
+            ste_keys = atom_stereo_keys(tsg_loc)
+            rng_keys_lst = list(map(set, forming_rings_atom_keys(tsg_loc)))
+            ngb_keys_dct = atoms_neighbor_atom_keys(tsg_loc)
+
+            gra = reactants_graph(tsg_loc)
+            pdct = {}
+            pdct.update({k: k for k in backbone_keys(gra)})
+            pdct.update({k: -numpy.inf for k in explicit_hydrogen_keys(gra)})
+
+            brk_bkeys = breaking_bond_keys(tsg_loc)
+            rev_ste_bkeys = bond_stereo_keys(rev_tsg_loc)
+            for bkey in rev_ste_bkeys:
+                # Conditions:
+                # A. Both atoms in the bond were stereogenic for the reactants
+                if all(k in ste_keys for k in bkey):
+                    key1, key2 = bkey
+                    key0, = next(k for k in brk_bkeys if key1 in k) - {key1}
+                    key3, = next(k for k in brk_bkeys if key2 in k) - {key2}
+                    keys = {key0, key1, key2, key3}
+                    # B. The leaving groups join together, forming a TS ring
+                    if any(keys & ks for ks in rng_keys_lst):
+                        # This is a constrained bond!
+                        # i. Read out the bond parity
+                        ref_bpar = rev_loc_par_dct[frozenset({key1, key2})]
+
+                        # ii. Calculate what the bond parity should be
+                        nk1s = sorted(ngb_keys_dct[key1], key=pdct.__getitem__)
+                        nk2s = sorted(ngb_keys_dct[key2], key=pdct.__getitem__)
+                        srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
+                        srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
+                        par1 = loc_par_dct[key1]
+                        par2 = loc_par_dct[key2]
+
+                        if util.is_even_permutation(nk1s, srt_nk1s):
+                            par1 = not par1
+                        if util.is_even_permutation(nk2s, srt_nk2s):
+                            par2 = not par2
+
+                        bpar = not (par1 ^ par2)
+                        if len(nk1s) == len(nk2s) == 3:
+                            bpar = not bpar
+
+                        # iii. Check that it is what it should be
+                        is_consistent &= bpar == ref_bpar
+
+    return is_consistent
