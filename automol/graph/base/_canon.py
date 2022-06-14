@@ -971,9 +971,7 @@ def parity_evaluator_to_or_from_local_stereo_(gra):
     bnd_par_dct = bond_stereo_parities(gra)
     nkeys_dct = atoms_neighbor_atom_keys(gra)
 
-    loc_pri_dct = {}
-    loc_pri_dct.update({k: k for k in backbone_keys(gra)})
-    loc_pri_dct.update({k: -numpy.inf for k in explicit_hydrogen_keys(gra)})
+    loc_pri_dct = local_priority_dict(gra)
 
     def _evaluator(pri_dct):
         """ Parity evaluator based on current priorities
@@ -1168,6 +1166,15 @@ def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
         pri_dct.update(hyd_pri_dct)
 
     return pri_dct
+
+
+def local_priority_dict(gra):
+    """ Generate a local ``priority'' dictionary
+    """
+    loc_pri_dct = {}
+    loc_pri_dct.update({k: k for k in backbone_keys(gra)})
+    loc_pri_dct.update({k: -numpy.inf for k in explicit_hydrogen_keys(gra)})
+    return loc_pri_dct
 
 
 def class_dict_from_priority_dict(pri_dct):

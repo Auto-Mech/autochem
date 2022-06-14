@@ -8,7 +8,6 @@ Otherwise, this is equivalent to any other graph
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
-import numpy
 from automol import util
 from automol.util import dict_
 from automol.graph.base._core import bond_orders
@@ -22,13 +21,12 @@ from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import backbone_keys
-from automol.graph.base._core import explicit_hydrogen_keys
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
 from automol.graph.base._canon import from_local_stereo as _from_local_stereo
 from automol.graph.base._canon import stereogenic_keys
+from automol.graph.base._canon import local_priority_dict
 from automol.graph.base._stereo import expand_stereo as _expand_stereo
 from automol.graph.base._stereo import expand_stereo_with_priorities
 from automol.graph.base._stereo import canonical_assignment_representation
@@ -225,7 +223,7 @@ def expand_reaction_stereo(tsg, sym_filter=True, const=True):
 
             # 6. Check if the local stereo assignments match for conserved
             # stereo centers.
-            if reaction_has_consistent_stereo(ftsg_loc, rtsg_loc, const=const):
+            if reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=const):
                 # 7. Check if this is a unique assignment for the reverse
                 # reaction. If so, add the forward and reverse graphs to the
                 # list of reacs.
@@ -237,7 +235,7 @@ def expand_reaction_stereo(tsg, sym_filter=True, const=True):
     return reacs
 
 
-def reaction_has_consistent_stereo(ftsg_loc, rtsg_loc, const=True):
+def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
     """ Does this pair of forward and reverse reactions have compatible stereo?
 
         :param ftsg_loc: a forward TS graph, with local stereo assignments for
@@ -269,56 +267,64 @@ def reaction_has_consistent_stereo(ftsg_loc, rtsg_loc, const=True):
 
     is_consistent = floc_cons_pars == rloc_cons_pars
 
-    # 2. Check for constrained bond stereo
+    # 2. Check for insertion/elimination stereo constraint
     if const:
-        perms = itertools.permutations((ftsg_loc, rtsg_loc))
-        for tsg_loc, rev_tsg_loc in perms:
-            loc_par_dct = stereo_parities(tsg_loc)
-            rev_loc_par_dct = stereo_parities(rev_tsg_loc)
-
-            ste_keys = atom_stereo_keys(tsg_loc)
-            rng_keys_lst = list(map(set, forming_rings_atom_keys(tsg_loc)))
-            ngb_keys_dct = atoms_neighbor_atom_keys(tsg_loc)
-
-            gra = reactants_graph(tsg_loc)
-            pdct = {}
-            pdct.update({k: k for k in backbone_keys(gra)})
-            pdct.update({k: -numpy.inf for k in explicit_hydrogen_keys(gra)})
-
-            brk_bkeys = breaking_bond_keys(tsg_loc)
-            rev_ste_bkeys = bond_stereo_keys(rev_tsg_loc)
-            for bkey in rev_ste_bkeys:
-                # Conditions:
-                # A. Both atoms in the bond were stereogenic for the reactants
-                if all(k in ste_keys for k in bkey):
-                    key1, key2 = bkey
-                    key0, = next(k for k in brk_bkeys if key1 in k) - {key1}
-                    key3, = next(k for k in brk_bkeys if key2 in k) - {key2}
-                    keys = {key0, key1, key2, key3}
-                    # B. The leaving groups join together, forming a TS ring
-                    if any(keys & ks for ks in rng_keys_lst):
-                        # This is a constrained bond!
-                        # i. Read out the bond parity
-                        ref_bpar = rev_loc_par_dct[frozenset({key1, key2})]
-
-                        # ii. Calculate what the bond parity should be
-                        nk1s = sorted(ngb_keys_dct[key1], key=pdct.__getitem__)
-                        nk2s = sorted(ngb_keys_dct[key2], key=pdct.__getitem__)
-                        srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
-                        srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
-                        par1 = loc_par_dct[key1]
-                        par2 = loc_par_dct[key2]
-
-                        if util.is_even_permutation(nk1s, srt_nk1s):
-                            par1 = not par1
-                        if util.is_even_permutation(nk2s, srt_nk2s):
-                            par2 = not par2
-
-                        bpar = not (par1 ^ par2)
-                        if len(nk1s) == len(nk2s) == 3:
-                            bpar = not bpar
-
-                        # iii. Check that it is what it should be
-                        is_consistent &= bpar == ref_bpar
+        # A. Elimination
+        is_consistent &= reaction_stereo_satisfies_elimination_constraint(
+            ftsg_loc, rtsg_loc)
+        # B. Insertion
+        is_consistent &= reaction_stereo_satisfies_elimination_constraint(
+            rtsg_loc, ftsg_loc)
 
     return is_consistent
+
+
+def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
+    """ Check whether a reaction satisfies the elimination stereo constraint
+    """
+    floc_par_dct = stereo_parities(ftsg_loc)
+    rloc_par_dct = stereo_parities(rtsg_loc)
+
+    loc_pri_dct = local_priority_dict(reactants_graph(ftsg_loc))
+
+    ste_akeys = atom_stereo_keys(ftsg_loc)
+    brk_bkeys = breaking_bond_keys(ftsg_loc)
+    ngb_keys_dct = atoms_neighbor_atom_keys(ftsg_loc)
+    rng_akeys_lst = list(map(set, forming_rings_atom_keys(ftsg_loc)))
+
+    satisfies = True
+    bkeys = bond_stereo_keys(rtsg_loc)
+    for bkey in bkeys:
+        # Conditions:
+        # A. Both atoms in the bond were stereogenic in the reactants
+        if all(k in ste_akeys for k in bkey):
+            key1, key2 = bkey
+            key0, = next(k for k in brk_bkeys if key1 in k) - {key1}
+            key3, = next(k for k in brk_bkeys if key2 in k) - {key2}
+            keys = {key0, key1, key2, key3}
+            # B. The leaving groups are joined together, forming a TS ring
+            if any(keys & ks for ks in rng_akeys_lst):
+                # This is a constrained bond!
+                # i. Read out the relevant atom and bond parities
+                apar1 = floc_par_dct[key1]
+                apar2 = floc_par_dct[key2]
+                bpar = rloc_par_dct[frozenset({key1, key2})]
+
+                # ii. Calculate what the bond parity should be
+                nk1s = sorted(ngb_keys_dct[key1], key=loc_pri_dct.__getitem__)
+                nk2s = sorted(ngb_keys_dct[key2], key=loc_pri_dct.__getitem__)
+                srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
+                srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
+
+                if util.is_even_permutation(nk1s, srt_nk1s):
+                    apar1 = not apar1
+                if util.is_even_permutation(nk2s, srt_nk2s):
+                    apar2 = not apar2
+
+                bpar_const = not (apar1 ^ apar2)
+                if len(nk1s) == len(nk2s) == 3:
+                    bpar_const = not bpar_const
+
+                satisfies &= bpar == bpar_const
+
+    return satisfies
