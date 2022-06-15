@@ -966,6 +966,39 @@ def test__stereo():
          'InChI=1S/C2Cl2F2.HO2/c3-1(5)2(4)6;1-2/h;1H/b2-1-;'),
     }
 
+    # example 4
+    rct_smis = ['N(F)-N(F)O[O]']
+    prd_smis = ['N(F)=N(F)', 'O[O]']
+
+    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn, _, rct_geos, prd_geos = rxn_objs[0]
+
+    # Complete stereo expansion for the reaction
+    srxns = automol.reac.expand_stereo(rxn)
+    print(len(srxns))
+    print("Complete stereo expansion for the reaction:")
+    srxn_chis = []
+    for srxn in srxns:
+        rcts_gra = automol.reac.reactants_graph(srxn)
+        prds_gra = automol.reac.products_graph(srxn)
+        rcts_chi = automol.graph.chi(rcts_gra)
+        prds_chi = automol.graph.chi(prds_gra)
+        srxn_chis.append((rcts_chi, prds_chi))
+        print(rcts_chi)
+        print(prds_chi)
+        print()
+
+    assert set(srxn_chis) == {
+        ('AMChI=1/HF2N2O2/c1-3-4(2)6-5/h3H/t3-,4-/m0/s1',
+         'InChI=1S/F2N2.HO2/c1-3-4-2;1-2/h;1H/b4-3+;'),
+        ('AMChI=1/HF2N2O2/c1-3-4(2)6-5/h3H/t3-,4+/m0/s1',
+         'InChI=1S/F2N2.HO2/c1-3-4-2;1-2/h;1H/b4-3-;'),
+        ('AMChI=1/HF2N2O2/c1-3-4(2)6-5/h3H/t3-,4+/m1/s1',
+         'InChI=1S/F2N2.HO2/c1-3-4-2;1-2/h;1H/b4-3-;'),
+        ('AMChI=1/HF2N2O2/c1-3-4(2)6-5/h3H/t3-,4-/m1/s1',
+         'InChI=1S/F2N2.HO2/c1-3-4-2;1-2/h;1H/b4-3+;'),
+    }
+
 
 def test__prod__hydrogen_migration():
     """ test hydrogen migration product enumeration
