@@ -280,7 +280,25 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
 
 
 def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
-    """ Check whether a reaction satisfies the elimination stereo constraint
+    r""" Check whether a reaction satisfies the elimination stereo constraint
+
+        Constraint:
+
+                3           6         4         8
+                 \ +     + /           \   +   /     3
+                  1-------2      <=>    1=====2      |
+                 / \     / \           /       \     6
+                4   5   8   7         5         7
+
+            clockwise  clockwise     trans
+            ('+')      ('+')         ('+')
+
+        Equation: p_b12 = (p_a1 AND p_1) XNOR (p_a2 AND p_2)
+
+        Where p_a1 and p_a2 are the parities of the atoms, p_b is the resulting
+        parity of the 1=2 double bond, and p_1 and p_2 are the parities of the
+        permutations required to move the other atom in the bond first in the
+        list and the leaving atom second for each atom.
     """
     floc_par_dct = stereo_parities(ftsg_loc)
     rloc_par_dct = stereo_parities(rtsg_loc)
@@ -306,25 +324,20 @@ def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
             if any(keys & ks for ks in rng_akeys_lst):
                 # This is a constrained bond!
                 # i. Read out the relevant atom and bond parities
-                apar1 = floc_par_dct[key1]
-                apar2 = floc_par_dct[key2]
-                bpar = rloc_par_dct[frozenset({key1, key2})]
+                p_a1 = floc_par_dct[key1]
+                p_a2 = floc_par_dct[key2]
+                p_b12_actual = rloc_par_dct[frozenset({key1, key2})]
 
                 # ii. Calculate what the bond parity should be
                 nk1s = sorted(ngb_keys_dct[key1], key=loc_pri_dct.__getitem__)
                 nk2s = sorted(ngb_keys_dct[key2], key=loc_pri_dct.__getitem__)
                 srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
                 srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
+                p_1 = util.is_even_permutation(nk1s, srt_nk1s)
+                p_2 = util.is_even_permutation(nk2s, srt_nk2s)
 
-                if util.is_even_permutation(nk1s, srt_nk1s):
-                    apar1 = not apar1
-                if util.is_even_permutation(nk2s, srt_nk2s):
-                    apar2 = not apar2
-
-                bpar_const = not (apar1 ^ apar2)
-                if len(nk1s) == len(nk2s) == 3:
-                    bpar_const = not bpar_const
-
-                satisfies &= bpar == bpar_const
+                # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
+                p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
+                satisfies &= (p_b12 == p_b12_actual)
 
     return satisfies

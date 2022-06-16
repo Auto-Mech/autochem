@@ -73,7 +73,6 @@ def expand_stereo_with_priorities(gra):
     gpps0 = None
     gpps = [(gra, None, None)]
 
-    # First, do a complete expansion of all possible assignments
     while gpps0 != gpps:
         gpps0 = gpps
         gpps = []
@@ -94,7 +93,6 @@ def expand_stereo_with_priorities(gra):
 
             gpps.extend([(g, pri_dct1, pri_dct2) for g in gras])
 
-    # Second, create representations for each one
     gps = tuple((g, p) for g, p, _ in gpps)
     return gps
 
