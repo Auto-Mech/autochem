@@ -6,7 +6,6 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import numbers
 import itertools
 import functools
-import operator
 import numpy
 import yaml
 import future.moves.itertools as fmit
@@ -64,9 +63,15 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
         bnd_ord_dct=bnd_ord_dct,
         bnd_ste_par_dct=bnd_ste_par_dct)
 
-    gra = _from_atoms_and_bonds(atm_dct=atm_dct, bnd_dct=bnd_dct)
+    atm_dct = dict(atm_dct)
+    bnd_dct = dict(bnd_dct)
+    atm_keys = set(atm_dct.keys())
+    bnd_keys = set(bnd_dct.keys())
 
-    return gra
+    assert all(bnd_key <= atm_keys for bnd_key in bnd_keys), (
+        f"\natm_keys: {atm_keys}\nbnd_keys: {bnd_keys}")
+
+    return (atm_dct, bnd_dct)
 
 
 def atoms_from_data(atm_symb_dct, atm_imp_hyd_vlc_dct=None,
@@ -257,20 +262,20 @@ def stereo_parities(gra):
 
 
 # # setters
-def set_atom_symbols(sgr, atm_symb_dct):
+def set_atom_symbols(gra, atm_symb_dct):
     """ set atom parities
     """
-    atm_dct = mdict.set_by_key_by_position(atoms(sgr), atm_symb_dct,
+    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_symb_dct,
                                            ATM_SYM_POS)
-    return from_atoms_and_bonds(atm_dct, bonds(sgr))
+    return from_atoms_and_bonds(atm_dct, bonds(gra))
 
 
-def set_bond_orders(rgr, bnd_ord_dct):
+def set_bond_orders(gra, bnd_ord_dct):
     """ set bond orders
     """
-    bnd_dct = mdict.set_by_key_by_position(bonds(rgr), bnd_ord_dct,
+    bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_ord_dct,
                                            BND_ORD_POS)
-    return from_atoms_and_bonds(atoms(rgr), bnd_dct)
+    return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
 
 def set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct):
@@ -282,20 +287,20 @@ def set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct):
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def set_atom_stereo_parities(sgr, atm_par_dct):
+def set_atom_stereo_parities(gra, atm_par_dct):
     """ set atom parities
     """
-    atm_dct = mdict.set_by_key_by_position(atoms(sgr), atm_par_dct,
+    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct,
                                            ATM_STE_PAR_POS)
-    return from_atoms_and_bonds(atm_dct, bonds(sgr))
+    return from_atoms_and_bonds(atm_dct, bonds(gra))
 
 
-def set_bond_stereo_parities(sgr, bnd_par_dct):
+def set_bond_stereo_parities(gra, bnd_par_dct):
     """ set bond parities
     """
-    bnd_dct = mdict.set_by_key_by_position(bonds(sgr), bnd_par_dct,
+    bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct,
                                            BND_STE_PAR_POS)
-    return from_atoms_and_bonds(atoms(sgr), bnd_dct)
+    return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
 
 def set_stereo_parities(gra, par_dct):
@@ -467,18 +472,18 @@ def electron_count(gra, charge=0):
     return nelec
 
 
-def atom_stereo_keys(sgr):
+def atom_stereo_keys(gra):
     """ keys to atom stereo-centers
     """
-    atm_ste_keys = dict_.keys_by_value(atom_stereo_parities(sgr),
+    atm_ste_keys = dict_.keys_by_value(atom_stereo_parities(gra),
                                        lambda x: x in [True, False])
     return atm_ste_keys
 
 
-def bond_stereo_keys(sgr):
+def bond_stereo_keys(gra):
     """ keys to bond stereo-centers
     """
-    bnd_ste_keys = dict_.keys_by_value(bond_stereo_parities(sgr),
+    bnd_ste_keys = dict_.keys_by_value(bond_stereo_parities(gra),
                                        lambda x: x in [True, False])
     return bnd_ste_keys
 
@@ -561,6 +566,7 @@ def atom_bond_valences(gra, bond_order=True):
     """
     atm_keys = list(atom_keys(gra))
     gra = explicit(gra)
+    gra = without_dummy_bonds(without_fractional_bonds(gra))
     if not bond_order:
         gra = without_bond_orders(gra)
 
@@ -571,45 +577,77 @@ def atom_bond_valences(gra, bond_order=True):
     return atm_bnd_vlc_dct
 
 
-def atom_unsaturated_valences(gra, bond_order=True):
-    """ unsaturated valences, by atom
-
-    element valences minus bonding valences = pi sites and radical electrons
-    """
-    atm_keys = list(atom_keys(gra))
-    if not bond_order:
-        gra = without_bond_orders(gra)
-
-    atm_bnd_vlcs = dict_.values_by_key(atom_bond_valences(gra), atm_keys)
-    atm_tot_vlcs = dict_.values_by_key(atom_element_valences(gra), atm_keys)
-    atm_rad_vlcs = numpy.subtract(atm_tot_vlcs, atm_bnd_vlcs)
-    atm_unsat_vlc_dct = dict_.transform_values(
-        dict(zip(atm_keys, atm_rad_vlcs)), int)
-    return atm_unsat_vlc_dct
-
-
 def atom_explicit_hydrogen_valences(gra):
     """ explicit hydrogen valences, by atom
     """
     return dict_.transform_values(atom_explicit_hydrogen_keys(gra), len)
 
 
-def atom_hybridizations(rgr):
+def atom_hybridizations(gra):
     """ atom hybridizations, by atom
     """
-    rgr = without_fractional_bonds(rgr)
-    atm_keys = list(atom_keys(rgr))
-    atm_unsat_vlc_dct = atom_unsaturated_valences(rgr, bond_order=True)
-    atm_bnd_vlc_dct = atom_bond_valences(rgr, bond_order=False)     # note!!
-    atm_unsat_vlcs = numpy.array(
-        dict_.values_by_key(atm_unsat_vlc_dct, atm_keys))
+    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    atm_keys = list(atom_keys(gra))
+    atm_unsat_dct = atom_unsaturations(gra, bond_order=True)
+    atm_bnd_vlc_dct = atom_bond_valences(gra, bond_order=False)     # note!!
+    atm_unsats = numpy.array(
+        dict_.values_by_key(atm_unsat_dct, atm_keys))
     atm_bnd_vlcs = numpy.array(dict_.values_by_key(atm_bnd_vlc_dct, atm_keys))
     atm_lpcs = numpy.array(
-        dict_.values_by_key(atom_lone_pair_counts(rgr), atm_keys))
-    atm_hybs = atm_unsat_vlcs + atm_bnd_vlcs + atm_lpcs - 1
+        dict_.values_by_key(atom_lone_pair_counts(gra), atm_keys))
+    atm_hybs = atm_unsats + atm_bnd_vlcs + atm_lpcs - 1
     atm_hyb_dct = dict_.transform_values(
         dict(zip(atm_keys, atm_hybs)), int)
     return atm_hyb_dct
+
+
+def atom_unsaturations(gra, bond_order=True):
+    """ Atom unsaturations, i.e. spaces for bonding
+
+        An atom's unsaturation is the difference between its element valence
+        (potential bond count) and its bonding valence (actual bond count),
+        leaving either radical or pi-bonding electrons.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: the atom unsaturated valences, by atom key
+        :rtype: dict
+    """
+    atm_keys = list(atom_keys(gra))
+    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    if not bond_order:
+        gra = without_bond_orders(gra)
+
+    atm_bnd_vlcs = dict_.values_by_key(atom_bond_valences(gra), atm_keys)
+    atm_tot_vlcs = dict_.values_by_key(atom_element_valences(gra), atm_keys)
+    atm_rad_vlcs = numpy.subtract(atm_tot_vlcs, atm_bnd_vlcs)
+    atm_unsat_dct = dict_.transform_values(
+        dict(zip(atm_keys, atm_rad_vlcs)), int)
+    return atm_unsat_dct
+
+
+def bond_unsaturations(gra, bond_order=True):
+    """ Bond unsaturations, i.e. spaces for pi-bonding
+
+        A bond's unsaturation is the minumum of its atoms' unsaturated
+        valences, indicating the number of pi-bonds that could be formed.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: the bond unsaturated valences, by bond key
+        :rtype: dict
+    """
+    bnd_keys = list(bond_keys(gra))
+    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    if not bond_order:
+        gra = without_bond_orders(gra)
+
+    # determine unsaturated valences for each atom
+    atm_unsat_dct = atom_unsaturations(gra)
+    # a bond's unsaturated is set by its limiting atom
+    bnd_unsats = [min(map(atm_unsat_dct.__getitem__, k)) for k in bnd_keys]
+    bnd_unsat_dct = dict(zip(bnd_keys, bnd_unsats))
+    return bnd_unsat_dct
 
 
 def tetrahedral_atom_keys(gra):
@@ -622,7 +660,7 @@ def tetrahedral_atom_keys(gra):
         :param gra: molecular graph
         :type gra: automol graph data structure
     """
-    gra = without_fractional_bonds(gra)
+    gra = without_dummy_bonds(without_fractional_bonds(gra))
     bnd_vlc_dct = atom_bond_valences(gra)
     lpc_dct = atom_lone_pair_counts(gra)
 
@@ -640,7 +678,7 @@ def tetrahedral_atom_keys(gra):
 def maximum_spin_multiplicity(gra, bond_order=True):
     """ the highest possible spin multiplicity for this molecular graph
     """
-    atm_rad_vlc_dct = atom_unsaturated_valences(gra, bond_order=bond_order)
+    atm_rad_vlc_dct = atom_unsaturations(gra, bond_order=bond_order)
     return sum(atm_rad_vlc_dct.values()) + 1
 
 
@@ -730,9 +768,17 @@ def terminal_heavy_atom_keys(gra):
 def unsaturated_atom_keys(gra):
     """ keys of unsaturated (radical or pi-bonded) atoms
     """
-    atm_unsat_vlc_dct = atom_unsaturated_valences(gra, bond_order=False)
-    unsat_atm_keys = frozenset(dict_.keys_by_value(atm_unsat_vlc_dct, bool))
+    atm_unsat_dct = atom_unsaturations(gra, bond_order=False)
+    unsat_atm_keys = frozenset(dict_.keys_by_value(atm_unsat_dct, bool))
     return unsat_atm_keys
+
+
+def unsaturated_bond_keys(gra):
+    """ keys of unsaturated (radical or pi-bonded) bonds
+    """
+    bnd_unsat_dct = bond_unsaturations(gra, bond_order=False)
+    unsat_bnd_keys = frozenset(dict_.keys_by_value(bnd_unsat_dct, bool))
+    return unsat_bnd_keys
 
 
 def angle_keys(gra):
@@ -1125,7 +1171,7 @@ def without_bond_orders(gra):
     bnd_keys = list(bond_keys(gra))
     # don't set dummy bonds to one!
     bnd_ord_dct = bond_orders(gra)
-    bnd_vals = [1 if v != 0 else 0
+    bnd_vals = [1 if v not in (0, 0.1, 0.9) else v
                 for v in map(bnd_ord_dct.__getitem__, bnd_keys)]
     bnd_ord_dct = dict(zip(bnd_keys, bnd_vals))
     return set_bond_orders(gra, bnd_ord_dct)
@@ -1272,6 +1318,14 @@ def bond_induced_subgraph(gra, bnd_keys, stereo=False):
 
 def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False):
     """ neighborhood subgraph for a specific atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param atm_key: the atom key
+        :type atm_key: int
+        :param bnd_keys: optionally, restrict this to a subset of the bond keys
+        :tupe bnd_keys: tuple[frozenset[int]]
+        :returns: the neighborhood subgraph
     """
     bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
@@ -1279,10 +1333,17 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False):
     return nbh
 
 
-def atom_neighborhoods(gra, stereo=False):
+def atom_neighborhoods(gra, bnd_keys=None, stereo=False):
     """ neighborhood subgraphs, by atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param bnd_keys: optionally, restrict this to a subset of the bond keys
+        :tupe bnd_keys: tuple[frozenset[int]]
+        :returns: neighborhood subgraphs, by atom key
+        :rtype: dict
     """
-    bnd_keys = bond_keys(gra)
+    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
 
     def _neighborhood(atm_key):
         return atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys,
@@ -1296,12 +1357,13 @@ def atom_neighborhoods(gra, stereo=False):
 def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False):
     """ neighborhood subgraph for a specific bond
 
-    :param gra: the graph
-    :param bnd_key: the bond key
-    :type bnd_key: frozenset[int]
-    :param bnd_keys: optionally, restrict this to a subset of the bond keys
-    :tupe bnd_keys: tuple[frozenset[int]]
-    :returns: the neighborhood subgraph
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param bnd_key: the bond key
+        :type bnd_key: frozenset[int]
+        :param bnd_keys: optionally, restrict this to a subset of the bond keys
+        :tupe bnd_keys: tuple[frozenset[int]]
+        :returns: the neighborhood subgraph
     """
     bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
     nbh_bnd_keys = set(filter(lambda x: bnd_key & x, bnd_keys))
@@ -1309,10 +1371,17 @@ def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False):
     return nbh
 
 
-def bond_neighborhoods(gra, stereo=False):
+def bond_neighborhoods(gra, bnd_keys=None, stereo=False):
     """ neighborhood subgraphs, by bond
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param bnd_keys: optionally, restrict this to a subset of the bond keys
+        :tupe bnd_keys: tuple[frozenset[int]]
+        :returns: neighborhood subgraphs, by atom key
+        :rtype: dict
     """
-    bnd_keys = list(bond_keys(gra))
+    bnd_keys = list(bond_keys(gra) if bnd_keys is None else bnd_keys)
 
     def _neighborhood(bnd_key):
         return bond_neighborhood(gra, bnd_key, bnd_keys=bnd_keys,
@@ -1394,24 +1463,6 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
     return atm_ngb_keys_dct
 
 
-def atoms_second_degree_neighbor_atom_keys(gra):
-    """ keys of second-degree neighboring atoms, by atom
-
-    That is, atoms that are connected through an intermediate atom
-    """
-    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-    atm_ngb2_keys_dct = {}
-    for atm_key, atm_ngb_keys in atm_ngb_keys_dct.items():
-        # Union of neighbors of neighbors
-        atm_ngb2_keys = functools.reduce(
-            operator.or_, map(atm_ngb_keys_dct.__getitem__, atm_ngb_keys))
-        # Subtract of the atom itself and its neighbors (in case of 3-rings)
-        atm_ngb2_keys -= {atm_key} | atm_ngb_keys
-
-        atm_ngb2_keys_dct[atm_key] = frozenset(atm_ngb2_keys)
-    return atm_ngb2_keys_dct
-
-
 def atoms_bond_keys(gra):
     """ bond keys, by atom
     """
@@ -1460,28 +1511,3 @@ def bonds_neighbor_bond_keys(gra):
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
         bond_neighborhoods(gra), _neighbor_keys)
     return bnd_ngb_keys_dct
-
-
-# # helpers
-def _from_atoms_and_bonds(atm_dct, bnd_dct):
-    """ Construct a molecular graph from atom and bond dictionaries.
-
-        format:
-            gra = (atm_dct, bnd_dct)
-
-        :param atm_dct: atom dictionary
-        :type atm_dct: dict
-        :param bnd_dct: bond dictionary
-        :type bnd_dct: dict
-        :rtype: (dict, dict)
-    """
-
-    atm_dct = dict(atm_dct)
-    bnd_dct = dict(bnd_dct)
-    atm_keys = set(atm_dct.keys())
-    bnd_keys = set(bnd_dct.keys())
-
-    assert all(bnd_key <= atm_keys for bnd_key in bnd_keys), (
-        f"\natm_keys: {atm_keys}\nbnd_keys: {bnd_keys}")
-
-    return (atm_dct, bnd_dct)

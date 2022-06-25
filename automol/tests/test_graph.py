@@ -376,22 +376,6 @@ def test__atoms_neighbor_atom_keys():
     }
 
 
-def test__atoms_second_degree_neighbor_atom_keys():
-    """ test graph.atoms_neighbor_atom_keys
-    """
-    assert graph.atoms_second_degree_neighbor_atom_keys(C8H13O_CGR) == {
-        0: frozenset({5}),
-        1: frozenset({6}),
-        2: frozenset({4, 7}),
-        3: frozenset({7}),
-        4: frozenset({2, 7}),
-        5: frozenset({0, 8, 6}),
-        6: frozenset({8, 1, 5}),
-        7: frozenset({2, 3, 4}),
-        8: frozenset({5, 6}),
-    }
-
-
 def test__atoms_bond_keys():
     """ test graph.atoms_neighbor_atom_keys
     """
@@ -596,10 +580,10 @@ def test__atom_bond_valences():
         0: 4, 1: 3, 2: 4, 3: 3, 4: 3, 5: 3, 6: 4, 7: 4, 8: 1}
 
 
-def test__atom_unsaturated_valences():
-    """ test graph.atom_unsaturated_valences
+def test__atom_unsaturations():
+    """ test graph.atom_unsaturations
     """
-    assert graph.atom_unsaturated_valences(C8H13O_CGR) == {
+    assert graph.atom_unsaturations(C8H13O_CGR) == {
         0: 0, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 1}
 
 
