@@ -61,9 +61,10 @@ from automol.graph.base._core import atom_element_valences
 from automol.graph.base._core import atom_lone_pair_counts
 from automol.graph.base._core import atom_van_der_waals_radius
 from automol.graph.base._core import atom_bond_valences
-from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import atom_explicit_hydrogen_valences
 from automol.graph.base._core import atom_hybridizations
+from automol.graph.base._core import atom_unsaturations
+from automol.graph.base._core import bond_unsaturations
 from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
@@ -341,9 +342,10 @@ __all__ = [
     'atom_lone_pair_counts',
     'atom_van_der_waals_radius',
     'atom_bond_valences',
-    'atom_unsaturations',
     'atom_explicit_hydrogen_valences',
     'atom_hybridizations',
+    'atom_unsaturations',
+    'bond_unsaturations',
     'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',

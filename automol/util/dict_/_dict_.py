@@ -51,7 +51,7 @@ def by_key(dct, keys, fill_val=None):
     return dict(zip(keys, values_by_key(dct, keys, fill_val=fill_val)))
 
 
-def by_value(dct, func):
+def by_value(dct, func=lambda x: x):
     """ dictionary on a set of values, determined by a function
     """
     keys = keys_by_value(dct, func)
@@ -155,25 +155,25 @@ def merge_subdct(dct, key='global', keep_subdct=False):
     return new_dct
 
 
-def keys_by_value(dct, func):
+def keys_by_value(dct, func=lambda x: x):
     """ return dictionary keys for specific values
     """
     return frozenset(key for key, val in dct.items() if func(val))
 
 
-def transform_keys(dct, func):
+def transform_keys(dct, func=lambda x: x):
     """ apply a function to each key
     """
     return dict(zip(map(func, dct.keys()), dct.values()))
 
 
-def transform_values(dct, func):
+def transform_values(dct, func=lambda x: x):
     """ apply a function to each value
     """
     return dict(zip(dct.keys(), map(func, dct.values())))
 
 
-def transform_items_to_values(dct, func):
+def transform_items_to_values(dct, func=lambda x: x):
     """ apply a function to each value
     """
     return dict(zip(dct.keys(), _starmap(func, dct.items())))
@@ -191,13 +191,13 @@ def values_sorted_by_key(dct):
     return tuple(val for _, val in sorted(dct.items()))
 
 
-def filter_by_key(dct, func=lambda val: val):
+def filter_by_key(dct, func=lambda x: x):
     """ filter dictionary entries by their values
     """
     return {key: val for key, val in dct.items() if func(key)}
 
 
-def filter_by_value(dct, func=lambda val: val):
+def filter_by_value(dct, func=lambda x: x):
     """ filter dictionary entries by their values
     """
     return {key: val for key, val in dct.items() if func(val)}
