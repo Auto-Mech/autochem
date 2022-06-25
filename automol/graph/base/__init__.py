@@ -68,7 +68,7 @@ from automol.graph.base._core import atom_element_valences
 from automol.graph.base._core import atom_lone_pair_counts
 from automol.graph.base._core import atom_van_der_waals_radius
 from automol.graph.base._core import atom_bond_valences
-from automol.graph.base._core import atom_unsaturated_valences
+from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import atom_explicit_hydrogen_valences
 from automol.graph.base._core import atom_hybridizations
 from automol.graph.base._core import tetrahedral_atom_keys
@@ -81,6 +81,7 @@ from automol.graph.base._core import explicit_hydrogen_keys
 from automol.graph.base._core import terminal_atom_keys
 from automol.graph.base._core import terminal_heavy_atom_keys
 from automol.graph.base._core import unsaturated_atom_keys
+from automol.graph.base._core import unsaturated_bond_keys
 from automol.graph.base._core import lone_pair_atom_keys
 from automol.graph.base._core import angle_keys
 # # relabeling and changing keys
@@ -125,7 +126,6 @@ from automol.graph.base._core import atom_neighbor_atom_key
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atom_sorted_neighbor_atom_keys
 from automol.graph.base._core import atoms_sorted_neighbor_atom_keys
-from automol.graph.base._core import atoms_second_degree_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import bonds_neighbor_atom_keys
@@ -335,7 +335,7 @@ __all__ = [
     'atom_lone_pair_counts',
     'atom_van_der_waals_radius',
     'atom_bond_valences',
-    'atom_unsaturated_valences',
+    'atom_unsaturations',
     'atom_explicit_hydrogen_valences',
     'atom_hybridizations',
     'tetrahedral_atom_keys',
@@ -348,6 +348,7 @@ __all__ = [
     'terminal_atom_keys',
     'terminal_heavy_atom_keys',
     'unsaturated_atom_keys',
+    'unsaturated_bond_keys',
     'lone_pair_atom_keys',
     'angle_keys',
     # # relabeling and changing keys
@@ -392,7 +393,6 @@ __all__ = [
     'atoms_neighbor_atom_keys',
     'atom_sorted_neighbor_atom_keys',
     'atoms_sorted_neighbor_atom_keys',
-    'atoms_second_degree_neighbor_atom_keys',
     'atoms_bond_keys',
     'dummy_atoms_neighbor_atom_key',
     'bonds_neighbor_atom_keys',

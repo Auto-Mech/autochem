@@ -15,7 +15,7 @@ from automol.graph.base._core import bond_orders
 from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import atom_hybridizations
-from automol.graph.base._core import atom_unsaturated_valences
+from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_bonds
@@ -91,10 +91,10 @@ def subresonances(rgr):
 
             max_bnd_ord = max(bond_orders(ret_rgr).values())
 
-            atm_unsat_vlcs = dict_.values_by_key(
-                atom_unsaturated_valences(ret_rgr), atm_keys)
+            atm_unsats = dict_.values_by_key(
+                atom_unsaturations(ret_rgr), atm_keys)
 
-            if not any(atm_unsat_vlc < 0 for atm_unsat_vlc in atm_unsat_vlcs):
+            if not any(atm_unsat < 0 for atm_unsat in atm_unsats):
                 if max_bnd_ord < 4:
                     ret_rgrs.append(ret_rgr)
 
@@ -239,10 +239,10 @@ def radical_atom_keys(gra, single_res=False, min_valence=1.):
 
     if single_res:
         atm_rad_vlcs = dict_.values_by_key(
-            atom_unsaturated_valences(dominant_resonance(gra)), atm_keys)
+            atom_unsaturations(dominant_resonance(gra)), atm_keys)
     else:
         atm_rad_vlcs_by_res = [
-            dict_.values_by_key(atom_unsaturated_valences(dom_gra), atm_keys)
+            dict_.values_by_key(atom_unsaturations(dom_gra), atm_keys)
             for dom_gra in dominant_resonances(gra)]
         atm_rad_vlcs = [
             max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
@@ -270,7 +270,7 @@ def radical_atom_keys_from_resonance(rgr, min_valence=1.):
     atm_keys = list(atom_keys(rgr))
 
     atm_rad_vlcs = dict_.values_by_key(
-        atom_unsaturated_valences(rgr), atm_keys)
+        atom_unsaturations(rgr), atm_keys)
 
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
                              in zip(atm_keys, atm_rad_vlcs)
@@ -319,7 +319,7 @@ def nonresonant_radical_atom_keys(rgr):
     rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
-        dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
+        dict_.values_by_key(atom_unsaturations(dom_rgr), atm_keys)
         for dom_rgr in dominant_resonances(rgr)]
     atm_rad_vlcs = [min(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
@@ -379,7 +379,7 @@ def resonance_dominant_radical_atom_keys(rgr):
     rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
-        dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
+        dict_.values_by_key(atom_unsaturations(dom_rgr), atm_keys)
         for dom_rgr in dominant_resonances(rgr)]
     atm_rad_vlcs = [max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
@@ -395,7 +395,7 @@ def sing_res_dom_radical_atom_keys(rgr):
     rgr = without_fractional_bonds(rgr)
     atm_keys = list(atom_keys(rgr))
     atm_rad_vlcs_by_res = [
-        dict_.values_by_key(atom_unsaturated_valences(dom_rgr), atm_keys)
+        dict_.values_by_key(atom_unsaturations(dom_rgr), atm_keys)
         for dom_rgr in dominant_resonances(rgr)]
     first_atm_rad_val = [atm_rad_vlcs_by_res[0]]
     atm_rad_vlcs = [max(rad_vlcs) for rad_vlcs in zip(*first_atm_rad_val)]
@@ -512,10 +512,10 @@ def _bond_capacities(rgr):
     """ the number of electron pairs available for further pi-bonding, by bond
     """
     rgr = without_dummy_bonds(rgr)
-    atm_unsat_vlc_dct = atom_unsaturated_valences(rgr)
+    atm_unsat_dct = atom_unsaturations(rgr)
 
     def _pi_capacities(bnd_key):
-        return min(map(atm_unsat_vlc_dct.__getitem__, bnd_key))
+        return min(map(atm_unsat_dct.__getitem__, bnd_key))
 
     bnd_keys = list(bond_keys(rgr))
     bnd_caps = tuple(map(_pi_capacities, bnd_keys))
