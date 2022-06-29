@@ -36,6 +36,78 @@ def function(gra):
 def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
     """ Determine resonances for a closed, connected pi-system
 
+    Strategy:
+    Sweep through the whole network from neighbor to neighbor, initially
+    saturating maximally, then gradually unsaturating in all possible ways.
+    Once all neighbors of an atom have been assigned, its contribution to the
+    multiplicity is fixed -- add this to the multiplicity lower-bound.
+    Add up the multiplicities and quit a path as soon as the multiplicity lb
+    exceeds the current minimum multiplicity.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param pi_keys: keys of an closed, connected pi system
+        :type pi_keys: frozenset[int]
+        :param atm_unsat_dct: atom unsaturations, by atom key
+        :type atm_unsat_dct: dict[int: int]
+    """
+    atm_unsat_dct = (atom_unsaturations(gra, bond_order=False)
+                     if atm_unsat_dct is None else atm_unsat_dct)
+    bnd_unsat_dct = bond_unsaturations(gra, bond_order=False)
+
+    pi_sy = subgraph(gra, pi_keys)
+    bnd_keys = bond_keys(pi_sy)
+
+    nkeys_dct = atoms_neighbor_atom_keys(pi_sy)
+
+    def _recurse_saturate(bord_dct, aus_dct, key, nkey, seen_keys):
+        bord_dct0 = bord_dct
+        aus_dct0 = aus_dct
+
+        seen_keys.add(nkey
+        nnkeys = nkeys_dct[nkey]
+        bkey = frozenset({key, nkey})
+        max_inc = min(aus_dct[key], aus_dct[nkey])
+        incs = list(reversed(range(max_inc+1)))
+        for inc in incs:
+            if inc != incs[-1]:
+                bord_dct = bord_dct0.copy()
+                aus_dct = aus_dct0.copy()
+
+            bord_dct[bkey] += inc
+            aus_dct[key] -= inc
+            aus_dct[nkey] -= inc
+
+            for 
+
+
+        seen_keys.add(key)
+        nkeys = nkeys_dct[key] - seen_keys
+
+        bord_dct0 = bord_dct
+        aus_dct0 = aus_dct
+        for nkey in nkeys:
+            bkey = frozenset({key, nkey})
+            inc = min(aus_dct[key], aus_dct[nkey])
+            if inc:
+                bord_dct[bkey] += inc
+                aus_dct[key] -= inc
+                aus_dct[nkey] -= inc
+            _recurse_saturate(bord_dct, aus_dct, nkey, seen_keys)
+
+    bord_dct = bond_orders(pi_sy)
+    aus_dct = atm_unsat_dct
+    _recurse_saturate(bord_dct, aus_dct, 0, set())
+    print(bord_dct)
+
+    import sys
+    sys.exit()
+
+
+
+def old_pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
+    """ Determine resonances for a closed, connected pi-system
+
         :param gra: molecular graph
         :type gra: automol graph data structure
         :param pi_keys: keys of an closed, connected pi system
@@ -56,8 +128,9 @@ def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
 
     lst = []
 
+    min_mult = sum(atm_unsat_dct.values()) + 1
+
     natms = len(atm_keys)
-    last_idx = len(atm_keys) - 1
 
     paths = []
 
@@ -71,32 +144,34 @@ def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
             print(f"A path {path}")
 
             path0 = path
-            aus_dct0 = aus_dct
-            bord_dct0 = bord_dct
             nkeys = [n for n in nrn_dct[key] if n not in path0]
             print(f"A nkeys {nkeys}")
             for nkey in nkeys:
                 # Don't copy unless we have to
-                if nkey != nkeys[-1]:
-                    path = path0.copy()
-                    aus_dct = aus_dct0.copy()
-                    bord_dct = bord_dct0.copy()
-                else:
-                    path = path0
-                    aus_dct = aus_dct0
-                    bord_dct = bord_dct0
+                path = path0.copy() if nkey != nkeys[-1] else path0
 
                 path.append(nkey)
                 bkey = frozenset({key, nkey})
-                inc = min(aus_dct[key], aus_dct[nkey])
-                if inc:
+                max_inc = min(aus_dct[key], aus_dct[nkey])
+                incs = list(reversed(range(max_inc+1)))
+
+                aus_dct0 = aus_dct
+                bord_dct0 = bord_dct
+                print(f"A incs {incs}")
+                for inc in incs:
+                    print(f"A inc {inc}")
+                    aus_dct = aus_dct0.copy() if inc != incs[-1] else aus_dct0
+                    bord_dct = (bord_dct0.copy() if inc != incs[-1]
+                                else bord_dct0)
+
                     bord_dct[bkey] += inc
                     aus_dct[key] -= inc
                     aus_dct[nkey] -= inc
 
-                print(f"A new path {path}")
-                print(f"A recursion with {idx+1}")
-                _recurse_paths(idx+1, path, aus_dct, bord_dct)
+                    print(f"A {bord_dct}")
+                    print(f"A new path {path}")
+                    print(f"A recursion with {idx+1}")
+                    _recurse_paths(idx+1, path, aus_dct, bord_dct)
 
         if len(path) < natms:
             print(f"B recursion with {idx+1}")
@@ -116,7 +191,7 @@ def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
     return bord_dcts
 
 
-def old_pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
+def old_old_pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
     """ Determine resonances for a closed, connected pi-system
 
         :param gra: molecular graph
