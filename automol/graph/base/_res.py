@@ -28,6 +28,10 @@ def function(gra):
     print("FINAL")
     print(len(bord_dcts))
 
+    for bord_dct in bord_dcts:
+        print(bord_dct)
+        print()
+
 
 def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
     """ Determine resonances for a closed, connected pi-system
@@ -50,14 +54,14 @@ def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
     nrn_dct = {k: sorted(n for n in ns if k < n)
                for k, ns in atoms_neighbor_atom_keys(pi_sy).items()}
 
-    # bord_dcts = []
+    lst = []
 
     natms = len(atm_keys)
     last_idx = len(atm_keys) - 1
 
     paths = []
 
-    def _recurse_paths(idx, path):
+    def _recurse_paths(idx, path, aus_dct, bord_dct):
         print(f"path {path}")
         print(f"idx {idx}")
         key = atm_keys[idx]
@@ -66,30 +70,50 @@ def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
             path.append(key)
             print(f"A path {path}")
 
-            parent_path = path
-            nkeys = [n for n in nrn_dct[key] if n not in parent_path]
+            path0 = path
+            aus_dct0 = aus_dct
+            bord_dct0 = bord_dct
+            nkeys = [n for n in nrn_dct[key] if n not in path0]
             print(f"A nkeys {nkeys}")
             for nkey in nkeys:
                 # Don't copy unless we have to
-                path = (parent_path.copy() if nkey != nkeys[-1] else
-                        parent_path)
+                if nkey != nkeys[-1]:
+                    path = path0.copy()
+                    aus_dct = aus_dct0.copy()
+                    bord_dct = bord_dct0.copy()
+                else:
+                    path = path0
+                    aus_dct = aus_dct0
+                    bord_dct = bord_dct0
+
                 path.append(nkey)
+                bkey = frozenset({key, nkey})
+                inc = min(aus_dct[key], aus_dct[nkey])
+                if inc:
+                    bord_dct[bkey] += inc
+                    aus_dct[key] -= inc
+                    aus_dct[nkey] -= inc
+
                 print(f"A new path {path}")
                 print(f"A recursion with {idx+1}")
-                path = _recurse_paths(idx+1, path)
+                _recurse_paths(idx+1, path, aus_dct, bord_dct)
 
         if len(path) < natms:
             print(f"B recursion with {idx+1}")
-            path = _recurse_paths(idx+1, path)
+            _recurse_paths(idx+1, path, aus_dct, bord_dct)
         elif path not in paths:
             print(f"Appending to paths: {path} (idx {idx})")
             paths.append(path)
+            lst.append((bord_dct, aus_dct))
 
-        return path
+    _recurse_paths(0, [], atm_unsat_dct, bnd_ord_dct)
 
-    _recurse_paths(0, [])
+    bord_dcts, aus_dcts = zip(*lst)
+    mults = [sum(d.values()) + 1 for d in aus_dcts]
+    min_mult = min(mults)
+    bord_dcts = [d for i, d in enumerate(bord_dcts) if mults[i] == min_mult]
 
-    return paths
+    return bord_dcts
 
 
 def old_pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
@@ -176,9 +200,9 @@ def pi_system_atom_keys(gra, atm_unsat_dct=None):
 
 
 if __name__ == '__main__':
-    # # C=C[CH2]
-    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
-    #        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+    # C=C[CH2]
+    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
+           {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
 
     # # C=CC=CC=C
     # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
@@ -187,11 +211,11 @@ if __name__ == '__main__':
     #         frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
     #         frozenset({0, 1}): (1, None)})
 
-    # C=C-C(-[CH2])=C
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 0, None),
-            3: ('C', 2, None), 6: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({2, 6}): (1, None)})
+    # # C=C-C(-[CH2])=C
+    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 0, None),
+    #         3: ('C', 2, None), 6: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None), frozenset({2, 6}): (1, None)})
 
     # # C1=CC=CC=C1
     # GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
