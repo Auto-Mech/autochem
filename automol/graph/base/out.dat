@@ -1,0 +1,1140 @@
+
+call 1
+key 0
+seen_keys frozenset({0})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A1 incs [1, 0]
+A1 inc 1
+A1 spin 0
+A1 spin_min 10
+A1 nkeys_lst [(9,), (1,)]
+A1
+A1 nkeys (9,)
+A1 aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+A1 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A1 seen_keys frozenset({0, 1, 9})
+A1 before recursion
+
+call 2
+key 1
+seen_keys frozenset({0, 1, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A2 incs [1, 0]
+A2 inc 1
+A2 spin 0
+A2 spin_min 10
+A2 nkeys_lst [(2,)]
+A2
+A2 nkeys (2,)
+A2 aus_dct {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+A2 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A2 seen_keys frozenset({0, 1, 2, 9})
+A2 before recursion
+
+call 3
+key 2
+seen_keys frozenset({0, 1, 2, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A3 incs [0]
+A3 inc 0
+A3 spin 0
+A3 spin_min 10
+A3 nkeys_lst [()]
+A3
+A3 nkeys ()
+A3 aus_dct {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+A3 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A3 seen_keys frozenset({0, 1, 2, 3, 9})
+A3 before recursion
+
+call 4
+key 3
+seen_keys frozenset({0, 1, 2, 3, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A4 incs [1, 0]
+A4 inc 1
+A4 spin 0
+A4 spin_min 10
+A4 nkeys_lst [(8,), (4,)]
+A4
+A4 nkeys (8,)
+A4 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A4 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A4 seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+A4 before recursion
+
+call 5
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A5 incs [1, 0]
+A5 inc 1
+A5 spin 0
+A5 spin_min 10
+A5 nkeys_lst [(5,)]
+A5
+A5 nkeys (5,)
+A5 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+A5 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A5 seen_keys frozenset({0, 1, 2, 3, 4, 5, 8, 9})
+A5 before recursion
+
+call 6
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A6 incs [0]
+A6 inc 0
+A6 spin 0
+A6 spin_min 10
+A6 nkeys_lst [()]
+A6
+A6 nkeys ()
+A6 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+A6 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A6 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 8, 9})
+A6 before recursion
+
+call 7
+key 6
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A7 incs [1, 0]
+A7 inc 1
+A7 spin 0
+A7 spin_min 10
+A7 nkeys_lst [(7,)]
+A7
+A7 nkeys (7,)
+A7 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+A7 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A7 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A7 - New structure added!
+A7 - Spin lowered to 0!
+A7 inc 0
+A7 spin 1
+A7 spin_min 0
+A7 after recursion
+A7 after recursion
+A7 inc 0
+A7 spin 1
+A7 spin_min 0
+
+call 8
+key 8
+seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A8 incs [0]
+A8 inc 0
+A8 spin 0
+A8 spin_min 0
+A8 nkeys_lst [()]
+A8
+A8 nkeys ()
+A8 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A8 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A8 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A8 before recursion
+
+call 9
+key 7
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A9 incs [1, 0]
+A9 inc 1
+A9 spin 0
+A9 spin_min 0
+A9 nkeys_lst [(6,)]
+A9
+A9 nkeys (6,)
+A9 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+A9 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A9 seen_keys frozenset({0, 1, 2, 3, 4, 6, 7, 8, 9})
+A9 before recursion
+
+call 10
+key 6
+seen_keys frozenset({0, 1, 2, 3, 4, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A10 incs [0]
+A10 inc 0
+A10 spin 0
+A10 spin_min 0
+A10 nkeys_lst [()]
+A10
+A10 nkeys ()
+A10 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+A10 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A10 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A10 - New structure added!
+A10 after recursion
+A10 inc 0
+A10 spin 1
+A10 spin_min 0
+A10 after recursion
+A10 after recursion
+A10
+A10 nkeys (4,)
+A10 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+A10 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A10 seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+A10 before recursion
+
+call 11
+key 8
+seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A11 incs [1, 0]
+A11 inc 1
+A11 spin 0
+A11 spin_min 0
+A11 nkeys_lst [(7,)]
+A11
+A11 nkeys (7,)
+A11 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+A11 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A11 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A11 before recursion
+
+call 12
+key 7
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A12 incs [0]
+A12 inc 0
+A12 spin 0
+A12 spin_min 0
+A12 nkeys_lst [()]
+A12
+A12 nkeys ()
+A12 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+A12 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A12 seen_keys frozenset({0, 1, 2, 3, 4, 6, 7, 8, 9})
+A12 before recursion
+
+call 13
+key 6
+seen_keys frozenset({0, 1, 2, 3, 4, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A13 incs [1, 0]
+A13 inc 1
+A13 spin 0
+A13 spin_min 0
+A13 nkeys_lst [(5,)]
+A13
+A13 nkeys (5,)
+A13 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+A13 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+A13 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A13 - New structure added!
+A13 inc 0
+A13 spin 1
+A13 spin_min 0
+A13 after recursion
+A13 after recursion
+A13 inc 0
+A13 spin 1
+A13 spin_min 0
+
+call 14
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A14 incs [0]
+A14 inc 0
+A14 spin 0
+A14 spin_min 0
+A14 nkeys_lst [()]
+A14
+A14 nkeys ()
+A14 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+A14 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A14 seen_keys frozenset({0, 1, 2, 3, 4, 5, 8, 9})
+A14 before recursion
+
+call 15
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A15 incs [1, 0]
+A15 inc 1
+A15 spin 0
+A15 spin_min 0
+A15 nkeys_lst [(6,)]
+A15
+A15 nkeys (6,)
+A15 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0}
+A15 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+A15 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 8, 9})
+A15 before recursion
+
+call 16
+key 6
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0}
+spin 0
+A16 incs [0]
+A16 inc 0
+A16 spin 0
+A16 spin_min 0
+A16 nkeys_lst [()]
+A16
+A16 nkeys ()
+A16 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0}
+A16 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+A16 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A16 - New structure added!
+A16 after recursion
+A16 inc 0
+A16 spin 1
+A16 spin_min 0
+A16 after recursion
+A16 after recursion
+A16 inc 0
+A16 spin 1
+A16 spin_min 0
+A16 after recursion
+A16 after recursion
+A16 inc 0
+A16 spin 1
+A16 spin_min 0
+
+call 17
+key 9
+seen_keys frozenset({0, 1, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A17 incs [0]
+A17 inc 0
+A17 spin 0
+A17 spin_min 0
+A17 nkeys_lst [()]
+A17
+A17 nkeys ()
+A17 aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+A17 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A17 seen_keys frozenset({0, 1, 9, 8})
+A17 before recursion
+
+call 18
+key 8
+seen_keys frozenset({0, 1, 9, 8})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 0}
+spin 0
+A18 incs [1, 0]
+A18 inc 1
+A18 spin 0
+A18 spin_min 0
+A18 nkeys_lst [(7,), (3,)]
+A18
+A18 nkeys (7,)
+A18 aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+A18 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A18 seen_keys frozenset({0, 1, 3, 7, 8, 9})
+A18 before recursion
+
+call 19
+key 3
+seen_keys frozenset({0, 1, 3, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A19 incs [1, 0]
+A19 inc 1
+A19 spin 0
+A19 spin_min 0
+A19 nkeys_lst [(2,), (4,)]
+A19
+A19 nkeys (2,)
+A19 aus_dct {0: 0, 1: 1, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+A19 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A19 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A19 before recursion
+
+call 20
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A20 incs [1, 0]
+A20 inc 1
+A20 spin 0
+A20 spin_min 0
+A20 nkeys_lst [(5,)]
+A20
+A20 nkeys (5,)
+A20 aus_dct {0: 0, 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 0, 8: 0, 9: 0}
+A20 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A20 seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+A20 before recursion
+
+call 21
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A21 incs [0]
+A21 inc 0
+A21 spin 0
+A21 spin_min 0
+A21 nkeys_lst [()]
+A21
+A21 nkeys ()
+A21 aus_dct {0: 0, 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 0, 8: 0, 9: 0}
+A21 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A21 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A21 - New structure added!
+A21 after recursion
+A21 inc 0
+A21 spin 1
+A21 spin_min 0
+
+call 22
+key 2
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A22 after recursion
+A22
+A22 nkeys (4,)
+A22 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+A22 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A22 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A22 before recursion
+
+call 23
+key 2
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+
+call 24
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A24 incs [0]
+A24 inc 0
+A24 spin 0
+A24 spin_min 0
+A24 nkeys_lst [()]
+A24
+A24 nkeys ()
+A24 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+A24 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A24 seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+A24 before recursion
+
+call 25
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A25 incs [1, 0]
+A25 inc 1
+A25 spin 0
+A25 spin_min 0
+A25 nkeys_lst [(6,)]
+A25
+A25 nkeys (6,)
+A25 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+A25 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+A25 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A25 - New structure added!
+A25 inc 0
+A25 spin 1
+A25 spin_min 0
+A25 after recursion
+A25 after recursion
+A25 inc 0
+A25 spin 1
+A25 spin_min 0
+
+call 26
+key 7
+seen_keys frozenset({0, 1, 3, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A26 incs [0]
+A26 inc 0
+A26 spin 0
+A26 spin_min 0
+A26 nkeys_lst [()]
+A26
+A26 nkeys ()
+A26 aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+A26 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A26 seen_keys frozenset({0, 1, 3, 6, 7, 8, 9})
+A26 before recursion
+
+call 27
+key 6
+seen_keys frozenset({0, 1, 3, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0}
+spin 0
+A27 incs [1, 0]
+A27 inc 1
+A27 spin 0
+A27 spin_min 0
+A27 nkeys_lst [(5,)]
+A27
+A27 nkeys (5,)
+A27 aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+A27 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+A27 seen_keys frozenset({0, 1, 3, 5, 6, 7, 8, 9})
+A27 before recursion
+
+call 28
+key 5
+seen_keys frozenset({0, 1, 3, 5, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A28 incs [0]
+A28 inc 0
+A28 spin 0
+A28 spin_min 0
+A28 nkeys_lst [()]
+A28
+A28 nkeys ()
+A28 aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+A28 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+A28 seen_keys frozenset({0, 1, 3, 4, 5, 6, 7, 8, 9})
+A28 before recursion
+
+call 29
+key 4
+seen_keys frozenset({0, 1, 3, 4, 5, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A29 after recursion
+A29 after recursion
+A29 inc 0
+A29 spin 1
+A29 spin_min 0
+A29 after recursion
+A29 after recursion
+A29
+A29 nkeys (3,)
+A29 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A29 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A29 seen_keys frozenset({0, 1, 3, 7, 8, 9})
+A29 before recursion
+
+call 30
+key 7
+seen_keys frozenset({0, 1, 3, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A30 incs [1, 0]
+A30 inc 1
+A30 spin 0
+A30 spin_min 0
+A30 nkeys_lst [(6,)]
+A30
+A30 nkeys (6,)
+A30 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+A30 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A30 seen_keys frozenset({0, 1, 3, 6, 7, 8, 9})
+A30 before recursion
+
+call 31
+key 6
+seen_keys frozenset({0, 1, 3, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A31 incs [0]
+A31 inc 0
+A31 spin 0
+A31 spin_min 0
+A31 nkeys_lst [()]
+A31
+A31 nkeys ()
+A31 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+A31 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A31 seen_keys frozenset({0, 1, 3, 5, 6, 7, 8, 9})
+A31 before recursion
+
+call 32
+key 5
+seen_keys frozenset({0, 1, 3, 5, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A32 incs [1, 0]
+A32 inc 1
+A32 spin 0
+A32 spin_min 0
+A32 nkeys_lst [(4,)]
+A32
+A32 nkeys (4,)
+A32 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+A32 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A32 seen_keys frozenset({0, 1, 3, 4, 5, 6, 7, 8, 9})
+A32 before recursion
+
+call 33
+key 4
+seen_keys frozenset({0, 1, 3, 4, 5, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A33 after recursion
+A33 inc 0
+A33 spin 1
+A33 spin_min 0
+A33 after recursion
+A33 after recursion
+A33 inc 0
+A33 spin 1
+A33 spin_min 0
+
+call 34
+key 3
+seen_keys frozenset({0, 1, 3, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A34 incs [0]
+A34 inc 0
+A34 spin 0
+A34 spin_min 0
+A34 nkeys_lst [()]
+A34
+A34 nkeys ()
+A34 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A34 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A34 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A34 before recursion
+
+call 35
+key 2
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+
+call 36
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A36 incs [1, 0]
+A36 inc 1
+A36 spin 0
+A36 spin_min 0
+A36 nkeys_lst [(5,)]
+A36
+A36 nkeys (5,)
+A36 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+A36 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A36 seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+A36 before recursion
+
+call 37
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A37 incs [0]
+A37 inc 0
+A37 spin 0
+A37 spin_min 0
+A37 nkeys_lst [()]
+A37
+A37 nkeys ()
+A37 aus_dct {0: 0, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+A37 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+A37 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A37 - New structure added!
+A37 after recursion
+A37 inc 0
+A37 spin 1
+A37 spin_min 0
+A37 after recursion
+A37 after recursion
+A37 inc 0
+A37 spin 1
+A37 spin_min 0
+A37 after recursion
+A37 after recursion
+A37
+A37 nkeys (1,)
+A37 aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+A37 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A37 seen_keys frozenset({0, 1, 9})
+A37 before recursion
+
+call 38
+key 9
+seen_keys frozenset({0, 1, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A38 incs [1, 0]
+A38 inc 1
+A38 spin 0
+A38 spin_min 0
+A38 nkeys_lst [(8,)]
+A38
+A38 nkeys (8,)
+A38 aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A38 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A38 seen_keys frozenset({0, 1, 9, 8})
+A38 before recursion
+
+call 39
+key 8
+seen_keys frozenset({0, 1, 9, 8})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A39 incs [0]
+A39 inc 0
+A39 spin 0
+A39 spin_min 0
+A39 nkeys_lst [()]
+A39
+A39 nkeys ()
+A39 aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A39 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A39 seen_keys frozenset({0, 1, 3, 7, 8, 9})
+A39 before recursion
+
+call 40
+key 3
+seen_keys frozenset({0, 1, 3, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A40 incs [1, 0]
+A40 inc 1
+A40 spin 0
+A40 spin_min 0
+A40 nkeys_lst [(2,), (4,)]
+A40
+A40 nkeys (2,)
+A40 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A40 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A40 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A40 before recursion
+
+call 41
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A41 incs [1, 0]
+A41 inc 1
+A41 spin 0
+A41 spin_min 0
+A41 nkeys_lst [(5,)]
+A41
+A41 nkeys (5,)
+A41 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+A41 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A41 seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+A41 before recursion
+
+call 42
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A42 incs [0]
+A42 inc 0
+A42 spin 0
+A42 spin_min 0
+A42 nkeys_lst [()]
+A42
+A42 nkeys ()
+A42 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 0, 9: 0}
+A42 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A42 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A42 - New structure added!
+A42 after recursion
+A42 inc 0
+A42 spin 1
+A42 spin_min 0
+
+call 43
+key 2
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A43 after recursion
+A43
+A43 nkeys (4,)
+A43 aus_dct {0: 0, 1: 0, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A43 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A43 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A43 before recursion
+
+call 44
+key 2
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+
+call 45
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A45 incs [0]
+A45 inc 0
+A45 spin 0
+A45 spin_min 0
+A45 nkeys_lst [()]
+A45
+A45 nkeys ()
+A45 aus_dct {0: 0, 1: 0, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+A45 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A45 seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+A45 before recursion
+
+call 46
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A46 incs [1, 0]
+A46 inc 1
+A46 spin 0
+A46 spin_min 0
+A46 nkeys_lst [(6,)]
+A46
+A46 nkeys (6,)
+A46 aus_dct {0: 0, 1: 0, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0, 7: 1, 8: 0, 9: 0}
+A46 bord_dct {frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 1}
+A46 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A46 - New structure added!
+A46 inc 0
+A46 spin 1
+A46 spin_min 0
+A46 after recursion
+A46 after recursion
+A46 inc 0
+A46 spin 1
+A46 spin_min 0
+
+call 47
+key 7
+seen_keys frozenset({0, 1, 3, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 0}
+spin 0
+A47 incs [1, 0]
+A47 inc 1
+A47 spin 0
+A47 spin_min 0
+A47 nkeys_lst [(6,)]
+A47
+A47 nkeys (6,)
+A47 aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+A47 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 2, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A47 seen_keys frozenset({0, 1, 3, 6, 7, 8, 9})
+A47 before recursion
+
+call 48
+key 6
+seen_keys frozenset({0, 1, 3, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 2, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A48 incs [0]
+A48 inc 0
+A48 spin 0
+A48 spin_min 0
+A48 nkeys_lst [()]
+A48
+A48 nkeys ()
+A48 aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+A48 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 2, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A48 seen_keys frozenset({0, 1, 3, 5, 6, 7, 8, 9})
+A48 before recursion
+
+call 49
+key 5
+seen_keys frozenset({0, 1, 3, 5, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 2, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A49 incs [1, 0]
+A49 inc 1
+A49 spin 0
+A49 spin_min 0
+A49 nkeys_lst [(4,)]
+A49
+A49 nkeys (4,)
+A49 aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+A49 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 2, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A49 seen_keys frozenset({0, 1, 3, 4, 5, 6, 7, 8, 9})
+A49 before recursion
+
+call 50
+key 4
+seen_keys frozenset({0, 1, 3, 4, 5, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 2, frozenset({8, 9}): 2, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+spin 0
+A50 after recursion
+A50 inc 0
+A50 spin 1
+A50 spin_min 0
+A50 after recursion
+A50 after recursion
+A50 inc 0
+A50 spin 1
+A50 spin_min 0
+A50 after recursion
+A50 after recursion
+A50 inc 0
+A50 spin 1
+A50 spin_min 0
+
+call 51
+key 1
+seen_keys frozenset({0, 1, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A51 incs [0]
+A51 inc 0
+A51 spin 0
+A51 spin_min 0
+A51 nkeys_lst [()]
+A51
+A51 nkeys ()
+A51 aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+A51 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A51 seen_keys frozenset({0, 1, 2, 9})
+A51 before recursion
+
+call 52
+key 2
+seen_keys frozenset({0, 1, 2, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A52 incs [1, 0]
+A52 inc 1
+A52 spin 0
+A52 spin_min 0
+A52 nkeys_lst [(3,)]
+A52
+A52 nkeys (3,)
+A52 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+A52 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A52 seen_keys frozenset({0, 1, 2, 3, 9})
+A52 before recursion
+
+call 53
+key 3
+seen_keys frozenset({0, 1, 2, 3, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A53 incs [0]
+A53 inc 0
+A53 spin 0
+A53 spin_min 0
+A53 nkeys_lst [()]
+A53
+A53 nkeys ()
+A53 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+A53 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A53 seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+A53 before recursion
+
+call 54
+key 8
+seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A54 incs [1, 0]
+A54 inc 1
+A54 spin 0
+A54 spin_min 0
+A54 nkeys_lst [(7,)]
+A54
+A54 nkeys (7,)
+A54 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 1}
+A54 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A54 seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+A54 before recursion
+
+call 55
+key 7
+seen_keys frozenset({0, 1, 2, 3, 4, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 1}
+spin 0
+A55 incs [0]
+A55 inc 0
+A55 spin 0
+A55 spin_min 0
+A55 nkeys_lst [()]
+A55
+A55 nkeys ()
+A55 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 1}
+A55 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A55 seen_keys frozenset({0, 1, 2, 3, 4, 6, 7, 8, 9})
+A55 before recursion
+
+call 56
+key 6
+seen_keys frozenset({0, 1, 2, 3, 4, 6, 7, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 1}
+spin 0
+A56 incs [1, 0]
+A56 inc 1
+A56 spin 0
+A56 spin_min 0
+A56 nkeys_lst [(5,)]
+A56
+A56 nkeys (5,)
+A56 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 1}
+A56 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 1}
+A56 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A56 - New structure added!
+A56 inc 0
+A56 spin 1
+A56 spin_min 0
+A56 after recursion
+A56 after recursion
+A56 inc 0
+A56 spin 1
+A56 spin_min 0
+
+call 57
+key 4
+seen_keys frozenset({0, 1, 2, 3, 4, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 1, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A57 incs [1, 0]
+A57 inc 1
+A57 spin 0
+A57 spin_min 0
+A57 nkeys_lst [(5,)]
+A57
+A57 nkeys (5,)
+A57 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 1, 9: 1}
+A57 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A57 seen_keys frozenset({0, 1, 2, 3, 4, 5, 8, 9})
+A57 before recursion
+
+call 58
+key 5
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A58 incs [0]
+A58 inc 0
+A58 spin 0
+A58 spin_min 0
+A58 nkeys_lst [()]
+A58
+A58 nkeys ()
+A58 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 1, 9: 1}
+A58 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A58 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 8, 9})
+A58 before recursion
+
+call 59
+key 6
+seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 8, 9})
+bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1, 7: 1, 8: 1, 9: 1}
+spin 0
+A59 incs [1, 0]
+A59 inc 1
+A59 spin 0
+A59 spin_min 0
+A59 nkeys_lst [(7,)]
+A59
+A59 nkeys (7,)
+A59 aus_dct {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 1, 9: 1}
+A59 bord_dct {frozenset({3, 4}): 1, frozenset({2, 3}): 2, frozenset({1, 2}): 1, frozenset({4, 5}): 2, frozenset({0, 1}): 2, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 1, frozenset({5, 6}): 1, frozenset({0, 9}): 1}
+A59 seen_keys frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+A59 - New structure added!
+A59 inc 0
+A59 spin 1
+A59 spin_min 0
+A59 after recursion
+A59 after recursion
+A59 inc 0
+A59 spin 1
+A59 spin_min 0
+A59 after recursion
+A59 after recursion
+A59 inc 0
+A59 spin 1
+A59 spin_min 0
+A59 after recursion
+A59 after recursion
+A59 inc 0
+A59 spin 1
+A59 spin_min 0
+FINAL
+2
+{frozenset({3, 4}): 1, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 2, frozenset({0, 1}): 1, frozenset({6, 7}): 2, frozenset({8, 9}): 1, frozenset({8, 7}): 1, frozenset({8, 3}): 2, frozenset({5, 6}): 1, frozenset({0, 9}): 2}
+
+{frozenset({3, 4}): 2, frozenset({2, 3}): 1, frozenset({1, 2}): 2, frozenset({4, 5}): 1, frozenset({0, 1}): 1, frozenset({6, 7}): 1, frozenset({8, 9}): 1, frozenset({8, 7}): 2, frozenset({8, 3}): 1, frozenset({5, 6}): 2, frozenset({0, 9}): 2}
+
