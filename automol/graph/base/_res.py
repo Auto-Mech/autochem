@@ -2,6 +2,7 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+import itertools
 import numpy
 from automol.util import dict_
 from automol.graph.base._core import subgraph
@@ -53,56 +54,85 @@ def pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
     """
     atm_unsat_dct = (atom_unsaturations(gra, bond_order=False)
                      if atm_unsat_dct is None else atm_unsat_dct)
-    bnd_unsat_dct = bond_unsaturations(gra, bond_order=False)
 
     pi_sy = subgraph(gra, pi_keys)
-    bnd_keys = bond_keys(pi_sy)
+    atm_keys = atom_keys(pi_sy)
+    bnd_ord_dct = bond_orders(pi_sy)
 
     nkeys_dct = atoms_neighbor_atom_keys(pi_sy)
 
-    def _recurse_saturate(bord_dct, aus_dct, key, nkey, seen_keys):
-        bord_dct0 = bord_dct
+    bord_dcts = []
+    spin_min = sum(atm_unsat_dct.values())
+    call = 0
+
+    def _recurse_expand(key, seen_keys, bord_dct, aus_dct, spin):
+        nonlocal spin_min
+        nonlocal call
+        print()
+        print(f"call {call}")
+        print(f"key {key}")
+        print(f"seen_keys {seen_keys}")
+        print(f"bord_dct {bord_dct}")
+        print(f"aus_dct {aus_dct}")
+        print(f"spin {spin}")
+        call += 1
+
+        nset = nkeys_dct[key] - seen_keys
+        npool = list(itertools.chain(*(
+            itertools.repeat(n, aus_dct[n]) for n in nset)))
+
+        spin0 = spin
         aus_dct0 = aus_dct
-
-        seen_keys.add(nkey
-        nnkeys = nkeys_dct[nkey]
-        bkey = frozenset({key, nkey})
-        max_inc = min(aus_dct[key], aus_dct[nkey])
-        incs = list(reversed(range(max_inc+1)))
-        for inc in incs:
-            if inc != incs[-1]:
-                bord_dct = bord_dct0.copy()
-                aus_dct = aus_dct0.copy()
-
-            bord_dct[bkey] += inc
-            aus_dct[key] -= inc
-            aus_dct[nkey] -= inc
-
-            for 
-
-
-        seen_keys.add(key)
-        nkeys = nkeys_dct[key] - seen_keys
-
         bord_dct0 = bord_dct
-        aus_dct0 = aus_dct
-        for nkey in nkeys:
-            bkey = frozenset({key, nkey})
-            inc = min(aus_dct[key], aus_dct[nkey])
-            if inc:
-                bord_dct[bkey] += inc
-                aus_dct[key] -= inc
-                aus_dct[nkey] -= inc
-            _recurse_saturate(bord_dct, aus_dct, nkey, seen_keys)
+        seen_keys0 = seen_keys
 
-    bord_dct = bond_orders(pi_sy)
-    aus_dct = atm_unsat_dct
-    _recurse_saturate(bord_dct, aus_dct, 0, set())
-    print(bord_dct)
+        max_inc = aus_dct[key]
+        if npool:
+            for inc in reversed(range(max_inc+1)):
+                spin = spin0 + (max_inc - inc)
+                print(f'A spin {spin}')
+                print(f'A spin_min {spin_min}')
 
-    import sys
-    sys.exit()
+                # Use set to avoid duplicates
+                if spin <= spin_min:
+                    nkeys_lst = list(set(itertools.combinations(npool, inc)))
+                    for nkeys in nkeys_lst:
+                        aus_dct = aus_dct0.copy()
+                        bord_dct = bord_dct0.copy()
+                        seen_keys = seen_keys0.copy()
+                        print("A")
+                        print(f"A nkeys {nkeys}")
+                        for nkey in nkeys:
+                            bkey = frozenset({key, nkey})
+                            bord_dct[bkey] += 1
+                            aus_dct[key] -= 1
+                            aus_dct[nkey] -= 1
 
+                            seen_keys.add(nkey)
+
+                        print(f"A aus_dct {aus_dct}")
+                        print(f"A bord_dct {bord_dct}")
+                        print(f"A seen_keys {seen_keys}")
+
+                        if seen_keys == atm_keys:
+                            if bord_dct not in bord_dcts:
+                                bord_dcts.append(bord_dct)
+                                spin_min = min(spin_min, spin)
+                                print("A - New structure added!")
+
+                            continue
+
+                        print("A before recursion")
+
+                        for nkey in set(nkeys):
+                            _recurse_expand(nkey, seen_keys, bord_dct, aus_dct,
+                                            spin)
+
+                        print("A after recursion")
+
+    _recurse_expand(1, {1}, bnd_ord_dct.copy(), atm_unsat_dct.copy(), 0)
+
+    return bord_dcts
 
 
 def old_pi_system_resonance_bond_orders(gra, pi_keys, atm_unsat_dct=None):
@@ -275,9 +305,19 @@ def pi_system_atom_keys(gra, atm_unsat_dct=None):
 
 
 if __name__ == '__main__':
-    # C=C[CH2]
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+    # # C=C[CH2]
+    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+
+    # # C=C=C
+    # GRA = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+
+    # C=C=C=C
+    GRA = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 2, None)},
+           {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
+            frozenset({1, 2}): (1, None)})
 
     # # C=CC=CC=C
     # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
