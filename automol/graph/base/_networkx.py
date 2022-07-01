@@ -88,3 +88,9 @@ def subgraph_isomorphism(nxg1, nxg2):
         iso_dct = dict(matcher.mapping)
 
     return iso_dct
+
+
+def max_weight_matching(nxg):
+    """ subgraph isomorphism -- a subgraph of G1 is isomorphic to G2
+    """
+    return networkx.max_weight_matching(nxg, weight='order')
