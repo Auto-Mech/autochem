@@ -165,51 +165,60 @@ def pi_system_atom_keys(gra, atm_unsat_dct=None):
 
 
 if __name__ == '__main__':
-    # C=C[CH2]
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+    # # C=C[CH2]
+    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
 
-    # C=C=C
-    GRA = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+    # # C=C=C
+    # GRA = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
 
-    # C=C=C=C
-    GRA = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None)})
+    # # C=C=C=C
+    # GRA = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 0, None),
+    #         3: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None)})
 
-    # C=CC=CC=C
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
-            3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 2, None)},
+    # # C=CC=CC=C
+    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 2, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
+    #         frozenset({0, 1}): (1, None)})
+
+    # # C=C-C(-[CH2])=C
+    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 0, None),
+    #         3: ('C', 2, None), 6: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None), frozenset({2, 6}): (1, None)})
+
+    # # C1=CC=CC=C1 (benzene)
+    # GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
+    #         frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None)})
+
+    # C12=CC=C1C=C2  _  _
+    #              ||_||_||
+    GRA = ({0: ('C', 0, None), 1: ('C', 1, None), 2: ('C', 1, None),
+            3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 1, None)},
            {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
-            frozenset({0, 1}): (1, None)})
+            frozenset({1, 2}): (1, None), frozenset({0, 3}): (1, None),
+            frozenset({4, 5}): (1, None), frozenset({0, 1}): (1, None),
+            frozenset({0, 5}): (1, None)})
 
-    # C=C-C(-[CH2])=C
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 0, None),
-            3: ('C', 2, None), 6: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({2, 6}): (1, None)})
-
-    # C1=CC=CC=C1 (benzene)
-    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
-            3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None)},
-           {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
-            frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None)})
-
-    # C1=CC=C2C=CC=CC2=C1 (naphthalene)
-    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
-            3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 1, None),
-            6: ('C', 1, None), 7: ('C', 1, None), 8: ('C', 0, None),
-            9: ('C', 1, None)},
-           {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
-            frozenset({0, 1}): (1, None), frozenset({6, 7}): (1, None),
-            frozenset({8, 9}): (1, None), frozenset({8, 7}): (1, None),
-            frozenset({8, 3}): (1, None), frozenset({5, 6}): (1, None),
-            frozenset({0, 9}): (1, None)})
+    # # C1=CC=C2C=CC=CC2=C1 (naphthalene)
+    # GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 1, None),
+    #         6: ('C', 1, None), 7: ('C', 1, None), 8: ('C', 0, None),
+    #         9: ('C', 1, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
+    #         frozenset({0, 1}): (1, None), frozenset({6, 7}): (1, None),
+    #         frozenset({8, 9}): (1, None), frozenset({8, 7}): (1, None),
+    #         frozenset({8, 3}): (1, None), frozenset({5, 6}): (1, None),
+    #         frozenset({0, 9}): (1, None)})
 
     # # C1=CC2=C3C(=C1)C=CC4=CC=CC(=C43)C=C2 (pyrene)
     # GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
