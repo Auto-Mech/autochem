@@ -61,65 +61,51 @@ def kekules(gra):
         :returns: all possible low-spin kekule graphs
     """
     orig_gra = gra
+    bnd_ord_dcts = kekules_bond_orders(gra)
+    gras = []
+    for bnd_ord_dct in bnd_ord_dcts:
+        gra = set_bond_orders(orig_gra, bnd_ord_dct)
+        gras.append(gra)
+    return tuple(gras)
+
+
+def kekules_bond_orders(gra):
+    """ Bond orders for all possible low-spin kekule graphs
+
+        Low-spin kekule graphs have double and triple bonds assigned to
+        minimize the number of unpaired electrons.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: bond orders for all possible low-spin kekule graphs
+        :rtype: tuple[dict]
+    """
+    orig_bnd_ord_dct = bond_orders(gra)
     gra = implicit(without_dummy_bonds(without_fractional_bonds(gra)))
     gra = without_bond_orders(gra)
 
     # identify all of the independent pi systems and assign kekules to each
     pi_keys_lst = pi_system_atom_keys(gra)
-    pi_bord_dcts_lst = [pi_system_kekule_bond_orders_list(gra, pi_keys)
+    pi_bord_dcts_lst = [pi_system_kekules_bond_orders(gra, pi_keys)
                         for pi_keys in pi_keys_lst]
 
-    gras = []
+    bnd_ord_dcts = []
     # combine the kekules from each pi system together in all possible ways
     for bord_dcts in itertools.product(*pi_bord_dcts_lst):
-        bord_dct = {}
+        bord_dct = orig_bnd_ord_dct.copy()
         for dct in bord_dcts:
             bord_dct.update(dct)
-        gras.append(set_bond_orders(orig_gra, bord_dct))
+        bnd_ord_dcts.append(bord_dct)
 
-    if gras:
-        gras = tuple(gras)
+    if bnd_ord_dcts:
+        bnd_ord_dcts = tuple(bnd_ord_dcts)
     else:
-        gras = (orig_gra,)
+        bnd_ord_dcts = (orig_bnd_ord_dct,)
 
-    return gras
-
-
-def pi_system_atom_keys(gra):
-    """ Extract keys for each closed, connected pi-system of a molecule
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: keys for each closed, connected pi system
-    """
-    atm_unsat_dct = atom_unsaturations(gra, bond_order=False)
-    all_pi_keys = dict_.keys_by_value(atm_unsat_dct)
-    pi_keys_lst = connected_components_atom_keys(subgraph(gra, all_pi_keys))
-    return pi_keys_lst
+    return bnd_ord_dcts
 
 
-# def pi_system_kekule_bond_orders(gra, pi_keys, bnd_key=None):
-#     """ Determine a kekule structure for a closed, connected pi-system
-#
-#         Optionally, try making a particular bond key have a double bond.
-#
-#         :param gra: molecular graph
-#         :type gra: automol graph data structure
-#         :param pi_keys: keys of an closed, connected pi system
-#         :type pi_keys: frozenset[int]
-#         :param bnd_key: optionally, make this bond have a double bond
-#         :type bnd_key: frozenset[int]
-#     """
-#     pi_sy = subgraph(gra, pi_keys)
-#     bnd_weight_dct = (None if bnd_key is None else
-#                       {frozenset(bnd_key): 2})
-#
-#     bnd_keys = weighted_maximal_matching(
-#         pi_sy, bnd_weight_dct=bnd_weight_dct)
-#     print(bnd_keys)
-
-
-def pi_system_kekule_bond_orders_list(gra, pi_keys, log=False):
+def pi_system_kekules_bond_orders(gra, pi_keys, log=False):
     """ Determine kekules for a closed, connected pi-system
 
         A completely general algorithm.
@@ -157,8 +143,10 @@ def pi_system_kekule_bond_orders_list(gra, pi_keys, log=False):
         calls += 1
 
         nset = nkeys_dct[key] - vkeys_dct[key]
+        # Limit the neighbor pool to <=2 neighbors to prevent quadruple bonds
+        # (only applies to [C][C])
         npool = list(itertools.chain(*(
-            itertools.repeat(n, aus_dct[n]) for n in nset)))
+            itertools.repeat(n, min(aus_dct[n], 2)) for n in nset)))
 
         spin0 = spin
         aus_dct0 = aus_dct
@@ -213,6 +201,44 @@ def pi_system_kekule_bond_orders_list(gra, pi_keys, log=False):
         print(f"calls {calls}")
 
     return bord_dcts
+
+
+# def pi_system_kekule_bond_orders(gra, pi_keys, bnd_key=None):
+#     """ Determine a kekule structure for a closed, connected pi-system
+#
+#         Optionally, try making a particular bond key have a double bond.
+#
+#         :param gra: molecular graph
+#         :type gra: automol graph data structure
+#         :param pi_keys: keys of an closed, connected pi system
+#         :type pi_keys: frozenset[int]
+#         :param bnd_key: optionally, make this bond have a double bond
+#         :type bnd_key: frozenset[int]
+#     """
+#     pi_sy = subgraph(gra, pi_keys)
+#     bnd_weight_dct = (None if bnd_key is None else
+#                       {frozenset(bnd_key): 2})
+#
+#     bnd_keys = weighted_maximal_matching(
+#         pi_sy, bnd_weight_dct=bnd_weight_dct)
+#     print(bnd_keys)
+
+
+# # helpers
+def pi_system_atom_keys(gra):
+    """ Extract keys for each closed, connected pi-system of a molecule
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: keys for each closed, connected pi system
+    """
+    atm_unsat_dct = atom_unsaturations(gra, bond_order=False)
+    all_pi_keys = dict_.keys_by_value(atm_unsat_dct)
+    pi_keys_lst = tuple(
+        ks for ks in
+        connected_components_atom_keys(subgraph(gra, all_pi_keys))
+        if len(ks) > 1)
+    return pi_keys_lst
 
 
 if __name__ == '__main__':
@@ -355,10 +381,9 @@ if __name__ == '__main__':
     #         frozenset({6, 7}): (1, None), frozenset({8, 9}): (1, None),
     #         frozenset({8, 7}): (1, None), frozenset({5, 6}): (1, None)})
 
-    # CCO[O]
-    GRA = ({0: ('C', 3, None), 1: ('C', 2, None), 2: ('O', 0, None),
-            3: ('O', 0, None)},
-           {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None)})
+    # [C][C]
+    GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
+           {frozenset({0, 1}): (1, None)})
 
     print(len(kekules(GRA)))
+    print(kekules(GRA))
