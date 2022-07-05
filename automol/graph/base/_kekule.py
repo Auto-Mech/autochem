@@ -7,15 +7,19 @@ from automol.util import dict_
 from automol.graph.base._core import subgraph
 from automol.graph.base._core import implicit
 from automol.graph.base._core import atom_keys
+from automol.graph.base._core import atom_hybridizations
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import atoms_neighbor_atom_keys
+from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import without_bond_orders
+from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_dummy_bonds
 from automol.graph.base._core import without_fractional_bonds
+from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
 # from automol.graph.base._algo import weighted_maximal_matching
 
@@ -69,6 +73,22 @@ def kekules(gra):
     return tuple(gras)
 
 
+def kekule_bond_orders(gra, max_stereo_overlap=True):
+    """ Bond orders for one low-spin kekule graph
+
+        Low-spin kekule graphs have double and triple bonds assigned to
+        minimize the number of unpaired electrons.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param max_stereo_overlap: optionally, request as many stereo bonds as
+            possible to have a bond order of 2
+        :type max_stereo_overlap: bool
+        :returns: a bond order dictionary
+    """
+    return bond_orders(kekule(gra, max_stereo_overlap=max_stereo_overlap))
+
+
 def kekules_bond_orders(gra):
     """ Bond orders for all possible low-spin kekule graphs
 
@@ -103,6 +123,111 @@ def kekules_bond_orders(gra):
         bnd_ord_dcts = (orig_bnd_ord_dct,)
 
     return bnd_ord_dcts
+
+
+def kekules_bond_orders_collated(gra):
+    """ Bond orders for all possible low-spin kekule graphs, collated into a
+        single dictionary
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: bond orders for all possible low-spin kekule graphs
+        :rtype: tuple[dict]
+    """
+    bnd_keys = list(bond_keys(gra))
+    bnd_ords_lst = list(dict_.values_by_key(d, bnd_keys) for d in
+                        kekules_bond_orders(gra))
+    bnd_ords_dct = dict(zip(bnd_keys, zip(*bnd_ords_lst)))
+    return bnd_ords_dct
+
+
+def kekules_bond_orders_averaged(gra):
+    """ Bond orders for all possible low-spin kekule graphs, averaged
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: bond orders for all possible low-spin kekule graphs
+        :rtype: tuple[dict]
+    """
+    bnd_ords_dct = kekules_bond_orders_collated(gra)
+    avg_bnd_ord_dct = {k: sum(v)/len(v) for k, v in bnd_ords_dct.items()}
+    return avg_bnd_ord_dct
+
+
+# # derived properties
+def linear_atom_keys(gra, dummy=True):
+    """ atoms forming linear bonds, based on their hybridization
+
+    :param gra: the graph
+    :param dummy: whether or not to consider atoms connected to dummy atoms as
+        linear, if different from what would be predicted based on their
+        hybridization
+    :returns: the linear atom keys
+    :rtype: tuple[int]
+    """
+    gra = without_fractional_bonds(gra)
+    atm_hyb_dct = atom_hybridizations(implicit(kekule(gra)))
+    lin_atm_keys = set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
+
+    if dummy:
+        dum_ngb_key_dct = dummy_atoms_neighbor_atom_key(gra)
+        lin_atm_keys |= set(dum_ngb_key_dct.values())
+
+    lin_atm_keys = tuple(sorted(lin_atm_keys))
+    return lin_atm_keys
+
+
+def linear_segments_atom_keys(gra, lin_keys=None):
+    """ atom keys for linear segments in the graph
+    """
+    ngb_keys_dct = atoms_neighbor_atom_keys(without_dummy_atoms(gra))
+
+    lin_keys = (linear_atom_keys(gra, dummy=True)
+                if lin_keys is None else lin_keys)
+
+    lin_keys = [k for k in lin_keys if len(ngb_keys_dct[k]) <= 2]
+
+    lin_segs = connected_components(subgraph(gra, lin_keys))
+
+    lin_keys_lst = []
+    for lin_seg in lin_segs:
+        lin_seg_keys = atom_keys(lin_seg)
+        if len(lin_seg_keys) == 1:
+            key, = lin_seg_keys
+            lin_keys_lst.append([key])
+        else:
+            end_key1, end_key2 = sorted([
+                key for key, ngb_keys in
+                atoms_neighbor_atom_keys(lin_seg).items()
+                if len(ngb_keys) == 1])
+            ngb_keys_dct = atoms_neighbor_atom_keys(lin_seg)
+
+            key = None
+            keys = [end_key1]
+            while key != end_key2:
+                key, = ngb_keys_dct[keys[-1]] - set(keys)
+                keys.append(key)
+            lin_keys_lst.append(keys)
+
+    lin_keys_lst = tuple(map(tuple, lin_keys_lst))
+    return lin_keys_lst
+
+
+# # helpers
+def pi_system_atom_keys(gra):
+    """ Extract keys for each closed, connected pi-system of a molecule
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: keys for each closed, connected pi system
+    """
+    atm_unsat_dct = atom_unsaturations(gra, bond_order=False)
+    all_pi_keys = dict_.keys_by_value(atm_unsat_dct)
+    pi_keys_lst = tuple(
+        ks for ks in
+        connected_components_atom_keys(subgraph(gra, all_pi_keys))
+        if len(ks) > 1)
+    return pi_keys_lst
 
 
 def pi_system_kekules_bond_orders(gra, pi_keys, log=False):
@@ -222,23 +347,6 @@ def pi_system_kekules_bond_orders(gra, pi_keys, log=False):
 #     bnd_keys = weighted_maximal_matching(
 #         pi_sy, bnd_weight_dct=bnd_weight_dct)
 #     print(bnd_keys)
-
-
-# # helpers
-def pi_system_atom_keys(gra):
-    """ Extract keys for each closed, connected pi-system of a molecule
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: keys for each closed, connected pi system
-    """
-    atm_unsat_dct = atom_unsaturations(gra, bond_order=False)
-    all_pi_keys = dict_.keys_by_value(atm_unsat_dct)
-    pi_keys_lst = tuple(
-        ks for ks in
-        connected_components_atom_keys(subgraph(gra, all_pi_keys))
-        if len(ks) > 1)
-    return pi_keys_lst
 
 
 if __name__ == '__main__':
@@ -385,5 +493,16 @@ if __name__ == '__main__':
     GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
            {frozenset({0, 1}): (1, None)})
 
+    # C=C[CH2]
+    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
+           {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+
+    # C1=CC=CC=C1 (benzene)
+    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+            3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None)},
+           {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+            frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
+            frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None)})
+
     print(len(kekules(GRA)))
-    print(kekules(GRA))
+    print(kekules_bond_orders_collated(GRA))

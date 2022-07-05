@@ -692,14 +692,12 @@ def test__sigma_radical_atom_keys():
 
 
 # # bond properties
-def test__resonance_dominant_bond_orders():
-    """ test graph.resonance_dominant_bond_orders
+def test__kekules_bond_orders_collated():
+    """ test graph.kekules_bond_orders_collated
     """
-    assert graph.resonance_dominant_bond_orders(C3H3_CGR) == {
-        frozenset({0, 1}): frozenset({1, 2}),
-        frozenset({0, 2}): frozenset({1, 2}),
-        frozenset({1, 2}): frozenset({1, 2})
-    }
+    print(graph.kekules_bond_orders_collated(C3H3_CGR))
+    assert all(set(v) == {1, 2} for _, v in
+               graph.kekules_bond_orders_collated(C3H3_CGR).items())
 
 
 # # transformations
@@ -1378,7 +1376,4 @@ if __name__ == '__main__':
     # test__stereogenic_atom_keys()
     # test__expand_stereo()
     # test__ts__expand_reaction_stereo()
-    test__kekules()
-    test__backbone_unique()
-    test__smiles()
-    test__smiles__with_resonance()
+    test__kekules_bond_orders_collated()

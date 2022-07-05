@@ -179,16 +179,14 @@ from automol.graph.base._algo import ring_systems_decomposed_atom_keys
 # # core functions
 from automol.graph.base._kekule import kekule
 from automol.graph.base._kekule import kekules
-# DEPRECATE START
-# # core functions
-from automol.graph.base._resonance import resonances
-from automol.graph.base._resonance import subresonances
-from automol.graph.base._resonance import resonance_dominant_bond_orders
-from automol.graph.base._resonance import one_resonance_dominant_bond_orders
-from automol.graph.base._resonance import resonance_avg_bond_orders
+from automol.graph.base._kekule import kekule_bond_orders
+from automol.graph.base._kekule import kekules_bond_orders
+from automol.graph.base._kekule import kekules_bond_orders_collated
+from automol.graph.base._kekule import kekules_bond_orders_averaged
 # # derived properties
-from automol.graph.base._resonance import linear_atom_keys
-from automol.graph.base._resonance import linear_segments_atom_keys
+from automol.graph.base._kekule import linear_atom_keys
+from automol.graph.base._kekule import linear_segments_atom_keys
+# DEPRECATE START
 from automol.graph.base._resonance import radical_atom_keys
 from automol.graph.base._resonance import radical_atom_keys_from_resonance
 from automol.graph.base._resonance import has_resonance_bond_stereo
@@ -466,13 +464,14 @@ __all__ = [
     # # core functions
     'kekule',
     'kekules',
+    'kekule_bond_orders',
+    'kekules_bond_orders',
+    'kekules_bond_orders_collated',
+    'kekules_bond_orders_averaged',
+    # # derived properties
+    'linear_atom_keys',
+    'linear_segments_atom_keys',
     # DEPRECATE START
-    # # core functions
-    'resonances',
-    'subresonances',
-    'resonance_dominant_bond_orders',
-    'one_resonance_dominant_bond_orders',
-    'resonance_avg_bond_orders',
     # # derived properties
     'linear_atom_keys',
     'linear_segments_atom_keys',
