@@ -8,6 +8,8 @@ from automol.graph.base._core import subgraph
 from automol.graph.base._core import implicit
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
+from automol.graph.base._core import bond_orders
+from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import atoms_neighbor_atom_keys
@@ -15,15 +17,48 @@ from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_bonds
 from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._algo import connected_components_atom_keys
-from automol.graph.base._networkx import from_graph
-from automol.graph.base._networkx import max_weight_matching
+# from automol.graph.base._algo import weighted_maximal_matching
 
 
 # # core functions
-def kekules(gra):
-    """ possible kekule graphs, ignoring current bond orders
+def kekule(gra, max_stereo_overlap=True):
+    """ One low-spin kekule graph, ignoring current bond orders
 
-        Only includes kekules with minimum spin.
+        Low-spin kekule graphs have double and triple bonds assigned to
+        minimize the number of unpaired electrons.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param max_stereo_overlap: optionally, request as many stereo bonds as
+            possible to have a bond order of 2
+        :type max_stereo_overlap: bool
+        :returns: a kekule graph
+    """
+    ste_bnd_keys = bond_stereo_keys(gra)
+
+    def _count_stereo_double_bonds(gra):
+        bnd_ord_dct = bond_orders(gra)
+        count = sum(bnd_ord_dct[k] == 2 for k in ste_bnd_keys)
+        return count
+
+    gras = kekules(gra)
+    if not max_stereo_overlap:
+        gra = next(iter(gras))
+    else:
+        gra = max(gras, key=_count_stereo_double_bonds)
+
+    return gra
+
+
+def kekules(gra):
+    """ All possible low-spin kekule graphs, ignoring current bond orders
+
+        Low-spin kekule graphs have double and triple bonds assigned to
+        minimize the number of unpaired electrons.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: all possible low-spin kekule graphs
     """
     orig_gra = gra
     gra = implicit(without_dummy_bonds(without_fractional_bonds(gra)))
@@ -42,7 +77,11 @@ def kekules(gra):
             bord_dct.update(dct)
         gras.append(set_bond_orders(orig_gra, bord_dct))
 
-    gras = tuple(gras)
+    if gras:
+        gras = tuple(gras)
+    else:
+        gras = (orig_gra,)
+
     return gras
 
 
@@ -59,27 +98,25 @@ def pi_system_atom_keys(gra):
     return pi_keys_lst
 
 
-def pi_system_kekule_bond_orders(gra, pi_keys, bnd_key=None):
-    """ Determine a kekule structure for a closed, connected pi-system
-
-        Optionally, try making a particular bond key have a double bond.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param pi_keys: keys of an closed, connected pi system
-        :type pi_keys: frozenset[int]
-        :param bnd_key: optionally, make this bond have a double bond
-        :type bnd_key: frozenset[int]
-    """
-    pi_sy = subgraph(gra, pi_keys)
-    if bnd_key is not None:
-        bnd_key = frozenset(bnd_key)
-        pi_sy = set_bond_orders(pi_sy, {bnd_key: 2})
-
-    nxg = from_graph(pi_sy)
-    ret = max_weight_matching(nxg)
-    print(nxg)
-    print(ret)
+# def pi_system_kekule_bond_orders(gra, pi_keys, bnd_key=None):
+#     """ Determine a kekule structure for a closed, connected pi-system
+#
+#         Optionally, try making a particular bond key have a double bond.
+#
+#         :param gra: molecular graph
+#         :type gra: automol graph data structure
+#         :param pi_keys: keys of an closed, connected pi system
+#         :type pi_keys: frozenset[int]
+#         :param bnd_key: optionally, make this bond have a double bond
+#         :type bnd_key: frozenset[int]
+#     """
+#     pi_sy = subgraph(gra, pi_keys)
+#     bnd_weight_dct = (None if bnd_key is None else
+#                       {frozenset(bnd_key): 2})
+#
+#     bnd_keys = weighted_maximal_matching(
+#         pi_sy, bnd_weight_dct=bnd_weight_dct)
+#     print(bnd_keys)
 
 
 def pi_system_kekule_bond_orders_list(gra, pi_keys, log=False):
@@ -318,5 +355,10 @@ if __name__ == '__main__':
     #         frozenset({6, 7}): (1, None), frozenset({8, 9}): (1, None),
     #         frozenset({8, 7}): (1, None), frozenset({5, 6}): (1, None)})
 
-    # print(len(kekules(GRA)))
-    pi_system_kekule_bond_orders(GRA, atom_keys(GRA), {1, 2})
+    # CCO[O]
+    GRA = ({0: ('C', 3, None), 1: ('C', 2, None), 2: ('O', 0, None),
+            3: ('O', 0, None)},
+           {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
+            frozenset({1, 2}): (1, None)})
+
+    print(len(kekules(GRA)))

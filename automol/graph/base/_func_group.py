@@ -1,11 +1,11 @@
 """
   Use graph structures to identify chemical functional groups
 
-  Note: Code requires dominant-resonance explicit graphs to work
+  Note: Code requires explicit kekule graphs to work
 """
 
 import itertools
-from automol.graph.base._resonance import dominant_resonance
+from automol.graph.base._kekule import kekule
 from automol.graph.base._resonance import resonance_dominant_radical_atom_keys
 from automol.graph.base._algo import atom_groups
 from automol.graph.base._algo import rings_atom_keys
@@ -72,8 +72,8 @@ def functional_group_dct(gra):
         :rtype: dict[str: tuple(int)]
     """
 
-    # Convert to dominant-resonance explicit graph for the functions to work
-    gra = dominant_resonance(explicit(gra))
+    # Convert to explicit kekule graph for the functions to work
+    gra = kekule(explicit(gra))
 
     # Build a dictionary by calling all the functional group functions
     # Certain smaller groups are removed when they are a part of larger groups

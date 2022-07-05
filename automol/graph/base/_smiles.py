@@ -37,7 +37,7 @@ from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
-from automol.graph.base._resonance import dominant_resonance
+from automol.graph.base._kekule import kekule
 from automol.graph.base._resonance import radical_atom_keys_from_resonance
 from automol.graph.base._canon import canonical
 
@@ -105,7 +105,7 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
     gra = _insert_stereo_hydrogens(gra)
 
     # Find a dominant resonance
-    rgr = dominant_resonance(gra, max_stereo_overlap=True)
+    rgr = kekule(gra, max_stereo_overlap=True)
 
     # Determine bond orders for this resonance
     bnd_ord_dct = bond_orders(rgr)

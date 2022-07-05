@@ -14,7 +14,7 @@ from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_parities
 
 
-def from_graph(gra):
+def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):
     """ networkx graph object from a molecular graph
     """
     nxg = networkx.Graph()
@@ -29,6 +29,14 @@ def from_graph(gra):
                                  'order')
     networkx.set_edge_attributes(nxg, bond_stereo_parities(gra),
                                  'stereo_parity')
+
+    if node_attrib_dct is not None:
+        for name, dct in node_attrib_dct.items():
+            networkx.set_node_attributes(nxg, dct, name)
+
+    if edge_attrib_dct is not None:
+        for name, dct in edge_attrib_dct.items():
+            networkx.set_edge_attributes(nxg, dct, name)
 
     return nxg
 
@@ -90,7 +98,9 @@ def subgraph_isomorphism(nxg1, nxg2):
     return iso_dct
 
 
-def max_weight_matching(nxg):
+def weighted_maximal_matching(nxg, edge_attrib_name):
     """ subgraph isomorphism -- a subgraph of G1 is isomorphic to G2
     """
-    return networkx.max_weight_matching(nxg, weight='order')
+    ret = networkx.max_weight_matching(nxg, weight=edge_attrib_name)
+    bnd_keys = frozenset(map(frozenset, ret))
+    return bnd_keys

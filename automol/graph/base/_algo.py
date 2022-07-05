@@ -551,6 +551,19 @@ def longest_chain(gra):
     return max_chain
 
 
+def weighted_maximal_matching(gra, bnd_weight_dct=None):
+    """ Calculates a weighted maximal matching of a graph
+
+        That is, a set of edges that covers the graph as much as possible
+    """
+    edge_attrib_dct = (None if bnd_weight_dct is None else
+                       {'weight': bnd_weight_dct})
+    nxg = _networkx.from_graph(gra, edge_attrib_dct=edge_attrib_dct)
+    bnd_keys = _networkx.weighted_maximal_matching(
+        nxg, edge_attrib_name='weight')
+    return bnd_keys
+
+
 # # branches and groups
 def ring_atom_chirality(gra, atm, ring_atms, stereo=False):
     """is this ring atom a chiral center?

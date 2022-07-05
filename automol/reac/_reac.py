@@ -682,7 +682,7 @@ def filter_viable_reactions(rxns):
     def _high_spin_products(rxn):
         prd_gras = product_graphs(rxn)
         mult = sum(map(automol.graph.maximum_spin_multiplicity,
-                       map(automol.graph.dominant_resonance, prd_gras)))
+                       map(automol.graph.kekule, prd_gras)))
         # 4 allows for singlet+triplet or doublet+doublet products
         # 5 maybe best, allow for triplet+doublet (high-spin alkylrad+O2 HAbs)
         return mult > 4

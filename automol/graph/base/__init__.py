@@ -4,15 +4,15 @@ Import hierarchy:
     _core       no dependencies
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
-    _resonance  dependencies: _core, _networkx, _algo
-    _rot        dependencies: _core, _networkx, _algo, _resonance
-    _geom       dependencies: _core, _networkx, _algo, _resonance
-    _stereo     dependencies: _core, _networkx, _algo, _resonance
-    _canon      dependencies: _core, _networkx, _algo, _resonance
-    _func_group dependencies: _core, _networkx, _algo, _resonance, _stereo
-    _amchi      dependencies: _core, _networkx, _algo, _canon, _resonance
-    _smiles     dependencies: _core, _networkx, _algo, _canon, _resonance
-    ts          dependencies: _core, _networkx, _algo, _resonance, _stereo
+    _kekule     dependencies: _core, _networkx, _algo
+    _rot        dependencies: _core, _networkx, _algo, _kekule
+    _geom       dependencies: _core, _networkx, _algo, _kekule
+    _stereo     dependencies: _core, _networkx, _algo, _kekule
+    _canon      dependencies: _core, _networkx, _algo, _kekule
+    _func_group dependencies: _core, _networkx, _algo, _kekule, _stereo
+    _amchi      dependencies: _core, _networkx, _algo, _canon, _kekule
+    _smiles     dependencies: _core, _networkx, _algo, _canon, _kekule
+    ts          dependencies: _core, _networkx, _algo, _kekule, _stereo
 
 Each next submodule in the hierarchy may depend on the ones before it, but
 **not** the ones after. This avoids circular dependencies.
@@ -182,10 +182,12 @@ from automol.graph.base._algo import ring_systems_bond_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
-# resonance functions:
+# kekule functions:
 # # core functions
-from automol.graph.base._resonance import dominant_resonance
-from automol.graph.base._resonance import dominant_resonances
+from automol.graph.base._kekule import kekule
+from automol.graph.base._kekule import kekules
+# DEPRECATE START
+# # core functions
 from automol.graph.base._resonance import resonances
 from automol.graph.base._resonance import subresonances
 from automol.graph.base._resonance import resonance_dominant_bond_orders
@@ -212,6 +214,7 @@ from automol.graph.base._resonance import (
         resonance_dominant_atom_centered_cumulene_keys)
 from automol.graph.base._resonance import (
         resonance_dominant_bond_centered_cumulene_keys)
+# DEPRECATE END
 # canonicalization functions:
 # # canonical key functions
 from automol.graph.base._canon import canonical_enantiomer
@@ -453,10 +456,12 @@ __all__ = [
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
-    # resonance functions:
+    # kekule functions:
     # # core functions
-    'dominant_resonance',
-    'dominant_resonances',
+    'kekule',
+    'kekules',
+    # DEPRECATE START
+    # # core functions
     'resonances',
     'subresonances',
     'resonance_dominant_bond_orders',
@@ -480,6 +485,7 @@ __all__ = [
     'resonance_dominant_atom_hybridizations',
     'resonance_dominant_atom_centered_cumulene_keys',
     'resonance_dominant_bond_centered_cumulene_keys',
+    # DEPRECATE END
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',
