@@ -111,8 +111,8 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     # determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
     if not saddle:
-        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
+        rad_atms = automol.graph.radical_atom_keys(gra, sing_res=True)
+        res_rad_atms = automol.graph.radical_atom_keys(gra)
         rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []
@@ -312,8 +312,7 @@ def hydrogen_bonded_idxs(
         dist_mat = distance_matrix(geo)
         adj_atm_dct = automol.graph.atoms_neighbor_atom_keys(gra)
         h_idxs = automol.graph.atom_keys(gra, sym='H')
-        acceptor_idxs = list(
-            automol.graph.resonance_dominant_radical_atom_keys(gra))
+        acceptor_idxs = list(automol.graph.radical_atom_keys(gra))
         acceptor_idxs.extend(list(automol.graph.atom_keys(gra, sym='O')))
         # Loop over indices, ignoring H-idxs in reacting bonds
         hb_idxs = tuple(idx for idx in h_idxs

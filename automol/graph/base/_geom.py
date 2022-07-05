@@ -10,7 +10,7 @@ from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bonds_neighbor_atom_keys
 from automol.graph.base._core import bonds_neighbor_bond_keys
 from automol.graph.base._algo import branch
-from automol.graph.base._resonance import sp2_bond_keys
+from automol.graph.base._kekule import sp2_bond_keys
 
 
 def linear_vinyl_corrected_geometry(gra, geo, geo_idx_dct=None,

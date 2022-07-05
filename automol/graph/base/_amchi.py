@@ -21,7 +21,7 @@ from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
 from automol.graph.base._canon import canonical_enantiomer_with_keys
-from automol.graph.base._resonance import has_resonance_bond_stereo
+from automol.graph.base._kekule import has_resonance_bond_stereo
 import automol.amchi.base
 
 

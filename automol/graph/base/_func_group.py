@@ -6,7 +6,7 @@
 
 import itertools
 from automol.graph.base._kekule import kekule
-from automol.graph.base._resonance import resonance_dominant_radical_atom_keys
+from automol.graph.base._kekule import radical_atom_keys
 from automol.graph.base._algo import atom_groups
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import isomorphism
@@ -23,7 +23,6 @@ from automol.graph.base._core import subgraph
 from automol.graph.base._core import explicit
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import from_local_stereo
-from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
 
 
 # # core functions
@@ -138,7 +137,7 @@ def radical_species(gra):
         :type gra: molecular graph data structure
         :rtype: bool
     """
-    return bool(resonance_dominant_radical_atom_keys(gra))
+    return bool(radical_atom_keys(gra))
 
 
 # # finders for reactive sites and groups
@@ -200,7 +199,7 @@ def alkoxy_groups(gra):
 
     alkox_grps = tuple()
 
-    rad_keys = resonance_dominant_radical_atom_keys(gra)
+    rad_keys = radical_atom_keys(gra)
 
     co_bonds = bonds_of_type(gra, symb1='C', symb2='O', mbond=1)
     for co_bond in co_bonds:
@@ -223,7 +222,7 @@ def peroxy_groups(gra):
 
     coo_r_grps = tuple()
 
-    rad_idxs = resonance_dominant_radical_atom_keys(gra)
+    rad_idxs = radical_atom_keys(gra)
 
     coo_grps = two_bond_idxs(gra, symb1='C', cent='O', symb2='O')
     for coo_grp in coo_grps:
@@ -745,7 +744,7 @@ def radicals_of_type(gra, symb):
     idx_symb_dct = atom_symbols(gra)
 
     rad_keys = ()
-    for rad in sing_res_dom_radical_atom_keys(gra):
+    for rad in radical_atom_keys(gra, sing_res=True):
         if idx_symb_dct[rad] == symb:
             rad_keys += (rad,)
 
@@ -773,7 +772,7 @@ def radical_dissociation_products(gra, pgra1):
 
     # Attempt to find a graph of product corresponding to pgra1
     pgra2 = None
-    for rad in sing_res_dom_radical_atom_keys(gra):
+    for rad in radical_atom_keys(gra, sing_res=True):
         for adj in atoms_neighbor_atom_keys(gra)[rad]:
             for group in atom_groups(gra, adj, stereo=False):
                 if isomorphism(group, pgra1, backbone_only=True):

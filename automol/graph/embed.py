@@ -52,7 +52,7 @@ from automol.graph.base import atom_neighborhoods
 from automol.graph.base import bond_neighborhoods
 from automol.graph.base import atoms_neighbor_atom_keys
 from automol.graph.base import subgraph
-from automol.graph.base import resonance_dominant_atom_hybridizations
+from automol.graph.base import atom_hybridizations
 from automol.graph.base import atom_van_der_waals_radius
 from automol.graph.base import sp2_bond_keys
 from automol.graph.base import rings_atom_keys
@@ -663,7 +663,7 @@ def heuristic_bond_angle(gra, key1, key2, key3, degree=False, check=False,
         assert {key1, key3} <= set(atoms_neighbor_atom_keys(gra)[key2])
 
     if hyb_dct is None:
-        hyb_dct = resonance_dominant_atom_hybridizations(gra)
+        hyb_dct = atom_hybridizations(gra)
 
     hyb2 = hyb_dct[key2]
     if hyb2 == 3:
@@ -763,7 +763,7 @@ def path_distance_bounds_(gra):
     :type path: list or tuple
     """
 
-    hyb_dct = resonance_dominant_atom_hybridizations(gra)
+    hyb_dct = atom_hybridizations(gra)
     rng_keys_lst = rings_atom_keys(gra)
     atm_ngb_keys = atoms_neighbor_atom_keys(gra)
 

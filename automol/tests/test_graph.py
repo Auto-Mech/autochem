@@ -615,12 +615,12 @@ def test__bond_symmetry_numbers():
 
 # resonance graph library
 # # atom properties
-def test__resonance_dominant_atom_hybridizations():
-    """ test graph.resonance_dominant_atom_hybridizations
+def test__atom_hybridizations():
+    """ test graph.atom_hybridizations
     """
-    assert graph.resonance_dominant_atom_hybridizations(C3H3_CGR) == {
+    assert graph.atom_hybridizations(C3H3_CGR) == {
         0: 2, 1: 2, 2: 2}
-    assert graph.resonance_dominant_atom_hybridizations(C8H13O_CGR) == {
+    assert graph.atom_hybridizations(C8H13O_CGR) == {
         0: 3, 1: 2, 2: 3, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3}
 
     cgr = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
@@ -629,12 +629,12 @@ def test__resonance_dominant_atom_hybridizations():
            {frozenset({1, 4}): (1, None), frozenset({1, 2}): (1, None),
             frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
             frozenset({2, 5}): (1, None)})
-    assert graph.resonance_dominant_atom_hybridizations(cgr) == {
+    assert graph.atom_hybridizations(cgr) == {
         0: 2, 1: 2, 2: 3, 3: 0, 4: 0, 5: 0, 6: -1}
 
 
-def test__resonance_dominant_atom_centered_cumulene_keys():
-    """ test graph.resonance_dominant_atom_centered_cumulene_keys
+def test__atom_centered_cumulene_keys():
+    """ test graph.atom_centered_cumulene_keys
     """
     cgr = ({0: ('C', 1, None), 1: ('C', 2, None), 2: ('C', 0, None),
             3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 0, None),
@@ -642,29 +642,27 @@ def test__resonance_dominant_atom_centered_cumulene_keys():
            {frozenset({4, 6}): (1, None), frozenset({0, 2}): (1, None),
             frozenset({2, 4}): (1, None), frozenset({5, 6}): (1, None),
             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
-    assert (graph.resonance_dominant_atom_centered_cumulene_keys(cgr) ==
+    assert (graph.atom_centered_cumulene_keys(cgr) ==
             frozenset({(frozenset({1, 4}), 5)}))
 
 
-def test__resonance_dominant_bond_centered_cumulene_keys():
-    """ test graph.resonance_dominant_bond_centered_cumulene_keys
+def test__bond_centered_cumulene_keys():
+    """ test graph.bond_centered_cumulene_keys
     """
     cgr = ({0: ('C', 1, None), 1: ('C', 2, None), 2: ('C', 0, None),
             3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 0, None)},
            {frozenset({4, 5}): (1, None), frozenset({0, 2}): (1, None),
             frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({1, 3}): (1, None)})
-    assert (graph.resonance_dominant_bond_centered_cumulene_keys(cgr) ==
+    assert (graph.bond_centered_cumulene_keys(cgr) ==
             frozenset({(frozenset({1, 4}), frozenset({3, 5}))}))
 
 
-def test__resonance_dominant_radical_atom_keys():
-    """ test graph.resonance_dominant_radical_atom_keys
+def test__radical_atom_keys():
+    """ test graph.radical_atom_keys
     """
-    assert graph.resonance_dominant_radical_atom_keys(C3H3_CGR) == frozenset(
-        {0, 1, 2})
-    assert graph.resonance_dominant_radical_atom_keys(C8H13O_CGR) == frozenset(
-        {8})
+    assert graph.radical_atom_keys(C3H3_CGR) == frozenset({0, 1, 2})
+    assert graph.radical_atom_keys(C8H13O_CGR) == frozenset({8})
 
 
 def test__sigma_radical_atom_keys():
@@ -1364,7 +1362,6 @@ def test__smiles__with_resonance():
 if __name__ == '__main__':
     # test__smiles()
     # test__smiles()
-    # test__canonical()
     # test__calculate_priorities_and_assign_parities()
     # test__to_local_stereo()
 
@@ -1376,4 +1373,6 @@ if __name__ == '__main__':
     # test__stereogenic_atom_keys()
     # test__expand_stereo()
     # test__ts__expand_reaction_stereo()
-    test__kekules_bond_orders_collated()
+    # test__kekules_bond_orders_collated()
+    test__canonical()
+    test__inchi_is_bad()

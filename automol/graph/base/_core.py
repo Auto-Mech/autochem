@@ -583,24 +583,6 @@ def atom_explicit_hydrogen_valences(gra):
     return dict_.transform_values(atom_explicit_hydrogen_keys(gra), len)
 
 
-def atom_hybridizations(gra):
-    """ atom hybridizations, by atom
-    """
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
-    atm_keys = list(atom_keys(gra))
-    atm_unsat_dct = atom_unsaturations(gra, bond_order=True)
-    atm_bnd_vlc_dct = atom_bond_valences(gra, bond_order=False)     # note!!
-    atm_unsats = numpy.array(
-        dict_.values_by_key(atm_unsat_dct, atm_keys))
-    atm_bnd_vlcs = numpy.array(dict_.values_by_key(atm_bnd_vlc_dct, atm_keys))
-    atm_lpcs = numpy.array(
-        dict_.values_by_key(atom_lone_pair_counts(gra), atm_keys))
-    atm_hybs = atm_unsats + atm_bnd_vlcs + atm_lpcs - 1
-    atm_hyb_dct = dict_.transform_values(
-        dict(zip(atm_keys, atm_hybs)), int)
-    return atm_hyb_dct
-
-
 def atom_unsaturations(gra, bond_order=True):
     """ Atom unsaturations, i.e. spaces for bonding
 
