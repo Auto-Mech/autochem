@@ -439,7 +439,7 @@ def radical_group_dct(gra):
     return groups
 
 
-def sp2_bond_keys(gra):
+def rigid_planar_bond_keys(gra):
     """ determine the sp2 bonds in this graph
     """
     gra = without_bond_orders(gra)

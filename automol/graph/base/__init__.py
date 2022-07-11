@@ -203,7 +203,7 @@ from automol.graph.base._kekule import has_separated_radical_sites
 from automol.graph.base._kekule import has_resonance_bond_stereo
 from automol.graph.base._kekule import radical_groups
 from automol.graph.base._kekule import radical_group_dct
-from automol.graph.base._kekule import sp2_bond_keys
+from automol.graph.base._kekule import rigid_planar_bond_keys
 from automol.graph.base._kekule import atom_centered_cumulene_keys
 from automol.graph.base._kekule import bond_centered_cumulene_keys
 # canonicalization functions:
@@ -468,7 +468,7 @@ __all__ = [
     'has_resonance_bond_stereo',
     'radical_groups',
     'radical_group_dct',
-    'sp2_bond_keys',
+    'rigid_planar_bond_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
     # canonicalization functions:

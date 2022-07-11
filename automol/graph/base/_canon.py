@@ -45,7 +45,7 @@ from automol.graph.base._core import string as graph_string
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
-from automol.graph.base._kekule import sp2_bond_keys
+from automol.graph.base._kekule import rigid_planar_bond_keys
 
 
 # # canonical key functions
@@ -1082,7 +1082,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,
                                                        break_ties=False)
-    bnd_keys = sp2_bond_keys(gra)
+    bnd_keys = rigid_planar_bond_keys(gra)
     if not assigned:
         # Remove assigned stereo keys
         bnd_keys -= bond_stereo_keys(gra)
