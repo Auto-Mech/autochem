@@ -14,6 +14,7 @@ from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import atom_unsaturations
+from automol.graph.base._core import bond_unsaturations
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import atom_bond_valences
@@ -111,8 +112,9 @@ def kekules_bond_orders(gra):
 
     # identify all of the independent pi systems and assign kekules to each
     pi_keys_lst = pi_system_atom_keys(gra)
-    pi_bord_dcts_lst = [pi_system_kekules_bond_orders(gra, pi_keys)
-                        for pi_keys in pi_keys_lst]
+    pi_bord_dcts_lst = [
+        pi_system_kekules_bond_orders_brute_force(gra, pi_keys)
+        for pi_keys in pi_keys_lst]
 
     bnd_ord_dcts = []
     # combine the kekules from each pi system together in all possible ways
@@ -514,16 +516,10 @@ def pi_system_atom_keys(gra):
     return pi_keys_lst
 
 
-def pi_system_kekules_bond_orders(gra, pi_keys, log=False):
+def pi_system_kekules_bond_orders_brute_force(gra, pi_keys, log=False):
     """ Determine kekules for a closed, connected pi-system
 
-        A completely general algorithm.
-
-        Strategy:
-        Recursively visit one atom at a time and loop through all possible bond
-        assignments for it with its neighbors, starting from the greatest
-        number of bonds and working down to the least. Then continue the
-        recursion for each neighboring atom.
+        A general brute-force algorithm
 
         :param gra: molecular graph
         :type gra: automol graph data structure
@@ -533,113 +529,46 @@ def pi_system_kekules_bond_orders(gra, pi_keys, log=False):
         :type log: bool
     """
     pi_sy = subgraph(gra, pi_keys)
-    atm_keys = atom_keys(pi_sy)
-    bnd_keys = bond_keys(pi_sy)
-
-    nkeys_dct = atoms_neighbor_atom_keys(pi_sy)
+    atm_keys = list(atom_keys(pi_sy))
+    bnd_keys = list(bond_keys(pi_sy))
 
     aus_dct = dict_.by_key(
         atom_unsaturations(gra, bond_order=False), atm_keys)
-    spin_min = sum(aus_dct.values())
+    bus_dct = dict_.by_key(
+        bond_unsaturations(gra, bond_order=False), bnd_keys)
 
-    bord_dcts = []
+    spin_max = spin_min = sum(aus_dct.values())
 
-    calls = 0
+    bnd_pool = list(itertools.chain(*(
+        itertools.repeat(k, min(bus_dct[k], 2)) for k in bnd_keys)))
 
-    def _recurse_expand(key, vkeys_dct, bord_dct, aus_dct, spin):
-        nonlocal bord_dcts
-        nonlocal spin_min
-        nonlocal calls
-        calls += 1
+    inc_bkeys_iter = ((inc, bkeys) for inc in range(spin_max // 2, 0, -1)
+                      for bkeys in itertools.combinations(bnd_pool, inc))
 
-        nset = nkeys_dct[key] - vkeys_dct[key]
-        # Limit the neighbor pool to <=2 neighbors to prevent quadruple bonds
-        # (only applies to [C][C])
-        npool = list(itertools.chain(*(
-            itertools.repeat(n, min(aus_dct[n], 2)) for n in nset)))
+    bnd_ord_dcts = []
+    niter = 0
+    for inc, bkeys in inc_bkeys_iter:
+        niter += 1
+        spin = spin_max - inc * 2
 
-        spin0 = spin
-        aus_dct0 = aus_dct
-        bord_dct0 = bord_dct
-        vkeys_dct = vkeys_dct.copy()
+        if spin > spin_min:
+            break
 
-        max_inc = aus_dct[key]
-        if nset:
-            # Update the dictionary of visited keys
-            vkeys_dct[key] |= nset
-            for nkey in nset:
-                vkeys_dct[nkey] |= {key}
-
-            incs = list(reversed(range(max_inc+1)))
-            for inc in incs:
-                spin = spin0 + (max_inc - inc)
-
-                if spin <= spin_min:
-                    nkeys_lst = list(set(itertools.combinations(npool, inc)))
-                    for nkeys in nkeys_lst:
-                        aus_dct = aus_dct0.copy()
-                        bord_dct = bord_dct0.copy()
-
-                        for nkey in nkeys:
-                            bkey = frozenset({key, nkey})
-                            bord_dct[bkey] += 1
-                            aus_dct[key] -= 1
-                            aus_dct[nkey] -= 1
-
-                        if sum(aus_dct.values()) == 0:
-                            print()
-                            print(bord_dct)
-                            print(f'vkeys_dct {vkeys_dct}')
-                            print(f'nkeys_dct {nkeys_dct}')
-                            import sys
-                            sys.exit
-
-                        if vkeys_dct == nkeys_dct:
-                            spin = sum(aus_dct.values())
-                            if bord_dct not in bord_dcts:
-                                if spin == spin_min:
-                                    bord_dcts.append(bord_dct)
-                                elif spin < spin_min:
-                                    bord_dcts = [bord_dct]
-                                    spin_min = spin
-
-                            continue
-
-                        for nkey in nset:
-                            _recurse_expand(
-                                nkey, vkeys_dct, bord_dct, aus_dct, spin)
-
-    start_key = sorted(atom_keys(pi_sy))[0]
-    vkeys_dct = {k: frozenset() for k in atm_keys}
-    bord_dct = {k: 1 for k in bnd_keys}
-    start_spin = 0
-    _recurse_expand(start_key, vkeys_dct, bord_dct, aus_dct, start_spin)
+        akeys = list(itertools.chain(*bkeys))
+        excess = next(
+            (k for k in set(akeys) if aus_dct[k] < akeys.count(k)), None)
+        if excess is None:
+            spin_min = spin
+            bnd_ord_dct = {k: 1 + bkeys.count(k) for k in set(bkeys)}
+            if bnd_ord_dct not in bnd_ord_dcts:
+                bnd_ord_dcts.append(bnd_ord_dct)
+        else:
+            continue
 
     if log:
-        print(f"calls {calls}")
+        print(f"niter: {niter}")
 
-    return bord_dcts
-
-
-# def pi_system_kekule_bond_orders(gra, pi_keys, bnd_key=None):
-#     """ Determine a kekule structure for a closed, connected pi-system
-#
-#         Optionally, try making a particular bond key have a double bond.
-#
-#         :param gra: molecular graph
-#         :type gra: automol graph data structure
-#         :param pi_keys: keys of an closed, connected pi system
-#         :type pi_keys: frozenset[int]
-#         :param bnd_key: optionally, make this bond have a double bond
-#         :type bnd_key: frozenset[int]
-#     """
-#     pi_sy = subgraph(gra, pi_keys)
-#     bnd_weight_dct = (None if bnd_key is None else
-#                       {frozenset(bnd_key): 2})
-#
-#     bnd_keys = weighted_maximal_matching(
-#         pi_sy, bnd_weight_dct=bnd_weight_dct)
-#     print(bnd_keys)
+    return bnd_ord_dcts
 
 
 def _cumulene_chains(gra):
@@ -678,15 +607,15 @@ def _cumulene_chains(gra):
 
 
 if __name__ == '__main__':
-    # C=C[CH2]
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
+    # # C=C[CH2]
+    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
 
-    # C=CC=C[CH2]
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
-            3: ('C', 1, None), 4: ('C', 2, None)},
-           {frozenset({3, 4}): (1, None), frozenset({0, 1}): (1, None),
-            frozenset({2, 3}): (1, None), frozenset({1, 2}): (1, None)})
+    # # C=CC=C[CH2]
+    # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 1, None), 4: ('C', 2, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({0, 1}): (1, None),
+    #         frozenset({2, 3}): (1, None), frozenset({1, 2}): (1, None)})
 
     # # C=C=C=C
     # GRA = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 0, None),
@@ -808,29 +737,9 @@ if __name__ == '__main__':
     #         frozenset({8, 9}): (1, None), frozenset({16, 23}): (1, None),
     #         frozenset({19, 22}): (1, None), frozenset({12, 13}): (1, None)})
 
-    # # [CH2]C=CCC=CC=C[CH2]
-    # GRA = ({0: ('C', 2, None), 3: ('C', 1, None), 4: ('C', 1, None),
-    #         5: ('C', 2, None), 6: ('C', 1, None), 7: ('C', 1, None),
-    #         8: ('C', 1, None), 9: ('C', 1, None), 10: ('C', 2, None)},
-    #        {frozenset({3, 4}): (1, None), frozenset({9, 10}): (1, None),
-    #         frozenset({0, 3}): (1, None), frozenset({4, 5}): (1, None),
-    #         frozenset({6, 7}): (1, None), frozenset({8, 9}): (1, None),
-    #         frozenset({8, 7}): (1, None), frozenset({5, 6}): (1, None)})
-
-    # [C][C]
-    GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
-           {frozenset({0, 1}): (1, None)})
-
-    # C=C[CH2]
-    GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
-
-    # C1=CC=CC=C1 (benzene)
-    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
-            3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None)},
-           {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
-            frozenset({0, 1}): (1, None), frozenset({0, 5}): (1, None)})
+    # # [C][C]
+    # GRA = ({0: ('C', 0, None), 1: ('C', 0, None)},
+    #        {frozenset({0, 1}): (1, None)})
 
     # [CH]=CCC#CC1C=CC=CC=1
     GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 2, None),
@@ -844,20 +753,19 @@ if __name__ == '__main__':
             frozenset({3, 5}): (1, None), frozenset({8, 5}): (1, None),
             frozenset({4, 7}): (1, None)})
 
-    # C#CC=C
-    GRA = ({0: ('C', 1, None), 1: ('C', 0, None), 2: ('C', 1, None),
-            3: ('C', 2, None)},
-           {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
-            frozenset({1, 2}): (1, None)})
+    # # C#CC=C
+    # GRA = ({0: ('C', 1, None), 1: ('C', 0, None), 2: ('C', 1, None),
+    #         3: ('C', 2, None)},
+    #        {frozenset({0, 1}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None)})
 
-    # C#CC1C=CC=CC=1
-    GRA = ({3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
-            6: ('C', 1, None), 7: ('C', 0, None), 8: ('C', 1, None),
-            9: ('C', 1, None), 10: ('C', 0, None)},
-           {frozenset({9, 6}): (1, None), frozenset({9, 10}): (1, None),
-            frozenset({10, 7}): (1, None), frozenset({3, 6}): (1, None),
-            frozenset({8, 10}): (1, None), frozenset({3, 5}): (1, None),
-            frozenset({8, 5}): (1, None), frozenset({4, 7}): (1, None)})
+    # # C#CC1C=CC=CC=1
+    # GRA = ({3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
+    #         6: ('C', 1, None), 7: ('C', 0, None), 8: ('C', 1, None),
+    #         9: ('C', 1, None), 10: ('C', 0, None)},
+    #        {frozenset({9, 6}): (1, None), frozenset({9, 10}): (1, None),
+    #         frozenset({10, 7}): (1, None), frozenset({3, 6}): (1, None),
+    #         frozenset({8, 10}): (1, None), frozenset({3, 5}): (1, None),
+    #         frozenset({8, 5}): (1, None), frozenset({4, 7}): (1, None)})
 
-    import automol
-    print(automol.graph.string(kekule(GRA), one_indexed=False))
+    print(len(kekules(GRA)))
