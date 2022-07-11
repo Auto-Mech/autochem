@@ -212,6 +212,14 @@ def _connected_geometry(chi, check=True):
             geo = automol.graph.stereo_corrected_geometry(
                 gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
 
+            # Now, make sure the connectivity still matches
+            gra_ = automol.geom.graph(geo)
+            geo_idx_dct = automol.graph.isomorphism(
+                    gra, gra_, stereo=False)
+
+            if geo_idx_dct is None:
+                continue
+
             success = True
             break
 
