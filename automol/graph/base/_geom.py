@@ -10,7 +10,7 @@ from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bonds_neighbor_atom_keys
 from automol.graph.base._core import bonds_neighbor_bond_keys
 from automol.graph.base._algo import branch
-from automol.graph.base._kekule import sp2_bond_keys
+from automol.graph.base._kekule import rigid_planar_bond_keys
 
 
 def linear_vinyl_corrected_geometry(gra, geo, geo_idx_dct=None,
@@ -34,7 +34,7 @@ def linear_vinyl_corrected_geometry(gra, geo, geo_idx_dct=None,
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
-    bnd_keys = sp2_bond_keys(gra)
+    bnd_keys = rigid_planar_bond_keys(gra)
 
     for bnd1_key in bnd_keys:
         for bnd2_key in bnbkeys_dct[bnd1_key]:
