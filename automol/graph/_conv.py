@@ -19,7 +19,7 @@ from automol.graph.base import atom_unsaturations
 from automol.graph.base import explicit
 from automol.graph.base import without_dummy_atoms
 from automol.graph.base import backbone_isomorphic
-from automol.graph.base import dominant_resonance
+from automol.graph.base import kekule
 from automol.graph.base import set_stereo_from_geometry
 from automol.graph.base import smiles
 from automol.graph.base import amchi
@@ -196,17 +196,6 @@ def chi(gra, stereo=True):
         :returns: ChI string
         :rtype: str
     """
-
-    # old implementation
-    # if has_resonance_bond_stereo(gra):
-    #     ret = amchi(gra, stereo=stereo)
-    # else:
-    #     ret = inchi(gra, stereo=stereo)
-    #     # If the InChI has mobile hydrogens, revert back to AMChI
-    #     if automol.amchi.base.has_mobile_hydrogens(ret):
-    #         ret = amchi(gra, stereo=stereo)
-
-    # new implementation
     ret = inchi(gra, stereo=stereo)
     if inchi_is_bad(gra, ret):
         ret = amchi(gra, stereo=stereo)
@@ -229,7 +218,7 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
         :rtype: (str, dict)
     """
     gra = without_dummy_atoms(gra)
-    gra = dominant_resonance(gra)
+    gra = kekule(gra)
     atm_keys = sorted(atom_keys(gra))
     bnd_keys = list(bond_keys(gra))
     atm_syms = dict_.values_by_key(atom_symbols(gra), atm_keys)

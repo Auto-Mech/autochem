@@ -45,7 +45,7 @@ from automol.graph.base._core import string as graph_string
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
-from automol.graph.base._resonance import sp2_bond_keys
+from automol.graph.base._kekule import sp2_bond_keys
 
 
 # # canonical key functions

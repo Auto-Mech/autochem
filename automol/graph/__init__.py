@@ -61,9 +61,9 @@ from automol.graph.base._core import atom_element_valences
 from automol.graph.base._core import atom_lone_pair_counts
 from automol.graph.base._core import atom_van_der_waals_radius
 from automol.graph.base._core import atom_bond_valences
-from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import atom_explicit_hydrogen_valences
-from automol.graph.base._core import atom_hybridizations
+from automol.graph.base._core import atom_unsaturations
+from automol.graph.base._core import bond_unsaturations
 from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
@@ -111,11 +111,14 @@ from automol.graph.base._core import union_from_sequence
 # # subgraphs and neighborhoods
 from automol.graph.base._core import subgraph
 from automol.graph.base._core import bond_induced_subgraph
+from automol.graph.base._core import subgraph_neighborhood
+from automol.graph.base._core import subgraph_neighbor_atom_keys
 from automol.graph.base._core import atom_neighborhood
 from automol.graph.base._core import atom_neighborhoods
 from automol.graph.base._core import bond_neighborhood
 from automol.graph.base._core import bond_neighborhoods
 from automol.graph.base._core import atom_neighbor_atom_key
+from automol.graph.base._core import atom_neighbor_atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atom_sorted_neighbor_atom_keys
 from automol.graph.base._core import atoms_sorted_neighbor_atom_keys
@@ -171,36 +174,31 @@ from automol.graph.base._algo import ring_systems_bond_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
-# resonance functions:
+# kekule functions:
 # # core functions
-from automol.graph.base._resonance import dominant_resonance
-from automol.graph.base._resonance import dominant_resonances
-from automol.graph.base._resonance import resonances
-from automol.graph.base._resonance import subresonances
-from automol.graph.base._resonance import resonance_dominant_bond_orders
-from automol.graph.base._resonance import one_resonance_dominant_bond_orders
-from automol.graph.base._resonance import resonance_avg_bond_orders
+from automol.graph.base._kekule import kekule
+from automol.graph.base._kekule import kekules
+from automol.graph.base._kekule import kekule_bond_orders
+from automol.graph.base._kekule import kekules_bond_orders
+from automol.graph.base._kekule import kekules_bond_orders_collated
+from automol.graph.base._kekule import kekules_bond_orders_averaged
 # # derived properties
-from automol.graph.base._resonance import linear_atom_keys
-from automol.graph.base._resonance import linear_segments_atom_keys
-from automol.graph.base._resonance import radical_atom_keys
-from automol.graph.base._resonance import radical_atom_keys_from_resonance
-from automol.graph.base._resonance import has_resonance_bond_stereo
-from automol.graph.base._resonance import has_separated_radical_sites
-from automol.graph.base._resonance import nonresonant_radical_atom_keys
-from automol.graph.base._resonance import vinyl_radical_atom_keys
-from automol.graph.base._resonance import sigma_radical_atom_keys
-from automol.graph.base._resonance import resonance_dominant_radical_atom_keys
-from automol.graph.base._resonance import sing_res_dom_radical_atom_keys
-from automol.graph.base._resonance import radical_groups
-from automol.graph.base._resonance import radical_group_dct
-from automol.graph.base._resonance import sp2_bond_keys
-from automol.graph.base._resonance import (
-        resonance_dominant_atom_hybridizations)
-from automol.graph.base._resonance import (
-        resonance_dominant_atom_centered_cumulene_keys)
-from automol.graph.base._resonance import (
-        resonance_dominant_bond_centered_cumulene_keys)
+from automol.graph.base._kekule import linear_atom_keys
+from automol.graph.base._kekule import linear_segments_atom_keys
+from automol.graph.base._kekule import atom_hybridizations
+from automol.graph.base._kekule import atom_hybridizations_from_kekule
+from automol.graph.base._kekule import radical_atom_keys
+from automol.graph.base._kekule import radical_atom_keys_from_kekule
+from automol.graph.base._kekule import nonresonant_radical_atom_keys
+from automol.graph.base._kekule import vinyl_radical_atom_keys
+from automol.graph.base._kekule import sigma_radical_atom_keys
+from automol.graph.base._kekule import has_separated_radical_sites
+from automol.graph.base._kekule import has_resonance_bond_stereo
+from automol.graph.base._kekule import radical_groups
+from automol.graph.base._kekule import radical_group_dct
+from automol.graph.base._kekule import sp2_bond_keys
+from automol.graph.base._kekule import atom_centered_cumulene_keys
+from automol.graph.base._kekule import bond_centered_cumulene_keys
 # canonicalization functions:
 # # canonical key functions
 from automol.graph.base._canon import canonical_enantiomer
@@ -341,9 +339,9 @@ __all__ = [
     'atom_lone_pair_counts',
     'atom_van_der_waals_radius',
     'atom_bond_valences',
-    'atom_unsaturations',
     'atom_explicit_hydrogen_valences',
-    'atom_hybridizations',
+    'atom_unsaturations',
+    'bond_unsaturations',
     'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
@@ -391,11 +389,14 @@ __all__ = [
     # # subgraphs and neighborhoods
     'subgraph',
     'bond_induced_subgraph',
+    'subgraph_neighborhood',
+    'subgraph_neighbor_atom_keys',
     'atom_neighborhood',
     'atom_neighborhoods',
     'bond_neighborhood',
     'bond_neighborhoods',
     'atom_neighbor_atom_key',
+    'atom_neighbor_atom_keys',
     'atoms_neighbor_atom_keys',
     'atom_sorted_neighbor_atom_keys',
     'atoms_sorted_neighbor_atom_keys',
@@ -451,33 +452,31 @@ __all__ = [
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
-    # resonance functions:
+    # kekule functions:
     # # core functions
-    'dominant_resonance',
-    'dominant_resonances',
-    'resonances',
-    'subresonances',
-    'resonance_dominant_bond_orders',
-    'one_resonance_dominant_bond_orders',
-    'resonance_avg_bond_orders',
+    'kekule',
+    'kekules',
+    'kekule_bond_orders',
+    'kekules_bond_orders',
+    'kekules_bond_orders_collated',
+    'kekules_bond_orders_averaged',
     # # derived properties
     'linear_atom_keys',
     'linear_segments_atom_keys',
+    'atom_hybridizations',
+    'atom_hybridizations_from_kekule',
     'radical_atom_keys',
-    'radical_atom_keys_from_resonance',
-    'has_resonance_bond_stereo',
-    'has_separated_radical_sites',
+    'radical_atom_keys_from_kekule',
     'nonresonant_radical_atom_keys',
     'vinyl_radical_atom_keys',
     'sigma_radical_atom_keys',
-    'resonance_dominant_radical_atom_keys',
-    'sing_res_dom_radical_atom_keys',
+    'has_separated_radical_sites',
+    'has_resonance_bond_stereo',
     'radical_groups',
     'radical_group_dct',
     'sp2_bond_keys',
-    'resonance_dominant_atom_hybridizations',
-    'resonance_dominant_atom_centered_cumulene_keys',
-    'resonance_dominant_bond_centered_cumulene_keys',
+    'atom_centered_cumulene_keys',
+    'bond_centered_cumulene_keys',
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',
@@ -485,10 +484,13 @@ __all__ = [
     'canonical',
     'canonical_keys',
     # # canonical stereo functions
+    'stereogenic_atom_keys',
+    'stereogenic_bond_keys',
     'reflect',
     'reflect_local_stereo',
     'to_local_stereo',
     'from_local_stereo',
+    'set_stereo_from_geometry',
     # # symmetry class functions
     'canonical_priorities',
     'calculate_priorities_and_assign_parities',
@@ -544,11 +546,6 @@ __all__ = [
     'local_bond_stereo_parity_from_geometry',
     # # stereo correction
     'stereo_corrected_geometry',
-    # # core functions
-    'stereogenic_atom_keys',
-    'stereogenic_bond_keys',
-    # # stereo setting code
-    'set_stereo_from_geometry',
     # AMChI functions:
     'amchi',
     'amchi_with_indices',

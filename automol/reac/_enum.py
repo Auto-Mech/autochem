@@ -24,7 +24,7 @@ from automol.graph import atom_neighbor_atom_key
 from automol.graph import atoms_neighbor_atom_keys
 from automol.graph import atom_equivalence_class_reps
 from automol.graph import bond_equivalence_class_reps
-from automol.graph import resonance_avg_bond_orders
+from automol.graph import kekules_bond_orders_averaged
 from automol.graph import are_equivalent_atoms
 from automol.graph import hydroperoxy_groups
 from automol.reac._reac import Reaction
@@ -128,7 +128,7 @@ def homolytic_scissions(rct_gras, viable_only=False):
         rct_gra, = rct_gras
 
         # Identify all pure single bonds involving radical site neighbor
-        avg_bnd_ord_dct = resonance_avg_bond_orders(rct_gra)
+        avg_bnd_ord_dct = kekules_bond_orders_averaged(rct_gra)
         brk_bnd_keys = dict_.keys_by_value(avg_bnd_ord_dct, lambda x: x == 1)
 
         for brk_bnd_key in brk_bnd_keys:
@@ -194,7 +194,7 @@ def beta_scissions(rct_gras, viable_only=True):
             rad_neighs = rad_neighs | neigh_dct[rad_key]
 
         # Identify all pure single bonds involving radical site neighbor
-        avg_bnd_ord_dct = resonance_avg_bond_orders(rct_gra)
+        avg_bnd_ord_dct = kekules_bond_orders_averaged(rct_gra)
         brk_bnd_keys = dict_.keys_by_value(avg_bnd_ord_dct, lambda x: x == 1)
 
         beta_bnd_keys = ()
@@ -566,7 +566,7 @@ def insertions(rct_gras, viable_only=True):
             atm_keys = tuple(atm_keys)
             # So are atoms on either side of a multiple bond
             bnd_keys = dict_.keys_by_value(
-                resonance_avg_bond_orders(rct1_gra), lambda x: x > 1.)
+                kekules_bond_orders_averaged(rct1_gra), lambda x: x > 1.)
             bnd_keys = bond_equivalence_class_reps(rct1_gra, bnd_keys)
             # Use this to form a list of attacking atom pairs for R1
             att_pairs = list(map(tuple, map(sorted, bnd_keys)))
@@ -574,7 +574,7 @@ def insertions(rct_gras, viable_only=True):
 
             # As donor pairs, consider single bonds on R2
             don_bnd_keys = dict_.keys_by_value(
-                resonance_avg_bond_orders(rct2_gra), lambda x: x == 1.)
+                kekules_bond_orders_averaged(rct2_gra), lambda x: x == 1.)
             don_bnd_keys = bond_equivalence_class_reps(rct2_gra, don_bnd_keys)
             don_pairs = list(map(tuple, map(sorted, don_bnd_keys)))
 

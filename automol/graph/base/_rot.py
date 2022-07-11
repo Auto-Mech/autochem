@@ -5,8 +5,8 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 import itertools
 from automol.util import dict_
-from automol.graph.base._resonance import linear_segments_atom_keys
-from automol.graph.base._resonance import resonance_dominant_bond_orders
+from automol.graph.base._kekule import linear_segments_atom_keys
+from automol.graph.base._kekule import kekules_bond_orders_collated
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import atom_symbols
@@ -30,7 +30,7 @@ def rotational_bond_keys(
     gra = explicit(gra)
     sym_dct = atom_symbols(gra)
     ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-    bnd_ord_dct = resonance_dominant_bond_orders(gra)
+    bnd_ord_dct = kekules_bond_orders_collated(gra)
     rng_bnd_keys = list(itertools.chain(*rings_bond_keys(gra)))
 
     def _is_rotational_bond(bnd_key):

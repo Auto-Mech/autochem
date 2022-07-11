@@ -583,24 +583,6 @@ def atom_explicit_hydrogen_valences(gra):
     return dict_.transform_values(atom_explicit_hydrogen_keys(gra), len)
 
 
-def atom_hybridizations(gra):
-    """ atom hybridizations, by atom
-    """
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
-    atm_keys = list(atom_keys(gra))
-    atm_unsat_dct = atom_unsaturations(gra, bond_order=True)
-    atm_bnd_vlc_dct = atom_bond_valences(gra, bond_order=False)     # note!!
-    atm_unsats = numpy.array(
-        dict_.values_by_key(atm_unsat_dct, atm_keys))
-    atm_bnd_vlcs = numpy.array(dict_.values_by_key(atm_bnd_vlc_dct, atm_keys))
-    atm_lpcs = numpy.array(
-        dict_.values_by_key(atom_lone_pair_counts(gra), atm_keys))
-    atm_hybs = atm_unsats + atm_bnd_vlcs + atm_lpcs - 1
-    atm_hyb_dct = dict_.transform_values(
-        dict(zip(atm_keys, atm_hybs)), int)
-    return atm_hyb_dct
-
-
 def atom_unsaturations(gra, bond_order=True):
     """ Atom unsaturations, i.e. spaces for bonding
 
@@ -1316,6 +1298,41 @@ def bond_induced_subgraph(gra, bnd_keys, stereo=False):
     return sub
 
 
+def subgraph_neighborhood(gra, atm_keys, bnd_keys=None, stereo=False):
+    """ neighborhood subgraph of a subgraph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param atm_keys: the atom keys in the subgraph
+        :type atm_keys: int
+        :param bnd_keys: optionally, restrict this to a subset of the bond keys
+        :tupe bnd_keys: tuple[frozenset[int]]
+        :returns: the neighborhood subgraph
+    """
+    atm_keys = frozenset(atm_keys)
+    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    nbh_bnd_keys = set(k for k in bnd_keys if atm_keys & k)
+    nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
+    return nbh
+
+
+def subgraph_neighbor_atom_keys(gra, atm_keys, bnd_keys=None):
+    """ neighbor keys of a subgraph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param atm_keys: the atom keys in the subgraph
+        :type atm_keys: int
+        :param bnd_keys: optionally, restrict this to a subset of the bond keys
+        :tupe bnd_keys: tuple[frozenset[int]]
+        :returns: the keys of neighboring atoms
+    """
+    atm_keys = frozenset(atm_keys)
+    nbh = subgraph_neighborhood(gra, atm_keys, bnd_keys=bnd_keys)
+    ngb_keys = frozenset(atom_keys(nbh) - atm_keys)
+    return ngb_keys
+
+
 def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False):
     """ neighborhood subgraph for a specific atom
 
@@ -1399,6 +1416,22 @@ def atom_neighbor_atom_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
         gra, atm_key, excl_atm_keys=excl_atm_keys, incl_atm_keys=incl_atm_keys,
         symbs_first=symbs_first, symbs_last=symbs_last)
     return atm_keys[0] if atm_keys else None
+
+
+def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None):
+    """ neighbor keys of a specific atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param atm_key: the atom key
+        :type atm_key: int
+        :param bnd_keys: optionally, restrict this to a subset of the bond keys
+        :tupe bnd_keys: tuple[frozenset[int]]
+        :returns: the keys of neighboring atoms
+    """
+    atm_nbh = atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys)
+    atm_ngb_keys = frozenset(atom_keys(atm_nbh) - {atm_key})
+    return atm_ngb_keys
 
 
 def atoms_neighbor_atom_keys(gra):

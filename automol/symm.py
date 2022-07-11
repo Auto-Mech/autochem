@@ -134,8 +134,8 @@ def end_group_symmetry_factor(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     # determine if atom is a part of a double bond
     unsat_atms = automol.graph.unsaturated_atom_keys(gra)
     if not saddle:
-        rad_atms = automol.graph.sing_res_dom_radical_atom_keys(gra)
-        res_rad_atms = automol.graph.resonance_dominant_radical_atom_keys(gra)
+        rad_atms = automol.graph.radical_atom_keys(gra, sing_res=True)
+        res_rad_atms = automol.graph.radical_atom_keys(gra)
         rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []

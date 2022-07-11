@@ -50,9 +50,6 @@ C3H3_CGR = (
      frozenset({2, 0}): (1, None)})
 C3H3_RGRS = (
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
-     {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None),
-      frozenset({2, 0}): (1, None)}),
-    ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
      {frozenset({0, 1}): (1, None), frozenset({1, 2}): (2, None),
       frozenset({2, 0}): (1, None)}),
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None)},
@@ -555,7 +552,7 @@ def test__backbone_isomorphism():
 def test__backbone_unique():
     """ test graph.backbone_unique
     """
-    assert graph.backbone_unique(C3H3_RGRS) == C3H3_RGRS[:2]
+    assert graph.backbone_unique(C3H3_RGRS) == C3H3_RGRS[:1]
 
 
 # chemistry library
@@ -618,12 +615,12 @@ def test__bond_symmetry_numbers():
 
 # resonance graph library
 # # atom properties
-def test__resonance_dominant_atom_hybridizations():
-    """ test graph.resonance_dominant_atom_hybridizations
+def test__atom_hybridizations():
+    """ test graph.atom_hybridizations
     """
-    assert graph.resonance_dominant_atom_hybridizations(C3H3_CGR) == {
+    assert graph.atom_hybridizations(C3H3_CGR) == {
         0: 2, 1: 2, 2: 2}
-    assert graph.resonance_dominant_atom_hybridizations(C8H13O_CGR) == {
+    assert graph.atom_hybridizations(C8H13O_CGR) == {
         0: 3, 1: 2, 2: 3, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3}
 
     cgr = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
@@ -632,12 +629,12 @@ def test__resonance_dominant_atom_hybridizations():
            {frozenset({1, 4}): (1, None), frozenset({1, 2}): (1, None),
             frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
             frozenset({2, 5}): (1, None)})
-    assert graph.resonance_dominant_atom_hybridizations(cgr) == {
+    assert graph.atom_hybridizations(cgr) == {
         0: 2, 1: 2, 2: 3, 3: 0, 4: 0, 5: 0, 6: -1}
 
 
-def test__resonance_dominant_atom_centered_cumulene_keys():
-    """ test graph.resonance_dominant_atom_centered_cumulene_keys
+def test__atom_centered_cumulene_keys():
+    """ test graph.atom_centered_cumulene_keys
     """
     cgr = ({0: ('C', 1, None), 1: ('C', 2, None), 2: ('C', 0, None),
             3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 0, None),
@@ -645,29 +642,27 @@ def test__resonance_dominant_atom_centered_cumulene_keys():
            {frozenset({4, 6}): (1, None), frozenset({0, 2}): (1, None),
             frozenset({2, 4}): (1, None), frozenset({5, 6}): (1, None),
             frozenset({3, 5}): (1, None), frozenset({1, 3}): (1, None)})
-    assert (graph.resonance_dominant_atom_centered_cumulene_keys(cgr) ==
+    assert (graph.atom_centered_cumulene_keys(cgr) ==
             frozenset({(frozenset({1, 4}), 5)}))
 
 
-def test__resonance_dominant_bond_centered_cumulene_keys():
-    """ test graph.resonance_dominant_bond_centered_cumulene_keys
+def test__bond_centered_cumulene_keys():
+    """ test graph.bond_centered_cumulene_keys
     """
     cgr = ({0: ('C', 1, None), 1: ('C', 2, None), 2: ('C', 0, None),
             3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 0, None)},
            {frozenset({4, 5}): (1, None), frozenset({0, 2}): (1, None),
             frozenset({2, 4}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({1, 3}): (1, None)})
-    assert (graph.resonance_dominant_bond_centered_cumulene_keys(cgr) ==
+    assert (graph.bond_centered_cumulene_keys(cgr) ==
             frozenset({(frozenset({1, 4}), frozenset({3, 5}))}))
 
 
-def test__resonance_dominant_radical_atom_keys():
-    """ test graph.resonance_dominant_radical_atom_keys
+def test__radical_atom_keys():
+    """ test graph.radical_atom_keys
     """
-    assert graph.resonance_dominant_radical_atom_keys(C3H3_CGR) == frozenset(
-        {0, 1, 2})
-    assert graph.resonance_dominant_radical_atom_keys(C8H13O_CGR) == frozenset(
-        {8})
+    assert graph.radical_atom_keys(C3H3_CGR) == frozenset({0, 1, 2})
+    assert graph.radical_atom_keys(C8H13O_CGR) == frozenset({8})
 
 
 def test__sigma_radical_atom_keys():
@@ -695,39 +690,167 @@ def test__sigma_radical_atom_keys():
 
 
 # # bond properties
-def test__resonance_dominant_bond_orders():
-    """ test graph.resonance_dominant_bond_orders
+def test__kekules_bond_orders_collated():
+    """ test graph.kekules_bond_orders_collated
     """
-    assert graph.resonance_dominant_bond_orders(C3H3_CGR) == {
-        frozenset({0, 1}): frozenset({1, 2}),
-        frozenset({0, 2}): frozenset({1, 2}),
-        frozenset({1, 2}): frozenset({1, 2})
-    }
+    print(graph.kekules_bond_orders_collated(C3H3_CGR))
+    assert all(set(v) == {1, 2} for _, v in
+               graph.kekules_bond_orders_collated(C3H3_CGR).items())
 
 
 # # transformations
-def test__resonances():
-    """ test graph.resonances
+def test__kekules():
+    """ test graph.kekules
     """
-    assert graph.resonances(C3H3_CGR) == C3H3_RGRS
+    # C=C[CH2]
+    gra = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
+           {frozenset({0, 1}): (2, None), frozenset({1, 2}): (1, None)})
+
+    gras = graph.kekules(gra)
+    print(len(gras))
+    assert len(gras) == 2 and gra in gras
+
+    # C=CC=C[CH2]
+    gra = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
+            3: ('C', 1, None), 4: ('C', 2, None)},
+           {frozenset({3, 4}): (1, None), frozenset({0, 1}): (2, None),
+            frozenset({2, 3}): (2, None), frozenset({1, 2}): (1, None)})
+
+    gras = graph.kekules(gra)
+    print(len(gras))
+    assert len(gras) == 3 and gra in gras
+
+    # C=C=C=C
+    gra = ({0: ('C', 2, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 2, None)},
+           {frozenset({0, 1}): (2, None), frozenset({2, 3}): (2, None),
+            frozenset({1, 2}): (2, None)})
+
+    gras = graph.kekules(gra)
+    print(len(gras))
+    assert len(gras) == 1 and gra in gras
+
+    # C=CC=CC=C
+    gra = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 1, None),
+            3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 2, None)},
+           {frozenset({3, 4}): (1, None), frozenset({2, 3}): (2, None),
+            frozenset({1, 2}): (1, None), frozenset({4, 5}): (2, None),
+            frozenset({0, 1}): (2, None)})
+
+    gras = graph.kekules(gra)
+    print(len(gras))
+    assert len(gras) == 1 and gra in gras
+
+    # C1=CC=CC=C1 (benzene)
+    gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+            3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None)},
+           {frozenset({3, 4}): (1, None), frozenset({2, 3}): (2, None),
+            frozenset({1, 2}): (1, None), frozenset({4, 5}): (2, None),
+            frozenset({0, 1}): (2, None), frozenset({0, 5}): (1, None)})
+
+    gras = graph.kekules(gra)
+    print(len(gras))
+    assert len(gras) == 2 and gra in gras
+
+    # # C12=CC=C1C=C2  _  _
+    # #              ||_||_||
+    # gra = ({0: ('C', 0, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 1, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None), frozenset({0, 3}): (1, None),
+    #         frozenset({4, 5}): (1, None), frozenset({0, 1}): (1, None),
+    #         frozenset({0, 5}): (1, None)})
+
+    # # C1=CC=C2C=CC=CC2=C1 (naphthalene)
+    # gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 1, None),
+    #         6: ('C', 1, None), 7: ('C', 1, None), 8: ('C', 0, None),
+    #         9: ('C', 1, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({1, 2}): (1, None), frozenset({4, 5}): (1, None),
+    #         frozenset({0, 1}): (1, None), frozenset({6, 7}): (1, None),
+    #         frozenset({8, 9}): (1, None), frozenset({8, 7}): (1, None),
+    #         frozenset({8, 3}): (1, None), frozenset({5, 6}): (1, None),
+    #         frozenset({0, 9}): (1, None)})
+
+    # # C1=CC=C2C=C3C=CC=CC3=CC2=C1 (anthracene)
+    # gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 0, None), 4: ('C', 1, None), 5: ('C', 0, None),
+    #         6: ('C', 1, None), 7: ('C', 1, None), 8: ('C', 1, None),
+    #         9: ('C', 1, None), 10: ('C', 0, None), 11: ('C', 1, None),
+    #         12: ('C', 0, None), 13: ('C', 1, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({0, 13}): (1, None),
+    #         frozenset({2, 3}): (1, None), frozenset({11, 12}): (1, None),
+    #         frozenset({9, 10}): (1, None), frozenset({1, 2}): (1, None),
+    #         frozenset({4, 5}): (1, None), frozenset({0, 1}): (1, None),
+    #         frozenset({6, 7}): (1, None), frozenset({8, 9}): (1, None),
+    #         frozenset({8, 7}): (1, None), frozenset({5, 6}): (1, None),
+    #         frozenset({3, 12}): (1, None), frozenset({10, 5}): (1, None),
+    #         frozenset({12, 13}): (1, None), frozenset({10, 11}): (1, None)})
+
+    # # C1=CC=C2C(=C1)C=CC3=CC=CC=C32 (phenanthrene)
+    # gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
+    #         3: ('C', 0, None), 4: ('C', 0, None), 5: ('C', 1, None),
+    #         6: ('C', 1, None), 7: ('C', 1, None), 8: ('C', 0, None),
+    #         9: ('C', 1, None), 10: ('C', 1, None), 11: ('C', 1, None),
+    #         12: ('C', 1, None), 13: ('C', 0, None)},
+    #        {frozenset({3, 4}): (1, None), frozenset({4, 6}): (1, None),
+    #         frozenset({2, 3}): (1, None), frozenset({11, 12}): (1, None),
+    #         frozenset({9, 10}): (1, None), frozenset({1, 2}): (1, None),
+    #         frozenset({4, 5}): (1, None), frozenset({0, 1}): (1, None),
+    #         frozenset({6, 7}): (1, None), frozenset({8, 9}): (1, None),
+    #         frozenset({3, 13}): (1, None), frozenset({0, 5}): (1, None),
+    #         frozenset({8, 7}): (1, None), frozenset({8, 13}): (1, None),
+    #         frozenset({12, 13}): (1, None), frozenset({10, 11}): (1, None)})
+
+    # # C1=CC2=C3C(=C1)C=CC4=CC=CC(=C43)C=C2 (pyrene)
+    # gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
+    #         3: ('C', 0, None), 4: ('C', 0, None), 5: ('C', 1, None),
+    #         6: ('C', 1, None), 7: ('C', 1, None), 8: ('C', 0, None),
+    #         9: ('C', 1, None), 10: ('C', 1, None), 11: ('C', 1, None),
+    #         12: ('C', 0, None), 13: ('C', 0, None), 14: ('C', 1, None),
+    #         15: ('C', 1, None)},
+    #        {frozenset({4, 6}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({11, 12}): (1, None), frozenset({4, 5}): (1, None),
+    #         frozenset({0, 5}): (1, None), frozenset({8, 7}): (1, None),
+    #         frozenset({14, 15}): (1, None), frozenset({10, 11}): (1, None),
+    #         frozenset({3, 4}): (1, None), frozenset({3, 13}): (1, None),
+    #         frozenset({0, 1}): (1, None), frozenset({6, 7}): (1, None),
+    #         frozenset({8, 13}): (1, None), frozenset({12, 14}): (1, None),
+    #         frozenset({9, 10}): (1, None), frozenset({1, 2}): (1, None),
+    #         frozenset({8, 9}): (1, None), frozenset({2, 15}): (1, None),
+    #         frozenset({12, 13}): (1, None)})
+
+    # # C1=CC2=C3C4=C1C=CC5=C4C6=C(C=C5)C=CC7=C6C3=C(C=C2)C=C7 (coronene)
+    # gra = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
+    #         3: ('C', 0, None), 4: ('C', 0, None), 5: ('C', 0, None),
+    #         6: ('C', 1, None), 7: ('C', 1, None), 8: ('C', 0, None),
+    #         9: ('C', 0, None), 10: ('C', 0, None), 11: ('C', 0, None),
+    #         12: ('C', 1, None), 13: ('C', 1, None), 14: ('C', 1, None),
+    #         15: ('C', 1, None), 16: ('C', 0, None), 17: ('C', 0, None),
+    #         18: ('C', 0, None), 19: ('C', 0, None), 20: ('C', 1, None),
+    #         21: ('C', 1, None), 22: ('C', 1, None), 23: ('C', 1, None)},
+    #        {frozenset({17, 10}): (1, None), frozenset({2, 3}): (1, None),
+    #         frozenset({11, 12}): (1, None), frozenset({4, 5}): (1, None),
+    #         frozenset({0, 5}): (1, None), frozenset({8, 7}): (1, None),
+    #         frozenset({9, 4}): (1, None), frozenset({14, 15}): (1, None),
+    #         frozenset({10, 11}): (1, None), frozenset({3, 4}): (1, None),
+    #         frozenset({16, 17}): (1, None), frozenset({22, 23}): (1, None),
+    #         frozenset({16, 15}): (1, None), frozenset({5, 6}): (1, None),
+    #         frozenset({18, 19}): (1, None), frozenset({18, 3}): (1, None),
+    #         frozenset({11, 14}): (1, None), frozenset({0, 1}): (1, None),
+    #         frozenset({6, 7}): (1, None), frozenset({2, 21}): (1, None),
+    #         frozenset({17, 18}): (1, None), frozenset({8, 13}): (1, None),
+    #         frozenset({20, 21}): (1, None), frozenset({19, 20}): (1, None),
+    #         frozenset({9, 10}): (1, None), frozenset({1, 2}): (1, None),
+    #         frozenset({8, 9}): (1, None), frozenset({16, 23}): (1, None),
+    #         frozenset({19, 22}): (1, None), frozenset({12, 13}): (1, None)})
 
 
-def test__subresonances():
-    """ test graph.subresonances
+def test__kekule():
+    """ test graph.kekule
     """
-    assert graph.subresonances(C2_RGRS[1]) == C2_RGRS[1:]
-
-
-def test__dominant_resonances():
-    """ test graph.dominant_resonances
-    """
-    assert graph.dominant_resonances(C3H3_CGR) == C3H3_RGRS[1:]
-
-
-def test__dominant_resonance():
-    """ test graph.dominant_resonance
-    """
-    assert graph.dominant_resonance(C3H3_CGR) == C3H3_RGRS[1]
+    assert graph.kekule(C3H3_CGR) in C3H3_RGRS
 
 
 def test__rotational_bond_keys():
@@ -1239,7 +1362,6 @@ def test__smiles__with_resonance():
 if __name__ == '__main__':
     # test__smiles()
     # test__smiles()
-    # test__canonical()
     # test__calculate_priorities_and_assign_parities()
     # test__to_local_stereo()
 
@@ -1250,4 +1372,7 @@ if __name__ == '__main__':
     # test__ts__expand_reaction_stereo()
     # test__stereogenic_atom_keys()
     # test__expand_stereo()
-    test__ts__expand_reaction_stereo()
+    # test__ts__expand_reaction_stereo()
+    # test__kekules_bond_orders_collated()
+    test__canonical()
+    test__inchi_is_bad()

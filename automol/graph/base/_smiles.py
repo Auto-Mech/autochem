@@ -37,8 +37,8 @@ from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
-from automol.graph.base._resonance import dominant_resonance
-from automol.graph.base._resonance import radical_atom_keys_from_resonance
+from automol.graph.base._kekule import kekule
+from automol.graph.base._kekule import radical_atom_keys_from_kekule
 from automol.graph.base._canon import canonical
 
 
@@ -105,14 +105,14 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
     gra = _insert_stereo_hydrogens(gra)
 
     # Find a dominant resonance
-    rgr = dominant_resonance(gra, max_stereo_overlap=True)
+    kgr = kekule(gra, max_stereo_overlap=True)
 
     # Determine bond orders for this resonance
-    bnd_ord_dct = bond_orders(rgr)
+    bnd_ord_dct = bond_orders(kgr)
 
     # Find stereo parities
     bnd_par_dct = dict_.filter_by_value(
-        bond_stereo_parities(rgr), lambda x: x is not None)
+        bond_stereo_parities(kgr), lambda x: x is not None)
 
     # Remove stereo parities if requested
     if not res_stereo:
@@ -132,17 +132,17 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
     # will be given a tag, removed from the pool, and transferred to the tag
     # dictionary. These modifications will be performed by the ring
     # representation function.
-    rng_pool = list(rings_atom_keys(rgr))
+    rng_pool = list(rings_atom_keys(kgr))
     rng_tag_dct = {}
 
-    arep_ = atom_representation_generator_(rgr)
-    brep_ = bond_representation_generator_(rgr, ste_bnd_key_pool, direc_dct)
-    rrep_ = ring_representation_generator_(rgr, direc_dct, rng_pool,
+    arep_ = atom_representation_generator_(kgr)
+    brep_ = bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct)
+    rrep_ = ring_representation_generator_(kgr, direc_dct, rng_pool,
                                            rng_tag_dct)
 
     # Determine neighboring keys
     nkeys_dct_pool = dict_.transform_values(
-        atoms_neighbor_atom_keys(rgr), sorted)
+        atoms_neighbor_atom_keys(kgr), sorted)
 
     def _recurse_smiles(smi, lst, key, just_seen=None):
         nkeys = nkeys_dct_pool.pop(key) if key in nkeys_dct_pool else []
@@ -206,7 +206,7 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
         return smi, lst
 
     # If there are terminal atoms, start from the first one
-    atm_keys = atom_keys(rgr)
+    atm_keys = atom_keys(kgr)
     term_keys = terminal_atom_keys(gra, heavy=False)
     start_key = min(term_keys) if term_keys else min(atm_keys)
 
@@ -215,28 +215,28 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
     return smi
 
 
-def atom_representation_generator_(rgr):
+def atom_representation_generator_(kgr):
     """ A SMILES atom representation generator.
 
         SMILES atom representations include the atomic symbol and, if
         applicable, the stereo parity of the atom and the number of hydrogens.
 
-        :param rgr: a resonance graph
+        :param kgr: a kekule graph
         :returns: a function that generates atom representations, with the
             function signature (key, just_seen, nkeys, closures)
     """
     # Determine atom symbols
-    symb_dct = atom_symbols(rgr)
+    symb_dct = atom_symbols(kgr)
 
     # Determine atom implicit hydrogens
-    nhyd_dct = atom_implicit_hydrogen_valences(rgr)
+    nhyd_dct = atom_implicit_hydrogen_valences(kgr)
 
     # Find radical sites for this resonance
-    rad_atm_keys = radical_atom_keys_from_resonance(rgr)
+    rad_atm_keys = radical_atom_keys_from_kekule(kgr)
 
     # Find stereo parities
     atm_par_dct = dict_.filter_by_value(
-        atom_stereo_parities(rgr), lambda x: x is not None)
+        atom_stereo_parities(kgr), lambda x: x is not None)
 
     def _generator(key, just_seen=None, nkeys=(), closures=()):
         # Determine the atomic symbol.
@@ -286,7 +286,7 @@ def atom_representation_generator_(rgr):
     return _generator
 
 
-def bond_representation_generator_(rgr, ste_bnd_key_pool, direc_dct):
+def bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct):
     r""" A SMILES bond representation generator.
 
         SMILES bond representations for single, double, and triple bonds are
@@ -305,7 +305,7 @@ def bond_representation_generator_(rgr, ste_bnd_key_pool, direc_dct):
             double bond, then the non-directional single bond that is being
             used to specify the stereo parity is marked with a '*'.
 
-        :param rgr: a resonance graph
+        :param kgr: a kekule graph
         :param ste_bnd_key_pool: The pool of stereo bond keys. Each time a new
             one is encountered, it will be removed from the pool.
         :param direc_dct: The dictionary of bond directions. As new stereo
@@ -318,14 +318,14 @@ def bond_representation_generator_(rgr, ste_bnd_key_pool, direc_dct):
             up/down direction that was chosen for the bond, if applicable.
     """
     # Determine bond orders for this resonance
-    bnd_ord_dct = bond_orders(rgr)
+    bnd_ord_dct = bond_orders(kgr)
 
     # Determine neighbors
-    nkeys_dct = atoms_neighbor_atom_keys(rgr)
+    nkeys_dct = atoms_neighbor_atom_keys(kgr)
 
     # Find stereo parities
     bnd_par_dct = dict_.filter_by_value(
-        bond_stereo_parities(rgr), lambda x: x is not None)
+        bond_stereo_parities(kgr), lambda x: x is not None)
 
     def _generator(key, just_seen=None):
         key0 = just_seen
@@ -411,13 +411,13 @@ def bond_representation_generator_(rgr, ste_bnd_key_pool, direc_dct):
     return _generator
 
 
-def ring_representation_generator_(rgr, direc_dct, rng_pool, rng_tag_dct):
+def ring_representation_generator_(kgr, direc_dct, rng_pool, rng_tag_dct):
     r""" A SMILES ring representation generator.
 
         SMILES ring representations for single, double, and triple bonds are
         given as '', '=', and '#', respectively.
 
-        :param rgr: a resonance graph
+        :param kgr: a kekule graph
         :param direc_dct: The dictionary of bond directions used to specify
             bond stereo. This is needed when the directional bond is at the
             end of a ring, so the tag needs to be expressed as /# or \#.
@@ -434,7 +434,7 @@ def ring_representation_generator_(rgr, direc_dct, rng_pool, rng_tag_dct):
             applicable.
     """
     # Determine bond orders for this resonance
-    bnd_ord_dct = bond_orders(rgr)
+    bnd_ord_dct = bond_orders(kgr)
 
     def _generator(key, nkeys=()):
         nkeys = nkeys.copy()
@@ -451,7 +451,7 @@ def ring_representation_generator_(rgr, direc_dct, rng_pool, rng_tag_dct):
                 # and the closure key last
                 tag = max(rng_tag_dct.values(), default=0) + 1
                 assert tag < 10, (
-                    f"Ring tag exceeds 10 for this graph:\n{string(rgr)}")
+                    f"Ring tag exceeds 10 for this graph:\n{string(kgr)}")
                 rng = cycle_ring_atom_key_to_front(new_rng, key, clos_nkey)
                 rng_tag_dct[rng] = tag
 
