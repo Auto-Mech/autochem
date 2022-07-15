@@ -22,7 +22,6 @@ requirements:
         - conda-forge::pyyaml
         - conda-forge::mako
         - conda-forge::networkx
-        - conda-forge::python-igraph
         - conda-forge::matplotlib
         - conda-forge::pytest
         - conda-forge::pytest-cov

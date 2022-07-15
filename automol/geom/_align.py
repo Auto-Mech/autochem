@@ -13,7 +13,6 @@ from automol.geom._conv import graph as graph_conv
 def align(geo1, geo2):
     """ For a given species, align geo1 to geo2 by reordering the
         the atom ordering of geo1 so that it matches that of geo2.
-        Toy function calling igraph directly for now
     """
 
     if not is_atom(geo1):
