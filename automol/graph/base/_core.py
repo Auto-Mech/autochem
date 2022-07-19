@@ -501,7 +501,19 @@ def stereo_keys(gra):
 def has_stereo(gra):
     """ does this graph have stereo of any kind?
     """
-    return bool(atom_stereo_keys(gra) or bond_stereo_keys(gra))
+    return has_atom_stereo(gra) or has_bond_stereo(gra)
+
+
+def has_atom_stereo(gra):
+    """ does this graph have atom stereo?
+    """
+    return bool(atom_stereo_keys(gra))
+
+
+def has_bond_stereo(gra):
+    """ does this graph have bond stereo?
+    """
+    return bool(bond_stereo_keys(gra))
 
 
 def has_fractional_bonds(gra):
