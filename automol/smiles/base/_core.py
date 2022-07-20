@@ -14,10 +14,14 @@ from automol import util
 ORGANIC_SUBSET = ('B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I')
 ORGANIC_ATOM = pp.Or(ORGANIC_SUBSET)('symb')
 
+# aromatic atoms
+AROMATIC_SUBSET = ('c', 'n', 'o', 'p')
+AROMATIC_ATOM = pp.Or(AROMATIC_SUBSET)('symb')
+
 # general atoms
 ISO = pp.Opt(pp.Word(pp.nums))
 SYMBOL = pp.Combine(
-    pp.Char(pp.alphas.upper()) + pp.Opt(pp.Char(pp.alphas.lower())))
+    pp.Char(pp.alphas) + pp.Opt(pp.Char(pp.alphas.lower())))
 PARITY = pp.Opt(pp.Or(('@', '@@')))
 NHYD = pp.Opt(pp.Combine(pp.Char('H') + pp.Opt(pp.Char(pp.nums))))
 CHARGE = pp.Opt(pp.Or((pp.OneOrMore('+') + pp.Opt(pp.nums),
@@ -26,7 +30,7 @@ GENERAL_ATOM = (pp.Char('[')('bracket') + ISO('iso') + SYMBOL('symb') +
                 PARITY('par') + NHYD('nhyd') + CHARGE('charge') + pp.Char(']'))
 
 # atoms
-ATOM = pp.Combine(pp.Or((ORGANIC_ATOM, GENERAL_ATOM)))
+ATOM = pp.Combine(pp.Or((ORGANIC_ATOM, AROMATIC_ATOM, GENERAL_ATOM)))
 
 # bonds
 BOND_STR_2_BOND_ORDER = {'-': 1, '=': 2, '#': 3, None: 1}
@@ -247,6 +251,9 @@ def parse_connected_molecule_properties(smi):
         if key not in nhyd_dct:
             nbnds = sum(o for k, o in bnd_ord_dct.items() if key in k)
             nhyd = ptab.valence(symb) - nbnds
+            # Remove one hydrogen for aromatics
+            if symb == symb.lower():
+                nhyd -= 1
             hkey = max(symb_dct.keys())
             for _ in range(nhyd):
                 hkey += 1
