@@ -881,8 +881,8 @@ def test__species__graph_conversion():
     """ test interchanging between graphs aligned by zma and geo
     """
 
-    ich = automol.smiles.inchi('CC#CC#CCCCC#CC')
-    geo = automol.inchi.geometry(ich)
+    chi = automol.smiles.chi('CC#CC#CCCCC#CC')
+    geo = automol.chi.geometry(chi)
     gra = automol.geom.graph(geo)
 
     zma, zma_keys, dummy_key_dct = (
@@ -949,8 +949,8 @@ def test__expand_stereo():
 def test__ring_systems():
     """ test graph.ring_systems
     """
-    ich = automol.smiles.inchi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
-    gra = automol.inchi.graph(ich)
+    chi = automol.smiles.chi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
+    gra = automol.chi.graph(chi)
     rsys = sorted(graph.ring_systems(gra), key=graph.atom_count)
     assert list(map(graph.atom_count, rsys)) == [7, 12, 21]
 
@@ -989,8 +989,8 @@ def test__equivalent_bonds():
 def test__vmat__vmatrix():
     """ test graph.vmat.vmatrix
     """
-    ich = automol.smiles.inchi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
-    gra = automol.inchi.graph(ich)
+    chi = automol.smiles.chi('C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4')
+    gra = automol.chi.graph(chi)
     _, zma_keys = graph.vmat.vmatrix(gra)
     assert set(zma_keys) == graph.atom_keys(gra)
 
@@ -1018,9 +1018,9 @@ def test__canonical():
     """
 
     def _test_from_smiles(smi):
-        ich = automol.smiles.inchi(smi)
-        print(ich)
-        geo = automol.inchi.geometry(ich)
+        chi = automol.smiles.chi(smi)
+        print(chi)
+        geo = automol.chi.geometry(chi)
         print(automol.geom.string(geo))
         gra = automol.geom.graph(geo)
 
@@ -1054,9 +1054,9 @@ def test__calculate_priorities_and_assign_parities():
     """
 
     def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
-        ich = automol.smiles.inchi(smi)
-        print(ich)
-        geo = automol.inchi.geometry(ich)
+        chi = automol.smiles.chi(smi)
+        print(chi)
+        geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
 
         par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
@@ -1309,23 +1309,23 @@ def test__smiles():
     for smi in smis:
         print()
         print("STARTING SMILES:", smi)
-        ich = automol.smiles.chi(smi)
-        geo = automol.inchi.geometry(ich)
+        chi = automol.smiles.chi(smi)
+        geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
         print(automol.graph.string(gra))
         print(automol.geom.string(geo))
         smi = automol.graph.smiles(gra)
         print('smiles from code:', smi)
 
-        ich_smi = automol.chi.smiles(ich)
-        print('inchi:', ich)
-        print('smiles from inchi:', ich_smi)
+        chi_smi = automol.chi.smiles(chi)
+        print('chi:', chi)
+        print('smiles from chi:', chi_smi)
 
-        sich = automol.smiles.chi(smi)
-        print('inchi from smiles:', sich)
+        schi = automol.smiles.chi(smi)
+        print('chi from smiles:', schi)
         # print(automol.graph.string(GRA, one_indexed=True))
         print(automol.graph.rings_atom_keys(gra))
-        assert sich == ich
+        assert schi == chi
 
 
 def test__smiles__with_resonance():
@@ -1339,8 +1339,8 @@ def test__smiles__with_resonance():
     for smi in smis:
         print()
         print("STARTING SMILES:", smi)
-        ich = automol.smiles.inchi(smi)
-        geo = automol.inchi.geometry(ich)
+        chi = automol.smiles.chi(smi)
+        geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
         print(automol.graph.string(gra))
         print(automol.geom.string(geo))
