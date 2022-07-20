@@ -4,7 +4,6 @@
 import os
 import pandas
 import numpy
-import pytest
 import automol
 
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -147,28 +146,6 @@ def test__geom__with_stereo():
         assert ich == ref_ich
 
         assert automol.geom.formula(geo) == automol.inchi.formula(ich)
-
-
-def test__geom__no_stereo():
-    """ test geom conversions
-    """
-    print('geom no stereo')
-
-    ref_sort_ich = 'InChI=1S/C3H7O2/c1-3(2)5-4/h3-4H,1H2,2H3'
-    ref_nums_lst = ((0, 1, 2, 3, 4),)
-
-    ich = ICHS_WITH_STEREO[0]
-    geo = automol.inchi.geometry(ich)
-    sort_ich, nums_lst = automol.geom.inchi_with_sort(
-        geo, stereo=False)
-
-    assert sort_ich == ref_sort_ich
-    assert nums_lst == ref_nums_lst
-
-    # Test failed zmatrix call
-    with pytest.raises(NotImplementedError):
-        automol.geom.zmatrix_with_conversion_info(
-            C2H6_H_GEO, ts_bnds=frozenset({7, 8}))
 
 
 def test__graph__with_stereo():
@@ -586,7 +563,6 @@ def test__smiles__with_stereo():
 
 if __name__ == '__main__':
     test__geom__with_stereo()
-    # test__geom__no_stereo()
     # test__graph__with_stereo()
     # test__graph__no_stereo()
     # test__zmatrix__with_stereo()
