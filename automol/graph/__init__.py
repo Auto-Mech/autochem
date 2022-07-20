@@ -54,6 +54,8 @@ from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import has_atom_stereo
+from automol.graph.base._core import has_bond_stereo
 from automol.graph.base._core import has_fractional_bonds
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
@@ -217,9 +219,9 @@ from automol.graph.base._canon import set_stereo_from_geometry
 from automol.graph.base._canon import canonical_priorities
 from automol.graph.base._canon import calculate_priorities_and_assign_parities
 # # parity evaluators
-from automol.graph.base._canon import parity_evaluator_from_canonical_stereo_
 from automol.graph.base._canon import parity_evaluator_from_geometry_
-from automol.graph.base._canon import parity_evaluator_to_or_from_local_stereo_
+from automol.graph.base._canon import parity_evaluator_read_canonical_
+from automol.graph.base._canon import parity_evaluator_flip_local_
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -332,6 +334,8 @@ __all__ = [
     'bond_stereo_keys',
     'stereo_keys',
     'has_stereo',
+    'has_atom_stereo',
+    'has_bond_stereo',
     'has_fractional_bonds',
     'atomic_numbers',
     'mass_numbers',
@@ -495,9 +499,9 @@ __all__ = [
     'canonical_priorities',
     'calculate_priorities_and_assign_parities',
     # # parity evaluators
-    'parity_evaluator_from_canonical_stereo_',
     'parity_evaluator_from_geometry_',
-    'parity_evaluator_to_or_from_local_stereo_',
+    'parity_evaluator_read_canonical_',
+    'parity_evaluator_flip_local_',
     # functional groups code:
     # # core functions
     'FunctionalGroup',

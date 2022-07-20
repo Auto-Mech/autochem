@@ -36,15 +36,13 @@ def filter_enantiomer_reactions(rxn_chis_lst):
             seen_rxn_chis_lst.append(tuple(reversed(rxn_chis)))
 
             # If the reaction is chiral, also add its mirror image to the list.
-            if (any(map(is_chiral, rct_chis)) or
-                    any(map(is_chiral, prd_chis))):
+            if any(map(is_chiral, rct_chis + prd_chis)):
                 refl_rxn_chis = (tuple(map(reflect, rct_chis)),
                                  tuple(map(reflect, prd_chis)))
                 seen_rxn_chis_lst.append(refl_rxn_chis)
                 seen_rxn_chis_lst.append(tuple(reversed(refl_rxn_chis)))
 
-    uniq_rxn_chis_lst = tuple(
-        (tuple(p), tuple(r)) for p, r in uniq_rxn_chis_lst)
+    uniq_rxn_chis_lst = tuple(uniq_rxn_chis_lst)
     return uniq_rxn_chis_lst
 
 

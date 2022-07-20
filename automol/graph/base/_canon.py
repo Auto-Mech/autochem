@@ -24,6 +24,7 @@ from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import tetrahedral_atom_keys
@@ -80,8 +81,7 @@ def canonical_enantiomer_with_keys(gra):
             hasn't, and `None` indicates that it isn't an enantiomer
         :rtype: (automol graph data structure, bool)
     """
-    ste_atm_keys = atom_stereo_keys(gra)
-    if not ste_atm_keys:
+    if not has_atom_stereo(gra):
         is_reflected = None
         can_enant_key_dct = canonical_keys(gra, backbone_only=False)
         can_enant_gra = relabel(gra, can_enant_key_dct)
@@ -89,16 +89,20 @@ def canonical_enantiomer_with_keys(gra):
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
         ugra = gra
-        uloc_gra, ucan_key_dct = _to_local_stereo_with_canonical_priorities(
-            ugra, break_ties=True)
+        ucan_key_dct, uloc_gra = calculate_priorities_and_assign_parities(
+                ugra, backbone_only=False, break_ties=True,
+                par_eval_=parity_evaluator_read_canonical_(ugra),
+                par_eval2_=parity_evaluator_flip_local_(ugra))
 
         # Reflect the graph in the local stereo representation
         rloc_gra = reflect_local_stereo(uloc_gra)
 
         # Determine canonical keys for the reflected graph while converting
         # back to the canonical stereo representation
-        rgra, rcan_key_dct = _from_local_stereo_with_canonical_priorities(
-            rloc_gra, break_ties=True)
+        rcan_key_dct, rgra = calculate_priorities_and_assign_parities(
+                rloc_gra, backbone_only=False, break_ties=True,
+                par_eval_=parity_evaluator_flip_local_(rloc_gra),
+                par_eval2_=parity_evaluator_flip_local_(rloc_gra))
 
         # Convert both to canonical graphs
         ucan_gra = relabel(ugra, ucan_key_dct)
@@ -298,7 +302,10 @@ def to_local_stereo(gra):
     """
     def _to_local_stereo_for_connected_component(gra):
         if has_stereo(gra):
-            loc_gra, _ = _to_local_stereo_with_canonical_priorities(gra)
+            _, loc_gra = calculate_priorities_and_assign_parities(
+                    gra, backbone_only=False, break_ties=False,
+                    par_eval_=parity_evaluator_read_canonical_(gra),
+                    par_eval2_=parity_evaluator_flip_local_(gra))
         else:
             loc_gra = gra
         return loc_gra
@@ -307,37 +314,6 @@ def to_local_stereo(gra):
     loc_gras = map(_to_local_stereo_for_connected_component, gras)
     loc_gra = union_from_sequence(loc_gras, shift_keys=False)
     return loc_gra
-
-
-def _to_local_stereo_with_canonical_priorities(gra, break_ties=False):
-    atm_par_dct0 = dict_.filter_by_value(
-            atom_stereo_parities(gra), lambda x: x is not None)
-    bnd_par_dct0 = dict_.filter_by_value(
-            bond_stereo_parities(gra), lambda x: x is not None)
-
-    pri_dct, gra = calculate_priorities_and_assign_parities(
-            gra, backbone_only=False, break_ties=break_ties,
-            par_eval_=parity_evaluator_from_canonical_stereo_(gra),
-            par_eval2_=parity_evaluator_to_or_from_local_stereo_(gra))
-
-    atm_par_dct = dict_.filter_by_value(
-            atom_stereo_parities(gra), lambda x: x is not None)
-    bnd_par_dct = dict_.filter_by_value(
-            bond_stereo_parities(gra), lambda x: x is not None)
-
-    assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
-        f"Something went wrong. Atom stereo keys don't match up:\n"
-        f"input stereo atoms: {set(atm_par_dct0.keys())}\n"
-        f"return stereo atoms: {set(atm_par_dct.keys())}\n"
-    )
-
-    assert set(bnd_par_dct.keys()) == set(bnd_par_dct0.keys()), (
-        f"Something went wrong. Bond stereo keys don't match up:\n"
-        f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
-        f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
-    )
-
-    return gra, pri_dct
 
 
 def from_local_stereo(gra):
@@ -350,7 +326,10 @@ def from_local_stereo(gra):
     """
     def _from_local_stereo_for_connected_component(gra):
         if has_stereo(gra):
-            can_gra, _ = _from_local_stereo_with_canonical_priorities(gra)
+            _, can_gra = calculate_priorities_and_assign_parities(
+                    gra, backbone_only=False, break_ties=False,
+                    par_eval_=parity_evaluator_flip_local_(gra),
+                    par_eval2_=parity_evaluator_flip_local_(gra))
         else:
             can_gra = gra
         return can_gra
@@ -359,37 +338,6 @@ def from_local_stereo(gra):
     can_gras = map(_from_local_stereo_for_connected_component, loc_gras)
     can_gra = union_from_sequence(can_gras, shift_keys=False)
     return can_gra
-
-
-def _from_local_stereo_with_canonical_priorities(gra, break_ties=False):
-    atm_par_dct0 = dict_.filter_by_value(
-            atom_stereo_parities(gra), lambda x: x is not None)
-    bnd_par_dct0 = dict_.filter_by_value(
-            bond_stereo_parities(gra), lambda x: x is not None)
-
-    pri_dct, gra = calculate_priorities_and_assign_parities(
-            gra, backbone_only=False, break_ties=break_ties,
-            par_eval_=parity_evaluator_to_or_from_local_stereo_(gra),
-            par_eval2_=parity_evaluator_to_or_from_local_stereo_(gra))
-
-    atm_par_dct = dict_.filter_by_value(
-            atom_stereo_parities(gra), lambda x: x is not None)
-    bnd_par_dct = dict_.filter_by_value(
-            bond_stereo_parities(gra), lambda x: x is not None)
-
-    assert set(atm_par_dct.keys()) == set(atm_par_dct0.keys()), (
-        f"Something went wrong. Atom stereo keys don't match up:\n"
-        f"input stereo atoms: {set(atm_par_dct0.keys())}\n"
-        f"return stereo atoms: {set(atm_par_dct.keys())}\n"
-    )
-
-    assert set(bnd_par_dct.keys()) == set(bnd_par_dct0.keys()), (
-        f"Something went wrong. Bond stereo keys don't match up:\n"
-        f"input stereo bonds: {set(bnd_par_dct0.keys())}\n"
-        f"return stereo bonds: {set(bnd_par_dct.keys())}\n"
-    )
-
-    return gra, pri_dct
 
 
 def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
@@ -487,7 +435,7 @@ def calculate_priorities_and_assign_parities(
 
     gra0 = gra
 
-    par_eval_ = (parity_evaluator_from_canonical_stereo_(gra)
+    par_eval_ = (parity_evaluator_read_canonical_(gra)
                  if par_eval_ is None else par_eval_)
     par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
 
@@ -753,49 +701,6 @@ def break_priority_ties(gra, pri_dct):
 
 
 # # parity evaluators
-def parity_evaluator_from_canonical_stereo_(gra):
-    """ Determines stereo parity from a graph with canonical stereo
-
-        This is the trivial case, where parities in the graph are already
-        assumed to be canonical and so nothing needs to be done to calculate
-        them.
-
-        :param gra: molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
-        :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
-            returns the parity for a given atom, given a set of priorities.
-    """
-    atm_par_dct = atom_stereo_parities(gra)
-    bnd_par_dct = bond_stereo_parities(gra)
-
-    def _evaluator(pri_dct):
-        """ Parity evaluator based on current priorities
-
-            Class indices are ignored, since the parities are assumed to be
-            canonical.
-
-            :param pri_dct: A dictionary mapping atom keys to priorities
-            :type pri_dct: dict
-        """
-        # Do-nothing line to prevent linting complaint
-        assert pri_dct or not pri_dct
-
-        def _parity(key):
-            # If the key is a number, this is an atom
-            if isinstance(key, numbers.Number):
-                par = atm_par_dct[key]
-            # Otherwise, this is a bond
-            else:
-                assert isinstance(key, abc.Collection) and len(key) == 2, (
-                    f"{key} is not a valid bond key.")
-                par = bnd_par_dct[key]
-            return par
-
-        return _parity
-
-    return _evaluator
-
-
 def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
     r""" Determines stereo parity from a geometry
 
@@ -945,7 +850,50 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
     return _evaluator
 
 
-def parity_evaluator_to_or_from_local_stereo_(gra):
+def parity_evaluator_read_canonical_(gra):
+    """ Determines stereo parity from a graph with canonical stereo
+
+        This is the trivial case, where parities in the graph are already
+        assumed to be canonical and so nothing needs to be done to calculate
+        them.
+
+        :param gra: molecular graph with canonical stereo parities
+        :type gra: automol graph data structure
+        :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
+            returns the parity for a given atom, given a set of priorities.
+    """
+    atm_par_dct = atom_stereo_parities(gra)
+    bnd_par_dct = bond_stereo_parities(gra)
+
+    def _evaluator(pri_dct):
+        """ Parity evaluator based on current priorities
+
+            Class indices are ignored, since the parities are assumed to be
+            canonical.
+
+            :param pri_dct: A dictionary mapping atom keys to priorities
+            :type pri_dct: dict
+        """
+        # Do-nothing line to prevent linting complaint
+        assert pri_dct or not pri_dct
+
+        def _parity(key):
+            # If the key is a number, this is an atom
+            if isinstance(key, numbers.Number):
+                par = atm_par_dct[key]
+            # Otherwise, this is a bond
+            else:
+                assert isinstance(key, abc.Collection) and len(key) == 2, (
+                    f"{key} is not a valid bond key.")
+                par = bnd_par_dct[key]
+            return par
+
+        return _parity
+
+    return _evaluator
+
+
+def parity_evaluator_flip_local_(gra):
     """ Determines canonical from local stereo parity or vice versa (same
     operation)
 
