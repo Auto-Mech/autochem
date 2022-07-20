@@ -194,14 +194,14 @@ def _connected_geometry(chi, check=True):
             # There is stereo.
             # First, check connectivity.
             gra_ = automol.geom.graph(geo)
-            geo_idx_dct = automol.graph.isomorphism(
-                    gra, gra_, stereo=False)
+            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
 
-            if geo_idx_dct is None:
+            if idx_dct is None:
                 continue
 
-            geo = automol.graph.linear_vinyl_corrected_geometry(
-                gra, geo, geo_idx_dct=geo_idx_dct)
+            # Reorder the geometry to match the input graph
+            geo = automol.geom.reorder(geo, idx_dct)
+            geo = automol.graph.linear_vinyl_corrected_geometry(gra, geo)
 
             if not has_ste:
                 success = True
@@ -210,14 +210,13 @@ def _connected_geometry(chi, check=True):
             # Enforce correct stereo parities. This is necessary for
             # resonance bond stereo.
             geo = automol.graph.stereo_corrected_geometry(
-                gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True)
+                gra, geo, local_stereo=True)
 
             # Now, make sure the connectivity still matches
             gra_ = automol.geom.graph(geo)
-            geo_idx_dct = automol.graph.isomorphism(
-                    gra, gra_, stereo=False)
+            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
 
-            if geo_idx_dct is None:
+            if idx_dct is None:
                 continue
 
             success = True

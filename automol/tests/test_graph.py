@@ -1021,6 +1021,7 @@ def test__canonical():
         ich = automol.smiles.inchi(smi)
         print(ich)
         geo = automol.inchi.geometry(ich)
+        print(automol.geom.string(geo))
         gra = automol.geom.graph(geo)
 
         gra = automol.graph.implicit(gra)
@@ -1308,7 +1309,7 @@ def test__smiles():
     for smi in smis:
         print()
         print("STARTING SMILES:", smi)
-        ich = automol.smiles.inchi(smi)
+        ich = automol.smiles.chi(smi)
         geo = automol.inchi.geometry(ich)
         gra = automol.geom.graph(geo)
         print(automol.graph.string(gra))
@@ -1316,11 +1317,11 @@ def test__smiles():
         smi = automol.graph.smiles(gra)
         print('smiles from code:', smi)
 
-        ich_smi = automol.inchi.smiles(ich)
+        ich_smi = automol.chi.smiles(ich)
         print('inchi:', ich)
         print('smiles from inchi:', ich_smi)
 
-        sich = automol.smiles.inchi(smi)
+        sich = automol.smiles.chi(smi)
         print('inchi from smiles:', sich)
         # print(automol.graph.string(GRA, one_indexed=True))
         print(automol.graph.rings_atom_keys(gra))
@@ -1361,8 +1362,6 @@ def test__smiles__with_resonance():
 
 if __name__ == '__main__':
     # test__smiles()
-    # test__smiles()
-    # test__calculate_priorities_and_assign_parities()
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
@@ -1374,5 +1373,7 @@ if __name__ == '__main__':
     # test__expand_stereo()
     # test__ts__expand_reaction_stereo()
     # test__kekules_bond_orders_collated()
-    test__canonical()
-    test__inchi_is_bad()
+    # test__inchi_is_bad()
+    # test__canonical()
+    # test__calculate_priorities_and_assign_parities()
+    test__smiles()

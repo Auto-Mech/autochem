@@ -257,26 +257,49 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
             # for now, we simply exclude rings from the pivot keys
             # (will not work for stereo atom at the intersection of two rings)
             atm_piv_keys = list(atm_ngb_keys - ring_atm_keys)[:2]
-            assert len(atm_piv_keys) == 2
-            atm3_key, atm4_key = atm_piv_keys
+            if len(atm_piv_keys) == 2:
+                atm3_key, atm4_key = atm_piv_keys
 
-            # get coordinates
-            xyzs = automol.geom.base.coordinates(geo)
-            atm_xyz = xyzs[geo_idx_dct[atm_key]]
-            atm3_xyz = xyzs[geo_idx_dct[atm3_key]]
-            atm4_xyz = xyzs[geo_idx_dct[atm4_key]]
+                # get coordinates
+                xyzs = automol.geom.base.coordinates(geo)
+                atm_xyz = xyzs[geo_idx_dct[atm_key]]
+                atm3_xyz = xyzs[geo_idx_dct[atm3_key]]
+                atm4_xyz = xyzs[geo_idx_dct[atm4_key]]
 
-            # do the rotation
-            rot_axis = util.vec.unit_bisector(
-                atm3_xyz, atm4_xyz, orig_xyz=atm_xyz)
+                # do the rotation
+                rot_axis = util.vec.unit_bisector(
+                    atm3_xyz, atm4_xyz, orig_xyz=atm_xyz)
 
-            rot_atm_keys = (
-                atom_keys(branch(gra, atm_key, {atm_key, atm3_key})) |
-                atom_keys(branch(gra, atm_key, {atm_key, atm4_key})))
-            rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
+                rot_atm_keys = (
+                    atom_keys(branch(gra, atm_key, {atm_key, atm3_key})) |
+                    atom_keys(branch(gra, atm_key, {atm_key, atm4_key})))
+                rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
-            geo = automol.geom.rotate(
-                geo, rot_axis, numpy.pi, orig_xyz=atm_xyz, idxs=rot_idxs)
+                geo = automol.geom.rotate(
+                    geo, rot_axis, numpy.pi, orig_xyz=atm_xyz, idxs=rot_idxs)
+            else:
+                # Handles nitrogens in rings
+                assert len(atm_piv_keys) == 1
+                assert len(atm_ngb_keys) == 3
+                atm3_key, = atm_piv_keys
+                atm1_key, atm2_key = atm_ngb_keys - {atm3_key}
+
+                # get coordinates
+                xyzs = automol.geom.base.coordinates(geo)
+                atm_xyz = xyzs[geo_idx_dct[atm_key]]
+                atm1_xyz = xyzs[geo_idx_dct[atm1_key]]
+                atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
+
+                # do the rotation
+                rot_axis = util.vec.unit_bisector(
+                    atm1_xyz, atm2_xyz, orig_xyz=atm_xyz)
+
+                rot_atm_keys = atom_keys(
+                    branch(gra, atm_key, {atm_key, atm3_key}))
+                rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
+
+                geo = automol.geom.rotate(
+                    geo, rot_axis, numpy.pi, orig_xyz=atm_xyz, idxs=rot_idxs)
 
         gra = set_atom_stereo_parities(gra, {atm_key: par})
 
@@ -334,3 +357,15 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
         gra = set_bond_stereo_parities(gra, {bnd_key: par})
 
     return geo, gra
+
+
+if __name__ == '__main__':
+    GRA = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 1, None),
+            3: ('C', 1, None), 4: ('C', 1, None), 5: ('O', 1, None),
+            6: ('O', 1, None), 7: ('O', 0, None), 8: ('O', 0, None),
+            9: ('O', 0, None), 10: ('O', 0, None)},
+           {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
+            frozenset({3, 4}): (1, None), frozenset({9, 6}): (1, None),
+            frozenset({9, 3}): (1, None), frozenset({10, 7}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({8, 5}): (1, None), frozenset({1, 3}): (1, None)})
