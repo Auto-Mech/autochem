@@ -292,20 +292,26 @@ def reflect_local_stereo(gra):
     return gra
 
 
-def to_local_stereo(gra):
+def to_local_stereo(gra, pri_dct=None):
     """ Convert canonical stereo parities to local ones
 
         :param gra: molecular graph with canonical stereo parities
         :type gra: automol graph data structure
+        :param pri_dct: priorities, to avoid recalculating
+        :type pri_dct: dict[int: int]
         :returns: molecular graph with local stereo parities
         :rtype: automol graph data structure
     """
     def _to_local_stereo_for_connected_component(gra):
+        nonlocal pri_dct
         if has_stereo(gra):
+            pri_dct_ = (None if pri_dct is None else
+                        dict_.by_key(pri_dct, backbone_keys(gra)))
             _, loc_gra = calculate_priorities_and_assign_parities(
                     gra, backbone_only=False, break_ties=False,
                     par_eval_=parity_evaluator_read_canonical_(gra),
-                    par_eval2_=parity_evaluator_flip_local_(gra))
+                    par_eval2_=parity_evaluator_flip_local_(gra),
+                    pri_dct=pri_dct_)
         else:
             loc_gra = gra
         return loc_gra
@@ -316,20 +322,26 @@ def to_local_stereo(gra):
     return loc_gra
 
 
-def from_local_stereo(gra):
+def from_local_stereo(gra, pri_dct=None):
     """ Convert local stereo parities to canonical ones
 
         :param gra: molecular graph with local stereo parities
         :type gra: automol graph data structure
+        :param pri_dct: priorities, to avoid recalculating
+        :type pri_dct: dict[int: int]
         :returns: molecular graph with canonical stereo parities
         :rtype: automol graph data structure
     """
     def _from_local_stereo_for_connected_component(gra):
+        nonlocal pri_dct
         if has_stereo(gra):
+            pri_dct_ = (None if pri_dct is None else
+                        dict_.by_key(pri_dct, backbone_keys(gra)))
             _, can_gra = calculate_priorities_and_assign_parities(
                     gra, backbone_only=False, break_ties=False,
                     par_eval_=parity_evaluator_flip_local_(gra),
-                    par_eval2_=parity_evaluator_flip_local_(gra))
+                    par_eval2_=parity_evaluator_flip_local_(gra),
+                    pri_dct=pri_dct_)
         else:
             can_gra = gra
         return can_gra

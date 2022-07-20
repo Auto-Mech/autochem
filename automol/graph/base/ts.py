@@ -166,19 +166,19 @@ def from_local_stereo(loc_tsg):
     return tsg
 
 
-def expand_stereo(tsg, sym_filter=True):
+def expand_stereo(tsg, symeq=False):
     """ Obtain all possible stereoisomers of a TS graph, ignoring its assignments
 
         :param tsg: A TS graph, without stereo
         :type tsg: automol graph data structure
-        :param sym_filter: filter out symmetrically equivalent stereoisomers?
-        :type sym_filter: bool
+        :param symeq: Include symmetrically equivalent stereoisomers?
+        :type symeq: bool
         :returns: a series of molecular graphs for the stereoisomers
     """
-    return _expand_stereo(tsg, sym_filter=sym_filter)
+    return _expand_stereo(tsg, symeq=symeq)
 
 
-def expand_reaction_stereo(tsg, sym_filter=True, const=True):
+def expand_reaction_stereo(tsg, symeq=False, const=True):
     """ Obtain all possible stereoisomer combinations for a reaction, encoding
         reactant and product stereo assignments in forward and reverse TS
         graphs, respectively
@@ -187,8 +187,8 @@ def expand_reaction_stereo(tsg, sym_filter=True, const=True):
             assumed to be for the reactants, and all compatible products
             assignments will be exapnded
         :type tsg: automol graph data structure
-        :param sym_filter: filter out symmetrically equivalent stereoisomers?
-        :type sym_filter: bool
+        :param symeq: Include symmetrically equivalent stereoisomers?
+        :type symeq: bool
         :param const: Constrain bond stereo based on reactant atom stereo?
         :type const: bool
         :returns: a series of pairs of forward and reverse graphs containing
@@ -203,7 +203,7 @@ def expand_reaction_stereo(tsg, sym_filter=True, const=True):
     # stereo assignments for the reactants.
     # A complete expansion over all unique reactions will be performed.
     else:
-        ftsgs = expand_stereo(tsg, sym_filter=True)
+        ftsgs = expand_stereo(tsg, symeq=False)
 
     # 1. Expand all possible reverse (product) stereo assignments, along with
     # their priorities (for symmetry filtering)
@@ -228,7 +228,7 @@ def expand_reaction_stereo(tsg, sym_filter=True, const=True):
                 # reaction. If so, add the forward and reverse graphs to the
                 # list of reacs.
                 rrep = canonical_assignment_representation(rtsg, rpri_dct)
-                if not sym_filter or rrep not in seen_rreps:
+                if symeq or rrep not in seen_rreps:
                     reacs.append((ftsg, rtsg))
                     seen_rreps.append(rrep)
 
