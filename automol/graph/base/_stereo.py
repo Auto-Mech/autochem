@@ -3,16 +3,13 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
-import numbers
 import itertools
 import numpy
 from automol import util
 import automol.geom.base    # !!!!
-from automol.util import dict_
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
-from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import set_stereo_parities
@@ -29,32 +26,61 @@ from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import stereogenic_keys
 from automol.graph.base._canon import to_local_stereo
+from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import refine_priorities
 from automol.graph.base._canon import parity_evaluator_from_geometry_
+from automol.graph.base._canon import canonical_assignment_representation
 
 
 # # core functions
-def expand_stereo(gra, symeq=False):
+def expand_stereo(gra, enant=True, symeq=False):
     """ Obtain all possible stereoisomers of a graph, ignoring its assignments
 
         :param gra: molecular graph
         :type gra: automol graph data structure
+        :param enant: Include all enantiomers, or only canonical ones?
+        :type enant: bool
         :param symeq: Include symmetrically equivalent stereoisomers?
         :type symeq: bool
         :returns: a series of molecular graphs for the stereoisomers
     """
     gps = expand_stereo_with_priorities(gra)
-    if symeq:
-        gras = [g for g, _ in gps]
-    else:
-        gras = []
-        reps = []
-        for gra_, pri_dct in gps:
-            rep = canonical_assignment_representation(gra_, pri_dct)
-            if rep not in reps:
-                reps.append(rep)
-                gras.append(gra_)
-    return tuple(sorted(gras, key=frozen))
+
+    lst = []
+    for ugra, upri_dct in gps:
+        uloc_gra = to_local_stereo(ugra, pri_dct=upri_dct)
+        rloc_gra = reflect_local_stereo(uloc_gra)
+        urep = canonical_assignment_representation(ugra, upri_dct)
+
+        # If requested, check for enantiomers
+        eidx = next((i for i, x in enumerate(lst) if x[2] == rloc_gra), None)
+        if enant or eidx is None:
+            rrep = urep
+        else:
+            rgra, rrep, rloc_gra = lst[eidx]
+
+        if urep == rrep:
+            egra = ugra
+            erep = urep
+            eloc_gra = uloc_gra
+        elif urep < rrep:
+            lst.pop(eidx)
+            egra = ugra
+            erep = urep
+            eloc_gra = None
+        else:
+            lst.pop(eidx)
+            egra = rgra
+            erep = rrep
+            eloc_gra = None
+
+        # If requested, check for symmetries
+        sidx = next((i for i, x in enumerate(lst) if x[1] == erep), None)
+        if symeq or sidx is None:
+            lst.append((egra, erep, eloc_gra))
+
+    gras = tuple(sorted((g for g, _, _ in lst), key=frozen))
+    return gras
 
 
 def expand_stereo_with_priorities(gra):
@@ -95,33 +121,6 @@ def expand_stereo_with_priorities(gra):
 
     gps = tuple((g, p) for g, p, _ in gpps)
     return gps
-
-
-def canonical_assignment_representation(gra, pri_dct):
-    """ Generate a canonical representation of a stereo assignment, for
-        checking for symmetric equivalence
-
-        :param pri_dct: A dictionary mapping atom keys to priorities
-        :type pri_dct: dict
-        :param par_dct: A dictionary mapping atom and bond keys to parities
-        :type par_dct: dict
-        :returns: A canonical representation of the assignment
-    """
-    def _key_rep(key):
-        if isinstance(key, numbers.Number):
-            ret = [pri_dct[key]]
-        else:
-            ret = sorted(map(pri_dct.__getitem__, key))
-        return ret
-
-    par_dct = stereo_parities(gra)
-    keys = [k for k, p in par_dct.items() if p is not None]
-    keys = sorted(keys, key=_key_rep)
-
-    pris = list(map(_key_rep, keys))
-    pars = dict_.values_by_key(par_dct, keys)
-    rep = sorted(zip(pris, pars))
-    return rep
 
 
 # # stereo evaluation
@@ -369,3 +368,4 @@ if __name__ == '__main__':
             frozenset({9, 3}): (1, None), frozenset({10, 7}): (1, None),
             frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
             frozenset({8, 5}): (1, None), frozenset({1, 3}): (1, None)})
+    print(len(expand_stereo(GRA, enant=False, symeq=False)))

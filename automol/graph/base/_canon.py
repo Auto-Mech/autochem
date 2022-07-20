@@ -63,15 +63,13 @@ def canonical_enantiomer(gra):
             hasn't, and `None` indicates that it isn't an enantiomer
         :rtype: (automol graph data structure, bool)
     """
-    can_enant_gra, is_reflected, _ = canonical_enantiomer_with_keys(gra)
-    return can_enant_gra, is_reflected
+    ce_gra, is_reflected, _ = canonical_enantiomer_with_keys(gra)
+    return ce_gra, is_reflected
 
 
 def canonical_enantiomer_with_keys(gra):
     """ Determine the canonical graph of the canonical enantiomer, along with
         the canonical key mapping.
-
-        Graphs with stereo will be reflected.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
@@ -82,9 +80,9 @@ def canonical_enantiomer_with_keys(gra):
         :rtype: (automol graph data structure, bool)
     """
     if not has_atom_stereo(gra):
+        ce_gra = gra
         is_reflected = None
-        can_enant_key_dct = canonical_keys(gra, backbone_only=False)
-        can_enant_gra = relabel(gra, can_enant_key_dct)
+        ce_can_key_dct = canonical_keys(gra, backbone_only=False)
     else:
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
@@ -104,38 +102,54 @@ def canonical_enantiomer_with_keys(gra):
                 par_eval_=parity_evaluator_flip_local_(rloc_gra),
                 par_eval2_=parity_evaluator_flip_local_(rloc_gra))
 
-        # Convert both to canonical graphs
-        ucan_gra = relabel(ugra, ucan_key_dct)
-        rcan_gra = relabel(rgra, rcan_key_dct)
-
-        # Read and compare their parities
-        ste_atm_keys = sorted(atom_stereo_keys(ucan_gra))
-        assert ste_atm_keys == sorted(atom_stereo_keys(rcan_gra)), (
-            "Sanity check. This should always be true.")
-        uatm_par_dct = atom_stereo_parities(ucan_gra)
-        ratm_par_dct = atom_stereo_parities(rcan_gra)
-
-        uatm_pars = dict_.values_by_key(uatm_par_dct, ste_atm_keys)
-        ratm_pars = dict_.values_by_key(ratm_par_dct, ste_atm_keys)
+        urep = canonical_assignment_representation(ugra, ucan_key_dct)
+        rrep = canonical_assignment_representation(rgra, rcan_key_dct)
 
         # If the parities are the same, this is not an enantiomer.
         # If the unreflected parities have lower sort order
-        if uatm_pars == ratm_pars:
-            can_enant_gra = ucan_gra
+        if urep == rrep:
+            ce_gra = ugra
             is_reflected = None
-            can_enant_key_dct = ucan_key_dct
+            ce_can_key_dct = ucan_key_dct
         # If the unreflected parities have lower sort order, don't reflect
-        elif uatm_pars < ratm_pars:
-            can_enant_gra = ucan_gra
+        elif urep < rrep:
+            ce_gra = ugra
             is_reflected = False
-            can_enant_key_dct = ucan_key_dct
+            ce_can_key_dct = ucan_key_dct
         # If the reflected parities have lower sort order, reflect
         else:
-            can_enant_gra = rcan_gra
+            ce_gra = rgra
             is_reflected = True
-            can_enant_key_dct = rcan_key_dct
+            ce_can_key_dct = rcan_key_dct
 
-    return can_enant_gra, is_reflected, can_enant_key_dct
+    return ce_gra, is_reflected, ce_can_key_dct
+
+
+def canonical_assignment_representation(gra, pri_dct):
+    """ Generate a canonical representation of a stereo assignment, for
+        checking for symmetric equivalence or for determining a canonical
+        enantiomer
+
+        :param pri_dct: A dictionary mapping atom keys to priorities
+        :type pri_dct: dict
+        :param par_dct: A dictionary mapping atom and bond keys to parities
+        :type par_dct: dict
+        :returns: A canonical representation of the assignment
+    """
+    atm_keys = sorted(atom_stereo_keys(gra), key=pri_dct.__getitem__)
+    bnd_keys = sorted(bond_stereo_keys(gra),
+                      key=lambda x: sorted(map(pri_dct.__getitem__, x)))
+
+    atm_pris = tuple([pri_dct[k]] for k in atm_keys)
+    bnd_pris = tuple(sorted(map(pri_dct.__getitem__, k)) for k in bnd_keys)
+
+    atm_pars = dict_.values_by_key(atom_stereo_parities(gra), atm_keys)
+    bnd_pars = dict_.values_by_key(bond_stereo_parities(gra), bnd_keys)
+
+    pris = atm_pris + bnd_pris
+    pars = atm_pars + bnd_pars
+    rep = tuple(zip(pris, pars))
+    return rep
 
 
 def canonical(gra):

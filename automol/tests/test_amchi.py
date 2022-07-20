@@ -281,5 +281,5 @@ if __name__ == '__main__':
     # test__atom_stereo_parities()
     # test__bond_stereo_parities()
     # test__is_inverted_enantiomer()
-    # test__graph()
+    test__graph()
     test__smiles()
