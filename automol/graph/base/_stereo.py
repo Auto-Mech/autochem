@@ -34,17 +34,17 @@ from automol.graph.base._canon import parity_evaluator_from_geometry_
 
 
 # # core functions
-def expand_stereo(gra, sym_filter=True):
+def expand_stereo(gra, symeq=False):
     """ Obtain all possible stereoisomers of a graph, ignoring its assignments
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :param sym_filter: filter out symmetrically equivalent stereoisomers?
-        :type sym_filter: bool
+        :param symeq: Include symmetrically equivalent stereoisomers?
+        :type symeq: bool
         :returns: a series of molecular graphs for the stereoisomers
     """
     gps = expand_stereo_with_priorities(gra)
-    if not sym_filter:
+    if symeq:
         gras = [g for g, _ in gps]
     else:
         gras = []

@@ -60,8 +60,8 @@ ICHS_NO_STEREO = load_numpy_string_file(
 ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 # Use NSAMP = None to test everything
-# NSAMP = None
 NSAMP = 10
+# NSAMP = None
 
 # Geometries
 C2H6_H_GEO = (
@@ -585,11 +585,11 @@ def test__smiles__with_stereo():
 
 
 if __name__ == '__main__':
-    # test__geom__with_stereo()
+    test__geom__with_stereo()
     # test__geom__no_stereo()
     # test__graph__with_stereo()
     # test__graph__no_stereo()
-    test__zmatrix__with_stereo()
+    # test__zmatrix__with_stereo()
     # test__smiles__from_geom()
     # test__graph__misc()
     # test__inchi_geometry()
