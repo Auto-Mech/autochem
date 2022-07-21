@@ -272,6 +272,7 @@ from automol.graph.base._geom import linear_vinyl_corrected_geometry
 # stereo functions:
 # # core functions
 from automol.graph.base._stereo import expand_stereo
+from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 # # stereo evaluation
 from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
 from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
@@ -539,6 +540,7 @@ __all__ = [
     # stereo functions:
     # # core functions
     'expand_stereo',
+    'expand_stereo_with_priorities_and_amchis',
     # # stereo evaluation
     'local_atom_stereo_parity_from_geometry',
     'local_bond_stereo_parity_from_geometry',

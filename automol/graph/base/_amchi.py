@@ -22,6 +22,7 @@ from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
 from automol.graph.base._canon import canonical_enantiomer_with_keys
+from automol.graph.base._canon import break_priority_ties
 from automol.graph.base._kekule import has_resonance_bond_stereo
 import automol.amchi.base
 
@@ -62,23 +63,23 @@ def amchi_with_indices(gra, stereo=True):
     return chi, chi_idx_dcts
 
 
-def connected_amchi_with_indices(gra, stereo=True, can=True,
-                                 is_reflected=None):
+def connected_amchi_with_indices(gra, stereo=True,
+                                 pri_dct=None, is_refl=None):
     """ single-component AMChI string from a connected graph
 
         :param gra: molecular graph
         :type gra: automol graph data structure
         :param stereo: Include stereo in the AMChI string, if present?
         :type stereo: bool
-        :param can: Canonicalize the graph? Set to True by default, causing the
-            graph to be canonicalized. If setting to False to avoid
-            re-canonicalization, the `is_reflected` flag must be set for a
-            canonical result.
-        :type can: bool
-        :param is_reflected: If using pre-canonicalized graph, is it a
+        :param pri_dct: Optionally, pass in canonical priorities to avoid
+            recalculating. If this is an enantiomer, `gra` and `pri_dct` must
+            reflect the *canonical enantiomer*, and the `is_refl` flag must be
+            set.
+        :type pri_dct: dict[int: int]
+        :param is_refl: If using pre-canonicalized graph, is it a
             reflected enantiomer? If True, yes; if False, it's an enantiomer
             that isn't reflected; if None, it's not an enantiomer.
-        :type is_reflected: bool or NoneType
+        :type is_refl: bool or NoneType
         :returns: the AMChI string
         :rtype: str
     """
@@ -91,13 +92,16 @@ def connected_amchi_with_indices(gra, stereo=True, can=True,
     gra = implicit(gra)
 
     # Canonicalize and determine canonical enantiomer
-    if can:
-        gra, is_reflected, chi_idx_dct = canonical_enantiomer_with_keys(gra)
-        gra = relabel(gra, chi_idx_dct)
+    if pri_dct is None:
+        gra, is_refl, chi_idx_dct = canonical_enantiomer_with_keys(gra)
+    else:
+        chi_idx_dct = break_priority_ties(gra, pri_dct)
+
+    gra = relabel(gra, chi_idx_dct)
 
     fml_str = _formula_string(gra)
     main_lyr_dct = _main_layers(gra)
-    ste_lyr_dct = _stereo_layers(gra, is_reflected=is_reflected)
+    ste_lyr_dct = _stereo_layers(gra, is_refl=is_refl)
 
     chi = automol.amchi.base.from_data(fml_str=fml_str,
                                        main_lyr_dct=main_lyr_dct,
@@ -298,15 +302,15 @@ def _connection_layer_and_list(gra):
 
 
 # # # Stereo layers
-def _stereo_layers(gra, is_reflected=None):
+def _stereo_layers(gra, is_refl=None):
     """ Determine the stereo layers, describing bond and atom stereochemistry.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :param is_reflected: Is this a reflected enantiomer? If True, yes; if
+        :param is_refl: Is this a reflected enantiomer? If True, yes; if
             False, it's an enantiomer that isn't reflected; if None, it's not
             an enantiomer.
-        :type is_reflected: bool or NoneType
+        :type is_refl: bool or NoneType
         :returns: the 'b', 't', 'm', and 's' layers, as a dictionary
         :rtype: str
     """
@@ -318,10 +322,10 @@ def _stereo_layers(gra, is_reflected=None):
         lyr_dct['b'] = b_lyr
     if t_lyr:
         lyr_dct['t'] = t_lyr
-    if is_reflected is not None:
+    if is_refl is not None:
         assert t_lyr, (
             "If this is an enantiomer, there must be an atom stereo layer.")
-        lyr_dct['m'] = '1' if is_reflected else '0'
+        lyr_dct['m'] = '1' if is_refl else '0'
         lyr_dct['s'] = '1'
 
     return lyr_dct

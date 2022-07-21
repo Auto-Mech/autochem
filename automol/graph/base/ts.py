@@ -26,7 +26,7 @@ from automol.graph.base._canon import from_local_stereo as _from_local_stereo
 from automol.graph.base._canon import stereogenic_keys
 from automol.graph.base._canon import local_priority_dict
 from automol.graph.base._stereo import expand_stereo as _expand_stereo
-from automol.graph.base._stereo import expand_stereo_with_priorities
+from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 from automol.graph.base._stereo import canonical_assignment_representation
 
 
