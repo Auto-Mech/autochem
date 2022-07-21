@@ -368,4 +368,4 @@ if __name__ == '__main__':
             frozenset({9, 3}): (1, None), frozenset({10, 7}): (1, None),
             frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
             frozenset({8, 5}): (1, None), frozenset({1, 3}): (1, None)})
-    print(len(expand_stereo(GRA, enant=False, symeq=False)))
+    print(len(expand_stereo(GRA, enant=True, symeq=False)))
