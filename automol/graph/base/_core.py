@@ -578,7 +578,7 @@ def atom_bond_valences(gra, bond_order=True):
     """
     atm_keys = list(atom_keys(gra))
     gra = explicit(gra)
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    gra = from_ts_graph(gra)
     if not bond_order:
         gra = without_bond_orders(gra)
 
@@ -608,7 +608,7 @@ def atom_unsaturations(gra, bond_order=True):
         :rtype: dict
     """
     atm_keys = list(atom_keys(gra))
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    gra = from_ts_graph(gra)
     if not bond_order:
         gra = without_bond_orders(gra)
 
@@ -632,7 +632,7 @@ def bond_unsaturations(gra, bond_order=True):
         :rtype: dict
     """
     bnd_keys = list(bond_keys(gra))
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    gra = from_ts_graph(gra)
     if not bond_order:
         gra = without_bond_orders(gra)
 
@@ -654,7 +654,7 @@ def tetrahedral_atom_keys(gra):
         :param gra: molecular graph
         :type gra: automol graph data structure
     """
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    gra = from_ts_graph(gra)
     bnd_vlc_dct = atom_bond_valences(gra)
     lpc_dct = atom_lone_pair_counts(gra)
 
@@ -1203,6 +1203,21 @@ def without_stereo_parities(gra):
     bnd_ste_par_dct = dict_.by_key({}, bond_keys(gra), fill_val=None)
     gra = set_atom_stereo_parities(gra, atm_ste_par_dct)
     gra = set_bond_stereo_parities(gra, bnd_ste_par_dct)
+    return gra
+
+
+def from_ts_graph(gra):
+    """ generate a graph representing the reactants from a TS graph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: the reactants graph
+    """
+    ord_dct = bond_orders(gra)
+    frm_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.1]
+    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.9]
+    gra = remove_bonds(gra, frm_bnd_keys)
+    gra = set_bond_orders(gra, {k: 1 for k in brk_bnd_keys})
     return gra
 
 

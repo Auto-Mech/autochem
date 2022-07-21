@@ -10,6 +10,7 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import formula
 from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import implicit
+from automol.graph.base._core import relabel
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_keys
@@ -92,6 +93,7 @@ def connected_amchi_with_indices(gra, stereo=True, can=True,
     # Canonicalize and determine canonical enantiomer
     if can:
         gra, is_reflected, chi_idx_dct = canonical_enantiomer_with_keys(gra)
+        gra = relabel(gra, chi_idx_dct)
 
     fml_str = _formula_string(gra)
     main_lyr_dct = _main_layers(gra)

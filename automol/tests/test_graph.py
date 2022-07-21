@@ -945,6 +945,21 @@ def test__expand_stereo():
     assert graph.expand_stereo(C3H5N3_CGR) == C3H5N3_SGRS
     assert graph.expand_stereo(C8H13O_CGR) == C8H13O_SGRS
 
+    # CC(OO)C(O[O])C(OO)C
+    gra = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 1, None),
+            3: ('C', 1, None), 4: ('C', 1, None), 5: ('O', 1, None),
+            6: ('O', 1, None), 7: ('O', 0, None), 8: ('O', 0, None),
+            9: ('O', 0, None), 10: ('O', 0, None)},
+           {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
+            frozenset({3, 4}): (1, None), frozenset({9, 6}): (1, None),
+            frozenset({9, 3}): (1, None), frozenset({10, 7}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({8, 5}): (1, None), frozenset({1, 3}): (1, None)})
+    assert len(graph.expand_stereo(gra, enant=True, symeq=True)) == 6
+    assert len(graph.expand_stereo(gra, enant=True, symeq=False)) == 4
+    assert len(graph.expand_stereo(gra, enant=False, symeq=True)) == 5
+    assert len(graph.expand_stereo(gra, enant=False, symeq=False)) == 3
+
 
 def test__ring_systems():
     """ test graph.ring_systems
@@ -1370,10 +1385,10 @@ if __name__ == '__main__':
     # test__ts__nonconserved_atom_stereo_keys()
     # test__ts__expand_reaction_stereo()
     # test__stereogenic_atom_keys()
-    # test__expand_stereo()
+    test__expand_stereo()
     # test__ts__expand_reaction_stereo()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
-    test__canonical()
+    # test__canonical()
     # test__calculate_priorities_and_assign_parities()
     # test__smiles()

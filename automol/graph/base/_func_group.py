@@ -18,7 +18,7 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import remove_atoms
 from automol.graph.base._core import remove_bonds
-from automol.graph.base._core import without_fractional_bonds
+from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import subgraph
 from automol.graph.base._core import explicit
 from automol.graph.base._canon import to_local_stereo
@@ -767,8 +767,7 @@ def radical_dissociation_products(gra, pgra1):
         :rtype: tuple(automol.graph.object)
     """
 
-    # Remove gractional bonds for functions to work
-    gra = without_fractional_bonds(gra)
+    gra = from_ts_graph(gra)
 
     # Attempt to find a graph of product corresponding to pgra1
     pgra2 = None
