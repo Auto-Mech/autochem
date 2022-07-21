@@ -39,8 +39,7 @@ from automol.graph.base._core import relabel
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import without_dummy_bonds
-from automol.graph.base._core import without_fractional_bonds
+from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import union_from_sequence
 from automol.graph.base._core import string as graph_string
 from automol.graph.base._algo import is_connected
@@ -1014,7 +1013,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
         :returns: the stereogenic atom keys
         :rtype: frozenset
     """
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    gra = from_ts_graph(gra)
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,
@@ -1051,7 +1050,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
         :returns: the stereogenic bond keys
         :rtype: frozenset
     """
-    gra = without_dummy_bonds(without_fractional_bonds(gra))
+    gra = from_ts_graph(gra)
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,

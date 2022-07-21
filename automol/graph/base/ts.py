@@ -9,18 +9,16 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
 from automol import util
-from automol.util import dict_
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import stereo_parities
-from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import add_bonds
-from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import atoms_neighbor_atom_keys
+from automol.graph.base._core import from_ts_graph as _from_ts_graph
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo as _to_local_stereo
@@ -120,10 +118,7 @@ def breaking_rings_bond_keys(tsg):
 def reactants_graph(tsg):
     """ get a graph of the reactants from a transition state graph
     """
-    frm_bnd_keys = forming_bond_keys(tsg)
-    ord_dct = dict_.transform_values(bond_orders(tsg), func=round)
-    gra = set_bond_orders(tsg, ord_dct)
-    gra = remove_bonds(gra, frm_bnd_keys)
+    gra = _from_ts_graph(tsg)
     return gra
 
 

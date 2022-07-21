@@ -15,10 +15,8 @@ from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import frozen
 from automol.graph.base._core import has_stereo
-from automol.graph.base._core import has_fractional_bonds
+from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import without_stereo_parities
-from automol.graph.base._core import without_dummy_bonds
-from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import branch
@@ -94,8 +92,6 @@ def expand_stereo_with_priorities(gra):
     bools = (False, True)
     gra = without_stereo_parities(gra)
 
-    is_ts = has_fractional_bonds(gra)
-
     gpps0 = None
     gpps = [(gra, None, None)]
 
@@ -104,13 +100,8 @@ def expand_stereo_with_priorities(gra):
         gpps = []
 
         for gra1, pri_dct1, pri_dct2 in gpps0:
+            gra2 = from_ts_graph(gra1)
             pri_dct1 = refine_priorities(gra1, pri_dct=pri_dct1)
-
-            if is_ts:
-                gra2 = without_dummy_bonds(without_fractional_bonds(gra1))
-            else:
-                gra2 = gra1
-
             pri_dct2 = refine_priorities(gra2, pri_dct=pri_dct2)
 
             keys = stereogenic_keys(gra1, pri_dct=pri_dct2)
