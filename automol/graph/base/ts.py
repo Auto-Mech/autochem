@@ -9,6 +9,7 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
 from automol import util
+import automol.amchi.base    # !!!!
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import stereo_keys
@@ -16,18 +17,13 @@ from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import has_stereo
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import from_ts_graph as _from_ts_graph
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
-from automol.graph.base._canon import to_local_stereo as _to_local_stereo
-from automol.graph.base._canon import from_local_stereo as _from_local_stereo
-from automol.graph.base._canon import stereogenic_keys
+from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import local_priority_dict
-from automol.graph.base._stereo import expand_stereo as _expand_stereo
 from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
-from automol.graph.base._stereo import canonical_assignment_representation
 
 
 def graph(gra, frm_bnd_keys, brk_bnd_keys):
@@ -128,52 +124,7 @@ def products_graph(tsg):
     return reactants_graph(reverse(tsg))
 
 
-def to_local_stereo(tsg):
-    """ Convert a TS graph to local stereo assignments, where parities are
-        defined relative to the ordering of indices rather than the canonical
-        stereo priority.
-
-    :param tsg: a TS graph with canonical stereo assignments
-    :returns: a TS graph with local stereo assignments
-    """
-    rgra = reactants_graph(tsg)
-    frm_bnd_keys = forming_bond_keys(tsg)
-    brk_bnd_keys = breaking_bond_keys(tsg)
-
-    rgra = _to_local_stereo(rgra)
-    loc_tsg = graph(rgra, frm_bnd_keys, brk_bnd_keys)
-    return loc_tsg
-
-
-def from_local_stereo(loc_tsg):
-    """ Convert a TS graph from local stereo assignments back to canonical
-    stereo assignments, where parities are independent of atom ordering.
-
-    :param loc_tsg: a TS graph with local stereo assignments
-    :returns: a TS graph with canonical stereo assignments
-    """
-    rgra = reactants_graph(loc_tsg)
-    frm_bnd_keys = forming_bond_keys(loc_tsg)
-    brk_bnd_keys = breaking_bond_keys(loc_tsg)
-
-    rgra = _from_local_stereo(rgra)
-    tsg = graph(rgra, frm_bnd_keys, brk_bnd_keys)
-    return tsg
-
-
-def expand_stereo(tsg, symeq=False):
-    """ Obtain all possible stereoisomers of a TS graph, ignoring its assignments
-
-        :param tsg: A TS graph, without stereo
-        :type tsg: automol graph data structure
-        :param symeq: Include symmetrically equivalent stereoisomers?
-        :type symeq: bool
-        :returns: a series of molecular graphs for the stereoisomers
-    """
-    return _expand_stereo(tsg, symeq=symeq)
-
-
-def expand_reaction_stereo(tsg, symeq=False, const=True):
+def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True):
     """ Obtain all possible stereoisomer combinations for a reaction, encoding
         reactant and product stereo assignments in forward and reverse TS
         graphs, respectively
@@ -182,6 +133,8 @@ def expand_reaction_stereo(tsg, symeq=False, const=True):
             assumed to be for the reactants, and all compatible products
             assignments will be exapnded
         :type tsg: automol graph data structure
+        :param enant: Include all enantiomers, or only canonical ones?
+        :type enant: bool
         :param symeq: Include symmetrically equivalent stereoisomers?
         :type symeq: bool
         :param const: Constrain bond stereo based on reactant atom stereo?
@@ -189,45 +142,41 @@ def expand_reaction_stereo(tsg, symeq=False, const=True):
         :returns: a series of pairs of forward and reverse graphs containing
             mutually compatible stereo assignments
     """
-    # If the input graph has stereo, this fixes the stereo of the reactants.
-    # A limited expansion over compatible products will be performed.
-    if has_stereo(tsg):
-        assert not stereogenic_keys(tsg)
-        ftsgs = [tsg]
-    # Otherwise, the stereo of the reactants is unspecified. Expand all unique
-    # stereo assignments for the reactants.
-    # A complete expansion over all unique reactions will be performed.
-    else:
-        ftsgs = expand_stereo(tsg, symeq=False)
+    rxns = []
 
-    # 1. Expand all possible reverse (product) stereo assignments, along with
-    # their priorities (for symmetry filtering)
-    rtsgs, rpri_dcts = zip(*expand_stereo_with_priorities(reverse(tsg)))
+    # 1. Expand all possible reactant and product assignments
+    ftsgs, fpri_dcts, fchis = zip(
+        *expand_stereo_with_priorities_and_amchis(tsg))
+    rtsgs, rpri_dcts, rchis = zip(
+        *expand_stereo_with_priorities_and_amchis(reverse(tsg)))
 
-    reacs = []
-    # 2. Loop over forward TS graphs (reactant stereo assignments)
-    for ftsg in ftsgs:
+    seen_rxn_chis = []
+    # 2. Loop over forward TS graphs (reactant assignments)
+    for ftsg, fpri_dct, fchi in zip(ftsgs, fpri_dcts, fchis):
         # 3. Convert the forward TS graph to local stereo.
-        ftsg_loc = to_local_stereo(ftsg)
+        ftsg_loc = to_local_stereo(ftsg, pri_dct=fpri_dct)
 
-        seen_rreps = []
-        # 4. Loop over reverse TS graphs (product stereo assignments)
-        for rtsg, rpri_dct in zip(rtsgs, rpri_dcts):
+        # 4. Loop over reverse TS graphs (product assignments)
+        for rtsg, rpri_dct, rchi in zip(rtsgs, rpri_dcts, rchis):
             # 5. Convert the reverse TS graph to local stereo.
-            rtsg_loc = to_local_stereo(rtsg)
+            rtsg_loc = to_local_stereo(rtsg, pri_dct=rpri_dct)
 
-            # 6. Check if the local stereo assignments match for conserved
-            # stereo centers.
+            # 6. Check if the local stereo assignments for reactants and
+            # products are mutually compatible.
             if reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=const):
-                # 7. Check if this is a unique assignment for the reverse
-                # reaction. If so, add the forward and reverse graphs to the
-                # list of reacs.
-                rrep = canonical_assignment_representation(rtsg, rpri_dct)
-                if symeq or rrep not in seen_rreps:
-                    reacs.append((ftsg, rtsg))
-                    seen_rreps.append(rrep)
 
-    return reacs
+                # 7. Check if the reaction is canonical.
+                if (enant or
+                        automol.amchi.base.is_canonical_enantiomer_reaction(
+                            fchi, rchi)):
+
+                    # 8. Check if the reaction has been seen before (symmetry)
+                    if symeq or (fchi, rchi) not in seen_rxn_chis:
+                        print((fchi, rchi))
+                        rxns.append((ftsg, rtsg))
+                        seen_rxn_chis.append((fchi, rchi))
+
+    return tuple(rxns)
 
 
 def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
@@ -336,3 +285,51 @@ def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
                 satisfies &= (p_b12 == p_b12_actual)
 
     return satisfies
+
+
+if __name__ == '__main__':
+    # FC=CF + [CH2]C(O)C => FCC(F)CC(O)C
+    TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('O', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('C', 0, None),
+            12: ('C', 0, None), 13: ('F', 0, None), 14: ('F', 0, None),
+            15: ('H', 0, None), 16: ('H', 0, None)},
+           {frozenset({10, 3}): (1, None), frozenset({11, 12}): (1, None),
+            frozenset({1, 2}): (1, None), frozenset({8, 1}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({16, 12}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({1, 6}): (1, None),
+            frozenset({0, 11}): (0.1, None), frozenset({1, 7}): (1, None),
+            frozenset({2, 3}): (1, None), frozenset({0, 4}): (1, None),
+            frozenset({11, 13}): (1, None), frozenset({11, 15}): (1, None),
+            frozenset({9, 2}): (1, None), frozenset({12, 14}): (1, None)})
+
+    # CC(OO)C(O[O])C(OO)C => CC(OO)C(OO)C(OO)[CH2]
+    TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('C', 0, None), 5: ('O', 0, None),
+            6: ('O', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
+            9: ('O', 0, None), 10: ('O', 0, None), 11: ('H', 0, None),
+            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
+            15: ('H', 0, None), 16: ('H', 0, None), 17: ('H', 0, None),
+            18: ('H', 0, None), 19: ('H', 0, None), 20: ('H', 0, None),
+            21: ('H', 0, None)},
+           {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
+            frozenset({9, 3}): (1, None), frozenset({1, 15}): (1, None),
+            frozenset({0, 12}): (1, None), frozenset({18, 3}): (1, None),
+            frozenset({0, 11}): (0.9, None), frozenset({16, 1}): (1, None),
+            frozenset({11, 7}): (0.1, None), frozenset({0, 13}): (1, None),
+            frozenset({1, 14}): (1, None), frozenset({3, 4}): (1, None),
+            frozenset({9, 6}): (1, None), frozenset({21, 6}): (1, None),
+            frozenset({10, 7}): (1, None), frozenset({19, 4}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({17, 2}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
+            frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
+
+    # print("enant=True symeq=True")
+    # TSGS = expand_reaction_stereo(TSG, enant=True, symeq=True)
+    # print("enant=True symeq=False")
+    # TSGS = expand_reaction_stereo(TSG, enant=True, symeq=False)
+    # print("enant=False symeq=True")
+    # TSGS = expand_reaction_stereo(TSG, enant=False, symeq=True)
+    print("enant=False symeq=False")
+    TSGS = expand_reaction_stereo(TSG, enant=False, symeq=False)

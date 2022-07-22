@@ -1,9 +1,57 @@
 """ functions operating on reaction ChI tuples
 """
+from automol.amchi.base._core import split
+from automol.amchi.base._core import reflect
 from automol.amchi.base._core import sorted_
+from automol.amchi.base._core import argsort
 from automol.amchi.base._core import standard_form
 from automol.amchi.base._core import is_chiral
-from automol.amchi.base._core import reflect
+from automol.amchi.base._core import is_canonical_enantiomer_list
+
+
+def is_canonical_enantiomer_reaction(rct_chi, prd_chi):
+    """ Does this reaction have a canonical combination of enantiomers?
+
+        :param rct_chi: A multi-component ChI or list of ChIs for the reactants
+        :type rct_chis: str or list[str]
+        :param prd_chi: A multi-component ChI or list of ChIs for the products
+        :type prd_chis: str or list[str]
+
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    rct_chis = split(rct_chi) if isinstance(rct_chi, str) else rct_chi
+    prd_chis = split(prd_chi) if isinstance(prd_chi, str) else prd_chi
+
+    # Switch to the canonical reaction direction
+    if not is_canonical_reaction_direction(rct_chis, prd_chis):
+        rct_chis, prd_chis = prd_chis, rct_chis
+
+    chis = sorted_(rct_chis) + sorted_(prd_chis)
+    can = is_canonical_enantiomer_list(chis)
+    return can
+
+
+def is_canonical_reaction_direction(rct_chis, prd_chis):
+    """ Is this the canonical reaction direction, or should it be reversed?
+
+        :param rct_chis: A list of ChIs for the reactants
+        :type rct_chis: list[str]
+        :param prd_chis: A list of ChIs for the products
+        :type prd_chis: list[str]
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    nrcts = len(rct_chis)
+    nprds = len(prd_chis)
+
+    idxs = argsort(rct_chis + prd_chis)
+    rct_idxs = sorted(idxs[:nrcts])
+    prd_idxs = sorted(idxs[nrcts:])
+
+    rct_rep = (nrcts, rct_idxs)
+    prd_rep = (nprds, prd_idxs)
+    return rct_rep < prd_rep
 
 
 def filter_enantiomer_reactions(rxn_chis_lst):

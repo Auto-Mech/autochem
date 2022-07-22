@@ -19,8 +19,10 @@ from automol.graph.base._core import backbone_keys
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
+from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import has_stereo
@@ -40,7 +42,6 @@ from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import from_ts_graph
-from automol.graph.base._core import union_from_sequence
 from automol.graph.base._core import string as graph_string
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
@@ -315,23 +316,22 @@ def to_local_stereo(gra, pri_dct=None):
         :returns: molecular graph with local stereo parities
         :rtype: automol graph data structure
     """
-    def _to_local_stereo_for_connected_component(gra):
-        nonlocal pri_dct
-        if has_stereo(gra):
+    loc_gra = without_stereo_parities(gra)
+    comps = connected_components(from_ts_graph(gra))
+    for comp in comps:
+        if has_stereo(comp):
             pri_dct_ = (None if pri_dct is None else
-                        dict_.by_key(pri_dct, backbone_keys(gra)))
-            _, loc_gra = calculate_priorities_and_assign_parities(
-                    gra, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_read_canonical_(gra),
-                    par_eval2_=parity_evaluator_flip_local_(gra),
+                        dict_.by_key(pri_dct, backbone_keys(comp)))
+            _, loc_comp = calculate_priorities_and_assign_parities(
+                    comp, backbone_only=False, break_ties=False,
+                    par_eval_=parity_evaluator_read_canonical_(comp),
+                    par_eval2_=parity_evaluator_flip_local_(comp),
                     pri_dct=pri_dct_)
         else:
-            loc_gra = gra
-        return loc_gra
+            loc_comp = comp
 
-    gras = connected_components(gra)
-    loc_gras = map(_to_local_stereo_for_connected_component, gras)
-    loc_gra = union_from_sequence(loc_gras, shift_keys=False)
+        loc_gra = set_stereo_parities(loc_gra, stereo_parities(loc_comp))
+
     return loc_gra
 
 
@@ -345,23 +345,22 @@ def from_local_stereo(gra, pri_dct=None):
         :returns: molecular graph with canonical stereo parities
         :rtype: automol graph data structure
     """
-    def _from_local_stereo_for_connected_component(gra):
-        nonlocal pri_dct
-        if has_stereo(gra):
+    can_gra = without_stereo_parities(gra)
+    loc_comps = connected_components(from_ts_graph(gra))
+    for loc_comp in loc_comps:
+        if has_stereo(loc_comp):
             pri_dct_ = (None if pri_dct is None else
-                        dict_.by_key(pri_dct, backbone_keys(gra)))
-            _, can_gra = calculate_priorities_and_assign_parities(
-                    gra, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_flip_local_(gra),
-                    par_eval2_=parity_evaluator_flip_local_(gra),
+                        dict_.by_key(pri_dct, backbone_keys(loc_comp)))
+            _, can_comp = calculate_priorities_and_assign_parities(
+                    loc_comp, backbone_only=False, break_ties=False,
+                    par_eval_=parity_evaluator_flip_local_(loc_comp),
+                    par_eval2_=parity_evaluator_flip_local_(loc_comp),
                     pri_dct=pri_dct_)
         else:
-            can_gra = gra
-        return can_gra
+            can_comp = loc_comp
 
-    loc_gras = connected_components(gra)
-    can_gras = map(_from_local_stereo_for_connected_component, loc_gras)
-    can_gra = union_from_sequence(can_gras, shift_keys=False)
+        can_gra = set_stereo_parities(can_gra, stereo_parities(can_comp))
+
     return can_gra
 
 
@@ -617,7 +616,6 @@ def sort_evaluator_atom_invariants_(gra):
         :param gra: molecular graph
         :type gra: automol graph data structure
     """
-
     def _replace_none(val):
         return numpy.inf if val is None else val
 

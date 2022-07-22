@@ -7,11 +7,11 @@ Import hierarchy:
     _kekule     dependencies: _core, _networkx, _algo
     _rot        dependencies: _core, _networkx, _algo, _kekule
     _geom       dependencies: _core, _networkx, _algo, _kekule
-    _stereo     dependencies: _core, _networkx, _algo, _kekule
     _canon      dependencies: _core, _networkx, _algo, _kekule
-    _func_group dependencies: _core, _networkx, _algo, _kekule, _stereo
     _amchi      dependencies: _core, _networkx, _algo, _canon, _kekule
     _smiles     dependencies: _core, _networkx, _algo, _canon, _kekule
+    _stereo     dependencies: _core, _networkx, _algo, _canon, _kekule, _amchi
+    _func_group dependencies: _core, _networkx, _algo, _kekule, _stereo
     ts          dependencies: _core, _networkx, _algo, _kekule, _stereo
 
 Each next submodule in the hierarchy may depend on the ones before it, but

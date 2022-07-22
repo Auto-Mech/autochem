@@ -5,6 +5,7 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import itertools
 from automol import util
 import automol.formula
+import automol.amchi.base
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import formula
@@ -24,7 +25,6 @@ from automol.graph.base._algo import cycle_ring_atom_key_to_front
 from automol.graph.base._canon import canonical_enantiomer_with_keys
 from automol.graph.base._canon import break_priority_ties
 from automol.graph.base._kekule import has_resonance_bond_stereo
-import automol.amchi.base
 
 
 # AMChI functions
