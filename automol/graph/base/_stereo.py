@@ -16,6 +16,7 @@ from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import frozen
 from automol.graph.base._core import implicit
 from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import without_stereo_parities
@@ -92,8 +93,7 @@ def expand_stereo_with_priorities_and_amchis(gra):
 
         gpcs.append((gra_, pri_dct, chi))
 
-    # Sort them by AMChI string
-    gpcs = tuple(sorted(gpcs, key=lambda x: x[-1]))
+    gpcs = sorted(gpcs, key=lambda x: frozen(x[0]))
     return gpcs
 
 

@@ -172,7 +172,6 @@ def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True):
 
                     # 8. Check if the reaction has been seen before (symmetry)
                     if symeq or (fchi, rchi) not in seen_rxn_chis:
-                        print((fchi, rchi))
                         rxns.append((ftsg, rtsg))
                         seen_rxn_chis.append((fchi, rchi))
 
@@ -325,11 +324,8 @@ if __name__ == '__main__':
             frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
             frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
 
-    # print("enant=True symeq=True")
-    # TSGS = expand_reaction_stereo(TSG, enant=True, symeq=True)
-    # print("enant=True symeq=False")
-    # TSGS = expand_reaction_stereo(TSG, enant=True, symeq=False)
-    # print("enant=False symeq=True")
-    # TSGS = expand_reaction_stereo(TSG, enant=False, symeq=True)
-    print("enant=False symeq=False")
-    TSGS = expand_reaction_stereo(TSG, enant=False, symeq=False)
+    print("enant=True symeq=True")
+    print(len(expand_reaction_stereo(TSG, enant=True, symeq=True)))
+    print(len(expand_reaction_stereo(TSG, enant=True, symeq=False)))
+    print(len(expand_reaction_stereo(TSG, enant=False, symeq=True)))
+    print(len(expand_reaction_stereo(TSG, enant=False, symeq=False)))

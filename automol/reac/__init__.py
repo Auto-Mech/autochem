@@ -60,8 +60,7 @@ from automol.reac._stereo import add_stereo_from_geometries
 from automol.reac._stereo import add_stereo_from_inchis
 from automol.reac._stereo import add_stereo_from_unordered_geometries
 from automol.reac._stereo import expand_stereo
-from automol.reac._stereo import expand_product_stereo
-from automol.reac._stereo import is_stereo_consistent
+from automol.reac._stereo import stereo_is_physical
 # reaction products
 from automol.reac._enum import enumerate_reactions
 # species instability transformations
@@ -146,8 +145,7 @@ __all__ = [
     'add_stereo_from_inchis',
     'add_stereo_from_unordered_geometries',
     'expand_stereo',
-    'expand_product_stereo',
-    'is_stereo_consistent',
+    'stereo_is_physical',
     # reaction products
     'enumerate_reactions',
     # species instability transformations

@@ -831,25 +831,7 @@ def test__stereo():
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
     # Note that the original stereo assignments from the product geometries
     # could be inconsistent with the reactant stereo assignments.
-    print('Consistent?', automol.reac.is_stereo_consistent(srxn))
-
-    # Add stereo from geometries and expand stereo possibilities consistent
-    # with the reactants.
-    srxns = automol.reac.expand_product_stereo(srxn)
-    print(len(srxns))
-    print("Product expansion for reactant geometry stereo assignments:")
-    srxn_chis = []
-    for srxn in srxns:
-        rct_gras = automol.reac.reactant_graphs(srxn)
-        prd_gras = automol.reac.product_graphs(srxn)
-        rct_chis = tuple(map(automol.graph.chi, rct_gras))
-        prd_chis = tuple(map(automol.graph.chi, prd_gras))
-        srxn_chis.append((rct_chis, prd_chis))
-        print(rct_chis)
-        print(prd_chis)
-        print()
-
-    assert len(set(srxn_chis)) == 2
+    print('Consistent?', automol.reac.stereo_is_physical(srxn))
 
     # example 2
     rct_smis = ['FC=CC=CF', '[OH]']
@@ -872,6 +854,7 @@ def test__stereo():
         srxn_chis.append((rct_chis, prd_chis))
         print(rct_chis)
         print(prd_chis)
+        print("Physical?", automol.reac.stereo_is_physical(srxn))
         print()
 
     assert set(srxn_chis) == {
@@ -913,25 +896,7 @@ def test__stereo():
     srxn = automol.reac.add_stereo_from_geometries(rxn, rct_geos, prd_geos)
     # Note that the original stereo assignments from the product geometries
     # could be inconsistent with the reactant stereo assignments.
-    print('Consistent?', automol.reac.is_stereo_consistent(srxn))
-    # Add stereo from geometries and expand stereo possibilities consistent
-    # with the reactants.
-    srxns = automol.reac.expand_product_stereo(srxn)
-    print(len(srxns))
-    print("Product expansion for reactant geometry stereo assignments:")
-    srxn_chis = []
-    for srxn in srxns:
-        rct_gras = automol.reac.reactant_graphs(srxn)
-        prd_gras = automol.reac.product_graphs(srxn)
-        rct_chis = tuple(map(automol.graph.chi, rct_gras))
-        prd_chis = tuple(map(automol.graph.chi, prd_gras))
-        srxn_chis.append((rct_chis, prd_chis))
-        print(rct_chis)
-        print(prd_chis)
-        print()
-
-    print(len(set(srxn_chis)))
-    assert len(set(srxn_chis)) == 4
+    print('Consistent?', automol.reac.stereo_is_physical(srxn))
 
     # example 3
     rct_smis = ['C(F)(Cl)-C(F)(Cl)O[O]']
@@ -1096,24 +1061,6 @@ def test__expand_stereo():
          'InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m0./s1'),
         ('InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m1./s1',
          'InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m1./s1'))
-
-
-def test__expand_product_stereo():
-    """ test reaction stereo expansion
-    """
-    # This is kind of a trivial example -- we should find one with multiple
-    # possible products
-    rct_smis = ['CC(F)CCCC', '[H]']
-    prd_smis = ['CC(F)CCC[CH2]', '[HH]']
-    rxn_obj = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
-
-    # Use the regular expander to get stereo for reactants
-    srxn_obj = automol.reac.expand_stereo(rxn_obj)[0]
-
-    # Stereo assignments for products will be ignored and re-expanded
-    srxn_objs = automol.reac.expand_product_stereo(srxn_obj)
-    assert len(srxn_objs) == 1
-    assert srxn_objs[0] == srxn_obj
 
 
 def test__add_stereo_from_unordered_geometries():
