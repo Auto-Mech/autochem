@@ -1420,6 +1420,6 @@ if __name__ == '__main__':
     # test__inchi_is_bad()
     # test__canonical()
     # test__calculate_priorities_and_assign_parities()
-    # test__expand_stereo()
+    test__expand_stereo()
     # test__ts__expand_reaction_stereo()
     test__smiles()

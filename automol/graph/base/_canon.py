@@ -63,8 +63,8 @@ def canonical_enantiomer(gra):
             hasn't, and `None` indicates that it isn't an enantiomer
         :rtype: (automol graph data structure, bool)
     """
-    ce_gra, is_reflected, _ = canonical_enantiomer_with_keys(gra)
-    return ce_gra, is_reflected
+    ce_gra, _, is_refl = canonical_enantiomer_with_keys(gra)
+    return ce_gra, is_refl
 
 
 def canonical_enantiomer_with_keys(gra):
@@ -81,7 +81,7 @@ def canonical_enantiomer_with_keys(gra):
     """
     if not has_atom_stereo(gra):
         ce_gra = gra
-        is_reflected = None
+        is_refl = None
         ce_can_key_dct = canonical_keys(gra, backbone_only=False)
     else:
         # Calculate canonical keys for the unreflected graph while converting
@@ -105,24 +105,24 @@ def canonical_enantiomer_with_keys(gra):
         urep = canonical_assignment_representation(ugra, ucan_key_dct)
         rrep = canonical_assignment_representation(rgra, rcan_key_dct)
 
-        # If the parities are the same, this is not an enantiomer.
-        # If the unreflected parities have lower sort order
-        if urep == rrep:
-            ce_gra = ugra
-            is_reflected = None
-            ce_can_key_dct = ucan_key_dct
-        # If the unreflected parities have lower sort order, don't reflect
-        elif urep < rrep:
-            ce_gra = ugra
-            is_reflected = False
-            ce_can_key_dct = ucan_key_dct
-        # If the reflected parities have lower sort order, reflect
-        else:
+        # If the reflected parities have a lower sort order, the molecule is
+        # chiral and this is the mirror image of the canonical enantiomer.
+        if urep > rrep:
             ce_gra = rgra
-            is_reflected = True
             ce_can_key_dct = rcan_key_dct
+            is_refl = True
+        else:
+            ce_gra = ugra
+            ce_can_key_dct = ucan_key_dct
+            # If the sorted parities are the same, the molecule is achiral.
+            if urep == rrep:
+                is_refl = None
+            # Otherwise, the unreflected parities have a lower sort order, so
+            # the molecule is chiral and this is the canonical enantiomer.
+            else:
+                is_refl = False
 
-    return ce_gra, is_reflected, ce_can_key_dct
+    return ce_gra, ce_can_key_dct, is_refl
 
 
 def canonical_assignment_representation(gra, pri_dct):

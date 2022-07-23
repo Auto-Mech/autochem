@@ -128,37 +128,38 @@ def _connected_expand_stereo_with_priorities_and_amchis(gra):
 
     # 2. Group enantiomers into pairs, sorting them so that the canonical
     # enantiomer comes first.
-    loc_gras = []
-    diast_gps = []
+    diast_gpls = []
     enant_gps = []
     for ugra, upri_dct in gps:
         uloc_gra = to_local_stereo(ugra, pri_dct=upri_dct)
         rloc_gra = reflect_local_stereo(uloc_gra)
 
-        ridx = next((i for i, g in enumerate(loc_gras) if g == rloc_gra), None)
-        if ridx is None:
-            diast_gps.append((ugra, upri_dct))
-            loc_gras.append(uloc_gra)
-        else:
-            loc_gras.pop(ridx)
-            rgra, rpri_dct = diast_gps.pop(ridx)
+        rgra = rpri_dct = None
+        for gra_, pri_dct_, loc_gra_ in diast_gpls:
+            if loc_gra_ == rloc_gra:
+                rgra = gra_
+                rpri_dct = pri_dct_
+                break
 
+        if rgra is None:
+            diast_gpls.append((ugra, upri_dct, uloc_gra))
+        else:
             urep = canonical_assignment_representation(ugra, upri_dct)
             rrep = canonical_assignment_representation(rgra, rpri_dct)
 
             if urep == rrep:
-                diast_gps.extend([(ugra, upri_dct), (rgra, rpri_dct)])
-                loc_gras.extend([uloc_gra, rloc_gra])
+                diast_gpls.append((ugra, upri_dct, uloc_gra))
             else:
+                diast_gpls.remove((rgra, rpri_dct, rloc_gra))
                 if urep > rrep:
-                    ugra, rgra = rgra, ugra
-                    upri_dct, rpri_dct = rpri_dct, upri_dct
-                enant_gps.append([(ugra, upri_dct), (rgra, rpri_dct)])
+                    enant_gps.append([(rgra, rpri_dct), (ugra, upri_dct)])
+                else:
+                    enant_gps.append([(ugra, upri_dct), (rgra, rpri_dct)])
 
     # 3A. Generate AMChIs for each diastereomer and each pair of enantiomers
     # and add them to the list
     gpcs = []
-    for gra_, pri_dct in diast_gps:
+    for gra_, pri_dct, _ in diast_gpls:
         chi, _ = connected_amchi_with_indices(gra_, pri_dct=pri_dct,
                                               is_refl=None)
         gpcs.append((gra_, pri_dct, chi))

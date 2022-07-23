@@ -93,7 +93,7 @@ def connected_amchi_with_indices(gra, stereo=True,
 
     # Canonicalize and determine canonical enantiomer
     if pri_dct is None:
-        gra, is_refl, chi_idx_dct = canonical_enantiomer_with_keys(gra)
+        gra, chi_idx_dct, is_refl = canonical_enantiomer_with_keys(gra)
     else:
         chi_idx_dct = break_priority_ties(gra, pri_dct)
 
