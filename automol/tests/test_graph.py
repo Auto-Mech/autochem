@@ -1408,7 +1408,6 @@ def test__smiles__with_resonance():
 
 
 if __name__ == '__main__':
-    # test__smiles()
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
@@ -1421,6 +1420,6 @@ if __name__ == '__main__':
     # test__inchi_is_bad()
     # test__canonical()
     # test__calculate_priorities_and_assign_parities()
-    # test__smiles()
     # test__expand_stereo()
-    test__ts__expand_reaction_stereo()
+    # test__ts__expand_reaction_stereo()
+    test__smiles()

@@ -141,11 +141,15 @@ def test__geom__with_stereo():
     for ref_ich in ref_ichs:
         print()
         print(ref_ich, flush=True)
-        geo = automol.inchi.geometry(ref_ich)
-        ich = automol.geom.inchi(geo)
-        assert ich == ref_ich
+        ref_geo = automol.chi.geometry(ref_ich)
+        ref_chi = automol.geom.chi(ref_geo)
 
-        assert automol.geom.formula(geo) == automol.inchi.formula(ich)
+        print(ref_chi, flush=True)
+        geo = automol.chi.geometry(ref_chi)
+        chi = automol.geom.chi(geo)
+        assert chi == ref_chi
+
+        assert automol.geom.formula(geo) == automol.chi.formula(chi)
 
 
 def test__graph__with_stereo():
@@ -153,44 +157,28 @@ def test__graph__with_stereo():
     """
     print('graph with stereo')
 
-    ref_ichs = []
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
         ref_ichs = list(numpy.random.choice(ref_ichs, NSAMP))
 
     for ref_ich in ref_ichs:
+        print()
         print(ref_ich, flush=True)
-        gra = automol.inchi.graph(ref_ich)
-        ich = automol.graph.inchi(gra, stereo=True)
-        assert ich == ref_ich
+        ref_geo = automol.chi.geometry(ref_ich)
+        ref_chi = automol.geom.chi(ref_geo)
 
-        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
-
-
-def test__graph__no_stereo():
-    """ test graph conversions
-    """
-    print("graph no stereo")
-
-    ref_ichs = ICHS_NO_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    for ref_ich in ref_ichs:
         print(ref_ich, flush=True)
-        gra = automol.inchi.graph(ref_ich)
-        gra = automol.graph.without_stereo_parities(gra)
-        # gra <=> ich
-        ich = automol.graph.inchi(gra)
-        assert ich == ref_ich
+        gra = automol.chi.graph(ref_chi)
+        chi = automol.graph.chi(gra, stereo=True)
+        assert chi == ref_chi
 
-        assert automol.graph.formula(gra) == automol.inchi.formula(ich)
+        assert automol.graph.formula(gra) == automol.chi.formula(chi)
 
 
-def test__zmatrix__with_stereo():
-    """ test zmatrix conversions
+def test__smiles__with_stereo():
+    """ test smiles conversions
     """
-    print("zmatrix with stereo")
+    print("smiles from geom")
 
     ref_ichs = ICHS_WITH_STEREO
     if NSAMP is not None:
@@ -199,51 +187,12 @@ def test__zmatrix__with_stereo():
     for ref_ich in ref_ichs:
         print()
         print(ref_ich, flush=True)
-        ref_geo = automol.inchi.geometry(ref_ich)
-        zma = automol.geom.zmatrix(ref_geo)
-        geo = automol.zmat.geometry(zma)
-        print(automol.geom.string(geo))
-        ich = automol.geom.inchi(geo)
-        assert ich == ref_ich, (f'{ich} != {ref_ich}')
+        ref_geo = automol.chi.geometry(ref_ich)
+        ref_chi = automol.geom.chi(ref_geo)
 
-        assert automol.zmat.formula(zma) == automol.inchi.formula(ich)
-
-    # Test dummy
-    zma = (
-        ('X', (None, None, None), (None, None, None),
-         (None, None, None)),
-        ('C', (0, None, None), ('R1', None, None),
-         (1.8897261254578281, None, None)),
-        ('O', (1, 0, None), ('R2', 'A1', None),
-         (2.2601124460475623, 1.5707963267948966, None)),
-        ('O', (1, 0, 2), ('R2', 'A1', 'D1'),
-         (2.2601124460475623, 1.5707963267948966, 3.141592653589793)))
-
-    ref_geo = (('C', (0.0, 0.0, 1.8897261254578281)),
-               ('O', (0.0, 2.2601124460475623, 1.889726125457828)),
-               ('O', (0.0, -2.2601124460475623, 1.889726125457828)))
-    geo = automol.zmat.geometry(zma, dummy=False)
-
-    assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
-
-
-def test__smiles__from_geom():
-    """ test smiles conversions
-    """
-    print("smiles from geom")
-
-    ref_ichs = ICHS_NO_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    for ref_ich in ref_ichs:
-        print()
-        print(ref_ich, flush=True)
-        # geo <=> smi
-        geo = automol.inchi.geometry(ref_ich)
-        smi = automol.geom.smiles(geo)
-        ich = automol.smiles.inchi(smi)
-        assert automol.inchi.standard_form(ich, stereo=False) == ref_ich
+        smi = automol.chi.smiles(ref_chi)
+        chi = automol.smiles.chi(smi)
+        assert chi == ref_chi
 
 
 def test__graph__misc():
@@ -251,19 +200,19 @@ def test__graph__misc():
     """
 
     ref_ich = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H'
-    gra = automol.inchi.graph(ref_ich)
-    ich = automol.graph.inchi(gra)
+    gra = automol.chi.graph(ref_ich)
+    ich = automol.graph.chi(gra)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H/b3-1-,4-2-;'
-    gra = automol.inchi.graph(ref_ich)
-    ich = automol.graph.inchi(gra, stereo=True)
+    gra = automol.chi.graph(ref_ich)
+    ich = automol.graph.chi(gra, stereo=True)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C4H8/c1-3-4-2/h3-4H,1-2H3/b4-3+'
-    geo = automol.inchi.geometry(ref_ich)
+    geo = automol.chi.geometry(ref_ich)
     gra = automol.geom.graph(geo)
-    ich = automol.graph.inchi(gra, stereo=True)
+    ich = automol.graph.chi(gra, stereo=True)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C2H4O/c1-2-3/h2-3H,1H2'
@@ -275,7 +224,7 @@ def test__graph__misc():
          frozenset({0, 4}): (1, None), frozenset({1, 2}): (1, None),
          frozenset({1, 5}): (1, None), frozenset({2, 6}): (1, None)})
     conn_gra = automol.geom.connectivity_graph(
-        automol.inchi.geometry(ref_ich))
+        automol.chi.geometry(ref_ich))
     assert conn_gra == ref_conn_gra
 
     ref_geo = (
@@ -284,7 +233,7 @@ def test__graph__misc():
         ('Cl', (-1.04141117286317e-15, 5.2070558643158e-16, -5.6691783763734)),
         ('H', (0.0, 0.0, 2.0786987380036113)))
     ich = 'InChI=1S/C2HCl/c1-2-3/h1H'
-    gra = automol.inchi.graph(ich)
+    gra = automol.chi.graph(ich)
     geo = automol.graph.geometry(gra)
     assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
 
@@ -298,79 +247,79 @@ def test__graph__misc():
 
     # smi = 'FC=C(C=CC=CF)C=CC=CF'
     # smi = 'FC=CC=CC=CF'
-    # ich = automol.smiles.inchi('CC([O])=CCO')
-    ich = automol.smiles.inchi('CC([O])=CCO.O')
-    geo = automol.inchi.geometry(ich)
+    # ich = automol.smiles.chi('CC([O])=CCO')
+    ich = automol.smiles.chi('CC([O])=CCO.O')
+    geo = automol.chi.geometry(ich)
     geo = randomize_atom_ordering(geo)
     gra = automol.geom.graph(geo)
-    ich = automol.graph.inchi(gra, stereo=True)
+    ich = automol.graph.chi(gra, stereo=True)
     print(ich)
     assert ich in (
-        'InChI=1S/C4H7O2.H2O/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H2/b4-2-;',
-        'InChI=1S/C4H7O2.H2O/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H2/b4-2+;')
+        'AMChI=1/C4H7O2.H2O/c1-4(5)2-3-6;/h2,6H,3H2,1H3;1H2/b4-2-;',
+        'AMChI=1/C4H7O2.H2O/c1-4(5)2-3-6;/h2,6H,3H2,1H3;1H2/b4-2+;')
 
 
 def test__inchi_geometry():
-    """ test automol.inchi.geometry
+    """ test automol.chi.geometry
     """
     ref_ich = 'InChI=1S/H2S/h1H2'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    ich = automol.geom.chi(automol.chi.geometry(ref_ich))
     print(ich)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    ich = automol.geom.chi(automol.chi.geometry(ref_ich))
     print(ich)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/Ar'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    ich = automol.geom.chi(automol.chi.geometry(ref_ich))
     print(ich)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/Cl2/c1-2'
-    ich = automol.geom.inchi(automol.inchi.geometry(ref_ich))
+    ich = automol.geom.chi(automol.chi.geometry(ref_ich))
     print(ich)
     assert ich == ref_ich
 
     ich = 'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3'
-    geo = automol.inchi.geometry(ich)
-    ich = automol.geom.inchi(geo, stereo=True)
+    geo = automol.chi.geometry(ich)
+    ich = automol.geom.chi(geo, stereo=True)
     print(automol.geom.chi(geo, stereo=True))
     print(ich)
-    assert ich in ('InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5+',
-                   'InChI=1S/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5-')
+    assert ich in ('AMChI=1/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5+',
+                   'AMChI=1/C7H13/c1-6(2)5-7(3)4/h5,7H,1H2,2-4H3/b6-5-')
 
     ich = 'InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3'
-    geo = automol.inchi.geometry(ich)
-    ich = automol.geom.inchi(geo, stereo=True)
+    geo = automol.chi.geometry(ich)
+    ich = automol.geom.chi(geo, stereo=True)
     print(ich)
-    assert ich in ('InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5+',
-                   'InChI=1S/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5-')
+    assert ich in ('AMChI=1/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5+',
+                   'AMChI=1/C7H13/c1-5-6-7(2,3)4/h5-6H,1H2,2-4H3/b6-5-')
 
     # Extra test case for broken InChI conversion
-    ich = automol.smiles.inchi('CC([O])=CCO')
-    geo = automol.inchi.geometry(ich)
-    ich = automol.geom.inchi(geo, stereo=True)
+    ich = automol.smiles.chi('CC([O])=CCO')
+    geo = automol.chi.geometry(ich)
+    ich = automol.geom.chi(geo, stereo=True)
     print(ich)
-    assert ich in ('InChI=1S/C4H7O2/c1-4(6)2-3-5/h2,5H,3H2,1H3/b4-2-',
-                   'InChI=1S/C4H7O2/c1-4(6)2-3-5/h2,5H,3H2,1H3/b4-2+')
+    assert ich in ('AMChI=1/C4H7O2/c1-4(5)2-3-6/h2,6H,3H2,1H3/b4-2+',
+                   'AMChI=1/C4H7O2/c1-4(5)2-3-6/h2,6H,3H2,1H3/b4-2-')
 
     # Extra test case for broken InChI conversion
-    ich = automol.smiles.inchi('CC([O])=CCO.[OH]')
-    geo = automol.inchi.geometry(ich)
-    ich = automol.geom.inchi(geo, stereo=True)
+    ich = automol.smiles.chi('CC([O])=CCO.[OH]')
+    geo = automol.chi.geometry(ich)
+    ich = automol.geom.chi(geo, stereo=True)
     print(ich)
-    assert ich in ('InChI=1S/C4H7O2.HO/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H/b4-2-;'
-                   'InChI=1S/C4H7O2.HO/c1-4(6)2-3-5;/h2,5H,3H2,1H3;1H/b4-2+;')
+    assert ich in ('AMChI=1/C4H7O2.HO/c1-4(5)2-3-6;/h2,6H,3H2,1H3;1H/b4-2+;',
+                   'AMChI=1/C4H7O2.HO/c1-4(5)2-3-6;/h2,6H,3H2,1H3;1H/b4-2-;')
 
 
 def test__inchi_conformers():
-    """ test automol.inchi.conformers
+    """ test automol.chi.conformers
     """
     ref_ich = 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3'
-    geos = automol.inchi.conformers(ref_ich)
-    ichs = tuple(automol.geom.inchi(geo) for geo in geos)
+    geos = automol.chi.conformers(ref_ich)
+    ichs = tuple(automol.geom.chi(geo) for geo in geos)
     assert all(ich == ref_ich for ich in ichs)
 
 
@@ -380,198 +329,18 @@ def test__multiple_rings():
     ref_ich = ('InChI=1S/C17H19NO3/c1-18-7-6-17-10-3-5-13(20)16(17)21-15-12(19'
                ')4-2-9(14(15)17)8-11(10)18/h2-5,10-11,13,16,19-20H,6-8H2,1H3/'
                't10-,11-,13-,16+,17+/m1/s1')
-    gra = automol.inchi.graph(ref_ich)
-    ich = automol.graph.inchi(gra, stereo=True)
+    gra = automol.chi.graph(ref_ich)
+    ich = automol.graph.chi(gra, stereo=True)
     print(ref_ich)
     print(ich)
     assert ich == ref_ich
 
 
-def test__geom__x2z_zmatrix():
-    """ test automol.geom.x2z_zmatrix
-    """
-
-    ref_zma = (
-        ('C', (None, None, None), (None, None, None),
-         (None, None, None)),
-        ('O', (0, None, None), ('R1', None, None),
-         (2.67535, None, None)),
-        ('H', (0, 1, None), ('R2', 'A2', None),
-         (2.06501, 1.9116242231243494, None)),
-        ('H', (0, 1, 2), ('R3', 'A3', 'D3'),
-         (2.06501, 1.9116242231243494, 2.1084973627493095)),
-        ('H', (0, 1, 2), ('R4', 'A4', 'D4'),
-         (2.06458, 1.9020947254084601, 4.195841334964448)),
-        ('H', (1, 0, 2), ('R5', 'A5', 'D5'),
-         (1.83748, 1.8690905492532472, 5.2289366258049315)))
-
-    geo = (('C', (-0.70116587131, 0.0146227007587, -0.016166607003)),
-           ('O', (1.7323365056, -0.9538524899, -0.5617192010)),
-           ('H', (-0.9827048283, 0.061897979239, 2.02901783816)),
-           ('H', (-0.8787925682, 1.91673409124, -0.80019507919)),
-           ('H', (-2.12093033745, -1.21447973767, -0.87411360631)),
-           ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
-
-    zma = automol.geom.x2z_zmatrix(geo)
-    assert automol.zmat.almost_equal(ref_zma, zma)
-
-    ref_zma2 = (
-        ('H', (None, None, None), (None, None, None), (None, None, None)),)
-
-    geo2 = (('H', (2.9512589894, 0.17507745634, 0.22317665541)),)
-    zma2 = automol.geom.x2z_zmatrix(geo2)
-    assert automol.zmat.almost_equal(ref_zma2, zma2)
-
-
-def test__geom__x2z_torsion_coordinate_names():
-    """ test automol.geom.x2z_torsion_coordinate_names
-    """
-    geo = (('C', (-0.70116587131, 0.0146227007587, -0.016166607003)),
-           ('O', (1.7323365056, -0.9538524899, -0.5617192010)),
-           ('H', (-0.9827048283, 0.061897979239, 2.02901783816)),
-           ('H', (-0.8787925682, 1.91673409124, -0.80019507919)),
-           ('H', (-2.12093033745, -1.21447973767, -0.87411360631)),
-           ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
-
-    tors_names = automol.geom.x2z_torsion_coordinate_names(geo)
-    assert tors_names == ('D5',)
-
-    geo2 = (('H', (2.9512589894, 0.17507745634, 0.22317665541)),)
-
-    tors_names2 = automol.geom.x2z_torsion_coordinate_names(geo2)
-    assert tors_names2 == ()
-
-
-def test__geom__x2z_atom_ordering():
-    """ test automol.geom.x2z_atom_ordering
-    """
-    geo = (('H', (-0.9827048283, 0.061897979239, 2.02901783816)),
-           ('O', (1.7323365056, -0.9538524899, -0.5617192010)),
-           ('H', (-0.8787925682, 1.91673409124, -0.80019507919)),
-           ('H', (-2.12093033745, -1.21447973767, -0.87411360631)),
-           ('C', (-0.70116587131, 0.0146227007587, -0.016166607003)),
-           ('H', (2.9512589894, 0.17507745634, 0.22317665541)))
-
-    ordering = automol.geom.x2z_atom_ordering(geo)
-    assert ordering == {0: 0, 4: 1, 1: 2, 2: 3, 3: 4, 5: 5}
-
-    geo2 = (('H', (-0.9827048283, 0.061897979239, 2.02901783816)),)
-
-    ordering2 = automol.geom.x2z_atom_ordering(geo2)
-    assert ordering2 == {0: 0}
-
-
-def test__zmat_conv_dummy():
-    """ test automol.zmat.geom
-    """
-
-    ref_gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-                3: ('H', 0, None), 4: ('H', 0, None), 5: ('C', 0, None),
-                6: ('C', 0, None), 7: ('H', 0, None), 8: ('X', 0, None),
-                9: ('C', 0, None), 10: ('X', 0, None), 11: ('H', 0, None),
-                12: ('O', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-                15: ('H', 0, None)},
-               {frozenset({1, 7}): (1, None), frozenset({9, 10}): (0, None),
-                frozenset({0, 3}): (1, None), frozenset({12, 15}): (1, None),
-                frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
-                frozenset({6, 14}): (1, None), frozenset({0, 4}): (1, None),
-                frozenset({13, 6}): (1, None), frozenset({9, 11}): (1, None),
-                frozenset({1, 5}): (1, None), frozenset({12, 6}): (1, None),
-                frozenset({1, 6}): (1, None), frozenset({9, 5}): (1, None),
-                frozenset({8, 5}): (0, None)})
-    ref_geo = (
-        ('C', (0.0, 0.0, 0.0)),
-        ('C', (0.0, 0.0, 2.894126135733367)),
-        ('H', (0.0, 1.972172485464683, -0.7222239971008525)),
-        ('H', (-1.6951231876875892, -0.9936443210097795, -0.7434556573917012)),
-        ('H', (1.7188336567949982, -0.9563671208828152, -0.7313963526678268)),
-        ('C', (-2.2442053651761964, 1.3586361565617329, 3.8169371823900766)),
-        ('C', (0.025535203206634938, -2.7033658002133003, 3.959700132572027)),
-        ('H', (1.7085691873013926, 1.017330677567275, 3.5710250496737017)),
-        ('X', (-1.1281908592835943, 2.626314426891954, 4.664621236037264)),
-        ('C', (-4.085691887320963, 2.4807763649694308, 4.5506483141888445)),
-        ('X', (-2.96967738142836, 3.7484546352996513, 5.398332367836032)),
-        ('H', (-5.7053556919673625, 3.47091721106787, 5.181273009931513)),
-        ('O', (2.1539110648484963, -4.040151863741559, 3.117325235021031)),
-        ('H', (-0.002031340007772098, -2.6743735223267073, 6.065154609074555)),
-        ('H', (-1.693646530214367, -3.738866587983746, 3.3380456726570835)),
-        ('H', (3.635541963584469, -3.3116189027191543, 4.007687753063454)))
-
-    gra = automol.zmat.connectivity_graph(C5H8O_ZMA, dummy=True)
-    geo = automol.zmat.geometry(C5H8O_ZMA, dummy=True)
-
-    assert ref_gra == gra
-    assert automol.geom.almost_equal_dist_matrix(ref_geo, geo)
-
-
-def test__smiles__no_stereo():
-    """ test smiles conversions
-    """
-    print("smiles no stereo")
-
-    ref_ichs = ICHS_WITH_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    for ref_ich in ref_ichs:
-        ref_ich = automol.inchi.standard_form(ref_ich, stereo=False)
-        print()
-        print(ref_ich, flush=True)
-        gra = automol.amchi.graph(ref_ich, stereo=False)
-        smi = automol.graph.smiles(gra)
-        print(smi)
-        gra = automol.smiles.graph(smi, stereo=False)
-        smi = automol.graph.smiles(gra)
-        ich = automol.smiles.inchi(smi)
-        print(smi)
-        print(ich)
-        assert ich == ref_ich, f"\n{ich} !=\n{ref_ich}"
-
-
-def test__smiles__with_stereo():
-    """ test smiles conversions
-    """
-    print("smiles with stereo")
-
-    ref_ichs = ICHS_WITH_STEREO
-    if NSAMP is not None:
-        ref_ichs = numpy.random.choice(ref_ichs, NSAMP)
-
-    failed = []
-    for ref_ich in ref_ichs:
-        print()
-        print(ref_ich, flush=True)
-        gra = automol.amchi.graph(ref_ich, stereo=True)
-        smi = automol.graph.smiles(gra)
-        print(smi)
-        gra = automol.smiles.graph(smi, stereo=True)
-        smi = automol.graph.smiles(gra)
-        ich = automol.smiles.inchi(smi)
-        print(smi)
-        print(ich)
-        try:
-            assert ich == ref_ich, f"\n{ich} !=\n{ref_ich}"
-        except AssertionError:
-            print("FAILED")
-            print(f"\n{ich} !=\n{ref_ich}")
-            failed.append((ref_ich, ich))
-
-    print("FAILED:")
-    for ref_ich, ich in failed:
-        print(ref_ich)
-
-
 if __name__ == '__main__':
     test__geom__with_stereo()
-    # test__graph__with_stereo()
-    # test__graph__no_stereo()
-    # test__zmatrix__with_stereo()
-    # test__smiles__from_geom()
+    test__graph__with_stereo()
+    test__smiles__with_stereo()
     # test__graph__misc()
     # test__inchi_geometry()
     # test__inchi_conformers()
     # test__multiple_rings()
-    # test__geom__no_stereo()
-    # test__smiles__no_stereo()
-    # test__smiles__with_stereo()
-    # test__inchi_geometry()
