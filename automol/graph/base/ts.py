@@ -124,7 +124,8 @@ def products_graph(tsg):
     return reactants_graph(reverse(tsg))
 
 
-def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True):
+def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True,
+                           log=False):
     """ Obtain all possible stereoisomer combinations for a reaction, encoding
         reactant and product stereo assignments in forward and reverse TS
         graphs, respectively
@@ -139,6 +140,8 @@ def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True):
         :type symeq: bool
         :param const: Constrain bond stereo based on reactant atom stereo?
         :type const: bool
+        :param log: Print information to the screen?
+        :type log: bool
         :returns: a series of pairs of forward and reverse graphs containing
             mutually compatible stereo assignments
     """
@@ -174,6 +177,9 @@ def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True):
                     if symeq or (fchi, rchi) not in seen_rxn_chis:
                         rxns.append((ftsg, rtsg))
                         seen_rxn_chis.append((fchi, rchi))
+
+                        if log:
+                            print(f'{fchi} =>\n{rchi}\n')
 
     return tuple(rxns)
 
@@ -324,8 +330,16 @@ if __name__ == '__main__':
             frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
             frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
 
-    print("enant=True symeq=True")
-    print(len(expand_reaction_stereo(TSG, enant=True, symeq=True)))
-    print(len(expand_reaction_stereo(TSG, enant=True, symeq=False)))
-    print(len(expand_reaction_stereo(TSG, enant=False, symeq=True)))
+    # FC=CC=CF + [OH] => FC=C[CH]C(O)F
+    TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('F', 0, None), 5: ('F', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('O', 0, None), 11: ('H', 0, None)},
+           {frozenset({8, 2}): (1, None), frozenset({2, 10}): (0.1, None),
+            frozenset({1, 7}): (1, None), frozenset({0, 6}): (1, None),
+            frozenset({9, 3}): (1, None), frozenset({0, 1}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
+            frozenset({3, 5}): (1, None), frozenset({10, 11}): (1, None),
+            frozenset({1, 3}): (1, None)})
+
     print(len(expand_reaction_stereo(TSG, enant=False, symeq=False)))

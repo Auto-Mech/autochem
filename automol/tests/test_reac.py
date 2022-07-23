@@ -845,6 +845,7 @@ def test__stereo():
     srxns = automol.reac.expand_stereo(rxn)
     print(len(srxns))
     print("Complete stereo expansion for the reaction:")
+    print(rxn.forward_ts_graph)
     srxn_chis = []
     for srxn in srxns:
         rct_gras = automol.reac.reactant_graphs(srxn)

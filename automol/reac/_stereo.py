@@ -191,4 +191,9 @@ def stereo_is_physical(srxn):
     """
     ftsg_loc = automol.graph.to_local_stereo(srxn.forward_ts_graph)
     rtsg_loc = automol.graph.to_local_stereo(srxn.backward_ts_graph)
+    key_dct = atom_mapping(srxn, rev=True)
+    assert key_dct, (f"Forward and backward TS graphs don't match:\n"
+                     f"{automol.graph.string(srxn.forward_ts_graph)}\n"
+                     f"{automol.graph.string(srxn.backward_ts_graph)}\n")
+    rtsg_loc = automol.graph.relabel(rtsg_loc, key_dct)
     return automol.graph.ts.reaction_stereo_is_physical(ftsg_loc, rtsg_loc)
