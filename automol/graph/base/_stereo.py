@@ -7,19 +7,23 @@ import itertools
 import numpy
 from automol import util
 import automol.geom.base    # !!!!
+import automol.amchi.base    # !!!!
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import set_stereo_parities
-from automol.graph.base._core import frozen
 from automol.graph.base._core import has_stereo
+from automol.graph.base._core import frozen
+from automol.graph.base._core import implicit
 from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import branch
+from automol.graph.base._algo import connected_components
 from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import stereogenic_keys
@@ -28,6 +32,7 @@ from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import refine_priorities
 from automol.graph.base._canon import parity_evaluator_from_geometry_
 from automol.graph.base._canon import canonical_assignment_representation
+from automol.graph.base._amchi import connected_amchi_with_indices
 
 
 # # core functions
@@ -42,76 +47,133 @@ def expand_stereo(gra, enant=True, symeq=False):
         :type symeq: bool
         :returns: a series of molecular graphs for the stereoisomers
     """
-    gps = expand_stereo_with_priorities(gra)
+    gpcs = expand_stereo_with_priorities_and_amchis(gra)
+    gras = []
+    seen_chis = []
+    for gra_, _, chi in gpcs:
+        if enant or automol.amchi.base.is_canonical_enantiomer(chi):
+            if symeq or chi not in seen_chis:
+                gras.append(gra_)
+                seen_chis.append(chi)
 
-    lst = []
-    for ugra, upri_dct in gps:
-        uloc_gra = to_local_stereo(ugra, pri_dct=upri_dct)
-        rloc_gra = reflect_local_stereo(uloc_gra)
-        urep = canonical_assignment_representation(ugra, upri_dct)
-
-        # If requested, check for enantiomers
-        eidx = next((i for i, x in enumerate(lst) if x[2] == rloc_gra), None)
-        if enant or eidx is None:
-            rrep = urep
-        else:
-            rgra, rrep, rloc_gra = lst[eidx]
-
-        if urep == rrep:
-            egra = ugra
-            erep = urep
-            eloc_gra = uloc_gra
-        elif urep < rrep:
-            lst.pop(eidx)
-            egra = ugra
-            erep = urep
-            eloc_gra = None
-        else:
-            lst.pop(eidx)
-            egra = rgra
-            erep = rrep
-            eloc_gra = None
-
-        # If requested, check for symmetries
-        sidx = next((i for i, x in enumerate(lst) if x[1] == erep), None)
-        if symeq or sidx is None:
-            lst.append((egra, erep, eloc_gra))
-
-    gras = tuple(sorted((g for g, _, _ in lst), key=frozen))
-    return gras
+    return tuple(gras)
 
 
-def expand_stereo_with_priorities(gra):
-    """ Obtain all possible stereoisomers, along with priority mappings for
-        their atoms
+def expand_stereo_with_priorities_and_amchis(gra):
+    """ Obtain all possible stereoisomers, along with their AMChI strings and
+        canonical priorities
+
+        Works for multi-component graphs and TS graphs.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :returns: a tuple of graphs, each paired with a priority mapping
+        :returns: a sequence of graphs paired with AMChI strings
+    """
+    orig_gra = gra
+    gra = from_ts_graph(gra)
+    comps = connected_components(gra)
+
+    gpcs = []
+    for gpc_tup in itertools.product(
+            *map(_connected_expand_stereo_with_priorities_and_amchis, comps)):
+        cgras, cpri_dcts, cchis = zip(*gpc_tup)
+
+        # Set the graph stereo from each component
+        gra_ = orig_gra
+        for cgra in cgras:
+            gra_ = set_stereo_parities(gra_, stereo_parities(cgra))
+
+        # Combine priority dictionaries
+        pri_dct = {}
+        for cpri_dct in cpri_dcts:
+            pri_dct.update(cpri_dct)
+
+        # Combine ChIs
+        chi = automol.amchi.base.join(cchis)
+
+        gpcs.append((gra_, pri_dct, chi))
+
+    gpcs = sorted(gpcs, key=lambda x: frozen(x[0]))
+    return gpcs
+
+
+def _connected_expand_stereo_with_priorities_and_amchis(gra):
+    """ Obtain all possible stereoisomers, along with their AMChI strings and
+        canonical priorities
+
+        :param gra: connected molecular graph
+        :type gra: automol graph data structure
+        :returns: a sequence of graphs paired with AMChI strings
     """
     bools = (False, True)
+    gra = implicit(gra)
     gra = without_stereo_parities(gra)
 
-    gpps0 = None
-    gpps = [(gra, None, None)]
+    gps0 = None
+    gps = [(gra, None)]
 
-    while gpps0 != gpps:
-        gpps0 = gpps
-        gpps = []
+    # 1. Expand all possible stereoisomers, along with their priority mappings
+    while gps0 != gps:
+        gps0 = gps
+        gps = []
 
-        for gra1, pri_dct1, pri_dct2 in gpps0:
-            gra2 = from_ts_graph(gra1)
-            pri_dct1 = refine_priorities(gra1, pri_dct=pri_dct1)
-            pri_dct2 = refine_priorities(gra2, pri_dct=pri_dct2)
+        for gra_, pri_dct in gps0:
+            pri_dct = refine_priorities(gra_, pri_dct=pri_dct)
 
-            keys = stereogenic_keys(gra1, pri_dct=pri_dct2)
-            gras = [set_stereo_parities(gra1, dict(zip(keys, pars)))
+            keys = stereogenic_keys(gra_, pri_dct=pri_dct)
+            gras = [set_stereo_parities(gra_, dict(zip(keys, pars)))
                     for pars in itertools.product(bools, repeat=len(keys))]
 
-            gpps.extend([(g, pri_dct1, pri_dct2) for g in gras])
+            gps.extend([(g, pri_dct) for g in gras])
 
-    gps = tuple((g, p) for g, p, _ in gpps)
-    return gps
+    # 2. Group enantiomers into pairs, sorting them so that the canonical
+    # enantiomer comes first.
+    diast_gpls = []
+    enant_gps = []
+    for ugra, upri_dct in gps:
+        uloc_gra = to_local_stereo(ugra, pri_dct=upri_dct)
+        rloc_gra = reflect_local_stereo(uloc_gra)
+
+        rgra = rpri_dct = None
+        for gra_, pri_dct_, loc_gra_ in diast_gpls:
+            if loc_gra_ == rloc_gra:
+                rgra = gra_
+                rpri_dct = pri_dct_
+                break
+
+        if rgra is None:
+            diast_gpls.append((ugra, upri_dct, uloc_gra))
+        else:
+            urep = canonical_assignment_representation(ugra, upri_dct)
+            rrep = canonical_assignment_representation(rgra, rpri_dct)
+
+            if urep == rrep:
+                diast_gpls.append((ugra, upri_dct, uloc_gra))
+            else:
+                diast_gpls.remove((rgra, rpri_dct, rloc_gra))
+                if urep > rrep:
+                    enant_gps.append([(rgra, rpri_dct), (ugra, upri_dct)])
+                else:
+                    enant_gps.append([(ugra, upri_dct), (rgra, rpri_dct)])
+
+    # 3A. Generate AMChIs for each diastereomer and each pair of enantiomers
+    # and add them to the list
+    gpcs = []
+    for gra_, pri_dct, _ in diast_gpls:
+        chi, _ = connected_amchi_with_indices(gra_, pri_dct=pri_dct,
+                                              is_refl=None)
+        gpcs.append((gra_, pri_dct, chi))
+
+    for (ugra, upri_dct), (rgra, rpri_dct) in enant_gps:
+        uchi, _ = connected_amchi_with_indices(ugra, pri_dct=upri_dct,
+                                               is_refl=False)
+        rchi, _ = connected_amchi_with_indices(ugra, pri_dct=upri_dct,
+                                               is_refl=True)
+
+        gpcs.append((ugra, upri_dct, uchi))
+        gpcs.append((rgra, rpri_dct, rchi))
+
+    return gpcs
 
 
 # # stereo evaluation
@@ -359,4 +421,23 @@ if __name__ == '__main__':
             frozenset({9, 3}): (1, None), frozenset({10, 7}): (1, None),
             frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
             frozenset({8, 5}): (1, None), frozenset({1, 3}): (1, None)})
+
+    # 'FC=CF.[CH2]C(O)C'
+    GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('O', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('C', 0, None),
+            12: ('C', 0, None), 13: ('F', 0, None), 14: ('F', 0, None),
+            15: ('H', 0, None), 16: ('H', 0, None)},
+           {frozenset({10, 3}): (1, None), frozenset({11, 12}): (1, None),
+            frozenset({1, 2}): (1, None), frozenset({8, 1}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({16, 12}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({1, 6}): (1, None),
+            frozenset({1, 7}): (1, None), frozenset({2, 3}): (1, None),
+            frozenset({0, 4}): (1, None), frozenset({11, 13}): (1, None),
+            frozenset({11, 15}): (1, None), frozenset({9, 2}): (1, None),
+            frozenset({12, 14}): (1, None)})
+    print(len(expand_stereo(GRA, enant=True, symeq=True)))
     print(len(expand_stereo(GRA, enant=True, symeq=False)))
+    print(len(expand_stereo(GRA, enant=False, symeq=True)))
+    print(len(expand_stereo(GRA, enant=False, symeq=False)))

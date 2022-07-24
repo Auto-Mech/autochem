@@ -103,7 +103,7 @@ C2H2CL2F2_SGRS = (
       3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
       frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
-      frozenset({1, 5}): (1, None)})
+      frozenset({1, 5}): (1, None)}),
 )
 
 C3H3CL2F3_CGR = (
@@ -154,23 +154,23 @@ C3H5N3_CGR = (
 C3H5N3_SGRS = (
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
       3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
-     {frozenset({1, 4}): (1, False), frozenset({1, 2}): (1, None),
-      frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
+     {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, False),
+      frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, False),
       frozenset({2, 5}): (1, None)}),
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
       3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
-     {frozenset({1, 4}): (1, False), frozenset({1, 2}): (1, None),
-      frozenset({0, 3}): (1, True), frozenset({0, 2}): (1, None),
+     {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, False),
+      frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, True),
       frozenset({2, 5}): (1, False)}),
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
       3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
-     {frozenset({1, 4}): (1, False), frozenset({1, 2}): (1, None),
-      frozenset({0, 3}): (1, True), frozenset({0, 2}): (1, None),
+     {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, False),
+      frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, True),
       frozenset({2, 5}): (1, True)}),
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
       3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
-     {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
-      frozenset({0, 3}): (1, True), frozenset({0, 2}): (1, None),
+     {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, True),
+      frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, True),
       frozenset({2, 5}): (1, None)}),
 )
 
@@ -960,6 +960,24 @@ def test__expand_stereo():
     assert len(graph.expand_stereo(gra, enant=False, symeq=True)) == 5
     assert len(graph.expand_stereo(gra, enant=False, symeq=False)) == 3
 
+    # 'FC=CF.[CH2]C(O)C'
+    gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('O', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('C', 0, None),
+            12: ('C', 0, None), 13: ('F', 0, None), 14: ('F', 0, None),
+            15: ('H', 0, None), 16: ('H', 0, None)},
+           {frozenset({10, 3}): (1, None), frozenset({11, 12}): (1, None),
+            frozenset({1, 2}): (1, None), frozenset({8, 1}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({16, 12}): (1, None),
+            frozenset({0, 5}): (1, None), frozenset({1, 6}): (1, None),
+            frozenset({1, 7}): (1, None), frozenset({2, 3}): (1, None),
+            frozenset({0, 4}): (1, None), frozenset({11, 13}): (1, None),
+            frozenset({11, 15}): (1, None), frozenset({9, 2}): (1, None),
+            frozenset({12, 14}): (1, None)})
+    assert len(graph.expand_stereo(gra, enant=True, symeq=True)) == 4
+    assert len(graph.expand_stereo(gra, enant=False, symeq=True)) == 2
+
 
 def test__ring_systems():
     """ test graph.ring_systems
@@ -1013,19 +1031,33 @@ def test__vmat__vmatrix():
 def test__ts__expand_reaction_stereo():
     """ test graph.ts.stereo_expand_reverse_graphs
     """
-    for ste_tsg in graph.ts.expand_stereo(C4H5F2O_TSG):
-        ste_tsgs = [
-            s
-            for _, r in graph.ts.expand_reaction_stereo(ste_tsg)
-            for _, s in graph.ts.expand_reaction_stereo(r)]
-        assert any(s == ste_tsg for s in ste_tsgs)
+    gra = C4H5F2O_TSG
+    assert len(graph.ts.expand_reaction_stereo(gra, enant=True)) == 16
 
-    for ste_tsg in graph.ts.expand_stereo(C4H5F3O2_TSG):
-        ste_tsgs = [
-            s
-            for _, r in graph.ts.expand_reaction_stereo(ste_tsg)
-            for _, s in graph.ts.expand_reaction_stereo(r)]
-        assert any(s == ste_tsg for s in ste_tsgs)
+    gra = C4H5F3O2_TSG
+    assert len(graph.ts.expand_reaction_stereo(gra, enant=True)) == 8
+
+    # CC(OO)C(O[O])C(OO)C => CC(OO)C(OO)C(OO)[CH2]
+    gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('C', 0, None), 5: ('O', 0, None),
+            6: ('O', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
+            9: ('O', 0, None), 10: ('O', 0, None), 11: ('H', 0, None),
+            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
+            15: ('H', 0, None), 16: ('H', 0, None), 17: ('H', 0, None),
+            18: ('H', 0, None), 19: ('H', 0, None), 20: ('H', 0, None),
+            21: ('H', 0, None)},
+           {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
+            frozenset({9, 3}): (1, None), frozenset({1, 15}): (1, None),
+            frozenset({0, 12}): (1, None), frozenset({18, 3}): (1, None),
+            frozenset({0, 11}): (0.9, None), frozenset({16, 1}): (1, None),
+            frozenset({11, 7}): (0.1, None), frozenset({0, 13}): (1, None),
+            frozenset({1, 14}): (1, None), frozenset({3, 4}): (1, None),
+            frozenset({9, 6}): (1, None), frozenset({21, 6}): (1, None),
+            frozenset({10, 7}): (1, None), frozenset({19, 4}): (1, None),
+            frozenset({0, 2}): (1, None), frozenset({17, 2}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
+            frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
+    assert len(graph.ts.expand_reaction_stereo(gra, enant=False)) == 4
 
 
 def test__canonical():
@@ -1376,19 +1408,18 @@ def test__smiles__with_resonance():
 
 
 if __name__ == '__main__':
-    # test__smiles()
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
     # test__amchi_with_indices()
     # test__stereogenic_atom_keys()
     # test__ts__nonconserved_atom_stereo_keys()
-    # test__ts__expand_reaction_stereo()
     # test__stereogenic_atom_keys()
-    test__expand_stereo()
     # test__ts__expand_reaction_stereo()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
     # test__canonical()
     # test__calculate_priorities_and_assign_parities()
-    # test__smiles()
+    test__expand_stereo()
+    # test__ts__expand_reaction_stereo()
+    test__smiles()

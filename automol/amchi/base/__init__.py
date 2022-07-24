@@ -35,6 +35,8 @@ from automol.amchi.base._core import charge
 from automol.amchi.base._core import bond_stereo_parities
 from automol.amchi.base._core import atom_stereo_parities
 from automol.amchi.base._core import is_inverted_enantiomer
+from automol.amchi.base._core import is_canonical_enantiomer
+from automol.amchi.base._core import is_canonical_enantiomer_list
 # # # isotope layers
 from automol.amchi.base._core import bond_isotope_stereo_parities
 from automol.amchi.base._core import atom_isotope_stereo_parities
@@ -57,6 +59,8 @@ from automol.amchi.base._core import argsort
 # # helpers
 from automol.amchi.base._core import version_pattern
 # reaction functions
+from automol.amchi.base._reac import is_canonical_enantiomer_reaction
+from automol.amchi.base._reac import is_canonical_reaction_direction
 from automol.amchi.base._reac import filter_enantiomer_reactions
 from automol.amchi.base._reac import sort_reactions
 
@@ -96,6 +100,8 @@ __all__ = [
     'bond_stereo_parities',
     'atom_stereo_parities',
     'is_inverted_enantiomer',
+    'is_canonical_enantiomer',
+    'is_canonical_enantiomer_list',
     # # # isotope layers
     'bond_isotope_stereo_parities',
     'atom_isotope_stereo_parities',
@@ -118,6 +124,8 @@ __all__ = [
     # # helpers
     'version_pattern',
     # reaction functions
+    'is_canonical_enantiomer_reaction',
+    'is_canonical_reaction_direction',
     'filter_enantiomer_reactions',
     'sort_reactions',
 ]

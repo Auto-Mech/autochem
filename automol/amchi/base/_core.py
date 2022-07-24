@@ -640,8 +640,6 @@ def is_inverted_enantiomer(chi):
 
         :param chi: ChI string
         :type chi: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
         :returns: whether or not the ChI is inverted; returns None if not an
             enantiomer
         :rtype: bool
@@ -649,6 +647,39 @@ def is_inverted_enantiomer(chi):
     ste_lyr_dct = stereo_layers(chi)
     is_inv = _is_inverted_enantiomer(ste_lyr_dct)
     return is_inv
+
+
+def is_canonical_enantiomer(chi):
+    """ Is this a canonical enantiomer? Also returns true for non-enantiomers.
+
+        For multi-component InChIs, it checks that the first enantiomeric
+        component (if any), in sorted order, is canonical.
+
+        :param chi: ChI string
+        :type chi: str
+        :returns: False if the ChI is the inverted form of its canonical
+            enantiomer; True in all other cases (including non-enantiomers).
+        :rtype: bool
+    """
+    return is_canonical_enantiomer_list(split(chi))
+
+
+def is_canonical_enantiomer_list(chis):
+    """ Is this list of ChIs a canonical combination of enantiomers?
+
+        Sorts them as they would appear in a multi-component AMChI and checks
+        that the first enantiomer (if any) is canonical.
+
+        :param chis: A list of ChIs
+        :type chis: list[str]
+        :returns: Whether or not the list is canonical
+        :rtype: bool
+    """
+    chis = sorted_(chis)
+    invs = list(map(is_inverted_enantiomer, chis))
+    inv = next((i for i in invs if i is not None), None)
+    can = inv in (False, None)
+    return can
 
 
 # # # isotope layers

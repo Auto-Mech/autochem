@@ -4,6 +4,7 @@ import functools
 import automol.graph
 import automol.geom
 from automol import error
+from automol.util import dict_
 from automol.extern import rdkit_
 from automol.extern import pybel_
 from automol.amchi.base import isotope_layers
@@ -159,6 +160,8 @@ def _connected_geometry(chi, check=True):
     # Convert graph to local stereo to avoid multiple recanonicalizations
     gra = _connected_graph(chi, stereo=True, local_stereo=True)
     gra = automol.graph.explicit(gra)
+    ste_keys = automol.graph.stereo_keys(gra)
+    loc_par_dct = dict_.by_key(automol.graph.stereo_parities(gra), ste_keys)
 
     smi = _connected_smiles(chi, res_stereo=False)
     has_ste = has_stereo(chi)
@@ -216,7 +219,12 @@ def _connected_geometry(chi, check=True):
             gra_ = automol.geom.graph(geo)
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
 
-            if idx_dct is None:
+            # Check the local stereo parities
+            loc_gra_ = automol.graph.to_local_stereo(gra_)
+            loc_par_dct_ = automol.graph.stereo_parities(loc_gra_)
+            loc_par_dct_ = dict_.by_key(loc_par_dct_, ste_keys)
+
+            if not idx_dct or loc_par_dct != loc_par_dct_:
                 continue
 
             success = True
