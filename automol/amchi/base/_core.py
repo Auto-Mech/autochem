@@ -122,6 +122,10 @@ def standard_form(chi, stereo=True, ste_dct=None, iso_dct=None):
                     char_lyr_dct=char_dct,
                     ste_lyr_dct=ste_dct,
                     iso_lyr_dct=iso_dct)
+
+    # Make sure multi-component ChIs are properly sorted
+    chi = join(split(chi))
+
     return chi
 
 
@@ -249,34 +253,63 @@ def with_inchi_prefix(chi):
     return chi
 
 
-def reflect(chi, iso=True):
+def reflect(chi):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
 
         :param chi: InChI string
         :type chi: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
         :returns: the other enantiomer
         :rtype: bool
     """
-    ste_upd_dct = None
-    iso_upd_dct = None
+    ste_upd_dct = stereo_layers(chi)
+    iso_upd_dct = isotope_layers(chi)
 
-    ste_is_inv = is_inverted_enantiomer(chi)
-    if ste_is_inv is not None:
-        inv_code = '0' if ste_is_inv else '1'
-        ste_upd_dct = {'m': inv_code}
+    refl_trans = str.maketrans('01', '10')
+    if 'm' in ste_upd_dct:
+        ste_upd_dct['m'] = ste_upd_dct['m'].translate(refl_trans)
 
-    if iso:
-        iso_is_inv = is_inverted_isotope_enantiomer(chi)
-        if iso_is_inv is not None:
-            inv_code = '0' if iso_is_inv else '1'
-            iso_upd_dct = {'m': inv_code}
+    if 'm' in iso_upd_dct:
+        iso_upd_dct['m'] = iso_upd_dct['m'].translate(refl_trans)
 
     chi = standard_form(chi, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
 
     return chi
+
+
+def canonical_enantiomer(chi):
+    """ Convert this ChI string to a canonical enantiomer, if it isn't already
+
+        Works for multi-component InChIs or lists of InChIs
+
+        :param chi: ChI string
+        :type chi: str
+        :returns: The reflected ChI string, if it was a non-canonical
+            enantiomer; otherwise, it returns the original ChI string
+    """
+    if not is_canonical_enantiomer(chi):
+        chi = (reflect(chi) if isinstance(chi, str)
+               else tuple(map(reflect, chi)))
+    return chi
+
+
+def canonical_enantiomer_reaction(rct_chi, prd_chi):
+    """ Convert this reaction into a canonical combination of enantiomers
+
+        :param rct_chi: A multi-component ChI or list of ChIs for the reactants
+        :type rct_chi: str or list[str]
+        :param prd_chi: A multi-component ChI or list of ChIs for the products
+        :type prd_chi: str or list[str]
+
+        :returns: The reflected reaction, if it was a non-canonical combination
+            of enantiomers; otherwise, it returns the original reaction.
+    """
+    if not is_canonical_enantiomer_reaction(rct_chi, prd_chi):
+        rct_chi = (reflect(rct_chi) if isinstance(rct_chi, str)
+                   else tuple(map(reflect, rct_chi)))
+        prd_chi = (reflect(prd_chi) if isinstance(prd_chi, str)
+                   else tuple(map(reflect, prd_chi)))
+    return rct_chi, prd_chi
 
 
 # # conversions
@@ -680,6 +713,51 @@ def is_canonical_enantiomer_list(chis):
     inv = next((i for i in invs if i is not None), None)
     can = inv in (False, None)
     return can
+
+
+def is_canonical_enantiomer_reaction(rct_chi, prd_chi):
+    """ Does this reaction have a canonical combination of enantiomers?
+
+        :param rct_chi: A multi-component ChI or list of ChIs for the reactants
+        :type rct_chi: str or list[str]
+        :param prd_chi: A multi-component ChI or list of ChIs for the products
+        :type prd_chi: str or list[str]
+
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    rct_chis = split(rct_chi) if isinstance(rct_chi, str) else rct_chi
+    prd_chis = split(prd_chi) if isinstance(prd_chi, str) else prd_chi
+
+    # Switch to the canonical reaction direction
+    if not is_canonical_reaction_direction(rct_chis, prd_chis):
+        rct_chis, prd_chis = prd_chis, rct_chis
+
+    chis = sorted_(rct_chis) + sorted_(prd_chis)
+    can = is_canonical_enantiomer_list(chis)
+    return can
+
+
+def is_canonical_reaction_direction(rct_chis, prd_chis):
+    """ Is this the canonical reaction direction, or should it be reversed?
+
+        :param rct_chis: A list of ChIs for the reactants
+        :type rct_chis: list[str]
+        :param prd_chis: A list of ChIs for the products
+        :type prd_chis: list[str]
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    nrcts = len(rct_chis)
+    nprds = len(prd_chis)
+
+    idxs = argsort(rct_chis + prd_chis)
+    rct_idxs = sorted(idxs[:nrcts])
+    prd_idxs = sorted(idxs[nrcts:])
+
+    rct_rep = (nrcts, rct_idxs)
+    prd_rep = (nprds, prd_idxs)
+    return rct_rep < prd_rep
 
 
 # # # isotope layers

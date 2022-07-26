@@ -46,15 +46,12 @@ from automol.amchi.base import same_connectivity
 from automol.amchi.base import equivalent
 # # split/join
 from automol.chi.base._core import split
-from automol.chi.base._core import join
+# from automol.chi.base._core import split    # below in L4
 # # sort
 from automol.chi.base._core import sorted_
 from automol.chi.base._core import argsort
 # # helpers
 from automol.amchi.base import version_pattern
-# reaction functions
-from automol.chi.base._core import filter_enantiomer_reactions
-from automol.chi.base._core import sort_reactions
 # L4
 # # conversions
 from automol.amchi._conv import amchi_key as inchi_key
@@ -65,9 +62,15 @@ from automol.amchi import conformers
 from automol.amchi import zmatrix
 # # derived properties
 from automol.chi._conv import is_complete
+from automol.chi._conv import is_bad
 # # derived transformations
+from automol.chi._conv import join
 from automol.chi._conv import add_stereo
 from automol.chi._conv import expand_stereo
+from automol.chi._conv import is_canonical_enantiomer
+from automol.chi._conv import is_canonical_enantiomer_reaction
+from automol.chi._conv import canonical_enantiomer
+from automol.chi._conv import canonical_enantiomer_reaction
 from automol.chi._conv import inchi_to_amchi
 # drawing tools
 from automol.amchi import draw
@@ -124,15 +127,12 @@ __all__ = [
     'equivalent',
     # # split/join
     'split',
-    'join',
+    # 'join',
     # # sort
     'sorted_',
     'argsort',
     # # helpers
     'version_pattern',
-    # reaction functions
-    'filter_enantiomer_reactions',
-    'sort_reactions',
     # L4
     # # conversions
     'inchi_key',
@@ -143,9 +143,15 @@ __all__ = [
     'zmatrix',
     # # derived properties
     'is_complete',
+    'is_bad',
     # # derived transformations
+    'join',
     'add_stereo',
     'expand_stereo',
+    'is_canonical_enantiomer',
+    'is_canonical_enantiomer_reaction',
+    'canonical_enantiomer',
+    'canonical_enantiomer_reaction',
     'inchi_to_amchi',
     # drawing tools
     'draw',

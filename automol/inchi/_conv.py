@@ -73,6 +73,26 @@ def zmatrix(ich, check=True):
     return zma
 
 
+def amchi(ich, stereo=True):
+    """ Convert an InChI to an AMChI string
+
+        Only for good InChIs, where this can be done validly.
+
+        :param ich: InChI string
+        :type ich: str
+        :returns: AMChI string
+        :rtype: str
+    """
+    gra = graph(ich, stereo=stereo)
+
+    if stereo:
+        assert not is_bad(ich, gra=gra), (
+            "Don't use this function with bad InChIs if stereo=True")
+
+    ach = automol.graph.amchi(gra)
+    return ach
+
+
 # # derived properties
 def is_complete(ich):
     """ Determine if the InChI string is complete
@@ -92,6 +112,22 @@ def is_complete(ich):
         has_stereo(ich) ^ graph_has_stereo)
 
     return _complete
+
+
+def is_bad(ich, gra=None):
+    """ Determine if the InChI string is bad, i.e. one of the InChI failure
+        cases (resonance bond stereo, vinyl bond stereo, etc.
+
+        :param ich: InChI string
+        :type ich: str
+        :param gra: A graph version of the InChI, to avoid recalculating
+        :type gra: automol graph
+        :returns: True if it is a bad InChI
+        :rtype: bool
+    """
+    gra = graph(ich) if gra is None else gra
+    ret = automol.graph.base.inchi_is_bad(gra, ich)
+    return ret
 
 
 # # derived transformations

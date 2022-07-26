@@ -307,99 +307,6 @@ def test__recalculate():
             == C2H2F2_ICH_STEREO_UNKNOWN)
 
 
-def test__filter_enantiomer_reactions():
-    """ test chi.filter_enantiomer_reactions()
-    """
-    ref_rxn_ichs_lst = (
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m0/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m0/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m1/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m1/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-    )
-
-    # normal usage:
-    rxn_ichs_lst = chi.filter_enantiomer_reactions(ref_rxn_ichs_lst)
-    assert len(rxn_ichs_lst) == 2
-
-    # checking that order doesn't matter
-    print('before:')
-    for rct_ichs, prd_ichs in rxn_ichs_lst:
-        print('r', rct_ichs)
-        print('p', prd_ichs)
-    print()
-    rxn_ichs_lst = set(map(frozenset, rxn_ichs_lst))
-
-    ref_rxn_ichs_lst = numpy.array(ref_rxn_ichs_lst, dtype=object)
-    ref_rxn_ichs_lsts = [
-        [numpy.random.permutation(r)
-         for r in numpy.random.permutation(ref_rxn_ichs_lst)]
-        for _ in range(10)]
-    for ref_rxn_ich_lst_ in ref_rxn_ichs_lsts:
-        rxn_ichs_lst_ = chi.filter_enantiomer_reactions(ref_rxn_ich_lst_)
-        rxn_ichs_lst_ = chi.sort_reactions(rxn_ichs_lst_)
-        print('after:')
-        for rct_ichs, prd_ichs in rxn_ichs_lst_:
-            print('r', rct_ichs)
-            print('p', prd_ichs)
-        print()
-
-        rxn_ichs_lst_ = set(map(frozenset, rxn_ichs_lst))
-        assert rxn_ichs_lst_ == rxn_ichs_lst
-
-    # AMChI test
-    ref_rxn_achs_lst = (
-        (('AMChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m0/s1',),
-         ('AMChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
-          'AMChI=1S/HO2/c1-2/h1H')),
-        (('AMChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m0/s1',),
-         ('AMChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
-          'AMChI=1S/HO2/c1-2/h1H')),
-        (('AMChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m1/s1',),
-         ('AMChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
-          'AMChI=1S/HO2/c1-2/h1H')),
-        (('AMChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m1/s1',),
-         ('AMChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
-          'AMChI=1S/HO2/c1-2/h1H')),
-    )
-
-    # normal usage:
-    rxn_achs_lst = chi.filter_enantiomer_reactions(ref_rxn_achs_lst)
-    assert len(rxn_achs_lst) == 2
-
-    # checking that order doesn't matter
-    print('before:')
-    for rct_achs, prd_achs in rxn_achs_lst:
-        print('r', rct_achs)
-        print('p', prd_achs)
-    print()
-    rxn_achs_lst = set(map(frozenset, rxn_achs_lst))
-
-    ref_rxn_achs_lst = numpy.array(ref_rxn_achs_lst, dtype=object)
-    ref_rxn_achs_lsts = [
-        [numpy.random.permutation(r)
-         for r in numpy.random.permutation(ref_rxn_achs_lst)]
-        for _ in range(10)]
-    for ref_rxn_ach_lst_ in ref_rxn_achs_lsts:
-        rxn_achs_lst_ = chi.filter_enantiomer_reactions(ref_rxn_ach_lst_)
-        rxn_achs_lst_ = chi.sort_reactions(rxn_achs_lst_)
-        print('after:')
-        for rct_achs, prd_achs in rxn_achs_lst_:
-            print('r', rct_achs)
-            print('p', prd_achs)
-        print()
-
-        rxn_achs_lst_ = set(map(frozenset, rxn_achs_lst))
-        assert rxn_achs_lst_ == rxn_achs_lst
-
-
 def test__stereo():
     """ test chi.add_stereo
         test chi.expand_stereo
@@ -446,6 +353,32 @@ def test__stereo():
         'AMChI=1/C3H3/c1-3-2/h1-3H/b3-1+,3-2+'}
 
 
+def test__canonical_enantiomer():
+    """ test chi.canonical_enantiomer
+             chi.is_canonical_enantiomer
+    """
+    # 1. SPECIES
+    ref_ich = 'InChI=1S/C5H11O6/c1-3(9-6)5(11-8)4(2)10-7/h3-7H,1-2H3'
+
+    # 1A. Full expansion -- includes non-canonical enantiomers
+    print("Full species expansion:")
+    for ich in chi.expand_stereo(ref_ich, enant=True):
+        print(f"InChI:\n{ich}")
+        is_can = chi.is_canonical_enantiomer(ich)
+        print(f"Canonical? {is_can}")
+
+        # Convert it to a canonical enantiomer like this
+        ich = chi.canonical_enantiomer(ich)
+        print(f"Canonical enantiomer:\n{ich}\n")
+        assert chi.is_canonical_enantiomer(ich)
+
+    # 1B. Restricted expansion -- includes only canonical enantiomers
+    print("Restricted species expansion:")
+    for ich in chi.expand_stereo(ref_ich, enant=False):
+        print(ich)
+        assert chi.is_canonical_enantiomer(ich)
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__formula_string()
@@ -463,4 +396,6 @@ if __name__ == '__main__':
     # test__sorted_()
     # test__recalculate()
     # test__filter_enantiomer_reactions()
-    test__stereo()
+    # test__stereo()
+    # test__join()
+    test__canonical_enantiomer()

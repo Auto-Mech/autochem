@@ -184,6 +184,26 @@ def substitution_atom_keys(rxn):
 
 
 # Conversion stuff
+def chis(rxn, stereo=True):
+    """ Get ChIs for the reactants and products
+    """
+    rct_chis = tuple(automol.graph.chi(gra, stereo=stereo)
+                     for gra in reactant_graphs(rxn))
+    prd_chis = tuple(automol.graph.chi(gra, stereo=stereo)
+                     for gra in product_graphs(rxn))
+    return (rct_chis, prd_chis)
+
+
+def amchis(rxn, stereo=True):
+    """ Get AMChIs for the reactants and products
+    """
+    rct_chis = tuple(automol.graph.amchi(gra, stereo=stereo)
+                     for gra in reactant_graphs(rxn))
+    prd_chis = tuple(automol.graph.amchi(gra, stereo=stereo)
+                     for gra in product_graphs(rxn))
+    return (rct_chis, prd_chis)
+
+
 def reaction_inchis(rxn, stereo=True):
     """ Get inchis for one side of reactions
     """

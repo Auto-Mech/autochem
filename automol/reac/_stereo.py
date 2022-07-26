@@ -13,6 +13,7 @@ from automol.reac._reac import products_graph
 from automol.reac._reac import forming_bond_keys
 from automol.reac._reac import breaking_bond_keys
 from automol.reac._reac import relabel
+from automol.reac._util import amchis
 from automol.graph import ts
 
 
@@ -141,15 +142,18 @@ def add_stereo_from_unordered_geometries(rxn, rct_geos, prd_geos,
     return found_srxn, order
 
 
-def expand_stereo(rxn):
+def expand_stereo(rxn, enant=True):
     """ Expand all possible stereo assignments for the reactants and products
     of this reaction. Only includes possibilities that are mutually consistent
     with each other.
 
-    :param rxn: a reaction object
-    :type rxn: Reaction
-    :returns: a sequence reaction objects with stereo assignments
-    :rtype: Reaction
+        :param rxn: a reaction object
+        :type rxn: Reaction
+        :param enant: Include all enantiomers? Otherwise, includes only
+            canonical enantiomer species and reactions.
+        :type enant: bool
+        :returns: a sequence reaction objects with stereo assignments
+        :rtype: Reaction
     """
     rxn_cls = rxn.class_
     forw_tsg = automol.graph.without_stereo_parities(rxn.forward_ts_graph)
@@ -160,7 +164,8 @@ def expand_stereo(rxn):
     key_dct = atom_mapping(rxn)
 
     srxns = []
-    for forw_ste_tsg, back_ste_tsg in ts.expand_reaction_stereo(forw_tsg):
+    for forw_ste_tsg, back_ste_tsg in ts.expand_reaction_stereo(forw_tsg,
+                                                                enant=enant):
         back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
         # But for dummy atoms, we could just do the conversion directly,
@@ -197,3 +202,42 @@ def stereo_is_physical(srxn):
                      f"{automol.graph.string(srxn.backward_ts_graph)}\n")
     rtsg_loc = automol.graph.relabel(rtsg_loc, key_dct)
     return automol.graph.ts.reaction_stereo_is_physical(ftsg_loc, rtsg_loc)
+
+
+def is_canonical_enantiomer(srxn):
+    """ Does this reaction have a canonical combination of enantiomers?
+
+        :param srxn: a reaction object with stereo assignments
+        :type srxn: Reaction
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    rct_chis, prd_chis = amchis(srxn)
+    return automol.amchi.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
+
+
+def canonical_enantiomer(srxn):
+    """ Convert this reaction into a canonical combination of enantiomers
+
+        :param srxn: a reaction object with stereo assignments
+        :type srxn: Reaction
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    if not is_canonical_enantiomer(srxn):
+        srxn = reflect(srxn)
+    return srxn
+
+
+def reflect(srxn):
+    """ Reflect all graphs in this reaction, to obtain their mirror images
+
+        :param srxn: a reaction object with stereo assignments
+        :type srxn: Reaction
+        :returns: a reflected reaction object
+    """
+    forw_tsg = automol.graph.reflect(srxn.forward_ts_graph)
+    back_tsg = automol.graph.reflect(srxn.backward_ts_graph)
+    srxn = Reaction(srxn.class_, forw_tsg, back_tsg,
+                    srxn.reactants_keys, srxn.products_keys)
+    return srxn

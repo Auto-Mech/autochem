@@ -48,17 +48,16 @@ from automol.inchi.base._core import hardcoded_object_from_inchi_by_key
 from automol.inchi.base._core import hardcoded_object_to_inchi_by_key
 # # helpers
 from automol.inchi.base._core import version_pattern
-# reaction functions
-from automol.inchi.base._reac import filter_enantiomer_reactions
-from automol.inchi.base._reac import sort_reactions
 # L4
 # # conversions
 from automol.inchi._conv import graph
 from automol.inchi._conv import geometry
 from automol.inchi._conv import conformers
 from automol.inchi._conv import zmatrix
+from automol.inchi._conv import amchi
 # # derived properties
 from automol.inchi._conv import is_complete
+from automol.inchi._conv import is_bad
 # # derived transformations
 from automol.inchi._conv import add_stereo
 from automol.inchi._conv import expand_stereo
@@ -116,17 +115,16 @@ __all__ = [
     'hardcoded_object_to_inchi_by_key',
     # # helpers
     'version_pattern',
-    # reaction functions
-    'filter_enantiomer_reactions',
-    'sort_reactions',
     # L4
     # # conversions
     'graph',
     'geometry',
     'conformers',
     'zmatrix',
+    'amchi',
     # # derived properties
     'is_complete',
+    'is_bad',
     # # derived transformations
     'add_stereo',
     'expand_stereo',

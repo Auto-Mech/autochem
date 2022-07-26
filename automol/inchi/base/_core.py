@@ -515,32 +515,26 @@ def are_diastereomers(ich_a, ich_b):
     return diast
 
 
-def reflect(ich, iso=True):
+def reflect(ich):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
 
         :param ich: InChI string
         :type ich: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
         :returns: the other enantiomer
         :rtype: bool
     """
-    if is_enantiomer(ich, iso=iso):
-        ste_dct = stereo_sublayers(ich)
-        iso_dct = isotope_sublayers(ich)
+    ste_upd_dct = stereo_sublayers(ich)
+    iso_upd_dct = isotope_sublayers(ich)
 
-        ste_upd_dct = None
-        if 'm' in ste_dct:
-            val = int(ste_dct['m'])
-            ste_upd_dct = {'m': f'{abs(val-1)}'}
+    refl_trans = str.maketrans('01', '10')
+    if 'm' in ste_upd_dct:
+        ste_upd_dct['m'] = ste_upd_dct['m'].translate(refl_trans)
 
-        iso_upd_dct = None
-        if iso and 'm' in iso_dct:
-            val = int(iso_dct['m'])
-            iso_upd_dct = {'m': f'{abs(val-1)}'}
+    if 'm' in iso_upd_dct:
+        iso_upd_dct['m'] = iso_upd_dct['m'].translate(refl_trans)
 
-        ich = standard_form(ich, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
+    ich = standard_form(ich, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
 
     return ich
 

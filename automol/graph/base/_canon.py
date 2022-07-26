@@ -285,9 +285,10 @@ def reflect(gra):
         :param gra: molecular graph with canonical stereo parities
         :type gra: automol graph data structure
     """
-    loc_gra = to_local_stereo(gra)
-    loc_gra = reflect_local_stereo(loc_gra)
-    gra = from_local_stereo(loc_gra)
+    if has_atom_stereo(gra):
+        loc_gra = to_local_stereo(gra)
+        loc_gra = reflect_local_stereo(loc_gra)
+        gra = from_local_stereo(loc_gra)
     return gra
 
 

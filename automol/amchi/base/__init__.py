@@ -14,8 +14,10 @@ from automol.amchi.base._core import charge_layers
 from automol.amchi.base._core import stereo_layers
 from automol.amchi.base._core import isotope_layers
 # # setters
-from automol.amchi.base._core import reflect
 from automol.amchi.base._core import with_inchi_prefix
+from automol.amchi.base._core import reflect
+from automol.amchi.base._core import canonical_enantiomer
+from automol.amchi.base._core import canonical_enantiomer_reaction
 # # conversions
 from automol.amchi.base._core import formula
 from automol.amchi.base._core import connectivity
@@ -36,7 +38,8 @@ from automol.amchi.base._core import bond_stereo_parities
 from automol.amchi.base._core import atom_stereo_parities
 from automol.amchi.base._core import is_inverted_enantiomer
 from automol.amchi.base._core import is_canonical_enantiomer
-from automol.amchi.base._core import is_canonical_enantiomer_list
+from automol.amchi.base._core import is_canonical_enantiomer_reaction
+from automol.amchi.base._core import is_canonical_reaction_direction
 # # # isotope layers
 from automol.amchi.base._core import bond_isotope_stereo_parities
 from automol.amchi.base._core import atom_isotope_stereo_parities
@@ -58,11 +61,6 @@ from automol.amchi.base._core import sorted_
 from automol.amchi.base._core import argsort
 # # helpers
 from automol.amchi.base._core import version_pattern
-# reaction functions
-from automol.amchi.base._reac import is_canonical_enantiomer_reaction
-from automol.amchi.base._reac import is_canonical_reaction_direction
-from automol.amchi.base._reac import filter_enantiomer_reactions
-from automol.amchi.base._reac import sort_reactions
 
 
 __all__ = [
@@ -79,8 +77,10 @@ __all__ = [
     'stereo_layers',
     'isotope_layers',
     # # setters
-    'reflect',
     'with_inchi_prefix',
+    'reflect',
+    'canonical_enantiomer',
+    'canonical_enantiomer_reaction',
     # # conversions
     'formula',
     'connectivity',
@@ -101,7 +101,8 @@ __all__ = [
     'atom_stereo_parities',
     'is_inverted_enantiomer',
     'is_canonical_enantiomer',
-    'is_canonical_enantiomer_list',
+    'is_canonical_enantiomer_reaction',
+    'is_canonical_reaction_direction',
     # # # isotope layers
     'bond_isotope_stereo_parities',
     'atom_isotope_stereo_parities',
@@ -123,9 +124,4 @@ __all__ = [
     'argsort',
     # # helpers
     'version_pattern',
-    # reaction functions
-    'is_canonical_enantiomer_reaction',
-    'is_canonical_reaction_direction',
-    'filter_enantiomer_reactions',
-    'sort_reactions',
 ]

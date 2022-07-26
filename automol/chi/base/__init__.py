@@ -45,15 +45,11 @@ from automol.amchi.base import same_connectivity
 from automol.amchi.base import equivalent
 # # split/join
 from automol.chi.base._core import split
-from automol.chi.base._core import join
 # # sort
 from automol.chi.base._core import sorted_
 from automol.chi.base._core import argsort
 # # helpers
 from automol.amchi.base import version_pattern
-# reaction functions
-from automol.chi.base._core import filter_enantiomer_reactions
-from automol.chi.base._core import sort_reactions
 
 
 def formula_sublayer(*args, **kwargs):
@@ -101,13 +97,9 @@ __all__ = [
     'equivalent',
     # # split/join
     'split',
-    'join',
     # # sort
     'sorted_',
     'argsort',
     # # helpers
     'version_pattern',
-    # reaction functions
-    'filter_enantiomer_reactions',
-    'sort_reactions',
 ]

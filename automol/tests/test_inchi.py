@@ -262,63 +262,11 @@ def test__stereo():
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
     assert set(inchi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
-        'InChI=1S/CH2N/c1-2/h1-2H',
         'InChI=1S/CH2N/c1-2/h1-2H'}
     assert set(inchi.expand_stereo('InChI=1S/C2/c1-2')) == {
         'InChI=1S/C2/c1-2'}
     assert set(inchi.expand_stereo('InChI=1S/C3H3/c1-3-2/h1-3H')) == {
-        'InChI=1S/C3H3/c1-3-2/h1-3H',
-        'InChI=1S/C3H3/c1-3-2/h1-3H',
-        'InChI=1S/C3H3/c1-3-2/h1-3H',
         'InChI=1S/C3H3/c1-3-2/h1-3H'}
-
-
-def test__filter_enantiomer_reactions():
-    """ test inchi.filter_enantiomer_reactions()
-    """
-    ref_rxn_ichs_lst = (
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m0/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m0/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4+/m1/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-        (('InChI=1S/C4H9O4/c1-3(7-5)4(2)8-6/h3-5H,1-2H3/t3-,4-/m1/s1',),
-         ('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1',
-          'InChI=1S/HO2/c1-2/h1H')),
-    )
-
-    # normal usage:
-    rxn_ichs_lst = inchi.filter_enantiomer_reactions(ref_rxn_ichs_lst)
-    assert len(rxn_ichs_lst) == 2
-
-    # checking that order doesn't matter
-    print('before:')
-    for rct_ichs, prd_ichs in rxn_ichs_lst:
-        print('r', rct_ichs)
-        print('p', prd_ichs)
-    print()
-    rxn_ichs_lst = set(map(frozenset, rxn_ichs_lst))
-
-    ref_rxn_ichs_lst = numpy.array(ref_rxn_ichs_lst, dtype=object)
-    ref_rxn_ichs_lsts = [
-        [numpy.random.permutation(r)
-         for r in numpy.random.permutation(ref_rxn_ichs_lst)]
-        for _ in range(10)]
-    for ref_rxn_ich_lst_ in ref_rxn_ichs_lsts:
-        rxn_ichs_lst_ = inchi.filter_enantiomer_reactions(ref_rxn_ich_lst_)
-        rxn_ichs_lst_ = inchi.sort_reactions(rxn_ichs_lst_)
-        print('after:')
-        for rct_ichs, prd_ichs in rxn_ichs_lst_:
-            print('r', rct_ichs)
-            print('p', prd_ichs)
-        print()
-
-        rxn_ichs_lst_ = set(map(frozenset, rxn_ichs_lst))
-        assert rxn_ichs_lst_ == rxn_ichs_lst
 
 
 if __name__ == '__main__':

@@ -350,15 +350,17 @@ def add_stereo(chi):
     return chi
 
 
-def expand_stereo(chi):
+def expand_stereo(chi, enant=True):
     """ Obtain all possible stereoisomers of a ChI string.
 
         :param chi: ChI string
         :type chi: str
+        :param enant: Include all enantiomers, or only canonical ones?
+        :type enant: bool
         :rtype: list[str]
     """
     gra = graph(chi, stereo=False)
-    sgrs = automol.graph.expand_stereo(gra)
+    sgrs = automol.graph.expand_stereo(gra, enant=enant, symeq=False)
     ste_chis = [automol.graph.amchi(sgr, stereo=True) for sgr in sgrs]
     return ste_chis
 

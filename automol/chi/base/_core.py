@@ -161,22 +161,20 @@ def are_diastereomers(chi_a, chi_b, log=False):
     return ret
 
 
-def reflect(chi, iso=True):
+def reflect(chi):
     """ If this is an enantiomer, flip to the other enantiomer by changing the
         m-layer
 
         :param chi: ChI string
         :type chi: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
         :returns: the other enantiomer
         :rtype: bool
     """
     pfx = prefix(chi)
     if pfx == 'AMChI':
-        ret = automol.amchi.base.reflect(chi, iso=iso)
+        ret = automol.amchi.base.reflect(chi)
     elif pfx == 'InChI':
-        ret = automol.inchi.base.reflect(chi, iso=iso)
+        ret = automol.inchi.base.reflect(chi)
     else:
         raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
     return ret
@@ -209,24 +207,6 @@ def split(chi):
         ret = automol.inchi.base.split(chi)
     else:
         raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
-    return ret
-
-
-def join(chis):
-    """ Join separate ChI strings into one multi-component ChI string.
-
-        :param chis: sequence of ChI strings
-        :type chis: tuple[str]
-        :returns: the joined ChI string
-        :rtype: str
-    """
-    pfxs = list(map(prefix, chis))
-    if 'AMChI' in pfxs:
-        ret = automol.amchi.base.join(chis)
-    elif set(pfxs) == {'InChI'}:
-        ret = automol.inchi.base.join(chis)
-    else:
-        raise ValueError(f"One of these has an unknown prefix: {chis}.")
     return ret
 
 
@@ -263,41 +243,4 @@ def argsort(chis):
         ret = automol.inchi.base.argsort(chis)
     else:
         raise ValueError(f"One of these has an unknown prefix: {chis}.")
-    return ret
-
-
-# reaction functions
-def filter_enantiomer_reactions(rxn_chis_lst):
-    """ Filter out mirror images from a list of reaction ChIs
-
-        Redundant reactions are identified by inverting the enantiomers on both
-        sides of the reaction (if reactants and/or products are enationmers)
-        and removing them from the list.
-
-        The list is sorted first, so that the same enantiomers will be chosen
-        regardless of the order of their appearance.
-    """
-    chis = [c for r in rxn_chis_lst for p in r for c in p]
-    pfxs = list(map(prefix, chis))
-    if 'AMChI' in pfxs:
-        ret = automol.amchi.base.filter_enantiomer_reactions(rxn_chis_lst)
-    elif set(pfxs) == {'InChI'}:
-        ret = automol.inchi.base.filter_enantiomer_reactions(rxn_chis_lst)
-    else:
-        raise ValueError(f"One of these has an unknown prefix: {rxn_chis_lst}")
-    return ret
-
-
-def sort_reactions(rxn_chis_lst):
-    """ Sort reactions such that enantiomeric versions always appear in the
-        same order.
-    """
-    chis = [c for r in rxn_chis_lst for p in r for c in p]
-    pfxs = list(map(prefix, chis))
-    if 'AMChI' in pfxs:
-        ret = automol.amchi.base.sort_reactions(rxn_chis_lst)
-    elif set(pfxs) == {'InChI'}:
-        ret = automol.inchi.base.sort_reactions(rxn_chis_lst)
-    else:
-        raise ValueError(f"One of these has an unknown prefix: {rxn_chis_lst}")
     return ret
