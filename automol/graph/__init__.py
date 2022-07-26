@@ -210,6 +210,7 @@ from automol.graph.base._canon import canonical_keys
 # # canonical stereo functions
 from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
+from automol.graph.base._canon import stereogenic_keys
 from automol.graph.base._canon import reflect
 from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import to_local_stereo
@@ -491,6 +492,7 @@ __all__ = [
     # # canonical stereo functions
     'stereogenic_atom_keys',
     'stereogenic_bond_keys',
+    'stereogenic_keys',
     'reflect',
     'reflect_local_stereo',
     'to_local_stereo',

@@ -46,9 +46,6 @@ from automol.inchi.base._core import hardcoded_object_from_inchi_by_key
 from automol.inchi.base._core import hardcoded_object_to_inchi_by_key
 # # helpers
 from automol.inchi.base._core import version_pattern
-# reaction functions
-from automol.inchi.base._reac import filter_enantiomer_reactions
-from automol.inchi.base._reac import sort_reactions
 
 
 __all__ = [
@@ -97,7 +94,4 @@ __all__ = [
     'hardcoded_object_to_inchi_by_key',
     # # helpers
     'version_pattern',
-    # reaction functions
-    'filter_enantiomer_reactions',
-    'sort_reactions',
 ]

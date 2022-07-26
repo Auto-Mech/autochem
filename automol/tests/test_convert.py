@@ -326,14 +326,14 @@ def test__inchi_conformers():
 def test__multiple_rings():
     """ test graph => inchi conversion for multiple rings
     """
-    ref_ich = ('InChI=1S/C17H19NO3/c1-18-7-6-17-10-3-5-13(20)16(17)21-15-12(19'
-               ')4-2-9(14(15)17)8-11(10)18/h2-5,10-11,13,16,19-20H,6-8H2,1H3/'
-               't10-,11-,13-,16+,17+/m1/s1')
-    gra = automol.chi.graph(ref_ich)
-    ich = automol.graph.chi(gra, stereo=True)
-    print(ref_ich)
-    print(ich)
-    assert ich == ref_ich
+    ref_chi = ('AMChI=1/C17H19NO3/c1-18-7-6-17-11-9(8)2-3-10(19)12(11)21-16'
+               '(17)14(20)5-4-13(17)15(18)8-9/h2-5,13-16,19-20H,6-8H2,1H3/'
+               't13-,14-,15-,16+,17-,18-/m1/s1')
+    gra = automol.chi.graph(ref_chi)
+    chi = automol.graph.chi(gra, stereo=True)
+    print(ref_chi)
+    print(chi)
+    assert chi == ref_chi
 
 
 if __name__ == '__main__':

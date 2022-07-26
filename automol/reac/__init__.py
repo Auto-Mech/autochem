@@ -61,6 +61,9 @@ from automol.reac._stereo import add_stereo_from_inchis
 from automol.reac._stereo import add_stereo_from_unordered_geometries
 from automol.reac._stereo import expand_stereo
 from automol.reac._stereo import stereo_is_physical
+from automol.reac._stereo import is_canonical_enantiomer
+from automol.reac._stereo import canonical_enantiomer
+from automol.reac._stereo import reflect
 # reaction products
 from automol.reac._enum import enumerate_reactions
 # species instability transformations
@@ -77,6 +80,7 @@ from automol.reac import tunnel
 from automol.reac._comp import similar_saddle_point_structure
 # util
 from automol.reac import _util as util
+from automol.reac._util import chis
 from automol.reac._util import reaction_inchis
 from automol.reac._util import rxn_objs_from_inchi
 from automol.reac._util import rxn_objs_from_smiles
@@ -146,6 +150,9 @@ __all__ = [
     'add_stereo_from_unordered_geometries',
     'expand_stereo',
     'stereo_is_physical',
+    'is_canonical_enantiomer',
+    'canonical_enantiomer',
+    'reflect',
     # reaction products
     'enumerate_reactions',
     # species instability transformations
@@ -162,6 +169,7 @@ __all__ = [
     'similar_saddle_point_structure',
     # util
     'util',
+    'chis',
     'reaction_inchis',
     'rxn_objs_from_inchi',
     'rxn_objs_from_smiles',
