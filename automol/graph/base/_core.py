@@ -1123,13 +1123,22 @@ def insert_dummy_atoms(gra, dummy_key_dct):
         atom; values are the desired keys of the dummy atoms themselves, which
         must not overlap with already existing atoms
     """
-    for key, dummy_key in reversed(sorted(dummy_key_dct.items())):
-        # If the dummy key comes first, the anchor key will be offset by 1
-        if dummy_key < key:
-            key -= 1
+    # These lists are used to track how the keys change:
+    old_keys = sorted(atom_keys(gra))
+    new_keys = sorted(atom_keys(gra))
+
+    for key, dummy_key in reversed(sorted(dummy_key_dct.items(),
+                                          key=lambda x: x[::-1])):
+        key_dct = dict(zip(old_keys, new_keys))
+        key_ = key_dct[key]
 
         gra = insert_bonded_atom(
-            gra, 'X', key, bnd_atm_key=dummy_key, bnd_ord=0)
+            gra, 'X', key_, bnd_atm_key=dummy_key, bnd_ord=0)
+
+        idx = new_keys.index(dummy_key)
+        new_keys[idx:] = numpy.add(new_keys[idx:], 1)
+        new_keys.insert(idx, dummy_key)
+        old_keys.insert(idx, None)
 
     return gra
 
@@ -1142,18 +1151,23 @@ def standard_keys_without_dummy_atoms(gra):
     """
     dummy_ngb_key_dct = dummy_atoms_neighbor_atom_key(gra)
 
-    dummy_keys_dct = {}
-    last_dummy_key = -1
-    decr = 0
-    for dummy_key, key in sorted(dummy_ngb_key_dct.items()):
-        assert last_dummy_key <= key, (
-            f"{key:d} must follow previous dummy {last_dummy_key:d}")
+    # These lists are used to track how the keys change:
+    old_keys = sorted(atom_keys(gra))
+    new_keys = sorted(atom_keys(gra))
 
-        dummy_keys_dct[key-decr] = dummy_key-decr
+    dummy_keys_dct = {}
+    for dummy_key, key in sorted(dummy_ngb_key_dct.items()):
+        key_dct = dict(zip(old_keys, new_keys))
+        dummy_key_ = key_dct[dummy_key]
+        key_ = key_dct[key]
+
+        dummy_keys_dct[key_] = dummy_key_
         gra = remove_atoms(gra, [dummy_key])
 
-        decr += 1
-        last_dummy_key = dummy_key-decr
+        idx = old_keys.index(dummy_key)
+        old_keys.pop(idx)
+        new_keys.pop(idx)
+        new_keys[idx:] = numpy.subtract(new_keys[idx:], 1)
 
     gra = standard_keys(gra)
     return gra, dummy_keys_dct
