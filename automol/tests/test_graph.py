@@ -896,6 +896,22 @@ def test__species__graph_conversion():
     zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
     assert zgra == old_zgra
 
+    # extra test case from Luna
+    ich = 'InChI=1S/C11H8/c1-3-10(4-2)11-8-6-5-7-9-11/h1,5-9H,2H2'
+    geo = automol.chi.geometry(ich)
+    gra = automol.geom.graph(geo)
+
+    zma, zma_keys, dummy_key_dct = (
+        automol.geom.zmatrix_with_conversion_info(geo))
+    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+
+    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
+    ggra = automol.graph.relabel_for_geometry(zgra)
+
+    old_zgra = zgra
+    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
+    assert zgra == old_zgra
+
 
 # stereo graph library
 def test__stereogenic_atom_keys():
@@ -1417,9 +1433,10 @@ if __name__ == '__main__':
     # test__stereogenic_atom_keys()
     # test__ts__expand_reaction_stereo()
     # test__kekules_bond_orders_collated()
-    test__inchi_is_bad()
+    # test__inchi_is_bad()
     # test__canonical()
     # test__calculate_priorities_and_assign_parities()
     # test__expand_stereo()
     # test__ts__expand_reaction_stereo()
     # test__smiles()
+    test__species__graph_conversion()
