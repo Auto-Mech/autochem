@@ -1,15 +1,17 @@
 """ graph conversions
 """
-
+import functools
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
-from automol.util import dict_
+from automol import error
 import automol.graph.embed
 import automol.geom.base
 import automol.inchi.base
+from automol.util import dict_
 from automol.extern import molfile
 from automol.extern import rdkit_
+from automol.extern import pybel_
 from automol.graph.base import atom_keys
 from automol.graph.base import bond_keys
 from automol.graph.base import atom_symbols
@@ -31,25 +33,145 @@ from automol.graph.base import relabel
 from automol.graph.base import bond_stereo_keys
 from automol.graph.base import explicit_hydrogen_keys
 from automol.graph.base import bond_stereo_parities
+from automol.graph.base import connected_components
+from automol.graph.base import has_stereo
+from automol.graph.base import string
 
 
 # # conversions
-def geometry(gra):
+def geometry(gra, check=True):
     """ Convert a molecular graph to a molecular geometry.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
+        :param check: check stereo and connectivity?
+        :type check: bool
         :rtype: automol molecular geometry data structure
     """
+    gra = automol.graph.explicit(gra)
+    gras = connected_components(gra)
 
-    symbs = atom_symbols(gra)
-    if len(symbs) != 1:
-        gra = explicit(gra)
-        geo = automol.graph.embed.geometry(gra)
-    else:
-        symb = list(symbs.values())[0]
-        # symb = list(symbs.keys())[0]
-        geo = ((symb, (0.00, 0.00, 0.00)),)
+    geos = [_connected_geometry(g, check=check) for g in gras]
+    geos = [automol.geom.translate(g, [50.*i, 0., 0.])
+            for i, g in enumerate(geos)]
+    geo = functools.reduce(automol.geom.join, geos)
+
+    # Work out how the geometry needs to be re-ordered to match the input graph
+    idx_dct = {}
+    idxs_lst = [sorted(atom_keys(g)) for g in gras]
+    offset = 0
+    for idxs in idxs_lst:
+        idx_dct.update({i+offset: k for i, k in enumerate(idxs)})
+        offset += len(idxs)
+
+    geo = automol.geom.reorder(geo, idx_dct)
+    return geo
+
+
+def _connected_geometry(gra, check=True):
+    """ Generate a geometry for a connected molecular graph.
+
+        :param gra: connected molecular graph
+        :type gra: automol graph data structure
+        :param check: check stereo and connectivity?
+        :type check: bool
+        :rtype: automol molecular geometry
+    """
+    ste_keys = automol.graph.stereo_keys(gra)
+
+    smi = smiles(gra, res_stereo=False)
+    has_ste = has_stereo(gra)
+
+    def _gen1():
+        nonlocal smi
+
+        rdm = rdkit_.from_smiles(smi)
+        geo, = rdkit_.to_conformers(rdm, nconfs=1)
+        return geo
+
+    def _gen2():
+        nonlocal smi
+
+        pbm = pybel_.from_smiles(smi)
+        geo = pybel_.to_geometry(pbm)
+        return geo
+
+    def _gen3():
+        nonlocal gra
+
+        if has_ste:
+            raise ValueError
+
+        gra_ = automol.graph.explicit(gra)
+        geo = automol.graph.embed.geometry(gra_)
+        return geo
+
+    success = False
+    for gen_ in (_gen1, _gen1, _gen1, _gen2, _gen3):
+        try:
+            geo = gen_()
+        except (RuntimeError, TypeError, ValueError):
+            continue
+
+        if check:
+            # First, check connectivity.
+            gra_ = automol.geom.graph(geo)
+            geo = automol.graph.linear_vinyl_corrected_geometry(gra_, geo)
+
+            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
+
+            if idx_dct is None:
+                continue
+
+            # Reorder the geometry to match the input graph connectivity.
+            geo = automol.geom.reorder(geo, idx_dct)
+
+            # If connectivity matches and there is no stereo, we are done.
+            if not has_ste:
+                success = True
+                break
+
+            # Otherwise, there is stereo.
+            # First, try an isomorphism to see if the parities already match.
+            gra_ = automol.geom.graph(geo)
+            par_dct_ = automol.graph.stereo_parities(gra_)
+            par_dct_ = {k: (p if k in ste_keys else None)
+                        for k, p in par_dct_.items()}
+            gra_ = automol.graph.set_stereo_parities(gra_, par_dct_)
+            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=True)
+
+            # If connectivity and stereo match, we are done.
+            if idx_dct:
+                # Reorder the geometry to match the input graph
+                geo = automol.geom.reorder(geo, idx_dct)
+                success = True
+                break
+
+            # If the stereo doesn't match, try a stereo correction.
+            geo = automol.graph.stereo_corrected_geometry(
+                gra, geo, local_stereo=False)
+
+            # Now, re-try the isomorphism
+            gra_ = automol.geom.graph(geo)
+            par_dct_ = automol.graph.stereo_parities(gra_)
+            par_dct_ = {k: (p if k in ste_keys else None)
+                        for k, p in par_dct_.items()}
+            gra_ = automol.graph.set_stereo_parities(gra_, par_dct_)
+            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=True)
+
+            # If this fails, this geometry won't work. Continue
+            if not idx_dct:
+                continue
+
+            # The stereo matches after correction.
+            # Reorder the geometry to match the input graph, and we are done.
+            geo = automol.geom.reorder(geo, idx_dct)
+            success = True
+            break
+
+    if not success:
+        raise error.FailedGeometryGenerationError(
+            f'Failed graph:\n{string(gra)}')
 
     return geo
 

@@ -384,7 +384,7 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
 
     atm_keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
-                   else {k: i for i, k in enumerate(atm_keys)})
+                   else {k: i for i, k in enumerate(sorted(atm_keys))})
 
     for comp in connected_components(gra):
         par_eval_ = parity_evaluator_from_geometry_(
@@ -800,7 +800,7 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
 
     atm_keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
-                   else {k: i for i, k in enumerate(atm_keys)})
+                   else {k: i for i, k in enumerate(sorted(atm_keys))})
 
     orig_geo = geo
 

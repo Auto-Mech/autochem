@@ -1,12 +1,9 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
-import functools
 import automol.graph
 import automol.geom
 from automol import error
-from automol.util import dict_
 from automol.extern import rdkit_
-from automol.extern import pybel_
 from automol.amchi.base import isotope_layers
 from automol.amchi.base import symbols
 from automol.amchi.base import bonds
@@ -136,103 +133,8 @@ def geometry(chi, check=True):
         :type check: bool
         :rtype: automol molecular geometry data structure
     """
-
-    # rdkit fails for multi-component molecules, so we split it up and space
-    # out the geometries
-    chis = split(chi)
-    geos = [_connected_geometry(chi, check=check) for chi in chis]
-    geos = [automol.geom.translate(geo, [50. * idx, 0., 0.])
-            for idx, geo in enumerate(geos)]
-    geo = functools.reduce(automol.geom.join, geos)
-    return geo
-
-
-def _connected_geometry(chi, check=True):
-    """ Generate a connected molecular geometry from a single-component ChI
-        string.
-
-        :param chi: ChI string
-        :type chi: str
-        :param check: check stereo and connectivity?
-        :type check: bool
-        :rtype: automol molecular geometry
-    """
-    # Convert graph to local stereo to avoid multiple recanonicalizations
-    gra = _connected_graph(chi, stereo=True, local_stereo=True)
-    gra = automol.graph.explicit(gra)
-    ste_keys = automol.graph.stereo_keys(gra)
-    loc_par_dct = dict_.by_key(automol.graph.stereo_parities(gra), ste_keys)
-
-    smi = _connected_smiles(chi, res_stereo=False)
-    has_ste = has_stereo(chi)
-
-    def _gen1():
-        rdm = rdkit_.from_smiles(smi)
-        geo, = rdkit_.to_conformers(rdm, nconfs=1)
-        return geo
-
-    def _gen2():
-        pbm = pybel_.from_smiles(smi)
-        geo = pybel_.to_geometry(pbm)
-        return geo
-
-    def _gen3():
-        if has_stereo(chi):
-            raise ValueError
-
-        gra = graph(chi, stereo=False)
-        gra = automol.graph.explicit(gra)
-        geo = automol.graph.embed.geometry(gra)
-        return geo
-
-    success = False
-    for gen_ in (_gen1, _gen1, _gen1, _gen2, _gen3):
-        try:
-            geo = gen_()
-        except (RuntimeError, TypeError, ValueError):
-            continue
-
-        # If the ChI has stereo, enforce correct stereo on the geometry.
-        if check:
-            # There is stereo.
-            # First, check connectivity.
-            gra_ = automol.geom.graph(geo)
-            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
-
-            if idx_dct is None:
-                continue
-
-            # Reorder the geometry to match the input graph
-            geo = automol.geom.reorder(geo, idx_dct)
-            geo = automol.graph.linear_vinyl_corrected_geometry(gra, geo)
-
-            if not has_ste:
-                success = True
-                break
-
-            # Enforce correct stereo parities. This is necessary for
-            # resonance bond stereo.
-            geo = automol.graph.stereo_corrected_geometry(
-                gra, geo, local_stereo=True)
-
-            # Now, make sure the connectivity still matches
-            gra_ = automol.geom.graph(geo)
-            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
-
-            # Check the local stereo parities
-            loc_gra_ = automol.graph.to_local_stereo(gra_)
-            loc_par_dct_ = automol.graph.stereo_parities(loc_gra_)
-            loc_par_dct_ = dict_.by_key(loc_par_dct_, ste_keys)
-
-            if not idx_dct or loc_par_dct != loc_par_dct_:
-                continue
-
-            success = True
-            break
-
-    if not success:
-        raise error.FailedGeometryGenerationError('Failed AMChI:', chi)
-
+    gra = graph(chi)
+    geo = automol.graph.geometry(gra, check=check)
     return geo
 
 

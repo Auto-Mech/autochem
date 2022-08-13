@@ -227,15 +227,10 @@ def test__graph__misc():
         automol.chi.geometry(ref_ich))
     assert conn_gra == ref_conn_gra
 
-    ref_geo = (
-        ('C', (0.0, 0.0, 0.0)),
-        ('C', (-3.4713705762105e-16, 3.4713705762105e-16, -2.8345891881867)),
-        ('Cl', (-1.04141117286317e-15, 5.2070558643158e-16, -5.6691783763734)),
-        ('H', (0.0, 0.0, 2.0786987380036113)))
     ich = 'InChI=1S/C2HCl/c1-2-3/h1H'
     gra = automol.chi.graph(ich)
     geo = automol.graph.geometry(gra)
-    assert automol.geom.almost_equal_dist_matrix(geo, ref_geo)
+    assert ich == automol.geom.inchi(geo)
 
     # Test stereo
     def randomize_atom_ordering(geo):
@@ -257,6 +252,36 @@ def test__graph__misc():
     assert ich in (
         'AMChI=1/C4H7O2.H2O/c1-4(5)2-3-6;/h2,6H,3H2,1H3;1H2/b4-2-;',
         'AMChI=1/C4H7O2.H2O/c1-4(5)2-3-6;/h2,6H,3H2,1H3;1H2/b4-2+;')
+
+    # EXTRA TEST CASE 1
+    gra = automol.smiles.graph(r'[H]/N=C\C(\C=N\[H])=N/[H]')
+
+    natms = len(automol.graph.atoms(gra))
+    for _ in range(10):
+        pmt_dct = dict(enumerate(map(int, numpy.random.permutation(natms))))
+        pmt_gra = automol.graph.relabel(gra, pmt_dct)
+        pmt_geo = automol.graph.geometry(pmt_gra)
+        pmt_gra_ = automol.geom.graph(pmt_geo)
+        print(automol.graph.string(pmt_gra))
+        print()
+        print(automol.graph.string(pmt_gra_))
+        assert pmt_gra == pmt_gra_
+        print('------------------------------------')
+
+    # EXTRA TEST CASE 2
+    gra = automol.smiles.graph(r'F[C@H]([C@H](Cl)F)[C@@H](Cl)F')
+
+    natms = len(automol.graph.atoms(gra))
+    for _ in range(10):
+        pmt_dct = dict(enumerate(map(int, numpy.random.permutation(natms))))
+        pmt_gra = automol.graph.relabel(gra, pmt_dct)
+        pmt_geo = automol.graph.geometry(pmt_gra)
+        pmt_gra_ = automol.geom.graph(pmt_geo)
+        print(automol.graph.string(pmt_gra))
+        print()
+        print(automol.graph.string(pmt_gra_))
+        assert pmt_gra == pmt_gra_
+        print('------------------------------------')
 
 
 def test__inchi_geometry():
