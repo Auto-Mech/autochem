@@ -291,7 +291,7 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
     atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
-                   else {k: i for i, k in enumerate(atm_keys)})
+                   else {k: i for i, k in enumerate(sorted(atm_keys))})
 
     # Create a parity evaluator
     pri_dct = dict(zip(atm_keys, atm_keys))
@@ -377,7 +377,7 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
     bnd_keys = list(bnd_par_dct.keys())
 
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
-                   else {k: i for i, k in enumerate(atm_keys)})
+                   else {k: i for i, k in enumerate(sorted(atm_keys))})
 
     # Create a local parity evaluator
     pri_dct = dict(zip(atm_keys, atm_keys))

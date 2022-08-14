@@ -44,6 +44,7 @@ from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import set_atom_implicit_hydrogen_valences
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
+from automol.graph.base._core import set_stereo_parities
 # # I/O
 from automol.graph.base._core import string
 from automol.graph.base._core import yaml_dictionary
@@ -313,6 +314,7 @@ __all__ = [
     'set_atom_implicit_hydrogen_valences',
     'set_atom_stereo_parities',
     'set_bond_stereo_parities',
+    'set_stereo_parities',
     # # I/O
     'string',
     'yaml_dictionary',

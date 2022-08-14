@@ -89,39 +89,47 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
         "Graph => geometry conversion requires explicit hydrogens!\n"
         "Use automol.graph.explicit() to convert to an explicit graph.")
 
-    # For simplicity, convert to local stereo and use local stereo throughout
-    loc_gra = to_local_stereo(gra)
+    symbs = atom_symbols(gra)
+    if len(symbs) == 1:
+        symb = list(symbs.values())[0]
+        geo = ((symb, (0.00, 0.00, 0.00)),)
+    else:
+        # For simplicity, convert to local stereo and use local stereo
+        # throughout
+        loc_gra = to_local_stereo(gra)
 
-    # 0. Get keys and symbols
-    symb_dct = atom_symbols(loc_gra)
+        # 0. Get keys and symbols
+        symb_dct = atom_symbols(loc_gra)
 
-    keys = sorted(atom_keys(loc_gra)) if keys is None else keys
-    symbs = tuple(map(symb_dct.__getitem__, keys))
+        keys = sorted(atom_keys(loc_gra)) if keys is None else keys
+        symbs = tuple(map(symb_dct.__getitem__, keys))
 
-    # 1. Generate bounds matrices
-    lmat, umat = distance_bounds_matrices(loc_gra, keys)
-    chi_dct = chirality_constraint_bounds(loc_gra, keys)
-    pla_dct = planarity_constraint_bounds(loc_gra, keys)
-    conv1_ = qualitative_convergence_checker_(loc_gra, keys)
-    conv2_ = embed.distance_convergence_checker_(lmat, umat, max_dist_err)
+        # 1. Generate bounds matrices
+        lmat, umat = distance_bounds_matrices(loc_gra, keys)
+        chi_dct = chirality_constraint_bounds(loc_gra, keys)
+        pla_dct = planarity_constraint_bounds(loc_gra, keys)
+        conv1_ = qualitative_convergence_checker_(loc_gra, keys)
+        conv2_ = embed.distance_convergence_checker_(lmat, umat, max_dist_err)
 
-    def conv_(xmat, err, grad):
-        return conv1_(xmat, err, grad) & conv2_(xmat, err, grad)
+        def conv_(xmat, err, grad):
+            return conv1_(xmat, err, grad) & conv2_(xmat, err, grad)
 
-    # 2. Generate coordinates with correct stereo, trying a few times
-    for _ in range(ntries):
-        xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
-        xmat, conv = embed.cleaned_up_coordinates(
-            xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct, conv_=conv_)
-        if conv:
-            break
+        # 2. Generate coordinates with correct stereo, trying a few times
+        for _ in range(ntries):
+            xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
+            xmat, conv = embed.cleaned_up_coordinates(
+                xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct,
+                conv_=conv_)
+            if conv:
+                break
 
-    if not conv:
-        raise error.FailedGeometryGenerationError(f'Bad gra {string(loc_gra)}')
+        if not conv:
+            raise error.FailedGeometryGenerationError(
+                f'Bad gra {string(loc_gra)}')
 
-    # 3. Generate a geometry data structure from the coordinates
-    xyzs = xmat[:, :3]
-    geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
+        # 3. Generate a geometry data structure from the coordinates
+        xyzs = xmat[:, :3]
+        geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
 
     return geo
 
