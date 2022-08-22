@@ -1228,10 +1228,13 @@ def from_ts_graph(gra):
         :returns: the reactants graph
     """
     ord_dct = bond_orders(gra)
-    frm_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.1]
-    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.9]
-    gra = remove_bonds(gra, frm_bnd_keys)
-    gra = set_bond_orders(gra, {k: 1 for k in brk_bnd_keys})
+    frm_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.1]
+    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.9]
+    gra = set_bond_orders(gra, {k: round(ord_dct[k] - 0.1, 1) for k in frm_bnd_keys})
+    gra = without_dummy_bonds(gra)
+    # gra = remove_bonds(gra, frm_bnd_keys)
+    gra = set_bond_orders(gra, {k: round(ord_dct[k] + 0.1, 1) for k in brk_bnd_keys})
+    # gra = set_bond_orders(gra, {k: 1 for k in brk_bnd_keys})
     return gra
 
 
