@@ -19,6 +19,7 @@ from automol.reac._reac import products_graph
 from automol.reac._reac import standard_keys
 from automol.reac._reac import standard_keys_with_sorted_geometries
 from automol.reac._reac import relabel
+from automol.reac._reac import without_stereo
 from automol.reac._reac import add_dummy_atoms
 from automol.reac._reac import insert_dummy_atoms
 from automol.reac._reac import without_dummy_atoms
@@ -108,6 +109,7 @@ __all__ = [
     'standard_keys',
     'standard_keys_with_sorted_geometries',
     'relabel',
+    'without_stereo',
     'add_dummy_atoms',
     'insert_dummy_atoms',
     'without_dummy_atoms',

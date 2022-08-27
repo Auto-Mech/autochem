@@ -491,6 +491,23 @@ def relabel(rxn, key_dct, product=False):
     return rxn
 
 
+def without_stereo(rxn):
+    """ remove all stereo information from the reaction object
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :returns: the reaction object, without stereo information
+        :rtype: Reaction
+    """
+    rxn_cls = rxn.class_
+    forw_tsg = automol.graph.without_stereo_parities(rxn.forward_ts_graph)
+    back_tsg = automol.graph.without_stereo_parities(rxn.backward_ts_graph)
+    rcts_keys = rxn.reactants_keys
+    prds_keys = rxn.products_keys
+    rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
+    return rxn
+
+
 def add_dummy_atoms(rxn, dummy_key_dct, product=False):
     """ add dummy atoms to the reactants or products
 
