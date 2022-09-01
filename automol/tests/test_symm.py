@@ -81,7 +81,6 @@ ALLYL_GEO = (
 def test__external_symmetry_factor():
     """ test geom.external_symmety_factor
     """
-
     assert automol.symm.external_symm(METHANE_GEO) == 12
     assert automol.symm.external_symm(H_GEO) == 1
     assert automol.symm.external_symm(C2H5OF_GEO) == 0.5
@@ -89,11 +88,11 @@ def test__external_symmetry_factor():
 
 
 def test__hco_symm_num():
-    """ test
+    """ test internal symmetry number
     """
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(METHANE_GEO))
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(ETHANE_GEO))
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO))
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(PROPYL_GEO))
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(ALLYL_GEO))
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(TS_GEO))
+    assert automol.symm.oxygenated_hydrocarbon_symm_num(METHANE_GEO) == (1.0, 12)
+    assert automol.symm.oxygenated_hydrocarbon_symm_num(ETHANE_GEO) == (3.0, 6)
+    assert automol.symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO) == (3.0, 1)
+    assert automol.symm.oxygenated_hydrocarbon_symm_num(PROPYL_GEO) == (6.0, 1)
+    assert automol.symm.oxygenated_hydrocarbon_symm_num(ALLYL_GEO) == (1.0, 1)
+    assert automol.symm.oxygenated_hydrocarbon_symm_num(TS_GEO) == (3.0, 1)

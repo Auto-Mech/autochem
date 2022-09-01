@@ -22,7 +22,8 @@ def scale_frequencies_and_zpe(freqs, method, basis, scale_method='c3'):
         harm_sfreqs = scale_frequencies(
             freqs, method, basis, scale_method=HARM_OF_SM[scale_method])
         for freq, scfreq in zip(harm_sfreqs, scaled_freqs):
-            scaled_zpe += _anharm_zpve_from_scaling(freq, scfreq)
+            #scaled_zpe += _anharm_zpve_from_scaling(freq, scfreq)
+            scaled_zpe += .9864/2 * freq
         scaled_zpe *= phycon.WAVEN2EH
     return scaled_freqs, scaled_zpe
 
