@@ -78,10 +78,8 @@ def _connected_geometry(gra, check=True):
         :rtype: automol molecular geometry
     """
     ste_keys = automol.graph.stereo_keys(gra)
-
     smi = smiles(gra, res_stereo=False)
     has_ste = has_stereo(gra)
-
     def _gen1():
         nonlocal smi
 
@@ -117,12 +115,10 @@ def _connected_geometry(gra, check=True):
             # First, check connectivity.
             gra_ = automol.geom.graph(geo)
             geo = automol.graph.linear_vinyl_corrected_geometry(gra_, geo)
-
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
 
             if idx_dct is None:
                 continue
-
             # Reorder the geometry to match the input graph connectivity.
             geo = automol.geom.reorder(geo, idx_dct)
 
@@ -134,12 +130,23 @@ def _connected_geometry(gra, check=True):
             # Otherwise, there is stereo.
             # First, try an isomorphism to see if the parities already match.
             gra_ = automol.geom.graph(geo)
+            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
+            new_ste_keys = []
+            for key in ste_keys:
+                atm1, atm2 = key
+                for new_atm, orig_atm in idx_dct.items():
+                    if orig_atm == atm1:
+                        new_atm1 = new_atm
+                    if orig_atm == atm2:
+                        new_atm2 = new_atm
+                new_ste_keys.append(frozenset({new_atm1, new_atm2}))
+            new_ste_keys = frozenset(new_ste_keys)
+            ste_keys = new_ste_keys
             par_dct_ = automol.graph.stereo_parities(gra_)
             par_dct_ = {k: (p if k in ste_keys else None)
                         for k, p in par_dct_.items()}
             gra_ = automol.graph.set_stereo_parities(gra_, par_dct_)
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=True)
-
             # If connectivity and stereo match, we are done.
             if idx_dct:
                 # Reorder the geometry to match the input graph
