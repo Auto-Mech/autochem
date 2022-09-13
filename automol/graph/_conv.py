@@ -130,18 +130,30 @@ def _connected_geometry(gra, check=True):
             # Otherwise, there is stereo.
             # First, try an isomorphism to see if the parities already match.
             gra_ = automol.geom.graph(geo)
+
+            # make sure your stereo keys match the numbering of 
+            # the iso dct
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
-            new_ste_keys = []
-            for key in ste_keys:
-                atm1, atm2 = key
-                for new_atm, orig_atm in idx_dct.items():
-                    if orig_atm == atm1:
-                        new_atm1 = new_atm
-                    if orig_atm == atm2:
-                        new_atm2 = new_atm
-                new_ste_keys.append(frozenset({new_atm1, new_atm2}))
-            new_ste_keys = frozenset(new_ste_keys)
-            ste_keys = new_ste_keys
+            if ste_keys is not None:
+                iso_ste_keys = []
+                for key in ste_keys:
+                    if isinstance(key, int):
+                        for new_atm, orig_atm in idx_dct.items():
+                            if orig_atm == key:
+                                iso_key = orig_atm
+                                break
+                    else:    
+                        iso_key = []
+                        for atm in key:
+                            for new_atm, orig_atm in idx_dct.items():
+                                if orig_atm == atm:
+                                    iso_key.append(orig_atm)
+                                    break
+                        iso_key = frozenset(iso_key)
+                    iso_ste_keys.append(iso_key)
+                iso_ste_keys = frozenset(iso_ste_keys)
+                ste_keys = iso_ste_keys
+
             par_dct_ = automol.graph.stereo_parities(gra_)
             par_dct_ = {k: (p if k in ste_keys else None)
                         for k, p in par_dct_.items()}
