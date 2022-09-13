@@ -204,6 +204,7 @@ def elimination_scan_coordinate(rxn, zma):
     return (frm_name, brk_name)
 
 
+#def elimination_grid(zrxn, zma, npoints=(10, 10)):
 def elimination_grid(zrxn, zma, npoints=(7, 5)):
     """ Build forward 2D grid for elimination reaction
     """
@@ -229,8 +230,8 @@ def elimination_grid(zrxn, zma, npoints=(7, 5)):
         r2min = (1.50 + 0.3) * phycon.ANG2BOHR
         r2max = (1.50 + 1.2) * phycon.ANG2BOHR
 
-    grid1 = numpy.linspace(r1min, r1max, npoints1) * phycon.ANG2BOHR
-    grid2 = numpy.linspace(r2min, r2max, npoints2) * phycon.ANG2BOHR
+    grid1 = numpy.linspace(r1min, r1max, npoints1)
+    grid2 = numpy.linspace(r2min, r2max, npoints2)
 
     return (grid1, grid2)
 
