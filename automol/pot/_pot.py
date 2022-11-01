@@ -76,9 +76,15 @@ def scale(pot, scale_factor):
     """
 
     new_pot = {}
-    for idx, val in pot.items():
+    val = 0
+    pos_der = 0
+    for i, (idx, val) in enumerate(pot.items()):
         new_pot[idx] = val * scale_factor
-
+        if i == 1:
+            pos_der = val
+    neg_der = val
+    if neg_der < 0.001 or pos_der < 0.001 or abs((neg_der-pos_der)/min(neg_der,pos_der)) > 0.4:
+        print("WARNING: start and end derivatives of torsional potential don't match",neg_der,pos_der)
     return new_pot
 
 

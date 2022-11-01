@@ -98,6 +98,8 @@ def _calculate_energy_down_exponent(alpha_dct):
     coeff_mat = numpy.array([n_vec], dtype=numpy.float64)
     coeff_mat = coeff_mat.transpose()
 
+    print('edown_vec test:', alphas, edown_alpha)
+
     edown_vec = numpy.log(alphas / edown_alpha)
 
     # Perform the least-squares fit
