@@ -70,16 +70,20 @@ def geometry(gra, check=True):
 
 def _connected_geometry(gra, check=True):
     """ Generate a geometry for a connected molecular graph.
-
         :param gra: connected molecular graph
         :type gra: automol graph data structure
         :param check: check stereo and connectivity?
         :type check: bool
         :rtype: automol molecular geometry
     """
+    # Standardize the graph before doing anything else
+    gra = automol.graph.standard_keys(gra)
+
     ste_keys = automol.graph.stereo_keys(gra)
+
     smi = smiles(gra, res_stereo=False)
     has_ste = has_stereo(gra)
+
     def _gen1():
         nonlocal smi
 
@@ -115,10 +119,12 @@ def _connected_geometry(gra, check=True):
             # First, check connectivity.
             gra_ = automol.geom.graph(geo)
             geo = automol.graph.linear_vinyl_corrected_geometry(gra_, geo)
+
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
 
             if idx_dct is None:
                 continue
+
             # Reorder the geometry to match the input graph connectivity.
             geo = automol.geom.reorder(geo, idx_dct)
 
@@ -130,35 +136,12 @@ def _connected_geometry(gra, check=True):
             # Otherwise, there is stereo.
             # First, try an isomorphism to see if the parities already match.
             gra_ = automol.geom.graph(geo)
-
-            # make sure your stereo keys match the numbering of 
-            # the iso dct
-            idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
-            if ste_keys is not None:
-                iso_ste_keys = []
-                for key in ste_keys:
-                    if isinstance(key, int):
-                        for new_atm, orig_atm in idx_dct.items():
-                            if orig_atm == key:
-                                iso_key = orig_atm
-                                break
-                    else:    
-                        iso_key = []
-                        for atm in key:
-                            for new_atm, orig_atm in idx_dct.items():
-                                if orig_atm == atm:
-                                    iso_key.append(orig_atm)
-                                    break
-                        iso_key = frozenset(iso_key)
-                    iso_ste_keys.append(iso_key)
-                iso_ste_keys = frozenset(iso_ste_keys)
-                ste_keys = iso_ste_keys
-
             par_dct_ = automol.graph.stereo_parities(gra_)
             par_dct_ = {k: (p if k in ste_keys else None)
                         for k, p in par_dct_.items()}
             gra_ = automol.graph.set_stereo_parities(gra_, par_dct_)
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=True)
+
             # If connectivity and stereo match, we are done.
             if idx_dct:
                 # Reorder the geometry to match the input graph

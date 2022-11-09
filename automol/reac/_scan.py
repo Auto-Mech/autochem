@@ -204,7 +204,7 @@ def elimination_scan_coordinate(rxn, zma):
     return (frm_name, brk_name)
 
 
-#def elimination_grid(zrxn, zma, npoints=(10, 10)):
+# def elimination_grid(zrxn, zma, npoints=(10, 10)):
 def elimination_grid(zrxn, zma, npoints=(7, 5)):
     """ Build forward 2D grid for elimination reaction
     """

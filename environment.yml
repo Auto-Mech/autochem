@@ -6,6 +6,7 @@ channels:
     - rdkit
     - openbabel
     - conda-forge
+    - anaconda
 
 dependencies:
     - auto-mech::autoio-base
@@ -32,3 +33,5 @@ dependencies:
     - conda-forge::gxx_linux-64=7.5.0
     - conda-forge::gfortran_linux-64=7.5.0
     - conda-forge::pyparsing
+    - anaconda::libboost
+    - anaconda::intel-openmp

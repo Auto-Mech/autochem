@@ -269,7 +269,7 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None):
                 symm_groups = None
                 for group in group_dct.keys():
                     if group_dct[group] == 1:
-                        if group != 'InChI=1S/H' and group != 'InChI=1S/O':
+                        if group not in ('InChI=1S/H', 'InChI=1S/O'):
                             chain_group = group
                     else:
                         symm_groups = group

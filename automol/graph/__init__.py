@@ -104,7 +104,7 @@ from automol.graph.base._core import standard_keys_without_dummy_atoms
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_fractional_bonds
-from automol.graph.base._core import without_dummy_bonds
+from automol.graph.base._core import without_null_bonds
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import explicit
 from automol.graph.base._core import implicit
@@ -387,7 +387,7 @@ __all__ = [
     'without_bond_orders',
     'without_dummy_atoms',
     'without_fractional_bonds',
-    'without_dummy_bonds',
+    'without_null_bonds',
     'without_stereo_parities',
     'explicit',
     'implicit',
