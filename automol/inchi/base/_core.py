@@ -166,7 +166,8 @@ def recalculate(ich, stereo=False):
     if ret is None:
         _options = '-SUU' if stereo else ''
         rdm = rdkit_.from_inchi(ich)
-        ret = rdkit_.to_inchi(rdm, options=_options, with_aux_info=False)
+        if rdm is not None:
+            ret = rdkit_.to_inchi(rdm, options=_options, with_aux_info=False)
 
     return ret
 
@@ -218,24 +219,26 @@ def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
                     iso_lyr_dct=iso_dct)
     ich = recalculate(ich)
 
-    recalc_ste_dct = stereo_sublayers(ich)
-    if 's' in recalc_ste_dct:
-        recalc_ste_dct.pop('s')
-    if 's' in ste_dct:
-        ste_dct.pop('s')
+    if ich is not None:
+        recalc_ste_dct = stereo_sublayers(ich)
+        if 's' in recalc_ste_dct:
+            recalc_ste_dct.pop('s')
+        if 's' in ste_dct:
+            ste_dct.pop('s')
 
-    recalc_iso_dct = isotope_sublayers(ich)
-    if 's' in recalc_iso_dct:
-        recalc_iso_dct.pop('s')
-    if 's' in iso_dct:
-        iso_dct.pop('s')
+        recalc_iso_dct = isotope_sublayers(ich)
+        if 's' in recalc_iso_dct:
+            recalc_iso_dct.pop('s')
+        if 's' in iso_dct:
+            iso_dct.pop('s')
 
-    # If we were attempting to force special stereo and it failed, return None
-    if extra_ste_dct is not None and recalc_ste_dct != ste_dct:
-        ich = None
+        # If we were attempting to force special stereo and it failed, return
+        # None
+        if extra_ste_dct is not None and recalc_ste_dct != ste_dct:
+            ich = None
 
-    if extra_iso_dct is not None and recalc_iso_dct != iso_dct:
-        ich = None
+        if extra_iso_dct is not None and recalc_iso_dct != iso_dct:
+            ich = None
 
     return ich
 
