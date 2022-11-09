@@ -1,33 +1,33 @@
 version: 2
 jobs:
     build-debian:
-        resource_class: medium+
         docker:
-            - image: continuumio/miniconda3
+            - image: mambaorg/micromamba
         steps:
             - checkout  # checkout the code
             - run:
                 name: Create conda environment
                 command: |
-                    apt-get update --yes
-                    apt-get install --yes libxrender-dev build-essential
-                    conda env create -f environment.yml
+                    micromamba create -f environment.yml -y
             - run:
                 name: Build/install automol
                 command: |
-                    source activate autochem-env
+                    eval "$(micromamba shell hook --shell=bash)"
+                    micromamba activate autochem-env
                     python setup.py install
             - run:
                 name: Test autochem
                 no_output_timeout: 60m
                 command: |
-                    source activate autochem-env
+                    eval "$(micromamba shell hook --shell=bash)"
+                    micromamba activate autochem-env
                     pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=autoreact --cov-report=html
                     coverage report
             - run:
                 name: Test autochem format
                 command: |
-                    source activate autochem-env
+                    eval "$(micromamba shell hook --shell=bash)"
+                    micromamba activate autochem-env
                     flake8 --exit-zero automol
                     pylint --rcfile=.pylintrc automol 
                     flake8 --exit-zero phydat
