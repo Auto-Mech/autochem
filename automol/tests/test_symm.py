@@ -90,9 +90,12 @@ def test__external_symmetry_factor():
 def test__hco_symm_num():
     """ test internal symmetry number
     """
-    assert automol.symm.oxygenated_hydrocarbon_symm_num(METHANE_GEO) == (1.0, 12)
-    assert automol.symm.oxygenated_hydrocarbon_symm_num(ETHANE_GEO) == (3.0, 6)
-    assert automol.symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO) == (3.0, 1)
+    assert (automol.symm.oxygenated_hydrocarbon_symm_num(METHANE_GEO) ==
+            (1.0, 12))
+    assert (automol.symm.oxygenated_hydrocarbon_symm_num(ETHANE_GEO) ==
+            (3.0, 6))
+    assert (automol.symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO) ==
+            (3.0, 1))
     assert automol.symm.oxygenated_hydrocarbon_symm_num(PROPYL_GEO) == (6.0, 1)
     assert automol.symm.oxygenated_hydrocarbon_symm_num(ALLYL_GEO) == (1.0, 1)
     assert automol.symm.oxygenated_hydrocarbon_symm_num(TS_GEO) == (3.0, 1)

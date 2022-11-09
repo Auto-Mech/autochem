@@ -1202,25 +1202,16 @@ def without_fractional_bonds(gra):
     return gra
 
 
-def without_dummy_bonds(gra):
-    """ remove 0-order bonds from the graph
-    """
-    ord_dct = dict_.filter_by_value(bond_orders(gra), func=lambda x: x == 0)
-    gra = remove_bonds(gra, ord_dct.keys())
-    return gra
-
-
 def without_null_bonds(gra, except_dummies=True):
     """ remove 0-order bonds from the graph
     """
     dummy_atm_keys = atom_keys(gra, sym='X')
     ord_dct = dict_.filter_by_value(bond_orders(gra), func=lambda x: x == 0)
-    keys = ord_dct.keys()
-    remove_keys = []
-    for key in keys:
-        if not any([atm in dummy_atm_keys for atm in key]):
-            remove_keys.append(key)
-    gra = remove_bonds(gra, remove_keys)
+    null_bnd_keys = ord_dct.keys()
+    if except_dummies:
+        null_bnd_keys = [bk for bk in null_bnd_keys
+                         if not any(k in dummy_atm_keys for k in bk)]
+    gra = remove_bonds(gra, null_bnd_keys)
     return gra
 
 
@@ -1244,10 +1235,12 @@ def from_ts_graph(gra):
     ord_dct = bond_orders(gra)
     frm_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.1]
     brk_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.9]
-    gra = set_bond_orders(gra, {k: round(ord_dct[k] - 0.1, 1) for k in frm_bnd_keys})
+    gra = set_bond_orders(
+        gra, {k: round(ord_dct[k] - 0.1, 1) for k in frm_bnd_keys})
     gra = without_null_bonds(gra, except_dummies=True)
     # gra = remove_bonds(gra, frm_bnd_keys)
-    gra = set_bond_orders(gra, {k: round(ord_dct[k] + 0.1, 1) for k in brk_bnd_keys})
+    gra = set_bond_orders(
+        gra, {k: round(ord_dct[k] + 0.1, 1) for k in brk_bnd_keys})
     # gra = set_bond_orders(gra, {k: 1 for k in brk_bnd_keys})
     return gra
 

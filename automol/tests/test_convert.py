@@ -283,6 +283,35 @@ def test__graph__misc():
         assert pmt_gra == pmt_gra_
         print('------------------------------------')
 
+    # test graph => geom conversion with non-standard keys
+    gra = ({5: ('C', 0, None), 6: ('C', 0, None), 7: ('H', 0, None),
+            8: ('H', 0, None), 9: ('H', 0, None), 10: ('C', 0, None),
+            11: ('H', 0, None), 12: ('H', 0, None), 13: ('C', 0, None),
+            14: ('H', 0, None), 15: ('H', 0, None), 16: ('C', 0, None),
+            17: ('H', 0, None), 18: ('C', 0, None), 19: ('H', 0, None),
+            20: ('C', 0, None), 21: ('H', 0, None), 22: ('C', 0, None),
+            23: ('H', 0, None), 24: ('H', 0, None), 25: ('C', 0, None),
+            26: ('H', 0, None), 27: ('H', 0, None), 28: ('H', 0, None),
+            29: ('H', 0, None), 30: ('H', 0, None)},
+           {frozenset({10, 15}): (1, None), frozenset({25, 28}): (1, None),
+            frozenset({25, 22}): (1, None), frozenset({10, 13}): (1, None),
+            frozenset({11, 6}): (1, None), frozenset({9, 5}): (1, None),
+            frozenset({24, 20}): (1, None), frozenset({25, 30}): (1, None),
+            frozenset({5, 6}): (1, None), frozenset({16, 13}): (1, True),
+            frozenset({27, 22}): (1, None), frozenset({12, 6}): (1, None),
+            frozenset({8, 5}): (1, None), frozenset({25, 29}): (1, None),
+            frozenset({18, 20}): (1, None), frozenset({16, 18}): (1, False),
+            frozenset({17, 13}): (1, None), frozenset({26, 22}): (1, None),
+            frozenset({5, 7}): (1, None), frozenset({18, 21}): (1, None),
+            frozenset({10, 6}): (1, None), frozenset({10, 14}): (1, None),
+            frozenset({16, 19}): (1, None), frozenset({20, 22}): (1, None),
+            frozenset({20, 23}): (1, None)})
+    geo = automol.graph.geometry(gra)
+    gra_ = automol.geom.graph(geo)
+    iso = automol.graph.isomorphism(gra, gra_, stereo=True)
+    print(iso)
+    assert iso
+
 
 def test__inchi_geometry():
     """ test automol.chi.geometry
