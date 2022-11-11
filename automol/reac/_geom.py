@@ -21,14 +21,27 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
     assert rxn.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
 
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     gra = ts.reactants_graph(rxn.forward_ts_graph)
+    # mig_ring = ring_forming_scission_chain(rxn)
+    # print('ring formed during migraiton', mig_ring)
+    # ang_dct = None
+    # if len(mig_ring) == 2:
+    #     a123 = 70
+    # elif len(mig_ring) == 3:
+    #     a123 = 120
+    #     key1, key2, key3 = mig_ring
+    #     ang_dct = {(key1, key2, key3): a123}
+    #     brk_bnd_dist = 1.3
+    #     dist_dct[brk_bnd_key] = brk_bnd_dist
+    #     print('ang dict', ang_dct)
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, angstrom=True)
+        gra, dist_dct, ang_dct=ang_dct, angstrom=True, degree=True)
 
     geo_init, = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
@@ -43,6 +56,7 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
         gra, rct_geos, geo_init, dist_range_dct,
         relax_ang=relax_ang, relax_tors=relax_tors,
         max_dist_err=max_dist_err, log=log)
+    print(automol.geom.string(geo))
     return geo
 
 
