@@ -622,9 +622,9 @@ def substitutions(rct_gras, prd_gras):
                         frm_keys += (key,)
 
                 for frm_key in frm_keys:
-                    gra = add_bonds(gra, [(frm_key, rad_key)])
+                    gra_ = add_bonds(gra, [(frm_key, rad_key)])
 
-                    inv_dct = isomorphism(gra, prd_gra)
+                    inv_dct = isomorphism(gra_, prd_gra)
                     if inv_dct:
                         brk_key2, = bnd_key - {frm_key}
                         f_frm_bnd_key = (frm_key, rad_key)
