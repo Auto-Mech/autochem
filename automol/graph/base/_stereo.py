@@ -243,6 +243,7 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
         :type local_stereo: bool
         :returns: a molecular geometry with corrected stereo
     """
+    gra = from_ts_graph(gra)
     sgr = gra if local_stereo else to_local_stereo(gra)
     gra = without_stereo_parities(gra)
 
