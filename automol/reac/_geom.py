@@ -9,7 +9,6 @@ from automol.graph import atom_keys
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import hydrogen_abstraction_is_sigma
 
-
 # Unimolecular reactions
 def hydrogen_migration_ts_geometry(rxn, rct_geos,
                                    max_dist_err=2e-1, log=False):
@@ -23,7 +22,6 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
     brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
-
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
@@ -56,7 +54,6 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
         gra, rct_geos, geo_init, dist_range_dct,
         relax_ang=relax_ang, relax_tors=relax_tors,
         max_dist_err=max_dist_err, log=log)
-    print(automol.geom.string(geo))
     return geo
 
 
@@ -406,7 +403,7 @@ def substitution_ts_geometry(rxn, rct_geos,
     return geo
 
 
-def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False):
+def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False, stereo=True):
     """ reaction-class-specific embedding info
 
     :param rxn: a Reaction object
@@ -430,6 +427,16 @@ def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False):
 
     fun_ = function_dct[rxn.class_]
     geo = fun_(rxn, rct_geos, max_dist_err=max_dist_err, log=log)
+
+    # make sure geometry works with stereo of products
+    if stereo:
+        print(rxn)
+        print('geo befor enew stereo\n', automol.geom.string(geo))
+        print('idxs', rxn.key_map(stereo=False))
+        geo = automol.graph.stereo_corrected_geometry(
+            rxn.backward_ts_graph, geo,
+            geo_idx_dct=rxn.key_map(stereo=False, rev=True))
+        print('geo after new streo\n', automol.geom.string(geo)) 
     return geo
 
 

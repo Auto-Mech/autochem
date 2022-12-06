@@ -293,16 +293,33 @@ def to_connectivity_graph(rdm):
 
 
 # draw operations
-def draw(rdm):
+def draw(rdm, filename=None, highlight_radicals=False, image_size=300):
     """ Convert the RdKit molecule object to a PNG image.
     """
-    return Draw.MolToImage(
-        rdm, size=(300, 300),
-        kekulize=True,
-        wedgeBonds=True,
-        fitImage=False,
-        options=None,
-        canvas=None)
+    d = Draw.rdMolDraw2D.MolDraw2DCairo(image_size, image_size)
+    s = d.drawOptions()
+    s.maxFontSize = 20
+    s.minFontSize = 12
+    highlights = ()
+    highlight_radii = {}
+    highlight_colors = {}
+    if highlight_radicals:
+        atms = rdm.GetAtoms()
+        for i, atm in enumerate(atms):
+            if rdm.GetAtomWithIdx(i).GetNumRadicalElectrons() > 0:
+                highlights += (i,)
+                highlight_radii[i] = .8
+                highlight_colors[i] = (.67, .85, .9)
+    d.DrawMolecule(
+        rdm, highlightAtoms=highlights,
+        highlightAtomRadii=highlight_radii,
+        highlightAtomColors=highlight_colors)
+    s.includeRadicals = False
+    d.FinishDrawing()
+    p = d.GetDrawingText()
+    if filename:
+        d.WriteDrawingText(filename)
+    return p
 
 
 def draw_grid(rdms, img_per_row=3, sub_img_size=(200, 200), legends=None):

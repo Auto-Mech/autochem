@@ -8,9 +8,7 @@ def draw(ich, save_path=None):
     """ Draw an image
     """
     rdm = rdkit_.from_inchi(ich)
-    img = rdkit_.draw(rdm)
-    if save_path is not None:
-        img.save(save_path)
+    img = rdkit_.draw(rdm, save_path)
 
     return img
 

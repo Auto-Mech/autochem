@@ -104,18 +104,22 @@ def add_stereo_from_unordered_geometries(rxn, rct_geos, prd_geos,
     """
     rct_gras = list(map(automol.geom.graph, rct_geos))
     prd_gras = list(map(automol.geom.graph, prd_geos))
-
+    print('add streo')
+    for rgra in rct_gras + prd_gras:
+        print(automol.graph.string(rgra))
     found_srxn = None
     order = None
 
     for srxn in expand_stereo(rxn):
         comp_rct_gras = reactant_graphs(srxn)
         comp_prd_gras = product_graphs(srxn)
+        print(comp_rct_gras)
+        print(comp_prd_gras)
         rct_order, _ = automol.graph.sequence_isomorphism(
             rct_gras, comp_rct_gras)
         prd_order, _ = automol.graph.sequence_isomorphism(
             prd_gras, comp_prd_gras)
-
+        print('orders', rct_order, prd_order)
         if rct_order is not None and prd_order is not None:
             rct_gras = [rct_gras[i] for i in rct_order]
             prd_gras = [prd_gras[i] for i in prd_order]
@@ -124,8 +128,14 @@ def add_stereo_from_unordered_geometries(rxn, rct_geos, prd_geos,
 
             comp_rcts_gra = reactants_graph(srxn)
             comp_prds_gra = products_graph(srxn)
+            print('again')
+            print(comp_rcts_gra)
+            print(comp_prds_gra)
             rcts_gra = automol.graph.union_from_sequence(rct_gras)
             prds_gra = automol.graph.union_from_sequence(prd_gras)
+            print('again2')
+            print(rcts_gra)
+            print(prds_gra)
             rct_iso_dct = automol.graph.isomorphism(comp_rcts_gra, rcts_gra)
             prd_iso_dct = automol.graph.isomorphism(comp_prds_gra, prds_gra)
 
