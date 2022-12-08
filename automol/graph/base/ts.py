@@ -7,10 +7,8 @@ Otherwise, this is equivalent to any other graph
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
-import itertools
 from automol import util
 import automol.amchi.base    # !!!!
-from automol.graph.base._core import bond_orders
 from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import atom_stereo_keys
@@ -19,6 +17,9 @@ from automol.graph.base._core import add_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import from_ts_graph as _from_ts_graph
+from automol.graph.base._core import forming_bond_keys
+from automol.graph.base._core import breaking_bond_keys
+from automol.graph.base._core import reacting_atoms
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo
@@ -38,30 +39,6 @@ def graph(gra, frm_bnd_keys, brk_bnd_keys):
     tsg = add_bonds(gra, frm_bnd_keys, ord_dct=frm_ord_dct, check=False)
     tsg = add_bonds(tsg, brk_bnd_keys, ord_dct=brk_ord_dct, check=False)
     return tsg
-
-
-def forming_bond_keys(tsg):
-    """ get the forming bonds from a transition state graph
-    """
-    ord_dct = bond_orders(tsg)
-    frm_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.1]
-    return frozenset(map(frozenset, frm_bnd_keys))
-
-
-def breaking_bond_keys(tsg):
-    """ get the forming bonds from a transition state graph
-    """
-    ord_dct = bond_orders(tsg)
-    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.9]
-    return frozenset(map(frozenset, brk_bnd_keys))
-
-
-def reacting_atoms(tsg):
-    """ get all of the atoms involved in the reaction
-    """
-    bnd_keys = forming_bond_keys(tsg) | breaking_bond_keys(tsg)
-    atm_keys = frozenset(itertools.chain(*bnd_keys))
-    return atm_keys
 
 
 def reverse(tsg, dummies=True):

@@ -18,9 +18,10 @@ from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import frozen
 from automol.graph.base._core import implicit
-from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import atoms_neighbor_atom_keys
+from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import reacting_atoms
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import branch
 from automol.graph.base._algo import connected_components
@@ -243,6 +244,7 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
         :type local_stereo: bool
         :returns: a molecular geometry with corrected stereo
     """
+    rxn_atm_keys = reacting_atoms(gra)
     gra = from_ts_graph(gra)
     sgr = gra if local_stereo else to_local_stereo(gra)
     gra = without_stereo_parities(gra)
@@ -267,7 +269,8 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
             geo, gra = _local_atom_stereo_corrected_geometry(
                 gra, atm_par_dct, geo, geo_idx_dct)
             geo, gra = _local_bond_stereo_corrected_geometry(
-                gra, bnd_par_dct, geo, geo_idx_dct)
+                gra, bnd_par_dct, geo, geo_idx_dct,
+                rxn_atm_keys=rxn_atm_keys)
 
     return geo
 
@@ -360,7 +363,8 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
 
 
 def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
-                                          geo_idx_dct=None):
+                                          geo_idx_dct=None,
+                                          rxn_atm_keys=()):
     """ Correct a geometry to match local bond stereo assignments.
 
         :param gra: molecular graph
@@ -376,6 +380,7 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
     """
     atm_keys = atom_keys(gra)
     bnd_keys = list(bnd_par_dct.keys())
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
@@ -391,21 +396,46 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
         curr_par = par_(bnd_key)
 
         if curr_par != par:
-            xyzs = automol.geom.base.coordinates(geo)
+            atm1_key, atm2_key = sorted(
+                bnd_key, key=lambda x: x in rxn_atm_keys)
+            atm_ngb_keys = atm_ngb_keys_dct[atm2_key]
+            atm_piv_keys = list(atm_ngb_keys - {atm1_key})[:2]
 
-            atm1_key, atm2_key = bnd_key
-            atm1_xyz = xyzs[geo_idx_dct[atm1_key]]
-            atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
+            if len(atm_piv_keys) == 2:
+                atm3_key, atm4_key = atm_piv_keys
 
-            rot_axis = numpy.subtract(atm2_xyz, atm1_xyz)
+                # get coordinates
+                xyzs = automol.geom.base.coordinates(geo)
+                atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
+                atm3_xyz = xyzs[geo_idx_dct[atm3_key]]
+                atm4_xyz = xyzs[geo_idx_dct[atm4_key]]
 
-            rot_atm_keys = atom_keys(
-                branch(gra, atm1_key, {atm1_key, atm2_key}))
+                # do the rotation
+                rot_axis = util.vec.unit_bisector(
+                    atm3_xyz, atm4_xyz, orig_xyz=atm2_xyz)
 
-            rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
+                rot_atm_keys = (
+                    atom_keys(branch(gra, atm2_key, {atm2_key, atm3_key})) |
+                    atom_keys(branch(gra, atm2_key, {atm2_key, atm4_key})))
+                rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
-            geo = automol.geom.rotate(
-                geo, rot_axis, numpy.pi, orig_xyz=atm1_xyz, idxs=rot_idxs)
+                geo = automol.geom.rotate(
+                    geo, rot_axis, numpy.pi, orig_xyz=atm2_xyz, idxs=rot_idxs)
+            else:
+                # get coordinates
+                xyzs = automol.geom.base.coordinates(geo)
+                atm1_xyz = xyzs[geo_idx_dct[atm1_key]]
+                atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
+
+                # do the rotation
+                rot_axis = numpy.subtract(atm2_xyz, atm1_xyz)
+
+                rot_atm_keys = atom_keys(
+                    branch(gra, atm1_key, {atm1_key, atm2_key}))
+                rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
+
+                geo = automol.geom.rotate(
+                    geo, rot_axis, numpy.pi, orig_xyz=atm1_xyz, idxs=rot_idxs)
 
         gra = set_bond_stereo_parities(gra, {bnd_key: par})
 
