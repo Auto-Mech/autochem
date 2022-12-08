@@ -68,9 +68,12 @@ def rotational_bond_keys(
         end_key2 = atom_neighbor_atom_key(
             gra, keys[-1], excl_atm_keys=excl_keys)
 
-        end_keys = {end_key1, end_key2}
-        ngb_keys_lst = [ngb_keys_dct[k] - excl_keys for k in end_keys]
-        has_neighbors = all(ngb_keys_lst)
+        if end_key1 is None or end_key2 is None:
+            has_neighbors = False
+        else:
+            end_keys = {end_key1, end_key2}
+            ngb_keys_lst = [ngb_keys_dct[k] - excl_keys for k in end_keys]
+            has_neighbors = all(ngb_keys_lst)
 
         if not has_neighbors:
             rot_bnd_keys -= set(bnd_keys)

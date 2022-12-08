@@ -119,6 +119,7 @@ def _connected_geometry(gra, check=True):
             # First, check connectivity.
             gra_ = automol.geom.graph(geo)
             geo = automol.graph.linear_vinyl_corrected_geometry(gra_, geo)
+            geo = automol.graph.embed.clean_geometry(gra_, geo, stereo=False)
 
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
 
@@ -152,6 +153,7 @@ def _connected_geometry(gra, check=True):
             # If the stereo doesn't match, try a stereo correction.
             geo = automol.graph.stereo_corrected_geometry(
                 gra, geo, local_stereo=False)
+            geo = automol.graph.embed.clean_geometry(gra_, geo, stereo=True)
 
             # Now, re-try the isomorphism
             gra_ = automol.geom.graph(geo)

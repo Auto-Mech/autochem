@@ -386,7 +386,7 @@ def _geometry_from_info(gra, rct_geos, geo_init, dist_range_dct,
                         max_dist_err=2e-1, log=False):
     keys = sorted(atom_keys(gra))
     xmat = automol.geom.coordinates(geo_init, angstrom=True)
-    lmat, umat = automol.graph.embed.join_distance_bounds_matrices(
+    lmat, umat = automol.graph.embed.distance_bounds_matrices(
         gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
         relax_torsions=relax_tors)
 
