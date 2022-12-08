@@ -319,9 +319,15 @@ def test__prod_zmas():
     instab_zmas3 = automol.reac.instability_product_zmas(ZMA3)
 
     for zma, ref_zma in zip(instab_zmas1, PROD_ZMAS1):
-        assert automol.zmat.almost_equal(zma, ref_zma)
+        assert (automol.zmat.vmatrix(zma) ==
+                automol.zmat.vmatrix(ref_zma))
+        assert (automol.zmat.graph(zma) ==
+                automol.zmat.graph(ref_zma))
     for zma, ref_zma in zip(instab_zmas2, PROD_ZMAS2):
-        assert automol.zmat.almost_equal(zma, ref_zma)
+        assert (automol.zmat.vmatrix(zma) ==
+                automol.zmat.vmatrix(ref_zma))
+        assert (automol.zmat.graph(zma) ==
+                automol.zmat.graph(ref_zma))
     assert not instab_zmas3
 
 

@@ -57,6 +57,7 @@ from automol.graph.base import atom_van_der_waals_radius
 from automol.graph.base import rigid_planar_bond_keys
 from automol.graph.base import rings_atom_keys
 from automol.graph.base import to_local_stereo
+from automol.graph.base import rotational_bond_keys
 from automol.graph.base import local_atom_stereo_parity_from_geometry
 from automol.graph.base import local_bond_stereo_parity_from_geometry
 
@@ -72,6 +73,36 @@ LIN_ANG = 180.      # degrees
 
 
 # # geometry embedding functions
+def clean_geometry(gra, geo, max_dist_err=2e-1, stereo=True, log=False):
+    """ Clean up a geometry based on this graph, removing any bonds that
+    aren't supposed to be there
+    """
+    gra = to_local_stereo(gra)
+
+    keys = sorted(atom_keys(gra))
+    xmat = automol.geom.coordinates(geo, angstrom=True)
+    lmat, umat = distance_bounds_matrices(
+        gra, keys, geos=[geo], relax_torsions=True)
+
+    pla_dct = planarity_constraint_bounds(gra, keys)
+    if stereo:
+        chi_dct = chirality_constraint_bounds(gra, keys)
+    else:
+        chi_dct = {}
+
+    xmat, conv = automol.embed.cleaned_up_coordinates(
+        xmat, lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct,
+        max_dist_err=max_dist_err, log=log)
+
+    if log:
+        print("Converged!" if conv else "Did not converge.")
+
+    syms = automol.geom.symbols(geo)
+    xyzs = xmat[:, :3]
+    geo = automol.geom.from_data(syms, xyzs, angstrom=True)
+    return geo
+
+
 def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
     """ sample a qualitatively-correct stereo geometry
 
@@ -268,7 +299,88 @@ def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
 
 
 # # bounds matrices
-def distance_bounds_matrices(gra, keys, sp_dct=None):
+def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
+                             relax_angles=False, relax_torsions=False,
+                             sp_dct=None, angstrom=True):
+    """ generates initial distance bounds matrices for various different
+    scenarios, allowing the geometry to be manipulated in different ways
+
+    :param gra: molecular graph:
+    :param keys: atom keys specifying the order of indices in the matrix
+    :param dist_range_dct: distance ranges for specific atoms in the graph
+    :param geos: (optional) geometries which will be used to fix the bond
+        angles, bond distances, and chiralities of all connected atoms in the
+        graph; if `relax_torsions` is False, the 4-atom dihedral angles will be
+        allowed to vary as well
+    :param relax_torsions: whether or not to allow torsions to change from
+        their value in the reactant geometries
+    :param sp_dct: a 2d dictionary giving the shortest path between any pair of
+        atoms in the graph
+    """
+    sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
+
+    natms = len(keys)
+
+    lmat, umat = _distance_bounds_matrices(gra, keys, sp_dct=sp_dct)
+
+    # save the current values so that we can overwrite the fixed torsions below
+    lmat_old = numpy.copy(lmat)
+    umat_old = numpy.copy(umat)
+
+    # 1. set known geometric parameters
+    if geos:
+        xmats = [automol.geom.base.coordinates(geo, angstrom=angstrom)
+                 for geo in geos]
+        dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
+
+        start = 0
+        for dmat in dmats:
+            dim, _ = numpy.shape(dmat)
+            end = start + dim
+
+            lmat[start:end, start:end] = dmat
+            umat[start:end, start:end] = dmat
+
+            start = end
+
+    # 2. reopen bounds on the torsions from the reactant
+    if relax_torsions:
+        rot_bnd_keys = rotational_bond_keys(gra)
+
+        tors_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
+                    if j in sp_dct[i] and len(sp_dct[i][j]) >= 4
+                    and frozenset(sp_dct[i][j][1:3]) in rot_bnd_keys]
+
+        tors_ijs += list(map(list, map(reversed, tors_ijs)))
+
+        tors_idxs = tuple(map(list, zip(*tors_ijs)))
+
+        lmat[tors_idxs] = lmat_old[tors_idxs]
+        umat[tors_idxs] = umat_old[tors_idxs]
+
+    # 3. reopen bounds on the angles from the reactant
+    if relax_angles:
+        ang_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
+                   if j in sp_dct[i] and len(sp_dct[i][j]) >= 3]
+        ang_ijs += list(map(list, map(reversed, ang_ijs)))
+
+        ang_idxs = tuple(map(list, zip(*ang_ijs)))
+
+        lmat[ang_idxs] = lmat_old[ang_idxs]
+        umat[ang_idxs] = umat_old[ang_idxs]
+
+    # 4. set distance bounds for the forming bonds
+    if dist_range_dct:
+        for bnd, (ldist, udist) in dist_range_dct.items():
+            idx1 = tuple(bnd)
+            idx2 = tuple(reversed(idx1))
+            lmat[idx1] = lmat[idx2] = ldist
+            umat[idx1] = umat[idx2] = udist
+
+    return lmat, umat
+
+
+def _distance_bounds_matrices(gra, keys, sp_dct=None):
     """ initial distance bounds matrices
 
     :param gra: molecular graph
@@ -306,158 +418,25 @@ def distance_bounds_matrices(gra, keys, sp_dct=None):
     return lmat, umat
 
 
-def join_distance_bounds_matrices(gra, keys, dist_range_dct, geos=None,
-                                  relax_angles=False, relax_torsions=False,
-                                  sp_dct=None, angstrom=True):
-    """ distance bounds matrices for joining multiple geometries
-
-    :param gra: molecular graph:
-    :param keys: atom keys specifying the order of indices in the matrix
-    :param dist_range_dct: distance ranges for specific atoms in the graph
-    :param geos: (optional) geometries which will be used to fix the bond
-        angles, bond distances, and chiralities of all connected atoms in the
-        graph; if `relax_torsions` is False, the 4-atom dihedral angles will be
-        allowed to vary as well
-    :param relax_torsions: whether or not to allow torsions to change from
-        their value in the reactant geometries
-    :param sp_dct: a 2d dictionary giving the shortest path between any pair of
-        atoms in the graph
-    """
-    sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
-
-    natms = len(keys)
-
-    lmat, umat = distance_bounds_matrices(gra, keys)
-
-    # save the current values so that we can overwrite the fixed torsions below
-    lmat_old = numpy.copy(lmat)
-    umat_old = numpy.copy(umat)
-
-    # 1. set known geometric parameters
-    if geos:
-        xmats = [automol.geom.base.coordinates(geo, angstrom=angstrom)
-                 for geo in geos]
-        dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
-
-        start = 0
-        for dmat in dmats:
-            dim, _ = numpy.shape(dmat)
-            end = start + dim
-
-            lmat[start:end, start:end] = dmat
-            umat[start:end, start:end] = dmat
-
-            start = end
-
-    # 2. reopen bounds on the torsions from the reactant
-    if relax_torsions:
-        tors_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
-                    if j in sp_dct[i] and len(sp_dct[i][j]) >= 4]
-        tors_ijs += list(map(list, map(reversed, tors_ijs)))
-
-        tors_idxs = tuple(map(list, zip(*tors_ijs)))
-
-        lmat[tors_idxs] = lmat_old[tors_idxs]
-        umat[tors_idxs] = umat_old[tors_idxs]
-
-    # 3. reopen bounds on the angles from the reactant
-    if relax_angles:
-        ang_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
-                   if j in sp_dct[i] and len(sp_dct[i][j]) >= 3]
-        ang_ijs += list(map(list, map(reversed, ang_ijs)))
-
-        ang_idxs = tuple(map(list, zip(*ang_ijs)))
-
-        lmat[ang_idxs] = lmat_old[ang_idxs]
-        umat[ang_idxs] = umat_old[ang_idxs]
-
-    # 4. set distance bounds for the forming bonds
-    for bnd, (ldist, udist) in dist_range_dct.items():
-        idx1 = tuple(bnd)
-        idx2 = tuple(reversed(idx1))
-        lmat[idx1] = lmat[idx2] = ldist
-        umat[idx1] = umat[idx2] = udist
-
-    return lmat, umat
-
-
-def ts_distance_bounds_matrices(gra, keys, frm_bnds_dct, rct_geos=None,
-                                relax_torsions=False, sp_dct=None):
-    """ distance bounds matrices for a transition state
-
-    :param gra: molecular graph
-    :param keys: atom keys specifying the order of indices in the matrix
-    :param frm_bnds_dct: bounds for bonds formed in the reaction; the keys are
-        bond keys and the values are lower and upper distance bounds for those
-        forming bonds
-    :param rct_geos: reactant geometries; must follow the same order as the
-        atoms in `keys
-    :param relax_torsions: whether or not to allow torsions to change from
-        their value in the reactant geometries
-    :param sp_dct: a 2d dictionary giving the shortest path between any pair of
-        atoms in the graph
-    """
-    sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
-
-    natms = len(keys)
-
-    lmat, umat = distance_bounds_matrices(gra, keys)
-
-    # save the current values so that we can overwrite the fixed torsions below
-    lmat_old = numpy.copy(lmat)
-    umat_old = numpy.copy(umat)
-
-    # 2. set known geometric parameters
-    if rct_geos:
-        xmats = [automol.geom.base.coordinates(geo, angstrom=True)
-                 for geo in rct_geos]
-        dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
-
-        start = 0
-        for dmat in dmats:
-            dim, _ = numpy.shape(dmat)
-            end = start + dim
-
-            lmat[start:end, start:end] = dmat
-            umat[start:end, start:end] = dmat
-
-            start = end
-
-    # 3. reopen bounds on the torsions from the reactant
-    if relax_torsions:
-        tors_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
-                    if j in sp_dct[i] and len(sp_dct[i][j]) >= 4]
-        tors_ijs += list(map(list, map(reversed, tors_ijs)))
-
-        tors_idxs = tuple(map(list, zip(*tors_ijs)))
-
-        lmat[tors_idxs] = lmat_old[tors_idxs]
-        umat[tors_idxs] = umat_old[tors_idxs]
-
-    # 1. set distance bounds for the forming bonds
-    for bnd, (ldist, udist) in frm_bnds_dct.items():
-        idx1 = tuple(bnd)
-        idx2 = tuple(reversed(idx1))
-        lmat[idx1] = lmat[idx2] = ldist
-        umat[idx1] = umat[idx2] = udist
-
-    return lmat, umat
-
-
 # # constraint dictionaries
 def chirality_constraint_bounds(gra, keys):
     """ bounds for enforcing chirality restrictions
     """
     ste_keys = set(atom_stereo_keys(gra)) & set(keys)
     par_dct = atom_stereo_parities(gra)
+    sym_dct = atom_symbols(gra)
     ngb_key_dct = atoms_neighbor_atom_keys(gra)
 
     def _chirality_constraint(key):
         ngb_keys = sorted(ngb_key_dct[key])
+        ngb_syms = list(map(sym_dct.__getitem__, ngb_keys))
         if len(ngb_keys) == 3:
-            ngb_keys.append(key)
+            ngb_keys.insert(0, key)
         idxs = tuple(map(keys.index, ngb_keys))
-        vol_range = (-999., -7.) if par_dct[key] else (+7., +999.)
+        if 'H' in ngb_syms:
+            vol_range = (-999., -7.) if par_dct[key] else (+7., +999.)
+        else:
+            vol_range = (-999., -7.) if not par_dct[key] else (+7., +999.)
         return idxs, vol_range
 
     chi_dct = dict(map(_chirality_constraint, ste_keys))

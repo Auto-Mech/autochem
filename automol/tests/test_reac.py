@@ -1284,7 +1284,6 @@ if __name__ == '__main__':
     warnings.filterwarnings("error")
 
     # test__reac__hydrogen_abstraction()
-    # test__reac__sigma_hydrogen_abstraction()
     # test__reac__addition()
     # test__reac__isc_addition()
     # test__reac__radrad_hydrogen_abstraction()
@@ -1297,5 +1296,6 @@ if __name__ == '__main__':
     # test__expand_product_stereo()
     # test__add_stereo_from_unordered_geometries()
     # test__stereo()
-    test__stereo()
+    # test__stereo()
     # test__expand_stereo()
+    test__reac__sigma_hydrogen_abstraction()
