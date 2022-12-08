@@ -261,6 +261,31 @@ def stereo_parities(gra):
     return par_dct
 
 
+# # TS graph getters
+def forming_bond_keys(tsg):
+    """ get the forming bonds from a transition state graph
+    """
+    ord_dct = bond_orders(tsg)
+    frm_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.1]
+    return frozenset(map(frozenset, frm_bnd_keys))
+
+
+def breaking_bond_keys(tsg):
+    """ get the forming bonds from a transition state graph
+    """
+    ord_dct = bond_orders(tsg)
+    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.9]
+    return frozenset(map(frozenset, brk_bnd_keys))
+
+
+def reacting_atoms(tsg):
+    """ get all of the atoms involved in the reaction
+    """
+    bnd_keys = forming_bond_keys(tsg) | breaking_bond_keys(tsg)
+    atm_keys = frozenset(itertools.chain(*bnd_keys))
+    return atm_keys
+
+
 # # setters
 def set_atom_symbols(gra, atm_symb_dct):
     """ set atom parities
