@@ -431,8 +431,8 @@ def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False, stereo=True):
     # make sure geometry works with stereo of products
     if stereo:
         print(rxn)
-        print('geo befor enew stereo\n', automol.geom.string(geo))
-        print('idxs', rxn.key_map(stereo=False))
+        print('geo before new stereo\n', automol.geom.string(geo))
+        print('idxs', rxn.key_map(rev=True, stereo=False))
         geo = automol.graph.stereo_corrected_geometry(
             rxn.backward_ts_graph, geo,
             geo_idx_dct=rxn.key_map(stereo=False, rev=True))
