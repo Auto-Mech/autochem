@@ -25,6 +25,7 @@ from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import local_priority_dict
+from automol.graph.base._kekule import vinyl_radical_atom_keys
 from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 
 
@@ -181,10 +182,18 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
     rste_keys = stereo_keys(rtsg_loc)
     cons_keys = list(fste_keys & rste_keys)
 
-    fnkeys_dct = atoms_neighbor_atom_keys(
-        reactants_graph(negate_hydrogen_keys(ftsg_loc)))
-    rnkeys_dct = atoms_neighbor_atom_keys(
-        reactants_graph(negate_hydrogen_keys(rtsg_loc)))
+    rcts_gra = negate_hydrogen_keys(reactants_graph(ftsg_loc))
+    prds_gra = negate_hydrogen_keys(reactants_graph(rtsg_loc))
+
+    fnkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
+    rnkeys_dct = atoms_neighbor_atom_keys(prds_gra)
+    fvin_keys = vinyl_radical_atom_keys(rcts_gra)
+    rvin_keys = vinyl_radical_atom_keys(prds_gra)
+
+    floc_par_dct = stereo_parities(ftsg_loc)
+    rloc_par_dct = stereo_parities(rtsg_loc)
+
+    is_consistent = True
 
     for cons_key in cons_keys:
         # Conserved atom keys should not be involved in the reaction
@@ -192,29 +201,33 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
             assert cons_key not in reac_keys, (
                 f"Assumption fails! Conserved atom stereo site {cons_key} "
                 f"is a reacting atom: {reac_keys}.")
+
+            is_consistent &= (floc_par_dct[cons_key] ==
+                              rloc_par_dct[cons_key])
         # Conserved bond keys may be involved in the reaction, but we must make
         # sure their local parities don't change
         else:
-            key1, key2 = cons_key
-            fnkey1s = fnkeys_dct[key1] - {key2}
-            fnkey2s = fnkeys_dct[key2] - {key1}
-            rnkey1s = rnkeys_dct[key1] - {key2}
-            rnkey2s = rnkeys_dct[key2] - {key1}
+            key1, key2 = sorted(cons_key, reverse=True,
+                                key=lambda k: fnkeys_dct[k] == rnkeys_dct[k])
+            fnkey1s = sorted(fnkeys_dct[key1] - {key2})
+            fnkey2s = sorted(fnkeys_dct[key2] - {key1})
+            rnkey1s = sorted(rnkeys_dct[key1] - {key2})
+            rnkey2s = sorted(rnkeys_dct[key2] - {key1})
 
-            assert (max(fnkey1s) == max(rnkey1s) and
-                    max(fnkey2s) == max(rnkey2s)), (
-                f"Assumption fails! Conserved bond stereo site {cons_key} "
-                f"will have its local parity altered."
-                f"\nForward neighbors: {fnkey1s} / {fnkey2s}"
-                f"\nReverse neighbors: {rnkey1s} / {rnkey2s}")
+            if (max(fnkey1s) == max(rnkey1s) and
+                    max(fnkey2s) == max(rnkey2s)):
+                is_consistent &= (floc_par_dct[cons_key] ==
+                                  rloc_par_dct[cons_key])
+            else:
+                assert ((cons_key & fvin_keys or cons_key & rvin_keys) and
+                        (fnkey1s == rnkey1s and fnkey2s[0] == rnkey2s[0])), (
+                    f"Assumption fails! Conserved non-vinyl bond stereo site "
+                    f"{cons_key} will have its local parity altered."
+                    f"\nForward neighbors: {fnkey1s} / {fnkey2s}"
+                    f"\nReverse neighbors: {rnkey1s} / {rnkey2s}")
 
-    floc_par_dct = stereo_parities(ftsg_loc)
-    rloc_par_dct = stereo_parities(rtsg_loc)
-
-    floc_cons_pars = list(map(floc_par_dct.__getitem__, cons_keys))
-    rloc_cons_pars = list(map(rloc_par_dct.__getitem__, cons_keys))
-
-    is_consistent = floc_cons_pars == rloc_cons_pars
+                is_consistent &= (floc_par_dct[cons_key] !=
+                                  rloc_par_dct[cons_key])
 
     # 2. Check for insertion/elimination stereo constraint
     if const:
