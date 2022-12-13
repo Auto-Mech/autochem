@@ -120,6 +120,7 @@ def _connected_geometry(gra, check=True):
             gra_ = automol.geom.graph(geo)
             geo = automol.graph.linear_vinyl_corrected_geometry(gra_, geo)
             geo = automol.graph.embed.clean_geometry(gra_, geo, stereo=False)
+            gra_ = automol.geom.graph(geo)
 
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=False)
 
