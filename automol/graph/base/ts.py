@@ -20,6 +20,7 @@ from automol.graph.base._core import from_ts_graph as _from_ts_graph
 from automol.graph.base._core import forming_bond_keys
 from automol.graph.base._core import breaking_bond_keys
 from automol.graph.base._core import reacting_atoms
+from automol.graph.base._core import negate_hydrogen_keys
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo
@@ -176,14 +177,36 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
     """
     # 1. Check conserved stereo sites
     reac_keys = reacting_atoms(ftsg_loc)
-
     fste_keys = stereo_keys(ftsg_loc)
     rste_keys = stereo_keys(rtsg_loc)
     cons_keys = list(fste_keys & rste_keys)
-    assert not reac_keys & set(util.flatten(cons_keys)), (
-        f"Assumption fails! Conserved stereo sites include reacting atoms:"
-        f"\nConserved stereo sites: {cons_keys}"
-        f"\nReacting atoms: {reac_keys}")
+
+    fnkeys_dct = atoms_neighbor_atom_keys(
+        reactants_graph(negate_hydrogen_keys(ftsg_loc)))
+    rnkeys_dct = atoms_neighbor_atom_keys(
+        reactants_graph(negate_hydrogen_keys(rtsg_loc)))
+
+    for cons_key in cons_keys:
+        # Conserved atom keys should not be involved in the reaction
+        if not isinstance(cons_key, frozenset):
+            assert cons_key not in reac_keys, (
+                f"Assumption fails! Conserved atom stereo site {cons_key} "
+                f"is a reacting atom: {reac_keys}.")
+        # Conserved bond keys may be involved in the reaction, but we must make
+        # sure their local parities don't change
+        else:
+            key1, key2 = cons_key
+            fnkey1s = fnkeys_dct[key1] - {key2}
+            fnkey2s = fnkeys_dct[key2] - {key1}
+            rnkey1s = rnkeys_dct[key1] - {key2}
+            rnkey2s = rnkeys_dct[key2] - {key1}
+
+            assert (max(fnkey1s) == max(rnkey1s) and
+                    max(fnkey2s) == max(rnkey2s)), (
+                f"Assumption fails! Conserved bond stereo site {cons_key} "
+                f"will have its local parity altered."
+                f"\nForward neighbors: {fnkey1s} / {fnkey2s}"
+                f"\nReverse neighbors: {rnkey1s} / {rnkey2s}")
 
     floc_par_dct = stereo_parities(ftsg_loc)
     rloc_par_dct = stereo_parities(rtsg_loc)

@@ -278,10 +278,17 @@ def breaking_bond_keys(tsg):
     return frozenset(map(frozenset, brk_bnd_keys))
 
 
+def reacting_bonds(tsg):
+    """ get all of the bonds involved in the reaction
+    """
+    bnd_keys = forming_bond_keys(tsg) | breaking_bond_keys(tsg)
+    return bnd_keys
+
+
 def reacting_atoms(tsg):
     """ get all of the atoms involved in the reaction
     """
-    bnd_keys = forming_bond_keys(tsg) | breaking_bond_keys(tsg)
+    bnd_keys = reacting_bonds(tsg)
     atm_keys = frozenset(itertools.chain(*bnd_keys))
     return atm_keys
 
@@ -924,6 +931,15 @@ def _shift_remove_dummy_atom(gra, dummy_key):
     gra = remove_atoms(gra, [dummy_key])
     gra = relabel(gra, key_dct)
     return gra
+
+
+def negate_hydrogen_keys(gra):
+    """ Flip the signs of hydrogen keys
+    """
+    gra = from_ts_graph(gra)
+    exp_hyd_keys = explicit_hydrogen_keys(gra)
+    atm_key_dct = {k: -k for k in exp_hyd_keys}
+    return relabel(gra, atm_key_dct)
 
 
 # # add/remove/insert/without
