@@ -753,7 +753,7 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
         Bond parity is defined as follows:
 
         For each atom in the double bond, find the heavy-atom neighbor with the
-        higher canonical number. Althrough hydrogen atoms have higher canonical
+        higher canonical number. Although hydrogen atoms have higher canonical
         numbers, they are always given lowest priority.
 
         If the neighbors are cis to each other, the parity is False ('-').

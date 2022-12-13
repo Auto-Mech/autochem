@@ -94,6 +94,7 @@ from automol.graph.base._core import standard_keys
 from automol.graph.base._core import standard_keys_for_sequence
 from automol.graph.base._core import relabel_for_zmatrix
 from automol.graph.base._core import relabel_for_geometry
+from automol.graph.base._core import negate_hydrogen_keys
 # # add/remove/insert/without
 from automol.graph.base._core import add_atoms
 from automol.graph.base._core import add_bonds
@@ -364,6 +365,7 @@ __all__ = [
     'standard_keys_for_sequence',
     'relabel_for_zmatrix',
     'relabel_for_geometry',
+    'negate_hydrogen_keys',
     # # add/remove/insert/without
     'add_atoms',
     'add_bonds',
