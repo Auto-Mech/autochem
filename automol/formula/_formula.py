@@ -111,16 +111,19 @@ def join_sequence(fmls):
 
 
 # Str<->Dict Converters
-def string(fml):
+def string(fml, hyd=True):
     """ Convert formula dictionary to formula string in the Hill convention.
         Resultant string is identical to InChI formula string.
 
         :param fml: stochiometric chemical formula
         :type fml: dict[str:int]
+        :param hyd: include hydrogens?
+        :type hyd: bool
         :rtype: str
     """
 
-    fml_lst = [(symb, fml[symb]) for symb in sorted_symbols(fml.keys())]
+    fml_lst = [(symb, fml[symb]) for symb in sorted_symbols(fml.keys())
+               if symb != 'H' or hyd]
 
     fml_str = ''.join(map(
         str,
