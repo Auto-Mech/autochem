@@ -312,6 +312,13 @@ def test__graph__misc():
     print(iso)
     assert iso
 
+    # EXTRA TEST CASE 3
+    smi = 'c1ccc2c(c1)Cc1c2cccc1'
+    ich = automol.smiles.inchi(smi)
+    gra = automol.smiles.graph(smi)
+    chi = automol.graph.chi(gra)
+    assert ich == chi
+
 
 def test__inchi_geometry():
     """ test automol.chi.geometry

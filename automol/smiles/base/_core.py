@@ -4,6 +4,7 @@ The parsing functions apply equally well to SMILES or RSMILES strings, so the
 documentation simply refers to SMILES strings.
 """
 
+import string
 import pyparsing as pp
 import numpy
 from phydat import ptab
@@ -191,12 +192,10 @@ def parse_connected_molecule_properties(smi):
                 # If this is a new ring, save the key and the bond order
                 if rng_tag not in rng_clos_dct:
                     rng_clos_dct[rng_tag] = (key, bnd_ord, direc)
-                # If the ring has been seen before, we are closing it now --
-                # save the bond key and bond order. Default to the first
-                # explicitly specified bond order.
-                else:
+                # If the ring has been seen before and hasn't been closed,
+                # close it now.
+                elif isinstance(rng_clos_dct[rng_tag][0], int):
                     clos_key, prev_direc, prev_bnd_ord = rng_clos_dct[rng_tag]
-                    assert isinstance(clos_key, int), f"{clos_key} not an int"
                     bnd_key = frozenset({key, clos_key})
                     # In case only one bond order is specified, iterate over
                     # both and choose whichever one isn't None
@@ -219,6 +218,14 @@ def parse_connected_molecule_properties(smi):
                     # Update the direction dictionary
                     if direc is not None:
                         direc_dct[(key, clos_key)] = direc
+                # If the ring has been seen before and has been closed, this is
+                # a new ring. Edit the ring tag give a unique ID.
+                else:
+                    for char in string.ascii_uppercase:
+                        new_tag = f'{rng_tag}{char}'
+                        if new_tag not in rng_clos_dct:
+                            break
+                    rng_clos_dct[rng_tag] = (key, bnd_ord, direc)
 
                 # Save the tags in order for stereo purposes
                 rng_tags.append(rng_tag)
