@@ -29,6 +29,7 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import terminal_atom_keys
 from automol.graph.base._core import string
 from automol.graph.base._core import implicit
+from automol.graph.base._core import explicit
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import add_bonded_atom
@@ -108,6 +109,9 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
 
     # Convert to implicit graph
     gra = implicit(gra)
+
+    # Don't allow implicit hydrogens connected to backbone hydrogens
+    gra = explicit(gra, atm_keys=atom_keys(gra, sym='H'))
 
     # Insert hydrogens necessary for bond stereo
     gra = _insert_stereo_hydrogens(gra)
