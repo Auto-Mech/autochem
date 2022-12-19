@@ -34,13 +34,30 @@ from automol.amchi.base._core import with_inchi_prefix
 from automol.amchi.base import formula
 from automol.amchi.base import connectivity
 from automol.amchi.base import without_stereo
-# # # properties
+# # properties
+# # # formula layer
+from automol.amchi.base._core import symbols
+from automol.amchi.base._core import canonical_indices
+# # # main layers
+from automol.amchi.base._core import bonds
+from automol.amchi.base._core import hydrogen_valences
+# # # charge layers
+from automol.amchi.base._core import charge
+# # # stereo layers
+from automol.amchi.base._core import bond_stereo_parities
+from automol.amchi.base._core import atom_stereo_parities
+from automol.amchi.base._core import is_inverted_enantiomer
+# # # isotope layers
+from automol.amchi.base._core import bond_isotope_stereo_parities
+from automol.amchi.base._core import atom_isotope_stereo_parities
+from automol.amchi.base._core import is_inverted_isotope_enantiomer
+# # # other properties
 from automol.chi.base._core import is_standard_form
 from automol.amchi.base import has_multiple_components
-from automol.amchi.base import is_chiral
 from automol.amchi.base import has_stereo
 from automol.amchi.base import has_mobile_hydrogens
 from automol.amchi.base import low_spin_multiplicity
+from automol.amchi.base import is_chiral
 # # comparisons
 from automol.amchi.base import same_connectivity
 from automol.amchi.base import equivalent
@@ -115,7 +132,24 @@ __all__ = [
     'formula',
     'connectivity',
     'without_stereo',
-    # # # properties
+    # # properties
+    # # # formula layer
+    'symbols',
+    'canonical_indices',
+    # # # main layers
+    'bonds',
+    'hydrogen_valences',
+    # # # charge layers
+    'charge',
+    # # # stereo layers
+    'bond_stereo_parities',
+    'atom_stereo_parities',
+    'is_inverted_enantiomer',
+    # # # isotope layers
+    'bond_isotope_stereo_parities',
+    'atom_isotope_stereo_parities',
+    'is_inverted_isotope_enantiomer',
+    # # # other properties
     'is_standard_form',
     'has_multiple_components',
     'is_chiral',
