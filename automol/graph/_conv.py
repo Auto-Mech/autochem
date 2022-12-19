@@ -1,6 +1,7 @@
 """ graph conversions
 """
 import functools
+import IPython
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
@@ -381,6 +382,15 @@ def rdkit_molecule(gra):
     :returns: the RDKit molecule
     """
     return rdkit_.from_inchi(inchi(gra))
+
+
+def display(gra):
+    """ Display graph to IPython using the RDKit visualizer
+
+    :param gra: the graph
+    :returns: None
+    """
+    IPython.display.display(rdkit_molecule(gra))
 
 
 # # helpers

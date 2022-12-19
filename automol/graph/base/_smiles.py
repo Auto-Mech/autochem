@@ -45,9 +45,11 @@ from automol.graph.base._canon import canonical
 ORGANIC_SUBSET = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']
 
 BOND_ORDER_2_BOND_STR = {1: '', 2: '=', 3: '#'}
+BOND_ORDER_2_BOND_STR_EXP = {1: '-', 2: '=', 3: '#'}
 
 
-def smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
+def smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
+           exp_singles=False):
     """ SMILES string from graph
 
         :param gra: molecular graph
@@ -59,17 +61,21 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
         :type local_stereo: bool
         :param res_stereo: allow resonant double-bond stereo?
         :type res_stereo: bool
+        :param exp_singles: Use explicit '-' for single bonds?
+        :type exp_singles: bool
         :returns: the SMILES string
         :rtype: str
     """
     gras = connected_components(gra)
     smis = [_connected_smiles(g, stereo=stereo, local_stereo=local_stereo,
-                              res_stereo=res_stereo) for g in gras]
+                              res_stereo=res_stereo, exp_singles=exp_singles)
+            for g in gras]
     smi = '.'.join(smis)
     return smi
 
 
-def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
+def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
+                      exp_singles=False):
     """ SMILES string from graph
 
         :param gra: molecular graph
@@ -81,6 +87,8 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
         :type local_stereo: bool
         :param res_stereo: allow resonant double-bond stereo?
         :type res_stereo: bool
+        :param exp_singles: Use explicit '-' for single bonds?
+        :type exp_singles: bool
         :returns: the SMILES string
         :rtype: str
     """
@@ -136,7 +144,8 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True):
     rng_tag_dct = {}
 
     arep_ = atom_representation_generator_(kgr)
-    brep_ = bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct)
+    brep_ = bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct,
+                                           exp_singles=exp_singles)
     rrep_ = ring_representation_generator_(kgr, direc_dct, rng_pool,
                                            rng_tag_dct)
 
@@ -286,7 +295,8 @@ def atom_representation_generator_(kgr):
     return _generator
 
 
-def bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct):
+def bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct,
+                                   exp_singles=False):
     r""" A SMILES bond representation generator.
 
         SMILES bond representations for single, double, and triple bonds are
@@ -340,7 +350,8 @@ def bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct):
             # If there is a bond to the previous atom, determin the order and
             # set the representation accordingly.
             bnd_ord = bnd_ord_dct[frozenset({key0, key1})]
-            rep = BOND_ORDER_2_BOND_STR[bnd_ord]
+            rep = (BOND_ORDER_2_BOND_STR[bnd_ord] if not exp_singles else
+                   BOND_ORDER_2_BOND_STR_EXP[bnd_ord])
 
         # Determine if a direction has been assigned to this bond.
         direc = direc_dct[(key0, key1)] if (key0, key1) in direc_dct else ''

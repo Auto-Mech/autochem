@@ -64,7 +64,7 @@ def from_smiles(smi, print_debug=False):
     """
 
     rdm = _rd_chem.MolFromSmiles(smi)
-    if rdm is not None and print_debug:
+    if rdm is None and print_debug:
         print(f'rdm fails for {smi} by returning {rdm}')
 
     return rdm
@@ -94,6 +94,24 @@ def from_molfile(mfl, print_debug=False):
     rdm = _rd_chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
     if rdm is None and print_debug:
         print(f'Warning: rdm fails for {mfl} by returning {rdm}')
+
+    return rdm
+
+
+# smarts (for reactions)
+def from_smarts(smr, print_debug=False):
+    """ Generate an RDKit reaction object from a SMARTS string.
+
+        :param smr: SMARTS string
+        :type smr: str
+        :param print_debug: control the printing of a debug message
+        :type print_debug: bool
+        :rtype: RDKit reaction object
+    """
+
+    rdm = _rd_all_chem.ReactionFromSmarts(smr)
+    if rdm is None and print_debug:
+        print(f'rdm fails for {smr} by returning {rdm}')
 
     return rdm
 
