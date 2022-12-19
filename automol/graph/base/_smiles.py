@@ -147,7 +147,8 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
     brep_ = bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct,
                                            exp_singles=exp_singles)
     rrep_ = ring_representation_generator_(kgr, direc_dct, rng_pool,
-                                           rng_tag_dct)
+                                           rng_tag_dct,
+                                           exp_singles=exp_singles)
 
     # Determine neighboring keys
     nkeys_dct_pool = dict_.transform_values(
@@ -415,14 +416,18 @@ def bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct,
 
             direc_dct[(key2, nkey2)] = next_direc
 
-        rep += direc
+        if direc and rep == '-':
+            rep = direc
+        else:
+            rep += direc
 
         return rep
 
     return _generator
 
 
-def ring_representation_generator_(kgr, direc_dct, rng_pool, rng_tag_dct):
+def ring_representation_generator_(kgr, direc_dct, rng_pool, rng_tag_dct,
+                                   exp_singles=False):
     r""" A SMILES ring representation generator.
 
         SMILES ring representations for single, double, and triple bonds are
@@ -476,7 +481,8 @@ def ring_representation_generator_(kgr, direc_dct, rng_pool, rng_tag_dct):
                 nkeys.remove(rng[0])
                 closures.append(rng[0])
                 bnd_ord = bnd_ord_dct[frozenset({rng[-1], rng[0]})]
-                bnd_rep = BOND_ORDER_2_BOND_STR[bnd_ord]
+                bnd_rep = (BOND_ORDER_2_BOND_STR[bnd_ord] if not exp_singles
+                           else BOND_ORDER_2_BOND_STR_EXP[bnd_ord])
                 # Handle the special case where the last ring bond has stereo
                 if (rng[-1], rng[0]) in direc_dct:
                     direc = direc_dct[(rng[-1], rng[0])]
