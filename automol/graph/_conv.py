@@ -370,27 +370,34 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     return mlf, key_map_inv
 
 
-def rdkit_molecule(gra):
+def rdkit_molecule(gra, stereo=True):
     """ Convert a molecular graph to an RDKit molecule.
 
-    This is mainly useful for quick visualization with IPython, which can be
-    done as follows:
-    >>> from IPython.display import display
-    >>> display(rdkit_molecule(gra))
+        This is mainly useful for quick visualization with IPython, which can
+        be done as follows:
+        >>> from IPython.display import display
+        >>> display(rdkit_molecule(gra))
 
-    :param gra: the graph
-    :returns: the RDKit molecule
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :returns: the RDKit molecule
     """
-    return rdkit_.from_inchi(inchi(gra))
+    return rdkit_.from_smiles(smiles(gra, stereo=stereo, res_stereo=False))
 
 
-def display(gra):
+def display(gra, stereo=True):
     """ Display graph to IPython using the RDKit visualizer
 
-    :param gra: the graph
-    :returns: None
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :param exp_stereo_h: Use explicit H for stereo atoms?
+        :type exp_stereo_h: bool
     """
-    IPython.display.display(rdkit_molecule(gra))
+    IPython.display.display(rdkit_molecule(gra, stereo=stereo))
 
 
 # # helpers

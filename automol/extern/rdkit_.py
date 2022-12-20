@@ -1,10 +1,10 @@
 """ RDKit interface
 """
 
+import rdkit
 from rdkit import RDLogger
 from rdkit.Chem import Draw
-import rdkit.Chem as _rd_chem
-import rdkit.Chem.AllChem as _rd_all_chem
+from rdkit.Chem import AllChem
 from automol import util
 import automol.geom.base
 import automol.graph.base
@@ -25,7 +25,7 @@ def from_inchi(ich, print_debug=False):
         :rtype: RDKit molecule object
     """
 
-    rdm = _rd_chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
+    rdm = rdkit.Chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
     if rdm is None and print_debug:
         print(f'rdm fails for {ich} by returning {rdm}')
 
@@ -45,9 +45,9 @@ def to_inchi(rdm, options='', with_aux_info=False):
     """
 
     if with_aux_info:
-        ret = _rd_chem.inchi.MolToInchiAndAuxInfo(rdm, options=options)
+        ret = rdkit.Chem.inchi.MolToInchiAndAuxInfo(rdm, options=options)
     else:
-        ret = _rd_chem.inchi.MolToInchi(rdm, options=options)
+        ret = rdkit.Chem.inchi.MolToInchi(rdm, options=options)
 
     return ret
 
@@ -63,7 +63,7 @@ def from_smiles(smi, print_debug=False):
         :rtype: RDKit molecule object
     """
 
-    rdm = _rd_chem.MolFromSmiles(smi)
+    rdm = rdkit.Chem.MolFromSmiles(smi)
     if rdm is None and print_debug:
         print(f'rdm fails for {smi} by returning {rdm}')
 
@@ -77,7 +77,7 @@ def to_smiles(rdm):
         :type rdm: RDKit molecule object
         :rtype: str
     """
-    return _rd_chem.MolToSmiles(rdm)
+    return rdkit.Chem.MolToSmiles(rdm)
 
 
 # molfile
@@ -91,7 +91,7 @@ def from_molfile(mfl, print_debug=False):
         :rtype: RDKit molecule object
     """
 
-    rdm = _rd_chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
+    rdm = rdkit.Chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
     if rdm is None and print_debug:
         print(f'Warning: rdm fails for {mfl} by returning {rdm}')
 
@@ -109,7 +109,7 @@ def from_smarts(smr, print_debug=False):
         :rtype: RDKit reaction object
     """
 
-    rdm = _rd_all_chem.ReactionFromSmarts(smr)
+    rdm = AllChem.ReactionFromSmarts(smr)
     if rdm is None and print_debug:
         print(f'rdm fails for {smr} by returning {rdm}')
 
@@ -124,7 +124,7 @@ def inchi_to_inchi_key(ich):
         :type ich: str
         :rtype: str
     """
-    return _rd_chem.inchi.InchiToInchiKey(ich)
+    return rdkit.Chem.inchi.InchiToInchiKey(ich)
 
 
 # formula
@@ -136,7 +136,7 @@ def to_formula(rdm):
         :rtype: dict[str:int]
     """
 
-    rdm = _rd_chem.AddHs(rdm)
+    rdm = rdkit.Chem.AddHs(rdm)
     atms = rdm.GetAtoms()
     syms = [rda.GetSymbol() for rda in atms]
     fml = util.formula_from_symbols(syms)
@@ -153,15 +153,15 @@ def to_geometry(rdm):
         :rtype: automol geometry data structure
     """
 
-    rdm = _rd_chem.AddHs(rdm)
+    rdm = rdkit.Chem.AddHs(rdm)
     atms = rdm.GetAtoms()
     natms = len(rdm.GetAtoms())
     if natms == 1:
         syms = [str(atms[0].GetSymbol()).title()]
         xyzs = [(0., 0., 0.)]
     else:
-        _rd_all_chem.EmbedMolecule(rdm)
-        _rd_all_chem.MMFFOptimizeMolecule(rdm)
+        AllChem.EmbedMolecule(rdm)
+        AllChem.MMFFOptimizeMolecule(rdm)
         syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
         xyzs = tuple(map(tuple, rdm.GetConformer(0).GetPositions()))
     geo = automol.geom.base.from_data(syms, xyzs, angstrom=True)
@@ -182,7 +182,7 @@ def to_conformers(rdm, nconfs):
         :rtype: automol geometry data structure
     """
 
-    rdm = _rd_chem.AddHs(rdm)
+    rdm = rdkit.Chem.AddHs(rdm)
     atms = rdm.GetAtoms()
     natms = len(rdm.GetAtoms())
     geos = []
@@ -192,8 +192,8 @@ def to_conformers(rdm, nconfs):
         geos.append(
             automol.geom.base.from_data(syms, xyzs, angstrom=True))
     else:
-        cids = _rd_all_chem.EmbedMultipleConfs(rdm, numConfs=nconfs)
-        res = _rd_all_chem.MMFFOptimizeMoleculeConfs(rdm)
+        cids = AllChem.EmbedMultipleConfs(rdm, numConfs=nconfs)
+        res = AllChem.MMFFOptimizeMoleculeConfs(rdm)
         energies = list(zip(*res))[1]
         for cid in cids:
             syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
@@ -208,7 +208,42 @@ def to_conformers(rdm, nconfs):
     return geos
 
 
-# connectivity graph
+# graph
+BOND_ORDER_DCT = {
+    1: rdkit.Chem.BondType.SINGLE,
+    2: rdkit.Chem.BondType.DOUBLE,
+    3: rdkit.Chem.BondType.TRIPLE
+}
+
+
+def from_connected_graph(gra, stereo=False):
+    """ Generate an RDKit molecule object from a connected molecular graph
+    """
+    if stereo:
+        raise NotImplementedError("Stereo is currently not implemented!")
+
+    kgr = automol.graph.base.kekule(gra, max_stereo_overlap=True)
+    keys = sorted(automol.graph.base.atom_keys(kgr))
+    assert keys == list(range(len(keys)))
+    symb_dct = automol.graph.base.atom_symbols(kgr)
+    rad_dct = automol.graph.base.atom_unsaturations(kgr, bond_order=True)
+
+    bnd_keys = automol.graph.base.bond_keys(kgr)
+    ord_dct = automol.graph.base.bond_orders(kgr)
+
+    emol = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
+    for key in keys:
+        atm = rdkit.Chem.Atom(symb_dct[key])
+        atm.SetNumRadicalElectrons(rad_dct[key])
+        emol.AddAtom(atm)
+
+    for bnd_key in bnd_keys:
+        emol.AddBond(*bnd_key, BOND_ORDER_DCT[ord_dct[bnd_key]])
+
+    mol = emol.GetMol()
+    return mol
+
+
 def to_connectivity_graph(rdm):
     """ Generate a connectivity graph from an RDKit molecule object.
 
@@ -217,7 +252,7 @@ def to_connectivity_graph(rdm):
         :rtype: automol molecular graph object
     """
 
-    rdm = _rd_chem.AddHs(rdm)
+    rdm = rdkit.Chem.AddHs(rdm)
     atms = rdm.GetAtoms()
     bnds = rdm.GetBonds()
     syms = [rda.GetSymbol() for rda in atms]
