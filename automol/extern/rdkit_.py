@@ -211,13 +211,15 @@ def to_conformers(rdm, nconfs):
 # graph
 BOND_ORDER_DCT = {
     1: rdkit.Chem.BondType.SINGLE,
+    1.5: rdkit.Chem.BondType.ONEANDAHALF,
     2: rdkit.Chem.BondType.DOUBLE,
     3: rdkit.Chem.BondType.TRIPLE
 }
+BOND_TYPE_DCT = dict(map(reversed, BOND_ORDER_DCT.items()))
 
 
-def from_connected_graph(gra, stereo=False):
-    """ Generate an RDKit molecule object from a connected molecular graph
+def from_graph(gra, stereo=False):
+    """ Generate an RDKit rdmecule object from a connected rdmecular graph
     """
     if stereo:
         raise NotImplementedError("Stereo is currently not implemented!")
@@ -231,17 +233,42 @@ def from_connected_graph(gra, stereo=False):
     bnd_keys = automol.graph.base.bond_keys(kgr)
     ord_dct = automol.graph.base.bond_orders(kgr)
 
-    emol = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
+    erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
         atm = rdkit.Chem.Atom(symb_dct[key])
         atm.SetNumRadicalElectrons(rad_dct[key])
-        emol.AddAtom(atm)
+        erdm.AddAtom(atm)
 
     for bnd_key in bnd_keys:
-        emol.AddBond(*bnd_key, BOND_ORDER_DCT[ord_dct[bnd_key]])
+        erdm.AddBond(*bnd_key, BOND_ORDER_DCT[ord_dct[bnd_key]])
 
-    mol = emol.GetMol()
-    return mol
+    rdm = erdm.GetMol()
+    rdm.UpdatePropertyCache()
+    return rdm
+
+
+def to_graph(rdm):
+    """ Generate a connectivity graph from an RDKit molecule object.
+
+        :param rdm: molecule object
+        :type rdm: RDKit molecule object
+        :rtype: automol molecular graph object
+    """
+
+    rdm.UpdatePropertyCache()
+    atms = rdm.GetAtoms()
+    bnds = rdm.GetBonds()
+    sym_dct = {rda.GetIdx(): rda.GetSymbol() for rda in atms}
+    hyd_dct = {rda.GetIdx(): rda.GetImplicitValence() for rda in atms}
+    print(hyd_dct)
+    ord_dct = {(rdb.GetBeginAtomIdx(), rdb.GetEndAtomIdx()):
+               BOND_TYPE_DCT[rdb.GetBondType()]
+               for rdb in bnds}
+    gra = automol.graph.base.from_data(
+        atm_symb_dct=sym_dct, bnd_keys=ord_dct.keys(),
+        atm_imp_hyd_vlc_dct=hyd_dct, bnd_ord_dct=ord_dct)
+
+    return gra
 
 
 def to_connectivity_graph(rdm):
