@@ -197,6 +197,7 @@ from automol.graph.base._kekule import nonresonant_radical_atom_keys
 from automol.graph.base._kekule import vinyl_radical_atom_keys
 from automol.graph.base._kekule import sigma_radical_atom_keys
 from automol.graph.base._kekule import has_separated_radical_sites
+from automol.graph.base._kekule import resonance_bond_stereo_keys
 from automol.graph.base._kekule import has_resonance_bond_stereo
 from automol.graph.base._kekule import radical_groups
 from automol.graph.base._kekule import radical_group_dct
@@ -482,6 +483,7 @@ __all__ = [
     'vinyl_radical_atom_keys',
     'sigma_radical_atom_keys',
     'has_separated_radical_sites',
+    'resonance_bond_stereo_keys',
     'has_resonance_bond_stereo',
     'radical_groups',
     'radical_group_dct',

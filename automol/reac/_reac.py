@@ -177,7 +177,7 @@ def smiles(rxn, stereo=True, res_stereo=True, exp_singles=False):
     return (rct_smis, prd_smis)
 
 
-def rdkit_reaction(rxn, stereo=True, res_stereo=True):
+def rdkit_reaction(rxn, stereo=True, res_stereo=False):
     """ Convert a reaction object to an RDKit reaction object.
 
     This is mainly useful for quick visualization with IPython, which can be

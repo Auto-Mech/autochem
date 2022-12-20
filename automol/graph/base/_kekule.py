@@ -390,6 +390,24 @@ def has_separated_radical_sites(gra):
     return len(rad_atm_keys) > 1
 
 
+def resonance_bond_stereo_keys(gra):
+    """ does this graph have stereo at a resonance bond?
+
+        :param gra: the molecular graph
+        :rtype: bool
+    """
+    ste_bnd_keys = bond_stereo_keys(gra)
+    res_bnd_ords_dct = kekules_bond_orders_collated(gra)
+
+    res_bnd_keys = []
+    for bnd_key in ste_bnd_keys:
+        if bnd_key in res_bnd_ords_dct and 1 in res_bnd_ords_dct[bnd_key]:
+            res_bnd_keys.append(bnd_key)
+
+    res_bnd_keys = tuple(res_bnd_keys)
+    return res_bnd_keys
+
+
 def has_resonance_bond_stereo(gra):
     """ does this graph have stereo at a resonance bond?
 
