@@ -1324,6 +1324,28 @@ def implicit(gra, atm_keys=None):
     return gra
 
 
+def explicit_bond_stereo_hydrogens(gra):
+    """ make bond stereo hydrogens explicit
+    """
+    bnd_keys = bond_stereo_keys(gra)
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+    nhyd_dct = atom_implicit_hydrogen_valences(gra)
+    next_key = max(atom_keys(gra)) + 1
+    for bnd_key in bnd_keys:
+        key1, key2 = bnd_key
+        nkey1s = nkeys_dct[key1] - {key2}
+        nkey2s = nkeys_dct[key2] - {key1}
+        for key, nkeys in [(key1, nkey1s), (key2, nkey2s)]:
+            if not nkeys:
+                assert nhyd_dct[key] == 1
+                gra = add_bonded_atom(gra, 'H', key, next_key)
+                gra = set_atom_implicit_hydrogen_valences(gra, {key: 0})
+
+                next_key += 1
+
+    return gra
+
+
 # # unions
 def union(gra1, gra2, check=True):
     """ a union of two graphs

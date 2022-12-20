@@ -116,6 +116,7 @@ from automol.graph.base._core import without_null_bonds
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import explicit
 from automol.graph.base._core import implicit
+from automol.graph.base._core import explicit_bond_stereo_hydrogens
 # # unions
 from automol.graph.base._core import union
 from automol.graph.base._core import union_from_sequence
@@ -205,6 +206,7 @@ from automol.graph.base._kekule import vinyl_radical_atom_keys
 from automol.graph.base._kekule import sigma_radical_atom_keys
 from automol.graph.base._kekule import has_separated_radical_sites
 from automol.graph.base._kekule import resonance_bond_stereo_keys
+from automol.graph.base._kekule import vinyl_bond_stereo_keys
 from automol.graph.base._kekule import has_resonance_bond_stereo
 from automol.graph.base._kekule import radical_groups
 from automol.graph.base._kekule import radical_group_dct
@@ -388,6 +390,7 @@ __all__ = [
     'without_stereo_parities',
     'explicit',
     'implicit',
+    'explicit_bond_stereo_hydrogens',
     # # unions
     'union',
     'union_from_sequence',
@@ -477,6 +480,7 @@ __all__ = [
     'sigma_radical_atom_keys',
     'has_separated_radical_sites',
     'resonance_bond_stereo_keys',
+    'vinyl_bond_stereo_keys',
     'has_resonance_bond_stereo',
     'radical_groups',
     'radical_group_dct',

@@ -408,6 +408,23 @@ def resonance_bond_stereo_keys(gra):
     return res_bnd_keys
 
 
+def vinyl_bond_stereo_keys(gra):
+    """ does this graph have stereo at a resonance bond?
+
+        :param gra: the molecular graph
+        :rtype: bool
+    """
+    ste_bnd_keys = bond_stereo_keys(gra)
+    vin_atm_keys = vinyl_radical_atom_keys(gra)
+
+    vin_bnd_keys = []
+    for bnd_key in ste_bnd_keys:
+        if bnd_key & vin_atm_keys:
+            vin_bnd_keys.append(bnd_key)
+    vin_bnd_keys = tuple(vin_bnd_keys)
+    return vin_bnd_keys
+
+
 def has_resonance_bond_stereo(gra):
     """ does this graph have stereo at a resonance bond?
 
