@@ -530,6 +530,15 @@ def stereo_keys(gra):
     return ste_keys
 
 
+def nitrogen_atom_stereo_keys(gra):
+    """ keys to nitrogen atom stereo-centers
+    """
+    anum_dct = atomic_numbers(gra)
+    atm_ste_keys = atom_stereo_keys(gra)
+    ntg_ste_keys = frozenset(k for k in atm_ste_keys if anum_dct[k] == 7)
+    return ntg_ste_keys
+
+
 def has_stereo(gra):
     """ does this graph have stereo of any kind?
     """

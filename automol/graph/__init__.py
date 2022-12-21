@@ -54,6 +54,7 @@ from automol.graph.base._core import electron_count
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import stereo_keys
+from automol.graph.base._core import nitrogen_atom_stereo_keys
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import has_bond_stereo
@@ -342,6 +343,7 @@ __all__ = [
     'atom_stereo_keys',
     'bond_stereo_keys',
     'stereo_keys',
+    'nitrogen_atom_stereo_keys',
     'has_stereo',
     'has_atom_stereo',
     'has_bond_stereo',
