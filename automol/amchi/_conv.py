@@ -26,8 +26,8 @@ def amchi_key(chi):
         :type chi: str
         :rtype: str
     """
-    ich = with_inchi_prefix(chi)
-    return rdkit_.inchi_to_inchi_key(ich)
+    chi = with_inchi_prefix(chi)
+    return rdkit_.inchi_to_inchi_key(chi)
 
 
 def smiles(chi, res_stereo=True):
@@ -201,9 +201,9 @@ def conformers(chi, nconfs=1, check=True, accept_fewer=False):
 
 
 def zmatrix(chi, check=True):
-    """ Generate a z-matrix from an InChI string.
+    """ Generate a z-matrix from an ChI string.
 
-        :param chi: InChI string
+        :param chi: ChI string
         :type chi: str
         :param check: check stereo and connectivity?
         :type check: bool
@@ -215,26 +215,91 @@ def zmatrix(chi, check=True):
     return zma
 
 
+def rdkit_molecule(chi, stereo=True):
+    """ Convert a ChI string to an RDKit molecule.
+
+        This is mainly useful for quick visualization with IPython, which can
+        be done as follows:
+        >>> from IPython.display import display
+        >>> display(rdkit_molecule(chi))
+
+        :param chi: ChI string
+        :type chi: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :returns: the RDKit molecule
+    """
+    gra = graph(chi, stereo=stereo)
+    return automol.graph.rdkit_molecule(gra, stereo=stereo)
+
+
+def rdkit_reaction(rchis, pchis, stereo=True, res_stereo=False):
+    """ Convert reactant and product graphs to an RDKit reaction object.
+
+    This is mainly useful for quick visualization with IPython, which can be
+    done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_reaction(pgras, rgras))
+
+        :param rchis: ChI strings for the reactants
+        :param pchis: ChI strings for the products
+        :param stereo: Include stereo?
+        :type stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
+        :returns: the RDKit reaction
+    """
+    rgras = [graph(s, stereo=stereo) for s in rchis]
+    pgras = [graph(s, stereo=stereo) for s in pchis]
+    return automol.graph.rdkit_reaction(rgras, pgras, stereo=stereo,
+                                        res_stereo=res_stereo)
+
+
+def display(chi, stereo=True):
+    """ Display graph to IPython using the RDKit visualizer
+
+        :param chi: ChI string
+        :type chi: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+    """
+    gra = graph(chi, stereo=stereo)
+    automol.graph.display(gra, stereo=stereo)
+
+
+def display_reaction(rchis, pchis, stereo=True):
+    """ Display reaction to IPython using the RDKit visualizer
+
+        :param rchis: ChI strings for the reactants
+        :param pchis: ChI strings for the products
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+    """
+    rgras = [graph(s, stereo=stereo) for s in rchis]
+    pgras = [graph(s, stereo=stereo) for s in pchis]
+    automol.graph.display_reaction(rgras, pgras, stereo=stereo)
+
+
 # # derived properties
-def is_complete(ich):
-    """ Determine if the InChI string is complete
+def is_complete(chi):
+    """ Determine if the ChI string is complete
         (has all stereo-centers assigned).
 
         Currently only checks species that does not have any
         resonance structures.
 
-        :param ich: InChI string
-        :type ich: str
+        :param chi: ChI string
+        :type chi: str
         :rtype: bool
     """
 
-    gra = graph(ich, stereo=False)
+    gra = graph(chi, stereo=False)
     ste_atm_keys = automol.graph.stereogenic_atom_keys(gra)
     ste_bnd_keys = automol.graph.stereogenic_bond_keys(gra)
     graph_has_stereo = bool(ste_atm_keys or ste_bnd_keys)
 
-    _complete = equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ graph_has_stereo)
+    _complete = equivalent(chi, standard_form(chi)) and not (
+        has_stereo(chi) ^ graph_has_stereo)
 
     return _complete
 

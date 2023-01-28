@@ -298,7 +298,9 @@ from automol.graph._conv import inchi_with_sort_from_geometry
 from automol.graph._conv import chi
 from automol.graph._conv import molfile_with_atom_mapping
 from automol.graph._conv import rdkit_molecule
+from automol.graph._conv import rdkit_reaction
 from automol.graph._conv import display
+from automol.graph._conv import display_reaction
 # submodules:
 from automol.graph import vmat
 from automol.graph import embed
@@ -590,7 +592,9 @@ __all__ = [
     'chi',
     'molfile_with_atom_mapping',
     'rdkit_molecule',
+    'rdkit_reaction',
     'display',
+    'display_reaction',
     # submodules:
     'vmat',
     'embed',

@@ -9,6 +9,7 @@ from automol import error
 import automol.graph.embed
 import automol.geom.base
 import automol.inchi.base
+import automol.smiles.base
 from automol.util import dict_
 from automol.extern import molfile
 from automol.extern import rdkit_
@@ -387,6 +388,31 @@ def rdkit_molecule(gra, stereo=True):
     return rdkit_.from_smiles(smiles(gra, stereo=stereo, res_stereo=False))
 
 
+def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
+    """ Convert reactant and product graphs to an RDKit reaction object.
+
+    This is mainly useful for quick visualization with IPython, which can be
+    done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_reaction(pgras, rgras))
+
+        :param rgras: reactant graphs
+        :param pgras: product graphs
+        :param stereo: Include stereo?
+        :type stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
+        :param rxn: the reaction object
+        :returns: the RDKit reaction
+    """
+    rsmis = [smiles(g, stereo=stereo, res_stereo=res_stereo,
+                    exp_singles=True) for g in rgras]
+    psmis = [smiles(g, stereo=stereo, res_stereo=res_stereo,
+                    exp_singles=True) for g in pgras]
+    rxn_smi = automol.smiles.base.reaction(rsmis, psmis)
+    return rdkit_.from_smarts(rxn_smi)
+
+
 def display(gra, stereo=True):
     """ Display graph to IPython using the RDKit visualizer
 
@@ -394,10 +420,19 @@ def display(gra, stereo=True):
         :type gra: automol graph data structure
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
-        :param exp_stereo_h: Use explicit H for stereo atoms?
-        :type exp_stereo_h: bool
     """
     IPython.display.display(rdkit_molecule(gra, stereo=stereo))
+
+
+def display_reaction(rgras, pgras, stereo=True):
+    """ Display reaction to IPython using the RDKit visualizer
+
+        :param rgras: reactant graphs
+        :param pgras: product graphs
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+    """
+    return IPython.display.display(rdkit_reaction(rgras, pgras, stereo=stereo))
 
 
 # # helpers
