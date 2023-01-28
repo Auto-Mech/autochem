@@ -58,6 +58,7 @@ from automol.graph.base._core import nitrogen_atom_stereo_keys
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import has_bond_stereo
+from automol.graph.base._core import has_nitrogen_atom_stereo
 from automol.graph.base._core import has_fractional_bonds
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
@@ -202,6 +203,8 @@ from automol.graph.base._kekule import has_separated_radical_sites
 from automol.graph.base._kekule import resonance_bond_stereo_keys
 from automol.graph.base._kekule import vinyl_bond_stereo_keys
 from automol.graph.base._kekule import has_resonance_bond_stereo
+from automol.graph.base._kekule import has_vinyl_bond_stereo
+from automol.graph.base._kekule import has_nonkekule_bond_stereo
 from automol.graph.base._kekule import radical_groups
 from automol.graph.base._kekule import radical_group_dct
 from automol.graph.base._kekule import rigid_planar_bond_keys
@@ -347,6 +350,7 @@ __all__ = [
     'has_stereo',
     'has_atom_stereo',
     'has_bond_stereo',
+    'has_nitrogen_atom_stereo',
     'has_fractional_bonds',
     'atomic_numbers',
     'mass_numbers',
@@ -491,6 +495,8 @@ __all__ = [
     'resonance_bond_stereo_keys',
     'vinyl_bond_stereo_keys',
     'has_resonance_bond_stereo',
+    'has_vinyl_bond_stereo',
+    'has_nonkekule_bond_stereo',
     'radical_groups',
     'radical_group_dct',
     'rigid_planar_bond_keys',

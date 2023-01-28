@@ -557,6 +557,12 @@ def has_bond_stereo(gra):
     return bool(bond_stereo_keys(gra))
 
 
+def has_nitrogen_atom_stereo(gra):
+    """ does this graph have atom stereo?
+    """
+    return bool(nitrogen_atom_stereo_keys(gra))
+
+
 def has_fractional_bonds(gra):
     """ does this graph have any fractional (non-integer-order) bonds?
     """
