@@ -77,6 +77,10 @@ from automol.amchi import graph
 from automol.amchi import geometry
 from automol.amchi import conformers
 from automol.amchi import zmatrix
+from automol.amchi import rdkit_molecule
+from automol.amchi import rdkit_reaction
+from automol.amchi import display
+from automol.amchi import display_reaction
 # # derived properties
 from automol.chi._conv import is_complete
 from automol.chi._conv import is_bad
@@ -175,6 +179,10 @@ __all__ = [
     'geometry',
     'conformers',
     'zmatrix',
+    'rdkit_molecule',
+    'rdkit_reaction',
+    'display',
+    'display_reaction',
     # # derived properties
     'is_complete',
     'is_bad',

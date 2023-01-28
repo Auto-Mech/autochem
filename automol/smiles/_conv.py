@@ -119,6 +119,71 @@ def _connected_graph(smi, stereo=True, local_stereo=False):
     return gra
 
 
+def rdkit_molecule(smi, stereo=True):
+    """ Convert a SMILES string to an RDKit molecule.
+
+        This is mainly useful for quick visualization with IPython, which can
+        be done as follows:
+        >>> from IPython.display import display
+        >>> display(rdkit_molecule(smi))
+
+        :param smi: SMILES string
+        :type smi: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :returns: the RDKit molecule
+    """
+    gra = graph(smi, stereo=stereo)
+    return automol.graph.rdkit_molecule(gra, stereo=stereo)
+
+
+def rdkit_reaction(rsmis, psmis, stereo=True, res_stereo=False):
+    """ Convert reactant and product graphs to an RDKit reaction object.
+
+    This is mainly useful for quick visualization with IPython, which can be
+    done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_reaction(pgras, rgras))
+
+        :param rsmis: SMILES strings for the reactants
+        :param psmis: SMILES strings for the products
+        :param stereo: Include stereo?
+        :type stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
+        :returns: the RDKit reaction
+    """
+    rgras = [graph(s, stereo=stereo) for s in rsmis]
+    pgras = [graph(s, stereo=stereo) for s in psmis]
+    return automol.graph.rdkit_reaction(rgras, pgras, stereo=stereo,
+                                        res_stereo=res_stereo)
+
+
+def display(smi, stereo=True):
+    """ Display graph to IPython using the RDKit visualizer
+
+        :param smi: SMILES string
+        :type smi: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+    """
+    gra = graph(smi, stereo=stereo)
+    automol.graph.display(gra, stereo=stereo)
+
+
+def display_reaction(rsmis, psmis, stereo=True):
+    """ Display reaction to IPython using the RDKit visualizer
+
+        :param rsmis: SMILES strings for the reactants
+        :param psmis: SMILES strings for the products
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+    """
+    rgras = [graph(s, stereo=stereo) for s in rsmis]
+    pgras = [graph(s, stereo=stereo) for s in psmis]
+    automol.graph.display_reaction(rgras, pgras, stereo=stereo)
+
+
 # helpers
 def _compare(smi1, smi2):
     """ Check if two SMILES strings are similar.

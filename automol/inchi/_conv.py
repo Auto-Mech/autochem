@@ -93,6 +93,71 @@ def amchi(ich, stereo=True):
     return ach
 
 
+def rdkit_molecule(ich, stereo=True):
+    """ Convert a InChI string to an RDKit molecule.
+
+        This is mainly useful for quick visualization with IPython, which can
+        be done as follows:
+        >>> from IPython.display import display
+        >>> display(rdkit_molecule(ich))
+
+        :param ich: InChI string
+        :type ich: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+        :returns: the RDKit molecule
+    """
+    gra = graph(ich, stereo=stereo)
+    return automol.graph.rdkit_molecule(gra, stereo=stereo)
+
+
+def rdkit_reaction(richs, pichs, stereo=True, res_stereo=False):
+    """ Convert reactant and product graphs to an RDKit reaction object.
+
+    This is mainly useful for quick visualization with IPython, which can be
+    done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_reaction(pgras, rgras))
+
+        :param richs: InChI strings for the reactants
+        :param pichs: InChI strings for the products
+        :param stereo: Include stereo?
+        :type stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
+        :returns: the RDKit reaction
+    """
+    rgras = [graph(s, stereo=stereo) for s in richs]
+    pgras = [graph(s, stereo=stereo) for s in pichs]
+    return automol.graph.rdkit_reaction(rgras, pgras, stereo=stereo,
+                                        res_stereo=res_stereo)
+
+
+def display(ich, stereo=True):
+    """ Display graph to IPython using the RDKit visualizer
+
+        :param ich: InChI string
+        :type ich: str
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+    """
+    gra = graph(ich, stereo=stereo)
+    automol.graph.display(gra, stereo=stereo)
+
+
+def display_reaction(richs, pichs, stereo=True):
+    """ Display reaction to IPython using the RDKit visualizer
+
+        :param richs: InChI strings for the reactants
+        :param pichs: InChI strings for the products
+        :param stereo: parameter to include stereochemistry information
+        :type stereo: bool
+    """
+    rgras = [graph(s, stereo=stereo) for s in richs]
+    pgras = [graph(s, stereo=stereo) for s in pichs]
+    automol.graph.display_reaction(rgras, pgras, stereo=stereo)
+
+
 # # derived properties
 def is_complete(ich):
     """ Determine if the InChI string is complete

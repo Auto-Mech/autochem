@@ -204,8 +204,8 @@ def rdkit_reaction(rxn, stereo=True, res_stereo=False):
 def display(rxn):
     """ Display reaction object to IPython using the RDKit visualizer
 
-    :param rxn: the reaciton object
-    :returns: None
+        :param rxn: the reaction object
+        :returns: None
     """
     return IPython.display.display(rdkit_reaction(rxn))
 

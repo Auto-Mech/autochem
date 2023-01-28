@@ -97,6 +97,22 @@ def join(smis):
     return '.'.join(smis)
 
 
+def reaction(rsmis, psmis):
+    """ Join reactant and product SMILES strings into a reaction SMILES.
+
+        :param rsmis: reactant SMILES strings
+        :type rsmis: tuple[str]
+        :param psmis: product SMILES strings
+        :type psmis: tuple[str]
+        :returns: the reaction SMILES string
+        :rtype: str
+    """
+    rsmi = '.'.join(rsmis)
+    psmi = '.'.join(psmis)
+    rxn_smi = f'{rsmi}>>{psmi}'
+    return rxn_smi
+
+
 # # properties
 def parse_connected_molecule_properties(smi):
     """ Parse all properties from a SMILES string
