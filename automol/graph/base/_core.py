@@ -530,6 +530,15 @@ def stereo_keys(gra):
     return ste_keys
 
 
+def nitrogen_atom_stereo_keys(gra):
+    """ keys to nitrogen atom stereo-centers
+    """
+    anum_dct = atomic_numbers(gra)
+    atm_ste_keys = atom_stereo_keys(gra)
+    ntg_ste_keys = frozenset(k for k in atm_ste_keys if anum_dct[k] == 7)
+    return ntg_ste_keys
+
+
 def has_stereo(gra):
     """ does this graph have stereo of any kind?
     """
@@ -546,6 +555,12 @@ def has_bond_stereo(gra):
     """ does this graph have bond stereo?
     """
     return bool(bond_stereo_keys(gra))
+
+
+def has_nitrogen_atom_stereo(gra):
+    """ does this graph have atom stereo?
+    """
+    return bool(nitrogen_atom_stereo_keys(gra))
 
 
 def has_fractional_bonds(gra):
@@ -1321,6 +1336,28 @@ def implicit(gra, atm_keys=None):
 
     exp_hyd_keys = set(itertools.chain(*atm_exp_hyd_keys_dct.values()))
     gra = remove_atoms(gra, exp_hyd_keys, stereo=True)
+    return gra
+
+
+def explicit_bond_stereo_hydrogens(gra):
+    """ make bond stereo hydrogens explicit
+    """
+    bnd_keys = bond_stereo_keys(gra)
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+    nhyd_dct = atom_implicit_hydrogen_valences(gra)
+    next_key = max(atom_keys(gra)) + 1
+    for bnd_key in bnd_keys:
+        key1, key2 = bnd_key
+        nkey1s = nkeys_dct[key1] - {key2}
+        nkey2s = nkeys_dct[key2] - {key1}
+        for key, nkeys in [(key1, nkey1s), (key2, nkey2s)]:
+            if not nkeys:
+                assert nhyd_dct[key] == 1
+                gra = add_bonded_atom(gra, 'H', key, next_key)
+                gra = set_atom_implicit_hydrogen_valences(gra, {key: 0})
+
+                next_key += 1
+
     return gra
 
 

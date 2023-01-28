@@ -408,22 +408,57 @@ def resonance_bond_stereo_keys(gra):
     return res_bnd_keys
 
 
-def has_resonance_bond_stereo(gra):
+def vinyl_bond_stereo_keys(gra):
     """ does this graph have stereo at a resonance bond?
 
         :param gra: the molecular graph
         :rtype: bool
     """
     ste_bnd_keys = bond_stereo_keys(gra)
-    res_bnd_ords_dct = kekules_bond_orders_collated(gra)
+    vin_atm_keys = vinyl_radical_atom_keys(gra)
 
-    ret = False
+    vin_bnd_keys = []
     for bnd_key in ste_bnd_keys:
-        if bnd_key in res_bnd_ords_dct and 1 in res_bnd_ords_dct[bnd_key]:
-            ret = True
-            break
+        if bnd_key & vin_atm_keys:
+            vin_bnd_keys.append(bnd_key)
+    vin_bnd_keys = tuple(vin_bnd_keys)
+    return vin_bnd_keys
 
-    return ret
+
+def has_resonance_bond_stereo(gra):
+    """ does this graph have stereo at a resonance bond?
+
+        :param gra: the molecular graph
+        :rtype: bool
+    """
+    return bool(resonance_bond_stereo_keys(gra))
+
+
+def has_vinyl_bond_stereo(gra):
+    """ does this graph have stereo at a vinyl bond?
+
+        :param gra: the molecular graph
+        :rtype: bool
+    """
+    return bool(vinyl_bond_stereo_keys(gra))
+
+
+def has_nonkekule_bond_stereo(gra):
+    """ does this graph have stereo at a resonance bond that cannot be
+        represented as a double bond in a kekule structure?
+
+        :param gra: the molecular graph
+        :rtype: bool
+    """
+    ste_bnd_keys = bond_stereo_keys(gra)
+    bnd_ord_dcts = kekules_bond_orders(gra)
+
+    nsingles_lst = []
+    for bnd_ord_dct in bnd_ord_dcts:
+        nsingles = len([k for k in ste_bnd_keys if bnd_ord_dct[k] == 1])
+        nsingles_lst.append(nsingles)
+
+    return min(nsingles_lst) > 0
 
 
 def radical_groups(gra):
