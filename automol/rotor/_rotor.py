@@ -46,9 +46,11 @@ def from_data(zma, tors_inf_dct, tors_names=None, multi=False):
         )
         tors_lst += (tors.Torsion(zma, name, **dct),)
 
-    rotors = group_torsions_into_rotors(
-        tors_lst, name_grps=tors_names, multi=multi)
-
+    if tors_lst:
+        rotors = group_torsions_into_rotors(
+            tors_lst, name_grps=tors_names, multi=multi)
+    else:
+        rotors = None
     return rotors
 
 

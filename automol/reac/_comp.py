@@ -10,6 +10,12 @@ from automol.util import dict_
 from automol.reac._reac import forming_bond_keys
 from automol.reac._reac import breaking_bond_keys
 from automol.reac._reac import relabel_for_geometry
+from automol.graph.base._core import atom_keys
+from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import from_ts_graph
+from automol.graph.base._canon import stereogenic_bond_keys
+from automol.graph.base._canon import parity_evaluator_from_geometry_
 
 
 def similar_saddle_point_structure(zma, ref_zma, zrxn):
@@ -118,5 +124,49 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
             if abs(cnf_dist - ref_dist) > 0.3:
                 # ioprinter.diverged_ts('distance', ref_dist, cnf_dist)
                 viable = False
+
+    if not _check_stereo_parities(zma, ref_zma, zrxn):
+        viable = False
+
+    return viable
+
+
+def _check_stereo_parities(zma, ref_zma, zrxn):
+    fgra = without_stereo_parities(from_ts_graph(zrxn.forward_ts_graph))
+    bgra = without_stereo_parities(from_ts_graph(zrxn.backward_ts_graph))
+    forw_ste_keys = stereogenic_bond_keys(fgra)
+    back_ste_keys = stereogenic_bond_keys(bgra)
+    forw_idxs = zrxn.key_map(rev=False, stereo=False)
+    back_idxs = zrxn.key_map(rev=True, stereo=False)
+    fatm_keys = atom_keys(fgra)
+    batm_keys = atom_keys(bgra)
+    fpri_dct = dict(zip(fatm_keys, fatm_keys))
+    bpri_dct = dict(zip(batm_keys, batm_keys))
+    geo = automol.zmat.geometry(zma, dummy=True)
+    ref_geo = automol.zmat.geometry(ref_zma, dummy=True)
+
+    forw_par_eval_ = parity_evaluator_from_geometry_(
+        fgra, geo, geo_idx_dct=forw_idxs)
+    ref_forw_par_eval_ = parity_evaluator_from_geometry_(
+        fgra, ref_geo, geo_idx_dct=forw_idxs)
+    back_par_eval_ = parity_evaluator_from_geometry_(
+        bgra, geo, geo_idx_dct=back_idxs)
+    ref_back_par_eval_ = parity_evaluator_from_geometry_(
+        bgra, ref_geo, geo_idx_dct=back_idxs)
+
+    forw_par_ = forw_par_eval_(fpri_dct)
+    ref_forw_par_ = ref_forw_par_eval_(fpri_dct)
+    back_par_ = back_par_eval_(bpri_dct)
+    ref_back_par_ = ref_back_par_eval_(bpri_dct)
+
+    viable = True
+    for bnd_key in forw_ste_keys:
+        if forw_par_(bnd_key) != ref_forw_par_(bnd_key):
+            viable = False
+            print('Invalid stereo at bond ', bnd_key)
+    for bnd_key in back_ste_keys:
+        if back_par_(bnd_key) != ref_back_par_(bnd_key):
+            viable = False
+            print('Invalid stereo at backward bond ', bnd_key)
 
     return viable
