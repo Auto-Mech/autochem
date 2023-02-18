@@ -2,6 +2,8 @@
 """
 # base reaction class
 from automol.reac._reac import Reaction
+from automol.reac._reac import chi
+from automol.reac._reac import smiles
 from automol.reac._reac import rdkit_reaction
 from automol.reac._reac import display
 from automol.reac._reac import string
@@ -94,6 +96,8 @@ from automol.reac._util import rxn_objs_from_geometry
 __all__ = [
     # base reaction class
     'Reaction',
+    'chi',
+    'smiles',
     'rdkit_reaction',
     'display',
     'string',
