@@ -31,6 +31,11 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
         gra, dist_dct, angstrom=True)
 
     geo_init, = rct_geos
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = True
     relax_tors = True
 
@@ -61,6 +66,11 @@ def beta_scission_ts_geometry(rxn, rct_geos,
         gra, dist_dct, angstrom=True)
 
     geo_init, = rct_geos
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = False
     relax_tors = False
 
@@ -101,6 +111,11 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
         gra, dist_dct, dih_dct=dih_dct, degree=True, angstrom=True)
 
     geo_init, = rct_geos
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = True
     relax_tors = True
 
@@ -152,6 +167,11 @@ def elimination_ts_geometry(rxn, rct_geos,
         angstrom=True)
 
     geo_init, = rct_geos
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = True
     relax_tors = True
 
@@ -195,6 +215,11 @@ def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
     geo1, geo2 = rct_geos
     geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
                                     r23=frm_bnd_dist, a123=a123, a234=a234)
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = False
     relax_tors = False
 
@@ -238,6 +263,11 @@ def addition_ts_geometry(rxn, rct_geos,
     geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
                                     r23=frm_bnd_dist, a123=a123, a234=a234,
                                     d1234=d1234)
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = False
     relax_tors = False
 
@@ -292,6 +322,11 @@ def insertion_ts_geometry(rxn, rct_geos,
     geo1, geo2 = rct_geos
     geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
                                     r23=frm_bnd_dist1, a123=a123)
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = True
     relax_tors = True
 
@@ -342,6 +377,11 @@ def substitution_ts_geometry(rxn, rct_geos,
     geo1, geo2 = rct_geos
     geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
                                     r23=frm_bnd_dist, a123=a123, a234=a234)
+    geo_init = automol.graph.stereo_corrected_geometry(
+        rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
+    geo_init = automol.graph.embed.clean_geometry(
+        rxn.forward_ts_graph, geo_init, stereo=False)
+
     relax_ang = True
     relax_tors = True
 

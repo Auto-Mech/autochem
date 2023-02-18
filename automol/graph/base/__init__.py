@@ -116,6 +116,7 @@ from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import without_null_bonds
 from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import explicit
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit_bond_stereo_hydrogens
@@ -394,6 +395,7 @@ __all__ = [
     'without_fractional_bonds',
     'without_null_bonds',
     'without_stereo_parities',
+    'from_ts_graph',
     'explicit',
     'implicit',
     'explicit_bond_stereo_hydrogens',

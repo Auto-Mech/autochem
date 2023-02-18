@@ -97,8 +97,9 @@ class Reaction:
         """ get the key map taking atoms from the reactant into atoms from the
         product
         """
-        iso_dct = automol.graph.full_isomorphism(
-            ts.reverse(self.forward_ts_graph), self.backward_ts_graph)
+        iso_dct = automol.graph.isomorphism(
+            ts.reverse(self.forward_ts_graph), self.backward_ts_graph,
+            stereo=False, dummy=False)
         if rev:
             iso_dct = dict(map(reversed, iso_dct.items()))
 
