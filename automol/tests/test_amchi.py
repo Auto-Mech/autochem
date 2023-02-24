@@ -276,6 +276,17 @@ def test__smiles():
         print()
 
 
+def test__racemic():
+    """ test amchi.racemic
+    """
+    chi = 'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m0/s1'
+    assert (automol.amchi.racemic(chi) ==
+            'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/s3')
+
+    chi = 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t1-,2-,3+'
+    assert automol.amchi.racemic(chi) == chi
+
+
 if __name__ == '__main__':
     # test__bonds()
     # test__atom_stereo_parities()

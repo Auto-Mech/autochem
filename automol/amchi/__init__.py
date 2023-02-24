@@ -26,6 +26,7 @@ from automol.amchi.base._core import canonical_enantiomer_reaction
 from automol.amchi.base._core import formula
 from automol.amchi.base._core import connectivity
 from automol.amchi.base._core import without_stereo
+from automol.amchi.base._core import racemic
 from automol.amchi.base._core import are_enantiomers
 from automol.amchi.base._core import are_diastereomers
 # # properties
@@ -65,6 +66,10 @@ from automol.amchi.base._core import sorted_
 from automol.amchi.base._core import argsort
 # # helpers
 from automol.amchi.base._core import version_pattern
+from automol.amchi.base._core import join_layers
+from automol.amchi.base._core import split_layers
+from automol.amchi.base._core import join_layer_strings
+from automol.amchi.base._core import split_layer_string
 # L4
 # # conversions
 from automol.amchi._conv import amchi_key
@@ -112,6 +117,7 @@ __all__ = [
     'formula',
     'connectivity',
     'without_stereo',
+    'racemic',
     'are_enantiomers',
     'are_diastereomers',
     # # properties
@@ -151,6 +157,10 @@ __all__ = [
     'argsort',
     # # helpers
     'version_pattern',
+    'join_layers',
+    'split_layers',
+    'join_layer_strings',
+    'split_layer_string',
     # L4
     # # conversions
     'amchi_key',
