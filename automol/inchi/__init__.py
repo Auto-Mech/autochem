@@ -43,9 +43,6 @@ from automol.inchi.base._core import argsort
 # # split/join
 from automol.inchi.base._core import split
 from automol.inchi.base._core import join
-# hardcoded inchi workarounds
-from automol.inchi.base._core import hardcoded_object_from_inchi_by_key
-from automol.inchi.base._core import hardcoded_object_to_inchi_by_key
 # # helpers
 from automol.inchi.base._core import version_pattern
 # L4
@@ -110,9 +107,6 @@ __all__ = [
     # # split/join
     'split',
     'join',
-    # hardcoded inchi workarounds
-    'hardcoded_object_from_inchi_by_key',
-    'hardcoded_object_to_inchi_by_key',
     # # helpers
     'version_pattern',
     # L4

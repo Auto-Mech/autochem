@@ -1,15 +1,12 @@
 """ Level 3 InChI functions (depend on extern and L1-2)
 """
 
-import operator
-import functools
 import itertools
 import warnings
 import numpy
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
-from phydat import phycon
 import automol.formula
 from automol.util import dict_
 from automol.extern import rdkit_
@@ -26,74 +23,6 @@ NONSLASHES = app.one_or_more(NONSLASH)
 SLASH = app.escape('/')
 SLASH_OR_START = app.one_of_these([SLASH, app.STRING_START])
 SLASH_OR_END = app.one_of_these([SLASH, app.STRING_END])
-
-HARDCODED_INCHI_DCT = {
-    'InChI=1S/C': {
-        'inchi': 'InChI=1S/C',
-        'geom': (('C', (0., 0., 0.)),),
-        'graph': ({0: ('C', 0, None)}, {}),
-        'smiles': '[C]',
-        'formula': {'C': 1},
-    },
-    'InChI=1S/B': {
-        'inchi': 'InChI=1S/B',
-        'geom': (('B', (0., 0., 0.)),),
-        'graph': ({0: ('B', 0, None)}, {}),
-        'smiles': '[B]',
-        'formula': {'B': 1},
-    },
-    'InChI=1S/N': {
-        'inchi': 'InChI=1S/N',
-        'geom': (('N', (0., 0., 0.)),),
-        'graph': ({0: ('N', 0, None)}, {}),
-        'smiles': '[N]',
-        'formula': {'N': 1},
-    },
-    'InChI=1S/CH/h1H': {
-        'inchi': 'InChI=1S/CH/h1H',
-        'geom': (('C', (0., 0., 0.)),
-                 ('H', (0., 0., 1.12 * phycon.ANG2BOHR))),
-        'graph': ({0: ('C', 1, None)}, {}),
-        'smiles': '[CH]',
-        'formula': {'C': 1, 'H': 1},
-    },
-    'InChI=1S/CF/c1-2': {
-        'inchi': 'InChI=1S/CF/c1-2',
-        'geom': (('C', (0., 0., 0.)),
-                 ('F', (0., 0., 1.27 * phycon.ANG2BOHR))),
-        'graph': ({0: ('C', 0, None), 1: ('F', 0, None)},
-                  {frozenset({0, 1}): (1, None)}),
-        'smiles': '[C]F',
-        'formula': {'C': 1, 'F': 1},
-    },
-    'InChI=1S/CCl/c1-2': {
-        'inchi': 'InChI=1S/CCl/c1-2',
-        'geom': (('C', (0., 0., 0.)),
-                 ('Cl', (0., 0., 1.65 * phycon.ANG2BOHR))),
-        'graph': ({0: ('C', 0, None), 1: ('Cl', 0, None)},
-                  {frozenset({0, 1}): (1, None)}),
-        'smiles': '[C]Cl',
-        'formula': {'C': 1, 'Cl': 1},
-    },
-    'InChI=1S/CBr/c1-2': {
-        'inchi': 'InChI=1S/CBr/c1-2',
-        'geom': (('C', (0., 0., 0.)),
-                 ('Br', (0., 0., 1.8 * phycon.ANG2BOHR))),
-        'graph': ({0: ('C', 0, None), 1: ('Br', 0, None)},
-                  {frozenset({0, 1}): (1, None)}),
-        'smiles': '[C]Br',
-        'formula': {'C': 1, 'Br': 1},
-    },
-    'InChI=1S/CI/c1-2': {
-        'inchi': 'InChI=1S/CI/c1-2',
-        'geom': (('C', (0., 0., 0.)),
-                 ('I', (0., 0., 1.8 * phycon.ANG2BOHR))),
-        'graph': ({0: ('C', 0, None), 1: ('I', 0, None)},
-                  {frozenset({0, 1}): (1, None)}),
-        'smiles': '[C]I',
-        'formula': {'C': 1, 'I': 1},
-    },
-}
 
 
 # # "constructor"
@@ -149,36 +78,16 @@ def recalculate(ich, stereo=False):
         :type stereo: bool
         :rtype: str
     """
-
-    # for now, just assert that we have no multi-component strings with
-    # hardcoded parts -- these are guaranteed to fail
-    ichs = split(ich)
-    if len(ichs) > 1:
-        if any(hardcoded_object_from_inchi_by_key('inchi', ich)
-               for ich in ichs):
-            ref_ichs = []
-            for ich_i in ichs:
-                ref_ichs.append(recalculate(ich_i))
-            ref_ichs.sort()
-            ret = join(ref_ichs)
-            return ret
-        # raise error.FailedInchiGenerationError
-
-    ret = hardcoded_object_from_inchi_by_key('inchi', ich)
-    if ret is None:
-        _options = '-SUU' if stereo else ''
-        rdm = rdkit_.from_inchi(ich)
-        if rdm is not None:
-            ret = rdkit_.to_inchi(rdm, options=_options, with_aux_info=False)
+    _options = '-SUU' if stereo else ''
+    rdm = rdkit_.from_inchi(ich)
+    if rdm is not None:
+        ret = rdkit_.to_inchi(rdm, options=_options, with_aux_info=False)
 
     return ret
 
 
 def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
     """ Return an InChI string in standard form.
-
-        Eventually we should just designate standard-form as standard InChI
-        ordering for all but the hardcoded exceptions, put at the end.
 
         :param ich: InChI string
         :type ich: str
@@ -559,28 +468,8 @@ def smiles(ich):
         :type smi: str
         :rtype: str
     """
-
-    # split it up to handle hard-coded molecules in multi-component inchis
-    ichs = split(ich)
-    smis = list(map(_connected_smiles, ichs))
-    smi = '.'.join(smis)
-    return smi
-
-
-def _connected_smiles(ich):
-    """ Convert a SMILES string into an InChI string.
-
-        :param smi: SMILES string
-        :type smi: str
-        :rtype: str
-    """
-
-    smi = hardcoded_object_from_inchi_by_key('smiles', ich)
-    if smi is None:
-        ich = standard_form(ich)
-        rdm = rdkit_.from_inchi(ich)
-        smi = rdkit_.to_smiles(rdm)
-
+    rdm = rdkit_.from_inchi(ich)
+    smi = rdkit_.to_smiles(rdm)
     return smi
 
 
@@ -591,12 +480,8 @@ def formula(ich):
         :type ich: str
         :rtype: dict[str: int]
     """
-
-    # split it up to handle hard-coded molecules in multi-component inchis
-    ichs = split(ich)
-    fmls = list(map(_connected_formula, ichs))
-    fml = functools.reduce(automol.formula.join, fmls)
-
+    rdm = rdkit_.from_inchi(ich)
+    fml = rdkit_.to_formula(rdm)
     return fml
 
 
@@ -605,24 +490,6 @@ def without_stereo(ich):
     """
 
     return standard_form(ich, stereo=False)
-
-
-def _connected_formula(ich):
-    """ Create a combined molecular from the formulas of a
-        multi-component InChI string.
-
-        :param ich: InChI string
-        :type ich: str
-        :rtype: dict[str: int]
-    """
-
-    fml = hardcoded_object_from_inchi_by_key('formula', ich)
-    if fml is None:
-        ich = standard_form(ich)
-        rdm = rdkit_.from_inchi(ich)
-        fml = rdkit_.to_formula(rdm)
-
-    return fml
 
 
 def connectivity(ich, parse_connection_layer=True, parse_h_layer=True):
@@ -864,49 +731,6 @@ def argsort(ichs):
     ref_ichs = list(map(standard_form, split(recalculate(join(ichs)))))
     idxs = tuple(numpy.argsort(list(map(ref_ichs.index, ichs))))
     return idxs
-
-
-# # hardcoded inchi workarounds
-def hardcoded_object_from_inchi_by_key(key, ich):
-    """ Obtains the requested structural identifier object
-        for certain hardcoded InChI string.
-
-        InChI strings: C, B, N, CH, CF, CCl, CBr, CI
-
-        :param key: key for structural identifier
-        :type key: str
-        :param ich: InChI string
-        :type ich: str
-        :rtype: obj
-    """
-
-    obj = None
-    for ich_, obj_dct in HARDCODED_INCHI_DCT.items():
-        if equivalent(ich, ich_):
-            obj = obj_dct[key]
-    return obj
-
-
-def hardcoded_object_to_inchi_by_key(key, obj, comp=operator.eq):
-    """ Convert a structural identifier to an InChI string object if that
-        InChI <=> relation is hardoded in automol.
-
-        InChI strings: C, B, N, CH, CF, CCl, CBr, CI
-
-        :param key: key for structural identifier
-        :type key: str
-        :param obj: obj for structural identifier
-        :type obj: str
-        :param ich: InChI string
-        :type ich: str
-        :rtype: str
-    """
-    ich = None
-    for ich_, obj_dct in HARDCODED_INCHI_DCT.items():
-        obj_ = obj_dct[key]
-        if comp(obj, obj_):
-            ich = ich_
-    return ich
 
 
 # # helpers

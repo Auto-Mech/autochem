@@ -31,12 +31,8 @@ def inchi(smi):
     """
     smi = without_resonance_stereo(smi)
 
-    ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
-        'smiles', smi, comp=_compare)
-
-    if ich is None:
-        rdm = rdkit_.from_smiles(smi)
-        ich = rdkit_.to_inchi(rdm)
+    rdm = rdkit_.from_smiles(smi)
+    ich = rdkit_.to_inchi(rdm)
     return ich
 
 
