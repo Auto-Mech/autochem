@@ -69,7 +69,7 @@ def from_data(fml_slyr, main_lyr_dct=None,
 
 
 # # recalculate/standardize
-def recalculate(ich, stereo=False):
+def recalculate(ich, stereo=False, racem=False):
     """ Recalculate an InChI string.
 
         :param ich: InChI string
@@ -79,6 +79,7 @@ def recalculate(ich, stereo=False):
         :rtype: str
     """
     _options = '-SUU' if stereo else ''
+    _options += '-SRac' if racem else ''
     rdm = rdkit_.from_inchi(ich)
     if rdm is not None:
         ret = rdkit_.to_inchi(rdm, options=_options, with_aux_info=False)
@@ -86,13 +87,15 @@ def recalculate(ich, stereo=False):
     return ret
 
 
-def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
+def standard_form(ich, stereo=True, racem=False, ste_dct=None, iso_dct=None):
     """ Return an InChI string in standard form.
 
         :param ich: InChI string
         :type ich: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param racem: parameter to designate a racemic mixture, if chiral
+        :type racem: bool
         :param ste_dct: a dictionary to overwrite stereo information; layers
             not overwritten will be left in tact; if the attempted overwrite
             fails, the function will return None
@@ -128,7 +131,8 @@ def standard_form(ich, stereo=True, ste_dct=None, iso_dct=None):
                     char_lyr_dct=char_dct,
                     ste_lyr_dct=ste_dct,
                     iso_lyr_dct=iso_dct)
-    ich = recalculate(ich)
+
+    ich = recalculate(ich, racem=(racem and is_chiral(ich)))
 
     if ich is not None:
         recalc_ste_dct = stereo_sublayers(ich)
@@ -492,6 +496,19 @@ def without_stereo(ich):
     return standard_form(ich, stereo=False)
 
 
+def racemic(ich):
+    """ If chiral, convert the InChI into a racemic mixture
+
+        This drops the /m layer and replaces /s1 with /s3, indicating a racemic
+        mixture. The chirality of the species is still implied by the presence
+        of the /s layer.
+
+        :param ich: InChI string
+        :type ich: str
+    """
+    return standard_form(ich, racem=True)
+
+
 def connectivity(ich, parse_connection_layer=True, parse_h_layer=True):
     """ Return the 'c' and 'h' layers of the connectivity string
 
@@ -553,9 +570,7 @@ def is_chiral(ich):
         :type ich: str
         :rtype: bool
     """
-    ste_dct = stereo_sublayers(ich)
-    iso_dct = isotope_sublayers(ich)
-    return ste_dct['s'] == '1' or iso_dct['s'] == '1'
+    return 's' in stereo_sublayers(ich) or 's' in isotope_sublayers(ich)
 
 
 def has_stereo(ich):
@@ -606,7 +621,7 @@ def same_connectivity(ich1, ich2):
 
 def equivalent(ich1, ich2):
     """ Determine if two InChI strings are equivalent. Currently
-        the srings are only checked up to the isotope sublayer.
+        the strings are only checked up to the isotope sublayer.
 
         :param ich1: InChI string 1
         :type ich1: str

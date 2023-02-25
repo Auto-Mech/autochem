@@ -362,7 +362,7 @@ def racemic(chi):
     """ If chiral, convert the ChI into a racemic mixture
 
         This drops the /m layer and replaces /s1 with /s3, indicating a racemic
-        mixture. The chirality of the molecule is still implied by the presence
+        mixture. The chirality of the species is still implied by the presence
         of the /s layer.
 
         :param chi: ChI string

@@ -269,12 +269,24 @@ def test__stereo():
         'InChI=1S/C3H3/c1-3-2/h1-3H'}
 
 
+def test__racemic():
+    """ test amchi.racemic
+    """
+    chi = 'InChI=1S/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m0/s1'
+    assert (inchi.racemic(chi) ==
+            'InChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/s3')
+
+    assert inchi.racemic(AR_ICH) == AR_ICH
+    assert inchi.racemic(C8H13O_ICH_NO_STEREO) == C8H13O_ICH_NO_STEREO
+
+
 if __name__ == '__main__':
     # test__stereo_atoms()
     # test__stereo_bonds()
     # test__stereo()
-    test__are_diastereomers()
+    # test__are_diastereomers()
     # test__is_enantiomer()
     # test__reflect()
     # test__filter_enantiomer_reactions()
-    test__stereo()
+    # test__stereo()
+    test__racemic()

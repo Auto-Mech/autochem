@@ -28,6 +28,7 @@ from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
 from automol.inchi.base._core import connectivity
 from automol.inchi.base._core import without_stereo
+from automol.inchi.base._core import racemic
 # # properties
 from automol.inchi.base._core import is_standard_form
 from automol.inchi.base._core import has_multiple_components
@@ -92,6 +93,7 @@ __all__ = [
     'formula',
     'connectivity',
     'without_stereo',
+    'racemic',
     # # properties
     'is_standard_form',
     'has_multiple_components',

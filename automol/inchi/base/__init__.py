@@ -25,6 +25,8 @@ from automol.inchi.base._core import reflect
 from automol.inchi.base._core import inchi_key
 from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
+from automol.inchi.base._core import without_stereo
+from automol.inchi.base._core import racemic
 from automol.inchi.base._core import connectivity
 # # properties
 from automol.inchi.base._core import is_standard_form
@@ -70,6 +72,8 @@ __all__ = [
     'inchi_key',
     'smiles',
     'formula',
+    'without_stereo',
+    'racemic',
     'connectivity',
     # # properties
     'is_standard_form',

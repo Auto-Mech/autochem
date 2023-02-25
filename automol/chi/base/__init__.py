@@ -27,6 +27,7 @@ from automol.chi.base._core import is_enantiomer
 from automol.chi.base._core import are_enantiomers
 from automol.chi.base._core import are_diastereomers
 from automol.chi.base._core import reflect
+from automol.chi.base._core import racemic
 # # setters
 from automol.amchi.base._core import with_inchi_prefix
 # # conversions
@@ -79,6 +80,7 @@ __all__ = [
     'are_enantiomers',
     'are_diastereomers',
     'reflect',
+    'racemic',
     # # setters
     'with_inchi_prefix',
     # # conversions
