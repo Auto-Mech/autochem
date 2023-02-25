@@ -379,6 +379,21 @@ def test__canonical_enantiomer():
         assert chi.is_canonical_enantiomer(ich)
 
 
+def test__racemic():
+    """ test amchi.racemic
+    """
+    ich = 'InChI=1S/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/m0/s1'
+    assert (chi.racemic(ich) ==
+            'InChI=1/C2H4F2O2/c3-1(5)2(4)6/h1-2,5-6H/t1-,2-/s3')
+
+    ach = 'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m0/s1'
+    assert (chi.racemic(ach) ==
+            'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/s3')
+
+    assert chi.racemic(AR_ICH) == AR_ICH
+    assert chi.racemic(C8H13O_ICH_NO_STEREO) == C8H13O_ICH_NO_STEREO
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__formula_string()

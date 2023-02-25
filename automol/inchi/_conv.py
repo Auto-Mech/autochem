@@ -8,7 +8,6 @@ import automol.amchi
 from automol.inchi.base import standard_form
 from automol.inchi.base import has_stereo
 from automol.inchi.base import equivalent
-from automol.inchi.base import hardcoded_object_from_inchi_by_key
 
 
 # # conversions
@@ -21,9 +20,7 @@ def graph(ich, stereo=True):
         :type stereo: bool
         :rtype: automol molecular graph
     """
-    gra = hardcoded_object_from_inchi_by_key('graph', ich)
-    if gra is None:
-        gra = automol.amchi.graph(ich, stereo=stereo)
+    gra = automol.amchi.graph(ich, stereo=stereo)
     return gra
 
 
@@ -36,9 +33,7 @@ def geometry(ich, check=True):
         :type check: bool
         :rtype: automol molecular geometry data structure
     """
-    geo = hardcoded_object_from_inchi_by_key('geom', ich)
-    if geo is None:
-        geo = automol.amchi.geometry(ich, check=check)
+    geo = automol.amchi.geometry(ich, check=check)
     return geo
 
 
@@ -52,11 +47,7 @@ def conformers(ich, nconfs=1):
         :type: int
         :rtype: automol molecular geometry data structure
     """
-    geo = hardcoded_object_from_inchi_by_key('geom', ich)
-    if geo is None:
-        geos = automol.amchi.conformers(ich, nconfs=nconfs)
-    else:
-        geos = [geo] * nconfs
+    geos = automol.amchi.conformers(ich, nconfs=nconfs)
     return geos
 
 

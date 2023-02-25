@@ -95,8 +95,7 @@ def prefix(chi):
 
 
 def is_enantiomer(chi, iso=True):
-    """ If this is an enantiomer, flip to the other enantiomer by changing the
-        m-layer
+    """ Determine if this ChI is chiral (has a non-superimposable mirror image).
 
         :param chi: ChI string
         :type chi: str
@@ -175,6 +174,26 @@ def reflect(chi):
         ret = automol.amchi.base.reflect(chi)
     elif pfx == 'InChI':
         ret = automol.inchi.base.reflect(chi)
+    else:
+        raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
+    return ret
+
+
+def racemic(chi):
+    """ If chiral, convert the ChI into a racemic mixture
+
+        This drops the /m layer and replaces /s1 with /s3, indicating a racemic
+        mixture. The chirality of the species is still implied by the presence
+        of the /s layer.
+
+        :param chi: ChI string
+        :type chi: str
+    """
+    pfx = prefix(chi)
+    if pfx == 'AMChI':
+        ret = automol.amchi.base.racemic(chi)
+    elif pfx == 'InChI':
+        ret = automol.inchi.base.racemic(chi)
     else:
         raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
     return ret

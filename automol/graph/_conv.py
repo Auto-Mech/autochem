@@ -193,13 +193,8 @@ def inchi(gra, stereo=True):
         :rtype: str
     """
     smi = smiles(gra, stereo=stereo, res_stereo=False)
-
-    ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
-        'smiles', smi, comp=_compare_smiles)
-
-    if ich is None:
-        rdm = rdkit_.from_smiles(smi)
-        ich = rdkit_.to_inchi(rdm)
+    rdm = rdkit_.from_smiles(smi)
+    ich = rdkit_.to_inchi(rdm)
     return ich
 
 

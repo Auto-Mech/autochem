@@ -214,18 +214,14 @@ def inchi_with_sort(geo, stereo=True, gra=None):
             connected component (components in multi-component InChI ordering)
         :rtype: (str, tuple[tuple[int]])
     """
-    ich = automol.inchi.base.hardcoded_object_to_inchi_by_key(
-        'geom', geo, comp=_compare)
-    nums_lst = None
-    if ich is None:
-        gra = connectivity_graph(geo) if gra is None else gra
-        if not stereo:
-            geo = None
-            geo_idx_dct = None
-        else:
-            geo_idx_dct = dict(enumerate(range(count(geo))))
-        ich, nums_lst = automol.graph.inchi_with_sort_from_geometry(
-            gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
+    gra = connectivity_graph(geo) if gra is None else gra
+    if not stereo:
+        geo = None
+        geo_idx_dct = None
+    else:
+        geo_idx_dct = dict(enumerate(range(count(geo))))
+    ich, nums_lst = automol.graph.inchi_with_sort_from_geometry(
+        gra=gra, geo=geo, geo_idx_dct=geo_idx_dct)
 
     return ich, nums_lst
 

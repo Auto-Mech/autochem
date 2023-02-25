@@ -9,6 +9,7 @@ autoparse. It will be much cleaner.
 
 import itertools
 import functools
+import warnings
 from collections import abc
 import pyparsing as pp
 import numpy
@@ -78,7 +79,7 @@ def from_data(fml_str, main_lyr_dct=None,
 
 
 # # recalculate/standardize
-def standard_form(chi, stereo=True, ste_dct=None, iso_dct=None):
+def standard_form(chi, stereo=True, racem=False, ste_dct=None, iso_dct=None):
     """ Return a ChI string in standard form.
 
         Includes only the standard layers.
@@ -87,6 +88,8 @@ def standard_form(chi, stereo=True, ste_dct=None, iso_dct=None):
         :type chi: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param racem: parameter to designate a racemic mixture, if chiral
+        :type racem: bool
         :param ste_dct: a dictionary to overwrite stereo information; layers
             not overwritten will be left in tact; if the attempted overwrite
             fails, the function will return None
@@ -117,6 +120,15 @@ def standard_form(chi, stereo=True, ste_dct=None, iso_dct=None):
     if extra_iso_dct is not None:
         iso_dct.update(extra_iso_dct)
 
+    if racem:
+        if 'm' in ste_dct:
+            ste_dct.pop('m')
+            ste_dct['s'] = '3'
+
+        if 'm' in iso_dct:
+            iso_dct.pop('m')
+            iso_dct['s'] = '3'
+
     chi = from_data(fml_slyr,
                     main_lyr_dct=main_dct,
                     char_lyr_dct=char_dct,
@@ -124,7 +136,8 @@ def standard_form(chi, stereo=True, ste_dct=None, iso_dct=None):
                     iso_lyr_dct=iso_dct)
 
     # Make sure multi-component ChIs are properly sorted
-    chi = join(split(chi))
+    if has_multiple_components(chi):
+        chi = join(split(chi))
 
     return chi
 
@@ -343,6 +356,19 @@ def without_stereo(chi):
     """
 
     return standard_form(chi, stereo=False)
+
+
+def racemic(chi):
+    """ If chiral, convert the ChI into a racemic mixture
+
+        This drops the /m layer and replaces /s1 with /s3, indicating a racemic
+        mixture. The chirality of the species is still implied by the presence
+        of the /s layer.
+
+        :param chi: ChI string
+        :type chi: str
+    """
+    return standard_form(chi, racem=True)
 
 
 def connectivity(chi, parse_connection_layer=True, parse_h_layer=True):
@@ -813,7 +839,8 @@ def has_multiple_components(chi):
         :type chi: str
         :rtype: bool
     """
-    return len(split(chi)) > 1
+    fstr = formula_string(chi)
+    return ';' in chi or '*' in chi or '.' in fstr or str.isdigit(fstr[0])
 
 
 def has_stereo(chi):
@@ -867,14 +894,12 @@ def is_chiral(chi, iso=True):
         :type chi: str
         :param iso: Include isotope stereochemistry?
         :type iso: bool
-        :returns: whether or not the ChI is inverted; returns None if not an
-            enantiomer
+        :returns: True if the ChI is chiral, False if not
         :rtype: bool
     """
-    ret = automol.amchi.base.is_inverted_enantiomer(chi) in (True, False)
+    ret = 's' in stereo_layers(chi)
     if iso:
-        ret |= (automol.amchi.base.is_inverted_isotope_enantiomer(chi)
-                in (True, False))
+        ret |= 's' in isotope_layers(chi)
     return ret
 
 
@@ -936,14 +961,18 @@ def split(chi):
     char_dct = charge_layers(chi)
     ste_dct = stereo_layers(chi)
     iso_dct = isotope_layers(chi)
-    fml_strs = _split_layer_string(
+    fml_strs = split_layer_string(
         fml_str, count_sep_ptt='', sep_ptt=app.escape('.'))
     count = len(fml_strs)
 
-    main_dcts = _split_layers(main_dct, count)
-    char_dcts = _split_layers(char_dct, count)
-    ste_dcts = _split_layers(ste_dct, count)
-    iso_dcts = _split_layers(iso_dct, count)
+    main_dcts, _ = split_layers(main_dct, count)
+    char_dcts, _ = split_layers(char_dct, count)
+    ste_dcts, warn_msg1 = split_layers(ste_dct, count)
+    iso_dcts, warn_msg2 = split_layers(iso_dct, count)
+
+    warn_msg = warn_msg1 if warn_msg1 else warn_msg2
+    if warn_msg:
+        warnings.warn(f"\n{chi}\n{warn_msg}")
 
     chis = tuple(from_data(fml_str=fml_str,
                            main_lyr_dct=main_dct,
@@ -971,11 +1000,15 @@ def join(chis, sort=True):
         chis = sorted_(chis)
 
     fml_strs = list(map(formula_string, chis))
-    fml_str = _join_layer_strings(fml_strs, count_sep='', sep='.')
-    main_dct = _join_layers(list(map(main_layers, chis)))
-    char_dct = _join_layers(list(map(charge_layers, chis)))
-    ste_dct = _join_layers(list(map(stereo_layers, chis)))
-    iso_dct = _join_layers(list(map(isotope_layers, chis)))
+    fml_str = join_layer_strings(fml_strs, count_sep='', sep='.')
+    main_dct, _ = join_layers(list(map(main_layers, chis)))
+    char_dct, _ = join_layers(list(map(charge_layers, chis)))
+    ste_dct, warn_msg1 = join_layers(list(map(stereo_layers, chis)))
+    iso_dct, warn_msg2 = join_layers(list(map(isotope_layers, chis)))
+
+    warn_msg = warn_msg1 if warn_msg1 else warn_msg2
+    if warn_msg:
+        warnings.warn(f"\n{chis}\n{warn_msg}")
 
     return from_data(fml_str=fml_str,
                      main_lyr_dct=main_dct,
@@ -1061,6 +1094,138 @@ def version_pattern():
         :rtype: str
     """
     return _version_pattern()
+
+
+def join_layers(dcts):
+    """ Join all of the components of a ChI layer
+
+        For the s layer, the highest value is chosen.
+
+        Warning: For racemic mixtures with /s3 layers, there is a potential for
+        corruption/loss of information, because it is no longer possible to
+        tell if they are chiral or not from the /m layer.
+
+        :param dcts: layer components, grouped by prefix
+        :type dcts: tuple[dict[str: str]]
+        :returns: the joined layer dictionary, along with a warning message
+        :rtype: dict[str: str], str
+    """
+
+    pfxs = sorted(functools.reduce(set.union, map(set, dcts)))
+    dcts = [dict_.by_key(dct, pfxs, fill_val='') for dct in dcts]
+    lyrs_lst = [[dct[pfx] for dct in dcts] for pfx in pfxs]
+    dct = {pfx: (join_layer_strings(lyrs) if pfx not in 'ms' else
+                 _join_m_layer_strings(lyrs) if pfx != 's' else
+                 _join_s_layer_strings(lyrs))
+           for pfx, lyrs in zip(pfxs, lyrs_lst)}
+
+    warn_msg = ''
+    if 's' in dct and dct['s'] == '3':
+        if any(('t' in d and ',' in d['t'] and 'm' not in d) for d in dcts):
+            warn_msg = ("Potential loss/corruption of information!\n"
+                        "Potentially achiral species are being joined under "
+                        "an /s3 layer!")
+
+    return dct, warn_msg
+
+
+def split_layers(dct, count):
+    """ Split a multi-component layer dictionary into separate ones
+
+        See warning in join_layers doc string about s layers. If splitting from
+        a string with an /s3 layer, there is no way to determine which species
+        with /t layers are chiral or not (without doing a full recalculation).
+        All species with /t stereochemistry will inherit the /s3 layer.
+
+        :param dct: A (potentially) multi-component layer dictionary
+        :type dct: dict[str: str]
+        :returns: the split layer dictionaries, along with a warning message to
+            catch potential loss/corruption of information.
+        :rtype: tuple[dict[str: str]], str
+    """
+    warn_msg = ''
+
+    if not dct:
+        dcts = ({},) * count
+    else:
+        sval = dct.pop('s') if 's' in dct else ''
+        pfxs = sorted(dct.keys())
+        lyrs_lst = [
+            split_layer_string(dct[pfx]) if pfx != 'm'
+            else _split_m_layer_string(dct[pfx]) for pfx in pfxs]
+        assert all(len(lyrs) == count for lyrs in lyrs_lst)
+        dcts = list({pfx: lyr for pfx, lyr in zip(pfxs, lyrs) if lyr}
+                    for lyrs in zip(*lyrs_lst))
+        for dct_ in dcts:
+            if 'm' in dct_ and dct_['m'] == '.':
+                dct_.pop('m')
+            if 'm' in dct:
+                dct_['s'] = sval
+            if sval == '3' and 't' in dct_:
+                dct_['s'] = sval
+                if ',' in dct_['t']:
+                    warn_msg = ("Potential loss/corruption of information!\n"
+                                "Potentially achiral species are being split "
+                                "from under an /s3 layer.\n"
+                                "Any species with a /t layer will be marked "
+                                "as chiral!")
+    return dcts, warn_msg
+
+
+def join_layer_strings(lyrs, count_sep='*', sep=';'):
+    """ Join layer strings into one multi-component layer string.
+
+        :param lyrs: ChI layer contents to join
+        :type lyrs: tuple[str]
+        :param count_sep: delimiter for putting numbers before a repeated
+            component, e.g. 2*H2O
+        :type count_sep: str
+        :param sep: delimiter between components, e.g. H2O;CH4
+        :type sep: str
+    """
+    def _s(count, lyr):
+        if count > 1 and lyr:
+            ret = ('{:d}' + count_sep + '{:s}').format(count, lyr)
+        elif lyr:
+            ret = lyr
+        else:
+            ret = sep * (count - 1)
+        return ret
+
+    counts, lyrs = zip(*[
+        (len(list(g)), lyr) for lyr, g in itertools.groupby(lyrs)])
+
+    lyr = sep.join([_s(count, lyr) for count, lyr in zip(counts, lyrs)])
+    return lyr
+
+
+def split_layer_string(lyr, count_sep_ptt=app.escape('*'),
+                       sep_ptt=app.escape(';')):
+    """ Split a multi-component layer string.
+
+        :param lyr: ChI layer contents to split
+        :type lyr: str
+        :param count_sep: delimiter for putting numbers before a repeated
+            component, e.g. 2*H2O
+        :type count_sep: str
+        :param sep: delimiter between components, e.g. H2O;CH4
+        :type sep: str
+    """
+    count_ptt = app.UNSIGNED_INTEGER
+    group_ptt = (app.STRING_START + app.capturing(count_ptt) + count_sep_ptt +
+                 app.capturing(app.zero_or_more(app.WILDCARD)))
+
+    def _expand_group(group_str):
+        if apf.has_match(group_ptt, group_str):
+            count, part = ap_cast(apf.first_capture(group_ptt, group_str))
+            parts = [part] * count
+        else:
+            parts = [group_str]
+        return parts
+
+    parts = tuple(
+        itertools.chain(*map(_expand_group, apf.split(sep_ptt, lyr))))
+    return parts
 
 
 # # common multilayer properties
@@ -1225,26 +1390,9 @@ def _layer_pattern(key_ptt='', val_ptt=NONSLASHES):
 
 
 # # split/join helpers
-def _join_layers(dcts):
-    """ Join all of the components of a ChI layer.
-
-        :param dcts: layer components, grouped by prefix
-        :type dct: dict[str: str]
-        :rtype: dict[str: str]
-    """
-
-    pfxs = sorted(functools.reduce(set.union, map(set, dcts)))
-    if 's' in pfxs:
-        pfxs.remove('s')
-    dcts = [dict_.by_key(dct, pfxs, fill_val='') for dct in dcts]
-    lyrs_lst = [[dct[pfx] for dct in dcts] for pfx in pfxs]
-    dct = {pfx: (_join_layer_strings(lyrs) if pfx != 'm' else
-                 _join_m_layer_strings(lyrs))
-           for pfx, lyrs in zip(pfxs, lyrs_lst)}
-    if 'm' in dct:
-        dct['s'] = '1'
-
-    return dct
+def _join_s_layer_strings(s_lyrs):
+    s_lyrs = [s_lyr for s_lyr in s_lyrs if s_lyr]
+    return max(s_lyrs, key=int)
 
 
 def _join_m_layer_strings(m_lyrs):
@@ -1252,76 +1400,8 @@ def _join_m_layer_strings(m_lyrs):
     return ''.join(m_lyrs)
 
 
-def _join_layer_strings(lyrs, count_sep='*', sep=';'):
-    """ Join layer strings into one multi-component layer string.
-
-        :param lyrs: layers to join
-        :type lyrs: tuple(str)?
-        :param count_sep: delimiter for ???
-        :type count_sep: str
-        :param sep: delimiter for ???
-        :type sep: str
-    """
-    def _s(count, lyr):
-        if count > 1 and lyr:
-            ret = ('{:d}' + count_sep + '{:s}').format(count, lyr)
-        elif lyr:
-            ret = lyr
-        else:
-            ret = sep * (count - 1)
-        return ret
-
-    counts, lyrs = zip(*[
-        (len(list(g)), lyr) for lyr, g in itertools.groupby(lyrs)])
-
-    lyr = sep.join([_s(count, lyr) for count, lyr in zip(counts, lyrs)])
-    return lyr
-
-
-def _split_layers(dct, count):
-    """ split a multi-component layer dictionary into separate ones
-    """
-    if dct:
-        pfxs = sorted(dct.keys())
-        if 's' in pfxs:
-            pfxs.remove('s')
-        lyrs_lst = [
-            _split_layer_string(dct[pfx]) if pfx != 'm'
-            else _split_m_layer_string(dct[pfx]) for pfx in pfxs]
-        assert all(len(lyrs) == count for lyrs in lyrs_lst)
-        dcts = list({pfx: lyr for pfx, lyr in zip(pfxs, lyrs) if lyr}
-                    for lyrs in zip(*lyrs_lst))
-        for dct_ in dcts:
-            if 'm' in dct_ and dct_['m'] == '.':
-                dct_.pop('m')
-            if 'm' in dct:
-                dct_['s'] = '1'
-    else:
-        return ({},) * count
-    return dcts
-
-
 def _split_m_layer_string(m_lyr):
     return tuple(m_lyr)
-
-
-def _split_layer_string(lyr, count_sep_ptt=app.escape('*'),
-                        sep_ptt=app.escape(';')):
-    count_ptt = app.UNSIGNED_INTEGER
-    group_ptt = (app.STRING_START + app.capturing(count_ptt) + count_sep_ptt +
-                 app.capturing(app.zero_or_more(app.WILDCARD)))
-
-    def _expand_group(group_str):
-        if apf.has_match(group_ptt, group_str):
-            count, part = ap_cast(apf.first_capture(group_ptt, group_str))
-            parts = [part] * count
-        else:
-            parts = [group_str]
-        return parts
-
-    parts = tuple(
-        itertools.chain(*map(_expand_group, apf.split(sep_ptt, lyr))))
-    return parts
 
 
 if __name__ == '__main__':

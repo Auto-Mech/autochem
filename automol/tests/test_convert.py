@@ -397,11 +397,35 @@ def test__multiple_rings():
     assert chi == ref_chi
 
 
+def test__weird_valencies():
+    """ atoms with more than two unpaired electrons used to cause problems
+    """
+    ich = 'InChI=1S/C'
+    geo = (('C', (0., 0., 0.)),)
+    gra = ({0: ('C', 0, None)}, {})
+    smi = '[C]'
+
+    assert automol.smiles.inchi(smi) == ich
+    assert automol.geom.inchi(geo) == ich
+    assert automol.graph.inchi(gra) == ich
+
+    ich = 'InChI=1S/CF/c1-2'
+    geo = (('C', (0., 0., 0.)), ('F', (0., 0., 2.4)))
+    gra = ({0: ('C', 0, None), 1: ('F', 0, None)},
+           {frozenset({0, 1}): (1, None)})
+    smi = '[C]F'
+
+    assert automol.smiles.inchi(smi) == ich
+    assert automol.geom.inchi(geo) == ich
+    assert automol.graph.inchi(gra) == ich
+
+
 if __name__ == '__main__':
-    test__geom__with_stereo()
-    test__graph__with_stereo()
-    test__smiles__with_stereo()
+    # test__geom__with_stereo()
+    # test__graph__with_stereo()
+    # test__smiles__with_stereo()
     # test__graph__misc()
     # test__inchi_geometry()
     # test__inchi_conformers()
     # test__multiple_rings()
+    test__weird_valencies()
