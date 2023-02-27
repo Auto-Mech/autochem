@@ -27,6 +27,7 @@ from automol.chi.base._core import are_enantiomers
 from automol.chi.base._core import are_diastereomers
 from automol.chi.base._core import reflect
 from automol.chi.base._core import racemic
+from automol.chi.base._core import without_stereo
 # # setters
 from automol.amchi.base._core import with_inchi_prefix
 # # conversions
@@ -34,7 +35,6 @@ from automol.amchi.base._core import with_inchi_prefix
 # from automol.chi.base._core import smiles     # below in L4
 from automol.amchi.base import formula
 from automol.amchi.base import connectivity
-from automol.amchi.base import without_stereo
 # # properties
 # # # formula layer
 from automol.amchi.base._core import symbols
@@ -130,6 +130,7 @@ __all__ = [
     'are_diastereomers',
     'reflect',
     'racemic',
+    'without_stereo',
     # # setters
     'with_inchi_prefix',
     # # conversions
