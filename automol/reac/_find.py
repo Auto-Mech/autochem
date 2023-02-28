@@ -492,6 +492,62 @@ def additions(rct_gras, prd_gras):
     return ts_unique(rxns)
 
 
+def double_insertion(rct_gras, prd_gras):
+    """ two bond additions
+    """
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
+
+    rxns = []
+
+    if len(rct_gras) == 2 and len(prd_gras) == 1:
+        rct_gras = sort_reagents(rct_gras)
+        prd_gra, = prd_gras
+        x_gra, y_gra = rct_gras
+        x_atm_keys = unsaturated_atom_keys(x_gra)
+        
+        if not len(x_atm_keys) > 1:
+            x_gra, y_gra = y_gra, x_gra
+            x_atm_keys = unsaturated_atom_keys(x_gra)
+        if len(x_atm_keys) > 1:
+            brk_bnd_candidates = bond_keys(y_gra)
+            for brk_bnd_key in brk_bnd_candidates:
+                y_gra_tmp = remove_bonds(y_gra, (brk_bnd_key,))
+                permut = itertools.permutations(x_atm_keys, 2)
+                frm_bnd_pairs_lst = []
+                for comb in permut:
+                    zipped = zip(comb, brk_bnd_key)
+                    frm_bnd_pairs_lst.append(list(zipped))
+                for frm_bnd_pairs in frm_bnd_pairs_lst:
+                    for x_atm_key, y_atm_key in frm_bnd_pairs:
+                        xy_gra = add_bonds(
+                            union(x_gra, y_gra_tmp), frm_bnd_pairs)
+                    
+                    iso_dct = isomorphism(xy_gra, prd_gra)
+                    if iso_dct:
+                        rcts_gra = union_from_sequence(rct_gras)
+                        prds_gra = prd_gra
+                        brk_atm_i, brk_atm_j = brk_bnd_key
+                        b_brk_bnd_key_i = (iso_dct[frm_bnd_pairs[0][0]], iso_dct[frm_bnd_pairs[0][1]])
+                        b_brk_bnd_key_j = (iso_dct[frm_bnd_pairs[1][0]], iso_dct[frm_bnd_pairs[1][1]])
+                        b_frm_bnd_key = (iso_dct[brk_atm_i], iso_dct[brk_atm_j])
+                        forw_tsg = ts.graph(rcts_gra,
+                                            frm_bnd_keys=frm_bnd_pairs,
+                                            brk_bnd_keys=(brk_bnd_key,))
+                        back_tsg = ts.graph(prds_gra,
+                                            brk_bnd_keys=[b_brk_bnd_key_i, b_brk_bnd_key_j],
+                                            frm_bnd_keys=(b_frm_bnd_key,))
+                        # Create the reaction object
+                        rxns.append(Reaction(
+                            rxn_cls=ReactionClass.Typ.DOUBLE_INSERTION,
+                            forw_tsg=forw_tsg,
+                            back_tsg=back_tsg,
+                            rcts_keys=list(map(atom_keys, rct_gras)),
+                            prds_keys=list(map(atom_keys, prd_gras)),
+                        ))
+    return ts_unique(rxns)
+
+
 def two_bond_additions(rct_gras, prd_gras):
     """ two bond additions
     """
@@ -686,7 +742,8 @@ def find(rct_gras, prd_gras):
         # bimolecular reactions
         hydrogen_abstractions,
         additions,
-        # two_bond_additions,
+        double_insertion,
+        #two_bond_additions,
         # insertions,  # not fully functional if elims broken
         substitutions,
     ]
