@@ -258,6 +258,7 @@ from automol.graph.base._func_group import amide_groups
 from automol.graph.base._func_group import nitro_groups
 from automol.graph.base._func_group import halide_groups
 from automol.graph.base._func_group import thiol_groups
+from automol.graph.base._func_group import sulfanyl_groups
 from automol.graph.base._func_group import methyl_groups
 from automol.graph.base._func_group import radical_dissociation_products
 # # helper functions
