@@ -401,3 +401,59 @@ class RxnParams:
             dup_counts['lind'] = 0
 
         return dups, dup_counts
+
+
+def multiply_factor(params, factor):
+    """ Multiply all rates by some factor
+    """
+    def single_form(params, form, factor):
+        if form == 'arr':
+            arr_tuples = params.arr
+            new_arr = fix_arr_tuples(arr_tuples, factor)
+            new_arr_dct = {'arr_tuples': new_arr}
+            new_params = RxnParams(arr_dct=new_arr_dct)
+        elif form == 'plog':
+            plog_dct = params.plog
+            new_plog_dct = {}
+            for pressure, arr_tuples in plog_dct.items():
+                new_arr = fix_arr_tuples(arr_tuples, factor)
+                new_plog_dct[pressure] = new_arr
+            new_params = RxnParams(plog_dct=new_plog_dct)
+        elif form == 'lind':
+            lind_dct = params.lind
+            new_highp = fix_arr_tuples(lind_dct['highp_arr'], factor)
+            new_lowp = fix_arr_tuples(lind_dct['lowp_arr'], factor)
+            new_lind_dct = {'highp_arr': new_highp, 'lowp_arr': new_lowp,
+                            'collid': lind_dct['collid']}
+            new_params = RxnParams(lind_dct=new_lind_dct)
+        elif form == 'troe':
+            troe_dct = params.troe
+            new_highp = fix_arr_tuples(troe_dct['highp_arr'], factor)
+            new_lowp = fix_arr_tuples(troe_dct['lowp_arr'], factor)
+            new_troe_dct = {'highp_arr': new_highp, 'lowp_arr': new_lowp,
+                            'collid': troe_dct['collid'],
+                            'troe_params': troe_dct['troe_params']}
+            new_params = RxnParams(troe_dct=new_troe_dct)
+        else:
+            raise NotImplementedError(f'{form} form not working yet')
+
+        return new_params
+
+    def fix_arr_tuples(old_arr_tuples, factor):
+        new_arr_tuples = []
+        for arr_tuple in old_arr_tuples:
+            new_arr_tuple = list(arr_tuple)
+            new_arr_tuple[0] *= factor
+            new_arr_tuples.append(new_arr_tuple)
+
+        return new_arr_tuples
+
+    forms = params.get_existing_forms()
+    for idx, form in enumerate(forms):
+        if idx == 0:
+            new_params = single_form(params, form, factor)
+        else:  # allows for more than one rate form; stupid, but general
+            curr_params = single_form(params, form, factor)
+            new_params.combine_objects(curr_params)
+
+    return new_params
