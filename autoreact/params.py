@@ -1,13 +1,31 @@
 """ Build and Manipulate RxnParams objects
-"""
 
+TODO: After confirming that one reaction can't simultaneously have multiple
+distinct parametriztaions, this class should be redesigned.
+
+class KineticParameters(object):
+
+    def __init__(self, type_, dict_):
+        '''
+            :param type_: The parametrization type. Options: 'arr', 'plog',
+                'che', 'troe', 'lind'.
+            :param dct: A dictionary of parameters corresponding to the
+                parametrization type.
+        '''
+        self.type = type_
+        self.dict = dict_
+"""
+import ast
 import numpy
+import pyparsing as pp
 
 
 class RxnParams:
     """ Stores and manipulates parameters that correspond to
         various functional form expressions used to represent
         reaction rate constants for some range of temperature and pressure
+
+        This is a horrendously designed class. Needs to be refactored.
     """
 
     def __init__(self, arr_dct=None, plog_dct=None, cheb_dct=None,
@@ -53,6 +71,36 @@ class RxnParams:
             self.set_troe(troe_dct)
         if lind_dct is not None:
             self.set_lind(lind_dct)
+
+    @classmethod
+    def from_string(cls, string):
+        """ re-generated an instance from a string representation
+        """
+        word = pp.Word(pp.alphas)
+        rest = pp.Regex('.*')
+        parser = (word + '(' + word('type') + ',' + rest('params'))
+        parse_dct = parser.parseString(string[:-1]).asDict()
+        type_ = parse_dct['type']
+        if type_ != 'arr':
+            raise NotImplementedError(f"Parameter type '{type_}' not "
+                                      f"yet implemented.")
+        params = ast.literal_eval(parse_dct['params'])
+        return cls(arr_dct={'arr_tuples': params})
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        """ Get a string representation of the parametrization
+        """
+        type_, dct = (('arr', self.arr) if self.arr is not None else
+                      ('plog', self.plog) if self.plog is not None else
+                      ('cheb', self.cheb) if self.cheb is not None else
+                      ('troe', self.troe) if self.troe is not None else
+                      ('lind', self.lind) if self.lind is not None else
+                      (None, None))
+        assert type_ is not None, 'No parametrization was assigned!'
+        return f"RxnParams({type_}, {str(dct)})"
 
     def set_arr(self, arr_dct):
         """ Sets Arrhenius parameters
