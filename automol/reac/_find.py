@@ -710,11 +710,7 @@ def find_from_inchis(rct_ichs, prd_ichs):
     prd_gras = list(map(automol.geom.connectivity_graph, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
-    rxns = find(rct_gras, prd_gras)
-    rxn_classes = [rxn.class_ for rxn in rxns]
-    rxn_classes = [c for i, c in enumerate(rxn_classes)
-                   if c not in rxn_classes[:i]]
-    return tuple(rxn_classes)
+    return find(rct_gras, prd_gras)
 
 
 # helpers
