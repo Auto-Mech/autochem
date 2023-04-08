@@ -1440,4 +1440,5 @@ if __name__ == '__main__':
     # test__species__graph_conversion()
     # test__canonical()
     # test__calculate_priorities_and_assign_parities()
-    test__smiles()
+    # test__smiles()
+    test__kekules()

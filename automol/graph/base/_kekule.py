@@ -591,31 +591,30 @@ def pi_system_kekules_bond_orders_brute_force(gra, pi_keys, log=False):
 
     spin_max = spin_min = sum(aus_dct.values())
 
+    # Allows no more than 2 copies of a given key in the pool, to prohibit
+    # quadruple bonding for [C][C]
     bnd_pool = list(itertools.chain(*(
         itertools.repeat(k, min(bus_dct[k], 2)) for k in bnd_keys)))
 
-    inc_bkeys_iter = ((inc, bkeys) for inc in range(spin_max // 2, 0, -1)
-                      for bkeys in itertools.combinations(bnd_pool, inc))
-
     bnd_ord_dcts = []
     niter = 0
-    for inc, bkeys in inc_bkeys_iter:
-        niter += 1
+    for inc in range(spin_max // 2, 0, -1):
         spin = spin_max - inc * 2
 
         if spin > spin_min:
             break
 
-        akeys = list(itertools.chain(*bkeys))
-        excess = next(
-            (k for k in set(akeys) if aus_dct[k] < akeys.count(k)), None)
-        if excess is None:
-            spin_min = spin
-            bnd_ord_dct = {k: 1 + bkeys.count(k) for k in set(bkeys)}
-            if bnd_ord_dct not in bnd_ord_dcts:
-                bnd_ord_dcts.append(bnd_ord_dct)
-        else:
-            continue
+        for bkeys in itertools.combinations(bnd_pool, inc):
+            niter += 1
+
+            akeys = list(itertools.chain(*bkeys))
+            excess = next(
+                (k for k in set(akeys) if aus_dct[k] < akeys.count(k)), None)
+            if excess is None:
+                spin_min = spin
+                bnd_ord_dct = {k: 1 + bkeys.count(k) for k in set(bkeys)}
+                if bnd_ord_dct not in bnd_ord_dcts:
+                    bnd_ord_dcts.append(bnd_ord_dct)
 
     if log:
         print(f"niter: {niter}")
