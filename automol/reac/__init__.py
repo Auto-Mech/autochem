@@ -44,7 +44,7 @@ from automol.reac._find import additions
 from automol.reac._find import insertions
 from automol.reac._find import substitutions
 from automol.reac._find import find
-from automol.reac._find import find_from_inchis
+from automol.reac._find import find_from_chi
 from automol.reac._find import intersystem_crossing
 # TS geometries
 from automol.reac._geom import ts_geometry
@@ -138,7 +138,7 @@ __all__ = [
     'insertions',
     'substitutions',
     'find',
-    'find_from_inchis',
+    'find_from_chi',
     'intersystem_crossing',
     # TS geometries
     'ts_geometry',
