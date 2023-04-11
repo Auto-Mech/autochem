@@ -74,6 +74,20 @@ def without_resonance_stereo(smi):
     return smi
 
 
+def reflect(smi):
+    """ If this SMILES has chiral centers, reflect them
+
+        :param smi: SMILES string
+        :type smi: str
+        :returns: A SMILES string with reflected chiral centers
+        :rtype: str
+    """
+    smi = smi.replace('@@', '&')
+    smi = smi.replace('@', '@@')
+    smi = smi.replace('&', '@')
+    return smi
+
+
 # # split/join
 def split(smi):
     """ Split a SMILES string into connected components
@@ -408,38 +422,17 @@ def _neighbor_key_and_direction_from_dict(key1, key2, direc_dct):
 
 
 # if __name__ == '__main__':
-#     import automol
-#
 #     SMIS = [
-#         # r'[C@H](N)(O)(F)',
-#         # r'[C@H]1(OO2)C[C@H]12',
-#         # r'[C@H]1(OO2)C[C@@H]12',
-#         # r'[C@@H]1(OO2)C[C@H]12',
-#         # r'[C@@H]1(OO2)C[C@@H]12',
-#         # r'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O',
-#         # r'F\C=C\F',
+#         r'[C@H](N)(O)(F)',
+#         r'[C@H]1(OO2)C[C@H]12',
+#         r'[C@H]1(OO2)C[C@@H]12',
+#         r'[C@@H]1(OO2)C[C@H]12',
+#         r'[C@@H]1(OO2)C[C@@H]12',
+#         r'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O',
+#         r'F\C=C\F',
 #         r'[H]/N=N/N=N\[H]',
 #         r'C1CCCCCCCCCC/N=N/1',
 #     ]
-#
+# 
 #     for SMI in SMIS:
-#         SYMB_DCT, BND_ORD_DCT, ATM_PAR_DCT, BND_PAR_DCT = (
-#                 parse_connected_molecule_properties(SMI))
-#
-#         LOC_GRA = automol.graph.from_data(
-#             SYMB_DCT, BND_ORD_DCT.keys(),
-#             bnd_ord_dct=BND_ORD_DCT,
-#             atm_ste_par_dct=ATM_PAR_DCT,
-#             bnd_ste_par_dct=BND_PAR_DCT,
-#         )
-#         GRA = automol.graph.from_local_stereo(LOC_GRA)
-#         # print(automol.graph.string(GRA))
-#
-#         RSMI = automol.graph.smiles(GRA)
-#         print(RSMI)
-#
-#         REF_ICH = automol.smiles.inchi(SMI)
-#         ICH = automol.smiles.inchi(RSMI)
-#
-#         assert ICH == REF_ICH, f"\n{ICH} !=\n{REF_ICH}"
-#         print(f"\n{ICH} ==\n{REF_ICH}")
+#         print(reflect(SMI))
