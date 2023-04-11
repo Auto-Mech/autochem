@@ -5,6 +5,7 @@ SMILES, with an extension for resonance double-bond stereo.
 # L2
 # # conversions
 from automol.smiles.base._core import without_resonance_stereo
+from automol.smiles.base._core import reflect
 # # split/join
 from automol.smiles.base._core import split
 from automol.smiles.base._core import join
@@ -23,6 +24,7 @@ __all__ = [
     # L2
     # # conversions
     'without_resonance_stereo',
+    'reflect',
     # # split/join
     'split',
     'join',
