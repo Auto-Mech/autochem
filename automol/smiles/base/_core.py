@@ -433,6 +433,6 @@ def _neighbor_key_and_direction_from_dict(key1, key2, direc_dct):
 #         r'[H]/N=N/N=N\[H]',
 #         r'C1CCCCCCCCCC/N=N/1',
 #     ]
-# 
+#
 #     for SMI in SMIS:
 #         print(reflect(SMI))
