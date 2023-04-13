@@ -3,6 +3,7 @@
 # base reaction class
 from automol.reac._reac import Reaction
 from automol.reac._reac import chi
+from automol.reac._reac import inchi
 from automol.reac._reac import smiles
 from automol.reac._reac import rdkit_reaction
 from automol.reac._reac import display
@@ -97,6 +98,7 @@ __all__ = [
     # base reaction class
     'Reaction',
     'chi',
+    'inchi',
     'smiles',
     'rdkit_reaction',
     'display',
