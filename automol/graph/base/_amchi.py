@@ -23,10 +23,7 @@ from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
 from automol.graph.base._canon import canonical_enantiomer_with_keys
-from automol.graph.base._canon import refine_priorities
 from automol.graph.base._canon import break_priority_ties
-from automol.graph.base._canon import stereogenic_atom_keys
-from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._kekule import kekules_bond_orders_collated
 from automol.graph.base._kekule import vinyl_radical_atom_keys
 
@@ -132,32 +129,7 @@ def inchi_is_bad(gra, ich):
     ste_atm_keys = atom_stereo_keys(gra)
     ste_bnd_keys = bond_stereo_keys(gra)
 
-    pri_dct = refine_priorities(gra)
-    stg_atm_keys = stereogenic_atom_keys(gra, pri_dct=pri_dct)
-    stg_bnd_keys = stereogenic_bond_keys(gra, pri_dct=pri_dct)
-
     is_bad = False
-
-    # If there is any stereo, check for a mismatch or for missing stereo
-    if automol.amchi.base.has_stereo(ich):
-        wrong_natm_ste = (len(ste_atm_keys) !=
-                          len(automol.amchi.base.atom_stereo_parities(ich)))
-        wrong_nbnd_ste = (len(ste_bnd_keys) !=
-                          len(automol.amchi.base.bond_stereo_parities(ich)))
-
-        # Check if there is any unassigned stereo
-
-        missing_atm_ste = bool(stg_atm_keys)
-        missing_bnd_ste = bool(stg_bnd_keys)
-
-        is_bad |= (wrong_natm_ste or
-                   wrong_nbnd_ste or
-                   missing_atm_ste or
-                   missing_bnd_ste)
-
-    # Now, check specific types of stereo:
-    ste_atm_keys |= stg_atm_keys
-    ste_bnd_keys |= stg_bnd_keys
 
     # 1. Stereogenic nitrogen atoms
     nit_atm_keys = atom_keys(gra, sym='N')

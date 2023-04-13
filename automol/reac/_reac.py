@@ -154,6 +154,24 @@ def chi(rxn, stereo=True):
     return (rct_chis, prd_chis)
 
 
+def inchi(rxn, stereo=True):
+    """ Convert the reaction object to ChIs
+
+        :param rxn: the reaction object
+        :param stereo: Include stereo?
+        :type stereo: bool
+        :param res_stereo: allow resonant double-bond stereo?
+        :type res_stereo: bool
+        :returns: ChI strings for the reactants and products
+        :rtype: (tuple[str], tuple[str])
+    """
+    rct_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
+                     for gra in reactant_graphs(rxn))
+    prd_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
+                     for gra in product_graphs(rxn))
+    return (rct_ichs, prd_ichs)
+
+
 def smiles(rxn, stereo=True, res_stereo=True, exp_singles=False):
     """ Convert the reaction object to SMILESs
 
