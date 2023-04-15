@@ -94,26 +94,6 @@ def prefix(chi):
     return automol.amchi.base.prefix(chi)
 
 
-def is_enantiomer(chi, iso=True):
-    """ Determine if this ChI is chiral (has a non-superimposable mirror image).
-
-        :param chi: ChI string
-        :type chi: str
-        :param iso: Include isotope stereochemistry?
-        :type iso: bool
-        :returns: the other enantiomer
-        :rtype: bool
-    """
-    pfx = prefix(chi)
-    if pfx == 'AMChI':
-        ret = automol.amchi.base.is_chiral(chi, iso=iso)
-    elif pfx == 'InChI':
-        ret = automol.inchi.base.is_enantiomer(chi, iso=iso)
-    else:
-        raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
-    return ret
-
-
 def are_enantiomers(chi_a, chi_b, log=False):
     """ Assess if ChI string for two species are enantiomers of one another.
 

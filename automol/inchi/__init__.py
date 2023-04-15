@@ -32,7 +32,6 @@ from automol.inchi.base._core import racemic
 # # properties
 from automol.inchi.base._core import is_standard_form
 from automol.inchi.base._core import has_multiple_components
-from automol.inchi.base._core import is_chiral
 from automol.inchi.base._core import has_stereo
 from automol.inchi.base._core import low_spin_multiplicity
 # # comparisons
@@ -97,7 +96,6 @@ __all__ = [
     # # properties
     'is_standard_form',
     'has_multiple_components',
-    'is_chiral',
     'has_stereo',
     'low_spin_multiplicity',
     # # comparisons

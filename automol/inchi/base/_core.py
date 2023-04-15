@@ -132,7 +132,7 @@ def standard_form(ich, stereo=True, racem=False, ste_dct=None, iso_dct=None):
                     ste_lyr_dct=ste_dct,
                     iso_lyr_dct=iso_dct)
 
-    ich = recalculate(ich, racem=(racem and is_chiral(ich)))
+    ich = recalculate(ich, racem=(racem and is_enantiomer(ich)))
 
     if ich is not None:
         recalc_ste_dct = stereo_sublayers(ich)
@@ -350,20 +350,20 @@ def unassigned_stereo_bonds(ich, iso=True, one_indexed=False):
 
 
 def is_enantiomer(ich, iso=True):
-    """ Is this InChI an enantiomer?
+    """ Is this InChI an enantiomer? (I.e., is it chiral?)
+
+        Determined based on whether or not the InChI has an s-layer.
 
         :param ich: InChI string
         :type ich: str
         :param iso: Include isotope stereochemistry?
         :type iso: bool
-        :returns: whether or not the InChI is enantiomeric
+        :returns: whether or not the InChI is an enantiomer
         :rtype: bool
     """
-    ste_dct = stereo_sublayers(ich)
-    ret = 'm' in ste_dct
+    ret = 's' in stereo_sublayers(ich)
     if iso:
-        iso_dct = isotope_sublayers(ich)
-        ret = ret or 'm' in iso_dct
+        ret |= 's' in isotope_sublayers(ich)
     return ret
 
 
@@ -561,16 +561,6 @@ def has_multiple_components(ich):
         :rtype: bool
     """
     return automol.amchi.base.has_multiple_components(ich)
-
-
-def is_chiral(ich):
-    """ Determine if the InChI string has chirality information.
-
-        :param ich: InChI string
-        :type ich: str
-        :rtype: bool
-    """
-    return 's' in stereo_sublayers(ich) or 's' in isotope_sublayers(ich)
 
 
 def has_stereo(ich):

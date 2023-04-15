@@ -887,14 +887,16 @@ def low_spin_multiplicity(chi):
     return mult
 
 
-def is_chiral(chi, iso=True):
-    """ Determine if this ChI is chiral (has a non-superimposable mirror image).
+def is_enantiomer(chi, iso=True):
+    """ Is this ChI an enantiomer? (I.e., is it chiral?)
 
-        :param chi: ChI string
-        :type chi: str
+        Determined based on whether or not the ChI has an s-layer.
+
+        :param ich: ChI string
+        :type ich: str
         :param iso: Include isotope stereochemistry?
         :type iso: bool
-        :returns: True if the ChI is chiral, False if not
+        :returns: whether or not the ChI is an enantiomer
         :rtype: bool
     """
     ret = 's' in stereo_layers(chi)
