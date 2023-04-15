@@ -17,6 +17,7 @@ from automol.amchi.base._core import isotope_layers
 from automol.amchi.base._core import with_inchi_prefix
 from automol.amchi.base._core import reflect
 from automol.amchi.base._core import canonical_enantiomer
+from automol.amchi.base._core import reflect_reaction
 from automol.amchi.base._core import canonical_enantiomer_reaction
 # # conversions
 from automol.amchi.base._core import formula
@@ -41,6 +42,7 @@ from automol.amchi.base._core import is_inverted_enantiomer
 from automol.amchi.base._core import is_canonical_enantiomer
 from automol.amchi.base._core import is_canonical_enantiomer_reaction
 from automol.amchi.base._core import is_canonical_reaction_direction
+from automol.amchi.base._core import is_enantiomer_reaction
 # # # isotope layers
 from automol.amchi.base._core import bond_isotope_stereo_parities
 from automol.amchi.base._core import atom_isotope_stereo_parities
@@ -85,6 +87,7 @@ __all__ = [
     'with_inchi_prefix',
     'reflect',
     'canonical_enantiomer',
+    'reflect_reaction',
     'canonical_enantiomer_reaction',
     # # conversions
     'formula',
@@ -109,6 +112,7 @@ __all__ = [
     'is_canonical_enantiomer',
     'is_canonical_enantiomer_reaction',
     'is_canonical_reaction_direction',
+    'is_enantiomer_reaction',
     # # # isotope layers
     'bond_isotope_stereo_parities',
     'atom_isotope_stereo_parities',

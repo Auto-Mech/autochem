@@ -55,6 +55,7 @@ from automol.amchi.base._core import is_inverted_isotope_enantiomer
 from automol.chi.base._core import is_standard_form
 from automol.amchi.base import has_multiple_components
 from automol.amchi.base import is_enantiomer
+from automol.amchi.base import is_enantiomer_reaction
 from automol.amchi.base import has_stereo
 from automol.amchi.base import has_mobile_hydrogens
 from automol.amchi.base import low_spin_multiplicity
@@ -162,6 +163,7 @@ __all__ = [
     'is_standard_form',
     'has_multiple_components',
     'is_enantiomer',
+    'is_enantiomer_reaction',
     'is_chiral',
     'has_stereo',
     'has_mobile_hydrogens',
@@ -198,6 +200,7 @@ __all__ = [
     'expand_stereo',
     'is_canonical_enantiomer',
     'is_canonical_enantiomer_reaction',
+    'is_enantiomer_reaction',
     'canonical_enantiomer',
     'canonical_enantiomer_reaction',
     'inchi_to_amchi',

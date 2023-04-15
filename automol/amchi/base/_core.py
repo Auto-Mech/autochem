@@ -275,17 +275,18 @@ def reflect(chi):
         :returns: the other enantiomer
         :rtype: bool
     """
-    ste_upd_dct = stereo_layers(chi)
-    iso_upd_dct = isotope_layers(chi)
+    if is_enantiomer(chi):
+        ste_upd_dct = stereo_layers(chi)
+        iso_upd_dct = isotope_layers(chi)
 
-    refl_trans = str.maketrans('01', '10')
-    if 'm' in ste_upd_dct:
-        ste_upd_dct['m'] = ste_upd_dct['m'].translate(refl_trans)
+        refl_trans = str.maketrans('01', '10')
+        if 'm' in ste_upd_dct:
+            ste_upd_dct['m'] = ste_upd_dct['m'].translate(refl_trans)
 
-    if 'm' in iso_upd_dct:
-        iso_upd_dct['m'] = iso_upd_dct['m'].translate(refl_trans)
+        if 'm' in iso_upd_dct:
+            iso_upd_dct['m'] = iso_upd_dct['m'].translate(refl_trans)
 
-    chi = standard_form(chi, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
+        chi = standard_form(chi, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
 
     return chi
 
@@ -304,6 +305,21 @@ def canonical_enantiomer(chi):
         chi = (reflect(chi) if isinstance(chi, str)
                else tuple(map(reflect, chi)))
     return chi
+
+
+def reflect_reaction(rct_chis, prd_chis):
+    """ Apply a reflection operation to a reaction.
+
+        :param rct_chis: A list of ChIs for the reactants
+        :type rct_chis: list[str]
+        :param prd_chis: A list of ChIs for the products
+        :type prd_chis: list[str]
+        :returns: The reactant and product ChIs, all reflected
+        :rtype: (list[str], list[str])
+    """
+    rct_chis = tuple(map(reflect, rct_chis))
+    prd_chis = tuple(map(reflect, prd_chis))
+    return (rct_chis, prd_chis)
 
 
 def canonical_enantiomer_reaction(rct_chi, prd_chi):
@@ -784,6 +800,23 @@ def is_canonical_reaction_direction(rct_chis, prd_chis):
     rct_rep = (nrcts, rct_idxs)
     prd_rep = (nprds, prd_idxs)
     return rct_rep < prd_rep
+
+
+def is_enantiomer_reaction(rct_chis, prd_chis):
+    """ Is this an enantiomer reaction? I.e., is it chiral?
+
+        :param rct_chis: A list of ChIs for the reactants
+        :type rct_chis: list[str]
+        :param prd_chis: A list of ChIs for the products
+        :type prd_chis: list[str]
+        :returns: Whether or not the reaction is chiral
+        :rtype: bool
+    """
+    orig_rct_chis = sorted(rct_chis)
+    orig_prd_chis = sorted(prd_chis)
+    refl_rct_chis = sorted(map(reflect, rct_chis))
+    refl_prd_chis = sorted(map(reflect, prd_chis))
+    return orig_rct_chis != refl_rct_chis or orig_prd_chis != refl_prd_chis
 
 
 # # # isotope layers

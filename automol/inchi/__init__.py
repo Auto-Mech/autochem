@@ -64,6 +64,10 @@ from automol.inchi._draw import draw_grid
 # assessment tools
 from automol.inchi._assess import is_valid_inchi_multiplicity
 
+# allow this as an alias
+is_chiral = is_enantiomer
+
+
 __all__ = [
     # L3
     # # "constructor"
@@ -83,6 +87,7 @@ __all__ = [
     'stereo_bonds',
     'unassigned_stereo_bonds',
     'is_enantiomer',
+    'is_chiral',
     'are_enantiomers',
     'are_diastereomers',
     'reflect',
