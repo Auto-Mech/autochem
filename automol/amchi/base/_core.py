@@ -802,6 +802,23 @@ def is_canonical_reaction_direction(rct_chis, prd_chis):
     return rct_rep < prd_rep
 
 
+def is_enantiomer_list(chis):
+    """ Does this list of species form an enantiomer?
+
+        Often true if there are enantiomers in the list, but not always.  If,
+        for every enantiomer in the list, its mirror image is also in the list,
+        then this combination of species is achiral.
+
+        :param chis: A list of ChIs
+        :type chis: list[str]
+        :returns: Whether or not the list is chiral
+        :rtype: bool
+    """
+    orig_chis = sorted(chis)
+    refl_chis = sorted(map(reflect, chis))
+    return orig_chis != refl_chis
+
+
 def is_enantiomer_reaction(rct_chis, prd_chis):
     """ Is this an enantiomer reaction? I.e., is it chiral?
 
@@ -812,11 +829,7 @@ def is_enantiomer_reaction(rct_chis, prd_chis):
         :returns: Whether or not the reaction is chiral
         :rtype: bool
     """
-    orig_rct_chis = sorted(rct_chis)
-    orig_prd_chis = sorted(prd_chis)
-    refl_rct_chis = sorted(map(reflect, rct_chis))
-    refl_prd_chis = sorted(map(reflect, prd_chis))
-    return orig_rct_chis != refl_rct_chis or orig_prd_chis != refl_prd_chis
+    return is_enantiomer_list(rct_chis) or is_enantiomer_list(prd_chis)
 
 
 # # # isotope layers
