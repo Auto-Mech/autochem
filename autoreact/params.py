@@ -15,6 +15,7 @@ class KineticParameters(object):
         self.type = type_
         self.dict = dict_
 """
+import copy
 import ast
 import numpy
 import pyparsing as pp
@@ -362,6 +363,17 @@ class RxnParams:
             forms += ('lind',)
 
         return forms
+
+    def __radd__(self, other):
+        ret = self
+        if other != 0:
+            ret = self.__add__(other)
+        return ret
+
+    def __add__(self, other):
+        params = copy.deepcopy(self)
+        params.combine_objects(other)
+        return params
 
     def combine_objects(self, other_params):
         """ Combines another RxnParams instance with the current one. This is
