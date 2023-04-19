@@ -18,7 +18,7 @@ from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import parity_evaluator_from_geometry_
 
 
-def similar_saddle_point_structure(zma, ref_zma, zrxn):
+def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     """ Perform a series of checks to assess the viability
         of a transition state geometry prior to saving
     """
@@ -69,18 +69,18 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
                         ref_ang_lst.append(ref_ang)
 
     # Set the maximum allowed displacement for a TS conformer
-    max_disp = 0.6
+    max_disp = 0.6 * sens
     # better to check for bond-form length in bond scission with ring forming
     if 'addition' in grxn.class_:
-        max_disp = 0.8
+        max_disp = 0.8 * sens
     if 'abstraction' in grxn.class_:
         # this was 1.4 - SJK reduced it to work for some OH abstractions
-        max_disp = 1.0
+        max_disp = 1.0 * sens
 
     # Check forming bond angle similar to ini config
     if 'elimination' not in grxn.class_:
         for ref_angle, cnf_angle in zip(ref_ang_lst, cnf_ang_lst):
-            if abs(cnf_angle - ref_angle) > .44:
+            if abs(cnf_angle - ref_angle) > .44 * sens:
                 # ioprinter.diverged_ts('angle', ref_angle, cnf_angle)
                 viable = False
 
@@ -111,8 +111,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
             equi_bnd = dict_.values_by_unordered_tuple(
                 bnd.LEN_DCT, (symb1, symb2), fill_val=0.0)
             displace_from_equi = cnf_dist - equi_bnd
-            dchk1 = abs(cnf_dist - ref_dist) > 0.1
-            dchk2 = displace_from_equi < 0.2
+            dchk1 = abs(cnf_dist - ref_dist) > 0.1 * sens
+            dchk2 = displace_from_equi < 0.2 * sens
             if dchk1 and dchk2:
                 # ioprinter.bad_equil_ts(cnf_dist, equi_bnd)
                 viable = False
@@ -121,7 +121,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn):
             # if abs(cnf_dist - ref_dist) > 0.4:
             # max disp of 0.4 causes problems for bond scission w/ ring forming
             # not sure if setting it to 0.3 will cause problems for other cases
-            if abs(cnf_dist - ref_dist) > 0.3:
+            if abs(cnf_dist - ref_dist) > 0.3 * sens:
                 # ioprinter.diverged_ts('distance', ref_dist, cnf_dist)
                 viable = False
 
