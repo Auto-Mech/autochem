@@ -293,13 +293,16 @@ def to_connectivity_graph(rdm):
 
 
 # draw operations
-def draw(rdm, filename=None, highlight_radicals=False, image_size=300):
+def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
     """ Convert the RdKit molecule object to a PNG image.
     """
     d = Draw.rdMolDraw2D.MolDraw2DCairo(image_size, image_size)
     s = d.drawOptions()
-    s.maxFontSize = 20
-    s.minFontSize = 12
+    s.maxFontSize = 90
+    s.minFontSize = 70
+    s.bondLineWidth = 20
+    s.clearBackground = False
+    #s.setBackgroundColour = 'black'
     highlights = ()
     highlight_radii = {}
     highlight_colors = {}
