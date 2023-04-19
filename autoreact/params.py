@@ -150,6 +150,20 @@ class RxnParams:
             self.arr = tuple(tuple(arr_tuple) for arr_tuple in arr_tuples)
         else:
             self.arr += arr_tuples
+
+        # Check for matching exponents and combine like terms
+        new_arr = []
+        for apar1, bpar1, epar1 in self.arr:
+            found_like_term = False
+            for i, (_, bpar2, epar2) in enumerate(new_arr):
+                if numpy.allclose([bpar1, epar1], [bpar2, epar2]):
+                    new_arr[i][0] += apar1
+                    found_like_term = True
+
+            if not found_like_term:
+                new_arr.append([apar1, bpar1, epar1])
+        self.arr = tuple(map(tuple, new_arr))
+
         self.arr_collid = collid
 
     def set_plog(self, plog_dct):
