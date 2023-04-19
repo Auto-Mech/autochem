@@ -103,6 +103,29 @@ class RxnParams:
         assert type_ is not None, 'No parametrization was assigned!'
         return f"RxnParams({type_}, {str(dct)})"
 
+    def __radd__(self, other):
+        ret = self
+        if other != 0:
+            ret = self.__add__(other)
+        return ret
+
+    def __add__(self, other):
+        params = copy.deepcopy(self)
+        params.combine_objects(other)
+        return params
+
+    def __mul__(self, number):
+        return multiply_factor(self, number)
+
+    def __rmul__(self, number):
+        return multiply_factor(self, number)
+
+    def __truediv__(self, number):
+        return multiply_factor(self, 1/number)
+
+    def __div__(self, number):
+        return multiply_factor(self, 1/number)
+
     def set_arr(self, arr_dct):
         """ Sets Arrhenius parameters
 
@@ -363,17 +386,6 @@ class RxnParams:
             forms += ('lind',)
 
         return forms
-
-    def __radd__(self, other):
-        ret = self
-        if other != 0:
-            ret = self.__add__(other)
-        return ret
-
-    def __add__(self, other):
-        params = copy.deepcopy(self)
-        params.combine_objects(other)
-        return params
 
     def combine_objects(self, other_params):
         """ Combines another RxnParams instance with the current one. This is
