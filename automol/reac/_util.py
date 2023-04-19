@@ -31,6 +31,28 @@ def hydrogen_migration_atom_keys(rxn):
     return att_key, tra_key, don_key, ngb_key
 
 
+def hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key):
+    """ Obtain the atoms involved when a migration might be similar to an HO2 elimination
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: the dissociation oxygen atom, the dissociation carbon atom
+    :rtype: (int, int, int, int)
+    """
+    gra = ts.reactants_graph(rxn.forward_ts_graph)
+    atm_symbs = automol.graph.atom_symbols(gra)
+    o_ngb = []
+    diss_key = None
+    if atm_symbs[att_key] == 'O' and atm_symbs[ngb_key] == 'O':
+        o_ngbs = automol.graph.atom_neighbor_atom_keys(gra, ngb_key)
+        o_ngb = [ngb for ngb in o_ngbs if ngb != att_key]
+    if len(o_ngb) == 1:
+        if don_key in automol.graph.atom_neighbor_atom_keys(gra, o_ngb[0]):
+            diss_key = (ngb_key, o_ngb[0],)    
+    print('diss key', diss_key)
+    return diss_key 
+
+
 def ring_forming_scission_atom_keys(rxn):
     """ Obtain the atoms involved in a ring-forming scission reaction, sorted in
     canonical order.
