@@ -360,6 +360,30 @@ def ketone_groups(gra, filterlst=()):
     return ket_grps
 
 
+def sulfanyl_groups(gra, filterlst=()):
+    """ Determine the location of sulfanyl groups. The locations are
+        specified as tuple-of-tuple of idxs indicating the C-O atoms
+        of the group: (C-idx, O-idx).
+
+        :param gra: molecular graph
+        :type gra: molecular graph data structure
+        :rtype: tuple(int)
+    """
+
+    sul_grps = tuple()
+
+    so_bonds = bonds_of_type(gra, symb1='S', symb2='O', mbond=1)
+    for so_bond in so_bonds:
+        s_idx, o_idx = so_bond
+        c_neighs = neighbors_of_type(gra, s_idx, symb='H')
+        if not c_neighs:
+            sul_grps += ((s_idx, o_idx),)
+
+    sul_grps = _filter_idxs(sul_grps, filterlst=filterlst)
+
+    return sul_grps
+
+
 def ester_groups(gra):
     """ Determine the location of ester groups. The locations are
         specified as tuple-of-tuple of idxs indicating the C(O)-O-C atoms
@@ -513,6 +537,13 @@ def halide_groups(gra):
         hal_idxs = symb_idx_dct.get(symb, ())
         for hal_idx in hal_idxs:
             hal_neighs = neighbors_of_type(gra, hal_idx, symb='C')
+            if not hal_neighs:
+                print('halide not bound to carbon')
+                print(gra)
+                hal_neighs = neighbors_of_type(gra, hal_idx, symb='S')
+                hal_neighs = neighbors_of_type(gra, hal_idx, symb='B')
+                hal_neighs += neighbors_of_type(gra, hal_idx, symb='O')
+                hal_neighs += neighbors_of_type(gra, hal_idx, symb='N')
             hal_grps += ((hal_neighs[0], hal_idx),)
 
     return hal_grps
@@ -680,6 +711,7 @@ def two_bond_idxs(gra, symb1, cent, symb2, allow_cent_conn=False):
 
     cent_idxs = symb_idx_dct.get(cent, tuple())
     for cent_idx in cent_idxs:
+        grp_idxs = ()
         neighs = tuple(neigh_dct[cent_idx])
         neigh_symbs = _atom_idx_to_symb(neighs, idx_symb_dct)
         if neigh_symbs == (symb1, symb2):

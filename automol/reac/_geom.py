@@ -9,7 +9,6 @@ from automol.graph import atom_keys
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import hydrogen_abstraction_is_sigma
 
-
 # Unimolecular reactions
 def hydrogen_migration_ts_geometry(rxn, rct_geos,
                                    max_dist_err=2e-1, log=False):
@@ -21,20 +20,34 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
     assert rxn.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
     assert rxn.has_standard_keys()
     frm_bnd_key, = ts.forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
-
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     gra = ts.reactants_graph(rxn.forward_ts_graph)
+    atm_symbs = automol.graph.atom_symbols(gra)
+    h_idx, = frm_bnd_key - brk_bnd_key
+    equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, angstrom=True)
+        gra, dist_dct, angstrom=True, degree=True)
 
     geo_init, = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
         rxn.backward_ts_graph, geo_init, geo_idx_dct=rxn.key_map(rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         rxn.forward_ts_graph, geo_init, stereo=False)
+
+    # choose different, equivalent H atom if it is closer
+    for swap_idx in equiv_h:
+        frm_idx, = [
+            atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] != 'H']
+        len_a = automol.geom.distance(geo_init, frm_idx, h_idx)
+        len_b = automol.geom.distance(geo_init, frm_idx, swap_idx)
+        if len_b < len_a:
+            geo_init = automol.geom.swap_coordinates(
+                geo_init, frm_idx, swap_idx)
+            break
 
     relax_ang = True
     relax_tors = True
@@ -162,6 +175,12 @@ def elimination_ts_geometry(rxn, rct_geos,
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     gra = ts.reactants_graph(rxn.forward_ts_graph)
+    atm_symbs = automol.graph.atom_symbols(gra)
+    if [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']:
+        h_idx, = [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']
+        equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
+    else:
+        equiv_h = []
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, rings_keys=[frm_rng_keys], degree=True,
         angstrom=True)
@@ -174,6 +193,15 @@ def elimination_ts_geometry(rxn, rct_geos,
 
     relax_ang = True
     relax_tors = True
+
+    # Choose different, equivalent H atom if it is more accessible
+    for swap_idx in equiv_h:
+        frm_idx, = [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] != 'H']
+        len_a = automol.geom.distance(geo_init, frm_idx, h_idx)
+        len_b = automol.geom.distance(geo_init, frm_idx, swap_idx)
+        if len_b < len_a:
+            geo_init = automol.geom.swap_coordinates(geo_init, frm_idx, swap_idx)
+            break
 
     geo = _geometry_from_info(
         gra, rct_geos, geo_init, dist_range_dct,
@@ -392,7 +420,7 @@ def substitution_ts_geometry(rxn, rct_geos,
     return geo
 
 
-def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False):
+def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False, stereo=True):
     """ reaction-class-specific embedding info
 
     :param rxn: a Reaction object
@@ -416,6 +444,20 @@ def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False):
 
     fun_ = function_dct[rxn.class_]
     geo = fun_(rxn, rct_geos, max_dist_err=max_dist_err, log=log)
+
+    # make sure geometry still works with stereo of products
+    # and reactants
+    if stereo:
+        geo = automol.graph.stereo_corrected_geometry(
+            rxn.forward_ts_graph, geo,
+            geo_idx_dct=rxn.key_map(stereo=False, rev=False))
+        geo = automol.graph.embed.clean_geometry(
+            rxn.forward_ts_graph, geo, stereo=False)
+        geo = automol.graph.stereo_corrected_geometry(
+            rxn.backward_ts_graph, geo,
+            geo_idx_dct=rxn.key_map(stereo=False, rev=True))
+        geo = automol.graph.embed.clean_geometry(
+            rxn.forward_ts_graph, geo, stereo=False)
     return geo
 
 

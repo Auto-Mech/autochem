@@ -11,6 +11,7 @@ import automol.zmat
 from automol.util import dict_
 # from automol.util import numpy_to_float
 from automol.reac._util import hydrogen_migration_atom_keys
+from automol.reac._util import hydrogen_migration_might_dissociate
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import insertion_forming_bond_keys
 from automol.reac._util import elimination_breaking_bond_keys
@@ -58,9 +59,16 @@ def hydrogen_migration_constraint_coordinates(rxn, zma):
     :returns: the names of the constraint coordinates in the z-matrix
     :rtype: tuple[str]
     """
-    att_key, _, _, ngb_key = hydrogen_migration_atom_keys(rxn)
+    att_key, _, don_key, ngb_key = hydrogen_migration_atom_keys(rxn)
     dist_name = automol.zmat.distance_coordinate_name(zma, att_key, ngb_key)
-    return (dist_name,)
+    diss_keys = hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key)
+    if diss_keys:
+        diss_name = automol.zmat.distance_coordinate_name(zma, *diss_keys)
+        ret = (dist_name, diss_name,)
+    else:
+        ret = (dist_name,)
+    print('ret is ', ret)
+    return ret
 
 
 def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):

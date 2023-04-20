@@ -4,13 +4,11 @@
 from automol.extern import rdkit_
 
 
-def draw(ich, save_path=None):
+def draw(ich, save_path=None, highlight_radicals=False):
     """ Draw an image
     """
     rdm = rdkit_.from_inchi(ich)
-    img = rdkit_.draw(rdm)
-    if save_path is not None:
-        img.save(save_path)
+    img = rdkit_.draw(rdm, save_path, highlight_radicals=highlight_radicals)
 
     return img
 

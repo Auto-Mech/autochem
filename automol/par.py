@@ -29,6 +29,7 @@ class ReactionClass:
         HYDROGEN_ABSTRACTION = 'hydrogen abstraction'
         ADDITION = 'addition'
         INSERTION = 'insertion'
+        DOUBLE_INSERTION = 'double_insertion'
         SUBSTITUTION = 'substitution'
 
     class MechTyp:
@@ -62,6 +63,7 @@ BIMOL_REACTIONS = [
     ReactionClass.Typ.HYDROGEN_ABSTRACTION,
     ReactionClass.Typ.ADDITION,
     ReactionClass.Typ.INSERTION,
+    ReactionClass.Typ.DOUBLE_INSERTION,
     ReactionClass.Typ.SUBSTITUTION
 ]
 

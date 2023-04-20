@@ -93,7 +93,7 @@ class Reaction:
         rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
         return rct_idxs, prd_idxs
 
-    def key_map(self, rev=False):
+    def key_map(self, rev=False, stereo=True):
         """ get the key map taking atoms from the reactant into atoms from the
         product
         """

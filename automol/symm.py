@@ -204,7 +204,7 @@ def _modify_idxs(idxs_lst, removed_atms, dummy_atms):
 ICH_DCT = {'C': 'InChI=1S/C', 'O': 'InChI=1S/O'}
 
 
-def oxygenated_hydrocarbon_symm_num(geo, zrxn=None):
+def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
     """ determine the symmetry number of a CHO molecule
     """
     int_symm = 1.
@@ -280,6 +280,6 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None):
                     #         atm_symm = 1
                     int_symm *= atm_symm
         ext_symm = external_symmetry_factor(
-            geo, chiral_center=chiral_center > 0.)
+            geo, chiral_center=chiral_center > 0. and racemic)
 
     return int_symm, ext_symm
