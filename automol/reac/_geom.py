@@ -176,8 +176,11 @@ def elimination_ts_geometry(rxn, rct_geos,
 
     gra = ts.reactants_graph(rxn.forward_ts_graph)
     atm_symbs = automol.graph.atom_symbols(gra)
-    h_idx, = [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']
-    equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
+    if [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']:
+        h_idx, = [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']
+        equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
+    else:
+        equiv_h = []
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, rings_keys=[frm_rng_keys], degree=True,
         angstrom=True)
