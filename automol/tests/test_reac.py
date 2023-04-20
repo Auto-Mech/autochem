@@ -314,7 +314,7 @@ def test__reac__hydrogen_migration():
     rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R2',)
-    ref_constraint_dct = {'R1': 2.65}
+    ref_constraint_dct = {'R1': 2.65, 'R3': 2.65}
     ref_scan_grid = (numpy.array([
        3.77945225, 3.66829189, 3.55713153, 3.44597117, 3.33481081,
        3.22365045, 3.11249009, 3.00132973, 2.89016937, 2.77900901,
