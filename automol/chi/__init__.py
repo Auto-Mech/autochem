@@ -26,7 +26,6 @@ from automol.chi.base._core import are_enantiomers
 from automol.chi.base._core import are_diastereomers
 from automol.chi.base._core import reflect
 from automol.chi.base._core import racemic
-from automol.chi.base._core import without_stereo
 # # setters
 from automol.amchi.base._core import with_inchi_prefix
 # # conversions
@@ -86,6 +85,8 @@ from automol.amchi import display_reaction
 # # derived properties
 from automol.chi._conv import is_complete
 from automol.chi._conv import is_bad
+from automol.chi._conv import chi_ as chi
+from automol.chi._conv import without_stereo
 # # derived transformations
 from automol.chi._conv import join
 from automol.chi._conv import add_stereo
@@ -134,7 +135,6 @@ __all__ = [
     'are_diastereomers',
     'reflect',
     'racemic',
-    'without_stereo',
     # # setters
     'with_inchi_prefix',
     # # conversions
@@ -196,6 +196,8 @@ __all__ = [
     # # derived properties
     'is_complete',
     'is_bad',
+    'chi',
+    'without_stereo',
     # # derived transformations
     'join',
     'add_stereo',

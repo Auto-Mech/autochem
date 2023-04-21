@@ -2,6 +2,7 @@
 """
 import automol.amchi
 import automol.inchi
+import automol.graph
 from automol.chi.base import split
 from automol.chi.base import reflect
 
@@ -44,6 +45,40 @@ def is_bad(chi, gra=None):
     if pfx == 'InChI':
         gra = automol.inchi.graph(chi) if gra is None else gra
         ret = automol.graph.base.inchi_is_bad(gra, chi)
+
+    return ret
+
+
+def chi_(chi):  # => chi() in __init__.py (underscore here avoids name clash)
+    """ Recalculate the ChI string, returning an AMChI only if the InChI is bad
+
+        :param chi: ChI string
+        :type chi: str
+        :returns: an InChI if valid; otherwise an AMChI
+    """
+    gra = automol.amchi.graph(chi)
+    chi = automol.graph.inchi(gra)
+    if automol.graph.inchi_is_bad(gra, chi):
+        chi = automol.graph.amchi(gra)
+    return chi
+
+
+def without_stereo(chi, reasses_amchi=True):
+    """ Remove stereo information from this ChI
+
+        :param chi: ChI string
+        :type chi: str
+    """
+    pfx = automol.amchi.prefix(chi)
+    if pfx == 'AMChI':
+        ret = automol.amchi.base.without_stereo(chi)
+    elif pfx == 'InChI':
+        ret = automol.inchi.base.without_stereo(chi)
+    else:
+        raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
+
+    if reasses_amchi:
+        ret = chi_(ret)
 
     return ret
 

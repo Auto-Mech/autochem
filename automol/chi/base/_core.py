@@ -159,22 +159,6 @@ def reflect(chi):
     return ret
 
 
-def without_stereo(chi):
-    """ Remove stereo information from this ChI
-
-        :param chi: ChI string
-        :type chi: str
-    """
-    pfx = prefix(chi)
-    if pfx == 'AMChI':
-        ret = automol.amchi.base.without_stereo(chi)
-    elif pfx == 'InChI':
-        ret = automol.inchi.base.without_stereo(chi)
-    else:
-        raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
-    return ret
-
-
 def racemic(chi):
     """ If chiral, convert the ChI into a racemic mixture
 
