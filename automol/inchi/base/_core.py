@@ -83,6 +83,8 @@ def recalculate(ich, stereo=False, racem=False):
     rdm = rdkit_.from_inchi(ich)
     if rdm is not None:
         ret = rdkit_.to_inchi(rdm, options=_options, with_aux_info=False)
+    else:
+        raise ValueError(f"Invalid InChI: {ich}")
 
     return ret
 
