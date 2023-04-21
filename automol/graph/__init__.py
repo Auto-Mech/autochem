@@ -554,6 +554,7 @@ __all__ = [
     'nitro_groups',
     'halide_groups',
     'thiol_groups',
+    'sulfanyl_groups',
     'methyl_groups',
     'radical_dissociation_products',
     # # helper functions
