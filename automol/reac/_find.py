@@ -493,7 +493,7 @@ def additions(rct_gras, prd_gras):
 
 
 def double_insertion(rct_gras, prd_gras):
-    """ two bond additions
+    """ two atoms inserting
     """
     assert_is_valid_reagent_graph_list(rct_gras)
     assert_is_valid_reagent_graph_list(prd_gras)
@@ -505,7 +505,7 @@ def double_insertion(rct_gras, prd_gras):
         prd_gra, = prd_gras
         x_gra, y_gra = rct_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
-        
+
         if not len(x_atm_keys) > 1:
             x_gra, y_gra = y_gra, x_gra
             x_atm_keys = unsaturated_atom_keys(x_gra)
@@ -519,23 +519,30 @@ def double_insertion(rct_gras, prd_gras):
                     zipped = zip(comb, brk_bnd_key)
                     frm_bnd_pairs_lst.append(list(zipped))
                 for frm_bnd_pairs in frm_bnd_pairs_lst:
-                    for x_atm_key, y_atm_key in frm_bnd_pairs:
-                        xy_gra = add_bonds(
-                            union(x_gra, y_gra_tmp), frm_bnd_pairs)
-                    
+                    xy_gra = add_bonds(
+                        union(x_gra, y_gra_tmp), frm_bnd_pairs)
+
                     iso_dct = isomorphism(xy_gra, prd_gra)
                     if iso_dct:
                         rcts_gra = union_from_sequence(rct_gras)
                         prds_gra = prd_gra
                         brk_atm_i, brk_atm_j = brk_bnd_key
-                        b_brk_bnd_key_i = (iso_dct[frm_bnd_pairs[0][0]], iso_dct[frm_bnd_pairs[0][1]])
-                        b_brk_bnd_key_j = (iso_dct[frm_bnd_pairs[1][0]], iso_dct[frm_bnd_pairs[1][1]])
-                        b_frm_bnd_key = (iso_dct[brk_atm_i], iso_dct[brk_atm_j])
+                        b_brk_bnd_key_i = (
+                            iso_dct[frm_bnd_pairs[0][0]],
+                            iso_dct[frm_bnd_pairs[0][1]])
+                        b_brk_bnd_key_j = (
+                            iso_dct[frm_bnd_pairs[1][0]],
+                            iso_dct[frm_bnd_pairs[1][1]])
+                        b_frm_bnd_key = (
+                            iso_dct[brk_atm_i],
+                            iso_dct[brk_atm_j])
                         forw_tsg = ts.graph(rcts_gra,
                                             frm_bnd_keys=frm_bnd_pairs,
                                             brk_bnd_keys=(brk_bnd_key,))
                         back_tsg = ts.graph(prds_gra,
-                                            brk_bnd_keys=[b_brk_bnd_key_i, b_brk_bnd_key_j],
+                                            brk_bnd_keys=[
+                                                b_brk_bnd_key_i,
+                                                b_brk_bnd_key_j],
                                             frm_bnd_keys=(b_frm_bnd_key,))
                         # Create the reaction object
                         rxns.append(Reaction(

@@ -48,9 +48,9 @@ def hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key):
         o_ngb = [ngb for ngb in o_ngbs if ngb != att_key]
     if len(o_ngb) == 1:
         if don_key in automol.graph.atom_neighbor_atom_keys(gra, o_ngb[0]):
-            diss_key = (ngb_key, o_ngb[0],)    
+            diss_key = (ngb_key, o_ngb[0],)
     print('diss key', diss_key)
-    return diss_key 
+    return diss_key
 
 
 def ring_forming_scission_atom_keys(rxn):
