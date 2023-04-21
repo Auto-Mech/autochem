@@ -247,7 +247,7 @@ def hydroperoxy_groups(gra):
 
     coo_grps = two_bond_idxs(gra, symb1='C', cent='O', symb2='O')
     for coo_grp in coo_grps:
-        c_idx, o1_idx, o2_idx = coo_grp
+        c_idx, o1_idx, o2_idx, = coo_grp
         o2_neighs = neighbors_of_type(gra, o2_idx, symb='H')
         if o2_neighs:
             cooh_grps += ((c_idx, o1_idx, o2_idx, o2_neighs[0]),)

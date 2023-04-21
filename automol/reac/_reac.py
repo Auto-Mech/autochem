@@ -93,13 +93,13 @@ class Reaction:
         rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
         return rct_idxs, prd_idxs
 
-    def key_map(self, rev=False, stereo=True):
+    def key_map(self, rev=False, stereo=False):
         """ get the key map taking atoms from the reactant into atoms from the
         product
         """
         iso_dct = automol.graph.isomorphism(
             ts.reverse(self.forward_ts_graph), self.backward_ts_graph,
-            stereo=False, dummy=False)
+            stereo=stereo, dummy=False)
         if rev:
             iso_dct = dict(map(reversed, iso_dct.items()))
 

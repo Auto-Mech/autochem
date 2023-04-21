@@ -11,7 +11,6 @@ from automol.reac._reac import forming_bond_keys
 from automol.reac._reac import breaking_bond_keys
 from automol.reac._reac import relabel_for_geometry
 from automol.graph.base._core import atom_keys
-from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import from_ts_graph
 from automol.graph.base._canon import stereogenic_bond_keys
@@ -132,6 +131,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
 
 
 def _check_stereo_parities(zma, ref_zma, zrxn):
+    """make sure stereo is consistent with ref_zma
+    """
     fgra = without_stereo_parities(from_ts_graph(zrxn.forward_ts_graph))
     bgra = without_stereo_parities(from_ts_graph(zrxn.backward_ts_graph))
     forw_ste_keys = stereogenic_bond_keys(fgra)

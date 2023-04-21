@@ -296,33 +296,33 @@ def to_connectivity_graph(rdm):
 def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
     """ Convert the RdKit molecule object to a PNG image.
     """
-    d = Draw.rdMolDraw2D.MolDraw2DCairo(image_size, image_size)
-    s = d.drawOptions()
-    s.maxFontSize = 90
-    s.minFontSize = 70
-    s.bondLineWidth = 20
-    s.clearBackground = False
-    #s.setBackgroundColour = 'black'
+    cdraw = Draw.rdMolDraw2D.MolDraw2DCairo(image_size, image_size)
+    opts = cdraw.drawOptions()
+    opts.maxFontSize = 90
+    opts.minFontSize = 70
+    opts.bondLineWidth = 20
+    opts.clearBackground = False
+    # s.setBackgroundColour = 'black'
     highlights = ()
     highlight_radii = {}
     highlight_colors = {}
     if highlight_radicals:
         atms = rdm.GetAtoms()
-        for i, atm in enumerate(atms):
+        for i, _ in enumerate(atms):
             if rdm.GetAtomWithIdx(i).GetNumRadicalElectrons() > 0:
                 highlights += (i,)
                 highlight_radii[i] = .8
                 highlight_colors[i] = (.67, .85, .9)
-    d.DrawMolecule(
+    cdraw.DrawMolecule(
         rdm, highlightAtoms=highlights,
         highlightAtomRadii=highlight_radii,
         highlightAtomColors=highlight_colors)
-    s.includeRadicals = False
-    d.FinishDrawing()
-    p = d.GetDrawingText()
+    opts.includeRadicals = False
+    cdraw.FinishDrawing()
+    draw_out = draw.GetDrawingText()
     if filename:
-        d.WriteDrawingText(filename)
-    return p
+        draw.WriteDrawingText(filename)
+    return draw_out
 
 
 def draw_grid(rdms, img_per_row=3, sub_img_size=(200, 200), legends=None):
