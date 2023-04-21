@@ -6,7 +6,7 @@ from distutils.core import setup
 
 setup(
     name='autochem',
-    version='0.13.4',
+    version='0.13.5',
     packages=[
         'automol',
         # L1
