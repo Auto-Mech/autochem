@@ -9,6 +9,7 @@ from automol.graph import atom_keys
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import hydrogen_abstraction_is_sigma
 
+
 # Unimolecular reactions
 def hydrogen_migration_ts_geometry(rxn, rct_geos,
                                    max_dist_err=2e-1, log=False):
@@ -176,8 +177,9 @@ def elimination_ts_geometry(rxn, rct_geos,
 
     gra = ts.reactants_graph(rxn.forward_ts_graph)
     atm_symbs = automol.graph.atom_symbols(gra)
-    if [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']:
-        h_idx, = [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']
+    if [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']:
+        h_idx, = [atm_idx for atm_idx in frm_bnd_key
+                  if atm_symbs[atm_idx] == 'H']
         equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
     else:
         equiv_h = []
@@ -196,11 +198,13 @@ def elimination_ts_geometry(rxn, rct_geos,
 
     # Choose different, equivalent H atom if it is more accessible
     for swap_idx in equiv_h:
-        frm_idx, = [atm_idx  for atm_idx in frm_bnd_key if atm_symbs[atm_idx] != 'H']
+        frm_idx, = [atm_idx for atm_idx in frm_bnd_key
+                    if atm_symbs[atm_idx] != 'H']
         len_a = automol.geom.distance(geo_init, frm_idx, h_idx)
         len_b = automol.geom.distance(geo_init, frm_idx, swap_idx)
         if len_b < len_a:
-            geo_init = automol.geom.swap_coordinates(geo_init, frm_idx, swap_idx)
+            geo_init = automol.geom.swap_coordinates(
+                geo_init, frm_idx, swap_idx)
             break
 
     geo = _geometry_from_info(

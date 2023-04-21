@@ -15,6 +15,7 @@ class KineticParameters(object):
         self.type = type_
         self.dict = dict_
 """
+import copy
 import ast
 import numpy
 import pyparsing as pp
@@ -102,6 +103,29 @@ class RxnParams:
         assert type_ is not None, 'No parametrization was assigned!'
         return f"RxnParams({type_}, {str(dct)})"
 
+    def __radd__(self, other):
+        ret = self
+        if other != 0:
+            ret = self.__add__(other)
+        return ret
+
+    def __add__(self, other):
+        params = copy.deepcopy(self)
+        params.combine_objects(other)
+        return params
+
+    def __mul__(self, number):
+        return multiply_factor(self, number)
+
+    def __rmul__(self, number):
+        return multiply_factor(self, number)
+
+    def __truediv__(self, number):
+        return multiply_factor(self, 1/number)
+
+    def __div__(self, number):
+        return multiply_factor(self, 1/number)
+
     def set_arr(self, arr_dct):
         """ Sets Arrhenius parameters
 
@@ -126,6 +150,20 @@ class RxnParams:
             self.arr = tuple(tuple(arr_tuple) for arr_tuple in arr_tuples)
         else:
             self.arr += arr_tuples
+
+        # Check for matching exponents and combine like terms
+        new_arr = []
+        for apar1, bpar1, epar1 in self.arr:
+            found_like_term = False
+            for i, (_, bpar2, epar2) in enumerate(new_arr):
+                if numpy.allclose([bpar1, epar1], [bpar2, epar2]):
+                    new_arr[i][0] += apar1
+                    found_like_term = True
+
+            if not found_like_term:
+                new_arr.append([apar1, bpar1, epar1])
+        self.arr = tuple(map(tuple, new_arr))
+
         self.arr_collid = collid
 
     def set_plog(self, plog_dct):

@@ -32,7 +32,6 @@ from automol.inchi.base._core import racemic
 # # properties
 from automol.inchi.base._core import is_standard_form
 from automol.inchi.base._core import has_multiple_components
-from automol.inchi.base._core import is_chiral
 from automol.inchi.base._core import has_stereo
 from automol.inchi.base._core import low_spin_multiplicity
 # # comparisons
@@ -65,6 +64,10 @@ from automol.inchi._draw import draw_grid
 # assessment tools
 from automol.inchi._assess import is_valid_inchi_multiplicity
 
+# allow this as an alias
+is_chiral = is_enantiomer
+
+
 __all__ = [
     # L3
     # # "constructor"
@@ -84,6 +87,7 @@ __all__ = [
     'stereo_bonds',
     'unassigned_stereo_bonds',
     'is_enantiomer',
+    'is_chiral',
     'are_enantiomers',
     'are_diastereomers',
     'reflect',
@@ -97,7 +101,6 @@ __all__ = [
     # # properties
     'is_standard_form',
     'has_multiple_components',
-    'is_chiral',
     'has_stereo',
     'low_spin_multiplicity',
     # # comparisons

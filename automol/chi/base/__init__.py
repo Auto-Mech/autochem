@@ -23,12 +23,10 @@ from automol.amchi.base import isotope_layers as isotope_sublayers
 # from automol.chi.base._core import stereo_atoms               # excluded
 # from automol.chi.base._core import stereo_bonds               # excluded
 # from automol.chi.base._core import unassigned_stereo_bonds    # excluded
-from automol.chi.base._core import is_enantiomer
 from automol.chi.base._core import are_enantiomers
 from automol.chi.base._core import are_diastereomers
 from automol.chi.base._core import reflect
 from automol.chi.base._core import racemic
-from automol.chi.base._core import without_stereo
 # # setters
 from automol.amchi.base._core import with_inchi_prefix
 # # conversions
@@ -38,7 +36,7 @@ from automol.amchi.base import formula
 # # # properties
 from automol.chi.base._core import is_standard_form
 from automol.amchi.base import has_multiple_components
-# from automol.chi.base._core import is_chiral                  # excluded
+from automol.amchi.base import is_enantiomer
 from automol.amchi.base import has_stereo
 from automol.amchi.base import has_mobile_hydrogens
 # from automol.amchi.base import low_spin_multiplicity          # excluded
@@ -77,12 +75,10 @@ __all__ = [
     # 'stereo_atoms',
     # 'stereo_bonds',
     # 'unassigned_stereo_bonds',
-    'is_enantiomer',
     'are_enantiomers',
     'are_diastereomers',
     'reflect',
     'racemic',
-    'without_stereo',
     # # setters
     'with_inchi_prefix',
     # # conversions
@@ -92,7 +88,7 @@ __all__ = [
     # # # properties
     'is_standard_form',
     'has_multiple_components',
-    # 'is_chiral',
+    'is_enantiomer',
     'has_stereo',
     'has_mobile_hydrogens',
     # 'low_spin_multiplicity',

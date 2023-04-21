@@ -32,7 +32,8 @@ def hydrogen_migration_atom_keys(rxn):
 
 
 def hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key):
-    """ Obtain the atoms involved when a migration might be similar to an HO2 elimination
+    """ Obtain the atoms involved when a migration might be similar to an HO2
+        elimination
 
     :param rxn: the reaction object
     :type rxn: Reaction

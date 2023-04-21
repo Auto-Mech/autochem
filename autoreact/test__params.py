@@ -13,12 +13,7 @@ def test_arr():
     arr_dct = {'arr_tuples': [[1e12, 1.5, 50000], [1e12, 1.5, 50000]]}
     params1 = autoreact.params.RxnParams(arr_dct=arr_dct)
     assert params1.get_existing_forms() == ('arr',)
-    for arr_tuple in params1.arr:
-        assert numpy.allclose([1e12, 1.5, 50000], arr_tuple)
-
-    # Test duplicates
-    params1.combine_objects(params1)  # combine params1 with itself
-    assert len(params1.arr) == 4
+    assert numpy.allclose(params1.arr, [[2e12, 1.5, 50000]])
     dups, _ = params1.check_for_dups()
     assert dups is False  # should be False for Arrhenius
 

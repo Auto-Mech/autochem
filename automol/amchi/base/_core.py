@@ -275,17 +275,18 @@ def reflect(chi):
         :returns: the other enantiomer
         :rtype: bool
     """
-    ste_upd_dct = stereo_layers(chi)
-    iso_upd_dct = isotope_layers(chi)
+    if is_enantiomer(chi):
+        ste_upd_dct = stereo_layers(chi)
+        iso_upd_dct = isotope_layers(chi)
 
-    refl_trans = str.maketrans('01', '10')
-    if 'm' in ste_upd_dct:
-        ste_upd_dct['m'] = ste_upd_dct['m'].translate(refl_trans)
+        refl_trans = str.maketrans('01', '10')
+        if 'm' in ste_upd_dct:
+            ste_upd_dct['m'] = ste_upd_dct['m'].translate(refl_trans)
 
-    if 'm' in iso_upd_dct:
-        iso_upd_dct['m'] = iso_upd_dct['m'].translate(refl_trans)
+        if 'm' in iso_upd_dct:
+            iso_upd_dct['m'] = iso_upd_dct['m'].translate(refl_trans)
 
-    chi = standard_form(chi, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
+        chi = standard_form(chi, ste_dct=ste_upd_dct, iso_dct=iso_upd_dct)
 
     return chi
 
@@ -304,6 +305,21 @@ def canonical_enantiomer(chi):
         chi = (reflect(chi) if isinstance(chi, str)
                else tuple(map(reflect, chi)))
     return chi
+
+
+def reflect_reaction(rct_chis, prd_chis):
+    """ Apply a reflection operation to a reaction.
+
+        :param rct_chis: A list of ChIs for the reactants
+        :type rct_chis: list[str]
+        :param prd_chis: A list of ChIs for the products
+        :type prd_chis: list[str]
+        :returns: The reactant and product ChIs, all reflected
+        :rtype: (list[str], list[str])
+    """
+    rct_chis = tuple(map(reflect, rct_chis))
+    prd_chis = tuple(map(reflect, prd_chis))
+    return (rct_chis, prd_chis)
 
 
 def canonical_enantiomer_reaction(rct_chi, prd_chi):
@@ -786,6 +802,36 @@ def is_canonical_reaction_direction(rct_chis, prd_chis):
     return rct_rep < prd_rep
 
 
+def is_enantiomer_list(chis):
+    """ Does this list of species form an enantiomer?
+
+        Often true if there are enantiomers in the list, but not always.  If,
+        for every enantiomer in the list, its mirror image is also in the list,
+        then this combination of species is achiral.
+
+        :param chis: A list of ChIs
+        :type chis: list[str]
+        :returns: Whether or not the list is chiral
+        :rtype: bool
+    """
+    orig_chis = sorted(chis)
+    refl_chis = sorted(map(reflect, chis))
+    return orig_chis != refl_chis
+
+
+def is_enantiomer_reaction(rct_chis, prd_chis):
+    """ Is this an enantiomer reaction? I.e., is it chiral?
+
+        :param rct_chis: A list of ChIs for the reactants
+        :type rct_chis: list[str]
+        :param prd_chis: A list of ChIs for the products
+        :type prd_chis: list[str]
+        :returns: Whether or not the reaction is chiral
+        :rtype: bool
+    """
+    return is_enantiomer_list(rct_chis) or is_enantiomer_list(prd_chis)
+
+
 # # # isotope layers
 def bond_isotope_stereo_parities(chi, one_indexed=False):
     """ Parse the bond stereo parities from the isotope layers.
@@ -887,14 +933,16 @@ def low_spin_multiplicity(chi):
     return mult
 
 
-def is_chiral(chi, iso=True):
-    """ Determine if this ChI is chiral (has a non-superimposable mirror image).
+def is_enantiomer(chi, iso=True):
+    """ Is this ChI an enantiomer? (I.e., is it chiral?)
 
-        :param chi: ChI string
-        :type chi: str
+        Determined based on whether or not the ChI has an s-layer.
+
+        :param ich: ChI string
+        :type ich: str
         :param iso: Include isotope stereochemistry?
         :type iso: bool
-        :returns: True if the ChI is chiral, False if not
+        :returns: whether or not the ChI is an enantiomer
         :rtype: bool
     """
     ret = 's' in stereo_layers(chi)

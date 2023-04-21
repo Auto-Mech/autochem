@@ -61,7 +61,8 @@ def hydrogen_migration_constraint_coordinates(rxn, zma):
     """
     att_key, _, don_key, ngb_key = hydrogen_migration_atom_keys(rxn)
     dist_name = automol.zmat.distance_coordinate_name(zma, att_key, ngb_key)
-    diss_keys = hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key)
+    diss_keys = hydrogen_migration_might_dissociate(
+        rxn, att_key, ngb_key, don_key)
     if diss_keys:
         diss_name = automol.zmat.distance_coordinate_name(zma, *diss_keys)
         ret = (dist_name, diss_name,)
