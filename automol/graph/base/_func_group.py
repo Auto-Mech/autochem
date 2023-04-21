@@ -711,7 +711,7 @@ def two_bond_idxs(gra, symb1, cent, symb2, allow_cent_conn=False):
 
     cent_idxs = symb_idx_dct.get(cent, tuple())
     for cent_idx in cent_idxs:
-        grp_idxs = ()
+        grp_idxs = None
         neighs = tuple(neigh_dct[cent_idx])
         neigh_symbs = _atom_idx_to_symb(neighs, idx_symb_dct)
         if neigh_symbs == (symb1, symb2):
@@ -729,9 +729,9 @@ def two_bond_idxs(gra, symb1, cent, symb2, allow_cent_conn=False):
             if idx_1 is not None and idx_2 is not None:
                 grp_idxs = (idx_1, cent_idx, idx_2)
         else:
-            grp_idxs = ()
+            grp_idxs = None
 
-        if grp_idxs:
+        if grp_idxs is not None:
             grps += ((grp_idxs),)
 
     return grps
