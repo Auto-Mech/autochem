@@ -23,6 +23,7 @@ from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import has_nitrogen_atom_stereo
 from automol.graph.base._algo import atom_groups
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
@@ -459,6 +460,17 @@ def has_nonkekule_bond_stereo(gra):
         nsingles_lst.append(nsingles)
 
     return min(nsingles_lst) > 0
+
+
+def has_noninchi_stereo(gra):
+    """ does this graph have stereo that cannot be captured by an InChI string?
+
+        :param gra: the molecular graph
+        :rtype: bool
+    """
+    return (has_nonkekule_bond_stereo(gra) or
+            has_vinyl_bond_stereo(gra) or
+            has_nitrogen_atom_stereo(gra))
 
 
 def radical_groups(gra):
