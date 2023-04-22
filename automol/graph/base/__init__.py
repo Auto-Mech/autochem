@@ -213,6 +213,7 @@ from automol.graph.base._kekule import vinyl_bond_stereo_keys
 from automol.graph.base._kekule import has_resonance_bond_stereo
 from automol.graph.base._kekule import has_vinyl_bond_stereo
 from automol.graph.base._kekule import has_nonkekule_bond_stereo
+from automol.graph.base._kekule import has_noninchi_stereo
 from automol.graph.base._kekule import radical_groups
 from automol.graph.base._kekule import radical_group_dct
 from automol.graph.base._kekule import rigid_planar_bond_keys
@@ -492,6 +493,7 @@ __all__ = [
     'has_resonance_bond_stereo',
     'has_vinyl_bond_stereo',
     'has_nonkekule_bond_stereo',
+    'has_noninchi_stereo',
     'radical_groups',
     'radical_group_dct',
     'rigid_planar_bond_keys',
