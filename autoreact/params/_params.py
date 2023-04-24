@@ -3,7 +3,7 @@
 TODO: After confirming that one reaction can't simultaneously have multiple
 distinct parametriztaions, this class should be redesigned.
 
-class KineticParameters(object):
+class RateParametrization():
 
     def __init__(self, type_, dict_):
         '''
