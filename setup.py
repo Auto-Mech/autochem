@@ -41,6 +41,7 @@ setup(
         'automol.rotor',
         # other
         'autoreact',
+        'autoreact.params',
         'phydat',
         'transformations'
     ],
