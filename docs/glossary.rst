@@ -113,7 +113,7 @@ The glossary for these tasks is below, where the Task Keyword can be clicked on 
 Compulsory information is identified with an asterisk.
 
 .. list-table:: Task Keywords
-   :widths: 8 10 9 12
+   :widths: 8 12 8 12
    :header-rows: 1
 
    * - Task Keyword
@@ -126,7 +126,7 @@ Compulsory information is identified with an asterisk.
      -
 
 .. list-table:: els
-   :widths: 10 20 10 20
+   :widths: 8 12 8 12
    :header-rows: 0
 
    * - `init_geom`_\* *\*for new species*
@@ -136,57 +136,57 @@ Compulsory information is identified with an asterisk.
    * - `conf_samp`_
      - search for additional conformers
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite
    * - `conf_opt`_
      - runs an optimization job on any number of conformers
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite, conf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `conf_energy`_
      - runs a single point energy for any number of conformers
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite, conf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `conf_grad`_
      - runs a gradient computation on any number of conformers
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite, conf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `conf_hess`_
      - runs a hessian computation on any number of conformers
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite, conf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `conf_vpt2`_
      - runs an vpt2 anharmonic analysis on any number of conformers
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite, conf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `conf_prop`_
      -
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite, conf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `hr_scan`_
      - runs a hindered rotor scan on the lowest energy conformer
      - spc, ts, all
-     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model
+     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model, cnf_range, sort
    * - `hr_reopt`_
      - runs a geometry optimization for each step of a hindered rotor
        scan using the geometry optimized at an inplvl of theory
        for that dihedral angle
      - spc, ts, all
-     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model
+     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model, cnf_range, sort
    * - `hr_grad`_
      - runs gradient computations along the steps of a hindered rotor
      - spc, ts, all
-     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model
+     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model, cnf_range, sort
    * - `hr_hess`_
      - runs hessian computations along the steps of a hindered rotor
      - spc, ts, all
-     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model
+     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model, cnf_range, sort
    * - `hr_energy`_
      - runs single point energy  computations along the steps of a hindered rotor
      - spc, ts, all
-     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model
+     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model, cnf_range, sort
    * - `hr_vpt2`_
      - runs vpt2  computations along the steps of a hindered rotor
      - spc, ts, all
-     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model
+     - inplvl\*, runlvl\*, retryfail, overwrite, tors_model, cnf_range, sort
    * - `find_ts`_
      - search for a transition state
      - ts
@@ -195,26 +195,26 @@ Compulsory information is identified with an asterisk.
    * - `conf_pucker`_ (dev)
      - search for any ring puckering conformations (in development)
      - spc, ts
-     - runlvl\*, inplvl\*, retryfail, overwrite, conf_range
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `tau_samp`_
      - sample addition configurations that dont need to be local energy minima
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `tau_energy`_
      - run single point energy for tau geometries
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `tau_grad`_
      - run gradient computations for tau geometries
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
    * - `tau_hess`_
      - run hessian computations for tau geometries
      - spc, ts, all
-     - runlvl\*, inplvl\*, retryfail, overwrite
+     - runlvl\*, inplvl\*, retryfail, overwrite, cnf_range, sort
 
 .. list-table:: trans
-   :widths: 10 20 10 20
+   :widths: 8 12 8 12 
    :header-rows: 0
 
    * - `onedmin`_
@@ -223,69 +223,65 @@ Compulsory information is identified with an asterisk.
      - inplvl\*, runlvl\*, retryfail, overwrite,
        bath, nsamp, njobs, smin, smax,
        conf, pot
-   * -
-     -
-     -
-     -
 
 .. list-table:: thermo
-   :widths: 10 20 10 20
+   :widths: 8 12 8 12
    :header-rows: 0
 
-   * - `write_mess_thermo`_
+   * - write_mess
      - write the MESS partition function input file for each species
      - *no type prefix for this section*
      - kin_model, spc_model, overwrite
-   * - `run_mess_thermo`_
+   * - run_mess
      - run MESS for each species
      - *no type prefix for this section*
      - kin_model, spc_model, overwrite, inpname
-   * - `run_fits_thermo`_
+   * - run_fits
      - produce NASA polynomials and CHEMKIN style inputs for each speices
      - *no type prefix for this section*
      - kin_model
 
 .. list-table:: ktp
-   :widths: 10 20 10 20
+   :widths: 8 12 8 12
    :header-rows: 0
 
-   * - `write_mess`_
+   * - write_mess
      - write the MESS rate constant input file for each connected PES
      - *no type prefix for this section*
      - kin_model, spc_model, overwrite
-   * - `run_mess`_
+   * - run_mess
      - run MESS for each connected PES
      - *no type prefix for this section*
      - kin_model, spc_model, overwrite, inpname
-   * - `run_fits`_
+   * - run_fits
      - produce Arhennius fits and CHEMKIN style input for the rate constants
      - *no type prefix for this section*
      - kin_model
 
 .. list-table:: process
-   :widths: 10 20 10 20
+   :widths: 8 12 8 12
    :header-rows: 0
 
    * - `freqs`_
      - produce a csv file of frequencies
      - spc, ts, vdw, all
-     - geolvl, proplvl, nconfs, econfs, scale
+     - geolvl, proplvl, cnf_range, sort
    * - `energy`_
      - produce a csv file of energies
      - spc, ts, vdw, all
-     - geolvl, proplvl, nconfs, econfs
+     - geolvl, proplvl, cnf_range, sort
    * - `geo`_
      - produce a txt file of geometries
      - spc, ts, vdw, all
-     - geolvl, proplvl, nconfs, econfs
+     - geolvl, proplvl, cnf_range, sort
    * - `zmatrix`_
      - produce a txt file of zmatrices
      - spc, ts, vdw, all
-     - geolvl, proplvl, nconfs, econfs
+     - geolvl, proplvl, cnf_range, sort
    * - `enthalpy`_
      - produce a csv file of 0 K heats of formation
      - spc, ts, vdw, all
-     - geolvl, proplvl, nconfs, econfs
+     - geolvl, proplvl, cnf_range, sort
    * - `coeffs`_
      - produce a csv file of the reference molecules required
        for a heat of fomration calculation
@@ -381,14 +377,6 @@ set with the cnf_range keyword.
      - overwrite any existing or running data saved for this molecule and level of theory in the filesystem
      - **True** or **False**
      - **False**
-   * - **cnf_range**
-     - the number of geometries to generated by the stochastic sampling routine. The value can be either an integer,
-       and that exact number of samples will be optimized or an array of [a, b, c, d] which will take N (the number
-       of torsions) and use the formula nsamp = min(d, a + ( b * c^N))
-     - <int> or
-
-       <[int, int, int, int]>
-     - [3, 1, 3, 100]
 
 **Example**:
 
@@ -437,7 +425,7 @@ runlvl of theory, where the starting geometries and sorting is done based on the
      - **True** or **False**
      - **False**
    * - **cnf_range**
-     - the conformers to run the task on, sorted using the inplvl of theory
+     - the conformers to run the task on, sorted according to the electronic energies at inplvl of theory, unless otherwise specified with the sort keyword
      - **min**: the lowest energy conformer
 
        **n** <int>: the lowest <int> number of conformers
@@ -445,6 +433,15 @@ runlvl of theory, where the starting geometries and sorting is done based on the
        **e** <float>: any conformers within <float> kcal/mol of the lowest energy conformer
 
      - **min**
+   * - **sort**
+     - specifies the type of energy for cnf_range to sort by when selecting the min, n<int>, or e<float> conformers
+     - **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **enthalpy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **entropy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **gibbs** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+     - electronic energy at <inplvl> of theory
+
 
 **Example**:
 
@@ -493,7 +490,7 @@ runlvl of theory, where the starting geometries and sorting is done based on the
      - **True** or **False**
      - **False**
    * - **cnf_range**
-     - the conformers to run the task on, sorted using the inplvl of theory
+     - the conformers to run the task on, sorted according to the electronic energies at inplvl of theory, unless otherwise specified with the sort keyword
      - **min**: the lowest energy conformer
 
        **n** <int>: the lowest <int> number of conformers
@@ -501,6 +498,14 @@ runlvl of theory, where the starting geometries and sorting is done based on the
        **e** <float>: any conformers within <float> kcal/mol of the lowest energy conformer
 
      - **min**
+   * - **sort**
+     - specifies the type of energy for cnf_range to sort by when selecting the min, n<int>, or e<float> conformers
+     - **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **enthalpy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **entropy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **gibbs** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+     - electronic energy at <inplvl> of theory
 
 **Example**:
 
@@ -548,7 +553,7 @@ runlvl of theory, where the starting geometries and sorting is done based on the
      - **True** or **False**
      - **False**
    * - **cnf_range**
-     - the conformers to run the task on, sorted using the inplvl of theory
+     - the conformers to run the task on, sorted according to the electronic energies at inplvl of theory, unless otherwise specified with the sort keyword
      - **min**: the lowest energy conformer
 
        **n** <int>: the lowest <int> number of conformers
@@ -556,6 +561,15 @@ runlvl of theory, where the starting geometries and sorting is done based on the
        **e** <float>: any conformers within <float> kcal/mol of the lowest energy conformer
 
      - **min**
+   * - **sort**
+     - specifies the type of energy for cnf_range to sort by when selecting the min, n<int>, or e<float> conformers
+     - **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **enthalpy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **entropy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **gibbs** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+     - electronic energy at <inplvl> of theory
+
 
 **Example**:
 
@@ -604,7 +618,7 @@ runlvl of theory, where the starting geometries and sorting is done based on the
      - **True** or **False**
      - **False**
    * - **cnf_range**
-     - the conformers to run the task on, sorted using the inplvl of theory
+     - the conformers to run the task on, sorted according to the electronic energies at inplvl of theory, unless otherwise specified with the sort keyword
      - **min**: the lowest energy conformer
 
        **n** <int>: the lowest <int> number of conformers
@@ -612,6 +626,15 @@ runlvl of theory, where the starting geometries and sorting is done based on the
        **e** <float>: any conformers within <float> kcal/mol of the lowest energy conformer
 
      - **min**
+   * - **sort**
+     - specifies the type of energy for cnf_range to sort by when selecting the min, n<int>, or e<float> conformers
+     - **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **enthalpy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **entropy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **gibbs** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+     - electronic energy at <inplvl> of theory
+
 
 **Example**:
 
@@ -676,11 +699,29 @@ The hindered rotor scans can be run with multiple models, which are described in
 
        **1dhrfa**: Scans are along one torsional coordinate at a time, all coordinates are frozen
 
-       **1dhrf**: ?????????????????
+       **1dhrf**: Scans are along one torsional coordinate at a time, all torsional coordinates are frozen, all bond lengths and all other angles are optimized
 
        **mdhr**: 2 or 3 torsional coordinates are scanned together to define a rotor, those coordinates are frozen, and all other coordinates are optimized
 
-       **mdhrv**: ?????????????????
+       **mdhrv**: 2 or 3 torsional coordinates are scanned together to define a rotor, those coordinates are frozen, and all other coordinates are optimized, and frequencies are computed fat every point
+   * - **cnf_range**
+     - the conformers to run the task on, sorted according to the electronic energies at inplvl of theory, unless otherwise specified with the sort keyword
+     - **min**: the lowest energy conformer
+
+       **n** <int>: the lowest <int> number of conformers
+
+       **e** <float>: any conformers within <float> kcal/mol of the lowest energy conformer
+
+     - **min**
+   * - **sort**
+     - specifies the type of energy for cnf_range to sort by when selecting the min, n<int>, or e<float> conformers
+     - **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **enthalpy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **entropy** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+
+       **freqs** (<freq_ene_key>), **sp** (<ene_theory_key>) **gibbs** (<temp>): sort by enthalpy at a <temp>, that is calculated for each conformer from its single point energies computed at the <ene_theory_key> and frequencies at <freq_theory_key> which are defined in theory.dat  
+     - electronic energy at <inplvl> of theory
+
 
 |
 

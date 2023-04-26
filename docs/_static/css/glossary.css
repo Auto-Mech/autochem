@@ -91,14 +91,15 @@ h3 {
 
 a {
     color: black; 
-    text-decoration: None;
-    text-shadow: .5px .5px #ff0000;
+    text-decoration: none;
+    border-bottom: 1px solid blue;
  
 }
 
 a:hover {
     color:gray;
-    text-decoration: underline;
+    text-decoration: none;
+    border-bottom: 1px solid gray;
 }
 
 a:visited {
