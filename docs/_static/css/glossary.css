@@ -158,10 +158,9 @@ img.logo {
 table #id22, #id22, #id23{
     border-spacing: 0px;
     width=100%;
-    margin-right: 10px;
-    margin-left: 15px;
+    margin-right: 0px;
+    margin-left: 0px;
     border-collapse: collapse;
-    min-width: 400px;
     border-radius:5px;
     -moz-border-radius: 5px !important;
 }
@@ -196,10 +195,9 @@ table #id22 td, th , #id22 td, th , #id23 td, th {
 table #id22, #id24, #id25, #id26, #id28, #id27 {
     width=100%;
     border-spacing: 0px;
-    margin-right: 10px;
-    margin-left: 15px;
+    margin-right: 0px;
+    margin-left: 0px;
     border-collapse: collapse;
-    min-width: 400px;
     border-radius:5px;
     -moz-border-radius: 5px !important;
 }
