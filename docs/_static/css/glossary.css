@@ -90,7 +90,7 @@ h3 {
 }
 
 a {
-    color: black; 
+    color: blue; 
     text-decoration: none;
     border-bottom: 1px solid blue;
  
@@ -300,6 +300,8 @@ div.sphinxsidebar a {
   font-size: 20px;
   color: #f1f1f1;
   display: block;
+  border-bottom: 0px solid none;
+ 
 }
 
 div.sphinxsidebar ul {
