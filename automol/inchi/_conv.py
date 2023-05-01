@@ -78,7 +78,8 @@ def amchi(ich, stereo=True):
 
     if stereo:
         assert not is_bad(ich, gra=gra), (
-            "Don't use this function with bad InChIs if stereo=True")
+            "Don't use this function with bad InChIs if stereo=True. "
+            f"Bad InChI: {ich}")
 
     ach = automol.graph.amchi(gra)
     return ach
