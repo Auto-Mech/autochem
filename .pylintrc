@@ -21,4 +21,5 @@ disable=
     broad-except,
     unnecessary-lambda,
     consider-using-f-string,
-    no-else-raise
+    no-else-raise,
+    unnecessary-list-index-lookup
