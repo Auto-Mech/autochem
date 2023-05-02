@@ -224,6 +224,7 @@ def stereogenic_atom_keys(gra, pri_dct=None, assigned=False):
         :returns: the stereogenic atom keys
         :rtype: frozenset
     """
+    gra = without_dummy_atoms(gra)
     pri_dct = (canonical_priorities(gra, backbone_only=False)
                if pri_dct is None else pri_dct)
     ste_atm_keys = stereogenic_atom_keys_from_priorities(
@@ -246,6 +247,7 @@ def stereogenic_bond_keys(gra, pri_dct=None, assigned=False):
         :returns: the stereogenic bond keys
         :rtype: frozenset
     """
+    gra = without_dummy_atoms(gra)
     pri_dct = (canonical_priorities(gra, backbone_only=False)
                if pri_dct is None else pri_dct)
     ste_bnd_keys = stereogenic_bond_keys_from_priorities(
@@ -268,6 +270,7 @@ def stereogenic_keys(gra, pri_dct=None, assigned=False):
         :returns: keys to stereogenic atoms and bonds
         :rtype: frozenset
     """
+    gra = without_dummy_atoms(gra)
     ste_atm_keys = stereogenic_atom_keys(gra, pri_dct=pri_dct,
                                          assigned=assigned)
     ste_bnd_keys = stereogenic_bond_keys(gra, pri_dct=pri_dct,
