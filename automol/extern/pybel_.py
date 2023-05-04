@@ -1,7 +1,9 @@
 """ pybel interface
 """
-
-import pybel
+try:
+    import pybel
+except ModuleNotFoundError:
+    from openbabel import pybel
 from phydat import ptab
 import automol.geom.base
 
