@@ -19,6 +19,7 @@ from automol.graph.base._core import has_stereo
 from automol.graph.base._core import frozen
 from automol.graph.base._core import implicit
 from automol.graph.base._core import without_stereo_parities
+# from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import reacting_atoms
@@ -226,6 +227,14 @@ def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
         gra, geo, geo_idx_dct=geo_idx_dct)
     par = par_eval_(pri_dct)(bnd_key)
     return par
+
+
+# # stereo comparison
+# def matching_atom_stereo(gra, geo1, geo2, atm_key):
+#     """ Check whether two geometries have the same atom stereo at a site
+#     """
+#     gra = without_dummy_atoms(from_ts_graph(gra))
+#     nkeys = sorted(atoms_neighbor_atom_keys(gra)[atm_key])
 
 
 # # stereo correction

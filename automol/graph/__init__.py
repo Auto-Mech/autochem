@@ -219,8 +219,8 @@ from automol.graph.base._rot import rotational_symmetry_number
 from automol.graph.base._rot import bond_symmetry_numbers
 # geometry functions:
 # # stereo parity evaluations
-# from automol.graph.base._geom import atom_parity_from_geometry
-# from automol.graph.base._geom import bond_parity_from_geometry
+from automol.graph.base._geom import atom_parity_from_geometry
+from automol.graph.base._geom import bond_parity_from_geometry
 # # corrections
 from automol.graph.base._geom import linear_vinyl_corrected_geometry
 # canonicalization functions:
@@ -519,8 +519,8 @@ __all__ = [
     'bond_symmetry_numbers',
     # geometry functions:
     # # stereo parity evaluations
-    # 'atom_parity_from_geometry',
-    # 'bond_parity_from_geometry',
+    'atom_parity_from_geometry',
+    'bond_parity_from_geometry',
     # # corrections
     'linear_vinyl_corrected_geometry',
     # canonicalization functions:
