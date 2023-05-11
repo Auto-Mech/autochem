@@ -914,6 +914,52 @@ def test__species__graph_conversion():
 
 
 # stereo graph library
+def test__geometry_atom_parity():
+    """ test graph.geometry_atom_parity
+    """
+    # '[C@H](Cl)(F)(O)'
+    geo = (('C', (-0.156548, 0.194561, -0.651837)),
+           ('H', (0.352681, 0.459932, -2.635957)),
+           ('Cl', (-2.670412, -1.956931, -0.346205)),
+           ('F', (-0.861626, 2.505747, 0.34212)),
+           ('O', (1.916674, -0.693354, 0.754657)),
+           ('H', (1.419231, -0.509954, 2.537223)))
+    gra = automol.geom.graph(geo)
+    assert(automol.graph.geometry_atom_parity(gra, geo, 0) is False)
+
+    # '[C@@H](Cl)(F)(O)'
+    geo = (('C', (-0.317722, 0.059267, -0.618703)),
+           ('H', (-0.26878, 0.123481, -2.68267)),
+           ('Cl', (-1.517891, 2.894393, 0.631708)),
+           ('F', (-1.842322, -1.93151, 0.115519)),
+           ('O', (2.108174, -0.367259, 0.380286)),
+           ('H', (1.838541, -0.778373, 2.17386)))
+    gra = automol.geom.graph(geo)
+    assert (automol.graph.geometry_atom_parity(gra, geo, 0) is True)
+
+
+def test__geometry_bond_parity():
+    """ test graph.geometry_bond_parity
+    """
+    # r'F/C=N/[H]'
+    geo = (('F', (-2.483972, -1.744981, 0.024901)),
+           ('C', (-0.860131, 0.558467, -0.008463)),
+           ('N', (1.9591, 0.223915, -0.002683)),
+           ('H', (3.348622, 1.709226, -0.024014)),
+           ('H', (-1.577309, 2.507937, -0.03731)))
+    gra = automol.geom.graph(geo)
+    assert automol.graph.geometry_bond_parity(gra, geo, [1, 2]) is True
+
+    # r'F/C=N\[H]'
+    geo = (('F', (-1.495767, 2.657838, -0.288402)),
+           ('C', (-0.969504, -0.04963, -0.822887)),
+           ('N', (1.620729, -1.139643, -0.788144)),
+           ('H', (3.359017, -0.121361, -0.3958)),
+           ('H', (-2.514475, -1.347203, -1.263959)))
+    gra = automol.geom.graph(geo)
+    assert automol.graph.geometry_bond_parity(gra, geo, [1, 2]) is False
+
+
 def test__stereogenic_atom_keys():
     """ test graph.stereogenic_atom_keys
     """
@@ -1439,6 +1485,8 @@ if __name__ == '__main__':
     # test__ts__expand_reaction_stereo()
     # test__species__graph_conversion()
     # test__canonical()
-    test__calculate_priorities_and_assign_parities()
+    # test__calculate_priorities_and_assign_parities()
     # test__smiles()
     # test__kekules()
+    test__geometry_atom_parity()
+    test__geometry_bond_parity()

@@ -46,8 +46,8 @@ from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._kekule import rigid_planar_bond_keys
-from automol.graph.base._geom import atom_parity_from_geometry
-from automol.graph.base._geom import bond_parity_from_geometry
+from automol.graph.base._geom import geometry_atom_parity
+from automol.graph.base._geom import geometry_bond_parity
 
 
 # # canonical key functions
@@ -777,7 +777,7 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
                 nkeys = sorted(nkeys, key=pri_dct.__getitem__)
 
                 # Get the atom parity
-                par = atom_parity_from_geometry(
+                par = geometry_atom_parity(
                     gra, geo, key, nkeys, geo_idx_dct=geo_idx_dct)
             # Otherwise, this is a bond
             else:
@@ -791,8 +791,8 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
                 nkey2s = sorted(nkey2s, key=pri_dct.__getitem__)
 
                 # Get the bond parity
-                par = bond_parity_from_geometry(
-                    gra, geo, key1, key2, nkey1s, nkey2s,
+                par = geometry_bond_parity(
+                    gra, geo, (key1, key2), (nkey1s, nkey2s),
                     geo_idx_dct=geo_idx_dct)
 
             return par

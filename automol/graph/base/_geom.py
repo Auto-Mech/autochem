@@ -2,6 +2,7 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+from collections import abc
 import numpy
 from phydat import phycon
 from automol import util
@@ -10,14 +11,23 @@ from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bonds_neighbor_atom_keys
 from automol.graph.base._core import bonds_neighbor_bond_keys
 from automol.graph.base._core import explicit
+from automol.graph.base._core import without_dummy_atoms
+from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._algo import branch
 from automol.graph.base._kekule import rigid_planar_bond_keys
 
 
 # stereo parity evaluations
-def atom_parity_from_geometry(gra, geo, key, nkeys, geo_idx_dct=None):
-    r""" Calculate the atom parity of a geometry directly, based on a sorted
-        list of neighbor keys
+def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None,
+                         neg_hkeys=True):
+    r""" Calculate an atom parity directly from a geometry
+
+        Neighboring atom keys (`nkeys`) must be passed in as a priority-sorted
+        list. If `None`, a local parity calculation will occur based on the
+        atom keys in the molecular graph. In this case, `neg_hkeys` can be used
+        to determine whether to negate hydrogen keys, giving them lowest
+        priority.
 
         Atom parity is defined as follows:
 
@@ -45,16 +55,20 @@ def atom_parity_from_geometry(gra, geo, key, nkeys, geo_idx_dct=None):
         :type gra: automol graph data structure
         :param geo: molecular geometry
         :type geo: automol geometry data structure
+        :param atm_key: the atom key whose parity is being evaluated
+        :type atm_key: int
+        :param nkeys: the neighboring atom keys, pre-sorted by priority
+        :type nkeys: list[int]
         :param geo_idx_dct: If they don't already match, specify which graph
             keys correspond to which geometry indices.
         :type geo_idx_dct: dict[int: int]
-        :param key: the atom key whose parity is being evaluated
-        :type key: int
-        :param nkeys: the neighboring atom keys, pre-sorted by priority
-        :type nkeys: list[int]
+        :neg_hkeys: negate hydrogen keys, to match with InChI parities?
+            Only has an effect if `nkeys` is `None`.
+        :neg_hkeys: bool
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
+    gra = without_dummy_atoms(from_ts_graph(gra))
 
     keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
@@ -62,27 +76,47 @@ def atom_parity_from_geometry(gra, geo, key, nkeys, geo_idx_dct=None):
     xyzs = automol.geom.base.coordinates(geo)
     xyz_dct = {k: xyzs[geo_idx_dct[k]] for k in keys}
 
+    if nkeys is None:
+        hkeys = atom_keys(gra, sym='H')
+        sgn = -1 if neg_hkeys else +1
+
+        pri_dct = {k: (k if k not in hkeys else sgn * k) for k in keys}
+
+        nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+        # Get the neighboring keys
+        nkeys = nkeys_dct[atm_key]
+
+        # Sort them by priority
+        nkeys = sorted(nkeys, key=pri_dct.__getitem__)
+
     # If there are only three groups, use the stereo atom itself as
     # the top apex of the tetrahedron.
     if len(nkeys) == 4:
         keys = nkeys
     else:
         assert len(nkeys) == 3
-        keys = [key] + list(nkeys)
+        keys = [atm_key] + list(nkeys)
 
     xyzs = list(map(list, map(xyz_dct.__getitem__, keys)))
     det_mat = numpy.ones((4, 4))
     det_mat[:, 1:] = xyzs
     det_val = numpy.linalg.det(det_mat)
     assert det_val != 0.  # for now, assume no four-atom planes
-    par = det_val > 0.
+    par = bool(det_val > 0.)
     return par
 
 
-def bond_parity_from_geometry(gra, geo, key1, key2, nkey1s, nkey2s,
-                              geo_idx_dct=None):
-    r""" Calculate the bond parity of a geometry directly, based on a sorted
-         list of neighbor keys
+def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
+                         geo_idx_dct=None, neg_hkeys=True):
+    r""" Calculate a bond parity directly from a geometry
+
+        Neighboring bond keys (`bnd_nkeys`) must be passed in as a pair of
+        priority-sorted lists corresponding to the first and second atoms in
+        `bnd_key`. Note that the latter must be an *ordered list* in this case!
+        If `None`, a local parity calculation will occur based on the atom keys
+        in the molecular graph. In this case, `neg_hkeys` can be used to
+        determine whether to negate hydrogen keys, giving them lowest priority.
 
         Bond parity is defined as follows:
 
@@ -123,26 +157,53 @@ def bond_parity_from_geometry(gra, geo, key1, key2, nkey1s, nkey2s,
         :type gra: automol graph data structure
         :param geo: molecular geometry
         :type geo: automol geometry data structure
+        :param bnd_key: the bond key. If using `bnd_nkeys`, this must be an
+            ordered list!
+        :type bnd_key: list[int]
+        :param bnd_nkeys: a pair of lists of neighboring keys for the first and
+            second atoms in `bnd_key`, respectively.
+        :type bnd_nkeys: list[list[int]]
         :param geo_idx_dct: If they don't already match, specify which graph
             keys correspond to which geometry indices.
         :type geo_idx_dct: dict[int: int]
-        :param key1: the first atom key in the bond being evaluated
-        :type key1: int
-        :param key2: the second atom key in the bond being evaluated
-        :type key2: int
-        :param nkey1s: neighbors of the first atom key, pre-sorted by priority
-        :type nkey1s: list[int]
-        :param nkey2s: neighbors of the second atom key, pre-sorted by priority
-        :type nkey2s: list[int]
+        :neg_hkeys: negate hydrogen keys, to match with InChI parities?
+            Only has an effect if `nkeys` is `None`.
+        :neg_hkeys: bool
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
+    gra = without_dummy_atoms(from_ts_graph(gra))
+
+    assert isinstance(bnd_key, abc.Collection) and len(bnd_key) == 2, (
+        f"{bnd_key} is not a valid bond key.")
+    key1, key2 = bnd_key
 
     keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(keys))})
     xyzs = automol.geom.base.coordinates(geo)
     xyz_dct = {k: xyzs[geo_idx_dct[k]] for k in keys}
+
+    if bnd_nkeys is None:
+        hkeys = atom_keys(gra, sym='H')
+        sgn = -1 if neg_hkeys else +1
+
+        pri_dct = {k: (k if k not in hkeys else sgn * k) for k in keys}
+
+        nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+        nkey1s = nkeys_dct[key1] - {key2}
+        nkey2s = nkeys_dct[key2] - {key1}
+
+        nkey1s = sorted(nkey1s, key=pri_dct.__getitem__)
+        nkey2s = sorted(nkey2s, key=pri_dct.__getitem__)
+    else:
+        assert (
+            isinstance(bnd_nkeys, abc.Collection) and
+            len(bnd_nkeys) == 2 and
+            all(isinstance(nk, abc.Collection) for nk in bnd_nkeys)
+        ), f"Bond neighbor keys should be a pair of lists: {bnd_nkeys}"
+        nkey1s, nkey2s = bnd_nkeys
 
     xyz1 = xyz_dct[key1]
     xyz2 = xyz_dct[key2]
@@ -154,7 +215,7 @@ def bond_parity_from_geometry(gra, geo, key1, key2, nkey1s, nkey2s,
 
     dot_val = numpy.vdot(bnd1_vec, bnd2_vec)
     assert dot_val != 0.    # for now, assume not collinear
-    par = dot_val < 0.
+    par = bool(dot_val < 0.)
     return par
 
 

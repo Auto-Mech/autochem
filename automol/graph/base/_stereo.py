@@ -229,14 +229,6 @@ def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
     return par
 
 
-# # stereo comparison
-# def matching_atom_stereo(gra, geo1, geo2, atm_key):
-#     """ Check whether two geometries have the same atom stereo at a site
-#     """
-#     gra = without_dummy_atoms(from_ts_graph(gra))
-#     nkeys = sorted(atoms_neighbor_atom_keys(gra)[atm_key])
-
-
 # # stereo correction
 def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     """ Obtain a geometry corrected for stereo parities based on a graph

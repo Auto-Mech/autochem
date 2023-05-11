@@ -18,6 +18,7 @@ from automol.smiles._conv import amchi
 from automol.smiles._conv import inchi
 from automol.smiles._conv import chi
 from automol.smiles._conv import graph
+from automol.smiles._conv import geometry
 from automol.smiles._conv import rdkit_molecule
 from automol.smiles._conv import rdkit_reaction
 from automol.smiles._conv import display
@@ -41,6 +42,7 @@ __all__ = [
     'inchi',
     'chi',
     'graph',
+    'geometry',
     'rdkit_molecule',
     'rdkit_reaction',
     'display',

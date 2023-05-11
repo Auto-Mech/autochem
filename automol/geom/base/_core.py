@@ -918,6 +918,21 @@ def swap_coordinates(geo, idx1, idx2):
 
 
 # # transformations
+def round_(geo, decimals=6):
+    """ Round the coordinates of this geometry to a certain number of decimal
+        places
+
+        :param geo: molecular geometry
+        :type geo: automol molecular geometry data structure
+        :param decimals: the number of decimals to round to
+        :type decimals: int
+        :rtype: automol molecular geometry data structure
+    """
+    symbs = symbols(geo)
+    xyzs = numpy.round(coordinates(geo), decimals=decimals)
+    return from_data(symbs, xyzs)
+
+
 def translate(geo, xyz, idxs=None, angstrom=False):
     """ Translate the coordinates of a molecular geometry along
         a three-dimensiona vector.
