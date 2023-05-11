@@ -5,6 +5,7 @@ import automol.formula
 import automol.geom
 import automol.graph
 import automol.amchi
+from automol.extern import rdkit_
 from automol.inchi.base import standard_form
 from automol.inchi.base import has_stereo
 from automol.inchi.base import equivalent
@@ -99,6 +100,7 @@ def rdkit_molecule(ich, stereo=True):
         :type stereo: bool
         :returns: the RDKit molecule
     """
+    rdkit_.turn_3d_visualization_off()
     gra = graph(ich, stereo=stereo)
     return automol.graph.rdkit_molecule(gra, stereo=stereo)
 
@@ -119,6 +121,7 @@ def rdkit_reaction(richs, pichs, stereo=True, res_stereo=False):
         :type res_stereo: bool
         :returns: the RDKit reaction
     """
+    rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in richs]
     pgras = [graph(s, stereo=stereo) for s in pichs]
     return automol.graph.rdkit_reaction(rgras, pgras, stereo=stereo,
@@ -133,6 +136,7 @@ def display(ich, stereo=True):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     gra = graph(ich, stereo=stereo)
     automol.graph.display(gra, stereo=stereo)
 
@@ -145,6 +149,7 @@ def display_reaction(richs, pichs, stereo=True):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in richs]
     pgras = [graph(s, stereo=stereo) for s in pichs]
     automol.graph.display_reaction(rgras, pgras, stereo=stereo)

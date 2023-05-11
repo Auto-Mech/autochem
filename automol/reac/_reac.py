@@ -212,6 +212,7 @@ def rdkit_reaction(rxn, stereo=True, res_stereo=False):
         :param rxn: the reaction object
         :returns: the RDKit reaction
     """
+    rdkit_.turn_3d_visualization_off()
     rct_smis, prd_smis = smiles(rxn, stereo=stereo, res_stereo=res_stereo,
                                 exp_singles=True)
     rcts_smi = '.'.join(rct_smis)
@@ -226,6 +227,7 @@ def display(rxn):
         :param rxn: the reaction object
         :returns: None
     """
+    rdkit_.turn_3d_visualization_off()
     return IPython.display.display(rdkit_reaction(rxn))
 
 

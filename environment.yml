@@ -29,6 +29,8 @@ dependencies:
     - conda-forge::flake8
     - conda-forge::pylint
     - conda-forge::ipython
+    - conda-forge::nglview
+    - conda-forge::py3dmol
     - conda-forge::qcelemental
     - conda-forge::cmake=3.20.2
     - conda-forge::gcc_linux-64=7.5.0

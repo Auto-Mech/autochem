@@ -229,6 +229,7 @@ def rdkit_molecule(chi, stereo=True):
         :type stereo: bool
         :returns: the RDKit molecule
     """
+    rdkit_.turn_3d_visualization_off()
     gra = graph(chi, stereo=stereo)
     return automol.graph.rdkit_molecule(gra, stereo=stereo)
 
@@ -249,6 +250,7 @@ def rdkit_reaction(rchis, pchis, stereo=True, res_stereo=False):
         :type res_stereo: bool
         :returns: the RDKit reaction
     """
+    rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rchis]
     pgras = [graph(s, stereo=stereo) for s in pchis]
     return automol.graph.rdkit_reaction(rgras, pgras, stereo=stereo,
@@ -256,13 +258,14 @@ def rdkit_reaction(rchis, pchis, stereo=True, res_stereo=False):
 
 
 def display(chi, stereo=True):
-    """ Display graph to IPython using the RDKit visualizer
+    """ Display molecule to IPython using the RDKit visualizer
 
         :param chi: ChI string
         :type chi: str
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     gra = graph(chi, stereo=stereo)
     automol.graph.display(gra, stereo=stereo)
 
@@ -275,6 +278,7 @@ def display_reaction(rchis, pchis, stereo=True):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rchis]
     pgras = [graph(s, stereo=stereo) for s in pchis]
     automol.graph.display_reaction(rgras, pgras, stereo=stereo)

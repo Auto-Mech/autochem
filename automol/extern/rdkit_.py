@@ -14,6 +14,18 @@ _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)
 
 
+def turn_3d_visualization_on():
+    """ Turn 3D drawing in RDKit on
+    """
+    rdkit.Chem.Draw.IPythonConsole.ipython_3d = True
+
+
+def turn_3d_visualization_off():
+    """ Turn 3D drawing in RDKit on
+    """
+    rdkit.Chem.Draw.IPythonConsole.ipython_3d = False
+
+
 # inchi
 def from_inchi(ich, print_debug=False):
     """ Generate an RDKit molecule object from an InChI string.
@@ -80,6 +92,90 @@ def to_smiles(rdm):
     return rdkit.Chem.MolToSmiles(rdm)
 
 
+# geometry
+def from_geometry_with_graph(geo, gra):
+    """ Generate an RDKit molecule object from a molecular geometry.
+
+        :param geo: automol geometry data structure
+        :type geo: str
+        :param geo: automol graph data structure
+        :type geo: str
+        :rtype: RDKit molecule object
+    """
+    natms = automol.geom.base.count(geo)
+    rdm = from_graph(gra)
+    rdc = rdkit.Chem.Conformer(natms)
+    rdc.Set3D(True)
+    xyzs = automol.geom.base.coordinates(geo)
+    for i, xyz in enumerate(xyzs):
+        rdc.SetAtomPosition(i, rdkit.Geometry.Point3D(*xyz))
+    rdm.AddConformer(rdc)
+    return rdm
+
+
+def to_geometry(rdm):
+    """ Generate a molecular geometry from an RDKit molecule object.
+
+        :param rdm: molecule object
+        :type rdm: RDKit molecule object
+        :rtype: automol geometry data structure
+    """
+
+    rdm = rdkit.Chem.AddHs(rdm)
+    atms = rdm.GetAtoms()
+    natms = len(rdm.GetAtoms())
+    if natms == 1:
+        syms = [str(atms[0].GetSymbol()).title()]
+        xyzs = [(0., 0., 0.)]
+    else:
+        AllChem.EmbedMolecule(rdm)
+        AllChem.MMFFOptimizeMolecule(rdm)
+        syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
+        xyzs = tuple(map(tuple, rdm.GetConformer(0).GetPositions()))
+    geo = automol.geom.base.from_data(syms, xyzs, angstrom=True)
+
+    return geo
+
+
+def to_conformers(rdm, nconfs):
+    """ Generate molecular geometries for a set of conformers
+        from am RDKit molecule object.
+
+        Currently not removing redundant conformers.
+
+        :param rdm: molecule object
+        :type rdm: RDKit molecule object
+        :param nconfs: number of conformers to generate
+        :type nconfs: int
+        :rtype: automol geometry data structure
+    """
+
+    rdm = rdkit.Chem.AddHs(rdm)
+    atms = rdm.GetAtoms()
+    natms = len(rdm.GetAtoms())
+    geos = []
+    if natms == 1:
+        syms = [str(atms[0].GetSymbol()).title()]
+        xyzs = [(0., 0., 0.)]
+        geos.append(
+            automol.geom.base.from_data(syms, xyzs, angstrom=True))
+    else:
+        cids = AllChem.EmbedMultipleConfs(rdm, numConfs=nconfs)
+        res = AllChem.MMFFOptimizeMoleculeConfs(rdm)
+        energies = list(zip(*res))[1]
+        for cid in cids:
+            syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
+            xyzs = tuple(map(tuple, rdm.GetConformer(cid).GetPositions()))
+            geos.append(
+                automol.geom.base.from_data(syms, xyzs, angstrom=True))
+        # Sort geometries using the energies
+        geos = [
+            x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])
+        ]
+
+    return geos
+
+
 # molfile
 def from_molfile(mfl, print_debug=False):
     """ Generate an RDKit molecule object from a MOLFile string.
@@ -142,70 +238,6 @@ def to_formula(rdm):
     fml = util.formula_from_symbols(syms)
 
     return fml
-
-
-# geometry
-def to_geometry(rdm):
-    """ Generate a molecular geometry from an RDKit molecule object.
-
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :rtype: automol geometry data structure
-    """
-
-    rdm = rdkit.Chem.AddHs(rdm)
-    atms = rdm.GetAtoms()
-    natms = len(rdm.GetAtoms())
-    if natms == 1:
-        syms = [str(atms[0].GetSymbol()).title()]
-        xyzs = [(0., 0., 0.)]
-    else:
-        AllChem.EmbedMolecule(rdm)
-        AllChem.MMFFOptimizeMolecule(rdm)
-        syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
-        xyzs = tuple(map(tuple, rdm.GetConformer(0).GetPositions()))
-    geo = automol.geom.base.from_data(syms, xyzs, angstrom=True)
-
-    return geo
-
-
-def to_conformers(rdm, nconfs):
-    """ Generate molecular geometries for a set of conformers
-        from am RDKit molecule object.
-
-        Currently not removing redundant conformers.
-
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :param nconfs: number of conformers to generate
-        :type nconfs: int
-        :rtype: automol geometry data structure
-    """
-
-    rdm = rdkit.Chem.AddHs(rdm)
-    atms = rdm.GetAtoms()
-    natms = len(rdm.GetAtoms())
-    geos = []
-    if natms == 1:
-        syms = [str(atms[0].GetSymbol()).title()]
-        xyzs = [(0., 0., 0.)]
-        geos.append(
-            automol.geom.base.from_data(syms, xyzs, angstrom=True))
-    else:
-        cids = AllChem.EmbedMultipleConfs(rdm, numConfs=nconfs)
-        res = AllChem.MMFFOptimizeMoleculeConfs(rdm)
-        energies = list(zip(*res))[1]
-        for cid in cids:
-            syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
-            xyzs = tuple(map(tuple, rdm.GetConformer(cid).GetPositions()))
-            geos.append(
-                automol.geom.base.from_data(syms, xyzs, angstrom=True))
-        # Sort geometries using the energies
-        geos = [
-            x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])
-        ]
-
-    return geos
 
 
 # graph

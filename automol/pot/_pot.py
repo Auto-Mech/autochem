@@ -221,9 +221,5 @@ def string(pot):
         right now its just values
         call util.vec.string
     """
-
-    pot_str = ''
-    for val in pot.values():
-        pot_str += f' {val:.6f}'
-
+    pot_str = ''.join(f' {val:.6f}' for val in pot.values())
     return pot_str

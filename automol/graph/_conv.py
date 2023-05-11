@@ -275,7 +275,7 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
     miss_ich_ste_keys = automol.inchi.unassigned_stereo_bonds(ich)
 
     if len(ich_ste_keys) > len(our_ste_keys):
-        raise Exception("Our code is missing stereo bonds")
+        raise RuntimeError("Our code is missing stereo bonds")
 
     if len(ich_ste_keys) < len(our_ste_keys) or miss_ich_ste_keys:
         # Convert to implicit graph and relabel based on InChI sort
@@ -303,9 +303,7 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         # After forming the b-layer string, generate the new InChI
         blyr_str = ','.join(blyr_strs)
         ste_dct = {'b': blyr_str}
-        # print(ste_dct)
         ich = automol.inchi.standard_form(ich, ste_dct=ste_dct)
-        # print('out:', ich)
 
     return ich
 
@@ -380,6 +378,7 @@ def rdkit_molecule(gra, stereo=True):
         :type stereo: bool
         :returns: the RDKit molecule
     """
+    rdkit_.turn_3d_visualization_off()
     return rdkit_.from_smiles(smiles(gra, stereo=stereo, res_stereo=False))
 
 
@@ -400,6 +399,7 @@ def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
         :param rxn: the reaction object
         :returns: the RDKit reaction
     """
+    rdkit_.turn_3d_visualization_off()
     rsmis = [smiles(g, stereo=stereo, res_stereo=res_stereo,
                     exp_singles=True) for g in rgras]
     psmis = [smiles(g, stereo=stereo, res_stereo=res_stereo,
@@ -416,6 +416,7 @@ def display(gra, stereo=True):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     IPython.display.display(rdkit_molecule(gra, stereo=stereo))
 
 
@@ -427,6 +428,7 @@ def display_reaction(rgras, pgras, stereo=True):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     return IPython.display.display(rdkit_reaction(rgras, pgras, stereo=stereo))
 
 
