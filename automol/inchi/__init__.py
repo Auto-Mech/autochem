@@ -52,6 +52,10 @@ from automol.inchi._conv import geometry
 from automol.inchi._conv import conformers
 from automol.inchi._conv import zmatrix
 from automol.inchi._conv import amchi
+from automol.inchi._conv import rdkit_molecule
+from automol.inchi._conv import rdkit_reaction
+from automol.inchi._conv import display
+from automol.inchi._conv import display_reaction
 # # derived properties
 from automol.inchi._conv import is_complete
 from automol.inchi._conv import is_bad
@@ -121,6 +125,10 @@ __all__ = [
     'conformers',
     'zmatrix',
     'amchi',
+    'rdkit_molecule',
+    'rdkit_reaction',
+    'display',
+    'display_reaction',
     # # derived properties
     'is_complete',
     'is_bad',

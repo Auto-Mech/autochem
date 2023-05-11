@@ -104,6 +104,8 @@ from automol.geom._conv import inchi_with_sort
 from automol.geom._conv import chi
 from automol.geom._conv import chi_with_sort
 from automol.geom._conv import smiles
+from automol.geom._conv import rdkit_molecule
+from automol.geom._conv import display
 # # derived properties
 from automol.geom._conv import linear_atoms
 from automol.geom._conv import closest_unbonded_atoms
@@ -225,6 +227,8 @@ __all__ = [
     'chi',
     'chi_with_sort',
     'smiles',
+    'rdkit_molecule',
+    'display',
     # # derived properties
     'linear_atoms',
     'closest_unbonded_atoms',

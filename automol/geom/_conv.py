@@ -2,6 +2,7 @@
 """
 
 import itertools
+import IPython
 import numpy
 from phydat import phycon
 import automol.graph
@@ -9,6 +10,7 @@ import automol.zmat.base
 import automol.amchi.base
 import automol.inchi.base
 from automol import util
+from automol.extern import rdkit_
 from automol.geom import _pyx2z
 from automol.geom.base import from_subset
 from automol.geom.base import symbols
@@ -302,6 +304,33 @@ def smiles(geo, stereo=True, res_stereo=True):
     gra = graph(geo, stereo=stereo)
     smi = automol.graph.base.smiles(gra, stereo=stereo, res_stereo=res_stereo)
     return smi
+
+
+def rdkit_molecule(geo):
+    """ Convert a geometry to an RDKit molecule.
+
+        This is mainly useful for quick visualization with IPython, which can
+        be done as follows:
+        >>> from IPython.display import display
+        >>> display(rdkit_molecule(geo))
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :returns: the RDKit molecule
+    """
+    rdkit_.turn_3d_visualization_on()
+    gra = graph(geo)
+    return rdkit_.from_geometry_with_graph(geo, gra)
+
+
+def display(geo):
+    """ Display molecule to IPython using the RDKit visualizer
+
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+    """
+    rdkit_.turn_3d_visualization_on()
+    IPython.display.display(rdkit_molecule(geo))
 
 
 # # derived properties

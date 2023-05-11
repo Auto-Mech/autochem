@@ -212,6 +212,17 @@ from automol.graph.base._kekule import radical_group_dct
 from automol.graph.base._kekule import rigid_planar_bond_keys
 from automol.graph.base._kekule import atom_centered_cumulene_keys
 from automol.graph.base._kekule import bond_centered_cumulene_keys
+# torsion/rotational bond functions:
+from automol.graph.base._rot import rotational_bond_keys
+from automol.graph.base._rot import rotational_groups
+from automol.graph.base._rot import rotational_symmetry_number
+from automol.graph.base._rot import bond_symmetry_numbers
+# geometry functions:
+# # stereo parity evaluations
+# from automol.graph.base._geom import atom_parity_from_geometry
+# from automol.graph.base._geom import bond_parity_from_geometry
+# # corrections
+from automol.graph.base._geom import linear_vinyl_corrected_geometry
 # canonicalization functions:
 # # canonical key functions
 from automol.graph.base._canon import canonical_enantiomer
@@ -234,6 +245,21 @@ from automol.graph.base._canon import calculate_priorities_and_assign_parities
 from automol.graph.base._canon import parity_evaluator_from_geometry_
 from automol.graph.base._canon import parity_evaluator_read_canonical_
 from automol.graph.base._canon import parity_evaluator_flip_local_
+# AMChI functions:
+from automol.graph.base._amchi import amchi
+from automol.graph.base._amchi import amchi_with_indices
+from automol.graph.base._amchi import inchi_is_bad
+# SMILES functions:
+from automol.graph.base._smiles import smiles
+# stereo functions:
+# # core functions
+from automol.graph.base._stereo import expand_stereo
+from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
+# # stereo evaluation
+from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
+from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
+# # stereo correction
+from automol.graph.base._stereo import stereo_corrected_geometry
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -259,7 +285,6 @@ from automol.graph.base._func_group import amide_groups
 from automol.graph.base._func_group import nitro_groups
 from automol.graph.base._func_group import halide_groups
 from automol.graph.base._func_group import thiol_groups
-from automol.graph.base._func_group import sulfanyl_groups
 from automol.graph.base._func_group import methyl_groups
 from automol.graph.base._func_group import radical_dissociation_products
 # # helper functions
@@ -268,28 +293,6 @@ from automol.graph.base._func_group import bonds_of_order
 from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
-# torsion/rotational bond functions:
-from automol.graph.base._rot import rotational_bond_keys
-from automol.graph.base._rot import rotational_groups
-from automol.graph.base._rot import rotational_symmetry_number
-from automol.graph.base._rot import bond_symmetry_numbers
-# geometry functions:
-from automol.graph.base._geom import linear_vinyl_corrected_geometry
-# stereo functions:
-# # core functions
-from automol.graph.base._stereo import expand_stereo
-from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
-# # stereo evaluation
-from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
-from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
-# # stereo correction
-from automol.graph.base._stereo import stereo_corrected_geometry
-# AMChI functions:
-from automol.graph.base._amchi import amchi
-from automol.graph.base._amchi import amchi_with_indices
-from automol.graph.base._amchi import inchi_is_bad
-# SMILES functions:
-from automol.graph.base._smiles import smiles
 # TS graph submodule:
 from automol.graph.base import ts
 # L4
@@ -509,6 +512,17 @@ __all__ = [
     'rigid_planar_bond_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
+    # torsion/rotational bond functions:
+    'rotational_bond_keys',
+    'rotational_groups',
+    'rotational_symmetry_number',
+    'bond_symmetry_numbers',
+    # geometry functions:
+    # # stereo parity evaluations
+    # 'atom_parity_from_geometry',
+    # 'bond_parity_from_geometry',
+    # # corrections
+    'linear_vinyl_corrected_geometry',
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',
@@ -531,6 +545,21 @@ __all__ = [
     'parity_evaluator_from_geometry_',
     'parity_evaluator_read_canonical_',
     'parity_evaluator_flip_local_',
+    # AMChI functions:
+    'amchi',
+    'amchi_with_indices',
+    'inchi_is_bad',
+    # SMILES functions:
+    'smiles',
+    # stereo functions:
+    # # core functions
+    'expand_stereo',
+    'expand_stereo_with_priorities_and_amchis',
+    # # stereo evaluation
+    'local_atom_stereo_parity_from_geometry',
+    'local_bond_stereo_parity_from_geometry',
+    # # stereo correction
+    'stereo_corrected_geometry',
     # functional groups code:
     # # core functions
     'FunctionalGroup',
@@ -556,7 +585,6 @@ __all__ = [
     'nitro_groups',
     'halide_groups',
     'thiol_groups',
-    'sulfanyl_groups',
     'methyl_groups',
     'radical_dissociation_products',
     # # helper functions
@@ -565,28 +593,6 @@ __all__ = [
     'two_bond_idxs',
     'neighbors_of_type',
     'radicals_of_type',
-    # torsion/rotational bond functions:
-    'rotational_bond_keys',
-    'rotational_groups',
-    'rotational_symmetry_number',
-    'bond_symmetry_numbers',
-    # geometry functions:
-    'linear_vinyl_corrected_geometry',
-    # stereo functions:
-    # # core functions
-    'expand_stereo',
-    'expand_stereo_with_priorities_and_amchis',
-    # # stereo evaluation
-    'local_atom_stereo_parity_from_geometry',
-    'local_bond_stereo_parity_from_geometry',
-    # # stereo correction
-    'stereo_corrected_geometry',
-    # AMChI functions:
-    'amchi',
-    'amchi_with_indices',
-    'inchi_is_bad',
-    # SMILES functions:
-    'smiles',
     # TS graph submodule:
     'ts',
     # L4

@@ -129,6 +129,7 @@ def rdkit_molecule(smi, stereo=True):
         :type stereo: bool
         :returns: the RDKit molecule
     """
+    rdkit_.turn_3d_visualization_off()
     gra = graph(smi, stereo=stereo)
     return automol.graph.rdkit_molecule(gra, stereo=stereo)
 
@@ -149,6 +150,7 @@ def rdkit_reaction(rsmis, psmis, stereo=True, res_stereo=False):
         :type res_stereo: bool
         :returns: the RDKit reaction
     """
+    rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rsmis]
     pgras = [graph(s, stereo=stereo) for s in psmis]
     return automol.graph.rdkit_reaction(rgras, pgras, stereo=stereo,
@@ -163,6 +165,7 @@ def display(smi, stereo=True):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     gra = graph(smi, stereo=stereo)
     automol.graph.display(gra, stereo=stereo)
 
@@ -175,6 +178,7 @@ def display_reaction(rsmis, psmis, stereo=True):
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
     """
+    rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rsmis]
     pgras = [graph(s, stereo=stereo) for s in psmis]
     automol.graph.display_reaction(rgras, pgras, stereo=stereo)
