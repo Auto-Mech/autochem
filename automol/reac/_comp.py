@@ -10,11 +10,10 @@ from automol.util import dict_
 from automol.reac._reac import forming_bond_keys
 from automol.reac._reac import breaking_bond_keys
 from automol.reac._reac import relabel_for_geometry
-from automol.graph.base._core import atom_keys
-from automol.graph.base._core import without_stereo_parities
-from automol.graph.base._core import from_ts_graph
-from automol.graph.base._canon import stereogenic_bond_keys
-from automol.graph.base._canon import parity_evaluator_from_geometry_
+from automol.graph import without_stereo_parities
+from automol.graph import from_ts_graph
+from automol.graph import geometries_parity_mismatches
+from automol.graph import stereogenic_bond_keys
 
 
 def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
@@ -139,35 +138,20 @@ def _check_stereo_parities(zma, ref_zma, zrxn):
     back_ste_keys = stereogenic_bond_keys(bgra)
     forw_idxs = zrxn.key_map(rev=False, stereo=False)
     back_idxs = zrxn.key_map(rev=True, stereo=False)
-    fatm_keys = atom_keys(fgra)
-    batm_keys = atom_keys(bgra)
-    fpri_dct = dict(zip(fatm_keys, fatm_keys))
-    bpri_dct = dict(zip(batm_keys, batm_keys))
     geo = automol.zmat.geometry(zma, dummy=True)
     ref_geo = automol.zmat.geometry(ref_zma, dummy=True)
 
-    forw_par_eval_ = parity_evaluator_from_geometry_(
-        fgra, geo, geo_idx_dct=forw_idxs)
-    ref_forw_par_eval_ = parity_evaluator_from_geometry_(
-        fgra, ref_geo, geo_idx_dct=forw_idxs)
-    back_par_eval_ = parity_evaluator_from_geometry_(
-        bgra, geo, geo_idx_dct=back_idxs)
-    ref_back_par_eval_ = parity_evaluator_from_geometry_(
-        bgra, ref_geo, geo_idx_dct=back_idxs)
-
-    forw_par_ = forw_par_eval_(fpri_dct)
-    ref_forw_par_ = ref_forw_par_eval_(fpri_dct)
-    back_par_ = back_par_eval_(bpri_dct)
-    ref_back_par_ = ref_back_par_eval_(bpri_dct)
+    forw_bad_keys = geometries_parity_mismatches(
+        fgra, geo, ref_geo, forw_ste_keys, geo_idx_dct=forw_idxs)
+    back_bad_keys = geometries_parity_mismatches(
+        bgra, geo, ref_geo, back_ste_keys, geo_idx_dct=back_idxs)
 
     viable = True
-    for bnd_key in forw_ste_keys:
-        if forw_par_(bnd_key) != ref_forw_par_(bnd_key):
-            viable = False
-            print('Invalid stereo at bond ', bnd_key)
-    for bnd_key in back_ste_keys:
-        if back_par_(bnd_key) != ref_back_par_(bnd_key):
-            viable = False
-            print('Invalid stereo at backward bond ', bnd_key)
+    for bnd_key in forw_bad_keys:
+        viable = False
+        print('Invalid stereo at bond ', bnd_key)
+    for bnd_key in back_bad_keys:
+        viable = False
+        print('Invalid stereo at backward bond ', bnd_key)
 
     return viable

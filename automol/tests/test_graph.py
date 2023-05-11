@@ -960,6 +960,65 @@ def test__geometry_bond_parity():
     assert automol.graph.geometry_bond_parity(gra, geo, [1, 2]) is False
 
 
+def test__geometries_parity_mismatches():
+    """ test graph.geometries_parity_mismatches
+    """
+    # F/C=N/[C@H](O)(F)
+    geo1 = (('F', (5.084539, -0.513665, -0.452995)),
+            ('C', (2.63457, -0.807065, -0.671966)),
+            ('N', (1.185305, 0.951476, 0.193626)),
+            ('C', (-1.474258, 0.369908, -0.151588)),
+            ('H', (-2.011785, 0.417195, -2.149368)),
+            ('O', (-3.095413, 1.983267, 1.196529)),
+            ('F', (-1.982076, -1.995096, 0.779896)),
+            ('H', (1.893063, -2.574706, -1.552191)),
+            ('H', (-2.233945, 2.168686, 2.808057)))
+    # F/C=N/[C@@H](O)(F)
+    geo2 = (('F', (3.769058, -2.906815, -2.104708)),
+            ('C', (2.30642, -1.089166, -1.133306)),
+            ('N', (0.446289, -1.783733, 0.261487)),
+            ('C', (-1.006658, 0.368806, 1.181072)),
+            ('H', (0.105919, 1.401487, 2.627576)),
+            ('O', (-1.840221, 2.050204, -0.652784)),
+            ('F', (-3.015519, -0.619458, 2.46581)),
+            ('H', (2.796282, 0.888302, -1.585397)),
+            ('H', (-3.561571, 1.690373, -1.05975)))
+    # F/C=N\[C@H](O)(F)
+    geo3 = (('F', (2.548759, -2.658852, 0.888608)),
+            ('C', (2.755227, -0.684142, -0.677915)),
+            ('N', (0.850395, 0.749212, -1.139181)),
+            ('C', (-1.378559, -0.016047, 0.245876)),
+            ('H', (-1.812511, -2.029738, 0.040561)),
+            ('O', (-3.548738, 1.369169, -0.422483)),
+            ('F', (-0.993379, 0.509014, 2.724287)),
+            ('H', (4.599124, -0.330173, -1.574926)),
+            ('H', (-3.020319, 3.091559, -0.084827)))
+    # F/C=N\[C@@H](O)(F)
+    geo4 = (('F', (0.178094, -1.31074, -2.345725)),
+            ('C', (-1.723374, 0.199865, -1.629498)),
+            ('N', (-1.704667, 1.254529, 0.554373)),
+            ('C', (0.533485, 0.62288, 2.036335)),
+            ('H', (0.438289, 1.705675, 3.82386)),
+            ('O', (0.864003, -1.917842, 2.632388)),
+            ('F', (2.594726, 1.541084, 0.791643)),
+            ('H', (-3.28618, 0.525251, -2.961819)),
+            ('H', (2.105626, -2.620703, 1.525167)))
+    gra = automol.geom.graph(geo1)
+    keys = [3, (1, 2)]
+
+    assert not graph.geometries_parity_mismatches(gra, geo1, geo1, keys)
+    assert graph.geometries_parity_mismatches(gra, geo1, geo2, keys) == (
+        3,)
+    assert graph.geometries_parity_mismatches(gra, geo1, geo3, keys) == (
+        (1, 2),)
+    assert graph.geometries_parity_mismatches(gra, geo1, geo4, keys) == (
+        3, (1, 2))
+    assert graph.geometries_have_matching_parities(gra, geo1, geo1, keys)
+    assert not graph.geometries_have_matching_parities(gra, geo1, geo2, keys)
+    assert not graph.geometries_have_matching_parities(gra, geo1, geo3, keys)
+    assert not graph.geometries_have_matching_parities(gra, geo1, geo4, keys)
+
+
 def test__stereogenic_atom_keys():
     """ test graph.stereogenic_atom_keys
     """
@@ -1490,3 +1549,4 @@ if __name__ == '__main__':
     # test__kekules()
     test__geometry_atom_parity()
     test__geometry_bond_parity()
+    test__geometries_parity_mismatches()

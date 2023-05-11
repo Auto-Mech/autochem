@@ -2,6 +2,7 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+import numbers
 from collections import abc
 import numpy
 from phydat import phycon
@@ -217,6 +218,81 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
     assert dot_val != 0.    # for now, assume not collinear
     par = bool(dot_val < 0.)
     return par
+
+
+def geometry_local_parity(gra, geo, key, geo_idx_dct=None, neg_hkeys=True):
+    """ Calculate the local parity of an atom or bond
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param geo: molecular geometry
+        :type geo: automol geometry data structure
+        :param key: the atom or bond key whose parity is being evaluated
+        :type key: int
+        :param geo_idx_dct: If they don't already match, specify which graph
+            keys correspond to which geometry indices.
+        :type geo_idx_dct: dict[int: int]
+        :neg_hkeys: negate hydrogen keys, to match with InChI parities?
+        :neg_hkeys: bool
+    """
+    if isinstance(key, numbers.Number):
+        par = geometry_atom_parity(
+            gra, geo, key, geo_idx_dct=geo_idx_dct, neg_hkeys=neg_hkeys)
+    else:
+        par = geometry_bond_parity(
+            gra, geo, key, geo_idx_dct=geo_idx_dct, neg_hkeys=neg_hkeys)
+    return par
+
+
+def geometries_have_matching_parities(gra, geo1, geo2, keys, geo_idx_dct=None):
+    """ Check whether two geometries have matching parities at a list of sites
+
+        Keys in list may be atom or bond keys.  Any stereo in the graph object
+        gets ignored.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param geo1: the first molecular geometry
+        :type geo1: automol geometry data structure
+        :param geo2: the second molecular geometry
+        :type geo2: automol geometry data structure
+        :param keys: list of atom or bond keys for comparison sites
+        :type keys: list
+        :param geo_idx_dct: If they don't already match, specify which graph
+            keys correspond to which geometry indices.
+        :type geo_idx_dct: dict[int: int]
+        :returns: true if they match, false if not
+    """
+    return all(
+        (geometry_local_parity(gra, geo1, key, geo_idx_dct=geo_idx_dct) ==
+         geometry_local_parity(gra, geo2, key, geo_idx_dct=geo_idx_dct))
+        for key in keys)
+
+
+def geometries_parity_mismatches(gra, geo1, geo2, keys, geo_idx_dct=None):
+    """ Check where two geometries have mismatched parities and return keys to
+        those sites
+
+        Keys in list may be atom or bond keys.  Any stereo in the graph object
+        gets ignored.
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param geo1: the first molecular geometry
+        :type geo1: automol geometry data structure
+        :param geo2: the second molecular geometry
+        :type geo2: automol geometry data structure
+        :param keys: list of atom or bond keys for comparison sites
+        :type keys: list
+        :param geo_idx_dct: If they don't already match, specify which graph
+            keys correspond to which geometry indices.
+        :type geo_idx_dct: dict[int: int]
+        :returns: keys to sites at which they don't match
+    """
+    return tuple(
+        key for key in keys if
+        geometry_local_parity(gra, geo1, key, geo_idx_dct=geo_idx_dct) !=
+        geometry_local_parity(gra, geo2, key, geo_idx_dct=geo_idx_dct))
 
 
 # corrections
