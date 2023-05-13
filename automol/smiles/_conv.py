@@ -115,6 +115,20 @@ def _connected_graph(smi, stereo=True, local_stereo=False):
     return gra
 
 
+def geometry(smi, check=True):
+    """ Generate a molecular geometry from a SMILES string.
+
+        :param smi: SMILES string
+        :type smi: str
+        :param check: check stereo and connectivity?
+        :type check: bool
+        :rtype: automol molecular geometry data structure
+    """
+    gra = graph(smi)
+    geo = automol.graph.geometry(gra, check=check)
+    return geo
+
+
 def rdkit_molecule(smi, stereo=True):
     """ Convert a SMILES string to an RDKit molecule.
 

@@ -19,6 +19,7 @@ from automol.graph.base._core import has_stereo
 from automol.graph.base._core import frozen
 from automol.graph.base._core import implicit
 from automol.graph.base._core import without_stereo_parities
+# from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import reacting_atoms

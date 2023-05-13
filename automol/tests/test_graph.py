@@ -914,6 +914,111 @@ def test__species__graph_conversion():
 
 
 # stereo graph library
+def test__geometry_atom_parity():
+    """ test graph.geometry_atom_parity
+    """
+    # '[C@H](Cl)(F)(O)'
+    geo = (('C', (-0.156548, 0.194561, -0.651837)),
+           ('H', (0.352681, 0.459932, -2.635957)),
+           ('Cl', (-2.670412, -1.956931, -0.346205)),
+           ('F', (-0.861626, 2.505747, 0.34212)),
+           ('O', (1.916674, -0.693354, 0.754657)),
+           ('H', (1.419231, -0.509954, 2.537223)))
+    gra = automol.geom.graph(geo)
+    assert(automol.graph.geometry_atom_parity(gra, geo, 0) is False)
+
+    # '[C@@H](Cl)(F)(O)'
+    geo = (('C', (-0.317722, 0.059267, -0.618703)),
+           ('H', (-0.26878, 0.123481, -2.68267)),
+           ('Cl', (-1.517891, 2.894393, 0.631708)),
+           ('F', (-1.842322, -1.93151, 0.115519)),
+           ('O', (2.108174, -0.367259, 0.380286)),
+           ('H', (1.838541, -0.778373, 2.17386)))
+    gra = automol.geom.graph(geo)
+    assert (automol.graph.geometry_atom_parity(gra, geo, 0) is True)
+
+
+def test__geometry_bond_parity():
+    """ test graph.geometry_bond_parity
+    """
+    # r'F/C=N/[H]'
+    geo = (('F', (-2.483972, -1.744981, 0.024901)),
+           ('C', (-0.860131, 0.558467, -0.008463)),
+           ('N', (1.9591, 0.223915, -0.002683)),
+           ('H', (3.348622, 1.709226, -0.024014)),
+           ('H', (-1.577309, 2.507937, -0.03731)))
+    gra = automol.geom.graph(geo)
+    assert automol.graph.geometry_bond_parity(gra, geo, [1, 2]) is True
+
+    # r'F/C=N\[H]'
+    geo = (('F', (-1.495767, 2.657838, -0.288402)),
+           ('C', (-0.969504, -0.04963, -0.822887)),
+           ('N', (1.620729, -1.139643, -0.788144)),
+           ('H', (3.359017, -0.121361, -0.3958)),
+           ('H', (-2.514475, -1.347203, -1.263959)))
+    gra = automol.geom.graph(geo)
+    assert automol.graph.geometry_bond_parity(gra, geo, [1, 2]) is False
+
+
+def test__geometries_parity_mismatches():
+    """ test graph.geometries_parity_mismatches
+    """
+    # F/C=N/[C@H](O)(F)
+    geo1 = (('F', (5.084539, -0.513665, -0.452995)),
+            ('C', (2.63457, -0.807065, -0.671966)),
+            ('N', (1.185305, 0.951476, 0.193626)),
+            ('C', (-1.474258, 0.369908, -0.151588)),
+            ('H', (-2.011785, 0.417195, -2.149368)),
+            ('O', (-3.095413, 1.983267, 1.196529)),
+            ('F', (-1.982076, -1.995096, 0.779896)),
+            ('H', (1.893063, -2.574706, -1.552191)),
+            ('H', (-2.233945, 2.168686, 2.808057)))
+    # F/C=N/[C@@H](O)(F)
+    geo2 = (('F', (3.769058, -2.906815, -2.104708)),
+            ('C', (2.30642, -1.089166, -1.133306)),
+            ('N', (0.446289, -1.783733, 0.261487)),
+            ('C', (-1.006658, 0.368806, 1.181072)),
+            ('H', (0.105919, 1.401487, 2.627576)),
+            ('O', (-1.840221, 2.050204, -0.652784)),
+            ('F', (-3.015519, -0.619458, 2.46581)),
+            ('H', (2.796282, 0.888302, -1.585397)),
+            ('H', (-3.561571, 1.690373, -1.05975)))
+    # F/C=N\[C@H](O)(F)
+    geo3 = (('F', (2.548759, -2.658852, 0.888608)),
+            ('C', (2.755227, -0.684142, -0.677915)),
+            ('N', (0.850395, 0.749212, -1.139181)),
+            ('C', (-1.378559, -0.016047, 0.245876)),
+            ('H', (-1.812511, -2.029738, 0.040561)),
+            ('O', (-3.548738, 1.369169, -0.422483)),
+            ('F', (-0.993379, 0.509014, 2.724287)),
+            ('H', (4.599124, -0.330173, -1.574926)),
+            ('H', (-3.020319, 3.091559, -0.084827)))
+    # F/C=N\[C@@H](O)(F)
+    geo4 = (('F', (0.178094, -1.31074, -2.345725)),
+            ('C', (-1.723374, 0.199865, -1.629498)),
+            ('N', (-1.704667, 1.254529, 0.554373)),
+            ('C', (0.533485, 0.62288, 2.036335)),
+            ('H', (0.438289, 1.705675, 3.82386)),
+            ('O', (0.864003, -1.917842, 2.632388)),
+            ('F', (2.594726, 1.541084, 0.791643)),
+            ('H', (-3.28618, 0.525251, -2.961819)),
+            ('H', (2.105626, -2.620703, 1.525167)))
+    gra = automol.geom.graph(geo1)
+    keys = [3, (1, 2)]
+
+    assert not graph.geometries_parity_mismatches(gra, geo1, geo1, keys)
+    assert graph.geometries_parity_mismatches(gra, geo1, geo2, keys) == (
+        3,)
+    assert graph.geometries_parity_mismatches(gra, geo1, geo3, keys) == (
+        (1, 2),)
+    assert graph.geometries_parity_mismatches(gra, geo1, geo4, keys) == (
+        3, (1, 2))
+    assert graph.geometries_have_matching_parities(gra, geo1, geo1, keys)
+    assert not graph.geometries_have_matching_parities(gra, geo1, geo2, keys)
+    assert not graph.geometries_have_matching_parities(gra, geo1, geo3, keys)
+    assert not graph.geometries_have_matching_parities(gra, geo1, geo4, keys)
+
+
 def test__stereogenic_atom_keys():
     """ test graph.stereogenic_atom_keys
     """
@@ -1439,6 +1544,9 @@ if __name__ == '__main__':
     # test__ts__expand_reaction_stereo()
     # test__species__graph_conversion()
     # test__canonical()
-    test__calculate_priorities_and_assign_parities()
+    # test__calculate_priorities_and_assign_parities()
     # test__smiles()
     # test__kekules()
+    test__geometry_atom_parity()
+    test__geometry_bond_parity()
+    test__geometries_parity_mismatches()

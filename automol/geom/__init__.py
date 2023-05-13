@@ -70,6 +70,7 @@ from automol.geom.base._core import reorder
 from automol.geom.base._core import move_atom
 from automol.geom.base._core import swap_coordinates
 # # transformations
+from automol.geom.base._core import round_
 from automol.geom.base._core import translate
 from automol.geom.base._core import translate_along_matrix
 from automol.geom.base._core import perturb
@@ -193,6 +194,7 @@ __all__ = [
     'move_atom',
     'swap_coordinates',
     # # transformations
+    'round_',
     'translate',
     'translate_along_matrix',
     'perturb',
