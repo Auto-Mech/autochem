@@ -22,7 +22,7 @@ from automol.graph.base import atom_bond_valences
 from automol.graph.base import atom_unsaturations
 from automol.graph.base import explicit
 from automol.graph.base import without_dummy_atoms
-from automol.graph.base import backbone_isomorphic
+from automol.graph.base import isomorphic
 from automol.graph.base import kekule
 from automol.graph.base import set_stereo_from_geometry
 from automol.graph.base import smiles
@@ -454,7 +454,7 @@ def _compare(gra1, gra2):
     gra1 = without_dummy_atoms(gra1)
     gra2 = without_dummy_atoms(gra2)
 
-    return backbone_isomorphic(gra1, gra2)
+    return isomorphic(gra1, gra2, backbone_only=True)
 
 
 def _compare_smiles(smi1, smi2):

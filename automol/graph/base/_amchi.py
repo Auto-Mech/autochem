@@ -132,7 +132,7 @@ def inchi_is_bad(gra, ich):
     is_bad = False
 
     # 1. Stereogenic nitrogen atoms
-    nit_atm_keys = atom_keys(gra, sym='N')
+    nit_atm_keys = atom_keys(gra, symb='N')
     has_ste_nit_atm = bool(nit_atm_keys & ste_atm_keys)
 
     # 2. Stereogenic resonance bonds

@@ -78,7 +78,7 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None,
     xyz_dct = {k: xyzs[geo_idx_dct[k]] for k in keys}
 
     if nkeys is None:
-        hkeys = atom_keys(gra, sym='H')
+        hkeys = atom_keys(gra, symb='H')
         sgn = -1 if neg_hkeys else +1
 
         pri_dct = {k: (k if k not in hkeys else sgn * k) for k in keys}
@@ -186,7 +186,7 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
     xyz_dct = {k: xyzs[geo_idx_dct[k]] for k in keys}
 
     if bnd_nkeys is None:
-        hkeys = atom_keys(gra, sym='H')
+        hkeys = atom_keys(gra, symb='H')
         sgn = -1 if neg_hkeys else +1
 
         pri_dct = {k: (k if k not in hkeys else sgn * k) for k in keys}

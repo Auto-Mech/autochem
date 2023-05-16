@@ -311,9 +311,9 @@ def hydrogen_bonded_idxs(
         gra = graph(geo)
         dist_mat = distance_matrix(geo)
         adj_atm_dct = automol.graph.atoms_neighbor_atom_keys(gra)
-        h_idxs = automol.graph.atom_keys(gra, sym='H')
+        h_idxs = automol.graph.atom_keys(gra, symb='H')
         acceptor_idxs = list(automol.graph.radical_atom_keys(gra))
-        acceptor_idxs.extend(list(automol.graph.atom_keys(gra, sym='O')))
+        acceptor_idxs.extend(list(automol.graph.atom_keys(gra, symb='O')))
         # Loop over indices, ignoring H-idxs in reacting bonds
         hb_idxs = tuple(idx for idx in h_idxs
                         if idx not in rxn_h_idxs)

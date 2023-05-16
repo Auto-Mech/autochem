@@ -111,7 +111,7 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
     gra = implicit(gra)
 
     # Don't allow implicit hydrogens connected to backbone hydrogens
-    gra = explicit(gra, atm_keys=atom_keys(gra, sym='H'))
+    gra = explicit(gra, atm_keys=atom_keys(gra, symb='H'))
 
     # Insert hydrogens necessary for bond stereo
     gra = _insert_stereo_hydrogens(gra)

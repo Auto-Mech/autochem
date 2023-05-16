@@ -204,13 +204,15 @@ def test_unique_atoms():
     """ test automol.graph._func_group.chem_unique_atoms_of_type
     """
 
-    uni_idxs1 = automol.graph.chem_unique_atoms_of_type(C4H10_GRA, 'H')
-    assert uni_idxs1 == (4, 10)
+    uni_idxs1 = automol.graph.atom_equivalence_class_reps(C4H10_GRA, symb='H')
+    print(uni_idxs1)
+    assert uni_idxs1 == {4, 10}
 
-    uni_idxs2 = automol.graph.chem_unique_atoms_of_type(C4H10_GRA, 'C')
-    assert uni_idxs2 == (0, 2)
+    uni_idxs2 = automol.graph.atom_equivalence_class_reps(C4H10_GRA, symb='C')
+    print(uni_idxs2)
+    assert uni_idxs2 == {0, 2}
 
 
 if __name__ == '__main__':
-    test_functional_group_dct()
+    # test_functional_group_dct()
     test_unique_atoms()

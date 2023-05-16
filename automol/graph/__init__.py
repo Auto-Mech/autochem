@@ -137,19 +137,16 @@ from automol.graph.base._core import bonds_neighbor_bond_keys
 # algorithm functions:
 # # isomorphisms and equivalence
 from automol.graph.base._algo import isomorphism
+from automol.graph.base._algo import isomorphic
+from automol.graph.base._algo import unique
 from automol.graph.base._algo import sequence_isomorphism
-from automol.graph.base._algo import full_isomorphism
-from automol.graph.base._algo import full_subgraph_isomorphism
-from automol.graph.base._algo import backbone_isomorphism
-from automol.graph.base._algo import backbone_isomorphic
-from automol.graph.base._algo import backbone_unique
+from automol.graph.base._algo import subgraph_isomorphism
 from automol.graph.base._algo import equivalent_atoms
 from automol.graph.base._algo import equivalent_bonds
 from automol.graph.base._algo import are_equivalent_atoms
 from automol.graph.base._algo import are_equivalent_bonds
 from automol.graph.base._algo import atom_equivalence_class_reps
 from automol.graph.base._algo import bond_equivalence_class_reps
-from automol.graph.base._algo import chem_unique_atoms_of_type
 # # algorithms
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
@@ -440,19 +437,16 @@ __all__ = [
     # algorithm functions:
     # # isomorphisms and equivalence
     'isomorphism',
+    'isomorphic',
+    'unique',
     'sequence_isomorphism',
-    'full_isomorphism',
-    'full_subgraph_isomorphism',
-    'backbone_isomorphism',
-    'backbone_isomorphic',
-    'backbone_unique',
+    'subgraph_isomorphism',
     'equivalent_atoms',
     'equivalent_bonds',
     'are_equivalent_atoms',
     'are_equivalent_bonds',
     'atom_equivalence_class_reps',
     'bond_equivalence_class_reps',
-    'chem_unique_atoms_of_type',
     # # algorithms
     'connected_components',
     'connected_components_atom_keys',
