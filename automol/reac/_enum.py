@@ -61,7 +61,7 @@ def hydrogen_migrations(rct_gras, viable_only=True):
         # Identify unsaturated sites
         rct_add_key = max(atom_keys(rct_gra)) + 1
         rct_rad_keys = unsaturated_atom_keys(rct_gra)
-        rct_hyd_keys = atom_keys(rct_gra, sym='H')
+        rct_hyd_keys = atom_keys(rct_gra, symb='H')
 
         for rct_rad_key in rct_rad_keys:
             # Add a hydrogen to the radical/unsaturated site
@@ -427,7 +427,7 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
 
     if len(rct_gras) == 2:
         for q1h_gra, q2_gra in itertools.permutations(rct_gras):
-            hyd_keys = atom_keys(q1h_gra, sym='H')
+            hyd_keys = atom_keys(q1h_gra, symb='H')
 
             # Identify unique heavy atoms as potential donors
             don_keys = atom_keys(q1h_gra, excl_syms=('H',))

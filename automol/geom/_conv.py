@@ -275,7 +275,7 @@ def chi_with_sort(geo, stereo=True, gra=None):
 
 
 def _compare(geo1, geo2):
-    """ Check if the backbone atoms of two molecular geometries are similar.
+    """ Check if the connectivity of two molecular geometries match
 
         :param geo1: molecular geometry 1
         :type geo1: automol geometry data structure
@@ -286,7 +286,7 @@ def _compare(geo1, geo2):
     gra1 = automol.graph.without_dummy_atoms(connectivity_graph(geo1))
     gra2 = automol.graph.without_dummy_atoms(connectivity_graph(geo2))
 
-    return automol.graph.backbone_isomorphic(gra1, gra2)
+    return automol.graph.isomorphic(gra1, gra2)
 
 
 def smiles(geo, stereo=True, res_stereo=True):

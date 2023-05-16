@@ -202,14 +202,14 @@ def bonds(gra):
     return bnd_dct
 
 
-def atom_keys(gra, sym=None, excl_syms=()):
+def atom_keys(gra, symb=None, excl_syms=()):
     """ atom keys
     """
     atm_keys = frozenset(atoms(gra).keys())
-    if sym is not None:
+    if symb is not None:
         atm_sym_dct = atom_symbols(gra)
         atm_keys = frozenset(k for k in atm_keys
-                             if atm_sym_dct[k] == sym and
+                             if atm_sym_dct[k] == symb and
                              atm_sym_dct[k] not in excl_syms)
     return atm_keys
 
@@ -930,7 +930,7 @@ def relabel_for_geometry(gra):
 
     :param gra: the graph
     """
-    dummy_keys = sorted(atom_keys(gra, sym='X'))
+    dummy_keys = sorted(atom_keys(gra, symb='X'))
 
     for dummy_key in reversed(dummy_keys):
         gra = _shift_remove_dummy_atom(gra, dummy_key)
@@ -1261,7 +1261,7 @@ def without_fractional_bonds(gra):
 def without_null_bonds(gra, except_dummies=True):
     """ remove 0-order bonds from the graph
     """
-    dummy_atm_keys = atom_keys(gra, sym='X')
+    dummy_atm_keys = atom_keys(gra, symb='X')
     ord_dct = dict_.filter_by_value(bond_orders(gra), func=lambda x: x == 0)
     null_bnd_keys = ord_dct.keys()
     if except_dummies:
@@ -1637,7 +1637,7 @@ def dummy_atoms_neighbor_atom_key(gra):
     (Requires that each dummy atom only be connected to one neighbor)
     """
     atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-    dummy_atm_keys = atom_keys(gra, sym='X')
+    dummy_atm_keys = atom_keys(gra, symb='X')
 
     dummy_ngb_key_dct = {}
     for key in dummy_atm_keys:

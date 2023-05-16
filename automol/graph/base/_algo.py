@@ -18,15 +18,12 @@ from automol.graph.base._core import set_atom_symbols
 from automol.graph.base._core import string
 from automol.graph.base._core import frozen
 from automol.graph.base._core import atom_count
-from automol.graph.base._core import atom_symbol_keys
-from automol.graph.base._core import remove_atoms
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import implicit
-from automol.graph.base._core import explicit
 from automol.graph.base._core import union_from_sequence
-from automol.graph.base._core import subgraph
+from automol.graph.base._core import subgraph as subgraph_
 from automol.graph.base._core import bond_induced_subgraph
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
@@ -34,10 +31,9 @@ from automol.graph.base._core import bonds_neighbor_bond_keys
 
 
 # # isomorphisms and equivalence
-def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
+def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True,
+                subgraph=False):
     """ Obtain an isomorphism between two graphs
-
-    This should eventually replace the other isomorphism functions.
 
     :param backbone_only: Compare backbone atoms only?
     :type backbone_only: bool
@@ -45,6 +41,8 @@ def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
     :type stereo: bool
     :param dummy: Consider dummy atoms?
     :type dummy: bool
+    :param subgraph: Test whether `gra2` is isomorphic to a subgraph of `gra1`?
+    :type subgraph: bool
     :returns: The isomorphism mapping `gra1` onto `gra2`
     :rtype: dict
     """
@@ -60,16 +58,63 @@ def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
         gra1 = without_dummy_atoms(gra1)
         gra2 = without_dummy_atoms(gra2)
 
-    return _isomorphism(gra1, gra2)
-
-
-def _isomorphism(gra1, gra2):
-    """
-    """
     nxg1 = _networkx.from_graph(gra1)
     nxg2 = _networkx.from_graph(gra2)
-    iso_dct = _networkx.isomorphism(nxg1, nxg2)
+    if subgraph:
+        iso_dct = _networkx.subgraph_isomorphism(nxg1, nxg2)
+    else:
+        iso_dct = _networkx.isomorphism(nxg1, nxg2)
     return iso_dct
+
+
+def isomorphic(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
+    """ Determine whether two graphs are isomorphic
+
+    This should eventually replace the other isomorphism functions.
+
+    :param backbone_only: Compare backbone atoms only?
+    :type backbone_only: bool
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: The isomorphism mapping `gra1` onto `gra2`
+    :rtype: dict
+    """
+    return isomorphism(
+        gra1, gra2, backbone_only=backbone_only, stereo=stereo, dummy=dummy
+    ) is not None
+
+
+def unique(gras, backbone_only=False, stereo=True, dummy=True):
+    """ Get the subset of non-isomorphic graphs from a list with redundancies
+
+    :param backbone_only: Compare backbone atoms only?
+    :type backbone_only: bool
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: The isomorphism mapping `gra1` onto `gra2`
+    :rtype: dict
+    """
+    def _equiv(gra1, gra2):
+        return isomorphic(gra1, gra2, backbone_only=backbone_only,
+                          stereo=stereo, dummy=dummy)
+
+    gras = _unique(gras, equiv=_equiv)
+    return gras
+
+
+def _unique(itms, equiv):
+    """ unique items from a list, according to binary comparison `equiv`
+    """
+    uniq_itms = []
+    for itm in itms:
+        if not any(map(functools.partial(equiv, itm), uniq_itms)):
+            uniq_itms.append(itm)
+
+    return tuple(uniq_itms)
 
 
 def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
@@ -83,7 +128,7 @@ def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
     :param dummy: Consider dummy atoms?
     :type dummy: bool
     :returns: First, a sequence of integers mapping each graph in `gras1` to an
-        isomorph in `gras2`, followes by a sequence of dictionaries mapping
+        isomorph in `gras2`, followed by a sequence of dictionaries mapping
         their atoms onto each other.
     :rtype: tuple[int], tuple[dict]
     """
@@ -115,70 +160,21 @@ def sequence_isomorphism(gras1, gras2, backbone_only=False, stereo=True,
     return order, iso_dcts
 
 
-def full_isomorphism(gra1, gra2):
-    """ full graph isomorphism
+def subgraph_isomorphism(gra1, gra2, backbone_only=False, stereo=True,
+                         dummy=True):
+    """ Test whether a graph contains a subgraph which is isomorphic to another
 
-    TODO: DEPRECATE
+    :param backbone_only: Compare backbone atoms only?
+    :type backbone_only: bool
+    :param stereo: Consider stereo?
+    :type stereo: bool
+    :param dummy: Consider dummy atoms?
+    :type dummy: bool
+    :returns: The isomorphism mapping a subgraph of `gra1` onto `gra2`
+    :rtype: dict
     """
-    assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
-    nxg1 = _networkx.from_graph(gra1)
-    nxg2 = _networkx.from_graph(gra2)
-    iso_dct = _networkx.isomorphism(nxg1, nxg2)
-    return iso_dct
-
-
-def full_subgraph_isomorphism(gra1, gra2):
-    """ gra2 is fully isomorphic to a subgraph of gra1
-
-    TODO: DEPRECATE
-    """
-    assert gra1 == explicit(gra1) and gra2 == explicit(gra2)
-    nxg1 = _networkx.from_graph(gra1)
-    nxg2 = _networkx.from_graph(gra2)
-    iso_dct = _networkx.subgraph_isomorphism(nxg1, nxg2)
-    return iso_dct
-
-
-def backbone_isomorphism(gra1, gra2):
-    """ graph backbone isomorphism
-
-    TODO: DEPRECATE
-
-    for implicit graphs, this is the relabeling of `gra1` to produce `gra2`
-    for other graphs, it gives the correspondences between backbone atoms
-    """
-    gra1 = implicit(gra1)
-    gra2 = implicit(gra2)
-    nxg1 = _networkx.from_graph(gra1)
-    nxg2 = _networkx.from_graph(gra2)
-    iso_dct = _networkx.isomorphism(nxg1, nxg2)
-    return iso_dct
-
-
-def backbone_isomorphic(gra1, gra2):
-    """ are these molecular graphs backbone isomorphic?
-
-    TODO: DEPRECATE
-    """
-    return backbone_isomorphism(gra1, gra2) is not None
-
-
-def backbone_unique(gras):
-    """ unique non-isomorphic graphs from a series
-    """
-    gras = _unique(gras, equiv=backbone_isomorphic)
-    return gras
-
-
-def _unique(itms, equiv):
-    """ unique items from a list, according to binary comparison `equiv`
-    """
-    uniq_itms = []
-    for itm in itms:
-        if not any(map(functools.partial(equiv, itm), uniq_itms)):
-            uniq_itms.append(itm)
-
-    return tuple(uniq_itms)
+    return isomorphism(gra1, gra2, backbone_only=backbone_only, stereo=stereo,
+                       dummy=dummy, subgraph=True)
 
 
 def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
@@ -207,7 +203,7 @@ def equivalent_atoms(gra, atm_key, stereo=True, dummy=True):
 
     # 1. Find atoms with the same symbols
     atm_symb = atm_symb_dct[atm_key]
-    cand_keys = atom_keys(gra, sym=atm_symb)
+    cand_keys = atom_keys(gra, symb=atm_symb)
 
     # 2. Of those, find atoms with the same neighboring atom types
     atm_ngb_symbs = _neighbor_symbols(atm_key)
@@ -336,7 +332,8 @@ def are_equivalent_bonds(gra, bnd1_key, bnd2_key, stereo=True, dummy=True):
     return are_equiv
 
 
-def atom_equivalence_class_reps(gra, atm_keys=None, stereo=True, dummy=True):
+def atom_equivalence_class_reps(gra, atm_keys=None, stereo=True, dummy=True,
+                                symb=None):
     """ Identify isomorphically unique atoms, which do not transform into each
     other by an automorphism
 
@@ -351,10 +348,13 @@ def atom_equivalence_class_reps(gra, atm_keys=None, stereo=True, dummy=True):
     :type stereo: bool
     :param dummy: Consider dummy atoms?
     :type dummy: bool
+    :param symb: An atomic symbol, restricting the function to atoms of a
+        particular type.
+    :type symb: str
     :returns: The list of equivalence class reprentatives/unique atoms.
     :rtype: frozenset[int]
     """
-    atm_keys = atom_keys(gra) if atm_keys is None else atm_keys
+    atm_keys = atom_keys(gra, symb=symb) if atm_keys is None else atm_keys
 
     def _equiv(atm1_key, atm2_key):
         return are_equivalent_atoms(gra, atm1_key, atm2_key, stereo=stereo,
@@ -394,59 +394,12 @@ def bond_equivalence_class_reps(gra, bnd_keys=None, stereo=True, dummy=True):
     return class_reps
 
 
-def chem_unique_atoms_of_type(gra, symb):
-    """ For the given atom type, determine the idxs of all the
-         chemically unique atoms.
-
-    TODO: DEPRECATE this can be done with the more general
-    atom_equivalence_class_reps function. This approach to determining
-    equivalence seems risky, because deleting an atom also deletes its bonds.
-    In particular, if this is a disconnected graph with multiple radical
-    molecules, then this approach breaks down completely and will treat atoms
-    as equivalent when they are not. The approach used above is robust in these
-    cases.
-
-        :param gra: molecular graph
-        :type gra: molecular graph data structure
-        :param symb: atomic symbol to determine symbols for
-        :type symb: str
-        :rtype: tuple(int)
-    """
-
-    # Get the indices for the atom type
-    symb_idx_dct = atom_symbol_keys(gra)
-    atom_idxs = symb_idx_dct[symb]
-
-    # Loop over each idx
-    uni_idxs = tuple()
-    uni_del_gras = []
-    for idx in atom_idxs:
-
-        # Remove the atom from the graph
-        del_gra = remove_atoms(gra, [idx])
-
-        # Test if the del_gra is isomorphic to any of the uni_del_gras
-        new_uni = True
-        for uni_del_gra in uni_del_gras:
-            iso_dct = full_isomorphism(del_gra, uni_del_gra)
-            if iso_dct:
-                new_uni = False
-                break
-
-        # Add graph and idx to lst if del gra is unique
-        if new_uni:
-            uni_del_gras.append(del_gra)
-            uni_idxs += (idx,)
-
-    return uni_idxs
-
-
 # # algorithms
 def connected_components(gra):
     """ connected components in the graph
     """
     cmp_gra_atm_keys_lst = connected_components_atom_keys(gra)
-    cmp_gras = tuple(subgraph(gra, cmp_gra_atm_keys, stereo=True)
+    cmp_gras = tuple(subgraph_(gra, cmp_gra_atm_keys, stereo=True)
                      for cmp_gra_atm_keys in cmp_gra_atm_keys_lst)
     return cmp_gras
 

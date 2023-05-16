@@ -51,7 +51,7 @@ def rotational_bond_keys(
 
     rot_bnd_keys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
     lin_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys)
-    dum_keys = tuple(atom_keys(gra, sym='X'))
+    dum_keys = tuple(atom_keys(gra, symb='X'))
     for keys in lin_keys_lst:
         bnd_keys = sorted((k for k in rot_bnd_keys if k & set(keys)),
                           key=sorted)

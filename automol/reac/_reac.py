@@ -62,7 +62,7 @@ class Reaction:
             automol.graph.without_stereo_parities(forw_tsg))
         back_tsg_comp = automol.graph.without_dummy_atoms(
             automol.graph.without_stereo_parities(back_tsg))
-        assert automol.graph.full_isomorphism(
+        assert automol.graph.isomorphism(
             ts.reverse(forw_tsg_comp), back_tsg_comp)
 
         # Set attributes
@@ -688,7 +688,7 @@ def without_dummy_atoms(rxn, product=False):
         tsg = rxn.forward_ts_graph
         keys_lst = rxn.reactants_keys
 
-    dummy_keys = automol.graph.atom_keys(tsg, sym='X')
+    dummy_keys = automol.graph.atom_keys(tsg, symb='X')
 
     tsg = automol.graph.remove_atoms(tsg, dummy_keys)
     keys_lst = [[k for k in ks if k not in dummy_keys] for ks in keys_lst]
@@ -763,8 +763,9 @@ def ts_unique(rxns):
     rxns = []
 
     def _isomorphism(rxn1, rxn2):
-        return automol.graph.full_isomorphism(rxn1.forward_ts_graph,
-                                              rxn2.forward_ts_graph)
+        return automol.graph.isomorphism(rxn1.forward_ts_graph,
+                                         rxn2.forward_ts_graph,
+                                         stereo=True)
 
     for rxn in all_rxns:
         if not any(_isomorphism(rxn, r) for r in rxns):

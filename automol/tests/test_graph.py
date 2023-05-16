@@ -525,34 +525,36 @@ def test__implicit():
 
 
 # # comparisons
-def test__backbone_isomorphic():
-    """ test graph.backbone_isomorphic
-    """
-    assert graph.backbone_isomorphic(CH2FH2H_CGR_IMP, CH2FH2H_CGR_EXP)
-
-    cgr = C8H13O_CGR
-    natms = len(graph.atoms(cgr))
-    for _ in range(10):
-        pmt_dct = dict(enumerate(numpy.random.permutation(natms)))
-        cgr_pmt = graph.relabel(cgr, pmt_dct)
-        assert graph.backbone_isomorphic(cgr, cgr_pmt)
-
-
-def test__backbone_isomorphism():
-    """ test graph.backbone_isomorphism
+def test__isomorphic():
+    """ test graph.isomorphic
     """
     cgr = C8H13O_CGR
     natms = len(graph.atoms(cgr))
     for _ in range(10):
         pmt_dct = dict(enumerate(numpy.random.permutation(natms)))
         cgr_pmt = graph.relabel(cgr, pmt_dct)
-        assert graph.backbone_isomorphism(cgr, cgr_pmt) == pmt_dct
+        assert graph.isomorphic(cgr, cgr_pmt)
+
+    # Test backbone_only option, compiring implicit and explicit graphs
+    assert graph.isomorphic(CH2FH2H_CGR_IMP, CH2FH2H_CGR_EXP,
+                            backbone_only=True)
 
 
-def test__backbone_unique():
-    """ test graph.backbone_unique
+def test__isomorphism():
+    """ test graph.isomorphism
     """
-    assert graph.backbone_unique(C3H3_RGRS) == C3H3_RGRS[:1]
+    cgr = C8H13O_CGR
+    natms = len(graph.atoms(cgr))
+    for _ in range(10):
+        pmt_dct = dict(enumerate(numpy.random.permutation(natms)))
+        cgr_pmt = graph.relabel(cgr, pmt_dct)
+        assert graph.isomorphism(cgr, cgr_pmt) == pmt_dct
+
+
+def test__unique():
+    """ test graph.unique
+    """
+    assert graph.unique(C3H3_RGRS) == C3H3_RGRS[:1]
 
 
 # chemistry library
@@ -1547,6 +1549,8 @@ if __name__ == '__main__':
     # test__calculate_priorities_and_assign_parities()
     # test__smiles()
     # test__kekules()
-    test__geometry_atom_parity()
-    test__geometry_bond_parity()
-    test__geometries_parity_mismatches()
+    # test__geometry_atom_parity()
+    # test__geometry_bond_parity()
+    # test__geometries_parity_mismatches()
+    test__unique()
+    test__isomorphic()
