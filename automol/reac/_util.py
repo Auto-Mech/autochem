@@ -5,7 +5,6 @@ import itertools
 import automol.graph
 from automol.graph import ts
 from automol.par import ReactionClass
-from automol.reac._reac import reactant_graphs, product_graphs
 
 
 def hydrogen_migration_atom_keys(rxn):
@@ -206,138 +205,12 @@ def substitution_atom_keys(rxn):
     return att_key, tra_key, lea_key
 
 
-# Conversion stuff
-def chis(rxn, stereo=True):
-    """ Get ChIs for the reactants and products
-    """
-    rct_chis = tuple(automol.graph.chi(gra, stereo=stereo)
-                     for gra in reactant_graphs(rxn))
-    prd_chis = tuple(automol.graph.chi(gra, stereo=stereo)
-                     for gra in product_graphs(rxn))
-    return (rct_chis, prd_chis)
-
-
-def amchis(rxn, stereo=True):
-    """ Get AMChIs for the reactants and products
-    """
-    rct_chis = tuple(automol.graph.amchi(gra, stereo=stereo)
-                     for gra in reactant_graphs(rxn))
-    prd_chis = tuple(automol.graph.amchi(gra, stereo=stereo)
-                     for gra in product_graphs(rxn))
-    return (rct_chis, prd_chis)
-
-
-def reaction_inchis(rxn, stereo=True):
-    """ Get inchis for one side of reactions
-    """
-    rct_ichs = tuple(automol.graph.chi(gra, stereo=stereo)
-                     for gra in reactant_graphs(rxn))
-    prd_ichs = tuple(automol.graph.chi(gra, stereo=stereo)
-                     for gra in product_graphs(rxn))
-    return (rct_ichs, prd_ichs)
-
-
-# Get a reaction object from various identifiers
-def rxn_objs_from_inchi(rct_ichs, prd_ichs,
-                        indexing='geo', stereo=False):
-    """ Generate obj
-    """
-
-    rct_geos = list(map(automol.chi.geometry, rct_ichs))
-    prd_geos = list(map(automol.chi.geometry, prd_ichs))
-
-    return rxn_objs_from_geometry(
-        rct_geos, prd_geos, indexing=indexing, stereo=stereo)
-
-
-def rxn_objs_from_smiles(rct_smis, prd_smis,
-                         indexing='geo', stereo=False):
-    """ Generate obj
-    """
-
-    # Is this adding stero? prob should?
-    rct_ichs = list(map(automol.smiles.chi, rct_smis))
-    prd_ichs = list(map(automol.smiles.chi, prd_smis))
-
-    rct_geos = list(map(automol.chi.geometry, rct_ichs))
-    prd_geos = list(map(automol.chi.geometry, prd_ichs))
-
-    return rxn_objs_from_geometry(
-        rct_geos, prd_geos, indexing=indexing, stereo=stereo)
-
-
-def rxn_objs_from_zmatrix(rct_zmas, prd_zmas,
-                          indexing='geo', stereo=False):
-    """ Generate rxn obj
-    """
-
-    rct_geos = list(map(automol.zmat.geometry, rct_zmas))
-    prd_geos = list(map(automol.zmat.geometry, prd_zmas))
-
-    return rxn_objs_from_geometry(
-        rct_geos, prd_geos, indexing=indexing, stereo=stereo)
-
-
-def rxn_objs_from_geometry(rct_geos, prd_geos,
-                           indexing='geo', stereo=False):
-    """ from
-    """
-
-    # Identify the reaction based on the reactants and products
-    rct_gras = list(map(automol.graph.without_stereo_parities,
-                        map(automol.geom.graph, rct_geos)))
-    prd_gras = list(map(automol.graph.without_stereo_parities,
-                        map(automol.geom.graph, prd_geos)))
-
-    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
-    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
-
-    rxns = automol.reac.find(rct_gras, prd_gras)
-
-    # print('ID REACTION TEST:\n', len(rxns))
-
-    # Obtain the reaction objects and structures to return
-    rxn_objs = tuple()
-    for rxn in rxns:
-        std_rxn, std_rgeos, std_pgeos = (
-            automol.reac.standard_keys_with_sorted_geometries(
-                rxn, rct_geos, prd_geos))
-        # Add stereochemistry, if requested
-        if stereo:
-            std_rxn, _ = automol.reac.add_stereo_from_unordered_geometries(
-                std_rxn, std_rgeos, std_pgeos)
-
-        # Add rxn object set to master list
-        if std_rxn is not None:
-            # Form the transition state geom using the rxn object
-            ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
-
-            # Determine which geometries to store
-            if indexing == 'geo':
-                rxn_objs += ((std_rxn, ts_geo, std_rgeos, std_pgeos),)
-            elif indexing == 'zma':
-                ts_zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
-                    std_rxn, ts_geo)
-                std_zrxn = automol.reac.relabel_for_zmatrix(
-                    std_rxn, zma_keys, dummy_key_dct)
-                rct_zmas = tuple(map(automol.geom.zmatrix, std_rgeos))
-                prd_zmas = tuple(map(automol.geom.zmatrix, std_pgeos))
-
-                rxn_objs += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
-
-    # Set to None if no objects found
-    if not rxn_objs:
-        rxn_objs = None
-
-    return rxn_objs
-
-
 def assert_is_valid_reagent_graph_list(gras):
     """ Assert that a sequence of graphs has the appropriate form for reactants
     or products in a reaction object
 
-    The sequence is appropriate if every graph is explicit and without stereo
-    assignments, and none of them have overlapping atom keys.
+    The sequence is appropriate if every graph is explicit and none of them
+    have overlapping atom keys.
 
     :param gras: the graphs
     :type gras: list
@@ -346,19 +219,12 @@ def assert_is_valid_reagent_graph_list(gras):
     gras_str = '\n---\n'.join(map(automol.graph.string, gras))
     assert _are_all_explicit(gras), (
         f"Implicit hydrogens are not allowed here!\nGraphs:\n{gras_str}")
-    assert _have_no_stereo_assignments(gras), (
-        f"Stereo assignments are not allowed here!\nGraphs:\n{gras_str}")
     assert _have_no_common_atom_keys(gras), (
         f"Overlapping atom keys are not allowed here!\nGraphs:\n{gras_str}")
 
 
 def _are_all_explicit(gras):
     return all(gra == automol.graph.explicit(gra) for gra in gras)
-
-
-def _have_no_stereo_assignments(gras):
-    return all(gra == automol.graph.without_stereo_parities(gra)
-               for gra in gras)
 
 
 def _have_no_common_atom_keys(gras):
@@ -395,18 +261,3 @@ def sort_reagents(gras):
     idxs = argsort_reagents(gras)
     gras = tuple(map(gras.__getitem__, idxs))
     return gras
-
-
-# if __name__ == '__main__':
-#     import automol
-#
-#     RCT_SMIS = ['[CH3]', '[OH]']
-#     PRD_SMIS = ['CO']
-#
-#     rxn_objs = automol.reac.rxn_objs_from_smiles(
-#         RCT_SMIS, PRD_SMIS, indexing='zma')
-#     zrxn, zma, _, _ = rxn_objs[0]
-#     scan_inf = automol.reac.build_scan_info(zrxn, zma)
-#     print(automol.zmat.string(zma))
-#     geo = automol.zmat.geometry(zma)
-#     print(automol.geom.string(geo))
