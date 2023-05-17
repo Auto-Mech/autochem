@@ -475,7 +475,8 @@ def test__reac__ring_forming_scission():
 #     ]
 #     for rct_smis, prd_smis in rxn_smis_lst:
 #         print('\n\nRXN ID FOR', rct_smis, prd_smis)
-#         rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+#         rxn_objs = automol.reac.with_structures_from_smiles(rct_smis,
+#                                                             prd_smis)
 #         print(rxn_objs)
 #         assert len(rxn_objs) == 1
 #         _check_reaction(rxn_objs[0], ReactionClass.Typ.ELIMINATION, False)
@@ -613,7 +614,8 @@ def test__reac__radrad_addition():
     #     (['[CH3]', '[OH]'], ['CO']),
     # ]
     # for rct_smis, prd_smis in rxn_smis_lst:
-    #     rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    #     rxn_objs = automol.reac.with_structures_from_smiles(rct_smis,
+    #                                                         prd_smis)
     #     assert len(rxn_objs) == 1
     #     _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION, False)
 

@@ -52,6 +52,7 @@ from automol.reac._reac import reverse
 from automol.reac._reac import ts_unique
 from automol.reac._util import assert_is_valid_reagent_graph_list
 from automol.reac._util import sort_reagents
+from automol.reac._stereo import stereo_is_physical
 
 
 def trivial(rct_gras, prd_gras):
@@ -88,13 +89,14 @@ def trivial(rct_gras, prd_gras):
             rcts_gra = union_from_sequence(rct_gras)
             prds_gra = union_from_sequence(prd_gras)
 
-            rxns.append(Reaction(
+            rxn = Reaction(
                 rxn_cls=ReactionClass.Typ.TRIVIAL,
                 forw_tsg=ts.graph(rcts_gra, [], []),
                 back_tsg=ts.graph(prds_gra, [], []),
                 rcts_keys=list(map(atom_keys, rct_gras)),
                 prds_keys=list(map(atom_keys, prd_gras)),
-            ))
+            )
+            rxns.append(rxn)
 
     return tuple(rxns)
 
@@ -137,7 +139,7 @@ def hydrogen_migrations(rct_gras, prd_gras):
             prd_h_gra = add_bonded_atom(
                 prd_gra, 'H', prd_rad_key, bnd_atm_key=prd_h_key)
 
-            iso_dct = isomorphism(rct_h_gra, prd_h_gra)
+            iso_dct = isomorphism(rct_h_gra, prd_h_gra, stereo=False)
             if iso_dct:
                 inv_dct = dict(map(reversed, iso_dct.items()))
 
@@ -167,14 +169,17 @@ def hydrogen_migrations(rct_gras, prd_gras):
                         frm_bnd_keys=[(prd_rad_key, prd_hyd_key)],
                         brk_bnd_keys=[(prd_don_key, prd_hyd_key)])
 
-                    if isomorphism(forw_tsg, ts.reverse(back_tsg)):
-                        rxns.append(Reaction(
+                    if isomorphism(forw_tsg, ts.reverse(back_tsg),
+                                   stereo=False):
+                        rxn = Reaction(
                             rxn_cls=ReactionClass.Typ.HYDROGEN_MIGRATION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=[atom_keys(rct_gra)],
                             prds_keys=[atom_keys(prd_gra)],
-                        ))
+                        )
+                        if stereo_is_physical(rxn):
+                            rxns.append(rxn)
 
     return ts_unique(rxns)
 
@@ -221,7 +226,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
                 for end_key in bnd_key:
                     # Add to one end of the broken ring
                     fgra = add_bonds(gra, [(atm_key, end_key)])
-                    inv_dct = isomorphism(fgra, rgra)
+                    inv_dct = isomorphism(fgra, rgra, stereo=False)
                     if inv_dct:
                         other_end_key, = bnd_key - {end_key}
                         f_frm_bnd_key = (inv_dct[end_key],
@@ -237,13 +242,15 @@ def ring_forming_scissions(rct_gras, prd_gras):
                                             brk_bnd_keys=[b_brk_bnd_key])
 
                         # Create the reaction object
-                        rxns.append(Reaction(
+                        rxn = Reaction(
                             rxn_cls=ReactionClass.Typ.RING_FORM_SCISSION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=[atom_keys(rgra)],
                             prds_keys=[atom_keys(pgra1), atom_keys(pgra2)],
-                        ))
+                        )
+                        if stereo_is_physical(rxn):
+                            rxns.append(rxn)
 
     return ts_unique(rxns)
 
@@ -296,7 +303,7 @@ def eliminations(rct_gras, prd_gras):
                     prds_gra_2_ = remove_bonds(prds_gra_2_, [brk_bnd_1])
                     prds_gra_2_ = remove_bonds(prds_gra_2_, [brk_bnd_2])
 
-                    inv_dct = isomorphism(prds_gra_2_, prds_gra)
+                    inv_dct = isomorphism(prds_gra_2_, prds_gra, stereo=False)
                     if inv_dct:
                         f_frm_bnd_key = (frm1_key, frm2_key)
 
@@ -324,13 +331,15 @@ def eliminations(rct_gras, prd_gras):
                         assert inv_dct[frm2_key] in prds_atm_keys[1]
 
                         # Create the reaction object
-                        _rxns.append(Reaction(
+                        rxn = Reaction(
                             rxn_cls=ReactionClass.Typ.ELIMINATION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=rcts_atm_keys,
                             prds_keys=prds_atm_keys,
-                        ))
+                        )
+                        if stereo_is_physical(rxn):
+                            _rxns.append(rxn)
 
         return _rxns
 
@@ -427,13 +436,15 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                                     brk_bnd_keys=[b_brk_bnd_key])
 
                 # Create the reaction object
-                rxns.append(Reaction(
+                rxn = Reaction(
                     rxn_cls=ReactionClass.Typ.HYDROGEN_ABSTRACTION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
-                ))
+                )
+                if stereo_is_physical(rxn):
+                    rxns.append(rxn)
 
     return ts_unique(rxns)
 
@@ -467,7 +478,7 @@ def additions(rct_gras, prd_gras):
             xy_gra = add_bonds(
                 union(x_gra, y_gra), [{x_atm_key, y_atm_key}])
 
-            iso_dct = isomorphism(xy_gra, prd_gra)
+            iso_dct = isomorphism(xy_gra, prd_gra, stereo=False)
             if iso_dct:
                 rcts_gra = union_from_sequence(rct_gras)
                 prds_gra = prd_gra
@@ -481,13 +492,15 @@ def additions(rct_gras, prd_gras):
                                     brk_bnd_keys=[b_brk_bnd_key])
 
                 # Create the reaction object
-                rxns.append(Reaction(
+                rxn = Reaction(
                     rxn_cls=ReactionClass.Typ.ADDITION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
-                ))
+                )
+                if stereo_is_physical(rxn):
+                    rxns.append(rxn)
 
     return ts_unique(rxns)
 
@@ -522,7 +535,7 @@ def double_insertion(rct_gras, prd_gras):
                     xy_gra = add_bonds(
                         union(x_gra, y_gra_tmp), frm_bnd_pairs)
 
-                    iso_dct = isomorphism(xy_gra, prd_gra)
+                    iso_dct = isomorphism(xy_gra, prd_gra, stereo=False)
                     if iso_dct:
                         rcts_gra = union_from_sequence(rct_gras)
                         prds_gra = prd_gra
@@ -545,13 +558,16 @@ def double_insertion(rct_gras, prd_gras):
                                                 b_brk_bnd_key_j],
                                             frm_bnd_keys=(b_frm_bnd_key,))
                         # Create the reaction object
-                        rxns.append(Reaction(
+                        rxn = Reaction(
                             rxn_cls=ReactionClass.Typ.DOUBLE_INSERTION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=list(map(atom_keys, rct_gras)),
                             prds_keys=list(map(atom_keys, prd_gras)),
-                        ))
+                        )
+                        if stereo_is_physical(rxn):
+                            rxns.append(rxn)
+
     return ts_unique(rxns)
 
 
@@ -596,7 +612,7 @@ def two_bond_additions(rct_gras, prd_gras):
                 union(x_gra, y_gra),
                 [set(frm_bnd_keys[0]), set(frm_bnd_keys[1])])
 
-            iso_dct = isomorphism(xy_gra, prd_gra)
+            iso_dct = isomorphism(xy_gra, prd_gra, stereo=False)
             if iso_dct:
                 rcts_gra = union_from_sequence(rct_gras)
                 prds_gra = prd_gra
@@ -612,13 +628,15 @@ def two_bond_additions(rct_gras, prd_gras):
                                     brk_bnd_keys=b_brk_bnd_keys)
 
                 # Create the reaction object
-                rxns.append(Reaction(
+                rxn = Reaction(
                     rxn_cls=ReactionClass.Typ.ADDITION,
                     forw_tsg=forw_tsg,
                     back_tsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
-                ))
+                )
+                if stereo_is_physical(rxn):
+                    rxns.append(rxn)
 
     return ts_unique(rxns)
 
@@ -687,7 +705,7 @@ def substitutions(rct_gras, prd_gras):
                 for frm_key in frm_keys:
                     gra_ = add_bonds(gra, [(frm_key, rad_key)])
 
-                    inv_dct = isomorphism(gra_, prd_gra)
+                    inv_dct = isomorphism(gra_, prd_gra, stereo=False)
                     if inv_dct:
                         brk_key2, = bnd_key - {frm_key}
                         f_frm_bnd_key = (frm_key, rad_key)
@@ -709,13 +727,15 @@ def substitutions(rct_gras, prd_gras):
                             prds_atm_keys = list(reversed(prds_atm_keys))
 
                         # Create the reaction object
-                        rxns.append(Reaction(
+                        rxn = Reaction(
                             rxn_cls=ReactionClass.Typ.SUBSTITUTION,
                             forw_tsg=forw_tsg,
                             back_tsg=back_tsg,
                             rcts_keys=rcts_atm_keys,
                             prds_keys=prds_atm_keys,
-                        ))
+                        )
+                        if stereo_is_physical(rxn):
+                            rxns.append(rxn)
 
     return ts_unique(rxns)
 
@@ -786,7 +806,7 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
     for atm_key in uns_atm_keys:
         q_gra_h = add_atom_explicit_hydrogen_keys(
             q_gra, {atm_key: [h_atm_key]})
-        inv_atm_key_dct = isomorphism(q_gra_h, qh_gra)
+        inv_atm_key_dct = isomorphism(q_gra_h, qh_gra, stereo=False)
         if inv_atm_key_dct:
             qh_q_atm_key = inv_atm_key_dct[atm_key]
             qh_h_atm_key = inv_atm_key_dct[h_atm_key]
