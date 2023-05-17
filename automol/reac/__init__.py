@@ -2,11 +2,6 @@
 """
 # base reaction class
 from automol.reac._reac import Reaction
-from automol.reac._reac import chi
-from automol.reac._reac import inchi
-from automol.reac._reac import smiles
-from automol.reac._reac import rdkit_reaction
-from automol.reac._reac import display
 from automol.reac._reac import string
 from automol.reac._reac import from_string
 from automol.reac._reac import reverse
@@ -84,24 +79,21 @@ from automol.reac._pst import pst_cn
 from automol.reac import tunnel
 # comp functions
 from automol.reac._comp import similar_saddle_point_structure
-# util
-from automol.reac import _util as util
-from automol.reac._util import chis
-from automol.reac._util import reaction_inchis
-from automol.reac._util import rxn_objs_from_inchi
-from automol.reac._util import rxn_objs_from_smiles
-from automol.reac._util import rxn_objs_from_zmatrix
-from automol.reac._util import rxn_objs_from_geometry
+# conversions
+from automol.reac._conv import amchi
+from automol.reac._conv import inchi
+from automol.reac._conv import chi
+from automol.reac._conv import smiles
+from automol.reac._conv import rdkit_reaction
+from automol.reac._conv import display
+from automol.reac._conv import with_structures_from_chi
+from automol.reac._conv import with_structures_from_smiles
+from automol.reac._conv import with_structures_from_geometry
 
 
 __all__ = [
     # base reaction class
     'Reaction',
-    'chi',
-    'inchi',
-    'smiles',
-    'rdkit_reaction',
-    'display',
     'string',
     'from_string',
     'reverse',
@@ -179,12 +171,14 @@ __all__ = [
     'tunnel',
     # comp functions
     'similar_saddle_point_structure',
-    # util
-    'util',
-    'chis',
-    'reaction_inchis',
-    'rxn_objs_from_inchi',
-    'rxn_objs_from_smiles',
-    'rxn_objs_from_zmatrix',
-    'rxn_objs_from_geometry',
+    # type conversions
+    'inchi',
+    'amchi',
+    'chi',
+    'smiles',
+    'rdkit_reaction',
+    'display',
+    'with_structures_from_chi',
+    'with_structures_from_smiles',
+    'with_structures_from_geometry',
 ]

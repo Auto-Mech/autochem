@@ -13,7 +13,7 @@ from automol.reac._reac import products_graph
 from automol.reac._reac import forming_bond_keys
 from automol.reac._reac import breaking_bond_keys
 from automol.reac._reac import relabel
-from automol.reac._util import amchis
+from automol.reac._conv import amchi
 from automol.graph import ts
 
 
@@ -222,7 +222,7 @@ def is_canonical_enantiomer(srxn):
         :returns: Whether or not the reaction is canonical
         :rtype: bool
     """
-    rct_chis, prd_chis = amchis(srxn)
+    rct_chis, prd_chis = amchi(srxn)
     return automol.amchi.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
 
 

@@ -311,7 +311,7 @@ def test__reac__hydrogen_migration():
 
     rct_smis = ['CCCO[O]']
     prd_smis = ['C[CH]COO']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R2',)
     ref_constraint_dct = {'R1': 2.65, 'R3': 2.65}
@@ -342,7 +342,7 @@ def test__reac__2ts_hydrogen_migration():
     rct_smis = ['CCC[CH2]']
     prd_smis = ['CC[CH]C']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     # Ensure there are two objects
     assert len(rxn_objs) == 2
@@ -387,7 +387,7 @@ def test__reac__beta_scission():
 
     rct_smis = ['CCCO[O]']
     prd_smis = ['[O][O]', 'CC[CH2]']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R8',)
     ref_constraint_dct = None
@@ -414,7 +414,7 @@ def test__reac__ring_forming_scission():
 
     rct_smis = ['[CH2]CCCOO']
     prd_smis = ['C1CCCO1', '[OH]']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R13',)
     ref_constraint_dct = {'A4': 1.85, 'A7': 2.15, 'A10': 1.91,
@@ -487,7 +487,7 @@ def test__reac__hydrogen_abstraction():
 
     rct_smis = ['CCO', '[CH3]']
     prd_smis = ['[CH2]CO', 'C']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -516,7 +516,7 @@ def test__reac__hydrogen_abstraction():
         (['CCCC', '[OH]'], ['CC[CH]C', 'O']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(
             rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION, False)
@@ -528,7 +528,7 @@ def test__reac__sigma_hydrogen_abstraction():
 
     rct_smis = ['CCO', 'C#[C]']
     prd_smis = ['CC[O]', 'C#C']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -554,7 +554,7 @@ def test__reac__addition():
 
     rct_smis = ['CC[CH2]', '[O][O]']
     prd_smis = ['CCCO[O]']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -579,7 +579,7 @@ def test__reac__addition():
         (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION, False)
 
@@ -591,7 +591,7 @@ def test__reac__radrad_addition():
     rct_smis = ['CC[CH2]', '[H]']
     prd_smis = ['CCC']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
     ref_scan_grid = None
@@ -625,7 +625,7 @@ def __reac__isc_addition():
     rct_smis = ['N#N', '[O]']
     prd_smis = ['[N-]=[N+]=O']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
     assert len(rxn_objs) == 1
 
     # z-matrix build dies
@@ -638,7 +638,7 @@ def test__reac__radrad_hydrogen_abstraction():
 
     rct_smis = ['CCC', '[H]']
     prd_smis = ['CC[CH2]', '[HH]']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R12',)
     ref_constraint_dct = None
@@ -662,7 +662,7 @@ def __reac__insertion():
 
     rct_smis = ['CC=C', 'O[O]']
     prd_smis = ['CCCO[O]']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R3',)
     ref_constraint_dct = None
@@ -688,7 +688,7 @@ def __reac__insertion():
         (['CC', '[CH2]'], ['CCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION, False)
 
@@ -699,7 +699,7 @@ def test__reac__substitution():
 
     rct_smis = ['CO', '[CH2]C']
     prd_smis = ['CCC', '[OH]']
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R7',)
     ref_constraint_dct = None
@@ -725,7 +725,7 @@ def test__reac__substitution():
         (['OO', '[H]'], ['O', '[OH]']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION, False)
 
@@ -737,14 +737,14 @@ def test__reac_util():
     rct_smis = ['CC', '[H]']
     prd_smis = ['C[CH2]', '[HH]']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(
+    rxn_objs = automol.reac.with_structures_from_smiles(
         rct_smis, prd_smis)
     rxn, geo, _, _ = rxn_objs[0]
     _, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn, geo)
     zrxn1 = automol.reac.relabel_for_zmatrix(rxn, zma_keys1, dummy_key_dct1)
 
-    zrxn_objs = automol.reac.rxn_objs_from_smiles(
-        rct_smis, prd_smis, indexing='zma')
+    zrxn_objs = automol.reac.with_structures_from_smiles(
+        rct_smis, prd_smis, zmat=True)
     zrxn2, _, _, _ = zrxn_objs[0]
 
     assert zrxn1 == zrxn2
@@ -774,7 +774,7 @@ def test__stereo():
     rct_smis = ['FC=C(C(O)F)C(O)F', '[OH]']
     prd_smis = ['FC(O)[C](C(O)F)C(O)F']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
 
     # Complete stereo expansion for the reaction
@@ -838,7 +838,7 @@ def test__stereo():
     prd_smis = ['FC=C[CH]C(O)F']
     print("Reaction:", rct_smis, "=>", prd_smis)
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
 
     # Complete stereo expansion for the reaction
@@ -903,7 +903,7 @@ def test__stereo():
     rct_smis = ['C(F)(Cl)-C(F)(Cl)O[O]']
     prd_smis = ['C(F)(Cl)=C(F)(Cl)', 'O[O]']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
 
     # Complete stereo expansion for the reaction
@@ -936,7 +936,7 @@ def test__stereo():
     rct_smis = ['N(F)-N(F)O[O]']
     prd_smis = ['N(F)=N(F)', 'O[O]']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
 
     # Complete stereo expansion for the reaction
@@ -969,7 +969,7 @@ def test__stereo():
     rct_smis = ['[CH2]CC=CC']
     prd_smis = ['[CH]=CC', 'C=C']
 
-    rxn_objs = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
     rxn, _, rct_geos, prd_geos = rxn_objs[0]
 
     # Complete stereo expansion for the reaction
@@ -1074,7 +1074,8 @@ def test__expand_stereo():
     """
     rct_smis = ['CC(F)CCCC', '[H]']
     prd_smis = ['CC(F)CCC[CH2]', '[HH]']
-    rxn_obj = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
+    rxn_obj = (
+        automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0][0])
 
     srxn_objs = automol.reac.expand_stereo(rxn_obj)
     rct_ichs = list(map(automol.graph.inchi,
@@ -1098,7 +1099,7 @@ def test__add_stereo_from_unordered_geometries():
     """
     rct_smis = ['C(F)(Cl)C(F)(Cl)', '[OH]']
     prd_smis = ['C(F)(Cl)[C](F)(Cl)', 'O']
-    rxn = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
+    rxn = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0][0]
 
     rct_geos = list(map(automol.inchi.geometry,
                         map(automol.smiles.inchi, rct_smis)))
@@ -1269,12 +1270,12 @@ def test__canonical_enantiomer():
     rct_smis = ['CC(OO)C(O[O])C(OO)C']
     prd_smis = ['CC(OO)C(OO)C(OO)[CH2]']
 
-    rxn = automol.reac.rxn_objs_from_smiles(rct_smis, prd_smis)[0][0]
+    rxn = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0][0]
 
     # 2A. Full expansion -- includes non-canonical enantiomer reactions
     print("Full reaction expansion:")
     for srxn in automol.reac.expand_stereo(rxn, enant=True):
-        rct_chis, prd_chis = automol.reac.chis(srxn)
+        rct_chis, prd_chis = automol.reac.chi(srxn)
         print(' +\n'.join(rct_chis) + " =>\n" + ' +\n'.join(prd_chis))
 
         # These functions operate directly on the reaction object:
@@ -1297,7 +1298,7 @@ def test__canonical_enantiomer():
     # 2B. Restricted expansion -- includes only canonical enantiomers
     print("Restricted reaction expansion:")
     for srxn in automol.reac.expand_stereo(rxn, enant=False):
-        rct_chis, prd_chis = automol.reac.chis(srxn)
+        rct_chis, prd_chis = automol.reac.chi(srxn)
         print(' +\n'.join(rct_chis) + " =>\n" + ' +\n'.join(prd_chis))
 
         # Check canonicity for a reaction object

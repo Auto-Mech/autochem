@@ -10,10 +10,8 @@ Function arguments:
 import itertools
 import yaml
 import numpy
-import IPython
 import automol.geom.ts
 import automol.graph
-from automol.extern import rdkit_
 from automol import par
 from automol.graph import ts
 
@@ -134,101 +132,6 @@ class Reaction:
         """ string representation of the object
         """
         return string(self)
-
-
-def chi(rxn, stereo=True):
-    """ Convert the reaction object to ChIs
-
-        :param rxn: the reaction object
-        :param stereo: Include stereo?
-        :type stereo: bool
-        :param res_stereo: allow resonant double-bond stereo?
-        :type res_stereo: bool
-        :returns: ChI strings for the reactants and products
-        :rtype: (tuple[str], tuple[str])
-    """
-    rct_chis = tuple(automol.graph.chi(gra, stereo=stereo)
-                     for gra in reactant_graphs(rxn))
-    prd_chis = tuple(automol.graph.chi(gra, stereo=stereo)
-                     for gra in product_graphs(rxn))
-    return (rct_chis, prd_chis)
-
-
-def inchi(rxn, stereo=True):
-    """ Convert the reaction object to ChIs
-
-        :param rxn: the reaction object
-        :param stereo: Include stereo?
-        :type stereo: bool
-        :param res_stereo: allow resonant double-bond stereo?
-        :type res_stereo: bool
-        :returns: ChI strings for the reactants and products
-        :rtype: (tuple[str], tuple[str])
-    """
-    rct_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
-                     for gra in reactant_graphs(rxn))
-    prd_ichs = tuple(automol.graph.inchi(gra, stereo=stereo)
-                     for gra in product_graphs(rxn))
-    return (rct_ichs, prd_ichs)
-
-
-def smiles(rxn, stereo=True, res_stereo=True, exp_singles=False):
-    """ Convert the reaction object to SMILESs
-
-        :param rxn: the reaction object
-        :param stereo: Include stereo?
-        :type stereo: bool
-        :param res_stereo: allow resonant double-bond stereo?
-        :type res_stereo: bool
-        :param exp_singles: Use explicit '-' for single bonds?
-        :type exp_singles: bool
-        :returns: SMILES strings for the reactants and products
-        :rtype: (tuple[str], tuple[str])
-    """
-    rct_smis = tuple(
-        automol.graph.smiles(gra, stereo=stereo, res_stereo=res_stereo,
-                             exp_singles=exp_singles)
-        for gra in reactant_graphs(rxn))
-    prd_smis = tuple(
-        automol.graph.smiles(gra, stereo=stereo, res_stereo=res_stereo,
-                             exp_singles=exp_singles)
-        for gra in product_graphs(rxn))
-    return (rct_smis, prd_smis)
-
-
-def rdkit_reaction(rxn, stereo=True, res_stereo=False):
-    """ Convert a reaction object to an RDKit reaction object.
-
-    This is mainly useful for quick visualization with IPython, which can be
-    done as follows:
-    >>> from IPython.display import display
-    >>> display(rdkit_reaction(gra))
-
-        :param rxn: the reaction object
-        :param stereo: Include stereo?
-        :type stereo: bool
-        :param res_stereo: allow resonant double-bond stereo?
-        :type res_stereo: bool
-        :param rxn: the reaction object
-        :returns: the RDKit reaction
-    """
-    rdkit_.turn_3d_visualization_off()
-    rct_smis, prd_smis = smiles(rxn, stereo=stereo, res_stereo=res_stereo,
-                                exp_singles=True)
-    rcts_smi = '.'.join(rct_smis)
-    prds_smi = '.'.join(prd_smis)
-    rxn_smi = f'{rcts_smi}>>{prds_smi}'
-    return rdkit_.from_smarts(rxn_smi)
-
-
-def display(rxn):
-    """ Display reaction object to IPython using the RDKit visualizer
-
-        :param rxn: the reaction object
-        :returns: None
-    """
-    rdkit_.turn_3d_visualization_off()
-    return IPython.display.display(rdkit_reaction(rxn))
 
 
 def string(rxn, one_indexed=True):
