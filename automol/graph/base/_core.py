@@ -202,15 +202,26 @@ def bonds(gra):
     return bnd_dct
 
 
-def atom_keys(gra, symb=None, excl_syms=()):
+def atom_keys(gra, symb=None, excl_symbs=()):
     """ atom keys
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param symb: Optionally, restrict this to atoms with a particular
+            atomic symbol (e.g., 'H' for hydrogens).
+        :type symb: str
+        :param excl_symbs: Optionally, exclude atoms with particular atomic
+            symbols.
+        :type excl_symbs: tuple[str]
+        :returns: The atom keys
+        :rtype: frozenset
     """
     atm_keys = frozenset(atoms(gra).keys())
     if symb is not None:
         atm_sym_dct = atom_symbols(gra)
         atm_keys = frozenset(k for k in atm_keys
                              if atm_sym_dct[k] == symb and
-                             atm_sym_dct[k] not in excl_syms)
+                             atm_sym_dct[k] not in excl_symbs)
     return atm_keys
 
 
@@ -1547,7 +1558,8 @@ def atom_neighbor_atom_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
     return atm_keys[0] if atm_keys else None
 
 
-def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None):
+def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
+                            excl_symbs=()):
     """ neighbor keys of a specific atom
 
         :param gra: molecular graph
@@ -1555,11 +1567,18 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None):
         :param atm_key: the atom key
         :type atm_key: int
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
+        :param symb: Optionally, restrict this to atoms with a particular
+            atomic symbol (e.g., 'H' for hydrogens).
+        :type symb: str
+        :param excl_symbs: Optionally, exclude atoms with particular atomic
+            symbols.
+        :type excl_symbs: tuple[str]
         :returns: the keys of neighboring atoms
     """
     atm_nbh = atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys)
-    atm_ngb_keys = frozenset(atom_keys(atm_nbh) - {atm_key})
+    atm_nbh_keys = atom_keys(atm_nbh, symb=symb, excl_symbs=excl_symbs)
+    atm_ngb_keys = frozenset(atm_nbh_keys - {atm_key})
     return atm_ngb_keys
 
 

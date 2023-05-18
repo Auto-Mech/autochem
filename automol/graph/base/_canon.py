@@ -925,7 +925,8 @@ def parity_evaluator_flip_local_(gra):
 
 
 # # core algorithm helpers
-def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
+def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
+                                          ts_graph=False):
     """ Find stereogenic atoms in this graph, given a set of canonical priorities.
 
         If the `assigned` flag is set to `False`, only  unassigned stereogenic
@@ -936,11 +937,15 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
         :param pri_dct: priorities, to avoid recalculating
         :type pri_dct: dict[int: int]
         :param assigned: Include atoms that already have stereo assignments?
-        :param assigned: bool
+        :type assigned: bool
+        :param ts_graph: If this is a TS graph, treat it as such
+        :type ts_graph: bool
         :returns: the stereogenic atom keys
         :rtype: frozenset
     """
-    gra = from_ts_graph(gra)
+    if not ts_graph:
+        gra = from_ts_graph(gra)
+
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,
@@ -962,7 +967,8 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
     return ste_atm_keys
 
 
-def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
+def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
+                                          ts_graph=False):
     """ Find stereogenic bonds in this graph, given a set of canonical priorities.
 
         If the `assigned` flag is set to `False`, only  unassigned stereogenic
@@ -974,10 +980,14 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
         :type pri_dct: dict[int: int]
         :param assigned: Include bonds that already have stereo assignments?
         :param assigned: bool
+        :param ts_graph: If this is a TS graph, treat it as such
+        :type ts_graph: bool
         :returns: the stereogenic bond keys
         :rtype: frozenset
     """
-    gra = from_ts_graph(gra)
+    if not ts_graph:
+        gra = from_ts_graph(gra)
+
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,

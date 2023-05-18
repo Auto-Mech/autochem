@@ -430,7 +430,7 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
             hyd_keys = atom_keys(q1h_gra, symb='H')
 
             # Identify unique heavy atoms as potential donors
-            don_keys = atom_keys(q1h_gra, excl_syms=('H',))
+            don_keys = atom_keys(q1h_gra, excl_symbs=('H',))
             don_keys = atom_equivalence_class_reps(q1h_gra, don_keys)
 
             # Identify unique unsaturated atoms as potential attackers
