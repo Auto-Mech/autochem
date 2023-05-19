@@ -523,7 +523,7 @@ def calculate_priorities_and_assign_parities(
     # If requested, add in priorities for explicit hydrogens.
     if not backbone_only:
         pri_dct = augment_priority_dict_with_hydrogen_keys(
-            gra0, pri_dct, break_ties=break_ties)
+            gra0, pri_dct, break_ties=break_ties, ts_graph=ts_graph)
 
     # Return the priorities calculated for graph 1, and return graph 2 with its
     # stereo assignments.
@@ -954,8 +954,8 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
 
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,
-                                                       break_ties=False)
+    pri_dct = augment_priority_dict_with_hydrogen_keys(
+        gra, pri_dct, break_ties=False, ts_graph=ts_graph)
 
     atm_keys = tetrahedral_atom_keys(gra)
     if not assigned:
@@ -996,8 +996,9 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
 
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = augment_priority_dict_with_hydrogen_keys(gra, pri_dct,
-                                                       break_ties=False)
+    pri_dct = augment_priority_dict_with_hydrogen_keys(
+        gra, pri_dct, break_ties=False, ts_graph=ts_graph)
+
     bnd_keys = rigid_planar_bond_keys(gra)
     if not assigned:
         # Remove assigned stereo keys
@@ -1013,7 +1014,6 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
 
         def _is_asymmetric_on_bond(atm1_key, atm2_key):
             nkeys = list(nkeys_dct[atm1_key] - {atm2_key})
-
             if not nkeys:                # C=:O:
                 # Atoms without neighbors are automatically symmetric
                 ret = False
@@ -1037,13 +1037,18 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
 
 
 def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
-                                             neg=False):
+                                             neg=False, ts_graph=False):
     """ Add explicit hydrogen keys to the priority dictionary
 
         :param neg: Negate the keys, to give them minimum (rather than maximum)
             priority?
         :param neg: bool
+        :param ts_graph: If this is a TS graph, treat it as such
+        :type ts_graph: bool
     """
+    if not ts_graph:
+        gra = from_ts_graph(gra)
+
     pri_dct = pri_dct.copy()
 
     hyd_keys_pool = hydrogen_keys(gra)
@@ -1052,11 +1057,12 @@ def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
 
     if hyd_keys_pool:
         bbn_keys = sorted(backbone_keys(gra), key=pri_dct.__getitem__)
+        bbn_pri_dct = dict_.by_key(pri_dct, bbn_keys)
         gra = explicit(gra)
 
         hyd_keys_dct = atom_hydrogen_keys(gra)
 
-        next_idx = max(pri_dct.values()) + 1
+        next_idx = max(bbn_pri_dct.values()) + 1
 
         # If not breaking ties, assign equal priority to hydrogens bonded to
         # atoms from the same priority class.

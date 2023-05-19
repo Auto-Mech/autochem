@@ -534,7 +534,7 @@ def test__isomorphic():
         cgr_pmt = graph.relabel(cgr, pmt_dct)
         assert graph.isomorphic(cgr, cgr_pmt)
 
-    # Test backbone_only option, compiring implicit and explicit graphs
+    # Test backbone_only option, comparing implicit and explicit graphs
     assert graph.isomorphic(CH2FH2H_CGR_IMP, CH2FH2H_CGR_EXP,
                             backbone_only=True)
 
@@ -1170,8 +1170,22 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
     assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
     assert automol.graph.ts.fleeting_stereogenic_atom_keys(tsg) == {2}
+    assert not automol.graph.ts.fleeting_stereogenic_bond_keys(tsg)
 
     # CCOCC + [OH] => CCO[CH]C + O
+    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
+            3: ('O', 0, None), 4: ('O', 0, None), 5: ('O', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},
+           {frozenset({8, 2}): (1, None), frozenset({1, 4}): (1, None),
+            frozenset({0, 6}): (0.9, None), frozenset({0, 1}): (1, None),
+            frozenset({3, 6}): (0.1, None), frozenset({2, 4}): (1, None),
+            frozenset({1, 5}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({0, 7}): (1, None)})
+    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg) ==
+            {frozenset({0, 1})})
+    assert not automol.graph.ts.fleeting_stereogenic_atom_keys(tsg) == {}
+    assert (automol.graph.ts.fleeting_stereogenic_bond_keys(tsg) ==
+            {frozenset({0, 1})})
 
 
 def test__ts__expand_reaction_stereo():
@@ -1575,5 +1589,6 @@ if __name__ == '__main__':
     # test__geometry_atom_parity()
     # test__geometry_bond_parity()
     # test__geometries_parity_mismatches()
-    test__unique()
-    test__isomorphic()
+    # test__unique()
+    # test__isomorphic()
+    test__ts__fleeting_stereogenic_keys()

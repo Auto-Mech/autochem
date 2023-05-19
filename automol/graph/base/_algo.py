@@ -28,6 +28,7 @@ from automol.graph.base._core import bond_induced_subgraph
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import bonds_neighbor_bond_keys
+from automol.graph.base._core import from_ts_graph
 
 
 # # isomorphisms and equivalence
@@ -642,6 +643,7 @@ def rings_atom_keys(gra):
 def rings_bond_keys(gra):
     """ bond keys for each ring in the graph (minimal basis)
     """
+    gra = from_ts_graph(gra)
     bnd_keys = bond_keys(gra)
 
     def _ring_bond_keys(rng_atm_keys):

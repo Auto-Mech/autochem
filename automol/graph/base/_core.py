@@ -766,21 +766,6 @@ def backbone_keys(gra):
     return bbn_keys
 
 
-def atom_hydrogen_keys(gra, backbone=False):
-    """ explicit hydrogen valences, by atom
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param backbone: Include backbone hydrogen keys?
-        :type backbone: bool
-        :returns: A dictionary giving the hydrogen keys for each atom, by key.
-    """
-    hyd_keys = hydrogen_keys(gra, backbone=backbone)
-    atm_hyd_keys_dct = dict_.transform_values(
-        atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
-    return atm_hyd_keys_dct
-
-
 def backbone_hydrogen_keys(gra):
     """ backbone hydrogen keys
 
@@ -819,6 +804,34 @@ def hydrogen_keys(gra, backbone=False):
         hyd_keys -= backbone_hydrogen_keys(gra)
 
     return hyd_keys
+
+
+def atom_backbone_hydrogen_keys(gra):
+    """ explicit hydrogen valences, by atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: A dictionary giving the hydrogen keys for each atom, by key.
+    """
+    hyd_keys = backbone_hydrogen_keys(gra)
+    atm_hyd_keys_dct = dict_.transform_values(
+        atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
+    return atm_hyd_keys_dct
+
+
+def atom_hydrogen_keys(gra, backbone=False):
+    """ explicit hydrogen valences, by atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param backbone: Include backbone hydrogen keys?
+        :type backbone: bool
+        :returns: A dictionary giving the hydrogen keys for each atom, by key.
+    """
+    hyd_keys = hydrogen_keys(gra, backbone=backbone)
+    atm_hyd_keys_dct = dict_.transform_values(
+        atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
+    return atm_hyd_keys_dct
 
 
 def terminal_atom_keys(gra, heavy=True):

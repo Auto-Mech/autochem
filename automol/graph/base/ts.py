@@ -161,14 +161,10 @@ def fleeting_stereogenic_bond_keys(tsg):
     :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
-    print("HERE 1")
     pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
-    print("HERE")
-    print("pri_dct", pri_dct)
 
     tsg_ste_bnd_keys = stereogenic_bond_keys_from_priorities(
         tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
-    print("tsg_ste_bnd_keys", tsg_ste_bnd_keys)
     rct_ste_bnd_keys = stereogenic_bond_keys(reactants_graph(tsg))
     prd_ste_bnd_keys = stereogenic_bond_keys(products_graph(tsg))
     ste_bnd_keys = (tsg_ste_bnd_keys - rct_ste_bnd_keys) - prd_ste_bnd_keys
