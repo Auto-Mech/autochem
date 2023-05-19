@@ -272,6 +272,8 @@ def stereogenic_keys(gra, pri_dct=None, assigned=False):
         :rtype: frozenset
     """
     gra = without_dummy_atoms(gra)
+    pri_dct = (canonical_priorities(gra, backbone_only=False)
+               if pri_dct is None else pri_dct)
     ste_atm_keys = stereogenic_atom_keys(gra, pri_dct=pri_dct,
                                          assigned=assigned)
     ste_bnd_keys = stereogenic_bond_keys(gra, pri_dct=pri_dct,
@@ -1004,9 +1006,11 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
         # Remove assigned stereo keys
         bnd_keys -= bond_stereo_keys(gra)
 
+    # Don't treat as a TS graph when checking for small rings
+    rng_bnd_keys_lst = rings_bond_keys(gra, ts_graph=False)
     bnd_keys -= functools.reduce(  # remove double bonds in small rings
         frozenset.union,
-        filter(lambda x: len(x) < 8, rings_bond_keys(gra)), frozenset())
+        filter(lambda x: len(x) < 8, rng_bnd_keys_lst), frozenset())
 
     nkeys_dct = atoms_neighbor_atom_keys(gra)
 

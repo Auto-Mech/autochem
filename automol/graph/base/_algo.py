@@ -624,26 +624,48 @@ def is_branched(gra):
 
 
 # # rings
-def rings(gra):
+def rings(gra, ts_graph=True):
     """ rings in the graph (minimal basis)
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param ts_graph: If this is a TS graph, treat it as such
+        :type ts_graph: bool
+        :returns: A set of automol graph data structures for each ring
     """
+    rng_bnd_keys_lst = rings_bond_keys(gra, ts_graph=ts_graph)
     gras = [bond_induced_subgraph(gra, bnd_keys)
-            for bnd_keys in rings_bond_keys(gra)]
+            for bnd_keys in rng_bnd_keys_lst]
     return tuple(sorted(gras, key=frozen))
 
 
-def rings_atom_keys(gra):
+def rings_atom_keys(gra, ts_graph=True):
     """ atom keys for each ring in the graph sorted by connectivity (minimal basis)
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param ts_graph: If this is a TS graph, treat it as such
+        :type ts_graph: bool
+        :returns: A set of tuples of atom keys for each ring.
     """
+    rng_bnd_keys_lst = rings_bond_keys(gra, ts_graph=ts_graph)
     rng_atm_keys_lst = frozenset(
-        map(sorted_ring_atom_keys_from_bond_keys, rings_bond_keys(gra)))
+        map(sorted_ring_atom_keys_from_bond_keys, rng_bnd_keys_lst))
     return rng_atm_keys_lst
 
 
-def rings_bond_keys(gra):
+def rings_bond_keys(gra, ts_graph=True):
     """ bond keys for each ring in the graph (minimal basis)
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param ts_graph: If this is a TS graph, treat it as such
+        :type ts_graph: bool
+        :returns: A set of sets of bond keys for each ring.
     """
-    gra = from_ts_graph(gra)
+    if not ts_graph:
+        gra = from_ts_graph(gra)
+
     bnd_keys = bond_keys(gra)
 
     def _ring_bond_keys(rng_atm_keys):

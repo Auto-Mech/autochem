@@ -1169,8 +1169,25 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({2, 4}): (1, None), frozenset({8, 1}): (1, None),
             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
     assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
-    assert automol.graph.ts.fleeting_stereogenic_atom_keys(tsg) == {2}
-    assert not automol.graph.ts.fleeting_stereogenic_bond_keys(tsg)
+    assert not automol.graph.ts.fleeting_stereogenic_keys(tsg, enant=False)
+
+    # CCOC(O[O])C => C[CH]OC(OO)C
+    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, True), 4: ('O', 0, None), 5: ('O', 0, None),
+            6: ('O', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
+            15: ('H', 0, None)},
+           {frozenset({4, 6}): (1, None), frozenset({3, 6}): (1, None),
+            frozenset({1, 12}): (1, None), frozenset({2, 14}): (1, None),
+            frozenset({1, 10}): (1, None), frozenset({0, 8}): (1, None),
+            frozenset({0, 9}): (1, None), frozenset({2, 13}): (0.9, None),
+            frozenset({3, 15}): (1, None), frozenset({4, 13}): (0.1, None),
+            frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
+    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
+    assert automol.graph.ts.fleeting_stereogenic_keys(tsg, enant=False) == {2}
 
     # CCOCC + [OH] => CCO[CH]C + O
     tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
@@ -1181,10 +1198,10 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({3, 6}): (0.1, None), frozenset({2, 4}): (1, None),
             frozenset({1, 5}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({0, 7}): (1, None)})
+    print(automol.graph.ts.fleeting_stereogenic_keys(tsg))
     assert (automol.graph.ts.fleeting_stereogenic_keys(tsg) ==
             {frozenset({0, 1})})
-    assert not automol.graph.ts.fleeting_stereogenic_atom_keys(tsg) == {}
-    assert (automol.graph.ts.fleeting_stereogenic_bond_keys(tsg) ==
+    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg, enant=False) ==
             {frozenset({0, 1})})
 
 
