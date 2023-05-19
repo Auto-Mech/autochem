@@ -81,8 +81,8 @@ from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
 from automol.graph.base._core import atom_symbol_keys
 from automol.graph.base._core import backbone_keys
-from automol.graph.base._core import atom_explicit_hydrogen_keys
-from automol.graph.base._core import explicit_hydrogen_keys
+from automol.graph.base._core import atom_hydrogen_keys
+from automol.graph.base._core import hydrogen_keys
 from automol.graph.base._core import terminal_atom_keys
 from automol.graph.base._core import terminal_heavy_atom_keys
 from automol.graph.base._core import unsaturated_atom_keys
@@ -104,8 +104,8 @@ from automol.graph.base._core import remove_atoms
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import remove_atom_stereo_parities
 from automol.graph.base._core import remove_bond_stereo_parities
-from automol.graph.base._core import add_atom_implicit_hydrogen_valences
-from automol.graph.base._core import add_atom_explicit_hydrogen_keys
+from automol.graph.base._core import add_atom_implicit_hydrogens
+from automol.graph.base._core import add_atom_explicit_hydrogens
 from automol.graph.base._core import add_bonded_atom
 from automol.graph.base._core import insert_bonded_atom
 from automol.graph.base._core import add_dummy_atoms
@@ -365,8 +365,8 @@ __all__ = [
     'possible_spin_multiplicities',
     'atom_symbol_keys',
     'backbone_keys',
-    'atom_explicit_hydrogen_keys',
-    'explicit_hydrogen_keys',
+    'atom_hydrogen_keys',
+    'hydrogen_keys',
     'terminal_atom_keys',
     'terminal_heavy_atom_keys',
     'unsaturated_atom_keys',
@@ -388,8 +388,8 @@ __all__ = [
     'remove_bonds',
     'remove_atom_stereo_parities',
     'remove_bond_stereo_parities',
-    'add_atom_implicit_hydrogen_valences',
-    'add_atom_explicit_hydrogen_keys',
+    'add_atom_implicit_hydrogens',
+    'add_atom_explicit_hydrogens',
     'add_bonded_atom',
     'insert_bonded_atom',
     'add_dummy_atoms',

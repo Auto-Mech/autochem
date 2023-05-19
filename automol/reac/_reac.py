@@ -656,6 +656,27 @@ def reaction_class(rxn):
     return rxn.class_
 
 
+def are_energetically_equivalent(rxn1, rxn2):
+    """ Are these Reaction objects energetically equivalent?
+
+    They are energetically equivalent if
+    (a.) their TS graphs are isomorphic, and
+    (b.) they DO NOT differ in their breaking/forming bonds at a fleeting
+    stereocenter in a way that makes them diastereomers. (If the difference
+    makes them enantiomers, they are still energetically equivalent.)
+
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
+    :param rxn1: reaction object
+    :param rxn2: reaction object for comparison
+    :returns: `True` if they are, `False` if they aren't
+    """
+    tsg1 = rxn1.forward_ts_graph
+    tsg2 = rxn2.forward_ts_graph
+    return automol.graph.ts.are_energetically_equivalent(tsg1, tsg2)
+
+
 def ts_unique(rxns):
     """ return reactions with isomorphically unique TSs
 
@@ -665,13 +686,8 @@ def ts_unique(rxns):
     all_rxns = rxns
     rxns = []
 
-    def _isomorphism(rxn1, rxn2):
-        return automol.graph.isomorphism(rxn1.forward_ts_graph,
-                                         rxn2.forward_ts_graph,
-                                         stereo=True)
-
     for rxn in all_rxns:
-        if not any(_isomorphism(rxn, r) for r in rxns):
+        if not any(are_energetically_equivalent(rxn, r) for r in rxns):
             rxns.append(rxn)
 
     return tuple(rxns)

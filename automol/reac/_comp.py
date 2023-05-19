@@ -105,7 +105,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
                 # check forming bond distance
                 if abs(cnf_dist - ref_dist) > max_disp:
                     print(
-                        'distance of transitioning bonds has diverged', 
+                        'distance of transitioning bonds has diverged',
                         ref_dist, cnf_dist)
                     viable = False
 
@@ -116,7 +116,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
             dchk1 = abs(cnf_dist - ref_dist) > 0.1 * sens
             dchk2 = displace_from_equi < 0.2 / sens
             if dchk1 and dchk2:
-                print('transitioning bond differs from equi', cnf_dist, equi_bnd)
+                print('transitioning bond differs from equi',
+                      cnf_dist, equi_bnd)
                 viable = False
         else:
             # check forming/breaking bond distance
@@ -124,9 +125,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
             # max disp of 0.4 causes problems for bond scission w/ ring forming
             # not sure if setting it to 0.3 will cause problems for other cases
             if abs(cnf_dist - ref_dist) > 0.3 * sens:
-                print(
-                    'transitioning bond distance has diverged from starting guess',
-                    ref_dist, cnf_dist)
+                print('transitioning bond distance has diverged'
+                      'from starting guess', ref_dist, cnf_dist)
                 viable = False
 
     if not _check_stereo_parities(zma, ref_zma, zrxn):

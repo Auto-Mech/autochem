@@ -23,6 +23,7 @@ from automol.graph.base._core import reacting_atoms
 from automol.graph.base._core import negate_hydrogen_keys
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
+from automol.graph.base._algo import isomorphic
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import local_priority_dict
 from automol.graph.base._canon import stereogenic_atom_keys
@@ -133,11 +134,14 @@ def products_graph(tsg):
 def fleeting_stereogenic_atom_keys(tsg):
     """ Identify fleeting stereogenic atoms in a TS structure
 
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
-    pri_dct = canonical_priorities(tsg, backbone_only=False)
+    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
 
     tsg_ste_atm_keys = stereogenic_atom_keys_from_priorities(
         tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
@@ -150,14 +154,21 @@ def fleeting_stereogenic_atom_keys(tsg):
 def fleeting_stereogenic_bond_keys(tsg):
     """ Identify fleeting stereogenic bonds in a TS structure
 
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
-    pri_dct = canonical_priorities(tsg, backbone_only=False)
+    print("HERE 1")
+    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
+    print("HERE")
+    print("pri_dct", pri_dct)
 
     tsg_ste_bnd_keys = stereogenic_bond_keys_from_priorities(
         tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
+    print("tsg_ste_bnd_keys", tsg_ste_bnd_keys)
     rct_ste_bnd_keys = stereogenic_bond_keys(reactants_graph(tsg))
     prd_ste_bnd_keys = stereogenic_bond_keys(products_graph(tsg))
     ste_bnd_keys = (tsg_ste_bnd_keys - rct_ste_bnd_keys) - prd_ste_bnd_keys
@@ -167,11 +178,14 @@ def fleeting_stereogenic_bond_keys(tsg):
 def fleeting_stereogenic_keys(tsg):
     """ Identify fleeting stereogenic atoms and bonds in a TS structure
 
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
-    pri_dct = canonical_priorities(tsg, backbone_only=False)
+    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
 
     tsg_ste_atm_keys = stereogenic_atom_keys_from_priorities(
         tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
@@ -182,6 +196,27 @@ def fleeting_stereogenic_keys(tsg):
     prd_ste_keys = stereogenic_keys(products_graph(tsg))
     ste_keys = (tsg_ste_keys - rct_ste_keys) - prd_ste_keys
     return ste_keys
+
+
+def are_energetically_equivalent(tsg1, tsg2):
+    """ Are these TS graphs energetically equivalent?
+
+    They are energetically equivalent if
+    (a.) they are isomorphic, and
+    (b.) they DO NOT differ in their breaking/forming bonds at a fleeting
+    stereocenter in a way that makes them diastereomers. (If the difference
+    makes them enantiomers, they are still energetically equivalent.)
+
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
+    :param tsg1: TS graph
+    :type tsg1: automol graph data structure
+    :param tsg2: TS graph for comparison
+    :type tsg2: automol graph data structure
+    :returns:
+    """
+    return isomorphic(tsg1, tsg2, stereo=True)
 
 
 def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True,

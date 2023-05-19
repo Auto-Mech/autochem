@@ -351,7 +351,7 @@ def test__atom_count():
 
 
 def test__heavy_atom_count():
-    """ test graph.explicit_hydrogen_count
+    """ test graph.heavy_atom_count
     """
     cgr = graph.explicit(C8H13O_CGR)
     assert graph.heavy_atom_count(cgr) == 9
@@ -484,10 +484,10 @@ def test__atom_explicit_hydrogen_valences():
     }
 
 
-def test__atom_explicit_hydrogen_keys():
-    """ test graph.atom_explicit_hydrogen_keys
+def test__atom_hydrogen_keys():
+    """ test graph.atom_hydrogen_keys
     """
-    assert graph.atom_explicit_hydrogen_keys(CH2FH2H_CGR_EXP) == {
+    assert graph.atom_hydrogen_keys(CH2FH2H_CGR_EXP) == {
         0: frozenset(),
         1: frozenset({4, 5}),
         2: frozenset({6}),
@@ -505,11 +505,10 @@ def test__backbone_keys():
     assert graph.backbone_keys(CH2FH2H_CGR_EXP) == frozenset({0, 1, 2, 3})
 
 
-def test__explicit_hydrogen_keys():
-    """ test graph.explicit_hydrogen_keys
+def test__hydrogen_keys():
+    """ test graph.hydrogen_keys
     """
-    assert graph.explicit_hydrogen_keys(CH2FH2H_CGR_EXP) == frozenset(
-        {4, 5, 6})
+    assert graph.hydrogen_keys(CH2FH2H_CGR_EXP) == frozenset({4, 5, 6})
 
 
 def test__explicit():
@@ -1149,6 +1148,30 @@ def test__vmat__vmatrix():
     gra = automol.chi.graph(chi)
     _, zma_keys = graph.vmat.vmatrix(gra)
     assert set(zma_keys) == graph.atom_keys(gra)
+
+
+def test__ts__fleeting_stereogenic_keys():
+    """ test graph.ts.fleeting_stereogenic_keys
+    """
+    # CCOCC + [OH] => CCO[CH]C + O
+    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('O', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
+            15: ('O', 0, None), 16: ('H', 0, None)},
+           {frozenset({0, 5}): (1, None), frozenset({3, 14}): (1, None),
+            frozenset({2, 11}): (1, None), frozenset({1, 10}): (1, None),
+            frozenset({3, 4}): (1, None), frozenset({1, 9}): (1, None),
+            frozenset({0, 6}): (1, None), frozenset({12, 15}): (0.1, None),
+            frozenset({0, 2}): (1, None), frozenset({3, 13}): (1, None),
+            frozenset({2, 12}): (0.9, None), frozenset({16, 15}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({8, 1}): (1, None),
+            frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
+    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
+    assert automol.graph.ts.fleeting_stereogenic_atom_keys(tsg) == {2}
+
+    # CCOCC + [OH] => CCO[CH]C + O
 
 
 def test__ts__expand_reaction_stereo():

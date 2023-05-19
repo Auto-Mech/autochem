@@ -45,7 +45,7 @@ from automol.graph import unsaturated_atom_keys
 from automol.graph import lone_pair_atom_keys
 from automol.graph import atom_neighbor_atom_keys
 from automol.graph import add_bonded_atom
-from automol.graph import add_atom_explicit_hydrogen_keys
+from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
@@ -806,7 +806,7 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
     h_atm_key = max(atom_keys(q_gra)) + 1
     uns_atm_keys = unsaturated_atom_keys(q_gra)
     for atm_key in uns_atm_keys:
-        q_gra_h = add_atom_explicit_hydrogen_keys(
+        q_gra_h = add_atom_explicit_hydrogens(
             q_gra, {atm_key: [h_atm_key]})
         inv_atm_key_dct = isomorphism(q_gra_h, qh_gra, stereo=False)
         if inv_atm_key_dct:

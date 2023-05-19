@@ -33,7 +33,7 @@ from automol.graph.base import to_local_stereo
 from automol.graph.base import subgraph
 from automol.graph.base import relabel
 from automol.graph.base import bond_stereo_keys
-from automol.graph.base import explicit_hydrogen_keys
+from automol.graph.base import hydrogen_keys
 from automol.graph.base import bond_stereo_parities
 from automol.graph.base import connected_components
 from automol.graph.base import has_stereo
@@ -282,7 +282,7 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         atm_key_dct = dict(map(reversed, enumerate(nums)))
         gra = relabel(gra, atm_key_dct)
         gra = explicit(gra)
-        exp_h_keys = explicit_hydrogen_keys(gra)
+        exp_h_keys = hydrogen_keys(gra)
         exp_h_key_dct = {k: -k for k in exp_h_keys}
         gra = relabel(gra, exp_h_key_dct)
 
