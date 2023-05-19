@@ -79,7 +79,9 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     if 'elimination' not in grxn.class_:
         for ref_angle, cnf_angle in zip(ref_ang_lst, cnf_ang_lst):
             if abs(cnf_angle - ref_angle) > .44 * sens:
-                # ioprinter.diverged_ts('angle', ref_angle, cnf_angle)
+                print(
+                    'transitioning bond angle has diverged',
+                    ref_angle, cnf_angle)
                 viable = False
 
     symbs = symbols(cnf_geo)
@@ -102,7 +104,9 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
                     viable = False
                 # check forming bond distance
                 if abs(cnf_dist - ref_dist) > max_disp:
-                    # ioprinter.diverged_ts('distance', ref_dist, cnf_dist)
+                    print(
+                        'distance of transitioning bonds has diverged', 
+                        ref_dist, cnf_dist)
                     viable = False
 
             # Check distance relative to equi. bond
@@ -110,9 +114,9 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
                 bnd.LEN_DCT, (symb1, symb2), fill_val=0.0)
             displace_from_equi = cnf_dist - equi_bnd
             dchk1 = abs(cnf_dist - ref_dist) > 0.1 * sens
-            dchk2 = displace_from_equi < 0.2 * sens
+            dchk2 = displace_from_equi < 0.2 / sens
             if dchk1 and dchk2:
-                # ioprinter.bad_equil_ts(cnf_dist, equi_bnd)
+                print('transitioning bond differs from equi', cnf_dist, equi_bnd)
                 viable = False
         else:
             # check forming/breaking bond distance
@@ -120,7 +124,9 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
             # max disp of 0.4 causes problems for bond scission w/ ring forming
             # not sure if setting it to 0.3 will cause problems for other cases
             if abs(cnf_dist - ref_dist) > 0.3 * sens:
-                # ioprinter.diverged_ts('distance', ref_dist, cnf_dist)
+                print(
+                    'transitioning bond distance has diverged from starting guess',
+                    ref_dist, cnf_dist)
                 viable = False
 
     if not _check_stereo_parities(zma, ref_zma, zrxn):
