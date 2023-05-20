@@ -656,38 +656,56 @@ def reaction_class(rxn):
     return rxn.class_
 
 
-def are_energetically_equivalent(rxn1, rxn2):
+def are_energetically_equivalent(rxn1, rxn2, ts_stereo=True, ts_enant=False):
     """ Are these Reaction objects energetically equivalent?
 
-    They are energetically equivalent if
-    (a.) their TS graphs are isomorphic, and
-    (b.) they DO NOT differ in their breaking/forming bonds at a fleeting
-    stereocenter in a way that makes them diastereomers. (If the difference
-    makes them enantiomers, they are still energetically equivalent.)
+    Requires forward TS graphs to be are exactly aligned, having identical
+    reactant graphs (including their keys) and differing only in the
+    breaking/forming bonds.
+
+    By default, they are deemed equivalent if they have the same energy, which
+    occurs when:
+    (a.) their reactant/product graphs are identical (same indexing)
+    (b.) their TS graphs are isomorphic, and
+    (c.) the neighboring atoms at non-enantiomeric fleeting reaction sites are
+    equidistant from the reaction site.
 
     A stereocenter is 'fleeting' if it occurs only in the TS, not in the
     reactants or products.
 
     :param rxn1: reaction object
     :param rxn2: reaction object for comparison
+    :param ts_stereo: Treat fleeting TS stereoisomers as distinct TSs?
+    :type ts_stereo: bool
+    :param ts_enant: Treat fleeting TS enantiomers as distinct TSs?
+    :type ts_enant: bool
     :returns: `True` if they are, `False` if they aren't
     """
     tsg1 = rxn1.forward_ts_graph
     tsg2 = rxn2.forward_ts_graph
-    return automol.graph.ts.are_energetically_equivalent(tsg1, tsg2)
+    return automol.graph.ts.are_equivalent(
+        tsg1, tsg2, ts_stereo=ts_stereo, ts_enant=ts_enant)
 
 
-def ts_unique(rxns):
-    """ return reactions with isomorphically unique TSs
+def unique(rxns, ts_stereo=True, ts_enant=False):
+    """ Get reactions with distinct TSs from a list with redundancies
 
     :param rxns: a sequence of reaction objects
+    :param ts_stereo: Treat fleeting TS stereoisomers as distinct TSs?
+    :type ts_stereo: bool
+    :param ts_enant: Treat fleeting TS enantiomers as distinct TSs?
+    :type ts_enant: bool
     :returns: unique reaction objects
     """
     all_rxns = rxns
     rxns = []
 
+    def equiv_(rxn1, rxn2):
+        return are_energetically_equivalent(
+            rxn1, rxn2, ts_stereo=ts_stereo, ts_enant=ts_enant)
+
     for rxn in all_rxns:
-        if not any(are_energetically_equivalent(rxn, r) for r in rxns):
+        if not any(equiv_(rxn, r) for r in rxns):
             rxns.append(rxn)
 
     return tuple(rxns)

@@ -29,7 +29,7 @@ from automol.reac._reac import reaction_class
 from automol.reac._reac import is_radical_radical
 from automol.reac._reac import is_barrierless
 from automol.reac._reac import are_energetically_equivalent
-from automol.reac._reac import ts_unique
+from automol.reac._reac import unique
 # finders
 from automol.reac._find import trivial
 from automol.reac._find import hydrogen_migrations
@@ -122,7 +122,7 @@ __all__ = [
     'is_radical_radical',
     'is_barrierless',
     'are_energetically_equivalent',
-    'ts_unique',
+    'unique',
     # finders
     'trivial',
     'hydrogen_migrations',

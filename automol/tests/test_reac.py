@@ -1311,6 +1311,32 @@ def test__canonical_enantiomer():
         print()
 
 
+def test__ts_stereo_flags():
+    """ Test TS stereo flags
+    """
+    # Fleeting diastereomer:
+    #       CCOC(O[O])C => C[CH]OC(OO)C
+    #        * ^
+    # [* marks a fleeting TS stereosite]
+    # [^ marks a permanent stereosite]
+    rxn_smis = [['CCO[C@H](O[O])C'], ['C[CH]O[C@H](OO)C']]
+    rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis,
+                                                              stereo=True)
+    assert len(rxns_with_geos) == 2
+
+    # Fleeting enantiomer:
+    #       CCOCC + [OH] => C[CH]OCC + O
+    #        *
+    # [* marks a fleeting TS stereosite]
+    rxn_smis = [['CCOCC', '[OH]'], ['C[CH]OCC', 'O']]
+    rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis,
+                                                              ts_enant=True)
+    assert len(rxns_with_geos) == 2
+    rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis,
+                                                              ts_enant=False)
+    assert len(rxns_with_geos) == 1
+
+
 if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("error")
@@ -1331,6 +1357,7 @@ if __name__ == '__main__':
     # test__expand_stereo()
     # test__reac__sigma_hydrogen_abstraction()
     # test__stereo()
-    test__reac__hydrogen_migration()
-    test__reac__2ts_hydrogen_migration()
-    test__reac__ring_forming_scission()
+    # test__reac__hydrogen_migration()
+    # test__reac__2ts_hydrogen_migration()
+    # test__reac__ring_forming_scission()
+    test__prod__addition()

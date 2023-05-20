@@ -364,7 +364,7 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     return mlf, key_map_inv
 
 
-def rdkit_molecule(gra, stereo=True):
+def rdkit_molecule(gra, stereo=True, index=True):
     """ Convert a molecular graph to an RDKit molecule.
 
         This is mainly useful for quick visualization with IPython, which can
@@ -372,12 +372,18 @@ def rdkit_molecule(gra, stereo=True):
         >>> from IPython.display import display
         >>> display(rdkit_molecule(gra))
 
+        TODO: Implement `index` flag, to show atom keys upon display.
+
         :param gra: molecular graph
         :type gra: automol graph data structure
         :param stereo: parameter to include stereochemistry information
         :type stereo: bool
+        :param index: display the molecule with atom index numbers?
         :returns: the RDKit molecule
     """
+    if index:
+        raise NotImplementedError("Displaying atom indices not implemented.")
+
     rdkit_.turn_3d_visualization_off()
     return rdkit_.from_smiles(smiles(gra, stereo=stereo, res_stereo=False))
 

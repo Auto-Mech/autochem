@@ -49,7 +49,7 @@ from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
 from automol.reac._reac import Reaction
 from automol.reac._reac import reverse
-from automol.reac._reac import ts_unique
+from automol.reac._reac import unique
 from automol.reac._util import assert_is_valid_reagent_graph_list
 from automol.reac._util import sort_reagents
 from automol.reac._stereo import stereo_is_physical
@@ -183,7 +183,7 @@ def hydrogen_migrations(rct_gras, prd_gras):
                             if stereo_is_physical(rxn):
                                 rxns.append(rxn)
 
-    return ts_unique(rxns)
+    return rxns
 
 
 # 2. Beta scissions
@@ -254,7 +254,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
                         if stereo_is_physical(rxn):
                             rxns.append(rxn)
 
-    return ts_unique(rxns)
+    return rxns
 
 
 # 4. Eliminations
@@ -381,7 +381,7 @@ def eliminations(rct_gras, prd_gras):
         #     #     frm1_keys = atom_keys(rct_gra, sym='H')
         #     #     rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
 
-    return ts_unique(rxns)
+    return rxns
 
 
 # Bimolecular reactions
@@ -448,7 +448,7 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                 if stereo_is_physical(rxn):
                     rxns.append(rxn)
 
-    return ts_unique(rxns)
+    return rxns
 
 
 # 2. Additions
@@ -504,7 +504,7 @@ def additions(rct_gras, prd_gras):
                 if stereo_is_physical(rxn):
                     rxns.append(rxn)
 
-    return ts_unique(rxns)
+    return rxns
 
 
 def double_insertion(rct_gras, prd_gras):
@@ -570,7 +570,7 @@ def double_insertion(rct_gras, prd_gras):
                         if stereo_is_physical(rxn):
                             rxns.append(rxn)
 
-    return ts_unique(rxns)
+    return rxns
 
 
 def two_bond_additions(rct_gras, prd_gras):
@@ -640,7 +640,7 @@ def two_bond_additions(rct_gras, prd_gras):
                 if stereo_is_physical(rxn):
                     rxns.append(rxn)
 
-    return ts_unique(rxns)
+    return rxns
 
 
 # 3. Insertions
@@ -739,16 +739,20 @@ def substitutions(rct_gras, prd_gras):
                         if stereo_is_physical(rxn):
                             rxns.append(rxn)
 
-    return ts_unique(rxns)
+    return rxns
 
 
-def find(rct_gras, prd_gras):
+def find(rct_gras, prd_gras, ts_stereo=False, ts_enant=False):
     """ find all reactions consistent with these reactants and products
 
     :param rct_gras: graphs for the reactants, without stereo and without
         overlapping keys
     :param prd_gras: graphs for the products, without stereo and without
         overlapping keys
+    :param ts_stereo: Treat fleeting TS stereoisomers as distinct?
+    :type ts_stereo: bool
+    :param ts_enant: Treat fleeting TS enantiomers as distinct?
+    :type ts_enant: bool
     :returns: a list of Reaction objects
     :rtype: tuple[Reaction]
     """
@@ -777,9 +781,13 @@ def find(rct_gras, prd_gras):
         substitutions,
     ]
 
-    rxns = tuple(itertools.chain(*(f_(rct_gras, prd_gras) for f_ in finders_)))
+    all_rxns = []
+    for finder_ in finders_:
+        rxns = finder_(rct_gras, prd_gras)
+        rxns = unique(rxns, ts_stereo=ts_stereo, ts_enant=ts_enant)
+        all_rxns.extend(rxns)
 
-    return rxns
+    return tuple(all_rxns)
 
 
 def find_from_chi(rct_chis, prd_chis):
@@ -811,9 +819,11 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
         inv_atm_key_dct = isomorphism(q_gra_h, qh_gra, stereo=False)
         if inv_atm_key_dct:
             qh_q_atm_key = inv_atm_key_dct[atm_key]
-            qh_h_atm_key = inv_atm_key_dct[h_atm_key]
+            qh_h_atm_keys = atom_neighbor_atom_keys(
+                qh_gra, qh_q_atm_key, symb='H')
             q_q_atm_key = atm_key
-            rets.append((qh_q_atm_key, qh_h_atm_key, q_q_atm_key))
+            for qh_h_atm_key in qh_h_atm_keys:
+                rets.append((qh_q_atm_key, qh_h_atm_key, q_q_atm_key))
 
     return rets
 

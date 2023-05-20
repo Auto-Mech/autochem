@@ -1012,7 +1012,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
         frozenset.union,
         filter(lambda x: len(x) < 8, rng_bnd_keys_lst), frozenset())
 
-    nkeys_dct = atoms_neighbor_atom_keys(gra)
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_graph=False)
 
     def _is_stereogenic(key):
 

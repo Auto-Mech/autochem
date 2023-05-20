@@ -224,9 +224,13 @@ def atom_keys(gra, symb=None, excl_symbs=()):
     return atm_keys
 
 
-def bond_keys(gra):
+def bond_keys(gra, ts_graph=True):
     """ bond keys
+
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
     """
+    gra = gra if ts_graph else from_ts_graph(gra)
     return frozenset(bonds(gra).keys())
 
 
@@ -1493,7 +1497,8 @@ def bond_induced_subgraph(gra, bnd_keys, stereo=False):
     return sub
 
 
-def subgraph_neighborhood(gra, atm_keys, bnd_keys=None, stereo=False):
+def subgraph_neighborhood(gra, atm_keys, bnd_keys=None, stereo=False,
+                          ts_graph=True):
     """ neighborhood subgraph of a subgraph
 
         :param gra: molecular graph
@@ -1501,11 +1506,14 @@ def subgraph_neighborhood(gra, atm_keys, bnd_keys=None, stereo=False):
         :param atm_keys: the atom keys in the subgraph
         :type atm_keys: int
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
         :returns: the neighborhood subgraph
     """
     atm_keys = frozenset(atm_keys)
-    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+                if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_keys & k)
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
     return nbh
@@ -1519,7 +1527,7 @@ def subgraph_neighbor_atom_keys(gra, atm_keys, bnd_keys=None):
         :param atm_keys: the atom keys in the subgraph
         :type atm_keys: int
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
         :returns: the keys of neighboring atoms
     """
     atm_keys = frozenset(atm_keys)
@@ -1528,7 +1536,8 @@ def subgraph_neighbor_atom_keys(gra, atm_keys, bnd_keys=None):
     return ngb_keys
 
 
-def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False):
+def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False,
+                      ts_graph=True):
     """ neighborhood subgraph for a specific atom
 
         :param gra: molecular graph
@@ -1536,37 +1545,45 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False):
         :param atm_key: the atom key
         :type atm_key: int
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
         :returns: the neighborhood subgraph
     """
-    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    gra = gra if ts_graph else from_ts_graph(gra)
+    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+                if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
     return nbh
 
 
-def atom_neighborhoods(gra, bnd_keys=None, stereo=False):
+def atom_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
     """ neighborhood subgraphs, by atom
 
         :param gra: molecular graph
         :type gra: automol graph data structure
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
         :returns: neighborhood subgraphs, by atom key
         :rtype: dict
     """
-    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+                if bnd_keys is None else bnd_keys)
 
     def _neighborhood(atm_key):
         return atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys,
-                                 stereo=stereo)
+                                 stereo=stereo, ts_graph=ts_graph)
 
     atm_keys = list(atom_keys(gra))
     atm_nbh_dct = dict(zip(atm_keys, map(_neighborhood, atm_keys)))
     return atm_nbh_dct
 
 
-def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False):
+def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False,
+                      ts_graph=True):
     """ neighborhood subgraph for a specific bond
 
         :param gra: molecular graph
@@ -1574,22 +1591,27 @@ def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False):
         :param bnd_key: the bond key
         :type bnd_key: frozenset[int]
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
         :returns: the neighborhood subgraph
     """
-    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+                if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(filter(lambda x: bnd_key & x, bnd_keys))
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
     return nbh
 
 
-def bond_neighborhoods(gra, bnd_keys=None, stereo=False):
+def bond_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
     """ neighborhood subgraphs, by bond
 
         :param gra: molecular graph
         :type gra: automol graph data structure
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
         :returns: neighborhood subgraphs, by atom key
         :rtype: dict
     """
@@ -1597,7 +1619,7 @@ def bond_neighborhoods(gra, bnd_keys=None, stereo=False):
 
     def _neighborhood(bnd_key):
         return bond_neighborhood(gra, bnd_key, bnd_keys=bnd_keys,
-                                 stereo=stereo)
+                                 stereo=stereo, ts_graph=ts_graph)
 
     bnd_nbh_dct = dict(zip(bnd_keys, map(_neighborhood, bnd_keys)))
     return bnd_nbh_dct
@@ -1614,7 +1636,7 @@ def atom_neighbor_atom_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
 
 
 def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
-                            excl_symbs=()):
+                            excl_symbs=(), ts_graph=True):
     """ neighbor keys of a specific atom
 
         :param gra: molecular graph
@@ -1629,34 +1651,45 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
         :param excl_symbs: Optionally, exclude atoms with particular atomic
             symbols.
         :type excl_symbs: tuple[str]
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
         :returns: the keys of neighboring atoms
     """
-    atm_nbh = atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys)
+    atm_nbh = atom_neighborhood(
+        gra, atm_key, bnd_keys=bnd_keys, ts_graph=ts_graph)
     atm_nbh_keys = atom_keys(atm_nbh, symb=symb, excl_symbs=excl_symbs)
     atm_ngb_keys = frozenset(atm_nbh_keys - {atm_key})
     return atm_ngb_keys
 
 
-def atoms_neighbor_atom_keys(gra):
+def atoms_neighbor_atom_keys(gra, ts_graph=True):
     """ keys of neighboring atoms, by atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
     """
     def _neighbor_keys(atm_key, atm_nbh):
         return frozenset(atom_keys(atm_nbh) - {atm_key})
 
     atm_ngb_keys_dct = dict_.transform_items_to_values(
-        atom_neighborhoods(gra), _neighbor_keys)
+        atom_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
     return atm_ngb_keys_dct
 
 
 def atom_sorted_neighbor_atom_keys(gra, atm_key, excl_atm_keys=(),
                                    incl_atm_keys=None, symbs_first=('C',),
-                                   symbs_last=('H',)):
+                                   symbs_last=('H',), ts_graph=True):
     """ get the next in a sorted list of neighbor keys, excluding some
+
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
     """
     atm_symb_dct = atom_symbols(gra)
     incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
 
-    atm_nbh = atom_neighborhood(gra, atm_key)
+    atm_nbh = atom_neighborhood(gra, atm_key, ts_graph=ts_graph)
     atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
     atm_keys = [k for k in atm_keys if k in incl_atm_keys]
 
@@ -1667,15 +1700,18 @@ def atom_sorted_neighbor_atom_keys(gra, atm_key, excl_atm_keys=(),
 
 
 def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
-                                    ords_last=(0.1,), prioritize_keys=()):
+                                    ords_last=(0.1,), prioritize_keys=(),
+                                    ts_graph=True):
     """ keys of neighboring atoms, by atom
 
-    :param gra: the graph
-    :param symbs_first: atomic symbols to put put first in the sort order
-    :param symbs_last: atomic symbols to put last in the sort order
-    :param ords_last: neighors connected with a bond of this order will be put
-        last in the sort order
-    :param prioritize_keys: keys to put first no matter what
+        :param gra: the graph
+        :param symbs_first: atomic symbols to put put first in the sort order
+        :param symbs_last: atomic symbols to put last in the sort order
+        :param ords_last: neighors connected with a bond of this order will be
+            put last in the sort order
+        :param prioritize_keys: keys to put first no matter what
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
     """
     atm_symb_dct = atom_symbols(gra)
     bnd_ord_dct = bond_orders(gra)
@@ -1695,22 +1731,29 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
         return keys
 
     atm_ngb_keys_dct = dict_.transform_items_to_values(
-        atom_neighborhoods(gra), _neighbor_keys)
+        atom_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
     return atm_ngb_keys_dct
 
 
-def atoms_bond_keys(gra):
+def atoms_bond_keys(gra, ts_graph=True):
     """ bond keys, by atom
+
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
     """
-    return dict_.transform_values(atom_neighborhoods(gra), bond_keys)
+    atm_nbhs = atom_neighborhoods(gra, ts_graph=ts_graph)
+    return dict_.transform_values(atm_nbhs, bond_keys)
 
 
-def dummy_atoms_neighbor_atom_key(gra):
+def dummy_atoms_neighbor_atom_key(gra, ts_graph=True):
     """ Atoms that are connected to dummy atoms, by dummy atom key
 
-    (Requires that each dummy atom only be connected to one neighbor)
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
+
+        (Requires that each dummy atom only be connected to one neighbor)
     """
-    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra, ts_graph=ts_graph)
     dummy_atm_keys = atom_keys(gra, symb='X')
 
     dummy_ngb_key_dct = {}
@@ -1724,19 +1767,25 @@ def dummy_atoms_neighbor_atom_key(gra):
     return dummy_ngb_key_dct
 
 
-def bonds_neighbor_atom_keys(gra):
+def bonds_neighbor_atom_keys(gra, ts_graph=True):
     """ keys of neighboring atoms, by bond
+
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
         return frozenset(atom_keys(bnd_nbh) - bnd_key)
 
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
-        bond_neighborhoods(gra), _neighbor_keys)
+        bond_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
     return bnd_ngb_keys_dct
 
 
-def bonds_neighbor_bond_keys(gra):
+def bonds_neighbor_bond_keys(gra, ts_graph=True):
     """ keys of neighboring bonds, by bond
+
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
         bnd_keys = bond_keys(bnd_nbh)
@@ -1745,5 +1794,5 @@ def bonds_neighbor_bond_keys(gra):
         return bnd_keys
 
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
-        bond_neighborhoods(gra), _neighbor_keys)
+        bond_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
     return bnd_ngb_keys_dct
