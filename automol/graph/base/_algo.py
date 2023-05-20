@@ -438,20 +438,24 @@ def shortest_path_between_atoms(gra, key1, key2):
 def shortest_path_between_groups(gra, keys1, keys2):
     """ shortest path between two groups of atoms
 
-    Returns the atom pair from these groups that are nearest to each other and
-    returns the path between them.
-    """
-    assert not set(keys1) & set(keys2), (
-        f"{str(keys1):s} overlaps with {str(keys2):s}"
-    )
+        Returns the atom pair from these groups that are nearest to each other
+        and returns the path between them.
 
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param keys1: Atom keys
+        :param keys2: Atom keys to determine path to
+    """
     sp_dct = atom_shortest_paths(gra)
     keys = None
-    for key1 in keys1:
-        for key2 in keys2:
-            if key2 in sp_dct[key1]:
-                if keys is None or len(keys) > len(sp_dct[key1][key2]):
-                    keys = sp_dct[key1][key2]
+    if set(keys1) & set(keys2):
+        keys = ()
+    else:
+        for key1 in keys1:
+            for key2 in keys2:
+                if key2 in sp_dct[key1]:
+                    if keys is None or len(keys) > len(sp_dct[key1][key2]):
+                        keys = sp_dct[key1][key2]
 
     return keys
 

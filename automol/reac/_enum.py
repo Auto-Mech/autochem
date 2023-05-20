@@ -28,7 +28,7 @@ from automol.graph import kekules_bond_orders_averaged
 from automol.graph import are_equivalent_atoms
 from automol.graph import hydroperoxy_groups
 from automol.reac._reac import Reaction
-from automol.reac._reac import ts_unique
+from automol.reac._reac import unique
 from automol.reac._reac import filter_viable_reactions
 from automol.reac._instab import instability_product_graphs
 from automol.reac._util import sort_reagents
@@ -98,7 +98,7 @@ def hydrogen_migrations(rct_gras, viable_only=True):
     if viable_only:
         rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # 2. Homolytic scissions
@@ -160,7 +160,7 @@ def homolytic_scissions(rct_gras, viable_only=False):
     # if viable_only:
     #    rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # 3. Beta scissions
@@ -228,7 +228,7 @@ def beta_scissions(rct_gras, viable_only=True):
     if viable_only:
         rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # 4. Ring-forming scissions (skip for now)
@@ -300,7 +300,7 @@ def ring_forming_scissions(rct_gras, viable_only=True):
     if viable_only:
         rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # 5. Eliminations
@@ -403,7 +403,7 @@ def eliminations(rct_gras, viable_only=True):
     if viable_only:
         rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # Bimolecular reactions
@@ -473,7 +473,7 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
     if viable_only:
         rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # 2. Additions
@@ -525,7 +525,7 @@ def additions(rct_gras, viable_only=True):
     if viable_only:
         rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # 3. Insertions
@@ -622,7 +622,7 @@ def insertions(rct_gras, viable_only=True):
     if viable_only:
         rxns = filter_viable_reactions(rxns)
 
-    return ts_unique(rxns)
+    return unique(rxns)
 
 
 # Cycle through the different finders and gather all possible reactions

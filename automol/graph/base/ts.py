@@ -7,6 +7,8 @@ Otherwise, this is equivalent to any other graph
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+import itertools
+import numpy
 from automol import util
 import automol.amchi.base    # !!!!
 from automol.graph.base._core import stereo_parities
@@ -23,8 +25,9 @@ from automol.graph.base._core import reacting_atoms
 from automol.graph.base._core import negate_hydrogen_keys
 from automol.graph.base._core import string
 from automol.graph.base._algo import rings_bond_keys
-from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._algo import isomorphic
+from automol.graph.base._algo import shortest_path_between_groups
+from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import local_priority_dict
 from automol.graph.base._canon import stereogenic_atom_keys
@@ -133,23 +136,22 @@ def products_graph(tsg):
     return reactants_graph(reverse(tsg))
 
 
-def fleeting_stereogenic_atom_keys(tsg, enant=True):
+def fleeting_stereogenic_atom_keys(tsg, ts_enant=True):
     """ Identify fleeting stereogenic atoms in a TS structure
 
-    Setting `enant=False` generates only *dia*stereogenic atom keys.  The atom
-    is deemed diastereogenic if its inversion results in a different
-    diastereomer. For now, this is assumed to be the case unless it is the only
-    chiral atom in the TS, in which case we assume inversion generates an
-    enantiomer.
+        A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+        reactants or products.
 
-    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
-    reactants or products.
+        Setting `ts_enant=False` generates only *dia*stereogenic keys.  The
+        atom/bond is deemed diastereogenic if its inversion results in a
+        different diastereomer. For bonds, this is always the case. For atoms,
+        this is assumed to be the case unless there are no other chiral atoms,
+        in which case we assume inversion generates an enantiomer.
 
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param enant: Include fleeting stereogenic atoms that generate enantiomers
-        rather than diastereomers upon inversion?
-    :type enant: bool
+        :param tsg: TS graph
+        :type tsg: automol graph data structure
+        :param ts_enant: Include fleeting enantiomer stereo sites?
+        :type ts_enant: bool
     """
     tsg = without_dummy_atoms(tsg)
     pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
@@ -163,7 +165,7 @@ def fleeting_stereogenic_atom_keys(tsg, enant=True):
     ste_atm_keys = (tsg_ste_atm_keys - rct_ste_atm_keys) - prd_ste_atm_keys
 
     # Handle the case where we only want diastereogenic atoms.
-    if not enant:
+    if not ts_enant:
         # If there was only one fleeting atom stereocenter, inverting it will
         # create an enantiomer rather than a diastereomer. Exclude it.
         if tsg_ste_atm_keys & ste_atm_keys and len(tsg_ste_atm_keys) == 1:
@@ -175,11 +177,11 @@ def fleeting_stereogenic_atom_keys(tsg, enant=True):
 def fleeting_stereogenic_bond_keys(tsg):
     """ Identify fleeting stereogenic bonds in a TS structure
 
-    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
-    reactants or products.
+        A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+        reactants or products.
 
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
+        :param tsg: TS graph
+        :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
     pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
@@ -194,73 +196,111 @@ def fleeting_stereogenic_bond_keys(tsg):
     return ste_bnd_keys
 
 
-def fleeting_stereogenic_keys(tsg, enant=True):
+def fleeting_stereogenic_keys(tsg, ts_enant=True):
     """ Identify fleeting stereogenic atoms and bonds in a TS structure
 
-    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
-    reactants or products.
+        A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+        reactants or products.
 
-    Setting `enant=False` generates only *dia*stereogenic keys.  The atom/bond
-    is deemed diastereogenic if its inversion results in a different
-    diastereomer. For bonds, this is always the case. For atoms, this is
-    assumed to be the case unless there are no other chiral atoms, in which
-    case we assume inversion generates an enantiomer.
+        Setting `ts_enant=False` generates only *dia*stereogenic keys.  The
+        atom/bond is deemed diastereogenic if its inversion results in a
+        different diastereomer. For bonds, this is always the case. For atoms,
+        this is assumed to be the case unless there are no other chiral atoms,
+        in which case we assume inversion generates an enantiomer.
 
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param enant: Include fleeting stereogenic atoms that generate enantiomers
-        rather than diastereomers upon inversion?
-    :type enant: bool
+        :param tsg: TS graph
+        :type tsg: automol graph data structure
+        :param ts_enant: Include fleeting enantiomer stereo sites?
+        :type ts_enant: bool
     """
-    ste_atm_keys = fleeting_stereogenic_atom_keys(tsg, enant=enant)
+    ste_atm_keys = fleeting_stereogenic_atom_keys(tsg, ts_enant=ts_enant)
     ste_bnd_keys = fleeting_stereogenic_bond_keys(tsg)
     ste_keys = ste_atm_keys | ste_bnd_keys
     return ste_keys
 
 
-# def fleeting_stereosite_reacting_neighbors(tsg, enant=True):
-#     """ Reacting neighbor atoms at fleeting stereosites
+def fleeting_stereosite_sorted_neighbors(tsg, ts_enant=True):
+    """ Neighbor atoms at fleeting stereosites, sorted by proximity to the
+        reaction site
 
-#     :param tsg: TS graph
-#     :type tsg: automol graph data structure
-#     :param enant: Include fleeting stereogenic atoms that generate
-#          enantiomers rather than diastereomers upon inversion?
-#     :type enant: bool
-#     :returns: A dictionary keyed by fleeting stereogenic keys, with values of
-#         the specific neighbors that are reacting ()
-#     """
-#     rxn_atm_keys = reacting_atoms(tsg)
+        For TS graphs which are aligned apart from their breaking and forming
+        bond keys, this graph will be different for different TS diastereomers.
 
-#     def _sorted_nkeys(nkeys):
-#         """ Sort neighboring keys based on proximity to the reaction site
-#         """
+        :param tsg: TS graph
+        :type tsg: automol graph data structure
+        :param ts_enant: Include fleeting enantiomer stereo sites?
+        :type ts_enant: bool
+        :returns: A dictionary keyed by fleeting stereogenic keys, with values
+        of the specific neighbors that are reacting ()
+    """
+    rxn_atm_keys = reacting_atoms(tsg)
+    nkeys_dct = atoms_neighbor_atom_keys(tsg)
 
-#     nkeys_dct = atoms_neighbor_atom_keys(tsg)
-#     ste_atm_keys = fleeting_stereogenic_atom_keys(tsg, enant=enant)
-#     ste_bnd_keys = fleeting_stereogenic_bond_keys(tsg)
+    def _distance_from_reaction_site(key):
+        path = shortest_path_between_groups(tsg, {key}, rxn_atm_keys)
+        dist = len(path) if path is not None else numpy.inf
+        metric = (dist, key)
+        return metric
+
+    def _sorted_nkeys(key, excl_key=None):
+        """ Sort neighboring keys based on proximity to the reaction site
+        """
+        nkeys = nkeys_dct[key] - {excl_key}
+        return tuple(sorted(nkeys, key=_distance_from_reaction_site))
+
+    # Add atom stereo sites
+    ste_atm_keys = fleeting_stereogenic_atom_keys(tsg, ts_enant=ts_enant)
+    srt_ste_nkey_dct = {k: _sorted_nkeys(k) for k in ste_atm_keys}
+
+    # Add bond stereo sites
+    ste_bnd_keys = list(map(sorted, fleeting_stereogenic_bond_keys(tsg)))
+    srt_ste_nkey_dct.update(
+        {(k2, k1): _sorted_nkeys(k1, k2)
+         for bk in ste_bnd_keys for k1, k2 in itertools.permutations(bk)}
+    )
+
+    return srt_ste_nkey_dct
 
 
-def are_energetically_equivalent(tsg1, tsg2):
-    """ Are these Reaction objects energetically equivalent?
+def are_equivalent(tsg1, tsg2, ts_stereo=True, ts_enant=False):
+    """ Are these TS graphs energetically equivalent?
 
     Requires two TS graphs that are exactly aligned, having identical reactant
     graphs (including their keys) and differing only in the breaking/forming
     bonds.
 
-    They are energetically equivalent if
+    By default, they are deemed equivalent if they have the same energy, which
+    occurs when:
     (a.) their reactant/product graphs are identical (same indexing)
     (b.) their TS graphs are isomorphic, and
-    (c.) they DO NOT differ in their breaking/forming bonds at a fleeting
-    stereocenter in a way that makes them diastereomers. (If the difference
-    makes them enantiomers, they are still energetically equivalent.)
+    (c.) the neighboring atoms at non-enantiomeric fleeting reaction sites are
+    equidistant from the reaction site.
 
     A stereocenter is 'fleeting' if it occurs only in the TS, not in the
     reactants or products.
+
+    Note that differences at "enantiomeric" fleeting reaction sites are still
+    considered energetically equivalent, since the TS structures are mirror
+    images. The only time a reaction site is treated as enantiomeric is when
+    there are no other fleeting or non-fleeting atom stereosites in the TS.
+
+    This assumption could in principle break down in cases where multiple
+    fleeting atom reaction sites are simultaneously formed by the reaction and
+    are all simultaneously inverted in the second TS relative to the first. I
+    can't currently think of any cases where this would happen. Initially, I
+    thought Diels-Alder reactions would be the exception, but in that case the
+    stereo sites are not fleeting, so the different possibilities are captured
+    by the stereochemistry of the reactants and products. Diels-Alder reactions
+    with some topological symmetry may be exceptions.
 
     :param tsg1: TS graph
     :type tsg1: automol graph data structure
     :param tsg2: TS graph for comparison
     :type tsg2: automol graph data structure
+    :param ts_stereo: Treat fleeting TS stereoisomers as distinct TSs?
+    :type ts_stereo: bool
+    :param ts_enant: Treat fleeting TS enantiomers as distinct TSs?
+    :type ts_enant: bool
     :returns: `True` if they are, `False` if they aren't
     """
     assert reactants_graph(tsg1) == reactants_graph(tsg2), (
@@ -270,9 +310,17 @@ def are_energetically_equivalent(tsg1, tsg2):
     )
 
     ret = isomorphic(tsg1, tsg2, stereo=True)
-    # If they are isomorphic, determine if they are fleeting diastereomers
-    if ret:
-        pass
+    # If they are isomorphic, determine if they are fleeting diastereomers.
+    # Since they are fully aligned (and, in context, are formed from the same
+    # reactant geometries), this is assumed to be the case if the neighboring
+    # atoms at non-enantiomeric reaction sites have different distances to the
+    # reaction site (see docstring).
+    if ts_stereo and ret:
+        srt_ste_nkey_dct1 = fleeting_stereosite_sorted_neighbors(
+            tsg1, ts_enant=ts_enant)
+        srt_ste_nkey_dct2 = fleeting_stereosite_sorted_neighbors(
+            tsg2, ts_enant=ts_enant)
+        ret = srt_ste_nkey_dct1 == srt_ste_nkey_dct2
 
     return ret
 
