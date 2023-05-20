@@ -21,10 +21,17 @@ from automol.graph.base._core import forming_bond_keys
 from automol.graph.base._core import breaking_bond_keys
 from automol.graph.base._core import reacting_atoms
 from automol.graph.base._core import negate_hydrogen_keys
+from automol.graph.base._core import string
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
+from automol.graph.base._algo import isomorphic
 from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import local_priority_dict
+from automol.graph.base._canon import stereogenic_atom_keys
+from automol.graph.base._canon import stereogenic_bond_keys
+from automol.graph.base._canon import stereogenic_atom_keys_from_priorities
+from automol.graph.base._canon import stereogenic_bond_keys_from_priorities
+from automol.graph.base._canon import canonical_priorities
 from automol.graph.base._kekule import vinyl_radical_atom_keys
 from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 
@@ -45,6 +52,9 @@ def graph(gra, frm_bnd_keys, brk_bnd_keys):
 
 def reverse(tsg, dummies=True):
     """ reverse a transition state graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     if not dummies:
         tsg = without_dummy_atoms(tsg)
@@ -56,6 +66,9 @@ def reverse(tsg, dummies=True):
 
 def forming_rings_atom_keys(tsg):
     """ get the atom keys to rings forming in the TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     frm_rngs_bnd_keys = forming_rings_bond_keys(tsg)
     frm_rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys,
@@ -65,15 +78,22 @@ def forming_rings_atom_keys(tsg):
 
 def forming_rings_bond_keys(tsg):
     """ get the bond keys to rings forming in the TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     frm_bnd_keys = forming_bond_keys(tsg)
-    frm_rngs_bnd_keys = tuple(bks for bks in rings_bond_keys(tsg)
-                              if frm_bnd_keys & bks)
+    frm_rngs_bnd_keys = tuple(
+        bks for bks in rings_bond_keys(tsg, ts_graph=True)
+        if frm_bnd_keys & bks)
     return frm_rngs_bnd_keys
 
 
 def breaking_rings_atom_keys(tsg):
     """ get the atom keys to rings breaking in the TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     brk_rngs_bnd_keys = breaking_rings_bond_keys(tsg)
     brk_rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys,
@@ -83,15 +103,22 @@ def breaking_rings_atom_keys(tsg):
 
 def breaking_rings_bond_keys(tsg):
     """ get the bond keys to rings breaking in the TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     brk_bnd_keys = breaking_bond_keys(tsg)
-    brk_rngs_bnd_keys = tuple(bks for bks in rings_bond_keys(tsg)
-                              if brk_bnd_keys & bks)
+    brk_rngs_bnd_keys = tuple(
+        bks for bks in rings_bond_keys(tsg, ts_graph=True)
+        if brk_bnd_keys & bks)
     return brk_rngs_bnd_keys
 
 
 def reactants_graph(tsg):
     """ get a graph of the reactants from a transition state graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     gra = _from_ts_graph(tsg)
     return gra
@@ -99,8 +126,155 @@ def reactants_graph(tsg):
 
 def products_graph(tsg):
     """ get a graph of the products from a transition state graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     return reactants_graph(reverse(tsg))
+
+
+def fleeting_stereogenic_atom_keys(tsg, enant=True):
+    """ Identify fleeting stereogenic atoms in a TS structure
+
+    Setting `enant=False` generates only *dia*stereogenic atom keys.  The atom
+    is deemed diastereogenic if its inversion results in a different
+    diastereomer. For now, this is assumed to be the case unless it is the only
+    chiral atom in the TS, in which case we assume inversion generates an
+    enantiomer.
+
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param enant: Include fleeting stereogenic atoms that generate enantiomers
+        rather than diastereomers upon inversion?
+    :type enant: bool
+    """
+    tsg = without_dummy_atoms(tsg)
+    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
+
+    tsg_ste_atm_keys = stereogenic_atom_keys_from_priorities(
+        tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
+    rct_ste_atm_keys = stereogenic_atom_keys(reactants_graph(tsg),
+                                             assigned=True)
+    prd_ste_atm_keys = stereogenic_atom_keys(products_graph(tsg),
+                                             assigned=True)
+    ste_atm_keys = (tsg_ste_atm_keys - rct_ste_atm_keys) - prd_ste_atm_keys
+
+    # Handle the case where we only want diastereogenic atoms.
+    if not enant:
+        # If there was only one fleeting atom stereocenter, inverting it will
+        # create an enantiomer rather than a diastereomer. Exclude it.
+        if tsg_ste_atm_keys & ste_atm_keys and len(tsg_ste_atm_keys) == 1:
+            ste_atm_keys -= tsg_ste_atm_keys
+
+    return ste_atm_keys
+
+
+def fleeting_stereogenic_bond_keys(tsg):
+    """ Identify fleeting stereogenic bonds in a TS structure
+
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    """
+    tsg = without_dummy_atoms(tsg)
+    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
+
+    tsg_ste_bnd_keys = stereogenic_bond_keys_from_priorities(
+        tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
+    rct_ste_bnd_keys = stereogenic_bond_keys(reactants_graph(tsg),
+                                             assigned=True)
+    prd_ste_bnd_keys = stereogenic_bond_keys(products_graph(tsg),
+                                             assigned=True)
+    ste_bnd_keys = (tsg_ste_bnd_keys - rct_ste_bnd_keys) - prd_ste_bnd_keys
+    return ste_bnd_keys
+
+
+def fleeting_stereogenic_keys(tsg, enant=True):
+    """ Identify fleeting stereogenic atoms and bonds in a TS structure
+
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
+    Setting `enant=False` generates only *dia*stereogenic keys.  The atom/bond
+    is deemed diastereogenic if its inversion results in a different
+    diastereomer. For bonds, this is always the case. For atoms, this is
+    assumed to be the case unless there are no other chiral atoms, in which
+    case we assume inversion generates an enantiomer.
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param enant: Include fleeting stereogenic atoms that generate enantiomers
+        rather than diastereomers upon inversion?
+    :type enant: bool
+    """
+    ste_atm_keys = fleeting_stereogenic_atom_keys(tsg, enant=enant)
+    ste_bnd_keys = fleeting_stereogenic_bond_keys(tsg)
+    ste_keys = ste_atm_keys | ste_bnd_keys
+    return ste_keys
+
+
+# def fleeting_stereosite_reacting_neighbors(tsg, enant=True):
+#     """ Reacting neighbor atoms at fleeting stereosites
+
+#     :param tsg: TS graph
+#     :type tsg: automol graph data structure
+#     :param enant: Include fleeting stereogenic atoms that generate
+#          enantiomers rather than diastereomers upon inversion?
+#     :type enant: bool
+#     :returns: A dictionary keyed by fleeting stereogenic keys, with values of
+#         the specific neighbors that are reacting ()
+#     """
+#     rxn_atm_keys = reacting_atoms(tsg)
+
+#     def _sorted_nkeys(nkeys):
+#         """ Sort neighboring keys based on proximity to the reaction site
+#         """
+
+#     nkeys_dct = atoms_neighbor_atom_keys(tsg)
+#     ste_atm_keys = fleeting_stereogenic_atom_keys(tsg, enant=enant)
+#     ste_bnd_keys = fleeting_stereogenic_bond_keys(tsg)
+
+
+def are_energetically_equivalent(tsg1, tsg2):
+    """ Are these Reaction objects energetically equivalent?
+
+    Requires two TS graphs that are exactly aligned, having identical reactant
+    graphs (including their keys) and differing only in the breaking/forming
+    bonds.
+
+    They are energetically equivalent if
+    (a.) their reactant/product graphs are identical (same indexing)
+    (b.) their TS graphs are isomorphic, and
+    (c.) they DO NOT differ in their breaking/forming bonds at a fleeting
+    stereocenter in a way that makes them diastereomers. (If the difference
+    makes them enantiomers, they are still energetically equivalent.)
+
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
+
+    :param tsg1: TS graph
+    :type tsg1: automol graph data structure
+    :param tsg2: TS graph for comparison
+    :type tsg2: automol graph data structure
+    :returns: `True` if they are, `False` if they aren't
+    """
+    assert reactants_graph(tsg1) == reactants_graph(tsg2), (
+        f"This function assumes these TS graphs are exactly aligned, apart\n"
+        f"from their breaking/forming bonds, but they aren't:"
+        f"{string(tsg1)}\n----\n{string(tsg2)}"
+    )
+
+    ret = isomorphic(tsg1, tsg2, stereo=True)
+    # If they are isomorphic, determine if they are fleeting diastereomers
+    if ret:
+        pass
+
+    return ret
 
 
 def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True,
@@ -303,56 +477,3 @@ def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
                 satisfies &= (p_b12 == p_b12_actual)
 
     return satisfies
-
-
-if __name__ == '__main__':
-    # FC=CF + [CH2]C(O)C => FCC(F)CC(O)C
-    TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('O', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-            9: ('H', 0, None), 10: ('H', 0, None), 11: ('C', 0, None),
-            12: ('C', 0, None), 13: ('F', 0, None), 14: ('F', 0, None),
-            15: ('H', 0, None), 16: ('H', 0, None)},
-           {frozenset({10, 3}): (1, None), frozenset({11, 12}): (1, None),
-            frozenset({1, 2}): (1, None), frozenset({8, 1}): (1, None),
-            frozenset({0, 2}): (1, None), frozenset({16, 12}): (1, None),
-            frozenset({0, 5}): (1, None), frozenset({1, 6}): (1, None),
-            frozenset({0, 11}): (0.1, None), frozenset({1, 7}): (1, None),
-            frozenset({2, 3}): (1, None), frozenset({0, 4}): (1, None),
-            frozenset({11, 13}): (1, None), frozenset({11, 15}): (1, None),
-            frozenset({9, 2}): (1, None), frozenset({12, 14}): (1, None)})
-
-    # CC(OO)C(O[O])C(OO)C => CC(OO)C(OO)C(OO)[CH2]
-    TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('C', 0, None), 4: ('C', 0, None), 5: ('O', 0, None),
-            6: ('O', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
-            9: ('O', 0, None), 10: ('O', 0, None), 11: ('H', 0, None),
-            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-            15: ('H', 0, None), 16: ('H', 0, None), 17: ('H', 0, None),
-            18: ('H', 0, None), 19: ('H', 0, None), 20: ('H', 0, None),
-            21: ('H', 0, None)},
-           {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
-            frozenset({9, 3}): (1, None), frozenset({1, 15}): (1, None),
-            frozenset({0, 12}): (1, None), frozenset({18, 3}): (1, None),
-            frozenset({0, 11}): (0.9, None), frozenset({16, 1}): (1, None),
-            frozenset({11, 7}): (0.1, None), frozenset({0, 13}): (1, None),
-            frozenset({1, 14}): (1, None), frozenset({3, 4}): (1, None),
-            frozenset({9, 6}): (1, None), frozenset({21, 6}): (1, None),
-            frozenset({10, 7}): (1, None), frozenset({19, 4}): (1, None),
-            frozenset({0, 2}): (1, None), frozenset({17, 2}): (1, None),
-            frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
-            frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
-
-    # FC=CC=CF + [OH] => FC=C[CH]C(O)F
-    TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('C', 0, None), 4: ('F', 0, None), 5: ('F', 0, None),
-            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-            9: ('H', 0, None), 10: ('O', 0, None), 11: ('H', 0, None)},
-           {frozenset({8, 2}): (1, None), frozenset({2, 10}): (0.1, None),
-            frozenset({1, 7}): (1, None), frozenset({0, 6}): (1, None),
-            frozenset({9, 3}): (1, None), frozenset({0, 1}): (1, None),
-            frozenset({0, 2}): (1, None), frozenset({2, 4}): (1, None),
-            frozenset({3, 5}): (1, None), frozenset({10, 11}): (1, None),
-            frozenset({1, 3}): (1, None)})
-
-    print(len(expand_reaction_stereo(TSG, enant=False, symeq=False)))

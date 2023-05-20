@@ -28,6 +28,7 @@ from automol.reac._reac import relabel_for_geometry
 from automol.reac._reac import reaction_class
 from automol.reac._reac import is_radical_radical
 from automol.reac._reac import is_barrierless
+from automol.reac._reac import are_energetically_equivalent
 from automol.reac._reac import ts_unique
 # finders
 from automol.reac._find import trivial
@@ -120,6 +121,7 @@ __all__ = [
     'reaction_class',
     'is_radical_radical',
     'is_barrierless',
+    'are_energetically_equivalent',
     'ts_unique',
     # finders
     'trivial',

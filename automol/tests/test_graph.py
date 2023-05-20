@@ -351,7 +351,7 @@ def test__atom_count():
 
 
 def test__heavy_atom_count():
-    """ test graph.explicit_hydrogen_count
+    """ test graph.heavy_atom_count
     """
     cgr = graph.explicit(C8H13O_CGR)
     assert graph.heavy_atom_count(cgr) == 9
@@ -484,10 +484,10 @@ def test__atom_explicit_hydrogen_valences():
     }
 
 
-def test__atom_explicit_hydrogen_keys():
-    """ test graph.atom_explicit_hydrogen_keys
+def test__atom_hydrogen_keys():
+    """ test graph.atom_hydrogen_keys
     """
-    assert graph.atom_explicit_hydrogen_keys(CH2FH2H_CGR_EXP) == {
+    assert graph.atom_hydrogen_keys(CH2FH2H_CGR_EXP) == {
         0: frozenset(),
         1: frozenset({4, 5}),
         2: frozenset({6}),
@@ -505,11 +505,10 @@ def test__backbone_keys():
     assert graph.backbone_keys(CH2FH2H_CGR_EXP) == frozenset({0, 1, 2, 3})
 
 
-def test__explicit_hydrogen_keys():
-    """ test graph.explicit_hydrogen_keys
+def test__hydrogen_keys():
+    """ test graph.hydrogen_keys
     """
-    assert graph.explicit_hydrogen_keys(CH2FH2H_CGR_EXP) == frozenset(
-        {4, 5, 6})
+    assert graph.hydrogen_keys(CH2FH2H_CGR_EXP) == frozenset({4, 5, 6})
 
 
 def test__explicit():
@@ -535,7 +534,7 @@ def test__isomorphic():
         cgr_pmt = graph.relabel(cgr, pmt_dct)
         assert graph.isomorphic(cgr, cgr_pmt)
 
-    # Test backbone_only option, compiring implicit and explicit graphs
+    # Test backbone_only option, comparing implicit and explicit graphs
     assert graph.isomorphic(CH2FH2H_CGR_IMP, CH2FH2H_CGR_EXP,
                             backbone_only=True)
 
@@ -1151,6 +1150,61 @@ def test__vmat__vmatrix():
     assert set(zma_keys) == graph.atom_keys(gra)
 
 
+def test__ts__fleeting_stereogenic_keys():
+    """ test graph.ts.fleeting_stereogenic_keys
+    """
+    # CCOCC + [OH] => CCO[CH]C + O
+    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, None), 4: ('O', 0, None), 5: ('H', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
+            15: ('O', 0, None), 16: ('H', 0, None)},
+           {frozenset({0, 5}): (1, None), frozenset({3, 14}): (1, None),
+            frozenset({2, 11}): (1, None), frozenset({1, 10}): (1, None),
+            frozenset({3, 4}): (1, None), frozenset({1, 9}): (1, None),
+            frozenset({0, 6}): (1, None), frozenset({12, 15}): (0.1, None),
+            frozenset({0, 2}): (1, None), frozenset({3, 13}): (1, None),
+            frozenset({2, 12}): (0.9, None), frozenset({16, 15}): (1, None),
+            frozenset({2, 4}): (1, None), frozenset({8, 1}): (1, None),
+            frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
+    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
+    assert not automol.graph.ts.fleeting_stereogenic_keys(tsg, enant=False)
+
+    # CCOC(O[O])C => C[CH]OC(OO)C
+    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
+            3: ('C', 0, True), 4: ('O', 0, None), 5: ('O', 0, None),
+            6: ('O', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
+            9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
+            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
+            15: ('H', 0, None)},
+           {frozenset({4, 6}): (1, None), frozenset({3, 6}): (1, None),
+            frozenset({1, 12}): (1, None), frozenset({2, 14}): (1, None),
+            frozenset({1, 10}): (1, None), frozenset({0, 8}): (1, None),
+            frozenset({0, 9}): (1, None), frozenset({2, 13}): (0.9, None),
+            frozenset({3, 15}): (1, None), frozenset({4, 13}): (0.1, None),
+            frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
+            frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
+    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
+    assert automol.graph.ts.fleeting_stereogenic_keys(tsg, enant=False) == {2}
+
+    # CCOCC + [OH] => CCO[CH]C + O
+    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
+            3: ('O', 0, None), 4: ('O', 0, None), 5: ('O', 0, None),
+            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},
+           {frozenset({8, 2}): (1, None), frozenset({1, 4}): (1, None),
+            frozenset({0, 6}): (0.9, None), frozenset({0, 1}): (1, None),
+            frozenset({3, 6}): (0.1, None), frozenset({2, 4}): (1, None),
+            frozenset({1, 5}): (1, None), frozenset({3, 5}): (1, None),
+            frozenset({0, 7}): (1, None)})
+    print(automol.graph.ts.fleeting_stereogenic_keys(tsg))
+    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg) ==
+            {frozenset({0, 1})})
+    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg, enant=False) ==
+            {frozenset({0, 1})})
+
+
 def test__ts__expand_reaction_stereo():
     """ test graph.ts.stereo_expand_reverse_graphs
     """
@@ -1552,5 +1606,6 @@ if __name__ == '__main__':
     # test__geometry_atom_parity()
     # test__geometry_bond_parity()
     # test__geometries_parity_mismatches()
-    test__unique()
-    test__isomorphic()
+    # test__unique()
+    # test__isomorphic()
+    test__ts__fleeting_stereogenic_keys()

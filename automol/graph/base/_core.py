@@ -8,7 +8,6 @@ import itertools
 import functools
 import numpy
 import yaml
-import future.moves.itertools as fmit
 from phydat import ptab
 from phydat import phycon
 import automol.formula
@@ -202,15 +201,26 @@ def bonds(gra):
     return bnd_dct
 
 
-def atom_keys(gra, symb=None, excl_syms=()):
+def atom_keys(gra, symb=None, excl_symbs=()):
     """ atom keys
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param symb: Optionally, restrict this to atoms with a particular
+            atomic symbol (e.g., 'H' for hydrogens).
+        :type symb: str
+        :param excl_symbs: Optionally, exclude atoms with particular atomic
+            symbols.
+        :type excl_symbs: tuple[str]
+        :returns: The atom keys
+        :rtype: frozenset
     """
     atm_keys = frozenset(atoms(gra).keys())
     if symb is not None:
         atm_sym_dct = atom_symbols(gra)
         atm_keys = frozenset(k for k in atm_keys
                              if atm_sym_dct[k] == symb and
-                             atm_sym_dct[k] not in excl_syms)
+                             atm_sym_dct[k] not in excl_symbs)
     return atm_keys
 
 
@@ -639,7 +649,7 @@ def atom_bond_valences(gra, bond_order=True):
 def atom_explicit_hydrogen_valences(gra):
     """ explicit hydrogen valences, by atom
     """
-    return dict_.transform_values(atom_explicit_hydrogen_keys(gra), len)
+    return dict_.transform_values(atom_hydrogen_keys(gra), len)
 
 
 def atom_unsaturations(gra, bond_order=True):
@@ -752,23 +762,22 @@ def atom_symbol_keys(gra):
 def backbone_keys(gra):
     """ backbone atom keys
     """
-    bbn_keys = atom_keys(gra) - explicit_hydrogen_keys(gra)
+    bbn_keys = atom_keys(gra) - hydrogen_keys(gra)
     return bbn_keys
 
 
-def atom_explicit_hydrogen_keys(gra):
-    """ explicit hydrogen valences, by atom
-    """
-    exp_hyd_keys = explicit_hydrogen_keys(gra)
-    atm_exp_hyd_keys_dct = dict_.transform_values(
-        atoms_neighbor_atom_keys(gra), lambda x: x & exp_hyd_keys)
-    return atm_exp_hyd_keys_dct
+def backbone_hydrogen_keys(gra):
+    """ backbone hydrogen keys
 
+        These are hydrogen keys which cannot be made implicit, because they are
+        part of the backbone. There are two cases: (1.) one of the hydrogens in
+        H2 must be considered a backbone hydrogen, and (2.) any multivalent
+        hydrogen must be treated as part of the backbone.
 
-def explicit_hydrogen_keys(gra):
-    """ explicit hydrogen keys (H types: explicit, implicit, backbone)
+        :param gra: molecular graph
+        :type gra: automol graph data structure
     """
-    hyd_keys = dict_.keys_by_value(atom_symbols(gra), lambda x: x == 'H')
+    hyd_keys = atom_keys(gra, symb='H')
     atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
     def _is_backbone(hyd_key):
@@ -777,8 +786,52 @@ def explicit_hydrogen_keys(gra):
         is_multivalent = len(atm_ngb_keys_dct[hyd_key]) > 1
         return is_h2 or is_multivalent
 
-    exp_hyd_keys = frozenset(fmit.filterfalse(_is_backbone, hyd_keys))
-    return exp_hyd_keys
+    bbn_hyd_keys = frozenset(filter(_is_backbone, hyd_keys))
+    return bbn_hyd_keys
+
+
+def hydrogen_keys(gra, backbone=False):
+    """ explicit hydrogen keys (by default, without backbone hydrogens)
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param backbone: Include backbone hydrogen keys?
+        :type backbone: bool
+    """
+    hyd_keys = atom_keys(gra, symb='H')
+
+    if not backbone:
+        hyd_keys -= backbone_hydrogen_keys(gra)
+
+    return hyd_keys
+
+
+def atom_backbone_hydrogen_keys(gra):
+    """ explicit hydrogen valences, by atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: A dictionary giving the hydrogen keys for each atom, by key.
+    """
+    hyd_keys = backbone_hydrogen_keys(gra)
+    atm_hyd_keys_dct = dict_.transform_values(
+        atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
+    return atm_hyd_keys_dct
+
+
+def atom_hydrogen_keys(gra, backbone=False):
+    """ explicit hydrogen valences, by atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param backbone: Include backbone hydrogen keys?
+        :type backbone: bool
+        :returns: A dictionary giving the hydrogen keys for each atom, by key.
+    """
+    hyd_keys = hydrogen_keys(gra, backbone=backbone)
+    atm_hyd_keys_dct = dict_.transform_values(
+        atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
+    return atm_hyd_keys_dct
 
 
 def terminal_atom_keys(gra, heavy=True):
@@ -952,7 +1005,7 @@ def negate_hydrogen_keys(gra):
     """ Flip the signs of hydrogen keys
     """
     gra = from_ts_graph(gra)
-    exp_hyd_keys = explicit_hydrogen_keys(gra)
+    exp_hyd_keys = hydrogen_keys(gra)
     atm_key_dct = {k: -k for k in exp_hyd_keys}
     return relabel(gra, atm_key_dct)
 
@@ -1068,30 +1121,43 @@ def remove_bond_stereo_parities(gra, bnd_keys):
     return set_bond_stereo_parities(gra, {k: None for k in bnd_keys})
 
 
-def add_atom_implicit_hydrogen_valences(gra, inc_atm_imp_hyd_vlc_dct):
+def add_atom_implicit_hydrogens(gra, imp_hyd_count_dct):
     """ add atom imlicit hydrogen valences
 
-    (increments can be positive or negative)
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param imp_hyd_count_dct: A dictionary telling how many implicit
+            hydrogens to add (positive integer) or remove (negative integer)
+            for each atom.
+        :type imp_hyd_count_dct: dict[int: int]
+        :returns: The resulting molecular graph
     """
-    atm_keys = list(inc_atm_imp_hyd_vlc_dct.keys())
+    atm_keys = list(imp_hyd_count_dct.keys())
     atm_imp_hyd_vlcs = numpy.add(
         dict_.values_by_key(atom_implicit_hydrogen_valences(gra), atm_keys),
-        dict_.values_by_key(inc_atm_imp_hyd_vlc_dct, atm_keys))
+        dict_.values_by_key(imp_hyd_count_dct, atm_keys))
     assert all(atm_imp_hyd_vlc >= 0 for atm_imp_hyd_vlc in atm_imp_hyd_vlcs)
     atm_imp_hyd_vlc_dct = dict_.transform_values(
         dict(zip(atm_keys, atm_imp_hyd_vlcs)), int)
     return set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct)
 
 
-def add_atom_explicit_hydrogen_keys(gra, atm_exp_hyd_keys_dct):
+def add_atom_explicit_hydrogens(gra, exp_hyd_keys_dct):
     """ add explicit hydrogens by atom
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param imp_hyd_count_dct: A dictionary telling how many implicit
+            hydrogens to add (positive integer) or remove (negative integer)
+            for each atom.
+        :type imp_hyd_count_dct: dict[int: int]
     """
-    assert set(atm_exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
-        f'{set(atm_exp_hyd_keys_dct.keys())}'
+    assert set(exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
+        f'{set(exp_hyd_keys_dct.keys())}'
         ' !<= '
         f'{atom_keys(gra)}'
     )
-    for atm_key, atm_exp_hyd_keys in atm_exp_hyd_keys_dct.items():
+    for atm_key, atm_exp_hyd_keys in exp_hyd_keys_dct.items():
         assert not set(atm_exp_hyd_keys) & atom_keys(gra)
         atm_exp_hyd_bnd_keys = {frozenset({atm_key, atm_exp_hyd_key})
                                 for atm_exp_hyd_key in atm_exp_hyd_keys}
@@ -1319,7 +1385,7 @@ def explicit(gra, atm_keys=None):
 
     gra = set_atom_implicit_hydrogen_valences(
         gra, dict_.by_key({}, atm_keys, fill_val=0))
-    gra = add_atom_explicit_hydrogen_keys(gra, atm_exp_hyd_keys_dct)
+    gra = add_atom_explicit_hydrogens(gra, atm_exp_hyd_keys_dct)
     return gra
 
 
@@ -1329,10 +1395,10 @@ def implicit(gra, atm_keys=None):
     atm_keys = backbone_keys(gra) if atm_keys is None else atm_keys
 
     atm_exp_hyd_keys_dct = dict_.by_key(
-        atom_explicit_hydrogen_keys(gra), atm_keys)
+        atom_hydrogen_keys(gra), atm_keys)
 
     inc_imp_hyd_keys_dct = dict_.transform_values(atm_exp_hyd_keys_dct, len)
-    gra = add_atom_implicit_hydrogen_valences(gra, inc_imp_hyd_keys_dct)
+    gra = add_atom_implicit_hydrogens(gra, inc_imp_hyd_keys_dct)
 
     exp_hyd_keys = set(itertools.chain(*atm_exp_hyd_keys_dct.values()))
     gra = remove_atoms(gra, exp_hyd_keys, stereo=True)
@@ -1547,7 +1613,8 @@ def atom_neighbor_atom_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
     return atm_keys[0] if atm_keys else None
 
 
-def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None):
+def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
+                            excl_symbs=()):
     """ neighbor keys of a specific atom
 
         :param gra: molecular graph
@@ -1555,11 +1622,18 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None):
         :param atm_key: the atom key
         :type atm_key: int
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
-        :tupe bnd_keys: tuple[frozenset[int]]
+        :type bnd_keys: tuple[frozenset[int]]
+        :param symb: Optionally, restrict this to atoms with a particular
+            atomic symbol (e.g., 'H' for hydrogens).
+        :type symb: str
+        :param excl_symbs: Optionally, exclude atoms with particular atomic
+            symbols.
+        :type excl_symbs: tuple[str]
         :returns: the keys of neighboring atoms
     """
     atm_nbh = atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys)
-    atm_ngb_keys = frozenset(atom_keys(atm_nbh) - {atm_key})
+    atm_nbh_keys = atom_keys(atm_nbh, symb=symb, excl_symbs=excl_symbs)
+    atm_ngb_keys = frozenset(atm_nbh_keys - {atm_key})
     return atm_ngb_keys
 
 

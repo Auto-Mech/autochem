@@ -1330,4 +1330,7 @@ if __name__ == '__main__':
     # test__stereo()
     # test__expand_stereo()
     # test__reac__sigma_hydrogen_abstraction()
-    test__stereo()
+    # test__stereo()
+    test__reac__hydrogen_migration()
+    test__reac__2ts_hydrogen_migration()
+    test__reac__ring_forming_scission()
