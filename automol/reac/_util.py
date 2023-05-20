@@ -54,8 +54,8 @@ def hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key):
 
 
 def ring_forming_scission_atom_keys(rxn):
-    """ Obtain the atoms involved in a ring-forming scission reaction, sorted in
-    canonical order.
+    """ Obtain the atoms involved in a ring-forming scission reaction, sorted
+        in canonical order.
 
     :param rxn: the reaction object
     :type rxn: Reaction
@@ -121,8 +121,8 @@ def hydrogen_abstraction_is_sigma(rxn):
 
 
 def elimination_breaking_bond_keys(rxn):
-    """ Obtain the breaking bonds for an elimination reaction, sorted in canonical
-    order.
+    """ Obtain the breaking bonds for an elimination reaction, sorted in
+        canonical order.
 
     :param rxn: the reaction object
     :type rxn: Reaction

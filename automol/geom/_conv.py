@@ -28,8 +28,8 @@ from automol.geom.base import rotate
 
 # # conversions
 def graph(geo, stereo=True):
-    """ Generate a molecular graph from the molecular geometry that has information
-        about bond connectivity and if requested, stereochemistry.
+    """ Generate a molecular graph from the molecular geometry that has
+        information about bond connectivity and if requested, stereochemistry.
 
         :param geo: molecular geometry
         :type geo: automol geometry data structure
@@ -46,8 +46,8 @@ def graph(geo, stereo=True):
 
 def connectivity_graph(geo,
                        rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
-    """ Generate a molecular graph from the molecular geometry that has information
-        about bond connectivity.
+    """ Generate a molecular graph from the molecular geometry that has
+        information about bond connectivity.
 
         :param rqq_bond_max: maximum distance between heavy atoms
         :type rqq_bond_max: float

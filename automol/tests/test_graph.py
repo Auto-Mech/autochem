@@ -5,7 +5,6 @@ import itertools
 import numpy
 import automol
 from automol import graph
-from graph.base.ts import are_equivalent
 
 
 # Vinyl radical with E/Z stereo
@@ -927,7 +926,7 @@ def test__geometry_atom_parity():
            ('O', (1.916674, -0.693354, 0.754657)),
            ('H', (1.419231, -0.509954, 2.537223)))
     gra = automol.geom.graph(geo)
-    assert(automol.graph.geometry_atom_parity(gra, geo, 0) is False)
+    assert (automol.graph.geometry_atom_parity(gra, geo, 0) is False)
 
     # '[C@@H](Cl)(F)(O)'
     geo = (('C', (-0.317722, 0.059267, -0.618703)),
@@ -1243,8 +1242,8 @@ def test__ts__are_energetically_equivalent():
              frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
              frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
              frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert not are_equivalent(tsg1, tsg2)
-    assert are_equivalent(tsg1, tsg2, ts_stereo=False)
+    assert not graph.ts.are_equivalent(tsg1, tsg2)
+    assert graph.ts.are_equivalent(tsg1, tsg2, ts_stereo=False)
 
     # Fleeting enantiomer:
     #       CCOCC + [OH] => C[CH]OCC + O
@@ -1278,8 +1277,8 @@ def test__ts__are_energetically_equivalent():
              frozenset({2, 12}): (0.9, None), frozenset({15, 16}): (1, None),
              frozenset({2, 4}): (1, None), frozenset({1, 8}): (1, None),
              frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert are_equivalent(tsg1, tsg2)
-    assert not are_equivalent(tsg1, tsg2, ts_enant=True)
+    assert graph.ts.are_equivalent(tsg1, tsg2)
+    assert not graph.ts.are_equivalent(tsg1, tsg2, ts_enant=True)
 
 
 def test__ts__expand_reaction_stereo():

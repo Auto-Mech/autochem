@@ -267,7 +267,8 @@ def are_equivalent(tsg1, tsg2, ts_stereo=True, ts_enant=False):
 
     Requires two TS graphs that are exactly aligned, having identical reactant
     graphs (including their keys) and differing only in the breaking/forming
-    bonds.
+    bonds. The underlying assumption is that both TS graphs refer to the same
+    set of initial initial reactant geometries.
 
     By default, they are deemed equivalent if they have the same energy, which
     occurs when:
@@ -320,7 +321,12 @@ def are_equivalent(tsg1, tsg2, ts_stereo=True, ts_enant=False):
             tsg1, ts_enant=ts_enant)
         srt_ste_nkey_dct2 = fleeting_stereosite_sorted_neighbors(
             tsg2, ts_enant=ts_enant)
-        ret = srt_ste_nkey_dct1 == srt_ste_nkey_dct2
+        # For any fleeting stereosites that the two graphs have in common,
+        # check whether their neighoring atoms have the same relationship to
+        # the reaction site.
+        for key in srt_ste_nkey_dct1:
+            if key in srt_ste_nkey_dct2:
+                ret &= srt_ste_nkey_dct1[key] == srt_ste_nkey_dct2[key]
 
     return ret
 

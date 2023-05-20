@@ -88,7 +88,8 @@ def protonation_indicator(ick):
 
 
 def second_hash_with_extension(ick):
-    """ Parse InChIKey second-hash block for version and protonation indicators.
+    """ Parse InChIKey second-hash block for version and protonation
+        indicators.
 
         :param ick: InChIKey
         :type ick: str

@@ -71,7 +71,7 @@ def connectivity_graph(zma, dummy=False,
 
 
 def geometry(zma, dummy=False):
-    """ Convert a Z-Matrix to a molecular geometry, with or without dummy atoms.
+    """ Convert a Z-Matrix to a molecular geometry, with or without dummy atoms
 
         :param zma: Z-Matrix
         :type zma: automol Z-Matrix data structure

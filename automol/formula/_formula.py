@@ -133,8 +133,8 @@ def string(fml, hyd=True):
 
 
 def string2(fml):
-    """ Convert formula dictionary to formula string that includes 1s in when there
-        is only one atom.
+    """ Convert formula dictionary to formula string that includes 1s in when
+        there is only one atom.
 
         :param fml: stochiometric chemical formula
         :type fml: dict[str:int]

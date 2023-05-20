@@ -644,7 +644,8 @@ def rings(gra, ts_graph=True):
 
 
 def rings_atom_keys(gra, ts_graph=True):
-    """ atom keys for each ring in the graph sorted by connectivity (minimal basis)
+    """ atom keys for each ring in the graph sorted by connectivity (minimal
+        basis)
 
         :param gra: molecular graph
         :type gra: automol graph data structure
