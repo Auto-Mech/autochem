@@ -1320,21 +1320,29 @@ def test__ts_stereo_flags():
     # [* marks a fleeting TS stereosite]
     # [^ marks a permanent stereosite]
     rxn_smis = [['CCO[C@H](O[O])C'], ['C[CH]O[C@H](OO)C']]
+    rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis)
+    print(len(rxns_with_geos))
+    assert len(rxns_with_geos) == 1
     rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis,
                                                               stereo=True)
+    print(len(rxns_with_geos))
     assert len(rxns_with_geos) == 2
+    rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis,
+                                                              stereo=True,
+                                                              ts_stereo=False)
+    print(len(rxns_with_geos))
+    assert len(rxns_with_geos) == 1
 
     # Fleeting enantiomer:
     #       CCOCC + [OH] => C[CH]OCC + O
     #        *
     # [* marks a fleeting TS stereosite]
     rxn_smis = [['CCOCC', '[OH]'], ['C[CH]OCC', 'O']]
+    rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis)
+    assert len(rxns_with_geos) == 1
     rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis,
                                                               ts_enant=True)
     assert len(rxns_with_geos) == 2
-    rxns_with_geos = automol.reac.with_structures_from_smiles(*rxn_smis,
-                                                              ts_enant=False)
-    assert len(rxns_with_geos) == 1
 
 
 if __name__ == '__main__':
@@ -1360,4 +1368,5 @@ if __name__ == '__main__':
     # test__reac__hydrogen_migration()
     # test__reac__2ts_hydrogen_migration()
     # test__reac__ring_forming_scission()
-    test__prod__addition()
+    # test__prod__addition()
+    test__ts_stereo_flags()

@@ -251,6 +251,8 @@ def with_structures_from_geometry(rct_geos, prd_geos, zmat=False, stereo=False,
     prd_gras = list(map(automol.geom.graph, prd_geos))
 
     ts_enant = False if ts_enant is None else ts_enant
+    ts_stereo = True if ts_enant and ts_stereo is None else ts_stereo
+
     if stereo:
         ts_stereo = True if ts_stereo is None else ts_stereo
     else:

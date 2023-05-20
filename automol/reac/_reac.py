@@ -656,30 +656,20 @@ def reaction_class(rxn):
     return rxn.class_
 
 
-def are_energetically_equivalent(rxn1, rxn2, ts_stereo=True, ts_enant=False):
-    """ Are these Reaction objects energetically equivalent?
+def are_equivalent(rxn1, rxn2, ts_stereo=True, ts_enant=False):
+    """ Are these Reaction objects equivalent?
 
-    Requires forward TS graphs to be are exactly aligned, having identical
-    reactant graphs (including their keys) and differing only in the
-    breaking/forming bonds.
+        Requires forward TS graphs to be are exactly aligned, having identical
+        reactant graphs (including their keys) and differing only in the
+        breaking/forming bonds.
 
-    By default, they are deemed equivalent if they have the same energy, which
-    occurs when:
-    (a.) their reactant/product graphs are identical (same indexing)
-    (b.) their TS graphs are isomorphic, and
-    (c.) the neighboring atoms at non-enantiomeric fleeting reaction sites are
-    equidistant from the reaction site.
-
-    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
-    reactants or products.
-
-    :param rxn1: reaction object
-    :param rxn2: reaction object for comparison
-    :param ts_stereo: Treat fleeting TS stereoisomers as distinct TSs?
-    :type ts_stereo: bool
-    :param ts_enant: Treat fleeting TS enantiomers as distinct TSs?
-    :type ts_enant: bool
-    :returns: `True` if they are, `False` if they aren't
+        :param rxn1: reaction object
+        :param rxn2: reaction object for comparison
+        :param ts_stereo: Treat fleeting TS stereoisomers as distinct TSs?
+        :type ts_stereo: bool
+        :param ts_enant: Treat fleeting TS enantiomers as distinct TSs?
+        :type ts_enant: bool
+        :returns: `True` if they are, `False` if they aren't
     """
     tsg1 = rxn1.forward_ts_graph
     tsg2 = rxn2.forward_ts_graph
@@ -701,7 +691,7 @@ def unique(rxns, ts_stereo=True, ts_enant=False):
     rxns = []
 
     def equiv_(rxn1, rxn2):
-        return are_energetically_equivalent(
+        return are_equivalent(
             rxn1, rxn2, ts_stereo=ts_stereo, ts_enant=ts_enant)
 
     for rxn in all_rxns:
