@@ -258,10 +258,12 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
 
 
 def _connected_inchi_with_graph_stereo(ich, gra, nums):
-    """ For a connected inchi/graph, check if the inchi is missing stereo; If so,
-    add stereo based on the graph.
+    """ For a connected inchi/graph, check if the inchi is missing stereo; If
+    so, add stereo based on the graph.
+
     Currently only checks for missing bond stereo, since this is all we have
     seen so far, but could be generalized.
+
     :param ich: the inchi string
     :param gra: the graph
     :param nums: graph indices to backbone atoms in canonical inchi order

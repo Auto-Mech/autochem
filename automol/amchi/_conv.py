@@ -81,7 +81,7 @@ def graph(chi, stereo=True, local_stereo=False):
 
 
 def _connected_graph(chi, stereo=True, local_stereo=False):
-    """ Generate a connected molecular graph from a single-component ChI string.
+    """ Generate a connected molecular graph from a single-component ChI string
 
         :param chi: ChI string
         :type chi: str

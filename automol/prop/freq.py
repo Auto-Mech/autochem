@@ -124,7 +124,8 @@ def _three_coeff_anharm_scaling(freqs, method, basis):
 
 
 def _three_coeff_harm_scaling(freqs, method, basis):
-    """ Scales frequencies using one factor, same factor applies to all frequencies
+    """ Scales frequencies using one factor, same factor applies to all
+        frequencies
     """
     cf1, cf2, cf3 = M3_COEFFS_HARM.get((method, basis), (1.0, 0.0, 0.0))
     scaled_freqs = ()

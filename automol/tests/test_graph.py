@@ -926,7 +926,7 @@ def test__geometry_atom_parity():
            ('O', (1.916674, -0.693354, 0.754657)),
            ('H', (1.419231, -0.509954, 2.537223)))
     gra = automol.geom.graph(geo)
-    assert(automol.graph.geometry_atom_parity(gra, geo, 0) is False)
+    assert (automol.graph.geometry_atom_parity(gra, geo, 0) is False)
 
     # '[C@@H](Cl)(F)(O)'
     geo = (('C', (-0.317722, 0.059267, -0.618703)),

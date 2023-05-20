@@ -436,7 +436,7 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
 def calculate_priorities_and_assign_parities(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
         backbone_only=True, pri_dct=None, ts_graph=False):
-    """ Determine canonical priorities and assign stereo parities to this graph.
+    """ Determine canonical priorities and assign stereo parities to this graph
 
         This is how the parity evaluators are to be called:
         >>> par = par_eval_(pri_dct)(key)    # this returns the parity
@@ -533,7 +533,7 @@ def calculate_priorities_and_assign_parities(
 
 
 def refine_priorities(gra, pri_dct=None, srt_eval_=None):
-    """ Refine the canonical priorities for this graph based on some sort value.
+    """ Refine the canonical priorities for this graph based on some sort value
 
         :param gra: molecular graph
         :type gra: automol graph data structure
@@ -935,7 +935,7 @@ def parity_evaluator_flip_local_(gra):
 # # core algorithm helpers
 def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
                                           ts_graph=False):
-    """ Find stereogenic atoms in this graph, given a set of canonical priorities.
+    """ Find stereogenic atoms in this graph, given a set of canonical priorities
 
         If the `assigned` flag is set to `False`, only  unassigned stereogenic
         atoms will be detected.
@@ -977,7 +977,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
 
 def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
                                           ts_graph=False):
-    """ Find stereogenic bonds in this graph, given a set of canonical priorities.
+    """ Find stereogenic bonds in this graph, given a set of canonical priorities
 
         If the `assigned` flag is set to `False`, only  unassigned stereogenic
         bonds will be detected.

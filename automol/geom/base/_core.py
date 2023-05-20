@@ -327,8 +327,8 @@ def formula_string(geo):
 
 # # properties
 def count(geo):
-    """ Obtain the number of rows of the molecular geometry, which corresponds to
-        the number of atoms in the geometry.
+    """ Obtain the number of rows of the molecular geometry, which corresponds
+        to the number of atoms in the geometry.
 
         :param geo: molecular geometry
         :type geo: automol molecular geometry data structure

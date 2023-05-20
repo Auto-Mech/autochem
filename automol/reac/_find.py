@@ -201,7 +201,8 @@ def beta_scissions(rct_gras, prd_gras):
 
 # 3. Ring-forming scissions
 def ring_forming_scissions(rct_gras, prd_gras):
-    """ find ring-forming scissions consistent with these reactants and products
+    """ find ring-forming scissions consistent with these reactants and
+        products
 
     :param rct_gras: reactant graphs (must have non-overlapping keys)
     :param prd_gras: product graphs (must have non-overlapping keys)
