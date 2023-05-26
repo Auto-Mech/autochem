@@ -63,7 +63,7 @@ def chi_(chi):  # => chi() in __init__.py (underscore here avoids name clash)
     return chi
 
 
-def without_stereo(chi, reasses_amchi=True):
+def without_stereo(chi, reassess_amchi=True):
     """ Remove stereo information from this ChI
 
         :param chi: ChI string
@@ -77,7 +77,7 @@ def without_stereo(chi, reasses_amchi=True):
     else:
         raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
 
-    if reasses_amchi:
+    if reassess_amchi:
         ret = chi_(ret)
 
     return ret
