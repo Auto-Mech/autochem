@@ -24,8 +24,9 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import reacting_atoms
 from automol.graph.base._algo import rings_atom_keys
-from automol.graph.base._algo import branch
+from automol.graph.base._algo import branch_atom_keys
 from automol.graph.base._algo import connected_components
+from automol.graph.base._geom import geometry_rotate_bond
 from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import stereogenic_keys
@@ -328,8 +329,8 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
                     atm3_xyz, atm4_xyz, orig_xyz=atm_xyz)
 
                 rot_atm_keys = (
-                    atom_keys(branch(gra, atm_key, {atm_key, atm3_key})) |
-                    atom_keys(branch(gra, atm_key, {atm_key, atm4_key})))
+                    branch_atom_keys(gra, atm_key, atm3_key) |
+                    branch_atom_keys(gra, atm_key, atm4_key))
                 rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
                 geo = automol.geom.rotate(
@@ -351,8 +352,7 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
                 rot_axis = util.vec.unit_bisector(
                     atm1_xyz, atm2_xyz, orig_xyz=atm_xyz)
 
-                rot_atm_keys = atom_keys(
-                    branch(gra, atm_key, {atm_key, atm3_key}))
+                rot_atm_keys = branch_atom_keys(gra, atm_key, atm3_key)
                 rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
                 geo = automol.geom.rotate(
@@ -402,6 +402,8 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
             atm_ngb_keys = atm_ngb_keys_dct[atm2_key]
             atm_piv_keys = list(atm_ngb_keys - {atm1_key})[:2]
 
+            # Do we need this if statement here? Looking at this again, it
+            # seems like the else case should work across the board
             if len(atm_piv_keys) == 2:
                 atm3_key, atm4_key = atm_piv_keys
 
@@ -415,28 +417,14 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
                 rot_axis = util.vec.unit_bisector(
                     atm3_xyz, atm4_xyz, orig_xyz=atm2_xyz)
 
-                rot_atm_keys = (
-                    atom_keys(branch(gra, atm2_key, {atm2_key, atm3_key})) |
-                    atom_keys(branch(gra, atm2_key, {atm2_key, atm4_key})))
+                rot_atm_keys = branch_atom_keys(gra, atm1_key, atm2_key)
                 rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
                 geo = automol.geom.rotate(
                     geo, rot_axis, numpy.pi, orig_xyz=atm2_xyz, idxs=rot_idxs)
             else:
-                # get coordinates
-                xyzs = automol.geom.base.coordinates(geo)
-                atm1_xyz = xyzs[geo_idx_dct[atm1_key]]
-                atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
-
-                # do the rotation
-                rot_axis = numpy.subtract(atm2_xyz, atm1_xyz)
-
-                rot_atm_keys = atom_keys(
-                    branch(gra, atm1_key, {atm1_key, atm2_key}))
-                rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
-
-                geo = automol.geom.rotate(
-                    geo, rot_axis, numpy.pi, orig_xyz=atm1_xyz, idxs=rot_idxs)
+                geo = geometry_rotate_bond(gra, geo, [atm1_key, atm2_key],
+                                           numpy.pi, geo_idx_dct=geo_idx_dct)
 
         gra = set_bond_stereo_parities(gra, {bnd_key: par})
 

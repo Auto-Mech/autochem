@@ -10,7 +10,7 @@ from automol.graph.base import atoms_neighbor_atom_keys
 from automol.graph.base import atoms_sorted_neighbor_atom_keys
 from automol.graph.base import atom_count
 from automol.graph.base import is_connected
-from automol.graph.base import terminal_heavy_atom_keys
+from automol.graph.base import terminal_atom_keys
 from automol.graph.base import shortest_path_between_groups
 from automol.graph.base import rings_atom_keys
 from automol.graph.base import sorted_ring_atom_keys
@@ -38,7 +38,7 @@ def vmatrix(gra, keys=None, rng_keys=None):
     if ring_systems(gra):
         vma, zma_keys = connected_ring_systems(gra, rng_keys=rng_keys)
     else:
-        term_keys = sorted(terminal_heavy_atom_keys(gra))
+        term_keys = sorted(terminal_atom_keys(gra, heavy=True))
         if term_keys:
             start_key = term_keys[0]
         else:

@@ -250,6 +250,7 @@ def test__rotor_wdummy():
     assert rotor_axes == (((0, 1),), ((1, 3),))
 
     rotor_groups = automol.rotor.groups(rotors)
+    print(rotor_groups)
     assert rotor_groups == (
         (((2,), (3, 4, 5, 6, 7, 8, 10, 12)),),
         (((0, 2, 4, 5), (6, 7, 8, 10, 12)),))

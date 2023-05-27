@@ -420,8 +420,28 @@ def test__weird_valencies():
     assert automol.graph.inchi(gra) == ich
 
 
+def test__symmetry_removal():
+    """ make sure the geometries we generate avoid planar symmetry
+    """
+    geo = automol.smiles.geometry(r'F/C=C/F')
+    gra = automol.geom.graph(geo)
+    cis_dihs = automol.graph.geometry_dihedrals_near_value(
+        gra, geo, 0., tol=4.9, degree=True)
+    print(cis_dihs)
+    for dih in cis_dihs:
+        print(automol.geom.dihedral_angle(geo, *dih, degree=True))
+    assert not cis_dihs
+
+    trans_dihs = automol.graph.geometry_dihedrals_near_value(
+        gra, geo, 180., tol=4.9, degree=True)
+    print(trans_dihs)
+    for dih in trans_dihs:
+        print(automol.geom.dihedral_angle(geo, *dih, degree=True))
+    assert not trans_dihs
+
+
 if __name__ == '__main__':
-    test__geom__with_stereo()
+    # test__geom__with_stereo()
     # test__graph__with_stereo()
     # test__smiles__with_stereo()
     # test__graph__misc()
@@ -429,3 +449,4 @@ if __name__ == '__main__':
     # test__inchi_conformers()
     # test__multiple_rings()
     # test__weird_valencies()
+    test__symmetry_removal()

@@ -12,7 +12,7 @@ _NEWLINE = '\n'
 class FMT():
     """ MOLFile V3000 format specifications """
     _HEAD = ('' + _NEWLINE +
-             '  automech  2D grid' + _NEWLINE +
+             '  automech' + _NEWLINE +
              '' + _NEWLINE +
              '  0  0  0  0  0  0  0  0  0  0999 V3000' + _NEWLINE)
     _FOOT = 'M  END' + _NEWLINE

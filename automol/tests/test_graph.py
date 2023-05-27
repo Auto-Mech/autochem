@@ -412,7 +412,22 @@ def test__bonds_neighbor_atom_keys():
 def test__branch():
     """ test graph.branch
     """
-    assert graph.branch(C8H13O_CGR, 6, frozenset({6, 4})) == (
+    # Using an atom key:
+    assert graph.branch(C8H13O_CGR, 6, 4) == (
+        {1: ('C', 2, None), 4: ('C', 1, None)},
+        {frozenset({1, 4}): (1, None)}
+    )
+    assert graph.branch(C8H13O_CGR, 6, 4, keep_root=True) == (
+        {1: ('C', 2, None), 4: ('C', 1, None), 6: ('C', 1, None)},
+        {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None)}
+    )
+    # Using a bond key:
+    bnd_key = frozenset({6, 4})
+    assert graph.branch(C8H13O_CGR, 6, bnd_key) == (
+        {1: ('C', 2, None), 4: ('C', 1, None)},
+        {frozenset({1, 4}): (1, None)}
+    )
+    assert graph.branch(C8H13O_CGR, 6, bnd_key, keep_root=True) == (
         {1: ('C', 2, None), 4: ('C', 1, None), 6: ('C', 1, None)},
         {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None)}
     )
@@ -1661,6 +1676,26 @@ def test__smiles__with_resonance():
             print()
 
 
+def test__perturb_geometry_planar_dihedrals():
+    """ test graph.perturb_geometry_planar_dihedrals()
+    """
+    geo = (('F', (3.45091938160, -1.42093905806, -0.36575882605)),
+           ('C', (1.32805118466, 0.33015256925, -0.48245655954)),
+           ('C', (-1.32797704904, -0.32991985288, -0.37225479287)),
+           ('F', (-3.44911016186, 1.42664994742, -0.41428201235)),
+           ('H', (2.12703663434, 2.19198115968, -0.67990730009)),
+           ('H', (-2.12891998970, -2.19792476541, -0.25903256241)))
+    gra = automol.geom.graph(geo)
+    dih = automol.geom.dihedral_angle(geo, 0, 1, 2, 3, degree=True)
+    assert not numpy.isclose(dih, 170.)
+
+    geo = graph.perturb_geometry_planar_dihedrals(
+        gra, geo, ang=10., degree=True)
+
+    dih = automol.geom.dihedral_angle(geo, 0, 1, 2, 3, degree=True)
+    assert numpy.isclose(dih, 170.)
+
+
 if __name__ == '__main__':
     # test__to_local_stereo()
 
@@ -1684,5 +1719,7 @@ if __name__ == '__main__':
     # test__geometries_parity_mismatches()
     # test__unique()
     # test__isomorphic()
-    test__ts__fleeting_stereogenic_keys()
-    test__ts__are_energetically_equivalent()
+    # test__ts__fleeting_stereogenic_keys()
+    # test__ts__are_energetically_equivalent()
+    # test__branch()
+    test__perturb_geometry_planar_dihedrals()

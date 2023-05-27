@@ -24,7 +24,7 @@ from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import from_ts_graph
 from automol.graph.base._core import has_nitrogen_atom_stereo
-from automol.graph.base._algo import atom_groups
+from automol.graph.base._algo import branches
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
 # from automol.graph.base._algo import weighted_maximal_matching
@@ -481,7 +481,7 @@ def radical_groups(gra):
     groups = []
     rads = radical_atom_keys(gra, sing_res=True)
     for rad in rads:
-        groups.append(atom_groups(gra, rad))
+        groups.append(branches(gra, rad))
     return groups
 
 
@@ -496,9 +496,9 @@ def radical_group_dct(gra):
     for rad in rads:
         key = atms[rad][0]
         if key in groups:
-            groups[atms[rad][0]] += atom_groups(gra, rad)
+            groups[atms[rad][0]] += branches(gra, rad)
         else:
-            groups[atms[rad][0]] = atom_groups(gra, rad)
+            groups[atms[rad][0]] = branches(gra, rad)
 
     return groups
 
