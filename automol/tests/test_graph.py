@@ -412,7 +412,22 @@ def test__bonds_neighbor_atom_keys():
 def test__branch():
     """ test graph.branch
     """
-    assert graph.branch(C8H13O_CGR, 6, frozenset({6, 4})) == (
+    # Using an atom key:
+    assert graph.branch(C8H13O_CGR, 6, 4) == (
+        {1: ('C', 2, None), 4: ('C', 1, None)},
+        {frozenset({1, 4}): (1, None)}
+    )
+    assert graph.branch(C8H13O_CGR, 6, 4, keep_root=True) == (
+        {1: ('C', 2, None), 4: ('C', 1, None), 6: ('C', 1, None)},
+        {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None)}
+    )
+    # Using a bond key:
+    bnd_key = frozenset({6, 4})
+    assert graph.branch(C8H13O_CGR, 6, bnd_key) == (
+        {1: ('C', 2, None), 4: ('C', 1, None)},
+        {frozenset({1, 4}): (1, None)}
+    )
+    assert graph.branch(C8H13O_CGR, 6, bnd_key, keep_root=True) == (
         {1: ('C', 2, None), 4: ('C', 1, None), 6: ('C', 1, None)},
         {frozenset({1, 4}): (1, None), frozenset({4, 6}): (1, None)}
     )
@@ -1684,5 +1699,6 @@ if __name__ == '__main__':
     # test__geometries_parity_mismatches()
     # test__unique()
     # test__isomorphic()
-    test__ts__fleeting_stereogenic_keys()
-    test__ts__are_energetically_equivalent()
+    # test__ts__fleeting_stereogenic_keys()
+    # test__ts__are_energetically_equivalent()
+    test__branch()

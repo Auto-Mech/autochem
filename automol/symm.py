@@ -234,11 +234,11 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
                 atm_groups = automol.graph.base.ring_atom_chirality(
                     gra, atm, ring_atms)
             else:
-                atm_groups = automol.graph.base.atom_groups(gra, atm)
+                atm_groups = automol.graph.base.branches(gra, atm)
             group_dct = {}
             for group in atm_groups:
                 try:
-                    group_smi = inchi(group)
+                    group_ich = inchi(group)
                 except Exception as err:
                     # Excepts rdkit errors, assumes group is complicated enough
                     # that is is unique
@@ -247,16 +247,13 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
                               'routine')
                         print('Symmetry number may be incorrect as a result,'
                               'group is', group)
-                    group_smi = ''.join(random.choice(string.ascii_letters)
+                    group_ich = ''.join(random.choice(string.ascii_letters)
                                         for i in range(10))
-                if group_smi in group_dct:
-                    group_dct[group_smi] += 1
+                if group_ich in group_dct:
+                    group_dct[group_ich] += 1
                 else:
-                    group_dct[group_smi] = 1
+                    group_dct[group_ich] = 1
             # remove atom inchi from dct
-            atm_sym = atm_syms[atm]
-            atm_ich = ICH_DCT[atm_sym]
-            group_dct[atm_ich] -= 1
             group_dct = {x: y for x, y in group_dct.items() if y != 0}
             if len(group_dct) == 4:
                 chiral_center += 1

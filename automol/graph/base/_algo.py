@@ -4,12 +4,12 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
 import operator
+import numbers
 import collections.abc
 import functools
 import itertools
 import more_itertools as mit
 from automol import util
-from automol.util import dict_
 from automol.graph.base import _networkx
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
@@ -18,6 +18,7 @@ from automol.graph.base._core import set_atom_symbols
 from automol.graph.base._core import string
 from automol.graph.base._core import frozen
 from automol.graph.base._core import atom_count
+from automol.graph.base._core import add_bonds
 from automol.graph.base._core import remove_bonds
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
@@ -25,10 +26,12 @@ from automol.graph.base._core import implicit
 from automol.graph.base._core import union_from_sequence
 from automol.graph.base._core import subgraph as subgraph_
 from automol.graph.base._core import bond_induced_subgraph
+from automol.graph.base._core import atom_neighbor_atom_keys
+from automol.graph.base._core import atom_bond_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
-from automol.graph.base._core import bonds_neighbor_bond_keys
 from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import union
 
 
 # # isomorphisms and equivalence
@@ -396,11 +399,11 @@ def bond_equivalence_class_reps(gra, bnd_keys=None, stereo=True, dummy=True):
 
 
 # # algorithms
-def connected_components(gra):
+def connected_components(gra, stereo=True):
     """ connected components in the graph
     """
     cmp_gra_atm_keys_lst = connected_components_atom_keys(gra)
-    cmp_gras = tuple(subgraph_(gra, cmp_gra_atm_keys, stereo=True)
+    cmp_gras = tuple(subgraph_(gra, cmp_gra_atm_keys, stereo=stereo)
                      for cmp_gra_atm_keys in cmp_gra_atm_keys_lst)
     return cmp_gras
 
@@ -552,66 +555,109 @@ def ring_atom_chirality(gra, atm, ring_atms, stereo=False):
     return ret_gras
 
 
-def atom_groups(gra, atm, stereo=False):
-    """ return a list of groups off of one atom
+def branches(gra, atm_key, keep_root=False, stereo=False):
+    """ Get the branches extending from an atom, as a list
 
-    TODO: MERGE WITH BRANCH FUNCTIONS OR MAKE NAMING CONSISTENT SOMEHOW
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_key: the root atom from which the branch originates
+    :type atm_key: int
+    :param keep_root: Keep root atom as part of branch? defaults to False
+    :type keep_root: bool, optional
+    :param stereo: Keep stereochemistry in the subgraph? defaults to False
+    :type stereo: bool, optional
+    :return: A dictionary associating each neighbor of `atm_key` with the
+        subgraph for its branch
+    :rtype: dict(int: automol graph data structure)
     """
-    if not stereo:
-        gra = without_stereo_parities(gra)
-    adj_atms = atoms_neighbor_atom_keys(gra)
-    keys = []
-    for atmi in adj_atms[atm]:
-        key = [atm, atmi]
-        key.sort()
-        key = frozenset(key)
-        keys.append(key)
-    gras = remove_bonds(gra, keys)
-    return connected_components(gras)
+    bnch_dct = branch_dict(gra, atm_key, keep_root=keep_root, stereo=stereo)
+    return list(bnch_dct.values())
 
 
-def branch(gra, atm_key, bnd_key):
-    """ branch extending along `bnd_key` away from `atm_key`
+def branch_dict(gra, atm_key, keep_root=False, stereo=False):
+    """ Get the branches extending from an atom, by neighboring key
+
+    If `keep_root` is set to `True`, then `atm_key` will be included in each
+    branch. When this is done, note that if `atm_key` is part of a ring, then
+    the branch for each neighboring key will only include that specific
+    neighbor's bond to `atm_key`, not that of any other neighbors. This ensures
+    that each branch has a distinct subgraph, even when `atm_key` is part of
+    one or more rings. The latter will not be the case if `keep_root` is set to
+    False.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_key: the root atom from which the branch originates
+    :type atm_key: int
+    :param keep_root: Keep root atom as part of branch? defaults to False
+    :type keep_root: bool, optional
+    :param stereo: Keep stereochemistry in the subgraph? defaults to False
+    :type stereo: bool, optional
+    :return: A dictionary associating each neighbor of `atm_key` with the
+        subgraph for its branch
+    :rtype: dict(int: automol graph data structure)
     """
-    return bond_induced_subgraph(
-        gra, branch_bond_keys(gra, atm_key, bnd_key), stereo=True)
+    island_gra = remove_bonds(gra, atom_bond_keys(gra, atm_key))
+    comps = connected_components(island_gra, stereo=stereo)
+    root_atm = subgraph_(gra, {atm_key}, stereo=stereo)
+
+    bnch_dct = {}
+    nkeys = atom_neighbor_atom_keys(gra, atm_key)
+    for nkey in nkeys:
+        bnch = next(c for c in comps if nkey in atom_keys(c))
+        if keep_root:
+            bnch = union(root_atm, bnch)
+            bnch = add_bonds(bnch, [{atm_key, nkey}])
+        bnch_dct[nkey] = bnch
+    return bnch_dct
 
 
-def branch_atom_keys(gra, atm_key, bnd_key):
-    """ atom keys for branch extending along `bnd_key` away from `atm_key`
+def branch(gra, atm_key, branch_key, keep_root=False, stereo=False):
+    """ Get the atom keys for a branch off of an atom extending a long a
+    specific neighboring atom or bond
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_key: the root atom from which the branch originates
+    :type atm_key: int
+    :param branch_key: the adjacent atom or bond key that begins the branch
+    :type branch_key: int or frozenset[int]
+    :param keep_root: Keep root atom as part of branch? defaults to False
+    :type keep_root: bool, optional
+    :param stereo: Keep stereochemistry in the subgraph? defaults to False
+    :type stereo: bool, optional
+    :return: The branch atom keys
+    :rtype: frozenset[int]
     """
-    bnch_atm_keys = atom_keys(branch(gra, atm_key, bnd_key))
-    return bnch_atm_keys - {atm_key}
+    # If `branch_key` was given as a bond key, get the atom
+    if not isinstance(branch_key, numbers.Number):
+        assert len(branch_key) == 2, f"Invalid branch key: {branch_key}"
+        branch_key, = set(branch_key) - {atm_key}
+
+    assert branch_key in atoms_neighbor_atom_keys(gra, atm_key), (
+        f'No branch from {atm_key} along non-adjacent atom {branch_key}.\n'
+        f'Input graph:\n{string(gra)}'
+    )
+    bnch_dct = branch_dict(gra, atm_key, keep_root=keep_root, stereo=stereo)
+    return bnch_dct[branch_key]
 
 
-def branch_bond_keys(gra, atm_key, bnd_key):
-    """ bond keys for branch extending along `bnd_key` away from `atm_key`
+def branch_atom_keys(gra, atm_key, branch_key, keep_root=False):
+    """ Get the atom keys for a branch off of an atom extending a long a
+    specific neighboring atom or bond
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_key: the root atom from which the branch originates
+    :type atm_key: int
+    :param branch_key: the adjacent atom or bond key that begins the branch
+    :type branch_key: int or frozenset[int]
+    :param keep_root: Keep root atom as part of branch? defaults to False
+    :type keep_root: bool, optional
+    :return: The branch atom keys
+    :rtype: frozenset[int]
     """
-
-    # bnd_key is the set of atom indices for the bond of interest
-    # atm_bnd_keys_dct is a dictionary of atoms that are connected to each atom
-    bnd_key = frozenset(bnd_key)
-    assert atm_key in bnd_key
-
-    atm_bnd_keys_dct = atoms_bond_keys(gra)
-
-    bnch_bnd_keys = {bnd_key}
-    seen_bnd_keys = set()
-    excl_bnd_keys = atm_bnd_keys_dct[atm_key] - {bnd_key}
-
-    new_bnd_keys = {bnd_key}
-
-    bnd_ngb_keys_dct = bonds_neighbor_bond_keys(gra)
-
-    while new_bnd_keys:
-        new_bnd_ngb_keys = set(
-            itertools.chain(
-                *dict_.values_by_key(bnd_ngb_keys_dct, new_bnd_keys)))
-        bnch_bnd_keys.update(new_bnd_ngb_keys - excl_bnd_keys)
-        seen_bnd_keys.update(new_bnd_keys)
-        new_bnd_keys = bnch_bnd_keys - seen_bnd_keys
-
-    return frozenset(bnch_bnd_keys)
+    return atom_keys(branch(gra, atm_key, branch_key, keep_root=keep_root))
 
 
 def is_branched(gra):

@@ -7,7 +7,7 @@
 import itertools
 from automol.graph.base._kekule import kekule
 from automol.graph.base._kekule import radical_atom_keys
-from automol.graph.base._algo import atom_groups
+from automol.graph.base._algo import branches
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import isomorphism
 from automol.graph.base._core import atom_keys
@@ -805,7 +805,7 @@ def radical_dissociation_products(gra, pgra1):
     pgra2 = None
     for rad in radical_atom_keys(gra, sing_res=True):
         for adj in atoms_neighbor_atom_keys(gra)[rad]:
-            for group in atom_groups(gra, adj, stereo=False):
+            for group in branches(gra, adj, stereo=False):
                 if isomorphism(group, pgra1, backbone_only=True):
                     pgra2 = remove_atoms(gra, atom_keys(group))
                     if bond_keys(group) in pgra2:

@@ -747,7 +747,7 @@ def test__chi_with_sort():
 if __name__ == '__main__':
     __align()
     # test__hydrogen_bonded_structure()
-    # test__change_zmatrix_row_values()
-    test__inchi_with_sort()
-    test__amchi_with_sort()
-    test__chi_with_sort()
+    test__change_zmatrix_row_values()
+    # test__inchi_with_sort()
+    # test__amchi_with_sort()
+    # test__chi_with_sort()

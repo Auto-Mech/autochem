@@ -74,12 +74,12 @@ from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
 from automol.graph.base._core import atom_symbol_keys
 from automol.graph.base._core import backbone_keys
+from automol.graph.base._core import backbone_bond_keys
 from automol.graph.base._core import backbone_hydrogen_keys
 from automol.graph.base._core import hydrogen_keys
 from automol.graph.base._core import atom_backbone_hydrogen_keys
 from automol.graph.base._core import atom_hydrogen_keys
 from automol.graph.base._core import terminal_atom_keys
-from automol.graph.base._core import terminal_heavy_atom_keys
 from automol.graph.base._core import unsaturated_atom_keys
 from automol.graph.base._core import unsaturated_bond_keys
 from automol.graph.base._core import lone_pair_atom_keys
@@ -132,6 +132,7 @@ from automol.graph.base._core import atom_neighbor_atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atom_sorted_neighbor_atom_keys
 from automol.graph.base._core import atoms_sorted_neighbor_atom_keys
+from automol.graph.base._core import atom_bond_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import bonds_neighbor_atom_keys
@@ -161,10 +162,10 @@ from automol.graph.base._algo import atom_longest_chain
 from automol.graph.base._algo import longest_chain
 # # branches and groups
 from automol.graph.base._algo import ring_atom_chirality
-from automol.graph.base._algo import atom_groups
-from automol.graph.base._algo import branch
+from automol.graph.base._algo import branches
+from automol.graph.base._algo import branch_dict
 from automol.graph.base._algo import branch_atom_keys
-from automol.graph.base._algo import branch_bond_keys
+from automol.graph.base._algo import branch
 from automol.graph.base._algo import is_branched
 # # rings
 from automol.graph.base._algo import rings
@@ -225,6 +226,9 @@ from automol.graph.base._geom import geometries_have_matching_parities
 from automol.graph.base._geom import geometries_parity_mismatches
 # # corrections
 from automol.graph.base._geom import linear_vinyl_corrected_geometry
+from automol.graph.base._geom import geometry_rotate_bond
+from automol.graph.base._geom import geometry_planar_dihedrals
+from automol.graph.base._geom import rotate_geometry_planar_dihedrals
 # canonicalization functions:
 # # canonical key functions
 from automol.graph.base._canon import canonical_enantiomer
@@ -378,12 +382,12 @@ __all__ = [
     'possible_spin_multiplicities',
     'atom_symbol_keys',
     'backbone_keys',
+    'backbone_bond_keys',
     'backbone_hydrogen_keys',
     'hydrogen_keys',
     'atom_backbone_hydrogen_keys',
     'atom_hydrogen_keys',
     'terminal_atom_keys',
-    'terminal_heavy_atom_keys',
     'unsaturated_atom_keys',
     'unsaturated_bond_keys',
     'lone_pair_atom_keys',
@@ -436,6 +440,7 @@ __all__ = [
     'atoms_neighbor_atom_keys',
     'atom_sorted_neighbor_atom_keys',
     'atoms_sorted_neighbor_atom_keys',
+    'atom_bond_keys',
     'atoms_bond_keys',
     'dummy_atoms_neighbor_atom_key',
     'bonds_neighbor_atom_keys',
@@ -465,10 +470,10 @@ __all__ = [
     'longest_chain',
     # # branches and groups
     'ring_atom_chirality',
-    'atom_groups',
-    'branch',
+    'branches',
+    'branch_dict',
     'branch_atom_keys',
-    'branch_bond_keys',
+    'branch',
     'is_branched',
     # # rings
     'rings',
@@ -529,6 +534,9 @@ __all__ = [
     'geometries_parity_mismatches',
     # # corrections
     'linear_vinyl_corrected_geometry',
+    'geometry_rotate_bond',
+    'geometry_planar_dihedrals',
+    'rotate_geometry_planar_dihedrals',
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',

@@ -770,6 +770,26 @@ def backbone_keys(gra):
     return bbn_keys
 
 
+def backbone_bond_keys(gra, terminal=False):
+    """ backbone bond keys
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param terminal: Include bond keys with terminal atoms?
+    :type terminal: bool, optional
+    :return: The bond keys
+    :rtype: frozenset(frozenset[int])
+    """
+    bbn_keys = backbone_keys(gra)
+
+    # If requested, remove terminal atom keys
+    if not terminal:
+        bbn_keys -= terminal_atom_keys(gra)
+
+    bnd_keys = bond_keys(gra)
+    return frozenset(filter(lambda x: x == (x & bbn_keys), bnd_keys))
+
+
 def backbone_hydrogen_keys(gra):
     """ backbone hydrogen keys
 
@@ -851,16 +871,8 @@ def terminal_atom_keys(gra, heavy=True):
                       reverse=True)
     atm_symbs = dict_.values_by_key(atom_symbols(gra), atm_keys)
     srt = automol.formula.argsort_symbols(atm_symbs, symbs_first=('C',))
-    atm_keys = tuple(map(atm_keys.__getitem__, srt))
+    atm_keys = frozenset(map(atm_keys.__getitem__, srt))
     return atm_keys
-
-
-def terminal_heavy_atom_keys(gra):
-    """ terminal heavy atoms, sorted by atom type and hydrogen count
-
-    (Deprecate: Replace with terminal_atom_keys()
-    """
-    return terminal_atom_keys(gra, heavy=True)
 
 
 def unsaturated_atom_keys(gra):
@@ -1733,6 +1745,15 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
     atm_ngb_keys_dct = dict_.transform_items_to_values(
         atom_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
     return atm_ngb_keys_dct
+
+
+def atom_bond_keys(gra, atm_key, ts_graph=True):
+    """ bond keys for a given atom
+
+        :param ts_graph: If this is a TS graph, treat it as such?
+        :type ts_graph: bool
+    """
+    return bond_keys(atom_neighborhood(gra, atm_key, ts_graph=ts_graph))
 
 
 def atoms_bond_keys(gra, ts_graph=True):
