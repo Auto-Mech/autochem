@@ -426,13 +426,17 @@ def test__symmetry_removal():
     geo = automol.smiles.geometry(r'F/C=C/F')
     gra = automol.geom.graph(geo)
     cis_dihs = automol.graph.geometry_dihedrals_near_value(
-        gra, geo, 0., tol=5., degree=True)
+        gra, geo, 0., tol=4.9, degree=True)
     print(cis_dihs)
+    for dih in cis_dihs:
+        print(automol.geom.dihedral_angle(geo, *dih, degree=True))
     assert not cis_dihs
 
     trans_dihs = automol.graph.geometry_dihedrals_near_value(
-        gra, geo, 180., tol=5., degree=True)
+        gra, geo, 180., tol=4.9, degree=True)
     print(trans_dihs)
+    for dih in trans_dihs:
+        print(automol.geom.dihedral_angle(geo, *dih, degree=True))
     assert not trans_dihs
 
 
