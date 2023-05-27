@@ -395,7 +395,7 @@ def geometry_rotate_bond(gra, geo, bnd_key, ang, degree=False,
 
 
 def geometry_dihedrals_near_value(gra, geo, ang, geo_idx_dct=None,
-                                  tol=None, degree=False):
+                                  tol=None, abs_=True, degree=False):
     """ Identify dihedrals of a certain value
 
     :param gra: molecular graph
@@ -407,8 +407,14 @@ def geometry_dihedrals_near_value(gra, geo, ang, geo_idx_dct=None,
     :param tol: Tolerance for comparison (in radians, unless `degree = True`).
         Default is 5 degrees.
     :type tol: float
+    :param abs_: Compare absolute values?
+    :type abs_: bool
+    :returns: Quartets of dihedral keys matching this value
+    :rtype: frozenset[tuple[int]]
     """
     ref_ang = ang * phycon.DEG2RAD if degree else ang
+    if abs_:
+        ref_ang = numpy.abs(ref_ang)
     tol = 5. * phycon.DEG2RAD if tol is None else (
         tol * phycon.DEG2RAD if degree else tol)
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
@@ -428,9 +434,10 @@ def geometry_dihedrals_near_value(gra, geo, ang, geo_idx_dct=None,
             atm4_idx = geo_idx_dct[atm4_key]
             ang = automol.geom.base.dihedral_angle(
                 geo, atm1_idx, atm2_idx, atm3_idx, atm4_idx)
+            if abs_:
+                ang = numpy.abs(ang)
             if numpy.abs(ang - ref_ang) < tol:
                 dih_keys.append((atm1_key, atm2_key, atm3_key, atm4_key))
-                break
     return frozenset(dih_keys)
 
 
@@ -460,23 +467,18 @@ def perturb_geometry_planar_dihedrals(gra, geo, geo_idx_dct=None,
 
     # Keep checking for planar dihedrals and rotating the corresponding bonds
     # until none are left
-    while True:
-        cis_keys_lst = geometry_dihedrals_near_value(
-            gra, geo, 0., geo_idx_dct=geo_idx_dct, tol=ang)
-        trans_keys_lst = geometry_dihedrals_near_value(
-            gra, geo, numpy.pi, geo_idx_dct=geo_idx_dct, tol=ang)
+    cis_keys_lst = geometry_dihedrals_near_value(
+        gra, geo, 0., geo_idx_dct=geo_idx_dct, tol=ang)
+    trans_keys_lst = geometry_dihedrals_near_value(
+        gra, geo, numpy.pi, geo_idx_dct=geo_idx_dct, tol=ang)
 
-        # If no planar dihedrals are left, break out of the loop
-        if not (cis_keys_lst or trans_keys_lst):
-            break
-
-        # Otherwise, adjust the dihedral to give it a non-planar value
-        dih_dct = {}
-        dih_dct.update({k: 0. + ang for k in cis_keys_lst})
-        dih_dct.update({k: numpy.pi - ang for k in trans_keys_lst})
-        for keys, dih in dih_dct.items():
-            idx, idx1, idx2, idx3 = list(map(geo_idx_dct.__getitem__, keys))
-            geo = automol.geom.change_zmatrix_row_values(
-                geo, idx=idx, idx1=idx1, idx2=idx2, idx3=idx3, dih=dih,
-                degree=False)
+    # Otherwise, adjust the dihedral to give it a non-planar value
+    dih_dct = {}
+    dih_dct.update({k: 0. + ang for k in cis_keys_lst})
+    dih_dct.update({k: numpy.pi - ang for k in trans_keys_lst})
+    for keys, dih in dih_dct.items():
+        idx, idx1, idx2, idx3 = list(map(geo_idx_dct.__getitem__, keys))
+        geo = automol.geom.change_zmatrix_row_values(
+            geo, idx=idx, idx1=idx1, idx2=idx2, idx3=idx3, dih=dih,
+            degree=False)
     return geo
