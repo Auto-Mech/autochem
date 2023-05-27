@@ -26,6 +26,7 @@ from automol.graph.base._core import reacting_atoms
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import branch_atom_keys
 from automol.graph.base._algo import connected_components
+from automol.graph.base._geom import geometry_rotate_bond
 from automol.graph.base._canon import stereogenic_atom_keys
 from automol.graph.base._canon import stereogenic_bond_keys
 from automol.graph.base._canon import stereogenic_keys
@@ -422,19 +423,8 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
                 geo = automol.geom.rotate(
                     geo, rot_axis, numpy.pi, orig_xyz=atm2_xyz, idxs=rot_idxs)
             else:
-                # get coordinates
-                xyzs = automol.geom.base.coordinates(geo)
-                atm1_xyz = xyzs[geo_idx_dct[atm1_key]]
-                atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
-
-                # do the rotation
-                rot_axis = numpy.subtract(atm2_xyz, atm1_xyz)
-
-                rot_atm_keys = branch_atom_keys(gra, atm1_key, atm2_key)
-                rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
-
-                geo = automol.geom.rotate(
-                    geo, rot_axis, numpy.pi, orig_xyz=atm1_xyz, idxs=rot_idxs)
+                geo = geometry_rotate_bond(gra, geo, [atm1_key, atm2_key],
+                                           numpy.pi, geo_idx_dct=geo_idx_dct)
 
         gra = set_bond_stereo_parities(gra, {bnd_key: par})
 

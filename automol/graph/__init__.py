@@ -227,8 +227,8 @@ from automol.graph.base._geom import geometries_parity_mismatches
 # # corrections
 from automol.graph.base._geom import linear_vinyl_corrected_geometry
 from automol.graph.base._geom import geometry_rotate_bond
-from automol.graph.base._geom import geometry_planar_dihedrals
-from automol.graph.base._geom import rotate_geometry_planar_dihedrals
+from automol.graph.base._geom import geometry_dihedrals_near_value
+from automol.graph.base._geom import perturb_geometry_planar_dihedrals
 # canonicalization functions:
 # # canonical key functions
 from automol.graph.base._canon import canonical_enantiomer
@@ -535,8 +535,8 @@ __all__ = [
     # # corrections
     'linear_vinyl_corrected_geometry',
     'geometry_rotate_bond',
-    'geometry_planar_dihedrals',
-    'rotate_geometry_planar_dihedrals',
+    'geometry_dihedrals_near_value',
+    'perturb_geometry_planar_dihedrals',
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',

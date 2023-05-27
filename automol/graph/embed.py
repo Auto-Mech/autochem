@@ -61,7 +61,7 @@ from automol.graph.base import from_ts_graph
 from automol.graph.base import rotational_bond_keys
 from automol.graph.base import local_atom_stereo_parity_from_geometry
 from automol.graph.base import local_bond_stereo_parity_from_geometry
-from automol.graph.base import rotate_geometry_planar_dihedrals
+from automol.graph.base import perturb_geometry_planar_dihedrals
 
 
 # bond distances
@@ -85,7 +85,7 @@ def clean_geometry(gra, geo, max_dist_err=2e-1, stereo=True,
         :param geo: molecular geometry
         :type geo: automol geometry data structure
         :param remove_symmetry: Remove symmetry in the geometry, by slightly
-            perturbing 180 degree dihedral angles?
+            perturbing near-planar dihedral angles?
         :type remove_symmetry: bool
     """
     gra = from_ts_graph(gra)
@@ -114,7 +114,7 @@ def clean_geometry(gra, geo, max_dist_err=2e-1, stereo=True,
     geo = automol.geom.from_data(syms, xyzs, angstrom=True)
 
     if remove_symmetry:
-        geo = rotate_geometry_planar_dihedrals(gra, geo)
+        geo = perturb_geometry_planar_dihedrals(gra, geo, ang=5., degree=True)
 
     return geo
 

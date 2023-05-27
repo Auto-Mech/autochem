@@ -372,26 +372,45 @@ def geometry_rotate_bond(gra, geo, bnd_key, ang, degree=False,
     :param ang: The angle of rotation (in radians, unless `degree = True`)
     :type ang: float
     :param degree: Is the angle of rotation in degrees?, default False
+    :type degree: bool
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     """
+    ang = ang * phycon.DEG2RAD if degree else ang
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atom_keys(gra)))})
-    ang = ang * phycon.DEG2RAD if degree else ang
+    atm1_key, atm2_key = bnd_key
+    xyzs = automol.geom.base.coordinates(geo)
+    atm1_xyz = xyzs[geo_idx_dct[atm1_key]]
+    atm2_xyz = xyzs[geo_idx_dct[atm2_key]]
+
+    rot_axis = numpy.subtract(atm2_xyz, atm1_xyz)
+    rot_atm_keys = branch_atom_keys(gra, atm1_key, atm2_key)
+    rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
+
+    geo = automol.geom.rotate(
+        geo, rot_axis, ang, orig_xyz=atm1_xyz, idxs=rot_idxs)
+    return geo
 
 
-def geometry_planar_dihedrals(gra, geo, geo_idx_dct=None,
-                              tol=5.*phycon.DEG2RAD):
-    """ Identify dihedrals with near-perfect 0 or 180 degree angles
+def geometry_dihedrals_near_value(gra, geo, ang, geo_idx_dct=None,
+                                  tol=None, degree=False):
+    """ Identify dihedrals of a certain value
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param tol: Tolerance (in radians) for planarity
+    :param ang: The angle to check for
+    :type ang: float
+    :param tol: Tolerance for comparison (in radians, unless `degree = True`).
+        Default is 5 degrees.
     :type tol: float
     """
+    ref_ang = ang * phycon.DEG2RAD if degree else ang
+    tol = 5. * phycon.DEG2RAD if tol is None else (
+        tol * phycon.DEG2RAD if degree else tol)
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atom_keys(gra)))})
 
@@ -409,15 +428,16 @@ def geometry_planar_dihedrals(gra, geo, geo_idx_dct=None,
             atm4_idx = geo_idx_dct[atm4_key]
             ang = automol.geom.base.dihedral_angle(
                 geo, atm1_idx, atm2_idx, atm3_idx, atm4_idx)
-            if min(numpy.abs(ang), numpy.abs(ang - numpy.pi)) < tol:
+            if numpy.abs(ang - ref_ang) < tol:
                 dih_keys.append((atm1_key, atm2_key, atm3_key, atm4_key))
                 break
     return frozenset(dih_keys)
 
 
-def rotate_geometry_planar_dihedrals(gra, geo, geo_idx_dct=None,
-                                     shift=5.*phycon.DEG2RAD):
-    """ Remove symmetry from a geometry by shifting 180 degree dihedrals?
+def perturb_geometry_planar_dihedrals(gra, geo, geo_idx_dct=None,
+                                      ang=5.*phycon.DEG2RAD,
+                                      degree=False):
+    """ Remove symmetry from a geometry by perturbing planar dihedrals?
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -426,13 +446,37 @@ def rotate_geometry_planar_dihedrals(gra, geo, geo_idx_dct=None,
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
-    :param tol: tolerance of bond angle(s) for determing linearity
-    :type tol: float
+    :param ang: The angle of rotation
+    :type ang: float
+    :param degree: Is the angle of rotation in degrees?, default True
+    :type degree: bool
+    :returns: a geometry in which all planar dihedrals have been shifted by the
+        given amount
+    :rtype: automol geometry data structure
     """
-    atm_keys = atom_keys(gra)
-    bnakeys_dct = bonds_neighbor_atom_keys(gra)
-    bnbkeys_dct = bonds_neighbor_bond_keys(gra)
-
+    ang = ang * phycon.DEG2RAD if degree else ang
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
-                   else {k: i for i, k in enumerate(sorted(atm_keys))})
+                   else {k: i for i, k in enumerate(sorted(atom_keys(gra)))})
+
+    # Keep checking for planar dihedrals and rotating the corresponding bonds
+    # until none are left
+    while True:
+        cis_keys_lst = geometry_dihedrals_near_value(
+            gra, geo, 0., geo_idx_dct=geo_idx_dct, tol=ang)
+        trans_keys_lst = geometry_dihedrals_near_value(
+            gra, geo, numpy.pi, geo_idx_dct=geo_idx_dct, tol=ang)
+
+        # If no planar dihedrals are left, break out of the loop
+        if not (cis_keys_lst or trans_keys_lst):
+            break
+
+        # Otherwise, adjust the dihedral to give it a non-planar value
+        dih_dct = {}
+        dih_dct.update({k: 0. + ang for k in cis_keys_lst})
+        dih_dct.update({k: numpy.pi - ang for k in trans_keys_lst})
+        for keys, dih in dih_dct.items():
+            idx, idx1, idx2, idx3 = list(map(geo_idx_dct.__getitem__, keys))
+            geo = automol.geom.change_zmatrix_row_values(
+                geo, idx=idx, idx1=idx1, idx2=idx2, idx3=idx3, dih=dih,
+                degree=False)
     return geo
