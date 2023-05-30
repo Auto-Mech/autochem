@@ -301,7 +301,7 @@ def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None,
         assert all(par in (None, False, True) for par in ts_pars)
 
     keys = list(map(frozenset, keys))
-    # TODO: If ts_ = False, we should assert that round(o) == o
+    # If ts_ = False, we should assert that round(o) == o
     ords = [int(o) if round(o) == o else float(round(o, 1)) for o in ords]
     pars = [bool(par) if par is not None else par for par in pars]
     if ts_:

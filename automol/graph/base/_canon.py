@@ -935,7 +935,8 @@ def parity_evaluator_flip_local_(gra):
 # # core algorithm helpers
 def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
                                           ts_graph=False):
-    """ Find stereogenic atoms in this graph, given a set of canonical priorities
+    """ Find stereogenic atoms in this graph, given a set of canonical
+        priorities
 
         If the `assigned` flag is set to `False`, only  unassigned stereogenic
         atoms will be detected.
@@ -977,7 +978,8 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
 
 def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
                                           ts_graph=False):
-    """ Find stereogenic bonds in this graph, given a set of canonical priorities
+    """ Find stereogenic bonds in this graph, given a set of canonical
+        priorities
 
         If the `assigned` flag is set to `False`, only  unassigned stereogenic
         bonds will be detected.
