@@ -4,7 +4,6 @@ dictionary values must all be tuples of the same length
 """
 
 from collections.abc import Mapping as _Mapping
-import numpy
 from automol.util.dict_._dict_ import values_by_key as _values_by_key
 from automol.util.dict_._dict_ import transform_values as _transform_values
 
@@ -26,8 +25,8 @@ def by_key_by_position(mdct, keys, pos):
     dct = {}
     if keys:
         keys = list(keys)
-        vals = numpy.array(_values_by_key(mdct, keys))
-        dct = dict(zip(keys, vals[:, pos]))
+        vals = [row[pos] for row in _values_by_key(mdct, keys)]
+        dct = dict(zip(keys, vals))
     return dct
 
 
