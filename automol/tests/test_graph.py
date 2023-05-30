@@ -261,6 +261,32 @@ C4H5F3O2_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, False),
                  frozenset({11, 3}): (1, None), frozenset({1, 3}): (1, None),
                  frozenset({0, 9}): (1, None)})
 
+# CCO[C@H](O[O])C => C[CH]O[C@H](OO)C
+C4H9O3_TSG = ({0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+               2: ('C', 0, None, None, True), 3: ('C', 0, True, True, None),
+               4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
+               6: ('O', 0, None, None, None), 7: ('H', 0, None, None, None),
+               8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+               10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+               12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
+               14: ('H', 0, None, None, None), 15: ('H', 0, None, None, None)},
+              {frozenset({4, 6}): (1, None, None, None),
+               frozenset({2, 13}): (0.9, None, None, None),
+               frozenset({3, 15}): (1, None, None, None),
+               frozenset({4, 13}): (0.1, None, None, None),
+               frozenset({1, 11}): (1, None, None, None),
+               frozenset({3, 6}): (1, None, None, None),
+               frozenset({0, 2}): (1, None, None, None),
+               frozenset({2, 5}): (1, None, None, None),
+               frozenset({1, 12}): (1, None, None, None),
+               frozenset({2, 14}): (1, None, None, None),
+               frozenset({3, 5}): (1, None, None, None),
+               frozenset({1, 3}): (1, None, None, None),
+               frozenset({0, 7}): (1, None, None, None),
+               frozenset({1, 10}): (1, None, None, None),
+               frozenset({0, 8}): (1, None, None, None),
+               frozenset({0, 9}): (1, None, None, None)})
+
 # ISOBUTANE
 C4H10_GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
               3: ('C', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
@@ -305,6 +331,25 @@ def test__from_data():
         bnd_ste_par_dct=graph.bond_stereo_parities(C8H13O_SGR)
     )
     assert sgr == C8H13O_SGR
+
+    tsg = automol.graph.from_data(
+        atm_symb_dct=graph.atom_symbols(C4H9O3_TSG),
+        bnd_keys=graph.bond_keys(C4H9O3_TSG),
+        atm_imp_hyd_vlc_dct=(
+            graph.atom_implicit_hydrogen_valences(C4H9O3_TSG)),
+        atm_ste_par_dct=graph.atom_stereo_parities(C4H9O3_TSG),
+        atm_prd_ste_par_dct=graph.ts_atom_product_stereo_parities(C4H9O3_TSG),
+        atm_ts_ste_par_dct=graph.ts_atom_fleeting_stereo_parities(C4H9O3_TSG),
+        bnd_ord_dct=graph.bond_orders(C4H9O3_TSG),
+        bnd_ste_par_dct=graph.bond_stereo_parities(C4H9O3_TSG),
+        bnd_prd_ste_par_dct=graph.ts_bond_product_stereo_parities(C4H9O3_TSG),
+        bnd_ts_ste_par_dct=graph.ts_bond_fleeting_stereo_parities(C4H9O3_TSG),
+    )
+    print('compare:')
+    print(automol.graph.string(C4H9O3_TSG))
+    print('... to ...')
+    print(automol.graph.string(tsg))
+    assert tsg == C4H9O3_TSG
 
 
 def test__set_atom_implicit_hydrogen_valences():
@@ -1722,4 +1767,5 @@ if __name__ == '__main__':
     # test__ts__fleeting_stereogenic_keys()
     # test__ts__are_energetically_equivalent()
     # test__branch()
-    test__perturb_geometry_planar_dihedrals()
+    # test__perturb_geometry_planar_dihedrals()
+    test__from_data()

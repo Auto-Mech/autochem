@@ -29,7 +29,11 @@ from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import atom_implicit_hydrogen_valences
 from automol.graph.base._core import atom_stereo_parities
+from automol.graph.base._core import ts_atom_product_stereo_parities
+from automol.graph.base._core import ts_atom_fleeting_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import ts_bond_product_stereo_parities
+from automol.graph.base._core import ts_bond_fleeting_stereo_parities
 from automol.graph.base._core import stereo_parities
 # # setters
 from automol.graph.base._core import set_atom_symbols
@@ -60,6 +64,7 @@ from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import has_bond_stereo
 from automol.graph.base._core import has_nitrogen_atom_stereo
 from automol.graph.base._core import has_fractional_bonds
+from automol.graph.base._core import is_ts_graph
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import atom_element_valences
@@ -337,7 +342,11 @@ __all__ = [
     'bond_orders',
     'atom_implicit_hydrogen_valences',
     'atom_stereo_parities',
+    'ts_atom_product_stereo_parities',
+    'ts_atom_fleeting_stereo_parities',
     'bond_stereo_parities',
+    'ts_bond_product_stereo_parities',
+    'ts_bond_fleeting_stereo_parities',
     'stereo_parities',
     # # setters
     'set_atom_symbols',
@@ -368,6 +377,7 @@ __all__ = [
     'has_bond_stereo',
     'has_nitrogen_atom_stereo',
     'has_fractional_bonds',
+    'is_ts_graph',
     'atomic_numbers',
     'mass_numbers',
     'atom_element_valences',

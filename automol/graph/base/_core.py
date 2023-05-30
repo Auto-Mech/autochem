@@ -1,5 +1,17 @@
 """ core graph functions
 
+Data structure:
+    gra = (atm_dct, bnd_dct)
+    atm_dct := {
+        atm_key: (symb, imp_hyd_vlc, ste_par),
+        ...
+    }
+    bnd_dct := {
+        bnd_key: (ord, ste_par),
+        ...
+    }
+    [where bnd_key := frozenset({atm1_key, atm2_key})]
+
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
@@ -18,9 +30,13 @@ import automol.util.dict_.multi as mdict
 ATM_SYM_POS = 0
 ATM_IMP_HYD_VLC_POS = 1
 ATM_STE_PAR_POS = 2
+ATM_PRD_STE_PAR_POS = 3
+ATM_TS_STE_PAR_POS = 4
 
 BND_ORD_POS = 0
 BND_STE_PAR_POS = 1
+BND_PRD_STE_PAR_POS = 2
+BND_TS_STE_PAR_POS = 3
 
 ATM_PROP_NAMES = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity')
 BND_PROP_NAMES = ('order', 'stereo_parity')
@@ -28,13 +44,35 @@ BND_PROP_NAMES = ('order', 'stereo_parity')
 
 # # constructors
 def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
-              atm_ste_par_dct=None, bnd_ord_dct=None, bnd_ste_par_dct=None):
+              atm_ste_par_dct=None,
+              atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
+              bnd_ord_dct=None, bnd_ste_par_dct=None,
+              bnd_prd_ste_par_dct=None, bnd_ts_ste_par_dct=None,
+              ts_=False):
     """ Construct a molecular graph from data
 
-    format:
+    Ordinary graph data structure:
         gra = (atm_dct, bnd_dct)
-        atm_dct := {atm_key: (atm_sym, atm_imp_hyd_vlc, atm_ste_par), ...}
-        bnd_dct := {bnd_key: (bnd_ord, bnd_ste_par), ...}
+        atm_dct := {
+            atm_key: (symb, imp_hyd_vlc, ste_par),
+            ...
+        }
+        bnd_dct := {
+            bnd_key: (ord, ste_par),
+            ...
+        }
+        [where bnd_key := frozenset({atm1_key, atm2_key})]
+
+    TS graph data structure:
+        gra = (atm_dct, bnd_dct)
+        atm_dct := {
+            atm_key: (symb, imp_hyd_vlc, ste_par, prd_ste_par, ts_ste_par),
+            ...
+        }
+        bnd_dct := {
+            bnd_key: (ord, ste_par, prd_ste_par, ts_ste_par),
+            ...
+        }
         [where bnd_key := frozenset({atm1_key, atm2_key})]
 
     :param atm_symb_dct: atomic symbols, by atom key
@@ -44,26 +82,79 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
     :param atm_imp_hyd_vlc_dct: the number of implicit hydrogens associated
         with each atom, by atom key
     :type atm_imp_hyd_vlc_dct: dict
-    :param atm_ste_par_dct: atom stereo parities, by atom key
+    :param atm_ste_par_dct: stereo parities, by atom key; (in TS graphs,
+        reactant stereo parities)
     :type atm_ste_par_dct: dict
+    :param atm_prd_ste_par_dct: product stereo parities, by atom key; (TS
+        graphs only)
+    :type atm_prd_ste_par_dct: dict
+    :param atm_ts_ste_par_dct: fleeting TS stereo parities, by atom key; (TS
+        graphs only)
+    :type atm_ts_ste_par_dct: dict
     :param bnd_ord_dct: bond orders, by bond key
     :type bnd_ord_dct: dict
-    :param bnd_ste_par_dct: bond stereo parities, by bond key
+    :param bnd_ste_par_dct: stereo parities, by bond key; (in TS graphs,
+        reactant stereo parities)
     :type bnd_ste_par_dct: dict
+    :param bnd_prd_ste_par_dct: product stereo parities, by bond key; (TS
+        graphs only)
+    :type bnd_prd_ste_par_dct: dict
+    :param bnd_ts_ste_par_dct: fleeting TS stereo parities, by bond key; (TS
+        graphs only)
+    :type bnd_ts_ste_par_dct: dict
+    :param ts_: Create a TS graph?
+    :type ts_: bool
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
+    # Infer a TS graph if extra stereo parity dictionaries are present.
+    # (*Only* for internal use, to ensure that functions don't accidentally
+    # convert TS graphs to ordinary graphs when calling this constructor.)
+    if not ts_ and atm_prd_ste_par_dct is not None:
+        # For internal use, if one of these is present, they will all be
+        # present. Confirm this.
+        assert (
+            atm_prd_ste_par_dct is not None and
+            atm_ts_ste_par_dct is not None and
+            bnd_prd_ste_par_dct is not None and
+            bnd_ts_ste_par_dct is not None), (
+            "Inferring TS graphs from the presence of product or TS stereo\n"
+            "parities is only for internal use. In this case, *all*\n"
+            "dictionaries should be present.")
+        ts_ = True
+
+    # For external use, assert that we aren't trying to add TS-specific
+    # properties to a non-TS graph.
+    if not ts_:
+        assert atm_prd_ste_par_dct is None, (
+            f"Cannot add atom product stereo parities to non-TS graph!\n"
+            f"atm_prd_ste_par_dct={atm_prd_ste_par_dct}")
+        assert atm_ts_ste_par_dct is None, (
+            f"Cannot add atom TS stereo parities to non-TS graph!\n"
+            f"atm_ts_ste_par_dct={atm_ts_ste_par_dct}")
+        assert bnd_prd_ste_par_dct is None, (
+            f"Cannot add bond product stereo parities to non-TS graph!\n"
+            f"bnd_prd_ste_par_dct={bnd_prd_ste_par_dct}")
+        assert bnd_ts_ste_par_dct is None, (
+            f"Cannot add bond TS stereo parities to non-TS graph!\n"
+            f"bnd_ts_ste_par_dct={bnd_ts_ste_par_dct}")
 
     atm_dct = atoms_from_data(
         atm_symb_dct=atm_symb_dct,
         atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
-        atm_ste_par_dct=atm_ste_par_dct)
+        atm_ste_par_dct=atm_ste_par_dct,
+        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
+        atm_ts_ste_par_dct=atm_ts_ste_par_dct,
+        ts_=ts_)
 
     bnd_dct = bonds_from_data(
         bnd_keys=bnd_keys,
         bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct)
+        bnd_ste_par_dct=bnd_ste_par_dct,
+        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
+        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct,
+        ts_=ts_)
 
-    atm_dct = dict(atm_dct)
-    bnd_dct = dict(bnd_dct)
     atm_keys = set(atm_dct.keys())
     bnd_keys = set(bnd_dct.keys())
 
@@ -74,146 +165,273 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
 
 
 def atoms_from_data(atm_symb_dct, atm_imp_hyd_vlc_dct=None,
-                    atm_ste_par_dct=None):
+                    atm_ste_par_dct=None,
+                    atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
+                    ts_=False):
     """ Construct an atom dictionary from constituent data.
 
-        format:
-            atm_dct := {atm_key: (atm_sym, atm_imp_hyd_vlc, atm_ste_par), ...}
+    Ordinary graph data structure:
+        atm_dct := {
+            atm_key: (symb, imp_hyd_vlc, ste_par),
+            ...
+        }
 
-        :param atm_symb_dct: atomic symbols, by atom key
-        :type atm_symb_dct: dict
-        :param atm_imp_hyd_vlc_dct: the no. of implicit hydrogens associated
-            with each atom, by atom key
-        :type atm_imp_hyd_vlc_dct: dict
-        :param atm_ste_par_dct: atom stereo parities, by atom key
-        :type atm_ste_par_dct: dict
+    TS graph data structure:
+        atm_dct := {
+            atm_key: (symb, imp_hyd_vlc, ste_par, prd_ste_par, ts_ste_par),
+            ...
+        }
+
+    :param atm_symb_dct: atomic symbols, by atom key
+    :type atm_symb_dct: dict
+    :param atm_imp_hyd_vlc_dct: the number of implicit hydrogens associated
+        with each atom, by atom key
+    :type atm_imp_hyd_vlc_dct: dict
+    :param atm_ste_par_dct: stereo parities, by atom key; (in TS graphs,
+        reactant stereo parities)
+    :type atm_ste_par_dct: dict
+    :param atm_prd_ste_par_dct: product stereo parities, by atom key; (TS
+        graphs only)
+    :type atm_prd_ste_par_dct: dict
+    :param atm_ts_ste_par_dct: fleeting TS stereo parities, by atom key; (TS
+        graphs only)
+    :type atm_ts_ste_par_dct: dict
+    :param ts_: Create a TS graph?
+    :type ts_: bool
+    :returns: The atoms and their associated properties, as a dictionary
+    :rtype: dict[int: tuple]
     """
-
     keys = sorted(atm_symb_dct.keys())
     symbs = dict_.values_by_key(atm_symb_dct, keys)
     vlcs = dict_.values_by_key(
         dict_.empty_if_none(atm_imp_hyd_vlc_dct), keys, fill_val=0)
     pars = dict_.values_by_key(
         dict_.empty_if_none(atm_ste_par_dct), keys, fill_val=None)
+    if ts_:
+        prd_pars = dict_.values_by_key(
+            dict_.empty_if_none(atm_prd_ste_par_dct), keys, fill_val=None)
+        ts_pars = dict_.values_by_key(
+            dict_.empty_if_none(atm_ts_ste_par_dct), keys, fill_val=None)
 
-    natms = len(symbs)
-    vlcs = [0] * natms if vlcs is None else list(vlcs)
-    pars = [None] * natms if pars is None else list(pars)
+    natms = len(keys)
 
+    assert len(symbs) == natms
     assert len(vlcs) == natms
     assert len(pars) == natms
+    assert all(par in (None, False, True) for par in pars)
+    if ts_:
+        assert len(prd_pars) == natms
+        assert all(par in (None, False, True) for par in prd_pars)
+        assert len(ts_pars) == natms
+        assert all(par in (None, False, True) for par in ts_pars)
 
     symbs = list(map(ptab.to_symbol, symbs))
     vlcs = list(map(int, vlcs))
-
-    assert all(par in (None, False, True) for par in pars)
     pars = [bool(par) if par is not None else par for par in pars]
+    if ts_:
+        prd_pars = [bool(par) if par is not None else par for par in prd_pars]
+        ts_pars = [bool(par) if par is not None else par for par in ts_pars]
 
-    atm_dct = dict(zip(keys, zip(symbs, vlcs, pars)))
+    if not ts_:
+        atm_dct = dict(zip(keys, zip(symbs, vlcs, pars)))
+    else:
+        atm_dct = dict(zip(keys, zip(symbs, vlcs, pars, prd_pars, ts_pars)))
 
     return atm_dct
 
 
-def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None):
+def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None,
+                    bnd_prd_ste_par_dct=None, bnd_ts_ste_par_dct=None,
+                    ts_=False):
     """ construct bond dictionary graph from data
 
-        format:
-            bnd_dct := {bnd_key: (bnd_ord, bnd_ste_par), ...}
-            [where bnd_key := frozenset({atm1_key, atm2_key})]
+    Ordinary graph data structure:
+        bnd_dct := {
+            bnd_key: (ord, ste_par),
+            ...
+        }
+        [where bnd_key := frozenset({atm1_key, atm2_key})]
 
-        :param bnd_keys: bond keys
-        :type bnd_keys: set
-        :param bnd_ord_dct: bond orders, by bond key
-        :type bnd_ord_dct: dict
-        :param bnd_ste_par_dct: bond stereo parities, by bond key
-        :type bnd_ste_par_dct: dict
-        :rtype: dict[frozenset({int}): tuple(str, str))]
+    TS graph data structure:
+        bnd_dct := {
+            bnd_key: (ord, ste_par, prd_ste_par, ts_ste_par),
+            ...
+        }
+        [where bnd_key := frozenset({atm1_key, atm2_key})]
+
+    :param bnd_keys: bond keys
+    :type bnd_keys: set
+    :param bnd_ord_dct: bond orders, by bond key
+    :type bnd_ord_dct: dict
+    :param bnd_ste_par_dct: stereo parities, by bond key; (in TS graphs,
+        reactant stereo parities)
+    :type bnd_ste_par_dct: dict
+    :param bnd_prd_ste_par_dct: product stereo parities, by bond key; (TS
+        graphs only)
+    :type bnd_prd_ste_par_dct: dict
+    :param bnd_ts_ste_par_dct: fleeting TS stereo parities, by bond key; (TS
+        graphs only)
+    :type bnd_ts_ste_par_dct: dict
+    :param ts_: Create a TS graph?
+    :type ts_: bool
+    :returns: The bonds and their associated properties, as a dictionary
+    :rtype: dict[frozenset({int, int}): tuple]
     """
-
     keys = sorted(bnd_keys)
     assert all(len(key) == 2 for key in keys)
     ords = dict_.values_by_key(
         dict_.empty_if_none(bnd_ord_dct), keys, fill_val=1)
     pars = dict_.values_by_key(
         dict_.empty_if_none(bnd_ste_par_dct), keys, fill_val=None)
+    if ts_:
+        prd_pars = dict_.values_by_key(
+            dict_.empty_if_none(bnd_prd_ste_par_dct), keys, fill_val=None)
+        ts_pars = dict_.values_by_key(
+            dict_.empty_if_none(bnd_ts_ste_par_dct), keys, fill_val=None)
 
     nbnds = len(keys)
 
-    ords = [1] * nbnds if ords is None else list(ords)
-    pars = [None] * nbnds if pars is None else list(pars)
-
     assert len(ords) == nbnds
     assert len(pars) == nbnds
+    assert all(par in (None, False, True) for par in pars)
+    if ts_:
+        assert len(prd_pars) == nbnds
+        assert all(par in (None, False, True) for par in prd_pars)
+        assert len(ts_pars) == nbnds
+        assert all(par in (None, False, True) for par in ts_pars)
 
     keys = list(map(frozenset, keys))
+    # If ts_ = False, we should assert that round(o) == o
     ords = [int(o) if round(o) == o else float(round(o, 1)) for o in ords]
-
-    assert all(par in (None, False, True) for par in pars)
     pars = [bool(par) if par is not None else par for par in pars]
+    if ts_:
+        prd_pars = [bool(par) if par is not None else par for par in prd_pars]
+        ts_pars = [bool(par) if par is not None else par for par in ts_pars]
 
-    bnd_dct = dict(zip(keys, zip(ords, pars)))
+    if not ts_:
+        bnd_dct = dict(zip(keys, zip(ords, pars)))
+    else:
+        bnd_dct = dict(zip(keys, zip(ords, pars, prd_pars, ts_pars)))
 
     return bnd_dct
 
 
-def from_atoms_and_bonds(atm_dct, bnd_dct):
+def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=False):
     """ Construct a molecular graph from atom and bond dictionaries.
 
-        format:
-            gra = (atm_dct, bnd_dct)
+    Data structure:
+        gra = (atm_dct, bnd_dct)
 
-        :param atm_dct: atom dictionary
-        :type atm_dct: dict
-        :param bnd_dct: bond dictionary
-        :type bnd_dct: dict
-        :rtype: (dict, dict)
+    :param atm_dct: atom dictionary
+    :type atm_dct: dict[int: tuple]
+    :param bnd_dct: bond dictionary
+    :type bnd_dct: dict[frozenset({int, int}): tuple]
+    :param ts_: Create a TS graph?
+    :type ts_: bool
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
 
     atm_dct = dict(atm_dct)
     bnd_dct = dict(bnd_dct)
 
-    atm_symb_dct = dict_.transform_values(atm_dct, lambda x: x[0])
-    atm_imp_hyd_vlc_dct = dict_.transform_values(atm_dct, lambda x: x[1])
-    atm_ste_par_dct = dict_.transform_values(atm_dct, lambda x: x[2])
+    atm_nprops = dict_.transform_values(atm_dct, len).values()
+    bnd_nprops = dict_.transform_values(bnd_dct, len).values()
 
-    bnd_ord_dct = dict_.transform_values(bnd_dct, lambda x: x[0])
-    bnd_ste_par_dct = dict_.transform_values(bnd_dct, lambda x: x[1])
+    # Infer a TS graph if extra stereo parity data are present.
+    if not ts_ and any(n > 3 for n in atm_nprops):
+        # Make sure the data have appropriate format for a TS graph
+        assert (
+            all(n == 5 for n in atm_nprops) and
+            all(n == 4 for n in bnd_nprops)), (
+            f"Atom or bond dictionary has improper format for TS graph:\n"
+            f"atm_dct:\n{atm_dct}\nbnd_dct:\n{bnd_dct}\n")
+        ts_ = True
+
+    if not ts_:
+        # Make sure the data have appropriate format for a non-TS graph
+        assert (
+            all(n == 3 for n in atm_nprops) and
+            all(n == 2 for n in bnd_nprops)), (
+            f"Atom or bond dictionary has improper format for non-TS graph:\n"
+            f"atm_dct:\n{atm_dct}\nbnd_dct:\n{bnd_dct}\n")
+
+    atm_keys = sorted(atm_dct.keys())
+    atm_symb_dct = (
+        mdict.by_key_by_position(atm_dct, atm_keys, ATM_SYM_POS))
+    atm_imp_hyd_vlc_dct = (
+        mdict.by_key_by_position(atm_dct, atm_keys, ATM_IMP_HYD_VLC_POS))
+    atm_ste_par_dct = (
+        mdict.by_key_by_position(atm_dct, atm_keys, ATM_STE_PAR_POS))
+    atm_prd_ste_par_dct = (
+        mdict.by_key_by_position(atm_dct, atm_keys, ATM_PRD_STE_PAR_POS)
+        if ts_ else None)
+    atm_ts_ste_par_dct = (
+        mdict.by_key_by_position(atm_dct, atm_keys, ATM_TS_STE_PAR_POS)
+        if ts_ else None)
+
+    bnd_keys = sorted(bnd_dct.keys())
+    bnd_ord_dct = (
+        mdict.by_key_by_position(bnd_dct, bnd_keys, BND_ORD_POS))
+    bnd_ste_par_dct = (
+        mdict.by_key_by_position(bnd_dct, bnd_keys, BND_STE_PAR_POS))
+    bnd_prd_ste_par_dct = (
+        mdict.by_key_by_position(bnd_dct, bnd_keys, BND_PRD_STE_PAR_POS)
+        if ts_ else None)
+    bnd_ts_ste_par_dct = (
+        mdict.by_key_by_position(bnd_dct, bnd_keys, BND_TS_STE_PAR_POS)
+        if ts_ else None)
 
     return from_data(
         atm_symb_dct, bnd_dct.keys(),
         atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
-        atm_ste_par_dct=atm_ste_par_dct, bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct)
+        atm_ste_par_dct=atm_ste_par_dct,
+        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
+        atm_ts_ste_par_dct=atm_ts_ste_par_dct,
+        bnd_ord_dct=bnd_ord_dct,
+        bnd_ste_par_dct=bnd_ste_par_dct,
+        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
+        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct, ts_=ts_)
 
 
 # # getters
 def atoms(gra):
-    """ atoms, as a dictionary
+    """ Get the atoms of this graph, along with their associated properties
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atoms and their associated properties, as a dictionary
+    :rtype: dict[int: tuple]
     """
     atm_dct, _ = gra
     return atm_dct
 
 
 def bonds(gra):
-    """ bonds, as a dictionary
+    """ Get the bonds of this graph, along with their associated properties
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The bonds and their associated properties, as a dictionary
+    :rtype: dict[frozenset({int, int}): tuple]
     """
     _, bnd_dct = gra
     return bnd_dct
 
 
 def atom_keys(gra, symb=None, excl_symbs=()):
-    """ atom keys
+    """ Get the atom keys of this molecular graph
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param symb: Optionally, restrict this to atoms with a particular
-            atomic symbol (e.g., 'H' for hydrogens).
-        :type symb: str
-        :param excl_symbs: Optionally, exclude atoms with particular atomic
-            symbols.
-        :type excl_symbs: tuple[str]
-        :returns: The atom keys
-        :rtype: frozenset
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param symb: Optionally, restrict this to atoms with a particular
+        atomic symbol (e.g., 'H' for hydrogens).
+    :type symb: str
+    :param excl_symbs: Optionally, exclude atoms with particular atomic
+        symbols.
+    :type excl_symbs: tuple[str]
+    :returns: The atom keys
+    :rtype: frozenset[int]
     """
     atm_keys = frozenset(atoms(gra).keys())
     if symb is not None:
@@ -224,51 +442,154 @@ def atom_keys(gra, symb=None, excl_symbs=()):
     return atm_keys
 
 
-def bond_keys(gra, ts_graph=True):
-    """ bond keys
+def bond_keys(gra, ts_=True):
+    """ Get the bond keys of this molecular graph
 
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param ts_: If this is a TS graph, treat it as such?
+    :type ts_: bool
+    :returns: The bond keys
+    :rtype: frozenset[{int, int}]
     """
-    gra = gra if ts_graph else from_ts_graph(gra)
+    gra = gra if ts_ else from_ts_graph(gra)
     return frozenset(bonds(gra).keys())
 
 
 def atom_symbols(gra):
-    """ atom symbols, as a dictionary
+    """ Get the atom symbols of this molecular graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of atomic symbols, by atom key
+    :rtype: dict[int: str]
     """
     return mdict.by_key_by_position(atoms(gra), atom_keys(gra), ATM_SYM_POS)
 
 
-def bond_orders(gra):
-    """ bond orders, as a dictionary
+def bond_orders(gra, ts_=True):
+    """ Get the bond orders of this molecular graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param ts_: If this is a TS graph, treat it as such?
+    :type ts_: bool
+    :returns: A dictionary of bond orders, by bond key
+    :rtype: dict[frozenset: int or float]
     """
+    gra = gra if ts_ else from_ts_graph(gra)
     return mdict.by_key_by_position(bonds(gra), bond_keys(gra), BND_ORD_POS)
 
 
 def atom_implicit_hydrogen_valences(gra):
-    """ atom implicit hydrogen valences, as a dictionary
+    """ Get the implicit hydrogen valences of atoms in this molecular graph, as
+        a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of implicit hydrogen valences, by atom key
+    :rtype: dict[int: int]
     """
     return mdict.by_key_by_position(atoms(gra), atom_keys(gra),
                                     ATM_IMP_HYD_VLC_POS)
 
 
 def atom_stereo_parities(gra):
-    """ atom parities, as a dictionary
+    """ Get the atom stereo parities of this molecular graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of atom stereo parities, by atom key
+    :rtype: dict[int: bool or NoneType]
     """
     return mdict.by_key_by_position(atoms(gra), atom_keys(gra),
                                     ATM_STE_PAR_POS)
 
 
+def ts_atom_product_stereo_parities(tsg):
+    """ Get the product atom stereo parities of this TS graph, as a dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: A dictionary of atom stereo parities, by atom key
+    :rtype: dict[int: bool or NoneType]
+    """
+    if is_ts_graph(tsg):
+        ret = mdict.by_key_by_position(atoms(tsg), atom_keys(tsg),
+                                       ATM_PRD_STE_PAR_POS)
+    else:
+        ret = None
+    return ret
+
+
+def ts_atom_fleeting_stereo_parities(tsg):
+    """ Get the fleeting atom stereo parities of this TS graph, as a dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: A dictionary of atom stereo parities, by atom key
+    :rtype: dict[int: bool or NoneType]
+    """
+    if is_ts_graph(tsg):
+        ret = mdict.by_key_by_position(atoms(tsg), atom_keys(tsg),
+                                       ATM_TS_STE_PAR_POS)
+    else:
+        ret = None
+    return ret
+
+
 def bond_stereo_parities(gra):
-    """ bond parities, as a dictionary
+    """ Get the bond stereo parities of this molecular graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of bond stereo parities, by bond key
+    :rtype: dict[frozenset: bool or NoneType]
     """
     return mdict.by_key_by_position(bonds(gra), bond_keys(gra),
                                     BND_STE_PAR_POS)
 
 
+def ts_bond_product_stereo_parities(tsg):
+    """ Get the product bond stereo parities of this TS graph, as a dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: A dictionary of bond stereo parities, by bond key
+    :rtype: dict[int: bool or NoneType]
+    """
+    if is_ts_graph(tsg):
+        ret = mdict.by_key_by_position(bonds(tsg), bond_keys(tsg),
+                                       BND_PRD_STE_PAR_POS)
+    else:
+        ret = None
+    return ret
+
+
+def ts_bond_fleeting_stereo_parities(tsg):
+    """ Get the fleeting bond stereo parities of this TS graph, as a dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: A dictionary of bond stereo parities, by bond key
+    :rtype: dict[int: bool or NoneType]
+    """
+    if is_ts_graph(tsg):
+        ret = mdict.by_key_by_position(bonds(tsg), bond_keys(tsg),
+                                       BND_TS_STE_PAR_POS)
+    else:
+        ret = None
+    return ret
+
+
 def stereo_parities(gra):
-    """ atom and bond stereo parities, as a dictionary
+    """ Get the atom and bond stereo parities of this molecular graph, as a
+        single dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of stereo parities, by atom/bond key
+    :rtype: dict[int or frozenset: bool or NoneType]
     """
     par_dct = atom_stereo_parities(gra)
     par_dct.update(bond_stereo_parities(gra))
@@ -582,6 +903,25 @@ def has_fractional_bonds(gra):
     """
     ords = bond_orders(gra).values()
     return any(o != round(o) for o in ords)
+
+
+def is_ts_graph(gra):
+    """ Is this a TS graph?
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: `True` if it is, `False` if it isn't
+    :rtype: bool
+    """
+    atm_nprops = dict_.transform_values(atoms(gra), len).values()
+    bnd_nprops = dict_.transform_values(bonds(gra), len).values()
+    if all(n == 5 for n in atm_nprops) and all(n == 4 for n in bnd_nprops):
+        ret = True
+    elif all(n == 3 for n in atm_nprops) and all(n == 2 for n in bnd_nprops):
+        ret = False
+    else:
+        raise ValueError(f"Not a valid graph data structure:\n{gra}\n")
+    return ret
 
 
 def atomic_numbers(gra):
@@ -1519,12 +1859,12 @@ def subgraph_neighborhood(gra, atm_keys, bnd_keys=None, stereo=False,
         :type atm_keys: int
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
         :type bnd_keys: tuple[frozenset[int]]
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
         :returns: the neighborhood subgraph
     """
     atm_keys = frozenset(atm_keys)
-    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+    bnd_keys = (bond_keys(gra, ts_=ts_graph)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_keys & k)
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
@@ -1558,12 +1898,12 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False,
         :type atm_key: int
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
         :type bnd_keys: tuple[frozenset[int]]
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
         :returns: the neighborhood subgraph
     """
     gra = gra if ts_graph else from_ts_graph(gra)
-    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+    bnd_keys = (bond_keys(gra, ts_=ts_graph)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
@@ -1577,12 +1917,12 @@ def atom_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
         :type gra: automol graph data structure
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
         :type bnd_keys: tuple[frozenset[int]]
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
         :returns: neighborhood subgraphs, by atom key
         :rtype: dict
     """
-    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+    bnd_keys = (bond_keys(gra, ts_=ts_graph)
                 if bnd_keys is None else bnd_keys)
 
     def _neighborhood(atm_key):
@@ -1604,11 +1944,11 @@ def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False,
         :type bnd_key: frozenset[int]
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
         :type bnd_keys: tuple[frozenset[int]]
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
         :returns: the neighborhood subgraph
     """
-    bnd_keys = (bond_keys(gra, ts_graph=ts_graph)
+    bnd_keys = (bond_keys(gra, ts_=ts_graph)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(filter(lambda x: bnd_key & x, bnd_keys))
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
@@ -1622,8 +1962,8 @@ def bond_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
         :type gra: automol graph data structure
         :param bnd_keys: optionally, restrict this to a subset of the bond keys
         :type bnd_keys: tuple[frozenset[int]]
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
         :returns: neighborhood subgraphs, by atom key
         :rtype: dict
     """
@@ -1663,8 +2003,8 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
         :param excl_symbs: Optionally, exclude atoms with particular atomic
             symbols.
         :type excl_symbs: tuple[str]
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
         :returns: the keys of neighboring atoms
     """
     atm_nbh = atom_neighborhood(
@@ -1679,8 +2019,8 @@ def atoms_neighbor_atom_keys(gra, ts_graph=True):
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
     """
     def _neighbor_keys(atm_key, atm_nbh):
         return frozenset(atom_keys(atm_nbh) - {atm_key})
@@ -1695,8 +2035,8 @@ def atom_sorted_neighbor_atom_keys(gra, atm_key, excl_atm_keys=(),
                                    symbs_last=('H',), ts_graph=True):
     """ get the next in a sorted list of neighbor keys, excluding some
 
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
     """
     atm_symb_dct = atom_symbols(gra)
     incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
@@ -1722,8 +2062,8 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
         :param ords_last: neighors connected with a bond of this order will be
             put last in the sort order
         :param prioritize_keys: keys to put first no matter what
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
     """
     atm_symb_dct = atom_symbols(gra)
     bnd_ord_dct = bond_orders(gra)
@@ -1750,8 +2090,8 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
 def atom_bond_keys(gra, atm_key, ts_graph=True):
     """ bond keys for a given atom
 
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
     """
     return bond_keys(atom_neighborhood(gra, atm_key, ts_graph=ts_graph))
 
@@ -1759,8 +2099,8 @@ def atom_bond_keys(gra, atm_key, ts_graph=True):
 def atoms_bond_keys(gra, ts_graph=True):
     """ bond keys, by atom
 
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
     """
     atm_nbhs = atom_neighborhoods(gra, ts_graph=ts_graph)
     return dict_.transform_values(atm_nbhs, bond_keys)
@@ -1769,8 +2109,8 @@ def atoms_bond_keys(gra, ts_graph=True):
 def dummy_atoms_neighbor_atom_key(gra, ts_graph=True):
     """ Atoms that are connected to dummy atoms, by dummy atom key
 
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
 
         (Requires that each dummy atom only be connected to one neighbor)
     """
@@ -1791,8 +2131,8 @@ def dummy_atoms_neighbor_atom_key(gra, ts_graph=True):
 def bonds_neighbor_atom_keys(gra, ts_graph=True):
     """ keys of neighboring atoms, by bond
 
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
         return frozenset(atom_keys(bnd_nbh) - bnd_key)
@@ -1805,8 +2145,8 @@ def bonds_neighbor_atom_keys(gra, ts_graph=True):
 def bonds_neighbor_bond_keys(gra, ts_graph=True):
     """ keys of neighboring bonds, by bond
 
-        :param ts_graph: If this is a TS graph, treat it as such?
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such?
+        :type ts_: bool
     """
     def _neighbor_keys(bnd_key, bnd_nbh):
         bnd_keys = bond_keys(bnd_nbh)
