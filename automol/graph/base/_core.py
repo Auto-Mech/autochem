@@ -243,7 +243,7 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_vlc_dct=None,
 def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None,
                     bnd_prd_ste_par_dct=None, bnd_ts_ste_par_dct=None,
                     ts_=False):
-    """ construct bond dictionary graph from data
+    """ Construct a bond dictionary from constituent data.
 
     Ordinary graph data structure:
         bnd_dct := {
@@ -506,6 +506,18 @@ def atom_stereo_parities(gra):
                                     ATM_STE_PAR_POS)
 
 
+def bond_stereo_parities(gra):
+    """ Get the bond stereo parities of this molecular graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of bond stereo parities, by bond key
+    :rtype: dict[frozenset: bool or NoneType]
+    """
+    return mdict.by_key_by_position(bonds(gra), bond_keys(gra),
+                                    BND_STE_PAR_POS)
+
+
 def ts_atom_product_stereo_parities(tsg):
     """ Get the product atom stereo parities of this TS graph, as a dictionary
 
@@ -536,18 +548,6 @@ def ts_atom_fleeting_stereo_parities(tsg):
     else:
         ret = None
     return ret
-
-
-def bond_stereo_parities(gra):
-    """ Get the bond stereo parities of this molecular graph, as a dictionary
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: A dictionary of bond stereo parities, by bond key
-    :rtype: dict[frozenset: bool or NoneType]
-    """
-    return mdict.by_key_by_position(bonds(gra), bond_keys(gra),
-                                    BND_STE_PAR_POS)
 
 
 def ts_bond_product_stereo_parities(tsg):
@@ -598,7 +598,12 @@ def stereo_parities(gra):
 
 # # TS graph getters
 def forming_bond_keys(tsg):
-    """ get the forming bonds from a transition state graph
+    """ Get the forming bonds from a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: The keys to forming bonds
+    :rtype: frozenset[frozenset[{int, int}]]
     """
     ord_dct = bond_orders(tsg)
     frm_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.1]
@@ -606,7 +611,12 @@ def forming_bond_keys(tsg):
 
 
 def breaking_bond_keys(tsg):
-    """ get the forming bonds from a transition state graph
+    """ Get the breaking bonds from a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: The keys to breaking bonds
+    :rtype: frozenset[frozenset[{int, int}]]
     """
     ord_dct = bond_orders(tsg)
     brk_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.9]
@@ -614,14 +624,24 @@ def breaking_bond_keys(tsg):
 
 
 def reacting_bonds(tsg):
-    """ get all of the bonds involved in the reaction
+    """ Get all of the bonds involved in the reaction
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: The keys to bonds involved in the reaction
+    :rtype: frozenset[frozenset[{int, int}]]
     """
     bnd_keys = forming_bond_keys(tsg) | breaking_bond_keys(tsg)
     return bnd_keys
 
 
 def reacting_atoms(tsg):
-    """ get all of the atoms involved in the reaction
+    """ Get all of the atoms involved in the reaction
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: The keys to atoms involved in the reaction
+    :rtype: frozenset[int]
     """
     bnd_keys = reacting_bonds(tsg)
     atm_keys = frozenset(itertools.chain(*bnd_keys))
@@ -630,7 +650,14 @@ def reacting_atoms(tsg):
 
 # # setters
 def set_atom_symbols(gra, atm_symb_dct):
-    """ set atom parities
+    """ Set the atom symbols of this molecular graph with a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_symb_dct: A dictionary of atomic symbols, by atom key.
+    :type atm_symb_dct: dict[int: str]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_symb_dct,
                                            ATM_SYM_POS)
@@ -638,7 +665,14 @@ def set_atom_symbols(gra, atm_symb_dct):
 
 
 def set_bond_orders(gra, bnd_ord_dct):
-    """ set bond orders
+    """ Set the bond orders of this molecular graph with a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bnd_ord_dct: A dictionary of bond orders, by bond key.
+    :type bnd_ord_dct: dict[frozenset: int]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_ord_dct,
                                            BND_ORD_POS)
@@ -646,7 +680,16 @@ def set_bond_orders(gra, bnd_ord_dct):
 
 
 def set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct):
-    """ set atom implicit hydrogen valences
+    """ Set the implicit hydrogen valences of atoms in this molecular graph, as
+        a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_imp_hyd_vlc_dct: A dictionary of implicit hydrogen valences, by
+        atom key
+    :type atm_imp_hyd_vlc_dct: dict[int: int]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_imp_hyd_vlc_dct,
                                            ATM_IMP_HYD_VLC_POS)
@@ -655,7 +698,14 @@ def set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct):
 
 
 def set_atom_stereo_parities(gra, atm_par_dct):
-    """ set atom parities
+    """ Set the atom stereo parities of this molecular graph with a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_par_dct: A dictionary of atom stereo parities, by atom key
+    :type atm_par_dct: dict[int: bool or NoneType]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct,
                                            ATM_STE_PAR_POS)
@@ -663,11 +713,92 @@ def set_atom_stereo_parities(gra, atm_par_dct):
 
 
 def set_bond_stereo_parities(gra, bnd_par_dct):
-    """ set bond parities
+    """ Set the bond stereo parities of this molecular graph with a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bnd_par_dct: A dictionary of bond stereo parities, by bond key
+    :type bnd_par_dct: dict[frozenset: bool or NoneType]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct,
                                            BND_STE_PAR_POS)
     return from_atoms_and_bonds(atoms(gra), bnd_dct)
+
+
+def set_ts_atom_product_stereo_parities(tsg, atm_par_dct):
+    """ Set the product atom stereo parities of this TS graph with a dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :param atm_par_dct: A dictionary of atom stereo parities, by atom key
+    :type atm_par_dct: dict[int: bool or NoneType]
+    :returns: A TS graph
+    :rtype: atomol graph data structure
+    """
+    assert is_ts_graph(tsg), (
+        f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
+
+    atm_dct = mdict.set_by_key_by_position(atoms(tsg), atm_par_dct,
+                                           ATM_PRD_STE_PAR_POS)
+    return from_atoms_and_bonds(atm_dct, bonds(tsg))
+
+
+def set_ts_atom_fleeting_stereo_parities(tsg, atm_par_dct):
+    """ Set the fleeting atom stereo parities of this TS graph with a
+        dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :param atm_par_dct: A dictionary of atom stereo parities, by atom key
+    :type atm_par_dct: dict[int: bool or NoneType]
+    :returns: A TS graph
+    :rtype: atomol graph data structure
+    """
+    assert is_ts_graph(tsg), (
+        f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
+
+    atm_dct = mdict.set_by_key_by_position(atoms(tsg), atm_par_dct,
+                                           ATM_TS_STE_PAR_POS)
+    return from_atoms_and_bonds(atm_dct, bonds(tsg))
+
+
+def set_ts_bond_product_stereo_parities(tsg, bnd_par_dct):
+    """ Set the product bond stereo parities of this TS graph with a dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :param bnd_par_dct: A dictionary of bond stereo parities, by bond key
+    :type bnd_par_dct: dict[frozenset: bool or NoneType]
+    :returns: A TS graph
+    :rtype: atomol graph data structure
+    """
+    assert is_ts_graph(tsg), (
+        f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
+
+    bnd_dct = mdict.set_by_key_by_position(bonds(tsg), bnd_par_dct,
+                                           BND_PRD_STE_PAR_POS)
+    return from_atoms_and_bonds(atoms(tsg), bnd_dct)
+
+
+def set_ts_bond_fleeting_stereo_parities(tsg, bnd_par_dct):
+    """ Set the fleeting bond stereo parities of this TS graph with a
+        dictionary
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :param bnd_par_dct: A dictionary of bond stereo parities, by bond key
+    :type bnd_par_dct: dict[frozenset: bool or NoneType]
+    :returns: A TS graph
+    :rtype: atomol graph data structure
+    """
+    assert is_ts_graph(tsg), (
+        f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
+
+    bnd_dct = mdict.set_by_key_by_position(bonds(tsg), bnd_par_dct,
+                                           BND_TS_STE_PAR_POS)
+    return from_atoms_and_bonds(atoms(tsg), bnd_dct)
 
 
 def set_stereo_parities(gra, par_dct):
