@@ -405,7 +405,7 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
 
 # # core algorithm functions
 def canonical_priorities(gra, backbone_only=True, break_ties=False,
-                         pri_dct=None, ts_graph=False):
+                         pri_dct=None, ts_=False):
     """ Determine canonical priorities for this graph's atoms
 
         :param gra: molecular graph
@@ -416,8 +416,8 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
         :type break_ties: bool
         :param pri_dct: Optional initial priorities, to be refined.
         :type pri_dct: dict[int: int]
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such
+        :type ts_: bool
         :returns: A dictionary of canonical priorities by atom key.
         :rtype: dict[int: int]
     """
@@ -428,14 +428,14 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
     for gra_, pri_dct_ in zip(gras, pri_dcts):
         pri_dct_, _ = calculate_priorities_and_assign_parities(
             gra_, backbone_only=backbone_only, break_ties=break_ties,
-            pri_dct=pri_dct_, ts_graph=ts_graph)
+            pri_dct=pri_dct_, ts_=ts_)
         pri_dct.update(pri_dct_)
     return pri_dct
 
 
 def calculate_priorities_and_assign_parities(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
-        backbone_only=True, pri_dct=None, ts_graph=False):
+        backbone_only=True, pri_dct=None, ts_=False):
     """ Determine canonical priorities and assign stereo parities to this graph
 
         This is how the parity evaluators are to be called:
@@ -455,8 +455,8 @@ def calculate_priorities_and_assign_parities(
         :type backbone_only: bool
         :param pri_dct: Optional initial priorities, to be refined.
         :type pri_dct: dict[int: int]
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such
+        :type ts_: bool
         :returns: A dictionary of canonical priorities by atom key and a graph
             with stereo assignments.
         :rtype: dict[int: int], molecular graph data structure
@@ -494,9 +494,9 @@ def calculate_priorities_and_assign_parities(
     while pri_dct0 != pri_dct:
         # a. Find stereogenic atoms and bonds based on current priorities.
         atm_keys = stereogenic_atom_keys_from_priorities(
-            gra1, pri_dct, ts_graph=ts_graph)
+            gra1, pri_dct, ts_=ts_)
         bnd_keys = stereogenic_bond_keys_from_priorities(
-            gra1, pri_dct, ts_graph=ts_graph)
+            gra1, pri_dct, ts_=ts_)
 
         # b. If there are none, the calculation is complete. Exit the loop.
         if not atm_keys and not bnd_keys:
@@ -525,7 +525,7 @@ def calculate_priorities_and_assign_parities(
     # If requested, add in priorities for explicit hydrogens.
     if not backbone_only:
         pri_dct = augment_priority_dict_with_hydrogen_keys(
-            gra0, pri_dct, break_ties=break_ties, ts_graph=ts_graph)
+            gra0, pri_dct, break_ties=break_ties, ts_=ts_)
 
     # Return the priorities calculated for graph 1, and return graph 2 with its
     # stereo assignments.
@@ -934,7 +934,7 @@ def parity_evaluator_flip_local_(gra):
 
 # # core algorithm helpers
 def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
-                                          ts_graph=False):
+                                          ts_=False):
     """ Find stereogenic atoms in this graph, given a set of canonical
         priorities
 
@@ -947,18 +947,18 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
         :type pri_dct: dict[int: int]
         :param assigned: Include atoms that already have stereo assignments?
         :type assigned: bool
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such
+        :type ts_: bool
         :returns: the stereogenic atom keys
         :rtype: frozenset
     """
-    if not ts_graph:
+    if not ts_:
         gra = from_ts_graph(gra)
 
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(
-        gra, pri_dct, break_ties=False, ts_graph=ts_graph)
+        gra, pri_dct, break_ties=False, ts_=ts_)
 
     atm_keys = tetrahedral_atom_keys(gra)
     if not assigned:
@@ -977,7 +977,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
 
 
 def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
-                                          ts_graph=False):
+                                          ts_=False):
     """ Find stereogenic bonds in this graph, given a set of canonical
         priorities
 
@@ -990,18 +990,18 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
         :type pri_dct: dict[int: int]
         :param assigned: Include bonds that already have stereo assignments?
         :param assigned: bool
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such
+        :type ts_: bool
         :returns: the stereogenic bond keys
         :rtype: frozenset
     """
-    if not ts_graph:
+    if not ts_:
         gra = from_ts_graph(gra)
 
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(
-        gra, pri_dct, break_ties=False, ts_graph=ts_graph)
+        gra, pri_dct, break_ties=False, ts_=ts_)
 
     bnd_keys = rigid_planar_bond_keys(gra)
     if not assigned:
@@ -1009,12 +1009,12 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
         bnd_keys -= bond_stereo_keys(gra)
 
     # Don't treat as a TS graph when checking for small rings
-    rng_bnd_keys_lst = rings_bond_keys(gra, ts_graph=False)
+    rng_bnd_keys_lst = rings_bond_keys(gra, ts_=False)
     bnd_keys -= functools.reduce(  # remove double bonds in small rings
         frozenset.union,
         filter(lambda x: len(x) < 8, rng_bnd_keys_lst), frozenset())
 
-    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_graph=False)
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=False)
 
     def _is_stereogenic(key):
 
@@ -1043,16 +1043,16 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
 
 
 def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
-                                             neg=False, ts_graph=False):
+                                             neg=False, ts_=False):
     """ Add explicit hydrogen keys to the priority dictionary
 
         :param neg: Negate the keys, to give them minimum (rather than maximum)
             priority?
         :param neg: bool
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such
+        :type ts_: bool
     """
-    if not ts_graph:
+    if not ts_:
         gra = from_ts_graph(gra)
 
     pri_dct = pri_dct.copy()

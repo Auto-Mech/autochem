@@ -28,18 +28,20 @@ from automol.util import dict_
 import automol.util.dict_.multi as mdict
 
 ATM_SYM_POS = 0
-ATM_IMP_HYD_VLC_POS = 1
+ATM_IMP_HYD_POS = 1
 ATM_STE_PAR_POS = 2
-ATM_PRD_STE_PAR_POS = 3
-ATM_TS_STE_PAR_POS = 4
+TS_ATM_PRD_STE_PAR_POS = 3
+TS_ATM_FLE_STE_PAR_POS = 4
 
 BND_ORD_POS = 0
 BND_STE_PAR_POS = 1
-BND_PRD_STE_PAR_POS = 2
-BND_TS_STE_PAR_POS = 3
+TS_BND_PRD_STE_PAR_POS = 2
+TS_BND_FLE_STE_PAR_POS = 3
 
-ATM_PROP_NAMES = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity')
-BND_PROP_NAMES = ('order', 'stereo_parity')
+ATM_PROP_NAMES = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity',
+                  'prod_stereo_parity', 'ts_stereo_parity')
+BND_PROP_NAMES = ('order', 'stereo_parity',
+                  'prod_stereo_parity', 'ts_stereo_parity')
 
 
 # # constructors
@@ -360,14 +362,14 @@ def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=False):
     atm_symb_dct = (
         mdict.by_key_by_position(atm_dct, atm_keys, ATM_SYM_POS))
     atm_imp_hyd_vlc_dct = (
-        mdict.by_key_by_position(atm_dct, atm_keys, ATM_IMP_HYD_VLC_POS))
+        mdict.by_key_by_position(atm_dct, atm_keys, ATM_IMP_HYD_POS))
     atm_ste_par_dct = (
         mdict.by_key_by_position(atm_dct, atm_keys, ATM_STE_PAR_POS))
     atm_prd_ste_par_dct = (
-        mdict.by_key_by_position(atm_dct, atm_keys, ATM_PRD_STE_PAR_POS)
+        mdict.by_key_by_position(atm_dct, atm_keys, TS_ATM_PRD_STE_PAR_POS)
         if ts_ else None)
     atm_ts_ste_par_dct = (
-        mdict.by_key_by_position(atm_dct, atm_keys, ATM_TS_STE_PAR_POS)
+        mdict.by_key_by_position(atm_dct, atm_keys, TS_ATM_FLE_STE_PAR_POS)
         if ts_ else None)
 
     bnd_keys = sorted(bnd_dct.keys())
@@ -376,10 +378,10 @@ def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=False):
     bnd_ste_par_dct = (
         mdict.by_key_by_position(bnd_dct, bnd_keys, BND_STE_PAR_POS))
     bnd_prd_ste_par_dct = (
-        mdict.by_key_by_position(bnd_dct, bnd_keys, BND_PRD_STE_PAR_POS)
+        mdict.by_key_by_position(bnd_dct, bnd_keys, TS_BND_PRD_STE_PAR_POS)
         if ts_ else None)
     bnd_ts_ste_par_dct = (
-        mdict.by_key_by_position(bnd_dct, bnd_keys, BND_TS_STE_PAR_POS)
+        mdict.by_key_by_position(bnd_dct, bnd_keys, TS_BND_FLE_STE_PAR_POS)
         if ts_ else None)
 
     return from_data(
@@ -491,7 +493,7 @@ def atom_implicit_hydrogen_valences(gra):
     :rtype: dict[int: int]
     """
     return mdict.by_key_by_position(atoms(gra), atom_keys(gra),
-                                    ATM_IMP_HYD_VLC_POS)
+                                    ATM_IMP_HYD_POS)
 
 
 def atom_stereo_parities(gra):
@@ -528,7 +530,7 @@ def ts_atom_product_stereo_parities(tsg):
     """
     if is_ts_graph(tsg):
         ret = mdict.by_key_by_position(atoms(tsg), atom_keys(tsg),
-                                       ATM_PRD_STE_PAR_POS)
+                                       TS_ATM_PRD_STE_PAR_POS)
     else:
         ret = None
     return ret
@@ -544,7 +546,7 @@ def ts_atom_fleeting_stereo_parities(tsg):
     """
     if is_ts_graph(tsg):
         ret = mdict.by_key_by_position(atoms(tsg), atom_keys(tsg),
-                                       ATM_TS_STE_PAR_POS)
+                                       TS_ATM_FLE_STE_PAR_POS)
     else:
         ret = None
     return ret
@@ -560,7 +562,7 @@ def ts_bond_product_stereo_parities(tsg):
     """
     if is_ts_graph(tsg):
         ret = mdict.by_key_by_position(bonds(tsg), bond_keys(tsg),
-                                       BND_PRD_STE_PAR_POS)
+                                       TS_BND_PRD_STE_PAR_POS)
     else:
         ret = None
     return ret
@@ -576,7 +578,7 @@ def ts_bond_fleeting_stereo_parities(tsg):
     """
     if is_ts_graph(tsg):
         ret = mdict.by_key_by_position(bonds(tsg), bond_keys(tsg),
-                                       BND_TS_STE_PAR_POS)
+                                       TS_BND_FLE_STE_PAR_POS)
     else:
         ret = None
     return ret
@@ -692,7 +694,7 @@ def set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct):
     :rtype: atomol graph data structure
     """
     atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_imp_hyd_vlc_dct,
-                                           ATM_IMP_HYD_VLC_POS)
+                                           ATM_IMP_HYD_POS)
     bnd_dct = bonds(gra)
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
@@ -741,7 +743,7 @@ def set_ts_atom_product_stereo_parities(tsg, atm_par_dct):
         f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
 
     atm_dct = mdict.set_by_key_by_position(atoms(tsg), atm_par_dct,
-                                           ATM_PRD_STE_PAR_POS)
+                                           TS_ATM_PRD_STE_PAR_POS)
     return from_atoms_and_bonds(atm_dct, bonds(tsg))
 
 
@@ -760,7 +762,7 @@ def set_ts_atom_fleeting_stereo_parities(tsg, atm_par_dct):
         f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
 
     atm_dct = mdict.set_by_key_by_position(atoms(tsg), atm_par_dct,
-                                           ATM_TS_STE_PAR_POS)
+                                           TS_ATM_FLE_STE_PAR_POS)
     return from_atoms_and_bonds(atm_dct, bonds(tsg))
 
 
@@ -778,7 +780,7 @@ def set_ts_bond_product_stereo_parities(tsg, bnd_par_dct):
         f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
 
     bnd_dct = mdict.set_by_key_by_position(bonds(tsg), bnd_par_dct,
-                                           BND_PRD_STE_PAR_POS)
+                                           TS_BND_PRD_STE_PAR_POS)
     return from_atoms_and_bonds(atoms(tsg), bnd_dct)
 
 
@@ -797,15 +799,20 @@ def set_ts_bond_fleeting_stereo_parities(tsg, bnd_par_dct):
         f"Attempting to set TS properties on a non-TS graph:\n{string(tsg)}")
 
     bnd_dct = mdict.set_by_key_by_position(bonds(tsg), bnd_par_dct,
-                                           BND_TS_STE_PAR_POS)
+                                           TS_BND_FLE_STE_PAR_POS)
     return from_atoms_and_bonds(atoms(tsg), bnd_dct)
 
 
 def set_stereo_parities(gra, par_dct):
-    """ set stereo parities for atoms and bonds
+    """ Set the atom and bond stereo parities of this molecular graph with a
+        single dictionary
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param par_dct: A dictionary of stereo parities, by atom/bond key
+    :type par_dct: dict[int or frozenset: bool or NoneType]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_par_dct = dict_.filter_by_key(
         par_dct, lambda x: isinstance(x, numbers.Number))
@@ -820,7 +827,14 @@ def set_stereo_parities(gra, par_dct):
 
 # # I/O
 def string(gra, one_indexed=True):
-    """ write the graph to a string
+    """ Generate a string representation of the graph, in YAML format
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param one_indexed: Shift the graph keys to start counting from 1?
+    :type one_indexed: bool
+    :returns: A string representation of the molecular graph
+    :rtype: str
     """
     yaml_gra_dct = yaml_dictionary(gra, one_indexed=one_indexed)
     gra_str = yaml.dump(yaml_gra_dct, default_flow_style=None, sort_keys=False)
@@ -828,7 +842,14 @@ def string(gra, one_indexed=True):
 
 
 def yaml_dictionary(gra, one_indexed=True):
-    """ generate a YAML dictionary representing a given graph
+    """ Generate a YAML dictionary representation of the graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param one_indexed: Shift the graph keys to start counting from 1?
+    :type one_indexed: bool
+    :returns: A YAML-friendly dictionary representation of the graph
+    :rtype: dict
     """
     if one_indexed:
         # shift to one-indexing when we print
@@ -838,10 +859,14 @@ def yaml_dictionary(gra, one_indexed=True):
     yaml_atm_dct = atoms(gra)
     yaml_bnd_dct = bonds(gra)
 
+    ts_ = is_ts_graph(gra)
+    atm_nprops = 5 if ts_ else 3
+    bnd_nprops = 4 if ts_ else 2
+
     # prepare the atom dictionary
     yaml_atm_dct = dict(sorted(yaml_atm_dct.items()))
     yaml_atm_dct = dict_.transform_values(
-        yaml_atm_dct, lambda x: dict(zip(ATM_PROP_NAMES, x)))
+        yaml_atm_dct, lambda x: dict(zip(ATM_PROP_NAMES[:atm_nprops], x)))
 
     # perpare the bond dictionary
     yaml_bnd_dct = dict_.transform_keys(
@@ -850,7 +875,7 @@ def yaml_dictionary(gra, one_indexed=True):
     yaml_bnd_dct = dict_.transform_keys(
         yaml_bnd_dct, lambda x: '-'.join(map(str, x)))
     yaml_bnd_dct = dict_.transform_values(
-        yaml_bnd_dct, lambda x: dict(zip(BND_PROP_NAMES, x)))
+        yaml_bnd_dct, lambda x: dict(zip(BND_PROP_NAMES[:bnd_nprops], x)))
 
     yaml_gra_dct = {'atoms': yaml_atm_dct, 'bonds': yaml_bnd_dct}
     return yaml_gra_dct
@@ -871,13 +896,13 @@ def from_yaml_dictionary(yaml_gra_dct, one_indexed=True):
     bnd_dct = yaml_gra_dct['bonds']
 
     atm_dct = dict_.transform_values(
-        atm_dct, lambda x: tuple(map(x.__getitem__, ATM_PROP_NAMES)))
+        atm_dct, lambda x: tuple(map(x.__getitem__, ATM_PROP_NAMES[:len(x)])))
 
     bnd_dct = dict_.transform_keys(
         bnd_dct, lambda x: frozenset(map(int, x.split('-'))))
 
     bnd_dct = dict_.transform_values(
-        bnd_dct, lambda x: tuple(map(x.__getitem__, BND_PROP_NAMES)))
+        bnd_dct, lambda x: tuple(map(x.__getitem__, BND_PROP_NAMES[:len(x)])))
 
     gra = from_atoms_and_bonds(atm_dct, bnd_dct)
 
@@ -1834,24 +1859,24 @@ def without_stereo_parities(gra):
     return gra
 
 
-def from_ts_graph(gra):
-    """ generate a graph representing the reactants from a TS graph
+def from_ts_graph(tsg):
+    """ Generate a graph representing the reactants from a TS graph
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: the reactants graph
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: the reactants graph
     """
-    ord_dct = bond_orders(gra)
+    ord_dct = bond_orders(tsg)
     frm_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.1]
     brk_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.9]
-    gra = set_bond_orders(
-        gra, {k: round(ord_dct[k] - 0.1, 1) for k in frm_bnd_keys})
-    gra = without_null_bonds(gra, except_dummies=True)
+    tsg = set_bond_orders(
+        tsg, {k: round(ord_dct[k] - 0.1, 1) for k in frm_bnd_keys})
+    tsg = without_null_bonds(tsg, except_dummies=True)
     # gra = remove_bonds(gra, frm_bnd_keys)
-    gra = set_bond_orders(
-        gra, {k: round(ord_dct[k] + 0.1, 1) for k in brk_bnd_keys})
+    tsg = set_bond_orders(
+        tsg, {k: round(ord_dct[k] + 0.1, 1) for k in brk_bnd_keys})
     # gra = set_bond_orders(gra, {k: 1 for k in brk_bnd_keys})
-    return gra
+    return tsg
 
 
 def explicit(gra, atm_keys=None):
@@ -1981,7 +2006,7 @@ def bond_induced_subgraph(gra, bnd_keys, stereo=False):
 
 
 def subgraph_neighborhood(gra, atm_keys, bnd_keys=None, stereo=False,
-                          ts_graph=True):
+                          ts_=True):
     """ neighborhood subgraph of a subgraph
 
         :param gra: molecular graph
@@ -1995,7 +2020,7 @@ def subgraph_neighborhood(gra, atm_keys, bnd_keys=None, stereo=False,
         :returns: the neighborhood subgraph
     """
     atm_keys = frozenset(atm_keys)
-    bnd_keys = (bond_keys(gra, ts_=ts_graph)
+    bnd_keys = (bond_keys(gra, ts_=ts_)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_keys & k)
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
@@ -2019,8 +2044,7 @@ def subgraph_neighbor_atom_keys(gra, atm_keys, bnd_keys=None):
     return ngb_keys
 
 
-def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False,
-                      ts_graph=True):
+def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False, ts_=True):
     """ neighborhood subgraph for a specific atom
 
         :param gra: molecular graph
@@ -2033,15 +2057,15 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False,
         :type ts_: bool
         :returns: the neighborhood subgraph
     """
-    gra = gra if ts_graph else from_ts_graph(gra)
-    bnd_keys = (bond_keys(gra, ts_=ts_graph)
+    gra = gra if ts_ else from_ts_graph(gra)
+    bnd_keys = (bond_keys(gra, ts_=ts_)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
     return nbh
 
 
-def atom_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
+def atom_neighborhoods(gra, bnd_keys=None, stereo=False, ts_=True):
     """ neighborhood subgraphs, by atom
 
         :param gra: molecular graph
@@ -2053,20 +2077,19 @@ def atom_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
         :returns: neighborhood subgraphs, by atom key
         :rtype: dict
     """
-    bnd_keys = (bond_keys(gra, ts_=ts_graph)
+    bnd_keys = (bond_keys(gra, ts_=ts_)
                 if bnd_keys is None else bnd_keys)
 
     def _neighborhood(atm_key):
         return atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys,
-                                 stereo=stereo, ts_graph=ts_graph)
+                                 stereo=stereo, ts_=ts_)
 
     atm_keys = list(atom_keys(gra))
     atm_nbh_dct = dict(zip(atm_keys, map(_neighborhood, atm_keys)))
     return atm_nbh_dct
 
 
-def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False,
-                      ts_graph=True):
+def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False, ts_=True):
     """ neighborhood subgraph for a specific bond
 
         :param gra: molecular graph
@@ -2079,14 +2102,14 @@ def bond_neighborhood(gra, bnd_key, bnd_keys=None, stereo=False,
         :type ts_: bool
         :returns: the neighborhood subgraph
     """
-    bnd_keys = (bond_keys(gra, ts_=ts_graph)
+    bnd_keys = (bond_keys(gra, ts_=ts_)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(filter(lambda x: bnd_key & x, bnd_keys))
     nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
     return nbh
 
 
-def bond_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
+def bond_neighborhoods(gra, bnd_keys=None, stereo=False, ts_=True):
     """ neighborhood subgraphs, by bond
 
         :param gra: molecular graph
@@ -2102,7 +2125,7 @@ def bond_neighborhoods(gra, bnd_keys=None, stereo=False, ts_graph=True):
 
     def _neighborhood(bnd_key):
         return bond_neighborhood(gra, bnd_key, bnd_keys=bnd_keys,
-                                 stereo=stereo, ts_graph=ts_graph)
+                                 stereo=stereo, ts_=ts_)
 
     bnd_nbh_dct = dict(zip(bnd_keys, map(_neighborhood, bnd_keys)))
     return bnd_nbh_dct
@@ -2119,7 +2142,7 @@ def atom_neighbor_atom_key(gra, atm_key, excl_atm_keys=(), incl_atm_keys=None,
 
 
 def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
-                            excl_symbs=(), ts_graph=True):
+                            excl_symbs=(), ts_=True):
     """ neighbor keys of a specific atom
 
         :param gra: molecular graph
@@ -2139,13 +2162,13 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
         :returns: the keys of neighboring atoms
     """
     atm_nbh = atom_neighborhood(
-        gra, atm_key, bnd_keys=bnd_keys, ts_graph=ts_graph)
+        gra, atm_key, bnd_keys=bnd_keys, ts_=ts_)
     atm_nbh_keys = atom_keys(atm_nbh, symb=symb, excl_symbs=excl_symbs)
     atm_ngb_keys = frozenset(atm_nbh_keys - {atm_key})
     return atm_ngb_keys
 
 
-def atoms_neighbor_atom_keys(gra, ts_graph=True):
+def atoms_neighbor_atom_keys(gra, ts_=True):
     """ keys of neighboring atoms, by atom
 
         :param gra: molecular graph
@@ -2157,13 +2180,13 @@ def atoms_neighbor_atom_keys(gra, ts_graph=True):
         return frozenset(atom_keys(atm_nbh) - {atm_key})
 
     atm_ngb_keys_dct = dict_.transform_items_to_values(
-        atom_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
+        atom_neighborhoods(gra, ts_=ts_), _neighbor_keys)
     return atm_ngb_keys_dct
 
 
 def atom_sorted_neighbor_atom_keys(gra, atm_key, excl_atm_keys=(),
                                    incl_atm_keys=None, symbs_first=('C',),
-                                   symbs_last=('H',), ts_graph=True):
+                                   symbs_last=('H',), ts_=True):
     """ get the next in a sorted list of neighbor keys, excluding some
 
         :param ts_: If this is a TS graph, treat it as such?
@@ -2172,7 +2195,7 @@ def atom_sorted_neighbor_atom_keys(gra, atm_key, excl_atm_keys=(),
     atm_symb_dct = atom_symbols(gra)
     incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
 
-    atm_nbh = atom_neighborhood(gra, atm_key, ts_graph=ts_graph)
+    atm_nbh = atom_neighborhood(gra, atm_key, ts_=ts_)
     atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
     atm_keys = [k for k in atm_keys if k in incl_atm_keys]
 
@@ -2184,7 +2207,7 @@ def atom_sorted_neighbor_atom_keys(gra, atm_key, excl_atm_keys=(),
 
 def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
                                     ords_last=(0.1,), prioritize_keys=(),
-                                    ts_graph=True):
+                                    ts_=True):
     """ keys of neighboring atoms, by atom
 
         :param gra: the graph
@@ -2214,30 +2237,30 @@ def atoms_sorted_neighbor_atom_keys(gra, symbs_first=('C',), symbs_last=('H',),
         return keys
 
     atm_ngb_keys_dct = dict_.transform_items_to_values(
-        atom_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
+        atom_neighborhoods(gra, ts_=ts_), _neighbor_keys)
     return atm_ngb_keys_dct
 
 
-def atom_bond_keys(gra, atm_key, ts_graph=True):
+def atom_bond_keys(gra, atm_key, ts_=True):
     """ bond keys for a given atom
 
         :param ts_: If this is a TS graph, treat it as such?
         :type ts_: bool
     """
-    return bond_keys(atom_neighborhood(gra, atm_key, ts_graph=ts_graph))
+    return bond_keys(atom_neighborhood(gra, atm_key, ts_=ts_))
 
 
-def atoms_bond_keys(gra, ts_graph=True):
+def atoms_bond_keys(gra, ts_=True):
     """ bond keys, by atom
 
         :param ts_: If this is a TS graph, treat it as such?
         :type ts_: bool
     """
-    atm_nbhs = atom_neighborhoods(gra, ts_graph=ts_graph)
+    atm_nbhs = atom_neighborhoods(gra, ts_=ts_)
     return dict_.transform_values(atm_nbhs, bond_keys)
 
 
-def dummy_atoms_neighbor_atom_key(gra, ts_graph=True):
+def dummy_atoms_neighbor_atom_key(gra, ts_=True):
     """ Atoms that are connected to dummy atoms, by dummy atom key
 
         :param ts_: If this is a TS graph, treat it as such?
@@ -2245,7 +2268,7 @@ def dummy_atoms_neighbor_atom_key(gra, ts_graph=True):
 
         (Requires that each dummy atom only be connected to one neighbor)
     """
-    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra, ts_graph=ts_graph)
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
     dummy_atm_keys = atom_keys(gra, symb='X')
 
     dummy_ngb_key_dct = {}
@@ -2259,7 +2282,7 @@ def dummy_atoms_neighbor_atom_key(gra, ts_graph=True):
     return dummy_ngb_key_dct
 
 
-def bonds_neighbor_atom_keys(gra, ts_graph=True):
+def bonds_neighbor_atom_keys(gra, ts_=True):
     """ keys of neighboring atoms, by bond
 
         :param ts_: If this is a TS graph, treat it as such?
@@ -2269,11 +2292,11 @@ def bonds_neighbor_atom_keys(gra, ts_graph=True):
         return frozenset(atom_keys(bnd_nbh) - bnd_key)
 
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
-        bond_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
+        bond_neighborhoods(gra, ts_=ts_), _neighbor_keys)
     return bnd_ngb_keys_dct
 
 
-def bonds_neighbor_bond_keys(gra, ts_graph=True):
+def bonds_neighbor_bond_keys(gra, ts_=True):
     """ keys of neighboring bonds, by bond
 
         :param ts_: If this is a TS graph, treat it as such?
@@ -2286,5 +2309,5 @@ def bonds_neighbor_bond_keys(gra, ts_graph=True):
         return bnd_keys
 
     bnd_ngb_keys_dct = dict_.transform_items_to_values(
-        bond_neighborhoods(gra, ts_graph=ts_graph), _neighbor_keys)
+        bond_neighborhoods(gra, ts_=ts_), _neighbor_keys)
     return bnd_ngb_keys_dct

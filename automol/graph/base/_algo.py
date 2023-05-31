@@ -674,47 +674,47 @@ def is_branched(gra):
 
 
 # # rings
-def rings(gra, ts_graph=True):
+def rings(gra, ts_=True):
     """ rings in the graph (minimal basis)
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
-        :returns: A set of automol graph data structures for each ring
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param ts_: If this is a TS graph, treat it as such
+    :type ts_: bool
+    :returns: A set of automol graph data structures for each ring
     """
-    rng_bnd_keys_lst = rings_bond_keys(gra, ts_graph=ts_graph)
+    rng_bnd_keys_lst = rings_bond_keys(gra, ts_=ts_)
     gras = [bond_induced_subgraph(gra, bnd_keys)
             for bnd_keys in rng_bnd_keys_lst]
     return tuple(sorted(gras, key=frozen))
 
 
-def rings_atom_keys(gra, ts_graph=True):
+def rings_atom_keys(gra, ts_=True):
     """ atom keys for each ring in the graph sorted by connectivity (minimal
         basis)
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such
+        :type ts_: bool
         :returns: A set of tuples of atom keys for each ring.
     """
-    rng_bnd_keys_lst = rings_bond_keys(gra, ts_graph=ts_graph)
+    rng_bnd_keys_lst = rings_bond_keys(gra, ts_=ts_)
     rng_atm_keys_lst = frozenset(
         map(sorted_ring_atom_keys_from_bond_keys, rng_bnd_keys_lst))
     return rng_atm_keys_lst
 
 
-def rings_bond_keys(gra, ts_graph=True):
+def rings_bond_keys(gra, ts_=True):
     """ bond keys for each ring in the graph (minimal basis)
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :param ts_graph: If this is a TS graph, treat it as such
-        :type ts_graph: bool
+        :param ts_: If this is a TS graph, treat it as such
+        :type ts_: bool
         :returns: A set of sets of bond keys for each ring.
     """
-    if not ts_graph:
+    if not ts_:
         gra = from_ts_graph(gra)
 
     bnd_keys = bond_keys(gra)

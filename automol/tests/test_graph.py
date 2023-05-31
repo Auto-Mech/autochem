@@ -478,7 +478,8 @@ def test__setters():
     gra = graph.set_ts_atom_product_stereo_parities(orig_gra, atm_par_dct)
     print(atm_par_dct)
     assert atm_par_dct == graph.ts_atom_product_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_atom_product_stereo_parities(gra, orig_atm_par_dct)
+    assert orig_gra == graph.set_ts_atom_product_stereo_parities(
+        gra, orig_atm_par_dct)
 
     # TS bond product stereo parities
     orig_bnd_par_dct = graph.ts_bond_product_stereo_parities(orig_gra)
@@ -486,7 +487,8 @@ def test__setters():
     gra = graph.set_ts_bond_product_stereo_parities(orig_gra, bnd_par_dct)
     print(bnd_par_dct)
     assert bnd_par_dct == graph.ts_bond_product_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_bond_product_stereo_parities(gra, orig_bnd_par_dct)
+    assert orig_gra == graph.set_ts_bond_product_stereo_parities(
+        gra, orig_bnd_par_dct)
 
     # TS atom fleeting stereo parities
     orig_atm_par_dct = graph.ts_atom_fleeting_stereo_parities(orig_gra)
@@ -494,7 +496,8 @@ def test__setters():
     gra = graph.set_ts_atom_fleeting_stereo_parities(orig_gra, atm_par_dct)
     print(atm_par_dct)
     assert atm_par_dct == graph.ts_atom_fleeting_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_atom_fleeting_stereo_parities(gra, orig_atm_par_dct)
+    assert orig_gra == graph.set_ts_atom_fleeting_stereo_parities(
+        gra, orig_atm_par_dct)
 
     # TS bond fleeting stereo parities
     orig_bnd_par_dct = graph.ts_bond_fleeting_stereo_parities(orig_gra)
@@ -502,7 +505,8 @@ def test__setters():
     gra = graph.set_ts_bond_fleeting_stereo_parities(orig_gra, bnd_par_dct)
     print(bnd_par_dct)
     assert bnd_par_dct == graph.ts_bond_fleeting_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_bond_fleeting_stereo_parities(gra, orig_bnd_par_dct)
+    assert orig_gra == graph.set_ts_bond_fleeting_stereo_parities(
+        gra, orig_bnd_par_dct)
 
 
 def test__string():
@@ -1128,7 +1132,7 @@ def test__geometry_atom_parity():
            ('O', (1.916674, -0.693354, 0.754657)),
            ('H', (1.419231, -0.509954, 2.537223)))
     gra = automol.geom.graph(geo)
-    assert (automol.graph.geometry_atom_parity(gra, geo, 0) is False)
+    assert automol.graph.geometry_atom_parity(gra, geo, 0) is False
 
     # '[C@@H](Cl)(F)(O)'
     geo = (('C', (-0.317722, 0.059267, -0.618703)),
@@ -1138,7 +1142,7 @@ def test__geometry_atom_parity():
            ('O', (2.108174, -0.367259, 0.380286)),
            ('H', (1.838541, -0.778373, 2.17386)))
     gra = automol.geom.graph(geo)
-    assert (automol.graph.geometry_atom_parity(gra, geo, 0) is True)
+    assert automol.graph.geometry_atom_parity(gra, geo, 0) is True
 
 
 def test__geometry_bond_parity():
