@@ -103,7 +103,7 @@ def forming_rings_bond_keys(tsg):
     """
     frm_bnd_keys = forming_bond_keys(tsg)
     frm_rngs_bnd_keys = tuple(
-        bks for bks in rings_bond_keys(tsg, ts_graph=True)
+        bks for bks in rings_bond_keys(tsg, ts_=True)
         if frm_bnd_keys & bks)
     return frm_rngs_bnd_keys
 
@@ -128,7 +128,7 @@ def breaking_rings_bond_keys(tsg):
     """
     brk_bnd_keys = breaking_bond_keys(tsg)
     brk_rngs_bnd_keys = tuple(
-        bks for bks in rings_bond_keys(tsg, ts_graph=True)
+        bks for bks in rings_bond_keys(tsg, ts_=True)
         if brk_bnd_keys & bks)
     return brk_rngs_bnd_keys
 
@@ -170,10 +170,10 @@ def fleeting_stereogenic_atom_keys(tsg, ts_enant=True):
         :type ts_enant: bool
     """
     tsg = without_dummy_atoms(tsg)
-    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
+    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_=True)
 
     tsg_ste_atm_keys = stereogenic_atom_keys_from_priorities(
-        tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
+        tsg, pri_dct=pri_dct, assigned=True, ts_=True)
     rct_ste_atm_keys = stereogenic_atom_keys(reactants_graph(tsg),
                                              assigned=True)
     prd_ste_atm_keys = stereogenic_atom_keys(products_graph(tsg),
@@ -200,10 +200,10 @@ def fleeting_stereogenic_bond_keys(tsg):
         :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
-    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_graph=True)
+    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_=True)
 
     tsg_ste_bnd_keys = stereogenic_bond_keys_from_priorities(
-        tsg, pri_dct=pri_dct, assigned=True, ts_graph=True)
+        tsg, pri_dct=pri_dct, assigned=True, ts_=True)
     rct_ste_bnd_keys = stereogenic_bond_keys(reactants_graph(tsg),
                                              assigned=True)
     prd_ste_bnd_keys = stereogenic_bond_keys(products_graph(tsg),
