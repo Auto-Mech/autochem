@@ -1375,7 +1375,8 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({2, 4}): (1, None), frozenset({8, 1}): (1, None),
             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
     assert automol.graph.old_ts.fleeting_stereogenic_keys(tsg) == {2}
-    assert not automol.graph.old_ts.fleeting_stereogenic_keys(tsg, ts_enant=False)
+    assert not automol.graph.old_ts.fleeting_stereogenic_keys(
+        tsg, ts_enant=False)
 
     # CCOC(O[O])C => C[CH]OC(OO)C
     tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
@@ -1393,8 +1394,8 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
     assert automol.graph.old_ts.fleeting_stereogenic_keys(tsg) == {2}
-    assert (automol.graph.old_ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
-            {2})
+    assert automol.graph.old_ts.fleeting_stereogenic_keys(
+        tsg, ts_enant=False) == {2}
 
     # CCOCC + [OH] => CCO[CH]C + O
     tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
@@ -1406,10 +1407,10 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({1, 5}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({0, 7}): (1, None)})
     print(automol.graph.old_ts.fleeting_stereogenic_keys(tsg))
-    assert (automol.graph.old_ts.fleeting_stereogenic_keys(tsg) ==
-            {frozenset({0, 1})})
-    assert (automol.graph.old_ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
-            {frozenset({0, 1})})
+    assert automol.graph.old_ts.fleeting_stereogenic_keys(
+        tsg) == {frozenset({0, 1})}
+    assert automol.graph.old_ts.fleeting_stereogenic_keys(
+        tsg, ts_enant=False) == {frozenset({0, 1})}
 
 
 def test__ts__are_energetically_equivalent():

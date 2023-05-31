@@ -17,8 +17,8 @@ def hydrogen_migration_atom_keys(rxn):
     a neighbor to the attacking atom along the chain to the donating atom
     :rtype: (int, int, int, int)
     """
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
@@ -62,8 +62,8 @@ def ring_forming_scission_atom_keys(rxn):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int, int)
     """
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
@@ -94,8 +94,8 @@ def hydrogen_abstraction_atom_keys(rxn):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int)
     """
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     hyd_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
@@ -114,8 +114,8 @@ def hydrogen_abstraction_is_sigma(rxn):
     rct_gra = automol.graph.old_ts.reactants_graph(tsg)
     sig_rad_keys = automol.graph.sigma_radical_atom_keys(rct_gra)
 
-    brk_bnd_key, = old_ts.breaking_bond_keys(tsg)
-    frm_bnd_key, = old_ts.forming_bond_keys(tsg)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(tsg)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(tsg)
     rad_key, = frm_bnd_key - brk_bnd_key
     return rad_key in sig_rad_keys
 
@@ -131,8 +131,8 @@ def elimination_breaking_bond_keys(rxn):
     """
     assert rxn.class_ == ReactionClass.Typ.ELIMINATION
     tsg = rxn.forward_ts_graph
-    frm_bnd_key, = old_ts.forming_bond_keys(tsg)
-    brk_bnd_keys = old_ts.breaking_bond_keys(tsg)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(tsg)
+    brk_bnd_keys = old_ts.ts_breaking_bond_keys(tsg)
     brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
 
     symbs = automol.graph.atom_symbols(tsg)
@@ -180,7 +180,8 @@ def insertion_forming_bond_keys(rxn):
     # inconsistent results (i.e. the two bonds will reverse order).
     # If needed, we could add sorting that is based on the symbols of the
     # atoms instead.
-    frm_bnd_keys = reversed(sorted(old_ts.forming_bond_keys(tsg), key=sorted))
+    frm_bnd_keys = reversed(
+        sorted(old_ts.ts_forming_bond_keys(tsg), key=sorted))
     frm_bnd_keys = sorted(
         frm_bnd_keys, key=lambda x: automol.graph.atom_count(
             automol.graph.bond_neighborhood(tsg, x)))
@@ -197,8 +198,8 @@ def substitution_atom_keys(rxn):
     :returns: the attacking atom, the transferring atom, the leaving atom
     :rtype: (int, int, int)
     """
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     lea_key, = brk_bnd_key - frm_bnd_key

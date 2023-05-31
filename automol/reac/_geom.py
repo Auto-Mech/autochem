@@ -20,8 +20,8 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
     """
     assert rxn.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
     assert rxn.has_standard_keys()
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.7
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist
@@ -69,7 +69,7 @@ def beta_scission_ts_geometry(rxn, rct_geos,
     """
     assert rxn.class_ == ReactionClass.Typ.BETA_SCISSION
     assert rxn.has_standard_keys()
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     brk_bnd_dist = 1.5
 
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
@@ -104,8 +104,8 @@ def ring_forming_scission_ts_geometry(rxn, rct_geos,
     """
     assert rxn.class_ == ReactionClass.Typ.RING_FORM_SCISSION
     assert rxn.has_standard_keys()
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 2.0
     brk_bnd_dist = 1.5
     d1234 = 180.
@@ -168,7 +168,7 @@ def elimination_ts_geometry(rxn, rct_geos,
     """
     assert rxn.class_ == ReactionClass.Typ.ELIMINATION
     assert rxn.has_standard_keys()
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.6
     frm_rng_keys, = old_ts.forming_rings_atom_keys(rxn.forward_ts_graph)
 
@@ -224,7 +224,7 @@ def hydrogen_abstraction_ts_geometry(rxn, rct_geos,
     """
     assert rxn.class_ == ReactionClass.Typ.HYDROGEN_ABSTRACTION
     assert rxn.has_standard_keys()
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.6
     a123 = 170.
     if hydrogen_abstraction_is_sigma(rxn):
@@ -271,7 +271,7 @@ def addition_ts_geometry(rxn, rct_geos,
     """
     assert rxn.class_ == ReactionClass.Typ.ADDITION
     assert rxn.has_standard_keys()
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     frm_bnd_dist = 1.9
     a123 = 85.
     a234 = 85.
@@ -329,7 +329,7 @@ def insertion_ts_geometry(rxn, rct_geos,
 
     tsg = rxn.forward_ts_graph
 
-    frm_bnd_key1, frm_bnd_key2 = old_ts.forming_bond_keys(tsg)
+    frm_bnd_key1, frm_bnd_key2 = old_ts.ts_forming_bond_keys(tsg)
     hcnt1 = automol.graph.atom_count_by_type(tsg, 'H', keys=frm_bnd_key1)
     hcnt2 = automol.graph.atom_count_by_type(tsg, 'H', keys=frm_bnd_key2)
     frm_bnd_dist1 = frm_bnd_dist_dct[hcnt1]
@@ -390,7 +390,7 @@ def substitution_ts_geometry(rxn, rct_geos,
     a123 = 170.
     a234 = 95.
 
-    frm_bnd_key, = old_ts.forming_bond_keys(tsg)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(tsg)
     hcnt = automol.graph.atom_count_by_type(tsg, 'H', keys=frm_bnd_key)
     frm_bnd_dist = frm_bnd_dist_dct[hcnt]
 

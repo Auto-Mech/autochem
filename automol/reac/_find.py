@@ -238,11 +238,11 @@ def ring_forming_scissions(rct_gras, prd_gras):
                         b_frm_bnd_key = (end_key, atm_key)
                         b_brk_bnd_key = (end_key, other_end_key)
                         forw_tsg = old_ts.graph(rgra,
-                                            frm_bnd_keys=[f_frm_bnd_key],
-                                            brk_bnd_keys=[f_brk_bnd_key])
+                                                frm_bnd_keys=[f_frm_bnd_key],
+                                                brk_bnd_keys=[f_brk_bnd_key])
                         back_tsg = old_ts.graph(pgra,
-                                            frm_bnd_keys=[b_frm_bnd_key],
-                                            brk_bnd_keys=[b_brk_bnd_key])
+                                                frm_bnd_keys=[b_frm_bnd_key],
+                                                brk_bnd_keys=[b_brk_bnd_key])
 
                         # Create the reaction object
                         rxn = Reaction(
@@ -316,13 +316,13 @@ def eliminations(rct_gras, prd_gras):
                         b_brk_bnd_key = tuple(map(inv_, f_frm_bnd_key))
 
                         forw_tsg = old_ts.graph(rct_gra,
-                                            frm_bnd_keys=[f_frm_bnd_key],
-                                            brk_bnd_keys=[brk_bnd_1,
-                                                          brk_bnd_2])
+                                                frm_bnd_keys=[f_frm_bnd_key],
+                                                brk_bnd_keys=[brk_bnd_1,
+                                                              brk_bnd_2])
                         back_tsg = old_ts.graph(prds_gra,
-                                            frm_bnd_keys=[b_frm_bnd_key1,
-                                                          b_frm_bnd_key2],
-                                            brk_bnd_keys=[b_brk_bnd_key])
+                                                frm_bnd_keys=[b_frm_bnd_key1,
+                                                              b_frm_bnd_key2],
+                                                brk_bnd_keys=[b_brk_bnd_key])
 
                         rcts_atm_keys = list(map(atom_keys, rct_gras))
                         prds_atm_keys = list(map(atom_keys, prd_gras))
@@ -432,11 +432,11 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                 b_frm_bnd_key = (b_q2_q_atm_key, b_q1h_h_atm_key)
                 b_brk_bnd_key = (b_q1h_q_atm_key, b_q1h_h_atm_key)
                 forw_tsg = old_ts.graph(rcts_gra,
-                                    frm_bnd_keys=[f_frm_bnd_key],
-                                    brk_bnd_keys=[f_brk_bnd_key])
+                                        frm_bnd_keys=[f_frm_bnd_key],
+                                        brk_bnd_keys=[f_brk_bnd_key])
                 back_tsg = old_ts.graph(prds_gra,
-                                    frm_bnd_keys=[b_frm_bnd_key],
-                                    brk_bnd_keys=[b_brk_bnd_key])
+                                        frm_bnd_keys=[b_frm_bnd_key],
+                                        brk_bnd_keys=[b_brk_bnd_key])
 
                 # Create the reaction object
                 rxn = Reaction(
@@ -488,11 +488,11 @@ def additions(rct_gras, prd_gras):
                 f_frm_bnd_key = (x_atm_key, y_atm_key)
                 b_brk_bnd_key = (iso_dct[x_atm_key], iso_dct[y_atm_key])
                 forw_tsg = old_ts.graph(rcts_gra,
-                                    frm_bnd_keys=[f_frm_bnd_key],
-                                    brk_bnd_keys=[])
+                                        frm_bnd_keys=[f_frm_bnd_key],
+                                        brk_bnd_keys=[])
                 back_tsg = old_ts.graph(prds_gra,
-                                    frm_bnd_keys=[],
-                                    brk_bnd_keys=[b_brk_bnd_key])
+                                        frm_bnd_keys=[],
+                                        brk_bnd_keys=[b_brk_bnd_key])
 
                 # Create the reaction object
                 rxn = Reaction(
@@ -553,13 +553,13 @@ def double_insertion(rct_gras, prd_gras):
                             iso_dct[brk_atm_i],
                             iso_dct[brk_atm_j])
                         forw_tsg = old_ts.graph(rcts_gra,
-                                            frm_bnd_keys=frm_bnd_pairs,
-                                            brk_bnd_keys=(brk_bnd_key,))
+                                                frm_bnd_keys=frm_bnd_pairs,
+                                                brk_bnd_keys=(brk_bnd_key,))
                         back_tsg = old_ts.graph(prds_gra,
-                                            brk_bnd_keys=[
-                                                b_brk_bnd_key_i,
-                                                b_brk_bnd_key_j],
-                                            frm_bnd_keys=(b_frm_bnd_key,))
+                                                brk_bnd_keys=[
+                                                    b_brk_bnd_key_i,
+                                                    b_brk_bnd_key_j],
+                                                frm_bnd_keys=(b_frm_bnd_key,))
                         # Create the reaction object
                         rxn = Reaction(
                             rxn_cls=ReactionClass.Typ.DOUBLE_INSERTION,
@@ -624,11 +624,11 @@ def two_bond_additions(rct_gras, prd_gras):
                     [iso_dct[frm_bnd_keys[1][0]], iso_dct[frm_bnd_keys[1][1]]]
                 ]
                 forw_tsg = old_ts.graph(rcts_gra,
-                                    frm_bnd_keys=frm_bnd_keys,
-                                    brk_bnd_keys=[])
+                                        frm_bnd_keys=frm_bnd_keys,
+                                        brk_bnd_keys=[])
                 back_tsg = old_ts.graph(prds_gra,
-                                    frm_bnd_keys=[],
-                                    brk_bnd_keys=b_brk_bnd_keys)
+                                        frm_bnd_keys=[],
+                                        brk_bnd_keys=b_brk_bnd_keys)
 
                 # Create the reaction object
                 rxn = Reaction(
@@ -717,11 +717,11 @@ def substitutions(rct_gras, prd_gras):
                         b_brk_bnd_key = (inv_dct[frm_key], inv_dct[rad_key])
 
                         forw_tsg = old_ts.graph(rct_gra,
-                                            frm_bnd_keys=[f_frm_bnd_key],
-                                            brk_bnd_keys=[f_brk_bnd_key])
+                                                frm_bnd_keys=[f_frm_bnd_key],
+                                                brk_bnd_keys=[f_brk_bnd_key])
                         back_tsg = old_ts.graph(prd_gra,
-                                            frm_bnd_keys=[b_frm_bnd_key],
-                                            brk_bnd_keys=[b_brk_bnd_key])
+                                                frm_bnd_keys=[b_frm_bnd_key],
+                                                brk_bnd_keys=[b_brk_bnd_key])
 
                         rcts_atm_keys = [atom_keys(rgra1), atom_keys(rgra2)]
 

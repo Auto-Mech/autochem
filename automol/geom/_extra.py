@@ -294,9 +294,9 @@ def hydrogen_bonded_idxs(
     if count(geo) > 1:
         # Get the forming/breaking bond idxs if possible
         if grxn is not None:
-            frm_bnd_keys = automol.graph.old_ts.forming_bond_keys(
+            frm_bnd_keys = automol.graph.old_ts.ts_forming_bond_keys(
                 grxn.forward_ts_graph)
-            brk_bnd_keys = automol.graph.old_ts.breaking_bond_keys(
+            brk_bnd_keys = automol.graph.old_ts.ts_breaking_bond_keys(
                 grxn.forward_ts_graph)
             rxn_keys = set()
             for key in frm_bnd_keys:
