@@ -22,7 +22,7 @@ from automol.graph.base._core import without_stereo_parities
 # from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import from_ts_graph
-from automol.graph.base._core import reacting_atoms
+from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import branch_atom_keys
 from automol.graph.base._algo import connected_components
@@ -246,7 +246,7 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
         :type local_stereo: bool
         :returns: a molecular geometry with corrected stereo
     """
-    rxn_atm_keys = reacting_atoms(gra)
+    rxn_atm_keys = ts_reacting_atoms(gra)
     gra = from_ts_graph(gra)
     sgr = gra if local_stereo else to_local_stereo(gra)
     gra = without_stereo_parities(gra)

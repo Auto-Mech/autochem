@@ -318,6 +318,7 @@ from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
 # TS graph submodule:
+from automol.graph.base.ts import ts_graph
 from automol.graph.base import ts
 from automol.graph.base import old_ts
 
@@ -620,6 +621,7 @@ __all__ = [
     'neighbors_of_type',
     'radicals_of_type',
     # TS graph submodule:
+    'ts_graph',
     'ts',
     'old_ts',
 ]

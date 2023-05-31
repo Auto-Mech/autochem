@@ -35,9 +35,9 @@ from automol.graph.base._core import add_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import from_ts_graph as _from_ts_graph
-from automol.graph.base._core import forming_bond_keys
-from automol.graph.base._core import breaking_bond_keys
-from automol.graph.base._core import reacting_atoms
+from automol.graph.base._core import ts_forming_bond_keys
+from automol.graph.base._core import ts_breaking_bond_keys
+from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._core import negate_hydrogen_keys
 from automol.graph.base._core import string
 from automol.graph.base._algo import rings_bond_keys
@@ -79,8 +79,8 @@ def reverse(tsg, dummies=True):
         tsg = without_dummy_atoms(tsg)
 
     return graph(gra=tsg,
-                 frm_bnd_keys=breaking_bond_keys(tsg),
-                 brk_bnd_keys=forming_bond_keys(tsg))
+                 frm_bnd_keys=ts_breaking_bond_keys(tsg),
+                 brk_bnd_keys=ts_forming_bond_keys(tsg))
 
 
 def forming_rings_atom_keys(tsg):
@@ -101,7 +101,7 @@ def forming_rings_bond_keys(tsg):
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
-    frm_bnd_keys = forming_bond_keys(tsg)
+    frm_bnd_keys = ts_forming_bond_keys(tsg)
     frm_rngs_bnd_keys = tuple(
         bks for bks in rings_bond_keys(tsg, ts_=True)
         if frm_bnd_keys & bks)
@@ -126,7 +126,7 @@ def breaking_rings_bond_keys(tsg):
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
-    brk_bnd_keys = breaking_bond_keys(tsg)
+    brk_bnd_keys = ts_breaking_bond_keys(tsg)
     brk_rngs_bnd_keys = tuple(
         bks for bks in rings_bond_keys(tsg, ts_=True)
         if brk_bnd_keys & bks)
@@ -249,7 +249,7 @@ def fleeting_stereosite_sorted_neighbors(tsg, ts_enant=True):
         :returns: A dictionary keyed by fleeting stereogenic keys, with values
         of the specific neighbors that are reacting ()
     """
-    rxn_atm_keys = reacting_atoms(tsg)
+    rxn_atm_keys = ts_reacting_atoms(tsg)
     nkeys_dct = atoms_neighbor_atom_keys(tsg)
 
     def _distance_from_reaction_site(key):
@@ -421,7 +421,7 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
         :rtype: bool
     """
     # 1. Check conserved stereo sites
-    reac_keys = reacting_atoms(ftsg_loc)
+    reac_keys = ts_reacting_atoms(ftsg_loc)
     fste_keys = stereo_keys(ftsg_loc)
     rste_keys = stereo_keys(rtsg_loc)
     cons_keys = list(fste_keys & rste_keys)
@@ -512,7 +512,7 @@ def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
     loc_pri_dct = local_priority_dict(reactants_graph(ftsg_loc))
 
     ste_akeys = atom_stereo_keys(ftsg_loc)
-    brk_bkeys = breaking_bond_keys(ftsg_loc)
+    brk_bkeys = ts_breaking_bond_keys(ftsg_loc)
     ngb_keys_dct = atoms_neighbor_atom_keys(ftsg_loc)
     rng_akeys_lst = list(map(set, forming_rings_atom_keys(ftsg_loc)))
 

@@ -174,8 +174,8 @@ def expand_stereo(rxn, enant=True):
     key_dct = atom_mapping(rxn)
 
     srxns = []
-    for forw_ste_tsg, back_ste_tsg in old_ts.expand_reaction_stereo(forw_tsg,
-                                                                enant=enant):
+    for forw_ste_tsg, back_ste_tsg in (
+            old_ts.expand_reaction_stereo(forw_tsg, enant=enant)):
         back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
         # But for dummy atoms, we could just do the conversion directly,

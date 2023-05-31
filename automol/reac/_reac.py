@@ -253,7 +253,7 @@ def forming_bond_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.forming_bond_keys(tsg)
+    return old_ts.ts_forming_bond_keys(tsg)
 
 
 def breaking_bond_keys(rxn, rev=False):
@@ -269,7 +269,7 @@ def breaking_bond_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.breaking_bond_keys(tsg)
+    return old_ts.ts_breaking_bond_keys(tsg)
 
 
 def forming_rings_atom_keys(rxn, rev=False):

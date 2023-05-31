@@ -599,7 +599,7 @@ def stereo_parities(gra):
 
 
 # # TS graph getters
-def forming_bond_keys(tsg):
+def ts_forming_bond_keys(tsg):
     """ Get the forming bonds from a TS graph
 
     :param tsg: TS graph
@@ -612,7 +612,7 @@ def forming_bond_keys(tsg):
     return frozenset(map(frozenset, frm_bnd_keys))
 
 
-def breaking_bond_keys(tsg):
+def ts_breaking_bond_keys(tsg):
     """ Get the breaking bonds from a TS graph
 
     :param tsg: TS graph
@@ -621,11 +621,11 @@ def breaking_bond_keys(tsg):
     :rtype: frozenset[frozenset[{int, int}]]
     """
     ord_dct = bond_orders(tsg)
-    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o, 1) == 0.9]
+    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.9]
     return frozenset(map(frozenset, brk_bnd_keys))
 
 
-def reacting_bonds(tsg):
+def ts_reacting_bonds(tsg):
     """ Get all of the bonds involved in the reaction
 
     :param tsg: TS graph
@@ -633,11 +633,11 @@ def reacting_bonds(tsg):
     :returns: The keys to bonds involved in the reaction
     :rtype: frozenset[frozenset[{int, int}]]
     """
-    bnd_keys = forming_bond_keys(tsg) | breaking_bond_keys(tsg)
+    bnd_keys = ts_forming_bond_keys(tsg) | ts_breaking_bond_keys(tsg)
     return bnd_keys
 
 
-def reacting_atoms(tsg):
+def ts_reacting_atoms(tsg):
     """ Get all of the atoms involved in the reaction
 
     :param tsg: TS graph
@@ -645,7 +645,7 @@ def reacting_atoms(tsg):
     :returns: The keys to atoms involved in the reaction
     :rtype: frozenset[int]
     """
-    bnd_keys = reacting_bonds(tsg)
+    bnd_keys = ts_reacting_bonds(tsg)
     atm_keys = frozenset(itertools.chain(*bnd_keys))
     return atm_keys
 
@@ -1515,55 +1515,104 @@ def _shift_remove_dummy_atom(gra, dummy_key):
 
 def negate_hydrogen_keys(gra):
     """ Flip the signs of hydrogen keys
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :return: molecular graph with hydrogen keys negated
+    :rtype: automol graph data structure
     """
     gra = from_ts_graph(gra)
     exp_hyd_keys = hydrogen_keys(gra)
-    atm_key_dct = {k: -k for k in exp_hyd_keys}
+    atm_key_dct = {k: -abs(k) for k in exp_hyd_keys}
     return relabel(gra, atm_key_dct)
 
 
 # # add/remove/insert/without
-def add_atoms(gra, symb_dct, imp_hyd_vlc_dct=None, ste_par_dct=None):
-    """ add atoms to this molecular graph, setting their keys
+def add_atoms(gra, symb_dct, imp_hyd_vlc_dct=None, ste_par_dct=None,
+              prd_ste_par_dct=None, ts_ste_par_dct=None):
+    """ Add atoms to this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param symb_dct: atomic symbols, by atom key
+    :type symb_dct: dict
+    :param imp_hyd_vlc_dct: the number of implicit hydrogens associated with
+        each atom, by atom key
+    :type imp_hyd_vlc_dct: dict
+    :param ste_par_dct: stereo parities, by atom key; (in TS graphs, reactant
+        stereo parities)
+    :type ste_par_dct: dict
+    :param prd_ste_par_dct: product stereo parities, by atom key; (TS graphs
+        only)
+    :type prd_ste_par_dct: dict
+    :param ts_ste_par_dct: fleeting TS stereo parities, by atom key; (TS graphs
+        only)
+    :type ts_ste_par_dct: dict
+    :return: molecular graph (TS or non-TS)
+    :rtype: automol graph data structure
     """
+    ts_ = is_ts_graph(gra)
     atm_keys = atom_keys(gra)
     atm_symb_dct = atom_symbols(gra)
     atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
     atm_ste_par_dct = atom_stereo_parities(gra)
+    atm_prd_ste_par_dct = ts_atom_product_stereo_parities(gra)
+    atm_ts_ste_par_dct = ts_atom_fleeting_stereo_parities(gra)
 
     keys = set(symb_dct.keys())
     imp_hyd_vlc_dct = {} if imp_hyd_vlc_dct is None else imp_hyd_vlc_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
+    if ts_:
+        prd_ste_par_dct = {} if prd_ste_par_dct is None else prd_ste_par_dct
+        ts_ste_par_dct = {} if ts_ste_par_dct is None else ts_ste_par_dct
 
     assert not keys & atm_keys
     assert set(imp_hyd_vlc_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
+    if ts_:
+        assert set(prd_ste_par_dct.keys()) <= keys
+        assert set(ts_ste_par_dct.keys()) <= keys
 
     atm_symb_dct.update(symb_dct)
     atm_imp_hyd_vlc_dct.update(imp_hyd_vlc_dct)
     atm_ste_par_dct.update(ste_par_dct)
+    if ts_:
+        atm_prd_ste_par_dct.update(prd_ste_par_dct)
+        atm_ts_ste_par_dct.update(ts_ste_par_dct)
 
     atm_dct = atoms_from_data(
         atm_symb_dct=atm_symb_dct, atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
-        atm_ste_par_dct=atm_ste_par_dct)
+        atm_ste_par_dct=atm_ste_par_dct,
+        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
+        atm_ts_ste_par_dct=atm_ts_ste_par_dct, ts_=ts_)
     bnd_dct = bonds(gra)
     gra = from_atoms_and_bonds(atm_dct=atm_dct, bnd_dct=bnd_dct)
     return gra
 
 
-def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
+def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, prd_ste_par_dct=None,
+              ts_ste_par_dct=None, check=True):
     """ add bonds to this molecular graph
     """
+    ts_ = is_ts_graph(gra)
     bnd_keys = set(bond_keys(gra))
     bnd_ord_dct = bond_orders(gra)
     bnd_ste_par_dct = bond_stereo_parities(gra)
+    bnd_prd_ste_par_dct = ts_bond_product_stereo_parities(gra)
+    bnd_ts_ste_par_dct = ts_bond_fleeting_stereo_parities(gra)
 
     keys = set(map(frozenset, keys))
     ord_dct = {} if ord_dct is None else ord_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
+    if ts_:
+        prd_ste_par_dct = {} if prd_ste_par_dct is None else prd_ste_par_dct
+        ts_ste_par_dct = {} if ts_ste_par_dct is None else ts_ste_par_dct
 
     ord_dct = dict_.transform_keys(ord_dct, frozenset)
     ste_par_dct = dict_.transform_keys(ste_par_dct, frozenset)
+    if ts_:
+        prd_ste_par_dct = dict_.transform_keys(prd_ste_par_dct, frozenset)
+        ts_ste_par_dct = dict_.transform_keys(ts_ste_par_dct, frozenset)
 
     if check:
         assert not keys & bnd_keys, (
@@ -1571,15 +1620,23 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
 
     assert set(ord_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
+    if ts_:
+        assert set(prd_ste_par_dct.keys()) <= keys
+        assert set(ts_ste_par_dct.keys()) <= keys
 
     bnd_keys.update(keys)
     bnd_ord_dct.update(ord_dct)
     bnd_ste_par_dct.update(ste_par_dct)
+    if ts_:
+        bnd_prd_ste_par_dct.update(prd_ste_par_dct)
+        bnd_ts_ste_par_dct.update(ts_ste_par_dct)
 
     atm_dct = atoms(gra)
     bnd_dct = bonds_from_data(
         bnd_keys=bnd_keys, bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct)
+        bnd_ste_par_dct=bnd_ste_par_dct,
+        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
+        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct, ts_=ts_)
 
     gra = from_atoms_and_bonds(atm_dct=atm_dct, bnd_dct=bnd_dct)
     return gra

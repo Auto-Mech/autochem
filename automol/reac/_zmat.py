@@ -139,7 +139,7 @@ def elimination_ts_zmatrix(rxn, ts_geo):
 
     # 4. Generate a z-matrix for the geometry
     rng_keys, = old_ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    frm_bnd_key, = old_ts.forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     _, brk_bnd_key = elimination_breaking_bond_keys(rxn)
     # Cycle the ring keys such that the atom closest to the forming bond is the
     # beginning of the ring and the other atom is the end
@@ -263,7 +263,7 @@ def insertion_ts_zmatrix(rxn, ts_geo):
 
     # 4. Generate a z-matrix for the geometry
     rng_keys, = old_ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.breaking_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     # Drop one of the forming bonds from the z-matrix by sorting the ring atom
     # keys to exclude it.
     _, frm_bnd_key = insertion_forming_bond_keys(rxn)
@@ -375,7 +375,7 @@ def zmatrix_coordinate_names(zrxn, zma):
 
         return _names
 
-    frm_bnd_keys = old_ts.forming_bond_keys(zrxn.forward_ts_graph)
-    brk_bnd_keys = old_ts.breaking_bond_keys(zrxn.forward_ts_graph)
+    frm_bnd_keys = old_ts.ts_forming_bond_keys(zrxn.forward_ts_graph)
+    brk_bnd_keys = old_ts.ts_breaking_bond_keys(zrxn.forward_ts_graph)
 
     return (_zma_names(zma, frm_bnd_keys), _zma_names(zma, brk_bnd_keys))

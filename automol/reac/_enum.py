@@ -139,11 +139,11 @@ def homolytic_scissions(rct_gras, viable_only=False):
                 prd_gras = sort_reagents(prd_gras)
 
                 forw_tsg = old_ts.graph(rct_gra,
-                                    frm_bnd_keys=[],
-                                    brk_bnd_keys=[brk_bnd_key])
+                                        frm_bnd_keys=[],
+                                        brk_bnd_keys=[brk_bnd_key])
                 back_tsg = old_ts.graph(prds_gra,
-                                    frm_bnd_keys=[brk_bnd_key],
-                                    brk_bnd_keys=[])
+                                        frm_bnd_keys=[brk_bnd_key],
+                                        brk_bnd_keys=[])
 
                 # Create the reaction object
                 rxns.append(Reaction(
@@ -210,11 +210,11 @@ def beta_scissions(rct_gras, viable_only=True):
                 prd_gras = sort_reagents(prd_gras)
 
                 forw_tsg = old_ts.graph(rct_gra,
-                                    frm_bnd_keys=[],
-                                    brk_bnd_keys=[brk_bnd_key])
+                                        frm_bnd_keys=[],
+                                        brk_bnd_keys=[brk_bnd_key])
                 back_tsg = old_ts.graph(prds_gra,
-                                    frm_bnd_keys=[brk_bnd_key],
-                                    brk_bnd_keys=[])
+                                        frm_bnd_keys=[brk_bnd_key],
+                                        brk_bnd_keys=[])
 
                 # Create the reaction object
                 rxns.append(Reaction(
@@ -283,11 +283,11 @@ def ring_forming_scissions(rct_gras, viable_only=True):
                 prd_gras = sort_reagents(prd_gras)
 
                 forw_tsg = old_ts.graph(rct_gra,
-                                    frm_bnd_keys=[frm_bnd_key],
-                                    brk_bnd_keys=[brk_bnd_key])
+                                        frm_bnd_keys=[frm_bnd_key],
+                                        brk_bnd_keys=[brk_bnd_key])
                 back_tsg = old_ts.graph(prds_gra,
-                                    frm_bnd_keys=[brk_bnd_key],
-                                    brk_bnd_keys=[frm_bnd_key])
+                                        frm_bnd_keys=[brk_bnd_key],
+                                        brk_bnd_keys=[frm_bnd_key])
                 # Create the reaction object
                 rxns.append(Reaction(
                     rxn_cls=par.ReactionClass.Typ.RING_FORM_SCISSION,
@@ -451,12 +451,12 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
                     prds_gra = union(q2h_gra, q1_gra)
 
                     forw_tsg = old_ts.graph(rcts_gra,
-                                        frm_bnd_keys=[(att_key, hyd_key)],
-                                        brk_bnd_keys=[(don_key, hyd_key)])
+                                            frm_bnd_keys=[(att_key, hyd_key)],
+                                            brk_bnd_keys=[(don_key, hyd_key)])
 
                     back_tsg = old_ts.graph(prds_gra,
-                                        frm_bnd_keys=[(don_key, hyd_key)],
-                                        brk_bnd_keys=[(att_key, hyd_key)])
+                                            frm_bnd_keys=[(don_key, hyd_key)],
+                                            brk_bnd_keys=[(att_key, hyd_key)])
 
                     rcts_atm_keys = list(map(atom_keys, [q1h_gra, q2_gra]))
                     prds_atm_keys = list(map(atom_keys, [q2h_gra, q1_gra]))
@@ -507,11 +507,11 @@ def additions(rct_gras, viable_only=True):
             prd_gras = [prd_gra]
 
             forw_tsg = old_ts.graph(rcts_gra,
-                                frm_bnd_keys=[frm_bnd_key],
-                                brk_bnd_keys=[])
+                                    frm_bnd_keys=[frm_bnd_key],
+                                    brk_bnd_keys=[])
             back_tsg = old_ts.graph(prd_gra,
-                                frm_bnd_keys=[],
-                                brk_bnd_keys=[frm_bnd_key])
+                                    frm_bnd_keys=[],
+                                    brk_bnd_keys=[frm_bnd_key])
 
             # Create the reaction object
             rxns.append(Reaction(
