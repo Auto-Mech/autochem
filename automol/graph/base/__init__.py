@@ -319,6 +319,7 @@ from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
 # TS graph submodule:
 from automol.graph.base import ts
+from automol.graph.base import old_ts
 
 
 __all__ = [
@@ -620,4 +621,5 @@ __all__ = [
     'radicals_of_type',
     # TS graph submodule:
     'ts',
+    'old_ts',
 ]

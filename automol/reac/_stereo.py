@@ -14,7 +14,7 @@ from automol.reac._reac import forming_bond_keys
 from automol.reac._reac import breaking_bond_keys
 from automol.reac._reac import relabel
 from automol.reac._conv import amchi
-from automol.graph import ts
+from automol.graph import old_ts
 
 
 def add_stereo_from_geometries(rxn, rct_geos, prd_geos):
@@ -49,9 +49,9 @@ def add_stereo_from_geometries(rxn, rct_geos, prd_geos):
 
     rev_rxn = reverse(rxn)
 
-    forw_tsg = automol.graph.ts.graph(
+    forw_tsg = automol.graph.old_ts.graph(
         rcts_gra, forming_bond_keys(rxn), breaking_bond_keys(rxn))
-    back_tsg = automol.graph.ts.graph(
+    back_tsg = automol.graph.old_ts.graph(
         prds_gra, forming_bond_keys(rev_rxn), breaking_bond_keys(rev_rxn))
 
     srxn = Reaction(rxn.class_, forw_tsg, back_tsg,
@@ -174,7 +174,7 @@ def expand_stereo(rxn, enant=True):
     key_dct = atom_mapping(rxn)
 
     srxns = []
-    for forw_ste_tsg, back_ste_tsg in ts.expand_reaction_stereo(forw_tsg,
+    for forw_ste_tsg, back_ste_tsg in old_ts.expand_reaction_stereo(forw_tsg,
                                                                 enant=enant):
         back_ste_tsg = automol.graph.relabel(back_ste_tsg, key_dct)
 
@@ -211,7 +211,7 @@ def stereo_is_physical(srxn):
                      f"{automol.graph.string(srxn.forward_ts_graph)}\n"
                      f"{automol.graph.string(srxn.backward_ts_graph)}\n")
     rtsg_loc = automol.graph.relabel(rtsg_loc, key_dct)
-    return automol.graph.ts.reaction_stereo_is_physical(ftsg_loc, rtsg_loc)
+    return automol.graph.old_ts.reaction_stereo_is_physical(ftsg_loc, rtsg_loc)
 
 
 def is_canonical_enantiomer(srxn):
