@@ -1374,8 +1374,8 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({2, 12}): (0.9, None), frozenset({16, 15}): (1, None),
             frozenset({2, 4}): (1, None), frozenset({8, 1}): (1, None),
             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
-    assert not automol.graph.ts.fleeting_stereogenic_keys(tsg, ts_enant=False)
+    assert automol.graph.old_ts.fleeting_stereogenic_keys(tsg) == {2}
+    assert not automol.graph.old_ts.fleeting_stereogenic_keys(tsg, ts_enant=False)
 
     # CCOC(O[O])C => C[CH]OC(OO)C
     tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
@@ -1392,8 +1392,8 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
             frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
-    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
+    assert automol.graph.old_ts.fleeting_stereogenic_keys(tsg) == {2}
+    assert (automol.graph.old_ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
             {2})
 
     # CCOCC + [OH] => CCO[CH]C + O
@@ -1405,10 +1405,10 @@ def test__ts__fleeting_stereogenic_keys():
             frozenset({3, 6}): (0.1, None), frozenset({2, 4}): (1, None),
             frozenset({1, 5}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({0, 7}): (1, None)})
-    print(automol.graph.ts.fleeting_stereogenic_keys(tsg))
-    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg) ==
+    print(automol.graph.old_ts.fleeting_stereogenic_keys(tsg))
+    assert (automol.graph.old_ts.fleeting_stereogenic_keys(tsg) ==
             {frozenset({0, 1})})
-    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
+    assert (automol.graph.old_ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
             {frozenset({0, 1})})
 
 
@@ -1448,8 +1448,8 @@ def test__ts__are_energetically_equivalent():
              frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
              frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
              frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert not graph.ts.are_equivalent(tsg1, tsg2)
-    assert graph.ts.are_equivalent(tsg1, tsg2, ts_stereo=False)
+    assert not graph.old_ts.are_equivalent(tsg1, tsg2)
+    assert graph.old_ts.are_equivalent(tsg1, tsg2, ts_stereo=False)
 
     # Fleeting enantiomer:
     #       CCOCC + [OH] => C[CH]OCC + O
@@ -1483,18 +1483,18 @@ def test__ts__are_energetically_equivalent():
              frozenset({2, 12}): (0.9, None), frozenset({15, 16}): (1, None),
              frozenset({2, 4}): (1, None), frozenset({1, 8}): (1, None),
              frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert graph.ts.are_equivalent(tsg1, tsg2)
-    assert not graph.ts.are_equivalent(tsg1, tsg2, ts_enant=True)
+    assert graph.old_ts.are_equivalent(tsg1, tsg2)
+    assert not graph.old_ts.are_equivalent(tsg1, tsg2, ts_enant=True)
 
 
 def test__ts__expand_reaction_stereo():
     """ test graph.ts.stereo_expand_reverse_graphs
     """
     gra = C4H5F2O_TSG
-    assert len(graph.ts.expand_reaction_stereo(gra, enant=True)) == 16
+    assert len(graph.old_ts.expand_reaction_stereo(gra, enant=True)) == 16
 
     gra = C4H5F3O2_TSG
-    assert len(graph.ts.expand_reaction_stereo(gra, enant=True)) == 8
+    assert len(graph.old_ts.expand_reaction_stereo(gra, enant=True)) == 8
 
     # CC(OO)C(O[O])C(OO)C => CC(OO)C(OO)C(OO)[CH2]
     gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
@@ -1516,7 +1516,7 @@ def test__ts__expand_reaction_stereo():
             frozenset({0, 2}): (1, None), frozenset({17, 2}): (1, None),
             frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
             frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
-    assert len(graph.ts.expand_reaction_stereo(gra, enant=False)) == 4
+    assert len(graph.old_ts.expand_reaction_stereo(gra, enant=False)) == 4
 
 
 def test__canonical():

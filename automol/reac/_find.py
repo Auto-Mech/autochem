@@ -30,7 +30,7 @@ import automol.geom
 import automol.geom.ts
 import automol.chi
 from automol.par import ReactionClass
-from automol.graph import ts
+from automol.graph import old_ts
 from automol.graph import atom_symbols
 from automol.graph import atom_keys
 from automol.graph import bond_keys
@@ -91,8 +91,8 @@ def trivial(rct_gras, prd_gras):
 
             rxn = Reaction(
                 rxn_cls=ReactionClass.Typ.TRIVIAL,
-                forw_tsg=ts.graph(rcts_gra, [], []),
-                back_tsg=ts.graph(prds_gra, [], []),
+                forw_tsg=old_ts.graph(rcts_gra, [], []),
+                back_tsg=old_ts.graph(prds_gra, [], []),
                 rcts_keys=list(map(atom_keys, rct_gras)),
                 prds_keys=list(map(atom_keys, prd_gras)),
             )
@@ -161,17 +161,17 @@ def hydrogen_migrations(rct_gras, prd_gras):
 
                     for rct_hyd_key, prd_hyd_key in (
                             itertools.product(rct_hyd_keys, prd_hyd_keys)):
-                        forw_tsg = ts.graph(
+                        forw_tsg = old_ts.graph(
                             rct_gra,
                             frm_bnd_keys=[(rct_rad_key, rct_hyd_key)],
                             brk_bnd_keys=[(rct_don_key, rct_hyd_key)])
 
-                        back_tsg = ts.graph(
+                        back_tsg = old_ts.graph(
                             prd_gra,
                             frm_bnd_keys=[(prd_rad_key, prd_hyd_key)],
                             brk_bnd_keys=[(prd_don_key, prd_hyd_key)])
 
-                        if isomorphism(forw_tsg, ts.reverse(back_tsg),
+                        if isomorphism(forw_tsg, old_ts.reverse(back_tsg),
                                        stereo=False):
                             rxn = Reaction(
                                 rxn_cls=ReactionClass.Typ.HYDROGEN_MIGRATION,
@@ -237,10 +237,10 @@ def ring_forming_scissions(rct_gras, prd_gras):
                         f_brk_bnd_key = (inv_dct[end_key], inv_dct[atm_key])
                         b_frm_bnd_key = (end_key, atm_key)
                         b_brk_bnd_key = (end_key, other_end_key)
-                        forw_tsg = ts.graph(rgra,
+                        forw_tsg = old_ts.graph(rgra,
                                             frm_bnd_keys=[f_frm_bnd_key],
                                             brk_bnd_keys=[f_brk_bnd_key])
-                        back_tsg = ts.graph(pgra,
+                        back_tsg = old_ts.graph(pgra,
                                             frm_bnd_keys=[b_frm_bnd_key],
                                             brk_bnd_keys=[b_brk_bnd_key])
 
@@ -315,11 +315,11 @@ def eliminations(rct_gras, prd_gras):
                         b_frm_bnd_key2 = tuple(map(inv_, brk_bnd_2))
                         b_brk_bnd_key = tuple(map(inv_, f_frm_bnd_key))
 
-                        forw_tsg = ts.graph(rct_gra,
+                        forw_tsg = old_ts.graph(rct_gra,
                                             frm_bnd_keys=[f_frm_bnd_key],
                                             brk_bnd_keys=[brk_bnd_1,
                                                           brk_bnd_2])
-                        back_tsg = ts.graph(prds_gra,
+                        back_tsg = old_ts.graph(prds_gra,
                                             frm_bnd_keys=[b_frm_bnd_key1,
                                                           b_frm_bnd_key2],
                                             brk_bnd_keys=[b_brk_bnd_key])
@@ -431,10 +431,10 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                 f_brk_bnd_key = (f_q1h_q_atm_key, f_q1h_h_atm_key)
                 b_frm_bnd_key = (b_q2_q_atm_key, b_q1h_h_atm_key)
                 b_brk_bnd_key = (b_q1h_q_atm_key, b_q1h_h_atm_key)
-                forw_tsg = ts.graph(rcts_gra,
+                forw_tsg = old_ts.graph(rcts_gra,
                                     frm_bnd_keys=[f_frm_bnd_key],
                                     brk_bnd_keys=[f_brk_bnd_key])
-                back_tsg = ts.graph(prds_gra,
+                back_tsg = old_ts.graph(prds_gra,
                                     frm_bnd_keys=[b_frm_bnd_key],
                                     brk_bnd_keys=[b_brk_bnd_key])
 
@@ -487,10 +487,10 @@ def additions(rct_gras, prd_gras):
                 prds_gra = prd_gra
                 f_frm_bnd_key = (x_atm_key, y_atm_key)
                 b_brk_bnd_key = (iso_dct[x_atm_key], iso_dct[y_atm_key])
-                forw_tsg = ts.graph(rcts_gra,
+                forw_tsg = old_ts.graph(rcts_gra,
                                     frm_bnd_keys=[f_frm_bnd_key],
                                     brk_bnd_keys=[])
-                back_tsg = ts.graph(prds_gra,
+                back_tsg = old_ts.graph(prds_gra,
                                     frm_bnd_keys=[],
                                     brk_bnd_keys=[b_brk_bnd_key])
 
@@ -552,10 +552,10 @@ def double_insertion(rct_gras, prd_gras):
                         b_frm_bnd_key = (
                             iso_dct[brk_atm_i],
                             iso_dct[brk_atm_j])
-                        forw_tsg = ts.graph(rcts_gra,
+                        forw_tsg = old_ts.graph(rcts_gra,
                                             frm_bnd_keys=frm_bnd_pairs,
                                             brk_bnd_keys=(brk_bnd_key,))
-                        back_tsg = ts.graph(prds_gra,
+                        back_tsg = old_ts.graph(prds_gra,
                                             brk_bnd_keys=[
                                                 b_brk_bnd_key_i,
                                                 b_brk_bnd_key_j],
@@ -623,10 +623,10 @@ def two_bond_additions(rct_gras, prd_gras):
                     [iso_dct[frm_bnd_keys[0][0]], iso_dct[frm_bnd_keys[0][1]]],
                     [iso_dct[frm_bnd_keys[1][0]], iso_dct[frm_bnd_keys[1][1]]]
                 ]
-                forw_tsg = ts.graph(rcts_gra,
+                forw_tsg = old_ts.graph(rcts_gra,
                                     frm_bnd_keys=frm_bnd_keys,
                                     brk_bnd_keys=[])
-                back_tsg = ts.graph(prds_gra,
+                back_tsg = old_ts.graph(prds_gra,
                                     frm_bnd_keys=[],
                                     brk_bnd_keys=b_brk_bnd_keys)
 
@@ -716,10 +716,10 @@ def substitutions(rct_gras, prd_gras):
                         b_frm_bnd_key = (inv_dct[frm_key], inv_dct[brk_key2])
                         b_brk_bnd_key = (inv_dct[frm_key], inv_dct[rad_key])
 
-                        forw_tsg = ts.graph(rct_gra,
+                        forw_tsg = old_ts.graph(rct_gra,
                                             frm_bnd_keys=[f_frm_bnd_key],
                                             brk_bnd_keys=[f_brk_bnd_key])
-                        back_tsg = ts.graph(prd_gra,
+                        back_tsg = old_ts.graph(prd_gra,
                                             frm_bnd_keys=[b_frm_bnd_key],
                                             brk_bnd_keys=[b_brk_bnd_key])
 

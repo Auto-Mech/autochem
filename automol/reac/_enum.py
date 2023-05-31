@@ -5,7 +5,7 @@
 import itertools
 from automol import par
 from automol.util import dict_
-from automol.graph import ts
+from automol.graph import old_ts
 from automol.graph import relabel
 from automol.graph import union
 from automol.graph import atom_symbols
@@ -77,12 +77,12 @@ def hydrogen_migrations(rct_gras, viable_only=True):
                     prd_gra = remove_atoms(rct_h_gra, {rct_hyd_key})
                     prd_gra = relabel(prd_gra, {rct_add_key: rct_hyd_key})
 
-                    forw_tsg = ts.graph(
+                    forw_tsg = old_ts.graph(
                         rct_gra,
                         frm_bnd_keys=[(rct_rad_key, rct_hyd_key)],
                         brk_bnd_keys=[(rct_don_key, rct_hyd_key)])
 
-                    back_tsg = ts.graph(
+                    back_tsg = old_ts.graph(
                         prd_gra,
                         frm_bnd_keys=[(rct_don_key, rct_hyd_key)],
                         brk_bnd_keys=[(rct_rad_key, rct_hyd_key)])
@@ -138,10 +138,10 @@ def homolytic_scissions(rct_gras, viable_only=False):
             if len(prd_gras) == 2:
                 prd_gras = sort_reagents(prd_gras)
 
-                forw_tsg = ts.graph(rct_gra,
+                forw_tsg = old_ts.graph(rct_gra,
                                     frm_bnd_keys=[],
                                     brk_bnd_keys=[brk_bnd_key])
-                back_tsg = ts.graph(prds_gra,
+                back_tsg = old_ts.graph(prds_gra,
                                     frm_bnd_keys=[brk_bnd_key],
                                     brk_bnd_keys=[])
 
@@ -209,10 +209,10 @@ def beta_scissions(rct_gras, viable_only=True):
             if len(prd_gras) == 2:
                 prd_gras = sort_reagents(prd_gras)
 
-                forw_tsg = ts.graph(rct_gra,
+                forw_tsg = old_ts.graph(rct_gra,
                                     frm_bnd_keys=[],
                                     brk_bnd_keys=[brk_bnd_key])
-                back_tsg = ts.graph(prds_gra,
+                back_tsg = old_ts.graph(prds_gra,
                                     frm_bnd_keys=[brk_bnd_key],
                                     brk_bnd_keys=[])
 
@@ -282,10 +282,10 @@ def ring_forming_scissions(rct_gras, viable_only=True):
             if len(prd_gras) == 2:
                 prd_gras = sort_reagents(prd_gras)
 
-                forw_tsg = ts.graph(rct_gra,
+                forw_tsg = old_ts.graph(rct_gra,
                                     frm_bnd_keys=[frm_bnd_key],
                                     brk_bnd_keys=[brk_bnd_key])
-                back_tsg = ts.graph(prds_gra,
+                back_tsg = old_ts.graph(prds_gra,
                                     frm_bnd_keys=[brk_bnd_key],
                                     brk_bnd_keys=[frm_bnd_key])
                 # Create the reaction object
@@ -374,12 +374,12 @@ def eliminations(rct_gras, viable_only=True):
                 prd_gras = connected_components(prds_gra)
 
                 if len(prd_gras) == 2:
-                    forw_tsg = ts.graph(
+                    forw_tsg = old_ts.graph(
                         rct_gra,
                         frm_bnd_keys=[(frm1_key, frm2_key)],
                         brk_bnd_keys=[brk_keys1,
                                       brk_keys2])
-                    back_tsg = ts.graph(
+                    back_tsg = old_ts.graph(
                         prds_gra,
                         frm_bnd_keys=[brk_keys1,
                                       brk_keys2],
@@ -450,11 +450,11 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
                     rcts_gra = union(q1h_gra, q2_gra)
                     prds_gra = union(q2h_gra, q1_gra)
 
-                    forw_tsg = ts.graph(rcts_gra,
+                    forw_tsg = old_ts.graph(rcts_gra,
                                         frm_bnd_keys=[(att_key, hyd_key)],
                                         brk_bnd_keys=[(don_key, hyd_key)])
 
-                    back_tsg = ts.graph(prds_gra,
+                    back_tsg = old_ts.graph(prds_gra,
                                         frm_bnd_keys=[(don_key, hyd_key)],
                                         brk_bnd_keys=[(att_key, hyd_key)])
 
@@ -506,10 +506,10 @@ def additions(rct_gras, viable_only=True):
             prd_gra = add_bonds(rcts_gra, [frm_bnd_key])
             prd_gras = [prd_gra]
 
-            forw_tsg = ts.graph(rcts_gra,
+            forw_tsg = old_ts.graph(rcts_gra,
                                 frm_bnd_keys=[frm_bnd_key],
                                 brk_bnd_keys=[])
-            back_tsg = ts.graph(prd_gra,
+            back_tsg = old_ts.graph(prd_gra,
                                 frm_bnd_keys=[],
                                 brk_bnd_keys=[frm_bnd_key])
 
@@ -597,12 +597,12 @@ def insertions(rct_gras, viable_only=True):
                     prd_gras = connected_components(prds_gra)
 
                     if len(prd_gras) == 1:
-                        forw_tsg = ts.graph(
+                        forw_tsg = old_ts.graph(
                             rcts_gra,
                             frm_bnd_keys=[(att1_key, don1_key),
                                           (att2_key, don2_key)],
                             brk_bnd_keys=[(don1_key, don2_key)])
-                        back_tsg = ts.graph(
+                        back_tsg = old_ts.graph(
                             prds_gra,
                             frm_bnd_keys=[(don1_key, don2_key)],
                             brk_bnd_keys=[(att1_key, don1_key),
