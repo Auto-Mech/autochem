@@ -48,6 +48,10 @@ from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import set_atom_implicit_hydrogen_valences
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
+from automol.graph.base._core import set_ts_atom_product_stereo_parities
+from automol.graph.base._core import set_ts_atom_fleeting_stereo_parities
+from automol.graph.base._core import set_ts_bond_product_stereo_parities
+from automol.graph.base._core import set_ts_bond_fleeting_stereo_parities
 from automol.graph.base._core import set_stereo_parities
 # # I/O
 from automol.graph.base._core import string
@@ -345,6 +349,10 @@ __all__ = [
     'set_atom_implicit_hydrogen_valences',
     'set_atom_stereo_parities',
     'set_bond_stereo_parities',
+    'set_ts_atom_product_stereo_parities',
+    'set_ts_atom_fleeting_stereo_parities',
+    'set_ts_bond_product_stereo_parities',
+    'set_ts_bond_fleeting_stereo_parities',
     'set_stereo_parities',
     # # I/O
     'string',
