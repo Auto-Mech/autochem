@@ -93,7 +93,7 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
     """
     symb_dct = symbols(chi)
     bnd_keys = bonds(chi)
-    atm_imp_hyd_vlc_dct = hydrogen_valences(chi)
+    atm_imp_hyd_dct = hydrogen_valences(chi)
 
     if isotope_layers(chi):
         raise NotImplementedError("Isotopic graph conversion not implemented")
@@ -110,7 +110,7 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
     gra = automol.graph.from_data(
         atm_symb_dct=symb_dct,
         bnd_keys=bnd_keys,
-        atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
+        atm_imp_hyd_dct=atm_imp_hyd_dct,
         atm_ste_par_dct=atm_ste_par_dct,
         bnd_ste_par_dct=bnd_ste_par_dct,
     )

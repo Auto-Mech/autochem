@@ -111,8 +111,7 @@ def test__from_data():
     tsg = graph.from_data(
         atm_symb_dct=graph.atom_symbols(C4H9O3_TSG),
         bnd_keys=graph.bond_keys(C4H9O3_TSG),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C4H9O3_TSG)),
+        atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C4H9O3_TSG),
         atm_ste_par_dct=graph.atom_stereo_parities(C4H9O3_TSG),
         atm_prd_ste_par_dct=graph.ts_atom_product_stereo_parities(C4H9O3_TSG),
         atm_ts_ste_par_dct=graph.ts_atom_fleeting_stereo_parities(C4H9O3_TSG),
@@ -145,7 +144,7 @@ def test__setters():
     """
     atm_symbs = numpy.array(list('CHON'))
     bnd_ords = numpy.arange(1, 4)
-    atm_imp_hyd_vlcs = numpy.arange(0, 4)
+    atm_imp_hyds = numpy.arange(0, 4)
     pars = numpy.array([None, True, False])
 
     print("\nTesting setters for a TS graph...")
@@ -175,15 +174,14 @@ def test__setters():
     assert orig_gra == graph.set_bond_orders(gra, orig_bnd_ord_dct)
 
     # atom implicit hydrogen valences
-    orig_atm_imp_hyd_vlc_dct = graph.atom_implicit_hydrogen_valences(orig_gra)
-    atm_imp_hyd_vlc_dct = dict(
-        zip(atm_keys, numpy.random.choice(atm_imp_hyd_vlcs, size=natms)))
-    gra = graph.set_atom_implicit_hydrogen_valences(
-        orig_gra, atm_imp_hyd_vlc_dct)
-    print(atm_imp_hyd_vlc_dct)
-    assert atm_imp_hyd_vlc_dct == graph.atom_implicit_hydrogen_valences(gra)
-    assert orig_gra == graph.set_atom_implicit_hydrogen_valences(
-        gra, orig_atm_imp_hyd_vlc_dct)
+    orig_atm_imp_hyd_dct = graph.atom_implicit_hydrogens(orig_gra)
+    atm_imp_hyd_dct = dict(
+        zip(atm_keys, numpy.random.choice(atm_imp_hyds, size=natms)))
+    gra = graph.set_atom_implicit_hydrogens(orig_gra, atm_imp_hyd_dct)
+    print(atm_imp_hyd_dct)
+    assert atm_imp_hyd_dct == graph.atom_implicit_hydrogens(gra)
+    assert orig_gra == graph.set_atom_implicit_hydrogens(
+        gra, orig_atm_imp_hyd_dct)
 
     # atom stereo parities
     orig_atm_par_dct = graph.atom_stereo_parities(orig_gra)

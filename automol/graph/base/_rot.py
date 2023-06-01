@@ -10,7 +10,7 @@ from automol.graph.base._kekule import kekules_bond_orders_collated
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import atom_symbols
-from automol.graph.base._core import atom_implicit_hydrogen_valences
+from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import explicit
 from automol.graph.base._core import implicit
 from automol.graph.base._core import without_dummy_atoms
@@ -109,7 +109,7 @@ def rotational_symmetry_number(gra, key1, key2, lin_keys=None):
     :param key2: the second atom key
     """
     ngb_keys_dct = atoms_neighbor_atom_keys(without_dummy_atoms(gra))
-    imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(implicit(gra))
+    imp_hyd_dct = atom_implicit_hydrogens(implicit(gra))
 
     axis_keys = {key1, key2}
     # If the keys are part of a linear chain, use the ends of that for the
@@ -127,9 +127,9 @@ def rotational_symmetry_number(gra, key1, key2, lin_keys=None):
 
     sym_num = 1
     for key in (key1, key2):
-        if key in imp_hyd_vlc_dct:
+        if key in imp_hyd_dct:
             ngb_keys = ngb_keys_dct[key] - axis_keys
-            if len(ngb_keys) == imp_hyd_vlc_dct[key] == 3:
+            if len(ngb_keys) == imp_hyd_dct[key] == 3:
                 sym_num = 3
                 break
     return sym_num
@@ -149,7 +149,7 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
     neighbor to the special bonding atom (the atom that is being transferred)
     """
     imp_gra = implicit(gra)
-    atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(imp_gra)
+    atm_imp_hyd_dct = atom_implicit_hydrogens(imp_gra)
 
     bnd_keys = bond_keys(imp_gra)
 
@@ -176,7 +176,7 @@ def bond_symmetry_numbers(gra, frm_bnd_key=None, brk_bnd_key=None):
     bnd_symb_nums = []
     for bnd_key in bnd_keys:
         bnd_sym = 1
-        vlc = max(map(atm_imp_hyd_vlc_dct.__getitem__, bnd_key))
+        vlc = max(map(atm_imp_hyd_dct.__getitem__, bnd_key))
         if vlc == 3:
             bnd_sym = 3
             if tfr_atm:

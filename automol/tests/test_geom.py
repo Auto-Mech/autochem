@@ -99,23 +99,23 @@ H        0.4659939252      0.6943122175     -1.1366628384
 HABS_ZRXN_STR1 = """
 reaction class: hydrogen abstraction
 forward TS atoms:
-  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  2: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  9: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  10: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  11: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  15: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
-  16: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  17: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  1: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  2: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  9: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  10: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  11: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  15: {symbol: X, implicit_hydrogens: 0, stereo_parity: null}
+  16: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  17: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
 forward TS bonds:
   1-2: {order: 1, stereo_parity: null}
   1-3: {order: 1, stereo_parity: null}
@@ -137,22 +137,22 @@ reactants keys:
 - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 - [16, 17]
 backward TS atoms:
-  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  5: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  6: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  7: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  8: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  9: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  10: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  11: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  12: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  13: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  14: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  15: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  16: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  1: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  5: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  6: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  7: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  8: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  9: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  10: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  11: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  12: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  13: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  14: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  15: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  16: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
 backward TS bonds:
   1-2: {order: 0.9, stereo_parity: null}
   1-3: {order: 1, stereo_parity: null}
@@ -196,14 +196,14 @@ HABS_GEO1 = (
 HABS_ZRXN_STR2 = """
 reaction class: hydrogen abstraction
 forward TS atoms:
-  1: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  4: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  6: {symbol: X, implicit_hydrogen_valence: 0, stereo_parity: null}
-  7: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  8: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  1: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  4: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  6: {symbol: X, implicit_hydrogens: 0, stereo_parity: null}
+  7: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  8: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
 forward TS bonds:
   1-2: {order: 1, stereo_parity: null}
   1-3: {order: 1, stereo_parity: null}
@@ -216,13 +216,13 @@ reactants keys:
 - [1, 2, 3, 4, 5, 6]
 - [7, 8]
 backward TS atoms:
-  1: {symbol: O, implicit_hydrogen_valence: 0, stereo_parity: null}
-  2: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  3: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  4: {symbol: C, implicit_hydrogen_valence: 0, stereo_parity: null}
-  5: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  6: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
-  7: {symbol: H, implicit_hydrogen_valence: 0, stereo_parity: null}
+  1: {symbol: O, implicit_hydrogens: 0, stereo_parity: null}
+  2: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  3: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  4: {symbol: C, implicit_hydrogens: 0, stereo_parity: null}
+  5: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  6: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
+  7: {symbol: H, implicit_hydrogens: 0, stereo_parity: null}
 backward TS bonds:
   1-2: {order: 1, stereo_parity: null}
   1-3: {order: 0.9, stereo_parity: null}
@@ -751,3 +751,4 @@ if __name__ == '__main__':
     # test__inchi_with_sort()
     # test__amchi_with_sort()
     # test__chi_with_sort()
+    test__argunique_coulomb_spectrum()

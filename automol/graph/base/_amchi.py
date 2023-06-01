@@ -9,7 +9,7 @@ import automol.amchi.base
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import formula
-from automol.graph.base._core import atom_implicit_hydrogen_valences
+from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import implicit
 from automol.graph.base._core import relabel
 from automol.graph.base._core import atom_stereo_keys
@@ -201,7 +201,7 @@ def _hydrogen_layer(gra):
         :rtype: str
     """
     # Determine hydrogen counts
-    nhyd_dct = atom_implicit_hydrogen_valences(gra)
+    nhyd_dct = atom_implicit_hydrogens(gra)
     all_keys = sorted(atom_keys(gra), key=nhyd_dct.__getitem__)
     grps = [(nh, sorted(k+1 for k in ks)) for nh, ks in
             itertools.groupby(all_keys, key=nhyd_dct.__getitem__) if nh > 0]

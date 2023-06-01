@@ -3,7 +3,7 @@
 Data structure:
     gra = (atm_dct, bnd_dct)
     atm_dct := {
-        atm_key: (symb, imp_hyd_vlc, ste_par),
+        atm_key: (symb, imp_hyd, ste_par),
         ...
     }
     bnd_dct := {
@@ -38,14 +38,14 @@ BND_STE_PAR_POS = 1
 TS_BND_PRD_STE_PAR_POS = 2
 TS_BND_FLE_STE_PAR_POS = 3
 
-ATM_PROP_NAMES = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity',
+ATM_PROP_NAMES = ('symbol', 'implicit_hydrogens', 'stereo_parity',
                   'prod_stereo_parity', 'ts_stereo_parity')
 BND_PROP_NAMES = ('order', 'stereo_parity',
                   'prod_stereo_parity', 'ts_stereo_parity')
 
 
 # # constructors
-def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
+def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
               atm_ste_par_dct=None,
               atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
               bnd_ord_dct=None, bnd_ste_par_dct=None,
@@ -56,7 +56,7 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
     Ordinary graph data structure:
         gra = (atm_dct, bnd_dct)
         atm_dct := {
-            atm_key: (symb, imp_hyd_vlc, ste_par),
+            atm_key: (symb, imp_hyd, ste_par),
             ...
         }
         bnd_dct := {
@@ -68,7 +68,7 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
     TS graph data structure:
         gra = (atm_dct, bnd_dct)
         atm_dct := {
-            atm_key: (symb, imp_hyd_vlc, ste_par, prd_ste_par, ts_ste_par),
+            atm_key: (symb, imp_hyd, ste_par, prd_ste_par, ts_ste_par),
             ...
         }
         bnd_dct := {
@@ -81,9 +81,9 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
     :type atm_symb_dct: dict
     :param bnd_keys: bond keys
     :type bnd_keys: set
-    :param atm_imp_hyd_vlc_dct: the number of implicit hydrogens associated
+    :param atm_imp_hyd_dct: the number of implicit hydrogens associated
         with each atom, by atom key
-    :type atm_imp_hyd_vlc_dct: dict
+    :type atm_imp_hyd_dct: dict
     :param atm_ste_par_dct: stereo parities, by atom key; (in TS graphs,
         reactant stereo parities)
     :type atm_ste_par_dct: dict
@@ -137,7 +137,7 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
 
     atm_dct = atoms_from_data(
         atm_symb_dct=atm_symb_dct,
-        atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
+        atm_imp_hyd_dct=atm_imp_hyd_dct,
         atm_ste_par_dct=atm_ste_par_dct,
         atm_prd_ste_par_dct=atm_prd_ste_par_dct,
         atm_ts_ste_par_dct=atm_ts_ste_par_dct,
@@ -160,29 +160,28 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_vlc_dct=None,
     return (atm_dct, bnd_dct)
 
 
-def atoms_from_data(atm_symb_dct, atm_imp_hyd_vlc_dct=None,
-                    atm_ste_par_dct=None,
+def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
                     atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
                     ts_=False):
     """ Construct an atom dictionary from constituent data.
 
     Ordinary graph data structure:
         atm_dct := {
-            atm_key: (symb, imp_hyd_vlc, ste_par),
+            atm_key: (symb, imp_hyd, ste_par),
             ...
         }
 
     TS graph data structure:
         atm_dct := {
-            atm_key: (symb, imp_hyd_vlc, ste_par, prd_ste_par, ts_ste_par),
+            atm_key: (symb, imp_hyd, ste_par, prd_ste_par, ts_ste_par),
             ...
         }
 
     :param atm_symb_dct: atomic symbols, by atom key
     :type atm_symb_dct: dict
-    :param atm_imp_hyd_vlc_dct: the number of implicit hydrogens associated
+    :param atm_imp_hyd_dct: the number of implicit hydrogens associated
         with each atom, by atom key
-    :type atm_imp_hyd_vlc_dct: dict
+    :type atm_imp_hyd_dct: dict
     :param atm_ste_par_dct: stereo parities, by atom key; (in TS graphs,
         reactant stereo parities)
     :type atm_ste_par_dct: dict
@@ -200,7 +199,7 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_vlc_dct=None,
     keys = sorted(atm_symb_dct.keys())
     symbs = dict_.values_by_key(atm_symb_dct, keys)
     vlcs = dict_.values_by_key(
-        dict_.empty_if_none(atm_imp_hyd_vlc_dct), keys, fill_val=0)
+        dict_.empty_if_none(atm_imp_hyd_dct), keys, fill_val=0)
     pars = dict_.values_by_key(
         dict_.empty_if_none(atm_ste_par_dct), keys, fill_val=None)
     if ts_:
@@ -359,7 +358,7 @@ def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=None):
     atm_keys = sorted(atm_dct.keys())
     atm_symb_dct = (
         mdict.by_key_by_position(atm_dct, atm_keys, ATM_SYM_POS))
-    atm_imp_hyd_vlc_dct = (
+    atm_imp_hyd_dct = (
         mdict.by_key_by_position(atm_dct, atm_keys, ATM_IMP_HYD_POS))
     atm_ste_par_dct = (
         mdict.by_key_by_position(atm_dct, atm_keys, ATM_STE_PAR_POS))
@@ -385,7 +384,7 @@ def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=None):
 
     return from_data(
         atm_symb_dct, bnd_dct.keys(),
-        atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
+        atm_imp_hyd_dct=atm_imp_hyd_dct,
         atm_ste_par_dct=atm_ste_par_dct,
         atm_prd_ste_par_dct=atm_prd_ste_par_dct,
         atm_ts_ste_par_dct=atm_ts_ste_par_dct,
@@ -482,7 +481,7 @@ def bond_orders(gra, ts_=True):
     return mdict.by_key_by_position(bonds(gra), bond_keys(gra), BND_ORD_POS)
 
 
-def atom_implicit_hydrogen_valences(gra):
+def atom_implicit_hydrogens(gra):
     """ Get the implicit hydrogen valences of atoms in this molecular graph, as
         a dictionary
 
@@ -702,19 +701,19 @@ def set_bond_orders(gra, bnd_ord_dct):
     return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
 
-def set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct):
+def set_atom_implicit_hydrogens(gra, atm_imp_hyd_dct):
     """ Set the implicit hydrogen valences of atoms in this molecular graph, as
         a dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param atm_imp_hyd_vlc_dct: A dictionary of implicit hydrogen valences, by
+    :param atm_imp_hyd_dct: A dictionary of implicit hydrogen valences, by
         atom key
-    :type atm_imp_hyd_vlc_dct: dict[int: int]
+    :type atm_imp_hyd_dct: dict[int: int]
     :returns: A molecular graph
     :rtype: atomol graph data structure
     """
-    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_imp_hyd_vlc_dct,
+    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_imp_hyd_dct,
                                            ATM_IMP_HYD_POS)
     bnd_dct = bonds(gra)
     return from_atoms_and_bonds(atm_dct, bnd_dct)
@@ -1025,8 +1024,8 @@ def atom_count(gra, symb=None, heavy_only=False, dummy=False,
     natms = len(symbs) if symb is None else symbs.count(symb)
 
     if with_implicit and symb in ('H', None) and not heavy_only:
-        atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
-        natms += sum(atm_imp_hyd_vlc_dct.values())
+        atm_imp_hyd_dct = atom_implicit_hydrogens(gra)
+        natms += sum(atm_imp_hyd_dct.values())
 
     return natms
 
@@ -1164,7 +1163,12 @@ def has_stereo(gra, ts_all=False):
 
 
 def has_fractional_bonds(gra):
-    """ does this graph have any fractional (non-integer-order) bonds?
+    """ Does this graph have any fractional (non-integer-order) bonds?
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
     """
     ords = bond_orders(gra).values()
     return any(o != round(o) for o in ords)
@@ -1190,7 +1194,12 @@ def is_ts_graph(gra):
 
 
 def atomic_numbers(gra):
-    """ atomic numbers, by atom
+    """ Get atomic numbers for atoms in this graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of atomic numbers, by atom key
+    :rtype: dict[int: str]
     """
     symb_dct = atom_symbols(gra)
     anum_dct = dict_.transform_values(symb_dct, ptab.to_number)
@@ -1198,7 +1207,12 @@ def atomic_numbers(gra):
 
 
 def mass_numbers(gra):
-    """ mass numbers, by atom
+    """ Get mass numbers for atoms in this graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of mass numbers, by atom key
+    :rtype: dict[int: str]
     """
     symb_dct = atom_symbols(gra)
     mnum_dct = dict_.transform_values(symb_dct, ptab.to_mass_number)
@@ -1469,11 +1483,10 @@ def terminal_atom_keys(gra, heavy=True):
     if heavy:
         gra = implicit(gra)
 
-    atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
+    atm_imp_hyd_dct = atom_implicit_hydrogens(gra)
     atm_keys = [key for key, ngb_keys in atoms_neighbor_atom_keys(gra).items()
                 if len(ngb_keys) <= 1]
-    atm_keys = sorted(atm_keys, key=atm_imp_hyd_vlc_dct.__getitem__,
-                      reverse=True)
+    atm_keys = sorted(atm_keys, key=atm_imp_hyd_dct.__getitem__, reverse=True)
     atm_symbs = dict_.values_by_key(atom_symbols(gra), atm_keys)
     srt = automol.formula.argsort_symbols(atm_symbs, symbs_first=('C',))
     atm_keys = frozenset(map(atm_keys.__getitem__, srt))
@@ -1637,7 +1650,7 @@ def negate_hydrogen_keys(gra):
 
 
 # # add/remove/insert/without
-def add_atoms(gra, symb_dct, imp_hyd_vlc_dct=None, ste_par_dct=None,
+def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
               prd_ste_par_dct=None, ts_ste_par_dct=None):
     """ Add atoms to this molecular graph
 
@@ -1645,9 +1658,9 @@ def add_atoms(gra, symb_dct, imp_hyd_vlc_dct=None, ste_par_dct=None,
     :type gra: automol graph data structure
     :param symb_dct: atomic symbols, by atom key
     :type symb_dct: dict
-    :param imp_hyd_vlc_dct: the number of implicit hydrogens associated with
+    :param imp_hyd_dct: the number of implicit hydrogens associated with
         each atom, by atom key
-    :type imp_hyd_vlc_dct: dict
+    :type imp_hyd_dct: dict
     :param ste_par_dct: stereo parities, by atom key; (in TS graphs, reactant
         stereo parities)
     :type ste_par_dct: dict
@@ -1663,34 +1676,34 @@ def add_atoms(gra, symb_dct, imp_hyd_vlc_dct=None, ste_par_dct=None,
     ts_ = is_ts_graph(gra)
     atm_keys = atom_keys(gra)
     atm_symb_dct = atom_symbols(gra)
-    atm_imp_hyd_vlc_dct = atom_implicit_hydrogen_valences(gra)
+    atm_imp_hyd_dct = atom_implicit_hydrogens(gra)
     atm_ste_par_dct = atom_stereo_parities(gra)
     atm_prd_ste_par_dct = ts_atom_product_stereo_parities(gra)
     atm_ts_ste_par_dct = ts_atom_fleeting_stereo_parities(gra)
 
     keys = set(symb_dct.keys())
-    imp_hyd_vlc_dct = {} if imp_hyd_vlc_dct is None else imp_hyd_vlc_dct
+    imp_hyd_dct = {} if imp_hyd_dct is None else imp_hyd_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
     if ts_:
         prd_ste_par_dct = {} if prd_ste_par_dct is None else prd_ste_par_dct
         ts_ste_par_dct = {} if ts_ste_par_dct is None else ts_ste_par_dct
 
     assert not keys & atm_keys
-    assert set(imp_hyd_vlc_dct.keys()) <= keys
+    assert set(imp_hyd_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
     if ts_:
         assert set(prd_ste_par_dct.keys()) <= keys
         assert set(ts_ste_par_dct.keys()) <= keys
 
     atm_symb_dct.update(symb_dct)
-    atm_imp_hyd_vlc_dct.update(imp_hyd_vlc_dct)
+    atm_imp_hyd_dct.update(imp_hyd_dct)
     atm_ste_par_dct.update(ste_par_dct)
     if ts_:
         atm_prd_ste_par_dct.update(prd_ste_par_dct)
         atm_ts_ste_par_dct.update(ts_ste_par_dct)
 
     atm_dct = atoms_from_data(
-        atm_symb_dct=atm_symb_dct, atm_imp_hyd_vlc_dct=atm_imp_hyd_vlc_dct,
+        atm_symb_dct=atm_symb_dct, atm_imp_hyd_dct=atm_imp_hyd_dct,
         atm_ste_par_dct=atm_ste_par_dct,
         atm_prd_ste_par_dct=atm_prd_ste_par_dct,
         atm_ts_ste_par_dct=atm_ts_ste_par_dct, ts_=ts_)
@@ -1799,36 +1812,36 @@ def remove_bond_stereo_parities(gra, bnd_keys):
     return set_bond_stereo_parities(gra, {k: None for k in bnd_keys})
 
 
-def add_atom_implicit_hydrogens(gra, imp_hyd_count_dct):
+def add_atom_implicit_hydrogens(gra, imp_hyd_change_dct):
     """ add atom imlicit hydrogen valences
 
         :param gra: molecular graph
         :type gra: automol graph data structure
-        :param imp_hyd_count_dct: A dictionary telling how many implicit
+        :param imp_hyd_change_dct: A dictionary telling how many implicit
             hydrogens to add (positive integer) or remove (negative integer)
             for each atom.
-        :type imp_hyd_count_dct: dict[int: int]
+        :type imp_hyd_change_dct: dict[int: int]
         :returns: The resulting molecular graph
     """
-    atm_keys = list(imp_hyd_count_dct.keys())
-    atm_imp_hyd_vlcs = numpy.add(
-        dict_.values_by_key(atom_implicit_hydrogen_valences(gra), atm_keys),
-        dict_.values_by_key(imp_hyd_count_dct, atm_keys))
-    assert all(atm_imp_hyd_vlc >= 0 for atm_imp_hyd_vlc in atm_imp_hyd_vlcs)
-    atm_imp_hyd_vlc_dct = dict_.transform_values(
-        dict(zip(atm_keys, atm_imp_hyd_vlcs)), int)
-    return set_atom_implicit_hydrogen_valences(gra, atm_imp_hyd_vlc_dct)
+    atm_keys = list(imp_hyd_change_dct.keys())
+    atm_imp_hyds = numpy.add(
+        dict_.values_by_key(atom_implicit_hydrogens(gra), atm_keys),
+        dict_.values_by_key(imp_hyd_change_dct, atm_keys))
+    assert all(atm_imp_hyd >= 0 for atm_imp_hyd in atm_imp_hyds)
+    atm_imp_hyd_dct = dict_.transform_values(
+        dict(zip(atm_keys, atm_imp_hyds)), int)
+    return set_atom_implicit_hydrogens(gra, atm_imp_hyd_dct)
 
 
 def add_atom_explicit_hydrogens(gra, exp_hyd_keys_dct):
     """ add explicit hydrogens by atom
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param imp_hyd_count_dct: A dictionary telling how many implicit
-            hydrogens to add (positive integer) or remove (negative integer)
-            for each atom.
-        :type imp_hyd_count_dct: dict[int: int]
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param exp_hyd_keys_dct: A dictionary of new keys for explicit hydrogens to
+        be added. The keys of this dictionary are the parent atoms (already in
+        `gra`) that these new hydrogens will be connected to.
+    :type exp_hyd_keys_dct: dict[int: frozenset]
     """
     assert set(exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
         f'{set(exp_hyd_keys_dct.keys())}'
@@ -1845,7 +1858,7 @@ def add_atom_explicit_hydrogens(gra, exp_hyd_keys_dct):
     return gra
 
 
-def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
+def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd=None,
                     atm_ste_par=None, bnd_ord=None, bnd_ste_par=None):
     """ add a single atom with a bond to an atom already in the graph
     """
@@ -1854,12 +1867,11 @@ def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
     bnd_atm_key = max(atm_keys) + 1 if bnd_atm_key is None else bnd_atm_key
 
     symb_dct = {bnd_atm_key: sym}
-    imp_hyd_vlc_dct = ({bnd_atm_key: imp_hyd_vlc}
-                       if imp_hyd_vlc is not None else None)
+    imp_hyd_dct = ({bnd_atm_key: imp_hyd} if imp_hyd is not None else None)
     atm_ste_par_dct = ({bnd_atm_key: atm_ste_par}
                        if atm_ste_par is not None else None)
 
-    gra = add_atoms(gra, symb_dct, imp_hyd_vlc_dct=imp_hyd_vlc_dct,
+    gra = add_atoms(gra, symb_dct, imp_hyd_dct=imp_hyd_dct,
                     ste_par_dct=atm_ste_par_dct)
 
     bnd_key = frozenset({bnd_atm_key, atm_key})
@@ -1873,7 +1885,7 @@ def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
     return gra
 
 
-def insert_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
+def insert_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd=None,
                        atm_ste_par=None, bnd_ord=None, bnd_ste_par=None):
     """ insert a single atom with a bond to an atom already in the graph
 
@@ -1883,7 +1895,7 @@ def insert_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd_vlc=None,
     bnd_atm_key_ = max(keys) + 1
 
     gra = add_bonded_atom(gra, sym, atm_key, bnd_atm_key=bnd_atm_key_,
-                          imp_hyd_vlc=imp_hyd_vlc, atm_ste_par=atm_ste_par,
+                          imp_hyd=imp_hyd, atm_ste_par=atm_ste_par,
                           bnd_ord=bnd_ord, bnd_ste_par=bnd_ste_par)
     if bnd_atm_key != bnd_atm_key_:
         assert bnd_atm_key in keys
@@ -2030,18 +2042,17 @@ def explicit(gra, atm_keys=None):
     """
     atm_keys = backbone_keys(gra) if atm_keys is None else atm_keys
     atm_keys = sorted(atm_keys)
-    atm_imp_hyd_vlc_dct = dict_.by_key(
-        atom_implicit_hydrogen_valences(gra), atm_keys)
+    atm_imp_hyd_dct = dict_.by_key(atom_implicit_hydrogens(gra), atm_keys)
 
     atm_exp_hyd_keys_dct = {}
     next_atm_key = max(atom_keys(gra)) + 1
     for atm_key in atm_keys:
-        imp_hyd_vlc = atm_imp_hyd_vlc_dct[atm_key]
+        imp_hyd = atm_imp_hyd_dct[atm_key]
         atm_exp_hyd_keys_dct[atm_key] = set(
-            range(next_atm_key, next_atm_key+imp_hyd_vlc))
-        next_atm_key += imp_hyd_vlc
+            range(next_atm_key, next_atm_key+imp_hyd))
+        next_atm_key += imp_hyd
 
-    gra = set_atom_implicit_hydrogen_valences(
+    gra = set_atom_implicit_hydrogens(
         gra, dict_.by_key({}, atm_keys, fill_val=0))
     gra = add_atom_explicit_hydrogens(gra, atm_exp_hyd_keys_dct)
     return gra
@@ -2068,7 +2079,7 @@ def explicit_bond_stereo_hydrogens(gra):
     """
     bnd_keys = bond_stereo_keys(gra)
     nkeys_dct = atoms_neighbor_atom_keys(gra)
-    nhyd_dct = atom_implicit_hydrogen_valences(gra)
+    nhyd_dct = atom_implicit_hydrogens(gra)
     next_key = max(atom_keys(gra)) + 1
     for bnd_key in bnd_keys:
         key1, key2 = bnd_key
@@ -2078,7 +2089,7 @@ def explicit_bond_stereo_hydrogens(gra):
             if not nkeys:
                 assert nhyd_dct[key] == 1
                 gra = add_bonded_atom(gra, 'H', key, next_key)
-                gra = set_atom_implicit_hydrogen_valences(gra, {key: 0})
+                gra = set_atom_implicit_hydrogens(gra, {key: 0})
 
                 next_key += 1
 
