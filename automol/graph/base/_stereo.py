@@ -21,7 +21,7 @@ from automol.graph.base._core import implicit
 from automol.graph.base._core import without_stereo_parities
 # from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import branch_atom_keys
@@ -73,7 +73,7 @@ def expand_stereo_with_priorities_and_amchis(gra):
         :returns: a sequence of graphs paired with AMChI strings
     """
     orig_gra = gra
-    gra = from_ts_graph(gra)
+    gra = ts_reactants_graph(gra)
     comps = connected_components(gra)
 
     gpcs = []
@@ -247,7 +247,7 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
         :returns: a molecular geometry with corrected stereo
     """
     rxn_atm_keys = ts_reacting_atoms(gra)
-    gra = from_ts_graph(gra)
+    gra = ts_reactants_graph(gra)
     sgr = gra if local_stereo else to_local_stereo(gra)
     gra = without_stereo_parities(gra)
 

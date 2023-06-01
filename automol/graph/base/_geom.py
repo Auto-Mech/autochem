@@ -15,7 +15,7 @@ from automol.graph.base._core import bonds_neighbor_atom_keys
 from automol.graph.base._core import bonds_neighbor_bond_keys
 from automol.graph.base._core import explicit
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import backbone_bond_keys
 from automol.graph.base._algo import branch_atom_keys
 from automol.graph.base._kekule import rigid_planar_bond_keys
@@ -71,7 +71,7 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None,
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
-    gra = without_dummy_atoms(from_ts_graph(gra))
+    gra = without_dummy_atoms(ts_reactants_graph(gra))
 
     keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
@@ -175,7 +175,7 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
-    gra = without_dummy_atoms(from_ts_graph(gra))
+    gra = without_dummy_atoms(ts_reactants_graph(gra))
 
     assert isinstance(bnd_key, abc.Collection) and len(bnd_key) == 2, (
         f"{bnd_key} is not a valid bond key.")

@@ -57,7 +57,7 @@ from automol.graph.base import atom_van_der_waals_radius
 from automol.graph.base import rigid_planar_bond_keys
 from automol.graph.base import rings_atom_keys
 from automol.graph.base import to_local_stereo
-from automol.graph.base import from_ts_graph
+from automol.graph.base import ts_reactants_graph
 from automol.graph.base import rotational_bond_keys
 from automol.graph.base import local_atom_stereo_parity_from_geometry
 from automol.graph.base import local_bond_stereo_parity_from_geometry
@@ -88,7 +88,7 @@ def clean_geometry(gra, geo, max_dist_err=2e-1, stereo=True,
             perturbing near-planar dihedral angles?
         :type remove_symmetry: bool
     """
-    gra = from_ts_graph(gra)
+    gra = ts_reactants_graph(gra)
     gra = to_local_stereo(gra)
 
     keys = sorted(atom_keys(gra))

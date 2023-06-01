@@ -48,10 +48,10 @@ from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import set_atom_implicit_hydrogen_valences
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
-from automol.graph.base._core import set_ts_atom_product_stereo_parities
-from automol.graph.base._core import set_ts_atom_fleeting_stereo_parities
-from automol.graph.base._core import set_ts_bond_product_stereo_parities
-from automol.graph.base._core import set_ts_bond_fleeting_stereo_parities
+from automol.graph.base._core import ts_set_atom_product_stereo_parities
+from automol.graph.base._core import ts_set_atom_fleeting_stereo_parities
+from automol.graph.base._core import ts_set_bond_product_stereo_parities
+from automol.graph.base._core import ts_set_bond_fleeting_stereo_parities
 from automol.graph.base._core import set_stereo_parities
 # # I/O
 from automol.graph.base._core import string
@@ -63,8 +63,6 @@ from automol.graph.base._core import frozen
 from automol.graph.base._core import formula
 # # properties
 from automol.graph.base._core import atom_count
-from automol.graph.base._core import atom_count_by_type
-from automol.graph.base._core import heavy_atom_count
 from automol.graph.base._core import electron_count
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
@@ -127,7 +125,7 @@ from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_fractional_bonds
 from automol.graph.base._core import without_null_bonds
 from automol.graph.base._core import without_stereo_parities
-from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import explicit
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit_bond_stereo_hydrogens
@@ -351,10 +349,10 @@ __all__ = [
     'set_atom_implicit_hydrogen_valences',
     'set_atom_stereo_parities',
     'set_bond_stereo_parities',
-    'set_ts_atom_product_stereo_parities',
-    'set_ts_atom_fleeting_stereo_parities',
-    'set_ts_bond_product_stereo_parities',
-    'set_ts_bond_fleeting_stereo_parities',
+    'ts_set_atom_product_stereo_parities',
+    'ts_set_atom_fleeting_stereo_parities',
+    'ts_set_bond_product_stereo_parities',
+    'ts_set_bond_fleeting_stereo_parities',
     'set_stereo_parities',
     # # I/O
     'string',
@@ -366,8 +364,6 @@ __all__ = [
     'formula',
     # # properties
     'atom_count',
-    'atom_count_by_type',
-    'heavy_atom_count',
     'electron_count',
     'atom_stereo_keys',
     'bond_stereo_keys',
@@ -430,7 +426,7 @@ __all__ = [
     'without_fractional_bonds',
     'without_null_bonds',
     'without_stereo_parities',
-    'from_ts_graph',
+    'ts_reactants_graph',
     'explicit',
     'implicit',
     'explicit_bond_stereo_hydrogens',

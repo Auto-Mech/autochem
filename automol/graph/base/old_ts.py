@@ -34,7 +34,7 @@ from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import from_ts_graph as _from_ts_graph
+from automol.graph.base._core import ts_reactants_graph as _from_ts_graph
 from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_atoms

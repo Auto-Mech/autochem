@@ -40,7 +40,7 @@ from automol.graph.base._core import relabel
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import from_ts_graph
+from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import string as graph_string
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
@@ -324,7 +324,7 @@ def to_local_stereo(gra, pri_dct=None):
         :rtype: automol graph data structure
     """
     loc_gra = without_stereo_parities(gra)
-    comps = connected_components(from_ts_graph(gra))
+    comps = connected_components(ts_reactants_graph(gra))
     for comp in comps:
         if has_stereo(comp):
             pri_dct_ = (None if pri_dct is None else
@@ -353,7 +353,7 @@ def from_local_stereo(gra, pri_dct=None):
         :rtype: automol graph data structure
     """
     can_gra = without_stereo_parities(gra)
-    loc_comps = connected_components(from_ts_graph(gra))
+    loc_comps = connected_components(ts_reactants_graph(gra))
     for loc_comp in loc_comps:
         if has_stereo(loc_comp):
             pri_dct_ = (None if pri_dct is None else
@@ -752,7 +752,7 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
-    gra = without_dummy_atoms(from_ts_graph(gra))
+    gra = without_dummy_atoms(ts_reactants_graph(gra))
 
     atm_keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
@@ -953,7 +953,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
         :rtype: frozenset
     """
     if not ts_:
-        gra = from_ts_graph(gra)
+        gra = ts_reactants_graph(gra)
 
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
@@ -996,7 +996,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
         :rtype: frozenset
     """
     if not ts_:
-        gra = from_ts_graph(gra)
+        gra = ts_reactants_graph(gra)
 
     gra = without_bond_orders(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
@@ -1053,7 +1053,7 @@ def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
         :type ts_: bool
     """
     if not ts_:
-        gra = from_ts_graph(gra)
+        gra = ts_reactants_graph(gra)
 
     pri_dct = pri_dct.copy()
 
