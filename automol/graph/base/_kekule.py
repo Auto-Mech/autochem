@@ -23,7 +23,7 @@ from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_reactants_graph
-from automol.graph.base._core import has_nitrogen_atom_stereo
+from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._algo import branches
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
@@ -470,7 +470,7 @@ def has_noninchi_stereo(gra):
     """
     return (has_nonkekule_bond_stereo(gra) or
             has_vinyl_bond_stereo(gra) or
-            has_nitrogen_atom_stereo(gra))
+            has_atom_stereo(gra, symb='N'))
 
 
 def radical_groups(gra):

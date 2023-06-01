@@ -63,7 +63,6 @@ from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import has_bond_stereo
-from automol.graph.base._core import has_nitrogen_atom_stereo
 from automol.graph.base._core import has_fractional_bonds
 from automol.graph.base._core import is_ts_graph
 from automol.graph.base._core import atomic_numbers
@@ -379,7 +378,6 @@ __all__ = [
     'has_stereo',
     'has_atom_stereo',
     'has_bond_stereo',
-    'has_nitrogen_atom_stereo',
     'has_fractional_bonds',
     'is_ts_graph',
     'atomic_numbers',

@@ -1265,7 +1265,7 @@ def test__ts__fleeting_stereogenic_keys():
     assert automol.graph.old_ts.fleeting_stereogenic_keys(
         tsg, ts_enant=False) == {2}
 
-    # CCOCC + [OH] => CCO[CH]C + O
+    # C=C(O[O])OO => [CH]=C(OO)OO
     tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
             3: ('O', 0, None), 4: ('O', 0, None), 5: ('O', 0, None),
             6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},

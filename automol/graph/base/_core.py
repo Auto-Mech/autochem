@@ -1077,58 +1077,90 @@ def atom_stereo_keys(gra, symb=None, excl_symbs=(), ts_all=False):
     return ste_keys
 
 
-def bond_stereo_keys(gra):
+def bond_stereo_keys(gra, ts_all=False):
     """ Get the keys of bond stereo-centers this molecular graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param ts_all: If this is a TS graph, return *all* stereo keys?
+        Otherwise, only reactant stereo keys will be returned.
+    :type ts_all: bool
     :returns: The bond keys
     :rtype: frozenset[{int, int}]
     """
-    bnd_ste_keys = dict_.keys_by_value(bond_stereo_parities(gra),
-                                       lambda x: x in [True, False])
-    return bnd_ste_keys
+    ste_keys = dict_.keys_by_value(bond_stereo_parities(gra),
+                                   lambda x: x is not None)
+    if ts_all and is_ts_graph(gra):
+        ste_keys |= dict_.keys_by_value(ts_bond_product_stereo_parities(gra),
+                                        lambda x: x is not None)
+        ste_keys |= dict_.keys_by_value(ts_bond_fleeting_stereo_parities(gra),
+                                        lambda x: x is not None)
+    return ste_keys
 
 
-def stereo_keys(gra):
+def stereo_keys(gra, ts_all=False):
     """ Get the keys of atom and bond stereo-centers this molecular graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param ts_all: If this is a TS graph, return *all* stereo keys?
+        Otherwise, only reactant stereo keys will be returned.
+    :type ts_all: bool
     :returns: The atom and bond keys
     :rtype: frozenset
     """
-    ste_keys = atom_stereo_keys(gra) | bond_stereo_keys(gra)
+    ste_keys = (atom_stereo_keys(gra, ts_all=ts_all) |
+                bond_stereo_keys(gra, ts_all=ts_all))
     return ste_keys
 
 
-def has_stereo(gra):
+def has_atom_stereo(gra, symb=None, excl_symbs=(), ts_all=False):
+    """ Does this graph have atom stereochemistry?
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param symb: Optionally, restrict this to atoms with a particular
+        atomic symbol (e.g., 'H' for hydrogens).
+    :type symb: str
+    :param excl_symbs: Optionally, exclude atoms with particular atomic
+        symbols.
+    :type excl_symbs: tuple[str]
+    :param ts_all: If this is a TS graph, return *all* stereo keys?
+        Otherwise, only reactant stereo keys will be returned.
+    :type ts_all: bool
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    return bool(
+        atom_stereo_keys(gra, symb=symb, excl_symbs=excl_symbs, ts_all=ts_all))
+
+
+def has_bond_stereo(gra, ts_all=False):
+    """ Does this graph have bond stereochemistry?
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param ts_all: If this is a TS graph, return *all* stereo keys?
+        Otherwise, only reactant stereo keys will be returned.
+    :type ts_all: bool
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    return bool(bond_stereo_keys(gra, ts_all=ts_all))
+
+
+def has_stereo(gra, ts_all=False):
     """ Does this graph have stereochemistry of any kind?
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param ts_all: If this is a TS graph, return *all* stereo keys?
+        Otherwise, only reactant stereo keys will be returned.
+    :type ts_all: bool
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    return has_atom_stereo(gra) or has_bond_stereo(gra)
-
-
-def has_atom_stereo(gra):
-    """ does this graph have atom stereo?
-    """
-    return bool(atom_stereo_keys(gra))
-
-
-def has_bond_stereo(gra):
-    """ does this graph have bond stereo?
-    """
-    return bool(bond_stereo_keys(gra))
-
-
-def has_nitrogen_atom_stereo(gra):
-    """ does this graph have atom stereo?
-    """
-    return bool(atom_stereo_keys(gra, symb='N'))
+    return bool(stereo_keys(gra, ts_all=ts_all))
 
 
 def has_fractional_bonds(gra):
