@@ -243,7 +243,7 @@ def argsort_reagents(gras):
 
     def __sort_value(args):
         _, gra = args
-        val = (-automol.graph.heavy_atom_count(gra),
+        val = (-automol.graph.atom_count(gra, heavy_only=True),
                -automol.graph.atom_count(gra),
                -automol.graph.electron_count(gra))
         return val

@@ -330,8 +330,8 @@ def insertion_ts_geometry(rxn, rct_geos,
     tsg = rxn.forward_ts_graph
 
     frm_bnd_key1, frm_bnd_key2 = old_ts.ts_forming_bond_keys(tsg)
-    hcnt1 = automol.graph.atom_count_by_type(tsg, 'H', keys=frm_bnd_key1)
-    hcnt2 = automol.graph.atom_count_by_type(tsg, 'H', keys=frm_bnd_key2)
+    hcnt1 = automol.graph.atom_count(tsg, symb='H', keys=frm_bnd_key1)
+    hcnt2 = automol.graph.atom_count(tsg, symb='H', keys=frm_bnd_key2)
     frm_bnd_dist1 = frm_bnd_dist_dct[hcnt1]
     frm_bnd_dist2 = frm_bnd_dist_dct[hcnt2]
     a123 = 170.
@@ -391,7 +391,7 @@ def substitution_ts_geometry(rxn, rct_geos,
     a234 = 95.
 
     frm_bnd_key, = old_ts.ts_forming_bond_keys(tsg)
-    hcnt = automol.graph.atom_count_by_type(tsg, 'H', keys=frm_bnd_key)
+    hcnt = automol.graph.atom_count(tsg, symb='H', keys=frm_bnd_key)
     frm_bnd_dist = frm_bnd_dist_dct[hcnt]
 
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)

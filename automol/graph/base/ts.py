@@ -36,10 +36,11 @@ from automol.graph.base._core import ts_atom_product_stereo_parities
 from automol.graph.base._core import ts_atom_fleeting_stereo_parities
 from automol.graph.base._core import ts_bond_product_stereo_parities
 from automol.graph.base._core import ts_bond_fleeting_stereo_parities
-from automol.graph.base._core import set_ts_atom_product_stereo_parities
-from automol.graph.base._core import set_ts_atom_fleeting_stereo_parities
-from automol.graph.base._core import set_ts_bond_product_stereo_parities
-from automol.graph.base._core import set_ts_bond_fleeting_stereo_parities
+from automol.graph.base._core import ts_reactants_graph
+from automol.graph.base._core import ts_set_atom_product_stereo_parities
+from automol.graph.base._core import ts_set_atom_fleeting_stereo_parities
+from automol.graph.base._core import ts_set_bond_product_stereo_parities
+from automol.graph.base._core import ts_set_bond_fleeting_stereo_parities
 # Non-TS functions from _core
 from automol.graph.base._core import from_data
 from automol.graph.base._core import atom_symbols
@@ -60,10 +61,11 @@ atom_product_stereo_parities = ts_atom_product_stereo_parities
 atom_fleeting_stereo_parities = ts_atom_fleeting_stereo_parities
 bond_product_stereo_parities = ts_bond_product_stereo_parities
 bond_fleeting_stereo_parities = ts_bond_fleeting_stereo_parities
-set_atom_product_stereo_parities = set_ts_atom_product_stereo_parities
-set_atom_fleeting_stereo_parities = set_ts_atom_fleeting_stereo_parities
-set_bond_product_stereo_parities = set_ts_bond_product_stereo_parities
-set_bond_fleeting_stereo_parities = set_ts_bond_fleeting_stereo_parities
+reactants_graph = ts_reactants_graph
+set_atom_product_stereo_parities = ts_set_atom_product_stereo_parities
+set_atom_fleeting_stereo_parities = ts_set_atom_fleeting_stereo_parities
+set_bond_product_stereo_parities = ts_set_bond_product_stereo_parities
+set_bond_fleeting_stereo_parities = ts_set_bond_fleeting_stereo_parities
 
 
 def ts_graph(gra, frm_bnd_keys, brk_bnd_keys,
