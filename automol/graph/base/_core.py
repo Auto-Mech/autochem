@@ -993,7 +993,7 @@ def formula(gra):
 # # properties
 def atom_count(gra, symb=None, heavy_only=False, dummy=False,
                with_implicit=True, keys=None):
-    """ Count the number of atoms in the graph
+    """ Count the number of atoms in the molecule
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -1032,23 +1032,58 @@ def atom_count(gra, symb=None, heavy_only=False, dummy=False,
 
 
 def electron_count(gra, charge=0):
-    """ the number of electrons in the molecule
+    """ Count the number of electrons in the molecule, based on its charge
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param charge: The molecular charge, defaults to 0
+    :type charge: int, optional
+    :return: The number of electrons
+    :rtype: int
     """
     atm_symb_dct = atom_symbols(explicit(gra))
     nelec = sum(map(ptab.to_number, atm_symb_dct.values())) - charge
     return nelec
 
 
-def atom_stereo_keys(gra):
-    """ keys to atom stereo-centers
+def atom_stereo_keys(gra, symb=None, excl_symbs=(), ts_all=False):
+    """ Get the keys of atom stereo-centers this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param symb: Optionally, restrict this to atoms with a particular
+        atomic symbol (e.g., 'H' for hydrogens).
+    :type symb: str
+    :param excl_symbs: Optionally, exclude atoms with particular atomic
+        symbols.
+    :type excl_symbs: tuple[str]
+    :param ts_all: If this is a TS graph, return *all* stereo keys?
+        Otherwise, only reactant stereo keys will be returned.
+    :type ts_all: bool
+    :returns: The atom keys
+    :rtype: frozenset[int]
     """
-    atm_ste_keys = dict_.keys_by_value(atom_stereo_parities(gra),
-                                       lambda x: x in [True, False])
-    return atm_ste_keys
+    keys = atom_keys(gra, symb=symb, excl_symbs=excl_symbs)
+    par_dct = dict_.by_key(atom_stereo_parities(gra), keys)
+    ste_keys = dict_.keys_by_value(par_dct, lambda x: x is not None)
+    if ts_all and is_ts_graph(gra):
+        # Add product stereo atoms
+        prd_par_dct = dict_.by_key(ts_atom_product_stereo_parities(gra), keys)
+        ste_keys |= dict_.keys_by_value(prd_par_dct, lambda x: x is not None)
+
+        # Add fleeting stereo atoms
+        ts_par_dct = dict_.by_key(ts_atom_fleeting_stereo_parities(gra), keys)
+        ste_keys |= dict_.keys_by_value(ts_par_dct, lambda x: x is not None)
+    return ste_keys
 
 
 def bond_stereo_keys(gra):
-    """ keys to bond stereo-centers
+    """ Get the keys of bond stereo-centers this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The bond keys
+    :rtype: frozenset[{int, int}]
     """
     bnd_ste_keys = dict_.keys_by_value(bond_stereo_parities(gra),
                                        lambda x: x in [True, False])
@@ -1056,26 +1091,24 @@ def bond_stereo_keys(gra):
 
 
 def stereo_keys(gra):
-    """ keys to atom and/or bond stereo-centers
+    """ Get the keys of atom and bond stereo-centers this molecular graph
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atom and bond keys
+    :rtype: frozenset
     """
     ste_keys = atom_stereo_keys(gra) | bond_stereo_keys(gra)
     return ste_keys
 
 
-def nitrogen_atom_stereo_keys(gra):
-    """ keys to nitrogen atom stereo-centers
-    """
-    anum_dct = atomic_numbers(gra)
-    atm_ste_keys = atom_stereo_keys(gra)
-    ntg_ste_keys = frozenset(k for k in atm_ste_keys if anum_dct[k] == 7)
-    return ntg_ste_keys
-
-
 def has_stereo(gra):
-    """ does this graph have stereo of any kind?
+    """ Does this graph have stereochemistry of any kind?
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
     """
     return has_atom_stereo(gra) or has_bond_stereo(gra)
 
@@ -1095,7 +1128,7 @@ def has_bond_stereo(gra):
 def has_nitrogen_atom_stereo(gra):
     """ does this graph have atom stereo?
     """
-    return bool(nitrogen_atom_stereo_keys(gra))
+    return bool(atom_stereo_keys(gra, symb='N'))
 
 
 def has_fractional_bonds(gra):
