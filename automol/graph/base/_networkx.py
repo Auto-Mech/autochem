@@ -8,7 +8,7 @@ import networkx
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import bond_keys
 from automol.graph.base._core import atom_symbols
-from automol.graph.base._core import atom_implicit_hydrogen_valences
+from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_parities
@@ -21,8 +21,8 @@ def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):
     nxg.add_nodes_from(atom_keys(gra))
     nxg.add_edges_from(bond_keys(gra))
     networkx.set_node_attributes(nxg, atom_symbols(gra), 'symbol')
-    networkx.set_node_attributes(nxg, atom_implicit_hydrogen_valences(gra),
-                                 'implicit_hydrogen_valence')
+    networkx.set_node_attributes(nxg, atom_implicit_hydrogens(gra),
+                                 'implicit_hydrogens')
     networkx.set_node_attributes(nxg, atom_stereo_parities(gra),
                                  'stereo_parity')
     networkx.set_edge_attributes(nxg, bond_orders(gra),

@@ -298,7 +298,7 @@ def to_graph(rdm):
                for rdb in bnds}
     gra = automol.graph.base.from_data(
         atm_symb_dct=sym_dct, bnd_keys=ord_dct.keys(),
-        atm_imp_hyd_vlc_dct=hyd_dct, bnd_ord_dct=ord_dct)
+        atm_imp_hyd_dct=hyd_dct, bnd_ord_dct=ord_dct)
 
     return gra
 

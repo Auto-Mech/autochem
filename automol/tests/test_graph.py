@@ -282,16 +282,14 @@ def test__from_data():
     cgr = automol.graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_CGR),
         bnd_keys=graph.bond_keys(C8H13O_CGR),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C8H13O_CGR)),
+        atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_CGR),
     )
     assert cgr == C8H13O_CGR
 
     rgr = automol.graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_RGR),
         bnd_keys=graph.bond_keys(C8H13O_RGR),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C8H13O_RGR)),
+        atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_RGR),
         bnd_ord_dct=graph.bond_orders(C8H13O_RGR),
     )
     assert rgr == C8H13O_RGR
@@ -299,8 +297,7 @@ def test__from_data():
     sgr = automol.graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_SGR),
         bnd_keys=graph.bond_keys(C8H13O_SGR),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C8H13O_SGR)),
+        atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_SGR),
         atm_ste_par_dct=graph.atom_stereo_parities(C8H13O_SGR),
         bnd_ste_par_dct=graph.bond_stereo_parities(C8H13O_SGR)
     )
@@ -312,7 +309,7 @@ def test__setters():
     """
     atm_symbs = numpy.array(list('CHON'))
     bnd_ords = numpy.arange(1, 4)
-    atm_imp_hyd_vlcs = numpy.arange(0, 4)
+    atm_imp_hyds = numpy.arange(0, 4)
     pars = numpy.array([None, True, False])
 
     print("\nTesting setters for an ordinary molecular graph...")
@@ -343,15 +340,14 @@ def test__setters():
     assert orig_gra == graph.set_bond_orders(gra, orig_bnd_ord_dct)
 
     # atom implicit hydrogen valences
-    orig_atm_imp_hyd_vlc_dct = graph.atom_implicit_hydrogen_valences(orig_gra)
-    atm_imp_hyd_vlc_dct = dict(
-        zip(atm_keys, numpy.random.choice(atm_imp_hyd_vlcs, size=natms)))
-    gra = graph.set_atom_implicit_hydrogen_valences(
-        orig_gra, atm_imp_hyd_vlc_dct)
-    print(atm_imp_hyd_vlc_dct)
-    assert atm_imp_hyd_vlc_dct == graph.atom_implicit_hydrogen_valences(gra)
-    assert orig_gra == graph.set_atom_implicit_hydrogen_valences(
-        gra, orig_atm_imp_hyd_vlc_dct)
+    orig_atm_imp_hyd_dct = graph.atom_implicit_hydrogens(orig_gra)
+    atm_imp_hyd_dct = dict(
+        zip(atm_keys, numpy.random.choice(atm_imp_hyds, size=natms)))
+    gra = graph.set_atom_implicit_hydrogens(orig_gra, atm_imp_hyd_dct)
+    print(atm_imp_hyd_dct)
+    assert atm_imp_hyd_dct == graph.atom_implicit_hydrogens(gra)
+    assert orig_gra == graph.set_atom_implicit_hydrogens(
+        gra, orig_atm_imp_hyd_dct)
 
     # atom stereo parities
     orig_atm_par_dct = graph.atom_stereo_parities(orig_gra)

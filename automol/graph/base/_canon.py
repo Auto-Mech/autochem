@@ -33,7 +33,7 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit
-from automol.graph.base._core import atom_implicit_hydrogen_valences
+from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_hydrogen_keys
 from automol.graph.base._core import hydrogen_keys
 from automol.graph.base._core import relabel
@@ -649,7 +649,7 @@ def sort_evaluator_atom_invariants_(gra):
 
     symb_dct = dict_.transform_values(
         atom_symbols(gra), _hill_normalize_symbol)
-    hnum_dct = atom_implicit_hydrogen_valences(gra)
+    hnum_dct = atom_implicit_hydrogens(gra)
     mnum_dct = mass_numbers(gra)
     apar_dct = dict_.transform_values(atom_stereo_parities(gra), _replace_none)
 

@@ -3,7 +3,7 @@
 Data structure:
     gra = (atm_dct, bnd_dct)
     atm_dct := {
-        atm_key: (symb, imp_hyd_vlc, ste_par, prd_ste_par, ts_ste_par),
+        atm_key: (symb, imp_hyd, ste_par, prd_ste_par, ts_ste_par),
         ...
     }
     bnd_dct := {
@@ -45,7 +45,7 @@ from automol.graph.base._core import ts_set_bond_fleeting_stereo_parities
 from automol.graph.base._core import from_data
 from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import bond_keys
-from automol.graph.base._core import atom_implicit_hydrogen_valences
+from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_parities
@@ -98,7 +98,7 @@ def ts_graph(gra, frm_bnd_keys, brk_bnd_keys,
     tsg = from_data(
         atm_symb_dct=atom_symbols(gra),
         bnd_keys=bond_keys(gra),
-        atm_imp_hyd_vlc_dct=atom_implicit_hydrogen_valences(gra),
+        atm_imp_hyd_dct=atom_implicit_hydrogens(gra),
         atm_ste_par_dct=atom_stereo_parities(gra),
         atm_prd_ste_par_dct=atm_prd_ste_par_dct,
         atm_ts_ste_par_dct=atm_ts_ste_par_dct,

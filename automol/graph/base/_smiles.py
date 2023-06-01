@@ -20,7 +20,7 @@ from automol import util
 from automol.util import dict_
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atom_symbols
-from automol.graph.base._core import atom_implicit_hydrogen_valences
+from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_keys
@@ -33,7 +33,7 @@ from automol.graph.base._core import explicit
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import add_bonded_atom
-from automol.graph.base._core import set_atom_implicit_hydrogen_valences
+from automol.graph.base._core import set_atom_implicit_hydrogens
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
@@ -243,7 +243,7 @@ def atom_representation_generator_(kgr):
     symb_dct = atom_symbols(kgr)
 
     # Determine atom implicit hydrogens
-    nhyd_dct = atom_implicit_hydrogen_valences(kgr)
+    nhyd_dct = atom_implicit_hydrogens(kgr)
 
     # Find radical sites for this resonance
     rad_atm_keys = radical_atom_keys_from_kekule(kgr)
@@ -510,7 +510,7 @@ def _insert_stereo_hydrogens(gra):
     """
     bnd_keys = bond_stereo_keys(gra)
     nkeys_dct = atoms_neighbor_atom_keys(gra)
-    nhyd_dct = atom_implicit_hydrogen_valences(gra)
+    nhyd_dct = atom_implicit_hydrogens(gra)
     next_key = -max(atom_keys(gra)) - 1
     for bnd_key in bnd_keys:
         key1, key2 = bnd_key
@@ -520,7 +520,7 @@ def _insert_stereo_hydrogens(gra):
             if not nkeys:
                 assert nhyd_dct[key] == 1
                 gra = add_bonded_atom(gra, 'H', key, next_key)
-                gra = set_atom_implicit_hydrogen_valences(gra, {key: 0})
+                gra = set_atom_implicit_hydrogens(gra, {key: 0})
 
                 next_key = next_key - 1
 

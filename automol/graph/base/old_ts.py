@@ -3,7 +3,7 @@
 Data structure:
     gra = (atm_dct, bnd_dct)
     atm_dct := {
-        atm_key: (symb, imp_hyd_vlc, ste_par, prd_ste_par, ts_ste_par),
+        atm_key: (symb, imp_hyd, ste_par, prd_ste_par, ts_ste_par),
         ...
     }
     bnd_dct := {
