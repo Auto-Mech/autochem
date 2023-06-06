@@ -127,8 +127,6 @@ from automol.graph.base._core import union_from_sequence
 # # subgraphs and neighborhoods
 from automol.graph.base._core import subgraph
 from automol.graph.base._core import bond_induced_subgraph
-from automol.graph.base._core import subgraph_neighborhood
-from automol.graph.base._core import subgraph_neighbor_atom_keys
 from automol.graph.base._core import atom_neighborhood
 from automol.graph.base._core import atom_neighborhoods
 from automol.graph.base._core import bond_neighborhood
@@ -420,8 +418,6 @@ __all__ = [
     # # subgraphs and neighborhoods
     'subgraph',
     'bond_induced_subgraph',
-    'subgraph_neighborhood',
-    'subgraph_neighbor_atom_keys',
     'atom_neighborhood',
     'atom_neighborhoods',
     'bond_neighborhood',

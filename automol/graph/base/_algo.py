@@ -74,8 +74,6 @@ def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True,
 def isomorphic(gra1, gra2, backbone_only=False, stereo=True, dummy=True):
     """ Determine whether two graphs are isomorphic
 
-    This should eventually replace the other isomorphism functions.
-
     :param backbone_only: Compare backbone atoms only?
     :type backbone_only: bool
     :param stereo: Consider stereo?
