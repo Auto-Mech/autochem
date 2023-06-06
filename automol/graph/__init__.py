@@ -63,14 +63,13 @@ from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import has_bond_stereo
-from automol.graph.base._core import has_fractional_bonds
 from automol.graph.base._core import is_ts_graph
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
-from automol.graph.base._core import atom_element_valences
-from automol.graph.base._core import atom_lone_pair_counts
+from automol.graph.base._core import atomic_valences
+from automol.graph.base._core import atom_lone_pairs
 from automol.graph.base._core import atom_van_der_waals_radius
-from automol.graph.base._core import atom_bond_valences
+from automol.graph.base._core import atom_bond_counts
 from automol.graph.base._core import atom_explicit_hydrogen_valences
 from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import bond_unsaturations
@@ -113,7 +112,7 @@ from automol.graph.base._core import insert_dummy_atoms
 from automol.graph.base._core import standard_keys_without_dummy_atoms
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import without_fractional_bonds
+from automol.graph.base._core import ts_without_reacting_bond_orders
 from automol.graph.base._core import without_null_bonds
 from automol.graph.base._core import without_stereo_parities
 from automol.graph.base._core import ts_reactants_graph
@@ -378,14 +377,13 @@ __all__ = [
     'has_stereo',
     'has_atom_stereo',
     'has_bond_stereo',
-    'has_fractional_bonds',
     'is_ts_graph',
     'atomic_numbers',
     'mass_numbers',
-    'atom_element_valences',
-    'atom_lone_pair_counts',
+    'atomic_valences',
+    'atom_lone_pairs',
     'atom_van_der_waals_radius',
-    'atom_bond_valences',
+    'atom_bond_counts',
     'atom_explicit_hydrogen_valences',
     'atom_unsaturations',
     'bond_unsaturations',
@@ -428,7 +426,7 @@ __all__ = [
     'standard_keys_without_dummy_atoms',
     'without_bond_orders',
     'without_dummy_atoms',
-    'without_fractional_bonds',
+    'ts_without_reacting_bond_orders',
     'without_null_bonds',
     'without_stereo_parities',
     'ts_reactants_graph',
