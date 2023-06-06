@@ -38,7 +38,7 @@ def vmatrix(gra, keys=None, rng_keys=None):
     if ring_systems(gra):
         vma, zma_keys = connected_ring_systems(gra, rng_keys=rng_keys)
     else:
-        term_keys = sorted(terminal_atom_keys(gra, heavy=True))
+        term_keys = sorted(terminal_atom_keys(gra, backbone=True))
         if term_keys:
             start_key = term_keys[0]
         else:

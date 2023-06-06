@@ -74,7 +74,8 @@ def hydrogen_migrations(rct_gras, viable_only=True):
                 rct_hyd_key = atom_neighbor_atom_key(
                     rct_gra, rct_don_key, symbs_first=['H'], symbs_last=[])
                 if rct_hyd_key in rct_hyd_keys:
-                    prd_gra = remove_atoms(rct_h_gra, {rct_hyd_key})
+                    prd_gra = remove_atoms(rct_h_gra, {rct_hyd_key},
+                                           stereo=True)
                     prd_gra = relabel(prd_gra, {rct_add_key: rct_hyd_key})
 
                     forw_tsg = old_ts.graph(
@@ -442,7 +443,7 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
                     q1h_gra, don_key, symbs_first=['H'], symbs_last=[])
                 if hyd_key in hyd_keys:
                     # Remove a hydrogen from the donor site
-                    q1_gra = remove_atoms(q1h_gra, {hyd_key})
+                    q1_gra = remove_atoms(q1h_gra, {hyd_key}, stereo=True)
                     # Add a hydrogen atom to the attacker site
                     q2h_gra = add_bonded_atom(
                         q2_gra, 'H', att_key, bnd_atm_key=hyd_key)

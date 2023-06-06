@@ -166,7 +166,7 @@ def expand_stereo(rxn, enant=True):
         :rtype: Reaction
     """
     rxn_cls = rxn.class_
-    forw_tsg = automol.graph.without_stereo_parities(rxn.forward_ts_graph)
+    forw_tsg = automol.graph.without_stereo(rxn.forward_ts_graph)
     back_tsg = rxn.backward_ts_graph
     rcts_keys = rxn.reactants_keys
     prds_keys = rxn.products_keys

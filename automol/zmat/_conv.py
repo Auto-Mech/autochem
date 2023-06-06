@@ -99,7 +99,7 @@ def geometry_with_conversion_info(zma):
     """
     geo = geometry_with_dummy_atoms(zma)
     gra = connectivity_graph(zma, dummy=True)
-    gra, dummy_key_dct = automol.graph.standard_keys_without_dummy_atoms(gra)
+    gra, dummy_key_dct = automol.graph.shift_remove_dummy_atoms(gra)
     geo = automol.geom.without_dummy_atoms(geo)
 
     return geo, dummy_key_dct

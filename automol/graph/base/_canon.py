@@ -37,8 +37,8 @@ from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_nonbackbone_hydrogen_keys
 from automol.graph.base._core import nonbackbone_hydrogen_keys
 from automol.graph.base._core import relabel
-from automol.graph.base._core import without_bond_orders
-from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import without_pi_bonds
+from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import string as graph_string
@@ -323,7 +323,7 @@ def to_local_stereo(gra, pri_dct=None):
         :returns: molecular graph with local stereo parities
         :rtype: automol graph data structure
     """
-    loc_gra = without_stereo_parities(gra)
+    loc_gra = without_stereo(gra)
     comps = connected_components(ts_reactants_graph(gra))
     for comp in comps:
         if has_stereo(comp):
@@ -352,7 +352,7 @@ def from_local_stereo(gra, pri_dct=None):
         :returns: molecular graph with canonical stereo parities
         :rtype: automol graph data structure
     """
-    can_gra = without_stereo_parities(gra)
+    can_gra = without_stereo(gra)
     loc_comps = connected_components(ts_reactants_graph(gra))
     for loc_comp in loc_comps:
         if has_stereo(loc_comp):
@@ -385,7 +385,7 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
             parities already present will be wiped out
         :rtype: automol graph data structure
     """
-    ret_gra = without_stereo_parities(gra)
+    ret_gra = without_stereo(gra)
     gra = without_dummy_atoms(gra)
 
     atm_keys = sorted(atom_keys(gra))
@@ -476,8 +476,8 @@ def calculate_priorities_and_assign_parities(
 
     # Graph 1 will be for the priority calculation, graph 2 for the parity
     # assignments that will be returned.
-    gra1 = without_stereo_parities(gra)
-    gra2 = without_stereo_parities(gra)
+    gra1 = without_stereo(gra)
+    gra2 = without_stereo(gra)
 
     # Work with an implicit graph for the priority calculation
     gra1 = implicit(gra1)
@@ -955,7 +955,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
     if not ts_:
         gra = ts_reactants_graph(gra)
 
-    gra = without_bond_orders(gra)
+    gra = without_pi_bonds(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(
         gra, pri_dct, break_ties=False, ts_=ts_)
@@ -998,7 +998,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
     if not ts_:
         gra = ts_reactants_graph(gra)
 
-    gra = without_bond_orders(gra)
+    gra = without_pi_bonds(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = augment_priority_dict_with_hydrogen_keys(
         gra, pri_dct, break_ties=False, ts_=ts_)

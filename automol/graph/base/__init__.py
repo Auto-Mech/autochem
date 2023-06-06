@@ -96,35 +96,31 @@ from automol.graph.base._core import lone_pair_atom_keys
 from automol.graph.base._core import angle_keys
 # # relabeling and changing keys
 from automol.graph.base._core import relabel
-from automol.graph.base._core import transform_keys
 from automol.graph.base._core import standard_keys
 from automol.graph.base._core import standard_keys_for_sequence
 from automol.graph.base._core import relabel_for_zmatrix
 from automol.graph.base._core import relabel_for_geometry
-from automol.graph.base._core import negate_hydrogen_keys
+from automol.graph.base._core import negate_nonbackbone_hydrogen_keys
 # # add/remove/insert/without
 from automol.graph.base._core import add_atoms
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import remove_atoms
 from automol.graph.base._core import remove_bonds
-from automol.graph.base._core import remove_atom_stereo_parities
-from automol.graph.base._core import remove_bond_stereo_parities
-from automol.graph.base._core import add_atom_implicit_hydrogens
+from automol.graph.base._core import change_implicit_hydrogens
 from automol.graph.base._core import add_atom_explicit_hydrogens
 from automol.graph.base._core import add_bonded_atom
-from automol.graph.base._core import insert_bonded_atom
+from automol.graph.base._core import shift_insert_bonded_atom
 from automol.graph.base._core import add_dummy_atoms
-from automol.graph.base._core import insert_dummy_atoms
-from automol.graph.base._core import standard_keys_without_dummy_atoms
-from automol.graph.base._core import without_bond_orders
+from automol.graph.base._core import shift_insert_dummy_atoms
+from automol.graph.base._core import shift_remove_dummy_atoms
+from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_without_reacting_bond_orders
 from automol.graph.base._core import without_null_bonds
-from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import without_stereo
 from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import explicit
 from automol.graph.base._core import implicit
-from automol.graph.base._core import explicit_bond_stereo_hydrogens
 # # unions
 from automol.graph.base._core import union
 from automol.graph.base._core import union_from_sequence
@@ -393,35 +389,31 @@ __all__ = [
     'angle_keys',
     # # relabeling and changing keys
     'relabel',
-    'transform_keys',
     'standard_keys',
     'standard_keys_for_sequence',
     'relabel_for_zmatrix',
     'relabel_for_geometry',
-    'negate_hydrogen_keys',
+    'negate_nonbackbone_hydrogen_keys',
     # # add/remove/insert/without
     'add_atoms',
     'add_bonds',
     'remove_atoms',
     'remove_bonds',
-    'remove_atom_stereo_parities',
-    'remove_bond_stereo_parities',
-    'add_atom_implicit_hydrogens',
+    'change_implicit_hydrogens',
     'add_atom_explicit_hydrogens',
     'add_bonded_atom',
-    'insert_bonded_atom',
+    'shift_insert_bonded_atom',
     'add_dummy_atoms',
-    'insert_dummy_atoms',
-    'standard_keys_without_dummy_atoms',
-    'without_bond_orders',
+    'shift_insert_dummy_atoms',
+    'shift_remove_dummy_atoms',
+    'without_pi_bonds',
     'without_dummy_atoms',
     'ts_without_reacting_bond_orders',
     'without_null_bonds',
-    'without_stereo_parities',
+    'without_stereo',
     'ts_reactants_graph',
     'explicit',
     'implicit',
-    'explicit_bond_stereo_hydrogens',
     # # unions
     'union',
     'union_from_sequence',

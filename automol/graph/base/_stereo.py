@@ -18,7 +18,7 @@ from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import frozen
 from automol.graph.base._core import implicit
-from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import without_stereo
 # from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import ts_reactants_graph
@@ -110,7 +110,7 @@ def _connected_expand_stereo_with_priorities_and_amchis(gra):
     """
     bools = (False, True)
     gra = implicit(gra)
-    gra = without_stereo_parities(gra)
+    gra = without_stereo(gra)
 
     gps0 = None
     gps = [(gra, None)]
@@ -249,7 +249,7 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     rxn_atm_keys = ts_reacting_atoms(gra)
     gra = ts_reactants_graph(gra)
     sgr = gra if local_stereo else to_local_stereo(gra)
-    gra = without_stereo_parities(gra)
+    gra = without_stereo(gra)
 
     if has_stereo(sgr):
         full_atm_par_dct = atom_stereo_parities(sgr)

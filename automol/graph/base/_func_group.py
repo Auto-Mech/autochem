@@ -807,7 +807,7 @@ def radical_dissociation_products(gra, pgra1):
         for adj in atoms_neighbor_atom_keys(gra)[rad]:
             for group in branches(gra, adj, stereo=False):
                 if isomorphism(group, pgra1, backbone_only=True):
-                    pgra2 = remove_atoms(gra, atom_keys(group))
+                    pgra2 = remove_atoms(gra, atom_keys(group), stereo=False)
                     if bond_keys(group) in pgra2:
                         pgra2 = remove_bonds(pgra2, bond_keys(group))
 

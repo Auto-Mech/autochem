@@ -20,7 +20,7 @@ from automol.graph.base._core import frozen
 from automol.graph.base._core import atom_count
 from automol.graph.base._core import add_bonds
 from automol.graph.base._core import remove_bonds
-from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import implicit
 from automol.graph.base._core import union_from_sequence
@@ -55,8 +55,8 @@ def isomorphism(gra1, gra2, backbone_only=False, stereo=True, dummy=True,
         gra2 = implicit(gra2)
 
     if not stereo:
-        gra1 = without_stereo_parities(gra1)
-        gra2 = without_stereo_parities(gra2)
+        gra1 = without_stereo(gra1)
+        gra2 = without_stereo(gra2)
 
     if not dummy:
         gra1 = without_dummy_atoms(gra1)
@@ -530,7 +530,7 @@ def ring_atom_chirality(gra, atm, ring_atms, stereo=False):
     """is this ring atom a chiral center?
     """
     if not stereo:
-        gra = without_stereo_parities(gra)
+        gra = without_stereo(gra)
     adj_atms = atoms_neighbor_atom_keys(gra)
     keys = []
     for atmi in adj_atms[atm]:
@@ -877,7 +877,7 @@ def ring_systems_bond_keys(gra):
 def is_ring_system(gra):
     """ is this graph a ring system?
     """
-    gra = without_stereo_parities(gra)
+    gra = without_stereo(gra)
     return union_from_sequence(rings(gra), check=False) == gra
 
 
