@@ -106,7 +106,7 @@ def _connected_graph(smi, stereo=True, local_stereo=False):
         ste_bnd_keys = automol.graph.base.bond_stereo_keys(gra)
         sp2_bnd_keys = automol.graph.base.rigid_planar_bond_keys(gra)
         bnd_keys = ste_bnd_keys - sp2_bnd_keys
-        gra = automol.graph.base.remove_bond_stereo_parities(gra, bnd_keys)
+        gra = automol.graph.base.without_stereo(gra, bnd_keys=bnd_keys)
 
         if not local_stereo:
             # Convert from local to canonical stereo

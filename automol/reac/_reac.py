@@ -57,9 +57,9 @@ class Reaction:
 
         # Check that the reactants and products are consistent
         forw_tsg_comp = automol.graph.without_dummy_atoms(
-            automol.graph.without_stereo_parities(forw_tsg))
+            automol.graph.without_stereo(forw_tsg))
         back_tsg_comp = automol.graph.without_dummy_atoms(
-            automol.graph.without_stereo_parities(back_tsg))
+            automol.graph.without_stereo(back_tsg))
         assert automol.graph.isomorphism(
             old_ts.reverse(forw_tsg_comp), back_tsg_comp)
 
@@ -501,8 +501,8 @@ def without_stereo(rxn):
         :rtype: Reaction
     """
     rxn_cls = rxn.class_
-    forw_tsg = automol.graph.without_stereo_parities(rxn.forward_ts_graph)
-    back_tsg = automol.graph.without_stereo_parities(rxn.backward_ts_graph)
+    forw_tsg = automol.graph.without_stereo(rxn.forward_ts_graph)
+    back_tsg = automol.graph.without_stereo(rxn.backward_ts_graph)
     rcts_keys = rxn.reactants_keys
     prds_keys = rxn.products_keys
     rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
@@ -593,7 +593,7 @@ def without_dummy_atoms(rxn, product=False):
 
     dummy_keys = automol.graph.atom_keys(tsg, symb='X')
 
-    tsg = automol.graph.remove_atoms(tsg, dummy_keys)
+    tsg = automol.graph.remove_atoms(tsg, dummy_keys, stereo=True)
     keys_lst = [[k for k in ks if k not in dummy_keys] for ks in keys_lst]
 
     rxn_cls = rxn.class_

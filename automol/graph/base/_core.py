@@ -1303,7 +1303,7 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True):
         gra = explicit(gra)
     gra = ts_reactants_graph(gra)
     if not bond_order:
-        gra = without_bond_orders(gra)
+        gra = without_pi_bonds(gra)
 
     atm_nbhs = dict_.values_by_key(atom_neighborhoods(gra), atm_keys)
     atm_nbnds = [sum(bond_orders(nbh).values()) for nbh in atm_nbhs]
@@ -1328,7 +1328,7 @@ def atom_unpaired_electrons(gra, bond_order=True):
     atm_keys = list(atom_keys(gra))
     gra = ts_reactants_graph(gra)
     if not bond_order:
-        gra = without_bond_orders(gra)
+        gra = without_pi_bonds(gra)
 
     atm_bnd_vlcs = dict_.values_by_key(atom_bond_counts(gra), atm_keys)
     atm_tot_vlcs = dict_.values_by_key(atomic_valences(gra), atm_keys)
@@ -1355,7 +1355,7 @@ def bond_unpaired_electrons(gra, bond_order=True):
     bnd_keys = list(bond_keys(gra))
     gra = ts_reactants_graph(gra)
     if not bond_order:
-        gra = without_bond_orders(gra)
+        gra = without_pi_bonds(gra)
 
     # determine unsaturated valences for each atom
     atm_unp_dct = atom_unpaired_electrons(gra)
@@ -1508,7 +1508,7 @@ def backbone_keys(gra):
 
 
 def backbone_bond_keys(gra, terminal=False):
-    """ Get the backbone bond keys of this graph (bonds between two backbone atoms)
+    """ Get the backbone bond keys of this graph (bonds between backbone atoms)
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -1541,24 +1541,31 @@ def atom_backbone_hydrogen_keys(gra):
     return atm_hyd_keys_dct
 
 
-def terminal_atom_keys(gra, heavy=True):
-    """ terminal heavy atoms, sorted by atom type and hydrogen count
+def terminal_atom_keys(gra, backbone=True):
+    """ Get the backbone atom keys of this graph, including backbone hydrogens
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param backbone: Restrict this to backbone atoms?
+    :type backbone: bool
+    :returns: The atom keys
+    :rtype: frozenset[int]
     """
-    if heavy:
+    if backbone:
         gra = implicit(gra)
 
-    atm_imp_hyd_dct = atom_implicit_hydrogens(gra)
-    atm_keys = [key for key, ngb_keys in atoms_neighbor_atom_keys(gra).items()
-                if len(ngb_keys) <= 1]
-    atm_keys = sorted(atm_keys, key=atm_imp_hyd_dct.__getitem__, reverse=True)
-    atm_symbs = dict_.values_by_key(atom_symbols(gra), atm_keys)
-    srt = automol.formula.argsort_symbols(atm_symbs, symbs_first=('C',))
-    atm_keys = frozenset(map(atm_keys.__getitem__, srt))
-    return atm_keys
+    atm_nkeys_dct = atoms_neighbor_atom_keys(gra)
+    atm_keys = [key for key, nkeys in atm_nkeys_dct.items() if len(nkeys) <= 1]
+    return frozenset(atm_keys)
 
 
 def unsaturated_atom_keys(gra):
-    """ keys of unsaturated (radical or pi-bonded) atoms
+    """ Get the keys of unsaturated (radical or pi-bonded) atoms
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atom keys
+    :rtype: frozenset[int]
     """
     atm_unp_dct = atom_unpaired_electrons(gra, bond_order=False)
     unsat_atm_keys = frozenset(dict_.keys_by_value(atm_unp_dct, bool))
@@ -1566,7 +1573,12 @@ def unsaturated_atom_keys(gra):
 
 
 def unsaturated_bond_keys(gra):
-    """ keys of unsaturated (radical or pi-bonded) bonds
+    """ Get the keys of unsaturated (radical or pi-bonded) bonds
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The bond keys
+    :rtype: frozenset[frozenset[int]]
     """
     bnd_unp_dct = bond_unpaired_electrons(gra, bond_order=False)
     unsat_bnd_keys = frozenset(dict_.keys_by_value(bnd_unp_dct, bool))
@@ -1574,8 +1586,13 @@ def unsaturated_bond_keys(gra):
 
 
 def angle_keys(gra):
-    """ triples of keys for pairs of adjacent bonds, with the central atom in
-    the middle
+    """ Get triples of keys for pairs of adjacent bonds, with the central atom
+    in the middle
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The angle keys
+    :rtype: frozenset[tuple[int]]
     """
     bnd_keys = bond_keys(gra)
 
@@ -1588,12 +1605,19 @@ def angle_keys(gra):
             ang_keys.append((atm1_key, atm2_key, atm3_key))
             ang_keys.append((atm3_key, atm2_key, atm1_key))
 
-    return tuple(ang_keys)
+    return frozenset(ang_keys)
 
 
 # # relabeling and changing keys
 def relabel(gra, atm_key_dct):
-    """ relabel the graph with new atom keys
+    """ Relabel the atoms in the graph with new keys, using a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_key_dct: New keys for a subset of the atoms, by current atom key
+    :type atm_key_dct: dict[int: int]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     orig_atm_keys = atom_keys(gra)
     assert set(atm_key_dct.keys()) <= orig_atm_keys, (
@@ -1612,25 +1636,31 @@ def relabel(gra, atm_key_dct):
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def transform_keys(gra, atm_key_func):
-    """ transform atom keys with a function
-    """
-    atm_keys = atom_keys(gra)
-    atm_key_dct = dict(zip(atm_keys, map(atm_key_func, atm_keys)))
-    return relabel(gra, atm_key_dct)
-
-
 def standard_keys(gra):
-    """ replace the current atom keys with standard indices, counting from zero
+    """ Relabel the atoms in the graph with standard zero-indexed keys
+
+    The new keys will follow the same sort order as the original ones.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_key_dct = dict(map(reversed, enumerate(sorted(atom_keys(gra)))))
     return relabel(gra, atm_key_dct)
 
 
 def standard_keys_for_sequence(gras):
-    """ assigns non-overlapping keys to a sequence of graphs
+    """ Give standard, non-overlapping keys to a sequence of graphs and return
+    the relabelling dictionary along with each graph
 
-    (returns a series of key maps for each)
+    The new keys will start from zero in the first graph and count up
+    sequentially, with each next graph starting from the next possible integer
+    value
+
+    :param gras: A sequence of molecular graphs
+    :returns: A sequence of relabelled molecular graphs, and a sequence of
+        relabelling dictionaries for each
     """
     atm_key_dcts = []
 
@@ -1652,16 +1682,24 @@ def standard_keys_for_sequence(gras):
 
 
 def relabel_for_zmatrix(gra, zma_keys, dummy_key_dct):
-    """ relabel a geometry graph to line up with a z-matrix
+    """ Relabel a graph to line up keys with a geometry => z-matrix conversion
 
-    Inserts dummy atoms and sorts/relabels in z-matrix order.
+    The original graph keys should correspond to the geometry that was used to
+    generate the z-matrix. This function will insert the dummy atoms and
+    sort/relabel the graph to match the z-matrix indices.
 
-    Graph keys should correspond to the geometry used for conversion.
+    Note: This assumes that the conversion was performed using
+    `auotmol.geom.zmatrix`, which returns `zma_keys` and `dummy_key_dct`.
 
-    :param gra: the graph
+    :param gra: molecular graph
+    :type gra: automol graph data structure
     :param zma_keys: graph keys in the order they appear in the z-matrix
+    :type zma_keys: list[int]
     :param dummy_key_dct: dummy keys introduced on z-matrix conversion, by atom
         they are attached to
+    :type dummy_key_dct: dict[int: int]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     gra = add_dummy_atoms(gra, dummy_key_dct)
     key_dct = dict(map(reversed, enumerate(zma_keys)))
@@ -1670,17 +1708,30 @@ def relabel_for_zmatrix(gra, zma_keys, dummy_key_dct):
 
 
 def relabel_for_geometry(gra):
-    """ relabel a z-matrix graph to line up with a geometry
+    """ Relabel a graph to line up keys with a z-matrix => geometry conversion
 
-    The result will line up with a geometry converted from the z-matrix, with
-    dummy atoms removed.
+    The original graph keys should correspond to the z-matrix that was used to
+    generate the geometry. This function will remove dummy atoms and relabel
+    the keys to match.
 
-    Removes dummy atoms and relabels in geometry order.
+    Note: This assumes that the conversion was performed using
+    `auotmol.zmat.geometry`.
 
-    Graph keys should correspond to the z-matrix used for conversion.
-
-    :param gra: the graph
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
+    def _shift_remove_dummy_atom(gra, dummy_key):
+        keys = sorted(atom_keys(gra))
+        idx = keys.index(dummy_key)
+        key_dct = {}
+        key_dct.update({k: k for k in keys[:idx]})
+        key_dct.update({k: k-1 for k in keys[(idx+1):]})
+        gra = remove_atoms(gra, [dummy_key], stereo=True)
+        gra = relabel(gra, key_dct)
+        return gra
+
     dummy_keys = sorted(atom_keys(gra, symb='X'))
 
     for dummy_key in reversed(dummy_keys):
@@ -1688,18 +1739,7 @@ def relabel_for_geometry(gra):
     return gra
 
 
-def _shift_remove_dummy_atom(gra, dummy_key):
-    keys = sorted(atom_keys(gra))
-    idx = keys.index(dummy_key)
-    key_dct = {}
-    key_dct.update({k: k for k in keys[:idx]})
-    key_dct.update({k: k-1 for k in keys[(idx+1):]})
-    gra = remove_atoms(gra, [dummy_key])
-    gra = relabel(gra, key_dct)
-    return gra
-
-
-def negate_hydrogen_keys(gra):
+def negate_nonbackbone_hydrogen_keys(gra):
     """ Flip the signs of hydrogen keys
 
     :param gra: molecular graph
@@ -1715,7 +1755,7 @@ def negate_hydrogen_keys(gra):
 
 # # add/remove/insert/without
 def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
-              prd_ste_par_dct=None, ts_ste_par_dct=None):
+              prd_ste_par_dct=None, ts_ste_par_dct=None, check=True):
     """ Add atoms to this molecular graph
 
     :param gra: molecular graph
@@ -1734,6 +1774,8 @@ def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
     :param ts_ste_par_dct: fleeting TS stereo parities, by atom key; (TS graphs
         only)
     :type ts_ste_par_dct: dict
+    :param check: Check that we aren't trying to add atoms with duplicate keys?
+    :type check: bool
     :return: molecular graph (TS or non-TS)
     :rtype: automol graph data structure
     """
@@ -1751,6 +1793,10 @@ def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
     if ts_:
         prd_ste_par_dct = {} if prd_ste_par_dct is None else prd_ste_par_dct
         ts_ste_par_dct = {} if ts_ste_par_dct is None else ts_ste_par_dct
+
+    if check:
+        assert not keys & atm_keys, (
+            f'{keys} and {atm_keys} have a non-empty intersection')
 
     assert not keys & atm_keys
     assert set(imp_hyd_dct.keys()) <= keys
@@ -1778,7 +1824,27 @@ def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
 
 def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, prd_ste_par_dct=None,
               ts_ste_par_dct=None, check=True):
-    """ add bonds to this molecular graph
+    """ Add bonds to this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param keys: bond keys
+    :type keys: set
+    :param ord_dct: bond orders, by bond key
+    :type ord_dct: dict
+    :param ste_par_dct: stereo parities, by bond key; (in TS graphs, reactant
+        stereo parities)
+    :type ste_par_dct: dict
+    :param prd_ste_par_dct: product stereo parities, by bond key; (TS graphs
+        only)
+    :type prd_ste_par_dct: dict
+    :param ts_ste_par_dct: fleeting TS stereo parities, by bond key; (TS graphs
+        only)
+    :type ts_ste_par_dct: dict
+    :param check: Check that we aren't trying to add bonds with duplicate keys?
+    :type check: bool
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     ts_ = is_ts_graph(gra)
     bnd_keys = set(bond_keys(gra))
@@ -1828,8 +1894,19 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, prd_ste_par_dct=None,
     return gra
 
 
-def remove_atoms(gra, atm_keys, check=True, stereo=False):
-    """ remove atoms from the molecular graph
+def remove_atoms(gra, atm_keys, check=True, stereo=True):
+    """ Remove atoms from this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_keys: The keys of atoms to be removed
+    :type atm_keys: list[int]
+    :param check: Check that these atoms actually exist in the graph?
+    :type check: bool
+    :param stereo: Keep stereo information?
+    :type stereo: bool
+    :return: molecular graph (TS or non-TS)
+    :rtype: automol graph data structure
     """
     all_atm_keys = atom_keys(gra)
     atm_keys = set(atm_keys)
@@ -1841,9 +1918,23 @@ def remove_atoms(gra, atm_keys, check=True, stereo=False):
     return subgraph(gra, atm_keys_left, stereo=stereo)
 
 
-def remove_bonds(gra, bnd_keys, check=True):
-    """ remove bonds from the molecular graph
+def remove_bonds(gra, bnd_keys, check=True, stereo=True):
+    """ Remove bonds from this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bnd_keys: The keys of bonds to be removed
+    :type bnd_keys: list[int]
+    :param check: Check that these bonds actually exist in the graph?
+    :type check: bool
+    :param stereo: Keep stereo information?
+    :type stereo: bool
+    :return: molecular graph (TS or non-TS)
+    :rtype: automol graph data structure
     """
+    if not stereo:
+        gra = without_stereo(gra)
+
     all_bnd_keys = bond_keys(gra)
     bnd_keys = set(map(frozenset, bnd_keys))
 
@@ -1856,36 +1947,17 @@ def remove_bonds(gra, bnd_keys, check=True):
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def remove_atom_stereo_parities(gra, atm_keys):
-    """ Remove stereo parities for certain atoms
+def change_implicit_hydrogens(gra, imp_hyd_change_dct):
+    """ Change the implicit hydrogen count for atoms in this graph
 
-    :param gra: the graph
-    :param atm_keys: the keys for which to remove stereo parities
-    :param gra: the resulting graph
-    """
-    return set_atom_stereo_parities(gra, {k: None for k in atm_keys})
-
-
-def remove_bond_stereo_parities(gra, bnd_keys):
-    """ Remove stereo parities for certain bonds
-
-    :param gra: the graph
-    :param bnd_keys: the keys for which to remove stereo parities
-    :param gra: the resulting graph
-    """
-    return set_bond_stereo_parities(gra, {k: None for k in bnd_keys})
-
-
-def add_atom_implicit_hydrogens(gra, imp_hyd_change_dct):
-    """ add atom imlicit hydrogen valences
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param imp_hyd_change_dct: A dictionary telling how many implicit
-            hydrogens to add (positive integer) or remove (negative integer)
-            for each atom.
-        :type imp_hyd_change_dct: dict[int: int]
-        :returns: The resulting molecular graph
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param imp_hyd_change_dct: A dictionary telling how many implicit
+        hydrogens to add (positive integer) or remove (negative integer)
+        for each atom.
+    :type imp_hyd_change_dct: dict[int: int]
+    :return: molecular graph
+    :rtype: automol graph data structure
     """
     atm_keys = list(imp_hyd_change_dct.keys())
     atm_imp_hyds = numpy.add(
@@ -1898,7 +1970,7 @@ def add_atom_implicit_hydrogens(gra, imp_hyd_change_dct):
 
 
 def add_atom_explicit_hydrogens(gra, exp_hyd_keys_dct):
-    """ add explicit hydrogens by atom
+    """ Add explicit hydrogens by atom
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -1906,6 +1978,8 @@ def add_atom_explicit_hydrogens(gra, exp_hyd_keys_dct):
         be added. The keys of this dictionary are the parent atoms (already in
         `gra`) that these new hydrogens will be connected to.
     :type exp_hyd_keys_dct: dict[int: frozenset]
+    :return: molecular graph
+    :rtype: automol graph data structure
     """
     assert set(exp_hyd_keys_dct.keys()) <= atom_keys(gra), (
         f'{set(exp_hyd_keys_dct.keys())}'
@@ -1922,15 +1996,37 @@ def add_atom_explicit_hydrogens(gra, exp_hyd_keys_dct):
     return gra
 
 
-def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd=None,
+def add_bonded_atom(gra, symb, atm_key, bnd_atm_key=None, imp_hyd=None,
                     atm_ste_par=None, bnd_ord=None, bnd_ste_par=None):
-    """ add a single atom with a bond to an atom already in the graph
+    """ Add a single atom and connect it to an atom already in the graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param symb: The atomic symbol of the new atom
+    :type symb: str
+    :param atm_key: The key of the atom it will be connected to
+    :type atm_key: int
+    :param bnd_atm_key: The key of the new atom, defaults to None
+    :type bnd_atm_key: int, optional
+    :param imp_hyd: Implicit hydrogen count of the new atom, defaults to None
+    :type imp_hyd: int, optional
+    :param atm_ste_par: Stereo parity of the new atom, defaults to None
+    :type atm_ste_par: bool or NoneType, optional
+    :param bnd_ord: Order of the bond, defaults to None
+    :type bnd_ord: int, optional
+    :param bnd_ste_par: Stereo parity of the bond, defaults to None
+    :type bnd_ste_par: bool or NoneType, optional
+    :return: molecular graph
+    :rtype: automol graph data structure
     """
     atm_keys = atom_keys(gra)
 
     bnd_atm_key = max(atm_keys) + 1 if bnd_atm_key is None else bnd_atm_key
+    assert bnd_atm_key not in atm_keys, (
+        f'Cannot add atom with key {bnd_atm_key}.\n'
+        f'It is already in the graph:\n{gra}')
 
-    symb_dct = {bnd_atm_key: sym}
+    symb_dct = {bnd_atm_key: symb}
     imp_hyd_dct = ({bnd_atm_key: imp_hyd} if imp_hyd is not None else None)
     atm_ste_par_dct = ({bnd_atm_key: atm_ste_par}
                        if atm_ste_par is not None else None)
@@ -1949,11 +2045,29 @@ def add_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd=None,
     return gra
 
 
-def insert_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd=None,
-                       atm_ste_par=None, bnd_ord=None, bnd_ste_par=None):
-    """ insert a single atom with a bond to an atom already in the graph
+def shift_insert_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd=None,
+                             atm_ste_par=None, bnd_ord=None, bnd_ste_par=None):
+    """ Insert a single atom and connect it to an atom already in the graph,
+    shifting the keys after the new atom to make room for it
 
-    Keys will be standardized upon insertion
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param symb: The atomic symbol of the new atom
+    :type symb: str
+    :param atm_key: The key of the atom it will be connected to
+    :type atm_key: int
+    :param bnd_atm_key: The key of the new atom, defaults to None
+    :type bnd_atm_key: int, optional
+    :param imp_hyd: Implicit hydrogen count of the new atom, defaults to None
+    :type imp_hyd: int, optional
+    :param atm_ste_par: Stereo parity of the new atom, defaults to None
+    :type atm_ste_par: bool or NoneType, optional
+    :param bnd_ord: Order of the bond, defaults to None
+    :type bnd_ord: int, optional
+    :param bnd_ste_par: Stereo parity of the bond, defaults to None
+    :type bnd_ste_par: bool or NoneType, optional
+    :return: molecular graph
+    :rtype: automol graph data structure
     """
     keys = sorted(atom_keys(gra))
     bnd_atm_key_ = max(keys) + 1
@@ -1974,11 +2088,15 @@ def insert_bonded_atom(gra, sym, atm_key, bnd_atm_key=None, imp_hyd=None,
 
 
 def add_dummy_atoms(gra, dummy_key_dct):
-    """ add dummy atoms to the graph, with dummy bonds to particular atoms
+    """ Insert dummy atoms to the graph, connecting them to existing atoms by
+    null (order 0) bonds
 
-    :param dummy_key_dct: keys are atoms in the graph on which to place a dummy
-        atom; values are the desired keys of the dummy atoms themselves, which
-        must not overlap with already existing atoms
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param dummy_key_dct: Keys of new dummy atoms, by atom that they connect to
+    :type dummy_key_dct: dict[int: int]
+    :return: molecular graph
+    :rtype: automol graph data structure
     """
     atm_keys = atom_keys(gra)
     assert set(dummy_key_dct.keys()) <= atm_keys, (
@@ -1992,12 +2110,27 @@ def add_dummy_atoms(gra, dummy_key_dct):
     return gra
 
 
-def insert_dummy_atoms(gra, dummy_key_dct):
-    """ add dummy atoms to the graph, with dummy bonds to particular atoms
+def shift_insert_dummy_atoms(gra, dummy_key_dct):
+    """ Insert dummy atoms to the graph, connecting them to existing atoms by
+    null (order 0) bonds and shifting the keys after each new atom to make room
+    for it
 
-    :param dummy_key_dct: keys are atoms in the graph on which to place a dummy
-        atom; values are the desired keys of the dummy atoms themselves, which
-        must not overlap with already existing atoms
+    Works with `dummy_key_dct` returned by `shift_remove_dummy_atoms`, undoing
+    its operation.
+
+    Note: The key values in `dummy_key_dct` are unavoidably confusing. All of
+    the atom keys in `dummy_key_dct` refer to what they keys *will be* after
+    insertion. For example, {0: 1, 2: 3} describes insertion of a dummy atom
+    with key 1 after atom 0. The next key, 2, then refers to this atom's key
+    *after* the dummy atoms are inserted. Originally, this atom had key 1.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param dummy_key_dct: Keys of new dummy atoms, by atom that they connect
+        to, obtained from `shift_remove_dummy_atoms`
+    :type dummy_key_dct: dict[int: int]
+    :returns: A molecular graph
+    :rtype: automol graph data structure
     """
     # These lists are used to track how the keys change:
     old_keys = sorted(atom_keys(gra))
@@ -2008,7 +2141,7 @@ def insert_dummy_atoms(gra, dummy_key_dct):
         key_dct = dict(zip(old_keys, new_keys))
         key_ = key_dct[key]
 
-        gra = insert_bonded_atom(
+        gra = shift_insert_bonded_atom(
             gra, 'X', key_, bnd_atm_key=dummy_key, bnd_ord=0)
 
         idx = new_keys.index(dummy_key)
@@ -2019,11 +2152,15 @@ def insert_dummy_atoms(gra, dummy_key_dct):
     return gra
 
 
-def standard_keys_without_dummy_atoms(gra):
-    """ remove dummy atoms and standardize keys, returning the dummy key
+def shift_remove_dummy_atoms(gra):
+    """ Remove dummy atoms and standardize keys, returning the dummy key
     dictionary for converting back
 
-    Requires that graph follows z-matrix ordering (this is checked)
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A molecular graph and a dummy key dictionary for converting back
+        using `shift_insert_dummy_atoms()`
+    :rtype: automol graph data structure
     """
     dummy_ngb_key_dct = dummy_atoms_neighbor_atom_key(gra)
 
@@ -2038,7 +2175,7 @@ def standard_keys_without_dummy_atoms(gra):
         key_ = key_dct[key]
 
         dummy_keys_dct[key_] = dummy_key_
-        gra = remove_atoms(gra, [dummy_key])
+        gra = remove_atoms(gra, [dummy_key], stereo=True)
 
         idx = old_keys.index(dummy_key)
         old_keys.pop(idx)
@@ -2049,8 +2186,16 @@ def standard_keys_without_dummy_atoms(gra):
     return gra, dummy_keys_dct
 
 
-def without_bond_orders(gra):
-    """ resonance graph with maximum spin (i.e. no pi bonds)
+def without_pi_bonds(gra):
+    """ Get a version of this graph without any pi-bonds
+
+    All bond orders will be set to 1, except for dummy bonds (order 0) and
+    reacting bonds (order 0.1 or 0.9).
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     bnd_keys = list(bond_keys(gra))
     # don't set dummy bonds to one!
@@ -2064,16 +2209,27 @@ def without_bond_orders(gra):
 
 
 def without_dummy_atoms(gra):
-    """ remove dummy atoms from the graph
+    """ Remove dummy atoms from this graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
-    atm_symb_dct = atom_symbols(gra)
-    atm_keys = [key for key, sym in atm_symb_dct.items()
-                if ptab.to_number(sym)]
-    return subgraph(gra, atm_keys, stereo=True)
+    symb_dct = atom_symbols(gra)
+    keys = [key for key, sym in symb_dct.items() if ptab.to_number(sym)]
+    return subgraph(gra, keys, stereo=True)
 
 
 def without_null_bonds(gra, except_dummies=True):
-    """ remove 0-order bonds from the graph
+    """ Remove 0-order bonds from this graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param except_dummies: Keep 0-order bonds to dummy atoms?
+    :type except_dummies: bool
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     dummy_atm_keys = atom_keys(gra, symb='X')
     ord_dct = dict_.filter_by_value(
@@ -2086,18 +2242,47 @@ def without_null_bonds(gra, except_dummies=True):
     return gra
 
 
-def without_stereo_parities(gra):
-    """ graph with stereo assignments wiped out
+def without_stereo(gra, atm_keys=None, bnd_keys=None):
+    """ Remove stereo information (atom and bond parities) from this graph
+
+    For TS graphs, fleeting and product stereochemistry will be removed as well
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_keys: Optionally, restrict this operation to a subset of bonds
+    :type atm_keys: list[int]
+    :param bnd_keys: Optionally, restrict this operation to a subset of bonds
+    :type bnd_keys: list[frozenset[int]]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
-    atm_ste_par_dct = dict_.by_key({}, atom_keys(gra), fill_val=None)
-    bnd_ste_par_dct = dict_.by_key({}, bond_keys(gra), fill_val=None)
+    if atm_keys is None and bnd_keys is not None:
+        atm_keys = ()
+    if bnd_keys is None and atm_keys is not None:
+        bnd_keys = ()
+    atm_keys = atom_keys(gra) if atm_keys is None else atm_keys
+    bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
+    atm_ste_par_dct = dict_.by_key({}, atm_keys, fill_val=None)
+    bnd_ste_par_dct = dict_.by_key({}, bnd_keys, fill_val=None)
     gra = set_atom_stereo_parities(gra, atm_ste_par_dct)
     gra = set_bond_stereo_parities(gra, bnd_ste_par_dct)
+    if is_ts_graph(gra):
+        gra = ts_set_atom_product_stereo_parities(gra, atm_ste_par_dct)
+        gra = ts_set_atom_fleeting_stereo_parities(gra, atm_ste_par_dct)
+        gra = ts_set_bond_product_stereo_parities(gra, bnd_ste_par_dct)
+        gra = ts_set_bond_fleeting_stereo_parities(gra, bnd_ste_par_dct)
     return gra
 
 
 def explicit(gra, atm_keys=None):
-    """ make the hydrogens at these atoms explicit
+    """ Make implicit hydrogens in this graph explicit
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_keys: Optionally, restrict this operation to a subset of atoms
+    :type atm_keys: list[int]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_keys = backbone_keys(gra) if atm_keys is None else atm_keys
     atm_keys = sorted(atm_keys)
@@ -2118,7 +2303,14 @@ def explicit(gra, atm_keys=None):
 
 
 def implicit(gra, atm_keys=None):
-    """ make the hydrogens at these atoms implicit
+    """ Make explicit hydrogens in this graph implicit
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_keys: Optionally, restrict this operation to a subset of atoms
+    :type atm_keys: list[int]
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_keys = backbone_keys(gra) if atm_keys is None else atm_keys
 
@@ -2126,38 +2318,28 @@ def implicit(gra, atm_keys=None):
         atom_nonbackbone_hydrogen_keys(gra), atm_keys)
 
     inc_imp_hyd_keys_dct = dict_.transform_values(atm_exp_hyd_keys_dct, len)
-    gra = add_atom_implicit_hydrogens(gra, inc_imp_hyd_keys_dct)
+    gra = change_implicit_hydrogens(gra, inc_imp_hyd_keys_dct)
 
     exp_hyd_keys = set(itertools.chain(*atm_exp_hyd_keys_dct.values()))
     gra = remove_atoms(gra, exp_hyd_keys, stereo=True)
     return gra
 
 
-def explicit_bond_stereo_hydrogens(gra):
-    """ make bond stereo hydrogens explicit
-    """
-    bnd_keys = bond_stereo_keys(gra)
-    nkeys_dct = atoms_neighbor_atom_keys(gra)
-    nhyd_dct = atom_implicit_hydrogens(gra)
-    next_key = max(atom_keys(gra)) + 1
-    for bnd_key in bnd_keys:
-        key1, key2 = bnd_key
-        nkey1s = nkeys_dct[key1] - {key2}
-        nkey2s = nkeys_dct[key2] - {key1}
-        for key, nkeys in [(key1, nkey1s), (key2, nkey2s)]:
-            if not nkeys:
-                assert nhyd_dct[key] == 1
-                gra = add_bonded_atom(gra, 'H', key, next_key)
-                gra = set_atom_implicit_hydrogens(gra, {key: 0})
-
-                next_key += 1
-
-    return gra
-
-
 # # unions
 def union(gra1, gra2, check=True):
-    """ a union of two graphs
+    """ Get the union of two molecular graphs
+
+    This is a disconnected graph consisting of the union of atom sets from each
+    graph and the union of bond sets from each graph
+
+    :param gra1: molecular graph
+    :type gra1: automol graph data structure
+    :param gra2: molecular graph
+    :type gra2: automol graph data structure
+    :param check: check that no keys overlap?
+    :type check: bool
+    :returns: molecular graph
+    :rtype: automol graph data structure
     """
     if check:
         assert not atom_keys(gra1) & atom_keys(gra2)
@@ -2172,11 +2354,18 @@ def union(gra1, gra2, check=True):
 
 
 def union_from_sequence(gras, check=True, shift_keys=False):
-    """ a union of all parts of a sequence of graphs
+    """ Get the union of a sequence of graphs
 
-        :param gras: a sequence of molecular graphs
-        :param check: check that no keys overlap?
-        :param shift_keys: shift keys to prevent key overlap?
+    This is a disconnected graph consisting of the union of atom sets from each
+    graph and the union of bond sets from each graph
+
+    :param gras: A sequence of molecular graphs
+    :param shift_keys: shift keys to prevent key overlap?
+    :type shift_keys: bool
+    :param check: check that no keys overlap?
+    :type check: bool
+    :returns: molecular graph
+    :rtype: automol graph data structure
     """
     def _union(gra1, gra2):
         return union(gra1, gra2, check=check)
@@ -2189,12 +2378,18 @@ def union_from_sequence(gras, check=True, shift_keys=False):
 
 # # subgraphs and neighborhoods
 def subgraph(gra, atm_keys, stereo=False):
-    """ the subgraph induced by a subset of the atoms
+    """ Get the subgraph for a subset of the atoms in this graph
 
-    :param gra: the graph
-    :param atm_keys: the atom keys to be included in the subgraph
-    :param stereo: whether or not to include stereo in the subgraph
-    :returns: the subgraph
+    All bonds between the specified atoms will be included.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_keys: The atom keys to be included in the subgraph
+    :type atm_keys: list[int]
+    :param stereo: Keep stereo information in the subgraph?
+    :type stereo: bool
+    :returns: A molecular graph
+    :rtype: atomol graph data structure
     """
     atm_keys = set(atm_keys)
     assert atm_keys <= atom_keys(gra)
@@ -2203,7 +2398,7 @@ def subgraph(gra, atm_keys, stereo=False):
     bnd_dct = dict_.by_key(bonds(gra), bnd_keys)
     sub = from_atoms_and_bonds(atm_dct, bnd_dct)
     if not stereo:
-        sub = without_stereo_parities(sub)
+        sub = without_stereo(sub)
     return sub
 
 
@@ -2217,7 +2412,7 @@ def bond_induced_subgraph(gra, bnd_keys, stereo=False):
     bnd_dct = dict_.by_key(bonds(gra), bnd_keys)
     sub = from_atoms_and_bonds(atm_dct, bnd_dct)
     if not stereo:
-        sub = without_stereo_parities(sub)
+        sub = without_stereo(sub)
     return sub
 
 

@@ -376,13 +376,13 @@ def test__string():
 def test__without_bond_orders():
     """ test graph.without_bond_orders
     """
-    assert C8H13O_CGR == graph.without_bond_orders(C8H13O_RGR)
+    assert C8H13O_CGR == graph.without_pi_bonds(C8H13O_RGR)
 
 
 def test__without_stereo_parities():
     """ test graph.without_stereo_parities
     """
-    assert C8H13O_CGR == graph.without_stereo_parities(C8H13O_SGR)
+    assert C8H13O_CGR == graph.without_stereo(C8H13O_SGR)
 
 
 def test__electron_count():
@@ -491,13 +491,9 @@ def test__branch():
 def test__connected_components():
     """ test graph.connected_components
     """
-    gra1 = C3H3_CGR
-    gra2 = C2_CGR
-    gra1_natms = automol.formula.atom_count(graph.formula(C3H3_CGR))
-    gra2 = graph.transform_keys(gra2, lambda x: x + gra1_natms)
+    (gra1, gra2), _ = graph.standard_keys_for_sequence([C3H3_CGR, C2_CGR])
 
-    gra = graph.union(gra1, gra2)
-    cmp_gras = graph.connected_components(gra)
+    cmp_gras = graph.connected_components(graph.union(gra1, gra2))
     assert cmp_gras in [(gra1, gra2), (gra2, gra1)]
 
 
@@ -957,7 +953,7 @@ def test__species__graph_conversion():
     ggra = automol.graph.relabel_for_geometry(zgra)
 
     old_zgra = zgra
-    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
+    zgra = automol.graph.shift_insert_dummy_atoms(ggra, gdummy_key_dct)
     assert zgra == old_zgra
 
     # extra test case from Luna
@@ -973,7 +969,7 @@ def test__species__graph_conversion():
     ggra = automol.graph.relabel_for_geometry(zgra)
 
     old_zgra = zgra
-    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
+    zgra = automol.graph.shift_insert_dummy_atoms(ggra, gdummy_key_dct)
     assert zgra == old_zgra
 
 

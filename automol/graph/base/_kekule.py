@@ -20,7 +20,7 @@ from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import atom_bond_counts
 from automol.graph.base._core import atom_lone_pairs
 from automol.graph.base._core import dummy_atoms_neighbor_atom_key
-from automol.graph.base._core import without_bond_orders
+from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import has_atom_stereo
@@ -108,7 +108,7 @@ def kekules_bond_orders(gra):
     """
     orig_bnd_ord_dct = bond_orders(gra)
     gra = implicit(ts_reactants_graph(gra))
-    gra = without_bond_orders(gra)
+    gra = without_pi_bonds(gra)
 
     # identify all of the independent pi systems and assign kekules to each
     pi_keys_lst = pi_system_atom_keys(gra)
@@ -506,7 +506,7 @@ def radical_group_dct(gra):
 def rigid_planar_bond_keys(gra):
     """ determine the sp2 bonds in this graph
     """
-    gra = without_bond_orders(gra)
+    gra = without_pi_bonds(gra)
     bnd_keys = dict_.keys_by_value(
         kekules_bond_orders_collated(gra), lambda x: 2 in x)
 

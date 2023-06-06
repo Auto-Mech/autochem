@@ -38,7 +38,7 @@ from automol.graph.base._core import ts_reactants_graph as _from_ts_graph
 from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_atoms
-from automol.graph.base._core import negate_hydrogen_keys
+from automol.graph.base._core import negate_nonbackbone_hydrogen_keys
 from automol.graph.base._core import string
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import isomorphic
@@ -426,8 +426,8 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
     rste_keys = stereo_keys(rtsg_loc)
     cons_keys = list(fste_keys & rste_keys)
 
-    rcts_gra = negate_hydrogen_keys(reactants_graph(ftsg_loc))
-    prds_gra = negate_hydrogen_keys(reactants_graph(rtsg_loc))
+    rcts_gra = negate_nonbackbone_hydrogen_keys(reactants_graph(ftsg_loc))
+    prds_gra = negate_nonbackbone_hydrogen_keys(reactants_graph(rtsg_loc))
 
     fnkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
     rnkeys_dct = atoms_neighbor_atom_keys(prds_gra)

@@ -17,7 +17,7 @@ from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import without_stereo
 from automol.graph.base._core import terminal_atom_keys
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
@@ -87,7 +87,7 @@ def connected_amchi_with_indices(gra, stereo=True,
     gra = without_dummy_atoms(gra)
 
     if not stereo:
-        gra = without_stereo_parities(gra)
+        gra = without_stereo(gra)
 
     # Convert to implicit graph
     gra = implicit(gra)
@@ -307,7 +307,7 @@ def _connection_layer_and_list(gra):
 
     # If there are terminal atoms, start from the one with the lowest canonical
     # number
-    term_keys = terminal_atom_keys(gra, heavy=True)
+    term_keys = terminal_atom_keys(gra, backbone=True)
     start_key = min(term_keys) + 1 if term_keys else 1
     conn_lyr, conn_lst = _recurse_connection_layer('', [], start_key)
     conn_lyr = conn_lyr if conn_lyr != '1' else ''

@@ -57,9 +57,9 @@ PRD_ICHS = list(map(automol.smiles.inchi, ['CCC', '[OH]']))
 RCT_GEOS = list(map(automol.inchi.geometry, RCT_ICHS))
 PRD_GEOS = list(map(automol.inchi.geometry, PRD_ICHS))
 
-RCT_GRAS = list(map(automol.graph.without_stereo_parities,
+RCT_GRAS = list(map(automol.graph.without_stereo,
                     map(automol.geom.graph, RCT_GEOS)))
-PRD_GRAS = list(map(automol.graph.without_stereo_parities,
+PRD_GRAS = list(map(automol.graph.without_stereo,
                     map(automol.geom.graph, PRD_GEOS)))
 
 RCT_GRAS, _ = automol.graph.standard_keys_for_sequence(RCT_GRAS)

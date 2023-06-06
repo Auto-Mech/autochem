@@ -43,6 +43,6 @@ print(automol.geom.string(GEO))
 print()
 
 # 7. Check the connectivity
-GRA = automol.graph.without_stereo_parities(GRA)
+GRA = automol.graph.without_stereo(GRA)
 GRA2 = automol.geom.connectivity_graph(GEO)
 print("Is the connectivity consistent?", 'Yes' if GRA == GRA2 else 'No')

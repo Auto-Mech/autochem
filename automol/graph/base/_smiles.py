@@ -31,7 +31,7 @@ from automol.graph.base._core import string
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import without_stereo_parities
+from automol.graph.base._core import without_stereo
 from automol.graph.base._core import add_bonded_atom
 from automol.graph.base._core import set_atom_implicit_hydrogens
 from automol.graph.base._algo import is_connected
@@ -99,7 +99,7 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
         "Cannot determine SMILES for disconnected graph.")
 
     if not stereo:
-        gra = without_stereo_parities(gra)
+        gra = without_stereo(gra)
 
     # If not using local stereo assignments, canonicalize the graph first.
     # From this point on, the stereo parities can be assumed to correspond to
@@ -221,7 +221,7 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
 
     # If there are terminal atoms, start from the first one
     atm_keys = atom_keys(kgr)
-    term_keys = terminal_atom_keys(gra, heavy=False)
+    term_keys = terminal_atom_keys(gra, backbone=False)
     start_key = min(term_keys) if term_keys else min(atm_keys)
 
     smi, _ = _recurse_smiles('', [], start_key)

@@ -20,9 +20,9 @@ rct_ichs, prd_ichs = [
 rct_geos = list(map(automol.chi.geometry, rct_ichs))
 prd_geos = list(map(automol.chi.geometry, prd_ichs))
 
-rct_gras = list(map(automol.graph.without_stereo_parities,
+rct_gras = list(map(automol.graph.without_stereo,
                     map(automol.geom.graph, rct_geos)))
-prd_gras = list(map(automol.graph.without_stereo_parities,
+prd_gras = list(map(automol.graph.without_stereo,
                     map(automol.geom.graph, prd_geos)))
 
 rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)

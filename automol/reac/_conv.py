@@ -257,8 +257,8 @@ def with_structures_from_geometry(rct_geos, prd_geos, zmat=False, stereo=False,
         ts_stereo = True if ts_stereo is None else ts_stereo
     else:
         ts_stereo = False if ts_stereo is None else ts_stereo
-        rct_gras = list(map(automol.graph.without_stereo_parities, rct_gras))
-        prd_gras = list(map(automol.graph.without_stereo_parities, prd_gras))
+        rct_gras = list(map(automol.graph.without_stereo, rct_gras))
+        prd_gras = list(map(automol.graph.without_stereo, prd_gras))
 
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
