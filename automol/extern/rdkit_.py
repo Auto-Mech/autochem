@@ -260,7 +260,7 @@ def from_graph(gra, stereo=False):
     keys = sorted(automol.graph.base.atom_keys(kgr))
     assert keys == list(range(len(keys)))
     symb_dct = automol.graph.base.atom_symbols(kgr)
-    rad_dct = automol.graph.base.atom_unsaturations(kgr, bond_order=True)
+    rad_dct = automol.graph.base.atom_unpaired_electrons(kgr, bond_order=True)
 
     bnd_keys = automol.graph.base.bond_keys(kgr)
     ord_dct = automol.graph.base.bond_orders(kgr)

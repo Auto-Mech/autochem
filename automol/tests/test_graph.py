@@ -546,18 +546,10 @@ def test__remove_bonds():
 
 # implicit/explicit hydrogen functions
 # # atom properties
-def test__atom_explicit_hydrogen_valences():
-    """ test graph.atom_explicit_hydrogen_valences
-    """
-    assert graph.atom_explicit_hydrogen_valences(CH2FH2H_CGR_EXP) == {
-        0: 0, 1: 2, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0
-    }
-
-
 def test__atom_hydrogen_keys():
     """ test graph.atom_hydrogen_keys
     """
-    assert graph.atom_hydrogen_keys(CH2FH2H_CGR_EXP) == {
+    assert graph.atom_nonbackbone_hydrogen_keys(CH2FH2H_CGR_EXP) == {
         0: frozenset(),
         1: frozenset({4, 5}),
         2: frozenset({6}),
@@ -578,7 +570,8 @@ def test__backbone_keys():
 def test__hydrogen_keys():
     """ test graph.hydrogen_keys
     """
-    assert graph.hydrogen_keys(CH2FH2H_CGR_EXP) == frozenset({4, 5, 6})
+    assert (graph.nonbackbone_hydrogen_keys(CH2FH2H_CGR_EXP) ==
+            frozenset({4, 5, 6}))
 
 
 def test__explicit():
@@ -651,7 +644,7 @@ def test__atom_bond_counts():
 def test__atom_unsaturations():
     """ test graph.atom_unsaturations
     """
-    assert graph.atom_unsaturations(C8H13O_CGR) == {
+    assert graph.atom_unpaired_electrons(C8H13O_CGR) == {
         0: 0, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 1}
 
 

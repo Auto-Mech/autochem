@@ -13,8 +13,8 @@ from automol.graph.base._core import bond_keys
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import set_bond_orders
-from automol.graph.base._core import atom_unsaturations
-from automol.graph.base._core import bond_unsaturations
+from automol.graph.base._core import atom_unpaired_electrons
+from automol.graph.base._core import bond_unpaired_electrons
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import atom_bond_counts
@@ -238,7 +238,7 @@ def atom_hybridizations_from_kekule(gra):
     """
     gra = ts_reactants_graph(gra)
     atm_keys = list(atom_keys(gra))
-    atm_unsat_dct = atom_unsaturations(gra, bond_order=True)
+    atm_unsat_dct = atom_unpaired_electrons(gra, bond_order=True)
     atm_bnd_vlc_dct = atom_bond_counts(gra, bond_order=False)     # note!!
     atm_unsats = numpy.array(
         dict_.values_by_key(atm_unsat_dct, atm_keys))
@@ -279,10 +279,10 @@ def radical_atom_keys(gra, sing_res=False, min_valence=1.):
 
     if sing_res:
         atm_rad_vlcs = dict_.values_by_key(
-            atom_unsaturations(kekule(gra)), atm_keys)
+            atom_unpaired_electrons(kekule(gra)), atm_keys)
     else:
         atm_rad_vlcs_by_res = [
-            dict_.values_by_key(atom_unsaturations(dom_gra), atm_keys)
+            dict_.values_by_key(atom_unpaired_electrons(dom_gra), atm_keys)
             for dom_gra in kekules(gra)]
         atm_rad_vlcs = [
             max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
@@ -310,7 +310,7 @@ def radical_atom_keys_from_kekule(gra, min_valence=1.):
     atm_keys = list(atom_keys(gra))
 
     atm_rad_vlcs = dict_.values_by_key(
-        atom_unsaturations(gra), atm_keys)
+        atom_unpaired_electrons(gra), atm_keys)
 
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
                              in zip(atm_keys, atm_rad_vlcs)
@@ -324,7 +324,7 @@ def nonresonant_radical_atom_keys(gra):
     gra = ts_reactants_graph(gra)
     atm_keys = list(atom_keys(gra))
     atm_rad_vlcs_by_res = [
-        dict_.values_by_key(atom_unsaturations(g), atm_keys)
+        dict_.values_by_key(atom_unpaired_electrons(g), atm_keys)
         for g in kekules(gra)]
     atm_rad_vlcs = [min(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
     atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
@@ -571,7 +571,7 @@ def pi_system_atom_keys(gra):
         :type gra: automol graph data structure
         :returns: keys for each closed, connected pi system
     """
-    atm_unsat_dct = atom_unsaturations(gra, bond_order=False)
+    atm_unsat_dct = atom_unpaired_electrons(gra, bond_order=False)
     all_pi_keys = dict_.keys_by_value(atm_unsat_dct)
     pi_keys_lst = tuple(
         ks for ks in
@@ -597,9 +597,9 @@ def pi_system_kekules_bond_orders_brute_force(gra, pi_keys, log=False):
     bnd_keys = list(bond_keys(pi_sy))
 
     aus_dct = dict_.by_key(
-        atom_unsaturations(gra, bond_order=False), atm_keys)
+        atom_unpaired_electrons(gra, bond_order=False), atm_keys)
     bus_dct = dict_.by_key(
-        bond_unsaturations(gra, bond_order=False), bnd_keys)
+        bond_unpaired_electrons(gra, bond_order=False), bnd_keys)
 
     spin_max = spin_min = sum(aus_dct.values())
 
