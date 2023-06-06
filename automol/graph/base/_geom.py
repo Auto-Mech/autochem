@@ -26,48 +26,48 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None,
                          neg_hkeys=True):
     r""" Calculate an atom parity directly from a geometry
 
-        Neighboring atom keys (`nkeys`) must be passed in as a priority-sorted
-        list. If `None`, a local parity calculation will occur based on the
-        atom keys in the molecular graph. In this case, `neg_hkeys` can be used
-        to determine whether to negate hydrogen keys, giving them lowest
-        priority.
+    Neighboring atom keys (`nkeys`) must be passed in as a priority-sorted
+    list. If `None`, a local parity calculation will occur based on the
+    atom keys in the molecular graph. In this case, `neg_hkeys` can be used
+    to determine whether to negate hydrogen keys, giving them lowest
+    priority.
 
-        Atom parity is defined as follows:
+    Atom parity is defined as follows:
 
-        The four keys passed in are apices of a tetrahedron. Looking at 2, 3,
-        and 4 from 1, they will either ascend in clockwise or counterclockwise
-        order.
+    The four keys passed in are apices of a tetrahedron. Looking at 2, 3,
+    and 4 from 1, they will either ascend in clockwise or counterclockwise
+    order.
 
-        If ascending in counterclockwise order, the parity is False ('-').
-        If ascending in clockwise order, the parity is True ('+').
+    If ascending in counterclockwise order, the parity is False ('-').
+    If ascending in clockwise order, the parity is True ('+').
 
-              2                   2
-             /1\                 /1\
-            3---4               4---3
+            2                   2
+            /1\                 /1\
+        3---4               4---3
 
-            counterclockwise    clockwise
-            False               True
-            '-'                 '+'
+        counterclockwise    clockwise
+        False               True
+        '-'                 '+'
 
-        (Viewed looking down from 1)
+    (Viewed looking down from 1)
 
-        If only three keys are passed in, they will be treated as keys 2, 3,
-        and 4 above and it will be assumed that there is a lone pair at 1.
+    If only three keys are passed in, they will be treated as keys 2, 3,
+    and 4 above and it will be assumed that there is a lone pair at 1.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param atm_key: the atom key whose parity is being evaluated
-        :type atm_key: int
-        :param nkeys: the neighboring atom keys, pre-sorted by priority
-        :type nkeys: list[int]
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :neg_hkeys: negate hydrogen keys, to match with InChI parities?
-            Only has an effect if `nkeys` is `None`.
-        :neg_hkeys: bool
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param atm_key: the atom key whose parity is being evaluated
+    :type atm_key: int
+    :param nkeys: the neighboring atom keys, pre-sorted by priority
+    :type nkeys: list[int]
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :neg_hkeys: negate hydrogen keys, to match with InChI parities?
+        Only has an effect if `nkeys` is `None`.
+    :neg_hkeys: bool
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
@@ -114,64 +114,64 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
                          geo_idx_dct=None, neg_hkeys=True):
     r""" Calculate a bond parity directly from a geometry
 
-        Neighboring bond keys (`bnd_nkeys`) must be passed in as a pair of
-        priority-sorted lists corresponding to the first and second atoms in
-        `bnd_key`. Note that the latter must be an *ordered list* in this case!
-        If `None`, a local parity calculation will occur based on the atom keys
-        in the molecular graph. In this case, `neg_hkeys` can be used to
-        determine whether to negate hydrogen keys, giving them lowest priority.
+    Neighboring bond keys (`bnd_nkeys`) must be passed in as a pair of
+    priority-sorted lists corresponding to the first and second atoms in
+    `bnd_key`. Note that the latter must be an *ordered list* in this case!
+    If `None`, a local parity calculation will occur based on the atom keys
+    in the molecular graph. In this case, `neg_hkeys` can be used to
+    determine whether to negate hydrogen keys, giving them lowest priority.
 
-        Bond parity is defined as follows:
+    Bond parity is defined as follows:
 
-        For each atom in the double bond, find the heavy-atom neighbor with the
-        higher canonical number. Although hydrogen atoms have higher canonical
-        numbers, they are always given lowest priority.
+    For each atom in the double bond, find the heavy-atom neighbor with the
+    higher canonical number. Although hydrogen atoms have higher canonical
+    numbers, they are always given lowest priority.
 
-        If the neighbors are cis to each other, the parity is False ('-').
-        If the neighbors are trans to each other, the parity is True ('+').
+    If the neighbors are cis to each other, the parity is False ('-').
+    If the neighbors are trans to each other, the parity is True ('+').
 
-            max    max      max    min
-              \   /           \   /
-               A=B             A=B
-              /   \           /   \
-            min    min      min    max
+        max    max      max    min
+            \   /           \   /
+            A=B             A=B
+            /   \           /   \
+        min    min      min    max
 
-            cis             trans
-            False           True
-            '-'             '+'
+        cis             trans
+        False           True
+        '-'             '+'
 
-        If one side only has a single neighbor, then it is compared with the
-        maximum neighbor on the other side.
+    If one side only has a single neighbor, then it is compared with the
+    maximum neighbor on the other side.
 
-            max    nei      max
-              \   /           \
-               A=B             A=B
-              /               /   \
-            min             min    nei
+        max    nei      max
+            \   /           \
+            A=B             A=B
+            /               /   \
+        min             min    nei
 
-            cis             trans
-            False           True
-            '-'             '+'
+        cis             trans
+        False           True
+        '-'             '+'
 
-        If both sides have only single neighbors, then they are compared to
-        each other.
+    If both sides have only single neighbors, then they are compared to
+    each other.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param bnd_key: the bond key. If using `bnd_nkeys`, this must be an
-            ordered list!
-        :type bnd_key: list[int]
-        :param bnd_nkeys: a pair of lists of neighboring keys for the first and
-            second atoms in `bnd_key`, respectively.
-        :type bnd_nkeys: list[list[int]]
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :neg_hkeys: negate hydrogen keys, to match with InChI parities?
-            Only has an effect if `nkeys` is `None`.
-        :neg_hkeys: bool
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param bnd_key: the bond key. If using `bnd_nkeys`, this must be an
+        ordered list!
+    :type bnd_key: list[int]
+    :param bnd_nkeys: a pair of lists of neighboring keys for the first and
+        second atoms in `bnd_key`, respectively.
+    :type bnd_nkeys: list[list[int]]
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :neg_hkeys: negate hydrogen keys, to match with InChI parities?
+        Only has an effect if `nkeys` is `None`.
+    :neg_hkeys: bool
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
@@ -225,17 +225,17 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None, neg_hkeys=True):
     """ Calculate the local parity of an atom or bond
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param key: the atom or bond key whose parity is being evaluated
-        :type key: int
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :neg_hkeys: negate hydrogen keys, to match with InChI parities?
-        :neg_hkeys: bool
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param key: the atom or bond key whose parity is being evaluated
+    :type key: int
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :neg_hkeys: negate hydrogen keys, to match with InChI parities?
+    :neg_hkeys: bool
     """
     if isinstance(key, numbers.Number):
         par = geometry_atom_parity(
@@ -249,21 +249,21 @@ def geometry_local_parity(gra, geo, key, geo_idx_dct=None, neg_hkeys=True):
 def geometries_have_matching_parities(gra, geo1, geo2, keys, geo_idx_dct=None):
     """ Check whether two geometries have matching parities at a list of sites
 
-        Keys in list may be atom or bond keys.  Any stereo in the graph object
-        gets ignored.
+    Keys in list may be atom or bond keys.  Any stereo in the graph object
+    gets ignored.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo1: the first molecular geometry
-        :type geo1: automol geometry data structure
-        :param geo2: the second molecular geometry
-        :type geo2: automol geometry data structure
-        :param keys: list of atom or bond keys for comparison sites
-        :type keys: list
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :returns: true if they match, false if not
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo1: the first molecular geometry
+    :type geo1: automol geometry data structure
+    :param geo2: the second molecular geometry
+    :type geo2: automol geometry data structure
+    :param keys: list of atom or bond keys for comparison sites
+    :type keys: list
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :returns: true if they match, false if not
     """
     return all(
         (geometry_local_parity(gra, geo1, key, geo_idx_dct=geo_idx_dct) ==
@@ -273,23 +273,23 @@ def geometries_have_matching_parities(gra, geo1, geo2, keys, geo_idx_dct=None):
 
 def geometries_parity_mismatches(gra, geo1, geo2, keys, geo_idx_dct=None):
     """ Check where two geometries have mismatched parities and return keys to
-        those sites
+    those sites
 
-        Keys in list may be atom or bond keys.  Any stereo in the graph object
-        gets ignored.
+    Keys in list may be atom or bond keys.  Any stereo in the graph object
+    gets ignored.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo1: the first molecular geometry
-        :type geo1: automol geometry data structure
-        :param geo2: the second molecular geometry
-        :type geo2: automol geometry data structure
-        :param keys: list of atom or bond keys for comparison sites
-        :type keys: list
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :returns: keys to sites at which they don't match
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo1: the first molecular geometry
+    :type geo1: automol geometry data structure
+    :param geo2: the second molecular geometry
+    :type geo2: automol geometry data structure
+    :param keys: list of atom or bond keys for comparison sites
+    :type keys: list
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :returns: keys to sites at which they don't match
     """
     return tuple(
         key for key in keys if
@@ -302,15 +302,15 @@ def linear_vinyl_corrected_geometry(gra, geo, geo_idx_dct=None,
                                     tol=2.*phycon.DEG2RAD):
     """ correct a geometry for linear vinyl groups
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :param tol: tolerance of bond angle(s) for determing linearity
-        :type tol: float
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :param tol: tolerance of bond angle(s) for determing linearity
+    :type tol: float
     """
     atm_keys = atom_keys(gra)
     bnakeys_dct = bonds_neighbor_atom_keys(gra)

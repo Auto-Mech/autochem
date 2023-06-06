@@ -54,15 +54,15 @@ from automol.graph.base._geom import geometry_bond_parity
 def canonical_enantiomer(gra):
     """ Determine the canonical graph of the canonical enantiomer.
 
-        Graphs with stereo will be reflected.
+    Graphs with stereo will be reflected.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: a canonicalized graph of the canonical enantiomer, along with
-            a boolean flag indicating whether or not the graph has been
-            reflected; `True` indicates it has been, `False` indicates it
-            hasn't, and `None` indicates that it isn't an enantiomer
-        :rtype: (automol graph data structure, bool)
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: a canonicalized graph of the canonical enantiomer, along with
+        a boolean flag indicating whether or not the graph has been
+        reflected; `True` indicates it has been, `False` indicates it
+        hasn't, and `None` indicates that it isn't an enantiomer
+    :rtype: (automol graph data structure, bool)
     """
     ce_gra, _, is_refl = canonical_enantiomer_with_keys(gra)
     return ce_gra, is_refl
@@ -70,15 +70,15 @@ def canonical_enantiomer(gra):
 
 def canonical_enantiomer_with_keys(gra):
     """ Determine the canonical graph of the canonical enantiomer, along with
-        the canonical key mapping.
+    the canonical key mapping.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: a canonicalized graph of the canonical enantiomer, along with
-            a boolean flag indicating whether or not the graph has been
-            reflected; `True` indicates it has been, `False` indicates it
-            hasn't, and `None` indicates that it isn't an enantiomer
-        :rtype: (automol graph data structure, bool)
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: a canonicalized graph of the canonical enantiomer, along with
+        a boolean flag indicating whether or not the graph has been
+        reflected; `True` indicates it has been, `False` indicates it
+        hasn't, and `None` indicates that it isn't an enantiomer
+    :rtype: (automol graph data structure, bool)
     """
     if not has_atom_stereo(gra):
         ce_gra = gra
@@ -128,14 +128,16 @@ def canonical_enantiomer_with_keys(gra):
 
 def canonical_assignment_representation(gra, pri_dct):
     """ Generate a canonical representation of a stereo assignment, for
-        checking for symmetric equivalence or for determining a canonical
-        enantiomer
+    checking for symmetric equivalence or for determining a canonical
+    enantiomer
 
-        :param pri_dct: A dictionary mapping atom keys to priorities
-        :type pri_dct: dict
-        :param par_dct: A dictionary mapping atom and bond keys to parities
-        :type par_dct: dict
-        :returns: A canonical representation of the assignment
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: A dictionary mapping atom keys to priorities
+    :type pri_dct: dict
+    :param par_dct: A dictionary mapping atom and bond keys to parities
+    :type par_dct: dict
+    :returns: A canonical representation of the assignment
     """
     atm_keys = sorted(atom_stereo_keys(gra), key=pri_dct.__getitem__)
     bnd_keys = sorted(bond_stereo_keys(gra),
@@ -156,14 +158,14 @@ def canonical_assignment_representation(gra, pri_dct):
 def canonical(gra):
     """ A graph relabeled with canonical keys
 
-        Stereo parities in the graph are assumed to be canonical.
+    Stereo parities in the graph are assumed to be canonical.
 
-        Requires a connected graph
+    Requires a connected graph
 
-        :param gra: a connected molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
-        :returns: a new molecular graph with canonical keys; if explicit
-            hydrogens are included, they will be relabeled as well
+    :param gra: a connected molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    :returns: a new molecular graph with canonical keys; if explicit
+        hydrogens are included, they will be relabeled as well
     """
     can_key_dct = canonical_keys(gra, backbone_only=False)
     return relabel(gra, can_key_dct)
@@ -172,18 +174,18 @@ def canonical(gra):
 def canonical_keys(gra, backbone_only=True):
     """ Determine canonical keys for this graph.
 
-        Stereo parities in the graph are assumed to be canonical.
+    Stereo parities in the graph are assumed to be canonical.
 
-        Requires a connected graph
+    Requires a connected graph
 
-        :param gra: a connected molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
-        :param backbone_only: Consider backbone atoms only?
-        :type backbone_only: bool
-        :param break_ties: Break ties after keys have been refined?
-        :type break_ties: bool
-        :returns: a dictionary of canonical keys by atom key
-        :rtype: dict[int: int]
+    :param gra: a connected molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    :param backbone_only: Consider backbone atoms only?
+    :type backbone_only: bool
+    :param break_ties: Break ties after keys have been refined?
+    :type break_ties: bool
+    :returns: a dictionary of canonical keys by atom key
+    :rtype: dict[int: int]
     """
     atm_par_dct0 = atom_stereo_parities(gra)
     bnd_par_dct0 = bond_stereo_parities(gra)
@@ -213,17 +215,17 @@ def canonical_keys(gra, backbone_only=True):
 def stereogenic_atom_keys(gra, pri_dct=None, assigned=False):
     """ Find stereogenic atoms in this graph.
 
-        If the `assigned` flag is set to `False`, only  unassigned stereogenic
-        atoms will be detected.
+    If the `assigned` flag is set to `False`, only  unassigned stereogenic
+    atoms will be detected.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param pri_dct: priorities, to avoid recalculating
-        :type pri_dct: dict[int: int]
-        :param assigned: Include atoms that already have stereo assignments?
-        :param assigned: bool
-        :returns: the stereogenic atom keys
-        :rtype: frozenset
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: priorities, to avoid recalculating
+    :type pri_dct: dict[int: int]
+    :param assigned: Include atoms that already have stereo assignments?
+    :param assigned: bool
+    :returns: the stereogenic atom keys
+    :rtype: frozenset
     """
     gra = without_dummy_atoms(gra)
     pri_dct = (canonical_priorities(gra, backbone_only=False)
@@ -236,17 +238,17 @@ def stereogenic_atom_keys(gra, pri_dct=None, assigned=False):
 def stereogenic_bond_keys(gra, pri_dct=None, assigned=False):
     """ Find stereogenic bonds in this graph.
 
-        If the `assigned` flag is set to `False`, only  unassigned stereogenic
-        bonds will be detected.
+    If the `assigned` flag is set to `False`, only  unassigned stereogenic
+    bonds will be detected.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param pri_dct: priorities, to avoid recalculating
-        :type pri_dct: dict[int: int]
-        :param assigned: Include bonds that already have stereo assignments?
-        :param assigned: bool
-        :returns: the stereogenic bond keys
-        :rtype: frozenset
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: priorities, to avoid recalculating
+    :type pri_dct: dict[int: int]
+    :param assigned: Include bonds that already have stereo assignments?
+    :param assigned: bool
+    :returns: the stereogenic bond keys
+    :rtype: frozenset
     """
     gra = without_dummy_atoms(gra)
     pri_dct = (canonical_priorities(gra, backbone_only=False)
@@ -259,17 +261,17 @@ def stereogenic_bond_keys(gra, pri_dct=None, assigned=False):
 def stereogenic_keys(gra, pri_dct=None, assigned=False):
     """ Find stereogenic atoms and bonds in this graph.
 
-        If the `assigned` flag is set to `False`, only  unassigned stereogenic
-        atoms will be detected.
+    If the `assigned` flag is set to `False`, only  unassigned stereogenic
+    atoms will be detected.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param pri_dct: priorities, to avoid recalculating
-        :type pri_dct: dict[int: int]
-        :param assigned: Include atoms/bonds that already have assignments?
-        :param assigned: bool
-        :returns: keys to stereogenic atoms and bonds
-        :rtype: frozenset
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: priorities, to avoid recalculating
+    :type pri_dct: dict[int: int]
+    :param assigned: Include atoms/bonds that already have assignments?
+    :param assigned: bool
+    :returns: keys to stereogenic atoms and bonds
+    :rtype: frozenset
     """
     gra = without_dummy_atoms(gra)
     pri_dct = (canonical_priorities(gra, backbone_only=False)
@@ -285,11 +287,11 @@ def stereogenic_keys(gra, pri_dct=None, assigned=False):
 def reflect(gra):
     """ Reflect the graph, locally inverting all stereo centers.
 
-        To replicate the effect of reflecting the geometry, we convert to local
-        stereo before reflecting and then convert back.
+    To replicate the effect of reflecting the geometry, we convert to local
+    stereo before reflecting and then convert back.
 
-        :param gra: molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
+    :param gra: molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
     """
     if has_atom_stereo(gra):
         loc_gra = to_local_stereo(gra)
@@ -301,10 +303,10 @@ def reflect(gra):
 def reflect_local_stereo(gra):
     """ Reflect a graph with local stereo parities.
 
-        Assuming local stereo parities, the parities can simply be reversed.
+    Assuming local stereo parities, the parities can simply be reversed.
 
-        :param gra: molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
+    :param gra: molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
     """
     atm_par_dct = atom_stereo_parities(gra)
     atm_par_dct = dict_.transform_values(
