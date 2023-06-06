@@ -18,7 +18,7 @@ from automol.graph.base import atom_keys
 from automol.graph.base import bond_keys
 from automol.graph.base import atom_symbols
 from automol.graph.base import bond_orders
-from automol.graph.base import atom_bond_valences
+from automol.graph.base import atom_bond_counts
 from automol.graph.base import atom_unsaturations
 from automol.graph.base import explicit
 from automol.graph.base import without_dummy_atoms
@@ -347,7 +347,7 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     bnd_keys = list(bond_keys(gra))
     atm_syms = dict_.values_by_key(atom_symbols(gra), atm_keys)
     atm_bnd_vlcs = dict_.values_by_key(
-        atom_bond_valences(gra), atm_keys)
+        atom_bond_counts(gra), atm_keys)
     atm_rad_vlcs = dict_.values_by_key(
         atom_unsaturations(gra), atm_keys)
     bnd_ords = dict_.values_by_key(bond_orders(gra), bnd_keys)

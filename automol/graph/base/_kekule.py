@@ -17,8 +17,8 @@ from automol.graph.base._core import atom_unsaturations
 from automol.graph.base._core import bond_unsaturations
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
-from automol.graph.base._core import atom_bond_valences
-from automol.graph.base._core import atom_lone_pair_counts
+from automol.graph.base._core import atom_bond_counts
+from automol.graph.base._core import atom_lone_pairs
 from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_dummy_atoms
@@ -239,12 +239,12 @@ def atom_hybridizations_from_kekule(gra):
     gra = ts_reactants_graph(gra)
     atm_keys = list(atom_keys(gra))
     atm_unsat_dct = atom_unsaturations(gra, bond_order=True)
-    atm_bnd_vlc_dct = atom_bond_valences(gra, bond_order=False)     # note!!
+    atm_bnd_vlc_dct = atom_bond_counts(gra, bond_order=False)     # note!!
     atm_unsats = numpy.array(
         dict_.values_by_key(atm_unsat_dct, atm_keys))
     atm_bnd_vlcs = numpy.array(dict_.values_by_key(atm_bnd_vlc_dct, atm_keys))
     atm_lpcs = numpy.array(
-        dict_.values_by_key(atom_lone_pair_counts(gra), atm_keys))
+        dict_.values_by_key(atom_lone_pairs(gra), atm_keys))
     atm_hybs = atm_unsats + atm_bnd_vlcs + atm_lpcs - 1
     atm_hyb_dct = dict_.transform_values(
         dict(zip(atm_keys, atm_hybs)), int)

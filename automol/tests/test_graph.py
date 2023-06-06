@@ -627,24 +627,24 @@ def test__unique():
 
 
 # chemistry library
-def test__atom_element_valences():
-    """ test graph.atom_element_valences
+def test__atomic_valences():
+    """ test graph.atomic_valences
     """
-    assert graph.atom_element_valences(C8H13O_CGR) == {
+    assert graph.atomic_valences(C8H13O_CGR) == {
         0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 2}
 
 
-def test__atom_lone_pair_counts():
-    """ test graph.atom_lone_pair_counts
+def test__atom_lone_pairs():
+    """ test graph.atom_lone_pairs
     """
-    assert graph.atom_lone_pair_counts(C8H13O_CGR) == {
+    assert graph.atom_lone_pairs(C8H13O_CGR) == {
         0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 2}
 
 
-def test__atom_bond_valences():
-    """ test graph.atom_bond_valences
+def test__atom_bond_counts():
+    """ test graph.atom_bond_counts
     """
-    assert graph.atom_bond_valences(C8H13O_CGR) == {
+    assert graph.atom_bond_counts(C8H13O_CGR) == {
         0: 4, 1: 3, 2: 4, 3: 3, 4: 3, 5: 3, 6: 4, 7: 4, 8: 1}
 
 
@@ -1779,6 +1779,8 @@ if __name__ == '__main__':
     # test__ts__are_energetically_equivalent()
     # test__branch()
     # test__perturb_geometry_planar_dihedrals()
-    test__from_data()
-    test__setters()
-    test__atom_count()
+    # test__from_data()
+    # test__setters()
+    # test__atom_count()
+    # test__atom_hybridizations()
+    test__kekules()

@@ -198,7 +198,7 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
     """
     keys = sorted(atm_symb_dct.keys())
     symbs = dict_.values_by_key(atm_symb_dct, keys)
-    vlcs = dict_.values_by_key(
+    hyds = dict_.values_by_key(
         dict_.empty_if_none(atm_imp_hyd_dct), keys, fill_val=0)
     pars = dict_.values_by_key(
         dict_.empty_if_none(atm_ste_par_dct), keys, fill_val=None)
@@ -211,7 +211,7 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
     natms = len(keys)
 
     assert len(symbs) == natms
-    assert len(vlcs) == natms
+    assert len(hyds) == natms
     assert len(pars) == natms
     assert all(par in (None, False, True) for par in pars)
     if ts_:
@@ -221,16 +221,16 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
         assert all(par in (None, False, True) for par in ts_pars)
 
     symbs = list(map(ptab.to_symbol, symbs))
-    vlcs = list(map(int, vlcs))
+    hyds = list(map(int, hyds))
     pars = [bool(par) if par is not None else par for par in pars]
     if ts_:
         prd_pars = [bool(par) if par is not None else par for par in prd_pars]
         ts_pars = [bool(par) if par is not None else par for par in ts_pars]
 
     if not ts_:
-        atm_dct = dict(zip(keys, zip(symbs, vlcs, pars)))
+        atm_dct = dict(zip(keys, zip(symbs, hyds, pars)))
     else:
-        atm_dct = dict(zip(keys, zip(symbs, vlcs, pars, prd_pars, ts_pars)))
+        atm_dct = dict(zip(keys, zip(symbs, hyds, pars, prd_pars, ts_pars)))
 
     return atm_dct
 
@@ -656,18 +656,35 @@ def ts_reacting_atoms(tsg):
 def ts_reactants_graph(tsg):
     """ Generate a graph representing the reactants from a TS graph
 
-    :param gra: molecular graph
-    :type gra: automol graph data structure
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
     :returns: the reactants graph
+    """
+    # Round the bond orders for forming bonds, and remove forming bonds
+    tsg = ts_without_reacting_bond_orders(tsg)
+    # Remove the extra stereo columns
+    gra = from_atoms_and_bonds(atoms(tsg), bonds(tsg), ts_=False)
+    return gra
+
+
+def ts_without_reacting_bond_orders(tsg, keep_zeros=False):
+    """ Remove reacting bonds from a TS graph, replacing them with their values
+        for the reactants
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :param keep_zeros: Keep the bonds with a resulting bond order of 0?
+    :type keep_zeros: bool
+    :returns: The TS graph, without reacting bond orders
+    :rtype: automol TS graph data structure
     """
     rxn_bnd_keys = ts_reacting_bonds(tsg)
     rxn_ord_dct = dict_.by_key(bond_orders(tsg), rxn_bnd_keys)
     # Round the bond orders for forming bonds, and remove forming bonds
     tsg = set_bond_orders(tsg, dict_.transform_values(rxn_ord_dct, round))
-    tsg = without_null_bonds(tsg, except_dummies=True)
-    # Remove the extra stereo columns
-    gra = from_atoms_and_bonds(atoms(tsg), bonds(tsg), ts_=False)
-    return gra
+    if not keep_zeros:
+        tsg = without_null_bonds(tsg, except_dummies=True)
+    return tsg
 
 
 # # setters
@@ -1162,18 +1179,6 @@ def has_stereo(gra, ts_all=False):
     return bool(stereo_keys(gra, ts_all=ts_all))
 
 
-def has_fractional_bonds(gra):
-    """ Does this graph have any fractional (non-integer-order) bonds?
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: `True` if it does, `False` if it doesn't
-    :rtype: bool
-    """
-    ords = bond_orders(gra).values()
-    return any(o != round(o) for o in ords)
-
-
 def is_ts_graph(gra):
     """ Is this a TS graph?
 
@@ -1199,7 +1204,7 @@ def atomic_numbers(gra):
     :param gra: molecular graph
     :type gra: automol graph data structure
     :returns: A dictionary of atomic numbers, by atom key
-    :rtype: dict[int: str]
+    :rtype: dict[int: int]
     """
     symb_dct = atom_symbols(gra)
     anum_dct = dict_.transform_values(symb_dct, ptab.to_number)
@@ -1212,23 +1217,36 @@ def mass_numbers(gra):
     :param gra: molecular graph
     :type gra: automol graph data structure
     :returns: A dictionary of mass numbers, by atom key
-    :rtype: dict[int: str]
+    :rtype: dict[int: float]
     """
     symb_dct = atom_symbols(gra)
     mnum_dct = dict_.transform_values(symb_dct, ptab.to_mass_number)
     return mnum_dct
 
 
-def atom_element_valences(gra):
-    """ element valences (# possible single bonds), by atom
+def atomic_valences(gra):
+    """ Get atomic valences for atoms in this graph, as a dictionary
+
+    Valences here refers to the number of bonds that each element is
+    intrinsically capable of forming. Ex: 'C' => 4, 'O' => 2, etc.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of atomic valences, by atom key
+    :rtype: dict[int: int]
     """
     atm_symb_dct = atom_symbols(gra)
-    atm_elem_vlc_dct = dict_.transform_values(atm_symb_dct, ptab.valence)
-    return atm_elem_vlc_dct
+    atm_vlc_dct = dict_.transform_values(atm_symb_dct, ptab.valence)
+    return atm_vlc_dct
 
 
-def atom_lone_pair_counts(gra):
-    """ lone pair counts, by atom
+def atom_lone_pairs(gra):
+    """ Get the number of lone pairs for atoms in this graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of lone pair counts, by atom key
+    :rtype: dict[int: int]
     """
     atm_symb_dct = atom_symbols(gra)
     atm_lpc_dct = dict_.transform_values(atm_symb_dct, ptab.lone_pair_count)
@@ -1236,37 +1254,61 @@ def atom_lone_pair_counts(gra):
 
 
 def lone_pair_atom_keys(gra):
-    """ keys for atoms that one-or-more lone-pairs
+    """ Get the keys of atoms in this graph that have lone pairs
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atom keys
+    :rtype: frozenset[int]
     """
-    lpc_dct = atom_lone_pair_counts(gra)
+    lpc_dct = atom_lone_pairs(gra)
     return frozenset(key for key, lpc in lpc_dct.items() if lpc > 0)
 
 
-def atom_van_der_waals_radius(gra, key):
-    """ van der waals radius for an atom in the graph (in angstroms)
-    """
+def atom_van_der_waals_radius(gra, key, angstrom=True):
+    """ Get the van der Waals radius of an atom in the graph
 
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param key: the atom key
+    :type key: int
+    :returns: The atom keys
+    :rtype: frozenset[int]
+    """
     symb_dct = atom_symbols(gra)
     symb = symb_dct[key]
-    rad = ptab.van_der_waals_radius(symb) * phycon.BOHR2ANG
-
+    rad = ptab.van_der_waals_radius(symb)
+    if angstrom:
+        rad *= phycon.BOHR2ANG
     return rad
 
 
-def atom_bond_valences(gra, bond_order=True):
-    """ bond count (bond valence), by atom
+def atom_bond_counts(gra, bond_order=True, with_implicit=True):
+    """ Get the bond counts for the atoms in this graph, as a dictionary
+
+    The bond count will be based on the graph's bond orders, so one must
+    convert to a Kekule graph in order to include pi bonds in the count.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :type bond_order: bool, optional
+    :param with_implicit: Include implicit hydrogens?, defaults to True
+    :type with_implicit: bool, optional
+    :returns: A dictionary of bond counts, by atom key
+    :rtype: dict[int: int]
     """
     atm_keys = list(atom_keys(gra))
-    gra = explicit(gra)
+    if with_implicit:
+        gra = explicit(gra)
     gra = ts_reactants_graph(gra)
     if not bond_order:
         gra = without_bond_orders(gra)
 
     atm_nbhs = dict_.values_by_key(atom_neighborhoods(gra), atm_keys)
-    atm_bnd_vlcs = [sum(bond_orders(nbh).values()) for nbh in atm_nbhs]
-    atm_bnd_vlc_dct = dict_.transform_values(
-        dict(zip(atm_keys, atm_bnd_vlcs)), int)
-    return atm_bnd_vlc_dct
+    atm_nbnds = [sum(bond_orders(nbh).values()) for nbh in atm_nbhs]
+    atm_nbnd_dct = dict_.transform_values(dict(zip(atm_keys, atm_nbnds)), int)
+    return atm_nbnd_dct
 
 
 def atom_explicit_hydrogen_valences(gra):
@@ -1292,8 +1334,8 @@ def atom_unsaturations(gra, bond_order=True):
     if not bond_order:
         gra = without_bond_orders(gra)
 
-    atm_bnd_vlcs = dict_.values_by_key(atom_bond_valences(gra), atm_keys)
-    atm_tot_vlcs = dict_.values_by_key(atom_element_valences(gra), atm_keys)
+    atm_bnd_vlcs = dict_.values_by_key(atom_bond_counts(gra), atm_keys)
+    atm_tot_vlcs = dict_.values_by_key(atomic_valences(gra), atm_keys)
     atm_rad_vlcs = numpy.subtract(atm_tot_vlcs, atm_bnd_vlcs)
     atm_unsat_dct = dict_.transform_values(
         dict(zip(atm_keys, atm_rad_vlcs)), int)
@@ -1335,8 +1377,8 @@ def tetrahedral_atom_keys(gra):
         :type gra: automol graph data structure
     """
     gra = ts_reactants_graph(gra)
-    bnd_vlc_dct = atom_bond_valences(gra)
-    lpc_dct = atom_lone_pair_counts(gra)
+    bnd_vlc_dct = atom_bond_counts(gra)
+    lpc_dct = atom_lone_pairs(gra)
 
     def _is_tetrahedral(key):
         bnd_vlc = bnd_vlc_dct[key]
@@ -1991,9 +2033,11 @@ def without_bond_orders(gra):
     bnd_keys = list(bond_keys(gra))
     # don't set dummy bonds to one!
     bnd_ord_dct = bond_orders(gra)
-    bnd_vals = [1 if v not in (0, 0.1, 0.9) else v
+    bnd_ords = [0 if round(v, 1) == 0
+                else round(v % 1, 1) if round(v % 1, 1) in (0.1, 0.9)
+                else 1
                 for v in map(bnd_ord_dct.__getitem__, bnd_keys)]
-    bnd_ord_dct = dict(zip(bnd_keys, bnd_vals))
+    bnd_ord_dct = dict(zip(bnd_keys, bnd_ords))
     return set_bond_orders(gra, bnd_ord_dct)
 
 
@@ -2006,19 +2050,12 @@ def without_dummy_atoms(gra):
     return subgraph(gra, atm_keys, stereo=True)
 
 
-def without_fractional_bonds(gra):
-    """ rounds fractional bonds in the graph
-    """
-    ord_dct = dict_.transform_values(bond_orders(gra), func=round)
-    gra = set_bond_orders(gra, ord_dct)
-    return gra
-
-
 def without_null_bonds(gra, except_dummies=True):
     """ remove 0-order bonds from the graph
     """
     dummy_atm_keys = atom_keys(gra, symb='X')
-    ord_dct = dict_.filter_by_value(bond_orders(gra), func=lambda x: x == 0)
+    ord_dct = dict_.filter_by_value(
+        bond_orders(gra), func=lambda x: round(x, 1) == 0)
     null_bnd_keys = ord_dct.keys()
     if except_dummies:
         null_bnd_keys = [bk for bk in null_bnd_keys
