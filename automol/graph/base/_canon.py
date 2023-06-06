@@ -34,8 +34,8 @@ from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit
 from automol.graph.base._core import atom_implicit_hydrogens
-from automol.graph.base._core import atom_hydrogen_keys
-from automol.graph.base._core import hydrogen_keys
+from automol.graph.base._core import atom_nonbackbone_hydrogen_keys
+from automol.graph.base._core import nonbackbone_hydrogen_keys
 from automol.graph.base._core import relabel
 from automol.graph.base._core import without_bond_orders
 from automol.graph.base._core import without_stereo_parities
@@ -1057,7 +1057,7 @@ def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
 
     pri_dct = pri_dct.copy()
 
-    hyd_keys_pool = hydrogen_keys(gra)
+    hyd_keys_pool = nonbackbone_hydrogen_keys(gra)
 
     sgn = -1 if neg else +1
 
@@ -1066,7 +1066,7 @@ def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
         bbn_pri_dct = dict_.by_key(pri_dct, bbn_keys)
         gra = explicit(gra)
 
-        hyd_keys_dct = atom_hydrogen_keys(gra)
+        hyd_keys_dct = atom_nonbackbone_hydrogen_keys(gra)
 
         next_idx = max(bbn_pri_dct.values()) + 1
 
@@ -1101,7 +1101,8 @@ def local_priority_dict(gra):
     """
     loc_pri_dct = {}
     loc_pri_dct.update({k: k for k in backbone_keys(gra)})
-    loc_pri_dct.update({k: -numpy.inf for k in hydrogen_keys(gra)})
+    loc_pri_dct.update(
+        {k: -numpy.inf for k in nonbackbone_hydrogen_keys(gra)})
     return loc_pri_dct
 
 

@@ -70,9 +70,8 @@ from automol.graph.base._core import atomic_valences
 from automol.graph.base._core import atom_lone_pairs
 from automol.graph.base._core import atom_van_der_waals_radius
 from automol.graph.base._core import atom_bond_counts
-from automol.graph.base._core import atom_explicit_hydrogen_valences
-from automol.graph.base._core import atom_unsaturations
-from automol.graph.base._core import bond_unsaturations
+from automol.graph.base._core import atom_unpaired_electrons
+from automol.graph.base._core import bond_unpaired_electrons
 from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
@@ -80,9 +79,9 @@ from automol.graph.base._core import atom_symbol_keys
 from automol.graph.base._core import backbone_keys
 from automol.graph.base._core import backbone_bond_keys
 from automol.graph.base._core import backbone_hydrogen_keys
-from automol.graph.base._core import hydrogen_keys
+from automol.graph.base._core import nonbackbone_hydrogen_keys
 from automol.graph.base._core import atom_backbone_hydrogen_keys
-from automol.graph.base._core import atom_hydrogen_keys
+from automol.graph.base._core import atom_nonbackbone_hydrogen_keys
 from automol.graph.base._core import terminal_atom_keys
 from automol.graph.base._core import unsaturated_atom_keys
 from automol.graph.base._core import unsaturated_bond_keys
@@ -384,9 +383,8 @@ __all__ = [
     'atom_lone_pairs',
     'atom_van_der_waals_radius',
     'atom_bond_counts',
-    'atom_explicit_hydrogen_valences',
-    'atom_unsaturations',
-    'bond_unsaturations',
+    'atom_unpaired_electrons',
+    'bond_unpaired_electrons',
     'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
@@ -394,9 +392,9 @@ __all__ = [
     'backbone_keys',
     'backbone_bond_keys',
     'backbone_hydrogen_keys',
-    'hydrogen_keys',
+    'nonbackbone_hydrogen_keys',
     'atom_backbone_hydrogen_keys',
-    'atom_hydrogen_keys',
+    'atom_nonbackbone_hydrogen_keys',
     'terminal_atom_keys',
     'unsaturated_atom_keys',
     'unsaturated_bond_keys',

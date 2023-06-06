@@ -1311,23 +1311,19 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True):
     return atm_nbnd_dct
 
 
-def atom_explicit_hydrogen_valences(gra):
-    """ explicit hydrogen valences, by atom
-    """
-    return dict_.transform_values(atom_hydrogen_keys(gra), len)
+def atom_unpaired_electrons(gra, bond_order=True):
+    """ The number of unpaired electrons on each atom, calculated as the atomic
+    valences minus the bond count
 
+    In a non-Kekule graph, these will be *either* radical *or* pi-bonding
+    electrons. In a Kekule graph, they will be only radical electrons.
 
-def atom_unsaturations(gra, bond_order=True):
-    """ Atom unsaturations, i.e. spaces for bonding
-
-        An atom's unsaturation is the difference between its element valence
-        (potential bond count) and its bonding valence (actual bond count),
-        leaving either radical or pi-bonding electrons.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: the atom unsaturated valences, by atom key
-        :rtype: dict
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :type bond_order: bool, optional
+    :returns: the atom unsaturated valences, by atom key
+    :rtype: dict
     """
     atm_keys = list(atom_keys(gra))
     gra = ts_reactants_graph(gra)
@@ -1337,21 +1333,24 @@ def atom_unsaturations(gra, bond_order=True):
     atm_bnd_vlcs = dict_.values_by_key(atom_bond_counts(gra), atm_keys)
     atm_tot_vlcs = dict_.values_by_key(atomic_valences(gra), atm_keys)
     atm_rad_vlcs = numpy.subtract(atm_tot_vlcs, atm_bnd_vlcs)
-    atm_unsat_dct = dict_.transform_values(
+    atm_unp_dct = dict_.transform_values(
         dict(zip(atm_keys, atm_rad_vlcs)), int)
-    return atm_unsat_dct
+    return atm_unp_dct
 
 
-def bond_unsaturations(gra, bond_order=True):
-    """ Bond unsaturations, i.e. spaces for pi-bonding
+def bond_unpaired_electrons(gra, bond_order=True):
+    """ The number of adjacent pairs of unpaired electrons across each bond,
+    which are available for pi-bonding
 
-        A bond's unsaturation is the minumum of its atoms' unsaturated
-        valences, indicating the number of pi-bonds that could be formed.
+    Calculated as the minimum number of unpaired electrons for the atoms on
+    either side of the bond.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: the bond unsaturated valences, by bond key
-        :rtype: dict
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :type bond_order: bool, optional
+    :returns: the bond unsaturated valences, by bond key
+    :rtype: dict
     """
     bnd_keys = list(bond_keys(gra))
     gra = ts_reactants_graph(gra)
@@ -1359,9 +1358,9 @@ def bond_unsaturations(gra, bond_order=True):
         gra = without_bond_orders(gra)
 
     # determine unsaturated valences for each atom
-    atm_unsat_dct = atom_unsaturations(gra)
+    atm_unp_dct = atom_unpaired_electrons(gra)
     # a bond's unsaturated is set by its limiting atom
-    bnd_unsats = [min(map(atm_unsat_dct.__getitem__, k)) for k in bnd_keys]
+    bnd_unsats = [min(map(atm_unp_dct.__getitem__, k)) for k in bnd_keys]
     bnd_unsat_dct = dict(zip(bnd_keys, bnd_unsats))
     return bnd_unsat_dct
 
@@ -1369,12 +1368,14 @@ def bond_unsaturations(gra, bond_order=True):
 def tetrahedral_atom_keys(gra):
     """ Keys to tetrahedral atoms (possible stereo centers).
 
-        Atoms will be considered tetrahedral if either:
-            a. They are bonded to 4 other atoms.
-            b. They are bonded to 3 other atoms and have one lone pair.
+    Atoms will be considered tetrahedral if either:
+        a. They are bonded to 4 other atoms.
+        b. They are bonded to 3 other atoms and have one lone pair.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atom keys
+    :rtype: frozenset[int]
     """
     gra = ts_reactants_graph(gra)
     bnd_vlc_dct = atom_bond_counts(gra)
@@ -1392,14 +1393,28 @@ def tetrahedral_atom_keys(gra):
 
 
 def maximum_spin_multiplicity(gra, bond_order=True):
-    """ the highest possible spin multiplicity for this molecular graph
+    """ The highest possible spin multiplicity for this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :type bond_order: bool, optional
+    :returns: The maximum spin multiplicity, as a number
+    :rtype: int
     """
-    atm_rad_vlc_dct = atom_unsaturations(gra, bond_order=bond_order)
-    return sum(atm_rad_vlc_dct.values()) + 1
+    atm_rad_dct = atom_unpaired_electrons(gra, bond_order=bond_order)
+    return sum(atm_rad_dct.values()) + 1
 
 
 def possible_spin_multiplicities(gra, bond_order=True):
-    """ possible spin multiplicities for this molecular graph
+    """ Possible spin multiplicities for this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :type bond_order: bool, optional
+    :returns: The list of possible spin multiplicities
+    :rtype: tuple
     """
     mult_max = maximum_spin_multiplicity(gra, bond_order=bond_order)
     mult_min = 2 if mult_max % 2 == 0 else 1
@@ -1408,8 +1423,13 @@ def possible_spin_multiplicities(gra, bond_order=True):
 
 
 def atom_symbol_keys(gra):
-    """ determine the indices for each atom symbol
-        :return: dict[symb] = [idxs]
+    """ Group the atom keys by atomic symbol
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary whose keys are the atomic symbols and whose values
+        are the atom keys associated with each
+    :rtype: dict[str: list]
     """
 
     idx_symb_dct = atom_symbols(gra)
@@ -1424,15 +1444,71 @@ def atom_symbol_keys(gra):
     return symb_idx_dct
 
 
-def backbone_keys(gra):
-    """ backbone atom keys
+def backbone_hydrogen_keys(gra):
+    """ Get the backbone hydrogen keys of this molecular graph
+
+    These are hydrogen keys which cannot be made implicit, because they are
+    part of the backbone. There are two cases: (1.) one of the hydrogens in
+    H2 must be considered a backbone hydrogen, and (2.) any multivalent
+    hydrogen must be treated as part of the backbone.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atom keys
+    :rtype: frozenset[int]
     """
-    bbn_keys = atom_keys(gra) - hydrogen_keys(gra)
-    return bbn_keys
+    hyd_keys = atom_keys(gra, symb='H')
+    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
+
+    def _is_backbone(hyd_key):
+        is_h2 = all(ngb_key in hyd_keys and hyd_key < ngb_key
+                    for ngb_key in atm_ngb_keys_dct[hyd_key])
+        is_multivalent = len(atm_ngb_keys_dct[hyd_key]) > 1
+        return is_h2 or is_multivalent
+
+    bbn_hyd_keys = frozenset(filter(_is_backbone, hyd_keys))
+    return bbn_hyd_keys
+
+
+def nonbackbone_hydrogen_keys(gra):
+    """ Get the hydrogen keys of this graph, with or without backbone hydrogens
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atom keys
+    :rtype: frozenset[int]
+    """
+    return atom_keys(gra, symb='H') - backbone_hydrogen_keys(gra)
+
+
+def atom_nonbackbone_hydrogen_keys(gra):
+    """ Get the hydrogen keys of each atom, with or without backbone hydrogens,
+    as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary giving the hydrogen keys for each atom, by key.
+    :rtypoe: dict[int: frozenset]
+    """
+    hyd_keys = nonbackbone_hydrogen_keys(gra)
+    atm_hyd_keys_dct = dict_.transform_values(
+        atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
+    return atm_hyd_keys_dct
+
+
+def backbone_keys(gra):
+    """ Get the backbone atom keys of this graph, including backbone hydrogens
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The atom keys
+    :rtype: frozenset[int]
+    """
+    return atom_keys(gra) - nonbackbone_hydrogen_keys(gra)
 
 
 def backbone_bond_keys(gra, terminal=False):
-    """ backbone bond keys
+    """ Get the backbone bond keys of this graph (bonds between two backbone atoms)
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -1451,69 +1527,15 @@ def backbone_bond_keys(gra, terminal=False):
     return frozenset(filter(lambda x: x == (x & bbn_keys), bnd_keys))
 
 
-def backbone_hydrogen_keys(gra):
-    """ backbone hydrogen keys
-
-        These are hydrogen keys which cannot be made implicit, because they are
-        part of the backbone. There are two cases: (1.) one of the hydrogens in
-        H2 must be considered a backbone hydrogen, and (2.) any multivalent
-        hydrogen must be treated as part of the backbone.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-    """
-    hyd_keys = atom_keys(gra, symb='H')
-    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-
-    def _is_backbone(hyd_key):
-        is_h2 = all(ngb_key in hyd_keys and hyd_key < ngb_key
-                    for ngb_key in atm_ngb_keys_dct[hyd_key])
-        is_multivalent = len(atm_ngb_keys_dct[hyd_key]) > 1
-        return is_h2 or is_multivalent
-
-    bbn_hyd_keys = frozenset(filter(_is_backbone, hyd_keys))
-    return bbn_hyd_keys
-
-
-def hydrogen_keys(gra, backbone=False):
-    """ explicit hydrogen keys (by default, without backbone hydrogens)
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param backbone: Include backbone hydrogen keys?
-        :type backbone: bool
-    """
-    hyd_keys = atom_keys(gra, symb='H')
-
-    if not backbone:
-        hyd_keys -= backbone_hydrogen_keys(gra)
-
-    return hyd_keys
-
-
 def atom_backbone_hydrogen_keys(gra):
-    """ explicit hydrogen valences, by atom
+    """ Get backbone hydrogen keys for each atom, as a dictionary
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: A dictionary giving the hydrogen keys for each atom, by key.
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary giving the hydrogen keys for each atom, by key
+    :rtype: dict[int: frozenset]
     """
     hyd_keys = backbone_hydrogen_keys(gra)
-    atm_hyd_keys_dct = dict_.transform_values(
-        atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
-    return atm_hyd_keys_dct
-
-
-def atom_hydrogen_keys(gra, backbone=False):
-    """ explicit hydrogen valences, by atom
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param backbone: Include backbone hydrogen keys?
-        :type backbone: bool
-        :returns: A dictionary giving the hydrogen keys for each atom, by key.
-    """
-    hyd_keys = hydrogen_keys(gra, backbone=backbone)
     atm_hyd_keys_dct = dict_.transform_values(
         atoms_neighbor_atom_keys(gra), lambda x: x & hyd_keys)
     return atm_hyd_keys_dct
@@ -1538,16 +1560,16 @@ def terminal_atom_keys(gra, heavy=True):
 def unsaturated_atom_keys(gra):
     """ keys of unsaturated (radical or pi-bonded) atoms
     """
-    atm_unsat_dct = atom_unsaturations(gra, bond_order=False)
-    unsat_atm_keys = frozenset(dict_.keys_by_value(atm_unsat_dct, bool))
+    atm_unp_dct = atom_unpaired_electrons(gra, bond_order=False)
+    unsat_atm_keys = frozenset(dict_.keys_by_value(atm_unp_dct, bool))
     return unsat_atm_keys
 
 
 def unsaturated_bond_keys(gra):
     """ keys of unsaturated (radical or pi-bonded) bonds
     """
-    bnd_unsat_dct = bond_unsaturations(gra, bond_order=False)
-    unsat_bnd_keys = frozenset(dict_.keys_by_value(bnd_unsat_dct, bool))
+    bnd_unp_dct = bond_unpaired_electrons(gra, bond_order=False)
+    unsat_bnd_keys = frozenset(dict_.keys_by_value(bnd_unp_dct, bool))
     return unsat_bnd_keys
 
 
@@ -1686,8 +1708,8 @@ def negate_hydrogen_keys(gra):
     :rtype: automol graph data structure
     """
     gra = ts_reactants_graph(gra)
-    exp_hyd_keys = hydrogen_keys(gra)
-    atm_key_dct = {k: -abs(k) for k in exp_hyd_keys}
+    hyd_keys = nonbackbone_hydrogen_keys(gra)
+    atm_key_dct = {k: -abs(k) for k in hyd_keys}
     return relabel(gra, atm_key_dct)
 
 
@@ -2101,7 +2123,7 @@ def implicit(gra, atm_keys=None):
     atm_keys = backbone_keys(gra) if atm_keys is None else atm_keys
 
     atm_exp_hyd_keys_dct = dict_.by_key(
-        atom_hydrogen_keys(gra), atm_keys)
+        atom_nonbackbone_hydrogen_keys(gra), atm_keys)
 
     inc_imp_hyd_keys_dct = dict_.transform_values(atm_exp_hyd_keys_dct, len)
     gra = add_atom_implicit_hydrogens(gra, inc_imp_hyd_keys_dct)
