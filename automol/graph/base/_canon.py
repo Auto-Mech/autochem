@@ -21,9 +21,13 @@ from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
-from automol.graph.base._core import set_stereo_parities
+from automol.graph.base._core import ts_atom_product_stereo_parities
+from automol.graph.base._core import ts_bond_product_stereo_parities
+from automol.graph.base._core import ts_atom_fleeting_stereo_parities
+from automol.graph.base._core import ts_bond_fleeting_stereo_parities
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
+from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import atom_symbols
@@ -42,6 +46,7 @@ from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import string as graph_string
+from automol.graph.base._core import is_ts_graph
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
@@ -318,12 +323,12 @@ def reflect_local_stereo(gra):
 def to_local_stereo(gra, pri_dct=None):
     """ Convert canonical stereo parities to local ones
 
-        :param gra: molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
-        :param pri_dct: priorities, to avoid recalculating
-        :type pri_dct: dict[int: int]
-        :returns: molecular graph with local stereo parities
-        :rtype: automol graph data structure
+    :param gra: molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    :param pri_dct: priorities, to avoid recalculating
+    :type pri_dct: dict[int: int]
+    :returns: molecular graph with local stereo parities
+    :rtype: automol graph data structure
     """
     loc_gra = without_stereo(gra)
     comps = connected_components(ts_reactants_graph(gra))
@@ -616,20 +621,20 @@ def refine_priorities(gra, pri_dct=None, srt_eval_=None):
 def sort_evaluator_atom_invariants_(gra):
     """ A sort function based on atom invariants with two levels of currying.
 
-        To get the sort value for a specific key, use
-            srt_val = sort_evaluator_atom_invariants_(gra)(pri_dct)(key)
+    To get the sort value for a specific key, use
+        srt_val = sort_evaluator_atom_invariants_(gra)(pri_dct)(key)
 
-        My reasoning for doing things this way is that `gra` never changes, but
-        `pri_dct` does, so we need to be able to update the function with new
-        index dictionaries. Ultimately, it is convenient to return a function
-        of `key` only because this can be passed to standard python sorting and
-        grouping functions such as `sorted()` and `itertools.groupby()`.
+    My reasoning for doing things this way is that `gra` never changes, but
+    `pri_dct` does, so we need to be able to update the function with new
+    index dictionaries. Ultimately, it is convenient to return a function
+    of `key` only because this can be passed to standard python sorting and
+    grouping functions such as `sorted()` and `itertools.groupby()`.
 
-        The canonical order has been modified relative to the one used by
-        Scheider (2015) to be more InChI-like (following Hill ordering).
+    The canonical order has been modified relative to the one used by
+    Scheider (2015) to be more InChI-like (following Hill ordering).
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
+    :param gra: molecular graph
+    :type gra: automol graph data structure
     """
     def _replace_none(val):
         return numpy.inf if val is None else val
@@ -646,7 +651,9 @@ def sort_evaluator_atom_invariants_(gra):
             symb = '1'
         return symb
 
-    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
+    ts_ = is_ts_graph(gra)
+
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
     bnds_dct = atoms_bond_keys(gra)
 
     symb_dct = dict_.transform_values(
@@ -654,15 +661,27 @@ def sort_evaluator_atom_invariants_(gra):
     hnum_dct = atom_implicit_hydrogens(gra)
     mnum_dct = mass_numbers(gra)
     apar_dct = dict_.transform_values(atom_stereo_parities(gra), _replace_none)
+    if ts_:
+        apar_prd_dct = dict_.transform_values(
+            ts_atom_product_stereo_parities(gra), _replace_none)
+        apar_ts_dct = dict_.transform_values(
+            ts_atom_fleeting_stereo_parities(gra), _replace_none)
 
-    bnd_par_dct = bond_stereo_parities(gra)
+    def _sortable_bond_parities(bnd_par_dct):
+        def _rep(bnd_keys):
+            bpars = dict_.values_by_key(bnd_par_dct, bnd_keys)
+            bpars = tuple(sorted(map(_replace_none, bpars)))
+            return bpars
 
-    def _sortable_bond_stereo_values(bnd_keys):
-        bpars = dict_.values_by_key(bnd_par_dct, bnd_keys)
-        bpars = tuple(sorted(map(_replace_none, bpars)))
-        return bpars
+        bpars_dct = dict_.transform_values(bnds_dct, _rep)
+        return bpars_dct
 
-    bpars_dct = dict_.transform_values(bnds_dct, _sortable_bond_stereo_values)
+    bpars_dct = _sortable_bond_parities(bond_stereo_parities(gra))
+    if ts_:
+        bpars_prd_dct = _sortable_bond_parities(
+            ts_bond_product_stereo_parities(gra))
+        bpars_ts_dct = _sortable_bond_parities(
+            ts_bond_fleeting_stereo_parities(gra))
 
     bnd_ord_dct = bond_orders(gra)
 
@@ -688,9 +707,15 @@ def sort_evaluator_atom_invariants_(gra):
             apar = apar_dct[key]
             bpars = bpars_dct[key]
             bords = bords_dct[key]
-            ngb_idxs = tuple(
-                sorted(map(pri_dct.__getitem__, ngb_keys_dct[key])))
-            return (symb, deg, hnum, mnum, apar, bpars, bords, ngb_idxs)
+            nidxs = tuple(sorted(map(pri_dct.__getitem__, nkeys_dct[key])))
+            val = (symb, deg, hnum, mnum, apar, bpars, bords, nidxs)
+            if ts_:
+                apar_prd = apar_prd_dct[key]
+                apar_ts = apar_ts_dct[key]
+                bpars_prd = bpars_prd_dct[key]
+                bpars_ts = bpars_ts_dct[key]
+                val += (apar_prd, apar_ts, bpars_prd, bpars_ts)
+            return val
 
         return _value
 

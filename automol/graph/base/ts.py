@@ -37,6 +37,15 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 # from automol.graph.base._core import bond_stereo_parities
 # from automol.graph.base._core import add_bonds
 # from automol.graph.base._core import is_ts_graph
+from automol.util import dict_
+from automol.graph.base._core import bond_orders
+from automol.graph.base._core import atom_stereo_parities
+from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._core import set_bond_orders
+from automol.graph.base._core import set_atom_stereo_parities
+from automol.graph.base._core import set_bond_stereo_parities
+from automol.graph.base._core import has_pi_bonds
+from automol.graph.base._core import string
 # TS-specific functions in _core
 from automol.graph.base._core import ts_graph
 from automol.graph.base._core import ts_atom_product_stereo_parities
@@ -47,9 +56,7 @@ from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_bonds
 from automol.graph.base._core import ts_reacting_atoms
-from automol.graph.base._core import ts_reverse
 from automol.graph.base._core import ts_reactants_graph
-from automol.graph.base._core import ts_products_graph
 from automol.graph.base._core import ts_set_atom_product_stereo_parities
 from automol.graph.base._core import ts_set_atom_fleeting_stereo_parities
 from automol.graph.base._core import ts_set_bond_product_stereo_parities
@@ -65,10 +72,57 @@ forming_bond_keys = ts_forming_bond_keys
 breaking_bond_keys = ts_breaking_bond_keys
 reacting_bonds = ts_reacting_bonds
 reacting_atoms = ts_reacting_atoms
-reverse = ts_reverse
 reactants_graph = ts_reactants_graph
-products_graph = ts_products_graph
 set_atom_product_stereo_parities = ts_set_atom_product_stereo_parities
 set_atom_fleeting_stereo_parities = ts_set_atom_fleeting_stereo_parities
 set_bond_product_stereo_parities = ts_set_bond_product_stereo_parities
 set_bond_fleeting_stereo_parities = ts_set_bond_fleeting_stereo_parities
+
+
+def reverse(tsg):
+    """ Reverse the reaction direction of a TS graph
+
+    This is done by swapping (a.) breaking and forming bonds, and (b.) product
+    and reactant stereo parities with each other, and by (c.) transforming any
+    fleeting stereo parities as needed.
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: A TS graph for the reverse reaction
+    :rtype: automol TS graph data structure
+    """
+    # Step 1: Swap bond orders for breaking and forming bonds
+    assert not has_pi_bonds(tsg), (
+        f"Cannot reverse TS graph with pi bonds:\n{string(tsg)}")
+    bnd_ord_dct = {k: (0.9 if round(o, 1) == 0.1
+                       else 0.1 if round(o, 1) == 0.9
+                       else o) for k, o in bond_orders(tsg).items()}
+    tsg = set_bond_orders(tsg, bnd_ord_dct)
+
+    # Step 2: Swap reactant and product stereo parities
+    tsg_ = tsg
+    tsg = set_atom_stereo_parities(tsg, ts_atom_product_stereo_parities(tsg_))
+    tsg = ts_set_atom_product_stereo_parities(tsg, atom_stereo_parities(tsg_))
+    tsg = set_bond_stereo_parities(tsg, ts_bond_product_stereo_parities(tsg_))
+    tsg = ts_set_bond_product_stereo_parities(tsg, bond_stereo_parities(tsg_))
+
+    # Step 3: Invert fleeting stereo where necessary
+    atm_ts_ste_par_dct = dict_.filter_by_value(
+        ts_atom_fleeting_stereo_parities(tsg), lambda x: x is not None)
+    bnd_ts_ste_par_dct = dict_.filter_by_value(
+        ts_bond_fleeting_stereo_parities(tsg), lambda x: x is not None)
+    if atm_ts_ste_par_dct or bnd_ts_ste_par_dct:
+        raise NotImplementedError("Not yet implemented for fleeting parities.")
+
+    return tsg
+
+
+def products_graph(tsg):
+    """ Generate a graph representing the products of a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: the products graph
+    :rtype: automol graph data structure
+    """
+    return reactants_graph(reverse(tsg))

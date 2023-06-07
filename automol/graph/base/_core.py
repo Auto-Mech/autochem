@@ -707,44 +707,6 @@ def ts_reacting_atoms(tsg):
     return atm_keys
 
 
-def ts_reverse(tsg):
-    """ Reverse the reaction direction of a TS graph
-
-    This is done by swapping (a.) breaking and forming bonds, and (b.) product
-    and reactant stereo parities with each other, and by (c.) transforming any
-    fleeting stereo parities, if necessary
-
-    :param tsg: TS graph
-    :type tsg: automol TS graph data structure
-    :returns: A TS graph for the reverse reaction
-    :rtype: automol TS graph data structure
-    """
-    # Step 1: Swap bond orders for breaking and forming bonds
-    assert not has_pi_bonds(tsg), (
-        f"Cannot reverse TS graph with pi bonds:\n{string(tsg)}")
-    bnd_ord_dct = {k: (0.9 if round(o, 1) == 0.1
-                       else 0.1 if round(o, 1) == 0.9
-                       else o) for k, o in bond_orders(tsg).items()}
-    tsg = set_bond_orders(tsg, bnd_ord_dct)
-
-    # Step 2: Swap reactant and product stereo parities
-    tsg_ = tsg
-    tsg = set_atom_stereo_parities(tsg, ts_atom_product_stereo_parities(tsg_))
-    tsg = ts_set_atom_product_stereo_parities(tsg, atom_stereo_parities(tsg_))
-    tsg = set_bond_stereo_parities(tsg, ts_bond_product_stereo_parities(tsg_))
-    tsg = ts_set_bond_product_stereo_parities(tsg, bond_stereo_parities(tsg_))
-
-    # Step 3: Invert fleeting stereo where necessary
-    atm_ts_ste_par_dct = dict_.filter_by_value(
-        ts_atom_fleeting_stereo_parities(tsg), lambda x: x is not None)
-    bnd_ts_ste_par_dct = dict_.filter_by_value(
-        ts_bond_fleeting_stereo_parities(tsg), lambda x: x is not None)
-    if atm_ts_ste_par_dct or bnd_ts_ste_par_dct:
-        raise NotImplementedError("Not yet implemented for fleeting parities.")
-
-    return tsg
-
-
 def ts_without_reacting_bond_orders(tsg, keep_zeros=False):
     """ Remove reacting bonds from a TS graph, replacing them with their values
     for the reactants
@@ -778,17 +740,6 @@ def ts_reactants_graph(tsg):
     # Remove the extra stereo columns
     gra = from_atoms_and_bonds(atoms(tsg), bonds(tsg), ts_=False)
     return gra
-
-
-def ts_products_graph(tsg):
-    """ Generate a graph representing the products of a TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol TS graph data structure
-    :returns: the products graph
-    :rtype: automol graph data structure
-    """
-    return ts_reactants_graph(ts_reverse(tsg))
 
 
 # # setters
