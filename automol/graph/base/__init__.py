@@ -36,6 +36,7 @@ from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_stereo_parities
+from automol.graph.base._core import ts_graph
 from automol.graph.base._core import ts_atom_product_stereo_parities
 from automol.graph.base._core import ts_atom_fleeting_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
@@ -70,6 +71,7 @@ from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import has_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import has_bond_stereo
+from automol.graph.base._core import has_pi_bonds
 from automol.graph.base._core import is_ts_graph
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
@@ -306,7 +308,6 @@ from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
 # TS graph submodule:
-from automol.graph.base.ts import ts_graph
 from automol.graph.base import ts
 from automol.graph.base import old_ts
 
@@ -361,6 +362,7 @@ __all__ = [
     'has_stereo',
     'has_atom_stereo',
     'has_bond_stereo',
+    'has_pi_bonds',
     'is_ts_graph',
     'atomic_numbers',
     'mass_numbers',

@@ -78,31 +78,65 @@ C2H3O4_TSG = ({0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
                frozenset({0, 7}): (1, None, None, None)})
 
 
-# # F/C=C([C@@H](F)O)\[C@H](F)O + [OH] => F[C@H]([C]([C@@H](F)O)[C@H](F)O)O
-# C4H5F3O2_TSG = (
-#     {0: ('C', 0, None, False, None), 1: ('C', 0, None, None, None),
-#      2: ('C', 0, False, False, None), 3: ('C', 0, True, True, None),
-#      4: ('F', 0, None, None, None), 5: ('F', 0, None, None, None),
-#      6: ('F', 0, None, None, None), 7: ('O', 0, None, None, None),
-#      8: ('O', 0, None, None, None), 9: ('H', 0, None, None, None),
-#      10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
-#      12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
-#      14: ('O', 0, None, None, None), 15: ('H', 0, None, None, None)},
-#     {frozenset({7, 12}): (1, None, None, None),
-#      frozenset({2, 10}): (1, None, None, None),
-#      frozenset({1, 2}): (1, None, None, None),
-#      frozenset({0, 1}): (1, False, None, None),
-#      frozenset({3, 6}): (1, None, None, None),
-#      frozenset({2, 5}): (1, None, None, None),
-#      frozenset({0, 4}): (1, None, None, None),
-#      frozenset({3, 8}): (1, None, None, None),
-#      frozenset({0, 14}): (0.1, None, None, None),
-#      frozenset({1, 3}): (1, None, None, None),
-#      frozenset({8, 13}): (1, None, None, None),
-#      frozenset({14, 15}): (1, None, None, None),
-#      frozenset({3, 11}): (1, None, None, None),
-#      frozenset({2, 7}): (1, None, None, None),
-#      frozenset({0, 9}): (1, None, None, None)})
+# F/C=C([C@@H](F)O)\[C@H](F)O + [OH] => F[C@H]([C]([C@@H](F)O)[C@H](F)O)O
+C4H5F3O2_TSG = (
+    {0: ('C', 0, None, False, None), 1: ('C', 0, None, None, None),
+     2: ('C', 0, False, False, None), 3: ('C', 0, True, True, None),
+     4: ('F', 0, None, None, None), 5: ('F', 0, None, None, None),
+     6: ('F', 0, None, None, None), 7: ('O', 0, None, None, None),
+     8: ('O', 0, None, None, None), 9: ('H', 0, None, None, None),
+     10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+     12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
+     14: ('O', 0, None, None, None), 15: ('H', 0, None, None, None)},
+    {frozenset({7, 12}): (1, None, None, None),
+     frozenset({2, 10}): (1, None, None, None),
+     frozenset({1, 2}): (1, None, None, None),
+     frozenset({0, 1}): (1, False, None, None),
+     frozenset({3, 6}): (1, None, None, None),
+     frozenset({2, 5}): (1, None, None, None),
+     frozenset({0, 4}): (1, None, None, None),
+     frozenset({3, 8}): (1, None, None, None),
+     frozenset({0, 14}): (0.1, None, None, None),
+     frozenset({1, 3}): (1, None, None, None),
+     frozenset({8, 13}): (1, None, None, None),
+     frozenset({14, 15}): (1, None, None, None),
+     frozenset({3, 11}): (1, None, None, None),
+     frozenset({2, 7}): (1, None, None, None),
+     frozenset({0, 9}): (1, None, None, None)})
+
+# F[C@H]([C]([C@@H](F)O)[C@H](F)O)O => F/C=C([C@@H](F)O)\[C@H](F)O + [OH]
+C4H5F3O2_REV_TSG = (
+    {0: ('C', 0, False, None, None),
+     1: ('C', 0, None, None, None),
+     2: ('C', 0, False, False, None),
+     3: ('C', 0, True, True, None),
+     4: ('F', 0, None, None, None),
+     5: ('F', 0, None, None, None),
+     6: ('F', 0, None, None, None),
+     7: ('O', 0, None, None, None),
+     8: ('O', 0, None, None, None),
+     9: ('H', 0, None, None, None),
+     10: ('H', 0, None, None, None),
+     11: ('H', 0, None, None, None),
+     12: ('H', 0, None, None, None),
+     13: ('H', 0, None, None, None),
+     14: ('O', 0, None, None, None),
+     15: ('H', 0, None, None, None)},
+    {frozenset({7, 12}): (1, None, None, None),
+     frozenset({2, 10}): (1, None, None, None),
+     frozenset({1, 2}): (1, None, None, None),
+     frozenset({0, 1}): (1, None, False, None),
+     frozenset({3, 6}): (1, None, None, None),
+     frozenset({2, 5}): (1, None, None, None),
+     frozenset({0, 4}): (1, None, None, None),
+     frozenset({3, 8}): (1, None, None, None),
+     frozenset({0, 14}): (0.9, None, None, None),
+     frozenset({1, 3}): (1, None, None, None),
+     frozenset({8, 13}): (1, None, None, None),
+     frozenset({14, 15}): (1, None, None, None),
+     frozenset({3, 11}): (1, None, None, None),
+     frozenset({2, 7}): (1, None, None, None),
+     frozenset({0, 9}): (1, None, None, None)})
 
 
 def test__from_data():
@@ -234,6 +268,13 @@ def test__setters():
     assert bnd_par_dct == graph.ts_bond_fleeting_stereo_parities(gra)
     assert orig_gra == graph.ts_set_bond_fleeting_stereo_parities(
         gra, orig_bnd_par_dct)
+
+
+def test__reverse():
+    """ test graph.ts.reverse
+    """
+    assert graph.ts.reverse(C4H5F3O2_TSG) == C4H5F3O2_REV_TSG
+    assert graph.ts.reverse(C4H5F3O2_REV_TSG) == C4H5F3O2_TSG
 
 
 def test__string():
@@ -402,6 +443,7 @@ def test__bonds_neighbor_atom_keys():
 if __name__ == '__main__':
     test__getters()
     test__setters()
+    test__reverse()
     test__string()
     test__atoms_neighbor_atom_keys()
     test__atoms_bond_keys()

@@ -537,6 +537,60 @@ def stereo_parities(gra, ts_=True):
     return par_dct
 
 
+# # TS graph constructor
+def ts_graph(gra, frm_bnd_keys, brk_bnd_keys,
+             atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
+             bnd_prd_ste_par_dct=None, bnd_ts_ste_par_dct=None):
+    """ Construct a TS graph from a molecular graph
+
+    :param gra: molecular graph, representing the reactants
+    :type gra: automol graph data structure
+    :param frm_bnd_keys: Keys to bonds which are forming in the TS
+    :type frm_bnd_keys: tuple[frozenset]
+    :param brk_bnd_keys: Keys to bonds which are breaking in the TS
+    :type brk_bnd_keys: tuple[frozenset]
+    :param atm_prd_ste_par_dct: product stereo parities, by atom key
+    :type atm_prd_ste_par_dct: dict
+    :param atm_ts_ste_par_dct: fleeting TS stereo parities, by atom key
+    :type atm_ts_ste_par_dct: dict
+    :param bnd_prd_ste_par_dct: product stereo parities, by bond key
+    :type bnd_prd_ste_par_dct: dict
+    :param bnd_ts_ste_par_dct: fleeting TS stereo parities, by bond key
+    :type bnd_ts_ste_par_dct: dict
+    :returns: TS graph
+    :rtype: automol TS graph data structure
+    """
+    assert not is_ts_graph(gra), (
+        f"Attempting to construct a new TS graph from a TS graph:\n{gra}")
+
+    # Construct a TS graph object from the reactants graph
+    bnd_ord_dct = bond_orders(gra)
+    tsg = from_data(
+        atm_symb_dct=atom_symbols(gra),
+        bnd_keys=bond_keys(gra),
+        atm_imp_hyd_dct=atom_implicit_hydrogens(gra),
+        atm_ste_par_dct=atom_stereo_parities(gra),
+        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
+        atm_ts_ste_par_dct=atm_ts_ste_par_dct,
+        bnd_ord_dct=bnd_ord_dct,
+        bnd_ste_par_dct=bond_stereo_parities(gra),
+        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
+        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct,
+        ts_=True
+    )
+
+    # Encode forming and breaking bonds
+    frm_bnd_keys = frozenset(map(frozenset, frm_bnd_keys))
+    brk_bnd_keys = frozenset(map(frozenset, brk_bnd_keys))
+
+    frm_ord_dct = {k: 0.1 for k in frm_bnd_keys}
+    brk_ord_dct = {k: 0.9 for k in brk_bnd_keys}
+
+    tsg = add_bonds(tsg, frm_bnd_keys, ord_dct=frm_ord_dct, check=False)
+    tsg = add_bonds(tsg, brk_bnd_keys, ord_dct=brk_ord_dct, check=False)
+    return tsg
+
+
 # # TS graph getters
 def ts_atom_product_stereo_parities(tsg):
     """ Get the product atom stereo parities of this TS graph, as a dictionary
@@ -653,23 +707,47 @@ def ts_reacting_atoms(tsg):
     return atm_keys
 
 
-def ts_reactants_graph(tsg):
-    """ Generate a graph representing the reactants from a TS graph
+def ts_reverse(tsg):
+    """ Reverse the reaction direction of a TS graph
+
+    This is done by swapping (a.) breaking and forming bonds, and (b.) product
+    and reactant stereo parities with each other, and by (c.) transforming any
+    fleeting stereo parities, if necessary
 
     :param tsg: TS graph
     :type tsg: automol TS graph data structure
-    :returns: the reactants graph
+    :returns: A TS graph for the reverse reaction
+    :rtype: automol TS graph data structure
     """
-    # Round the bond orders for forming bonds, and remove forming bonds
-    tsg = ts_without_reacting_bond_orders(tsg)
-    # Remove the extra stereo columns
-    gra = from_atoms_and_bonds(atoms(tsg), bonds(tsg), ts_=False)
-    return gra
+    # Step 1: Swap bond orders for breaking and forming bonds
+    assert not has_pi_bonds(tsg), (
+        f"Cannot reverse TS graph with pi bonds:\n{string(tsg)}")
+    bnd_ord_dct = {k: (0.9 if round(o, 1) == 0.1
+                       else 0.1 if round(o, 1) == 0.9
+                       else o) for k, o in bond_orders(tsg).items()}
+    tsg = set_bond_orders(tsg, bnd_ord_dct)
+
+    # Step 2: Swap reactant and product stereo parities
+    tsg_ = tsg
+    tsg = set_atom_stereo_parities(tsg, ts_atom_product_stereo_parities(tsg_))
+    tsg = ts_set_atom_product_stereo_parities(tsg, atom_stereo_parities(tsg_))
+    tsg = set_bond_stereo_parities(tsg, ts_bond_product_stereo_parities(tsg_))
+    tsg = ts_set_bond_product_stereo_parities(tsg, bond_stereo_parities(tsg_))
+
+    # Step 3: Invert fleeting stereo where necessary
+    atm_ts_ste_par_dct = dict_.filter_by_value(
+        ts_atom_fleeting_stereo_parities(tsg), lambda x: x is not None)
+    bnd_ts_ste_par_dct = dict_.filter_by_value(
+        ts_bond_fleeting_stereo_parities(tsg), lambda x: x is not None)
+    if atm_ts_ste_par_dct or bnd_ts_ste_par_dct:
+        raise NotImplementedError("Not yet implemented for fleeting parities.")
+
+    return tsg
 
 
 def ts_without_reacting_bond_orders(tsg, keep_zeros=False):
     """ Remove reacting bonds from a TS graph, replacing them with their values
-        for the reactants
+    for the reactants
 
     :param tsg: TS graph
     :type tsg: automol TS graph data structure
@@ -685,6 +763,32 @@ def ts_without_reacting_bond_orders(tsg, keep_zeros=False):
     if not keep_zeros:
         tsg = without_null_bonds(tsg, except_dummies=True)
     return tsg
+
+
+def ts_reactants_graph(tsg):
+    """ Generate a graph representing the reactants of a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: the reactants graph
+    :rtype: automol graph data structure
+    """
+    # Round the bond orders for forming bonds, and remove forming bonds
+    tsg = ts_without_reacting_bond_orders(tsg)
+    # Remove the extra stereo columns
+    gra = from_atoms_and_bonds(atoms(tsg), bonds(tsg), ts_=False)
+    return gra
+
+
+def ts_products_graph(tsg):
+    """ Generate a graph representing the products of a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol TS graph data structure
+    :returns: the products graph
+    :rtype: automol graph data structure
+    """
+    return ts_reactants_graph(ts_reverse(tsg))
 
 
 # # setters
@@ -1177,6 +1281,21 @@ def has_stereo(gra, ts_all=False):
     :rtype: bool
     """
     return bool(stereo_keys(gra, ts_all=ts_all))
+
+
+def has_pi_bonds(gra):
+    """ Does this graph have pi bonds?
+
+    Returns `True` if it has bond orders other than 0, 1, or, for TS graphs,
+    0.1 or 0.9
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    bnd_ords = bond_orders(gra).values()
+    return any(round(o, 1) not in (0, 0.1, 0.9, 1) for o in bnd_ords)
 
 
 def is_ts_graph(gra):

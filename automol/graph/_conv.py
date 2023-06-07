@@ -366,28 +366,37 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     return mlf, key_map_inv
 
 
-def rdkit_molecule(gra, stereo=True, index=True):
+def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
     """ Convert a molecular graph to an RDKit molecule.
 
-        This is mainly useful for quick visualization with IPython, which can
-        be done as follows:
-        >>> from IPython.display import display
-        >>> display(rdkit_molecule(gra))
+    This is mainly useful for quick visualization with IPython, which can
+    be done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_molecule(gra))
 
-        TODO: Implement `index` flag, to show atom keys upon display.
-
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
-        :param index: display the molecule with atom index numbers?
-        :returns: the RDKit molecule
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
+    :returns: the RDKit molecule
     """
-    if index:
-        raise NotImplementedError("Displaying atom indices not implemented.")
+    if stereo and (label or label_dct is not None):
+        raise NotImplementedError(
+            "Stereo with display labels not implemented.")
 
     rdkit_.turn_3d_visualization_off()
-    return rdkit_.from_smiles(smiles(gra, stereo=stereo, res_stereo=False))
+    if stereo:
+        rdm = rdkit_.from_smiles(smiles(gra, stereo=True, res_stereo=False))
+    else:
+        rdm = rdkit_.from_graph(
+            gra, stereo=False, label=label, label_dct=label_dct)
+
+    return rdm
 
 
 def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
@@ -416,16 +425,22 @@ def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
     return rdkit_.from_smarts(rxn_smi)
 
 
-def display(gra, stereo=True):
+def display(gra, stereo=True, label=False, label_dct=None):
     """ Display graph to IPython using the RDKit visualizer
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
     """
     rdkit_.turn_3d_visualization_off()
-    IPython.display.display(rdkit_molecule(gra, stereo=stereo))
+    IPython.display.display(
+        rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct))
 
 
 def display_reaction(rgras, pgras, stereo=True):
