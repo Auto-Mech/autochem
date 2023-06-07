@@ -77,7 +77,6 @@ C2H3O4_TSG = ({0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
                frozenset({3, 5}): (1, None, None, None),
                frozenset({0, 7}): (1, None, None, None)})
 
-
 # F/C=C([C@@H](F)O)\[C@H](F)O + [OH] => F[C@H]([C]([C@@H](F)O)[C@H](F)O)O
 C4H5F3O2_TSG = (
     {0: ('C', 0, None, False, None), 1: ('C', 0, None, None, None),
@@ -137,6 +136,87 @@ C4H5F3O2_REV_TSG = (
      frozenset({3, 11}): (1, None, None, None),
      frozenset({2, 7}): (1, None, None, None),
      frozenset({0, 9}): (1, None, None, None)})
+
+# # CC(OO)[CH]C => CC(O[O])CC
+# #        *
+# # [* marks a fleeting TS stereosite]
+# C4H9O2_TSG = (
+#     {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+#      2: ('C', 0, None, None, None), 3: ('C', 0, None, None, None),
+#      4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
+#      6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
+#      8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+#      10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+#      12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
+#      14: ('H', 0, None, None, None)},
+#     {frozenset({1, 9}): (1, None, None, None),
+#      frozenset({0, 6}): (1, None, None, None),
+#      frozenset({2, 3}): (1, None, None, None),
+#      frozenset({1, 11}): (1, None, None, None),
+#      frozenset({4, 5}): (1, None, None, None),
+#      frozenset({0, 2}): (1, None, None, None),
+#      frozenset({3, 13}): (1, None, None, None),
+#      frozenset({2, 12}): (1, None, None, None),
+#      frozenset({2, 14}): (0.1, None, None, None),
+#      frozenset({3, 5}): (1, None, None, None),
+#      frozenset({4, 14}): (0.9, None, None, None),
+#      frozenset({1, 3}): (1, None, None, None),
+#      frozenset({0, 7}): (1, None, None, None),
+#      frozenset({1, 10}): (1, None, None, None),
+#      frozenset({0, 8}): (1, None, None, None)})
+
+# # CC(O)C + [OH] => CC(O)O + [CH3]
+# #  *
+# # [* marks a fleeting TS stereosite]
+# C3H9O2_TSG = (
+#     {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+#      2: ('C', 0, None, None, True), 3: ('O', 0, None, None, None),
+#      4: ('H', 0, None, None, None), 5: ('H', 0, None, None, None),
+#      6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
+#      8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+#      10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+#      12: ('O', 0, None, None, None), 13: ('H', 0, None, None, None)},
+#     {frozenset({1, 9}): (1, None, None, None),
+#      frozenset({1, 7}): (1, None, None, None),
+#      frozenset({0, 6}): (1, None, None, None),
+#      frozenset({2, 3}): (1, None, None, None),
+#      frozenset({1, 2}): (0.9, None, None, None),
+#      frozenset({2, 10}): (1, None, None, None),
+#      frozenset({0, 2}): (1, None, None, None),
+#      frozenset({0, 4}): (1, None, None, None),
+#      frozenset({0, 5}): (1, None, None, None),
+#      frozenset({2, 12}): (0.1, None, None, None),
+#      frozenset({1, 8}): (1, None, None, None),
+#      frozenset({12, 13}): (1, None, None, None),
+#      frozenset({3, 11}): (1, None, None, None)})
+
+# # CC(O)C + [CH3] => CC(O)C + [CH3]
+# #  *
+# # [* marks a fleeting TS stereosite]
+# C4H11O_TSG = (
+#     {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+#      2: ('C', 0, None, None, True), 3: ('O', 0, None, None, None),
+#      4: ('H', 0, None, None, None), 5: ('H', 0, None, None, None),
+#      6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
+#      8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+#      10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+#      12: ('C', 0, None, None, None), 13: ('H', 0, None, None, None),
+#      14: ('H', 0, None, None, None), 15: ('H', 0, None, None, None)},
+#     {frozenset({1, 9}): (1, None, None, None),
+#      frozenset({1, 7}): (1, None, None, None),
+#      frozenset({0, 6}): (1, None, None, None),
+#      frozenset({2, 3}): (1, None, None, None),
+#      frozenset({1, 2}): (0.9, None, None, None),
+#      frozenset({2, 10}): (1, None, None, None),
+#      frozenset({12, 14}): (1, None, None, None),
+#      frozenset({0, 2}): (1, None, None, None),
+#      frozenset({12, 15}): (1, None, None, None),
+#      frozenset({0, 4}): (1, None, None, None),
+#      frozenset({0, 5}): (1, None, None, None),
+#      frozenset({2, 12}): (0.1, None, None, None),
+#      frozenset({1, 8}): (1, None, None, None),
+#      frozenset({12, 13}): (1, None, None, None),
+#      frozenset({3, 11}): (1, None, None, None)})
 
 
 def test__from_data():
