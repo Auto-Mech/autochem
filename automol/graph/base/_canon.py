@@ -410,18 +410,18 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
                          pri_dct=None, ts_=False):
     """ Determine canonical priorities for this graph's atoms
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param backbone_only: Consider backbone atoms only?
-        :type backbone_only: bool
-        :param break_ties: Break ties after priorities have been refined?
-        :type break_ties: bool
-        :param pri_dct: Optional initial priorities, to be refined.
-        :type pri_dct: dict[int: int]
-        :param ts_: If this is a TS graph, treat it as such
-        :type ts_: bool
-        :returns: A dictionary of canonical priorities by atom key.
-        :rtype: dict[int: int]
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param backbone_only: Consider backbone atoms only?
+    :type backbone_only: bool
+    :param break_ties: Break ties after priorities have been refined?
+    :type break_ties: bool
+    :param pri_dct: Optional initial priorities, to be refined.
+    :type pri_dct: dict[int: int]
+    :param ts_: If this is a TS graph, treat it as such
+    :type ts_: bool
+    :returns: A dictionary of canonical priorities by atom key.
+    :rtype: dict[int: int]
     """
     gras = connected_components(gra)
     pri_dcts = [None if pri_dct is None else dict_.by_key(pri_dct, ks)

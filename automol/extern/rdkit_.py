@@ -250,20 +250,40 @@ BOND_ORDER_DCT = {
 BOND_TYPE_DCT = dict(map(reversed, BOND_ORDER_DCT.items()))
 
 
-def from_graph(gra, stereo=False):
+def from_graph(gra, stereo=False, label=False, label_dct=None):
     """ Generate an RDKit rdmecule object from a connected rdmecular graph
+
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
     """
     if stereo:
         raise NotImplementedError("Stereo is currently not implemented!")
 
+    if label_dct is not None:
+        label = True
+
     kgr = automol.graph.base.kekule(gra, max_stereo_overlap=True)
     keys = sorted(automol.graph.base.atom_keys(kgr))
-    assert keys == list(range(len(keys)))
+    key_map = dict(map(reversed, enumerate(keys)))
     symb_dct = automol.graph.base.atom_symbols(kgr)
     rad_dct = automol.graph.base.atom_unpaired_electrons(kgr, bond_order=True)
+    if label:
+        label_dct = {k: k for k in keys} if label_dct is None else label_dct
+        # Re-index the label dict to use indices
+        label_dct = util.dict_.transform_keys(label_dct, key_map.__getitem__)
 
-    bnd_keys = automol.graph.base.bond_keys(kgr)
-    ord_dct = automol.graph.base.bond_orders(kgr)
+    def idx_bond_key_(bnd_key):
+        key1, key2 = bnd_key
+        return frozenset({key_map[key1], key_map[key2]})
+
+    bnd_keys = list(map(idx_bond_key_, automol.graph.base.bond_keys(kgr)))
+    ord_dct = util.dict_.transform_keys(
+        automol.graph.base.bond_orders(kgr), idx_bond_key_)
 
     erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
@@ -275,6 +295,11 @@ def from_graph(gra, stereo=False):
         erdm.AddBond(*bnd_key, BOND_ORDER_DCT[ord_dct[bnd_key]])
 
     rdm = erdm.GetMol()
+
+    if label:
+        for idx, rda in enumerate(rdm.GetAtoms()):
+            rda.SetProp("molAtomMapNumber", str(label_dct[idx]))
+
     rdm.UpdatePropertyCache()
     return rdm
 
