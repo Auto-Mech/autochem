@@ -30,11 +30,7 @@ from automol.graph.base._core import bond_orders
 from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import ts_graph
-from automol.graph.base._core import ts_atom_product_stereo_parities
-from automol.graph.base._core import ts_atom_fleeting_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
-from automol.graph.base._core import ts_bond_product_stereo_parities
-from automol.graph.base._core import ts_bond_fleeting_stereo_parities
 from automol.graph.base._core import stereo_parities
 # # setters
 from automol.graph.base._core import set_atom_symbols
@@ -42,10 +38,6 @@ from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import set_atom_implicit_hydrogens
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
-from automol.graph.base._core import ts_set_atom_product_stereo_parities
-from automol.graph.base._core import ts_set_atom_fleeting_stereo_parities
-from automol.graph.base._core import ts_set_bond_product_stereo_parities
-from automol.graph.base._core import ts_set_bond_fleeting_stereo_parities
 from automol.graph.base._core import set_stereo_parities
 # # I/O
 from automol.graph.base._core import string
@@ -337,11 +329,7 @@ __all__ = [
     'bond_orders',
     'atom_implicit_hydrogens',
     'atom_stereo_parities',
-    'ts_atom_product_stereo_parities',
-    'ts_atom_fleeting_stereo_parities',
     'bond_stereo_parities',
-    'ts_bond_product_stereo_parities',
-    'ts_bond_fleeting_stereo_parities',
     'stereo_parities',
     # # setters
     'set_atom_symbols',
@@ -349,10 +337,6 @@ __all__ = [
     'set_atom_implicit_hydrogens',
     'set_atom_stereo_parities',
     'set_bond_stereo_parities',
-    'ts_set_atom_product_stereo_parities',
-    'ts_set_atom_fleeting_stereo_parities',
-    'ts_set_bond_product_stereo_parities',
-    'ts_set_bond_fleeting_stereo_parities',
     'set_stereo_parities',
     # # I/O
     'string',

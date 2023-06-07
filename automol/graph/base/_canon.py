@@ -21,10 +21,6 @@ from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_stereo_parities
-from automol.graph.base._core import ts_atom_product_stereo_parities
-from automol.graph.base._core import ts_bond_product_stereo_parities
-from automol.graph.base._core import ts_atom_fleeting_stereo_parities
-from automol.graph.base._core import ts_bond_fleeting_stereo_parities
 from automol.graph.base._core import set_atom_stereo_parities
 from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import set_stereo_parities
@@ -445,28 +441,28 @@ def calculate_priorities_and_assign_parities(
         backbone_only=True, pri_dct=None, ts_=False):
     """ Determine canonical priorities and assign stereo parities to this graph
 
-        This is how the parity evaluators are to be called:
-        >>> par = par_eval_(pri_dct)(key)    # this returns the parity
+    This is how the parity evaluators are to be called:
+    >>> par = par_eval_(pri_dct)(key)    # this returns the parity
 
-        :param gra: a connected molecular graph
-        :type gra: automol graph data structure
-        :param par_eval_: A parity evaluator for assigning parities during the
-            priority calculation.
-        :param par_eval2_: An optional second parity evaluator for assigning
-            the parities that will be returned, if different from those to be
-            used for the priority calculation.
-        :param break_ties: Break ties to determine canonical keys from
-            canonical priorities?
-        :type break_ties: bool
-        :param backbone_only: Consider backbone atoms only?
-        :type backbone_only: bool
-        :param pri_dct: Optional initial priorities, to be refined.
-        :type pri_dct: dict[int: int]
-        :param ts_: If this is a TS graph, treat it as such
-        :type ts_: bool
-        :returns: A dictionary of canonical priorities by atom key and a graph
-            with stereo assignments.
-        :rtype: dict[int: int], molecular graph data structure
+    :param gra: a connected molecular graph
+    :type gra: automol graph data structure
+    :param par_eval_: A parity evaluator for assigning parities during the
+        priority calculation.
+    :param par_eval2_: An optional second parity evaluator for assigning
+        the parities that will be returned, if different from those to be
+        used for the priority calculation.
+    :param break_ties: Break ties to determine canonical keys from
+        canonical priorities?
+    :type break_ties: bool
+    :param backbone_only: Consider backbone atoms only?
+    :type backbone_only: bool
+    :param pri_dct: Optional initial priorities, to be refined.
+    :type pri_dct: dict[int: int]
+    :param ts_: If this is a TS graph, treat it as such
+    :type ts_: bool
+    :returns: A dictionary of canonical priorities by atom key and a graph
+        with stereo assignments.
+    :rtype: dict[int: int], molecular graph data structure
     """
     assert is_connected(gra), "Not for disconnected graphs."
     assert gra == without_dummy_atoms(gra), (
@@ -477,6 +473,7 @@ def calculate_priorities_and_assign_parities(
 
     gra0 = gra
 
+    # These functions should take 'R', 'P', 'T' arguments for ts graphs
     par_eval_ = (parity_evaluator_read_canonical_(gra)
                  if par_eval_ is None else par_eval_)
     par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
@@ -499,6 +496,8 @@ def calculate_priorities_and_assign_parities(
     # 3. Iteratively assign parities and refine priorities.
     pri_dct0 = None
     while pri_dct0 != pri_dct:
+        # These functions should take 'R', 'P', 'T' arguments, and we
+        # will need to call each separately for ts graphs
         # a. Find stereogenic atoms and bonds based on current priorities.
         atm_keys = stereogenic_atom_keys_from_priorities(
             gra1, pri_dct, ts_=ts_)
@@ -509,11 +508,15 @@ def calculate_priorities_and_assign_parities(
         if not atm_keys and not bnd_keys:
             break
 
+        # These functions should take 'R', 'P', 'T' arguments, and we
+        # will need to call each separately for ts graphs
         # c. Assign parities to graph 1 using the first parity evaluator.
         p1_ = par_eval_(pri_dct)
         gra1 = set_atom_stereo_parities(gra1, {k: p1_(k) for k in atm_keys})
         gra1 = set_bond_stereo_parities(gra1, {k: p1_(k) for k in bnd_keys})
 
+        # These functions should take 'R', 'P', 'T' arguments, and we
+        # will need to call each separately for ts graphs
         # d. Assign parities to graph 2 using the second parity evaluator.
         p2_ = par_eval2_(pri_dct)
         gra2 = set_atom_stereo_parities(gra2, {k: p2_(k) for k in atm_keys})
@@ -663,9 +666,9 @@ def sort_evaluator_atom_invariants_(gra):
     apar_dct = dict_.transform_values(atom_stereo_parities(gra), _replace_none)
     if ts_:
         apar_prd_dct = dict_.transform_values(
-            ts_atom_product_stereo_parities(gra), _replace_none)
+            atom_stereo_parities(gra, ts_select='P'), _replace_none)
         apar_ts_dct = dict_.transform_values(
-            ts_atom_fleeting_stereo_parities(gra), _replace_none)
+            atom_stereo_parities(gra, ts_select='T'), _replace_none)
 
     def _sortable_bond_parities(bnd_par_dct):
         def _rep(bnd_keys):
@@ -679,9 +682,9 @@ def sort_evaluator_atom_invariants_(gra):
     bpars_dct = _sortable_bond_parities(bond_stereo_parities(gra))
     if ts_:
         bpars_prd_dct = _sortable_bond_parities(
-            ts_bond_product_stereo_parities(gra))
+            bond_stereo_parities(gra, ts_select='P'))
         bpars_ts_dct = _sortable_bond_parities(
-            ts_bond_fleeting_stereo_parities(gra))
+            bond_stereo_parities(gra, ts_select='T'))
 
     bnd_ord_dct = bond_orders(gra)
 

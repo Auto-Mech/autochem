@@ -48,35 +48,19 @@ from automol.graph.base._core import has_pi_bonds
 from automol.graph.base._core import string
 # TS-specific functions in _core
 from automol.graph.base._core import ts_graph
-from automol.graph.base._core import ts_atom_product_stereo_parities
-from automol.graph.base._core import ts_atom_fleeting_stereo_parities
-from automol.graph.base._core import ts_bond_product_stereo_parities
-from automol.graph.base._core import ts_bond_fleeting_stereo_parities
 from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_bonds
 from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._core import ts_reactants_graph
-from automol.graph.base._core import ts_set_atom_product_stereo_parities
-from automol.graph.base._core import ts_set_atom_fleeting_stereo_parities
-from automol.graph.base._core import ts_set_bond_product_stereo_parities
-from automol.graph.base._core import ts_set_bond_fleeting_stereo_parities
 
 # Rename TS functions from core
 graph = ts_graph
-atom_product_stereo_parities = ts_atom_product_stereo_parities
-atom_fleeting_stereo_parities = ts_atom_fleeting_stereo_parities
-bond_product_stereo_parities = ts_bond_product_stereo_parities
-bond_fleeting_stereo_parities = ts_bond_fleeting_stereo_parities
 forming_bond_keys = ts_forming_bond_keys
 breaking_bond_keys = ts_breaking_bond_keys
 reacting_bonds = ts_reacting_bonds
 reacting_atoms = ts_reacting_atoms
 reactants_graph = ts_reactants_graph
-set_atom_product_stereo_parities = ts_set_atom_product_stereo_parities
-set_atom_fleeting_stereo_parities = ts_set_atom_fleeting_stereo_parities
-set_bond_product_stereo_parities = ts_set_bond_product_stereo_parities
-set_bond_fleeting_stereo_parities = ts_set_bond_fleeting_stereo_parities
 
 
 def reverse(tsg):
@@ -100,17 +84,20 @@ def reverse(tsg):
     tsg = set_bond_orders(tsg, bnd_ord_dct)
 
     # Step 2: Swap reactant and product stereo parities
-    tsg_ = tsg
-    tsg = set_atom_stereo_parities(tsg, ts_atom_product_stereo_parities(tsg_))
-    tsg = ts_set_atom_product_stereo_parities(tsg, atom_stereo_parities(tsg_))
-    tsg = set_bond_stereo_parities(tsg, ts_bond_product_stereo_parities(tsg_))
-    tsg = ts_set_bond_product_stereo_parities(tsg, bond_stereo_parities(tsg_))
+    r_atm_ste_par_dct = atom_stereo_parities(tsg, ts_select='R')
+    p_atm_ste_par_dct = atom_stereo_parities(tsg, ts_select='P')
+    r_bnd_ste_par_dct = bond_stereo_parities(tsg, ts_select='R')
+    p_bnd_ste_par_dct = bond_stereo_parities(tsg, ts_select='P')
+    tsg = set_atom_stereo_parities(tsg, p_atm_ste_par_dct, ts_select='R')
+    tsg = set_atom_stereo_parities(tsg, r_atm_ste_par_dct, ts_select='P')
+    tsg = set_bond_stereo_parities(tsg, p_bnd_ste_par_dct, ts_select='R')
+    tsg = set_bond_stereo_parities(tsg, r_bnd_ste_par_dct, ts_select='P')
 
     # Step 3: Invert fleeting stereo where necessary
     atm_ts_ste_par_dct = dict_.filter_by_value(
-        ts_atom_fleeting_stereo_parities(tsg), lambda x: x is not None)
+        atom_stereo_parities(tsg, ts_select='T'), lambda x: x is not None)
     bnd_ts_ste_par_dct = dict_.filter_by_value(
-        ts_bond_fleeting_stereo_parities(tsg), lambda x: x is not None)
+        bond_stereo_parities(tsg, ts_select='T'), lambda x: x is not None)
     if atm_ts_ste_par_dct or bnd_ts_ste_par_dct:
         raise NotImplementedError("Not yet implemented for fleeting parities.")
 
