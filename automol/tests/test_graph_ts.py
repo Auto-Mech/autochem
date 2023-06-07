@@ -227,12 +227,16 @@ def test__from_data():
         bnd_keys=graph.bond_keys(C4H9O3_TSG),
         atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C4H9O3_TSG),
         atm_ste_par_dct=graph.atom_stereo_parities(C4H9O3_TSG),
-        atm_prd_ste_par_dct=graph.ts_atom_product_stereo_parities(C4H9O3_TSG),
-        atm_ts_ste_par_dct=graph.ts_atom_fleeting_stereo_parities(C4H9O3_TSG),
+        atm_prd_ste_par_dct=graph.atom_stereo_parities(
+            C4H9O3_TSG, ts_select='P'),
+        atm_ts_ste_par_dct=graph.atom_stereo_parities(
+            C4H9O3_TSG, ts_select='T'),
         bnd_ord_dct=graph.bond_orders(C4H9O3_TSG),
         bnd_ste_par_dct=graph.bond_stereo_parities(C4H9O3_TSG),
-        bnd_prd_ste_par_dct=graph.ts_bond_product_stereo_parities(C4H9O3_TSG),
-        bnd_ts_ste_par_dct=graph.ts_bond_fleeting_stereo_parities(C4H9O3_TSG),
+        bnd_prd_ste_par_dct=graph.bond_stereo_parities(
+            C4H9O3_TSG, ts_select='P'),
+        bnd_ts_ste_par_dct=graph.bond_stereo_parities(
+            C4H9O3_TSG, ts_select='T'),
     )
     assert tsg == C4H9O3_TSG
 
@@ -240,17 +244,17 @@ def test__from_data():
 def test__getters():
     """ test getters
     """
-    orig_tsg = C4H9O3_TSG
+    ref_tsg = C4H9O3_TSG
     tsg = graph.ts_graph(
-        gra=graph.ts.reactants_graph(orig_tsg),
-        frm_bnd_keys=graph.ts.forming_bond_keys(orig_tsg),
-        brk_bnd_keys=graph.ts.breaking_bond_keys(orig_tsg),
-        atm_prd_ste_par_dct=graph.ts.atom_product_stereo_parities(orig_tsg),
-        atm_ts_ste_par_dct=graph.ts.atom_fleeting_stereo_parities(orig_tsg),
-        bnd_prd_ste_par_dct=graph.ts.bond_product_stereo_parities(orig_tsg),
-        bnd_ts_ste_par_dct=graph.ts.bond_fleeting_stereo_parities(orig_tsg),
+        gra=graph.ts.reactants_graph(ref_tsg),
+        frm_bnd_keys=graph.ts.forming_bond_keys(ref_tsg),
+        brk_bnd_keys=graph.ts.breaking_bond_keys(ref_tsg),
+        atm_prd_ste_par_dct=graph.atom_stereo_parities(ref_tsg, ts_select='P'),
+        atm_ts_ste_par_dct=graph.atom_stereo_parities(ref_tsg, ts_select='T'),
+        bnd_prd_ste_par_dct=graph.bond_stereo_parities(ref_tsg, ts_select='P'),
+        bnd_ts_ste_par_dct=graph.bond_stereo_parities(ref_tsg, ts_select='T'),
     )
-    assert tsg == orig_tsg
+    assert tsg == ref_tsg
 
 
 def test__setters():
@@ -297,57 +301,32 @@ def test__setters():
     assert orig_gra == graph.set_atom_implicit_hydrogens(
         gra, orig_atm_imp_hyd_dct)
 
-    # atom stereo parities
-    orig_atm_par_dct = graph.atom_stereo_parities(orig_gra)
-    atm_par_dct = dict(zip(atm_keys, numpy.random.choice(pars, size=natms)))
-    gra = graph.set_atom_stereo_parities(orig_gra, atm_par_dct)
-    print(atm_par_dct)
-    assert atm_par_dct == graph.atom_stereo_parities(gra)
-    assert orig_gra == graph.set_atom_stereo_parities(gra, orig_atm_par_dct)
+    for ts_select in ('R', 'P', 'T'):
+        # atom stereo parities
+        orig_atm_par_dct = graph.atom_stereo_parities(
+            orig_gra, ts_select=ts_select)
+        atm_par_dct = dict(
+            zip(atm_keys, numpy.random.choice(pars, size=natms)))
+        gra = graph.set_atom_stereo_parities(
+            orig_gra, atm_par_dct, ts_select=ts_select)
+        print(atm_par_dct)
+        assert (atm_par_dct ==
+                graph.atom_stereo_parities(gra, ts_select=ts_select))
+        assert orig_gra == graph.set_atom_stereo_parities(
+            gra, orig_atm_par_dct, ts_select=ts_select)
 
-    # bond stereo parities
-    orig_bnd_par_dct = graph.bond_stereo_parities(orig_gra)
-    bnd_par_dct = dict(zip(bnd_keys, numpy.random.choice(pars, size=nbnds)))
-    gra = graph.set_bond_stereo_parities(orig_gra, bnd_par_dct)
-    print(bnd_par_dct)
-    assert bnd_par_dct == graph.bond_stereo_parities(gra)
-    assert orig_gra == graph.set_bond_stereo_parities(gra, orig_bnd_par_dct)
-
-    # TS atom product stereo parities
-    orig_atm_par_dct = graph.ts_atom_product_stereo_parities(orig_gra)
-    atm_par_dct = dict(zip(atm_keys, numpy.random.choice(pars, size=natms)))
-    gra = graph.ts_set_atom_product_stereo_parities(orig_gra, atm_par_dct)
-    print(atm_par_dct)
-    assert atm_par_dct == graph.ts_atom_product_stereo_parities(gra)
-    assert orig_gra == graph.ts_set_atom_product_stereo_parities(
-        gra, orig_atm_par_dct)
-
-    # TS bond product stereo parities
-    orig_bnd_par_dct = graph.ts_bond_product_stereo_parities(orig_gra)
-    bnd_par_dct = dict(zip(bnd_keys, numpy.random.choice(pars, size=nbnds)))
-    gra = graph.ts_set_bond_product_stereo_parities(orig_gra, bnd_par_dct)
-    print(bnd_par_dct)
-    assert bnd_par_dct == graph.ts_bond_product_stereo_parities(gra)
-    assert orig_gra == graph.ts_set_bond_product_stereo_parities(
-        gra, orig_bnd_par_dct)
-
-    # TS atom fleeting stereo parities
-    orig_atm_par_dct = graph.ts_atom_fleeting_stereo_parities(orig_gra)
-    atm_par_dct = dict(zip(atm_keys, numpy.random.choice(pars, size=natms)))
-    gra = graph.ts_set_atom_fleeting_stereo_parities(orig_gra, atm_par_dct)
-    print(atm_par_dct)
-    assert atm_par_dct == graph.ts_atom_fleeting_stereo_parities(gra)
-    assert orig_gra == graph.ts_set_atom_fleeting_stereo_parities(
-        gra, orig_atm_par_dct)
-
-    # TS bond fleeting stereo parities
-    orig_bnd_par_dct = graph.ts_bond_fleeting_stereo_parities(orig_gra)
-    bnd_par_dct = dict(zip(bnd_keys, numpy.random.choice(pars, size=nbnds)))
-    gra = graph.ts_set_bond_fleeting_stereo_parities(orig_gra, bnd_par_dct)
-    print(bnd_par_dct)
-    assert bnd_par_dct == graph.ts_bond_fleeting_stereo_parities(gra)
-    assert orig_gra == graph.ts_set_bond_fleeting_stereo_parities(
-        gra, orig_bnd_par_dct)
+        # bond stereo parities
+        orig_bnd_par_dct = graph.bond_stereo_parities(
+            orig_gra, ts_select=ts_select)
+        bnd_par_dct = dict(
+            zip(bnd_keys, numpy.random.choice(pars, size=nbnds)))
+        gra = graph.set_bond_stereo_parities(
+            orig_gra, bnd_par_dct, ts_select=ts_select)
+        print(bnd_par_dct)
+        assert bnd_par_dct == graph.bond_stereo_parities(
+            gra, ts_select=ts_select)
+        assert orig_gra == graph.set_bond_stereo_parities(
+            gra, orig_bnd_par_dct, ts_select=ts_select)
 
 
 def test__reverse():
@@ -370,21 +349,29 @@ def test__has_stereo():
     # CCOCC + [OH] => C[CH]OCC + O
     #  *
     # [* marks a fleeting TS stereosite]
-    assert not graph.has_stereo(C4H11O2_TSG)
-    assert graph.has_stereo(C4H11O2_TSG, ts_all=True)
-    assert not graph.has_atom_stereo(C4H11O2_TSG)
-    assert graph.has_atom_stereo(C4H11O2_TSG, ts_all=True)
-    assert not graph.has_bond_stereo(C4H11O2_TSG)
-    assert not graph.has_bond_stereo(C4H11O2_TSG, ts_all=True)
+    assert not graph.has_stereo(C4H11O2_TSG, ts_selects='R')
+    assert not graph.has_stereo(C4H11O2_TSG, ts_selects='RP')
+    assert graph.has_stereo(C4H11O2_TSG, ts_selects='RPT')
+    assert graph.has_stereo(C4H11O2_TSG, ts_selects='T')
+    assert not graph.has_atom_stereo(C4H11O2_TSG, ts_selects='R')
+    assert not graph.has_atom_stereo(C4H11O2_TSG, ts_selects='RP')
+    assert graph.has_atom_stereo(C4H11O2_TSG, ts_selects='T')
+    assert graph.has_atom_stereo(C4H11O2_TSG, ts_selects='RPT')
+    assert not graph.has_bond_stereo(C4H11O2_TSG, ts_selects='R')
+    assert not graph.has_bond_stereo(C4H11O2_TSG, ts_selects='RPT')
     # C=C(O[O])OO => [CH]=C(OO)OO
     #  *
     # [* marks a fleeting TS stereosite]
-    assert not graph.has_stereo(C2H3O4_TSG)
-    assert graph.has_stereo(C2H3O4_TSG, ts_all=True)
-    assert not graph.has_atom_stereo(C2H3O4_TSG)
-    assert not graph.has_atom_stereo(C2H3O4_TSG, ts_all=True)
-    assert not graph.has_bond_stereo(C2H3O4_TSG)
-    assert graph.has_bond_stereo(C2H3O4_TSG, ts_all=True)
+    assert not graph.has_stereo(C2H3O4_TSG, ts_selects='R')
+    assert not graph.has_stereo(C2H3O4_TSG, ts_selects='RP')
+    assert graph.has_stereo(C2H3O4_TSG, ts_selects='RPT')
+    assert graph.has_stereo(C2H3O4_TSG, ts_selects='T')
+    assert not graph.has_atom_stereo(C2H3O4_TSG, ts_selects='R')
+    assert not graph.has_atom_stereo(C2H3O4_TSG, ts_selects='RPT')
+    assert not graph.has_bond_stereo(C2H3O4_TSG, ts_selects='R')
+    assert not graph.has_bond_stereo(C2H3O4_TSG, ts_selects='RP')
+    assert graph.has_bond_stereo(C2H3O4_TSG, ts_selects='T')
+    assert graph.has_bond_stereo(C2H3O4_TSG, ts_selects='RPT')
 
 
 def test__atoms_neighbor_atom_keys():
