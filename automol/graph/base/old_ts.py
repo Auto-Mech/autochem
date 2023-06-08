@@ -166,10 +166,10 @@ def fleeting_stereogenic_atom_keys(tsg, ts_enant=True):
         :type ts_enant: bool
     """
     tsg = without_dummy_atoms(tsg)
-    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_=True)
+    pri_dct = canonical_priorities(tsg, backbone_only=False)
 
     tsg_ste_atm_keys = stereogenic_atom_keys_from_priorities(
-        tsg, pri_dct=pri_dct, assigned=True, ts_=True)
+        tsg, pri_dct=pri_dct, assigned=True)
     rct_ste_atm_keys = stereogenic_atom_keys(reactants_graph(tsg),
                                              assigned=True)
     prd_ste_atm_keys = stereogenic_atom_keys(products_graph(tsg),
@@ -196,10 +196,10 @@ def fleeting_stereogenic_bond_keys(tsg):
         :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
-    pri_dct = canonical_priorities(tsg, backbone_only=False, ts_=True)
+    pri_dct = canonical_priorities(tsg, backbone_only=False)
 
     tsg_ste_bnd_keys = stereogenic_bond_keys_from_priorities(
-        tsg, pri_dct=pri_dct, assigned=True, ts_=True)
+        tsg, pri_dct=pri_dct, assigned=True)
     rct_ste_bnd_keys = stereogenic_bond_keys(reactants_graph(tsg),
                                              assigned=True)
     prd_ste_bnd_keys = stereogenic_bond_keys(products_graph(tsg),
