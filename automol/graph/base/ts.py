@@ -53,6 +53,7 @@ from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_bonds
 from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._core import ts_reactants_graph
+from automol.graph.base._core import ts_products_graph
 
 # Rename TS functions from core
 graph = ts_graph
@@ -61,6 +62,7 @@ breaking_bond_keys = ts_breaking_bond_keys
 reacting_bonds = ts_reacting_bonds
 reacting_atoms = ts_reacting_atoms
 reactants_graph = ts_reactants_graph
+products_graph = ts_products_graph
 
 
 def reverse(tsg):
@@ -68,7 +70,7 @@ def reverse(tsg):
 
     This is done by swapping (a.) breaking and forming bonds, and (b.) product
     and reactant stereo parities with each other, and by (c.) transforming any
-    fleeting stereo parities as needed.
+    TS stereo parities as needed.
 
     :param tsg: TS graph
     :type tsg: automol TS graph data structure
@@ -93,23 +95,12 @@ def reverse(tsg):
     tsg = set_bond_stereo_parities(tsg, p_bnd_ste_par_dct, ts_select='R')
     tsg = set_bond_stereo_parities(tsg, r_bnd_ste_par_dct, ts_select='P')
 
-    # Step 3: Invert fleeting stereo where necessary
+    # Step 3: Invert TS stereo where necessary
     atm_ts_ste_par_dct = dict_.filter_by_value(
         atom_stereo_parities(tsg, ts_select='T'), lambda x: x is not None)
     bnd_ts_ste_par_dct = dict_.filter_by_value(
         bond_stereo_parities(tsg, ts_select='T'), lambda x: x is not None)
     if atm_ts_ste_par_dct or bnd_ts_ste_par_dct:
-        raise NotImplementedError("Not yet implemented for fleeting parities.")
+        raise NotImplementedError("Not yet implemented for TS parities.")
 
     return tsg
-
-
-def products_graph(tsg):
-    """ Generate a graph representing the products of a TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol TS graph data structure
-    :returns: the products graph
-    :rtype: automol graph data structure
-    """
-    return reactants_graph(reverse(tsg))

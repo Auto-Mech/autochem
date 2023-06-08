@@ -442,7 +442,10 @@ def calculate_priorities_and_assign_parities(
     """ Determine canonical priorities and assign stereo parities to this graph
 
     This is how the parity evaluators are to be called:
-    >>> par = par_eval_(pri_dct)(key)    # this returns the parity
+    >>> par = par_eval_(pri_dct)(key)               # this returns the parity
+    or, for TS graphs, we can pass in ts_select = 'R', 'P', or 'T' to select
+    which type of stereochemistry we want:
+    >>> par = par_eval_(pri_dct, ts_select)(key)    # this returns the parity
 
     :param gra: a connected molecular graph
     :type gra: automol graph data structure
@@ -473,7 +476,6 @@ def calculate_priorities_and_assign_parities(
 
     gra0 = gra
 
-    # These functions should take 'R', 'P', 'T' arguments for ts graphs
     par_eval_ = (parity_evaluator_read_canonical_(gra)
                  if par_eval_ is None else par_eval_)
     par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
@@ -496,8 +498,6 @@ def calculate_priorities_and_assign_parities(
     # 3. Iteratively assign parities and refine priorities.
     pri_dct0 = None
     while pri_dct0 != pri_dct:
-        # These functions should take 'R', 'P', 'T' arguments, and we
-        # will need to call each separately for ts graphs
         # a. Find stereogenic atoms and bonds based on current priorities.
         atm_keys = stereogenic_atom_keys_from_priorities(
             gra1, pri_dct, ts_=ts_)
@@ -843,29 +843,30 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
 def parity_evaluator_read_canonical_(gra):
     """ Determines stereo parity from a graph with canonical stereo
 
-        This is the trivial case, where parities in the graph are already
-        assumed to be canonical and so nothing needs to be done to calculate
-        them.
+    This is the trivial case, where parities in the graph are already
+    assumed to be canonical and so nothing needs to be done to calculate
+    them.
 
-        :param gra: molecular graph with canonical stereo parities
-        :type gra: automol graph data structure
-        :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
-            returns the parity for a given atom, given a set of priorities.
+    :param gra: molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
+        returns the parity for a given atom, given a set of priorities.
     """
-    atm_par_dct = atom_stereo_parities(gra)
-    bnd_par_dct = bond_stereo_parities(gra)
 
-    def _evaluator(pri_dct):
+    def _evaluator(pri_dct, ts_select=None):
         """ Parity evaluator based on current priorities
 
-            Class indices are ignored, since the parities are assumed to be
-            canonical.
+        Class indices are ignored, since the parities are assumed to be
+        canonical.
 
-            :param pri_dct: A dictionary mapping atom keys to priorities
-            :type pri_dct: dict
+        :param pri_dct: A dictionary mapping atom keys to priorities
+        :type pri_dct: dict
         """
         # Do-nothing line to prevent linting complaint
         assert pri_dct or not pri_dct
+
+        atm_par_dct = atom_stereo_parities(gra, ts_select=ts_select)
+        bnd_par_dct = bond_stereo_parities(gra, ts_select=ts_select)
 
         def _parity(key):
             # If the key is a number, this is an atom
