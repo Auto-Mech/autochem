@@ -433,12 +433,12 @@ def atom_keys(gra, symb=None, excl_symbs=()):
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    atm_keys = frozenset(atoms(gra).keys())
+    symb_dct = atom_symbols(gra)
+    atm_keys = frozenset(k for k in atoms(gra).keys()
+                         if symb_dct[k] not in excl_symbs)
     if symb is not None:
-        atm_sym_dct = atom_symbols(gra)
         atm_keys = frozenset(k for k in atm_keys
-                             if atm_sym_dct[k] == symb and
-                             atm_sym_dct[k] not in excl_symbs)
+                             if symb_dct[k] == symb)
     return atm_keys
 
 
@@ -464,7 +464,7 @@ def atom_symbols(gra):
     :returns: A dictionary of atomic symbols, by atom key
     :rtype: dict[int: str]
     """
-    return mdict.by_key_by_position(atoms(gra), atom_keys(gra), ATM_SYM_POS)
+    return mdict.by_key_by_position(atoms(gra), atoms(gra).keys(), ATM_SYM_POS)
 
 
 def bond_orders(gra, ts_=True):
@@ -478,7 +478,7 @@ def bond_orders(gra, ts_=True):
     :rtype: dict[frozenset: int or float]
     """
     gra = gra if ts_ else ts_reactants_graph(gra)
-    return mdict.by_key_by_position(bonds(gra), bond_keys(gra), BND_ORD_POS)
+    return mdict.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_ORD_POS)
 
 
 def atom_implicit_hydrogens(gra):
@@ -490,7 +490,7 @@ def atom_implicit_hydrogens(gra):
     :returns: A dictionary of implicit hydrogen valences, by atom key
     :rtype: dict[int: int]
     """
-    return mdict.by_key_by_position(atoms(gra), atom_keys(gra),
+    return mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
                                     ATM_IMP_HYD_POS)
 
 
@@ -516,13 +516,13 @@ def atom_stereo_parities(gra, ts_select=None):
                      f"ts_select = {ts_select}\ngra =\n{string(gra)}")
 
     if ts_select == 'R':
-        ret = mdict.by_key_by_position(atoms(gra), atom_keys(gra),
+        ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
                                        ATM_STE_PAR_POS)
     elif ts_select == 'P':
-        ret = mdict.by_key_by_position(atoms(gra), atom_keys(gra),
+        ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
                                        TS_ATM_P_STE_PAR_POS)
     elif ts_select == 'T':
-        ret = mdict.by_key_by_position(atoms(gra), atom_keys(gra),
+        ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
                                        TS_ATM_T_STE_PAR_POS)
 
     return ret
@@ -550,13 +550,13 @@ def bond_stereo_parities(gra, ts_select=None):
                      f"ts_select = {ts_select}\ngra =\n{string(gra)}")
 
     if ts_select == 'R':
-        ret = mdict.by_key_by_position(bonds(gra), bond_keys(gra),
+        ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
                                        BND_STE_PAR_POS)
     elif ts_select == 'P':
-        ret = mdict.by_key_by_position(bonds(gra), bond_keys(gra),
+        ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
                                        TS_BND_P_STE_PAR_POS)
     elif ts_select == 'T':
-        ret = mdict.by_key_by_position(bonds(gra), bond_keys(gra),
+        ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
                                        TS_BND_T_STE_PAR_POS)
 
     return ret
@@ -1341,7 +1341,11 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True):
     atm_keys = list(atom_keys(gra))
     if with_implicit:
         gra = explicit(gra)
-    gra = ts_reactants_graph(gra)
+
+    # If this is a TS graph, base the bond count on the reactants
+    if is_ts_graph(gra):
+        gra = ts_reactants_graph(gra)
+
     if not bond_order:
         gra = without_pi_bonds(gra)
 
@@ -1405,31 +1409,38 @@ def bond_unpaired_electrons(gra, bond_order=True):
     return bnd_unsat_dct
 
 
-def tetrahedral_atom_keys(gra):
+def stereo_candidate_atom_keys(gra):
     """ Keys to tetrahedral atoms (possible stereo centers).
 
     Atoms will be considered tetrahedral if either:
         a. They are bonded to 4 other atoms.
         b. They are bonded to 3 other atoms and have one lone pair.
 
+    For TS graphs, atom keys which meet these criteria for *either* the
+    reactants *or* the products will be included, to insure that all
+    stereochemistry gets captured.
+
     :param gra: molecular graph
     :type gra: automol graph data structure
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    gra = ts_reactants_graph(gra)
-    bnd_vlc_dct = atom_bond_counts(gra)
-    lpc_dct = atom_lone_pairs(gra)
+    if is_ts_graph(gra):
+        gras = [ts_reactants_graph(gra), ts_products_graph(gra)]
+    else:
+        gras = [gra]
 
-    def _is_tetrahedral(key):
-        bnd_vlc = bnd_vlc_dct[key]
-        lpc = lpc_dct[key]
+    keys = sorted(atom_keys(gra))
+    tet_atm_keys = []
+    for gra_ in gras:
+        nbnds_lst = dict_.values_by_key(atom_bond_counts(gra_), keys)
+        nlps_lst = dict_.values_by_key(atom_lone_pairs(gra_), keys)
+        for key, nbnds, nlps in zip(keys, nbnds_lst, nlps_lst):
+            # Cases: 4 bonds 0 lone pairs OR 3 bonds and 1 lone pair
+            if (nbnds == 4 and nlps == 0) or (nbnds == 3 and nlps == 1):
+                tet_atm_keys.append(key)
 
-        ret = (lpc == 0) and (bnd_vlc == 4) or (lpc == 1) and (bnd_vlc == 3)
-        return ret
-
-    tet_atm_keys = frozenset(filter(_is_tetrahedral, atom_keys(gra)))
-    return tet_atm_keys
+    return frozenset(tet_atm_keys)
 
 
 def maximum_spin_multiplicity(gra, bond_order=True):
@@ -1536,15 +1547,20 @@ def atom_nonbackbone_hydrogen_keys(gra):
     return atm_hyd_keys_dct
 
 
-def backbone_keys(gra):
+def backbone_keys(gra, hyd=True):
     """ Get the backbone atom keys of this graph, including backbone hydrogens
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param hyd: Include backbone hydrogen keys?
+    :type hyd: bool
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    return atom_keys(gra) - nonbackbone_hydrogen_keys(gra)
+    bbn_keys = atom_keys(gra, excl_symbs=('H',))
+    if hyd:
+        bbn_keys |= backbone_hydrogen_keys(gra)
+    return bbn_keys
 
 
 def backbone_bond_keys(gra, terminal=False):

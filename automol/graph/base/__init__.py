@@ -73,7 +73,7 @@ from automol.graph.base._core import atom_van_der_waals_radius
 from automol.graph.base._core import atom_bond_counts
 from automol.graph.base._core import atom_unpaired_electrons
 from automol.graph.base._core import bond_unpaired_electrons
-from automol.graph.base._core import tetrahedral_atom_keys
+from automol.graph.base._core import stereo_candidate_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
 from automol.graph.base._core import atom_symbol_keys
@@ -355,7 +355,7 @@ __all__ = [
     'atom_bond_counts',
     'atom_unpaired_electrons',
     'bond_unpaired_electrons',
-    'tetrahedral_atom_keys',
+    'stereo_candidate_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
     'atom_symbol_keys',

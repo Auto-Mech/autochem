@@ -28,14 +28,15 @@ from automol.graph.base._core import has_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import mass_numbers
-from automol.graph.base._core import tetrahedral_atom_keys
+from automol.graph.base._core import stereo_candidate_atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit
 from automol.graph.base._core import atom_implicit_hydrogens
-from automol.graph.base._core import atom_nonbackbone_hydrogen_keys
+from automol.graph.base._core import backbone_hydrogen_keys
 from automol.graph.base._core import nonbackbone_hydrogen_keys
+from automol.graph.base._core import atom_nonbackbone_hydrogen_keys
 from automol.graph.base._core import relabel
 from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_stereo
@@ -991,7 +992,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
     pri_dct = assign_hydrogen_priorities(
         gra, pri_dct, break_ties=False)
 
-    atm_keys = tetrahedral_atom_keys(gra)
+    atm_keys = stereo_candidate_atom_keys(gra)
     if not assigned:
         # Remove assigned stereo keys
         atm_keys -= atom_stereo_keys(gra)
@@ -1132,7 +1133,10 @@ def local_priority_dict(gra):
     """ Generate a local ``priority'' dictionary
     """
     loc_pri_dct = {}
-    loc_pri_dct.update({k: k for k in backbone_keys(gra)})
+    loc_pri_dct.update(
+        {k: k for k in backbone_keys(gra, hyd=False)})
+    loc_pri_dct.update(
+        {k: -abs(k) for k in backbone_hydrogen_keys(gra)})
     loc_pri_dct.update(
         {k: -numpy.inf for k in nonbackbone_hydrogen_keys(gra)})
     return loc_pri_dct
