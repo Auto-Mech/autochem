@@ -222,6 +222,36 @@ C4H5F3O2_REV_TSG = (
 #      frozenset({12, 13}): (1, None, None, None),
 #      frozenset({3, 11}): (1, None, None, None)})
 
+# CC[C@H](O[O])C => C/C=C/C + O[O]
+#  *
+# [* marks a fleeting stereo site]
+# An interesting case -- fleeting TS atom stereochemistry becomes bond
+# stereochemistry
+C4H9O2_TSG = (
+    {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+     2: ('C', 0, None, None, None), 3: ('C', 0, True, None, None),
+     4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
+     6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
+     8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+     10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+     12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
+     14: ('H', 0, None, None, None)},
+    {frozenset({2, 13}): (1, None, None, None),
+     frozenset({1, 9}): (1, None, None, None),
+     frozenset({0, 6}): (1, None, None, None),
+     frozenset({2, 3}): (1, None, True, None),
+     frozenset({1, 11}): (1, None, None, None),
+     frozenset({4, 5}): (1, None, None, None),
+     frozenset({0, 2}): (1, None, None, None),
+     frozenset({4, 12}): (0.1, None, None, None),
+     frozenset({2, 12}): (0.9, None, None, None),
+     frozenset({3, 14}): (1, None, None, None),
+     frozenset({3, 5}): (0.9, None, None, None),
+     frozenset({1, 3}): (1, None, None, None),
+     frozenset({0, 7}): (1, None, None, None),
+     frozenset({1, 10}): (1, None, None, None),
+     frozenset({0, 8}): (1, None, None, None)})
+
 
 def test__from_data():
     """ test getters
