@@ -18,7 +18,7 @@ from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import backbone_bond_keys
 from automol.graph.base._algo import branch_atom_keys
-from automol.graph.base._kekule import rigid_planar_bond_keys
+from automol.graph.base._kekule import stereo_candidate_bond_keys
 
 
 # stereo parity evaluations
@@ -319,7 +319,7 @@ def linear_vinyl_corrected_geometry(gra, geo, geo_idx_dct=None,
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
-    bnd_keys = rigid_planar_bond_keys(gra)
+    bnd_keys = stereo_candidate_bond_keys(gra)
 
     for bnd1_key in bnd_keys:
         for bnd2_key in bnbkeys_dct[bnd1_key]:

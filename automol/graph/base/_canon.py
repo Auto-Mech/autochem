@@ -47,7 +47,7 @@ from automol.graph.base._core import is_ts_graph
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
-from automol.graph.base._kekule import rigid_planar_bond_keys
+from automol.graph.base._kekule import stereo_candidate_bond_keys
 from automol.graph.base._geom import geometry_atom_parity
 from automol.graph.base._geom import geometry_bond_parity
 
@@ -1017,7 +1017,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
     pri_dct = assign_hydrogen_priorities(
         gra, pri_dct, break_ties=False)
 
-    bnd_keys = rigid_planar_bond_keys(gra)
+    bnd_keys = stereo_candidate_bond_keys(gra)
     if not assigned:
         # Remove assigned stereo keys
         bnd_keys -= bond_stereo_keys(gra)

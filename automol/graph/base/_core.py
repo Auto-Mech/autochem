@@ -1410,10 +1410,12 @@ def bond_unpaired_electrons(gra, bond_order=True):
 
 
 def stereo_candidate_atom_keys(gra):
-    """ Keys to tetrahedral atoms (possible stereo centers).
+    """ Get keys to stereo candidate atoms, which will be stereogenic if their
+    groups are all distinct
 
-    Atoms will be considered tetrahedral if either:
-        a. They are bonded to 4 other atoms.
+    Atoms will be considered stereo candidates if they are tetrahderal, which
+    happens when:
+        a. They are bonded to 4 other atoms and have no lone pairs.
         b. They are bonded to 3 other atoms and have one lone pair.
 
     For TS graphs, atom keys which meet these criteria for *either* the
