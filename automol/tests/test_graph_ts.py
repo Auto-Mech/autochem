@@ -5,6 +5,8 @@ from automol import graph
 
 
 # CCO[C@H](O[O])C => C[CH]O[C@H](OO)C
+#  *
+# [* marks a fleeting stereosite]
 C4H9O3_TSG = (
     {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
      2: ('C', 0, None, None, True), 3: ('C', 0, True, True, None),
@@ -63,20 +65,21 @@ C4H11O2_TSG = ({0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
 # C=C(O[O])OO => [CH]=C(OO)OO
 #  *
 # [* marks a fleeting TS stereosite]
-C2H3O4_TSG = ({0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
-               2: ('O', 0, None, None, None), 3: ('O', 0, None, None, None),
-               4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
-               6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
-               8: ('H', 0, None, None, None)},
-              {frozenset({2, 8}): (1, None, None, None),
-               frozenset({1, 4}): (1, None, None, None),
-               frozenset({0, 6}): (0.9, None, None, None),
-               frozenset({0, 1}): (1, None, None, True),
-               frozenset({3, 6}): (0.1, None, None, None),
-               frozenset({2, 4}): (1, None, None, None),
-               frozenset({1, 5}): (1, None, None, None),
-               frozenset({3, 5}): (1, None, None, None),
-               frozenset({0, 7}): (1, None, None, None)})
+C2H3O4_TSG = (
+    {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+     2: ('O', 0, None, None, None), 3: ('O', 0, None, None, None),
+     4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
+     6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
+     8: ('H', 0, None, None, None)},
+    {frozenset({2, 8}): (1, None, None, None),
+     frozenset({1, 4}): (1, None, None, None),
+     frozenset({0, 6}): (0.9, None, None, None),
+     frozenset({0, 1}): (1, None, None, True),
+     frozenset({3, 6}): (0.1, None, None, None),
+     frozenset({2, 4}): (1, None, None, None),
+     frozenset({1, 5}): (1, None, None, None),
+     frozenset({3, 5}): (1, None, None, None),
+     frozenset({0, 7}): (1, None, None, None)})
 
 # F/C=C([C@@H](F)O)\[C@H](F)O + [OH] => F[C@H]([C]([C@@H](F)O)[C@H](F)O)O
 C4H5F3O2_TSG = (

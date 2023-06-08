@@ -1430,6 +1430,9 @@ def test__calculate_priorities_and_assign_parities():
             automol.graph.atom_stereo_parities(gra), lambda x: x is not None)
         bnd_par_dct = automol.util.dict_.filter_by_value(
             automol.graph.bond_stereo_parities(gra), lambda x: x is not None)
+        # Frozensets don't sort properly, so use sorted tuples for the keys
+        bnd_par_dct = automol.util.dict_.transform_keys(
+            bnd_par_dct, lambda x: tuple(sorted(x)))
 
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
         bnd_pars = [p for k, p in sorted(bnd_par_dct.items()) if p is not None]
@@ -1456,7 +1459,7 @@ def test__calculate_priorities_and_assign_parities():
         (r'[H]/N=N\[H]', [], [False]),      # cis   = '-' => False
         # Advanced tests
         ('F[C@@H]([C@@H](F)Cl)[C@H](F)Cl', [True, True, False], []),
-        (r'[H]/N=C\C(\C=N\[H])=N\[H]', [], [True, False, False]),
+        (r'[H]/N=C\C(\C=N\[H])=N\[H]', [], [False, True, False]),
     ]
     for smi, ref_atm_pars, ref_bnd_pars in args:
         _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars)
@@ -1772,4 +1775,5 @@ if __name__ == '__main__':
     # test__setters()
     # test__atom_count()
     # test__atom_hybridizations()
-    test__kekules()
+    # test__kekules()
+    test__calculate_priorities_and_assign_parities()
