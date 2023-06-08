@@ -298,7 +298,8 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
 
     if label:
         for idx, rda in enumerate(rdm.GetAtoms()):
-            rda.SetProp("molAtomMapNumber", str(label_dct[idx]))
+            if idx in label_dct:
+                rda.SetProp("molAtomMapNumber", str(label_dct[idx]))
 
     rdm.UpdatePropertyCache()
     return rdm

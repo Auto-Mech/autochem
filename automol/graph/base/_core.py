@@ -1779,20 +1779,6 @@ def relabel_for_geometry(gra):
     return gra
 
 
-def negate_nonbackbone_hydrogen_keys(gra):
-    """ Flip the signs of hydrogen keys
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :return: molecular graph with hydrogen keys negated
-    :rtype: automol graph data structure
-    """
-    gra = ts_reactants_graph(gra)
-    hyd_keys = nonbackbone_hydrogen_keys(gra)
-    atm_key_dct = {k: -abs(k) for k in hyd_keys}
-    return relabel(gra, atm_key_dct)
-
-
 # # add/remove/insert/without
 def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
               prd_ste_par_dct=None, ts_ste_par_dct=None, check=True):

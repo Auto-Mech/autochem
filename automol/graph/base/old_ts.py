@@ -19,8 +19,9 @@ from automol.graph.base._core import ts_reactants_graph as _from_ts_graph
 from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_atoms
-from automol.graph.base._core import negate_nonbackbone_hydrogen_keys
 from automol.graph.base._core import string
+from automol.graph.base._core import relabel
+from automol.graph.base._core import nonbackbone_hydrogen_keys
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import isomorphic
 from automol.graph.base._algo import shortest_path_between_groups
@@ -34,6 +35,20 @@ from automol.graph.base._canon import stereogenic_bond_keys_from_priorities
 from automol.graph.base._canon import canonical_priorities
 from automol.graph.base._kekule import vinyl_radical_atom_keys
 from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
+
+
+def negate_nonbackbone_hydrogen_keys(gra):
+    """ Flip the signs of hydrogen keys
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :return: molecular graph with hydrogen keys negated
+    :rtype: automol graph data structure
+    """
+    gra = reactants_graph(gra)
+    hyd_keys = nonbackbone_hydrogen_keys(gra)
+    atm_key_dct = {k: -abs(k) for k in hyd_keys}
+    return relabel(gra, atm_key_dct)
 
 
 def graph(gra, frm_bnd_keys, brk_bnd_keys):
