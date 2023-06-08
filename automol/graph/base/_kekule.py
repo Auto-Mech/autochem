@@ -24,6 +24,8 @@ from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import has_atom_stereo
+from automol.graph.base._core import is_ts_graph
+from automol.graph.base._core import stereo_candidate_atom_keys
 from automol.graph.base._algo import branches
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
@@ -503,19 +505,50 @@ def radical_group_dct(gra):
     return groups
 
 
-def rigid_planar_bond_keys(gra):
-    """ determine the sp2 bonds in this graph
+def stereo_candidate_bond_keys(gra):
+    """ Get keys to stereo candidate bonds, which will be stereogenic if their
+    groups are distinct on either side
+
+    Bonds will be considered stereo candidates if they are rigid and planar,
+    which happens when:
+        a. They are doubly bonded in at least one low-spin resonance structure
+        b. AND both atoms are sp2, excluding cumulenes which are linear rather
+        than planar and have sp1 atoms
+
+    For TS graphs, bond keys in which both atoms stereo candidates in the TS
+    are excluded, to prevent inconsistency in, for example, elimination
+    reactions.
+
+    Question: Is it possible for a bond to be rigid and planar for the TS and
+    the products, but not the reactants, without being captured by atom
+    stereochemistry? I don't think so, and this implementation assumes not.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The bond keys
+    :rtype: frozenset[frozenset[int]]
     """
-    gra = without_pi_bonds(gra)
+    ts_ = is_ts_graph(gra)
+    if ts_:
+        gra_ = ts_reactants_graph(gra)
+    else:
+        gra_ = gra
+
+    gra_ = without_pi_bonds(gra_)
     bnd_keys = dict_.keys_by_value(
-        kekules_bond_orders_collated(gra), lambda x: 2 in x)
+        kekules_bond_orders_collated(gra_), lambda x: 2 in x)
 
     # make sure both ends are sp^2 (excludes cumulenes)
-    atm_hyb_dct = atom_hybridizations(gra)
+    atm_hyb_dct = atom_hybridizations(gra_)
     sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
-    bnd_keys = frozenset({bnd_key for bnd_key in bnd_keys
-                          if bnd_key <= sp2_atm_keys})
-    return bnd_keys
+    rp_bnd_keys = frozenset({k for k in bnd_keys if k <= sp2_atm_keys})
+
+    if ts_:
+        tet_atm_keys = stereo_candidate_atom_keys(gra)
+        rp_bnd_keys = frozenset({k for k in rp_bnd_keys
+                                 if k != k & tet_atm_keys})
+
+    return rp_bnd_keys
 
 
 def atom_centered_cumulene_keys(gra):

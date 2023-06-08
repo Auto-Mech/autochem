@@ -33,6 +33,32 @@ C4H9O3_TSG = (
      frozenset({0, 8}): (1, None, None, None),
      frozenset({0, 9}): (1, None, None, None)})
 
+C4H9O3_REV_TSG = (
+    {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+     2: ('C', 0, None, None, True), 3: ('C', 0, True, True, None),
+     4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
+     6: ('O', 0, None, None, None), 7: ('H', 0, None, None, None),
+     8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+     10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+     12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
+     14: ('H', 0, None, None, None), 15: ('H', 0, None, None, None)},
+    {frozenset({4, 6}): (1, None, None, None),
+     frozenset({2, 13}): (0.1, None, None, None),
+     frozenset({3, 15}): (1, None, None, None),
+     frozenset({4, 13}): (0.9, None, None, None),
+     frozenset({1, 11}): (1, None, None, None),
+     frozenset({3, 6}): (1, None, None, None),
+     frozenset({0, 2}): (1, None, None, None),
+     frozenset({2, 5}): (1, None, None, None),
+     frozenset({1, 12}): (1, None, None, None),
+     frozenset({2, 14}): (1, None, None, None),
+     frozenset({3, 5}): (1, None, None, None),
+     frozenset({1, 3}): (1, None, None, None),
+     frozenset({0, 7}): (1, None, None, None),
+     frozenset({1, 10}): (1, None, None, None),
+     frozenset({0, 8}): (1, None, None, None),
+     frozenset({0, 9}): (1, None, None, None)})
+
 # CCOCC + [OH] => C[CH]OCC + O
 #  *
 # [* marks a fleeting TS stereosite]
@@ -141,6 +167,61 @@ C4H5F3O2_REV_TSG = (
      frozenset({2, 7}): (1, None, None, None),
      frozenset({0, 9}): (1, None, None, None)})
 
+# CC[C@H](O[O])C => C/C=C/C + O[O]
+#  *
+# [* marks a fleeting stereo site]
+# An interesting case -- fleeting TS atom stereochemistry becomes bond
+# stereochemistry
+C4H9O2_TSG = (
+    {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+     2: ('C', 0, None, None, None), 3: ('C', 0, True, None, None),
+     4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
+     6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
+     8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+     10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+     12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
+     14: ('H', 0, None, None, None)},
+    {frozenset({2, 13}): (1, None, None, None),
+     frozenset({1, 9}): (1, None, None, None),
+     frozenset({0, 6}): (1, None, None, None),
+     frozenset({2, 3}): (1, None, True, None),
+     frozenset({1, 11}): (1, None, None, None),
+     frozenset({4, 5}): (1, None, None, None),
+     frozenset({0, 2}): (1, None, None, None),
+     frozenset({4, 12}): (0.1, None, None, None),
+     frozenset({2, 12}): (0.9, None, None, None),
+     frozenset({3, 14}): (1, None, None, None),
+     frozenset({3, 5}): (0.9, None, None, None),
+     frozenset({1, 3}): (1, None, None, None),
+     frozenset({0, 7}): (1, None, None, None),
+     frozenset({1, 10}): (1, None, None, None),
+     frozenset({0, 8}): (1, None, None, None)})
+
+C4H9O2_REV_TSG = (
+    {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
+     2: ('C', 0, None, None, None), 3: ('C', 0, None, True, None),
+     4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
+     6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
+     8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
+     10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
+     12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
+     14: ('H', 0, None, None, None)},
+    {frozenset({2, 13}): (1, None, None, None),
+     frozenset({1, 9}): (1, None, None, None),
+     frozenset({0, 6}): (1, None, None, None),
+     frozenset({2, 3}): (1, True, None, None),
+     frozenset({1, 11}): (1, None, None, None),
+     frozenset({4, 5}): (1, None, None, None),
+     frozenset({0, 2}): (1, None, None, None),
+     frozenset({4, 12}): (0.9, None, None, None),
+     frozenset({2, 12}): (0.1, None, None, None),
+     frozenset({3, 14}): (1, None, None, None),
+     frozenset({3, 5}): (0.1, None, None, None),
+     frozenset({1, 3}): (1, None, None, None),
+     frozenset({0, 7}): (1, None, None, None),
+     frozenset({1, 10}): (1, None, None, None),
+     frozenset({0, 8}): (1, None, None, None)})
+
 # # CC(OO)[CH]C => CC(O[O])CC
 # #        *
 # # [* marks a fleeting TS stereosite]
@@ -221,36 +302,6 @@ C4H5F3O2_REV_TSG = (
 #      frozenset({1, 8}): (1, None, None, None),
 #      frozenset({12, 13}): (1, None, None, None),
 #      frozenset({3, 11}): (1, None, None, None)})
-
-# CC[C@H](O[O])C => C/C=C/C + O[O]
-#  *
-# [* marks a fleeting stereo site]
-# An interesting case -- fleeting TS atom stereochemistry becomes bond
-# stereochemistry
-C4H9O2_TSG = (
-    {0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
-     2: ('C', 0, None, None, None), 3: ('C', 0, True, None, None),
-     4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
-     6: ('H', 0, None, None, None), 7: ('H', 0, None, None, None),
-     8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
-     10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
-     12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
-     14: ('H', 0, None, None, None)},
-    {frozenset({2, 13}): (1, None, None, None),
-     frozenset({1, 9}): (1, None, None, None),
-     frozenset({0, 6}): (1, None, None, None),
-     frozenset({2, 3}): (1, None, True, None),
-     frozenset({1, 11}): (1, None, None, None),
-     frozenset({4, 5}): (1, None, None, None),
-     frozenset({0, 2}): (1, None, None, None),
-     frozenset({4, 12}): (0.1, None, None, None),
-     frozenset({2, 12}): (0.9, None, None, None),
-     frozenset({3, 14}): (1, None, None, None),
-     frozenset({3, 5}): (0.9, None, None, None),
-     frozenset({1, 3}): (1, None, None, None),
-     frozenset({0, 7}): (1, None, None, None),
-     frozenset({1, 10}): (1, None, None, None),
-     frozenset({0, 8}): (1, None, None, None)})
 
 
 def test__from_data():
@@ -541,12 +592,26 @@ def test__bonds_neighbor_atom_keys():
     }
 
 
+def test__stereogenic_keys():
+    """ test graph.stereogenic_keys
+    """
+    print(graph.stereogenic_keys(C4H9O3_TSG, assigned=True))
+    assert (graph.stereogenic_keys(C4H9O3_TSG, assigned=True) ==
+            graph.stereogenic_keys(C4H9O3_REV_TSG, assigned=True) ==
+            frozenset({2, 3}))
+    print(graph.stereogenic_keys(C4H9O2_TSG, assigned=True))
+    assert (graph.stereogenic_keys(C4H9O2_TSG, assigned=True) ==
+            graph.stereogenic_keys(C4H9O2_REV_TSG, assigned=True) ==
+            frozenset({2, 3}))
+
+
 if __name__ == '__main__':
-    test__getters()
-    test__setters()
-    test__reverse()
-    test__string()
-    test__atoms_neighbor_atom_keys()
-    test__atoms_bond_keys()
-    test__bonds_neighbor_atom_keys()
-    test__has_stereo()
+    # test__getters()
+    # test__setters()
+    # test__reverse()
+    # test__string()
+    # test__atoms_neighbor_atom_keys()
+    # test__atoms_bond_keys()
+    # test__bonds_neighbor_atom_keys()
+    # test__has_stereo()
+    test__stereogenic_keys()

@@ -199,7 +199,7 @@ from automol.graph.base._kekule import has_nonkekule_bond_stereo
 from automol.graph.base._kekule import has_noninchi_stereo
 from automol.graph.base._kekule import radical_groups
 from automol.graph.base._kekule import radical_group_dct
-from automol.graph.base._kekule import rigid_planar_bond_keys
+from automol.graph.base._kekule import stereo_candidate_bond_keys
 from automol.graph.base._kekule import atom_centered_cumulene_keys
 from automol.graph.base._kekule import bond_centered_cumulene_keys
 # torsion/rotational bond functions:
@@ -497,7 +497,7 @@ __all__ = [
     'has_noninchi_stereo',
     'radical_groups',
     'radical_group_dct',
-    'rigid_planar_bond_keys',
+    'stereo_candidate_bond_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
     # torsion/rotational bond functions:
