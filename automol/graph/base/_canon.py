@@ -534,8 +534,8 @@ def calculate_priorities_and_assign_parities(
 
     # If requested, add in priorities for explicit hydrogens.
     if not backbone_only:
-        pri_dct = augment_priority_dict_with_hydrogen_keys(
-            gra0, pri_dct, break_ties=break_ties, ts_=ts_)
+        pri_dct = assign_hydrogen_priorities(
+            gra0, pri_dct, break_ties=break_ties)
 
     # Return the priorities calculated for graph 1, and return graph 2 with its
     # stereo assignments.
@@ -800,7 +800,7 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
             :param geo: optionally, update the geometry
             :type geo: automol molecular geometry data structure
         """
-        pri_dct = augment_priority_dict_with_hydrogen_keys(
+        pri_dct = assign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
 
         geo = geo if geo is not None else orig_geo
@@ -921,7 +921,7 @@ def parity_evaluator_flip_local_(gra):
             :param pri_dct: A dictionary mapping atom keys to priorities.
             :type pri_dct: dict
         """
-        pri_dct = augment_priority_dict_with_hydrogen_keys(
+        pri_dct = assign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
 
         def _parity(key):
@@ -988,8 +988,8 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False,
 
     gra = without_pi_bonds(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = augment_priority_dict_with_hydrogen_keys(
-        gra, pri_dct, break_ties=False, ts_=ts_)
+    pri_dct = assign_hydrogen_priorities(
+        gra, pri_dct, break_ties=False)
 
     atm_keys = tetrahedral_atom_keys(gra)
     if not assigned:
@@ -1031,8 +1031,8 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
 
     gra = without_pi_bonds(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = augment_priority_dict_with_hydrogen_keys(
-        gra, pri_dct, break_ties=False, ts_=ts_)
+    pri_dct = assign_hydrogen_priorities(
+        gra, pri_dct, break_ties=False)
 
     bnd_keys = rigid_planar_bond_keys(gra)
     if not assigned:
@@ -1073,24 +1073,19 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False,
     return ste_bnd_keys
 
 
-def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
-                                             neg=False, ts_=False):
+def assign_hydrogen_priorities(gra, pri_dct, break_ties=False, neg=False):
     """ Add explicit hydrogen keys to the priority dictionary
 
-        :param neg: Negate the keys, to give them minimum (rather than maximum)
-            priority?
-        :param neg: bool
-        :param ts_: If this is a TS graph, treat it as such
-        :type ts_: bool
+    :param neg: Negate hydrogen keys, to give them lowest priority?
+    :param neg: bool
+    :param ts_: If this is a TS graph, treat it as such
+    :type ts_: bool
     """
-    if not ts_:
-        gra = ts_reactants_graph(gra)
-
     pri_dct = pri_dct.copy()
 
+    # Backbone hydrogens are always included, so only non-backbone hydrogens
+    # need to be assigned
     hyd_keys_pool = nonbackbone_hydrogen_keys(gra)
-
-    sgn = -1 if neg else +1
 
     if hyd_keys_pool:
         bbn_keys = sorted(backbone_keys(gra), key=pri_dct.__getitem__)
@@ -1112,17 +1107,23 @@ def augment_priority_dict_with_hydrogen_keys(gra, pri_dct, break_ties=False,
                 list(itertools.chain(*map(get_hyd_key_, bbn_part)))
                 for bbn_part in bbn_parts]
             for hyd_part in hyd_parts:
-                hyd_pri_dct.update({k: sgn*next_idx for k in hyd_part})
+                hyd_pri_dct.update({k: next_idx for k in hyd_part})
                 next_idx += len(hyd_part)
         # Otherwise, give each hydrogen a unique label.
         else:
             srt_hyd_keys = itertools.chain(
                 *map(hyd_keys_dct.__getitem__, bbn_keys))
-            hyd_pri_dct.update({k: sgn*(i+next_idx) for i, k in
+            hyd_pri_dct.update({k: (i+next_idx) for i, k in
                                 enumerate(srt_hyd_keys)})
 
         hyd_pri_dct = dict_.by_key(hyd_pri_dct, hyd_keys_pool)
         pri_dct.update(hyd_pri_dct)
+
+    # If requested, negate priorities for *all* hydrogen keys, for consistency
+    if neg:
+        all_hyd_keys = atom_keys(gra, symb='H')
+        pri_dct = {k: -abs(p) if k in all_hyd_keys else p
+                   for k, p in pri_dct.items()}
 
     return pri_dct
 
