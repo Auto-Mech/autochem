@@ -450,7 +450,7 @@ def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False, stereo=True):
     geo = fun_(rxn, rct_geos, max_dist_err=max_dist_err, log=log)
 
     # make sure geometry still works with stereo of products
-    # and reactants
+    # and reactants.
     if stereo:
         geo = automol.graph.stereo_corrected_geometry(
             rxn.forward_ts_graph, geo)
