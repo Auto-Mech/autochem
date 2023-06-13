@@ -306,31 +306,35 @@ def smiles(geo, stereo=True, res_stereo=True):
     return smi
 
 
-def rdkit_molecule(geo):
+def rdkit_molecule(geo, gra=None):
     """ Convert a geometry to an RDKit molecule.
 
-        This is mainly useful for quick visualization with IPython, which can
-        be done as follows:
-        >>> from IPython.display import display
-        >>> display(rdkit_molecule(geo))
+    This is mainly useful for quick visualization with IPython, which can
+    be done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_molecule(geo))
 
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :returns: the RDKit molecule
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param gra: A molecular graph, describing the connectivity
+    :type gra: automol graph data structure
+    :returns: the RDKit molecule
     """
     rdkit_.turn_3d_visualization_on()
-    gra = graph(geo)
+    gra = graph(geo) if gra is None else gra
     return rdkit_.from_geometry_with_graph(geo, gra)
 
 
-def display(geo):
+def display(geo, gra=None):
     """ Display molecule to IPython using the RDKit visualizer
 
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param gra: A molecular graph, describing the connectivity
+    :type gra: automol graph data structure
     """
     rdkit_.turn_3d_visualization_on()
-    IPython.display.display(rdkit_molecule(geo))
+    IPython.display.display(rdkit_molecule(geo, gra=gra))
 
 
 # # derived properties
