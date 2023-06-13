@@ -494,7 +494,7 @@ def atom_implicit_hydrogens(gra):
                                     ATM_IMP_HYD_POS)
 
 
-def atom_stereo_parities(gra, ts_select=None):
+def atom_stereo_parities(gra, ts_select='R'):
     """ Get the atom stereo parities of this molecular graph, as a dictionary
 
     :param gra: molecular graph
@@ -505,15 +505,9 @@ def atom_stereo_parities(gra, ts_select=None):
     :returns: A dictionary of atom stereo parities, by atom key
     :rtype: dict[int: bool or NoneType]
     """
-    assert ts_select in (None, 'R', 'P', 'T'), (
-        f"Invalid argument for `ts_select`: {ts_select}")
-
     ts_ = is_ts_graph(gra)
-    ts_select = 'R' if ts_select is None else ts_select
-
-    if ts_select in ('P', 'T'):
-        assert ts_, (f"Invalid argument combination:"
-                     f"ts_select = {ts_select}\ngra =\n{string(gra)}")
+    assert ts_select in ('R', 'P', 'T') if ts_ else ts_select == 'R', (
+        f"Invalid argument combo:\nts_select = {ts_select}\ngra =\n{gra}")
 
     if ts_select == 'R':
         ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
@@ -528,7 +522,7 @@ def atom_stereo_parities(gra, ts_select=None):
     return ret
 
 
-def bond_stereo_parities(gra, ts_select=None):
+def bond_stereo_parities(gra, ts_select='R'):
     """ Get the bond stereo parities of this molecular graph, as a dictionary
 
     :param gra: molecular graph
@@ -539,15 +533,9 @@ def bond_stereo_parities(gra, ts_select=None):
     :returns: A dictionary of bond stereo parities, by bond key
     :rtype: dict[frozenset: bool or NoneType]
     """
-    assert ts_select in (None, 'R', 'P', 'T'), (
-        f"Invalid argument for `ts_select`: {ts_select}")
-
     ts_ = is_ts_graph(gra)
-    ts_select = 'R' if ts_select is None else ts_select
-
-    if ts_select in ('P', 'T'):
-        assert ts_, (f"Invalid argument combination:"
-                     f"ts_select = {ts_select}\ngra =\n{string(gra)}")
+    assert ts_select in ('R', 'P', 'T') if ts_ else ts_select == 'R', (
+        f"Invalid argument combo:\nts_select = {ts_select}\ngra =\n{gra}")
 
     if ts_select == 'R':
         ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
@@ -562,7 +550,7 @@ def bond_stereo_parities(gra, ts_select=None):
     return ret
 
 
-def stereo_parities(gra, ts_select=None):
+def stereo_parities(gra, ts_select='R'):
     """ Get the atom and bond stereo parities of this molecular graph, as a
         single dictionary
 
@@ -792,7 +780,7 @@ def set_atom_implicit_hydrogens(gra, atm_imp_hyd_dct):
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def set_atom_stereo_parities(gra, atm_par_dct, ts_select=None):
+def set_atom_stereo_parities(gra, atm_par_dct, ts_select='R'):
     """ Set the atom stereo parities of this molecular graph with a dictionary
 
     :param gra: molecular graph
@@ -828,7 +816,7 @@ def set_atom_stereo_parities(gra, atm_par_dct, ts_select=None):
     return from_atoms_and_bonds(atm_dct, bonds(gra))
 
 
-def set_bond_stereo_parities(gra, bnd_par_dct, ts_select=None):
+def set_bond_stereo_parities(gra, bnd_par_dct, ts_select='R'):
     """ Set the bond stereo parities of this molecular graph with a dictionary
 
     :param gra: molecular graph
@@ -863,7 +851,7 @@ def set_bond_stereo_parities(gra, bnd_par_dct, ts_select=None):
     return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
 
-def set_stereo_parities(gra, par_dct, ts_select=None):
+def set_stereo_parities(gra, par_dct, ts_select='R'):
     """ Set the atom and bond stereo parities of this molecular graph with a
         single dictionary
 
@@ -1099,7 +1087,7 @@ def atom_stereo_keys(gra, symb=None, excl_symbs=(), ts_selects=('R',)):
     :param ts_selects: For ts graphs, select whether to include some or all
         types of stereo by passing a list with any combination of:
         'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: tuple[str]
+    :type ts_selects: tuple[str]
     :returns: The atom keys
     :rtype: frozenset[int]
     """
@@ -1122,7 +1110,7 @@ def bond_stereo_keys(gra, ts_selects=('R',)):
     :param ts_selects: For ts graphs, select whether to include some or all
         types of stereo by passing a list with any combination of:
         'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: tuple[str]
+    :type ts_selects: tuple[str]
     :returns: The bond keys
     :rtype: frozenset[{int, int}]
     """
@@ -1143,7 +1131,7 @@ def stereo_keys(gra, ts_selects=('R',)):
     :param ts_selects: For ts graphs, select whether to include some or all
         types of stereo by passing a list with any combination of:
         'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: tuple[str]
+    :type ts_selects: tuple[str]
     :returns: The atom and bond keys
     :rtype: frozenset
     """
@@ -1152,7 +1140,7 @@ def stereo_keys(gra, ts_selects=('R',)):
     return ste_keys
 
 
-def has_atom_stereo(gra, symb=None, excl_symbs=(), ts_selects=('R',)):
+def has_atom_stereo(gra, symb=None, excl_symbs=(), ts_selects=None):
     """ Does this graph have atom stereochemistry?
 
     :param gra: molecular graph
@@ -1166,15 +1154,18 @@ def has_atom_stereo(gra, symb=None, excl_symbs=(), ts_selects=('R',)):
     :param ts_selects: For ts graphs, select whether to include some or all
         types of stereo by passing a list with any combination of:
         'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: tuple[str]
+    :type ts_selects: tuple[str]
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
+    if ts_selects is None:
+        ts_selects = ('R', 'P', 'T') if is_ts_graph(gra) else ('R',)
+
     return bool(atom_stereo_keys(gra, symb=symb, excl_symbs=excl_symbs,
                                  ts_selects=ts_selects))
 
 
-def has_bond_stereo(gra, ts_selects=('R',)):
+def has_bond_stereo(gra, ts_selects=None):
     """ Does this graph have bond stereochemistry?
 
     :param gra: molecular graph
@@ -1182,14 +1173,17 @@ def has_bond_stereo(gra, ts_selects=('R',)):
     :param ts_selects: For ts graphs, select whether to include some or all
         types of stereo by passing a list with any combination of:
         'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: tuple[str]
+    :type ts_selects: tuple[str]
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
+    if ts_selects is None:
+        ts_selects = ('R', 'P', 'T') if is_ts_graph(gra) else ('R',)
+
     return bool(bond_stereo_keys(gra, ts_selects=ts_selects))
 
 
-def has_stereo(gra, ts_selects=('R',)):
+def has_stereo(gra, ts_selects=None):
     """ Does this graph have stereochemistry of any kind?
 
     :param gra: molecular graph
@@ -1197,10 +1191,13 @@ def has_stereo(gra, ts_selects=('R',)):
     :param ts_selects: For ts graphs, select whether to include some or all
         types of stereo by passing a list with any combination of:
         'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: tuple[str]
+    :type ts_selects: tuple[str]
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
+    if ts_selects is None:
+        ts_selects = ('R', 'P', 'T') if is_ts_graph(gra) else ('R',)
+
     return bool(stereo_keys(gra, ts_selects=ts_selects))
 
 
