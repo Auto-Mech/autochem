@@ -455,7 +455,7 @@ def ts_geometry(rxn, rct_geos, max_dist_err=2e-1, log=False, stereo=True):
     # and reactants
     if stereo:
         geo = automol.graph.stereo_corrected_geometry(
-            rxn.forward_ts_graph, geo)
+            reactants_graph(rxn), geo)
         geo = automol.graph.embed.clean_geometry(
             reactants_graph(rxn), geo, stereo=False)
         geo = automol.graph.stereo_corrected_geometry(
