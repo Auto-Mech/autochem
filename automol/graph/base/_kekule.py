@@ -22,7 +22,7 @@ from automol.graph.base._core import atom_lone_pairs
 from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import ts_without_reacting_bond_orders
+from automol.graph.base._core import ts_reagents_without_stereo
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import is_ts_graph
 from automol.graph.base._core import tetrahedral_atom_keys
@@ -175,7 +175,7 @@ def linear_atom_keys(gra, dummy=True):
     :returns: the linear atom keys
     :rtype: tuple[int]
     """
-    gra = ts_without_reacting_bond_orders(gra)
+    gra = ts_reagents_without_stereo(gra)
     atm_hyb_dct = atom_hybridizations_from_kekule(implicit(kekule(gra)))
     lin_atm_keys = set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
 
@@ -531,7 +531,7 @@ def rigid_planar_bond_keys(gra):
     """
     ts_ = is_ts_graph(gra)
     if ts_:
-        gra_ = ts_without_reacting_bond_orders(gra)
+        gra_ = ts_reagents_without_stereo(gra)
     else:
         gra_ = gra
 
