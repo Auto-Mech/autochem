@@ -491,7 +491,7 @@ def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False):
     # Round the bond orders for forming bonds, and remove forming bonds
     tsg = set_bond_orders(tsg, ord_dct)
     if not keep_zeros:
-        tsg = without_null_bonds(tsg, except_dummies=True)
+        tsg = without_bonds_by_orders(tsg, ords=0, skip_dummies=True)
     return tsg
 
 
@@ -1873,6 +1873,27 @@ def without_pi_bonds(gra):
     return set_bond_orders(gra, bnd_ord_dct)
 
 
+def without_bonds_by_orders(gra, ords=(0,), skip_dummies=True):
+    """ Remove bonds of certain orders from the graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param ords: The orders (or order) of bonds to be removed
+    :type ords: list or int
+    :param skip_dummies: Skip bonds to dummy atoms in the removal?
+    :type skip_dummies: bool
+    """
+    ords = [ords] if isinstance(ords, numbers.Number) else ords
+    ord_dct = dict_.filter_by_value(
+        bond_orders(gra), func=lambda x: round(x, 1) in ords)
+    rem_keys = ord_dct.keys()
+    if skip_dummies:
+        xkeys = atom_keys(gra, symb='X')
+        rem_keys = [bk for bk in rem_keys if not any(k in xkeys for k in bk)]
+    gra = remove_bonds(gra, rem_keys)
+    return gra
+
+
 def without_dummy_atoms(gra):
     """ Remove dummy atoms from this graph
 
@@ -1884,27 +1905,6 @@ def without_dummy_atoms(gra):
     symb_dct = atom_symbols(gra)
     keys = [key for key, sym in symb_dct.items() if ptab.to_number(sym)]
     return subgraph(gra, keys, stereo=True)
-
-
-def without_null_bonds(gra, except_dummies=True):
-    """ Remove 0-order bonds from this graph
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param except_dummies: Keep 0-order bonds to dummy atoms?
-    :type except_dummies: bool
-    :returns: A molecular graph
-    :rtype: automol graph data structure
-    """
-    dummy_atm_keys = atom_keys(gra, symb='X')
-    ord_dct = dict_.filter_by_value(
-        bond_orders(gra), func=lambda x: round(x, 1) == 0)
-    null_bnd_keys = ord_dct.keys()
-    if except_dummies:
-        null_bnd_keys = [bk for bk in null_bnd_keys
-                         if not any(k in dummy_atm_keys for k in bk)]
-    gra = remove_bonds(gra, null_bnd_keys)
-    return gra
 
 
 def without_stereo(gra, atm_keys=None, bnd_keys=None):

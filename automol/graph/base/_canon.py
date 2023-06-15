@@ -38,6 +38,7 @@ from automol.graph.base._core import nonbackbone_hydrogen_keys
 from automol.graph.base._core import atom_nonbackbone_hydrogen_keys
 from automol.graph.base._core import relabel
 from automol.graph.base._core import without_pi_bonds
+from automol.graph.base._core import without_bonds_by_orders
 from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import string as graph_string
@@ -722,31 +723,34 @@ def sort_evaluator_atom_invariants_(gra):
         assert val == round(val, 1)
         return val * 100 if val in (0.1, 0.9) else val
 
-    def _hill_normalize_symbol(symb):
-        """ normalize atomic symbols to make them sort according to the hill
-            system
-            (C first, H second, others in alphabetical order)
+    def _normalize_symbol(symb):
+        """ normalize atomic symbols to make them sort as follows:
+            (C first, others in alphabetical order, H last)
+            (Hydrogens should only appear for TS graphs)
         """
         symb = ptab.to_symbol(symb)
         if symb == 'C':
-            symb = ''
+            symb = ''     # Sorts first (always)
         if symb == 'H':
-            symb = '1'
+            symb = 'zzz'  # Sorts last against atomic symbols
         return symb
 
     # Normalize the graph before working with it
     gra = without_pi_bonds(implicit(gra))
 
-    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=True)
-    bnds_dct = atoms_bond_keys(gra, ts_=True)
+    # For TS graphs, remove reacting bonds for the sake of the main properties
+    non_ts_gra = without_bonds_by_orders(gra, [0.1, 0.9])
+
+    bnds_dct = atoms_bond_keys(non_ts_gra, ts_=True)
 
     symb_dct = dict_.transform_values(
-        atom_symbols(gra), _hill_normalize_symbol)
-    hnum_dct = atom_implicit_hydrogens(gra)
-    mnum_dct = mass_numbers(gra)
-    apar_dct = dict_.transform_values(atom_stereo_parities(gra), _replace_none)
+        atom_symbols(non_ts_gra), _normalize_symbol)
+    hnum_dct = atom_implicit_hydrogens(non_ts_gra)
+    mnum_dct = mass_numbers(non_ts_gra)
+    apar_dct = dict_.transform_values(
+        atom_stereo_parities(non_ts_gra), _replace_none)
 
-    bpar_dct = bond_stereo_parities(gra)
+    bpar_dct = bond_stereo_parities(non_ts_gra)
 
     def _sortable_bond_stereo_values(bnd_keys):
         bpars = dict_.values_by_key(bpar_dct, bnd_keys)
@@ -755,6 +759,7 @@ def sort_evaluator_atom_invariants_(gra):
 
     bpars_dct = dict_.transform_values(bnds_dct, _sortable_bond_stereo_values)
 
+    # For bond orders, *KEEP* the reacting bonds in a TS graph!!
     bord_dct = bond_orders(gra)
 
     def _sortable_bond_orders(bnd_keys):
@@ -763,6 +768,9 @@ def sort_evaluator_atom_invariants_(gra):
         return bords
 
     bords_dct = dict_.transform_values(bnds_dct, _sortable_bond_orders)
+
+    # For neighboring keys, *KEEP* the reacting bonds in a TS graph!!
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=True)
 
     def _evaluator(pri_dct):
         """ Sort value evaluator based on current priorities.
