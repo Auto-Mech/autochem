@@ -41,7 +41,6 @@ from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_bonds_by_orders
 from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import string as graph_string
 from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reverse
@@ -552,10 +551,7 @@ def _calculate_priorities_and_assign_parities(
     """
     assert is_connected(gra), "Not for disconnected graphs."
     assert gra == without_dummy_atoms(gra), (
-        ("Remove dummy atoms:\n"
-         f"{graph_string(gra)}\n"
-         f"{graph_string(without_dummy_atoms(gra))}\n")
-    )
+        f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
 
     gra0 = gra
 
