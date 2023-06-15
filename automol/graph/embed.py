@@ -54,10 +54,10 @@ from automol.graph.base import atoms_neighbor_atom_keys
 from automol.graph.base import subgraph
 from automol.graph.base import atom_hybridizations
 from automol.graph.base import atom_van_der_waals_radius
-from automol.graph.base import stereo_candidate_bond_keys
+from automol.graph.base import rigid_planar_bond_keys
 from automol.graph.base import rings_atom_keys
 from automol.graph.base import to_local_stereo
-from automol.graph.base import ts_reactants_graph
+from automol.graph.base import is_ts_graph
 from automol.graph.base import rotational_bond_keys
 from automol.graph.base import local_atom_stereo_parity_from_geometry
 from automol.graph.base import local_bond_stereo_parity_from_geometry
@@ -88,7 +88,7 @@ def clean_geometry(gra, geo, max_dist_err=2e-1, stereo=True,
             perturbing near-planar dihedral angles?
         :type remove_symmetry: bool
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     gra = to_local_stereo(gra)
 
     keys = sorted(atom_keys(gra))
@@ -464,7 +464,7 @@ def planarity_constraint_bounds(gra, keys):
     """
     ngb_key_dct = atoms_neighbor_atom_keys(gra)
     ngb_dct = bond_neighborhoods(gra)
-    bnd_keys = [bnd_key for bnd_key in stereo_candidate_bond_keys(gra)
+    bnd_keys = [bnd_key for bnd_key in rigid_planar_bond_keys(gra)
                 if atom_keys(ngb_dct[bnd_key]) <= set(keys)]
 
     def _planarity_constraints(bnd_key):

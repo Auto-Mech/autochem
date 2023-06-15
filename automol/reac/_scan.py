@@ -5,7 +5,7 @@ import math
 import numpy
 import more_itertools as mit
 from phydat import phycon, bnd
-from automol.graph import old_ts
+from automol.graph import ts
 from automol.par import ReactionClass
 import automol.zmat
 from automol.util import dict_
@@ -47,7 +47,7 @@ def hydrogen_migration_scan_coordinate(rxn, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -111,7 +111,7 @@ def beta_scission_scan_coordinate(rxn, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
@@ -146,7 +146,7 @@ def ring_forming_scission_scan_coordinate(rxn, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
@@ -203,7 +203,7 @@ def elimination_scan_coordinate(rxn, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
 
     brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
 
@@ -254,7 +254,7 @@ def hydrogen_abstraction_scan_coordinate(rxn, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -319,7 +319,7 @@ def addition_scan_coordinate(rxn, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -425,7 +425,7 @@ def substitution_scan_coordinate(rxn, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 

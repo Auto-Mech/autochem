@@ -3,7 +3,7 @@
 import automol.geom
 import automol.graph
 from automol.par import ReactionClass
-from automol.graph import old_ts
+from automol.graph import ts
 from automol.zmat import distance_coordinate_name
 from automol.reac._reac import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
@@ -29,7 +29,7 @@ def hydrogen_migration_ts_zmatrix(rxn, ts_geo):
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -38,7 +38,7 @@ def hydrogen_migration_ts_zmatrix(rxn, ts_geo):
 
     # 4. Generate a z-matrix for the geometry
     # Start the z-matrix from the forming bond ring
-    rng_keys, = old_ts.forming_rings_atom_keys(rxn.forward_ts_graph)
+    rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
     _, hyd_key, don_key, _ = hydrogen_migration_atom_keys(rxn)
     # Cycle the migrating h to the front of the ring keys and, if
     # needed, reverse the ring so that the donating atom is last:
@@ -69,7 +69,7 @@ def beta_scission_ts_zmatrix(rxn, ts_geo):
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -98,7 +98,7 @@ def ring_forming_scission_ts_zmatrix(rxn, ts_geo):
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -130,7 +130,7 @@ def elimination_ts_zmatrix(rxn, ts_geo):
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -138,8 +138,8 @@ def elimination_ts_zmatrix(rxn, ts_geo):
     rxn = add_dummy_atoms(rxn, dummy_key_dct)
 
     # 4. Generate a z-matrix for the geometry
-    rng_keys, = old_ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    frm_bnd_key, = old_ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
     _, brk_bnd_key = elimination_breaking_bond_keys(rxn)
     # Cycle the ring keys such that the atom closest to the forming bond is the
     # beginning of the ring and the other atom is the end
@@ -186,7 +186,7 @@ def hydrogen_abstraction_ts_zmatrix(rxn, ts_geo):
     lin_idxs = sorted(lin_idxs)
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -220,7 +220,7 @@ def addition_ts_zmatrix(rxn, ts_geo):
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -254,7 +254,7 @@ def insertion_ts_zmatrix(rxn, ts_geo):
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -262,8 +262,8 @@ def insertion_ts_zmatrix(rxn, ts_geo):
     rxn = add_dummy_atoms(rxn, dummy_key_dct)
 
     # 4. Generate a z-matrix for the geometry
-    rng_keys, = old_ts.forming_rings_atom_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = old_ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    rng_keys, = ts.forming_rings_atom_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
     # Drop one of the forming bonds from the z-matrix by sorting the ring atom
     # keys to exclude it.
     _, frm_bnd_key = insertion_forming_bond_keys(rxn)
@@ -305,7 +305,7 @@ def substitution_ts_zmatrix(rxn, ts_geo):
     lin_idxs.append(tra_key)
 
     # 2. Add dummy atoms over the linear atoms
-    rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+    rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
@@ -375,7 +375,7 @@ def zmatrix_coordinate_names(zrxn, zma):
 
         return _names
 
-    frm_bnd_keys = old_ts.ts_forming_bond_keys(zrxn.forward_ts_graph)
-    brk_bnd_keys = old_ts.ts_breaking_bond_keys(zrxn.forward_ts_graph)
+    frm_bnd_keys = ts.ts_forming_bond_keys(zrxn.forward_ts_graph)
+    brk_bnd_keys = ts.ts_breaking_bond_keys(zrxn.forward_ts_graph)
 
     return (_zma_names(zma, frm_bnd_keys), _zma_names(zma, brk_bnd_keys))

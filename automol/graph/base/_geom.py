@@ -15,10 +15,9 @@ from automol.graph.base._core import bonds_neighbor_atom_keys
 from automol.graph.base._core import bonds_neighbor_bond_keys
 from automol.graph.base._core import explicit
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import backbone_bond_keys
 from automol.graph.base._algo import branch_atom_keys
-from automol.graph.base._kekule import stereo_candidate_bond_keys
+from automol.graph.base._kekule import rigid_planar_bond_keys
 
 
 # stereo parity evaluations
@@ -42,8 +41,8 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None,
     If ascending in clockwise order, the parity is True ('+').
 
             2                   2
-            /1\                 /1\
-        3---4               4---3
+           /1\                 /1\
+          3---4               4---3
 
         counterclockwise    clockwise
         False               True
@@ -71,7 +70,7 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None,
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
-    gra = without_dummy_atoms(ts_reactants_graph(gra))
+    gra = without_dummy_atoms(gra)
 
     keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
@@ -130,28 +129,28 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
     If the neighbors are cis to each other, the parity is False ('-').
     If the neighbors are trans to each other, the parity is True ('+').
 
-        max    max      max    min
-            \   /           \   /
-            A=B             A=B
-            /   \           /   \
-        min    min      min    max
+        max     max      max     min
+           \   /            \   /
+            A=B              A=B
+           /   \            /   \
+        min     min      min     max
 
-        cis             trans
-        False           True
-        '-'             '+'
+        cis              trans
+        False            True
+        '-'              '+'
 
     If one side only has a single neighbor, then it is compared with the
     maximum neighbor on the other side.
 
-        max    nei      max
-            \   /           \
-            A=B             A=B
-            /               /   \
-        min             min    nei
+        max     nei      max
+           \   /            \
+            A=B              A=B
+           /                /   \
+        min              min     nei
 
-        cis             trans
-        False           True
-        '-'             '+'
+        cis              trans
+        False            True
+        '-'              '+'
 
     If both sides have only single neighbors, then they are compared to
     each other.
@@ -175,7 +174,7 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
-    gra = without_dummy_atoms(ts_reactants_graph(gra))
+    gra = without_dummy_atoms(gra)
 
     assert isinstance(bnd_key, abc.Collection) and len(bnd_key) == 2, (
         f"{bnd_key} is not a valid bond key.")
@@ -319,7 +318,7 @@ def linear_vinyl_corrected_geometry(gra, geo, geo_idx_dct=None,
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
-    bnd_keys = stereo_candidate_bond_keys(gra)
+    bnd_keys = rigid_planar_bond_keys(gra)
 
     for bnd1_key in bnd_keys:
         for bnd2_key in bnbkeys_dct[bnd1_key]:

@@ -1209,38 +1209,6 @@ def test__vmat__vmatrix():
     assert set(zma_keys) == graph.atom_keys(gra)
 
 
-def test__ts__expand_reaction_stereo():
-    """ test graph.ts.stereo_expand_reverse_graphs
-    """
-    gra = C4H5F2O_TSG
-    assert len(graph.old_ts.expand_reaction_stereo(gra, enant=True)) == 16
-
-    gra = C4H5F3O2_TSG
-    assert len(graph.old_ts.expand_reaction_stereo(gra, enant=True)) == 8
-
-    # CC(OO)C(O[O])C(OO)C => CC(OO)C(OO)C(OO)[CH2]
-    gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('C', 0, None), 4: ('C', 0, None), 5: ('O', 0, None),
-            6: ('O', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
-            9: ('O', 0, None), 10: ('O', 0, None), 11: ('H', 0, None),
-            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-            15: ('H', 0, None), 16: ('H', 0, None), 17: ('H', 0, None),
-            18: ('H', 0, None), 19: ('H', 0, None), 20: ('H', 0, None),
-            21: ('H', 0, None)},
-           {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
-            frozenset({9, 3}): (1, None), frozenset({1, 15}): (1, None),
-            frozenset({0, 12}): (1, None), frozenset({18, 3}): (1, None),
-            frozenset({0, 11}): (0.9, None), frozenset({16, 1}): (1, None),
-            frozenset({11, 7}): (0.1, None), frozenset({0, 13}): (1, None),
-            frozenset({1, 14}): (1, None), frozenset({3, 4}): (1, None),
-            frozenset({9, 6}): (1, None), frozenset({21, 6}): (1, None),
-            frozenset({10, 7}): (1, None), frozenset({19, 4}): (1, None),
-            frozenset({0, 2}): (1, None), frozenset({17, 2}): (1, None),
-            frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
-            frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
-    assert len(graph.old_ts.expand_reaction_stereo(gra, enant=False)) == 4
-
-
 def test__canonical():
     """ test graph.canonical
     """
