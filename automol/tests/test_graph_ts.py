@@ -303,7 +303,6 @@ C4H9O2_REV_TSG = (
 #      frozenset({3, 11}): (1, None, None, None)})
 
 
-
 # def test__ts__expand_reaction_stereo():
 #     """ test graph.ts.stereo_expand_reverse_graphs
 #     """
