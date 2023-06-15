@@ -294,4 +294,6 @@ if __name__ == '__main__':
     # test__is_inverted_enantiomer()
     # test__graph()
     # test__smiles()
-    test__racemic()
+    # test__racemic()
+    test__graph()
+    test__smiles()

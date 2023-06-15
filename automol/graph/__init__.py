@@ -66,7 +66,7 @@ from automol.graph.base._core import atom_van_der_waals_radius
 from automol.graph.base._core import atom_bond_counts
 from automol.graph.base._core import atom_unpaired_electrons
 from automol.graph.base._core import bond_unpaired_electrons
-from automol.graph.base._core import stereo_candidate_atom_keys
+from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import maximum_spin_multiplicity
 from automol.graph.base._core import possible_spin_multiplicities
 from automol.graph.base._core import atom_symbol_keys
@@ -104,7 +104,6 @@ from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_without_reacting_bond_orders
 from automol.graph.base._core import without_null_bonds
 from automol.graph.base._core import without_stereo
-from automol.graph.base._core import ts_reactants_graph
 from automol.graph.base._core import explicit
 from automol.graph.base._core import implicit
 # # unions
@@ -199,7 +198,7 @@ from automol.graph.base._kekule import has_nonkekule_bond_stereo
 from automol.graph.base._kekule import has_noninchi_stereo
 from automol.graph.base._kekule import radical_groups
 from automol.graph.base._kekule import radical_group_dct
-from automol.graph.base._kekule import stereo_candidate_bond_keys
+from automol.graph.base._kekule import rigid_planar_bond_keys
 from automol.graph.base._kekule import atom_centered_cumulene_keys
 from automol.graph.base._kekule import bond_centered_cumulene_keys
 # torsion/rotational bond functions:
@@ -293,7 +292,6 @@ from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
 # TS graph submodule:
 from automol.graph.base import ts
-from automol.graph.base import old_ts
 # L4
 # conversion functions:
 # # conversions
@@ -364,7 +362,7 @@ __all__ = [
     'atom_bond_counts',
     'atom_unpaired_electrons',
     'bond_unpaired_electrons',
-    'stereo_candidate_atom_keys',
+    'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
     'atom_symbol_keys',
@@ -402,7 +400,6 @@ __all__ = [
     'ts_without_reacting_bond_orders',
     'without_null_bonds',
     'without_stereo',
-    'ts_reactants_graph',
     'explicit',
     'implicit',
     # # unions
@@ -497,7 +494,7 @@ __all__ = [
     'has_noninchi_stereo',
     'radical_groups',
     'radical_group_dct',
-    'stereo_candidate_bond_keys',
+    'rigid_planar_bond_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
     # torsion/rotational bond functions:
@@ -592,7 +589,6 @@ __all__ = [
     # TS graph submodule:
     'ts_graph',
     'ts',
-    'old_ts',
     # L4
     # conversion functions:
     # # conversions

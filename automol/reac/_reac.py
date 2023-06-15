@@ -13,7 +13,7 @@ import numpy
 import automol.geom.ts
 import automol.graph
 from automol import par
-from automol.graph import old_ts
+from automol.graph import ts
 
 
 class Reaction:
@@ -61,7 +61,7 @@ class Reaction:
         back_tsg_comp = automol.graph.without_dummy_atoms(
             automol.graph.without_stereo(back_tsg))
         assert automol.graph.isomorphism(
-            old_ts.reverse(forw_tsg_comp), back_tsg_comp)
+            ts.reverse(forw_tsg_comp), back_tsg_comp)
 
         # Set attributes
         self.class_ = rxn_cls
@@ -96,7 +96,7 @@ class Reaction:
         product
         """
         iso_dct = automol.graph.isomorphism(
-            old_ts.reverse(self.forward_ts_graph), self.backward_ts_graph,
+            ts.reverse(self.forward_ts_graph), self.backward_ts_graph,
             stereo=stereo, dummy=False)
         if rev:
             iso_dct = dict(map(reversed, iso_dct.items()))
@@ -230,7 +230,7 @@ def atom_mapping(rxn, rev=False):
         :rtype: dict
     """
     tsg1 = rxn.forward_ts_graph
-    tsg2 = old_ts.reverse(rxn.backward_ts_graph)
+    tsg2 = ts.reverse(rxn.backward_ts_graph)
 
     iso_dct = automol.graph.isomorphism(tsg1, tsg2, stereo=False, dummy=False)
 
@@ -253,7 +253,7 @@ def forming_bond_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.ts_forming_bond_keys(tsg)
+    return ts.ts_forming_bond_keys(tsg)
 
 
 def breaking_bond_keys(rxn, rev=False):
@@ -269,7 +269,7 @@ def breaking_bond_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.ts_breaking_bond_keys(tsg)
+    return ts.ts_breaking_bond_keys(tsg)
 
 
 def forming_rings_atom_keys(rxn, rev=False):
@@ -287,7 +287,7 @@ def forming_rings_atom_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.forming_rings_atom_keys(tsg)
+    return ts.forming_rings_atom_keys(tsg)
 
 
 def forming_rings_bond_keys(rxn, rev=False):
@@ -303,7 +303,7 @@ def forming_rings_bond_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.forming_rings_bond_keys(tsg)
+    return ts.forming_rings_bond_keys(tsg)
 
 
 def breaking_rings_atom_keys(rxn, rev=False):
@@ -321,7 +321,7 @@ def breaking_rings_atom_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.breaking_rings_atom_keys(tsg)
+    return ts.breaking_rings_atom_keys(tsg)
 
 
 def breaking_rings_bond_keys(rxn, rev=False):
@@ -337,7 +337,7 @@ def breaking_rings_bond_keys(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.breaking_rings_bond_keys(tsg)
+    return ts.breaking_rings_bond_keys(tsg)
 
 
 def reactant_graphs(rxn, rev=False):
@@ -348,9 +348,9 @@ def reactant_graphs(rxn, rev=False):
         :rtype: tuple of automol graph data structures
     """
     if rev:
-        rcts_gra = old_ts.products_graph(rxn.forward_ts_graph)
+        rcts_gra = ts.products_graph(rxn.forward_ts_graph)
     else:
-        rcts_gra = old_ts.reactants_graph(rxn.forward_ts_graph)
+        rcts_gra = ts.reactants_graph(rxn.forward_ts_graph)
     rct_gras = [automol.graph.subgraph(rcts_gra, keys, stereo=True)
                 for keys in rxn.reactants_keys]
     return tuple(rct_gras)
@@ -363,7 +363,7 @@ def product_graphs(rxn):
         :type rxn: Reaction
         :rtype: tuple of automol graph data structures
     """
-    prds_gra = old_ts.reactants_graph(rxn.backward_ts_graph)
+    prds_gra = ts.reactants_graph(rxn.backward_ts_graph)
     prd_gras = [automol.graph.subgraph(prds_gra, keys, stereo=True)
                 for keys in rxn.products_keys]
     return tuple(prd_gras)
@@ -382,7 +382,7 @@ def reactants_graph(rxn, rev=False):
         tsg = rxn.backward_ts_graph
     else:
         tsg = rxn.forward_ts_graph
-    return old_ts.reactants_graph(tsg)
+    return ts.reactants_graph(tsg)
 
 
 def products_graph(rxn):
@@ -393,7 +393,7 @@ def products_graph(rxn):
         :rtype: automol graph data structure
     """
     tsg = rxn.backward_ts_graph
-    return old_ts.reactants_graph(tsg)
+    return ts.reactants_graph(tsg)
 
 
 def is_radical_radical(zrxn, rev=False):
@@ -673,7 +673,7 @@ def are_equivalent(rxn1, rxn2, ts_stereo=True, ts_enant=False):
     """
     tsg1 = rxn1.forward_ts_graph
     tsg2 = rxn2.forward_ts_graph
-    return automol.graph.old_ts.are_equivalent(
+    return automol.graph.ts.are_equivalent(
         tsg1, tsg2, ts_stereo=ts_stereo, ts_enant=ts_enant)
 
 

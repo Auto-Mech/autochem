@@ -30,30 +30,20 @@ import automol.util.dict_.multi as mdict
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1
 ATM_STE_PAR_POS = 2
-TS_ATM_P_STE_PAR_POS = 3
-TS_ATM_T_STE_PAR_POS = 4
 
 BND_ORD_POS = 0
 BND_STE_PAR_POS = 1
-TS_BND_P_STE_PAR_POS = 2
-TS_BND_T_STE_PAR_POS = 3
 
-ATM_PROP_NAMES = ('symbol', 'implicit_hydrogens', 'stereo_parity',
-                  'prod_stereo_parity', 'ts_stereo_parity')
-BND_PROP_NAMES = ('order', 'stereo_parity',
-                  'prod_stereo_parity', 'ts_stereo_parity')
+ATM_PROP_NAMES = ('symbol', 'implicit_hydrogens', 'stereo_parity')
+BND_PROP_NAMES = ('order', 'stereo_parity')
 
 
 # # constructors
 def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
-              atm_ste_par_dct=None,
-              atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
-              bnd_ord_dct=None, bnd_ste_par_dct=None,
-              bnd_prd_ste_par_dct=None, bnd_ts_ste_par_dct=None,
-              ts_=None):
+              atm_ste_par_dct=None, bnd_ord_dct=None, bnd_ste_par_dct=None):
     """ Construct a molecular graph from data
 
-    Ordinary graph data structure:
+    Graph data structure:
         gra = (atm_dct, bnd_dct)
         atm_dct := {
             atm_key: (symb, imp_hyd, ste_par),
@@ -61,18 +51,6 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
         }
         bnd_dct := {
             bnd_key: (ord, ste_par),
-            ...
-        }
-        [where bnd_key := frozenset({atm1_key, atm2_key})]
-
-    TS graph data structure:
-        gra = (atm_dct, bnd_dct)
-        atm_dct := {
-            atm_key: (symb, imp_hyd, ste_par, prd_ste_par, ts_ste_par),
-            ...
-        }
-        bnd_dct := {
-            bnd_key: (ord, ste_par, prd_ste_par, ts_ste_par),
             ...
         }
         [where bnd_key := frozenset({atm1_key, atm2_key})]
@@ -85,71 +63,23 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
         with each atom, by atom key
     :type atm_imp_hyd_dct: dict
     :param atm_ste_par_dct: stereo parities, by atom key;
-        (in TS graphs, reactant stereo parities)
     :type atm_ste_par_dct: dict
-    :param atm_prd_ste_par_dct: product stereo parities, by atom key;
-        (TS graphs only)
-    :type atm_prd_ste_par_dct: dict
-    :param atm_ts_ste_par_dct: TS stereo parities, by atom key;
-        (TS graphs only)
-    :type atm_ts_ste_par_dct: dict
     :param bnd_ord_dct: bond orders, by bond key
     :type bnd_ord_dct: dict
     :param bnd_ste_par_dct: stereo parities, by bond key;
-        (in TS graphs, reactant stereo parities)
     :type bnd_ste_par_dct: dict
-    :param bnd_prd_ste_par_dct: product stereo parities, by bond key;
-        (TS graphs only)
-    :type bnd_prd_ste_par_dct: dict
-    :param bnd_ts_ste_par_dct: TS stereo parities, by bond key;
-        (TS graphs only)
-    :type bnd_ts_ste_par_dct: dict
-    :param ts_: Create a TS graph?
-    :type ts_: bool
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    # If `ts_` is `None`, infer whether this is TS or non-TS from the data
-    # provided.
-    if ts_ is None:
-        if (atm_prd_ste_par_dct is not None and
-                atm_ts_ste_par_dct is not None and
-                bnd_prd_ste_par_dct is not None and
-                bnd_ts_ste_par_dct is not None):
-            # It has the right format for a TS graph, so set `ts_` to `True`
-            ts_ = True
-        else:
-            # Require that it has the right format for a non-TS graph and set
-            # `ts_` to `False`
-            assert atm_prd_ste_par_dct is None, (
-                f"Cannot add atom product stereo parities to non-TS graph!\n"
-                f"atm_prd_ste_par_dct={atm_prd_ste_par_dct}")
-            assert atm_ts_ste_par_dct is None, (
-                f"Cannot add atom TS stereo parities to non-TS graph!\n"
-                f"atm_ts_ste_par_dct={atm_ts_ste_par_dct}")
-            assert bnd_prd_ste_par_dct is None, (
-                f"Cannot add bond product stereo parities to non-TS graph!\n"
-                f"bnd_prd_ste_par_dct={bnd_prd_ste_par_dct}")
-            assert bnd_ts_ste_par_dct is None, (
-                f"Cannot add bond TS stereo parities to non-TS graph!\n"
-                f"bnd_ts_ste_par_dct={bnd_ts_ste_par_dct}")
-            ts_ = False
-
     atm_dct = atoms_from_data(
         atm_symb_dct=atm_symb_dct,
         atm_imp_hyd_dct=atm_imp_hyd_dct,
-        atm_ste_par_dct=atm_ste_par_dct,
-        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
-        atm_ts_ste_par_dct=atm_ts_ste_par_dct,
-        ts_=ts_)
+        atm_ste_par_dct=atm_ste_par_dct)
 
     bnd_dct = bonds_from_data(
         bnd_keys=bnd_keys,
         bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct,
-        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
-        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct,
-        ts_=ts_)
+        bnd_ste_par_dct=bnd_ste_par_dct)
 
     atm_keys = set(atm_dct.keys())
     bnd_keys = set(bnd_dct.keys())
@@ -160,9 +90,7 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
     return (atm_dct, bnd_dct)
 
 
-def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
-                    atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
-                    ts_=False):
+def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None):
     """ Construct an atom dictionary from constituent data.
 
     Ordinary graph data structure:
@@ -183,16 +111,7 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
         with each atom, by atom key
     :type atm_imp_hyd_dct: dict
     :param atm_ste_par_dct: stereo parities, by atom key;
-        (in TS graphs, reactant stereo parities)
     :type atm_ste_par_dct: dict
-    :param atm_prd_ste_par_dct: product stereo parities, by atom key;
-        (TS graphs only)
-    :type atm_prd_ste_par_dct: dict
-    :param atm_ts_ste_par_dct: TS stereo parities, by atom key;
-        (TS graphs only)
-    :type atm_ts_ste_par_dct: dict
-    :param ts_: Create a TS graph?
-    :type ts_: bool
     :returns: The atoms and their associated properties, as a dictionary
     :rtype: dict[int: tuple]
     """
@@ -202,11 +121,6 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
         dict_.empty_if_none(atm_imp_hyd_dct), keys, fill_val=0)
     pars = dict_.values_by_key(
         dict_.empty_if_none(atm_ste_par_dct), keys, fill_val=None)
-    if ts_:
-        prd_pars = dict_.values_by_key(
-            dict_.empty_if_none(atm_prd_ste_par_dct), keys, fill_val=None)
-        ts_pars = dict_.values_by_key(
-            dict_.empty_if_none(atm_ts_ste_par_dct), keys, fill_val=None)
 
     natms = len(keys)
 
@@ -214,30 +128,17 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None,
     assert len(hyds) == natms
     assert len(pars) == natms
     assert all(par in (None, False, True) for par in pars)
-    if ts_:
-        assert len(prd_pars) == natms
-        assert all(par in (None, False, True) for par in prd_pars)
-        assert len(ts_pars) == natms
-        assert all(par in (None, False, True) for par in ts_pars)
 
     symbs = list(map(ptab.to_symbol, symbs))
     hyds = list(map(int, hyds))
     pars = [bool(par) if par is not None else par for par in pars]
-    if ts_:
-        prd_pars = [bool(par) if par is not None else par for par in prd_pars]
-        ts_pars = [bool(par) if par is not None else par for par in ts_pars]
 
-    if not ts_:
-        atm_dct = dict(zip(keys, zip(symbs, hyds, pars)))
-    else:
-        atm_dct = dict(zip(keys, zip(symbs, hyds, pars, prd_pars, ts_pars)))
+    atm_dct = dict(zip(keys, zip(symbs, hyds, pars)))
 
     return atm_dct
 
 
-def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None,
-                    bnd_prd_ste_par_dct=None, bnd_ts_ste_par_dct=None,
-                    ts_=False):
+def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None):
     """ Construct a bond dictionary from constituent data.
 
     Ordinary graph data structure:
@@ -259,16 +160,7 @@ def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None,
     :param bnd_ord_dct: bond orders, by bond key
     :type bnd_ord_dct: dict
     :param bnd_ste_par_dct: stereo parities, by bond key;
-        (in TS graphs, reactant stereo parities)
     :type bnd_ste_par_dct: dict
-    :param bnd_prd_ste_par_dct: product stereo parities, by bond key;
-        (TS graphs only)
-    :type bnd_prd_ste_par_dct: dict
-    :param bnd_ts_ste_par_dct: TS stereo parities, by bond key;
-        (TS graphs only)
-    :type bnd_ts_ste_par_dct: dict
-    :param ts_: Create a TS graph?
-    :type ts_: bool
     :returns: The bonds and their associated properties, as a dictionary
     :rtype: dict[frozenset({int, int}): tuple]
     """
@@ -278,40 +170,24 @@ def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None,
         dict_.empty_if_none(bnd_ord_dct), keys, fill_val=1)
     pars = dict_.values_by_key(
         dict_.empty_if_none(bnd_ste_par_dct), keys, fill_val=None)
-    if ts_:
-        prd_pars = dict_.values_by_key(
-            dict_.empty_if_none(bnd_prd_ste_par_dct), keys, fill_val=None)
-        ts_pars = dict_.values_by_key(
-            dict_.empty_if_none(bnd_ts_ste_par_dct), keys, fill_val=None)
 
     nbnds = len(keys)
 
     assert len(ords) == nbnds
     assert len(pars) == nbnds
     assert all(par in (None, False, True) for par in pars)
-    if ts_:
-        assert len(prd_pars) == nbnds
-        assert all(par in (None, False, True) for par in prd_pars)
-        assert len(ts_pars) == nbnds
-        assert all(par in (None, False, True) for par in ts_pars)
 
     keys = list(map(frozenset, keys))
     # If ts_ = False, we should assert that round(o) == o
     ords = [int(o) if round(o) == o else float(round(o, 1)) for o in ords]
     pars = [bool(par) if par is not None else par for par in pars]
-    if ts_:
-        prd_pars = [bool(par) if par is not None else par for par in prd_pars]
-        ts_pars = [bool(par) if par is not None else par for par in ts_pars]
 
-    if not ts_:
-        bnd_dct = dict(zip(keys, zip(ords, pars)))
-    else:
-        bnd_dct = dict(zip(keys, zip(ords, pars, prd_pars, ts_pars)))
+    bnd_dct = dict(zip(keys, zip(ords, pars)))
 
     return bnd_dct
 
 
-def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=None):
+def from_atoms_and_bonds(atm_dct, bnd_dct):
     """ Construct a molecular graph from atom and bond dictionaries.
 
     Data structure:
@@ -321,9 +197,6 @@ def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=None):
     :type atm_dct: dict[int: tuple]
     :param bnd_dct: bond dictionary
     :type bnd_dct: dict[frozenset({int, int}): tuple]
-    :param ts_: Create a TS graph? If `None`, the answer will be inferred
-        from the atom and bond dictionaries.
-    :type ts_: bool
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
@@ -334,23 +207,12 @@ def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=None):
     atm_nprops = dict_.transform_values(atm_dct, len).values()
     bnd_nprops = dict_.transform_values(bnd_dct, len).values()
 
-    if (all(n == 5 for n in atm_nprops) and
-            all(n == 4 for n in bnd_nprops)):
-        # It has the right format for a TS graph, so set `ts_` to `True`
-        data_has_ts_format = True
-        ts_ = True if ts_ is None else ts_
-    else:
-        # Require that it has the right format for a non-TS graph and set
-        # `ts_` to `False`
-        assert (
-            all(n == 3 for n in atm_nprops) and
-            all(n == 2 for n in bnd_nprops)
-        ), (
-            f"Atom or bond dictionary has improper format for non-TS"
-            f"graph:\natm_dct:\n{atm_dct}\nbnd_dct:\n{bnd_dct}\n"
-        )
-        data_has_ts_format = False
-        ts_ = False if ts_ is None else ts_
+    # Require that it has the right format for a non-TS graph and set
+    # `ts_` to `False`
+    assert (all(n == 3 for n in atm_nprops) and
+            all(n == 2 for n in bnd_nprops)), (
+        f"Atom or bond dictionary has improper format:\n"
+        f"atm_dct:\n{atm_dct}\nbnd_dct:\n{bnd_dct}\n")
 
     atm_nprops = dict_.transform_values(atm_dct, len)
     bnd_nprops = dict_.transform_values(bnd_dct, len)
@@ -363,35 +225,18 @@ def from_atoms_and_bonds(atm_dct, bnd_dct, ts_=None):
     atm_ste_par_dct = (
         mdict.by_key_by_position(atm_dct, atm_keys, ATM_STE_PAR_POS))
 
-    atm_prd_ste_par_dct = (
-        mdict.by_key_by_position(atm_dct, atm_keys, TS_ATM_P_STE_PAR_POS)
-        if ts_ and data_has_ts_format else None)
-    atm_ts_ste_par_dct = (
-        mdict.by_key_by_position(atm_dct, atm_keys, TS_ATM_T_STE_PAR_POS)
-        if ts_ and data_has_ts_format else None)
-
     bnd_keys = sorted(bnd_dct.keys())
     bnd_ord_dct = (
         mdict.by_key_by_position(bnd_dct, bnd_keys, BND_ORD_POS))
     bnd_ste_par_dct = (
         mdict.by_key_by_position(bnd_dct, bnd_keys, BND_STE_PAR_POS))
-    bnd_prd_ste_par_dct = (
-        mdict.by_key_by_position(bnd_dct, bnd_keys, TS_BND_P_STE_PAR_POS)
-        if ts_ and data_has_ts_format else None)
-    bnd_ts_ste_par_dct = (
-        mdict.by_key_by_position(bnd_dct, bnd_keys, TS_BND_T_STE_PAR_POS)
-        if ts_ and data_has_ts_format else None)
 
     return from_data(
         atm_symb_dct, bnd_dct.keys(),
         atm_imp_hyd_dct=atm_imp_hyd_dct,
         atm_ste_par_dct=atm_ste_par_dct,
-        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
-        atm_ts_ste_par_dct=atm_ts_ste_par_dct,
         bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct,
-        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
-        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct, ts_=ts_)
+        bnd_ste_par_dct=bnd_ste_par_dct)
 
 
 # # getters
@@ -452,7 +297,7 @@ def bond_keys(gra, ts_=True):
     :returns: The bond keys
     :rtype: frozenset[{int, int}]
     """
-    gra = gra if ts_ else ts_reactants_graph(gra)
+    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
     return frozenset(bonds(gra).keys())
 
 
@@ -477,7 +322,7 @@ def bond_orders(gra, ts_=True):
     :returns: A dictionary of bond orders, by bond key
     :rtype: dict[frozenset: int or float]
     """
-    gra = gra if ts_ else ts_reactants_graph(gra)
+    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
     return mdict.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_ORD_POS)
 
 
@@ -494,83 +339,48 @@ def atom_implicit_hydrogens(gra):
                                     ATM_IMP_HYD_POS)
 
 
-def atom_stereo_parities(gra, ts_select='R'):
+def atom_stereo_parities(gra):
     """ Get the atom stereo parities of this molecular graph, as a dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param ts_select: For ts graphs, select the type of stereo parities.
-        Options: 'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: NoneType or str
     :returns: A dictionary of atom stereo parities, by atom key
     :rtype: dict[int: bool or NoneType]
     """
-    ts_ = is_ts_graph(gra)
-    assert ts_select in ('R', 'P', 'T') if ts_ else ts_select == 'R', (
-        f"Invalid argument combo:\nts_select = {ts_select}\ngra =\n{gra}")
-
-    if ts_select == 'R':
-        ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
-                                       ATM_STE_PAR_POS)
-    elif ts_select == 'P':
-        ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
-                                       TS_ATM_P_STE_PAR_POS)
-    elif ts_select == 'T':
-        ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
-                                       TS_ATM_T_STE_PAR_POS)
-
+    ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(),
+                                   ATM_STE_PAR_POS)
     return ret
 
 
-def bond_stereo_parities(gra, ts_select='R'):
+def bond_stereo_parities(gra):
     """ Get the bond stereo parities of this molecular graph, as a dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param ts_select: For ts graphs, select the type of stereo parities.
-        Options: 'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: NoneType or str
     :returns: A dictionary of bond stereo parities, by bond key
     :rtype: dict[frozenset: bool or NoneType]
     """
-    ts_ = is_ts_graph(gra)
-    assert ts_select in ('R', 'P', 'T') if ts_ else ts_select == 'R', (
-        f"Invalid argument combo:\nts_select = {ts_select}\ngra =\n{gra}")
-
-    if ts_select == 'R':
-        ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
-                                       BND_STE_PAR_POS)
-    elif ts_select == 'P':
-        ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
-                                       TS_BND_P_STE_PAR_POS)
-    elif ts_select == 'T':
-        ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
-                                       TS_BND_T_STE_PAR_POS)
-
+    ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(),
+                                   BND_STE_PAR_POS)
     return ret
 
 
-def stereo_parities(gra, ts_select='R'):
+def stereo_parities(gra):
     """ Get the atom and bond stereo parities of this molecular graph, as a
         single dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param ts_select: For ts graphs, select the type of stereo parities.
-        Options: 'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: NoneType or str
     :returns: A dictionary of stereo parities, by atom/bond key
     :rtype: dict[int or frozenset: bool or NoneType]
     """
-    par_dct = atom_stereo_parities(gra, ts_select=ts_select)
-    par_dct.update(bond_stereo_parities(gra, ts_select=ts_select))
+    par_dct = atom_stereo_parities(gra)
+    par_dct.update(bond_stereo_parities(gra))
     return par_dct
 
 
 # # TS graph constructor
-def ts_graph(gra, frm_bnd_keys, brk_bnd_keys,
-             atm_prd_ste_par_dct=None, atm_ts_ste_par_dct=None,
-             bnd_prd_ste_par_dct=None, bnd_ts_ste_par_dct=None):
+def ts_graph(gra, frm_bnd_keys, brk_bnd_keys):
     """ Construct a TS graph from a molecular graph
 
     :param gra: molecular graph, representing the reactants
@@ -579,46 +389,18 @@ def ts_graph(gra, frm_bnd_keys, brk_bnd_keys,
     :type frm_bnd_keys: tuple[frozenset]
     :param brk_bnd_keys: Keys to bonds which are breaking in the TS
     :type brk_bnd_keys: tuple[frozenset]
-    :param atm_prd_ste_par_dct: product stereo parities, by atom key
-    :type atm_prd_ste_par_dct: dict
-    :param atm_ts_ste_par_dct: TS stereo parities, by atom key
-    :type atm_ts_ste_par_dct: dict
-    :param bnd_prd_ste_par_dct: product stereo parities, by bond key
-    :type bnd_prd_ste_par_dct: dict
-    :param bnd_ts_ste_par_dct: TS stereo parities, by bond key
-    :type bnd_ts_ste_par_dct: dict
     :returns: TS graph
-    :rtype: automol TS graph data structure
+    :rtype: automol graph data structure
     """
-    assert not is_ts_graph(gra), (
-        f"Attempting to construct a new TS graph from a TS graph:\n{gra}")
-
-    # Construct a TS graph object from the reactants graph
-    bnd_ord_dct = bond_orders(gra)
-    tsg = from_data(
-        atm_symb_dct=atom_symbols(gra),
-        bnd_keys=bond_keys(gra),
-        atm_imp_hyd_dct=atom_implicit_hydrogens(gra),
-        atm_ste_par_dct=atom_stereo_parities(gra),
-        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
-        atm_ts_ste_par_dct=atm_ts_ste_par_dct,
-        bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bond_stereo_parities(gra),
-        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
-        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct,
-        ts_=True
-    )
-
-    # Encode forming and breaking bonds
     frm_bnd_keys = frozenset(map(frozenset, frm_bnd_keys))
     brk_bnd_keys = frozenset(map(frozenset, brk_bnd_keys))
 
     frm_ord_dct = {k: 0.1 for k in frm_bnd_keys}
     brk_ord_dct = {k: 0.9 for k in brk_bnd_keys}
 
-    tsg = add_bonds(tsg, frm_bnd_keys, ord_dct=frm_ord_dct, check=False)
-    tsg = add_bonds(tsg, brk_bnd_keys, ord_dct=brk_ord_dct, check=False)
-    return tsg
+    gra = add_bonds(gra, frm_bnd_keys, ord_dct=frm_ord_dct, check=False)
+    gra = add_bonds(gra, brk_bnd_keys, ord_dct=brk_ord_dct, check=False)
+    return gra
 
 
 # # TS graph getters
@@ -698,39 +480,6 @@ def ts_without_reacting_bond_orders(tsg, prod=False, keep_zeros=False):
     return tsg
 
 
-def ts_reactants_graph(tsg):
-    """ Generate a graph representing the reactants of a TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol TS graph data structure
-    :returns: the reactants graph
-    :rtype: automol graph data structure
-    """
-    # Put in bond orders for the reactants
-    tsg = ts_without_reacting_bond_orders(tsg, prod=False)
-    # Remove the extra stereo columns
-    gra = from_atoms_and_bonds(atoms(tsg), bonds(tsg), ts_=False)
-    return gra
-
-
-def ts_products_graph(tsg):
-    """ Generate a graph representing the products of a TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol TS graph data structure
-    :returns: the products graph
-    :rtype: automol graph data structure
-    """
-    # Put in bond orders for the products
-    tsg = ts_without_reacting_bond_orders(tsg, prod=True)
-    # Put product stereo parities in the first ("reactant") column
-    par_dct = stereo_parities(tsg, ts_select='P')
-    tsg = set_stereo_parities(tsg, par_dct, ts_select='R')
-    # Remove the extra stereo columns
-    gra = from_atoms_and_bonds(atoms(tsg), bonds(tsg), ts_=False)
-    return gra
-
-
 # # setters
 def set_atom_symbols(gra, atm_symb_dct):
     """ Set the atom symbols of this molecular graph with a dictionary
@@ -780,78 +529,37 @@ def set_atom_implicit_hydrogens(gra, atm_imp_hyd_dct):
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 
-def set_atom_stereo_parities(gra, atm_par_dct, ts_select='R'):
+def set_atom_stereo_parities(gra, atm_par_dct):
     """ Set the atom stereo parities of this molecular graph with a dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param atm_par_dct: A dictionary of atom stereo parities, by atom key
     :type atm_par_dct: dict[int: bool or NoneType]
-    :param ts_select: For ts graphs, select the type of stereo parities.
-        Options: 'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: NoneType or str
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    assert ts_select in (None, 'R', 'P', 'T'), (
-        f"Invalid argument for `ts_select`: {ts_select}")
-
-    ts_ = is_ts_graph(gra)
-    ts_select = 'R' if ts_select is None else ts_select
-
-    if ts_select in ('P', 'T'):
-        assert ts_, (f"Invalid argument combination:"
-                     f"ts_select = {ts_select}\ngra =\n{string(gra)}")
-
-    if ts_select == 'R':
-        atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct,
-                                               ATM_STE_PAR_POS)
-    elif ts_select == 'P':
-        atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct,
-                                               TS_ATM_P_STE_PAR_POS)
-    elif ts_select == 'T':
-        atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct,
-                                               TS_ATM_T_STE_PAR_POS)
-
+    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct,
+                                           ATM_STE_PAR_POS)
     return from_atoms_and_bonds(atm_dct, bonds(gra))
 
 
-def set_bond_stereo_parities(gra, bnd_par_dct, ts_select='R'):
+def set_bond_stereo_parities(gra, bnd_par_dct):
     """ Set the bond stereo parities of this molecular graph with a dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param bnd_par_dct: A dictionary of bond stereo parities, by bond key
     :type bnd_par_dct: dict[frozenset: bool or NoneType]
-    :param ts_select: For ts graphs, select the type of stereo parities.
-        Options: 'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: NoneType or str
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    assert ts_select in (None, 'R', 'P', 'T'), (
-        f"Invalid argument for `ts_select`: {ts_select}")
-
-    ts_ = is_ts_graph(gra)
-    ts_select = 'R' if ts_select is None else ts_select
-
-    if ts_select in ('P', 'T'):
-        assert ts_, (f"Invalid argument combination:"
-                     f"ts_select = {ts_select}\ngra =\n{string(gra)}")
-
-    if ts_select == 'R':
-        bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct,
-                                               BND_STE_PAR_POS)
-    elif ts_select == 'P':
-        bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct,
-                                               TS_BND_P_STE_PAR_POS)
-    elif ts_select == 'T':
-        bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct,
-                                               TS_BND_T_STE_PAR_POS)
+    bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct,
+                                           BND_STE_PAR_POS)
     return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
 
-def set_stereo_parities(gra, par_dct, ts_select='R'):
+def set_stereo_parities(gra, par_dct):
     """ Set the atom and bond stereo parities of this molecular graph with a
         single dictionary
 
@@ -859,9 +567,6 @@ def set_stereo_parities(gra, par_dct, ts_select='R'):
     :type gra: automol graph data structure
     :param par_dct: A dictionary of stereo parities, by atom/bond key
     :type par_dct: dict[int or frozenset: bool or NoneType]
-    :param ts_select: For ts graphs, select the type of stereo parities.
-        Options: 'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_select: NoneType or str
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
@@ -869,8 +574,8 @@ def set_stereo_parities(gra, par_dct, ts_select='R'):
         par_dct, lambda x: isinstance(x, numbers.Number))
     bnd_par_dct = dict_.filter_by_key(
         par_dct, lambda x: not isinstance(x, numbers.Number))
-    gra = set_atom_stereo_parities(gra, atm_par_dct, ts_select=ts_select)
-    gra = set_bond_stereo_parities(gra, bnd_par_dct, ts_select=ts_select)
+    gra = set_atom_stereo_parities(gra, atm_par_dct)
+    gra = set_bond_stereo_parities(gra, bnd_par_dct)
     return gra
 
 
@@ -1073,7 +778,7 @@ def electron_count(gra, charge=0):
     return nelec
 
 
-def atom_stereo_keys(gra, symb=None, excl_symbs=(), ts_selects=('R',)):
+def atom_stereo_keys(gra, symb=None, excl_symbs=()):
     """ Get the keys of atom stereo-centers this molecular graph
 
     :param gra: molecular graph
@@ -1084,63 +789,41 @@ def atom_stereo_keys(gra, symb=None, excl_symbs=(), ts_selects=('R',)):
     :param excl_symbs: Optionally, exclude atoms with particular atomic
         symbols.
     :type excl_symbs: tuple[str]
-    :param ts_selects: For ts graphs, select whether to include some or all
-        types of stereo by passing a list with any combination of:
-        'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_selects: tuple[str]
     :returns: The atom keys
     :rtype: frozenset[int]
     """
     keys = atom_keys(gra, symb=symb, excl_symbs=excl_symbs)
-    ste_keys = frozenset()
-
-    for ts_select in ts_selects:
-        par_dct = dict_.by_key(
-            atom_stereo_parities(gra, ts_select=ts_select), keys)
-        ste_keys |= dict_.keys_by_value(par_dct, lambda x: x is not None)
-
+    par_dct = dict_.by_key(atom_stereo_parities(gra), keys)
+    ste_keys = dict_.keys_by_value(par_dct, lambda x: x is not None)
     return frozenset(ste_keys)
 
 
-def bond_stereo_keys(gra, ts_selects=('R',)):
+def bond_stereo_keys(gra):
     """ Get the keys of bond stereo-centers this molecular graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param ts_selects: For ts graphs, select whether to include some or all
-        types of stereo by passing a list with any combination of:
-        'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_selects: tuple[str]
     :returns: The bond keys
     :rtype: frozenset[{int, int}]
     """
-    ste_keys = frozenset()
-
-    for ts_select in ts_selects:
-        par_dct = bond_stereo_parities(gra, ts_select=ts_select)
-        ste_keys |= dict_.keys_by_value(par_dct, lambda x: x is not None)
-
+    par_dct = bond_stereo_parities(gra)
+    ste_keys = dict_.keys_by_value(par_dct, lambda x: x is not None)
     return frozenset(ste_keys)
 
 
-def stereo_keys(gra, ts_selects=('R',)):
+def stereo_keys(gra):
     """ Get the keys of atom and bond stereo-centers this molecular graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param ts_selects: For ts graphs, select whether to include some or all
-        types of stereo by passing a list with any combination of:
-        'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_selects: tuple[str]
     :returns: The atom and bond keys
     :rtype: frozenset
     """
-    ste_keys = (atom_stereo_keys(gra, ts_selects=ts_selects) |
-                bond_stereo_keys(gra, ts_selects=ts_selects))
+    ste_keys = atom_stereo_keys(gra) | bond_stereo_keys(gra)
     return ste_keys
 
 
-def has_atom_stereo(gra, symb=None, excl_symbs=(), ts_selects=None):
+def has_atom_stereo(gra, symb=None, excl_symbs=()):
     """ Does this graph have atom stereochemistry?
 
     :param gra: molecular graph
@@ -1151,54 +834,32 @@ def has_atom_stereo(gra, symb=None, excl_symbs=(), ts_selects=None):
     :param excl_symbs: Optionally, exclude atoms with particular atomic
         symbols.
     :type excl_symbs: tuple[str]
-    :param ts_selects: For ts graphs, select whether to include some or all
-        types of stereo by passing a list with any combination of:
-        'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_selects: tuple[str]
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    if ts_selects is None:
-        ts_selects = ('R', 'P', 'T') if is_ts_graph(gra) else ('R',)
-
-    return bool(atom_stereo_keys(gra, symb=symb, excl_symbs=excl_symbs,
-                                 ts_selects=ts_selects))
+    return bool(atom_stereo_keys(gra, symb=symb, excl_symbs=excl_symbs))
 
 
-def has_bond_stereo(gra, ts_selects=None):
+def has_bond_stereo(gra):
     """ Does this graph have bond stereochemistry?
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param ts_selects: For ts graphs, select whether to include some or all
-        types of stereo by passing a list with any combination of:
-        'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_selects: tuple[str]
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    if ts_selects is None:
-        ts_selects = ('R', 'P', 'T') if is_ts_graph(gra) else ('R',)
-
-    return bool(bond_stereo_keys(gra, ts_selects=ts_selects))
+    return bool(bond_stereo_keys(gra))
 
 
-def has_stereo(gra, ts_selects=None):
+def has_stereo(gra):
     """ Does this graph have stereochemistry of any kind?
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param ts_selects: For ts graphs, select whether to include some or all
-        types of stereo by passing a list with any combination of:
-        'R' (reactants), 'P' (products), 'T' (TS).
-    :type ts_selects: tuple[str]
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    if ts_selects is None:
-        ts_selects = ('R', 'P', 'T') if is_ts_graph(gra) else ('R',)
-
-    return bool(stereo_keys(gra, ts_selects=ts_selects))
+    return bool(stereo_keys(gra))
 
 
 def has_pi_bonds(gra):
@@ -1219,20 +880,15 @@ def has_pi_bonds(gra):
 def is_ts_graph(gra):
     """ Is this a TS graph?
 
+    This is based on whether or not it has 0.1 or 0.9-order bonds.
+
     :param gra: molecular graph
     :type gra: automol graph data structure
     :returns: `True` if it is, `False` if it isn't
     :rtype: bool
     """
-    atm_nprops = dict_.transform_values(atoms(gra), len).values()
-    bnd_nprops = dict_.transform_values(bonds(gra), len).values()
-    if all(n == 5 for n in atm_nprops) and all(n == 4 for n in bnd_nprops):
-        ret = True
-    elif all(n == 3 for n in atm_nprops) and all(n == 2 for n in bnd_nprops):
-        ret = False
-    else:
-        raise ValueError(f"Not a valid graph data structure:\n{gra}\n")
-    return ret
+    bnd_ords = bond_orders(gra).values()
+    return any(round(o, 1) in (0.1, 0.9) for o in bnd_ords)
 
 
 def atomic_numbers(gra):
@@ -1320,7 +976,7 @@ def atom_van_der_waals_radius(gra, key, angstrom=True):
     return rad
 
 
-def atom_bond_counts(gra, bond_order=True, with_implicit=True):
+def atom_bond_counts(gra, bond_order=True, with_implicit=True, ts_=True):
     """ Get the bond counts for the atoms in this graph, as a dictionary
 
     The bond count will be based on the graph's bond orders, so one must
@@ -1332,16 +988,15 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True):
     :type bond_order: bool, optional
     :param with_implicit: Include implicit hydrogens?, defaults to True
     :type with_implicit: bool, optional
+    :param ts_: If this is a TS graph, treat it as such?
+    :type ts_: bool
     :returns: A dictionary of bond counts, by atom key
     :rtype: dict[int: int]
     """
     atm_keys = list(atom_keys(gra))
-    if with_implicit:
-        gra = explicit(gra)
-
-    # If this is a TS graph, base the bond count on the reactants
-    if is_ts_graph(gra):
-        gra = ts_reactants_graph(gra)
+    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
+    # Convert to explicit graph if we watn implicit hydrogens in the count
+    gra = explicit(gra) if with_implicit else gra
 
     if not bond_order:
         gra = without_pi_bonds(gra)
@@ -1366,8 +1021,8 @@ def atom_unpaired_electrons(gra, bond_order=True):
     :returns: the atom unsaturated valences, by atom key
     :rtype: dict
     """
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
-    gra = ts_reactants_graph(gra)
     if not bond_order:
         gra = without_pi_bonds(gra)
 
@@ -1393,8 +1048,8 @@ def bond_unpaired_electrons(gra, bond_order=True):
     :returns: the bond unsaturated valences, by bond key
     :rtype: dict
     """
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     bnd_keys = list(bond_keys(gra))
-    gra = ts_reactants_graph(gra)
     if not bond_order:
         gra = without_pi_bonds(gra)
 
@@ -1406,7 +1061,7 @@ def bond_unpaired_electrons(gra, bond_order=True):
     return bnd_unsat_dct
 
 
-def stereo_candidate_atom_keys(gra):
+def tetrahedral_atom_keys(gra):
     """ Get keys to stereo candidate atoms, which will be stereogenic if their
     groups are all distinct
 
@@ -1425,7 +1080,8 @@ def stereo_candidate_atom_keys(gra):
     :rtype: frozenset[int]
     """
     if is_ts_graph(gra):
-        gras = [ts_reactants_graph(gra), ts_products_graph(gra)]
+        gras = [ts_without_reacting_bond_orders(gra, prod=False),
+                ts_without_reacting_bond_orders(gra, prod=True)]
     else:
         gras = [gra]
 
@@ -1795,8 +1451,7 @@ def relabel_for_geometry(gra):
 
 
 # # add/remove/insert/without
-def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
-              prd_ste_par_dct=None, ts_ste_par_dct=None, check=True):
+def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None, check=True):
     """ Add atoms to this molecular graph
 
     :param gra: molecular graph
@@ -1807,35 +1462,20 @@ def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
         each atom, by atom key
     :type imp_hyd_dct: dict
     :param ste_par_dct: stereo parities, by atom key;
-        (in TS graphs, reactant stereo parities)
     :type ste_par_dct: dict
-    :param prd_ste_par_dct: product stereo parities, by atom key;
-        (TS graphs only)
-    :type prd_ste_par_dct: dict
-    :param ts_ste_par_dct: TS stereo parities, by atom key;
-        (TS graphs only)
-    :type ts_ste_par_dct: dict
     :param check: Check that we aren't trying to add atoms with duplicate keys?
     :type check: bool
     :return: molecular graph (TS or non-TS)
     :rtype: automol graph data structure
     """
-    ts_ = is_ts_graph(gra)
     atm_keys = atom_keys(gra)
     atm_symb_dct = atom_symbols(gra)
     atm_imp_hyd_dct = atom_implicit_hydrogens(gra)
     atm_ste_par_dct = atom_stereo_parities(gra)
-    atm_prd_ste_par_dct = (
-        atom_stereo_parities(gra, ts_select='P') if ts_ else None)
-    atm_ts_ste_par_dct = (
-        atom_stereo_parities(gra, ts_select='T') if ts_ else None)
 
     keys = set(symb_dct.keys())
     imp_hyd_dct = {} if imp_hyd_dct is None else imp_hyd_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
-    if ts_:
-        prd_ste_par_dct = {} if prd_ste_par_dct is None else prd_ste_par_dct
-        ts_ste_par_dct = {} if ts_ste_par_dct is None else ts_ste_par_dct
 
     if check:
         assert not keys & atm_keys, (
@@ -1844,29 +1484,20 @@ def add_atoms(gra, symb_dct, imp_hyd_dct=None, ste_par_dct=None,
     assert not keys & atm_keys
     assert set(imp_hyd_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
-    if ts_:
-        assert set(prd_ste_par_dct.keys()) <= keys
-        assert set(ts_ste_par_dct.keys()) <= keys
 
     atm_symb_dct.update(symb_dct)
     atm_imp_hyd_dct.update(imp_hyd_dct)
     atm_ste_par_dct.update(ste_par_dct)
-    if ts_:
-        atm_prd_ste_par_dct.update(prd_ste_par_dct)
-        atm_ts_ste_par_dct.update(ts_ste_par_dct)
 
     atm_dct = atoms_from_data(
         atm_symb_dct=atm_symb_dct, atm_imp_hyd_dct=atm_imp_hyd_dct,
-        atm_ste_par_dct=atm_ste_par_dct,
-        atm_prd_ste_par_dct=atm_prd_ste_par_dct,
-        atm_ts_ste_par_dct=atm_ts_ste_par_dct, ts_=ts_)
+        atm_ste_par_dct=atm_ste_par_dct)
     bnd_dct = bonds(gra)
     gra = from_atoms_and_bonds(atm_dct=atm_dct, bnd_dct=bnd_dct)
     return gra
 
 
-def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, prd_ste_par_dct=None,
-              ts_ste_par_dct=None, check=True):
+def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, check=True):
     """ Add bonds to this molecular graph
 
     :param gra: molecular graph
@@ -1876,40 +1507,22 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, prd_ste_par_dct=None,
     :param ord_dct: bond orders, by bond key
     :type ord_dct: dict
     :param ste_par_dct: stereo parities, by bond key;
-        (in TS graphs, reactant stereo parities)
     :type ste_par_dct: dict
-    :param prd_ste_par_dct: product stereo parities, by bond key;
-        (TS graphs only)
-    :type prd_ste_par_dct: dict
-    :param ts_ste_par_dct: TS stereo parities, by bond key;
-        (TS graphs only)
-    :type ts_ste_par_dct: dict
     :param check: Check that we aren't trying to add bonds with duplicate keys?
     :type check: bool
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    ts_ = is_ts_graph(gra)
     bnd_keys = set(bond_keys(gra))
     bnd_ord_dct = bond_orders(gra)
     bnd_ste_par_dct = bond_stereo_parities(gra)
-    bnd_prd_ste_par_dct = (
-        bond_stereo_parities(gra, ts_select='P') if ts_ else None)
-    bnd_ts_ste_par_dct = (
-        bond_stereo_parities(gra, ts_select='T') if ts_ else None)
 
     keys = set(map(frozenset, keys))
     ord_dct = {} if ord_dct is None else ord_dct
     ste_par_dct = {} if ste_par_dct is None else ste_par_dct
-    if ts_:
-        prd_ste_par_dct = {} if prd_ste_par_dct is None else prd_ste_par_dct
-        ts_ste_par_dct = {} if ts_ste_par_dct is None else ts_ste_par_dct
 
     ord_dct = dict_.transform_keys(ord_dct, frozenset)
     ste_par_dct = dict_.transform_keys(ste_par_dct, frozenset)
-    if ts_:
-        prd_ste_par_dct = dict_.transform_keys(prd_ste_par_dct, frozenset)
-        ts_ste_par_dct = dict_.transform_keys(ts_ste_par_dct, frozenset)
 
     if check:
         assert not keys & bnd_keys, (
@@ -1917,23 +1530,15 @@ def add_bonds(gra, keys, ord_dct=None, ste_par_dct=None, prd_ste_par_dct=None,
 
     assert set(ord_dct.keys()) <= keys
     assert set(ste_par_dct.keys()) <= keys
-    if ts_:
-        assert set(prd_ste_par_dct.keys()) <= keys
-        assert set(ts_ste_par_dct.keys()) <= keys
 
     bnd_keys.update(keys)
     bnd_ord_dct.update(ord_dct)
     bnd_ste_par_dct.update(ste_par_dct)
-    if ts_:
-        bnd_prd_ste_par_dct.update(prd_ste_par_dct)
-        bnd_ts_ste_par_dct.update(ts_ste_par_dct)
 
     atm_dct = atoms(gra)
     bnd_dct = bonds_from_data(
         bnd_keys=bnd_keys, bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct,
-        bnd_prd_ste_par_dct=bnd_prd_ste_par_dct,
-        bnd_ts_ste_par_dct=bnd_ts_ste_par_dct, ts_=ts_)
+        bnd_ste_par_dct=bnd_ste_par_dct)
 
     gra = from_atoms_and_bonds(atm_dct=atm_dct, bnd_dct=bnd_dct)
     return gra
@@ -2305,17 +1910,15 @@ def without_stereo(gra, atm_keys=None, bnd_keys=None):
         atm_keys = ()
     if bnd_keys is None and atm_keys is not None:
         bnd_keys = ()
+    # ^^^ If one of these is set, assume we want to wipe out *only* those atom
+    # or bond keys (not, e.g., a selecton of bonds and all of the atoms)
+
     atm_keys = atom_keys(gra) if atm_keys is None else atm_keys
     bnd_keys = bond_keys(gra) if bnd_keys is None else bnd_keys
     atm_ste_par_dct = dict_.by_key({}, atm_keys, fill_val=None)
     bnd_ste_par_dct = dict_.by_key({}, bnd_keys, fill_val=None)
     gra = set_atom_stereo_parities(gra, atm_ste_par_dct)
     gra = set_bond_stereo_parities(gra, bnd_ste_par_dct)
-    if is_ts_graph(gra):
-        gra = set_atom_stereo_parities(gra, atm_ste_par_dct, ts_select='P')
-        gra = set_atom_stereo_parities(gra, atm_ste_par_dct, ts_select='T')
-        gra = set_bond_stereo_parities(gra, bnd_ste_par_dct, ts_select='P')
-        gra = set_bond_stereo_parities(gra, bnd_ste_par_dct, ts_select='T')
     return gra
 
 
@@ -2489,7 +2092,7 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False, ts_=True):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    gra = gra if ts_ else ts_reactants_graph(gra)
+    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
     bnd_keys = (bond_keys(gra, ts_=ts_)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)

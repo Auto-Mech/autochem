@@ -22,10 +22,10 @@ from automol.graph.base._core import atom_lone_pairs
 from automol.graph.base._core import dummy_atoms_neighbor_atom_key
 from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import ts_reactants_graph
+from automol.graph.base._core import ts_without_reacting_bond_orders
 from automol.graph.base._core import has_atom_stereo
 from automol.graph.base._core import is_ts_graph
-from automol.graph.base._core import stereo_candidate_atom_keys
+from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._algo import branches
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
@@ -100,16 +100,17 @@ def kekule_bond_orders(gra, max_stereo_overlap=True):
 def kekules_bond_orders(gra):
     """ Bond orders for all possible low-spin kekule graphs
 
-        Low-spin kekule graphs have double and triple bonds assigned to
-        minimize the number of unpaired electrons.
+    Low-spin kekule graphs have double and triple bonds assigned to
+    minimize the number of unpaired electrons.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: bond orders for all possible low-spin kekule graphs
-        :rtype: tuple[dict]
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: bond orders for all possible low-spin kekule graphs
+    :rtype: tuple[dict]
     """
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     orig_bnd_ord_dct = bond_orders(gra)
-    gra = implicit(ts_reactants_graph(gra))
+    gra = implicit(gra)
     gra = without_pi_bonds(gra)
 
     # identify all of the independent pi systems and assign kekules to each
@@ -174,7 +175,7 @@ def linear_atom_keys(gra, dummy=True):
     :returns: the linear atom keys
     :rtype: tuple[int]
     """
-    gra = ts_reactants_graph(gra)
+    gra = ts_without_reacting_bond_orders(gra)
     atm_hyb_dct = atom_hybridizations_from_kekule(implicit(kekule(gra)))
     lin_atm_keys = set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
 
@@ -225,7 +226,7 @@ def linear_segments_atom_keys(gra, lin_keys=None):
 def atom_hybridizations(gra):
     """ resonance-dominant atom hybridizations, by atom
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
     atm_hybs_by_res = [
         dict_.values_by_key(atom_hybridizations_from_kekule(g), atm_keys)
@@ -238,7 +239,7 @@ def atom_hybridizations(gra):
 def atom_hybridizations_from_kekule(gra):
     """ atom hybridizations, by atom
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
     atm_unsat_dct = atom_unpaired_electrons(gra, bond_order=True)
     atm_bnd_vlc_dct = atom_bond_counts(gra, bond_order=False)     # note!!
@@ -276,7 +277,7 @@ def radical_atom_keys(gra, sing_res=False, min_valence=1.):
     :rtype: frozenset[int]
 
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
 
     if sing_res:
@@ -308,7 +309,7 @@ def radical_atom_keys_from_kekule(gra, min_valence=1.):
     :rtype: frozenset[int]
 
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
 
     atm_rad_vlcs = dict_.values_by_key(
@@ -323,7 +324,7 @@ def radical_atom_keys_from_kekule(gra, min_valence=1.):
 def nonresonant_radical_atom_keys(gra):
     """ keys for radical atoms that are not in resonance
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
     atm_rad_vlcs_by_res = [
         dict_.values_by_key(atom_unpaired_electrons(g), atm_keys)
@@ -341,7 +342,7 @@ def vinyl_radical_atom_keys(gra):
     :returns: the vinyl radical atom keys
     :rtype: frozenset[int]
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_rad_keys = nonresonant_radical_atom_keys(gra)
     bnd_ords_dct = kekules_bond_orders_collated(gra)
     atm_bnd_keys_dct = atoms_bond_keys(gra)
@@ -362,7 +363,7 @@ def sigma_radical_atom_keys(gra):
     :returns: the sigma radical atom keys
     :rtype: frozenset[int]
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_rad_keys = nonresonant_radical_atom_keys(gra)
     bnd_ords_dct = kekules_bond_orders_collated(gra)
     atm_bnd_keys_dct = atoms_bond_keys(gra)
@@ -478,7 +479,7 @@ def has_noninchi_stereo(gra):
 def radical_groups(gra):
     """ returns a list of lists of groups attached each radical
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
 
     groups = []
     rads = radical_atom_keys(gra, sing_res=True)
@@ -490,7 +491,7 @@ def radical_groups(gra):
 def radical_group_dct(gra):
     """ return a dictionary of lists of groups attached each radical
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
 
     groups = {}
     rads = list(radical_atom_keys(gra, sing_res=True))
@@ -505,7 +506,7 @@ def radical_group_dct(gra):
     return groups
 
 
-def stereo_candidate_bond_keys(gra):
+def rigid_planar_bond_keys(gra):
     """ Get keys to stereo candidate bonds, which will be stereogenic if their
     groups are distinct on either side
 
@@ -515,8 +516,8 @@ def stereo_candidate_bond_keys(gra):
         b. AND both atoms are sp2, excluding cumulenes which are linear rather
         than planar and have sp1 atoms
 
-    For TS graphs, bond keys in which both atoms stereo candidates in the TS
-    are excluded, to prevent inconsistency in, for example, elimination
+    For TS graphs, bond keys in which both atoms are stereo candidates in the
+    TS are excluded, to prevent inconsistency in, for example, elimination
     reactions.
 
     Question: Is it possible for a bond to be rigid and planar for the TS and
@@ -530,7 +531,7 @@ def stereo_candidate_bond_keys(gra):
     """
     ts_ = is_ts_graph(gra)
     if ts_:
-        gra_ = ts_reactants_graph(gra)
+        gra_ = ts_without_reacting_bond_orders(gra)
     else:
         gra_ = gra
 
@@ -544,7 +545,7 @@ def stereo_candidate_bond_keys(gra):
     rp_bnd_keys = frozenset({k for k in bnd_keys if k <= sp2_atm_keys})
 
     if ts_:
-        tet_atm_keys = stereo_candidate_atom_keys(gra)
+        tet_atm_keys = tetrahedral_atom_keys(gra)
         rp_bnd_keys = frozenset({k for k in rp_bnd_keys
                                  if k != k & tet_atm_keys})
 
@@ -559,7 +560,7 @@ def atom_centered_cumulene_keys(gra):
     where the first pair contains the sp2 atoms at the cumulene ends and
     `cent_atm_key` is the key of the central atom
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     cum_chains = _cumulene_chains(gra)
     cum_keys = set()
     for cum_chain in cum_chains:
@@ -582,7 +583,7 @@ def bond_centered_cumulene_keys(gra):
     where the first pair contains the sp2 atoms at the cumulene ends and the
     second pair is the bond key for the central bond
     """
-    gra = ts_reactants_graph(gra)
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     cum_chains = _cumulene_chains(gra)
     cum_keys = set()
     for cum_chain in cum_chains:

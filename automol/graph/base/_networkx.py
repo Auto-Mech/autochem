@@ -12,8 +12,6 @@ from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import atom_stereo_parities
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import bond_stereo_parities
-# For TS graphs:
-from automol.graph.base._core import is_ts_graph
 
 
 def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):
@@ -31,17 +29,6 @@ def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):
                                  'order')
     networkx.set_edge_attributes(nxg, bond_stereo_parities(gra),
                                  'stereo_parity')
-    if is_ts_graph(gra):
-        networkx.set_node_attributes(
-            nxg, atom_stereo_parities(gra, ts_select='P'),
-            'prod_stereo_parity')
-        networkx.set_node_attributes(
-            nxg, atom_stereo_parities(gra, ts_select='T'), 'ts_stereo_parity')
-        networkx.set_node_attributes(
-            nxg, bond_stereo_parities(gra, ts_select='P'),
-            'prod_stereo_parity')
-        networkx.set_node_attributes(
-            nxg, bond_stereo_parities(gra, ts_select='T'), 'ts_stereo_parity')
 
     if node_attrib_dct is not None:
         for name, dct in node_attrib_dct.items():
