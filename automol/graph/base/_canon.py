@@ -41,6 +41,11 @@ from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import string as graph_string
+from automol.graph.base._core import ts_forming_bond_keys
+from automol.graph.base._core import ts_breaking_bond_keys
+from automol.graph.base._core import ts_reverse
+from automol.graph.base._core import is_ts_graph
+from automol.graph.base._core import union_from_sequence
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
@@ -151,6 +156,33 @@ def canonical_assignment_representation(gra, pri_dct):
     pris = atm_pris + bnd_pris
     pars = atm_pars + bnd_pars
     rep = tuple(zip(pris, pars))
+    return rep
+
+
+def ts_canonical_reaction_representation(tsg, pri_dct):
+    """ Generate a canonical representation of the reaction to determine the
+    canonical direction of a TS graph
+
+    The reaction representation consists of two pieces:
+
+    1. Canonical representations of the forming and breaking bonds,
+    respectively.
+    2. Canonical representations of the stereo assignments.
+
+    :param tsg: A TS graph
+    :type tsg: automol graph data structure
+    :param pri_dct: A dictionary mapping atom keys to priorities
+    :type pri_dct: dict
+    :param par_dct: A dictionary mapping atom and bond keys to parities
+    :type par_dct: dict
+    :returns: A canonical representation of the TS reaction
+    """
+    frm_bnd_reps = tuple(sorted(sorted(map(pri_dct.__getitem__, k))
+                                for k in ts_forming_bond_keys(tsg)))
+    brk_bnd_reps = tuple(sorted(sorted(map(pri_dct.__getitem__, k))
+                                for k in ts_breaking_bond_keys(tsg)))
+    ste_rep = canonical_assignment_representation(tsg, pri_dct)
+    rep = (frm_bnd_reps, brk_bnd_reps, ste_rep)
     return rep
 
 
@@ -417,19 +449,81 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
     :returns: A dictionary of canonical priorities by atom key.
     :rtype: dict[int: int]
     """
-    gras = connected_components(gra)
-    pri_dcts = [None if pri_dct is None else dict_.by_key(pri_dct, ks)
-                for ks in map(atom_keys, gras)]
-    pri_dct = {}
-    for gra_, pri_dct_ in zip(gras, pri_dcts):
-        pri_dct_, _ = calculate_priorities_and_assign_parities(
-            gra_, backbone_only=backbone_only, break_ties=break_ties,
-            pri_dct=pri_dct_)
-        pri_dct.update(pri_dct_)
+    pri_dct, _ = calculate_priorities_and_assign_parities(
+        gra, backbone_only=backbone_only, break_ties=break_ties,
+        pri_dct=pri_dct)
     return pri_dct
 
 
 def calculate_priorities_and_assign_parities(
+        gra, par_eval_=None, par_eval2_=None, break_ties=False,
+        backbone_only=True, pri_dct=None):
+    """ Determine canonical priorities and assign stereo parities to this graph
+
+    This is how the parity evaluators are to be called:
+    >>> par = par_eval_(pri_dct)(key)               # this returns the parity
+
+    :param gra: a molecular graph
+    :type gra: automol graph data structure
+    :param par_eval_: A parity evaluator for assigning parities during the
+        priority calculation.
+    :param par_eval2_: An optional second parity evaluator for assigning
+        the parities that will be returned, if different from those to be
+        used for the priority calculation.
+    :param break_ties: Break ties to determine canonical keys from
+        canonical priorities?
+    :type break_ties: bool
+    :param backbone_only: Consider backbone atoms only?
+    :type backbone_only: bool
+    :param pri_dct: Optional initial priorities, to be refined.
+    :type pri_dct: dict[int: int]
+    :returns: A dictionary of canonical priorities by atom key and a graph
+        with stereo assignments.
+    :rtype: dict[int: int], molecular graph data structure
+    """
+    pri_dct_ = pri_dct
+
+    # Split the graph into components to calculate priorities for each
+    def _by_components(gra_):
+        cgras = connected_components(gra_)
+        cpri_dcts = [None if pri_dct_ is None else dict_.by_key(pri_dct_, ks)
+                     for ks in map(atom_keys, cgras)]
+        pri_dct = {}
+        cgra1s = []
+        cgra2s = []
+        for cgra, cpri_dct in zip(cgras, cpri_dcts):
+            cpri_dct, cgra1, cgra2 = _calculate_priorities_and_assign_parities(
+                cgra, par_eval_=par_eval_, par_eval2_=par_eval2_,
+                break_ties=break_ties, backbone_only=backbone_only,
+                pri_dct=cpri_dct)
+            pri_dct.update(cpri_dct)
+            cgra1s.append(cgra1)
+            cgra2s.append(cgra2)
+        gra1 = union_from_sequence(cgra1s)
+        gra2 = union_from_sequence(cgra2s)
+        return pri_dct, gra1, gra2
+
+    pri_dct, gra1, gra2 = _by_components(gra)
+
+    # For TS graphs, the canonical priorities are chosen with respect to a
+    # canonical direction
+    if is_ts_graph(gra):
+        rtsg = ts_reverse(gra)
+        fpri_dct, ftsg1, ftsg2 = pri_dct, gra1, gra2
+        rpri_dct, rtsg1, rtsg2 = _by_components(rtsg)
+        frep = ts_canonical_reaction_representation(ftsg1, fpri_dct)
+        rrep = ts_canonical_reaction_representation(rtsg1, rpri_dct)
+        if frep > rrep:
+            pri_dct = rpri_dct
+            gra2 = ts_reverse(rtsg2)
+        else:
+            pri_dct = fpri_dct
+            gra2 = ftsg2
+
+    return pri_dct, gra2
+
+
+def _calculate_priorities_and_assign_parities(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
         backbone_only=True, pri_dct=None):
     """ Determine canonical priorities and assign stereo parities to this graph
@@ -518,7 +612,7 @@ def calculate_priorities_and_assign_parities(
 
     # Return the priorities calculated for graph 1, and return graph 2 with its
     # stereo assignments.
-    return pri_dct, gra2
+    return pri_dct, gra1, gra2
 
 
 def refine_priorities(gra, pri_dct=None, srt_eval_=None):
@@ -621,6 +715,13 @@ def sort_evaluator_atom_invariants_(gra):
     def _replace_none(val):
         return numpy.inf if val is None else val
 
+    def _replace_reacting_bond_order(val):
+        """ Ensure that reacting bonds will sort after non-reacting bonds:
+            non-reacting bonds < forming bonds < breaking bonds
+        """
+        assert val == round(val, 1)
+        return val * 100 if val in (0.1, 0.9) else val
+
     def _hill_normalize_symbol(symb):
         """ normalize atomic symbols to make them sort according to the hill
             system
@@ -633,8 +734,11 @@ def sort_evaluator_atom_invariants_(gra):
             symb = '1'
         return symb
 
-    nkeys_dct = atoms_neighbor_atom_keys(gra)
-    bnds_dct = atoms_bond_keys(gra)
+    # Normalize the graph before working with it
+    gra = without_pi_bonds(implicit(gra))
+
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=True)
+    bnds_dct = atoms_bond_keys(gra, ts_=True)
 
     symb_dct = dict_.transform_values(
         atom_symbols(gra), _hill_normalize_symbol)
@@ -642,20 +746,20 @@ def sort_evaluator_atom_invariants_(gra):
     mnum_dct = mass_numbers(gra)
     apar_dct = dict_.transform_values(atom_stereo_parities(gra), _replace_none)
 
-    bnd_par_dct = bond_stereo_parities(gra)
+    bpar_dct = bond_stereo_parities(gra)
 
     def _sortable_bond_stereo_values(bnd_keys):
-        bpars = dict_.values_by_key(bnd_par_dct, bnd_keys)
+        bpars = dict_.values_by_key(bpar_dct, bnd_keys)
         bpars = tuple(sorted(map(_replace_none, bpars)))
         return bpars
 
     bpars_dct = dict_.transform_values(bnds_dct, _sortable_bond_stereo_values)
 
-    bnd_ord_dct = bond_orders(gra)
+    bord_dct = bond_orders(gra)
 
     def _sortable_bond_orders(bnd_keys):
-        bords = dict_.values_by_key(bnd_ord_dct, bnd_keys)
-        bords = tuple(sorted(map(_replace_none, bords)))
+        bords = dict_.values_by_key(bord_dct, bnd_keys)
+        bords = tuple(sorted(map(_replace_reacting_bond_order, bords)))
         return bords
 
     bords_dct = dict_.transform_values(bnds_dct, _sortable_bond_orders)

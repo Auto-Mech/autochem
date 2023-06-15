@@ -297,7 +297,7 @@ def bond_keys(gra, ts_=True):
     :returns: The bond keys
     :rtype: frozenset[{int, int}]
     """
-    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
+    gra = gra if ts_ else ts_reagents_without_stereo(gra)
     return frozenset(bonds(gra).keys())
 
 
@@ -322,7 +322,7 @@ def bond_orders(gra, ts_=True):
     :returns: A dictionary of bond orders, by bond key
     :rtype: dict[frozenset: int or float]
     """
-    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
+    gra = gra if ts_ else ts_reagents_without_stereo(gra)
     return mdict.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_ORD_POS)
 
 
@@ -408,7 +408,7 @@ def ts_forming_bond_keys(tsg):
     """ Get the forming bonds from a TS graph
 
     :param tsg: TS graph
-    :type tsg: automol TS graph data structure
+    :type tsg: automol graph data structure
     :returns: The keys to forming bonds
     :rtype: frozenset[frozenset[{int, int}]]
     """
@@ -421,7 +421,7 @@ def ts_breaking_bond_keys(tsg):
     """ Get the breaking bonds from a TS graph
 
     :param tsg: TS graph
-    :type tsg: automol TS graph data structure
+    :type tsg: automol graph data structure
     :returns: The keys to breaking bonds
     :rtype: frozenset[frozenset[{int, int}]]
     """
@@ -434,7 +434,7 @@ def ts_reacting_bonds(tsg):
     """ Get all of the bonds involved in the reaction
 
     :param tsg: TS graph
-    :type tsg: automol TS graph data structure
+    :type tsg: automol graph data structure
     :returns: The keys to bonds involved in the reaction
     :rtype: frozenset[frozenset[{int, int}]]
     """
@@ -446,7 +446,7 @@ def ts_reacting_atoms(tsg):
     """ Get all of the atoms involved in the reaction
 
     :param tsg: TS graph
-    :type tsg: automol TS graph data structure
+    :type tsg: automol graph data structure
     :returns: The keys to atoms involved in the reaction
     :rtype: frozenset[int]
     """
@@ -455,18 +455,33 @@ def ts_reacting_atoms(tsg):
     return atm_keys
 
 
-def ts_without_reacting_bond_orders(tsg, prod=False, keep_zeros=False):
-    """ Remove reacting bonds from a TS graph, replacing them with their values
-    for the reactants (or products, if requested)
+def ts_reverse(tsg):
+    """ Reverse the direction of a TS graph
 
     :param tsg: TS graph
-    :type tsg: automol TS graph data structure
+    :type tsg: automol graph data structure
+    :returns: A TS graph for the reverse reaction
+    :rtype: automol graph data structure
+    """
+    assert without_pi_bonds(tsg) == tsg, (
+        f"TS graphs shouldn't have pi bonds:\n{tsg}")
+    ord_dct = bond_orders(tsg)
+    rev_ord_dct = dict_.transform_values(ord_dct, lambda o: 1 - round(o, 1))
+    rev_tsg = set_bond_orders(tsg, rev_ord_dct)
+    return rev_tsg
+
+
+def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False):
+    """ Get the reactants or products from a TS graph, without stereo
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     :param prod: Replace reacting bond orders with product values instead?
     :type prod: bool
     :param keep_zeros: Keep the bonds with a resulting bond order of 0?
     :type keep_zeros: bool
     :returns: The TS graph, without reacting bond orders
-    :rtype: automol TS graph data structure
+    :rtype: automol graph data structure
     """
     bnd_keys = ts_reacting_bonds(tsg)
     ord_dct = dict_.by_key(bond_orders(tsg), bnd_keys)
@@ -994,7 +1009,7 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True, ts_=True):
     :rtype: dict[int: int]
     """
     atm_keys = list(atom_keys(gra))
-    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
+    gra = gra if ts_ else ts_reagents_without_stereo(gra)
     # Convert to explicit graph if we watn implicit hydrogens in the count
     gra = explicit(gra) if with_implicit else gra
 
@@ -1080,8 +1095,8 @@ def tetrahedral_atom_keys(gra):
     :rtype: frozenset[int]
     """
     if is_ts_graph(gra):
-        gras = [ts_without_reacting_bond_orders(gra, prod=False),
-                ts_without_reacting_bond_orders(gra, prod=True)]
+        gras = [ts_reagents_without_stereo(gra, prod=False),
+                ts_reagents_without_stereo(gra, prod=True)]
     else:
         gras = [gra]
 
@@ -2092,7 +2107,7 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False, ts_=True):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    gra = gra if ts_ else ts_without_reacting_bond_orders(gra)
+    gra = gra if ts_ else ts_reagents_without_stereo(gra)
     bnd_keys = (bond_keys(gra, ts_=ts_)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
