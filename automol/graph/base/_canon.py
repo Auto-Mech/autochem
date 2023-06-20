@@ -29,6 +29,8 @@ from automol.graph.base._core import atom_symbols
 from automol.graph.base._core import mass_numbers
 from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
+from automol.graph.base._core import atom_stereo_sorted_neighbor_keys
+from automol.graph.base._core import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit
@@ -177,12 +179,17 @@ def ts_canonical_reaction_representation(tsg, pri_dct):
     :type par_dct: dict
     :returns: A canonical representation of the TS reaction
     """
-    frm_bnd_reps = tuple(sorted(sorted(map(pri_dct.__getitem__, k))
-                                for k in ts_forming_bond_keys(tsg)))
-    brk_bnd_reps = tuple(sorted(sorted(map(pri_dct.__getitem__, k))
-                                for k in ts_breaking_bond_keys(tsg)))
+    frm_keys = ts_forming_bond_keys(tsg)
+    brk_keys = ts_breaking_bond_keys(tsg)
+    # Rep value 1: Number of bonds broken and formed
+    rxn_rep1 = (len(frm_keys), len(brk_keys))
+    # Rep value 2: Canonical keys of bonds broken and formed
+    rxn_rep2 = (
+        sorted(sorted(map(pri_dct.__getitem__, k)) for k in frm_keys),
+        sorted(sorted(map(pri_dct.__getitem__, k)) for k in brk_keys))
+    # Rep value 3: Stereochemistry
     ste_rep = canonical_assignment_representation(tsg, pri_dct)
-    rep = (frm_bnd_reps, brk_bnd_reps, ste_rep)
+    rep = (rxn_rep1, rxn_rep2, ste_rep)
     return rep
 
 
@@ -354,20 +361,20 @@ def to_local_stereo(gra, pri_dct=None):
     :rtype: automol graph data structure
     """
     loc_gra = without_stereo(gra)
-    comps = connected_components(gra)
-    for comp in comps:
-        if has_stereo(comp):
+    can_cgras = connected_components(gra)
+    for can_cgra in can_cgras:
+        if has_stereo(can_cgra):
             pri_dct_ = (None if pri_dct is None else
-                        dict_.by_key(pri_dct, backbone_keys(comp)))
-            _, loc_comp = calculate_priorities_and_assign_parities(
-                    comp, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_read_canonical_(comp),
-                    par_eval2_=parity_evaluator_flip_local_(comp),
+                        dict_.by_key(pri_dct, backbone_keys(can_cgra)))
+            _, loc_cgra = calculate_priorities_and_assign_parities(
+                    can_cgra, backbone_only=False, break_ties=False,
+                    par_eval_=parity_evaluator_read_canonical_(can_cgra),
+                    par_eval2_=parity_evaluator_flip_local_(can_cgra),
                     pri_dct=pri_dct_)
         else:
-            loc_comp = comp
+            loc_cgra = can_cgra
 
-        loc_gra = set_stereo_parities(loc_gra, stereo_parities(loc_comp))
+        loc_gra = set_stereo_parities(loc_gra, stereo_parities(loc_cgra))
 
     return loc_gra
 
@@ -383,20 +390,20 @@ def from_local_stereo(gra, pri_dct=None):
         :rtype: automol graph data structure
     """
     can_gra = without_stereo(gra)
-    loc_comps = connected_components(gra)
-    for loc_comp in loc_comps:
-        if has_stereo(loc_comp):
+    loc_cgras = connected_components(gra)
+    for loc_cgra in loc_cgras:
+        if has_stereo(loc_cgra):
             pri_dct_ = (None if pri_dct is None else
-                        dict_.by_key(pri_dct, backbone_keys(loc_comp)))
-            _, can_comp = calculate_priorities_and_assign_parities(
-                    loc_comp, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_flip_local_(loc_comp),
-                    par_eval2_=parity_evaluator_flip_local_(loc_comp),
+                        dict_.by_key(pri_dct, backbone_keys(loc_cgra)))
+            _, can_cgra = calculate_priorities_and_assign_parities(
+                    loc_cgra, backbone_only=False, break_ties=False,
+                    par_eval_=parity_evaluator_flip_local_(loc_cgra),
+                    par_eval2_=parity_evaluator_flip_local_(loc_cgra),
                     pri_dct=pri_dct_)
         else:
-            can_comp = loc_comp
+            can_cgra = loc_cgra
 
-        can_gra = set_stereo_parities(can_gra, stereo_parities(can_comp))
+        can_gra = set_stereo_parities(can_gra, stereo_parities(can_cgra))
 
     return can_gra
 
@@ -422,12 +429,12 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
-    for comp in connected_components(gra):
+    for cgra in connected_components(gra):
         par_eval_ = parity_evaluator_from_geometry_(
-            comp, geo, geo_idx_dct=geo_idx_dct)
-        _, comp = calculate_priorities_and_assign_parities(
-            comp, backbone_only=False, par_eval_=par_eval_)
-        par_dct = stereo_parities(comp)
+            cgra, geo, geo_idx_dct=geo_idx_dct)
+        _, cgra = calculate_priorities_and_assign_parities(
+            cgra, backbone_only=False, par_eval_=par_eval_)
+        par_dct = stereo_parities(cgra)
         ret_gra = set_stereo_parities(ret_gra, par_dct)
 
     return ret_gra
@@ -508,14 +515,23 @@ def calculate_priorities_and_assign_parities(
     # For TS graphs, the canonical priorities are chosen with respect to a
     # canonical direction
     if is_ts_graph(gra):
-        rtsg = ts_reverse(gra)
+        rtsg = ts_reverse(gra, _flip_sn2_parity=True)
         fpri_dct, ftsg1, ftsg2 = pri_dct, gra1, gra2
         rpri_dct, rtsg1, rtsg2 = _by_components(rtsg)
         frep = ts_canonical_reaction_representation(ftsg1, fpri_dct)
         rrep = ts_canonical_reaction_representation(rtsg1, rpri_dct)
+
+        print('frep', frep)
+        print('rrep', rrep)
+        # If I am doing everything correctly, these should always have the same
+        # number of stereo parities
+        assert len(frep[-1]) == len(rrep[-1]), (
+            f"The number of forward and reverse stereosites don't match!\n"
+            f"Forward graph:\n{ftsg1}\nReverse graph:\n{rtsg1}")
+
         if frep > rrep:
             pri_dct = rpri_dct
-            gra2 = ts_reverse(rtsg2)
+            gra2 = ts_reverse(rtsg2, _flip_sn2_parity=True)
         else:
             pri_dct = fpri_dct
             gra2 = ftsg2
@@ -717,7 +733,7 @@ def sort_evaluator_atom_invariants_(gra):
             non-reacting bonds < forming bonds < breaking bonds
         """
         assert val == round(val, 1)
-        return val * 100 if val in (0.1, 0.9) else val
+        return int(val * 100) if val in (0.1, 0.9) else val
 
     def _normalize_symbol(symb):
         """ normalize atomic symbols to make them sort as follows:
@@ -728,34 +744,34 @@ def sort_evaluator_atom_invariants_(gra):
         if symb == 'C':
             symb = ''     # Sorts first (always)
         if symb == 'H':
-            symb = 'zzz'  # Sorts last against atomic symbols
+            symb = 'zz'   # Sorts last against atomic symbols
         return symb
 
     # Normalize the graph before working with it
     gra = without_pi_bonds(implicit(gra))
 
-    # For TS graphs, remove reacting bonds for the sake of the main properties
-    non_ts_gra = without_bonds_by_orders(gra, [0.1, 0.9])
-
-    bnds_dct = atoms_bond_keys(non_ts_gra, ts_=True)
+    # For the main properties, remove reacting bonds before calculating
+    gra_no_rbs = without_bonds_by_orders(gra, [0.1, 0.9])
+    bnds_dct_no_rbs = atoms_bond_keys(gra_no_rbs)
 
     symb_dct = dict_.transform_values(
-        atom_symbols(non_ts_gra), _normalize_symbol)
-    hnum_dct = atom_implicit_hydrogens(non_ts_gra)
-    mnum_dct = mass_numbers(non_ts_gra)
+        atom_symbols(gra_no_rbs), _normalize_symbol)
+    hnum_dct = atom_implicit_hydrogens(gra_no_rbs)
+    mnum_dct = mass_numbers(gra_no_rbs)
     apar_dct = dict_.transform_values(
-        atom_stereo_parities(non_ts_gra), _replace_none)
+        atom_stereo_parities(gra_no_rbs), _replace_none)
 
-    bpar_dct = bond_stereo_parities(non_ts_gra)
+    bpar_dct = bond_stereo_parities(gra_no_rbs)
 
     def _sortable_bond_stereo_values(bnd_keys):
         bpars = dict_.values_by_key(bpar_dct, bnd_keys)
         bpars = tuple(sorted(map(_replace_none, bpars)))
         return bpars
 
-    bpars_dct = dict_.transform_values(bnds_dct, _sortable_bond_stereo_values)
+    bpars_dct = dict_.transform_values(
+        bnds_dct_no_rbs, _sortable_bond_stereo_values)
 
-    # For bond orders, *KEEP* the reacting bonds in a TS graph!!
+    # For bond orders, *KEEP* reacting bonds
     bord_dct = bond_orders(gra)
 
     def _sortable_bond_orders(bnd_keys):
@@ -763,21 +779,22 @@ def sort_evaluator_atom_invariants_(gra):
         bords = tuple(sorted(map(_replace_reacting_bond_order, bords)))
         return bords
 
-    bords_dct = dict_.transform_values(bnds_dct, _sortable_bond_orders)
+    bords_dct = dict_.transform_values(
+        atoms_bond_keys(gra, ts_=True), _sortable_bond_orders)
 
-    # For neighboring keys, *KEEP* the reacting bonds in a TS graph!!
+    # For neighboring keys, *KEEP* reacting bonds
     nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=True)
 
     def _evaluator(pri_dct):
         """ Sort value evaluator based on current priorities.
 
-            :param pri_dct: A dictionary mapping atom keys to priorities
-            :type pri_dct: dict
+        :param pri_dct: A dictionary mapping atom keys to priorities
+        :type pri_dct: dict
         """
 
         def _value(key):
             symb = symb_dct[key]        # symbol
-            deg = len(bnds_dct[key])    # number of bonds
+            deg = len(bnds_dct_no_rbs[key])    # number of bonds
             hnum = hnum_dct[key]        # number of hydrogens
             mnum = mnum_dct[key]
             apar = apar_dct[key]
@@ -836,15 +853,15 @@ def break_priority_ties(gra, pri_dct):
 def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
     r""" Determines stereo parity from a geometry
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
-            returns the parity for a given atom, given a set of priorities.
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
+        returns the parity for a given atom, given a set of priorities.
     """
     assert gra == explicit(gra), (
         "Explicit graph should be used when getting parities from geometry.")
@@ -856,15 +873,13 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
 
     orig_geo = geo
 
-    nkeys_dct = atoms_neighbor_atom_keys(gra)
-
     def _evaluator(pri_dct, geo=None):
         """ Parity evaluator based on current priorities.
 
-            :param pri_dct: A dictionary mapping atom keys to priorities.
-            :type pri_dct: dict
-            :param geo: optionally, update the geometry
-            :type geo: automol molecular geometry data structure
+        :param pri_dct: A dictionary mapping atom keys to priorities.
+        :type pri_dct: dict
+        :param geo: optionally, update the geometry
+        :type geo: automol molecular geometry data structure
         """
         pri_dct = assign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
@@ -874,11 +889,8 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
         def _parity(key):
             # If the key is a number, this is an atom
             if isinstance(key, numbers.Number):
-                # Get the neighboring keys
-                nkeys = nkeys_dct[key]
-
-                # Sort them by priority
-                nkeys = sorted(nkeys, key=pri_dct.__getitem__)
+                nkeys = atom_stereo_sorted_neighbor_keys(
+                    gra, key, pri_dct=pri_dct)
 
                 # Get the atom parity
                 par = geometry_atom_parity(
@@ -888,11 +900,8 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
                 assert isinstance(key, abc.Collection) and len(key) == 2, (
                     f"{key} is not a valid bond key.")
                 key1, key2 = key
-                nkey1s = nkeys_dct[key1] - {key2}
-                nkey2s = nkeys_dct[key2] - {key1}
-
-                nkey1s = sorted(nkey1s, key=pri_dct.__getitem__)
-                nkey2s = sorted(nkey2s, key=pri_dct.__getitem__)
+                nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(
+                    gra, key1, key2, pri_dct=pri_dct)
 
                 # Get the bond parity
                 par = geometry_bond_parity(
@@ -973,7 +982,6 @@ def parity_evaluator_flip_local_(gra):
     gra = explicit(gra)
     atm_par_dct = atom_stereo_parities(gra)
     bnd_par_dct = bond_stereo_parities(gra)
-    nkeys_dct = atoms_neighbor_atom_keys(gra)
 
     loc_pri_dct = local_priority_dict(gra)
 
@@ -994,8 +1002,9 @@ def parity_evaluator_flip_local_(gra):
             if isinstance(key, numbers.Number):
                 par = atm_par_dct[key]
 
-                loc_srt = sorted(nkeys_dct[key], key=loc_pri_dct.__getitem__)
-                can_srt = sorted(nkeys_dct[key], key=pri_dct.__getitem__)
+                can_srt = atom_stereo_sorted_neighbor_keys(
+                    gra, key, pri_dct=pri_dct)
+                loc_srt = sorted(can_srt, key=loc_pri_dct.__getitem__)
 
                 if util.is_even_permutation(loc_srt, can_srt):
                     ret_par = par
@@ -1008,13 +1017,13 @@ def parity_evaluator_flip_local_(gra):
                 par = bnd_par_dct[key]
 
                 key1, key2 = key
-                nkey1s = nkeys_dct[key1] - {key2}
-                nkey2s = nkeys_dct[key2] - {key1}
+                nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(
+                    gra, key1, key2, pri_dct=pri_dct)
 
+                can_nmax1 = nkey1s[-1]
+                can_nmax2 = nkey2s[-1]
                 loc_nmax1 = max(nkey1s, key=loc_pri_dct.__getitem__)
                 loc_nmax2 = max(nkey2s, key=loc_pri_dct.__getitem__)
-                can_nmax1 = max(nkey1s, key=pri_dct.__getitem__)
-                can_nmax2 = max(nkey2s, key=pri_dct.__getitem__)
 
                 if not (loc_nmax1 == can_nmax1) ^ (loc_nmax2 == can_nmax2):
                     ret_par = par
@@ -1078,12 +1087,11 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
         # Remove assigned stereo keys
         atm_keys -= atom_stereo_keys(gra)
 
-    nkeys_dct = atoms_neighbor_atom_keys(gra)
-
     def _is_stereogenic(key):
-        nkeys = list(nkeys_dct[key])
-        idxs = list(map(pri_dct.__getitem__, nkeys))
-        return len(set(idxs)) == len(idxs)
+        nkeys = atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=pri_dct)
+        assert len(nkeys) <= 4, f"Too many neighbors! {nkeys}"
+        pris = list(map(pri_dct.__getitem__, nkeys))
+        return len(set(pris)) == len(pris)
 
     ste_atm_keys = frozenset(filter(_is_stereogenic, atm_keys))
     return ste_atm_keys
@@ -1121,29 +1129,20 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
         frozenset.union,
         filter(lambda x: len(x) < 8, rng_bnd_keys_lst), frozenset())
 
-    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=False)
-
     def _is_stereogenic(key):
+        key1, key2 = key
+        nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(
+            gra, key1, key2, pri_dct=pri_dct)
 
-        def _is_asymmetric_on_bond(atm1_key, atm2_key):
-            nkeys = list(nkeys_dct[atm1_key] - {atm2_key})
-            if not nkeys:                # C=:O:
-                # Atoms without neighbors are automatically symmetric
-                ret = False
-            elif len(nkeys) == 1:        # C=N:-X
-                # Atoms without 1 neighbor are automatically asymmetric
-                ret = True
-            else:
-                # For atoms with 2 neighbors, we need to determine whether or
-                # not they are symmetric from the priorities.
-                assert len(nkeys) == 2   # C=C(-X)-Y
-                ret = pri_dct[nkeys[0]] != pri_dct[nkeys[1]]
+        ret = True
+        for nkeys in (nkey1s, nkey2s):
+            assert len(nkeys) <= 2, f"Too many neighbors! {nkeys}"
+            pris = list(map(pri_dct.__getitem__, nkeys))
+            ret &= (False if not nkeys else         # C=:O:
+                    True if len(nkeys) == 1 else    # C=N:-X
+                    len(set(pris)) == len(pris))    # C=C(-X)-Y
 
-            return ret
-
-        atm1_key, atm2_key = key
-        return (_is_asymmetric_on_bond(atm1_key, atm2_key) and
-                _is_asymmetric_on_bond(atm2_key, atm1_key))
+        return ret
 
     ste_bnd_keys = frozenset(filter(_is_stereogenic, bnd_keys))
     return ste_bnd_keys

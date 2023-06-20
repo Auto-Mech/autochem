@@ -455,19 +455,39 @@ def ts_reacting_atoms(tsg):
     return atm_keys
 
 
-def ts_reverse(tsg):
+def ts_reverse(tsg, _flip_sn2_parity=False):
     """ Reverse the direction of a TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
+    :param _flip_sn2_parity: Flip stereo parity at Sn2 site, if present?
+        (For internal use only!)
+    :type _flip_sn2_parity: bool
     :returns: A TS graph for the reverse reaction
     :rtype: automol graph data structure
     """
     assert without_pi_bonds(tsg) == tsg, (
         f"TS graphs shouldn't have pi bonds:\n{tsg}")
     ord_dct = bond_orders(tsg)
-    rev_ord_dct = dict_.transform_values(ord_dct, lambda o: 1 - round(o, 1))
+    rev_ord_dct = {
+        k: (0.1 if round(o, 1) == 0.9 else 0.9 if round(o, 1) == 0.1 else o)
+        for k, o in ord_dct.items()}
     rev_tsg = set_bond_orders(tsg, rev_ord_dct)
+
+    # For canonicalization purposes, flip the parity at an Sn2 site, if present
+    if _flip_sn2_parity:
+        print("FLIPPING IT!!")
+        ste_keys = atom_stereo_keys(tsg)
+        frm_keys = frozenset(itertools.chain(*ts_forming_bond_keys(tsg)))
+        brk_keys = frozenset(itertools.chain(*ts_breaking_bond_keys(tsg)))
+        sn2_keys = [k for k in ste_keys if k in frm_keys and k in brk_keys]
+        if sn2_keys:
+            print("REALLY FLIPPING IT!!")
+            assert len(sn2_keys) == 1, f"Multiple sn2 keys: {sn2_keys}"
+            key, = sn2_keys
+            par = atom_stereo_parities(tsg)
+            rev_tsg = set_atom_stereo_parities(rev_tsg, {key: not par})
+
     return rev_tsg
 
 
@@ -2200,6 +2220,8 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
     :type excl_symbs: tuple[str]
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
+    :param stereo: Return only the neighboring atoms used for stereochemistry?
+    :type stereo: bool
     :returns: The keys of neighboring atoms
     :rtype: frozenset[int]
     """
@@ -2208,6 +2230,75 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
     atm_nbh_keys = atom_keys(atm_nbh, symb=symb, excl_symbs=excl_symbs)
     atm_ngb_keys = frozenset(atm_nbh_keys - {atm_key})
     return atm_ngb_keys
+
+
+def atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=None):
+    """ Get keys for the neighbors of an atom that are relevant for atom
+    stereochemistry, sorted by priority (if requested)
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param key: the atom key
+    :type key: int
+    :param pri_dct: Priorities to sort by (optional)
+    :type pri_dct: dict[int: int]
+    :returns: The keys of neighboring atoms
+    :rtype: tuple[int]
+    """
+    sort_key_ = (lambda x: x) if pri_dct is None else pri_dct.__getitem__
+
+    nkeys = atom_neighbor_atom_keys(gra, key, ts_=True)
+    nkeys_no_brk = atom_neighbor_atom_keys(gra, key, ts_=False)
+    nlps = atom_lone_pairs(gra)[key]
+    # For Sn2 reactions, don't include the breaking bond key
+    valence = len(nkeys) + nlps
+    if valence > 4:
+        assert valence == 5 and len(nkeys_no_brk) == len(nkeys) - 1, (
+            f"Unanticipated valence {valence} at key {key} is not resoved by "
+            f"dropping breaking bonds:\n{gra}")
+        nkeys = nkeys_no_brk
+    # Sort them by priority
+    nkeys = sorted(nkeys, key=sort_key_)
+    return tuple(nkeys)
+
+
+def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
+    """ Get keys for the neighbors of a bond that are relevant for bond
+    stereochemistry, sorted by priority (if requested)
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param key1: the first atom in the bond
+    :type key1: int
+    :param key2: the second atom in the bond
+    :type key2: int
+    :param pri_dct: Priorities to sort by (optional)
+    :type pri_dct: dict[int: int]
+    :returns: The keys of neighboring atoms for the first and second atoms
+    :rtype: tuple[int], tuple[int]
+    """
+    sort_key_ = (lambda x: x) if pri_dct is None else pri_dct.__getitem__
+
+    keys = {key1, key2}
+    gra_no_rbs = without_bonds_by_orders(gra, [0.1, 0.9])
+
+    ret = []
+    for key in (key1, key2):
+        nkeys = atom_neighbor_atom_keys(gra, key) - keys
+        nkeys_no_rbs = atom_neighbor_atom_keys(gra_no_rbs, key) - keys
+        nlps = atom_lone_pairs(gra)[key]
+        # Deal with cases of the form VC(W)=C(X)Y + Z <=> V[C](W)C(X)(Y)Z
+        valence = len(nkeys) + nlps
+        if valence > 2:
+            assert valence == 3 and len(nkeys_no_rbs) == len(nkeys) - 1, (
+                f"Unanticipated valence {valence} at key {key} is not resoved "
+                f"by dropping breaking bonds:\n{gra}")
+            nkeys = nkeys_no_rbs
+        # Sort them by priority
+        nkeys = sorted(nkeys, key=sort_key_)
+        ret.append(tuple(nkeys))
+
+    return ret
 
 
 def atoms_neighbor_atom_keys(gra, ts_=True):

@@ -11,6 +11,8 @@ from automol import util
 import automol.geom.base
 from automol.graph.base._core import atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
+from automol.graph.base._core import atom_stereo_sorted_neighbor_keys
+from automol.graph.base._core import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._core import bonds_neighbor_atom_keys
 from automol.graph.base._core import bonds_neighbor_bond_keys
 from automol.graph.base._core import explicit
@@ -84,13 +86,7 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None,
 
         pri_dct = {k: (k if k not in hkeys else sgn * k) for k in keys}
 
-        nkeys_dct = atoms_neighbor_atom_keys(gra)
-
-        # Get the neighboring keys
-        nkeys = nkeys_dct[atm_key]
-
-        # Sort them by priority
-        nkeys = sorted(nkeys, key=pri_dct.__getitem__)
+        nkeys = atom_stereo_sorted_neighbor_keys(gra, atm_key, pri_dct=pri_dct)
 
     # If there are only three groups, use the stereo atom itself as
     # the top apex of the tetrahedron.
@@ -192,13 +188,8 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None,
 
         pri_dct = {k: (k if k not in hkeys else sgn * k) for k in keys}
 
-        nkeys_dct = atoms_neighbor_atom_keys(gra)
-
-        nkey1s = nkeys_dct[key1] - {key2}
-        nkey2s = nkeys_dct[key2] - {key1}
-
-        nkey1s = sorted(nkey1s, key=pri_dct.__getitem__)
-        nkey2s = sorted(nkey2s, key=pri_dct.__getitem__)
+        nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(
+            gra, key1, key2, pri_dct=pri_dct)
     else:
         assert (
             isinstance(bnd_nkeys, abc.Collection) and
