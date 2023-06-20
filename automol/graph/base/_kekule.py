@@ -531,18 +531,21 @@ def rigid_planar_bond_keys(gra):
     """
     ts_ = is_ts_graph(gra)
     if ts_:
-        gra_ = ts_reagents_without_stereo(gra)
+        gras = [ts_reagents_without_stereo(gra, prod=False),
+                ts_reagents_without_stereo(gra, prod=True)]
     else:
-        gra_ = gra
+        gras = [gra]
 
-    gra_ = without_pi_bonds(gra_)
-    bnd_keys = dict_.keys_by_value(
-        kekules_bond_orders_collated(gra_), lambda x: 2 in x)
+    rp_bnd_keys = set()
+    for gra_ in gras:
+        gra_ = without_pi_bonds(gra_)
+        double_bnd_keys = dict_.keys_by_value(
+            kekules_bond_orders_collated(gra_), lambda x: 2 in x)
 
-    # make sure both ends are sp^2 (excludes cumulenes)
-    atm_hyb_dct = atom_hybridizations(gra_)
-    sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
-    rp_bnd_keys = frozenset({k for k in bnd_keys if k <= sp2_atm_keys})
+        # make sure both ends are sp^2 (excludes cumulenes)
+        atm_hyb_dct = atom_hybridizations(gra_)
+        sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
+        rp_bnd_keys |= {k for k in double_bnd_keys if k <= sp2_atm_keys}
 
     if ts_:
         tet_atm_keys = tetrahedral_atom_keys(gra)
