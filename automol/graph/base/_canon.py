@@ -359,21 +359,17 @@ def to_local_stereo(gra, pri_dct=None):
     :returns: molecular graph with local stereo parities
     :rtype: automol graph data structure
     """
-    loc_gra = without_stereo(gra)
-    can_cgras = connected_components(gra)
-    for can_cgra in can_cgras:
-        if has_stereo(can_cgra):
-            pri_dct_ = (None if pri_dct is None else
-                        dict_.by_key(pri_dct, backbone_keys(can_cgra)))
-            _, loc_cgra = calculate_priorities_and_assign_parities(
-                    can_cgra, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_read_canonical_(),
-                    par_eval2_=parity_evaluator_flip_local_(),
-                    pri_dct=pri_dct_)
-        else:
-            loc_cgra = can_cgra
-
-        loc_gra = set_stereo_parities(loc_gra, stereo_parities(loc_cgra))
+    can_gra = gra
+    if has_stereo(can_gra):
+        pri_dct_ = (None if pri_dct is None else
+                    dict_.by_key(pri_dct, backbone_keys(can_gra)))
+        _, loc_gra = calculate_priorities_and_assign_parities(
+                can_gra, backbone_only=False, break_ties=False,
+                par_eval_=parity_evaluator_read_canonical_(),
+                par_eval2_=parity_evaluator_flip_local_(),
+                pri_dct=pri_dct_)
+    else:
+        loc_gra = can_gra
 
     return loc_gra
 
@@ -381,28 +377,25 @@ def to_local_stereo(gra, pri_dct=None):
 def from_local_stereo(gra, pri_dct=None):
     """ Convert local stereo parities to canonical ones
 
-        :param gra: molecular graph with local stereo parities
-        :type gra: automol graph data structure
-        :param pri_dct: priorities, to avoid recalculating
-        :type pri_dct: dict[int: int]
-        :returns: molecular graph with canonical stereo parities
-        :rtype: automol graph data structure
+    :param gra: molecular graph with local stereo parities
+    :type gra: automol graph data structure
+    :param pri_dct: priorities, to avoid recalculating
+    :type pri_dct: dict[int: int]
+    :returns: molecular graph with canonical stereo parities
+    :rtype: automol graph data structure
     """
-    can_gra = without_stereo(gra)
-    loc_cgras = connected_components(gra)
-    for loc_cgra in loc_cgras:
-        if has_stereo(loc_cgra):
-            pri_dct_ = (None if pri_dct is None else
-                        dict_.by_key(pri_dct, backbone_keys(loc_cgra)))
-            _, can_cgra = calculate_priorities_and_assign_parities(
-                    loc_cgra, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_flip_local_(),
-                    par_eval2_=parity_evaluator_flip_local_(),
-                    pri_dct=pri_dct_)
-        else:
-            can_cgra = loc_cgra
+    loc_gra = gra
 
-        can_gra = set_stereo_parities(can_gra, stereo_parities(can_cgra))
+    if has_stereo(loc_gra):
+        pri_dct_ = (None if pri_dct is None else
+                    dict_.by_key(pri_dct, backbone_keys(loc_gra)))
+        _, can_gra = calculate_priorities_and_assign_parities(
+                loc_gra, backbone_only=False, break_ties=False,
+                par_eval_=parity_evaluator_flip_local_(),
+                par_eval2_=parity_evaluator_flip_local_(),
+                pri_dct=pri_dct_)
+    else:
+        can_gra = loc_gra
 
     return can_gra
 
@@ -1192,11 +1185,11 @@ def local_priority_dict(gra):
 def class_dict_from_priority_dict(pri_dct):
     """ Obtain a class dictionary from a priority dictionary.
 
-        :param pri_dct: A dictionary mapping atom keys to priorities.
-        :type pri_dct: dict
-        :returns: A dictionary mapping priorities onto the full set of keys
-            for that priority class, as a sorted tuple.
-        :rtype: dict[int: tuple]
+    :param pri_dct: A dictionary mapping atom keys to priorities.
+    :type pri_dct: dict
+    :returns: A dictionary mapping priorities onto the full set of keys
+        for that priority class, as a sorted tuple.
+    :rtype: dict[int: tuple]
     """
     keys = sorted(pri_dct.keys())
     clas = sorted(keys, key=pri_dct.__getitem__)
@@ -1208,11 +1201,11 @@ def class_dict_from_priority_dict(pri_dct):
 def sorted_classes_from_priority_dict(pri_dct):
     """ Obtain classes from index dict, sorted by priority.
 
-        :param pri_dct: A dictionary mapping atom keys to priorities.
-        :type pri_dct: dict
-        :returns: A tuple of tuples of keys for each priority class, sorted by
-            priority value.
-        :rtype: tuple[tuple[int]]
+    :param pri_dct: A dictionary mapping atom keys to priorities.
+    :type pri_dct: dict
+    :returns: A tuple of tuples of keys for each priority class, sorted by
+        priority value.
+    :rtype: tuple[tuple[int]]
     """
     keys = sorted(pri_dct.keys())
     clas = sorted(keys, key=pri_dct.__getitem__)
