@@ -53,7 +53,7 @@ ATOM_ENVIRONMENT = (
     BOND('bond') + DIREC('direc') + ATOM('atom') + RING_CLOSURES('ring_clos'))
 ATOM_ENVIRONMENT_COMBINED = pp.Combine(ATOM_ENVIRONMENT)
 CHAIN = pp.OneOrMore(ATOM_ENVIRONMENT_COMBINED)
-SUBCHAINS = pp.ZeroOrMore(pp.nestedExpr('(', ')', content=CHAIN))
+SUBCHAINS = pp.ZeroOrMore(pp.nestedExpr('(', ')', CHAIN))
 
 # smiles
 SMILES_PARSER = pp.OneOrMore(CHAIN + SUBCHAINS)
