@@ -490,7 +490,7 @@ def calculate_priorities_and_assign_parities(
     """
     cgras = connected_components(gra)
     cpri_dcts = [None if pri_dct is None else dict_.by_key(pri_dct, ks)
-                    for ks in map(atom_keys, cgras)]
+                 for ks in map(atom_keys, cgras)]
     pri_dct = {}
     cgra2s = []
     for cgra, cpri_dct in zip(cgras, cpri_dcts):
@@ -870,7 +870,7 @@ def parity_evaluator_from_geometry_(geo=None, geo_idx_dct=None):
                 # Get the atom parity
                 par = geometry_atom_parity(
                     gra, geo, key, nkeys, geo_idx_dct=geo_idx_dct)
-                
+
             # Otherwise, this is a bond
             else:
                 assert isinstance(key, abc.Collection) and len(key) == 2, (
