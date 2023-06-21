@@ -510,16 +510,20 @@ def calculate_priorities_and_assign_parities(
         gra2 = union_from_sequence(cgra2s)
         return pri_dct, gra1, gra2
 
+    print("FORWARD")
     pri_dct, gra1, gra2 = _by_components(gra)
 
     # For TS graphs, the canonical priorities are chosen with respect to a
     # canonical direction
     if is_ts_graph(gra):
-        rtsg = ts_reverse(gra, _flip_sn2_parity=True)
+        rtsg = ts_reverse(gra)
         fpri_dct, ftsg1, ftsg2 = pri_dct, gra1, gra2
+        print("REVERSE")
         rpri_dct, rtsg1, rtsg2 = _by_components(rtsg)
         frep = ts_canonical_reaction_representation(ftsg1, fpri_dct)
         rrep = ts_canonical_reaction_representation(rtsg1, rpri_dct)
+        print(fpri_dct, "fpri_dct")
+        print(rpri_dct, "rpri_dct")
 
         print('frep', frep)
         print('rrep', rrep)
@@ -531,7 +535,7 @@ def calculate_priorities_and_assign_parities(
 
         if frep > rrep:
             pri_dct = rpri_dct
-            gra2 = ts_reverse(rtsg2, _flip_sn2_parity=True)
+            gra2 = rtsg2
         else:
             pri_dct = fpri_dct
             gra2 = ftsg2
@@ -601,10 +605,12 @@ def _calculate_priorities_and_assign_parities(
             break
 
         # c. Assign parities to graph 1 using the first parity evaluator.
+        print("par_eval_")
         p1_ = par_eval_(pri_dct)
         gra1 = set_stereo_parities(gra1, {k: p1_(k) for k in keys})
 
         # d. Assign parities to graph 2 using the second parity evaluator.
+        print("par_eval2_")
         p2_ = par_eval2_(pri_dct)
         gra2 = set_stereo_parities(gra2, {k: p2_(k) for k in keys})
 
@@ -871,20 +877,14 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
-    orig_geo = geo
-
-    def _evaluator(pri_dct, geo=None):
+    def _evaluator(pri_dct):
         """ Parity evaluator based on current priorities.
 
         :param pri_dct: A dictionary mapping atom keys to priorities.
         :type pri_dct: dict
-        :param geo: optionally, update the geometry
-        :type geo: automol molecular geometry data structure
         """
         pri_dct = assign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
-
-        geo = geo if geo is not None else orig_geo
 
         def _parity(key):
             # If the key is a number, this is an atom
@@ -892,6 +892,7 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
                 nkeys = atom_stereo_sorted_neighbor_keys(
                     gra, key, pri_dct=pri_dct)
 
+                print("nkeys:", nkeys)
                 # Get the atom parity
                 par = geometry_atom_parity(
                     gra, geo, key, nkeys, geo_idx_dct=geo_idx_dct)

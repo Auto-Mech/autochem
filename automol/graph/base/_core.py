@@ -455,14 +455,11 @@ def ts_reacting_atoms(tsg):
     return atm_keys
 
 
-def ts_reverse(tsg, _flip_sn2_parity=False):
+def ts_reverse(tsg):
     """ Reverse the direction of a TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
-    :param _flip_sn2_parity: Flip stereo parity at Sn2 site, if present?
-        (For internal use only!)
-    :type _flip_sn2_parity: bool
     :returns: A TS graph for the reverse reaction
     :rtype: automol graph data structure
     """
@@ -474,19 +471,16 @@ def ts_reverse(tsg, _flip_sn2_parity=False):
         for k, o in ord_dct.items()}
     rev_tsg = set_bond_orders(tsg, rev_ord_dct)
 
-    # For canonicalization purposes, flip the parity at an Sn2 site, if present
-    if _flip_sn2_parity:
-        print("FLIPPING IT!!")
-        ste_keys = atom_stereo_keys(tsg)
-        frm_keys = frozenset(itertools.chain(*ts_forming_bond_keys(tsg)))
-        brk_keys = frozenset(itertools.chain(*ts_breaking_bond_keys(tsg)))
-        sn2_keys = [k for k in ste_keys if k in frm_keys and k in brk_keys]
-        if sn2_keys:
-            print("REALLY FLIPPING IT!!")
-            assert len(sn2_keys) == 1, f"Multiple sn2 keys: {sn2_keys}"
-            key, = sn2_keys
-            par = atom_stereo_parities(tsg)
-            rev_tsg = set_atom_stereo_parities(rev_tsg, {key: not par})
+    # Flip the parity at an Sn2 site, if present
+    ste_keys = atom_stereo_keys(tsg)
+    frm_keys = frozenset(itertools.chain(*ts_forming_bond_keys(tsg)))
+    brk_keys = frozenset(itertools.chain(*ts_breaking_bond_keys(tsg)))
+    sn2_keys = [k for k in ste_keys if k in frm_keys and k in brk_keys]
+    if sn2_keys:
+        assert len(sn2_keys) == 1, f"Multiple sn2 keys: {sn2_keys}"
+        key, = sn2_keys
+        par = atom_stereo_parities(tsg)[key]
+        rev_tsg = set_atom_stereo_parities(rev_tsg, {key: not par})
 
     return rev_tsg
 
@@ -2248,6 +2242,7 @@ def atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=None):
     sort_key_ = (lambda x: x) if pri_dct is None else pri_dct.__getitem__
 
     nkeys = atom_neighbor_atom_keys(gra, key, ts_=True)
+    print("nkeys with brk", nkeys)
     nkeys_no_brk = atom_neighbor_atom_keys(gra, key, ts_=False)
     nlps = atom_lone_pairs(gra)[key]
     # For Sn2 reactions, don't include the breaking bond key
@@ -2257,6 +2252,7 @@ def atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=None):
             f"Unanticipated valence {valence} at key {key} is not resoved by "
             f"dropping breaking bonds:\n{gra}")
         nkeys = nkeys_no_brk
+        print("nkeys w//o brk", nkeys)
     # Sort them by priority
     nkeys = sorted(nkeys, key=sort_key_)
     return tuple(nkeys)
