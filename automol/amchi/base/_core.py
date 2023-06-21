@@ -514,9 +514,9 @@ def bonds(chi, one_indexed=False):
     """
     # Set up the pyparsing parser
     integer = pp.Word(pp.nums)
-    chain = pp.delimitedList(integer, delim='-')
+    chain = pp.delimitedList(integer, '-')
     chains = chain + pp.ZeroOrMore(',' + chain)
-    side_chain = pp.nestedExpr('(', ')', content=chains)
+    side_chain = pp.nestedExpr('(', ')', chains)
     parser = pp.Opt(chain + pp.ZeroOrMore(side_chain + chain))
 
     # Do the parsing. This produces a nested list of numbers and commas
@@ -621,7 +621,7 @@ def hydrogen_valences(chi, one_indexed=False):
         pp.Opt(sep) + pp.ZeroOrMore(mobileh))
 
     mobileh_parser = (pp.Combine('H' + pp.Opt(integer)) + sep +
-                      pp.Group(pp.delimitedList(integer, delim=',')))
+                      pp.Group(pp.delimitedList(integer, ',')))
 
     # Do the parsing
     main_lyr_dct = main_layers(chi)
@@ -1290,7 +1290,7 @@ def _bond_stereo_parities(lyr_dct, one_indexed=False):
         bond = integer + pp.Suppress('-') + integer
         parity = pp.Or(['+', '-'])
         term = pp.Group(pp.Group(bond) + parity)
-        parser = pp.Opt(pp.delimitedList(term, delim=','))
+        parser = pp.Opt(pp.delimitedList(term, ','))
 
         # Do the parsing
         lst = ap_cast(parser.parseString(lyr).asList())
@@ -1314,7 +1314,7 @@ def _atom_stereo_parities(lyr_dct, one_indexed=False):
         integer = pp.Word(pp.nums)
         parity = pp.Or(['+', '-'])
         term = pp.Group(integer + parity)
-        parser = pp.Opt(pp.delimitedList(term, delim=','))
+        parser = pp.Opt(pp.delimitedList(term, ','))
 
         # Do the parsing
         lst = ap_cast(parser.parseString(lyr).asList())
