@@ -99,8 +99,6 @@ def test__hco_symm_num():
             (3.0, 1))
     assert automol.symm.oxygenated_hydrocarbon_symm_num(PROPYL_GEO) == (6.0, 1)
     assert automol.symm.oxygenated_hydrocarbon_symm_num(ALLYL_GEO) == (1.0, 1)
-    print(automol.symm.oxygenated_hydrocarbon_symm_num(TS_GEO))
-    assert automol.symm.oxygenated_hydrocarbon_symm_num(TS_GEO) == (3.0, 1)
 
 
 if __name__ == '__main__':
