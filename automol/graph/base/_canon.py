@@ -47,7 +47,6 @@ from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reverse
 from automol.graph.base._core import is_ts_graph
-from automol.graph.base._core import union_from_sequence
 from automol.graph.base._algo import is_connected
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_bond_keys
@@ -422,22 +421,15 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
         parities already present will be wiped out
     :rtype: automol graph data structure
     """
-    ret_gra = without_stereo(gra)
-    gra = without_dummy_atoms(gra)
-
     atm_keys = sorted(atom_keys(gra))
     geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
-    for cgra in connected_components(gra):
-        par_eval_ = parity_evaluator_from_geometry_(
-            geo, geo_idx_dct=geo_idx_dct)
-        _, cgra = calculate_priorities_and_assign_parities(
-            cgra, backbone_only=False, par_eval_=par_eval_)
-        par_dct = stereo_parities(cgra)
-        ret_gra = set_stereo_parities(ret_gra, par_dct)
+    par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
+    _, gra = calculate_priorities_and_assign_parities(
+        gra, par_eval_=par_eval_)
 
-    return ret_gra
+    return gra
 
 
 # # core algorithm functions
@@ -488,19 +480,24 @@ def calculate_priorities_and_assign_parities(
         with stereo assignments.
     :rtype: dict[int: int], molecular graph data structure
     """
+
+    # Store a copy in the same format for the return. Stereo parities will be
+    # added to this and returned.
+    gra2 = without_stereo(gra)
+
+    gra = without_dummy_atoms(gra)
     cgras = connected_components(gra)
     cpri_dcts = [None if pri_dct is None else dict_.by_key(pri_dct, ks)
                  for ks in map(atom_keys, cgras)]
     pri_dct = {}
-    cgra2s = []
     for cgra, cpri_dct in zip(cgras, cpri_dcts):
         cpri_dct, cgra2 = _calculate_priorities_and_assign_parities(
             cgra, par_eval_=par_eval_, par_eval2_=par_eval2_,
             break_ties=break_ties, backbone_only=backbone_only,
             pri_dct=cpri_dct)
         pri_dct.update(cpri_dct)
-        cgra2s.append(cgra2)
-    gra2 = union_from_sequence(cgra2s)
+        gra2 = set_stereo_parities(gra2, stereo_parities(cgra2))
+
     return pri_dct, gra2
 
 
