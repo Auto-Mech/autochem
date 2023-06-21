@@ -141,7 +141,7 @@ C4H9O3_TSG = (
      frozenset({0, 7}): (1, None),
      frozenset({1, 3}): (1, None)})
 
-# Conserved Atom Stereo + (Reactant Bond Stereo => Product Atom Stereo) 
+# Conserved Atom Stereo + (Reactant Bond Stereo => Product Atom Stereo)
 # F/C=C([C@@H](F)O)\[C@H](F)O + [OH] => F[C@H]([C]([C@@H](F)O)[C@H](F)O)O
 C4H5F3O2_TSG = (
     {0: ('C', 0, None, False, None), 1: ('C', 0, None, None, None),

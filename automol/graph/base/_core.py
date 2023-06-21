@@ -2266,12 +2266,11 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
     sort_key_ = (lambda x: x) if pri_dct is None else pri_dct.__getitem__
 
     keys = {key1, key2}
-    gra_no_rbs = without_bonds_by_orders(gra, [0.1, 0.9])
+    gra_no_rxbs = without_bonds_by_orders(gra, [0.1, 0.9])
 
-    ret = []
-    for key in (key1, key2):
+    def _neighbor_keys(key):
         nkeys = atom_neighbor_atom_keys(gra, key) - keys
-        nkeys_no_rbs = atom_neighbor_atom_keys(gra_no_rbs, key) - keys
+        nkeys_no_rbs = atom_neighbor_atom_keys(gra_no_rxbs, key) - keys
         nlps = atom_lone_pairs(gra)[key]
         # Deal with cases of the form VC(W)=C(X)Y + Z <=> V[C](W)C(X)(Y)Z
         valence = len(nkeys) + nlps
@@ -2282,9 +2281,9 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
             nkeys = nkeys_no_rbs
         # Sort them by priority
         nkeys = sorted(nkeys, key=sort_key_)
-        ret.append(tuple(nkeys))
+        return tuple(nkeys)
 
-    return ret
+    return (_neighbor_keys(key1), _neighbor_keys(key2))
 
 
 def atoms_neighbor_atom_keys(gra, ts_=True):
