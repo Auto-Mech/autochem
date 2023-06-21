@@ -96,8 +96,8 @@ def canonical_enantiomer_with_keys(gra):
         ugra = gra
         ucan_key_dct, uloc_gra = calculate_priorities_and_assign_parities(
                 ugra, backbone_only=False, break_ties=True,
-                par_eval_=parity_evaluator_read_canonical_(ugra),
-                par_eval2_=parity_evaluator_flip_local_(ugra))
+                par_eval_=parity_evaluator_read_canonical_(),
+                par_eval2_=parity_evaluator_flip_local_())
 
         # Reflect the graph in the local stereo representation
         rloc_gra = reflect_local_stereo(uloc_gra)
@@ -106,8 +106,8 @@ def canonical_enantiomer_with_keys(gra):
         # back to the canonical stereo representation
         rcan_key_dct, rgra = calculate_priorities_and_assign_parities(
                 rloc_gra, backbone_only=False, break_ties=True,
-                par_eval_=parity_evaluator_flip_local_(rloc_gra),
-                par_eval2_=parity_evaluator_flip_local_(rloc_gra))
+                par_eval_=parity_evaluator_flip_local_(),
+                par_eval2_=parity_evaluator_flip_local_())
 
         urep = canonical_assignment_representation(ugra, ucan_key_dct)
         rrep = canonical_assignment_representation(rgra, rcan_key_dct)
@@ -368,8 +368,8 @@ def to_local_stereo(gra, pri_dct=None):
                         dict_.by_key(pri_dct, backbone_keys(can_cgra)))
             _, loc_cgra = calculate_priorities_and_assign_parities(
                     can_cgra, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_read_canonical_(can_cgra),
-                    par_eval2_=parity_evaluator_flip_local_(can_cgra),
+                    par_eval_=parity_evaluator_read_canonical_(),
+                    par_eval2_=parity_evaluator_flip_local_(),
                     pri_dct=pri_dct_)
         else:
             loc_cgra = can_cgra
@@ -397,8 +397,8 @@ def from_local_stereo(gra, pri_dct=None):
                         dict_.by_key(pri_dct, backbone_keys(loc_cgra)))
             _, can_cgra = calculate_priorities_and_assign_parities(
                     loc_cgra, backbone_only=False, break_ties=False,
-                    par_eval_=parity_evaluator_flip_local_(loc_cgra),
-                    par_eval2_=parity_evaluator_flip_local_(loc_cgra),
+                    par_eval_=parity_evaluator_flip_local_(),
+                    par_eval2_=parity_evaluator_flip_local_(),
                     pri_dct=pri_dct_)
         else:
             can_cgra = loc_cgra
@@ -431,7 +431,7 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
 
     for cgra in connected_components(gra):
         par_eval_ = parity_evaluator_from_geometry_(
-            cgra, geo, geo_idx_dct=geo_idx_dct)
+            geo, geo_idx_dct=geo_idx_dct)
         _, cgra = calculate_priorities_and_assign_parities(
             cgra, backbone_only=False, par_eval_=par_eval_)
         par_dct = stereo_parities(cgra)
@@ -488,58 +488,19 @@ def calculate_priorities_and_assign_parities(
         with stereo assignments.
     :rtype: dict[int: int], molecular graph data structure
     """
-    pri_dct_ = pri_dct
-
-    # Split the graph into components to calculate priorities for each
-    def _by_components(gra_):
-        cgras = connected_components(gra_)
-        cpri_dcts = [None if pri_dct_ is None else dict_.by_key(pri_dct_, ks)
-                     for ks in map(atom_keys, cgras)]
-        pri_dct = {}
-        cgra1s = []
-        cgra2s = []
-        for cgra, cpri_dct in zip(cgras, cpri_dcts):
-            cpri_dct, cgra1, cgra2 = _calculate_priorities_and_assign_parities(
-                cgra, par_eval_=par_eval_, par_eval2_=par_eval2_,
-                break_ties=break_ties, backbone_only=backbone_only,
-                pri_dct=cpri_dct)
-            pri_dct.update(cpri_dct)
-            cgra1s.append(cgra1)
-            cgra2s.append(cgra2)
-        gra1 = union_from_sequence(cgra1s)
-        gra2 = union_from_sequence(cgra2s)
-        return pri_dct, gra1, gra2
-
-    print("FORWARD")
-    pri_dct, gra1, gra2 = _by_components(gra)
-
-    # For TS graphs, the canonical priorities are chosen with respect to a
-    # canonical direction
-    if is_ts_graph(gra):
-        rtsg = ts_reverse(gra)
-        fpri_dct, ftsg1, ftsg2 = pri_dct, gra1, gra2
-        print("REVERSE")
-        rpri_dct, rtsg1, rtsg2 = _by_components(rtsg)
-        frep = ts_canonical_reaction_representation(ftsg1, fpri_dct)
-        rrep = ts_canonical_reaction_representation(rtsg1, rpri_dct)
-        print(fpri_dct, "fpri_dct")
-        print(rpri_dct, "rpri_dct")
-
-        print('frep', frep)
-        print('rrep', rrep)
-        # If I am doing everything correctly, these should always have the same
-        # number of stereo parities
-        assert len(frep[-1]) == len(rrep[-1]), (
-            f"The number of forward and reverse stereosites don't match!\n"
-            f"Forward graph:\n{ftsg1}\nReverse graph:\n{rtsg1}")
-
-        if frep > rrep:
-            pri_dct = rpri_dct
-            gra2 = rtsg2
-        else:
-            pri_dct = fpri_dct
-            gra2 = ftsg2
-
+    cgras = connected_components(gra)
+    cpri_dcts = [None if pri_dct is None else dict_.by_key(pri_dct, ks)
+                    for ks in map(atom_keys, cgras)]
+    pri_dct = {}
+    cgra2s = []
+    for cgra, cpri_dct in zip(cgras, cpri_dcts):
+        cpri_dct, cgra2 = _calculate_priorities_and_assign_parities(
+            cgra, par_eval_=par_eval_, par_eval2_=par_eval2_,
+            break_ties=break_ties, backbone_only=backbone_only,
+            pri_dct=cpri_dct)
+        pri_dct.update(cpri_dct)
+        cgra2s.append(cgra2)
+    gra2 = union_from_sequence(cgra2s)
     return pri_dct, gra2
 
 
@@ -573,65 +534,77 @@ def _calculate_priorities_and_assign_parities(
     assert gra == without_dummy_atoms(gra), (
         f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
 
-    gra0 = gra
+    # gra1s_ hold parities for canonical priority determination
+    ts_ = is_ts_graph(gra)
+    reversals = [False, True] if ts_ else [False]
 
-    par_eval_ = (parity_evaluator_read_canonical_(gra)
-                 if par_eval_ is None else par_eval_)
-    par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
+    pri_dct_ = pri_dct
 
-    # Graph 1 will be for the priority calculation, graph 2 for the parity
-    # assignments that will be returned.
-    gra1 = without_stereo(gra)
-    gra2 = without_stereo(gra)
+    results = []
+    for reverse in reversals:
+        gra0 = ts_reverse(gra) if reverse else gra
 
-    # Work with an implicit graph for the priority calculation
-    gra1 = implicit(gra1)
+        par_eval_ = (parity_evaluator_read_canonical_()
+                     if par_eval_ is None else par_eval_)
+        par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
 
-    # 1. Initially, put all atoms in the same priority class with priority 0.
-    if pri_dct is None:
-        pri_dct = {k: 0 for k in atom_keys(gra1)}
+        # Graph 1 will be for the priority calculation, graph 2 for the parity
+        # assignments that will be returned.
+        gra1 = without_stereo(gra0)
+        gra2 = without_stereo(gra0)
 
-    # 2. Refine the initial priorities based on atom invariants, without stereo
-    pri_dct = refine_priorities(gra1, pri_dct)
+        # Work with an implicit graph for the priority calculation
+        gra1 = implicit(gra1)
 
-    # 3. Iteratively assign parities and refine priorities.
-    pri_dct0 = None
-    while pri_dct0 != pri_dct:
-        # a. Find stereogenic atoms and bonds based on current priorities.
-        keys = stereogenic_keys_from_priorities(gra1, pri_dct)
+        # 1. Start with all atoms in the same priority class (priority 0)
+        if pri_dct_ is None:
+            pri_dct_ = {k: 0 for k in atom_keys(gra1)}
 
-        # b. If there are none, the calculation is complete. Exit the loop.
-        if not keys:
-            break
+        # 2. Refine the initial priorities, without stereo
+        pri_dct = refine_priorities(gra1, pri_dct_)
 
-        # c. Assign parities to graph 1 using the first parity evaluator.
-        print("par_eval_")
-        p1_ = par_eval_(pri_dct)
-        gra1 = set_stereo_parities(gra1, {k: p1_(k) for k in keys})
+        # 3. Iteratively assign parities and refine priorities.
+        pri_dct0 = None
+        while pri_dct0 != pri_dct:
+            # a. Find stereogenic atoms and bonds based on current priorities.
+            keys = stereogenic_keys_from_priorities(gra1, pri_dct)
 
-        # d. Assign parities to graph 2 using the second parity evaluator.
-        print("par_eval2_")
-        p2_ = par_eval2_(pri_dct)
-        gra2 = set_stereo_parities(gra2, {k: p2_(k) for k in keys})
+            # b. If there are none, the calculation is complete. Exit the loop.
+            if not keys:
+                break
 
-        # e. Store the current priorities for comparison.
-        pri_dct0 = pri_dct
+            # c. Assign parities to graph 1 using the first parity evaluator.
+            p1_ = par_eval_(gra0, pri_dct)
+            gra1 = set_stereo_parities(gra1, {k: p1_(k) for k in keys})
 
-        # f. Refine priorities based on the assignments in graph 1.
-        pri_dct = refine_priorities(gra1, pri_dct)
+            # d. Assign parities to graph 2 using the second parity evaluator.
+            p2_ = par_eval2_(gra0, pri_dct)
+            gra2 = set_stereo_parities(gra2, {k: p2_(k) for k in keys})
 
-    # 4. If requested, break priority ties to determine canonical keys.
-    if break_ties:
-        pri_dct = break_priority_ties(gra1, pri_dct)
+            # e. Store the current priorities for comparison.
+            pri_dct0 = pri_dct
 
-    # If requested, add in priorities for explicit hydrogens.
-    if not backbone_only:
-        pri_dct = assign_hydrogen_priorities(
-            gra0, pri_dct, break_ties=break_ties)
+            # f. Refine priorities based on the assignments in graph 1.
+            pri_dct = refine_priorities(gra1, pri_dct)
+
+        # 4. If requested, break priority ties to determine canonical keys.
+        if break_ties:
+            pri_dct = break_priority_ties(gra1, pri_dct)
+
+        # If requested, add in priorities for explicit hydrogens.
+        if not backbone_only:
+            pri_dct = assign_hydrogen_priorities(
+                gra0, pri_dct, break_ties=break_ties)
+
+        rep = ts_canonical_reaction_representation(gra1, pri_dct)
+        gra2 = ts_reverse(gra2) if reverse else gra2
+        results.append((rep, pri_dct, gra2))
+
+    _, pri_dct, gra2 = min(results, key=lambda r: r[0])
 
     # Return the priorities calculated for graph 1, and return graph 2 with its
     # stereo assignments.
-    return pri_dct, gra1, gra2
+    return pri_dct, gra2
 
 
 def refine_priorities(gra, pri_dct=None, srt_eval_=None):
@@ -757,17 +730,17 @@ def sort_evaluator_atom_invariants_(gra):
     gra = without_pi_bonds(implicit(gra))
 
     # For the main properties, remove reacting bonds before calculating
-    gra_no_rbs = without_bonds_by_orders(gra, [0.1, 0.9])
-    bnds_dct_no_rbs = atoms_bond_keys(gra_no_rbs)
+    gra_no_rxbs = without_bonds_by_orders(gra, [0.1, 0.9])
+    bnds_dct_no_rxbs = atoms_bond_keys(gra_no_rxbs)
 
     symb_dct = dict_.transform_values(
-        atom_symbols(gra_no_rbs), _normalize_symbol)
-    hnum_dct = atom_implicit_hydrogens(gra_no_rbs)
-    mnum_dct = mass_numbers(gra_no_rbs)
+        atom_symbols(gra_no_rxbs), _normalize_symbol)
+    hnum_dct = atom_implicit_hydrogens(gra_no_rxbs)
+    mnum_dct = mass_numbers(gra_no_rxbs)
     apar_dct = dict_.transform_values(
-        atom_stereo_parities(gra_no_rbs), _replace_none)
+        atom_stereo_parities(gra_no_rxbs), _replace_none)
 
-    bpar_dct = bond_stereo_parities(gra_no_rbs)
+    bpar_dct = bond_stereo_parities(gra_no_rxbs)
 
     def _sortable_bond_stereo_values(bnd_keys):
         bpars = dict_.values_by_key(bpar_dct, bnd_keys)
@@ -775,7 +748,7 @@ def sort_evaluator_atom_invariants_(gra):
         return bpars
 
     bpars_dct = dict_.transform_values(
-        bnds_dct_no_rbs, _sortable_bond_stereo_values)
+        bnds_dct_no_rxbs, _sortable_bond_stereo_values)
 
     # For bond orders, *KEEP* reacting bonds
     bord_dct = bond_orders(gra)
@@ -800,7 +773,7 @@ def sort_evaluator_atom_invariants_(gra):
 
         def _value(key):
             symb = symb_dct[key]        # symbol
-            deg = len(bnds_dct_no_rbs[key])    # number of bonds
+            deg = len(bnds_dct_no_rxbs[key])    # number of bonds
             hnum = hnum_dct[key]        # number of hydrogens
             mnum = mnum_dct[key]
             apar = apar_dct[key]
@@ -856,11 +829,9 @@ def break_priority_ties(gra, pri_dct):
 
 
 # # parity evaluators
-def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
+def parity_evaluator_from_geometry_(geo=None, geo_idx_dct=None):
     r""" Determines stereo parity from a geometry
 
-    :param gra: molecular graph
-    :type gra: automol graph data structure
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param geo_idx_dct: If they don't already match, specify which graph
@@ -869,20 +840,24 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
     :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
         returns the parity for a given atom, given a set of priorities.
     """
-    assert gra == explicit(gra), (
-        "Explicit graph should be used when getting parities from geometry.")
-    gra = without_dummy_atoms(gra)
+    geo_idx_dct_ = geo_idx_dct
 
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (geo_idx_dct if geo_idx_dct is not None
-                   else {k: i for i, k in enumerate(sorted(atm_keys))})
-
-    def _evaluator(pri_dct):
+    def _evaluator(gra, pri_dct):
         """ Parity evaluator based on current priorities.
 
+        :param gra: molecular graph
+        :type gra: automol graph data structure
         :param pri_dct: A dictionary mapping atom keys to priorities.
         :type pri_dct: dict
         """
+        atm_keys = sorted(atom_keys(gra))
+        geo_idx_dct = (geo_idx_dct_ if geo_idx_dct_ is not None
+                       else {k: i for i, k in enumerate(sorted(atm_keys))})
+
+        assert gra == explicit(gra), (
+            "Explicit graph should be used when evaluating from geometry.")
+        gra = without_dummy_atoms(gra)
+
         pri_dct = assign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
 
@@ -892,10 +867,10 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
                 nkeys = atom_stereo_sorted_neighbor_keys(
                     gra, key, pri_dct=pri_dct)
 
-                print("nkeys:", nkeys)
                 # Get the atom parity
                 par = geometry_atom_parity(
                     gra, geo, key, nkeys, geo_idx_dct=geo_idx_dct)
+                
             # Otherwise, this is a bond
             else:
                 assert isinstance(key, abc.Collection) and len(key) == 2, (
@@ -916,30 +891,31 @@ def parity_evaluator_from_geometry_(gra, geo=None, geo_idx_dct=None):
     return _evaluator
 
 
-def parity_evaluator_read_canonical_(gra):
+def parity_evaluator_read_canonical_():
     """ Determines stereo parity from a graph with canonical stereo
 
     This is the trivial case, where parities in the graph are already
     assumed to be canonical and so nothing needs to be done to calculate
     them.
 
-    :param gra: molecular graph with canonical stereo parities
-    :type gra: automol graph data structure
     :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
         returns the parity for a given atom, given a set of priorities.
     """
-    atm_par_dct = atom_stereo_parities(gra)
-    bnd_par_dct = bond_stereo_parities(gra)
 
-    def _evaluator(pri_dct):
+    def _evaluator(gra, pri_dct):
         """ Parity evaluator based on current priorities
 
         Class indices are ignored, since the parities are assumed to be
         canonical.
 
+        :param gra: molecular graph with canonical stereo parities
+        :type gra: automol graph data structure
         :param pri_dct: A dictionary mapping atom keys to priorities
         :type pri_dct: dict
         """
+        atm_par_dct = atom_stereo_parities(gra)
+        bnd_par_dct = bond_stereo_parities(gra)
+
         # Do-nothing line to prevent linting complaint
         assert pri_dct or not pri_dct
 
@@ -959,7 +935,7 @@ def parity_evaluator_read_canonical_(gra):
     return _evaluator
 
 
-def parity_evaluator_flip_local_(gra):
+def parity_evaluator_flip_local_():
     """ Determines canonical from local stereo parity or vice versa (same
     operation)
 
@@ -975,26 +951,27 @@ def parity_evaluator_flip_local_(gra):
     are treated as having lowest priority. This is done by setting their
     sort value to negative infinity.
 
-    :param gra: molecular graph with local stereo parities
-    :type gra: automol graph data structure
     :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
         returns the parity for a given atom, given a set of priorities.
     """
-    gra = explicit(gra)
-    atm_par_dct = atom_stereo_parities(gra)
-    bnd_par_dct = bond_stereo_parities(gra)
 
-    loc_pri_dct = local_priority_dict(gra)
-
-    def _evaluator(pri_dct):
+    def _evaluator(gra, pri_dct):
         """ Parity evaluator based on current priorities
 
             Class indices are ignored, since the parities are assumed to be
             local.
 
+            :param gra: molecular graph with local stereo parities
+            :type gra: automol graph data structure
             :param pri_dct: A dictionary mapping atom keys to priorities.
             :type pri_dct: dict
         """
+        gra = explicit(gra)
+        atm_par_dct = atom_stereo_parities(gra)
+        bnd_par_dct = bond_stereo_parities(gra)
+
+        loc_pri_dct = local_priority_dict(gra)
+
         pri_dct = assign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
 

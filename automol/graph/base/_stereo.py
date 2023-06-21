@@ -184,24 +184,23 @@ def local_atom_stereo_parity_from_geometry(gra, atm_key, geo,
                                            geo_idx_dct=None):
     """ Determine the local stereo parity of an atom from a geometry
 
-        Local stereo parities are given relative to the indices of neighboring
-        atoms.
+    Local stereo parities are given relative to the indices of neighboring
+    atoms.
 
-        :param gra: molecular graph with stereo parities
-        :type gra: automol graph data structure
-        :param atm_key: the atom whose parity is to be determined
-        :type atm_key: int
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
+    :param gra: molecular graph with stereo parities
+    :type gra: automol graph data structure
+    :param atm_key: the atom whose parity is to be determined
+    :type atm_key: int
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
     pri_dct = dict(zip(atm_keys, atm_keys))
-    par_eval_ = parity_evaluator_from_geometry_(
-        gra, geo, geo_idx_dct=geo_idx_dct)
-    par = par_eval_(pri_dct)(atm_key)
+    par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
+    par = par_eval_(gra, pri_dct)(atm_key)
     return par
 
 
@@ -209,24 +208,23 @@ def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
                                            geo_idx_dct=None):
     """ Determine the local stereo parity of a bond from a geometry
 
-        Local stereo parities are given relative to the indices of neighboring
-        atoms.
+    Local stereo parities are given relative to the indices of neighboring
+    atoms.
 
-        :param gra: molecular graph with stereo parities
-        :type gra: automol graph data structure
-        :param bnd_key: the bond whose parity is to be determined
-        :type bnd_key: int
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
+    :param gra: molecular graph with stereo parities
+    :type gra: automol graph data structure
+    :param bnd_key: the bond whose parity is to be determined
+    :type bnd_key: int
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
     pri_dct = dict(zip(atm_keys, atm_keys))
-    par_eval_ = parity_evaluator_from_geometry_(
-        gra, geo, geo_idx_dct=geo_idx_dct)
-    par = par_eval_(pri_dct)(bnd_key)
+    par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
+    par = par_eval_(gra, pri_dct)(bnd_key)
     return par
 
 
@@ -301,9 +299,8 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
 
     # Create a parity evaluator
     pri_dct = dict(zip(atm_keys, atm_keys))
-    par_eval_ = parity_evaluator_from_geometry_(
-        gra, geo, geo_idx_dct=geo_idx_dct)
-    par_ = par_eval_(pri_dct)
+    par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
+    par_ = par_eval_(gra, pri_dct)
 
     ste_atm_keys = list(atm_par_dct.keys())
     for atm_key in ste_atm_keys:
@@ -388,9 +385,8 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
 
     # Create a local parity evaluator
     pri_dct = dict(zip(atm_keys, atm_keys))
-    par_eval_ = parity_evaluator_from_geometry_(
-        gra, geo, geo_idx_dct=geo_idx_dct)
-    par_ = par_eval_(pri_dct)
+    par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
+    par_ = par_eval_(gra, pri_dct)
 
     for bnd_key in bnd_keys:
         par = bnd_par_dct[bnd_key]
