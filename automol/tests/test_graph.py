@@ -1255,10 +1255,10 @@ def test__calculate_priorities_and_assign_parities():
         geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
 
-        par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
+        par_eval_ = graph.parity_evaluator_from_geometry_(geo)
 
         pri_dct, gra = graph.calculate_priorities_and_assign_parities(
-                gra, par_eval_=par_eval_)
+            gra, par_eval_=par_eval_)
 
         print(pri_dct)
 
