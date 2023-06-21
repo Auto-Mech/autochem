@@ -1,0 +1,13 @@
+In graph/base/_canon.py
+o Test conversion to/from local stereo
+o Test reflection
+o Test enantiomer detection
+
+In graph/base/_stereo.py
+o Deprecate local_atom/bond_stereo_from_... with equivalent functions in
+  graph/base/_geom.py?
+o Implement expand_stereo for TS graphs
+o Implement stereo_corrected_geometry for TS graphs
+
+In graph/base/_rot.py
+o Figure out if something needs to be implemented for TS graphs here??
