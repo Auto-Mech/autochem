@@ -530,7 +530,7 @@ def _calculate_priorities_and_assign_parities(
 
     pri_dct_ = pri_dct
 
-    results = []
+    min_rxn_rep = None
     for reverse in reversals:
         gra0 = ts_reverse(gra) if reverse else gra
 
@@ -586,19 +586,22 @@ def _calculate_priorities_and_assign_parities(
             pri_dct = assign_hydrogen_priorities(
                 gra0, pri_dct, break_ties=break_ties)
 
-        rep = ts_canonical_reaction_representation(gra1, pri_dct)
-        gra2 = ts_reverse(gra2) if reverse else gra2
-        results.append((rep, pri_dct, gra2))
+        rxn_rep = ts_canonical_reaction_representation(gra1, pri_dct)
 
-    _, pri_dct, gra2 = min(results, key=lambda r: r[0])
+        if min_rxn_rep is None or rxn_rep < min_rxn_rep:
+            ret_pri_dct = pri_dct
+            ret_gra = ts_reverse(gra2) if reverse else gra2
+            min_rxn_rep = rxn_rep
 
     # Return the priorities calculated for graph 1, and return graph 2 with its
     # stereo assignments.
-    return pri_dct, gra2
+    return ret_pri_dct, ret_gra
 
 
 def refine_priorities(gra, pri_dct=None, srt_eval_=None):
     """ Refine the canonical priorities for this graph based on some sort value
+
+    (Only for connected graphs)
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -608,6 +611,10 @@ def refine_priorities(gra, pri_dct=None, srt_eval_=None):
         priorities. Curried such that srt_val_(pri_dct)(key) returns the
         sort value.
     """
+    assert is_connected(gra), "Not for disconnected graphs."
+    assert gra == without_dummy_atoms(gra), (
+        f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
+
     if pri_dct is None:
         pri_dct = {k: 0 for k in atom_keys(gra)}
 
@@ -672,6 +679,52 @@ def refine_priorities(gra, pri_dct=None, srt_eval_=None):
                 ngb_cla = cla_dct[ngb_idx]
                 if len(ngb_cla) > 1:
                     new_clas.insert(0, (ngb_idx, cla_dct[ngb_idx]))
+
+    return pri_dct
+
+
+def break_priority_ties(gra, pri_dct):
+    """ Break ties within priority classes.
+
+    (Only for connected graphs)
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: A dictionary mapping atom keys to priorities
+    :type pri_dct: dict
+    :param srt_eval_: An evaluator for sort values, based on current class
+        indices. Curried such that srt_val_(pri_dct)(key) returns the sort
+        value.
+    """
+    assert is_connected(gra), "Not for disconnected graphs."
+    assert gra == without_dummy_atoms(gra), (
+        f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
+
+    pri_dct = pri_dct.copy()
+
+    cla_dct = class_dict_from_priority_dict(pri_dct)
+
+    # Set up the new_clas list, containing priorities and priority classes that
+    # are up for re-evaluation.
+    new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
+    new_clas = sorted(new_cla_dct.items(), reverse=True)
+
+    while new_clas:
+        # Pop the next priority class for tie-breaking
+        idx, cla = new_clas.pop(0)
+        cla = list(cla)
+
+        # Give the last element of this priority class a new index
+        new_idx = idx + len(cla) - 1
+        pri_dct[cla[-1]] = new_idx
+
+        # Now, refine partitions based on the change just made.
+        pri_dct = refine_priorities(gra, pri_dct)
+
+        # Update the list of classes needing further tie breaking
+        cla_dct = class_dict_from_priority_dict(pri_dct)
+        new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
+        new_clas = sorted(new_cla_dct.items(), reverse=True)
 
     return pri_dct
 
@@ -775,47 +828,6 @@ def sort_evaluator_atom_invariants_(gra):
         return _value
 
     return _evaluator
-
-
-def break_priority_ties(gra, pri_dct):
-    """ Break ties within priority classes.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param pri_dct: A dictionary mapping atom keys to priorities
-    :type pri_dct: dict
-    :param srt_eval_: An evaluator for sort values, based on current class
-        indices. Curried such that srt_val_(pri_dct)(key) returns the sort
-        value.
-    """
-    pri_dct = pri_dct.copy()
-
-    cla_dct = class_dict_from_priority_dict(pri_dct)
-
-    # Set up the new_clas list, containing priorities and priority classes that
-    # are up for re-evaluation.
-    new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
-    new_clas = sorted(new_cla_dct.items(), reverse=True)
-
-    while new_clas:
-        # Pop the next priority class for tie-breaking
-        idx, cla = new_clas.pop(0)
-        cla = list(cla)
-
-        # Give the last element of this priority class a new index
-        new_idx = idx + len(cla) - 1
-        pri_dct[cla[-1]] = new_idx
-
-        # Now, refine partitions based on the change just made.
-        cla_dct = class_dict_from_priority_dict(pri_dct)
-        pri_dct = refine_priorities(gra, pri_dct)
-
-        # Update the list of classes needing further tie breaking
-        cla_dct = class_dict_from_priority_dict(pri_dct)
-        new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
-        new_clas = sorted(new_cla_dct.items(), reverse=True)
-
-    return pri_dct
 
 
 # # parity evaluators

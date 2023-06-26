@@ -477,7 +477,8 @@ def ts_reverse(tsg):
     return rev_tsg
 
 
-def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False):
+def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False,
+                               keep_stereo=False):
     """ Get the reactants or products from a TS graph, without stereo
 
     :param tsg: TS graph
@@ -486,6 +487,8 @@ def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False):
     :type prod: bool
     :param keep_zeros: Keep the bonds with a resulting bond order of 0?
     :type keep_zeros: bool
+    :param keep_stereo: Keep stereo, even though it is invalid?
+    :type keep-stereo: bool
     :returns: The TS graph, without reacting bond orders
     :rtype: automol graph data structure
     """
@@ -498,6 +501,11 @@ def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False):
     tsg = set_bond_orders(tsg, ord_dct)
     if not keep_zeros:
         tsg = without_bonds_by_orders(tsg, ords=0, skip_dummies=True)
+
+    # Remove invalid stereo, unless requested otherwise
+    if not keep_stereo:
+        tsg = without_stereo(tsg)
+
     return tsg
 
 

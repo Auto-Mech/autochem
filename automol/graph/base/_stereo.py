@@ -38,6 +38,42 @@ from automol.graph.base._canon import canonical_assignment_representation
 from automol.graph.base._amchi import connected_amchi_with_indices
 
 
+# def expand_stereo_with_priorities(gra, enant=True, symeq=False):
+def expand_stereo_with_priorities(gra):
+    """ Obtain all possible stereoisomers of a graph, ignoring its assignments
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param enant: Include all enantiomers, or only canonical ones?
+    :type enant: bool
+    :param symeq: Include symmetrically equivalent stereoisomers?
+    :type symeq: bool
+    :returns: a series of molecular graphs for the stereoisomers
+    """
+    bools = (False, True)
+    gra = implicit(gra)
+    gra = without_stereo(gra)
+
+    gps0 = None
+    gps = [(gra, None)]
+
+    # 1. Expand all possible stereoisomers, along with their priority mappings
+    while gps0 != gps:
+        gps0 = gps
+        gps = []
+
+        for gra_, pri_dct in gps0:
+            pri_dct = refine_priorities(gra_, pri_dct=pri_dct)
+
+            keys = stereogenic_keys(gra_, pri_dct=pri_dct)
+            gras = [set_stereo_parities(gra_, dict(zip(keys, pars)))
+                    for pars in itertools.product(bools, repeat=len(keys))]
+
+            gps.extend([(g, pri_dct) for g in gras])
+
+    return gps
+
+
 # # core functions
 def expand_stereo(gra, enant=True, symeq=False):
     """ Obtain all possible stereoisomers of a graph, ignoring its assignments
@@ -183,17 +219,17 @@ def _connected_expand_stereo_with_priorities_and_amchis(gra):
 def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     """ Obtain a geometry corrected for stereo parities based on a graph
 
-        :param gra: molecular graph with stereo parities
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
-        :param local_stereo: is this graph using local instead of canonical
-            stereo?
-        :type local_stereo: bool
-        :returns: a molecular geometry with corrected stereo
+    :param gra: molecular graph with stereo parities
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :param local_stereo: is this graph using local instead of canonical
+        stereo?
+    :type local_stereo: bool
+    :returns: a molecular geometry with corrected stereo
     """
     rxn_atm_keys = ts_reacting_atoms(gra)
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
@@ -230,16 +266,16 @@ def _local_atom_stereo_corrected_geometry(gra, atm_par_dct, geo,
                                           geo_idx_dct=None):
     """ Correct a geometry to match local atom stereo assignments.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param atm_par_dct: local atom parities (local means relative to the
-            neighboring atom keys)
-        :type atm_par_dct: dict
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_par_dct: local atom parities (local means relative to the
+        neighboring atom keys)
+    :type atm_par_dct: dict
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
     ring_atm_keys = set(itertools.chain(*rings_atom_keys(gra)))
@@ -316,16 +352,16 @@ def _local_bond_stereo_corrected_geometry(gra, bnd_par_dct, geo,
                                           rxn_atm_keys=()):
     """ Correct a geometry to match local bond stereo assignments.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param bnd_par_dct: local bond parities (local means relative to the
-            neighboring atom keys)
-        :type bnd_par_dct: dict
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct: If they don't already match, specify which graph
-            keys correspond to which geometry indices.
-        :type geo_idx_dct: dict[int: int]
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param bnd_par_dct: local bond parities (local means relative to the
+        neighboring atom keys)
+    :type bnd_par_dct: dict
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
     """
     atm_keys = atom_keys(gra)
     bnd_keys = list(bnd_par_dct.keys())
