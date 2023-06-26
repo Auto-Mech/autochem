@@ -319,10 +319,10 @@ def stereogenic_keys(gra, pri_dct=None, assigned=False):
 
 
 def reflect(gra):
-    """ Reflect the graph, locally inverting all stereo centers.
+    """ Calculate new parities that would result from geometric reflection
 
     To replicate the effect of reflecting the geometry, we convert to local
-    stereo before reflecting and then convert back.
+    stereo, invert parities, and then convert back.
 
     :param gra: molecular graph with canonical stereo parities
     :type gra: automol graph data structure

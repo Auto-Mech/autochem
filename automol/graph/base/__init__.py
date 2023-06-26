@@ -260,9 +260,6 @@ from automol.graph.base._smiles import smiles
 # # core functions
 from automol.graph.base._stereo import expand_stereo
 from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
-# # stereo evaluation
-from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
-from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
 # # stereo correction
 from automol.graph.base._stereo import stereo_corrected_geometry
 # functional groups code:
@@ -541,9 +538,6 @@ __all__ = [
     # # core functions
     'expand_stereo',
     'expand_stereo_with_priorities_and_amchis',
-    # # stereo evaluation
-    'local_atom_stereo_parity_from_geometry',
-    'local_bond_stereo_parity_from_geometry',
     # # stereo correction
     'stereo_corrected_geometry',
     # functional groups code:
