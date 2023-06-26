@@ -179,55 +179,6 @@ def _connected_expand_stereo_with_priorities_and_amchis(gra):
     return gpcs
 
 
-# # stereo evaluation
-def local_atom_stereo_parity_from_geometry(gra, atm_key, geo,
-                                           geo_idx_dct=None):
-    """ Determine the local stereo parity of an atom from a geometry
-
-    Local stereo parities are given relative to the indices of neighboring
-    atoms.
-
-    :param gra: molecular graph with stereo parities
-    :type gra: automol graph data structure
-    :param atm_key: the atom whose parity is to be determined
-    :type atm_key: int
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices.
-    :type geo_idx_dct: dict[int: int]
-    """
-    atm_keys = atom_keys(gra)
-    pri_dct = dict(zip(atm_keys, atm_keys))
-    par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
-    par = par_eval_(gra, pri_dct)(atm_key)
-    return par
-
-
-def local_bond_stereo_parity_from_geometry(gra, bnd_key, geo,
-                                           geo_idx_dct=None):
-    """ Determine the local stereo parity of a bond from a geometry
-
-    Local stereo parities are given relative to the indices of neighboring
-    atoms.
-
-    :param gra: molecular graph with stereo parities
-    :type gra: automol graph data structure
-    :param bnd_key: the bond whose parity is to be determined
-    :type bnd_key: int
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices.
-    :type geo_idx_dct: dict[int: int]
-    """
-    atm_keys = atom_keys(gra)
-    pri_dct = dict(zip(atm_keys, atm_keys))
-    par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
-    par = par_eval_(gra, pri_dct)(bnd_key)
-    return par
-
-
 # # stereo correction
 def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     """ Obtain a geometry corrected for stereo parities based on a graph

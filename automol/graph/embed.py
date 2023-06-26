@@ -59,10 +59,9 @@ from automol.graph.base import rings_atom_keys
 from automol.graph.base import to_local_stereo
 from automol.graph.base import is_ts_graph
 from automol.graph.base import rotational_bond_keys
-from automol.graph.base import local_atom_stereo_parity_from_geometry
-from automol.graph.base import local_bond_stereo_parity_from_geometry
+from automol.graph.base import geometry_atom_parity
+from automol.graph.base import geometry_bond_parity
 from automol.graph.base import perturb_geometry_planar_dihedrals
-
 
 # bond distances
 XY_DIST = 1.5       # angstroms
@@ -298,16 +297,14 @@ def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
         # check for correct stereo parities
         geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
         atom_stereo_check = all(
-            (local_atom_stereo_parity_from_geometry(loc_gra, atm_key,
-                                                    geo, geo_idx_dct)
-             == atm_ste_par_dct[atm_key])
-            for atm_key in atm_ste_keys)
+            (geometry_atom_parity(loc_gra, geo, k, geo_idx_dct=geo_idx_dct)
+             == atm_ste_par_dct[k])
+            for k in atm_ste_keys)
 
         bond_stereo_check = all(
-            (local_bond_stereo_parity_from_geometry(loc_gra, bnd_key,
-                                                    geo, geo_idx_dct)
-             == bnd_ste_par_dct[bnd_key])
-            for bnd_key in bnd_ste_keys)
+            (geometry_bond_parity(loc_gra, geo, k, geo_idx_dct=geo_idx_dct)
+             == bnd_ste_par_dct[k])
+            for k in bnd_ste_keys)
 
         return connectivity_check and atom_stereo_check and bond_stereo_check
 
