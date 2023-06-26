@@ -1,4 +1,4 @@
-""" test automol.graph.ts
+""" test graph.ts
 """
 # import numpy
 import automol
@@ -321,181 +321,74 @@ C4H9O2_GEO = (
 def test__set_stereo_from_geometry():
     """ test graph.set_stereo_from_geometry
     """
-    print("CH4CLFNO")
-    npars = 1
-    geo = CH4CLFNO_GEO
-    ftsg = graph.without_stereo(CH4CLFNO_TSG)
-    rtsg = graph.ts_reverse(ftsg)
-    assert ftsg != rtsg
-    # Check that they have the same stereogenic keys
-    fste_keys = graph.stereogenic_keys(ftsg)
-    rste_keys = graph.stereogenic_keys(rtsg)
-    print(fste_keys)
-    print(rste_keys)
-    assert len(fste_keys) == len(rste_keys) == npars
-    assert fste_keys == rste_keys
-    # Check that they have the same parities
-    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-    fste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(ftsg), lambda x: x is not None)
-    rste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(rtsg), lambda x: x is not None)
-    print(fste_par_dct)
-    print(rste_par_dct)
-    assert len(fste_par_dct) == len(rste_par_dct) == npars
-    assert fste_par_dct == rste_par_dct
+    def _test(formula, tsg, geo, npars1, npars2):
+        print(f"{formula}: testing set_stereo_from_geometry")
+        ftsg = graph.without_stereo(tsg)
+        rtsg = graph.ts_reverse(ftsg)
+        assert ftsg != rtsg
+        # Check that they have the same stereogenic keys
+        fste_keys = graph.stereogenic_keys(ftsg)
+        rste_keys = graph.stereogenic_keys(rtsg)
+        print(fste_keys)
+        print(rste_keys)
+        assert len(fste_keys) == len(rste_keys) == npars1
+        assert fste_keys == rste_keys
+        # Check that they have the same parities
+        ftsg = graph.set_stereo_from_geometry(ftsg, geo)
+        rtsg = graph.set_stereo_from_geometry(rtsg, geo)
+        fste_par_dct = automol.util.dict_.filter_by_value(
+            graph.stereo_parities(ftsg), lambda x: x is not None)
+        rste_par_dct = automol.util.dict_.filter_by_value(
+            graph.stereo_parities(rtsg), lambda x: x is not None)
+        print(fste_par_dct)
+        print(rste_par_dct)
+        assert len(fste_par_dct) == len(rste_par_dct) == npars2
+        assert fste_par_dct == rste_par_dct
 
-    print("C4H11O2")
-    npars = 1
-    geo = C4H11O2_GEO
-    ftsg = graph.without_stereo(C4H11O2_TSG)
-    rtsg = graph.ts_reverse(ftsg)
-    assert ftsg != rtsg
-    # Check that they have the same stereogenic keys
-    fste_keys = graph.stereogenic_keys(ftsg)
-    rste_keys = graph.stereogenic_keys(rtsg)
-    print(fste_keys)
-    print(rste_keys)
-    assert len(fste_keys) == len(rste_keys) == npars
-    assert fste_keys == rste_keys
-    # Check that they have the same parities
-    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-    fste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(ftsg), lambda x: x is not None)
-    rste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(rtsg), lambda x: x is not None)
-    print(fste_par_dct)
-    print(rste_par_dct)
-    assert len(fste_par_dct) == len(rste_par_dct) == npars
-    assert fste_par_dct == rste_par_dct
+    _test("CH4CLFNO", CH4CLFNO_TSG, CH4CLFNO_GEO, 1, 1)
+    _test("C4H11O2", C4H11O2_TSG, C4H11O2_GEO, 1, 1)
+    _test("C2H3O4", C2H3O4_TSG, C2H3O4_GEO, 1, 1)
+    _test("C4H9O3", C4H9O3_TSG, C4H9O3_GEO, 2, 2)
+    _test("C2H3F2O", C2H3F2O_TSG, C2H3F2O_GEO, 2, 2)
+    _test("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4)
+    _test("C4H9O2", C4H9O2_TSG, C4H9O2_GEO, 2, 2)
 
-    print("C2H3O4")
-    npars = 1
-    geo = C2H3O4_GEO
-    ftsg = graph.without_stereo(C2H3O4_TSG)
-    rtsg = graph.ts_reverse(ftsg)
-    assert ftsg != rtsg
-    # Check that they have the same stereogenic keys
-    fste_keys = graph.stereogenic_keys(ftsg)
-    rste_keys = graph.stereogenic_keys(rtsg)
-    print(fste_keys)
-    print(rste_keys)
-    assert len(fste_keys) == len(rste_keys) == npars
-    assert fste_keys == rste_keys
-    # Check that they have the same parities
-    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-    fste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(ftsg), lambda x: x is not None)
-    rste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(rtsg), lambda x: x is not None)
-    print(fste_par_dct)
-    print(rste_par_dct)
-    assert len(fste_par_dct) == len(rste_par_dct) == npars
-    assert fste_par_dct == rste_par_dct
 
-    print("C4H9O3")
-    npars = 2
-    geo = C4H9O3_GEO
-    ftsg = graph.without_stereo(C4H9O3_TSG)
-    rtsg = graph.ts_reverse(ftsg)
-    assert ftsg != rtsg
-    # Check that they have the same stereogenic keys
-    fste_keys = graph.stereogenic_keys(ftsg)
-    rste_keys = graph.stereogenic_keys(rtsg)
-    print(fste_keys)
-    print(rste_keys)
-    assert len(fste_keys) == len(rste_keys) == npars
-    assert fste_keys == rste_keys
-    # Check that they have the same parities
-    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-    fste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(ftsg), lambda x: x is not None)
-    rste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(rtsg), lambda x: x is not None)
-    print(fste_par_dct)
-    print(rste_par_dct)
-    assert len(fste_par_dct) == len(rste_par_dct) == npars
-    assert fste_par_dct == rste_par_dct
+def test__to_local_stereo():
+    """ test graph.to_local_stereo
+    """
+    print("C4H11O2: testing to_local_stereo")
+    # Swap two neighbors to reverse local parity in one copy
+    tsg1 = C4H11O2_TSG
+    tsg2 = graph.relabel(C4H11O2_TSG, {0: 4, 4: 0})
+    # Convert both to local stereo
+    loc_tsg1 = graph.to_local_stereo(tsg1)
+    loc_tsg2 = graph.to_local_stereo(tsg2)
+    # Check that the local parities have opposite values
+    loc_par1 = graph.stereo_parities(loc_tsg1)[2]
+    loc_par2 = graph.stereo_parities(loc_tsg2)[2]
+    assert loc_par1 is False
+    assert loc_par2 is True
 
-    print("C2H3F2O")
-    npars = 2
-    geo = C2H3F2O_GEO
-    ftsg = graph.without_stereo(C2H3F2O_TSG)
-    rtsg = graph.ts_reverse(ftsg)
-    assert ftsg != rtsg
-    # Check that they have the same stereogenic keys
-    fste_keys = graph.stereogenic_keys(ftsg)
-    rste_keys = graph.stereogenic_keys(rtsg)
-    print(fste_keys)
-    print(rste_keys)
-    assert len(fste_keys) == len(rste_keys) == npars
-    assert fste_keys == rste_keys
-    # Check that they have the same parities
-    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-    fste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(ftsg), lambda x: x is not None)
-    rste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(rtsg), lambda x: x is not None)
-    print(fste_par_dct)
-    print(rste_par_dct)
-    assert len(fste_par_dct) == len(rste_par_dct) == npars
-    assert fste_par_dct == rste_par_dct
 
-    print("C4H5F3O2")
-    geo = C4H5F3O2_GEO
-    # npars changes from 3 to 4 due to higher-order stereo
-    ftsg = graph.without_stereo(C4H5F3O2_TSG)
-    rtsg = graph.ts_reverse(ftsg)
-    assert ftsg != rtsg
-    # Check that they have the same stereogenic keys
-    fste_keys = graph.stereogenic_keys(ftsg)
-    rste_keys = graph.stereogenic_keys(rtsg)
-    print(fste_keys)
-    print(rste_keys)
-    assert len(fste_keys) == len(rste_keys) == 3
-    assert fste_keys == rste_keys
-    # Check that they have the same parities
-    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-    fste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(ftsg), lambda x: x is not None)
-    rste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(rtsg), lambda x: x is not None)
-    print(fste_par_dct)
-    print(rste_par_dct)
-    assert len(fste_par_dct) == len(rste_par_dct) == 4
-    assert fste_par_dct == rste_par_dct
+def test__from_local_stereo():
+    """ test graph.from_local_stereo
+    """
+    def _test(formula, tsg):
+        print(f"{formula}: testing from_local_stereo")
+        loc_tsg = graph.to_local_stereo(tsg)
+        assert tsg == graph.from_local_stereo(loc_tsg)
 
-    print("C4H9O2")
-    npars = 2
-    geo = C4H9O2_GEO
-    ftsg = graph.without_stereo(C4H9O2_TSG)
-    rtsg = graph.ts_reverse(ftsg)
-    assert ftsg != rtsg
-    # Check that they have the same stereogenic keys
-    fste_keys = graph.stereogenic_keys(ftsg)
-    rste_keys = graph.stereogenic_keys(rtsg)
-    print(fste_keys)
-    print(rste_keys)
-    assert len(fste_keys) == len(rste_keys) == npars
-    assert fste_keys == rste_keys
-    # Check that they have the same parities
-    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-    fste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(ftsg), lambda x: x is not None)
-    rste_par_dct = automol.util.dict_.filter_by_value(
-        graph.stereo_parities(rtsg), lambda x: x is not None)
-    print(fste_par_dct)
-    print(rste_par_dct)
-    assert len(fste_par_dct) == len(rste_par_dct) == npars
-    assert fste_par_dct == rste_par_dct
+    _test("CH4CLFNO", CH4CLFNO_TSG)
+    _test("C4H11O2", C4H11O2_TSG)
+    _test("C2H3O4", C2H3O4_TSG)
+    _test("C4H9O3", C4H9O3_TSG)
+    _test("C2H3F2O", C2H3F2O_TSG)
+    _test("C4H5F3O2", C4H5F3O2_TSG)
+    _test("C4H9O2", C4H9O2_TSG)
 
 
 if __name__ == '__main__':
     test__set_stereo_from_geometry()
+    test__to_local_stereo()
+    test__from_local_stereo()
