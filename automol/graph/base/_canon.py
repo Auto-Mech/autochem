@@ -546,42 +546,36 @@ def _calculate_priorities_and_assign_parities(
         # Work with an implicit graph for the priority calculation
         gra1 = implicit(gra1)
 
-        # 1. Start with all atoms in the same priority class (priority 0)
-        if pri_dct_ is None:
-            pri_dct_ = {k: 0 for k in atom_keys(gra1)}
-
-        # 2. Refine the initial priorities, without stereo
-        pri_dct = refine_priorities(gra1, pri_dct_)
-
-        # 3. Iteratively assign parities and refine priorities.
-        pri_dct0 = None
+        # 1. Iteratively assign parities and refine priorities.
+        pri_dct0 = 0
+        pri_dct = pri_dct_
         while pri_dct0 != pri_dct:
-            # a. Find stereogenic atoms and bonds based on current priorities.
+            # a. Store the current priorities for comparison.
+            pri_dct0 = pri_dct
+
+            # b. Refine priorities based on the assignments in graph 1.
+            pri_dct = refine_priorities(gra1, pri_dct)
+
+            # c. Find stereogenic atoms and bonds based on current priorities.
             keys = stereogenic_keys_from_priorities(gra1, pri_dct)
 
-            # b. If there are none, the calculation is complete. Exit the loop.
+            # d. If there are none, the calculation is complete. Exit the loop.
             if not keys:
                 break
 
-            # c. Assign parities to graph 1 using the first parity evaluator.
+            # e. Assign parities to graph 1 using the first parity evaluator.
             p1_ = par_eval_(gra0, pri_dct)
             gra1 = set_stereo_parities(gra1, {k: p1_(k) for k in keys})
 
-            # d. Assign parities to graph 2 using the second parity evaluator.
+            # f. Assign parities to graph 2 using the second parity evaluator.
             p2_ = par_eval2_(gra0, pri_dct)
             gra2 = set_stereo_parities(gra2, {k: p2_(k) for k in keys})
 
-            # e. Store the current priorities for comparison.
-            pri_dct0 = pri_dct
-
-            # f. Refine priorities based on the assignments in graph 1.
-            pri_dct = refine_priorities(gra1, pri_dct)
-
-        # 4. If requested, break priority ties to determine canonical keys.
+        # 2. If requested, break priority ties to determine canonical keys.
         if break_ties:
             pri_dct = break_priority_ties(gra1, pri_dct)
 
-        # If requested, add in priorities for explicit hydrogens.
+        # 3. If requested, add in priorities for explicit hydrogens.
         if not backbone_only:
             pri_dct = assign_hydrogen_priorities(
                 gra0, pri_dct, break_ties=break_ties)
