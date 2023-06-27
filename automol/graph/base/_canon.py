@@ -494,6 +494,37 @@ def calculate_priorities_and_assign_stereo(
     return pri_dct, gra2
 
 
+# def _calculate_priorities_and_assign_stereo_new(
+#         gra, par_eval_=None, par_eval2_=None, break_ties=False,
+#         backbone_only=True, pri_dct=None):
+
+#     par_eval_ = (parity_evaluator_read_canonical_()
+#                  if par_eval_ is None else par_eval_)
+#     par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
+
+#     def _calculate_and_assign(gra_, pri_dct_, reverse=False):
+#         gra0 = ts_reverse(gra_) if reverse else gra_
+#         gra0 = without_stereo(gra0)
+#         gra1 = gra2 = gra0
+
+#         pri_dct0 = 0
+#         pri_dct1 = pri_dct_
+#         while pri_dct0 != pri_dct1:
+#             pri_dct0 = pri_dct1
+
+#             pri_dct1 = refine_priorities(gra1, pri_dct1)
+
+#             keys = stereogenic_keys_from_priorities(gra1, pri_dct1)
+
+#             if not keys:
+#                 break
+
+#             p1_ = par_eval_(gra_, pri_dct1)
+#             gra1 = set_stereo_parities()
+
+#     _calculate_and_assign(gra_, pri_dct)
+
+
 def _calculate_priorities_and_assign_stereo(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
         backbone_only=True, pri_dct=None):
@@ -524,7 +555,6 @@ def _calculate_priorities_and_assign_stereo(
     assert gra == without_dummy_atoms(gra), (
         f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
 
-    # gra1s_ hold parities for canonical priority determination
     ts_ = is_ts_graph(gra)
     reversals = [False, True] if ts_ else [False]
 
@@ -542,9 +572,6 @@ def _calculate_priorities_and_assign_stereo(
         # assignments that will be returned.
         gra1 = without_stereo(gra0)
         gra2 = without_stereo(gra0)
-
-        # Work with an implicit graph for the priority calculation
-        gra1 = implicit(gra1)
 
         # 1. Iteratively assign parities and refine priorities.
         pri_dct0 = 0
@@ -609,13 +636,10 @@ def refine_priorities(gra, pri_dct=None, srt_eval_=None):
     assert gra == without_dummy_atoms(gra), (
         f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
 
-    if pri_dct is None:
-        pri_dct = {k: 0 for k in atom_keys(gra)}
-
-    if srt_eval_ is None:
-        srt_eval_ = sort_evaluator_atom_invariants_(gra)
-
-    pri_dct = pri_dct.copy()
+    gra = implicit(gra)
+    pri_dct = {} if pri_dct is None else pri_dct
+    pri_dct = dict_.by_key(pri_dct, atom_keys(gra), fill_val=0)
+    srt_eval_ = sort_evaluator_atom_invariants_(gra)
 
     ngb_keys_dct = atoms_neighbor_atom_keys(gra)
 
