@@ -87,8 +87,8 @@ def canonical_enantiomer_with_keys(gra):
     """
     if not has_atom_stereo(gra):
         ce_gra = gra
-        is_refl = None
         ce_can_key_dct = canonical_keys(gra, backbone_only=False)
+        is_refl = None
     else:
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
@@ -108,25 +108,19 @@ def canonical_enantiomer_with_keys(gra):
                 par_eval_=parity_evaluator_flip_local_(),
                 par_eval2_=parity_evaluator_flip_local_())
 
-        urep = stereo_assignment_representation(ugra, ucan_key_dct)
-        rrep = stereo_assignment_representation(rgra, rcan_key_dct)
+        is_can = is_canonical_enantiomer(ugra, ucan_key_dct,
+                                         rgra, rcan_key_dct)
 
-        # If the reflected parities have a lower sort order, the molecule is
-        # chiral and this is the mirror image of the canonical enantiomer.
-        if urep > rrep:
+        # The `is_refl` flag indicates whether or not the canonical enantiomer
+        # is the reflected form of the input graph. Set to `None` if achiral.
+        is_refl = None if is_can is None else (not is_can)
+
+        if is_refl:
             ce_gra = rgra
             ce_can_key_dct = rcan_key_dct
-            is_refl = True
         else:
             ce_gra = ugra
             ce_can_key_dct = ucan_key_dct
-            # If the sorted parities are the same, the molecule is achiral.
-            if urep == rrep:
-                is_refl = None
-            # Otherwise, the unreflected parities have a lower sort order, so
-            # the molecule is chiral and this is the canonical enantiomer.
-            else:
-                is_refl = False
 
     return ce_gra, ce_can_key_dct, is_refl
 
@@ -139,8 +133,6 @@ def stereo_assignment_representation(gra, pri_dct):
     :type gra: automol graph data structure
     :param pri_dct: A dictionary mapping atom keys to priorities
     :type pri_dct: dict
-    :param par_dct: A dictionary mapping atom and bond keys to parities
-    :type par_dct: dict
     :returns: A canonical representation of the assignment
     """
     atm_keys = sorted(atom_stereo_keys(gra), key=pri_dct.__getitem__)
@@ -157,6 +149,25 @@ def stereo_assignment_representation(gra, pri_dct):
     pars = atm_pars + bnd_pars
     rep = tuple(zip(pris, pars))
     return rep
+
+
+def is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct):
+    """ Is this enantiomer the canonical one?
+
+    :param ugra: An unreflected molecular graph
+    :type ugra: automol graph data structure
+    :param upri_dct: A dictionary mapping atom keys to priorities for `ugra`
+    :type upri_dct: dict
+    :param rgra: A reflected molecular graph
+    :type rgra: automol graph data structure
+    :param rpri_dct: A dictionary mapping atom keys to priorities for `rgra`
+    :type rpri_dct: dict
+    :returns: `True` if it is, `False` if it isn't, and `None` if it isn't an
+        enantiomer
+    """
+    urep = stereo_assignment_representation(ugra, upri_dct)
+    rrep = stereo_assignment_representation(rgra, rpri_dct)
+    return True if (urep < rrep) else False if (urep > rrep) else None
 
 
 def ts_direction_representation(tsg, pri_dct):
@@ -189,8 +200,8 @@ def ts_direction_representation(tsg, pri_dct):
     return rep
 
 
-def ts_has_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
-    """ Choose the canonical direction for this TS graph and its priorities
+def ts_is_canonical_direciton(ftsg, fpri_dct, rtsg, rpri_dct):
+    """ Is this TS direction the canonical one?
 
     :param ftsg: A TS graph in the forward direction
     :type ftsg: automol graph data structure
@@ -591,7 +602,7 @@ def _calculate_priorities_and_assign_stereo(
     # figure out which one is canonical
     if is_ts_graph(gra):
         rpri_dct, rgra1, rgra2 = _algo(gra, pri_dct, ts_rev=True)
-        if not ts_has_canonical_direction(gra1, pri_dct, rgra1, rpri_dct):
+        if not ts_is_canonical_direciton(gra1, pri_dct, rgra1, rpri_dct):
             pri_dct = rpri_dct
             gra1 = rgra1
             gra2 = rgra2
