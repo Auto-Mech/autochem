@@ -93,7 +93,7 @@ def canonical_enantiomer_with_keys(gra):
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
         ugra = gra
-        ucan_key_dct, uloc_gra = calculate_priorities_and_assign_parities(
+        ucan_key_dct, uloc_gra = calculate_priorities_and_assign_stereo(
                 ugra, backbone_only=False, break_ties=True,
                 par_eval_=parity_evaluator_read_canonical_(),
                 par_eval2_=parity_evaluator_flip_local_())
@@ -103,7 +103,7 @@ def canonical_enantiomer_with_keys(gra):
 
         # Determine canonical keys for the reflected graph while converting
         # back to the canonical stereo representation
-        rcan_key_dct, rgra = calculate_priorities_and_assign_parities(
+        rcan_key_dct, rgra = calculate_priorities_and_assign_stereo(
                 rloc_gra, backbone_only=False, break_ties=True,
                 par_eval_=parity_evaluator_flip_local_(),
                 par_eval2_=parity_evaluator_flip_local_())
@@ -227,7 +227,7 @@ def canonical_keys(gra, backbone_only=True):
     atm_par_dct0 = atom_stereo_parities(gra)
     bnd_par_dct0 = bond_stereo_parities(gra)
 
-    can_key_dct, gra = calculate_priorities_and_assign_parities(
+    can_key_dct, gra = calculate_priorities_and_assign_stereo(
         gra, backbone_only=backbone_only, break_ties=True)
 
     atm_par_dct = atom_stereo_parities(gra)
@@ -363,7 +363,7 @@ def to_local_stereo(gra, pri_dct=None):
     if has_stereo(can_gra):
         pri_dct_ = (None if pri_dct is None else
                     dict_.by_key(pri_dct, backbone_keys(can_gra)))
-        _, loc_gra = calculate_priorities_and_assign_parities(
+        _, loc_gra = calculate_priorities_and_assign_stereo(
                 can_gra, backbone_only=False, break_ties=False,
                 par_eval_=parity_evaluator_read_canonical_(),
                 par_eval2_=parity_evaluator_flip_local_(),
@@ -389,7 +389,7 @@ def from_local_stereo(gra, pri_dct=None):
     if has_stereo(loc_gra):
         pri_dct_ = (None if pri_dct is None else
                     dict_.by_key(pri_dct, backbone_keys(loc_gra)))
-        _, can_gra = calculate_priorities_and_assign_parities(
+        _, can_gra = calculate_priorities_and_assign_stereo(
                 loc_gra, backbone_only=False, break_ties=False,
                 par_eval_=parity_evaluator_flip_local_(),
                 par_eval2_=parity_evaluator_flip_local_(),
@@ -419,7 +419,7 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
     par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
-    _, gra = calculate_priorities_and_assign_parities(
+    _, gra = calculate_priorities_and_assign_stereo(
         gra, par_eval_=par_eval_)
 
     return gra
@@ -441,13 +441,13 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
     :returns: A dictionary of canonical priorities by atom key.
     :rtype: dict[int: int]
     """
-    pri_dct, _ = calculate_priorities_and_assign_parities(
+    pri_dct, _ = calculate_priorities_and_assign_stereo(
         gra, backbone_only=backbone_only, break_ties=break_ties,
         pri_dct=pri_dct)
     return pri_dct
 
 
-def calculate_priorities_and_assign_parities(
+def calculate_priorities_and_assign_stereo(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
         backbone_only=True, pri_dct=None):
     """ Determine canonical priorities and assign stereo parities to this graph
@@ -484,7 +484,7 @@ def calculate_priorities_and_assign_parities(
                  for ks in map(atom_keys, cgras)]
     pri_dct = {}
     for cgra, cpri_dct in zip(cgras, cpri_dcts):
-        cpri_dct, cgra2 = _calculate_priorities_and_assign_parities(
+        cpri_dct, cgra2 = _calculate_priorities_and_assign_stereo(
             cgra, par_eval_=par_eval_, par_eval2_=par_eval2_,
             break_ties=break_ties, backbone_only=backbone_only,
             pri_dct=cpri_dct)
@@ -494,7 +494,7 @@ def calculate_priorities_and_assign_parities(
     return pri_dct, gra2
 
 
-def _calculate_priorities_and_assign_parities(
+def _calculate_priorities_and_assign_stereo(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
         backbone_only=True, pri_dct=None):
     """ Determine canonical priorities and assign stereo parities to this graph
