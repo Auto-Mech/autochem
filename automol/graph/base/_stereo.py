@@ -34,7 +34,7 @@ from automol.graph.base._canon import to_local_stereo
 from automol.graph.base._canon import reflect_local_stereo
 from automol.graph.base._canon import refine_priorities
 from automol.graph.base._canon import parity_evaluator_from_geometry_
-from automol.graph.base._canon import canonical_assignment_representation
+from automol.graph.base._canon import stereo_assignment_representation
 from automol.graph.base._amchi import connected_amchi_with_indices
 
 
@@ -183,8 +183,8 @@ def _connected_expand_stereo_with_priorities_and_amchis(gra):
         if rgra is None:
             diast_gpls.append((ugra, upri_dct, uloc_gra))
         else:
-            urep = canonical_assignment_representation(ugra, upri_dct)
-            rrep = canonical_assignment_representation(rgra, rpri_dct)
+            urep = stereo_assignment_representation(ugra, upri_dct)
+            rrep = stereo_assignment_representation(rgra, rpri_dct)
 
             if urep == rrep:
                 diast_gpls.append((ugra, upri_dct, uloc_gra))
