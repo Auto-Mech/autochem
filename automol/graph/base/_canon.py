@@ -108,8 +108,8 @@ def canonical_enantiomer_with_keys(gra):
                 par_eval_=parity_evaluator_flip_local_(),
                 par_eval2_=parity_evaluator_flip_local_())
 
-        urep = canonical_assignment_representation(ugra, ucan_key_dct)
-        rrep = canonical_assignment_representation(rgra, rcan_key_dct)
+        urep = stereo_assignment_representation(ugra, ucan_key_dct)
+        rrep = stereo_assignment_representation(rgra, rcan_key_dct)
 
         # If the reflected parities have a lower sort order, the molecule is
         # chiral and this is the mirror image of the canonical enantiomer.
@@ -131,10 +131,9 @@ def canonical_enantiomer_with_keys(gra):
     return ce_gra, ce_can_key_dct, is_refl
 
 
-def canonical_assignment_representation(gra, pri_dct):
-    """ Generate a canonical representation of a stereo assignment, for
-    checking for symmetric equivalence or for determining a canonical
-    enantiomer
+def stereo_assignment_representation(gra, pri_dct):
+    """ Generate a representation of a stereo assignment, for checking for
+    symmetric equivalence or for determining a canonical enantiomer
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -160,8 +159,8 @@ def canonical_assignment_representation(gra, pri_dct):
     return rep
 
 
-def ts_canonical_reaction_representation(tsg, pri_dct):
-    """ Generate a canonical representation of the reaction to determine the
+def ts_direction_representation(tsg, pri_dct):
+    """ Generate a representation of the reaction direction to determine the
     canonical direction of a TS graph
 
     The reaction representation consists of two pieces:
@@ -174,8 +173,6 @@ def ts_canonical_reaction_representation(tsg, pri_dct):
     :type tsg: automol graph data structure
     :param pri_dct: A dictionary mapping atom keys to priorities
     :type pri_dct: dict
-    :param par_dct: A dictionary mapping atom and bond keys to parities
-    :type par_dct: dict
     :returns: A canonical representation of the TS reaction
     """
     frm_keys = ts_forming_bond_keys(tsg)
@@ -187,9 +184,34 @@ def ts_canonical_reaction_representation(tsg, pri_dct):
         sorted(sorted(map(pri_dct.__getitem__, k)) for k in frm_keys),
         sorted(sorted(map(pri_dct.__getitem__, k)) for k in brk_keys))
     # Rep value 3: Stereochemistry
-    ste_rep = canonical_assignment_representation(tsg, pri_dct)
+    ste_rep = stereo_assignment_representation(tsg, pri_dct)
     rep = (rxn_rep1, rxn_rep2, ste_rep)
     return rep
+
+
+def ts_has_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
+    """ Choose the canonical direction for this TS graph and its priorities
+
+    :param ftsg: A TS graph in the forward direction
+    :type ftsg: automol graph data structure
+    :param fpri_dct: A dictionary mapping atom keys to priorities for the
+        forward direction
+    :type fpri_dct: dict
+    :param rtsg: A TS graph in the reverse direction
+    :type rtsg: automol graph data structure
+    :param rpri_dct: A dictionary mapping atom keys to priorities for the
+        reverse direction
+    :type rpri_dct: dict
+    :returns: A canonical representation of the TS reaction
+    """
+    ftsg = implicit(ftsg)
+    fpri_dct = dict_.by_key(fpri_dct, atom_keys(ftsg))
+    frep = ts_direction_representation(ftsg, fpri_dct)
+
+    rtsg = implicit(rtsg)
+    rpri_dct = dict_.by_key(rpri_dct, atom_keys(rtsg))
+    rrep = ts_direction_representation(rtsg, rpri_dct)
+    return frep < rrep
 
 
 def canonical(gra):
@@ -494,37 +516,6 @@ def calculate_priorities_and_assign_stereo(
     return pri_dct, gra2
 
 
-# def _calculate_priorities_and_assign_stereo_new(
-#         gra, par_eval_=None, par_eval2_=None, break_ties=False,
-#         backbone_only=True, pri_dct=None):
-
-#     par_eval_ = (parity_evaluator_read_canonical_()
-#                  if par_eval_ is None else par_eval_)
-#     par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
-
-#     def _calculate_and_assign(gra_, pri_dct_, reverse=False):
-#         gra0 = ts_reverse(gra_) if reverse else gra_
-#         gra0 = without_stereo(gra0)
-#         gra1 = gra2 = gra0
-
-#         pri_dct0 = 0
-#         pri_dct1 = pri_dct_
-#         while pri_dct0 != pri_dct1:
-#             pri_dct0 = pri_dct1
-
-#             pri_dct1 = refine_priorities(gra1, pri_dct1)
-
-#             keys = stereogenic_keys_from_priorities(gra1, pri_dct1)
-
-#             if not keys:
-#                 break
-
-#             p1_ = par_eval_(gra_, pri_dct1)
-#             gra1 = set_stereo_parities()
-
-#     _calculate_and_assign(gra_, pri_dct)
-
-
 def _calculate_priorities_and_assign_stereo(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
         backbone_only=True, pri_dct=None):
@@ -551,75 +542,73 @@ def _calculate_priorities_and_assign_stereo(
         with stereo assignments.
     :rtype: dict[int: int], molecular graph data structure
     """
-    assert is_connected(gra), "Not for disconnected graphs."
-    assert gra == without_dummy_atoms(gra), (
-        f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
+    par_eval_ = (parity_evaluator_read_canonical_()
+                 if par_eval_ is None else par_eval_)
+    par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
 
-    ts_ = is_ts_graph(gra)
-    reversals = [False, True] if ts_ else [False]
-
-    pri_dct_ = pri_dct
-
-    min_rxn_rep = None
-    for reverse in reversals:
-        gra0 = ts_reverse(gra) if reverse else gra
-
-        par_eval_ = (parity_evaluator_read_canonical_()
-                     if par_eval_ is None else par_eval_)
-        par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
+    # 1. Iteratively assign parities and refine priorities.
+    def _algo(gra_, pri_dct_, ts_rev=False):
+        # Perform a TS graph reversal, if requested
+        # (Note that we *keep* stereo in `gra0`, if present, because it may
+        # need to be read out by the parity evaluators.)
+        gra0 = ts_reverse(gra_) if ts_rev else gra_
 
         # Graph 1 will be for the priority calculation, graph 2 for the parity
         # assignments that will be returned.
-        gra1 = without_stereo(gra0)
-        gra2 = without_stereo(gra0)
+        gra1 = gra2 = without_stereo(gra0)
 
-        # 1. Iteratively assign parities and refine priorities.
         pri_dct0 = 0
-        pri_dct = pri_dct_
-        while pri_dct0 != pri_dct:
+        pri_dct1 = pri_dct_
+        while pri_dct0 != pri_dct1:
             # a. Store the current priorities for comparison.
-            pri_dct0 = pri_dct
+            pri_dct0 = pri_dct1
 
             # b. Refine priorities based on the assignments in graph 1.
-            pri_dct = refine_priorities(gra1, pri_dct)
+            pri_dct1 = refine_priorities(gra1, pri_dct1)
 
             # c. Find stereogenic atoms and bonds based on current priorities.
-            keys = stereogenic_keys_from_priorities(gra1, pri_dct)
+            keys = stereogenic_keys_from_priorities(gra1, pri_dct1)
 
             # d. If there are none, the calculation is complete. Exit the loop.
             if not keys:
                 break
 
             # e. Assign parities to graph 1 using the first parity evaluator.
-            p1_ = par_eval_(gra0, pri_dct)
+            p1_ = par_eval_(gra0, pri_dct1)
             gra1 = set_stereo_parities(gra1, {k: p1_(k) for k in keys})
 
             # f. Assign parities to graph 2 using the second parity evaluator.
-            p2_ = par_eval2_(gra0, pri_dct)
+            p2_ = par_eval2_(gra0, pri_dct1)
             gra2 = set_stereo_parities(gra2, {k: p2_(k) for k in keys})
 
-        # 2. If requested, break priority ties to determine canonical keys.
-        if break_ties:
-            pri_dct = break_priority_ties(gra1, pri_dct)
+        # If the graph was reversed, restore `gra2` to the original form
+        gra2 = ts_reverse(gra2) if ts_rev else gra2
+        return pri_dct1, gra1, gra2
 
-        # 3. If requested, add in priorities for explicit hydrogens.
-        if not backbone_only:
-            pri_dct = assign_hydrogen_priorities(
-                gra0, pri_dct, break_ties=break_ties)
+    pri_dct, gra1, gra2 = _algo(gra, pri_dct)
 
-        rxn_rep = ts_canonical_reaction_representation(gra1, pri_dct)
+    # 2. If this is a TS graph, rerun the algorithm on the reverse direction to
+    # figure out which one is canonical
+    if is_ts_graph(gra):
+        rpri_dct, rgra1, rgra2 = _algo(gra, pri_dct, ts_rev=True)
+        if not ts_has_canonical_direction(gra1, pri_dct, rgra1, rpri_dct):
+            pri_dct = rpri_dct
+            gra1 = rgra1
+            gra2 = rgra2
 
-        if min_rxn_rep is None or rxn_rep < min_rxn_rep:
-            ret_pri_dct = pri_dct
-            ret_gra = ts_reverse(gra2) if reverse else gra2
-            min_rxn_rep = rxn_rep
+    # 3. If requested, break priority ties to determine canonical keys.
+    if break_ties:
+        pri_dct = break_priority_ties(gra1, pri_dct)
 
-    # Return the priorities calculated for graph 1, and return graph 2 with its
-    # stereo assignments.
-    return ret_pri_dct, ret_gra
+    # 4. If requested, add in priorities for explicit hydrogens.
+    if not backbone_only:
+        pri_dct = assign_hydrogen_priorities(
+            gra, pri_dct, break_ties=break_ties)
+
+    return pri_dct, gra2
 
 
-def refine_priorities(gra, pri_dct=None, srt_eval_=None):
+def refine_priorities(gra, pri_dct=None):
     """ Refine the canonical priorities for this graph based on some sort value
 
     (Only for connected graphs)

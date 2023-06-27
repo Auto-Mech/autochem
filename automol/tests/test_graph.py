@@ -1273,6 +1273,7 @@ def test__calculate_priorities_and_assign_parities():
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
         bnd_pars = [p for k, p in sorted(bnd_par_dct.items()) if p is not None]
 
+        print(ref_atm_pars, ref_bnd_pars)
         print(atm_pars, bnd_pars)
         assert atm_pars == ref_atm_pars
         assert bnd_pars == ref_bnd_pars
@@ -1595,8 +1596,8 @@ if __name__ == '__main__':
     # test__ts__expand_reaction_stereo()
     # test__species__graph_conversion()
     # test__canonical()
-    # test__calculate_priorities_and_assign_parities()
-    test__smiles()
+    test__calculate_priorities_and_assign_parities()
+    # test__smiles()
     # test__kekules()
     # test__geometry_atom_parity()
     # test__geometry_bond_parity()
