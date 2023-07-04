@@ -88,7 +88,7 @@ C2H2CL2F2_CGR = (
     {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
      frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
      frozenset({1, 5}): (1, None)})
-C2H2CL2F2_SGRS = (
+C2H2CL2F2_SGRS = tuple(sorted([
     ({0: ('C', 1, False), 1: ('C', 1, False), 2: ('F', 0, None),
       3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
@@ -104,7 +104,7 @@ C2H2CL2F2_SGRS = (
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
       frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
       frozenset({1, 5}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
 C3H3CL2F3_CGR = (
     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
@@ -114,7 +114,7 @@ C3H3CL2F3_CGR = (
      frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
      frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
      frozenset({2, 7}): (1, None)})
-C3H3CL2F3_SGRS = (
+C3H3CL2F3_SGRS = tuple(sorted([
     ({0: ('C', 1, None), 1: ('C', 1, False), 2: ('C', 1, False),
       3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
       6: ('F', 0, None), 7: ('F', 0, None)},
@@ -143,7 +143,7 @@ C3H3CL2F3_SGRS = (
       frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
       frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
       frozenset({2, 7}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
 C3H5N3_CGR = (
     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
@@ -151,7 +151,7 @@ C3H5N3_CGR = (
     {frozenset({1, 4}): (1, None), frozenset({1, 2}): (1, None),
      frozenset({0, 3}): (1, None), frozenset({0, 2}): (1, None),
      frozenset({2, 5}): (1, None)})
-C3H5N3_SGRS = (
+C3H5N3_SGRS = tuple(sorted([
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
       3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
      {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, False),
@@ -172,9 +172,9 @@ C3H5N3_SGRS = (
      {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, True),
       frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, True),
       frozenset({2, 5}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
-C8H13O_SGRS = (
+C8H13O_SGRS = tuple(sorted([
     ({0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
       3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
       6: ('C', 1, False), 7: ('C', 1, False), 8: ('O', 0, None)},
@@ -231,7 +231,7 @@ C8H13O_SGRS = (
       frozenset({0, 3}): (1, None), frozenset({2, 6}): (1, None),
       frozenset({6, 7}): (1, None), frozenset({8, 7}): (1, None),
       frozenset({3, 5}): (1, True), frozenset({5, 7}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
 # FC=CC=CF + [OH] => FC=C[CH]C(O)F
 C4H5F2O_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
@@ -1123,7 +1123,10 @@ def test__expand_stereo():
     """
     assert graph.expand_stereo(C2H2CL2F2_CGR) == C2H2CL2F2_SGRS
     assert graph.expand_stereo(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
-    assert graph.expand_stereo(C3H5N3_CGR) == C3H5N3_SGRS
+    # When symmetry equivalents are filtered out, we can't guarantee that the
+    # sequence will match exactly, but they will be isomorphic sequences.
+    assert graph.sequence_isomorphism(
+        graph.expand_stereo(C3H5N3_CGR), C3H5N3_SGRS, stereo=True)
     assert graph.expand_stereo(C8H13O_CGR) == C8H13O_SGRS
 
     # CC(OO)C(O[O])C(OO)C
@@ -1592,11 +1595,11 @@ if __name__ == '__main__':
     # test__ts__expand_reaction_stereo()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
-    # test__expand_stereo()
+    test__expand_stereo()
     # test__ts__expand_reaction_stereo()
     # test__species__graph_conversion()
     # test__canonical()
-    test__calculate_priorities_and_assign_parities()
+    # test__calculate_priorities_and_assign_parities()
     # test__smiles()
     # test__kekules()
     # test__geometry_atom_parity()
