@@ -14,7 +14,7 @@ from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_bonds
 from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._core import ts_reverse
-from automol.graph.base._core import ts_reagents_without_stereo
+from automol.graph.base._core import ts_reagents_graph_without_stereo
 from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import atom_stereo_keys
@@ -48,7 +48,7 @@ breaking_bond_keys = ts_breaking_bond_keys
 reacting_bonds = ts_reacting_bonds
 reacting_atoms = ts_reacting_atoms
 reverse = ts_reverse
-reagents_without_stereo = ts_reagents_without_stereo
+reagents_graph_without_stereo = ts_reagents_graph_without_stereo
 
 
 def forming_rings_atom_keys(tsg):
@@ -101,18 +101,22 @@ def breaking_rings_bond_keys(tsg):
     return brk_rngs_bnd_keys
 
 
-# def reagents(tsg, prod=False, stereo=True):
-#     """ Get the reactants or products from a TS graph
+def reagents_graph(tsg, prod=False, stereo=True):
+    """ Get the reactants or products from a TS graph
 
-#     :param tsg: TS graph
-#     :type tsg: automol graph data structure
-#     :param prod: Replace reacting bond orders with product values instead?
-#     :type prod: bool
-#     :param stereo: Keep stereo, even though it is invalid?
-#     :type stereo: bool
-#     :returns: The TS graph, without reacting bond orders
-#     :rtype: automol graph data structure
-#     """
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param prod: Replace reacting bond orders with product values instead?
+    :type prod: bool
+    :param stereo: Keep stereo, even though it is invalid?
+    :type stereo: bool
+    :returns: The TS graph, without reacting bond orders
+    :rtype: automol graph data structure
+    """
+    gra = ts_reagents_graph_without_stereo(tsg, prod=prod)
+    if stereo:
+        raise NotImplementedError("WORKING ON IT!")
+    return gra
 
 
 # vvvvvvvvvvvvvvvvvvvvvvvvv DEPRECTATED vvvvvvvvvvvvvvvvvv

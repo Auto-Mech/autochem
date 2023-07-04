@@ -30,7 +30,7 @@ from automol.graph.base._core import atom_neighbor_atom_keys
 from automol.graph.base._core import atom_bond_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atoms_bond_keys
-from automol.graph.base._core import ts_reagents_without_stereo
+from automol.graph.base._core import ts_reagents_graph_without_stereo
 from automol.graph.base._core import union
 
 
@@ -713,7 +713,7 @@ def rings_bond_keys(gra, ts_=True):
         :returns: A set of sets of bond keys for each ring.
     """
     if not ts_:
-        gra = ts_reagents_without_stereo(gra)
+        gra = ts_reagents_graph_without_stereo(gra)
 
     bnd_keys = bond_keys(gra)
 

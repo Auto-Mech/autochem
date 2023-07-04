@@ -297,7 +297,7 @@ def bond_keys(gra, ts_=True):
     :returns: The bond keys
     :rtype: frozenset[{int, int}]
     """
-    gra = gra if ts_ else ts_reagents_without_stereo(gra)
+    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
     return frozenset(bonds(gra).keys())
 
 
@@ -322,7 +322,7 @@ def bond_orders(gra, ts_=True):
     :returns: A dictionary of bond orders, by bond key
     :rtype: dict[frozenset: int or float]
     """
-    gra = gra if ts_ else ts_reagents_without_stereo(gra)
+    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
     return mdict.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_ORD_POS)
 
 
@@ -477,8 +477,8 @@ def ts_reverse(tsg):
     return rev_tsg
 
 
-def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False,
-                               keep_stereo=False):
+def ts_reagents_graph_without_stereo(tsg, prod=False, keep_zeros=False,
+                                     keep_stereo=False):
     """ Get the reactants or products from a TS graph, without stereo
 
     :param tsg: TS graph
@@ -1023,7 +1023,7 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True, ts_=True):
     :rtype: dict[int: int]
     """
     atm_keys = list(atom_keys(gra))
-    gra = gra if ts_ else ts_reagents_without_stereo(gra)
+    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
     # Convert to explicit graph if we watn implicit hydrogens in the count
     gra = explicit(gra) if with_implicit else gra
 
@@ -1109,8 +1109,8 @@ def tetrahedral_atom_keys(gra):
     :rtype: frozenset[int]
     """
     if is_ts_graph(gra):
-        gras = [ts_reagents_without_stereo(gra, prod=False),
-                ts_reagents_without_stereo(gra, prod=True)]
+        gras = [ts_reagents_graph_without_stereo(gra, prod=False),
+                ts_reagents_graph_without_stereo(gra, prod=True)]
     else:
         gras = [gra]
 
@@ -2121,7 +2121,7 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False, ts_=True):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    gra = gra if ts_ else ts_reagents_without_stereo(gra)
+    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
     bnd_keys = (bond_keys(gra, ts_=ts_)
                 if bnd_keys is None else bnd_keys)
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
