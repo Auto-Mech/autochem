@@ -488,7 +488,7 @@ def ts_reagents_without_stereo(tsg, prod=False, keep_zeros=False,
     :param keep_zeros: Keep the bonds with a resulting bond order of 0?
     :type keep_zeros: bool
     :param keep_stereo: Keep stereo, even though it is invalid?
-    :type keep-stereo: bool
+    :type keep_stereo: bool
     :returns: The TS graph, without reacting bond orders
     :rtype: automol graph data structure
     """

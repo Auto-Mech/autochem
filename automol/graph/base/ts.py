@@ -8,19 +8,22 @@ import itertools
 import numpy
 from automol import util
 import automol.amchi.base    # !!!!
+from automol.graph.base._core import ts_graph
+from automol.graph.base._core import ts_forming_bond_keys
+from automol.graph.base._core import ts_breaking_bond_keys
+from automol.graph.base._core import ts_reacting_bonds
+from automol.graph.base._core import ts_reacting_atoms
+from automol.graph.base._core import ts_reverse
+from automol.graph.base._core import ts_reagents_without_stereo
 from automol.graph.base._core import stereo_parities
 from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
-from automol.graph.base._core import add_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_bonds_by_orders
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import bond_orders
 from automol.graph.base._core import set_bond_orders
-from automol.graph.base._core import ts_forming_bond_keys
-from automol.graph.base._core import ts_breaking_bond_keys
-from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._core import string
 from automol.graph.base._core import relabel
 from automol.graph.base._core import nonbackbone_hydrogen_keys
@@ -38,47 +41,14 @@ from automol.graph.base._canon import canonical_priorities
 from automol.graph.base._kekule import vinyl_radical_atom_keys
 from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 
-
-def negate_nonbackbone_hydrogen_keys(gra):
-    """ Flip the signs of hydrogen keys
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :return: molecular graph with hydrogen keys negated
-    :rtype: automol graph data structure
-    """
-    gra = reactants_graph(gra)
-    hyd_keys = nonbackbone_hydrogen_keys(gra)
-    atm_key_dct = {k: -abs(k) for k in hyd_keys}
-    return relabel(gra, atm_key_dct)
-
-
-def graph(gra, frm_bnd_keys, brk_bnd_keys):
-    """ generate a transition-state graph
-    """
-    frm_bnd_keys = frozenset(map(frozenset, frm_bnd_keys))
-    brk_bnd_keys = frozenset(map(frozenset, brk_bnd_keys))
-
-    frm_ord_dct = {k: 0.1 for k in frm_bnd_keys}
-    brk_ord_dct = {k: 0.9 for k in brk_bnd_keys}
-
-    tsg = add_bonds(gra, frm_bnd_keys, ord_dct=frm_ord_dct, check=False)
-    tsg = add_bonds(tsg, brk_bnd_keys, ord_dct=brk_ord_dct, check=False)
-    return tsg
-
-
-def reverse(tsg, dummies=True):
-    """ reverse a transition state graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    if not dummies:
-        tsg = without_dummy_atoms(tsg)
-
-    return graph(gra=tsg,
-                 frm_bnd_keys=ts_breaking_bond_keys(tsg),
-                 brk_bnd_keys=ts_forming_bond_keys(tsg))
+# Rename TS-specific functions defined elsewhere
+graph = ts_graph
+forming_bond_keys = ts_forming_bond_keys
+breaking_bond_keys = ts_breaking_bond_keys
+reacting_bonds = ts_reacting_bonds
+reacting_atoms = ts_reacting_atoms
+reverse = ts_reverse
+reagents_without_stereo = ts_reagents_without_stereo
 
 
 def forming_rings_atom_keys(tsg):
@@ -129,6 +99,99 @@ def breaking_rings_bond_keys(tsg):
         bks for bks in rings_bond_keys(tsg, ts_=True)
         if brk_bnd_keys & bks)
     return brk_rngs_bnd_keys
+
+
+# def reagents(tsg, prod=False, stereo=True):
+#     """ Get the reactants or products from a TS graph
+
+#     :param tsg: TS graph
+#     :type tsg: automol graph data structure
+#     :param prod: Replace reacting bond orders with product values instead?
+#     :type prod: bool
+#     :param stereo: Keep stereo, even though it is invalid?
+#     :type stereo: bool
+#     :returns: The TS graph, without reacting bond orders
+#     :rtype: automol graph data structure
+#     """
+
+
+# vvvvvvvvvvvvvvvvvvvvvvvvv DEPRECTATED vvvvvvvvvvvvvvvvvv
+def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
+    r""" Check whether a reaction satisfies the elimination stereo constraint
+
+        Constraint:
+
+                3           6         4         8
+                 \ +     + /           \   +   /     3
+                  1-------2      <=>    1=====2      |
+                 / \     / \           /       \     6
+                4   5   8   7         5         7
+
+            clockwise  clockwise     trans
+            ('+')      ('+')         ('+')
+
+        Equation: p_b12 = (p_a1 AND p_1) XNOR (p_a2 AND p_2)
+
+        Where p_a1 and p_a2 are the parities of the atoms, p_b is the resulting
+        parity of the 1=2 double bond, and p_1 and p_2 are the parities of the
+        permutations required to move the other atom in the bond first in the
+        list and the leaving atom second for each atom.
+    """
+    floc_par_dct = stereo_parities(ftsg_loc)
+    rloc_par_dct = stereo_parities(rtsg_loc)
+
+    loc_pri_dct = local_priority_dict(reactants_graph(ftsg_loc))
+
+    ste_akeys = atom_stereo_keys(ftsg_loc)
+    brk_bkeys = ts_breaking_bond_keys(ftsg_loc)
+    ngb_keys_dct = atoms_neighbor_atom_keys(ftsg_loc)
+    rng_akeys_lst = list(map(set, forming_rings_atom_keys(ftsg_loc)))
+
+    satisfies = True
+    bkeys = bond_stereo_keys(rtsg_loc)
+    for bkey in bkeys:
+        # Conditions:
+        # A. Both atoms in the bond were stereogenic in the reactants
+        if all(k in ste_akeys for k in bkey):
+            key1, key2 = bkey
+            key0, = next(k for k in brk_bkeys if key1 in k) - {key1}
+            key3, = next(k for k in brk_bkeys if key2 in k) - {key2}
+            keys = {key0, key1, key2, key3}
+            # B. The leaving groups are joined together, forming a TS ring
+            if any(keys & ks for ks in rng_akeys_lst):
+                # This is a constrained bond!
+                # i. Read out the relevant atom and bond parities
+                p_a1 = floc_par_dct[key1]
+                p_a2 = floc_par_dct[key2]
+                p_b12_actual = rloc_par_dct[frozenset({key1, key2})]
+
+                # ii. Calculate what the bond parity should be
+                nk1s = sorted(ngb_keys_dct[key1], key=loc_pri_dct.__getitem__)
+                nk2s = sorted(ngb_keys_dct[key2], key=loc_pri_dct.__getitem__)
+                srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
+                srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
+                p_1 = util.is_even_permutation(nk1s, srt_nk1s)
+                p_2 = util.is_even_permutation(nk2s, srt_nk2s)
+
+                # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
+                p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
+                satisfies &= (p_b12 == p_b12_actual)
+
+    return satisfies
+
+
+def negate_nonbackbone_hydrogen_keys(gra):
+    """ Flip the signs of hydrogen keys
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :return: molecular graph with hydrogen keys negated
+    :rtype: automol graph data structure
+    """
+    gra = reactants_graph(gra)
+    hyd_keys = nonbackbone_hydrogen_keys(gra)
+    atm_key_dct = {k: -abs(k) for k in hyd_keys}
+    return relabel(gra, atm_key_dct)
 
 
 def reactants_graph(tsg):
@@ -490,67 +553,3 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
             rtsg_loc, ftsg_loc)
 
     return is_consistent
-
-
-def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
-    r""" Check whether a reaction satisfies the elimination stereo constraint
-
-        Constraint:
-
-                3           6         4         8
-                 \ +     + /           \   +   /     3
-                  1-------2      <=>    1=====2      |
-                 / \     / \           /       \     6
-                4   5   8   7         5         7
-
-            clockwise  clockwise     trans
-            ('+')      ('+')         ('+')
-
-        Equation: p_b12 = (p_a1 AND p_1) XNOR (p_a2 AND p_2)
-
-        Where p_a1 and p_a2 are the parities of the atoms, p_b is the resulting
-        parity of the 1=2 double bond, and p_1 and p_2 are the parities of the
-        permutations required to move the other atom in the bond first in the
-        list and the leaving atom second for each atom.
-    """
-    floc_par_dct = stereo_parities(ftsg_loc)
-    rloc_par_dct = stereo_parities(rtsg_loc)
-
-    loc_pri_dct = local_priority_dict(reactants_graph(ftsg_loc))
-
-    ste_akeys = atom_stereo_keys(ftsg_loc)
-    brk_bkeys = ts_breaking_bond_keys(ftsg_loc)
-    ngb_keys_dct = atoms_neighbor_atom_keys(ftsg_loc)
-    rng_akeys_lst = list(map(set, forming_rings_atom_keys(ftsg_loc)))
-
-    satisfies = True
-    bkeys = bond_stereo_keys(rtsg_loc)
-    for bkey in bkeys:
-        # Conditions:
-        # A. Both atoms in the bond were stereogenic in the reactants
-        if all(k in ste_akeys for k in bkey):
-            key1, key2 = bkey
-            key0, = next(k for k in brk_bkeys if key1 in k) - {key1}
-            key3, = next(k for k in brk_bkeys if key2 in k) - {key2}
-            keys = {key0, key1, key2, key3}
-            # B. The leaving groups are joined together, forming a TS ring
-            if any(keys & ks for ks in rng_akeys_lst):
-                # This is a constrained bond!
-                # i. Read out the relevant atom and bond parities
-                p_a1 = floc_par_dct[key1]
-                p_a2 = floc_par_dct[key2]
-                p_b12_actual = rloc_par_dct[frozenset({key1, key2})]
-
-                # ii. Calculate what the bond parity should be
-                nk1s = sorted(ngb_keys_dct[key1], key=loc_pri_dct.__getitem__)
-                nk2s = sorted(ngb_keys_dct[key2], key=loc_pri_dct.__getitem__)
-                srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
-                srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
-                p_1 = util.is_even_permutation(nk1s, srt_nk1s)
-                p_2 = util.is_even_permutation(nk2s, srt_nk2s)
-
-                # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
-                p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
-                satisfies &= (p_b12 == p_b12_actual)
-
-    return satisfies
