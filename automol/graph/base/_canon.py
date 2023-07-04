@@ -200,7 +200,7 @@ def ts_direction_representation(tsg, pri_dct):
     return rep
 
 
-def ts_is_canonical_direciton(ftsg, fpri_dct, rtsg, rpri_dct):
+def ts_is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
     """ Is this TS direction the canonical one?
 
     :param ftsg: A TS graph in the forward direction
@@ -507,8 +507,8 @@ def calculate_priorities_and_assign_stereo(
     :rtype: dict[int: int], molecular graph data structure
     """
 
-    # Store a copy in the same format for the return. Stereo parities will be
-    # added to this and returned.
+    # Store a copy in the same format. Stereo parities will be added to this
+    # for the return.
     gra2 = without_stereo(gra)
 
     gra = without_dummy_atoms(gra)
@@ -531,6 +531,8 @@ def _calculate_priorities_and_assign_stereo(
         gra, par_eval_=None, par_eval2_=None, break_ties=False,
         backbone_only=True, pri_dct=None):
     """ Determine canonical priorities and assign stereo parities to this graph
+
+    (Only for connected graphs)
 
     This is how the parity evaluators are to be called:
     >>> par = par_eval_(pri_dct)(key)               # this returns the parity
@@ -602,7 +604,7 @@ def _calculate_priorities_and_assign_stereo(
     # figure out which one is canonical
     if is_ts_graph(gra):
         rpri_dct, rgra1, rgra2 = _algo(gra, pri_dct, ts_rev=True)
-        if not ts_is_canonical_direciton(gra1, pri_dct, rgra1, rpri_dct):
+        if not ts_is_canonical_direction(gra1, pri_dct, rgra1, rpri_dct):
             pri_dct = rpri_dct
             gra1 = rgra1
             gra2 = rgra2
