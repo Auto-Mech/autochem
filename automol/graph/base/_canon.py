@@ -587,11 +587,11 @@ def _calculate_priorities_and_assign_stereo(
                 break
 
             # e. Assign parities to graph 1 using the first parity evaluator.
-            p1_ = par_eval_(gra0, pri_dct1)
+            p1_ = par_eval_(gra0, pri_dct1, ts_rev=ts_rev)
             gra1 = set_stereo_parities(gra1, {k: p1_(k) for k in keys})
 
             # f. Assign parities to graph 2 using the second parity evaluator.
-            p2_ = par_eval2_(gra0, pri_dct1)
+            p2_ = par_eval2_(gra0, pri_dct1, ts_rev=ts_rev)
             gra2 = set_stereo_parities(gra2, {k: p2_(k) for k in keys})
 
         # If the graph was reversed, restore `gra2` to the original form
@@ -864,14 +864,18 @@ def parity_evaluator_from_geometry_(geo=None, geo_idx_dct=None):
     """
     geo_idx_dct_ = geo_idx_dct
 
-    def _evaluator(gra, pri_dct):
+    def _evaluator(gra, pri_dct, ts_rev=False):
         """ Parity evaluator based on current priorities.
 
         :param gra: molecular graph
         :type gra: automol graph data structure
         :param pri_dct: A dictionary mapping atom keys to priorities.
         :type pri_dct: dict
+        :param ts_rev: Is this a reversed TS graph?
+        :type ts_rev: bool
         """
+        assert ts_rev is not None  # Dummy statement for linters
+
         atm_keys = sorted(atom_keys(gra))
         geo_idx_dct = (geo_idx_dct_ if geo_idx_dct_ is not None
                        else {k: i for i, k in enumerate(sorted(atm_keys))})
@@ -924,7 +928,7 @@ def parity_evaluator_read_canonical_():
         returns the parity for a given atom, given a set of priorities.
     """
 
-    def _evaluator(gra, pri_dct):
+    def _evaluator(gra, pri_dct, ts_rev=False):
         """ Parity evaluator based on current priorities
 
         Class indices are ignored, since the parities are assumed to be
@@ -934,7 +938,11 @@ def parity_evaluator_read_canonical_():
         :type gra: automol graph data structure
         :param pri_dct: A dictionary mapping atom keys to priorities
         :type pri_dct: dict
+        :param ts_rev: Is this a reversed TS graph?
+        :type ts_rev: bool
         """
+        assert ts_rev is not None  # Dummy statement for linters
+
         atm_par_dct = atom_stereo_parities(gra)
         bnd_par_dct = bond_stereo_parities(gra)
 
@@ -973,20 +981,28 @@ def parity_evaluator_flip_local_():
     are treated as having lowest priority. This is done by setting their
     sort value to negative infinity.
 
+    For TS graphs, canonical priorities are given with respect to the canonical
+    TS direction. To avoid dependence of local parities on the canonical
+    direction, we must *undo* the direction reversal that occurs during the
+    canonical priority calculation when generating local parities. As far as I
+    am aware, the *only* case affected by this is Sn2 reactions, so that is all
+    that I have implemented here.
+
     :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
         returns the parity for a given atom, given a set of priorities.
     """
 
-    def _evaluator(gra, pri_dct):
+    def _evaluator(gra, pri_dct, ts_rev=False):
         """ Parity evaluator based on current priorities
 
-            Class indices are ignored, since the parities are assumed to be
-            local.
+        Class indices are ignored, since the parities are assumed to be local.
 
-            :param gra: molecular graph with local stereo parities
-            :type gra: automol graph data structure
-            :param pri_dct: A dictionary mapping atom keys to priorities.
-            :type pri_dct: dict
+        :param gra: molecular graph with local stereo parities
+        :type gra: automol graph data structure
+        :param pri_dct: A dictionary mapping atom keys to priorities.
+        :type pri_dct: dict
+        :param ts_rev: Is this a reversed TS graph?
+        :type ts_rev: bool
         """
         gra = explicit(gra)
         atm_par_dct = atom_stereo_parities(gra)
@@ -997,19 +1013,36 @@ def parity_evaluator_flip_local_():
         pri_dct = assign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
 
+        orig_gra = ts_reverse(gra) if ts_rev else gra
+
         def _parity(key):
             # If the key is a number, this is an atom
             if isinstance(key, numbers.Number):
                 par = atm_par_dct[key]
 
-                can_srt = atom_stereo_sorted_neighbor_keys(
-                    gra, key, pri_dct=pri_dct)
+                nkeys = atom_stereo_sorted_neighbor_keys(gra, key)
+                can_srt = sorted(nkeys, key=pri_dct.__getitem__)
                 loc_srt = sorted(can_srt, key=loc_pri_dct.__getitem__)
 
                 if util.is_even_permutation(loc_srt, can_srt):
                     ret_par = par
                 else:
                     ret_par = not par
+
+                # If the original nkeys were different, assume we have an
+                # Sn2-like situation.  In this case, the parity incurs another
+                # inversion.
+                orig_nkeys = atom_stereo_sorted_neighbor_keys(orig_gra, key)
+                if sorted(nkeys) != sorted(orig_nkeys):
+                    assert (
+                        any(key in bk for bk in ts_forming_bond_keys(gra)) and
+                        any(key in bk for bk in ts_breaking_bond_keys(gra))
+                    ), (
+                        f"Unforeseen case! Reversal alters stereo atom"
+                        f"neighbors but TS is not Sn2-like. Investigate!"
+                        f"\n{nkeys} != {orig_nkeys}\n{gra}\norig:\n{orig_gra}")
+                    ret_par = not ret_par
+
             # Otherwise, this is a bond
             else:
                 assert isinstance(key, abc.Collection) and len(key) == 2, (
@@ -1029,6 +1062,19 @@ def parity_evaluator_flip_local_():
                     ret_par = par
                 else:
                     ret_par = not par
+
+                # For bonds, the neighbors used shouldn't change upon TS
+                # reversal for any of the cases we have dealt with. If this
+                # isn't the case, we need to extend this code to handle the
+                # unforeseen cases.
+                orig_nkey1s, orig_nkey2s = bond_stereo_sorted_neighbor_keys(
+                    orig_gra, key1, key2)
+                assert sorted(nkey1s) == sorted(orig_nkey1s), (
+                    f"Unforeseen case! Reversal alters stereo bond neighbors:"
+                    f"\n{nkey1s} != {orig_nkey1s}\n{gra}\norig:\n{orig_gra}")
+                assert sorted(nkey2s) == sorted(orig_nkey2s), (
+                    f"Unforeseen case! Reversal alters stereo bond neighbors:"
+                    f"\n{nkey2s} != {orig_nkey2s}\n{gra}\norig:\n{orig_gra}")
 
             return ret_par
 
