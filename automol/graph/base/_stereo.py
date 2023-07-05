@@ -58,7 +58,7 @@ def expand_stereo(gra, enant=True, symeq=False):
     # for the return.
     gra0 = without_stereo(gra)
 
-    cgras = connected_components(gra)
+    cgras = connected_components(gra0)
     cgras_lst = [_expand_stereo(g, enant=enant, symeq=symeq) for g in cgras]
 
     sgras = []
