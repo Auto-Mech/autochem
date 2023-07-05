@@ -393,6 +393,7 @@ def test__from_local_stereo():
         assert tsg == graph.from_local_stereo(loc_tsg)
 
     _test("CH4CLFNO", CH4CLFNO_TSG)
+    _test("CH4CLFNO(rev)", graph.ts.reverse(CH4CLFNO_TSG))
     _test("C4H11O2", C4H11O2_TSG)
     _test("C2H3O4", C2H3O4_TSG)
     _test("C4H9O3", C4H9O3_TSG)
