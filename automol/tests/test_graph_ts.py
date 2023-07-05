@@ -370,6 +370,19 @@ def test__to_local_stereo():
     assert loc_par1 is False
     assert loc_par2 is True
 
+    print("CH4ClFNO: testing to_local_stereo")
+    # Reverse direction of an Sn2 reaction
+    tsg1 = CH4CLFNO_TSG
+    tsg2 = graph.ts.reverse(tsg1)
+    # Convert both to local stereo
+    loc_tsg1 = graph.to_local_stereo(tsg1)
+    loc_tsg2 = graph.to_local_stereo(tsg2)
+    # Check that the local parities have opposite values
+    loc_par1 = graph.stereo_parities(loc_tsg1)[0]
+    loc_par2 = graph.stereo_parities(loc_tsg2)[0]
+    assert loc_par1 is False
+    assert loc_par2 is True
+
 
 def test__from_local_stereo():
     """ test graph.from_local_stereo
@@ -389,6 +402,6 @@ def test__from_local_stereo():
 
 
 if __name__ == '__main__':
-    test__set_stereo_from_geometry()
+    # test__set_stereo_from_geometry()
     test__to_local_stereo()
-    test__from_local_stereo()
+    # test__from_local_stereo()
