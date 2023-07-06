@@ -45,10 +45,18 @@ def right_update(dct1, dct2):
     return dct
 
 
-def by_key(dct, keys, fill_val=None):
+def by_key(dct, keys, fill=True, fill_val=None):
     """ dictionary on a set of keys, filling missing entries
+
+    :param fill: Fill in missing values?
+    :type fill: bool
+    :param fill_val: If `fill` is `True`, fill missing entries with this value.
     """
-    return dict(zip(keys, values_by_key(dct, keys, fill_val=fill_val)))
+    if fill:
+        dct = dict(zip(keys, values_by_key(dct, keys, fill_val=fill_val)))
+    else:
+        dct = {key: dct[key] for key in keys if key in dct}
+    return dct
 
 
 def by_value(dct, func=lambda x: x):
