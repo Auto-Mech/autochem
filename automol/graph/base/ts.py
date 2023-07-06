@@ -119,6 +119,42 @@ def reagents_graph(tsg, prod=False, stereo=True):
     return gra
 
 
+def parity_evaluator_reagents_from_ts_(tsg):
+    """ Determines reactant or product stereochemistry from a TS graph
+
+    (For internal use by the calculate_priorities_and_assign_stereo() function)
+
+    :returns: A parity evaluator, `p_`, for which `p_(gra, pri_dct)(key)`
+        returns the parity for a given atom, given a set of priorities.
+    """
+    loc_tsg = to_local_stereo(tsg)
+
+    def _evaluator(gra, pri_dct, ts_rev=False):
+        """ Parity evaluator based on current priorities
+
+        :param gra: molecular graph with canonical stereo parities
+        :type gra: automol graph data structure
+        :param pri_dct: A dictionary mapping atom keys to priorities
+        :type pri_dct: dict
+        :param ts_rev: Is this a reversed TS graph?
+        :type ts_rev: bool
+        """
+
+        # Do-nothing lines to prevent linting complaint
+        assert pri_dct or not pri_dct
+        assert ts_rev or not ts_rev
+        assert loc_tsg or not loc_tsg
+
+        par_dct = stereo_parities(gra)
+
+        def _parity(key):
+            return par_dct[key]
+
+        return _parity
+
+    return _evaluator
+
+
 # vvvvvvvvvvvvvvvvvvvvvvvvv DEPRECTATED vvvvvvvvvvvvvvvvvv
 def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
     r""" Check whether a reaction satisfies the elimination stereo constraint
