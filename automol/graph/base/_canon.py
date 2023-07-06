@@ -37,7 +37,6 @@ from automol.graph.base._core import explicit
 from automol.graph.base._core import atom_implicit_hydrogens
 from automol.graph.base._core import backbone_hydrogen_keys
 from automol.graph.base._core import nonbackbone_hydrogen_keys
-from automol.graph.base._core import atom_nonbackbone_hydrogen_keys
 from automol.graph.base._core import relabel
 from automol.graph.base._core import without_pi_bonds
 from automol.graph.base._core import without_bonds_by_orders
@@ -90,6 +89,7 @@ def canonical_enantiomer_with_keys(gra):
         ce_can_key_dct = canonical_keys(gra, backbone_only=False)
         is_refl = None
     else:
+        assert is_connected(gra), f"Requires a connected graph.\n{gra}"
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
         ugra = gra
@@ -123,6 +123,63 @@ def canonical_enantiomer_with_keys(gra):
             ce_can_key_dct = ucan_key_dct
 
     return ce_gra, ce_can_key_dct, is_refl
+
+
+def canonical(gra):
+    """ A graph relabeled with canonical keys
+
+    Stereo parities in the graph are assumed to be canonical.
+
+    Requires a connected graph
+
+    :param gra: a connected molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    :returns: a new molecular graph with canonical keys; if explicit
+        hydrogens are included, they will be relabeled as well
+    """
+    can_key_dct = canonical_keys(gra, backbone_only=False)
+    return relabel(gra, can_key_dct)
+
+
+def canonical_keys(gra, backbone_only=True):
+    """ Determine canonical keys for this graph.
+
+    Stereo parities in the graph are assumed to be canonical.
+
+    Requires a connected graph
+
+    :param gra: a connected molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    :param backbone_only: Consider backbone atoms only?
+    :type backbone_only: bool
+    :param break_ties: Break ties after keys have been refined?
+    :type break_ties: bool
+    :returns: a dictionary of canonical keys by atom key
+    :rtype: dict[int: int]
+    """
+    assert is_connected(gra), f"Requires a connected graph.\n{gra}"
+    atm_par_dct0 = atom_stereo_parities(gra)
+    bnd_par_dct0 = bond_stereo_parities(gra)
+
+    can_key_dct, gra = calculate_priorities_and_assign_stereo(
+        gra, backbone_only=backbone_only, break_ties=True)
+
+    atm_par_dct = atom_stereo_parities(gra)
+    bnd_par_dct = bond_stereo_parities(gra)
+
+    assert atm_par_dct == atm_par_dct0, (
+        f"Atom stereo parities don't match input. Something is wrong:\n"
+        f"input: {atm_par_dct0}\n"
+        f"return: {atm_par_dct}\n"
+    )
+
+    assert bnd_par_dct == bnd_par_dct0, (
+        f"Bond stereo parities don't match input. Something is wrong:\n"
+        f"input: {bnd_par_dct0}\n"
+        f"return: {bnd_par_dct}\n"
+    )
+
+    return can_key_dct
 
 
 def stereo_assignment_representation(gra, pri_dct):
@@ -223,62 +280,6 @@ def ts_is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
     rpri_dct = dict_.by_key(rpri_dct, atom_keys(rtsg))
     rrep = ts_direction_representation(rtsg, rpri_dct)
     return frep < rrep
-
-
-def canonical(gra):
-    """ A graph relabeled with canonical keys
-
-    Stereo parities in the graph are assumed to be canonical.
-
-    Requires a connected graph
-
-    :param gra: a connected molecular graph with canonical stereo parities
-    :type gra: automol graph data structure
-    :returns: a new molecular graph with canonical keys; if explicit
-        hydrogens are included, they will be relabeled as well
-    """
-    can_key_dct = canonical_keys(gra, backbone_only=False)
-    return relabel(gra, can_key_dct)
-
-
-def canonical_keys(gra, backbone_only=True):
-    """ Determine canonical keys for this graph.
-
-    Stereo parities in the graph are assumed to be canonical.
-
-    Requires a connected graph
-
-    :param gra: a connected molecular graph with canonical stereo parities
-    :type gra: automol graph data structure
-    :param backbone_only: Consider backbone atoms only?
-    :type backbone_only: bool
-    :param break_ties: Break ties after keys have been refined?
-    :type break_ties: bool
-    :returns: a dictionary of canonical keys by atom key
-    :rtype: dict[int: int]
-    """
-    atm_par_dct0 = atom_stereo_parities(gra)
-    bnd_par_dct0 = bond_stereo_parities(gra)
-
-    can_key_dct, gra = calculate_priorities_and_assign_stereo(
-        gra, backbone_only=backbone_only, break_ties=True)
-
-    atm_par_dct = atom_stereo_parities(gra)
-    bnd_par_dct = bond_stereo_parities(gra)
-
-    assert atm_par_dct == atm_par_dct0, (
-        f"Atom stereo parities don't match input. Something is wrong:\n"
-        f"input: {atm_par_dct0}\n"
-        f"return: {atm_par_dct}\n"
-    )
-
-    assert bnd_par_dct == bnd_par_dct0, (
-        f"Bond stereo parities don't match input. Something is wrong:\n"
-        f"input: {bnd_par_dct0}\n"
-        f"return: {bnd_par_dct}\n"
-    )
-
-    return can_key_dct
 
 
 # # canonical stereo functions
@@ -505,7 +506,7 @@ def calculate_priorities_and_assign_stereo(
     """ Determine canonical priorities and assign stereo parities to this graph
 
     This is how the parity evaluators are to be called:
-    >>> par = par_eval_(pri_dct)(key)               # this returns the parity
+    >>> par = par_eval_(gra, pri_dct)(key)  # this returns the parity
 
     :param gra: a molecular graph
     :type gra: automol graph data structure
@@ -525,55 +526,9 @@ def calculate_priorities_and_assign_stereo(
         with stereo assignments.
     :rtype: dict[int: int], molecular graph data structure
     """
-
-    # Store a copy in the same format. Stereo parities will be added to this
-    # for the return.
-    gra2 = without_stereo(gra)
-
+    orig_gra = gra
     gra = without_dummy_atoms(gra)
-    cgras = connected_components(gra)
-    cpri_dcts = [None if pri_dct is None else dict_.by_key(pri_dct, ks)
-                 for ks in map(atom_keys, cgras)]
-    pri_dct = {}
-    for cgra, cpri_dct in zip(cgras, cpri_dcts):
-        cpri_dct, cgra2 = _calculate_priorities_and_assign_stereo(
-            cgra, par_eval_=par_eval_, par_eval2_=par_eval2_,
-            break_ties=break_ties, backbone_only=backbone_only,
-            pri_dct=cpri_dct)
-        pri_dct.update(cpri_dct)
-        gra2 = set_stereo_parities(gra2, stereo_parities(cgra2))
 
-    return pri_dct, gra2
-
-
-def _calculate_priorities_and_assign_stereo(
-        gra, par_eval_=None, par_eval2_=None, break_ties=False,
-        backbone_only=True, pri_dct=None):
-    """ Determine canonical priorities and assign stereo parities to this graph
-
-    (Only for connected graphs)
-
-    This is how the parity evaluators are to be called:
-    >>> par = par_eval_(pri_dct)(key)               # this returns the parity
-
-    :param gra: a connected molecular graph
-    :type gra: automol graph data structure
-    :param par_eval_: A parity evaluator for assigning parities during the
-        priority calculation.
-    :param par_eval2_: An optional second parity evaluator for assigning
-        the parities that will be returned, if different from those to be
-        used for the priority calculation.
-    :param break_ties: Break ties to determine canonical keys from
-        canonical priorities?
-    :type break_ties: bool
-    :param backbone_only: Consider backbone atoms only?
-    :type backbone_only: bool
-    :param pri_dct: Optional initial priorities, to be refined.
-    :type pri_dct: dict[int: int]
-    :returns: A dictionary of canonical priorities by atom key and a graph
-        with stereo assignments.
-    :rtype: dict[int: int], molecular graph data structure
-    """
     par_eval_ = (parity_evaluator_read_canonical_()
                  if par_eval_ is None else par_eval_)
     par_eval2_ = par_eval_ if par_eval2_ is None else par_eval2_
@@ -634,13 +589,83 @@ def _calculate_priorities_and_assign_stereo(
 
     # 4. If requested, add in priorities for explicit hydrogens.
     if not backbone_only:
-        pri_dct = assign_hydrogen_priorities(
+        pri_dct = reassign_hydrogen_priorities(
             gra, pri_dct, break_ties=break_ties)
 
-    return pri_dct, gra2
+    gra = set_stereo_parities(orig_gra, stereo_parities(gra2))
+    return pri_dct, gra
 
 
-def refine_priorities(gra, pri_dct=None):
+def refine_priorities(gra, pri_dct=None, _backbone_only=True):
+    """ Refine the canonical priorities for this graph based on some sort value
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: A dictionary mapping atom keys to priorities
+    :type pri_dct: dict
+    :param srt_eval_: An evaluator for sort values, based on current
+        priorities. Curried such that srt_val_(pri_dct)(key) returns the
+        sort value.
+    """
+    gra = without_dummy_atoms(gra)
+    cgras = connected_components(gra)
+    cpri_dcts = [
+        None if pri_dct is None else dict_.by_key(pri_dct, ks, fill=False)
+        for ks in map(atom_keys, cgras)]
+    pri_dct = {}
+    for cgra, cpri_dct in zip(cgras, cpri_dcts):
+        cpri_dct = _refine_priorities(
+            cgra, pri_dct=cpri_dct, _backbone_only=_backbone_only)
+        pri_dct.update(cpri_dct)
+
+    return pri_dct
+
+
+def break_priority_ties(gra, pri_dct):
+    """ Break ties within priority classes.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: A dictionary mapping atom keys to priorities
+    :type pri_dct: dict
+    :param srt_eval_: An evaluator for sort values, based on current class
+        indices. Curried such that srt_val_(pri_dct)(key) returns the sort
+        value.
+    """
+    gra = without_dummy_atoms(gra)
+    cgras = connected_components(gra)
+    cpri_dcts = [
+        None if pri_dct is None else dict_.by_key(pri_dct, ks, fill=False)
+        for ks in map(atom_keys, cgras)]
+    pri_dct = {}
+    for cgra, cpri_dct in zip(cgras, cpri_dcts):
+        cpri_dct = _break_priority_ties(cgra, pri_dct=cpri_dct)
+        pri_dct.update(cpri_dct)
+
+    return pri_dct
+
+
+def reassign_hydrogen_priorities(gra, pri_dct, break_ties=False, neg=False):
+    """ Reassign priorities to hydrogens, negating them on request
+
+    :param neg: Negate hydrogen keys, to give them lowest priority?
+    :param neg: bool
+    """
+    gra = without_dummy_atoms(gra)
+    cgras = connected_components(gra)
+    cpri_dcts = [
+        None if pri_dct is None else dict_.by_key(pri_dct, ks, fill=False)
+        for ks in map(atom_keys, cgras)]
+    pri_dct = {}
+    for cgra, cpri_dct in zip(cgras, cpri_dcts):
+        cpri_dct = _reassign_hydrogen_priorities(
+            cgra, pri_dct=cpri_dct, break_ties=break_ties, neg=neg)
+        pri_dct.update(cpri_dct)
+
+    return pri_dct
+
+
+def _refine_priorities(gra, pri_dct=None, _backbone_only=True):
     """ Refine the canonical priorities for this graph based on some sort value
 
     (Only for connected graphs)
@@ -653,13 +678,16 @@ def refine_priorities(gra, pri_dct=None):
         priorities. Curried such that srt_val_(pri_dct)(key) returns the
         sort value.
     """
-    assert is_connected(gra), "Not for disconnected graphs."
     assert gra == without_dummy_atoms(gra), (
         f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
 
-    gra = implicit(gra)
-    pri_dct = {} if pri_dct is None else pri_dct
-    pri_dct = dict_.by_key(pri_dct, atom_keys(gra), fill_val=0)
+    if _backbone_only:
+        gra = implicit(gra)
+
+    pri_dct = (dict_.by_key({}, atom_keys(gra), fill_val=0)
+               if pri_dct is None else pri_dct)
+    next_pri = max(pri_dct.values()) + 1
+    pri_dct = dict_.by_key(pri_dct, atom_keys(gra), fill_val=next_pri)
     srt_eval_ = sort_evaluator_atom_invariants_(gra)
 
     ngb_keys_dct = atoms_neighbor_atom_keys(gra)
@@ -722,7 +750,7 @@ def refine_priorities(gra, pri_dct=None):
     return pri_dct
 
 
-def break_priority_ties(gra, pri_dct):
+def _break_priority_ties(gra, pri_dct):
     """ Break ties within priority classes.
 
     (Only for connected graphs)
@@ -735,7 +763,6 @@ def break_priority_ties(gra, pri_dct):
         indices. Curried such that srt_val_(pri_dct)(key) returns the sort
         value.
     """
-    assert is_connected(gra), "Not for disconnected graphs."
     assert gra == without_dummy_atoms(gra), (
         f"Remove dummy atoms:\n{gra}\n{without_dummy_atoms(gra)}")
 
@@ -758,12 +785,40 @@ def break_priority_ties(gra, pri_dct):
         pri_dct[cla[-1]] = new_idx
 
         # Now, refine partitions based on the change just made.
-        pri_dct = refine_priorities(gra, pri_dct)
+        pri_dct = refine_priorities(gra, pri_dct, _backbone_only=False)
 
         # Update the list of classes needing further tie breaking
         cla_dct = class_dict_from_priority_dict(pri_dct)
         new_cla_dct = dict_.filter_by_value(cla_dct, lambda v: len(v) > 1)
         new_clas = sorted(new_cla_dct.items(), reverse=True)
+
+    return pri_dct
+
+
+def _reassign_hydrogen_priorities(gra, pri_dct, break_ties=False, neg=False):
+    """ Reassign priorities to hydrogens, negating them on request
+
+    (Only for connected graphs)
+
+    :param neg: Negate hydrogen keys, to give them lowest priority?
+    :param neg: bool
+    """
+    pri_dct = dict_.by_key(pri_dct, backbone_keys(gra), fill=False)
+
+    # Assigne all hydrogens to the same priority class
+    next_pri = max(pri_dct.values()) + 1
+    pri_dct.update({k: next_pri for k in nonbackbone_hydrogen_keys(gra)})
+    pri_dct = _refine_priorities(gra, pri_dct, _backbone_only=False)
+
+    # If requested, break any ties
+    if break_ties:
+        pri_dct = _break_priority_ties(gra, pri_dct)
+
+    # If requested, negate priorities for *all* hydrogen keys, for consistency
+    if neg:
+        all_hyd_keys = atom_keys(gra, symb='H')
+        pri_dct = {k: -abs(p) if k in all_hyd_keys else p
+                   for k, p in pri_dct.items()}
 
     return pri_dct
 
@@ -808,21 +863,19 @@ def sort_evaluator_atom_invariants_(gra):
             symb = 'zz'   # Sorts last against atomic symbols
         return symb
 
-    # Normalize the graph before working with it
-    gra = without_pi_bonds(implicit(gra))
+    # For the main properties, remove reacting bonds and/or hydrogens before
+    # calculating
+    imp_gra = without_pi_bonds(implicit(gra))
+    imp_gra_no_rxbs = without_bonds_by_orders(imp_gra, [0.1, 0.9])
+    bnds_dct_no_rxbs = atoms_bond_keys(imp_gra_no_rxbs)
 
-    # For the main properties, remove reacting bonds before calculating
-    gra_no_rxbs = without_bonds_by_orders(gra, [0.1, 0.9])
-    bnds_dct_no_rxbs = atoms_bond_keys(gra_no_rxbs)
-
-    symb_dct = dict_.transform_values(
-        atom_symbols(gra_no_rxbs), _normalize_symbol)
-    hnum_dct = atom_implicit_hydrogens(gra_no_rxbs)
-    mnum_dct = mass_numbers(gra_no_rxbs)
+    symb_dct = dict_.transform_values(atom_symbols(gra), _normalize_symbol)
+    hnum_dct = atom_implicit_hydrogens(imp_gra_no_rxbs)
+    mnum_dct = mass_numbers(imp_gra_no_rxbs)
     apar_dct = dict_.transform_values(
-        atom_stereo_parities(gra_no_rxbs), _replace_none)
+        atom_stereo_parities(imp_gra_no_rxbs), _replace_none)
 
-    bpar_dct = bond_stereo_parities(gra_no_rxbs)
+    bpar_dct = bond_stereo_parities(imp_gra_no_rxbs)
 
     def _sortable_bond_stereo_values(bnd_keys):
         bpars = dict_.values_by_key(bpar_dct, bnd_keys)
@@ -833,7 +886,7 @@ def sort_evaluator_atom_invariants_(gra):
         bnds_dct_no_rxbs, _sortable_bond_stereo_values)
 
     # For bond orders, *KEEP* reacting bonds
-    bord_dct = bond_orders(gra)
+    bord_dct = bond_orders(imp_gra)
 
     def _sortable_bond_orders(bnd_keys):
         bords = dict_.values_by_key(bord_dct, bnd_keys)
@@ -841,10 +894,24 @@ def sort_evaluator_atom_invariants_(gra):
         return bords
 
     bords_dct = dict_.transform_values(
-        atoms_bond_keys(gra, ts_=True), _sortable_bond_orders)
+        atoms_bond_keys(imp_gra, ts_=True), _sortable_bond_orders)
 
-    # For neighboring keys, *KEEP* reacting bonds
-    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=True)
+    # For neighboring keys, *KEEP* reacting bonds and hydrogens
+    nkeys_dct = atoms_neighbor_atom_keys(imp_gra, ts_=True)
+
+    # Fill in missing hydrogen values
+    hyd_keys = nonbackbone_hydrogen_keys(gra)
+    symb_dct.update({k: 'zzz' for k in hyd_keys})
+    bnds_dct_no_rxbs.update({k: [] for k in hyd_keys})
+    hnum_dct.update({k: -1 for k in hyd_keys})
+    mnum_dct.update({k: -1 for k in hyd_keys})
+    apar_dct.update({k: -1 for k in hyd_keys})
+    bpars_dct.update({k: [-1] for k in hyd_keys})
+    bords_dct.update({k: [-1] for k in hyd_keys})
+    # Use the actual neighboring atoms of hydrogens, so that they will sort
+    # based on their parent atoms
+    nkeys_dct.update(
+        dict_.by_key(atoms_neighbor_atom_keys(gra, ts_=True), hyd_keys))
 
     def _evaluator(pri_dct):
         """ Sort value evaluator based on current priorities.
@@ -905,7 +972,7 @@ def parity_evaluator_from_geometry_(geo=None, geo_idx_dct=None):
             "Explicit graph should be used when evaluating from geometry.")
         gra = without_dummy_atoms(gra)
 
-        pri_dct = assign_hydrogen_priorities(
+        pri_dct = reassign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
 
         def _parity(key):
@@ -1006,7 +1073,7 @@ def parity_evaluator_flip_local_():
 
         loc_pri_dct = local_priority_dict(gra)
 
-        pri_dct = assign_hydrogen_priorities(
+        pri_dct = reassign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
 
         orig_gra = ts_reverse(gra) if ts_rev else gra
@@ -1151,7 +1218,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
     """
     gra = without_pi_bonds(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = assign_hydrogen_priorities(
+    pri_dct = reassign_hydrogen_priorities(
         gra, pri_dct, break_ties=False)
 
     atm_keys = tetrahedral_atom_keys(gra)
@@ -1187,7 +1254,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
     """
     gra = without_pi_bonds(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = assign_hydrogen_priorities(
+    pri_dct = reassign_hydrogen_priorities(
         gra, pri_dct, break_ties=False)
 
     bnd_keys = rigid_planar_bond_keys(gra)
@@ -1220,59 +1287,6 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
     return ste_bnd_keys
 
 
-def assign_hydrogen_priorities(gra, pri_dct, break_ties=False, neg=False):
-    """ Assign priorities to hydrogens, negating them on request
-
-    :param neg: Negate hydrogen keys, to give them lowest priority?
-    :param neg: bool
-    """
-    pri_dct = pri_dct.copy()
-
-    # Backbone hydrogens are always included, so only non-backbone hydrogens
-    # need to be assigned
-    hyd_keys_pool = nonbackbone_hydrogen_keys(gra)
-
-    if hyd_keys_pool:
-        bbn_keys = sorted(backbone_keys(gra), key=pri_dct.__getitem__)
-        bbn_pri_dct = dict_.by_key(pri_dct, bbn_keys)
-        gra = explicit(gra)
-
-        hyd_keys_dct = atom_nonbackbone_hydrogen_keys(gra)
-
-        next_idx = max(bbn_pri_dct.values()) + 1
-
-        # If not breaking ties, assign equal priority to hydrogens bonded to
-        # atoms from the same priority class.
-        hyd_pri_dct = {}
-        if not break_ties:
-            # Partition hydrogens into classes based on their parent atoms.
-            bbn_parts = sorted_classes_from_priority_dict(pri_dct)
-            get_hyd_key_ = hyd_keys_dct.__getitem__
-            hyd_parts = [
-                list(itertools.chain(*map(get_hyd_key_, bbn_part)))
-                for bbn_part in bbn_parts]
-            for hyd_part in hyd_parts:
-                hyd_pri_dct.update({k: next_idx for k in hyd_part})
-                next_idx += len(hyd_part)
-        # Otherwise, give each hydrogen a unique label.
-        else:
-            srt_hyd_keys = itertools.chain(
-                *map(hyd_keys_dct.__getitem__, bbn_keys))
-            hyd_pri_dct.update({k: (i+next_idx) for i, k in
-                                enumerate(srt_hyd_keys)})
-
-        hyd_pri_dct = dict_.by_key(hyd_pri_dct, hyd_keys_pool)
-        pri_dct.update(hyd_pri_dct)
-
-    # If requested, negate priorities for *all* hydrogen keys, for consistency
-    if neg:
-        all_hyd_keys = atom_keys(gra, symb='H')
-        pri_dct = {k: -abs(p) if k in all_hyd_keys else p
-                   for k, p in pri_dct.items()}
-
-    return pri_dct
-
-
 def local_priority_dict(gra):
     """ Generate a local ``priority'' dictionary
     """
@@ -1299,20 +1313,4 @@ def class_dict_from_priority_dict(pri_dct):
     clas = sorted(keys, key=pri_dct.__getitem__)
     cla_dct = {i: tuple(c)
                for i, c in itertools.groupby(clas, key=pri_dct.__getitem__)}
-    return cla_dct
-
-
-def sorted_classes_from_priority_dict(pri_dct):
-    """ Obtain classes from index dict, sorted by priority.
-
-    :param pri_dct: A dictionary mapping atom keys to priorities.
-    :type pri_dct: dict
-    :returns: A tuple of tuples of keys for each priority class, sorted by
-        priority value.
-    :rtype: tuple[tuple[int]]
-    """
-    keys = sorted(pri_dct.keys())
-    clas = sorted(keys, key=pri_dct.__getitem__)
-    cla_dct = tuple(
-        tuple(c) for _, c in itertools.groupby(clas, key=pri_dct.__getitem__))
     return cla_dct
