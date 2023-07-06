@@ -385,6 +385,25 @@ def reflect_local_stereo(gra):
 def to_local_stereo(gra, pri_dct=None):
     """ Convert canonical stereo parities to local ones
 
+    Local parities are based directly on the key values of neighboring
+    atoms, whereas canonical parities are based on their canonical
+    priorities.  Consequently, local parities are specific to the
+    particular way the graph is labeled, so the graph cannot be relabeled
+    without corrupting stereo information, but they are useful for
+    temporarily decoupling stereo parities from each other as the graph is
+    manipulated in other ways.
+
+    Note that, for consistency with InChI and other systems, hydrogen keys
+    are treated as having lowest priority. This is done by setting their
+    sort value to negative infinity.
+
+    For TS graphs, canonical priorities are given with respect to the canonical
+    TS direction. To avoid dependence of local parities on the canonical
+    direction, we must *undo* the direction reversal that occurs during the
+    canonical priority calculation when generating local parities. As far as I
+    am aware, the *only* case affected by this is Sn2 reactions, so that is all
+    that I have implemented here.
+
     :param gra: molecular graph with canonical stereo parities
     :type gra: automol graph data structure
     :param pri_dct: priorities, to avoid recalculating
@@ -854,12 +873,14 @@ def sort_evaluator_atom_invariants_(gra):
 def parity_evaluator_from_geometry_(geo=None, geo_idx_dct=None):
     r""" Determines stereo parity from a geometry
 
+    (For internal use by the calculate_priorities_and_assign_stereo() function)
+
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
-    :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
+    :returns: A parity evaluator, `p_`, for which `p_(gra, pri_dct)(key)`
         returns the parity for a given atom, given a set of priorities.
     """
     geo_idx_dct_ = geo_idx_dct
@@ -920,11 +941,13 @@ def parity_evaluator_from_geometry_(geo=None, geo_idx_dct=None):
 def parity_evaluator_read_canonical_():
     """ Determines stereo parity from a graph with canonical stereo
 
+    (For internal use by the calculate_priorities_and_assign_stereo() function)
+
     This is the trivial case, where parities in the graph are already
     assumed to be canonical and so nothing needs to be done to calculate
     them.
 
-    :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
+    :returns: A parity evaluator, `p_`, for which `p_(gra, pri_dct)(key)`
         returns the parity for a given atom, given a set of priorities.
     """
 
@@ -960,26 +983,9 @@ def parity_evaluator_flip_local_():
     """ Determines canonical from local stereo parity or vice versa (same
     operation)
 
-    Local parities are based directly on the key values of neighboring
-    atoms, whereas canonical parities are based on their canonical
-    priorities.  Consequently, local parities are specific to the
-    particular way the graph is labeled, so the graph cannot be relabeled
-    without corrupting stereo information, but they are useful for
-    temporarily decoupling stereo parities from each other as the graph is
-    manipulated in other ways.
+    (For internal use by the calculate_priorities_and_assign_stereo() function)
 
-    Note that, for consistency with InChI and other systems, hydrogen keys
-    are treated as having lowest priority. This is done by setting their
-    sort value to negative infinity.
-
-    For TS graphs, canonical priorities are given with respect to the canonical
-    TS direction. To avoid dependence of local parities on the canonical
-    direction, we must *undo* the direction reversal that occurs during the
-    canonical priority calculation when generating local parities. As far as I
-    am aware, the *only* case affected by this is Sn2 reactions, so that is all
-    that I have implemented here.
-
-    :returns: A parity evaluator, curried such that par_eval_(pri_dct)(key)
+    :returns: A parity evaluator, `p_`, for which `p_(gra, pri_dct)(key)`
         returns the parity for a given atom, given a set of priorities.
     """
 
