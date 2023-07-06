@@ -941,24 +941,15 @@ def parity_evaluator_read_canonical_():
         :param ts_rev: Is this a reversed TS graph?
         :type ts_rev: bool
         """
-        assert ts_rev is not None  # Dummy statement for linters
 
-        atm_par_dct = atom_stereo_parities(gra)
-        bnd_par_dct = bond_stereo_parities(gra)
-
-        # Do-nothing line to prevent linting complaint
+        # Do-nothing lines to prevent linting complaint
         assert pri_dct or not pri_dct
+        assert ts_rev or not ts_rev
+
+        par_dct = stereo_parities(gra)
 
         def _parity(key):
-            # If the key is a number, this is an atom
-            if isinstance(key, numbers.Number):
-                par = atm_par_dct[key]
-            # Otherwise, this is a bond
-            else:
-                assert isinstance(key, abc.Collection) and len(key) == 2, (
-                    f"{key} is not a valid bond key.")
-                par = bnd_par_dct[key]
-            return par
+            return par_dct[key]
 
         return _parity
 
@@ -1005,8 +996,7 @@ def parity_evaluator_flip_local_():
         :type ts_rev: bool
         """
         gra = explicit(gra)
-        atm_par_dct = atom_stereo_parities(gra)
-        bnd_par_dct = bond_stereo_parities(gra)
+        par_dct = stereo_parities(gra)
 
         loc_pri_dct = local_priority_dict(gra)
 
@@ -1018,36 +1008,66 @@ def parity_evaluator_flip_local_():
         def _parity(key):
             # If the key is a number, this is an atom
             if isinstance(key, numbers.Number):
-                par = atm_par_dct[key]
+                par = par_dct[key]
 
                 nkeys = atom_stereo_sorted_neighbor_keys(gra, key)
                 can_srt = sorted(nkeys, key=pri_dct.__getitem__)
-                loc_srt = sorted(can_srt, key=loc_pri_dct.__getitem__)
+                loc_srt = sorted(nkeys, key=loc_pri_dct.__getitem__)
 
-                if util.is_even_permutation(loc_srt, can_srt):
-                    ret_par = par
-                else:
-                    ret_par = not par
+                is_odd = util.is_odd_permutation(loc_srt, can_srt)
+                ret_par = is_odd ^ par
 
                 # If the original nkeys were different, assume we have an
-                # Sn2-like situation.  In this case, the parity incurs another
-                # inversion.
+                # Sn2-like situation. In this case, we need to account for the
+                # difference in local parity between forward and reverse
+                # directions.
                 orig_nkeys = atom_stereo_sorted_neighbor_keys(orig_gra, key)
                 if sorted(nkeys) != sorted(orig_nkeys):
-                    assert (
-                        any(key in bk for bk in ts_forming_bond_keys(gra)) and
-                        any(key in bk for bk in ts_breaking_bond_keys(gra))
-                    ), (
+
+                    # Identify forming and breaking keys involving this atom
+                    fbnd_keys = [
+                        k for k in ts_forming_bond_keys(orig_gra) if key in k]
+                    bbnd_keys = [
+                        k for k in ts_breaking_bond_keys(orig_gra) if key in k]
+
+                    # Check that this is really an Sn2 reaction, in which case
+                    # there will be exactly one of each
+                    assert len(fbnd_keys) == len(bbnd_keys) == 1, (
                         f"Unforeseen case! Reversal alters stereo atom"
                         f"neighbors but TS is not Sn2-like. Investigate!"
                         f"\n{nkeys} != {orig_nkeys}\n{gra}\norig:\n{orig_gra}")
-                    ret_par = not ret_par
+
+                    # Identify the forming and breaking neighbor keys
+                    fatm_key, = fbnd_keys[0] - {key}
+                    batm_key, = bbnd_keys[0] - {key}
+                    assert fatm_key != batm_key, (
+                        f"Breaking and forming bonds shouldn't match:"
+                        f"{fbnd_keys[0]} == {bbnd_keys[0]}\n{gra}")
+
+                    # Get locally sorted neighbors based on the original graph
+                    orig_loc_srt = sorted(
+                        orig_nkeys, key=loc_pri_dct.__getitem__)
+
+                    # The local sort vector of the original graph contains the
+                    # breaking atom, while that of the current graph contains
+                    # the forming atom.
+                    assert batm_key in orig_loc_srt
+                    assert fatm_key in loc_srt
+
+                    # Replace the breaking atom with the forming atom for sort
+                    # comparison
+                    orig_loc_srt[orig_loc_srt.index(batm_key)] = fatm_key
+
+                    # If local ordering for the original graph is an even
+                    # permuation of the current one, we flip the parity.
+                    is_even = util.is_even_permutation(loc_srt, orig_loc_srt)
+                    ret_par ^= is_even
 
             # Otherwise, this is a bond
             else:
                 assert isinstance(key, abc.Collection) and len(key) == 2, (
                     f"{key} is not a valid bond key.")
-                par = bnd_par_dct[key]
+                par = par_dct[key]
 
                 key1, key2 = key
                 nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(
