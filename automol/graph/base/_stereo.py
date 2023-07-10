@@ -4,7 +4,6 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
 import itertools
-import collections
 import numpy
 from automol import util
 import automol.geom.base    # !!!!
@@ -20,7 +19,6 @@ from automol.graph.base._core import has_stereo
 from automol.graph.base._core import frozen
 from automol.graph.base._core import implicit
 from automol.graph.base._core import without_stereo
-# from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import is_ts_graph
 from automol.graph.base._core import ts_reacting_atoms
@@ -54,43 +52,11 @@ def expand_stereo(gra, enant=True, symeq=False):
     :returns: a series of molecular graphs for the stereoisomers
     """
 
-    # Store a copy in the same format. Stereo parities will be added to this
-    # for the return.
-    gra0 = without_stereo(gra)
-
-    cgras = connected_components(gra0)
-    cgras_lst = [_expand_stereo(g, enant=enant, symeq=symeq) for g in cgras]
-
-    sgras = []
-    for cgras in itertools.product(*cgras_lst):
-        # Combine the stereo parities from each component into one dictionary
-        ste_dct = dict(collections.ChainMap(*map(stereo_parities, cgras)))
-        # Assign those parities to a copy of the original graph
-        sgra = set_stereo_parities(gra0, ste_dct)
-        # Append the result to our list
-        sgras.append(sgra)
-
-    sgras = tuple(sorted(sgras, key=frozen))
-    return sgras
-
-
-def _expand_stereo(gra, enant=True, symeq=False):
-    """ Obtain all possible stereoisomers of a graph, ignoring its assignments
-
-    (Only for connected graphs)
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param enant: Include all enantiomers, or only canonical ones?
-    :type enant: bool
-    :param symeq: Include symmetrically equivalent stereoisomers?
-    :type symeq: bool
-    :returns: a series of molecular graphs for the stereoisomers
-    """
     bools = (False, True)
 
+    gra0 = without_stereo(gra)
     gps0 = None
-    gps = [(gra, None)]
+    gps = [(gra0, None)]
 
     # 1. Expand all possible stereoisomers, along with their priority mappings
     while gps0 != gps:
@@ -149,8 +115,9 @@ def _expand_stereo(gra, enant=True, symeq=False):
                 elif is_can is False:
                     gps.remove((ugra, upri_dct))
 
-    gras = [g for g, _ in gps]
-    return gras
+    sgras = [sgra for sgra, _ in gps]
+    sgras = tuple(sorted(sgras, key=frozen))
+    return sgras
 
 
 def expand_stereo_with_priorities_and_amchis(gra):
