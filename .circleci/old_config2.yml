@@ -2,33 +2,38 @@ version: 2
 jobs:
     build-debian:
         docker:
-            - image: condaforge/mambaforge
+            - image: mambaorg/micromamba
         steps:
             - checkout  # checkout the code
             - run:
                 name: Create conda environment
                 command: |
-                    mamba env create -f environment.yml
+                    micromamba create -f environment.yml -y
             - run:
                 name: Build/install automol
                 command: |
-                    eval "$(conda shell.bash hook)"
-                    conda activate autochem-env
+                    eval "$(micromamba shell hook --shell=bash)"
+                    micromamba activate autochem-env
                     python setup.py install
             - run:
                 name: Test autochem
                 no_output_timeout: 60m
                 command: |
-                    eval "$(conda shell.bash hook)"
-                    conda activate autochem-env
+                    eval "$(micromamba shell hook --shell=bash)"
+                    micromamba activate autochem-env
                     pytest -v --disable-pytest-warnings --cov=automol --cov=phydat --cov=autoreact --cov-report=html
                     coverage report
             - run:
                 name: Test autochem format
                 command: |
-                    eval "$(conda shell.bash hook)"
-                    conda activate autochem-env
-                    bash lint.sh
+                    eval "$(micromamba shell hook --shell=bash)"
+                    micromamba activate autochem-env
+                    flake8 --exit-zero automol
+                    pylint --rcfile=.pylintrc automol 
+                    flake8 --exit-zero phydat
+                    pylint --rcfile=.pylintrc phydat
+                    flake8 --exit-zero autoreact
+                    pylint --rcfile=.pylintrc autoreact
             - store_artifacts:
                     path: automol/htmlcov
 workflows:

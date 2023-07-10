@@ -12,7 +12,6 @@ import automol.amchi.base    # !!!!
 from automol.graph.base._core import ts_graph
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_forming_bond_keys
-from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_reacting_bonds
 from automol.graph.base._core import ts_reacting_atoms
 from automol.graph.base._core import ts_reverse
