@@ -55,11 +55,16 @@ class Reaction:
         assert all_prds_keys == back_keys, (
             f"{str(all_prds_keys)} != {str(back_keys)}")
 
-        # Check that the reactants and products are consistent
-        forw_tsg_comp = automol.graph.without_dummy_atoms(
-            automol.graph.without_stereo(forw_tsg))
-        back_tsg_comp = automol.graph.without_dummy_atoms(
-            automol.graph.without_stereo(back_tsg))
+        # Check that the stereo information is consistent
+        # (All or nothing - no partially assigned stereo)
+        if automol.graph.has_stereo(forw_tsg):
+            ste_keys = automol.graph.stereogenic_keys(forw_tsg)
+            assert not ste_keys, (
+                f"TS graph has unassigned stereo at {ste_keys}:\n{forw_tsg}")
+
+        # Check that the forward and reverse TS graphs are consistent
+        forw_tsg_comp = automol.graph.without_dummy_atoms(forw_tsg)
+        back_tsg_comp = automol.graph.without_dummy_atoms(back_tsg)
         assert automol.graph.isomorphism(
             ts.reverse(forw_tsg_comp), back_tsg_comp)
 
@@ -70,50 +75,12 @@ class Reaction:
         self.forward_ts_graph = forw_tsg
         self.backward_ts_graph = back_tsg
 
-    def sort_order(self):
-        """ determine the appropriate sort order for reactants and products,
-        based on their keys
-        """
-        if len(self.reactants_keys) == 1:
-            rct_idxs = [0]
-        else:
-            rct_keys = numpy.empty((len(self.reactants_keys),), dtype=object)
-            rct_keys[:] = list(map(tuple, map(sorted, self.reactants_keys)))
-            rct_idxs = numpy.argsort(rct_keys)
-
-        if len(self.products_keys) == 1:
-            prd_idxs = [0]
-        else:
-            prd_keys = numpy.empty((len(self.products_keys),), dtype=object)
-            prd_keys[:] = list(map(tuple, map(sorted, self.products_keys)))
-            prd_idxs = numpy.argsort(prd_keys)
-
-        rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
-        return rct_idxs, prd_idxs
-
-    def key_map(self, rev=False, stereo=False):
-        """ get the key map taking atoms from the reactant into atoms from the
-        product
-        """
-        iso_dct = automol.graph.isomorphism(
-            ts.reverse(self.forward_ts_graph), self.backward_ts_graph,
-            stereo=stereo, dummy=False)
-        if rev:
-            iso_dct = dict(map(reversed, iso_dct.items()))
-
-        return iso_dct
-
     def copy(self):
         """ return a copy of this Reaction
         """
         return Reaction(
             self.class_, self.forward_ts_graph, self.backward_ts_graph,
             self.reactants_keys, self.products_keys)
-
-    def has_standard_keys(self):
-        """ Does this reaction have standard keys?
-        """
-        return self == standard_keys(self)
 
     def __eq__(self, other):
         """ equality operator
@@ -137,11 +104,11 @@ class Reaction:
 def string(rxn, one_indexed=True):
     """ Write a reaction object to a string
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param one_indexed: parameter to store keys in one-indexing
-        :type one_indexed: bool
-        :rtype: str
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param one_indexed: parameter to store keys in one-indexing
+    :type one_indexed: bool
+    :rtype: str
     """
     rcts_keys = list(map(list, rxn.reactants_keys))
     prds_keys = list(map(list, rxn.products_keys))
@@ -170,11 +137,11 @@ def string(rxn, one_indexed=True):
 def from_string(rxn_str, one_indexed=True):
     """ Write a reaction object to a string
 
-        :param rxn_str: string containing the reaction object
-        :type rxn_str: str
-        :param one_indexed: parameter to store keys in one-indexing
-        :type one_indexed: bool
-        :rtype: Reaction
+    :param rxn_str: string containing the reaction object
+    :type rxn_str: str
+    :param one_indexed: parameter to store keys in one-indexing
+    :type one_indexed: bool
+    :rtype: Reaction
     """
     yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
 
@@ -203,9 +170,9 @@ def from_string(rxn_str, one_indexed=True):
 def reverse(rxn):
     """ Obtains the reaction object for the reverse reaction
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :rtype: Reaction
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :rtype: Reaction
     """
     rxn_cls = par.reverse_reaction_class(rxn.class_)
     if rxn_cls is not None:
@@ -219,35 +186,61 @@ def reverse(rxn):
     return rxn
 
 
-def atom_mapping(rxn, rev=False):
-    """ Determine the (/a) mapping from reaction atoms to product atoms.
+def atom_mapping(rxn, rev=False, stereo=True):
+    """ Determine a mapping from reaction atoms to product atoms.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :returns: the mapping from reactant atoms to product atoms
-        :rtype: dict
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :param stereo: Check for stereo parities in the mapping?
+    :type stereo: bool
+    :returns: the mapping from reactant atoms to product atoms
+    :rtype: dict
     """
-    tsg1 = rxn.forward_ts_graph
-    tsg2 = ts.reverse(rxn.backward_ts_graph)
-
-    iso_dct = automol.graph.isomorphism(tsg1, tsg2, stereo=False, dummy=False)
-
+    iso_dct = automol.graph.isomorphism(
+        ts.reverse(rxn.forward_ts_graph), rxn.backward_ts_graph,
+        stereo=stereo, dummy=False)
     if rev:
         iso_dct = dict(map(reversed, iso_dct.items()))
 
     return iso_dct
 
 
+def sort_order(rxn):
+    """ Get the sort order for reactants and products, based on their keys
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: The sort order of the reactants and products
+    :rtype: (tuple[int], tuple[int])
+    """
+    if len(rxn.reactants_keys) == 1:
+        rct_idxs = [0]
+    else:
+        rct_keys = numpy.empty((len(rxn.reactants_keys),), dtype=object)
+        rct_keys[:] = list(map(tuple, map(sorted, rxn.reactants_keys)))
+        rct_idxs = numpy.argsort(rct_keys)
+
+    if len(rxn.products_keys) == 1:
+        prd_idxs = [0]
+    else:
+        prd_keys = numpy.empty((len(rxn.products_keys),), dtype=object)
+        prd_keys[:] = list(map(tuple, map(sorted, rxn.products_keys)))
+        prd_idxs = numpy.argsort(prd_keys)
+
+    rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
+    return rct_idxs, prd_idxs
+
+
 def forming_bond_keys(rxn, rev=False):
     """ Obtain forming bonds for the reaction.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: frozenset[frozenset[int]]
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: frozenset[frozenset[int]]
     """
     if rev:
         tsg = rxn.backward_ts_graph
@@ -259,11 +252,11 @@ def forming_bond_keys(rxn, rev=False):
 def breaking_bond_keys(rxn, rev=False):
     """ Obtain breaking bonds for the reaction.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: frozenset[frozenset[int]]
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: frozenset[frozenset[int]]
     """
     if rev:
         tsg = rxn.backward_ts_graph
@@ -275,13 +268,13 @@ def breaking_bond_keys(rxn, rev=False):
 def forming_rings_atom_keys(rxn, rev=False):
     """ Obtain atom keys for rings containing at least one forming bond.
 
-        Atom keys are sorted by connectivity.
+    Atom keys are sorted by connectivity.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: tuple[tuple[int]]
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: tuple[tuple[int]]
     """
     if rev:
         tsg = rxn.backward_ts_graph
@@ -293,11 +286,11 @@ def forming_rings_atom_keys(rxn, rev=False):
 def forming_rings_bond_keys(rxn, rev=False):
     """ Obtain bond keys for rings containing at least one forming bond.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: tuple[frozenset[frozenset[int]]]
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: tuple[frozenset[frozenset[int]]]
     """
     if rev:
         tsg = rxn.backward_ts_graph
@@ -309,13 +302,13 @@ def forming_rings_bond_keys(rxn, rev=False):
 def breaking_rings_atom_keys(rxn, rev=False):
     """ Obtain atom keys for rings containing at least one breaking bond.
 
-        Atom keys are sorted by connectivity.
+    Atom keys are sorted by connectivity.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: tuple[tuple[int]]
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: tuple[tuple[int]]
     """
     if rev:
         tsg = rxn.backward_ts_graph
@@ -327,11 +320,11 @@ def breaking_rings_atom_keys(rxn, rev=False):
 def breaking_rings_bond_keys(rxn, rev=False):
     """ Obtain bond keys for rings containing at least one breaking bond.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: tuple[frozenset[frozenset[int]]]
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: tuple[frozenset[frozenset[int]]]
     """
     if rev:
         tsg = rxn.backward_ts_graph
@@ -343,9 +336,9 @@ def breaking_rings_bond_keys(rxn, rev=False):
 def reactant_graphs(rxn, rev=False):
     """ Obtain graphs of the reactants in this reaction.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :rtype: tuple of automol graph data structures
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :rtype: tuple of automol graph data structures
     """
     if rev:
         rcts_gra = ts.products_graph(rxn.forward_ts_graph)
@@ -359,9 +352,9 @@ def reactant_graphs(rxn, rev=False):
 def product_graphs(rxn):
     """ Obtain graphs of the products in this reaction.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :rtype: tuple of automol graph data structures
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :rtype: tuple of automol graph data structures
     """
     prds_gra = ts.reactants_graph(rxn.backward_ts_graph)
     prd_gras = [automol.graph.subgraph(prds_gra, keys, stereo=True)
@@ -372,11 +365,11 @@ def product_graphs(rxn):
 def reactants_graph(rxn, rev=False):
     """ Obtain a (single) graph of the reactants in this reaction.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: automol graph data structure
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: automol graph data structure
     """
     if rev:
         tsg = rxn.backward_ts_graph
@@ -388,51 +381,23 @@ def reactants_graph(rxn, rev=False):
 def products_graph(rxn):
     """ Obtain a (single) graph of the products in this reaction.
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :rtype: automol graph data structure
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :rtype: automol graph data structure
     """
     tsg = rxn.backward_ts_graph
     return ts.reactants_graph(tsg)
 
 
-def is_radical_radical(zrxn, rev=False):
-    """ Is this a radical-radical reaction
-
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: boolean
-    """
-    _is_rad_rad = False
-    tsg = reactant_graphs(zrxn, rev=rev)
-    if len(tsg) == 2:
-        rct_i, rct_j = tsg
-        if (automol.graph.radical_species(rct_i)
-                and automol.graph.radical_species(rct_j)):
-            _is_rad_rad = True
-    return _is_rad_rad
-
-
-def is_barrierless(zrxn, rev=False):
-    """ Is this a barrierless reaction
-
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :param rev: parameter to toggle reaction direction
-        :type rev: bool
-        :rtype: boolean
-    """
-    _is_barr = False
-    if is_radical_radical(zrxn, rev=rev):
-        _is_barr = True
-    # Add other examples
-    return _is_barr
-
-
 def standard_keys(rxn):
-    """ standardize keys for the reaction object
+    """ Standardize keys for the reaction object
+
+    Ensures that keys follow zero-indexing in order with no skips
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: A copy of the reaction object, with standardized keys
+    :rtype: Reaction
     """
     rct_keys = list(map(sorted, rxn.reactants_keys))
     prd_keys = list(map(sorted, rxn.products_keys))
@@ -440,34 +405,61 @@ def standard_keys(rxn):
     prd_key_dct = {k: i for i, k in enumerate(itertools.chain(*prd_keys))}
 
     rxn_cls = rxn.class_
-    forw_tsg = rxn.forward_ts_graph
-    back_tsg = rxn.backward_ts_graph
-    rcts_keys = rxn.reactants_keys
-    prds_keys = rxn.products_keys
+    forw_tsg = automol.graph.relabel(rxn.forward_ts_graph, rct_key_dct)
+    back_tsg = automol.graph.relabel(rxn.backward_ts_graph, prd_key_dct)
     rcts_keys = tuple(tuple(map(rct_key_dct.__getitem__, keys))
                       for keys in rxn.reactants_keys)
     prds_keys = tuple(tuple(map(prd_key_dct.__getitem__, keys))
                       for keys in rxn.products_keys)
-    forw_tsg = automol.graph.relabel(rxn.forward_ts_graph, rct_key_dct)
-    back_tsg = automol.graph.relabel(rxn.backward_ts_graph, prd_key_dct)
     rxn = Reaction(rxn_cls, forw_tsg, back_tsg, rcts_keys, prds_keys)
     return rxn
 
 
-def standard_keys_with_sorted_geometries(rxn, rct_geos, prd_geos):
-    """ standardize keys and line up geometries to match
+def has_standard_keys(rxn):
+    """ Determine if this reaction has standard keys
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
     """
-    rct_idxs, prd_idxs = rxn.sort_order()
+    return rxn == standard_keys(rxn)
+
+
+def standard_keys_with_sorted_geometries(rxn, rct_geos, prd_geos):
+    """ Standardize keys and line up geometries to match proper
+    reactant/product sort ordering for the reaction
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rct_geos: Geometries for the reactants, with indices matching `rxn`
+    :type rct_geos: tuple of automol geometry objects
+    :param prd_geos: Geometries for the products, with indices matching `rxn`
+    :type prd_geos: tuple of automol geometry objects
+    :returns: A standardized reaction object, with matching re-sorted reactants
+        and products
+    :rtype: (Reaction, automol geometry objects, automol geometry objects)
+    """
+    rct_idxs, prd_idxs = sort_order(rxn)
     rct_geos = tuple(map(rct_geos.__getitem__, rct_idxs))
     prd_geos = tuple(map(prd_geos.__getitem__, prd_idxs))
     rxn = standard_keys(rxn)
     return rxn, rct_geos, prd_geos
 
 
-def relabel(rxn, key_dct, product=False):
-    """ relabel keys in the reactants or products
+def relabel(rxn, key_dct, prod=False):
+    """ Relabel keys in the reactants or products
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param key_dct: A dictionary mapping current keys into new keys
+    :type key_dct: dict[int: int]
+    :param prod: Apply this operation to the products instead of the reactants
+    :type prod: bool
+    :returns: A relabeled reaction object
+    :rtype: Reaction
     """
-    if product:
+    if prod:
         tsg = rxn.backward_ts_graph
         keys_lst = rxn.products_keys
     else:
@@ -482,7 +474,7 @@ def relabel(rxn, key_dct, product=False):
     back_tsg = rxn.backward_ts_graph
     rcts_keys = rxn.reactants_keys
     prds_keys = rxn.products_keys
-    if product:
+    if prod:
         back_tsg = tsg
         prds_keys = keys_lst
     else:
@@ -493,12 +485,12 @@ def relabel(rxn, key_dct, product=False):
 
 
 def without_stereo(rxn):
-    """ remove all stereo information from the reaction object
+    """ Remove all stereo information from the reaction object
 
-        :param rxn: the reaction object
-        :type rxn: Reaction
-        :returns: the reaction object, without stereo information
-        :rtype: Reaction
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :returns: the reaction object, without stereo information
+    :rtype: Reaction
     """
     rxn_cls = rxn.class_
     forw_tsg = automol.graph.without_stereo(rxn.forward_ts_graph)
@@ -510,12 +502,16 @@ def without_stereo(rxn):
 
 
 def add_dummy_atoms(rxn, dummy_key_dct, product=False):
-    """ add dummy atoms to the reactants or products
+    """ Add dummy atoms to the reactants or products
 
-    :param dummy_key_dct: dummy atom keys, by key of the atom they are
-        connected to
-    :param product: insert dummy atoms into the products instead of the
-        reactants?
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param dummy_key_dct: Keys of new dummy atoms, by atom that they connect to
+    :type dummy_key_dct: dict[int: int]
+    :param prod: Apply this operation to the products instead of the reactants
+    :type prod: bool
+    :returns: A reaction object with dummy atoms added
+    :rtype: Reaction
     """
     if product:
         tsg = rxn.backward_ts_graph
@@ -624,7 +620,7 @@ def relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct, product=False):
     """
     rxn = add_dummy_atoms(rxn, dummy_key_dct, product=product)
     key_dct = dict(map(reversed, enumerate(zma_keys)))
-    rxn = relabel(rxn, key_dct, product=product)
+    rxn = relabel(rxn, key_dct, prod=product)
     return rxn
 
 
@@ -644,7 +640,7 @@ def relabel_for_geometry(rxn, product=False):
 
     keys = sorted(automol.graph.atom_keys(tsg))
     key_dct = dict(map(reversed, enumerate(keys)))
-    rxn = relabel(rxn, key_dct, product=product)
+    rxn = relabel(rxn, key_dct, prod=product)
     return rxn
 
 
@@ -699,6 +695,41 @@ def unique(rxns, ts_stereo=True, ts_enant=False):
             rxns.append(rxn)
 
     return tuple(rxns)
+
+
+def is_radical_radical(zrxn, rev=False):
+    """ Is this a radical-radical reaction
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle reaction direction
+    :type rev: bool
+    :rtype: boolean
+    """
+    _is_rad_rad = False
+    tsg = reactant_graphs(zrxn, rev=rev)
+    if len(tsg) == 2:
+        rct_i, rct_j = tsg
+        if (automol.graph.is_radical_species(rct_i)
+                and automol.graph.is_radical_species(rct_j)):
+            _is_rad_rad = True
+    return _is_rad_rad
+
+
+def is_barrierless(zrxn, rev=False):
+    """ Is this a barrierless reaction
+
+        :param rxn: the reaction object
+        :type rxn: Reaction
+        :param rev: parameter to toggle reaction direction
+        :type rev: bool
+        :rtype: boolean
+    """
+    _is_barr = False
+    if is_radical_radical(zrxn, rev=rev):
+        _is_barr = True
+    # Add other examples
+    return _is_barr
 
 
 def filter_viable_reactions(rxns):

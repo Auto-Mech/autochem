@@ -10,6 +10,7 @@ from automol.util import dict_
 from automol.reac._core import forming_bond_keys
 from automol.reac._core import breaking_bond_keys
 from automol.reac._core import relabel_for_geometry
+from automol.reac._core import atom_mapping
 from automol.graph import without_stereo
 from automol.graph import ts_reagents_graph_without_stereo
 from automol.graph import geometries_parity_mismatches
@@ -144,8 +145,8 @@ def _check_stereo_parities(zma, ref_zma, zrxn):
         zrxn.backward_ts_graph))
     forw_ste_keys = stereogenic_bond_keys(fgra)
     back_ste_keys = stereogenic_bond_keys(bgra)
-    forw_idxs = zrxn.key_map(rev=False, stereo=False)
-    back_idxs = zrxn.key_map(rev=True, stereo=False)
+    forw_idxs = atom_mapping(zrxn, rev=False, stereo=False)
+    back_idxs = atom_mapping(zrxn, rev=True, stereo=False)
     geo = automol.zmat.geometry(zma, dummy=True)
     ref_geo = automol.zmat.geometry(ref_zma, dummy=True)
 

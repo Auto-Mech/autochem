@@ -29,7 +29,6 @@ from automol.graph.base._core import tetrahedral_atom_keys
 from automol.graph.base._algo import branches
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import connected_components_atom_keys
-# from automol.graph.base._algo import weighted_maximal_matching
 
 
 # # core functions

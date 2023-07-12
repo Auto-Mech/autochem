@@ -193,11 +193,11 @@ def test_species_types():
              automol.graph._func_group.radical_species
     """
 
-    assert automol.graph.hydrocarbon_species(C2H6_GRA)
-    assert not automol.graph.hydrocarbon_species(C2H5OH_GRA)
+    assert automol.graph.is_hydrocarbon_species(C2H6_GRA)
+    assert not automol.graph.is_hydrocarbon_species(C2H5OH_GRA)
 
-    assert automol.graph.radical_species(C2H5OO_GRA)
-    assert not automol.graph.radical_species(C2H5OH_GRA)
+    assert automol.graph.is_radical_species(C2H5OO_GRA)
+    assert not automol.graph.is_radical_species(C2H5OH_GRA)
 
 
 def test_unique_atoms():
