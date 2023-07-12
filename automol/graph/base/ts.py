@@ -23,10 +23,7 @@ from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
 from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import without_bonds_by_orders
 from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import bond_orders
-from automol.graph.base._core import set_bond_orders
 from automol.graph.base._core import string
 from automol.graph.base._core import relabel
 from automol.graph.base._core import nonbackbone_hydrogen_keys
@@ -106,6 +103,32 @@ def breaking_rings_bond_keys(tsg):
     return brk_rngs_bnd_keys
 
 
+def reactants_graph(tsg, stereo=True):
+    """ Get the reactants from a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param stereo: Keep stereo, even though it is invalid?
+    :type stereo: bool
+    :returns: The TS graph, without reacting bond orders
+    :rtype: automol graph data structure
+    """
+    return reagents_graph(tsg, prod=False, stereo=stereo)
+
+
+def products_graph(tsg, stereo=True):
+    """ Get the products from a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param stereo: Keep stereo, even though it is invalid?
+    :type stereo: bool
+    :returns: The TS graph, without reacting bond orders
+    :rtype: automol graph data structure
+    """
+    return reagents_graph(tsg, prod=True, stereo=stereo)
+
+
 def reagents_graph(tsg, prod=False, stereo=True):
     """ Get the reactants or products from a TS graph
 
@@ -131,7 +154,9 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
 
     (For internal use by the calculate_priorities_and_assign_stereo() function)
 
-    Imposes elimination constraint:
+    Sn2 constraint is taken care of by parity_evaluator_flip_local_.
+
+    Elimination constraint is imposed here:
 
              4         8              3           6
               \   +   /     3          \ +     + /
@@ -323,34 +348,6 @@ def negate_nonbackbone_hydrogen_keys(gra):
     hyd_keys = nonbackbone_hydrogen_keys(gra)
     atm_key_dct = {k: -abs(k) for k in hyd_keys}
     return relabel(gra, atm_key_dct)
-
-
-def reactants_graph(tsg):
-    """ get a graph of the reactants from a transition state graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    ord_dct = bond_orders(tsg)
-    frm_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.1]
-    brk_bnd_keys = [k for k, o in ord_dct.items() if round(o % 1, 1) == 0.9]
-    tsg = set_bond_orders(
-        tsg, {k: round(ord_dct[k] - 0.1, 1) for k in frm_bnd_keys})
-    tsg = without_bonds_by_orders(tsg, ords=0, skip_dummies=True)
-    # gra = remove_bonds(gra, frm_bnd_keys)
-    tsg = set_bond_orders(
-        tsg, {k: round(ord_dct[k] + 0.1, 1) for k in brk_bnd_keys})
-    # gra = set_bond_orders(gra, {k: 1 for k in brk_bnd_keys})
-    return tsg
-
-
-def products_graph(tsg):
-    """ get a graph of the products from a transition state graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    return reactants_graph(reverse(tsg))
 
 
 def fleeting_stereogenic_atom_keys(tsg, ts_enant=True):
