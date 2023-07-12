@@ -143,7 +143,7 @@ def add_stereo_from_unordered_geometries(rxn, rct_geos, prd_geos,
             # in the geometries
             if reorder_atoms:
                 srxn = relabel(srxn, rct_iso_dct)
-                srxn = relabel(srxn, prd_iso_dct, product=True)
+                srxn = relabel(srxn, prd_iso_dct, prod=True)
 
             found_srxn = srxn
             order = (rct_order, prd_order)

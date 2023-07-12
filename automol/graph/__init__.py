@@ -206,7 +206,6 @@ from automol.graph.base._kekule import bond_centered_cumulene_keys
 from automol.graph.base._rot import rotational_bond_keys
 from automol.graph.base._rot import rotational_groups
 from automol.graph.base._rot import rotational_symmetry_number
-from automol.graph.base._rot import bond_symmetry_numbers
 # geometry functions:
 # # stereo parity evaluations
 from automol.graph.base._geom import geometry_atom_parity
@@ -262,8 +261,8 @@ from automol.graph.base._func_group import functional_group_dct
 from automol.graph.base._func_group import functional_group_count_dct
 from automol.graph.base._func_group import ring_substituents
 # # finders for overaching types
-from automol.graph.base._func_group import hydrocarbon_species
-from automol.graph.base._func_group import radical_species
+from automol.graph.base._func_group import is_hydrocarbon_species
+from automol.graph.base._func_group import is_radical_species
 # # finders for reactive sites and groups
 from automol.graph.base._func_group import alkene_sites
 from automol.graph.base._func_group import alkyne_sites
@@ -500,7 +499,6 @@ __all__ = [
     'rotational_bond_keys',
     'rotational_groups',
     'rotational_symmetry_number',
-    'bond_symmetry_numbers',
     # geometry functions:
     # # stereo parity evaluations
     'geometry_atom_parity',
@@ -556,8 +554,8 @@ __all__ = [
     'functional_group_count_dct',
     'ring_substituents',
     # # finders for overaching types
-    'hydrocarbon_species',
-    'radical_species',
+    'is_hydrocarbon_species',
+    'is_radical_species',
     # # finders for reactive sites and groups
     'alkene_sites',
     'alkyne_sites',

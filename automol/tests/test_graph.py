@@ -663,16 +663,6 @@ def test__possible_spin_multiplicities():
     assert graph.possible_spin_multiplicities(C2_CGR) == (1, 3, 5, 7)
 
 
-# miscellaneous
-def test__bond_symmetry_numbers():
-    """ test graph.bond_symmetry_numbers
-    """
-    assert graph.bond_symmetry_numbers(C8H13O_CGR) == {
-        frozenset({1, 4}): 1, frozenset({4, 6}): 1, frozenset({2, 6}): 3,
-        frozenset({0, 3}): 3, frozenset({6, 7}): 1, frozenset({8, 7}): 1,
-        frozenset({3, 5}): 1, frozenset({5, 7}): 1}
-
-
 # resonance graph library
 # # atom properties
 def test__atom_hybridizations():

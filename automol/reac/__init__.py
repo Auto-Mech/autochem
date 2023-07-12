@@ -6,6 +6,7 @@ from automol.reac._core import string
 from automol.reac._core import from_string
 from automol.reac._core import reverse
 from automol.reac._core import atom_mapping
+from automol.reac._core import sort_order
 from automol.reac._core import forming_bond_keys
 from automol.reac._core import breaking_bond_keys
 from automol.reac._core import forming_rings_atom_keys
@@ -99,6 +100,7 @@ __all__ = [
     'from_string',
     'reverse',
     'atom_mapping',
+    'sort_order',
     'forming_bond_keys',
     'breaking_bond_keys',
     'forming_rings_atom_keys',

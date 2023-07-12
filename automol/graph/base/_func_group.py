@@ -120,7 +120,7 @@ def functional_group_dct(gra):
 
 
 # # finders for overaching types
-def hydrocarbon_species(gra):
+def is_hydrocarbon_species(gra):
     """ Determine if molecule is a hydrocarbon.
 
         :param gra: molecular graph
@@ -130,7 +130,7 @@ def hydrocarbon_species(gra):
     return bool(set(_unique_atoms(gra)) <= {'C', 'H'})
 
 
-def radical_species(gra):
+def is_radical_species(gra):
     """ Determine if molecule is a radical species.
 
         :param gra: molecular graph

@@ -301,7 +301,7 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
         tgt_gra = automol.geom.graph(automol.chi.geometry(tgt_ich))
 
         # Identify the the target model
-        if automol.graph.radical_species(tgt_gra):
+        if automol.graph.is_radical_species(tgt_gra):
             # Determine if peroxy,hydroperoxy groups present to use RO2 series
             # otherwise just use alkyl radical series
             fgrp_cnt_dct = automol.graph.functional_group_count_dct(tgt_gra)
@@ -312,7 +312,7 @@ def determine_collision_model_series(tgt_ich, bath_ich, collid_param):
                 tgt_model = 'peroxy'
             else:
                 tgt_model = '1-alkyl'
-        elif automol.graph.hydrocarbon_species(tgt_gra):
+        elif automol.graph.is_hydrocarbon_species(tgt_gra):
             tgt_model = 'n-alkane'
         else:
             # Set priority based on bond-dissociation energies
