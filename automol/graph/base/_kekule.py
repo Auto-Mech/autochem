@@ -165,7 +165,10 @@ def kekules_bond_orders_averaged(gra):
 
 # # derived properties
 def linear_atom_keys(gra, dummy=True):
-    """ atoms forming linear bonds, based on their hybridization
+    """ Atoms forming linear bonds, based on their hybridization
+
+    For TS graphs, only includes atoms that are linear for *both* the reactants
+    *and* the products.
 
     :param gra: the graph
     :param dummy: whether or not to consider atoms connected to dummy atoms as
@@ -174,10 +177,21 @@ def linear_atom_keys(gra, dummy=True):
     :returns: the linear atom keys
     :rtype: tuple[int]
     """
-    gra = ts_reagents_graph_without_stereo(gra)
-    atm_hyb_dct = atom_hybridizations_from_kekule(implicit(kekule(gra)))
-    lin_atm_keys = set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
+    ts_ = is_ts_graph(gra)
+    if ts_:
+        gras = [ts_reagents_graph_without_stereo(gra, prod=False),
+                ts_reagents_graph_without_stereo(gra, prod=True)]
+    else:
+        gras = [gra]
 
+    # Since we are taking intersections, we start from a list of all atoms
+    lin_atm_keys = set(atom_keys(gra))
+    for gra_ in gras:
+        gra_ = ts_reagents_graph_without_stereo(gra_)
+        atm_hyb_dct = atom_hybridizations_from_kekule(implicit(kekule(gra_)))
+        lin_atm_keys &= set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
+
+    # If requested, include all keys associated with dummy atoms
     if dummy:
         dum_ngb_key_dct = dummy_atoms_neighbor_atom_key(gra)
         lin_atm_keys |= set(dum_ngb_key_dct.values())
