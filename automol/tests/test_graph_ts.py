@@ -402,7 +402,39 @@ def test__from_local_stereo():
     _test("C4H9O2", C4H9O2_TSG)
 
 
+def test__ts__reactants_graph():
+    """ test graph.ts.reactants_graph and graph.ts.products_graph
+    """
+    def _test(formula, tsg, rcts_par_dct_ref, prds_par_dct_ref):
+        print(f"{formula}: testing reactants_graph")
+        rcts_gra = automol.graph.ts.reactants_graph(tsg)
+        rcts_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.stereo_parities(rcts_gra), lambda x: x is not None)
+        print(f"asserting {rcts_par_dct} == {rcts_par_dct_ref}")
+        assert rcts_par_dct == rcts_par_dct_ref
+
+        print(f"{formula}: testing products_graph")
+        prds_gra = automol.graph.ts.products_graph(tsg)
+        prds_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.stereo_parities(prds_gra), lambda x: x is not None)
+        print(f"asserting {prds_par_dct} == {prds_par_dct_ref}")
+        assert prds_par_dct == prds_par_dct_ref
+
+        print('---')
+
+    _test("CH4CLFNO", CH4CLFNO_TSG, {0: False}, {0: True})
+    _test("C4H11O2", C4H11O2_TSG, {}, {})
+    _test("C2H3O4", C2H3O4_TSG, {}, {})
+    _test("C4H9O3", C4H9O3_TSG, {3: True}, {3: True})
+    _test("C2H3F2O", C2H3F2O_TSG, {frozenset({0, 1}): True}, {0: False})
+    _test("C4H5F3O2", C4H5F3O2_TSG,
+          {2: False, 3: True, frozenset({0, 1}): False},
+          {0: False, 2: False, 3: True})
+    _test("C4H9O2", C4H9O2_TSG, {3: True}, {frozenset({2, 3}): True})
+
+
 if __name__ == '__main__':
     # test__set_stereo_from_geometry()
-    test__to_local_stereo()
+    # test__to_local_stereo()
     # test__from_local_stereo()
+    test__ts__reactants_graph()
