@@ -27,9 +27,9 @@ from automol.graph import bond_equivalence_class_reps
 from automol.graph import kekules_bond_orders_averaged
 from automol.graph import are_equivalent_atoms
 from automol.graph import hydroperoxy_groups
-from automol.reac._reac import Reaction
-from automol.reac._reac import unique
-from automol.reac._reac import filter_viable_reactions
+from automol.reac._core import Reaction
+from automol.reac._core import unique
+from automol.reac._core import filter_viable_reactions
 from automol.reac._instab import instability_product_graphs
 from automol.reac._util import sort_reagents
 from automol.reac._util import assert_is_valid_reagent_graph_list

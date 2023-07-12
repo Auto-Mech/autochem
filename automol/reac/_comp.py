@@ -7,9 +7,9 @@ from automol.geom import symbols
 from automol.geom import distance
 from automol.geom import central_angle
 from automol.util import dict_
-from automol.reac._reac import forming_bond_keys
-from automol.reac._reac import breaking_bond_keys
-from automol.reac._reac import relabel_for_geometry
+from automol.reac._core import forming_bond_keys
+from automol.reac._core import breaking_bond_keys
+from automol.reac._core import relabel_for_geometry
 from automol.graph import without_stereo
 from automol.graph import ts_reagents_graph_without_stereo
 from automol.graph import geometries_parity_mismatches
