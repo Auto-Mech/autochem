@@ -3,7 +3,7 @@
 import IPython
 import automol.graph
 from automol.extern import rdkit_
-from automol.reac._reac import reactant_graphs, product_graphs
+from automol.reac._core import reactant_graphs, product_graphs
 
 
 # Conversion stuff

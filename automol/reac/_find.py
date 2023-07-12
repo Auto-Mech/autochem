@@ -47,9 +47,9 @@ from automol.graph import atom_neighbor_atom_keys
 from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
-from automol.reac._reac import Reaction
-from automol.reac._reac import reverse
-from automol.reac._reac import unique
+from automol.reac._core import Reaction
+from automol.reac._core import reverse
+from automol.reac._core import unique
 from automol.reac._util import assert_is_valid_reagent_graph_list
 from automol.reac._util import sort_reagents
 from automol.reac._stereo import stereo_is_physical

@@ -3,16 +3,16 @@
 import automol.graph
 import automol.geom
 import automol.chi
-from automol.reac._reac import Reaction
-from automol.reac._reac import reverse
-from automol.reac._reac import atom_mapping
-from automol.reac._reac import reactant_graphs
-from automol.reac._reac import product_graphs
-from automol.reac._reac import reactants_graph
-from automol.reac._reac import products_graph
-from automol.reac._reac import forming_bond_keys
-from automol.reac._reac import breaking_bond_keys
-from automol.reac._reac import relabel
+from automol.reac._core import Reaction
+from automol.reac._core import reverse
+from automol.reac._core import atom_mapping
+from automol.reac._core import reactant_graphs
+from automol.reac._core import product_graphs
+from automol.reac._core import reactants_graph
+from automol.reac._core import products_graph
+from automol.reac._core import forming_bond_keys
+from automol.reac._core import breaking_bond_keys
+from automol.reac._core import relabel
 from automol.reac._conv import amchi
 from automol.graph import ts
 

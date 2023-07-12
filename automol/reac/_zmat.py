@@ -5,7 +5,7 @@ import automol.graph
 from automol.par import ReactionClass
 from automol.graph import ts
 from automol.zmat import distance_coordinate_name
-from automol.reac._reac import add_dummy_atoms
+from automol.reac._core import add_dummy_atoms
 from automol.reac._util import hydrogen_migration_atom_keys
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import elimination_breaking_bond_keys
