@@ -19,12 +19,22 @@ from automol.graph.base._algo import branch_atom_keys
 from automol.graph.base._algo import rings_bond_keys
 
 
-def rotational_bond_keys(
-        gra, lin_keys=None, with_h_rotors=True, with_chx_rotors=True):
-    """ get all rotational bonds for a graph
+def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True,
+                         with_chx_rotors=True):
+    """ Get all rotational bonds for a graph
+
+    For TS graphs, this will include only bonds which are not pi bonds for
+    *either* reactants or products.
 
     :param gra: the graph
     :param lin_keys: keys to linear atoms in the graph
+    :type lin_keys: list[int]
+    :param with_h_rotors: Include H rotors?
+    :type with_h_rotors: bool
+    :param with_chx_rotors: Include CHX rotors?
+    :type with_chx_rotors: bool
+    :returns: The rotational bond keys
+    :rtype: frozenset[frozenset[{int, int}]]
     """
     gra = explicit(gra)
     sym_dct = atom_symbols(gra)

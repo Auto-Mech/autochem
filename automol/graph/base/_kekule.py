@@ -136,16 +136,25 @@ def kekules_bond_orders(gra):
 
 def kekules_bond_orders_collated(gra):
     """ Bond orders for all possible low-spin kekule graphs, collated into a
-        single dictionary
+    single dictionary
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: bond orders for all possible low-spin kekule graphs
-        :rtype: tuple[dict]
+    For TS graphs, collates possible bond orders from both reactants and
+    products.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: bond orders for all possible low-spin kekule graphs
+    :rtype: tuple[dict]
     """
+    if is_ts_graph(gra):
+        gras = [ts_reagents_graph_without_stereo(gra, prod=False),
+                ts_reagents_graph_without_stereo(gra, prod=True)]
+    else:
+        gras = [gra]
+
     bnd_keys = list(bond_keys(gra))
-    bnd_ords_lst = list(dict_.values_by_key(d, bnd_keys) for d in
-                        kekules_bond_orders(gra))
+    bnd_ords_lst = list(dict_.values_by_key(d, bnd_keys, fill_val=0)
+                        for g in gras for d in kekules_bond_orders(g))
     bnd_ords_dct = dict(zip(bnd_keys, zip(*bnd_ords_lst)))
     return bnd_ords_dct
 
