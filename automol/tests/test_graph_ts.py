@@ -433,8 +433,72 @@ def test__ts__reactants_graph():
     _test("C4H9O2", C4H9O2_TSG, {3: True}, {frozenset({2, 3}): True})
 
 
+def test__rotational_bond_keys():
+    """ test graph.rotational_bond_keys
+    """
+    # C=C(O[O])C=C => [CH]=C(OO)C=C
+    print("Rotational bond keys for C=C(O[O])C=C => [CH]=C(OO)C=C")
+    tsg = (
+        {0: ('C', 0, None),
+         1: ('C', 0, None),
+         2: ('C', 0, None),
+         3: ('C', 0, None),
+         4: ('O', 0, None),
+         5: ('O', 0, None),
+         6: ('H', 0, None),
+         7: ('H', 0, None),
+         8: ('H', 0, None),
+         9: ('H', 0, None),
+         10: ('H', 0, None)},
+        {frozenset({1, 9}): (1, None),
+         frozenset({2, 10}): (1, None),
+         frozenset({0, 6}): (1, None),
+         frozenset({2, 3}): (1, None),
+         frozenset({4, 5}): (1, None),
+         frozenset({0, 2}): (1, None),
+         frozenset({1, 8}): (0.9, None),
+         frozenset({3, 5}): (1, None),
+         frozenset({0, 7}): (1, None),
+         frozenset({1, 3}): (1, False),
+         frozenset({4, 8}): (0.1, None)})
+    rtsg = graph.ts.reverse(tsg)
+    assert graph.rotational_bond_keys(tsg) == frozenset({frozenset({2, 3})})
+    assert graph.rotational_bond_keys(rtsg) == frozenset({frozenset({2, 3})})
+
+    # C=C(O[O])C=C => C=C(OO)[C]=C
+    # (rotational bond is locked by TS ring)
+    print("Rotational bond keys for C=C(O[O])C=C => C=C(OO)[C]=C")
+    tsg = (
+        {0: ('C', 0, None),
+         1: ('C', 0, None),
+         2: ('C', 0, None),
+         3: ('C', 0, None),
+         4: ('O', 0, None),
+         5: ('O', 0, None),
+         6: ('H', 0, None),
+         7: ('H', 0, None),
+         8: ('H', 0, None),
+         9: ('H', 0, None),
+         10: ('H', 0, None)},
+        {frozenset({4, 10}): (0.1, None),
+         frozenset({1, 9}): (1, None),
+         frozenset({0, 6}): (1, None),
+         frozenset({2, 3}): (1, None),
+         frozenset({2, 10}): (0.9, None),
+         frozenset({4, 5}): (1, None),
+         frozenset({0, 2}): (1, None),
+         frozenset({1, 8}): (1, None),
+         frozenset({3, 5}): (1, None),
+         frozenset({0, 7}): (1, None),
+         frozenset({1, 3}): (1, None)})
+    rtsg = graph.ts.reverse(tsg)
+    assert graph.rotational_bond_keys(tsg) == frozenset()
+    assert graph.rotational_bond_keys(rtsg) == frozenset()
+
+
 if __name__ == '__main__':
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    test__ts__reactants_graph()
+    # test__ts__reactants_graph()
+    test__rotational_bond_keys()
