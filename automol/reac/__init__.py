@@ -60,10 +60,10 @@ from automol.reac._scan import build_scan_info
 from automol.reac._scan import scan_coordinate
 from automol.reac._scan import constraint_coordinates
 # rotational bonds & torsions
-from automol.reac._rot import linear_atom_keys
-from automol.reac._rot import rotational_bond_keys
-from automol.reac._rot import rotational_groups
-from automol.reac._rot import rotational_symmetry_number
+from automol.reac._3rot import linear_atom_keys
+from automol.reac._3rot import rotational_bond_keys
+from automol.reac._3rot import rotational_groups
+from automol.reac._3rot import rotational_symmetry_number
 # reaction products
 from automol.reac._enum import enumerate_reactions
 # species instability transformations
