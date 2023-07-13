@@ -317,6 +317,37 @@ C4H9O2_GEO = (
  ('H', (0.428192, 1.019683, 3.075372)),
  ('H', (-0.462632, 1.023199, -2.601261)))
 
+# Reactant Bond Stereo => Product Bond Stereo (flipped)
+# CC[C@H](O[O])C => C/C=C/C + O[O]
+# [H]\[C]=C/O + [OH] => O/C=C/O
+#        *                 *
+# [* parity flips due to vinyl adddition]
+C2H4O2_TSG = (
+    {0: ('C', 0, None),
+     1: ('C', 0, None),
+     2: ('O', 0, None),
+     3: ('H', 0, None),
+     4: ('H', 0, None),
+     5: ('H', 0, None),
+     6: ('O', 0, None),
+     7: ('H', 0, None)},
+    {frozenset({1, 4}): (1, None),
+     frozenset({0, 6}): (0.1, None),
+     frozenset({1, 2}): (1, None),
+     frozenset({0, 3}): (1, None),
+     frozenset({0, 1}): (1, True),
+     frozenset({6, 7}): (1, None),
+     frozenset({2, 5}): (1, None)})
+C2H4O2_GEO = (
+    ('C', (-1.759994, 0.859003, 0.020027)),
+    ('C', (-0.10802, -0.946706, -0.598034)),
+    ('O', (2.406749, -0.523634, -0.917962)),
+    ('H', (-0.841145, 2.68758, 0.235109)),
+    ('H', (-0.675523, -2.920932, -0.895759)),
+    ('H', (2.952195, 1.207736, -0.664496)),
+    ('O', (-4.196811, -1.722699, -0.095209)),
+    ('H', (-3.621029, -2.105771, 1.867762)))
+
 
 def test__set_stereo_from_geometry():
     """ test graph.set_stereo_from_geometry
@@ -352,6 +383,7 @@ def test__set_stereo_from_geometry():
     _test("C2H3F2O", C2H3F2O_TSG, C2H3F2O_GEO, 2, 2)
     _test("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4)
     _test("C4H9O2", C4H9O2_TSG, C4H9O2_GEO, 2, 2)
+    _test("C2H4O2", C2H4O2_TSG, C2H4O2_GEO, 1, 1)
 
 
 def test__to_local_stereo():
@@ -400,6 +432,7 @@ def test__from_local_stereo():
     _test("C2H3F2O", C2H3F2O_TSG)
     _test("C4H5F3O2", C4H5F3O2_TSG)
     _test("C4H9O2", C4H9O2_TSG)
+    _test("C2H4O2", C2H4O2_TSG)
 
 
 def test__ts__reactants_graph():
@@ -431,6 +464,8 @@ def test__ts__reactants_graph():
           {2: False, 3: True, frozenset({0, 1}): False},
           {0: False, 2: False, 3: True})
     _test("C4H9O2", C4H9O2_TSG, {3: True}, {frozenset({2, 3}): True})
+    _test("C2H4O2", C2H4O2_TSG,
+          {frozenset({0, 1}): False}, {frozenset({0, 1}): True})
 
 
 def test__rotational_bond_keys():
@@ -500,5 +535,5 @@ if __name__ == '__main__':
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    # test__ts__reactants_graph()
-    test__rotational_bond_keys()
+    test__ts__reactants_graph()
+    # test__rotational_bond_keys()
