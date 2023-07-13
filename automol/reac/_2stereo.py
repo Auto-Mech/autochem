@@ -40,11 +40,11 @@ def expand_stereo(rxn, enant=True):
     srxns = []
     for forw_stsg0 in automol.graph.expand_stereo(forw_tsg0, enant=enant):
 
-        # To avoid losing dummy atoms, copy the stereo parities onto the
-        # forward/reverse TS graphs from the rxn object
-        back_stsg0 = automol.graph.relabel(forw_stsg0, key_dct)
+        # To keep both sets of dummy atoms, copy the stereo parities over
         forw_stsg = automol.graph.set_stereo_parities(
             forw_tsg, automol.graph.stereo_parities(forw_stsg0))
+
+        back_stsg0 = automol.graph.relabel(forw_stsg0, key_dct)
         back_stsg = automol.graph.set_stereo_parities(
             back_tsg, automol.graph.stereo_parities(back_stsg0))
 

@@ -55,18 +55,15 @@ class Reaction:
         assert all_prds_keys == back_keys, (
             f"{str(all_prds_keys)} != {str(back_keys)}")
 
-        # Check that the stereo information is consistent
-        # (All or nothing - no partially assigned stereo)
+        # Check that, if present, stereo information is complete
         if automol.graph.has_stereo(forw_tsg):
             ste_keys = automol.graph.stereogenic_keys(forw_tsg)
             assert not ste_keys, (
                 f"TS graph has unassigned stereo at {ste_keys}:\n{forw_tsg}")
 
         # Check that the forward and reverse TS graphs are consistent
-        forw_tsg_comp = automol.graph.without_dummy_atoms(forw_tsg)
-        back_tsg_comp = automol.graph.without_dummy_atoms(back_tsg)
         assert automol.graph.isomorphism(
-            ts.reverse(forw_tsg_comp), back_tsg_comp)
+            ts.reverse(forw_tsg), back_tsg, dummy=False)
 
         # Set attributes
         self.class_ = rxn_cls

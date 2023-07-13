@@ -222,6 +222,8 @@ def assert_is_valid_reagent_graph_list(gras):
         f"Implicit hydrogens are not allowed here!\nGraphs:\n{gras_str}")
     assert _have_no_common_atom_keys(gras), (
         f"Overlapping atom keys are not allowed here!\nGraphs:\n{gras_str}")
+    assert _have_no_partial_stereo(gras), (
+        f"If present, stereo must be complete!\nGraphs:\n{gras_str}")
 
 
 def _are_all_explicit(gras):
@@ -231,6 +233,14 @@ def _are_all_explicit(gras):
 def _have_no_common_atom_keys(gras):
     atm_keys = list(itertools.chain(*map(automol.graph.atom_keys, gras)))
     return len(atm_keys) == len(set(atm_keys))
+
+
+def _have_no_partial_stereo(gras):
+    if any(map(automol.graph.has_stereo, gras)):
+        ret = not any(map(automol.graph.stereogenic_keys, gras))
+    else:
+        ret = True
+    return ret
 
 
 def argsort_reagents(gras):
