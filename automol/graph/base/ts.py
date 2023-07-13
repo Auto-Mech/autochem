@@ -27,6 +27,7 @@ from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import string
 from automol.graph.base._core import relabel
 from automol.graph.base._core import nonbackbone_hydrogen_keys
+from automol.graph.base._core import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._algo import rings_bond_keys
 from automol.graph.base._algo import isomorphic
 from automol.graph.base._algo import shortest_path_between_groups
@@ -156,7 +157,18 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
 
     Sn2 constraint is taken care of by parity_evaluator_flip_local_.
 
-    Elimination constraint is imposed here:
+    Vinyl radical addition flipping is accounted for:
+
+             5                        5         6
+              \   +                    \   -   /
+               1=====2   +  6   <=>     1=====2
+              /       \                /       \
+             4         3              4         3
+
+            trans                    cis
+            ('+')                    ('-')
+
+    Elimination constraint is accounted for:
 
              4         8              3           6
               \   +   /     3          \ +     + /
@@ -219,45 +231,72 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
 
         p0_ = par_eval_flip_(loc_tsg0, pri_dct)
 
+        vin_keys = vinyl_radical_atom_keys(gra)
+
         def _parity(key):
             # Stereocenters directly shared with TS can be obtained from the
             # flip local parity evaluator
             par = p0_(key)
 
-            # If `par` is `None` and this is an elimination reaction, determine
-            # the bond parity from the constituent atom parities
-            if par is None and not isinstance(key, numbers.Number) and all(
-                    k in loc_par_dct for k in key):
-                key1, key2 = key
-                key0, = next(k for k in frm_bkeys if key1 in k) - {key1}
-                key3, = next(k for k in frm_bkeys if key2 in k) - {key2}
-                keys = {key0, key1, key2, key3}
+            # Atoms should be fully taken care of, since Sn2 reactions are
+            # automatically handled by localization
 
-                # Only proceed if this the right kind of elimination, with a
-                # cyclic TS
-                if any(keys & ks for ks in rng_akeys_lst):
-                    # This is a constrained bond!
-                    # i. Read out the relevant atom and bond parities
-                    p_a1 = loc_par_dct[key1]
-                    p_a2 = loc_par_dct[key2]
+            # For bonds, we need to check for two things:
+            # 1. Neighbor mismatch due to addition at a vinyl radical site
+            # 2. Stereo-restricted elimination
+            if not isinstance(key, numbers.Number):
+                akeys = sorted(key)
+                tnkeyss = bond_stereo_sorted_neighbor_keys(
+                    tsg, *akeys, pri_dct=loc_pri_dct)
+                gnkeyss = bond_stereo_sorted_neighbor_keys(
+                    gra, *akeys, pri_dct=loc_pri_dct)
 
-                    # ii. Calculate the local bond parity
-                    nk1s = sorted(nkeys_dct[key1], key=loc_pri_dct.__getitem__)
-                    nk2s = sorted(nkeys_dct[key2], key=loc_pri_dct.__getitem__)
-                    srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
-                    srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
-                    p_1 = util.is_even_permutation(nk1s, srt_nk1s)
-                    p_2 = util.is_even_permutation(nk2s, srt_nk2s)
+                # Handle vinyl radical mismatch
+                for (akey, tnkeys, gnkeys) in zip(akeys, tnkeyss, gnkeyss):
+                    if par is not None and tnkeys != gnkeys:
+                        assert akey in vin_keys, (
+                            f"Neighbor mismatch at {akey} is not due to "
+                            f"vinyl addition:\n{tsg}\n{gra}")
+                        # If the maximum priority neighbors don't match, flip
+                        # the parity
+                        if tnkeys[-1] != gnkeys[-1]:
+                            # Flip the parity
+                            par = not par
 
-                    # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
-                    p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
+                # Handle elimination constraint
+                if par is None and all(k in loc_par_dct for k in key):
+                    key1, key2 = key
+                    key0, = next(k for k in frm_bkeys if key1 in k) - {key1}
+                    key3, = next(k for k in frm_bkeys if key2 in k) - {key2}
+                    keys = {key0, key1, key2, key3}
 
-                    # iii. Add this local bond parity to the TS graph
-                    loc_tsg1 = set_stereo_parities(loc_tsg0, {key: p_b12})
+                    # Only proceed if this the right kind of elimination, with
+                    # a cyclic TS
+                    if any(keys & ks for ks in rng_akeys_lst):
+                        # This is a constrained bond!
+                        # i. Read out the relevant atom and bond parities
+                        p_a1 = loc_par_dct[key1]
+                        p_a2 = loc_par_dct[key2]
 
-                    # iv. Calculate the canonical parity by flipping
-                    p1_ = par_eval_flip_(loc_tsg1, pri_dct)
-                    par = p1_(key)
+                        # ii. Calculate the local bond parity
+                        nk1s = sorted(
+                            nkeys_dct[key1], key=loc_pri_dct.__getitem__)
+                        nk2s = sorted(
+                            nkeys_dct[key2], key=loc_pri_dct.__getitem__)
+                        srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
+                        srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
+                        p_1 = util.is_even_permutation(nk1s, srt_nk1s)
+                        p_2 = util.is_even_permutation(nk2s, srt_nk2s)
+
+                        # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
+                        p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
+
+                        # iii. Add this local bond parity to the TS graph
+                        loc_tsg1 = set_stereo_parities(loc_tsg0, {key: p_b12})
+
+                        # iv. Calculate the canonical parity by flipping
+                        p1_ = par_eval_flip_(loc_tsg1, pri_dct)
+                        par = p1_(key)
 
             if par is None:
                 raise NotImplementedError(
