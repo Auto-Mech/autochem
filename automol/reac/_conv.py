@@ -3,7 +3,7 @@
 import IPython
 import automol.graph
 from automol.extern import rdkit_
-from automol.reac._core import reactant_graphs, product_graphs
+from automol.reac._1core import reactant_graphs, product_graphs
 
 
 # Conversion stuff
@@ -121,8 +121,7 @@ def display(rxn):
 
 
 # Get a reaction object from various identifiers
-def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False,
-                             ts_stereo=None, ts_enant=None):
+def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False):
     """ Get reaction objects with geometry/z-matrix structures from ChIs
 
     :param rct_chis: The reactant ChI (InChI or AMChI) strings
@@ -131,13 +130,8 @@ def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False,
     :type prd_chis: list[str]
     :param zmat: Return z-matrix structures instead of cartesian geometries?
     :type zmat: bool
-    :param stereo: Include stereoassignments? If `True`, then `ts_stereo` will
-        default to `True` and `ts_enant` will default to `False`.
+    :param stereo: Include stereoassignments?
     :type stereo: bool
-    :param ts_stereo: Include fleeting TS stereoisomers as distinct TSs?
-    :type ts_stereo: bool or NoneType
-    :param ts_enant: Include fleeting TS enantiomers as distinct TSs?
-    :type ts_enant: bool or NoneType
     :returns: A series of tuples containing, in order, the reaction object, the
         TS structure, the (sorted) reactant structures, and the (sorted)
         product structures. The latter three are returned as either automol
@@ -149,12 +143,10 @@ def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False,
     prd_geos = list(map(automol.chi.geometry, prd_chis))
 
     return with_structures_from_geometry(
-        rct_geos, prd_geos, zmat=zmat, stereo=stereo, ts_stereo=ts_stereo,
-        ts_enant=ts_enant)
+        rct_geos, prd_geos, zmat=zmat, stereo=stereo)
 
 
-def with_structures_from_smiles(rct_smis, prd_smis, zmat=False, stereo=False,
-                                ts_stereo=None, ts_enant=None):
+def with_structures_from_smiles(rct_smis, prd_smis, zmat=False, stereo=False):
     """ Get reaction objects with geometry/z-matrix structures from SMILES
 
     :param rct_smis: The reactant SMILES strings
@@ -163,13 +155,8 @@ def with_structures_from_smiles(rct_smis, prd_smis, zmat=False, stereo=False,
     :type prd_smis: list[str]
     :param zmat: Return z-matrix structures instead of cartesian geometries?
     :type zmat: bool
-    :param stereo: Include stereoassignments? If `True`, then `ts_stereo` will
-        default to `True` and `ts_enant` will default to `False`.
+    :param stereo: Include stereoassignments?
     :type stereo: bool
-    :param ts_stereo: Include fleeting TS stereoisomers as distinct TSs?
-    :type ts_stereo: bool or NoneType
-    :param ts_enant: Include fleeting TS enantiomers as distinct TSs?
-    :type ts_enant: bool or NoneType
     :returns: A series of tuples containing, in order, the reaction object, the
         TS structure, the (sorted) reactant structures, and the (sorted)
         product structures. The latter three are returned as either automol
@@ -186,12 +173,10 @@ def with_structures_from_smiles(rct_smis, prd_smis, zmat=False, stereo=False,
     prd_geos = list(map(automol.chi.geometry, prd_chis))
 
     return with_structures_from_geometry(
-        rct_geos, prd_geos, zmat=zmat, stereo=stereo, ts_stereo=ts_stereo,
-        ts_enant=ts_enant)
+        rct_geos, prd_geos, zmat=zmat, stereo=stereo)
 
 
-def with_structures_from_zmatrix(rct_zmas, prd_zmas, zmat=False, stereo=False,
-                                 ts_stereo=None, ts_enant=None):
+def with_structures_from_zmatrix(rct_zmas, prd_zmas, zmat=False, stereo=False):
     """ Get reaction objects with geometry/z-matrix structures from SMILES
 
     :param rct_zmas: The reactant z-matrices
@@ -200,13 +185,8 @@ def with_structures_from_zmatrix(rct_zmas, prd_zmas, zmat=False, stereo=False,
     :type prd_zmas: list of automol z-matrices
     :param zmat: Return z-matrix structures instead of cartesian geometries?
     :type zmat: bool
-    :param stereo: Include stereoassignments? If `True`, then `ts_stereo` will
-        default to `True` and `ts_enant` will default to `False`.
+    :param stereo: Include stereoassignments?
     :type stereo: bool
-    :param ts_stereo: Include fleeting TS stereoisomers as distinct TSs?
-    :type ts_stereo: bool or NoneType
-    :param ts_enant: Include fleeting TS enantiomers as distinct TSs?
-    :type ts_enant: bool or NoneType
     :returns: A series of tuples containing, in order, the reaction object, the
         TS structure, the (sorted) reactant structures, and the (sorted)
         product structures. The latter three are returned as either automol
@@ -218,12 +198,11 @@ def with_structures_from_zmatrix(rct_zmas, prd_zmas, zmat=False, stereo=False,
     prd_geos = list(map(automol.zmat.geometry, prd_zmas))
 
     return with_structures_from_geometry(
-        rct_geos, prd_geos, zmat=zmat, stereo=stereo, ts_stereo=ts_stereo,
-        ts_enant=ts_enant)
+        rct_geos, prd_geos, zmat=zmat, stereo=stereo)
 
 
-def with_structures_from_geometry(rct_geos, prd_geos, zmat=False, stereo=False,
-                                  ts_stereo=None, ts_enant=None):
+def with_structures_from_geometry(rct_geos, prd_geos, zmat=False,
+                                  stereo=False):
     """ Get reaction objects with geometry/z-matrix structures from geometries
 
     :param rct_geos: The reactant geometries
@@ -232,13 +211,8 @@ def with_structures_from_geometry(rct_geos, prd_geos, zmat=False, stereo=False,
     :type prd_geos: list of automol geometries
     :param zmat: Return z-matrix structures instead of cartesian geometries?
     :type zmat: bool
-    :param stereo: Include stereoassignments? If `True`, then `ts_stereo` will
-        default to `True` and `ts_enant` will default to `False`.
+    :param stereo: Include stereoassignments?
     :type stereo: bool
-    :param ts_stereo: Include fleeting TS stereoisomers as distinct TSs?
-    :type ts_stereo: bool or NoneType
-    :param ts_enant: Include fleeting TS enantiomers as distinct TSs?
-    :type ts_enant: bool or NoneType
     :returns: A series of tuples containing, in order, the reaction object, the
         TS structure, the (sorted) reactant structures, and the (sorted)
         product structures. The latter three are returned as either automol
@@ -250,21 +224,14 @@ def with_structures_from_geometry(rct_geos, prd_geos, zmat=False, stereo=False,
     rct_gras = list(map(automol.geom.graph, rct_geos))
     prd_gras = list(map(automol.geom.graph, prd_geos))
 
-    ts_enant = False if ts_enant is None else ts_enant
-    ts_stereo = True if ts_enant and ts_stereo is None else ts_stereo
-
-    if stereo:
-        ts_stereo = True if ts_stereo is None else ts_stereo
-    else:
-        ts_stereo = False if ts_stereo is None else ts_stereo
+    if not stereo:
         rct_gras = list(map(automol.graph.without_stereo, rct_gras))
         prd_gras = list(map(automol.graph.without_stereo, prd_gras))
 
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
-    rxns = automol.reac.find(
-        rct_gras, prd_gras, ts_stereo=ts_stereo, ts_enant=ts_enant)
+    rxns = automol.reac.find(rct_gras, prd_gras)
 
     # Obtain the reaction objects and structures to return
     ret = tuple()

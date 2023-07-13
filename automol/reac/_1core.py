@@ -652,46 +652,22 @@ def reaction_class(rxn):
     return rxn.class_
 
 
-def are_equivalent(rxn1, rxn2, ts_stereo=True, ts_enant=False):
-    """ Are these Reaction objects equivalent?
-
-        Requires forward TS graphs to be are exactly aligned, having identical
-        reactant graphs (including their keys) and differing only in the
-        breaking/forming bonds.
-
-        :param rxn1: reaction object
-        :param rxn2: reaction object for comparison
-        :param ts_stereo: Treat fleeting TS stereoisomers as distinct TSs?
-        :type ts_stereo: bool
-        :param ts_enant: Treat fleeting TS enantiomers as distinct TSs?
-        :type ts_enant: bool
-        :returns: `True` if they are, `False` if they aren't
-    """
-    tsg1 = rxn1.forward_ts_graph
-    tsg2 = rxn2.forward_ts_graph
-    return automol.graph.ts.are_equivalent(
-        tsg1, tsg2, ts_stereo=ts_stereo, ts_enant=ts_enant)
-
-
-def unique(rxns, ts_stereo=True, ts_enant=False):
+def unique(rxns):
     """ Get reactions with distinct TSs from a list with redundancies
 
     :param rxns: a sequence of reaction objects
-    :param ts_stereo: Treat fleeting TS stereoisomers as distinct TSs?
-    :type ts_stereo: bool
-    :param ts_enant: Treat fleeting TS enantiomers as distinct TSs?
-    :type ts_enant: bool
     :returns: unique reaction objects
     """
     all_rxns = rxns
     rxns = []
 
-    def equiv_(rxn1, rxn2):
-        return are_equivalent(
-            rxn1, rxn2, ts_stereo=ts_stereo, ts_enant=ts_enant)
+    def isomorphic_(rxn1, rxn2):
+        tsg1 = rxn1.forward_ts_graph
+        tsg2 = rxn2.forward_ts_graph
+        return automol.graph.isomorphic(tsg1, tsg2, stereo=True)
 
     for rxn in all_rxns:
-        if not any(equiv_(rxn, r) for r in rxns):
+        if not any(isomorphic_(rxn, r) for r in rxns):
             rxns.append(rxn)
 
     return tuple(rxns)

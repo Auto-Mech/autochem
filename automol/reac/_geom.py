@@ -6,10 +6,10 @@ import automol.geom.ts
 from automol.par import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_keys
-from automol.reac._core import reactants_graph
-from automol.reac._core import products_graph
-from automol.reac._core import atom_mapping
-from automol.reac._core import has_standard_keys
+from automol.reac._1core import reactants_graph
+from automol.reac._1core import products_graph
+from automol.reac._1core import atom_mapping
+from automol.reac._1core import has_standard_keys
 from automol.reac._util import ring_forming_scission_chain
 from automol.reac._util import hydrogen_abstraction_is_sigma
 
