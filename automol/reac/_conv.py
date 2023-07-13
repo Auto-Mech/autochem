@@ -1,9 +1,21 @@
 """ Conversion functions
 """
 import IPython
+import automol.chi
+import automol.amchi
+import automol.smiles
+import automol.zmat
+import automol.geom
 import automol.graph
 from automol.extern import rdkit_
-from automol.reac._1core import reactant_graphs, product_graphs
+from automol.reac._1core import reactant_graphs
+from automol.reac._1core import product_graphs
+from automol.reac._1core import standard_keys_with_sorted_geometries
+from automol.reac._1core import relabel_for_zmatrix
+from automol.reac._geom import ts_geometry
+from automol.reac._zmat import ts_zmatrix
+from automol.reac._find import find
+from automol.reac._2stereo import reflect
 
 
 # Conversion stuff
@@ -120,6 +132,32 @@ def display(rxn):
     return IPython.display.display(rdkit_reaction(rxn))
 
 
+# Check if the reaction is canonical
+def is_canonical_enantiomer(srxn):
+    """ Does this reaction have a canonical combination of enantiomers?
+
+        :param srxn: a reaction object with stereo assignments
+        :type srxn: Reaction
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    rct_chis, prd_chis = amchi(srxn)
+    return automol.amchi.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
+
+
+def canonical_enantiomer(srxn):
+    """ Convert this reaction into a canonical combination of enantiomers
+
+        :param srxn: a reaction object with stereo assignments
+        :type srxn: Reaction
+        :returns: Whether or not the reaction is canonical
+        :rtype: bool
+    """
+    if not is_canonical_enantiomer(srxn):
+        srxn = reflect(srxn)
+    return srxn
+
+
 # Get a reaction object from various identifiers
 def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False):
     """ Get reaction objects with geometry/z-matrix structures from ChIs
@@ -231,27 +269,26 @@ def with_structures_from_geometry(rct_geos, prd_geos, zmat=False,
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
-    rxns = automol.reac.find(rct_gras, prd_gras)
+    rxns = find(rct_gras, prd_gras)
 
     # Obtain the reaction objects and structures to return
     ret = tuple()
     for rxn in rxns:
         std_rxn, std_rgeos, std_pgeos = (
-            automol.reac.standard_keys_with_sorted_geometries(
-                rxn, rct_geos, prd_geos))
+            standard_keys_with_sorted_geometries(rxn, rct_geos, prd_geos))
 
         # Add rxn object set to master list
         if std_rxn is not None:
             # Form the transition state geom using the rxn object
-            ts_geo = automol.reac.ts_geometry(std_rxn, std_rgeos, log=False)
+            ts_geo = ts_geometry(std_rxn, std_rgeos, log=False)
 
             # Determine which geometries to store
             if not zmat:
                 ret += ((std_rxn, ts_geo, std_rgeos, std_pgeos),)
             else:
-                ts_zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(
+                ts_zma, zma_keys, dummy_key_dct = ts_zmatrix(
                     std_rxn, ts_geo)
-                std_zrxn = automol.reac.relabel_for_zmatrix(
+                std_zrxn = relabel_for_zmatrix(
                     std_rxn, zma_keys, dummy_key_dct)
                 rct_zmas = tuple(map(automol.geom.zmatrix, std_rgeos))
                 prd_zmas = tuple(map(automol.geom.zmatrix, std_pgeos))
