@@ -36,8 +36,6 @@ from automol.reac._2stereo import add_stereo_from_inchis
 from automol.reac._2stereo import add_stereo_from_unordered_geometries
 from automol.reac._2stereo import expand_stereo
 from automol.reac._2stereo import stereo_is_physical
-from automol.reac._2stereo import is_canonical_enantiomer
-from automol.reac._2stereo import canonical_enantiomer
 from automol.reac._2stereo import reflect
 # finders
 from automol.reac._find import trivial
@@ -87,6 +85,8 @@ from automol.reac._conv import chi
 from automol.reac._conv import smiles
 from automol.reac._conv import rdkit_reaction
 from automol.reac._conv import display
+from automol.reac._conv import is_canonical_enantiomer
+from automol.reac._conv import canonical_enantiomer
 from automol.reac._conv import with_structures_from_chi
 from automol.reac._conv import with_structures_from_smiles
 from automol.reac._conv import with_structures_from_geometry
@@ -156,8 +156,6 @@ __all__ = [
     'add_stereo_from_unordered_geometries',
     'expand_stereo',
     'stereo_is_physical',
-    'is_canonical_enantiomer',
-    'canonical_enantiomer',
     'reflect',
     # reaction products
     'enumerate_reactions',
@@ -180,6 +178,8 @@ __all__ = [
     'smiles',
     'rdkit_reaction',
     'display',
+    'is_canonical_enantiomer',
+    'canonical_enantiomer',
     'with_structures_from_chi',
     'with_structures_from_smiles',
     'with_structures_from_geometry',
