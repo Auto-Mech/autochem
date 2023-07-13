@@ -4,7 +4,6 @@
 import numpy
 import automol
 from automol.par import ReactionClass
-# from automol.graph import ts
 
 SUBSTITUTION_RXN_STR = """
 reaction class: substitution
@@ -303,6 +302,31 @@ def test__reac__reagents_graph():
          frozenset({9, 2}): (1, None)})
 
     assert prds_gra == automol.reac.reactants_graph(rxn, rev=True)
+
+
+def test__expand_stereo():
+    """ test reaction stereo expansion
+    """
+    rct_smis = ['CC(F)CCCC', '[H]']
+    prd_smis = ['CC(F)CCC[CH2]', '[HH]']
+    rxn_obj = (
+        automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0][0])
+
+    srxn_objs = automol.reac.expand_stereo(rxn_obj)
+    rct_ichs = list(map(automol.graph.inchi,
+                        map(automol.graph.union_from_sequence,
+                            map(automol.reac.reactant_graphs, srxn_objs))))
+    prd_ichs = list(map(automol.graph.inchi,
+                        map(automol.graph.union_from_sequence,
+                            map(automol.reac.reactant_graphs, srxn_objs))))
+    rxn_ichs_lst = tuple(zip(rct_ichs, prd_ichs))
+    for rxn_ichs in rxn_ichs_lst:
+        print(rxn_ichs)
+    assert rxn_ichs_lst == (
+        ('InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m0./s1',
+         'InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m0./s1'),
+        ('InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m1./s1',
+         'InChI=1S/C6H13F.H/c1-3-4-5-6(2)7;/h6H,3-5H2,1-2H3;/t6-;/m1./s1'))
 
 
 def test__reac__hydrogen_migration():
