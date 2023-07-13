@@ -7,10 +7,10 @@ from automol.geom import symbols
 from automol.geom import distance
 from automol.geom import central_angle
 from automol.util import dict_
-from automol.reac._core import forming_bond_keys
-from automol.reac._core import breaking_bond_keys
-from automol.reac._core import relabel_for_geometry
-from automol.reac._core import atom_mapping
+from automol.reac._1core import forming_bond_keys
+from automol.reac._1core import breaking_bond_keys
+from automol.reac._1core import relabel_for_geometry
+from automol.reac._1core import atom_mapping
 from automol.graph import without_stereo
 from automol.graph import ts_reagents_graph_without_stereo
 from automol.graph import geometries_parity_mismatches

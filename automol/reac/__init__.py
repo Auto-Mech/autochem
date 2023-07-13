@@ -1,36 +1,44 @@
 """ reaction-class specific functionality
 """
 # base reaction class
-from automol.reac._core import Reaction
-from automol.reac._core import string
-from automol.reac._core import from_string
-from automol.reac._core import reverse
-from automol.reac._core import atom_mapping
-from automol.reac._core import sort_order
-from automol.reac._core import forming_bond_keys
-from automol.reac._core import breaking_bond_keys
-from automol.reac._core import forming_rings_atom_keys
-from automol.reac._core import forming_rings_bond_keys
-from automol.reac._core import breaking_rings_atom_keys
-from automol.reac._core import breaking_rings_bond_keys
-from automol.reac._core import reactant_graphs
-from automol.reac._core import product_graphs
-from automol.reac._core import reactants_graph
-from automol.reac._core import products_graph
-from automol.reac._core import standard_keys
-from automol.reac._core import standard_keys_with_sorted_geometries
-from automol.reac._core import relabel
-from automol.reac._core import without_stereo
-from automol.reac._core import add_dummy_atoms
-from automol.reac._core import insert_dummy_atoms
-from automol.reac._core import without_dummy_atoms
-from automol.reac._core import relabel_for_zmatrix
-from automol.reac._core import relabel_for_geometry
-from automol.reac._core import reaction_class
-from automol.reac._core import is_radical_radical
-from automol.reac._core import is_barrierless
-from automol.reac._core import are_equivalent
-from automol.reac._core import unique
+from automol.reac._1core import Reaction
+from automol.reac._1core import string
+from automol.reac._1core import from_string
+from automol.reac._1core import reverse
+from automol.reac._1core import atom_mapping
+from automol.reac._1core import sort_order
+from automol.reac._1core import forming_bond_keys
+from automol.reac._1core import breaking_bond_keys
+from automol.reac._1core import forming_rings_atom_keys
+from automol.reac._1core import forming_rings_bond_keys
+from automol.reac._1core import breaking_rings_atom_keys
+from automol.reac._1core import breaking_rings_bond_keys
+from automol.reac._1core import reactant_graphs
+from automol.reac._1core import product_graphs
+from automol.reac._1core import reactants_graph
+from automol.reac._1core import products_graph
+from automol.reac._1core import standard_keys
+from automol.reac._1core import standard_keys_with_sorted_geometries
+from automol.reac._1core import relabel
+from automol.reac._1core import without_stereo
+from automol.reac._1core import add_dummy_atoms
+from automol.reac._1core import insert_dummy_atoms
+from automol.reac._1core import without_dummy_atoms
+from automol.reac._1core import relabel_for_zmatrix
+from automol.reac._1core import relabel_for_geometry
+from automol.reac._1core import reaction_class
+from automol.reac._1core import is_radical_radical
+from automol.reac._1core import is_barrierless
+from automol.reac._1core import unique
+# stereo-specific reactions
+from automol.reac._2stereo import add_stereo_from_geometries
+from automol.reac._2stereo import add_stereo_from_inchis
+from automol.reac._2stereo import add_stereo_from_unordered_geometries
+from automol.reac._2stereo import expand_stereo
+from automol.reac._2stereo import stereo_is_physical
+from automol.reac._2stereo import is_canonical_enantiomer
+from automol.reac._2stereo import canonical_enantiomer
+from automol.reac._2stereo import reflect
 # finders
 from automol.reac._find import trivial
 from automol.reac._find import hydrogen_migrations
@@ -58,15 +66,6 @@ from automol.reac._rot import linear_atom_keys
 from automol.reac._rot import rotational_bond_keys
 from automol.reac._rot import rotational_groups
 from automol.reac._rot import rotational_symmetry_number
-# stereo-specific reactions
-from automol.reac._stereo import add_stereo_from_geometries
-from automol.reac._stereo import add_stereo_from_inchis
-from automol.reac._stereo import add_stereo_from_unordered_geometries
-from automol.reac._stereo import expand_stereo
-from automol.reac._stereo import stereo_is_physical
-from automol.reac._stereo import is_canonical_enantiomer
-from automol.reac._stereo import canonical_enantiomer
-from automol.reac._stereo import reflect
 # reaction products
 from automol.reac._enum import enumerate_reactions
 # species instability transformations
@@ -123,7 +122,6 @@ __all__ = [
     'reaction_class',
     'is_radical_radical',
     'is_barrierless',
-    'are_equivalent',
     'unique',
     # finders
     'trivial',

@@ -47,12 +47,12 @@ from automol.graph import atom_neighbor_atom_keys
 from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
-from automol.reac._core import Reaction
-from automol.reac._core import reverse
-from automol.reac._core import unique
+from automol.reac._1core import Reaction
+from automol.reac._1core import reverse
+from automol.reac._1core import unique
 from automol.reac._util import assert_is_valid_reagent_graph_list
 from automol.reac._util import sort_reagents
-from automol.reac._stereo import stereo_is_physical
+from automol.reac._2stereo import stereo_is_physical
 
 
 def trivial(rct_gras, prd_gras):
@@ -281,7 +281,7 @@ def eliminations(rct_gras, prd_gras):
         frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
                         in itertools.product(frm1_keys, frm2_keys)
                         if frm1_key != frm2_key and
-                        not frozenset({frm1_key, frm2_key}) in bnd_keys]
+                        frozenset({frm1_key, frm2_key}) not in bnd_keys]
 
         for frm1_key, frm2_key in frm_bnd_keys:
 
@@ -743,17 +743,13 @@ def substitutions(rct_gras, prd_gras):
     return rxns
 
 
-def find(rct_gras, prd_gras, ts_stereo=False, ts_enant=False):
+def find(rct_gras, prd_gras):
     """ find all reactions consistent with these reactants and products
 
     :param rct_gras: graphs for the reactants, without stereo and without
         overlapping keys
     :param prd_gras: graphs for the products, without stereo and without
         overlapping keys
-    :param ts_stereo: Treat fleeting TS stereoisomers as distinct?
-    :type ts_stereo: bool
-    :param ts_enant: Treat fleeting TS enantiomers as distinct?
-    :type ts_enant: bool
     :returns: a list of Reaction objects
     :rtype: tuple[Reaction]
     """
@@ -785,7 +781,7 @@ def find(rct_gras, prd_gras, ts_stereo=False, ts_enant=False):
     all_rxns = []
     for finder_ in finders_:
         rxns = finder_(rct_gras, prd_gras)
-        rxns = unique(rxns, ts_stereo=ts_stereo, ts_enant=ts_enant)
+        rxns = unique(rxns)
         all_rxns.extend(rxns)
 
     return tuple(all_rxns)
