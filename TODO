@@ -1,0 +1,9 @@
+(A) Implement physical consistency check to see if a given set of reactants and
+products are compatible with a given TS.
+
+Maybe this can be done as follows:
+(a) Sort reactants/products graphs to match TS atom ordering
+(b) Convert them to local stereo
+(c) Generates reactants/products graph directly from the TS
+(d) Convert *those* (from (c)) to local stereo
+(e) Compare the graphs from (b) to those from (c)
