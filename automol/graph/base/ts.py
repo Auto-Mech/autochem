@@ -5,7 +5,6 @@ DEPRECATED (under construction to phase out)
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
-import numbers
 import numpy
 from automol import util
 import automol.amchi.base    # !!!!
@@ -153,109 +152,12 @@ def reagents_graph(tsg, prod=False, stereo=True):
     return gra
 
 
-def local_elimination_constraint_parity(loc_tsg):
-    r""" Identifies the local parity of a constrained elimination, if present
-
-    Also, indicates whether the bond parity applies to the reactants or
-    products
-
-        Constraint:
-
-                3           6         4         8
-                 \ +     + /           \   +   /     3
-                  1-------2      <=>    1=====2      |
-                 / \     / \           /       \     6
-                4   5   8   7         5         7
-
-            clockwise  clockwise     trans
-            ('+')      ('+')         ('+')
-
-        Equation: p_b12 = (p_a1 AND p_1) XNOR (p_a2 AND p_2)
-
-        Where p_a1 and p_a2 are the parities of the atoms, p_b is the resulting
-        parity of the 1=2 double bond, and p_1 and p_2 are the parities of the
-        permutations required to move the other atom in the bond first in the
-        list and the leaving atom second for each atom.
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: A single-value dictionary associating the key with the parity and
-        a boolean indicating whether this applies to the products (True) or to
-        the reactants (False)
-    :rtype: dict(frozenset({int, int}): bool), bool
-    """
-    loc_par_dct = util.dict_.filter_by_value(
-        stereo_parities(loc_tsg), lambda x: x is not None)
-    loc_pri_dct = local_priority_dict(loc_tsg)
-    nkeys_dct = atoms_neighbor_atom_keys(loc_tsg)
-
-    ret = []
-
-    # Check first reactants, then products
-    for prod in [False, True]:
-        gra = ts_reagents_graph_without_stereo(loc_tsg, prod=prod)
-        if prod:
-            frm_bkeys = ts_breaking_bond_keys(loc_tsg)
-            rkeys_lst = list(map(set, breaking_rings_atom_keys(loc_tsg)))
-        else:
-            frm_bkeys = ts_forming_bond_keys(loc_tsg)
-            rkeys_lst = list(map(set, forming_rings_atom_keys(loc_tsg)))
-
-        # Conditions:
-        # A. Bond is rigid and planar
-        for bkey in rigid_planar_bond_keys(gra):
-            # Conditions:
-            # B. Both atoms in the bond are stereogenic
-            if all(k in loc_par_dct for k in bkey):
-                key1, key2 = bkey
-                key0, = next(k for k in frm_bkeys if key1 in k) - {key1}
-                key3, = next(k for k in frm_bkeys if key2 in k) - {key2}
-                keys = {key0, key1, key2, key3}
-                # C. The atoms are part of a forming ring
-                if any(keys & rkeys for rkeys in rkeys_lst):
-                    # This is a constrained bond!
-                    # i. Read out the relevant atom and bond parities
-                    p_a1 = loc_par_dct[key1]
-                    p_a2 = loc_par_dct[key2]
-
-                    # ii. Calculate the local bond parity
-                    nk1s = sorted(
-                        nkeys_dct[key1], key=loc_pri_dct.__getitem__)
-                    nk2s = sorted(
-                        nkeys_dct[key2], key=loc_pri_dct.__getitem__)
-                    srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
-                    srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
-                    p_1 = util.is_even_permutation(nk1s, srt_nk1s)
-                    p_2 = util.is_even_permutation(nk2s, srt_nk2s)
-
-                    # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
-                    p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
-
-                    # If we find one, retu
-                    ret.append(({bkey: p_b12}, prod))
-
-    assert len(ret) <= 1, (
-        f"Multiple elimination constraints for TS graph: {ret}\n{loc_tsg}")
-    return ret[0] if ret else ({}, None)
-
-
 def parity_evaluator_reagents_from_ts_(tsg, prod=False):
     r""" Determines reactant or product stereochemistry from a TS graph
 
     (For internal use by the calculate_priorities_and_assign_stereo() function)
 
-    Sn2 constraint is taken care of by parity_evaluator_flip_local_.
-
-    Vinyl radical addition flipping is accounted for:
-
-             5                        5         6
-              \   +                    \   -   /
-               1=====2   +  6   <=>     1=====2
-              /       \                /       \
-             4         3              4         3
-
-            trans                    cis
-            ('+')                    ('-')
+    Sn2 constraint is taken care of by parity_evaluator_flip_local_
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
@@ -264,22 +166,24 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
     :returns: A parity evaluator, `p_`, for which `p_(gra, pri_dct)(key)`
         returns the parity for a given atom, given a set of priorities.
     """
+    # Handle Sn2 reactions by reversing before localizing, if getting products
     tsg0 = ts_reverse(tsg) if prod else tsg
     loc_tsg0 = to_local_stereo(tsg0)
 
-    # For simplicity, add back in bond parity for constrained elimination
-    par_dct, prod = local_elimination_constraint_parity(loc_tsg0)
+    # Handle constrained eliminations
+    ckey, cpar, cprod = constrained_elimination_local_parity(loc_tsg0)
+    if cprod is False:
+        loc_tsg0 = set_stereo_parities(loc_tsg0, {ckey: cpar})
 
-    if par_dct:
-        loc_tsg0 = set_stereo_parities(loc_tsg0, par_dct)
+    # Handle vinyl radical additions
+    vkey, vpar, vprod = vinyl_addition_local_parity(loc_tsg0)
+    if vprod is False:
+        loc_tsg0 = set_stereo_parities(loc_tsg0, {vkey: vpar})
 
-    # For conserved stereo parities, we can simply flip the local stereo
-    # parities from the TS graph
+    # Now that we have handled the exceptions, the local parities correspond to
+    # what they will be for the reactants/products graph, so we can simply flip
+    # the local stereo to find canonical assignments
     par_eval_flip_ = parity_evaluator_flip_local_()
-
-    # For other cases (currently only eliminations), we need some extra info to
-    # determine the reagent stereochemistry
-    loc_pri_dct = local_priority_dict(loc_tsg0)
 
     def _evaluator(gra, pri_dct, ts_rev=False):
         """ Parity evaluator based on current priorities
@@ -303,36 +207,10 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
 
         p0_ = par_eval_flip_(loc_tsg0, pri_dct)
 
-        vin_keys = vinyl_radical_atom_keys(gra)
-
         def _parity(key):
             # Stereocenters directly shared with TS can be obtained from the
             # flip local parity evaluator
             par = p0_(key)
-
-            # Atoms should be fully taken care of, since Sn2 reactions are
-            # automatically handled by localization
-
-            # For bonds, we need to check for neighbor mismatch due to addition
-            # at a vinyl radical site
-            if not isinstance(key, numbers.Number):
-                akeys = sorted(key)
-                tnkeyss = bond_stereo_sorted_neighbor_keys(
-                    tsg, *akeys, pri_dct=loc_pri_dct)
-                gnkeyss = bond_stereo_sorted_neighbor_keys(
-                    gra, *akeys, pri_dct=loc_pri_dct)
-
-                # Handle vinyl radical mismatch
-                for (akey, tnkeys, gnkeys) in zip(akeys, tnkeyss, gnkeyss):
-                    if par is not None and tnkeys != gnkeys:
-                        assert akey in vin_keys, (
-                            f"Neighbor mismatch at {akey} is not due to "
-                            f"vinyl addition:\n{tsg}\n{gra}")
-                        # If the maximum priority neighbors don't match, flip
-                        # the parity
-                        if tnkeys[-1] != gnkeys[-1]:
-                            # Flip the parity
-                            par = not par
 
             if par is None:
                 raise NotImplementedError(
@@ -388,12 +266,21 @@ def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
         # Convert forward and reverse graphs to local assignments
         loc_ftsg = to_local_stereo(ste_tsg)
         loc_rtsg = to_local_stereo(reverse(ste_tsg))
+
         # Handle constrained eliminations
-        par_dct, prod = local_elimination_constraint_parity(loc_ftsg)
-        if prod is False:
-            loc_ftsg = set_stereo_parities(loc_ftsg, par_dct)
-        if prod is True:
-            loc_rtsg = set_stereo_parities(loc_rtsg, par_dct)
+        ckey, cpar, cprod = constrained_elimination_local_parity(loc_ftsg)
+        if cprod is False:
+            loc_ftsg = set_stereo_parities(loc_ftsg, {ckey: cpar})
+        if cprod is True:
+            loc_rtsg = set_stereo_parities(loc_rtsg, {ckey: cpar})
+
+        # Handle vinyl additions
+        vkey, vpar, vprod = vinyl_addition_local_parity(loc_ftsg)
+        if vprod is False:
+            loc_ftsg = set_stereo_parities(loc_ftsg, {vkey: vpar})
+        if vprod is True:
+            loc_rtsg = set_stereo_parities(loc_rtsg, {vkey: vpar})
+
         # Identify local parities
         fpars1 = util.dict_.values_by_key(stereo_parities(loc_ftsg), fkeys)
         rpars1 = util.dict_.values_by_key(stereo_parities(loc_rtsg), rkeys)
@@ -403,6 +290,144 @@ def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
             ste_tsgs.append(ste_tsg)
 
     return tuple(ste_tsgs)
+
+
+def constrained_elimination_local_parity(loc_tsg):
+    r""" Calculates the local parity of the reactant or product of a
+    constrained elimination, if present
+
+        Constraint:
+
+                3           6         4         8
+                 \ +     + /           \   +   /     3
+                  1-------2      <=>    1=====2      |
+                 / \     / \           /       \     6
+                4   5   8   7         5         7
+
+            clockwise  clockwise     trans
+            ('+')      ('+')         ('+')
+
+        Equation: p_b12 = (p_a1 AND p_1) XNOR (p_a2 AND p_2)
+
+        Where p_a1 and p_a2 are the parities of the atoms, p_b is the resulting
+        parity of the 1=2 double bond, and p_1 and p_2 are the parities of the
+        permutations required to move the other atom in the bond first in the
+        list and the leaving atom second for each atom.
+
+    :param loc_tsg: TS graph with local stereo parities
+    :type loc_tsg: automol graph data structure
+    :return: The key of the stereo site, its local parity, and a boolean
+        indicating whether or not this is for the products
+    :rtype: frozenset({int, int}, bool, bool
+    """
+    loc_par_dct = util.dict_.filter_by_value(
+        stereo_parities(loc_tsg), lambda x: x is not None)
+    loc_pri_dct = local_priority_dict(loc_tsg)
+    nkeys_dct = atoms_neighbor_atom_keys(loc_tsg)
+
+    # Check first reactants, then products
+    for prod in [False, True]:
+        gra = ts_reagents_graph_without_stereo(loc_tsg, prod=prod)
+        if prod:
+            frm_bkeys = ts_breaking_bond_keys(loc_tsg)
+            rkeys_lst = list(map(set, breaking_rings_atom_keys(loc_tsg)))
+        else:
+            frm_bkeys = ts_forming_bond_keys(loc_tsg)
+            rkeys_lst = list(map(set, forming_rings_atom_keys(loc_tsg)))
+
+        # Conditions:
+        # A. Bond is rigid and planar
+        for bkey in rigid_planar_bond_keys(gra):
+            # Conditions:
+            # B. Both atoms in the bond are stereogenic
+            if all(k in loc_par_dct for k in bkey):
+                key1, key2 = bkey
+                key0, = next(k for k in frm_bkeys if key1 in k) - {key1}
+                key3, = next(k for k in frm_bkeys if key2 in k) - {key2}
+                keys = {key0, key1, key2, key3}
+                # C. The atoms are part of a forming ring
+                if any(keys & rkeys for rkeys in rkeys_lst):
+                    # This is a constrained bond!
+                    # i. Read out the relevant atom and bond parities
+                    p_a1 = loc_par_dct[key1]
+                    p_a2 = loc_par_dct[key2]
+
+                    # ii. Calculate the local bond parity
+                    nk1s = sorted(
+                        nkeys_dct[key1], key=loc_pri_dct.__getitem__)
+                    nk2s = sorted(
+                        nkeys_dct[key2], key=loc_pri_dct.__getitem__)
+                    srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
+                    srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
+                    p_1 = util.is_even_permutation(nk1s, srt_nk1s)
+                    p_2 = util.is_even_permutation(nk2s, srt_nk2s)
+
+                    # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
+                    p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
+
+                    # There should only be one, so quit if we find it
+                    return bkey, p_b12, prod
+
+    return (None, None, None)
+
+
+def vinyl_addition_local_parity(loc_tsg):
+    r""" Calculates the local parity of the reactant or product of a
+    vinyl addition, if present
+
+        Constraint:
+
+                 5                        5         6
+                  \   +                    \   -   /
+                   1=====2   +  6   <=>     1=====2
+                  /       \                /       \
+                 4         3              4         3
+
+                trans                    cis
+                ('+')                    ('-')
+
+    :param loc_tsg: TS graph with local stereo parities
+    :type loc_tsg: automol graph data structure
+    :return: The key of the stereo site, its local parity, and a boolean
+        indicating whether or not this is for the products
+    :rtype: frozenset({int, int}, bool, bool
+    """
+    bkeys = bond_stereo_keys(loc_tsg)
+    loc_par_dct = util.dict_.filter_by_value(
+        stereo_parities(loc_tsg), lambda x: x is not None)
+    loc_pri_dct = local_priority_dict(loc_tsg)
+
+    for prod in [False, True]:
+        gra = ts_reagents_graph_without_stereo(loc_tsg, prod=prod)
+        vin_keys = vinyl_radical_atom_keys(gra)
+
+        # Identify stereogenic bonds with vinyl radical atoms
+        bkey = next((bk for bk in bkeys if bk & vin_keys), None)
+        if bkey is not None:
+            par = loc_par_dct[bkey]
+
+            # Get sorted neighbors for both atoms
+            akeys = sorted(bkey)
+            tnkeys_pair = bond_stereo_sorted_neighbor_keys(
+                loc_tsg, *akeys, pri_dct=loc_pri_dct)
+            gnkeys_pair = bond_stereo_sorted_neighbor_keys(
+                gra, *akeys, pri_dct=loc_pri_dct)
+            for (akey, tnkeys, gnkeys) in zip(akeys, tnkeys_pair, gnkeys_pair):
+                # Compare sorted neighbors for mismatch
+                if tnkeys != gnkeys:
+                    assert akey in vin_keys, (
+                        f"Neighbor mismatch at {akey} is not due to "
+                        f"vinyl addition:\n{loc_tsg}")
+                    # If the maximum priority neighbors don't match, flip
+                    # the parity
+                    if tnkeys[-1] != gnkeys[-1]:
+                        # Flip the parity
+                        par = not par
+
+                        # There should only be one, so quit if we find it
+                        return bkey, par, prod
+
+    return (None, None, None)
 
 
 # vvvvvvvvvvvvvvvvvvvvvvvvv DEPRECTATED vvvvvvvvvvvvvvvvvv
