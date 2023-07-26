@@ -37,19 +37,24 @@ from automol.reac._2stereo import add_stereo_from_unordered_geometries
 from automol.reac._2stereo import expand_stereo
 from automol.reac._2stereo import stereo_is_physical
 from automol.reac._2stereo import reflect
+# rotational bonds & torsions
+from automol.reac._3rot import linear_atom_keys
+from automol.reac._3rot import rotational_bond_keys
+from automol.reac._3rot import rotational_groups
+from automol.reac._3rot import rotational_symmetry_number
 # finders
-from automol.reac._find import trivial
-from automol.reac._find import hydrogen_migrations
-from automol.reac._find import beta_scissions
-from automol.reac._find import ring_forming_scissions
-from automol.reac._find import eliminations
-from automol.reac._find import hydrogen_abstractions
-from automol.reac._find import additions
-from automol.reac._find import insertions
-from automol.reac._find import substitutions
-from automol.reac._find import find
-from automol.reac._find import find_from_chi
-from automol.reac._find import intersystem_crossing
+from automol.reac._4find import trivial
+from automol.reac._4find import hydrogen_migrations
+from automol.reac._4find import beta_scissions
+from automol.reac._4find import ring_forming_scissions
+from automol.reac._4find import eliminations
+from automol.reac._4find import hydrogen_abstractions
+from automol.reac._4find import additions
+from automol.reac._4find import insertions
+from automol.reac._4find import substitutions
+from automol.reac._4find import find
+from automol.reac._4find import find_from_chi
+from automol.reac._4find import intersystem_crossing
 # TS geometries
 from automol.reac._geom import ts_geometry
 # TS zmatrices
@@ -59,11 +64,6 @@ from automol.reac._zmat import zmatrix_coordinate_names
 from automol.reac._scan import build_scan_info
 from automol.reac._scan import scan_coordinate
 from automol.reac._scan import constraint_coordinates
-# rotational bonds & torsions
-from automol.reac._3rot import linear_atom_keys
-from automol.reac._3rot import rotational_bond_keys
-from automol.reac._3rot import rotational_groups
-from automol.reac._3rot import rotational_symmetry_number
 # reaction products
 from automol.reac._enum import enumerate_reactions
 # species instability transformations

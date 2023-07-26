@@ -6,13 +6,13 @@ from automol.par import ReactionClass
 from automol.graph import ts
 from automol.zmat import distance_coordinate_name
 from automol.reac._1core import add_dummy_atoms
-from automol.reac._util import hydrogen_migration_atom_keys
-from automol.reac._util import ring_forming_scission_chain
-from automol.reac._util import elimination_breaking_bond_keys
-from automol.reac._util import insertion_forming_bond_keys
-from automol.reac._util import hydrogen_abstraction_atom_keys
-from automol.reac._util import hydrogen_abstraction_is_sigma
-from automol.reac._util import substitution_atom_keys
+from automol.reac._0util import hydrogen_migration_atom_keys
+from automol.reac._0util import ring_forming_scission_chain
+from automol.reac._0util import elimination_breaking_bond_keys
+from automol.reac._0util import insertion_forming_bond_keys
+from automol.reac._0util import hydrogen_abstraction_atom_keys
+from automol.reac._0util import hydrogen_abstraction_is_sigma
+from automol.reac._0util import substitution_atom_keys
 
 
 # Unimolecular reactions

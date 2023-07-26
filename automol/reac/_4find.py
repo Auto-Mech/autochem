@@ -50,8 +50,8 @@ from automol.graph import rings_bond_keys
 from automol.reac._1core import Reaction
 from automol.reac._1core import reverse
 from automol.reac._1core import unique
-from automol.reac._util import assert_is_valid_reagent_graph_list
-from automol.reac._util import sort_reagents
+from automol.reac._0util import assert_is_valid_reagent_graph_list
+from automol.reac._0util import sort_reagents
 from automol.reac._2stereo import stereo_is_physical
 
 
@@ -173,6 +173,8 @@ def hydrogen_migrations(rct_gras, prd_gras):
 
                         if isomorphism(forw_tsg, ts.reverse(back_tsg),
                                        stereo=False):
+                            # Here, find TSs with stereochemistry that are
+                            # consistent
                             rxn = Reaction(
                                 rxn_cls=ReactionClass.Typ.HYDROGEN_MIGRATION,
                                 forw_tsg=forw_tsg,

@@ -3,8 +3,8 @@
 
 from automol.par import ReactionClass
 import automol.zmat
-from automol.reac._util import hydrogen_abstraction_atom_keys
-from automol.reac._util import substitution_atom_keys
+from automol.reac._0util import hydrogen_abstraction_atom_keys
+from automol.reac._0util import substitution_atom_keys
 
 
 # Bimolecular reactions

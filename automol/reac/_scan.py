@@ -10,11 +10,11 @@ from automol.par import ReactionClass
 import automol.zmat
 from automol.util import dict_
 # from automol.util import numpy_to_float
-from automol.reac._util import hydrogen_migration_atom_keys
-from automol.reac._util import hydrogen_migration_might_dissociate
-from automol.reac._util import ring_forming_scission_chain
-from automol.reac._util import insertion_forming_bond_keys
-from automol.reac._util import elimination_breaking_bond_keys
+from automol.reac._0util import hydrogen_migration_atom_keys
+from automol.reac._0util import hydrogen_migration_might_dissociate
+from automol.reac._0util import ring_forming_scission_chain
+from automol.reac._0util import insertion_forming_bond_keys
+from automol.reac._0util import elimination_breaking_bond_keys
 
 
 # Wrapper function to obtain all of the scan data for a reaction
