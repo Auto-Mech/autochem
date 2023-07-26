@@ -435,6 +435,37 @@ def test__from_local_stereo():
     _test("C2H4O2", C2H4O2_TSG)
 
 
+def test__ts__expand_stereo_for_reaction():
+    """ test graph.ts.expand_stereo_for_reaction
+    """
+    def _test(formula, tsg, num_ts_assignments):
+        print(f"{formula}: testing ts.expand_stereo_for_reaction")
+        rgra0 = graph.ts.reactants_graph(tsg)
+        pgra0 = graph.ts.products_graph(tsg)
+        print('rgra0', rgra0)
+        print('pgra0', pgra0)
+        print('---')
+        stsgs = graph.ts.expand_stereo_for_reaction(tsg, rgra0, pgra0)
+        assert len(stsgs) == num_ts_assignments
+        for stsg in stsgs:
+            rgra1 = graph.ts.reactants_graph(stsg)
+            pgra1 = graph.ts.products_graph(stsg)
+            print('rgra1', rgra1)
+            assert rgra0 == rgra1
+            print('pgra1', pgra1)
+            assert pgra0 == pgra1
+            print('---')
+
+    _test("CH4CLFNO", CH4CLFNO_TSG, 1)
+    _test("C4H11O2", C4H11O2_TSG, 2)
+    _test("C2H3O4", C2H3O4_TSG, 2)
+    _test("C4H9O3", C4H9O3_TSG, 2)
+    _test("C2H3F2O", C2H3F2O_TSG, 1)
+    _test("C4H5F3O2", C4H5F3O2_TSG, 1)
+    _test("C4H9O2", C4H9O2_TSG, 1)
+    _test("C2H4O2", C2H4O2_TSG, 1)
+
+
 def test__ts__reactants_graph():
     """ test graph.ts.reactants_graph and graph.ts.products_graph
     """
@@ -535,5 +566,6 @@ if __name__ == '__main__':
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    test__ts__reactants_graph()
+    # test__ts__reactants_graph()
     # test__rotational_bond_keys()
+    test__ts__expand_stereo_for_reaction()
