@@ -31,8 +31,8 @@ from automol.reac._1core import Reaction
 from automol.reac._1core import unique
 from automol.reac._1core import filter_viable_reactions
 from automol.reac._instab import instability_product_graphs
-from automol.reac._util import sort_reagents
-from automol.reac._util import assert_is_valid_reagent_graph_list
+from automol.reac._0util import sort_reagents
+from automol.reac._0util import assert_is_valid_reagent_graph_list
 
 
 # Unimolecular reactions

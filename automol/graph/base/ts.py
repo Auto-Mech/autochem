@@ -22,6 +22,7 @@ from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
+from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import string
@@ -42,6 +43,7 @@ from automol.graph.base._canon import canonical_priorities
 from automol.graph.base._canon import calculate_priorities_and_assign_stereo
 from automol.graph.base._canon import parity_evaluator_flip_local_
 from automol.graph.base._kekule import vinyl_radical_atom_keys
+from automol.graph.base._stereo import expand_stereo
 from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 
 # Rename TS-specific functions defined elsewhere
@@ -308,6 +310,57 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
         return _parity
 
     return _evaluator
+
+
+def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
+    """ Expand TS graph stereo that is consistent with reactants and products
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param rcts_gra: reactants graph
+    :type rcts_gra: automol graph data structure
+    :param prds_gra: products graph
+    :type prds_gra: automol graph data structure
+    :return: A list of TS graphs with stereo assignments
+    """
+    # Check for consistency between input graphs
+    assert (
+        ts_reagents_graph_without_stereo(tsg, prod=False) ==
+        without_stereo(rcts_gra)
+    ), "Reactants graph {rcts_gra} does not match TS graph {tsg}"
+    assert (
+        ts_reagents_graph_without_stereo(tsg, prod=True) ==
+        without_stereo(prds_gra)
+    ), "Products graph {prds_gra} does not match TS graph {tsg}"
+
+    # Identify stereo atoms and bonds
+    fkeys = list(stereo_keys(rcts_gra))
+    rkeys = list(stereo_keys(prds_gra))
+
+    # Convert to local assignments
+    loc_fgra = to_local_stereo(rcts_gra)
+    loc_rgra = to_local_stereo(prds_gra)
+
+    # Identify local parities
+    fpars0 = util.dict_.values_by_key(stereo_parities(loc_fgra), fkeys)
+    rpars0 = util.dict_.values_by_key(stereo_parities(loc_rgra), rkeys)
+
+    # Include *all* possibilities for the TS, including symmetry equivalent
+    # ones
+    ste_tsgs = []
+    for ste_tsg in expand_stereo(tsg, enant=True, symeq=True):
+        # Convert forward and reverse graphs to local assignments
+        loc_ftsg = to_local_stereo(ste_tsg)
+        loc_rtsg = to_local_stereo(reverse(ste_tsg))
+        # Identify local parities
+        fpars1 = util.dict_.values_by_key(stereo_parities(loc_ftsg), fkeys)
+        rpars1 = util.dict_.values_by_key(stereo_parities(loc_rtsg), rkeys)
+        # If they match the reactants and products, include these TS
+        # assignments
+        if fpars0 == fpars1 and rpars0 == rpars1:
+            ste_tsgs.append(ste_tsg)
+
+    return tuple(ste_tsgs)
 
 
 # vvvvvvvvvvvvvvvvvvvvvvvvv DEPRECTATED vvvvvvvvvvvvvvvvvv
