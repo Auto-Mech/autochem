@@ -10,15 +10,16 @@ from automol.par import ReactionClass
 import automol.zmat
 from automol.util import dict_
 # from automol.util import numpy_to_float
-from automol.reac._0util import hydrogen_migration_atom_keys
-from automol.reac._0util import hydrogen_migration_might_dissociate
-from automol.reac._0util import ring_forming_scission_chain
-from automol.reac._0util import insertion_forming_bond_keys
-from automol.reac._0util import elimination_breaking_bond_keys
+from automol.reac._0core import Reaction
+from automol.reac._1util import hydrogen_migration_atom_keys
+from automol.reac._1util import hydrogen_migration_might_dissociate
+from automol.reac._1util import ring_forming_scission_chain
+from automol.reac._1util import insertion_forming_bond_keys
+from automol.reac._1util import elimination_breaking_bond_keys
 
 
 # Wrapper function to obtain all of the scan data for a reaction
-def build_scan_info(zrxn, zma, var=False):
+def build_scan_info(zrxn: Reaction, zma, var=False):
     """ Build all of the scan information
     """
 
@@ -40,19 +41,19 @@ def build_scan_info(zrxn, zma, var=False):
 # SCAN AND CONSTRAINT COORDINATES #
 # Unimolecular reactions
 # 1. Hydrogen migrations
-def hydrogen_migration_scan_coordinate(rxn, zma):
+def hydrogen_migration_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for a hydrogen migration.
 
     :param rxn: a Reaction object
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
 
-def hydrogen_migration_constraint_coordinates(rxn, zma):
+def hydrogen_migration_constraint_coordinates(rxn: Reaction, zma):
     """ Obtain the constraint coordinates for a hydrogen migration
 
     :param rxn: a Reaction object
@@ -72,7 +73,7 @@ def hydrogen_migration_constraint_coordinates(rxn, zma):
     return ret
 
 
-def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
+def hydrogen_migration_grid(zrxn: Reaction, zma, npoints=(18,)):
     """ Build forward 1D grid  for addition reaction
     """
 
@@ -104,19 +105,19 @@ def hydrogen_migration_grid(zrxn, zma, npoints=(18,)):
 
 
 # 2. Beta scissions
-def beta_scission_scan_coordinate(rxn, zma):
+def beta_scission_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for a beta scission
 
     :param rxn: a Reaction object
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
 
-def beta_scission_grid(zrxn, zma, npoints=(14,)):
+def beta_scission_grid(zrxn: Reaction, zma, npoints=(14,)):
     """ Build forward 1D grid for a beta scission reaction
     """
 
@@ -139,19 +140,19 @@ def beta_scission_grid(zrxn, zma, npoints=(14,)):
 
 
 # 3. Ring-forming scissions
-def ring_forming_scission_scan_coordinate(rxn, zma):
+def ring_forming_scission_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for a ring-forming scission
 
     :param rxn: a Reaction object
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
 
-def ring_forming_scission_constraint_coordinates(rxn, zma):
+def ring_forming_scission_constraint_coordinates(rxn: Reaction, zma):
     """ Obtain the constraint coordinates for a ring-forming scission
 
     :param rxn: a Reaction object
@@ -169,7 +170,7 @@ def ring_forming_scission_constraint_coordinates(rxn, zma):
     return const_names
 
 
-def ring_forming_scission_grid(zrxn, zma, npoints=(7,)):
+def ring_forming_scission_grid(zrxn: Reaction, zma, npoints=(7,)):
     """ Build forward WD grid for a ring forming scission reaction
         # the following allows for a 2-d grid search in the initial ts_search
         # for now try 1-d grid and see if it is effective
@@ -196,14 +197,14 @@ def ring_forming_scission_grid(zrxn, zma, npoints=(7,)):
 
 
 # 4. Eliminations
-def elimination_scan_coordinate(rxn, zma):
+def elimination_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for an elimination
 
     :param rxn: a Reaction object
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
 
     brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
 
@@ -214,7 +215,7 @@ def elimination_scan_coordinate(rxn, zma):
 
 
 # def elimination_grid(zrxn, zma, npoints=(10, 10)):
-def elimination_grid(zrxn, zma, npoints=(7, 5)):
+def elimination_grid(zrxn: Reaction, zma, npoints=(7, 5)):
     """ Build forward 2D grid for elimination reaction
     """
 
@@ -247,19 +248,19 @@ def elimination_grid(zrxn, zma, npoints=(7, 5)):
 
 # Bimolecular reactions
 # 1. Hydrogen abstractions
-def hydrogen_abstraction_scan_coordinate(rxn, zma):
+def hydrogen_abstraction_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for a hydrogen abstraction
 
     :param rxn: a Reaction object
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
 
-def hydrogen_abstraction_grid(zrxn, zma, npoints=(8,)):
+def hydrogen_abstraction_grid(zrxn: Reaction, zma, npoints=(8,)):
     """ Build forward 1D grid for hydrogen abstraction reaction
     """
 
@@ -281,7 +282,7 @@ def hydrogen_abstraction_grid(zrxn, zma, npoints=(8,)):
     return (grid,)
 
 
-def radrad_hydrogen_abstraction_grid(zrxn, zma, npoints=(8, 4)):
+def radrad_hydrogen_abstraction_grid(zrxn: Reaction, zma, npoints=(8, 4)):
     """ Build forward 1D grid for elimination reaction
     """
 
@@ -312,19 +313,19 @@ def radrad_hydrogen_abstraction_grid(zrxn, zma, npoints=(8, 4)):
 
 
 # 2. Additions
-def addition_scan_coordinate(rxn, zma):
+def addition_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for an addition
 
     :param rxn: a Reaction object
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
 
-def addition_grid(zrxn, zma, npoints=(14,)):
+def addition_grid(zrxn: Reaction, zma, npoints=(14,)):
     """ Build forward 1D grid for addition reaction
     """
 
@@ -348,7 +349,7 @@ def addition_grid(zrxn, zma, npoints=(14,)):
     return (grid,)
 
 
-def radrad_addition_grid(zrxn, zma, npoints=(8, 4)):
+def radrad_addition_grid(zrxn: Reaction, zma, npoints=(8, 4)):
     """ Build forward 1D grid for a beta scission reaction
     """
 
@@ -382,7 +383,7 @@ def radrad_addition_grid(zrxn, zma, npoints=(8, 4)):
 
 
 # 3. Insertions
-def insertion_scan_coordinate(rxn, zma):
+def insertion_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for an insertion
 
     :param rxn: a Reaction object
@@ -394,7 +395,7 @@ def insertion_scan_coordinate(rxn, zma):
     return (scan_name,)
 
 
-def insertion_grid(zrxn, zma, npoints=(16,)):
+def insertion_grid(zrxn: Reaction, zma, npoints=(16,)):
     """ Build forward 1D grid for insertion reaction
     """
 
@@ -418,19 +419,19 @@ def insertion_grid(zrxn, zma, npoints=(16,)):
 
 
 # 4. Substitution
-def substitution_scan_coordinate(rxn, zma):
+def substitution_scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinate for a substitution
 
     :param rxn: a Reaction object
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
 
-def substitution_grid(zrxn, zma, npoints=(14,)):
+def substitution_grid(zrxn: Reaction, zma, npoints=(14,)):
     """ Build forward 1D grid for substitution reaction
     """
 
@@ -478,7 +479,7 @@ SCAN_COORD_DCT = {
 }
 
 
-def scan_coordinate(rxn, zma):
+def scan_coordinate(rxn: Reaction, zma):
     """ Obtain the scan coordinates
 
     :param rxn: a hydrogen migration Reaction object
@@ -503,7 +504,7 @@ CONSTRAINT_COORD_DCT = {
 }
 
 
-def constraint_coordinates(rxn, zma):
+def constraint_coordinates(rxn: Reaction, zma):
     """ Obtain the constraint coordinates
 
     :param rxn: a hydrogen migration Reaction object
@@ -527,7 +528,7 @@ VAR_TS_GRID_DCT = {
 }
 
 
-def scan_grid(zrxn, zma, var=False):
+def scan_grid(zrxn: Reaction, zma, var=False):
     """ Set the grid for a transition state search
     """
 
@@ -556,7 +557,7 @@ VAR_TS_UPDATE_GUESS_DCT = {
 }
 
 
-def scan_update_guess(zrxn, var=False):
+def scan_update_guess(zrxn: Reaction, var=False):
     """ Set boolean to control whether the initial guess structure for
         optimization updates along scan, i.e., uses optimized geometry
         from previous grid point

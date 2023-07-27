@@ -22,8 +22,8 @@ def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
     """
 
     if grxn is not None:
-        frm_bnd_keys = automol.reac.forming_bond_keys(grxn)
-        brk_bnd_keys = automol.reac.breaking_bond_keys(grxn)
+        frm_bnd_keys = automol.graph.ts.forming_bond_keys(grxn.ts_graph)
+        brk_bnd_keys = automol.graph.ts.breaking_bond_keys(grxn.ts_graph)
         tors_names = automol.rotor.names(rotors, flat=True)
         tors_idxs = [automol.zmat.coord_idxs(zma, name) for name in tors_names]
     else:

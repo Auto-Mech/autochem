@@ -10,7 +10,7 @@ import automol.chi
 import automol.zmat
 from automol.graph import radical_dissociation_products
 from automol.graph import radical_group_dct
-from automol.reac._conv import with_structures_from_zmatrix
+from automol.reac._7conv import with_structures_from_zmatrix
 
 
 # Identify instability products

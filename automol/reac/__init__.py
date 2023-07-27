@@ -1,41 +1,30 @@
 """ reaction-class specific functionality
 """
 # base reaction class
-from automol.reac._1core import Reaction
-from automol.reac._1core import string
-from automol.reac._1core import from_string
-from automol.reac._1core import reverse
-from automol.reac._1core import atom_mapping
-from automol.reac._1core import sort_order
-from automol.reac._1core import forming_bond_keys
-from automol.reac._1core import breaking_bond_keys
-from automol.reac._1core import forming_rings_atom_keys
-from automol.reac._1core import forming_rings_bond_keys
-from automol.reac._1core import breaking_rings_atom_keys
-from automol.reac._1core import breaking_rings_bond_keys
-from automol.reac._1core import reactant_graphs
-from automol.reac._1core import product_graphs
-from automol.reac._1core import reactants_graph
-from automol.reac._1core import products_graph
-from automol.reac._1core import standard_keys
-from automol.reac._1core import standard_keys_with_sorted_geometries
-from automol.reac._1core import relabel
-from automol.reac._1core import without_stereo
-from automol.reac._1core import add_dummy_atoms
-from automol.reac._1core import insert_dummy_atoms
-from automol.reac._1core import without_dummy_atoms
-from automol.reac._1core import relabel_for_zmatrix
-from automol.reac._1core import relabel_for_geometry
-from automol.reac._1core import reaction_class
-from automol.reac._1core import is_radical_radical
-from automol.reac._1core import is_barrierless
-from automol.reac._1core import unique
+from automol.reac._0core import Reaction
+from automol.reac._0core import string
+from automol.reac._0core import from_string
+from automol.reac._0core import reverse
+from automol.reac._0core import atom_mapping
+from automol.reac._0core import sort_order
+from automol.reac._0core import reactant_graphs
+from automol.reac._0core import product_graphs
+from automol.reac._0core import reactants_graph
+from automol.reac._0core import products_graph
+from automol.reac._0core import standard_keys
+from automol.reac._0core import standard_keys_with_sorted_geometries
+from automol.reac._0core import relabel
+from automol.reac._0core import without_stereo
+from automol.reac._0core import add_dummy_atoms
+from automol.reac._0core import insert_dummy_atoms
+from automol.reac._0core import without_dummy_atoms
+from automol.reac._0core import relabel_for_zmatrix
+from automol.reac._0core import relabel_for_geometry
+from automol.reac._0core import reaction_class
+from automol.reac._0core import is_radical_radical
+from automol.reac._0core import unique
 # stereo-specific reactions
-from automol.reac._2stereo import add_stereo_from_geometries
-from automol.reac._2stereo import add_stereo_from_inchis
-from automol.reac._2stereo import add_stereo_from_unordered_geometries
 from automol.reac._2stereo import expand_stereo
-from automol.reac._2stereo import stereo_is_physical
 from automol.reac._2stereo import reflect
 # rotational bonds & torsions
 from automol.reac._3rot import linear_atom_keys
@@ -56,10 +45,10 @@ from automol.reac._4find import find
 from automol.reac._4find import find_from_chi
 from automol.reac._4find import intersystem_crossing
 # TS geometries
-from automol.reac._geom import ts_geometry
+from automol.reac._5geom import ts_geometry
 # TS zmatrices
-from automol.reac._zmat import ts_zmatrix
-from automol.reac._zmat import zmatrix_coordinate_names
+from automol.reac._6zmat import ts_zmatrix
+from automol.reac._6zmat import zmatrix_coordinate_names
 # scan coordinates
 from automol.reac._scan import build_scan_info
 from automol.reac._scan import scan_coordinate
@@ -79,17 +68,17 @@ from automol.reac import tunnel
 # comp functions
 from automol.reac._comp import similar_saddle_point_structure
 # conversions
-from automol.reac._conv import amchi
-from automol.reac._conv import inchi
-from automol.reac._conv import chi
-from automol.reac._conv import smiles
-from automol.reac._conv import rdkit_reaction
-from automol.reac._conv import display
-from automol.reac._conv import is_canonical_enantiomer
-from automol.reac._conv import canonical_enantiomer
-from automol.reac._conv import with_structures_from_chi
-from automol.reac._conv import with_structures_from_smiles
-from automol.reac._conv import with_structures_from_geometry
+from automol.reac._7conv import amchi
+from automol.reac._7conv import inchi
+from automol.reac._7conv import chi
+from automol.reac._7conv import smiles
+from automol.reac._7conv import rdkit_reaction
+from automol.reac._7conv import display
+from automol.reac._7conv import is_canonical_enantiomer
+from automol.reac._7conv import canonical_enantiomer
+from automol.reac._7conv import with_structures_from_chi
+from automol.reac._7conv import with_structures_from_smiles
+from automol.reac._7conv import with_structures_from_geometry
 
 
 __all__ = [
@@ -100,12 +89,6 @@ __all__ = [
     'reverse',
     'atom_mapping',
     'sort_order',
-    'forming_bond_keys',
-    'breaking_bond_keys',
-    'forming_rings_atom_keys',
-    'forming_rings_bond_keys',
-    'breaking_rings_atom_keys',
-    'breaking_rings_bond_keys',
     'reactant_graphs',
     'product_graphs',
     'reactants_graph',
@@ -121,7 +104,6 @@ __all__ = [
     'relabel_for_geometry',
     'reaction_class',
     'is_radical_radical',
-    'is_barrierless',
     'unique',
     # finders
     'trivial',
@@ -151,11 +133,7 @@ __all__ = [
     'rotational_groups',
     'rotational_symmetry_number',
     # stereo-specific reactions
-    'add_stereo_from_geometries',
-    'add_stereo_from_inchis',
-    'add_stereo_from_unordered_geometries',
     'expand_stereo',
-    'stereo_is_physical',
     'reflect',
     # reaction products
     'enumerate_reactions',

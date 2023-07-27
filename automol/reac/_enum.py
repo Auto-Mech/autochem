@@ -27,12 +27,12 @@ from automol.graph import bond_equivalence_class_reps
 from automol.graph import kekules_bond_orders_averaged
 from automol.graph import are_equivalent_atoms
 from automol.graph import hydroperoxy_groups
-from automol.reac._1core import Reaction
-from automol.reac._1core import unique
-from automol.reac._1core import filter_viable_reactions
+from automol.reac._0core import from_forward_reverse
+from automol.reac._0core import unique
+from automol.reac._0core import filter_viable_reactions
 from automol.reac._instab import instability_product_graphs
-from automol.reac._0util import sort_reagents
-from automol.reac._0util import assert_is_valid_reagent_graph_list
+from automol.reac._1util import sort_reagents
+from automol.reac._1util import assert_is_valid_reagent_graph_list
 
 
 # Unimolecular reactions
@@ -88,10 +88,10 @@ def hydrogen_migrations(rct_gras, viable_only=True):
                         frm_bnd_keys=[(rct_don_key, rct_hyd_key)],
                         brk_bnd_keys=[(rct_rad_key, rct_hyd_key)])
 
-                    rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.Typ.HYDROGEN_MIGRATION,
-                        forw_tsg=forw_tsg,
-                        back_tsg=back_tsg,
+                    rxns.append(from_forward_reverse(
+                        cla=par.ReactionClass.Typ.HYDROGEN_MIGRATION,
+                        ftsg=forw_tsg,
+                        rtsg=back_tsg,
                         rcts_keys=[atom_keys(rct_gra)],
                         prds_keys=[atom_keys(prd_gra)],
                     ))
@@ -147,10 +147,10 @@ def homolytic_scissions(rct_gras, viable_only=False):
                                     brk_bnd_keys=[])
 
                 # Create the reaction object
-                rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.Typ.HOMOLYT_SCISSION,
-                    forw_tsg=forw_tsg,
-                    back_tsg=back_tsg,
+                rxns.append(from_forward_reverse(
+                    cla=par.ReactionClass.Typ.HOMOLYT_SCISSION,
+                    ftsg=forw_tsg,
+                    rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
@@ -218,10 +218,10 @@ def beta_scissions(rct_gras, viable_only=True):
                                     brk_bnd_keys=[])
 
                 # Create the reaction object
-                rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.Typ.BETA_SCISSION,
-                    forw_tsg=forw_tsg,
-                    back_tsg=back_tsg,
+                rxns.append(from_forward_reverse(
+                    cla=par.ReactionClass.Typ.BETA_SCISSION,
+                    ftsg=forw_tsg,
+                    rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
@@ -290,10 +290,10 @@ def ring_forming_scissions(rct_gras, viable_only=True):
                                     frm_bnd_keys=[brk_bnd_key],
                                     brk_bnd_keys=[frm_bnd_key])
                 # Create the reaction object
-                rxns.append(Reaction(
-                    rxn_cls=par.ReactionClass.Typ.RING_FORM_SCISSION,
-                    forw_tsg=forw_tsg,
-                    back_tsg=back_tsg,
+                rxns.append(from_forward_reverse(
+                    cla=par.ReactionClass.Typ.RING_FORM_SCISSION,
+                    ftsg=forw_tsg,
+                    rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
                 ))
@@ -393,10 +393,10 @@ def eliminations(rct_gras, viable_only=True):
                         prds_atm_keys = list(reversed(prds_atm_keys))
 
                     # Create the reaction object
-                    rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.Typ.ELIMINATION,
-                        forw_tsg=forw_tsg,
-                        back_tsg=back_tsg,
+                    rxns.append(from_forward_reverse(
+                        cla=par.ReactionClass.Typ.ELIMINATION,
+                        ftsg=forw_tsg,
+                        rtsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
                         prds_keys=prds_atm_keys,
                     ))
@@ -463,10 +463,10 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
                     prds_atm_keys = list(map(atom_keys, [q2h_gra, q1_gra]))
 
                     # Create the reaction object
-                    rxns.append(Reaction(
-                        rxn_cls=par.ReactionClass.Typ.HYDROGEN_ABSTRACTION,
-                        forw_tsg=forw_tsg,
-                        back_tsg=back_tsg,
+                    rxns.append(from_forward_reverse(
+                        cla=par.ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+                        ftsg=forw_tsg,
+                        rtsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
                         prds_keys=prds_atm_keys,
                     ))
@@ -515,10 +515,10 @@ def additions(rct_gras, viable_only=True):
                                 brk_bnd_keys=[frm_bnd_key])
 
             # Create the reaction object
-            rxns.append(Reaction(
-                rxn_cls=par.ReactionClass.Typ.ADDITION,
-                forw_tsg=forw_tsg,
-                back_tsg=back_tsg,
+            rxns.append(from_forward_reverse(
+                cla=par.ReactionClass.Typ.ADDITION,
+                ftsg=forw_tsg,
+                rtsg=back_tsg,
                 rcts_keys=list(map(atom_keys, rct_gras)),
                 prds_keys=list(map(atom_keys, prd_gras)),
             ))
@@ -612,10 +612,10 @@ def insertions(rct_gras, viable_only=True):
                         # Create the reaction object
                         rcts_keys = list(map(atom_keys, [rct1_gra, rct2_gra]))
                         prds_keys = list(map(atom_keys, prd_gras))
-                        rxns.append(Reaction(
-                            rxn_cls=par.ReactionClass.Typ.INSERTION,
-                            forw_tsg=forw_tsg,
-                            back_tsg=back_tsg,
+                        rxns.append(from_forward_reverse(
+                            cla=par.ReactionClass.Typ.INSERTION,
+                            ftsg=forw_tsg,
+                            rtsg=back_tsg,
                             rcts_keys=rcts_keys,
                             prds_keys=prds_keys,
                         ))

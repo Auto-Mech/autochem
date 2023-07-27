@@ -8,7 +8,6 @@ import string
 import automol.zmat.base
 import automol.graph.base
 from automol.rotor import names as rotor_names
-from automol.reac import forming_bond_keys, breaking_bond_keys
 from automol.geom.base import remove
 from automol.geom.base import almost_equal_dist_matrix
 from automol.geom._conv import external_symmetry_factor
@@ -44,8 +43,8 @@ def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
     """
 
     if grxn is not None:
-        frm_bnd_keys = forming_bond_keys(grxn)
-        brk_bnd_keys = breaking_bond_keys(grxn)
+        frm_bnd_keys = automol.graph.ts.forming_bond_keys(grxn.ts_graph)
+        brk_bnd_keys = automol.graph.ts.breaking_bond_keys(grxn.ts_graph)
         tors_names = rotor_names(rotors, flat=True)
         tors_idxs = [automol.zmat.base.coord_idxs(zma, name)
                      for name in tors_names]
@@ -210,7 +209,7 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
     int_symm = 1.
     chiral_center = 0
     if zrxn is not None:
-        gra = zrxn.forward_ts_graph
+        gra = zrxn.ts_graph
     else:
         gra = graph(geo)
     ethane_gra = ({0: ('C', 3, None), 1: ('C', 3, None)},

@@ -295,9 +295,9 @@ def hydrogen_bonded_idxs(
         # Get the forming/breaking bond idxs if possible
         if grxn is not None:
             frm_bnd_keys = automol.graph.ts.ts_forming_bond_keys(
-                grxn.forward_ts_graph)
+                grxn.ts_graph)
             brk_bnd_keys = automol.graph.ts.ts_breaking_bond_keys(
-                grxn.forward_ts_graph)
+                grxn.ts_graph)
             rxn_keys = set()
             for key in frm_bnd_keys:
                 rxn_keys = rxn_keys | key
