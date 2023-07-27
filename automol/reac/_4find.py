@@ -47,20 +47,16 @@ from automol.graph import atom_neighbor_atom_keys
 from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
-from automol.reac._1core import Reaction
-from automol.reac._1core import reverse
-from automol.reac._1core import unique
-from automol.reac._0util import assert_is_valid_reagent_graph_list
-from automol.reac._0util import sort_reagents
-from automol.reac._2stereo import stereo_is_physical
+from automol.reac._0core import from_forward_reverse
+from automol.reac._0core import reverse
+from automol.reac._0core import unique
+from automol.reac._1util import assert_is_valid_reagent_graph_list
+from automol.reac._1util import sort_reagents
 
 
 def trivial(rct_gras, prd_gras):
     """ find a trivial reaction, with the same reactants and products
     """
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
-
     rxns = []
 
     if len(rct_gras) == len(prd_gras):
@@ -89,10 +85,10 @@ def trivial(rct_gras, prd_gras):
             rcts_gra = union_from_sequence(rct_gras)
             prds_gra = union_from_sequence(prd_gras)
 
-            rxn = Reaction(
-                rxn_cls=ReactionClass.Typ.TRIVIAL,
-                forw_tsg=ts.graph(rcts_gra, [], []),
-                back_tsg=ts.graph(prds_gra, [], []),
+            rxn = from_forward_reverse(
+                cla=ReactionClass.Typ.TRIVIAL,
+                ftsg=ts.graph(rcts_gra, [], []),
+                rtsg=ts.graph(prds_gra, [], []),
                 rcts_keys=list(map(atom_keys, rct_gras)),
                 prds_keys=list(map(atom_keys, prd_gras)),
             )
@@ -114,9 +110,6 @@ def hydrogen_migrations(rct_gras, prd_gras):
     product and seeing if they match up. If so, we have a hydrogen migration
     between these two sites.
     """
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
-
     rxns = []
 
     if len(rct_gras) == 1 and len(prd_gras) == 1:
@@ -175,15 +168,14 @@ def hydrogen_migrations(rct_gras, prd_gras):
                                        stereo=False):
                             # Here, find TSs with stereochemistry that are
                             # consistent
-                            rxn = Reaction(
-                                rxn_cls=ReactionClass.Typ.HYDROGEN_MIGRATION,
-                                forw_tsg=forw_tsg,
-                                back_tsg=back_tsg,
+                            rxn = from_forward_reverse(
+                                cla=ReactionClass.Typ.HYDROGEN_MIGRATION,
+                                ftsg=forw_tsg,
+                                rtsg=back_tsg,
                                 rcts_keys=[atom_keys(rct_gra)],
                                 prds_keys=[atom_keys(prd_gra)],
                             )
-                            if stereo_is_physical(rxn):
-                                rxns.append(rxn)
+                            rxns.append(rxn)
 
     return rxns
 
@@ -212,9 +204,6 @@ def ring_forming_scissions(rct_gras, prd_gras):
     Ring-forming scissions are found by breaking ring-bonds on one product and
     joining the ends to unsaturated sites on the other product
     """
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
-
     rxns = []
 
     if len(rct_gras) == 1 and len(prd_gras) == 2:
@@ -247,15 +236,14 @@ def ring_forming_scissions(rct_gras, prd_gras):
                                             brk_bnd_keys=[b_brk_bnd_key])
 
                         # Create the reaction object
-                        rxn = Reaction(
-                            rxn_cls=ReactionClass.Typ.RING_FORM_SCISSION,
-                            forw_tsg=forw_tsg,
-                            back_tsg=back_tsg,
+                        rxn = from_forward_reverse(
+                            cla=ReactionClass.Typ.RING_FORM_SCISSION,
+                            ftsg=forw_tsg,
+                            rtsg=back_tsg,
                             rcts_keys=[atom_keys(rgra)],
                             prds_keys=[atom_keys(pgra1), atom_keys(pgra2)],
                         )
-                        if stereo_is_physical(rxn):
-                            rxns.append(rxn)
+                        rxns.append(rxn)
 
     return rxns
 
@@ -336,20 +324,16 @@ def eliminations(rct_gras, prd_gras):
                         assert inv_dct[frm2_key] in prds_atm_keys[1]
 
                         # Create the reaction object
-                        rxn = Reaction(
-                            rxn_cls=ReactionClass.Typ.ELIMINATION,
-                            forw_tsg=forw_tsg,
-                            back_tsg=back_tsg,
+                        rxn = from_forward_reverse(
+                            cla=ReactionClass.Typ.ELIMINATION,
+                            ftsg=forw_tsg,
+                            rtsg=back_tsg,
                             rcts_keys=rcts_atm_keys,
                             prds_keys=prds_atm_keys,
                         )
-                        if stereo_is_physical(rxn):
-                            _rxns.append(rxn)
+                        rxns.append(rxn)
 
         return _rxns
-
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
@@ -401,9 +385,6 @@ def hydrogen_abstractions(rct_gras, prd_gras):
     to unsaturated sites of the R1 product to see if we get the R1H reactant.
     We then do the same for the R2 reactant and the R2H product.
     """
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
-
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 2:
@@ -441,15 +422,14 @@ def hydrogen_abstractions(rct_gras, prd_gras):
                                     brk_bnd_keys=[b_brk_bnd_key])
 
                 # Create the reaction object
-                rxn = Reaction(
-                    rxn_cls=ReactionClass.Typ.HYDROGEN_ABSTRACTION,
-                    forw_tsg=forw_tsg,
-                    back_tsg=back_tsg,
+                rxn = from_forward_reverse(
+                    cla=ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+                    ftsg=forw_tsg,
+                    rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
                 )
-                if stereo_is_physical(rxn):
-                    rxns.append(rxn)
+                rxns.append(rxn)
 
     return rxns
 
@@ -465,9 +445,6 @@ def additions(rct_gras, prd_gras):
     an unsaturated site on the other. If the result matches the products, this
     is an addition reaction.
     """
-
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
 
     rxns = []
 
@@ -497,15 +474,14 @@ def additions(rct_gras, prd_gras):
                                     brk_bnd_keys=[b_brk_bnd_key])
 
                 # Create the reaction object
-                rxn = Reaction(
-                    rxn_cls=ReactionClass.Typ.ADDITION,
-                    forw_tsg=forw_tsg,
-                    back_tsg=back_tsg,
+                rxn = from_forward_reverse(
+                    cla=ReactionClass.Typ.ADDITION,
+                    ftsg=forw_tsg,
+                    rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
                 )
-                if stereo_is_physical(rxn):
-                    rxns.append(rxn)
+                rxns.append(rxn)
 
     return rxns
 
@@ -513,9 +489,6 @@ def additions(rct_gras, prd_gras):
 def double_insertion(rct_gras, prd_gras):
     """ two atoms inserting
     """
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
-
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
@@ -563,15 +536,14 @@ def double_insertion(rct_gras, prd_gras):
                                                 b_brk_bnd_key_j],
                                             frm_bnd_keys=(b_frm_bnd_key,))
                         # Create the reaction object
-                        rxn = Reaction(
-                            rxn_cls=ReactionClass.Typ.DOUBLE_INSERTION,
-                            forw_tsg=forw_tsg,
-                            back_tsg=back_tsg,
+                        rxn = from_forward_reverse(
+                            cla=ReactionClass.Typ.DOUBLE_INSERTION,
+                            ftsg=forw_tsg,
+                            rtsg=back_tsg,
                             rcts_keys=list(map(atom_keys, rct_gras)),
                             prds_keys=list(map(atom_keys, prd_gras)),
                         )
-                        if stereo_is_physical(rxn):
-                            rxns.append(rxn)
+                        rxns.append(rxn)
 
     return rxns
 
@@ -579,9 +551,6 @@ def double_insertion(rct_gras, prd_gras):
 def two_bond_additions(rct_gras, prd_gras):
     """ two bond additions
     """
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
-
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
@@ -633,15 +602,14 @@ def two_bond_additions(rct_gras, prd_gras):
                                     brk_bnd_keys=b_brk_bnd_keys)
 
                 # Create the reaction object
-                rxn = Reaction(
-                    rxn_cls=ReactionClass.Typ.ADDITION,
-                    forw_tsg=forw_tsg,
-                    back_tsg=back_tsg,
+                rxn = from_forward_reverse(
+                    cla=ReactionClass.Typ.ADDITION,
+                    ftsg=forw_tsg,
+                    rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
                     prds_keys=list(map(atom_keys, prd_gras)),
                 )
-                if stereo_is_physical(rxn):
-                    rxns.append(rxn)
+                rxns.append(rxn)
 
     return rxns
 
@@ -681,9 +649,6 @@ def substitutions(rct_gras, prd_gras):
     the forming bond involves a hydrogen atom off the reactant in which a bond
     is breaking.
     """
-    assert_is_valid_reagent_graph_list(rct_gras)
-    assert_is_valid_reagent_graph_list(prd_gras)
-
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 2:
@@ -732,29 +697,35 @@ def substitutions(rct_gras, prd_gras):
                             prds_atm_keys = list(reversed(prds_atm_keys))
 
                         # Create the reaction object
-                        rxn = Reaction(
-                            rxn_cls=ReactionClass.Typ.SUBSTITUTION,
-                            forw_tsg=forw_tsg,
-                            back_tsg=back_tsg,
+                        rxn = from_forward_reverse(
+                            cla=ReactionClass.Typ.SUBSTITUTION,
+                            ftsg=forw_tsg,
+                            rtsg=back_tsg,
                             rcts_keys=rcts_atm_keys,
                             prds_keys=prds_atm_keys,
                         )
-                        if stereo_is_physical(rxn):
-                            rxns.append(rxn)
+                        rxns.append(rxn)
 
     return rxns
 
 
-def find(rct_gras, prd_gras):
+def find(rct_gras, prd_gras, stereo=False):
     """ find all reactions consistent with these reactants and products
 
-    :param rct_gras: graphs for the reactants, without stereo and without
-        overlapping keys
-    :param prd_gras: graphs for the products, without stereo and without
-        overlapping keys
+    :param rct_gras: graphs for the reactants without overlapping keys
+    :param prd_gras: graphs for the products without overlapping keys
+    :param stereo: Find stereo-specified reaction objects?
+    :type stereo: bool
     :returns: a list of Reaction objects
     :rtype: tuple[Reaction]
     """
+    if not stereo:
+        rct_gras = list(map(automol.graph.without_stereo, rct_gras))
+        prd_gras = list(map(automol.graph.without_stereo, prd_gras))
+
+    assert_is_valid_reagent_graph_list(rct_gras)
+    assert_is_valid_reagent_graph_list(prd_gras)
+
     # check whether this is a valid reaction
     rct_fmls = list(map(formula, rct_gras))
     prd_fmls = list(map(formula, prd_gras))

@@ -7,10 +7,8 @@ from automol.geom import symbols
 from automol.geom import distance
 from automol.geom import central_angle
 from automol.util import dict_
-from automol.reac._1core import forming_bond_keys
-from automol.reac._1core import breaking_bond_keys
-from automol.reac._1core import relabel_for_geometry
-from automol.reac._1core import atom_mapping
+from automol.reac._0core import relabel_for_geometry
+from automol.reac._0core import atom_mapping
 from automol.graph import without_stereo
 from automol.graph import ts_reagents_graph_without_stereo
 from automol.graph import geometries_parity_mismatches
@@ -30,8 +28,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     cnf_geo = automol.zmat.geometry(zma)
     grxn = relabel_for_geometry(zrxn)
 
-    frm_bnd_keys = forming_bond_keys(grxn)
-    brk_bnd_keys = breaking_bond_keys(grxn)
+    frm_bnd_keys = automol.graph.ts.forming_bond_keys(grxn.ts_graph)
+    brk_bnd_keys = automol.graph.ts.breaking_bond_keys(grxn.ts_graph)
 
     cnf_dist_lst = []
     ref_dist_lst = []
@@ -139,28 +137,18 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
 def _check_stereo_parities(zma, ref_zma, zrxn):
     """make sure stereo is consistent with ref_zma
     """
-    fgra = without_stereo(ts_reagents_graph_without_stereo(
-        zrxn.forward_ts_graph))
-    bgra = without_stereo(ts_reagents_graph_without_stereo(
-        zrxn.backward_ts_graph))
-    forw_ste_keys = stereogenic_bond_keys(fgra)
-    back_ste_keys = stereogenic_bond_keys(bgra)
-    forw_idxs = atom_mapping(zrxn, rev=False, stereo=False)
-    back_idxs = atom_mapping(zrxn, rev=True, stereo=False)
+    gra = without_stereo(ts_reagents_graph_without_stereo(zrxn.ts_graph))
+    ste_keys = stereogenic_bond_keys(gra)
+    idxs = atom_mapping(zrxn, rev=False)
     geo = automol.zmat.geometry(zma, dummy=True)
     ref_geo = automol.zmat.geometry(ref_zma, dummy=True)
 
-    forw_bad_keys = geometries_parity_mismatches(
-        fgra, geo, ref_geo, forw_ste_keys, geo_idx_dct=forw_idxs)
-    back_bad_keys = geometries_parity_mismatches(
-        bgra, geo, ref_geo, back_ste_keys, geo_idx_dct=back_idxs)
+    bad_keys = geometries_parity_mismatches(
+        gra, geo, ref_geo, ste_keys, geo_idx_dct=idxs)
 
     viable = True
-    for bnd_key in forw_bad_keys:
+    for bnd_key in bad_keys:
         viable = False
         print('Invalid stereo at bond ', bnd_key)
-    for bnd_key in back_bad_keys:
-        viable = False
-        print('Invalid stereo at backward bond ', bnd_key)
 
     return viable

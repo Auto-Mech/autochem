@@ -19,7 +19,7 @@ def all_rings_atoms(zma, zrxn=None):
         rings_atoms = automol.graph.rings_atom_keys(automol.zmat.graph(zma))
     else:
         rings_atoms = []
-        for ring in automol.reac.forming_rings_bond_keys(zrxn):
+        for ring in automol.graph.ts.forming_rings_bond_keys(zrxn.ts_graph):
 
             # Determine number of atoms in the ring
             all_atoms = set()

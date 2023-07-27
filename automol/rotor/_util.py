@@ -14,7 +14,7 @@ def graph_with_keys(zma, zrxn=None):
         lin_keys = sorted(
             automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
     else:
-        gra = zrxn.forward_ts_graph
+        gra = zrxn.ts_graph
         lin_keys = sorted(
             automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
     return gra, lin_keys

@@ -5,9 +5,10 @@ import itertools
 import automol.graph
 from automol.graph import ts
 from automol.par import ReactionClass
+from automol.reac._0core import Reaction
 
 
-def hydrogen_migration_atom_keys(rxn):
+def hydrogen_migration_atom_keys(rxn: Reaction):
     """ Obtain the atoms involved in a hydrogen migration reaction, sorted in
     canonical order.
 
@@ -17,20 +18,21 @@ def hydrogen_migration_atom_keys(rxn):
     a neighbor to the attacking atom along the chain to the donating atom
     :rtype: (int, int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
 
-    gra = ts.reactants_graph(rxn.forward_ts_graph)
+    gra = ts.reactants_graph(rxn.ts_graph)
     path = automol.graph.shortest_path_between_atoms(gra, att_key, don_key)
     ngb_key = automol.graph.atom_neighbor_atom_key(
         gra, att_key, incl_atm_keys=path)
     return att_key, tra_key, don_key, ngb_key
 
 
-def hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key):
+def hydrogen_migration_might_dissociate(rxn: Reaction, att_key, ngb_key,
+                                        don_key):
     """ Obtain the atoms involved when a migration might be similar to an HO2
         elimination
 
@@ -39,7 +41,7 @@ def hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key):
     :returns: the dissociation oxygen atom, the dissociation carbon atom
     :rtype: (int, int, int, int)
     """
-    gra = ts.reactants_graph(rxn.forward_ts_graph)
+    gra = ts.reactants_graph(rxn.ts_graph)
     atm_symbs = automol.graph.atom_symbols(gra)
     o_ngb = []
     diss_key = None
@@ -49,11 +51,10 @@ def hydrogen_migration_might_dissociate(rxn, att_key, ngb_key, don_key):
     if len(o_ngb) == 1:
         if don_key in automol.graph.atom_neighbor_atom_keys(gra, o_ngb[0]):
             diss_key = (ngb_key, o_ngb[0],)
-    print('diss key', diss_key)
     return diss_key
 
 
-def ring_forming_scission_atom_keys(rxn):
+def ring_forming_scission_atom_keys(rxn: Reaction):
     """ Obtain the atoms involved in a ring-forming scission reaction, sorted
         in canonical order.
 
@@ -62,15 +63,15 @@ def ring_forming_scission_atom_keys(rxn):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
     return att_key, tra_key, don_key
 
 
-def ring_forming_scission_chain(rxn):
+def ring_forming_scission_chain(rxn: Reaction):
     """ Obtain the chain in a ring-forming scission reaction from the donating
     attom to the attacking atom.
 
@@ -80,12 +81,12 @@ def ring_forming_scission_chain(rxn):
     :rtype: tuple[int]
     """
     att_key, _, don_key = ring_forming_scission_atom_keys(rxn)
-    gra = ts.reactants_graph(rxn.forward_ts_graph)
+    gra = ts.reactants_graph(rxn.ts_graph)
     path = automol.graph.shortest_path_between_atoms(gra, don_key, att_key)
     return tuple(path)
 
 
-def hydrogen_abstraction_atom_keys(rxn):
+def hydrogen_abstraction_atom_keys(rxn: Reaction):
     """ Obtain the atoms involved in a hydrogen abstraction, sorted in
     canonical order.
 
@@ -94,15 +95,15 @@ def hydrogen_abstraction_atom_keys(rxn):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
     hyd_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
     return att_key, hyd_key, don_key
 
 
-def hydrogen_abstraction_is_sigma(rxn):
+def hydrogen_abstraction_is_sigma(rxn: Reaction):
     """ Is this a sigma radical hydrogen abstraction?
 
     :param rxn: the reaction object
@@ -110,7 +111,7 @@ def hydrogen_abstraction_is_sigma(rxn):
     :rtype: bool
     """
     assert rxn.class_ == ReactionClass.Typ.HYDROGEN_ABSTRACTION
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     rct_gra = automol.graph.ts.reactants_graph(tsg)
     sig_rad_keys = automol.graph.sigma_radical_atom_keys(rct_gra)
 
@@ -120,7 +121,7 @@ def hydrogen_abstraction_is_sigma(rxn):
     return rad_key in sig_rad_keys
 
 
-def elimination_breaking_bond_keys(rxn):
+def elimination_breaking_bond_keys(rxn: Reaction):
     """ Obtain the breaking bonds for an elimination reaction, sorted in
         canonical order.
 
@@ -130,7 +131,7 @@ def elimination_breaking_bond_keys(rxn):
     :rtype: (frozenset[int], frozenset[int])
     """
     assert rxn.class_ == ReactionClass.Typ.ELIMINATION
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     frm_bnd_key, = ts.ts_forming_bond_keys(tsg)
     brk_bnd_keys = ts.ts_breaking_bond_keys(tsg)
     brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
@@ -160,7 +161,7 @@ def elimination_breaking_bond_keys(rxn):
     return brk_bnd_key1, brk_bnd_key2
 
 
-def insertion_forming_bond_keys(rxn):
+def insertion_forming_bond_keys(rxn: Reaction):
     """ Obtain the forming bonds for an insertion reaction, sorted in canonical
     order.
 
@@ -173,7 +174,7 @@ def insertion_forming_bond_keys(rxn):
     assert rxn.class_ == ReactionClass.Typ.INSERTION
     # Choose the forming bond with the fewest neighbors, to get the terminal
     # atom if there is one.
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     # For tricky reasons, we need to sort in descending order here.
     # The reason is that the ordering of bonds here determines the ordering of
     # atoms in the z-matrix, which means this function could otherwise yield
@@ -189,7 +190,7 @@ def insertion_forming_bond_keys(rxn):
     return tuple(frm_bnd_keys)
 
 
-def substitution_atom_keys(rxn):
+def substitution_atom_keys(rxn: Reaction):
     """ Obtain the atoms involved in a substitution reaction, sorted in
         canonical order.
 
@@ -198,8 +199,8 @@ def substitution_atom_keys(rxn):
     :returns: the attacking atom, the transferring atom, the leaving atom
     :rtype: (int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.forward_ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.forward_ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     lea_key, = brk_bnd_key - frm_bnd_key

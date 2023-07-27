@@ -3,13 +3,14 @@
 
 from automol.par import ReactionClass
 import automol.zmat
-from automol.reac._0util import hydrogen_abstraction_atom_keys
-from automol.reac._0util import substitution_atom_keys
+from automol.reac._1util import hydrogen_abstraction_atom_keys
+from automol.reac._1util import substitution_atom_keys
+from automol.reac._0core import Reaction
 
 
 # Bimolecular reactions
 # 1. Hydrogen abstractions
-def hydrogen_abstraction_linear_atom_keys(rxn, zma=None):
+def hydrogen_abstraction_linear_atom_keys(rxn: Reaction, zma=None):
     """ Obtain the linear atom keys for a hydrogen abstraction
 
     :param rxn: a Reaction object
@@ -19,7 +20,7 @@ def hydrogen_abstraction_linear_atom_keys(rxn, zma=None):
     :returns: the keys of the linear atoms in the graph
     :rtype: tuple[int]
     """
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     if zma is not None:
         lin_keys = list(automol.zmat.linear_atom_keys(zma))
     else:
@@ -33,7 +34,7 @@ def hydrogen_abstraction_linear_atom_keys(rxn, zma=None):
 
 
 # 4. Substitution
-def substitution_linear_atom_keys(rxn, zma=None):
+def substitution_linear_atom_keys(rxn: Reaction, zma=None):
     """ Obtain the linear atom keys for a substitution
 
     :param rxn: a Reaction object
@@ -43,7 +44,7 @@ def substitution_linear_atom_keys(rxn, zma=None):
     :returns: the keys of the linear atoms in the graph
     :rtype: tuple[int]
     """
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     if zma is not None:
         lin_keys = list(automol.zmat.linear_atom_keys(zma))
     else:
@@ -56,7 +57,7 @@ def substitution_linear_atom_keys(rxn, zma=None):
     return lin_keys
 
 
-def linear_atom_keys(rxn, zma=None):
+def linear_atom_keys(rxn: Reaction, zma=None):
     """ Obtain the linear atom keys
 
     :param rxn: a hydrogen migration Reaction object
@@ -68,7 +69,7 @@ def linear_atom_keys(rxn, zma=None):
     """
 
     def _default(rxn, zma=None):
-        tsg = rxn.forward_ts_graph
+        tsg = rxn.ts_graph
         if zma is not None:
             lin_keys = automol.zmat.linear_atom_keys(zma)
         else:
@@ -94,7 +95,7 @@ def linear_atom_keys(rxn, zma=None):
     return ret
 
 
-def rotational_bond_keys(rxn, zma=None, with_h_rotors=True,
+def rotational_bond_keys(rxn: Reaction, zma=None, with_h_rotors=True,
                          with_chx_rotors=True):
     """ Obtain the rotational bond keys
 
@@ -105,7 +106,7 @@ def rotational_bond_keys(rxn, zma=None, with_h_rotors=True,
     :returns: the keys of the rotational bonds in the graph
     :rtype: tuple[frozenset[int]]
     """
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     lin_keys = linear_atom_keys(rxn, zma=zma)
     bnd_keys = automol.graph.rotational_bond_keys(
         tsg, lin_keys=lin_keys, with_h_rotors=with_h_rotors,
@@ -113,7 +114,7 @@ def rotational_bond_keys(rxn, zma=None, with_h_rotors=True,
     return bnd_keys
 
 
-def rotational_groups(rxn, key1, key2, dummy=False):
+def rotational_groups(rxn: Reaction, key1, key2, dummy=False):
     """ Obtain the rotational groups for a given rotational axis
 
     :param rxn: a hydrogen migration Reaction object
@@ -123,12 +124,12 @@ def rotational_groups(rxn, key1, key2, dummy=False):
     :returns: the rotational groups on either side of the axis
     :rtype: (tuple[int], tuple[int])
     """
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     grps = automol.graph.rotational_groups(tsg, key1, key2, dummy=dummy)
     return grps
 
 
-def rotational_symmetry_number(rxn, key1, key2, zma=None):
+def rotational_symmetry_number(rxn: Reaction, key1, key2, zma=None):
     """ Obtain the rotational symmetry number for a given rotational axis
 
     :param rxn: a hydrogen migration Reaction object
@@ -139,7 +140,7 @@ def rotational_symmetry_number(rxn, key1, key2, zma=None):
     :rtype: int
     """
     lin_keys = linear_atom_keys(rxn, zma=zma)
-    tsg = rxn.forward_ts_graph
+    tsg = rxn.ts_graph
     sym_num = automol.graph.rotational_symmetry_number(tsg, key1, key2,
                                                        lin_keys=lin_keys)
     return sym_num

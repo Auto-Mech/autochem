@@ -8,18 +8,19 @@ import automol.zmat
 import automol.geom
 import automol.graph
 from automol.extern import rdkit_
-from automol.reac._1core import reactant_graphs
-from automol.reac._1core import product_graphs
-from automol.reac._1core import standard_keys_with_sorted_geometries
-from automol.reac._1core import relabel_for_zmatrix
-from automol.reac._geom import ts_geometry
-from automol.reac._zmat import ts_zmatrix
+from automol.reac._0core import Reaction
+from automol.reac._0core import reactant_graphs
+from automol.reac._0core import product_graphs
+from automol.reac._0core import standard_keys_with_sorted_geometries
+from automol.reac._0core import relabel_for_zmatrix
+from automol.reac._5geom import ts_geometry
+from automol.reac._6zmat import ts_zmatrix
 from automol.reac._4find import find
 from automol.reac._2stereo import reflect
 
 
 # Conversion stuff
-def amchi(rxn, stereo=True):
+def amchi(rxn: Reaction, stereo=True):
     """ Convert the reaction object to AMChIs
 
         :param rxn: the reaction object
@@ -37,7 +38,7 @@ def amchi(rxn, stereo=True):
     return (rct_chis, prd_chis)
 
 
-def inchi(rxn, stereo=True):
+def inchi(rxn: Reaction, stereo=True):
     """ Convert the reaction object to InChIs
 
         :param rxn: the reaction object
@@ -55,7 +56,7 @@ def inchi(rxn, stereo=True):
     return (rct_ichs, prd_ichs)
 
 
-def chi(rxn, stereo=True):
+def chi(rxn: Reaction, stereo=True):
     """ Convert the reaction object to ChIs
 
         :param rxn: the reaction object
@@ -73,7 +74,7 @@ def chi(rxn, stereo=True):
     return (rct_chis, prd_chis)
 
 
-def smiles(rxn, stereo=True, res_stereo=True, exp_singles=False):
+def smiles(rxn: Reaction, stereo=True, res_stereo=True, exp_singles=False):
     """ Convert the reaction object to SMILESs
 
         :param rxn: the reaction object
@@ -97,7 +98,7 @@ def smiles(rxn, stereo=True, res_stereo=True, exp_singles=False):
     return (rct_smis, prd_smis)
 
 
-def rdkit_reaction(rxn, stereo=True, res_stereo=False):
+def rdkit_reaction(rxn: Reaction, stereo=True, res_stereo=False):
     """ Convert a reaction object to an RDKit reaction object.
 
     This is mainly useful for quick visualization with IPython, which can be
@@ -122,7 +123,7 @@ def rdkit_reaction(rxn, stereo=True, res_stereo=False):
     return rdkit_.from_smarts(rxn_smi)
 
 
-def display(rxn):
+def display(rxn: Reaction):
     """ Display reaction object to IPython using the RDKit visualizer
 
         :param rxn: the reaction object
@@ -133,7 +134,7 @@ def display(rxn):
 
 
 # Check if the reaction is canonical
-def is_canonical_enantiomer(srxn):
+def is_canonical_enantiomer(srxn: Reaction):
     """ Does this reaction have a canonical combination of enantiomers?
 
         :param srxn: a reaction object with stereo assignments
@@ -145,7 +146,7 @@ def is_canonical_enantiomer(srxn):
     return automol.amchi.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
 
 
-def canonical_enantiomer(srxn):
+def canonical_enantiomer(srxn: Reaction):
     """ Convert this reaction into a canonical combination of enantiomers
 
         :param srxn: a reaction object with stereo assignments
