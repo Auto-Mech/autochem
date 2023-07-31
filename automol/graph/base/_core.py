@@ -1349,19 +1349,22 @@ def angle_keys(gra):
 
 
 # # relabeling and changing keys
-def relabel(gra, atm_key_dct):
+def relabel(gra, atm_key_dct, check=True):
     """ Relabel the atoms in the graph with new keys, using a dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param atm_key_dct: New keys for a subset of the atoms, by current atom key
     :type atm_key_dct: dict[int: int]
+    :param check: Check that all keys in `atm_key_dct` are present in the graph?
+    :type check: bool
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
     orig_atm_keys = atom_keys(gra)
-    assert set(atm_key_dct.keys()) <= orig_atm_keys, (
-        f'{set(atm_key_dct.keys())}\n{orig_atm_keys}')
+    if check:
+        assert set(atm_key_dct.keys()) <= orig_atm_keys, (
+            f'{set(atm_key_dct.keys())}\n{orig_atm_keys}')
 
     new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
     new_atm_key_dct.update(atm_key_dct)

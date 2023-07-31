@@ -7,6 +7,7 @@ import automol.geom
 import automol.chi
 from automol.reac._0core import Reaction
 from automol.reac._0core import from_forward_reverse
+from automol.reac._0core import mapping
 
 
 def expand_stereo(rxn: Reaction, enant=True):
@@ -49,12 +50,12 @@ def expand_stereo_for_reaction(rxn: Reaction, rcts_gra, prds_gra):
     :type prds_gra: automol graph data structure
     """
     # 1. Align products with reactants
-    rmap_dct = automol.reac.atom_mapping(rxn, rev=True)
-    prds_gra_aligned = automol.graph.relabel(prds_gra, rmap_dct)
+    rgra = automol.graph.relabel(rcts_gra, mapping(rxn, 'R', 'T'))
+    pgra = automol.graph.relabel(prds_gra, mapping(rxn, 'P', 'T'))
 
     # 2. Expand all TSs
     stsgs = automol.graph.ts.expand_stereo_for_reaction(
-        rxn.ts_graph, rcts_gra, prds_gra_aligned)
+        rxn.ts_graph, rgra, pgra)
 
     # 3. Copy them into reaction objects
     srxns = []

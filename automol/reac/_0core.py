@@ -60,12 +60,12 @@ def from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys):
     :type prds_keys: tuple[tuple[int]]
     """
     # Determine the reaction mapping
-    map_dct = automol.graph.isomorphism(ftsg, ts.reverse(rtsg), dummy=False)
+    rmap_dct = automol.graph.isomorphism(ts.reverse(rtsg), ftsg, dummy=False)
+    rcts_keys = list(map(sorted, rcts_keys))
+    prds_keys = list(map(sorted, prds_keys))
 
     # Reverse-map the products keys so they line up with the forward TS graph
-    rev_map_dct = dict(map(reversed, map_dct.items()))
-    prds_keys = tuple(tuple(map(rev_map_dct.__getitem__, keys))
-                      for keys in prds_keys)
+    prds_keys = tuple(tuple(map(rmap_dct.__getitem__, ks)) for ks in prds_keys)
 
     return from_data(cla, ftsg, rcts_keys, prds_keys)
 
@@ -84,8 +84,6 @@ def from_data(cla, tsg, rcts_keys, prds_keys):
     :param rmap: A dictionary mapping reactant atoms onto product atoms
     :type rmap: dict[int: int]
     """
-    rcts_keys = tuple(map(tuple, map(sorted, rcts_keys)))
-    prds_keys = tuple(map(tuple, map(sorted, prds_keys)))
 
     # Check the reaction class
     assert par.is_reaction_class(cla), (
@@ -99,6 +97,8 @@ def from_data(cla, tsg, rcts_keys, prds_keys):
             f"TS graph has unassigned stereo at {ste_keys}:\n{tsg}")
 
     # Check the reactants and products keys
+    rcts_keys = tuple(map(tuple, rcts_keys))
+    prds_keys = tuple(map(tuple, prds_keys))
     rkeys_set = set(map(frozenset, rcts_keys))
     pkeys_set = set(map(frozenset, prds_keys))
     rgra = ts.reagents_graph_without_stereo(tsg, prod=False)
@@ -135,9 +135,8 @@ def from_string(rxn_str, one_indexed=True):
         rcts_keys = [[k-1 for k in ks] for ks in rcts_keys]
         prds_keys = [[k-1 for k in ks] for ks in prds_keys]
 
-    map_dct = yaml_dct['atom mapping']
     return from_data(cla=cla, tsg=tsg, rcts_keys=rcts_keys,
-                     prds_keys=prds_keys, map_dct=map_dct)
+                     prds_keys=prds_keys)
 
 
 def string(rxn: Reaction, one_indexed=True):
@@ -158,8 +157,8 @@ def string(rxn: Reaction, one_indexed=True):
 
     yaml_dct = automol.graph.yaml_dictionary(
         rxn.ts_graph, one_indexed=one_indexed)
-    yaml_dct['reactants keys'] = list(map(list, rxn.reactants_keys))
-    yaml_dct['products keys'] = list(map(list, rxn.products_keys))
+    yaml_dct['reactants keys'] = list(map(list, rcts_keys))
+    yaml_dct['products keys'] = list(map(list, prds_keys))
     yaml_dct['reaction class'] = rxn.class_
     rxn_str = yaml.dump(
         yaml_dct, default_flow_style=None, sort_keys=False)
@@ -200,17 +199,53 @@ def reverse(rxn: Reaction):
     )
 
 
-def atom_mapping(rxn: Reaction, rev=False):
-    """ Determine a mapping from reaction atoms to product atoms.
+def mapping(rxn: Reaction, inp, out):
+    """ Determine a mapping from TS atoms to reactant atoms.
+
+    Code:
+        'T': TS keys
+        'R': reactant keys
+        'P': product keys
 
     :param rxn: the reaction object
     :type rxn: Reaction
-    :param rev: parameter to toggle reaction direction
-    :type rev: bool
-    :returns: the mapping from reactant atoms to product atoms
+    :param inp: which keys will go into the mapping, 'T', 'R', or 'P'
+    :type inp: str
+    :param out: which keys will come out of the mapping, 'T', 'R', or 'P'
+    :type out: str
+    :returns: A dictionary mapping `inp` keys into `out` keys
     :rtype: dict
     """
-    return dict(map(reversed, rxn.mapping.items())) if rev else rxn.mapping
+    keys = sorted(automol.graph.atom_keys(rxn.ts_graph))
+    rct_keys = list(itertools.chain(*rxn.reactants_keys))
+    prd_keys = list(itertools.chain(*rxn.products_keys))
+
+    key_dct = {
+        'T': keys,
+        'R': [rct_keys.index(k) for k in keys],
+        'P': [prd_keys.index(k) for k in keys],
+    }
+    inp_keys = key_dct[inp]
+    out_keys = key_dct[out]
+    map_dct = dict(zip(inp_keys, out_keys))
+    return map_dct
+
+
+def reaction_mapping(rxn: Reaction, rev=False):
+    """ Determine a mapping from reactant atoms to product atoms.
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param rev: parameter to toggle direction of the mapping
+    :type rev: bool
+    :returns: The mapping
+    :rtype: dict
+    """
+    rct_keys = list(itertools.chain(*rxn.reactants_keys))
+    prd_keys = list(itertools.chain(*rxn.products_keys))
+    map_dct = (dict(zip(prd_keys, rct_keys)) if rev else
+               dict(zip(rct_keys, rct_keys)))
+    return map_dct
 
 
 def sort_order(rxn: Reaction):
@@ -246,11 +281,16 @@ def reactant_graphs(rxn: Reaction):
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param overlap: Return zero-indexed 
     :rtype: tuple of automol graph data structures
     """
+    map_dct = mapping(rxn, 'T', 'R')
+
     rcts_gra = ts.reactants_graph(rxn.ts_graph)
-    rct_gras = [automol.graph.subgraph(rcts_gra, keys, stereo=True)
-                for keys in rxn.reactants_keys]
+    rct_gras = [automol.graph.subgraph(rcts_gra, ks, stereo=True)
+                for ks in rxn.reactants_keys]
+    rct_gras = [automol.graph.relabel(g, map_dct, check=False)
+                for g in rct_gras]
     return tuple(rct_gras)
 
 
@@ -271,7 +311,9 @@ def reactants_graph(rxn: Reaction):
     :type rxn: Reaction
     :rtype: automol graph data structure
     """
-    return ts.reactants_graph(rxn.ts_graph)
+    map_dct = mapping(rxn, 'T', 'R')
+    rcts_gra = ts.reactants_graph(rxn.ts_graph)
+    return automol.graph.relabel(rcts_gra, map_dct, check=True)
 
 
 def products_graph(rxn: Reaction):
@@ -297,7 +339,7 @@ def standard_keys(rxn: Reaction):
     rct_keys = list(map(sorted, rxn.reactants_keys))
     rct_key_dct = {k: i for i, k in enumerate(itertools.chain(*rct_keys))}
 
-    rxn = relabel(rxn, rct_key_dct, prod=False)
+    rxn = relabel(rxn, rct_key_dct)
     return rxn
 
 

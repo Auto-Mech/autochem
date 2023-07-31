@@ -9,7 +9,7 @@ from automol.graph import atom_keys
 from automol.reac._0core import Reaction
 from automol.reac._0core import reactants_graph
 from automol.reac._0core import products_graph
-from automol.reac._0core import atom_mapping
+from automol.reac._0core import reaction_mapping
 from automol.reac._0core import has_standard_keys
 from automol.reac._1util import ring_forming_scission_chain
 from automol.reac._1util import hydrogen_abstraction_is_sigma
@@ -40,7 +40,7 @@ def hydrogen_migration_ts_geometry(rxn: Reaction, rct_geos,
 
     geo_init, = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -86,7 +86,7 @@ def beta_scission_ts_geometry(rxn: Reaction, rct_geos,
 
     geo_init, = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -131,7 +131,7 @@ def ring_forming_scission_ts_geometry(rxn: Reaction, rct_geos,
 
     geo_init, = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -194,7 +194,7 @@ def elimination_ts_geometry(rxn: Reaction, rct_geos,
 
     geo_init, = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -253,7 +253,7 @@ def hydrogen_abstraction_ts_geometry(rxn: Reaction, rct_geos,
     geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
                                     r23=frm_bnd_dist, a123=a123, a234=a234)
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -301,7 +301,7 @@ def addition_ts_geometry(rxn: Reaction, rct_geos,
                                     r23=frm_bnd_dist, a123=a123, a234=a234,
                                     d1234=d1234)
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -360,7 +360,7 @@ def insertion_ts_geometry(rxn: Reaction, rct_geos,
     geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
                                     r23=frm_bnd_dist1, a123=a123)
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -415,7 +415,7 @@ def substitution_ts_geometry(rxn: Reaction, rct_geos,
     geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
                                     r23=frm_bnd_dist, a123=a123, a234=a234)
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=atom_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
     geo_init = automol.graph.embed.clean_geometry(
         reactants_graph(rxn), geo_init, stereo=False)
 
@@ -464,7 +464,7 @@ def ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False,
             reactants_graph(rxn), geo, stereo=False)
         geo = automol.graph.stereo_corrected_geometry(
             products_graph(rxn), geo,
-            geo_idx_dct=atom_mapping(rxn, rev=True))
+            geo_idx_dct=reaction_mapping(rxn, rev=True))
         geo = automol.graph.embed.clean_geometry(
             reactants_graph(rxn), geo, stereo=False)
     return geo

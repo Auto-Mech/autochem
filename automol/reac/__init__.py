@@ -5,7 +5,7 @@ from automol.reac._0core import Reaction
 from automol.reac._0core import string
 from automol.reac._0core import from_string
 from automol.reac._0core import reverse
-from automol.reac._0core import atom_mapping
+from automol.reac._0core import reaction_mapping
 from automol.reac._0core import sort_order
 from automol.reac._0core import reactant_graphs
 from automol.reac._0core import product_graphs
@@ -89,7 +89,7 @@ __all__ = [
     'string',
     'from_string',
     'reverse',
-    'atom_mapping',
+    'reaction_mapping',
     'sort_order',
     'reactant_graphs',
     'product_graphs',
