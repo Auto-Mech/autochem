@@ -8,7 +8,7 @@ from automol.geom import distance
 from automol.geom import central_angle
 from automol.util import dict_
 from automol.reac._0core import relabel_for_geometry
-from automol.reac._0core import atom_mapping
+from automol.reac._0core import reaction_mapping
 from automol.graph import without_stereo
 from automol.graph import ts_reagents_graph_without_stereo
 from automol.graph import geometries_parity_mismatches
@@ -139,7 +139,7 @@ def _check_stereo_parities(zma, ref_zma, zrxn):
     """
     gra = without_stereo(ts_reagents_graph_without_stereo(zrxn.ts_graph))
     ste_keys = stereogenic_bond_keys(gra)
-    idxs = atom_mapping(zrxn, rev=False)
+    idxs = reaction_mapping(zrxn, rev=False)
     geo = automol.zmat.geometry(zma, dummy=True)
     ref_geo = automol.zmat.geometry(ref_zma, dummy=True)
 

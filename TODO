@@ -1,3 +1,11 @@
+[X] Remove map from Reaction object
+[ ] UPDATE AGAINST CHANGE TO Reaction OBJECT STRUCTURE...
+        New structure:
+            TS keys are independent from reactants and products keys
+            The *order* of the keys in rxn.reactants_keys indicates the mapping
+            onto reactants keys, and likewise for rxn.products_keys.
+            This means we no longer have to store a mapping, and should lend
+            itself to the next step of adding structures to the object for
+            tracking how they map onto each other.
 [ ] Refactor Reaction finders to take graphs with *standard keys*
-[ ] Remove map from Reaction object
 [ ] Implement Reaction object structure addition
