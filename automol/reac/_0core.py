@@ -30,14 +30,11 @@ class Reaction:
     :type reactants_keys: tuple[tuple[int]]
     :param products_keys: Keys to the product molecules in `tsg`
     :type products_keys: tuple[tuple[int]]
-    :param mapping: A dictionary mapping reactant atoms onto product atoms
-    :type mapping: dict[int: int]
     """
     class_: str
     ts_graph: tuple
     reactants_keys: tuple
     products_keys: tuple
-    mapping: dict
 
     def __repr__(self):
         """ string representation of the object
@@ -70,10 +67,10 @@ def from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys):
     prds_keys = tuple(tuple(map(rev_map_dct.__getitem__, keys))
                       for keys in prds_keys)
 
-    return from_data(cla, ftsg, rcts_keys, prds_keys, map_dct)
+    return from_data(cla, ftsg, rcts_keys, prds_keys)
 
 
-def from_data(cla, tsg, rcts_keys, prds_keys, map_dct):
+def from_data(cla, tsg, rcts_keys, prds_keys):
     """ Construct a Reaction dataclass from data
 
     :param cla: The reaction class
@@ -115,7 +112,7 @@ def from_data(cla, tsg, rcts_keys, prds_keys, map_dct):
 
     return Reaction(
         class_=cla, ts_graph=tsg, reactants_keys=rcts_keys,
-        products_keys=prds_keys, mapping=map_dct)
+        products_keys=prds_keys)
 
 
 def from_string(rxn_str, one_indexed=True):
@@ -133,6 +130,11 @@ def from_string(rxn_str, one_indexed=True):
     tsg = automol.graph.from_yaml_dictionary(yaml_dct, one_indexed=one_indexed)
     rcts_keys = tuple(map(tuple, yaml_dct['reactants keys']))
     prds_keys = tuple(map(tuple, yaml_dct['products keys']))
+
+    if one_indexed:
+        rcts_keys = [[k-1 for k in ks] for ks in rcts_keys]
+        prds_keys = [[k-1 for k in ks] for ks in prds_keys]
+
     map_dct = yaml_dct['atom mapping']
     return from_data(cla=cla, tsg=tsg, rcts_keys=rcts_keys,
                      prds_keys=prds_keys, map_dct=map_dct)
@@ -158,36 +160,28 @@ def string(rxn: Reaction, one_indexed=True):
         rxn.ts_graph, one_indexed=one_indexed)
     yaml_dct['reactants keys'] = list(map(list, rxn.reactants_keys))
     yaml_dct['products keys'] = list(map(list, rxn.products_keys))
-    yaml_dct['atom mapping'] = rxn.mapping
     yaml_dct['reaction class'] = rxn.class_
     rxn_str = yaml.dump(
         yaml_dct, default_flow_style=None, sort_keys=False)
     return rxn_str
 
 
-def relabel(rxn: Reaction, key_dct, prod=False):
+def relabel(rxn: Reaction, key_dct):
     """ Relabel keys in the reactants or products
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param key_dct: A dictionary mapping current keys into new keys
     :type key_dct: dict[int: int]
-    :param prod: Apply this operation to the products instead of the reactants
-    :type prod: bool
     :returns: A relabeled reaction object
     :rtype: Reaction
     """
-    # Create a copy
     rxn = copy.deepcopy(rxn)
-    if prod:
-        rxn.mapping = {k: key_dct[v] for k, v in rxn.mapping.items()}
-    else:
-        rxn.ts_graph = automol.graph.relabel(rxn.ts_graph, key_dct)
-        rxn.reactants_keys = tuple(tuple(map(key_dct.__getitem__, ks))
-                                   for ks in rxn.reactants_keys)
-        rxn.products_keys = tuple(tuple(map(key_dct.__getitem__, ks))
-                                  for ks in rxn.products_keys)
-        rxn.mapping = {key_dct[k]: v for k, v in rxn.mapping.items()}
+    rxn.ts_graph = automol.graph.relabel(rxn.ts_graph, key_dct)
+    rxn.reactants_keys = tuple(tuple(map(key_dct.__getitem__, ks))
+                               for ks in rxn.reactants_keys)
+    rxn.products_keys = tuple(tuple(map(key_dct.__getitem__, ks))
+                              for ks in rxn.products_keys)
     return rxn
 
 
@@ -198,15 +192,12 @@ def reverse(rxn: Reaction):
     :type rxn: Reaction
     :rtype: Reaction
     """
-    fmap_dct = rxn.mapping
-    rmap_dct = dict(map(reversed, rxn.mapping.items()))
-    rxn = relabel(rxn, fmap_dct)
-    rxn = relabel(rxn, rmap_dct, prod=True)
-    rxn.class_ = par.reverse_reaction_class(rxn.class_)
-    rxn.ts_graph = automol.graph.ts.reverse(rxn.ts_graph)
-    rxn.reactants_keys, rxn.products_keys = (
-        rxn.products_keys, rxn.reactants_keys)
-    return rxn
+    return from_data(
+        cla=par.reverse_reaction_class(rxn.class_),
+        tsg=automol.graph.ts.reverse(rxn.ts_graph),
+        rcts_keys=rxn.products_keys,
+        prds_keys=rxn.reactants_keys,
+    )
 
 
 def atom_mapping(rxn: Reaction, rev=False):
