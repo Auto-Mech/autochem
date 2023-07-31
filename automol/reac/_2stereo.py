@@ -41,20 +41,32 @@ def expand_stereo(rxn: Reaction, enant=True):
 def expand_stereo_for_reaction(rxn: Reaction, rcts_gra, prds_gra):
     """ Expand stereo to be consistent with the reactants and products
 
-    :param rxn: _description_
-    :type rxn: _type_
-    :param rcts_gra: _description_
-    :type rcts_gra: _type_
-    :param prds_gra: _description_
-    :type prds_gra: _type_
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param rcts_gra: A graph of the reactants
+    :type rcts_gra: automol graph data structure
+    :param prds_gra: A graph of the products
+    :type prds_gra: automol graph data structure
     """
-    # Steps:
     # 1. Align products with reactants
+    rmap_dct = automol.reac.atom_mapping(rxn, rev=True)
+    prds_gra_aligned = automol.graph.relabel(prds_gra, rmap_dct)
+
     # 2. Expand all TSs
-    # 3.
+    stsgs = automol.graph.ts.expand_stereo_for_reaction(
+        rxn.ts_graph, rcts_gra, prds_gra_aligned)
+
+    # 3. Copy them into reaction objects
+    srxns = []
+    for stsg in stsgs:
+        srxn = copy.deepcopy(rxn)
+        srxn.ts_graph = stsg
+        srxns.append(srxn)
+
+    return tuple(srxns)
 
 
-def from_old_string(rxn_str, one_indexed=True):
+def from_old_string(rxn_str, one_indexed=True, stereo=False):
     """ Write a reaction object to a string
 
         :param rxn_str: string containing the reaction object
@@ -78,21 +90,22 @@ def from_old_string(rxn_str, one_indexed=True):
         'bonds': yaml_dct['forward TS bonds']}
     ftsg0 = automol.graph.from_yaml_dictionary(ftsg_dct,
                                                one_indexed=one_indexed)
-    # rcts_gra = automol.graph.ts.reactants_graph(ftsg0)
 
     rtsg_dct = {
         'atoms': yaml_dct['backward TS atoms'],
         'bonds': yaml_dct['backward TS bonds']}
     rtsg0 = automol.graph.from_yaml_dictionary(rtsg_dct,
                                                one_indexed=one_indexed)
-    # prds_gra = automol.graph.ts.reactants_graph(rtsg0)
 
     ftsg = automol.graph.without_stereo(ftsg0)
     rtsg = automol.graph.without_stereo(rtsg0)
     rxn = from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys)
 
-    # Now, work out the combined stereochemistry
-    # rxn = expand_stereo_for_reaction(rxn, rcts_gra, prds_gra)[0]
+    if stereo:
+        rcts_gra = automol.graph.ts.reactants_graph(ftsg0)
+        prds_gra = automol.graph.ts.reactants_graph(rtsg0)
+        # Now, work out the combined stereochemistry
+        rxn = expand_stereo_for_reaction(rxn, rcts_gra, prds_gra)[0]
 
     return rxn
 

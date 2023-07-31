@@ -25,6 +25,8 @@ from automol.reac._0core import is_radical_radical
 from automol.reac._0core import unique
 # stereo-specific reactions
 from automol.reac._2stereo import expand_stereo
+from automol.reac._2stereo import expand_stereo_for_reaction
+from automol.reac._2stereo import from_old_string
 from automol.reac._2stereo import reflect
 # rotational bonds & torsions
 from automol.reac._3rot import linear_atom_keys
@@ -134,6 +136,8 @@ __all__ = [
     'rotational_symmetry_number',
     # stereo-specific reactions
     'expand_stereo',
+    'expand_stereo_for_reaction',
+    'from_old_string',
     'reflect',
     # reaction products
     'enumerate_reactions',
