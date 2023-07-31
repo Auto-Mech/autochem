@@ -176,8 +176,10 @@ def kekules_bond_orders_averaged(gra):
 def linear_atom_keys(gra, dummy=True):
     """ Atoms forming linear bonds, based on their hybridization
 
-    For TS graphs, only includes atoms that are linear for *both* the reactants
-    *and* the products.
+    For TS graphs, includes atoms that are linear for *either* the reactants
+    *or* the products. This both simplifies the way Reaction objects can be
+    handled and anticipates cases where the TS structure if close to either
+    reactants or products.
 
     :param gra: the graph
     :param dummy: whether or not to consider atoms connected to dummy atoms as
@@ -194,11 +196,11 @@ def linear_atom_keys(gra, dummy=True):
         gras = [gra]
 
     # Since we are taking intersections, we start from a list of all atoms
-    lin_atm_keys = set(atom_keys(gra))
+    lin_atm_keys = set()
     for gra_ in gras:
         gra_ = ts_reagents_graph_without_stereo(gra_)
         atm_hyb_dct = atom_hybridizations_from_kekule(implicit(kekule(gra_)))
-        lin_atm_keys &= set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
+        lin_atm_keys |= set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
 
     # If requested, include all keys associated with dummy atoms
     if dummy:
