@@ -3,6 +3,7 @@
 # base reaction class
 from automol.reac._0core import Reaction
 from automol.reac._0core import string
+from automol.reac._0core import from_data
 from automol.reac._0core import from_string
 from automol.reac._0core import reverse
 from automol.reac._0core import reaction_mapping

@@ -711,6 +711,44 @@ def from_yaml_dictionary(yaml_gra_dct, one_indexed=True):
     return gra
 
 
+def from_old_yaml_dictionary(yaml_gra_dct, one_indexed=True):
+    """ Generate a graph from a YAML dictionary representation
+
+    :param yaml_gra_dct: A YAML-friendly dictionary representation of the graph
+    :type yaml_gra_dct: dict
+    :param one_indexed: Assume one-indexing for YAML dict keys?
+    :type one_indexed: bool
+    :returns: molecular graph
+    :rtype: automol graph data structure
+    """
+    old_atm_prop_names = ('symbol', 'implicit_hydrogen_valence', 'stereo_parity')
+
+    atm_dct = yaml_gra_dct['atoms']
+    bnd_dct = yaml_gra_dct['bonds']
+
+    if "implicit_hydrogens" in list(atm_dct.values())[0]:
+        atm_dct = dict_.transform_values(
+            atm_dct, lambda x: tuple(map(x.__getitem__, ATM_PROP_NAMES[:len(x)])))
+    else:
+        atm_dct = dict_.transform_values(
+            atm_dct, lambda x: tuple(map(x.__getitem__, old_atm_prop_names[:len(x)])))
+
+    bnd_dct = dict_.transform_keys(
+        bnd_dct, lambda x: frozenset(map(int, x.split('-'))))
+
+    bnd_dct = dict_.transform_values(
+        bnd_dct, lambda x: tuple(map(x.__getitem__, BND_PROP_NAMES[:len(x)])))
+
+    gra = from_atoms_and_bonds(atm_dct, bnd_dct)
+
+    if one_indexed:
+        # revert one-indexing if the input is one-indexed
+        atm_key_dct = {atm_key: atm_key-1 for atm_key in atom_keys(gra)}
+        gra = relabel(gra, atm_key_dct)
+
+    return gra
+
+
 # # conversions
 def frozen(gra):
     """ Generate a hashable, sortable, immutable representation of the graph
