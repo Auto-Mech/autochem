@@ -1,4 +1,5 @@
 [X] Remove map from Reaction object
+[X] Refactor Reaction finders to take graphs with *standard keys*
 [ ] UPDATE AGAINST CHANGE TO Reaction OBJECT STRUCTURE...
         New structure:
             TS keys are independent from reactants and products keys
@@ -7,5 +8,4 @@
             This means we no longer have to store a mapping, and should lend
             itself to the next step of adding structures to the object for
             tracking how they map onto each other.
-[ ] Refactor Reaction finders to take graphs with *standard keys*
 [ ] Implement Reaction object structure addition
