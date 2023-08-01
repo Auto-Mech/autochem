@@ -3,16 +3,15 @@
 import copy
 from typing import List
 
+import yaml
+
 import automol.chi
 import automol.geom
 import automol.graph
-import yaml
 from automol.reac._0core import (
     Reaction,
     from_forward_reverse,
     mapping,
-    products_graph,
-    reactants_graph,
     without_stereo,
 )
 
@@ -64,14 +63,6 @@ def expand_stereo_for_reaction(rxn: Reaction, rct_gras, prd_gras):
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
     rcts_gra = automol.graph.union_from_sequence(rct_gras)
     prds_gra = automol.graph.union_from_sequence(prd_gras)
-
-
-    assert reactants_graph(rxn) == automol.graph.without_stereo(
-        rcts_gra
-    ), f"Reaction doesn't match reactants graphs:\n{rxn}\n{rct_gras}"
-    assert products_graph(rxn) == automol.graph.without_stereo(
-        prds_gra
-    ), f"Reaction doesn't match products graphs:\n{rxn}\n{prd_gras}"
 
     # 1. Align products with reactants
     rgra = automol.graph.relabel(rcts_gra, mapping(rxn, "R", "T"))

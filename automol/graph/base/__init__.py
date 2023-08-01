@@ -329,6 +329,7 @@ __all__ = [
     'yaml_dictionary',
     'from_string',
     'from_yaml_dictionary',
+    'from_old_yaml_dictionary',
     # # conversions
     'frozen',
     'formula',

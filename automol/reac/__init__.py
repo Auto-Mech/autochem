@@ -2,9 +2,9 @@
 """
 # base reaction class
 from automol.reac._0core import Reaction
-from automol.reac._0core import string
 from automol.reac._0core import from_data
 from automol.reac._0core import from_string
+from automol.reac._0core import string
 from automol.reac._0core import reverse
 from automol.reac._0core import reaction_mapping
 from automol.reac._0core import sort_order
@@ -87,8 +87,9 @@ from automol.reac._7conv import with_structures_from_geometry
 __all__ = [
     # base reaction class
     'Reaction',
-    'string',
+    'from_data',
     'from_string',
+    'string',
     'reverse',
     'reaction_mapping',
     'sort_order',

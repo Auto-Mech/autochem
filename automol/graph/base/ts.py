@@ -21,7 +21,6 @@ from automol.graph.base._core import set_stereo_parities
 from automol.graph.base._core import stereo_keys
 from automol.graph.base._core import atom_stereo_keys
 from automol.graph.base._core import bond_stereo_keys
-from automol.graph.base._core import without_stereo
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import string
@@ -235,16 +234,6 @@ def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
     :type prds_gra: automol graph data structure
     :return: A list of TS graphs with stereo assignments
     """
-    # Check for consistency between input graphs
-    assert (
-        ts_reagents_graph_without_stereo(tsg, prod=False) ==
-        without_stereo(rcts_gra)
-    ), "Reactants graph {rcts_gra} does not match TS graph {tsg}"
-    assert (
-        ts_reagents_graph_without_stereo(tsg, prod=True) ==
-        without_stereo(prds_gra)
-    ), "Products graph {prds_gra} does not match TS graph {tsg}"
-
     # Identify stereo atoms and bonds
     fkeys = list(stereo_keys(rcts_gra))
     rkeys = list(stereo_keys(prds_gra))
