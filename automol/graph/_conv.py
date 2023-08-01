@@ -2,6 +2,7 @@
 """
 import functools
 import IPython
+import ipywidgets
 import autoparse.pattern as app
 import autoparse.find as apf
 from autoparse import cast as ap_cast
@@ -453,6 +454,29 @@ def display_reaction(rgras, pgras, stereo=True):
     """
     rdkit_.turn_3d_visualization_off()
     return IPython.display.display(rdkit_reaction(rgras, pgras, stereo=stereo))
+
+
+def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=150):
+    """Get an ipywidget object for visualizing the graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
+    :param image_size: The image size, defaults to 150
+    :type image_size: int, optional
+    :return: The widget object
+    :rtype: ipywidgets.Image
+    """
+    rdm = rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
+    svg_text = rdkit_.to_svg_text(rdm)
+    widget = ipywidgets.Image(value=svg_text, format="svg+xml", width=image_size, height=image_size)
+    return widget
 
 
 # # helpers
