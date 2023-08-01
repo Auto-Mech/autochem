@@ -150,14 +150,14 @@ def test__reac__string():
     """ test reac.string
     """
     rxn_str = SUBSTITUTION_RXN_STR
-    rxn = automol.reac.from_string(rxn_str)
+    rxn = automol.reac.from_old_string(rxn_str)
     assert automol.reac.string(rxn).strip() == rxn_str.strip()
 
 
 def test__reac__reactant_graphs():
     """ test reac.reactant_graphs
     """
-    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    rxn = automol.reac.from_old_string(SUBSTITUTION_RXN_STR)
     assert automol.reac.reactant_graphs(rxn) == (
         ({0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
           3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
@@ -177,7 +177,7 @@ def test__reac__reactant_graphs():
 def test__reac__product_graphs():
     """ test reac.product_graphs
     """
-    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    rxn = automol.reac.from_old_string(SUBSTITUTION_RXN_STR)
     assert automol.reac.product_graphs(rxn) == (
         ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
           3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
@@ -197,7 +197,7 @@ def test__reac__reagents_graph():
     """ test reac.reactants_graph
         test products_graph
     """
-    rxn = automol.reac.from_string(SUBSTITUTION_RXN_STR)
+    rxn = automol.reac.from_old_string(SUBSTITUTION_RXN_STR)
 
     rcts_gra = automol.reac.reactants_graph(rxn)
     prds_gra = automol.reac.products_graph(rxn)

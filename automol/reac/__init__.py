@@ -29,23 +29,23 @@ from automol.reac._2stereo import expand_stereo_for_reaction
 from automol.reac._2stereo import from_old_string
 from automol.reac._2stereo import reflect
 # rotational bonds & torsions
-from automol.reac._3rot import linear_atom_keys
-from automol.reac._3rot import rotational_bond_keys
-from automol.reac._3rot import rotational_groups
-from automol.reac._3rot import rotational_symmetry_number
+from automol.reac._4rot import linear_atom_keys
+from automol.reac._4rot import rotational_bond_keys
+from automol.reac._4rot import rotational_groups
+from automol.reac._4rot import rotational_symmetry_number
 # finders
-from automol.reac._4find import trivial
-from automol.reac._4find import hydrogen_migrations
-from automol.reac._4find import beta_scissions
-from automol.reac._4find import ring_forming_scissions
-from automol.reac._4find import eliminations
-from automol.reac._4find import hydrogen_abstractions
-from automol.reac._4find import additions
-from automol.reac._4find import insertions
-from automol.reac._4find import substitutions
-from automol.reac._4find import find
-from automol.reac._4find import find_from_chi
-from automol.reac._4find import intersystem_crossing
+from automol.reac._3find import trivial
+from automol.reac._3find import hydrogen_migrations
+from automol.reac._3find import beta_scissions
+from automol.reac._3find import ring_forming_scissions
+from automol.reac._3find import eliminations
+from automol.reac._3find import hydrogen_abstractions
+from automol.reac._3find import additions
+from automol.reac._3find import insertions
+from automol.reac._3find import substitutions
+from automol.reac._3find import find
+from automol.reac._3find import find_from_chi
+from automol.reac._3find import intersystem_crossing
 # TS geometries
 from automol.reac._5geom import ts_geometry
 # TS zmatrices

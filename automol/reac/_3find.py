@@ -57,6 +57,9 @@ from automol.reac._1util import sort_reagents
 def trivial(rct_gras, prd_gras):
     """ find a trivial reaction, with the same reactants and products
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = []
 
     if len(rct_gras) == len(prd_gras):
@@ -110,6 +113,9 @@ def hydrogen_migrations(rct_gras, prd_gras):
     product and seeing if they match up. If so, we have a hydrogen migration
     between these two sites.
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = []
 
     if len(rct_gras) == 1 and len(prd_gras) == 1:
@@ -189,6 +195,9 @@ def beta_scissions(rct_gras, prd_gras):
 
     Implemented as the reverse of additions.
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = tuple(map(reverse, additions(prd_gras, rct_gras)))
     return rxns
 
@@ -204,6 +213,9 @@ def ring_forming_scissions(rct_gras, prd_gras):
     Ring-forming scissions are found by breaking ring-bonds on one product and
     joining the ends to unsaturated sites on the other product
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = []
 
     if len(rct_gras) == 1 and len(prd_gras) == 2:
@@ -261,6 +273,8 @@ def eliminations(rct_gras, prd_gras):
     the ring, downstream of the attacking heavy atom, away from the attacked
     atom.
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
     def _identify(frm1_keys, frm2_keys, bnd_keys):
         """ Try and identify elmination from some set of keys
@@ -385,6 +399,9 @@ def hydrogen_abstractions(rct_gras, prd_gras):
     to unsaturated sites of the R1 product to see if we get the R1H reactant.
     We then do the same for the R2 reactant and the R2H product.
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 2:
@@ -445,6 +462,8 @@ def additions(rct_gras, prd_gras):
     an unsaturated site on the other. If the result matches the products, this
     is an addition reaction.
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
     rxns = []
 
@@ -489,6 +508,9 @@ def additions(rct_gras, prd_gras):
 def double_insertion(rct_gras, prd_gras):
     """ two atoms inserting
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
@@ -551,6 +573,9 @@ def double_insertion(rct_gras, prd_gras):
 def two_bond_additions(rct_gras, prd_gras):
     """ two bond additions
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
@@ -565,7 +590,6 @@ def two_bond_additions(rct_gras, prd_gras):
             unsaturated_atom_keys(y_gra),
             lone_pair_atom_keys(y_gra)
         )
-        print('x,y keys', x_atm_keys, y_atm_keys)
 
         # Generate pairs of forming bonds, where each is a pair of idxs
         # describing the atoms making up the forming bond:
@@ -627,6 +651,9 @@ def insertions(rct_gras, prd_gras):
     ['C[CH]C(C)OO', 'O=O'] -> ['CC(O[O])C(C)OO']
 
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = tuple(map(reverse, eliminations(prd_gras, rct_gras)))
     return rxns
 
@@ -649,6 +676,9 @@ def substitutions(rct_gras, prd_gras):
     the forming bond involves a hydrogen atom off the reactant in which a bond
     is breaking.
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 2:
@@ -719,6 +749,9 @@ def find(rct_gras, prd_gras, stereo=False):
     :returns: a list of Reaction objects
     :rtype: tuple[Reaction]
     """
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+
     if not stereo:
         rct_gras = list(map(automol.graph.without_stereo, rct_gras))
         prd_gras = list(map(automol.graph.without_stereo, prd_gras))

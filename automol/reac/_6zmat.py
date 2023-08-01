@@ -1,5 +1,6 @@
 """ TS z-matrices for specific reaction classes
 """
+import copy
 import automol.geom
 import automol.graph
 from automol.par import ReactionClass
@@ -24,7 +25,7 @@ def hydrogen_migration_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
 
     # 1. Get keys to linear or near-linear atoms
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
@@ -64,7 +65,7 @@ def beta_scission_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
 
     # 1. Get keys to linear or near-linear atoms
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
@@ -93,7 +94,7 @@ def ring_forming_scission_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
 
     # 1. Get keys to linear or near-linear atoms
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
@@ -125,7 +126,7 @@ def elimination_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
 
     # 1. Get keys to linear or near-linear atoms
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
@@ -172,7 +173,7 @@ def hydrogen_abstraction_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
 
     # 1. Get keys to linear or near-linear atoms
     lin_idxs = list(automol.geom.linear_atoms(ts_geo))
@@ -214,7 +215,7 @@ def addition_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
     rxn.ts_graph = rxn.ts_graph
 
     # 1. Get keys to linear or near-linear atoms
@@ -248,7 +249,7 @@ def insertion_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
     rxn.ts_graph = rxn.ts_graph
 
     # 1. Get keys to linear or near-linear atoms
@@ -296,7 +297,7 @@ def substitution_ts_zmatrix(rxn: Reaction, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
-    rxn = rxn.copy()
+    rxn = copy.deepcopy(rxn)
     rxn.ts_graph = rxn.ts_graph
 
     # 1. Get keys to linear or near-linear atoms

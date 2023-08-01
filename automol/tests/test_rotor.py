@@ -125,7 +125,7 @@ products keys:
 - [1, 2, 3, 4, 5]
 - [6, 7, 8, 9, 10, 11, 12, 13]
 """
-C2H5OH_CH3_ZRXN = automol.reac.from_string(C2H5OH_CH3_ZRXN_STR)
+C2H5OH_CH3_ZRXN = automol.reac.from_old_string(C2H5OH_CH3_ZRXN_STR)
 
 # Transition state ZRXN object
 C2H5OH_CH3_ZMA = (
@@ -223,7 +223,7 @@ products keys:
 - [1, 2, 3, 4, 5]
 - [6, 7, 8, 9, 10, 11, 12, 13]
 """
-C2H5OH_CH3_ZRXN = automol.reac.from_string(C2H5OH_CH3_ZRXN_STR)
+C2H5OH_CH3_ZRXN = automol.reac.from_old_string(C2H5OH_CH3_ZRXN_STR)
 
 
 def test__tors():

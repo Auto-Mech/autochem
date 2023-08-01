@@ -15,7 +15,7 @@ from automol.reac._0core import standard_keys_with_sorted_geometries
 from automol.reac._0core import relabel_for_zmatrix
 from automol.reac._5geom import ts_geometry
 from automol.reac._6zmat import ts_zmatrix
-from automol.reac._4find import find
+from automol.reac._3find import find
 from automol.reac._2stereo import reflect
 
 

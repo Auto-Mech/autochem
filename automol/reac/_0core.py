@@ -99,16 +99,6 @@ def from_data(cla, tsg, rcts_keys, prds_keys):
     # Check the reactants and products keys
     rcts_keys = tuple(map(tuple, rcts_keys))
     prds_keys = tuple(map(tuple, prds_keys))
-    rkeys_set = set(map(frozenset, rcts_keys))
-    pkeys_set = set(map(frozenset, prds_keys))
-    rgra = ts.reagents_graph_without_stereo(tsg, prod=False)
-    pgra = ts.reagents_graph_without_stereo(tsg, prod=True)
-    rkeys_comp = set(automol.graph.connected_components_atom_keys(rgra))
-    pkeys_comp = set(automol.graph.connected_components_atom_keys(pgra))
-    assert rkeys_set == rkeys_comp, (
-        f"Reactants keys {rcts_keys} don't match TS graph:\n{tsg}")
-    assert pkeys_set == pkeys_comp, (
-        f"Reactants keys {prds_keys} don't match TS graph:\n{tsg}")
 
     return Reaction(
         class_=cla, ts_graph=tsg, reactants_keys=rcts_keys,
@@ -276,11 +266,13 @@ def sort_order(rxn: Reaction):
     return rct_idxs, prd_idxs
 
 
-def reactant_graphs(rxn: Reaction):
+def reactant_graphs(rxn: Reaction, shift_keys=False):
     """ Obtain graphs of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param shift_keys: Shift keys after first reagent, to prevent overlap?
+    :type shift_keys: bool
     :param overlap: Return zero-indexed 
     :rtype: tuple of automol graph data structures
     """
@@ -291,17 +283,21 @@ def reactant_graphs(rxn: Reaction):
                 for ks in rxn.reactants_keys]
     rct_gras = [automol.graph.relabel(g, map_dct, check=False)
                 for g in rct_gras]
+    if not shift_keys:
+        rct_gras = [automol.graph.standard_keys(g) for g in rct_gras]
     return tuple(rct_gras)
 
 
-def product_graphs(rxn: Reaction):
+def product_graphs(rxn: Reaction, shift_keys=False):
     """ Obtain graphs of the products in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param shift_keys: Shift keys after first reagent, to prevent overlap?
+    :type shift_keys: bool
     :rtype: tuple of automol graph data structures
     """
-    return reactant_graphs(reverse(rxn))
+    return reactant_graphs(reverse(rxn), shift_keys=shift_keys)
 
 
 def reactants_graph(rxn: Reaction):
@@ -531,9 +527,9 @@ def is_radical_radical(zrxn: Reaction):
     :rtype: boolean
     """
     _is_rad_rad = False
-    tsg = reactant_graphs(zrxn)
-    if len(tsg) == 2:
-        rct_i, rct_j = tsg
+    rct_gras = reactant_graphs(zrxn)
+    if len(rct_gras) == 2:
+        rct_i, rct_j = rct_gras
         if (automol.graph.is_radical_species(rct_i)
                 and automol.graph.is_radical_species(rct_j)):
             _is_rad_rad = True
