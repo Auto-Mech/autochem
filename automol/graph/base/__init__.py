@@ -51,6 +51,7 @@ from automol.graph.base._core import string
 from automol.graph.base._core import yaml_dictionary
 from automol.graph.base._core import from_string
 from automol.graph.base._core import from_yaml_dictionary
+from automol.graph.base._core import from_old_yaml_dictionary
 # # conversions
 from automol.graph.base._core import frozen
 from automol.graph.base._core import formula
