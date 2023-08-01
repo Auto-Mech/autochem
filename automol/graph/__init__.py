@@ -301,6 +301,7 @@ from automol.graph._conv import rdkit_molecule
 from automol.graph._conv import rdkit_reaction
 from automol.graph._conv import display
 from automol.graph._conv import display_reaction
+from automol.graph._conv import ipywidget
 # submodules:
 from automol.graph import vmat
 from automol.graph import embed
@@ -595,6 +596,7 @@ __all__ = [
     'rdkit_reaction',
     'display',
     'display_reaction',
+    'ipywidget',
     # submodules:
     'vmat',
     'embed',

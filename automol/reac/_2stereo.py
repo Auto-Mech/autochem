@@ -1,27 +1,34 @@
 """ stereo functionality for reaction objects
 """
 import copy
-import yaml
-import automol.graph
-import automol.geom
+from typing import List
+
 import automol.chi
-from automol.reac._0core import Reaction
-from automol.reac._0core import from_forward_reverse
-from automol.reac._0core import mapping
+import automol.geom
+import automol.graph
+import yaml
+from automol.reac._0core import (
+    Reaction,
+    from_forward_reverse,
+    mapping,
+    product_graphs,
+    reactant_graphs,
+    without_stereo,
+)
 
 
-def expand_stereo(rxn: Reaction, enant=True):
-    """ Expand all possible stereo assignments for the reactants and products
-    of this reaction. Only includes possibilities that are mutually consistent
+def expand_stereo(rxn: Reaction, enant=True) -> List[Reaction]:
+    """Expand all possible stereo assignments for the reactants and products of
+    this reaction. Only includes possibilities that are mutually consistent
     with each other.
 
-        :param rxn: a reaction object
-        :type rxn: Reaction
-        :param enant: Include all enantiomers? Otherwise, includes only
-            canonical enantiomer species and reactions.
-        :type enant: bool
-        :returns: a sequence reaction objects with stereo assignments
-        :rtype: Reaction
+    :param rxn: a reaction object
+    :type rxn: Reaction
+    :param enant: Include all enantiomers? Otherwise, includes only canonical
+        enantiomer species and reactions.
+    :type enant: bool
+    :returns: a sequence of reaction objects with stereo assignments
+    :rtype: List[Reaction]
     """
     tsg = automol.graph.without_stereo(rxn.ts_graph)
     tsg0 = automol.graph.without_dummy_atoms(tsg)
@@ -32,15 +39,16 @@ def expand_stereo(rxn: Reaction, enant=True):
 
         # To keep both sets of dummy atoms, copy the stereo parities over
         srxn.ts_graph = automol.graph.set_stereo_parities(
-            tsg, automol.graph.stereo_parities(stsg0))
+            tsg, automol.graph.stereo_parities(stsg0)
+        )
         srxns.append(srxn)
 
     srxns = tuple(srxns)
     return srxns
 
 
-def expand_stereo_for_reaction(rxn: Reaction, rcts_gra, prds_gra):
-    """ Expand stereo to be consistent with the reactants and products
+def expand_stereo_for_reaction(rxn: Reaction, rct_gras, prd_gras):
+    """Expand stereo to be consistent with the reactants and products
 
     :param rxn: The reaction object
     :type rxn: Reaction
@@ -49,13 +57,27 @@ def expand_stereo_for_reaction(rxn: Reaction, rcts_gra, prds_gra):
     :param prds_gra: A graph of the products
     :type prds_gra: automol graph data structure
     """
+    rxn = without_stereo(rxn)
+
+    assert reactant_graphs(rxn) == tuple(
+        map(automol.graph.without_stereo, rct_gras)
+    ), "Reaction doesn't match reactants graphs:\n{rxn}\n{rct_gras}"
+    assert product_graphs(rxn) == tuple(
+        map(automol.graph.without_stereo, prd_gras)
+    ), "Reaction doesn't match products graphs:\n{rxn}\n{prd_gras}"
+
+    # 0. Build combined reactants/products graphs
+    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+    rcts_gra = automol.graph.union_from_sequence(rct_gras)
+    prds_gra = automol.graph.union_from_sequence(prd_gras)
+
     # 1. Align products with reactants
-    rgra = automol.graph.relabel(rcts_gra, mapping(rxn, 'R', 'T'))
-    pgra = automol.graph.relabel(prds_gra, mapping(rxn, 'P', 'T'))
+    rgra = automol.graph.relabel(rcts_gra, mapping(rxn, "R", "T"))
+    pgra = automol.graph.relabel(prds_gra, mapping(rxn, "P", "T"))
 
     # 2. Expand all TSs
-    stsgs = automol.graph.ts.expand_stereo_for_reaction(
-        rxn.ts_graph, rgra, pgra)
+    stsgs = automol.graph.ts.expand_stereo_for_reaction(rxn.ts_graph, rgra, pgra)
 
     # 3. Copy them into reaction objects
     srxns = []
@@ -68,35 +90,35 @@ def expand_stereo_for_reaction(rxn: Reaction, rcts_gra, prds_gra):
 
 
 def from_old_string(rxn_str, one_indexed=True, stereo=False):
-    """ Write a reaction object to a string
+    """Write a reaction object to a string
 
-        :param rxn_str: string containing the reaction object
-        :type rxn_str: str
-        :param one_indexed: parameter to store keys in one-indexing
-        :type one_indexed: bool
-        :rtype: Reaction
+    :param rxn_str: string containing the reaction object
+    :type rxn_str: str
+    :param one_indexed: parameter to store keys in one-indexing
+    :type one_indexed: bool
+    :rtype: Reaction
     """
     yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
 
-    cla = yaml_dct['reaction class']
-    rcts_keys = yaml_dct['reactants keys']
-    prds_keys = yaml_dct['products keys']
+    cla = yaml_dct["reaction class"]
+    rcts_keys = yaml_dct["reactants keys"]
+    prds_keys = yaml_dct["products keys"]
 
     if one_indexed:
-        rcts_keys = [[k-1 for k in ks] for ks in rcts_keys]
-        prds_keys = [[k-1 for k in ks] for ks in prds_keys]
+        rcts_keys = [[k - 1 for k in ks] for ks in rcts_keys]
+        prds_keys = [[k - 1 for k in ks] for ks in prds_keys]
 
     ftsg_dct = {
-        'atoms': yaml_dct['forward TS atoms'],
-        'bonds': yaml_dct['forward TS bonds']}
-    ftsg0 = automol.graph.from_yaml_dictionary(ftsg_dct,
-                                               one_indexed=one_indexed)
+        "atoms": yaml_dct["forward TS atoms"],
+        "bonds": yaml_dct["forward TS bonds"],
+    }
+    ftsg0 = automol.graph.from_yaml_dictionary(ftsg_dct, one_indexed=one_indexed)
 
     rtsg_dct = {
-        'atoms': yaml_dct['backward TS atoms'],
-        'bonds': yaml_dct['backward TS bonds']}
-    rtsg0 = automol.graph.from_yaml_dictionary(rtsg_dct,
-                                               one_indexed=one_indexed)
+        "atoms": yaml_dct["backward TS atoms"],
+        "bonds": yaml_dct["backward TS bonds"],
+    }
+    rtsg0 = automol.graph.from_yaml_dictionary(rtsg_dct, one_indexed=one_indexed)
 
     ftsg = automol.graph.without_stereo(ftsg0)
     rtsg = automol.graph.without_stereo(rtsg0)
@@ -112,11 +134,11 @@ def from_old_string(rxn_str, one_indexed=True, stereo=False):
 
 
 def reflect(srxn: Reaction):
-    """ Reflect all graphs in this reaction, to obtain their mirror images
+    """Reflect all graphs in this reaction, to obtain their mirror images
 
-        :param srxn: a reaction object with stereo assignments
-        :type srxn: Reaction
-        :returns: a reflected reaction object
+    :param srxn: a reaction object with stereo assignments
+    :type srxn: Reaction
+    :returns: a reflected reaction object
     """
     srxn = copy.deepcopy(srxn)
     srxn.ts_graph = automol.graph.reflect(srxn.ts_graph)
