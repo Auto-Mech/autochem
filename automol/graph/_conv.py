@@ -1,62 +1,63 @@
 """ graph conversions
 """
 import functools
+
+import autoparse.find as apf
+import autoparse.pattern as app
 import IPython
 import ipywidgets
-import autoparse.pattern as app
-import autoparse.find as apf
 from autoparse import cast as ap_cast
-from automol import error
-import automol.graph.embed
+
 import automol.geom.base
+import automol.graph.embed
 import automol.inchi.base
 import automol.smiles.base
+from automol import error
+from automol.extern import molfile, pybel_, rdkit_
+from automol.graph.base import (
+    amchi,
+    atom_bond_counts,
+    atom_keys,
+    atom_symbols,
+    atom_unpaired_electrons,
+    bond_keys,
+    bond_orders,
+    bond_stereo_keys,
+    bond_stereo_parities,
+    connected_components,
+    explicit,
+    has_stereo,
+    implicit,
+    inchi_is_bad,
+    isomorphic,
+    kekule,
+    nonbackbone_hydrogen_keys,
+    relabel,
+    set_stereo_from_geometry,
+    smiles,
+    string,
+    subgraph,
+    to_local_stereo,
+    without_dummy_atoms,
+)
 from automol.util import dict_
-from automol.extern import molfile
-from automol.extern import rdkit_
-from automol.extern import pybel_
-from automol.graph.base import atom_keys
-from automol.graph.base import bond_keys
-from automol.graph.base import atom_symbols
-from automol.graph.base import bond_orders
-from automol.graph.base import atom_bond_counts
-from automol.graph.base import atom_unpaired_electrons
-from automol.graph.base import explicit
-from automol.graph.base import without_dummy_atoms
-from automol.graph.base import isomorphic
-from automol.graph.base import kekule
-from automol.graph.base import set_stereo_from_geometry
-from automol.graph.base import smiles
-from automol.graph.base import amchi
-from automol.graph.base import inchi_is_bad
-from automol.graph.base import implicit
-from automol.graph.base import to_local_stereo
-from automol.graph.base import subgraph
-from automol.graph.base import relabel
-from automol.graph.base import bond_stereo_keys
-from automol.graph.base import nonbackbone_hydrogen_keys
-from automol.graph.base import bond_stereo_parities
-from automol.graph.base import connected_components
-from automol.graph.base import has_stereo
-from automol.graph.base import string
 
 
 # # conversions
 def geometry(gra, check=True):
-    """ Convert a molecular graph to a molecular geometry.
+    """Convert a molecular graph to a molecular geometry.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param check: check stereo and connectivity?
-        :type check: bool
-        :rtype: automol molecular geometry data structure
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param check: check stereo and connectivity?
+    :type check: bool
+    :rtype: automol molecular geometry data structure
     """
     gra = automol.graph.explicit(gra)
     gras = connected_components(gra)
 
     geos = [_connected_geometry(g, check=check) for g in gras]
-    geos = [automol.geom.translate(g, [50.*i, 0., 0.])
-            for i, g in enumerate(geos)]
+    geos = [automol.geom.translate(g, [50.0 * i, 0.0, 0.0]) for i, g in enumerate(geos)]
     geo = functools.reduce(automol.geom.join, geos)
 
     # Work out how the geometry needs to be re-ordered to match the input graph
@@ -64,7 +65,7 @@ def geometry(gra, check=True):
     idxs_lst = [sorted(atom_keys(g)) for g in gras]
     offset = 0
     for idxs in idxs_lst:
-        idx_dct.update({i+offset: k for i, k in enumerate(idxs)})
+        idx_dct.update({i + offset: k for i, k in enumerate(idxs)})
         offset += len(idxs)
 
     geo = automol.geom.reorder(geo, idx_dct)
@@ -72,12 +73,12 @@ def geometry(gra, check=True):
 
 
 def _connected_geometry(gra, check=True):
-    """ Generate a geometry for a connected molecular graph.
-        :param gra: connected molecular graph
-        :type gra: automol graph data structure
-        :param check: check stereo and connectivity?
-        :type check: bool
-        :rtype: automol molecular geometry
+    """Generate a geometry for a connected molecular graph.
+    :param gra: connected molecular graph
+    :type gra: automol graph data structure
+    :param check: check stereo and connectivity?
+    :type check: bool
+    :rtype: automol molecular geometry
     """
     # Standardize the graph before doing anything else
     gra = automol.graph.standard_keys(gra)
@@ -91,7 +92,7 @@ def _connected_geometry(gra, check=True):
         nonlocal smi
 
         rdm = rdkit_.from_smiles(smi)
-        geo, = rdkit_.to_conformers(rdm, nconfs=1)
+        (geo,) = rdkit_.to_conformers(rdm, nconfs=1)
         return geo
 
     def _gen2():
@@ -142,8 +143,7 @@ def _connected_geometry(gra, check=True):
             # First, try an isomorphism to see if the parities already match.
             gra_ = automol.geom.graph(geo)
             par_dct_ = automol.graph.stereo_parities(gra_)
-            par_dct_ = {k: (p if k in ste_keys else None)
-                        for k, p in par_dct_.items()}
+            par_dct_ = {k: (p if k in ste_keys else None) for k, p in par_dct_.items()}
             gra_ = automol.graph.set_stereo_parities(gra_, par_dct_)
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=True)
 
@@ -155,15 +155,13 @@ def _connected_geometry(gra, check=True):
                 break
 
             # If the stereo doesn't match, try a stereo correction.
-            geo = automol.graph.stereo_corrected_geometry(
-                gra, geo, local_stereo=False)
+            geo = automol.graph.stereo_corrected_geometry(gra, geo, local_stereo=False)
             geo = automol.graph.embed.clean_geometry(gra_, geo, stereo=True)
 
             # Now, re-try the isomorphism
             gra_ = automol.geom.graph(geo)
             par_dct_ = automol.graph.stereo_parities(gra_)
-            par_dct_ = {k: (p if k in ste_keys else None)
-                        for k, p in par_dct_.items()}
+            par_dct_ = {k: (p if k in ste_keys else None) for k, p in par_dct_.items()}
             gra_ = automol.graph.set_stereo_parities(gra_, par_dct_)
             idx_dct = automol.graph.isomorphism(gra_, gra, stereo=True)
 
@@ -178,20 +176,19 @@ def _connected_geometry(gra, check=True):
             break
 
     if not success:
-        raise error.FailedGeometryGenerationError(
-            f'Failed graph:\n{string(gra)}')
+        raise error.FailedGeometryGenerationError(f"Failed graph:\n{string(gra)}")
 
     return geo
 
 
 def inchi(gra, stereo=True):
-    """ Generate an InChI string from a molecular graph.
+    """Generate an InChI string from a molecular graph.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
-        :rtype: str
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
+    :rtype: str
     """
     smi = smiles(gra, stereo=stereo, res_stereo=False)
     rdm = rdkit_.from_smiles(smi)
@@ -200,33 +197,32 @@ def inchi(gra, stereo=True):
 
 
 def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
-    """ Generate an InChI string from a molecular graph.
-        If coordinates are passed in, they are used to determine stereo.
+    """Generate an InChI string from a molecular graph.
+    If coordinates are passed in, they are used to determine stereo.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct:
-        :type geo_idx_dct: dict[:]
-        :returns: the inchi string, along with the InChI sort order of the
-            atoms
-        :rtype: (str, tuple(int))
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct:
+    :type geo_idx_dct: dict[:]
+    :returns: the inchi string, along with the InChI sort order of the
+        atoms
+    :rtype: (str, tuple(int))
     """
     if geo is not None:
         natms = automol.geom.base.count(geo)
-        geo_idx_dct = (dict(enumerate(range(natms)))
-                       if geo_idx_dct is None else geo_idx_dct)
+        geo_idx_dct = (
+            dict(enumerate(range(natms))) if geo_idx_dct is None else geo_idx_dct
+        )
         gra = set_stereo_from_geometry(gra, geo, geo_idx_dct=geo_idx_dct)
 
-    mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo,
-                                                 geo_idx_dct=geo_idx_dct)
+    mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo, geo_idx_dct=geo_idx_dct)
     rdm = rdkit_.from_molfile(mlf)
     ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
 
     nums_lst = _parse_sort_order_from_aux_info(aux_info)
-    nums_lst = tuple(tuple(map(key_map_inv.__getitem__, nums))
-                     for nums in nums_lst)
+    nums_lst = tuple(tuple(map(key_map_inv.__getitem__, nums)) for nums in nums_lst)
 
     # Assuming the MolFile InChI works, the above code is all we need. What
     # follows is to correct cases where it fails.
@@ -242,8 +238,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
         new_sub_ichs = []
         for sub_ich, nums in zip(sub_ichs, nums_lst):
             sub_gra = subgraph(gra, nums, stereo=True)
-            sub_ich = _connected_inchi_with_graph_stereo(
-                sub_ich, sub_gra, nums)
+            sub_ich = _connected_inchi_with_graph_stereo(sub_ich, sub_gra, nums)
             if sub_ich is None:
                 failed = True
                 break
@@ -259,7 +254,7 @@ def inchi_with_sort_from_geometry(gra, geo=None, geo_idx_dct=None):
 
 
 def _connected_inchi_with_graph_stereo(ich, gra, nums):
-    """ For a connected inchi/graph, check if the inchi is missing stereo; If
+    """For a connected inchi/graph, check if the inchi is missing stereo; If
     so, add stereo based on the graph.
 
     Currently only checks for missing bond stereo, since this is all we have
@@ -294,32 +289,32 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         # Translate internal stereo parities into InChI stereo parities
         # and generate the appropriate b-layer string for the InChI
         ste_dct = bond_stereo_parities(gra)
-        ste_keys = tuple(sorted(tuple(reversed(sorted(k)))
-                                for k in bond_stereo_keys(gra)))
+        ste_keys = tuple(
+            sorted(tuple(reversed(sorted(k))) for k in bond_stereo_keys(gra))
+        )
         blyr_strs = []
         for atm1_key, atm2_key in ste_keys:
             par = ste_dct[frozenset({atm1_key, atm2_key})]
 
-            blyr_strs.append(
-                f"{atm1_key+1}-{atm2_key+1}{'+' if par else '-'}")
+            blyr_strs.append(f"{atm1_key+1}-{atm2_key+1}{'+' if par else '-'}")
 
         # After forming the b-layer string, generate the new InChI
-        blyr_str = ','.join(blyr_strs)
-        ste_dct = {'b': blyr_str}
+        blyr_str = ",".join(blyr_strs)
+        ste_dct = {"b": blyr_str}
         ich = automol.inchi.standard_form(ich, ste_dct=ste_dct)
 
     return ich
 
 
 def chi(gra, stereo=True):
-    """ Generate a ChI string from a molecular graph.
+    """Generate a ChI string from a molecular graph.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
-        :returns: ChI string
-        :rtype: str
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
+    :returns: ChI string
+    :rtype: str
     """
     ret = inchi(gra, stereo=stereo)
     if inchi_is_bad(gra, ret):
@@ -329,46 +324,54 @@ def chi(gra, stereo=True):
 
 
 def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
-    """ Generate an MOLFile from a molecular graph.
-        If coordinates are passed in, they are used to determine stereo.
+    """Generate an MOLFile from a molecular graph.
+    If coordinates are passed in, they are used to determine stereo.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param geo_idx_dct:
-        :type geo_idx_dct: dict[:]
-        :returns: the MOLFile string, followed by a mapping from MOLFile atoms
-            to atoms in the graph
-        :rtype: (str, dict)
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct:
+    :type geo_idx_dct: dict[:]
+    :returns: the MOLFile string, followed by a mapping from MOLFile atoms
+        to atoms in the graph
+    :rtype: (str, dict)
     """
     gra = without_dummy_atoms(gra)
     gra = kekule(gra)
     atm_keys = sorted(atom_keys(gra))
     bnd_keys = list(bond_keys(gra))
     atm_syms = dict_.values_by_key(atom_symbols(gra), atm_keys)
-    atm_bnd_vlcs = dict_.values_by_key(
-        atom_bond_counts(gra), atm_keys)
-    atm_rad_vlcs = dict_.values_by_key(
-        atom_unpaired_electrons(gra), atm_keys)
+    atm_bnd_vlcs = dict_.values_by_key(atom_bond_counts(gra), atm_keys)
+    atm_rad_vlcs = dict_.values_by_key(atom_unpaired_electrons(gra), atm_keys)
     bnd_ords = dict_.values_by_key(bond_orders(gra), bnd_keys)
 
     if geo is not None:
         assert geo_idx_dct is not None
         atm_xyzs = automol.geom.base.coordinates(geo)
-        atm_xyzs = [atm_xyzs[geo_idx_dct[atm_key]] if atm_key in geo_idx_dct
-                    else (0., 0., 0.) for atm_key in atm_keys]
+        atm_xyzs = [
+            atm_xyzs[geo_idx_dct[atm_key]]
+            if atm_key in geo_idx_dct
+            else (0.0, 0.0, 0.0)
+            for atm_key in atm_keys
+        ]
     else:
         atm_xyzs = None
 
     mlf, key_map_inv = molfile.from_data(
-        atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs, bnd_ords,
-        atm_xyzs=atm_xyzs)
+        atm_keys,
+        bnd_keys,
+        atm_syms,
+        atm_bnd_vlcs,
+        atm_rad_vlcs,
+        bnd_ords,
+        atm_xyzs=atm_xyzs,
+    )
     return mlf, key_map_inv
 
 
 def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
-    """ Convert a molecular graph to an RDKit molecule.
+    """Convert a molecular graph to an RDKit molecule.
 
     This is mainly useful for quick visualization with IPython, which can
     be done as follows:
@@ -387,21 +390,19 @@ def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
     :returns: the RDKit molecule
     """
     if stereo and (label or label_dct is not None):
-        raise NotImplementedError(
-            "Stereo with display labels not implemented.")
+        raise NotImplementedError("Stereo with display labels not implemented.")
 
     rdkit_.turn_3d_visualization_off()
     if stereo:
         rdm = rdkit_.from_smiles(smiles(gra, stereo=True, res_stereo=False))
     else:
-        rdm = rdkit_.from_graph(
-            gra, stereo=False, label=label, label_dct=label_dct)
+        rdm = rdkit_.from_graph(gra, stereo=False, label=label, label_dct=label_dct)
 
     return rdm
 
 
 def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
-    """ Convert reactant and product graphs to an RDKit reaction object.
+    """Convert reactant and product graphs to an RDKit reaction object.
 
     This is mainly useful for quick visualization with IPython, which can be
     done as follows:
@@ -418,16 +419,18 @@ def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
         :returns: the RDKit reaction
     """
     rdkit_.turn_3d_visualization_off()
-    rsmis = [smiles(g, stereo=stereo, res_stereo=res_stereo,
-                    exp_singles=True) for g in rgras]
-    psmis = [smiles(g, stereo=stereo, res_stereo=res_stereo,
-                    exp_singles=True) for g in pgras]
+    rsmis = [
+        smiles(g, stereo=stereo, res_stereo=res_stereo, exp_singles=True) for g in rgras
+    ]
+    psmis = [
+        smiles(g, stereo=stereo, res_stereo=res_stereo, exp_singles=True) for g in pgras
+    ]
     rxn_smi = automol.smiles.base.reaction(rsmis, psmis)
     return rdkit_.from_smarts(rxn_smi)
 
 
 def display(gra, stereo=True, label=False, label_dct=None):
-    """ Display graph to IPython using the RDKit visualizer
+    """Display graph to IPython using the RDKit visualizer
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -441,16 +444,17 @@ def display(gra, stereo=True, label=False, label_dct=None):
     """
     rdkit_.turn_3d_visualization_off()
     IPython.display.display(
-        rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct))
+        rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
+    )
 
 
 def display_reaction(rgras, pgras, stereo=True):
-    """ Display reaction to IPython using the RDKit visualizer
+    """Display reaction to IPython using the RDKit visualizer
 
-        :param rgras: reactant graphs
-        :param pgras: product graphs
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
+    :param rgras: reactant graphs
+    :param pgras: product graphs
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
     """
     rdkit_.turn_3d_visualization_off()
     return IPython.display.display(rdkit_reaction(rgras, pgras, stereo=stereo))
@@ -475,27 +479,30 @@ def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=150):
     """
     rdm = rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
     svg_text = rdkit_.to_svg_text(rdm)
-    widget = ipywidgets.Image(value=svg_text, format="svg+xml", width=image_size, height=image_size)
+    widget = ipywidgets.Image(
+        value=svg_text, format="svg+xml", width=image_size, height=image_size
+    )
     return widget
 
 
 # # helpers
 def _parse_sort_order_from_aux_info(aux_info):
-    ptt = app.escape('/N:') + app.capturing(
-        app.series(app.UNSIGNED_INTEGER, app.one_of_these(',;')))
-    num_strs = apf.first_capture(ptt, aux_info).split(';')
-    nums_lst = ap_cast(tuple(s.split(',') for s in num_strs))
+    ptt = app.escape("/N:") + app.capturing(
+        app.series(app.UNSIGNED_INTEGER, app.one_of_these(",;"))
+    )
+    num_strs = apf.first_capture(ptt, aux_info).split(";")
+    nums_lst = ap_cast(tuple(s.split(",") for s in num_strs))
     return nums_lst
 
 
 def _compare(gra1, gra2):
-    """ Compare the backbone structure of two moleculare graphs.
+    """Compare the backbone structure of two moleculare graphs.
 
-        :param gra1: molecular graph 1
-        :type gra1: automol graph data structure
-        :param gra2: molecular graph 2
-        :type gra2: automol graph data structure
-        :rtype: bool
+    :param gra1: molecular graph 1
+    :type gra1: automol graph data structure
+    :param gra2: molecular graph 2
+    :type gra2: automol graph data structure
+    :rtype: bool
     """
 
     gra1 = without_dummy_atoms(gra1)
@@ -505,22 +512,22 @@ def _compare(gra1, gra2):
 
 
 def _compare_smiles(smi1, smi2):
-    """ Check if two SMILES strings are similar.
+    """Check if two SMILES strings are similar.
 
-        :param smi1: SMILES string 1
-        :type smi1: str
-        :param smi2: SMILES string 2
-        :type smi2: str
-        :rtype: bool
+    :param smi1: SMILES string 1
+    :type smi1: str
+    :param smi2: SMILES string 2
+    :type smi2: str
+    :rtype: bool
     """
     return _canonicalize_smiles(smi1) == _canonicalize_smiles(smi2)
 
 
 def _canonicalize_smiles(smi):
-    """ Convert a SMILES string into its canonical form.
+    """Convert a SMILES string into its canonical form.
 
-        :param smi: SMILES string
-        :type smi: str
-        :rtype: str
+    :param smi: SMILES string
+    :type smi: str
+    :rtype: str
     """
     return rdkit_.to_smiles(rdkit_.from_smiles(smi))

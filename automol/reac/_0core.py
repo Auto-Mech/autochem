@@ -208,6 +208,8 @@ def mapping(rxn: Reaction, inp, out) -> dict:
     :returns: A dictionary mapping `inp` keys into `out` keys
     :rtype: dict
     """
+    rxn = without_dummy_atoms(rxn)
+
     keys = sorted(automol.graph.atom_keys(rxn.ts_graph))
     rct_keys = list(itertools.chain(*rxn.reactants_keys))
     prd_keys = list(itertools.chain(*rxn.products_keys))
