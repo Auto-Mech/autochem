@@ -2,9 +2,21 @@
 """
 # base reaction class
 from automol.reac._0core import Reaction
+# # constructors
 from automol.reac._0core import from_data
 from automol.reac._0core import from_string
 from automol.reac._0core import string
+# # getters
+from automol.reac._0core import ts_graph
+from automol.reac._0core import reactants_keys
+from automol.reac._0core import products_keys
+from automol.reac._0core import class_
+# # setters
+from automol.reac._0core import set_ts_graph
+from automol.reac._0core import set_reactants_keys
+from automol.reac._0core import set_products_keys
+from automol.reac._0core import set_reaction_class
+# # others
 from automol.reac._0core import reverse
 from automol.reac._0core import reaction_mapping
 from automol.reac._0core import sort_order
@@ -21,7 +33,6 @@ from automol.reac._0core import insert_dummy_atoms
 from automol.reac._0core import without_dummy_atoms
 from automol.reac._0core import relabel_for_zmatrix
 from automol.reac._0core import relabel_for_geometry
-from automol.reac._0core import reaction_class
 from automol.reac._0core import is_radical_radical
 from automol.reac._0core import unique
 # stereo-specific reactions
@@ -29,11 +40,6 @@ from automol.reac._2stereo import expand_stereo
 from automol.reac._2stereo import expand_stereo_for_reaction
 from automol.reac._2stereo import from_old_string
 from automol.reac._2stereo import reflect
-# rotational bonds & torsions
-from automol.reac._6rot import linear_atom_keys
-from automol.reac._6rot import rotational_bond_keys
-from automol.reac._6rot import rotational_groups
-from automol.reac._6rot import rotational_symmetry_number
 # finders
 from automol.reac._3find import trivial
 from automol.reac._3find import hydrogen_migrations
@@ -52,6 +58,23 @@ from automol.reac._4geom import ts_geometry
 # TS zmatrices
 from automol.reac._5zmat import ts_zmatrix
 from automol.reac._5zmat import zmatrix_coordinate_names
+# rotational bonds & torsions
+from automol.reac._6rot import linear_atom_keys
+from automol.reac._6rot import rotational_bond_keys
+from automol.reac._6rot import rotational_groups
+from automol.reac._6rot import rotational_symmetry_number
+# conversions
+from automol.reac._7conv import amchi
+from automol.reac._7conv import inchi
+from automol.reac._7conv import chi
+from automol.reac._7conv import smiles
+from automol.reac._7conv import rdkit_reaction
+from automol.reac._7conv import display
+from automol.reac._7conv import is_canonical_enantiomer
+from automol.reac._7conv import canonical_enantiomer
+from automol.reac._7conv import with_structures_from_chi
+from automol.reac._7conv import with_structures_from_smiles
+from automol.reac._7conv import with_structures_from_geometry
 # scan coordinates
 from automol.reac._scan import build_scan_info
 from automol.reac._scan import scan_coordinate
@@ -70,26 +93,26 @@ from automol.reac._pst import pst_cn
 from automol.reac import tunnel
 # comp functions
 from automol.reac._comp import similar_saddle_point_structure
-# conversions
-from automol.reac._7conv import amchi
-from automol.reac._7conv import inchi
-from automol.reac._7conv import chi
-from automol.reac._7conv import smiles
-from automol.reac._7conv import rdkit_reaction
-from automol.reac._7conv import display
-from automol.reac._7conv import is_canonical_enantiomer
-from automol.reac._7conv import canonical_enantiomer
-from automol.reac._7conv import with_structures_from_chi
-from automol.reac._7conv import with_structures_from_smiles
-from automol.reac._7conv import with_structures_from_geometry
 
 
 __all__ = [
     # base reaction class
     'Reaction',
+    # # constructors
     'from_data',
     'from_string',
     'string',
+    # # getters
+    'ts_graph',
+    'reactants_keys',
+    'products_keys',
+    'class_',
+    # # setters
+    'set_ts_graph',
+    'set_reactants_keys',
+    'set_products_keys',
+    'set_reaction_class',
+    # # others
     'reverse',
     'reaction_mapping',
     'sort_order',
@@ -106,9 +129,13 @@ __all__ = [
     'without_dummy_atoms',
     'relabel_for_zmatrix',
     'relabel_for_geometry',
-    'reaction_class',
     'is_radical_radical',
     'unique',
+    # stereo-specific reactions
+    'expand_stereo',
+    'expand_stereo_for_reaction',
+    'from_old_string',
+    'reflect',
     # finders
     'trivial',
     'hydrogen_migrations',
@@ -127,20 +154,27 @@ __all__ = [
     # TS zmatrices
     'ts_zmatrix',
     'zmatrix_coordinate_names',
-    # scan coordinates
-    'build_scan_info',
-    'scan_coordinate',
-    'constraint_coordinates',
     # rotational bonds & torsions
     'linear_atom_keys',
     'rotational_bond_keys',
     'rotational_groups',
     'rotational_symmetry_number',
-    # stereo-specific reactions
-    'expand_stereo',
-    'expand_stereo_for_reaction',
-    'from_old_string',
-    'reflect',
+    # conversions
+    'amchi',
+    'inchi',
+    'chi',
+    'smiles',
+    'rdkit_reaction',
+    'display',
+    'is_canonical_enantiomer',
+    'canonical_enantiomer',
+    'with_structures_from_chi',
+    'with_structures_from_smiles',
+    'with_structures_from_geometry',
+    # scan coordinates
+    'build_scan_info',
+    'scan_coordinate',
+    'constraint_coordinates',
     # reaction products
     'enumerate_reactions',
     # species instability transformations
@@ -155,16 +189,4 @@ __all__ = [
     'tunnel',
     # comp functions
     'similar_saddle_point_structure',
-    # type conversions
-    'inchi',
-    'amchi',
-    'chi',
-    'smiles',
-    'rdkit_reaction',
-    'display',
-    'is_canonical_enantiomer',
-    'canonical_enantiomer',
-    'with_structures_from_chi',
-    'with_structures_from_smiles',
-    'with_structures_from_geometry',
 ]

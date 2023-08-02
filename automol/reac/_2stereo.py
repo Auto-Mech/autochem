@@ -1,6 +1,5 @@
 """ stereo functionality for reaction objects
 """
-import copy
 from typing import List
 
 import yaml
@@ -11,6 +10,8 @@ import automol.graph
 from automol.reac._0core import (
     Reaction,
     from_forward_reverse,
+    ts_graph,
+    set_ts_graph,
     mapping,
     without_stereo,
 )
@@ -29,17 +30,17 @@ def expand_stereo(rxn: Reaction, enant=True) -> List[Reaction]:
     :returns: a sequence of reaction objects with stereo assignments
     :rtype: List[Reaction]
     """
-    tsg = automol.graph.without_stereo(rxn.ts_graph)
+    tsg = automol.graph.without_stereo(ts_graph(rxn))
     tsg0 = automol.graph.without_dummy_atoms(tsg)
 
     srxns = []
     for stsg0 in automol.graph.expand_stereo(tsg0, enant=enant):
-        srxn = copy.deepcopy(rxn)
-
         # To keep both sets of dummy atoms, copy the stereo parities over
-        srxn.ts_graph = automol.graph.set_stereo_parities(
+        stsg = automol.graph.set_stereo_parities(
             tsg, automol.graph.stereo_parities(stsg0)
         )
+        srxn = set_ts_graph(rxn, stsg)
+
         srxns.append(srxn)
 
     srxns = tuple(srxns)
@@ -69,13 +70,12 @@ def expand_stereo_for_reaction(rxn: Reaction, rct_gras, prd_gras):
     pgra = automol.graph.relabel(prds_gra, mapping(rxn, "P", "T"))
 
     # 2. Expand all TSs
-    stsgs = automol.graph.ts.expand_stereo_for_reaction(rxn.ts_graph, rgra, pgra)
+    stsgs = automol.graph.ts.expand_stereo_for_reaction(ts_graph(rxn), rgra, pgra)
 
     # 3. Copy them into reaction objects
     srxns = []
     for stsg in stsgs:
-        srxn = copy.deepcopy(rxn)
-        srxn.ts_graph = stsg
+        srxn = set_ts_graph(rxn, stsg)
         srxns.append(srxn)
 
     return tuple(srxns)
@@ -142,6 +142,6 @@ def reflect(srxn: Reaction):
     :type srxn: Reaction
     :returns: a reflected reaction object
     """
-    srxn = copy.deepcopy(srxn)
-    srxn.ts_graph = automol.graph.reflect(srxn.ts_graph)
+    stsg = ts_graph(srxn)
+    srxn = set_ts_graph(srxn, automol.raph.reflect(stsg))
     return srxn
