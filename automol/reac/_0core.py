@@ -10,8 +10,10 @@ import copy
 import dataclasses
 import itertools
 from typing import List, Tuple
-import yaml
+
 import numpy
+import yaml
+
 import automol.geom.ts
 import automol.graph
 from automol import par
@@ -24,21 +26,19 @@ class Reaction:
     the reactants and products. Also stores and allows handling of structural
     information in Cartesian geometry or z-matrix formats.
 
-    :param ts_graph: The transition state graph
+    :param ts_graph: The TS graph
     :type ts_graph: automol graph data structure
-    :param reactants_keys: Keys to the atoms of each reactant in `ts_graph`, in
-        the order they willappear in the reactant structures
+    :param reactants_keys: Keys to the atoms of each reactant in `ts_graph`
     :type reactants_keys: tuple[tuple[int]]
-    :param reactants_keys: Keys to the atoms of each product in `ts_graph`, in
-        the order they willappear in the reactant structures
+    :param reactants_keys: Keys to the atoms of each product in `ts_graph`
     :type products_keys: tuple[tuple[int]]
     :param class_: The reaction class
     :type class_: str
-    :param ts_structure: The transition state structure
+    :param ts_structure: The TS stucture, with keys matching the TS graph
     :type ts_structure: automol geom or zmat data structure
-    :param reactant_structures: The reactant structures
+    :param reactant_structures: The reactant stuctures, with keys matching reactants keys
     :type reactant_structures: List[automol geom or zmat data structure]
-    :param product_structures: The product structures
+    :param product_structures: The product stuctures, with keys matching products keys
     :type product_structures: List[automol geom or zmat data structure]
     :param structure_type: The structural information type ('zmat' or 'geom')
     :type structure_type: str
@@ -49,8 +49,8 @@ class Reaction:
     products_keys: tuple
     class_: str
     ts_structure: tuple = None
-    reactants_structures: tuple = None
-    products_structures: tuple = None
+    reactant_structures: tuple = None
+    product_structures: tuple = None
     structure_type: str = None
 
     def __repr__(self):
@@ -171,6 +171,58 @@ def class_(rxn: Reaction) -> str:
     return rxn.class_
 
 
+def ts_structure(rxn: Reaction):
+    """Get the TS structure
+
+    Returns `None` if none has been set
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: The TS stucture, with keys matching the TS graph
+    :rtype: automol geom or zmat data structure
+    """
+    return rxn.ts_structure
+
+
+def reactant_structures(rxn: Reaction):
+    """Get the reactant structures
+
+    Returns `None` if none have been set
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: The reactant stuctures, with keys matching reactants keys
+    :rtype: List[automol geom or zmat data structure]
+    """
+    return rxn.reactant_structures
+
+
+def product_structures(rxn: Reaction):
+    """Get the product structures
+
+    Returns `None` if none have been set
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: The product stuctures, with keys matching products keys
+    :rtype: List[automol geom or zmat data structure]
+    """
+    return rxn.product_structures
+
+
+def structure_type(rxn: Reaction) -> str:
+    """Get the type of the TS, reactant, and product structures (geom or zmat)
+
+    Returns `None` if none have been set
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: The structural information type ('zmat' or 'geom')
+    :rtype: str
+    """
+    return rxn.structure_type
+
+
 # # setters
 def set_ts_graph(rxn: Reaction, tsg) -> Reaction:
     """Set the TS graph of the reaction
@@ -229,6 +281,66 @@ def set_reaction_class(rxn: Reaction, cla: str) -> Reaction:
     """
     rxn = copy.deepcopy(rxn)
     rxn.class_ = cla
+    return rxn
+
+
+def set_ts_structure(rxn: Reaction, ts_struc) -> Reaction:
+    """Set the TS structure
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param ts_struc: The TS stuctures, with keys matching the TS graph
+    :type ts_struc: automol geom or zmat data structure
+    :returns: A new reaction object
+    :rtype: Reaction
+    """
+    rxn = copy.deepcopy(rxn)
+    rxn.ts_structure = ts_struc
+    return rxn
+
+
+def set_reactant_structures(rxn: Reaction, rct_strucs) -> Reaction:
+    """Set the reactant structures
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param rct_strucs: The reactant stuctures, with keys matching reactants keys
+    :type rct_strucs: List[automol geom or zmat data structure]
+    :returns: A new reaction object
+    :rtype: Reaction
+    """
+    rxn = copy.deepcopy(rxn)
+    rxn.reactant_structures = rct_strucs
+    return rxn
+
+
+def set_product_structures(rxn: Reaction, prd_strucs) -> Reaction:
+    """Set the product structures
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param prd_strucs: The product stuctures, with keys matching products keys
+    :type prd_strucs: List[automol geom or zmat data structure]
+    :returns: A new reaction object
+    :rtype: Reaction
+    """
+    rxn = copy.deepcopy(rxn)
+    rxn.product_structures = prd_strucs
+    return rxn
+
+
+def set_structure_type(rxn: Reaction, struc_typ: str) -> Reaction:
+    """Set the type of the TS, reactant, and product structures (geom or zmat)
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param struc_typ: The structural information type ('zmat' or 'geom')
+    :param struc_typ: str
+    :returns: A new reaction object
+    :rtype: Reaction
+    """
+    rxn = copy.deepcopy(rxn)
+    rxn.structure_type = struc_typ
     return rxn
 
 
