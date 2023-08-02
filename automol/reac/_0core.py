@@ -62,7 +62,9 @@ def from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys) -> Reaction:
     :rtype: Reaction
     """
     # Determine the reaction mapping
-    rmap_dct = automol.graph.isomorphism(ts.reverse(rtsg), ftsg, dummy=False)
+    rmap_dct = automol.graph.isomorphism(
+        ts.reverse(rtsg), ftsg, dummy=False, stereo=False
+    )
     rcts_keys = list(map(sorted, rcts_keys))
     prds_keys = list(map(sorted, prds_keys))
 

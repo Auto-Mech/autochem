@@ -30,10 +30,10 @@ from automol.reac._2stereo import expand_stereo_for_reaction
 from automol.reac._2stereo import from_old_string
 from automol.reac._2stereo import reflect
 # rotational bonds & torsions
-from automol.reac._4rot import linear_atom_keys
-from automol.reac._4rot import rotational_bond_keys
-from automol.reac._4rot import rotational_groups
-from automol.reac._4rot import rotational_symmetry_number
+from automol.reac._6rot import linear_atom_keys
+from automol.reac._6rot import rotational_bond_keys
+from automol.reac._6rot import rotational_groups
+from automol.reac._6rot import rotational_symmetry_number
 # finders
 from automol.reac._3find import trivial
 from automol.reac._3find import hydrogen_migrations
@@ -48,10 +48,10 @@ from automol.reac._3find import find
 from automol.reac._3find import find_from_chi
 from automol.reac._3find import intersystem_crossing
 # TS geometries
-from automol.reac._5geom import ts_geometry
+from automol.reac._4geom import ts_geometry
 # TS zmatrices
-from automol.reac._6zmat import ts_zmatrix
-from automol.reac._6zmat import zmatrix_coordinate_names
+from automol.reac._5zmat import ts_zmatrix
+from automol.reac._5zmat import zmatrix_coordinate_names
 # scan coordinates
 from automol.reac._scan import build_scan_info
 from automol.reac._scan import scan_coordinate

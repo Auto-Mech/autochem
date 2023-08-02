@@ -52,6 +52,7 @@ from automol.reac._0core import reverse
 from automol.reac._0core import unique
 from automol.reac._1util import assert_is_valid_reagent_graph_list
 from automol.reac._1util import sort_reagents
+from automol.reac._2stereo import expand_stereo_for_reaction
 
 
 def trivial(rct_gras, prd_gras):
@@ -749,12 +750,11 @@ def find(rct_gras, prd_gras, stereo=False):
     :returns: a list of Reaction objects
     :rtype: tuple[Reaction]
     """
-    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
-    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+    rct_gras0, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+    prd_gras0, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
-    if not stereo:
-        rct_gras = list(map(automol.graph.without_stereo, rct_gras))
-        prd_gras = list(map(automol.graph.without_stereo, prd_gras))
+    rct_gras = list(map(automol.graph.without_stereo, rct_gras0))
+    prd_gras = list(map(automol.graph.without_stereo, prd_gras0))
 
     assert_is_valid_reagent_graph_list(rct_gras)
     assert_is_valid_reagent_graph_list(prd_gras)
@@ -788,7 +788,12 @@ def find(rct_gras, prd_gras, stereo=False):
     for finder_ in finders_:
         rxns = finder_(rct_gras, prd_gras)
         rxns = unique(rxns)
-        all_rxns.extend(rxns)
+        for rxn in rxns:
+            if not stereo:
+                all_rxns.append(rxn)
+            else:
+                srxns = expand_stereo_for_reaction(rxn, rct_gras0, prd_gras0)
+                all_rxns.extend(srxns)
 
     return tuple(all_rxns)
 
