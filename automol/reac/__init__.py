@@ -11,11 +11,19 @@ from automol.reac._0core import ts_graph
 from automol.reac._0core import reactants_keys
 from automol.reac._0core import products_keys
 from automol.reac._0core import class_
+from automol.reac._0core import ts_structure
+from automol.reac._0core import reactant_structures
+from automol.reac._0core import product_structures
+from automol.reac._0core import structure_type
 # # setters
 from automol.reac._0core import set_ts_graph
 from automol.reac._0core import set_reactants_keys
 from automol.reac._0core import set_products_keys
 from automol.reac._0core import set_reaction_class
+from automol.reac._0core import set_ts_structure
+from automol.reac._0core import set_reactant_structures
+from automol.reac._0core import set_product_structures
+from automol.reac._0core import set_structure_type
 # # others
 from automol.reac._0core import reverse
 from automol.reac._0core import reaction_mapping
@@ -107,11 +115,19 @@ __all__ = [
     'reactants_keys',
     'products_keys',
     'class_',
+    'ts_structure',
+    'reactant_structures',
+    'product_structures',
+    'structure_type',
     # # setters
     'set_ts_graph',
     'set_reactants_keys',
     'set_products_keys',
     'set_reaction_class',
+    'set_ts_structure',
+    'set_reactant_structures',
+    'set_product_structures',
+    'set_structure_type',
     # # others
     'reverse',
     'reaction_mapping',
