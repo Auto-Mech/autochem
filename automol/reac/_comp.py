@@ -7,6 +7,8 @@ from automol.geom import symbols
 from automol.geom import distance
 from automol.geom import central_angle
 from automol.util import dict_
+from automol.reac._0core import ts_graph
+from automol.reac._0core import class_
 from automol.reac._0core import relabel_for_geometry
 from automol.reac._0core import reaction_mapping
 from automol.graph import without_stereo
@@ -28,8 +30,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     cnf_geo = automol.zmat.geometry(zma)
     grxn = relabel_for_geometry(zrxn)
 
-    frm_bnd_keys = automol.graph.ts.forming_bond_keys(grxn.ts_graph)
-    brk_bnd_keys = automol.graph.ts.breaking_bond_keys(grxn.ts_graph)
+    frm_bnd_keys = automol.graph.ts.forming_bond_keys(ts_graph(grxn))
+    brk_bnd_keys = automol.graph.ts.breaking_bond_keys(ts_graph(grxn))
 
     cnf_dist_lst = []
     ref_dist_lst = []
@@ -68,14 +70,14 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     # Set the maximum allowed displacement for a TS conformer
     max_disp = 0.6 * sens
     # better to check for bond-form length in bond scission with ring forming
-    if 'addition' in grxn.class_:
+    if 'addition' in class_(grxn):
         max_disp = 0.8 * sens
-    if 'abstraction' in grxn.class_:
+    if 'abstraction' in class_(grxn):
         # this was 1.4 - SJK reduced it to work for some OH abstractions
         max_disp = 1.0 * sens
 
     # Check forming bond angle similar to ini config
-    if 'elimination' not in grxn.class_:
+    if 'elimination' not in class_(grxn):
         for ref_angle, cnf_angle in zip(ref_ang_lst, cnf_ang_lst):
             if abs(cnf_angle - ref_angle) > .44 * sens:
                 print(
@@ -86,7 +88,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     symbs = symbols(cnf_geo)
     lst_info = zip(ref_dist_lst, cnf_dist_lst, bnd_key_lst)
     for ref_dist, cnf_dist, bnd_key in lst_info:
-        if 'add' in grxn.class_ or 'abst' in grxn.class_:
+        if 'add' in class_(grxn) or 'abst' in class_(grxn):
             bnd_key1, bnd_key2 = min(list(bnd_key)), max(list(bnd_key))
             symb1 = symbs[bnd_key1]
             symb2 = symbs[bnd_key2]
@@ -137,7 +139,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
 def _check_stereo_parities(zma, ref_zma, zrxn):
     """make sure stereo is consistent with ref_zma
     """
-    gra = without_stereo(ts_reagents_graph_without_stereo(zrxn.ts_graph))
+    gra = without_stereo(ts_reagents_graph_without_stereo(ts_graph(zrxn)))
     ste_keys = stereogenic_bond_keys(gra)
     idxs = reaction_mapping(zrxn, rev=False)
     geo = automol.zmat.geometry(zma, dummy=True)

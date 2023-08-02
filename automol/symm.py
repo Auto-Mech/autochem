@@ -15,6 +15,7 @@ from automol.geom._conv import graph
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import are_torsions_same2
 from automol.graph._conv import inchi
+import automol.reac
 
 
 # external
@@ -43,8 +44,10 @@ def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
     """
 
     if grxn is not None:
-        frm_bnd_keys = automol.graph.ts.forming_bond_keys(grxn.ts_graph)
-        brk_bnd_keys = automol.graph.ts.breaking_bond_keys(grxn.ts_graph)
+        frm_bnd_keys = automol.graph.ts.forming_bond_keys(
+            automol.reac.ts_graph(grxn))
+        brk_bnd_keys = automol.graph.ts.breaking_bond_keys(
+            automol.reac.ts_graph(grxn))
         tors_names = rotor_names(rotors, flat=True)
         tors_idxs = [automol.zmat.base.coord_idxs(zma, name)
                      for name in tors_names]
@@ -209,7 +212,7 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
     int_symm = 1.
     chiral_center = 0
     if zrxn is not None:
-        gra = zrxn.ts_graph
+        gra = automol.reac.ts_graph(zrxn)
     else:
         gra = graph(geo)
     ethane_gra = ({0: ('C', 3, None), 1: ('C', 3, None)},

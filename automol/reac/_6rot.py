@@ -6,6 +6,8 @@ import automol.zmat
 from automol.reac._1util import hydrogen_abstraction_atom_keys
 from automol.reac._1util import substitution_atom_keys
 from automol.reac._0core import Reaction
+from automol.reac._0core import ts_graph
+from automol.reac._0core import class_
 
 
 # Bimolecular reactions
@@ -20,7 +22,7 @@ def hydrogen_abstraction_linear_atom_keys(rxn: Reaction, zma=None):
     :returns: the keys of the linear atoms in the graph
     :rtype: tuple[int]
     """
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
     if zma is not None:
         lin_keys = list(automol.zmat.linear_atom_keys(zma))
     else:
@@ -44,7 +46,7 @@ def substitution_linear_atom_keys(rxn: Reaction, zma=None):
     :returns: the keys of the linear atoms in the graph
     :rtype: tuple[int]
     """
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
     if zma is not None:
         lin_keys = list(automol.zmat.linear_atom_keys(zma))
     else:
@@ -69,7 +71,7 @@ def linear_atom_keys(rxn: Reaction, zma=None):
     """
 
     def _default(rxn, zma=None):
-        tsg = rxn.ts_graph
+        tsg = ts_graph(rxn)
         if zma is not None:
             lin_keys = automol.zmat.linear_atom_keys(zma)
         else:
@@ -90,7 +92,7 @@ def linear_atom_keys(rxn: Reaction, zma=None):
         ReactionClass.Typ.SUBSTITUTION: substitution_linear_atom_keys,
     }
 
-    fun_ = function_dct[rxn.class_]
+    fun_ = function_dct[class_(rxn)]
     ret = fun_(rxn, zma=zma)
     return ret
 
@@ -106,7 +108,7 @@ def rotational_bond_keys(rxn: Reaction, zma=None, with_h_rotors=True,
     :returns: the keys of the rotational bonds in the graph
     :rtype: tuple[frozenset[int]]
     """
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
     lin_keys = linear_atom_keys(rxn, zma=zma)
     bnd_keys = automol.graph.rotational_bond_keys(
         tsg, lin_keys=lin_keys, with_h_rotors=with_h_rotors,
@@ -124,7 +126,7 @@ def rotational_groups(rxn: Reaction, key1, key2, dummy=False):
     :returns: the rotational groups on either side of the axis
     :rtype: (tuple[int], tuple[int])
     """
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
     grps = automol.graph.rotational_groups(tsg, key1, key2, dummy=dummy)
     return grps
 
@@ -140,7 +142,7 @@ def rotational_symmetry_number(rxn: Reaction, key1, key2, zma=None):
     :rtype: int
     """
     lin_keys = linear_atom_keys(rxn, zma=zma)
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
     sym_num = automol.graph.rotational_symmetry_number(tsg, key1, key2,
                                                        lin_keys=lin_keys)
     return sym_num

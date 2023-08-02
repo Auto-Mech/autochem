@@ -610,20 +610,22 @@ def test__hydrogen_bonded_structure():
 
     ich = automol.smiles.chi('CCCC[O]')
     geo = automol.chi.geometry(ich)
-    print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
+    print(automol.geom.hydrogen_bonded_structure(geo, tsg=None))
 
     ich = automol.smiles.chi('CC(=O)CO')
     geo = automol.chi.geometry(ich)
-    print(automol.geom.hydrogen_bonded_structure(geo, grxn=None))
+    print(automol.geom.hydrogen_bonded_structure(geo, tsg=None))
 
     # H-abstraction with OH. (1) Has internal H-Bond, (2) No internal H-Bond
     zrxn = automol.reac.from_old_string(HABS_ZRXN_STR1)
     grxn = automol.reac.relabel_for_geometry(zrxn)
-    print(automol.geom.hydrogen_bonded_structure(HABS_GEO1, grxn=grxn))
+    tsg = automol.reac.ts_graph(grxn)
+    print(automol.geom.hydrogen_bonded_structure(HABS_GEO1, tsg=tsg))
 
     zrxn = automol.reac.from_old_string(HABS_ZRXN_STR2)
     grxn = automol.reac.relabel_for_geometry(zrxn)
-    print(automol.geom.hydrogen_bonded_structure(HABS_GEO2, grxn=grxn))
+    tsg = automol.reac.ts_graph(grxn)
+    print(automol.geom.hydrogen_bonded_structure(HABS_GEO2, tsg=tsg))
 
 
 def test__change_zmatrix_row_values():

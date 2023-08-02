@@ -6,7 +6,7 @@ import automol.graph
 
 
 # Get information for all rings at once
-def all_rings_atoms(zma, zrxn=None):
+def all_rings_atoms(zma, tsg=None):
     """ Get ring atoms.
 
         :param zma: Z-Matrix
@@ -15,11 +15,11 @@ def all_rings_atoms(zma, zrxn=None):
         :type rng_atoms: list
     """
 
-    if zrxn is None:
+    if tsg is None:
         rings_atoms = automol.graph.rings_atom_keys(automol.zmat.graph(zma))
     else:
         rings_atoms = []
-        for ring in automol.graph.ts.forming_rings_bond_keys(zrxn.ts_graph):
+        for ring in automol.graph.ts.forming_rings_bond_keys(tsg):
 
             # Determine number of atoms in the ring
             all_atoms = set()

@@ -11,6 +11,8 @@ import automol.zmat
 from automol.util import dict_
 # from automol.util import numpy_to_float
 from automol.reac._0core import Reaction
+from automol.reac._0core import class_
+from automol.reac._0core import ts_graph
 from automol.reac._1util import hydrogen_migration_atom_keys
 from automol.reac._1util import hydrogen_migration_might_dissociate
 from automol.reac._1util import ring_forming_scission_chain
@@ -48,7 +50,7 @@ def hydrogen_migration_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -112,7 +114,7 @@ def beta_scission_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     scan_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
@@ -147,7 +149,7 @@ def ring_forming_scission_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     scan_name = automol.zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
@@ -204,7 +206,7 @@ def elimination_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
 
     brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
 
@@ -255,7 +257,7 @@ def hydrogen_abstraction_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -320,7 +322,7 @@ def addition_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -426,7 +428,7 @@ def substitution_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
     scan_name = automol.zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -484,7 +486,7 @@ def scan_coordinate(rxn: Reaction, zma):
 
     :param rxn: a hydrogen migration Reaction object
     """
-    return SCAN_COORD_DCT[rxn.class_](rxn, zma)
+    return SCAN_COORD_DCT[class_(rxn)](rxn, zma)
 
 
 CONSTRAINT_COORD_DCT = {
@@ -509,7 +511,7 @@ def constraint_coordinates(rxn: Reaction, zma):
 
     :param rxn: a hydrogen migration Reaction object
     """
-    return CONSTRAINT_COORD_DCT[rxn.class_](rxn, zma)
+    return CONSTRAINT_COORD_DCT[class_(rxn)](rxn, zma)
 
 
 TIGHT_TS_GRID_DCT = {
@@ -533,9 +535,9 @@ def scan_grid(zrxn: Reaction, zma, var=False):
     """
 
     if not var:
-        grid = TIGHT_TS_GRID_DCT[zrxn.class_](zrxn, zma)
+        grid = TIGHT_TS_GRID_DCT[class_(zrxn)](zrxn, zma)
     else:
-        grid = VAR_TS_GRID_DCT[zrxn.class_](zrxn, zma)
+        grid = VAR_TS_GRID_DCT[class_(zrxn)](zrxn, zma)
 
     return grid
 
@@ -564,9 +566,9 @@ def scan_update_guess(zrxn: Reaction, var=False):
     """
 
     if not var:
-        _update = TIGHT_TS_UPDATE_GUESS_DCT[zrxn.class_]
+        _update = TIGHT_TS_UPDATE_GUESS_DCT[class_(zrxn)]
     else:
-        _update = VAR_TS_UPDATE_GUESS_DCT[zrxn.class_]
+        _update = VAR_TS_UPDATE_GUESS_DCT[class_(zrxn)]
 
     return _update
 

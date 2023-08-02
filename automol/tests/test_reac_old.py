@@ -301,7 +301,7 @@ def test__reac__2ts_hydrogen_migration():
 
     # Deal with rxn object 1
     rxn1, ts_geo1, _, _ = rxn_objs[0]
-    assert rxn1.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
+    assert automol.reac.class_(rxn1) == ReactionClass.Typ.HYDROGEN_MIGRATION
     zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
     zrxn1 = automol.reac.relabel_for_zmatrix(rxn1, zma_keys1, dummy_key_dct1)
     print(zrxn1)
@@ -318,7 +318,7 @@ def test__reac__2ts_hydrogen_migration():
 
     # Deal with rxn object 2
     rxn2, ts_geo2, _, _ = rxn_objs[1]
-    assert rxn2.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
+    assert automol.reac.class_(rxn2) == ReactionClass.Typ.HYDROGEN_MIGRATION
     zma2, zma_keys2, dummy_key_dct2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
     zrxn2 = automol.reac.relabel_for_zmatrix(rxn2, zma_keys2, dummy_key_dct2)
 
@@ -825,12 +825,6 @@ def _check_reaction(rxn_obj, ref_class, var,
     # print(automol.zmat.string(zma))
     # print(zrxn)
 
-    # frm_bnd_keys = ts.forming_bond_keys(zrxn.ts_graph)
-    # brk_bnd_keys = ts.breaking_bond_keys(zrxn.ts_graph)
-    # print('keys')
-    # print(frm_bnd_keys)
-    # print(brk_bnd_keys)
-
     # Get scan information
     scan_info = automol.reac.build_scan_info(zrxn, zma, var=var)
     scan_names, constraint_dct, scan_grid, update_guess = scan_info
@@ -857,7 +851,7 @@ def _check_reaction(rxn_obj, ref_class, var,
     # print('gaxes', axes)
 
     # Check that the information is correct, requested
-    assert rxn.class_ == ref_class
+    assert automol.reac.class_(rxn) == ref_class
     if ref_scan_names is not None:
         assert scan_names == ref_scan_names
     if ref_constraint_dct is not None:
@@ -867,7 +861,7 @@ def _check_reaction(rxn_obj, ref_class, var,
         print(ref_scan_grid)
         print(scan_grid)
         for rgrd, grd in zip(ref_scan_grid, scan_grid):
-            if rxn.class_ != 'elimination':
+            if automol.reac.class_(rxn) != 'elimination':
                 assert numpy.allclose(rgrd, grd)
             else:
                 for sub_rgrd, sub_grd in zip(rgrd, grd):
@@ -891,7 +885,7 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
 
     # Enumerate all possible reactions, but select the insertions
     rxns = [r for r in automol.reac.enumerate_reactions(rct_gras)
-            if r.class_ == rxn_class_typ]
+            if automol.reac.class_(r) == rxn_class_typ]
     for rxn in rxns:
         print(rxn)
     print('PRODUCTS FOR {}'.format(rxn_class_typ))
@@ -913,8 +907,8 @@ def _check_products(rct_gras, rxn_class_typ, num_rxns):
         assert rct_gras_ == rct_gras
         rxns_ = automol.reac.find(rct_gras_, prd_gras_)
         for rxn_ in rxns_:
-            print(rxn_.class_)
-        assert any(r.class_ == rxn_class_typ for r in rxns_)
+            print(automol.reac.class_(rxn_))
+        assert any(automol.reac.class_(r) == rxn_class_typ for r in rxns_)
 
 
 if __name__ == '__main__':

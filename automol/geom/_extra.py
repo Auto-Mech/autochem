@@ -254,7 +254,7 @@ def is_unique(geo, geo_lst, check_dct=None):
 
 def hydrogen_bonded_structure(
         geo, dist_thresh=4.82, angle_thresh=1.92,
-        grxn=None):
+        tsg=None):
     """ Compare bond lengths in structure to determine if there
         is a hydrogen bond
 
@@ -269,20 +269,20 @@ def hydrogen_bonded_structure(
         :rtype: boolean
     """
     hydrogen_bond = hydrogen_bonded_idxs(
-        geo, dist_thresh, angle_thresh, grxn)
+        geo, dist_thresh, angle_thresh, tsg)
     return hydrogen_bond is not None
 
 
 def hydrogen_bonded_idxs(
         geo, dist_thresh=5.3, angle_thresh=1.92,
-        grxn=None):
+        tsg=None):
     """ Compare bond lengths in structure to determine if there
         is a hydrogen bond.
 
         :param geo: geometry object
         :type geo: geo object (tuple of tuples)
-        :param grxn: reaction object (geo indexing)
-        :type grxn: automol.reac.Reaction object
+        :param tsg: A TS graph (geo indexing)
+        :type tsg: automol graph data structure
         :param dist_thresh: cutoff value for hbond length (Bohr)
         :type dist_thresh: float
         :param angle_thresh: cutoff value for hbond angle (Radian)
@@ -293,11 +293,9 @@ def hydrogen_bonded_idxs(
     hydrogen_bond = None
     if count(geo) > 1:
         # Get the forming/breaking bond idxs if possible
-        if grxn is not None:
-            frm_bnd_keys = automol.graph.ts.ts_forming_bond_keys(
-                grxn.ts_graph)
-            brk_bnd_keys = automol.graph.ts.ts_breaking_bond_keys(
-                grxn.ts_graph)
+        if tsg is not None:
+            frm_bnd_keys = automol.graph.ts.ts_forming_bond_keys(tsg)
+            brk_bnd_keys = automol.graph.ts.ts_breaking_bond_keys(tsg)
             rxn_keys = set()
             for key in frm_bnd_keys:
                 rxn_keys = rxn_keys | key

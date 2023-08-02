@@ -7,6 +7,8 @@ from automol.par import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_keys
 from automol.reac._0core import Reaction
+from automol.reac._0core import ts_graph
+from automol.reac._0core import class_
 from automol.reac._0core import reactants_graph
 from automol.reac._0core import products_graph
 from automol.reac._0core import reaction_mapping
@@ -23,15 +25,15 @@ def hydrogen_migration_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.HYDROGEN_MIGRATION
+    assert class_(rxn) == ReactionClass.Typ.HYDROGEN_MIGRATION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.7
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     atm_symbs = automol.graph.atom_symbols(gra)
     h_idx, = frm_bnd_key - brk_bnd_key
     equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
@@ -72,15 +74,15 @@ def beta_scission_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.BETA_SCISSION
+    assert class_(rxn) == ReactionClass.Typ.BETA_SCISSION
     assert has_standard_keys(rxn)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     brk_bnd_dist = 1.5
 
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[brk_bnd_key] = brk_bnd_dist
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, angstrom=True)
 
@@ -107,10 +109,10 @@ def ring_forming_scission_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.RING_FORM_SCISSION
+    assert class_(rxn) == ReactionClass.Typ.RING_FORM_SCISSION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 2.0
     brk_bnd_dist = 1.5
     d1234 = 180.
@@ -125,7 +127,7 @@ def ring_forming_scission_ts_geometry(rxn: Reaction, rct_geos,
     key1, key2, key3, key4 = chain_keys[:4]
     dih_dct = {(key1, key2, key3, key4): (d1234, None)}
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, dih_dct=dih_dct, degree=True, angstrom=True)
 
@@ -151,7 +153,7 @@ def ring_forming_scission_ts_geometry(rxn: Reaction, rct_geos,
     for key1, key2, key3, key4 in mit.windowed(chain_keys, 4):
         pla_dct[(key1, key2, key3, key4)] = (0.0, 0.0)
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, degree=True, angstrom=True)
 
@@ -171,16 +173,16 @@ def elimination_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.ELIMINATION
+    assert class_(rxn) == ReactionClass.Typ.ELIMINATION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.6
-    frm_rng_keys, = ts.forming_rings_atom_keys(rxn.ts_graph)
+    frm_rng_keys, = ts.forming_rings_atom_keys(ts_graph(rxn))
 
     dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     atm_symbs = automol.graph.atom_symbols(gra)
     if [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']:
         h_idx, = [atm_idx for atm_idx in frm_bnd_key
@@ -227,9 +229,9 @@ def hydrogen_abstraction_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.HYDROGEN_ABSTRACTION
+    assert class_(rxn) == ReactionClass.Typ.HYDROGEN_ABSTRACTION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.6
     a123 = 170.
     if hydrogen_abstraction_is_sigma(rxn):
@@ -245,7 +247,7 @@ def hydrogen_abstraction_ts_geometry(rxn: Reaction, rct_geos,
     key2, key3 = sorted(frm_bnd_key)
     ang_dct = {(None, key2, key3): a123, (key2, key3, None): a234}
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, ang_dct=ang_dct, degree=True, angstrom=True)
 
@@ -274,9 +276,9 @@ def addition_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.ADDITION
+    assert class_(rxn) == ReactionClass.Typ.ADDITION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.9
     a123 = 85.
     a234 = 85.
@@ -291,7 +293,7 @@ def addition_ts_geometry(rxn: Reaction, rct_geos,
     ang_dct = {(None, key2, key3): a123, (key2, key3, None): a234}
     dih_dct = {(None, key2, key3, None): d1234}
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, ang_dct=ang_dct, dih_dct=dih_dct, degree=True,
         angstrom=True)
@@ -322,7 +324,7 @@ def insertion_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.INSERTION
+    assert class_(rxn) == ReactionClass.Typ.INSERTION
     assert has_standard_keys(rxn)
 
     # set the formed bond distance based on the number of hydrogens
@@ -332,7 +334,7 @@ def insertion_ts_geometry(rxn: Reaction, rct_geos,
         2: 1.2,
     }
 
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
 
     frm_bnd_key1, frm_bnd_key2 = ts.ts_forming_bond_keys(tsg)
     hcnt1 = automol.graph.atom_count(tsg, symb='H', keys=frm_bnd_key1)
@@ -381,7 +383,7 @@ def substitution_ts_geometry(rxn: Reaction, rct_geos,
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
-    assert rxn.class_ == ReactionClass.Typ.SUBSTITUTION
+    assert class_(rxn) == ReactionClass.Typ.SUBSTITUTION
     assert has_standard_keys(rxn)
 
     # set the formed bond distance based on the number of hydrogens
@@ -391,7 +393,7 @@ def substitution_ts_geometry(rxn: Reaction, rct_geos,
         2: 1.2,
     }
 
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
     a123 = 170.
     a234 = 95.
 
@@ -452,7 +454,7 @@ def ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False,
         ReactionClass.Typ.SUBSTITUTION: substitution_ts_geometry,
     }
 
-    fun_ = function_dct[rxn.class_]
+    fun_ = function_dct[class_(rxn)]
     geo = fun_(rxn, rct_geos, max_dist_err=max_dist_err, log=log)
 
     # make sure geometry still works with stereo of products

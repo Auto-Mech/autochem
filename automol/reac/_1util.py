@@ -6,6 +6,8 @@ import automol.graph
 from automol.graph import ts
 from automol.par import ReactionClass
 from automol.reac._0core import Reaction
+from automol.reac._0core import ts_graph
+from automol.reac._0core import class_
 
 
 def hydrogen_migration_atom_keys(rxn: Reaction):
@@ -18,13 +20,13 @@ def hydrogen_migration_atom_keys(rxn: Reaction):
     a neighbor to the attacking atom along the chain to the donating atom
     :rtype: (int, int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
 
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     path = automol.graph.shortest_path_between_atoms(gra, att_key, don_key)
     ngb_key = automol.graph.atom_neighbor_atom_key(
         gra, att_key, incl_atm_keys=path)
@@ -41,7 +43,7 @@ def hydrogen_migration_might_dissociate(rxn: Reaction, att_key, ngb_key,
     :returns: the dissociation oxygen atom, the dissociation carbon atom
     :rtype: (int, int, int, int)
     """
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     atm_symbs = automol.graph.atom_symbols(gra)
     o_ngb = []
     diss_key = None
@@ -63,8 +65,8 @@ def ring_forming_scission_atom_keys(rxn: Reaction):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
@@ -81,7 +83,7 @@ def ring_forming_scission_chain(rxn: Reaction):
     :rtype: tuple[int]
     """
     att_key, _, don_key = ring_forming_scission_atom_keys(rxn)
-    gra = ts.reactants_graph(rxn.ts_graph)
+    gra = ts.reactants_graph(ts_graph(rxn))
     path = automol.graph.shortest_path_between_atoms(gra, don_key, att_key)
     return tuple(path)
 
@@ -95,8 +97,8 @@ def hydrogen_abstraction_atom_keys(rxn: Reaction):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     hyd_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     don_key, = brk_bnd_key - frm_bnd_key
@@ -110,8 +112,8 @@ def hydrogen_abstraction_is_sigma(rxn: Reaction):
     :type rxn: Reaction
     :rtype: bool
     """
-    assert rxn.class_ == ReactionClass.Typ.HYDROGEN_ABSTRACTION
-    tsg = rxn.ts_graph
+    assert class_(rxn) == ReactionClass.Typ.HYDROGEN_ABSTRACTION
+    tsg = ts_graph(rxn)
     rct_gra = automol.graph.ts.reactants_graph(tsg)
     sig_rad_keys = automol.graph.sigma_radical_atom_keys(rct_gra)
 
@@ -130,8 +132,8 @@ def elimination_breaking_bond_keys(rxn: Reaction):
     :returns: the breaking bond keys
     :rtype: (frozenset[int], frozenset[int])
     """
-    assert rxn.class_ == ReactionClass.Typ.ELIMINATION
-    tsg = rxn.ts_graph
+    assert class_(rxn) == ReactionClass.Typ.ELIMINATION
+    tsg = ts_graph(rxn)
     frm_bnd_key, = ts.ts_forming_bond_keys(tsg)
     brk_bnd_keys = ts.ts_breaking_bond_keys(tsg)
     brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
@@ -171,10 +173,10 @@ def insertion_forming_bond_keys(rxn: Reaction):
     :rtype: (frozenset[int], frozenset[int])
     """
 
-    assert rxn.class_ == ReactionClass.Typ.INSERTION
+    assert class_(rxn) == ReactionClass.Typ.INSERTION
     # Choose the forming bond with the fewest neighbors, to get the terminal
     # atom if there is one.
-    tsg = rxn.ts_graph
+    tsg = ts_graph(rxn)
     # For tricky reasons, we need to sort in descending order here.
     # The reason is that the ordering of bonds here determines the ordering of
     # atoms in the z-matrix, which means this function could otherwise yield
@@ -199,8 +201,8 @@ def substitution_atom_keys(rxn: Reaction):
     :returns: the attacking atom, the transferring atom, the leaving atom
     :rtype: (int, int, int)
     """
-    frm_bnd_key, = ts.ts_forming_bond_keys(rxn.ts_graph)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(rxn.ts_graph)
+    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
     tra_key, = frm_bnd_key & brk_bnd_key
     att_key, = frm_bnd_key - brk_bnd_key
     lea_key, = brk_bnd_key - frm_bnd_key
