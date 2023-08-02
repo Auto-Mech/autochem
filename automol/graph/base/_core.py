@@ -619,12 +619,12 @@ def string(gra, one_indexed=True):
     :returns: A string representation of the molecular graph
     :rtype: str
     """
-    yaml_gra_dct = yaml_dictionary(gra, one_indexed=one_indexed)
+    yaml_gra_dct = yaml_data(gra, one_indexed=one_indexed)
     gra_str = yaml.dump(yaml_gra_dct, default_flow_style=None, sort_keys=False)
     return gra_str
 
 
-def yaml_dictionary(gra, one_indexed=True):
+def yaml_data(gra, one_indexed=True):
     """ Generate a YAML dictionary representation of the graph
 
     :param gra: molecular graph
@@ -675,11 +675,11 @@ def from_string(gra_str, one_indexed=True):
     :rtype: automol graph data structure
     """
     yaml_gra_dct = yaml.load(gra_str, Loader=yaml.FullLoader)
-    gra = from_yaml_dictionary(yaml_gra_dct, one_indexed=one_indexed)
+    gra = from_yaml_data(yaml_gra_dct, one_indexed=one_indexed)
     return gra
 
 
-def from_yaml_dictionary(yaml_gra_dct, one_indexed=True):
+def from_yaml_data(yaml_gra_dct, one_indexed=True):
     """ Generate a graph from a YAML dictionary representation
 
     :param yaml_gra_dct: A YAML-friendly dictionary representation of the graph
@@ -711,7 +711,7 @@ def from_yaml_dictionary(yaml_gra_dct, one_indexed=True):
     return gra
 
 
-def from_old_yaml_dictionary(yaml_gra_dct, one_indexed=True):
+def from_old_yaml_data(yaml_gra_dct, one_indexed=True):
     """ Generate a graph from a YAML dictionary representation
 
     :param yaml_gra_dct: A YAML-friendly dictionary representation of the graph
@@ -787,6 +787,19 @@ def formula(gra):
     fml = util.formula_from_symbols(syms)
 
     return fml
+
+
+def symbols(gra) -> tuple:
+    """Get the atomic symbols for this graph, sorted by atom key
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The symbols as a list
+    :rtype: tuple
+    """
+    keys = sorted(atom_keys(gra))
+    symbs = tuple(dict_.values_by_key(atom_symbols(gra), keys))
+    return symbs
 
 
 # # properties

@@ -41,13 +41,14 @@ from automol.graph.base._core import set_bond_stereo_parities
 from automol.graph.base._core import set_stereo_parities
 # # I/O
 from automol.graph.base._core import string
-from automol.graph.base._core import yaml_dictionary
+from automol.graph.base._core import yaml_data
 from automol.graph.base._core import from_string
-from automol.graph.base._core import from_yaml_dictionary
-from automol.graph.base._core import from_old_yaml_dictionary
+from automol.graph.base._core import from_yaml_data
+from automol.graph.base._core import from_old_yaml_data
 # # conversions
 from automol.graph.base._core import frozen
 from automol.graph.base._core import formula
+from automol.graph.base._core import symbols
 # # properties
 from automol.graph.base._core import atom_count
 from automol.graph.base._core import electron_count
@@ -336,13 +337,14 @@ __all__ = [
     'set_stereo_parities',
     # # I/O
     'string',
-    'yaml_dictionary',
+    'yaml_data',
     'from_string',
-    'from_yaml_dictionary',
-    'from_old_yaml_dictionary',
+    'from_yaml_data',
+    'from_old_yaml_data',
     # # conversions
     'frozen',
     'formula',
+    'symbols',
     # # properties
     'atom_count',
     'electron_count',

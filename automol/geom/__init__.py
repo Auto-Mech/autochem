@@ -31,6 +31,8 @@ from automol.geom.base._core import from_string
 from automol.geom.base._core import from_xyz_string
 from automol.geom.base._core import xyz_string_comment
 from automol.geom.base._core import from_xyz_trajectory_string
+from automol.geom.base._core import yaml_data
+from automol.geom.base._core import from_yaml_data
 # # validation
 from automol.geom.base._core import is_valid
 # # conversions
@@ -155,6 +157,8 @@ __all__ = [
     'from_xyz_string',
     'xyz_string_comment',
     'from_xyz_trajectory_string',
+    'yaml_data',
+    'from_yaml_data',
     # # validation
     'is_valid',
     # # conversions
