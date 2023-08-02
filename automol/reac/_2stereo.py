@@ -104,13 +104,13 @@ def from_old_string(rxn_str, one_indexed=True, stereo=True):
         "atoms": yaml_dct["forward TS atoms"],
         "bonds": yaml_dct["forward TS bonds"],
     }
-    ftsg0 = automol.graph.from_old_yaml_dictionary(ftsg_dct, one_indexed=one_indexed)
+    ftsg0 = automol.graph.from_old_yaml_data(ftsg_dct, one_indexed=one_indexed)
 
     rtsg_dct = {
         "atoms": yaml_dct["backward TS atoms"],
         "bonds": yaml_dct["backward TS bonds"],
     }
-    rtsg0 = automol.graph.from_old_yaml_dictionary(rtsg_dct, one_indexed=one_indexed)
+    rtsg0 = automol.graph.from_old_yaml_data(rtsg_dct, one_indexed=one_indexed)
 
     ftsg = automol.graph.without_stereo(ftsg0)
     rtsg = automol.graph.without_stereo(rtsg0)

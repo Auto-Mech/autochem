@@ -4,11 +4,11 @@
     [X] _0core.py
     [X] _1util.py
     [X] _2stereo.py
-    [ ] _3find.py
-    [ ] _4rot.py
+    [X] _3find.py
     [ ] Implement Reaction object structure addition
-    [ ] _5geom.py
-    [ ] _6zmat.py
+    [ ] _4geom.py
+    [ ] _5zmat.py
+    [ ] _6rot.py
     [ ] _7geom.py
     [ ] Move non-reac realted files in automol/reac/ into automol/misc/
         New structure:

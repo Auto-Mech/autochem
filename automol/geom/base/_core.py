@@ -41,7 +41,7 @@ def from_data(symbs, xyzs, angstrom=False, check=True):
 
     xyzs = (xyzs if not angstrom else
             numpy.multiply(xyzs, phycon.ANG2BOHR))
-    xyzs = [tuple(xyz[:3]) for xyz in xyzs]
+    xyzs = [tuple(map(float, xyz[:3])) for xyz in xyzs]
     geo = tuple(zip(symbs, xyzs))
 
     return geo
@@ -272,6 +272,30 @@ def from_xyz_trajectory_string(geo_str):
         geoms += (from_string('\n'.join(block[2:])),)
 
     return tuple(zip(geoms, comments))
+
+
+def yaml_data(geo) -> list:
+    """A yaml-friendly data format for the geometry
+
+    :param geo: molecular geometry
+    :type geo: automol molecular geometry data structure
+    """
+    geo = round_(geo)
+    symbs = symbols(geo)
+    xyzs = coordinates(geo)
+    geo_yml = [[symb, *map(float, xyz)] for symb, xyz in zip(symbs, xyzs)]
+    return geo_yml
+
+
+def from_yaml_data(geo_yml):
+    """Put a yaml-formatted geometry back into standard format
+
+    :param geo_yml: A yaml-formatted molecular geometry
+    :type geo_yml: list
+    """
+    symbs = [row[0] for row in geo_yml]
+    xyzs = [row[1:] for row in geo_yml]
+    return from_data(symbs, xyzs)
 
 
 # # validation

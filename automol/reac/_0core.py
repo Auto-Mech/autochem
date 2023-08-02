@@ -14,8 +14,10 @@ from typing import List, Tuple
 import numpy
 import yaml
 
+import automol.geom
 import automol.geom.ts
 import automol.graph
+import automol.zmat
 from automol import par
 from automol.graph import ts
 
@@ -88,28 +90,40 @@ def from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys) -> Reaction:
     # Reverse-map the products keys so they line up with the forward TS graph
     prds_keys = tuple(tuple(map(rmap_dct.__getitem__, ks)) for ks in prds_keys)
 
-    return from_data(cla, ftsg, rcts_keys, prds_keys)
+    return from_data(tsg=ftsg, rcts_keys=rcts_keys, prds_keys=prds_keys, cla=cla)
 
 
-def from_data(cla, tsg, rcts_keys, prds_keys) -> Reaction:
+def from_data(
+    tsg,
+    rcts_keys,
+    prds_keys,
+    cla,
+    ts_struc=None,
+    rct_strucs=None,
+    prd_strucs=None,
+    struc_typ=None,
+) -> Reaction:
     """Construct a Reaction dataclass from data
 
-    :param cla: The reaction class
-    :type cla: str
     :param tsg: The transition state graph
     :type tsg: automol graph data structure
     :param rcts_keys: Keys to the reactant molecules in `tsg`
     :type rcts_keys: tuple[tuple[int]]
     :param prds_keys: Keys to the product molecules in `tsg`
     :type prds_keys: tuple[tuple[int]]
-    :param rmap: A dictionary mapping reactant atoms onto product atoms
-    :type rmap: dict[int: int]
+    :param cla: The reaction class
+    :type cla: str
+    :param ts_struc: The TS stucture, with keys matching the TS graph
+    :type ts_struc: automol geom or zmat data structure
+    :param rct_strucs: The reactant stuctures, with keys matching reactants keys
+    :type rct_strucs: List[automol geom or zmat data structure]
+    :param prd_strucs: The product stuctures, with keys matching products keys
+    :type prd_strucs: List[automol geom or zmat data structure]
+    :param struc_type: The structural information type ('zmat' or 'geom')
+    :type struc_type: str
     :returns: A reaction object
     :rtype: Reaction
     """
-
-    # Check the reaction class
-    assert par.is_reaction_class(cla), f"{cla} is not a reaction class"
 
     # Check the TS graph...
     # If present, stereo information should be complete
@@ -121,9 +135,96 @@ def from_data(cla, tsg, rcts_keys, prds_keys) -> Reaction:
     rcts_keys = tuple(map(tuple, rcts_keys))
     prds_keys = tuple(map(tuple, prds_keys))
 
+    # Check the reaction class
+    assert par.is_reaction_class(cla), f"{cla} is not a reaction class"
+
+    # Check the structures, if there are any
+    if any(x is not None for x in [ts_struc, rct_strucs, prd_strucs, struc_typ]):
+        ttyp = _identify_sequence_structure_type([ts_struc])
+        rtyp = _identify_sequence_structure_type(rct_strucs)
+        ptyp = _identify_sequence_structure_type(prd_strucs)
+        struc_typ = ttyp if struc_typ is None else struc_typ
+        assert struc_typ is not None and ttyp == rtyp == ptyp == struc_typ, (
+            f"Inconsistent structures:\ntype: {struc_typ}\nTS: {ts_struc}"
+            f"\nreactants: {rct_strucs}\nproducts: {prd_strucs}"
+        )
+
+        if struc_typ == "geom":
+            ts_struc = automol.geom.round_(ts_struc)
+            rct_strucs = tuple(map(automol.geom.round_, rct_strucs))
+            prd_strucs = tuple(map(automol.geom.round_, prd_strucs))
+
     return Reaction(
-        class_=cla, ts_graph=tsg, reactants_keys=rcts_keys, products_keys=prds_keys
+        ts_graph=tsg,
+        reactants_keys=rcts_keys,
+        products_keys=prds_keys,
+        class_=cla,
+        ts_structure=ts_struc,
+        reactant_structures=rct_strucs,
+        product_structures=prd_strucs,
+        structure_type=struc_typ,
     )
+
+
+# # serialization
+def from_string(rxn_str, one_indexed=True) -> Reaction:
+    """Write a reaction object to a string
+
+    :param rxn_str: string containing the reaction object
+    :type rxn_str: str
+    :param one_indexed: parameter to store keys in one-indexing
+    :type one_indexed: bool
+    :returns: A reaction object
+    :rtype: Reaction
+    """
+    yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
+
+    cla = yaml_dct["reaction class"]
+    tsg = automol.graph.from_yaml_data(yaml_dct, one_indexed=one_indexed)
+    rcts_keys = tuple(map(tuple, yaml_dct["reactants keys"]))
+    prds_keys = tuple(map(tuple, yaml_dct["products keys"]))
+
+    if one_indexed:
+        rcts_keys = [[k - 1 for k in ks] for ks in rcts_keys]
+        prds_keys = [[k - 1 for k in ks] for ks in prds_keys]
+
+    return from_data(cla=cla, tsg=tsg, rcts_keys=rcts_keys, prds_keys=prds_keys)
+
+
+def string(rxn: Reaction, one_indexed=True) -> str:
+    """Write a reaction object to a string
+
+    :param rxn: the reaction object
+    :type rxn: Reaction
+    :param one_indexed: parameter to store keys in one-indexing
+    :type one_indexed: bool
+    :rtype: str
+    """
+    rcts_keys = list(map(list, reactants_keys(rxn)))
+    prds_keys = list(map(list, products_keys(rxn)))
+
+    if one_indexed:
+        rcts_keys = [[k + 1 for k in ks] for ks in rcts_keys]
+        prds_keys = [[k + 1 for k in ks] for ks in prds_keys]
+
+    yaml_dct = automol.graph.yaml_data(ts_graph(rxn), one_indexed=one_indexed)
+    yaml_dct["reactants keys"] = list(map(list, rcts_keys))
+    yaml_dct["products keys"] = list(map(list, prds_keys))
+    yaml_dct["reaction class"] = class_(rxn)
+    struc_typ = structure_type(rxn)
+    if struc_typ is not None:
+        assert struc_typ == "geom"  # TEMPORARY
+        yaml_dct["TS structure"] = automol.geom.yaml_data(ts_structure(rxn))
+        yaml_dct["reactant structures"] = list(
+            map(automol.geom.yaml_data, reactant_structures(rxn))
+        )
+        yaml_dct["product structures"] = list(
+            map(automol.geom.yaml_data, product_structures(rxn))
+        )
+        yaml_dct["structure type"] = struc_typ
+
+    rxn_str = yaml.dump(yaml_dct, default_flow_style=None, sort_keys=False)
+    return rxn_str
 
 
 # # getters
@@ -344,53 +445,37 @@ def set_structure_type(rxn: Reaction, struc_typ: str) -> Reaction:
     return rxn
 
 
-# # serialization
-def from_string(rxn_str, one_indexed=True) -> Reaction:
-    """Write a reaction object to a string
+def set_structures(
+    rxn: Reaction, ts_struc, rct_strucs, prd_strucs, struc_typ=None
+) -> Reaction:
+    """Set the structures for the Reaction
 
-    :param rxn_str: string containing the reaction object
-    :type rxn_str: str
-    :param one_indexed: parameter to store keys in one-indexing
-    :type one_indexed: bool
-    :returns: A reaction object
+    Structure type will be inferred if not passed in
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param ts_struc: The TS stuctures, with keys matching the TS graph
+    :type ts_struc: automol geom or zmat data structure
+    :param rct_strucs: The reactant stuctures, with keys matching reactants keys
+    :type rct_strucs: List[automol geom or zmat data structure]
+    :param prd_strucs: The product stuctures, with keys matching products keys
+    :type prd_strucs: List[automol geom or zmat data structure]
+    :param struc_typ: The structural information type ('zmat' or 'geom'),
+        defaults to None
+    :type struc_typ: str, optional
+    :return: _description_
     :rtype: Reaction
     """
-    yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
-
-    cla = yaml_dct["reaction class"]
-    tsg = automol.graph.from_yaml_dictionary(yaml_dct, one_indexed=one_indexed)
-    rcts_keys = tuple(map(tuple, yaml_dct["reactants keys"]))
-    prds_keys = tuple(map(tuple, yaml_dct["products keys"]))
-
-    if one_indexed:
-        rcts_keys = [[k - 1 for k in ks] for ks in rcts_keys]
-        prds_keys = [[k - 1 for k in ks] for ks in prds_keys]
-
-    return from_data(cla=cla, tsg=tsg, rcts_keys=rcts_keys, prds_keys=prds_keys)
-
-
-def string(rxn: Reaction, one_indexed=True) -> str:
-    """Write a reaction object to a string
-
-    :param rxn: the reaction object
-    :type rxn: Reaction
-    :param one_indexed: parameter to store keys in one-indexing
-    :type one_indexed: bool
-    :rtype: str
-    """
-    rcts_keys = list(map(list, reactants_keys(rxn)))
-    prds_keys = list(map(list, products_keys(rxn)))
-
-    if one_indexed:
-        rcts_keys = [[k + 1 for k in ks] for ks in rcts_keys]
-        prds_keys = [[k + 1 for k in ks] for ks in prds_keys]
-
-    yaml_dct = automol.graph.yaml_dictionary(ts_graph(rxn), one_indexed=one_indexed)
-    yaml_dct["reactants keys"] = list(map(list, rcts_keys))
-    yaml_dct["products keys"] = list(map(list, prds_keys))
-    yaml_dct["reaction class"] = class_(rxn)
-    rxn_str = yaml.dump(yaml_dct, default_flow_style=None, sort_keys=False)
-    return rxn_str
+    return from_data(
+        tsg=ts_graph(rxn),
+        rcts_keys=reactants_keys(rxn),
+        prds_keys=products_keys(rxn),
+        cla=class_(rxn),
+        ts_struc=ts_struc,
+        rct_strucs=rct_strucs,
+        prd_strucs=prd_strucs,
+        struc_typ=struc_typ,
+    )
 
 
 # # other
@@ -814,3 +899,19 @@ def filter_viable_reactions(rxns: List[Reaction]) -> List[Reaction]:
             rxns.append(rxn)
 
     return tuple(rxns)
+
+
+# helpers
+def _identify_sequence_structure_type(strucs):
+    """Identify the type of a sequence of structures
+
+    :param strucs: The structures (geom or zmat)
+    :type strucs: List[automol geom or zmat data structure]
+    """
+    return (
+        "geom"
+        if all(map(automol.geom.is_valid, strucs))
+        else "zmat"
+        if all(map(automol.zmat.is_valid, strucs))
+        else None
+    )

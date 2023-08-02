@@ -24,6 +24,7 @@ from automol.reac._0core import set_ts_structure
 from automol.reac._0core import set_reactant_structures
 from automol.reac._0core import set_product_structures
 from automol.reac._0core import set_structure_type
+from automol.reac._0core import set_structures
 # # others
 from automol.reac._0core import reverse
 from automol.reac._0core import reaction_mapping
@@ -128,6 +129,7 @@ __all__ = [
     'set_reactant_structures',
     'set_product_structures',
     'set_structure_type',
+    'set_structures',
     # # others
     'reverse',
     'reaction_mapping',
