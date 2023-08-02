@@ -13,8 +13,8 @@ from automol.reac._0core import reactant_graphs
 from automol.reac._0core import product_graphs
 from automol.reac._0core import standard_keys_with_sorted_geometries
 from automol.reac._0core import relabel_for_zmatrix
-from automol.reac._5geom import ts_geometry
-from automol.reac._6zmat import ts_zmatrix
+from automol.reac._4geom import ts_geometry
+from automol.reac._5zmat import ts_zmatrix
 from automol.reac._3find import find
 from automol.reac._2stereo import reflect
 

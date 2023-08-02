@@ -133,8 +133,28 @@ def test__from_old_string():
     )
 
 
+def test__find():
+    """Test reac.expand_stereo_for_reaction"""
+
+    def _test(rct_smis, prd_smis):
+        print("Testing expand_stereo_for_reaction()")
+        print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
+        rct_gras0 = tuple(map(automol.smiles.graph, rct_smis))
+        prd_gras0 = tuple(map(automol.smiles.graph, prd_smis))
+        srxns = reac.find(rct_gras0, prd_gras0, stereo=True)
+        assert len(srxns) == 1
+        (srxn,) = srxns
+        rct_gras1 = reac.reactant_graphs(srxn, shift_keys=False)
+        prd_gras1 = reac.product_graphs(srxn, shift_keys=False)
+        assert rct_gras1 == rct_gras0
+        assert prd_gras1 == prd_gras0
+
+    _test(["F/C=C/F", "[OH]"], ["F[CH][C@H](O)F"])
+
+
 if __name__ == "__main__":
     # test__reactant_graphs()
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
     test__from_old_string()
+    test__find()
