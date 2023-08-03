@@ -430,7 +430,7 @@ def ts_breaking_bond_keys(tsg):
     return frozenset(map(frozenset, brk_bnd_keys))
 
 
-def ts_reacting_bonds(tsg):
+def ts_reacting_bond_keys(tsg):
     """ Get all of the bonds involved in the reaction
 
     :param tsg: TS graph
@@ -442,7 +442,7 @@ def ts_reacting_bonds(tsg):
     return bnd_keys
 
 
-def ts_reacting_atoms(tsg):
+def ts_reacting_atom_keys(tsg):
     """ Get all of the atoms involved in the reaction
 
     :param tsg: TS graph
@@ -450,7 +450,7 @@ def ts_reacting_atoms(tsg):
     :returns: The keys to atoms involved in the reaction
     :rtype: frozenset[int]
     """
-    bnd_keys = ts_reacting_bonds(tsg)
+    bnd_keys = ts_reacting_bond_keys(tsg)
     atm_keys = frozenset(itertools.chain(*bnd_keys))
     return atm_keys
 
@@ -492,7 +492,7 @@ def ts_reagents_graph_without_stereo(tsg, prod=False, keep_zeros=False,
     :returns: The TS graph, without reacting bond orders
     :rtype: automol graph data structure
     """
-    bnd_keys = ts_reacting_bonds(tsg)
+    bnd_keys = ts_reacting_bond_keys(tsg)
     ord_dct = dict_.by_key(bond_orders(tsg), bnd_keys)
     if prod:
         ord_dct = dict_.transform_values(ord_dct, lambda o: 1 - round(o, 1))

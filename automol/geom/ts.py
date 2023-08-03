@@ -2,82 +2,226 @@
 """
 
 import numpy
+import qcelemental
 import scipy
 from phydat import phycon
-from automol.util import vec
-import automol.graph
+
+import automol.graph.base
 from automol.geom._conv import connectivity_graph
-from automol.geom.base import from_data
-from automol.geom.base import symbols
-from automol.geom.base import coordinates
-from automol.geom.base import count
-from automol.geom.base import distance
+from automol.geom.base import coordinates, count, distance, from_data, symbols
+from automol.util import vec
 
 
-def distances(geos, bonds=True, angles=True, angstrom=True):
-    """ return a dictionary of distances for certain atoms in a sequence of
+def geometry_from_reactants(
+    geos, ts_gra, geo_idx_dct=None, fdist_factor=1.1, bdist_factor=0.9
+):
+    """Generate a TS geometry from reactants
+
+    :param geos: Reactant geometries
+    :type geos: List[automol geom data structure]
+    :param ts_gra: TS graph
+    :type ts_gra: automol graph data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :param fdist_factor: Set the forming bond distance to this times the average
+        van der Waals radius, defaults to 1.1
+    :type fdist_factor: float, optional
+    :param bdist_factor: Set the breaking bond distance to this times the average
+        van der Waals radius, defaults to 0.9
+    :type bdist_factor: float, optional
+    :return: TS geometry
+    :rtype: automol geom data structure
+    """
+    # 1. Evaluate the distances, updating them for the TS graph
+    dist_dct = distances(
+        geos,
+        ts_gra,
+        geo_idx_dct=geo_idx_dct,
+        fdist_factor=fdist_factor,
+        bdist_factor=bdist_factor,
+    )
+    print("distances:")
+    print(dist_dct)
+
+    # 2. Join geometries together, if bimolecular
+    if len(geos) > 1:
+        raise NotImplementedError
+
+    (geo,) = geos
+
+    ts_geo = automol.graph.stereo_corrected_geometry(
+        ts_gra, geo, geo_idx_dct=geo_idx_dct
+    )
+    return ts_geo
+
+
+def distances(
+    geos,
+    ts_gra,
+    geo_idx_dct=None,
+    fdist_factor=1.1,
+    bdist_factor=0.9,
+    angles=True,
+    angstrom=True,
+):
+    """return a dictionary of distances for certain atoms in a sequence of
     reactant geometries, shifting the keys as needed
 
-    :param geos: the reactant geometries
-    :param bonds: include bond distances?
+    :param geos: Reactant geometries
+    :type geos: List[automol geom data structure]
+    :param ts_gra: TS graph
+    :type ts_gra: automol graph data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices, defaults to None
+    :type geo_idx_dct: dict[int: int], optional
+    :param fdist_factor: Set the forming bond distance to this times the average
+        van der Waals radius, defaults to 1.1
+    :type fdist_factor: float, optional
+    :param bdist_factor: Set the breaking bond distance to this times the average
+        van der Waals radius, defaults to 0.9
+    :type bdist_factor: float, optional
     :param angles: include distances between the ends of bond angles?
+    :type angles: bool
     :param angstrom: return the distances in angstroms?
+    :type angstrom: bool
     """
-    dist_dct = {}
-    if bonds:
-        dist_dct.update(bond_distances(geos, angstrom=angstrom))
+    dist_dct = bond_distances(geos, ts_gra, geo_idx_dct=geo_idx_dct, angstrom=angstrom)
     if angles:
-        dist_dct.update(angle_distances(geos, angstrom=angstrom))
+        dist_dct.update(
+            angle_distances(geos, ts_gra, geo_idx_dct=geo_idx_dct, angstrom=angstrom)
+        )
+    if ts_gra is not None:
+        dist_dct.update(
+            reacting_bond_distances(
+                ts_gra,
+                geo_idx_dct=geo_idx_dct,
+                fdist_factor=fdist_factor,
+                bdist_factor=bdist_factor,
+                angstrom=angstrom,
+            )
+        )
     return dist_dct
 
 
-def bond_distances(geos, angstrom=True):
-    """ return a dictionary of bond distances for a sequence of reactant
+def bond_distances(geos, ts_gra, geo_idx_dct=None, angstrom=True):
+    """return a dictionary of bond distances for a sequence of reactant
     geometries, shifting the keys as needed
 
-    :param geos: the reactant geometries
+    :param geos: Reactant geometries
+    :type geos: List[automol geom data structure]
+    :param ts_gra: TS graph
+    :type ts_gra: automol graph data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices, defaults to None
+    :type geo_idx_dct: dict[int: int], optional
     :param angstrom: return the distances in angstroms?
     """
-    dist_dct = {}
+    akeys = sorted(automol.graph.base.atom_keys(ts_gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+    )
 
-    shift = 0
-    for geo in geos:
-        gra = connectivity_graph(geo)
-        pairs = list(automol.graph.bond_keys(gra))
-        keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
-        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
-        dist_dct.update(dict(zip(keys, dists)))
-
-        shift += count(geo)
-
+    geo = sum(geos, ())
+    gra = automol.graph.base.ts.reactants_graph(ts_gra)
+    gra = automol.graph.base.relabel(gra, geo_idx_dct)
+    keys = automol.graph.base.bond_keys(gra)
+    dists = [distance(geo, *k, angstrom=angstrom) for k in keys]
+    dist_dct = dict(zip(keys, dists))
     return dist_dct
 
 
-def angle_distances(geos, angstrom=True):
-    """ return a dictionary of distances between ends of a bond angle for a
+def angle_distances(geos, ts_gra, geo_idx_dct=None, angstrom=True):
+    """return a dictionary of distances between ends of a bond angle for a
     sequence of reactant geometries, shifting the keys as needed
 
-    :param geos: the reactant geometries
+    :param geos: Reactant geometries
+    :type geos: List[automol geom data structure]
+    :param ts_gra: TS graph
+    :type ts_gra: automol graph data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices, defaults to None
+    :type geo_idx_dct: dict[int: int], optional
     :param angstrom: return the distances in angstroms?
     """
+    akeys = sorted(automol.graph.base.atom_keys(ts_gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+    )
+
+    geo = sum(geos, ())
+    gra = automol.graph.base.ts.reactants_graph(ts_gra)
+    gra = automol.graph.base.relabel(gra, geo_idx_dct)
+    keys = [frozenset({k1, k3}) for k1, _, k3 in automol.graph.base.angle_keys(gra)]
+    dists = [distance(geo, *k, angstrom=angstrom) for k in keys]
+    dist_dct = dict(zip(keys, dists))
+    return dist_dct
+
+
+def reacting_bond_distances(
+    ts_gra,
+    geo_idx_dct=None,
+    fdist_factor=1.1,
+    bdist_factor=0.9,
+    angstrom=True,
+):
+    """Get a dictionary of reacting bond distances for a TS geometry, based on a TS graph
+
+    :param ts_gra: TS graph
+    :type ts_gra: automol graph data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :param fdist_factor: Set the forming bond distance to this times the average
+        van der Waals radius, defaults to 1.1
+    :type fdist_factor: float, optional
+    :param bdist_factor: Set the breaking bond distance to this times the average
+        van der Waals radius, defaults to 0.9
+    :type bdist_factor: float, optional
+    :param angstrom: return the distances in angstroms?
+    :type angstrom: True
+    """
+    units = "angstrom" if angstrom else "bohr"
+    akeys = sorted(automol.graph.base.atom_keys(ts_gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+    )
+    frm_bkeys = automol.graph.base.ts.forming_bond_keys(ts_gra)
+
+    symb_dct = automol.graph.base.atom_symbols(ts_gra)
     dist_dct = {}
+    for bkey in automol.graph.base.ts.reacting_bond_keys(ts_gra):
+        # Calculate the average van der Waals radius
+        dist = sum(qcelemental.vdwradii.get(symb_dct[k], units=units) for k in bkey) / 2
 
-    shift = 0
-    for geo in geos:
-        gra = connectivity_graph(geo)
-        pairs = [(k1, k3) for k1, _, k3 in automol.graph.angle_keys(gra)]
-        keys = [frozenset({k1+shift, k2+shift}) for k1, k2 in pairs]
-        dists = [distance(geo, *p, angstrom=angstrom) for p in pairs]
-        dist_dct.update(dict(zip(keys, dists)))
+        # Multiply by the chosen factors for forming/breaking bonds
+        if bkey in frm_bkeys:
+            dist *= fdist_factor
+        else:
+            dist *= bdist_factor
 
-        shift += count(geo)
+        # Get the geometry indices for this bond key
+        bidxs = frozenset(map(geo_idx_dct.__getitem__, bkey))
+        dist_dct[bidxs] = dist
 
     return dist_dct
 
 
-def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
-         key1=None, key4=None, angstrom=True, degree=True):
-    """ join two geometries based on four of their atoms, two on the first
+def join(
+    geo1,
+    geo2,
+    key2,
+    key3,
+    r23,
+    a123=85.0,
+    a234=85.0,
+    d1234=85.0,
+    key1=None,
+    key4=None,
+    angstrom=True,
+    degree=True,
+):
+    """join two geometries based on four of their atoms, two on the first
     and two on the second
 
     Variables set the coordinates for 1-2...3-4 where 1-2 are bonded atoms in
@@ -89,10 +233,12 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     d1234 *= phycon.DEG2RAD if degree else 1
 
     gra1, gra2 = map(connectivity_graph, (geo1, geo2))
-    key1 = (automol.graph.atom_neighbor_atom_key(gra1, key2) if key1 is None
-            else key1)
-    key4 = (automol.graph.atom_neighbor_atom_key(gra2, key3) if key4 is None
-            else key4)
+    key1 = (
+        automol.graph.base.atom_neighbor_atom_key(gra1, key2) if key1 is None else key1
+    )
+    key4 = (
+        automol.graph.base.atom_neighbor_atom_key(gra2, key3) if key4 is None else key4
+    )
 
     syms1 = symbols(geo1)
     syms2 = symbols(geo2)
@@ -102,12 +248,12 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
     xyz1 = xyzs1[key1] if key1 is not None else None
     xyz2 = xyzs1[key2]
     orig_xyz3 = xyzs2[key3]
-    orig_xyz4 = xyzs2[key4] if key4 is not None else [1., 1., 1.]
+    orig_xyz4 = xyzs2[key4] if key4 is not None else [1.0, 1.0, 1.0]
 
     if key1 is None:
         # If the first fragment is monatomic, we can place the other one
         # anywhere we want (direction doesn't matter)
-        xyz3 = numpy.add(xyz2, [0., 0., r23])
+        xyz3 = numpy.add(xyz2, [0.0, 0.0, r23])
     else:
         # If the first fragment isn't monatomic, we need to take some care in
         # where we place the second one.
@@ -123,29 +269,32 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
         xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
 
         def _distance_norm(dih):  # objective function for minimization
-            dih, = dih
-            xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
-                                      dih=dih, xyz3=xyz0)
+            (dih,) = dih
+            xyz3 = vec.from_internals(
+                dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1, dih=dih, xyz3=xyz0
+            )
             dist_norm = numpy.linalg.norm(numpy.subtract(xyzs1, xyz3))
             # return the negative norm so that minimum value gives maximum
             # distance
             return -dist_norm
 
-        res = scipy.optimize.basinhopping(_distance_norm, 0.)
+        res = scipy.optimize.basinhopping(_distance_norm, 0.0)
         dih = res.x[0]
 
         # Now, get the next position with the optimized dihedral angle
-        xyz3 = vec.from_internals(dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1,
-                                  dih=dih, xyz3=xyz0)
+        xyz3 = vec.from_internals(
+            dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1, dih=dih, xyz3=xyz0
+        )
 
     r34 = vec.distance(orig_xyz3, orig_xyz4)
 
     # If 2 doen't have neighbors or 1-2-3 are linear, ignore the dihedral angle
-    if key1 is None or numpy.abs(a123 * phycon.RAD2DEG - 180.) < 5.:
+    if key1 is None or numpy.abs(a123 * phycon.RAD2DEG - 180.0) < 5.0:
         xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2)
     else:
-        xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2,
-                                  dih=d1234, xyz3=xyz1)
+        xyz4 = vec.from_internals(
+            dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2, dih=d1234, xyz3=xyz1
+        )
 
     align_ = vec.aligner(orig_xyz3, orig_xyz4, xyz3, xyz4)
     xyzs2 = tuple(map(align_, xyzs2))
@@ -155,17 +304,3 @@ def join(geo1, geo2, key2, key3, r23, a123=85., a234=85., d1234=85.,
 
     geo = from_data(syms, xyzs, angstrom=angstrom)
     return geo
-
-
-def _maximize_xyz3_distance(dist, xyz1, ang, xyz2, against_xyzs=()):
-    """ place another atom, maximizing its distance from another set of atoms
-    """
-    xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
-
-    against_xyzs = numpy.array(against_xyzs)
-
-    def _distance_norm(dih):
-        xyz3 = vec.from_internals(dist=dist, xyz1=xyz1, ang=ang, xyz2=xyz2,
-                                  dih=dih, xyz3=xyz0)
-        dist_norm = numpy.linalg.norm(against_xyzs - numpy.array(xyz3))
-        return dist_norm

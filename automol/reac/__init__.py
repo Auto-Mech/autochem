@@ -27,6 +27,7 @@ from automol.reac._0core import set_structure_type
 from automol.reac._0core import set_structures
 # # others
 from automol.reac._0core import reverse
+from automol.reac._0core import mapping
 from automol.reac._0core import reaction_mapping
 from automol.reac._0core import sort_order
 from automol.reac._0core import reactant_graphs
@@ -132,6 +133,7 @@ __all__ = [
     'set_structures',
     # # others
     'reverse',
+    'mapping',
     'reaction_mapping',
     'sort_order',
     'reactant_graphs',
