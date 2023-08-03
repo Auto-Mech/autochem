@@ -48,7 +48,6 @@ from automol.graph.base import atom_stereo_parities
 from automol.graph.base import bond_stereo_parities
 from automol.graph.base import string
 from automol.graph.base import explicit
-from automol.graph.base import atom_neighborhoods
 from automol.graph.base import bond_neighborhoods
 from automol.graph.base import atoms_neighbor_atom_keys
 from automol.graph.base import subgraph
