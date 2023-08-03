@@ -5,8 +5,9 @@
     [X] _1util.py
     [X] _2stereo.py
     [X] _3find.py
-    [ ] Implement Reaction object structure addition
+    [X] Implement Reaction object structure addition
     [ ] _4geom.py
+    [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py
     [ ] _6rot.py
     [ ] _7geom.py
