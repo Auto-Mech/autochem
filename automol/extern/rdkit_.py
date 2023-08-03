@@ -1,6 +1,6 @@
 """ RDKit interface
 """
-
+import py3Dmol
 import rdkit
 from rdkit import RDLogger
 from rdkit.Chem import Draw
@@ -192,6 +192,39 @@ def from_molfile(mfl, print_debug=False):
         print(f'Warning: rdm fails for {mfl} by returning {rdm}')
 
     return rdm
+
+
+def to_molfile(rdm):
+    """Generate a MOLFile string from an RDKit molecule object
+
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :return: MOLFile block string
+    :rtype: str
+    """
+    mfl = rdkit.Chem.MolToMolBlock(rdm)
+    return mfl
+
+
+def to_3d_view(rdm, image_size=400):
+    """_summary_
+
+    :param rdm: _description_
+    :type rdm: _type_
+    :param image_size: _description_, defaults to 400
+    :type image_size: int, optional
+    :raises NotImplementedError: _description_
+    :return: _description_
+    :rtype: _type_
+    """
+    mfl = to_molfile(rdm)
+    view = py3Dmol.view(width=image_size, height=image_size)
+    view.removeAllModels()
+    view.addModel(mfl, 'sdf')
+    view.setStyle({'stick': {}, 'sphere': {'radius': 0.3}})
+    view.setBackgroundColor('0xeeeeee')
+    view.zoomTo()
+    return view.show()
 
 
 # smarts (for reactions)
