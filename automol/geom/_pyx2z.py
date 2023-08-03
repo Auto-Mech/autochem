@@ -1,10 +1,15 @@
 """ pyx2z interface
 """
-
-import pyx2z
+import importlib.util
 import autoread as ar
 import autoparse.pattern as app
 import automol.zmat.base
+
+pyx2z_found = importlib.util.find_spec("pyx2z")
+if pyx2z_found is not None:
+    import pyx2z
+else:
+    pyx2z = None
 
 
 def to_oriented_geometry(geo):
@@ -14,6 +19,8 @@ def to_oriented_geometry(geo):
         :type geo: automol geometry data structure
         :rtype: x2z molecule object
     """
+    if pyx2z is None:
+        raise NotImplementedError("Not implemented without x2z!")
 
     _mg = pyx2z.MolecGeom()
     for sym, xyz in geo:
@@ -34,6 +41,8 @@ def from_geometry(geo, ts_bnds=()):
         :type ts_bnds: tuple(frozenset(int))
         :rtype: x2z molecule object
     """
+    if pyx2z is None:
+        raise NotImplementedError("Not implemented without x2z!")
 
     _mg = pyx2z.MolecGeom()
     for sym, xyz in geo:
@@ -54,6 +63,8 @@ def to_zmatrix(x2m):
         :type x2m: x2z molecule object
         :rtype: automol Z-Matrix data structure
     """
+    if pyx2z is None:
+        raise NotImplementedError("Not implemented without x2z!")
 
     zma_str = pyx2z.zmatrix_string(x2m)
     syms, key_mat, name_mat, val_mat = ar.zmat.read(
@@ -77,6 +88,9 @@ def zmatrix_torsion_coordinate_names(x2m):
         :type x2m: x2z molecule object
         :rtype: tuple(str)
     """
+    if pyx2z is None:
+        raise NotImplementedError("Not implemented without x2z!")
+
     return pyx2z.rotational_bond_coordinates(x2m)
 
 
@@ -88,5 +102,8 @@ def zmatrix_atom_ordering(x2m):
         :type x2m: x2z molecule object
         :rtype: dict[int: int]
     """
+    if pyx2z is None:
+        raise NotImplementedError("Not implemented without x2z!")
+
     return {geo_key: zma_key
             for zma_key, geo_key in enumerate(x2m.atom_ordering())}
