@@ -224,7 +224,7 @@ def to_3d_view(rdm, image_size=400):
     view.setStyle({'stick': {}, 'sphere': {'radius': 0.3}})
     view.setBackgroundColor('0xeeeeee')
     view.zoomTo()
-    return view.show()
+    return view
 
 
 # smarts (for reactions)

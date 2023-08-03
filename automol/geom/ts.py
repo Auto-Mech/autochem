@@ -13,17 +13,17 @@ from automol.util import vec
 
 
 def geometry_from_reactants(
-    geos, ts_gra, geo_idx_dct=None, fdist_factor=1.1, bdist_factor=0.9
+    geos, tsg, geo_idx_dct=None, fdist_factor=1.1, bdist_factor=0.9
 ):
     """Generate a TS geometry from reactants
 
     :param geos: Reactant geometries
     :type geos: List[automol geom data structure]
-    :param ts_gra: TS graph
-    :type ts_gra: automol graph data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices.
-    :type geo_idx_dct: dict[int: int]
+        keys correspond to which geometry indices, defaults to None
+    :type geo_idx_dct: dict[int: int], optional
     :param fdist_factor: Set the forming bond distance to this times the average
         van der Waals radius, defaults to 1.1
     :type fdist_factor: float, optional
@@ -36,29 +36,86 @@ def geometry_from_reactants(
     # 1. Evaluate the distances, updating them for the TS graph
     dist_dct = distances(
         geos,
-        ts_gra,
+        tsg,
         geo_idx_dct=geo_idx_dct,
         fdist_factor=fdist_factor,
         bdist_factor=bdist_factor,
     )
-    print("distances:")
-    print(dist_dct)
 
-    # 2. Join geometries together, if bimolecular
-    if len(geos) > 1:
-        raise NotImplementedError
+    # 2. If there are multiple reactants, combine the geometries
+    if len(geos) == 1:
+        (geo,) = geos
+    else:
+        if len(automol.graph.base.ts.forming_bond_keys(tsg)) == 1:
+            geo = join_at_forming_bond(geos, tsg, geo_idx_dct=geo_idx_dct)
+        else:
+            raise NotImplementedError
 
-    (geo,) = geos
-
-    ts_geo = automol.graph.stereo_corrected_geometry(
-        ts_gra, geo, geo_idx_dct=geo_idx_dct
-    )
+    ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
     return ts_geo
+
+
+def join_at_forming_bond(geos, tsg, geo_idx_dct=None):
+    """Join two reactant geometries at a single forming bond
+
+    :param geos: Reactant geometries
+    :type geos: List[automol geom data structure]
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices, defaults to None
+    :type geo_idx_dct: dict[int: int], optional
+    :returns: The joined geometry
+    :rtype: automol geom data structure
+    """
+    akeys = sorted(automol.graph.base.atom_keys(tsg))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+    )
+
+    tsg = automol.graph.base.relabel(tsg, geo_idx_dct)
+    gra = automol.graph.base.without_reacting_bonds(tsg)
+    nbh_dct = automol.graph.base.atom_neighborhoods(gra)
+    frm_keys = automol.graph.base.ts.forming_bond_keys(tsg)
+    assert len(frm_keys) == 1, f"This only works for one forming bond\n{tsg}"
+    (frm_key,) = frm_keys
+
+    # To begin, assume both ends are pi-forming
+    assert len(geos) == 2, f"This requires two reactants, but {len(geos)} were given"
+    len1, len2 = map(count, geos)
+    idxs1 = tuple(range(len1))
+    idxs2 = tuple(range(len1, len1 + len2))
+    fidx1, = frm_key & set(idxs1)
+    fidx2, = frm_key & set(idxs2)
+    nidxs1 = automol.graph.base.atom_keys(nbh_dct[fidx1])
+    nidxs2 = automol.graph.base.atom_keys(nbh_dct[fidx2])
+    geo = sum(geos, ())
+    # 1. Find normal vectors for each plane
+    nxyzs1 = automol.geom.base.coordinates(geo, idxs=nidxs1)
+    nxyzs2 = automol.geom.base.coordinates(geo, idxs=nidxs2)
+    nvec1 = vec.best_unit_perpendicular(xyzs=nxyzs1)
+    nvec2 = vec.best_unit_perpendicular(xyzs=nxyzs2)
+    # testing 1
+    geo1 = automol.geom.base.from_subset(geo, idxs=idxs1)
+    fxyz1 = automol.geom.base.coordinates(geo)[fidx1]
+    view1 = automol.geom.view(geo1, vec_xyz=nvec1, vec_xyz_origin=fxyz1)
+    view1.show()
+    # testing 2
+    geo2 = automol.geom.base.from_subset(geo, idxs=idxs2)
+    fxyz2 = automol.geom.base.coordinates(geo)[fidx2]
+    view2 = automol.geom.view(geo2, vec_xyz=nvec2, vec_xyz_origin=fxyz2)
+    view2.show()
+    print("nvec1", nvec1)
+    print("nvec2", nvec2)
+    # 2. Find the angle between them
+    # 3. Find the rotational axis (normal of normals)
+    # 4. Rotate the second geometry by minus that angle around this axis
+    # 5. Translate the second geometry to the appropriate distance away
 
 
 def distances(
     geos,
-    ts_gra,
+    tsg,
     geo_idx_dct=None,
     fdist_factor=1.1,
     bdist_factor=0.9,
@@ -70,8 +127,8 @@ def distances(
 
     :param geos: Reactant geometries
     :type geos: List[automol geom data structure]
-    :param ts_gra: TS graph
-    :type ts_gra: automol graph data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices, defaults to None
     :type geo_idx_dct: dict[int: int], optional
@@ -86,15 +143,15 @@ def distances(
     :param angstrom: return the distances in angstroms?
     :type angstrom: bool
     """
-    dist_dct = bond_distances(geos, ts_gra, geo_idx_dct=geo_idx_dct, angstrom=angstrom)
+    dist_dct = bond_distances(geos, tsg, geo_idx_dct=geo_idx_dct, angstrom=angstrom)
     if angles:
         dist_dct.update(
-            angle_distances(geos, ts_gra, geo_idx_dct=geo_idx_dct, angstrom=angstrom)
+            angle_distances(geos, tsg, geo_idx_dct=geo_idx_dct, angstrom=angstrom)
         )
-    if ts_gra is not None:
+    if tsg is not None:
         dist_dct.update(
             reacting_bond_distances(
-                ts_gra,
+                tsg,
                 geo_idx_dct=geo_idx_dct,
                 fdist_factor=fdist_factor,
                 bdist_factor=bdist_factor,
@@ -104,26 +161,26 @@ def distances(
     return dist_dct
 
 
-def bond_distances(geos, ts_gra, geo_idx_dct=None, angstrom=True):
+def bond_distances(geos, tsg, geo_idx_dct=None, angstrom=True):
     """return a dictionary of bond distances for a sequence of reactant
     geometries, shifting the keys as needed
 
     :param geos: Reactant geometries
     :type geos: List[automol geom data structure]
-    :param ts_gra: TS graph
-    :type ts_gra: automol graph data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices, defaults to None
     :type geo_idx_dct: dict[int: int], optional
     :param angstrom: return the distances in angstroms?
     """
-    akeys = sorted(automol.graph.base.atom_keys(ts_gra))
+    akeys = sorted(automol.graph.base.atom_keys(tsg))
     geo_idx_dct = (
         {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
     )
 
     geo = sum(geos, ())
-    gra = automol.graph.base.ts.reactants_graph(ts_gra)
+    gra = automol.graph.base.ts.reactants_graph(tsg)
     gra = automol.graph.base.relabel(gra, geo_idx_dct)
     keys = automol.graph.base.bond_keys(gra)
     dists = [distance(geo, *k, angstrom=angstrom) for k in keys]
@@ -131,26 +188,26 @@ def bond_distances(geos, ts_gra, geo_idx_dct=None, angstrom=True):
     return dist_dct
 
 
-def angle_distances(geos, ts_gra, geo_idx_dct=None, angstrom=True):
+def angle_distances(geos, tsg, geo_idx_dct=None, angstrom=True):
     """return a dictionary of distances between ends of a bond angle for a
     sequence of reactant geometries, shifting the keys as needed
 
     :param geos: Reactant geometries
     :type geos: List[automol geom data structure]
-    :param ts_gra: TS graph
-    :type ts_gra: automol graph data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices, defaults to None
     :type geo_idx_dct: dict[int: int], optional
     :param angstrom: return the distances in angstroms?
     """
-    akeys = sorted(automol.graph.base.atom_keys(ts_gra))
+    akeys = sorted(automol.graph.base.atom_keys(tsg))
     geo_idx_dct = (
         {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
     )
 
     geo = sum(geos, ())
-    gra = automol.graph.base.ts.reactants_graph(ts_gra)
+    gra = automol.graph.base.ts.reactants_graph(tsg)
     gra = automol.graph.base.relabel(gra, geo_idx_dct)
     keys = [frozenset({k1, k3}) for k1, _, k3 in automol.graph.base.angle_keys(gra)]
     dists = [distance(geo, *k, angstrom=angstrom) for k in keys]
@@ -159,7 +216,7 @@ def angle_distances(geos, ts_gra, geo_idx_dct=None, angstrom=True):
 
 
 def reacting_bond_distances(
-    ts_gra,
+    tsg,
     geo_idx_dct=None,
     fdist_factor=1.1,
     bdist_factor=0.9,
@@ -167,8 +224,8 @@ def reacting_bond_distances(
 ):
     """Get a dictionary of reacting bond distances for a TS geometry, based on a TS graph
 
-    :param ts_gra: TS graph
-    :type ts_gra: automol graph data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
@@ -182,28 +239,23 @@ def reacting_bond_distances(
     :type angstrom: True
     """
     units = "angstrom" if angstrom else "bohr"
-    akeys = sorted(automol.graph.base.atom_keys(ts_gra))
+    akeys = sorted(automol.graph.base.atom_keys(tsg))
     geo_idx_dct = (
         {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
     )
-    frm_bkeys = automol.graph.base.ts.forming_bond_keys(ts_gra)
 
-    symb_dct = automol.graph.base.atom_symbols(ts_gra)
-    dist_dct = {}
-    for bkey in automol.graph.base.ts.reacting_bond_keys(ts_gra):
-        # Calculate the average van der Waals radius
-        dist = sum(qcelemental.vdwradii.get(symb_dct[k], units=units) for k in bkey) / 2
+    gra = automol.graph.base.ts.reactants_graph(tsg)
+    gra = automol.graph.base.relabel(gra, geo_idx_dct)
+    symb_dct = automol.graph.base.atom_symbols(gra)
+    frm_keys = list(automol.graph.base.ts.forming_bond_keys(tsg))
+    brk_keys = list(automol.graph.base.ts.breaking_bond_keys(tsg))
+    keys = frm_keys + brk_keys
 
-        # Multiply by the chosen factors for forming/breaking bonds
-        if bkey in frm_bkeys:
-            dist *= fdist_factor
-        else:
-            dist *= bdist_factor
+    def dist_(key):
+        dist = sum(qcelemental.vdwradii.get(symb_dct[k], units=units) for k in key) / 2
+        return dist * fdist_factor if key in frm_keys else dist * bdist_factor
 
-        # Get the geometry indices for this bond key
-        bidxs = frozenset(map(geo_idx_dct.__getitem__, bkey))
-        dist_dct[bidxs] = dist
-
+    dist_dct = dict(zip(keys, map(dist_, keys)))
     return dist_dct
 
 

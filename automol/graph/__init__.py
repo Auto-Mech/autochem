@@ -102,6 +102,7 @@ from automol.graph.base._core import add_dummy_atoms
 from automol.graph.base._core import shift_insert_dummy_atoms
 from automol.graph.base._core import shift_remove_dummy_atoms
 from automol.graph.base._core import without_pi_bonds
+from automol.graph.base._core import without_reacting_bonds
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import ts_reverse
 from automol.graph.base._core import ts_reagents_graph_without_stereo
@@ -398,6 +399,7 @@ __all__ = [
     'shift_insert_dummy_atoms',
     'shift_remove_dummy_atoms',
     'without_pi_bonds',
+    'without_reacting_bonds',
     'without_dummy_atoms',
     'ts_reverse',
     'ts_reagents_graph_without_stereo',

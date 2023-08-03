@@ -6,6 +6,8 @@
     [X] _2stereo.py
     [X] _3find.py
     [X] Implement Reaction object structure addition
+    LEFT OFF AT automol.geom.ts.join_at_forming_bond()
+    -> SEE test_ts_geometry.ipynb
     [ ] _4geom.py
     [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py

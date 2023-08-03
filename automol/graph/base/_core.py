@@ -1941,6 +1941,17 @@ def without_pi_bonds(gra):
     return set_bond_orders(gra, bnd_ord_dct)
 
 
+def without_reacting_bonds(gra):
+    """Get a copy of this graph without reacting bonds
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A molecular graph
+    :rtype: automol graph data structure
+    """
+    return without_bonds_by_orders(gra, ords=(0.1, 0.9))
+
+
 def without_bonds_by_orders(gra, ords=(0,), skip_dummies=True):
     """ Remove bonds of certain orders from the graph
 
