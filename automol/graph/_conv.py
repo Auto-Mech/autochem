@@ -13,7 +13,7 @@ import automol.graph.embed
 import automol.inchi.base
 import automol.smiles.base
 from automol import error
-from automol.extern import molfile, pybel_, rdkit_
+from automol.extern import molfile, rdkit_
 from automol.graph.base import (
     amchi,
     atom_bond_counts,
@@ -95,13 +95,6 @@ def _connected_geometry(gra, check=True):
         (geo,) = rdkit_.to_conformers(rdm, nconfs=1)
         return geo
 
-    def _gen2():
-        nonlocal smi
-
-        pbm = pybel_.from_smiles(smi)
-        geo = pybel_.to_geometry(pbm)
-        return geo
-
     def _gen3():
         nonlocal gra
 
@@ -113,7 +106,7 @@ def _connected_geometry(gra, check=True):
         return geo
 
     success = False
-    for gen_ in (_gen1, _gen1, _gen1, _gen2, _gen3):
+    for gen_ in (_gen1, _gen1, _gen1, _gen3):
         try:
             geo = gen_()
         except (RuntimeError, TypeError, ValueError):
