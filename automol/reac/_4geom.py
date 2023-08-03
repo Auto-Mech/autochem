@@ -18,106 +18,138 @@ from automol.reac._1util import hydrogen_abstraction_is_sigma
 
 
 # Unimolecular reactions
-def hydrogen_migration_ts_geometry(rxn: Reaction, rct_geos,
-                                   max_dist_err=2e-1, log=False):
-    """ geometry for a hydrogen migration transition state
+def hydrogen_migration_ts_geometry(
+    rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False
+):
+    """geometry for a hydrogen migration transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert class_(rxn) == ReactionClass.Typ.HYDROGEN_MIGRATION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
-    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.7
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     gra = ts.reactants_graph(ts_graph(rxn))
     atm_symbs = automol.graph.atom_symbols(gra)
-    h_idx, = frm_bnd_key - brk_bnd_key
+    (h_idx,) = frm_bnd_key - brk_bnd_key
     equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, angstrom=True, degree=True)
+        gra, dist_dct, angstrom=True, degree=True
+    )
 
-    geo_init, = rct_geos
+    (geo_init,) = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     # choose different, equivalent H atom if it is closer
     for swap_idx in equiv_h:
-        frm_idx, = [
-            atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] != 'H']
+        (frm_idx,) = [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] != "H"]
         len_a = automol.geom.distance(geo_init, frm_idx, h_idx)
         len_b = automol.geom.distance(geo_init, frm_idx, swap_idx)
         if len_b < len_a:
-            geo_init = automol.geom.swap_coordinates(
-                geo_init, frm_idx, swap_idx)
+            geo_init = automol.geom.swap_coordinates(geo_init, frm_idx, swap_idx)
             break
 
     relax_ang = True
     relax_tors = True
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
     return geo
 
 
-def beta_scission_ts_geometry(rxn: Reaction, rct_geos,
-                              max_dist_err=2e-1, log=False):
-    """ geometry for a beta scission transition state
+def beta_scission_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False):
+    """geometry for a beta scission transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert class_(rxn) == ReactionClass.Typ.BETA_SCISSION
     assert has_standard_keys(rxn)
-    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
     brk_bnd_dist = 1.5
 
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[brk_bnd_key] = brk_bnd_dist
 
     gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, angstrom=True)
+        gra, dist_dct, angstrom=True
+    )
 
-    geo_init, = rct_geos
+    (geo_init,) = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     relax_ang = False
     relax_tors = False
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
     return geo
 
 
-def ring_forming_scission_ts_geometry(rxn: Reaction, rct_geos,
-                                      max_dist_err=2e-1, log=False):
-    """ geometry for a ring-forming scission transition state
+def ring_forming_scission_ts_geometry(
+    rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False
+):
+    """geometry for a ring-forming scission transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert class_(rxn) == ReactionClass.Typ.RING_FORM_SCISSION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
-    brk_bnd_key, = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 2.0
     brk_bnd_dist = 1.5
-    d1234 = 180.
+    d1234 = 180.0
 
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key] = frm_bnd_dist
     dist_dct[brk_bnd_key] = brk_bnd_dist
 
@@ -129,24 +161,38 @@ def ring_forming_scission_ts_geometry(rxn: Reaction, rct_geos,
 
     gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, dih_dct=dih_dct, degree=True, angstrom=True)
+        gra, dist_dct, dih_dct=dih_dct, degree=True, angstrom=True
+    )
 
-    geo_init, = rct_geos
+    (geo_init,) = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     relax_ang = True
     relax_tors = True
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
 
     # Rerun the optimization, enforcing planarity on the ring
-    dist_dct = automol.geom.ts.distances([geo], angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        [geo],
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key] = frm_bnd_dist
     dist_dct[brk_bnd_key] = brk_bnd_dist
     pla_dct = {}
@@ -155,91 +201,113 @@ def ring_forming_scission_ts_geometry(rxn: Reaction, rct_geos,
 
     gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, degree=True, angstrom=True)
+        gra, dist_dct, degree=True, angstrom=True
+    )
 
     geo = _geometry_from_info(
-        gra, [geo], geo, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
+        gra,
+        [geo],
+        geo,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
         pla_dct=pla_dct,
-        max_dist_err=max_dist_err, log=log)
+        max_dist_err=max_dist_err,
+        log=log,
+    )
 
     return geo
 
 
-def elimination_ts_geometry(rxn: Reaction, rct_geos,
-                            max_dist_err=2e-1, log=False):
-    """ geometry for an elimination transition state
+def elimination_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False):
+    """geometry for an elimination transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert class_(rxn) == ReactionClass.Typ.ELIMINATION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.6
-    frm_rng_keys, = ts.forming_rings_atom_keys(ts_graph(rxn))
+    (frm_rng_keys,) = ts.forming_rings_atom_keys(ts_graph(rxn))
 
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     gra = ts.reactants_graph(ts_graph(rxn))
     atm_symbs = automol.graph.atom_symbols(gra)
-    if [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']:
-        h_idx, = [atm_idx for atm_idx in frm_bnd_key
-                  if atm_symbs[atm_idx] == 'H']
+    if [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == "H"]:
+        (h_idx,) = [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == "H"]
         equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
     else:
         equiv_h = []
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, rings_keys=[frm_rng_keys], degree=True,
-        angstrom=True)
+        gra, dist_dct, rings_keys=[frm_rng_keys], degree=True, angstrom=True
+    )
 
-    geo_init, = rct_geos
+    (geo_init,) = rct_geos
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     relax_ang = True
     relax_tors = True
 
     # Choose different, equivalent H atom if it is more accessible
     for swap_idx in equiv_h:
-        frm_idx, = [atm_idx for atm_idx in frm_bnd_key
-                    if atm_symbs[atm_idx] != 'H']
+        (frm_idx,) = [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] != "H"]
         len_a = automol.geom.distance(geo_init, frm_idx, h_idx)
         len_b = automol.geom.distance(geo_init, frm_idx, swap_idx)
         if len_b < len_a:
-            geo_init = automol.geom.swap_coordinates(
-                geo_init, frm_idx, swap_idx)
+            geo_init = automol.geom.swap_coordinates(geo_init, frm_idx, swap_idx)
             break
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
     return geo
 
 
 # Bimolecular reactions
-def hydrogen_abstraction_ts_geometry(rxn: Reaction, rct_geos,
-                                     max_dist_err=2e-1, log=False):
-    """ geometry for a hydrogen abstraction transition state
+def hydrogen_abstraction_ts_geometry(
+    rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False
+):
+    """geometry for a hydrogen abstraction transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert class_(rxn) == ReactionClass.Typ.HYDROGEN_ABSTRACTION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.6
-    a123 = 170.
+    a123 = 170.0
     if hydrogen_abstraction_is_sigma(rxn):
-        a234 = 180.
+        a234 = 180.0
     else:
-        a234 = 85.
+        a234 = 85.0
 
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     # key2 the hydrogen atom and key3 is the attacking atom; this is guaranteed
@@ -249,42 +317,56 @@ def hydrogen_abstraction_ts_geometry(rxn: Reaction, rct_geos,
 
     gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, ang_dct=ang_dct, degree=True, angstrom=True)
+        gra, dist_dct, ang_dct=ang_dct, degree=True, angstrom=True
+    )
 
     geo1, geo2 = rct_geos
-    geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
-                                    r23=frm_bnd_dist, a123=a123, a234=a234)
+    geo_init = automol.geom.ts.join(
+        geo1, geo2, key2=key2, key3=key3, r23=frm_bnd_dist, a123=a123, a234=a234
+    )
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     relax_ang = False
     relax_tors = False
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
     return geo
 
 
-def addition_ts_geometry(rxn: Reaction, rct_geos,
-                         max_dist_err=2e-1, log=False):
-    """ geometry for an addition transition state
+def addition_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False):
+    """geometry for an addition transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
     """
     assert class_(rxn) == ReactionClass.Typ.ADDITION
     assert has_standard_keys(rxn)
-    frm_bnd_key, = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
     frm_bnd_dist = 1.9
-    a123 = 85.
-    a234 = 85.
-    d1234 = 85.
+    a123 = 85.0
+    a234 = 85.0
+    d1234 = 85.0
 
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     # key2 the hydrogen atom and key3 is the attacking atom; this is guaranteed
@@ -295,31 +377,45 @@ def addition_ts_geometry(rxn: Reaction, rct_geos,
 
     gra = ts.reactants_graph(ts_graph(rxn))
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, ang_dct=ang_dct, dih_dct=dih_dct, degree=True,
-        angstrom=True)
+        gra, dist_dct, ang_dct=ang_dct, dih_dct=dih_dct, degree=True, angstrom=True
+    )
 
     geo1, geo2 = rct_geos
-    geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
-                                    r23=frm_bnd_dist, a123=a123, a234=a234,
-                                    d1234=d1234)
+    geo_init = automol.geom.ts.join(
+        geo1,
+        geo2,
+        key2=key2,
+        key3=key3,
+        r23=frm_bnd_dist,
+        a123=a123,
+        a234=a234,
+        d1234=d1234,
+    )
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     relax_ang = False
     relax_tors = False
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
     return geo
 
 
-def insertion_ts_geometry(rxn: Reaction, rct_geos,
-                          max_dist_err=2e-1, log=False):
-    """ geometry for an insertion transition state
+def insertion_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False):
+    """geometry for an insertion transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
@@ -337,20 +433,26 @@ def insertion_ts_geometry(rxn: Reaction, rct_geos,
     tsg = ts_graph(rxn)
 
     frm_bnd_key1, frm_bnd_key2 = ts.ts_forming_bond_keys(tsg)
-    hcnt1 = automol.graph.atom_count(tsg, symb='H', keys=frm_bnd_key1)
-    hcnt2 = automol.graph.atom_count(tsg, symb='H', keys=frm_bnd_key2)
+    hcnt1 = automol.graph.atom_count(tsg, symb="H", keys=frm_bnd_key1)
+    hcnt2 = automol.graph.atom_count(tsg, symb="H", keys=frm_bnd_key2)
     frm_bnd_dist1 = frm_bnd_dist_dct[hcnt1]
     frm_bnd_dist2 = frm_bnd_dist_dct[hcnt2]
-    a123 = 170.
-    frm_rng_keys, = ts.forming_rings_atom_keys(tsg)
+    a123 = 170.0
+    (frm_rng_keys,) = ts.forming_rings_atom_keys(tsg)
 
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key1] = frm_bnd_dist1
     dist_dct[frm_bnd_key2] = frm_bnd_dist2
 
     gra = ts.reactants_graph(tsg)
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, rings_keys=[frm_rng_keys], angstrom=True)
+        gra, dist_dct, rings_keys=[frm_rng_keys], angstrom=True
+    )
 
     # Join on the end without hydrogen, if there is one
     if hcnt1 <= hcnt2:
@@ -359,26 +461,34 @@ def insertion_ts_geometry(rxn: Reaction, rct_geos,
         key2, key3 = sorted(frm_bnd_key2)
 
     geo1, geo2 = rct_geos
-    geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
-                                    r23=frm_bnd_dist1, a123=a123)
+    geo_init = automol.geom.ts.join(
+        geo1, geo2, key2=key2, key3=key3, r23=frm_bnd_dist1, a123=a123
+    )
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     relax_ang = True
     relax_tors = True
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
     return geo
 
 
-def substitution_ts_geometry(rxn: Reaction, rct_geos,
-                             max_dist_err=2e-1, log=False):
-    """ geometry for a substitution transition state
+def substitution_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False):
+    """geometry for a substitution transition state
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
@@ -394,14 +504,19 @@ def substitution_ts_geometry(rxn: Reaction, rct_geos,
     }
 
     tsg = ts_graph(rxn)
-    a123 = 170.
-    a234 = 95.
+    a123 = 170.0
+    a234 = 95.0
 
-    frm_bnd_key, = ts.ts_forming_bond_keys(tsg)
-    hcnt = automol.graph.atom_count(tsg, symb='H', keys=frm_bnd_key)
+    (frm_bnd_key,) = ts.ts_forming_bond_keys(tsg)
+    hcnt = automol.graph.atom_count(tsg, symb="H", keys=frm_bnd_key)
     frm_bnd_dist = frm_bnd_dist_dct[hcnt]
 
-    dist_dct = automol.geom.ts.distances(rct_geos, angstrom=True)
+    dist_dct = automol.geom.ts.distances(
+        rct_geos,
+        ts_gra=automol.reac.ts_graph(rxn),
+        geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
+        angstrom=True,
+    )
     dist_dct[frm_bnd_key] = frm_bnd_dist
 
     # key2 the hydrogen atom and key3 is the attacking atom; this is guaranteed
@@ -411,29 +526,38 @@ def substitution_ts_geometry(rxn: Reaction, rct_geos,
 
     gra = ts.reactants_graph(tsg)
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        gra, dist_dct, ang_dct=ang_dct, degree=True, angstrom=True)
+        gra, dist_dct, ang_dct=ang_dct, degree=True, angstrom=True
+    )
 
     geo1, geo2 = rct_geos
-    geo_init = automol.geom.ts.join(geo1, geo2, key2=key2, key3=key3,
-                                    r23=frm_bnd_dist, a123=a123, a234=a234)
+    geo_init = automol.geom.ts.join(
+        geo1, geo2, key2=key2, key3=key3, r23=frm_bnd_dist, a123=a123, a234=a234
+    )
     geo_init = automol.graph.stereo_corrected_geometry(
-        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True))
+        products_graph(rxn), geo_init, geo_idx_dct=reaction_mapping(rxn, rev=True)
+    )
     geo_init = automol.graph.embed.clean_geometry(
-        reactants_graph(rxn), geo_init, stereo=False)
+        reactants_graph(rxn), geo_init, stereo=False
+    )
 
     relax_ang = True
     relax_tors = True
 
     geo = _geometry_from_info(
-        gra, rct_geos, geo_init, dist_range_dct,
-        relax_ang=relax_ang, relax_tors=relax_tors,
-        max_dist_err=max_dist_err, log=log)
+        gra,
+        rct_geos,
+        geo_init,
+        dist_range_dct,
+        relax_ang=relax_ang,
+        relax_tors=relax_tors,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
     return geo
 
 
-def ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False,
-                stereo=True):
-    """ reaction-class-specific embedding info
+def ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False, stereo=True):
+    """reaction-class-specific embedding info
 
     :param rxn: a Reaction object
     :param rct_geos: the reactant geometries
@@ -443,12 +567,10 @@ def ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False,
         # unimolecular
         ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migration_ts_geometry,
         ReactionClass.Typ.BETA_SCISSION: beta_scission_ts_geometry,
-        ReactionClass.Typ.RING_FORM_SCISSION:
-        ring_forming_scission_ts_geometry,
+        ReactionClass.Typ.RING_FORM_SCISSION: ring_forming_scission_ts_geometry,
         ReactionClass.Typ.ELIMINATION: elimination_ts_geometry,
         # bimolecular
-        ReactionClass.Typ.HYDROGEN_ABSTRACTION:
-        hydrogen_abstraction_ts_geometry,
+        ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstraction_ts_geometry,
         ReactionClass.Typ.ADDITION: addition_ts_geometry,
         ReactionClass.Typ.INSERTION: insertion_ts_geometry,
         ReactionClass.Typ.SUBSTITUTION: substitution_ts_geometry,
@@ -460,36 +582,55 @@ def ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False,
     # make sure geometry still works with stereo of products
     # and reactants
     if stereo:
-        geo = automol.graph.stereo_corrected_geometry(
-            reactants_graph(rxn), geo)
+        geo = automol.graph.stereo_corrected_geometry(reactants_graph(rxn), geo)
         geo = automol.graph.embed.clean_geometry(
-            reactants_graph(rxn), geo, stereo=False)
+            reactants_graph(rxn), geo, stereo=False
+        )
         geo = automol.graph.stereo_corrected_geometry(
-            products_graph(rxn), geo,
-            geo_idx_dct=reaction_mapping(rxn, rev=True))
+            products_graph(rxn), geo, geo_idx_dct=reaction_mapping(rxn, rev=True)
+        )
         geo = automol.graph.embed.clean_geometry(
-            reactants_graph(rxn), geo, stereo=False)
+            reactants_graph(rxn), geo, stereo=False
+        )
     return geo
 
 
 # helpers
-def _geometry_from_info(gra, rct_geos, geo_init, dist_range_dct,
-                        relax_ang=False, relax_tors=False,
-                        pla_dct=None,
-                        max_dist_err=2e-1, log=False):
+def _geometry_from_info(
+    gra,
+    rct_geos,
+    geo_init,
+    dist_range_dct,
+    relax_ang=False,
+    relax_tors=False,
+    pla_dct=None,
+    max_dist_err=2e-1,
+    log=False,
+):
     keys = sorted(atom_keys(gra))
     xmat = automol.geom.coordinates(geo_init, angstrom=True)
     lmat, umat = automol.graph.embed.distance_bounds_matrices(
-        gra, keys, dist_range_dct, geos=rct_geos, relax_angles=relax_ang,
-        relax_torsions=relax_tors)
+        gra,
+        keys,
+        dist_range_dct,
+        geos=rct_geos,
+        relax_angles=relax_ang,
+        relax_torsions=relax_tors,
+    )
 
     pla_dct = {} if pla_dct is None else pla_dct
     chi_dct = automol.graph.embed.chirality_constraint_bounds(gra, keys)
     pla_dct.update(automol.graph.embed.planarity_constraint_bounds(gra, keys))
 
     xmat, conv = automol.embed.cleaned_up_coordinates(
-        xmat, lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct,
-        max_dist_err=max_dist_err, log=log)
+        xmat,
+        lmat,
+        umat,
+        chi_dct=chi_dct,
+        pla_dct=pla_dct,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
 
     if log:
         print("Converged!" if conv else "Did not converge.")

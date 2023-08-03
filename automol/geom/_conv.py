@@ -3,9 +3,7 @@
 
 import itertools
 
-import IPython
 import numpy
-import py3Dmol
 from phydat import phycon
 
 import automol.amchi.base
@@ -277,21 +275,6 @@ def chi_with_sort(geo, stereo=True, gra=None):
         chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
 
     return chi_, nums_lst
-
-
-def _compare(geo1, geo2):
-    """ Check if the connectivity of two molecular geometries match
-
-        :param geo1: molecular geometry 1
-        :type geo1: automol geometry data structure
-        :param geo2: molecular geometry 2
-        :type geo2: automol geometry data structure
-        :rtype: bool
-    """
-    gra1 = automol.graph.without_dummy_atoms(connectivity_graph(geo1))
-    gra2 = automol.graph.without_dummy_atoms(connectivity_graph(geo2))
-
-    return automol.graph.isomorphic(gra1, gra2)
 
 
 def smiles(geo, stereo=True, res_stereo=True):

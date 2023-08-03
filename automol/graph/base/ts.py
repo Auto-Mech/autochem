@@ -11,8 +11,8 @@ import automol.amchi.base    # !!!!
 from automol.graph.base._core import ts_graph
 from automol.graph.base._core import ts_breaking_bond_keys
 from automol.graph.base._core import ts_forming_bond_keys
-from automol.graph.base._core import ts_reacting_bonds
-from automol.graph.base._core import ts_reacting_atoms
+from automol.graph.base._core import ts_reacting_bond_keys
+from automol.graph.base._core import ts_reacting_atom_keys
 from automol.graph.base._core import ts_reverse
 from automol.graph.base._core import ts_reagents_graph_without_stereo
 from automol.graph.base._core import has_stereo
@@ -49,8 +49,8 @@ from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 graph = ts_graph
 forming_bond_keys = ts_forming_bond_keys
 breaking_bond_keys = ts_breaking_bond_keys
-reacting_bonds = ts_reacting_bonds
-reacting_atoms = ts_reacting_atoms
+reacting_bond_keys = ts_reacting_bond_keys
+reacting_atom_keys = ts_reacting_atom_keys
 reverse = ts_reverse
 reagents_graph_without_stereo = ts_reagents_graph_without_stereo
 
@@ -595,7 +595,7 @@ def fleeting_stereosite_sorted_neighbors(tsg, ts_enant=True):
         :returns: A dictionary keyed by fleeting stereogenic keys, with values
         of the specific neighbors that are reacting ()
     """
-    rxn_atm_keys = ts_reacting_atoms(tsg)
+    rxn_atm_keys = ts_reacting_atom_keys(tsg)
     nkeys_dct = atoms_neighbor_atom_keys(tsg)
 
     def _distance_from_reaction_site(key):
@@ -767,7 +767,7 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
         :rtype: bool
     """
     # 1. Check conserved stereo sites
-    reac_keys = ts_reacting_atoms(ftsg_loc)
+    reac_keys = ts_reacting_atom_keys(ftsg_loc)
     fste_keys = stereo_keys(ftsg_loc)
     rste_keys = stereo_keys(rtsg_loc)
     cons_keys = list(fste_keys & rste_keys)

@@ -284,6 +284,9 @@ def with_structures_from_geometry(
     # Obtain the reaction objects and structures to return
     ret = []
     for rxn in rxns:
+        rxn, rct_geos, prd_geos = standard_keys_with_sorted_geometries(
+            rxn, rct_geos, prd_geos
+        )
         ts_geo = ts_geometry(rxn, rct_geos, log=False)
         rxn = set_structures(rxn, ts_geo, rct_geos, prd_geos)
         # Determine which geometries to store
