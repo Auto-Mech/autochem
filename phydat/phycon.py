@@ -13,7 +13,7 @@ RC2 = 82.0573660809596  # gas constant in cm^3.atm/(mol.K)
 RC_CAL = 1.98720425864083  # gas constant in cal/(mol.K)
 RC_ATM = 82.0573660809596  # gas constant in cm^3.atm/(mol.K)
 SOL = (qcc.get('speed of light in vacuum') *
-       qcc.conversion_factor('meter / second', 'bohr hartree / h'))
+       qcc.conversion_factor('meter / second', 'bohr hartree / hbar'))
 SOLMS = qcc.get('speed of light in vacuum')
 KB = qcc.get('kb')  # The Boltzmann constant (JK$^{-1}$)
 H = qcc.get('h')  # The Planck constant (Js)
