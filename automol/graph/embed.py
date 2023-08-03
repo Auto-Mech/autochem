@@ -180,64 +180,6 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
     return geo
 
 
-def fake_stereo_geometry(gra, ntries=5, max_dist_err=0.5):
-    """ generate a fake stereo geometry
-    """
-    # For simplicity, convert to local stereo and use local stereo throughout
-    loc_gra = to_local_stereo(gra)
-
-    # determine stereo "groups" with geometrically interdependent chirality
-    atm_ngbs_dct = atom_neighborhoods(loc_gra)
-    bnd_ngbs_dct = bond_neighborhoods(loc_gra)
-    atm_ste_keys = atom_stereo_keys(loc_gra)
-    bnd_ste_keys = bond_stereo_keys(loc_gra)
-    atm_ste_groups = list(
-        map(atom_keys, map(atm_ngbs_dct.__getitem__, atm_ste_keys)))
-    bnd_ste_groups = list(
-        map(atom_keys, map(bnd_ngbs_dct.__getitem__, bnd_ste_keys)))
-
-    ste_groups = _aggregate_connected_groups(atm_ste_groups + bnd_ste_groups)
-
-    ste_groups = list(map(sorted, ste_groups))
-
-    natms = 0
-    geo_idx_dct = {}
-    geo = ()
-    for group in ste_groups:
-        group_geo = geometry(
-            loc_gra, keys=group, ntries=ntries,
-            max_dist_err=max_dist_err)
-        group_natms = len(group)
-
-        idxs = list(range(natms, natms+group_natms))
-        geo_idx_dct.update(dict(zip(group, idxs)))
-
-        natms += group_natms
-        geo = automol.geom.base.join(geo, group_geo)
-
-    return geo, geo_idx_dct
-
-
-def _aggregate_connected_groups(keys_lst):
-    """ from a list of groups, join the ones with common atoms
-    """
-    groups = []
-    for keys in keys_lst:
-        idxs = list(idx for idx, group in enumerate(groups)
-                    if group & keys)
-        if not idxs:
-            groups.append(keys)
-        else:
-            groups[idxs[0]] |= keys
-            for idx in idxs[1:]:
-                groups[idxs[0]] |= groups[idx]
-                groups.pop(idx)
-
-    groups = tuple(groups)
-
-    return groups
-
-
 # # convergence checking
 def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
                                      rqh_bond_max=1.3, rhh_bond_max=1.1,

@@ -2,28 +2,33 @@
 """
 
 import itertools
+
 import IPython
 import numpy
+import py3Dmol
 from phydat import phycon
-import automol.graph
-import automol.zmat.base
+
 import automol.amchi.base
+import automol.graph
 import automol.inchi.base
+import automol.zmat.base
 from automol import util
 from automol.extern import rdkit_
 from automol.geom import _pyx2z
-from automol.geom.base import from_subset
-from automol.geom.base import symbols
-from automol.geom.base import coordinates
-from automol.geom.base import is_atom
-from automol.geom.base import count
-from automol.geom.base import distance
-from automol.geom.base import central_angle
-from automol.geom.base import dihedral_angle
-from automol.geom.base import insert
-from automol.geom.base import move_atom
-from automol.geom.base import translate
-from automol.geom.base import rotate
+from automol.geom.base import (
+    central_angle,
+    coordinates,
+    count,
+    dihedral_angle,
+    distance,
+    from_subset,
+    insert,
+    is_atom,
+    move_atom,
+    rotate,
+    symbols,
+    translate,
+)
 
 
 # # conversions
@@ -325,7 +330,7 @@ def rdkit_molecule(geo, gra=None):
     return rdkit_.from_geometry_with_graph(geo, gra)
 
 
-def display(geo, gra=None):
+def display(geo, gra=None, image_size=400):
     """ Display molecule to IPython using the RDKit visualizer
 
     :param geo: molecular geometry
@@ -333,8 +338,8 @@ def display(geo, gra=None):
     :param gra: A molecular graph, describing the connectivity
     :type gra: automol graph data structure
     """
-    rdkit_.turn_3d_visualization_on()
-    IPython.display.display(rdkit_molecule(geo, gra=gra))
+    rdm = rdkit_molecule(geo, gra=gra)
+    return rdkit_.to_3d_view(rdm, image_size=image_size)
 
 
 # # derived properties

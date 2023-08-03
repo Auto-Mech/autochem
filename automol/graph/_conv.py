@@ -453,7 +453,7 @@ def display_reaction(rgras, pgras, stereo=True):
     return IPython.display.display(rdkit_reaction(rgras, pgras, stereo=stereo))
 
 
-def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=150):
+def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=200):
     """Get an ipywidget object for visualizing the graph
 
     :param gra: molecular graph
