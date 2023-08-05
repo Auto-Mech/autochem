@@ -5,32 +5,39 @@ import automol.graph.base
 from automol.extern import rdkit_
 from automol.smiles.base import split
 from automol.smiles.base import without_resonance_stereo
+from automol.smiles.base import without_stereo
 from automol.smiles.base import parse_connected_molecule_properties
 
 
 # # conversions
-def amchi(smi):
+def amchi(smi, stereo=True):
     """ Generate an AMChI string from a connected SMILES string.
 
         :param smi: SMILES string
         :type smi: str
+        :param stereo: Keep stereo information form the SMILES string?
+        :type stereo: bool
         :returns: AMChI string
         :rtype: str
     """
-    gra = graph(smi, stereo=True, local_stereo=False)
+    gra = graph(smi, stereo=stereo, local_stereo=False)
     ach = automol.graph.base.amchi(gra)
     return ach
 
 
-def inchi(smi):
+def inchi(smi, stereo=True):
     """ Convert a SMILES string into an InChI string.
 
         :param smi: SMILES string
         :type smi: str
+        :param stereo: Keep stereo information form the SMILES string?
+        :type stereo: bool
         :rtype: str
     """
-    smi = without_resonance_stereo(smi)
+    if not stereo:
+        smi = without_stereo(smi)
 
+    smi = without_resonance_stereo(smi)
     rdm = rdkit_.from_smiles(smi)
     ich = rdkit_.to_inchi(rdm)
     return ich
@@ -127,6 +134,31 @@ def geometry(smi, check=True):
     gra = graph(smi)
     geo = automol.graph.geometry(gra, check=check)
     return geo
+
+
+def formula_string(smi):
+    """ Get the molecular formula string (Hill-sorted) from a SMILES string
+
+        :param smi: SMILES string
+        :type smi: str
+        :rtype: str
+    """
+    ich = inchi(smi)
+    return automol.inchi.base.formula_string(ich)
+
+
+def recalculate_without_stereo(smi):
+    """ Convert a SMILES string into an InChI string.
+
+        :param smi: SMILES string
+        :type smi: str
+        :rtype: str
+    """
+    smi = without_stereo(smi)
+
+    rdm = rdkit_.from_smiles(smi)
+    smi = rdkit_.to_smiles(rdm)
+    return smi
 
 
 def rdkit_molecule(smi, stereo=True):

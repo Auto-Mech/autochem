@@ -74,6 +74,22 @@ def without_resonance_stereo(smi):
     return smi
 
 
+def without_stereo(smi):
+    """ Generate a SMILES string without resonance stereo.
+
+        :param smi: SMILES string
+        :type smi: str
+        :returns: A SMILES without resonance stereo, which will be readable by
+            other codes.
+        :rtype: str
+    """
+    smi = smi.replace('/', '')
+    smi = smi.replace('\\', '')
+    smi = smi.replace('@', '')
+    smi = smi.replace('@@', '')
+    return smi
+
+
 def reflect(smi):
     """ If this SMILES has chiral centers, reflect them
 

@@ -3,6 +3,7 @@
 
 # # conversions
 from automol.smiles.base._core import without_resonance_stereo
+from automol.smiles.base._core import without_stereo
 from automol.smiles.base._core import reflect
 # # split/join
 from automol.smiles.base._core import split
@@ -14,6 +15,7 @@ from automol.smiles.base._core import parse_connected_molecule_properties
 __all__ = [
     # # conversions
     'without_resonance_stereo',
+    'without_stereo',
     'reflect',
     # # split/join
     'split',
