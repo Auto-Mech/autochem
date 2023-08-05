@@ -11,14 +11,14 @@ from automol.smiles.base import parse_connected_molecule_properties
 
 # # conversions
 def amchi(smi, stereo=True):
-    """ Generate an AMChI string from a connected SMILES string.
+    """Generate an AMChI string from a connected SMILES string.
 
-        :param smi: SMILES string
-        :type smi: str
-        :param stereo: Keep stereo information form the SMILES string?
-        :type stereo: bool
-        :returns: AMChI string
-        :rtype: str
+    :param smi: SMILES string
+    :type smi: str
+    :param stereo: Keep stereo information form the SMILES string?
+    :type stereo: bool
+    :returns: AMChI string
+    :rtype: str
     """
     gra = graph(smi, stereo=stereo, local_stereo=False)
     ach = automol.graph.base.amchi(gra)
@@ -26,13 +26,13 @@ def amchi(smi, stereo=True):
 
 
 def inchi(smi, stereo=True):
-    """ Convert a SMILES string into an InChI string.
+    """Convert a SMILES string into an InChI string.
 
-        :param smi: SMILES string
-        :type smi: str
-        :param stereo: Keep stereo information form the SMILES string?
-        :type stereo: bool
-        :rtype: str
+    :param smi: SMILES string
+    :type smi: str
+    :param stereo: Keep stereo information form the SMILES string?
+    :type stereo: bool
+    :rtype: str
     """
     if not stereo:
         smi = without_stereo(smi)
@@ -44,13 +44,13 @@ def inchi(smi, stereo=True):
 
 
 def chi(smi):
-    """ Convert a SMILES string to an AMChI or InChI string.
+    """Convert a SMILES string to an AMChI or InChI string.
 
-        Currently only uses AMChI for resonance bond stereo.
+    Currently only uses AMChI for resonance bond stereo.
 
-        :param smi: SMILES string
-        :type smi: str
-        :rtype: str
+    :param smi: SMILES string
+    :type smi: str
+    :rtype: str
     """
     gra = graph(smi, stereo=True, local_stereo=False)
     ret = inchi(smi)
@@ -61,36 +61,39 @@ def chi(smi):
 
 
 def graph(smi, stereo=True, local_stereo=False):
-    """ Generate a molecular graph from a SMILES string.
+    """Generate a molecular graph from a SMILES string.
 
-        :param smi: SMILES string
-        :type smi: str
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
-        :param local_stereo: assign local stereo parities?
-        :type local_stereo: bool
-        :rtype: automol molecular graph
+    :param smi: SMILES string
+    :type smi: str
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
+    :param local_stereo: assign local stereo parities?
+    :type local_stereo: bool
+    :rtype: automol molecular graph
     """
     smis = split(smi)
-    gras = [_connected_graph(s, stereo=stereo, local_stereo=local_stereo)
-            for s in smis]
+    gras = [_connected_graph(s, stereo=stereo, local_stereo=local_stereo) for s in smis]
     gra = automol.graph.base.union_from_sequence(gras, shift_keys=True)
     return gra
 
 
 def _connected_graph(smi, stereo=True, local_stereo=False):
-    """ Generate a connected molecular graph from a connected SMILES string.
+    """Generate a connected molecular graph from a connected SMILES string.
 
-        :param smi: SMILES string
-        :type smi: str
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
-        :param local_stereo: assign local stereo parities?
-        :type local_stereo: bool
-        :rtype: automol molecular graph
+    :param smi: SMILES string
+    :type smi: str
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
+    :param local_stereo: assign local stereo parities?
+    :type local_stereo: bool
+    :rtype: automol molecular graph
     """
-    symb_dct, bnd_ord_dct, atm_par_dct, bnd_par_dct = (
-        parse_connected_molecule_properties(smi))
+    (
+        symb_dct,
+        bnd_ord_dct,
+        atm_par_dct,
+        bnd_par_dct,
+    ) = parse_connected_molecule_properties(smi)
     bnd_keys = bnd_ord_dct.keys()
 
     if not stereo:
@@ -123,13 +126,13 @@ def _connected_graph(smi, stereo=True, local_stereo=False):
 
 
 def geometry(smi, check=True):
-    """ Generate a molecular geometry from a SMILES string.
+    """Generate a molecular geometry from a SMILES string.
 
-        :param smi: SMILES string
-        :type smi: str
-        :param check: check stereo and connectivity?
-        :type check: bool
-        :rtype: automol molecular geometry data structure
+    :param smi: SMILES string
+    :type smi: str
+    :param check: check stereo and connectivity?
+    :type check: bool
+    :rtype: automol molecular geometry data structure
     """
     gra = graph(smi)
     geo = automol.graph.geometry(gra, check=check)
@@ -137,22 +140,22 @@ def geometry(smi, check=True):
 
 
 def formula_string(smi):
-    """ Get the molecular formula string (Hill-sorted) from a SMILES string
+    """Get the molecular formula string (Hill-sorted) from a SMILES string
 
-        :param smi: SMILES string
-        :type smi: str
-        :rtype: str
+    :param smi: SMILES string
+    :type smi: str
+    :rtype: str
     """
     ich = inchi(smi)
     return automol.inchi.base.formula_string(ich)
 
 
 def recalculate_without_stereo(smi):
-    """ Convert a SMILES string into an InChI string.
+    """Recalculate a SMILES string, removing stereo if present
 
-        :param smi: SMILES string
-        :type smi: str
-        :rtype: str
+    :param smi: SMILES string
+    :type smi: str
+    :rtype: str
     """
     smi = without_stereo(smi)
 
@@ -162,26 +165,41 @@ def recalculate_without_stereo(smi):
 
 
 def rdkit_molecule(smi, stereo=True):
-    """ Convert a SMILES string to an RDKit molecule.
+    """Convert a SMILES string to an RDKit molecule.
 
-        This is mainly useful for quick visualization with IPython, which can
-        be done as follows:
-        >>> from IPython.display import display
-        >>> display(rdkit_molecule(smi))
+    This is mainly useful for quick visualization with IPython, which can
+    be done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_molecule(smi))
 
-        :param smi: SMILES string
-        :type smi: str
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
-        :returns: the RDKit molecule
+    :param smi: SMILES string
+    :type smi: str
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
+    :returns: the RDKit molecule
     """
     rdkit_.turn_3d_visualization_off()
     gra = graph(smi, stereo=stereo)
     return automol.graph.rdkit_molecule(gra, stereo=stereo)
 
 
+def svg_string(smi, stereo=True):
+    """Convert a SMILES string into an InChI string.
+
+    :param smi: SMILES string
+    :type smi: str
+    :rtype: str
+    """
+    if not stereo:
+        smi = without_stereo(smi)
+
+    rdm = rdkit_.from_smiles(smi)
+    svg_str = rdkit_.to_svg_string(rdm)
+    return svg_str
+
+
 def rdkit_reaction(rsmis, psmis, stereo=True, res_stereo=False):
-    """ Convert reactant and product graphs to an RDKit reaction object.
+    """Convert reactant and product graphs to an RDKit reaction object.
 
     This is mainly useful for quick visualization with IPython, which can be
     done as follows:
@@ -199,17 +217,18 @@ def rdkit_reaction(rsmis, psmis, stereo=True, res_stereo=False):
     rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rsmis]
     pgras = [graph(s, stereo=stereo) for s in psmis]
-    return automol.graph.rdkit_reaction(rgras, pgras, stereo=stereo,
-                                        res_stereo=res_stereo)
+    return automol.graph.rdkit_reaction(
+        rgras, pgras, stereo=stereo, res_stereo=res_stereo
+    )
 
 
 def display(smi, stereo=True):
-    """ Display graph to IPython using the RDKit visualizer
+    """Display graph to IPython using the RDKit visualizer
 
-        :param smi: SMILES string
-        :type smi: str
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
+    :param smi: SMILES string
+    :type smi: str
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
     """
     rdkit_.turn_3d_visualization_off()
     gra = graph(smi, stereo=stereo)
@@ -217,12 +236,12 @@ def display(smi, stereo=True):
 
 
 def display_reaction(rsmis, psmis, stereo=True):
-    """ Display reaction to IPython using the RDKit visualizer
+    """Display reaction to IPython using the RDKit visualizer
 
-        :param rsmis: SMILES strings for the reactants
-        :param psmis: SMILES strings for the products
-        :param stereo: parameter to include stereochemistry information
-        :type stereo: bool
+    :param rsmis: SMILES strings for the reactants
+    :param psmis: SMILES strings for the products
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
     """
     rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rsmis]
@@ -232,31 +251,31 @@ def display_reaction(rsmis, psmis, stereo=True):
 
 # helpers
 def _compare(smi1, smi2):
-    """ Check if two SMILES strings are similar.
+    """Check if two SMILES strings are similar.
 
-        :param smi1: SMILES string 1
-        :type smi1: str
-        :param smi2: SMILES string 2
-        :type smi2: str
-        :rtype: bool
+    :param smi1: SMILES string 1
+    :type smi1: str
+    :param smi2: SMILES string 2
+    :type smi2: str
+    :rtype: bool
     """
     return _canonicalize(smi1) == _canonicalize(smi2)
 
 
 def _canonicalize(smi):
-    """ Convert a SMILES string into its canonical form.
+    """Convert a SMILES string into its canonical form.
 
-        :param smi: SMILES string
-        :type smi: str
-        :rtype: str
+    :param smi: SMILES string
+    :type smi: str
+    :rtype: str
     """
     return rdkit_.to_smiles(rdkit_.from_smiles(smi))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SMIS = [
-        '[CH2]CC[C@H]1O[C@H]1C.O',
-        '[CH2]CC[C@@H]1O[C@@H]1C.[OH]',
+        "[CH2]CC[C@H]1O[C@H]1C.O",
+        "[CH2]CC[C@@H]1O[C@@H]1C.[OH]",
     ]
     for SMI in SMIS:
         ACH = amchi(SMI)

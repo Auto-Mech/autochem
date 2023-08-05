@@ -394,6 +394,54 @@ def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
     return rdm
 
 
+def svg_string(gra, stereo=True, label=False, label_dct=None, image_size=200):
+    """Get an SVG string for visualizing the graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
+    :param image_size: The image size, defaults to 150
+    :type image_size: int, optional
+    :return: The SVG string, in svg+xml format
+    :rtype: str
+    """
+    rdm = rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
+    svg_str = rdkit_.to_svg_string(rdm, image_size=image_size)
+    return svg_str
+
+
+def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=200):
+    """Get an ipywidget object for visualizing the graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
+    :param image_size: The image size, defaults to 150
+    :type image_size: int, optional
+    :return: The widget object
+    :rtype: ipywidgets.Image
+    """
+    svg_str = svg_string(
+        gra, stereo=stereo, label=label, label_dct=label_dct, image_size=image_size
+    )
+    widget = ipywidgets.Image(
+        value=svg_str.encode("utf-8"), format="svg+xml", width=image_size, height=image_size
+    )
+    return widget
+
+
 def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
     """Convert reactant and product graphs to an RDKit reaction object.
 
@@ -451,31 +499,6 @@ def display_reaction(rgras, pgras, stereo=True):
     """
     rdkit_.turn_3d_visualization_off()
     return IPython.display.display(rdkit_reaction(rgras, pgras, stereo=stereo))
-
-
-def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=200):
-    """Get an ipywidget object for visualizing the graph
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param stereo: Include stereochemistry information?
-    :type stereo: bool
-    :param label: Display the molecule with atom labels?
-    :type label: bool
-    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
-        `True`, the atom keys themselves will be used as labels.
-    :param label_dct: bool
-    :param image_size: The image size, defaults to 150
-    :type image_size: int, optional
-    :return: The widget object
-    :rtype: ipywidgets.Image
-    """
-    rdm = rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
-    svg_text = rdkit_.to_svg_text(rdm)
-    widget = ipywidgets.Image(
-        value=svg_text, format="svg+xml", width=image_size, height=image_size
-    )
-    return widget
 
 
 # # helpers

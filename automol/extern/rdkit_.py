@@ -384,14 +384,18 @@ def to_connectivity_graph(rdm):
 
 
 # draw operations
-def to_svg_text(rdm, image_size=300):
+def to_svg_string(rdm, image_size=300):
     """Convert the RDKit molecule to an SVG string
     """
     rdd = Draw.MolDraw2DSVG(image_size, image_size)
+    opts = rdd.drawOptions()
+    opts.maxFontSize = 80
+    opts.minFontSize = 30
+    opts.bondLineWidth = 7
     rdd.DrawMolecule(rdm)
     rdd.FinishDrawing()
-    svg_text = rdd.GetDrawingText().encode("utf-8")
-    return svg_text
+    svg_str = rdd.GetDrawingText()
+    return svg_str
 
 
 def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
