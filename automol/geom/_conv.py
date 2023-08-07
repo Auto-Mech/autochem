@@ -11,7 +11,7 @@ import automol.graph
 import automol.inchi.base
 import automol.zmat.base
 from automol import util
-from automol.extern import rdkit_
+from automol.extern import rdkit_, py3dmol_
 from automol.geom import _pyx2z
 from automol.geom.base import (
     central_angle,
@@ -319,32 +319,23 @@ def rdkit_molecule(geo, gra=None):
     return rdkit_.from_geometry_with_graph(geo, gra)
 
 
-def view(geo, gra=None, image_size=400, vec_xyz=None, vec_xyz_origin=(0, 0, 0)):
+def py3dmol_view(geo, gra=None, view=None, image_size=400):
     """Get a py3DMol view of this molecular geometry
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param gra: A molecular graph, describing the connectivity, defaults to None
     :type gra: automol graph data structure, optional
-    :param image_size: The image size in pixels, defaults to 400
+    :param image_size: The image size, if creating a new view, defaults to 400
     :type image_size: int, optional
-    :param vec_xyz: Optionally, show a vector on the view, defaults to None
-    :type vec_xyz: Tuple[float, float, float], optional
-    :param vec_xyz_origin: Origin for `vec_xyz`, defaults to (0, 0, 0)
-    :type vec_xyz_origin: Tuple[float, float, float], optional
-    :return: A viewer object
-    :rtype: py3DMol.GLViewer
+    :param view: An existing 3D view to append to, defaults to None
+    :type view: py3Dmol.view, optional
+    :return: A 3D view containing the molecule
+    :rtype: py3Dmol.view
     """
     rdm = rdkit_molecule(geo, gra=gra)
-    view = rdkit_.to_3d_view(rdm, image_size=image_size)
-    if vec_xyz is not None:
-        view.addArrow(
-            {
-                "start": dict(zip("xyz", vec_xyz_origin)),
-                "end": dict(zip("xyz", numpy.add(vec_xyz, vec_xyz_origin))),
-            }
-        )
-    return view
+    mlf = rdkit_.to_molfile(rdm)
+    return py3dmol_.view_molecule_from_molfile(mlf, view=view, image_size=image_size)
 
 
 def display(geo, gra=None, image_size=400):

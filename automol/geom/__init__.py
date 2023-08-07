@@ -108,7 +108,7 @@ from automol.geom._conv import chi
 from automol.geom._conv import chi_with_sort
 from automol.geom._conv import smiles
 from automol.geom._conv import rdkit_molecule
-from automol.geom._conv import view
+from automol.geom._conv import py3dmol_view
 from automol.geom._conv import display
 # # derived properties
 from automol.geom._conv import linear_atoms
@@ -235,7 +235,7 @@ __all__ = [
     'chi_with_sort',
     'smiles',
     'rdkit_molecule',
-    'view',
+    'py3dmol_view',
     'display',
     # # derived properties
     'linear_atoms',

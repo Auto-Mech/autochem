@@ -7,8 +7,16 @@ import scipy
 from phydat import phycon
 
 import automol.graph.base
+from automol.extern import py3dmol_
 from automol.geom._conv import connectivity_graph
-from automol.geom.base import coordinates, count, distance, from_data, symbols
+from automol.geom.base import (
+    coordinates,
+    count,
+    distance,
+    from_data,
+    from_subset,
+    symbols,
+)
 from automol.util import vec
 
 
@@ -85,26 +93,29 @@ def join_at_forming_bond(geos, tsg, geo_idx_dct=None):
     len1, len2 = map(count, geos)
     idxs1 = tuple(range(len1))
     idxs2 = tuple(range(len1, len1 + len2))
-    fidx1, = frm_key & set(idxs1)
-    fidx2, = frm_key & set(idxs2)
+    (fidx1,) = frm_key & set(idxs1)
+    (fidx2,) = frm_key & set(idxs2)
     nidxs1 = automol.graph.base.atom_keys(nbh_dct[fidx1])
     nidxs2 = automol.graph.base.atom_keys(nbh_dct[fidx2])
     geo = sum(geos, ())
     # 1. Find normal vectors for each plane
-    nxyzs1 = automol.geom.base.coordinates(geo, idxs=nidxs1)
-    nxyzs2 = automol.geom.base.coordinates(geo, idxs=nidxs2)
+    nxyzs1 = coordinates(geo, idxs=nidxs1)
+    nxyzs2 = coordinates(geo, idxs=nidxs2)
     nvec1 = vec.best_unit_perpendicular(xyzs=nxyzs1)
     nvec2 = vec.best_unit_perpendicular(xyzs=nxyzs2)
+    # 2. Find the 
     # testing 1
-    geo1 = automol.geom.base.from_subset(geo, idxs=idxs1)
-    fxyz1 = automol.geom.base.coordinates(geo)[fidx1]
-    view1 = automol.geom.view(geo1, vec_xyz=nvec1, vec_xyz_origin=fxyz1)
-    view1.show()
+    view = py3dmol_.create_view()
+    geo1 = from_subset(geo, idxs=idxs1)
+    fxyz1 = coordinates(geo)[fidx1]
+    view = automol.geom.py3dmol_view(geo1, view=view)
+    view = py3dmol_.view_vector(nvec1, orig_xyz=fxyz1, view=view)
     # testing 2
-    geo2 = automol.geom.base.from_subset(geo, idxs=idxs2)
-    fxyz2 = automol.geom.base.coordinates(geo)[fidx2]
-    view2 = automol.geom.view(geo2, vec_xyz=nvec2, vec_xyz_origin=fxyz2)
-    view2.show()
+    geo2 = from_subset(geo, idxs=idxs2)
+    fxyz2 = coordinates(geo)[fidx2]
+    view = automol.geom.py3dmol_view(geo2, view=view)
+    view = py3dmol_.view_vector(nvec2, orig_xyz=fxyz2, view=view)
+    view.show()
     print("nvec1", nvec1)
     print("nvec2", nvec2)
     # 2. Find the angle between them
