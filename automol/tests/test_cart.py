@@ -28,18 +28,12 @@ def test__vec():
 
     # Test angle calculators
     ref_perp = (-0.90180687, -0.40614043, -0.14762896)
-    perp = automol.util.vec.unit_perpendicular(
-        MAT[0], MAT[1], allow_parallel=False)
+    perp = automol.util.vec.unit_perpendicular(MAT[0], MAT[1])
     assert numpy.allclose(perp, ref_perp)
 
     ref_perp = (0.000, 0.000, 0.000)
-    perp = automol.util.vec.unit_perpendicular(
-        MAT[0], MAT[0], allow_parallel=True)
+    perp = automol.util.vec.unit_perpendicular(MAT[0], MAT[0])
     assert numpy.allclose(perp, ref_perp)
-
-    with pytest.raises(ValueError):
-        automol.util.vec.unit_perpendicular(
-            MAT[0], MAT[0], allow_parallel=False)
 
     ref_angle = 0.28211376550390677
     angle = automol.util.vec.projected_central_angle(

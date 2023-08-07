@@ -15,17 +15,19 @@ Data structure:
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
-import numbers
-import itertools
 import functools
+import itertools
+import numbers
+
 import numpy
+import qcelemental as qcel
 import yaml
-from phydat import ptab
-from phydat import phycon
+from phydat import phycon, ptab
+
 import automol.formula
+import automol.util.dict_.multi as mdict
 from automol import util
 from automol.util import dict_
-import automol.util.dict_.multi as mdict
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1

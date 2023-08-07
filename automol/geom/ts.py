@@ -15,7 +15,9 @@ from automol.geom.base import (
     distance,
     from_data,
     from_subset,
+    rotate,
     symbols,
+    translate,
 )
 from automol.util import vec
 
@@ -98,23 +100,37 @@ def join_at_forming_bond(geos, tsg, geo_idx_dct=None):
     nidxs1 = automol.graph.base.atom_keys(nbh_dct[fidx1])
     nidxs2 = automol.graph.base.atom_keys(nbh_dct[fidx2])
     geo = sum(geos, ())
-    # 1. Find normal vectors for each plane
+    # 1. Find the atoms on either side of the forming bond
+    fxyz1 = coordinates(geo)[fidx1]
+    fxyz2 = coordinates(geo)[fidx2]
+    # 2. Translate the second reagent to place `fxyz2` on top of `fxyz1`
+    geo = translate(geo, numpy.subtract(fxyz1, fxyz2), idxs=idxs2)
+    fxyz2 = coordinates(geo)[fidx2]
+    # 3. Find normal vectors for the neighborhood planes on either side
     nxyzs1 = coordinates(geo, idxs=nidxs1)
     nxyzs2 = coordinates(geo, idxs=nidxs2)
     nvec1 = vec.best_unit_perpendicular(xyzs=nxyzs1)
     nvec2 = vec.best_unit_perpendicular(xyzs=nxyzs2)
-    # 2. Find the 
+    # 4. Find the angle and rotational axis between the normal fectors
+    rot_ang = vec.angle(nvec1, nvec2)
+    rot_axis = vec.unit_perpendicular(nvec1, nvec2)
+    # 5. Rotate the second reagent to make its neighborhood plane parallel to the first
+    geo = rotate(geo, rot_axis, -rot_ang, orig_xyz=fxyz2, idxs=idxs2)
+    rot_ = vec.rotater(rot_axis, -rot_ang)
+    # 6. Translate the second reagent to the appropriate distance
+    nvec2 = rot_(nvec2)
+    print("rot_ang:", rot_ang * 180 / numpy.pi)
+    print("fot_axis", rot_axis)
     # testing 1
     view = py3dmol_.create_view()
     geo1 = from_subset(geo, idxs=idxs1)
-    fxyz1 = coordinates(geo)[fidx1]
     view = automol.geom.py3dmol_view(geo1, view=view)
     view = py3dmol_.view_vector(nvec1, orig_xyz=fxyz1, view=view)
     # testing 2
     geo2 = from_subset(geo, idxs=idxs2)
-    fxyz2 = coordinates(geo)[fidx2]
     view = automol.geom.py3dmol_view(geo2, view=view)
     view = py3dmol_.view_vector(nvec2, orig_xyz=fxyz2, view=view)
+    view = py3dmol_.view_vector(rot_axis, orig_xyz=fxyz2, view=view)
     view.show()
     print("nvec1", nvec1)
     print("nvec2", nvec2)

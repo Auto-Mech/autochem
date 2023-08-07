@@ -5,45 +5,56 @@ DEPRECATED (under construction to phase out)
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
+
 import numpy
+import qcelemental as qcel
+
+import automol.amchi.base  # !!!!
 from automol import util
-import automol.amchi.base    # !!!!
-from automol.graph.base._core import ts_graph
-from automol.graph.base._core import ts_breaking_bond_keys
-from automol.graph.base._core import ts_forming_bond_keys
-from automol.graph.base._core import ts_reacting_bond_keys
-from automol.graph.base._core import ts_reacting_atom_keys
-from automol.graph.base._core import ts_reverse
-from automol.graph.base._core import ts_reagents_graph_without_stereo
-from automol.graph.base._core import has_stereo
-from automol.graph.base._core import stereo_parities
-from automol.graph.base._core import set_stereo_parities
-from automol.graph.base._core import stereo_keys
-from automol.graph.base._core import atom_stereo_keys
-from automol.graph.base._core import bond_stereo_keys
-from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import string
-from automol.graph.base._core import relabel
-from automol.graph.base._core import nonbackbone_hydrogen_keys
-from automol.graph.base._core import bond_stereo_sorted_neighbor_keys
-from automol.graph.base._algo import rings_bond_keys
-from automol.graph.base._algo import isomorphic
-from automol.graph.base._algo import shortest_path_between_groups
-from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
-from automol.graph.base._canon import to_local_stereo
-from automol.graph.base._canon import local_priority_dict
-from automol.graph.base._canon import stereogenic_atom_keys
-from automol.graph.base._canon import stereogenic_bond_keys
-from automol.graph.base._canon import stereogenic_atom_keys_from_priorities
-from automol.graph.base._canon import stereogenic_bond_keys_from_priorities
-from automol.graph.base._canon import canonical_priorities
-from automol.graph.base._canon import calculate_priorities_and_assign_stereo
-from automol.graph.base._canon import parity_evaluator_flip_local_
-from automol.graph.base._kekule import vinyl_radical_atom_keys
-from automol.graph.base._kekule import rigid_planar_bond_keys
-from automol.graph.base._stereo import expand_stereo
-from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
+from automol.graph.base._algo import (
+    isomorphic,
+    rings_bond_keys,
+    shortest_path_between_groups,
+    sorted_ring_atom_keys_from_bond_keys,
+)
+from automol.graph.base._canon import (
+    calculate_priorities_and_assign_stereo,
+    canonical_priorities,
+    local_priority_dict,
+    parity_evaluator_flip_local_,
+    stereogenic_atom_keys,
+    stereogenic_atom_keys_from_priorities,
+    stereogenic_bond_keys,
+    stereogenic_bond_keys_from_priorities,
+    to_local_stereo,
+)
+from automol.graph.base._core import (
+    atom_stereo_keys,
+    atoms_neighbor_atom_keys,
+    bond_stereo_keys,
+    bond_stereo_sorted_neighbor_keys,
+    has_stereo,
+    nonbackbone_hydrogen_keys,
+    relabel,
+    set_stereo_parities,
+    stereo_keys,
+    stereo_parities,
+    string,
+    ts_breaking_bond_keys,
+    ts_forming_bond_keys,
+    ts_graph,
+    ts_reacting_atom_keys,
+    ts_reacting_bond_keys,
+    ts_reagents_graph_without_stereo,
+    ts_reverse,
+    without_dummy_atoms,
+)
+from automol.graph.base._heur import heuristic_bond_distance as _heuristic_bond_distance
+from automol.graph.base._kekule import rigid_planar_bond_keys, vinyl_radical_atom_keys
+from automol.graph.base._stereo import (
+    expand_stereo,
+    expand_stereo_with_priorities_and_amchis,
+)
 
 # Rename TS-specific functions defined elsewhere
 graph = ts_graph
@@ -56,57 +67,59 @@ reagents_graph_without_stereo = ts_reagents_graph_without_stereo
 
 
 def forming_rings_atom_keys(tsg):
-    """ get the atom keys to rings forming in the TS graph
+    """get the atom keys to rings forming in the TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
     frm_rngs_bnd_keys = forming_rings_bond_keys(tsg)
-    frm_rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys,
-                                  frm_rngs_bnd_keys))
+    frm_rngs_atm_keys = tuple(
+        map(sorted_ring_atom_keys_from_bond_keys, frm_rngs_bnd_keys)
+    )
     return frm_rngs_atm_keys
 
 
 def forming_rings_bond_keys(tsg):
-    """ get the bond keys to rings forming in the TS graph
+    """get the bond keys to rings forming in the TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
     frm_bnd_keys = ts_forming_bond_keys(tsg)
     frm_rngs_bnd_keys = tuple(
-        bks for bks in rings_bond_keys(tsg, ts_=True)
-        if frm_bnd_keys & bks)
+        bks for bks in rings_bond_keys(tsg, ts_=True) if frm_bnd_keys & bks
+    )
     return frm_rngs_bnd_keys
 
 
 def breaking_rings_atom_keys(tsg):
-    """ get the atom keys to rings breaking in the TS graph
+    """get the atom keys to rings breaking in the TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
     brk_rngs_bnd_keys = breaking_rings_bond_keys(tsg)
-    brk_rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys,
-                                  brk_rngs_bnd_keys))
+    brk_rngs_atm_keys = tuple(
+        map(sorted_ring_atom_keys_from_bond_keys, brk_rngs_bnd_keys)
+    )
     return brk_rngs_atm_keys
 
 
 def breaking_rings_bond_keys(tsg):
-    """ get the bond keys to rings breaking in the TS graph
+    """get the bond keys to rings breaking in the TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     """
     brk_bnd_keys = ts_breaking_bond_keys(tsg)
     brk_rngs_bnd_keys = tuple(
-        bks for bks in rings_bond_keys(tsg, ts_=True)
-        if brk_bnd_keys & bks)
+        bks for bks in rings_bond_keys(tsg, ts_=True) if brk_bnd_keys & bks
+    )
     return brk_rngs_bnd_keys
 
 
 def reactants_graph(tsg, stereo=True):
-    """ Get the reactants from a TS graph
+    """Get the reactants from a TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
@@ -119,7 +132,7 @@ def reactants_graph(tsg, stereo=True):
 
 
 def products_graph(tsg, stereo=True):
-    """ Get the products from a TS graph
+    """Get the products from a TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
@@ -132,7 +145,7 @@ def products_graph(tsg, stereo=True):
 
 
 def reagents_graph(tsg, prod=False, stereo=True):
-    """ Get the reactants or products from a TS graph
+    """Get the reactants or products from a TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
@@ -146,13 +159,16 @@ def reagents_graph(tsg, prod=False, stereo=True):
     gra = ts_reagents_graph_without_stereo(tsg, prod=prod)
     if stereo and has_stereo(tsg):
         _, gra = calculate_priorities_and_assign_stereo(
-            gra, backbone_only=False, break_ties=False,
-            par_eval_=parity_evaluator_reagents_from_ts_(tsg, prod=prod))
+            gra,
+            backbone_only=False,
+            break_ties=False,
+            par_eval_=parity_evaluator_reagents_from_ts_(tsg, prod=prod),
+        )
     return gra
 
 
 def parity_evaluator_reagents_from_ts_(tsg, prod=False):
-    r""" Determines reactant or product stereochemistry from a TS graph
+    r"""Determines reactant or product stereochemistry from a TS graph
 
     (For internal use by the calculate_priorities_and_assign_stereo() function)
 
@@ -185,7 +201,7 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
     par_eval_flip_ = parity_evaluator_flip_local_()
 
     def _evaluator(gra, pri_dct, ts_rev=False):
-        """ Parity evaluator based on current priorities
+        """Parity evaluator based on current priorities
 
         Note: `ts_rev` gets ignored here, because we are *not* assigning stereo
         to a TS graph (We are using TS stereo to assign to a non-TS graph)
@@ -214,7 +230,8 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
             if par is None:
                 raise NotImplementedError(
                     f"Reagent determination for this TS graph is not "
-                    f"yet implemented:\n{tsg}")
+                    f"yet implemented:\n{tsg}"
+                )
 
             return par
 
@@ -224,7 +241,7 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
 
 
 def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
-    """ Expand TS graph stereo that is consistent with reactants and products
+    """Expand TS graph stereo that is consistent with reactants and products
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
@@ -245,8 +262,9 @@ def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
     # Identify local parities
     fpars0 = util.dict_.values_by_key(stereo_parities(loc_fgra), fkeys)
     rpars0 = util.dict_.values_by_key(stereo_parities(loc_rgra), rkeys)
-    assert not any(p is None for p in fpars0 + rpars0), (
-        "Corrupted stereo assignments: {rcts_gra}\n{prds_gra}")
+    assert not any(
+        p is None for p in fpars0 + rpars0
+    ), "Corrupted stereo assignments: {rcts_gra}\n{prds_gra}"
 
     # Include *all* possibilities for the TS, including symmetry equivalent
     # ones
@@ -282,7 +300,7 @@ def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
 
 
 def constrained_elimination_local_parity(loc_tsg):
-    r""" Calculates the local parity of the reactant or product of a
+    r"""Calculates the local parity of the reactant or product of a
     constrained elimination, if present
 
         Constraint:
@@ -310,7 +328,8 @@ def constrained_elimination_local_parity(loc_tsg):
     :rtype: frozenset({int, int}, bool, bool
     """
     loc_par_dct = util.dict_.filter_by_value(
-        stereo_parities(loc_tsg), lambda x: x is not None)
+        stereo_parities(loc_tsg), lambda x: x is not None
+    )
     loc_pri_dct = local_priority_dict(loc_tsg)
     nkeys_dct = atoms_neighbor_atom_keys(loc_tsg)
 
@@ -331,8 +350,8 @@ def constrained_elimination_local_parity(loc_tsg):
             # B. Both atoms in the bond are stereogenic
             if all(k in loc_par_dct for k in bkey):
                 key1, key2 = bkey
-                key0, = next(k for k in frm_bkeys if key1 in k) - {key1}
-                key3, = next(k for k in frm_bkeys if key2 in k) - {key2}
+                (key0,) = next(k for k in frm_bkeys if key1 in k) - {key1}
+                (key3,) = next(k for k in frm_bkeys if key2 in k) - {key2}
                 keys = {key0, key1, key2, key3}
                 # C. The atoms are part of a forming ring
                 if any(keys & rkeys for rkeys in rkeys_lst):
@@ -342,10 +361,8 @@ def constrained_elimination_local_parity(loc_tsg):
                     p_a2 = loc_par_dct[key2]
 
                     # ii. Calculate the local bond parity
-                    nk1s = sorted(
-                        nkeys_dct[key1], key=loc_pri_dct.__getitem__)
-                    nk2s = sorted(
-                        nkeys_dct[key2], key=loc_pri_dct.__getitem__)
+                    nk1s = sorted(nkeys_dct[key1], key=loc_pri_dct.__getitem__)
+                    nk2s = sorted(nkeys_dct[key2], key=loc_pri_dct.__getitem__)
                     srt_nk1s = util.move_items_to_front(nk1s, [key2, key0])
                     srt_nk2s = util.move_items_to_front(nk2s, [key1, key3])
                     p_1 = util.is_even_permutation(nk1s, srt_nk1s)
@@ -383,7 +400,8 @@ def vinyl_addition_local_parity(loc_tsg):
     """
     bkeys = bond_stereo_keys(loc_tsg)
     loc_par_dct = util.dict_.filter_by_value(
-        stereo_parities(loc_tsg), lambda x: x is not None)
+        stereo_parities(loc_tsg), lambda x: x is not None
+    )
     loc_pri_dct = local_priority_dict(loc_tsg)
 
     for prod in [False, True]:
@@ -398,15 +416,18 @@ def vinyl_addition_local_parity(loc_tsg):
             # Get sorted neighbors for both atoms
             akeys = sorted(bkey)
             tnkeys_pair = bond_stereo_sorted_neighbor_keys(
-                loc_tsg, *akeys, pri_dct=loc_pri_dct)
+                loc_tsg, *akeys, pri_dct=loc_pri_dct
+            )
             gnkeys_pair = bond_stereo_sorted_neighbor_keys(
-                gra, *akeys, pri_dct=loc_pri_dct)
-            for (akey, tnkeys, gnkeys) in zip(akeys, tnkeys_pair, gnkeys_pair):
+                gra, *akeys, pri_dct=loc_pri_dct
+            )
+            for akey, tnkeys, gnkeys in zip(akeys, tnkeys_pair, gnkeys_pair):
                 # Compare sorted neighbors for mismatch
                 if tnkeys != gnkeys:
                     assert akey in vin_keys, (
                         f"Neighbor mismatch at {akey} is not due to "
-                        f"vinyl addition:\n{loc_tsg}")
+                        f"vinyl addition:\n{loc_tsg}"
+                    )
                     # If the maximum priority neighbors don't match, flip
                     # the parity
                     if tnkeys[-1] != gnkeys[-1]:
@@ -419,27 +440,72 @@ def vinyl_addition_local_parity(loc_tsg):
     return (None, None, None)
 
 
+def heuristic_bond_distance(
+    tsg,
+    key1: int,
+    key2: int,
+    fdist_factor: float = 1.1,
+    bdist_factor: float = 0.9,
+    angstrom: bool = True,
+    check: bool = False,
+) -> float:
+    """The heuristic bond distance between two bonded or reacting atoms
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key1: The first atom key
+    :type key1: int
+    :param key2: The second atom key
+    :type key2: int
+    :param fdist_factor: Set the forming bond distance to this times the average
+        van der Waals radius, defaults to 1.1
+    :type fdist_factor: float, optional
+    :param bdist_factor: Set the breaking bond distance to this times the average
+        van der Waals radius, defaults to 0.9
+    :param angstrom: Return in angstroms intead of bohr?, defaults to True
+    :type angstrom: bool, optional
+    :param check: Check that these atoms are in fact bonded or reacting, defaults to False
+    :type check: bool, optional
+    :return: The heuristic distance
+    :rtype: float
+    """
+    units = "angstrom" if angstrom else "bohr"
+    frm_keys = list(automol.graph.base.ts.forming_bond_keys(tsg))
+    brk_keys = list(automol.graph.base.ts.breaking_bond_keys(tsg))
+    rxn_keys = frm_keys + brk_keys
+
+    key = frozenset({key1, key2})
+    if key in rxn_keys:
+        symb_dct = automol.graph.base.atom_symbols(tsg)
+        dist = sum(qcel.vdwradii.get(symb_dct[k], units=units) for k in key) / 2
+        dist *= fdist_factor if key in frm_keys else bdist_factor
+    else:
+        dist = _heuristic_bond_distance(tsg, key1, key2, angstrom=angstrom, check=check)
+
+    return dist
+
+
 # vvvvvvvvvvvvvvvvvvvvvvvvv DEPRECTATED vvvvvvvvvvvvvvvvvv
 def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
-    r""" Check whether a reaction satisfies the elimination stereo constraint
+    r"""Check whether a reaction satisfies the elimination stereo constraint
 
-        Constraint:
+    Constraint:
 
-                3           6         4         8
-                 \ +     + /           \   +   /     3
-                  1-------2      <=>    1=====2      |
-                 / \     / \           /       \     6
-                4   5   8   7         5         7
+            3           6         4         8
+             \ +     + /           \   +   /     3
+              1-------2      <=>    1=====2      |
+             / \     / \           /       \     6
+            4   5   8   7         5         7
 
-            clockwise  clockwise     trans
-            ('+')      ('+')         ('+')
+        clockwise  clockwise     trans
+        ('+')      ('+')         ('+')
 
-        Equation: p_b12 = (p_a1 AND p_1) XNOR (p_a2 AND p_2)
+    Equation: p_b12 = (p_a1 AND p_1) XNOR (p_a2 AND p_2)
 
-        Where p_a1 and p_a2 are the parities of the atoms, p_b is the resulting
-        parity of the 1=2 double bond, and p_1 and p_2 are the parities of the
-        permutations required to move the other atom in the bond first in the
-        list and the leaving atom second for each atom.
+    Where p_a1 and p_a2 are the parities of the atoms, p_b is the resulting
+    parity of the 1=2 double bond, and p_1 and p_2 are the parities of the
+    permutations required to move the other atom in the bond first in the
+    list and the leaving atom second for each atom.
     """
     floc_par_dct = stereo_parities(ftsg_loc)
     rloc_par_dct = stereo_parities(rtsg_loc)
@@ -458,8 +524,8 @@ def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
         # A. Both atoms in the bond were stereogenic in the reactants
         if all(k in ste_akeys for k in bkey):
             key1, key2 = bkey
-            key0, = next(k for k in brk_bkeys if key1 in k) - {key1}
-            key3, = next(k for k in brk_bkeys if key2 in k) - {key2}
+            (key0,) = next(k for k in brk_bkeys if key1 in k) - {key1}
+            (key3,) = next(k for k in brk_bkeys if key2 in k) - {key2}
             keys = {key0, key1, key2, key3}
             # B. The leaving groups are joined together, forming a TS ring
             if any(keys & ks for ks in rng_akeys_lst):
@@ -479,13 +545,13 @@ def reaction_stereo_satisfies_elimination_constraint(ftsg_loc, rtsg_loc):
 
                 # p_b12 = (p_a1 XNOR p_1) XNOR (p_a2 XNOR p_2)
                 p_b12 = not ((not (p_a1 ^ p_1)) ^ (not (p_a2 ^ p_2)))
-                satisfies &= (p_b12 == p_b12_actual)
+                satisfies &= p_b12 == p_b12_actual
 
     return satisfies
 
 
 def negate_nonbackbone_hydrogen_keys(gra):
-    """ Flip the signs of hydrogen keys
+    """Flip the signs of hydrogen keys
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -499,31 +565,30 @@ def negate_nonbackbone_hydrogen_keys(gra):
 
 
 def fleeting_stereogenic_atom_keys(tsg, ts_enant=True):
-    """ Identify fleeting stereogenic atoms in a TS structure
+    """Identify fleeting stereogenic atoms in a TS structure
 
-        A stereocenter is 'fleeting' if it occurs only in the TS, not in the
-        reactants or products.
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
 
-        Setting `ts_enant=False` generates only *dia*stereogenic keys.  The
-        atom/bond is deemed diastereogenic if its inversion results in a
-        different diastereomer. For bonds, this is always the case. For atoms,
-        this is assumed to be the case unless there are no other chiral atoms,
-        in which case we assume inversion generates an enantiomer.
+    Setting `ts_enant=False` generates only *dia*stereogenic keys.  The
+    atom/bond is deemed diastereogenic if its inversion results in a
+    different diastereomer. For bonds, this is always the case. For atoms,
+    this is assumed to be the case unless there are no other chiral atoms,
+    in which case we assume inversion generates an enantiomer.
 
-        :param tsg: TS graph
-        :type tsg: automol graph data structure
-        :param ts_enant: Include fleeting enantiomer stereo sites?
-        :type ts_enant: bool
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param ts_enant: Include fleeting enantiomer stereo sites?
+    :type ts_enant: bool
     """
     tsg = without_dummy_atoms(tsg)
     pri_dct = canonical_priorities(tsg, backbone_only=False)
 
     tsg_ste_atm_keys = stereogenic_atom_keys_from_priorities(
-        tsg, pri_dct=pri_dct, assigned=True)
-    rct_ste_atm_keys = stereogenic_atom_keys(reactants_graph(tsg),
-                                             assigned=True)
-    prd_ste_atm_keys = stereogenic_atom_keys(products_graph(tsg),
-                                             assigned=True)
+        tsg, pri_dct=pri_dct, assigned=True
+    )
+    rct_ste_atm_keys = stereogenic_atom_keys(reactants_graph(tsg), assigned=True)
+    prd_ste_atm_keys = stereogenic_atom_keys(products_graph(tsg), assigned=True)
     ste_atm_keys = (tsg_ste_atm_keys - rct_ste_atm_keys) - prd_ste_atm_keys
 
     # Handle the case where we only want diastereogenic atoms.
@@ -537,43 +602,42 @@ def fleeting_stereogenic_atom_keys(tsg, ts_enant=True):
 
 
 def fleeting_stereogenic_bond_keys(tsg):
-    """ Identify fleeting stereogenic bonds in a TS structure
+    """Identify fleeting stereogenic bonds in a TS structure
 
-        A stereocenter is 'fleeting' if it occurs only in the TS, not in the
-        reactants or products.
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
 
-        :param tsg: TS graph
-        :type tsg: automol graph data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
     """
     tsg = without_dummy_atoms(tsg)
     pri_dct = canonical_priorities(tsg, backbone_only=False)
 
     tsg_ste_bnd_keys = stereogenic_bond_keys_from_priorities(
-        tsg, pri_dct=pri_dct, assigned=True)
-    rct_ste_bnd_keys = stereogenic_bond_keys(reactants_graph(tsg),
-                                             assigned=True)
-    prd_ste_bnd_keys = stereogenic_bond_keys(products_graph(tsg),
-                                             assigned=True)
+        tsg, pri_dct=pri_dct, assigned=True
+    )
+    rct_ste_bnd_keys = stereogenic_bond_keys(reactants_graph(tsg), assigned=True)
+    prd_ste_bnd_keys = stereogenic_bond_keys(products_graph(tsg), assigned=True)
     ste_bnd_keys = (tsg_ste_bnd_keys - rct_ste_bnd_keys) - prd_ste_bnd_keys
     return ste_bnd_keys
 
 
 def fleeting_stereogenic_keys(tsg, ts_enant=True):
-    """ Identify fleeting stereogenic atoms and bonds in a TS structure
+    """Identify fleeting stereogenic atoms and bonds in a TS structure
 
-        A stereocenter is 'fleeting' if it occurs only in the TS, not in the
-        reactants or products.
+    A stereocenter is 'fleeting' if it occurs only in the TS, not in the
+    reactants or products.
 
-        Setting `ts_enant=False` generates only *dia*stereogenic keys.  The
-        atom/bond is deemed diastereogenic if its inversion results in a
-        different diastereomer. For bonds, this is always the case. For atoms,
-        this is assumed to be the case unless there are no other chiral atoms,
-        in which case we assume inversion generates an enantiomer.
+    Setting `ts_enant=False` generates only *dia*stereogenic keys.  The
+    atom/bond is deemed diastereogenic if its inversion results in a
+    different diastereomer. For bonds, this is always the case. For atoms,
+    this is assumed to be the case unless there are no other chiral atoms,
+    in which case we assume inversion generates an enantiomer.
 
-        :param tsg: TS graph
-        :type tsg: automol graph data structure
-        :param ts_enant: Include fleeting enantiomer stereo sites?
-        :type ts_enant: bool
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param ts_enant: Include fleeting enantiomer stereo sites?
+    :type ts_enant: bool
     """
     ste_atm_keys = fleeting_stereogenic_atom_keys(tsg, ts_enant=ts_enant)
     ste_bnd_keys = fleeting_stereogenic_bond_keys(tsg)
@@ -582,18 +646,18 @@ def fleeting_stereogenic_keys(tsg, ts_enant=True):
 
 
 def fleeting_stereosite_sorted_neighbors(tsg, ts_enant=True):
-    """ Neighbor atoms at fleeting stereosites, sorted by proximity to the
-        reaction site
+    """Neighbor atoms at fleeting stereosites, sorted by proximity to the
+    reaction site
 
-        For TS graphs which are aligned apart from their breaking and forming
-        bond keys, this graph will be different for different TS diastereomers.
+    For TS graphs which are aligned apart from their breaking and forming
+    bond keys, this graph will be different for different TS diastereomers.
 
-        :param tsg: TS graph
-        :type tsg: automol graph data structure
-        :param ts_enant: Include fleeting enantiomer stereo sites?
-        :type ts_enant: bool
-        :returns: A dictionary keyed by fleeting stereogenic keys, with values
-        of the specific neighbors that are reacting ()
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param ts_enant: Include fleeting enantiomer stereo sites?
+    :type ts_enant: bool
+    :returns: A dictionary keyed by fleeting stereogenic keys, with values
+    of the specific neighbors that are reacting ()
     """
     rxn_atm_keys = ts_reacting_atom_keys(tsg)
     nkeys_dct = atoms_neighbor_atom_keys(tsg)
@@ -605,8 +669,7 @@ def fleeting_stereosite_sorted_neighbors(tsg, ts_enant=True):
         return metric
 
     def _sorted_nkeys(key, excl_key=None):
-        """ Sort neighboring keys based on proximity to the reaction site
-        """
+        """Sort neighboring keys based on proximity to the reaction site"""
         nkeys = nkeys_dct[key] - {excl_key}
         return tuple(sorted(nkeys, key=_distance_from_reaction_site))
 
@@ -617,15 +680,18 @@ def fleeting_stereosite_sorted_neighbors(tsg, ts_enant=True):
     # Add bond stereo sites
     ste_bnd_keys = list(map(sorted, fleeting_stereogenic_bond_keys(tsg)))
     srt_ste_nkey_dct.update(
-        {(k2, k1): _sorted_nkeys(k1, k2)
-         for bk in ste_bnd_keys for k1, k2 in itertools.permutations(bk)}
+        {
+            (k2, k1): _sorted_nkeys(k1, k2)
+            for bk in ste_bnd_keys
+            for k1, k2 in itertools.permutations(bk)
+        }
     )
 
     return srt_ste_nkey_dct
 
 
 def are_equivalent(tsg1, tsg2, ts_stereo=True, ts_enant=False):
-    """ Are these TS graphs energetically equivalent?
+    """Are these TS graphs energetically equivalent?
 
     Requires two TS graphs that are exactly aligned, having identical reactant
     graphs (including their keys) and differing only in the breaking/forming
@@ -680,9 +746,11 @@ def are_equivalent(tsg1, tsg2, ts_stereo=True, ts_enant=False):
     # reaction site (see docstring).
     if ts_stereo and ret:
         srt_ste_nkey_dct1 = fleeting_stereosite_sorted_neighbors(
-            tsg1, ts_enant=ts_enant)
+            tsg1, ts_enant=ts_enant
+        )
         srt_ste_nkey_dct2 = fleeting_stereosite_sorted_neighbors(
-            tsg2, ts_enant=ts_enant)
+            tsg2, ts_enant=ts_enant
+        )
         # For any fleeting stereosites that the two graphs have in common,
         # check whether their neighoring atoms have the same relationship to
         # the reaction site.
@@ -693,34 +761,33 @@ def are_equivalent(tsg1, tsg2, ts_stereo=True, ts_enant=False):
     return ret
 
 
-def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True,
-                           log=False):
-    """ Obtain all possible stereoisomer combinations for a reaction, encoding
-        reactant and product stereo assignments in forward and reverse TS
-        graphs, respectively
+def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True, log=False):
+    """Obtain all possible stereoisomer combinations for a reaction, encoding
+    reactant and product stereo assignments in forward and reverse TS
+    graphs, respectively
 
-        :param tsg: A TS graph; If it has stereo assignments, they will be
-            assumed to be for the reactants, and all compatible products
-            assignments will be exapnded
-        :type tsg: automol graph data structure
-        :param enant: Include all enantiomers, or only canonical ones?
-        :type enant: bool
-        :param symeq: Include symmetrically equivalent stereoisomers?
-        :type symeq: bool
-        :param const: Constrain bond stereo based on reactant atom stereo?
-        :type const: bool
-        :param log: Print information to the screen?
-        :type log: bool
-        :returns: a series of pairs of forward and reverse graphs containing
-            mutually compatible stereo assignments
+    :param tsg: A TS graph; If it has stereo assignments, they will be
+        assumed to be for the reactants, and all compatible products
+        assignments will be exapnded
+    :type tsg: automol graph data structure
+    :param enant: Include all enantiomers, or only canonical ones?
+    :type enant: bool
+    :param symeq: Include symmetrically equivalent stereoisomers?
+    :type symeq: bool
+    :param const: Constrain bond stereo based on reactant atom stereo?
+    :type const: bool
+    :param log: Print information to the screen?
+    :type log: bool
+    :returns: a series of pairs of forward and reverse graphs containing
+        mutually compatible stereo assignments
     """
     rxns = []
 
     # 1. Expand all possible reactant and product assignments
-    ftsgs, fpri_dcts, fchis = zip(
-        *expand_stereo_with_priorities_and_amchis(tsg))
+    ftsgs, fpri_dcts, fchis = zip(*expand_stereo_with_priorities_and_amchis(tsg))
     rtsgs, rpri_dcts, rchis = zip(
-        *expand_stereo_with_priorities_and_amchis(reverse(tsg)))
+        *expand_stereo_with_priorities_and_amchis(reverse(tsg))
+    )
 
     seen_rxn_chis = []
     # 2. Loop over forward TS graphs (reactant assignments)
@@ -736,35 +803,33 @@ def expand_reaction_stereo(tsg, enant=True, symeq=False, const=True,
             # 6. Check if the local stereo assignments for reactants and
             # products are mutually compatible.
             if reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=const):
-
                 # 7. Check if the reaction is canonical.
-                if (enant or
-                        automol.amchi.base.is_canonical_enantiomer_reaction(
-                            fchi, rchi)):
-
+                if enant or automol.amchi.base.is_canonical_enantiomer_reaction(
+                    fchi, rchi
+                ):
                     # 8. Check if the reaction has been seen before (symmetry)
                     if symeq or (fchi, rchi) not in seen_rxn_chis:
                         rxns.append((ftsg, rtsg))
                         seen_rxn_chis.append((fchi, rchi))
 
                         if log:
-                            print(f'{fchi} =>\n{rchi}\n')
+                            print(f"{fchi} =>\n{rchi}\n")
 
     return tuple(rxns)
 
 
 def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
-    """ Does this pair of forward and reverse reactions have compatible stereo?
+    """Does this pair of forward and reverse reactions have compatible stereo?
 
-        :param ftsg_loc: a forward TS graph, with local stereo assignments for
-            the reactants
-        :type ftsg_loc: automol graph data structure
-        :param rtsg_loc: a reverse TS graph, with local stereo assignments for
-            the products
-        :type rtsg_loc: automol graph data structure
-        :param const: Constrain bond stereo based on reactant atom stereo?
-        :type const: bool
-        :rtype: bool
+    :param ftsg_loc: a forward TS graph, with local stereo assignments for
+        the reactants
+    :type ftsg_loc: automol graph data structure
+    :param rtsg_loc: a reverse TS graph, with local stereo assignments for
+        the products
+    :type rtsg_loc: automol graph data structure
+    :param const: Constrain bond stereo based on reactant atom stereo?
+    :type const: bool
+    :rtype: bool
     """
     # 1. Check conserved stereo sites
     reac_keys = ts_reacting_atom_keys(ftsg_loc)
@@ -790,42 +855,44 @@ def reaction_stereo_is_physical(ftsg_loc, rtsg_loc, const=True):
         if not isinstance(cons_key, frozenset):
             assert cons_key not in reac_keys, (
                 f"Assumption fails! Conserved atom stereo site {cons_key} "
-                f"is a reacting atom: {reac_keys}.")
+                f"is a reacting atom: {reac_keys}."
+            )
 
-            is_consistent &= (floc_par_dct[cons_key] ==
-                              rloc_par_dct[cons_key])
+            is_consistent &= floc_par_dct[cons_key] == rloc_par_dct[cons_key]
         # Conserved bond keys may be involved in the reaction, but we must make
         # sure their local parities don't change
         else:
-            key1, key2 = sorted(cons_key, reverse=True,
-                                key=lambda k: fnkeys_dct[k] == rnkeys_dct[k])
+            key1, key2 = sorted(
+                cons_key, reverse=True, key=lambda k: fnkeys_dct[k] == rnkeys_dct[k]
+            )
             fnkey1s = sorted(fnkeys_dct[key1] - {key2})
             fnkey2s = sorted(fnkeys_dct[key2] - {key1})
             rnkey1s = sorted(rnkeys_dct[key1] - {key2})
             rnkey2s = sorted(rnkeys_dct[key2] - {key1})
 
-            if (max(fnkey1s) == max(rnkey1s) and
-                    max(fnkey2s) == max(rnkey2s)):
-                is_consistent &= (floc_par_dct[cons_key] ==
-                                  rloc_par_dct[cons_key])
+            if max(fnkey1s) == max(rnkey1s) and max(fnkey2s) == max(rnkey2s):
+                is_consistent &= floc_par_dct[cons_key] == rloc_par_dct[cons_key]
             else:
-                assert ((cons_key & fvin_keys or cons_key & rvin_keys) and
-                        (fnkey1s == rnkey1s and fnkey2s[0] == rnkey2s[0])), (
+                assert (cons_key & fvin_keys or cons_key & rvin_keys) and (
+                    fnkey1s == rnkey1s and fnkey2s[0] == rnkey2s[0]
+                ), (
                     f"Assumption fails! Conserved non-vinyl bond stereo site "
                     f"{cons_key} will have its local parity altered."
                     f"\nForward neighbors: {fnkey1s} / {fnkey2s}"
-                    f"\nReverse neighbors: {rnkey1s} / {rnkey2s}")
+                    f"\nReverse neighbors: {rnkey1s} / {rnkey2s}"
+                )
 
-                is_consistent &= (floc_par_dct[cons_key] !=
-                                  rloc_par_dct[cons_key])
+                is_consistent &= floc_par_dct[cons_key] != rloc_par_dct[cons_key]
 
     # 2. Check for insertion/elimination stereo constraint
     if const:
         # A. Elimination
         is_consistent &= reaction_stereo_satisfies_elimination_constraint(
-            ftsg_loc, rtsg_loc)
+            ftsg_loc, rtsg_loc
+        )
         # B. Insertion
         is_consistent &= reaction_stereo_satisfies_elimination_constraint(
-            rtsg_loc, ftsg_loc)
+            rtsg_loc, ftsg_loc
+        )
 
     return is_consistent
