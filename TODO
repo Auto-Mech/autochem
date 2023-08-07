@@ -6,6 +6,8 @@
     [X] _2stereo.py
     [X] _3find.py
     [X] Implement Reaction object structure addition
+    [X] Stereo-correct join for atom stereo
+!!! [ ] Stereo-correct join for bond stereo
     LEFT OFF AT automol.geom.ts.join_at_forming_bond()
     -> SEE test_ts_geometry.ipynb
     [ ] _4geom.py
