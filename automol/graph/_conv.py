@@ -437,7 +437,10 @@ def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=200):
         gra, stereo=stereo, label=label, label_dct=label_dct, image_size=image_size
     )
     widget = ipywidgets.Image(
-        value=svg_str.encode("utf-8"), format="svg+xml", width=image_size, height=image_size
+        value=svg_str.encode("utf-8"),
+        format="svg+xml",
+        width=image_size,
+        height=image_size,
     )
     return widget
 

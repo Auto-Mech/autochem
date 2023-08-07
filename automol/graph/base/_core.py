@@ -20,7 +20,6 @@ import itertools
 import numbers
 
 import numpy
-import qcelemental as qcel
 import yaml
 from phydat import phycon, ptab
 

@@ -38,9 +38,9 @@ class Reaction:
     :type class_: str
     :param ts_structure: The TS stucture, with keys matching the TS graph
     :type ts_structure: automol geom or zmat data structure
-    :param reactant_structures: The reactant stuctures, with keys matching reactants keys
+    :param reactant_structures: The reactant stuctures, with keys matching reactants
     :type reactant_structures: List[automol geom or zmat data structure]
-    :param product_structures: The product stuctures, with keys matching products keys
+    :param product_structures: The product stuctures, with keys matching products
     :type product_structures: List[automol geom or zmat data structure]
     :param structure_type: The structural information type ('zmat' or 'geom')
     :type structure_type: str

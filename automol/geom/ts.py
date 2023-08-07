@@ -12,10 +12,11 @@ from automol.geom.base import (
     distance,
     from_data,
     rotate,
+    set_coordinates,
     symbols,
     translate,
 )
-from automol.util import vec
+from automol.util import dict_, vec
 
 
 def geometry_from_reactants(
@@ -39,30 +40,40 @@ def geometry_from_reactants(
     :return: TS geometry
     :rtype: automol geom data structure
     """
-    # 1. Evaluate the distances, updating them for the TS graph
-    dist_dct = distances(
-        geos,
-        tsg,
-        geo_idx_dct=geo_idx_dct,
-        fdist_factor=fdist_factor,
-        bdist_factor=bdist_factor,
-    )
-
-    # 2. If there are multiple reactants, combine the geometries
+    # 1. If there are multiple reactants, combine the geometries
     if len(geos) == 1:
         (geo,) = geos
     else:
         assert (
             len(geos) == 2 and len(automol.graph.base.ts.forming_bond_keys(tsg)) == 1
         ), "Generating a TS geometry for this case is not implemented:\n{tsg}"
-        geo = join_at_forming_bond(geos, tsg, geo_idx_dct=geo_idx_dct)
+        geo = join_at_forming_bond(
+            geos, tsg, geo_idx_dct=geo_idx_dct, fdist_factor=fdist_factor
+        )
 
+    # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
+    # reactants and products
     ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
+
+    print(bdist_factor)
+
     return ts_geo
+    # This
+    # # 1. Evaluate the distances, updating them for the TS graph
+    # dist_dct = distances(
+    #     geos,
+    #     tsg,
+    #     geo_idx_dct=geo_idx_dct,
+    #     fdist_factor=fdist_factor,
+    #     bdist_factor=bdist_factor,
+    # )
 
 
 def join_at_forming_bond(geos, tsg, geo_idx_dct=None, fdist_factor=1.1):
     """Join two reactant geometries at a single forming bond
+
+    If stereochemistry is present in TS graph, the join will take stereochemistry into
+    account.
 
     :param geos: Reactant geometries
     :type geos: List[automol geom data structure]
@@ -119,6 +130,9 @@ def join_at_forming_bond(geos, tsg, geo_idx_dct=None, fdist_factor=1.1):
 def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vector):
     """Identify the direction of a reacting electron in a forming bond
 
+    If stereochemistry is present in the TS graph, the directions will be given to form
+    the correct stereochemistry.
+
     :param geo: Reactants geometry, aligned to the TS graph
     :type geo: automol geom data structure
     :param tsg: TS graph
@@ -130,12 +144,22 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
     :returns: A vector for first atom, and a vector for the second atom
     :rtype: (vec.Vector, vec.Vector)
     """
-    assert frozenset({key1, key2}) in automol.graph.base.ts.forming_bond_keys(tsg)
+    frm_key = frozenset({key1, key2})
+    assert frm_key in automol.graph.base.ts.forming_bond_keys(tsg)
+
+    if automol.graph.base.has_stereo(tsg):
+        tsg = automol.graph.base.to_local_stereo(tsg)
 
     no_rxn_bnd_gra = automol.graph.base.without_reacting_bonds(tsg)
     rcts_gra = automol.graph.base.ts.reactants_graph(tsg)
     vin_dct = automol.graph.base.vinyl_radical_atom_bond_keys(rcts_gra)
     sig_dct = automol.graph.base.sigma_radical_atom_bond_keys(rcts_gra)
+    apar_dct = dict_.filter_by_value(
+        automol.graph.base.atom_stereo_parities(tsg), lambda x: x is not None
+    )
+    # bpar_dct = dict_.filter_by_value(
+    #     automol.graph.base.bond_stereo_parities(tsg), lambda x: x is not None
+    # )
 
     xyzs = coordinates(geo)
 
@@ -149,7 +173,6 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
                 nxyz1, nxyz2 = map(xyzs.__getitem__, nkeys)
                 rvec = vec.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz, outer=True)
             elif len(nkeys) == 1:
-                print("vinyl radical!!")
                 # Get a unit vector perpendicular to the vinyl plane
                 vin_bkey = vin_dct[key]
                 vin_nbh = automol.graph.base.bond_neighborhood(rcts_gra, vin_bkey)
@@ -165,7 +188,6 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
         # If this is a sigma radical, the reacting electron is pointed outward along the
         # triple bond
         elif key in sig_dct:
-            print("sigma radical!!")
             (nkey,) = sig_dct[key] - {key}
             nxyz = xyzs[nkey]
             rvec = vec.unit_norm(numpy.subtract(xyz, nxyz))
@@ -177,10 +199,22 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
             vin_pkeys = automol.graph.base.atom_keys(vin_nbh)
             vin_pxyzs = coordinates(geo, idxs=vin_pkeys)
             rvec = vec.best_unit_perpendicular(xyzs=vin_pxyzs)
-        return rvec
+
+        # Adjust direction to match stereochemistry
+        if key in apar_dct:
+            # Set the other atom at the end of this vector
+            (key_,) = frm_key - {key}
+            xyz_ = numpy.add(xyz, rvec)
+            geo_ = set_coordinates(geo, {key_: xyz_})
+            par = automol.graph.base.geometry_atom_parity(tsg, geo_, key)
+            if par != apar_dct[key]:
+                rvec = numpy.negative(rvec)
+
+        return tuple(map(float, rvec))
 
     rvec1 = _direction_vector(key1)
     rvec2 = _direction_vector(key2)
+
     return rvec1, rvec2
 
 

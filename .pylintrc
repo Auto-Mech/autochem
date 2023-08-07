@@ -23,4 +23,6 @@ disable=
     unnecessary-lambda,
     consider-using-f-string,
     no-else-raise,
-    unnecessary-list-index-lookup
+    unnecessary-list-index-lookup,
+    invalid-name
+
