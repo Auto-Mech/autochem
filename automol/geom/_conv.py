@@ -338,15 +338,19 @@ def py3dmol_view(geo, gra=None, view=None, image_size=400):
     return py3dmol_.view_molecule_from_molfile(mlf, view=view, image_size=image_size)
 
 
-def display(geo, gra=None, image_size=400):
+def display(geo, gra=None, view=None, image_size=400):
     """Display molecule to IPython using the RDKit visualizer
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param gra: A molecular graph, describing the connectivity
     :type gra: automol graph data structure
+    :param image_size: The image size, if creating a new view, defaults to 400
+    :type image_size: int, optional
+    :param view: An existing 3D view to append to, defaults to None
+    :type view: py3Dmol.view, optional
     """
-    view = view(geo, gra=gra, image_size=image_size)
+    view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
     return view.show()
 
 

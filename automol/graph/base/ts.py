@@ -464,7 +464,7 @@ def heuristic_bond_distance(
         van der Waals radius, defaults to 0.9
     :param angstrom: Return in angstroms intead of bohr?, defaults to True
     :type angstrom: bool, optional
-    :param check: Check that these atoms are in fact bonded or reacting, defaults to False
+    :param check: Check that these atoms are in fact bonded/reacting, defaults to False
     :type check: bool, optional
     :return: The heuristic distance
     :rtype: float

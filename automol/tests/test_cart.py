@@ -2,7 +2,6 @@
 """
 
 import os
-import pytest
 import numpy
 from ioformat import pathtools
 import automol.util.mat

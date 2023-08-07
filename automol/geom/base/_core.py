@@ -8,7 +8,6 @@ import autoread as ar
 import autowrite as aw
 import more_itertools as mit
 import numpy
-import scipy.linalg
 from phydat import phycon, ptab
 
 import automol.formula
@@ -253,7 +252,7 @@ def from_xyz_trajectory_string(geo_str):
         """Split list into parts of size n"""
         split_lst = []
         for i in range(0, len(lst), size):
-            split_lst.append(lst[i : i + size])
+            split_lst.append(lst[i: i + size])
         return split_lst
 
     # Split the lines for iteration

@@ -33,7 +33,7 @@ def hydrogen_migration_ts_geometry(
     frm_bnd_dist = 1.7
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -93,7 +93,7 @@ def beta_scission_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=Fa
 
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -146,7 +146,7 @@ def ring_forming_scission_ts_geometry(
 
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -189,7 +189,7 @@ def ring_forming_scission_ts_geometry(
     # Rerun the optimization, enforcing planarity on the ring
     dist_dct = automol.geom.ts.distances(
         [geo],
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -233,7 +233,7 @@ def elimination_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=Fals
 
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -304,7 +304,7 @@ def hydrogen_abstraction_ts_geometry(
 
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -363,7 +363,7 @@ def addition_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False):
 
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -442,7 +442,7 @@ def insertion_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=False)
 
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )
@@ -513,7 +513,7 @@ def substitution_ts_geometry(rxn: Reaction, rct_geos, max_dist_err=2e-1, log=Fal
 
     dist_dct = automol.geom.ts.distances(
         rct_geos,
-        ts_gra=automol.reac.ts_graph(rxn),
+        tsg=automol.reac.ts_graph(rxn),
         geo_idx_dct=automol.reac.mapping(rxn, "T", "R"),
         angstrom=True,
     )

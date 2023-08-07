@@ -113,7 +113,7 @@ def unit_perpendicular(
     :type xyz2: tuple, list, or numpy nd.array
     :param orig_xyz: origin of coordinate system `xyz1` and `xyz2` are in
     :type orig_xyz: tuple, list, or numpy nd.array
-    :param value_if_parallel: What the function should return if the vectors are parallel
+    :param value_if_parallel: What to return if the vectors are parallel
     :type value_if_parallel: Vector
     :rtype: numpy.ndarray
     """
@@ -147,7 +147,7 @@ def unit_bisector(xyz1, xyz2, orig_xyz, outer: bool = False) -> Vector:
     ang = central_angle(xyz1, orig_xyz, xyz2)
     rot_ = rotator(
         axis=unit_perpendicular(xyz1, xyz2, orig_xyz),
-        angle=ang / 2.0,
+        ang=ang / 2.0,
         orig_xyz=orig_xyz,
     )
     xyz = unit_norm(numpy.subtract(rot_(xyz1), orig_xyz))
@@ -355,7 +355,7 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
 
 
 # transformations
-def rotator(axis, angle, orig_xyz=None):
+def rotator(axis, ang, orig_xyz=None):
     """A function to rotate vectors about an axis at a particular point.
 
     :param axis: axis to rotate about
@@ -366,7 +366,7 @@ def rotator(axis, angle, orig_xyz=None):
     :type: list, tuple, or nd.array
     :rtype: tuple(tuple(float))
     """
-    aug_rot_mat = tf.rotation_matrix(angle, axis, point=orig_xyz)
+    aug_rot_mat = tf.rotation_matrix(ang, axis, point=orig_xyz)
     return _transformer(aug_rot_mat)
 
 
