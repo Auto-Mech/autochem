@@ -1,7 +1,7 @@
 """ vector functions
 """
-from typing import Tuple
 import numbers
+from typing import Tuple
 
 import numpy
 import transformations as tf
@@ -130,7 +130,7 @@ def unit_perpendicular(
     return uxyz3
 
 
-def unit_bisector(xyz1, xyz2, orig_xyz):
+def unit_bisector(xyz1, xyz2, orig_xyz, outer: bool = False) -> Vector:
     """Calculate a unit bisector.
 
     :param xyz1: 3D vector
@@ -139,16 +139,20 @@ def unit_bisector(xyz1, xyz2, orig_xyz):
     :type xyz2: tuple, list, or numpy nd.array
     :param orig_xyz: origin of coordinate system `xyz1` and `xyz2` are in
     :type orig_xyz: tuple, list, or numpy nd.array
+    :param outer: Get the outer, instead of the inner bisector?, defaults to False
+    :type outer: bool, optional
     :rtype: numpy.ndarray
     """
 
     ang = central_angle(xyz1, orig_xyz, xyz2)
-    rot_ = rotater(
+    rot_ = rotator(
         axis=unit_perpendicular(xyz1, xyz2, orig_xyz),
         angle=ang / 2.0,
         orig_xyz=orig_xyz,
     )
     xyz = unit_norm(numpy.subtract(rot_(xyz1), orig_xyz))
+    if outer:
+        xyz = numpy.negative(xyz)
     return xyz
 
 
@@ -351,7 +355,7 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
 
 
 # transformations
-def rotater(axis, angle, orig_xyz=None):
+def rotator(axis, angle, orig_xyz=None):
     """A function to rotate vectors about an axis at a particular point.
 
     :param axis: axis to rotate about

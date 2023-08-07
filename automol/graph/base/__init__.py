@@ -198,6 +198,8 @@ from automol.graph.base._kekule import atom_hybridizations_from_kekule
 from automol.graph.base._kekule import radical_atom_keys
 from automol.graph.base._kekule import radical_atom_keys_from_kekule
 from automol.graph.base._kekule import nonresonant_radical_atom_keys
+from automol.graph.base._kekule import vinyl_radical_atom_bond_keys
+from automol.graph.base._kekule import sigma_radical_atom_bond_keys
 from automol.graph.base._kekule import vinyl_radical_atom_keys
 from automol.graph.base._kekule import sigma_radical_atom_keys
 from automol.graph.base._kekule import has_separated_radical_sites
@@ -480,6 +482,8 @@ __all__ = [
     'radical_atom_keys',
     'radical_atom_keys_from_kekule',
     'nonresonant_radical_atom_keys',
+    'vinyl_radical_atom_bond_keys',
+    'sigma_radical_atom_bond_keys',
     'vinyl_radical_atom_keys',
     'sigma_radical_atom_keys',
     'has_separated_radical_sites',
