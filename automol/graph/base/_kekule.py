@@ -359,7 +359,7 @@ def nonresonant_radical_atom_keys(gra):
     return atm_rad_keys
 
 
-def vinyl_radical_atom_keys(gra):
+def vinyl_radical_atom_bond_keys(gra):
     """ Vinyl radical atom keys for this molecular graph
 
     :param gra: the molecular graph
@@ -370,17 +370,16 @@ def vinyl_radical_atom_keys(gra):
     atm_rad_keys = nonresonant_radical_atom_keys(gra)
     bnd_ords_dct = kekules_bond_orders_collated(gra)
     atm_bnd_keys_dct = atoms_bond_keys(gra)
-    atm_vin_keys = []
+    vin_dct = {}
     for atm_key in atm_rad_keys:
         for bnd_key in atm_bnd_keys_dct[atm_key]:
             if 2 in bnd_ords_dct[bnd_key]:
-                atm_vin_keys.append(atm_key)
+                vin_dct[atm_key] = bnd_key
                 break
-    atm_vin_keys = frozenset(atm_vin_keys)
-    return atm_vin_keys
+    return vin_dct
 
 
-def sigma_radical_atom_keys(gra):
+def sigma_radical_atom_bond_keys(gra):
     """ keys for sigma radical atoms
 
     :param gra: the molecular graph
@@ -391,14 +390,33 @@ def sigma_radical_atom_keys(gra):
     atm_rad_keys = nonresonant_radical_atom_keys(gra)
     bnd_ords_dct = kekules_bond_orders_collated(gra)
     atm_bnd_keys_dct = atoms_bond_keys(gra)
-    atm_sig_keys = []
+    sig_dct = {}
     for atm_key in atm_rad_keys:
         for bnd_key in atm_bnd_keys_dct[atm_key]:
             if 3 in bnd_ords_dct[bnd_key]:
-                atm_sig_keys.append(atm_key)
+                sig_dct[atm_key] = bnd_key
                 break
-    atm_sig_keys = frozenset(atm_sig_keys)
-    return atm_sig_keys
+    return sig_dct
+
+
+def vinyl_radical_atom_keys(gra):
+    """ Vinyl radical atom keys for this molecular graph
+
+    :param gra: the molecular graph
+    :returns: the vinyl radical atom keys
+    :rtype: frozenset[int]
+    """
+    return frozenset(vinyl_radical_atom_bond_keys(gra))
+
+
+def sigma_radical_atom_keys(gra):
+    """ keys for sigma radical atoms
+
+    :param gra: the molecular graph
+    :returns: the sigma radical atom keys
+    :rtype: frozenset[int]
+    """
+    return frozenset(sigma_radical_atom_bond_keys(gra))
 
 
 def has_separated_radical_sites(gra):

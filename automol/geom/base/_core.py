@@ -1053,7 +1053,7 @@ def rotate(geo, axis, angle, orig_xyz=None, idxs=None, degree=False):
     """
     angle = angle if not degree else angle * phycon.DEG2RAD
 
-    func = util.vec.rotater(axis, angle, orig_xyz=orig_xyz)
+    func = util.vec.rotator(axis, angle, orig_xyz=orig_xyz)
 
     return transform(geo, func, idxs=idxs)
 

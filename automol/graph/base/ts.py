@@ -423,7 +423,7 @@ def vinyl_addition_local_parity(loc_tsg):
             )
             for akey, tnkeys, gnkeys in zip(akeys, tnkeys_pair, gnkeys_pair):
                 # Compare sorted neighbors for mismatch
-                if tnkeys != gnkeys:
+                if gnkeys and tnkeys != gnkeys:
                     assert akey in vin_keys, (
                         f"Neighbor mismatch at {akey} is not due to "
                         f"vinyl addition:\n{loc_tsg}"
