@@ -1,20 +1,16 @@
 """ generate ts geometries
 """
-import itertools
-
 import numpy
 import scipy
 from phydat import phycon
 
 import automol.graph.base
-from automol.extern import py3dmol_
 from automol.geom._conv import connectivity_graph
 from automol.geom.base import (
     coordinates,
     count,
     distance,
     from_data,
-    from_subset,
     rotate,
     symbols,
     translate,
@@ -56,10 +52,10 @@ def geometry_from_reactants(
     if len(geos) == 1:
         (geo,) = geos
     else:
-        if len(automol.graph.base.ts.forming_bond_keys(tsg)) == 1:
-            geo = join_at_forming_bond(geos, tsg, geo_idx_dct=geo_idx_dct)
-        else:
-            raise NotImplementedError
+        assert (
+            len(geos) == 2 and len(automol.graph.base.ts.forming_bond_keys(tsg)) == 1
+        ), "Generating a TS geometry for this case is not implemented:\n{tsg}"
+        geo = join_at_forming_bond(geos, tsg, geo_idx_dct=geo_idx_dct)
 
     ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
     return ts_geo
@@ -117,23 +113,6 @@ def join_at_forming_bond(geos, tsg, geo_idx_dct=None, fdist_factor=1.1):
     )
     fvec = numpy.multiply(rvec1, fdist)
     geo = translate(geo, fvec, idxs=idxs2, angstrom=True)
-    # testing 1
-    fxyz1 = coordinates(geo)[fidx1]
-    fxyz2 = coordinates(geo)[fidx2]
-    view = py3dmol_.create_view()
-    geo1 = from_subset(geo, idxs=idxs1)
-    view = automol.geom.py3dmol_view(geo1, view=view)
-    view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, view=view)
-    # testing 2
-    geo2 = from_subset(geo, idxs=idxs2)
-    view = automol.geom.py3dmol_view(geo2, view=view)
-    rot_ = vec.rotator(rot_axis, rot_ang)
-    rvec2 = rot_(rvec2)
-    view = py3dmol_.view_vector(rvec2, orig_xyz=fxyz2, view=view)
-    view = py3dmol_.view_vector(rot_axis, orig_xyz=fxyz2, view=view)
-    view.show()
-    print("nvec1", rvec1)
-    print("nvec2", rvec2)
     return geo
 
 
@@ -181,7 +160,7 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
                 nxyz = xyzs[next(iter(nkeys))]
                 bvec = vec.unit_norm(numpy.subtract(nxyz, xyz))
                 # Rotate the unit bond vector by 120 degrees in the vinyl plane
-                rot_ = vec.rotator(vin_nvec, 2. * numpy.pi / 3.)
+                rot_ = vec.rotator(vin_nvec, 2.0 * numpy.pi / 3.0)
                 rvec = rot_(bvec)
         # If this is a sigma radical, the reacting electron is pointed outward along the
         # triple bond
