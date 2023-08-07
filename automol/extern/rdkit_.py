@@ -1,59 +1,55 @@
 """ RDKit interface
 """
-import py3Dmol
 import rdkit
 from rdkit import RDLogger
-from rdkit.Chem import Draw
-from rdkit.Chem import AllChem
-from automol import util
+from rdkit.Chem import AllChem, Draw
+
 import automol.geom.base
 import automol.graph.base
-
+from automol import util
 
 _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)
 
 
 def turn_3d_visualization_on():
-    """ Turn 3D drawing in RDKit on
-    """
+    """Turn 3D drawing in RDKit on"""
     rdkit.Chem.Draw.IPythonConsole.ipython_3d = True
 
 
 def turn_3d_visualization_off():
-    """ Turn 3D drawing in RDKit on
-    """
+    """Turn 3D drawing in RDKit on"""
     rdkit.Chem.Draw.IPythonConsole.ipython_3d = False
 
 
 # inchi
 def from_inchi(ich, print_debug=False):
-    """ Generate an RDKit molecule object from an InChI string.
+    """Generate an RDKit molecule object from an InChI string.
 
-        :param ich: InChI string
-        :type ich: str
-        :param print_debug: control the printing of a debug message
-        :type print_debug: bool
-        :rtype: RDKit molecule object
+    :param ich: InChI string
+    :type ich: str
+    :param print_debug: control the printing of a debug message
+    :type print_debug: bool
+    :rtype: RDKit molecule object
     """
 
     rdm = rdkit.Chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
     if rdm is None and print_debug:
-        print(f'rdm fails for {ich} by returning {rdm}')
+        print(f"rdm fails for {ich} by returning {rdm}")
 
     return rdm
 
 
-def to_inchi(rdm, options='', with_aux_info=False):
-    """ Generate an InChI string from an RDKit molecule object.
+def to_inchi(rdm, options="", with_aux_info=False):
+    """Generate an InChI string from an RDKit molecule object.
 
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :param options:
-        :type options: str
-        :param with_aux_info: include auxiliary information
-        :type with_aux_info: bool
-        :rtype: str
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :param options:
+    :type options: str
+    :param with_aux_info: include auxiliary information
+    :type with_aux_info: bool
+    :rtype: str
     """
 
     if with_aux_info:
@@ -66,41 +62,41 @@ def to_inchi(rdm, options='', with_aux_info=False):
 
 # smiles
 def from_smiles(smi, print_debug=False):
-    """ Generate an RDKit molecule object from a SMILES string.
+    """Generate an RDKit molecule object from a SMILES string.
 
-        :param smi: SMILES string
-        :type smi: str
-        :param print_debug: control the printing of a debug message
-        :type print_debug: bool
-        :rtype: RDKit molecule object
+    :param smi: SMILES string
+    :type smi: str
+    :param print_debug: control the printing of a debug message
+    :type print_debug: bool
+    :rtype: RDKit molecule object
     """
 
     rdm = rdkit.Chem.MolFromSmiles(smi)
     if rdm is None and print_debug:
-        print(f'rdm fails for {smi} by returning {rdm}')
+        print(f"rdm fails for {smi} by returning {rdm}")
 
     return rdm
 
 
 def to_smiles(rdm):
-    """ Generate a SMILES string from an RDKit molecule object.
+    """Generate a SMILES string from an RDKit molecule object.
 
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :rtype: str
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :rtype: str
     """
     return rdkit.Chem.MolToSmiles(rdm)
 
 
 # geometry
 def from_geometry_with_graph(geo, gra):
-    """ Generate an RDKit molecule object from a molecular geometry.
+    """Generate an RDKit molecule object from a molecular geometry.
 
-        :param geo: automol geometry data structure
-        :type geo: str
-        :param geo: automol graph data structure
-        :type geo: str
-        :rtype: RDKit molecule object
+    :param geo: automol geometry data structure
+    :type geo: str
+    :param geo: automol graph data structure
+    :type geo: str
+    :rtype: RDKit molecule object
     """
     natms = automol.geom.base.count(geo)
     rdm = from_graph(gra)
@@ -114,11 +110,11 @@ def from_geometry_with_graph(geo, gra):
 
 
 def to_geometry(rdm):
-    """ Generate a molecular geometry from an RDKit molecule object.
+    """Generate a molecular geometry from an RDKit molecule object.
 
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :rtype: automol geometry data structure
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :rtype: automol geometry data structure
     """
 
     rdm = rdkit.Chem.AddHs(rdm)
@@ -126,7 +122,7 @@ def to_geometry(rdm):
     natms = len(rdm.GetAtoms())
     if natms == 1:
         syms = [str(atms[0].GetSymbol()).title()]
-        xyzs = [(0., 0., 0.)]
+        xyzs = [(0.0, 0.0, 0.0)]
     else:
         AllChem.EmbedMolecule(rdm)
         AllChem.MMFFOptimizeMolecule(rdm)
@@ -138,16 +134,16 @@ def to_geometry(rdm):
 
 
 def to_conformers(rdm, nconfs):
-    """ Generate molecular geometries for a set of conformers
-        from am RDKit molecule object.
+    """Generate molecular geometries for a set of conformers
+    from am RDKit molecule object.
 
-        Currently not removing redundant conformers.
+    Currently not removing redundant conformers.
 
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :param nconfs: number of conformers to generate
-        :type nconfs: int
-        :rtype: automol geometry data structure
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :param nconfs: number of conformers to generate
+    :type nconfs: int
+    :rtype: automol geometry data structure
     """
 
     rdm = rdkit.Chem.AddHs(rdm)
@@ -156,9 +152,8 @@ def to_conformers(rdm, nconfs):
     geos = []
     if natms == 1:
         syms = [str(atms[0].GetSymbol()).title()]
-        xyzs = [(0., 0., 0.)]
-        geos.append(
-            automol.geom.base.from_data(syms, xyzs, angstrom=True))
+        xyzs = [(0.0, 0.0, 0.0)]
+        geos.append(automol.geom.base.from_data(syms, xyzs, angstrom=True))
     else:
         cids = AllChem.EmbedMultipleConfs(rdm, numConfs=nconfs)
         res = AllChem.MMFFOptimizeMoleculeConfs(rdm)
@@ -166,30 +161,27 @@ def to_conformers(rdm, nconfs):
         for cid in cids:
             syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
             xyzs = tuple(map(tuple, rdm.GetConformer(cid).GetPositions()))
-            geos.append(
-                automol.geom.base.from_data(syms, xyzs, angstrom=True))
+            geos.append(automol.geom.base.from_data(syms, xyzs, angstrom=True))
         # Sort geometries using the energies
-        geos = [
-            x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])
-        ]
+        geos = [x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])]
 
     return geos
 
 
 # molfile
 def from_molfile(mfl, print_debug=False):
-    """ Generate an RDKit molecule object from a MOLFile string.
+    """Generate an RDKit molecule object from a MOLFile string.
 
-        :param mfl: MOLFile block string
-        :type mfl: str
-        :param print_debug: control the printing of a debug message
-        :type print_debug: bool
-        :rtype: RDKit molecule object
+    :param mfl: MOLFile block string
+    :type mfl: str
+    :param print_debug: control the printing of a debug message
+    :type print_debug: bool
+    :rtype: RDKit molecule object
     """
 
     rdm = rdkit.Chem.rdmolfiles.MolFromMolBlock(mfl, removeHs=False)
     if rdm is None and print_debug:
-        print(f'Warning: rdm fails for {mfl} by returning {rdm}')
+        print(f"Warning: rdm fails for {mfl} by returning {rdm}")
 
     return rdm
 
@@ -206,63 +198,42 @@ def to_molfile(rdm):
     return mfl
 
 
-def to_3d_view(rdm, image_size=400):
-    """_summary_
-
-    :param rdm: _description_
-    :type rdm: _type_
-    :param image_size: _description_, defaults to 400
-    :type image_size: int, optional
-    :raises NotImplementedError: _description_
-    :return: _description_
-    :rtype: _type_
-    """
-    mfl = to_molfile(rdm)
-    view = py3Dmol.view(width=image_size, height=image_size)
-    view.removeAllModels()
-    view.addModel(mfl, 'sdf')
-    view.setStyle({'stick': {}, 'sphere': {'radius': 0.3}})
-    view.setBackgroundColor('0xeeeeee')
-    view.zoomTo()
-    return view
-
-
 # smarts (for reactions)
 def from_smarts(smr, print_debug=False):
-    """ Generate an RDKit reaction object from a SMARTS string.
+    """Generate an RDKit reaction object from a SMARTS string.
 
-        :param smr: SMARTS string
-        :type smr: str
-        :param print_debug: control the printing of a debug message
-        :type print_debug: bool
-        :rtype: RDKit reaction object
+    :param smr: SMARTS string
+    :type smr: str
+    :param print_debug: control the printing of a debug message
+    :type print_debug: bool
+    :rtype: RDKit reaction object
     """
 
     rdm = AllChem.ReactionFromSmarts(smr)
     if rdm is None and print_debug:
-        print(f'rdm fails for {smr} by returning {rdm}')
+        print(f"rdm fails for {smr} by returning {rdm}")
 
     return rdm
 
 
 # inchi key
 def inchi_to_inchi_key(ich):
-    """ Convert an InChI string into an InChIKey using RDKit.
+    """Convert an InChI string into an InChIKey using RDKit.
 
-        :param ich: InChI string
-        :type ich: str
-        :rtype: str
+    :param ich: InChI string
+    :type ich: str
+    :rtype: str
     """
     return rdkit.Chem.inchi.InchiToInchiKey(ich)
 
 
 # formula
 def to_formula(rdm):
-    """ Generate a molecular formula dictionary from an RDKit molecule object.
+    """Generate a molecular formula dictionary from an RDKit molecule object.
 
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :rtype: dict[str:int]
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :rtype: dict[str:int]
     """
 
     rdm = rdkit.Chem.AddHs(rdm)
@@ -278,13 +249,13 @@ BOND_ORDER_DCT = {
     1: rdkit.Chem.BondType.SINGLE,
     1.5: rdkit.Chem.BondType.ONEANDAHALF,
     2: rdkit.Chem.BondType.DOUBLE,
-    3: rdkit.Chem.BondType.TRIPLE
+    3: rdkit.Chem.BondType.TRIPLE,
 }
 BOND_TYPE_DCT = dict(map(reversed, BOND_ORDER_DCT.items()))
 
 
 def from_graph(gra, stereo=False, label=False, label_dct=None):
-    """ Generate an RDKit rdmecule object from a connected rdmecular graph
+    """Generate an RDKit rdmecule object from a connected rdmecular graph
 
     :param stereo: Include stereochemistry information?
     :type stereo: bool
@@ -316,7 +287,8 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
 
     bnd_keys = list(map(idx_bond_key_, automol.graph.base.bond_keys(kgr)))
     ord_dct = util.dict_.transform_keys(
-        automol.graph.base.bond_orders(kgr), idx_bond_key_)
+        automol.graph.base.bond_orders(kgr), idx_bond_key_
+    )
 
     erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
@@ -339,11 +311,11 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
 
 
 def to_graph(rdm):
-    """ Generate a connectivity graph from an RDKit molecule object.
+    """Generate a connectivity graph from an RDKit molecule object.
 
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :rtype: automol molecular graph object
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :rtype: automol molecular graph object
     """
 
     rdm.UpdatePropertyCache()
@@ -352,22 +324,26 @@ def to_graph(rdm):
     sym_dct = {rda.GetIdx(): rda.GetSymbol() for rda in atms}
     hyd_dct = {rda.GetIdx(): rda.GetImplicitValence() for rda in atms}
     print(hyd_dct)
-    ord_dct = {(rdb.GetBeginAtomIdx(), rdb.GetEndAtomIdx()):
-               BOND_TYPE_DCT[rdb.GetBondType()]
-               for rdb in bnds}
+    ord_dct = {
+        (rdb.GetBeginAtomIdx(), rdb.GetEndAtomIdx()): BOND_TYPE_DCT[rdb.GetBondType()]
+        for rdb in bnds
+    }
     gra = automol.graph.base.from_data(
-        atm_symb_dct=sym_dct, bnd_keys=ord_dct.keys(),
-        atm_imp_hyd_dct=hyd_dct, bnd_ord_dct=ord_dct)
+        atm_symb_dct=sym_dct,
+        bnd_keys=ord_dct.keys(),
+        atm_imp_hyd_dct=hyd_dct,
+        bnd_ord_dct=ord_dct,
+    )
 
     return gra
 
 
 def to_connectivity_graph(rdm):
-    """ Generate a connectivity graph from an RDKit molecule object.
+    """Generate a connectivity graph from an RDKit molecule object.
 
-        :param rdm: molecule object
-        :type rdm: RDKit molecule object
-        :rtype: automol molecular graph object
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :rtype: automol molecular graph object
     """
 
     rdm = rdkit.Chem.AddHs(rdm)
@@ -375,8 +351,7 @@ def to_connectivity_graph(rdm):
     bnds = rdm.GetBonds()
     syms = [rda.GetSymbol() for rda in atms]
     idx = {rda.GetIdx(): idx for idx, rda in enumerate(atms)}
-    bnds = [(idx[rdb.GetBeginAtomIdx()], idx[rdb.GetEndAtomIdx()])
-            for rdb in bnds]
+    bnds = [(idx[rdb.GetBeginAtomIdx()], idx[rdb.GetEndAtomIdx()]) for rdb in bnds]
     sym_dct = dict(enumerate(syms))
     gra = automol.graph.base.from_data(atm_symb_dct=sym_dct, bnd_keys=bnds)
 
@@ -385,8 +360,7 @@ def to_connectivity_graph(rdm):
 
 # draw operations
 def to_svg_string(rdm, image_size=300):
-    """Convert the RDKit molecule to an SVG string
-    """
+    """Convert the RDKit molecule to an SVG string"""
     rdd = Draw.MolDraw2DSVG(image_size, image_size)
     opts = rdd.drawOptions()
     opts.maxFontSize = 80
@@ -399,8 +373,7 @@ def to_svg_string(rdm, image_size=300):
 
 
 def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
-    """ Convert the RdKit molecule object to a PNG image.
-    """
+    """Convert the RdKit molecule object to a PNG image."""
     cdraw = Draw.rdMolDraw2D.MolDraw2DCairo(image_size, image_size)
     opts = cdraw.drawOptions()
     opts.maxFontSize = 90
@@ -416,12 +389,14 @@ def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
         for i, _ in enumerate(atms):
             if rdm.GetAtomWithIdx(i).GetNumRadicalElectrons() > 0:
                 highlights += (i,)
-                highlight_radii[i] = .8
-                highlight_colors[i] = (.67, .85, .9)
+                highlight_radii[i] = 0.8
+                highlight_colors[i] = (0.67, 0.85, 0.9)
     cdraw.DrawMolecule(
-        rdm, highlightAtoms=highlights,
+        rdm,
+        highlightAtoms=highlights,
         highlightAtomRadii=highlight_radii,
-        highlightAtomColors=highlight_colors)
+        highlightAtomColors=highlight_colors,
+    )
     opts.includeRadicals = False
     cdraw.FinishDrawing()
     draw_out = draw.GetDrawingText()
@@ -431,26 +406,20 @@ def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
 
 
 def draw_grid(rdms, img_per_row=3, sub_img_size=(200, 200), legends=None):
-    """ Draw a grid
-    """
+    """Draw a grid"""
     # Set various options for drawing the grid
     if legends is None:
-        legends = tuple(i+1 for i in range(len(rdms)))
+        legends = tuple(i + 1 for i in range(len(rdms)))
     else:
-        assert len(rdms) == len(legends), (
-            "User provided ichs and legends are not the same length")
+        assert len(rdms) == len(
+            legends
+        ), "User provided ichs and legends are not the same length"
 
     return Draw.MolsToGridImage(
-        rdms,
-        molsPerRow=img_per_row,
-        subImgSize=sub_img_size,
-        legends=legends)
+        rdms, molsPerRow=img_per_row, subImgSize=sub_img_size, legends=legends
+    )
 
 
 def draw_mult(rdms, sub_img_size=(200, 200)):
-    """ Draw multiple
-    """
-    return Draw.MolsToImage(
-        rdms,
-        subImgSize=sub_img_size,
-        legends=None)
+    """Draw multiple"""
+    return Draw.MolsToImage(rdms, subImgSize=sub_img_size, legends=None)
