@@ -32,7 +32,6 @@ import itertools
 import more_itertools as mit
 import numpy
 from phydat import phycon
-from phydat import ptab
 from automol import error
 from automol import embed
 from automol.util import dict_
@@ -61,15 +60,8 @@ from automol.graph.base import rotational_bond_keys
 from automol.graph.base import geometry_atom_parity
 from automol.graph.base import geometry_bond_parity
 from automol.graph.base import perturb_geometry_planar_dihedrals
-
-# bond distances
-XY_DIST = 1.5       # angstroms
-XH_DIST = 1.1       # angstroms
-
-# bond angles
-TET_ANG = 109.4712  # degrees
-TRI_ANG = 120.      # degrees
-LIN_ANG = 180.      # degrees
+from automol.graph.base import heuristic_bond_distance
+from automol.graph.base import heuristic_bond_angle
 
 
 # # geometry embedding functions
@@ -573,53 +565,6 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
 
 
 # # heuristic coordinate values
-def heuristic_bond_distance(gra, key1, key2, angstrom=True, check=False):
-    """ heuristic bond distance (in angstroms)
-    """
-    if check:
-        assert key1 in atoms_neighbor_atom_keys(gra)[key2]
-
-    symb_dct = atom_symbols(gra)
-    symb1 = symb_dct[key1]
-    symb2 = symb_dct[key2]
-
-    if ptab.to_number(symb1) == 1 or ptab.to_number(symb2) == 1:
-        dist = XH_DIST
-    else:
-        dist = XY_DIST
-
-    dist *= 1 if angstrom else phycon.ANG2BOHR
-
-    return dist
-
-
-def heuristic_bond_angle(gra, key1, key2, key3, degree=False, check=False,
-                         hyb_dct=None):
-    """ heuristic bond angle
-
-    If being reused multiple times, you can speed this up by passing in the
-    hybridizations, so they don't need to be recalculated
-    """
-    if check:
-        assert {key1, key3} <= set(atoms_neighbor_atom_keys(gra)[key2])
-
-    if hyb_dct is None:
-        hyb_dct = atom_hybridizations(gra)
-
-    hyb2 = hyb_dct[key2]
-    if hyb2 == 3:
-        ang = TET_ANG
-    elif hyb2 == 2:
-        ang = TRI_ANG
-    else:
-        assert hyb2 == 1
-        ang = LIN_ANG
-
-    ang *= 1 if degree else phycon.DEG2RAD
-
-    return ang
-
-
 def heuristic_bond_angle_distance(gra, key1, key2, key3,
                                   d12=None, d23=None, angstrom=True,
                                   a123=None, degree=True, hyb_dct=None):

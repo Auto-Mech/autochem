@@ -1,9 +1,12 @@
 """ vector functions
 """
+from typing import Tuple
 import numbers
 
 import numpy
 import transformations as tf
+
+Vector = Tuple[float, float, float]
 
 
 def unit_norm(xyz):
@@ -72,7 +75,7 @@ def best_unit_perpendicular(xyzs):
     Solution to the last problem was found here: https://stackoverflow.com/a/51132260
 
     :param xyzs: The points
-    :type xyzs: List[Tuple[float, float, float]]
+    :type xyzs: List[Vector]
     """
     if len(xyzs) == 1:
         nvec = [1, 0, 0]
@@ -99,7 +102,9 @@ def arbitrary_unit_perpendicular(xyz, orig_xyz=(0.0, 0.0, 0.0)):
     return uxyz
 
 
-def unit_perpendicular(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), allow_parallel=True):
+def unit_perpendicular(
+    xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), value_if_parallel: Vector = (0.0, 0.0, 0.0)
+) -> Vector:
     """Calculate a unit perpendicular on `xyz1` and `xyz2`.
 
     :param xyz1: 3D vector
@@ -108,8 +113,8 @@ def unit_perpendicular(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), allow_parallel=True
     :type xyz2: tuple, list, or numpy nd.array
     :param orig_xyz: origin of coordinate system `xyz1` and `xyz2` are in
     :type orig_xyz: tuple, list, or numpy nd.array
-    :param allow_parallel: parameter to allow if vector can be parallel
-    :type allow_parallel: bool
+    :param value_if_parallel: What the function should return if the vectors are parallel
+    :type value_if_parallel: Vector
     :rtype: numpy.ndarray
     """
 
@@ -119,10 +124,8 @@ def unit_perpendicular(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), allow_parallel=True
 
     if numpy.linalg.norm(xyz3) > 1e-7:
         uxyz3 = unit_norm(xyz3)
-    elif allow_parallel:
-        uxyz3 = numpy.zeros((3,))
     else:
-        raise ValueError
+        uxyz3 = value_if_parallel
 
     return uxyz3
 
@@ -241,6 +244,30 @@ def distance(xyz1, xyz2):
     return dist
 
 
+def angle(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0)):
+    """Measure the angle inscribed by three atoms.
+
+    :param xyz1: 3D vector to point 1
+    :type xyz1: tuple, list, or numpy nd.array
+    :param xyz2: 3D vector to point 2
+    :type xyz2: tuple, list, or numpy nd.array
+    :param xyz3: 3D vector to point 3
+    :type xyz3: tuple, list, or numpy nd.array
+    :rtype: float
+    """
+    uxyz1 = unit_direction(orig_xyz, xyz1)
+    uxyz2 = unit_direction(orig_xyz, xyz2)
+    cos = numpy.dot(uxyz1, uxyz2)
+    if cos < -1.0:
+        assert numpy.allclose(cos, -1.0)
+        cos = -1.0
+    elif cos > 1.0:
+        assert numpy.allclose(cos, 1.0)
+        cos = 1.0
+    ang = numpy.arccos(cos)
+    return ang
+
+
 def central_angle(xyz1, xyz2, xyz3):
     """Measure the angle inscribed by three atoms.
 
@@ -252,17 +279,7 @@ def central_angle(xyz1, xyz2, xyz3):
     :type xyz3: tuple, list, or numpy nd.array
     :rtype: float
     """
-    uxyz21 = unit_direction(xyz2, xyz1)
-    uxyz23 = unit_direction(xyz2, xyz3)
-    cos = numpy.dot(uxyz21, uxyz23)
-    if cos < -1.0:
-        assert numpy.allclose(cos, -1.0)
-        cos = -1.0
-    elif cos > 1.0:
-        assert numpy.allclose(cos, 1.0)
-        cos = 1.0
-    ang = numpy.arccos(cos)
-    return ang
+    return angle(xyz1=xyz1, xyz2=xyz3, orig_xyz=xyz2)
 
 
 def projected_central_angle(xyz1, xyz2, xyz3):

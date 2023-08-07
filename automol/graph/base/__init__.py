@@ -5,7 +5,7 @@ Import hierarchy:
     _networkx   dependencies: _core
     _algo       dependencies: _core, _networkx
     _kekule     dependencies: _core, _networkx, _algo
-    _rot        dependencies: _core, _networkx, _algo, _kekule
+    _heur       dependencies: _core, _networkx, _algo, _kekule
     _geom       dependencies: _core, _networkx, _algo, _kekule
     _canon      dependencies: _core, _networkx, _algo, _kekule
     _amchi      dependencies: _core, _networkx, _algo, _canon, _kekule
@@ -212,10 +212,12 @@ from automol.graph.base._kekule import radical_group_dct
 from automol.graph.base._kekule import rigid_planar_bond_keys
 from automol.graph.base._kekule import atom_centered_cumulene_keys
 from automol.graph.base._kekule import bond_centered_cumulene_keys
-# torsion/rotational bond functions:
-from automol.graph.base._rot import rotational_bond_keys
-from automol.graph.base._rot import rotational_groups
-from automol.graph.base._rot import rotational_symmetry_number
+# structural heuristics:
+from automol.graph.base._heur import heuristic_bond_distance
+from automol.graph.base._heur import heuristic_bond_angle
+from automol.graph.base._heur import rotational_bond_keys
+from automol.graph.base._heur import rotational_groups
+from automol.graph.base._heur import rotational_symmetry_number
 # geometry functions:
 # # stereo parity evaluations
 from automol.graph.base._geom import geometry_atom_parity
@@ -492,7 +494,9 @@ __all__ = [
     'rigid_planar_bond_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
-    # torsion/rotational bond functions:
+    # structural heuristics:
+    'heuristic_bond_distance',
+    'heuristic_bond_angle',
     'rotational_bond_keys',
     'rotational_groups',
     'rotational_symmetry_number',
