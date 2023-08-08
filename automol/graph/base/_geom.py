@@ -12,11 +12,16 @@ from phydat import phycon
 
 import automol.geom.base
 from automol import util
-from automol.graph.base._algo import branch_atom_keys, ring_systems_atom_keys
+from automol.extern import py3dmol_, rdkit_
+from automol.graph.base._algo import (
+    branch_atom_keys,
+    ring_systems_atom_keys,
+    rings_bond_keys,
+)
 from automol.graph.base._core import (
     atom_keys,
-    atom_stereo_sorted_neighbor_keys,
     atom_neighbor_atom_keys,
+    atom_stereo_sorted_neighbor_keys,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
     bond_stereo_sorted_neighbor_keys,
@@ -381,7 +386,7 @@ def linear_vinyl_corrected_geometry(
 
 
 def geometry_pseudorotate_atom(
-    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None
+    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None, debug_visualize=False
 ):
     r"""Pseudorotate an atom in a molecular geometry by a certain amount
 
@@ -440,7 +445,7 @@ def geometry_pseudorotate_atom(
     for nkeys1, nkeys2 in mit.pairwise(nkey_sets):
         if len(nkeys1) == 2 or len(nkeys1 | nkeys2) == 2:
             found_pair = True
-            nkey1, nkey2, *_ = nkeys1 | nkeys2
+            nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
             break
 
     if found_pair:
@@ -455,6 +460,13 @@ def geometry_pseudorotate_atom(
         )
 
         geo = automol.geom.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
+        if debug_visualize:
+            view = py3dmol_.create_view()
+            rdm = rdkit_.from_geometry_with_graph(geo, gra)
+            mlf = rdkit_.to_molfile(rdm)
+            view = py3dmol_.view_molecule_from_molfile(mlf, view=view)
+            view = py3dmol_.view_vector(rot_axis, orig_xyz=xyz, view=view)
+            view.show()
     else:
         geo = None
 
@@ -499,7 +511,14 @@ def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
 
 
 def geometry_dihedrals_near_value(
-    gra, geo, ang, geo_idx_dct=None, tol=None, abs_=True, degree=False
+    gra,
+    geo,
+    ang,
+    geo_idx_dct=None,
+    tol=None,
+    abs_=True,
+    degree=False,
+    rings=False,
 ):
     """Identify dihedrals of a certain value
 
@@ -514,6 +533,8 @@ def geometry_dihedrals_near_value(
     :type tol: float
     :param abs_: Compare absolute values?
     :type abs_: bool
+    :param rings: Include ring diherals?, defaults to False
+    :type rings: bool, optional
     :returns: Quartets of dihedral keys matching this value
     :rtype: frozenset[tuple[int]]
     """
@@ -532,24 +553,26 @@ def geometry_dihedrals_near_value(
     )
 
     nkeys_dct = atoms_neighbor_atom_keys(gra)
-    bnd_keys = list(map(sorted, backbone_bond_keys(gra)))
+    bnd_keys = backbone_bond_keys(gra)
+    bnd_keys -= set(itertools.chain(*rings_bond_keys(gra)))
 
     dih_keys = []
     for atm2_key, atm3_key in bnd_keys:
         atm1_keys = nkeys_dct[atm2_key] - {atm3_key}
         atm4_keys = nkeys_dct[atm3_key] - {atm2_key}
         for atm1_key, atm4_key in itertools.product(atm1_keys, atm4_keys):
-            atm1_idx = geo_idx_dct[atm1_key]
-            atm2_idx = geo_idx_dct[atm2_key]
-            atm3_idx = geo_idx_dct[atm3_key]
-            atm4_idx = geo_idx_dct[atm4_key]
-            ang = automol.geom.base.dihedral_angle(
-                geo, atm1_idx, atm2_idx, atm3_idx, atm4_idx
-            )
-            if abs_:
-                ang = numpy.abs(ang)
-            if numpy.abs(ang - ref_ang) < tol:
-                dih_keys.append((atm1_key, atm2_key, atm3_key, atm4_key))
+            if atm1_key != atm4_key:
+                atm1_idx = geo_idx_dct[atm1_key]
+                atm2_idx = geo_idx_dct[atm2_key]
+                atm3_idx = geo_idx_dct[atm3_key]
+                atm4_idx = geo_idx_dct[atm4_key]
+                ang = automol.geom.base.dihedral_angle(
+                    geo, atm1_idx, atm2_idx, atm3_idx, atm4_idx
+                )
+                if abs_:
+                    ang = numpy.abs(ang)
+                if numpy.abs(ang - ref_ang) < tol:
+                    dih_keys.append((atm1_key, atm2_key, atm3_key, atm4_key))
     return frozenset(dih_keys)
 
 

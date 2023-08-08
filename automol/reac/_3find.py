@@ -844,8 +844,6 @@ def intersystem_crossing(rxn_muls):
          NOT CORRECT
     """
 
-    # print('rxn_muls', rxn_muls)
-
     rct_spin_sum, prd_spin_sum = 0, 0
     for rct_mul in rxn_muls[0]:
         rct_spin_sum += (rct_mul - 1.)/2.

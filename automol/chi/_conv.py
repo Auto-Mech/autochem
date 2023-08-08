@@ -253,10 +253,3 @@ def inchi_to_amchi(ich, printlog=True):
                               f'{ich} -> {chi}')
 
     return chi
-
-
-if __name__ == '__main__':
-    SMI = '[CH2]C=C'
-    ICH = automol.smiles.inchi(SMI)
-    ACH = inchi_to_amchi(ICH)
-    print(ACH)

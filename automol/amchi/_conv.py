@@ -334,14 +334,3 @@ def expand_stereo(chi, enant=True):
     sgrs = automol.graph.expand_stereo(gra, enant=enant, symeq=False)
     ste_chis = [automol.graph.amchi(sgr, stereo=True) for sgr in sgrs]
     return ste_chis
-
-
-if __name__ == '__main__':
-    CHI = 'AMChI=1/C5H6FO/c6-4-2-1-3-5-7/h1-5,7H/b2-1-,3-1-,4-2-,5-3+'
-    CHI = 'AMChI=1/C5H6FO/c6-4-2-1-3-5-7/h1-5,7H/b2-1+,3-1+,4-2+,5-3+'
-    # GEO = geometry(CHI, check=True)
-    # print(automol.geom.string(GEO))
-
-    for GEO in conformers(CHI, nconfs=5):
-        print(automol.geom.string(GEO))
-        print()

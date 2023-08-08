@@ -1450,12 +1450,3 @@ def _join_m_layer_strings(m_lyrs):
 
 def _split_m_layer_string(m_lyr):
     return tuple(m_lyr)
-
-
-if __name__ == '__main__':
-    ICH = ('InChI=1S/C5H5N5O/c6-5-9-3-2(4(11)10-5)7-1-8-3/'
-           'h1H,(H4,6,7,8,9,10,11)')
-    ICH = ('InChI=1S/C18H20N2O4/c1-9-5-13(21)6-10(2)15(9)19-17(23)18(24)20-16'
-           '-11(3)7-14(22)8-12(16)4/h5-8,21-22H,1-4H3,(H,19,23)(H,20,24)')
-    # ICH = 'InChI=1S/CHO2/c2-1-3/h(H,2,3)'
-    print(hydrogen_valences(ICH))

@@ -83,7 +83,6 @@ def electronic_energy_levels(elec_levels_i, elec_levels_j):
             elec_levels.append(level)
         # Add the level to the one in the list
         else:
-            print('yay')
             idx = elec_levels.index(level)
             elec_levels[idx][1] += level[1]
 

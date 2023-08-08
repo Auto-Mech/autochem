@@ -675,9 +675,6 @@ def change_zmatrix_row_values(
     tol = 2.0 * phycon.DEG2RAD
     lin = numpy.pi
 
-    print(automol.graph.string(gra))
-    print("idx1", idx1)
-    print("idx", idx)
     idxs = automol.graph.branch_atom_keys(gra, idx1, idx)
 
     # Note that the coordinates will change throughout, but the change

@@ -270,13 +270,3 @@ def _canonicalize(smi):
     :rtype: str
     """
     return rdkit_.to_smiles(rdkit_.from_smiles(smi))
-
-
-if __name__ == "__main__":
-    SMIS = [
-        "[CH2]CC[C@H]1O[C@H]1C.O",
-        "[CH2]CC[C@@H]1O[C@@H]1C.[OH]",
-    ]
-    for SMI in SMIS:
-        ACH = amchi(SMI)
-        print(ACH)
