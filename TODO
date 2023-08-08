@@ -10,6 +10,7 @@
 !!! [ ] Stereo-correct join for bond stereo
     LEFT OFF AT automol.geom.ts.join_at_forming_bond()
     -> SEE test_ts_geometry.ipynb
+    [ ] Figure out and TEST reagent reordering
     [ ] _4geom.py
     [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py

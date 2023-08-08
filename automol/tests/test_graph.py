@@ -1574,6 +1574,19 @@ def test__perturb_geometry_planar_dihedrals():
     assert numpy.isclose(dih, 170.)
 
 
+def test__stereo_corrected_geometry():
+    """test graph.stereo_corrected_geometry
+    """
+    geo = automol.smiles.geometry('C1C(F)C12C(F)C2')
+    gra = automol.geom.graph(geo)
+    sgras = automol.graph.expand_stereo(gra)
+    for sgra in sgras:
+        print(automol.graph.smiles(sgra))
+        sgeo = automol.graph.stereo_corrected_geometry(sgra, geo)
+        sgra_from_geo = automol.geom.graph(sgeo)
+        assert sgra_from_geo == sgra
+
+
 if __name__ == '__main__':
     # test__to_local_stereo()
 
@@ -1585,12 +1598,12 @@ if __name__ == '__main__':
     # test__ts__expand_reaction_stereo()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
-    test__expand_stereo()
+    # test__expand_stereo()
     # test__ts__expand_reaction_stereo()
     # test__species__graph_conversion()
     # test__canonical()
     # test__calculate_priorities_and_assign_parities()
-    # test__smiles()
+    test__smiles()
     # test__kekules()
     # test__geometry_atom_parity()
     # test__geometry_bond_parity()
@@ -1604,3 +1617,4 @@ if __name__ == '__main__':
     # test__atom_count()
     # test__atom_hybridizations()
     # test__kekules()
+    # test__stereo_corrected_geometry()

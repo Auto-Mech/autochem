@@ -48,10 +48,8 @@ def geometry_from_reactants(
     :return: TS geometry
     :rtype: automol geom data structure
     """
-    # 1. If there are multiple reactants, combine the geometries
-    if len(geos) == 1:
-        (geo,) = geos
-    else:
+    # 1. Join geometries for bimolecular reactions, yielding a single starting structure
+    if len(geos) > 1:
         assert (
             len(geos) == 2 and len(automol.graph.base.ts.forming_bond_keys(tsg)) == 1
         ), "Generating a TS geometry for this case is not implemented:\n{tsg}"
@@ -62,12 +60,12 @@ def geometry_from_reactants(
             fdist_factor=fdist_factor,
             debug_visualize=debug_visualize,
         )
+    else:
+        (geo,) = geos
 
     # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
     # reactants and products
-    ts_geo = geo
-    # ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo,
-    # geo_idx_dct=geo_idx_dct)
+    ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
 
     print(bdist_factor)
 
@@ -106,6 +104,14 @@ def join_at_forming_bond(
     :returns: The joined geometry
     :rtype: automol geom data structure
     """
+    rcts_gra = automol.graph.ts.reactants_graph(tsg, stereo=False)
+    geos_gra = automol.graph.base.union_from_sequence(
+        list(map(automol.geom.graph, geos)), shift_keys=True
+    )
+    assert geos_gra == rcts_gra, (
+        f"The geometries don't match the TS graph. Have they been reordered?"
+        f"\ngeos:\n{geos}\ntsg:\n{tsg}"
+    )
     akeys = sorted(automol.graph.base.atom_keys(tsg))
     geo_idx_dct = (
         {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
@@ -121,6 +127,8 @@ def join_at_forming_bond(
     len1, len2 = map(count, geos)
     idxs1 = tuple(range(len1))
     idxs2 = tuple(range(len1, len1 + len2))
+    print("idxs1", idxs1)
+    print("idxs2", idxs2)
     (fidx1,) = frm_key & set(idxs1)
     (fidx2,) = frm_key & set(idxs2)
     geo = sum(geos, ())
@@ -146,7 +154,8 @@ def join_at_forming_bond(
     if debug_visualize:
         view = py3dmol_.create_view()
         # Visualize the geomtry
-        view = py3dmol_view(geo, view=view)
+        rcts_gra = automol.graph.ts.reactants_graph(tsg)
+        view = py3dmol_view(geo, gra=rcts_gra, view=view)
         # Visualize the first direction vector
         view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, view=view)
         # Visualize the rotational axis
@@ -208,6 +217,7 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
         # If this is a vinyl radical, the reacting electron is pointed in-plane at a 120
         # degree angle to the double bond
         if key in hyd_dct:
+            print("AA HERE?")
             (nkey,) = hyd_dct[key]
             nxyz = xyzs[nkey]
             rvec = vec.unit_norm(numpy.subtract(xyz, nxyz))
@@ -252,9 +262,11 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
         # Otherwise, assume this is a reacting pi-electron, which is pointed
         # perpendicular to the plane of the neighboring atoms
         else:
+            print("BB OR HERE?")
             nbh = automol.graph.base.atom_neighborhood(no_rxn_bnd_gra, key)
             # Use this to find the
             nkeys = automol.graph.base.atom_keys(nbh)
+            print("nkeys", nkeys)
             nxyzs = coordinates(geo, idxs=nkeys)
             rvec = vec.best_unit_perpendicular(xyzs=nxyzs)
 
