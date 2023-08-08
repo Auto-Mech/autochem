@@ -172,12 +172,9 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
 
     # Get dimensionality of matrix (assumes 0 idx of mat)
     ncoords = max((max(idxs) for idxs in mat_idxs))+1
-    print(ncoords)
     ndim = len(mat_idxs[0])
-    print(ndim)
 
     dims = tuple(ncoords for _ in range(ndim))
-    print(dims)
 
     # Build the force constant matrix
     mat = np.zeros(dims)

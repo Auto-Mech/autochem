@@ -538,8 +538,6 @@ def halide_groups(gra):
         for hal_idx in hal_idxs:
             hal_neighs = neighbors_of_type(gra, hal_idx, symb='C')
             if not hal_neighs:
-                print('halide not bound to carbon')
-                print(gra)
                 hal_neighs = neighbors_of_type(gra, hal_idx, symb='S')
                 hal_neighs = neighbors_of_type(gra, hal_idx, symb='B')
                 hal_neighs += neighbors_of_type(gra, hal_idx, symb='O')

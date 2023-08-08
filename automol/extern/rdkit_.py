@@ -323,7 +323,6 @@ def to_graph(rdm):
     bnds = rdm.GetBonds()
     sym_dct = {rda.GetIdx(): rda.GetSymbol() for rda in atms}
     hyd_dct = {rda.GetIdx(): rda.GetImplicitValence() for rda in atms}
-    print(hyd_dct)
     ord_dct = {
         (rdb.GetBeginAtomIdx(), rdb.GetEndAtomIdx()): BOND_TYPE_DCT[rdb.GetBondType()]
         for rdb in bnds

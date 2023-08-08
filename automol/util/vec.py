@@ -78,18 +78,12 @@ def best_unit_perpendicular(xyzs):
     :type xyzs: List[Vector]
     """
     if len(xyzs) <= 1:
-        print("CASE 1")
         nvec = [1, 0, 0]
     elif len(xyzs) == 2:
-        print("CASE 2")
         nvec = arbitrary_unit_perpendicular(*xyzs)
-        print("xyzs", xyzs)
-        print("nvec", nvec)
     elif len(xyzs) == 3:
-        print("CASE 3")
         nvec = unit_perpendicular(*xyzs)
     else:
-        print("CASE 4")
         xyz0 = numpy.sum(xyzs, axis=0) / len(xyzs)
         _, _, vmat = numpy.linalg.svd(numpy.subtract(xyzs, xyz0))
         nvec = vmat[2, :]

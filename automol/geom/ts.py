@@ -67,8 +67,6 @@ def geometry_from_reactants(
     # reactants and products
     ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
 
-    print(bdist_factor)
-
     return ts_geo
     # This
     # # 1. Evaluate the distances, updating them for the TS graph
@@ -127,8 +125,6 @@ def join_at_forming_bond(
     len1, len2 = map(count, geos)
     idxs1 = tuple(range(len1))
     idxs2 = tuple(range(len1, len1 + len2))
-    print("idxs1", idxs1)
-    print("idxs2", idxs2)
     (fidx1,) = frm_key & set(idxs1)
     (fidx2,) = frm_key & set(idxs2)
     geo = sum(geos, ())
@@ -217,7 +213,6 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
         # If this is a vinyl radical, the reacting electron is pointed in-plane at a 120
         # degree angle to the double bond
         if key in hyd_dct:
-            print("AA HERE?")
             (nkey,) = hyd_dct[key]
             nxyz = xyzs[nkey]
             rvec = vec.unit_norm(numpy.subtract(xyz, nxyz))
@@ -262,11 +257,9 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
         # Otherwise, assume this is a reacting pi-electron, which is pointed
         # perpendicular to the plane of the neighboring atoms
         else:
-            print("BB OR HERE?")
             nbh = automol.graph.base.atom_neighborhood(no_rxn_bnd_gra, key)
             # Use this to find the
             nkeys = automol.graph.base.atom_keys(nbh)
-            print("nkeys", nkeys)
             nxyzs = coordinates(geo, idxs=nkeys)
             rvec = vec.best_unit_perpendicular(xyzs=nxyzs)
 

@@ -71,7 +71,6 @@ def hydrogen_migration_constraint_coordinates(rxn: Reaction, zma):
         ret = (dist_name, diss_name,)
     else:
         ret = (dist_name,)
-    print('ret is ', ret)
     return ret
 
 

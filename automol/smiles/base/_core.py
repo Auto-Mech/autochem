@@ -435,20 +435,3 @@ def _neighbor_key_and_direction_from_dict(key1, key2, direc_dct):
         nkey = None
 
     return nkey, direc
-
-
-# if __name__ == '__main__':
-#     SMIS = [
-#         r'[C@H](N)(O)(F)',
-#         r'[C@H]1(OO2)C[C@H]12',
-#         r'[C@H]1(OO2)C[C@@H]12',
-#         r'[C@@H]1(OO2)C[C@H]12',
-#         r'[C@@H]1(OO2)C[C@@H]12',
-#         r'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O',
-#         r'F\C=C\F',
-#         r'[H]/N=N/N=N\[H]',
-#         r'C1CCCCCCCCCC/N=N/1',
-#     ]
-#
-#     for SMI in SMIS:
-#         print(reflect(SMI))

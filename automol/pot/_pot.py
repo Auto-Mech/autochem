@@ -18,7 +18,6 @@ def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
 
     npoints = int(round(interval / increment, 0)) + 1
     _grid = numpy.linspace(0.0, interval, npoints)
-    # print('automol pot test:', _grid, interval, npoints, from_equilibrium)
 
     # Displace from the coordinates equilibrium value if desired
     if from_equilibrium:
@@ -210,7 +209,6 @@ def is_symmetric(pot, thresh=0.6):
     symm_fac = abs(
         (pot[pot_keys[1]] - pot[pot_keys[-1]]) /
         (pot[pot_keys[1]] + pot[pot_keys[-1]]))
-    print('SYMM FAC IS', symm_fac)
     return symm_fac > thresh
 
 
