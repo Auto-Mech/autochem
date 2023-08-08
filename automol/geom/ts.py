@@ -5,7 +5,8 @@ import scipy
 from phydat import phycon
 
 import automol.graph.base
-from automol.geom._conv import connectivity_graph
+from automol.extern import py3dmol_
+from automol.geom._conv import connectivity_graph, py3dmol_view
 from automol.geom.base import (
     coordinates,
     count,
@@ -20,7 +21,12 @@ from automol.util import dict_, vec
 
 
 def geometry_from_reactants(
-    geos, tsg, geo_idx_dct=None, fdist_factor=1.1, bdist_factor=0.9
+    geos,
+    tsg,
+    geo_idx_dct=None,
+    fdist_factor=1.1,
+    bdist_factor=0.9,
+    debug_visualize=False,
 ):
     """Generate a TS geometry from reactants
 
@@ -37,6 +43,8 @@ def geometry_from_reactants(
     :param bdist_factor: Set the breaking bond distance to this times the average
         van der Waals radius, defaults to 0.9
     :type bdist_factor: float, optional
+    :param debug_visualize: Prompt visualizations in a Jupyter notebook for debugging?
+    :type debug_visualize: bool, optional
     :return: TS geometry
     :rtype: automol geom data structure
     """
@@ -48,7 +56,11 @@ def geometry_from_reactants(
             len(geos) == 2 and len(automol.graph.base.ts.forming_bond_keys(tsg)) == 1
         ), "Generating a TS geometry for this case is not implemented:\n{tsg}"
         geo = join_at_forming_bond(
-            geos, tsg, geo_idx_dct=geo_idx_dct, fdist_factor=fdist_factor
+            geos,
+            tsg,
+            geo_idx_dct=geo_idx_dct,
+            fdist_factor=fdist_factor,
+            debug_visualize=debug_visualize,
         )
 
     # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
@@ -71,7 +83,9 @@ def geometry_from_reactants(
     # )
 
 
-def join_at_forming_bond(geos, tsg, geo_idx_dct=None, fdist_factor=1.1):
+def join_at_forming_bond(
+    geos, tsg, geo_idx_dct=None, fdist_factor=1.1, debug_visualize=False
+):
     """Join two reactant geometries at a single forming bond
 
     If stereochemistry is present in TS graph, the join will take stereochemistry into
@@ -87,6 +101,8 @@ def join_at_forming_bond(geos, tsg, geo_idx_dct=None, fdist_factor=1.1):
     :param fdist_factor: Set the forming bond distance to this times the average
         van der Waals radius, defaults to 1.1
     :type fdist_factor: float, optional
+    :param debug_visualize: Prompt visualizations in a Jupyter notebook for debugging?
+    :type debug_visualize: bool, optional
     :returns: The joined geometry
     :rtype: automol geom data structure
     """
@@ -126,14 +142,32 @@ def join_at_forming_bond(geos, tsg, geo_idx_dct=None, fdist_factor=1.1):
     )
     fvec = numpy.multiply(rvec1, fdist)
     geo = translate(geo, fvec, idxs=idxs2, angstrom=True)
+
+    if debug_visualize:
+        view = py3dmol_.create_view()
+        # Visualize the geomtry
+        view = py3dmol_view(geo, view=view)
+        # Visualize the first direction vector
+        view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, view=view)
+        # Visualize the rotational axis
+        fxyz2 = coordinates(geo)[fidx2]
+        view = py3dmol_.view_vector(rot_axis, orig_xyz=fxyz2, view=view)
+        # Visualize the second direction vector
+        rot_ = vec.rotator(rot_axis, rot_ang)
+        rvec2 = rot_(rvec2)
+        view = py3dmol_.view_vector(rvec2, orig_xyz=fxyz2, view=view)
+        view.show()
+
     return geo
 
 
 def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vector):
     """Identify the direction of a reacting electron in a forming bond
 
-    If stereochemistry is present in the TS graph, the directions will be consistent
-    with the correct stereochemistry.
+    The directions will be consistent with any stereochemistry directly associated with
+    one of the atoms in the forming bond. Stereochemistry apart from these atoms (for
+    example, fleeting TS stereo in H-abstractions) will need to be accounted for
+    separately.
 
     :param geo: Reactants geometry, aligned to the TS graph
     :type geo: automol geom data structure
@@ -154,6 +188,10 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
 
     no_rxn_bnd_gra = automol.graph.base.without_reacting_bonds(tsg)
     rcts_gra = automol.graph.base.ts.reactants_graph(tsg)
+    hyd_keys = automol.graph.base.nonbackbone_hydrogen_keys(rcts_gra)
+    hyd_dct = dict_.by_key(
+        automol.graph.base.atoms_neighbor_atom_keys(rcts_gra), hyd_keys
+    )
     vin_dct = automol.graph.base.vinyl_radical_atom_bond_keys(rcts_gra)
     sig_dct = automol.graph.base.sigma_radical_atom_bond_keys(rcts_gra)
     apar_dct = dict_.filter_by_value(
@@ -169,7 +207,11 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
         xyz = xyzs[key]
         # If this is a vinyl radical, the reacting electron is pointed in-plane at a 120
         # degree angle to the double bond
-        if key in vin_dct:
+        if key in hyd_dct:
+            (nkey,) = hyd_dct[key]
+            nxyz = xyzs[nkey]
+            rvec = vec.unit_norm(numpy.subtract(xyz, nxyz))
+        elif key in vin_dct:
             nkeys = automol.graph.base.atom_neighbor_atom_keys(rcts_gra, key)
             if len(nkeys) == 2:
                 nxyz1, nxyz2 = map(xyzs.__getitem__, nkeys)
@@ -210,11 +252,11 @@ def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vecto
         # Otherwise, assume this is a reacting pi-electron, which is pointed
         # perpendicular to the plane of the neighboring atoms
         else:
-            vin_nbh = automol.graph.base.atom_neighborhood(no_rxn_bnd_gra, key)
+            nbh = automol.graph.base.atom_neighborhood(no_rxn_bnd_gra, key)
             # Use this to find the
-            vin_pkeys = automol.graph.base.atom_keys(vin_nbh)
-            vin_pxyzs = coordinates(geo, idxs=vin_pkeys)
-            rvec = vec.best_unit_perpendicular(xyzs=vin_pxyzs)
+            nkeys = automol.graph.base.atom_keys(nbh)
+            nxyzs = coordinates(geo, idxs=nkeys)
+            rvec = vec.best_unit_perpendicular(xyzs=nxyzs)
 
             # Adjust direction to match stereochemistry
             if key in apar_dct:
