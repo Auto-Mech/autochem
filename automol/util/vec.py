@@ -77,7 +77,7 @@ def best_unit_perpendicular(xyzs):
     :param xyzs: The points
     :type xyzs: List[Vector]
     """
-    if len(xyzs) == 1:
+    if len(xyzs) <= 1:
         nvec = [1, 0, 0]
     elif len(xyzs) == 2:
         nvec = arbitrary_unit_perpendicular(*xyzs)
