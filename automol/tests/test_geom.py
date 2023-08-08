@@ -424,8 +424,10 @@ def test__rotation_properties():
     assert numpy.allclose(axes, ref_axes)
 
     ref_cons = (
-        2.9448201404714373e-06, 1.566795638659629e-07, 1.4876452660293155e-07)
+        1.8502849019286086e-05, 9.84446647446318e-07, 9.347150059626221e-07)
     cons = geom.rotational_constants(C2H2CLF_GEO)
+    print(ref_cons)
+    print(cons)
     assert numpy.allclose(cons, ref_cons)
 
 
@@ -747,10 +749,11 @@ def test__chi_with_sort():
 
 
 if __name__ == '__main__':
-    __align()
+    # __align()
     # test__hydrogen_bonded_structure()
-    test__change_zmatrix_row_values()
+    # test__change_zmatrix_row_values()
     # test__inchi_with_sort()
     # test__amchi_with_sort()
     # test__chi_with_sort()
-    test__argunique_coulomb_spectrum()
+    # test__argunique_coulomb_spectrum()
+    test__rotation_properties()

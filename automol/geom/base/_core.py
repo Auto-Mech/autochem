@@ -110,7 +110,7 @@ def coordinates(geo, idxs=None, angstrom=False):
     else:
         xyzs = ()
     xyzs = xyzs if not angstrom else numpy.multiply(xyzs, phycon.BOHR2ANG)
-    xyzs = tuple(tuple(xyz) for idx, xyz in enumerate(xyzs) if idx in idxs)
+    xyzs = tuple(map(tuple, map(xyzs.__getitem__, idxs)))
 
     return xyzs
 

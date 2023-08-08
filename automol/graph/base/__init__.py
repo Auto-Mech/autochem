@@ -179,6 +179,8 @@ from automol.graph.base._algo import ring_arc_complement_atom_keys
 from automol.graph.base._algo import ring_systems
 from automol.graph.base._algo import ring_systems_atom_keys
 from automol.graph.base._algo import ring_systems_bond_keys
+from automol.graph.base._algo import spiro_atoms_grouped_neighbor_keys
+from automol.graph.base._algo import spiro_atom_keys
 from automol.graph.base._algo import is_ring_system
 from automol.graph.base._algo import ring_system_decomposed_atom_keys
 from automol.graph.base._algo import ring_systems_decomposed_atom_keys
@@ -229,6 +231,7 @@ from automol.graph.base._geom import geometries_have_matching_parities
 from automol.graph.base._geom import geometries_parity_mismatches
 # # corrections
 from automol.graph.base._geom import linear_vinyl_corrected_geometry
+from automol.graph.base._geom import geometry_pseudorotate_atom
 from automol.graph.base._geom import geometry_rotate_bond
 from automol.graph.base._geom import geometry_dihedrals_near_value
 from automol.graph.base._geom import perturb_geometry_planar_dihedrals
@@ -265,7 +268,6 @@ from automol.graph.base._smiles import smiles
 # stereo functions:
 # # core functions
 from automol.graph.base._stereo import expand_stereo
-from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
 # # stereo correction
 from automol.graph.base._stereo import stereo_corrected_geometry
 # functional groups code:
@@ -463,6 +465,8 @@ __all__ = [
     'ring_systems',
     'ring_systems_atom_keys',
     'ring_systems_bond_keys',
+    'spiro_atoms_grouped_neighbor_keys',
+    'spiro_atom_keys',
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
@@ -513,6 +517,7 @@ __all__ = [
     'geometries_parity_mismatches',
     # # corrections
     'linear_vinyl_corrected_geometry',
+    'geometry_pseudorotate_atom',
     'geometry_rotate_bond',
     'geometry_dihedrals_near_value',
     'perturb_geometry_planar_dihedrals',
@@ -549,7 +554,6 @@ __all__ = [
     # stereo functions:
     # # core functions
     'expand_stereo',
-    'expand_stereo_with_priorities_and_amchis',
     # # stereo correction
     'stereo_corrected_geometry',
     # functional groups code:
