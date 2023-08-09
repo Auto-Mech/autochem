@@ -26,7 +26,9 @@ def geometry_from_reactants(
     geo_idx_dct=None,
     fdist_factor=1.1,
     bdist_factor=0.9,
+    max_dist_err=2e-1,
     debug_visualize=False,
+    log=False,
 ):
     """Generate a TS geometry from reactants
 
@@ -43,11 +45,21 @@ def geometry_from_reactants(
     :param bdist_factor: Set the breaking bond distance to this times the average
         van der Waals radius, defaults to 0.9
     :type bdist_factor: float, optional
+    :param max_dist_err: The distance convergence threshold, in angstroms
+    :type max_dist_err: float, optional
     :param debug_visualize: Prompt visualizations in a Jupyter notebook for debugging?
     :type debug_visualize: bool, optional
+    :param log: Print optimization log?, defaults to False
+    :type log: bool, optional
     :return: TS geometry
     :rtype: automol geom data structure
     """
+    keys = sorted(automol.graph.base.atom_keys(tsg))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+    tsg = automol.graph.base.relabel(tsg, geo_idx_dct)
+
     # 1. Join geometries for bimolecular reactions, yielding a single starting structure
     if len(geos) > 1:
         assert (
@@ -66,17 +78,26 @@ def geometry_from_reactants(
     # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
     # reactants and products
     ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
-    print(bdist_factor)
+
+    # 3. Embed the TS structure, using distances from the *original* reactant geometries
+    # along with forming/breaking bond distances
+    dist_dct = distances(
+        geos,
+        tsg,
+        geo_idx_dct=geo_idx_dct,
+        fdist_factor=fdist_factor,
+        bdist_factor=bdist_factor,
+    )
+    dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
+        tsg, dist_dct, angstrom=True, degree=True
+    )
+    ts_geo = automol.graph.embed.clean_geometry(
+        tsg, ts_geo, geos=geos,
+        dist_range_dct=dist_range_dct,
+        relax_angles=automol.graph.base.ts.has_reacting_ring(tsg),
+        max_dist_err=max_dist_err,
+    )
     return ts_geo
-    # This
-    # # 1. Evaluate the distances, updating them for the TS graph
-    # dist_dct = distances(
-    #     geos,
-    #     tsg,
-    #     geo_idx_dct=geo_idx_dct,
-    #     fdist_factor=fdist_factor,
-    #     bdist_factor=bdist_factor,
-    # )
 
 
 def join_at_forming_bond(
@@ -358,8 +379,10 @@ def bond_distances(
     tsg = automol.graph.base.relabel(tsg, geo_idx_dct)
     gra = automol.graph.base.ts.reactants_graph(tsg)
     keys = automol.graph.base.bond_keys(gra)
+    # Measure existing bond distances from the geometry
     dists = [distance(geo, *k, angstrom=angstrom) for k in keys]
     dist_dct = dict(zip(keys, dists))
+    # Add reacting bond distances using heuristics
     for key in automol.graph.base.ts.reacting_bond_keys(tsg):
         dist_dct[key] = automol.graph.base.ts.heuristic_bond_distance(
             tsg,

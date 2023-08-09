@@ -50,6 +50,17 @@ reverse = ts_reverse
 reagents_graph_without_stereo = ts_reagents_graph_without_stereo
 
 
+def has_reacting_ring(tsg) -> bool:
+    """Does this TS graph have a ring which is involved in the reaction?
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    return bool(forming_rings_atom_keys(tsg) or breaking_rings_atom_keys(tsg))
+
+
 def forming_rings_atom_keys(tsg):
     """get the atom keys to rings forming in the TS graph
 

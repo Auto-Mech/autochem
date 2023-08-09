@@ -62,29 +62,40 @@ from automol.graph.base import geometry_bond_parity
 from automol.graph.base import perturb_geometry_planar_dihedrals
 from automol.graph.base import heuristic_bond_distance
 from automol.graph.base import heuristic_bond_angle
+from automol.graph.base import ts
 
 
 # # geometry embedding functions
-def clean_geometry(gra, geo, max_dist_err=2e-1, stereo=True,
-                   remove_symmetry=True, log=False):
+def clean_geometry(gra, geo, geos=None, dist_range_dct=None, max_dist_err=2e-1, stereo=True,
+                   remove_symmetry=True, relax_angles=False, log=False):
     """ Clean up a geometry based on this graph, removing any bonds that
     aren't supposed to be there
 
-        :param gra: molecular graph with stereo parities
-        :type gra: automol graph data structure
-        :param geo: molecular geometry
-        :type geo: automol geometry data structure
-        :param remove_symmetry: Remove symmetry in the geometry, by slightly
-            perturbing near-planar dihedral angles?
-        :type remove_symmetry: bool
+    :param gra: molecular graph with stereo parities
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geos: Use alternative blocked geometries to determine distance bounds
+        (ex: Reactant geometries for a TS geometry embedding)
+    :type geos: List[automol geometry data structure]
+    :param dist_range_dct: Override a subsets of distance ranges, defaults to None
+    :type dist_range_dct: dict, optional
+    :param remove_symmetry: Remove symmetry in the geometry, by slightly
+        perturbing near-planar dihedral angles?
+    :type remove_symmetry: bool
+    :param relax_angles: Allow angles to relax when cleaning the geometry?, defaults to False
+    :type relax_angles: bool, optional
     """
-    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     gra = to_local_stereo(gra)
+    geos = [geo] if geos is None else geos
+
+    dist_gra = ts.reactants_graph(gra) if is_ts_graph(gra) else gra
 
     keys = sorted(atom_keys(gra))
     xmat = automol.geom.coordinates(geo, angstrom=True)
     lmat, umat = distance_bounds_matrices(
-        gra, keys, geos=[geo], relax_torsions=True)
+        dist_gra, keys, geos=geos, dist_range_dct=dist_range_dct,
+        relax_angles=relax_angles, relax_torsions=True)
 
     pla_dct = planarity_constraint_bounds(gra, keys)
     if stereo:
