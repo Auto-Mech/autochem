@@ -12,7 +12,6 @@ from phydat import phycon
 
 import automol.geom.base
 from automol import util
-from automol.extern import py3dmol_, rdkit_
 from automol.graph.base._algo import (
     branch_atom_keys,
     ring_systems_atom_keys,
@@ -386,7 +385,7 @@ def linear_vinyl_corrected_geometry(
 
 
 def geometry_pseudorotate_atom(
-    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None, debug_visualize=False
+    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None
 ):
     r"""Pseudorotate an atom in a molecular geometry by a certain amount
 
@@ -460,13 +459,6 @@ def geometry_pseudorotate_atom(
         )
 
         geo = automol.geom.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
-        if debug_visualize:
-            view = py3dmol_.create_view()
-            rdm = rdkit_.from_geometry_with_graph(geo, gra)
-            mlf = rdkit_.to_molfile(rdm)
-            view = py3dmol_.view_molecule_from_molfile(mlf, view=view)
-            view = py3dmol_.view_vector(rot_axis, orig_xyz=xyz, view=view)
-            view.show()
     else:
         geo = None
 
@@ -554,7 +546,8 @@ def geometry_dihedrals_near_value(
 
     nkeys_dct = atoms_neighbor_atom_keys(gra)
     bnd_keys = backbone_bond_keys(gra)
-    bnd_keys -= set(itertools.chain(*rings_bond_keys(gra)))
+    if not rings:
+        bnd_keys -= set(itertools.chain(*rings_bond_keys(gra)))
 
     dih_keys = []
     for atm2_key, atm3_key in bnd_keys:

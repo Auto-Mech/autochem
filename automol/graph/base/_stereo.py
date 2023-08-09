@@ -7,37 +7,20 @@ import itertools
 
 import numpy
 
-import automol.amchi.base  # !!!!
-import automol.geom.base  # !!!!
-from automol.graph.base._algo import (
-    connected_components,
-)
-from automol.graph.base._amchi import connected_amchi_with_indices
 from automol.graph.base._canon import (
     is_canonical_enantiomer,
-    parity_evaluator_from_geometry_,
     refine_priorities,
     reflect_local_stereo,
     stereo_assignment_representation,
-    stereogenic_atom_keys,
-    stereogenic_bond_keys,
-    stereogenic_keys,
     stereogenic_keys_from_priorities,
     to_local_stereo,
 )
 from automol.graph.base._core import (
     atom_keys,
     atom_stereo_keys,
-    atom_stereo_parities,
     bond_stereo_keys,
-    bond_stereo_parities,
     frozen,
-    has_stereo,
-    implicit,
-    is_ts_graph,
     relabel,
-    set_atom_stereo_parities,
-    set_bond_stereo_parities,
     set_stereo_parities,
     stereo_parities,
     without_stereo,

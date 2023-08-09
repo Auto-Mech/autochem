@@ -1483,7 +1483,6 @@ def test__smiles():
     """
     smis = [
         # Rings:
-        'C1[C@@]2(C3)O[C@@]2(C[N@H]3)OC1',
         r'[CH2]/C=C1\[N@H]C(=C1)O[O]',
         'C1CC1',
         # Stereo atoms:

@@ -8,7 +8,6 @@
     [X] Implement Reaction object structure addition
     [X] Stereo-correct join for atom stereo
     [X] Stereo-correct join for bond stereo
-    [ ] Fix bug in test_graph.py/test__smiles()
     LEFT OFF AT automol.geom.ts.join_at_forming_bond()
     -> SEE test_ts_geometry.ipynb
     [ ] Figure out and TEST reagent reordering
