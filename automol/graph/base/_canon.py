@@ -1296,7 +1296,7 @@ def local_priority_dict(gra):
     loc_pri_dct.update(
         {k: -abs(k) for k in backbone_hydrogen_keys(gra)})
     loc_pri_dct.update(
-        {k: -numpy.inf for k in nonbackbone_hydrogen_keys(gra)})
+        {k: -999 for k in nonbackbone_hydrogen_keys(gra)})
     return loc_pri_dct
 
 

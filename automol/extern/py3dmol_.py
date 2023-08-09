@@ -44,6 +44,7 @@ def view_molecule_from_molfile(
 def view_vector(
     vec_xyz: Tuple[float, float, float],
     orig_xyz: Tuple[float, float, float] = (0.0, 0.0, 0.0),
+    color: str = "black",
     view: py3Dmol.view = None,
     image_size: int = 400,
 ) -> py3Dmol.view:
@@ -53,6 +54,8 @@ def view_vector(
     :type vec_xyz: Tuple[float, float, float]
     :param orig_xyz: The vector origin, defaults to (0., 0., 0.)
     :type orig_xyz: Tuple[float, float, float], optional
+    :param color: The color of the vector (hex or name), default "black"
+    :type color: str, optional
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
     :param image_size: The image size, if creating a new view, defaults to 400
@@ -67,6 +70,7 @@ def view_vector(
         {
             "start": dict(zip("xyz", orig_xyz)),
             "end": dict(zip("xyz", numpy.add(vec_xyz, orig_xyz))),
+            "color": color,
         }
     )
     view.zoomTo()

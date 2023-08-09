@@ -4,6 +4,7 @@ DEPRECATED (under construction to phase out)
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+import numpy
 import qcelemental as qcel
 
 import automol.amchi.base  # !!!!
@@ -19,10 +20,13 @@ from automol.graph.base._canon import (
     to_local_stereo,
 )
 from automol.graph.base._core import (
+    atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
+    atoms_sorted_neighbor_atom_keys,
     bond_stereo_keys,
     bond_stereo_sorted_neighbor_keys,
     has_stereo,
+    nonbackbone_hydrogen_keys,
     set_stereo_parities,
     stereo_keys,
     stereo_parities,
@@ -33,9 +37,15 @@ from automol.graph.base._core import (
     ts_reacting_bond_keys,
     ts_reagents_graph_without_stereo,
     ts_reverse,
+    without_reacting_bonds,
 )
 from automol.graph.base._heur import heuristic_bond_distance as _heuristic_bond_distance
-from automol.graph.base._kekule import rigid_planar_bond_keys, vinyl_radical_atom_keys
+from automol.graph.base._kekule import (
+    rigid_planar_bond_keys,
+    sigma_radical_atom_bond_keys,
+    vinyl_radical_atom_bond_keys,
+    vinyl_radical_atom_keys,
+)
 from automol.graph.base._stereo import (
     expand_stereo,
 )
@@ -478,3 +488,79 @@ def heuristic_bond_distance(
         dist = _heuristic_bond_distance(tsg, key1, key2, angstrom=angstrom, check=check)
 
     return dist
+
+
+def plane_keys(tsg, key: int):
+    """Keys used to define a plane for forming the TS geometry
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key: The key of a bond-forming atom
+    :type key: int
+    """
+    nrbs_gra = without_reacting_bonds(tsg)
+    rcts_gra = reactants_graph(tsg, stereo=False)
+
+    nkeys_rct = atom_neighbor_atom_keys(rcts_gra, key)
+    nkeys_nrb = atom_neighbor_atom_keys(nrbs_gra, key)
+
+    pkeys = {key}
+    pkeys |= nkeys_nrb if len(nkeys_rct) > 3 else nkeys_rct
+
+    rp_bkeys = rigid_planar_bond_keys(rcts_gra)
+    rp_bkey = next((bk for bk in rp_bkeys if key in bk), None)
+    if rp_bkey is not None:
+        (key_,) = rp_bkey - {key}
+        pkeys |= {key_}
+        pkeys |= atom_neighbor_atom_keys(rcts_gra, key_)
+
+    return pkeys
+
+
+def reacting_electron_direction(tsg, key: int):
+    """Determine the reacting electron direction at one end of a forming bond
+
+    Does *not* account for stereochemistry
+
+    The direction is determined by another bond, along with an angle for an in-plane
+    rotation of this bond into the desired direction. Returning `None` indicates that
+    the direction is perpendicular to the plane.
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key: The key of a bond-forming atom
+    :type key: int
+    :returns: A directed bond key and an angle
+    :rtype: (Tuple[int, int], float)
+    """
+    frm_key = next((k for k in forming_bond_keys(tsg) if key in k), None)
+    assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
+    rcts_gra = reactants_graph(tsg, stereo=False)
+    hyd_keys = nonbackbone_hydrogen_keys(rcts_gra)
+    nkeys_dct = atoms_sorted_neighbor_atom_keys(rcts_gra)
+    vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
+    sig_dct = sigma_radical_atom_bond_keys(rcts_gra)
+
+    if key in hyd_keys:
+        # key1 = H-atom key
+        # key2 = neighbor
+        (nkey,) = nkeys_dct[key]
+        bnd_key = (key, nkey)
+        phi = numpy.pi
+    elif key in vin_dct:
+        # key1 = this key
+        # key2 = opposite end of the vinyl bond
+        (opp_key,) = vin_dct[key] - {key}
+        bnd_key = (key, opp_key)
+        phi = 2. * numpy.pi / 3.
+    elif key in sig_dct:
+        # key1 = attacking atom key
+        # key2 = neighbor
+        (nkey,) = sig_dct[key] - {key}
+        bnd_key = (key, nkey)
+        phi = numpy.pi
+    else:
+        bnd_key = None
+        phi = None
+
+    return bnd_key, phi

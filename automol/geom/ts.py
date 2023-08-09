@@ -68,7 +68,6 @@ def geometry_from_reactants(
         geo = join_at_forming_bond(
             geos,
             tsg,
-            geo_idx_dct=geo_idx_dct,
             fdist_factor=fdist_factor,
             debug_visualize=debug_visualize,
         )
@@ -92,7 +91,9 @@ def geometry_from_reactants(
         tsg, dist_dct, angstrom=True, degree=True
     )
     ts_geo = automol.graph.embed.clean_geometry(
-        tsg, ts_geo, geos=geos,
+        tsg,
+        ts_geo,
+        geos=geos,
         dist_range_dct=dist_range_dct,
         relax_angles=automol.graph.base.ts.has_reacting_ring(tsg),
         max_dist_err=max_dist_err,
@@ -125,7 +126,7 @@ def join_at_forming_bond(
     """
     rcts_gra = automol.graph.ts.reactants_graph(tsg, stereo=False)
     geos_gra = automol.graph.base.union_from_sequence(
-        list(map(automol.geom.graph, geos)), shift_keys=True
+        list(map(automol.geom.connectivity_graph, geos)), shift_keys=True
     )
     assert geos_gra == rcts_gra, (
         f"The geometries don't match the TS graph. Have they been reordered?"
@@ -156,7 +157,9 @@ def join_at_forming_bond(
     geo = translate(geo, numpy.subtract(fxyz1, fxyz2), idxs=idxs2)
     fxyz2 = coordinates(geo)[fidx2]
     # 3. Find the reacting electron directions
-    rvec1, rvec2 = reacting_electron_directions(geo, tsg, fidx1, fidx2)
+    tsg = automol.graph.base.to_local_stereo(tsg)
+    rvec1 = reacting_electron_direction(geo, tsg, fidx1, local_stereo=True)
+    rvec2 = reacting_electron_direction(geo, tsg, fidx2, local_stereo=True)
     # 4. Rotate to align them antiparallel
     rot_ang = vec.angle(rvec1, numpy.negative(rvec2))
     rot_axis = vec.unit_perpendicular(rvec1, rvec2)
@@ -174,17 +177,96 @@ def join_at_forming_bond(
         rcts_gra = automol.graph.ts.reactants_graph(tsg)
         view = py3dmol_view(geo, gra=rcts_gra, view=view)
         # Visualize the first direction vector
-        view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, view=view)
+        view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, color="blue", view=view)
         # Visualize the rotational axis
         fxyz2 = coordinates(geo)[fidx2]
-        view = py3dmol_.view_vector(rot_axis, orig_xyz=fxyz2, view=view)
+        view = py3dmol_.view_vector(rot_axis, orig_xyz=fxyz2, color="red", view=view)
         # Visualize the second direction vector
         rot_ = vec.rotator(rot_axis, rot_ang)
         rvec2 = rot_(rvec2)
-        view = py3dmol_.view_vector(rvec2, orig_xyz=fxyz2, view=view)
+        view = py3dmol_.view_vector(rvec2, orig_xyz=fxyz2, color="green", view=view)
         view.show()
 
     return geo
+
+
+def reacting_electron_direction(geo, tsg, key, local_stereo=False) -> vec.Vector:
+    """Identify the direction of a reacting electron on a bond-forming atom
+
+    The direction will be consistent with any stereochemistry directly associated with
+    this atom.
+
+    :param geo: Reactants geometry, aligned to the TS graph
+    :type geo: automol geom data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key: Key for the atom, which must be part of a forming bond
+    :type key: int
+    :param local_stereo: Whether the TS graph has local stereo parities, default False
+    :type local_stereo: bool, optional
+    :returns: A vector indicating the direction
+    :rtype: vec.Vector
+    """
+    frm_key = next(
+        (k for k in automol.graph.base.ts.forming_bond_keys(tsg) if key in k), None
+    )
+    assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
+
+    if not local_stereo and automol.graph.base.has_stereo(tsg):
+        tsg = automol.graph.base.to_local_stereo(tsg)
+
+    apar_dct = dict_.filter_by_value(
+        automol.graph.base.atom_stereo_parities(tsg), lambda x: x is not None
+    )
+    bpar_dct = dict_.filter_by_value(
+        automol.graph.base.bond_stereo_parities(tsg), lambda x: x is not None
+    )
+
+    # Get the normal vector
+    pkeys = automol.graph.base.ts.plane_keys(tsg, key)
+    pxyzs = coordinates(geo, idxs=pkeys)
+    nvec = vec.best_unit_perpendicular(pxyzs)
+
+    # Get the direction information
+    bkey, phi = automol.graph.base.ts.reacting_electron_direction(tsg, key)
+    # `None` indicates that the electron is perpendicular to the plane, along the normal
+    # vector
+    if bkey is None:
+        rvec = nvec
+    # Otherwise, the electron is in-plane, given by rotating an existing bond direction
+    # by `phi`
+    else:
+        print("bkey:", bkey)
+        print("phi:", phi)
+        bxyz1, bxyz2 = coordinates(geo, idxs=bkey)
+        bvec = numpy.subtract(bxyz2, bxyz1)
+        bvec = vec.orthogonalize(nvec, bvec, normalize=True)
+        rot_ = vec.rotator(nvec, phi)
+        rvec = rot_(bvec)
+
+    # Create a dummy geometry with the forming neighbor at this position
+    (xyz,) = coordinates(geo, idxs=(key,))
+    (key_,) = frm_key - {key}
+    xyz_ = numpy.add(xyz, rvec)
+    geo_ = set_coordinates(geo, {key_: xyz_})
+
+    # Check the atom stereochemistry of the dummy geometry
+    if key in apar_dct:
+        par = automol.graph.base.geometry_atom_parity(tsg, geo_, key)
+        # If incorrect, reverse the direction
+        if par != apar_dct[key]:
+            rvec = numpy.negative(rvec)
+
+    # Check the bond stereochemistry of the dummy geometry
+    bkey = next((bk for bk in bpar_dct if key in bk), None)
+    if bkey is not None:
+        par = automol.graph.base.geometry_bond_parity(tsg, geo_, bkey)
+        # If incorrect, rotate the direction by 2 pi / 3
+        if par != bpar_dct[bkey]:
+            bkey = sorted(bkey, key=lambda k: k==key)
+            rvec = rot_(rvec)
+
+    return rvec
 
 
 def reacting_electron_directions(geo, tsg, key1, key2) -> (vec.Vector, vec.Vector):
@@ -333,56 +415,28 @@ def distances(
     :param angstrom: return the distances in angstroms?
     :type angstrom: bool
     """
-    dist_dct = bond_distances(
-        geos,
-        tsg,
-        geo_idx_dct=geo_idx_dct,
-        fdist_factor=fdist_factor,
-        bdist_factor=bdist_factor,
-        angstrom=angstrom,
-    )
-    if angles:
-        dist_dct.update(
-            angle_distances(geos, tsg, geo_idx_dct=geo_idx_dct, angstrom=angstrom)
-        )
-    return dist_dct
-
-
-def bond_distances(
-    geos, tsg, geo_idx_dct=None, fdist_factor=1.1, bdist_factor=0.9, angstrom=True
-):
-    """return a dictionary of bond distances for a sequence of reactant
-    geometries, shifting the keys as needed
-
-    :param geos: Reactant geometries
-    :type geos: List[automol geom data structure]
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices, defaults to None
-    :type geo_idx_dct: dict[int: int], optional
-    :param fdist_factor: Set the forming bond distance to this times the average
-        van der Waals radius, defaults to 1.1
-    :type fdist_factor: float, optional
-    :param bdist_factor: Set the breaking bond distance to this times the average
-        van der Waals radius, defaults to 0.9
-    :type bdist_factor: float, optional
-    :param angstrom: return the distances in angstroms?
-    :type angstrom: bool
-    """
-    akeys = sorted(automol.graph.base.atom_keys(tsg))
+    keys = sorted(automol.graph.base.atom_keys(tsg))
     geo_idx_dct = (
-        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
 
     geo = sum(geos, ())
     tsg = automol.graph.base.relabel(tsg, geo_idx_dct)
     gra = automol.graph.base.ts.reactants_graph(tsg)
-    keys = automol.graph.base.bond_keys(gra)
-    # Measure existing bond distances from the geometry
-    dists = [distance(geo, *k, angstrom=angstrom) for k in keys]
-    dist_dct = dict(zip(keys, dists))
-    # Add reacting bond distances using heuristics
+
+    # Add measured bond distances from the reactants geometry
+    bnd_keys = automol.graph.base.bond_keys(gra)
+    dists = [distance(geo, *k, angstrom=angstrom) for k in bnd_keys]
+    dist_dct = dict(zip(bnd_keys, dists))
+    # Add measured angle distances from the reactants geometry, if requested
+    if angles:
+        ang_keys = [
+            frozenset({k1, k3}) for k1, _, k3 in automol.graph.base.angle_keys(gra)
+        ]
+        dists = [distance(geo, *k, angstrom=angstrom) for k in ang_keys]
+        dist_dct = dict(zip(ang_keys, dists))
+
+    # Add heuristic bond distances from the TS graph
     for key in automol.graph.base.ts.reacting_bond_keys(tsg):
         dist_dct[key] = automol.graph.base.ts.heuristic_bond_distance(
             tsg,
@@ -391,33 +445,6 @@ def bond_distances(
             bdist_factor=bdist_factor,
             angstrom=angstrom,
         )
-    return dist_dct
-
-
-def angle_distances(geos, tsg, geo_idx_dct=None, angstrom=True):
-    """return a dictionary of distances between ends of a bond angle for a
-    sequence of reactant geometries, shifting the keys as needed
-
-    :param geos: Reactant geometries
-    :type geos: List[automol geom data structure]
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices, defaults to None
-    :type geo_idx_dct: dict[int: int], optional
-    :param angstrom: return the distances in angstroms?
-    """
-    akeys = sorted(automol.graph.base.atom_keys(tsg))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
-    geo = sum(geos, ())
-    gra = automol.graph.base.ts.reactants_graph(tsg)
-    gra = automol.graph.base.relabel(gra, geo_idx_dct)
-    keys = [frozenset({k1, k3}) for k1, _, k3 in automol.graph.base.angle_keys(gra)]
-    dists = [distance(geo, *k, angstrom=angstrom) for k in keys]
-    dist_dct = dict(zip(keys, dists))
     return dist_dct
 
 
