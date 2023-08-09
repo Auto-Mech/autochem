@@ -66,7 +66,7 @@ def geometry_from_reactants(
     # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
     # reactants and products
     ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
-
+    print(bdist_factor)
     return ts_geo
     # This
     # # 1. Evaluate the distances, updating them for the TS graph
