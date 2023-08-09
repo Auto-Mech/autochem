@@ -120,6 +120,20 @@ def move_item_to_front(lst, item):
     return tuple(lst)
 
 
+def move_item_to_end(lst, item):
+    """ Move an item to the end of a list.
+
+        :param lst: the list
+        :type lst: list or tuple
+        :param item: the item, which must be in `lst`
+        :returns: the list, with the item moved to end
+        :rtype: tuple
+    """
+    lst = list(lst)
+    lst.append(lst.pop(lst.index(item)))
+    return tuple(lst)
+
+
 def move_items_to_front(lst, items):
     """ Move an item to the front of a list.
 

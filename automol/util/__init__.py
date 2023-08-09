@@ -7,6 +7,7 @@ from automol.util._util import is_odd_permutation
 from automol.util._util import is_even_permutation
 from automol.util._util import equivalence_partition
 from automol.util._util import move_item_to_front
+from automol.util._util import move_item_to_end
 from automol.util._util import move_items_to_front
 from automol.util._util import breakby
 from automol.util._util import separate_negatives
@@ -30,6 +31,7 @@ __all__ = [
     'is_even_permutation',
     'equivalence_partition',
     'move_item_to_front',
+    'move_item_to_end',
     'move_items_to_front',
     'breakby',
     'separate_negatives',
