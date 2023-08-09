@@ -116,7 +116,7 @@ def coordinates(geo, idxs=None, angstrom=False):
 
 
 # # setters
-def set_coordinates(geo, xyz_dct):
+def set_coordinates(geo, xyz_dct, angstrom=False):
     """Set coordinate values for the molecular geometry,
     using a dictionary by index.
 
@@ -133,7 +133,11 @@ def set_coordinates(geo, xyz_dct):
     natms = len(symbs)
     assert all(idx in range(natms) for idx in xyz_dct)
 
-    xyzs = [xyz_dct[idx] if idx in xyz_dct else xyz for idx, xyz in enumerate(xyzs)]
+    conv = phycon.ANG2BOHR if angstrom else 1.0
+    xyzs = [
+        numpy.multiply(xyz_dct[idx], conv) if idx in xyz_dct else xyz
+        for idx, xyz in enumerate(xyzs)
+    ]
 
     return from_data(symbs, xyzs)
 
@@ -252,7 +256,7 @@ def from_xyz_trajectory_string(geo_str):
         """Split list into parts of size n"""
         split_lst = []
         for i in range(0, len(lst), size):
-            split_lst.append(lst[i: i + size])
+            split_lst.append(lst[i : i + size])
         return split_lst
 
     # Split the lines for iteration
