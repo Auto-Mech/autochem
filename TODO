@@ -8,8 +8,11 @@
     [X] Implement Reaction object structure addition
     [X] Stereo-correct join for atom stereo
     [X] Stereo-correct join for bond stereo
-    LEFT OFF AT automol.geom.ts.join_at_forming_bond()
+    LEFT OFF AT automol.geom.ts.geometry_from_reactants() clean_geometry step
     -> SEE test_ts_geometry.ipynb
+        [ ] Add TS angles to dist_dct based on graph.ts.reacting_electron_direction()
+        [ ] This should allow us to encourage planarity / correct structure for unimolecular reactions
+        [ ] Once this is working, test this function to see if it covers all cases!!!
     [ ] Figure out and TEST reagent reordering
     [ ] _4geom.py
     [ ] Include zmatrix data in Reaction string
