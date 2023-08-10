@@ -223,7 +223,7 @@ def test__graph__misc():
         {frozenset({0, 1}): (1, None), frozenset({0, 3}): (1, None),
          frozenset({0, 4}): (1, None), frozenset({1, 2}): (1, None),
          frozenset({1, 5}): (1, None), frozenset({2, 6}): (1, None)})
-    conn_gra = automol.geom.connectivity_graph(
+    conn_gra = automol.geom.graph_without_stereo(
         automol.chi.geometry(ref_ich))
     assert conn_gra == ref_conn_gra
 
@@ -445,8 +445,8 @@ if __name__ == '__main__':
     # test__graph__with_stereo()
     # test__smiles__with_stereo()
     # test__graph__misc()
-    # test__inchi_geometry()
+    test__inchi_geometry()
     # test__inchi_conformers()
     # test__multiple_rings()
     # test__weird_valencies()
-    test__symmetry_removal()
+    # test__symmetry_removal()

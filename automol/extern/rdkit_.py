@@ -271,10 +271,11 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
     if label_dct is not None:
         label = True
 
+    gra = automol.graph.base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
     kgr = automol.graph.base.kekule(gra, max_stereo_overlap=True)
     keys = sorted(automol.graph.base.atom_keys(kgr))
     key_map = dict(map(reversed, enumerate(keys)))
-    symb_dct = automol.graph.base.atom_symbols(kgr)
+    symb_dct = automol.graph.base.atom_symbols(kgr, dummy_symbol="He")
     rad_dct = automol.graph.base.atom_unpaired_electrons(kgr, bond_order=True)
     if label:
         label_dct = {k: k for k in keys} if label_dct is None else label_dct

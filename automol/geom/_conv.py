@@ -11,7 +11,7 @@ import automol.graph
 import automol.inchi.base
 import automol.zmat.base
 from automol import util
-from automol.extern import rdkit_, py3dmol_
+from automol.extern import py3dmol_, rdkit_
 from automol.geom import _pyx2z
 from automol.geom.base import (
     central_angle,
@@ -27,12 +27,13 @@ from automol.geom.base import (
     symbols,
     translate,
 )
+from automol.util import heuristic
 
 
 # # conversions
 def graph(geo, stereo=True):
     """Generate a molecular graph from the molecular geometry that has
-    information about bond connectivity and if requested, stereochemistry.
+    connectivity information and, if requested, stereochemistry.
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
@@ -40,14 +41,43 @@ def graph(geo, stereo=True):
     :type stereo: bool
     :rtype: automol molecular graph data structure
     """
-    gra = connectivity_graph(geo)
+    gra = graph_without_stereo(geo)
     if stereo:
         gra = automol.graph.set_stereo_from_geometry(gra, geo)
 
     return gra
 
 
-def connectivity_graph(geo, rqq_bond_max=3.45, rqh_bond_max=2.6, rhh_bond_max=1.9):
+def graph_without_stereo(geo, bdist_factor=None):
+    """Generate a molecular graph from the molecular geometry that has
+    connectivity information, but not stereochemistry
+
+    Anything less than `bdist_factor` times the max of (a.) the sum of covalent radii
+    and (b.) the average van der Waals radius between two atoms will be considered
+    bonded.
+
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param bdist_factor: The multiplier on the distance limit, defaults to None
+    :type bdist_factor: float, optional
+    """
+    symb_dct = dict(enumerate(symbols(geo)))
+    keys = sorted(symb_dct.keys())
+    bnd_keys = [
+        frozenset({k1, k2})
+        for k1, k2 in itertools.combinations(keys, r=2)
+        if distance(geo, k1, k2, angstrom=True)
+        <= heuristic.bond_distance_limit(
+            symb_dct[k1], symb_dct[k2], angstrom=True, bdist_factor=bdist_factor
+        )
+    ]
+
+    gra = automol.graph.from_data(atm_symb_dct=symb_dct, bnd_keys=bnd_keys)
+    return gra
+
+
+def connectivity_graph_deprecated(geo, rqq_bond_max=3.45, rqh_bond_max=2.6,
+                                  rhh_bond_max=1.9):
     """Generate a molecular graph from the molecular geometry that has
     information about bond connectivity.
 
@@ -130,10 +160,7 @@ def zmatrix_with_conversion_info(geo, ts_bnds=()):
         dummy_key_dct = {}
     else:
         geo, dummy_key_dct = insert_dummies_on_linear_atoms(geo)
-        gra = connectivity_graph(geo)
-        bnd_keys = tuple(dummy_key_dct.items())
-        ord_dct = {k: 0 for k in bnd_keys}
-        gra = automol.graph.add_bonds(gra, bnd_keys, ord_dct=ord_dct)
+        gra = graph_without_stereo(geo)
         vma, zma_keys = automol.graph.vmat.vmatrix(gra)
         geo = from_subset(geo, zma_keys)
         zma = automol.zmat.base.from_geometry(vma, geo)
@@ -224,7 +251,7 @@ def inchi_with_sort(geo, stereo=True, gra=None):
         connected component (components in multi-component InChI ordering)
     :rtype: (str, tuple[tuple[int]])
     """
-    gra = connectivity_graph(geo) if gra is None else gra
+    gra = graph_without_stereo(geo) if gra is None else gra
     if not stereo:
         geo = None
         geo_idx_dct = None
@@ -368,7 +395,7 @@ def linear_atoms(geo, gra=None, tol=5.0):
     :rtype: tuple(int)
     """
 
-    gra = connectivity_graph(geo) if gra is None else gra
+    gra = graph_without_stereo(geo) if gra is None else gra
     ngb_idxs_dct = automol.graph.atoms_neighbor_atom_keys(gra)
 
     lin_idxs = []
@@ -397,7 +424,7 @@ def closest_unbonded_atoms(geo, gra=None):
     :rtype: (frozenset(int), float)
     """
 
-    gra = connectivity_graph(geo) if gra is None else gra
+    gra = graph_without_stereo(geo) if gra is None else gra
     atm_keys = automol.graph.atom_keys(gra)
     bnd_keys = automol.graph.bond_keys(gra)
     poss_bnd_keys = set(map(frozenset, itertools.combinations(atm_keys, r=2)))
@@ -506,7 +533,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.0, tol=5
     """
 
     lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
-    gra = connectivity_graph(geo) if gra is None else gra
+    gra = graph_without_stereo(geo) if gra is None else gra
 
     dummy_ngb_idxs = set(automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
     atoms_already_have_dummys = dummy_ngb_idxs & set(lin_idxs)
@@ -652,7 +679,7 @@ def change_zmatrix_row_values(
     :type gra: automol molecular graph data structure
     :rtype: automol geometry data structure
     """
-    gra = gra if gra is not None else connectivity_graph(geo)
+    gra = gra if gra is not None else graph_without_stereo(geo)
     dist = (
         dist
         if dist is not None or idx1 is None

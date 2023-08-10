@@ -62,6 +62,8 @@ from automol.graph.base._core import has_pi_bonds
 from automol.graph.base._core import is_ts_graph
 from automol.graph.base._core import atomic_numbers
 from automol.graph.base._core import mass_numbers
+from automol.graph.base._core import van_der_waals_radii
+from automol.graph.base._core import covalent_radii
 from automol.graph.base._core import atomic_valences
 from automol.graph.base._core import atom_lone_pairs
 from automol.graph.base._core import atom_van_der_waals_radius
@@ -211,6 +213,7 @@ from automol.graph.base._kekule import atom_centered_cumulene_keys
 from automol.graph.base._kekule import bond_centered_cumulene_keys
 # structural heuristics:
 from automol.graph.base._heur import heuristic_bond_distance
+from automol.graph.base._heur import heuristic_bond_distance_limit
 from automol.graph.base._heur import heuristic_bond_angle
 from automol.graph.base._heur import rotational_bond_keys
 from automol.graph.base._heur import rotational_groups
@@ -365,6 +368,8 @@ __all__ = [
     'is_ts_graph',
     'atomic_numbers',
     'mass_numbers',
+    'van_der_waals_radii',
+    'covalent_radii',
     'atomic_valences',
     'atom_lone_pairs',
     'atom_van_der_waals_radius',
@@ -514,6 +519,7 @@ __all__ = [
     'bond_centered_cumulene_keys',
     # structural heuristics:
     'heuristic_bond_distance',
+    'heuristic_bond_distance_limit',
     'heuristic_bond_angle',
     'rotational_bond_keys',
     'rotational_groups',

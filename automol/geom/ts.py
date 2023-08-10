@@ -6,7 +6,7 @@ from phydat import phycon
 
 import automol.graph.base
 from automol.extern import py3dmol_
-from automol.geom._conv import connectivity_graph, py3dmol_view
+from automol.geom._conv import graph_without_stereo, py3dmol_view
 from automol.geom.base import (
     coordinates,
     count,
@@ -97,6 +97,7 @@ def geometry_from_reactants(
         dist_range_dct=dist_range_dct,
         relax_angles=automol.graph.base.ts.has_reacting_ring(tsg),
         max_dist_err=max_dist_err,
+        log=log,
     )
     return ts_geo
 
@@ -126,7 +127,7 @@ def join_at_forming_bond(
     """
     rcts_gra = automol.graph.ts.reactants_graph(tsg, stereo=False)
     geos_gra = automol.graph.base.union_from_sequence(
-        list(map(automol.geom.connectivity_graph, geos)), shift_keys=True
+        list(map(automol.geom.graph_without_stereo, geos)), shift_keys=True
     )
     assert geos_gra == rcts_gra, (
         f"The geometries don't match the TS graph. Have they been reordered?"
@@ -263,7 +264,7 @@ def reacting_electron_direction(geo, tsg, key, local_stereo=False) -> vec.Vector
         par = automol.graph.base.geometry_bond_parity(tsg, geo_, bkey)
         # If incorrect, rotate the direction by 2 pi / 3
         if par != bpar_dct[bkey]:
-            bkey = sorted(bkey, key=lambda k: k==key)
+            bkey = sorted(bkey, key=lambda k: k == key)
             rvec = rot_(rvec)
 
     return rvec
@@ -473,7 +474,7 @@ def join(
     a234 *= phycon.DEG2RAD if degree else 1
     d1234 *= phycon.DEG2RAD if degree else 1
 
-    gra1, gra2 = map(connectivity_graph, (geo1, geo2))
+    gra1, gra2 = map(graph_without_stereo, (geo1, geo2))
     key1 = (
         automol.graph.base.atom_neighbor_atom_key(gra1, key2) if key1 is None else key1
     )

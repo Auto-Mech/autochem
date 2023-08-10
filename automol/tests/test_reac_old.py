@@ -801,7 +801,7 @@ def _gras_for_prod_tests(rct_smis):
 
     rct_ichs = list(map(automol.smiles.inchi, rct_smis))
     rct_geos = list(map(automol.inchi.geometry, rct_ichs))
-    rct_gras = tuple(map(automol.geom.connectivity_graph, rct_geos))
+    rct_gras = tuple(map(automol.geom.graph_without_stereo, rct_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
 
     return rct_gras

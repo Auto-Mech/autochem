@@ -322,3 +322,7 @@ def __geom_ring():
     #     ('H',  (-4.2677394999, 4.7261055569, 1.4049815516)))
     # rng_atoms = ((0, 1, 4, 6, 8),)
     # assert not geom.all_rings_angles_reasonable(bad_geo, rng_atoms)
+
+
+if __name__ == "__main__":
+    test__ring_puckering()
