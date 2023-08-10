@@ -1586,6 +1586,23 @@ def test__stereo_corrected_geometry():
         assert sgra_from_geo == sgra
 
 
+def test__embed__clean_geometry():
+    """test graph.embed.clean_geometry
+    """
+    # Make sure good geometries don't get bessed up by cleaning
+    # F/C=N\C#C
+    geo1 = (('C', (-3.321773, 0.223278, -1.798954)),
+            ('C', (-1.526479, 0.653524, -0.482726)),
+            ('N', (0.453152, 1.154608, 1.00976)),
+            ('C', (2.562887, 0.064839, 0.451482)),
+            ('F', (2.694212, -1.636094, -1.420516)),
+            ('H', (-4.917597, -0.155311, -2.962995)),
+            ('H', (4.300424, 0.512127, 1.504603)))
+    gra = automol.geom.graph(geo1)
+    geo2 = graph.embed.clean_geometry(gra, geo1)
+    assert automol.geom.almost_equal(geo1, geo2)
+
+
 if __name__ == '__main__':
     # test__to_local_stereo()
 
