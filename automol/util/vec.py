@@ -64,6 +64,29 @@ def orthogonalize(xyz1, xyz2, normalize=False):
     return oxyz2
 
 
+def flip_if_left_handed(xvec, yvec, zvec) -> Vector:
+    """Given three vectors, flips the third one, if necessary, to make a right-handed
+    coordinate system
+
+    The vectors need not be orthogonal, but they must be linearly independent for this
+    to work.  Does not change direction -- only flips the sign, if necessary.
+
+    :param xvec: A vector defining the x direction
+    :type xvec: Vector
+    :param yvec: A vector defining the y direction
+    :type yvec: Vector
+    :param zvec: A vector defining the z direction
+    :type zvec: Vector
+    :returns: `zvec` or, if they made a left-handed system, `-zvec`
+    :rtype: Vector
+    """
+    zdir = numpy.cross(xvec, yvec)
+    proj = numpy.dot(zvec, zdir)
+    if proj < 0.:
+        zvec = numpy.negative(zvec)
+    return tuple(map(float, zvec))
+
+
 def best_unit_perpendicular(xyzs):
     """Find a vector that is perpendicular to a series of points as much as possible
 

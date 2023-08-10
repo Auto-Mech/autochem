@@ -22,7 +22,6 @@ from automol.graph.base._canon import (
 from automol.graph.base._core import (
     atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
-    atoms_sorted_neighbor_atom_keys,
     bond_stereo_keys,
     bond_stereo_sorted_neighbor_keys,
     has_stereo,
@@ -522,22 +521,29 @@ def reacting_electron_direction(tsg, key: int):
 
     Does *not* account for stereochemistry
 
-    The direction is determined by another bond, along with an angle for an in-plane
-    rotation of this bond into the desired direction. Returning `None` indicates that
-    the direction is perpendicular to the plane.
+    The direction is determined as follows:
+        1. One bond, defining the 'x' axis direction
+        2. Another bond, defining the 'y' axis direction
+        3. An angle, describing how far to rotate the 'x' axis bond about a right-handed
+        'z'-axis in order to arrive at the appropriate direction
+
+    The 'y'-axis bond is `None` if the direction is parallel or antiparallel
+    to the 'x'-axis bond, or if the orientation doesn't matter.
+
+    Both bonds are `None` if the direction is perpendicular to the 'x-y' plane.
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     :param key: The key of a bond-forming atom
     :type key: int
-    :returns: A directed bond key and an angle
-    :rtype: (Tuple[int, int], float)
+    :returns: Two directed bond keys (x and y, respectively) and an angle
+    :rtype: (Tuple[int, int], Tuple[int, int], float)
     """
     frm_key = next((k for k in forming_bond_keys(tsg) if key in k), None)
     assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
     rcts_gra = reactants_graph(tsg, stereo=False)
     hyd_keys = nonbackbone_hydrogen_keys(rcts_gra)
-    nkeys_dct = atoms_sorted_neighbor_atom_keys(rcts_gra)
+    nkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
     vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
     sig_dct = sigma_radical_atom_bond_keys(rcts_gra)
 
@@ -545,22 +551,27 @@ def reacting_electron_direction(tsg, key: int):
         # key1 = H-atom key
         # key2 = neighbor
         (nkey,) = nkeys_dct[key]
-        bnd_key = (key, nkey)
+        xbnd_key = (key, nkey)
+        ybnd_key = None
         phi = numpy.pi
     elif key in vin_dct:
         # key1 = this key
         # key2 = opposite end of the vinyl bond
         (opp_key,) = vin_dct[key] - {key}
-        bnd_key = (key, opp_key)
-        phi = 2. * numpy.pi / 3.
+        nkey = next(iter(nkeys_dct[key] - {key, opp_key}), None)
+        xbnd_key = (key, opp_key)
+        ybnd_key = None if nkey is None else (key, nkey)
+        phi = 4. * numpy.pi / 3.
     elif key in sig_dct:
         # key1 = attacking atom key
         # key2 = neighbor
         (nkey,) = sig_dct[key] - {key}
-        bnd_key = (key, nkey)
+        xbnd_key = (key, nkey)
+        ybnd_key = None
         phi = numpy.pi
     else:
-        bnd_key = None
+        xbnd_key = None
+        ybnd_key = None
         phi = None
 
-    return bnd_key, phi
+    return xbnd_key, ybnd_key, phi
