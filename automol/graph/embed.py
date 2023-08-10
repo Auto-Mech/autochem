@@ -227,7 +227,6 @@ def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
     bnd_ste_par_dct = bond_stereo_parities(loc_gra)
 
     def _is_converged(xmat, err, grad):
-        assert err and numpy.any(grad)
         xyzs = xmat[:, :3]
         dmat = embed.distance_matrix_from_coordinates(xyzs)
 
@@ -312,8 +311,9 @@ def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
 
         tors_idxs = tuple(map(list, zip(*tors_ijs)))
 
-        lmat[tors_idxs] = lmat_old[tors_idxs]
-        umat[tors_idxs] = umat_old[tors_idxs]
+        if tors_idxs:
+            lmat[tors_idxs] = lmat_old[tors_idxs]
+            umat[tors_idxs] = umat_old[tors_idxs]
 
     # 3. reopen bounds on the angles from the reactant
     if relax_angles:
@@ -323,8 +323,9 @@ def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
 
         ang_idxs = tuple(map(list, zip(*ang_ijs)))
 
-        lmat[ang_idxs] = lmat_old[ang_idxs]
-        umat[ang_idxs] = umat_old[ang_idxs]
+        if ang_idxs:
+            lmat[ang_idxs] = lmat_old[ang_idxs]
+            umat[ang_idxs] = umat_old[ang_idxs]
 
     # 4. set distance bounds for the forming bonds
     if dist_range_dct:
@@ -632,11 +633,21 @@ def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4,
 
     term1 = (d12**2 + d23**2 - d13**2)*(d23**2 + d34**2 - d24**2)
     term2 = 2*d23**2 * (d13**2 + d24**2 - d23**2)
-    denom = numpy.sqrt((4*d12**2 * d23**2 - (d12**2 + d23**2 - d13**2)**2) *
-                       (4*d23**2 * d34**2 - (d23**2 + d34**2 - d24**2)**2))
+    term3 = ((4*d12**2 * d23**2 - (d12**2 + d23**2 - d13**2)**2) *
+             (4*d23**2 * d34**2 - (d23**2 + d34**2 - d24**2)**2))
+    if term3 < 0.:
+        assert numpy.allclose(term3, 0)
+        term3 = 0.
 
-    d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) /
-                     (2 * d23**2))
+    denom = numpy.sqrt(term3)
+                       
+    term4 = ((term1 + term2 - numpy.cos(d1234) * denom) /
+             (2 * d23**2))
+    if term4 < 0.:
+        assert numpy.allclose(term4, 0)
+        term4 = 0.
+
+    d14 = numpy.sqrt(term4)
     return d14
 
 
