@@ -353,6 +353,6 @@ def test__stereo():
 
 
 if __name__ == '__main__':
+    test__prod_zmas()
     test__transformation()
     test__stereo()
-    # test__prod_zmas()

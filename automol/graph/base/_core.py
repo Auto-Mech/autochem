@@ -56,6 +56,8 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
         }
         [where bnd_key := frozenset({atm1_key, atm2_key})]
 
+    Bonds to dummy atoms will automatically be given an order of 0.
+
     :param atm_symb_dct: atomic symbols, by atom key
     :type atm_symb_dct: dict
     :param bnd_keys: bond keys
@@ -72,6 +74,8 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
+    dummy_keys = dict_.keys_by_value(atm_symb_dct, lambda s: s.upper() == "X")
+
     atm_dct = atoms_from_data(
         atm_symb_dct=atm_symb_dct,
         atm_imp_hyd_dct=atm_imp_hyd_dct,
@@ -80,7 +84,8 @@ def from_data(atm_symb_dct, bnd_keys, atm_imp_hyd_dct=None,
     bnd_dct = bonds_from_data(
         bnd_keys=bnd_keys,
         bnd_ord_dct=bnd_ord_dct,
-        bnd_ste_par_dct=bnd_ste_par_dct)
+        bnd_ste_par_dct=bnd_ste_par_dct,
+        dummy_atm_keys=dummy_keys)
 
     atm_keys = set(atm_dct.keys())
     bnd_keys = set(bnd_dct.keys())
@@ -139,7 +144,8 @@ def atoms_from_data(atm_symb_dct, atm_imp_hyd_dct=None, atm_ste_par_dct=None):
     return atm_dct
 
 
-def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None):
+def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None,
+                    dummy_atm_keys=()):
     """ Construct a bond dictionary from constituent data.
 
     Ordinary graph data structure:
@@ -162,9 +168,12 @@ def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None):
     :type bnd_ord_dct: dict
     :param bnd_ste_par_dct: stereo parities, by bond key;
     :type bnd_ste_par_dct: dict
+    :param dummy_atm_keys: keys to dummy atoms, resulting in 0-order bonds for these
+    :type dummy_atm_keys: list
     :returns: The bonds and their associated properties, as a dictionary
     :rtype: dict[frozenset({int, int}): tuple]
     """
+    dummy_atm_keys = set(dummy_atm_keys)
     keys = sorted(bnd_keys)
     assert all(len(key) == 2 for key in keys)
     ords = dict_.values_by_key(
@@ -180,7 +189,9 @@ def bonds_from_data(bnd_keys, bnd_ord_dct=None, bnd_ste_par_dct=None):
 
     keys = list(map(frozenset, keys))
     # If ts_ = False, we should assert that round(o) == o
-    ords = [int(o) if round(o) == o else float(round(o, 1)) for o in ords]
+    dummy_keys = [k for k in keys if k & dummy_atm_keys]
+    ords = [0 if k in dummy_keys else int(o) if round(o) == o else float(round(o, 1))
+            for k, o in zip(keys, ords)]
     pars = [bool(par) if par is not None else par for par in pars]
 
     bnd_dct = dict(zip(keys, zip(ords, pars)))
@@ -302,15 +313,22 @@ def bond_keys(gra, ts_=True):
     return frozenset(bonds(gra).keys())
 
 
-def atom_symbols(gra):
+def atom_symbols(gra, dummy_symbol=None):
     """ Get the atom symbols of this molecular graph, as a dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param dummy_symbol: Use this symbol for dummy atoms, defaults to None
+        (If `None`, the usual symbol 'X' will be used)
+    :type dummy_symbol: str
     :returns: A dictionary of atomic symbols, by atom key
     :rtype: dict[int: str]
     """
-    return mdict.by_key_by_position(atoms(gra), atoms(gra).keys(), ATM_SYM_POS)
+    symb_dct = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(), ATM_SYM_POS)
+    if dummy_symbol is not None:
+        symb_dct = dict_.transform_values(
+            symb_dct, lambda s: dummy_symbol if s == "X" else s)
+    return symb_dct
 
 
 def bond_orders(gra, ts_=True):
@@ -996,6 +1014,38 @@ def mass_numbers(gra):
     symb_dct = atom_symbols(gra)
     mnum_dct = dict_.transform_values(symb_dct, ptab.to_mass_number)
     return mnum_dct
+
+
+def van_der_waals_radii(gra, angstrom=False):
+    """ Get van der Waals radii for atoms in this graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param angstrom: Return in angstroms, instead of bohr?, default False
+    :type angstrom: bool, optional
+    :returns: A dictionary of covalent, by atom key
+    :rtype: dict[int: float]
+    """
+    symb_dct = atom_symbols(gra)
+    rvdw_dct = dict_.transform_values(
+        symb_dct, lambda s: ptab.van_der_waals_radius(s, angstrom=angstrom))
+    return rvdw_dct
+
+
+def covalent_radii(gra, angstrom=False):
+    """ Get covalent radii for atoms in this graph, as a dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param angstrom: Return in angstroms, instead of bohr?, default False
+    :type angstrom: bool, optional
+    :returns: A dictionary of covalent, by atom key
+    :rtype: dict[int: float]
+    """
+    symb_dct = atom_symbols(gra)
+    rcov_dct = dict_.transform_values(
+        symb_dct, lambda s: ptab.covalent_radius(s, angstrom=angstrom))
+    return rcov_dct
 
 
 def atomic_valences(gra):

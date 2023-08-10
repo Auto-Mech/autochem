@@ -808,8 +808,8 @@ def find_from_chi(rct_chis, prd_chis):
     """
     rct_geos = list(map(automol.chi.geometry, rct_chis))
     prd_geos = list(map(automol.chi.geometry, prd_chis))
-    rct_gras = list(map(automol.geom.connectivity_graph, rct_geos))
-    prd_gras = list(map(automol.geom.connectivity_graph, prd_geos))
+    rct_gras = list(map(automol.geom.graph_without_stereo, rct_geos))
+    prd_gras = list(map(automol.geom.graph_without_stereo, prd_geos))
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
     return find(rct_gras, prd_gras)

@@ -96,7 +96,8 @@ from automol.geom.base._comp import minimum_volume_geometry
 # conversion functions:
 # # conversions
 from automol.geom._conv import graph
-from automol.geom._conv import connectivity_graph
+from automol.geom._conv import graph_without_stereo
+from automol.geom._conv import connectivity_graph_deprecated
 from automol.geom._conv import zmatrix
 from automol.geom._conv import zmatrix_with_conversion_info
 from automol.geom._conv import x2z_zmatrix
@@ -223,7 +224,8 @@ __all__ = [
     # conversion functions:
     # # conversions
     'graph',
-    'connectivity_graph',
+    'graph_without_stereo',
+    'connectivity_graph_deprecated',
     'zmatrix',
     'zmatrix_with_conversion_info',
     'x2z_zmatrix',

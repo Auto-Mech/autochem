@@ -5,7 +5,6 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 import itertools
 
-import qcelemental as qcel
 from phydat import phycon
 
 from automol.graph.base._algo import branch_atom_keys, rings_bond_keys
@@ -25,6 +24,7 @@ from automol.graph.base._kekule import (
     kekules_bond_orders_collated,
     linear_segments_atom_keys,
 )
+from automol.util import heuristic
 
 # bond angles
 TET_ANG = 109.4712  # degrees
@@ -37,6 +37,9 @@ def heuristic_bond_distance(
     gra, key1: int, key2: int, angstrom: bool = True, check: bool = False
 ) -> float:
     """The heuristic bond distance between two bonded atoms
+
+    Returns whichever is smaller of (a.) the sum of covalent radii, and (b.) the average
+    vdw radius.
 
     :param gra: Molecular graph
     :type gra: automol graph data structure
@@ -54,17 +57,39 @@ def heuristic_bond_distance(
     if check:
         assert key1 in atoms_neighbor_atom_keys(gra)[key2]
 
-    units = "angstrom" if angstrom else "bohr"
-
     symb_dct = atom_symbols(gra)
-    symb1 = symb_dct[key1]
-    symb2 = symb_dct[key2]
+    symb1, symb2 = map(symb_dct.__getitem__, [key1, key2])
+    return heuristic.bond_distance(symb1, symb2, angstrom=angstrom)
 
-    dist = qcel.covalentradii.get(symb1, units=units) + qcel.covalentradii.get(
-        symb2, units=units
-    )
 
-    return dist
+def heuristic_bond_distance_limit(
+    gra,
+    key1: int,
+    key2: int,
+    bdist_factor: float = None,
+    angstrom: bool = True,
+) -> float:
+    """The heuristic bond distance between two bonded atoms
+
+    Returns `bdist_factor` times whichever is larger of of (a.) the sum of covalent
+    radii, and (b.) the average vdw radius.
+
+    :param gra: Molecular graph
+    :type gra: automol graph data structure
+    :param key1: The first atom key
+    :type key1: int
+    :param key2: The second atom key
+    :type key2: int
+    :param bdist_factor: The multiplier on the distance limit, defaults to None
+    :type bdist_factor: float, optional
+    :param angstrom: Return in angstroms intead of bohr?, defaults to True
+    :type angstrom: bool, optional
+    :return: The heuristic bond distance limit
+    :rtype: float
+    """
+    symb_dct = atom_symbols(gra)
+    symb1, symb2 = map(symb_dct.__getitem__, [key1, key2])
+    return heuristic.bond_distance_limit(symb1, symb2, bdist_factor, angstrom=angstrom)
 
 
 def heuristic_bond_angle(

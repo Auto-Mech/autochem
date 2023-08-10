@@ -27,48 +27,60 @@ The function sample_raw_distance_geometry() below returns the result of step
 automol.embed.
 """
 
-import numbers
 import itertools
+import numbers
+
 import more_itertools as mit
 import numpy
 from phydat import phycon
-from automol import error
-from automol import embed
-from automol.util import dict_
+
 import automol.geom.base
-from automol.graph.base import atom_keys
-from automol.graph.base import bond_keys
-from automol.graph.base import atom_stereo_keys
-from automol.graph.base import bond_stereo_keys
-from automol.graph.base import atom_neighbor_atom_key
-from automol.graph.base import atom_shortest_paths
-from automol.graph.base import atom_symbols
-from automol.graph.base import atom_stereo_parities
-from automol.graph.base import bond_stereo_parities
-from automol.graph.base import string
-from automol.graph.base import explicit
-from automol.graph.base import bond_neighborhoods
-from automol.graph.base import atoms_neighbor_atom_keys
-from automol.graph.base import subgraph
-from automol.graph.base import atom_hybridizations
-from automol.graph.base import atom_van_der_waals_radius
-from automol.graph.base import rigid_planar_bond_keys
-from automol.graph.base import rings_atom_keys
-from automol.graph.base import to_local_stereo
-from automol.graph.base import is_ts_graph
-from automol.graph.base import rotational_bond_keys
-from automol.graph.base import geometry_atom_parity
-from automol.graph.base import geometry_bond_parity
-from automol.graph.base import perturb_geometry_planar_dihedrals
-from automol.graph.base import heuristic_bond_distance
-from automol.graph.base import heuristic_bond_angle
-from automol.graph.base import ts
+from automol import embed, error
+from automol.graph.base import (
+    atom_hybridizations,
+    atom_keys,
+    atom_neighbor_atom_key,
+    atom_shortest_paths,
+    atom_stereo_keys,
+    atom_stereo_parities,
+    atom_symbols,
+    atoms_neighbor_atom_keys,
+    bond_keys,
+    bond_neighborhoods,
+    bond_stereo_keys,
+    bond_stereo_parities,
+    explicit,
+    geometry_atom_parity,
+    geometry_bond_parity,
+    heuristic_bond_angle,
+    heuristic_bond_distance,
+    heuristic_bond_distance_limit,
+    is_ts_graph,
+    perturb_geometry_planar_dihedrals,
+    rigid_planar_bond_keys,
+    rings_atom_keys,
+    rotational_bond_keys,
+    string,
+    subgraph,
+    to_local_stereo,
+    ts,
+)
+from automol.util import dict_, heuristic
 
 
 # # geometry embedding functions
-def clean_geometry(gra, geo, geos=None, dist_range_dct=None, max_dist_err=2e-1, stereo=True,
-                   remove_symmetry=True, relax_angles=False, log=False):
-    """ Clean up a geometry based on this graph, removing any bonds that
+def clean_geometry(
+    gra,
+    geo,
+    geos=None,
+    dist_range_dct=None,
+    max_dist_err=2e-1,
+    stereo=True,
+    remove_symmetry=True,
+    relax_angles=False,
+    log=False,
+):
+    """Clean up a geometry based on this graph, removing any bonds that
     aren't supposed to be there
 
     :param gra: molecular graph with stereo parities
@@ -83,7 +95,7 @@ def clean_geometry(gra, geo, geos=None, dist_range_dct=None, max_dist_err=2e-1, 
     :param remove_symmetry: Remove symmetry in the geometry, by slightly
         perturbing near-planar dihedral angles?
     :type remove_symmetry: bool
-    :param relax_angles: Allow angles to relax when cleaning the geometry?, defaults to False
+    :param relax_angles: Allow angles to relax?, defaults to False
     :type relax_angles: bool, optional
     """
     gra = to_local_stereo(gra)
@@ -94,8 +106,13 @@ def clean_geometry(gra, geo, geos=None, dist_range_dct=None, max_dist_err=2e-1, 
     keys = sorted(atom_keys(gra))
     xmat = automol.geom.coordinates(geo, angstrom=True)
     lmat, umat = distance_bounds_matrices(
-        dist_gra, keys, geos=geos, dist_range_dct=dist_range_dct,
-        relax_angles=relax_angles, relax_torsions=True)
+        dist_gra,
+        keys,
+        geos=geos,
+        dist_range_dct=dist_range_dct,
+        relax_angles=relax_angles,
+        relax_torsions=True,
+    )
 
     pla_dct = planarity_constraint_bounds(gra, keys)
     if stereo:
@@ -104,8 +121,14 @@ def clean_geometry(gra, geo, geos=None, dist_range_dct=None, max_dist_err=2e-1, 
         chi_dct = {}
 
     xmat, conv = automol.embed.cleaned_up_coordinates(
-        xmat, lmat, umat, chi_dct=chi_dct, pla_dct=pla_dct,
-        max_dist_err=max_dist_err, log=log)
+        xmat,
+        lmat,
+        umat,
+        chi_dct=chi_dct,
+        pla_dct=pla_dct,
+        max_dist_err=max_dist_err,
+        log=log,
+    )
 
     if log:
         print("Converged!" if conv else "Did not converge.")
@@ -115,13 +138,13 @@ def clean_geometry(gra, geo, geos=None, dist_range_dct=None, max_dist_err=2e-1, 
     geo = automol.geom.from_data(syms, xyzs, angstrom=True)
 
     if remove_symmetry:
-        geo = perturb_geometry_planar_dihedrals(gra, geo, ang=5., degree=True)
+        geo = perturb_geometry_planar_dihedrals(gra, geo, ang=5.0, degree=True)
 
     return geo
 
 
 def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
-    """ sample a qualitatively-correct stereo geometry
+    """sample a qualitatively-correct stereo geometry
 
     :param gra: the graph, which may or may not have stereo
     :param keys: graph keys, in the order in which they should appear in the
@@ -135,7 +158,8 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
     """
     assert gra == explicit(gra), (
         "Graph => geometry conversion requires explicit hydrogens!\n"
-        "Use automol.graph.explicit() to convert to an explicit graph.")
+        "Use automol.graph.explicit() to convert to an explicit graph."
+    )
 
     symbs = atom_symbols(gra)
     if len(symbs) == 1:
@@ -166,14 +190,13 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
         for _ in range(ntries):
             xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
             xmat, conv = embed.cleaned_up_coordinates(
-                xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct,
-                conv_=conv_)
+                xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct, conv_=conv_
+            )
             if conv:
                 break
 
         if not conv:
-            raise error.FailedGeometryGenerationError(
-                f'Bad gra {string(loc_gra)}')
+            raise error.FailedGeometryGenerationError(f"Bad gra {string(loc_gra)}")
 
         # 3. Generate a geometry data structure from the coordinates
         xyzs = xmat[:, :3]
@@ -183,10 +206,13 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
 
 
 # # convergence checking
-def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
-                                     rqh_bond_max=1.3, rhh_bond_max=1.1,
-                                     bond_nobond_diff=0.3):
-    """ a convergence checker for error minimization, checking that the
+def qualitative_convergence_checker_(
+    loc_gra,
+    keys,
+    bdist_factor=None,
+    bond_nobond_diff=0.3,
+):
+    """a convergence checker for error minimization, checking that the
     geometry is qualitatively correct (correct connectivity and stereo)
     """
     symb_dct = atom_symbols(loc_gra)
@@ -195,21 +221,24 @@ def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
     bnd_keys = pairs & bond_keys(loc_gra)
     nob_keys = pairs - bond_keys(loc_gra)
 
-    nob_symbs = tuple(tuple(map(symb_dct.__getitem__, nob_key))
-                      for nob_key in nob_keys)
-    bnd_symbs = tuple(tuple(map(symb_dct.__getitem__, bnd_key))
-                      for bnd_key in bnd_keys)
+    nob_symbs = tuple(tuple(map(symb_dct.__getitem__, nob_key)) for nob_key in nob_keys)
+    bnd_symbs = tuple(tuple(map(symb_dct.__getitem__, bnd_key)) for bnd_key in bnd_keys)
     nob_idxs = tuple(tuple(map(keys.index, nob_key)) for nob_key in nob_keys)
     bnd_idxs = tuple(tuple(map(keys.index, bnd_key)) for bnd_key in bnd_keys)
 
-    bnd_udists = tuple((rqq_bond_max if 'H' not in symb else
-                        rhh_bond_max if set(symb) == {'H'} else
-                        rqh_bond_max) for symb in bnd_symbs)
+    bnd_udists = tuple(
+        heuristic.bond_distance_limit(s1, s2, bdist_factor=bdist_factor, angstrom=True)
+        for s1, s2 in bnd_symbs
+    )
 
     diff = bond_nobond_diff
-    nob_ldists = tuple((rqq_bond_max+diff if 'H' not in symb else
-                        rhh_bond_max+diff if set(symb) == {'H'} else
-                        rqh_bond_max+diff) for symb in nob_symbs)
+    nob_ldists = tuple(
+        diff
+        + heuristic.bond_distance_limit(
+            s1, s2, bdist_factor=bdist_factor, angstrom=True
+        )
+        for s1, s2 in nob_symbs
+    )
 
     bnd_idxs += tuple(map(tuple, map(reversed, bnd_idxs)))
     bnd_idx_vecs = tuple(map(list, zip(*bnd_idxs)))
@@ -227,27 +256,33 @@ def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
     bnd_ste_par_dct = bond_stereo_parities(loc_gra)
 
     def _is_converged(xmat, err, grad):
+        assert err or not err
+        assert grad or not grad
         xyzs = xmat[:, :3]
         dmat = embed.distance_matrix_from_coordinates(xyzs)
 
         # check for correct connectivity
         connectivity_check = (
-            (numpy.all(dmat[bnd_idx_vecs] < bnd_udists)
-             if bnd_udists else True) and
-            (numpy.all(dmat[nob_idx_vecs] > nob_ldists)
-             if nob_ldists else True))
+            numpy.all(dmat[bnd_idx_vecs] < bnd_udists) if bnd_udists else True
+        ) and (numpy.all(dmat[nob_idx_vecs] > nob_ldists) if nob_ldists else True)
 
         # check for correct stereo parities
         geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
         atom_stereo_check = all(
-            (geometry_atom_parity(loc_gra, geo, k, geo_idx_dct=geo_idx_dct)
-             == atm_ste_par_dct[k])
-            for k in atm_ste_keys)
+            (
+                geometry_atom_parity(loc_gra, geo, k, geo_idx_dct=geo_idx_dct)
+                == atm_ste_par_dct[k]
+            )
+            for k in atm_ste_keys
+        )
 
         bond_stereo_check = all(
-            (geometry_bond_parity(loc_gra, geo, k, geo_idx_dct=geo_idx_dct)
-             == bnd_ste_par_dct[k])
-            for k in bnd_ste_keys)
+            (
+                geometry_bond_parity(loc_gra, geo, k, geo_idx_dct=geo_idx_dct)
+                == bnd_ste_par_dct[k]
+            )
+            for k in bnd_ste_keys
+        )
 
         return connectivity_check and atom_stereo_check and bond_stereo_check
 
@@ -255,10 +290,17 @@ def qualitative_convergence_checker_(loc_gra, keys, rqq_bond_max=1.8,
 
 
 # # bounds matrices
-def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
-                             relax_angles=False, relax_torsions=False,
-                             sp_dct=None, angstrom=True):
-    """ generates initial distance bounds matrices for various different
+def distance_bounds_matrices(
+    gra,
+    keys,
+    dist_range_dct=(),
+    geos=None,
+    relax_angles=False,
+    relax_torsions=False,
+    sp_dct=None,
+    angstrom=True,
+):
+    """generates initial distance bounds matrices for various different
     scenarios, allowing the geometry to be manipulated in different ways
 
     :param gra: molecular graph:
@@ -285,8 +327,7 @@ def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
 
     # 1. set known geometric parameters
     if geos:
-        xmats = [automol.geom.base.coordinates(geo, angstrom=angstrom)
-                 for geo in geos]
+        xmats = [automol.geom.base.coordinates(geo, angstrom=angstrom) for geo in geos]
         dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
 
         start = 0
@@ -303,9 +344,13 @@ def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
     if relax_torsions:
         rot_bnd_keys = rotational_bond_keys(gra)
 
-        tors_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
-                    if j in sp_dct[i] and len(sp_dct[i][j]) >= 4
-                    and frozenset(sp_dct[i][j][1:3]) in rot_bnd_keys]
+        tors_ijs = [
+            [i, j]
+            for i, j in itertools.combinations(range(natms), 2)
+            if j in sp_dct[i]
+            and len(sp_dct[i][j]) >= 4
+            and frozenset(sp_dct[i][j][1:3]) in rot_bnd_keys
+        ]
 
         tors_ijs += list(map(list, map(reversed, tors_ijs)))
 
@@ -317,8 +362,11 @@ def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
 
     # 3. reopen bounds on the angles from the reactant
     if relax_angles:
-        ang_ijs = [[i, j] for i, j in itertools.combinations(range(natms), 2)
-                   if j in sp_dct[i] and len(sp_dct[i][j]) >= 3]
+        ang_ijs = [
+            [i, j]
+            for i, j in itertools.combinations(range(natms), 2)
+            if j in sp_dct[i] and len(sp_dct[i][j]) >= 3
+        ]
         ang_ijs += list(map(list, map(reversed, ang_ijs)))
 
         ang_idxs = tuple(map(list, zip(*ang_ijs)))
@@ -339,7 +387,7 @@ def distance_bounds_matrices(gra, keys, dist_range_dct=(), geos=None,
 
 
 def _distance_bounds_matrices(gra, keys, sp_dct=None):
-    """ initial distance bounds matrices
+    """initial distance bounds matrices
 
     :param gra: molecular graph
     :param keys: atom keys specifying the order of indices in the matrix
@@ -356,8 +404,7 @@ def _distance_bounds_matrices(gra, keys, sp_dct=None):
     natms = len(keys)
     umat = numpy.zeros((natms, natms))
     lmat = numpy.zeros((natms, natms))
-    for (idx1, key1), (idx2, key2) in itertools.combinations(
-            enumerate(keys), 2):
+    for (idx1, key1), (idx2, key2) in itertools.combinations(enumerate(keys), 2):
         if key2 in sp_dct[key1]:
             path = sp_dct[key1][key2]
             ldist, udist = bounds_(path)
@@ -365,21 +412,20 @@ def _distance_bounds_matrices(gra, keys, sp_dct=None):
             umat[idx1, idx2] = umat[idx2, idx1] = udist
         else:
             # they are disconnected
-            lmat[idx1, idx2] = lmat[idx2, idx1] = closest_approach(
-                gra, key1, key2)
+            lmat[idx1, idx2] = lmat[idx2, idx1] = closest_approach(gra, key1, key2)
             umat[idx1, idx2] = umat[idx2, idx1] = 999
 
         assert lmat[idx1, idx2] <= umat[idx1, idx2], (
             "Lower bound exceeds upper bound. This is a bug!\n"
-            f"{string(gra, one_indexed=False)}\npath: {str(path)}\n")
+            f"{string(gra, one_indexed=False)}\npath: {str(path)}\n"
+        )
 
     return lmat, umat
 
 
 # # constraint dictionaries
 def chirality_constraint_bounds(gra, keys):
-    """ bounds for enforcing chirality restrictions
-    """
+    """bounds for enforcing chirality restrictions"""
     ste_keys = set(atom_stereo_keys(gra)) & set(keys)
     par_dct = atom_stereo_parities(gra)
     sym_dct = atom_symbols(gra)
@@ -391,10 +437,10 @@ def chirality_constraint_bounds(gra, keys):
         if len(ngb_keys) == 3:
             ngb_keys.insert(0, key)
         idxs = tuple(map(keys.index, ngb_keys))
-        if 'H' in ngb_syms:
-            vol_range = (-999., -7.) if par_dct[key] else (+7., +999.)
+        if "H" in ngb_syms:
+            vol_range = (-999.0, -7.0) if par_dct[key] else (+7.0, +999.0)
         else:
-            vol_range = (-999., -7.) if not par_dct[key] else (+7., +999.)
+            vol_range = (-999.0, -7.0) if not par_dct[key] else (+7.0, +999.0)
         return idxs, vol_range
 
     chi_dct = dict(map(_chirality_constraint, ste_keys))
@@ -402,12 +448,14 @@ def chirality_constraint_bounds(gra, keys):
 
 
 def planarity_constraint_bounds(gra, keys):
-    """ bounds for enforcing planarity restrictions
-    """
+    """bounds for enforcing planarity restrictions"""
     ngb_key_dct = atoms_neighbor_atom_keys(gra)
     ngb_dct = bond_neighborhoods(gra)
-    bnd_keys = [bnd_key for bnd_key in rigid_planar_bond_keys(gra)
-                if atom_keys(ngb_dct[bnd_key]) <= set(keys)]
+    bnd_keys = [
+        bnd_key
+        for bnd_key in rigid_planar_bond_keys(gra)
+        if atom_keys(ngb_dct[bnd_key]) <= set(keys)
+    ]
 
     def _planarity_constraints(bnd_key):
         key1, key2 = sorted(bnd_key)
@@ -425,7 +473,8 @@ def planarity_constraint_bounds(gra, keys):
         if len(key2ab) == 2:
             lst.append(tuple(map(keys.index, [key1, key2] + key2ab)))
         if (len(key1ab) == 2 and len(key2ab) == 1) or (
-                len(key1ab) == 1 and len(key2ab) == 2):
+            len(key1ab) == 1 and len(key2ab) == 2
+        ):
             lst.append(tuple(map(keys.index, [key1] + key1ab + key2ab)))
             lst.append(tuple(map(keys.index, [key2] + key1ab + key2ab)))
         if len(key1ab) == 1 and len(key2ab) == 1:
@@ -434,17 +483,26 @@ def planarity_constraint_bounds(gra, keys):
         return tuple(lst)
 
     const_dct = {
-        idxs: (-0.5, +0.5) for idxs in
-        itertools.chain(*map(_planarity_constraints, bnd_keys))}
+        idxs: (-0.5, +0.5)
+        for idxs in itertools.chain(*map(_planarity_constraints, bnd_keys))
+    }
 
     return const_dct
 
 
 # # distance range dictionaries
-def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
-                                     angstrom=True, degree=True,
-                                     rings_keys=(), keys=None, check=False):
-    """ generate a set of distance ranges from coordinate values
+def distance_ranges_from_coordinates(
+    gra,
+    dist_dct,
+    ang_dct=None,
+    dih_dct=None,
+    angstrom=True,
+    degree=True,
+    rings_keys=(),
+    keys=None,
+    check=False,
+):
+    """generate a set of distance ranges from coordinate values
 
     :param gra: molecular graph
     atom keys specifying the order of indices in the matrix
@@ -483,18 +541,24 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
     # Convert angles into distances
     dist_dct = dict_.transform_keys(dist_dct, frozenset)
     for (key1, key2, key3), a123 in ang_dct.items():
-        a123 *= phycon.DEG2RAD if degree else 1.
+        a123 *= phycon.DEG2RAD if degree else 1.0
 
         k12 = frozenset({key1, key2})
         k23 = frozenset({key2, key3})
         k13 = frozenset({key1, key3})
 
-        d12 = (dist_dct[k12] if k12 in dist_dct else
-               heuristic_bond_distance(gra, key1, key2, angstrom=angstrom))
-        d23 = (dist_dct[k23] if k23 in dist_dct else
-               heuristic_bond_distance(gra, key2, key3, angstrom=angstrom))
+        d12 = (
+            dist_dct[k12]
+            if k12 in dist_dct
+            else heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
+        )
+        d23 = (
+            dist_dct[k23]
+            if k23 in dist_dct
+            else heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
+        )
 
-        d13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(a123))
+        d13 = numpy.sqrt(d12**2 + d23**2 - 2 * d12 * d23 * numpy.cos(a123))
 
         dist_dct[k13] = d13
 
@@ -507,10 +571,10 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
         if isinstance(val, numbers.Number):
             d1234 = val
         else:
-            assert hasattr(val, '__len__') and len(val) == 2
+            assert hasattr(val, "__len__") and len(val) == 2
             d1234 = next(v for v in val if v is not None)
 
-        d1234 *= phycon.DEG2RAD if degree else 1.
+        d1234 *= phycon.DEG2RAD if degree else 1.0
 
         k12 = frozenset({key1, key2})
         k23 = frozenset({key2, key3})
@@ -519,25 +583,40 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
         k24 = frozenset({key2, key4})
         k14 = frozenset({key1, key4})
 
-        d12 = (dist_dct[k12] if k12 in dist_dct else
-               heuristic_bond_distance(gra, key1, key2, angstrom=angstrom))
-        d23 = (dist_dct[k23] if k23 in dist_dct else
-               heuristic_bond_distance(gra, key2, key3, angstrom=angstrom))
-        d34 = (dist_dct[k34] if k34 in dist_dct else
-               heuristic_bond_distance(gra, key3, key4, angstrom=angstrom))
-        d13 = (dist_dct[k13] if k13 in dist_dct else
-               heuristic_bond_distance(gra, key1, key3, angstrom=angstrom))
-        d24 = (dist_dct[k24] if k24 in dist_dct else
-               heuristic_bond_distance(gra, key2, key4, angstrom=angstrom))
+        d12 = (
+            dist_dct[k12]
+            if k12 in dist_dct
+            else heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
+        )
+        d23 = (
+            dist_dct[k23]
+            if k23 in dist_dct
+            else heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
+        )
+        d34 = (
+            dist_dct[k34]
+            if k34 in dist_dct
+            else heuristic_bond_distance(gra, key3, key4, angstrom=angstrom)
+        )
+        d13 = (
+            dist_dct[k13]
+            if k13 in dist_dct
+            else heuristic_bond_distance(gra, key1, key3, angstrom=angstrom)
+        )
+        d24 = (
+            dist_dct[k24]
+            if k24 in dist_dct
+            else heuristic_bond_distance(gra, key2, key4, angstrom=angstrom)
+        )
 
-        term1 = (d12**2 + d23**2 - d13**2)*(d23**2 + d34**2 - d24**2)
-        term2 = 2*d23**2 * (d13**2 + d24**2 - d23**2)
+        term1 = (d12**2 + d23**2 - d13**2) * (d23**2 + d34**2 - d24**2)
+        term2 = 2 * d23**2 * (d13**2 + d24**2 - d23**2)
         denom = numpy.sqrt(
-            (4*d12**2 * d23**2 - (d12**2 + d23**2 - d13**2)**2) *
-            (4*d23**2 * d34**2 - (d23**2 + d34**2 - d24**2)**2))
+            (4 * d12**2 * d23**2 - (d12**2 + d23**2 - d13**2) ** 2)
+            * (4 * d23**2 * d34**2 - (d23**2 + d34**2 - d24**2) ** 2)
+        )
 
-        d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) /
-                         (2 * d23**2))
+        d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) / (2 * d23**2))
 
         if isinstance(val, numbers.Number) or val[0] == val[1]:
             dist_range_dct[k14] = (d14, d14)
@@ -545,42 +624,56 @@ def distance_ranges_from_coordinates(gra, dist_dct, ang_dct=None, dih_dct=None,
             ld14 = closest_approach(gra, key1, key4)
             dist_range_dct[k14] = (ld14, d14)
         elif val[1] is None:
-            ud14 = 999.
+            ud14 = 999.0
             dist_range_dct[k14] = (d14, ud14)
         else:
             raise ValueError(f"Invalid dih_dict: {str(dih_dct)}")
 
     for rng_keys in rings_keys:
-        assert hasattr(keys, '__iter__'), (
-            "Please pass in rings keys as a list of lists")
+        assert hasattr(keys, "__iter__"), "Please pass in rings keys as a list of lists"
 
         rsz = len(rng_keys)
-        a123 = (rsz - 2.) * 180. / rsz
-        la123 = (a123 - 10.) * phycon.DEG2RAD
-        ua123 = (a123 + 10.) * phycon.DEG2RAD
+        a123 = (rsz - 2.0) * 180.0 / rsz
+        la123 = (a123 - 10.0) * phycon.DEG2RAD
+        ua123 = (a123 + 10.0) * phycon.DEG2RAD
 
         for key1, key2, key3 in mit.windowed(rng_keys + rng_keys[:2], 3):
             k12 = frozenset({key1, key2})
             k23 = frozenset({key2, key3})
             k13 = frozenset({key1, key3})
 
-            d12 = (dist_dct[k12] if k12 in dist_dct else
-                   heuristic_bond_distance(gra, key1, key2, angstrom=angstrom))
-            d23 = (dist_dct[k23] if k23 in dist_dct else
-                   heuristic_bond_distance(gra, key2, key3, angstrom=angstrom))
+            d12 = (
+                dist_dct[k12]
+                if k12 in dist_dct
+                else heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
+            )
+            d23 = (
+                dist_dct[k23]
+                if k23 in dist_dct
+                else heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
+            )
 
-            ld13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(la123))
-            ud13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(ua123))
+            ld13 = numpy.sqrt(d12**2 + d23**2 - 2 * d12 * d23 * numpy.cos(la123))
+            ud13 = numpy.sqrt(d12**2 + d23**2 - 2 * d12 * d23 * numpy.cos(ua123))
             dist_range_dct[k13] = (ld13, ud13)
 
     return dist_range_dct
 
 
 # # heuristic coordinate values
-def heuristic_bond_angle_distance(gra, key1, key2, key3,
-                                  d12=None, d23=None, angstrom=True,
-                                  a123=None, degree=True, hyb_dct=None):
-    """ heuristic distance between atoms at two ends of a bond angle
+def heuristic_bond_angle_distance(
+    gra,
+    key1,
+    key2,
+    key3,
+    d12=None,
+    d23=None,
+    angstrom=True,
+    a123=None,
+    degree=True,
+    hyb_dct=None,
+):
+    """heuristic distance between atoms at two ends of a bond angle
 
     :param angstrom: whether or not to return the distance in angstroms
     :type angstrom: bool
@@ -595,21 +688,31 @@ def heuristic_bond_angle_distance(gra, key1, key2, key3,
     """
     if a123 is None:
         a123 = heuristic_bond_angle(
-            gra, key1, key2, key3, degree=False, hyb_dct=hyb_dct)
+            gra, key1, key2, key3, degree=False, hyb_dct=hyb_dct
+        )
     else:
         a123 = a123 * phycon.DEG2RAD if degree else a123
 
     d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
     d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
-    d13 = numpy.sqrt(d12**2 + d23**2 - 2*d12*d23*numpy.cos(a123))
+    d13 = numpy.sqrt(d12**2 + d23**2 - 2 * d12 * d23 * numpy.cos(a123))
     return d13
 
 
-def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4,
-                                     angstrom=True,
-                                     a123=None, a234=None, d1234=None,
-                                     degree=True, hyb_dct=None):
-    """ heuristic max distance between atoms at two ends of a torsion angle
+def heuristic_torsion_angle_distance(
+    gra,
+    key1,
+    key2,
+    key3,
+    key4,
+    angstrom=True,
+    a123=None,
+    a234=None,
+    d1234=None,
+    degree=True,
+    hyb_dct=None,
+):
+    """heuristic max distance between atoms at two ends of a torsion angle
 
     Formula rearranged from eq. 2.15 in the following paper. Note that in the
     denominator of this formula there is a typo: d02 and d12 should be switched
@@ -621,50 +724,49 @@ def heuristic_torsion_angle_distance(gra, key1, key2, key3, key4,
     if d1234 is None:
         d1234 = numpy.pi
     else:
-        d1234 *= phycon.DEG2RAD if degree else 1.
+        d1234 *= phycon.DEG2RAD if degree else 1.0
 
     d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
     d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
     d34 = heuristic_bond_distance(gra, key3, key4, angstrom=angstrom)
     d13 = heuristic_bond_angle_distance(
-        gra, key1, key2, key3, angstrom=angstrom, a123=a123, hyb_dct=hyb_dct)
+        gra, key1, key2, key3, angstrom=angstrom, a123=a123, hyb_dct=hyb_dct
+    )
     d24 = heuristic_bond_angle_distance(
-        gra, key2, key3, key4, angstrom=angstrom, a123=a234, hyb_dct=hyb_dct)
+        gra, key2, key3, key4, angstrom=angstrom, a123=a234, hyb_dct=hyb_dct
+    )
 
-    term1 = (d12**2 + d23**2 - d13**2)*(d23**2 + d34**2 - d24**2)
-    term2 = 2*d23**2 * (d13**2 + d24**2 - d23**2)
-    term3 = ((4*d12**2 * d23**2 - (d12**2 + d23**2 - d13**2)**2) *
-             (4*d23**2 * d34**2 - (d23**2 + d34**2 - d24**2)**2))
-    if term3 < 0.:
+    term1 = (d12**2 + d23**2 - d13**2) * (d23**2 + d34**2 - d24**2)
+    term2 = 2 * d23**2 * (d13**2 + d24**2 - d23**2)
+    term3 = (4 * d12**2 * d23**2 - (d12**2 + d23**2 - d13**2) ** 2) * (
+        4 * d23**2 * d34**2 - (d23**2 + d34**2 - d24**2) ** 2
+    )
+    if term3 < 0.0:
         assert numpy.allclose(term3, 0)
-        term3 = 0.
+        term3 = 0.0
 
     denom = numpy.sqrt(term3)
-                       
-    term4 = ((term1 + term2 - numpy.cos(d1234) * denom) /
-             (2 * d23**2))
-    if term4 < 0.:
+
+    term4 = (term1 + term2 - numpy.cos(d1234) * denom) / (2 * d23**2)
+    if term4 < 0.0:
         assert numpy.allclose(term4, 0)
-        term4 = 0.
+        term4 = 0.0
 
     d14 = numpy.sqrt(term4)
     return d14
 
 
 def closest_approach(gra, key1, key2):
-    """ closest approach between atoms, based on their van der Waals radii
+    """closest approach between atoms, based on their van der Waals radii
 
     Warning: The scaling factor on the van der waals radii was arbitrarily
     chosen based on limited tests and may need to be lowered
     """
-    vdw_scaling_factor = 0.75
-    dist = (atom_van_der_waals_radius(gra, key1) +
-            atom_van_der_waals_radius(gra, key2)) * vdw_scaling_factor
-    return dist
+    return 1.5 * heuristic_bond_distance_limit(gra, key1, key2, angstrom=True)
 
 
 def path_distance_bounds_(gra):
-    """ upper distance bound between two ends of a path
+    """upper distance bound between two ends of a path
 
     :param gra: molecular graph
     :param path: the shortest path between two atoms
@@ -689,15 +791,15 @@ def path_distance_bounds_(gra):
         elif len(path) == 3:
             if rsz == 0:
                 ldist = udist = heuristic_bond_angle_distance(
-                    gra, *path, hyb_dct=hyb_dct)
+                    gra, *path, hyb_dct=hyb_dct
+                )
             else:
-                a123 = (rsz - 2.) * 180. / rsz
-                la123 = a123 - 10.
-                ua123 = a123 + 10.
+                a123 = (rsz - 2.0) * 180.0 / rsz
+                la123 = a123 - 10.0
+                ua123 = a123 + 10.0
                 lrdist = heuristic_bond_angle_distance(gra, *path, a123=la123)
                 urdist = heuristic_bond_angle_distance(gra, *path, a123=ua123)
-                odist = heuristic_bond_angle_distance(
-                    gra, *path, hyb_dct=hyb_dct)
+                odist = heuristic_bond_angle_distance(gra, *path, hyb_dct=hyb_dct)
                 ldist = min(lrdist, odist)
                 udist = max(urdist, odist)
         elif len(path) == 4:
@@ -706,27 +808,33 @@ def path_distance_bounds_(gra):
                 bnd_key23 = frozenset({key2, key3})
                 # handle bond stereo here
                 if bnd_key23 in ste_bnd_keys:
-                    key2_ngbs = sorted(atm_ngb_keys[key2]-{key3})
-                    key3_ngbs = sorted(atm_ngb_keys[key3]-{key2})
+                    key2_ngbs = sorted(atm_ngb_keys[key2] - {key3})
+                    key3_ngbs = sorted(atm_ngb_keys[key3] - {key2})
                     pos2 = key2_ngbs.index(path[0])
                     pos3 = key3_ngbs.index(path[-1])
                     cis = bnd_par_dct[bnd_key23] != (pos2 != pos3)
-                    dih = 0. if cis else 180.
+                    dih = 0.0 if cis else 180.0
                     ldist = udist = heuristic_torsion_angle_distance(
-                        gra, *path, d1234=dih, degree=True, hyb_dct=hyb_dct)
+                        gra, *path, d1234=dih, degree=True, hyb_dct=hyb_dct
+                    )
                 else:
                     ldist = heuristic_torsion_angle_distance(
-                        gra, *path, d1234=0., degree=True, hyb_dct=hyb_dct)
+                        gra, *path, d1234=0.0, degree=True, hyb_dct=hyb_dct
+                    )
                     udist = heuristic_torsion_angle_distance(
-                        gra, *path, d1234=180., degree=True, hyb_dct=hyb_dct)
+                        gra, *path, d1234=180.0, degree=True, hyb_dct=hyb_dct
+                    )
             else:
-                ang = (rsz - 2.) * 180. / rsz
+                ang = (rsz - 2.0) * 180.0 / rsz
                 rdist = heuristic_torsion_angle_distance(
-                    gra, *path, d1234=0., degree=True, a123=ang, a234=ang)
+                    gra, *path, d1234=0.0, degree=True, a123=ang, a234=ang
+                )
                 cdist = heuristic_torsion_angle_distance(
-                    gra, *path, d1234=0., degree=True, hyb_dct=hyb_dct)
+                    gra, *path, d1234=0.0, degree=True, hyb_dct=hyb_dct
+                )
                 tdist = heuristic_torsion_angle_distance(
-                    gra, *path, d1234=180., degree=True, hyb_dct=hyb_dct)
+                    gra, *path, d1234=180.0, degree=True, hyb_dct=hyb_dct
+                )
                 ldist = min(rdist, cdist)
                 udist = max(rdist, tdist)
         # otherwise, just do the sum of the distances between atoms along the
@@ -736,7 +844,7 @@ def path_distance_bounds_(gra):
             # path is [] and there is no way to recover the keys
             assert len(path) > 2
             ldist = closest_approach(gra, path[0], path[-1])
-            udist = 999.
+            udist = 999.0
 
         return ldist, udist
 
@@ -745,7 +853,7 @@ def path_distance_bounds_(gra):
 
 # # helpers
 def angle_key_filler_(gra, keys=None, check=True):
-    """ returns a function that fills in the first or last element of an angle
+    """returns a function that fills in the first or last element of an angle
     key in a dictionary with a neighboring atom
     (works for central or dihedral angles)
     """
@@ -759,19 +867,24 @@ def angle_key_filler_(gra, keys=None, check=True):
 
         if end1_key is None:
             end1_key = atom_neighbor_atom_key(
-                gra, mid_keys[0], excl_atm_keys=[end2_key]+mid_keys,
-                incl_atm_keys=keys)
+                gra,
+                mid_keys[0],
+                excl_atm_keys=[end2_key] + mid_keys,
+                incl_atm_keys=keys,
+            )
         if end2_key is None:
             end2_key = atom_neighbor_atom_key(
-                gra, mid_keys[-1], excl_atm_keys=[end1_key]+mid_keys,
-                incl_atm_keys=keys)
+                gra,
+                mid_keys[-1],
+                excl_atm_keys=[end1_key] + mid_keys,
+                incl_atm_keys=keys,
+            )
 
         ang_key = [end1_key] + mid_keys + [end2_key]
 
         if any(k is None for k in ang_key):
             if check:
-                raise ValueError(
-                    f"Angle key {str(ang_key)} couldn't be filled in")
+                raise ValueError(f"Angle key {str(ang_key)} couldn't be filled in")
             ang_key = None
         else:
             ang_key = tuple(ang_key)
@@ -782,10 +895,11 @@ def angle_key_filler_(gra, keys=None, check=True):
 
 
 def shared_ring_size(keys, rng_keys_lst):
-    """ determine whether these keys share a ring and, if so, determine the
+    """determine whether these keys share a ring and, if so, determine the
     size
     """
-    rng_keys = next((rng_keys for rng_keys in rng_keys_lst
-                     if set(keys) <= set(rng_keys)), ())
+    rng_keys = next(
+        (rng_keys for rng_keys in rng_keys_lst if set(keys) <= set(rng_keys)), ()
+    )
     natms = len(rng_keys)
     return natms

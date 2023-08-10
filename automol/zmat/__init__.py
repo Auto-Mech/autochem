@@ -79,7 +79,7 @@ from automol.zmat.base._extra import bond_key_from_idxs
 # conversion functions
 # # conversions
 from automol.zmat._conv import graph
-from automol.zmat._conv import connectivity_graph
+from automol.zmat._conv import graph_without_stereo
 from automol.zmat._conv import geometry
 from automol.zmat._conv import geometry_with_conversion_info
 from automol.zmat._conv import geometry_with_dummy_atoms
@@ -172,7 +172,7 @@ __all__ = [
     # conversion functions
     # # conversions
     'graph',
-    'connectivity_graph',
+    'graph_without_stereo',
     'geometry',
     'geometry_with_conversion_info',
     'geometry_with_dummy_atoms',
