@@ -612,6 +612,7 @@ def perturb_geometry_planar_dihedrals(
     for keys, dih in dih_dct.items():
         idx, idx1, idx2, idx3 = list(map(geo_idx_dct.__getitem__, keys))
         geo = automol.geom.change_zmatrix_row_values(
-            geo, idx=idx, idx1=idx1, idx2=idx2, idx3=idx3, dih=dih, degree=False
+            geo, idx=idx, idx1=idx1, idx2=idx2, idx3=idx3, dih=dih, degree=False,
+            gra=gra
         )
     return geo
