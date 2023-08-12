@@ -318,7 +318,6 @@ C4H9O2_GEO = (
  ('H', (-0.462632, 1.023199, -2.601261)))
 
 # Reactant Bond Stereo => Product Bond Stereo (flipped)
-# CC[C@H](O[O])C => C/C=C/C + O[O]
 # [H]\[C]=C/O + [OH] => O/C=C/O
 #        *                 *
 # [* parity flips due to vinyl adddition]
@@ -347,6 +346,42 @@ C2H4O2_GEO = (
     ('H', (2.952195, 1.207736, -0.664496)),
     ('O', (-4.196811, -1.722699, -0.095209)),
     ('H', (-3.621029, -2.105771, 1.867762)))
+
+# 2x Reactant Bond Stereo => Product Bond Stereo (flipped)
+# F/C=[C]/[H] + F/C=[C]/[H] => F/C=C\C=C/F
+#    *             *              *   *
+# [* parity flips due to vinyl adddition]
+C4H4F2_TSG = (
+    {0: ('F', 0, None),
+     1: ('C', 0, None),
+     2: ('C', 0, None),
+     3: ('H', 0, None),
+     4: ('H', 0, None),
+     5: ('H', 0, None),
+     6: ('C', 0, None),
+     7: ('C', 0, None),
+     8: ('F', 0, None),
+     9: ('H', 0, None)},
+    {frozenset({1, 4}): (1, None),
+     frozenset({2, 3}): (1, None),
+     frozenset({1, 2}): (1, False),
+     frozenset({2, 6}): (0.1, None),
+     frozenset({0, 1}): (1, None),
+     frozenset({6, 7}): (1, False),
+     frozenset({7, 9}): (1, None),
+     frozenset({7, 8}): (1, None),
+     frozenset({5, 6}): (1, None)})
+C4H4F2_GEO = (
+    ('F', (-2.632951, -1.443686, -0.650948)),
+    ('C', (-0.79737, 0.282099, -0.296882)),
+    ('C', (1.578817, -0.181158, -0.27474)),
+    ('H', (2.842947, 1.380913, -0.127814)),
+    ('H', (-1.712989, 2.122868, -0.319623)),
+    ('H', (4.801748, -4.030195, 0.216704)),
+    ('C', (2.82878, -3.660381, 0.0426)),
+    ('C', (1.291958, -5.531084, 0.046779)),
+    ('F', (-1.246023, -5.354531, 0.023789)),
+    ('H', (1.758437, -7.533401, 0.067458)))
 
 
 def test__set_stereo_from_geometry():
@@ -384,6 +419,7 @@ def test__set_stereo_from_geometry():
     _test("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4)
     _test("C4H9O2", C4H9O2_TSG, C4H9O2_GEO, 2, 2)
     _test("C2H4O2", C2H4O2_TSG, C2H4O2_GEO, 1, 1)
+    _test("C4H4F2", C4H4F2_TSG, C4H4F2_GEO, 2, 2)
 
 
 def test__to_local_stereo():
@@ -433,6 +469,7 @@ def test__from_local_stereo():
     _test("C4H5F3O2", C4H5F3O2_TSG)
     _test("C4H9O2", C4H9O2_TSG)
     _test("C2H4O2", C2H4O2_TSG)
+    _test("C4H4F2", C4H4F2_TSG)
 
 
 def test__ts__expand_stereo_for_reaction():
@@ -464,6 +501,7 @@ def test__ts__expand_stereo_for_reaction():
     _test("C4H5F3O2", C4H5F3O2_TSG, 1)
     _test("C4H9O2", C4H9O2_TSG, 1)
     _test("C2H4O2", C2H4O2_TSG, 1)
+    _test("C4H4F2", C4H4F2_TSG, 1)
 
 
 def test__ts__reactants_graph():
@@ -497,6 +535,9 @@ def test__ts__reactants_graph():
     _test("C4H9O2", C4H9O2_TSG, {3: True}, {frozenset({2, 3}): True})
     _test("C2H4O2", C2H4O2_TSG,
           {frozenset({0, 1}): False}, {frozenset({0, 1}): True})
+    _test("C4H4F2", C4H4F2_TSG,
+          {frozenset({1, 2}): True, frozenset({6, 7}): True},
+          {frozenset({1, 2}): False, frozenset({6, 7}): False})
 
 
 def test__rotational_bond_keys():

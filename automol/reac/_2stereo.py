@@ -81,8 +81,10 @@ def expand_stereo_for_reaction(rxn: Reaction, rct_gras, prd_gras):
     return tuple(srxns)
 
 
-def from_old_string(rxn_str, one_indexed=True, stereo=True):
+def from_old_string(rxn_str, one_indexed=True, stereo=False):
     """Write a reaction object to a string
+
+    BROKEN: does not handle dummy atoms correctly
 
     :param rxn_str: string containing the reaction object
     :type rxn_str: str
@@ -118,10 +120,10 @@ def from_old_string(rxn_str, one_indexed=True, stereo=True):
 
     if stereo:
         rcts_gra = automol.graph.ts.reagents_graph_without_stereo(
-            ftsg0, keep_stereo=True
+            ftsg0, keep_stereo=True, dummy=True
         )
         prds_gra = automol.graph.ts.reagents_graph_without_stereo(
-            rtsg0, keep_stereo=True
+            rtsg0, keep_stereo=True, dummy=True
         )
         rct_gras = [
             automol.graph.subgraph(rcts_gra, ks, stereo=True) for ks in rcts_keys
