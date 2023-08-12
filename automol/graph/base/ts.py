@@ -5,7 +5,6 @@ DEPRECATED (under construction to phase out)
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import numpy
-import qcelemental as qcel
 
 import automol.amchi.base  # !!!!
 from automol import util
@@ -473,7 +472,6 @@ def heuristic_bond_distance(
     :return: The heuristic distance
     :rtype: float
     """
-    units = "angstrom" if angstrom else "bohr"
     frm_keys = list(automol.graph.base.ts.forming_bond_keys(tsg))
     brk_keys = list(automol.graph.base.ts.breaking_bond_keys(tsg))
     rxn_keys = frm_keys + brk_keys
@@ -481,7 +479,8 @@ def heuristic_bond_distance(
     key = frozenset({key1, key2})
     if key in rxn_keys:
         symb_dct = automol.graph.base.atom_symbols(tsg)
-        dist = sum(qcel.vdwradii.get(symb_dct[k], units=units) for k in key) / 2
+        symb1, symb2 = map(symb_dct.__getitem__, key)
+        dist = util.heuristic.bond_distance_limit(symb1, symb2, angstrom=angstrom)
         dist *= fdist_factor if key in frm_keys else bdist_factor
     else:
         dist = _heuristic_bond_distance(tsg, key1, key2, angstrom=angstrom, check=check)
@@ -489,13 +488,15 @@ def heuristic_bond_distance(
     return dist
 
 
-def plane_keys(tsg, key: int):
+def plane_keys(tsg, key: int, include_self: bool = True):
     """Keys used to define a plane for forming the TS geometry
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     :param key: The key of a bond-forming atom
     :type key: int
+    :param include_self: Whether to include the key itself; defaults to `True`
+    :type include_self: bool, optional
     """
     nrbs_gra = without_reacting_bonds(tsg)
     rcts_gra = reactants_graph(tsg, stereo=False)
@@ -503,7 +504,7 @@ def plane_keys(tsg, key: int):
     nkeys_rct = atom_neighbor_atom_keys(rcts_gra, key)
     nkeys_nrb = atom_neighbor_atom_keys(nrbs_gra, key)
 
-    pkeys = {key}
+    pkeys = {key} if include_self else set()
     pkeys |= nkeys_nrb if len(nkeys_rct) > 3 else nkeys_rct
 
     rp_bkeys = rigid_planar_bond_keys(rcts_gra)
@@ -513,7 +514,7 @@ def plane_keys(tsg, key: int):
         pkeys |= {key_}
         pkeys |= atom_neighbor_atom_keys(rcts_gra, key_)
 
-    return pkeys
+    return frozenset(pkeys)
 
 
 def reacting_electron_direction(tsg, key: int):
@@ -561,7 +562,7 @@ def reacting_electron_direction(tsg, key: int):
         nkey = next(iter(nkeys_dct[key] - {key, opp_key}), None)
         xbnd_key = (key, opp_key)
         ybnd_key = None if nkey is None else (key, nkey)
-        phi = 4. * numpy.pi / 3.
+        phi = 4.0 * numpy.pi / 3.0
     elif key in sig_dct:
         # key1 = attacking atom key
         # key2 = neighbor

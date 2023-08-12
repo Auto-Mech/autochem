@@ -10,16 +10,14 @@
     [X] Stereo-correct join for bond stereo
     LEFT OFF AT automol.geom.ts.geometry_from_reactants() clean_geometry step
     -> SEE test_ts_geometry.ipynb
-        [ ] Add TS angles to dist_dct based on graph.ts.reacting_electron_direction()
-        [ ] This should allow us to encourage planarity / correct structure for unimolecular reactions
-        [ ] Once this is working, test this function to see if it covers all cases!!!
+        [ ] Test this function to see if it covers all cases!!!
     [ ] Figure out and TEST reagent reordering
     [ ] _4geom.py
     [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py
     [ ] _6rot.py
     [ ] _7geom.py
-    [ ] Move non-reac realted files in automol/reac/ into automol/misc/
+    [ ] Move non-reac related files in automol/reac/ into automol/misc/
         New structure:
             TS keys are independent from reactants and products keys
             The *order* of the keys in rxn.reactants_keys indicates the mapping

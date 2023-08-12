@@ -48,18 +48,18 @@ def graph(geo, stereo=True):
     return gra
 
 
-def graph_without_stereo(geo, bdist_factor=None):
+def graph_without_stereo(geo, dist_factor=None):
     """Generate a molecular graph from the molecular geometry that has
     connectivity information, but not stereochemistry
 
-    Anything less than `bdist_factor` times the max of (a.) the sum of covalent radii
+    Anything less than `dist_factor` times the max of (a.) the sum of covalent radii
     and (b.) the average van der Waals radius between two atoms will be considered
     bonded.
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param bdist_factor: The multiplier on the distance limit, defaults to None
-    :type bdist_factor: float, optional
+    :param dist_factor: The multiplier on the distance limit, defaults to None
+    :type dist_factor: float, optional
     """
     symb_dct = dict(enumerate(symbols(geo)))
     keys = sorted(symb_dct.keys())
@@ -68,7 +68,7 @@ def graph_without_stereo(geo, bdist_factor=None):
         for k1, k2 in itertools.combinations(keys, r=2)
         if distance(geo, k1, k2, angstrom=True)
         <= heuristic.bond_distance_limit(
-            symb_dct[k1], symb_dct[k2], angstrom=True, bdist_factor=bdist_factor
+            symb_dct[k1], symb_dct[k2], angstrom=True, dist_factor=dist_factor
         )
     ]
 

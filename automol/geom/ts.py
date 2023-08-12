@@ -87,7 +87,7 @@ def geometry_from_reactants(
         bdist_factor=bdist_factor,
     )
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
-        tsg, dist_dct, angstrom=True, degree=True
+        tsg, dist_dct, angstrom=True
     )
     ts_geo = automol.graph.embed.clean_geometry(
         tsg,
@@ -300,6 +300,7 @@ def distances(
             bdist_factor=bdist_factor,
             angstrom=angstrom,
         )
+
     return dist_dct
 
 
