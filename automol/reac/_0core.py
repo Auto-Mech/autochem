@@ -534,17 +534,24 @@ def mapping(rxn: Reaction, inp, out) -> dict:
     rxn = without_dummy_atoms(rxn)
 
     keys = sorted(automol.graph.atom_keys(ts_graph(rxn)))
-    rct_keys = list(itertools.chain(*reactants_keys(rxn)))
-    prd_keys = list(itertools.chain(*products_keys(rxn)))
+    ridxs, pidxs = sort_order(rxn)
+    rcts_keys = list(map(reactants_keys(rxn).__getitem__, ridxs))
+    prds_keys = list(map(products_keys(rxn).__getitem__, pidxs))
+    rct_keys = list(itertools.chain(*rcts_keys))
+    prd_keys = list(itertools.chain(*prds_keys))
 
     key_dct = {
         "T": keys,
-        "R": [rct_keys.index(k) for k in keys],
-        "P": [prd_keys.index(k) for k in keys],
+        "R": [rct_keys.index(k) if k in rct_keys else None for k in keys],
+        "P": [prd_keys.index(k) if k in prd_keys else None for k in keys],
     }
     inp_keys = key_dct[inp]
     out_keys = key_dct[out]
     map_dct = dict(zip(inp_keys, out_keys))
+
+    if None in map_dct:
+        map_dct.pop(None)
+
     return map_dct
 
 
