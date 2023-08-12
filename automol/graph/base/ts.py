@@ -260,14 +260,17 @@ def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
     """
     rgra = without_dummy_atoms(rcts_gra)
     pgra = without_dummy_atoms(prds_gra)
-    # Include *all* possibilities for the TS, including symmetry equivalent
-    # ones
-    ste_tsgs = []
-    for ste_tsg in expand_stereo(tsg, enant=True, symeq=True):
-        rgra_ = reactants_graph(ste_tsg, dummy=False)
-        pgra_ = products_graph(ste_tsg, dummy=False)
-        if rgra == rgra_ and pgra == pgra_:
-            ste_tsgs.append(ste_tsg)
+    # Allow *all* possibilities for the TS, including symmetry equivalent ones
+    ste_tsgs = expand_stereo(tsg, enant=True, symeq=True)
+
+    if has_stereo(rgra) or has_stereo(pgra):
+        all_ste_tsgs = ste_tsgs
+        ste_tsgs = []
+        for ste_tsg in all_ste_tsgs:
+            rgra_ = reactants_graph(ste_tsg, dummy=False)
+            pgra_ = products_graph(ste_tsg, dummy=False)
+            if rgra == rgra_ and pgra == pgra_:
+                ste_tsgs.append(ste_tsg)
 
     return tuple(ste_tsgs)
 

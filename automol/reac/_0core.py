@@ -136,7 +136,7 @@ def from_data(
     prds_keys = tuple(map(tuple, prds_keys))
 
     # Check the reaction class
-    assert par.is_reaction_class(cla), f"{cla} is not a reaction class"
+    assert par.is_reaction_class(cla) or cla is None, f"{cla} is not a reaction class"
 
     # Check the structures, if there are any
     if any(x is not None for x in [ts_struc, rct_strucs, prd_strucs, struc_typ]):
@@ -239,26 +239,36 @@ def ts_graph(rxn: Reaction):
     return rxn.ts_graph
 
 
-def reactants_keys(rxn: Reaction) -> List[List[int]]:
+def reactants_keys(rxn: Reaction, original_order: bool = False) -> List[List[int]]:
     """Get the reactants keys of the reaction
 
     :param rxn: The reaction object
     :type rxn: Reaction
+    :param original_order: Match the original graph order?
+    :type original_order: bool
     :returns: The reactants keys
     :rtype: List[List[int]]
     """
-    return rxn.reactants_keys
+    rcts_keys = rxn.reactants_keys
+    if original_order:
+        rcts_keys = tuple(map(tuple, sorted(rcts_keys, key=sorted)))
+    return rcts_keys
 
 
-def products_keys(rxn: Reaction) -> List[List[int]]:
+def products_keys(rxn: Reaction, original_order: bool = False) -> List[List[int]]:
     """Get the products keys of the reaction
 
     :param rxn: The reaction object
     :type rxn: Reaction
+    :param original_order: Match the original graph order?
+    :type original_order: bool
     :returns: The products keys
     :rtype: List[List[int]]
     """
-    return rxn.products_keys
+    prds_keys = rxn.products_keys
+    if original_order:
+        prds_keys = tuple(map(tuple, sorted(prds_keys, key=sorted)))
+    return prds_keys
 
 
 def class_(rxn: Reaction) -> str:
@@ -601,20 +611,21 @@ def sort_order(rxn: Reaction) -> Tuple[List[int], List[int]]:
     return rct_idxs, prd_idxs
 
 
-def reactant_graphs(rxn: Reaction, shift_keys=False):
+def reactant_graphs(rxn: Reaction, shift_keys=False, original_order: bool = False):
     """Obtain graphs of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param shift_keys: Shift keys after first reagent, to prevent overlap?
     :type shift_keys: bool
-    :param overlap: Return zero-indexed
+    :param original_order: Match the original graph order?
+    :type original_order: bool
     :rtype: tuple of automol graph data structures
     """
     map_dct = mapping(rxn, "T", "R")
 
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    rcts_keys = reactants_keys(rxn)
+    rcts_keys = reactants_keys(rxn, original_order=original_order)
     rct_gras = [automol.graph.subgraph(rcts_gra, ks, stereo=True) for ks in rcts_keys]
     rct_gras = [automol.graph.relabel(g, map_dct, check=False) for g in rct_gras]
     if not shift_keys:
@@ -622,16 +633,20 @@ def reactant_graphs(rxn: Reaction, shift_keys=False):
     return tuple(rct_gras)
 
 
-def product_graphs(rxn: Reaction, shift_keys=False):
+def product_graphs(rxn: Reaction, shift_keys=False, original_order: bool = False):
     """Obtain graphs of the products in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param shift_keys: Shift keys after first reagent, to prevent overlap?
     :type shift_keys: bool
+    :param original_order: Match the original graph order?
+    :type original_order: bool
     :rtype: tuple of automol graph data structures
     """
-    return reactant_graphs(reverse(rxn), shift_keys=shift_keys)
+    return reactant_graphs(
+        reverse(rxn), shift_keys=shift_keys, original_order=original_order
+    )
 
 
 def reactants_graph(rxn: Reaction):
