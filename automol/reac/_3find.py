@@ -280,7 +280,6 @@ def eliminations(rct_gras, prd_gras):
     def _identify(frm1_keys, frm2_keys, bnd_keys):
         """ Try and identify elmination from some set of keys
         """
-
         _rxns = []
 
         frm_bnd_keys = [(frm1_key, frm2_key) for frm1_key, frm2_key
@@ -366,6 +365,7 @@ def eliminations(rct_gras, prd_gras):
         rct_symbs = atom_symbols(rct_gra)
         frm2_keys_o = frozenset(key for key in frm2_keys
                                 if rct_symbs[key] == 'O')
+
         rxns.extend(_identify(frm1_keys, frm2_keys_o, bnd_keys))
 
         # OLD WAY. More IDs but more mistakes
@@ -508,6 +508,11 @@ def additions(rct_gras, prd_gras):
 
 def double_insertion(rct_gras, prd_gras):
     """ two atoms inserting
+
+    DOES NOT WORK and breaks regular insertions
+
+    Commit message says this is supposed to handle HOOOH => H2O + O2, but it ***does not
+    find anything for this reaction.***
     """
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
@@ -648,9 +653,6 @@ def insertions(rct_gras, prd_gras):
 
     Implemented as the reverse of an elimination reaction.
 
-    Currently leads to some weird identifications:
-    ['C[CH]C(C)OO', 'O=O'] -> ['CC(O[O])C(C)OO']
-
     """
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
@@ -778,9 +780,9 @@ def find(rct_gras, prd_gras, stereo=False):
         # bimolecular reactions
         hydrogen_abstractions,
         additions,
-        double_insertion,
+        # double_insertion,
         # two_bond_additions,
-        # insertions,  # not fully functional if elims broken
+        insertions,  # not fully functional if elims broken
         substitutions,
     ]
 

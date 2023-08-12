@@ -10,7 +10,8 @@
     [X] Stereo-correct join for bond stereo
     LEFT OFF AT automol.geom.ts.geometry_from_reactants() clean_geometry step
     -> SEE test_ts_geometry.ipynb
-        [ ] Test this function to see if it covers all cases!!!
+        [X] Test this function to see if it covers all cases!!!
+        [ ] Fix breaking test case!!
     [ ] Figure out and TEST reagent reordering
     [ ] _4geom.py
     [ ] Include zmatrix data in Reaction string
