@@ -61,9 +61,6 @@ def geometry_from_reactants(
 
     # 1. Join geometries for bimolecular reactions, yielding a single starting structure
     if len(geos) > 1:
-        assert (
-            len(geos) == 2 and len(automol.graph.base.ts.forming_bond_keys(tsg)) == 1
-        ), "Generating a TS geometry for this case is not implemented:\n{tsg}"
         geo = join_at_forming_bond(
             geos,
             tsg,
@@ -138,11 +135,13 @@ def join_at_forming_bond(
     )
 
     tsg = automol.graph.base.relabel(tsg, geo_idx_dct)
-    frm_keys = automol.graph.base.ts.forming_bond_keys(tsg)
-    assert len(frm_keys) == 1, f"This only works for one forming bond\n{tsg}"
-    (frm_key,) = frm_keys
+    # If there are multiple forming keys, get the one with the fewest hydrogens involved
+    # (Not sure it matters, but this is what we were doing for insertions)
+    frm_key, *_ = sorted(
+        automol.graph.base.ts.forming_bond_keys(tsg),
+        key=lambda k: automol.graph.base.atom_count(tsg, symb="H", keys=k),
+    )
 
-    # To begin, assume both ends are pi-forming
     assert len(geos) == 2, f"This requires two reactants, but {len(geos)} were given"
     len1, len2 = map(count, geos)
     idxs1 = tuple(range(len1))
