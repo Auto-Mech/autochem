@@ -35,25 +35,25 @@ def graph(zma, stereo=True, dummy=False):
     return gra
 
 
-def graph_without_stereo(zma, dummy=False, bdist_factor=None):
+def graph_without_stereo(zma, dummy=False, dist_factor=None):
     """Convert the Z-Matrix to a molecular graph that has connectivity information, but
     not stereochemistry
 
-    Anything less than `bdist_factor` times the max of (a.) the sum of covalent radii
+    Anything less than `dist_factor` times the max of (a.) the sum of covalent radii
     and (b.) the average van der Waals radius between two atoms will be considered
     bonded.
 
     :param zma: Z-Matrix
     :type zma: automol zmat data structure
-    :param bdist_factor: The multiplier on the distance limit, defaults to None
-    :type bdist_factor: float, optional
+    :param dist_factor: The multiplier on the distance limit, defaults to None
+    :type dist_factor: float, optional
     """
 
     geo = geometry_with_dummy_atoms(zma)
     if not dummy:
         geo = automol.geom.without_dummy_atoms(geo)
 
-    gra = automol.geom.graph_without_stereo(geo, bdist_factor=bdist_factor)
+    gra = automol.geom.graph_without_stereo(geo, dist_factor=dist_factor)
 
     return gra
 

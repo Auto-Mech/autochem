@@ -66,12 +66,12 @@ def heuristic_bond_distance_limit(
     gra,
     key1: int,
     key2: int,
-    bdist_factor: float = None,
+    dist_factor: float = None,
     angstrom: bool = True,
 ) -> float:
     """The heuristic bond distance between two bonded atoms
 
-    Returns `bdist_factor` times whichever is larger of of (a.) the sum of covalent
+    Returns `dist_factor` times whichever is larger of of (a.) the sum of covalent
     radii, and (b.) the average vdw radius.
 
     :param gra: Molecular graph
@@ -80,8 +80,8 @@ def heuristic_bond_distance_limit(
     :type key1: int
     :param key2: The second atom key
     :type key2: int
-    :param bdist_factor: The multiplier on the distance limit, defaults to None
-    :type bdist_factor: float, optional
+    :param dist_factor: The multiplier on the distance limit, defaults to None
+    :type dist_factor: float, optional
     :param angstrom: Return in angstroms intead of bohr?, defaults to True
     :type angstrom: bool, optional
     :return: The heuristic bond distance limit
@@ -89,7 +89,7 @@ def heuristic_bond_distance_limit(
     """
     symb_dct = atom_symbols(gra)
     symb1, symb2 = map(symb_dct.__getitem__, [key1, key2])
-    return heuristic.bond_distance_limit(symb1, symb2, bdist_factor, angstrom=angstrom)
+    return heuristic.bond_distance_limit(symb1, symb2, dist_factor, angstrom=angstrom)
 
 
 def heuristic_bond_angle(

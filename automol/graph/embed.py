@@ -209,7 +209,7 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
 def qualitative_convergence_checker_(
     loc_gra,
     keys,
-    bdist_factor=None,
+    dist_factor=None,
     bond_nobond_diff=0.3,
 ):
     """a convergence checker for error minimization, checking that the
@@ -227,7 +227,7 @@ def qualitative_convergence_checker_(
     bnd_idxs = tuple(tuple(map(keys.index, bnd_key)) for bnd_key in bnd_keys)
 
     bnd_udists = tuple(
-        heuristic.bond_distance_limit(s1, s2, bdist_factor=bdist_factor, angstrom=True)
+        heuristic.bond_distance_limit(s1, s2, dist_factor=dist_factor, angstrom=True)
         for s1, s2 in bnd_symbs
     )
 
@@ -235,7 +235,7 @@ def qualitative_convergence_checker_(
     nob_ldists = tuple(
         diff
         + heuristic.bond_distance_limit(
-            s1, s2, bdist_factor=bdist_factor, angstrom=True
+            s1, s2, dist_factor=dist_factor, angstrom=True
         )
         for s1, s2 in nob_symbs
     )
