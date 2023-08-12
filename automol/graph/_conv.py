@@ -416,7 +416,7 @@ def svg_string(gra, stereo=True, label=False, label_dct=None, image_size=200):
     return svg_str
 
 
-def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=200):
+def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=300):
     """Get an ipywidget object for visualizing the graph
 
     :param gra: molecular graph

@@ -496,7 +496,7 @@ def ts_reverse(tsg):
     return rev_tsg
 
 
-def ts_reagents_graph_without_stereo(tsg, prod=False, keep_zeros=False,
+def ts_reagents_graph_without_stereo(tsg, prod=False, dummy=False, keep_zeros=False,
                                      keep_stereo=False):
     """ Get the reactants or products from a TS graph, without stereo
 
@@ -504,6 +504,8 @@ def ts_reagents_graph_without_stereo(tsg, prod=False, keep_zeros=False,
     :type tsg: automol graph data structure
     :param prod: Replace reacting bond orders with product values instead?
     :type prod: bool
+    :param dummy: Keep dummy atoms? default False
+    :type dummy: bool, optional
     :param keep_zeros: Keep the bonds with a resulting bond order of 0?
     :type keep_zeros: bool
     :param keep_stereo: Keep stereo, even though it is invalid?
@@ -516,6 +518,11 @@ def ts_reagents_graph_without_stereo(tsg, prod=False, keep_zeros=False,
     if prod:
         ord_dct = dict_.transform_values(ord_dct, lambda o: 1 - round(o, 1))
     ord_dct = dict_.transform_values(ord_dct, round)
+
+    # Remove dummy atoms, unless requested to keep
+    if not dummy:
+        tsg = without_dummy_atoms(tsg)
+
     # Round the bond orders for forming bonds, and remove forming bonds
     tsg = set_bond_orders(tsg, ord_dct)
     if not keep_zeros:
