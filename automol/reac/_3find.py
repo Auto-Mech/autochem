@@ -27,7 +27,6 @@ Reaction ID Classes:
 
 import itertools
 import automol.geom
-import automol.geom.ts
 import automol.chi
 from automol.par import ReactionClass
 from automol.graph import ts

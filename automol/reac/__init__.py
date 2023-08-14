@@ -64,7 +64,7 @@ from automol.reac._3find import find
 from automol.reac._3find import find_from_chi
 from automol.reac._3find import intersystem_crossing
 # TS geometries
-from automol.reac._4geom import ts_geometry
+from automol.reac._4geom import ts_geometry_from_reactants
 # TS zmatrices
 from automol.reac._5zmat import ts_zmatrix
 from automol.reac._5zmat import zmatrix_coordinate_names
@@ -170,7 +170,7 @@ __all__ = [
     'find_from_chi',
     'intersystem_crossing',
     # TS geometries
-    'ts_geometry',
+    'ts_geometry_from_reactants',
     # TS zmatrices
     'ts_zmatrix',
     'zmatrix_coordinate_names',

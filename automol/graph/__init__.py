@@ -307,19 +307,18 @@ from automol.graph.base import ts
 # L4
 # conversion functions:
 # # conversions
-from automol.graph._conv import geometry
-from automol.graph._conv import inchi
-from automol.graph._conv import inchi_with_sort_from_geometry
-from automol.graph._conv import chi
-from automol.graph._conv import molfile_with_atom_mapping
-from automol.graph._conv import rdkit_molecule
-from automol.graph._conv import rdkit_reaction
-from automol.graph._conv import display
-from automol.graph._conv import display_reaction
-from automol.graph._conv import ipywidget
+from automol.graph._1conv import geometry
+from automol.graph._1conv import ts_geometry_from_reactants
+from automol.graph._1conv import inchi
+from automol.graph._1conv import chi
+from automol.graph._1conv import rdkit_molecule
+from automol.graph._1conv import rdkit_reaction
+from automol.graph._1conv import display
+from automol.graph._1conv import display_reaction
+from automol.graph._1conv import ipywidget
 # submodules:
 from automol.graph import vmat
-from automol.graph import embed
+from automol.graph import _0embed
 
 
 __all__ = [
@@ -618,10 +617,9 @@ __all__ = [
     # conversion functions:
     # # conversions
     'geometry',
+    'ts_geometry_from_reactants',
     'inchi',
-    'inchi_with_sort_from_geometry',
     'chi',
-    'molfile_with_atom_mapping',
     'rdkit_molecule',
     'rdkit_reaction',
     'display',
@@ -629,5 +627,5 @@ __all__ = [
     'ipywidget',
     # submodules:
     'vmat',
-    'embed',
+    '_0embed',
 ]

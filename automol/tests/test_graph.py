@@ -1599,7 +1599,7 @@ def test__embed__clean_geometry():
             ('H', (-4.917597, -0.155311, -2.962995)),
             ('H', (4.300424, 0.512127, 1.504603)))
     gra = automol.geom.graph(geo1)
-    geo2 = graph.embed.clean_geometry(gra, geo1)
+    geo2 = graph._0embed.clean_geometry(gra, geo1)
     assert automol.geom.almost_equal(geo1, geo2)
 
 

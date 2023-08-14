@@ -411,6 +411,6 @@ if __name__ == '__main__':
     # test__sorted_()
     # test__recalculate()
     # test__filter_enantiomer_reactions()
-    # test__stereo()
+    test__stereo()
     # test__join()
-    test__canonical_enantiomer()
+    # test__canonical_enantiomer()

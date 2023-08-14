@@ -2,10 +2,12 @@
 """
 
 from phydat import phycon
-import automol.graph
-from automol.geom.base import central_angle
-from automol.geom.base import from_subset
 
+import automol.graph.base
+from automol.geom._conv import (
+    graph,
+)
+from automol.geom.base import central_angle, from_subset
 
 ATHRESH = 94.0 * phycon.DEG2RAD
 
@@ -53,11 +55,11 @@ def ring_fragments_geometry(geo, rings_atoms=None, ngbs=None):
         :type geo: automol.geom object
     """
 
-    gra = automol.geom.graph(geo)
+    gra = graph(geo)
     if rings_atoms is None:
-        rings_atoms = automol.graph.rings_atom_keys(gra)
+        rings_atoms = automol.graph.base.rings_atom_keys(gra)
     if ngbs is None:
-        ngbs = automol.graph.atoms_sorted_neighbor_atom_keys(gra)
+        ngbs = automol.graph.base.atoms_sorted_neighbor_atom_keys(gra)
 
     ring_idxs = []
     ret = None

@@ -68,7 +68,7 @@ from automol.util import dict_, heuristic
 
 
 # # geometry embedding functions
-def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
+def embed_geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
     """sample a qualitatively-correct stereo geometry
 
     :param gra: the graph, which may or may not have stereo
@@ -133,7 +133,7 @@ def geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
 def clean_geometry(
     gra,
     geo,
-    geos=None,
+    rct_geos=None,
     dist_range_dct=None,
     max_dist_err=2e-1,
     stereo=True,
@@ -148,9 +148,8 @@ def clean_geometry(
     :type gra: automol graph data structure
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param geos: Use alternative blocked geometries to determine distance bounds
-        (ex: Reactant geometries for a TS geometry embedding)
-    :type geos: List[automol geometry data structure]
+    :param rct_geos: Use reactant geometries to determine distance bounds for a TS
+    :type rct_geos: List[automol geometry data structure], optional
     :param dist_range_dct: Override a subsets of distance ranges, defaults to None
     :type dist_range_dct: dict, optional
     :param remove_symmetry: Remove symmetry in the geometry, by slightly
@@ -160,7 +159,7 @@ def clean_geometry(
     :type relax_angles: bool, optional
     """
     gra = to_local_stereo(gra)
-    geos = [geo] if geos is None else geos
+    rct_geos = [geo] if rct_geos is None else rct_geos
 
     dist_gra = ts.reactants_graph(gra) if is_ts_graph(gra) else gra
 
@@ -169,7 +168,7 @@ def clean_geometry(
     lmat, umat = distance_bounds_matrices(
         dist_gra,
         keys,
-        geos=geos,
+        rct_geos=rct_geos,
         dist_range_dct=dist_range_dct,
         relax_angles=relax_angles,
         relax_torsions=True,
@@ -291,7 +290,7 @@ def distance_bounds_matrices(
     gra,
     keys,
     dist_range_dct=(),
-    geos=None,
+    rct_geos=None,
     relax_angles=False,
     relax_torsions=False,
     sp_dct=None,
@@ -303,10 +302,10 @@ def distance_bounds_matrices(
     :param gra: molecular graph:
     :param keys: atom keys specifying the order of indices in the matrix
     :param dist_range_dct: distance ranges for specific atoms in the graph
-    :param geos: (optional) geometries which will be used to fix the bond
-        angles, bond distances, and chiralities of all connected atoms in the
-        graph; if `relax_torsions` is False, the 4-atom dihedral angles will be
-        allowed to vary as well
+    :param rct_geos: Use reactant geometries to determine distance bounds for a TS
+    :type rct_geos: List[automol geometry data structure], optional
+    :param relax_angles: whether or not to allow angles to change from
+        their value in the reactant geometries
     :param relax_torsions: whether or not to allow torsions to change from
         their value in the reactant geometries
     :param sp_dct: a 2d dictionary giving the shortest path between any pair of
@@ -323,8 +322,10 @@ def distance_bounds_matrices(
     umat_old = numpy.copy(umat)
 
     # 1. set known geometric parameters
-    if geos:
-        xmats = [automol.geom.base.coordinates(geo, angstrom=angstrom) for geo in geos]
+    if rct_geos:
+        xmats = [
+            automol.geom.base.coordinates(geo, angstrom=angstrom) for geo in rct_geos
+        ]
         dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
 
         start = 0

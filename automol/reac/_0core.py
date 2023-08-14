@@ -15,7 +15,6 @@ import numpy
 import yaml
 
 import automol.geom
-import automol.geom.ts
 import automol.graph
 import automol.zmat
 from automol import par
