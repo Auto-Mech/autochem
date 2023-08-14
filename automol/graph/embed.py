@@ -43,6 +43,7 @@ from automol.graph.base import (
     atom_shortest_paths,
     atom_stereo_keys,
     atom_stereo_parities,
+    atom_stereo_sorted_neighbor_keys,
     atom_symbols,
     atoms_neighbor_atom_keys,
     bond_keys,
@@ -234,9 +235,7 @@ def qualitative_convergence_checker_(
     diff = bond_nobond_diff
     nob_ldists = tuple(
         diff
-        + heuristic.bond_distance_limit(
-            s1, s2, dist_factor=dist_factor, angstrom=True
-        )
+        + heuristic.bond_distance_limit(s1, s2, dist_factor=dist_factor, angstrom=True)
         for s1, s2 in nob_symbs
     )
 
@@ -427,20 +426,13 @@ def _distance_bounds_matrices(gra, keys, sp_dct=None):
 def chirality_constraint_bounds(gra, keys):
     """bounds for enforcing chirality restrictions"""
     ste_keys = set(atom_stereo_keys(gra)) & set(keys)
+    loc_gra = to_local_stereo(gra)
     par_dct = atom_stereo_parities(gra)
-    sym_dct = atom_symbols(gra)
-    ngb_key_dct = atoms_neighbor_atom_keys(gra)
 
     def _chirality_constraint(key):
-        ngb_keys = sorted(ngb_key_dct[key])
-        ngb_syms = list(map(sym_dct.__getitem__, ngb_keys))
-        if len(ngb_keys) == 3:
-            ngb_keys.insert(0, key)
-        idxs = tuple(map(keys.index, ngb_keys))
-        if "H" in ngb_syms:
-            vol_range = (-999.0, -7.0) if par_dct[key] else (+7.0, +999.0)
-        else:
-            vol_range = (-999.0, -7.0) if not par_dct[key] else (+7.0, +999.0)
+        nkeys = atom_stereo_sorted_neighbor_keys(loc_gra, key, self_apex=True)
+        idxs = tuple(map(keys.index, nkeys))
+        vol_range = (+7.0, +999.0) if par_dct[key] else (-999.0, -7.0)
         return idxs, vol_range
 
     chi_dct = dict(map(_chirality_constraint, ste_keys))
