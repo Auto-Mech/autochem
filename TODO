@@ -11,9 +11,14 @@
     LEFT OFF AT automol.geom.ts.geometry_from_reactants() clean_geometry step
     -> SEE test_ts_geometry.ipynb
         [X] Test this function to see if it covers all cases!!!
-        [ ] Fix breaking test case!!
-    [ ] Figure out and TEST reagent reordering
-    [ ] _4geom.py
+        [X] Fix breaking test case!!
+    [X] Figure out and TEST reagent reordering
+    [X] _4geom.py
+    [ ] Make automol.graph.geometry take TS graphs
+    [ ] Add TS AMChIs:
+        [ ] /k layer breaking bonds
+        [ ] /f* layer forming bonds
+        [ ] /r* layer for direction reversal (/r1 = reversed)
     [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py
     [ ] _6rot.py
