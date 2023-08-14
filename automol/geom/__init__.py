@@ -116,7 +116,6 @@ from automol.geom._conv import linear_atoms
 from automol.geom._conv import closest_unbonded_atoms
 from automol.geom._conv import external_symmetry_factor
 from automol.geom._conv import x2z_torsion_coordinate_names
-from automol.geom._conv import x2z_atom_ordering
 # # derived operations
 from automol.geom._conv import insert_dummies_on_linear_atoms
 from automol.geom._conv import insert_dummies
@@ -244,7 +243,6 @@ __all__ = [
     'closest_unbonded_atoms',
     'external_symmetry_factor',
     'x2z_torsion_coordinate_names',
-    'x2z_atom_ordering',
     # # derived operations
     'insert_dummies_on_linear_atoms',
     'insert_dummies',
