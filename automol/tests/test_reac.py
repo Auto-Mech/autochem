@@ -145,147 +145,161 @@ def test__find():
         print("len(srxns)", srxns)
         assert len(srxns) > 0
         srxn, *_ = srxns
-        rct_gras1 = reac.reactant_graphs(srxn, shift_keys=False, original_order=True)
-        prd_gras1 = reac.product_graphs(srxn, shift_keys=False, original_order=True)
-        print("compare reactant graphs")
-        print(rct_gras0)
-        print("---")
-        print(rct_gras1)
+        rct_gras1 = reac.reactant_graphs(
+            srxn, shift_keys=False, standard_reagent_order=False
+        )
+        prd_gras1 = reac.product_graphs(
+            srxn, shift_keys=False, standard_reagent_order=False
+        )
+        print(f"{rct_gras0}\n---\n{rct_gras1}")
         assert rct_gras1 == rct_gras0
-        print("compare product graphs")
-        print(prd_gras0)
-        print("---")
-        print(prd_gras1)
+        print(f"{prd_gras0}\n---\n{prd_gras1}")
         assert prd_gras1 == prd_gras0
 
     # UNIMOLECULAR
     # hydrogen migration
-    _test(['CCCO[O]'], ['[CH2]CCOO'])
+    _test(["CCCO[O]"], ["[CH2]CCOO"])
     # hydrogen migration (2TS)
-    _test(['CCC[CH2]'], ['CC[CH]C'])
+    _test(["CCC[CH2]"], ["CC[CH]C"])
     # beta scission (stereo-specific)
-    _test(['F[CH][C@H](O)F'], [r'F/C=C\F', '[OH]'])
+    _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
     # ring-forming scission (FIXED)
-    _test(['[CH2]CCCOO'], ['C1CCCO1', '[OH]'])
+    _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
     # elimination
-    _test(['CCCCO[O]'], ['CCC=C', 'O[O]'])
+    _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
     # elimination (HONO)
-    _test(['CCCON(=O)=O'], ['CCC=O', 'N(=O)O'])
+    _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
     # BIMOLECULAR
     # hydrogen abstraction
-    _test(['CCO', '[CH3]'], ['[CH2]CO', 'C'])
+    _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
     # hydrogen abstraction (sigma)
-    _test(['CCO', 'C#[C]'], ['CC[O]', 'C#C'])
+    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
     # hydrogen abstraction (radical radical)
-    _test(['CCC', '[H]'], ['CC[CH2]', '[HH]'])
+    _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
     # addition
-    _test(['CC[CH2]', '[O][O]'], ['CCCO[O]'])
+    _test(["CC[CH2]", "[O][O]"], ["CCCO[O]"])
     # addition (stereo-specific)
-    _test([r'F/C=C\F', '[OH]'], ['F[CH][C@H](O)F'])
+    _test([r"F/C=C\F", "[OH]"], ["F[CH][C@H](O)F"])
     # addition (stereo-specific with ring)
-    _test(['C1C=C1', '[OH]'], ['C1[CH][C@H]1(O)'])
+    _test(["C1C=C1", "[OH]"], ["C1[CH][C@H]1(O)"])
     # addition (vinyl radical)
-    _test([r'F\N=[C]/F', '[C]#C'], [r'F\N=C(C#C)/F'])
+    _test([r"F\N=[C]/F", "[C]#C"], [r"F\N=C(C#C)/F"])
     # addition (vinyl and sigma radicals)
-    _test(['FC=[N]', '[C]#C'], [r'F/C=N\C#C'])
+    _test(["FC=[N]", "[C]#C"], [r"F/C=N\C#C"])
     # addition (two vinyl radicals) (FIXED)
-    _test([r'F/C=[C]/[H]', r'[H]/[C]=C/F'], [r'F/C=C\C=C/F'])
+    _test([r"F/C=[C]/[H]", r"[H]/[C]=C/F"], [r"F/C=C\C=C/F"])
     # addition (case 2)
-    _test(['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC'])
+    _test(["C=CCCCCCC", "[CH2]C"], ["CCC[CH]CCCCCC"])
     # addition (radical radical 1)
-    _test(['CC[CH2]', '[H]'], ['CCC'])
+    _test(["CC[CH2]", "[H]"], ["CCC"])
     # addition (radical radical 2) (FIXED)
-    _test(['[H]', '[OH]'], ['O'])
+    _test(["[H]", "[OH]"], ["O"])
     # addition (radical radical 3)
-    _test(['[CH3]', '[OH]'], ['CO'])
+    _test(["[CH3]", "[OH]"], ["CO"])
     # addition (isc??)
-    _test(['N#N', '[O]'], ['[N-]=[N+]=O'])
+    _test(["N#N", "[O]"], ["[N-]=[N+]=O"])
     # substitution (Sn2) (FIXED)
-    _test(['[C@H](O)(C)F', '[Cl]'], ['[C@@H](O)(C)Cl', '[F]'])
+    _test(["[C@H](O)(C)F", "[Cl]"], ["[C@@H](O)(C)Cl", "[F]"])
     # substitution (FIXED)
-    _test(['CO', '[CH2]C'], ['CCC', '[OH]'])
+    _test(["CO", "[CH2]C"], ["CCC", "[OH]"])
     # insertion
-    _test(['CCC=C', 'O[O]'], ['CCCCO[O]'])
+    _test(["CCC=C", "O[O]"], ["CCCCO[O]"])
     # insertion (HONO)
-    _test(['CCC=O', 'N(=O)O'], ['CCCON(=O)=O'])
+    _test(["CCC=O", "N(=O)O"], ["CCCON(=O)=O"])
 
 
-# def test__ts_geometry():
-#     """Test reac.ts_geometry"""
+def test__ts_geometry():
+    """Test reac.ts_geometry"""
 
-#     def _test(rct_smis, prd_smis):
-#         print("Testing expand_stereo_for_reaction()")
-#         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
+    def _test(rct_smis, prd_smis):
+        print("Testing expand_stereo_for_reaction()")
+        print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
 
-#         # 1. generate reagent geometries and graphs
-#         rct_geos = list(map(automol.smiles.geometry, rct_smis))
-#         prd_geos = list(map(automol.smiles.geometry, prd_smis))
-#         rct_gras = list(map(automol.geom.graph, rct_geos))
-#         prd_gras = list(map(automol.geom.graph, prd_geos))
+        # 1. generate reagent geometries and graphs
+        rct_geos = tuple(map(automol.smiles.geometry, rct_smis))
+        prd_geos = tuple(map(automol.smiles.geometry, prd_smis))
+        rct_gras = tuple(map(automol.geom.graph, rct_geos))
+        prd_gras = tuple(map(automol.geom.graph, prd_geos))
 
-#         # 2. find reactions
-#         rxns = reac.find(rct_gras, prd_gras, stereo=True)
-#         print("len(rxns)", rxns)
-#         assert len(rxns) > 0
-#         rxn, *_ = rxns
-#         rct_gras1 = reac.reactant_graphs(rxn, shift_keys=False, original_order=True)
-#         prd_gras1 = reac.product_graphs(rxn, shift_keys=False, original_order=True)
-#         assert rct_gras1 == rct_gras
-#         assert prd_gras1 == prd_gras
+        # 2. find reactions
+        rxns = reac.find(rct_gras, prd_gras, stereo=True)
+        print("len(rxns)", rxns)
+        assert len(rxns) > 0
+        rxn, *_ = rxns
+        rct_gras1 = reac.reactant_graphs(
+            rxn, shift_keys=False, standard_reagent_order=False
+        )
+        prd_gras1 = reac.product_graphs(
+            rxn, shift_keys=False, standard_reagent_order=False
+        )
+        print(f"{rct_gras}\n---\n{rct_gras1}")
+        assert rct_gras1 == rct_gras
+        print(f"{prd_gras}\n---\n{prd_gras1}")
+        assert prd_gras1 == prd_gras
 
-#         # 3. generate geometries
-#         ts_geo = automol.reac.ts_geometry(rxn, rct_geos)
+        # 3. generate geometries
+        ts_geo = automol.reac.ts_geometry(rxn, rct_geos)
+        # Check that the structure is reasonable
+        rct_gras_, _ = automol.graph.standard_keys_for_sequence(rct_gras)
+        prd_gras_, _ = automol.graph.standard_keys_for_sequence(prd_gras)
+        rcts_gra = automol.graph.union_from_sequence(rct_gras_)
+        prds_gra = automol.graph.union_from_sequence(prd_gras_)
+        rcts_gra = automol.graph.relabel(rcts_gra, automol.reac.mapping(rxn, "R", "T"))
+        prds_gra = automol.graph.relabel(prds_gra, automol.reac.mapping(rxn, "P", "T"))
+        assert rcts_gra == automol.geom.graph(ts_geo)
+        prds_gra1 = automol.graph.set_stereo_from_geometry(prds_gra, ts_geo)
+        assert prds_gra == prds_gra1
 
-#     # UNIMOLECULAR
-#     # hydrogen migration
-#     _test(['CCCO[O]'], ['[CH2]CCOO'])
-#     # hydrogen migration (2TS)
-#     _test(['CCC[CH2]'], ['CC[CH]C'])
-#     # beta scission (stereo-specific)
-#     _test(['F[CH][C@H](O)F'], [r'F/C=C\F', '[OH]'])
-#     # ring-forming scission (FIXED)
-#     _test(['[CH2]CCCOO'], ['C1CCCO1', '[OH]'])
-#     # elimination
-#     _test(['CCCCO[O]'], ['CCC=C', 'O[O]'])
-#     # elimination (HONO)
-#     _test(['CCCON(=O)=O'], ['CCC=O', 'N(=O)O'])
-#     # BIMOLECULAR
-#     # hydrogen abstraction
-#     _test(['CCO', '[CH3]'], ['[CH2]CO', 'C'])
-#     # hydrogen abstraction (sigma)
-#     _test(['CCO', 'C#[C]'], ['CC[O]', 'C#C'])
-#     # hydrogen abstraction (radical radical)
-#     _test(['CCC', '[H]'], ['CC[CH2]', '[HH]'])
-#     # addition
-#     _test(['CC[CH2]', '[O][O]'], ['CCCO[O]'])
-#     # addition (stereo-specific)
-#     _test([r'F/C=C\F', '[OH]'], ['F[CH][C@H](O)F'])
-#     # addition (stereo-specific with ring)
-#     _test(['C1C=C1', '[OH]'], ['C1[CH][C@H]1(O)'])
-#     # addition (vinyl radical)
-#     _test([r'F\N=[C]/F', '[C]#C'], [r'F\N=C(C#C)/F'])
-#     # addition (vinyl and sigma radicals)
-#     _test(['FC=[N]', '[C]#C'], [r'F/C=N\C#C'])
-#     # addition (two vinyl radicals) (FIXED)
-#     _test([r'F/C=[C]/[H]', r'[H]/[C]=C/F'], [r'F/C=C\C=C/F'])
-#     # addition (case 2)
-#     _test(['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC'])
-#     # addition (radical radical 1)
-#     _test(['CC[CH2]', '[H]'], ['CCC'])
-#     # addition (radical radical 2) (FIXED)
-#     _test(['[H]', '[OH]'], ['O'])
-#     # addition (radical radical 3)
-#     _test(['[CH3]', '[OH]'], ['CO'])
-#     # addition (isc??)
-#     _test(['N#N', '[O]'], ['[N-]=[N+]=O'])
-#     # substitution (Sn2) (FIXED)
-#     _test(['[C@H](O)(C)F', '[Cl]'], ['[C@@H](O)(C)Cl', '[F]'])
-#     # substitution (FIXED)
-#     _test(['CO', '[CH2]C'], ['CCC', '[OH]'])
-#     # insertion
-#     _test(['CCC=C', 'O[O]'], ['CCCCO[O]'])
-#     # insertion (HONO)
-#     _test(['CCC=O', 'N(=O)O'], ['CCCON(=O)=O'])
+    # UNIMOLECULAR
+    # hydrogen migration
+    _test(["CCCO[O]"], ["[CH2]CCOO"])
+    # hydrogen migration (2TS)
+    _test(["CCC[CH2]"], ["CC[CH]C"])
+    # beta scission (stereo-specific)
+    _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
+    # ring-forming scission (FIXED)
+    _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
+    # elimination
+    _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
+    # elimination (HONO)
+    _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
+    # BIMOLECULAR
+    # hydrogen abstraction
+    _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
+    # hydrogen abstraction (sigma)
+    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
+    # hydrogen abstraction (radical radical)
+    _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
+    # addition
+    _test(["CC[CH2]", "[O][O]"], ["CCCO[O]"])
+    # addition (stereo-specific)
+    _test([r"F/C=C\F", "[OH]"], ["F[CH][C@H](O)F"])
+    # addition (stereo-specific with ring)
+    _test(["C1C=C1", "[OH]"], ["C1[CH][C@H]1(O)"])
+    # addition (vinyl radical)
+    _test([r"F\N=[C]/F", "[C]#C"], [r"F\N=C(C#C)/F"])
+    # addition (vinyl and sigma radicals)
+    _test(["FC=[N]", "[C]#C"], [r"F/C=N\C#C"])
+    # addition (two vinyl radicals) (FIXED)
+    _test([r"F/C=[C]/[H]", r"[H]/[C]=C/F"], [r"F/C=C\C=C/F"])
+    # addition (case 2)
+    _test(["C=CCCCCCC", "[CH2]C"], ["CCC[CH]CCCCCC"])
+    # addition (radical radical 1)
+    _test(["CC[CH2]", "[H]"], ["CCC"])
+    # addition (radical radical 2) (FIXED)
+    _test(["[H]", "[OH]"], ["O"])
+    # addition (radical radical 3)
+    _test(["[CH3]", "[OH]"], ["CO"])
+    # addition (isc??)
+    _test(["N#N", "[O]"], ["[N-]=[N+]=O"])
+    # substitution (Sn2) (FIXED)
+    _test(["[C@H](O)(C)F", "[Cl]"], ["[C@@H](O)(C)Cl", "[F]"])
+    # substitution (FIXED)
+    _test(["CO", "[CH2]C"], ["CCC", "[OH]"])
+    # insertion
+    _test(["CCC=C", "O[O]"], ["CCCCO[O]"])
+    # insertion (HONO)
+    _test(["CCC=O", "N(=O)O"], ["CCCON(=O)=O"])
 
 
 if __name__ == "__main__":
@@ -293,4 +307,5 @@ if __name__ == "__main__":
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
-    test__find()
+    # test__find()
+    test__ts_geometry()

@@ -12,6 +12,7 @@ from automol.geom.base import (
     count,
     distance,
     from_data,
+    reorder,
     rotate,
     set_coordinates,
     symbols,
@@ -95,6 +96,10 @@ def geometry_from_reactants(
         max_dist_err=max_dist_err,
         log=log,
     )
+
+    # 4. Re-order the TS geometry to match the TS graph
+    gra_key_dct = dict(map(reversed, geo_idx_dct.items()))
+    ts_geo = reorder(ts_geo, gra_key_dct)
     return ts_geo
 
 

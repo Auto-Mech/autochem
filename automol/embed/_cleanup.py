@@ -55,7 +55,8 @@ def volume(xmat, idxs):
     d12 = xyzs[1] - xyzs[0]
     d13 = xyzs[2] - xyzs[0]
     d14 = xyzs[3] - xyzs[0]
-    vol = numpy.dot(d12, numpy.cross(d13, d14))
+    # Negate the sign to match the way we calculate this elsewhere
+    vol = numpy.negative(numpy.dot(d12, numpy.cross(d13, d14)))
     return vol
 
 
@@ -73,7 +74,8 @@ def volume_gradient(xmat, idxs):
     grad[idxs[2], :3] = -numpy.cross(xyzs[1]-xyzs[0], xyzs[3]-xyzs[0])
     grad[idxs[3], :3] = +numpy.cross(xyzs[1]-xyzs[0], xyzs[2]-xyzs[0])
 
-    return grad
+    # Negate the sign to match the way we calculate this elsewhere
+    return numpy.negative(grad)
 
 
 def error_function_(lmat, umat, chi_dct=None, pla_dct=None, wdist=1., wchip=1.,

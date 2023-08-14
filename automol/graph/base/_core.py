@@ -2349,6 +2349,19 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
     return atm_ngb_keys
 
 
+def local_stereo_priorities(gra):
+    """ Generate a local ``priority'' dictionary
+    """
+    loc_pri_dct = {}
+    loc_pri_dct.update(
+        {k: k for k in backbone_keys(gra, hyd=False)})
+    loc_pri_dct.update(
+        {k: -abs(k) for k in backbone_hydrogen_keys(gra)})
+    loc_pri_dct.update(
+        {k: -999 for k in nonbackbone_hydrogen_keys(gra)})
+    return loc_pri_dct
+
+
 def atom_stereo_sorted_neighbor_keys(gra, key, self_apex=False, pri_dct=None):
     """ Get keys for the neighbors of an atom that are relevant for atom
     stereochemistry, sorted by priority (if requested)
@@ -2364,7 +2377,7 @@ def atom_stereo_sorted_neighbor_keys(gra, key, self_apex=False, pri_dct=None):
     :returns: The keys of neighboring atoms
     :rtype: tuple[int]
     """
-    sort_key_ = (lambda x: x) if pri_dct is None else pri_dct.__getitem__
+    pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
     nkeys = atom_neighbor_atom_keys(gra, key, ts_=True)
     nkeys_no_brk = atom_neighbor_atom_keys(gra, key, ts_=False)
@@ -2376,8 +2389,9 @@ def atom_stereo_sorted_neighbor_keys(gra, key, self_apex=False, pri_dct=None):
             f"Unanticipated valence {valence} at key {key} is not resoved by "
             f"dropping breaking bonds:\n{gra}")
         nkeys = nkeys_no_brk
+
     # Sort them by priority
-    nkeys = sorted(nkeys, key=sort_key_)
+    nkeys = sorted(nkeys, key=pri_dct.__getitem__)
 
     # If there are only three groups, use the stereo atom itself as
     # the top apex of the tetrahedron.
@@ -2403,7 +2417,7 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
     :returns: The keys of neighboring atoms for the first and second atoms
     :rtype: tuple[int], tuple[int]
     """
-    sort_key_ = (lambda x: x) if pri_dct is None else pri_dct.__getitem__
+    pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
     keys = {key1, key2}
     gra_no_rxbs = without_bonds_by_orders(gra, [0.1, 0.9])
@@ -2420,7 +2434,7 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
                 f"by dropping breaking bonds:\n{gra}")
             nkeys = nkeys_no_rbs
         # Sort them by priority
-        nkeys = sorted(nkeys, key=sort_key_)
+        nkeys = sorted(nkeys, key=pri_dct.__getitem__)
         return tuple(nkeys)
 
     return (_neighbor_keys(key1), _neighbor_keys(key2))
