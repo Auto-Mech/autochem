@@ -14,7 +14,7 @@ from automol.geom._conv import external_symmetry_factor
 from automol.geom._conv import graph
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import are_torsions_same2
-from automol.graph._conv import inchi
+from automol.graph._1conv import inchi
 import automol.reac
 
 

@@ -238,7 +238,7 @@ def test__ts_geometry():
         assert prd_gras1 == prd_gras
 
         # 3. generate geometries
-        ts_geo = automol.reac.ts_geometry(rxn, rct_geos)
+        ts_geo = automol.reac.ts_geometry_from_reactants(rxn, rct_geos)
         # Check that the structure is reasonable
         rct_gras_, _ = automol.graph.standard_keys_for_sequence(rct_gras)
         prd_gras_, _ = automol.graph.standard_keys_for_sequence(prd_gras)

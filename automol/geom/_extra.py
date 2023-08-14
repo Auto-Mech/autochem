@@ -1,20 +1,19 @@
 """ extra high-level geometry library functions
 """
 import numpy
-import automol.graph
-import automol.zmat.base
-from automol.geom._conv import graph
-from automol.geom._conv import inchi
-from automol.geom._conv import x2z_zmatrix
-from automol.geom._conv import x2z_torsion_coordinate_names
-from automol.geom.base import swap_coordinates
-from automol.geom.base import dihedral_angle
-from automol.geom.base import central_angle
-from automol.geom.base import almost_equal_dist_matrix
-from automol.geom.base import almost_equal_coulomb_spectrum
-from automol.geom.base import distance_matrix
-from automol.geom.base import count
 
+import automol.graph.base
+import automol.zmat.base
+from automol.geom._conv import graph, inchi, x2z_torsion_coordinate_names, x2z_zmatrix
+from automol.geom.base import (
+    almost_equal_coulomb_spectrum,
+    almost_equal_dist_matrix,
+    central_angle,
+    count,
+    dihedral_angle,
+    distance_matrix,
+    swap_coordinates,
+)
 
 CHECK_DEFAULT_DCT = {
     'dist': 3.5e-1,
@@ -69,7 +68,7 @@ def components_graph(geo, stereo=True):
         :type stereo: bool
         :rtype: automol molecular graph data structure
     """
-    return automol.graph.connected_components(graph(geo, stereo=stereo))
+    return automol.graph.base.connected_components(graph(geo, stereo=stereo))
 
 
 def connected(geo, stereo=True):
@@ -101,7 +100,7 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
     gra = graph(geo, stereo=False)
     term_atms = {}
     all_hyds = []
-    neighbor_dct = automol.graph.atoms_neighbor_atom_keys(gra)
+    neighbor_dct = automol.graph.base.atoms_neighbor_atom_keys(gra)
     ts_atms = []
     for bnd_ in frm_bnd_keys:
         ts_atms.extend(list(bnd_))
@@ -109,10 +108,10 @@ def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
         ts_atms.extend(list(bnd_))
 
     # determine if atom is a part of a double bond
-    unsat_atms = automol.graph.unsaturated_atom_keys(gra)
+    unsat_atms = automol.graph.base.unsaturated_atom_keys(gra)
     if not saddle:
-        rad_atms = automol.graph.radical_atom_keys(gra, sing_res=True)
-        res_rad_atms = automol.graph.radical_atom_keys(gra)
+        rad_atms = automol.graph.base.radical_atom_keys(gra, sing_res=True)
+        res_rad_atms = automol.graph.base.radical_atom_keys(gra)
         rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
     else:
         rad_atms = []
@@ -294,8 +293,8 @@ def hydrogen_bonded_idxs(
     if count(geo) > 1:
         # Get the forming/breaking bond idxs if possible
         if tsg is not None:
-            frm_bnd_keys = automol.graph.ts.ts_forming_bond_keys(tsg)
-            brk_bnd_keys = automol.graph.ts.ts_breaking_bond_keys(tsg)
+            frm_bnd_keys = automol.graph.base.ts.forming_bond_keys(tsg)
+            brk_bnd_keys = automol.graph.base.ts.breaking_bond_keys(tsg)
             rxn_keys = set()
             for key in frm_bnd_keys:
                 rxn_keys = rxn_keys | key
@@ -308,10 +307,10 @@ def hydrogen_bonded_idxs(
         # Get all potential indices for HB interactions
         gra = graph(geo)
         dist_mat = distance_matrix(geo)
-        adj_atm_dct = automol.graph.atoms_neighbor_atom_keys(gra)
-        h_idxs = automol.graph.atom_keys(gra, symb='H')
-        acceptor_idxs = list(automol.graph.radical_atom_keys(gra))
-        acceptor_idxs.extend(list(automol.graph.atom_keys(gra, symb='O')))
+        adj_atm_dct = automol.graph.base.atoms_neighbor_atom_keys(gra)
+        h_idxs = automol.graph.base.atom_keys(gra, symb='H')
+        acceptor_idxs = list(automol.graph.base.radical_atom_keys(gra))
+        acceptor_idxs.extend(list(automol.graph.base.atom_keys(gra, symb='O')))
         # Loop over indices, ignoring H-idxs in reacting bonds
         hb_idxs = tuple(idx for idx in h_idxs
                         if idx not in rxn_h_idxs)

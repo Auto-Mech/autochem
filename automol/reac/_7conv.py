@@ -21,7 +21,7 @@ from automol.reac._0core import (
 )
 from automol.reac._2stereo import reflect
 from automol.reac._3find import find
-from automol.reac._4geom import ts_geometry
+from automol.reac._4geom import ts_geometry_from_reactants
 from automol.reac._5zmat import ts_zmatrix
 
 
@@ -287,7 +287,7 @@ def with_structures_from_geometry(
         rxn, rct_geos, prd_geos = standard_keys_with_sorted_geometries(
             rxn, rct_geos, prd_geos
         )
-        ts_geo = ts_geometry(rxn, rct_geos, log=False)
+        ts_geo = ts_geometry_from_reactants(rxn, rct_geos, log=False)
         rxn = set_structures(rxn, ts_geo, rct_geos, prd_geos)
         # Determine which geometries to store
         if not zmat:

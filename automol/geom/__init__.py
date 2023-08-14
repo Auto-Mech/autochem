@@ -135,8 +135,6 @@ from automol.geom._align import align
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
 from automol.geom._ring import ring_fragments_geometry
-# ts submodule
-from automol.geom import ts
 
 
 __all__ = [
@@ -262,6 +260,4 @@ __all__ = [
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
     'ring_fragments_geometry',
-    # ts submodule
-    'ts',
 ]
