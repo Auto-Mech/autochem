@@ -1,21 +1,17 @@
 """ generate ts geometries
 """
 import numpy
-import scipy
-from phydat import phycon
 
 import automol.graph.base
 from automol.extern import py3dmol_
-from automol.geom._conv import graph_without_stereo, py3dmol_view
+from automol.geom._conv import py3dmol_view
 from automol.geom.base import (
     coordinates,
     count,
     distance,
-    from_data,
     reorder,
     rotate,
     set_coordinates,
-    symbols,
     translate,
 )
 from automol.util import dict_, vec
@@ -327,102 +323,3 @@ def distances(
         )
 
     return dist_dct
-
-
-def join(
-    geo1,
-    geo2,
-    key2,
-    key3,
-    r23,
-    a123=85.0,
-    a234=85.0,
-    d1234=85.0,
-    key1=None,
-    key4=None,
-    angstrom=True,
-    degree=True,
-):
-    """join two geometries based on four of their atoms, two on the first
-    and two on the second
-
-    Variables set the coordinates for 1-2...3-4 where 1-2 are bonded atoms in
-    geo1 and 3-4 are bonded atoms in geo2.
-    """
-    key3 = key3 - count(geo1)
-    a123 *= phycon.DEG2RAD if degree else 1
-    a234 *= phycon.DEG2RAD if degree else 1
-    d1234 *= phycon.DEG2RAD if degree else 1
-
-    gra1, gra2 = map(graph_without_stereo, (geo1, geo2))
-    key1 = (
-        automol.graph.base.atom_neighbor_atom_key(gra1, key2) if key1 is None else key1
-    )
-    key4 = (
-        automol.graph.base.atom_neighbor_atom_key(gra2, key3) if key4 is None else key4
-    )
-
-    syms1 = symbols(geo1)
-    syms2 = symbols(geo2)
-    xyzs1 = coordinates(geo1, angstrom=angstrom)
-    xyzs2 = coordinates(geo2, angstrom=angstrom)
-
-    xyz1 = xyzs1[key1] if key1 is not None else None
-    xyz2 = xyzs1[key2]
-    orig_xyz3 = xyzs2[key3]
-    orig_xyz4 = xyzs2[key4] if key4 is not None else [1.0, 1.0, 1.0]
-
-    if key1 is None:
-        # If the first fragment is monatomic, we can place the other one
-        # anywhere we want (direction doesn't matter)
-        xyz3 = numpy.add(xyz2, [0.0, 0.0, r23])
-    else:
-        # If the first fragment isn't monatomic, we need to take some care in
-        # where we place the second one.
-        # r23 and a123 are fixed, so the only degree of freedom we have to do
-        # this is to optimize a dihedral angle relative to an arbitrary point
-        # xyz0.
-        # This dihedral angle is optimized to maximize the distance of xyz3
-        # from all of the atoms in fragment 1 (xyzs1).
-        xyz1 = xyzs1[key1]
-
-        # Place xyz3 as far away from the atoms in geo1 as possible by
-        # optimizing the undetermined dihedral angle
-        xyz0 = vec.arbitrary_unit_perpendicular(xyz2, orig_xyz=xyz1)
-
-        def _distance_norm(dih):  # objective function for minimization
-            (dih,) = dih
-            xyz3 = vec.from_internals(
-                dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1, dih=dih, xyz3=xyz0
-            )
-            dist_norm = numpy.linalg.norm(numpy.subtract(xyzs1, xyz3))
-            # return the negative norm so that minimum value gives maximum
-            # distance
-            return -dist_norm
-
-        res = scipy.optimize.basinhopping(_distance_norm, 0.0)
-        dih = res.x[0]
-
-        # Now, get the next position with the optimized dihedral angle
-        xyz3 = vec.from_internals(
-            dist=r23, xyz1=xyz2, ang=a123, xyz2=xyz1, dih=dih, xyz3=xyz0
-        )
-
-    r34 = vec.distance(orig_xyz3, orig_xyz4)
-
-    # If 2 doen't have neighbors or 1-2-3 are linear, ignore the dihedral angle
-    if key1 is None or numpy.abs(a123 * phycon.RAD2DEG - 180.0) < 5.0:
-        xyz4 = vec.from_internals(dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2)
-    else:
-        xyz4 = vec.from_internals(
-            dist=r34, xyz1=xyz3, ang=a234, xyz2=xyz2, dih=d1234, xyz3=xyz1
-        )
-
-    align_ = vec.aligner(orig_xyz3, orig_xyz4, xyz3, xyz4)
-    xyzs2 = tuple(map(align_, xyzs2))
-
-    syms = syms1 + syms2
-    xyzs = xyzs1 + xyzs2
-
-    geo = from_data(syms, xyzs, angstrom=angstrom)
-    return geo
