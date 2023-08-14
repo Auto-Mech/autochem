@@ -14,7 +14,6 @@ from automol.graph.base._algo import (
 )
 from automol.graph.base._canon import (
     calculate_priorities_and_assign_stereo,
-    local_priority_dict,
     parity_evaluator_flip_local_,
     to_local_stereo,
 )
@@ -24,6 +23,7 @@ from automol.graph.base._core import (
     bond_stereo_keys,
     bond_stereo_sorted_neighbor_keys,
     has_stereo,
+    local_stereo_priorities,
     nonbackbone_hydrogen_keys,
     set_stereo_parities,
     stereo_parities,
@@ -310,7 +310,7 @@ def constrained_1_2_insertion_local_parities(loc_tsg):
     loc_par_dct = util.dict_.filter_by_value(
         stereo_parities(loc_tsg), lambda x: x is not None
     )
-    loc_pri_dct = local_priority_dict(loc_tsg)
+    loc_pri_dct = local_stereo_priorities(loc_tsg)
     nkeys_dct = atoms_neighbor_atom_keys(loc_tsg)
 
     # Check first reactants, then products
@@ -377,7 +377,7 @@ def vinyl_addition_local_parities(loc_tsg):
     loc_par_dct = util.dict_.filter_by_value(
         stereo_parities(loc_tsg), lambda x: x is not None
     )
-    loc_pri_dct = local_priority_dict(loc_tsg)
+    loc_pri_dct = local_stereo_priorities(loc_tsg)
 
     gra = ts_reagents_graph_without_stereo(loc_tsg, prod=False)
     vin_keys = vinyl_radical_atom_keys(gra)
@@ -393,9 +393,7 @@ def vinyl_addition_local_parities(loc_tsg):
         tnkeys_pair = bond_stereo_sorted_neighbor_keys(
             loc_tsg, *akeys, pri_dct=loc_pri_dct
         )
-        gnkeys_pair = bond_stereo_sorted_neighbor_keys(
-            gra, *akeys, pri_dct=loc_pri_dct
-        )
+        gnkeys_pair = bond_stereo_sorted_neighbor_keys(gra, *akeys, pri_dct=loc_pri_dct)
         for akey, tnkeys, gnkeys in zip(akeys, tnkeys_pair, gnkeys_pair):
             # Compare sorted neighbors for mismatch
             if gnkeys and tnkeys != gnkeys:

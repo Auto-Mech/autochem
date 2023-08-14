@@ -239,34 +239,40 @@ def ts_graph(rxn: Reaction):
     return rxn.ts_graph
 
 
-def reactants_keys(rxn: Reaction, original_order: bool = False) -> List[List[int]]:
+def reactants_keys(
+    rxn: Reaction, standard_reagent_order: bool = True
+) -> List[List[int]]:
     """Get the reactants keys of the reaction
 
     :param rxn: The reaction object
     :type rxn: Reaction
-    :param original_order: Match the original graph order?
-    :type original_order: bool
+    :param standard_reagent_order: Use standard reagent ordering? Otherwise, matches the
+        original reagent ordering
+    :type standard_reagent_order: bool
     :returns: The reactants keys
     :rtype: List[List[int]]
     """
     rcts_keys = rxn.reactants_keys
-    if original_order:
+    if not standard_reagent_order:
         rcts_keys = tuple(map(tuple, sorted(rcts_keys, key=sorted)))
     return rcts_keys
 
 
-def products_keys(rxn: Reaction, original_order: bool = False) -> List[List[int]]:
+def products_keys(
+    rxn: Reaction, standard_reagent_order: bool = True
+) -> List[List[int]]:
     """Get the products keys of the reaction
 
     :param rxn: The reaction object
     :type rxn: Reaction
-    :param original_order: Match the original graph order?
-    :type original_order: bool
+    :param standard_reagent_order: Use standard reagent ordering? Otherwise, matches the
+        original reagent ordering
+    :type standard_reagent_order: bool
     :returns: The products keys
     :rtype: List[List[int]]
     """
     prds_keys = rxn.products_keys
-    if original_order:
+    if not standard_reagent_order:
         prds_keys = tuple(map(tuple, sorted(prds_keys, key=sorted)))
     return prds_keys
 
@@ -544,9 +550,8 @@ def mapping(rxn: Reaction, inp, out) -> dict:
     rxn = without_dummy_atoms(rxn)
 
     keys = sorted(automol.graph.atom_keys(ts_graph(rxn)))
-    ridxs, pidxs = sort_order(rxn)
-    rcts_keys = list(map(reactants_keys(rxn).__getitem__, ridxs))
-    prds_keys = list(map(products_keys(rxn).__getitem__, pidxs))
+    rcts_keys = reactants_keys(rxn, standard_reagent_order=False)
+    prds_keys = products_keys(rxn, standard_reagent_order=False)
     rct_keys = list(itertools.chain(*rcts_keys))
     prd_keys = list(itertools.chain(*prds_keys))
 
@@ -581,7 +586,7 @@ def reaction_mapping(rxn: Reaction, rev=False):
     return map_dct
 
 
-def sort_order(rxn: Reaction) -> Tuple[List[int], List[int]]:
+def reagent_sort_order(rxn: Reaction) -> Tuple[List[int], List[int]]:
     """Get the sort order for reactants and products, based on their keys
 
     :param rxn: the reaction object
@@ -611,21 +616,24 @@ def sort_order(rxn: Reaction) -> Tuple[List[int], List[int]]:
     return rct_idxs, prd_idxs
 
 
-def reactant_graphs(rxn: Reaction, shift_keys=False, original_order: bool = False):
+def reactant_graphs(
+    rxn: Reaction, shift_keys=False, standard_reagent_order: bool = True
+):
     """Obtain graphs of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param shift_keys: Shift keys after first reagent, to prevent overlap?
     :type shift_keys: bool
-    :param original_order: Match the original graph order?
-    :type original_order: bool
+    :param standard_reagent_order: Use standard reagent ordering? Otherwise, matches the
+        original reagent ordering
+    :type standard_reagent_order: bool
     :rtype: tuple of automol graph data structures
     """
     map_dct = mapping(rxn, "T", "R")
 
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    rcts_keys = reactants_keys(rxn, original_order=original_order)
+    rcts_keys = reactants_keys(rxn, standard_reagent_order=standard_reagent_order)
     rct_gras = [automol.graph.subgraph(rcts_gra, ks, stereo=True) for ks in rcts_keys]
     rct_gras = [automol.graph.relabel(g, map_dct, check=False) for g in rct_gras]
     if not shift_keys:
@@ -633,42 +641,53 @@ def reactant_graphs(rxn: Reaction, shift_keys=False, original_order: bool = Fals
     return tuple(rct_gras)
 
 
-def product_graphs(rxn: Reaction, shift_keys=False, original_order: bool = False):
+def product_graphs(
+    rxn: Reaction, shift_keys=False, standard_reagent_order: bool = True
+):
     """Obtain graphs of the products in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param shift_keys: Shift keys after first reagent, to prevent overlap?
     :type shift_keys: bool
-    :param original_order: Match the original graph order?
-    :type original_order: bool
+    :param standard_reagent_order: Use standard reagent ordering? Otherwise, matches the
+        original reagent ordering
+    :type standard_reagent_order: bool
     :rtype: tuple of automol graph data structures
     """
     return reactant_graphs(
-        reverse(rxn), shift_keys=shift_keys, original_order=original_order
+        reverse(rxn),
+        shift_keys=shift_keys,
+        standard_reagent_order=standard_reagent_order,
     )
 
 
-def reactants_graph(rxn: Reaction):
+def reactants_graph(rxn: Reaction, key_order="R"):
     """Obtain a (single) graph of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param key_order: The key order to use, 'T', 'R', or 'P'
+    :type key_order: str, optional
     :rtype: automol graph data structure
     """
-    map_dct = mapping(rxn, "T", "R")
+    map_dct = mapping(rxn, "T", key_order)
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     return automol.graph.relabel(rcts_gra, map_dct, check=True)
 
 
-def products_graph(rxn: Reaction):
+def products_graph(rxn: Reaction, key_order="P"):
     """Obtain a (single) graph of the products in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param key_order: The key order to use, 'T', 'R', or 'P'
+    :type key_order: str, optional
     :rtype: automol graph data structure
     """
-    return reactants_graph(reverse(rxn))
+    map_dct = mapping(rxn, "T", key_order)
+    rcts_gra = ts.products_graph(ts_graph(rxn))
+    return automol.graph.relabel(rcts_gra, map_dct, check=True)
 
 
 def standard_keys(rxn: Reaction) -> Reaction:
@@ -713,7 +732,7 @@ def standard_keys_with_sorted_geometries(rxn: Reaction, rct_geos, prd_geos):
         and products
     :rtype: (Reaction, automol geometry objects, automol geometry objects)
     """
-    rct_idxs, prd_idxs = sort_order(rxn)
+    rct_idxs, prd_idxs = reagent_sort_order(rxn)
     rct_geos = tuple(map(rct_geos.__getitem__, rct_idxs))
     prd_geos = tuple(map(prd_geos.__getitem__, prd_idxs))
     rxn = standard_keys(rxn)

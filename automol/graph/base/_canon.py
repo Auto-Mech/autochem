@@ -35,7 +35,7 @@ from automol.graph.base._core import atoms_bond_keys
 from automol.graph.base._core import implicit
 from automol.graph.base._core import explicit
 from automol.graph.base._core import atom_implicit_hydrogens
-from automol.graph.base._core import backbone_hydrogen_keys
+from automol.graph.base._core import local_stereo_priorities
 from automol.graph.base._core import nonbackbone_hydrogen_keys
 from automol.graph.base._core import relabel
 from automol.graph.base._core import without_pi_bonds
@@ -1071,7 +1071,7 @@ def parity_evaluator_flip_local_():
         gra = explicit(gra)
         par_dct = stereo_parities(gra)
 
-        loc_pri_dct = local_priority_dict(gra)
+        loc_pri_dct = local_stereo_priorities(gra)
 
         pri_dct = reassign_hydrogen_priorities(
             gra, pri_dct, break_ties=False, neg=True)
@@ -1285,19 +1285,6 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
 
     ste_bnd_keys = frozenset(filter(_is_stereogenic, bnd_keys))
     return ste_bnd_keys
-
-
-def local_priority_dict(gra):
-    """ Generate a local ``priority'' dictionary
-    """
-    loc_pri_dct = {}
-    loc_pri_dct.update(
-        {k: k for k in backbone_keys(gra, hyd=False)})
-    loc_pri_dct.update(
-        {k: -abs(k) for k in backbone_hydrogen_keys(gra)})
-    loc_pri_dct.update(
-        {k: -999 for k in nonbackbone_hydrogen_keys(gra)})
-    return loc_pri_dct
 
 
 def class_dict_from_priority_dict(pri_dct):
