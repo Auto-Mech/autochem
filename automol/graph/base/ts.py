@@ -222,12 +222,13 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
         """
 
         # Sanity check
-        assert gra == ts_reagents_graph_without_stereo(tsg0)
+        assert gra == ts_reagents_graph_without_stereo(loc_tsg0)
 
         # Do-nothing line to prevent linting complaint
         assert ts_rev or not ts_rev
 
-        p0_ = par_eval_flip_(loc_tsg0, pri_dct)
+        loc_gra = ts_reagents_graph_without_stereo(loc_tsg0, keep_stereo=True)
+        p0_ = par_eval_flip_(loc_gra, pri_dct)
 
         def _parity(key):
             # Stereocenters directly shared with TS can be obtained from the
