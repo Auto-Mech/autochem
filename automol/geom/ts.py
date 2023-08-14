@@ -13,10 +13,11 @@ from automol.geom.base import (
     distance,
     from_data,
     rotate,
+    set_coordinates,
     symbols,
     translate,
 )
-from automol.util import vec
+from automol.util import dict_, vec
 
 
 def geometry_from_reactants(
@@ -61,25 +62,24 @@ def geometry_from_reactants(
 
     # 1. Join geometries for bimolecular reactions, yielding a single starting structure
     if len(geos) > 1:
-        geo = join_at_forming_bond(
+        ts_geo = join_at_forming_bond(
             geos,
             tsg,
             fdist_factor=fdist_factor,
             debug_visualize=debug_visualize,
         )
     else:
-        (geo,) = geos
+        (ts_geo,) = geos
 
     # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
     # reactants and products
-    ts_geo = automol.graph.stereo_corrected_geometry(tsg, geo, geo_idx_dct=geo_idx_dct)
+    ts_geo = automol.graph.stereo_corrected_geometry(tsg, ts_geo)
 
     # 3. Embed the TS structure, using distances from the *original* reactant geometries
     # along with forming/breaking bond distances
     dist_dct = distances(
         geos,
         tsg,
-        geo_idx_dct=geo_idx_dct,
         fdist_factor=fdist_factor,
         bdist_factor=bdist_factor,
     )
@@ -135,11 +135,11 @@ def join_at_forming_bond(
     )
 
     tsg = automol.graph.base.relabel(tsg, geo_idx_dct)
-    # If there are multiple forming keys, get the one with the fewest hydrogens involved
-    # (Not sure it matters, but this is what we were doing for insertions)
+    # If there are multiple forming keys, join on the one with atom stereochemistry
+    par_dct = automol.graph.base.atom_stereo_parities(tsg)
     frm_key, *_ = sorted(
         automol.graph.base.ts.forming_bond_keys(tsg),
-        key=lambda k: automol.graph.base.atom_count(tsg, symb="H", keys=k),
+        key=lambda bk: sum(par_dct[k] is None for k in bk),
     )
 
     assert len(geos) == 2, f"This requires two reactants, but {len(geos)} were given"
@@ -191,7 +191,7 @@ def join_at_forming_bond(
 def reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     """Identify the direction of a reacting electron on a bond-forming atom
 
-    Does not correct for stereochemistry.
+    Forming bond direction accounts for atom stereochemistry in this atom.
 
     :param geo: Reactants geometry, aligned to the TS graph
     :type geo: automol geom data structure
@@ -206,6 +206,11 @@ def reacting_electron_direction(geo, tsg, key) -> vec.Vector:
         (k for k in automol.graph.base.ts.forming_bond_keys(tsg) if key in k), None
     )
     assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
+
+    tsg = automol.graph.base.to_local_stereo(tsg)
+    apar_dct = dict_.filter_by_value(
+        automol.graph.base.atom_stereo_parities(tsg), lambda x: x is not None
+    )
 
     # Get the normal vector
     pkeys = automol.graph.base.ts.plane_keys(tsg, key)
@@ -235,6 +240,22 @@ def reacting_electron_direction(geo, tsg, key) -> vec.Vector:
         xvec = vec.orthogonalize(zvec, xvec, normalize=True)
         rot_ = vec.rotator(zvec, phi)
         rvec = rot_(xvec)
+
+    # Make sure the direction matches atom stereochemistry
+    if key in apar_dct:
+        # Create a dummy geometry with the attacking neighbor at this position
+        (xyz,) = coordinates(geo, idxs=(key,))
+        (key_,) = frm_key - {key}
+        xyz_ = numpy.add(xyz, rvec)
+        geo_ = set_coordinates(geo, {key_: xyz_})
+
+        # Evaluate the parity of this configuration
+        par = automol.graph.base.geometry_atom_parity(tsg, geo_, key)
+
+        # If it doesn't match, reverse the direction, so the atom will be attacked from
+        # the other side
+        if par != apar_dct[key]:
+            rvec = numpy.negative(rvec)
 
     return rvec
 

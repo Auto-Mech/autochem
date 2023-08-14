@@ -126,6 +126,8 @@ from automol.graph.base._core import atom_neighbor_atom_key
 from automol.graph.base._core import atom_neighbor_atom_keys
 from automol.graph.base._core import atoms_neighbor_atom_keys
 from automol.graph.base._core import atom_sorted_neighbor_atom_keys
+from automol.graph.base._core import atom_stereo_sorted_neighbor_keys
+from automol.graph.base._core import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._core import atoms_sorted_neighbor_atom_keys
 from automol.graph.base._core import atom_bond_keys
 from automol.graph.base._core import atoms_bond_keys
@@ -432,6 +434,8 @@ __all__ = [
     'atom_neighbor_atom_keys',
     'atoms_neighbor_atom_keys',
     'atom_sorted_neighbor_atom_keys',
+    'atom_stereo_sorted_neighbor_keys',
+    'bond_stereo_sorted_neighbor_keys',
     'atoms_sorted_neighbor_atom_keys',
     'atom_bond_keys',
     'atoms_bond_keys',

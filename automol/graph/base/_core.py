@@ -2349,7 +2349,7 @@ def atom_neighbor_atom_keys(gra, atm_key, bnd_keys=None, symb=None,
     return atm_ngb_keys
 
 
-def atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=None):
+def atom_stereo_sorted_neighbor_keys(gra, key, self_apex=False, pri_dct=None):
     """ Get keys for the neighbors of an atom that are relevant for atom
     stereochemistry, sorted by priority (if requested)
 
@@ -2357,6 +2357,8 @@ def atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=None):
     :type gra: automol graph data structure
     :param key: the atom key
     :type key: int
+    :param self_apex: If there are only 3 neighbors, put this atom as the apex?
+    :type self_apex: bool, optional
     :param pri_dct: Priorities to sort by (optional)
     :type pri_dct: dict[int: int]
     :returns: The keys of neighboring atoms
@@ -2376,6 +2378,13 @@ def atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=None):
         nkeys = nkeys_no_brk
     # Sort them by priority
     nkeys = sorted(nkeys, key=sort_key_)
+
+    # If there are only three groups, use the stereo atom itself as
+    # the top apex of the tetrahedron.
+    if self_apex and len(nkeys) < 4:
+        assert len(nkeys) == 3
+        nkeys = [key] + list(nkeys)
+
     return tuple(nkeys)
 
 
