@@ -51,7 +51,8 @@ def heavy_atom_count(fml):
 
     assert _is_standard(fml)
 
-    fml.pop("H")
+    if "H" in fml:
+        fml.pop("H")
 
     return sum(fml.values())
 
@@ -239,7 +240,7 @@ def argsort_symbols(seq, symbs_first=("C", "H"), symbs_last=(), idx=None):
             entry = tuple(entry[0]) + entry[1:]
             start = entry[:idx]
             char = entry[idx]
-            rest = entry[(idx + 1):]
+            rest = entry[(idx + 1) :]
         else:
             start = ()
             char = entry[0]
