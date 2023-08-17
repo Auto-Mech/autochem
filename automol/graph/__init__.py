@@ -238,6 +238,7 @@ from automol.graph.base._geom import perturb_geometry_planar_dihedrals
 # # canonical key functions
 from automol.graph.base._canon import canonical_enantiomer
 from automol.graph.base._canon import canonical_enantiomer_with_keys
+from automol.graph.base._canon import canonical_ts_direction
 from automol.graph.base._canon import canonical
 from automol.graph.base._canon import canonical_keys
 # # canonical stereo functions
@@ -546,6 +547,7 @@ __all__ = [
     # # canonical key functions
     'canonical_enantiomer',
     'canonical_enantiomer_with_keys',
+    'canonical_ts_direction',
     'canonical',
     'canonical_keys',
     # # canonical stereo functions

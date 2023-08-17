@@ -167,7 +167,7 @@ def reagents_graph(tsg, prod=False, stereo=True, dummy=False):
     """
     gra = ts_reagents_graph_without_stereo(tsg, prod=prod, dummy=dummy)
     if stereo and has_stereo(tsg):
-        _, gra = calculate_priorities_and_assign_stereo(
+        _, gra, _ = calculate_priorities_and_assign_stereo(
             gra,
             backbone_only=False,
             break_ties=False,

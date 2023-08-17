@@ -1,6 +1,6 @@
 """ test graph.ts
 """
-# import numpy
+import numpy
 import automol
 from automol import graph
 
@@ -540,6 +540,46 @@ def test__ts__reactants_graph():
           {frozenset({1, 2}): False, frozenset({6, 7}): False})
 
 
+def test__amchi():
+    """ test graphamchi.
+    """
+    def _test(formula, tsg):
+        print(f"{formula}: testing amchi")
+        ftsg = tsg
+        rtsg = graph.ts.reverse(ftsg)
+
+        fchi = graph.amchi(ftsg)
+        rchi = graph.amchi(rtsg)
+
+        print("fchi:", fchi)
+        print("rchi:", rchi)
+        assert fchi[:-1] == rchi[:-1]
+
+        orig_keys = sorted(graph.atom_keys(tsg))
+        for _ in range(5):
+            perm_keys = numpy.random.permutation(orig_keys)
+            perm_dct = dict(zip(orig_keys, perm_keys))
+
+            perm_ftsg = graph.relabel(ftsg, perm_dct)
+            perm_rtsg = graph.relabel(rtsg, perm_dct)
+
+            perm_fchi = graph.amchi(perm_ftsg)
+            perm_rchi = graph.amchi(perm_rtsg)
+
+            assert perm_fchi == fchi
+            assert perm_rchi == rchi
+
+    _test("CH4CLFNO", CH4CLFNO_TSG)
+    _test("C4H11O2", C4H11O2_TSG)
+    _test("C2H3O4", C2H3O4_TSG)
+    _test("C4H9O3", C4H9O3_TSG)
+    _test("C2H3F2O", C2H3F2O_TSG)
+    _test("C4H5F3O2", C4H5F3O2_TSG)
+    _test("C4H9O2", C4H9O2_TSG)
+    _test("C2H4O2", C2H4O2_TSG)
+    _test("C4H4F2", C4H4F2_TSG)
+
+
 def test__rotational_bond_keys():
     """ test graph.rotational_bond_keys
     """
@@ -609,4 +649,5 @@ if __name__ == '__main__':
     # test__from_local_stereo()
     # test__ts__reactants_graph()
     # test__rotational_bond_keys()
-    test__ts__expand_stereo_for_reaction()
+    # test__ts__expand_stereo_for_reaction()
+    test__amchi()

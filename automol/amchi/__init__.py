@@ -17,6 +17,7 @@ from automol.amchi.base._core import main_layers
 from automol.amchi.base._core import charge_layers
 from automol.amchi.base._core import stereo_layers
 from automol.amchi.base._core import isotope_layers
+from automol.amchi.base._core import ts_layers
 # # setters
 from automol.amchi.base._core import with_inchi_prefix
 from automol.amchi.base._core import reflect
@@ -114,6 +115,7 @@ __all__ = [
     'charge_layers',
     'stereo_layers',
     'isotope_layers',
+    'ts_layers',
     # # setters
     'with_inchi_prefix',
     'reflect',
