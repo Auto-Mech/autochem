@@ -93,7 +93,7 @@ def canonical_enantiomer_with_keys(gra):
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
         ugra = gra
-        ucan_key_dct, uloc_gra = calculate_priorities_and_assign_stereo(
+        ucan_key_dct, uloc_gra, _ = calculate_priorities_and_assign_stereo(
                 ugra, backbone_only=False, break_ties=True,
                 par_eval_=parity_evaluator_read_canonical_(),
                 par_eval2_=parity_evaluator_flip_local_())
@@ -103,7 +103,7 @@ def canonical_enantiomer_with_keys(gra):
 
         # Determine canonical keys for the reflected graph while converting
         # back to the canonical stereo representation
-        rcan_key_dct, rgra = calculate_priorities_and_assign_stereo(
+        rcan_key_dct, rgra, _ = calculate_priorities_and_assign_stereo(
                 rloc_gra, backbone_only=False, break_ties=True,
                 par_eval_=parity_evaluator_flip_local_(),
                 par_eval2_=parity_evaluator_flip_local_())
@@ -123,6 +123,35 @@ def canonical_enantiomer_with_keys(gra):
             ce_can_key_dct = ucan_key_dct
 
     return ce_gra, ce_can_key_dct, is_refl
+
+
+def canonical_ts_direction(gra):
+    """ If this is a TS graph, determine the canonical direction for it
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: a canonicalized graph of the canonical TS direction, along with
+        a boolean flag indicating whether or not the TS graph has been
+        reversed; `True` indicates it has been, `False` indicates it
+        hasn't, and `None` indicates that it isn't a TS graph
+    :rtype: (automol graph data structure, bool)
+    """
+    if not is_ts_graph(gra):
+        cd_gra = gra
+        is_rev = None
+    else:
+        assert is_connected(gra), f"Requires a connected graph.\n{gra}"
+        # Calculate canonical keys for the unreflected graph while converting
+        # to the local stereo representation
+        ftsg = gra
+        rtsg = ts_reverse(gra)
+
+        _, _, is_can = calculate_priorities_and_assign_stereo(gra)
+
+        is_rev = not is_can
+        cd_gra = rtsg if is_rev else ftsg
+
+    return cd_gra, is_rev
 
 
 def canonical(gra):
@@ -161,7 +190,7 @@ def canonical_keys(gra, backbone_only=True):
     atm_par_dct0 = atom_stereo_parities(gra)
     bnd_par_dct0 = bond_stereo_parities(gra)
 
-    can_key_dct, gra = calculate_priorities_and_assign_stereo(
+    can_key_dct, gra, _ = calculate_priorities_and_assign_stereo(
         gra, backbone_only=backbone_only, break_ties=True)
 
     atm_par_dct = atom_stereo_parities(gra)
@@ -416,7 +445,7 @@ def to_local_stereo(gra, pri_dct=None):
     if has_stereo(can_gra):
         pri_dct_ = (None if pri_dct is None else
                     dict_.by_key(pri_dct, backbone_keys(can_gra)))
-        _, loc_gra = calculate_priorities_and_assign_stereo(
+        _, loc_gra, _ = calculate_priorities_and_assign_stereo(
                 can_gra, backbone_only=False, break_ties=False,
                 par_eval_=parity_evaluator_read_canonical_(),
                 par_eval2_=parity_evaluator_flip_local_(),
@@ -442,7 +471,7 @@ def from_local_stereo(gra, pri_dct=None):
     if has_stereo(loc_gra):
         pri_dct_ = (None if pri_dct is None else
                     dict_.by_key(pri_dct, backbone_keys(loc_gra)))
-        _, can_gra = calculate_priorities_and_assign_stereo(
+        _, can_gra, _ = calculate_priorities_and_assign_stereo(
                 loc_gra, backbone_only=False, break_ties=False,
                 par_eval_=parity_evaluator_flip_local_(),
                 par_eval2_=parity_evaluator_flip_local_(),
@@ -472,7 +501,7 @@ def set_stereo_from_geometry(gra, geo, geo_idx_dct=None):
                    else {k: i for i, k in enumerate(sorted(atm_keys))})
 
     par_eval_ = parity_evaluator_from_geometry_(geo, geo_idx_dct=geo_idx_dct)
-    _, gra = calculate_priorities_and_assign_stereo(
+    _, gra, _ = calculate_priorities_and_assign_stereo(
         gra, par_eval_=par_eval_)
 
     return gra
@@ -494,7 +523,7 @@ def canonical_priorities(gra, backbone_only=True, break_ties=False,
     :returns: A dictionary of canonical priorities by atom key.
     :rtype: dict[int: int]
     """
-    pri_dct, _ = calculate_priorities_and_assign_stereo(
+    pri_dct, _, _ = calculate_priorities_and_assign_stereo(
         gra, backbone_only=backbone_only, break_ties=break_ties,
         pri_dct=pri_dct)
     return pri_dct
@@ -522,8 +551,9 @@ def calculate_priorities_and_assign_stereo(
     :type backbone_only: bool
     :param pri_dct: Optional initial priorities, to be refined.
     :type pri_dct: dict[int: int]
-    :returns: A dictionary of canonical priorities by atom key and a graph
-        with stereo assignments.
+    :returns: A dictionary of canonical priorities by atom key, a graph
+        with stereo assignments, and a flag indicating for TS graphs
+        whether or not they have a canonical direction.
     :rtype: dict[int: int], molecular graph data structure
     """
     orig_gra = gra
@@ -576,12 +606,16 @@ def calculate_priorities_and_assign_stereo(
 
     # 2. If this is a TS graph, rerun the algorithm on the reverse direction to
     # figure out which one is canonical
+    is_can = None
     if is_ts_graph(gra):
         rpri_dct, rgra1, rgra2 = _algo(gra, pri_dct, ts_rev=True)
-        if not ts_is_canonical_direction(gra1, pri_dct, rgra1, rpri_dct):
+        if ts_is_canonical_direction(gra1, pri_dct, rgra1, rpri_dct):
+            is_can = True
+        else:
             pri_dct = rpri_dct
             gra1 = rgra1
             gra2 = rgra2
+            is_can = False
 
     # 3. If requested, break priority ties to determine canonical keys.
     if break_ties:
@@ -593,7 +627,7 @@ def calculate_priorities_and_assign_stereo(
             gra, pri_dct, break_ties=break_ties)
 
     gra = set_stereo_parities(orig_gra, stereo_parities(gra2))
-    return pri_dct, gra
+    return pri_dct, gra, is_can
 
 
 def refine_priorities(gra, pri_dct=None, _backbone_only=True):

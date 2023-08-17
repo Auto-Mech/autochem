@@ -19,9 +19,12 @@ from automol.graph.base._core import bond_stereo_parities
 from automol.graph.base._core import without_dummy_atoms
 from automol.graph.base._core import without_stereo
 from automol.graph.base._core import terminal_atom_keys
+from automol.graph.base._core import ts_breaking_bond_keys
+from automol.graph.base._core import ts_forming_bond_keys
 from automol.graph.base._algo import connected_components
 from automol.graph.base._algo import rings_atom_keys
 from automol.graph.base._algo import cycle_ring_atom_key_to_front
+from automol.graph.base._canon import canonical_ts_direction
 from automol.graph.base._canon import canonical_enantiomer_with_keys
 from automol.graph.base._canon import break_priority_ties
 from automol.graph.base._kekule import kekules_bond_orders_collated
@@ -92,7 +95,10 @@ def connected_amchi_with_indices(gra, stereo=True,
     # Convert to implicit graph
     gra = implicit(gra)
 
-    # Canonicalize and determine canonical enantiomer
+    # 1. Identify the canonical direction for TS graphs (`None` for non-TS graphs)
+    gra, is_rev = canonical_ts_direction(gra)
+
+    # 2. Canonicalize and determine canonical enantiomer
     if pri_dct is None:
         gra, chi_idx_dct, is_refl = canonical_enantiomer_with_keys(gra)
     else:
@@ -100,13 +106,16 @@ def connected_amchi_with_indices(gra, stereo=True,
 
     gra = relabel(gra, chi_idx_dct)
 
+    # 3. Generate the appropriate layers
     fml_str = _formula_string(gra)
     main_lyr_dct = _main_layers(gra)
     ste_lyr_dct = _stereo_layers(gra, is_refl=is_refl)
+    ts_lyr_dct = _ts_layers(gra, is_rev=is_rev)
 
     chi = automol.amchi.base.from_data(fml_str=fml_str,
                                        main_lyr_dct=main_lyr_dct,
-                                       ste_lyr_dct=ste_lyr_dct)
+                                       ste_lyr_dct=ste_lyr_dct,
+                                       ts_lyr_dct=ts_lyr_dct)
 
     return chi, chi_idx_dct
 
@@ -388,3 +397,65 @@ def _atom_stereo_layer(gra):
 
     atm_ste_lyr = ','.join(atm_strs)
     return atm_ste_lyr
+
+
+# # # TS layers
+def _ts_layers(gra, is_rev=None):
+    """ Determine the TS layers, describing breaking/forming bonds and TS direction
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :param is_rev: Is this a reverse TS? If True, yes; if False, it's a TS that
+            isn't reversed; if None, it's not a TS.
+        :type is_rev: bool or NoneType
+        :returns: the 'f', 'k', and 'r' layers, as a dictionary
+        :rtype: dict
+    """
+    k_lyr = _bond_breaking_layer(gra)
+    f_lyr = _bond_forming_layer(gra)
+
+    lyr_dct = {}
+    if k_lyr:
+        lyr_dct['k'] = k_lyr
+    if f_lyr:
+        lyr_dct['f'] = f_lyr
+    if is_rev is not None:
+        assert f_lyr or k_lyr, (
+            "If this is a TS, there must be breaking or forming bond layers.")
+        lyr_dct['r'] = '1' if is_rev else '0'
+
+    return lyr_dct
+
+
+def _bond_breaking_layer(gra):
+    """ AMChI bond breaking (k) layer from graph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: the bond breaking layer, without prefix
+        :rtype: str
+    """
+    # Generate the bond stereo layer string
+    brk_bnd_keys = sorted(sorted(k, reverse=True) for k in ts_breaking_bond_keys(gra))
+
+    brk_bnd_strs = [f'{i+1}-{j+1}' for (i, j) in brk_bnd_keys]
+
+    brk_bnd_lyr = ','.join(brk_bnd_strs)
+    return brk_bnd_lyr
+
+
+def _bond_forming_layer(gra):
+    """ AMChI bond forming (f) layer from graph
+
+        :param gra: molecular graph
+        :type gra: automol graph data structure
+        :returns: the bond forming layer, without prefix
+        :rtype: str
+    """
+    # Generate the bond stereo layer string
+    frm_bnd_keys = sorted(sorted(k, reverse=True) for k in ts_forming_bond_keys(gra))
+
+    frm_bnd_strs = [f'{i+1}-{j+1}' for (i, j) in frm_bnd_keys]
+
+    frm_bnd_lyr = ','.join(frm_bnd_strs)
+    return frm_bnd_lyr

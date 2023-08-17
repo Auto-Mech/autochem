@@ -26,6 +26,7 @@ CHAR_PFXS = ('q', 'p')
 STE_PFXS = ('b', 't', 'm', 's')
 ISO_NONSTE_PFXS = ('i', 'h')
 ISO_PFXS = ISO_NONSTE_PFXS + STE_PFXS
+TS_PFXS = ('k', 'f', 'r')
 NONSLASH = '[^/]'
 NONSLASHES = app.one_or_more(NONSLASH)
 SLASH = app.escape('/')
@@ -36,7 +37,7 @@ SLASH_OR_END = app.one_of_these([SLASH, app.STRING_END])
 # # constructor
 def from_data(fml_str, main_lyr_dct=None,
               char_lyr_dct=None, ste_lyr_dct=None,
-              iso_lyr_dct=None):
+              iso_lyr_dct=None, ts_lyr_dct=None):
     """ Build a ChI string from each of the various layers.
 
         :param fml_str: formula string, in Hill-sort order
@@ -51,6 +52,8 @@ def from_data(fml_str, main_lyr_dct=None,
         :param iso_lyr_dct: isotope layers, by key ('i', 'h', 'b', 't', 'm',
             and 's')
         :type iso_lyr_dct: dict[str: str]
+        :param ts_lyr_dct: TS layers, by key ('k', 'f', and 'r')
+        :type ts_lyr_dct: dict[str: str]
         :rtype: str
     """
 
@@ -58,6 +61,7 @@ def from_data(fml_str, main_lyr_dct=None,
     char_dct = dict_.empty_if_none(char_lyr_dct)
     ste_dct = dict_.empty_if_none(ste_lyr_dct)
     iso_dct = dict_.empty_if_none(iso_lyr_dct)
+    ts_dct = dict_.empty_if_none(ts_lyr_dct)
 
     main_lyrs = [
         pfx + lyr for pfx, lyr
@@ -71,9 +75,12 @@ def from_data(fml_str, main_lyr_dct=None,
     iso_lyrs = [
         pfx + lyr for pfx, lyr
         in zip(ISO_PFXS, dict_.values_by_key(iso_dct, ISO_PFXS)) if lyr]
+    ts_lyrs = [
+        pfx + lyr for pfx, lyr
+        in zip(TS_PFXS, dict_.values_by_key(ts_dct, TS_PFXS)) if lyr]
 
     chi = '/'.join(['AMChI=1', fml_str] + main_lyrs + char_lyrs +
-                   ste_lyrs + iso_lyrs)
+                   ste_lyrs + iso_lyrs + ts_lyrs)
 
     return chi
 
@@ -103,6 +110,7 @@ def standard_form(chi, stereo=True, racem=False, ste_dct=None, iso_dct=None):
     fml_slyr = formula_string(chi)
     main_dct = main_layers(chi)
     char_dct = charge_layers(chi)
+    ts_dct = ts_layers(chi)
 
     extra_ste_dct = ste_dct
     extra_iso_dct = iso_dct
@@ -133,7 +141,8 @@ def standard_form(chi, stereo=True, racem=False, ste_dct=None, iso_dct=None):
                     main_lyr_dct=main_dct,
                     char_lyr_dct=char_dct,
                     ste_lyr_dct=ste_dct,
-                    iso_lyr_dct=iso_dct)
+                    iso_lyr_dct=iso_dct,
+                    ts_lyr_dct=ts_dct)
 
     # Make sure multi-component ChIs are properly sorted
     if has_multiple_components(chi):
@@ -246,6 +255,41 @@ def isotope_layers(chi):
            SLASH + app.capturing(_isotope_layers_pattern()))
     lyrs_str = apf.first_capture(ptt, chi)
     return _layers(lyrs_str)
+
+
+def ts_layers(chi):
+    """ Parse the ChI string for the TS layers ('k', 'f', and 'r')
+
+        :param chi: ChI string
+        :type chi: str
+        :returns: the TS layers, as a dictionary keyed by layer prefixes
+        :rtype: dict[str: str]
+    """
+    lyr_dct = {}
+    for key in ('k', 'f', 'r'):
+        lyr = _parse_layer(chi, key)
+        if lyr is not None:
+            lyr_dct[key] = lyr
+
+    if lyr_dct:
+        assert 'r' in lyr_dct and ('k' in lyr_dct or 'f' in lyr_dct), (
+            f"Invalid TS AMChI: {chi}"
+        )
+    return lyr_dct
+
+
+def _parse_layer(chi, key):
+    layer_start = f"/{key}"
+    lyr = None
+    if layer_start in chi:
+        before = pp.Suppress(pp.Literal("AMChI") + ... + pp.Literal(layer_start))
+        after = pp.Suppress(pp.stringEnd ^ pp.Char('/'))
+
+        layer_parser = before + ... + after
+        lyr = layer_parser.parseString(chi).asList()
+        lyr = lyr[0] if lyr else None
+
+    return lyr
 
 
 # # setters
@@ -1009,6 +1053,7 @@ def split(chi):
     char_dct = charge_layers(chi)
     ste_dct = stereo_layers(chi)
     iso_dct = isotope_layers(chi)
+    ts_dct = ts_layers(chi)
     fml_strs = split_layer_string(
         fml_str, count_sep_ptt='', sep_ptt=app.escape('.'))
     count = len(fml_strs)
@@ -1017,6 +1062,7 @@ def split(chi):
     char_dcts, _ = split_layers(char_dct, count)
     ste_dcts, warn_msg1 = split_layers(ste_dct, count)
     iso_dcts, warn_msg2 = split_layers(iso_dct, count)
+    ts_dcts, _ = split_layers(ts_dct, count)
 
     warn_msg = warn_msg1 if warn_msg1 else warn_msg2
     if warn_msg:
@@ -1026,9 +1072,10 @@ def split(chi):
                            main_lyr_dct=main_dct,
                            char_lyr_dct=char_dct,
                            ste_lyr_dct=ste_dct,
-                           iso_lyr_dct=iso_dct)
-                 for fml_str, main_dct, char_dct, ste_dct, iso_dct
-                 in zip(fml_strs, main_dcts, char_dcts, ste_dcts, iso_dcts))
+                           iso_lyr_dct=iso_dct,
+                           ts_lyr_dct=ts_dct)
+                 for fml_str, main_dct, char_dct, ste_dct, iso_dct, ts_dct
+                 in zip(fml_strs, main_dcts, char_dcts, ste_dcts, iso_dcts, ts_dcts))
     return chis
 
 
@@ -1053,6 +1100,7 @@ def join(chis, sort=True):
     char_dct, _ = join_layers(list(map(charge_layers, chis)))
     ste_dct, warn_msg1 = join_layers(list(map(stereo_layers, chis)))
     iso_dct, warn_msg2 = join_layers(list(map(isotope_layers, chis)))
+    ts_dct, _ = join_layers(list(map(ts_layers, chis)))
 
     warn_msg = warn_msg1 if warn_msg1 else warn_msg2
     if warn_msg:
@@ -1062,7 +1110,8 @@ def join(chis, sort=True):
                      main_lyr_dct=main_dct,
                      char_lyr_dct=char_dct,
                      ste_lyr_dct=ste_dct,
-                     iso_lyr_dct=iso_dct)
+                     iso_lyr_dct=iso_dct,
+                     ts_lyr_dct=ts_dct)
 
 
 # # sort
@@ -1121,7 +1170,7 @@ def argsort(chis):
     # 7. Enantiomeric inversions
     inv_vecs = list(map(is_inverted_enantiomer, chis))
 
-    # 8. Stop here for now. Add isotope layers when we actually need them.
+    # *. Stop here for now. Add isotope layers when we actually need them.
     if any(map(isotope_layers, chis)):
         raise NotImplementedError("Isotope layers not yet implemented,"
                                   "but could easily be added.")
