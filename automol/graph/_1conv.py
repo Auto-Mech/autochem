@@ -1,6 +1,7 @@
 """ graph conversions
 """
 import functools
+import itertools
 
 import IPython
 import ipywidgets
@@ -26,6 +27,7 @@ from automol.graph.base import (
     geometry_atom_parity,
     has_stereo,
     inchi_is_bad,
+    is_ts_graph,
     isomorphism,
     linear_vinyl_corrected_geometry,
     relabel,
@@ -52,6 +54,11 @@ def geometry(gra, check=True):
     :type check: bool
     :rtype: automol molecular geometry data structure
     """
+    is_ts = is_ts_graph(gra)
+    if is_ts:
+        tsg = gra
+        gra = ts.reactants_graph(tsg)
+
     gra = explicit(gra)
     gras = connected_components(gra)
 
@@ -60,14 +67,15 @@ def geometry(gra, check=True):
     geo = functools.reduce(geom.join, geos)
 
     # Work out how the geometry needs to be re-ordered to match the input graph
-    idx_dct = {}
-    idxs_lst = [sorted(atom_keys(g)) for g in gras]
-    offset = 0
-    for idxs in idxs_lst:
-        idx_dct.update({i + offset: k for i, k in enumerate(idxs)})
-        offset += len(idxs)
+    all_keys = itertools.chain(*(sorted(atom_keys(g)) for g in gras))
+    gra_key_dct = dict(enumerate(all_keys))
 
-    geo = geom.reorder(geo, idx_dct)
+    if is_ts:
+        geo_idx_dct = dict(map(reversed, gra_key_dct.items()))
+        geo = ts_geometry_from_reactants(tsg, geos, geo_idx_dct=geo_idx_dct)
+    else:
+        geo = geom.reorder(geo, gra_key_dct)
+
     return geo
 
 
@@ -171,82 +179,6 @@ def _connected_geometry(gra, check=True):
         raise error.FailedGeometryGenerationError(f"Failed graph:\n{string(gra)}")
 
     return geo
-
-
-def ts_geometry_from_reactants(
-    tsg,
-    rct_geos,
-    geo_idx_dct=None,
-    fdist_factor=1.1,
-    bdist_factor=0.9,
-    max_dist_err=2e-1,
-    log=False,
-):
-    """Generate a TS geometry from reactants
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param rct_geos: Reactant geometries
-    :type rct_geos: List[automol geom data structure]
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices, defaults to None
-    :type geo_idx_dct: dict[int: int], optional
-    :param fdist_factor: Set the forming bond distance to this times the average
-        van der Waals radius, defaults to 1.1
-    :type fdist_factor: float, optional
-    :param bdist_factor: Set the breaking bond distance to this times the average
-        van der Waals radius, defaults to 0.9
-    :type bdist_factor: float, optional
-    :param max_dist_err: The distance convergence threshold, in angstroms
-    :type max_dist_err: float, optional
-    :param log: Print optimization log?, defaults to False
-    :type log: bool, optional
-    :return: TS geometry
-    :rtype: automol geom data structure
-    """
-    keys = sorted(atom_keys(tsg))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-    tsg = relabel(tsg, geo_idx_dct)
-
-    # 1. Join geometries for bimolecular reactions, yielding a single starting structure
-    if len(rct_geos) > 1:
-        ts_geo = ts_join_reactant_geometries(
-            tsg,
-            rct_geos,
-            fdist_factor=fdist_factor,
-        )
-    else:
-        (ts_geo,) = rct_geos
-
-    # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
-    # reactants and products
-    ts_geo = stereo_corrected_geometry(tsg, ts_geo)
-
-    # 3. Embed the TS structure, using distances from the *original* reactant geometries
-    # along with forming/breaking bond distances
-    dist_dct = ts_distances_from_reactant_geometries(
-        tsg,
-        rct_geos,
-        fdist_factor=fdist_factor,
-        bdist_factor=bdist_factor,
-    )
-    dist_range_dct = distance_ranges_from_coordinates(tsg, dist_dct, angstrom=True)
-    ts_geo = clean_geometry(
-        tsg,
-        ts_geo,
-        rct_geos=rct_geos,
-        dist_range_dct=dist_range_dct,
-        relax_angles=ts.has_reacting_ring(tsg),
-        max_dist_err=max_dist_err,
-        log=log,
-    )
-
-    # 4. Re-order the TS geometry to match the TS graph
-    gra_key_dct = dict(map(reversed, geo_idx_dct.items()))
-    ts_geo = geom.reorder(ts_geo, gra_key_dct)
-    return ts_geo
 
 
 def inchi(gra, stereo=True):
@@ -423,6 +355,82 @@ def display_reaction(rgras, pgras, stereo=True):
 
 
 # # TS geometry helpers
+def ts_geometry_from_reactants(
+    tsg,
+    rct_geos,
+    geo_idx_dct=None,
+    fdist_factor=1.1,
+    bdist_factor=0.9,
+    max_dist_err=2e-1,
+    log=False,
+):
+    """Generate a TS geometry from reactants
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param rct_geos: Reactant geometries
+    :type rct_geos: List[automol geom data structure]
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices, defaults to None
+    :type geo_idx_dct: dict[int: int], optional
+    :param fdist_factor: Set the forming bond distance to this times the average
+        van der Waals radius, defaults to 1.1
+    :type fdist_factor: float, optional
+    :param bdist_factor: Set the breaking bond distance to this times the average
+        van der Waals radius, defaults to 0.9
+    :type bdist_factor: float, optional
+    :param max_dist_err: The distance convergence threshold, in angstroms
+    :type max_dist_err: float, optional
+    :param log: Print optimization log?, defaults to False
+    :type log: bool, optional
+    :return: TS geometry
+    :rtype: automol geom data structure
+    """
+    keys = sorted(atom_keys(tsg))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+    tsg = relabel(tsg, geo_idx_dct)
+
+    # 1. Join geometries for bimolecular reactions, yielding a single starting structure
+    if len(rct_geos) > 1:
+        ts_geo = ts_join_reactant_geometries(
+            tsg,
+            rct_geos,
+            fdist_factor=fdist_factor,
+        )
+    else:
+        (ts_geo,) = rct_geos
+
+    # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
+    # reactants and products
+    ts_geo = stereo_corrected_geometry(tsg, ts_geo)
+
+    # 3. Embed the TS structure, using distances from the *original* reactant geometries
+    # along with forming/breaking bond distances
+    dist_dct = ts_distances_from_reactant_geometries(
+        tsg,
+        rct_geos,
+        fdist_factor=fdist_factor,
+        bdist_factor=bdist_factor,
+    )
+    dist_range_dct = distance_ranges_from_coordinates(tsg, dist_dct, angstrom=True)
+    ts_geo = clean_geometry(
+        tsg,
+        ts_geo,
+        rct_geos=rct_geos,
+        dist_range_dct=dist_range_dct,
+        relax_angles=ts.has_reacting_ring(tsg),
+        max_dist_err=max_dist_err,
+        log=log,
+    )
+
+    # 4. Re-order the TS geometry to match the TS graph
+    gra_key_dct = dict(map(reversed, geo_idx_dct.items()))
+    ts_geo = geom.reorder(ts_geo, gra_key_dct)
+    return ts_geo
+
+
 def ts_join_reactant_geometries(tsg, rct_geos, geo_idx_dct=None, fdist_factor=1.1):
     """Join two reactant geometries at a single forming bond
 

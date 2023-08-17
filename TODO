@@ -14,7 +14,7 @@
         [X] Fix breaking test case!!
     [X] Figure out and TEST reagent reordering
     [X] _4geom.py
-    [ ] Make automol.graph.geometry take TS graphs
+    [X] Make automol.graph.geometry take TS graphs
     [ ] Add TS AMChIs:
         [ ] /k layer breaking bonds
         [ ] /f* layer forming bonds
