@@ -1303,12 +1303,16 @@ def backbone_hydrogen_keys(gra):
     """
     hyd_keys = atom_keys(gra, symb='H')
     atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
+    atm_imp_hyd_dct = atom_implicit_hydrogens(gra)
+    atm_rxn_keys = ts_reacting_atom_keys(gra)
 
     def _is_backbone(hyd_key):
         is_h2 = all(ngb_key in hyd_keys and hyd_key < ngb_key
                     for ngb_key in atm_ngb_keys_dct[hyd_key])
         is_multivalent = len(atm_ngb_keys_dct[hyd_key]) > 1
-        return is_h2 or is_multivalent
+        has_implicit_hydrogens = atm_imp_hyd_dct[hyd_key] > 0
+        is_reacting = hyd_key in atm_rxn_keys
+        return is_h2 or is_multivalent or has_implicit_hydrogens or is_reacting
 
     bbn_hyd_keys = frozenset(filter(_is_backbone, hyd_keys))
     return bbn_hyd_keys

@@ -1,5 +1,6 @@
 """Test automol.reac
 """
+import numpy
 import automol
 from automol import reac
 
@@ -156,24 +157,51 @@ def test__find():
         print(f"{prd_gras0}\n---\n{prd_gras1}")
         assert prd_gras1 == prd_gras0
 
-    # UNIMOLECULAR
-    # hydrogen migration
-    _test(["CCCO[O]"], ["[CH2]CCOO"])
-    # hydrogen migration (2TS)
-    _test(["CCC[CH2]"], ["CC[CH]C"])
-    # beta scission (stereo-specific)
-    _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
-    # ring-forming scission (FIXED)
-    _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
-    # elimination
-    _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
-    # elimination (HONO)
-    _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
-    # BIMOLECULAR
-    # hydrogen abstraction
-    _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
-    # hydrogen abstraction (sigma)
-    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
+        # Temporary -- make sure AMChI works for all classes
+        ftsg = reac.ts_graph(srxn)
+        rtsg = automol.graph.ts.reverse(ftsg)
+
+        fchi = automol.graph.amchi(ftsg)
+        rchi = automol.graph.amchi(rtsg)
+
+        print("fchi:", fchi)
+        print("rchi:", rchi)
+        assert fchi[:-1] == rchi[:-1]
+
+        orig_keys = sorted(automol.graph.atom_keys(ftsg))
+        for _ in range(5):
+            perm_keys = numpy.random.permutation(orig_keys)
+            perm_dct = dict(zip(orig_keys, perm_keys))
+
+            perm_ftsg = automol.graph.relabel(ftsg, perm_dct)
+            perm_rtsg = automol.graph.relabel(rtsg, perm_dct)
+
+            perm_fchi = automol.graph.amchi(perm_ftsg)
+            perm_rchi = automol.graph.amchi(perm_rtsg)
+
+            print("perm_fchi:", perm_fchi)
+            assert perm_fchi == fchi
+            print("perm_rchi:", perm_rchi)
+            assert perm_rchi == rchi
+
+    # # UNIMOLECULAR
+    # # hydrogen migration
+    # _test(["CCCO[O]"], ["[CH2]CCOO"])
+    # # hydrogen migration (2TS)
+    # _test(["CCC[CH2]"], ["CC[CH]C"])
+    # # beta scission (stereo-specific)
+    # _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
+    # # ring-forming scission (FIXED)
+    # _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
+    # # elimination
+    # _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
+    # # elimination (HONO)
+    # _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
+    # # BIMOLECULAR
+    # # hydrogen abstraction
+    # _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
+    # # hydrogen abstraction (sigma)
+    # _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
     # hydrogen abstraction (radical radical)
     _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
     # addition
@@ -307,5 +335,5 @@ if __name__ == "__main__":
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
-    # test__find()
+    test__find()
     test__ts_geometry()
