@@ -45,29 +45,29 @@ def test__from_data():
     """ test getters
     """
     assert AR_CHI == amchi.from_data(
-        fml_str=amchi.formula_string(AR_CHI),
+        fml_str=amchi.formula_layer(AR_CHI),
     )
 
     assert CH2O2_CHI == amchi.from_data(
-        fml_str=amchi.formula_string(CH2O2_CHI),
+        fml_str=amchi.formula_layer(CH2O2_CHI),
         main_lyr_dct=amchi.main_layers(CH2O2_CHI),
         char_lyr_dct=amchi.charge_layers(CH2O2_CHI),
     )
 
     assert C2H6O_CHI == amchi.from_data(
-        fml_str=amchi.formula_string(C2H6O_CHI),
+        fml_str=amchi.formula_layer(C2H6O_CHI),
         main_lyr_dct=amchi.main_layers(C2H6O_CHI),
         iso_lyr_dct=amchi.isotope_layers(C2H6O_CHI),
     )
 
     assert C2H2F2_CHI == amchi.from_data(
-        fml_str=amchi.formula_string(C2H2F2_CHI),
+        fml_str=amchi.formula_layer(C2H2F2_CHI),
         main_lyr_dct=amchi.main_layers(C2H2F2_CHI),
         ste_lyr_dct=amchi.stereo_layers(C2H2F2_CHI),
     )
 
     assert C8H13O_CHI == amchi.from_data(
-        fml_str=amchi.formula_string(C8H13O_CHI),
+        fml_str=amchi.formula_layer(C8H13O_CHI),
         main_lyr_dct=amchi.main_layers(C8H13O_CHI),
         ste_lyr_dct=amchi.stereo_layers(C8H13O_CHI),
     )
@@ -83,10 +83,10 @@ def test__formula_string():
     """ amchi.formula_string
     """
 
-    assert amchi.formula_string(AR_CHI) == 'Ar'
-    assert amchi.formula_string(CH4O_CH_CHI) == 'CH4O.CH'
-    assert amchi.formula_string(CH2O2_CHI) == 'CH2O2'
-    assert amchi.formula_string(C2H6O_CHI) == 'C2H6O'
+    assert amchi.formula_layer(AR_CHI) == 'Ar'
+    assert amchi.formula_layer(CH4O_CH_CHI) == 'CH4O.CH'
+    assert amchi.formula_layer(CH2O2_CHI) == 'CH2O2'
+    assert amchi.formula_layer(C2H6O_CHI) == 'C2H6O'
 
 
 def test__formula():

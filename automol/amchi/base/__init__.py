@@ -8,7 +8,7 @@ from automol.amchi.base._core import standard_form
 # # getters
 from automol.amchi.base._core import prefix
 from automol.amchi.base._core import version
-from automol.amchi.base._core import formula_string
+from automol.amchi.base._core import formula_layer
 from automol.amchi.base._core import main_layers
 from automol.amchi.base._core import charge_layers
 from automol.amchi.base._core import stereo_layers
@@ -22,6 +22,7 @@ from automol.amchi.base._core import reflect_reaction
 from automol.amchi.base._core import canonical_enantiomer_reaction
 # # conversions
 from automol.amchi.base._core import formula
+from automol.amchi.base._core import formula_string
 from automol.amchi.base._core import connectivity
 from automol.amchi.base._core import without_stereo
 from automol.amchi.base._core import racemic
@@ -80,7 +81,7 @@ __all__ = [
     # # getters
     'prefix',
     'version',
-    'formula_string',
+    'formula_layer',
     'main_layers',
     'charge_layers',
     'stereo_layers',
@@ -94,6 +95,7 @@ __all__ = [
     'canonical_enantiomer_reaction',
     # # conversions
     'formula',
+    'formula_string',
     'connectivity',
     'without_stereo',
     'racemic',

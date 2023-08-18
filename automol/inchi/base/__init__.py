@@ -9,7 +9,7 @@ from automol.inchi.base._core import standard_form
 # # getters
 from automol.inchi.base._core import version
 from automol.inchi.base._core import formula_sublayer
-from automol.inchi.base._core import formula_string
+from automol.inchi.base._core import formula_layer
 from automol.inchi.base._core import main_sublayers
 from automol.inchi.base._core import charge_sublayers
 from automol.inchi.base._core import stereo_sublayers
@@ -25,6 +25,7 @@ from automol.inchi.base._core import reflect
 from automol.inchi.base._core import inchi_key
 from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
+from automol.inchi.base._core import formula_string
 from automol.inchi.base._core import without_stereo
 from automol.inchi.base._core import racemic
 from automol.inchi.base._core import connectivity
@@ -55,7 +56,7 @@ __all__ = [
     # # getters
     'version',
     'formula_sublayer',
-    'formula_string',
+    'formula_layer',
     'main_sublayers',
     'charge_sublayers',
     'stereo_sublayers',
@@ -71,6 +72,7 @@ __all__ = [
     'inchi_key',
     'smiles',
     'formula',
+    'formula_string',
     'without_stereo',
     'racemic',
     'connectivity',

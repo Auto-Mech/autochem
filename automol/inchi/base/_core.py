@@ -180,17 +180,17 @@ def formula_sublayer(ich):
         :type ich: str
         :rtype: dict[str: str]
     """
-    return automol.amchi.base.formula_string(ich)
+    return automol.amchi.base.formula_layer(ich)
 
 
-def formula_string(ich):
+def formula_layer(ich):
     """ Generate a formula string from an InChI string.
 
         :param ich: InChI string
         :type ich: str
         :rtype: str
     """
-    return automol.amchi.base.formula_string(ich)
+    return automol.amchi.base.formula_layer(ich)
 
 
 def main_sublayers(ich):
@@ -486,9 +486,17 @@ def formula(ich):
         :type ich: str
         :rtype: dict[str: int]
     """
-    rdm = rdkit_.from_inchi(ich)
-    fml = rdkit_.to_formula(rdm)
-    return fml
+    return automol.amchi.base.formula(ich)
+
+
+def formula_string(ich):
+    """ Generate a formula string from an InChI string.
+
+        :param ich: InChI string
+        :type ich: str
+        :rtype: str
+    """
+    return automol.amchi.base.formula_string(ich)
 
 
 def without_stereo(ich):

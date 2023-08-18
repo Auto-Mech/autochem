@@ -107,7 +107,7 @@ def standard_form(chi, stereo=True, racem=False, ste_dct=None, iso_dct=None):
         :type iso_dct: dict
         :rtype: str
     """
-    fml_slyr = formula_string(chi)
+    fml_slyr = formula_layer(chi)
     main_dct = main_layers(chi)
     char_dct = charge_layers(chi)
     ts_dct = ts_layers(chi)
@@ -176,8 +176,8 @@ def version(chi):
     return ver
 
 
-def formula_string(chi):
-    """ Parse the ChI string for the formula string.
+def formula_layer(chi):
+    """ Parse the ChI string for the formula layer
 
         :param chi: ChI string
         :type chi: str
@@ -398,7 +398,7 @@ def formula(chi):
     ptt = app.capturing(sym_ptt) + app.capturing(num_ptt)
 
     def _connected_formula(chi):
-        fml_str = formula_string(chi)
+        fml_str = formula_layer(chi)
         fml = {s: int(n) if n else 1
                for s, n in apf.all_captures(ptt, fml_str)}
         return fml
@@ -409,6 +409,22 @@ def formula(chi):
     fml = functools.reduce(automol.formula.join, fmls)
 
     return fml
+
+
+def formula_string(chi):
+    """ Generate a formula string from a ChI string.
+
+    For multi-component ChIs, this will be the *combined* formula.
+
+    Use `formula_layer(chi)` if you want the multi-component layer.
+
+    :param chi: ChI string
+    :type chi: str
+    :rtype: str
+    """
+    fml = formula(chi)
+    fml_str = automol.formula.string(fml)
+    return fml_str
 
 
 def without_stereo(chi):
@@ -929,7 +945,7 @@ def has_multiple_components(chi):
         :type chi: str
         :rtype: bool
     """
-    fstr = formula_string(chi)
+    fstr = formula_layer(chi)
     return ';' in chi or '*' in chi or '.' in fstr or str.isdigit(fstr[0])
 
 
@@ -1019,8 +1035,8 @@ def equivalent(chi1, chi2):
         :type chi2: str
         :rtype: bool
     """
-    fml_str1 = formula_string(chi1)
-    fml_str2 = formula_string(chi2)
+    fml_str1 = formula_layer(chi1)
+    fml_str2 = formula_layer(chi2)
     conn_dct1 = main_layers(chi1)
     conn_dct2 = main_layers(chi2)
     chg_dct1 = charge_layers(chi1)
@@ -1048,7 +1064,7 @@ def split(chi):
         :returns: the split ChI strings
         :rtype: tuple[str]
     """
-    fml_str = formula_string(chi)
+    fml_str = formula_layer(chi)
     main_dct = main_layers(chi)
     char_dct = charge_layers(chi)
     ste_dct = stereo_layers(chi)
@@ -1094,7 +1110,7 @@ def join(chis, sort=True):
     if sort:
         chis = sorted_(chis)
 
-    fml_strs = list(map(formula_string, chis))
+    fml_strs = list(map(formula_layer, chis))
     fml_str = join_layer_strings(fml_strs, count_sep='', sep='.')
     main_dct, _ = join_layers(list(map(main_layers, chis)))
     char_dct, _ = join_layers(list(map(charge_layers, chis)))

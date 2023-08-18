@@ -15,10 +15,11 @@
     [X] Figure out and TEST reagent reordering
     [X] _4geom.py
     [X] Make automol.graph.geometry take TS graphs
-    [ ] Add TS AMChIs:
-        [ ] /k layer breaking bonds
-        [ ] /f* layer forming bonds
-        [ ] /r* layer for direction reversal (/r1 = reversed)
+    [X] Add TS AMChIs:
+        [X] /k layer breaking bonds
+        [X] /f* layer forming bonds
+        [X] /r* layer for direction reversal (/r1 = reversed)
+    [ ] Figure out why test_graph.py/test__smiles() is failing
     [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py
     [ ] _6rot.py

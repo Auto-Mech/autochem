@@ -68,10 +68,10 @@ def test__formula_string():
     """ inchi.formula_string
     """
 
-    assert inchi.formula_string(AR_ICH) == 'Ar'
-    assert inchi.formula_string(CH4O_CH_ICH) == 'CH4O.CH'
-    assert inchi.formula_string(CH2O2_ICH) == 'CH2O2'
-    assert inchi.formula_string(C2H6O_ICH) == 'C2H6O'
+    assert inchi.formula_layer(AR_ICH) == 'Ar'
+    assert inchi.formula_layer(CH4O_CH_ICH) == 'CH4O.CH'
+    assert inchi.formula_layer(CH2O2_ICH) == 'CH2O2'
+    assert inchi.formula_layer(C2H6O_ICH) == 'C2H6O'
 
 
 def test__version():
