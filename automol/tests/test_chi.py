@@ -68,10 +68,10 @@ def test__formula_string():
     """ chi.formula_string
     """
 
-    assert chi.formula_string(AR_ICH) == 'Ar'
-    assert chi.formula_string(CH4O_CH_ICH) == 'CH4O.CH'
-    assert chi.formula_string(CH2O2_ICH) == 'CH2O2'
-    assert chi.formula_string(C2H6O_ICH) == 'C2H6O'
+    assert chi.formula_layer(AR_ICH) == 'Ar'
+    assert chi.formula_layer(CH4O_CH_ICH) == 'CH4O.CH'
+    assert chi.formula_layer(CH2O2_ICH) == 'CH2O2'
+    assert chi.formula_layer(C2H6O_ICH) == 'C2H6O'
 
 
 def test__version():

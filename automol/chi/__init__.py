@@ -14,7 +14,7 @@ from automol.chi.base._core import standard_form
 # # getters
 from automol.amchi.base import version
 # from automol.chi.base._core import formula_sublayer  # defined below
-from automol.amchi.base import formula_string
+from automol.amchi.base import formula_layer
 from automol.amchi.base import main_layers as main_sublayers
 from automol.amchi.base import charge_layers as charge_sublayers
 from automol.amchi.base import stereo_layers as stereo_sublayers
@@ -32,6 +32,7 @@ from automol.amchi.base._core import with_inchi_prefix
 # from automol.chi.base._core import inchi_key  # below in L4
 # from automol.chi.base._core import smiles     # below in L4
 from automol.amchi.base import formula
+from automol.amchi.base import formula_string
 from automol.amchi.base import connectivity
 # # properties
 # # # formula layer
@@ -106,7 +107,7 @@ from automol.amchi import is_valid_multiplicity as is_valid_inchi_multiplicity
 def formula_sublayer(*args, **kwargs):
     """ Deprecated
     """
-    return formula_string(*args, **kwargs)
+    return formula_layer(*args, **kwargs)
 
 
 # keep this as an alias
@@ -123,7 +124,7 @@ __all__ = [
     # # getters
     'version',
     'formula_sublayer',
-    'formula_string',
+    'formula_layer',
     'main_sublayers',
     'charge_sublayers',
     'stereo_sublayers',
@@ -141,6 +142,7 @@ __all__ = [
     # 'inchi_key',
     # 'smiles',
     'formula',
+    'formula_string',
     'connectivity',
     'without_stereo',
     # # properties
