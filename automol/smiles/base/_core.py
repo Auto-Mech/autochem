@@ -3,7 +3,7 @@
 The parsing functions apply equally well to SMILES or RSMILES strings, so the
 documentation simply refers to SMILES strings.
 """
-
+from typing import List
 import string
 import pyparsing as pp
 import numpy
@@ -141,6 +141,96 @@ def reaction(rsmis, psmis):
     psmi = '.'.join(psmis)
     rxn_smi = f'{rsmi}>>{psmi}'
     return rxn_smi
+
+
+def is_reaction(smi: str) -> bool:
+    """ Is this a reaction SMILES string?
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: `True` if it is, `False` if it isn't
+    :rtype: bool
+    """
+    return ">>" in smi
+
+
+def reaction_reagents(smi: str) -> (str, str):
+    """ Get the reagents from a reaction SMILES string
+
+    Returns `(None, None)` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The reactant and product SMILES strings
+    :rtype: (str, str)
+    """
+    if not is_reaction(smi):
+        return (None, None)
+
+    smis = smi.split(">>")
+    assert len(smis) == 2, f"Invalid reaction SMILES: {smi}"
+    rsmi, psmi = smis
+    return rsmi, psmi
+
+
+def reaction_reactant(smi: str) -> str:
+    """ Get the reactant from a reaction SMILES string
+
+    Multiple reactants will be returned as one combined SMILES string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The reactant SMILES string
+    :rtype: str
+    """
+    rsmi, _ = reaction_reagents(smi)
+    return rsmi
+
+
+def reaction_product(smi: str) -> str:
+    """ Get the product from a reaction SMILES string
+
+    Multiple products will be returned as one combined SMILES string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The product SMILES string
+    :rtype: str
+    """
+    _, psmi = reaction_reagents(smi)
+    return psmi
+
+
+def reaction_reactants(smi: str) -> List[str]:
+    """ Get the reactants from a reaction SMILES string
+
+    Multiple reactants will in the order they appear in the string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The reactant SMILES strings
+    :rtype: List[str]
+    """
+    rsmi = reaction_reactant(smi)
+    return None if rsmi is None else rsmi.split('.')
+
+
+def reaction_products(smi: str) -> List[str]:
+    """ Get the products from a reaction SMILES string
+
+    Multiple products will in the order they appear in the string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The product SMILES strings
+    :rtype: List[str]
+    """
+    rsmi = reaction_product(smi)
+    return None if rsmi is None else rsmi.split('.')
 
 
 # # properties
