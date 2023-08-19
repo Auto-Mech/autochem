@@ -741,6 +741,16 @@ def substitutions(rct_gras, prd_gras):
     return rxns
 
 
+def _is_graph(gra):
+    """Determine whether the argument is a graph, instead of a sequence
+    """
+    if hasattr(gra, '__len__') and len(gra) == 2:
+        if all(isinstance(o, dict) for o in gra):
+            return True
+
+    return False
+
+
 def find(rct_gras, prd_gras, stereo=False):
     """ find all reactions consistent with these reactants and products
 
@@ -751,6 +761,11 @@ def find(rct_gras, prd_gras, stereo=False):
     :returns: a list of Reaction objects
     :rtype: tuple[Reaction]
     """
+    if _is_graph(rct_gras):
+        assert _is_graph(prd_gras)
+        rct_gras = automol.graph.connected_components(rct_gras)
+        prd_gras = automol.graph.connected_components(prd_gras)
+
     rct_gras0, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras0, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
