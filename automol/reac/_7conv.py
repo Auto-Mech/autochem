@@ -1,6 +1,6 @@
 """ Conversion functions
 """
-from typing import List
+from typing import List, Tuple
 
 import IPython
 
@@ -13,11 +13,13 @@ import automol.zmat
 from automol.extern import rdkit_
 from automol.reac._0core import (
     Reaction,
-    set_structures,
     product_graphs,
     reactant_graphs,
     relabel_for_zmatrix,
+    set_structures,
     standard_keys_with_sorted_geometries,
+    ts_graph,
+    without_stereo,
 )
 from automol.reac._2stereo import reflect
 from automol.reac._3find import find
@@ -44,6 +46,24 @@ def amchi(rxn: Reaction, stereo=True):
         automol.graph.amchi(gra, stereo=stereo) for gra in product_graphs(rxn)
     )
     return (rct_chis, prd_chis)
+
+
+def ts_amchi(rxn: Reaction, stereo=True) -> str:
+    """Convert the reaction object to AMChIs
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param stereo: Include stereo?
+    :type stereo: bool
+    :returns: AMChI string for the TS
+    :rtype: str
+    """
+    if not stereo:
+        rxn = without_stereo(rxn)
+
+    tsg = ts_graph(rxn)
+    ts_chi = automol.graph.amchi(tsg)
+    return ts_chi
 
 
 def inchi(rxn: Reaction, stereo=True):
@@ -112,6 +132,19 @@ def smiles(rxn: Reaction, stereo=True, res_stereo=True, exp_singles=False):
         for gra in product_graphs(rxn)
     )
     return (rct_smis, prd_smis)
+
+
+def reaction_smiles(rxn) -> str:
+    """Convert the Reaction object to a reaction SMILES string
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: The reaction SMILES
+    :rtype: str
+    """
+    rct_smis, prd_smis = smiles(rxn)
+    rxn_smi = automol.smiles.reaction(rct_smis, prd_smis)
+    return rxn_smi
 
 
 def rdkit_reaction(rxn: Reaction, stereo=True, res_stereo=False):

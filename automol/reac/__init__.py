@@ -75,9 +75,11 @@ from automol.reac._6rot import rotational_groups
 from automol.reac._6rot import rotational_symmetry_number
 # conversions
 from automol.reac._7conv import amchi
+from automol.reac._7conv import ts_amchi
 from automol.reac._7conv import inchi
 from automol.reac._7conv import chi
 from automol.reac._7conv import smiles
+from automol.reac._7conv import reaction_smiles
 from automol.reac._7conv import rdkit_reaction
 from automol.reac._7conv import display
 from automol.reac._7conv import is_canonical_enantiomer
@@ -181,9 +183,11 @@ __all__ = [
     'rotational_symmetry_number',
     # conversions
     'amchi',
+    'ts_amchi',
     'inchi',
     'chi',
     'smiles',
+    'reaction_smiles',
     'rdkit_reaction',
     'display',
     'is_canonical_enantiomer',
