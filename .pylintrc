@@ -24,5 +24,6 @@ disable=
     consider-using-f-string,
     no-else-raise,
     unnecessary-list-index-lookup,
-    invalid-name
+    invalid-name,
+    c-extension-no-member
 
