@@ -1,12 +1,16 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
-import automol.inchi.base
+from typing import Tuple
+
 import automol.graph.base
+import automol.inchi.base
 from automol.extern import rdkit_
-from automol.smiles.base import split
-from automol.smiles.base import without_resonance_stereo
-from automol.smiles.base import without_stereo
-from automol.smiles.base import parse_connected_molecule_properties
+from automol.smiles.base import (
+    parse_connected_molecule_properties,
+    split,
+    without_resonance_stereo,
+    without_stereo,
+)
 
 
 # # conversions
@@ -196,6 +200,23 @@ def svg_string(smi, stereo=True):
     rdm = rdkit_.from_smiles(smi)
     svg_str = rdkit_.to_svg_string(rdm)
     return svg_str
+
+
+def reagent_svg_strings(rsmis, psmis, stereo=True, res_stereo=False) -> Tuple[str, str]:
+    """Convert reactant and product graphs to an RDKit reaction object.
+
+    :param rsmis: SMILES strings for the reactants
+    :param psmis: SMILES strings for the products
+    :param stereo: Include stereo?
+    :type stereo: bool
+    :param res_stereo: allow resonant double-bond stereo?
+    :type res_stereo: bool
+    :returns: One SVG string for the reactants, one for the products
+    :rtype: Tuple[str, str]
+    """
+    rdr = rdkit_reaction(rsmis, psmis, stereo=stereo, res_stereo=res_stereo)
+    rsvg_str, psvg_str = rdkit_.to_reagent_svg_strings(rdr)
+    return rsvg_str, psvg_str
 
 
 def rdkit_reaction(rsmis, psmis, stereo=True, res_stereo=False):

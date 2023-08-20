@@ -1,6 +1,6 @@
 """ Conversion functions
 """
-from typing import List, Tuple
+from typing import List
 
 import IPython
 

@@ -1,6 +1,8 @@
 """ RDKit interface
 """
+import pyparsing as pp
 import rdkit
+from lxml import etree
 from rdkit import RDLogger
 from rdkit.Chem import AllChem, Draw
 
@@ -370,6 +372,128 @@ def to_svg_string(rdm, image_size=300):
     rdd.FinishDrawing()
     svg_str = rdd.GetDrawingText()
     return svg_str
+
+
+def to_reagent_svg_strings(rdr, image_size=300):
+    """Convert RDKit reaction to a pair of reactant and product SVG strings"""
+    rdd = Draw.MolDraw2DSVG(image_size, image_size)
+    opts = rdd.drawOptions()
+    opts.maxFontSize = 30
+    opts.minFontSize = 12
+    opts.bondLineWidth = 2
+    rdd.DrawReaction(rdr)
+    rdd.FinishDrawing()
+    svg_str = rdd.GetDrawingText()
+    r_svg_str = _reagent_svg_string(
+        svg_str, product=False, width=image_size, height=image_size
+    )
+    p_svg_str = _reagent_svg_string(
+        svg_str, product=True, width=image_size, height=image_size
+    )
+    return r_svg_str, p_svg_str
+
+
+# SVG parsers to help extract info rom the reaction string
+def _reagent_svg_string(svg_str, product=False, width=300, height=300, padding=15):
+    svg_root = _etree_from_svg_string(svg_str)
+
+    # 1. Remove elements not on the left/right half
+    for child in svg_root:
+        if product:
+            xmin = _parse_x_min(child.attrib["d"]) if "d" in child.attrib else None
+            if xmin is None or xmin < width / 2.0:
+                svg_root.remove(child)
+        else:
+            xmax = _parse_x_max(child.attrib["d"]) if "d" in child.attrib else None
+            if xmax is None or xmax > width / 2.0:
+                svg_root.remove(child)
+
+    # 2. For products, remove the two remaining leftmost elements (arrow head parts)
+    if product:
+        children = sorted(svg_root, key=lambda c: _parse_x_bounds(c.attrib["d"])[0])
+        svg_root.remove(children.pop(0))
+        svg_root.remove(children.pop(0))
+
+    # 3. Determine the bounding box
+    xmax = ymax = 0
+    xmin = width
+    ymin = height
+    for child in svg_root:
+        xmin_, xmax_ = _parse_x_bounds(child.attrib["d"])
+        ymin_, ymax_ = _parse_y_bounds(child.attrib["d"])
+        xmin = min(xmin, xmin_)
+        xmax = max(xmax, xmax_)
+        ymin = min(ymin, ymin_)
+        ymax = max(ymax, ymax_)
+
+    # 4. Adjust the viewBox accordingly, with the desired padding
+    xmin -= padding
+    ymin -= padding
+    xmax += padding
+    ymax += padding
+    svg_root.attrib["viewBox"] = f"{xmin} {ymin} {xmax-xmin} {ymax-ymin}"
+    return _etree_to_svg_string(svg_root)
+
+
+def _parse_xy_coordinates(string):
+    command = pp.Suppress(pp.Char("ML"))
+    number = pp.Combine(pp.Word(pp.nums) + pp.Opt("." + pp.Word(pp.nums)))
+    parser = command + pp.Group(number + pp.Suppress(pp.Opt(",")) + number)
+    coords = [tuple(map(float, r[0])) for r in parser.search_string(string)]
+    return coords
+
+
+def _parse_x_coordinates(string):
+    coords = _parse_xy_coordinates(string)
+    if not coords:
+        return ()
+
+    xvals, _ = zip(*coords)
+    return xvals
+
+
+def _parse_y_coordinates(string):
+    coords = _parse_xy_coordinates(string)
+    if not coords:
+        return ()
+
+    _, yvals = zip(*coords)
+    return yvals
+
+
+def _parse_x_bounds(string):
+    xvals = _parse_x_coordinates(string)
+    xmin = min(xvals, default=None)
+    xmax = max(xvals, default=None)
+    return xmin, xmax
+
+
+def _parse_y_bounds(string):
+    yvals = _parse_y_coordinates(string)
+    ymin = min(yvals, default=None)
+    ymax = max(yvals, default=None)
+    return ymin, ymax
+
+
+def _parse_x_min(string):
+    return _parse_x_bounds(string)[0]
+
+
+def _parse_x_max(string):
+    return _parse_x_bounds(string)[1]
+
+
+def _etree_from_svg_string(svg_str):
+    parser = etree.XMLParser(ns_clean=True, recover=True, encoding="utf-8")
+    svg_root = etree.fromstring(svg_str.encode("utf-8"), parser=parser)
+    return svg_root
+
+
+def _etree_to_svg_string(svg_root):
+    return etree.tostring(svg_root, pretty_print=True).decode("utf-8")
+
+
+# end SVG parsers
 
 
 def draw(rdm, filename=None, highlight_radicals=False, image_size=600):

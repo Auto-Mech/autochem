@@ -30,6 +30,7 @@ from automol.smiles._conv import formula_string
 from automol.smiles._conv import recalculate_without_stereo
 from automol.smiles._conv import rdkit_molecule
 from automol.smiles._conv import svg_string
+from automol.smiles._conv import reagent_svg_strings
 from automol.smiles._conv import rdkit_reaction
 from automol.smiles._conv import display
 from automol.smiles._conv import display_reaction
@@ -64,6 +65,7 @@ __all__ = [
     'recalculate_without_stereo',
     'rdkit_molecule',
     'svg_string',
+    'reagent_svg_strings',
     'rdkit_reaction',
     'display',
     'display_reaction',
