@@ -52,6 +52,7 @@ def heavy_atom_count(fml):
     assert _is_standard(fml)
 
     if "H" in fml:
+        fml = fml.copy()
         fml.pop("H")
 
     return sum(fml.values())
