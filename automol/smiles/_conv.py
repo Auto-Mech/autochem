@@ -184,7 +184,7 @@ def rdkit_molecule(smi, stereo=True):
 
 
 def svg_string(smi, stereo=True):
-    """Convert a SMILES string into an InChI string.
+    """Convert a SMILES string into an SVG string for visualization
 
     :param smi: SMILES string
     :type smi: str
