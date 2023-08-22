@@ -335,5 +335,5 @@ if __name__ == "__main__":
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
-    test__find()
+    # test__find()
     test__ts_geometry()

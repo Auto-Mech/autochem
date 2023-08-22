@@ -255,7 +255,10 @@ def line_search_alpha(err_, sd1, cd1):
         return err_(sd1 + alpha*cd1)
 
     # do the line search and make sure it worked
-    res = scipy.optimize.minimize_scalar(_function_of_alpha, bounds=(0, 5))
+    res = scipy.optimize.minimize_scalar(_function_of_alpha)
+    if not res.success:
+        res = scipy.optimize.minimize_scalar(_function_of_alpha, bounds=(0, 20))
+
     assert res.success, ("Line search for alpha failed!\n", str(res))
 
     # get the result
@@ -420,6 +423,8 @@ def minimize_error(xmat, err_, grad_, conv_, maxiter=None):
 
         # 4. Perform a line search
         alpha = line_search_alpha(err_, xmat, cd1)
+        logging.info(f"{niter} alpha:")
+        logging.info(alpha)
 
         # 5. Check convergence
         if conv_(xmat, err_(xmat), sd1):
