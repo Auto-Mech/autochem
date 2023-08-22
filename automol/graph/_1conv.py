@@ -574,9 +574,6 @@ def ts_reacting_electron_direction(tsg, geo, key) -> vec.Vector:
     frm_key = next((k for k in ts.forming_bond_keys(tsg) if key in k), None)
     assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
 
-    tsg = to_local_stereo(tsg)
-    apar_dct = dict_.filter_by_value(atom_stereo_parities(tsg), lambda x: x is not None)
-
     # Get the normal vector
     pkeys = ts.plane_keys(tsg, key)
     pxyzs = geom.coordinates(geo, idxs=pkeys)
@@ -607,6 +604,12 @@ def ts_reacting_electron_direction(tsg, geo, key) -> vec.Vector:
         rvec = rot_(xvec)
 
     # Make sure the direction matches atom stereochemistry
+    # Reverse the TS graph before checking stereo, so that Sn2 reactions will be
+    # corrected as well (otherwise, it will be checked against the breaking bond, which
+    # should already be in place)
+    tsg = ts.reverse(tsg)
+    tsg = to_local_stereo(tsg)
+    apar_dct = dict_.filter_by_value(atom_stereo_parities(tsg), lambda x: x is not None)
     if key in apar_dct:
         # Create a dummy geometry with the attacking neighbor at this position
         (xyz,) = geom.coordinates(geo, idxs=(key,))
