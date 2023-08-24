@@ -757,4 +757,6 @@ if __name__ == '__main__':
     # test__argunique_coulomb_spectrum()
     # test__rotation_properties()
     # test__insert_dummies()
-    test__hydrogen_bonded_structure()
+    # test__hydrogen_bonded_structure()
+    test__from_string()
+    test__from_xyz_string()
