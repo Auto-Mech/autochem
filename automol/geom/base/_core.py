@@ -4,7 +4,8 @@
 
 import itertools
 
-import autoread as ar
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 import autowrite as aw
 import more_itertools as mit
 import numpy
@@ -14,6 +15,11 @@ import automol.formula
 from automol import util
 
 AXIS_DCT = {"x": 0, "y": 1, "z": 2}
+
+CHAR = pp.Char(pp.alphas)
+SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
+XYZ_LINE = pp.Group(SYMBOL + pp.Group(ppc.fnumber * 3))
+XYZ_LINES = pp.delimitedList(XYZ_LINE, delim=pp.lineEnd())
 
 
 # # constructors
@@ -212,8 +218,10 @@ def from_string(geo_str, angstrom=True):
     :type angstrom: bool
     :rtype: automol geometry data structure
     """
+    rows = XYZ_LINES.parseString(geo_str).asList()
 
-    symbs, xyzs = ar.geom.read(geo_str)
+    symbs, xyzs = zip(*rows) if rows else ([], [])
+
     geo = from_data(symbs, xyzs, angstrom=angstrom)
 
     return geo
@@ -227,9 +235,14 @@ def from_xyz_string(xyz_str):
     :type xyz_str: str
     :rtype: automol geometry data structure
     """
+    lines = xyz_str.splitlines()
+    natms = int(lines.pop(0).strip())
+    lines.pop(0)
 
-    symbs, xyzs = ar.geom.read_xyz(xyz_str)
-    geo = from_data(symbs, xyzs, angstrom=True)
+    geo_str = '\n'.join(lines)
+    geo = from_string(geo_str, angstrom=True)
+
+    assert natms == count(geo), f"XYZ string with inconsistent count: {xyz_str}"
 
     return geo
 

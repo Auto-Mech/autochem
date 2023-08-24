@@ -1,8 +1,9 @@
 """ pyx2z interface
 """
 import importlib.util
-import autoread as ar
+
 import autoparse.pattern as app
+
 import automol.zmat.base
 
 pyx2z_found = importlib.util.find_spec("pyx2z")
@@ -10,6 +11,12 @@ if pyx2z_found is not None:
     import pyx2z
 else:
     pyx2z = None
+
+autoread_found = importlib.util.find_spec("autoread")
+if autoread_found is not None:
+    import autoread as ar
+else:
+    ar = None
 
 
 def to_oriented_geometry(geo):
@@ -65,6 +72,9 @@ def to_zmatrix(x2m):
     """
     if pyx2z is None:
         raise NotImplementedError("Not implemented without x2z!")
+
+    if ar is None:
+        raise NotImplementedError("Not implemented without autoread!")
 
     zma_str = pyx2z.zmatrix_string(x2m)
     syms, key_mat, name_mat, val_mat = ar.zmat.read(

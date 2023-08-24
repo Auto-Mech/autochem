@@ -1,8 +1,6 @@
 """ RDKit interface
 """
-import pyparsing as pp
 import rdkit
-from lxml import etree
 from rdkit import RDLogger
 from rdkit.Chem import AllChem, Draw
 
@@ -377,6 +375,8 @@ def to_svg_string(rdm, image_size=300):
 
 
 def to_grid_svg_string(rdms, image_size=300):
+    """Convert a sequence of RDKit molecules to an SVG string
+    """
     num = len(rdms)
     rdd = Draw.MolDraw2DSVG(
         image_size * num, image_size // 2, image_size, image_size // 2

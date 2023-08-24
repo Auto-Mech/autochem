@@ -2,7 +2,8 @@
 """
 
 import numpy
-import autoread as ar
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 import autowrite as aw
 from phydat import phycon
 from automol import vmat
@@ -256,10 +257,23 @@ def from_string(zma_str, one_indexed=True, angstrom=True, degree=True):
         :type degree: bool
         :rtype: automol Z-Matrix data structure
     """
+    vma = vmat.from_string(zma_str, one_indexed=one_indexed)
+    symbs = vmat.symbols(vma)
+    key_mat = vmat.key_matrix(vma)
+    name_mat = vmat.name_matrix(vma)
 
-    symbs, key_mat, name_mat, val_mat = ar.zmat.read(zma_str)
+    nrows = len(symbs)
+    val_str = '\n'.join(zma_str.splitlines()[nrows:])
+
+    value_line = pp.Group(vmat.VNAME + pp.Suppress('=') + ppc.fnumber)
+    value_lines = pp.delimitedList(value_line, delim=pp.lineEnd())
+
+    val_dct = dict(value_lines.parseString(val_str).asList())
+    val_dct[None] = None
+    val_mat = [list(map(val_dct.__getitem__, nrow)) for nrow in name_mat]
+
     zma = from_data(
-        symbs, key_mat, val_mat, name_mat, one_indexed=one_indexed,
+        symbs, key_mat, val_mat, name_mat, one_indexed=False,
         angstrom=angstrom, degree=degree)
 
     return zma
