@@ -4,7 +4,6 @@
 import os
 import numpy
 from phydat import phycon
-from ioformat import pathtools
 import automol.reac
 from automol.util import highd_mat
 
@@ -14,10 +13,16 @@ DAT_PATH = os.path.join(PATH, 'data')
 
 
 # Obtain cubic and quartic force constants
-CUBIC_STR = pathtools.read_file(DAT_PATH, 'ch4_h.cubic')
+CUBIC_STR = None
+with open(os.path.join(DAT_PATH, 'ch4_h.cubic'), mode='r', errors='ignore', encoding='utf-8') as fobj:
+    CUBIC_STR = fobj.read()
+
+QUARTIC_STR = None
+with open(os.path.join(DAT_PATH, 'ch4_h.quartic'), mode='r', errors='ignore', encoding='utf-8') as fobj:
+    QUARTIC_STR = fobj.read()
+
 CUBIC_MAT = highd_mat.from_string(
     CUBIC_STR, fill_perms=True)
-QUARTIC_STR = pathtools.read_file(DAT_PATH, 'ch4_h.quartic')
 QUARTIC_MAT = highd_mat.from_string(
     QUARTIC_STR, fill_perms=True)
 
