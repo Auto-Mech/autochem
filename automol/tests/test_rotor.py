@@ -4,7 +4,6 @@
 
 import os
 import automol
-from ioformat import pathtools
 
 
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -462,8 +461,12 @@ def test__string():
 
     rtors = automol.rotor.from_zmatrix(C3H7OH_ZMA)
 
+    ref_tors_str = None
+    with open(os.path.join(DAT_PATH, 'c3h7oh.tors'), mode='r', errors='ignore', encoding='utf-8') as fobj:
+        ref_tors_str = fobj.read()
+
     tors_str = automol.rotor.string(rtors)
-    assert tors_str == pathtools.read_file(DAT_PATH, 'c3h7oh.tors')
+    assert tors_str == ref_tors_str
 
     tors_dct = automol.rotor.from_string(tors_str)
     rtors2 = automol.rotor.from_data(C3H7OH_ZMA, tors_dct)
@@ -492,7 +495,7 @@ def test__ts():
 
 
 if __name__ == '__main__':
-    # test__string()
+    test__string()
     # test__ts()
-    test__rotor()
-    test__rotor_wdummy()
+    # test__rotor()
+    # test__rotor_wdummy()
