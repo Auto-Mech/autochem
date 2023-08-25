@@ -6,29 +6,29 @@ import itertools
 from automol import util
 import automol.formula
 import automol.amchi.base
-from automol.graph.base._core import atom_keys
-from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import formula
-from automol.graph.base._core import atom_implicit_hydrogens
-from automol.graph.base._core import implicit
-from automol.graph.base._core import relabel
-from automol.graph.base._core import atom_stereo_keys
-from automol.graph.base._core import atom_stereo_parities
-from automol.graph.base._core import bond_stereo_keys
-from automol.graph.base._core import bond_stereo_parities
-from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import without_stereo
-from automol.graph.base._core import terminal_atom_keys
-from automol.graph.base._core import ts_breaking_bond_keys
-from automol.graph.base._core import ts_forming_bond_keys
-from automol.graph.base._algo import connected_components
-from automol.graph.base._algo import rings_atom_keys
-from automol.graph.base._algo import cycle_ring_atom_key_to_front
-from automol.graph.base._canon import canonical_ts_direction
-from automol.graph.base._canon import canonical_enantiomer_with_keys
-from automol.graph.base._canon import break_priority_ties
-from automol.graph.base._kekule import kekules_bond_orders_collated
-from automol.graph.base._kekule import vinyl_radical_atom_keys
+from automol.graph.base._0core import atom_keys
+from automol.graph.base._0core import atoms_neighbor_atom_keys
+from automol.graph.base._0core import formula
+from automol.graph.base._0core import atom_implicit_hydrogens
+from automol.graph.base._0core import implicit
+from automol.graph.base._0core import relabel
+from automol.graph.base._0core import atom_stereo_keys
+from automol.graph.base._0core import atom_stereo_parities
+from automol.graph.base._0core import bond_stereo_keys
+from automol.graph.base._0core import bond_stereo_parities
+from automol.graph.base._0core import without_dummy_atoms
+from automol.graph.base._0core import without_stereo
+from automol.graph.base._0core import terminal_atom_keys
+from automol.graph.base._0core import ts_breaking_bond_keys
+from automol.graph.base._0core import ts_forming_bond_keys
+from automol.graph.base._2algo import connected_components
+from automol.graph.base._2algo import rings_atom_keys
+from automol.graph.base._2algo import cycle_ring_atom_key_to_front
+from automol.graph.base._6canon import canonical_ts_direction
+from automol.graph.base._6canon import canonical_enantiomer_with_keys
+from automol.graph.base._6canon import break_priority_ties
+from automol.graph.base._3kekule import kekules_bond_orders_collated
+from automol.graph.base._3kekule import vinyl_radical_atom_keys
 
 
 # AMChI functions

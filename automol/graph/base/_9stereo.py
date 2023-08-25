@@ -7,7 +7,7 @@ import itertools
 
 import numpy
 
-from automol.graph.base._canon import (
+from automol.graph.base._6canon import (
     is_canonical_enantiomer,
     refine_priorities,
     reflect_local_stereo,
@@ -15,7 +15,7 @@ from automol.graph.base._canon import (
     stereogenic_keys_from_priorities,
     to_local_stereo,
 )
-from automol.graph.base._core import (
+from automol.graph.base._0core import (
     atom_keys,
     atom_stereo_keys,
     bond_stereo_keys,
@@ -25,7 +25,7 @@ from automol.graph.base._core import (
     stereo_parities,
     without_stereo,
 )
-from automol.graph.base._geom import (
+from automol.graph.base._5geom import (
     geometry_atom_parity,
     geometry_bond_parity,
     geometry_pseudorotate_atom,

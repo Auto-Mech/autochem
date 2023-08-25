@@ -7,8 +7,8 @@ import itertools
 
 from phydat import phycon
 
-from automol.graph.base._algo import branch_atom_keys, rings_bond_keys
-from automol.graph.base._core import (
+from automol.graph.base._2algo import branch_atom_keys, rings_bond_keys
+from automol.graph.base._0core import (
     atom_implicit_hydrogens,
     atom_keys,
     atom_neighbor_atom_key,
@@ -19,7 +19,7 @@ from automol.graph.base._core import (
     implicit,
     without_dummy_atoms,
 )
-from automol.graph.base._kekule import (
+from automol.graph.base._3kekule import (
     atom_hybridizations,
     kekules_bond_orders_collated,
     linear_segments_atom_keys,

@@ -5,13 +5,13 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 import operator
 import networkx
-from automol.graph.base._core import atom_keys
-from automol.graph.base._core import bond_keys
-from automol.graph.base._core import atom_symbols
-from automol.graph.base._core import atom_implicit_hydrogens
-from automol.graph.base._core import atom_stereo_parities
-from automol.graph.base._core import bond_orders
-from automol.graph.base._core import bond_stereo_parities
+from automol.graph.base._0core import atom_keys
+from automol.graph.base._0core import bond_keys
+from automol.graph.base._0core import atom_symbols
+from automol.graph.base._0core import atom_implicit_hydrogens
+from automol.graph.base._0core import atom_stereo_parities
+from automol.graph.base._0core import bond_orders
+from automol.graph.base._0core import bond_stereo_parities
 
 
 def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):

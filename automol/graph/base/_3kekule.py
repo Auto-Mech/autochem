@@ -5,30 +5,30 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import itertools
 import numpy
 from automol.util import dict_
-from automol.graph.base._core import subgraph
-from automol.graph.base._core import implicit
-from automol.graph.base._core import atoms
-from automol.graph.base._core import atom_keys
-from automol.graph.base._core import bond_keys
-from automol.graph.base._core import bond_orders
-from automol.graph.base._core import bond_stereo_keys
-from automol.graph.base._core import set_bond_orders
-from automol.graph.base._core import atom_unpaired_electrons
-from automol.graph.base._core import bond_unpaired_electrons
-from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import atoms_bond_keys
-from automol.graph.base._core import atom_bond_counts
-from automol.graph.base._core import atom_lone_pairs
-from automol.graph.base._core import dummy_atoms_neighbor_atom_key
-from automol.graph.base._core import without_pi_bonds
-from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import ts_reagents_graph_without_stereo
-from automol.graph.base._core import has_atom_stereo
-from automol.graph.base._core import is_ts_graph
-from automol.graph.base._core import tetrahedral_atom_keys
-from automol.graph.base._algo import branches
-from automol.graph.base._algo import connected_components
-from automol.graph.base._algo import connected_components_atom_keys
+from automol.graph.base._0core import subgraph
+from automol.graph.base._0core import implicit
+from automol.graph.base._0core import atoms
+from automol.graph.base._0core import atom_keys
+from automol.graph.base._0core import bond_keys
+from automol.graph.base._0core import bond_orders
+from automol.graph.base._0core import bond_stereo_keys
+from automol.graph.base._0core import set_bond_orders
+from automol.graph.base._0core import atom_unpaired_electrons
+from automol.graph.base._0core import bond_unpaired_electrons
+from automol.graph.base._0core import atoms_neighbor_atom_keys
+from automol.graph.base._0core import atoms_bond_keys
+from automol.graph.base._0core import atom_bond_counts
+from automol.graph.base._0core import atom_lone_pairs
+from automol.graph.base._0core import dummy_atoms_neighbor_atom_key
+from automol.graph.base._0core import without_pi_bonds
+from automol.graph.base._0core import without_dummy_atoms
+from automol.graph.base._0core import ts_reagents_graph_without_stereo
+from automol.graph.base._0core import has_atom_stereo
+from automol.graph.base._0core import is_ts_graph
+from automol.graph.base._0core import tetrahedral_atom_keys
+from automol.graph.base._2algo import branches
+from automol.graph.base._2algo import connected_components
+from automol.graph.base._2algo import connected_components_atom_keys
 
 
 # # core functions

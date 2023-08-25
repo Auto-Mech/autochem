@@ -8,16 +8,7 @@ import numpy
 
 import automol.amchi.base  # !!!!
 from automol import util
-from automol.graph.base._algo import (
-    rings_bond_keys,
-    sorted_ring_atom_keys_from_bond_keys,
-)
-from automol.graph.base._canon import (
-    calculate_priorities_and_assign_stereo,
-    parity_evaluator_flip_local_,
-    to_local_stereo,
-)
-from automol.graph.base._core import (
+from automol.graph.base._0core import (
     atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
     bond_stereo_keys,
@@ -37,14 +28,25 @@ from automol.graph.base._core import (
     without_dummy_atoms,
     without_reacting_bonds,
 )
-from automol.graph.base._heur import heuristic_bond_distance as _heuristic_bond_distance
-from automol.graph.base._kekule import (
+from automol.graph.base._2algo import (
+    rings_bond_keys,
+    sorted_ring_atom_keys_from_bond_keys,
+)
+from automol.graph.base._3kekule import (
     rigid_planar_bond_keys,
     sigma_radical_atom_bond_keys,
     vinyl_radical_atom_bond_keys,
     vinyl_radical_atom_keys,
 )
-from automol.graph.base._stereo import (
+from automol.graph.base._4heur import (
+    heuristic_bond_distance as _heuristic_bond_distance,
+)
+from automol.graph.base._6canon import (
+    calculate_priorities_and_assign_stereo,
+    parity_evaluator_flip_local_,
+    to_local_stereo,
+)
+from automol.graph.base._9stereo import (
     expand_stereo,
 )
 
