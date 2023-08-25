@@ -5,11 +5,11 @@
 import functools
 import numpy
 from phydat import ptab
-from automol.geom.base._core import symbols
-from automol.geom.base._core import coordinates
-from automol.geom.base._core import xyz_string
-from automol.geom.base._core import from_string
-from automol.geom.base._core import distance
+from automol.geom.base._0core import symbols
+from automol.geom.base._0core import coordinates
+from automol.geom.base._0core import xyz_string
+from automol.geom.base._0core import from_string
+from automol.geom.base._0core import distance
 
 
 # # properties used for comparisons

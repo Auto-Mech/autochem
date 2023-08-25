@@ -12,8 +12,8 @@ import operator
 import more_itertools as mit
 
 from automol import util
-from automol.graph.base import _networkx
-from automol.graph.base._core import (
+from automol.graph.base import _1networkx
+from automol.graph.base._0core import (
     add_bonds,
     atom_bond_keys,
     atom_count,
@@ -35,7 +35,7 @@ from automol.graph.base._core import (
     without_dummy_atoms,
     without_stereo,
 )
-from automol.graph.base._core import subgraph as subgraph_
+from automol.graph.base._0core import subgraph as subgraph_
 
 
 # # isomorphisms and equivalence
@@ -67,12 +67,12 @@ def isomorphism(
         gra1 = without_dummy_atoms(gra1)
         gra2 = without_dummy_atoms(gra2)
 
-    nxg1 = _networkx.from_graph(gra1)
-    nxg2 = _networkx.from_graph(gra2)
+    nxg1 = _1networkx.from_graph(gra1)
+    nxg2 = _1networkx.from_graph(gra2)
     if subgraph:
-        iso_dct = _networkx.subgraph_isomorphism(nxg1, nxg2)
+        iso_dct = _1networkx.subgraph_isomorphism(nxg1, nxg2)
     else:
-        iso_dct = _networkx.isomorphism(nxg1, nxg2)
+        iso_dct = _1networkx.isomorphism(nxg1, nxg2)
     return iso_dct
 
 
@@ -416,8 +416,8 @@ def connected_components(gra, stereo=True):
 
 def connected_components_atom_keys(gra):
     """atom keys for each connected component in the graph"""
-    nxg = _networkx.from_graph(gra)
-    cmp_gra_atm_keys_lst = _networkx.connected_component_atom_keys(nxg)
+    nxg = _1networkx.from_graph(gra)
+    cmp_gra_atm_keys_lst = _1networkx.connected_component_atom_keys(nxg)
     return cmp_gra_atm_keys_lst
 
 
@@ -431,8 +431,8 @@ def atom_shortest_paths(gra):
 
     :returns: a 2d dictionary keyed by pairs of atoms
     """
-    nxg = _networkx.from_graph(gra)
-    sp_dct = dict(_networkx.all_pairs_shortest_path(nxg))
+    nxg = _1networkx.from_graph(gra)
+    sp_dct = dict(_1networkx.all_pairs_shortest_path(nxg))
     return sp_dct
 
 
@@ -515,8 +515,8 @@ def weighted_maximal_matching(gra, bnd_weight_dct=None):
     That is, a set of edges that covers the graph as much as possible
     """
     edge_attrib_dct = None if bnd_weight_dct is None else {"weight": bnd_weight_dct}
-    nxg = _networkx.from_graph(gra, edge_attrib_dct=edge_attrib_dct)
-    bnd_keys = _networkx.weighted_maximal_matching(nxg, edge_attrib_name="weight")
+    nxg = _1networkx.from_graph(gra, edge_attrib_dct=edge_attrib_dct)
+    bnd_keys = _1networkx.weighted_maximal_matching(nxg, edge_attrib_name="weight")
     return bnd_keys
 
 
@@ -715,8 +715,8 @@ def rings_bond_keys(gra, ts_=True):
     def _ring_bond_keys(rng_atm_keys):
         return frozenset(filter(lambda x: x <= rng_atm_keys, bnd_keys))
 
-    nxg = _networkx.from_graph(gra)
-    rng_atm_keys_lst = _networkx.minimum_cycle_basis(nxg)
+    nxg = _1networkx.from_graph(gra)
+    rng_atm_keys_lst = _1networkx.minimum_cycle_basis(nxg)
     rng_bnd_keys_lst = frozenset(map(_ring_bond_keys, rng_atm_keys_lst))
     return rng_bnd_keys_lst
 
