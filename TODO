@@ -24,8 +24,15 @@
         [X] geom/_conv.py
         [X] geom/_pyx2z.py
     [X] Figure out why test_graph.py/test__smiles() is failing
-    [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py
+        Strategy:
+            - If forming bond is linear, add a dummy atom (currently only sigma abstractions -- use reacting_electron_direction)
+            - Forming rings: Start from the forming bond of the forming ring
+                o If there is a breaking bond in the ring, exclude it (by putting it last)
+                o If there are multiple breaking/forming bonds, start from a forming bond adjacent to a breaking bond, if possible.
+            - Bimoleculars: Start from "reagent 1"
+                o For H abstractions, this is the H-donor
+                o For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
     [ ] _6rot.py
     [ ] _7geom.py
     [ ] Move non-reac related files in automol/reac/ into automol/misc/
