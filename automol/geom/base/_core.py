@@ -4,11 +4,10 @@
 
 import itertools
 
-import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
-import autowrite as aw
 import more_itertools as mit
 import numpy
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 from phydat import phycon, ptab
 
 import automol.formula
@@ -163,12 +162,19 @@ def string(geo, angstrom=True):
 
     symbs = symbols(geo)
     xyzs = coordinates(geo, angstrom=angstrom)
-    geo_str = aw.geom.write(symbs=symbs, xyzs=xyzs)
+
+    natms = len(symbs)
+    assert len(xyzs) == natms
+
+    geo_str = "\n".join(
+        f"{symb:2s} {xyz[0]:10.6f} {xyz[1]:10.6f} {xyz[2]:10.6f}"
+        for symb, xyz in zip(symbs, xyzs)
+    )
 
     return geo_str
 
 
-def xyz_string(geo, comment=None):
+def xyz_string(geo, comment=""):
     """Write a molecular geometry to a string:
        natom
        comment
@@ -181,15 +187,12 @@ def xyz_string(geo, comment=None):
     :type comment: str
     :rtype: str
     """
-
-    symbs = symbols(geo)
-    xyzs = coordinates(geo, angstrom=True)
-    geo_str = aw.geom.write_xyz(symbs=symbs, xyzs=xyzs, comment=comment)
-
-    return geo_str
+    geo_str = string(geo, angstrom=True)
+    xyz_str = f" {count(geo):d}\n{comment:s}\n{geo_str:s}"
+    return xyz_str
 
 
-def xyz_trajectory_string(geo_lst, comments=None):
+def xyz_trajectory_string(geos, comments=None):
     """Write a series of molecular geometries to trajectory file which
     is a string that collated by several xyz-file format geometry strings.
 
@@ -199,13 +202,13 @@ def xyz_trajectory_string(geo_lst, comments=None):
     :type comments: tuple(str)
     :rtype: str
     """
+    ngeos = len(geos)
+    comments = [""] * ngeos if comments is None else comments
 
-    symbs_lst = [symbols(geo) for geo in geo_lst]
-    xyzs_lst = [coordinates(geo, angstrom=True) for geo in geo_lst]
-    assert len(set(symbs_lst)) == 1, f"set {set(symbs_lst)} \n symbol lists {symbs_lst}"
-    symbs = symbs_lst[0]
-    xyz_traj_str = aw.geom.write_xyz_trajectory(symbs, xyzs_lst, comments=comments)
-    return xyz_traj_str
+    assert len(comments) == ngeos
+    xyz_strs = [xyz_string(g, comment=c) for g, c in zip(geos, comments)]
+
+    return "\n".join(xyz_strs)
 
 
 def from_string(geo_str, angstrom=True):
@@ -239,7 +242,7 @@ def from_xyz_string(xyz_str):
     natms = int(lines.pop(0).strip())
     lines.pop(0)
 
-    geo_str = '\n'.join(lines)
+    geo_str = "\n".join(lines)
     geo = from_string(geo_str, angstrom=True)
 
     assert natms == count(geo), f"XYZ string with inconsistent count: {xyz_str}"

@@ -4,7 +4,6 @@
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
-import autowrite as aw
 from phydat import phycon
 from automol import vmat
 from automol import util
@@ -233,13 +232,32 @@ def string(zma, one_indexed=True, angstrom=True, degree=True):
         :rtype: str
     """
 
-    shift = 1 if one_indexed else 0
-    zma_str = aw.zmat.write(
-        symbs=symbols(zma),
-        key_mat=key_matrix(zma, shift=shift),
-        name_mat=name_matrix(zma),
-        val_dct=value_dictionary(zma, angstrom=angstrom, degree=degree)
-    )
+    # 1. Get the v-matrix string
+    vma = vmatrix(zma)
+    vma_str = vmat.string(vma, one_indexed=one_indexed)
+
+    # 2. Format the set-value dictionary
+    val_dct = value_dictionary(zma, angstrom=angstrom, degree=degree)
+
+    char_dct = {'R': 0, 'A': 1, 'D': 2}
+
+    def _sort_priority(arg):
+        """ return a sort priority value for z-matrix variable names
+        """
+        name, _ = arg
+        char, num = name[0], name[1:]
+        char_val = char_dct[char] if char in char_dct else 99
+        num_val = int(num) if num.isdigit() else numpy.inf
+        return (char_val, num_val)
+
+    items = sorted(val_dct.items(), key=_sort_priority)
+
+    setval_str = '\n'.join([
+        f'{name:<5s}={val:>11.6f}'
+        for name, val in items])
+
+    # 3. Join them together
+    zma_str = '\n\n'.join((vma_str, setval_str))
 
     return zma_str
 
