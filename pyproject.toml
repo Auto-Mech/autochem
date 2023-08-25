@@ -1,9 +1,14 @@
 [tool.poetry]
-name = "autochem"
-version = "0.1.0"
+name = "automol"
+version = "2023.8.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Andreas Copan <avcopan@gmail.com>"]
 readme = "README.md"
+packages = [
+    { include = "automol" },
+    { include = "transformations" },
+    { include = "phydat" },
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
