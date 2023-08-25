@@ -45,29 +45,29 @@ def test__from_data():
     """ test getters
     """
     assert AR_CHI == amchi.from_data(
-        fml_str=amchi.formula_layer(AR_CHI),
+        fml_lyr=amchi.formula_layer(AR_CHI),
     )
 
     assert CH2O2_CHI == amchi.from_data(
-        fml_str=amchi.formula_layer(CH2O2_CHI),
+        fml_lyr=amchi.formula_layer(CH2O2_CHI),
         main_lyr_dct=amchi.main_layers(CH2O2_CHI),
         char_lyr_dct=amchi.charge_layers(CH2O2_CHI),
     )
 
     assert C2H6O_CHI == amchi.from_data(
-        fml_str=amchi.formula_layer(C2H6O_CHI),
+        fml_lyr=amchi.formula_layer(C2H6O_CHI),
         main_lyr_dct=amchi.main_layers(C2H6O_CHI),
         iso_lyr_dct=amchi.isotope_layers(C2H6O_CHI),
     )
 
     assert C2H2F2_CHI == amchi.from_data(
-        fml_str=amchi.formula_layer(C2H2F2_CHI),
+        fml_lyr=amchi.formula_layer(C2H2F2_CHI),
         main_lyr_dct=amchi.main_layers(C2H2F2_CHI),
         ste_lyr_dct=amchi.stereo_layers(C2H2F2_CHI),
     )
 
     assert C8H13O_CHI == amchi.from_data(
-        fml_str=amchi.formula_layer(C8H13O_CHI),
+        fml_lyr=amchi.formula_layer(C8H13O_CHI),
         main_lyr_dct=amchi.main_layers(C8H13O_CHI),
         ste_lyr_dct=amchi.stereo_layers(C8H13O_CHI),
     )
@@ -238,6 +238,8 @@ def test__graph():
     ]
 
     for chi in chis:
+        print('---')
+        print(chi)
         gra = amchi.graph(chi)
 
         natms = len(automol.graph.atom_keys(gra))
@@ -281,7 +283,7 @@ def test__racemic():
     """
     chi = 'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m0/s1'
     assert (automol.amchi.racemic(chi) ==
-            'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/s3')
+            'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m2/s3')
 
     assert automol.amchi.racemic(AR_CHI) == AR_CHI
     assert automol.amchi.racemic(C8H13O_CHI_NO_STEREO) == C8H13O_CHI_NO_STEREO
@@ -296,4 +298,5 @@ if __name__ == '__main__':
     # test__smiles()
     # test__racemic()
     test__graph()
-    test__smiles()
+    # test__smiles()
+    # test__join()

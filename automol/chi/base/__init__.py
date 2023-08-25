@@ -49,8 +49,6 @@ from automol.chi.base._core import split
 # # sort
 from automol.chi.base._core import sorted_
 from automol.chi.base._core import argsort
-# # helpers
-from automol.amchi.base import version_pattern
 
 
 def formula_sublayer(*args, **kwargs):
@@ -102,6 +100,4 @@ __all__ = [
     # # sort
     'sorted_',
     'argsort',
-    # # helpers
-    'version_pattern',
 ]

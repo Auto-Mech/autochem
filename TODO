@@ -19,6 +19,10 @@
         [X] /k layer breaking bonds
         [X] /f* layer forming bonds
         [X] /r* layer for direction reversal (/r1 = reversed)
+    [X] Finish removing autoparse dependency:
+        [X] inchi_key.py
+        [X] geom/_conv.py
+        [X] geom/_pyx2z.py
     [ ] Figure out why test_graph.py/test__smiles() is failing
     [ ] Include zmatrix data in Reaction string
     [ ] _5zmat.py

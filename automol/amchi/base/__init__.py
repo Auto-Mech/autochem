@@ -65,12 +65,10 @@ from automol.amchi.base._core import join
 # # sort
 from automol.amchi.base._core import sorted_
 from automol.amchi.base._core import argsort
-# # helpers
-from automol.amchi.base._core import version_pattern
 from automol.amchi.base._core import join_layers
 from automol.amchi.base._core import split_layers
 from automol.amchi.base._core import join_layer_strings
-from automol.amchi.base._core import split_layer_string
+from automol.amchi.base._core import _split_layer_string
 
 
 __all__ = [
@@ -138,10 +136,8 @@ __all__ = [
     # # sort
     'sorted_',
     'argsort',
-    # # helpers
-    'version_pattern',
     'join_layers',
     'split_layers',
     'join_layer_strings',
-    'split_layer_string',
+    '_split_layer_string',
 ]

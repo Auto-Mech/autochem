@@ -4,10 +4,17 @@
 import collections
 import functools
 import itertools
-import re
 from typing import List
 
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 from phydat import ptab
+
+SYMBOL = pp.Word(pp.alphas.upper(), pp.alphas.lower())
+ATOM_COUNT = pp.Group(
+    SYMBOL + pp.Opt(ppc.integer).setParseAction(lambda x: x if x else [1])
+)
+FORMULA = pp.OneOrMore(ATOM_COUNT)
 
 
 def electron_count(fml):
@@ -185,16 +192,7 @@ def from_string(fml_str):
     :type fml_str: str
     :rtype: dict[str:int]
     """
-
-    # Search for alpha-integer pairs
-    search_str = r"([A-Z][a-z]?)(\d+)?"
-
-    # Obtain a dictionary for the number associated with atom symbol
-    atom_counts_dict = {
-        k: int(v) if v else 1 for k, v in re.findall(search_str, fml_str)
-    }
-
-    return atom_counts_dict
+    return dict(FORMULA.parseString(fml_str).asList())
 
 
 def sorted_symbols(seq, symbs_first=("C", "H"), symbs_last=()):
