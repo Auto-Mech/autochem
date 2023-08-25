@@ -3,7 +3,6 @@
 
 import itertools
 
-import autowrite as aw
 import more_itertools
 import numpy
 import pyparsing as pp
@@ -549,11 +548,21 @@ def string(vma, one_indexed=True):
     """
 
     shift = 1 if one_indexed else 0
-    vma_str = aw.vmat.write(
-        symbs=symbols(vma),
-        key_mat=key_matrix(vma, shift=shift),
-        name_mat=name_matrix(vma),
-    )
+    symbs = symbols(vma)
+    key_mat = key_matrix(vma, shift=shift)
+    name_mat = name_matrix(vma)
+
+    def _line_string(row_idx):
+        line_str = f'{symbs[row_idx]:<2s} '
+        keys = key_mat[row_idx]
+        names_ = name_mat[row_idx]
+        line_str += ' '.join([
+            f'{keys[col_idx]:>d} {names_[col_idx]:>5s} '
+            for col_idx in range(min(row_idx, 3))])
+        return line_str
+
+    natms = len(symbs)
+    vma_str = '\n'.join([_line_string(row_idx) for row_idx in range(natms)])
 
     return vma_str
 
