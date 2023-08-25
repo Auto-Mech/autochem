@@ -69,8 +69,6 @@ from automol.chi.base._core import split
 # # sort
 from automol.chi.base._core import sorted_
 from automol.chi.base._core import argsort
-# # helpers
-from automol.amchi.base import version_pattern
 # L4
 # # conversions
 from automol.amchi._conv import amchi_key as inchi_key
@@ -181,8 +179,6 @@ __all__ = [
     # # sort
     'sorted_',
     'argsort',
-    # # helpers
-    'version_pattern',
     # L4
     # # conversions
     'inchi_key',

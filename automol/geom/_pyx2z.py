@@ -2,8 +2,6 @@
 """
 import importlib.util
 
-import autoparse.pattern as app
-
 import automol.zmat.base
 
 pyx2z_found = importlib.util.find_spec("pyx2z")
@@ -11,6 +9,12 @@ if pyx2z_found is not None:
     import pyx2z
 else:
     pyx2z = None
+
+autoparse_found = importlib.util.find_spec("autoparse")
+if autoparse_found is not None:
+    import autoparse.pattern as app
+else:
+    app = None
 
 autoread_found = importlib.util.find_spec("autoread")
 if autoread_found is not None:
@@ -75,6 +79,9 @@ def to_zmatrix(x2m):
 
     if ar is None:
         raise NotImplementedError("Not implemented without autoread!")
+
+    if app is None:
+        raise NotImplementedError("Not implemented without autoparse!")
 
     zma_str = pyx2z.zmatrix_string(x2m)
     syms, key_mat, name_mat, val_mat = ar.zmat.read(

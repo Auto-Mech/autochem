@@ -3,10 +3,9 @@
 
 import itertools
 
-import autoparse.find as apf
-import autoparse.pattern as app
 import numpy
-from autoparse import cast as ap_cast
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 from phydat import phycon
 
 import automol.amchi.base
@@ -265,6 +264,7 @@ def inchi_with_sort(geo, stereo=True, gra=None):
     rdm = rdkit_.from_molfile(mlf)
     ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
 
+    print(aux_info)
     nums_lst = _parse_sort_order_from_aux_info(aux_info)
     nums_lst = tuple(tuple(map(key_map_inv.__getitem__, nums)) for nums in nums_lst)
 
@@ -354,11 +354,13 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
 
 
 def _parse_sort_order_from_aux_info(aux_info):
-    ptt = app.escape("/N:") + app.capturing(
-        app.series(app.UNSIGNED_INTEGER, app.one_of_these(",;"))
+    PREFIX = pp.Suppress(
+        "AuxInfo=" + ppc.integer + "/" + ppc.integer + "/" + pp.Suppress("N:")
     )
-    num_strs = apf.first_capture(ptt, aux_info).split(";")
-    nums_lst = ap_cast(tuple(s.split(",") for s in num_strs))
+    NUMBERS = pp.Group(pp.delimitedList(ppc.integer))
+    AUX_INFO = PREFIX + pp.delimitedList(NUMBERS, delim=";")
+
+    nums_lst = tuple(map(tuple, AUX_INFO.parseString(aux_info).asList()))
     return nums_lst
 
 

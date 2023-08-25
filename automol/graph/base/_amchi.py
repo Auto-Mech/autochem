@@ -112,7 +112,7 @@ def connected_amchi_with_indices(gra, stereo=True,
     ste_lyr_dct = _stereo_layers(gra, is_refl=is_refl)
     ts_lyr_dct = _ts_layers(gra, is_rev=is_rev)
 
-    chi = automol.amchi.base.from_data(fml_str=fml_str,
+    chi = automol.amchi.base.from_data(fml_lyr=fml_str,
                                        main_lyr_dct=main_lyr_dct,
                                        ste_lyr_dct=ste_lyr_dct,
                                        ts_lyr_dct=ts_lyr_dct)
