@@ -26,6 +26,7 @@ from automol.geom.base import (
     is_atom,
     move_atom,
     rotate,
+    set_coordinates,
     symbols,
     translate,
 )
@@ -264,7 +265,6 @@ def inchi_with_sort(geo, stereo=True, gra=None):
     rdm = rdkit_.from_molfile(mlf)
     ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
 
-    print(aux_info)
     nums_lst = _parse_sort_order_from_aux_info(aux_info)
     nums_lst = tuple(tuple(map(key_map_inv.__getitem__, nums)) for nums in nums_lst)
 
@@ -521,7 +521,22 @@ def display(geo, gra=None, view=None, image_size=400):
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
     """
+    ts_ = gra is not None and automol.graph.base.is_ts_graph(gra)
+    if ts_:
+        tsg = gra
+        gra = automol.graph.base.ts.reactants_graph(gra, stereo=False)
+
     view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
+
+    if ts_:
+        for frm_bkey in automol.graph.base.ts.forming_bond_keys(tsg):
+            fidx1, fidx2 = frm_bkey
+            fxyz1, fxyz2 = coordinates(geo, idxs=(fidx1, fidx2))
+            rvec1 = ts_reacting_electron_direction(geo, tsg, fidx1)
+            rvec2 = ts_reacting_electron_direction(geo, tsg, fidx2)
+            view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, view=view)
+            view = py3dmol_.view_vector(rvec2, orig_xyz=fxyz2, view=view)
+
     return view.show()
 
 
@@ -585,6 +600,87 @@ def closest_unbonded_atoms(geo, gra=None):
             min_bnd_key = bnd_key
 
     return min_bnd_key, min_dist_val
+
+
+def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
+    """Identify the direction of a reacting electron on a bond-forming atom
+
+    Forming bond direction accounts for atom stereochemistry in this atom.
+
+    :param geo: A geometry aligned to the TS graph
+    :type geo: automol geom data structure
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key: Key for the atom, which must be part of a forming bond
+    :type key: int
+    :returns: A vector indicating the direction
+    :rtype: vec.Vector
+    """
+    frm_key = next(
+        (k for k in automol.graph.base.ts.forming_bond_keys(tsg) if key in k), None
+    )
+    assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
+
+    # Get the normal vector
+    pkeys = automol.graph.base.ts.plane_keys(tsg, key)
+    pxyzs = coordinates(geo, idxs=pkeys)
+    zvec = vec.best_unit_perpendicular(pxyzs)
+
+    # Get the direction information:
+    #   1. xkey: a bond key giving an x direction
+    #   2. ykey: a bond key giving an y direction
+    #   3. phi: a rotational angle
+    # The electron direction is obtained by rotating the x direction by phi around a z
+    # axis of a right-handed coordinate system (happens in the `else` below)
+    xkey, ykey, phi = automol.graph.base.ts.reacting_electron_direction(tsg, key)
+    # `None` indicates that the electron is perpendicular to the plane, along the normal
+    # vector
+    if xkey is None:
+        rvec = zvec
+    # Otherwise, the electron is in-plane, given by rotating an existing bond direction
+    # by `phi`
+    #   1. do pi rotations by simply reversing the direction of xkey and normalizing
+    elif numpy.allclose(phi, numpy.pi):
+        xxyz1, xxyz2 = coordinates(geo, idxs=xkey)
+        rvec = -vec.unit_norm(numpy.subtract(xxyz2, xxyz1))
+    #   2. do other rotations by forming a right-handed coordinate system and rotating
+    #   in the x-y plane in the direction of y
+    else:
+        xxyz1, xxyz2 = coordinates(geo, idxs=xkey)
+        xvec = numpy.subtract(xxyz2, xxyz1)
+        if ykey is not None:
+            yxyz1, yxyz2 = coordinates(geo, idxs=ykey)
+            yvec = numpy.subtract(yxyz2, yxyz1)
+            zvec = vec.flip_if_left_handed(xvec, yvec, zvec)
+        xvec = vec.orthogonalize(zvec, xvec, normalize=True)
+        rot_ = vec.rotator(zvec, phi)
+        rvec = rot_(xvec)
+
+    # Make sure the direction matches atom stereochemistry
+    # Reverse the TS graph before checking stereo, so that Sn2 reactions will be
+    # corrected as well (otherwise, it will be checked against the breaking bond, which
+    # should already be in place)
+    tsg = automol.graph.base.ts.reverse(tsg)
+    tsg = automol.graph.base.to_local_stereo(tsg)
+    apar_dct = dict_.filter_by_value(
+        automol.graph.base.atom_stereo_parities(tsg), lambda x: x is not None
+    )
+    if key in apar_dct:
+        # Create a dummy geometry with the attacking neighbor at this position
+        (xyz,) = coordinates(geo, idxs=(key,))
+        (key_,) = frm_key - {key}
+        xyz_ = numpy.add(xyz, rvec)
+        geo_ = set_coordinates(geo, {key_: xyz_})
+
+        # Evaluate the parity of this configuration
+        par = automol.graph.base.geometry_atom_parity(tsg, geo_, key)
+
+        # If it doesn't match, reverse the direction, so the atom will be attacked from
+        # the other side
+        if par != apar_dct[key]:
+            rvec = numpy.negative(rvec)
+
+    return rvec
 
 
 def external_symmetry_factor(geo, chiral_center=True):
