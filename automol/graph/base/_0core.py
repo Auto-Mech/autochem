@@ -1991,7 +1991,7 @@ def shift_remove_dummy_atoms(gra):
         using `shift_insert_dummy_atoms()`
     :rtype: automol graph data structure
     """
-    dummy_ngb_key_dct = dummy_atoms_neighbor_atom_key(gra)
+    dummy_ngb_key_dct = dummy_atoms_parent_key(gra)
 
     # These lists are used to track how the keys change:
     old_keys = sorted(atom_keys(gra))
@@ -2627,7 +2627,7 @@ def atoms_bond_keys(gra, ts_=True):
     return dict_.transform_values(atm_nbhs, bond_keys)
 
 
-def dummy_atoms_neighbor_atom_key(gra, ts_=True):
+def dummy_atoms_parent_key(gra, ts_=True):
     """ Get the atoms that are connected to dummy atoms, by dummy atom key
     (Requires that each dummy atom only be connected to one neighbor)
 
@@ -2641,15 +2641,15 @@ def dummy_atoms_neighbor_atom_key(gra, ts_=True):
     atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
     dummy_atm_keys = atom_keys(gra, symb='X')
 
-    dummy_ngb_key_dct = {}
+    dummy_parent_dct = {}
     for key in dummy_atm_keys:
         ngb_keys = atm_ngb_keys_dct[key]
         assert len(ngb_keys) == 1, (
             "Dummy atoms should only be connected to one atom!")
         ngb_key, = ngb_keys
-        dummy_ngb_key_dct[key] = ngb_key
+        dummy_parent_dct[key] = ngb_key
 
-    return dummy_ngb_key_dct
+    return dummy_parent_dct
 
 
 def bonds_neighbor_atom_keys(gra, ts_=True):

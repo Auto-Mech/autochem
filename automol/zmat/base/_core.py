@@ -717,8 +717,8 @@ def shift_up(zma, idxs):
 
 # # helpers
 def _value_matrix(val_mat, angstrom, degree):
-    """ Build value matrix of the V-Matrix that contains the
-        coordinate keys by row and column.
+    """ Format value matrix of the V-Matrix that contains the
+        coordinate values by row and column.
 
         :param val_mat: value matrix containing coordinate values
         :type val_mat: tuple(tuple(int))

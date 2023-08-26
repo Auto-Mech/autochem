@@ -53,7 +53,7 @@ def torsion_lst(zma):
     # Get the necessary graph and lin keys
     gra = automol.zmat.graph(zma, stereo=True, dummy=True)
     lin_keys = sorted(
-        automol.graph.dummy_atoms_neighbor_atom_key(gra).values())
+        automol.graph.dummy_atoms_parent_key(gra).values())
 
     # Build the torsion objects
     _name_axis_dct = name_axis_dct(zma, gra, lin_keys)

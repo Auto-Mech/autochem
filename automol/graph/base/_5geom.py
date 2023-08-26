@@ -84,7 +84,6 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
     geo_idx_dct = (
         {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
-    gra = relabel(gra, geo_idx_dct)
 
     # Remove dummy atoms for simplicity
     geo = automol.geom.base.without_dummy_atoms(geo)
@@ -100,7 +99,8 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
         assert len(nkeys) == 3
         keys = [atm_key] + list(nkeys)
 
-    xyzs = automol.geom.base.coordinates(geo, idxs=keys)
+    idxs = list(map(geo_idx_dct.__getitem__, keys))
+    xyzs = automol.geom.base.coordinates(geo, idxs=idxs)
     det_mat = numpy.ones((4, 4))
     det_mat[:, 1:] = xyzs
     det_val = numpy.linalg.det(det_mat)
@@ -180,7 +180,6 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     geo_idx_dct = (
         {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
-    gra = relabel(gra, geo_idx_dct)
 
     # Remove dummy atoms for simplicity
     geo = automol.geom.base.without_dummy_atoms(geo)
@@ -196,13 +195,15 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
         ), f"Bond neighbor keys should be a pair of lists: {bnd_nkeys}"
         nkey1s, nkey2s = bnd_nkeys
 
-    nkey1 = nkey1s[-1]
-    nkey2 = nkey2s[-1]
+    idx1 = geo_idx_dct[key1]
+    idx2 = geo_idx_dct[key2]
+    nidx1 = geo_idx_dct[nkey1s[-1]]
+    nidx2 = geo_idx_dct[nkey2s[-1]]
 
-    (xyz1,) = automol.geom.base.coordinates(geo, idxs=(key1,))
-    (xyz2,) = automol.geom.base.coordinates(geo, idxs=(key2,))
-    (nxyz1,) = automol.geom.base.coordinates(geo, idxs=(nkey1,))
-    (nxyz2,) = automol.geom.base.coordinates(geo, idxs=(nkey2,))
+    (xyz1,) = automol.geom.base.coordinates(geo, idxs=(idx1,))
+    (xyz2,) = automol.geom.base.coordinates(geo, idxs=(idx2,))
+    (nxyz1,) = automol.geom.base.coordinates(geo, idxs=(nidx1,))
+    (nxyz2,) = automol.geom.base.coordinates(geo, idxs=(nidx2,))
 
     bnd1_vec = numpy.subtract(nxyz1, xyz1)
     bnd2_vec = numpy.subtract(nxyz2, xyz2)
