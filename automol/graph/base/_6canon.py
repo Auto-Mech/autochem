@@ -971,7 +971,7 @@ def sort_evaluator_atom_invariants_(gra):
 
 
 # # parity evaluators
-def parity_evaluator_from_geometry_(geo=None, geo_idx_dct=None):
+def parity_evaluator_from_geometry_(geo, geo_idx_dct=None):
     r""" Determines stereo parity from a geometry
 
     (For internal use by the calculate_priorities_and_assign_stereo() function)

@@ -25,12 +25,13 @@ from automol.geom.base import (
     insert,
     is_atom,
     move_atom,
+    reorder,
     rotate,
     set_coordinates,
     symbols,
     translate,
 )
-from automol.util import dict_, equivalence_partition, heuristic, vec
+from automol.util import dict_, dummy_trans, equivalence_partition, heuristic, vec
 
 
 # # conversions
@@ -730,8 +731,124 @@ def x2z_torsion_coordinate_names(geo, ts_bnds=()):
 
 
 # # derived operations
+def apply_dummy_transformation(
+    geo, dtt: dummy_trans.DummyTransTable, gra=None, dist: float = 1.0
+):
+    """Apply a dummy transformation to this geometry, inserting dummy atoms and
+    reordering as described in a dummy transformation table
+
+    :param geo: A molecular geometry
+    :type geo: automol geom data structure
+    :param dtt: A dummy transformation table
+    :type dtt: DummyTransTable
+    :param gra: A molecular graph, defaults to None
+    :type gra: automol graph data structure, optional
+    :param dist: The distance of the dummy atom to its parent atom, in Angstroms,
+        defaults to 1.0
+    :type dist: float, optional
+    :returns: The transformed molecular geometry
+    :rtype: automol geom data structure
+    """
+    k0ps = dummy_trans.parent_atom_list(dtt)
+    geo, dtt0 = add_dummies_over_linear_atoms(geo, gra=gra, lin_idxs=k0ps, dist=dist)
+    geo = reorder(geo, dummy_trans.isomorphism(dtt0, dtt))
+    return geo
+
+
+def add_dummies_over_linear_atoms(geo, gra=None, lin_idxs=None, dist=1.0, _tol=5.0):
+    """Add dummy atoms for linear atoms in the geometry (appendeded to the end)
+
+    :param geo: The geometry
+    :type geo: automol molecular geometry data structure
+    :param gra: A graph used to identify linear atoms; if None, a connectivity
+        graph will be generated using default distance thresholds
+    :type gra: automol molecular graph data structure
+    :param lin_idxs: Identify specific atoms to add dummy atoms for; if None, they will
+        be determined from the graph
+    :type lin_idxs: tuple(int)
+    :param dist: distance of dummy atom from the linear atom, in angstroms
+    :type dist: float
+    :returns: The new geometry, along with a dummy transformation table
+    :rtype: automol molecular geometry data structure, DummyTransTable
+    """
+    gra = graph_without_stereo(geo) if gra is None else gra
+
+    if lin_idxs is None:
+        lin_idxs = automol.graph.base.linear_atom_keys(gra)
+
+    dummy_parent_idxs = set(automol.graph.base.dummy_atoms_parent_key(gra).values())
+    duplicates = dummy_parent_idxs & set(lin_idxs)
+    assert (
+        not duplicates
+    ), f"Attempting to add dummy atoms on atoms that already have them {duplicates}"
+
+    ngb_idxs_dct = automol.graph.base.atoms_sorted_neighbor_atom_keys(gra)
+
+    xyzs = coordinates(geo, angstrom=True)
+
+    def _perpendicular_direction(idxs):
+        """find a nice perpendicular direction for a series of linear atoms"""
+        triplets = []
+        for idx in idxs:
+            for n1idx in ngb_idxs_dct[idx]:
+                for n2idx in ngb_idxs_dct[n1idx]:
+                    if n2idx != idx:
+                        ang = central_angle(geo, idx, n1idx, n2idx, degree=True)
+                        if numpy.abs(ang - 180.0) > _tol:
+                            triplets.append((idx, n1idx, n2idx))
+
+        if triplets:
+            idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
+            xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
+            r12 = vec.unit_direction(xyz1, xyz2)
+            r23 = vec.unit_direction(xyz2, xyz3)
+            direc = vec.orthogonalize(r12, r23, normalize=True)
+        else:
+            if len(idxs) > 1:
+                idx1, idx2 = idxs[:2]
+            else:
+                (idx1,) = idxs
+                idx2 = ngb_idxs_dct[idx1][0]
+                # idx2, = ngb_idxs_dct[idx1]
+
+            xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
+            r12 = vec.unit_direction(xyz1, xyz2)
+            for i in range(3):
+                disp = numpy.zeros((3,))
+                disp[i] = -1.0
+                alt = numpy.add(r12, disp)
+                direc = vec.unit_perpendicular(r12, alt)
+                if numpy.linalg.norm(direc) > 1e-2:
+                    break
+
+        return direc
+
+    # partition the linear atoms into adjacent groups, to be handled together
+    lin_idxs_lst = sorted(
+        map(
+            sorted,
+            equivalence_partition(lin_idxs, lambda x, y: x in ngb_idxs_dct[y]),
+        )
+    )
+
+    # Build a dummy transformation table to describe the change
+    nk0s = count(geo)
+    k0ps = list(itertools.chain(*lin_idxs_lst))
+    dtt = dummy_trans.from_parent_atoms_list(nk0s, k0ps, insert=False)
+
+    for idxs in lin_idxs_lst:
+        direc = _perpendicular_direction(idxs)
+        for idx in idxs:
+            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
+            geo = insert(geo, "X", xyz, angstrom=True)
+
+    return geo, dtt
+
+
 def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.0, tol=5.0):
     """Insert dummy atoms over linear atoms in the geometry.
+
+    DEPRECATED -- remove ASAP
 
     :param geo: the geometry
     :type geo: automol molecular geometry data structure
@@ -753,7 +870,7 @@ def insert_dummies_on_linear_atoms(geo, lin_idxs=None, gra=None, dist=1.0, tol=5
     lin_idxs = linear_atoms(geo) if lin_idxs is None else lin_idxs
     gra = graph_without_stereo(geo) if gra is None else gra
 
-    dummy_ngb_idxs = set(automol.graph.base.dummy_atoms_neighbor_atom_key(gra).values())
+    dummy_ngb_idxs = set(automol.graph.base.dummy_atoms_parent_key(gra).values())
     atoms_already_have_dummys = dummy_ngb_idxs & set(lin_idxs)
     assert not atoms_already_have_dummys, (
         "Attempting to add dummy atoms on atoms that already have them"
