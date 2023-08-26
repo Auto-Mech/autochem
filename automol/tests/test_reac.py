@@ -138,7 +138,7 @@ def test__find():
     """Test reac.find"""
 
     def _test(rct_smis, prd_smis):
-        print("Testing expand_stereo_for_reaction()")
+        print("Testing find()")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
         rct_gras0 = tuple(map(automol.smiles.graph, rct_smis))
         prd_gras0 = tuple(map(automol.smiles.graph, prd_smis))
@@ -240,7 +240,7 @@ def test__ts_geometry():
     """Test reac.ts_geometry"""
 
     def _test(rct_smis, prd_smis):
-        print("Testing expand_stereo_for_reaction()")
+        print("Testing ts_geometry()")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
 
         # 1. generate reagent geometries and graphs

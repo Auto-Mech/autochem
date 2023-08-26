@@ -3,7 +3,7 @@
 import functools
 import itertools
 
-import IPython
+import IPython.display as ipd
 import ipywidgets
 import numpy
 
@@ -24,7 +24,6 @@ from automol.graph.base import (
     bond_keys,
     connected_components,
     explicit,
-    geometry_atom_parity,
     has_stereo,
     inchi_is_bad,
     is_ts_graph,
@@ -38,10 +37,9 @@ from automol.graph.base import (
     stereo_keys,
     stereo_parities,
     string,
-    to_local_stereo,
     ts,
 )
-from automol.util import dict_, vec
+from automol.util import vec
 
 
 # # conversions
@@ -337,9 +335,7 @@ def display(gra, stereo=True, label=False, label_dct=None):
     :param label_dct: bool
     """
     rdkit_.turn_3d_visualization_off()
-    IPython.display.display(
-        rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
-    )
+    ipd.display(rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct))
 
 
 def display_reaction(rgras, pgras, stereo=True):
@@ -351,7 +347,7 @@ def display_reaction(rgras, pgras, stereo=True):
     :type stereo: bool
     """
     rdkit_.turn_3d_visualization_off()
-    return IPython.display.display(rdkit_reaction(rgras, pgras, stereo=stereo))
+    return ipd.display(rdkit_reaction(rgras, pgras, stereo=stereo))
 
 
 # # TS geometry helpers
@@ -479,8 +475,8 @@ def ts_join_reactant_geometries(tsg, rct_geos, geo_idx_dct=None, fdist_factor=1.
     geo = geom.translate(geo, numpy.subtract(fxyz1, fxyz2), idxs=idxs2)
     fxyz2 = geom.coordinates(geo)[fidx2]
     # 3. Find the reacting electron directions
-    rvec1 = ts_reacting_electron_direction(tsg, geo, fidx1)
-    rvec2 = ts_reacting_electron_direction(tsg, geo, fidx2)
+    rvec1 = geom.ts_reacting_electron_direction(geo, tsg, fidx1)
+    rvec2 = geom.ts_reacting_electron_direction(geo, tsg, fidx2)
     # 4. Rotate to align them antiparallel
     rot_ang = vec.angle(rvec1, numpy.negative(rvec2))
     rot_axis = vec.unit_perpendicular(rvec1, rvec2)
@@ -555,74 +551,3 @@ def ts_distances_from_reactant_geometries(
         )
 
     return dist_dct
-
-
-def ts_reacting_electron_direction(tsg, geo, key) -> vec.Vector:
-    """Identify the direction of a reacting electron on a bond-forming atom
-
-    Forming bond direction accounts for atom stereochemistry in this atom.
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param geo: A geometry aligned to the TS graph
-    :type geo: automol geom data structure
-    :param key: Key for the atom, which must be part of a forming bond
-    :type key: int
-    :returns: A vector indicating the direction
-    :rtype: vec.Vector
-    """
-    frm_key = next((k for k in ts.forming_bond_keys(tsg) if key in k), None)
-    assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
-
-    # Get the normal vector
-    pkeys = ts.plane_keys(tsg, key)
-    pxyzs = geom.coordinates(geo, idxs=pkeys)
-    zvec = vec.best_unit_perpendicular(pxyzs)
-
-    # Get the direction information:
-    #   1. xkey: a bond key giving an x direction
-    #   2. ykey: a bond key giving an y direction
-    #   3. phi: a rotational angle
-    # The electron direction is obtained by rotating the x direction by phi around a z
-    # axis of a right-handed coordinate system (happens in the `else` below)
-    xkey, ykey, phi = ts.reacting_electron_direction(tsg, key)
-    # `None` indicates that the electron is perpendicular to the plane, along the normal
-    # vector
-    if xkey is None:
-        rvec = zvec
-    # Otherwise, the electron is in-plane, given by rotating an existing bond direction
-    # by `phi`
-    else:
-        xxyz1, xxyz2 = geom.coordinates(geo, idxs=xkey)
-        xvec = numpy.subtract(xxyz2, xxyz1)
-        if ykey is not None:
-            yxyz1, yxyz2 = geom.coordinates(geo, idxs=ykey)
-            yvec = numpy.subtract(yxyz2, yxyz1)
-            zvec = vec.flip_if_left_handed(xvec, yvec, zvec)
-        xvec = vec.orthogonalize(zvec, xvec, normalize=True)
-        rot_ = vec.rotator(zvec, phi)
-        rvec = rot_(xvec)
-
-    # Make sure the direction matches atom stereochemistry
-    # Reverse the TS graph before checking stereo, so that Sn2 reactions will be
-    # corrected as well (otherwise, it will be checked against the breaking bond, which
-    # should already be in place)
-    tsg = ts.reverse(tsg)
-    tsg = to_local_stereo(tsg)
-    apar_dct = dict_.filter_by_value(atom_stereo_parities(tsg), lambda x: x is not None)
-    if key in apar_dct:
-        # Create a dummy geometry with the attacking neighbor at this position
-        (xyz,) = geom.coordinates(geo, idxs=(key,))
-        (key_,) = frm_key - {key}
-        xyz_ = numpy.add(xyz, rvec)
-        geo_ = geom.set_coordinates(geo, {key_: xyz_})
-
-        # Evaluate the parity of this configuration
-        par = geometry_atom_parity(tsg, geo_, key)
-
-        # If it doesn't match, reverse the direction, so the atom will be attacked from
-        # the other side
-        if par != apar_dct[key]:
-            rvec = numpy.negative(rvec)
-
-    return rvec
