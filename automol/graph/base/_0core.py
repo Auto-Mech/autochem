@@ -14,10 +14,10 @@ Data structure:
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
-
 import functools
 import itertools
 import numbers
+from typing import Dict, Tuple
 
 import numpy
 import yaml
@@ -472,6 +472,40 @@ def ts_reacting_atom_keys(tsg):
     bnd_keys = ts_reacting_bond_keys(tsg)
     atm_keys = frozenset(itertools.chain(*bnd_keys))
     return atm_keys
+
+
+def ts_transferring_atoms(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get get transferring atoms, along with their donors and acceptors
+
+    An atom is "transferring" if it is breaking and forming exactly one bond:
+
+        D---T...A
+         (b) (f)
+
+    :param tsg: _description_
+    :type tsg: _type_
+    :returns: A dictionary mapping each transferring atom onto its donor (what it is
+        transferring from) and its acceptor (what it is transferring to)
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    bkeys_dct = atoms_bond_keys(tsg)
+    rxn_akeys = ts_reacting_atom_keys(tsg)
+    frm_bkeys = ts_forming_bond_keys(tsg)
+    brk_bkeys = ts_breaking_bond_keys(tsg)
+
+    tra_dct = {}
+    for akey in rxn_akeys:
+        afrm_bkeys = bkeys_dct[akey] & frm_bkeys
+        abrk_bkeys = bkeys_dct[akey] & brk_bkeys
+        if len(afrm_bkeys) == len(abrk_bkeys) == 1:
+            frm_bkey, = afrm_bkeys
+            brk_bkey, = abrk_bkeys
+            tra_key, = brk_bkey & frm_bkey
+            don_key, = brk_bkey - frm_bkey
+            acc_key, = frm_bkey - brk_bkey
+            tra_dct[tra_key] = (don_key, acc_key)
+
+    return tra_dct
 
 
 def ts_reverse(tsg):

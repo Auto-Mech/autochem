@@ -184,24 +184,24 @@ def test__find():
             print("perm_rchi:", perm_rchi)
             assert perm_rchi == rchi
 
-    # # UNIMOLECULAR
-    # # hydrogen migration
-    # _test(["CCCO[O]"], ["[CH2]CCOO"])
-    # # hydrogen migration (2TS)
-    # _test(["CCC[CH2]"], ["CC[CH]C"])
-    # # beta scission (stereo-specific)
-    # _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
-    # # ring-forming scission (FIXED)
-    # _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
-    # # elimination
-    # _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
-    # # elimination (HONO)
-    # _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
-    # # BIMOLECULAR
-    # # hydrogen abstraction
-    # _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
-    # # hydrogen abstraction (sigma)
-    # _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
+    # UNIMOLECULAR
+    # hydrogen migration
+    _test(["CCCO[O]"], ["[CH2]CCOO"])
+    # hydrogen migration (2TS)
+    _test(["CCC[CH2]"], ["CC[CH]C"])
+    # beta scission (stereo-specific)
+    _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
+    # ring-forming scission (FIXED)
+    _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
+    # elimination
+    _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
+    # elimination (HONO)
+    _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
+    # BIMOLECULAR
+    # hydrogen abstraction
+    _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
+    # hydrogen abstraction (sigma)
+    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
     # hydrogen abstraction (radical radical)
     _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
     # addition
