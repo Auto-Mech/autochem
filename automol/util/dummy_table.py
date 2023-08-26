@@ -28,9 +28,9 @@ using a two-step process:
         for dummy_key, parent_key in ins_dct.items():
             <Insert an atom connected to `parent_key` with key `dummy_key`>
 """
-from typing import Dict, List, NoneType, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
-Key = Union[int, NoneType]
+Key = Union[int, None]
 DummyTableRow = Tuple[Key, Key, Key]
 DummyTable = List[DummyTableRow]
 

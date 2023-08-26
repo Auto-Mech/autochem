@@ -75,7 +75,7 @@ def linear_atom_keys(rxn: Reaction, zma=None):
         if zma is not None:
             lin_keys = automol.zmat.linear_atom_keys(zma)
         else:
-            lin_keys = automol.graph.linear_atom_keys(tsg)
+            lin_keys = tuple(sorted(automol.graph.linear_atom_keys(tsg)))
         return lin_keys
 
     function_dct = {

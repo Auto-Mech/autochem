@@ -3,47 +3,59 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
+from typing import List
+
 import numpy
+
+from automol.graph.base._0core import (
+    atom_bond_counts,
+    atom_keys,
+    atom_lone_pairs,
+    atom_unpaired_electrons,
+    atoms,
+    atoms_bond_keys,
+    atoms_neighbor_atom_keys,
+    bond_keys,
+    bond_orders,
+    bond_stereo_keys,
+    bond_unpaired_electrons,
+    dummy_atoms_neighbor_atom_key,
+    has_atom_stereo,
+    implicit,
+    is_ts_graph,
+    set_bond_orders,
+    subgraph,
+    tetrahedral_atom_keys,
+    ts_breaking_bond_keys,
+    ts_forming_bond_keys,
+    ts_reacting_atom_keys,
+    ts_reagents_graph_without_stereo,
+    ts_transferring_atoms,
+    without_dummy_atoms,
+    without_pi_bonds,
+)
+from automol.graph.base._2algo import (
+    branches,
+    connected_components,
+    connected_components_atom_keys,
+    rings_atom_keys,
+)
 from automol.util import dict_
-from automol.graph.base._0core import subgraph
-from automol.graph.base._0core import implicit
-from automol.graph.base._0core import atoms
-from automol.graph.base._0core import atom_keys
-from automol.graph.base._0core import bond_keys
-from automol.graph.base._0core import bond_orders
-from automol.graph.base._0core import bond_stereo_keys
-from automol.graph.base._0core import set_bond_orders
-from automol.graph.base._0core import atom_unpaired_electrons
-from automol.graph.base._0core import bond_unpaired_electrons
-from automol.graph.base._0core import atoms_neighbor_atom_keys
-from automol.graph.base._0core import atoms_bond_keys
-from automol.graph.base._0core import atom_bond_counts
-from automol.graph.base._0core import atom_lone_pairs
-from automol.graph.base._0core import dummy_atoms_neighbor_atom_key
-from automol.graph.base._0core import without_pi_bonds
-from automol.graph.base._0core import without_dummy_atoms
-from automol.graph.base._0core import ts_reagents_graph_without_stereo
-from automol.graph.base._0core import has_atom_stereo
-from automol.graph.base._0core import is_ts_graph
-from automol.graph.base._0core import tetrahedral_atom_keys
-from automol.graph.base._2algo import branches
-from automol.graph.base._2algo import connected_components
-from automol.graph.base._2algo import connected_components_atom_keys
 
 
 # # core functions
 def kekule(gra, max_stereo_overlap=True):
-    """ One low-spin kekule graph, ignoring current bond orders
+    """One low-spin kekule graph, ignoring current bond orders
 
-        Low-spin kekule graphs have double and triple bonds assigned to
-        minimize the number of unpaired electrons.
+    Low-spin kekule graphs have double and triple bonds assigned to
+    minimize the number of unpaired electrons.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param max_stereo_overlap: optionally, request as many stereo bonds as
-            possible to have a bond order of 2
-        :type max_stereo_overlap: bool
-        :returns: a kekule graph
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param max_stereo_overlap: optionally, request as many stereo bonds as
+        possible to have a bond order of 2
+    :type max_stereo_overlap: bool
+    :returns: a kekule graph
     """
     ste_bnd_keys = bond_stereo_keys(gra)
 
@@ -62,14 +74,14 @@ def kekule(gra, max_stereo_overlap=True):
 
 
 def kekules(gra):
-    """ All possible low-spin kekule graphs, ignoring current bond orders
+    """All possible low-spin kekule graphs, ignoring current bond orders
 
-        Low-spin kekule graphs have double and triple bonds assigned to
-        minimize the number of unpaired electrons.
+    Low-spin kekule graphs have double and triple bonds assigned to
+    minimize the number of unpaired electrons.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: all possible low-spin kekule graphs
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: all possible low-spin kekule graphs
     """
     orig_gra = gra
     bnd_ord_dcts = kekules_bond_orders(gra)
@@ -81,23 +93,23 @@ def kekules(gra):
 
 
 def kekule_bond_orders(gra, max_stereo_overlap=True):
-    """ Bond orders for one low-spin kekule graph
+    """Bond orders for one low-spin kekule graph
 
-        Low-spin kekule graphs have double and triple bonds assigned to
-        minimize the number of unpaired electrons.
+    Low-spin kekule graphs have double and triple bonds assigned to
+    minimize the number of unpaired electrons.
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param max_stereo_overlap: optionally, request as many stereo bonds as
-            possible to have a bond order of 2
-        :type max_stereo_overlap: bool
-        :returns: a bond order dictionary
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param max_stereo_overlap: optionally, request as many stereo bonds as
+        possible to have a bond order of 2
+    :type max_stereo_overlap: bool
+    :returns: a bond order dictionary
     """
     return bond_orders(kekule(gra, max_stereo_overlap=max_stereo_overlap))
 
 
 def kekules_bond_orders(gra):
-    """ Bond orders for all possible low-spin kekule graphs
+    """Bond orders for all possible low-spin kekule graphs
 
     Low-spin kekule graphs have double and triple bonds assigned to
     minimize the number of unpaired electrons.
@@ -116,7 +128,8 @@ def kekules_bond_orders(gra):
     pi_keys_lst = pi_system_atom_keys(gra)
     pi_bord_dcts_lst = [
         pi_system_kekules_bond_orders_brute_force(gra, pi_keys)
-        for pi_keys in pi_keys_lst]
+        for pi_keys in pi_keys_lst
+    ]
 
     bnd_ord_dcts = []
     # combine the kekules from each pi system together in all possible ways
@@ -135,7 +148,7 @@ def kekules_bond_orders(gra):
 
 
 def kekules_bond_orders_collated(gra):
-    """ Bond orders for all possible low-spin kekule graphs, collated into a
+    """Bond orders for all possible low-spin kekule graphs, collated into a
     single dictionary
 
     For TS graphs, collates possible bond orders from both reactants and
@@ -147,34 +160,39 @@ def kekules_bond_orders_collated(gra):
     :rtype: tuple[dict]
     """
     if is_ts_graph(gra):
-        gras = [ts_reagents_graph_without_stereo(gra, prod=False),
-                ts_reagents_graph_without_stereo(gra, prod=True)]
+        gras = [
+            ts_reagents_graph_without_stereo(gra, prod=False),
+            ts_reagents_graph_without_stereo(gra, prod=True),
+        ]
     else:
         gras = [gra]
 
     bnd_keys = list(bond_keys(gra))
-    bnd_ords_lst = list(dict_.values_by_key(d, bnd_keys, fill_val=0)
-                        for g in gras for d in kekules_bond_orders(g))
+    bnd_ords_lst = list(
+        dict_.values_by_key(d, bnd_keys, fill_val=0)
+        for g in gras
+        for d in kekules_bond_orders(g)
+    )
     bnd_ords_dct = dict(zip(bnd_keys, zip(*bnd_ords_lst)))
     return bnd_ords_dct
 
 
 def kekules_bond_orders_averaged(gra):
-    """ Bond orders for all possible low-spin kekule graphs, averaged
+    """Bond orders for all possible low-spin kekule graphs, averaged
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: bond orders for all possible low-spin kekule graphs
-        :rtype: tuple[dict]
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: bond orders for all possible low-spin kekule graphs
+    :rtype: tuple[dict]
     """
     bnd_ords_dct = kekules_bond_orders_collated(gra)
-    avg_bnd_ord_dct = {k: sum(v)/len(v) for k, v in bnd_ords_dct.items()}
+    avg_bnd_ord_dct = {k: sum(v) / len(v) for k, v in bnd_ords_dct.items()}
     return avg_bnd_ord_dct
 
 
 # # derived properties
 def linear_atom_keys(gra, dummy=True):
-    """ Atoms forming linear bonds, based on their hybridization
+    """Atoms forming linear bonds, based on their hybridization
 
     For TS graphs, includes atoms that are linear for *either* the reactants
     *or* the products. This both simplifies the way Reaction objects can be
@@ -190,12 +208,13 @@ def linear_atom_keys(gra, dummy=True):
     """
     ts_ = is_ts_graph(gra)
     if ts_:
-        gras = [ts_reagents_graph_without_stereo(gra, prod=False),
-                ts_reagents_graph_without_stereo(gra, prod=True)]
+        gras = [
+            ts_reagents_graph_without_stereo(gra, prod=False),
+            ts_reagents_graph_without_stereo(gra, prod=True),
+        ]
     else:
         gras = [gra]
 
-    # Since we are taking intersections, we start from a list of all atoms
     lin_atm_keys = set()
     for gra_ in gras:
         gra_ = ts_reagents_graph_without_stereo(gra_)
@@ -207,17 +226,17 @@ def linear_atom_keys(gra, dummy=True):
         dum_ngb_key_dct = dummy_atoms_neighbor_atom_key(gra)
         lin_atm_keys |= set(dum_ngb_key_dct.values())
 
-    lin_atm_keys = tuple(sorted(lin_atm_keys))
-    return lin_atm_keys
+    if ts_:
+        lin_atm_keys |= ts_linear_reacting_atom_keys(gra, ring=False)
+
+    return frozenset(lin_atm_keys)
 
 
 def linear_segments_atom_keys(gra, lin_keys=None):
-    """ atom keys for linear segments in the graph
-    """
+    """atom keys for linear segments in the graph"""
     ngb_keys_dct = atoms_neighbor_atom_keys(without_dummy_atoms(gra))
 
-    lin_keys = (linear_atom_keys(gra, dummy=True)
-                if lin_keys is None else lin_keys)
+    lin_keys = linear_atom_keys(gra, dummy=True) if lin_keys is None else lin_keys
 
     lin_keys = [k for k in lin_keys if len(ngb_keys_dct[k]) <= 2]
 
@@ -227,19 +246,22 @@ def linear_segments_atom_keys(gra, lin_keys=None):
     for lin_seg in lin_segs:
         lin_seg_keys = atom_keys(lin_seg)
         if len(lin_seg_keys) == 1:
-            key, = lin_seg_keys
+            (key,) = lin_seg_keys
             lin_keys_lst.append([key])
         else:
-            end_key1, end_key2 = sorted([
-                key for key, ngb_keys in
-                atoms_neighbor_atom_keys(lin_seg).items()
-                if len(ngb_keys) == 1])
+            end_key1, end_key2 = sorted(
+                [
+                    key
+                    for key, ngb_keys in atoms_neighbor_atom_keys(lin_seg).items()
+                    if len(ngb_keys) == 1
+                ]
+            )
             ngb_keys_dct = atoms_neighbor_atom_keys(lin_seg)
 
             key = None
             keys = [end_key1]
             while key != end_key2:
-                key, = ngb_keys_dct[keys[-1]] - set(keys)
+                (key,) = ngb_keys_dct[keys[-1]] - set(keys)
                 keys.append(key)
             lin_keys_lst.append(keys)
 
@@ -248,38 +270,34 @@ def linear_segments_atom_keys(gra, lin_keys=None):
 
 
 def atom_hybridizations(gra):
-    """ resonance-dominant atom hybridizations, by atom
-    """
+    """resonance-dominant atom hybridizations, by atom"""
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
     atm_hybs_by_res = [
         dict_.values_by_key(atom_hybridizations_from_kekule(g), atm_keys)
-        for g in kekules(gra)]
+        for g in kekules(gra)
+    ]
     atm_hybs = [min(hybs) for hybs in zip(*atm_hybs_by_res)]
     atm_hyb_dct = dict(zip(atm_keys, atm_hybs))
     return atm_hyb_dct
 
 
 def atom_hybridizations_from_kekule(gra):
-    """ atom hybridizations, by atom
-    """
+    """atom hybridizations, by atom"""
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
     atm_unsat_dct = atom_unpaired_electrons(gra, bond_order=True)
-    atm_bnd_vlc_dct = atom_bond_counts(gra, bond_order=False)     # note!!
-    atm_unsats = numpy.array(
-        dict_.values_by_key(atm_unsat_dct, atm_keys))
+    atm_bnd_vlc_dct = atom_bond_counts(gra, bond_order=False)  # note!!
+    atm_unsats = numpy.array(dict_.values_by_key(atm_unsat_dct, atm_keys))
     atm_bnd_vlcs = numpy.array(dict_.values_by_key(atm_bnd_vlc_dct, atm_keys))
-    atm_lpcs = numpy.array(
-        dict_.values_by_key(atom_lone_pairs(gra), atm_keys))
+    atm_lpcs = numpy.array(dict_.values_by_key(atom_lone_pairs(gra), atm_keys))
     atm_hybs = atm_unsats + atm_bnd_vlcs + atm_lpcs - 1
-    atm_hyb_dct = dict_.transform_values(
-        dict(zip(atm_keys, atm_hybs)), int)
+    atm_hyb_dct = dict_.transform_values(dict(zip(atm_keys, atm_hybs)), int)
     return atm_hyb_dct
 
 
-def radical_atom_keys(gra, sing_res=False, min_valence=1.):
-    """ Radical atom keys for this molecular graph
+def radical_atom_keys(gra, sing_res=False, min_valence=1.0):
+    """Radical atom keys for this molecular graph
 
     Radical atoms are based on the lowest-spin resonance structures for this
     graph. If the `sing_res` flag is set, a single low-spin resonance
@@ -306,22 +324,25 @@ def radical_atom_keys(gra, sing_res=False, min_valence=1.):
 
     if sing_res:
         atm_rad_vlcs = dict_.values_by_key(
-            atom_unpaired_electrons(kekule(gra)), atm_keys)
+            atom_unpaired_electrons(kekule(gra)), atm_keys
+        )
     else:
         atm_rad_vlcs_by_res = [
             dict_.values_by_key(atom_unpaired_electrons(dom_gra), atm_keys)
-            for dom_gra in kekules(gra)]
-        atm_rad_vlcs = [
-            max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
+            for dom_gra in kekules(gra)
+        ]
+        atm_rad_vlcs = [max(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
 
-    atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
-                             in zip(atm_keys, atm_rad_vlcs)
-                             if atm_rad_vlc >= min_valence)
+    atm_rad_keys = frozenset(
+        atm_key
+        for atm_key, atm_rad_vlc in zip(atm_keys, atm_rad_vlcs)
+        if atm_rad_vlc >= min_valence
+    )
     return atm_rad_keys
 
 
-def radical_atom_keys_from_kekule(gra, min_valence=1.):
-    """ Radical atom keys for a particular kekule graph
+def radical_atom_keys_from_kekule(gra, min_valence=1.0):
+    """Radical atom keys for a particular kekule graph
 
     Assumes the graph already has assigned bond orders
 
@@ -336,31 +357,32 @@ def radical_atom_keys_from_kekule(gra, min_valence=1.):
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
 
-    atm_rad_vlcs = dict_.values_by_key(
-        atom_unpaired_electrons(gra), atm_keys)
+    atm_rad_vlcs = dict_.values_by_key(atom_unpaired_electrons(gra), atm_keys)
 
-    atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
-                             in zip(atm_keys, atm_rad_vlcs)
-                             if atm_rad_vlc >= min_valence)
+    atm_rad_keys = frozenset(
+        atm_key
+        for atm_key, atm_rad_vlc in zip(atm_keys, atm_rad_vlcs)
+        if atm_rad_vlc >= min_valence
+    )
     return atm_rad_keys
 
 
 def nonresonant_radical_atom_keys(gra):
-    """ keys for radical atoms that are not in resonance
-    """
+    """keys for radical atoms that are not in resonance"""
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_keys = list(atom_keys(gra))
     atm_rad_vlcs_by_res = [
-        dict_.values_by_key(atom_unpaired_electrons(g), atm_keys)
-        for g in kekules(gra)]
+        dict_.values_by_key(atom_unpaired_electrons(g), atm_keys) for g in kekules(gra)
+    ]
     atm_rad_vlcs = [min(rad_vlcs) for rad_vlcs in zip(*atm_rad_vlcs_by_res)]
-    atm_rad_keys = frozenset(atm_key for atm_key, atm_rad_vlc
-                             in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc)
+    atm_rad_keys = frozenset(
+        atm_key for atm_key, atm_rad_vlc in zip(atm_keys, atm_rad_vlcs) if atm_rad_vlc
+    )
     return atm_rad_keys
 
 
 def vinyl_radical_atom_bond_keys(gra):
-    """ Vinyl radical atom keys for this molecular graph
+    """Vinyl radical atom keys for this molecular graph
 
     :param gra: the molecular graph
     :returns: the vinyl radical atom keys
@@ -380,7 +402,7 @@ def vinyl_radical_atom_bond_keys(gra):
 
 
 def sigma_radical_atom_bond_keys(gra):
-    """ keys for sigma radical atoms
+    """keys for sigma radical atoms
 
     :param gra: the molecular graph
     :returns: the sigma radical atom keys
@@ -400,7 +422,7 @@ def sigma_radical_atom_bond_keys(gra):
 
 
 def vinyl_radical_atom_keys(gra):
-    """ Vinyl radical atom keys for this molecular graph
+    """Vinyl radical atom keys for this molecular graph
 
     :param gra: the molecular graph
     :returns: the vinyl radical atom keys
@@ -410,7 +432,7 @@ def vinyl_radical_atom_keys(gra):
 
 
 def sigma_radical_atom_keys(gra):
-    """ keys for sigma radical atoms
+    """keys for sigma radical atoms
 
     :param gra: the molecular graph
     :returns: the sigma radical atom keys
@@ -419,8 +441,98 @@ def sigma_radical_atom_keys(gra):
     return frozenset(sigma_radical_atom_bond_keys(gra))
 
 
+def ts_reacting_electron_direction(tsg, key: int):
+    """Determine the reacting electron direction at one end of a forming bond
+
+    Does *not* account for stereochemistry
+
+    The direction is determined as follows:
+        1. One bond, defining the 'x' axis direction
+        2. Another bond, defining the 'y' axis direction
+        3. An angle, describing how far to rotate the 'x' axis bond about a right-handed
+        'z'-axis in order to arrive at the appropriate direction
+
+    The 'y'-axis bond is `None` if the direction is parallel or antiparallel
+    to the 'x'-axis bond, or if the orientation doesn't matter.
+
+    Both bonds are `None` if the direction is perpendicular to the 'x-y' plane.
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key: The key of a bond-forming atom
+    :type key: int
+    :returns: Two directed bond keys (x and y, respectively) and an angle
+    :rtype: (Tuple[int, int], Tuple[int, int], float)
+    """
+    assert key in ts_reacting_atom_keys(tsg), f"Atom {key} is not a reacting atom:{tsg}"
+    rcts_gra = ts_reagents_graph_without_stereo(tsg)
+    tra_dct = ts_transferring_atoms(tsg)
+    nkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
+    vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
+    sig_dct = sigma_radical_atom_bond_keys(rcts_gra)
+
+    if key in tra_dct:
+        # key1 = transferring atom key
+        # key2 = donor atom
+        dkey, _ = tra_dct[key]
+        xbnd_key = (key, dkey)
+        ybnd_key = None
+        phi = numpy.pi
+    elif key in vin_dct:
+        # key1 = this key
+        # key2 = opposite end of the vinyl bond
+        (opp_key,) = vin_dct[key] - {key}
+        nkey = next(iter(nkeys_dct[key] - {key, opp_key}), None)
+        xbnd_key = (key, opp_key)
+        ybnd_key = None if nkey is None else (key, nkey)
+        phi = 4.0 * numpy.pi / 3.0
+    elif key in sig_dct:
+        # key1 = attacking atom key
+        # key2 = neighbor
+        (nkey,) = sig_dct[key] - {key}
+        xbnd_key = (key, nkey)
+        ybnd_key = None
+        phi = numpy.pi
+    else:
+        xbnd_key = None
+        ybnd_key = None
+        phi = None
+
+    return xbnd_key, ybnd_key, phi
+
+
+def ts_linear_reacting_atom_keys(
+    tsg, breaking: bool = True, ring: bool = False
+) -> List[int]:
+    """Identify linear reacting atoms in a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param breaking: Include breaking bonds?; default `True`
+    :type breaking: bool, optional
+    :param ring: Include atoms in rings?; default `False`
+    :type ring: bool, optional
+    :returns: `True` if it is, `False` if it isn't
+    :rtype: bool
+    """
+    keys = set(itertools.chain(*ts_forming_bond_keys(tsg)))
+    if breaking:
+        keys |= set(itertools.chain(*ts_breaking_bond_keys(tsg)))
+
+    if not ring:
+        keys -= set(itertools.chain(*rings_atom_keys(tsg)))
+
+    lin_keys = set()
+    for key in keys:
+        _, _, phi = ts_reacting_electron_direction(tsg, key)
+        if phi is not None and numpy.allclose(phi, numpy.pi):
+            lin_keys.add(key)
+
+    return frozenset(lin_keys)
+
+
 def has_separated_radical_sites(gra):
-    """ does this radical have two or more separated radical sites?
+    """does this radical have two or more separated radical sites?
 
     The identification is performed based on one of its lowest-spin resonance
     structures. It shouldn't matter which of the low-spin resonance structures
@@ -437,10 +549,10 @@ def has_separated_radical_sites(gra):
 
 
 def resonance_bond_stereo_keys(gra):
-    """ does this graph have stereo at a resonance bond?
+    """does this graph have stereo at a resonance bond?
 
-        :param gra: the molecular graph
-        :rtype: bool
+    :param gra: the molecular graph
+    :rtype: bool
     """
     ste_bnd_keys = bond_stereo_keys(gra)
     res_bnd_ords_dct = kekules_bond_orders_collated(gra)
@@ -455,10 +567,10 @@ def resonance_bond_stereo_keys(gra):
 
 
 def vinyl_bond_stereo_keys(gra):
-    """ does this graph have stereo at a resonance bond?
+    """does this graph have stereo at a resonance bond?
 
-        :param gra: the molecular graph
-        :rtype: bool
+    :param gra: the molecular graph
+    :rtype: bool
     """
     ste_bnd_keys = bond_stereo_keys(gra)
     vin_atm_keys = vinyl_radical_atom_keys(gra)
@@ -472,29 +584,29 @@ def vinyl_bond_stereo_keys(gra):
 
 
 def has_resonance_bond_stereo(gra):
-    """ does this graph have stereo at a resonance bond?
+    """does this graph have stereo at a resonance bond?
 
-        :param gra: the molecular graph
-        :rtype: bool
+    :param gra: the molecular graph
+    :rtype: bool
     """
     return bool(resonance_bond_stereo_keys(gra))
 
 
 def has_vinyl_bond_stereo(gra):
-    """ does this graph have stereo at a vinyl bond?
+    """does this graph have stereo at a vinyl bond?
 
-        :param gra: the molecular graph
-        :rtype: bool
+    :param gra: the molecular graph
+    :rtype: bool
     """
     return bool(vinyl_bond_stereo_keys(gra))
 
 
 def has_nonkekule_bond_stereo(gra):
-    """ does this graph have stereo at a resonance bond that cannot be
-        represented as a double bond in a kekule structure?
+    """does this graph have stereo at a resonance bond that cannot be
+    represented as a double bond in a kekule structure?
 
-        :param gra: the molecular graph
-        :rtype: bool
+    :param gra: the molecular graph
+    :rtype: bool
     """
     ste_bnd_keys = bond_stereo_keys(gra)
     bnd_ord_dcts = kekules_bond_orders(gra)
@@ -508,19 +620,20 @@ def has_nonkekule_bond_stereo(gra):
 
 
 def has_noninchi_stereo(gra):
-    """ does this graph have stereo that cannot be captured by an InChI string?
+    """does this graph have stereo that cannot be captured by an InChI string?
 
-        :param gra: the molecular graph
-        :rtype: bool
+    :param gra: the molecular graph
+    :rtype: bool
     """
-    return (has_nonkekule_bond_stereo(gra) or
-            has_vinyl_bond_stereo(gra) or
-            has_atom_stereo(gra, symb='N'))
+    return (
+        has_nonkekule_bond_stereo(gra)
+        or has_vinyl_bond_stereo(gra)
+        or has_atom_stereo(gra, symb="N")
+    )
 
 
 def radical_groups(gra):
-    """ returns a list of lists of groups attached each radical
-    """
+    """returns a list of lists of groups attached each radical"""
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
 
     groups = []
@@ -531,8 +644,7 @@ def radical_groups(gra):
 
 
 def radical_group_dct(gra):
-    """ return a dictionary of lists of groups attached each radical
-    """
+    """return a dictionary of lists of groups attached each radical"""
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
 
     groups = {}
@@ -549,7 +661,7 @@ def radical_group_dct(gra):
 
 
 def rigid_planar_bond_keys(gra):
-    """ Get keys to stereo candidate bonds, which will be stereogenic if their
+    """Get keys to stereo candidate bonds, which will be stereogenic if their
     groups are distinct on either side
 
     Bonds will be considered stereo candidates if they are rigid and planar,
@@ -573,8 +685,10 @@ def rigid_planar_bond_keys(gra):
     """
     ts_ = is_ts_graph(gra)
     if ts_:
-        gras = [ts_reagents_graph_without_stereo(gra, prod=False),
-                ts_reagents_graph_without_stereo(gra, prod=True)]
+        gras = [
+            ts_reagents_graph_without_stereo(gra, prod=False),
+            ts_reagents_graph_without_stereo(gra, prod=True),
+        ]
     else:
         gras = [gra]
 
@@ -582,7 +696,8 @@ def rigid_planar_bond_keys(gra):
     for gra_ in gras:
         gra_ = without_pi_bonds(gra_)
         double_bnd_keys = dict_.keys_by_value(
-            kekules_bond_orders_collated(gra_), lambda x: 2 in x)
+            kekules_bond_orders_collated(gra_), lambda x: 2 in x
+        )
 
         # make sure both ends are sp^2 (excludes cumulenes)
         atm_hyb_dct = atom_hybridizations(gra_)
@@ -591,14 +706,13 @@ def rigid_planar_bond_keys(gra):
 
     if ts_:
         tet_atm_keys = tetrahedral_atom_keys(gra)
-        rp_bnd_keys = frozenset({k for k in rp_bnd_keys
-                                 if k != k & tet_atm_keys})
+        rp_bnd_keys = frozenset({k for k in rp_bnd_keys if k != k & tet_atm_keys})
 
     return rp_bnd_keys
 
 
 def atom_centered_cumulene_keys(gra):
-    """ resonance dominant keys for atom-centered cumulenes
+    """resonance dominant keys for atom-centered cumulenes
 
     the bond-centered cumulenes are described by
         (frozenset({end_atm_key1, end_atm_key2}), cent_atm_key)
@@ -612,15 +726,14 @@ def atom_centered_cumulene_keys(gra):
         size = len(cum_chain)
         if size % 2 == 1:
             cum_keys.add(
-                (frozenset({cum_chain[0], cum_chain[-1]}),
-                 cum_chain[size // 2])
+                (frozenset({cum_chain[0], cum_chain[-1]}), cum_chain[size // 2])
             )
     cum_keys = frozenset(cum_keys)
     return cum_keys
 
 
 def bond_centered_cumulene_keys(gra):
-    """ resonance dominant keys for bond-centered cumulenes
+    """resonance dominant keys for bond-centered cumulenes
 
     the bond-centered cumulenes are described by
         (frozenset({end_atm_key1, end_atm_key2}),
@@ -635,8 +748,10 @@ def bond_centered_cumulene_keys(gra):
         size = len(cum_chain)
         if size % 2 == 0:
             cum_keys.add(
-                (frozenset({cum_chain[0], cum_chain[-1]}),
-                 frozenset({cum_chain[size // 2 - 1], cum_chain[size // 2]}))
+                (
+                    frozenset({cum_chain[0], cum_chain[-1]}),
+                    frozenset({cum_chain[size // 2 - 1], cum_chain[size // 2]}),
+                )
             )
     cum_keys = frozenset(cum_keys)
     return cum_keys
@@ -644,48 +759,48 @@ def bond_centered_cumulene_keys(gra):
 
 # # helpers
 def pi_system_atom_keys(gra):
-    """ Extract keys for each closed, connected pi-system of a molecule
+    """Extract keys for each closed, connected pi-system of a molecule
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :returns: keys for each closed, connected pi system
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: keys for each closed, connected pi system
     """
     atm_unsat_dct = atom_unpaired_electrons(gra, bond_order=False)
     all_pi_keys = dict_.keys_by_value(atm_unsat_dct)
     pi_keys_lst = tuple(
-        ks for ks in
-        connected_components_atom_keys(subgraph(gra, all_pi_keys))
-        if len(ks) > 1)
+        ks
+        for ks in connected_components_atom_keys(subgraph(gra, all_pi_keys))
+        if len(ks) > 1
+    )
     return pi_keys_lst
 
 
 def pi_system_kekules_bond_orders_brute_force(gra, pi_keys, log=False):
-    """ Determine kekules for a closed, connected pi-system
+    """Determine kekules for a closed, connected pi-system
 
-        A general brute-force algorithm
+    A general brute-force algorithm
 
-        :param gra: molecular graph
-        :type gra: automol graph data structure
-        :param pi_keys: keys of an closed, connected pi system
-        :type pi_keys: frozenset[int]
-        :param log: print a debugging log of the number of recursive calls?
-        :type log: bool
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pi_keys: keys of an closed, connected pi system
+    :type pi_keys: frozenset[int]
+    :param log: print a debugging log of the number of recursive calls?
+    :type log: bool
     """
     pi_sy = subgraph(gra, pi_keys)
     atm_keys = list(atom_keys(pi_sy))
     bnd_keys = list(bond_keys(pi_sy))
 
-    aus_dct = dict_.by_key(
-        atom_unpaired_electrons(gra, bond_order=False), atm_keys)
-    bus_dct = dict_.by_key(
-        bond_unpaired_electrons(gra, bond_order=False), bnd_keys)
+    aus_dct = dict_.by_key(atom_unpaired_electrons(gra, bond_order=False), atm_keys)
+    bus_dct = dict_.by_key(bond_unpaired_electrons(gra, bond_order=False), bnd_keys)
 
     spin_max = spin_min = sum(aus_dct.values())
 
     # Allows no more than 2 copies of a given key in the pool, to prohibit
     # quadruple bonding for [C][C]
-    bnd_pool = list(itertools.chain(*(
-        itertools.repeat(k, min(bus_dct[k], 2)) for k in bnd_keys)))
+    bnd_pool = list(
+        itertools.chain(*(itertools.repeat(k, min(bus_dct[k], 2)) for k in bnd_keys))
+    )
 
     bnd_ord_dcts = []
     niter = 0
@@ -699,8 +814,7 @@ def pi_system_kekules_bond_orders_brute_force(gra, pi_keys, log=False):
             niter += 1
 
             akeys = list(itertools.chain(*bkeys))
-            excess = next(
-                (k for k in set(akeys) if aus_dct[k] < akeys.count(k)), None)
+            excess = next((k for k in set(akeys) if aus_dct[k] < akeys.count(k)), None)
             if excess is None:
                 spin_min = spin
                 bnd_ord_dct = {k: 1 + bkeys.count(k) for k in set(bkeys)}
@@ -726,7 +840,7 @@ def _cumulene_chains(gra):
         next_atm_keys = atm_ngb_keys_dct[atm_key] - {chain[-2]}
         if next_atm_keys:
             assert len(next_atm_keys) == 1
-            next_atm_key, = next_atm_keys
+            (next_atm_key,) = next_atm_keys
             if next_atm_key in sp1_atm_keys:
                 chain.append(next_atm_key)
                 ret = _cumulene_chain(chain)
@@ -748,7 +862,7 @@ def _cumulene_chains(gra):
     return cum_chains
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # # C=C[CH2]
     # GRA = ({0: ('C', 2, None), 1: ('C', 1, None), 2: ('C', 2, None)},
     #        {frozenset({0, 1}): (1, None), frozenset({1, 2}): (1, None)})
@@ -884,16 +998,34 @@ if __name__ == '__main__':
     #        {frozenset({0, 1}): (1, None)})
 
     # [CH]=CCC#CC1C=CC=CC=1
-    GRA = ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 2, None),
-            3: ('C', 1, None), 4: ('C', 0, None), 5: ('C', 1, None),
-            6: ('C', 1, None), 7: ('C', 0, None), 8: ('C', 1, None),
-            9: ('C', 1, None), 10: ('C', 0, None)},
-           {frozenset({9, 6}): (1, None), frozenset({9, 10}): (1, None),
-            frozenset({10, 7}): (1, None), frozenset({1, 2}): (1, None),
-            frozenset({0, 1}): (1, True), frozenset({3, 6}): (1, None),
-            frozenset({8, 10}): (1, None), frozenset({2, 4}): (1, None),
-            frozenset({3, 5}): (1, None), frozenset({8, 5}): (1, None),
-            frozenset({4, 7}): (1, None)})
+    GRA = (
+        {
+            0: ("C", 1, None),
+            1: ("C", 1, None),
+            2: ("C", 2, None),
+            3: ("C", 1, None),
+            4: ("C", 0, None),
+            5: ("C", 1, None),
+            6: ("C", 1, None),
+            7: ("C", 0, None),
+            8: ("C", 1, None),
+            9: ("C", 1, None),
+            10: ("C", 0, None),
+        },
+        {
+            frozenset({9, 6}): (1, None),
+            frozenset({9, 10}): (1, None),
+            frozenset({10, 7}): (1, None),
+            frozenset({1, 2}): (1, None),
+            frozenset({0, 1}): (1, True),
+            frozenset({3, 6}): (1, None),
+            frozenset({8, 10}): (1, None),
+            frozenset({2, 4}): (1, None),
+            frozenset({3, 5}): (1, None),
+            frozenset({8, 5}): (1, None),
+            frozenset({4, 7}): (1, None),
+        },
+    )
 
     # # C#CC=C
     # GRA = ({0: ('C', 1, None), 1: ('C', 0, None), 2: ('C', 1, None),

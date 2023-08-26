@@ -4,8 +4,6 @@ DEPRECATED (under construction to phase out)
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
-import numpy
-
 import automol.amchi.base  # !!!!
 from automol import util
 from automol.graph.base._0core import (
@@ -15,7 +13,6 @@ from automol.graph.base._0core import (
     bond_stereo_sorted_neighbor_keys,
     has_stereo,
     local_stereo_priorities,
-    nonbackbone_hydrogen_keys,
     set_stereo_parities,
     stereo_parities,
     ts_breaking_bond_keys,
@@ -25,6 +22,7 @@ from automol.graph.base._0core import (
     ts_reacting_bond_keys,
     ts_reagents_graph_without_stereo,
     ts_reverse,
+    ts_transferring_atoms,
     without_dummy_atoms,
     without_reacting_bonds,
 )
@@ -34,8 +32,8 @@ from automol.graph.base._2algo import (
 )
 from automol.graph.base._3kekule import (
     rigid_planar_bond_keys,
-    sigma_radical_atom_bond_keys,
-    vinyl_radical_atom_bond_keys,
+    ts_linear_reacting_atom_keys,
+    ts_reacting_electron_direction,
     vinyl_radical_atom_keys,
 )
 from automol.graph.base._4heur import (
@@ -57,7 +55,10 @@ breaking_bond_keys = ts_breaking_bond_keys
 reacting_bond_keys = ts_reacting_bond_keys
 reacting_atom_keys = ts_reacting_atom_keys
 reverse = ts_reverse
+transferring_atoms = ts_transferring_atoms
 reagents_graph_without_stereo = ts_reagents_graph_without_stereo
+linear_reacting_atom_keys = ts_linear_reacting_atom_keys
+reacting_electron_direction = ts_reacting_electron_direction
 
 
 def has_reacting_ring(tsg) -> bool:
@@ -486,64 +487,3 @@ def plane_keys(tsg, key: int, include_self: bool = True):
         pkeys |= atom_neighbor_atom_keys(rcts_gra, key_)
 
     return frozenset(pkeys)
-
-
-def reacting_electron_direction(tsg, key: int):
-    """Determine the reacting electron direction at one end of a forming bond
-
-    Does *not* account for stereochemistry
-
-    The direction is determined as follows:
-        1. One bond, defining the 'x' axis direction
-        2. Another bond, defining the 'y' axis direction
-        3. An angle, describing how far to rotate the 'x' axis bond about a right-handed
-        'z'-axis in order to arrive at the appropriate direction
-
-    The 'y'-axis bond is `None` if the direction is parallel or antiparallel
-    to the 'x'-axis bond, or if the orientation doesn't matter.
-
-    Both bonds are `None` if the direction is perpendicular to the 'x-y' plane.
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param key: The key of a bond-forming atom
-    :type key: int
-    :returns: Two directed bond keys (x and y, respectively) and an angle
-    :rtype: (Tuple[int, int], Tuple[int, int], float)
-    """
-    frm_key = next((k for k in forming_bond_keys(tsg) if key in k), None)
-    assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
-    rcts_gra = reactants_graph(tsg, stereo=False)
-    hyd_keys = nonbackbone_hydrogen_keys(rcts_gra)
-    nkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
-    vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
-    sig_dct = sigma_radical_atom_bond_keys(rcts_gra)
-
-    if key in hyd_keys:
-        # key1 = H-atom key
-        # key2 = neighbor
-        (nkey,) = nkeys_dct[key]
-        xbnd_key = (key, nkey)
-        ybnd_key = None
-        phi = numpy.pi
-    elif key in vin_dct:
-        # key1 = this key
-        # key2 = opposite end of the vinyl bond
-        (opp_key,) = vin_dct[key] - {key}
-        nkey = next(iter(nkeys_dct[key] - {key, opp_key}), None)
-        xbnd_key = (key, opp_key)
-        ybnd_key = None if nkey is None else (key, nkey)
-        phi = 4.0 * numpy.pi / 3.0
-    elif key in sig_dct:
-        # key1 = attacking atom key
-        # key2 = neighbor
-        (nkey,) = sig_dct[key] - {key}
-        xbnd_key = (key, nkey)
-        ybnd_key = None
-        phi = numpy.pi
-    else:
-        xbnd_key = None
-        ybnd_key = None
-        phi = None
-
-    return xbnd_key, ybnd_key, phi
