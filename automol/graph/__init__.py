@@ -89,8 +89,8 @@ from automol.graph.base._0core import angle_keys
 from automol.graph.base._0core import relabel
 from automol.graph.base._0core import standard_keys
 from automol.graph.base._0core import standard_keys_for_sequence
-from automol.graph.base._0core import relabel_for_zmatrix
-from automol.graph.base._0core import relabel_for_geometry
+from automol.graph.base._0core import apply_dummy_conversion
+from automol.graph.base._0core import reverse_dummy_conversion
 # # add/remove/insert/without
 from automol.graph.base._0core import add_atoms
 from automol.graph.base._0core import add_bonds
@@ -132,7 +132,7 @@ from automol.graph.base._0core import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._0core import atoms_sorted_neighbor_atom_keys
 from automol.graph.base._0core import atom_bond_keys
 from automol.graph.base._0core import atoms_bond_keys
-from automol.graph.base._0core import dummy_atoms_parent_key
+from automol.graph.base._0core import dummy_parent_keys
 from automol.graph.base._0core import bonds_neighbor_atom_keys
 from automol.graph.base._0core import bonds_neighbor_bond_keys
 # algorithm functions:
@@ -398,8 +398,8 @@ __all__ = [
     'relabel',
     'standard_keys',
     'standard_keys_for_sequence',
-    'relabel_for_zmatrix',
-    'relabel_for_geometry',
+    'apply_dummy_conversion',
+    'reverse_dummy_conversion',
     # # add/remove/insert/without
     'add_atoms',
     'add_bonds',
@@ -441,7 +441,7 @@ __all__ = [
     'atoms_sorted_neighbor_atom_keys',
     'atom_bond_keys',
     'atoms_bond_keys',
-    'dummy_atoms_parent_key',
+    'dummy_parent_keys',
     'bonds_neighbor_atom_keys',
     'bonds_neighbor_bond_keys',
     # algorithm functions:

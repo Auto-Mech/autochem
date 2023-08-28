@@ -930,37 +930,29 @@ def test__rotational_bond_keys():
 def test__species__graph_conversion():
     """ test interchanging between graphs aligned by zma and geo
     """
-
-    chi = automol.smiles.chi('CC#CC#CCCCC#CC')
-    geo = automol.chi.geometry(chi)
+    geo = automol.smiles.geometry('CC#CC#CCCCC#CC')
     gra = automol.geom.graph(geo)
 
-    zma, zma_keys, dummy_key_dct = (
-        automol.geom.zmatrix_with_conversion_info(geo))
-    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+    zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
+    zgra = automol.graph.apply_dummy_conversion(gra, dc_)
+    assert zgra != gra
 
-    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
-    ggra = automol.graph.relabel_for_geometry(zgra)
-
-    old_zgra = zgra
-    zgra = automol.graph.shift_insert_dummy_atoms(ggra, gdummy_key_dct)
-    assert zgra == old_zgra
+    geo_ = automol.zmat.geometry(zma, dc_=dc_)
+    gra_ = automol.geom.graph(geo_, stereo=False)
+    assert gra == gra_ == automol.graph.reverse_dummy_conversion(zgra, dc_)
 
     # extra test case from Luna
     ich = 'InChI=1S/C11H8/c1-3-10(4-2)11-8-6-5-7-9-11/h1,5-9H,2H2'
     geo = automol.chi.geometry(ich)
     gra = automol.geom.graph(geo)
 
-    zma, zma_keys, dummy_key_dct = (
-        automol.geom.zmatrix_with_conversion_info(geo))
-    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+    zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
+    zgra = automol.graph.apply_dummy_conversion(gra, dc_)
+    assert zgra != gra
 
-    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
-    ggra = automol.graph.relabel_for_geometry(zgra)
-
-    old_zgra = zgra
-    zgra = automol.graph.shift_insert_dummy_atoms(ggra, gdummy_key_dct)
-    assert zgra == old_zgra
+    geo_ = automol.zmat.geometry(zma, dc_=dc_)
+    gra_ = automol.geom.graph(geo_, stereo=False)
+    assert gra == gra_ == automol.graph.reverse_dummy_conversion(zgra, dc_)
 
 
 # stereo graph library

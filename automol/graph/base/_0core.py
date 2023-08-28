@@ -26,7 +26,7 @@ from phydat import phycon, ptab
 import automol.formula
 import automol.util.dict_.multi as mdict
 from automol import util
-from automol.util import dict_
+from automol.util import dict_, dummy_conv, DummyConv
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1
@@ -1571,61 +1571,40 @@ def standard_keys_for_sequence(gras):
     return gras, atm_key_dcts
 
 
-def relabel_for_zmatrix(gra, zma_keys, dummy_key_dct):
-    """ Relabel a graph to line up keys with a geometry => z-matrix conversion
+def apply_dummy_conversion(gra, dc_: DummyConv):
+    """Apply a dummy conversion (dummy insertion + reordering) to the graph
 
-    The original graph keys should correspond to the geometry that was used to
-    generate the z-matrix. This function will insert the dummy atoms and
-    sort/relabel the graph to match the z-matrix indices.
+    This can be used to match a z-matrix after geometry -> z-matrix conversion.
 
-    Note: This assumes that the conversion was performed using
-    `auotmol.geom.zmatrix`, which returns `zma_keys` and `dummy_key_dct`.
-
-    :param gra: molecular graph
+    :param gra: A molecular graph
     :type gra: automol graph data structure
-    :param zma_keys: graph keys in the order they appear in the z-matrix
-    :type zma_keys: list[int]
-    :param dummy_key_dct: dummy keys introduced on z-matrix conversion, by atom
-        they are attached to
-    :type dummy_key_dct: dict[int: int]
-    :returns: A molecular graph
+    :param dc_: A dummy conversion
+    :type dc_: DummyConv
+    :returns: The transformed graph
     :rtype: automol graph data structure
     """
-    gra = add_dummy_atoms(gra, dummy_key_dct)
-    key_dct = dict(map(reversed, enumerate(zma_keys)))
-    gra = relabel(gra, key_dct)
+    gra = relabel(gra, dummy_conv.relabel_dict(dc_))
+    for dummy_key, parent_key in dummy_conv.insert_dict(dc_).items():
+        gra = add_bonded_atom(gra, 'X', parent_key, dummy_key, bnd_ord=0)
     return gra
 
 
-def relabel_for_geometry(gra):
-    """ Relabel a graph to line up keys with a z-matrix => geometry conversion
+def reverse_dummy_conversion(gra, dc_: DummyConv):
+    """Reverse a dummy conversion (dummy insertion + reordering), recovering the
+    original graph
 
-    The original graph keys should correspond to the z-matrix that was used to
-    generate the geometry. This function will remove dummy atoms and relabel
-    the keys to match.
+    This can be used to match the original geometry after geometry -> z-matrix
+    conversion.
 
-    Note: This assumes that the conversion was performed using
-    `auotmol.zmat.geometry`.
-
-    :param gra: molecular graph
+    :param gra: A molecular graph
     :type gra: automol graph data structure
-    :returns: A molecular graph
+    :param dc_: A dummy conversion
+    :type dc_: DummyConv
+    :returns: The transformed graph
     :rtype: automol graph data structure
     """
-    def _shift_remove_dummy_atom(gra, dummy_key):
-        keys = sorted(atom_keys(gra))
-        idx = keys.index(dummy_key)
-        key_dct = {}
-        key_dct.update({k: k for k in keys[:idx]})
-        key_dct.update({k: k-1 for k in keys[(idx+1):]})
-        gra = remove_atoms(gra, [dummy_key], stereo=True)
-        gra = relabel(gra, key_dct)
-        return gra
-
-    dummy_keys = sorted(atom_keys(gra, symb='X'))
-
-    for dummy_key in reversed(dummy_keys):
-        gra = _shift_remove_dummy_atom(gra, dummy_key)
+    gra = remove_atoms(gra, dummy_conv.insert_dict(dc_))
+    gra = relabel(gra, dummy_conv.relabel_dict(dc_, rev=True))
     return gra
 
 
@@ -1991,7 +1970,7 @@ def shift_remove_dummy_atoms(gra):
         using `shift_insert_dummy_atoms()`
     :rtype: automol graph data structure
     """
-    dummy_ngb_key_dct = dummy_atoms_parent_key(gra)
+    dummy_ngb_key_dct = dummy_parent_keys(gra)
 
     # These lists are used to track how the keys change:
     old_keys = sorted(atom_keys(gra))
@@ -2627,7 +2606,7 @@ def atoms_bond_keys(gra, ts_=True):
     return dict_.transform_values(atm_nbhs, bond_keys)
 
 
-def dummy_atoms_parent_key(gra, ts_=True):
+def dummy_parent_keys(gra, ts_=True):
     """ Get the atoms that are connected to dummy atoms, by dummy atom key
     (Requires that each dummy atom only be connected to one neighbor)
 

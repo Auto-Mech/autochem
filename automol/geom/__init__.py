@@ -118,8 +118,9 @@ from automol.geom._conv import ts_reacting_electron_direction
 from automol.geom._conv import external_symmetry_factor
 from automol.geom._conv import x2z_torsion_coordinate_names
 # # derived operations
-from automol.geom._conv import insert_dummies_on_linear_atoms
-from automol.geom._conv import insert_dummies
+from automol.geom._conv import add_dummies_over_linear_atoms
+from automol.geom._conv import apply_dummy_conversion
+from automol.geom._conv import reverse_dummy_conversion
 from automol.geom._conv import change_zmatrix_row_values
 # extra functions:
 from automol.geom._extra import components_graph
@@ -244,8 +245,9 @@ __all__ = [
     'external_symmetry_factor',
     'x2z_torsion_coordinate_names',
     # # derived operations
-    'insert_dummies_on_linear_atoms',
-    'insert_dummies',
+    'add_dummies_over_linear_atoms',
+    'apply_dummy_conversion',
+    'reverse_dummy_conversion',
     'change_zmatrix_row_values',
     # extra functions:
     'components_graph',

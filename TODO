@@ -24,6 +24,12 @@
         [X] geom/_conv.py
         [X] geom/_pyx2z.py
     [X] Figure out why test_graph.py/test__smiles() is failing
+    [X] Implement dummy transformation tables
+        [X] See failing tests due to zmatrix_with_conversion_info() =>
+        zmatrix_with_dummy_transformation()
+        [X] Replace relabel_for_zmatrix() functions with apply_dummy_transformation() functions
+        [X] Replace relabel_for_geometry() functions with reverse_dummy_transformation() functions
+        [X] Both of the above will take the same `dc_` data structure, returned from zmatrix_with_conversion_info()
     [ ] _5zmat.py
         Strategy:
             - If forming bond is linear, add a dummy atom (currently only sigma abstractions -- use reacting_electron_direction)

@@ -19,6 +19,7 @@ import automol.graph
 import automol.zmat
 from automol import par
 from automol.graph import ts
+from automol.util import dummy_conv, DummyConv
 
 
 @dataclasses.dataclass
@@ -751,29 +752,38 @@ def without_stereo(rxn: Reaction) -> Reaction:
     return rxn
 
 
-def add_dummy_atoms(rxn: Reaction, dummy_key_dct) -> Reaction:
-    """Add dummy atoms to the reactants or products
+def apply_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
+    """Apply a dummy conversion (dummy insertion + reordering) to the reaction
 
-    :param rxn: the reaction object
+    This can be used to match a z-matrix after geometry -> z-matrix conversion
+
+    :param rxn: A reaction object
     :type rxn: Reaction
-    :param dummy_key_dct: Keys of new dummy atoms, by atom that they connect to
-    :type dummy_key_dct: dict[int: int]
-    :returns: A reaction object with dummy atoms added
+    :param dc_: A dummy conversion
+    :type dc_: DummyConv
+    :returns: A transformed reaction object
     :rtype: Reaction
     """
-    tsg = ts_graph(rxn)
-    keys_lst = reactants_keys(rxn)
-
-    tsg = automol.graph.add_dummy_atoms(tsg, dummy_key_dct)
-    keys_lst = list(map(list, keys_lst))
-    for key, dummy_key in dummy_key_dct.items():
-        for keys in keys_lst:
-            if key in keys:
-                keys.append(dummy_key)
-                break
+    # 1. Transform the TS graph
+    tsg = automol.graph.apply_dummy_conversion(ts_graph(rxn), dc_)
+    # 2. Relabel the keys
+    rel_dct = dummy_conv.relabel_dict(dc_)
+    rcts_keys = list(list(map(rel_dct.__getitem__, ks)) for ks in reactants_keys(rxn))
+    prds_keys = list(list(map(rel_dct.__getitem__, ks)) for ks in products_keys(rxn))
+    # 3. Insert the dummy keys in the right places
+    # Temporary solution
+    # Ultimately, I think we will need to have separate dummy conversions for each
+    # reactant and product if we want everything to properly line up
+    ins_dct = dummy_conv.insert_dict(dc_)
+    for dummy_key, parent_key in sorted(ins_dct.items()):
+        rkeys = next(ks for ks in rcts_keys if parent_key in ks)
+        pkeys = next(ks for ks in prds_keys if parent_key in ks)
+        rkeys.append(dummy_key)
+        pkeys.append(dummy_key)
 
     rxn = set_ts_graph(rxn, tsg)
-    rxn = set_reactants_keys(rxn, tuple(map(tuple, keys_lst)))
+    rxn = set_reactants_keys(rxn, rcts_keys)
+    rxn = set_products_keys(rxn, prds_keys)
     return rxn
 
 
@@ -793,7 +803,7 @@ def _insert_dummy_atom(rxn: Reaction, key, dummy_key) -> Reaction:
     tsg = ts_graph(rxn)
     keys = sorted(automol.graph.atom_keys(tsg))
     dummy_key_ = max(keys) + 1
-    rxn = add_dummy_atoms(rxn, {key: dummy_key_})
+    rxn = apply_dummy_conversion(rxn, {key: dummy_key_})
 
     if dummy_key != dummy_key_:
         assert dummy_key in keys
@@ -833,7 +843,7 @@ def relabel_for_zmatrix(rxn: Reaction, zma_keys, dummy_key_dct) -> Reaction:
     :param dummy_key_dct: dummy keys introduced on z-matrix conversion, by atom
         they are attached to
     """
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dummy_key_dct)
     key_dct = dict(map(reversed, enumerate(zma_keys)))
     rxn = relabel(rxn, key_dct)
     return rxn
