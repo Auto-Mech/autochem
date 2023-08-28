@@ -23,7 +23,8 @@ from automol.util import mat
 from automol.util import highd_mat
 from automol.util import dict_
 from automol.util import heuristic
-from automol.util import dummy_trans
+from automol.util import dummy_conv
+from automol.util.dummy_conv import DummyConv
 
 
 __all__ = [
@@ -49,5 +50,6 @@ __all__ = [
     'highd_mat',
     'dict_',
     'heuristic',
-    'dummy_trans',
+    'dummy_conv',
+    'DummyConv',
 ]

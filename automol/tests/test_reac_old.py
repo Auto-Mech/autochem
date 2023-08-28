@@ -831,7 +831,7 @@ def _check_reaction(rxn_obj, ref_class, var,
     # print('scan grid', scan_grid)
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
-    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
+    geo, gdc = automol.zmat.geometry_with_conversion_info(zma)
     grxn = automol.reac.relabel_for_geometry(zrxn)
     # print(automol.geom.string(geo))
 
@@ -875,7 +875,7 @@ def _check_reaction(rxn_obj, ref_class, var,
 
     # Check that zrxn -> grxn -> zrxn conversion holds
     old_zrxn = zrxn
-    zrxn = automol.reac.insert_dummy_atoms(grxn, gdummy_key_dct)
+    zrxn = automol.reac.insert_dummy_atoms(grxn, gdc)
     assert zrxn == old_zrxn
 
 

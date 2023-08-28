@@ -591,10 +591,10 @@ def test__insert_dummies():
     # doesn't contain the dummy atoms in the z-matrix.
 
     # 3. Determine dummy atom keys from the original z-matrix
-    dummy_key_dct = automol.zmat.dummy_key_dictionary(zma)
+    dct = automol.zmat.dummy_conversion(zma)
 
     # 4. Insert dummy atoms to the new geometry at the appropriate positions
-    geo_wdummy = automol.geom.insert_dummies(geo, dummy_key_dct)
+    geo_wdummy = automol.geom.apply_dummy_conversion(geo, dct)
     assert automol.geom.symbols(geo_wdummy) == automol.zmat.symbols(zma)
 
     # 5. Update the z-matrix from the geometry.
@@ -758,5 +758,6 @@ if __name__ == '__main__':
     # test__rotation_properties()
     # test__insert_dummies()
     # test__hydrogen_bonded_structure()
-    test__from_string()
-    test__from_xyz_string()
+    # test__from_string()
+    # test__from_xyz_string()
+    test__insert_dummies()

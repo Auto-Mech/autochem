@@ -629,13 +629,13 @@ def dummy_key_dictionary(zma):
             atoms as values
         :rtype: dict[int: int]
     """
-    dummy_key_dct = dict(map(reversed, dummy_neighbor_keys(zma).items()))
+    dummy_key_dct = dict(map(reversed, dummy_parent_keys(zma).items()))
     return dummy_key_dct
 
 
-def dummy_neighbor_keys(zma):
+def dummy_parent_keys(zma):
     """ Obtain keys to dummy atoms in the Z-Matrix, along with their
-        neighboring atoms.
+        parent atoms.
 
         :param zma: Z-Matrix
         :type zma: automol Z-Matrix data structure
@@ -656,6 +656,20 @@ def dummy_neighbor_keys(zma):
     return key_dct
 
 
+def dummy_conversion(zma):
+    """Get the dummy conversion for this z-matrix, relative to a structure in
+    the same order without dummy atoms
+
+    :param zma: Z-Matrix
+    :type zma: automol Z-Matrix data structure
+    :return: The dummy conversion
+    :rtype: DummyConv
+    """
+    nks = count(zma)
+    kp_dct = dummy_parent_keys(zma)
+    return util.dummy_conv.from_insert_dict(nks, kp_dct)
+
+
 def linear_atom_keys(zma, geom_indexing=False):
     """ Obtain keys to linear atoms in the Z-matrix. Any atom neighboring a
         dummy atom is considered to be linear.
@@ -667,7 +681,7 @@ def linear_atom_keys(zma, geom_indexing=False):
         :returns: the linear atom keys
         :rtype: tuple[int]
     """
-    lin_key_dct = dummy_neighbor_keys(zma)
+    lin_key_dct = dummy_parent_keys(zma)
     lin_keys = tuple(sorted(lin_key_dct.values()))
     if geom_indexing:
         dum_keys = numpy.array(sorted(lin_key_dct.keys()))

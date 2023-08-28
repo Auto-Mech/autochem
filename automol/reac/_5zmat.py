@@ -3,6 +3,7 @@
 import copy
 import automol.geom
 import automol.graph
+from automol.util import dummy_conv
 from automol.par import ReactionClass
 from automol.graph import ts
 from automol.zmat import distance_coordinate_name
@@ -10,7 +11,7 @@ from automol.reac._0core import Reaction
 from automol.reac._0core import ts_graph
 from automol.reac._0core import reactants_keys
 from automol.reac._0core import class_
-from automol.reac._0core import add_dummy_atoms
+from automol.reac._0core import apply_dummy_conversion
 from automol.reac._1util import hydrogen_migration_atom_keys
 from automol.reac._1util import ring_forming_scission_chain
 from automol.reac._1util import elimination_breaking_bond_keys
@@ -35,11 +36,11 @@ def hydrogen_migration_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     # Start the z-matrix from the forming bond ring
@@ -58,7 +59,7 @@ def hydrogen_migration_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    return zma, zma_keys, dc_
 
 
 # 2. Beta scissions
@@ -75,11 +76,11 @@ def beta_scission_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     vma, zma_keys = automol.graph.vmat.vmatrix(ts_graph(rxn))
@@ -87,7 +88,7 @@ def beta_scission_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    return zma, zma_keys, dc_
 
 
 # 3. Ring-forming scissions
@@ -104,11 +105,11 @@ def ring_forming_scission_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     chain_keys = ring_forming_scission_chain(rxn)
@@ -119,7 +120,7 @@ def ring_forming_scission_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    return zma, zma_keys, dc_
 
 
 # 4. Eliminations
@@ -136,11 +137,11 @@ def elimination_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     rng_keys, = ts.forming_rings_atom_keys(ts_graph(rxn))
@@ -165,7 +166,7 @@ def elimination_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    return zma, zma_keys, dc_
 
 
 # Bimolecular reactions
@@ -192,11 +193,11 @@ def hydrogen_abstraction_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     tsg = ts_graph(rxn)
@@ -208,7 +209,8 @@ def hydrogen_abstraction_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    dc_ = dummy_conv.relabel(dc_, dict(map(reversed, enumerate(zma_keys))))
+    return zma, zma_keys, dc_
 
 
 # 2. Additions
@@ -225,11 +227,11 @@ def addition_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     tsg = ts_graph(rxn)
@@ -241,7 +243,7 @@ def addition_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    return zma, zma_keys, dc_
 
 
 # 3. Insertions
@@ -258,11 +260,11 @@ def insertion_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     rng_keys, = ts.forming_rings_atom_keys(ts_graph(rxn))
@@ -288,7 +290,7 @@ def insertion_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    return zma, zma_keys, dc_
 
 
 # 4. Substitutions
@@ -308,11 +310,11 @@ def substitution_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dummy_key_dct = automol.geom.insert_dummies_on_linear_atoms(
+    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
         ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
-    rxn = add_dummy_atoms(rxn, dummy_key_dct)
+    rxn = apply_dummy_conversion(rxn, dc_)
 
     # 4. Generate a z-matrix for the geometry
     tsg = ts_graph(rxn)
@@ -324,7 +326,7 @@ def substitution_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    return zma, zma_keys, dummy_key_dct
+    return zma, zma_keys, dc_
 
 
 def ts_zmatrix(rxn: Reaction, ts_geo):

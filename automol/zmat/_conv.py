@@ -7,7 +7,9 @@ import numpy
 import automol.geom
 import automol.graph
 from automol import util
+from automol.util import DummyConv
 from automol.zmat.base import (
+    dummy_conversion,
     key_matrix,
     name_matrix,
     string,
@@ -27,7 +29,7 @@ def graph(zma, stereo=True, dummy=False):
     :rtype: (automol molecular geometry data structure, dict[int, int])
     """
 
-    geo = geometry_with_dummy_atoms(zma)
+    geo = geometry(zma, dummy=True)
     if not dummy:
         geo = automol.geom.without_dummy_atoms(geo)
     gra = automol.geom.graph(geo, stereo=stereo)
@@ -49,56 +51,23 @@ def graph_without_stereo(zma, dummy=False, dist_factor=None):
     :type dist_factor: float, optional
     """
 
-    geo = geometry_with_dummy_atoms(zma)
-    if not dummy:
-        geo = automol.geom.without_dummy_atoms(geo)
-
+    geo = geometry(zma, dummy=dummy)
     gra = automol.geom.graph_without_stereo(geo, dist_factor=dist_factor)
 
     return gra
 
 
-def geometry(zma, dummy=False):
-    """Convert a Z-Matrix to a molecular geometry, with or without dummy atoms
+def geometry(zma, dummy=False, dc_: DummyConv = None):
+    """Convert a Z-Matrix to a molecular geometry that includes dummy atoms.
 
     :param zma: Z-Matrix
     :type zma: automol Z-Matrix data structure
     :param dummy: include dummy atoms in the geometry?
     :type dummy: bool
+    :param dc_: Restore the original geometry before conversion by reversing the
+        corresponding dummy conversion; defaults to None
+    :type dc_: DummyConv, optional
     :returns: automol molecular geometry data structure
-    """
-    if dummy:
-        geo = geometry_with_dummy_atoms(zma)
-    else:
-        geo, _ = geometry_with_conversion_info(zma)
-
-    return geo
-
-
-def geometry_with_conversion_info(zma):
-    """Convert a Z-Matrix to a molecular geometry that precludes dummy atoms.
-    A dictionary is generated showing how dummy atoms are added:
-
-        dummy_key_dct = {atom_key: dummy_atom_key}
-
-    :param zma: Z-Matrix
-    :type zma: automol Z-Matrix data structure
-    :returns: automol molecular geometry data structure
-    """
-    geo = geometry_with_dummy_atoms(zma)
-    gra = graph_without_stereo(zma, dummy=True)
-    gra, dummy_key_dct = automol.graph.shift_remove_dummy_atoms(gra)
-    geo = automol.geom.without_dummy_atoms(geo)
-
-    return geo, dummy_key_dct
-
-
-def geometry_with_dummy_atoms(zma):
-    """Convert a Z-Matrix to a molecular geometry that includes dummy atoms.
-
-    :param zma: Z-Matrix
-    :type zma: automol Z-Matrix data structure
-    :rtype: automol molecular geometry data structure
     """
 
     syms = symbols(zma)
@@ -118,7 +87,25 @@ def geometry_with_dummy_atoms(zma):
 
     geo = automol.geom.from_data(syms, xyzs)
 
+    if dc_ is not None:
+        geo = automol.geom.reverse_dummy_conversion(geo, dc_)
+    elif not dummy:
+        geo = automol.geom.without_dummy_atoms(geo)
+
     return geo
+
+
+def geometry_with_conversion_info(zma):
+    """Convert a Z-Matrix to a molecular geometry, along with a dummy conversion
+    data structure describing the conversion
+
+    :param zma: Z-Matrix
+    :type zma: automol Z-Matrix data structure
+    :returns: automol molecular geometry data structure
+    """
+    dc_ = dummy_conversion(zma)
+    geo = geometry(zma, dummy=False)
+    return geo, dc_
 
 
 # # derived properties
@@ -134,7 +121,7 @@ def distance(zma, key1, key2, angstrom=False):
     :param angstrom: parameter to control Bohr->Angstrom conversion
     :type angstrom: bool
     """
-    geo = geometry_with_dummy_atoms(zma)
+    geo = geometry(zma, dummy=True)
     return automol.geom.distance(geo, key1, key2, angstrom=angstrom)
 
 
@@ -152,7 +139,7 @@ def central_angle(zma, key1, key2, key3, degree=False):
     :param degree: parameter to control radian->degree conversion
     :type degree: bool
     """
-    geo = geometry_with_dummy_atoms(zma)
+    geo = geometry(zma, dummy=True)
     return automol.geom.central_angle(geo, key1, key2, key3, degree=degree)
 
 
@@ -172,7 +159,7 @@ def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
     :param degree: parameter to control radian->degree conversion
     :type degree: bool
     """
-    geo = geometry_with_dummy_atoms(zma)
+    geo = geometry(zma, dummy=True)
     return automol.geom.dihedral_angle(geo, key1, key2, key3, key4, degree=degree)
 
 

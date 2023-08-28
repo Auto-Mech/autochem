@@ -57,7 +57,8 @@ from automol.zmat.base._core import dihedral_axis_name
 # # dummy atom functions
 from automol.zmat.base._core import dummy_keys
 from automol.zmat.base._core import dummy_key_dictionary
-from automol.zmat.base._core import dummy_neighbor_keys
+from automol.zmat.base._core import dummy_parent_keys
+from automol.zmat.base._core import dummy_conversion
 from automol.zmat.base._core import linear_atom_keys
 from automol.zmat.base._core import shift_down
 from automol.zmat.base._core import shift_up
@@ -123,7 +124,8 @@ __all__ = [
     # # dummy atom functions
     'dummy_keys',
     'dummy_key_dictionary',
-    'dummy_neighbor_keys',
+    'dummy_parent_keys',
+    'dummy_conversion',
     'linear_atom_keys',
     'shift_down',
     'shift_up',
