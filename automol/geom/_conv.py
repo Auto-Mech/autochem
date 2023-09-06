@@ -10,7 +10,7 @@ from phydat import phycon
 
 import automol.amchi.base
 import automol.graph.base
-import automol.graph.vmat
+import automol.graph.base.vmat
 import automol.inchi.base
 import automol.zmat.base
 from automol.extern import molfile, py3dmol_, rdkit_
@@ -178,7 +178,7 @@ def zmatrix_with_conversion_info(geo, gra=None):
     gra = automol.graph.base.apply_dummy_conversion(orig_gra, dc_)
 
     # Generate a v-matrix for the graph and get the z-matrix reordering
-    vma, zma_keys = automol.graph.vmat.vmatrix(gra)
+    vma, zma_keys = automol.graph.base.vmat.vmatrix(gra)
     key_dct = dict(map(reversed, enumerate(zma_keys)))
 
     # Apply the new z-matrix ordering to the dummy conversion data structure

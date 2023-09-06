@@ -1,41 +1,30 @@
 name: autochem-env
 
 channels:
-    - auto-mech
-    - psi4
-    - rdkit
-    - openbabel
     - conda-forge
-    - anaconda
+    - auto-mech
 
 dependencies:
-    - auto-mech::autoio-base
-    - auto-mech::x2z
-    - psi4::psi4
-    - rdkit::rdkit=2020.09.1.0
-    - openbabel::openbabel
-    - conda-forge::python=3.7
-    - conda-forge::numpy=1.15.4
-    - conda-forge::scipy=1.5.0
-    - conda-forge::xarray
-    - conda-forge::more-itertools
-    - conda-forge::pyyaml
-    - conda-forge::mako
-    - conda-forge::networkx
-    - conda-forge::matplotlib
-    - conda-forge::pytest
-    - conda-forge::pytest-cov
-    - conda-forge::future
-    - conda-forge::flake8
-    - conda-forge::pylint
-    - conda-forge::ipython
-    - conda-forge::nglview
-    - conda-forge::py3dmol
-    - conda-forge::qcelemental
-    - conda-forge::cmake=3.20.2
-    - conda-forge::gcc_linux-64=7.5.0
-    - conda-forge::gxx_linux-64=7.5.0
-    - conda-forge::gfortran_linux-64=7.5.0
-    - conda-forge::pyparsing
-    - anaconda::libboost
-    - anaconda::intel-openmp
+    - rdkit
+    - python
+    - numpy
+    - scipy
+    - more-itertools
+    - pyyaml
+    - mako
+    - networkx
+    - matplotlib
+    - pytest
+    - pytest-cov
+    - ruff
+    - pylint
+    - ipython
+    - nglview
+    - py3dmol
+    - qcelemental
+    - cmake
+    - gcc_linux-64
+    - gxx_linux-64
+    - gfortran_linux-64
+    - pyparsing
+

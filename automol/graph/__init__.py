@@ -299,9 +299,13 @@ from automol.graph.base._func_group import bonds_of_order
 from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
-# TS graph submodule:
+# submodules:
 from automol.graph.base import ts
+from automol.graph.base import vmat
 # L4
+# embedding functions:
+from automol.graph._0embed import embed_geometry
+from automol.graph._0embed import clean_geometry
 # conversion functions:
 # # conversions
 from automol.graph._1conv import geometry
@@ -313,9 +317,6 @@ from automol.graph._1conv import rdkit_reaction
 from automol.graph._1conv import display
 from automol.graph._1conv import display_reaction
 from automol.graph._1conv import ipywidget
-# submodules:
-from automol.graph import vmat
-from automol.graph import _0embed
 
 
 __all__ = [
@@ -607,7 +608,11 @@ __all__ = [
     # TS graph submodule:
     'ts_graph',
     'ts',
+    'vmat',
     # L4
+    # embedding functions:
+    'embed_geometry',
+    'clean_geometry',
     # conversion functions:
     # # conversions
     'geometry',
@@ -619,7 +624,4 @@ __all__ = [
     'display',
     'display_reaction',
     'ipywidget',
-    # submodules:
-    'vmat',
-    '_0embed',
 ]
