@@ -36,9 +36,9 @@ from automol.graph.base._0core import atom_symbols
 from automol.graph.base._0core import bond_orders
 from automol.graph.base._0core import atom_implicit_hydrogens
 from automol.graph.base._0core import atom_stereo_parities
-from automol.graph.base._0core import ts_graph
 from automol.graph.base._0core import bond_stereo_parities
 from automol.graph.base._0core import stereo_parities
+from automol.graph.base._0core import ts_graph
 # # setters
 from automol.graph.base._0core import set_atom_symbols
 from automol.graph.base._0core import set_bond_orders
@@ -306,8 +306,9 @@ from automol.graph.base._func_group import bonds_of_order
 from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
-# TS graph submodule:
+# submodules:
 from automol.graph.base import ts
+from automol.graph.base import vmat
 
 
 __all__ = [
@@ -328,6 +329,7 @@ __all__ = [
     'atom_stereo_parities',
     'bond_stereo_parities',
     'stereo_parities',
+    'ts_graph',
     # # setters
     'set_atom_symbols',
     'set_bond_orders',
@@ -595,7 +597,7 @@ __all__ = [
     'two_bond_idxs',
     'neighbors_of_type',
     'radicals_of_type',
-    # TS graph submodule:
-    'ts_graph',
+    # submodules:
     'ts',
+    'vmat',
 ]
