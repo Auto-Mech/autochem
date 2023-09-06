@@ -36,8 +36,10 @@ def hydrogen_migration_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)
@@ -76,8 +78,10 @@ def beta_scission_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)
@@ -105,8 +109,10 @@ def ring_forming_scission_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)
@@ -137,8 +143,10 @@ def elimination_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)
@@ -193,8 +201,10 @@ def hydrogen_abstraction_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)
@@ -227,8 +237,10 @@ def addition_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)
@@ -260,8 +272,10 @@ def insertion_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)
@@ -310,8 +324,10 @@ def substitution_ts_zmatrix(rxn: Reaction, ts_geo):
 
     # 2. Add dummy atoms over the linear atoms
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    geo, dc_ = automol.geom.add_dummies_over_linear_atoms(
-        ts_geo, lin_idxs=lin_idxs, gra=rcts_gra)
+    nk0s = automol.geom.count(ts_geo)
+    k0ps = lin_idxs
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
     rxn = apply_dummy_conversion(rxn, dc_)

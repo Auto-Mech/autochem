@@ -756,4 +756,4 @@ if __name__ == '__main__':
     # test__hydrogen_bonded_structure()
     # test__from_string()
     # test__from_xyz_string()
-    # test__insert_dummies()
+    test__insert_dummies()

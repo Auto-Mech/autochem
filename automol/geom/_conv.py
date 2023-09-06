@@ -133,48 +133,60 @@ def connectivity_graph_deprecated(
     return gra
 
 
-def zmatrix(geo, ts_bnds=()):
+def zmatrix(geo, gra=None):
     """Generate a corresponding Z-Matrix for a molecular geometry
     using internal autochem procedures.
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param ts_bnds: keys for the breaking/forming bonds in a TS
-    :type ts_bnds: tuple(frozenset(int))
+    :param gra: A graph identifying the connectivity of this geometry
+    :type gra: automol graph data structure
     :returns: automol Z-Matrix data structure
     """
-    zma, _ = zmatrix_with_conversion_info(geo, ts_bnds=ts_bnds)
+    zma, _ = zmatrix_with_conversion_info(geo, gra=gra)
     return zma
 
 
-def zmatrix_with_conversion_info(geo, ts_bnds=()):
+def zmatrix_with_conversion_info(geo, gra=None):
     """Generate a Z-Matrix for a molecular geometry, along with a dummy conversion
     data structure describing the conversion
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param ts_bnds: keys for the breaking/forming bonds in a TS
-    :type ts_bnds: tuple(frozenset(int))
+    :param gra: A graph identifying the connectivity of this geometry
+    :type gra: automol graph data structure
     :returns: An automol Z-Matrix data structure and a dummy conversion
     :rtype: automol zmat data structure, DummyConv
     """
-
-    if ts_bnds:
-        raise NotImplementedError
-
+    # Handle monatomics separately
     if is_atom(geo):
         symbs = symbols(geo)
         key_mat = [[None, None, None]]
         val_mat = [[None, None, None]]
         zma = automol.zmat.base.from_data(symbs, key_mat, val_mat)
         dc_ = {0: (0, None)}
-    else:
-        geo, dc_ = add_dummies_over_linear_atoms(geo)
-        gra = graph_without_stereo(geo)
-        vma, zma_keys = automol.graph.vmat.vmatrix(gra)
-        dc_ = dummy_conv.relabel(dc_, dict(map(reversed, enumerate(zma_keys))))
-        geo = from_subset(geo, zma_keys)
-        zma = automol.zmat.base.from_geometry(vma, geo)
+        return zma, dc_
+
+    orig_gra = graph_without_stereo(geo) if gra is None else gra
+
+    # Build an initial dummy conversion data structure, to add dummies over linear atoms
+    nk0s = count(geo)
+    k0ps = automol.graph.base.linear_atom_keys(orig_gra)
+    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+
+    # Apply this dummy conversion to the graph
+    gra = automol.graph.base.apply_dummy_conversion(orig_gra, dc_)
+
+    # Generate a v-matrix for the graph and get the z-matrix reordering
+    vma, zma_keys = automol.graph.vmat.vmatrix(gra)
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+
+    # Apply the new z-matrix ordering to the dummy conversion data structure
+    dc_ = dummy_conv.relabel(dc_, key_dct)
+
+    # Apply the dummy conversion to the geometry and generate the z-matrix
+    geo = apply_dummy_conversion(geo, dc_, gra=orig_gra)
+    zma = automol.zmat.base.from_geometry(vma, geo)
 
     return zma, dc_
 
@@ -692,6 +704,62 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     return rvec
 
 
+def linear_segment_perpendicular_direction(geo, idxs, gra=None, _tol=5.0):
+    """Find a nice perpendicular direction for a linear segment
+
+    (Used to insert dummy atoms)
+
+    Where possible, the direction will be chosen to align with a non-linear neighbor of
+    the segment
+
+    :param geo: The geometry
+    :type geo: automol geometry data structure
+    :param idxs: A sequence of atom indices, which is assumed to be linear
+    :type idxs: List[int]
+    :param gra: A molecular graph used to identify neighboring atoms
+    :type gra: automol graph data structure
+    :param tol: A tolerance threshold, in degrees, used to identify non-linear
+        neighbors
+    """
+    gra = graph_without_stereo(geo) if gra is None else gra
+    ngb_idxs_dct = automol.graph.base.atoms_sorted_neighbor_atom_keys(gra)
+    xyzs = coordinates(geo, angstrom=True)
+
+    triplets = []
+    for idx in idxs:
+        for n1idx in ngb_idxs_dct[idx]:
+            for n2idx in ngb_idxs_dct[n1idx]:
+                if n2idx != idx:
+                    ang = central_angle(geo, idx, n1idx, n2idx, degree=True)
+                    if numpy.abs(ang - 180.0) > _tol:
+                        triplets.append((idx, n1idx, n2idx))
+
+    if triplets:
+        idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
+        xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
+        r12 = vec.unit_direction(xyz1, xyz2)
+        r23 = vec.unit_direction(xyz2, xyz3)
+        direc = vec.orthogonalize(r12, r23, normalize=True)
+    else:
+        if len(idxs) > 1:
+            idx1, idx2 = idxs[:2]
+        else:
+            (idx1,) = idxs
+            idx2 = ngb_idxs_dct[idx1][0]
+
+        xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
+        r12 = vec.unit_direction(xyz1, xyz2)
+        for i in range(3):
+            disp = numpy.zeros((3,))
+            disp[i] = -1.0
+            alt = numpy.add(r12, disp)
+            direc = vec.unit_perpendicular(r12, alt)
+            if numpy.linalg.norm(direc) > 1e-2:
+                break
+
+    return direc
+
+
 def external_symmetry_factor(geo, chiral_center=True):
     """Obtain the external symmetry factor for a geometry using x2z interface
     which determines the initial symmetry factor and then divides by the
@@ -739,96 +807,6 @@ def x2z_torsion_coordinate_names(geo, ts_bnds=()):
 
 
 # # derived operations
-def add_dummies_over_linear_atoms(geo, gra=None, lin_idxs=None, dist=1.0, _tol=5.0):
-    """Add dummy atoms for linear atoms in the geometry (appendeded to the end)
-
-    :param geo: The geometry
-    :type geo: automol molecular geometry data structure
-    :param gra: A graph used to identify linear atoms; if None, a connectivity
-        graph will be generated using default distance thresholds
-    :type gra: automol molecular graph data structure
-    :param lin_idxs: Identify specific atoms to add dummy atoms for; if None, they will
-        be determined from the graph
-    :type lin_idxs: tuple(int)
-    :param dist: distance of dummy atom from the linear atom, in angstroms
-    :type dist: float
-    :returns: The new geometry, along with a dummy conversion
-    :rtype: automol molecular geometry data structure, DummyConv
-    """
-    gra = graph_without_stereo(geo) if gra is None else gra
-
-    if lin_idxs is None:
-        lin_idxs = automol.graph.base.linear_atom_keys(gra)
-
-    dummy_parent_idxs = set(automol.graph.base.dummy_parent_keys(gra).values())
-    duplicates = dummy_parent_idxs & set(lin_idxs)
-    assert (
-        not duplicates
-    ), f"Attempting to add dummy atoms on atoms that already have them {duplicates}"
-
-    ngb_idxs_dct = automol.graph.base.atoms_sorted_neighbor_atom_keys(gra)
-
-    xyzs = coordinates(geo, angstrom=True)
-
-    def _perpendicular_direction(idxs):
-        """find a nice perpendicular direction for a series of linear atoms"""
-        triplets = []
-        for idx in idxs:
-            for n1idx in ngb_idxs_dct[idx]:
-                for n2idx in ngb_idxs_dct[n1idx]:
-                    if n2idx != idx:
-                        ang = central_angle(geo, idx, n1idx, n2idx, degree=True)
-                        if numpy.abs(ang - 180.0) > _tol:
-                            triplets.append((idx, n1idx, n2idx))
-
-        if triplets:
-            idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
-            xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
-            r12 = vec.unit_direction(xyz1, xyz2)
-            r23 = vec.unit_direction(xyz2, xyz3)
-            direc = vec.orthogonalize(r12, r23, normalize=True)
-        else:
-            if len(idxs) > 1:
-                idx1, idx2 = idxs[:2]
-            else:
-                (idx1,) = idxs
-                idx2 = ngb_idxs_dct[idx1][0]
-                # idx2, = ngb_idxs_dct[idx1]
-
-            xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
-            r12 = vec.unit_direction(xyz1, xyz2)
-            for i in range(3):
-                disp = numpy.zeros((3,))
-                disp[i] = -1.0
-                alt = numpy.add(r12, disp)
-                direc = vec.unit_perpendicular(r12, alt)
-                if numpy.linalg.norm(direc) > 1e-2:
-                    break
-
-        return direc
-
-    # partition the linear atoms into adjacent groups, to be handled together
-    lin_idxs_lst = sorted(
-        map(
-            sorted,
-            equivalence_partition(lin_idxs, lambda x, y: x in ngb_idxs_dct[y]),
-        )
-    )
-
-    # Build a dummy conversion to describe the change
-    nk0s = count(geo)
-    k0ps = list(itertools.chain(*lin_idxs_lst))
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
-
-    for idxs in lin_idxs_lst:
-        direc = _perpendicular_direction(idxs)
-        for idx in idxs:
-            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
-            geo = insert(geo, "X", xyz, angstrom=True)
-
-    return geo, dc_
-
-
 def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
     """Apply a dummy conversion to this geometry, inserting dummy atoms and
     reordering as described in a dummy conversion data structure
@@ -846,7 +824,32 @@ def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
     :rtype: automol geom data structure
     """
     idxs = dummy_conv.parent_atom_keys(dc_, original=True)
-    geo, dc0 = add_dummies_over_linear_atoms(geo, gra=gra, lin_idxs=idxs, dist=dist)
+    gra = graph_without_stereo(geo) if gra is None else gra
+
+    assert not set(idxs) & set(
+        automol.graph.base.dummy_parent_keys(gra).values()
+    ), f"Attempting to add dummy atoms on atoms that already have them {geo}"
+
+    # Partition parent atoms into adjacent segments
+    nidxs_dct = automol.graph.base.atoms_neighbor_atom_keys(gra)
+    seg_idxs_seq = equivalence_partition(idxs, lambda x, y: x in nidxs_dct[y])
+    seg_idxs_lst = sorted(map(sorted, seg_idxs_seq))
+
+    # Build an initial dummy conversion data structure to describe the insertion
+    nk0s = count(geo)
+    k0ps = list(itertools.chain(*seg_idxs_lst))
+    dc0 = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+
+    # Identify a perpendicular direction for each segment and insert the dummy atoms
+    # (Parent atom indices don't change, since the dummy atoms are added to the end)
+    xyzs = coordinates(geo, angstrom=True)
+    for seg_idxs in seg_idxs_lst:
+        direc = linear_segment_perpendicular_direction(geo, seg_idxs, gra=gra)
+        for idx in seg_idxs:
+            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
+            geo = insert(geo, "X", xyz, angstrom=True)
+
+    # Reorder the geometry to match the desired conversion
     geo = reorder(geo, dummy_conv.isomorphism(dc0, dc_))
     return geo
 

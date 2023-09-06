@@ -106,10 +106,6 @@ from automol.graph.base._0core import remove_bonds
 from automol.graph.base._0core import change_implicit_hydrogens
 from automol.graph.base._0core import add_atom_explicit_hydrogens
 from automol.graph.base._0core import add_bonded_atom
-from automol.graph.base._0core import shift_insert_bonded_atom
-from automol.graph.base._0core import add_dummy_atoms
-from automol.graph.base._0core import shift_insert_dummy_atoms
-from automol.graph.base._0core import shift_remove_dummy_atoms
 from automol.graph.base._0core import without_pi_bonds
 from automol.graph.base._0core import without_reacting_bonds
 from automol.graph.base._0core import without_dummy_atoms
@@ -399,10 +395,6 @@ __all__ = [
     'change_implicit_hydrogens',
     'add_atom_explicit_hydrogens',
     'add_bonded_atom',
-    'shift_insert_bonded_atom',
-    'add_dummy_atoms',
-    'shift_insert_dummy_atoms',
-    'shift_remove_dummy_atoms',
     'without_pi_bonds',
     'without_reacting_bonds',
     'without_dummy_atoms',

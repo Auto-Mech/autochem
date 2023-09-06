@@ -168,8 +168,8 @@ def relabel(dc_: DummyConv, key_dct: Dict[int, int]) -> DummyConv:
     :type dc_: DummyConv
     :param key_dct: The relabeling
     :type key_dct: Dict[int, int]
-    :return: The list of parent atoms, using the original keys
-    :rtype: List[int]
+    :return: The dummy conversion
+    :rtype: DummyConv
     """
     dc_ = {key_dct[k]: (k0, k0p) for k, (k0, k0p) in dc_.items()}
     return dc_

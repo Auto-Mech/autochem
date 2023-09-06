@@ -115,10 +115,10 @@ from automol.geom._conv import display
 from automol.geom._conv import linear_atoms
 from automol.geom._conv import closest_unbonded_atoms
 from automol.geom._conv import ts_reacting_electron_direction
+from automol.geom._conv import linear_segment_perpendicular_direction
 from automol.geom._conv import external_symmetry_factor
 from automol.geom._conv import x2z_torsion_coordinate_names
 # # derived operations
-from automol.geom._conv import add_dummies_over_linear_atoms
 from automol.geom._conv import apply_dummy_conversion
 from automol.geom._conv import reverse_dummy_conversion
 from automol.geom._conv import set_distance
@@ -244,10 +244,10 @@ __all__ = [
     'linear_atoms',
     'closest_unbonded_atoms',
     'ts_reacting_electron_direction',
+    'linear_segment_perpendicular_direction',
     'external_symmetry_factor',
     'x2z_torsion_coordinate_names',
     # # derived operations
-    'add_dummies_over_linear_atoms',
     'apply_dummy_conversion',
     'reverse_dummy_conversion',
     'set_distance',
