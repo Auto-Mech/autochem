@@ -581,15 +581,12 @@ def perturb_geometry_planar_dihedrals(
     dih_dct = {}
     dih_dct.update({k: 0.0 + ang for k in cis_keys_lst})
     dih_dct.update({k: numpy.pi - ang for k in trans_keys_lst})
-    for keys, dih in dih_dct.items():
-        idx, idx1, idx2, idx3 = list(map(geo_idx_dct.__getitem__, keys))
-        geo = automol.geom.change_zmatrix_row_values(
+    for dih_keys, dih_val in dih_dct.items():
+        dih_idxs = list(map(geo_idx_dct.__getitem__, dih_keys))
+        geo = automol.geom.set_dihedral_angle(
             geo,
-            idx=idx,
-            idx1=idx1,
-            idx2=idx2,
-            idx3=idx3,
-            dih=dih,
+            dih_idxs,
+            dih_val,
             degree=False,
             gra=gra,
         )

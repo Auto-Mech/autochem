@@ -121,7 +121,9 @@ from automol.geom._conv import x2z_torsion_coordinate_names
 from automol.geom._conv import add_dummies_over_linear_atoms
 from automol.geom._conv import apply_dummy_conversion
 from automol.geom._conv import reverse_dummy_conversion
-from automol.geom._conv import change_zmatrix_row_values
+from automol.geom._conv import set_distance
+from automol.geom._conv import set_central_angle
+from automol.geom._conv import set_dihedral_angle
 # extra functions:
 from automol.geom._extra import components_graph
 from automol.geom._extra import connected
@@ -248,7 +250,9 @@ __all__ = [
     'add_dummies_over_linear_atoms',
     'apply_dummy_conversion',
     'reverse_dummy_conversion',
-    'change_zmatrix_row_values',
+    'set_distance',
+    'set_central_angle',
+    'set_dihedral_angle',
     # extra functions:
     'components_graph',
     'connected',

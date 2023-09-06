@@ -40,7 +40,7 @@
                 o For H abstractions, this is the H-donor
                 o For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
     [ ] _6rot.py
-    [ ] _7geom.py
+    [ ] _7conv.py
     [ ] Move non-reac related files in automol/reac/ into automol/misc/
         New structure:
             TS keys are independent from reactants and products keys

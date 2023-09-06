@@ -642,21 +642,17 @@ def test__change_zmatrix_row_values():
     ref_zma = geom.zmatrix(ref_geo)
     ref_vals = geom.zmatrix_row_values(ref_geo, 3, idx1=1, idx2=0, idx3=2)
 
-    geo = geom.change_zmatrix_row_values(ref_geo, 3,
-                                         dist=1.0, idx1=1,
-                                         ang=120., idx2=0,
-                                         dih=0., idx3=2)
+    geo = geom.set_distance(ref_geo, (1, 3), 1.0)
+    geo = geom.set_central_angle(geo, (0, 1, 3), 120.0)
+    geo = geom.set_dihedral_angle(geo, (2, 0, 1, 3), 0.0)
 
     # First, check that the change resulted in these values
     vals = geom.zmatrix_row_values(geo, 3, idx1=1, idx2=0, idx3=2)
     assert numpy.allclose(vals, (1., 120., 0.))
 
-    # Now, check that the other z-matrix values weren't affected. To do so,
-    # change back to the original values and compare z-matrices.
-    geo = geom.change_zmatrix_row_values(geo, 3,
-                                         dist=ref_vals[0], idx1=1,
-                                         ang=ref_vals[1], idx2=0,
-                                         dih=ref_vals[2], idx3=2)
+    geo = geom.set_distance(ref_geo, (1, 3), ref_vals[0])
+    geo = geom.set_central_angle(geo, (0, 1, 3), ref_vals[1])
+    geo = geom.set_dihedral_angle(geo, (2, 0, 1, 3), ref_vals[2])
     zma = geom.zmatrix(geo)
     assert automol.zmat.almost_equal(zma, ref_zma)
 
@@ -750,7 +746,7 @@ def test__chi_with_sort():
 
 if __name__ == '__main__':
     # __align()
-    # test__change_zmatrix_row_values()
+    test__change_zmatrix_row_values()
     # test__inchi_with_sort()
     # test__amchi_with_sort()
     # test__chi_with_sort()
@@ -760,4 +756,4 @@ if __name__ == '__main__':
     # test__hydrogen_bonded_structure()
     # test__from_string()
     # test__from_xyz_string()
-    test__insert_dummies()
+    # test__insert_dummies()
