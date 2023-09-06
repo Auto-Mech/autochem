@@ -868,16 +868,107 @@ def reverse_dummy_conversion(geo, dc_: DummyConv):
     return from_subset(geo, idxs)
 
 
-def change_zmatrix_row_values(
+def set_distance(
     geo,
-    idx,
-    dist=None,
-    idx1=None,
-    ang=None,
-    idx2=None,
-    dih=None,
-    idx3=None,
+    dist_idxs,
+    dist_val,
     angstrom=True,
+    gra=None,
+):
+    """Set a particular bond distance in the geometry to a new value
+
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param dist_idxs: A pair of indices, identifying the bond distance to be adjusted;
+        the second in the pair is the atom that will be moved, along with atoms
+        connected to it
+    :type dist_idxs: Tuple[int, int]
+    :param dist_val: The desired distance coordinate value
+    :type dist_val: float
+    :param angstrom: are distances in angstrom? If not, assume bohr.
+    :type angstrom: bool
+    :param gra: molecular graph for tracking connectivity (will be generated if None)
+    :type gra: automol molecular graph data structure
+    :rtype: automol geometry data structure
+    """
+    assert len(dist_idxs) == 2
+    idx1, idx2 = dist_idxs
+    gra = gra if gra is not None else graph_without_stereo(geo)
+    dist_val = dist_val if not angstrom else dist_val * phycon.ANG2BOHR
+    idxs = automol.graph.base.branch_atom_keys(gra, idx1, idx2)
+
+    xyzs = coordinates(geo)
+    bvec0 = numpy.subtract(xyzs[idx2], xyzs[idx1])
+    bvec = dist_val * bvec0 / numpy.linalg.norm(bvec0)
+    disp = bvec - bvec0
+    geo = translate(geo, disp, idxs=idxs)
+
+    return geo
+
+
+def set_central_angle(
+    geo,
+    ang_idxs,
+    ang_val,
+    degree=True,
+    plane_idx=None,
+    gra=None,
+):
+    """Set a particular bond angle in the geometry to a new value
+
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param ang_idxs: A triplet of indices, identifying the central angle to be adjusted;
+        the last in the triplet is the atom that will be moved, along with atoms
+        connected to it
+    :type ang_idxs: Tuple[int, int, int]
+    :param ang_val: The desired angle coordinate value
+    :type ang_val: float
+    :param degree: are angles in degrees? If not, assume radians.
+    :type degree: bool
+    :param plane_idx: An additional atom that will be used to define the plane of
+        rotation, in the event that the angle is initially linear
+    :param gra: molecular graph for tracking connectivity (will be generated if None)
+    :type gra: automol molecular graph data structure
+    :rtype: automol geometry data structure
+    """
+    idx1, idx2, idx3 = ang_idxs
+    gra = gra if gra is not None else graph_without_stereo(geo)
+    ang_val = ang_val if not degree else ang_val * phycon.DEG2RAD
+    idxs = automol.graph.base.branch_atom_keys(gra, idx2, idx3)
+    xyzs = coordinates(geo)
+    ang0 = central_angle(geo, idx3, idx2, idx1)
+
+    tol = 2.0 * phycon.DEG2RAD
+    lin = numpy.pi
+
+    ang_diff = ang_val - ang0
+    # If idx-idx1-idx2 is not linear, use the normal to this plane,
+    # otherwise, use the normal to the idx1-idx2-idx3 plane
+    if not numpy.abs(ang0) < tol or numpy.abs(ang0 - lin) < tol:
+        axis = vec.unit_perpendicular(xyzs[idx3], xyzs[idx1], orig_xyz=xyzs[idx2])
+    else:
+        axis = vec.unit_perpendicular(xyzs[idx2], xyzs[plane_idx], orig_xyz=xyzs[idx2])
+    # I don't know how to figure out which way to rotate, so just try both
+    # and see which one works
+    for dang in [-ang_diff, ang_diff]:
+        geo_ = rotate(geo, axis, dang, orig_xyz=xyzs[idx2], idxs=idxs)
+        ang_out = central_angle(geo_, idx3, idx2, idx1)
+        abs_diff = numpy.abs(
+            numpy.mod(ang_val, 2 * numpy.pi) - numpy.mod(ang_out, 2 * numpy.pi)
+        )
+        ang_comp = numpy.abs(numpy.pi - numpy.abs(abs_diff - numpy.pi))
+        if ang_comp < tol:
+            geo = geo_
+            break
+
+    return geo
+
+
+def set_dihedral_angle(
+    geo,
+    dih_idxs,
+    dih_val,
     degree=True,
     gra=None,
 ):
@@ -886,96 +977,27 @@ def change_zmatrix_row_values(
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param idx: the atom to be shifted
-    :type idx: int
-    :param dist: the distance coordinate; if None, use the current distance
-    :type dist: float
-    :param idx1: the atom used to specify the distance coordinate
-    :type idx1: int
-    :param ang: the central angle coordinate
-    :type ang: float
-    :param idx2: the atom used to specify the central angle coordinate
-    :type idx2: int
-    :param dih: the dihedral angle coordinate
-    :type ang: float
-    :param idx3: the atom used to specify the dihedral angle coordinate
-    :type idx3: int
-    :param angstrom: are distances in angstrom? If not, assume bohr.
-    :type angstrom: bool
+    :param dih_idxs: A quartet of indices, identifying the dihedral angle to be
+        adjusted; the last in the quarted is the atom that will be moved, along with
+        atoms connected to it
+    :type dih_idxs: Tuple[int, int, int]
+    :param dih_val: The desired angle coordinate value
+    :type dih_val: float
     :param degree: are angles in degrees? If not, assume radians.
     :type degree: bool
-    :param gra: molecular graph for tracking connectivity (will be
-        generated if None)
+    :param gra: molecular graph for tracking connectivity (will be generated if None)
     :type gra: automol molecular graph data structure
     :rtype: automol geometry data structure
     """
+    idx1, idx2, idx3, idx4 = dih_idxs
     gra = gra if gra is not None else graph_without_stereo(geo)
-    dist = (
-        dist
-        if dist is not None or idx1 is None
-        else (distance(geo, idx, idx1, angstrom=angstrom))
-    )
-    ang = (
-        ang
-        if ang is not None or idx2 is None
-        else (central_angle(geo, idx, idx1, idx2, degree=degree))
-    )
-    dih = (
-        dih
-        if dih is not None or idx3 is None
-        else (dihedral_angle(geo, idx, idx1, idx2, idx3, degree=degree))
-    )
-
-    dist = dist if not angstrom else dist * phycon.ANG2BOHR
-    ang = ang if not degree else ang * phycon.DEG2RAD
-    dih = dih if not degree else dih * phycon.DEG2RAD
-    tol = 2.0 * phycon.DEG2RAD
-    lin = numpy.pi
-
-    idxs = automol.graph.base.branch_atom_keys(gra, idx1, idx)
-
-    # Note that the coordinates will change throughout, but the change
-    # shouldn't affect the operations so we can work in terms of the inital set
+    dih_val = dih_val if not degree else dih_val * phycon.DEG2RAD
+    idxs = automol.graph.base.branch_atom_keys(gra, idx3, idx4)
     xyzs = coordinates(geo)
+    dih0 = dihedral_angle(geo, idx4, idx3, idx2, idx1)
 
-    if idx1 is not None:
-        # First, adjust the distance
-        bvec0 = numpy.subtract(xyzs[idx], xyzs[idx1])
-        bvec = dist * bvec0 / numpy.linalg.norm(bvec0)
-        disp = bvec - bvec0
-        geo = translate(geo, disp, idxs=idxs)
-
-    if idx2 is not None:
-        assert idx1 is not None, "idx1 is required if changing an angle"
-        # Second, adjust the angle
-        ang0 = central_angle(geo, idx, idx1, idx2)
-        ang_diff = ang - ang0
-        # If idx-idx1-idx2 is not linear, use the normal to this plane,
-        # otherwise, use the normal to the idx1-idx2-idx3 plane
-        if not numpy.abs(ang0) < tol or numpy.abs(ang0 - lin) < tol:
-            axis = vec.unit_perpendicular(xyzs[idx], xyzs[idx2], orig_xyz=xyzs[idx1])
-        else:
-            axis = vec.unit_perpendicular(xyzs[idx1], xyzs[idx3], orig_xyz=xyzs[idx1])
-        # I don't know how to figure out which way to rotate, so just try both
-        # and see which one works
-        for dang in [-ang_diff, ang_diff]:
-            geo_ = rotate(geo, axis, dang, orig_xyz=xyzs[idx1], idxs=idxs)
-            ang_out = central_angle(geo_, idx, idx1, idx2)
-            abs_diff = numpy.abs(
-                numpy.mod(ang, 2 * numpy.pi) - numpy.mod(ang_out, 2 * numpy.pi)
-            )
-            ang_comp = numpy.abs(numpy.pi - numpy.abs(abs_diff - numpy.pi))
-            if ang_comp < tol:
-                geo = geo_
-                break
-
-    if idx3 is not None:
-        assert idx1 is not None, "idx1 is required if changing a dihedral"
-        assert idx2 is not None, "idx2 is required if changing a dihedral"
-        # Third, adjust the dihedral
-        dih0 = dihedral_angle(geo, idx, idx1, idx2, idx3)
-        ddih = dih - dih0
-        axis = numpy.subtract(xyzs[idx1], xyzs[idx2])
-        geo = rotate(geo, axis, ddih, orig_xyz=xyzs[idx1], idxs=idxs)
+    ddih = dih_val - dih0
+    axis = numpy.subtract(xyzs[idx3], xyzs[idx2])
+    geo = rotate(geo, axis, ddih, orig_xyz=xyzs[idx3], idxs=idxs)
 
     return geo
