@@ -69,28 +69,28 @@ from automol.reac._4geom import ts_geometry_from_reactants
 from automol.reac._5zmat import ts_zmatrix
 from automol.reac._5zmat import zmatrix_coordinate_names
 # rotational bonds & torsions
-from automol.reac._6rot import linear_atom_keys
-from automol.reac._6rot import rotational_bond_keys
-from automol.reac._6rot import rotational_groups
-from automol.reac._6rot import rotational_symmetry_number
+from automol.reac._7rot import linear_atom_keys
+from automol.reac._7rot import rotational_bond_keys
+from automol.reac._7rot import rotational_groups
+from automol.reac._7rot import rotational_symmetry_number
 # conversions
-from automol.reac._7conv import amchi
-from automol.reac._7conv import ts_amchi
-from automol.reac._7conv import inchi
-from automol.reac._7conv import chi
-from automol.reac._7conv import smiles
-from automol.reac._7conv import reaction_smiles
-from automol.reac._7conv import rdkit_reaction
-from automol.reac._7conv import display
-from automol.reac._7conv import is_canonical_enantiomer
-from automol.reac._7conv import canonical_enantiomer
-from automol.reac._7conv import with_structures_from_chi
-from automol.reac._7conv import with_structures_from_smiles
-from automol.reac._7conv import with_structures_from_geometry
+from automol.reac._8conv import amchi
+from automol.reac._8conv import ts_amchi
+from automol.reac._8conv import inchi
+from automol.reac._8conv import chi
+from automol.reac._8conv import smiles
+from automol.reac._8conv import reaction_smiles
+from automol.reac._8conv import rdkit_reaction
+from automol.reac._8conv import display
+from automol.reac._8conv import is_canonical_enantiomer
+from automol.reac._8conv import canonical_enantiomer
+from automol.reac._8conv import with_structures_from_chi
+from automol.reac._8conv import with_structures_from_smiles
+from automol.reac._8conv import with_structures_from_geometry
 # scan coordinates
-from automol.reac._scan import build_scan_info
-from automol.reac._scan import scan_coordinate
-from automol.reac._scan import constraint_coordinates
+from automol.reac._6scan import build_scan_info
+from automol.reac._6scan import scan_coordinate
+from automol.reac._6scan import constraint_coordinates
 # reaction products
 from automol.reac._enum import enumerate_reactions
 # species instability transformations

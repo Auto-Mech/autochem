@@ -32,15 +32,16 @@
         [X] Both of the above will take the same `dc_` data structure, returned from zmatrix_with_conversion_info()
     [ ] _5zmat.py
         Strategy:
-            - If forming bond is linear, add a dummy atom (currently only sigma abstractions -- use reacting_electron_direction)
-            - Forming rings: Start from the forming bond of the forming ring
-                o If there is a breaking bond in the ring, exclude it (by putting it last)
-                o If there are multiple breaking/forming bonds, start from a forming bond adjacent to a breaking bond, if possible.
-            - Bimoleculars: Start from "reagent 1"
-                o For H abstractions, this is the H-donor
-                o For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
-    [ ] _6rot.py
-    [ ] _7conv.py
+            [X] If forming bond is linear, add a dummy atom (currently only sigma abstractions -- use reacting_electron_direction)
+            [X] Forming rings:
+                [X] If there is a breaking bond in the ring, exclude it
+                [X] If there are multiple breaking/forming bonds, split on a breaking bond to put the forming bonds as close as possible to the end (this minimizes coordinate dependencies on the forming bonds)
+            [ ] Bimoleculars: Start from "reagent 1"
+                [ ] For atom transfers, this is the atom donor (the reagent that contains a breaking bond)
+                [ ] For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
+    [ ] _6scan.py
+    [ ] _7rot.py
+    [ ] _8conv.py
     [ ] Move non-reac related files in automol/reac/ into automol/misc/
         New structure:
             TS keys are independent from reactants and products keys

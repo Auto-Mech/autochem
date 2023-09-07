@@ -37,7 +37,6 @@ from automol.graph.base._0core import set_atom_implicit_hydrogens
 from automol.graph.base._2algo import is_connected
 from automol.graph.base._2algo import connected_components
 from automol.graph.base._2algo import rings_atom_keys
-from automol.graph.base._2algo import cycle_ring_atom_key_to_front
 from automol.graph.base._3kekule import kekule
 from automol.graph.base._3kekule import radical_atom_keys_from_kekule
 from automol.graph.base._6canon import canonical
@@ -472,7 +471,7 @@ def ring_representation_generator_(kgr, direc_dct, rng_pool, rng_tag_dct,
                 tag = max(rng_tag_dct.values(), default=0) + 1
                 assert tag < 10, (
                     f"Ring tag exceeds 10 for this graph:\n{string(kgr)}")
-                rng = cycle_ring_atom_key_to_front(new_rng, key, clos_nkey)
+                rng = util.ring.cycle_item_to_front(new_rng, key, clos_nkey)
                 rng_tag_dct[rng] = tag
 
                 # Remove it from the pool of unseen rings

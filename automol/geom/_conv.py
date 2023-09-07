@@ -178,10 +178,14 @@ def zmatrix_with_conversion_info(geo, gra=None):
     gra = automol.graph.base.apply_dummy_conversion(orig_gra, dc_)
 
     # Generate a v-matrix for the graph and get the z-matrix reordering
-    vma, zma_keys = automol.graph.base.vmat.vmatrix(gra)
-    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    rng_keys = automol.graph.base.ts.zmatrix_starting_ring_keys(gra)
+    if rng_keys is not None:
+        vma, zma_keys = automol.graph.base.vmat.vmatrix(gra, rng_keys=rng_keys)
+    else:
+        vma, zma_keys = automol.graph.base.vmat.vmatrix(gra)
 
     # Apply the new z-matrix ordering to the dummy conversion data structure
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
     dc_ = dummy_conv.relabel(dc_, key_dct)
 
     # Apply the dummy conversion to the geometry and generate the z-matrix

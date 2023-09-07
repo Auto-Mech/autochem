@@ -753,31 +753,6 @@ def is_ring_key_sequence(gra, keys):
     return any(keys <= rng_keys for rng_keys in rings_atom_keys(gra))
 
 
-def cycle_ring_atom_key_to_front(keys, key, end_key=None):
-    """helper function to cycle ring atom keys until one is in front
-
-    :param keys: ring keys
-    :parm key: the key to cycle to the font
-    :param end_key: optionally, ensure that another key is the last key in the
-        ring; note that this is only possible if key and end_key are adjacent
-    """
-    assert key in keys, f"{key:d} is not in {str(keys):s}"
-    keys = tuple(
-        itertools.islice(
-            itertools.dropwhile(lambda x: x != key, itertools.cycle(keys)), len(keys)
-        )
-    )
-
-    if end_key is not None and keys[-1] != end_key:
-        assert (
-            keys[1] == end_key
-        ), f"end_key {key:d} is not adjacent to {end_key:d} in the ring"
-        keys = list(reversed(keys))
-        keys = cycle_ring_atom_key_to_front(keys, key)
-
-    return keys
-
-
 def ring_arc_complement_atom_keys(gra, rng):
     """non-intersecting arcs from a ring that shares segments with a graph"""
     gra_atm_bnd_dct = atoms_bond_keys(gra)

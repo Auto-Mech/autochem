@@ -3,7 +3,7 @@
 import copy
 import automol.geom
 import automol.graph
-from automol.util import dummy_conv
+from automol import util
 from automol.par import ReactionClass
 from automol.graph import ts
 from automol.zmat import distance_coordinate_name
@@ -38,7 +38,7 @@ def hydrogen_migration_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -53,13 +53,17 @@ def hydrogen_migration_ts_zmatrix(rxn: Reaction, ts_geo):
     #       (migrating h atom, attacking atom, ... , donating atom)
     # This ensures that the forming bond coordinate is included in the z-matrix
     # and drops the breaking bond coordinate from the z-matrix.
-    rng_keys = automol.graph.cycle_ring_atom_key_to_front(
-        rng_keys, hyd_key, end_key=don_key)
+    rng_keys = util.ring.cycle_item_to_front(
+        rng_keys, hyd_key, end_item=don_key)
+    print("rng_keys", rng_keys)
     vma, zma_keys = automol.graph.vmat.vmatrix(
         ts_graph(rxn), rng_keys=rng_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
+
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
 
     return zma, zma_keys, dc_
 
@@ -80,7 +84,7 @@ def beta_scission_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -91,6 +95,9 @@ def beta_scission_ts_zmatrix(rxn: Reaction, ts_geo):
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
+
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
 
     return zma, zma_keys, dc_
 
@@ -111,7 +118,7 @@ def ring_forming_scission_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -125,6 +132,9 @@ def ring_forming_scission_ts_zmatrix(rxn: Reaction, ts_geo):
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
+
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
 
     return zma, zma_keys, dc_
 
@@ -145,7 +155,7 @@ def elimination_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -165,14 +175,17 @@ def elimination_ts_zmatrix(rxn: Reaction, ts_geo):
             ts_graph(rxn), brk_bnd_key, frm_bnd_key)
         key1, = brk_bnd_key & set(path)
         key2, = brk_bnd_key - set(path)
-    rng_keys = automol.graph.cycle_ring_atom_key_to_front(
-        rng_keys, key1, end_key=key2)
+    rng_keys = util.ring.cycle_item_to_front(
+        rng_keys, key1, end_item=key2)
 
     vma, zma_keys = automol.graph.vmat.vmatrix(
         ts_graph(rxn), rng_keys=rng_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
+
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
 
     return zma, zma_keys, dc_
 
@@ -203,7 +216,7 @@ def hydrogen_abstraction_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -219,7 +232,9 @@ def hydrogen_abstraction_ts_zmatrix(rxn: Reaction, ts_geo):
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
 
-    dc_ = dummy_conv.relabel(dc_, dict(map(reversed, enumerate(zma_keys))))
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
+
     return zma, zma_keys, dc_
 
 
@@ -239,7 +254,7 @@ def addition_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -254,6 +269,9 @@ def addition_ts_zmatrix(rxn: Reaction, ts_geo):
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
+
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
 
     return zma, zma_keys, dc_
 
@@ -274,7 +292,7 @@ def insertion_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -295,14 +313,17 @@ def insertion_ts_zmatrix(rxn: Reaction, ts_geo):
         path = automol.graph.shortest_path_between_groups(
             ts_graph(rxn), frm_bnd_key, brk_bnd_key)
         key2, = frm_bnd_key - set(path)
-    rng_keys = automol.graph.cycle_ring_atom_key_to_front(
-        rng_keys, key1, end_key=key2)
+    rng_keys = util.ring.cycle_item_to_front(
+        rng_keys, key1, end_item=key2)
 
     vma, zma_keys = automol.graph.vmat.vmatrix(
         ts_graph(rxn), rng_keys=rng_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
+
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
 
     return zma, zma_keys, dc_
 
@@ -326,7 +347,7 @@ def substitution_ts_zmatrix(rxn: Reaction, ts_geo):
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     nk0s = automol.geom.count(ts_geo)
     k0ps = lin_idxs
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = util.dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
     geo = automol.geom.apply_dummy_conversion(ts_geo, dc_, gra=rcts_gra)
 
     # 3. Add dummy atoms to the Reaction object as well
@@ -341,6 +362,9 @@ def substitution_ts_zmatrix(rxn: Reaction, ts_geo):
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
+
+    key_dct = dict(map(reversed, enumerate(zma_keys)))
+    dc_ = util.dummy_conv.relabel(dc_, key_dct)
 
     return zma, zma_keys, dc_
 
