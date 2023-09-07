@@ -1,6 +1,7 @@
 """ graph-based z-matrix builder
 """
 import automol.vmat
+from automol import util
 from automol.graph.base._0core import (
     atom_count,
     atom_keys,
@@ -13,7 +14,6 @@ from automol.graph.base._0core import (
     terminal_atom_keys,
 )
 from automol.graph.base._2algo import (
-    cycle_ring_atom_key_to_front,
     is_connected,
     ring_system_decomposed_atom_keys,
     ring_systems,
@@ -260,7 +260,7 @@ def continue_ring(gra, keys, vma, zma_keys):
     assert key is not None, "There must be a ring atom already in the v-matrix"
 
     # Cycle the connecting key to the front of the ring
-    keys = cycle_ring_atom_key_to_front(keys, key)
+    keys = util.ring.cycle_item_to_front(keys, key)
 
     # Break the bond between the first and last atoms to make this a chain
     gra = remove_bonds(gra, [(keys[0], keys[-1])])
@@ -290,7 +290,7 @@ def chain(gra, keys, term_hydrogens=True):
     if set(keys) - set(zma_keys):
         miss_keys = set(_atoms_missing_neighbors(gra, zma_keys))
         (start_key,) = set(keys) & miss_keys
-        keys = keys[keys.index(start_key):]
+        keys = keys[keys.index(start_key) :]
 
         # 2. Continue the chain
         if keys:

@@ -4,6 +4,9 @@ DEPRECATED (under construction to phase out)
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+import itertools
+from typing import List
+
 import automol.amchi.base  # !!!!
 from automol import util
 from automol.graph.base._0core import (
@@ -72,8 +75,59 @@ def has_reacting_ring(tsg) -> bool:
     return bool(forming_rings_atom_keys(tsg) or breaking_rings_atom_keys(tsg))
 
 
-def forming_rings_atom_keys(tsg):
-    """get the atom keys to rings forming in the TS graph
+def zmatrix_starting_ring_keys(tsg) -> List[int]:
+    """Return keys for a TS ring to start from, sorted in z-matrix order
+
+    If there isn't a TS ring, this returns `None`
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: The ring keys, sorted to exclude breaking bonds and include forming bonds
+        as early as possible
+    :rtype: List[int]
+    """
+    rngs_keys = reacting_rings_atom_keys(tsg)
+
+    if not rngs_keys:
+        return None
+
+    if len(rngs_keys) > 1:
+        raise NotImplementedError(f"Not implemented for multiple reacting rings: {tsg}")
+
+    (rng_keys,) = rngs_keys
+    brk_bkeys = {bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)}
+    frm_bkeys = {bk for bk in ts_forming_bond_keys(tsg) if bk < set(rng_keys)}
+    frm_keys = list(itertools.chain(*frm_bkeys))
+
+    return util.ring.cycle_to_optimal_split(rng_keys, brk_bkeys, frm_keys)
+
+
+def reacting_rings_atom_keys(tsg) -> List[List[int]]:
+    """Get the atom keys to rings containing breaking or forming bonds
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    """
+    rngs_bnd_keys = reacting_rings_bond_keys(tsg)
+    rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys, rngs_bnd_keys))
+    return rngs_atm_keys
+
+
+def reacting_rings_bond_keys(tsg):
+    """get the bond keys to rings forming in the TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    """
+    bnd_keys = ts_reacting_bond_keys(tsg)
+    rngs_bnd_keys = tuple(
+        bks for bks in rings_bond_keys(tsg, ts_=True) if bnd_keys & bks
+    )
+    return rngs_bnd_keys
+
+
+def forming_rings_atom_keys(tsg) -> List[List[int]]:
+    """Get the atom keys to rings forming in the TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure

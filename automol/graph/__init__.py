@@ -168,7 +168,6 @@ from automol.graph.base._2algo import rings_bond_keys
 from automol.graph.base._2algo import sorted_ring_atom_keys
 from automol.graph.base._2algo import sorted_ring_atom_keys_from_bond_keys
 from automol.graph.base._2algo import is_ring_key_sequence
-from automol.graph.base._2algo import cycle_ring_atom_key_to_front
 from automol.graph.base._2algo import ring_arc_complement_atom_keys
 from automol.graph.base._2algo import ring_systems
 from automol.graph.base._2algo import ring_systems_atom_keys
@@ -474,7 +473,6 @@ __all__ = [
     'sorted_ring_atom_keys',
     'sorted_ring_atom_keys_from_bond_keys',
     'is_ring_key_sequence',
-    'cycle_ring_atom_key_to_front',
     'ring_arc_complement_atom_keys',
     'ring_systems',
     'ring_systems_atom_keys',

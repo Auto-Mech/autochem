@@ -23,7 +23,6 @@ from automol.graph.base._0core import ts_breaking_bond_keys
 from automol.graph.base._0core import ts_forming_bond_keys
 from automol.graph.base._2algo import connected_components
 from automol.graph.base._2algo import rings_atom_keys
-from automol.graph.base._2algo import cycle_ring_atom_key_to_front
 from automol.graph.base._6canon import canonical_ts_direction
 from automol.graph.base._6canon import canonical_enantiomer_with_keys
 from automol.graph.base._6canon import break_priority_ties
@@ -279,8 +278,8 @@ def _connection_layer_and_list(gra):
                 if key in flat_sub_lst:
                     for rng_keys in rng_keys_lst:
                         if key in rng_keys and nkey in rng_keys:
-                            rkeys = cycle_ring_atom_key_to_front(
-                                rng_keys, key, end_key=nkey)
+                            rkeys = util.ring.cycle_item_to_front(
+                                rng_keys, key, end_item=nkey)
                             if rkeys[1] in nkeys:
                                 nkeys.remove(rkeys[1])
 
