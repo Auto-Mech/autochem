@@ -46,11 +46,11 @@ from automol.graph import atom_neighbor_atom_keys
 from automol.graph import add_bonded_atom
 from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
+from automol.graph import sort_by_size
 from automol.reac._0core import from_forward_reverse
 from automol.reac._0core import reverse
 from automol.reac._0core import unique
 from automol.reac._1util import assert_is_valid_reagent_graph_list
-from automol.reac._1util import sort_reagents
 from automol.reac._2stereo import expand_stereo_for_reaction
 
 
@@ -468,7 +468,7 @@ def additions(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
-        rct_gras = sort_reagents(rct_gras)
+        rct_gras = sort_by_size(rct_gras)
         x_gra, y_gra = rct_gras
         prd_gra, = prd_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
@@ -519,7 +519,7 @@ def double_insertion(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
-        rct_gras = sort_reagents(rct_gras)
+        rct_gras = sort_by_size(rct_gras)
         prd_gra, = prd_gras
         x_gra, y_gra = rct_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
@@ -584,7 +584,7 @@ def two_bond_additions(rct_gras, prd_gras):
     rxns = []
 
     if len(rct_gras) == 2 and len(prd_gras) == 1:
-        rct_gras = sort_reagents(rct_gras)
+        rct_gras = sort_by_size(rct_gras)
         x_gra, y_gra = rct_gras
         prd_gra, = prd_gras
         x_atm_keys = frozenset().union(

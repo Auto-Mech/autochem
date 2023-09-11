@@ -218,8 +218,12 @@ def linear_atom_keys(gra, dummy=True):
     lin_atm_keys = set()
     for gra_ in gras:
         gra_ = ts_reagents_graph_without_stereo(gra_)
+        nkeys_dct = atoms_neighbor_atom_keys(gra_)
+        # To be linear, an atom must be both (a.) sp1 hybridized and (b.) have more than
+        # 1 neighbor (exactly 2)
         atm_hyb_dct = atom_hybridizations_from_kekule(implicit(kekule(gra_)))
-        lin_atm_keys |= set(dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1))
+        sp1_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
+        lin_atm_keys |= set(k for k in sp1_atm_keys if len(nkeys_dct[k]) > 1)
 
     # If requested, include all keys associated with dummy atoms
     if dummy:

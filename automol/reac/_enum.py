@@ -27,11 +27,11 @@ from automol.graph import bond_equivalence_class_reps
 from automol.graph import kekules_bond_orders_averaged
 from automol.graph import are_equivalent_atoms
 from automol.graph import hydroperoxy_groups
+from automol.graph import sort_by_size
 from automol.reac._0core import from_forward_reverse
 from automol.reac._0core import unique
 from automol.reac._0core import filter_viable_reactions
 from automol.reac._instab import instability_product_graphs
-from automol.reac._1util import sort_reagents
 from automol.reac._1util import assert_is_valid_reagent_graph_list
 
 
@@ -137,7 +137,7 @@ def homolytic_scissions(rct_gras, viable_only=False):
             prd_gras = connected_components(prds_gra)
 
             if len(prd_gras) == 2:
-                prd_gras = sort_reagents(prd_gras)
+                prd_gras = sort_by_size(prd_gras)
 
                 forw_tsg = ts.graph(rct_gra,
                                     frm_bnd_keys=[],
@@ -208,7 +208,7 @@ def beta_scissions(rct_gras, viable_only=True):
             prd_gras = connected_components(prds_gra)
 
             if len(prd_gras) == 2:
-                prd_gras = sort_reagents(prd_gras)
+                prd_gras = sort_by_size(prd_gras)
 
                 forw_tsg = ts.graph(rct_gra,
                                     frm_bnd_keys=[],
@@ -281,7 +281,7 @@ def ring_forming_scissions(rct_gras, viable_only=True):
             prd_gras = connected_components(prds_gra)
 
             if len(prd_gras) == 2:
-                prd_gras = sort_reagents(prd_gras)
+                prd_gras = sort_by_size(prd_gras)
 
                 forw_tsg = ts.graph(rct_gra,
                                     frm_bnd_keys=[frm_bnd_key],
@@ -496,7 +496,7 @@ def additions(rct_gras, viable_only=True):
     rxns = []
 
     if len(rct_gras) == 2:
-        rct_gras = sort_reagents(rct_gras)
+        rct_gras = sort_by_size(rct_gras)
         rct1_gra, rct2_gra = rct_gras
 
         rct1_atm_keys = unsaturated_atom_keys(rct1_gra)
