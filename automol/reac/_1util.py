@@ -244,34 +244,3 @@ def _have_no_partial_stereo(gras):
     else:
         ret = True
     return ret
-
-
-def argsort_reagents(gras):
-    """ Get indices to sort reagents by size, from largest to smallest
-
-    :param gras: the reagent (i.e. reactant or product) graphs
-    :returns: indices for sorting the reagents
-    :rtype: tuple[int]
-    """
-
-    def __sort_value(args):
-        _, gra = args
-        val = (-automol.graph.atom_count(gra, heavy_only=True),
-               -automol.graph.atom_count(gra),
-               -automol.graph.electron_count(gra))
-        return val
-
-    idxs = tuple(idx for idx, gra in sorted(enumerate(gras), key=__sort_value))
-    return idxs
-
-
-def sort_reagents(gras):
-    """ Sort reagents by size, from largest to smallest
-
-    :param gras: the reagent (i.e. reactant or product) graphs
-    :returns: the reagent graphs, in sorted order
-    """
-    gras = tuple(gras)
-    idxs = argsort_reagents(gras)
-    gras = tuple(map(gras.__getitem__, idxs))
-    return gras

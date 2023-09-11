@@ -15,7 +15,7 @@ from automol.reac._0core import (
     Reaction,
     product_graphs,
     reactant_graphs,
-    relabel_for_zmatrix,
+    apply_dummy_conversion,
     set_structures,
     standard_keys_with_sorted_geometries,
     ts_graph,
@@ -326,12 +326,12 @@ def with_structures_from_geometry(
         if not zmat:
             ret.append(rxn)
         else:
-            ts_zma, zma_keys, dummy_key_dct = ts_zmatrix(rxn, ts_geo)
-            std_zrxn = relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+            ts_zma, dc_ = ts_zmatrix(rxn, ts_geo)
+            zrxn = apply_dummy_conversion(rxn, dc_)
             rct_zmas = tuple(map(automol.geom.zmatrix, rct_geos))
             prd_zmas = tuple(map(automol.geom.zmatrix, prd_geos))
 
-            ret += ((std_zrxn, ts_zma, rct_zmas, prd_zmas),)
+            ret += ((zrxn, ts_zma, rct_zmas, prd_zmas),)
 
     # Set to None if no objects found
     if not ret:

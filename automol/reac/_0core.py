@@ -761,7 +761,7 @@ def apply_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
     :type rxn: Reaction
     :param dc_: A dummy conversion
     :type dc_: DummyConv
-    :returns: A transformed reaction object
+    :returns: The converted reaction object
     :rtype: Reaction
     """
     # 1. Transform the TS graph
@@ -784,6 +784,24 @@ def apply_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
     rxn = set_ts_graph(rxn, tsg)
     rxn = set_reactants_keys(rxn, rcts_keys)
     rxn = set_products_keys(rxn, prds_keys)
+    return rxn
+
+
+def reverse_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
+    """Reverse a dummy conversion (dummy insertion + reordering) to the reaction
+
+    This can be used to match the original geometry after conversio to z-matrix
+
+    :param rxn: A converted reaction object
+    :type rxn: Reaction
+    :param dc_: A dummy conversion
+    :type dc_: DummyConv
+    :returns: The original reaction object
+    :rtype: Reaction
+    """
+    rxn = without_dummy_atoms(rxn)
+    rel_dct = dummy_conv.relabel_dict(dc_, rev=True)
+    rxn = relabel(rxn, rel_dct)
     return rxn
 
 
@@ -819,18 +837,16 @@ def _insert_dummy_atom(rxn: Reaction, key, dummy_key) -> Reaction:
 
 def without_dummy_atoms(rxn: Reaction) -> Reaction:
     """remove dummy atoms from the reactants or products
-
-    :param product: do this do the products instead of the reactants?
     """
     tsg = ts_graph(rxn)
-    keys_lst = reactants_keys(rxn)
-
     dummy_keys = automol.graph.atom_keys(tsg, symb="X")
-    tsg = automol.graph.remove_atoms(tsg, dummy_keys, stereo=True)
+
+    tsg = automol.graph.without_dummy_atoms(tsg)
+    rcts_keys = [[k for k in ks if k not in dummy_keys] for ks in reactants_keys(rxn)]
+    prds_keys = [[k for k in ks if k not in dummy_keys] for ks in products_keys(rxn)]
     rxn = set_ts_graph(rxn, tsg)
-    rxn = set_reactants_keys(
-        rxn, [[k for k in ks if k not in dummy_keys] for ks in keys_lst]
-    )
+    rxn = set_reactants_keys(rxn, rcts_keys)
+    rxn = set_products_keys(rxn, prds_keys)
     return rxn
 
 

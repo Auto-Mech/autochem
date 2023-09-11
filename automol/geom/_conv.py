@@ -179,8 +179,15 @@ def zmatrix_with_conversion_info(geo, gra=None):
 
     # Generate a v-matrix for the graph and get the z-matrix reordering
     rng_keys = automol.graph.base.ts.zmatrix_starting_ring_keys(gra)
+    rcts_keys = automol.graph.base.ts.zmatrix_sorted_reactants_keys(gra)
     if rng_keys is not None:
         vma, zma_keys = automol.graph.base.vmat.vmatrix(gra, rng_keys=rng_keys)
+    elif rcts_keys is not None:
+        rct1_keys, rct2_keys = rcts_keys
+        vma, zma_keys = automol.graph.base.vmat.vmatrix(gra, rct1_keys)
+        vma, zma_keys = automol.graph.base.vmat.continue_vmatrix(
+            gra, rct2_keys, vma, zma_keys
+        )
     else:
         vma, zma_keys = automol.graph.base.vmat.vmatrix(gra)
 

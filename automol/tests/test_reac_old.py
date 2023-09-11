@@ -302,8 +302,8 @@ def test__reac__2ts_hydrogen_migration():
     # Deal with rxn object 1
     rxn1, ts_geo1, _, _ = rxn_objs[0]
     assert automol.reac.class_(rxn1) == ReactionClass.Typ.HYDROGEN_MIGRATION
-    zma1, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
-    zrxn1 = automol.reac.relabel_for_zmatrix(rxn1, zma_keys1, dummy_key_dct1)
+    zma1, dc1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
+    zrxn1 = automol.reac.apply_dummy_conversion(rxn1, dc1)
     print(zrxn1)
 
     bnd_keys1 = automol.reac.rotational_bond_keys(zrxn1)
@@ -319,8 +319,8 @@ def test__reac__2ts_hydrogen_migration():
     # Deal with rxn object 2
     rxn2, ts_geo2, _, _ = rxn_objs[1]
     assert automol.reac.class_(rxn2) == ReactionClass.Typ.HYDROGEN_MIGRATION
-    zma2, zma_keys2, dummy_key_dct2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
-    zrxn2 = automol.reac.relabel_for_zmatrix(rxn2, zma_keys2, dummy_key_dct2)
+    zma2, dc2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
+    zrxn2 = automol.reac.apply_dummy_conversion(rxn2, dc2)
 
     bnd_keys2 = automol.reac.rotational_bond_keys(zrxn2)
     names2 = {
@@ -694,8 +694,8 @@ def test__reac_util():
     rxn_objs = automol.reac.with_structures_from_smiles(
         rct_smis, prd_smis)
     rxn, geo, _, _ = rxn_objs[0]
-    _, zma_keys1, dummy_key_dct1 = automol.reac.ts_zmatrix(rxn, geo)
-    zrxn1 = automol.reac.relabel_for_zmatrix(rxn, zma_keys1, dummy_key_dct1)
+    _, dc1 = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn1 = automol.reac.apply_dummy_conversion(rxn, dc1)
 
     zrxn_objs = automol.reac.with_structures_from_smiles(
         rct_smis, prd_smis, zmat=True)
@@ -819,8 +819,8 @@ def _check_reaction(rxn_obj, ref_class, var,
     rxn, geo, _, _ = rxn_obj
 
     # Build Reaction object aligned to z-matrix keys
-    zma, zma_keys, dummy_key_dct = automol.reac.ts_zmatrix(rxn, geo)
-    zrxn = automol.reac.relabel_for_zmatrix(rxn, zma_keys, dummy_key_dct)
+    zma, dc_ = automol.reac.ts_zmatrix(rxn, geo)
+    zrxn = automol.reac.apply_dummy_conversion(rxn, dc_)
 
     # print(automol.zmat.string(zma))
     # print(zrxn)

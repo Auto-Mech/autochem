@@ -36,9 +36,10 @@
             [X] Forming rings:
                 [X] If there is a breaking bond in the ring, exclude it
                 [X] If there are multiple breaking/forming bonds, split on a breaking bond to put the forming bonds as close as possible to the end (this minimizes coordinate dependencies on the forming bonds)
-            [ ] Bimoleculars: Start from "reagent 1"
-                [ ] For atom transfers, this is the atom donor (the reagent that contains a breaking bond)
-                [ ] For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
+            [X] Bimoleculars: Start from "reagent 1"
+                [X] For atom transfers, this is the atom donor (the reagent that contains a breaking bond)
+                [X] For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
+            [ ] FIX BROKEN SN2 case: test_reac/test__end_to_end() line 292
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py

@@ -206,6 +206,8 @@ def test__find():
     _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
     # addition
     _test(["CC[CH2]", "[O][O]"], ["CCCO[O]"])
+    # addition (H + H => H2)
+    _test(["[H]", "[H]"], ["[H][H]"])
     # addition (stereo-specific)
     _test([r"F/C=C\F", "[OH]"], ["F[CH][C@H](O)F"])
     # addition (stereo-specific with ring)
@@ -236,7 +238,7 @@ def test__find():
     _test(["CCC=O", "N(=O)O"], ["CCCON(=O)=O"])
 
 
-def test__ts_geometry():
+def test__end_to_end():
     """Test reac.ts_geometry"""
 
     def _test(rct_smis, prd_smis):
@@ -267,6 +269,7 @@ def test__ts_geometry():
 
         # 3. generate geometries
         ts_geo = automol.reac.ts_geometry_from_reactants(rxn, rct_geos)
+
         # Check that the structure is reasonable
         rct_gras_, _ = automol.graph.standard_keys_for_sequence(rct_gras)
         prd_gras_, _ = automol.graph.standard_keys_for_sequence(prd_gras)
@@ -277,6 +280,20 @@ def test__ts_geometry():
         assert rcts_gra == automol.geom.graph(ts_geo)
         prds_gra1 = automol.graph.set_stereo_from_geometry(prds_gra, ts_geo)
         assert prds_gra == prds_gra1
+
+        # 4. generate a z-matrix
+        ts_zma, dc_ = automol.reac.ts_zmatrix(rxn, ts_geo)
+        zrxn = automol.reac.apply_dummy_conversion(rxn, dc_)
+        ztsg = automol.reac.ts_graph(zrxn)
+
+        # Check that it matches the converted TS graph
+        zgra1 = automol.graph.ts.reactants_graph(ztsg, stereo=False, dummy=True)
+        zgra2 = automol.zmat.graph(ts_zma, stereo=False, dummy=True)
+        assert zgra1 == zgra2
+
+        # Make sure it can be converted back
+        rxn2 = automol.reac.reverse_dummy_conversion(zrxn, dc_)
+        assert rxn == rxn2
 
     # UNIMOLECULAR
     # hydrogen migration
@@ -300,6 +317,8 @@ def test__ts_geometry():
     _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
     # addition
     _test(["CC[CH2]", "[O][O]"], ["CCCO[O]"])
+    # addition (H + H => H2)
+    _test(["[H]", "[H]"], ["[H][H]"])
     # addition (stereo-specific)
     _test([r"F/C=C\F", "[OH]"], ["F[CH][C@H](O)F"])
     # addition (stereo-specific with ring)
@@ -336,4 +355,4 @@ if __name__ == "__main__":
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
     # test__find()
-    test__ts_geometry()
+    test__end_to_end()

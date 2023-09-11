@@ -5,18 +5,21 @@ DEPRECATED (under construction to phase out)
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
-from typing import List
+from typing import Dict, List, Tuple
 
 import automol.amchi.base  # !!!!
 from automol import util
 from automol.graph.base._0core import (
+    atom_keys,
     atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
     bond_stereo_keys,
     bond_stereo_sorted_neighbor_keys,
     has_stereo,
+    is_ts_graph,
     local_stereo_priorities,
     set_stereo_parities,
+    sort_by_size,
     stereo_parities,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
@@ -30,6 +33,7 @@ from automol.graph.base._0core import (
     without_reacting_bonds,
 )
 from automol.graph.base._2algo import (
+    connected_components,
     rings_bond_keys,
     sorted_ring_atom_keys_from_bond_keys,
 )
@@ -64,6 +68,17 @@ linear_reacting_atom_keys = ts_linear_reacting_atom_keys
 reacting_electron_direction = ts_reacting_electron_direction
 
 
+def is_bimolecular(tsg) -> bool:
+    """Is this a TS for a bimolecular reaction?
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: `True` if it is, `False` if it isn't
+    :rtype: bool
+    """
+    return len(connected_components(ts_reagents_graph_without_stereo(tsg))) == 2
+
+
 def has_reacting_ring(tsg) -> bool:
     """Does this TS graph have a ring which is involved in the reaction?
 
@@ -75,6 +90,61 @@ def has_reacting_ring(tsg) -> bool:
     return bool(forming_rings_atom_keys(tsg) or breaking_rings_atom_keys(tsg))
 
 
+def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing atom transfers; keys are transferring atoms, values
+    are donors and acceptors, respectively
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A list of triples containing the donor atom, the transferring atom, and
+        the acceptor atom, respectively
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    brk_bkeys = breaking_bond_keys(tsg)
+    frm_bkeys = forming_bond_keys(tsg)
+
+    tra_dct = {}
+    for brk_bkey, frm_bkey in itertools.product(brk_bkeys, frm_bkeys):
+        if brk_bkey & frm_bkey:
+            (tra_key,) = brk_bkey & frm_bkey
+            (don_key,) = brk_bkey - frm_bkey
+            (acc_key,) = frm_bkey - brk_bkey
+            tra_dct[tra_key] = (don_key, acc_key)
+
+    return tra_dct
+
+
+def zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
+    """For bimolecular reactions without a TS ring, return keys for the reactants in the
+    order they should appear in the z-matrix
+
+    For unimolecular reactions or bimolecular reactions with a TS ring, returns None
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: For bimolecular reactions without a TS ring, the keys for each reactant,
+        in z-matrix order, i.e. atom donor first or, if there isn't one, larger reactant
+        first, as measured by (heavy atoms, total atoms, electrons)
+    :rtype: List[int]
+    """
+    if not is_ts_graph(tsg) or has_reacting_ring(tsg) or not is_bimolecular(tsg):
+        return None
+
+    rcts_gra = ts_reagents_graph_without_stereo(tsg, dummy=True)
+    rct_gras = connected_components(rcts_gra)
+
+    # 1. If there is an atom transfer, put the donor reagent first
+    tra_keys = set(atom_transfers(tsg))
+    if tra_keys:
+        rct_gras = sorted(rct_gras, key=lambda g: atom_keys(g) & tra_keys, reverse=True)
+    # 2. Otherwise, put the larger reagent first
+    else:
+        rct_gras = sort_by_size(rct_gras)
+
+    rcts_keys = tuple(map(tuple, map(sorted, map(atom_keys, rct_gras))))
+    return rcts_keys
+
+
 def zmatrix_starting_ring_keys(tsg) -> List[int]:
     """Return keys for a TS ring to start from, sorted in z-matrix order
 
@@ -83,13 +153,13 @@ def zmatrix_starting_ring_keys(tsg) -> List[int]:
     :param tsg: TS graph
     :type tsg: automol graph data structure
     :returns: The ring keys, sorted to exclude breaking bonds and include forming bonds
-        as early as possible
+        as late as possible
     :rtype: List[int]
     """
-    rngs_keys = reacting_rings_atom_keys(tsg)
-
-    if not rngs_keys:
+    if not has_reacting_ring(tsg):
         return None
+
+    rngs_keys = reacting_rings_atom_keys(tsg)
 
     if len(rngs_keys) > 1:
         raise NotImplementedError(f"Not implemented for multiple reacting rings: {tsg}")

@@ -56,6 +56,9 @@ from automol.graph.base._0core import from_old_yaml_data
 from automol.graph.base._0core import frozen
 from automol.graph.base._0core import formula
 from automol.graph.base._0core import symbols
+# # sorting
+from automol.graph.base._0core import argsort_by_size
+from automol.graph.base._0core import sort_by_size
 # # properties
 from automol.graph.base._0core import atom_count
 from automol.graph.base._0core import electron_count
@@ -346,6 +349,9 @@ __all__ = [
     'frozen',
     'formula',
     'symbols',
+    # # sorting
+    'argsort_by_size',
+    'sort_by_size',
     # # properties
     'atom_count',
     'electron_count',

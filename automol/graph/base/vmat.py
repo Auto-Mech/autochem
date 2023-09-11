@@ -487,7 +487,7 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
     :param zma_keys: keys currently in the v-matrix
     """
     ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
-        gra,
+        subgraph(gra, zma_keys),
         symbs_first=(
             "X",
             "C",
@@ -500,16 +500,26 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
 
     key3 = keys[0]
     assert key3 in zma_keys
-    key2 = next((k for k in ngb_keys_dct[key3] if k in zma_keys), None)
 
-    if key2 is None:
-        key1 = None
-    elif symb_dct[key2] == "X":
-        key1 = next((k for k in ngb_keys_dct[key3][1:] if k in zma_keys), None)
-    else:
-        key1 = next(
-            (k for k in ngb_keys_dct[key2] if k in zma_keys and k != key3), None
-        )
+    # 1. Try to find a chain key3-key2-key1
+    def _find_key1_and_key2():
+        for key2 in ngb_keys_dct[key3]:
+            key1s = (
+                ngb_keys_dct[key2] if symb_dct[key2] != "X" else ngb_keys_dct[key3][1:]
+            )
+            for key1 in key1s:
+                if key1 != key3:
+                    return key1, key2
+        return None, None
+
+    key1, key2 = _find_key1_and_key2()
+    # 2. If no complete chain can be found, allow key1 to be discontinuous
+    if key1 is None and key2 is None:
+        # Unless the starting z-matrix is monatomic, there *must* be a neighbor for key3
+        key2 = next((k for k in ngb_keys_dct[key3] if k in zma_keys), None)
+        # Since _find_key1_and_key2() failed, there must not be a neighbor for key2
+        # aside from key3, so use another, discontinous z-matrix key, if there is one
+        key1 = next((k for k in zma_keys if k not in (key2, key3)), None)
 
     keys = (
         key1,

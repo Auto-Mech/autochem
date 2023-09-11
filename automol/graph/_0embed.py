@@ -90,42 +90,43 @@ def embed_geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
     if len(symbs) == 1:
         symb = list(symbs.values())[0]
         geo = ((symb, (0.00, 0.00, 0.00)),)
-    else:
-        # For simplicity, convert to local stereo and use local stereo
-        # throughout
-        loc_gra = to_local_stereo(gra)
+        return geo
 
-        # 0. Get keys and symbols
-        symb_dct = atom_symbols(loc_gra)
+    # For simplicity, convert to local stereo and use local stereo
+    # throughout
+    loc_gra = to_local_stereo(gra)
 
-        keys = sorted(atom_keys(loc_gra)) if keys is None else keys
-        symbs = tuple(map(symb_dct.__getitem__, keys))
+    # 0. Get keys and symbols
+    symb_dct = atom_symbols(loc_gra)
 
-        # 1. Generate bounds matrices
-        lmat, umat = distance_bounds_matrices(loc_gra, keys)
-        chi_dct = chirality_constraint_bounds(loc_gra, keys)
-        pla_dct = planarity_constraint_bounds(loc_gra, keys)
-        conv1_ = qualitative_convergence_checker_(loc_gra, keys)
-        conv2_ = embed.distance_convergence_checker_(lmat, umat, max_dist_err)
+    keys = sorted(atom_keys(loc_gra)) if keys is None else keys
+    symbs = tuple(map(symb_dct.__getitem__, keys))
 
-        def conv_(xmat, err, grad):
-            return conv1_(xmat, err, grad) & conv2_(xmat, err, grad)
+    # 1. Generate bounds matrices
+    lmat, umat = distance_bounds_matrices(loc_gra, keys)
+    chi_dct = chirality_constraint_bounds(loc_gra, keys)
+    pla_dct = planarity_constraint_bounds(loc_gra, keys)
+    conv1_ = qualitative_convergence_checker_(loc_gra, keys)
+    conv2_ = embed.distance_convergence_checker_(lmat, umat, max_dist_err)
 
-        # 2. Generate coordinates with correct stereo, trying a few times
-        for _ in range(ntries):
-            xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
-            xmat, conv = embed.cleaned_up_coordinates(
-                xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct, conv_=conv_
-            )
-            if conv:
-                break
+    def conv_(xmat, err, grad):
+        return conv1_(xmat, err, grad) & conv2_(xmat, err, grad)
 
-        if not conv:
-            raise error.FailedGeometryGenerationError(f"Bad gra {string(loc_gra)}")
+    # 2. Generate coordinates with correct stereo, trying a few times
+    for _ in range(ntries):
+        xmat = embed.sample_raw_distance_coordinates(lmat, umat, dim4=True)
+        xmat, conv = embed.cleaned_up_coordinates(
+            xmat, lmat, umat, pla_dct=pla_dct, chi_dct=chi_dct, conv_=conv_
+        )
+        if conv:
+            break
 
-        # 3. Generate a geometry data structure from the coordinates
-        xyzs = xmat[:, :3]
-        geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
+    if not conv:
+        raise error.FailedGeometryGenerationError(f"Bad gra {string(loc_gra)}")
+
+    # 3. Generate a geometry data structure from the coordinates
+    xyzs = xmat[:, :3]
+    geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
 
     return geo
 
@@ -158,6 +159,27 @@ def clean_geometry(
     :param relax_angles: Allow angles to relax?, defaults to False
     :type relax_angles: bool, optional
     """
+
+    symb_dct = atom_symbols(gra)
+
+    # Build monatomics and diatomics directly
+    if len(symb_dct) == 1:
+        symbs = list(symb_dct.values())
+        xyzs = [[0., 0., 0.]]
+        return automol.geom.from_data(symbs, xyzs, angstrom=True)
+
+    if len(symb_dct) == 2:
+        bkey = frozenset(symb_dct.keys())
+        symbs = list(symb_dct.values())
+        if dist_range_dct and bkey in dist_range_dct:
+            bdist = sum(dist_range_dct[bkey]) / 2.
+        else:
+            key1, key2 = bkey
+            bdist = heuristic_bond_distance(gra, key1, key2, angstrom=True)
+        xyzs = [[0., 0., 0.],
+                [bdist, 0., 0.]]
+        return automol.geom.from_data(symbs, xyzs, angstrom=True)
+
     gra = to_local_stereo(gra)
     rct_geos = [geo] if rct_geos is None else rct_geos
 
