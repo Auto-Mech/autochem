@@ -30,7 +30,7 @@
         [X] Replace relabel_for_zmatrix() functions with apply_dummy_transformation() functions
         [X] Replace relabel_for_geometry() functions with reverse_dummy_transformation() functions
         [X] Both of the above will take the same `dc_` data structure, returned from zmatrix_with_conversion_info()
-    [ ] _5zmat.py
+    [x] _5zmat.py
         Strategy:
             [X] If forming bond is linear, add a dummy atom (currently only sigma abstractions -- use reacting_electron_direction)
             [X] Forming rings:
@@ -40,7 +40,8 @@
                 [X] For atom transfers, this is the atom donor (the reagent that contains a breaking bond)
                 [X] For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
             [X] FIX BROKEN SN2 case: test_reac/test__end_to_end() line 292
-            [ ] FIX BROKEN insertion case: test_reac/test__end_to_end() line 349
+            [X] FIX BROKEN insertion case: test_reac/test__end_to_end() line 349
+    [ ] FIX BROKEN geometry generation (run test_graph.py tests)
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py
