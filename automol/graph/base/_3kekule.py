@@ -241,9 +241,6 @@ def linear_segments_atom_keys(gra, lin_keys=None):
     ngb_keys_dct = atoms_neighbor_atom_keys(without_dummy_atoms(gra))
 
     lin_keys = linear_atom_keys(gra, dummy=True) if lin_keys is None else lin_keys
-
-    lin_keys = [k for k in lin_keys if len(ngb_keys_dct[k]) <= 2]
-
     lin_segs = connected_components(subgraph(gra, lin_keys))
 
     lin_keys_lst = []

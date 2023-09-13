@@ -39,7 +39,8 @@
             [X] Bimoleculars: Start from "reagent 1"
                 [X] For atom transfers, this is the atom donor (the reagent that contains a breaking bond)
                 [X] For additions, this is the larger reagent, as measured by (heavy atoms, total atoms, electrons)
-            [ ] FIX BROKEN SN2 case: test_reac/test__end_to_end() line 292
+            [X] FIX BROKEN SN2 case: test_reac/test__end_to_end() line 292
+            [ ] FIX BROKEN insertion case: test_reac/test__end_to_end() line 349
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py

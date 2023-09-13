@@ -36,7 +36,7 @@ def unit_direction(xyz1, xyz2):
     return uxyz12
 
 
-def are_parallel(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), tol=1e-7):
+def are_parallel(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), anti=False, tol=1e-3):
     """Assess if two vectors are parallel to each other.
 
     :param xyz1: 3D vector
@@ -45,14 +45,24 @@ def are_parallel(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), tol=1e-7):
     :type xyz2: tuple, list, or numpy nd.array
     :param orig_xyz: origin of coordinate system `xyz1` and `xyz2` are in
     :type orig_xyz: tuple, list, or numpy nd.array
+    :param anti: Test for anti-parallelity too?
+    :type anti: bool
     :param tol: tolerance for checking determinant
     :type tol: float
     :rtype: bool
     """
+    vec1 = numpy.subtract(xyz1, orig_xyz)
+    vec2 = numpy.subtract(xyz2, orig_xyz)
+    len1 = numpy.linalg.norm(vec1)
+    len2 = numpy.linalg.norm(vec2)
 
-    det = numpy.linalg.det([list(orig_xyz), list(xyz1), list(xyz2)])
-    return det > tol
+    ratio = numpy.dot(vec1, vec2) / (len1 * len2)
 
+    ret = abs(ratio - 1) < tol
+    if anti:
+        ret |= (abs(ratio + 1) < tol)
+
+    return ret
 
 def orthogonalize(xyz1, xyz2, normalize=False):
     """orthogonalize `xyz2` against `xyz1`"""

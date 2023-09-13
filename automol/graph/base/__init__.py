@@ -233,6 +233,7 @@ from automol.graph.base._5geom import geometry_bond_parity
 from automol.graph.base._5geom import geometry_local_parity
 from automol.graph.base._5geom import geometries_have_matching_parities
 from automol.graph.base._5geom import geometries_parity_mismatches
+from automol.graph.base._5geom import linear_segment_dummy_direction
 # # corrections
 from automol.graph.base._5geom import linear_vinyl_corrected_geometry
 from automol.graph.base._5geom import geometry_pseudorotate_atom
@@ -526,6 +527,7 @@ __all__ = [
     'geometry_local_parity',
     'geometries_have_matching_parities',
     'geometries_parity_mismatches',
+    'linear_segment_dummy_direction',
     # # corrections
     'linear_vinyl_corrected_geometry',
     'geometry_pseudorotate_atom',
