@@ -483,6 +483,7 @@ def geometry_pseudorotate_atom(
     nkeys = atom_neighbor_atom_keys(gra, key)
     # Group together neighbors connected in a ring system
     nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
+    # Add the other neighbors as singletons
     nkey_sets.extend({k} for k in nkeys if not any(k in ks for ks in nkey_sets))
     # Put the biggest groups first
     nkey_sets = sorted(nkey_sets, key=len, reverse=True)
@@ -491,7 +492,7 @@ def geometry_pseudorotate_atom(
 
     # Now, find a pair of atoms to keep fixed
     found_pair = False
-    for nkeys1, nkeys2 in mit.pairwise(nkey_sets):
+    for nkeys1, nkeys2 in mit.pairwise(nkey_sets + [set()]):
         if len(nkeys1) == 2 or len(nkeys1 | nkeys2) == 2:
             found_pair = True
             nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)

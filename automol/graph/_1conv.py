@@ -153,8 +153,11 @@ def _connected_geometry(gra, check=True):
                 break
 
             # If the stereo doesn't match, try a stereo correction.
+            print("A", geo)
             geo = stereo_corrected_geometry(gra, geo, local_stereo=False)
+            print("B", geo)
             geo = clean_geometry(gra_, geo, stereo=True)
+            print("C", geo)
 
             # Now, re-try the isomorphism
             gra_ = geom.graph(geo)
