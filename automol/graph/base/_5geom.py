@@ -5,6 +5,7 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import itertools
 import numbers
 from collections import abc
+from typing import Dict, List
 
 import more_itertools as mit
 import numpy
@@ -12,16 +13,12 @@ from phydat import phycon
 
 import automol.geom.base
 from automol import util
-from automol.graph.base._2algo import (
-    branch_atom_keys,
-    ring_systems_atom_keys,
-    rings_bond_keys,
-)
 from automol.graph.base._0core import (
     atom_keys,
     atom_neighbor_atom_keys,
     atom_stereo_sorted_neighbor_keys,
     atoms_neighbor_atom_keys,
+    atoms_sorted_neighbor_atom_keys,
     backbone_bond_keys,
     bond_stereo_sorted_neighbor_keys,
     bonds_neighbor_atom_keys,
@@ -29,9 +26,16 @@ from automol.graph.base._0core import (
     explicit,
     relabel,
     ts_reacting_atom_keys,
+    ts_transferring_atoms,
     without_dummy_atoms,
 )
+from automol.graph.base._2algo import (
+    branch_atom_keys,
+    ring_systems_atom_keys,
+    rings_bond_keys,
+)
 from automol.graph.base._3kekule import rigid_planar_bond_keys
+from automol.util.vec import Vector
 
 
 # stereo parity evaluations
@@ -288,6 +292,80 @@ def geometries_parity_mismatches(gra, geo1, geo2, keys, geo_idx_dct=None):
         if geometry_local_parity(gra, geo1, key, geo_idx_dct=geo_idx_dct)
         != geometry_local_parity(gra, geo2, key, geo_idx_dct=geo_idx_dct)
     )
+
+
+def linear_segment_dummy_direction(
+    gra, geo, seg_keys: List[int], geo_idx_dct: Dict[int, int] = None
+) -> Vector:
+    """Get a good direction for placing dummy atoms over a linear segment
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param seg_keys: Keys for the linear segment, sorted by connectivity so that the
+        first and last keys are at the ends of th segment
+    :type seg_keys: List[int]
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: Dict[int, int], optional
+    :return: The linear direction
+    :rtype: Vector
+    """
+    keys = sorted(atom_keys(gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+    gra = relabel(gra, geo_idx_dct)
+    gra = without_dummy_atoms(gra)
+
+    # 1. Find atoms book-ending either side of the linear segment
+    nkeys_dct = atoms_sorted_neighbor_atom_keys(gra)
+    tra_dct = ts_transferring_atoms(gra)
+    end_keys = []
+    for key in (seg_keys[0], seg_keys[-1]):
+        nkeys = tra_dct[key] if key in tra_dct else nkeys_dct[key]
+        end_key, *_ = (set(nkeys) - set(seg_keys)) - set(end_keys)
+        end_keys.append(end_key)
+
+    assert len(end_keys) == 2, "Sanity check"
+
+    # 2. Determine the linear segment direction
+    end_xyzs = automol.geom.base.coordinates(geo, idxs=end_keys)
+    seg_vec = util.vec.unit_norm(numpy.subtract(*end_xyzs))
+
+    # 3. Find an auxiliary, non-parallel direction, if possible
+    aux_vec = None
+    tra_key = next((k for k in seg_keys if k in tra_dct), None)
+    if tra_key is not None and len(nkeys_dct[tra_key]) > 2:
+        # For a transferring atom, with spectator neighbors, find a direction that
+        # avoids them as much as possible
+        nkeys = set(nkeys_dct[tra_key]) - set(tra_dct[tra_key])
+        nkey1, nkey2, *_ = nkeys
+        nxyz1, nxyz2 = automol.geom.base.coordinates(geo, idxs=(nkey1, nkey2))
+        (tra_xyz,) = automol.geom.base.coordinates(geo, idxs=(tra_key,))
+        aux_vec = util.vec.unit_bisector(nxyz1, nxyz2, tra_xyz, outer=len(nkeys) < 3)
+    else:
+        # Otherwise, look for a non-parallel neighbor to one of the book-ending keys
+        for key in end_keys:
+            nkeys = set(nkeys_dct[key]) - set(seg_keys)
+            for nkey in nkeys:
+                xyz, nxyz = automol.geom.base.coordinates(geo, idxs=(key, nkey))
+                end_nvec = numpy.subtract(nxyz, xyz)
+                if not util.vec.are_parallel(seg_vec, end_nvec, anti=True):
+                    aux_vec = util.vec.unit_norm(end_nvec)
+                    break
+
+    # 4. Find the dummy direction
+    if aux_vec is None:
+        # If we don't have an auxiliary vector, choose an arbitrary vector perpendicular
+        dummy_vec = util.vec.arbitrary_unit_perpendicular(seg_vec)
+    else:
+        # If we have an auxiliary vector, ortogonalize it against the segment direction
+        # vector to get a nice perpendicular direction
+        dummy_vec = util.vec.orthogonalize(seg_vec, aux_vec, normalize=True)
+
+    return dummy_vec
 
 
 # corrections

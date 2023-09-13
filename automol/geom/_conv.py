@@ -34,7 +34,6 @@ from automol.util import (
     DummyConv,
     dict_,
     dummy_conv,
-    equivalence_partition,
     heuristic,
     vec,
 )
@@ -83,6 +82,27 @@ def graph_without_stereo(geo, dist_factor=None):
     ]
 
     gra = automol.graph.base.from_data(atm_symb_dct=symb_dct, bnd_keys=bnd_keys)
+
+    # Check for dummy atoms with more than one neighbor
+    dummy_keys = automol.graph.base.atom_keys(gra, symb="X")
+    nkeys_dct = automol.graph.base.atoms_neighbor_atom_keys(gra)
+    dnkeys_dct = dict_.by_key(nkeys_dct, dummy_keys)
+    dnkeys_dct = dict_.filter_by_value(dnkeys_dct, lambda n: len(n) > 1)
+    if dnkeys_dct:
+        for dkey, dnkeys in dnkeys_dct.items():
+            # Find the neighbor that is closest to 1 Angstrom away
+            best_dnkey = None
+            best_diff = numpy.inf
+            for dnkey in dnkeys:
+                diff = abs(1 - distance(geo, dkey, dnkey, angstrom=True))
+                if diff < best_diff:
+                    best_diff = diff
+                    best_dnkey = dnkey
+            # Remove bonds to all but this neighbor
+            bad_dnkeys = dnkeys - {best_dnkey}
+            bad_bkeys = [(dkey, k) for k in bad_dnkeys]
+            gra = automol.graph.base.remove_bonds(gra, bad_bkeys)
+
     return gra
 
 
@@ -715,62 +735,6 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     return rvec
 
 
-def linear_segment_perpendicular_direction(geo, idxs, gra=None, _tol=5.0):
-    """Find a nice perpendicular direction for a linear segment
-
-    (Used to insert dummy atoms)
-
-    Where possible, the direction will be chosen to align with a non-linear neighbor of
-    the segment
-
-    :param geo: The geometry
-    :type geo: automol geometry data structure
-    :param idxs: A sequence of atom indices, which is assumed to be linear
-    :type idxs: List[int]
-    :param gra: A molecular graph used to identify neighboring atoms
-    :type gra: automol graph data structure
-    :param tol: A tolerance threshold, in degrees, used to identify non-linear
-        neighbors
-    """
-    gra = graph_without_stereo(geo) if gra is None else gra
-    ngb_idxs_dct = automol.graph.base.atoms_sorted_neighbor_atom_keys(gra)
-    xyzs = coordinates(geo, angstrom=True)
-
-    triplets = []
-    for idx in idxs:
-        for n1idx in ngb_idxs_dct[idx]:
-            for n2idx in ngb_idxs_dct[n1idx]:
-                if n2idx != idx:
-                    ang = central_angle(geo, idx, n1idx, n2idx, degree=True)
-                    if numpy.abs(ang - 180.0) > _tol:
-                        triplets.append((idx, n1idx, n2idx))
-
-    if triplets:
-        idx1, idx2, idx3 = min(triplets, key=lambda x: x[1:])
-        xyz1, xyz2, xyz3 = map(xyzs.__getitem__, (idx1, idx2, idx3))
-        r12 = vec.unit_direction(xyz1, xyz2)
-        r23 = vec.unit_direction(xyz2, xyz3)
-        direc = vec.orthogonalize(r12, r23, normalize=True)
-    else:
-        if len(idxs) > 1:
-            idx1, idx2 = idxs[:2]
-        else:
-            (idx1,) = idxs
-            idx2 = ngb_idxs_dct[idx1][0]
-
-        xyz1, xyz2 = map(xyzs.__getitem__, (idx1, idx2))
-        r12 = vec.unit_direction(xyz1, xyz2)
-        for i in range(3):
-            disp = numpy.zeros((3,))
-            disp[i] = -1.0
-            alt = numpy.add(r12, disp)
-            direc = vec.unit_perpendicular(r12, alt)
-            if numpy.linalg.norm(direc) > 1e-2:
-                break
-
-    return direc
-
-
 def external_symmetry_factor(geo, chiral_center=True):
     """Obtain the external symmetry factor for a geometry using x2z interface
     which determines the initial symmetry factor and then divides by the
@@ -842,9 +806,7 @@ def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
     ), f"Attempting to add dummy atoms on atoms that already have them {geo}"
 
     # Partition parent atoms into adjacent segments
-    nidxs_dct = automol.graph.base.atoms_neighbor_atom_keys(gra)
-    seg_idxs_seq = equivalence_partition(idxs, lambda x, y: x in nidxs_dct[y])
-    seg_idxs_lst = sorted(map(sorted, seg_idxs_seq))
+    seg_idxs_lst = automol.graph.base.linear_segments_atom_keys(gra, lin_keys=idxs)
 
     # Build an initial dummy conversion data structure to describe the insertion
     nk0s = count(geo)
@@ -855,7 +817,7 @@ def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
     # (Parent atom indices don't change, since the dummy atoms are added to the end)
     xyzs = coordinates(geo, angstrom=True)
     for seg_idxs in seg_idxs_lst:
-        direc = linear_segment_perpendicular_direction(geo, seg_idxs, gra=gra)
+        direc = automol.graph.base.linear_segment_dummy_direction(gra, geo, seg_idxs)
         for idx in seg_idxs:
             xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
             geo = insert(geo, "X", xyz, angstrom=True)
