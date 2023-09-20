@@ -1,5 +1,6 @@
 # Library: AutoChem
 [//]: # (Badges)
+[![Set up Conda environment and run tests](https://github.com/Auto-Mech/autochem/actions/workflows/install.yml/badge.svg)](https://github.com/Auto-Mech/autochem/actions/workflows/install.yml)
 [![CircleCI](https://circleci.com/gh/Auto-Mech/automol/tree/dev.svg?style=shield)](https://circleci.com/gh/Auto-Mech/autoio/tree/dev)
 [![Anaconda-Server Badge](https://anaconda.org/auto-mech/automol/badges/version.svg)](https://anaconda.org/auto-mech/autoio)
 [![Anaconda-Server Badge](https://anaconda.org/auto-mech/automol/badges/platforms.svg)](https://anaconda.org/auto-mech/autoio)
