@@ -1,0 +1,40 @@
+name: Set up Conda environment and run tests
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code with submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive  # Ensure submodules are checked out
+
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: ""
+        auto-activate-base: true
+
+    - name: Update Conda and Install Dependencies
+      shell: bash -l {0}
+      run: |
+        conda update -y -n base conda
+        conda install -y -n base conda-libmamba-solver
+        conda install -y anaconda-client -n base
+        conda config --set solver libmamba
+        conda env create -y auto-mech/amech-deps
+        conda activate amech-deps
+        conda info
+        conda list
+    - name: Activate environment, install other dependencies and run pytest on submodules
+      shell: bash -l {0}
+      continue-on-error: false
+      run: |
+        conda activate amech-deps
+        pip install git+https://github.com/Auto-Mech/autoio.git@dev#subdirectory=autoio-base
+        pip install git+https://github.com/Auto-Mech/autoio.git@dev#subdirectory=autoio-interfaces
+        pip install .
+        pytest
