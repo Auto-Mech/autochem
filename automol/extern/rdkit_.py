@@ -367,7 +367,7 @@ def to_svg_string(rdm, image_size=300):
     opts = rdd.drawOptions()
     opts.maxFontSize = 80
     opts.minFontSize = 30
-    opts.bondLineWidth = 7
+    opts.bondLineWidth = 4
     rdd.DrawMolecule(rdm)
     rdd.FinishDrawing()
     svg_str = rdd.GetDrawingText()

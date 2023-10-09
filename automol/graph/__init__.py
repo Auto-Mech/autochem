@@ -319,6 +319,7 @@ from automol.graph._1conv import rdkit_molecule
 from automol.graph._1conv import rdkit_reaction
 from automol.graph._1conv import display
 from automol.graph._1conv import display_reaction
+from automol.graph._1conv import svg_string
 from automol.graph._1conv import ipywidget
 
 
@@ -629,5 +630,6 @@ __all__ = [
     'rdkit_reaction',
     'display',
     'display_reaction',
+    'svg_string',
     'ipywidget',
 ]
