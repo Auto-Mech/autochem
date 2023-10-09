@@ -11,17 +11,19 @@ from automol import util
 _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)
 
-ATOM_STEREO_TAG = {
+ATOM_STEREO_TAG_FROM_BOOL = {
     None: rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED,
     False: rdkit.Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW,
     True: rdkit.Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CW,
 }
+ATOM_STEREO_BOOL_FROM_TAG = dict(map(reversed, ATOM_STEREO_TAG_FROM_BOOL.items()))
 
-BOND_STEREO_TAG = {
+BOND_STEREO_TAG_FROM_BOOL = {
     None: rdkit.Chem.rdchem.BondStereo.STEREONONE,
     False: rdkit.Chem.rdchem.BondStereo.STEREOZ,
     True: rdkit.Chem.rdchem.BondStereo.STEREOE,
 }
+BOND_STEREO_BOOL_FROM_TAG = dict(map(reversed, BOND_STEREO_TAG_FROM_BOOL.items()))
 
 
 def turn_3d_visualization_on():
@@ -47,7 +49,9 @@ def from_inchi(ich, print_debug=False):
     :rtype: RDKit molecule object
     """
 
-    rdm = rdkit.Chem.inchi.MolFromInchi(ich, treatWarningAsError=False)
+    rdm = rdkit.Chem.inchi.MolFromInchi(ich)
+    rdm = rdkit.Chem.AddHs(rdm)
+
     if rdm is None and print_debug:
         print(f"rdm fails for {ich} by returning {rdm}")
 
@@ -279,10 +283,63 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
         `True`, the atom keys themselves will be used as labels.
     :param label_dct: bool
     """
+    rdm, idx_from_key = _from_graph_without_stereo(gra, label=label, label_dct=label_dct)
+
+    # If there's not stereo, return early
+    if not stereo or not automol.graph.base.has_stereo(gra):
+        return rdm
+
+    # Otherwise, handle stereo
+    gra = automol.graph.base.to_local_stereo(gra)
+    exp_gra = automol.graph.base.explicit(gra)
+    exp_rdm, idx_from_key = _from_graph_without_stereo(exp_gra)
+
+    # Set atom stereo
+    atm_ste_dct = automol.graph.base.atom_stereo_parities(exp_gra)
+    for key, par0 in atm_ste_dct.items():
+        if par0 is not None:
+            rda = rdm.GetAtoms()[idx_from_key[key]]
+            exp_rda = exp_rdm.GetAtoms()[idx_from_key[key]]
+
+            nkeys0 = automol.graph.base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
+            nkeys1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
+
+            par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
+            rda.SetChiralTag(ATOM_STEREO_TAG_FROM_BOOL[par1])
+
+    # Set bond stereo
+    bnd_ste_dct = automol.graph.base.bond_stereo_parities(gra)
+    for bkey, par in bnd_ste_dct.items():
+        key1, key2 = sorted(bkey)
+        if par is not None:
+            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
+                gra, key1, key2
+            )
+
+            nidx1 = idx_from_key[nkeys1[-1]]
+            nidx2 = idx_from_key[nkeys2[-1]]
+
+            rdb = rdm.GetBondBetweenAtoms(idx_from_key[key1], idx_from_key[key2])
+            rdb.SetStereo(BOND_STEREO_TAG_FROM_BOOL[par])
+            rdb.SetStereoAtoms(nidx1, nidx2)
+
+    return rdm
+
+
+def _from_graph_without_stereo(gra, label=False, label_dct=None):
+    """Generate an RDKit rdmecule object from a connected rdmecular graph
+
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
+    """
     if label_dct is not None:
         label = True
 
-    gra = automol.graph.base.to_local_stereo(gra)
     gra = automol.graph.base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
     kgr = automol.graph.base.kekule(gra, max_stereo_overlap=True)
 
@@ -293,49 +350,21 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
 
     erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
-        atm = rdkit.Chem.Atom(symb_dct[key])
-        atm.SetNumRadicalElectrons(rad_dct[key])
-        erdm.AddAtom(atm)
+        rda = rdkit.Chem.Atom(symb_dct[key])
+        rda.SetNumRadicalElectrons(rad_dct[key])
+        erdm.AddAtom(rda)
 
     # Get key <=> index mappings
-    key_from_idx = dict(enumerate(keys))
-    idx_from_key = dict(map(reversed, key_from_idx.items()))
+    idx_from_key = dict(map(reversed, enumerate(keys)))
 
     # Add bonds
-    bkeys = automol.graph.base.bond_keys(kgr)
+    bkeys = sorted(automol.graph.base.bond_keys(kgr), key=sorted)
     ord_dct = automol.graph.base.bond_orders(kgr)
     for bkey in bkeys:
         idx1, idx2 = map(idx_from_key.__getitem__, bkey)
         erdm.AddBond(idx1, idx2, BOND_ORDER_DCT[ord_dct[bkey]])
 
     rdm = erdm.GetMol()
-
-    # Set atom stereo
-    atm_ste_dct = automol.graph.base.atom_stereo_parities(kgr)
-    for key, par in atm_ste_dct.items():
-        if par is not None:
-            atm = rdm.GetAtoms()[idx_from_key[key]]
-            nkeys = automol.graph.base.atom_stereo_sorted_neighbor_keys(kgr, key)
-            nkeys1 = [b.GetOtherAtomIdx(atm.GetIdx()) for b in atm.GetBonds()]
-
-            par1 = util.is_odd_permutation(nkeys, nkeys1) ^ par
-            atm.SetChiralTag(ATOM_STEREO_TAG[par1])
-
-    # Set bond stereo
-    bnd_ste_dct = automol.graph.base.bond_stereo_parities(kgr)
-    for bkey, par in bnd_ste_dct.items():
-        key1, key2 = sorted(bkey)
-        if par is not None:
-            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
-                kgr, key1, key2
-            )
-
-            nidx1 = idx_from_key[nkeys1[-1]]
-            nidx2 = idx_from_key[nkeys2[-1]]
-
-            bnd = rdm.GetBondBetweenAtoms(idx_from_key[key1], idx_from_key[key2])
-            bnd.SetStereo(BOND_STEREO_TAG[par])
-            bnd.SetStereoAtoms(nidx1, nidx2)
 
     if label:
         label_dct = {k: k for k in keys} if label_dct is None else label_dct
@@ -347,7 +376,7 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
 
     rdm.UpdatePropertyCache()
     rdkit.Chem.SanitizeMol(rdm)
-    return rdm
+    return rdm, idx_from_key
 
 
 def to_graph(rdm):
@@ -373,6 +402,37 @@ def to_graph(rdm):
         atm_imp_hyd_dct=hyd_dct,
         bnd_ord_dct=ord_dct,
     )
+
+    rdm = rdkit.Chem.AddHs(rdm)
+
+    # Assign atom stereo
+    for rda in rdm.GetAtoms():
+        par0 = ATOM_STEREO_BOOL_FROM_TAG[rda.GetChiralTag()]
+        if par0 is not None:
+            key = rda.GetIdx()
+            nkeys0 = automol.graph.base.atom_stereo_sorted_neighbor_keys(gra, key)
+            nkeys1 = [b.GetOtherAtomIdx(rda.GetIdx()) for b in rda.GetBonds()]
+            par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
+            gra = automol.graph.base.set_atom_stereo_parities(gra, {key: par1})
+
+    # Assign bond stereo
+    for rdb in rdm.GetBonds():
+        par0 = BOND_STEREO_BOOL_FROM_TAG[rdb.GetStereo()]
+        if par0 is not None:
+            key1 = rdb.GetBeginAtomIdx()
+            key2 = rdb.GetEndAtomIdx()
+            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
+                gra, key1, key2
+            )
+            nkey1 = nkeys1[-1]
+            nkey2 = nkeys2[-1]
+            nkey1_, nkey2_ = rdb.GetStereoAtoms()
+            par1 = (nkey1 != nkey1_) ^ (nkey2 != nkey2_) ^ par0
+
+            bkey = frozenset({key1, key2})
+            gra = automol.graph.base.set_bond_stereo_parities(gra, {bkey: par1})
+
+    gra = automol.graph.base.from_local_stereo(gra)
 
     return gra
 
