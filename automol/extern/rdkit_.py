@@ -11,6 +11,18 @@ from automol import util
 _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)
 
+ATOM_STEREO_TAG = {
+    None: rdkit.Chem.rdchem.ChiralType.CHI_UNSPECIFIED,
+    False: rdkit.Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW,
+    True: rdkit.Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CW,
+}
+
+BOND_STEREO_TAG = {
+    None: rdkit.Chem.rdchem.BondStereo.STEREONONE,
+    False: rdkit.Chem.rdchem.BondStereo.STEREOZ,
+    True: rdkit.Chem.rdchem.BondStereo.STEREOE,
+}
+
 
 def turn_3d_visualization_on():
     """Turn 3D drawing in RDKit on"""
@@ -267,31 +279,17 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
         `True`, the atom keys themselves will be used as labels.
     :param label_dct: bool
     """
-    if stereo:
-        raise NotImplementedError("Stereo is currently not implemented!")
-
     if label_dct is not None:
         label = True
 
+    gra = automol.graph.base.to_local_stereo(gra)
     gra = automol.graph.base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
     kgr = automol.graph.base.kekule(gra, max_stereo_overlap=True)
+
+    # Add atoms
     keys = sorted(automol.graph.base.atom_keys(kgr))
-    key_map = dict(map(reversed, enumerate(keys)))
     symb_dct = automol.graph.base.atom_symbols(kgr, dummy_symbol="He")
     rad_dct = automol.graph.base.atom_unpaired_electrons(kgr, bond_order=True)
-    if label:
-        label_dct = {k: k for k in keys} if label_dct is None else label_dct
-        # Re-index the label dict to use indices
-        label_dct = util.dict_.transform_keys(label_dct, key_map.__getitem__)
-
-    def idx_bond_key_(bnd_key):
-        key1, key2 = bnd_key
-        return frozenset({key_map[key1], key_map[key2]})
-
-    bnd_keys = list(map(idx_bond_key_, automol.graph.base.bond_keys(kgr)))
-    ord_dct = util.dict_.transform_keys(
-        automol.graph.base.bond_orders(kgr), idx_bond_key_
-    )
 
     erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
@@ -299,17 +297,56 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
         atm.SetNumRadicalElectrons(rad_dct[key])
         erdm.AddAtom(atm)
 
-    for bnd_key in bnd_keys:
-        erdm.AddBond(*bnd_key, BOND_ORDER_DCT[ord_dct[bnd_key]])
+    # Get key <=> index mappings
+    key_from_idx = dict(enumerate(keys))
+    idx_from_key = dict(map(reversed, key_from_idx.items()))
+
+    # Add bonds
+    bkeys = automol.graph.base.bond_keys(kgr)
+    ord_dct = automol.graph.base.bond_orders(kgr)
+    for bkey in bkeys:
+        idx1, idx2 = map(idx_from_key.__getitem__, bkey)
+        erdm.AddBond(idx1, idx2, BOND_ORDER_DCT[ord_dct[bkey]])
 
     rdm = erdm.GetMol()
 
+    # Set atom stereo
+    atm_ste_dct = automol.graph.base.atom_stereo_parities(kgr)
+    for key, par in atm_ste_dct.items():
+        if par is not None:
+            atm = rdm.GetAtoms()[idx_from_key[key]]
+            nkeys = automol.graph.base.atom_stereo_sorted_neighbor_keys(kgr, key)
+            nkeys1 = [b.GetOtherAtomIdx(atm.GetIdx()) for b in atm.GetBonds()]
+
+            par1 = util.is_odd_permutation(nkeys, nkeys1) ^ par
+            atm.SetChiralTag(ATOM_STEREO_TAG[par1])
+
+    # Set bond stereo
+    bnd_ste_dct = automol.graph.base.bond_stereo_parities(kgr)
+    for bkey, par in bnd_ste_dct.items():
+        key1, key2 = sorted(bkey)
+        if par is not None:
+            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
+                kgr, key1, key2
+            )
+
+            nidx1 = idx_from_key[nkeys1[-1]]
+            nidx2 = idx_from_key[nkeys2[-1]]
+
+            bnd = rdm.GetBondBetweenAtoms(idx_from_key[key1], idx_from_key[key2])
+            bnd.SetStereo(BOND_STEREO_TAG[par])
+            bnd.SetStereoAtoms(nidx1, nidx2)
+
     if label:
+        label_dct = {k: k for k in keys} if label_dct is None else label_dct
+        # Re-index the label dict to use indices
+        label_dct = util.dict_.transform_keys(label_dct, idx_from_key.__getitem__)
         for idx, rda in enumerate(rdm.GetAtoms()):
             if idx in label_dct:
                 rda.SetProp("molAtomMapNumber", str(label_dct[idx]))
 
     rdm.UpdatePropertyCache()
+    rdkit.Chem.SanitizeMol(rdm)
     return rdm
 
 
@@ -375,8 +412,7 @@ def to_svg_string(rdm, image_size=300):
 
 
 def to_grid_svg_string(rdms, image_size=300):
-    """Convert a sequence of RDKit molecules to an SVG string
-    """
+    """Convert a sequence of RDKit molecules to an SVG string"""
     num = len(rdms)
     rdd = Draw.MolDraw2DSVG(
         image_size * num, image_size // 2, image_size, image_size // 2
