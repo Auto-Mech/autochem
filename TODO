@@ -42,6 +42,10 @@
             [X] FIX BROKEN SN2 case: test_reac/test__end_to_end() line 292
             [X] FIX BROKEN insertion case: test_reac/test__end_to_end() line 349
     [ ] FIX BROKEN geometry generation (run test_graph.py tests)
+            [X] Implement direct graph => RDKit molecule conversion with stereo
+            [ ] Finish debugging that -- see test_convert.py
+            [X] Implement direct RDKit molecule => graph conversion with stereo
+            [ ] Debug that
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py

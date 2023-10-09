@@ -60,7 +60,7 @@ ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 # Use NSAMP = None to test everything
 NSAMP = 10
-# NSAMP = None
+NSAMP = None
 
 # Geometries
 C2H6_H_GEO = (
@@ -167,13 +167,20 @@ def test__graph__with_stereo():
         ref_geo = automol.chi.geometry(ref_ich)
         ref_chi = automol.geom.chi(ref_geo)
 
-        print(ref_ich, flush=True)
+        print(ref_chi, flush=True)
         gra = automol.chi.graph(ref_chi)
         chi = automol.graph.chi(gra, stereo=True)
         assert chi == ref_chi
 
         assert automol.graph.formula(gra) == automol.chi.formula(chi)
 
+        # If this is a good InChI, test RDKit molecule conversion as well
+        if not automol.graph.inchi_is_bad(gra, ref_ich):
+            print("Good InChI! Testing RDKit molecule...")
+            mol = automol.extern.rdkit_.from_graph(gra, stereo=True)
+            ich = automol.extern.rdkit_.to_inchi(mol)
+            print(ich, flush=True)
+            assert ich == ref_ich
 
 def test__smiles__with_stereo():
     """ test smiles conversions
@@ -442,10 +449,10 @@ def test__symmetry_removal():
 
 if __name__ == '__main__':
     # test__geom__with_stereo()
-    # test__graph__with_stereo()
+    test__graph__with_stereo()
     # test__smiles__with_stereo()
     # test__graph__misc()
-    test__inchi_geometry()
+    # test__inchi_geometry()
     # test__inchi_conformers()
     # test__multiple_rings()
     # test__weird_valencies()
