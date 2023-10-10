@@ -13,6 +13,7 @@ from automol import error, geom
 from automol.extern import rdkit_
 from automol.graph._0embed import (
     clean_geometry,
+    geometry_matches,
     distance_ranges_from_coordinates,
     embed_geometry,
 )
@@ -29,18 +30,16 @@ from automol.graph.base import (
     is_ts_graph,
     linear_vinyl_corrected_geometry,
     relabel,
-    set_stereo_parities,
     smiles,
     standard_keys,
     stereo_corrected_geometry,
-    stereo_parities,
     string,
     to_local_stereo,
     ts,
     vinyl_radical_atom_keys,
     without_stereo,
 )
-from automol.util import dict_, vec
+from automol.util import vec
 
 
 # # conversions
@@ -97,7 +96,6 @@ def _connected_geometry(gra, check=True, log=False):
     gra = to_local_stereo(gra)
 
     # Determine if stereochemistry and/or vinyl radical groups are present
-    vinyl = bool(vinyl_radical_atom_keys(gra))
     stereo = has_stereo(gra)
 
     # Define geometry generation methods
@@ -121,7 +119,7 @@ def _connected_geometry(gra, check=True, log=False):
             print(geom.round_(geo))
 
         geo = _clean_and_validate_connected_geometry(
-            gra, geo, vinyl=vinyl, stereo=stereo, local_stereo=True, check=check
+            gra, geo, stereo=stereo, check=check, log=log
         )
 
         if geo is not None:
@@ -131,7 +129,7 @@ def _connected_geometry(gra, check=True, log=False):
 
 
 def _clean_and_validate_connected_geometry(
-    gra, geo, vinyl=True, stereo=True, local_stereo=True, check=True
+    gra, geo, stereo=True, local_stereo=True, check=True, log=False
 ):
     """Validate and clen up a connected geometry
 
@@ -139,34 +137,33 @@ def _clean_and_validate_connected_geometry(
     :type gra: automol graph data structure
     :param geo: Molecular geometry
     :type geo: automol geom data structure
-    :param vinyl: Apply a correction for linear vinyl groups?, defaults to False
-    :type vinyl: bool, optional
     :param stereo: Take stereochemistry into consideration? defaults to True
     :type stereo: bool, optional
     :param local_stereo: Does the graph have local stereo assignments? defaults to True
     :type local_stereo: bool, optional
     :param check: Check stereo and connectivity? defaults to True
     :type check: bool, optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     """
     gra = gra if stereo else without_stereo(gra)
     gra = gra if local_stereo else to_local_stereo(gra)
 
-    if vinyl:
+    if vinyl_radical_atom_keys(gra):
         geo = linear_vinyl_corrected_geometry(gra, geo)
         geo = clean_geometry(gra, geo, stereo=False)
 
-    if stereo:
+    if stereo and geo is not None:
         geo = stereo_corrected_geometry(gra, geo, local_stereo=local_stereo)
         geo = clean_geometry(gra, geo, stereo=True, local_stereo=local_stereo)
 
-    gra_ = geom.graph(geo, stereo=stereo, local_stereo=local_stereo)
+    if log:
+        print("Cleaned geometry:")
+        print(None if geo is None else geom.round_(geo))
 
-    # Remove stereo at unspecified stereosites
-    if stereo:
-        unassigned_par_dct = dict_.by_value(stereo_parities(gra), lambda x: x is None)
-        gra_ = set_stereo_parities(gra_, unassigned_par_dct)
+    matches = geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo)
 
-    return geo if gra_ == gra or not check else None
+    return geo if matches or not check else None
 
 
 def inchi(gra, stereo=True):

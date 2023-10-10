@@ -33,7 +33,7 @@ import numpy
 from phydat import phycon
 
 import automol.geom.base
-from automol import embed, error
+from automol import embed, error, geom
 from automol.graph.base import (
     atom_hybridizations,
     atom_keys,
@@ -59,10 +59,13 @@ from automol.graph.base import (
     rigid_planar_bond_keys,
     rings_atom_keys,
     rotational_bond_keys,
+    stereo_keys,
+    stereo_parities,
     string,
     subgraph,
     to_local_stereo,
     ts,
+    without_stereo,
 )
 from automol.util import dict_, heuristic
 
@@ -165,6 +168,10 @@ def clean_geometry(
     :type relax_angles: bool, optional
     """
 
+    # If the geometry already matches, return it as-is
+    if geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo):
+        return geo
+
     symb_dct = atom_symbols(gra)
 
     # Build monatomics and diatomics directly
@@ -226,7 +233,40 @@ def clean_geometry(
     if remove_symmetry:
         geo = perturb_geometry_planar_dihedrals(gra, geo, ang=5.0, degree=True)
 
+    # If the clean-up failed, return `None`
+    if not geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo):
+        return None
+
     return geo
+
+
+def geometry_matches(gra, geo, stereo=True, local_stereo=False) -> bool:
+    """Check whether a geometry matches the graph
+
+    :param gra: molecular graph with stereo parities
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param stereo: Take stereochemistry into consideration? defaults to True
+    :type stereo: bool, optional
+    :param local_stereo: Does the graph have local stereo assignments? defaults to False
+    :type local_stereo: bool, optional
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    gra = gra if stereo else without_stereo(gra)
+    gra = gra if local_stereo else to_local_stereo(gra)
+
+    gra_ = geom.graph(geo, stereo=stereo, local_stereo=True)
+
+    matches = without_stereo(gra) == without_stereo(gra_)
+    if stereo:
+        ste_keys = stereo_keys(gra)
+        pars = dict_.values_by_key(stereo_parities(gra), ste_keys)
+        pars_ = dict_.values_by_key(stereo_parities(gra_), ste_keys)
+        matches &= pars == pars_
+
+    return matches
 
 
 # # convergence checking
@@ -457,7 +497,7 @@ def chirality_constraint_bounds(gra, keys):
     def _chirality_constraint(key):
         nkeys = atom_stereo_sorted_neighbor_keys(loc_gra, key, self_apex=True)
         idxs = tuple(map(keys.index, nkeys))
-        vol_range = (-999.0, -7.0) if par_dct[key] else (+7.0, +999.0)
+        vol_range = (-999.0, -2.0) if par_dct[key] else (+2.0, +999.0)
         return idxs, vol_range
 
     chi_dct = dict(map(_chirality_constraint, ste_keys))
