@@ -2294,8 +2294,14 @@ def atom_neighbor_atom_keys(
     return atm_ngb_keys
 
 
-def local_stereo_priorities(gra):
-    """Generate a local ``priority'' dictionary"""
+def local_stereo_priorities(gra) -> Dict[int, int]:
+    """Generate a local priority dictionary
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The local priorities, by atom key
+    :rtype: Dict[int, int]
+    """
     loc_pri_dct = {}
     loc_pri_dct.update({k: k for k in backbone_keys(gra, hyd=False)})
     loc_pri_dct.update({k: -abs(k) for k in backbone_hydrogen_keys(gra)})

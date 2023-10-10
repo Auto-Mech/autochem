@@ -27,29 +27,30 @@ from automol.graph.base import (
     has_stereo,
     inchi_is_bad,
     is_ts_graph,
-    isomorphism,
     linear_vinyl_corrected_geometry,
     relabel,
-    set_stereo_parities,
     smiles,
     standard_keys,
     stereo_corrected_geometry,
-    stereo_keys,
-    stereo_parities,
     string,
+    to_local_stereo,
     ts,
+    vinyl_radical_atom_keys,
+    without_stereo,
 )
 from automol.util import vec
 
 
 # # conversions
-def geometry(gra, check=True):
+def geometry(gra, check=True, log=False):
     """Convert a molecular graph to a molecular geometry.
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param check: check stereo and connectivity?
-    :type check: bool
+    :param check: Check stereo and connectivity? defaults to True
+    :type check: bool, optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :rtype: automol molecular geometry data structure
     """
     is_ts = is_ts_graph(gra)
@@ -60,7 +61,7 @@ def geometry(gra, check=True):
     gra = explicit(gra)
     gras = connected_components(gra)
 
-    geos = [_connected_geometry(g, check=check) for g in gras]
+    geos = [_connected_geometry(g, check=check, log=log) for g in gras]
     geos = [geom.translate(g, [50.0 * i, 0.0, 0.0]) for i, g in enumerate(geos)]
     geo = functools.reduce(geom.join, geos)
 
@@ -77,109 +78,88 @@ def geometry(gra, check=True):
     return geo
 
 
-def _connected_geometry(gra, check=True):
+def _connected_geometry(gra, check=True, log=False):
     """Generate a geometry for a connected molecular graph.
     :param gra: connected molecular graph
     :type gra: automol graph data structure
-    :param check: check stereo and connectivity?
-    :type check: bool
+    :param check: Check stereo and connectivity? defaults to True
+    :type check: bool, optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :rtype: automol molecular geometry
     """
-    # Standardize the graph before doing anything else
+    orig_gra = gra
+
+    # Normalize the graph
     gra = standard_keys(gra)
+    gra = to_local_stereo(gra)
 
-    ste_keys = stereo_keys(gra)
+    # Determine if stereochemistry and/or vinyl radical groups are present
+    vinyl = bool(vinyl_radical_atom_keys(gra))
+    stereo = has_stereo(gra)
 
-    smi = smiles(gra, res_stereo=False)
-    has_ste = has_stereo(gra)
-
-    def _gen1():
-        nonlocal smi
-
-        rdm = rdkit_.from_smiles(smi)
+    # Define geometry generation methods
+    def method1_(gra_):
+        rdm = rdkit_.from_graph(gra_, stereo=stereo, local_stereo=True)
         (geo,) = rdkit_.to_conformers(rdm, nconfs=1)
         return geo
 
-    def _gen3():
-        nonlocal gra
+    def method2_(gra_):
+        return embed_geometry(gra_)
 
-        if has_ste:
-            raise ValueError
+    # Try geometry generation methods until one works
+    methods_ = [method1_, method1_, method1_]
+    methods_ += [method2_] if not stereo else []
+    for try_number, method_ in enumerate(methods_):
+        geo = method_(gra)
 
-        gra_ = explicit(gra)
-        geo = embed_geometry(gra_)
-        return geo
+        if log:
+            print(f"Try {try_number}...")
+            print("Raw geometry:")
+            print(geom.round_(geo))
 
-    success = False
-    for gen_ in (_gen1, _gen1, _gen1, _gen3):
-        try:
-            geo = gen_()
-        except (RuntimeError, TypeError, ValueError):
-            continue
+        geo = _clean_and_validate_connected_geometry(
+            gra, geo, vinyl=vinyl, stereo=stereo, local_stereo=True, check=check
+        )
 
-        if check:
-            # First, check connectivity.
-            gra_ = geom.graph(geo)
-            geo = linear_vinyl_corrected_geometry(gra_, geo)
-            geo = clean_geometry(gra_, geo, stereo=False)
-            gra_ = geom.graph(geo)
+        if geo is not None:
+            return geo
 
-            idx_dct = isomorphism(gra_, gra, stereo=False)
+    raise error.FailedGeometryGenerationError(f"Failed graph:\n{string(orig_gra)}")
 
-            if idx_dct is None:
-                continue
 
-            # Reorder the geometry to match the input graph connectivity.
-            geo = geom.reorder(geo, idx_dct)
+def _clean_and_validate_connected_geometry(
+    gra, geo, vinyl=True, stereo=True, local_stereo=True, check=True
+):
+    """Validate and clen up a connected geometry
 
-            # If connectivity matches and there is no stereo, we are done.
-            if not has_ste:
-                success = True
-                break
+    :param gra: Connected molecular graph with standard keys
+    :type gra: automol graph data structure
+    :param geo: Molecular geometry
+    :type geo: automol geom data structure
+    :param vinyl: Apply a correction for linear vinyl groups?, defaults to False
+    :type vinyl: bool, optional
+    :param stereo: Take stereochemistry into consideration? defaults to True
+    :type stereo: bool, optional
+    :param local_stereo: Does the graph have local stereo assignments? defaults to True
+    :type local_stereo: bool, optional
+    :param check: Check stereo and connectivity? defaults to True
+    :type check: bool, optional
+    """
+    gra = gra if stereo else without_stereo(gra)
+    gra = gra if local_stereo else to_local_stereo(gra)
 
-            # Otherwise, there is stereo.
-            # First, try an isomorphism to see if the parities already match.
-            gra_ = geom.graph(geo)
-            par_dct_ = stereo_parities(gra_)
-            par_dct_ = {k: (p if k in ste_keys else None) for k, p in par_dct_.items()}
-            gra_ = set_stereo_parities(gra_, par_dct_)
-            idx_dct = isomorphism(gra_, gra, stereo=True)
+    if vinyl:
+        geo = linear_vinyl_corrected_geometry(gra, geo)
+        geo = clean_geometry(gra, geo, stereo=False)
 
-            # If connectivity and stereo match, we are done.
-            if idx_dct:
-                # Reorder the geometry to match the input graph
-                geo = geom.reorder(geo, idx_dct)
-                success = True
-                break
+    if stereo:
+        geo = stereo_corrected_geometry(gra, geo, local_stereo=local_stereo)
+        geo = clean_geometry(gra, geo, stereo=True, local_stereo=local_stereo)
 
-            # If the stereo doesn't match, try a stereo correction.
-            print("A", geo)
-            geo = stereo_corrected_geometry(gra, geo, local_stereo=False)
-            print("B", geo)
-            geo = clean_geometry(gra_, geo, stereo=True)
-            print("C", geo)
+    gra_ = geom.graph(geo, stereo=stereo, local_stereo=local_stereo)
 
-            # Now, re-try the isomorphism
-            gra_ = geom.graph(geo)
-            par_dct_ = stereo_parities(gra_)
-            par_dct_ = {k: (p if k in ste_keys else None) for k, p in par_dct_.items()}
-            gra_ = set_stereo_parities(gra_, par_dct_)
-            idx_dct = isomorphism(gra_, gra, stereo=True)
-
-            # If this fails, this geometry won't work. Continue
-            if not idx_dct:
-                continue
-
-            # The stereo matches after correction.
-            # Reorder the geometry to match the input graph, and we are done.
-            geo = geom.reorder(geo, idx_dct)
-            success = True
-            break
-
-    if not success:
-        raise error.FailedGeometryGenerationError(f"Failed graph:\n{string(gra)}")
-
-    return geo
+    return geo if gra_ == gra or not check else None
 
 
 def inchi(gra, stereo=True):
