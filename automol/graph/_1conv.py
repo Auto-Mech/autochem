@@ -29,16 +29,18 @@ from automol.graph.base import (
     is_ts_graph,
     linear_vinyl_corrected_geometry,
     relabel,
+    set_stereo_parities,
     smiles,
     standard_keys,
     stereo_corrected_geometry,
+    stereo_parities,
     string,
     to_local_stereo,
     ts,
     vinyl_radical_atom_keys,
     without_stereo,
 )
-from automol.util import vec
+from automol.util import dict_, vec
 
 
 # # conversions
@@ -158,6 +160,11 @@ def _clean_and_validate_connected_geometry(
         geo = clean_geometry(gra, geo, stereo=True, local_stereo=local_stereo)
 
     gra_ = geom.graph(geo, stereo=stereo, local_stereo=local_stereo)
+
+    # Remove stereo at unspecified stereosites
+    if stereo:
+        unassigned_par_dct = dict_.by_value(stereo_parities(gra), lambda x: x is None)
+        gra_ = set_stereo_parities(gra_, unassigned_par_dct)
 
     return geo if gra_ == gra or not check else None
 
