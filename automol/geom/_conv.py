@@ -40,19 +40,23 @@ from automol.util import (
 
 
 # # conversions
-def graph(geo, stereo=True):
+def graph(geo, stereo=True, local_stereo=False):
     """Generate a molecular graph from the molecular geometry that has
     connectivity information and, if requested, stereochemistry.
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param stereo: parameter to include stereochemistry information
-    :type stereo: bool
+    :type stereo: bool, optional
+    :param local_stereo: Return local stereo assignments? defaults to False
+    :type local_stereo: bool, optional
     :rtype: automol molecular graph data structure
     """
     gra = graph_without_stereo(geo)
     if stereo:
-        gra = automol.graph.base.set_stereo_from_geometry(gra, geo)
+        gra = automol.graph.base.set_stereo_from_geometry(
+            gra, geo, local_stereo=local_stereo
+        )
 
     return gra
 

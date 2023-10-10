@@ -138,6 +138,7 @@ def clean_geometry(
     dist_range_dct=None,
     max_dist_err=2e-1,
     stereo=True,
+    local_stereo=False,
     remove_symmetry=True,
     relax_angles=False,
     log=False,
@@ -153,6 +154,10 @@ def clean_geometry(
     :type rct_geos: List[automol geometry data structure], optional
     :param dist_range_dct: Override a subsets of distance ranges, defaults to None
     :type dist_range_dct: dict, optional
+    :param stereo: Take stereochemistry into consideration? defaults to True
+    :type stereo: bool, optional
+    :param local_stereo: Does the graph have local stereo assignments? defaults to False
+    :type local_stereo: bool, optional
     :param remove_symmetry: Remove symmetry in the geometry, by slightly
         perturbing near-planar dihedral angles?
     :type remove_symmetry: bool
@@ -165,22 +170,21 @@ def clean_geometry(
     # Build monatomics and diatomics directly
     if len(symb_dct) == 1:
         symbs = list(symb_dct.values())
-        xyzs = [[0., 0., 0.]]
+        xyzs = [[0.0, 0.0, 0.0]]
         return automol.geom.from_data(symbs, xyzs, angstrom=True)
 
     if len(symb_dct) == 2:
         bkey = frozenset(symb_dct.keys())
         symbs = list(symb_dct.values())
         if dist_range_dct and bkey in dist_range_dct:
-            bdist = sum(dist_range_dct[bkey]) / 2.
+            bdist = sum(dist_range_dct[bkey]) / 2.0
         else:
             key1, key2 = bkey
             bdist = heuristic_bond_distance(gra, key1, key2, angstrom=True)
-        xyzs = [[0., 0., 0.],
-                [bdist, 0., 0.]]
+        xyzs = [[0.0, 0.0, 0.0], [bdist, 0.0, 0.0]]
         return automol.geom.from_data(symbs, xyzs, angstrom=True)
 
-    gra = to_local_stereo(gra)
+    gra = gra if local_stereo else to_local_stereo(gra)
     rct_geos = [geo] if rct_geos is None else rct_geos
 
     dist_gra = ts.reactants_graph(gra) if is_ts_graph(gra) else gra
