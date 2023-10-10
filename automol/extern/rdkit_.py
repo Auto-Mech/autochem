@@ -283,7 +283,9 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
         `True`, the atom keys themselves will be used as labels.
     :param label_dct: bool
     """
-    rdm, idx_from_key = _from_graph_without_stereo(gra, label=label, label_dct=label_dct)
+    rdm, idx_from_key = _from_graph_without_stereo(
+        gra, label=label, label_dct=label_dct
+    )
 
     # If there's not stereo, return early
     if not stereo or not automol.graph.base.has_stereo(gra):
@@ -311,6 +313,7 @@ def from_graph(gra, stereo=False, label=False, label_dct=None):
     bnd_ste_dct = automol.graph.base.bond_stereo_parities(gra)
     for bkey, par in bnd_ste_dct.items():
         key1, key2 = sorted(bkey)
+
         if par is not None:
             nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
                 gra, key1, key2
@@ -379,61 +382,87 @@ def _from_graph_without_stereo(gra, label=False, label_dct=None):
     return rdm, idx_from_key
 
 
-def to_graph(rdm):
+def to_graph(exp_rdm, stereo=True, order=False):
     """Generate a connectivity graph from an RDKit molecule object.
 
     :param rdm: molecule object
     :type rdm: RDKit molecule object
+    :param stereo: Include stereochemistry information?, defaults to True
+    :type stereo: bool, optional
+    :param order: Include bond orders?, defaults to False
+    :type order: bool, optional
+    :rtype: automol molecular graph object
+    """
+    gra = _to_graph_without_stereo(exp_rdm, order=order)
+
+    if not stereo:
+        return gra
+
+    exp_rdm = rdkit.Chem.AddHs(exp_rdm)
+    exp_gra = _to_graph_without_stereo(exp_rdm)
+
+    # Assign atom stereo
+    for exp_rda in exp_rdm.GetAtoms():
+        par0 = ATOM_STEREO_BOOL_FROM_TAG[exp_rda.GetChiralTag()]
+        if par0 is not None:
+            key = exp_rda.GetIdx()
+
+            nkeys0 = automol.graph.base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
+            nkeys1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
+
+            par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
+            gra = automol.graph.base.set_atom_stereo_parities(gra, {key: par1})
+
+    # Assign bond stereo
+    for exp_rdb in exp_rdm.GetBonds():
+        key1 = exp_rdb.GetBeginAtomIdx()
+        key2 = exp_rdb.GetEndAtomIdx()
+        bkey = frozenset({key1, key2})
+
+        par0 = BOND_STEREO_BOOL_FROM_TAG[exp_rdb.GetStereo()]
+        if par0 is not None:
+            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
+                exp_gra, key1, key2
+            )
+
+            nkey1 = nkeys1[-1]
+            nkey2 = nkeys2[-1]
+            nkey1_, nkey2_ = exp_rdb.GetStereoAtoms()
+
+            par1 = (nkey1 != nkey1_) ^ (nkey2 != nkey2_) ^ par0
+            gra = automol.graph.base.set_bond_stereo_parities(gra, {bkey: par1})
+
+    gra = automol.graph.base.from_local_stereo(gra)
+    return gra
+
+
+def _to_graph_without_stereo(rdm, order=False):
+    """Generate a connectivity graph from an RDKit molecule object.
+
+    :param rdm: molecule object
+    :type rdm: RDKit molecule object
+    :param order: Include bond orders?, defaults to False
+    :type order: bool, optional
     :rtype: automol molecular graph object
     """
 
+    def _get_order(rdb):
+        return BOND_TYPE_DCT[rdb.GetBondType()] if order else 1
+
     rdm.UpdatePropertyCache()
-    atms = rdm.GetAtoms()
-    bnds = rdm.GetBonds()
-    sym_dct = {rda.GetIdx(): rda.GetSymbol() for rda in atms}
-    hyd_dct = {rda.GetIdx(): rda.GetImplicitValence() for rda in atms}
-    ord_dct = {
-        (rdb.GetBeginAtomIdx(), rdb.GetEndAtomIdx()): BOND_TYPE_DCT[rdb.GetBondType()]
-        for rdb in bnds
-    }
+    rdkit.Chem.SanitizeMol(rdm)
+
+    rdas = rdm.GetAtoms()
+    rdbs = rdm.GetBonds()
+    sym_dct = {a.GetIdx(): a.GetSymbol() for a in rdas}
+    hyd_dct = {b.GetIdx(): b.GetImplicitValence() for b in rdas}
+    ord_dct = {(b.GetBeginAtomIdx(), b.GetEndAtomIdx()): _get_order(b) for b in rdbs}
     gra = automol.graph.base.from_data(
         atm_symb_dct=sym_dct,
         bnd_keys=ord_dct.keys(),
         atm_imp_hyd_dct=hyd_dct,
         bnd_ord_dct=ord_dct,
     )
-
-    rdm = rdkit.Chem.AddHs(rdm)
-
-    # Assign atom stereo
-    for rda in rdm.GetAtoms():
-        par0 = ATOM_STEREO_BOOL_FROM_TAG[rda.GetChiralTag()]
-        if par0 is not None:
-            key = rda.GetIdx()
-            nkeys0 = automol.graph.base.atom_stereo_sorted_neighbor_keys(gra, key)
-            nkeys1 = [b.GetOtherAtomIdx(rda.GetIdx()) for b in rda.GetBonds()]
-            par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
-            gra = automol.graph.base.set_atom_stereo_parities(gra, {key: par1})
-
-    # Assign bond stereo
-    for rdb in rdm.GetBonds():
-        par0 = BOND_STEREO_BOOL_FROM_TAG[rdb.GetStereo()]
-        if par0 is not None:
-            key1 = rdb.GetBeginAtomIdx()
-            key2 = rdb.GetEndAtomIdx()
-            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
-                gra, key1, key2
-            )
-            nkey1 = nkeys1[-1]
-            nkey2 = nkeys2[-1]
-            nkey1_, nkey2_ = rdb.GetStereoAtoms()
-            par1 = (nkey1 != nkey1_) ^ (nkey2 != nkey2_) ^ par0
-
-            bkey = frozenset({key1, key2})
-            gra = automol.graph.base.set_bond_stereo_parities(gra, {bkey: par1})
-
-    gra = automol.graph.base.from_local_stereo(gra)
-
     return gra
 
 
