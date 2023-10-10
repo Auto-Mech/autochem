@@ -60,7 +60,7 @@ ICHS_WITH_STEREO = load_numpy_string_file(
     ['data'], 'heptane_inchis_with_stereo.txt', path=PATH)
 # Use NSAMP = None to test everything
 NSAMP = 10
-NSAMP = None
+# NSAMP = None
 
 # Geometries
 C2H6_H_GEO = (
@@ -181,6 +181,11 @@ def test__graph__with_stereo():
             ich = automol.extern.rdkit_.to_inchi(mol)
             print(ich, flush=True)
             assert ich == ref_ich
+
+            gra_out = automol.extern.rdkit_.to_graph(mol)
+            print(gra_out, flush=True)
+            assert gra == gra_out
+
 
 def test__smiles__with_stereo():
     """ test smiles conversions

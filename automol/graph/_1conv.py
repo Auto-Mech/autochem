@@ -233,15 +233,8 @@ def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
     :param label_dct: bool
     :returns: the RDKit molecule
     """
-    if stereo and (label or label_dct is not None):
-        raise NotImplementedError("Stereo with display labels not implemented.")
-
     rdkit_.turn_3d_visualization_off()
-    if stereo:
-        rdm = rdkit_.from_smiles(smiles(gra, stereo=True, res_stereo=False))
-    else:
-        rdm = rdkit_.from_graph(gra, stereo=False, label=label, label_dct=label_dct)
-
+    rdm = rdkit_.from_graph(gra, stereo=stereo, label=label, label_dct=label_dct)
     return rdm
 
 
