@@ -381,11 +381,15 @@ def ts_geometry_from_reactants(
     else:
         (ts_geo,) = rct_geos
 
-    # 2. Correct the stereochemistry against the TS graph, so it is consistent with both
-    # reactants and products
-    ts_geo = stereo_corrected_geometry(tsg, ts_geo)
+    # 2. Convert to local stereo. (Must be done after joining, because join function
+    # reverses the TS graph before localizing to handle Sn2 reactions correctly)
+    tsg = to_local_stereo(tsg)
 
-    # 3. Embed the TS structure, using distances from the *original* reactant geometries
+    # 3. Correct the stereochemistry against the TS graph, so it is consistent with both
+    # reactants and products
+    ts_geo = stereo_corrected_geometry(tsg, ts_geo, local_stereo=True)
+
+    # 4. Embed the TS structure, using distances from the *original* reactant geometries
     # along with forming/breaking bond distances
     dist_range_dct = ts_distance_ranges_from_reactant_geometries(
         tsg,
@@ -400,10 +404,11 @@ def ts_geometry_from_reactants(
         ts_geo,
         rct_geos=rct_geos,
         dist_range_dct=dist_range_dct,
-        relax_angles=ts.has_reacting_ring(tsg),
         max_dist_err=max_dist_err,
-        log=log,
+        relax_angles=ts.has_reacting_ring(tsg),
+        local_stereo=True,
         none_if_failed=True,
+        log=log,
     )
 
     if ts_geo is None:

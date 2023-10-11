@@ -500,7 +500,7 @@ def chirality_constraint_bounds(gra, keys):
     def _chirality_constraint(key):
         nkeys = atom_stereo_sorted_neighbor_keys(loc_gra, key, self_apex=True)
         idxs = tuple(map(keys.index, nkeys))
-        vol_range = (-999.0, -2.0) if par_dct[key] else (+2.0, +999.0)
+        vol_range = (-999.0, -1.0) if par_dct[key] else (+1.0, +999.0)
         return idxs, vol_range
 
     chi_dct = dict(map(_chirality_constraint, ste_keys))
