@@ -13,7 +13,6 @@ from automol import error, geom
 from automol.extern import rdkit_
 from automol.graph._0embed import (
     clean_geometry,
-    distance_ranges_from_coordinates,
     embed_geometry,
     geometry_matches,
 )
@@ -388,28 +387,27 @@ def ts_geometry_from_reactants(
 
     # 3. Embed the TS structure, using distances from the *original* reactant geometries
     # along with forming/breaking bond distances
-    dist_dct = ts_distances_from_reactant_geometries(
+    dist_range_dct = ts_distance_ranges_from_reactant_geometries(
         tsg,
         rct_geos,
         fdist_factor=fdist_factor,
         bdist_factor=bdist_factor,
+        angstrom=True,
     )
 
     clean_kwargs = {
         "rct_geos": rct_geos,
-        "dist_range_dct": distance_ranges_from_coordinates(
-            tsg, dist_dct, angstrom=True
-        ),
+        "dist_range_dct": dist_range_dct,
         "relax_angles": ts.has_reacting_ring(tsg),
         "max_dist_err": max_dist_err,
         "log": log,
     }
-    ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=True, **clean_kwargs)
+    ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=False, **clean_kwargs)
 
-    # # 5. Do another stereo correction and clean again, in case the embedding broke the
-    # # stereochemistry (happens especially for ring-forming TSs)
-    # ts_geo = stereo_corrected_geometry(tsg, ts_geo)
-    # ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=True, **clean_kwargs)
+    # 5. Do another stereo correction and clean again, in case the embedding broke the
+    # stereochemistry (happens especially for ring-forming TSs)
+    ts_geo = stereo_corrected_geometry(tsg, ts_geo)
+    ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=True, **clean_kwargs)
 
     if ts_geo is None:
         raise error.FailedGeometryGenerationError(f"Failed TS graph:\n{string(tsg)}")
@@ -484,7 +482,7 @@ def ts_join_reactant_geometries(tsg, rct_geos, geo_idx_dct=None, fdist_factor=1.
     return geo
 
 
-def ts_distances_from_reactant_geometries(
+def ts_distance_ranges_from_reactant_geometries(
     tsg,
     rct_geos,
     geo_idx_dct=None,
@@ -543,4 +541,5 @@ def ts_distances_from_reactant_geometries(
             angstrom=angstrom,
         )
 
-    return dist_dct
+    dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
+    return dist_range_dct

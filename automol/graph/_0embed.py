@@ -26,9 +26,7 @@ Step 7 is performed byt the function automol.embed.cleaned_up_coordinates()
 """
 
 import itertools
-import numbers
 
-import more_itertools as mit
 import numpy
 from phydat import phycon
 
@@ -38,7 +36,6 @@ from automol.graph.base import (
     add_bonds,
     atom_hybridizations,
     atom_keys,
-    atom_neighbor_atom_key,
     atom_shortest_paths,
     atom_stereo_keys,
     atom_stereo_parities,
@@ -232,7 +229,9 @@ def clean_geometry(
     geo = automol.geom.from_data(syms, xyzs, angstrom=True)
 
     # If the clean-up failed, return `None`
-    if none_if_failed and not geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo):
+    if none_if_failed and not geometry_matches(
+        gra, geo, stereo=stereo, local_stereo=local_stereo
+    ):
         return None
 
     return geo
@@ -551,176 +550,6 @@ def planarity_constraint_bounds(gra, keys):
     return const_dct
 
 
-# # distance range dictionaries
-def distance_ranges_from_coordinates(
-    gra,
-    dist_dct,
-    ang_dct=None,
-    dih_dct=None,
-    angstrom=True,
-    degree=True,
-    rings_keys=(),
-    keys=None,
-    check=False,
-):
-    """generate a set of distance ranges from coordinate values
-
-    :param gra: molecular graph
-    atom keys specifying the order of indices in the matrix
-    :param dist_dct: a dictionary of desired distances for certain atoms; the
-        keys are pairs of atoms, the values are distances in angstroms
-    :type dist_dct: dict[(int, int): float]
-    :param ang_dct: a dictionary of desired angles for certain atoms; the keys
-        are triples of atoms; if the first or last element in a triple is None,
-        an appopriate neighboring atom will be found
-    :param dih_dct: a dictionary of desired angles for certain atoms; the keys
-        are quadruples of atoms; if the first or last element in a triple is
-        None, an appopriate neighboring atom will be found
-    :type dist_dct: dict[(int, int, int): float]
-    :param rings_keys: keys for rings in the graph; angle ranges will
-        automatically be set to allow ring formation
-    :param keys: set of keys that can be used to fill in the angle keys; if
-        None, all graph keys will be considered available for use
-    :param check: check the angle keys to make sure they can all be filled in?
-    """
-    keys = atom_keys(gra) if keys is None else keys
-
-    ang_dct = {} if ang_dct is None else ang_dct
-    dih_dct = {} if dih_dct is None else dih_dct
-
-    # Fill in angle keys
-    ang_key_filler_ = angle_key_filler_(gra, keys, check=check)
-    ang_dct = dict_.transform_keys(ang_dct, ang_key_filler_)
-    if None in ang_dct:
-        ang_dct.pop(None)
-
-    # Fill in dihedral keys
-    dih_dct = dict_.transform_keys(dih_dct, ang_key_filler_)
-    if None in dih_dct:
-        dih_dct.pop(None)
-
-    # Convert angles into distances
-    dist_dct = dict_.transform_keys(dist_dct, frozenset)
-    for (key1, key2, key3), a123 in ang_dct.items():
-        a123 *= phycon.DEG2RAD if degree else 1.0
-
-        k12 = frozenset({key1, key2})
-        k23 = frozenset({key2, key3})
-        k13 = frozenset({key1, key3})
-
-        d12 = (
-            dist_dct[k12]
-            if k12 in dist_dct
-            else heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
-        )
-        d23 = (
-            dist_dct[k23]
-            if k23 in dist_dct
-            else heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
-        )
-
-        d13 = numpy.sqrt(d12**2 + d23**2 - 2 * d12 * d23 * numpy.cos(a123))
-
-        dist_dct[k13] = d13
-
-    # Convert convert fixed distances into ranges
-    dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
-
-    # Convert dihedrals into distances
-    for (key1, key2, key3, key4), val in dih_dct.items():
-        # Allow user to leave dihedrals open-ended, as a lower or upper bound
-        if isinstance(val, numbers.Number):
-            d1234 = val
-        else:
-            assert hasattr(val, "__len__") and len(val) == 2
-            d1234 = next(v for v in val if v is not None)
-
-        d1234 *= phycon.DEG2RAD if degree else 1.0
-
-        k12 = frozenset({key1, key2})
-        k23 = frozenset({key2, key3})
-        k34 = frozenset({key3, key4})
-        k13 = frozenset({key1, key3})
-        k24 = frozenset({key2, key4})
-        k14 = frozenset({key1, key4})
-
-        d12 = (
-            dist_dct[k12]
-            if k12 in dist_dct
-            else heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
-        )
-        d23 = (
-            dist_dct[k23]
-            if k23 in dist_dct
-            else heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
-        )
-        d34 = (
-            dist_dct[k34]
-            if k34 in dist_dct
-            else heuristic_bond_distance(gra, key3, key4, angstrom=angstrom)
-        )
-        d13 = (
-            dist_dct[k13]
-            if k13 in dist_dct
-            else heuristic_bond_distance(gra, key1, key3, angstrom=angstrom)
-        )
-        d24 = (
-            dist_dct[k24]
-            if k24 in dist_dct
-            else heuristic_bond_distance(gra, key2, key4, angstrom=angstrom)
-        )
-
-        term1 = (d12**2 + d23**2 - d13**2) * (d23**2 + d34**2 - d24**2)
-        term2 = 2 * d23**2 * (d13**2 + d24**2 - d23**2)
-        denom = numpy.sqrt(
-            (4 * d12**2 * d23**2 - (d12**2 + d23**2 - d13**2) ** 2)
-            * (4 * d23**2 * d34**2 - (d23**2 + d34**2 - d24**2) ** 2)
-        )
-
-        d14 = numpy.sqrt((term1 + term2 - numpy.cos(d1234) * denom) / (2 * d23**2))
-
-        if isinstance(val, numbers.Number) or val[0] == val[1]:
-            dist_range_dct[k14] = (d14, d14)
-        elif val[0] is None:
-            ld14 = closest_approach(gra, key1, key4)
-            dist_range_dct[k14] = (ld14, d14)
-        elif val[1] is None:
-            ud14 = 999.0
-            dist_range_dct[k14] = (d14, ud14)
-        else:
-            raise ValueError(f"Invalid dih_dict: {str(dih_dct)}")
-
-    for rng_keys in rings_keys:
-        assert hasattr(keys, "__iter__"), "Please pass in rings keys as a list of lists"
-
-        rsz = len(rng_keys)
-        a123 = (rsz - 2.0) * 180.0 / rsz
-        la123 = (a123 - 10.0) * phycon.DEG2RAD
-        ua123 = (a123 + 10.0) * phycon.DEG2RAD
-
-        for key1, key2, key3 in mit.windowed(rng_keys + rng_keys[:2], 3):
-            k12 = frozenset({key1, key2})
-            k23 = frozenset({key2, key3})
-            k13 = frozenset({key1, key3})
-
-            d12 = (
-                dist_dct[k12]
-                if k12 in dist_dct
-                else heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
-            )
-            d23 = (
-                dist_dct[k23]
-                if k23 in dist_dct
-                else heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
-            )
-
-            ld13 = numpy.sqrt(d12**2 + d23**2 - 2 * d12 * d23 * numpy.cos(la123))
-            ud13 = numpy.sqrt(d12**2 + d23**2 - 2 * d12 * d23 * numpy.cos(ua123))
-            dist_range_dct[k13] = (ld13, ud13)
-
-    return dist_range_dct
-
-
 # # heuristic coordinate values
 def heuristic_bond_angle_distance(
     gra,
@@ -913,48 +742,6 @@ def path_distance_bounds_(gra):
 
 
 # # helpers
-def angle_key_filler_(gra, keys=None, check=True):
-    """returns a function that fills in the first or last element of an angle
-    key in a dictionary with a neighboring atom
-    (works for central or dihedral angles)
-    """
-    keys = atom_keys(gra) if keys is None else keys
-
-    def _fill_in_angle_key(ang_key):
-        end1_key = ang_key[0]
-        end2_key = ang_key[-1]
-        mid_keys = list(ang_key[1:-1])
-        assert not any(k is None for k in mid_keys)
-
-        if end1_key is None:
-            end1_key = atom_neighbor_atom_key(
-                gra,
-                mid_keys[0],
-                excl_atm_keys=[end2_key] + mid_keys,
-                incl_atm_keys=keys,
-            )
-        if end2_key is None:
-            end2_key = atom_neighbor_atom_key(
-                gra,
-                mid_keys[-1],
-                excl_atm_keys=[end1_key] + mid_keys,
-                incl_atm_keys=keys,
-            )
-
-        ang_key = [end1_key] + mid_keys + [end2_key]
-
-        if any(k is None for k in ang_key):
-            if check:
-                raise ValueError(f"Angle key {str(ang_key)} couldn't be filled in")
-            ang_key = None
-        else:
-            ang_key = tuple(ang_key)
-
-        return ang_key
-
-    return _fill_in_angle_key
-
-
 def shared_ring_size(keys, rng_keys_lst):
     """determine whether these keys share a ring and, if so, determine the
     size
