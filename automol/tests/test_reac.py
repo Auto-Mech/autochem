@@ -22,6 +22,7 @@ def test__reactant_graphs():
 
     _test(["FC=CF", "[OH]"], ["F[CH]C(O)F"])
     _test(["C1CCC1", "[CH3]"], ["C", "C1[CH]CC1"])
+    _test(["CO", "C[CH2]"], ["CCC", "[OH]"])
 
 
 def test__expand_stereo():
@@ -146,12 +147,8 @@ def test__find():
         print("len(srxns)", srxns)
         assert len(srxns) > 0
         srxn, *_ = srxns
-        rct_gras1 = reac.reactant_graphs(
-            srxn, shift_keys=False, standard_reagent_order=False
-        )
-        prd_gras1 = reac.product_graphs(
-            srxn, shift_keys=False, standard_reagent_order=False
-        )
+        rct_gras1 = reac.reactant_graphs(srxn)
+        prd_gras1 = reac.product_graphs(srxn)
         print(f"{rct_gras0}\n---\n{rct_gras1}")
         assert rct_gras1 == rct_gras0
         print(f"{prd_gras0}\n---\n{prd_gras1}")
@@ -253,15 +250,11 @@ def test__end_to_end():
 
         # 2. find reactions
         rxns = reac.find(rct_gras, prd_gras, stereo=True)
-        print("len(rxns)", rxns)
+        print("len(rxns)", len(rxns))
         assert len(rxns) > 0
         rxn, *_ = rxns
-        rct_gras1 = reac.reactant_graphs(
-            rxn, shift_keys=False, standard_reagent_order=False
-        )
-        prd_gras1 = reac.product_graphs(
-            rxn, shift_keys=False, standard_reagent_order=False
-        )
+        rct_gras1 = reac.reactant_graphs(rxn)
+        prd_gras1 = reac.product_graphs(rxn)
         print(f"{rct_gras}\n---\n{rct_gras1}")
         assert rct_gras1 == rct_gras
         print(f"{prd_gras}\n---\n{prd_gras1}")

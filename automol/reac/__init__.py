@@ -42,7 +42,6 @@ from automol.reac._0core import apply_dummy_conversion
 from automol.reac._0core import reverse_dummy_conversion
 from automol.reac._0core import insert_dummy_atoms
 from automol.reac._0core import without_dummy_atoms
-from automol.reac._0core import relabel_for_zmatrix
 from automol.reac._0core import relabel_for_geometry
 from automol.reac._0core import is_radical_radical
 from automol.reac._0core import unique
@@ -65,6 +64,7 @@ from automol.reac._3find import find
 from automol.reac._3find import find_from_chi
 from automol.reac._3find import intersystem_crossing
 # TS geometries
+from automol.reac._4geom import with_geom_structures
 from automol.reac._4geom import ts_geometry_from_reactants
 # TS zmatrices
 from automol.reac._5zmat import ts_zmatrix
@@ -151,7 +151,6 @@ __all__ = [
     'reverse_dummy_conversion',
     'insert_dummy_atoms',
     'without_dummy_atoms',
-    'relabel_for_zmatrix',
     'relabel_for_geometry',
     'is_radical_radical',
     'unique',
@@ -174,6 +173,7 @@ __all__ = [
     'find_from_chi',
     'intersystem_crossing',
     # TS geometries
+    'with_geom_structures',
     'ts_geometry_from_reactants',
     # TS zmatrices
     'ts_zmatrix',
