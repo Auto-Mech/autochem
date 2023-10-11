@@ -49,6 +49,14 @@
             [X] Rewrite the geometry conversion algorithm using direct graph conversion (preserves atom ordering, preventing the need for isomorphism checks)
             [X] FAILED automol/tests/test_convert.py::test__symmetry_removal - assert not frozenset({(0, 1, 2, 5)})
             [X] FAILED automol/tests/test_reac.py::test__end_to_end - TypeError: object of type 'NoneType' has no len()
+    [X] Remove reagent reordering -- just use the initial input order
+    [ ] Implement interconversion of Reaction obj with structures
+            [X] implement with_geom_structures
+            [ ] implement convert_structures(rxn, typ1, typ2)
+            [ ] implement with_zmat_structures (under the hood, calls add_geom_structures and then converts)
+            [ ] Geometry => z-matrix
+            [ ] Z-matrix => geometry
+    [ ]
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py

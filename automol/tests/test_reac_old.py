@@ -146,99 +146,13 @@ CH3CH2CH2O_ZMA = automol.geom.zmatrix(
     automol.inchi.geometry(automol.smiles.inchi('CCC[O]')))
 
 
-def test__reac__string():
-    """ test reac.string
-    """
-    rxn_str = SUBSTITUTION_RXN_STR
-    rxn = automol.reac.from_old_string(rxn_str)
-    assert automol.reac.string(rxn).strip() == rxn_str.strip()
-
-
-def test__reac__reactant_graphs():
-    """ test reac.reactant_graphs
-    """
-    rxn = automol.reac.from_old_string(SUBSTITUTION_RXN_STR)
-    assert automol.reac.reactant_graphs(rxn) == (
-        ({0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-          3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-          6: ('H', 0, None)},
-         {frozenset({1, 4}): (1, None), frozenset({0, 1}): (1, None),
-          frozenset({0, 2}): (1, None), frozenset({1, 5}): (1, None),
-          frozenset({1, 6}): (1, None), frozenset({1, 3}): (0, None)}),
-        ({7: ('C', 0, None), 8: ('C', 0, None), 9: ('H', 0, None),
-          10: ('H', 0, None), 11: ('H', 0, None), 12: ('H', 0, None),
-          13: ('H', 0, None)},
-         {frozenset({8, 11}): (1, None), frozenset({10, 7}): (1, None),
-          frozenset({9, 7}): (1, None), frozenset({8, 7}): (1, None),
-          frozenset({8, 13}): (1, None), frozenset({8, 12}): (1, None)})
-    )
-
-
-def test__reac__product_graphs():
-    """ test reac.product_graphs
-    """
-    rxn = automol.reac.from_old_string(SUBSTITUTION_RXN_STR)
-    assert automol.reac.product_graphs(rxn) == (
-        ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-          3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-          6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-          9: ('H', 0, None), 10: ('H', 0, None)},
-         {frozenset({1, 7}): (1, None), frozenset({10, 2}): (1, None),
-          frozenset({1, 2}): (1, None), frozenset({0, 3}): (1, None),
-          frozenset({0, 2}): (1, None), frozenset({0, 4}): (1, None),
-          frozenset({0, 5}): (1, None), frozenset({8, 1}): (1, None),
-          frozenset({1, 6}): (1, None), frozenset({9, 2}): (1, None)}),
-        ({11: ('O', 0, None), 12: ('H', 0, None)},
-         {frozenset({11, 12}): (1, None)})
-    )
-
-
-def test__reac__reagents_graph():
-    """ test reac.reactants_graph
-        test products_graph
-    """
-    rxn = automol.reac.from_old_string(SUBSTITUTION_RXN_STR)
-
-    rcts_gra = automol.reac.reactants_graph(rxn)
-    prds_gra = automol.reac.products_graph(rxn)
-
-    assert rcts_gra == (
-        {0: ('O', 0, None), 1: ('C', 0, None), 2: ('H', 0, None),
-         3: ('X', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-         6: ('H', 0, None), 7: ('C', 0, None), 8: ('C', 0, None),
-         9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-         12: ('H', 0, None), 13: ('H', 0, None)},
-        {frozenset({1, 4}): (1, None), frozenset({8, 11}): (1, None),
-         frozenset({10, 7}): (1, None), frozenset({0, 1}): (1, None),
-         frozenset({0, 2}): (1, None), frozenset({9, 7}): (1, None),
-         frozenset({8, 7}): (1, None), frozenset({1, 5}): (1, None),
-         frozenset({8, 13}): (1, None), frozenset({1, 6}): (1, None),
-         frozenset({1, 3}): (0, None), frozenset({8, 12}): (1, None)}
-    )
-
-    assert prds_gra == (
-        {0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-         3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
-         6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-         9: ('H', 0, None), 10: ('H', 0, None), 11: ('O', 0, None),
-         12: ('H', 0, None)},
-        {frozenset({1, 7}): (1, None), frozenset({10, 2}): (1, None),
-         frozenset({1, 2}): (1, None), frozenset({0, 3}): (1, None),
-         frozenset({11, 12}): (1, None), frozenset({0, 2}): (1, None),
-         frozenset({0, 4}): (1, None), frozenset({0, 5}): (1, None),
-         frozenset({8, 1}): (1, None), frozenset({1, 6}): (1, None),
-         frozenset({9, 2}): (1, None)})
-
-    assert prds_gra == automol.reac.reactants_graph(rxn, rev=True)
-
-
 def test__expand_stereo():
     """ test reaction stereo expansion
     """
     rct_smis = ['CC(F)CCCC', '[H]']
     prd_smis = ['CC(F)CCC[CH2]', '[HH]']
     rxn_obj = (
-        automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0][0])
+        automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0])
 
     srxn_objs = automol.reac.expand_stereo(rxn_obj)
     rct_ichs = list(map(automol.graph.inchi,
@@ -915,23 +829,17 @@ if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("error")
 
-    # test__reac__hydrogen_abstraction()
-    # test__reac__addition()
-    # test__reac__isc_addition()
-    # test__reac__radrad_hydrogen_abstraction()
-    # test__reac__insertion()
-    # test__reac__substitution()
-    # test__prod__homolytic_scission()
-    # test__prod__beta_scission()
-    # test__prod__ring_forming_scission()
-    # test__expand_stereo()
-    # test__expand_product_stereo()
-    # test__add_stereo_from_unordered_geometries()
-    # test__stereo()
-    # test__expand_stereo()
-    # test__reac__sigma_hydrogen_abstraction()
-    # test__stereo()
+    test__expand_stereo()
     test__reac__hydrogen_migration()
-    # test__reac__2ts_hydrogen_migration()
-    # test__reac__ring_forming_scission()
-    # test__prod__addition()
+    test__reac__2ts_hydrogen_migration()
+    test__reac__beta_scission()
+    test__reac__ring_forming_scission()
+    test__reac__hydrogen_abstraction()
+    test__reac__sigma_hydrogen_abstraction()
+    test__reac__addition()
+    test__reac__radrad_addition()
+    test__reac__radrad_hydrogen_abstraction()
+    test__reac__substitution()
+    test__reac_util()
+    test__prod__hydrogen_abstraction()
+    test__prod__addition()

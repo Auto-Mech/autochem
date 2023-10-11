@@ -13,9 +13,9 @@ import automol.zmat
 from automol.extern import rdkit_
 from automol.reac._0core import (
     Reaction,
+    apply_dummy_conversion,
     product_graphs,
     reactant_graphs,
-    apply_dummy_conversion,
     set_structures,
     standard_keys_with_sorted_geometries,
     ts_graph,
@@ -209,7 +209,7 @@ def canonical_enantiomer(srxn: Reaction):
     return srxn
 
 
-# Get a reaction object from various identifiers
+# Get a reaction object with structures from various identifiers
 def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False):
     """Get reaction objects with geometry/z-matrix structures from ChIs
 

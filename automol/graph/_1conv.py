@@ -151,11 +151,12 @@ def _clean_and_validate_connected_geometry(
 
     if vinyl_radical_atom_keys(gra):
         geo = linear_vinyl_corrected_geometry(gra, geo)
-        geo = clean_geometry(gra, geo, stereo=False)
 
     if stereo and geo is not None:
         geo = stereo_corrected_geometry(gra, geo, local_stereo=local_stereo)
-        geo = clean_geometry(gra, geo, stereo=True, local_stereo=local_stereo)
+
+    if not geometry_matches(gra, geo, stereo=stereo, local_stereo=True):
+        geo = clean_geometry(gra, geo, stereo=stereo, local_stereo=True)
 
     # Remove perfectly planar dihedral angles, to avoid symmetry problems
     geo = perturb_geometry_planar_dihedrals(gra, geo, ang=5.0, degree=True)

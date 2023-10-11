@@ -167,10 +167,6 @@ def clean_geometry(
     """
     gra = gra if local_stereo else to_local_stereo(gra)
 
-    # If the geometry already matches, return it as-is
-    if geometry_matches(gra, geo, stereo=stereo, local_stereo=True):
-        return geo
-
     symb_dct = atom_symbols(gra)
 
     # Build monatomics and diatomics directly

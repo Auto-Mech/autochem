@@ -105,24 +105,6 @@ def hydrogen_abstraction_atom_keys(rxn: Reaction):
     return att_key, hyd_key, don_key
 
 
-def hydrogen_abstraction_is_sigma(rxn: Reaction):
-    """ Is this a sigma radical hydrogen abstraction?
-
-    :param rxn: the reaction object
-    :type rxn: Reaction
-    :rtype: bool
-    """
-    assert class_(rxn) == ReactionClass.Typ.HYDROGEN_ABSTRACTION
-    tsg = ts_graph(rxn)
-    rct_gra = automol.graph.ts.reactants_graph(tsg)
-    sig_rad_keys = automol.graph.sigma_radical_atom_keys(rct_gra)
-
-    brk_bnd_key, = ts.ts_breaking_bond_keys(tsg)
-    frm_bnd_key, = ts.ts_forming_bond_keys(tsg)
-    rad_key, = frm_bnd_key - brk_bnd_key
-    return rad_key in sig_rad_keys
-
-
 def elimination_breaking_bond_keys(rxn: Reaction):
     """ Obtain the breaking bonds for an elimination reaction, sorted in
         canonical order.
