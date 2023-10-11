@@ -395,19 +395,16 @@ def ts_geometry_from_reactants(
         angstrom=True,
     )
 
-    clean_kwargs = {
-        "rct_geos": rct_geos,
-        "dist_range_dct": dist_range_dct,
-        "relax_angles": ts.has_reacting_ring(tsg),
-        "max_dist_err": max_dist_err,
-        "log": log,
-    }
-    ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=False, **clean_kwargs)
-
-    # 5. Do another stereo correction and clean again, in case the embedding broke the
-    # stereochemistry (happens especially for ring-forming TSs)
-    ts_geo = stereo_corrected_geometry(tsg, ts_geo)
-    ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=True, **clean_kwargs)
+    ts_geo = clean_geometry(
+        tsg,
+        ts_geo,
+        rct_geos=rct_geos,
+        dist_range_dct=dist_range_dct,
+        relax_angles=ts.has_reacting_ring(tsg),
+        max_dist_err=max_dist_err,
+        log=log,
+        none_if_failed=True,
+    )
 
     if ts_geo is None:
         raise error.FailedGeometryGenerationError(f"Failed TS graph:\n{string(tsg)}")

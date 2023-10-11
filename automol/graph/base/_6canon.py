@@ -1062,9 +1062,6 @@ def parity_evaluator_from_geometry_(geo, local_stereo=False, geo_idx_dct=None):
         ), "Explicit graph should be used when evaluating from geometry."
         gra = without_dummy_atoms(gra)
 
-        # If requesting local assignments, use local priorities instead
-        pri_dct = local_stereo_priorities(gra) if local_stereo else pri_dct
-
         pri_dct = reassign_hydrogen_priorities(gra, pri_dct, break_ties=False, neg=True)
 
         def _parity(key):
@@ -1091,6 +1088,15 @@ def parity_evaluator_from_geometry_(geo, local_stereo=False, geo_idx_dct=None):
                 par = geometry_bond_parity(
                     gra, geo, (key1, key2), (nkey1s, nkey2s), geo_idx_dct=geo_idx_dct
                 )
+
+            # If requesting local stereo, assign the canonical value and pass it to the
+            # flip local evaluator to get the local value
+            if local_stereo:
+                can_gra = set_stereo_parities(gra, {key: par})
+
+                loc_par_eval_ = parity_evaluator_flip_local_()
+                loc_par_ = loc_par_eval_(can_gra, pri_dct, ts_rev=ts_rev)
+                par = loc_par_(key)
 
             return par
 
