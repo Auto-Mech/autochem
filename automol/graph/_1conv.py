@@ -13,9 +13,9 @@ from automol import error, geom
 from automol.extern import rdkit_
 from automol.graph._0embed import (
     clean_geometry,
-    geometry_matches,
     distance_ranges_from_coordinates,
     embed_geometry,
+    geometry_matches,
 )
 from automol.graph.base import (
     amchi,
@@ -29,6 +29,7 @@ from automol.graph.base import (
     inchi_is_bad,
     is_ts_graph,
     linear_vinyl_corrected_geometry,
+    perturb_geometry_planar_dihedrals,
     relabel,
     smiles,
     standard_keys,
@@ -156,6 +157,9 @@ def _clean_and_validate_connected_geometry(
     if stereo and geo is not None:
         geo = stereo_corrected_geometry(gra, geo, local_stereo=local_stereo)
         geo = clean_geometry(gra, geo, stereo=True, local_stereo=local_stereo)
+
+    # Remove perfectly planar dihedral angles, to avoid symmetry problems
+    geo = perturb_geometry_planar_dihedrals(gra, geo, ang=5.0, degree=True)
 
     if log:
         print("Cleaned geometry:")
@@ -390,18 +394,27 @@ def ts_geometry_from_reactants(
         fdist_factor=fdist_factor,
         bdist_factor=bdist_factor,
     )
-    dist_range_dct = distance_ranges_from_coordinates(tsg, dist_dct, angstrom=True)
-    ts_geo = clean_geometry(
-        tsg,
-        ts_geo,
-        rct_geos=rct_geos,
-        dist_range_dct=dist_range_dct,
-        relax_angles=ts.has_reacting_ring(tsg),
-        max_dist_err=max_dist_err,
-        log=log,
-    )
 
-    # 4. Re-order the TS geometry to match the TS graph
+    clean_kwargs = {
+        "rct_geos": rct_geos,
+        "dist_range_dct": distance_ranges_from_coordinates(
+            tsg, dist_dct, angstrom=True
+        ),
+        "relax_angles": ts.has_reacting_ring(tsg),
+        "max_dist_err": max_dist_err,
+        "log": log,
+    }
+    ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=True, **clean_kwargs)
+
+    # # 5. Do another stereo correction and clean again, in case the embedding broke the
+    # # stereochemistry (happens especially for ring-forming TSs)
+    # ts_geo = stereo_corrected_geometry(tsg, ts_geo)
+    # ts_geo = clean_geometry(tsg, ts_geo, none_if_failed=True, **clean_kwargs)
+
+    if ts_geo is None:
+        raise error.FailedGeometryGenerationError(f"Failed TS graph:\n{string(tsg)}")
+
+    # 6. Re-order the TS geometry to match the TS graph
     gra_key_dct = dict(map(reversed, geo_idx_dct.items()))
     ts_geo = geom.reorder(ts_geo, gra_key_dct)
     return ts_geo

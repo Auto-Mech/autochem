@@ -47,6 +47,8 @@
             [X] Implement direct RDKit molecule => graph conversion with stereo
             [X] Debug that
             [X] Rewrite the geometry conversion algorithm using direct graph conversion (preserves atom ordering, preventing the need for isomorphism checks)
+            [X] FAILED automol/tests/test_convert.py::test__symmetry_removal - assert not frozenset({(0, 1, 2, 5)})
+            [ ] FAILED automol/tests/test_reac.py::test__end_to_end - TypeError: object of type 'NoneType' has no len()
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py

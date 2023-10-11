@@ -35,6 +35,7 @@ from phydat import phycon
 import automol.geom.base
 from automol import embed, error, geom
 from automol.graph.base import (
+    add_bonds,
     atom_hybridizations,
     atom_keys,
     atom_neighbor_atom_key,
@@ -46,6 +47,7 @@ from automol.graph.base import (
     atoms_neighbor_atom_keys,
     bond_keys,
     bond_neighborhoods,
+    bond_orders,
     bond_stereo_keys,
     bond_stereo_parities,
     explicit,
@@ -55,10 +57,10 @@ from automol.graph.base import (
     heuristic_bond_distance,
     heuristic_bond_distance_limit,
     is_ts_graph,
-    perturb_geometry_planar_dihedrals,
     rigid_planar_bond_keys,
     rings_atom_keys,
     rotational_bond_keys,
+    set_stereo_from_geometry,
     stereo_keys,
     stereo_parities,
     string,
@@ -142,9 +144,9 @@ def clean_geometry(
     max_dist_err=2e-1,
     stereo=True,
     local_stereo=False,
-    remove_symmetry=True,
     relax_angles=False,
     log=False,
+    none_if_failed=True,
 ):
     """Clean up a geometry based on this graph, removing any bonds that
     aren't supposed to be there
@@ -161,12 +163,12 @@ def clean_geometry(
     :type stereo: bool, optional
     :param local_stereo: Does the graph have local stereo assignments? defaults to False
     :type local_stereo: bool, optional
-    :param remove_symmetry: Remove symmetry in the geometry, by slightly
-        perturbing near-planar dihedral angles?
-    :type remove_symmetry: bool
     :param relax_angles: Allow angles to relax?, defaults to False
     :type relax_angles: bool, optional
+    :param none_if_failed: Return `None` if the geometry doesn't match? defaults to True
+    type none_if_failed: bool, optional
     """
+    gra = gra if local_stereo else to_local_stereo(gra)
 
     # If the geometry already matches, return it as-is
     if geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo):
@@ -191,7 +193,6 @@ def clean_geometry(
         xyzs = [[0.0, 0.0, 0.0], [bdist, 0.0, 0.0]]
         return automol.geom.from_data(symbs, xyzs, angstrom=True)
 
-    gra = gra if local_stereo else to_local_stereo(gra)
     rct_geos = [geo] if rct_geos is None else rct_geos
 
     dist_gra = ts.reactants_graph(gra) if is_ts_graph(gra) else gra
@@ -230,11 +231,8 @@ def clean_geometry(
     xyzs = xmat[:, :3]
     geo = automol.geom.from_data(syms, xyzs, angstrom=True)
 
-    if remove_symmetry:
-        geo = perturb_geometry_planar_dihedrals(gra, geo, ang=5.0, degree=True)
-
     # If the clean-up failed, return `None`
-    if not geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo):
+    if none_if_failed and not geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo):
         return None
 
     return geo
@@ -254,13 +252,19 @@ def geometry_matches(gra, geo, stereo=True, local_stereo=False) -> bool:
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    gra = gra if stereo else without_stereo(gra)
-    gra = gra if local_stereo else to_local_stereo(gra)
+    cgra = without_stereo(gra)
+    cgra_ = geom.graph_without_stereo(geo)
 
-    gra_ = geom.graph(geo, stereo=stereo, local_stereo=True)
+    if is_ts_graph(cgra):
+        r_bkeys = ts.reacting_bond_keys(cgra)
+        r_ord_dct = dict_.by_key(bond_orders(cgra), r_bkeys)
+        cgra_ = add_bonds(cgra_, keys=r_bkeys, ord_dct=r_ord_dct, check=False)
 
-    matches = without_stereo(gra) == without_stereo(gra_)
+    matches = cgra == cgra_
     if stereo:
+        gra = gra if local_stereo else to_local_stereo(gra)
+        gra_ = set_stereo_from_geometry(cgra_, geo, local_stereo=True)
+
         ste_keys = stereo_keys(gra)
         pars = dict_.values_by_key(stereo_parities(gra), ste_keys)
         pars_ = dict_.values_by_key(stereo_parities(gra_), ste_keys)
