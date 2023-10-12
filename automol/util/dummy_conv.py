@@ -144,8 +144,7 @@ def dummy_atom_keys(dc_: DummyConv) -> List[int]:
 
 
 def parent_atom_keys(dc_: DummyConv, original: bool = False) -> List[int]:
-    """Get the list of parent atoms from a dummy conversion, using the
-    original keys
+    """Get the list of original or final parent atom keyss from a dummy conversion
 
     :param dc_: A dummy conversion data structure
     :type dc_: DummyConv
@@ -161,38 +160,95 @@ def parent_atom_keys(dc_: DummyConv, original: bool = False) -> List[int]:
     return tuple(sorted(par_keys))
 
 
-def relabel(dc_: DummyConv, key_dct: Dict[int, int]) -> DummyConv:
-    """Relabel the output keys of a dummy conversion
+def shift(dc_: DummyConv, start: int, original: bool = False) -> DummyConv:
+    """Shift the final (or original) keys of a dummy conversion to start from a
+    different value
+
+    :param dc_: A dummy conversion data structure
+    :type dc_: DummyConv
+    :param start: This will be the new starting index
+    :type start: int
+    :param original: Shift the original, instead of the final keys? defaults to False
+    :type original: bool, optional
+    :return: The dummy conversion
+    :rtype: DummyConv
+    """
+    keys0 = sorted(true_atom_keys(dc_, original=True) if original else dc_.keys())
+    key_dct = {k: k + start for k in keys0}
+    return relabel(dc_, key_dct, original=original)
+
+
+def relabel(
+    dc_: DummyConv, key_dct: Dict[int, int], original: bool = False
+) -> DummyConv:
+    """Relabel the final (or original) keys of a dummy conversion
 
     :param dc_: A dummy conversion data structure
     :type dc_: DummyConv
     :param key_dct: The relabeling
     :type key_dct: Dict[int, int]
+    :param original: Relabel the original, instead of the final keys? default False
+    :type original: bool, optional
     :return: The dummy conversion
     :rtype: DummyConv
     """
-    dc_ = {key_dct[k]: (k0, k0p) for k, (k0, k0p) in dc_.items()}
+    if original:
+        key_dct[None] = None
+        dc_ = {k: (key_dct[k0], key_dct[k0p]) for k, (k0, k0p) in dc_.items()}
+    else:
+        dc_ = {key_dct[k]: (k0, k0p) for k, (k0, k0p) in dc_.items()}
     return dc_
 
 
-def isomorphism(dc1: DummyConv, dc2: DummyConv):
-    """Get the isomorphism of on DummyConv onto another
+def isomorphism(
+    dc1: DummyConv, dc2: DummyConv, subgraph: bool = False
+) -> Dict[int, int]:
+    """Get the isomorphism of one DummyConv onto another
 
-    Assumes they both share the same original keys
+    Assuming they share the same keys, this backs out the isomorphism of the graph
+    corresponding to (the original keys of) `dc1` onto the graph corresponding to (the
+    original keys of) `dc2`.
 
     :param dc1: A dummy conversion
     :type dc1: DummyConv
     :param dc2: A relabeled dummy conversion
     :type dc2: DummyConv
+    :param subgraph: Find a subgraph isomorphism instead? defaults to False
+    :type subgraph: bool, optional
+    :returns: A mapping of `dc1` onto `dc2`, if it exists
     """
-    assert len(dc1) == len(dc2) and set(dc1.values()) == set(
-        dc2.values()
-    ), f"These DummyConvs don't have the same original keys:\n{dc1}\n{dc2}"
-
     keys1 = list(dc1.keys())
     vals1 = list(dc1.values())
     keys2 = list(dc2.keys())
     vals2 = list(dc2.values())
 
-    key_dct = {k1: keys2[vals2.index(v1)] for k1, v1 in zip(keys1, vals1)}
+    if subgraph:
+        if not (len(dc1) >= len(dc2) and set(vals1) >= set(vals2)):
+            return None
+    else:
+        if not (len(dc1) == len(dc2) and set(vals1) == set(vals2)):
+            return None
+
+    key_dct = {keys1[vals1.index(v2)]: k2 for k2, v2 in zip(keys2, vals2)}
     return key_dct
+
+
+def subgraph_isomorphism(
+    dc1: DummyConv, dc2: DummyConv, reverse: bool = False
+) -> Dict[int, int]:
+    """Get the isomorphism of a subset of one DummyConv onto another
+
+    Assuming they share the same keys, this backs out the isomorphism of a subgraph of
+    the graph corresponding to (the original keys of) `dc1` onto the graph corresponding
+    to (the original keys of) `dc2`.
+
+    :param dc1: A dummy conversion
+    :type dc1: DummyConv
+    :param dc2: A relabeled dummy conversion
+    :type dc2: DummyConv
+    :param reverse: Get the reverse isomorphism, of `dc2` onto `dc1`? defaults to False
+    :type reverse: bool, optional
+    :returns: A mapping of `dc1` onto `dc2`, if it exists
+    """
+    iso_dct = isomorphism(dc1, dc2, subgraph=True)
+    return dict(map(reversed, iso_dct.items())) if reverse else iso_dct

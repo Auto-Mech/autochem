@@ -261,6 +261,17 @@ def from_atoms_and_bonds(atm_dct, bnd_dct):
 
 
 # # getters
+def symbols(gra):
+    """Get the atom symbols of this molecular graph, as a list sorted by key
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: A dictionary of atomic symbols, by atom key
+    :rtype: dict[int: str]
+    """
+    return dict_.values_by_key(atom_symbols(gra), sorted(atom_keys(gra)))
+
+
 def atoms(gra):
     """Get the atoms of this graph, along with their associated properties
 

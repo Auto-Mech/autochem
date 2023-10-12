@@ -21,7 +21,7 @@ from automol.geom.base import (
     count,
     dihedral_angle,
     distance,
-    from_subset,
+    subgeom,
     insert,
     is_atom,
     reorder,
@@ -845,7 +845,7 @@ def reverse_dummy_conversion(geo, dc_: DummyConv):
     rel_dct = dummy_conv.relabel_dict(dc_, rev=True)
     idxs = dummy_conv.true_atom_keys(dc_, original=False)
     idxs = sorted(idxs, key=rel_dct.__getitem__)
-    return from_subset(geo, idxs)
+    return subgeom(geo, idxs)
 
 
 def set_distance(
