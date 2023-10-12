@@ -8,7 +8,7 @@ Import hierarchy:
 # core functions
 # # constructors
 from automol.geom.base._0core import from_data
-from automol.geom.base._0core import from_subset
+from automol.geom.base._0core import subgeom
 # # getters
 from automol.geom.base._0core import symbols
 from automol.geom.base._0core import coordinates
@@ -89,7 +89,7 @@ __all__ = [
     # core functions
     # # constructors
     'from_data',
-    'from_subset',
+    'subgeom',
     # # getters
     'symbols',
     'coordinates',

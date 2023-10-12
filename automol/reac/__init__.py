@@ -20,10 +20,6 @@ from automol.reac._0core import set_ts_graph
 from automol.reac._0core import set_reactants_keys
 from automol.reac._0core import set_products_keys
 from automol.reac._0core import set_reaction_class
-from automol.reac._0core import set_ts_structure
-from automol.reac._0core import set_reactant_structures
-from automol.reac._0core import set_product_structures
-from automol.reac._0core import set_structure_type
 from automol.reac._0core import set_structures
 # # others
 from automol.reac._0core import reverse
@@ -64,8 +60,9 @@ from automol.reac._3find import find
 from automol.reac._3find import find_from_chi
 from automol.reac._3find import intersystem_crossing
 # TS geometries
-from automol.reac._4geom import with_geom_structures
-from automol.reac._4geom import ts_geometry_from_reactants
+from automol.reac._4struc import with_geom_structures
+from automol.reac._4struc import convert_geom_to_zmat_structures
+from automol.reac._4struc import ts_geometry_from_reactants
 # TS zmatrices
 from automol.reac._5zmat import ts_zmatrix
 from automol.reac._5zmat import zmatrix_coordinate_names
@@ -129,10 +126,6 @@ __all__ = [
     'set_reactants_keys',
     'set_products_keys',
     'set_reaction_class',
-    'set_ts_structure',
-    'set_reactant_structures',
-    'set_product_structures',
-    'set_structure_type',
     'set_structures',
     # # others
     'reverse',
@@ -174,6 +167,7 @@ __all__ = [
     'intersystem_crossing',
     # TS geometries
     'with_geom_structures',
+    'convert_geom_to_zmat_structures',
     'ts_geometry_from_reactants',
     # TS zmatrices
     'ts_zmatrix',

@@ -23,7 +23,7 @@ from automol.reac._0core import (
 )
 from automol.reac._2stereo import reflect
 from automol.reac._3find import find
-from automol.reac._4geom import ts_geometry_from_reactants
+from automol.reac._4struc import ts_geometry_from_reactants
 from automol.reac._5zmat import ts_zmatrix
 
 

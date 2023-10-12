@@ -7,8 +7,8 @@ import itertools
 import more_itertools as mit
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import phycon, ptab
+from pyparsing import pyparsing_common as ppc
 
 import automol.formula
 from automol import util
@@ -53,7 +53,7 @@ def from_data(symbs, xyzs, angstrom=False, check=True):
     return geo
 
 
-def from_subset(geo, idxs):
+def subgeom(geo, idxs):
     """Generate a new molecular geometry from a subset of the atoms in an
     input geometry.
 
@@ -85,16 +85,12 @@ def symbols(geo, idxs=None):
     :type idxs: tuple(int)
     :rtype: tuple(str)
     """
-
-    idxs = list(range(count(geo))) if idxs is None else idxs
-
     if geo:
         symbs, _ = zip(*geo)
     else:
         symbs = ()
 
-    symbs = tuple(symb for idx, symb in enumerate(symbs) if idx in idxs)
-    return symbs
+    return symbs if idxs is None else tuple(map(symbs.__getitem__, idxs))
 
 
 def coordinates(geo, idxs=None, angstrom=False):
@@ -905,7 +901,7 @@ def without_dummy_atoms(geo):
     symbs = symbols(geo)
     non_dummy_idxs = [idx for idx, symb in enumerate(symbs) if ptab.to_number(symb)]
 
-    return from_subset(geo, non_dummy_idxs)
+    return subgeom(geo, non_dummy_idxs)
 
 
 def reorder(geo, idx_dct):

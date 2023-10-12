@@ -14,12 +14,9 @@ from typing import List, Tuple
 import numpy
 import yaml
 
-import automol.geom
-import automol.graph
-import automol.zmat
-from automol import par
+from automol import geom, graph, par, zmat
 from automol.graph import ts
-from automol.util import dummy_conv, DummyConv
+from automol.util import DummyConv, dummy_conv
 
 
 @dataclasses.dataclass
@@ -84,9 +81,7 @@ def from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys) -> Reaction:
     :rtype: Reaction
     """
     # Determine the reaction mapping
-    rmap_dct = automol.graph.isomorphism(
-        ts.reverse(rtsg), ftsg, dummy=False, stereo=False
-    )
+    rmap_dct = graph.isomorphism(ts.reverse(rtsg), ftsg, dummy=False, stereo=False)
 
     # Sort, so that the reagent orderings match the original input order
     rcts_keys = sorted(map(sorted, rcts_keys))
@@ -132,8 +127,8 @@ def from_data(
 
     # Check the TS graph...
     # If present, stereo information should be complete
-    if automol.graph.has_stereo(tsg):
-        ste_keys = automol.graph.stereogenic_keys(tsg)
+    if graph.has_stereo(tsg):
+        ste_keys = graph.stereogenic_keys(tsg)
         assert not ste_keys, f"TS graph has unassigned stereo at {ste_keys}:\n{tsg}"
 
     # Check the reactants and products keys
@@ -155,17 +150,21 @@ def from_data(
         )
 
         if struc_typ == "geom":
-            ts_struc = automol.geom.round_(ts_struc)
-            rct_strucs = tuple(map(automol.geom.round_, rct_strucs))
-            prd_strucs = tuple(map(automol.geom.round_, prd_strucs))
+            ts_struc = geom.round_(ts_struc)
+            assert geom.symbols(ts_struc) == graph.symbols(tsg)
+
+            rct_strucs = tuple(map(geom.round_, rct_strucs))
+            prd_strucs = tuple(map(geom.round_, prd_strucs))
 
             assert all(
-                len(ks) == automol.geom.count(g) for ks, g in zip(rcts_keys, rct_strucs)
-            ), "Reactants keys and structures don't match:{rcts_keys}\n{rct_strucs}"
+                geom.symbols(s) == geom.symbols(ts_struc, idxs=ks)
+                for s, ks in zip(rct_strucs, rcts_keys)
+            ), f"Reactant structures mismatch:\n{rct_strucs}\n{rcts_keys}\n{ts_struc}"
 
             assert all(
-                len(ks) == automol.geom.count(g) for ks, g in zip(prds_keys, prd_strucs)
-            ), "Products keys and structures don't match:{prds_keys}\n{prd_strucs}"
+                geom.symbols(s) == geom.symbols(ts_struc, idxs=ks)
+                for s, ks in zip(prd_strucs, prds_keys)
+            ), f"Product structures mismatch:\n{prd_strucs}\n{prds_keys}\n{ts_struc}"
 
     return Reaction(
         ts_graph=tsg,
@@ -193,7 +192,7 @@ def from_string(rxn_str, one_indexed=True) -> Reaction:
     yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
 
     cla = yaml_dct["reaction class"]
-    tsg = automol.graph.from_yaml_data(yaml_dct, one_indexed=one_indexed)
+    tsg = graph.from_yaml_data(yaml_dct, one_indexed=one_indexed)
     rcts_keys = tuple(map(tuple, yaml_dct["reactants keys"]))
     prds_keys = tuple(map(tuple, yaml_dct["products keys"]))
 
@@ -220,19 +219,19 @@ def string(rxn: Reaction, one_indexed=True) -> str:
         rcts_keys = [[k + 1 for k in ks] for ks in rcts_keys]
         prds_keys = [[k + 1 for k in ks] for ks in prds_keys]
 
-    yaml_dct = automol.graph.yaml_data(ts_graph(rxn), one_indexed=one_indexed)
+    yaml_dct = graph.yaml_data(ts_graph(rxn), one_indexed=one_indexed)
     yaml_dct["reactants keys"] = list(map(list, rcts_keys))
     yaml_dct["products keys"] = list(map(list, prds_keys))
     yaml_dct["reaction class"] = class_(rxn)
     struc_typ = structure_type(rxn)
     if struc_typ is not None:
         assert struc_typ == "geom"  # TEMPORARY
-        yaml_dct["TS structure"] = automol.geom.yaml_data(ts_structure(rxn))
+        yaml_dct["TS structure"] = geom.yaml_data(ts_structure(rxn))
         yaml_dct["reactant structures"] = list(
-            map(automol.geom.yaml_data, reactant_structures(rxn))
+            map(geom.yaml_data, reactant_structures(rxn))
         )
         yaml_dct["product structures"] = list(
-            map(automol.geom.yaml_data, product_structures(rxn))
+            map(geom.yaml_data, product_structures(rxn))
         )
         yaml_dct["structure type"] = struc_typ
 
@@ -398,66 +397,6 @@ def set_reaction_class(rxn: Reaction, cla: str) -> Reaction:
     return rxn
 
 
-def set_ts_structure(rxn: Reaction, ts_struc) -> Reaction:
-    """Set the TS structure
-
-    :param rxn: The reaction object
-    :type rxn: Reaction
-    :param ts_struc: The TS stuctures, with keys matching the TS graph
-    :type ts_struc: automol geom or zmat data structure
-    :returns: A new reaction object
-    :rtype: Reaction
-    """
-    rxn = copy.deepcopy(rxn)
-    rxn.ts_structure = ts_struc
-    return rxn
-
-
-def set_reactant_structures(rxn: Reaction, rct_strucs) -> Reaction:
-    """Set the reactant structures
-
-    :param rxn: The reaction object
-    :type rxn: Reaction
-    :param rct_strucs: The reactant stuctures, with keys matching reactants keys
-    :type rct_strucs: List[automol geom or zmat data structure]
-    :returns: A new reaction object
-    :rtype: Reaction
-    """
-    rxn = copy.deepcopy(rxn)
-    rxn.reactant_structures = rct_strucs
-    return rxn
-
-
-def set_product_structures(rxn: Reaction, prd_strucs) -> Reaction:
-    """Set the product structures
-
-    :param rxn: The reaction object
-    :type rxn: Reaction
-    :param prd_strucs: The product stuctures, with keys matching products keys
-    :type prd_strucs: List[automol geom or zmat data structure]
-    :returns: A new reaction object
-    :rtype: Reaction
-    """
-    rxn = copy.deepcopy(rxn)
-    rxn.product_structures = prd_strucs
-    return rxn
-
-
-def set_structure_type(rxn: Reaction, struc_typ: str) -> Reaction:
-    """Set the type of the TS, reactant, and product structures (geom or zmat)
-
-    :param rxn: The reaction object
-    :type rxn: Reaction
-    :param struc_typ: The structural information type ('zmat' or 'geom')
-    :param struc_typ: str
-    :returns: A new reaction object
-    :rtype: Reaction
-    """
-    rxn = copy.deepcopy(rxn)
-    rxn.structure_type = struc_typ
-    return rxn
-
-
 def set_structures(
     rxn: Reaction, ts_struc, rct_strucs, prd_strucs, struc_typ=None
 ) -> Reaction:
@@ -476,7 +415,7 @@ def set_structures(
     :param struc_typ: The structural information type ('zmat' or 'geom'),
         defaults to None
     :type struc_typ: str, optional
-    :return: _description_
+    :return: A new reaction object
     :rtype: Reaction
     """
     return from_data(
@@ -502,7 +441,7 @@ def relabel(rxn: Reaction, key_dct) -> Reaction:
     :returns: A relabeled reaction object
     :rtype: Reaction
     """
-    tsg = automol.graph.relabel(ts_graph(rxn), key_dct)
+    tsg = graph.relabel(ts_graph(rxn), key_dct)
     rcts_keys = tuple(tuple(map(key_dct.__getitem__, ks)) for ks in reactants_keys(rxn))
     prds_keys = tuple(tuple(map(key_dct.__getitem__, ks)) for ks in products_keys(rxn))
 
@@ -521,7 +460,7 @@ def reverse(rxn: Reaction) -> Reaction:
     """
     return from_data(
         cla=par.reverse_reaction_class(class_(rxn)),
-        tsg=automol.graph.ts.reverse(ts_graph(rxn)),
+        tsg=graph.ts.reverse(ts_graph(rxn)),
         rcts_keys=products_keys(rxn),
         prds_keys=reactants_keys(rxn),
     )
@@ -546,7 +485,7 @@ def mapping(rxn: Reaction, inp, out) -> dict:
     """
     rxn = without_dummy_atoms(rxn)
 
-    keys = sorted(automol.graph.atom_keys(ts_graph(rxn)))
+    keys = sorted(graph.atom_keys(ts_graph(rxn)))
     rcts_keys = reactants_keys(rxn)
     prds_keys = products_keys(rxn)
     rct_keys = list(itertools.chain(*rcts_keys))
@@ -626,10 +565,10 @@ def reactant_graphs(rxn: Reaction, shift_keys=False):
 
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     rcts_keys = reactants_keys(rxn)
-    rct_gras = [automol.graph.subgraph(rcts_gra, ks, stereo=True) for ks in rcts_keys]
-    rct_gras = [automol.graph.relabel(g, map_dct, check=False) for g in rct_gras]
+    rct_gras = [graph.subgraph(rcts_gra, ks, stereo=True) for ks in rcts_keys]
+    rct_gras = [graph.relabel(g, map_dct, check=False) for g in rct_gras]
     if not shift_keys:
-        rct_gras = [automol.graph.standard_keys(g) for g in rct_gras]
+        rct_gras = [graph.standard_keys(g) for g in rct_gras]
     return tuple(rct_gras)
 
 
@@ -656,7 +595,7 @@ def reactants_graph(rxn: Reaction, key_order="R"):
     """
     map_dct = mapping(rxn, "T", key_order)
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
-    return automol.graph.relabel(rcts_gra, map_dct, check=True)
+    return graph.relabel(rcts_gra, map_dct, check=True)
 
 
 def products_graph(rxn: Reaction, key_order="P"):
@@ -670,7 +609,7 @@ def products_graph(rxn: Reaction, key_order="P"):
     """
     map_dct = mapping(rxn, "T", key_order)
     rcts_gra = ts.products_graph(ts_graph(rxn))
-    return automol.graph.relabel(rcts_gra, map_dct, check=True)
+    return graph.relabel(rcts_gra, map_dct, check=True)
 
 
 def standard_keys(rxn: Reaction) -> Reaction:
@@ -731,7 +670,7 @@ def without_stereo(rxn: Reaction) -> Reaction:
     :rtype: Reaction
     """
     tsg = ts_graph(rxn)
-    rxn = set_ts_graph(rxn, automol.graph.without_stereo(tsg))
+    rxn = set_ts_graph(rxn, graph.without_stereo(tsg))
     return rxn
 
 
@@ -748,7 +687,7 @@ def apply_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
     :rtype: Reaction
     """
     # 1. Transform the TS graph
-    tsg = automol.graph.apply_dummy_conversion(ts_graph(rxn), dc_)
+    tsg = graph.apply_dummy_conversion(ts_graph(rxn), dc_)
     # 2. Relabel the keys
     rel_dct = dummy_conv.relabel_dict(dc_)
     rcts_keys = list(list(map(rel_dct.__getitem__, ks)) for ks in reactants_keys(rxn))
@@ -802,7 +741,7 @@ def insert_dummy_atoms(rxn: Reaction, dummy_key_dct) -> Reaction:
 
 def _insert_dummy_atom(rxn: Reaction, key, dummy_key) -> Reaction:
     tsg = ts_graph(rxn)
-    keys = sorted(automol.graph.atom_keys(tsg))
+    keys = sorted(graph.atom_keys(tsg))
     dummy_key_ = max(keys) + 1
     rxn = apply_dummy_conversion(rxn, {key: dummy_key_})
 
@@ -821,9 +760,9 @@ def _insert_dummy_atom(rxn: Reaction, key, dummy_key) -> Reaction:
 def without_dummy_atoms(rxn: Reaction) -> Reaction:
     """remove dummy atoms from the reactants or products"""
     tsg = ts_graph(rxn)
-    dummy_keys = automol.graph.atom_keys(tsg, symb="X")
+    dummy_keys = graph.atom_keys(tsg, symb="X")
 
-    tsg = automol.graph.without_dummy_atoms(tsg)
+    tsg = graph.without_dummy_atoms(tsg)
     rcts_keys = [[k for k in ks if k not in dummy_keys] for ks in reactants_keys(rxn)]
     prds_keys = [[k for k in ks if k not in dummy_keys] for ks in products_keys(rxn)]
     rxn = set_ts_graph(rxn, tsg)
@@ -842,7 +781,7 @@ def relabel_for_geometry(rxn: Reaction) -> Reaction:
     rxn = without_dummy_atoms(rxn)
 
     tsg = ts_graph(rxn)
-    keys = sorted(automol.graph.atom_keys(tsg))
+    keys = sorted(graph.atom_keys(tsg))
     key_dct = dict(map(reversed, enumerate(keys)))
     rxn = relabel(rxn, key_dct)
     return rxn
@@ -860,7 +799,7 @@ def unique(rxns: List[Reaction]) -> List[Reaction]:
     def isomorphic_(rxn1, rxn2):
         tsg1 = ts_graph(rxn1)
         tsg2 = ts_graph(rxn2)
-        return automol.graph.isomorphic(tsg1, tsg2, stereo=True)
+        return graph.isomorphic(tsg1, tsg2, stereo=True)
 
     for rxn in all_rxns:
         if not any(isomorphic_(rxn, r) for r in rxns):
@@ -880,9 +819,7 @@ def is_radical_radical(zrxn: Reaction) -> bool:
     rct_gras = reactant_graphs(zrxn)
     if len(rct_gras) == 2:
         rct_i, rct_j = rct_gras
-        if automol.graph.is_radical_species(rct_i) and automol.graph.is_radical_species(
-            rct_j
-        ):
+        if graph.is_radical_species(rct_i) and graph.is_radical_species(rct_j):
             _is_rad_rad = True
     return _is_rad_rad
 
@@ -905,7 +842,7 @@ def filter_viable_reactions(rxns: List[Reaction]) -> List[Reaction]:
     def _produces_separated_radical_sites(rxn):
         prd_gras = product_graphs(rxn)
         sep_rad = any(
-            automol.graph.has_separated_radical_sites(prd_gra) for prd_gra in prd_gras
+            graph.has_separated_radical_sites(prd_gra) for prd_gra in prd_gras
         )
         return sep_rad
 
@@ -913,8 +850,8 @@ def filter_viable_reactions(rxns: List[Reaction]) -> List[Reaction]:
         prd_gras = product_graphs(rxn)
         mult = sum(
             map(
-                automol.graph.maximum_spin_multiplicity,
-                map(automol.graph.kekule, prd_gras),
+                graph.maximum_spin_multiplicity,
+                map(graph.kekule, prd_gras),
             )
         )
         # 4 allows for singlet+triplet or doublet+doublet products
@@ -943,8 +880,8 @@ def _identify_sequence_structure_type(strucs):
     """
     return (
         "geom"
-        if all(map(automol.geom.is_valid, strucs))
+        if all(map(geom.is_valid, strucs))
         else "zmat"
-        if all(map(automol.zmat.is_valid, strucs))
+        if all(map(zmat.is_valid, strucs))
         else None
     )

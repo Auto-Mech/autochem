@@ -7,7 +7,7 @@ import automol.graph.base
 from automol.geom._conv import (
     graph,
 )
-from automol.geom.base import central_angle, from_subset
+from automol.geom.base import central_angle, subgeom
 
 ATHRESH = 94.0 * phycon.DEG2RAD
 
@@ -72,6 +72,6 @@ def ring_fragments_geometry(geo, rings_atoms=None, ngbs=None):
                 if ngb not in ring_idxs:
                     ring_idxs.append(ngb)
     if ring_idxs:
-        ret = from_subset(geo, ring_idxs)
+        ret = subgeom(geo, ring_idxs)
 
     return ret
