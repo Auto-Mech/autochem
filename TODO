@@ -52,10 +52,13 @@
     [X] Remove reagent reordering -- just use the initial input order
     [ ] Implement interconversion of Reaction obj with structures
             [X] implement with_geom_structures
+            [X] Geometry => z-matrix
+            [ ] Testing
+            [ ] Z-matrix => geometry
+            [ ] Testing
             [ ] implement convert_structures(rxn, typ1, typ2)
             [ ] implement with_zmat_structures (under the hood, calls add_geom_structures and then converts)
-            [ ] Geometry => z-matrix
-            [ ] Z-matrix => geometry
+                [ ] We can allow this to take pre-existing rct/prd zmas as input, as long as the user also passes in a dummy conversion relative to the original geo (matching the original Reaction object keys). 
     [ ]
     [ ] _6scan.py
     [ ] _7rot.py
