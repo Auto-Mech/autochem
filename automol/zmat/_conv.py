@@ -4,9 +4,7 @@ import itertools
 
 import numpy
 
-import automol.geom
-import automol.graph
-from automol import util
+from automol import geom, graph, util
 from automol.util import DummyConv
 from automol.zmat.base import (
     dummy_conversion,
@@ -31,8 +29,8 @@ def graph(zma, stereo=True, dummy=False):
 
     geo = geometry(zma, dummy=True)
     if not dummy:
-        geo = automol.geom.without_dummy_atoms(geo)
-    gra = automol.geom.graph(geo, stereo=stereo)
+        geo = geom.without_dummy_atoms(geo)
+    gra = geom.graph(geo, stereo=stereo)
 
     return gra
 
@@ -52,7 +50,7 @@ def graph_without_stereo(zma, dummy=False, dist_factor=None):
     """
 
     geo = geometry(zma, dummy=dummy)
-    gra = automol.geom.graph_without_stereo(geo, dist_factor=dist_factor)
+    gra = geom.graph_without_stereo(geo, dist_factor=dist_factor)
 
     return gra
 
@@ -85,12 +83,12 @@ def geometry(zma, dummy=False, dc_: DummyConv = None):
         xyz = util.vec.from_internals(*itertools.chain(*zip(vals, ref_xyzs)))
         xyzs[key] = xyz
 
-    geo = automol.geom.from_data(syms, xyzs)
+    geo = geom.from_data(syms, xyzs)
 
     if dc_ is not None:
-        geo = automol.geom.reverse_dummy_conversion(geo, dc_)
+        geo = geom.reverse_dummy_conversion(geo, dc_)
     elif not dummy:
-        geo = automol.geom.without_dummy_atoms(geo)
+        geo = geom.without_dummy_atoms(geo)
 
     return geo
 
@@ -108,6 +106,60 @@ def geometry_with_conversion_info(zma):
     return geo, dc_
 
 
+def rdkit_molecule(zma, gra=None, stereo=True):
+    """Convert a z-matrix to an RDKit molecule.
+
+    This is mainly useful for quick visualization with IPython, which can
+    be done as follows:
+    >>> from IPython.display import display
+    >>> display(rdkit_molecule(zma))
+
+    :param zma: molecular z-matrix
+    :type zma: automol z-matrix data structure
+    :param gra: A molecular graph, describing the connectivity
+    :type gra: automol graph data structure
+    :param stereo: parameter to include stereochemistry information
+    :type stereo: bool
+    :returns: the RDKit molecule
+    """
+    geo = geometry(zma, dummy=True)
+    return geom.rdkit_molecule(geo, gra=gra, stereo=stereo)
+
+
+def py3dmol_view(zma, gra=None, view=None, image_size=400):
+    """Get a py3DMol view of this molecular z-matrix
+
+    :param zma: molecular z-matrix
+    :type zma: automol z-matrix data structure
+    :param gra: A molecular graph, describing the connectivity, defaults to None
+    :type gra: automol graph data structure, optional
+    :param image_size: The image size, if creating a new view, defaults to 400
+    :type image_size: int, optional
+    :param view: An existing 3D view to append to, defaults to None
+    :type view: py3Dmol.view, optional
+    :return: A 3D view containing the molecule
+    :rtype: py3Dmol.view
+    """
+    geo = geometry(zma, dummy=True)
+    return geom.py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
+
+
+def display(zma, gra=None, view=None, image_size=400):
+    """Display molecule to IPython using the RDKit visualizer
+
+    :param zma: molecular z-matrix
+    :type zma: automol z-matrix data structure
+    :param gra: A molecular graph, describing the connectivity
+    :type gra: automol graph data structure
+    :param image_size: The image size, if creating a new view, defaults to 400
+    :type image_size: int, optional
+    :param view: An existing 3D view to append to, defaults to None
+    :type view: py3Dmol.view, optional
+    """
+    geo = geometry(zma, dummy=True)
+    return geom.display(geo, gra=gra, view=view, image_size=image_size)
+
+
 # # derived properties
 def distance(zma, key1, key2, angstrom=False):
     """Measure the distance between two atoms defined in a Z-Matrix.
@@ -122,7 +174,7 @@ def distance(zma, key1, key2, angstrom=False):
     :type angstrom: bool
     """
     geo = geometry(zma, dummy=True)
-    return automol.geom.distance(geo, key1, key2, angstrom=angstrom)
+    return geom.distance(geo, key1, key2, angstrom=angstrom)
 
 
 def central_angle(zma, key1, key2, key3, degree=False):
@@ -140,7 +192,7 @@ def central_angle(zma, key1, key2, key3, degree=False):
     :type degree: bool
     """
     geo = geometry(zma, dummy=True)
-    return automol.geom.central_angle(geo, key1, key2, key3, degree=degree)
+    return geom.central_angle(geo, key1, key2, key3, degree=degree)
 
 
 def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
@@ -160,7 +212,7 @@ def dihedral_angle(zma, key1, key2, key3, key4, degree=False):
     :type degree: bool
     """
     geo = geometry(zma, dummy=True)
-    return automol.geom.dihedral_angle(geo, key1, key2, key3, key4, degree=degree)
+    return geom.dihedral_angle(geo, key1, key2, key3, key4, degree=degree)
 
 
 # # torsions
@@ -242,7 +294,7 @@ def torsion_leading_atom(zma, key1, key2, zgra=None):
         # A simple solution is therefore to choose the lead key based on
         # whether or not key2 and key3 are connected, which is what this code
         # does.
-        bnd_keys = automol.graph.bond_keys(zgra)
+        bnd_keys = graph.bond_keys(zgra)
         lead_key = next(
             (k for k in lead_key_candidates if frozenset(key_mat[k][-2:]) in bnd_keys),
             None,

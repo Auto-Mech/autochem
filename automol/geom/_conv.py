@@ -580,7 +580,7 @@ def display(geo, gra=None, view=None, image_size=400):
     ts_ = gra is not None and automol.graph.base.is_ts_graph(gra)
     if ts_:
         tsg = gra
-        gra = automol.graph.base.ts.reactants_graph(gra, stereo=False)
+        gra = automol.graph.base.ts.reactants_graph(gra, stereo=False, dummy=True)
 
     view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
 

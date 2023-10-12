@@ -83,6 +83,9 @@ from automol.zmat._conv import graph
 from automol.zmat._conv import graph_without_stereo
 from automol.zmat._conv import geometry
 from automol.zmat._conv import geometry_with_conversion_info
+from automol.zmat._conv import rdkit_molecule
+from automol.zmat._conv import py3dmol_view
+from automol.zmat._conv import display
 # # derived properties
 from automol.zmat._conv import distance
 from automol.zmat._conv import central_angle
@@ -176,6 +179,9 @@ __all__ = [
     'graph_without_stereo',
     'geometry',
     'geometry_with_conversion_info',
+    'rdkit_molecule',
+    'py3dmol_view',
+    'display',
     # # derived properties
     'distance',
     'central_angle',
