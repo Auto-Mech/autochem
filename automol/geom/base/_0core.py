@@ -1,14 +1,14 @@
 """
     Core functions defining the geometry data type
 """
-
 import itertools
+from typing import List
 
 import more_itertools as mit
 import numpy
 import pyparsing as pp
-from phydat import phycon, ptab
 from pyparsing import pyparsing_common as ppc
+from phydat import phycon, ptab
 
 import automol.formula
 from automol import util
@@ -76,14 +76,15 @@ def subgeom(geo, idxs):
 
 
 # # getters
-def symbols(geo, idxs=None):
+def symbols(geo, idxs: List[int] = None) -> List[str]:
     """Obtain the atomic symbols atoms in the molecular geometry.
 
     :param geo: molecular geometry
     :type geo: automol molecular geometry data structure
-    :param idxs: indexs of atoms to obtain information for
-    :type idxs: tuple(int)
-    :rtype: tuple(str)
+    :param idxs: indices of atoms to obtain information for
+    :type idxs: List[int]
+    :returns: The list of atomic symbols
+    :rtype: List[str]
     """
     if geo:
         symbs, _ = zip(*geo)
@@ -268,7 +269,7 @@ def from_xyz_trajectory_string(geo_str):
         """Split list into parts of size n"""
         split_lst = []
         for i in range(0, len(lst), size):
-            split_lst.append(lst[i: i + size])
+            split_lst.append(lst[i : i + size])
         return split_lst
 
     # Split the lines for iteration

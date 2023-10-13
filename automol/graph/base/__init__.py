@@ -30,7 +30,6 @@ from automol.graph.base._0core import from_atoms_and_bonds
 # # getters
 from automol.graph.base._0core import atoms
 from automol.graph.base._0core import bonds
-from automol.graph.base._0core import symbols
 from automol.graph.base._0core import atom_keys
 from automol.graph.base._0core import bond_keys
 from automol.graph.base._0core import atom_symbols
@@ -323,7 +322,6 @@ __all__ = [
     'bonds_from_data',
     'from_atoms_and_bonds',
     # # getters
-    'symbols',
     'atoms',
     'bonds',
     'atom_keys',

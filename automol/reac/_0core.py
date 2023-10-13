@@ -149,22 +149,35 @@ def from_data(
             f"\nreactants: {rct_strucs}\nproducts: {prd_strucs}"
         )
 
-        if struc_typ == "geom":
-            ts_struc = geom.round_(ts_struc)
-            assert geom.symbols(ts_struc) == graph.symbols(tsg)
+        if struc_typ is not None:
+            assert struc_typ in ("geom", "zmat")
+            round_ = geom.round_ if struc_typ == "geom" else zmat.round_
+            symbs_ = geom.symbols if struc_typ == "geom" else zmat.symbols
 
-            rct_strucs = tuple(map(geom.round_, rct_strucs))
-            prd_strucs = tuple(map(geom.round_, prd_strucs))
+            ts_struc = round_(ts_struc)
+            assert symbs_(ts_struc) == graph.symbols(tsg)
+
+            rct_strucs = tuple(map(round_, rct_strucs))
+            prd_strucs = tuple(map(round_, prd_strucs))
 
             assert all(
-                geom.symbols(s) == geom.symbols(ts_struc, idxs=ks)
+                symbs_(s) == symbs_(ts_struc, idxs=ks)
                 for s, ks in zip(rct_strucs, rcts_keys)
-            ), f"Reactant structures mismatch:\n{rct_strucs}\n{rcts_keys}\n{ts_struc}"
+            ), (
+                f"Reactant structures don't match keys...\n"
+                f"Reactants:\n{rct_strucs}\nKeys:\n{rcts_keys}\nTS graph:\n{tsg}"
+            )
 
             assert all(
-                geom.symbols(s) == geom.symbols(ts_struc, idxs=ks)
+                symbs_(s) == symbs_(ts_struc, idxs=ks)
                 for s, ks in zip(prd_strucs, prds_keys)
-            ), f"Product structures mismatch:\n{prd_strucs}\n{prds_keys}\n{ts_struc}"
+            ), (
+                f"Product structures don't match keys...\n"
+                f"Product:\n{rct_strucs}\nKeys:\n{rcts_keys}\nTS graph:\n{tsg}"
+            )
+
+        if struc_typ == "zmat":
+            assert zmat.symbols(ts_struc) == graph.symbols(tsg)
 
     return Reaction(
         ts_graph=tsg,
@@ -483,8 +496,6 @@ def mapping(rxn: Reaction, inp, out) -> dict:
     :returns: A dictionary mapping `inp` keys into `out` keys
     :rtype: dict
     """
-    rxn = without_dummy_atoms(rxn)
-
     keys = sorted(graph.atom_keys(ts_graph(rxn)))
     rcts_keys = reactants_keys(rxn)
     prds_keys = products_keys(rxn)
