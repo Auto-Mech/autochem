@@ -43,6 +43,8 @@ from automol.zmat.base._core import set_values_by_name
 # # I/O
 from automol.zmat.base._core import string
 from automol.zmat.base._core import from_string
+from automol.zmat.base._core import yaml_data
+from automol.zmat.base._core import from_yaml_data
 # # validation
 from automol.zmat.base._core import is_valid
 # # conversions
@@ -140,6 +142,8 @@ __all__ = [
     # # I/O
     'string',
     'from_string',
+    'yaml_data',
+    'from_yaml_data',
     # # validation
     'is_valid',
     # # conversions

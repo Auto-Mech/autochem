@@ -34,7 +34,7 @@ Key = Union[int, None]
 DummyConv = Dict[int, Tuple[Key, Key]]
 
 
-def from_original_parent_atom_keys(
+def from_original_dummy_parent_keys(
     nk0s: int, k0ps: List[int], insert: bool = False
 ) -> DummyConv:
     """Generate a dummy conversion data structure from a list of original parent keys
@@ -116,8 +116,21 @@ def insert_dict(dc_: DummyConv) -> Dict[int, int]:
     return ins_dct
 
 
-def true_atom_keys(dc_: DummyConv, original: bool = False) -> List[int]:
-    """Get the list of true atoms from a dummy conversion
+def count(dc_: DummyConv, original: bool = False) -> int:
+    """Count the number of atoms
+
+    :param dc_: A dummy conversion data structure
+    :type dc_: DummyConv
+    :param original: Count the original, instead of the final atoms?
+    :type original: bool
+    :return: The number of atoms
+    :rtype: int
+    """
+    return len(real_keys(dc_)) if original else len(dc_)
+
+
+def real_keys(dc_: DummyConv, original: bool = False) -> List[int]:
+    """Get the list of real atoms from a dummy conversion
 
     :param dc_: A dummy conversion data structure
     :type dc_: DummyConv
@@ -130,7 +143,7 @@ def true_atom_keys(dc_: DummyConv, original: bool = False) -> List[int]:
     return tuple(sorted(par_keys))
 
 
-def dummy_atom_keys(dc_: DummyConv) -> List[int]:
+def dummy_keys(dc_: DummyConv) -> List[int]:
     """Get the list of dummy atoms from a dummy conversion, using the
     final keys
 
@@ -139,11 +152,11 @@ def dummy_atom_keys(dc_: DummyConv) -> List[int]:
     :return: The list of parent atoms, using the original keys
     :rtype: List[int]
     """
-    par_keys = [k for k, (k0, _) in dc_.items() if k0 is None]
-    return tuple(sorted(par_keys))
+    dum_keys = [k for k, (k0, _) in dc_.items() if k0 is None]
+    return tuple(sorted(dum_keys))
 
 
-def parent_atom_keys(dc_: DummyConv, original: bool = False) -> List[int]:
+def dummy_parent_keys(dc_: DummyConv, original: bool = False) -> List[int]:
     """Get the list of original or final parent atom keyss from a dummy conversion
 
     :param dc_: A dummy conversion data structure
@@ -173,7 +186,7 @@ def shift(dc_: DummyConv, start: int, original: bool = False) -> DummyConv:
     :return: The dummy conversion
     :rtype: DummyConv
     """
-    keys0 = sorted(true_atom_keys(dc_, original=True) if original else dc_.keys())
+    keys0 = sorted(real_keys(dc_, original=True) if original else dc_.keys())
     key_dct = {k: k + start for k in keys0}
     return relabel(dc_, key_dct, original=original)
 
@@ -252,3 +265,29 @@ def subgraph_isomorphism(
     """
     iso_dct = isomorphism(dc1, dc2, subgraph=True)
     return dict(map(reversed, iso_dct.items())) if reverse else iso_dct
+
+
+def yaml_data(dc_: DummyConv) -> list:
+    """A yaml-friendly format for the dummy conversion
+
+    :param dc_: A dummy conversion data structure
+    :type dc_: DummyConv
+    :return: A yaml-formatted dummy conversion
+    :rtype: list
+    """
+    dc_yml = [[k, *v] for k, v in sorted(dc_.items())]
+    return dc_yml
+
+
+def from_yaml_data(dc_yml: list) -> DummyConv:
+    """Put a yaml-formatted dummy conversion back into standard format
+
+    :param dc_yml: A yaml-formatted dummy conversion
+    :type dc_yml: list
+    :returns: A dummy conversion data structure
+    :rtype: DummyConv
+    """
+    keys = [row[0] for row in dc_yml]
+    vals = [tuple(row[1:]) for row in dc_yml]
+    dc_ = dict(zip(keys, vals))
+    return dc_

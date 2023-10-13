@@ -33,24 +33,33 @@ class Reaction:
     :type products_keys: tuple[tuple[int]]
     :param class_: The reaction class
     :type class_: str
+    :param structure_type: The structural information type ('zmat' or 'geom')
+    :type structure_type: str
     :param ts_structure: The TS stucture, with keys matching the TS graph
     :type ts_structure: automol geom or zmat data structure
     :param reactant_structures: The reactant stuctures, with keys matching reactants
     :type reactant_structures: List[automol geom or zmat data structure]
     :param product_structures: The product stuctures, with keys matching products
     :type product_structures: List[automol geom or zmat data structure]
-    :param structure_type: The structural information type ('zmat' or 'geom')
-    :type structure_type: str
+    :param ts_conversion_info: Z-matrix conversion info for the TS structure
+    :type ts_conversion_info: DummyConv
+    :param reactants_conversion_info: Z-matrix conversion info for reactant structures
+    :type reactants_conversion_info: DummyConv
+    :param products_conversion_info: Z-matrix conversion info for product structures
+    :type products_conversion_info: DummyConv
     """
 
     ts_graph: tuple
     reactants_keys: tuple
     products_keys: tuple
     class_: str
+    structure_type: str = None
     ts_structure: tuple = None
     reactant_structures: tuple = None
     product_structures: tuple = None
-    structure_type: str = None
+    ts_conversion_info: DummyConv = None
+    reactants_conversion_info: List[DummyConv] = None
+    products_conversion_info: List[DummyConv] = None
 
     def __repr__(self):
         """string representation of the object"""
@@ -101,6 +110,9 @@ def from_data(
     ts_struc=None,
     rct_strucs=None,
     prd_strucs=None,
+    ts_dc=None,
+    rct_dcs=None,
+    prd_dcs=None,
     struc_typ=None,
 ) -> Reaction:
     """Construct a Reaction dataclass from data
@@ -113,14 +125,20 @@ def from_data(
     :type prds_keys: tuple[tuple[int]]
     :param cla: The reaction class
     :type cla: str
+    :param struc_type: The structural information type ('zmat' or 'geom')
+    :type struc_type: str
     :param ts_struc: The TS stucture, with keys matching the TS graph
     :type ts_struc: automol geom or zmat data structure
     :param rct_strucs: The reactant stuctures, with keys matching reactants keys
     :type rct_strucs: List[automol geom or zmat data structure]
     :param prd_strucs: The product stuctures, with keys matching products keys
     :type prd_strucs: List[automol geom or zmat data structure]
-    :param struc_type: The structural information type ('zmat' or 'geom')
-    :type struc_type: str
+    :param ts_dc: Z-matrix conversion info for the TS structure
+    :type ts_dc: DummyConv
+    :param rct_dcs: Z-matrix conversion info for reactant structures
+    :type rct_dcs: DummyConv
+    :param prd_dcs: Z-matrix conversion info for product structures
+    :type prd_dcs: DummyConv
     :returns: A reaction object
     :rtype: Reaction
     """
@@ -139,7 +157,8 @@ def from_data(
     assert par.is_reaction_class(cla) or cla is None, f"{cla} is not a reaction class"
 
     # Check the structures, if there are any
-    if any(x is not None for x in [ts_struc, rct_strucs, prd_strucs, struc_typ]):
+    struc_info = [ts_struc, rct_strucs, prd_strucs, struc_typ, ts_dc, rct_dcs, prd_dcs]
+    if any(x is not None for x in struc_info):
         ttyp = _identify_sequence_structure_type([ts_struc])
         rtyp = _identify_sequence_structure_type(rct_strucs)
         ptyp = _identify_sequence_structure_type(prd_strucs)
@@ -149,45 +168,62 @@ def from_data(
             f"\nreactants: {rct_strucs}\nproducts: {prd_strucs}"
         )
 
-        if struc_typ is not None:
-            assert struc_typ in ("geom", "zmat")
-            round_ = geom.round_ if struc_typ == "geom" else zmat.round_
-            symbs_ = geom.symbols if struc_typ == "geom" else zmat.symbols
+        round_ = geom.round_ if struc_typ == "geom" else zmat.round_
+        symbs_ = geom.symbols if struc_typ == "geom" else zmat.symbols
 
-            ts_struc = round_(ts_struc)
-            assert symbs_(ts_struc) == graph.symbols(tsg)
+        ts_struc = round_(ts_struc)
+        rct_strucs = tuple(map(round_, rct_strucs))
+        prd_strucs = tuple(map(round_, prd_strucs))
 
-            rct_strucs = tuple(map(round_, rct_strucs))
-            prd_strucs = tuple(map(round_, prd_strucs))
+        # Check that TS graph and reagents keys match up with the respective structures
+        s_ok = symbs_(ts_struc) == graph.symbols(tsg)
+        assert s_ok, f"TS structure and graph don't match:\n{ts_struc}\n{tsg}"
 
-            assert all(
-                symbs_(s) == symbs_(ts_struc, idxs=ks)
-                for s, ks in zip(rct_strucs, rcts_keys)
-            ), (
-                f"Reactant structures don't match keys...\n"
-                f"Reactants:\n{rct_strucs}\nKeys:\n{rcts_keys}\nTS graph:\n{tsg}"
+        for struc, keys in zip(rct_strucs + prd_strucs, rcts_keys + prds_keys):
+            s_ok = symbs_(struc) == symbs_(ts_struc, idxs=keys)
+            assert s_ok, (
+                f"Reagent structure and keys don't match TS graph...\n"
+                f"Structure:\n{struc}\nKeys:\n{keys}\nTS graph:\n{tsg}"
             )
 
-            assert all(
-                symbs_(s) == symbs_(ts_struc, idxs=ks)
-                for s, ks in zip(prd_strucs, prds_keys)
-            ), (
-                f"Product structures don't match keys...\n"
-                f"Product:\n{rct_strucs}\nKeys:\n{rcts_keys}\nTS graph:\n{tsg}"
-            )
+        # If present, check the dummy conversion info for correctness
+        dc_info = [ts_dc, rct_dcs, prd_dcs]
+        if any(x is not None for x in dc_info):
+            assert all(x is not None for x in dc_info)
+            assert len(rct_dcs) == len(rct_strucs)
+            assert len(prd_dcs) == len(prd_strucs)
 
-        if struc_typ == "zmat":
-            assert zmat.symbols(ts_struc) == graph.symbols(tsg)
+            rct_dcs = tuple(rct_dcs)
+            prd_dcs = tuple(prd_dcs)
+
+            # Check that the atom counts and dummy keys match each structure
+            is_geom = struc_typ == "geom"
+            count_ = geom.count if is_geom else zmat.count
+            c_ok = dummy_conv.count(ts_dc, original=is_geom) == count_(ts_struc)
+            d_ok = is_geom or dummy_conv.dummy_keys(ts_dc) == zmat.dummy_keys(ts_struc)
+            assert (
+                c_ok and d_ok
+            ), f"TS conversion info doesn't match structure:{ts_dc}\n{ts_struc}"
+
+            for dc_, struc in zip(rct_dcs + prd_dcs, rct_strucs + prd_strucs):
+                c_ok = dummy_conv.count(dc_, original=is_geom) == count_(struc)
+                d_ok = is_geom or dummy_conv.dummy_keys(dc_) == zmat.dummy_keys(struc)
+                assert (
+                    c_ok and d_ok
+                ), f"Reagent conversion info doesn't match structure:\n{dc_}\n{struc}"
 
     return Reaction(
         ts_graph=tsg,
         reactants_keys=rcts_keys,
         products_keys=prds_keys,
         class_=cla,
+        structure_type=struc_typ,
         ts_structure=ts_struc,
         reactant_structures=rct_strucs,
         product_structures=prd_strucs,
-        structure_type=struc_typ,
+        ts_conversion_info=ts_dc,
+        reactants_conversion_info=rct_dcs,
+        products_conversion_info=prd_dcs,
     )
 
 
@@ -238,15 +274,25 @@ def string(rxn: Reaction, one_indexed=True) -> str:
     yaml_dct["reaction class"] = class_(rxn)
     struc_typ = structure_type(rxn)
     if struc_typ is not None:
-        assert struc_typ == "geom"  # TEMPORARY
-        yaml_dct["TS structure"] = geom.yaml_data(ts_structure(rxn))
-        yaml_dct["reactant structures"] = list(
-            map(geom.yaml_data, reactant_structures(rxn))
-        )
-        yaml_dct["product structures"] = list(
-            map(geom.yaml_data, product_structures(rxn))
-        )
+        yaml_ = geom.yaml_data if struc_typ == "geom" else zmat.yaml_data
         yaml_dct["structure type"] = struc_typ
+        yaml_dct["TS structure"] = yaml_(ts_structure(rxn))
+        yaml_dct["reactant structures"] = list(map(yaml_, reactant_structures(rxn)))
+        yaml_dct["product structures"] = list(map(yaml_, product_structures(rxn)))
+
+        ts_dc = ts_conversion_info(rxn)
+        rct_dcs = reactants_conversion_info(rxn)
+        prd_dcs = products_conversion_info(rxn)
+
+        if ts_dc is not None:
+            assert rct_dcs is not None and prd_dcs is not None
+            yaml_dct["TS conversion info"] = dummy_conv.yaml_data(ts_dc)
+            yaml_dct["reactants conversion info"] = list(
+                map(dummy_conv.yaml_data, rct_dcs)
+            )
+            yaml_dct["products conversion info"] = list(
+                map(dummy_conv.yaml_data, prd_dcs)
+            )
 
     rxn_str = yaml.dump(yaml_dct, default_flow_style=None, sort_keys=False)
     return rxn_str
@@ -297,6 +343,19 @@ def class_(rxn: Reaction) -> str:
     return rxn.class_
 
 
+def structure_type(rxn: Reaction) -> str:
+    """Get the type of the TS, reactant, and product structures (geom or zmat)
+
+    Returns `None` if none have been set
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: The structural information type ('zmat' or 'geom')
+    :rtype: str
+    """
+    return rxn.structure_type
+
+
 def ts_structure(rxn: Reaction):
     """Get the TS structure
 
@@ -336,17 +395,43 @@ def product_structures(rxn: Reaction):
     return rxn.product_structures
 
 
-def structure_type(rxn: Reaction) -> str:
-    """Get the type of the TS, reactant, and product structures (geom or zmat)
+def ts_conversion_info(rxn: Reaction) -> DummyConv:
+    """Get z-matrix conversion info for the TS structure
+
+    Returns `None` if none has been set
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: Z-matrix conversion info for the TS structure
+    :rtype: DummyConv
+    """
+    return rxn.ts_conversion_info
+
+
+def reactants_conversion_info(rxn: Reaction) -> List[DummyConv]:
+    """Get z-matrix conversion info for the reactant structures
 
     Returns `None` if none have been set
 
     :param rxn: The reaction object
     :type rxn: Reaction
-    :returns: The structural information type ('zmat' or 'geom')
-    :rtype: str
+    :returns: Z-matrix conversion info for the reactant structures
+    :rtype: List[DummyConv]
     """
-    return rxn.structure_type
+    return rxn.reactants_conversion_info
+
+
+def products_conversion_info(rxn: Reaction) -> List[DummyConv]:
+    """Get z-matrix conversion info for the product structures
+
+    Returns `None` if none have been set
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :returns: Z-matrix conversion info for the product structures
+    :rtype: List[DummyConv]
+    """
+    return rxn.products_conversion_info
 
 
 # # setters
@@ -411,7 +496,14 @@ def set_reaction_class(rxn: Reaction, cla: str) -> Reaction:
 
 
 def set_structures(
-    rxn: Reaction, ts_struc, rct_strucs, prd_strucs, struc_typ=None
+    rxn: Reaction,
+    ts_struc,
+    rct_strucs,
+    prd_strucs,
+    struc_typ=None,
+    ts_dc: DummyConv = None,
+    rct_dcs: List[DummyConv] = None,
+    prd_dcs: List[DummyConv] = None,
 ) -> Reaction:
     """Set the structures for the Reaction
 
@@ -428,6 +520,12 @@ def set_structures(
     :param struc_typ: The structural information type ('zmat' or 'geom'),
         defaults to None
     :type struc_typ: str, optional
+    :param ts_dc: Z-matrix conversion info for the TS structure
+    :type ts_dc: DummyConv
+    :param rct_dcs: Z-matrix conversion info for reactant structures
+    :type rct_dcs: DummyConv
+    :param prd_dcs: Z-matrix conversion info for product structures
+    :type prd_dcs: DummyConv
     :return: A new reaction object
     :rtype: Reaction
     """
@@ -436,16 +534,19 @@ def set_structures(
         rcts_keys=reactants_keys(rxn),
         prds_keys=products_keys(rxn),
         cla=class_(rxn),
+        struc_typ=struc_typ,
         ts_struc=ts_struc,
         rct_strucs=rct_strucs,
         prd_strucs=prd_strucs,
-        struc_typ=struc_typ,
+        ts_dc=ts_dc,
+        rct_dcs=rct_dcs,
+        prd_dcs=prd_dcs,
     )
 
 
 # # other
 def relabel(rxn: Reaction, key_dct) -> Reaction:
-    """Relabel keys in the reactants or products
+    """Relabel keys in the TS graph
 
     :param rxn: the reaction object
     :type rxn: Reaction
@@ -535,6 +636,8 @@ def reaction_mapping(rxn: Reaction, rev=False):
 
 def reagent_sort_order(rxn: Reaction) -> Tuple[List[int], List[int]]:
     """Get the sort order for reactants and products, based on their keys
+
+    DEPRECATED -- no longer changing reagent order
 
     :param rxn: the reaction object
     :type rxn: Reaction
@@ -654,6 +757,8 @@ def has_standard_keys(rxn: Reaction) -> Reaction:
 def standard_keys_with_sorted_geometries(rxn: Reaction, rct_geos, prd_geos):
     """Standardize keys and line up geometries to match proper
     reactant/product sort ordering for the reaction
+
+    DEPRECATED -- no longer changing reagent order
 
     :param rxn: the reaction object
     :type rxn: Reaction

@@ -1,10 +1,11 @@
 """ core functionality
 """
+import itertools
 
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import phycon
+from pyparsing import pyparsing_common as ppc
 
 import automol.geom.base
 from automol import util, vmat
@@ -108,6 +109,9 @@ def value_matrix(zma, angstrom=False, degree=False):
         val_mat[1:, 0] *= phycon.BOHR2ANG if angstrom else 1
         val_mat[2:, 1] *= phycon.RAD2DEG if degree else 1
         val_mat[3:, 2] *= phycon.RAD2DEG if degree else 1
+
+        tril_idxs = numpy.tril_indices(val_mat.shape[0], -1, m=3)
+        val_mat[tril_idxs] = val_mat[tril_idxs].astype(float)
     else:
         val_mat = ()
 
@@ -304,6 +308,38 @@ def from_string(zma_str, one_indexed=True, angstrom=True, degree=True):
     )
 
     return zma
+
+
+def yaml_data(zma) -> list:
+    """A yaml-friendly data format for the z-matrix
+
+    :param zma: molecular z-matrix
+    :type zma: automol molecular z-matrix data structure
+    :returns: A yaml-formatted molecular z-matrix
+    :rtype: list
+    """
+    zma = round_(zma)
+    symbs = symbols(zma)
+    key_mat = key_matrix(zma)
+    val_mat = value_matrix(zma)
+    zma_yml = [
+        [s, *itertools.chain(*zip(k, v))] for s, k, v in zip(symbs, key_mat, val_mat)
+    ]
+    return zma_yml
+
+
+def from_yaml_data(zma_yml):
+    """Put a yaml-formatted z-matrix back into standard format
+
+    :param zma_yml: A yaml-formatted molecular z-matrix
+    :type zma_yml: list
+    :returns: molecular z-matrix
+    :rtype: automol molecular z-matrix data structure
+    """
+    symbs = [row[0] for row in zma_yml]
+    key_mat = [row[1::2] for row in zma_yml]
+    val_mat = [row[2::2] for row in zma_yml]
+    return from_data(symbs, key_mat=key_mat, val_mat=val_mat)
 
 
 # # validation
