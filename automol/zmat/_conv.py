@@ -93,7 +93,7 @@ def geometry(zma, dummy=False, dc_: DummyConv = None):
     return geo
 
 
-def geometry_with_conversion_info(zma):
+def geometry_with_conversion_info(zma, dc_: DummyConv = None):
     """Convert a Z-Matrix to a molecular geometry, along with a dummy conversion
     data structure describing the conversion
 
@@ -101,8 +101,8 @@ def geometry_with_conversion_info(zma):
     :type zma: automol Z-Matrix data structure
     :returns: automol molecular geometry data structure
     """
-    dc_ = dummy_conversion(zma)
-    geo = geometry(zma, dummy=False)
+    dc_ = dummy_conversion(zma) if dc_ is None else dc_
+    geo = geometry(zma, dummy=False, dc_=dc_)
     return geo, dc_
 
 

@@ -55,11 +55,13 @@
             [X] Geometry => z-matrix
             [ ] Testing
             [ ] Z-matrix => geometry
+            [ ] Work out dummy atom handling -- need to figure out how to account for TS dummy atoms that are not present in the reagent when shifting keys to line things up
             [ ] Testing
             [ ] implement with_zmat_structures (under the hood, calls add_geom_structures and then converts)
                 [ ] We can allow this to take pre-existing rct/prd zmas as input, as long as the user also passes in a dummy conversion relative to the original geo (matching the original Reaction object keys). 
             [ ] implement with_structures(rxn, typ)
-    [ ]
+    [ ] Update existing Reac functions to properly handle structures
+        [ ] 
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py

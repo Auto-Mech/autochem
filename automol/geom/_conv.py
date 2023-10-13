@@ -196,7 +196,7 @@ def zmatrix_with_conversion_info(geo, gra=None):
     # Build an initial dummy conversion data structure, to add dummies over linear atoms
     nk0s = count(geo)
     k0ps = automol.graph.base.linear_atom_keys(orig_gra)
-    dc_ = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc_ = dummy_conv.from_original_dummy_parent_keys(nk0s, k0ps, insert=False)
 
     # Apply this dummy conversion to the graph
     gra = automol.graph.base.apply_dummy_conversion(orig_gra, dc_)
@@ -802,7 +802,7 @@ def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
     :returns: The transformed molecular geometry
     :rtype: automol geom data structure
     """
-    idxs = dummy_conv.parent_atom_keys(dc_, original=True)
+    idxs = dummy_conv.dummy_parent_keys(dc_, original=True)
     gra = graph_without_stereo(geo) if gra is None else gra
 
     assert not set(idxs) & set(
@@ -815,7 +815,7 @@ def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
     # Build an initial dummy conversion data structure to describe the insertion
     nk0s = count(geo)
     k0ps = list(itertools.chain(*seg_idxs_lst))
-    dc0 = dummy_conv.from_original_parent_atom_keys(nk0s, k0ps, insert=False)
+    dc0 = dummy_conv.from_original_dummy_parent_keys(nk0s, k0ps, insert=False)
 
     # Identify a perpendicular direction for each segment and insert the dummy atoms
     # (Parent atom indices don't change, since the dummy atoms are added to the end)
@@ -843,7 +843,7 @@ def reverse_dummy_conversion(geo, dc_: DummyConv):
     :rtype: automol geom data structure
     """
     rel_dct = dummy_conv.relabel_dict(dc_, rev=True)
-    idxs = dummy_conv.true_atom_keys(dc_, original=False)
+    idxs = dummy_conv.real_keys(dc_, original=False)
     idxs = sorted(idxs, key=rel_dct.__getitem__)
     return subgeom(geo, idxs)
 
