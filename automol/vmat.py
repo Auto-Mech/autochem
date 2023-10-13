@@ -1,6 +1,6 @@
 """ V-Matrix: Variable V-Matrix (V-Matrix without coordinate values)
 """
-
+from typing import List
 import itertools
 
 import more_itertools
@@ -64,14 +64,22 @@ def from_data(symbs, key_mat, name_mat=None, one_indexed=False):
 
 # # V-Matrix/V-Matrix common functions (document these as z-matrix functions)
 # # # getters
-def symbols(vma):
+def symbols(vma, idxs: List[int]=None) -> List[str]:
     """Obtain the atomic symbols for all atoms defined in the V-Matrix.
 
     :param vma: V-Matrix
     :type vma: automol V-Matrix data structure
-    :rtype: tuple(str)
+    :param idxs: indices of atoms to obtain information for
+    :type idxs: List[int]
+    :returns: The list of atomic symbols
+    :rtype: List[str]
     """
-    return tuple(zip(*vma))[0] if vma else ()
+    if vma:
+        symbs, *_ = tuple(zip(*vma))
+    else:
+        symbs = ()
+
+    return symbs if idxs is None else tuple(map(symbs.__getitem__, idxs))
 
 
 def key_matrix(vma, shift=0):

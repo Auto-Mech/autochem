@@ -261,17 +261,6 @@ def from_atoms_and_bonds(atm_dct, bnd_dct):
 
 
 # # getters
-def symbols(gra):
-    """Get the atom symbols of this molecular graph, as a list sorted by key
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: A dictionary of atomic symbols, by atom key
-    :rtype: dict[int: str]
-    """
-    return dict_.values_by_key(atom_symbols(gra), sorted(atom_keys(gra)))
-
-
 def atoms(gra):
     """Get the atoms of this graph, along with their associated properties
 
@@ -547,7 +536,7 @@ def ts_reverse(tsg):
 
 
 def ts_reagents_graph_without_stereo(
-    tsg, prod=False, dummy=False, keep_zeros=False, keep_stereo=False
+    tsg, prod=False, dummy=True, keep_zeros=False, keep_stereo=False
 ):
     """Get the reactants or products from a TS graph, without stereo
 
@@ -555,7 +544,7 @@ def ts_reagents_graph_without_stereo(
     :type tsg: automol graph data structure
     :param prod: Replace reacting bond orders with product values instead?
     :type prod: bool
-    :param dummy: Keep dummy atoms? default False
+    :param dummy: Keep dummy atoms? default True
     :type dummy: bool, optional
     :param keep_zeros: Keep the bonds with a resulting bond order of 0?
     :type keep_zeros: bool

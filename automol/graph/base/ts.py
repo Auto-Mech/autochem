@@ -248,14 +248,14 @@ def breaking_rings_bond_keys(tsg):
     return brk_rngs_bnd_keys
 
 
-def reactants_graph(tsg, stereo=True, dummy=False):
+def reactants_graph(tsg, stereo=True, dummy=True):
     """Get the reactants from a TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     :param stereo: Keep stereo, even though it is invalid?
     :type stereo: bool, optional
-    :param dummy: Keep dummy atoms? default False
+    :param dummy: Keep dummy atoms? default True
     :type dummy: bool, optional
     :returns: The TS graph, without reacting bond orders
     :rtype: automol graph data structure
@@ -263,14 +263,14 @@ def reactants_graph(tsg, stereo=True, dummy=False):
     return reagents_graph(tsg, prod=False, stereo=stereo, dummy=dummy)
 
 
-def products_graph(tsg, stereo=True, dummy=False):
+def products_graph(tsg, stereo=True, dummy=True):
     """Get the products from a TS graph
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
     :param stereo: Keep stereo, even though it is invalid?
     :type stereo: bool, optional
-    :param dummy: Keep dummy atoms? default False
+    :param dummy: Keep dummy atoms? default True
     :type dummy: bool, optional
     :returns: The TS graph, without reacting bond orders
     :rtype: automol graph data structure
@@ -278,7 +278,7 @@ def products_graph(tsg, stereo=True, dummy=False):
     return reagents_graph(tsg, prod=True, stereo=stereo, dummy=dummy)
 
 
-def reagents_graph(tsg, prod=False, stereo=True, dummy=False):
+def reagents_graph(tsg, prod=False, stereo=True, dummy=True):
     """Get the reactants or products from a TS graph
 
     :param tsg: TS graph
@@ -287,7 +287,7 @@ def reagents_graph(tsg, prod=False, stereo=True, dummy=False):
     :type prod: bool
     :param stereo: Keep stereo, even though it is invalid?
     :type stereo: bool, optional
-    :param dummy: Keep dummy atoms? default False
+    :param dummy: Keep dummy atoms? default True
     :type dummy: bool, optional
     :returns: The TS graph, without reacting bond orders
     :rtype: automol graph data structure

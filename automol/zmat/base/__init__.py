@@ -44,6 +44,7 @@ from automol.zmat.base._core import formula
 # # relabelling
 from automol.zmat.base._core import rename
 from automol.zmat.base._core import standard_form
+from automol.zmat.base._core import round_
 # # add/remove atoms
 from automol.zmat.base._core import add_atom
 from automol.zmat.base._core import remove_atom
@@ -111,6 +112,7 @@ __all__ = [
     # # relabelling
     'rename',
     'standard_form',
+    'round_',
     # # add/remove atoms
     'add_atom',
     'remove_atom',
