@@ -13,6 +13,7 @@ Import hierarchy:
     _stereo     dependencies: _core, _networkx, _algo, _canon, _kekule, _amchi
     _func_group dependencies: _core, _networkx, _algo, _kekule, _stereo
     ts          dependencies: _core, _networkx, _algo, _kekule, _stereo
+    vmat        dependencies: ts
 
 Each next submodule in the hierarchy may depend on the ones before it, but
 **not** the ones after. This avoids circular dependencies.

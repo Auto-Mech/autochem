@@ -4,11 +4,12 @@
 from copy import deepcopy
 from itertools import permutations
 from itertools import starmap as _starmap
+
 import numpy
 
 
 def invert(dct):
-    """ Transposes the keys and values in a dictionary
+    """Transposes the keys and values in a dictionary
 
     :param dct: dictionary to transpose
     :tupe dct: dict
@@ -18,23 +19,38 @@ def invert(dct):
 
 
 def empty_if_none(obj):
-    """ Returns an empty dictionary if input object is None,
-        otherwise return the object.
+    """Returns an empty dictionary if input object is None,
+    otherwise return the object.
 
-        :param obj: generic object
-        :type obj: any
+    :param obj: generic object
+    :type obj: any
     """
     return {} if obj is None else obj
 
 
-def right_update(dct1, dct2):
-    """ Updates the entries of `dct1` with those of `dct2`.
+def compose(dct1, dct2):
+    """Get the composition of `dct1` with `dct2`
 
-        :param dct1: dictionary1 that will be updated
-        :type dct1: dict
-        :param dct2: dictionary2 whose entries will override dct1
-        :type dct2: dict
-        :rtype: dict
+    That is, dct[k] = dct1[dct2[k]]
+
+    :param dct1: The first dictionary
+    :type dct1: dict
+    :param dct2: The second dictionary
+    :type dct2: dict
+    :returns: The composed dictionary
+    :rtype: dict
+    """
+    return {k2: dct1[v2] for k2, v2 in dct2.items()}
+
+
+def right_update(dct1, dct2):
+    """Updates the entries of `dct1` with those of `dct2`.
+
+    :param dct1: dictionary1 that will be updated
+    :type dct1: dict
+    :param dct2: dictionary2 whose entries will override dct1
+    :type dct2: dict
+    :rtype: dict
     """
 
     dct = {}
@@ -46,7 +62,7 @@ def right_update(dct1, dct2):
 
 
 def by_key(dct, keys, fill=True, fill_val=None):
-    """ dictionary on a set of keys, filling missing entries
+    """dictionary on a set of keys, filling missing entries
 
     :param fill: Fill in missing values?
     :type fill: bool
@@ -60,23 +76,21 @@ def by_key(dct, keys, fill=True, fill_val=None):
 
 
 def by_value(dct, func=lambda x: x):
-    """ dictionary on a set of values, determined by a function
-    """
+    """dictionary on a set of values, determined by a function"""
     keys = keys_by_value(dct, func)
     return by_key(dct, keys)
 
 
 def values_by_key(dct, keys, fill_val=None):
-    """ return dictionary values for specific keys, filling missing entries
-    """
+    """return dictionary values for specific keys, filling missing entries"""
     return tuple(dct[key] if key in dct else fill_val for key in keys)
 
 
 def values_by_unordered_tuple(dct, key, fill_val=None):
-    """ return dictionary values where keys are a tuple where either order
-        of tuple will access element
+    """return dictionary values where keys are a tuple where either order
+    of tuple will access element
 
-        should really add a check if flipping key worder gives different vals
+    should really add a check if flipping key worder gives different vals
     """
 
     val = None
@@ -94,8 +108,8 @@ def values_by_unordered_tuple(dct, key, fill_val=None):
 
 
 def value_in_floatkey_dct(dct, key, tol=1.0e-5):
-    """ Access value in a dictionary that may have floats with large numbers of
-        decimal places or strings
+    """Access value in a dictionary that may have floats with large numbers of
+    decimal places or strings
     """
 
     if isinstance(key, float):
@@ -111,8 +125,8 @@ def value_in_floatkey_dct(dct, key, tol=1.0e-5):
 
 
 def values_in_multilevel_dct(dct, key1, key2, fill_val=None):
-    """ Obtain a dictionary value where
-        dct[key1][key2]
+    """Obtain a dictionary value where
+    dct[key1][key2]
     """
 
     dct2 = dct.get(key1, None)
@@ -124,9 +138,9 @@ def values_in_multilevel_dct(dct, key1, key2, fill_val=None):
     return val
 
 
-def separate_subdct(dct, key='global'):
-    """ Pulls out a sub-dictionary indexed by the given key and returns it
-        and the original dictioanry with the requested sub-dictionary removed
+def separate_subdct(dct, key="global"):
+    """Pulls out a sub-dictionary indexed by the given key and returns it
+    and the original dictioanry with the requested sub-dictionary removed
     """
 
     # Grab the sub-dictonary and
@@ -139,16 +153,16 @@ def separate_subdct(dct, key='global'):
     return dct2, sub_dct
 
 
-def merge_subdct(dct, key='global', keep_subdct=False):
-    """ Obtain a sub-dictionary indexed by a given key and merge its contents
-        with all of the other sub-dictionaries in the main dictionary.
+def merge_subdct(dct, key="global", keep_subdct=False):
+    """Obtain a sub-dictionary indexed by a given key and merge its contents
+    with all of the other sub-dictionaries in the main dictionary.
 
-        :param dct: dictionary containing several sub-dictionaries
-        :type dct: dict[str: dict]
-        :param key: key for the sub-dictionary to be merged
-        :type key: str, int, float, tuple
-        :param keep_subdct: keep/remove the sub-dictionary following the merge
-        :type keep_subdct: bool
+    :param dct: dictionary containing several sub-dictionaries
+    :type dct: dict[str: dict]
+    :param key: key for the sub-dictionary to be merged
+    :type key: str, int, float, tuple
+    :param keep_subdct: keep/remove the sub-dictionary following the merge
+    :type keep_subdct: bool
     """
 
     if list(dct.keys()) == [key]:
@@ -164,61 +178,53 @@ def merge_subdct(dct, key='global', keep_subdct=False):
 
 
 def keys_by_value(dct, func=lambda x: x):
-    """ return dictionary keys for specific values
-    """
+    """return dictionary keys for specific values"""
     return frozenset(key for key, val in dct.items() if func(val))
 
 
 def transform_keys(dct, func=lambda x: x):
-    """ apply a function to each key
-    """
+    """apply a function to each key"""
     return dict(zip(map(func, dct.keys()), dct.values()))
 
 
 def transform_values(dct, func=lambda x: x):
-    """ apply a function to each value
-    """
+    """apply a function to each value"""
     return dict(zip(dct.keys(), map(func, dct.values())))
 
 
 def transform_items_to_values(dct, func=lambda x: x):
-    """ apply a function to each value
-    """
+    """apply a function to each value"""
     return dict(zip(dct.keys(), _starmap(func, dct.items())))
 
 
 def keys_sorted_by_value(dct):
-    """ dictionary keys sorted by their associated values
-    """
+    """dictionary keys sorted by their associated values"""
     return tuple(key for key, _ in sorted(dct.items(), key=lambda x: x[1]))
 
 
 def values_sorted_by_key(dct):
-    """ dictionary values sorted by their associated keys
-    """
+    """dictionary values sorted by their associated keys"""
     return tuple(val for _, val in sorted(dct.items()))
 
 
 def filter_by_key(dct, func=lambda x: x):
-    """ filter dictionary entries by their values
-    """
+    """filter dictionary entries by their values"""
     return {key: val for key, val in dct.items() if func(key)}
 
 
 def filter_by_value(dct, func=lambda x: x):
-    """ filter dictionary entries by their values
-    """
+    """filter dictionary entries by their values"""
     return {key: val for key, val in dct.items() if func(val)}
 
 
 def filter_keys(dct_1, dct_2):
-    """ Given two dictionaries (dct1 bigger dct2), filter out
-        from 1 all the entries present in 2.
+    """Given two dictionaries (dct1 bigger dct2), filter out
+    from 1 all the entries present in 2.
 
-        :param dct1:
-        :param dct2:
-        :return: filtered dct1
-        :rtype: dict[]
+    :param dct1:
+    :param dct2:
+    :return: filtered dct1
+    :rtype: dict[]
     """
 
     dct_ret = deepcopy(dct_1)
@@ -235,8 +241,7 @@ def filter_keys(dct_1, dct_2):
 
 
 def merge_sequence(dcts):
-    """ merge a sequence of dictionaries
-    """
+    """merge a sequence of dictionaries"""
     merged_dct = {}
     for dct in dcts:
         merged_dct.update(dct)
