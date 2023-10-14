@@ -2,6 +2,7 @@
 """
 import automol.vmat
 from automol import util
+from automol.graph.base import ts
 from automol.graph.base._0core import (
     atom_count,
     atom_keys,
@@ -24,7 +25,28 @@ from automol.graph.base._2algo import (
 )
 
 
-def vmatrix(gra, keys=None, rng_keys=None):
+def vmatrix(gra):
+    """V-matrix for a connected graph or TS graph
+
+    :param gra: A molecular graph
+    :type gra: automol graph data structure
+    :returns: The v-matrix
+    :rtype: automol vmat data structure
+    """
+    # Generate a v-matrix for the graph and get the z-matrix reordering
+    rng_keys = ts.zmatrix_starting_ring_keys(gra)
+    rcts_keys = ts.zmatrix_sorted_reactants_keys(gra)
+    if rcts_keys is not None:
+        rct1_keys, rct2_keys = rcts_keys
+        vma, zma_keys = connected_vmatrix(gra, keys=rct1_keys)
+        vma, zma_keys = continue_vmatrix(gra, rct2_keys, vma, zma_keys)
+    else:
+        vma, zma_keys = connected_vmatrix(gra, rng_keys=rng_keys)
+
+    return vma, zma_keys
+
+
+def connected_vmatrix(gra, keys=None, rng_keys=None):
     """v-matrix for a connected graph
 
     :param gra: the graph

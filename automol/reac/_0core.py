@@ -535,13 +535,13 @@ def set_structures(
         rcts_keys=reactants_keys(rxn),
         prds_keys=products_keys(rxn),
         cla=class_(rxn),
-        struc_typ=struc_typ,
+        struc_typ=structure_type(rxn) if struc_typ is None else struc_typ,
         ts_struc=ts_struc,
         rct_strucs=rct_strucs,
         prd_strucs=prd_strucs,
-        ts_zc=ts_zc,
-        rct_zcs=rct_zcs,
-        prd_zcs=prd_zcs,
+        ts_zc=ts_conversion_info(rxn) if ts_zc is None else ts_zc,
+        rct_zcs=reactants_conversion_info(rxn) if rct_zcs is None else rct_zcs,
+        prd_zcs=products_conversion_info(rxn) if prd_zcs is None else prd_zcs,
     )
 
 

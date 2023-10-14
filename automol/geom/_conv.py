@@ -8,11 +8,9 @@ import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 from phydat import phycon
 
-import automol.amchi.base
-import automol.graph.base
-import automol.graph.base.vmat
-import automol.inchi.base
-import automol.zmat.base
+import automol.graph.base as graph_base
+import automol.inchi.base as inchi_base
+import automol.zmat.base as zmat_base
 from automol.extern import molfile, py3dmol_, rdkit_
 from automol.geom import _pyx2z
 from automol.geom.base import (
@@ -54,9 +52,7 @@ def graph(geo, stereo=True, local_stereo=False):
     """
     gra = graph_without_stereo(geo)
     if stereo:
-        gra = automol.graph.base.set_stereo_from_geometry(
-            gra, geo, local_stereo=local_stereo
-        )
+        gra = graph_base.set_stereo_from_geometry(gra, geo, local_stereo=local_stereo)
 
     return gra
 
@@ -85,11 +81,11 @@ def graph_without_stereo(geo, dist_factor=None):
         )
     ]
 
-    gra = automol.graph.base.from_data(atm_symb_dct=symb_dct, bnd_keys=bnd_keys)
+    gra = graph_base.from_data(atm_symb_dct=symb_dct, bnd_keys=bnd_keys)
 
     # Check for dummy atoms with more than one neighbor
-    dummy_keys = automol.graph.base.atom_keys(gra, symb="X")
-    nkeys_dct = automol.graph.base.atoms_neighbor_atom_keys(gra)
+    dummy_keys = graph_base.atom_keys(gra, symb="X")
+    nkeys_dct = graph_base.atoms_neighbor_atom_keys(gra)
     dnkeys_dct = dict_.by_key(nkeys_dct, dummy_keys)
     dnkeys_dct = dict_.filter_by_value(dnkeys_dct, lambda n: len(n) > 1)
     if dnkeys_dct:
@@ -105,7 +101,7 @@ def graph_without_stereo(geo, dist_factor=None):
             # Remove bonds to all but this neighbor
             bad_dnkeys = dnkeys - {best_dnkey}
             bad_bkeys = [(dkey, k) for k in bad_dnkeys]
-            gra = automol.graph.base.remove_bonds(gra, bad_bkeys)
+            gra = graph_base.remove_bonds(gra, bad_bkeys)
 
     return gra
 
@@ -152,7 +148,7 @@ def connectivity_graph_deprecated(
         map(frozenset, filter(_are_bonded, itertools.combinations(idxs, r=2)))
     )
 
-    gra = automol.graph.base.from_data(atm_symb_dct=atm_symb_dct, bnd_keys=bnd_keys)
+    gra = graph_base.from_data(atm_symb_dct=atm_symb_dct, bnd_keys=bnd_keys)
 
     return gra
 
@@ -171,7 +167,7 @@ def zmatrix(geo, gra=None):
     return zma
 
 
-def zmatrix_with_conversion_info(geo, gra=None):
+def zmatrix_with_conversion_info(geo, gra=None, zc_: ZmatConv = None):
     """Generate a Z-Matrix for a molecular geometry, along with a z-matrix conversion
     data structure describing the conversion
 
@@ -179,6 +175,8 @@ def zmatrix_with_conversion_info(geo, gra=None):
     :type geo: automol geometry data structure
     :param gra: A graph identifying the connectivity of this geometry
     :type gra: automol graph data structure
+    :param zc_: Request a specific z-matrix conversion, defaults to None
+    :type zc_: ZmatConv, optional
     :returns: An automol Z-Matrix data structure and a z-matrix conversion
     :rtype: automol zmat data structure, ZmatConv
     """
@@ -187,41 +185,40 @@ def zmatrix_with_conversion_info(geo, gra=None):
         symbs = symbols(geo)
         key_mat = [[None, None, None]]
         val_mat = [[None, None, None]]
-        zma = automol.zmat.base.from_data(symbs, key_mat, val_mat)
+        zma = zmat_base.from_data(symbs, key_mat, val_mat)
         zc_ = {0: (0, None)}
         return zma, zc_
 
     orig_gra = graph_without_stereo(geo) if gra is None else gra
 
-    # Build an initial z-matrix conversion data structure to put dummies on linear atoms
-    nreal = count(geo)
-    parent_keys = automol.graph.base.linear_atom_keys(orig_gra)
-    zc_ = zmat_conv.from_geom_dummy_parent_keys(nreal, parent_keys, insert=False)
-
-    # Apply this z-matrix conversion to the graph
-    gra = automol.graph.base.apply_zmatrix_conversion(orig_gra, zc_)
-
-    # Generate a v-matrix for the graph and get the z-matrix reordering
-    rng_keys = automol.graph.base.ts.zmatrix_starting_ring_keys(gra)
-    rcts_keys = automol.graph.base.ts.zmatrix_sorted_reactants_keys(gra)
-    if rng_keys is not None:
-        vma, zma_keys = automol.graph.base.vmat.vmatrix(gra, rng_keys=rng_keys)
-    elif rcts_keys is not None:
-        rct1_keys, rct2_keys = rcts_keys
-        vma, zma_keys = automol.graph.base.vmat.vmatrix(gra, rct1_keys)
-        vma, zma_keys = automol.graph.base.vmat.continue_vmatrix(
-            gra, rct2_keys, vma, zma_keys
-        )
+    if zc_ is not None:
+        # If a specific z-matrix conversion was requested, apply it to the graph and see
+        # if it replicates without reordering
+        gra = graph_base.apply_zmatrix_conversion(orig_gra, zc_)
+        vma, zma_keys = graph_base.vmat.vmatrix(gra)
+        assert list(zma_keys) == sorted(
+            zma_keys
+        ), f"Could not replicate z-matrix conversion:\n{zc_}\nGeometry:{geo}"
     else:
-        vma, zma_keys = automol.graph.base.vmat.vmatrix(gra)
+        # Build an initial z-matrix conversion data structure to put dummies on linear
+        # atoms
+        nreal = count(geo)
+        parent_keys = graph_base.linear_atom_keys(orig_gra)
+        zc_ = zmat_conv.from_geom_dummy_parent_keys(nreal, parent_keys, insert=False)
 
-    # Apply the new z-matrix ordering to the z-matrix conversion data structure
-    key_dct = dict(map(reversed, enumerate(zma_keys)))
-    zc_ = zmat_conv.relabel(zc_, key_dct)
+        # Apply this z-matrix conversion to the graph
+        gra = graph_base.apply_zmatrix_conversion(orig_gra, zc_)
+
+        # Generate a v-matrix for the graph and get the z-matrix reordering
+        vma, zma_keys = graph_base.vmat.vmatrix(gra)
+
+        # Apply the new z-matrix ordering to the z-matrix conversion data structure
+        key_dct = dict(map(reversed, enumerate(zma_keys)))
+        zc_ = zmat_conv.relabel(zc_, key_dct)
 
     # Apply the z-matrix conversion to the geometry and generate the z-matrix
     geo = apply_zmatrix_conversion(geo, zc_, gra=orig_gra)
-    zma = automol.zmat.base.from_geometry(vma, geo)
+    zma = zmat_base.from_geometry(vma, geo)
 
     return zma, zc_
 
@@ -240,11 +237,11 @@ def x2z_zmatrix(geo, ts_bnds=()):
         symbs = symbols(geo)
         key_mat = [[None, None, None]]
         val_mat = [[None, None, None]]
-        zma = automol.zmat.base.from_data(symbs, key_mat, val_mat)
+        zma = zmat_base.from_data(symbs, key_mat, val_mat)
     else:
         x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
         zma = _pyx2z.to_zmatrix(x2m)
-    zma = automol.zmat.base.standard_form(zma)
+    zma = zmat_base.standard_form(zma)
 
     return zma
 
@@ -277,7 +274,7 @@ def amchi_with_sort(geo, stereo=True, gra=None):
     :rtype: (str, tuple[tuple[int]])
     """
     gra = graph(geo, stereo=stereo) if gra is None else gra
-    ach, ach_idx_dcts = automol.graph.base.amchi_with_indices(gra, stereo=stereo)
+    ach, ach_idx_dcts = graph_base.amchi_with_indices(gra, stereo=stereo)
     nums_lst = tuple(map(dict_.keys_sorted_by_value, ach_idx_dcts))
     return ach, nums_lst
 
@@ -313,7 +310,7 @@ def inchi_with_sort(geo, stereo=True, gra=None):
     if not stereo:
         geo = None
     else:
-        gra = automol.graph.base.set_stereo_from_geometry(gra, geo)
+        gra = graph_base.set_stereo_from_geometry(gra, geo)
 
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo)
     rdm = rdkit_.from_molfile(mlf)
@@ -327,15 +324,15 @@ def inchi_with_sort(geo, stereo=True, gra=None):
     # This only appears to work sometimes, so when it doesn't, we fall back on
     # the original inchi output.
     if geo is not None:
-        gra = automol.graph.base.set_stereo_from_geometry(gra, geo)
-        gra = automol.graph.base.implicit(gra)
-        sub_ichs = automol.inchi.base.split(ich)
+        gra = graph_base.set_stereo_from_geometry(gra, geo)
+        gra = graph_base.implicit(gra)
+        sub_ichs = inchi_base.split(ich)
 
         failed = False
 
         new_sub_ichs = []
         for sub_ich, nums in zip(sub_ichs, nums_lst):
-            sub_gra = automol.graph.base.subgraph(gra, nums, stereo=True)
+            sub_gra = graph_base.subgraph(gra, nums, stereo=True)
             sub_ich = _connected_inchi_with_graph_stereo(sub_ich, sub_gra, nums)
             if sub_ich is None:
                 failed = True
@@ -345,8 +342,8 @@ def inchi_with_sort(geo, stereo=True, gra=None):
 
         # If it worked, replace the InChI with our forced-stereo InChI.
         if not failed:
-            ich = automol.inchi.base.join(new_sub_ichs)
-            ich = automol.inchi.base.standard_form(ich)
+            ich = inchi_base.join(new_sub_ichs)
+            ich = inchi_base.standard_form(ich)
 
     return ich, nums_lst
 
@@ -365,10 +362,10 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
     """
     # First, do a check to see if the InChI is missing bond stereo
     # relative to the graph.
-    ich_ste_keys = automol.inchi.base.stereo_bonds(ich)
-    our_ste_keys = automol.graph.base.bond_stereo_keys(gra)
+    ich_ste_keys = inchi_base.stereo_bonds(ich)
+    our_ste_keys = graph_base.bond_stereo_keys(gra)
 
-    miss_ich_ste_keys = automol.inchi.base.unassigned_stereo_bonds(ich)
+    miss_ich_ste_keys = inchi_base.unassigned_stereo_bonds(ich)
 
     if len(ich_ste_keys) > len(our_ste_keys):
         raise RuntimeError("Our code is missing stereo bonds")
@@ -376,22 +373,19 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
     if len(ich_ste_keys) < len(our_ste_keys) or miss_ich_ste_keys:
         # Convert to implicit graph and relabel based on InChI sort
         atm_key_dct = dict(map(reversed, enumerate(nums)))
-        gra = automol.graph.base.relabel(gra, atm_key_dct)
-        gra = automol.graph.base.explicit(gra)
-        exp_h_keys = automol.graph.base.nonbackbone_hydrogen_keys(gra)
+        gra = graph_base.relabel(gra, atm_key_dct)
+        gra = graph_base.explicit(gra)
+        exp_h_keys = graph_base.nonbackbone_hydrogen_keys(gra)
         exp_h_key_dct = {k: -k for k in exp_h_keys}
-        gra = automol.graph.base.relabel(gra, exp_h_key_dct)
+        gra = graph_base.relabel(gra, exp_h_key_dct)
 
-        gra = automol.graph.base.to_local_stereo(gra)
+        gra = graph_base.to_local_stereo(gra)
 
         # Translate internal stereo parities into InChI stereo parities
         # and generate the appropriate b-layer string for the InChI
-        ste_dct = automol.graph.base.bond_stereo_parities(gra)
+        ste_dct = graph_base.bond_stereo_parities(gra)
         ste_keys = tuple(
-            sorted(
-                tuple(reversed(sorted(k)))
-                for k in automol.graph.base.bond_stereo_keys(gra)
-            )
+            sorted(tuple(reversed(sorted(k))) for k in graph_base.bond_stereo_keys(gra))
         )
         blyr_strs = []
         for atm1_key, atm2_key in ste_keys:
@@ -402,7 +396,7 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         # After forming the b-layer string, generate the new InChI
         blyr_str = ",".join(blyr_strs)
         ste_dct = {"b": blyr_str}
-        ich = automol.inchi.base.standard_form(ich, ste_dct=ste_dct)
+        ich = inchi_base.standard_form(ich, ste_dct=ste_dct)
 
     return ich
 
@@ -435,18 +429,16 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     geo_idx_dct = (
         dict(enumerate(range(count(geo)))) if geo_idx_dct is None else geo_idx_dct
     )
-    gra = automol.graph.base.without_dummy_atoms(gra)
-    gra = automol.graph.base.kekule(gra)
-    atm_keys = sorted(automol.graph.base.atom_keys(gra))
-    bnd_keys = list(automol.graph.base.bond_keys(gra))
-    atm_syms = dict_.values_by_key(automol.graph.base.atom_symbols(gra), atm_keys)
-    atm_bnd_vlcs = dict_.values_by_key(
-        automol.graph.base.atom_bond_counts(gra), atm_keys
-    )
+    gra = graph_base.without_dummy_atoms(gra)
+    gra = graph_base.kekule(gra)
+    atm_keys = sorted(graph_base.atom_keys(gra))
+    bnd_keys = list(graph_base.bond_keys(gra))
+    atm_syms = dict_.values_by_key(graph_base.atom_symbols(gra), atm_keys)
+    atm_bnd_vlcs = dict_.values_by_key(graph_base.atom_bond_counts(gra), atm_keys)
     atm_rad_vlcs = dict_.values_by_key(
-        automol.graph.base.atom_unpaired_electrons(gra), atm_keys
+        graph_base.atom_unpaired_electrons(gra), atm_keys
     )
-    bnd_ords = dict_.values_by_key(automol.graph.base.bond_orders(gra), bnd_keys)
+    bnd_ords = dict_.values_by_key(graph_base.bond_orders(gra), bnd_keys)
 
     if geo is not None:
         atm_xyzs = coordinates(geo)
@@ -502,7 +494,7 @@ def chi_with_sort(geo, stereo=True, gra=None):
 
     # new implementation
     chi_, nums_lst = inchi_with_sort(geo, stereo=stereo, gra=gra)
-    if automol.graph.base.inchi_is_bad(gra, chi_):
+    if graph_base.inchi_is_bad(gra, chi_):
         chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
 
     return chi_, nums_lst
@@ -521,7 +513,7 @@ def smiles(geo, stereo=True, res_stereo=True):
     :rtype: str
     """
     gra = graph(geo, stereo=stereo)
-    smi = automol.graph.base.smiles(gra, stereo=stereo, res_stereo=res_stereo)
+    smi = graph_base.smiles(gra, stereo=stereo, res_stereo=res_stereo)
     return smi
 
 
@@ -577,15 +569,15 @@ def display(geo, gra=None, view=None, image_size=400):
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
     """
-    ts_ = gra is not None and automol.graph.base.is_ts_graph(gra)
+    ts_ = gra is not None and graph_base.is_ts_graph(gra)
     if ts_:
         tsg = gra
-        gra = automol.graph.base.ts.reactants_graph(gra, stereo=False, dummy=True)
+        gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
 
     view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
 
     if ts_:
-        for frm_bkey in automol.graph.base.ts.forming_bond_keys(tsg):
+        for frm_bkey in graph_base.ts.forming_bond_keys(tsg):
             fidx1, fidx2 = frm_bkey
             fxyz1, fxyz2 = coordinates(geo, idxs=(fidx1, fidx2))
             rvec1 = ts_reacting_electron_direction(geo, tsg, fidx1)
@@ -611,7 +603,7 @@ def linear_atoms(geo, gra=None, tol=5.0):
     """
 
     gra = graph_without_stereo(geo) if gra is None else gra
-    ngb_idxs_dct = automol.graph.base.atoms_neighbor_atom_keys(gra)
+    ngb_idxs_dct = graph_base.atoms_neighbor_atom_keys(gra)
 
     lin_idxs = []
     for idx in range(count(geo)):
@@ -640,8 +632,8 @@ def closest_unbonded_atoms(geo, gra=None):
     """
 
     gra = graph_without_stereo(geo) if gra is None else gra
-    atm_keys = automol.graph.base.atom_keys(gra)
-    bnd_keys = automol.graph.base.bond_keys(gra)
+    atm_keys = graph_base.atom_keys(gra)
+    bnd_keys = graph_base.bond_keys(gra)
     poss_bnd_keys = set(map(frozenset, itertools.combinations(atm_keys, r=2)))
 
     # The set of candidates includes all unbonded pairs of atoms
@@ -672,13 +664,11 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     :returns: A vector indicating the direction
     :rtype: vec.Vector
     """
-    frm_key = next(
-        (k for k in automol.graph.base.ts.forming_bond_keys(tsg) if key in k), None
-    )
+    frm_key = next((k for k in graph_base.ts.forming_bond_keys(tsg) if key in k), None)
     assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
 
     # Get the normal vector
-    pkeys = automol.graph.base.ts.plane_keys(tsg, key)
+    pkeys = graph_base.ts.plane_keys(tsg, key)
     pxyzs = coordinates(geo, idxs=pkeys)
     zvec = vec.best_unit_perpendicular(pxyzs)
 
@@ -688,7 +678,7 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     #   3. phi: a rotational angle
     # The electron direction is obtained by rotating the x direction by phi around a z
     # axis of a right-handed coordinate system (happens in the `else` below)
-    xkey, ykey, phi = automol.graph.base.ts.reacting_electron_direction(tsg, key)
+    xkey, ykey, phi = graph_base.ts.reacting_electron_direction(tsg, key)
     # `None` indicates that the electron is perpendicular to the plane, along the normal
     # vector
     if xkey is None:
@@ -716,10 +706,10 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     # Reverse the TS graph before checking stereo, so that Sn2 reactions will be
     # corrected as well (otherwise, it will be checked against the breaking bond, which
     # should already be in place)
-    tsg = automol.graph.base.ts.reverse(tsg)
-    tsg = automol.graph.base.to_local_stereo(tsg)
+    tsg = graph_base.ts.reverse(tsg)
+    tsg = graph_base.to_local_stereo(tsg)
     apar_dct = dict_.filter_by_value(
-        automol.graph.base.atom_stereo_parities(tsg), lambda x: x is not None
+        graph_base.atom_stereo_parities(tsg), lambda x: x is not None
     )
     if key in apar_dct:
         # Create a dummy geometry with the attacking neighbor at this position
@@ -729,7 +719,7 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
         geo_ = set_coordinates(geo, {key_: xyz_})
 
         # Evaluate the parity of this configuration
-        par = automol.graph.base.geometry_atom_parity(tsg, geo_, key)
+        par = graph_base.geometry_atom_parity(tsg, geo_, key)
 
         # If it doesn't match, reverse the direction, so the atom will be attacked from
         # the other side
@@ -779,7 +769,7 @@ def x2z_torsion_coordinate_names(geo, ts_bnds=()):
         names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
 
         zma = _pyx2z.to_zmatrix(x2m)
-        name_dct = automol.zmat.base.standard_names(zma)
+        name_dct = zmat_base.standard_names(zma)
         names = tuple(map(name_dct.__getitem__, names))
 
     return names
@@ -806,11 +796,11 @@ def apply_zmatrix_conversion(geo, zc_: ZmatConv, gra=None, dist: float = 1.0):
     gra = graph_without_stereo(geo) if gra is None else gra
 
     assert not set(idxs) & set(
-        automol.graph.base.dummy_parent_dict(gra).values()
+        graph_base.dummy_parent_dict(gra).values()
     ), f"Attempting to add dummy atoms on atoms that already have them {geo}"
 
     # Partition parent atoms into adjacent segments
-    seg_idxs_lst = automol.graph.base.linear_segments_atom_keys(gra, lin_keys=idxs)
+    seg_idxs_lst = graph_base.linear_segments_atom_keys(gra, lin_keys=idxs)
 
     # Build an initial z-matrix conversion data structure to describe the insertion
     nreal = count(geo)
@@ -821,7 +811,7 @@ def apply_zmatrix_conversion(geo, zc_: ZmatConv, gra=None, dist: float = 1.0):
     # (Parent atom indices don't change, since the dummy atoms are added to the end)
     xyzs = coordinates(geo, angstrom=True)
     for seg_idxs in seg_idxs_lst:
-        direc = automol.graph.base.linear_segment_dummy_direction(gra, geo, seg_idxs)
+        direc = graph_base.linear_segment_dummy_direction(gra, geo, seg_idxs)
         for idx in seg_idxs:
             xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
             geo = insert(geo, "X", xyz, angstrom=True)
@@ -875,7 +865,7 @@ def set_distance(
     idx1, idx2 = dist_idxs
     gra = gra if gra is not None else graph_without_stereo(geo)
     dist_val = dist_val if not angstrom else dist_val * phycon.ANG2BOHR
-    idxs = automol.graph.base.branch_atom_keys(gra, idx1, idx2)
+    idxs = graph_base.branch_atom_keys(gra, idx1, idx2)
 
     xyzs = coordinates(geo)
     bvec0 = numpy.subtract(xyzs[idx2], xyzs[idx1])
@@ -915,7 +905,7 @@ def set_central_angle(
     idx1, idx2, idx3 = ang_idxs
     gra = gra if gra is not None else graph_without_stereo(geo)
     ang_val = ang_val if not degree else ang_val * phycon.DEG2RAD
-    idxs = automol.graph.base.branch_atom_keys(gra, idx2, idx3)
+    idxs = graph_base.branch_atom_keys(gra, idx2, idx3)
     xyzs = coordinates(geo)
     ang0 = central_angle(geo, idx3, idx2, idx1)
 
@@ -972,7 +962,7 @@ def set_dihedral_angle(
     idx1, idx2, idx3, idx4 = dih_idxs
     gra = gra if gra is not None else graph_without_stereo(geo)
     dih_val = dih_val if not degree else dih_val * phycon.DEG2RAD
-    idxs = automol.graph.base.branch_atom_keys(gra, idx3, idx4)
+    idxs = graph_base.branch_atom_keys(gra, idx3, idx4)
     xyzs = coordinates(geo)
     dih0 = dihedral_angle(geo, idx4, idx3, idx2, idx1)
 

@@ -50,16 +50,19 @@
             [X] FAILED automol/tests/test_convert.py::test__symmetry_removal - assert not frozenset({(0, 1, 2, 5)})
             [X] FAILED automol/tests/test_reac.py::test__end_to_end - TypeError: object of type 'NoneType' has no len()
     [X] Remove reagent reordering -- just use the initial input order
-    [ ] Implement interconversion of Reaction obj with structures
+    [X] Implement interconversion of Reaction obj with structures
             [X] implement with_geom_structures
             [X] Geometry => z-matrix
-            [ ] Testing
-            [ ] Z-matrix => geometry
-            [ ] Work out dummy atom handling -- need to figure out how to account for TS dummy atoms that are not present in the reagent when shifting keys to line things up
-            [ ] Testing
-            [ ] implement with_zmat_structures (under the hood, calls add_geom_structures and then converts)
-                [ ] We can allow this to take pre-existing rct/prd zmas as input, as long as the user also passes in a dummy conversion relative to the original geo (matching the original Reaction object keys). 
-            [ ] implement with_structures(rxn, typ)
+            [X] Testing
+            [X] Z-matrix => geometry
+            [X] Work out dummy atom handling -- need to figure out how to account for TS dummy atoms that are not present in the reagent when shifting keys to line things up
+            [X] Testing
+            [X] implement with_zmat_structures (under the hood, calls add_geom_structures and then converts)
+                [X] We can allow this to take pre-existing rct/prd zmas as input, as long as the user also passes in a dummy conversion relative to the original geo (matching the original Reaction object keys). 
+            [X] implement with_structures(rxn, typ)
+    [ ] Test Reaction structure addition/interconversion
+            [ ] Implement graph.geometry_matches to check if a geometry matches a graph (including TS graphs/geometries) -- for forming bond keys, it can check that the attaching atom is the closest non-bonded atom (possibly except for 2nd degree neighbors?)
+            [ ] For each case in test__end_to_end(), check that each TS/R/P geometry matches the corresponding graph
     [ ] Update existing Reac functions to properly handle structures
         [ ] 
     [ ] _6scan.py

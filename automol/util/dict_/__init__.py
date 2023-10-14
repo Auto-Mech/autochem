@@ -3,6 +3,7 @@
 # functions
 from automol.util.dict_._dict_ import invert
 from automol.util.dict_._dict_ import empty_if_none
+from automol.util.dict_._dict_ import compose
 from automol.util.dict_._dict_ import right_update
 from automol.util.dict_._dict_ import by_key
 from automol.util.dict_._dict_ import by_value
@@ -29,7 +30,7 @@ from automol.util.dict_ import multi
 __all__ = [
     # functions
     'invert',
-    'empty_if_none', 'right_update', 'by_key', 'by_value',
+    'empty_if_none', 'compose', 'right_update', 'by_key', 'by_value',
     'values_by_key', 'values_by_unordered_tuple',
     'values_in_multilevel_dct', 'value_in_floatkey_dct',
     'keys_by_value', 'transform_keys', 'transform_values',

@@ -299,7 +299,7 @@ def isomorphism(zc1: ZmatConv, zc2: ZmatConv, sub: bool = False) -> Dict[int, in
 
 
 def subset_isomorphism(
-    zc1: ZmatConv, zc2: ZmatConv, reverse: bool = False
+    zc1: ZmatConv, zc2: ZmatConv, rev: bool = False
 ) -> Dict[int, int]:
     """Get the isomorphism of a subset of one ZmatConv onto another
 
@@ -310,9 +310,9 @@ def subset_isomorphism(
     :type zc1: ZmatConv
     :param zc2: A relabeled z-matrix conversion
     :type zc2: ZmatConv
-    :param reverse: Get the reverse isomorphism, of `zc2` onto `zc1`? defaults to False
-    :type reverse: bool, optional
+    :param rev: Get the reverse isomorphism, of `zc2` onto `zc1`? defaults to False
+    :type rev: bool, optional
     :returns: A mapping of `zc1` onto `zc2`, if it exists
     """
     iso_dct = isomorphism(zc1, zc2, sub=True)
-    return dict(map(reversed, iso_dct.items())) if reverse else iso_dct
+    return dict(map(reversed, iso_dct.items())) if rev else iso_dct
