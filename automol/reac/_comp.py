@@ -10,9 +10,7 @@ from automol.util import dict_
 from automol.reac._0core import ts_graph
 from automol.reac._0core import class_
 from automol.reac._0core import relabel_for_geometry
-from automol.reac._0core import reaction_mapping
 from automol.graph import without_stereo
-from automol.graph import ts_reagents_graph_without_stereo
 from automol.graph import geometries_parity_mismatches
 from automol.graph import stereogenic_bond_keys
 
@@ -139,14 +137,13 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
 def _check_stereo_parities(zma, ref_zma, zrxn):
     """make sure stereo is consistent with ref_zma
     """
-    gra = without_stereo(ts_reagents_graph_without_stereo(ts_graph(zrxn)))
+    gra = without_stereo(ts_graph(zrxn))
     ste_keys = stereogenic_bond_keys(gra)
-    idxs = reaction_mapping(zrxn, rev=False)
     geo = automol.zmat.geometry(zma, dummy=True)
     ref_geo = automol.zmat.geometry(ref_zma, dummy=True)
 
     bad_keys = geometries_parity_mismatches(
-        gra, geo, ref_geo, ste_keys, geo_idx_dct=idxs)
+        gra, geo, ref_geo, ste_keys)
 
     viable = True
     for bnd_key in bad_keys:

@@ -9,9 +9,8 @@ Function arguments:
 import copy
 import dataclasses
 import itertools
-from typing import List, Tuple
+from typing import Dict, List
 
-import numpy
 import yaml
 
 from automol import geom, graph, par, zmat
@@ -230,6 +229,8 @@ def from_data(
 # # serialization
 def from_string(rxn_str, one_indexed=True) -> Reaction:
     """Write a reaction object to a string
+
+    TODO: Implement reading of structural info
 
     :param rxn_str: string containing the reaction object
     :type rxn_str: str
@@ -568,6 +569,10 @@ def relabel(rxn: Reaction, key_dct) -> Reaction:
 def reverse(rxn: Reaction) -> Reaction:
     """Obtains the reaction object for the reverse reaction
 
+    TODO: Rename this reverse_without_structures and implement a general reversal
+    function in _4struct.py that allows reversal with structures (including a flag for
+    whether or not to keep the structures)
+
     :param rxn: the reaction object
     :type rxn: Reaction
     :rtype: Reaction
@@ -580,7 +585,7 @@ def reverse(rxn: Reaction) -> Reaction:
     )
 
 
-def mapping(rxn: Reaction, inp, out) -> dict:
+def mapping(rxn: Reaction, inp: str, out: str) -> dict:
     """Determine a mapping from TS atoms to reactant atoms.
 
     Code:
@@ -588,15 +593,17 @@ def mapping(rxn: Reaction, inp, out) -> dict:
         'R': reactant keys
         'P': product keys
 
-    :param rxn: the reaction object
+    :param rxn: A reaction object
     :type rxn: Reaction
-    :param inp: which keys will go into the mapping, 'T', 'R', or 'P'
+    :param inp: Keys going into the mapping, 'T', 'R', or 'P'
     :type inp: str
-    :param out: which keys will come out of the mapping, 'T', 'R', or 'P'
+    :param out: Keys coming out of the mapping, 'T', 'R', or 'P'
     :type out: str
     :returns: A dictionary mapping `inp` keys into `out` keys
     :rtype: dict
     """
+    assert inp in ("T", "R", "P") and out in ("T", "R", "P")
+
     keys = sorted(graph.atom_keys(ts_graph(rxn)))
     rcts_keys = reactants_keys(rxn)
     prds_keys = products_keys(rxn)
@@ -618,71 +625,71 @@ def mapping(rxn: Reaction, inp, out) -> dict:
     return map_dct
 
 
-def reaction_mapping(rxn: Reaction, rev=False):
-    """Determine a mapping from reactant atoms to product atoms.
+def reactant_mappings(
+    rxn: Reaction, rev: bool = False, shift_keys: bool = False
+) -> List[Dict[int, int]]:
+    """Mappings from each reactant onto the TS
 
-    :param rxn: the reaction object
+    :param rxn: A reaction object
     :type rxn: Reaction
-    :param rev: parameter to toggle direction of the mapping
-    :type rev: bool
-    :returns: The mapping
-    :rtype: dict
+    :param rev: Reverse the mapping? defaults to False
+    :type rev: bool, optional
+    :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
+    :type shift_keys: bool, optional
+    :returns: The list of mappings for each reactant in order
+    :rtype: List[Dict[int, int]]
     """
-    rct_keys = list(itertools.chain(*reactants_keys(rxn)))
-    prd_keys = list(itertools.chain(*products_keys(rxn)))
-    map_dct = dict(zip(prd_keys, rct_keys)) if rev else dict(zip(rct_keys, rct_keys))
-    return map_dct
+    start = 0
+    map_dcts = []
+    for keys in reactants_keys(rxn):
+        map_dct = {k + start: v for k, v in enumerate(keys)}
+
+        if rev:
+            map_dct = dict(map(reversed, map_dct.items()))
+
+        if shift_keys:
+            start += len(keys)
+
+        map_dcts.append(map_dct)
+
+    return tuple(map_dcts)
 
 
-def reagent_sort_order(rxn: Reaction) -> Tuple[List[int], List[int]]:
-    """Get the sort order for reactants and products, based on their keys
+def product_mappings(
+    rxn: Reaction, rev: bool = False, shift_keys: bool = False
+) -> List[Dict[int, int]]:
+    """Mappings from each product onto the TS
 
-    DEPRECATED -- no longer changing reagent order
-
-    :param rxn: the reaction object
+    :param rxn: A reaction object
     :type rxn: Reaction
-    :param rev: parameter to toggle reaction direction
-    :type rev: bool
-    :returns: The sort order of the reactants and products
-    :rtype: Tuple[List[int], List[int]]
+    :param rev: Reverse the mapping? defaults to False
+    :type rev: bool, optional
+    :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
+    :type shift_keys: bool, optional
+    :returns: The list of mappings for each product in order
+    :rtype: List[Dict[int, int]]
     """
-    if len(reactants_keys(rxn)) == 1:
-        rct_idxs = [0]
-    else:
-        rcts_keys = reactants_keys(rxn)
-        rct_keys = numpy.empty((len(rcts_keys),), dtype=object)
-        rct_keys[:] = list(map(tuple, map(sorted, rcts_keys)))
-        rct_idxs = numpy.argsort(rct_keys)
-
-    if len(products_keys(rxn)) == 1:
-        prd_idxs = [0]
-    else:
-        prds_keys = products_keys(rxn)
-        prd_keys = numpy.empty((len(prds_keys),), dtype=object)
-        prd_keys[:] = list(map(tuple, map(sorted, prds_keys)))
-        prd_idxs = numpy.argsort(prd_keys)
-
-    rct_idxs, prd_idxs = map(tuple, (rct_idxs, prd_idxs))
-    return rct_idxs, prd_idxs
+    return reactant_mappings(reverse(rxn), rev=rev, shift_keys=shift_keys)
 
 
-def reactant_graphs(rxn: Reaction, shift_keys=False):
+def reactant_graphs(rxn: Reaction, shift_keys: bool = False):
     """Obtain graphs of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
-    :param shift_keys: Shift keys after first reagent, to prevent overlap?
-    :type shift_keys: bool
+    :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
+    :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
-    map_dct = mapping(rxn, "T", "R")
-
     rcts_gra = ts.reactants_graph(ts_graph(rxn))
     rcts_keys = reactants_keys(rxn)
+
+    # Extract subgraphs (TS keys)
     rct_gras = [graph.subgraph(rcts_gra, ks, stereo=True) for ks in rcts_keys]
-    rct_gras = [graph.relabel(g, map_dct, check=False) for g in rct_gras]
-    if not shift_keys:
-        rct_gras = [graph.standard_keys(g) for g in rct_gras]
+
+    # Get mappings onto shifted or unshifted reactant keys
+    map_dcts = reactant_mappings(rxn, rev=True, shift_keys=shift_keys)
+    rct_gras = [graph.relabel(g, m) for g, m in zip(rct_gras, map_dcts)]
     return tuple(rct_gras)
 
 
@@ -691,8 +698,8 @@ def product_graphs(rxn: Reaction, shift_keys=False):
 
     :param rxn: the reaction object
     :type rxn: Reaction
-    :param shift_keys: Shift keys after first reagent, to prevent overlap?
-    :type shift_keys: bool
+    :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
+    :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
     return reactant_graphs(reverse(rxn), shift_keys=shift_keys)
@@ -741,40 +748,6 @@ def standard_keys(rxn: Reaction) -> Reaction:
 
     rxn = relabel(rxn, rct_key_dct)
     return rxn
-
-
-def has_standard_keys(rxn: Reaction) -> Reaction:
-    """Determine if this reaction has standard keys
-
-    :param rxn: the reaction object
-    :type rxn: Reaction
-    :returns: `True` if it does, `False` if it doesn't
-    :rtype: bool
-    """
-    return rxn == standard_keys(rxn)
-
-
-def standard_keys_with_sorted_geometries(rxn: Reaction, rct_geos, prd_geos):
-    """Standardize keys and line up geometries to match proper
-    reactant/product sort ordering for the reaction
-
-    DEPRECATED -- no longer changing reagent order
-
-    :param rxn: the reaction object
-    :type rxn: Reaction
-    :param rct_geos: Geometries for the reactants, with indices matching `rxn`
-    :type rct_geos: tuple of automol geometry objects
-    :param prd_geos: Geometries for the products, with indices matching `rxn`
-    :type prd_geos: tuple of automol geometry objects
-    :returns: A standardized reaction object, with matching re-sorted reactants
-        and products
-    :rtype: (Reaction, automol geometry objects, automol geometry objects)
-    """
-    rct_idxs, prd_idxs = reagent_sort_order(rxn)
-    rct_geos = tuple(map(rct_geos.__getitem__, rct_idxs))
-    prd_geos = tuple(map(prd_geos.__getitem__, prd_idxs))
-    rxn = standard_keys(rxn)
-    return rxn, rct_geos, prd_geos
 
 
 def without_stereo(rxn: Reaction) -> Reaction:

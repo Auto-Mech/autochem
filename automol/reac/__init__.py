@@ -24,14 +24,13 @@ from automol.reac._0core import set_structures
 # # others
 from automol.reac._0core import reverse
 from automol.reac._0core import mapping
-from automol.reac._0core import reaction_mapping
-from automol.reac._0core import reagent_sort_order
+from automol.reac._0core import reactant_mappings
+from automol.reac._0core import product_mappings
 from automol.reac._0core import reactant_graphs
 from automol.reac._0core import product_graphs
 from automol.reac._0core import reactants_graph
 from automol.reac._0core import products_graph
 from automol.reac._0core import standard_keys
-from automol.reac._0core import standard_keys_with_sorted_geometries
 from automol.reac._0core import relabel
 from automol.reac._0core import without_stereo
 from automol.reac._0core import apply_zmatrix_conversion
@@ -128,14 +127,13 @@ __all__ = [
     # # others
     'reverse',
     'mapping',
-    'reaction_mapping',
-    'reagent_sort_order',
+    'reactant_mappings',
+    'product_mappings',
     'reactant_graphs',
     'product_graphs',
     'reactants_graph',
     'products_graph',
     'standard_keys',
-    'standard_keys_with_sorted_geometries',
     'relabel',
     'without_stereo',
     'apply_zmatrix_conversion',

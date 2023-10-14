@@ -14,8 +14,8 @@ Format:
         zkey: (gkey, parent_gkey),
     }
 
-    zkey is the z-matrix key for the atom
-    gkey is the geometry key for the atom
+    zkey is the z-matrix key for an atom
+    gkey is the geometry key for an atom
         ('None' for dummy atoms)
     parent_gkey is the geometry key for the parent of a dummy atom
         ('None' for real atoms)
@@ -41,6 +41,7 @@ Key = Union[int, None]
 ZmatConv = Dict[int, Tuple[Key, Key]]
 
 
+# Constructors
 def from_geom_dummy_parent_keys(
     nreal: int, parent_gkeys: List[int], insert: bool = False
 ) -> ZmatConv:
@@ -97,6 +98,7 @@ def from_zmat_dummy_parent_dict(
     return zc_
 
 
+# Conversion functions
 def relabel_dict(zc_: ZmatConv, rev: bool = False) -> Dict[int, int]:
     """Describes the relabeling of non-dummies
 
@@ -128,6 +130,7 @@ def insert_dict(zc_: ZmatConv) -> Dict[int, int]:
     return ins_dct
 
 
+# Getters
 def count(zc_: ZmatConv, typ: str = "zmat") -> int:
     """Count the number of atoms
 
@@ -192,78 +195,7 @@ def dummy_parent_keys(zc_: ZmatConv, typ: str = "zmat") -> List[int]:
     return tuple(sorted(par_keys))
 
 
-def relabel(zc_: ZmatConv, key_dct: Dict[int, int], typ: str = "zmat") -> ZmatConv:
-    """Relabel the final (or original) keys of a z-matrix conversion
-
-    :param zc_: A z-matrix conversion data structure
-    :type zc_: ZmatConv
-    :param key_dct: The relabeling
-    :type key_dct: Dict[int, int]
-    :param typ: The type of keys to use ('geom' or 'zmat'); defaults to 'zmat'
-    :type typ: str, optional
-    :return: The z-matrix conversion
-    :rtype: ZmatConv
-    """
-    assert typ in ("geom", "zmat")
-
-    if typ == "geom":
-        key_dct[None] = None
-        zc_ = {zk: (key_dct[gk], key_dct[pgk]) for zk, (gk, pgk) in zc_.items()}
-    else:
-        zc_ = {key_dct[zk]: (gk, pgk) for zk, (gk, pgk) in zc_.items()}
-    return zc_
-
-
-def isomorphism(zc1: ZmatConv, zc2: ZmatConv, subset: bool = False) -> Dict[int, int]:
-    """Get the isomorphism of one ZmatConv onto another
-
-    Assuming they share the same geometry keys, this backs out the graph isomorphism of
-    one set of z-matrix keys onto another.
-
-    :param zc1: A z-matrix conversion
-    :type zc1: ZmatConv
-    :param zc2: A relabeled z-matrix conversion
-    :type zc2: ZmatConv
-    :param subgraph: Find a subgraph isomorphism instead? defaults to False
-    :type subgraph: bool, optional
-    :returns: A mapping of `zc1` onto `zc2`, if it exists
-    """
-    keys1 = list(zc1.keys())
-    vals1 = list(zc1.values())
-    keys2 = list(zc2.keys())
-    vals2 = list(zc2.values())
-
-    if subset:
-        if not (len(zc1) >= len(zc2) and set(vals1) >= set(vals2)):
-            return None
-    else:
-        if not (len(zc1) == len(zc2) and set(vals1) == set(vals2)):
-            return None
-
-    key_dct = {keys1[vals1.index(v2)]: k2 for k2, v2 in zip(keys2, vals2)}
-    return key_dct
-
-
-def subgraph_isomorphism(
-    zc1: ZmatConv, zc2: ZmatConv, reverse: bool = False
-) -> Dict[int, int]:
-    """Get the isomorphism of a subset of one ZmatConv onto another
-
-    Assuming they share the same geometry keys, this backs out the graph isomorphism of
-    a subset of the z-matrix keys in `zc1` onto the z-matrix keys in `zc2`.
-
-    :param zc1: A z-matrix conversion
-    :type zc1: ZmatConv
-    :param zc2: A relabeled z-matrix conversion
-    :type zc2: ZmatConv
-    :param reverse: Get the reverse isomorphism, of `zc2` onto `zc1`? defaults to False
-    :type reverse: bool, optional
-    :returns: A mapping of `zc1` onto `zc2`, if it exists
-    """
-    iso_dct = isomorphism(zc1, zc2, subset=True)
-    return dict(map(reversed, iso_dct.items())) if reverse else iso_dct
-
-
+# Conversions
 def yaml_data(zc_: ZmatConv) -> list:
     """A yaml-friendly format for the z-matrix conversion
 
@@ -288,3 +220,99 @@ def from_yaml_data(zc_yml: list) -> ZmatConv:
     vals = [tuple(row[1:]) for row in zc_yml]
     zc_ = dict(zip(keys, vals))
     return zc_
+
+
+# Other
+def relabel(zc_: ZmatConv, key_dct: Dict[int, int], typ: str = "zmat") -> ZmatConv:
+    """Relabel the final (or original) keys of a z-matrix conversion
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param key_dct: The relabeling
+    :type key_dct: Dict[int, int]
+    :param typ: The type of keys to use ('geom' or 'zmat'); defaults to 'zmat'
+    :type typ: str, optional
+    :return: The z-matrix conversion
+    :rtype: ZmatConv
+    """
+    assert typ in ("geom", "zmat")
+
+    if typ == "geom":
+        key_dct[None] = None
+        zc_ = {zk: (key_dct[gk], key_dct[pgk]) for zk, (gk, pgk) in zc_.items()}
+    else:
+        zc_ = {key_dct[zk]: (gk, pgk) for zk, (gk, pgk) in zc_.items()}
+    return zc_
+
+
+def subset(zc_: ZmatConv, keys: List[int], typ: str = "zmat") -> ZmatConv:
+    """Extract the z-matrix conversion for a subset of keys
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param keys: A subset of the keys in the conversion
+    :type keys: List[int]
+    :param typ: , defaults to "zmat"
+    :type typ: str, optional
+    :return: The subset z-matrix conversion
+    :rtype: ZmatConv
+    """
+    assert typ in ("geom", "zmat")
+
+    if typ == "geom":
+        zc_ = {
+            zk: (gk, pgk) for zk, (gk, pgk) in zc_.items() if gk in keys or pgk in keys
+        }
+    else:
+        zc_ = {zk: (gk, pgk) for zk, (gk, pgk) in zc_.items() if zk in keys}
+    return zc_
+
+
+def isomorphism(zc1: ZmatConv, zc2: ZmatConv, sub: bool = False) -> Dict[int, int]:
+    """Get the isomorphism of one ZmatConv onto another
+
+    Assuming they share the same geometry keys, this backs out the graph isomorphism of
+    one set of z-matrix keys onto another.
+
+    :param zc1: A z-matrix conversion
+    :type zc1: ZmatConv
+    :param zc2: A relabeled z-matrix conversion
+    :type zc2: ZmatConv
+    :param sub: Find a subset isomorphism instead? defaults to False
+    :type sub: bool, optional
+    :returns: A mapping of `zc1` onto `zc2`, if it exists
+    """
+    keys1 = list(zc1.keys())
+    vals1 = list(zc1.values())
+    keys2 = list(zc2.keys())
+    vals2 = list(zc2.values())
+
+    if sub:
+        if not (len(zc1) >= len(zc2) and set(vals1) >= set(vals2)):
+            return None
+    else:
+        if not (len(zc1) == len(zc2) and set(vals1) == set(vals2)):
+            return None
+
+    key_dct = {keys1[vals1.index(v2)]: k2 for k2, v2 in zip(keys2, vals2)}
+    return key_dct
+
+
+def subset_isomorphism(
+    zc1: ZmatConv, zc2: ZmatConv, reverse: bool = False
+) -> Dict[int, int]:
+    """Get the isomorphism of a subset of one ZmatConv onto another
+
+    Assuming they share the same geometry keys, this backs out the graph isomorphism of
+    a subset of the z-matrix keys in `zc1` onto the z-matrix keys in `zc2`.
+
+    :param zc1: A z-matrix conversion
+    :type zc1: ZmatConv
+    :param zc2: A relabeled z-matrix conversion
+    :type zc2: ZmatConv
+    :param reverse: Get the reverse isomorphism, of `zc2` onto `zc1`? defaults to False
+    :type reverse: bool, optional
+    :returns: A mapping of `zc1` onto `zc2`, if it exists
+    """
+    iso_dct = isomorphism(zc1, zc2, sub=True)
+    return dict(map(reversed, iso_dct.items())) if reverse else iso_dct
