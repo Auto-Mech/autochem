@@ -19,7 +19,7 @@ from automol.graph.base._0core import (
     bond_orders,
     bond_stereo_keys,
     bond_unpaired_electrons,
-    dummy_parent_keys,
+    dummy_parent_dict,
     has_atom_stereo,
     implicit,
     is_ts_graph,
@@ -227,7 +227,7 @@ def linear_atom_keys(gra, dummy=True):
 
     # If requested, include all keys associated with dummy atoms
     if dummy:
-        dum_ngb_key_dct = dummy_parent_keys(gra)
+        dum_ngb_key_dct = dummy_parent_dict(gra)
         lin_atm_keys |= set(dum_ngb_key_dct.values())
 
     if ts_:

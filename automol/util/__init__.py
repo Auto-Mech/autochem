@@ -1,7 +1,7 @@
 """ common utilities used by automol
 """
 
-from automol.util import dict_, dummy_conv, heuristic, highd_mat, mat, ring, vec
+from automol.util import dict_, heuristic, highd_mat, mat, ring, vec, zmat_conv
 from automol.util._util import (
     breakby,
     equivalence_partition,
@@ -19,11 +19,11 @@ from automol.util._util import (
     sort_by_list,
     value_similar_to,
 )
-from automol.util.dummy_conv import DummyConv
+from automol.util.zmat_conv import ZmatConv
 
 __all__ = [
     "dict_",
-    "dummy_conv",
+    "zmat_conv",
     "heuristic",
     "highd_mat",
     "mat",
@@ -44,5 +44,5 @@ __all__ = [
     "separate_negatives",
     "sort_by_list",
     "value_similar_to",
-    "DummyConv",
+    "ZmatConv",
 ]

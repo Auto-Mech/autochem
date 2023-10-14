@@ -13,7 +13,7 @@ import automol.zmat
 from automol.extern import rdkit_
 from automol.reac._0core import (
     Reaction,
-    apply_dummy_conversion,
+    apply_zmatrix_conversion,
     product_graphs,
     reactant_graphs,
     set_structures,
@@ -327,7 +327,7 @@ def with_structures_from_geometry(
             ret.append(rxn)
         else:
             ts_zma, dc_ = ts_zmatrix(rxn, ts_geo)
-            zrxn = apply_dummy_conversion(rxn, dc_)
+            zrxn = apply_zmatrix_conversion(rxn, dc_)
             rct_zmas = tuple(map(automol.geom.zmatrix, rct_geos))
             prd_zmas = tuple(map(automol.geom.zmatrix, prd_geos))
 

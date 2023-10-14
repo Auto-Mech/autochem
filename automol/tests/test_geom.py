@@ -591,10 +591,10 @@ def test__insert_dummies():
     # doesn't contain the dummy atoms in the z-matrix.
 
     # 3. Determine dummy atom keys from the original z-matrix
-    dct = automol.zmat.dummy_conversion(zma)
+    dct = automol.zmat.conversion_info(zma)
 
     # 4. Insert dummy atoms to the new geometry at the appropriate positions
-    geo_wdummy = automol.geom.apply_dummy_conversion(geo, dct)
+    geo_wdummy = automol.geom.apply_zmatrix_conversion(geo, dct)
     assert automol.geom.symbols(geo_wdummy) == automol.zmat.symbols(zma)
 
     # 5. Update the z-matrix from the geometry.

@@ -276,7 +276,7 @@ def test__end_to_end():
 
         # 4. generate a z-matrix
         ts_zma, dc_ = automol.reac.ts_zmatrix(rxn, ts_geo)
-        zrxn = automol.reac.apply_dummy_conversion(rxn, dc_)
+        zrxn = automol.reac.apply_zmatrix_conversion(rxn, dc_)
         ztsg = automol.reac.ts_graph(zrxn)
 
         # Check that it matches the converted TS graph
@@ -285,7 +285,7 @@ def test__end_to_end():
         assert zgra1 == zgra2
 
         # Make sure it can be converted back
-        rxn2 = automol.reac.reverse_dummy_conversion(zrxn, dc_)
+        rxn2 = automol.reac.reverse_zmatrix_conversion(zrxn, dc_)
         assert rxn == rxn2
 
     # UNIMOLECULAR

@@ -4,11 +4,12 @@ import itertools
 
 import numpy
 import pyparsing as pp
-from phydat import phycon
 from pyparsing import pyparsing_common as ppc
+from phydat import phycon
 
 import automol.geom.base
 from automol import util, vmat
+from automol.util import ZmatConv
 from automol.vmat import (
     atom_indices,
     coordinates,
@@ -706,28 +707,13 @@ def dummy_keys(zma):
     return keys
 
 
-def dummy_key_dictionary(zma):
-    """Obtain keys to linear atoms in the Z-matrix along with their associated
-    dummy atoms.
-
-    :param zma: Z-Matrix
-    :type zma: automol Z-Matrix data structure
-    :returns: a dictionary with the linear atoms as keys and their dummy
-        atoms as values
-    :rtype: dict[int: int]
-    """
-    dummy_key_dct = dict(map(reversed, dummy_parent_keys(zma).items()))
-    return dummy_key_dct
-
-
-def dummy_parent_keys(zma):
+def dummy_parent_dict(zma):
     """Obtain keys to dummy atoms in the Z-Matrix, along with their
     parent atoms.
 
     :param zma: Z-Matrix
     :type zma: automol Z-Matrix data structure
-    :returns: a dictionary with the dummy atoms as keys and their neighbors
-        as values
+    :returns: A dictionary mapping dummy atoms onto their parent atoms
     :rtype: dict[int: int]
     """
     key_mat = key_matrix(zma)
@@ -742,18 +728,18 @@ def dummy_parent_keys(zma):
     return key_dct
 
 
-def dummy_conversion(zma):
-    """Get the dummy conversion for this z-matrix, relative to a structure in
-    the same order without dummy atoms
+def conversion_info(zma) -> ZmatConv:
+    """Get the conversion information for this z-matrix, relative to geometry following
+    the same atom order
 
     :param zma: Z-Matrix
     :type zma: automol Z-Matrix data structure
-    :return: The dummy conversion
-    :rtype: DummyConv
+    :return: The z-matrix conversion
+    :rtype: ZmatConv
     """
-    nks = count(zma)
-    kp_dct = dummy_parent_keys(zma)
-    return util.dummy_conv.from_insert_dict(nks, kp_dct)
+    zcount = count(zma)
+    par_zkey_dct = dummy_parent_dict(zma)
+    return util.zmat_conv.from_zmat_dummy_parent_dict(zcount, par_zkey_dct)
 
 
 def linear_atom_keys(zma, geom_indexing=False):
@@ -767,7 +753,7 @@ def linear_atom_keys(zma, geom_indexing=False):
     :returns: the linear atom keys
     :rtype: tuple[int]
     """
-    lin_key_dct = dummy_parent_keys(zma)
+    lin_key_dct = dummy_parent_dict(zma)
     lin_keys = tuple(sorted(lin_key_dct.values()))
     if geom_indexing:
         dum_keys = numpy.array(sorted(lin_key_dct.keys()))
@@ -778,6 +764,8 @@ def linear_atom_keys(zma, geom_indexing=False):
 def shift_down(zma, vals):
     """
     Build a remdummy list that tells how to shift the groups
+
+    DEPRECATED -- usage need to be replaced with util.zmat_conv calls
     """
 
     dummy_idxs = sorted(atom_indices(zma, "X", match=True))
@@ -799,7 +787,10 @@ def shift_down(zma, vals):
 
 
 def shift_up(zma, idxs):
-    """shift up from the dummy idxs"""
+    """shift up from the dummy idxs
+
+    DEPRECATED -- usage need to be replaced with util.zmat_conv calls
+    """
 
     dummy_idxs = sorted(atom_indices(zma, "X", match=True))
 
