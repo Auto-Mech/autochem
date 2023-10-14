@@ -16,7 +16,7 @@ import yaml
 
 from automol import geom, graph, par, zmat
 from automol.graph import ts
-from automol.util import DummyConv, dummy_conv
+from automol.util import ZmatConv, zmat_conv
 
 
 @dataclasses.dataclass
@@ -42,11 +42,11 @@ class Reaction:
     :param product_structures: The product stuctures, with keys matching products
     :type product_structures: List[automol geom or zmat data structure]
     :param ts_conversion_info: Z-matrix conversion info for the TS structure
-    :type ts_conversion_info: DummyConv
+    :type ts_conversion_info: ZmatConv
     :param reactants_conversion_info: Z-matrix conversion info for reactant structures
-    :type reactants_conversion_info: DummyConv
+    :type reactants_conversion_info: ZmatConv
     :param products_conversion_info: Z-matrix conversion info for product structures
-    :type products_conversion_info: DummyConv
+    :type products_conversion_info: ZmatConv
     """
 
     ts_graph: tuple
@@ -57,9 +57,9 @@ class Reaction:
     ts_structure: tuple = None
     reactant_structures: tuple = None
     product_structures: tuple = None
-    ts_conversion_info: DummyConv = None
-    reactants_conversion_info: List[DummyConv] = None
-    products_conversion_info: List[DummyConv] = None
+    ts_conversion_info: ZmatConv = None
+    reactants_conversion_info: List[ZmatConv] = None
+    products_conversion_info: List[ZmatConv] = None
 
     def __repr__(self):
         """string representation of the object"""
@@ -110,9 +110,9 @@ def from_data(
     ts_struc=None,
     rct_strucs=None,
     prd_strucs=None,
-    ts_dc=None,
-    rct_dcs=None,
-    prd_dcs=None,
+    ts_zc=None,
+    rct_zcs=None,
+    prd_zcs=None,
     struc_typ=None,
 ) -> Reaction:
     """Construct a Reaction dataclass from data
@@ -133,12 +133,12 @@ def from_data(
     :type rct_strucs: List[automol geom or zmat data structure]
     :param prd_strucs: The product stuctures, with keys matching products keys
     :type prd_strucs: List[automol geom or zmat data structure]
-    :param ts_dc: Z-matrix conversion info for the TS structure
-    :type ts_dc: DummyConv
-    :param rct_dcs: Z-matrix conversion info for reactant structures
-    :type rct_dcs: DummyConv
-    :param prd_dcs: Z-matrix conversion info for product structures
-    :type prd_dcs: DummyConv
+    :param ts_zc: Z-matrix conversion info for the TS structure
+    :type ts_zc: ZmatConv
+    :param rct_zcs: Z-matrix conversion info for reactant structures
+    :type rct_zcs: ZmatConv
+    :param prd_zcs: Z-matrix conversion info for product structures
+    :type prd_zcs: ZmatConv
     :returns: A reaction object
     :rtype: Reaction
     """
@@ -157,7 +157,7 @@ def from_data(
     assert par.is_reaction_class(cla) or cla is None, f"{cla} is not a reaction class"
 
     # Check the structures, if there are any
-    struc_info = [ts_struc, rct_strucs, prd_strucs, struc_typ, ts_dc, rct_dcs, prd_dcs]
+    struc_info = [ts_struc, rct_strucs, prd_strucs, struc_typ, ts_zc, rct_zcs, prd_zcs]
     if any(x is not None for x in struc_info):
         ttyp = _identify_sequence_structure_type([ts_struc])
         rtyp = _identify_sequence_structure_type(rct_strucs)
@@ -186,31 +186,31 @@ def from_data(
                 f"Structure:\n{struc}\nKeys:\n{keys}\nTS graph:\n{tsg}"
             )
 
-        # If present, check the dummy conversion info for correctness
-        dc_info = [ts_dc, rct_dcs, prd_dcs]
-        if any(x is not None for x in dc_info):
-            assert all(x is not None for x in dc_info)
-            assert len(rct_dcs) == len(rct_strucs)
-            assert len(prd_dcs) == len(prd_strucs)
+        # If present, check the z-matrix conversion info for correctness
+        zc_info = [ts_zc, rct_zcs, prd_zcs]
+        if any(x is not None for x in zc_info):
+            assert all(x is not None for x in zc_info)
+            assert len(rct_zcs) == len(rct_strucs)
+            assert len(prd_zcs) == len(prd_strucs)
 
-            rct_dcs = tuple(rct_dcs)
-            prd_dcs = tuple(prd_dcs)
+            rct_zcs = tuple(rct_zcs)
+            prd_zcs = tuple(prd_zcs)
 
             # Check that the atom counts and dummy keys match each structure
             is_geom = struc_typ == "geom"
             count_ = geom.count if is_geom else zmat.count
-            c_ok = dummy_conv.count(ts_dc, original=is_geom) == count_(ts_struc)
-            d_ok = is_geom or dummy_conv.dummy_keys(ts_dc) == zmat.dummy_keys(ts_struc)
+            c_ok = zmat_conv.count(ts_zc, typ=struc_typ) == count_(ts_struc)
+            d_ok = is_geom or zmat_conv.dummy_keys(ts_zc) == zmat.dummy_keys(ts_struc)
             assert (
                 c_ok and d_ok
-            ), f"TS conversion info doesn't match structure:{ts_dc}\n{ts_struc}"
+            ), f"TS conversion info doesn't match structure:{ts_zc}\n{ts_struc}"
 
-            for dc_, struc in zip(rct_dcs + prd_dcs, rct_strucs + prd_strucs):
-                c_ok = dummy_conv.count(dc_, original=is_geom) == count_(struc)
-                d_ok = is_geom or dummy_conv.dummy_keys(dc_) == zmat.dummy_keys(struc)
+            for zc_, struc in zip(rct_zcs + prd_zcs, rct_strucs + prd_strucs):
+                c_ok = zmat_conv.count(zc_, typ=struc_typ) == count_(struc)
+                d_ok = is_geom or zmat_conv.dummy_keys(zc_) == zmat.dummy_keys(struc)
                 assert (
                     c_ok and d_ok
-                ), f"Reagent conversion info doesn't match structure:\n{dc_}\n{struc}"
+                ), f"Reagent conversion info doesn't match structure:\n{zc_}\n{struc}"
 
     return Reaction(
         ts_graph=tsg,
@@ -221,9 +221,9 @@ def from_data(
         ts_structure=ts_struc,
         reactant_structures=rct_strucs,
         product_structures=prd_strucs,
-        ts_conversion_info=ts_dc,
-        reactants_conversion_info=rct_dcs,
-        products_conversion_info=prd_dcs,
+        ts_conversion_info=ts_zc,
+        reactants_conversion_info=rct_zcs,
+        products_conversion_info=prd_zcs,
     )
 
 
@@ -280,18 +280,18 @@ def string(rxn: Reaction, one_indexed=True) -> str:
         yaml_dct["reactant structures"] = list(map(yaml_, reactant_structures(rxn)))
         yaml_dct["product structures"] = list(map(yaml_, product_structures(rxn)))
 
-        ts_dc = ts_conversion_info(rxn)
-        rct_dcs = reactants_conversion_info(rxn)
-        prd_dcs = products_conversion_info(rxn)
+        ts_zc = ts_conversion_info(rxn)
+        rct_zcs = reactants_conversion_info(rxn)
+        prd_zcs = products_conversion_info(rxn)
 
-        if ts_dc is not None:
-            assert rct_dcs is not None and prd_dcs is not None
-            yaml_dct["TS conversion info"] = dummy_conv.yaml_data(ts_dc)
+        if ts_zc is not None:
+            assert rct_zcs is not None and prd_zcs is not None
+            yaml_dct["TS conversion info"] = zmat_conv.yaml_data(ts_zc)
             yaml_dct["reactants conversion info"] = list(
-                map(dummy_conv.yaml_data, rct_dcs)
+                map(zmat_conv.yaml_data, rct_zcs)
             )
             yaml_dct["products conversion info"] = list(
-                map(dummy_conv.yaml_data, prd_dcs)
+                map(zmat_conv.yaml_data, prd_zcs)
             )
 
     rxn_str = yaml.dump(yaml_dct, default_flow_style=None, sort_keys=False)
@@ -395,7 +395,7 @@ def product_structures(rxn: Reaction):
     return rxn.product_structures
 
 
-def ts_conversion_info(rxn: Reaction) -> DummyConv:
+def ts_conversion_info(rxn: Reaction) -> ZmatConv:
     """Get z-matrix conversion info for the TS structure
 
     Returns `None` if none has been set
@@ -403,12 +403,12 @@ def ts_conversion_info(rxn: Reaction) -> DummyConv:
     :param rxn: The reaction object
     :type rxn: Reaction
     :returns: Z-matrix conversion info for the TS structure
-    :rtype: DummyConv
+    :rtype: ZmatConv
     """
     return rxn.ts_conversion_info
 
 
-def reactants_conversion_info(rxn: Reaction) -> List[DummyConv]:
+def reactants_conversion_info(rxn: Reaction) -> List[ZmatConv]:
     """Get z-matrix conversion info for the reactant structures
 
     Returns `None` if none have been set
@@ -416,12 +416,12 @@ def reactants_conversion_info(rxn: Reaction) -> List[DummyConv]:
     :param rxn: The reaction object
     :type rxn: Reaction
     :returns: Z-matrix conversion info for the reactant structures
-    :rtype: List[DummyConv]
+    :rtype: List[ZmatConv]
     """
     return rxn.reactants_conversion_info
 
 
-def products_conversion_info(rxn: Reaction) -> List[DummyConv]:
+def products_conversion_info(rxn: Reaction) -> List[ZmatConv]:
     """Get z-matrix conversion info for the product structures
 
     Returns `None` if none have been set
@@ -429,7 +429,7 @@ def products_conversion_info(rxn: Reaction) -> List[DummyConv]:
     :param rxn: The reaction object
     :type rxn: Reaction
     :returns: Z-matrix conversion info for the product structures
-    :rtype: List[DummyConv]
+    :rtype: List[ZmatConv]
     """
     return rxn.products_conversion_info
 
@@ -501,9 +501,9 @@ def set_structures(
     rct_strucs,
     prd_strucs,
     struc_typ=None,
-    ts_dc: DummyConv = None,
-    rct_dcs: List[DummyConv] = None,
-    prd_dcs: List[DummyConv] = None,
+    ts_zc: ZmatConv = None,
+    rct_zcs: List[ZmatConv] = None,
+    prd_zcs: List[ZmatConv] = None,
 ) -> Reaction:
     """Set the structures for the Reaction
 
@@ -520,12 +520,12 @@ def set_structures(
     :param struc_typ: The structural information type ('zmat' or 'geom'),
         defaults to None
     :type struc_typ: str, optional
-    :param ts_dc: Z-matrix conversion info for the TS structure
-    :type ts_dc: DummyConv
-    :param rct_dcs: Z-matrix conversion info for reactant structures
-    :type rct_dcs: DummyConv
-    :param prd_dcs: Z-matrix conversion info for product structures
-    :type prd_dcs: DummyConv
+    :param ts_zc: Z-matrix conversion info for the TS structure
+    :type ts_zc: ZmatConv
+    :param rct_zcs: Z-matrix conversion info for reactant structures
+    :type rct_zcs: ZmatConv
+    :param prd_zcs: Z-matrix conversion info for product structures
+    :type prd_zcs: ZmatConv
     :return: A new reaction object
     :rtype: Reaction
     """
@@ -538,9 +538,9 @@ def set_structures(
         ts_struc=ts_struc,
         rct_strucs=rct_strucs,
         prd_strucs=prd_strucs,
-        ts_dc=ts_dc,
-        rct_dcs=rct_dcs,
-        prd_dcs=prd_dcs,
+        ts_zc=ts_zc,
+        rct_zcs=rct_zcs,
+        prd_zcs=prd_zcs,
     )
 
 
@@ -790,29 +790,31 @@ def without_stereo(rxn: Reaction) -> Reaction:
     return rxn
 
 
-def apply_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
-    """Apply a dummy conversion (dummy insertion + reordering) to the reaction
+def apply_zmatrix_conversion(rxn: Reaction, zc_: ZmatConv) -> Reaction:
+    """Apply a z-matrix conversion (dummy insertion + reordering) to the reaction
+
+    DEPRECATED -- this is taken care of by structure conversion
 
     This can be used to match a z-matrix after geometry -> z-matrix conversion
 
     :param rxn: A reaction object
     :type rxn: Reaction
-    :param dc_: A dummy conversion
-    :type dc_: DummyConv
+    :param zc_: A z-matrix conversion
+    :type zc_: ZmatConv
     :returns: The converted reaction object
     :rtype: Reaction
     """
     # 1. Transform the TS graph
-    tsg = graph.apply_dummy_conversion(ts_graph(rxn), dc_)
+    tsg = graph.apply_zmatrix_conversion(ts_graph(rxn), zc_)
     # 2. Relabel the keys
-    rel_dct = dummy_conv.relabel_dict(dc_)
+    rel_dct = zmat_conv.relabel_dict(zc_)
     rcts_keys = list(list(map(rel_dct.__getitem__, ks)) for ks in reactants_keys(rxn))
     prds_keys = list(list(map(rel_dct.__getitem__, ks)) for ks in products_keys(rxn))
     # 3. Insert the dummy keys in the right places
     # Temporary solution
-    # Ultimately, I think we will need to have separate dummy conversions for each
+    # Ultimately, I think we will need to have separate z-matrix conversions for each
     # reactant and product if we want everything to properly line up
-    ins_dct = dummy_conv.insert_dict(dc_)
+    ins_dct = zmat_conv.insert_dict(zc_)
     for dummy_key, parent_key in sorted(ins_dct.items()):
         rkeys = next(ks for ks in rcts_keys if parent_key in ks)
         pkeys = next(ks for ks in prds_keys if parent_key in ks)
@@ -825,51 +827,23 @@ def apply_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
     return rxn
 
 
-def reverse_dummy_conversion(rxn: Reaction, dc_: DummyConv) -> Reaction:
-    """Reverse a dummy conversion (dummy insertion + reordering) to the reaction
+def reverse_zmatrix_conversion(rxn: Reaction, zc_: ZmatConv) -> Reaction:
+    """Reverse a z-matrix conversion (dummy insertion + reordering) to the reaction
+
+    DEPRECATED -- this is taken care of by structure conversion
 
     This can be used to match the original geometry after conversio to z-matrix
 
     :param rxn: A converted reaction object
     :type rxn: Reaction
-    :param dc_: A dummy conversion
-    :type dc_: DummyConv
+    :param zc_: A z-matrix conversion
+    :type zc_: ZmatConv
     :returns: The original reaction object
     :rtype: Reaction
     """
     rxn = without_dummy_atoms(rxn)
-    rel_dct = dummy_conv.relabel_dict(dc_, rev=True)
+    rel_dct = zmat_conv.relabel_dict(zc_, rev=True)
     rxn = relabel(rxn, rel_dct)
-    return rxn
-
-
-def insert_dummy_atoms(rxn: Reaction, dummy_key_dct) -> Reaction:
-    """insert dummy atoms into the reactants or products
-
-    :param dummy_key_dct: dummy atom keys, by key of the atom they are
-        connected to
-    """
-    for key, dummy_key in reversed(sorted(dummy_key_dct.items())):
-        rxn = _insert_dummy_atom(rxn, key, dummy_key)
-
-    return rxn
-
-
-def _insert_dummy_atom(rxn: Reaction, key, dummy_key) -> Reaction:
-    tsg = ts_graph(rxn)
-    keys = sorted(graph.atom_keys(tsg))
-    dummy_key_ = max(keys) + 1
-    rxn = apply_dummy_conversion(rxn, {key: dummy_key_})
-
-    if dummy_key != dummy_key_:
-        assert dummy_key in keys
-        idx = keys.index(dummy_key)
-        key_dct = {}
-        key_dct.update({k: k for k in keys[:idx]})
-        key_dct[dummy_key_] = dummy_key
-        key_dct.update({k: k + 1 for k in keys[idx:]})
-
-    rxn = relabel(rxn, key_dct)
     return rxn
 
 
@@ -890,6 +864,8 @@ def without_dummy_atoms(rxn: Reaction) -> Reaction:
 def relabel_for_geometry(rxn: Reaction) -> Reaction:
     """relabel the reaction object to correspond with a geometry converted
     from a z-matrix
+
+    DEPRECATED
 
     :param rxn: the reaction object
     :param product: do this do the products instead of the reactants?

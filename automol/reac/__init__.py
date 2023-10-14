@@ -34,9 +34,8 @@ from automol.reac._0core import standard_keys
 from automol.reac._0core import standard_keys_with_sorted_geometries
 from automol.reac._0core import relabel
 from automol.reac._0core import without_stereo
-from automol.reac._0core import apply_dummy_conversion
-from automol.reac._0core import reverse_dummy_conversion
-from automol.reac._0core import insert_dummy_atoms
+from automol.reac._0core import apply_zmatrix_conversion
+from automol.reac._0core import reverse_zmatrix_conversion
 from automol.reac._0core import without_dummy_atoms
 from automol.reac._0core import relabel_for_geometry
 from automol.reac._0core import is_radical_radical
@@ -139,9 +138,8 @@ __all__ = [
     'standard_keys_with_sorted_geometries',
     'relabel',
     'without_stereo',
-    'apply_dummy_conversion',
-    'reverse_dummy_conversion',
-    'insert_dummy_atoms',
+    'apply_zmatrix_conversion',
+    'reverse_zmatrix_conversion',
     'without_dummy_atoms',
     'relabel_for_geometry',
     'is_radical_radical',

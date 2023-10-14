@@ -66,9 +66,8 @@ from automol.zmat.base._core import dihedral_angle_coordinate_name
 from automol.zmat.base._core import dihedral_axis_name
 # # dummy atom functions
 from automol.zmat.base._core import dummy_keys
-from automol.zmat.base._core import dummy_key_dictionary
-from automol.zmat.base._core import dummy_parent_keys
-from automol.zmat.base._core import dummy_conversion
+from automol.zmat.base._core import dummy_parent_dict
+from automol.zmat.base._core import conversion_info
 from automol.zmat.base._core import linear_atom_keys
 from automol.zmat.base._core import shift_down
 from automol.zmat.base._core import shift_up
@@ -165,9 +164,8 @@ __all__ = [
     'dihedral_axis_name',
     # # dummy atom functions
     'dummy_keys',
-    'dummy_key_dictionary',
-    'dummy_parent_keys',
-    'dummy_conversion',
+    'dummy_parent_dict',
+    'conversion_info',
     'linear_atom_keys',
     'shift_down',
     'shift_up',

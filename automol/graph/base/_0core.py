@@ -26,7 +26,7 @@ from phydat import phycon, ptab
 import automol.formula
 import automol.util.dict_.multi as mdict
 from automol import util
-from automol.util import dict_, dummy_conv, DummyConv
+from automol.util import ZmatConv, dict_, zmat_conv
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1
@@ -939,7 +939,7 @@ def atom_count(
     symb_dct = atom_symbols(gra)
     if heavy_only:
         # If only including heavy atoms, filter non-heavy atoms out
-        symb_dct = dict_.filter_by_value(symb_dct, lambda s: ptab.to_number(s) != 1)
+        symb_dct = dict_.filter_by_value(symb_dct, lambda s: ptab.to_number(s) > 1)
     # Restrict count to the requested subset of atoms
     symbs = [symb_dct[k] for k in keys if k in symb_dct]
     natms = len(symbs) if symb is None else symbs.count(symb)
@@ -1629,40 +1629,39 @@ def standard_keys_for_sequence(gras):
     return gras, atm_key_dcts
 
 
-def apply_dummy_conversion(gra, dc_: DummyConv):
-    """Apply a dummy conversion (dummy insertion + reordering) to the graph
+def apply_zmatrix_conversion(gra, zc_: ZmatConv):
+    """Apply a z-matrix conversion to the graph
 
     This can be used to match a z-matrix after geometry -> z-matrix conversion.
 
     :param gra: A molecular graph
     :type gra: automol graph data structure
-    :param dc_: A dummy conversion
-    :type dc_: DummyConv
+    :param zc_: A z-matrix conversion
+    :type zc_: ZmatConv
     :returns: The transformed graph
     :rtype: automol graph data structure
     """
-    gra = relabel(gra, dummy_conv.relabel_dict(dc_))
-    for dummy_key, parent_key in dummy_conv.insert_dict(dc_).items():
+    gra = relabel(gra, zmat_conv.relabel_dict(zc_))
+    for dummy_key, parent_key in zmat_conv.insert_dict(zc_).items():
         gra = add_bonded_atom(gra, "X", parent_key, dummy_key, bnd_ord=0)
     return gra
 
 
-def reverse_dummy_conversion(gra, dc_: DummyConv):
-    """Reverse a dummy conversion (dummy insertion + reordering), recovering the
-    original graph
+def reverse_zmatrix_conversion(gra, zc_: ZmatConv):
+    """Reverse a z-matrix conversion, recovering the original graph
 
     This can be used to match the original geometry after geometry -> z-matrix
     conversion.
 
     :param gra: A molecular graph
     :type gra: automol graph data structure
-    :param dc_: A dummy conversion
-    :type dc_: DummyConv
+    :param zc_: A z-matrix conversion
+    :type zc_: ZmatConv
     :returns: The transformed graph
     :rtype: automol graph data structure
     """
-    gra = remove_atoms(gra, dummy_conv.insert_dict(dc_))
-    gra = relabel(gra, dummy_conv.relabel_dict(dc_, rev=True))
+    gra = remove_atoms(gra, zmat_conv.insert_dict(zc_))
+    gra = relabel(gra, zmat_conv.relabel_dict(zc_, rev=True))
     return gra
 
 
@@ -2561,7 +2560,7 @@ def atoms_bond_keys(gra, ts_=True):
     return dict_.transform_values(atm_nbhs, bond_keys)
 
 
-def dummy_parent_keys(gra, ts_=True):
+def dummy_parent_dict(gra, ts_=True):
     """Get the atoms that are connected to dummy atoms, by dummy atom key
     (Requires that each dummy atom only be connected to one neighbor)
 

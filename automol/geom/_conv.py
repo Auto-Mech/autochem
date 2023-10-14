@@ -21,21 +21,21 @@ from automol.geom.base import (
     count,
     dihedral_angle,
     distance,
-    subgeom,
     insert,
     is_atom,
     reorder,
     rotate,
     set_coordinates,
+    subgeom,
     symbols,
     translate,
 )
 from automol.util import (
-    DummyConv,
+    ZmatConv,
     dict_,
-    dummy_conv,
     heuristic,
     vec,
+    zmat_conv,
 )
 
 
@@ -172,15 +172,15 @@ def zmatrix(geo, gra=None):
 
 
 def zmatrix_with_conversion_info(geo, gra=None):
-    """Generate a Z-Matrix for a molecular geometry, along with a dummy conversion
+    """Generate a Z-Matrix for a molecular geometry, along with a z-matrix conversion
     data structure describing the conversion
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param gra: A graph identifying the connectivity of this geometry
     :type gra: automol graph data structure
-    :returns: An automol Z-Matrix data structure and a dummy conversion
-    :rtype: automol zmat data structure, DummyConv
+    :returns: An automol Z-Matrix data structure and a z-matrix conversion
+    :rtype: automol zmat data structure, ZmatConv
     """
     # Handle monatomics separately
     if is_atom(geo):
@@ -188,18 +188,18 @@ def zmatrix_with_conversion_info(geo, gra=None):
         key_mat = [[None, None, None]]
         val_mat = [[None, None, None]]
         zma = automol.zmat.base.from_data(symbs, key_mat, val_mat)
-        dc_ = {0: (0, None)}
-        return zma, dc_
+        zc_ = {0: (0, None)}
+        return zma, zc_
 
     orig_gra = graph_without_stereo(geo) if gra is None else gra
 
-    # Build an initial dummy conversion data structure, to add dummies over linear atoms
-    nk0s = count(geo)
-    k0ps = automol.graph.base.linear_atom_keys(orig_gra)
-    dc_ = dummy_conv.from_original_dummy_parent_keys(nk0s, k0ps, insert=False)
+    # Build an initial z-matrix conversion data structure to put dummies on linear atoms
+    nreal = count(geo)
+    parent_keys = automol.graph.base.linear_atom_keys(orig_gra)
+    zc_ = zmat_conv.from_geom_dummy_parent_keys(nreal, parent_keys, insert=False)
 
-    # Apply this dummy conversion to the graph
-    gra = automol.graph.base.apply_dummy_conversion(orig_gra, dc_)
+    # Apply this z-matrix conversion to the graph
+    gra = automol.graph.base.apply_zmatrix_conversion(orig_gra, zc_)
 
     # Generate a v-matrix for the graph and get the z-matrix reordering
     rng_keys = automol.graph.base.ts.zmatrix_starting_ring_keys(gra)
@@ -215,15 +215,15 @@ def zmatrix_with_conversion_info(geo, gra=None):
     else:
         vma, zma_keys = automol.graph.base.vmat.vmatrix(gra)
 
-    # Apply the new z-matrix ordering to the dummy conversion data structure
+    # Apply the new z-matrix ordering to the z-matrix conversion data structure
     key_dct = dict(map(reversed, enumerate(zma_keys)))
-    dc_ = dummy_conv.relabel(dc_, key_dct)
+    zc_ = zmat_conv.relabel(zc_, key_dct)
 
-    # Apply the dummy conversion to the geometry and generate the z-matrix
-    geo = apply_dummy_conversion(geo, dc_, gra=orig_gra)
+    # Apply the z-matrix conversion to the geometry and generate the z-matrix
+    geo = apply_zmatrix_conversion(geo, zc_, gra=orig_gra)
     zma = automol.zmat.base.from_geometry(vma, geo)
 
-    return zma, dc_
+    return zma, zc_
 
 
 def x2z_zmatrix(geo, ts_bnds=()):
@@ -786,14 +786,14 @@ def x2z_torsion_coordinate_names(geo, ts_bnds=()):
 
 
 # # derived operations
-def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
-    """Apply a dummy conversion to this geometry, inserting dummy atoms and
-    reordering as described in a dummy conversion data structure
+def apply_zmatrix_conversion(geo, zc_: ZmatConv, gra=None, dist: float = 1.0):
+    """Apply a z-matrix conversion to this geometry, inserting dummy atoms and
+    reordering as described in a z-matrix conversion data structure
 
     :param geo: A molecular geometry
     :type geo: automol geom data structure
-    :param dc_: A dummy conversion
-    :type dc_: DummyConv
+    :param zc_: A z-matrix conversion
+    :type zc_: ZmatConv
     :param gra: A molecular graph, defaults to None
     :type gra: automol graph data structure, optional
     :param dist: The distance of the dummy atom to its parent atom, in Angstroms,
@@ -802,20 +802,20 @@ def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
     :returns: The transformed molecular geometry
     :rtype: automol geom data structure
     """
-    idxs = dummy_conv.dummy_parent_keys(dc_, original=True)
+    idxs = zmat_conv.dummy_parent_keys(zc_, "geom")
     gra = graph_without_stereo(geo) if gra is None else gra
 
     assert not set(idxs) & set(
-        automol.graph.base.dummy_parent_keys(gra).values()
+        automol.graph.base.dummy_parent_dict(gra).values()
     ), f"Attempting to add dummy atoms on atoms that already have them {geo}"
 
     # Partition parent atoms into adjacent segments
     seg_idxs_lst = automol.graph.base.linear_segments_atom_keys(gra, lin_keys=idxs)
 
-    # Build an initial dummy conversion data structure to describe the insertion
-    nk0s = count(geo)
-    k0ps = list(itertools.chain(*seg_idxs_lst))
-    dc0 = dummy_conv.from_original_dummy_parent_keys(nk0s, k0ps, insert=False)
+    # Build an initial z-matrix conversion data structure to describe the insertion
+    nreal = count(geo)
+    parent_gkeys = list(itertools.chain(*seg_idxs_lst))
+    zc0 = zmat_conv.from_geom_dummy_parent_keys(nreal, parent_gkeys, insert=False)
 
     # Identify a perpendicular direction for each segment and insert the dummy atoms
     # (Parent atom indices don't change, since the dummy atoms are added to the end)
@@ -827,23 +827,23 @@ def apply_dummy_conversion(geo, dc_: DummyConv, gra=None, dist: float = 1.0):
             geo = insert(geo, "X", xyz, angstrom=True)
 
     # Reorder the geometry to match the desired conversion
-    geo = reorder(geo, dummy_conv.isomorphism(dc0, dc_))
+    geo = reorder(geo, zmat_conv.isomorphism(zc0, zc_))
     return geo
 
 
-def reverse_dummy_conversion(geo, dc_: DummyConv):
-    """Reverse a dummy conversion of this geometry, removing dummy atoms and
+def reverse_zmatrix_conversion(geo, zc_: ZmatConv):
+    """Reverse a z-matrix conversion of this geometry, removing dummy atoms and
     reversing any reordering
 
     :param geo: A molecular geometry
     :type geo: automol geom data structure
-    :param dc_: A dummy conversion
-    :type dc_: DummyConv
+    :param zc_: A z-matrix conversion
+    :type zc_: ZmatConv
     :returns: The transformed molecular geometry
     :rtype: automol geom data structure
     """
-    rel_dct = dummy_conv.relabel_dict(dc_, rev=True)
-    idxs = dummy_conv.real_keys(dc_, original=False)
+    rel_dct = zmat_conv.relabel_dict(zc_, rev=True)
+    idxs = zmat_conv.real_keys(zc_, "zmat")
     idxs = sorted(idxs, key=rel_dct.__getitem__)
     return subgeom(geo, idxs)
 

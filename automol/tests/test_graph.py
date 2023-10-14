@@ -934,12 +934,12 @@ def test__species__graph_conversion():
     gra = automol.geom.graph(geo)
 
     zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
-    zgra = automol.graph.apply_dummy_conversion(gra, dc_)
+    zgra = automol.graph.apply_zmatrix_conversion(gra, dc_)
     assert zgra != gra
 
-    geo_ = automol.zmat.geometry(zma, dc_=dc_)
+    geo_ = automol.zmat.geometry(zma, zc_=dc_)
     gra_ = automol.geom.graph(geo_, stereo=False)
-    assert gra == gra_ == automol.graph.reverse_dummy_conversion(zgra, dc_)
+    assert gra == gra_ == automol.graph.reverse_zmatrix_conversion(zgra, dc_)
 
     # extra test case from Luna
     ich = 'InChI=1S/C11H8/c1-3-10(4-2)11-8-6-5-7-9-11/h1,5-9H,2H2'
@@ -947,12 +947,12 @@ def test__species__graph_conversion():
     gra = automol.geom.graph(geo)
 
     zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
-    zgra = automol.graph.apply_dummy_conversion(gra, dc_)
+    zgra = automol.graph.apply_zmatrix_conversion(gra, dc_)
     assert zgra != gra
 
-    geo_ = automol.zmat.geometry(zma, dc_=dc_)
+    geo_ = automol.zmat.geometry(zma, zc_=dc_)
     gra_ = automol.geom.graph(geo_, stereo=False)
-    assert gra == gra_ == automol.graph.reverse_dummy_conversion(zgra, dc_)
+    assert gra == gra_ == automol.graph.reverse_zmatrix_conversion(zgra, dc_)
 
 
 # stereo graph library

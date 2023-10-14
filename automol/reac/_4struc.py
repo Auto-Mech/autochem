@@ -21,7 +21,7 @@ from automol.reac._0core import (
     ts_structure,
     without_stereo,
 )
-from automol.util import DummyConv, dict_, dummy_conv
+from automol.util import ZmatConv, dict_, zmat_conv
 
 
 def with_structures(
@@ -29,8 +29,8 @@ def with_structures(
     struc_typ: str,
     rct_strucs=None,
     prd_strucs=None,
-    rct_dcs=None,
-    prd_dcs=None,
+    rct_zcs=None,
+    prd_zcs=None,
 ) -> Reaction:
     """Convert 'geom' structures to 'zmat', or convert 'zmat' structures to 'geom',
     updating graphs and reagent keys accordingly
@@ -43,10 +43,10 @@ def with_structures(
     :type rct_strucs: List[automol geom or zmat data structure]
     :param prd_strucs: Specify the product structures
     :type prd_strucs: List[automol geom or zmat data structure]
-    :param rct_dcs: Specify the reactant z-matrix conversions, defaults to None
-    :type rct_dcs: List[DummyConv], optional
-    :param prd_dcs: Specify the product z-matrix conversions, defaults to None
-    :type prd_dcs: List[DummyConv], optional
+    :param rct_zcs: Specify the reactant z-matrix conversions, defaults to None
+    :type rct_zcs: List[ZmatConv], optional
+    :param prd_zcs: Specify the product z-matrix conversions, defaults to None
+    :type prd_zcs: List[ZmatConv], optional
     :return: The new reaction object
     :rtype: Reaction
     """
@@ -69,8 +69,8 @@ def with_structures(
             rxn,
             rct_zmas=rct_strucs,
             prd_zmas=prd_strucs,
-            rct_dcs=rct_dcs,
-            prd_dcs=prd_dcs,
+            rct_zcs=rct_zcs,
+            prd_zcs=prd_zcs,
         )
     # If the Reaction already has this structure type, and no structures were passed in,
     # return as-is
@@ -84,8 +84,8 @@ def with_structures(
             rxn,
             rct_zmas=rct_strucs,
             prd_zmas=prd_strucs,
-            rct_dcs=rct_dcs,
-            prd_dcs=prd_dcs,
+            rct_zcs=rct_zcs,
+            prd_zcs=prd_zcs,
         )
     # If we are converting geom => z-matrix, handle that case
     elif struc_typ == "geom" and orig_struc_typ == "zmat":
@@ -94,8 +94,8 @@ def with_structures(
             rxn,
             rct_geos=rct_strucs,
             prd_geos=prd_strucs,
-            rct_dcs=rct_dcs,
-            prd_dcs=prd_dcs,
+            rct_zcs=rct_zcs,
+            prd_zcs=prd_zcs,
         )
 
     return rxn_
@@ -137,41 +137,39 @@ def _with_zmat_structures(
     rxn: Reaction,
     rct_zmas=None,
     prd_zmas=None,
-    rct_dcs: List[DummyConv] = None,
-    prd_dcs: List[DummyConv] = None,
+    rct_zcs: List[ZmatConv] = None,
+    prd_zcs: List[ZmatConv] = None,
 ) -> Reaction:
     """Add structures to a Reaction object
 
     :param rxn: The reaction object
     :type rxn: Reaction
-    :param rct_zmas: Optionally, specify the reactant z-matrices
+    :param rct_zmas: Reactant z-matrices, defaults to None
     :type rct_zmas: List[automol zmat data structure]
-    :param prd_zmas: Optionally, specify the product z-matrices
+    :param prd_zmas: Product z-matrices, defaults to None
     :type prd_zmas: List[automol zmat data structure]
-    :param rct_dcs: Optionally, specify dummy conversions for the z-matrices relative to
-        the reactant keys, defaults to None
-    :type rct_dcs: List[DummyConv], optional
-    :param prd_dcs: Optionally, specify dummy conversions for the z-matrices relative to
-        the product keys, defaults to None
-    :type prd_dcs: List[DummyConv], optional
+    :param rct_zcs: Z-matrix conversions for reactant structures, defaults to None
+    :type rct_zcs: List[ZmatConv], optional
+    :param prd_zcs: Z-matrix conversions for product structures, defaults to None
+    :type prd_zcs: List[ZmatConv], optional
     :returns: A new reaction object
     :rtype: Reaction
     """
 
-    def _reagent_geometries(zmas, dcs):
+    def _reagent_geometries(zmas, zcs):
         if zmas is None:
             return None
 
-        dcs = [None] * len(zmas) if dcs is None else dcs
-        geos = [zmat.geometry(z, dc_=d) for z, d in zip(zmas, dcs)]
+        zcs = [None] * len(zmas) if zcs is None else zcs
+        geos = [zmat.geometry(zma, zc_=zc) for zma, zc in zip(zmas, zcs)]
         return geos
 
-    rct_geos = _reagent_geometries(rct_zmas, rct_dcs)
-    prd_geos = _reagent_geometries(prd_zmas, prd_dcs)
+    rct_geos = _reagent_geometries(rct_zmas, rct_zcs)
+    prd_geos = _reagent_geometries(prd_zmas, prd_zcs)
 
     grxn = _with_geom_structures(rxn, rct_geos=rct_geos, prd_geos=prd_geos)
     zrxn = _convert_geom_to_zmat_structures(
-        grxn, rct_zmas=rct_zmas, prd_zmas=prd_zmas, rct_dcs=rct_dcs, prd_dcs=prd_dcs
+        grxn, rct_zmas=rct_zmas, prd_zmas=prd_zmas, rct_zcs=rct_zcs, prd_zcs=prd_zcs
     )
     return zrxn
 
@@ -180,23 +178,21 @@ def _convert_geom_to_zmat_structures(
     rxn: Reaction,
     rct_zmas=None,
     prd_zmas=None,
-    rct_dcs: List[DummyConv] = None,
-    prd_dcs: List[DummyConv] = None,
+    rct_zcs: List[ZmatConv] = None,
+    prd_zcs: List[ZmatConv] = None,
 ) -> Reaction:
     """Convert a reaction with 'geom' structures to 'zmat' structures
 
     :param rxn: The reaction object
     :type rxn: Reaction
-    :param rct_zmas: Optionally, specify the reactant z-matrices, defaults to None
-    :type rct_zmas: List[automol zmat data structure], optional
-    :param prd_zmas: Optionally, specify the product z-matrices, defaults to None
-    :type prd_zmas: List[automol zmat data structure], optional
-    :param rct_dcs: Optionally, specify dummy conversions for the z-matrices relative to
-        the reactant geometries, defaults to None
-    :type rct_dcs: List[DummyConv], optional
-    :param prd_dcs: Optionally, specify dummy conversions for the z-matrices relative to
-        the product geometries, defaults to None
-    :type prd_dcs: List[DummyConv], optional
+    :param rct_zmas: Reactant z-matrices, defaults to None
+    :type rct_zmas: List[automol zmat data structure]
+    :param prd_zmas: Product z-matrices, defaults to None
+    :type prd_zmas: List[automol zmat data structure]
+    :param rct_zcs: Z-matrix conversions for reactant structures, defaults to None
+    :type rct_zcs: List[ZmatConv], optional
+    :param prd_zcs: Z-matrix conversions for product structures, defaults to None
+    :type prd_zcs: List[ZmatConv], optional
     :return: The new reaction object
     :rtype: Reaction
     """
@@ -206,55 +202,56 @@ def _convert_geom_to_zmat_structures(
     ts_geo = ts_structure(rxn)
 
     # Convert the TS geometry
-    ts_zma, ts_dc = geom.zmatrix_with_conversion_info(ts_geo, gra=tsg0)
-    tsg = graph.apply_dummy_conversion(tsg0, ts_dc)
+    ts_zma, ts_zc = geom.zmatrix_with_conversion_info(ts_geo, gra=tsg0)
+    tsg = graph.apply_zmatrix_conversion(tsg0, ts_zc)
 
     # Get the z-matrices and updated keys for each set of reagents
-    def _reagent_zmats_conversions_and_keys(geos, gras, zmas, dcs, typ):
+    def _reagent_zmats_conversions_and_keys(geos, gras, zmas, zcs, typ):
         # 1. Convert the reagent geometries and get the conversion info
         if zmas is None:
-            zmas, dcs = zip(
+            zmas, zcs = zip(
                 *(geom.zmatrix_with_conversion_info(*gg) for gg in zip(geos, gras))
             )
-        elif dcs is None:
-            # Otherwise, get the dummy conversions for the provided reagent z-matrices
-            dcs = tuple(map(zmat.dummy_conversion, zmas))
+        elif zcs is None:
+            # Otherwise, get the conversions for the provided reagent z-matrices
+            zcs = tuple(map(zmat.conversion_info, zmas))
 
-        # 2. Use the conversion info to determine the updated reagent keys
-        keys_lst = []
-        start = 0
-        for dc_ in dcs:
-            # a. Shift the reagent keys
-            dc_ = dummy_conv.shift(dc_, start, original=True)
+        raise NotImplementedError("This code needs to be rewritten")
+        # # 2. Use the conversion info to determine the updated reagent keys
+        # keys_lst = []
+        # start = 0
+        # for zc_ in zcs:
+        #     # a. Shift the reagent keys
+        #     zc_ = zmat_conv.shift(zc_, start, original=True)
 
-            # b. Update the starting index for the next reagent
-            start = max(dummy_conv.real_keys(dc_, original=True)) + 1
+        #     # b. Update the starting index for the next reagent
+        #     start = max(zmat_conv.real_keys(zc_, "geom")) + 1
 
-            # c. Map the reagent keys onto the TS keys
-            dc_ = dummy_conv.relabel(dc_, mapping(rxn, typ, "T"), original=True)
+        #     # c. Map the reagent keys onto the TS keys
+        #     zc_ = zmat_conv.relabel(zc_, mapping(rxn, typ, "T"), original=True)
 
-            # d. Find the subgraph isomorphism for this reagent's final keys onto the
-            # final TS keys
-            iso_dct = dummy_conv.subgraph_isomorphism(ts_dc, dc_)
-            keys = dict_.keys_sorted_by_value(iso_dct)
+        #     # d. Find the subgraph isomorphism for this reagent's final keys onto the
+        #     # final TS keys
+        #     iso_dct = zmat_conv.subgraph_isomorphism(ts_zc, zc_)
+        #     keys = dict_.keys_sorted_by_value(iso_dct)
 
-            # e. Save the results
-            keys_lst.append(keys)
+        #     # e. Save the results
+        #     keys_lst.append(keys)
 
-        return zmas, dcs, keys_lst
+        # return zmas, zcs, keys_lst
 
-    rct_zmas, rct_dcs, rcts_keys = _reagent_zmats_conversions_and_keys(
+    rct_zmas, rct_zcs, rcts_keys = _reagent_zmats_conversions_and_keys(
         geos=reactant_structures(rxn),
         gras=reactant_graphs(rxn),
         zmas=rct_zmas,
-        dcs=rct_dcs,
+        zcs=rct_zcs,
         typ="R",
     )
-    prd_zmas, prd_dcs, prds_keys = _reagent_zmats_conversions_and_keys(
+    prd_zmas, prd_zcs, prds_keys = _reagent_zmats_conversions_and_keys(
         geos=product_structures(rxn),
         gras=product_graphs(rxn),
         zmas=prd_zmas,
-        dcs=prd_dcs,
+        zcs=prd_zcs,
         typ="P",
     )
 
@@ -267,9 +264,9 @@ def _convert_geom_to_zmat_structures(
         rct_strucs=rct_zmas,
         prd_strucs=prd_zmas,
         struc_typ="zmat",
-        ts_dc=ts_dc,
-        rct_dcs=rct_dcs,
-        prd_dcs=prd_dcs,
+        ts_zc=ts_zc,
+        rct_zcs=rct_zcs,
+        prd_zcs=prd_zcs,
     )
 
 
@@ -277,23 +274,21 @@ def _convert_zmat_to_geom_structures(
     rxn: Reaction,
     rct_geos=None,
     prd_geos=None,
-    rct_dcs: List[DummyConv] = None,
-    prd_dcs: List[DummyConv] = None,
+    rct_zcs: List[ZmatConv] = None,
+    prd_zcs: List[ZmatConv] = None,
 ) -> Reaction:
     """Convert a reaction with 'zmat' structures to 'geom' structures
 
     :param rxn: The reaction object
     :type rxn: Reaction
-    :param rct_geos: Optionally, specify the reactant geometries, defaults to None
-    :type rct_geos: List[automol zmat data structure], optional
-    :param prd_geos: Optionally, specify the product geometries, defaults to None
-    :type prd_geos: List[automol zmat data structure], optional
-    :param rct_dcs: Optionally, specify dummy conversions for the geometries relative to
-        the reactant z-matrices, defaults to None
-    :type rct_dcs: List[DummyConv], optional
-    :param prd_dcs: Optionally, specify dummy conversions for the geometries relative to
-        the product z-matrices, defaults to None
-    :type prd_dcs: List[DummyConv], optional
+    :param rct_geos: Reactant geometries, defaults to None
+    :type rct_geos: List[automol geom data structure]
+    :param prd_geos: Product geometries, defaults to None
+    :type prd_geos: List[automol geom data structure]
+    :param rct_zcs: Z-matrix conversions for reactant structures, defaults to None
+    :type rct_zcs: List[ZmatConv], optional
+    :param prd_zcs: Z-matrix conversions for product structures, defaults to None
+    :type prd_zcs: List[ZmatConv], optional
     :return: The new reaction object
     :rtype: Reaction
     """
@@ -303,40 +298,21 @@ def _convert_zmat_to_geom_structures(
     ts_zma = ts_structure(rxn)
 
     # Convert the TS z-matrix
-    ts_dc = ts_conversion_info(rxn)
-    ts_geo, ts_dc = zmat.geometry_with_conversion_info(ts_zma, dc_=ts_dc)
-    tsg = graph.reverse_dummy_conversion(tsg0, ts_dc)
+    ts_zc = ts_conversion_info(rxn)
+    ts_geo, ts_zc = zmat.geometry_with_conversion_info(ts_zma, zc_=ts_zc)
+    tsg = graph.reverse_zmatrix_conversion(tsg0, ts_zc)
 
-    def _reagent_geoms_conversions_and_keys(zmas, gras, geos, dcs, typ):
+    def _reagent_geoms_conversions_and_keys(zmas, gras, geos, zcs, typ):
         # 1. Convert the reagent z-matrices and get the conversion info
         if geos is None:
-            geos, dcs = zip(
+            geos, zcs = zip(
                 *(
-                    zmat.geometry_with_conversion_info(z, dc_=d)
-                    for z, d in zip(zmas, dcs)
+                    zmat.geometry_with_conversion_info(zma, zc_=zc)
+                    for zma, zc in zip(zmas, zcs)
                 )
             )
-        elif dcs is None:
-            dcs = tuple(map(zmat.geometry_with_conversion_info, zmas))
-
-        # Need to account for extra shifts due to additional dummy atoms in the TS
-
-        # # 2. Use the conversion info to determine the updated reagent keys
-        # keys_lst = []
-        # start = 0
-        # for dc_ in dcs:
-        #     # a. Shift the reagent keys
-        #     dc_ = dummy_conv.shift(dc_, start, original=False)
-
-        #     # b. Update the starting index for the next reagent
-        #     start0 = max(dummy_conv.real_keys(dc_, original=True)) + 1
-        #     start = max(dc_)
-
-        #     # c. Map the current reagent keys onto the current TS keys
-        #     dc_ = dummy_conv.relabel(dc_, mapping(rxn, typ, "T"), original=False)
-
-        #     # d. Get the relabelling from z-matrix TS keys back to geometry TS keys
-        #     rel_dct = dummy_conv.relabel_dict(dc_)
+        elif zcs is None:
+            zcs = tuple(map(zmat.geometry_with_conversion_info, zmas))
 
 
 def ts_geometry_from_reactants(

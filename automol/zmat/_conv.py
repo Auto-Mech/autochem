@@ -5,9 +5,9 @@ import itertools
 import numpy
 
 from automol import geom, graph as graph_, util
-from automol.util import DummyConv
+from automol.util import ZmatConv
 from automol.zmat.base import (
-    dummy_conversion,
+    conversion_info,
     key_matrix,
     name_matrix,
     string,
@@ -55,16 +55,16 @@ def graph_without_stereo(zma, dummy=False, dist_factor=None):
     return gra
 
 
-def geometry(zma, dummy=False, dc_: DummyConv = None):
+def geometry(zma, dummy=False, zc_: ZmatConv = None):
     """Convert a Z-Matrix to a molecular geometry that includes dummy atoms.
 
     :param zma: Z-Matrix
     :type zma: automol Z-Matrix data structure
     :param dummy: include dummy atoms in the geometry?
     :type dummy: bool
-    :param dc_: Restore the original geometry before conversion by reversing the
-        corresponding dummy conversion; defaults to None
-    :type dc_: DummyConv, optional
+    :param zc_: Restore the original geometry before conversion by reversing the
+        corresponding z-matrix conversion; defaults to None
+    :type zc_: ZmatConv, optional
     :returns: automol molecular geometry data structure
     """
 
@@ -85,25 +85,25 @@ def geometry(zma, dummy=False, dc_: DummyConv = None):
 
     geo = geom.from_data(syms, xyzs)
 
-    if dc_ is not None:
-        geo = geom.reverse_dummy_conversion(geo, dc_)
+    if zc_ is not None:
+        geo = geom.reverse_zmatrix_conversion(geo, zc_)
     elif not dummy:
         geo = geom.without_dummy_atoms(geo)
 
     return geo
 
 
-def geometry_with_conversion_info(zma, dc_: DummyConv = None):
-    """Convert a Z-Matrix to a molecular geometry, along with a dummy conversion
+def geometry_with_conversion_info(zma, zc_: ZmatConv = None):
+    """Convert a Z-Matrix to a molecular geometry, along with a z-matrix conversion
     data structure describing the conversion
 
     :param zma: Z-Matrix
     :type zma: automol Z-Matrix data structure
     :returns: automol molecular geometry data structure
     """
-    dc_ = dummy_conversion(zma) if dc_ is None else dc_
-    geo = geometry(zma, dummy=False, dc_=dc_)
-    return geo, dc_
+    zc_ = conversion_info(zma) if zc_ is None else zc_
+    geo = geometry(zma, dummy=False, zc_=zc_)
+    return geo, zc_
 
 
 def rdkit_molecule(zma, gra=None, stereo=True):

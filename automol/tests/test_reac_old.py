@@ -217,7 +217,7 @@ def test__reac__2ts_hydrogen_migration():
     rxn1, ts_geo1, _, _ = rxn_objs[0]
     assert automol.reac.class_(rxn1) == ReactionClass.Typ.HYDROGEN_MIGRATION
     zma1, dc1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
-    zrxn1 = automol.reac.apply_dummy_conversion(rxn1, dc1)
+    zrxn1 = automol.reac.apply_zmatrix_conversion(rxn1, dc1)
     print(zrxn1)
 
     bnd_keys1 = automol.reac.rotational_bond_keys(zrxn1)
@@ -234,7 +234,7 @@ def test__reac__2ts_hydrogen_migration():
     rxn2, ts_geo2, _, _ = rxn_objs[1]
     assert automol.reac.class_(rxn2) == ReactionClass.Typ.HYDROGEN_MIGRATION
     zma2, dc2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
-    zrxn2 = automol.reac.apply_dummy_conversion(rxn2, dc2)
+    zrxn2 = automol.reac.apply_zmatrix_conversion(rxn2, dc2)
 
     bnd_keys2 = automol.reac.rotational_bond_keys(zrxn2)
     names2 = {
@@ -609,7 +609,7 @@ def test__reac_util():
         rct_smis, prd_smis)
     rxn, geo, _, _ = rxn_objs[0]
     _, dc1 = automol.reac.ts_zmatrix(rxn, geo)
-    zrxn1 = automol.reac.apply_dummy_conversion(rxn, dc1)
+    zrxn1 = automol.reac.apply_zmatrix_conversion(rxn, dc1)
 
     zrxn_objs = automol.reac.with_structures_from_smiles(
         rct_smis, prd_smis, zmat=True)
@@ -734,7 +734,7 @@ def _check_reaction(rxn_obj, ref_class, var,
 
     # Build Reaction object aligned to z-matrix keys
     zma, dc_ = automol.reac.ts_zmatrix(rxn, geo)
-    zrxn = automol.reac.apply_dummy_conversion(rxn, dc_)
+    zrxn = automol.reac.apply_zmatrix_conversion(rxn, dc_)
 
     # print(automol.zmat.string(zma))
     # print(zrxn)
@@ -786,11 +786,6 @@ def _check_reaction(rxn_obj, ref_class, var,
         assert tors_names == ref_tors_names
     if ref_tors_names is not None:
         assert tors_symms == ref_tors_symms
-
-    # Check that zrxn -> grxn -> zrxn conversion holds
-    old_zrxn = zrxn
-    zrxn = automol.reac.insert_dummy_atoms(grxn, gdc)
-    assert zrxn == old_zrxn
 
 
 def _check_products(rct_gras, rxn_class_typ, num_rxns):
