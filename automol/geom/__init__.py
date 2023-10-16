@@ -113,7 +113,8 @@ from automol.geom._conv import py3dmol_view
 from automol.geom._conv import display
 # # derived properties
 from automol.geom._conv import linear_atoms
-from automol.geom._conv import closest_unbonded_atoms
+from automol.geom._conv import closest_unbonded_atom
+from automol.geom._conv import is_closest_unbonded_pair
 from automol.geom._conv import ts_reacting_electron_direction
 from automol.geom._conv import external_symmetry_factor
 from automol.geom._conv import x2z_torsion_coordinate_names
@@ -241,7 +242,8 @@ __all__ = [
     'display',
     # # derived properties
     'linear_atoms',
-    'closest_unbonded_atoms',
+    'closest_unbonded_atom',
+    'is_closest_unbonded_pair',
     'ts_reacting_electron_direction',
     'external_symmetry_factor',
     'x2z_torsion_coordinate_names',

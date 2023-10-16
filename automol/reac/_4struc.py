@@ -430,7 +430,7 @@ def ts_geometry_from_reactants(
     rxn: Reaction,
     rct_geos,
     stereo=True,
-    max_dist_err=2e-1,
+    max_dist_err=0.2,
     log=False,
 ):
     """Generate a TS geometry for this reaction object

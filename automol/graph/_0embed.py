@@ -24,7 +24,6 @@ Step 1 is performed by the function distance_bounds_matrices() below.
 Steps 2-6 are performed by the function automol.embed.sample_raw_distance_coordinates()
 Step 7 is performed byt the function automol.embed.cleaned_up_coordinates()
 """
-
 import itertools
 
 import numpy
@@ -64,6 +63,7 @@ from automol.graph.base import (
     subgraph,
     to_local_stereo,
     ts,
+    without_bonds_by_orders,
     without_stereo,
 )
 from automol.util import dict_, heuristic
@@ -138,7 +138,7 @@ def clean_geometry(
     geo,
     rct_geos=None,
     dist_range_dct=None,
-    max_dist_err=2e-1,
+    max_dist_err=0.2,
     stereo=True,
     local_stereo=False,
     relax_angles=False,
@@ -233,7 +233,13 @@ def clean_geometry(
     return geo
 
 
-def geometry_matches(gra, geo, stereo=True, local_stereo=False) -> bool:
+def geometry_matches(
+    gra,
+    geo,
+    stereo: bool = True,
+    local_stereo: bool = False,
+    check_ts_bonds: bool = True,
+) -> bool:
     """Check whether a geometry matches the graph
 
     :param gra: molecular graph with stereo parities
@@ -244,18 +250,39 @@ def geometry_matches(gra, geo, stereo=True, local_stereo=False) -> bool:
     :type stereo: bool, optional
     :param local_stereo: Does the graph have local stereo assignments? defaults to False
     :type local_stereo: bool, optional
+    :param check_ts_bonds: Check reacting bonds for TS graphs? If `True`, this will
+        check that the atoms in reacting bonds are the closest atoms to each other
+    :type check_ts_bonds: bool, optional
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
     cgra = without_stereo(gra)
-    cgra_ = geom.graph_without_stereo(geo)
+    orig_cgra_ = geom.graph_without_stereo(geo)
 
+    cgra_ = orig_cgra_
     if is_ts_graph(cgra):
         r_bkeys = ts.reacting_bond_keys(cgra)
         r_ord_dct = dict_.by_key(bond_orders(cgra), r_bkeys)
         cgra_ = add_bonds(cgra_, keys=r_bkeys, ord_dct=r_ord_dct, check=False)
 
+    # 1. Check that the connectivities match
     matches = cgra == cgra_
+
+    # 2. Check that the TS reacting bonds look reasonable
+    if is_ts_graph(cgra) and check_ts_bonds:
+        brk_bkeys = ts.breaking_bond_keys(cgra)
+        frm_bkeys = ts.forming_bond_keys(cgra)
+
+        # 1. Check that the breaking bond pairs are bonded in the geometry
+        bkeys = bond_keys(orig_cgra_)
+        matches &= all(bk in bkeys for bk in brk_bkeys)
+
+        # 2. Check that the forming bond pairs form closest non-bonded pairs
+        no_fb_cgra_ = without_bonds_by_orders(orig_cgra_, [0.1])
+        for bkey in frm_bkeys:
+            matches &= geom.is_closest_unbonded_pair(geo, *bkey, gra=no_fb_cgra_)
+
+    # 3. Check that the stereo parities match
     if stereo:
         gra = gra if local_stereo else to_local_stereo(gra)
         gra_ = set_stereo_from_geometry(cgra_, geo, local_stereo=True)

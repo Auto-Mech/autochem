@@ -43,11 +43,17 @@ from automol.util import vec
 
 
 # # conversions
-def geometry(gra, check=True, log=False):
+def geometry(gra, fdist_factor=1.1, bdist_factor=0.9, check=True, log=False):
     """Convert a molecular graph to a molecular geometry.
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param fdist_factor: For a TS graph, set the forming bond distance to this times
+        the average van der Waals radius, defaults to 1.1
+    :type fdist_factor: float, optional
+    :param bdist_factor: For a TS graph, set the breaking bond distance to this times
+        the average van der Waals radius, defaults to 0.9
+    :type bdist_factor: float, optional
     :param check: Check stereo and connectivity? defaults to True
     :type check: bool, optional
     :param log: Log information to the screen? defaults to False
@@ -72,7 +78,15 @@ def geometry(gra, check=True, log=False):
 
     if is_ts:
         geo_idx_dct = dict(map(reversed, gra_key_dct.items()))
-        geo = ts_geometry_from_reactants(tsg, geos, geo_idx_dct=geo_idx_dct)
+        geo = ts_geometry_from_reactants(
+            tsg,
+            geos,
+            geo_idx_dct=geo_idx_dct,
+            fdist_factor=fdist_factor,
+            bdist_factor=bdist_factor,
+            check=check,
+            log=log,
+        )
     else:
         geo = geom.reorder(geo, gra_key_dct)
 
@@ -341,7 +355,8 @@ def ts_geometry_from_reactants(
     geo_idx_dct=None,
     fdist_factor=1.1,
     bdist_factor=0.9,
-    max_dist_err=2e-1,
+    max_dist_err=0.2,
+    check=True,
     log=False,
 ):
     """Generate a TS geometry from reactants
@@ -361,6 +376,8 @@ def ts_geometry_from_reactants(
     :type bdist_factor: float, optional
     :param max_dist_err: The distance convergence threshold, in angstroms
     :type max_dist_err: float, optional
+    :param check: Check stereo and connectivity? defaults to True
+    :type check: bool, optional
     :param log: Print optimization log?, defaults to False
     :type log: bool, optional
     :return: TS geometry
@@ -408,7 +425,7 @@ def ts_geometry_from_reactants(
         max_dist_err=max_dist_err,
         relax_angles=ts.has_reacting_ring(tsg),
         local_stereo=True,
-        none_if_failed=True,
+        none_if_failed=check,
         log=log,
     )
 

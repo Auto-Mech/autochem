@@ -519,11 +519,12 @@ def test__closest_unbonded_atoms():
     """ test geom.closest_unbonded_atoms
     """
 
-    ref_bnd_key = frozenset({1, 5})
+    ref_idx = 5
     ref_dist_val = 3.8991097995323956
-    bnd_key, dist_val = automol.geom.closest_unbonded_atoms(C2H2CLF_GEO)
+    idx, dist_val = automol.geom.closest_unbonded_atom(C2H2CLF_GEO, 1)
 
-    assert bnd_key == ref_bnd_key
+    print(idx, dist_val)
+    assert idx == ref_idx
     assert numpy.isclose(dist_val, ref_dist_val)
 
 
@@ -746,7 +747,7 @@ def test__chi_with_sort():
 
 if __name__ == '__main__':
     # __align()
-    test__change_zmatrix_row_values()
+    # test__change_zmatrix_row_values()
     # test__inchi_with_sort()
     # test__amchi_with_sort()
     # test__chi_with_sort()
@@ -756,4 +757,5 @@ if __name__ == '__main__':
     # test__hydrogen_bonded_structure()
     # test__from_string()
     # test__from_xyz_string()
-    test__insert_dummies()
+    # test__insert_dummies()
+    test__closest_unbonded_atoms()
