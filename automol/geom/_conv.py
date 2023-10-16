@@ -1,7 +1,7 @@
 """ Level 4 geometry functions
 """
-
 import itertools
+from typing import Tuple
 
 import numpy
 import pyparsing as pp
@@ -619,35 +619,51 @@ def linear_atoms(geo, gra=None, tol=5.0):
     return lin_idxs
 
 
-def closest_unbonded_atoms(geo, gra=None):
-    """Determine which pair of unbonded atoms in a molecular geometry
-    are closest together.
+def closest_unbonded_atom(geo, idx, gra=None, angstrom=False) -> Tuple[int, float]:
+    """For a specific atom in a geometry, find the closest unbonded atom
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
+    :param idx: The atom to do this for
+    :type idx: int
     :param gra: the graph describing connectivity; if None, a connectivity
         graph will be generated using default distance thresholds
     :type gra: automol graph data structure
-    :rtype: (frozenset(int), float)
+    :param angstrom: parameter to control conversion to Angstrom
+    :type angstrom: bool
+    :returns: The index of the closest atom, along with the distance
+    :rtype: Tuple[int, float]
     """
-
     gra = graph_without_stereo(geo) if gra is None else gra
-    atm_keys = graph_base.atom_keys(gra)
-    bnd_keys = graph_base.bond_keys(gra)
-    poss_bnd_keys = set(map(frozenset, itertools.combinations(atm_keys, r=2)))
+    idxs = graph_base.atom_keys(gra)
+    idxs -= {idx}
+    idxs -= graph_base.atom_neighbor_atom_keys(gra, idx)
 
-    # The set of candidates includes all unbonded pairs of atoms
-    cand_bnd_keys = poss_bnd_keys - bnd_keys
+    dist_dct = {i: distance(geo, idx, i, angstrom=angstrom) for i in idxs}
+    min_idx, min_dist = min(dist_dct.items(), key=lambda item: item[1])
+    return min_idx, min_dist
 
-    min_bnd_key = None
-    min_dist_val = 1000.0
-    for bnd_key in cand_bnd_keys:
-        dist_val = distance(geo, *bnd_key)
-        if dist_val < min_dist_val:
-            min_dist_val = dist_val
-            min_bnd_key = bnd_key
 
-    return min_bnd_key, min_dist_val
+def is_closest_unbonded_pair(geo, idx1: int, idx2: int, gra=None) -> bool:
+    """Check whether two atoms are the closest unbonded atoms of each other
+
+    That is, for each atom, the other one is the closest unbonded atom to it
+
+    :param geo: A molecular geometry
+    :type geo: automol geom data structure
+    :param idx1: The first atom index
+    :type idx1: int
+    :param idx2: The second atom index
+    :type idx2: int
+    :param gra: A graph describing connectivity; if None, a connectivity
+        graph will be generated using default distance thresholds
+    :type gra: automol graph data structure
+    :return: `True` if it is, `False` if it isn't
+    :rtype: bool
+    """
+    idx2_, _ = closest_unbonded_atom(geo, idx1, gra=gra)
+    idx1_, _ = closest_unbonded_atom(geo, idx2, gra=gra)
+    return idx1 == idx1_ and idx2 == idx2_
 
 
 def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
