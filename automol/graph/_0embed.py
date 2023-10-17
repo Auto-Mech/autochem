@@ -226,7 +226,7 @@ def clean_geometry(
 
     # If the clean-up failed, return `None`
     if none_if_failed and not geometry_matches(
-        gra, geo, stereo=stereo, local_stereo=True
+        gra, geo, stereo=stereo, local_stereo=True, log=log
     ):
         return None
 
@@ -239,6 +239,7 @@ def geometry_matches(
     stereo: bool = True,
     local_stereo: bool = False,
     check_ts_bonds: bool = True,
+    log: bool = False,
 ) -> bool:
     """Check whether a geometry matches the graph
 
@@ -253,6 +254,8 @@ def geometry_matches(
     :param check_ts_bonds: Check reacting bonds for TS graphs? If `True`, this will
         check that the atoms in reacting bonds are the closest atoms to each other
     :type check_ts_bonds: bool, optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
@@ -267,6 +270,9 @@ def geometry_matches(
 
     # 1. Check that the connectivities match
     matches = cgra == cgra_
+    if log:
+        print("Connectivity matches?", matches)
+        print(f"{cgra}\n == ? \n{cgra_}")
 
     # 2. Check that the TS reacting bonds look reasonable
     if is_ts_graph(cgra) and check_ts_bonds:
@@ -279,8 +285,13 @@ def geometry_matches(
 
         # 2. Check that the forming bond pairs form closest non-bonded pairs
         no_fb_cgra_ = without_bonds_by_orders(orig_cgra_, [0.1])
-        for bkey in frm_bkeys:
-            matches &= geom.is_closest_unbonded_pair(geo, *bkey, gra=no_fb_cgra_)
+        bmatches = [
+            geom.could_be_forming_bond(geo, *b, gra=no_fb_cgra_) for b in frm_bkeys
+        ]
+        matches &= all(bmatches)
+
+        if log:
+            print("TS forming bonds match?", dict(zip(frm_bkeys, bmatches)))
 
     # 3. Check that the stereo parities match
     if stereo:
@@ -291,6 +302,9 @@ def geometry_matches(
         pars = dict_.values_by_key(stereo_parities(gra), ste_keys)
         pars_ = dict_.values_by_key(stereo_parities(gra_), ste_keys)
         matches &= pars == pars_
+
+        if log:
+            print(f"Stereo parities match at {ste_keys}?\n{pars} ==? {pars_}\n")
 
     return matches
 

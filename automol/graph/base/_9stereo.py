@@ -7,14 +7,6 @@ import itertools
 
 import numpy
 
-from automol.graph.base._6canon import (
-    is_canonical_enantiomer,
-    refine_priorities,
-    reflect_local_stereo,
-    stereo_assignment_representation,
-    stereogenic_keys_from_priorities,
-    to_local_stereo,
-)
 from automol.graph.base._0core import (
     atom_keys,
     atom_stereo_keys,
@@ -28,8 +20,18 @@ from automol.graph.base._0core import (
 from automol.graph.base._5geom import (
     geometry_atom_parity,
     geometry_bond_parity,
+    geometry_correct_linear_vinyls,
+    geometry_correct_nonplanar_pi_bonds,
     geometry_pseudorotate_atom,
     geometry_rotate_bond,
+)
+from automol.graph.base._6canon import (
+    is_canonical_enantiomer,
+    refine_priorities,
+    reflect_local_stereo,
+    stereo_assignment_representation,
+    stereogenic_keys_from_priorities,
+    to_local_stereo,
 )
 
 
@@ -140,6 +142,11 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     bnd_keys = bond_stereo_keys(sgr)
     atm_keys = atom_stereo_keys(sgr)
 
+    # 1. Correct linear vinyl groups
+    geo = geometry_correct_linear_vinyls(gra, geo)
+    geo = geometry_correct_nonplanar_pi_bonds(gra, geo)
+
+    # 3. Loop over stereo-sites making corrections where needed
     for bnd_key in bnd_keys:
         curr_par = geometry_bond_parity(gra, geo, bnd_key)
         if curr_par != par_dct[bnd_key]:

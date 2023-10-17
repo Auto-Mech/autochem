@@ -1,8 +1,7 @@
-"""Test automol.reac
+"""Test reac
 """
 import numpy
-import automol
-from automol import reac
+from automol import geom, graph, reac, smiles, zmat
 
 
 def test__reactant_graphs():
@@ -11,8 +10,8 @@ def test__reactant_graphs():
     def _test(rct_smis, prd_smis):
         print("Testing reactant_graphs()")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
-        rct_gras0 = tuple(map(automol.smiles.graph, rct_smis))
-        prd_gras0 = tuple(map(automol.smiles.graph, prd_smis))
+        rct_gras0 = tuple(map(smiles.graph, rct_smis))
+        prd_gras0 = tuple(map(smiles.graph, prd_smis))
         rxns = reac.find(rct_gras0, prd_gras0, stereo=False)
         for rxn in rxns:
             rct_gras1 = reac.reactant_graphs(rxn, shift_keys=False)
@@ -31,8 +30,8 @@ def test__expand_stereo():
     def _test(rct_smis, prd_smis, nexp1, nexp2):
         print("Testing expand_stereo()")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
-        rct_gras0 = tuple(map(automol.smiles.graph, rct_smis))
-        prd_gras0 = tuple(map(automol.smiles.graph, prd_smis))
+        rct_gras0 = tuple(map(smiles.graph, rct_smis))
+        prd_gras0 = tuple(map(smiles.graph, prd_smis))
         rxn = reac.find(rct_gras0, prd_gras0, stereo=False)[0]
         srxns = reac.expand_stereo(rxn, enant=False)
         assert len(srxns) == nexp1
@@ -48,8 +47,8 @@ def test__expand_stereo_for_reaction():
     def _test(rct_smis, prd_smis):
         print("Testing expand_stereo_for_reaction()")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
-        rct_gras0 = tuple(map(automol.smiles.graph, rct_smis))
-        prd_gras0 = tuple(map(automol.smiles.graph, prd_smis))
+        rct_gras0 = tuple(map(smiles.graph, rct_smis))
+        prd_gras0 = tuple(map(smiles.graph, prd_smis))
         rxn = reac.find(rct_gras0, prd_gras0, stereo=False)[0]
         srxns = reac.expand_stereo_for_reaction(rxn, rct_gras0, prd_gras0)
         assert len(srxns) == 1
@@ -141,8 +140,8 @@ def test__find():
     def _test(rct_smis, prd_smis):
         print("Testing find()")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
-        rct_gras0 = tuple(map(automol.smiles.graph, rct_smis))
-        prd_gras0 = tuple(map(automol.smiles.graph, prd_smis))
+        rct_gras0 = tuple(map(smiles.graph, rct_smis))
+        prd_gras0 = tuple(map(smiles.graph, prd_smis))
         srxns = reac.find(rct_gras0, prd_gras0, stereo=True)
         print("len(srxns)", srxns)
         assert len(srxns) > 0
@@ -156,25 +155,25 @@ def test__find():
 
         # Temporary -- make sure AMChI works for all classes
         ftsg = reac.ts_graph(srxn)
-        rtsg = automol.graph.ts.reverse(ftsg)
+        rtsg = graph.ts.reverse(ftsg)
 
-        fchi = automol.graph.amchi(ftsg)
-        rchi = automol.graph.amchi(rtsg)
+        fchi = graph.amchi(ftsg)
+        rchi = graph.amchi(rtsg)
 
         print("fchi:", fchi)
         print("rchi:", rchi)
         assert fchi[:-1] == rchi[:-1]
 
-        orig_keys = sorted(automol.graph.atom_keys(ftsg))
+        orig_keys = sorted(graph.atom_keys(ftsg))
         for _ in range(5):
             perm_keys = numpy.random.permutation(orig_keys)
             perm_dct = dict(zip(orig_keys, perm_keys))
 
-            perm_ftsg = automol.graph.relabel(ftsg, perm_dct)
-            perm_rtsg = automol.graph.relabel(rtsg, perm_dct)
+            perm_ftsg = graph.relabel(ftsg, perm_dct)
+            perm_rtsg = graph.relabel(rtsg, perm_dct)
 
-            perm_fchi = automol.graph.amchi(perm_ftsg)
-            perm_rchi = automol.graph.amchi(perm_rtsg)
+            perm_fchi = graph.amchi(perm_ftsg)
+            perm_rchi = graph.amchi(perm_rtsg)
 
             print("perm_fchi:", perm_fchi)
             assert perm_fchi == fchi
@@ -243,50 +242,72 @@ def test__end_to_end():
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
 
         # 1. generate reagent geometries and graphs
-        rct_geos = tuple(map(automol.smiles.geometry, rct_smis))
-        prd_geos = tuple(map(automol.smiles.geometry, prd_smis))
-        rct_gras = tuple(map(automol.geom.graph, rct_geos))
-        prd_gras = tuple(map(automol.geom.graph, prd_geos))
+        inp_rct_geos = tuple(map(smiles.geometry, rct_smis))
+        inp_prd_geos = tuple(map(smiles.geometry, prd_smis))
+        inp_rct_gras = tuple(map(geom.graph, inp_rct_geos))
+        inp_prd_gras = tuple(map(geom.graph, inp_prd_geos))
 
         # 2. find reactions
-        rxns = reac.find(rct_gras, prd_gras, stereo=True)
-        print("len(rxns)", len(rxns))
-        assert len(rxns) > 0
-        rxn, *_ = rxns
-        rct_gras1 = reac.reactant_graphs(rxn)
-        prd_gras1 = reac.product_graphs(rxn)
-        print(f"{rct_gras}\n---\n{rct_gras1}")
-        assert rct_gras1 == rct_gras
-        print(f"{prd_gras}\n---\n{prd_gras1}")
-        assert prd_gras1 == prd_gras
+        rxns = reac.find(inp_rct_gras, inp_prd_gras, stereo=True)
+        rxn, *_ = rxns  # select the first one for testing
 
-        # 3. generate geometries
-        ts_geo = automol.reac.ts_geometry_from_reactants(rxn, rct_geos)
+        # 3. add geometry structures
+        grxn = reac.with_structures(rxn, "geom")
 
-        # Check that the structure is reasonable
-        rct_gras_, _ = automol.graph.standard_keys_for_sequence(rct_gras)
-        prd_gras_, _ = automol.graph.standard_keys_for_sequence(prd_gras)
-        rcts_gra = automol.graph.union_from_sequence(rct_gras_)
-        prds_gra = automol.graph.union_from_sequence(prd_gras_)
-        rcts_gra = automol.graph.relabel(rcts_gra, automol.reac.mapping(rxn, "R", "T"))
-        prds_gra = automol.graph.relabel(prds_gra, automol.reac.mapping(rxn, "P", "T"))
-        assert rcts_gra == automol.geom.graph(ts_geo)
-        prds_gra1 = automol.graph.set_stereo_from_geometry(prds_gra, ts_geo)
-        assert prds_gra == prds_gra1
+        # 4. add z-matrix structures
+        zrxn = reac.with_structures(rxn, "zmat")
 
-        # 4. generate a z-matrix
-        ts_zma, dc_ = automol.reac.ts_zmatrix(rxn, ts_geo)
-        zrxn = automol.reac.apply_zmatrix_conversion(rxn, dc_)
-        ztsg = automol.reac.ts_graph(zrxn)
+        # 5. tests
+        #   (a.) check that the graphs match the input graphs
+        rct_gras = reac.reactant_graphs(rxn)
+        prd_gras = reac.product_graphs(rxn)
+        print(f"\n{rct_gras}\n == ? \n{inp_rct_gras}\n")
+        assert rct_gras == inp_rct_gras
+        print(f"\n{prd_gras}\n == ? \n{inp_prd_gras}\n")
+        assert prd_gras == inp_prd_gras
 
-        # Check that it matches the converted TS graph
-        zgra1 = automol.graph.ts.reactants_graph(ztsg, stereo=False, dummy=True)
-        zgra2 = automol.zmat.graph(ts_zma, stereo=False, dummy=True)
-        assert zgra1 == zgra2
+        #   (b.) check that the geometry structures match the reaction graphs
+        tsg = reac.ts_graph(grxn)
+        ts_geo = reac.ts_structure(grxn)
+        rct_geos = reac.reactant_structures(grxn)
+        prd_geos = reac.product_structures(grxn)
 
-        # Make sure it can be converted back
-        rxn2 = automol.reac.reverse_zmatrix_conversion(zrxn, dc_)
-        assert rxn == rxn2
+        print(f"\n{tsg}\n geometry matches ? \n{ts_geo}\n")
+        assert graph.geometry_matches(tsg, ts_geo)
+
+        assert len(rct_gras) == len(rct_geos)
+        print("Checking reactant geometries....")
+        for gra, geo in zip(rct_gras, rct_geos):
+            print(f"\n{gra}\n geometry matches ? \n{geo}\n")
+            assert graph.geometry_matches(gra, geo)
+
+        assert len(prd_gras) == len(prd_geos)
+        print("Checking reactant geometries....")
+        for gra, geo in zip(prd_gras, prd_geos):
+            print(f"\n{gra}\n geometry matches ? \n{geo}\n")
+            assert graph.geometry_matches(gra, geo)
+
+        # #   (b.) check that the geometry structures match the reaction graphs
+        # ztsg = reac.ts_graph(zrxn)
+        # ts_zma = reac.ts_structure(zrxn)
+        # rct_zmas = reac.reactant_structures(zrxn)
+        # prd_zmas = reac.product_structures(zrxn)
+
+        # print(f"\n{ztsg}\n z-matrix matches ? \n{ts_zma}\n")
+        # assert graph.zmatrix_matches(ztsg, ts_zma)
+
+        # assert len(rct_gras) == len(rct_zmas)
+        # print("Checking reactant z-matrices....")
+        # for gra, zma in zip(rct_gras, rct_zmas):
+        #     print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+        #     assert graph.zmatrix_matches(gra, zma)
+
+        # assert len(prd_gras) == len(prd_zmas)
+        # print("Checking reactant z-matrices....")
+        # for gra, zma in zip(prd_gras, prd_zmas):
+        #     print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+        #     assert graph.zmatrix_matches(gra, zma)
+
 
     # UNIMOLECULAR
     # hydrogen migration

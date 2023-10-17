@@ -519,13 +519,10 @@ def test__closest_unbonded_atoms():
     """ test geom.closest_unbonded_atoms
     """
 
-    ref_idx = 5
-    ref_dist_val = 3.8991097995323956
-    idx, dist_val = automol.geom.closest_unbonded_atom(C2H2CLF_GEO, 1)
+    dist_dct = automol.geom.closest_unbonded_atom_distances(C8H13O_H2O_GEO, 0)
 
-    print(idx, dist_val)
-    assert idx == ref_idx
-    assert numpy.isclose(dist_val, ref_dist_val)
+    print(dist_dct)    
+    assert set(dist_dct.keys()) == {5, 17, 18, 19}
 
 
 def test__permutations():

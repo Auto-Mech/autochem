@@ -11,7 +11,7 @@ import more_itertools as mit
 import numpy
 from phydat import phycon
 
-import automol.geom.base
+import automol.geom.base as geom_base
 from automol import util
 from automol.graph.base._0core import (
     atom_keys,
@@ -90,7 +90,7 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
     )
 
     # Remove dummy atoms for simplicity
-    geo = automol.geom.base.without_dummy_atoms(geo)
+    geo = geom_base.without_dummy_atoms(geo)
     gra = without_dummy_atoms(gra)
 
     nkeys = atom_stereo_sorted_neighbor_keys(gra, atm_key) if nkeys is None else nkeys
@@ -104,7 +104,7 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
         keys = [atm_key] + list(nkeys)
 
     idxs = list(map(geo_idx_dct.__getitem__, keys))
-    xyzs = automol.geom.base.coordinates(geo, idxs=idxs)
+    xyzs = geom_base.coordinates(geo, idxs=idxs)
     det_mat = numpy.ones((4, 4))
     det_mat[:, 1:] = xyzs
     det_val = numpy.linalg.det(det_mat)
@@ -186,7 +186,7 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     )
 
     # Remove dummy atoms for simplicity
-    geo = automol.geom.base.without_dummy_atoms(geo)
+    geo = geom_base.without_dummy_atoms(geo)
     gra = without_dummy_atoms(gra)
 
     if bnd_nkeys is None:
@@ -204,10 +204,10 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     nidx1 = geo_idx_dct[nkey1s[-1]]
     nidx2 = geo_idx_dct[nkey2s[-1]]
 
-    (xyz1,) = automol.geom.base.coordinates(geo, idxs=(idx1,))
-    (xyz2,) = automol.geom.base.coordinates(geo, idxs=(idx2,))
-    (nxyz1,) = automol.geom.base.coordinates(geo, idxs=(nidx1,))
-    (nxyz2,) = automol.geom.base.coordinates(geo, idxs=(nidx2,))
+    (xyz1,) = geom_base.coordinates(geo, idxs=(idx1,))
+    (xyz2,) = geom_base.coordinates(geo, idxs=(idx2,))
+    (nxyz1,) = geom_base.coordinates(geo, idxs=(nidx1,))
+    (nxyz2,) = geom_base.coordinates(geo, idxs=(nidx2,))
 
     bnd1_vec = numpy.subtract(nxyz1, xyz1)
     bnd2_vec = numpy.subtract(nxyz2, xyz2)
@@ -331,7 +331,7 @@ def linear_segment_dummy_direction(
     assert len(end_keys) == 2, "Sanity check"
 
     # 2. Determine the linear segment direction
-    end_xyzs = automol.geom.base.coordinates(geo, idxs=end_keys)
+    end_xyzs = geom_base.coordinates(geo, idxs=end_keys)
     seg_vec = util.vec.unit_norm(numpy.subtract(*end_xyzs))
 
     # 3. Find an auxiliary, non-parallel direction, if possible
@@ -342,15 +342,15 @@ def linear_segment_dummy_direction(
         # avoids them as much as possible
         nkeys = set(nkeys_dct[tra_key]) - set(tra_dct[tra_key])
         nkey1, nkey2, *_ = nkeys
-        nxyz1, nxyz2 = automol.geom.base.coordinates(geo, idxs=(nkey1, nkey2))
-        (tra_xyz,) = automol.geom.base.coordinates(geo, idxs=(tra_key,))
+        nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(nkey1, nkey2))
+        (tra_xyz,) = geom_base.coordinates(geo, idxs=(tra_key,))
         aux_vec = util.vec.unit_bisector(nxyz1, nxyz2, tra_xyz, outer=len(nkeys) < 3)
     else:
         # Otherwise, look for a non-parallel neighbor to one of the book-ending keys
         for key in end_keys:
             nkeys = set(nkeys_dct[key]) - set(seg_keys)
             for nkey in nkeys:
-                xyz, nxyz = automol.geom.base.coordinates(geo, idxs=(key, nkey))
+                xyz, nxyz = geom_base.coordinates(geo, idxs=(key, nkey))
                 end_nvec = numpy.subtract(nxyz, xyz)
                 if not util.vec.are_parallel(seg_vec, end_nvec, anti=True):
                     aux_vec = util.vec.unit_norm(end_nvec)
@@ -369,7 +369,49 @@ def linear_segment_dummy_direction(
 
 
 # corrections
-def linear_vinyl_corrected_geometry(
+def geometry_correct_nonplanar_pi_bonds(
+    gra, geo, geo_idx_dct=None, pert=5.0 * phycon.DEG2RAD
+):
+    """correct a geometry for non-planar pi-bonds
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :param pert: Perturbation angle, in radians, to prevent perfect planarity
+    :type pert: float
+    """
+    akeys = sorted(atom_keys(gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+    )
+    gra = relabel(gra, geo_idx_dct)
+
+    bnd_keys = rigid_planar_bond_keys(gra)
+
+    for bkey in bnd_keys:
+        key1, key2 = bkey
+
+        # Figure out the correct angle to flip the stereo parity
+        nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(gra, key1, key2)
+        if nkey1s and nkey2s:
+            nkey1 = nkey1s[-1]
+            nkey2 = nkey2s[-1]
+            dih_ang = geom_base.dihedral_angle(geo, nkey1, key1, key2, nkey2)
+            if abs(dih_ang) < numpy.pi / 2.0:
+                ang = pert - dih_ang
+            else:
+                ang = numpy.pi - pert - dih_ang
+
+            geo = geometry_rotate_bond(gra, geo, [key1, key2], ang)
+
+    return geo
+
+
+def geometry_correct_linear_vinyls(
     gra, geo, geo_idx_dct=None, tol=2.0 * phycon.DEG2RAD
 ):
     """correct a geometry for linear vinyl groups
@@ -406,14 +448,14 @@ def linear_vinyl_corrected_geometry(
             atm2_idx = geo_idx_dct[atm2_key]
             atm3_idx = geo_idx_dct[atm3_key]
 
-            ang = automol.geom.base.central_angle(geo, atm1_idx, atm2_idx, atm3_idx)
+            ang = geom_base.central_angle(geo, atm1_idx, atm2_idx, atm3_idx)
 
             if numpy.abs(ang - numpy.pi) < tol:
                 atm0_key = next(iter(bnakeys_dct[bnd1_key] - {atm3_key}), None)
                 atm0_key = atm3_key if atm0_key is None else atm0_key
                 atm0_idx = geo_idx_dct[atm0_key]
 
-                xyzs = automol.geom.base.coordinates(geo)
+                xyzs = geom_base.coordinates(geo)
 
                 atm0_xyz = xyzs[atm0_idx]
                 atm1_xyz = xyzs[atm1_idx]
@@ -427,7 +469,7 @@ def linear_vinyl_corrected_geometry(
 
                 rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
 
-                geo = automol.geom.rotate(
+                geo = geom_base.rotate(
                     geo, rot_axis, numpy.pi / 3, orig_xyz=atm2_xyz, idxs=rot_idxs
                 )
 
@@ -500,7 +542,7 @@ def geometry_pseudorotate_atom(
 
     if found_pair:
         # Determine the rotational axis as the unit bisector between the fixed pair
-        xyz, nxyz1, nxyz2 = automol.geom.base.coordinates(geo, idxs=(key, nkey1, nkey2))
+        xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
         rot_axis = util.vec.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
 
         # Identify the remaining keys to be rotated
@@ -509,7 +551,7 @@ def geometry_pseudorotate_atom(
             itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys))
         )
 
-        geo = automol.geom.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
+        geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
     else:
         geo = None
 
@@ -518,6 +560,8 @@ def geometry_pseudorotate_atom(
 
 def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     """Rotate a bond in a molecular geometry by a certain amount
+
+    If no angle is passed in, the bond will be rotated to flip stereochemistry
 
     :param gra: molecular graph
     :type gra: automol graph data structure
@@ -540,16 +584,15 @@ def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     )
     gra = relabel(gra, geo_idx_dct)
 
-    atm1_key, atm2_key = key
-    xyzs = automol.geom.base.coordinates(geo)
-    atm1_xyz = xyzs[atm1_key]
-    atm2_xyz = xyzs[atm2_key]
+    key1, key2 = key
+    xyzs = geom_base.coordinates(geo)
+    xyz1 = xyzs[key1]
+    xyz2 = xyzs[key2]
 
-    rot_axis = numpy.subtract(atm2_xyz, atm1_xyz)
-    rot_atm_keys = branch_atom_keys(gra, atm1_key, atm2_key)
-    rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
+    rot_axis = numpy.subtract(xyz2, xyz1)
+    rot_keys = branch_atom_keys(gra, key1, key2)
 
-    geo = automol.geom.rotate(geo, rot_axis, ang, orig_xyz=atm1_xyz, idxs=rot_idxs)
+    geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz1, idxs=rot_keys)
     return geo
 
 
@@ -610,7 +653,7 @@ def geometry_dihedrals_near_value(
                 atm2_idx = geo_idx_dct[atm2_key]
                 atm3_idx = geo_idx_dct[atm3_key]
                 atm4_idx = geo_idx_dct[atm4_key]
-                ang = automol.geom.base.dihedral_angle(
+                ang = geom_base.dihedral_angle(
                     geo, atm1_idx, atm2_idx, atm3_idx, atm4_idx
                 )
                 if abs_:
@@ -618,55 +661,3 @@ def geometry_dihedrals_near_value(
                 if numpy.abs(ang - ref_ang) < tol:
                     dih_keys.append((atm1_key, atm2_key, atm3_key, atm4_key))
     return frozenset(dih_keys)
-
-
-def perturb_geometry_planar_dihedrals(
-    gra, geo, geo_idx_dct=None, ang=5.0 * phycon.DEG2RAD, degree=False
-):
-    """Remove symmetry from a geometry by perturbing planar dihedrals?
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices.
-    :type geo_idx_dct: dict[int: int]
-    :param ang: The angle of rotation
-    :type ang: float
-    :param degree: Is the angle of rotation in degrees?, default True
-    :type degree: bool
-    :returns: a geometry in which all planar dihedrals have been shifted by the
-        given amount
-    :rtype: automol geometry data structure
-    """
-    ang = ang * phycon.DEG2RAD if degree else ang
-    geo_idx_dct = (
-        geo_idx_dct
-        if geo_idx_dct is not None
-        else {k: i for i, k in enumerate(sorted(atom_keys(gra)))}
-    )
-
-    # Keep checking for planar dihedrals and rotating the corresponding bonds
-    # until none are left
-    cis_keys_lst = geometry_dihedrals_near_value(
-        gra, geo, 0.0, geo_idx_dct=geo_idx_dct, tol=ang
-    )
-    trans_keys_lst = geometry_dihedrals_near_value(
-        gra, geo, numpy.pi, geo_idx_dct=geo_idx_dct, tol=ang
-    )
-
-    # Otherwise, adjust the dihedral to give it a non-planar value
-    dih_dct = {}
-    dih_dct.update({k: 0.0 + ang for k in cis_keys_lst})
-    dih_dct.update({k: numpy.pi - ang for k in trans_keys_lst})
-    for dih_keys, dih_val in dih_dct.items():
-        dih_idxs = list(map(geo_idx_dct.__getitem__, dih_keys))
-        geo = automol.geom.set_dihedral_angle(
-            geo,
-            dih_idxs,
-            dih_val,
-            degree=False,
-            gra=gra,
-        )
-    return geo

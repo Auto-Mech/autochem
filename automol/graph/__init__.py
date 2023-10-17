@@ -228,11 +228,10 @@ from automol.graph.base._5geom import geometries_have_matching_parities
 from automol.graph.base._5geom import geometries_parity_mismatches
 from automol.graph.base._5geom import linear_segment_dummy_direction
 # # corrections
-from automol.graph.base._5geom import linear_vinyl_corrected_geometry
+from automol.graph.base._5geom import geometry_correct_linear_vinyls
 from automol.graph.base._5geom import geometry_pseudorotate_atom
 from automol.graph.base._5geom import geometry_rotate_bond
 from automol.graph.base._5geom import geometry_dihedrals_near_value
-from automol.graph.base._5geom import perturb_geometry_planar_dihedrals
 # canonicalization functions:
 # # canonical key functions
 from automol.graph.base._6canon import canonical_enantiomer
@@ -322,6 +321,7 @@ from automol.graph._1conv import display
 from automol.graph._1conv import display_reaction
 from automol.graph._1conv import svg_string
 from automol.graph._1conv import ipywidget
+from automol.graph._1conv import perturb_geometry_planar_dihedrals
 
 
 __all__ = [
@@ -539,11 +539,10 @@ __all__ = [
     'geometries_parity_mismatches',
     'linear_segment_dummy_direction',
     # # corrections
-    'linear_vinyl_corrected_geometry',
+    'geometry_correct_linear_vinyls',
     'geometry_pseudorotate_atom',
     'geometry_rotate_bond',
     'geometry_dihedrals_near_value',
-    'perturb_geometry_planar_dihedrals',
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',
@@ -634,4 +633,5 @@ __all__ = [
     'display_reaction',
     'svg_string',
     'ipywidget',
+    'perturb_geometry_planar_dihedrals',
 ]

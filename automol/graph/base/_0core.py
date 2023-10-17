@@ -2172,7 +2172,9 @@ def bond_induced_subgraph(gra, bnd_keys, stereo=False):
     return sub
 
 
-def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False, ts_=True):
+def atom_neighborhood(
+    gra, atm_key, bnd_keys=None, stereo=False, ts_=True, second_degree: bool = False
+):
     """Get the neighborhood subgraph of a specific atom
 
     The neighborhood subgraph contains the atom, its neighbors, and the bonds
@@ -2186,13 +2188,25 @@ def atom_neighborhood(gra, atm_key, bnd_keys=None, stereo=False, ts_=True):
     :type bnd_keys: tuple[frozenset[int]]
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
+    :param second_degree: Include second-degree neighbors?
+    :type second_degree: bool, optional
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
     gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
     bnd_keys = bond_keys(gra, ts_=ts_) if bnd_keys is None else bnd_keys
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
-    nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
+
+    # If we are allowing second-degree neighbors, extend this to include them
+    if second_degree:
+        nbh_atm_keys = set(itertools.chain(*nbh_bnd_keys))
+        nbh_bnd_keys = set(k for k in bnd_keys if nbh_atm_keys & k)
+
+    if nbh_bnd_keys:
+        nbh = bond_induced_subgraph(gra, nbh_bnd_keys, stereo=stereo)
+    else:
+        nbh = subgraph(gra, {atm_key}, stereo=stereo)
+
     return nbh
 
 
@@ -2264,7 +2278,14 @@ def bond_neighborhoods(gra, bnd_keys=None, stereo=False, ts_=True):
 
 
 def atom_neighbor_atom_keys(
-    gra, atm_key, bnd_keys=None, symb=None, excl_symbs=(), ts_=True
+    gra,
+    atm_key,
+    bnd_keys=None,
+    symb=None,
+    excl_symbs=(),
+    ts_=True,
+    second_degree: bool = False,
+    include_self: bool = False,
 ):
     """Get keys for an atom's neighbors
 
@@ -2282,15 +2303,22 @@ def atom_neighbor_atom_keys(
     :type excl_symbs: tuple[str]
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
-    :param stereo: Return only the neighboring atoms used for stereochemistry?
-    :type stereo: bool
+    :param second_degree: Include second-degree neighbors? defaults to False
+    :type second_degree: bool, optional
+    :param include_self: Include the atom itself in the returned keys? defaults to False
+    :type include_self: bool, optional
     :returns: The keys of neighboring atoms
     :rtype: frozenset[int]
     """
-    atm_nbh = atom_neighborhood(gra, atm_key, bnd_keys=bnd_keys, ts_=ts_)
-    atm_nbh_keys = atom_keys(atm_nbh, symb=symb, excl_symbs=excl_symbs)
-    atm_ngb_keys = frozenset(atm_nbh_keys - {atm_key})
-    return atm_ngb_keys
+    atm_nbh = atom_neighborhood(
+        gra, atm_key, bnd_keys=bnd_keys, ts_=ts_, second_degree=second_degree
+    )
+    atm_nkeys = atom_keys(atm_nbh, symb=symb, excl_symbs=excl_symbs)
+
+    if not include_self:
+        atm_nkeys -= {atm_key}
+
+    return frozenset(atm_nkeys)
 
 
 def local_stereo_priorities(gra) -> Dict[int, int]:
