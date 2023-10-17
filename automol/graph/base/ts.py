@@ -349,12 +349,14 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
         """
 
         # Sanity check
-        assert gra == ts_reagents_graph_without_stereo(loc_tsg0)
+        assert gra == ts_reagents_graph_without_stereo(loc_tsg0, dummy=False)
 
         # Do-nothing line to prevent linting complaint
         assert ts_rev or not ts_rev
 
-        loc_gra = ts_reagents_graph_without_stereo(loc_tsg0, keep_stereo=True)
+        loc_gra = ts_reagents_graph_without_stereo(
+            loc_tsg0, keep_stereo=True, dummy=False
+        )
         p0_ = par_eval_flip_(loc_gra, pri_dct)
 
         def _parity(key):
