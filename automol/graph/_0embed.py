@@ -30,7 +30,7 @@ import numpy
 from phydat import phycon
 
 import automol.geom.base
-from automol import embed, error, geom
+from automol import embed, error, geom, zmat
 from automol.graph.base import (
     add_bonds,
     atom_hybridizations,
@@ -307,6 +307,43 @@ def geometry_matches(
             print(f"Stereo parities match at {ste_keys}?\n{pars} ==? {pars_}\n")
 
     return matches
+
+
+def zmatrix_matches(
+    gra,
+    zma,
+    stereo: bool = True,
+    local_stereo: bool = False,
+    check_ts_bonds: bool = True,
+    log: bool = False,
+) -> bool:
+    """Check whether a z-matrix matches the graph
+
+    :param gra: molecular graph with stereo parities
+    :type gra: automol graph data structure
+    :param zma: molecular z-matrix
+    :type zma: automol z-matrix data structure
+    :param stereo: Take stereochemistry into consideration? defaults to True
+    :type stereo: bool, optional
+    :param local_stereo: Does the graph have local stereo assignments? defaults to False
+    :type local_stereo: bool, optional
+    :param check_ts_bonds: Check reacting bonds for TS graphs? If `True`, this will
+        check that the atoms in reacting bonds are the closest atoms to each other
+    :type check_ts_bonds: bool, optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    geo = zmat.geometry(zma, dummy=True)
+    return geometry_matches(
+        gra,
+        geo,
+        stereo=stereo,
+        local_stereo=local_stereo,
+        check_ts_bonds=check_ts_bonds,
+        log=log,
+    )
 
 
 # # convergence checking

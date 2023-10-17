@@ -309,6 +309,7 @@ from automol.graph.base import vmat
 from automol.graph._0embed import embed_geometry
 from automol.graph._0embed import clean_geometry
 from automol.graph._0embed import geometry_matches
+from automol.graph._0embed import zmatrix_matches
 # conversion functions:
 # # conversions
 from automol.graph._1conv import geometry
@@ -621,6 +622,7 @@ __all__ = [
     'embed_geometry',
     'clean_geometry',
     'geometry_matches',
+    'zmatrix_matches',
     # conversion functions:
     # # conversions
     'geometry',
