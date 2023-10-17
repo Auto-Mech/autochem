@@ -2351,6 +2351,7 @@ def atom_stereo_sorted_neighbor_keys(gra, key, self_apex=False, pri_dct=None):
     :returns: The keys of neighboring atoms
     :rtype: tuple[int]
     """
+    gra = without_dummy_atoms(gra)
     pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
     nkeys = atom_neighbor_atom_keys(gra, key, ts_=True)
@@ -2392,6 +2393,7 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
     :returns: The keys of neighboring atoms for the first and second atoms
     :rtype: tuple[int], tuple[int]
     """
+    gra = without_dummy_atoms(gra)
     pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
     keys = {key1, key2}

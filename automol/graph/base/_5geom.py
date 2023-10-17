@@ -89,10 +89,6 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
         {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
 
-    # Remove dummy atoms for simplicity
-    geo = geom_base.without_dummy_atoms(geo)
-    gra = without_dummy_atoms(gra)
-
     nkeys = atom_stereo_sorted_neighbor_keys(gra, atm_key) if nkeys is None else nkeys
 
     # If there are only three groups, use the stereo atom itself as
@@ -184,10 +180,6 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     geo_idx_dct = (
         {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
-
-    # Remove dummy atoms for simplicity
-    geo = geom_base.without_dummy_atoms(geo)
-    gra = without_dummy_atoms(gra)
 
     if bnd_nkeys is None:
         nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(gra, key1, key2)
