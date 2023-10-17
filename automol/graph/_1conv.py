@@ -6,9 +6,9 @@ import itertools
 import IPython.display as ipd
 import ipywidgets
 import numpy
+from phydat import phycon
 
-import automol.inchi.base
-import automol.smiles.base
+import automol.smiles.base as smiles_base
 from automol import error, geom
 from automol.extern import rdkit_
 from automol.graph._0embed import (
@@ -24,11 +24,10 @@ from automol.graph.base import (
     bond_keys,
     connected_components,
     explicit,
+    geometry_dihedrals_near_value,
     has_stereo,
     inchi_is_bad,
     is_ts_graph,
-    linear_vinyl_corrected_geometry,
-    perturb_geometry_planar_dihedrals,
     relabel,
     smiles,
     standard_keys,
@@ -36,7 +35,6 @@ from automol.graph.base import (
     string,
     to_local_stereo,
     ts,
-    vinyl_radical_atom_keys,
     without_stereo,
 )
 from automol.util import vec
@@ -78,6 +76,11 @@ def geometry(gra, fdist_factor=1.1, bdist_factor=0.9, check=True, log=False):
 
     if is_ts:
         geo_idx_dct = dict(map(reversed, gra_key_dct.items()))
+
+        if log:
+            print(f"Building geometry for TS graph:\n{tsg}")
+            print(f"... using these reactant geometries:\n{geos}")
+
         geo = ts_geometry_from_reactants(
             tsg,
             geos,
@@ -115,15 +118,20 @@ def _connected_geometry(gra, check=True, log=False):
     # Define geometry generation methods
     def method1_(gra_):
         rdm = rdkit_.from_graph(gra_, stereo=stereo, local_stereo=True)
-        (geo,) = rdkit_.to_conformers(rdm, nconfs=1)
+        geo = rdkit_.to_geometry(rdm)
         return geo
 
     def method2_(gra_):
+        rdm = rdkit_.from_graph(gra_, stereo=stereo, local_stereo=True)
+        (geo,) = rdkit_.to_conformers(rdm, nconfs=1)
+        return geo
+
+    def method3_(gra_):
         return embed_geometry(gra_)
 
     # Try geometry generation methods until one works
-    methods_ = [method1_, method1_, method1_]
-    methods_ += [method2_] if not stereo else []
+    methods_ = [method1_, method2_, method2_]
+    methods_ += [method3_] if not stereo else []
     for try_number, method_ in enumerate(methods_):
         geo = method_(gra)
 
@@ -162,9 +170,6 @@ def _clean_and_validate_connected_geometry(
     """
     gra = gra if stereo else without_stereo(gra)
     gra = gra if local_stereo else to_local_stereo(gra)
-
-    if vinyl_radical_atom_keys(gra):
-        geo = linear_vinyl_corrected_geometry(gra, geo)
 
     if stereo and geo is not None:
         geo = stereo_corrected_geometry(gra, geo, local_stereo=local_stereo)
@@ -315,7 +320,7 @@ def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
     psmis = [
         smiles(g, stereo=stereo, res_stereo=res_stereo, exp_singles=True) for g in pgras
     ]
-    rxn_smi = automol.smiles.base.reaction(rsmis, psmis)
+    rxn_smi = smiles_base.reaction(rsmis, psmis)
     return rdkit_.from_smarts(rxn_smi)
 
 
@@ -389,6 +394,15 @@ def ts_geometry_from_reactants(
     )
     tsg = relabel(tsg, geo_idx_dct)
 
+    # 0. Determine appropriate distance ranges
+    dist_range_dct = ts_distance_ranges_from_reactant_geometries(
+        tsg,
+        rct_geos,
+        fdist_factor=fdist_factor,
+        bdist_factor=bdist_factor,
+        angstrom=True,
+    )
+
     # 1. Join geometries for bimolecular reactions, yielding a single starting structure
     if len(rct_geos) > 1:
         ts_geo = ts_join_reactant_geometries(
@@ -403,20 +417,15 @@ def ts_geometry_from_reactants(
     # reverses the TS graph before localizing to handle Sn2 reactions correctly)
     tsg = to_local_stereo(tsg)
 
-    # 3. Correct the stereochemistry against the TS graph, so it is consistent with both
-    # reactants and products
+    # 3. Correct the stereochemistry against the TS graph, so it is consistent with
+    # both reactants and products
     ts_geo = stereo_corrected_geometry(tsg, ts_geo, local_stereo=True)
 
-    # 4. Embed the TS structure, using distances from the *original* reactant geometries
-    # along with forming/breaking bond distances
-    dist_range_dct = ts_distance_ranges_from_reactant_geometries(
-        tsg,
-        rct_geos,
-        fdist_factor=fdist_factor,
-        bdist_factor=bdist_factor,
-        angstrom=True,
-    )
+    if log:
+        print(f"Raw TS stere-corrected geometry before cleaning:\n{ts_geo}")
 
+    # 4. Embed the TS structure, using distances from the *original* reactant
+    # geometries along with forming/breaking bond distances
     ts_geo = clean_geometry(
         tsg,
         ts_geo,
@@ -425,11 +434,14 @@ def ts_geometry_from_reactants(
         max_dist_err=max_dist_err,
         relax_angles=ts.has_reacting_ring(tsg),
         local_stereo=True,
-        none_if_failed=check,
+        none_if_failed=False,
         log=log,
     )
 
-    if ts_geo is None:
+    if log:
+        print(f"TS geometry after cleaning:\n{ts_geo}")
+
+    if check and not geometry_matches(tsg, ts_geo, local_stereo=True, log=log):
         raise error.FailedGeometryGenerationError(f"Failed TS graph:\n{string(tsg)}")
 
     # 6. Re-order the TS geometry to match the TS graph
@@ -563,3 +575,55 @@ def ts_distance_ranges_from_reactant_geometries(
 
     dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
     return dist_range_dct
+
+
+def perturb_geometry_planar_dihedrals(
+    gra, geo, geo_idx_dct=None, ang=5.0 * phycon.DEG2RAD, degree=False
+):
+    """Remove symmetry from a geometry by perturbing planar dihedrals?
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    :param ang: The angle of rotation
+    :type ang: float
+    :param degree: Is the angle of rotation in degrees?, default True
+    :type degree: bool
+    :returns: a geometry in which all planar dihedrals have been shifted by the
+        given amount
+    :rtype: automol geometry data structure
+    """
+    ang = ang * phycon.DEG2RAD if degree else ang
+    geo_idx_dct = (
+        geo_idx_dct
+        if geo_idx_dct is not None
+        else {k: i for i, k in enumerate(sorted(atom_keys(gra)))}
+    )
+
+    # Keep checking for planar dihedrals and rotating the corresponding bonds
+    # until none are left
+    cis_keys_lst = geometry_dihedrals_near_value(
+        gra, geo, 0.0, geo_idx_dct=geo_idx_dct, tol=ang
+    )
+    trans_keys_lst = geometry_dihedrals_near_value(
+        gra, geo, numpy.pi, geo_idx_dct=geo_idx_dct, tol=ang
+    )
+
+    # Otherwise, adjust the dihedral to give it a non-planar value
+    dih_dct = {}
+    dih_dct.update({k: 0.0 + ang for k in cis_keys_lst})
+    dih_dct.update({k: numpy.pi - ang for k in trans_keys_lst})
+    for dih_keys, dih_val in dih_dct.items():
+        dih_idxs = list(map(geo_idx_dct.__getitem__, dih_keys))
+        geo = geom.set_dihedral_angle(
+            geo,
+            dih_idxs,
+            dih_val,
+            degree=False,
+            gra=gra,
+        )
+    return geo

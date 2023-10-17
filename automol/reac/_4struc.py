@@ -17,6 +17,7 @@ from automol.reac._0core import (
     reactant_structures,
     reactants_keys,
     set_structures,
+    string,
     structure_type,
     ts_graph,
     ts_structure,
@@ -32,6 +33,7 @@ def with_structures(
     prd_strucs=None,
     rct_zcs=None,
     prd_zcs=None,
+    log: bool = False,
 ) -> Reaction:
     """Convert 'geom' structures to 'zmat', or convert 'zmat' structures to 'geom',
     updating graphs and reagent keys accordingly
@@ -48,6 +50,8 @@ def with_structures(
     :type rct_zcs: List[ZmatConv], optional
     :param prd_zcs: Specify the product z-matrix conversions, defaults to None
     :type prd_zcs: List[ZmatConv], optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :return: The new reaction object
     :rtype: Reaction
     """
@@ -68,6 +72,7 @@ def with_structures(
             prd_geos=prd_strucs,
             rct_zcs=rct_zcs,
             prd_zcs=prd_zcs,
+            log=log,
         )
     elif struc_typ == "zmat" and (orig_struc_typ is None or new_strucs):
         rxn_ = _with_zmat_structures(
@@ -76,6 +81,7 @@ def with_structures(
             prd_zmas=prd_strucs,
             rct_zcs=rct_zcs,
             prd_zcs=prd_zcs,
+            log=log,
         )
     # If the Reaction already has this structure type, and no structures were passed in,
     # return as-is
@@ -89,6 +95,7 @@ def with_structures(
             prd_zmas=prd_strucs,
             rct_zcs=rct_zcs,
             prd_zcs=prd_zcs,
+            log=log,
         )
     # If we are converting geom => z-matrix, handle that case
     elif struc_typ == "geom" and orig_struc_typ == "zmat":
@@ -98,6 +105,7 @@ def with_structures(
             prd_geos=prd_strucs,
             rct_zcs=rct_zcs,
             prd_zcs=prd_zcs,
+            log=log,
         )
 
     return rxn_
@@ -109,6 +117,7 @@ def _with_geom_structures(
     prd_geos=None,
     rct_zcs: List[ZmatConv] = None,
     prd_zcs: List[ZmatConv] = None,
+    log: bool = False,
 ) -> Reaction:
     """Add geometry structures to a Reaction object
 
@@ -122,9 +131,16 @@ def _with_geom_structures(
     :type rct_zcs: List[ZmatConv], optional
     :param prd_zcs: Z-matrix conversions for product structures, defaults to None
     :type prd_zcs: List[ZmatConv], optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :returns: A new reaction object
     :rtype: Reaction
     """
+    if log:
+        print(f"Adding geometry structures to this Reaction:\n{string(rxn)}")
+        print(f"Supplied reactant geometries (may be None):\n{rct_geos}")
+        print(f"Supplied product geometries (may be None):\n{prd_geos}")
+
     if rct_geos is None:
         rct_geos = tuple(map(graph.geometry, reactant_graphs(rxn)))
 
@@ -133,7 +149,14 @@ def _with_geom_structures(
 
     tsg = ts_graph(rxn)
     geo_idx_dct = mapping(rxn, "T", "R")
-    ts_geo = graph.ts_geometry_from_reactants(tsg, rct_geos, geo_idx_dct=geo_idx_dct)
+
+    if log:
+        print(f"Building geometry for TS graph:\n{tsg}")
+        print(f"... using these reactant geometries:\n{rct_geos}")
+
+    ts_geo = graph.ts_geometry_from_reactants(
+        tsg, rct_geos, geo_idx_dct=geo_idx_dct, log=log
+    )
 
     grxn = set_structures(
         rxn,
@@ -153,6 +176,7 @@ def _with_zmat_structures(
     prd_zmas=None,
     rct_zcs: List[ZmatConv] = None,
     prd_zcs: List[ZmatConv] = None,
+    log: bool = False,
 ) -> Reaction:
     """Add structures to a Reaction object
 
@@ -166,9 +190,15 @@ def _with_zmat_structures(
     :type rct_zcs: List[ZmatConv], optional
     :param prd_zcs: Z-matrix conversions for product structures, defaults to None
     :type prd_zcs: List[ZmatConv], optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :returns: A new reaction object
     :rtype: Reaction
     """
+    if log:
+        print(f"Adding z-matrix structures to this Reaction:\n{string(rxn)}")
+        print(f"Supplied reactant z-matrices (may be None):\n{rct_zmas}")
+        print(f"Supplied product z-matrices (may be None):\n{prd_zmas}")
 
     def _reagent_geometries(zmas, zcs):
         if zmas is None:
@@ -194,6 +224,7 @@ def _convert_geom_to_zmat_structures(
     prd_zmas=None,
     rct_zcs: List[ZmatConv] = None,
     prd_zcs: List[ZmatConv] = None,
+    log: bool = False,
 ) -> Reaction:
     """Convert a reaction with 'geom' structures to 'zmat' structures
 
@@ -207,9 +238,16 @@ def _convert_geom_to_zmat_structures(
     :type rct_zcs: List[ZmatConv], optional
     :param prd_zcs: Z-matrix conversions for product structures, defaults to None
     :type prd_zcs: List[ZmatConv], optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :return: The new reaction object
     :rtype: Reaction
     """
+    if log:
+        print(f"Converting geom => zmat structures to this Reaction:\n{string(rxn)}")
+        print(f"Supplied reactant z-matrices (may be None):\n{rct_zmas}")
+        print(f"Supplied product z-matrices (may be None):\n{prd_zmas}")
+
     assert structure_type(rxn) == "geom"
 
     gtsg = ts_graph(rxn)
@@ -313,6 +351,7 @@ def _convert_zmat_to_geom_structures(
     prd_geos=None,
     rct_zcs: List[ZmatConv] = None,
     prd_zcs: List[ZmatConv] = None,
+    log: bool = False,
 ) -> Reaction:
     """Convert a reaction with 'geom' structures to 'zmat' structures
 
@@ -326,9 +365,16 @@ def _convert_zmat_to_geom_structures(
     :type rct_zcs: List[ZmatConv], optional
     :param prd_zcs: Z-matrix conversions for product structures, defaults to None
     :type prd_zcs: List[ZmatConv], optional
+    :param log: Log information to the screen? defaults to False
+    :type log: bool, optional
     :return: The new reaction object
     :rtype: Reaction
     """
+    if log:
+        print(f"Converting zmat => geom structures to this Reaction:\n{string(rxn)}")
+        print(f"Supplied reactant geometries (may be None):\n{rct_geos}")
+        print(f"Supplied product geometries (may be None):\n{prd_geos}")
+
     assert structure_type(rxn) == "zmat"
 
     ztsg = ts_graph(rxn)

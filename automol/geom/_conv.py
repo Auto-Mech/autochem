@@ -1,12 +1,12 @@
 """ Level 4 geometry functions
 """
 import itertools
-from typing import Tuple
+from typing import Dict
 
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import phycon
+from pyparsing import pyparsing_common as ppc
 
 import automol.graph.base as graph_base
 import automol.inchi.base as inchi_base
@@ -619,8 +619,20 @@ def linear_atoms(geo, gra=None, tol=5.0):
     return lin_idxs
 
 
-def closest_unbonded_atom(geo, idx, gra=None, angstrom=False) -> Tuple[int, float]:
-    """For a specific atom in a geometry, find the closest unbonded atom
+def closest_unbonded_atom_distances(
+    geo,
+    idx,
+    gra=None,
+    angstrom=False,
+    incl_idxs: tuple = (),
+    excl_second_degree: bool = True,
+    dist_frac: float = 0.2,
+) -> Dict[int, float]:
+    """For a specific atom in a geometry, find the closest unbonded atoms, along with
+    their distances
+
+    Finds the closest unbonded atom and then finds any other atoms within some fraction
+    of the minimum distance
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
@@ -631,23 +643,35 @@ def closest_unbonded_atom(geo, idx, gra=None, angstrom=False) -> Tuple[int, floa
     :type gra: automol graph data structure
     :param angstrom: parameter to control conversion to Angstrom
     :type angstrom: bool
-    :returns: The index of the closest atom, along with the distance
-    :rtype: Tuple[int, float]
+    :param incl_idxs: Specific atoms to include, whether they are bonded or not
+    :type incl_idxs: tuple, optional
+    :param excl_second_degree: Exclude second-degree neighboring atoms? defaults to True
+    :type excl_second_degree: bool, optional
+    :param dist_frac: Atoms within this fraction of the minimum distance will be
+        included long with the closest atom; defaults to 0.2
+    :type dist_frac: float, optional
+    :returns: The closest unbonded atom indices along with their distances
+    :rtype: Dict[int, float]
     """
     gra = graph_without_stereo(geo) if gra is None else gra
     idxs = graph_base.atom_keys(gra)
-    idxs -= {idx}
-    idxs -= graph_base.atom_neighbor_atom_keys(gra, idx)
+    idxs -= graph_base.atom_neighbor_atom_keys(
+        gra, idx, include_self=True, second_degree=excl_second_degree
+    )
+    idxs |= set(incl_idxs)
 
     dist_dct = {i: distance(geo, idx, i, angstrom=angstrom) for i in idxs}
-    min_idx, min_dist = min(dist_dct.items(), key=lambda item: item[1])
-    return min_idx, min_dist
+    min_dist = min(dist_dct.values())
+
+    dist_thresh = min_dist * (1. + dist_frac)
+    dist_dct = dict_.by_value(dist_dct, lambda d: d < dist_thresh)
+    return dist_dct
 
 
-def is_closest_unbonded_pair(geo, idx1: int, idx2: int, gra=None) -> bool:
-    """Check whether two atoms are the closest unbonded atoms of each other
+def could_be_forming_bond(geo, idx1: int, idx2: int, gra=None) -> bool:
+    """Check whether two atoms could be forming a bond in the geometry
 
-    That is, for each atom, the other one is the closest unbonded atom to it
+    Checks that each one is among the closest unbonded atoms to the other
 
     :param geo: A molecular geometry
     :type geo: automol geom data structure
@@ -661,9 +685,9 @@ def is_closest_unbonded_pair(geo, idx1: int, idx2: int, gra=None) -> bool:
     :return: `True` if it is, `False` if it isn't
     :rtype: bool
     """
-    idx2_, _ = closest_unbonded_atom(geo, idx1, gra=gra)
-    idx1_, _ = closest_unbonded_atom(geo, idx2, gra=gra)
-    return idx1 == idx1_ and idx2 == idx2_
+    dist_dct1 = closest_unbonded_atom_distances(geo, idx1, gra=gra, incl_idxs=[idx2])
+    dist_dct2 = closest_unbonded_atom_distances(geo, idx2, gra=gra, incl_idxs=[idx1])
+    return idx1 in dist_dct2 and idx2 in dist_dct1
 
 
 def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
