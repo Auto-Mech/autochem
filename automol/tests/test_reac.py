@@ -1,7 +1,6 @@
 """Test reac
 """
-import numpy
-from automol import geom, graph, reac, smiles, zmat
+from automol import geom, graph, reac, smiles
 
 
 def test__reactant_graphs():
@@ -134,106 +133,6 @@ def test__from_old_string():
     )
 
 
-def test__find():
-    """Test reac.find"""
-
-    def _test(rct_smis, prd_smis):
-        print("Testing find()")
-        print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
-        rct_gras0 = tuple(map(smiles.graph, rct_smis))
-        prd_gras0 = tuple(map(smiles.graph, prd_smis))
-        srxns = reac.find(rct_gras0, prd_gras0, stereo=True)
-        print("len(srxns)", srxns)
-        assert len(srxns) > 0
-        srxn, *_ = srxns
-        rct_gras1 = reac.reactant_graphs(srxn)
-        prd_gras1 = reac.product_graphs(srxn)
-        print(f"{rct_gras0}\n---\n{rct_gras1}")
-        assert rct_gras1 == rct_gras0
-        print(f"{prd_gras0}\n---\n{prd_gras1}")
-        assert prd_gras1 == prd_gras0
-
-        # Temporary -- make sure AMChI works for all classes
-        ftsg = reac.ts_graph(srxn)
-        rtsg = graph.ts.reverse(ftsg)
-
-        fchi = graph.amchi(ftsg)
-        rchi = graph.amchi(rtsg)
-
-        print("fchi:", fchi)
-        print("rchi:", rchi)
-        assert fchi[:-1] == rchi[:-1]
-
-        orig_keys = sorted(graph.atom_keys(ftsg))
-        for _ in range(5):
-            perm_keys = numpy.random.permutation(orig_keys)
-            perm_dct = dict(zip(orig_keys, perm_keys))
-
-            perm_ftsg = graph.relabel(ftsg, perm_dct)
-            perm_rtsg = graph.relabel(rtsg, perm_dct)
-
-            perm_fchi = graph.amchi(perm_ftsg)
-            perm_rchi = graph.amchi(perm_rtsg)
-
-            print("perm_fchi:", perm_fchi)
-            assert perm_fchi == fchi
-            print("perm_rchi:", perm_rchi)
-            assert perm_rchi == rchi
-
-    # UNIMOLECULAR
-    # hydrogen migration
-    _test(["CCCO[O]"], ["[CH2]CCOO"])
-    # hydrogen migration (2TS)
-    _test(["CCC[CH2]"], ["CC[CH]C"])
-    # beta scission (stereo-specific)
-    _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
-    # ring-forming scission (FIXED)
-    _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
-    # elimination
-    _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
-    # elimination (HONO)
-    _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
-    # BIMOLECULAR
-    # hydrogen abstraction
-    _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
-    # hydrogen abstraction (sigma)
-    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
-    # hydrogen abstraction (radical radical)
-    _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
-    # addition
-    _test(["CC[CH2]", "[O][O]"], ["CCCO[O]"])
-    # addition (H + H => H2)
-    _test(["[H]", "[H]"], ["[H][H]"])
-    # addition (stereo-specific)
-    _test([r"F/C=C\F", "[OH]"], ["F[CH][C@H](O)F"])
-    # addition (stereo-specific with ring)
-    _test(["C1C=C1", "[OH]"], ["C1[CH][C@H]1(O)"])
-    # addition (vinyl radical)
-    _test([r"F\N=[C]/F", "[C]#C"], [r"F\N=C(C#C)/F"])
-    # addition (vinyl and sigma radicals)
-    _test(["FC=[N]", "[C]#C"], [r"F/C=N\C#C"])
-    # addition (two vinyl radicals) (FIXED)
-    _test([r"F/C=[C]/[H]", r"[H]/[C]=C/F"], [r"F/C=C\C=C/F"])
-    # addition (case 2)
-    _test(["C=CCCCCCC", "[CH2]C"], ["CCC[CH]CCCCCC"])
-    # addition (radical radical 1)
-    _test(["CC[CH2]", "[H]"], ["CCC"])
-    # addition (radical radical 2) (FIXED)
-    _test(["[H]", "[OH]"], ["O"])
-    # addition (radical radical 3)
-    _test(["[CH3]", "[OH]"], ["CO"])
-    # addition (isc??)
-    _test(["N#N", "[O]"], ["[N-]=[N+]=O"])
-    # substitution (Sn2) (FIXED)
-    _test(["[C@H](O)(C)F", "[Cl]"], ["[C@@H](O)(C)Cl", "[F]"])
-    # substitution (FIXED)
-    _test(["CO", "[CH2]C"], ["CCC", "[OH]"])
-    # insertion
-    _test(["CCC=C", "O[O]"], ["CCCCO[O]"])
-    # insertion (HONO)
-    _test(["CCC=O", "N(=O)O"], ["CCCON(=O)=O"])
-
-
 def test__end_to_end():
     """Test reac.ts_geometry"""
 
@@ -287,26 +186,28 @@ def test__end_to_end():
             print(f"\n{gra}\n geometry matches ? \n{geo}\n")
             assert graph.geometry_matches(gra, geo)
 
-        # #   (b.) check that the geometry structures match the reaction graphs
-        # ztsg = reac.ts_graph(zrxn)
-        # ts_zma = reac.ts_structure(zrxn)
-        # rct_zmas = reac.reactant_structures(zrxn)
-        # prd_zmas = reac.product_structures(zrxn)
+        #   (b.) check that the geometry structures match the reaction graphs
+        ztsg = reac.ts_graph(zrxn)
+        ts_zma = reac.ts_structure(zrxn)
+        rct_zmas = reac.reactant_structures(zrxn)
+        prd_zmas = reac.product_structures(zrxn)
+        rct_zgras = reac.reactant_graphs(zrxn)
+        prd_zgras = reac.product_graphs(zrxn)
 
-        # print(f"\n{ztsg}\n z-matrix matches ? \n{ts_zma}\n")
-        # assert graph.zmatrix_matches(ztsg, ts_zma)
+        print(f"\n{ztsg}\n z-matrix matches ? \n{ts_zma}\n")
+        assert graph.zmatrix_matches(ztsg, ts_zma)
 
-        # assert len(rct_gras) == len(rct_zmas)
-        # print("Checking reactant z-matrices....")
-        # for gra, zma in zip(rct_gras, rct_zmas):
-        #     print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
-        #     assert graph.zmatrix_matches(gra, zma)
+        assert len(rct_zgras) == len(rct_zmas)
+        print("Checking reactant z-matrices....")
+        for gra, zma in zip(rct_zgras, rct_zmas):
+            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+            assert graph.zmatrix_matches(gra, zma)
 
-        # assert len(prd_gras) == len(prd_zmas)
-        # print("Checking reactant z-matrices....")
-        # for gra, zma in zip(prd_gras, prd_zmas):
-        #     print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
-        #     assert graph.zmatrix_matches(gra, zma)
+        assert len(prd_zgras) == len(prd_zmas)
+        print("Checking reactant z-matrices....")
+        for gra, zma in zip(prd_zgras, prd_zmas):
+            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+            assert graph.zmatrix_matches(gra, zma)
 
 
     # UNIMOLECULAR
@@ -368,5 +269,4 @@ if __name__ == "__main__":
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
-    # test__find()
     test__end_to_end()

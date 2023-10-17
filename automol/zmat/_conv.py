@@ -4,7 +4,8 @@ import itertools
 
 import numpy
 
-from automol import geom, graph as graph_, util
+import automol.graph.base as graph_base
+from automol import geom, util
 from automol.util import ZmatConv
 from automol.zmat.base import (
     conversion_info,
@@ -294,7 +295,7 @@ def torsion_leading_atom(zma, key1, key2, zgra=None):
         # A simple solution is therefore to choose the lead key based on
         # whether or not key2 and key3 are connected, which is what this code
         # does.
-        bnd_keys = graph_.bond_keys(zgra)
+        bnd_keys = graph_base.bond_keys(zgra)
         lead_key = next(
             (k for k in lead_key_candidates if frozenset(key_mat[k][-2:]) in bnd_keys),
             None,

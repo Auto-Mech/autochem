@@ -43,12 +43,12 @@ Level 4: L1-3 dependencies; hierarchical interdependency (descending)
 along with additional functions requiring conversion to another basic type.*
 
  - geom
- - graph        [L4 dependencies: geom]
+ - zmat         [L4 dependencies: geom]
+ - graph        [L4 dependencies: geom, zmat]
  - amchi        [L4 dependencies: graph, geom]
  - inchi        [L4 dependencies: amchi, graph, geom]
  - chi          [L4 dependencies: amchi, inchi, graph, geom]
  - smiles       [L4 dependencies: graph]
- - zmat         [L4 dependencies: graph, geom]
 
 Level 5: L1-4 dependencies; hierarchical interdependency (descending)
 
