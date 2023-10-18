@@ -33,6 +33,7 @@ from automol.reac._0core import products_graph
 from automol.reac._0core import standard_keys
 from automol.reac._0core import relabel
 from automol.reac._0core import without_stereo
+from automol.reac._0core import without_structures
 from automol.reac._0core import apply_zmatrix_conversion
 from automol.reac._0core import reverse_zmatrix_conversion
 from automol.reac._0core import without_dummy_atoms
@@ -136,6 +137,7 @@ __all__ = [
     'standard_keys',
     'relabel',
     'without_stereo',
+    'without_structures',
     'apply_zmatrix_conversion',
     'reverse_zmatrix_conversion',
     'without_dummy_atoms',
