@@ -231,8 +231,6 @@ def from_atoms_and_bonds(atm_dct, bnd_dct):
     atm_nprops = dict_.transform_values(atm_dct, len).values()
     bnd_nprops = dict_.transform_values(bnd_dct, len).values()
 
-    # Require that it has the right format for a non-TS graph and set
-    # `ts_` to `False`
     assert all(n == 3 for n in atm_nprops) and all(n == 2 for n in bnd_nprops), (
         f"Atom or bond dictionary has improper format:\n"
         f"atm_dct:\n{atm_dct}\nbnd_dct:\n{bnd_dct}\n"
@@ -670,7 +668,7 @@ def set_stereo_parities(gra, par_dct):
 
 
 # # I/O
-def string(gra, one_indexed=True):
+def string(gra, one_indexed=False):
     """Generate a string representation of the graph, in YAML format
 
     :param gra: molecular graph
@@ -685,7 +683,7 @@ def string(gra, one_indexed=True):
     return gra_str
 
 
-def yaml_data(gra, one_indexed=True):
+def yaml_data(gra, one_indexed=False):
     """Generate a YAML dictionary representation of the graph
 
     :param gra: molecular graph
@@ -703,14 +701,10 @@ def yaml_data(gra, one_indexed=True):
     yaml_atm_dct = atoms(gra)
     yaml_bnd_dct = bonds(gra)
 
-    ts_ = is_ts_graph(gra)
-    atm_nprops = 5 if ts_ else 3
-    bnd_nprops = 4 if ts_ else 2
-
     # prepare the atom dictionary
     yaml_atm_dct = dict(sorted(yaml_atm_dct.items()))
     yaml_atm_dct = dict_.transform_values(
-        yaml_atm_dct, lambda x: dict(zip(ATM_PROP_NAMES[:atm_nprops], x))
+        yaml_atm_dct, lambda x: dict(zip(ATM_PROP_NAMES, x))
     )
 
     # perpare the bond dictionary
@@ -718,19 +712,20 @@ def yaml_data(gra, one_indexed=True):
     yaml_bnd_dct = dict(sorted(yaml_bnd_dct.items()))
     yaml_bnd_dct = dict_.transform_keys(yaml_bnd_dct, lambda x: "-".join(map(str, x)))
     yaml_bnd_dct = dict_.transform_values(
-        yaml_bnd_dct, lambda x: dict(zip(BND_PROP_NAMES[:bnd_nprops], x))
+        yaml_bnd_dct, lambda x: dict(zip(BND_PROP_NAMES, x))
     )
 
     yaml_gra_dct = {"atoms": yaml_atm_dct, "bonds": yaml_bnd_dct}
     return yaml_gra_dct
 
 
-def from_string(gra_str, one_indexed=True):
+def from_string(gra_str, one_indexed=None):
     """Generate a graph from a string representation, in YAML format
 
     :param gra_str: A string representation of the molecular graph
     :type gra_str: str
     :param one_indexed: Assume one-indexing for string keys?
+        If `None`, one-indexing will be inferred
     :type one_indexed: bool
     :returns: molecular graph
     :rtype: automol graph data structure
@@ -740,12 +735,13 @@ def from_string(gra_str, one_indexed=True):
     return gra
 
 
-def from_yaml_data(yaml_gra_dct, one_indexed=True):
+def from_yaml_data(yaml_gra_dct, one_indexed=None):
     """Generate a graph from a YAML dictionary representation
 
     :param yaml_gra_dct: A YAML-friendly dictionary representation of the graph
     :type yaml_gra_dct: dict
     :param one_indexed: Assume one-indexing for YAML dict keys?
+        If `None`, one-indexing will be inferred
     :type one_indexed: bool
     :returns: molecular graph
     :rtype: automol graph data structure
@@ -765,6 +761,8 @@ def from_yaml_data(yaml_gra_dct, one_indexed=True):
 
     gra = from_atoms_and_bonds(atm_dct, bnd_dct)
 
+    # Infer one-indexing based on the minimum key
+    one_indexed = bool(min(atm_dct)) if one_indexed is None else one_indexed
     if one_indexed:
         # revert one-indexing if the input is one-indexed
         atm_key_dct = {atm_key: atm_key - 1 for atm_key in atom_keys(gra)}

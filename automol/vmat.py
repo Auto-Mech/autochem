@@ -37,7 +37,7 @@ VMAT_LINES = LINES0 ^ LINES1 ^ LINES2 ^ LINES3
 
 
 # # constructors
-def from_data(symbs, key_mat, name_mat=None, one_indexed=False):
+def from_data(symbs, key_mat, name_mat=None, one_indexed=None):
     """V-Matrix constructor (V-Matrix without numerical coordinate values).
 
     :param symbs: atomic symbols
@@ -545,7 +545,7 @@ def is_standard_form(vma):
 
 
 # # # I/O
-def string(vma, one_indexed=True):
+def string(vma, one_indexed=False):
     """Write a V-Matrix object to a string.
 
     :param vma: V-Matrix
@@ -575,7 +575,7 @@ def string(vma, one_indexed=True):
     return vma_str
 
 
-def from_string(vma_str, one_indexed=True):
+def from_string(vma_str, one_indexed=None):
     """Parse a V-Matrix object from a string.
 
     :param vma_str: string containing a V-Matrix
@@ -595,7 +595,7 @@ def from_string(vma_str, one_indexed=True):
 
 
 # # helpers
-def _key_matrix(key_mat, natms, one_indexed):
+def _key_matrix(key_mat, natms, one_indexed=None):
     """Build name matrix of the V-Matrix that contains the
     coordinate keys by row and column.
 
@@ -615,6 +615,7 @@ def _key_matrix(key_mat, natms, one_indexed):
     assert key_mat.ndim == 2 and key_mat.shape == (natms, 3)
     triu_idxs = numpy.triu_indices(natms, m=3)
 
+    one_indexed = bool(min(key_mat[1:, 0])) if one_indexed is None else one_indexed
     key_mat[1:, 0] -= 1 if one_indexed else 0
     key_mat[2:, 1] -= 1 if one_indexed else 0
     key_mat[3:, 2] -= 1 if one_indexed else 0

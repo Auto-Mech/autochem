@@ -227,49 +227,66 @@ def from_data(
 
 
 # # serialization
-def from_string(rxn_str, one_indexed=True) -> Reaction:
+def from_string(rxn_str) -> Reaction:
     """Write a reaction object to a string
-
-    TODO: Implement reading of structural info
 
     :param rxn_str: string containing the reaction object
     :type rxn_str: str
-    :param one_indexed: parameter to store keys in one-indexing
-    :type one_indexed: bool
     :returns: A reaction object
     :rtype: Reaction
     """
     yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
 
-    cla = yaml_dct["reaction class"]
-    tsg = graph.from_yaml_data(yaml_dct, one_indexed=one_indexed)
+    tsg = graph.from_yaml_data(yaml_dct)
     rcts_keys = tuple(map(tuple, yaml_dct["reactants keys"]))
     prds_keys = tuple(map(tuple, yaml_dct["products keys"]))
+    cla = yaml_dct["reaction class"]
 
-    if one_indexed:
-        rcts_keys = [[k - 1 for k in ks] for ks in rcts_keys]
-        prds_keys = [[k - 1 for k in ks] for ks in prds_keys]
+    struc_typ = yaml_dct.get("structure type")
+    ts_struc = rct_strucs = prd_strucs = None
+    ts_zc = rct_zcs = prd_zcs = None
+    if struc_typ is not None:
+        from_yaml_ = geom.from_yaml_data if struc_typ == "geom" else zmat.from_yaml_data
+        ts_struc = from_yaml_(yaml_dct["ts structure"])
+        rct_strucs = list(map(from_yaml_, yaml_dct["reactant structures"]))
+        prd_strucs = list(map(from_yaml_, yaml_dct["product structures"]))
 
-    return from_data(cla=cla, tsg=tsg, rcts_keys=rcts_keys, prds_keys=prds_keys)
+        ts_zc_yml = yaml_dct.get("ts conversion info")
+        if ts_zc_yml is not None:
+            ts_zc = zmat_conv.from_yaml_data(ts_zc_yml)
+            rct_zcs = list(
+                map(zmat_conv.from_yaml_data, yaml_dct["reactants conversion info"])
+            )
+            prd_zcs = list(
+                map(zmat_conv.from_yaml_data, yaml_dct["products conversion info"])
+            )
+
+    return from_data(
+        cla=cla,
+        tsg=tsg,
+        rcts_keys=rcts_keys,
+        prds_keys=prds_keys,
+        ts_struc=ts_struc,
+        rct_strucs=rct_strucs,
+        prd_strucs=prd_strucs,
+        ts_zc=ts_zc,
+        rct_zcs=rct_zcs,
+        prd_zcs=prd_zcs,
+        struc_typ=struc_typ,
+    )
 
 
-def string(rxn: Reaction, one_indexed=True) -> str:
+def string(rxn: Reaction) -> str:
     """Write a reaction object to a string
 
     :param rxn: the reaction object
     :type rxn: Reaction
-    :param one_indexed: parameter to store keys in one-indexing
-    :type one_indexed: bool
     :rtype: str
     """
     rcts_keys = list(map(list, reactants_keys(rxn)))
     prds_keys = list(map(list, products_keys(rxn)))
 
-    if one_indexed:
-        rcts_keys = [[k + 1 for k in ks] for ks in rcts_keys]
-        prds_keys = [[k + 1 for k in ks] for ks in prds_keys]
-
-    yaml_dct = graph.yaml_data(ts_graph(rxn), one_indexed=one_indexed)
+    yaml_dct = graph.yaml_data(ts_graph(rxn))
     yaml_dct["reactants keys"] = list(map(list, rcts_keys))
     yaml_dct["products keys"] = list(map(list, prds_keys))
     yaml_dct["reaction class"] = class_(rxn)
@@ -277,7 +294,7 @@ def string(rxn: Reaction, one_indexed=True) -> str:
     if struc_typ is not None:
         yaml_ = geom.yaml_data if struc_typ == "geom" else zmat.yaml_data
         yaml_dct["structure type"] = struc_typ
-        yaml_dct["TS structure"] = yaml_(ts_structure(rxn))
+        yaml_dct["ts structure"] = yaml_(ts_structure(rxn))
         yaml_dct["reactant structures"] = list(map(yaml_, reactant_structures(rxn)))
         yaml_dct["product structures"] = list(map(yaml_, product_structures(rxn)))
 
@@ -287,7 +304,7 @@ def string(rxn: Reaction, one_indexed=True) -> str:
 
         if ts_zc is not None:
             assert rct_zcs is not None and prd_zcs is not None
-            yaml_dct["TS conversion info"] = zmat_conv.yaml_data(ts_zc)
+            yaml_dct["ts conversion info"] = zmat_conv.yaml_data(ts_zc)
             yaml_dct["reactants conversion info"] = list(
                 map(zmat_conv.yaml_data, rct_zcs)
             )
