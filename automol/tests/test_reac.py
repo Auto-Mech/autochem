@@ -186,7 +186,7 @@ def test__end_to_end():
             print(f"\n{gra}\n geometry matches ? \n{geo}\n")
             assert graph.geometry_matches(gra, geo)
 
-        #   (b.) check that the geometry structures match the reaction graphs
+        #   (c.) check that the geometry structures match the reaction graphs
         ztsg = reac.ts_graph(zrxn)
         ts_zma = reac.ts_structure(zrxn)
         rct_zmas = reac.reactant_structures(zrxn)
@@ -209,6 +209,13 @@ def test__end_to_end():
             print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
             assert graph.zmatrix_matches(gra, zma)
 
+        #   (d.) check that the z-matrix structure can be converted back to geometries
+        grxn_ = reac.with_structures(zrxn, "geom")
+        assert reac.without_structures(grxn) == reac.without_structures(grxn_)
+
+        #   (e.) check that we can convert two and from string with structures
+        assert grxn == reac.from_string(reac.string(grxn))
+        assert zrxn == reac.from_string(reac.string(zrxn))
 
     # UNIMOLECULAR
     # hydrogen migration

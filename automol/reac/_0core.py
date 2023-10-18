@@ -156,8 +156,13 @@ def from_data(
     assert par.is_reaction_class(cla) or cla is None, f"{cla} is not a reaction class"
 
     # Check the structures, if there are any
-    struc_info = [ts_struc, rct_strucs, prd_strucs, struc_typ, ts_zc, rct_zcs, prd_zcs]
+    struc_info = [ts_struc, rct_strucs, prd_strucs]
     if any(x is not None for x in struc_info):
+        assert all(x is not None for x in struc_info)
+        assert len(rct_strucs) == len(rcts_keys)
+        assert len(prd_strucs) == len(prds_keys)
+
+        # Infer the structural type
         ttyp = _identify_sequence_structure_type([ts_struc])
         rtyp = _identify_sequence_structure_type(rct_strucs)
         ptyp = _identify_sequence_structure_type(prd_strucs)
@@ -185,31 +190,33 @@ def from_data(
                 f"Structure:\n{struc}\nKeys:\n{keys}\nTS graph:\n{tsg}"
             )
 
-        # If present, check the z-matrix conversion info for correctness
-        zc_info = [ts_zc, rct_zcs, prd_zcs]
-        if any(x is not None for x in zc_info):
-            assert all(x is not None for x in zc_info)
-            assert len(rct_zcs) == len(rct_strucs)
-            assert len(prd_zcs) == len(prd_strucs)
+    # If present, check the z-matrix conversion info for correctness
+    zc_info = [ts_zc, rct_zcs, prd_zcs]
+    if any(x is not None for x in zc_info):
+        assert all(x is not None for x in zc_info)
+        assert len(rct_zcs) == len(rcts_keys)
+        assert len(prd_zcs) == len(prds_keys)
 
-            rct_zcs = tuple(rct_zcs)
-            prd_zcs = tuple(prd_zcs)
+        rct_zcs = tuple(rct_zcs)
+        prd_zcs = tuple(prd_zcs)
 
-            # Check that the atom counts and dummy keys match each structure
-            is_geom = struc_typ == "geom"
-            count_ = geom.count if is_geom else zmat.count
-            c_ok = zmat_conv.count(ts_zc, typ=struc_typ) == count_(ts_struc)
-            d_ok = is_geom or zmat_conv.dummy_keys(ts_zc) == zmat.dummy_keys(ts_struc)
+        # Check that the atom counts and dummy keys match each structure
+        no_zmats = struc_typ == "geom" or all(x is None for x in struc_info)
+        c_ok = zmat_conv.count(ts_zc, typ=struc_typ) == graph.count(tsg)
+        d_ok = no_zmats or zmat_conv.dummy_keys(ts_zc) == zmat.dummy_keys(ts_struc)
+        assert (
+            c_ok and d_ok
+        ), f"TS conversion info doesn't match structure:{ts_zc}\n{ts_struc}"
+
+        zcs = rct_zcs + prd_zcs
+        keys_lst = rcts_keys + prds_keys
+        zmas = [None] * len(zcs) if no_zmats else rct_strucs + prd_strucs
+        for zc_, keys, zma in zip(zcs, keys_lst, zmas):
+            c_ok = zmat_conv.count(zc_, typ=struc_typ) == len(keys)
+            d_ok = no_zmats or zmat_conv.dummy_keys(zc_) == zmat.dummy_keys(zma)
             assert (
                 c_ok and d_ok
-            ), f"TS conversion info doesn't match structure:{ts_zc}\n{ts_struc}"
-
-            for zc_, struc in zip(rct_zcs + prd_zcs, rct_strucs + prd_strucs):
-                c_ok = zmat_conv.count(zc_, typ=struc_typ) == count_(struc)
-                d_ok = is_geom or zmat_conv.dummy_keys(zc_) == zmat.dummy_keys(struc)
-                assert (
-                    c_ok and d_ok
-                ), f"Reagent conversion info doesn't match structure:\n{zc_}\n{struc}"
+            ), f"Reagent conversion info doesn't match structure:\n{zc_}\n{zma}"
 
     return Reaction(
         ts_graph=tsg,
@@ -243,23 +250,29 @@ def from_string(rxn_str) -> Reaction:
     cla = yaml_dct["reaction class"]
 
     struc_typ = yaml_dct.get("structure type")
-    ts_struc = rct_strucs = prd_strucs = None
-    ts_zc = rct_zcs = prd_zcs = None
-    if struc_typ is not None:
-        from_yaml_ = geom.from_yaml_data if struc_typ == "geom" else zmat.from_yaml_data
-        ts_struc = from_yaml_(yaml_dct["ts structure"])
-        rct_strucs = list(map(from_yaml_, yaml_dct["reactant structures"]))
-        prd_strucs = list(map(from_yaml_, yaml_dct["product structures"]))
+    ts_struc = yaml_dct.get("ts structure")
+    rct_strucs = yaml_dct.get("reactant structures")
+    prd_strucs = yaml_dct.get("product structures")
+    ts_zc = yaml_dct.get("ts conversion info")
+    rct_zcs = yaml_dct.get("reactants conversion info")
+    prd_zcs = yaml_dct.get("products conversion info")
 
-        ts_zc_yml = yaml_dct.get("ts conversion info")
-        if ts_zc_yml is not None:
-            ts_zc = zmat_conv.from_yaml_data(ts_zc_yml)
-            rct_zcs = list(
-                map(zmat_conv.from_yaml_data, yaml_dct["reactants conversion info"])
-            )
-            prd_zcs = list(
-                map(zmat_conv.from_yaml_data, yaml_dct["products conversion info"])
-            )
+    struc_info = [ts_struc, rct_strucs, prd_strucs]
+    if any(x is not None for x in struc_info):
+        assert struc_typ is not None and all(x is not None for x in struc_info)
+
+        from_yaml_ = geom.from_yaml_data if struc_typ == "geom" else zmat.from_yaml_data
+        ts_struc = from_yaml_(ts_struc)
+        rct_strucs = list(map(from_yaml_, rct_strucs))
+        prd_strucs = list(map(from_yaml_, prd_strucs))
+
+    zc_info = [ts_zc, rct_zcs, prd_zcs]
+    if any(x is not None for x in zc_info):
+        assert all(x is not None for x in zc_info)
+
+        ts_zc = zmat_conv.from_yaml_data(ts_zc)
+        rct_zcs = list(map(zmat_conv.from_yaml_data, rct_zcs))
+        prd_zcs = list(map(zmat_conv.from_yaml_data, prd_zcs))
 
     return from_data(
         cla=cla,
@@ -290,27 +303,39 @@ def string(rxn: Reaction) -> str:
     yaml_dct["reactants keys"] = list(map(list, rcts_keys))
     yaml_dct["products keys"] = list(map(list, prds_keys))
     yaml_dct["reaction class"] = class_(rxn)
+
     struc_typ = structure_type(rxn)
-    if struc_typ is not None:
+    ts_struc = ts_structure(rxn)
+    rct_strucs = reactant_structures(rxn)
+    prd_strucs = product_structures(rxn)
+    ts_zc = ts_conversion_info(rxn)
+    rct_zcs = reactants_conversion_info(rxn)
+    prd_zcs = products_conversion_info(rxn)
+
+    struc_info = [ts_struc, rct_strucs, prd_strucs]
+    if any(x is not None for x in struc_info):
+        assert struc_typ is not None and all(x is not None for x in struc_info)
+
         yaml_ = geom.yaml_data if struc_typ == "geom" else zmat.yaml_data
-        yaml_dct["structure type"] = struc_typ
-        yaml_dct["ts structure"] = yaml_(ts_structure(rxn))
-        yaml_dct["reactant structures"] = list(map(yaml_, reactant_structures(rxn)))
-        yaml_dct["product structures"] = list(map(yaml_, product_structures(rxn)))
+        ts_struc = yaml_(ts_struc)
+        rct_strucs = list(map(yaml_, rct_strucs))
+        prd_strucs = list(map(yaml_, prd_strucs))
 
-        ts_zc = ts_conversion_info(rxn)
-        rct_zcs = reactants_conversion_info(rxn)
-        prd_zcs = products_conversion_info(rxn)
+    zc_info = [ts_zc, rct_zcs, prd_zcs]
+    if any(x is not None for x in zc_info):
+        assert all(x is not None for x in zc_info)
 
-        if ts_zc is not None:
-            assert rct_zcs is not None and prd_zcs is not None
-            yaml_dct["ts conversion info"] = zmat_conv.yaml_data(ts_zc)
-            yaml_dct["reactants conversion info"] = list(
-                map(zmat_conv.yaml_data, rct_zcs)
-            )
-            yaml_dct["products conversion info"] = list(
-                map(zmat_conv.yaml_data, prd_zcs)
-            )
+        ts_zc = zmat_conv.yaml_data(ts_zc)
+        rct_zcs = list(map(zmat_conv.yaml_data, rct_zcs))
+        prd_zcs = list(map(zmat_conv.yaml_data, prd_zcs))
+
+    yaml_dct["structure type"] = struc_typ
+    yaml_dct["ts structure"] = ts_struc
+    yaml_dct["reactant structures"] = rct_strucs
+    yaml_dct["product structures"] = prd_strucs
+    yaml_dct["ts conversion info"] = ts_zc
+    yaml_dct["reactants conversion info"] = rct_zcs
+    yaml_dct["products conversion info"] = prd_zcs
 
     rxn_str = yaml.dump(yaml_dct, default_flow_style=None, sort_keys=False)
     return rxn_str
@@ -780,6 +805,32 @@ def without_stereo(rxn: Reaction) -> Reaction:
     return rxn
 
 
+def without_structures(
+    rxn: Reaction, keep_typ: bool = False, keep_zc: bool = False
+) -> Reaction:
+    """Remove structural information from the reaction object
+
+    :param rxn: A reaction object
+    :type rxn: Reaction
+    :param keep_typ: Keep the structure type?, defaults to False
+    :type keep_typ: bool, optional
+    :param keep_zc: Keep structural conversion info?, defaults to False
+    :type keep_zc: bool, optional
+    :return: The reaction object, without structural information
+    :rtype: Reaction
+    """
+    return from_data(
+        tsg=ts_graph(rxn),
+        rcts_keys=reactants_keys(rxn),
+        prds_keys=products_keys(rxn),
+        cla=class_(rxn),
+        struc_typ=structure_type(rxn) if keep_typ else None,
+        ts_zc=ts_conversion_info(rxn) if keep_zc else None,
+        rct_zcs=reactants_conversion_info(rxn) if keep_zc else None,
+        prd_zcs=products_conversion_info(rxn) if keep_zc else None,
+    )
+
+
 def apply_zmatrix_conversion(rxn: Reaction, zc_: ZmatConv) -> Reaction:
     """Apply a z-matrix conversion (dummy insertion + reordering) to the reaction
 
@@ -960,6 +1011,7 @@ def _identify_sequence_structure_type(strucs):
     :param strucs: The structures (geom or zmat)
     :type strucs: List[automol geom or zmat data structure]
     """
+    strucs = [None] if strucs is None else strucs
     return (
         "geom"
         if all(map(geom.is_valid, strucs))

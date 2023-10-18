@@ -21,6 +21,9 @@ from automol.reac._0core import (
     structure_type,
     ts_graph,
     ts_structure,
+    ts_conversion_info,
+    reactants_conversion_info,
+    products_conversion_info,
     without_stereo,
 )
 from automol.util import ZmatConv, dict_, zmat_conv
@@ -250,11 +253,16 @@ def _convert_geom_to_zmat_structures(
 
     assert structure_type(rxn) == "geom"
 
+    # Read in pre-existing z-matrix conversion info, if there is some
+    ts_zc = ts_conversion_info(rxn)
+    rct_zcs = reactants_conversion_info(rxn) if rct_zcs is None else rct_zcs
+    prd_zcs = products_conversion_info(rxn) if prd_zcs is None else prd_zcs
+
     gtsg = ts_graph(rxn)
     ts_geo = ts_structure(rxn)
 
     # Convert the TS geometry
-    ts_zma, ts_zc = geom.zmatrix_with_conversion_info(ts_geo, gra=gtsg)
+    ts_zma, ts_zc = geom.zmatrix_with_conversion_info(ts_geo, gra=gtsg, zc_=ts_zc)
     ztsg = graph.apply_zmatrix_conversion(gtsg, ts_zc)
 
     # Get the z-matrix for each reagent, along with the conversion info
@@ -377,11 +385,16 @@ def _convert_zmat_to_geom_structures(
 
     assert structure_type(rxn) == "zmat"
 
+    # Read in pre-existing z-matrix conversion info, if there is some
+    ts_zc = ts_conversion_info(rxn)
+    rct_zcs = reactants_conversion_info(rxn) if rct_zcs is None else rct_zcs
+    prd_zcs = products_conversion_info(rxn) if prd_zcs is None else prd_zcs
+
     ztsg = ts_graph(rxn)
     ts_zma = ts_structure(rxn)
 
     # Convert the TS geometry
-    ts_geo, ts_zc = zmat.geometry_with_conversion_info(ts_zma)
+    ts_geo, ts_zc = zmat.geometry_with_conversion_info(ts_zma, zc_=ts_zc)
     gtsg = graph.reverse_zmatrix_conversion(ztsg, ts_zc)
 
     # Get the geometry for each reagent, along with the conversion info

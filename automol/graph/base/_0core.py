@@ -949,6 +949,17 @@ def atom_count(
     return natms
 
 
+def count(gra) -> int:
+    """Give a raw count of the number of atoms defined in this molecule
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :return: The number of atoms
+    :rtype: int
+    """
+    return len(atoms(gra))
+
+
 def electron_count(gra, charge=0):
     """Count the number of electrons in the molecule, based on its charge
 

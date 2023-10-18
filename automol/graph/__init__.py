@@ -54,6 +54,7 @@ from automol.graph.base._0core import argsort_by_size
 from automol.graph.base._0core import sort_by_size
 # # properties
 from automol.graph.base._0core import atom_count
+from automol.graph.base._0core import count
 from automol.graph.base._0core import electron_count
 from automol.graph.base._0core import atom_stereo_keys
 from automol.graph.base._0core import bond_stereo_keys
@@ -366,6 +367,7 @@ __all__ = [
     'sort_by_size',
     # # properties
     'atom_count',
+    'count',
     'electron_count',
     'atom_stereo_keys',
     'bond_stereo_keys',
