@@ -558,7 +558,7 @@ def _distance_bounds_matrices(gra, keys, sp_dct=None):
 
         assert lmat[idx1, idx2] <= umat[idx1, idx2], (
             "Lower bound exceeds upper bound. This is a bug!\n"
-            f"{string(gra, one_indexed=False)}\npath: {str(path)}\n"
+            f"{string(gra)}\npath: {str(path)}\n"
         )
 
     return lmat, umat

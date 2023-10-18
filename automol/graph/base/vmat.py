@@ -114,8 +114,7 @@ def connected_ring_systems(gra, rng_keys=None, check=True):
             None,
         )
         assert idx is not None, (
-            f"The ring {str(rng_keys)}"
-            f" is not in this graph:\n{string(gra, one_indexed=False)}"
+            f"The ring {str(rng_keys)} is not in this graph:\n{string(gra)}"
         )
         rsy = rsys.pop(idx)
 

@@ -4,8 +4,8 @@ import itertools
 
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import phycon
+from pyparsing import pyparsing_common as ppc
 
 import automol.geom.base
 from automol import util, vmat
@@ -229,7 +229,7 @@ def set_values_by_name(zma, val_dct, angstrom=True, degree=True):
 
 
 # # I/O
-def string(zma, one_indexed=True, angstrom=True, degree=True):
+def string(zma, one_indexed=False, angstrom=True, degree=True):
     """Write a Z-Matrix object to a string.
 
     :param zma: Z-Matrix
@@ -270,7 +270,7 @@ def string(zma, one_indexed=True, angstrom=True, degree=True):
     return zma_str
 
 
-def from_string(zma_str, one_indexed=True, angstrom=True, degree=True):
+def from_string(zma_str, one_indexed=None, angstrom=True, degree=True):
     """Parse a Z-Matrix object from a string.
 
     :param zma_str: string containing a Z-Matrix
@@ -602,10 +602,9 @@ def distance_coordinate_name(zma, key1, key2):
     key1, key2 = sorted([key1, key2])
     name_mat = name_matrix(zma)
     key_mat = key_matrix(zma)
-    assert key_mat[key2][0] == key1, (
-        f"{key1:d}-{key2:d} is not a distance coordinate in this zmatrix:"
-        f"\n{string(zma, one_indexed=False)}"
-    )
+    assert (
+        key_mat[key2][0] == key1
+    ), f"{key1}-{key2} is not a coordinate in this zmatrix:\n{string(zma)}"
     name = name_mat[key2][0]
 
     return name
@@ -628,11 +627,9 @@ def central_angle_coordinate_name(zma, key1, key2, key3):
     key1, key3 = sorted([key1, key3])
     name_mat = name_matrix(zma)
     key_mat = key_matrix(zma)
-    assert key_mat[key3][0] == key2 and key_mat[key3][1] == key1, (
-        f"{key1:d}-{key2:d}-{key3:d} "
-        "is not a angle coordinate in this zmatrix:"
-        f"\n{string(zma, one_indexed=False)}"
-    )
+    assert (
+        key_mat[key3][0] == key2 and key_mat[key3][1] == key1
+    ), f"{key1}-{key2}-{key3} is not a coordinate in this zmatrix:\n{string(zma)}"
     name = name_mat[key3][1]
 
     return name
@@ -663,11 +660,7 @@ def dihedral_angle_coordinate_name(zma, key1, key2, key3, key4):
         key_mat[key4][0] == key3
         and key_mat[key4][1] == key2
         and key_mat[key4][2] == key1
-    ), (
-        f"{key1:d}-{key2:d}-{key3:d}-{key4:d} "
-        "is not a dihedral coordinate in this zmatrix:"
-        f"\n{string(zma, one_indexed=False)}"
-    )
+    ), f"{key1}-{key2}-{key3}-{key4} is not a coordinate in this zmat:\n{string(zma)}"
 
     name = name_mat[key4][2]
 
