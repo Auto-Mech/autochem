@@ -2031,6 +2031,9 @@ def explicit(gra, atm_keys=None):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
+    if not atoms(gra):
+        return gra
+
     atm_keys = backbone_keys(gra) if atm_keys is None else atm_keys
     atm_keys = sorted(atm_keys)
     atm_imp_hyd_dct = dict_.by_key(atom_implicit_hydrogens(gra), atm_keys)

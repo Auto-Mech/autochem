@@ -383,6 +383,8 @@ def geometry_correct_nonplanar_pi_bonds(
     gra = relabel(gra, geo_idx_dct)
 
     bnd_keys = rigid_planar_bond_keys(gra)
+    # Don't do this for bonds in rings
+    bnd_keys -= set(itertools.chain(*rings_bond_keys(gra, ts_=False)))
 
     for bkey in bnd_keys:
         key1, key2 = bkey
@@ -393,10 +395,13 @@ def geometry_correct_nonplanar_pi_bonds(
             nkey1 = nkey1s[-1]
             nkey2 = nkey2s[-1]
             dih_ang = geom_base.dihedral_angle(geo, nkey1, key1, key2, nkey2)
-            if abs(dih_ang) < numpy.pi / 2.0:
-                ang = pert - dih_ang
-            else:
+
+            # Rotate bonds that are closer to trans to 175 degrees
+            if numpy.pi / 2 < abs(dih_ang) < 3 * numpy.pi / 2:
                 ang = numpy.pi - pert - dih_ang
+            # Rotate bonds that are closer to cis to 5 degrees
+            else:
+                ang = pert - dih_ang
 
             geo = geometry_rotate_bond(gra, geo, [key1, key2], ang)
 
@@ -429,6 +434,8 @@ def geometry_correct_linear_vinyls(
     )
 
     bnd_keys = rigid_planar_bond_keys(gra)
+    # Don't do this for bonds in rings
+    bnd_keys -= set(itertools.chain(*rings_bond_keys(gra, ts_=False)))
 
     for bnd1_key in bnd_keys:
         for bnd2_key in bnbkeys_dct[bnd1_key]:

@@ -9,8 +9,8 @@ def is_atom_closest_to_bond_atom(zma, idx_rad, bond_dist):
     """ Check to see whether the radical atom is still closest to the bond
         formation site.
 
-    TODO: DEPRECATE THIS FUNCTION -- as far as I can tell, it doesn't do what it is supposed
-    to do
+    TODO: DEPRECATE THIS FUNCTION -- as far as I can tell, it doesn't do what it is
+    supposed to do
     """
     geo = geometry(zma)
     atom_closest = True

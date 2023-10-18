@@ -5,8 +5,8 @@ from typing import Dict
 
 import numpy
 import pyparsing as pp
-from phydat import phycon
 from pyparsing import pyparsing_common as ppc
+from phydat import phycon
 
 import automol.graph.base as graph_base
 import automol.inchi.base as inchi_base
