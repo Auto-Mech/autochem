@@ -63,40 +63,8 @@
     [X] Test Reaction structure addition/interconversion
             [X] Implement graph.geometry_matches to check if a geometry matches a graph (including TS graphs/geometries) -- for forming bond keys, it can check that the attaching atom is the closest non-bonded atom (possibly except for 2nd degree neighbors?)
             [X] For each case in test__end_to_end(), check that each TS/R/P geometry matches the corresponding graph
-    [ ] Figure out why automol/tests/test_graph.py::test__smiles is failing
-    [ ] Figure out the following error from test_convert.py::test__geom__with_stereo
-InChI=1S/C6H5O2/c7-5-3-1-2-4-6(5)8/h1-5H/t5-/m0/s1
-Traceback (most recent call last):
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/tests/test_convert.py", line 456, in <module>
-    test__geom__with_stereo()
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/tests/test_convert.py", line 144, in test__geom__with_stereo
-    ref_geo = automol.chi.geometry(ref_ich)
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/amchi/_conv.py", line 144, in geometry
-    geo = automol.graph.geometry(gra, check=check, log=log)
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/_1conv.py", line 69, in geometry
-    geos = [_connected_geometry(g, check=check, log=log) for g in gras]
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/_1conv.py", line 69, in <listcomp>
-    geos = [_connected_geometry(g, check=check, log=log) for g in gras]
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/_1conv.py", line 143, in _connected_geometry
-    geo = _clean_and_validate_connected_geometry(
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/_1conv.py", line 187, in _clean_and_validate_connected_geometry
-    matches = geometry_matches(gra, geo, stereo=stereo, local_stereo=local_stereo)
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/_0embed.py", line 299, in geometry_matches
-    gra_ = set_stereo_from_geometry(cgra_, geo, local_stereo=True)
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/base/_6canon.py", line 544, in set_stereo_from_geometry
-    _, gra, _ = calculate_priorities_and_assign_stereo(
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/base/_6canon.py", line 649, in calculate_priorities_and_assign_stereo
-    pri_dct, gra1, gra2 = _algo(gra, pri_dct)
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/base/_6canon.py", line 631, in _algo
-    keys = stereogenic_keys_from_priorities(gra1, pri_dct1)
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/base/_6canon.py", line 1298, in stereogenic_keys_from_priorities
-    ste_atm_keys = stereogenic_atom_keys_from_priorities(
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/base/_6canon.py", line 1324, in stereogenic_atom_keys_from_priorities
-    gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-  File "/home/avcopan/Documents/Code/amech/autochem/automol/graph/base/_0core.py", line 2039, in explicit
-    next_atm_key = max(atom_keys(gra)) + 1
-ValueError: max() arg is an empty sequence
-
+    [X] Figure out the following error from test_convert.py::test__geom__with_stereo
+    InChI=1S/C6H5O2/c7-5-3-1-2-4-6(5)8/h1-5H/t5-/m0/s1
     [ ] Update existing Reac functions to properly handle structures
         [ ] 
     [ ] _6scan.py
