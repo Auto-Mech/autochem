@@ -13,7 +13,7 @@ from typing import Dict, List
 
 import yaml
 
-from automol import geom, graph, par, zmat
+from automol import const, geom, graph, zmat
 from automol.graph import ts
 from automol.util import ZmatConv, zmat_conv
 
@@ -153,7 +153,9 @@ def from_data(
     prds_keys = tuple(map(tuple, prds_keys))
 
     # Check the reaction class
-    assert par.is_reaction_class(cla) or cla is None, f"{cla} is not a reaction class"
+    assert (
+        const.ReactionClass.is_defined(cla) or cla is None
+    ), f"{cla} is not a reaction class"
 
     # Check the structures, if there are any
     struc_info = [ts_struc, rct_strucs, prd_strucs]
@@ -247,7 +249,7 @@ def from_string(rxn_str) -> Reaction:
     tsg = graph.from_yaml_data(yaml_dct)
     rcts_keys = tuple(map(tuple, yaml_dct["reactants keys"]))
     prds_keys = tuple(map(tuple, yaml_dct["products keys"]))
-    cla = yaml_dct["reaction class"]
+    cla = const.ReactionClass(yaml_dct["reaction class"])
 
     struc_typ = yaml_dct.get("structure type")
     ts_struc = yaml_dct.get("ts structure")
@@ -302,7 +304,7 @@ def string(rxn: Reaction) -> str:
     yaml_dct = graph.yaml_data(ts_graph(rxn))
     yaml_dct["reactants keys"] = list(map(list, rcts_keys))
     yaml_dct["products keys"] = list(map(list, prds_keys))
-    yaml_dct["reaction class"] = class_(rxn)
+    yaml_dct["reaction class"] = str(class_(rxn))
 
     struc_typ = structure_type(rxn)
     ts_struc = ts_structure(rxn)
@@ -577,24 +579,136 @@ def set_structures(
         rcts_keys=reactants_keys(rxn),
         prds_keys=products_keys(rxn),
         cla=class_(rxn),
-        struc_typ=structure_type(rxn) if struc_typ is None else struc_typ,
+        struc_typ=struc_typ,
         ts_struc=ts_struc,
         rct_strucs=rct_strucs,
         prd_strucs=prd_strucs,
+        ts_zc=ts_zc,
+        rct_zcs=rct_zcs,
+        prd_zcs=prd_zcs,
+    )
+
+
+def update_structures(
+    rxn: Reaction,
+    ts_struc=None,
+    rct_strucs=None,
+    prd_strucs=None,
+    struc_typ=None,
+    ts_zc: ZmatConv = None,
+    rct_zcs: List[ZmatConv] = None,
+    prd_zcs: List[ZmatConv] = None,
+) -> Reaction:
+    """Update structures or structural information for the Reaction
+
+    :param rxn: The reaction object
+    :type rxn: Reaction
+    :param ts_struc: The TS stuctures, with keys matching the TS graph
+    :type ts_struc: automol geom or zmat data structure
+    :param rct_strucs: The reactant stuctures, with keys matching reactants keys
+    :type rct_strucs: List[automol geom or zmat data structure]
+    :param prd_strucs: The product stuctures, with keys matching products keys
+    :type prd_strucs: List[automol geom or zmat data structure]
+    :param struc_typ: The structural information type ('zmat' or 'geom'),
+        defaults to None
+    :type struc_typ: str, optional
+    :param ts_zc: Z-matrix conversion info for the TS structure
+    :type ts_zc: ZmatConv
+    :param rct_zcs: Z-matrix conversion info for reactant structures
+    :type rct_zcs: ZmatConv
+    :param prd_zcs: Z-matrix conversion info for product structures
+    :type prd_zcs: ZmatConv
+    :return: A new reaction object
+    :rtype: Reaction
+    """
+    return from_data(
+        tsg=ts_graph(rxn),
+        rcts_keys=reactants_keys(rxn),
+        prds_keys=products_keys(rxn),
+        cla=class_(rxn),
+        struc_typ=structure_type(rxn) if struc_typ is None else struc_typ,
+        ts_struc=ts_structure(rxn) if ts_struc is None else ts_struc,
+        rct_strucs=reactant_structures(rxn) if rct_strucs is None else rct_strucs,
+        prd_strucs=product_structures(rxn) if prd_strucs is None else prd_strucs,
         ts_zc=ts_conversion_info(rxn) if ts_zc is None else ts_zc,
         rct_zcs=reactants_conversion_info(rxn) if rct_zcs is None else rct_zcs,
         prd_zcs=products_conversion_info(rxn) if prd_zcs is None else prd_zcs,
     )
 
 
+# # structures
+def has_structures(rxn: Reaction, complete: bool = True) -> bool:
+    """Does this reaction object have structures?
+
+    :param rxn: A reaction object
+    :type rxn: Reaction
+    :param complete: Require all information to be present; defaults to True
+    :type complete: bool, optional
+    :return: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    strucs_lst = [ts_structure(rxn), reactant_structures(rxn), product_structures(rxn)]
+    if complete:
+        strucs_lst.append(structure_type(rxn))
+
+    results = [x is not None for x in strucs_lst]
+    return all(results) if complete else any(results)
+
+
+def has_conversion_information(rxn: Reaction, complete: bool = True) -> bool:
+    """Does this reaction object have structures?
+
+    :param rxn: A reaction object
+    :type rxn: Reaction
+    :param complete: Require all information to be present; defaults to True
+    :type complete: bool, optional
+    :return: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    struc_info_lst = [
+        ts_conversion_info(rxn),
+        reactants_conversion_info(rxn),
+        products_conversion_info(rxn),
+    ]
+    if complete:
+        struc_info_lst.append(structure_type(rxn))
+
+    results = [x is not None for x in struc_info_lst]
+    return all(results) if complete else any(results)
+
+
+def without_structures(rxn: Reaction, keep_info: bool = True) -> Reaction:
+    """Remove structures from the reaction object
+
+    :param rxn: A reaction object
+    :type rxn: Reaction
+    :param keep_zc: Keep structural conversion info?, defaults to True
+    :type keep_zc: bool, optional
+    :return: The reaction object, without structural information
+    :rtype: Reaction
+    """
+    return from_data(
+        tsg=ts_graph(rxn),
+        rcts_keys=reactants_keys(rxn),
+        prds_keys=products_keys(rxn),
+        cla=class_(rxn),
+        struc_typ=structure_type(rxn) if keep_info else None,
+        ts_zc=ts_conversion_info(rxn) if keep_info else None,
+        rct_zcs=reactants_conversion_info(rxn) if keep_info else None,
+        prd_zcs=products_conversion_info(rxn) if keep_info else None,
+    )
+
+
 # # other
-def relabel(rxn: Reaction, key_dct) -> Reaction:
+def relabel(rxn: Reaction, key_dct, struc: bool = False) -> Reaction:
     """Relabel keys in the TS graph
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param key_dct: A dictionary mapping current keys into new keys
     :type key_dct: dict[int: int]
+    :param struc: Keep the structures and relabel them?, defaults to False
+    :type struc: bool, optional
     :returns: A relabeled reaction object
     :rtype: Reaction
     """
@@ -605,22 +719,36 @@ def relabel(rxn: Reaction, key_dct) -> Reaction:
     rxn = set_ts_graph(rxn, tsg)
     rxn = set_reactants_keys(rxn, rcts_keys)
     rxn = set_products_keys(rxn, prds_keys)
+
+    if struc:
+        struc_typ = structure_type(rxn)
+        ts_struc = ts_structure(rxn)
+        ts_zc = ts_conversion_info(rxn)
+
+        if struc_typ == "zmat":
+            raise NotImplementedError("Cannot relabel z-matrix structures")
+
+        if ts_struc is not None:
+            ts_struc = geom.reorder(ts_struc, key_dct)
+
+        if ts_zc is not None:
+            ts_zc = zmat_conv.relabel(ts_zc, key_dct, "geom")
+
+        rxn = update_structures(rxn, ts_struc=ts_struc, ts_zc=ts_zc)
+
     return rxn
 
 
-def reverse(rxn: Reaction) -> Reaction:
-    """Obtains the reaction object for the reverse reaction
+def reverse_without_structures(rxn: Reaction) -> Reaction:
+    """Get the reaction object for the reverse reaction
 
-    TODO: Rename this reverse_without_structures and implement a general reversal
-    function in _4struct.py that allows reversal with structures (including a flag for
-    whether or not to keep the structures)
-
-    :param rxn: the reaction object
+    :param rxn: A reaction object
     :type rxn: Reaction
+    :returns: The reversed reaction object
     :rtype: Reaction
     """
     return from_data(
-        cla=par.reverse_reaction_class(class_(rxn)),
+        cla=const.ReactionClass.reverse(class_(rxn)),
         tsg=graph.ts.reverse(ts_graph(rxn)),
         rcts_keys=products_keys(rxn),
         prds_keys=reactants_keys(rxn),
@@ -711,7 +839,9 @@ def product_mappings(
     :returns: The list of mappings for each product in order
     :rtype: List[Dict[int, int]]
     """
-    return reactant_mappings(reverse(rxn), rev=rev, shift_keys=shift_keys)
+    return reactant_mappings(
+        reverse_without_structures(rxn), rev=rev, shift_keys=shift_keys
+    )
 
 
 def reactant_graphs(rxn: Reaction, shift_keys: bool = False):
@@ -744,7 +874,7 @@ def product_graphs(rxn: Reaction, shift_keys=False):
     :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
-    return reactant_graphs(reverse(rxn), shift_keys=shift_keys)
+    return reactant_graphs(reverse_without_structures(rxn), shift_keys=shift_keys)
 
 
 def reactants_graph(rxn: Reaction, key_order="R"):
@@ -803,30 +933,6 @@ def without_stereo(rxn: Reaction) -> Reaction:
     tsg = ts_graph(rxn)
     rxn = set_ts_graph(rxn, graph.without_stereo(tsg))
     return rxn
-
-
-def without_structures(
-    rxn: Reaction, keep_info: bool = True
-) -> Reaction:
-    """Remove structures from the reaction object
-
-    :param rxn: A reaction object
-    :type rxn: Reaction
-    :param keep_zc: Keep structural conversion info?, defaults to True
-    :type keep_zc: bool, optional
-    :return: The reaction object, without structural information
-    :rtype: Reaction
-    """
-    return from_data(
-        tsg=ts_graph(rxn),
-        rcts_keys=reactants_keys(rxn),
-        prds_keys=products_keys(rxn),
-        cla=class_(rxn),
-        struc_typ=structure_type(rxn) if keep_info else None,
-        ts_zc=ts_conversion_info(rxn) if keep_info else None,
-        rct_zcs=reactants_conversion_info(rxn) if keep_info else None,
-        prd_zcs=products_conversion_info(rxn) if keep_info else None,
-    )
 
 
 def apply_zmatrix_conversion(rxn: Reaction, zc_: ZmatConv) -> Reaction:

@@ -3,7 +3,7 @@
 """
 
 import itertools
-from automol import par
+from automol.const import ReactionClass
 from automol.util import dict_
 from automol.graph import ts
 from automol.graph import relabel
@@ -89,7 +89,7 @@ def hydrogen_migrations(rct_gras, viable_only=True):
                         brk_bnd_keys=[(rct_rad_key, rct_hyd_key)])
 
                     rxns.append(from_forward_reverse(
-                        cla=par.ReactionClass.Typ.HYDROGEN_MIGRATION,
+                        cla=ReactionClass.HYDROGEN_MIGRATION,
                         ftsg=forw_tsg,
                         rtsg=back_tsg,
                         rcts_keys=[atom_keys(rct_gra)],
@@ -148,7 +148,7 @@ def homolytic_scissions(rct_gras, viable_only=False):
 
                 # Create the reaction object
                 rxns.append(from_forward_reverse(
-                    cla=par.ReactionClass.Typ.HOMOLYT_SCISSION,
+                    cla=ReactionClass.HOMOLYT_SCISSION,
                     ftsg=forw_tsg,
                     rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -219,7 +219,7 @@ def beta_scissions(rct_gras, viable_only=True):
 
                 # Create the reaction object
                 rxns.append(from_forward_reverse(
-                    cla=par.ReactionClass.Typ.BETA_SCISSION,
+                    cla=ReactionClass.BETA_SCISSION,
                     ftsg=forw_tsg,
                     rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -291,7 +291,7 @@ def ring_forming_scissions(rct_gras, viable_only=True):
                                     brk_bnd_keys=[frm_bnd_key])
                 # Create the reaction object
                 rxns.append(from_forward_reverse(
-                    cla=par.ReactionClass.Typ.RING_FORM_SCISSION,
+                    cla=ReactionClass.RING_FORM_SCISSION,
                     ftsg=forw_tsg,
                     rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -394,7 +394,7 @@ def eliminations(rct_gras, viable_only=True):
 
                     # Create the reaction object
                     rxns.append(from_forward_reverse(
-                        cla=par.ReactionClass.Typ.ELIMINATION,
+                        cla=ReactionClass.ELIMINATION,
                         ftsg=forw_tsg,
                         rtsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
@@ -464,7 +464,7 @@ def hydrogen_abstractions(rct_gras, viable_only=True):
 
                     # Create the reaction object
                     rxns.append(from_forward_reverse(
-                        cla=par.ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+                        cla=ReactionClass.HYDROGEN_ABSTRACTION,
                         ftsg=forw_tsg,
                         rtsg=back_tsg,
                         rcts_keys=rcts_atm_keys,
@@ -516,7 +516,7 @@ def additions(rct_gras, viable_only=True):
 
             # Create the reaction object
             rxns.append(from_forward_reverse(
-                cla=par.ReactionClass.Typ.ADDITION,
+                cla=ReactionClass.ADDITION,
                 ftsg=forw_tsg,
                 rtsg=back_tsg,
                 rcts_keys=list(map(atom_keys, rct_gras)),
@@ -613,7 +613,7 @@ def insertions(rct_gras, viable_only=True):
                         rcts_keys = list(map(atom_keys, [rct1_gra, rct2_gra]))
                         prds_keys = list(map(atom_keys, prd_gras))
                         rxns.append(from_forward_reverse(
-                            cla=par.ReactionClass.Typ.INSERTION,
+                            cla=ReactionClass.INSERTION,
                             ftsg=forw_tsg,
                             rtsg=back_tsg,
                             rcts_keys=rcts_keys,
@@ -629,15 +629,15 @@ def insertions(rct_gras, viable_only=True):
 # Cycle through the different finders and gather all possible reactions
 FINDERS = {
     # unimolecular reactions
-    par.ReactionClass.Typ.HYDROGEN_MIGRATION: hydrogen_migrations,
-    par.ReactionClass.Typ.HOMOLYT_SCISSION: homolytic_scissions,
-    par.ReactionClass.Typ.BETA_SCISSION: beta_scissions,
-    par.ReactionClass.Typ.RING_FORM_SCISSION: ring_forming_scissions,
-    par.ReactionClass.Typ.ELIMINATION: eliminations,
+    ReactionClass.HYDROGEN_MIGRATION: hydrogen_migrations,
+    ReactionClass.HOMOLYT_SCISSION: homolytic_scissions,
+    ReactionClass.BETA_SCISSION: beta_scissions,
+    ReactionClass.RING_FORM_SCISSION: ring_forming_scissions,
+    ReactionClass.ELIMINATION: eliminations,
     # bimolecular reactions
-    par.ReactionClass.Typ.HYDROGEN_ABSTRACTION: hydrogen_abstractions,
-    par.ReactionClass.Typ.ADDITION: additions,
-    par.ReactionClass.Typ.INSERTION: insertions,
+    ReactionClass.HYDROGEN_ABSTRACTION: hydrogen_abstractions,
+    ReactionClass.ADDITION: additions,
+    ReactionClass.INSERTION: insertions,
     # par.ReactionClass.Typ.SUBSTITUTION: substitutions,
 }
 

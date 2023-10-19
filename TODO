@@ -66,7 +66,7 @@
     [X] Figure out the following error from test_convert.py::test__geom__with_stereo
     InChI=1S/C6H5O2/c7-5-3-1-2-4-6(5)8/h1-5H/t5-/m0/s1
     [ ] Update existing Reac functions to properly handle structures
-        [ ] 
+        [ ] Implement reverse() function in _4struc.py
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py
