@@ -4,8 +4,8 @@ import itertools
 
 import numpy
 import pyparsing as pp
-from phydat import phycon
 from pyparsing import pyparsing_common as ppc
+from phydat import phycon
 
 import automol.geom.base
 from automol import util, vmat

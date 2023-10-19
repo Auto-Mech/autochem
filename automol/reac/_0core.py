@@ -806,15 +806,13 @@ def without_stereo(rxn: Reaction) -> Reaction:
 
 
 def without_structures(
-    rxn: Reaction, keep_typ: bool = False, keep_zc: bool = False
+    rxn: Reaction, keep_info: bool = True
 ) -> Reaction:
-    """Remove structural information from the reaction object
+    """Remove structures from the reaction object
 
     :param rxn: A reaction object
     :type rxn: Reaction
-    :param keep_typ: Keep the structure type?, defaults to False
-    :type keep_typ: bool, optional
-    :param keep_zc: Keep structural conversion info?, defaults to False
+    :param keep_zc: Keep structural conversion info?, defaults to True
     :type keep_zc: bool, optional
     :return: The reaction object, without structural information
     :rtype: Reaction
@@ -824,10 +822,10 @@ def without_structures(
         rcts_keys=reactants_keys(rxn),
         prds_keys=products_keys(rxn),
         cla=class_(rxn),
-        struc_typ=structure_type(rxn) if keep_typ else None,
-        ts_zc=ts_conversion_info(rxn) if keep_zc else None,
-        rct_zcs=reactants_conversion_info(rxn) if keep_zc else None,
-        prd_zcs=products_conversion_info(rxn) if keep_zc else None,
+        struc_typ=structure_type(rxn) if keep_info else None,
+        ts_zc=ts_conversion_info(rxn) if keep_info else None,
+        rct_zcs=reactants_conversion_info(rxn) if keep_info else None,
+        prd_zcs=products_conversion_info(rxn) if keep_info else None,
     )
 
 

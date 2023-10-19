@@ -43,7 +43,7 @@ def vmatrix(gra):
     else:
         vma, zma_keys = connected_vmatrix(gra, rng_keys=rng_keys)
 
-    return vma, zma_keys
+    return vma, tuple(zma_keys)
 
 
 def connected_vmatrix(gra, keys=None, rng_keys=None):
@@ -113,9 +113,9 @@ def connected_ring_systems(gra, rng_keys=None, check=True):
             (i for i, ks in enumerate(map(atom_keys, rsys)) if set(rng_keys) <= ks),
             None,
         )
-        assert idx is not None, (
-            f"The ring {str(rng_keys)} is not in this graph:\n{string(gra)}"
-        )
+        assert (
+            idx is not None
+        ), f"The ring {str(rng_keys)} is not in this graph:\n{string(gra)}"
         rsy = rsys.pop(idx)
 
     keys_lst = list(ring_system_decomposed_atom_keys(rsy, rng_keys=rng_keys))
@@ -353,7 +353,7 @@ def start_at(gra, key):
     missing from it
     """
     symb_dct = atom_symbols(gra)
-    ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
+    nkeys_dct = atoms_sorted_neighbor_atom_keys(
         gra,
         symbs_first=(
             "X",
@@ -363,31 +363,30 @@ def start_at(gra, key):
         ords_last=(0.1,),
     )
 
-    ngb_keys = ngb_keys_dct[key]
-    if not ngb_keys:
+    nkeys = nkeys_dct[key]
+    if not nkeys:
+        # There are no neighbors, so this will be monatomic
         zma_keys = [key]
-    elif len(ngb_keys) == 1:
+    elif len(nkeys) == 1:
         # Need special handling for atoms with only one neighbor
-        if symb_dct[key] in ("H", "X"):
-            key2 = ngb_keys[0]
-            zma_keys = (key2,) + ngb_keys_dct[key2]
+        if symb_dct[key] in ("H", "X") and symb_dct[nkeys[0]] not in ("H", "X"):
+            key2 = nkeys[0]
+            zma_keys = (key2,) + nkeys_dct[key2]
         else:
-            key2 = ngb_keys[0]
-            ngb_keys = tuple(k for k in ngb_keys_dct[key2] if k != key)
-            zma_keys = (key, key2) + ngb_keys
+            key2 = nkeys[0]
+            nkeys = tuple(k for k in nkeys_dct[key2] if k != key)
+            zma_keys = (key, key2) + nkeys
     else:
-        zma_keys = (key,) + ngb_keys_dct[key]
+        zma_keys = (key,) + nkeys_dct[key]
 
     vma = ()
     for row, key_ in enumerate(zma_keys):
         idx1 = idx2 = idx3 = None
         if row > 0:
-            key1 = next(k for k in ngb_keys_dct[key_] if k in zma_keys[:row])
+            key1 = next(k for k in nkeys_dct[key_] if k in zma_keys[:row])
             idx1 = zma_keys.index(key1)
         if row > 1:
-            key2 = next(
-                k for k in ngb_keys_dct[key1] if k in zma_keys[:row] and k != key_
-            )
+            key2 = next(k for k in nkeys_dct[key1] if k in zma_keys[:row] and k != key_)
             idx2 = zma_keys.index(key2)
         if row > 2:
             key3 = next(k for k in zma_keys[:row] if k not in (key_, key1, key2))
