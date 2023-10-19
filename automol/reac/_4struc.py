@@ -114,6 +114,21 @@ def with_structures(
     return rxn_
 
 
+def reverse(rxn: Reaction, struc: bool = True) -> Reaction:
+    """Get the reaction object for the reverse reaction
+
+    :param rxn: A reaction object
+    :type rxn: Reaction
+    :param struc: Include structures in the reversal, if present? defaults to True
+    :type struc: bool, optional
+    :returns: The reversed reaction object
+    :rtype: Reaction
+    """
+    raise NotImplementedError(f"{rxn} {struc}")
+
+
+# # helper functions
+# # # structure addition/conversion
 def _with_geom_structures(
     rxn: Reaction,
     rct_geos=None,
@@ -485,6 +500,7 @@ def _convert_zmat_to_geom_structures(
     )
 
 
+# # deprecated
 def ts_geometry_from_reactants(
     rxn: Reaction,
     rct_geos,

@@ -1,9 +1,9 @@
 """ test automol.reac
 """
 
-import numpy
 import automol
-from automol.par import ReactionClass
+import numpy
+from automol import ReactionClass
 
 SUBSTITUTION_RXN_STR = """
 reaction class: substitution
@@ -192,7 +192,7 @@ def test__reac__hydrogen_migration():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_MIGRATION,
+    _check_reaction(rxn_objs[0], ReactionClass.HYDROGEN_MIGRATION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -215,7 +215,7 @@ def test__reac__2ts_hydrogen_migration():
 
     # Deal with rxn object 1
     rxn1, ts_geo1, _, _ = rxn_objs[0]
-    assert automol.reac.class_(rxn1) == ReactionClass.Typ.HYDROGEN_MIGRATION
+    assert automol.reac.class_(rxn1) == ReactionClass.HYDROGEN_MIGRATION
     zma1, dc1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
     zrxn1 = automol.reac.apply_zmatrix_conversion(rxn1, dc1)
     print(zrxn1)
@@ -232,7 +232,7 @@ def test__reac__2ts_hydrogen_migration():
 
     # Deal with rxn object 2
     rxn2, ts_geo2, _, _ = rxn_objs[1]
-    assert automol.reac.class_(rxn2) == ReactionClass.Typ.HYDROGEN_MIGRATION
+    assert automol.reac.class_(rxn2) == ReactionClass.HYDROGEN_MIGRATION
     zma2, dc2 = automol.reac.ts_zmatrix(rxn2, ts_geo2)
     zrxn2 = automol.reac.apply_zmatrix_conversion(rxn2, dc2)
 
@@ -267,7 +267,7 @@ def test__reac__beta_scission():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.BETA_SCISSION,
+    _check_reaction(rxn_objs[0], ReactionClass.BETA_SCISSION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -295,7 +295,7 @@ def test__reac__ring_forming_scission():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.RING_FORM_SCISSION,
+    _check_reaction(rxn_objs[0], ReactionClass.RING_FORM_SCISSION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -367,7 +367,7 @@ def test__reac__hydrogen_abstraction():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+    _check_reaction(rxn_objs[0], ReactionClass.HYDROGEN_ABSTRACTION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -386,7 +386,7 @@ def test__reac__hydrogen_abstraction():
         rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(
-            rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION, False)
+            rxn_objs[0], ReactionClass.HYDROGEN_ABSTRACTION, False)
 
 
 def test__reac__sigma_hydrogen_abstraction():
@@ -408,7 +408,7 @@ def test__reac__sigma_hydrogen_abstraction():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+    _check_reaction(rxn_objs[0], ReactionClass.HYDROGEN_ABSTRACTION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -435,7 +435,7 @@ def test__reac__addition():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
+    _check_reaction(rxn_objs[0], ReactionClass.ADDITION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -448,7 +448,7 @@ def test__reac__addition():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION, False)
+        _check_reaction(rxn_objs[0], ReactionClass.ADDITION, False)
 
 
 def test__reac__radrad_addition():
@@ -468,7 +468,7 @@ def test__reac__radrad_addition():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.ADDITION,
+    _check_reaction(rxn_objs[0], ReactionClass.ADDITION,
                     True,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -517,7 +517,7 @@ def test__reac__radrad_hydrogen_abstraction():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+    _check_reaction(rxn_objs[0], ReactionClass.HYDROGEN_ABSTRACTION,
                     True,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -545,7 +545,7 @@ def __reac__insertion():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION,
+    _check_reaction(rxn_objs[0], ReactionClass.INSERTION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -558,7 +558,7 @@ def __reac__insertion():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.INSERTION, False)
+        _check_reaction(rxn_objs[0], ReactionClass.INSERTION, False)
 
 
 def test__reac__substitution():
@@ -582,7 +582,7 @@ def test__reac__substitution():
 
     assert len(rxn_objs) == 1
 
-    _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION,
+    _check_reaction(rxn_objs[0], ReactionClass.SUBSTITUTION,
                     False,
                     ref_scan_names, ref_constraint_dct,
                     ref_scan_grid, ref_update_guess,
@@ -595,7 +595,7 @@ def test__reac__substitution():
     for rct_smis, prd_smis in rxn_smis_lst:
         rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
-        _check_reaction(rxn_objs[0], ReactionClass.Typ.SUBSTITUTION, False)
+        _check_reaction(rxn_objs[0], ReactionClass.SUBSTITUTION, False)
 
 
 def test__reac_util():
@@ -638,7 +638,7 @@ def test__prod__hydrogen_migration():
     """ test hydrogen migration product enumeration
     """
     rct_gras = _gras_for_prod_tests(['C=CCC[CH2]'])
-    rclass = ReactionClass.Typ.HYDROGEN_MIGRATION
+    rclass = ReactionClass.HYDROGEN_MIGRATION
     nprods = 7
     _check_products(rct_gras, rclass, nprods)
 
@@ -647,7 +647,7 @@ def __prod__homolytic_scission():
     """ test homolytic scission product enumeration
     """
     rct_gras = _gras_for_prod_tests(['CCCl'])
-    rclass = ReactionClass.Typ.HOMOLYT_SCISSION
+    rclass = ReactionClass.HOMOLYT_SCISSION
     nprods = 1
     _check_products(rct_gras, rclass, nprods)
     # check fails because some reactions ID'd as a beta scission
@@ -657,7 +657,7 @@ def test__prod__beta_scission():
     """ test beta scission product enumeration
     """
     rct_gras = _gras_for_prod_tests(['C=C[CH]CC'])
-    rclass = ReactionClass.Typ.BETA_SCISSION
+    rclass = ReactionClass.BETA_SCISSION
     nprods = 1
     _check_products(rct_gras, rclass, nprods)
 
@@ -666,7 +666,7 @@ def test__prod__ring_forming_scission():
     """ test ring-forming scission product enumeration
     """
     rct_gras = _gras_for_prod_tests(['CC(OO)CC(OO)C[CH2]'])
-    rclass = ReactionClass.Typ.RING_FORM_SCISSION
+    rclass = ReactionClass.RING_FORM_SCISSION
     nprods = 2
     _check_products(rct_gras, rclass, nprods)
 
@@ -675,7 +675,7 @@ def __prod__elimination():
     """ test elimination product enumeration
     """
     rct_gras = _gras_for_prod_tests(['CCCO[O]'])
-    rclass = ReactionClass.Typ.ELIMINATION
+    rclass = ReactionClass.ELIMINATION
     nprods = 2  # one extra product involving CH2O
     _check_products(rct_gras, rclass, nprods)
 
@@ -684,7 +684,7 @@ def test__prod__hydrogen_abstraction():
     """ test hydrogen abstraction product enumeration
     """
     rct_gras = _gras_for_prod_tests(['CC(=O)C', '[CH3]'])
-    rclass = ReactionClass.Typ.HYDROGEN_ABSTRACTION
+    rclass = ReactionClass.HYDROGEN_ABSTRACTION
     nprods = 1
     _check_products(rct_gras, rclass, nprods)
 
@@ -693,7 +693,7 @@ def test__prod__addition():
     """ test addition product enumeration
     """
     rct_gras = _gras_for_prod_tests(['C=CC=C', '[CH3]'])
-    rclass = ReactionClass.Typ.ADDITION
+    rclass = ReactionClass.ADDITION
     nprods = 2
     _check_products(rct_gras, rclass, nprods)
 
@@ -703,7 +703,7 @@ def __prod__insertion():
     """
 
     rct_gras = _gras_for_prod_tests(['CC=C', 'O[O]'])
-    rclass = ReactionClass.Typ.INSERTION
+    rclass = ReactionClass.INSERTION
     nprods = 4
     _check_products(rct_gras, rclass, nprods)
 

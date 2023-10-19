@@ -10,7 +10,7 @@ vmat are not considered basic types because they cannot be converted
 
 Level 1: No dependencies; no interdependencies
 
- - par
+ - const
  - util
  - error
  - mult
@@ -61,7 +61,7 @@ Level 5: L1-4 dependencies; hierarchical interdependency (descending)
 """
 
 # L1
-from automol import par
+from automol import const
 from automol import util
 from automol import error
 from automol import mult
@@ -87,11 +87,13 @@ from automol import combine
 from automol import reac
 from automol import rotor
 from automol import symm
+# type imports
+from automol.const import ReactionClass, ReactionSpin, ReactionInfo
 
 
 __all__ = [
     # L1
-    'par',
+    'const',
     'util',
     'error',
     'mult',
@@ -117,5 +119,7 @@ __all__ = [
     'combine',
     'reac',
     'rotor',
-    'symm'
+    'symm',
+    # type imports
+    'ReactionClass', 'ReactionSpin', 'ReactionInfo',
 ]

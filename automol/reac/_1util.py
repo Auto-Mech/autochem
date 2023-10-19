@@ -4,7 +4,7 @@
 import itertools
 import automol.graph
 from automol.graph import ts
-from automol.par import ReactionClass
+from automol.const import ReactionClass
 from automol.reac._0core import Reaction
 from automol.reac._0core import ts_graph
 from automol.reac._0core import class_
@@ -114,7 +114,7 @@ def elimination_breaking_bond_keys(rxn: Reaction):
     :returns: the breaking bond keys
     :rtype: (frozenset[int], frozenset[int])
     """
-    assert class_(rxn) == ReactionClass.Typ.ELIMINATION
+    assert class_(rxn) == ReactionClass.ELIMINATION
     tsg = ts_graph(rxn)
     frm_bnd_key, = ts.ts_forming_bond_keys(tsg)
     brk_bnd_keys = ts.ts_breaking_bond_keys(tsg)
@@ -155,7 +155,7 @@ def insertion_forming_bond_keys(rxn: Reaction):
     :rtype: (frozenset[int], frozenset[int])
     """
 
-    assert class_(rxn) == ReactionClass.Typ.INSERTION
+    assert class_(rxn) == ReactionClass.INSERTION
     # Choose the forming bond with the fewest neighbors, to get the terminal
     # atom if there is one.
     tsg = ts_graph(rxn)

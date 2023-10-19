@@ -28,7 +28,7 @@ Reaction ID Classes:
 import itertools
 import automol.geom
 import automol.chi
-from automol.par import ReactionClass
+from automol.const import ReactionClass
 from automol.graph import ts
 from automol.graph import atom_symbols
 from automol.graph import atom_keys
@@ -48,7 +48,7 @@ from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
 from automol.graph import sort_by_size
 from automol.reac._0core import from_forward_reverse
-from automol.reac._0core import reverse
+from automol.reac._0core import reverse_without_structures
 from automol.reac._0core import unique
 from automol.reac._1util import assert_is_valid_reagent_graph_list
 from automol.reac._2stereo import expand_stereo_for_reaction
@@ -89,7 +89,7 @@ def trivial(rct_gras, prd_gras):
             prds_gra = union_from_sequence(prd_gras)
 
             rxn = from_forward_reverse(
-                cla=ReactionClass.Typ.TRIVIAL,
+                cla=ReactionClass.TRIVIAL,
                 ftsg=ts.graph(rcts_gra, [], []),
                 rtsg=ts.graph(prds_gra, [], []),
                 rcts_keys=list(map(atom_keys, rct_gras)),
@@ -175,7 +175,7 @@ def hydrogen_migrations(rct_gras, prd_gras):
                             # Here, find TSs with stereochemistry that are
                             # consistent
                             rxn = from_forward_reverse(
-                                cla=ReactionClass.Typ.HYDROGEN_MIGRATION,
+                                cla=ReactionClass.HYDROGEN_MIGRATION,
                                 ftsg=forw_tsg,
                                 rtsg=back_tsg,
                                 rcts_keys=[atom_keys(rct_gra)],
@@ -198,7 +198,7 @@ def beta_scissions(rct_gras, prd_gras):
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
-    rxns = tuple(map(reverse, additions(prd_gras, rct_gras)))
+    rxns = tuple(map(reverse_without_structures, additions(prd_gras, rct_gras)))
     return rxns
 
 
@@ -249,7 +249,7 @@ def ring_forming_scissions(rct_gras, prd_gras):
 
                         # Create the reaction object
                         rxn = from_forward_reverse(
-                            cla=ReactionClass.Typ.RING_FORM_SCISSION,
+                            cla=ReactionClass.RING_FORM_SCISSION,
                             ftsg=forw_tsg,
                             rtsg=back_tsg,
                             rcts_keys=[atom_keys(rgra)],
@@ -338,7 +338,7 @@ def eliminations(rct_gras, prd_gras):
 
                         # Create the reaction object
                         rxn = from_forward_reverse(
-                            cla=ReactionClass.Typ.ELIMINATION,
+                            cla=ReactionClass.ELIMINATION,
                             ftsg=forw_tsg,
                             rtsg=back_tsg,
                             rcts_keys=rcts_atm_keys,
@@ -440,7 +440,7 @@ def hydrogen_abstractions(rct_gras, prd_gras):
 
                 # Create the reaction object
                 rxn = from_forward_reverse(
-                    cla=ReactionClass.Typ.HYDROGEN_ABSTRACTION,
+                    cla=ReactionClass.HYDROGEN_ABSTRACTION,
                     ftsg=forw_tsg,
                     rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -494,7 +494,7 @@ def additions(rct_gras, prd_gras):
 
                 # Create the reaction object
                 rxn = from_forward_reverse(
-                    cla=ReactionClass.Typ.ADDITION,
+                    cla=ReactionClass.ADDITION,
                     ftsg=forw_tsg,
                     rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -564,7 +564,7 @@ def double_insertion(rct_gras, prd_gras):
                                             frm_bnd_keys=(b_frm_bnd_key,))
                         # Create the reaction object
                         rxn = from_forward_reverse(
-                            cla=ReactionClass.Typ.DOUBLE_INSERTION,
+                            cla=ReactionClass.DOUBLE_INSERTION,
                             ftsg=forw_tsg,
                             rtsg=back_tsg,
                             rcts_keys=list(map(atom_keys, rct_gras)),
@@ -632,7 +632,7 @@ def two_bond_additions(rct_gras, prd_gras):
 
                 # Create the reaction object
                 rxn = from_forward_reverse(
-                    cla=ReactionClass.Typ.ADDITION,
+                    cla=ReactionClass.ADDITION,
                     ftsg=forw_tsg,
                     rtsg=back_tsg,
                     rcts_keys=list(map(atom_keys, rct_gras)),
@@ -656,7 +656,7 @@ def insertions(rct_gras, prd_gras):
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
-    rxns = tuple(map(reverse, eliminations(prd_gras, rct_gras)))
+    rxns = tuple(map(reverse_without_structures, eliminations(prd_gras, rct_gras)))
     return rxns
 
 
@@ -730,7 +730,7 @@ def substitutions(rct_gras, prd_gras):
 
                         # Create the reaction object
                         rxn = from_forward_reverse(
-                            cla=ReactionClass.Typ.SUBSTITUTION,
+                            cla=ReactionClass.SUBSTITUTION,
                             ftsg=forw_tsg,
                             rtsg=back_tsg,
                             rcts_keys=rcts_atm_keys,
