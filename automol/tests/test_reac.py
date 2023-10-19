@@ -211,7 +211,13 @@ def test__end_to_end():
 
         #   (d.) check that the z-matrix structure can be converted back to geometries
         grxn_ = reac.with_structures(zrxn, "geom")
-        assert reac.without_structures(grxn) == reac.without_structures(grxn_)
+        assert reac.without_structures(
+            grxn, keep_info=False
+        ) == reac.without_structures(grxn_, keep_info=False)
+
+        #   (d.) check that converting to z-matrix again gives the same result
+        zrxn_ = reac.with_structures(grxn_, "zmat")
+        assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
 
         #   (e.) check that we can convert two and from string with structures
         assert grxn == reac.from_string(reac.string(grxn))
