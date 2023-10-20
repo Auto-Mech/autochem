@@ -66,41 +66,6 @@ class Reaction:
 
 
 # # constructors
-def from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys) -> Reaction:
-    """Construct a Reaction dataclass from forward and reverse TS graphs
-
-    This function serves the (hopefully temporary) role of connecting the reaction
-    finder to the new Reaction dataclass
-
-    The forward TS graph matches the atom ordering of the products, while the
-    reverse TS graph matches that of the reactants
-
-    :param cla: The reaction class
-    :type cla: str
-    :param ftsg: The transition state graph, with reactant atom order
-    :type ftsg: automol graph data structure
-    :param rtsg: The reverse transition state graph, with product atom order
-    :type rtsg: automol graph data structure
-    :param rcts_keys: Keys to the reactant molecules in `ftsg`
-    :type rcts_keys: tuple[tuple[int]]
-    :param prds_keys: Keys to the product molecules in `rtsg`
-    :type prds_keys: tuple[tuple[int]]
-    :returns: A reaction object
-    :rtype: Reaction
-    """
-    # Determine the reaction mapping
-    rmap_dct = graph.isomorphism(ts.reverse(rtsg), ftsg, dummy=False, stereo=False)
-
-    # Sort, so that the reagent orderings match the original input order
-    rcts_keys = sorted(map(sorted, rcts_keys))
-    prds_keys = sorted(map(sorted, prds_keys))
-
-    # Reverse-map the products keys so they line up with the forward TS graph
-    prds_keys = tuple(tuple(map(rmap_dct.__getitem__, ks)) for ks in prds_keys)
-
-    return from_data(tsg=ftsg, rcts_keys=rcts_keys, prds_keys=prds_keys, cla=cla)
-
-
 def from_data(
     tsg,
     rcts_keys,
@@ -233,6 +198,41 @@ def from_data(
         reactants_conversion_info=rct_zcs,
         products_conversion_info=prd_zcs,
     )
+
+
+def from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys) -> Reaction:
+    """Construct a Reaction dataclass from forward and reverse TS graphs
+
+    This function serves the (hopefully temporary) role of connecting the reaction
+    finder to the new Reaction dataclass
+
+    The forward TS graph matches the atom ordering of the products, while the
+    reverse TS graph matches that of the reactants
+
+    :param cla: The reaction class
+    :type cla: str
+    :param ftsg: The transition state graph, with reactant atom order
+    :type ftsg: automol graph data structure
+    :param rtsg: The reverse transition state graph, with product atom order
+    :type rtsg: automol graph data structure
+    :param rcts_keys: Keys to the reactant molecules in `ftsg`
+    :type rcts_keys: tuple[tuple[int]]
+    :param prds_keys: Keys to the product molecules in `rtsg`
+    :type prds_keys: tuple[tuple[int]]
+    :returns: A reaction object
+    :rtype: Reaction
+    """
+    # Determine the reaction mapping
+    rmap_dct = graph.isomorphism(ts.reverse(rtsg), ftsg, dummy=False, stereo=False)
+
+    # Sort, so that the reagent orderings match the original input order
+    rcts_keys = sorted(map(sorted, rcts_keys))
+    prds_keys = sorted(map(sorted, prds_keys))
+
+    # Reverse-map the products keys so they line up with the forward TS graph
+    prds_keys = tuple(tuple(map(rmap_dct.__getitem__, ks)) for ks in prds_keys)
+
+    return from_data(tsg=ftsg, rcts_keys=rcts_keys, prds_keys=prds_keys, cla=cla)
 
 
 # # serialization
@@ -922,23 +922,6 @@ def products_graph(rxn: Reaction, key_order="P"):
     return graph.relabel(rcts_gra, map_dct, check=True)
 
 
-def standard_keys(rxn: Reaction) -> Reaction:
-    """Standardize keys for the reaction object
-
-    Ensures that keys follow zero-indexing in order with no skips
-
-    :param rxn: the reaction object
-    :type rxn: Reaction
-    :returns: A copy of the reaction object, with standardized keys
-    :rtype: Reaction
-    """
-    rct_keys = list(map(sorted, reactants_keys(rxn)))
-    rct_key_dct = {k: i for i, k in enumerate(itertools.chain(*rct_keys))}
-
-    rxn = relabel(rxn, rct_key_dct)
-    return rxn
-
-
 def without_stereo(rxn: Reaction) -> Reaction:
     """Remove all stereo information from the reaction object
 
@@ -1148,34 +1131,7 @@ def undo_zmatrix_conversion(
 
 def without_dummy_atoms(rxn: Reaction) -> Reaction:
     """remove dummy atoms from the reactants or products"""
-    tsg = ts_graph(rxn)
-    dummy_keys = graph.atom_keys(tsg, symb="X")
-
-    tsg = graph.without_dummy_atoms(tsg)
-    rcts_keys = [[k for k in ks if k not in dummy_keys] for ks in reactants_keys(rxn)]
-    prds_keys = [[k for k in ks if k not in dummy_keys] for ks in products_keys(rxn)]
-    rxn = set_ts_graph(rxn, tsg)
-    rxn = set_reactants_keys(rxn, rcts_keys)
-    rxn = set_products_keys(rxn, prds_keys)
-    return rxn
-
-
-def relabel_for_geometry(rxn: Reaction) -> Reaction:
-    """relabel the reaction object to correspond with a geometry converted
-    from a z-matrix
-
-    DEPRECATED
-
-    :param rxn: the reaction object
-    :param product: do this do the products instead of the reactants?
-    """
-    rxn = without_dummy_atoms(rxn)
-
-    tsg = ts_graph(rxn)
-    keys = sorted(graph.atom_keys(tsg))
-    key_dct = dict(map(reversed, enumerate(keys)))
-    rxn = relabel(rxn, key_dct)
-    return rxn
+    return undo_zmatrix_conversion(rxn, keep_info=False)
 
 
 def unique(rxns: List[Reaction]) -> List[Reaction]:

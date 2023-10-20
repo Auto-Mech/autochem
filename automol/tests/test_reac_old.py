@@ -746,7 +746,7 @@ def _check_reaction(rxn_obj, ref_class, var,
     # graph aligned to geometry keys
     # (for getting rotational groups and symmetry numbers)
     geo, gdc = automol.zmat.geometry_with_conversion_info(zma)
-    grxn = automol.reac.relabel_for_geometry(zrxn)
+    grxn = automol.reac.undo_zmatrix_conversion(zrxn)
     # print(automol.geom.string(geo))
 
     # Get torsion information
