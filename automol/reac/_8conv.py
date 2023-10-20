@@ -4,12 +4,10 @@ from typing import List
 
 import IPython
 
-import automol.amchi
-import automol.chi
-import automol.geom
-import automol.graph
-import automol.smiles
-import automol.zmat
+from automol import amchi, geom, graph
+from automol import chi as chi_
+from automol import smiles as smiles_
+from automol import zmat as zmat_
 from automol.extern import rdkit_
 from automol.reac._0core import (
     Reaction,
@@ -22,12 +20,12 @@ from automol.reac._0core import (
 )
 from automol.reac._2stereo import reflect
 from automol.reac._3find import find
-from automol.reac._4struc import ts_geometry_from_reactants
+from automol.reac._4struc import ts_geometry_from_reactants, with_structures
 from automol.reac._5zmat import ts_zmatrix
 
 
 # Conversion stuff
-def amchi(rxn: Reaction, stereo=True):
+def amchis(rxn: Reaction, stereo=True):
     """Convert the reaction object to AMChIs
 
     :param rxn: the reaction object
@@ -38,17 +36,13 @@ def amchi(rxn: Reaction, stereo=True):
     :returns: AMChI strings for the reactants and products
     :rtype: (tuple[str], tuple[str])
     """
-    rct_chis = tuple(
-        automol.graph.amchi(gra, stereo=stereo) for gra in reactant_graphs(rxn)
-    )
-    prd_chis = tuple(
-        automol.graph.amchi(gra, stereo=stereo) for gra in product_graphs(rxn)
-    )
+    rct_chis = tuple(graph.amchi(gra, stereo=stereo) for gra in reactant_graphs(rxn))
+    prd_chis = tuple(graph.amchi(gra, stereo=stereo) for gra in product_graphs(rxn))
     return (rct_chis, prd_chis)
 
 
 def ts_amchi(rxn: Reaction, stereo=True) -> str:
-    """Convert the reaction object to AMChIs
+    """Get the AMChI for the reaction TS
 
     :param rxn: The reaction object
     :type rxn: Reaction
@@ -61,11 +55,11 @@ def ts_amchi(rxn: Reaction, stereo=True) -> str:
         rxn = without_stereo(rxn)
 
     tsg = ts_graph(rxn)
-    ts_chi = automol.graph.amchi(tsg)
+    ts_chi = graph.amchi(tsg)
     return ts_chi
 
 
-def inchi(rxn: Reaction, stereo=True):
+def inchis(rxn: Reaction, stereo=True):
     """Convert the reaction object to InChIs
 
     :param rxn: the reaction object
@@ -76,16 +70,12 @@ def inchi(rxn: Reaction, stereo=True):
     :returns: InChI strings for the reactants and products
     :rtype: (tuple[str], tuple[str])
     """
-    rct_ichs = tuple(
-        automol.graph.inchi(gra, stereo=stereo) for gra in reactant_graphs(rxn)
-    )
-    prd_ichs = tuple(
-        automol.graph.inchi(gra, stereo=stereo) for gra in product_graphs(rxn)
-    )
+    rct_ichs = tuple(graph.inchi(gra, stereo=stereo) for gra in reactant_graphs(rxn))
+    prd_ichs = tuple(graph.inchi(gra, stereo=stereo) for gra in product_graphs(rxn))
     return (rct_ichs, prd_ichs)
 
 
-def chi(rxn: Reaction, stereo=True):
+def chis(rxn: Reaction, stereo=True):
     """Convert the reaction object to ChIs
 
     :param rxn: the reaction object
@@ -96,12 +86,8 @@ def chi(rxn: Reaction, stereo=True):
     :returns: ChI strings for the reactants and products
     :rtype: (tuple[str], tuple[str])
     """
-    rct_chis = tuple(
-        automol.graph.chi(gra, stereo=stereo) for gra in reactant_graphs(rxn)
-    )
-    prd_chis = tuple(
-        automol.graph.chi(gra, stereo=stereo) for gra in product_graphs(rxn)
-    )
+    rct_chis = tuple(graph.chi(gra, stereo=stereo) for gra in reactant_graphs(rxn))
+    prd_chis = tuple(graph.chi(gra, stereo=stereo) for gra in product_graphs(rxn))
     return (rct_chis, prd_chis)
 
 
@@ -119,15 +105,11 @@ def smiles(rxn: Reaction, stereo=True, res_stereo=True, exp_singles=False):
     :rtype: (tuple[str], tuple[str])
     """
     rct_smis = tuple(
-        automol.graph.smiles(
-            gra, stereo=stereo, res_stereo=res_stereo, exp_singles=exp_singles
-        )
+        graph.smiles(gra, stereo=stereo, res_stereo=res_stereo, exp_singles=exp_singles)
         for gra in reactant_graphs(rxn)
     )
     prd_smis = tuple(
-        automol.graph.smiles(
-            gra, stereo=stereo, res_stereo=res_stereo, exp_singles=exp_singles
-        )
+        graph.smiles(gra, stereo=stereo, res_stereo=res_stereo, exp_singles=exp_singles)
         for gra in product_graphs(rxn)
     )
     return (rct_smis, prd_smis)
@@ -142,7 +124,7 @@ def reaction_smiles(rxn) -> str:
     :rtype: str
     """
     rct_smis, prd_smis = smiles(rxn)
-    rxn_smi = automol.smiles.reaction(rct_smis, prd_smis)
+    rxn_smi = smiles_.reaction(rct_smis, prd_smis)
     return rxn_smi
 
 
@@ -191,8 +173,8 @@ def is_canonical_enantiomer(srxn: Reaction):
     :returns: Whether or not the reaction is canonical
     :rtype: bool
     """
-    rct_chis, prd_chis = amchi(srxn)
-    return automol.amchi.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
+    rct_chis, prd_chis = amchis(srxn)
+    return amchi.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
 
 
 def canonical_enantiomer(srxn: Reaction):
@@ -209,6 +191,110 @@ def canonical_enantiomer(srxn: Reaction):
 
 
 # Get a reaction object with structures from various identifiers
+def from_chis(
+    rct_chis, prd_chis, stereo=False, struc_typ: str = None
+) -> List[Reaction]:
+    """Get reaction objects from ChIs
+
+    :param rct_chis: The reactant ChI (InChI or AMChI) strings
+    :type rct_chis: list[str]
+    :param prd_chis: The product ChI (InChI or AMChI) strings
+    :type prd_chis: list[str]
+    :param stereo: Include stereoassignments?
+    :type stereo: bool
+    :param struc_typ: Add structures of this type; defaults to None
+    :type struc_typ: str, optional
+    :returns: A series of reaction objects
+    :rtype: List[Reaction]
+    """
+    rct_gras = tuple(map(graph.explicit, map(chi_.graph, rct_chis)))
+    prd_gras = tuple(map(graph.explicit, map(chi_.graph, prd_chis)))
+    rxns = find(rct_gras, prd_gras, stereo=stereo)
+
+    if struc_typ is not None:
+        rxns = tuple(with_structures(r, struc_typ) for r in rxns)
+
+    return rxns
+
+
+def from_smiles(
+    rct_smis, prd_smis, stereo=False, struc_typ: str = None
+) -> List[Reaction]:
+    """Get reaction objects from SMILES
+
+    :param rct_smis: The reactant SMILES strings
+    :type rct_smis: list[str]
+    :param prd_smis: The product SMILES strings
+    :type prd_smis: list[str]
+    :param stereo: Include stereoassignments?
+    :type stereo: bool
+    :param struc_typ: Add structures of this type; defaults to None
+    :type struc_typ: str, optional
+    :returns: A series of reaction objects
+    :rtype: List[Reaction]
+    """
+    rct_gras = tuple(map(graph.explicit, map(smiles_.graph, rct_smis)))
+    prd_gras = tuple(map(graph.explicit, map(smiles_.graph, prd_smis)))
+    rxns = find(rct_gras, prd_gras, stereo=stereo)
+
+    if struc_typ is not None:
+        rxns = tuple(with_structures(r, struc_typ) for r in rxns)
+
+    return rxns
+
+
+def from_zmatrices(
+    rct_zmas, prd_zmas, stereo=False, struc_typ: str = "zmat"
+) -> List[Reaction]:
+    """Get reaction objects from z-matrices
+
+    :param rct_zmas: The reactant z-matrices
+    :type rct_zmas: list of automol z-matrices
+    :param prd_zmas: The product z-matrices
+    :type prd_zmas: list of automol z-matrices
+    :param stereo: Include stereoassignments?
+    :type stereo: bool
+    :param struc_typ: Add structures of this type; defaults to "zmat"
+    :type struc_typ: str, optional
+    :returns: A series of reaction objects
+    :rtype: List[Reaction]
+    """
+    rct_gras = tuple(map(zmat_.graph, rct_zmas))
+    prd_gras = tuple(map(zmat_.graph, prd_zmas))
+    rxns = find(rct_gras, prd_gras, stereo=stereo)
+
+    if struc_typ is not None:
+        rxns = tuple(with_structures(r, struc_typ) for r in rxns)
+
+    return rxns
+
+
+def from_geometries(
+    rct_geos, prd_geos, stereo=False, struc_typ: str = "geom"
+) -> List[Reaction]:
+    """Get reaction objects from geometries
+
+    :param rct_geos: The reactant geometries
+    :type rct_geos: list of automol geometries
+    :param prd_geos: The product geometries
+    :type prd_geos: list of automol geometries
+    :param stereo: Include stereoassignments?
+    :type stereo: bool
+    :param struc_typ: Add structures of this type; defaults to "geom"
+    :type struc_typ: str, optional
+    :returns: A series of reaction objects
+    :rtype: List[Reaction]
+    """
+    rct_gras = tuple(map(geom.graph, rct_geos))
+    prd_gras = tuple(map(geom.graph, prd_geos))
+    rxns = find(rct_gras, prd_gras, stereo=stereo)
+
+    if struc_typ is not None:
+        rxns = tuple(with_structures(r, struc_typ) for r in rxns)
+
+    return rxns
+
+
 def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False):
     """Get reaction objects with geometry/z-matrix structures from ChIs
 
@@ -227,8 +313,8 @@ def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False):
         objects.
     """
 
-    rct_geos = list(map(automol.chi.geometry, rct_chis))
-    prd_geos = list(map(automol.chi.geometry, prd_chis))
+    rct_geos = list(map(chi_.geometry, rct_chis))
+    prd_geos = list(map(chi_.geometry, prd_chis))
 
     return with_structures_from_geometry(rct_geos, prd_geos, zmat=zmat, stereo=stereo)
 
@@ -251,13 +337,13 @@ def with_structures_from_smiles(rct_smis, prd_smis, zmat=False, stereo=False):
         objects.
     """
 
-    # rct_geos = list(map(automol.smiles.geometry, rct_smis))
-    # prd_geos = list(map(automol.smiles.geometry, prd_smis))
+    # rct_geos = list(map(smiles_.geometry, rct_smis))
+    # prd_geos = list(map(smiles_.geometry, prd_smis))
 
-    rct_chis = list(map(automol.smiles.chi, rct_smis))
-    prd_chis = list(map(automol.smiles.chi, prd_smis))
-    rct_geos = list(map(automol.chi.geometry, rct_chis))
-    prd_geos = list(map(automol.chi.geometry, prd_chis))
+    rct_chis = list(map(smiles_.chi, rct_smis))
+    prd_chis = list(map(smiles_.chi, prd_smis))
+    rct_geos = list(map(chi_.geometry, rct_chis))
+    prd_geos = list(map(chi_.geometry, prd_chis))
 
     return with_structures_from_geometry(rct_geos, prd_geos, zmat=zmat, stereo=stereo)
 
@@ -280,8 +366,8 @@ def with_structures_from_zmatrix(rct_zmas, prd_zmas, zmat=False, stereo=False):
         objects.
     """
 
-    rct_geos = list(map(automol.zmat.geometry, rct_zmas))
-    prd_geos = list(map(automol.zmat.geometry, prd_zmas))
+    rct_geos = list(map(zmat_.geometry, rct_zmas))
+    prd_geos = list(map(zmat_.geometry, prd_zmas))
 
     return with_structures_from_geometry(rct_geos, prd_geos, zmat=zmat, stereo=stereo)
 
@@ -304,12 +390,12 @@ def with_structures_from_geometry(
     """
 
     # Identify the reaction based on the reactants and products
-    rct_gras = list(map(automol.geom.graph, rct_geos))
-    prd_gras = list(map(automol.geom.graph, prd_geos))
+    rct_gras = list(map(geom.graph, rct_geos))
+    prd_gras = list(map(geom.graph, prd_geos))
 
     if not stereo:
-        rct_gras = list(map(automol.graph.without_stereo, rct_gras))
-        prd_gras = list(map(automol.graph.without_stereo, prd_gras))
+        rct_gras = list(map(graph.without_stereo, rct_gras))
+        prd_gras = list(map(graph.without_stereo, prd_gras))
 
     rxns = find(rct_gras, prd_gras)
 
@@ -324,8 +410,8 @@ def with_structures_from_geometry(
         else:
             ts_zma, dc_ = ts_zmatrix(rxn, ts_geo)
             zrxn = apply_zmatrix_conversion(rxn, dc_)
-            rct_zmas = tuple(map(automol.geom.zmatrix, rct_geos))
-            prd_zmas = tuple(map(automol.geom.zmatrix, prd_geos))
+            rct_zmas = tuple(map(geom.zmatrix, rct_geos))
+            prd_zmas = tuple(map(geom.zmatrix, prd_geos))
 
             ret += ((zrxn, ts_zma, rct_zmas, prd_zmas),)
 

@@ -71,16 +71,20 @@ from automol.reac._7rot import rotational_bond_keys
 from automol.reac._7rot import rotational_groups
 from automol.reac._7rot import rotational_symmetry_number
 # conversions
-from automol.reac._8conv import amchi
+from automol.reac._8conv import amchis
 from automol.reac._8conv import ts_amchi
-from automol.reac._8conv import inchi
-from automol.reac._8conv import chi
+from automol.reac._8conv import inchis
+from automol.reac._8conv import chis
 from automol.reac._8conv import smiles
 from automol.reac._8conv import reaction_smiles
 from automol.reac._8conv import rdkit_reaction
 from automol.reac._8conv import display
 from automol.reac._8conv import is_canonical_enantiomer
 from automol.reac._8conv import canonical_enantiomer
+from automol.reac._8conv import from_chis
+from automol.reac._8conv import from_smiles
+from automol.reac._8conv import from_zmatrices
+from automol.reac._8conv import from_geometries
 from automol.reac._8conv import with_structures_from_chi
 from automol.reac._8conv import with_structures_from_smiles
 from automol.reac._8conv import with_structures_from_geometry
@@ -176,16 +180,20 @@ __all__ = [
     'rotational_groups',
     'rotational_symmetry_number',
     # conversions
-    'amchi',
+    'amchis',
     'ts_amchi',
-    'inchi',
-    'chi',
+    'inchis',
+    'chis',
     'smiles',
     'reaction_smiles',
     'rdkit_reaction',
     'display',
     'is_canonical_enantiomer',
     'canonical_enantiomer',
+    'from_chis',
+    'from_smiles',
+    'from_zmatrices',
+    'from_geometries',
     'with_structures_from_chi',
     'with_structures_from_smiles',
     'with_structures_from_geometry',
