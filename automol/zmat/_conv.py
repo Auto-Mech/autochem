@@ -87,7 +87,7 @@ def geometry(zma, dummy=False, zc_: ZmatConv = None):
     geo = geom.from_data(syms, xyzs)
 
     if zc_ is not None:
-        geo = geom.reverse_zmatrix_conversion(geo, zc_)
+        geo = geom.undo_zmatrix_conversion(geo, zc_)
     elif not dummy:
         geo = geom.without_dummy_atoms(geo)
 

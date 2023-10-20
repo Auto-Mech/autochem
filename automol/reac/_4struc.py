@@ -14,7 +14,7 @@ from automol.reac._0core import (
     reactant_structures,
     reactants_conversion_info,
     reverse_without_recalculating,
-    reverse_zmatrix_conversion,
+    undo_zmatrix_conversion,
     set_structures,
     string,
     structure_type,
@@ -414,7 +414,7 @@ def _convert_zmat_to_geom_structures(
     )
 
     rxn = without_structures(rxn)
-    rxn = reverse_zmatrix_conversion(
+    rxn = undo_zmatrix_conversion(
         rxn, ts_zc=ts_zc, rct_zcs=rct_zcs, prd_zcs=prd_zcs, keep_info=True
     )
     return update_structures(

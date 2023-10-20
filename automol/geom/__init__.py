@@ -120,7 +120,7 @@ from automol.geom._conv import external_symmetry_factor
 from automol.geom._conv import x2z_torsion_coordinate_names
 # # derived operations
 from automol.geom._conv import apply_zmatrix_conversion
-from automol.geom._conv import reverse_zmatrix_conversion
+from automol.geom._conv import undo_zmatrix_conversion
 from automol.geom._conv import set_distance
 from automol.geom._conv import set_central_angle
 from automol.geom._conv import set_dihedral_angle
@@ -249,7 +249,7 @@ __all__ = [
     'x2z_torsion_coordinate_names',
     # # derived operations
     'apply_zmatrix_conversion',
-    'reverse_zmatrix_conversion',
+    'undo_zmatrix_conversion',
     'set_distance',
     'set_central_angle',
     'set_dihedral_angle',

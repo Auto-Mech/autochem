@@ -861,8 +861,8 @@ def apply_zmatrix_conversion(geo, zc_: ZmatConv, gra=None, dist: float = 1.0):
     return geo
 
 
-def reverse_zmatrix_conversion(geo, zc_: ZmatConv):
-    """Reverse a z-matrix conversion of this geometry, removing dummy atoms and
+def undo_zmatrix_conversion(geo, zc_: ZmatConv):
+    """Undo a z-matrix conversion of this geometry, removing dummy atoms and
     reversing any reordering
 
     :param geo: A molecular geometry
