@@ -96,7 +96,7 @@ from automol.graph.base._0core import standard_keys
 from automol.graph.base._0core import standard_keys_for_sequence
 from automol.graph.base._0core import zmatrix_conversion_info
 from automol.graph.base._0core import apply_zmatrix_conversion
-from automol.graph.base._0core import reverse_zmatrix_conversion
+from automol.graph.base._0core import undo_zmatrix_conversion
 # # add/remove/insert/without
 from automol.graph.base._0core import add_atoms
 from automol.graph.base._0core import add_bonds
@@ -411,7 +411,7 @@ __all__ = [
     'standard_keys_for_sequence',
     'zmatrix_conversion_info',
     'apply_zmatrix_conversion',
-    'reverse_zmatrix_conversion',
+    'undo_zmatrix_conversion',
     # # add/remove/insert/without
     'add_atoms',
     'add_bonds',

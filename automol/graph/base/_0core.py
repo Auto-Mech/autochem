@@ -1680,8 +1680,8 @@ def apply_zmatrix_conversion(gra, zc_: ZmatConv):
     return gra
 
 
-def reverse_zmatrix_conversion(gra, zc_: ZmatConv=None):
-    """Reverse a z-matrix conversion, recovering the original graph
+def undo_zmatrix_conversion(gra, zc_: ZmatConv=None):
+    """Undo a z-matrix conversion, recovering the original graph
 
     This can be used to match the original geometry after geometry -> z-matrix
     conversion.

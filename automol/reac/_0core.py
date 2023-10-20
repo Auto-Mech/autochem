@@ -1045,14 +1045,14 @@ def apply_zmatrix_conversion(
     )
 
 
-def reverse_zmatrix_conversion(
+def undo_zmatrix_conversion(
     rxn: Reaction,
     ts_zc: ZmatConv = None,
     rct_zcs: List[ZmatConv] = None,
     prd_zcs: List[ZmatConv] = None,
     keep_info: bool = False,
 ) -> Reaction:
-    """Reverse a z-matrix conversion (dummy insertion + reordering) to the reaction
+    """Undo a z-matrix conversion (dummy insertion + reordering) to the reaction
 
     This can be used to match the original geometry after conversio to z-matrix
 
@@ -1092,7 +1092,7 @@ def reverse_zmatrix_conversion(
     ztsg = ts_graph(rxn)
 
     # 1. Transform the TS graph
-    gtsg = graph.reverse_zmatrix_conversion(ztsg, ts_zc)
+    gtsg = graph.undo_zmatrix_conversion(ztsg, ts_zc)
 
     # 2. Transform the reagent keys
     def _get_reagent_geom_keys(rgts_zkeys, rgt_zcs, rgt_zkey_dcts):
