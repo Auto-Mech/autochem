@@ -11,19 +11,20 @@ from automol.reac._0core import (
     product_graphs,
     product_mappings,
     product_structures,
+    products_conversion_info,
     products_keys,
     reactant_graphs,
     reactant_mappings,
     reactant_structures,
+    reactants_conversion_info,
     reactants_keys,
+    reverse_without_structures,
     set_structures,
     string,
     structure_type,
+    ts_conversion_info,
     ts_graph,
     ts_structure,
-    ts_conversion_info,
-    reactants_conversion_info,
-    products_conversion_info,
     without_stereo,
 )
 from automol.util import ZmatConv, dict_, zmat_conv
@@ -40,6 +41,10 @@ def with_structures(
 ) -> Reaction:
     """Convert 'geom' structures to 'zmat', or convert 'zmat' structures to 'geom',
     updating graphs and reagent keys accordingly
+
+    Dummy atoms will be added for 'zmat' structures, and removed for 'geom' structures,
+    so there is no guarantee that the TS graph will stay the same, but all information
+    will be kept internally consistent and consistent with the reactant/product inputs.
 
     :param rxn: The reaction object
     :type rxn: Reaction
@@ -114,17 +119,29 @@ def with_structures(
     return rxn_
 
 
-def reverse(rxn: Reaction, struc: bool = True) -> Reaction:
+def reverse(rxn: Reaction) -> Reaction:
     """Get the reaction object for the reverse reaction
 
     :param rxn: A reaction object
     :type rxn: Reaction
-    :param struc: Include structures in the reversal, if present? defaults to True
-    :type struc: bool, optional
     :returns: The reversed reaction object
     :rtype: Reaction
     """
-    raise NotImplementedError(f"{rxn} {struc}")
+    struc_typ = structure_type(rxn)
+    if struc_typ is None:
+        return reverse_without_structures(rxn)
+
+    # Convert to geometry structures before reversal, to avoid z-matrix issues
+    grxn = with_structures(rxn, "geom")
+
+    return with_structures(
+        reverse_without_structures(grxn),
+        struc_typ,
+        rct_strucs=product_structures(rxn),
+        prd_strucs=reactant_structures(rxn),
+        rct_zcs=products_conversion_info(rxn),
+        prd_zcs=reactants_conversion_info(rxn),
+    )
 
 
 # # helper functions

@@ -133,11 +133,60 @@ def test__from_old_string():
     )
 
 
+def test__reverse():
+    """Test reac.reverse"""
+
+    def _test(rct_smis, prd_smis):
+        print("Testing reverse()")
+        print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
+
+        # 1. generate reagent geometries and graphs
+        inp_rct_geos = tuple(map(smiles.geometry, rct_smis))
+        inp_prd_geos = tuple(map(smiles.geometry, prd_smis))
+        inp_rct_gras = tuple(map(geom.graph, inp_rct_geos))
+        inp_prd_gras = tuple(map(geom.graph, inp_prd_geos))
+
+        # 2. find reactions
+        rxns = reac.find(inp_rct_gras, inp_prd_gras, stereo=True)
+        rxn, *_ = rxns  # select the first one for testing
+
+        # 3. add z-matrix structures
+        zrxn = reac.with_structures(rxn, "zmat")
+
+        # 4. make sure reversal doesn't break anything
+        zrxn = reac.reverse(reac.reverse(zrxn))
+
+        # 5. tests
+        ztsg = reac.ts_graph(zrxn)
+        ts_zma = reac.ts_structure(zrxn)
+        rct_zmas = reac.reactant_structures(zrxn)
+        prd_zmas = reac.product_structures(zrxn)
+        rct_zgras = reac.reactant_graphs(zrxn)
+        prd_zgras = reac.product_graphs(zrxn)
+
+        print(f"\n{ztsg}\n z-matrix matches ? \n{ts_zma}\n")
+        assert graph.zmatrix_matches(ztsg, ts_zma)
+
+        assert len(rct_zgras) == len(rct_zmas)
+        print("Checking reactant z-matrices....")
+        for gra, zma in zip(rct_zgras, rct_zmas):
+            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+            assert graph.zmatrix_matches(gra, zma)
+
+        assert len(prd_zgras) == len(prd_zmas)
+        print("Checking reactant z-matrices....")
+        for gra, zma in zip(prd_zgras, prd_zmas):
+            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+            assert graph.zmatrix_matches(gra, zma)
+
+    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
+
+
 def test__end_to_end():
     """Test reac.ts_geometry"""
 
     def _test(rct_smis, prd_smis):
-        print("Testing ts_geometry()")
+        print("Testing end-to-end functionality")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
 
         # 1. generate reagent geometries and graphs
@@ -209,17 +258,17 @@ def test__end_to_end():
             print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
             assert graph.zmatrix_matches(gra, zma)
 
-        #   (d.) check that the z-matrix structure can be converted back to geometries
+        #   (e.) check that the z-matrix structure can be converted back to geometries
         grxn_ = reac.with_structures(zrxn, "geom")
         assert reac.without_structures(
             grxn, keep_info=False
         ) == reac.without_structures(grxn_, keep_info=False)
 
-        #   (d.) check that converting to z-matrix again gives the same result
+        #   (f.) check that converting to z-matrix again gives the same result
         zrxn_ = reac.with_structures(grxn_, "zmat")
         assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
 
-        #   (e.) check that we can convert two and from string with structures
+        #   (g.) check that we can convert two and from string with structures
         assert grxn == reac.from_string(reac.string(grxn))
         assert zrxn == reac.from_string(reac.string(zrxn))
 
@@ -282,4 +331,5 @@ if __name__ == "__main__":
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
+    # test__reverse()
     test__end_to_end()
