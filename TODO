@@ -68,6 +68,8 @@
     [ ] Update existing Reac functions to properly handle structures
         [X] Implement reverse() function in _4struc.py
         [X] Rename reverse_zmatrix_conversion() => undo_zmatrix_conversion()
+        [ ] Test new from_chis, from_smiles, etc. functions in _8conv.py
+        [ ] Remove old with_structures_from_... functions
     [ ] _6scan.py
     [ ] _7rot.py
     [ ] _8conv.py

@@ -15,7 +15,7 @@ def test__canonical_enantiomer():
     # 2A. Full expansion -- includes non-canonical enantiomer reactions
     print("Full reaction expansion:")
     for srxn in automol.reac.expand_stereo(rxn, enant=True):
-        rct_chis, prd_chis = automol.reac.chi(srxn)
+        rct_chis, prd_chis = automol.reac.chis(srxn)
         print(' +\n'.join(rct_chis) + " =>\n" + ' +\n'.join(prd_chis))
 
         # These functions operate directly on the reaction object:
@@ -38,7 +38,7 @@ def test__canonical_enantiomer():
     # 2B. Restricted expansion -- includes only canonical enantiomers
     print("Restricted reaction expansion:")
     for srxn in automol.reac.expand_stereo(rxn, enant=False):
-        rct_chis, prd_chis = automol.reac.chi(srxn)
+        rct_chis, prd_chis = automol.reac.chis(srxn)
         print(' +\n'.join(rct_chis) + " =>\n" + ' +\n'.join(prd_chis))
 
         # Check canonicity for a reaction object
