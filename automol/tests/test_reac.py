@@ -154,30 +154,39 @@ def test__reverse():
         zrxn = reac.with_structures(rxn, "zmat")
 
         # 4. make sure reversal doesn't break anything
-        zrxn = reac.reverse(reac.reverse(zrxn))
+        zrxn0 = reac.reverse(reac.reverse(zrxn))
 
-        # 5. tests
-        ztsg = reac.ts_graph(zrxn)
-        ts_zma = reac.ts_structure(zrxn)
-        rct_zmas = reac.reactant_structures(zrxn)
-        prd_zmas = reac.product_structures(zrxn)
-        rct_zgras = reac.reactant_graphs(zrxn)
-        prd_zgras = reac.product_graphs(zrxn)
+        # 5. check that we can recover from a `zrxn` without structures, but with dummy
+        # atoms
+        rxn = reac.without_structures(rxn, keep_info=False)
+        rev_rxn = reac.reverse(rxn)
+        rev_zrxn = reac.with_structures(rev_rxn, "zmat")
+        zrxn1 = reac.reverse(rev_zrxn)
 
-        print(f"\n{ztsg}\n z-matrix matches ? \n{ts_zma}\n")
-        assert graph.zmatrix_matches(ztsg, ts_zma)
+        # 6. tests
+        for idx, zrxn_ in enumerate([zrxn0, zrxn1]):
+            print(f"Testing z-matrix {idx}")
+            ztsg = reac.ts_graph(zrxn_)
+            ts_zma = reac.ts_structure(zrxn_)
+            rct_zmas = reac.reactant_structures(zrxn_)
+            prd_zmas = reac.product_structures(zrxn_)
+            rct_zgras = reac.reactant_graphs(zrxn_)
+            prd_zgras = reac.product_graphs(zrxn_)
 
-        assert len(rct_zgras) == len(rct_zmas)
-        print("Checking reactant z-matrices....")
-        for gra, zma in zip(rct_zgras, rct_zmas):
-            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
-            assert graph.zmatrix_matches(gra, zma)
+            print(f"\n{ztsg}\n z-matrix matches ? \n{ts_zma}\n")
+            assert graph.zmatrix_matches(ztsg, ts_zma)
 
-        assert len(prd_zgras) == len(prd_zmas)
-        print("Checking reactant z-matrices....")
-        for gra, zma in zip(prd_zgras, prd_zmas):
-            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
-            assert graph.zmatrix_matches(gra, zma)
+            assert len(rct_zgras) == len(rct_zmas)
+            print("Checking reactant z-matrices....")
+            for gra, zma in zip(rct_zgras, rct_zmas):
+                print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+                assert graph.zmatrix_matches(gra, zma)
+
+            assert len(prd_zgras) == len(prd_zmas)
+            print("Checking reactant z-matrices....")
+            for gra, zma in zip(prd_zgras, prd_zmas):
+                print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+                assert graph.zmatrix_matches(gra, zma)
 
     _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
 
