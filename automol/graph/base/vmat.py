@@ -369,7 +369,9 @@ def start_at(gra, key):
         zma_keys = [key]
     elif len(nkeys) == 1:
         # Need special handling for atoms with only one neighbor
-        if symb_dct[key] in ("H", "X") and symb_dct[nkeys[0]] not in ("H", "X"):
+        if symb_dct[key] == "X" or (
+            symb_dct[key] == "H" and symb_dct[nkeys[0]] not in ("H", "X")
+        ):
             key2 = nkeys[0]
             zma_keys = (key2,) + nkeys_dct[key2]
         else:

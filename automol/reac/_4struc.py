@@ -14,13 +14,13 @@ from automol.reac._0core import (
     reactant_structures,
     reactants_conversion_info,
     reverse_without_recalculating,
-    undo_zmatrix_conversion,
     set_structures,
     string,
     structure_type,
     ts_conversion_info,
     ts_graph,
     ts_structure,
+    undo_zmatrix_conversion,
     update_structures,
     without_stereo,
     without_structures,
@@ -66,12 +66,22 @@ def with_structures(
     new_strucs = orig_struc_typ == struc_typ and not no_strucs
 
     # 1. Check that we are adding a valid structural type
-    if struc_typ not in ("geom", "zmat"):
+    if struc_typ not in ("geom", "zmat", None):
         raise ValueError(f"Requesting invalid structure type {struc_typ}")
 
+    # If a structure type of `None` was requested, simply update with the structures
+    # passed in
+    if struc_typ is None:
+        rxn_ = update_structures(
+            rxn,
+            rct_strucs=rct_strucs,
+            prd_strucs=prd_strucs,
+            rct_zcs=rct_zcs,
+            prd_zcs=prd_zcs,
+        )
     # If this Reaction object doesn't have structures, or we are updating a Reaction
     # object with new reagent structures, add the requested structure type
-    if struc_typ == "geom" and (orig_struc_typ is None or new_strucs):
+    elif struc_typ == "geom" and (orig_struc_typ is None or new_strucs):
         rxn_ = _with_geom_structures(
             rxn,
             rct_geos=rct_strucs,
@@ -117,24 +127,27 @@ def with_structures(
     return rxn_
 
 
-def reverse(rxn: Reaction) -> Reaction:
+def reverse(rxn: Reaction, recalc: bool = True) -> Reaction:
     """Get the reaction object for the reverse reaction
 
     :param rxn: A reaction object
     :type rxn: Reaction
+    :param recalc: Recalculate the TS structure while reversing? defaults to True
+    :type recalc: bool, optional
     :returns: The reversed reaction object
     :rtype: Reaction
     """
-    struc_typ = structure_type(rxn)
-    if struc_typ is None:
+    if not recalc or ts_structure(rxn) is None:
         return reverse_without_recalculating(rxn)
 
     # Convert to geometry structures before reversal, to avoid z-matrix issues
-    grxn = with_structures(rxn, "geom")
+    rxn_ = without_structures(rxn)
+    rxn_ = undo_zmatrix_conversion(rxn_)
+    rev_rxn = reverse_without_recalculating(rxn_)
 
     return with_structures(
-        reverse_without_recalculating(grxn, struc=False),
-        struc_typ,
+        rev_rxn,
+        structure_type(rxn),
         rct_strucs=product_structures(rxn),
         prd_strucs=reactant_structures(rxn),
         rct_zcs=products_conversion_info(rxn),
