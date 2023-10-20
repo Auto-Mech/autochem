@@ -618,12 +618,12 @@ def test__hydrogen_bonded_structure():
 
     # H-abstraction with OH. (1) Has internal H-Bond, (2) No internal H-Bond
     zrxn = automol.reac.from_old_string(HABS_ZRXN_STR1)
-    grxn = automol.reac.relabel_for_geometry(zrxn)
+    grxn = automol.reac.undo_zmatrix_conversion(zrxn)
     tsg = automol.reac.ts_graph(grxn)
     print(automol.geom.hydrogen_bonded_structure(HABS_GEO1, tsg=tsg))
 
     zrxn = automol.reac.from_old_string(HABS_ZRXN_STR2)
-    grxn = automol.reac.relabel_for_geometry(zrxn)
+    grxn = automol.reac.undo_zmatrix_conversion(zrxn)
     tsg = automol.reac.ts_graph(grxn)
     print(automol.geom.hydrogen_bonded_structure(HABS_GEO2, tsg=tsg))
 

@@ -4,6 +4,7 @@
 from automol.reac._0core import Reaction
 # # constructors
 from automol.reac._0core import from_data
+from automol.reac._0core import from_forward_reverse
 from automol.reac._0core import from_string
 from automol.reac._0core import string
 # # getters
@@ -31,14 +32,12 @@ from automol.reac._0core import reactant_graphs
 from automol.reac._0core import product_graphs
 from automol.reac._0core import reactants_graph
 from automol.reac._0core import products_graph
-from automol.reac._0core import standard_keys
 from automol.reac._0core import relabel
 from automol.reac._0core import without_stereo
 from automol.reac._0core import without_structures
 from automol.reac._0core import apply_zmatrix_conversion
 from automol.reac._0core import undo_zmatrix_conversion
 from automol.reac._0core import without_dummy_atoms
-from automol.reac._0core import relabel_for_geometry
 from automol.reac._0core import is_radical_radical
 from automol.reac._0core import unique
 # stereo-specific reactions
@@ -110,6 +109,7 @@ __all__ = [
     'Reaction',
     # # constructors
     'from_data',
+    'from_forward_reverse',
     'from_string',
     'string',
     # # getters
@@ -137,14 +137,12 @@ __all__ = [
     'product_graphs',
     'reactants_graph',
     'products_graph',
-    'standard_keys',
     'relabel',
     'without_stereo',
     'without_structures',
     'apply_zmatrix_conversion',
     'undo_zmatrix_conversion',
     'without_dummy_atoms',
-    'relabel_for_geometry',
     'is_radical_radical',
     'unique',
     # stereo-specific reactions

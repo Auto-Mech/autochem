@@ -9,7 +9,7 @@ from automol.geom import central_angle
 from automol.util import dict_
 from automol.reac._0core import ts_graph
 from automol.reac._0core import class_
-from automol.reac._0core import relabel_for_geometry
+from automol.reac._0core import undo_zmatrix_conversion
 from automol.graph import without_stereo
 from automol.graph import geometries_parity_mismatches
 from automol.graph import stereogenic_bond_keys
@@ -26,7 +26,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     # Get the bond dists and calculate the distance of bond being formed
     ref_geo = automol.zmat.geometry(ref_zma)
     cnf_geo = automol.zmat.geometry(zma)
-    grxn = relabel_for_geometry(zrxn)
+    grxn = undo_zmatrix_conversion(zrxn)
 
     frm_bnd_keys = automol.graph.ts.forming_bond_keys(ts_graph(grxn))
     brk_bnd_keys = automol.graph.ts.breaking_bond_keys(ts_graph(grxn))
