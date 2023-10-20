@@ -5,29 +5,27 @@ from typing import List
 from automol import geom, graph, zmat
 from automol.reac._0core import (
     Reaction,
-    class_,
-    from_data,
+    apply_zmatrix_conversion,
     mapping,
     product_graphs,
-    product_mappings,
     product_structures,
     products_conversion_info,
-    products_keys,
     reactant_graphs,
-    reactant_mappings,
     reactant_structures,
     reactants_conversion_info,
-    reactants_keys,
-    reverse_without_structures,
+    reverse_without_recalculating,
+    reverse_zmatrix_conversion,
     set_structures,
     string,
     structure_type,
     ts_conversion_info,
     ts_graph,
     ts_structure,
+    update_structures,
     without_stereo,
+    without_structures,
 )
-from automol.util import ZmatConv, dict_, zmat_conv
+from automol.util import ZmatConv
 
 
 def with_structures(
@@ -129,13 +127,13 @@ def reverse(rxn: Reaction) -> Reaction:
     """
     struc_typ = structure_type(rxn)
     if struc_typ is None:
-        return reverse_without_structures(rxn)
+        return reverse_without_recalculating(rxn)
 
     # Convert to geometry structures before reversal, to avoid z-matrix issues
     grxn = with_structures(rxn, "geom")
 
     return with_structures(
-        reverse_without_structures(grxn),
+        reverse_without_recalculating(grxn, struc=False),
         struc_typ,
         rct_strucs=product_structures(rxn),
         prd_strucs=reactant_structures(rxn),
@@ -246,7 +244,7 @@ def _with_zmat_structures(
     rct_geos = _reagent_geometries(rct_zmas, rct_zcs)
     prd_geos = _reagent_geometries(prd_zmas, prd_zcs)
 
-    grxn = _with_geom_structures(rxn, rct_geos=rct_geos, prd_geos=prd_geos)
+    grxn = _with_geom_structures(rxn, rct_geos=rct_geos, prd_geos=prd_geos, log=log)
     zrxn = _convert_geom_to_zmat_structures(
         grxn, rct_zmas=rct_zmas, prd_zmas=prd_zmas, rct_zcs=rct_zcs, prd_zcs=prd_zcs
     )
@@ -295,7 +293,6 @@ def _convert_geom_to_zmat_structures(
 
     # Convert the TS geometry
     ts_zma, ts_zc = geom.zmatrix_with_conversion_info(ts_geo, gra=gtsg, zc_=ts_zc)
-    ztsg = graph.apply_zmatrix_conversion(gtsg, ts_zc)
 
     # Get the z-matrix for each reagent, along with the conversion info
     def _reagent_zmats_with_conversion_info(geos, gras, zmas, zcs):
@@ -320,31 +317,6 @@ def _convert_geom_to_zmat_structures(
 
         return zmas, zcs
 
-    def _get_reagent_zmat_keys(rgts_gkeys, rgt_zcs, rgt_gkey_dcts):
-        """
-        :param rgts_gkeys: Keys for each reagent realtive to the TS geometry
-        :param rgt_zcs: Z-matrix conversions for each reagent
-        :param rgt_gkey_dcts: Mappings from TS gkeys onto each reagent's gkeys
-        """
-        rgts_zkeys = []
-        for rgt_gkeys, rgt_zc, rgt_gkey_dct in zip(rgts_gkeys, rgt_zcs, rgt_gkey_dcts):
-            # 1. {TS zkeys: TS gkeys} (extract the subset matching reagent gkeys)
-            zc_ = zmat_conv.subset(ts_zc, rgt_gkeys, "geom")
-
-            # 2. => {TS zkeys: reagent gkeys} (map TS gkeys into reagent gkeys)
-            zc_ = zmat_conv.relabel(zc_, rgt_gkey_dct, "geom")
-
-            # 3. => {TS zkeys: reagent zkeys} (get TS => reagent zkey mapping)
-            tz_to_rz = zmat_conv.subset_isomorphism(zc_, rgt_zc)
-
-            # 4. => [reagent TS zkeys] (get sorted TS zkeys for the reagent)
-            rgt_zkeys = dict_.keys_sorted_by_value(tz_to_rz)
-
-            # 5. Save the result
-            rgts_zkeys.append(rgt_zkeys)
-
-        return rgts_zkeys
-
     rct_zmas, rct_zcs = _reagent_zmats_with_conversion_info(
         geos=reactant_structures(rxn),
         gras=reactant_graphs(rxn),
@@ -358,30 +330,10 @@ def _convert_geom_to_zmat_structures(
         zcs=prd_zcs,
     )
 
-    rcts_zkeys = _get_reagent_zmat_keys(
-        rgts_gkeys=reactants_keys(rxn),
-        rgt_zcs=rct_zcs,
-        rgt_gkey_dcts=reactant_mappings(rxn, rev=True),
-    )
-
-    prds_zkeys = _get_reagent_zmat_keys(
-        rgts_gkeys=products_keys(rxn),
-        rgt_zcs=prd_zcs,
-        rgt_gkey_dcts=product_mappings(rxn, rev=True),
-    )
-
-    return from_data(
-        tsg=ztsg,
-        rcts_keys=rcts_zkeys,
-        prds_keys=prds_zkeys,
-        cla=class_(rxn),
-        ts_struc=ts_zma,
-        rct_strucs=rct_zmas,
-        prd_strucs=prd_zmas,
-        struc_typ="zmat",
-        ts_zc=ts_zc,
-        rct_zcs=rct_zcs,
-        prd_zcs=prd_zcs,
+    rxn = without_structures(rxn)
+    rxn = apply_zmatrix_conversion(rxn, ts_zc=ts_zc, rct_zcs=rct_zcs, prd_zcs=prd_zcs)
+    return update_structures(
+        rxn, ts_struc=ts_zma, rct_strucs=rct_zmas, prd_strucs=prd_zmas
     )
 
 
@@ -422,12 +374,10 @@ def _convert_zmat_to_geom_structures(
     rct_zcs = reactants_conversion_info(rxn) if rct_zcs is None else rct_zcs
     prd_zcs = products_conversion_info(rxn) if prd_zcs is None else prd_zcs
 
-    ztsg = ts_graph(rxn)
     ts_zma = ts_structure(rxn)
 
     # Convert the TS geometry
     ts_geo, ts_zc = zmat.geometry_with_conversion_info(ts_zma, zc_=ts_zc)
-    gtsg = graph.reverse_zmatrix_conversion(ztsg, ts_zc)
 
     # Get the geometry for each reagent, along with the conversion info
     def _reagent_geoms_with_conversion_info(zmas, geos, zcs):
@@ -452,33 +402,6 @@ def _convert_zmat_to_geom_structures(
 
         return geos, zcs
 
-    def _get_reagent_geom_keys(rgts_zkeys, rgt_zcs, rgt_zkey_dcts):
-        """
-        :param rgts_zkeys: Keys for each reagent realtive to the TS z-matrix
-        :param rgt_zcs: Z-matrix conversions for each reagent
-        :param rgt_zkey_dcts: Mappings from TS zkeys onto each reagent's zkeys
-        """
-        rgts_gkeys = []
-        for rgt_zkeys, rgt_zc, rgt_zkey_dct in zip(rgts_zkeys, rgt_zcs, rgt_zkey_dcts):
-            # 1. {TS zkeys: TS gkeys} (extract the subset matching reagent zkeys)
-            zc_ = zmat_conv.subset(ts_zc, rgt_zkeys, "zmat")
-
-            # 2. => {reagent zkeys: TS gkeys} (map TS zkeys into reagent zkeys)
-            zc_ = zmat_conv.relabel(zc_, rgt_zkey_dct, "zmat")
-
-            # 3. {TS gkeys: reagent gkeys} (get TS => reagent gkeys mapping)
-            tg_to_rz = zmat_conv.relabel_dict(zc_)
-            rz_to_rg = zmat_conv.relabel_dict(rgt_zc, rev=True)
-            tg_to_rg = dict_.compose(rz_to_rg, tg_to_rz)
-
-            # 4. [reagent TS gkeys] (get sorted TS gkeys for the reagent)
-            rgt_gkeys = dict_.keys_sorted_by_value(tg_to_rg)
-
-            # 5. Save the result
-            rgts_gkeys.append(rgt_gkeys)
-
-        return rgts_gkeys
-
     rct_geos, rct_zcs = _reagent_geoms_with_conversion_info(
         zmas=reactant_structures(rxn),
         geos=rct_geos,
@@ -490,30 +413,12 @@ def _convert_zmat_to_geom_structures(
         zcs=prd_zcs,
     )
 
-    rcts_gkeys = _get_reagent_geom_keys(
-        rgts_zkeys=reactants_keys(rxn),
-        rgt_zkey_dcts=reactant_mappings(rxn, rev=True),
-        rgt_zcs=rct_zcs,
+    rxn = without_structures(rxn)
+    rxn = reverse_zmatrix_conversion(
+        rxn, ts_zc=ts_zc, rct_zcs=rct_zcs, prd_zcs=prd_zcs, keep_info=True
     )
-
-    prds_gkeys = _get_reagent_geom_keys(
-        rgts_zkeys=products_keys(rxn),
-        rgt_zkey_dcts=product_mappings(rxn, rev=True),
-        rgt_zcs=prd_zcs,
-    )
-
-    return from_data(
-        tsg=gtsg,
-        rcts_keys=rcts_gkeys,
-        prds_keys=prds_gkeys,
-        cla=class_(rxn),
-        ts_struc=ts_geo,
-        rct_strucs=rct_geos,
-        prd_strucs=prd_geos,
-        struc_typ="geom",
-        ts_zc=ts_zc,
-        rct_zcs=rct_zcs,
-        prd_zcs=prd_zcs,
+    return update_structures(
+        rxn, ts_struc=ts_geo, rct_strucs=rct_geos, prd_strucs=prd_geos
     )
 
 

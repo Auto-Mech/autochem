@@ -15,7 +15,7 @@ import yaml
 
 from automol import const, geom, graph, zmat
 from automol.graph import ts
-from automol.util import ZmatConv, zmat_conv
+from automol.util import ZmatConv, dict_, zmat_conv
 
 
 @dataclasses.dataclass
@@ -716,6 +716,9 @@ def relabel(rxn: Reaction, key_dct, struc: bool = False) -> Reaction:
     rcts_keys = tuple(tuple(map(key_dct.__getitem__, ks)) for ks in reactants_keys(rxn))
     prds_keys = tuple(tuple(map(key_dct.__getitem__, ks)) for ks in products_keys(rxn))
 
+    if not struc:
+        rxn = without_structures(rxn)
+
     rxn = set_ts_graph(rxn, tsg)
     rxn = set_reactants_keys(rxn, rcts_keys)
     rxn = set_products_keys(rxn, prds_keys)
@@ -739,11 +742,13 @@ def relabel(rxn: Reaction, key_dct, struc: bool = False) -> Reaction:
     return rxn
 
 
-def reverse_without_structures(rxn: Reaction) -> Reaction:
+def reverse_without_recalculating(rxn: Reaction, struc: bool=True) -> Reaction:
     """Get the reaction object for the reverse reaction
 
     :param rxn: A reaction object
     :type rxn: Reaction
+    :param struc: Keep structures?
+    :type struc: bool, optional
     :returns: The reversed reaction object
     :rtype: Reaction
     """
@@ -752,10 +757,17 @@ def reverse_without_structures(rxn: Reaction) -> Reaction:
         tsg=graph.ts.reverse(ts_graph(rxn)),
         rcts_keys=products_keys(rxn),
         prds_keys=reactants_keys(rxn),
+        ts_struc=ts_structure(rxn) if struc else None,
+        rct_strucs=product_structures(rxn) if struc else None,
+        prd_strucs=reactant_structures(rxn) if struc else None,
+        ts_zc=ts_conversion_info(rxn) if struc else None,
+        rct_zcs=products_conversion_info(rxn) if struc else None,
+        prd_zcs=reactants_conversion_info(rxn) if struc else None,
+        struc_typ=structure_type(rxn) if struc else None,
     )
 
 
-def mapping(rxn: Reaction, inp: str, out: str) -> dict:
+def mapping(rxn: Reaction, inp: str, out: str, keep_none: bool = False) -> dict:
     """Determine a mapping from TS atoms to reactant atoms.
 
     Code:
@@ -769,6 +781,8 @@ def mapping(rxn: Reaction, inp: str, out: str) -> dict:
     :type inp: str
     :param out: Keys coming out of the mapping, 'T', 'R', or 'P'
     :type out: str
+    :param keep_none: Keep entries in the mapping with none values? defaults to False
+    :type keep_none: bool, optional
     :returns: A dictionary mapping `inp` keys into `out` keys
     :rtype: dict
     """
@@ -791,6 +805,9 @@ def mapping(rxn: Reaction, inp: str, out: str) -> dict:
 
     if None in map_dct:
         map_dct.pop(None)
+
+    if not keep_none:
+        map_dct = dict_.filter_by_value(map_dct, lambda x: x is not None)
 
     return map_dct
 
@@ -840,7 +857,7 @@ def product_mappings(
     :rtype: List[Dict[int, int]]
     """
     return reactant_mappings(
-        reverse_without_structures(rxn), rev=rev, shift_keys=shift_keys
+        reverse_without_recalculating(rxn), rev=rev, shift_keys=shift_keys
     )
 
 
@@ -874,7 +891,7 @@ def product_graphs(rxn: Reaction, shift_keys=False):
     :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
-    return reactant_graphs(reverse_without_structures(rxn), shift_keys=shift_keys)
+    return reactant_graphs(reverse_without_recalculating(rxn), shift_keys=shift_keys)
 
 
 def reactants_graph(rxn: Reaction, key_order="R"):
@@ -935,61 +952,198 @@ def without_stereo(rxn: Reaction) -> Reaction:
     return rxn
 
 
-def apply_zmatrix_conversion(rxn: Reaction, zc_: ZmatConv) -> Reaction:
+def apply_zmatrix_conversion(
+    rxn: Reaction,
+    ts_zc: ZmatConv = None,
+    rct_zcs: List[ZmatConv] = None,
+    prd_zcs: List[ZmatConv] = None,
+) -> Reaction:
     """Apply a z-matrix conversion (dummy insertion + reordering) to the reaction
-
-    DEPRECATED -- this is taken care of by structure conversion
 
     This can be used to match a z-matrix after geometry -> z-matrix conversion
 
     :param rxn: A reaction object
     :type rxn: Reaction
-    :param zc_: A z-matrix conversion
-    :type zc_: ZmatConv
+    :param ts_zc: A z-matrix conversion for the TS graph, defaults to None
+    :type ts_zc: ZmatConv
+    :param rct_zcs: Z-matrix conversions for reactant structures, defaults to None
+    :type rct_zcs: List[ZmatConv], optional
+    :param prd_zcs: Z-matrix conversions for product structures, defaults to None
+    :type prd_zcs: List[ZmatConv], optional
     :returns: The converted reaction object
     :rtype: Reaction
     """
+    assert not has_structures(
+        rxn, complete=False
+    ), f"This should not be done for a reaction with structures:\n{rxn}"
+
+    # Read in pre-existing z-matrix conversion info, if there is some
+    ts_zc = ts_conversion_info(rxn) if ts_zc is None else ts_zc
+    rct_zcs = reactants_conversion_info(rxn) if rct_zcs is None else rct_zcs
+    prd_zcs = products_conversion_info(rxn) if prd_zcs is None else prd_zcs
+
+    assert not any(
+        x is None for x in [ts_zc, rct_zcs, prd_zcs]
+    ), f"Missing conversion info:\nts_zc:{ts_zc}\nrct_zcs:{rct_zcs}\nprd_zcs:{prd_zcs}"
+
+    # 0. Read in the current TS graph
+    gtsg = ts_graph(rxn)
+    assert not graph.has_dummy_atoms(
+        gtsg
+    ), f"Cannot apply z-matrix conversion to a graph with dummy atoms:{gtsg}"
+
     # 1. Transform the TS graph
-    tsg = graph.apply_zmatrix_conversion(ts_graph(rxn), zc_)
-    # 2. Relabel the keys
-    rel_dct = zmat_conv.relabel_dict(zc_)
-    rcts_keys = list(list(map(rel_dct.__getitem__, ks)) for ks in reactants_keys(rxn))
-    prds_keys = list(list(map(rel_dct.__getitem__, ks)) for ks in products_keys(rxn))
-    # 3. Insert the dummy keys in the right places
-    # Temporary solution
-    # Ultimately, I think we will need to have separate z-matrix conversions for each
-    # reactant and product if we want everything to properly line up
-    ins_dct = zmat_conv.insert_dict(zc_)
-    for dummy_key, parent_key in sorted(ins_dct.items()):
-        rkeys = next(ks for ks in rcts_keys if parent_key in ks)
-        pkeys = next(ks for ks in prds_keys if parent_key in ks)
-        rkeys.append(dummy_key)
-        pkeys.append(dummy_key)
+    ztsg = graph.apply_zmatrix_conversion(gtsg, ts_zc)
 
-    rxn = set_ts_graph(rxn, tsg)
-    rxn = set_reactants_keys(rxn, rcts_keys)
-    rxn = set_products_keys(rxn, prds_keys)
-    return rxn
+    # 2. Transform the reagent keys
+    def _get_reagent_zmat_keys(rgts_gkeys, rgt_zcs, rgt_gkey_dcts):
+        """
+        :param rgts_gkeys: Keys for each reagent realtive to the TS geometry
+        :param rgt_zcs: Z-matrix conversions for each reagent
+        :param rgt_gkey_dcts: Mappings from TS gkeys onto each reagent's gkeys
+        """
+        rgts_zkeys = []
+        for rgt_gkeys, rgt_zc, rgt_gkey_dct in zip(rgts_gkeys, rgt_zcs, rgt_gkey_dcts):
+            # 1. {TS zkeys: TS gkeys} (extract the subset matching reagent gkeys)
+            zc_ = zmat_conv.subset(ts_zc, rgt_gkeys, "geom")
+
+            # 2. => {TS zkeys: reagent gkeys} (map TS gkeys into reagent gkeys)
+            zc_ = zmat_conv.relabel(zc_, rgt_gkey_dct, "geom")
+
+            # 3. => {TS zkeys: reagent zkeys} (get TS => reagent zkey mapping)
+            tz_to_rz = zmat_conv.subset_isomorphism(zc_, rgt_zc)
+
+            # 4. => [reagent TS zkeys] (get sorted TS zkeys for the reagent)
+            rgt_zkeys = dict_.keys_sorted_by_value(tz_to_rz)
+
+            # 5. Save the result
+            rgts_zkeys.append(rgt_zkeys)
+
+        return rgts_zkeys
+
+    rcts_zkeys = _get_reagent_zmat_keys(
+        rgts_gkeys=reactants_keys(rxn),
+        rgt_zcs=rct_zcs,
+        rgt_gkey_dcts=reactant_mappings(rxn, rev=True),
+    )
+
+    prds_zkeys = _get_reagent_zmat_keys(
+        rgts_gkeys=products_keys(rxn),
+        rgt_zcs=prd_zcs,
+        rgt_gkey_dcts=product_mappings(rxn, rev=True),
+    )
+
+    return from_data(
+        tsg=ztsg,
+        rcts_keys=rcts_zkeys,
+        prds_keys=prds_zkeys,
+        cla=class_(rxn),
+        struc_typ="zmat",
+        ts_zc=ts_zc,
+        rct_zcs=rct_zcs,
+        prd_zcs=prd_zcs,
+    )
 
 
-def reverse_zmatrix_conversion(rxn: Reaction, zc_: ZmatConv) -> Reaction:
+def reverse_zmatrix_conversion(
+    rxn: Reaction,
+    ts_zc: ZmatConv = None,
+    rct_zcs: List[ZmatConv] = None,
+    prd_zcs: List[ZmatConv] = None,
+    keep_info: bool = False,
+) -> Reaction:
     """Reverse a z-matrix conversion (dummy insertion + reordering) to the reaction
-
-    DEPRECATED -- this is taken care of by structure conversion
 
     This can be used to match the original geometry after conversio to z-matrix
 
     :param rxn: A converted reaction object
     :type rxn: Reaction
-    :param zc_: A z-matrix conversion
-    :type zc_: ZmatConv
+    :param ts_zc: A z-matrix conversion for the TS graph, defaults to None
+    :type ts_zc: ZmatConv
+    :param rct_zcs: Z-matrix conversions for reactant structures, defaults to None
+    :type rct_zcs: List[ZmatConv], optional
+    :param prd_zcs: Z-matrix conversions for product structures, defaults to None
+    :type prd_zcs: List[ZmatConv], optional
+    :param keep_zc: Keep structural conversion info?, defaults to True
+    :type keep_zc: bool, optional
     :returns: The original reaction object
     :rtype: Reaction
     """
-    rxn = without_dummy_atoms(rxn)
-    rel_dct = zmat_conv.relabel_dict(zc_, rev=True)
-    rxn = relabel(rxn, rel_dct)
-    return rxn
+    assert not has_structures(
+        rxn, complete=False
+    ), f"This should not be done for a reaction with structures:\n{rxn}"
+
+    # Read in pre-existing z-matrix conversion info, if there is some
+    ts_zc = ts_conversion_info(rxn) if ts_zc is None else ts_zc
+    rct_zcs = reactants_conversion_info(rxn) if rct_zcs is None else rct_zcs
+    prd_zcs = products_conversion_info(rxn) if prd_zcs is None else prd_zcs
+
+    # If the conversion info is still missing, get it from the graphs
+    tsg = ts_graph(rxn)
+    rct_gras = reactant_graphs(rxn, shift_keys=True)
+    prd_gras = product_graphs(rxn, shift_keys=True)
+
+    zmat_conv_ = graph.zmatrix_conversion_info
+    ts_zc = zmat_conv_(tsg) if ts_zc is None else ts_zc
+    rct_zcs = list(map(zmat_conv_, rct_gras)) if rct_zcs is None else rct_zcs
+    prd_zcs = list(map(zmat_conv_, prd_gras)) if prd_zcs is None else prd_zcs
+
+    # 0. Read in the current TS graph
+    ztsg = ts_graph(rxn)
+
+    # 1. Transform the TS graph
+    gtsg = graph.reverse_zmatrix_conversion(ztsg, ts_zc)
+
+    # 2. Transform the reagent keys
+    def _get_reagent_geom_keys(rgts_zkeys, rgt_zcs, rgt_zkey_dcts):
+        """
+        :param rgts_zkeys: Keys for each reagent realtive to the TS z-matrix
+        :param rgt_zcs: Z-matrix conversions for each reagent
+        :param rgt_zkey_dcts: Mappings from TS zkeys onto each reagent's zkeys
+        """
+        rgts_gkeys = []
+        for rgt_zkeys, rgt_zc, rgt_zkey_dct in zip(rgts_zkeys, rgt_zcs, rgt_zkey_dcts):
+            # 1. {TS zkeys: TS gkeys} (extract the subset matching reagent zkeys)
+            zc_ = zmat_conv.subset(ts_zc, rgt_zkeys, "zmat")
+
+            # 2. => {reagent zkeys: TS gkeys} (map TS zkeys into reagent zkeys)
+            zc_ = zmat_conv.relabel(zc_, rgt_zkey_dct, "zmat")
+
+            # 3. {TS gkeys: reagent gkeys} (get TS => reagent gkeys mapping)
+            tg_to_rz = zmat_conv.relabel_dict(zc_)
+            rz_to_rg = zmat_conv.relabel_dict(rgt_zc, rev=True)
+            tg_to_rg = dict_.compose(rz_to_rg, tg_to_rz)
+
+            # 4. [reagent TS gkeys] (get sorted TS gkeys for the reagent)
+            rgt_gkeys = dict_.keys_sorted_by_value(tg_to_rg)
+
+            # 5. Save the result
+            rgts_gkeys.append(rgt_gkeys)
+
+        return rgts_gkeys
+
+    rcts_gkeys = _get_reagent_geom_keys(
+        rgts_zkeys=reactants_keys(rxn),
+        rgt_zkey_dcts=reactant_mappings(rxn, rev=True),
+        rgt_zcs=rct_zcs,
+    )
+
+    prds_gkeys = _get_reagent_geom_keys(
+        rgts_zkeys=products_keys(rxn),
+        rgt_zkey_dcts=product_mappings(rxn, rev=True),
+        rgt_zcs=prd_zcs,
+    )
+
+    return from_data(
+        tsg=gtsg,
+        rcts_keys=rcts_gkeys,
+        prds_keys=prds_gkeys,
+        cla=class_(rxn),
+        struc_typ="geom" if keep_info else None,
+        ts_zc=ts_zc if keep_info else None,
+        rct_zcs=rct_zcs if keep_info else None,
+        prd_zcs=prd_zcs if keep_info else None,
+    )
 
 
 def without_dummy_atoms(rxn: Reaction) -> Reaction:

@@ -23,7 +23,7 @@ from automol.reac._0core import set_reaction_class
 from automol.reac._0core import set_structures
 from automol.reac._0core import update_structures
 # # others
-from automol.reac._0core import reverse_without_structures
+from automol.reac._0core import reverse_without_recalculating
 from automol.reac._0core import mapping
 from automol.reac._0core import reactant_mappings
 from automol.reac._0core import product_mappings
@@ -129,7 +129,7 @@ __all__ = [
     'set_structures',
     'update_structures',
     # # others
-    'reverse_without_structures',
+    'reverse_without_recalculating',
     'mapping',
     'reactant_mappings',
     'product_mappings',

@@ -56,6 +56,17 @@ class ReactionClass(enum.Enum):
         return reverse_dct[cls(value)]
 
     @classmethod
+    def is_reversible(cls, value: str) -> bool:
+        """Is this reaction class reversible?
+
+        :param value: A reaction class
+        :type value: str
+        :return: `True` if it is, `False` if it isn't
+        :rtype: bool
+        """
+        return cls.reverse(value) is not None
+
+    @classmethod
     def is_bimolecular(cls, value: str) -> bool:
         """Is this reaction class bimolecular?
 

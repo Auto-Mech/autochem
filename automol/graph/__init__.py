@@ -62,6 +62,7 @@ from automol.graph.base._0core import stereo_keys
 from automol.graph.base._0core import has_stereo
 from automol.graph.base._0core import has_atom_stereo
 from automol.graph.base._0core import has_bond_stereo
+from automol.graph.base._0core import has_dummy_atoms
 from automol.graph.base._0core import has_pi_bonds
 from automol.graph.base._0core import is_ts_graph
 from automol.graph.base._0core import atomic_numbers
@@ -93,6 +94,7 @@ from automol.graph.base._0core import angle_keys
 from automol.graph.base._0core import relabel
 from automol.graph.base._0core import standard_keys
 from automol.graph.base._0core import standard_keys_for_sequence
+from automol.graph.base._0core import zmatrix_conversion_info
 from automol.graph.base._0core import apply_zmatrix_conversion
 from automol.graph.base._0core import reverse_zmatrix_conversion
 # # add/remove/insert/without
@@ -375,6 +377,7 @@ __all__ = [
     'has_stereo',
     'has_atom_stereo',
     'has_bond_stereo',
+    'has_dummy_atoms',
     'has_pi_bonds',
     'is_ts_graph',
     'atomic_numbers',
@@ -406,6 +409,7 @@ __all__ = [
     'relabel',
     'standard_keys',
     'standard_keys_for_sequence',
+    'zmatrix_conversion_info',
     'apply_zmatrix_conversion',
     'reverse_zmatrix_conversion',
     # # add/remove/insert/without

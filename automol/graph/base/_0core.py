@@ -1059,6 +1059,17 @@ def has_stereo(gra):
     return bool(stereo_keys(gra))
 
 
+def has_dummy_atoms(gra) -> bool:
+    """Does this graph have dummy atoms?
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    return bool(dummy_parent_dict(gra))
+
+
 def has_pi_bonds(gra):
     """Does this graph have pi bonds?
 
@@ -1638,6 +1649,19 @@ def standard_keys_for_sequence(gras):
     return gras, atm_key_dcts
 
 
+def zmatrix_conversion_info(gra) -> ZmatConv:
+    """Get z-matrix conversion info based on the dummy atoms in the graph
+
+    :param gra: A molecular graph
+    :type gra: automol graph data structure
+    :return: The z-matrix conversion
+    :rtype: ZmatConv
+    """
+    zcount = count(gra)
+    par_zkey_dct = dummy_parent_dict(gra)
+    return zmat_conv.from_zmat_dummy_parent_dict(zcount, par_zkey_dct)
+
+
 def apply_zmatrix_conversion(gra, zc_: ZmatConv):
     """Apply a z-matrix conversion to the graph
 
@@ -1656,7 +1680,7 @@ def apply_zmatrix_conversion(gra, zc_: ZmatConv):
     return gra
 
 
-def reverse_zmatrix_conversion(gra, zc_: ZmatConv):
+def reverse_zmatrix_conversion(gra, zc_: ZmatConv=None):
     """Reverse a z-matrix conversion, recovering the original graph
 
     This can be used to match the original geometry after geometry -> z-matrix
@@ -1664,11 +1688,15 @@ def reverse_zmatrix_conversion(gra, zc_: ZmatConv):
 
     :param gra: A molecular graph
     :type gra: automol graph data structure
-    :param zc_: A z-matrix conversion
-    :type zc_: ZmatConv
+    :param zc_: A z-matrix conversion; if `None`, the conversion will be inferred from
+        the presence of dummy atoms
+    :type zc_: ZmatConv, optional
     :returns: The transformed graph
     :rtype: automol graph data structure
     """
+    if zc_ is None:
+        zc_ = zmatrix_conversion_info(gra)
+
     gra = remove_atoms(gra, zmat_conv.insert_dict(zc_))
     gra = relabel(gra, zmat_conv.relabel_dict(zc_, rev=True))
     return gra

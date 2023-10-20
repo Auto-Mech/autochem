@@ -48,7 +48,7 @@ from automol.graph import add_atom_explicit_hydrogens
 from automol.graph import rings_bond_keys
 from automol.graph import sort_by_size
 from automol.reac._0core import from_forward_reverse
-from automol.reac._0core import reverse_without_structures
+from automol.reac._0core import reverse_without_recalculating
 from automol.reac._0core import unique
 from automol.reac._1util import assert_is_valid_reagent_graph_list
 from automol.reac._2stereo import expand_stereo_for_reaction
@@ -198,7 +198,7 @@ def beta_scissions(rct_gras, prd_gras):
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
-    rxns = tuple(map(reverse_without_structures, additions(prd_gras, rct_gras)))
+    rxns = tuple(map(reverse_without_recalculating, additions(prd_gras, rct_gras)))
     return rxns
 
 
@@ -656,7 +656,7 @@ def insertions(rct_gras, prd_gras):
     rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
 
-    rxns = tuple(map(reverse_without_structures, eliminations(prd_gras, rct_gras)))
+    rxns = tuple(map(reverse_without_recalculating, eliminations(prd_gras, rct_gras)))
     return rxns
 
 
