@@ -70,8 +70,12 @@
         [X] Rename reverse_zmatrix_conversion() => undo_zmatrix_conversion()
         [X] Test new from_chis, from_smiles, etc. functions in _8conv.py
         [X] Remove old with_structures_from_... functions
-    [ ] _6scan.py
     [ ] _7rot.py
+        [ ] Wipe out the torsion / rotor modules
+        [ ] All we need: axis, groups, and symmetry for each torsion in the z-matrix
+        [ ] (Either TS z-matrix or regular z-matrix)
+        [ ] See rotor.py::from_zmatrix
+    [ ] _6scan.py  (maybe leave this for now)
     [x] _8conv.py
     [ ] make reac.from_old_string handle dummy atoms correctly
     [ ] Move non-reac related files in automol/reac/ into automol/misc/
