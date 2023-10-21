@@ -607,6 +607,8 @@ def _key_matrix(key_mat, natms, one_indexed=None):
     :type one_indexed: bool
     :rtype: tuple(tuple(str))
     """
+    if natms == 1:
+        return ((None, None, None),)
 
     # Check dimensions and ensure proper formatting
     key_mat = [list(row) + [None] * (3 - len(row)) for row in key_mat]

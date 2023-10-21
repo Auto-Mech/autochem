@@ -814,23 +814,6 @@ def find(rct_gras, prd_gras, stereo=False):
     return tuple(all_rxns)
 
 
-def find_from_chi(rct_chis, prd_chis):
-    """ find all reaction classes consistent with these reactants and products
-
-    :param rct_chis: inchis for the reactants
-    :param prd_chis: inchis for the products
-    :returns: a list of reaction classes
-    :rtype: tuple[str]
-    """
-    rct_geos = list(map(automol.chi.geometry, rct_chis))
-    prd_geos = list(map(automol.chi.geometry, prd_chis))
-    rct_gras = list(map(automol.geom.graph_without_stereo, rct_geos))
-    prd_gras = list(map(automol.geom.graph_without_stereo, prd_geos))
-    rct_gras, _ = automol.graph.standard_keys_for_sequence(rct_gras)
-    prd_gras, _ = automol.graph.standard_keys_for_sequence(prd_gras)
-    return find(rct_gras, prd_gras)
-
-
 # helpers
 def _partial_hydrogen_abstraction(qh_gra, q_gra):
     rets = []
@@ -850,20 +833,3 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
                 rets.append((qh_q_atm_key, qh_h_atm_key, q_q_atm_key))
 
     return rets
-
-
-# Analyze changes in the spin state to ID the spin crossing
-def intersystem_crossing(rxn_muls):
-    """ Assess if there is a difference between the reactant and
-        product multiplicities to see if there is a change in spin
-
-         NOT CORRECT
-    """
-
-    rct_spin_sum, prd_spin_sum = 0, 0
-    for rct_mul in rxn_muls[0]:
-        rct_spin_sum += (rct_mul - 1.)/2.
-    for prd_mul in rxn_muls[1]:
-        prd_spin_sum += (prd_mul - 1.)/2.
-
-    return (rct_spin_sum != prd_spin_sum)
