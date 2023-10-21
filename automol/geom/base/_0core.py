@@ -10,8 +10,7 @@ import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 from phydat import phycon, ptab
 
-import automol.formula
-from automol import util
+from automol import form, util
 
 AXIS_DCT = {"x": 0, "y": 1, "z": 2}
 
@@ -357,7 +356,7 @@ def formula_string(geo):
     """
 
     fml = formula(geo)
-    fml_str = automol.formula.string(fml)
+    fml_str = form.string(fml)
 
     return fml_str
 
@@ -648,7 +647,7 @@ def distance(geo, idx1, idx2, angstrom=False):
     xyzs = coordinates(geo)
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
-    dist = util.vec.distance(xyz1, xyz2)
+    dist = util.vector.distance(xyz1, xyz2)
     dist *= phycon.BOHR2ANG if angstrom else 1
     return dist
 
@@ -673,7 +672,7 @@ def central_angle(geo, idx1, idx2, idx3, degree=False):
     xyz1 = xyzs[idx1]
     xyz2 = xyzs[idx2]
     xyz3 = xyzs[idx3]
-    ang = util.vec.central_angle(xyz1, xyz2, xyz3)
+    ang = util.vector.central_angle(xyz1, xyz2, xyz3)
     ang *= phycon.RAD2DEG if degree else 1
     return ang
 
@@ -701,7 +700,7 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     xyz2 = xyzs[idx2]
     xyz3 = xyzs[idx3]
     xyz4 = xyzs[idx4]
-    dih = util.vec.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
+    dih = util.vector.dihedral_angle(xyz1, xyz2, xyz3, xyz4)
     dih *= phycon.RAD2DEG if degree else 1
 
     return dih
@@ -814,7 +813,8 @@ def minimum_distance(geo1, geo2):
     xyzs1 = coordinates(geo1)
     xyzs2 = coordinates(geo2)
     return min(
-        util.vec.distance(xyz1, xyz2) for xyz1, xyz2 in itertools.product(xyzs1, xyzs2)
+        util.vector.distance(xyz1, xyz2)
+        for xyz1, xyz2 in itertools.product(xyzs1, xyzs2)
     )
 
 
@@ -844,7 +844,7 @@ def permutation(geo, ref_geo, thresh=1e-4):
             (
                 ref_idx
                 for ref_idx, ref_xyz in zip(ref_idxs, ref_xyzs)
-                if util.vec.distance(xyz, ref_xyz) < thresh
+                if util.vector.distance(xyz, ref_xyz) < thresh
             ),
             None,
         )
@@ -1069,7 +1069,7 @@ def rotate(geo, axis, angle, orig_xyz=None, idxs=None, degree=False):
     """
     angle = angle if not degree else angle * phycon.DEG2RAD
 
-    func = util.vec.rotator(axis, angle, orig_xyz=orig_xyz)
+    func = util.vector.rotator(axis, angle, orig_xyz=orig_xyz)
 
     return transform(geo, func, idxs=idxs)
 
@@ -1089,7 +1089,7 @@ def euler_rotate(geo, theta, phi, psi):
     :rtype: automol geometry data structure
     """
 
-    mat = util.mat.euler_rotation_matrix(theta, phi, psi)
+    mat = util.matrix.euler_rotation_matrix(theta, phi, psi)
 
     return transform_by_matrix(geo, mat)
 

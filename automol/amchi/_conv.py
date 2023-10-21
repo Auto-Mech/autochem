@@ -1,21 +1,23 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
-import automol.graph
-import automol.geom
-from automol import error
+import numbers
+from automol import error, geom
+from automol import graph as graph_
+from automol.amchi.base import (
+    atom_stereo_parities,
+    bond_stereo_parities,
+    bonds,
+    equivalent,
+    has_stereo,
+    hydrogen_valences,
+    is_inverted_enantiomer,
+    isotope_layers,
+    split,
+    standard_form,
+    symbols,
+    with_inchi_prefix,
+)
 from automol.extern import rdkit_
-from automol.amchi.base import isotope_layers
-from automol.amchi.base import symbols
-from automol.amchi.base import bonds
-from automol.amchi.base import hydrogen_valences
-from automol.amchi.base import atom_stereo_parities
-from automol.amchi.base import bond_stereo_parities
-from automol.amchi.base import is_inverted_enantiomer
-from automol.amchi.base import has_stereo
-from automol.amchi.base import split
-from automol.amchi.base import with_inchi_prefix
-from automol.amchi.base import equivalent
-from automol.amchi.base import standard_form
 
 
 # # conversions
@@ -57,9 +59,7 @@ def _connected_smiles(chi, res_stereo=True):
     :rtype: str
     """
     gra = _connected_graph(chi, stereo=True, local_stereo=True)
-    smi = automol.graph.smiles(
-        gra, stereo=True, local_stereo=True, res_stereo=res_stereo
-    )
+    smi = graph_.smiles(gra, stereo=True, local_stereo=True, res_stereo=res_stereo)
     return smi
 
 
@@ -76,7 +76,7 @@ def graph(chi, stereo=True, local_stereo=False):
     """
     chis = split(chi)
     gras = [_connected_graph(c, stereo=stereo, local_stereo=local_stereo) for c in chis]
-    gra = automol.graph.union_from_sequence(gras, shift_keys=True)
+    gra = graph_.union_from_sequence(gras, shift_keys=True)
     return gra
 
 
@@ -107,7 +107,7 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
 
     is_inv = is_inverted_enantiomer(chi)
 
-    gra = automol.graph.from_data(
+    gra = graph_.from_data(
         atm_symb_dct=symb_dct,
         bnd_keys=bnd_keys,
         atm_imp_hyd_dct=atm_imp_hyd_dct,
@@ -116,10 +116,10 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
     )
 
     if is_inv is True:
-        gra = automol.graph.reflect_local_stereo(gra)
+        gra = graph_.reflect_local_stereo(gra)
 
     if has_stereo(chi) and not local_stereo:
-        gra = automol.graph.from_local_stereo(gra)
+        gra = graph_.from_local_stereo(gra)
 
     return gra
 
@@ -141,7 +141,7 @@ def geometry(chi, check=True, log=False):
         print("Graph generated from {chi}:")
         print(gra)
 
-    geo = automol.graph.geometry(gra, check=check, log=log)
+    geo = graph_.geometry(gra, check=check, log=log)
     return geo
 
 
@@ -161,7 +161,7 @@ def conformers(chi, nconfs=1, check=True, accept_fewer=False):
     """
     # Convert graph to local stereo to avoid multiple recanonicalizations
     gra = _connected_graph(chi, stereo=True, local_stereo=True)
-    gra = automol.graph.explicit(gra)
+    gra = graph_.explicit(gra)
 
     smi = _connected_smiles(chi, res_stereo=False)
     has_ste = has_stereo(chi)
@@ -179,25 +179,25 @@ def conformers(chi, nconfs=1, check=True, accept_fewer=False):
         for geo in geos:
             if not has_ste:
                 # If there wasn't stereo, only check connectivity
-                gra_ = automol.geom.graph(geo, stereo=False)
-                if automol.graph.isomorphism(gra, gra_, stereo=False):
+                gra_ = geom.graph(geo, stereo=False)
+                if graph_.isomorphism(gra, gra_, stereo=False):
                     ret_geos.append(geo)
             else:
                 # There is stereo.
                 # First, check connectivity.
-                gra_ = automol.geom.graph(geo)
-                geo_idx_dct = automol.graph.isomorphism(gra, gra_, stereo=False)
+                gra_ = geom.graph(geo)
+                geo_idx_dct = graph_.isomorphism(gra, gra_, stereo=False)
 
                 if geo_idx_dct is not None:
                     # Enforce correct stereo parities. This is necessary for
                     # resonance bond stereo.
-                    geo = automol.graph.stereo_corrected_geometry(
+                    geo = graph_.stereo_corrected_geometry(
                         gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True
                     )
 
                     # Check if the assignment worked.
-                    gra_ = automol.graph.set_stereo_from_geometry(gra_, geo)
-                    if automol.graph.isomorphism(gra, gra_):
+                    gra_ = graph_.set_stereo_from_geometry(gra_, geo)
+                    if graph_.isomorphism(gra, gra_):
                         ret_geos.append(geo)
 
     if len(ret_geos) < nconfs and not accept_fewer:
@@ -217,7 +217,7 @@ def zmatrix(chi, check=True):
     """
 
     geo = geometry(chi, check=check)
-    zma = automol.geom.zmatrix(geo)
+    zma = geom.zmatrix(geo)
     return zma
 
 
@@ -237,7 +237,7 @@ def rdkit_molecule(chi, stereo=True):
     """
     rdkit_.turn_3d_visualization_off()
     gra = graph(chi, stereo=stereo)
-    return automol.graph.rdkit_molecule(gra, stereo=stereo)
+    return graph_.rdkit_molecule(gra, stereo=stereo)
 
 
 def rdkit_reaction(rchis, pchis, stereo=True, res_stereo=False):
@@ -259,9 +259,7 @@ def rdkit_reaction(rchis, pchis, stereo=True, res_stereo=False):
     rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rchis]
     pgras = [graph(s, stereo=stereo) for s in pchis]
-    return automol.graph.rdkit_reaction(
-        rgras, pgras, stereo=stereo, res_stereo=res_stereo
-    )
+    return graph_.rdkit_reaction(rgras, pgras, stereo=stereo, res_stereo=res_stereo)
 
 
 def display(chi, stereo=True):
@@ -274,7 +272,7 @@ def display(chi, stereo=True):
     """
     rdkit_.turn_3d_visualization_off()
     gra = graph(chi, stereo=stereo)
-    automol.graph.display(gra, stereo=stereo)
+    graph_.display(gra, stereo=stereo)
 
 
 def display_reaction(rchis, pchis, stereo=True):
@@ -288,7 +286,7 @@ def display_reaction(rchis, pchis, stereo=True):
     rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rchis]
     pgras = [graph(s, stereo=stereo) for s in pchis]
-    automol.graph.display_reaction(rgras, pgras, stereo=stereo)
+    graph_.display_reaction(rgras, pgras, stereo=stereo)
 
 
 # # derived properties
@@ -305,8 +303,8 @@ def is_complete(chi):
     """
 
     gra = graph(chi, stereo=False)
-    ste_atm_keys = automol.graph.stereogenic_atom_keys(gra)
-    ste_bnd_keys = automol.graph.stereogenic_bond_keys(gra)
+    ste_atm_keys = graph_.stereogenic_atom_keys(gra)
+    ste_bnd_keys = graph_.stereogenic_bond_keys(gra)
     graph_has_stereo = bool(ste_atm_keys or ste_bnd_keys)
 
     _complete = equivalent(chi, standard_form(chi)) and not (
@@ -314,6 +312,20 @@ def is_complete(chi):
     )
 
     return _complete
+
+
+def is_valid_multiplicity(chi, mul):
+    """is this multiplicity compatible with this amchi string?
+
+    :param chi: ChI string
+    :type chi: str
+    :param mul: multiplicity
+    :type mul: int
+    :returns: validity of amchi multiplicity
+    :rtype: bool
+    """
+    assert isinstance(mul, numbers.Integral)
+    return mul in graph_.possible_spin_multiplicities(graph(chi, stereo=False))
 
 
 # # derived transformations
@@ -325,7 +337,7 @@ def add_stereo(chi):
     :rtype: str
     """
     geo = geometry(chi)
-    chi = automol.geom.amchi(geo, stereo=True)
+    chi = geom.amchi(geo, stereo=True)
     return chi
 
 
@@ -339,6 +351,6 @@ def expand_stereo(chi, enant=True):
     :rtype: list[str]
     """
     gra = graph(chi, stereo=False)
-    sgrs = automol.graph.expand_stereo(gra, enant=enant, symeq=False)
-    ste_chis = [automol.graph.amchi(sgr, stereo=True) for sgr in sgrs]
+    sgrs = graph_.expand_stereo(gra, enant=enant, symeq=False)
+    ste_chis = [graph_.amchi(sgr, stereo=True) for sgr in sgrs]
     return ste_chis

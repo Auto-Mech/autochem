@@ -65,7 +65,7 @@ from automol import const
 from automol import util
 from automol import error
 from automol import mult
-from automol import formula
+from automol import form
 from automol import inchi_key
 from automol import vmat
 from automol import prop
@@ -97,7 +97,7 @@ __all__ = [
     'util',
     'error',
     'mult',
-    'formula',
+    'form',
     'inchi_key',
     'vmat',
     'prop',

@@ -7,8 +7,8 @@ import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 from phydat import phycon
 
-import automol.geom.base
 from automol import util, vmat
+from automol.geom import base as geom_base
 from automol.util import ZmatConv
 from automol.vmat import (
     atom_indices,
@@ -77,11 +77,11 @@ def from_geometry(vma, geo):
 
     for row, key_row in enumerate(key_mat):
         if row > 0:
-            val_mat[row, 0] = automol.geom.base.distance(geo, row, *key_row[:1])
+            val_mat[row, 0] = geom_base.distance(geo, row, *key_row[:1])
         if row > 1:
-            val_mat[row, 1] = automol.geom.base.central_angle(geo, row, *key_row[:2])
+            val_mat[row, 1] = geom_base.central_angle(geo, row, *key_row[:2])
         if row > 2:
-            val_mat[row, 2] = automol.geom.base.dihedral_angle(geo, row, *key_row[:3])
+            val_mat[row, 2] = geom_base.dihedral_angle(geo, row, *key_row[:3])
 
     zma = from_data(symbs, key_mat, val_mat, name_mat)
     return zma

@@ -8,9 +8,6 @@ import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 from phydat import phycon
 
-import automol.graph.base as graph_base
-import automol.inchi.base as inchi_base
-import automol.zmat.base as zmat_base
 from automol.extern import molfile, py3dmol_, rdkit_
 from automol.geom import _pyx2z
 from automol.geom.base import (
@@ -28,13 +25,16 @@ from automol.geom.base import (
     symbols,
     translate,
 )
+from automol.graph import base as graph_base
+from automol.inchi import base as inchi_base
 from automol.util import (
     ZmatConv,
     dict_,
     heuristic,
-    vec,
+    vector,
     zmat_conv,
 )
+from automol.zmat import base as zmat_base
 
 
 # # conversions
@@ -663,7 +663,7 @@ def closest_unbonded_atom_distances(
     dist_dct = {i: distance(geo, idx, i, angstrom=angstrom) for i in idxs}
     min_dist = min(dist_dct.values())
 
-    dist_thresh = min_dist * (1. + dist_frac)
+    dist_thresh = min_dist * (1.0 + dist_frac)
     dist_dct = dict_.by_value(dist_dct, lambda d: d < dist_thresh)
     return dist_dct
 
@@ -690,7 +690,7 @@ def could_be_forming_bond(geo, idx1: int, idx2: int, gra=None) -> bool:
     return idx1 in dist_dct2 and idx2 in dist_dct1
 
 
-def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
+def ts_reacting_electron_direction(geo, tsg, key) -> vector.Vector:
     """Identify the direction of a reacting electron on a bond-forming atom
 
     Forming bond direction accounts for atom stereochemistry in this atom.
@@ -710,7 +710,7 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     # Get the normal vector
     pkeys = graph_base.ts.plane_keys(tsg, key)
     pxyzs = coordinates(geo, idxs=pkeys)
-    zvec = vec.best_unit_perpendicular(pxyzs)
+    zvec = vector.best_unit_perpendicular(pxyzs)
 
     # Get the direction information:
     #   1. xkey: a bond key giving an x direction
@@ -728,7 +728,7 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
     #   1. do pi rotations by simply reversing the direction of xkey and normalizing
     elif numpy.allclose(phi, numpy.pi):
         xxyz1, xxyz2 = coordinates(geo, idxs=xkey)
-        rvec = -vec.unit_norm(numpy.subtract(xxyz2, xxyz1))
+        rvec = -vector.unit_norm(numpy.subtract(xxyz2, xxyz1))
     #   2. do other rotations by forming a right-handed coordinate system and rotating
     #   in the x-y plane in the direction of y
     else:
@@ -737,9 +737,9 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vec.Vector:
         if ykey is not None:
             yxyz1, yxyz2 = coordinates(geo, idxs=ykey)
             yvec = numpy.subtract(yxyz2, yxyz1)
-            zvec = vec.flip_if_left_handed(xvec, yvec, zvec)
-        xvec = vec.orthogonalize(zvec, xvec, normalize=True)
-        rot_ = vec.rotator(zvec, phi)
+            zvec = vector.flip_if_left_handed(xvec, yvec, zvec)
+        xvec = vector.orthogonalize(zvec, xvec, normalize=True)
+        rot_ = vector.rotator(zvec, phi)
         rvec = rot_(xvec)
 
     # Make sure the direction matches atom stereochemistry
@@ -956,9 +956,11 @@ def set_central_angle(
     # If idx-idx1-idx2 is not linear, use the normal to this plane,
     # otherwise, use the normal to the idx1-idx2-idx3 plane
     if not numpy.abs(ang0) < tol or numpy.abs(ang0 - lin) < tol:
-        axis = vec.unit_perpendicular(xyzs[idx3], xyzs[idx1], orig_xyz=xyzs[idx2])
+        axis = vector.unit_perpendicular(xyzs[idx3], xyzs[idx1], orig_xyz=xyzs[idx2])
     else:
-        axis = vec.unit_perpendicular(xyzs[idx2], xyzs[plane_idx], orig_xyz=xyzs[idx2])
+        axis = vector.unit_perpendicular(
+            xyzs[idx2], xyzs[plane_idx], orig_xyz=xyzs[idx2]
+        )
     # I don't know how to figure out which way to rotate, so just try both
     # and see which one works
     for dang in [-ang_diff, ang_diff]:

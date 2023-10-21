@@ -11,8 +11,8 @@ import more_itertools as mit
 import numpy
 from phydat import phycon
 
-import automol.geom.base as geom_base
 from automol import util
+from automol.geom import base as geom_base
 from automol.graph.base._0core import (
     atom_keys,
     atom_neighbor_atom_keys,
@@ -35,7 +35,7 @@ from automol.graph.base._2algo import (
     rings_bond_keys,
 )
 from automol.graph.base._3kekule import rigid_planar_bond_keys
-from automol.util.vec import Vector
+from automol.util.vector import Vector
 
 
 # stereo parity evaluations
@@ -324,7 +324,7 @@ def linear_segment_dummy_direction(
 
     # 2. Determine the linear segment direction
     end_xyzs = geom_base.coordinates(geo, idxs=end_keys)
-    seg_vec = util.vec.unit_norm(numpy.subtract(*end_xyzs))
+    seg_vec = util.vector.unit_norm(numpy.subtract(*end_xyzs))
 
     # 3. Find an auxiliary, non-parallel direction, if possible
     aux_vec = None
@@ -336,7 +336,7 @@ def linear_segment_dummy_direction(
         nkey1, nkey2, *_ = nkeys
         nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(nkey1, nkey2))
         (tra_xyz,) = geom_base.coordinates(geo, idxs=(tra_key,))
-        aux_vec = util.vec.unit_bisector(nxyz1, nxyz2, tra_xyz, outer=len(nkeys) < 3)
+        aux_vec = util.vector.unit_bisector(nxyz1, nxyz2, tra_xyz, outer=len(nkeys) < 3)
     else:
         # Otherwise, look for a non-parallel neighbor to one of the book-ending keys
         for key in end_keys:
@@ -344,18 +344,18 @@ def linear_segment_dummy_direction(
             for nkey in nkeys:
                 xyz, nxyz = geom_base.coordinates(geo, idxs=(key, nkey))
                 end_nvec = numpy.subtract(nxyz, xyz)
-                if not util.vec.are_parallel(seg_vec, end_nvec, anti=True):
-                    aux_vec = util.vec.unit_norm(end_nvec)
+                if not util.vector.are_parallel(seg_vec, end_nvec, anti=True):
+                    aux_vec = util.vector.unit_norm(end_nvec)
                     break
 
     # 4. Find the dummy direction
     if aux_vec is None:
         # If we don't have an auxiliary vector, choose an arbitrary vector perpendicular
-        dummy_vec = util.vec.arbitrary_unit_perpendicular(seg_vec)
+        dummy_vec = util.vector.arbitrary_unit_perpendicular(seg_vec)
     else:
         # If we have an auxiliary vector, ortogonalize it against the segment direction
         # vector to get a nice perpendicular direction
-        dummy_vec = util.vec.orthogonalize(seg_vec, aux_vec, normalize=True)
+        dummy_vec = util.vector.orthogonalize(seg_vec, aux_vec, normalize=True)
 
     return dummy_vec
 
@@ -460,7 +460,7 @@ def geometry_correct_linear_vinyls(
                 atm1_xyz = xyzs[atm1_idx]
                 atm2_xyz = xyzs[atm2_idx]
 
-                rot_axis = util.vec.unit_perpendicular(
+                rot_axis = util.vector.unit_perpendicular(
                     atm0_xyz, atm1_xyz, orig_xyz=atm2_xyz
                 )
 
@@ -542,7 +542,7 @@ def geometry_pseudorotate_atom(
     if found_pair:
         # Determine the rotational axis as the unit bisector between the fixed pair
         xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
-        rot_axis = util.vec.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
+        rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
 
         # Identify the remaining keys to be rotated
         rot_nkeys = nkeys - {nkey1, nkey2}

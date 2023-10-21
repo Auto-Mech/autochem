@@ -2,7 +2,6 @@
 
 Import hierarchy:
     vmat        no dependencies
-    zmat        no dependencies
     embed       no dependencies
     _conv       dependencies: vmat
 

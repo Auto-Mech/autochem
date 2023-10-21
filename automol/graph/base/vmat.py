@@ -1,7 +1,6 @@
 """ graph-based z-matrix builder
 """
-import automol.vmat
-from automol import util
+from automol import util, vmat
 from automol.graph.base import ts
 from automol.graph.base._0core import (
     atom_count,
@@ -396,7 +395,7 @@ def start_at(gra, key):
 
         sym = symb_dct[key_]
         key_row = [idx1, idx2, idx3]
-        vma = automol.vmat.add_atom(vma, sym, key_row)
+        vma = vmat.add_atom(vma, sym, key_row)
 
     return vma, zma_keys
 
@@ -437,7 +436,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
     # atom for a torsion may have already be defined. To handle this case, I
     # make a dictionary of these leading atoms and use them below where needed.
     lead_key_dct = {}
-    for idx, key_row in enumerate(automol.vmat.key_matrix(vma)):
+    for idx, key_row in enumerate(vmat.key_matrix(vma)):
         axis = key_row[:2]
         if None not in axis:
             axis = tuple(map(zma_keys.__getitem__, axis))
@@ -462,7 +461,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
             key_row = [
                 zma_keys.index(k) if k is not None else None for k in (key3, key2, dkey)
             ]
-            vma = automol.vmat.add_atom(vma, symb, key_row)
+            vma = vmat.add_atom(vma, symb, key_row)
             assert key4 not in zma_keys, f"Atom {key4:d} already in v-matrix."
             zma_keys.append(key4)
 
@@ -477,7 +476,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
                 else:
                     key_row = list(map(zma_keys.index, (key3, key2, dkey)))
 
-                vma = automol.vmat.add_atom(vma, sym, key_row)
+                vma = vmat.add_atom(vma, sym, key_row)
                 assert k3n not in zma_keys, f"Atom {k3n:d} already in v-matrix."
                 zma_keys.append(k3n)
 

@@ -13,15 +13,13 @@ import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-import automol.formula
-import automol.util
+from automol import form, util
 from automol.util import dict_
 
 
 # Build parser
 def layer_parser(key=pp.Empty(), chars=pp.printables, content_only=False):
-    """ Create a parser for an InChI layer
-    """
+    """Create a parser for an InChI layer"""
     layer_prefix = pp.Combine(pp.Suppress("/") + key)
     layer_content = pp.Word(chars, excludeChars="/")
     if content_only:
@@ -426,8 +424,8 @@ def formula(chi):
     # split it up to handle hard-coded molecules in multi-component chis
     chis = split(chi)
     fml_strs = list(map(formula_layer, chis))
-    fmls = list(map(automol.formula.from_string, fml_strs))
-    fml = functools.reduce(automol.formula.join, fmls)
+    fmls = list(map(form.from_string, fml_strs))
+    fml = functools.reduce(form.join, fmls)
     return fml
 
 
@@ -443,7 +441,7 @@ def formula_string(chi):
     :rtype: str
     """
     fml = formula(chi)
-    fml_str = automol.formula.string(fml)
+    fml_str = form.string(fml)
     return fml_str
 
 
@@ -559,7 +557,7 @@ def symbols(chi, one_indexed=False):
     :rtype: dict[int: str]
     """
     fml = formula(chi)
-    pool = list(automol.formula.sorted_symbols(fml.keys(), symbs_first=["C"]))
+    pool = list(form.sorted_symbols(fml.keys(), symbs_first=["C"]))
 
     # If there are only hydrogens, then one of them must be a backbone atom
     if set(pool) == {"H"}:
@@ -622,7 +620,7 @@ def bonds(chi, one_indexed=False):
                 obj = conn_lst.pop(0)
 
                 # Split the sequence at commas
-                lsts = automol.util.breakby(obj, ",")
+                lsts = util.breakby(obj, ",")
 
                 # Add bonds to the first element and continue the recursion for
                 # each sub list from the split
@@ -734,7 +732,7 @@ def hydrogen_valences(chi, one_indexed=False):
                 nhyd = 1
                 nhyd_lst = nhyd_lst[:-1]
 
-            lsts = list(map(list, automol.util.breakby(nhyd_lst, "-")))
+            lsts = list(map(list, util.breakby(nhyd_lst, "-")))
             idxs = lsts.pop(0)
             for lst in lsts:
                 idxs.extend(range(idxs[-1] + 1, lst[0]))
@@ -1010,7 +1008,7 @@ def low_spin_multiplicity(chi):
     """
 
     fml = formula(chi)
-    nelec = automol.formula.electron_count(fml)
+    nelec = form.electron_count(fml)
 
     if (nelec % 2) == 0:
         mult = 1
@@ -1198,8 +1196,8 @@ def argsort(chis):
     # 1. Formula sort values
     fmls = list(map(formula, chis))
     symbs = set(itertools.chain(*[f.keys() for f in fmls]))
-    symbs = automol.formula.sorted_symbols(symbs, symbs_first=("C"))
-    fml_vecs = [automol.formula.sort_vector(fml, symbs=symbs) for fml in fmls]
+    symbs = form.sorted_symbols(symbs, symbs_first=("C"))
+    fml_vecs = [form.sort_vector(fml, symbs=symbs) for fml in fmls]
 
     # 2. Connectivity sort values
     conn_vecs = list(map(adjacency_list, chis))
@@ -1247,8 +1245,7 @@ def argsort(chis):
 
 # # helpers
 def _split_layer_string(lyr, count_delim=pp.Empty(), delim="."):
-    """Split a layer string into components
-    """
+    """Split a layer string into components"""
     count = ppc.integer + pp.Suppress(count_delim)
     count = pp.Opt(count).setParseAction(lambda x: x[0] if x else [1])
     comp = pp.Opt(pp.Word(pp.printables, excludeChars=delim)).setParseAction(

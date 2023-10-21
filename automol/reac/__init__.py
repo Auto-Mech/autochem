@@ -60,8 +60,7 @@ from automol.reac._3find import find
 from automol.reac._4struc import with_structures
 from automol.reac._4struc import reverse
 # TS zmatrices
-from automol.reac._5zmat import ts_zmatrix
-from automol.reac._5zmat import zmatrix_coordinate_names
+from automol.reac._deprecated import zmatrix_coordinate_names
 # rotational bonds & torsions
 from automol.reac._7rot import linear_atom_keys
 from automol.reac._7rot import rotational_bond_keys
@@ -69,29 +68,29 @@ from automol.reac._7rot import rotational_groups
 from automol.reac._7rot import rotational_symmetry_number
 # conversions
 # # constructors from data types
-from automol.reac._8conv import from_graphs
-from automol.reac._8conv import from_amchis
-from automol.reac._8conv import from_inchis
-from automol.reac._8conv import from_chis
-from automol.reac._8conv import from_smiles
-from automol.reac._8conv import from_geometries
-from automol.reac._8conv import from_zmatrices
+from automol.reac._5conv import from_graphs
+from automol.reac._5conv import from_amchis
+from automol.reac._5conv import from_inchis
+from automol.reac._5conv import from_chis
+from automol.reac._5conv import from_smiles
+from automol.reac._5conv import from_geometries
+from automol.reac._5conv import from_zmatrices
 # # converters to various data types
-from automol.reac._8conv import graphs
-from automol.reac._8conv import amchis
-from automol.reac._8conv import inchis
-from automol.reac._8conv import chis
-from automol.reac._8conv import smiles
-from automol.reac._8conv import geometries
-from automol.reac._8conv import zmatrices
+from automol.reac._5conv import graphs
+from automol.reac._5conv import amchis
+from automol.reac._5conv import inchis
+from automol.reac._5conv import chis
+from automol.reac._5conv import smiles
+from automol.reac._5conv import geometries
+from automol.reac._5conv import zmatrices
 # # additional data types
-from automol.reac._8conv import ts_amchi
-from automol.reac._8conv import reaction_smiles
-from automol.reac._8conv import rdkit_reaction
-from automol.reac._8conv import display
+from automol.reac._5conv import ts_amchi
+from automol.reac._5conv import reaction_smiles
+from automol.reac._5conv import rdkit_reaction
+from automol.reac._5conv import display
 # # canonicity
-from automol.reac._8conv import is_canonical_enantiomer
-from automol.reac._8conv import canonical_enantiomer
+from automol.reac._5conv import is_canonical_enantiomer
+from automol.reac._5conv import canonical_enantiomer
 # scan coordinates
 from automol.reac._6scan import build_scan_info
 from automol.reac._6scan import scan_coordinate
@@ -173,7 +172,6 @@ __all__ = [
     'with_structures',
     'reverse',
     # TS zmatrices
-    'ts_zmatrix',
     'zmatrix_coordinate_names',
     # rotational bonds & torsions
     'linear_atom_keys',

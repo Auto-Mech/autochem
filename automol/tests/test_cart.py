@@ -2,10 +2,9 @@
 """
 
 import os
-import numpy
-import automol.util.mat
-import automol.util.vec
 
+import numpy
+from automol.util import matrix, tensor, vector
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 DAT_PATH = os.path.join(PATH, "data")
@@ -35,17 +34,17 @@ def test__vec():
 
     # Test angle calculators
     ref_perp = (-0.90180687, -0.40614043, -0.14762896)
-    perp = automol.util.vec.unit_perpendicular(MAT[0], MAT[1])
+    perp = vector.unit_perpendicular(MAT[0], MAT[1])
     assert numpy.allclose(perp, ref_perp)
 
     ref_perp = (0.000, 0.000, 0.000)
-    perp = automol.util.vec.unit_perpendicular(MAT[0], MAT[0])
+    perp = vector.unit_perpendicular(MAT[0], MAT[0])
     assert numpy.allclose(perp, ref_perp)
 
     ref_angle = 0.28211376550390677
-    angle = automol.util.vec.projected_central_angle(MAT[0], MAT[1], MAT[2])
+    angle = vector.projected_central_angle(MAT[0], MAT[1], MAT[2])
     assert numpy.isclose(angle, ref_angle)
-    vec_str = automol.util.vec.string((MAT[0] + MAT[1]), num_per_row=3)
+    vec_str = vector.string((MAT[0] + MAT[1]), num_per_row=3)
 
     assert vec_str == VEC_STR
 
@@ -54,7 +53,7 @@ def test__mat():
     """test automol.automol.util.cart.mat"""
 
     # Various matrix builder functions
-    rand_rot_mat = automol.util.mat.random_rotation_matrix()
+    rand_rot_mat = matrix.random_rotation_matrix()
     assert len(rand_rot_mat) == 3
     assert all(
         len(row) == 3 and all(isinstance(val, float) for val in row)
@@ -66,7 +65,7 @@ def test__mat():
         (0.0, -0.9922575676015892, 0.12419709955299955),
         (0.0, -0.12419709955299955, -0.9922575676015892),
     )
-    rot_mat = automol.util.mat.rotation_matrix((1.0, 0.0, 0.0), 30.0 / numpy.pi)
+    rot_mat = matrix.rotation_matrix((1.0, 0.0, 0.0), 30.0 / numpy.pi)
 
     assert numpy.allclose(rot_mat, ref_rot_mat)
 
@@ -75,7 +74,7 @@ def test__mat():
         (0.0, 0.0, 0.0),
         (-0.9018068740366958, -0.4061404341551566, -0.14762895950464514),
     )
-    axis_align_mat = automol.util.mat.axis_alignment_matrix(MAT[0], MAT[1])
+    axis_align_mat = matrix.axis_alignment_matrix(MAT[0], MAT[1])
 
     assert numpy.allclose(axis_align_mat, ref_axis_align_mat)
 
@@ -87,11 +86,11 @@ def test__mat():
 
     xyz1 = (MAT[0], MAT[1])
     xyz2 = (MAT[2], MAT[3])
-    superimp_mat = automol.util.mat.superimposition_matrix(xyz1, xyz2, keep_origin=True)
+    superimp_mat = matrix.superimposition_matrix(xyz1, xyz2, keep_origin=True)
 
     assert numpy.allclose(superimp_mat, ref_superimp_mat)
 
-    mat_str = automol.util.mat.string(MAT)
+    mat_str = matrix.string(MAT)
 
     assert mat_str == MAT_STR
 
@@ -131,11 +130,11 @@ def test__highd_mat():
         ref_4d_str = fobj.read()
 
     # Handle reprentations with full matrices and strings
-    test_3d_mat = automol.util.highd_mat.from_string(ref_3d_str)
-    test_4d_mat = automol.util.highd_mat.from_string(ref_4d_str)
+    test_3d_mat = tensor.from_string(ref_3d_str)
+    test_4d_mat = tensor.from_string(ref_4d_str)
 
-    test_3d_str = automol.util.highd_mat.string(test_3d_mat)
-    test_4d_str = automol.util.highd_mat.string(test_4d_mat)
+    test_3d_str = tensor.string(test_3d_mat)
+    test_4d_str = tensor.string(test_4d_mat)
 
     assert _chk_mat_strs(test_3d_str, ref_3d_str)
     assert _chk_mat_strs(test_4d_str, ref_4d_str)
@@ -157,10 +156,10 @@ def test__highd_mat():
     ) as fobj:
         ref_4d_submat_str = fobj.read()
 
-    test_3d_submat_str = automol.util.highd_mat.string_submat_3d(test_3d_mat)
+    test_3d_submat_str = tensor.string_submat_3d(test_3d_mat)
     assert test_3d_submat_str == ref_3d_submat_str
 
-    test_4d_submat_str = automol.util.highd_mat.string_submat_4d(test_4d_mat)
+    test_4d_submat_str = tensor.string_submat_4d(test_4d_mat)
     assert test_4d_submat_str == ref_4d_submat_str
 
 

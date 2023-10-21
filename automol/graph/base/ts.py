@@ -7,11 +7,11 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import itertools
 from typing import Dict, List, Tuple
 
-import automol.amchi.base  # !!!!
 from automol import util
 from automol.graph.base._0core import (
     atom_keys,
     atom_neighbor_atom_keys,
+    atom_symbols,
     atoms_neighbor_atom_keys,
     bond_stereo_keys,
     bond_stereo_sorted_neighbor_keys,
@@ -570,13 +570,13 @@ def heuristic_bond_distance(
     :return: The heuristic distance
     :rtype: float
     """
-    frm_keys = list(automol.graph.base.ts.forming_bond_keys(tsg))
-    brk_keys = list(automol.graph.base.ts.breaking_bond_keys(tsg))
+    frm_keys = list(forming_bond_keys(tsg))
+    brk_keys = list(breaking_bond_keys(tsg))
     rxn_keys = frm_keys + brk_keys
 
     key = frozenset({key1, key2})
     if key in rxn_keys:
-        symb_dct = automol.graph.base.atom_symbols(tsg)
+        symb_dct = atom_symbols(tsg)
         symb1, symb2 = map(symb_dct.__getitem__, key)
         dist = util.heuristic.bond_distance_limit(symb1, symb2, angstrom=angstrom)
         dist *= fdist_factor if key in frm_keys else bdist_factor
