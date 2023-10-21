@@ -191,6 +191,43 @@ def test__reverse():
     _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
 
 
+def test__from_datatypes():
+    """Test reac.from_<datatype>() functions"""
+
+    def _test(rct_smis, prd_smis):
+        print("Testing reac.from_<datatype>() functions")
+        print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
+
+        # 1. generate inputs for various data types
+        rct_gras = tuple(map(graph.explicit, map(smiles.graph, rct_smis)))
+        prd_gras = tuple(map(graph.explicit, map(smiles.graph, prd_smis)))
+        rct_chis = tuple(map(graph.chi, rct_gras))
+        prd_chis = tuple(map(graph.chi, prd_gras))
+        rct_smis = tuple(map(graph.smiles, rct_gras))
+        prd_smis = tuple(map(graph.smiles, prd_gras))
+        rct_geos = tuple(map(graph.geometry, rct_gras))
+        prd_geos = tuple(map(graph.geometry, prd_gras))
+        rct_zmas = tuple(map(geom.zmatrix, rct_geos))
+        prd_zmas = tuple(map(geom.zmatrix, prd_geos))
+
+        # 2. get reaction objects from those data types
+        rxns_from_gra = reac.from_graphs(rct_gras, prd_gras)
+        rxns_from_chi = reac.from_chis(rct_chis, prd_chis)
+        rxns_from_smi = reac.from_smiles(rct_smis, prd_smis)
+        rxns_from_geo = reac.from_geometries(rct_geos, prd_geos)
+        rxns_from_zma = reac.from_zmatrices(rct_zmas, prd_zmas)
+
+        # 3. test the results
+        assert (rct_gras, prd_gras) == reac.graphs(rxns_from_gra[0])
+        assert (rct_chis, prd_chis) == reac.chis(rxns_from_chi[0])
+        assert (rct_smis, prd_smis) == reac.smiles(rxns_from_smi[0])
+        assert (rct_geos, prd_geos) == reac.geometries(rxns_from_geo[0])
+        assert (rct_zmas, prd_zmas) == reac.zmatrices(rxns_from_zma[0])
+
+    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
+    _test([r"F\N=[C]/F", "[C]#C"], [r"F\N=C(C#C)/F"])
+
+
 def test__end_to_end():
     """Test reac.ts_geometry"""
 
@@ -340,5 +377,6 @@ if __name__ == "__main__":
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
-    test__reverse()
-    test__end_to_end()
+    # test__reverse()
+    # test__end_to_end()
+    test__from_datatypes()

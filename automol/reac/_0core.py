@@ -139,12 +139,7 @@ def from_data(
             f"\nreactants: {rct_strucs}\nproducts: {prd_strucs}"
         )
 
-        round_ = geom.round_ if struc_typ == "geom" else zmat.round_
         symbs_ = geom.symbols if struc_typ == "geom" else zmat.symbols
-
-        ts_struc = round_(ts_struc)
-        rct_strucs = tuple(map(round_, rct_strucs))
-        prd_strucs = tuple(map(round_, prd_strucs))
 
         # Check that TS graph and reagents keys match up with the respective structures
         s_ok = symbs_(ts_struc) == graph.symbols(tsg)
@@ -742,7 +737,7 @@ def relabel(rxn: Reaction, key_dct, struc: bool = False) -> Reaction:
     return rxn
 
 
-def reverse_without_recalculating(rxn: Reaction, struc: bool=True) -> Reaction:
+def reverse_without_recalculating(rxn: Reaction, struc: bool = True) -> Reaction:
     """Get the reaction object for the reverse reaction
 
     :param rxn: A reaction object
@@ -861,16 +856,18 @@ def product_mappings(
     )
 
 
-def reactant_graphs(rxn: Reaction, shift_keys: bool = False):
+def reactant_graphs(rxn: Reaction, stereo: bool = True, shift_keys: bool = False):
     """Obtain graphs of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param stereo: Include stereo? defaults to True
+    :type stereo: bool, optional
     :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
     :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
-    rcts_gra = ts.reactants_graph(ts_graph(rxn))
+    rcts_gra = ts.reactants_graph(ts_graph(rxn), stereo=stereo)
     rcts_keys = reactants_keys(rxn)
 
     # Extract subgraphs (TS keys)
@@ -882,43 +879,51 @@ def reactant_graphs(rxn: Reaction, shift_keys: bool = False):
     return tuple(rct_gras)
 
 
-def product_graphs(rxn: Reaction, shift_keys=False):
+def product_graphs(rxn: Reaction, stereo: bool = True, shift_keys=False):
     """Obtain graphs of the products in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param stereo: Include stereo? defaults to True
+    :type stereo: bool, optional
     :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
     :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
-    return reactant_graphs(reverse_without_recalculating(rxn), shift_keys=shift_keys)
+    return reactant_graphs(
+        reverse_without_recalculating(rxn), stereo=stereo, shift_keys=shift_keys
+    )
 
 
-def reactants_graph(rxn: Reaction, key_order="R"):
+def reactants_graph(rxn: Reaction, stereo: bool = True, key_order="R"):
     """Obtain a (single) graph of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param stereo: Include stereo? defaults to True
+    :type stereo: bool, optional
     :param key_order: The key order to use, 'T', 'R', or 'P'
     :type key_order: str, optional
     :rtype: automol graph data structure
     """
     map_dct = mapping(rxn, "T", key_order)
-    rcts_gra = ts.reactants_graph(ts_graph(rxn))
+    rcts_gra = ts.reactants_graph(ts_graph(rxn), stereo=stereo)
     return graph.relabel(rcts_gra, map_dct, check=True)
 
 
-def products_graph(rxn: Reaction, key_order="P"):
+def products_graph(rxn: Reaction, stereo: bool = True, key_order="P"):
     """Obtain a (single) graph of the products in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
+    :param stereo: Include stereo? defaults to True
+    :type stereo: bool, optional
     :param key_order: The key order to use, 'T', 'R', or 'P'
     :type key_order: str, optional
     :rtype: automol graph data structure
     """
     map_dct = mapping(rxn, "T", key_order)
-    rcts_gra = ts.products_graph(ts_graph(rxn))
+    rcts_gra = ts.products_graph(ts_graph(rxn), stereo=stereo)
     return graph.relabel(rcts_gra, map_dct, check=True)
 
 
