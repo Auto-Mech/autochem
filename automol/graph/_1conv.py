@@ -8,7 +8,6 @@ import ipywidgets
 import numpy
 from phydat import phycon
 
-import automol.smiles.base as smiles_base
 from automol import error, geom
 from automol.extern import rdkit_
 from automol.graph._0embed import (
@@ -37,7 +36,8 @@ from automol.graph.base import (
     ts,
     without_stereo,
 )
-from automol.util import vec
+from automol.smiles import base as smiles_base
+from automol.util import vector
 
 
 # # conversions
@@ -501,8 +501,8 @@ def ts_join_reactant_geometries(tsg, rct_geos, geo_idx_dct=None, fdist_factor=1.
     rvec1 = geom.ts_reacting_electron_direction(geo, tsg, fidx1)
     rvec2 = geom.ts_reacting_electron_direction(geo, tsg, fidx2)
     # 4. Rotate to align them antiparallel
-    rot_ang = vec.angle(rvec1, numpy.negative(rvec2))
-    rot_axis = vec.unit_perpendicular(rvec1, rvec2)
+    rot_ang = vector.angle(rvec1, numpy.negative(rvec2))
+    rot_axis = vector.unit_perpendicular(rvec1, rvec2)
     geo = geom.rotate(geo, rot_axis, rot_ang, orig_xyz=fxyz2, idxs=idxs2)
     # 5. Translate the second reagent to the appropriate distance away
     fdist = ts.heuristic_bond_distance(

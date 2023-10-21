@@ -88,14 +88,13 @@ from automol.amchi._conv import display
 from automol.amchi._conv import display_reaction
 # # derived properties
 from automol.amchi._conv import is_complete
+from automol.amchi._conv import is_valid_multiplicity
 # # derived transformations
 from automol.amchi._conv import add_stereo
 from automol.amchi._conv import expand_stereo
 # drawing tools
 from automol.amchi._draw import draw
 from automol.amchi._draw import draw_grid
-# assessment tools
-from automol.amchi._assess import is_valid_multiplicity
 
 # allow this as an alias
 is_chiral = is_enantiomer
@@ -186,12 +185,11 @@ __all__ = [
     'display_reaction',
     # # derived properties
     'is_complete',
+    'is_valid_multiplicity',
     # # derived transformations
     'add_stereo',
     'expand_stereo',
     # drawing tools
     'draw',
     'draw_grid',
-    # assessment tools
-    'is_valid_multiplicity',
 ]

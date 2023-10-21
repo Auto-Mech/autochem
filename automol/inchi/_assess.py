@@ -3,12 +3,13 @@
 """
 
 import numbers
-import automol.graph
+
+from automol.graph import base as graph_base
 from automol.inchi._conv import graph
 
 
 def is_valid_inchi_multiplicity(ich, mul):
-    """ is this multiplicity compatible with this inchi string?
+    """is this multiplicity compatible with this inchi string?
 
     :param ich: inchi
     :type ich: str
@@ -18,5 +19,4 @@ def is_valid_inchi_multiplicity(ich, mul):
     :rtype: bool
     """
     assert isinstance(mul, numbers.Integral)
-    return mul in automol.graph.possible_spin_multiplicities(
-        graph(ich, stereo=False))
+    return mul in graph_base.possible_spin_multiplicities(graph(ich, stereo=False))

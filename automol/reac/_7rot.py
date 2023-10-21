@@ -1,19 +1,16 @@
 """ rotational bond/torsion info for specific reaction classes
 """
 
+from automol import graph, zmat
 from automol.const import ReactionClass
-import automol.zmat
-from automol.reac._1util import hydrogen_abstraction_atom_keys
-from automol.reac._1util import substitution_atom_keys
-from automol.reac._0core import Reaction
-from automol.reac._0core import ts_graph
-from automol.reac._0core import class_
+from automol.reac._0core import Reaction, class_, ts_graph
+from automol.reac._1util import hydrogen_abstraction_atom_keys, substitution_atom_keys
 
 
 # Bimolecular reactions
 # 1. Hydrogen abstractions
 def hydrogen_abstraction_linear_atom_keys(rxn: Reaction, zma=None):
-    """ Obtain the linear atom keys for a hydrogen abstraction
+    """Obtain the linear atom keys for a hydrogen abstraction
 
     :param rxn: a Reaction object
     :param zma: a z-matrix; if passed in, the linear atoms will be determined
@@ -24,9 +21,9 @@ def hydrogen_abstraction_linear_atom_keys(rxn: Reaction, zma=None):
     """
     tsg = ts_graph(rxn)
     if zma is not None:
-        lin_keys = list(automol.zmat.linear_atom_keys(zma))
+        lin_keys = list(zmat.linear_atom_keys(zma))
     else:
-        lin_keys = list(automol.graph.linear_atom_keys(tsg))
+        lin_keys = list(graph.linear_atom_keys(tsg))
 
     _, hyd_key, _ = hydrogen_abstraction_atom_keys(rxn)
 
@@ -37,7 +34,7 @@ def hydrogen_abstraction_linear_atom_keys(rxn: Reaction, zma=None):
 
 # 4. Substitution
 def substitution_linear_atom_keys(rxn: Reaction, zma=None):
-    """ Obtain the linear atom keys for a substitution
+    """Obtain the linear atom keys for a substitution
 
     :param rxn: a Reaction object
     :param zma: a z-matrix; if passed in, the linear atoms will be determined
@@ -48,9 +45,9 @@ def substitution_linear_atom_keys(rxn: Reaction, zma=None):
     """
     tsg = ts_graph(rxn)
     if zma is not None:
-        lin_keys = list(automol.zmat.linear_atom_keys(zma))
+        lin_keys = list(zmat.linear_atom_keys(zma))
     else:
-        lin_keys = list(automol.graph.linear_atom_keys(tsg))
+        lin_keys = list(graph.linear_atom_keys(tsg))
 
     _, tra_key, _ = substitution_atom_keys(rxn)
 
@@ -60,7 +57,7 @@ def substitution_linear_atom_keys(rxn: Reaction, zma=None):
 
 
 def linear_atom_keys(rxn: Reaction, zma=None):
-    """ Obtain the linear atom keys
+    """Obtain the linear atom keys
 
     :param rxn: a hydrogen migration Reaction object
     :param zma: a z-matrix; if passed in, the linear atoms will be determined
@@ -73,9 +70,9 @@ def linear_atom_keys(rxn: Reaction, zma=None):
     def _default(rxn, zma=None):
         tsg = ts_graph(rxn)
         if zma is not None:
-            lin_keys = automol.zmat.linear_atom_keys(zma)
+            lin_keys = zmat.linear_atom_keys(zma)
         else:
-            lin_keys = tuple(sorted(automol.graph.linear_atom_keys(tsg)))
+            lin_keys = tuple(sorted(graph.linear_atom_keys(tsg)))
         return lin_keys
 
     function_dct = {
@@ -85,8 +82,7 @@ def linear_atom_keys(rxn: Reaction, zma=None):
         ReactionClass.RING_FORM_SCISSION: _default,
         ReactionClass.ELIMINATION: _default,
         # bimolecular
-        ReactionClass.HYDROGEN_ABSTRACTION:
-        hydrogen_abstraction_linear_atom_keys,
+        ReactionClass.HYDROGEN_ABSTRACTION: hydrogen_abstraction_linear_atom_keys,
         ReactionClass.ADDITION: _default,
         ReactionClass.INSERTION: _default,
         ReactionClass.SUBSTITUTION: substitution_linear_atom_keys,
@@ -97,9 +93,10 @@ def linear_atom_keys(rxn: Reaction, zma=None):
     return ret
 
 
-def rotational_bond_keys(rxn: Reaction, zma=None, with_h_rotors=True,
-                         with_chx_rotors=True):
-    """ Obtain the rotational bond keys
+def rotational_bond_keys(
+    rxn: Reaction, zma=None, with_h_rotors=True, with_chx_rotors=True
+):
+    """Obtain the rotational bond keys
 
     :param rxn: a hydrogen migration Reaction object
     :param zma: a z-matrix; if passed in, the linear atoms will be determined
@@ -110,14 +107,17 @@ def rotational_bond_keys(rxn: Reaction, zma=None, with_h_rotors=True,
     """
     tsg = ts_graph(rxn)
     lin_keys = linear_atom_keys(rxn, zma=zma)
-    bnd_keys = automol.graph.rotational_bond_keys(
-        tsg, lin_keys=lin_keys, with_h_rotors=with_h_rotors,
-        with_chx_rotors=with_chx_rotors)
+    bnd_keys = graph.rotational_bond_keys(
+        tsg,
+        lin_keys=lin_keys,
+        with_h_rotors=with_h_rotors,
+        with_chx_rotors=with_chx_rotors,
+    )
     return bnd_keys
 
 
 def rotational_groups(rxn: Reaction, key1, key2, dummy=False):
-    """ Obtain the rotational groups for a given rotational axis
+    """Obtain the rotational groups for a given rotational axis
 
     :param rxn: a hydrogen migration Reaction object
     :param zma: a z-matrix; if passed in, the linear atoms will be determined
@@ -127,12 +127,12 @@ def rotational_groups(rxn: Reaction, key1, key2, dummy=False):
     :rtype: (tuple[int], tuple[int])
     """
     tsg = ts_graph(rxn)
-    grps = automol.graph.rotational_groups(tsg, key1, key2, dummy=dummy)
+    grps = graph.rotational_groups(tsg, key1, key2, dummy=dummy)
     return grps
 
 
 def rotational_symmetry_number(rxn: Reaction, key1, key2, zma=None):
-    """ Obtain the rotational symmetry number for a given rotational axis
+    """Obtain the rotational symmetry number for a given rotational axis
 
     :param rxn: a hydrogen migration Reaction object
     :param zma: a z-matrix; if passed in, the linear atoms will be determined
@@ -143,6 +143,5 @@ def rotational_symmetry_number(rxn: Reaction, key1, key2, zma=None):
     """
     lin_keys = linear_atom_keys(rxn, zma=zma)
     tsg = ts_graph(rxn)
-    sym_num = automol.graph.rotational_symmetry_number(tsg, key1, key2,
-                                                       lin_keys=lin_keys)
+    sym_num = graph.rotational_symmetry_number(tsg, key1, key2, lin_keys=lin_keys)
     return sym_num

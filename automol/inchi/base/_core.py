@@ -3,8 +3,7 @@
 
 import numpy
 
-import automol.amchi.base
-import automol.formula
+from automol.amchi import base as amchi_base
 from automol.extern import rdkit_
 from automol.util import dict_
 
@@ -35,7 +34,7 @@ def from_data(
     :type iso_lyr_dct: dict[str: str]
     :rtype: str
     """
-    return automol.amchi.base.from_data(
+    return amchi_base.from_data(
         fml_lyr=fml_lyr,
         main_lyr_dct=main_lyr_dct,
         char_lyr_dct=char_lyr_dct,
@@ -102,7 +101,7 @@ def standard_form(ich, stereo=True, racem=False, ste_dct=None, iso_dct=None):
     if extra_iso_dct is not None:
         iso_dct.update(extra_iso_dct)
 
-    ich = automol.amchi.base.standard_form(
+    ich = amchi_base.standard_form(
         ich,
         stereo=stereo,
         racem=racem,
@@ -145,7 +144,7 @@ def version(ich):
     :type ich: str
     :rtype: str
     """
-    return automol.amchi.base.version(ich)
+    return amchi_base.version(ich)
 
 
 def formula_layer(ich):
@@ -155,7 +154,7 @@ def formula_layer(ich):
     :type ich: str
     :rtype: dict[str: str]
     """
-    return automol.amchi.base.formula_layer(ich)
+    return amchi_base.formula_layer(ich)
 
 
 def main_layers(ich):
@@ -166,7 +165,7 @@ def main_layers(ich):
     :type ich: str
     :rtype: dict[str: str]
     """
-    return automol.amchi.base.main_layers(ich)
+    return amchi_base.main_layers(ich)
 
 
 def charge_layers(ich):
@@ -177,7 +176,7 @@ def charge_layers(ich):
     :type ich: str
     :rtype: dict[str: str]
     """
-    return automol.amchi.base.charge_layers(ich)
+    return amchi_base.charge_layers(ich)
 
 
 def stereo_layers(ich):
@@ -188,7 +187,7 @@ def stereo_layers(ich):
     :type ich: str
     :rtype: dict[str: str]
     """
-    return automol.amchi.base.stereo_layers(ich)
+    return amchi_base.stereo_layers(ich)
 
 
 def isotope_layers(ich):
@@ -199,7 +198,7 @@ def isotope_layers(ich):
     :type ich: str
     :rtype: dict[str: str]
     """
-    return automol.amchi.base.isotope_layers(ich)
+    return amchi_base.isotope_layers(ich)
 
 
 # # setters
@@ -212,7 +211,7 @@ def reflect(ich):
     :returns: the other enantiomer
     :rtype: bool
     """
-    ich = automol.amchi.base.reflect(ich)
+    ich = amchi_base.reflect(ich)
     return recalculate(ich)
 
 
@@ -226,12 +225,10 @@ def stereo_bonds(ich, iso=True, one_indexed=False):
     :param one_indexed: Return indices in one-indexing?
     :type one_indexed: bool
     """
-    bnd_ste_dct = automol.amchi.base.bond_stereo_parities(ich, one_indexed=one_indexed)
+    bnd_ste_dct = amchi_base.bond_stereo_parities(ich, one_indexed=one_indexed)
     if iso:
         bnd_ste_dct.update(
-            automol.amchi.base.bond_isotope_stereo_parities(
-                ich, one_indexed=one_indexed
-            )
+            amchi_base.bond_isotope_stereo_parities(ich, one_indexed=one_indexed)
         )
     bnds = tuple(sorted(tuple(sorted(k, reverse=True)) for k in bnd_ste_dct))
     return bnds
@@ -248,12 +245,10 @@ def unassigned_stereo_bonds(ich, iso=True, one_indexed=False):
         :param one_indexed: Return indices in one-indexing?
         :type one_indexed: bool
     """
-    bnd_ste_dct = automol.amchi.base.bond_stereo_parities(ich, one_indexed=one_indexed)
+    bnd_ste_dct = amchi_base.bond_stereo_parities(ich, one_indexed=one_indexed)
     if iso:
         bnd_ste_dct.update(
-            automol.amchi.base.bond_isotope_stereo_parities(
-                ich, one_indexed=one_indexed
-            )
+            amchi_base.bond_isotope_stereo_parities(ich, one_indexed=one_indexed)
         )
     bnd_ste_dct = dict_.filter_by_value(bnd_ste_dct, lambda x: x is None)
     bnds = tuple(sorted(tuple(sorted(k, reverse=True)) for k in bnd_ste_dct))
@@ -270,12 +265,10 @@ def stereo_atoms(ich, iso=True, one_indexed=False):
     :param one_indexed: Return indices in one-indexing?
     :type one_indexed: bool
     """
-    atm_ste_dct = automol.amchi.base.atom_stereo_parities(ich, one_indexed=one_indexed)
+    atm_ste_dct = amchi_base.atom_stereo_parities(ich, one_indexed=one_indexed)
     if iso:
         atm_ste_dct.update(
-            automol.amchi.base.atom_isotope_stereo_parities(
-                ich, one_indexed=one_indexed
-            )
+            amchi_base.atom_isotope_stereo_parities(ich, one_indexed=one_indexed)
         )
     return tuple(sorted(atm_ste_dct))
 
@@ -292,7 +285,7 @@ def is_enantiomer(ich, iso=True):
     :returns: whether or not the InChI is an enantiomer
     :rtype: bool
     """
-    return automol.amchi.base.is_enantiomer(ich, iso=iso)
+    return amchi_base.is_enantiomer(ich, iso=iso)
 
 
 def are_enantiomers(ich_a, ich_b):
@@ -305,7 +298,7 @@ def are_enantiomers(ich_a, ich_b):
     :returns: whether or not the InChI is enantiomeric
     :rtype: bool
     """
-    return automol.amchi.base.are_enantiomers(ich_a, ich_b)
+    return amchi_base.are_enantiomers(ich_a, ich_b)
 
 
 def are_diastereomers(ich_a, ich_b):
@@ -321,7 +314,7 @@ def are_diastereomers(ich_a, ich_b):
     :returns: whether or not the InChI is enantiomeric
     :rtype: bool
     """
-    return automol.amchi.base.are_diastereomers(ich_a, ich_b)
+    return amchi_base.are_diastereomers(ich_a, ich_b)
 
 
 # # conversions
@@ -354,7 +347,7 @@ def formula(ich):
     :type ich: str
     :rtype: dict[str: int]
     """
-    return automol.amchi.base.formula(ich)
+    return amchi_base.formula(ich)
 
 
 def formula_string(ich):
@@ -364,7 +357,7 @@ def formula_string(ich):
     :type ich: str
     :rtype: str
     """
-    return automol.amchi.base.formula_string(ich)
+    return amchi_base.formula_string(ich)
 
 
 def without_stereo(ich):
@@ -392,7 +385,7 @@ def connectivity(ich, parse_connection_layer=True, parse_h_layer=True):
     The user may also specify what combination of the two layers
     that they wish to return
     """
-    return automol.amchi.base.connectivity(
+    return amchi_base.connectivity(
         ich, parse_connection_layer=parse_connection_layer, parse_h_layer=parse_h_layer
     )
 
@@ -415,7 +408,7 @@ def has_multiple_components(ich):
     :type ich: str
     :rtype: bool
     """
-    return automol.amchi.base.has_multiple_components(ich)
+    return amchi_base.has_multiple_components(ich)
 
 
 def has_stereo(ich):
@@ -425,7 +418,7 @@ def has_stereo(ich):
     :type ich: str
     :rtype: bool
     """
-    return automol.amchi.base.has_stereo(ich)
+    return amchi_base.has_stereo(ich)
 
 
 def low_spin_multiplicity(ich):
@@ -435,7 +428,7 @@ def low_spin_multiplicity(ich):
     :type ich: str
     :rtype: int
     """
-    return automol.amchi.base.low_spin_multiplicity(ich)
+    return amchi_base.low_spin_multiplicity(ich)
 
 
 # # comparisons
@@ -461,7 +454,7 @@ def equivalent(ich1, ich2):
     :type ich2: str
     :rtype: bool
     """
-    return automol.amchi.base.equivalent(ich1, ich2)
+    return amchi_base.equivalent(ich1, ich2)
 
 
 # # split/join
@@ -475,7 +468,7 @@ def split(ich):
     :type ich: str
     :rtype: tuple(str)
     """
-    return automol.amchi.split(ich)
+    return amchi_base.split(ich)
 
 
 def join(ichs):
@@ -489,7 +482,7 @@ def join(ichs):
     :type ichs: tuple(str)
     :rtype: str
     """
-    return automol.amchi.base.join(ichs)
+    return amchi_base.join(ichs)
 
 
 # # sort

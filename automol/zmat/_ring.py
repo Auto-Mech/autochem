@@ -3,7 +3,7 @@
 
 import math
 
-import automol.graph.base as graph_base
+from automol.graph import base as graph_base
 from automol.zmat._conv import (
     distance,
     graph,

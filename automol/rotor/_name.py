@@ -1,13 +1,13 @@
 """ Handle name groups
 """
 
-import automol.zmat
+from automol import zmat
 
 
 def group_torsions_into_rotors(tors_lst, name_grps=None, multi=False):
-    """ take a list of torsion objects and build the rotors
+    """take a list of torsion objects and build the rotors
 
-        Uses the names to build the the lists
+    Uses the names to build the the lists
     """
 
     tors_names = tuple(tors.name for tors in tors_lst)
@@ -31,8 +31,7 @@ def group_torsions_into_rotors(tors_lst, name_grps=None, multi=False):
 
 
 def _name_groups(names, multi=False):
-    """ Build the list of names
-    """
+    """Build the list of names"""
 
     if not multi:
         tors_names = tuple((name,) for name in names)
@@ -43,8 +42,7 @@ def _name_groups(names, multi=False):
 
 
 def _assess_dimensionality(rotor_lst):
-    """ Handle cases where the MDHR
-    """
+    """Handle cases where the MDHR"""
 
     # Check the dimensionality of each rotor to see if they are greater than 4
     final_rotor = ()
@@ -58,8 +56,7 @@ def _assess_dimensionality(rotor_lst):
 
 
 def _reduce_rotor_dimensionality(rotor):
-    """ For rotors with a dimensionality greater than 4, try and take them out
-    """
+    """For rotors with a dimensionality greater than 4, try and take them out"""
 
     # Get the indices of all the -CH3 rotors and non-CH3 rotors
     methyl_idxs = ()
@@ -67,8 +64,7 @@ def _reduce_rotor_dimensionality(rotor):
         if _is_methyl_rotor(tors):
             methyl_idxs += (idx,)
 
-    non_methyl_idxs = tuple(i for i in range(len(rotor))
-                            if i not in methyl_idxs)
+    non_methyl_idxs = tuple(i for i in range(len(rotor)) if i not in methyl_idxs)
 
     # Assess if ndim(reduce rotor) > 4; if yes flatten rotor instead of rebuild
     if len(non_methyl_idxs) > 4:
@@ -84,10 +80,9 @@ def _reduce_rotor_dimensionality(rotor):
 
 
 def _is_methyl_rotor(tors):
-    """ Identify if the rotor
-    """
+    """Identify if the rotor"""
 
-    symbs = automol.zmat.symbols(tors.zma)
+    symbs = zmat.symbols(tors.zma)
     axis = list(tors.axis)
     grps = tors.groups
     rgrp1 = [axis[0]] + list(grps[0])
@@ -95,6 +90,4 @@ def _is_methyl_rotor(tors):
     rgrp1_symbs = sorted(list(symbs[idx] for idx in rgrp1))
     rgrp2_symbs = sorted(list(symbs[idx] for idx in rgrp2))
 
-    return bool(
-        any(grp == ['C', 'H', 'H', 'H'] for grp in (rgrp1_symbs, rgrp2_symbs))
-    )
+    return bool(any(grp == ["C", "H", "H", "H"] for grp in (rgrp1_symbs, rgrp2_symbs)))

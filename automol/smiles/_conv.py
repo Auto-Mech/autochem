@@ -2,13 +2,13 @@
 """
 from typing import Tuple
 
-import automol.graph.base
-import automol.inchi.base
+from automol import graph as graph_
 from automol.extern import rdkit_
+from automol.inchi import base as inchi_base
 from automol.smiles.base import (
     parse_connected_molecule_properties,
-    reaction_reactants,
     reaction_products,
+    reaction_reactants,
     split,
     without_resonance_stereo,
     without_stereo,
@@ -27,7 +27,7 @@ def amchi(smi, stereo=True):
     :rtype: str
     """
     gra = graph(smi, stereo=stereo, local_stereo=False)
-    ach = automol.graph.base.amchi(gra)
+    ach = graph_.amchi(gra)
     return ach
 
 
@@ -60,8 +60,8 @@ def chi(smi):
     """
     gra = graph(smi, stereo=True, local_stereo=False)
     ret = inchi(smi)
-    if automol.graph.base.inchi_is_bad(gra, ret):
-        ret = automol.graph.base.amchi(gra)
+    if graph_.inchi_is_bad(gra, ret):
+        ret = graph_.amchi(gra)
 
     return ret
 
@@ -79,7 +79,7 @@ def graph(smi, stereo=True, local_stereo=False):
     """
     smis = split(smi)
     gras = [_connected_graph(s, stereo=stereo, local_stereo=local_stereo) for s in smis]
-    gra = automol.graph.base.union_from_sequence(gras, shift_keys=True)
+    gra = graph_.union_from_sequence(gras, shift_keys=True)
     return gra
 
 
@@ -106,27 +106,27 @@ def _connected_graph(smi, stereo=True, local_stereo=False):
         atm_par_dct = None
         bnd_par_dct = None
 
-    gra = automol.graph.base.from_data(
+    gra = graph_.from_data(
         atm_symb_dct=symb_dct,
         bnd_keys=bnd_keys,
         atm_ste_par_dct=atm_par_dct,
         bnd_ste_par_dct=bnd_par_dct,
     )
 
-    if automol.graph.base.has_stereo(gra):
+    if graph_.has_stereo(gra):
         # The parser marks all bonds with directional bonds on either side as
         # having stereo, because it has no way to distinguish between them.  In
         # lieu of a more rigorous check, remove stereo from all non-sp2 bonds.
         # If this is an issue, we could create a more rigorous check to see if
         # a bond is stereogenic.
-        ste_bnd_keys = automol.graph.base.bond_stereo_keys(gra)
-        sp2_bnd_keys = automol.graph.base.rigid_planar_bond_keys(gra)
+        ste_bnd_keys = graph_.bond_stereo_keys(gra)
+        sp2_bnd_keys = graph_.rigid_planar_bond_keys(gra)
         bnd_keys = ste_bnd_keys - sp2_bnd_keys
-        gra = automol.graph.base.without_stereo(gra, bnd_keys=bnd_keys)
+        gra = graph_.without_stereo(gra, bnd_keys=bnd_keys)
 
         if not local_stereo:
             # Convert from local to canonical stereo
-            gra = automol.graph.base.from_local_stereo(gra)
+            gra = graph_.from_local_stereo(gra)
 
     return gra
 
@@ -141,7 +141,7 @@ def geometry(smi, check=True):
     :rtype: automol molecular geometry data structure
     """
     gra = graph(smi)
-    geo = automol.graph.geometry(gra, check=check)
+    geo = graph_.geometry(gra, check=check)
     return geo
 
 
@@ -153,7 +153,7 @@ def formula_string(smi):
     :rtype: str
     """
     ich = inchi(smi)
-    return automol.inchi.base.formula_string(ich)
+    return inchi_base.formula_string(ich)
 
 
 def recalculate_without_stereo(smi):
@@ -186,7 +186,7 @@ def rdkit_molecule(smi, stereo=True):
     """
     rdkit_.turn_3d_visualization_off()
     gra = graph(smi, stereo=stereo)
-    return automol.graph.rdkit_molecule(gra, stereo=stereo)
+    return graph_.rdkit_molecule(gra, stereo=stereo)
 
 
 def svg_string(smi, stereo=True):
@@ -258,9 +258,7 @@ def rdkit_reaction(rsmis, psmis, stereo=True, res_stereo=False):
     rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rsmis]
     pgras = [graph(s, stereo=stereo) for s in psmis]
-    return automol.graph.rdkit_reaction(
-        rgras, pgras, stereo=stereo, res_stereo=res_stereo
-    )
+    return graph_.rdkit_reaction(rgras, pgras, stereo=stereo, res_stereo=res_stereo)
 
 
 def display(smi, stereo=True):
@@ -273,7 +271,7 @@ def display(smi, stereo=True):
     """
     rdkit_.turn_3d_visualization_off()
     gra = graph(smi, stereo=stereo)
-    automol.graph.display(gra, stereo=stereo)
+    graph_.display(gra, stereo=stereo)
 
 
 def display_reaction(rsmis, psmis, stereo=True):
@@ -287,7 +285,7 @@ def display_reaction(rsmis, psmis, stereo=True):
     rdkit_.turn_3d_visualization_off()
     rgras = [graph(s, stereo=stereo) for s in rsmis]
     pgras = [graph(s, stereo=stereo) for s in psmis]
-    automol.graph.display_reaction(rgras, pgras, stereo=stereo)
+    graph_.display_reaction(rgras, pgras, stereo=stereo)
 
 
 # helpers

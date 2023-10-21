@@ -4,9 +4,9 @@ import rdkit
 from rdkit import RDLogger
 from rdkit.Chem import AllChem, Draw
 
-import automol.geom.base
-import automol.graph.base
 from automol import util
+from automol.geom import base as geom_base
+from automol.graph import base as graph_base
 
 _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)
@@ -116,11 +116,11 @@ def from_geometry_with_graph(geo, gra):
     :type geo: str
     :rtype: RDKit molecule object
     """
-    natms = automol.geom.base.count(geo)
+    natms = geom_base.count(geo)
     rdm = from_graph(gra, stereo=False)
     rdc = rdkit.Chem.Conformer(natms)
     rdc.Set3D(True)
-    xyzs = automol.geom.base.coordinates(geo)
+    xyzs = geom_base.coordinates(geo)
     for i, xyz in enumerate(xyzs):
         rdc.SetAtomPosition(i, rdkit.Geometry.Point3D(*xyz))
     rdm.AddConformer(rdc)
@@ -146,7 +146,7 @@ def to_geometry(rdm):
         AllChem.MMFFOptimizeMolecule(rdm)
         syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
         xyzs = tuple(map(tuple, rdm.GetConformer(0).GetPositions()))
-    geo = automol.geom.base.from_data(syms, xyzs, angstrom=True)
+    geo = geom_base.from_data(syms, xyzs, angstrom=True)
 
     return geo
 
@@ -171,7 +171,7 @@ def to_conformers(rdm, nconfs):
     if natms == 1:
         syms = [str(atms[0].GetSymbol()).title()]
         xyzs = [(0.0, 0.0, 0.0)]
-        geos.append(automol.geom.base.from_data(syms, xyzs, angstrom=True))
+        geos.append(geom_base.from_data(syms, xyzs, angstrom=True))
     else:
         cids = AllChem.EmbedMultipleConfs(rdm, numConfs=nconfs)
         res = AllChem.MMFFOptimizeMoleculeConfs(rdm)
@@ -179,7 +179,7 @@ def to_conformers(rdm, nconfs):
         for cid in cids:
             syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
             xyzs = tuple(map(tuple, rdm.GetConformer(cid).GetPositions()))
-            geos.append(automol.geom.base.from_data(syms, xyzs, angstrom=True))
+            geos.append(geom_base.from_data(syms, xyzs, angstrom=True))
         # Sort geometries using the energies
         geos = [x for _, x in sorted(zip(energies, geos), key=lambda pair: pair[0])]
 
@@ -292,17 +292,17 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
     )
 
     # If there's not stereo, return early
-    if not stereo or not automol.graph.base.has_stereo(gra):
+    if not stereo or not graph_base.has_stereo(gra):
         return rdm
 
     # Otherwise, handle stereo
-    gra = gra if local_stereo else automol.graph.base.to_local_stereo(gra)
-    exp_gra = automol.graph.base.explicit(gra)
+    gra = gra if local_stereo else graph_base.to_local_stereo(gra)
+    exp_gra = graph_base.explicit(gra)
     exp_rdm, idx_from_key = _from_graph_without_stereo(exp_gra)
     key_from_idx = dict(map(reversed, idx_from_key.items()))
 
     # Set atom stereo
-    atm_ste_dct = automol.graph.base.atom_stereo_parities(exp_gra)
+    atm_ste_dct = graph_base.atom_stereo_parities(exp_gra)
     for rda in rdm.GetAtoms():
         idx = rda.GetIdx()
         key = key_from_idx[idx]
@@ -310,14 +310,14 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
         if par0 is not None:
             exp_rda = exp_rdm.GetAtoms()[idx]
 
-            nkeys0 = automol.graph.base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
+            nkeys0 = graph_base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
             nkeys1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
 
             par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
             rda.SetChiralTag(ATOM_STEREO_TAG_FROM_BOOL[par1])
 
     # Set bond stereo
-    bnd_ste_dct = automol.graph.base.bond_stereo_parities(gra)
+    bnd_ste_dct = graph_base.bond_stereo_parities(gra)
     for rdb in rdm.GetBonds():
         idx1 = rdb.GetBeginAtomIdx()
         idx2 = rdb.GetEndAtomIdx()
@@ -326,7 +326,7 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
         bkey = frozenset({key1, key2})
         par = bnd_ste_dct[bkey]
         if par is not None:
-            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
+            nkeys1, nkeys2 = graph_base.bond_stereo_sorted_neighbor_keys(
                 gra, key1, key2
             )
 
@@ -353,13 +353,13 @@ def _from_graph_without_stereo(gra, label=False, label_dct=None):
     if label_dct is not None:
         label = True
 
-    gra = automol.graph.base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
-    kgr = automol.graph.base.kekule(gra, max_stereo_overlap=True)
+    gra = graph_base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
+    kgr = graph_base.kekule(gra, max_stereo_overlap=True)
 
     # Add atoms
-    keys = sorted(automol.graph.base.atom_keys(kgr))
-    symb_dct = automol.graph.base.atom_symbols(kgr, dummy_symbol="He")
-    rad_dct = automol.graph.base.atom_unpaired_electrons(kgr, bond_order=True)
+    keys = sorted(graph_base.atom_keys(kgr))
+    symb_dct = graph_base.atom_symbols(kgr, dummy_symbol="He")
+    rad_dct = graph_base.atom_unpaired_electrons(kgr, bond_order=True)
 
     erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
@@ -371,8 +371,8 @@ def _from_graph_without_stereo(gra, label=False, label_dct=None):
     idx_from_key = dict(map(reversed, enumerate(keys)))
 
     # Add bonds
-    bkeys = sorted(automol.graph.base.bond_keys(kgr), key=sorted)
-    ord_dct = automol.graph.base.bond_orders(kgr)
+    bkeys = sorted(graph_base.bond_keys(kgr), key=sorted)
+    ord_dct = graph_base.bond_orders(kgr)
     for bkey in bkeys:
         idx1, idx2 = map(idx_from_key.__getitem__, bkey)
         erdm.AddBond(idx1, idx2, BOND_ORDER_DCT[ord_dct[bkey]])
@@ -417,11 +417,11 @@ def to_graph(exp_rdm, stereo=True, order=False):
         if par0 is not None:
             key = exp_rda.GetIdx()
 
-            nkeys0 = automol.graph.base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
+            nkeys0 = graph_base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
             nkeys1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
 
             par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
-            gra = automol.graph.base.set_atom_stereo_parities(gra, {key: par1})
+            gra = graph_base.set_atom_stereo_parities(gra, {key: par1})
 
     # Assign bond stereo
     for exp_rdb in exp_rdm.GetBonds():
@@ -431,7 +431,7 @@ def to_graph(exp_rdm, stereo=True, order=False):
 
         par0 = BOND_STEREO_BOOL_FROM_TAG[exp_rdb.GetStereo()]
         if par0 is not None:
-            nkeys1, nkeys2 = automol.graph.base.bond_stereo_sorted_neighbor_keys(
+            nkeys1, nkeys2 = graph_base.bond_stereo_sorted_neighbor_keys(
                 exp_gra, key1, key2
             )
 
@@ -440,9 +440,9 @@ def to_graph(exp_rdm, stereo=True, order=False):
             nkey1_, nkey2_ = exp_rdb.GetStereoAtoms()
 
             par1 = (nkey1 != nkey1_) ^ (nkey2 != nkey2_) ^ par0
-            gra = automol.graph.base.set_bond_stereo_parities(gra, {bkey: par1})
+            gra = graph_base.set_bond_stereo_parities(gra, {bkey: par1})
 
-    gra = automol.graph.base.from_local_stereo(gra)
+    gra = graph_base.from_local_stereo(gra)
     return gra
 
 
@@ -467,7 +467,7 @@ def _to_graph_without_stereo(rdm, order=False):
     sym_dct = {a.GetIdx(): a.GetSymbol() for a in rdas}
     hyd_dct = {b.GetIdx(): b.GetImplicitValence() for b in rdas}
     ord_dct = {(b.GetBeginAtomIdx(), b.GetEndAtomIdx()): _get_order(b) for b in rdbs}
-    gra = automol.graph.base.from_data(
+    gra = graph_base.from_data(
         atm_symb_dct=sym_dct,
         bnd_keys=ord_dct.keys(),
         atm_imp_hyd_dct=hyd_dct,
@@ -491,7 +491,7 @@ def to_connectivity_graph(rdm):
     idx = {rda.GetIdx(): idx for idx, rda in enumerate(atms)}
     bnds = [(idx[rdb.GetBeginAtomIdx()], idx[rdb.GetEndAtomIdx()]) for rdb in bnds]
     sym_dct = dict(enumerate(syms))
-    gra = automol.graph.base.from_data(atm_symb_dct=sym_dct, bnd_keys=bnds)
+    gra = graph_base.from_data(atm_symb_dct=sym_dct, bnd_keys=bnds)
 
     return gra
 

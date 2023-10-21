@@ -23,9 +23,7 @@ import numpy
 import yaml
 from phydat import phycon, ptab
 
-import automol.formula
-import automol.util.dict_.multi as mdict
-from automol import util
+from automol import form, util
 from automol.util import ZmatConv, dict_, zmat_conv
 
 ATM_SYM_POS = 0
@@ -240,13 +238,13 @@ def from_atoms_and_bonds(atm_dct, bnd_dct):
     bnd_nprops = dict_.transform_values(bnd_dct, len)
 
     atm_keys = sorted(atm_dct.keys())
-    atm_symb_dct = mdict.by_key_by_position(atm_dct, atm_keys, ATM_SYM_POS)
-    atm_imp_hyd_dct = mdict.by_key_by_position(atm_dct, atm_keys, ATM_IMP_HYD_POS)
-    atm_ste_par_dct = mdict.by_key_by_position(atm_dct, atm_keys, ATM_STE_PAR_POS)
+    atm_symb_dct = dict_.multi.by_key_by_position(atm_dct, atm_keys, ATM_SYM_POS)
+    atm_imp_hyd_dct = dict_.multi.by_key_by_position(atm_dct, atm_keys, ATM_IMP_HYD_POS)
+    atm_ste_par_dct = dict_.multi.by_key_by_position(atm_dct, atm_keys, ATM_STE_PAR_POS)
 
     bnd_keys = sorted(bnd_dct.keys())
-    bnd_ord_dct = mdict.by_key_by_position(bnd_dct, bnd_keys, BND_ORD_POS)
-    bnd_ste_par_dct = mdict.by_key_by_position(bnd_dct, bnd_keys, BND_STE_PAR_POS)
+    bnd_ord_dct = dict_.multi.by_key_by_position(bnd_dct, bnd_keys, BND_ORD_POS)
+    bnd_ste_par_dct = dict_.multi.by_key_by_position(bnd_dct, bnd_keys, BND_STE_PAR_POS)
 
     return from_data(
         atm_symb_dct,
@@ -329,7 +327,9 @@ def atom_symbols(gra, dummy_symbol=None):
     :returns: A dictionary of atomic symbols, by atom key
     :rtype: dict[int: str]
     """
-    symb_dct = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(), ATM_SYM_POS)
+    symb_dct = dict_.multi.by_key_by_position(
+        atoms(gra), atoms(gra).keys(), ATM_SYM_POS
+    )
     if dummy_symbol is not None:
         symb_dct = dict_.transform_values(
             symb_dct, lambda s: dummy_symbol if s == "X" else s
@@ -348,7 +348,7 @@ def bond_orders(gra, ts_=True):
     :rtype: dict[frozenset: int or float]
     """
     gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
-    return mdict.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_ORD_POS)
+    return dict_.multi.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_ORD_POS)
 
 
 def atom_implicit_hydrogens(gra):
@@ -360,7 +360,9 @@ def atom_implicit_hydrogens(gra):
     :returns: A dictionary of implicit hydrogen valences, by atom key
     :rtype: dict[int: int]
     """
-    return mdict.by_key_by_position(atoms(gra), atoms(gra).keys(), ATM_IMP_HYD_POS)
+    return dict_.multi.by_key_by_position(
+        atoms(gra), atoms(gra).keys(), ATM_IMP_HYD_POS
+    )
 
 
 def atom_stereo_parities(gra):
@@ -371,7 +373,7 @@ def atom_stereo_parities(gra):
     :returns: A dictionary of atom stereo parities, by atom key
     :rtype: dict[int: bool or NoneType]
     """
-    ret = mdict.by_key_by_position(atoms(gra), atoms(gra).keys(), ATM_STE_PAR_POS)
+    ret = dict_.multi.by_key_by_position(atoms(gra), atoms(gra).keys(), ATM_STE_PAR_POS)
     return ret
 
 
@@ -383,7 +385,7 @@ def bond_stereo_parities(gra):
     :returns: A dictionary of bond stereo parities, by bond key
     :rtype: dict[frozenset: bool or NoneType]
     """
-    ret = mdict.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_STE_PAR_POS)
+    ret = dict_.multi.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_STE_PAR_POS)
     return ret
 
 
@@ -584,7 +586,7 @@ def set_atom_symbols(gra, atm_symb_dct):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_symb_dct, ATM_SYM_POS)
+    atm_dct = dict_.multi.set_by_key_by_position(atoms(gra), atm_symb_dct, ATM_SYM_POS)
     return from_atoms_and_bonds(atm_dct, bonds(gra))
 
 
@@ -598,7 +600,7 @@ def set_bond_orders(gra, bnd_ord_dct):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_ord_dct, BND_ORD_POS)
+    bnd_dct = dict_.multi.set_by_key_by_position(bonds(gra), bnd_ord_dct, BND_ORD_POS)
     return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
 
@@ -614,7 +616,9 @@ def set_atom_implicit_hydrogens(gra, atm_imp_hyd_dct):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_imp_hyd_dct, ATM_IMP_HYD_POS)
+    atm_dct = dict_.multi.set_by_key_by_position(
+        atoms(gra), atm_imp_hyd_dct, ATM_IMP_HYD_POS
+    )
     bnd_dct = bonds(gra)
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
@@ -629,7 +633,9 @@ def set_atom_stereo_parities(gra, atm_par_dct):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    atm_dct = mdict.set_by_key_by_position(atoms(gra), atm_par_dct, ATM_STE_PAR_POS)
+    atm_dct = dict_.multi.set_by_key_by_position(
+        atoms(gra), atm_par_dct, ATM_STE_PAR_POS
+    )
     return from_atoms_and_bonds(atm_dct, bonds(gra))
 
 
@@ -643,7 +649,9 @@ def set_bond_stereo_parities(gra, bnd_par_dct):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    bnd_dct = mdict.set_by_key_by_position(bonds(gra), bnd_par_dct, BND_STE_PAR_POS)
+    bnd_dct = dict_.multi.set_by_key_by_position(
+        bonds(gra), bnd_par_dct, BND_STE_PAR_POS
+    )
     return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
 
@@ -1680,7 +1688,7 @@ def apply_zmatrix_conversion(gra, zc_: ZmatConv):
     return gra
 
 
-def undo_zmatrix_conversion(gra, zc_: ZmatConv=None):
+def undo_zmatrix_conversion(gra, zc_: ZmatConv = None):
     """Undo a z-matrix conversion, recovering the original graph
 
     This can be used to match the original geometry after geometry -> z-matrix
@@ -2514,7 +2522,7 @@ def atoms_sorted_neighbor_atom_keys(
         symbs = list(map(atm_symb_dct.__getitem__, keys))
         pris = [0 if k in prioritize_keys else 1 for k in keys]
         srt_vals = list(zip(ords, pris, symbs))
-        srt = automol.formula.argsort_symbols(srt_vals, symbs_first, symbs_last, idx=2)
+        srt = form.argsort_symbols(srt_vals, symbs_first, symbs_last, idx=2)
         keys = tuple(map(keys.__getitem__, srt))
         return keys
 
@@ -2559,7 +2567,7 @@ def atom_sorted_neighbor_atom_keys(
     atm_keys = [k for k in atm_keys if k in incl_atm_keys]
 
     symbs = list(map(atm_symb_dct.__getitem__, atm_keys))
-    srt = automol.formula.argsort_symbols(symbs, symbs_first, symbs_last)
+    srt = form.argsort_symbols(symbs, symbs_first, symbs_last)
     atm_keys = tuple(map(atm_keys.__getitem__, srt))
     return atm_keys
 

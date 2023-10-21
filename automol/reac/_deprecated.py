@@ -1,23 +1,9 @@
 """ TS z-matrices for specific reaction classes
 """
-import automol.geom
-import automol.graph
 from automol.graph import ts
 from automol.zmat import distance_coordinate_name
 from automol.reac._0core import Reaction
 from automol.reac._0core import ts_graph
-
-
-def ts_zmatrix(rxn: Reaction, ts_geo):
-    """ reaction-class-specific embedding info
-
-    :param rxn: a hydrogen migration Reaction object
-    :param ts_geo: the TS geometry
-    :returns: the TS z-matrix, the row keys, and the dummy index dictionary
-    """
-    tsg = ts_graph(rxn)
-    ts_zma, dc_ = automol.geom.zmatrix_with_conversion_info(ts_geo, gra=tsg)
-    return ts_zma, dc_
 
 
 # Z-Matrix coordinate functions

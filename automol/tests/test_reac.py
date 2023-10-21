@@ -1,5 +1,6 @@
 """Test reac
 """
+from automol import chi as chi_
 from automol import geom, graph, reac, smiles, zmat
 
 
@@ -390,6 +391,49 @@ def test__end_to_end():
     _test(["CCC=O", "N(=O)O"], ["CCCON(=O)=O"])
 
 
+def test__canonical_enantiomer():
+    """test reac.canonical_enantiomer"""
+    rct_smis = ["CC(OO)C(O[O])C(OO)C"]
+    prd_smis = ["CC(OO)C(OO)C(OO)[CH2]"]
+
+    rxns = reac.from_smiles(rct_smis, prd_smis, stereo=False)
+    rxn = rxns[0]
+
+    # 2A. Full expansion -- includes non-canonical enantiomer reactions
+    print("Full reaction expansion:")
+    for srxn in reac.expand_stereo(rxn, enant=True):
+        rct_chis, prd_chis = reac.chis(srxn)
+        print(" +\n".join(rct_chis) + " =>\n" + " +\n".join(prd_chis))
+
+        # These functions operate directly on the reaction object:
+        is_can = reac.is_canonical_enantiomer(srxn)
+        print(f"Canonical? {is_can}")
+        # Convert it to a canonical enantiomer reaction like this
+        srxn = reac.canonical_enantiomer(srxn)
+        assert reac.is_canonical_enantiomer(srxn)
+
+        # These are the equivalent functions for ChIs
+        is_can = chi_.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
+        print(f"Canonical? {is_can}")
+        # Convert it to a canonical enantiomer reaction like this
+        rct_chis, prd_chis = chi_.canonical_enantiomer_reaction(rct_chis, prd_chis)
+        assert chi_.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
+        print()
+
+    # 2B. Restricted expansion -- includes only canonical enantiomers
+    print("Restricted reaction expansion:")
+    for srxn in reac.expand_stereo(rxn, enant=False):
+        rct_chis, prd_chis = reac.chis(srxn)
+        print(" +\n".join(rct_chis) + " =>\n" + " +\n".join(prd_chis))
+
+        # Check canonicity for a reaction object
+        assert reac.is_canonical_enantiomer(srxn)
+
+        # Check canonicity for reaction ChIs
+        assert chi_.is_canonical_enantiomer_reaction(rct_chis, prd_chis)
+        print()
+
+
 if __name__ == "__main__":
     # test__reactant_graphs()
     # test__expand_stereo()
@@ -397,4 +441,5 @@ if __name__ == "__main__":
     # test__from_old_string()
     # test__reverse()
     # test__from_datatypes()
-    test__end_to_end()
+    # test__end_to_end()
+    test__canonical_enantiomer()

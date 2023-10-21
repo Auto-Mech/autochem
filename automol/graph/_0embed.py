@@ -29,8 +29,8 @@ import itertools
 import numpy
 from phydat import phycon
 
-import automol.geom.base
 from automol import embed, error, geom, zmat
+from automol.geom import base as geom_base
 from automol.graph.base import (
     add_bonds,
     atom_hybridizations,
@@ -128,7 +128,7 @@ def embed_geometry(gra, keys=None, ntries=5, max_dist_err=0.2):
 
     # 3. Generate a geometry data structure from the coordinates
     xyzs = xmat[:, :3]
-    geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
+    geo = geom_base.from_data(symbs, xyzs, angstrom=True)
 
     return geo
 
@@ -173,7 +173,7 @@ def clean_geometry(
     if len(symb_dct) == 1:
         symbs = list(symb_dct.values())
         xyzs = [[0.0, 0.0, 0.0]]
-        return automol.geom.from_data(symbs, xyzs, angstrom=True)
+        return geom_base.from_data(symbs, xyzs, angstrom=True)
 
     if len(symb_dct) == 2:
         bkey = frozenset(symb_dct.keys())
@@ -184,14 +184,14 @@ def clean_geometry(
             key1, key2 = bkey
             bdist = heuristic_bond_distance(gra, key1, key2, angstrom=True)
         xyzs = [[0.0, 0.0, 0.0], [bdist, 0.0, 0.0]]
-        return automol.geom.from_data(symbs, xyzs, angstrom=True)
+        return geom_base.from_data(symbs, xyzs, angstrom=True)
 
     rct_geos = [geo] if rct_geos is None else rct_geos
 
     dist_gra = ts.reactants_graph(gra) if is_ts_graph(gra) else gra
 
     keys = sorted(atom_keys(gra))
-    xmat = automol.geom.coordinates(geo, angstrom=True)
+    xmat = geom_base.coordinates(geo, angstrom=True)
     lmat, umat = distance_bounds_matrices(
         dist_gra,
         keys,
@@ -207,7 +207,7 @@ def clean_geometry(
     else:
         chi_dct = {}
 
-    xmat, conv = automol.embed.cleaned_up_coordinates(
+    xmat, conv = embed.cleaned_up_coordinates(
         xmat,
         lmat,
         umat,
@@ -220,9 +220,9 @@ def clean_geometry(
     if log:
         print("Converged!" if conv else "Did not converge.")
 
-    syms = automol.geom.symbols(geo)
+    syms = geom_base.symbols(geo)
     xyzs = xmat[:, :3]
-    geo = automol.geom.from_data(syms, xyzs, angstrom=True)
+    geo = geom_base.from_data(syms, xyzs, angstrom=True)
 
     # If the clean-up failed, return `None`
     if none_if_failed and not geometry_matches(
@@ -406,7 +406,7 @@ def qualitative_convergence_checker_(
         ) and (numpy.all(dmat[nob_idx_vecs] > nob_ldists) if nob_ldists else True)
 
         # check for correct stereo parities
-        geo = automol.geom.base.from_data(symbs, xyzs, angstrom=True)
+        geo = geom_base.from_data(symbs, xyzs, angstrom=True)
         atom_stereo_check = all(
             (
                 geometry_atom_parity(loc_gra, geo, k, geo_idx_dct=geo_idx_dct)
@@ -466,9 +466,7 @@ def distance_bounds_matrices(
 
     # 1. set known geometric parameters
     if rct_geos:
-        xmats = [
-            automol.geom.base.coordinates(geo, angstrom=angstrom) for geo in rct_geos
-        ]
+        xmats = [geom_base.coordinates(geo, angstrom=angstrom) for geo in rct_geos]
         dmats = list(map(embed.distance_matrix_from_coordinates, xmats))
 
         start = 0

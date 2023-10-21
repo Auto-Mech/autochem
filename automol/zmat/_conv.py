@@ -4,8 +4,8 @@ import itertools
 
 import numpy
 
-import automol.graph.base as graph_base
 from automol import geom, util
+from automol.graph import base as graph_base
 from automol.util import ZmatConv
 from automol.zmat.base import (
     conversion_info,
@@ -81,7 +81,7 @@ def geometry(zma, dummy=False, zc_: ZmatConv = None):
         vals = val_mat[key][: min(key, 3)]
         keys = key_mat[key][: min(key, 3)]
         ref_xyzs = xyzs[list(keys)]
-        xyz = util.vec.from_internals(*itertools.chain(*zip(vals, ref_xyzs)))
+        xyz = util.vector.from_internals(*itertools.chain(*zip(vals, ref_xyzs)))
         xyzs[key] = xyz
 
     geo = geom.from_data(syms, xyzs)
