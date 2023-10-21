@@ -22,7 +22,6 @@ from automol.reac._0core import (
     ts_structure,
     undo_zmatrix_conversion,
     update_structures,
-    without_stereo,
     without_structures,
 )
 from automol.util import ZmatConv
@@ -433,42 +432,3 @@ def _convert_zmat_to_geom_structures(
     return update_structures(
         rxn, ts_struc=ts_geo, rct_strucs=rct_geos, prd_strucs=prd_geos
     )
-
-
-# # deprecated
-def ts_geometry_from_reactants(
-    rxn: Reaction,
-    rct_geos,
-    stereo=True,
-    max_dist_err=0.2,
-    log=False,
-):
-    """Generate a TS geometry for this reaction object
-
-    DEPRECATE THIS FUNCTION -- if someone wants to get the TS geometry directly, apart
-    from a Reaction object, they should call graph.ts_geometry_from_reactants
-
-    :param rxn: a Reaction object
-    :type rxn: Reaction
-    :param rct_geos: the reactant geometries
-    :param stereo: Enforce correct stereochemistry?, default True
-    :type stereo: bool, optional
-    :param max_dist_err: The distance convergence threshold, in angstroms
-    :type max_dist_err: float, optional
-    :param log: Print optimization log?, defaults to False
-    :type log: bool, optional
-    :returns: the TS geometry
-    """
-    if not stereo:
-        rxn = without_stereo(rxn)
-
-    tsg = ts_graph(rxn)
-    geo_idx_dct = mapping(rxn, "T", "R")
-    ts_geo = graph.ts_geometry_from_reactants(
-        tsg,
-        rct_geos,
-        geo_idx_dct=geo_idx_dct,
-        max_dist_err=max_dist_err,
-        log=log,
-    )
-    return ts_geo

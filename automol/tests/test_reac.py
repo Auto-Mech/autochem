@@ -318,18 +318,22 @@ def test__end_to_end():
         grxn_ = reac.from_string(reac.string(grxn))
         zrxn_ = reac.from_string(reac.string(zrxn))
 
+        print(f"\n{grxn}\n matches ? \n{grxn_}\n")
         assert reac.without_structures(grxn) == reac.without_structures(grxn_)
         assert geom.almost_equal(reac.ts_structure(grxn), reac.ts_structure(grxn_))
         strucs = reac.reactant_structures(grxn) + reac.product_structures(grxn)
         strucs_ = reac.reactant_structures(grxn_) + reac.product_structures(grxn_)
         for struc, struc_ in zip(strucs, strucs_):
+            print(f"\n{struc}\n almost equal ? \n{struc_}\n")
             assert geom.almost_equal(struc, struc_)
 
+        print(f"\n{zrxn}\n matches ? \n{zrxn_}\n")
         assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
         assert zmat.almost_equal(reac.ts_structure(zrxn), reac.ts_structure(zrxn_))
         strucs = reac.reactant_structures(zrxn) + reac.product_structures(zrxn)
         strucs_ = reac.reactant_structures(zrxn_) + reac.product_structures(zrxn_)
         for struc, struc_ in zip(strucs, strucs_):
+            print(f"\n{struc}\n almost equal ? \n{struc_}\n")
             assert zmat.almost_equal(struc, struc_)
 
     # UNIMOLECULAR
