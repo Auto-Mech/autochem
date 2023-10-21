@@ -95,10 +95,6 @@ from automol.reac._8conv import display
 # # canonicity
 from automol.reac._8conv import is_canonical_enantiomer
 from automol.reac._8conv import canonical_enantiomer
-# # deprecated
-from automol.reac._8conv import with_structures_from_chi
-from automol.reac._8conv import with_structures_from_smiles
-from automol.reac._8conv import with_structures_from_geometry
 # scan coordinates
 from automol.reac._6scan import build_scan_info
 from automol.reac._6scan import scan_coordinate
@@ -215,10 +211,6 @@ __all__ = [
     # # canonicity
     'is_canonical_enantiomer',
     'canonical_enantiomer',
-    # # deprecated
-    'with_structures_from_chi',
-    'with_structures_from_smiles',
-    'with_structures_from_geometry',
     # scan coordinates
     'build_scan_info',
     'scan_coordinate',

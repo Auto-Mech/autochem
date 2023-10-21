@@ -10,7 +10,7 @@ import automol.chi
 import automol.zmat
 from automol.graph import radical_dissociation_products
 from automol.graph import radical_group_dct
-from automol.reac._8conv import with_structures_from_zmatrix
+from automol.reac._8conv import from_zmatrices
 
 
 # Identify instability products
@@ -49,7 +49,7 @@ def instability_product_inchis(ich, stereo=True):
         prd_ichs_lst = itertools.product(ste_prd1_ichs, ste_prd2_ichs)
 
         for prd_ichs in prd_ichs_lst:
-            rxn_objs = automol.reac.with_structures_from_chi(
+            rxn_objs = automol.reac.from_chis(
                 (ich,), prd_ichs, stereo=stereo)
             if rxn_objs is not None:
                 instab_ichs = prd_ichs
@@ -89,8 +89,8 @@ def instability_transformation(conn_zma, disconn_zmas):
     """ Build the reaction objects for an instability
     """
 
-    zrxn_objs = with_structures_from_zmatrix(
-        [conn_zma], disconn_zmas, zmat=True, stereo=True)
+    zrxn_objs = from_zmatrices(
+        [conn_zma], disconn_zmas, struc_typ=True, stereo=True)
     if zrxn_objs:
         zrxn, zma, _, _ = zrxn_objs[0]
     else:

@@ -11,20 +11,17 @@ from automol import zmat as zmat_
 from automol.extern import rdkit_
 from automol.reac._0core import (
     Reaction,
-    apply_zmatrix_conversion,
     product_graphs,
     product_structures,
     reactant_graphs,
     reactant_structures,
-    set_structures,
     structure_type,
     ts_graph,
     without_stereo,
 )
 from automol.reac._2stereo import reflect
 from automol.reac._3find import find
-from automol.reac._4struc import ts_geometry_from_reactants, with_structures
-from automol.reac._5zmat import ts_zmatrix
+from automol.reac._4struc import with_structures
 
 
 # # constructors from data types
@@ -166,9 +163,10 @@ def from_geometries(
 
     if struc_typ is not None:
         rxns = tuple(
-            with_structures(r, struc_typ, rct_strucs=rct_geos, prd_strucs=prd_geos)
+            with_structures(r, "geom", rct_strucs=rct_geos, prd_strucs=prd_geos)
             for r in rxns
         )
+        rxns = tuple(with_structures(r, struc_typ) for r in rxns)
 
     return rxns
 
@@ -195,9 +193,10 @@ def from_zmatrices(
 
     if struc_typ is not None:
         rxns = tuple(
-            with_structures(r, struc_typ, rct_strucs=rct_zmas, prd_strucs=prd_zmas)
+            with_structures(r, "zmat", rct_strucs=rct_zmas, prd_strucs=prd_zmas)
             for r in rxns
         )
+        rxns = tuple(with_structures(r, struc_typ) for r in rxns)
 
     return rxns
 
@@ -419,131 +418,3 @@ def canonical_enantiomer(srxn: Reaction):
     if not is_canonical_enantiomer(srxn):
         srxn = reflect(srxn)
     return srxn
-
-
-# # deprecated
-def with_structures_from_chi(rct_chis, prd_chis, zmat=False, stereo=False):
-    """Get reaction objects with geometry/z-matrix structures from ChIs
-
-    :param rct_chis: The reactant ChI (InChI or AMChI) strings
-    :type rct_chis: list[str]
-    :param prd_chis: The product ChI (InChI or AMChI) strings
-    :type prd_chis: list[str]
-    :param zmat: Return z-matrix structures instead of cartesian geometries?
-    :type zmat: bool
-    :param stereo: Include stereoassignments?
-    :type stereo: bool
-    :returns: A series of tuples containing, in order, the reaction object, the
-        TS structure, the (sorted) reactant structures, and the (sorted)
-        product structures. The latter three are returned as either automol
-        geometry objects or, if `zmatrix` was set to `True, automol z-matrix
-        objects.
-    """
-
-    rct_geos = list(map(chi_.geometry, rct_chis))
-    prd_geos = list(map(chi_.geometry, prd_chis))
-
-    return with_structures_from_geometry(rct_geos, prd_geos, zmat=zmat, stereo=stereo)
-
-
-def with_structures_from_smiles(rct_smis, prd_smis, zmat=False, stereo=False):
-    """Get reaction objects with geometry/z-matrix structures from SMILES
-
-    :param rct_smis: The reactant SMILES strings
-    :type rct_smis: list[str]
-    :param prd_smis: The product SMILES strings
-    :type prd_smis: list[str]
-    :param zmat: Return z-matrix structures instead of cartesian geometries?
-    :type zmat: bool
-    :param stereo: Include stereoassignments?
-    :type stereo: bool
-    :returns: A series of tuples containing, in order, the reaction object, the
-        TS structure, the (sorted) reactant structures, and the (sorted)
-        product structures. The latter three are returned as either automol
-        geometry objects or, if `zmatrix` was set to `True, automol z-matrix
-        objects.
-    """
-
-    # rct_geos = list(map(smiles_.geometry, rct_smis))
-    # prd_geos = list(map(smiles_.geometry, prd_smis))
-
-    rct_chis = list(map(smiles_.chi, rct_smis))
-    prd_chis = list(map(smiles_.chi, prd_smis))
-    rct_geos = list(map(chi_.geometry, rct_chis))
-    prd_geos = list(map(chi_.geometry, prd_chis))
-
-    return with_structures_from_geometry(rct_geos, prd_geos, zmat=zmat, stereo=stereo)
-
-
-def with_structures_from_zmatrix(rct_zmas, prd_zmas, zmat=False, stereo=False):
-    """Get reaction objects with geometry/z-matrix structures from SMILES
-
-    :param rct_zmas: The reactant z-matrices
-    :type rct_zmas: list of automol z-matrices
-    :param prd_zmas: The product z-matrices
-    :type prd_zmas: list of automol z-matrices
-    :param zmat: Return z-matrix structures instead of cartesian geometries?
-    :type zmat: bool
-    :param stereo: Include stereoassignments?
-    :type stereo: bool
-    :returns: A series of tuples containing, in order, the reaction object, the
-        TS structure, the (sorted) reactant structures, and the (sorted)
-        product structures. The latter three are returned as either automol
-        geometry objects or, if `zmatrix` was set to `True, automol z-matrix
-        objects.
-    """
-
-    rct_geos = list(map(zmat_.geometry, rct_zmas))
-    prd_geos = list(map(zmat_.geometry, prd_zmas))
-
-    return with_structures_from_geometry(rct_geos, prd_geos, zmat=zmat, stereo=stereo)
-
-
-def with_structures_from_geometry(
-    rct_geos, prd_geos, zmat=False, stereo=False
-) -> List[Reaction]:
-    """Get reaction objects with geometry/z-matrix structures from geometries
-
-    :param rct_geos: The reactant geometries
-    :type rct_geos: list of automol geometries
-    :param prd_geos: The product geometries
-    :type prd_geos: list of automol geometries
-    :param zmat: Return z-matrix structures instead of cartesian geometries?
-    :type zmat: bool
-    :param stereo: Include stereoassignments?
-    :type stereo: bool
-    :returns: A series of Reaction objects containing structures
-    :rtype: List[Reaction]
-    """
-
-    # Identify the reaction based on the reactants and products
-    rct_gras = list(map(geom.graph, rct_geos))
-    prd_gras = list(map(geom.graph, prd_geos))
-
-    if not stereo:
-        rct_gras = list(map(graph.without_stereo, rct_gras))
-        prd_gras = list(map(graph.without_stereo, prd_gras))
-
-    rxns = find(rct_gras, prd_gras)
-
-    # Obtain the reaction objects and structures to return
-    ret = []
-    for rxn in rxns:
-        ts_geo = ts_geometry_from_reactants(rxn, rct_geos, log=False)
-        rxn = set_structures(rxn, ts_geo, rct_geos, prd_geos)
-        # Determine which geometries to store
-        if not zmat:
-            ret.append(rxn)
-        else:
-            ts_zma, dc_ = ts_zmatrix(rxn, ts_geo)
-            zrxn = apply_zmatrix_conversion(rxn, dc_)
-            rct_zmas = tuple(map(geom.zmatrix, rct_geos))
-            prd_zmas = tuple(map(geom.zmatrix, prd_geos))
-
-            ret += ((zrxn, ts_zma, rct_zmas, prd_zmas),)
-
-    # Set to None if no objects found
-    if not ret:
-        ret = None
-
-    return ret
