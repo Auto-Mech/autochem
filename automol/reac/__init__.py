@@ -71,20 +71,31 @@ from automol.reac._7rot import rotational_bond_keys
 from automol.reac._7rot import rotational_groups
 from automol.reac._7rot import rotational_symmetry_number
 # conversions
+# # constructors from data types
+from automol.reac._8conv import from_graphs
+from automol.reac._8conv import from_amchis
+from automol.reac._8conv import from_inchis
+from automol.reac._8conv import from_chis
+from automol.reac._8conv import from_smiles
+from automol.reac._8conv import from_geometries
+from automol.reac._8conv import from_zmatrices
+# # converters to various data types
+from automol.reac._8conv import graphs
 from automol.reac._8conv import amchis
-from automol.reac._8conv import ts_amchi
 from automol.reac._8conv import inchis
 from automol.reac._8conv import chis
 from automol.reac._8conv import smiles
+from automol.reac._8conv import geometries
+from automol.reac._8conv import zmatrices
+# # additional data types
+from automol.reac._8conv import ts_amchi
 from automol.reac._8conv import reaction_smiles
 from automol.reac._8conv import rdkit_reaction
 from automol.reac._8conv import display
+# # canonicity
 from automol.reac._8conv import is_canonical_enantiomer
 from automol.reac._8conv import canonical_enantiomer
-from automol.reac._8conv import from_chis
-from automol.reac._8conv import from_smiles
-from automol.reac._8conv import from_zmatrices
-from automol.reac._8conv import from_geometries
+# # deprecated
 from automol.reac._8conv import with_structures_from_chi
 from automol.reac._8conv import with_structures_from_smiles
 from automol.reac._8conv import with_structures_from_geometry
@@ -180,20 +191,31 @@ __all__ = [
     'rotational_groups',
     'rotational_symmetry_number',
     # conversions
+    # # constructors from data types
+    'from_graphs',
+    'from_amchis',
+    'from_inchis',
+    'from_chis',
+    'from_smiles',
+    'from_geometries',
+    'from_zmatrices',
+    # # converters to various data types
+    'graphs',
     'amchis',
-    'ts_amchi',
     'inchis',
     'chis',
     'smiles',
+    'geometries',
+    'zmatrices',
+    # # additional data types
+    'ts_amchi',
     'reaction_smiles',
     'rdkit_reaction',
     'display',
+    # # canonicity
     'is_canonical_enantiomer',
     'canonical_enantiomer',
-    'from_chis',
-    'from_smiles',
-    'from_zmatrices',
-    'from_geometries',
+    # # deprecated
     'with_structures_from_chi',
     'with_structures_from_smiles',
     'with_structures_from_geometry',
