@@ -152,7 +152,7 @@ def test__expand_stereo():
     rct_smis = ['CC(F)CCCC', '[H]']
     prd_smis = ['CC(F)CCC[CH2]', '[HH]']
     rxn_obj = (
-        automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0])
+        automol.reac.from_smiles(rct_smis, prd_smis)[0])
 
     srxn_objs = automol.reac.expand_stereo(rxn_obj)
     rct_ichs = list(map(automol.graph.inchi,
@@ -177,7 +177,7 @@ def test__reac__hydrogen_migration():
 
     rct_smis = ['CCCO[O]']
     prd_smis = ['C[CH]COO']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R2',)
     ref_constraint_dct = {'R1': 2.65, 'R3': 2.65}
@@ -208,13 +208,14 @@ def test__reac__2ts_hydrogen_migration():
     rct_smis = ['CCC[CH2]']
     prd_smis = ['CC[CH]C']
 
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     # Ensure there are two objects
     assert len(rxn_objs) == 2
 
     # Deal with rxn object 1
-    rxn1, ts_geo1, _, _ = rxn_objs[0]
+    rxn1 = rxn_objs[0]
+    ts_geo1 = automol.reac.ts_structure(rxn1)
     assert automol.reac.class_(rxn1) == ReactionClass.HYDROGEN_MIGRATION
     zma1, dc1 = automol.reac.ts_zmatrix(rxn1, ts_geo1)
     zrxn1 = automol.reac.apply_zmatrix_conversion(rxn1, dc1)
@@ -253,7 +254,7 @@ def test__reac__beta_scission():
 
     rct_smis = ['CCCO[O]']
     prd_smis = ['[O][O]', 'CC[CH2]']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R8',)
     ref_constraint_dct = None
@@ -280,7 +281,7 @@ def test__reac__ring_forming_scission():
 
     rct_smis = ['[CH2]CCCOO']
     prd_smis = ['C1CCCO1', '[OH]']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R13',)
     ref_constraint_dct = {'A4': 1.85, 'A7': 2.15, 'A10': 1.91,
@@ -354,7 +355,7 @@ def test__reac__hydrogen_abstraction():
 
     rct_smis = ['CCO', '[CH3]']
     prd_smis = ['[CH2]CO', 'C']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -383,7 +384,7 @@ def test__reac__hydrogen_abstraction():
         (['CCCC', '[OH]'], ['CC[CH]C', 'O']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(
             rxn_objs[0], ReactionClass.HYDROGEN_ABSTRACTION, False)
@@ -395,7 +396,7 @@ def test__reac__sigma_hydrogen_abstraction():
 
     rct_smis = ['CCO', 'C#[C]']
     prd_smis = ['CC[O]', 'C#C']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -421,7 +422,7 @@ def test__reac__addition():
 
     rct_smis = ['CC[CH2]', '[O][O]']
     prd_smis = ['CCCO[O]']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
@@ -446,7 +447,7 @@ def test__reac__addition():
         (['C=CCCCCCC', '[CH2]C'], ['CCC[CH]CCCCCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(rxn_objs[0], ReactionClass.ADDITION, False)
 
@@ -458,7 +459,7 @@ def test__reac__radrad_addition():
     rct_smis = ['CC[CH2]', '[H]']
     prd_smis = ['CCC']
 
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
     ref_scan_names = ('R10',)
     ref_constraint_dct = None
     ref_scan_grid = None
@@ -493,7 +494,7 @@ def __reac__isc_addition():
     rct_smis = ['N#N', '[O]']
     prd_smis = ['[N-]=[N+]=O']
 
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
     assert len(rxn_objs) == 1
 
     # z-matrix build dies
@@ -506,7 +507,7 @@ def test__reac__radrad_hydrogen_abstraction():
 
     rct_smis = ['CCC', '[H]']
     prd_smis = ['CC[CH2]', '[HH]']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R12',)
     ref_constraint_dct = None
@@ -530,7 +531,7 @@ def __reac__insertion():
 
     rct_smis = ['CC=C', 'O[O]']
     prd_smis = ['CCCO[O]']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R3',)
     ref_constraint_dct = None
@@ -556,7 +557,7 @@ def __reac__insertion():
         (['CC', '[CH2]'], ['CCC']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(rxn_objs[0], ReactionClass.INSERTION, False)
 
@@ -567,7 +568,7 @@ def test__reac__substitution():
 
     rct_smis = ['CO', '[CH2]C']
     prd_smis = ['CCC', '[OH]']
-    rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+    rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
 
     ref_scan_names = ('R7',)
     ref_constraint_dct = None
@@ -593,7 +594,7 @@ def test__reac__substitution():
         (['OO', '[H]'], ['O', '[OH]']),
     ]
     for rct_smis, prd_smis in rxn_smis_lst:
-        rxn_objs = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)
+        rxn_objs = automol.reac.from_smiles(rct_smis, prd_smis)
         assert len(rxn_objs) == 1
         _check_reaction(rxn_objs[0], ReactionClass.SUBSTITUTION, False)
 
@@ -605,15 +606,16 @@ def test__reac_util():
     rct_smis = ['CC', '[H]']
     prd_smis = ['C[CH2]', '[HH]']
 
-    rxn_objs = automol.reac.with_structures_from_smiles(
+    rxn_objs = automol.reac.from_smiles(
         rct_smis, prd_smis)
-    rxn, geo, _, _ = rxn_objs[0]
+    rxn = rxn_objs[0]
+    geo = automol.reac.ts_structure(rxn)
     _, dc1 = automol.reac.ts_zmatrix(rxn, geo)
     zrxn1 = automol.reac.apply_zmatrix_conversion(rxn, dc1)
 
-    zrxn_objs = automol.reac.with_structures_from_smiles(
-        rct_smis, prd_smis, zmat=True)
-    zrxn2, _, _, _ = zrxn_objs[0]
+    zrxn_objs = automol.reac.from_smiles(
+        rct_smis, prd_smis, struc_typ="zmat")
+    zrxn2 = zrxn_objs[0]
 
     assert zrxn1 == zrxn2
 
@@ -722,7 +724,7 @@ def _gras_for_prod_tests(rct_smis):
 
 
 # Checker functions for assessing if tests output correct information
-def _check_reaction(rxn_obj, ref_class, var,
+def _check_reaction(rxn, ref_class, var,
                     ref_scan_names=None, ref_constraint_dct=None,
                     ref_scan_grid=None, ref_update_guess=None,
                     ref_tors_names=None, ref_tors_symms=None):
@@ -730,7 +732,7 @@ def _check_reaction(rxn_obj, ref_class, var,
     """
 
     # Unpack the reaction object
-    rxn, geo, _, _ = rxn_obj
+    geo = automol.reac.ts_structure(rxn)
 
     # Build Reaction object aligned to z-matrix keys
     zma, dc_ = automol.reac.ts_zmatrix(rxn, geo)

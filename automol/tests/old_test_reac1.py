@@ -10,7 +10,7 @@ def test__canonical_enantiomer():
     rct_smis = ['CC(OO)C(O[O])C(OO)C']
     prd_smis = ['CC(OO)C(OO)C(OO)[CH2]']
 
-    rxn = automol.reac.with_structures_from_smiles(rct_smis, prd_smis)[0][0]
+    rxn = automol.reac.from_smiles(rct_smis, prd_smis)[0]
 
     # 2A. Full expansion -- includes non-canonical enantiomer reactions
     print("Full reaction expansion:")
