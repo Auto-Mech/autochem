@@ -6,7 +6,7 @@ import dataclasses
 import enum
 
 
-class ReactionClass(enum.Enum):
+class ReactionClass(str, enum.Enum):
     """Reaction class names"""
 
     TRIVIAL = "trivial"
@@ -108,15 +108,15 @@ class ReactionClass(enum.Enum):
         :return: `True` if it is, `False` if it isn't
         :rtype: bool
         """
-        return str(value) in [item.value for item in cls]
+        return str(value) in list(cls)
 
 
-class ReactionSpin(enum.Enum):
+class ReactionSpin(str, enum.Enum):
     """reaction spin types"""
 
     LOW = "low-spin"
     HIGH = "high-spin"
-    NONE = None
+    NONE = "unspecified spin"
 
     def __str__(self):
         return self.value
@@ -133,7 +133,7 @@ class ReactionSpin(enum.Enum):
         :return: `True` if it does, `False` if it doesn't
         :rtype: bool
         """
-        return value in [item.value for item in cls]
+        return value in list(cls)
 
 
 @dataclasses.dataclass

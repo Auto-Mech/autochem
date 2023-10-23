@@ -247,7 +247,7 @@ def test__reac__2ts_hydrogen_migration():
     zma1 = automol.reac.ts_structure(zrxn1)
     print(zrxn1)
 
-    bnd_keys1 = automol.reac.rotational_bond_keys(zrxn1)
+    bnd_keys1 = automol.graph.rotational_bond_keys(automol.reac.ts_graph(zrxn1))
     names1 = {automol.zmat.torsion_coordinate_name(zma1, *k) for k in bnd_keys1}
     print(names1)
 
@@ -262,7 +262,7 @@ def test__reac__2ts_hydrogen_migration():
     zma2 = automol.reac.ts_structure(zrxn2)
     print(zrxn2)
 
-    bnd_keys2 = automol.reac.rotational_bond_keys(zrxn2)
+    bnd_keys2 = automol.graph.rotational_bond_keys(automol.reac.ts_graph(zrxn2))
     names2 = {automol.zmat.torsion_coordinate_name(zma2, *k) for k in bnd_keys2}
     print(names2)
 
@@ -912,15 +912,16 @@ def _check_reaction(
     # print(automol.geom.string(geo))
 
     # Get torsion information
-    bnd_keys = automol.reac.rotational_bond_keys(zrxn)
+    ts_zgra = automol.reac.ts_graph(zrxn)
+    bnd_keys = automol.graph.rotational_bond_keys(ts_zgra)
     tors_names = {automol.zmat.torsion_coordinate_name(zma, *k) for k in bnd_keys}
 
-    gbnd_keys = automol.reac.rotational_bond_keys(grxn)
+    gbnd_keys = automol.graph.rotational_bond_keys(ts_zgra)
     assert len(gbnd_keys) == len(bnd_keys)
 
     # zaxes = sorted(map(sorted, bnd_keys))
     axes = sorted(map(sorted, gbnd_keys))
-    tors_symms = [automol.reac.rotational_symmetry_number(grxn, *a) for a in axes]
+    tors_symms = [automol.graph.rotational_symmetry_number(ts_zgra, *a) for a in axes]
     # print('zaxes', zaxes)
     # print('gaxes', axes)
 

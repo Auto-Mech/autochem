@@ -70,7 +70,8 @@ def torsion_lst(zma):
 def reaction_torsion_lst(zma, zrxn):
     """torsions from zrxn obj"""
 
-    zbnd_keys = reac.rotational_bond_keys(zrxn, zma=zma)
+    ts_zgra = reac.ts_graph(zrxn)
+    zbnd_keys = graph.rotational_bond_keys(ts_zgra)
     tors_axes = tuple(tuple(keys) for keys in zbnd_keys)
     tors_names = tuple(zmat.torsion_coordinate_name(zma, *keys) for keys in tors_axes)
 
@@ -90,8 +91,8 @@ def reaction_torsion_lst(zma, zrxn):
         # symm = reac.rotational_symmetry_number(grxn, *gaxis)
         axis = name_dct[name]
         axis = tuple(sorted(axis))
-        grps = reac.rotational_groups(zrxn, *axis)
-        symm = reac.rotational_symmetry_number(zrxn, *axis)
+        grps = graph.rotational_groups(ts_zgra, *axis)
+        symm = graph.rotational_symmetry_number(ts_zgra, *axis)
 
         # Build the torsion object and add to the list
         # tors_obj_lst += (Torsion(zma, name, gaxis, ggrps, symm),)
