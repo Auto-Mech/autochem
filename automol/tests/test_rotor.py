@@ -628,7 +628,7 @@ def test__ts():
 
 
 if __name__ == "__main__":
-    test__string()
-    # test__ts()
+    # test__string()
+    test__ts()
     # test__rotor()
     # test__rotor_wdummy()

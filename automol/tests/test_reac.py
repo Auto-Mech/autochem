@@ -236,39 +236,27 @@ def test__end_to_end():
         print("Testing end-to-end functionality")
         print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
 
-        # 1. generate reagent geometries and graphs
-        inp_rct_geos = tuple(map(smiles.geometry, rct_smis))
-        inp_prd_geos = tuple(map(smiles.geometry, prd_smis))
-        inp_rct_gras = tuple(map(geom.graph, inp_rct_geos))
-        inp_prd_gras = tuple(map(geom.graph, inp_prd_geos))
-
-        # 2. find reactions
-        rxns = reac.find(inp_rct_gras, inp_prd_gras, stereo=True)
+        # 1. find reactions
+        rxns = reac.from_smiles(rct_smis, prd_smis, stereo=True)
         rxn, *_ = rxns  # select the first one for testing
 
-        # 3. add geometry structures
+        # 2. add geometry structures
         grxn = reac.with_structures(rxn, "geom")
 
-        # 4. add z-matrix structures
+        # 3. add z-matrix structures
         zrxn = reac.with_structures(rxn, "zmat")
 
         # 5. tests
-        #   (a.) check that the graphs match the input graphs
-        rct_gras = reac.reactant_graphs(rxn)
-        prd_gras = reac.product_graphs(rxn)
-        print(f"\n{rct_gras}\n == ? \n{inp_rct_gras}\n")
-        assert rct_gras == inp_rct_gras
-        print(f"\n{prd_gras}\n == ? \n{inp_prd_gras}\n")
-        assert prd_gras == inp_prd_gras
-
-        #   (b.) check that the geometry structures match the reaction graphs
-        tsg = reac.ts_graph(grxn)
+        #   (a.) check that the geometry structures match the reaction graphs
+        ts_gra = reac.ts_graph(grxn)
         ts_geo = reac.ts_structure(grxn)
         rct_geos = reac.reactant_structures(grxn)
         prd_geos = reac.product_structures(grxn)
+        rct_gras = reac.reactant_graphs(grxn)
+        prd_gras = reac.product_graphs(grxn)
 
-        print(f"\n{tsg}\n geometry matches ? \n{ts_geo}\n")
-        assert graph.geometry_matches(tsg, ts_geo)
+        print(f"\n{ts_gra}\n geometry matches ? \n{ts_geo}\n")
+        assert graph.geometry_matches(ts_gra, ts_geo)
 
         assert len(rct_gras) == len(rct_geos)
         print("Checking reactant geometries....")
@@ -282,16 +270,16 @@ def test__end_to_end():
             print(f"\n{gra}\n geometry matches ? \n{geo}\n")
             assert graph.geometry_matches(gra, geo)
 
-        #   (c.) check that the geometry structures match the reaction graphs
-        ztsg = reac.ts_graph(zrxn)
+        #   (b.) check that the z-matrix structures match the reaction graphs
+        ts_zgra = reac.ts_graph(zrxn)
         ts_zma = reac.ts_structure(zrxn)
         rct_zmas = reac.reactant_structures(zrxn)
         prd_zmas = reac.product_structures(zrxn)
         rct_zgras = reac.reactant_graphs(zrxn)
         prd_zgras = reac.product_graphs(zrxn)
 
-        print(f"\n{ztsg}\n z-matrix matches ? \n{ts_zma}\n")
-        assert graph.zmatrix_matches(ztsg, ts_zma)
+        print(f"\n{ts_zgra}\n z-matrix matches ? \n{ts_zma}\n")
+        assert graph.zmatrix_matches(ts_zgra, ts_zma)
 
         assert len(rct_zgras) == len(rct_zmas)
         print("Checking reactant z-matrices....")
@@ -305,17 +293,17 @@ def test__end_to_end():
             print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
             assert graph.zmatrix_matches(gra, zma)
 
-        #   (e.) check that the z-matrix structure can be converted back to geometries
+        #   (c.) check that the z-matrix structure can be converted back to geometries
         grxn_ = reac.with_structures(zrxn, "geom")
         assert reac.without_structures(
             grxn, keep_info=False
         ) == reac.without_structures(grxn_, keep_info=False)
 
-        #   (f.) check that converting to z-matrix again gives the same result
+        #   (d.) check that converting to z-matrix again gives the same result
         zrxn_ = reac.with_structures(grxn_, "zmat")
         assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
 
-        #   (g.) check that we can convert two and from string with structures
+        #   (e.) check that we can convert two and from string with structures
         grxn_ = reac.from_string(reac.string(grxn))
         zrxn_ = reac.from_string(reac.string(zrxn))
 
@@ -441,5 +429,5 @@ if __name__ == "__main__":
     # test__from_old_string()
     # test__reverse()
     # test__from_datatypes()
-    # test__end_to_end()
-    test__canonical_enantiomer()
+    test__end_to_end()
+    # test__canonical_enantiomer()

@@ -61,11 +61,6 @@ from automol.reac._4struc import with_structures
 from automol.reac._4struc import reverse
 # TS zmatrices
 from automol.reac._deprecated import zmatrix_coordinate_names
-# rotational bonds & torsions
-from automol.reac._7rot import linear_atom_keys
-from automol.reac._7rot import rotational_bond_keys
-from automol.reac._7rot import rotational_groups
-from automol.reac._7rot import rotational_symmetry_number
 # conversions
 # # constructors from data types
 from automol.reac._5conv import from_graphs
@@ -173,11 +168,6 @@ __all__ = [
     'reverse',
     # TS zmatrices
     'zmatrix_coordinate_names',
-    # rotational bonds & torsions
-    'linear_atom_keys',
-    'rotational_bond_keys',
-    'rotational_groups',
-    'rotational_symmetry_number',
     # conversions
     # # constructors from data types
     'from_graphs',
