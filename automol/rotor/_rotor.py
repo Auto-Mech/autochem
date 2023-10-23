@@ -4,7 +4,6 @@
  Rotors: (Rotor1, Rotor2, ..., RotorN)
  Rotor: (tors_obj_1, tors_obj_2, ..., tors_obj_N)
 """
-
 from itertools import chain
 
 import numpy
@@ -44,7 +43,7 @@ def from_data(zma, tors_inf_dct, tors_names=None, multi=False):
             "axis",
             "groups",
         }, "must have symmetry, axis, and groups in dct tp build torsions"
-        tors_lst += (tors.Torsion(zma, name, **dct),)
+        tors_lst += (tors.OldTorsion(zma, name, **dct),)
 
     if tors_lst:
         rotors = group_torsions_into_rotors(tors_lst, name_grps=tors_names, multi=multi)

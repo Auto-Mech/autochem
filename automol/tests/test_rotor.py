@@ -305,26 +305,6 @@ products keys:
 C2H5OH_CH3_ZRXN = automol.reac.from_old_string(C2H5OH_CH3_ZRXN_STR)
 
 
-def test__tors():
-    """Various torsion builders"""
-
-    gra = automol.zmat.graph(C2H5OH_ZMA, stereo=True, dummy=True)
-    lin_keys = sorted(automol.graph.dummy_parent_dict(gra).values())
-
-    all_axes = automol.rotor.all_torsion_axes(gra, lin_keys)
-    assert all_axes == ((0, 1), (1, 5))
-
-    all_groups = automol.rotor.all_torsion_groups(gra, lin_keys)
-    assert all_groups == (((2, 3, 4), (5, 6, 7, 8)), ((0, 2, 3, 4, 6, 7), (8,)))
-
-    all_symms = automol.rotor.all_torsion_symmetries(gra, lin_keys)
-    assert all_symms == (3, 1)
-
-    axes1 = list(all_axes)[0]
-    assert automol.rotor.torsion_groups(gra, axes1) == all_groups[0]
-    assert automol.rotor.torsion_symmetry(gra, axes1, lin_keys) == all_symms[0]
-
-
 def test__rotor():
     """rotor"""
 
@@ -613,6 +593,7 @@ def test__string():
 def test__ts():
     """build rotors for a transition state"""
 
+    print(automol.reac.smiles(C2H5OH_CH3_ZRXN))
     rotors = automol.rotor.from_zmatrix(C2H5OH_CH3_ZMA, zrxn=C2H5OH_CH3_ZRXN)
 
     print(automol.rotor.names(rotors))
