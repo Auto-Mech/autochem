@@ -1,13 +1,13 @@
 """ V-Matrix: Variable V-Matrix (V-Matrix without coordinate values)
 """
-from typing import List
 import itertools
+from typing import List, Tuple
 
 import more_itertools
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import ptab
+from pyparsing import pyparsing_common as ppc
 
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)
@@ -64,7 +64,7 @@ def from_data(symbs, key_mat, name_mat=None, one_indexed=None):
 
 # # V-Matrix/V-Matrix common functions (document these as z-matrix functions)
 # # # getters
-def symbols(vma, idxs: List[int]=None) -> List[str]:
+def symbols(vma, idxs: List[int] = None) -> List[str]:
     """Obtain the atomic symbols for all atoms defined in the V-Matrix.
 
     :param vma: V-Matrix
@@ -216,6 +216,22 @@ def coordinates(vma, shift=0, multi=True):
     coo_dct.pop(None)
 
     return coo_dct
+
+
+def dihedral_axis(vma, dih_name: str) -> Tuple[int, int]:
+    """Get the axis of a dihedral angle from the name
+
+    :param vma: A v-matrix or z-matrix
+    :type vma: automol vmat or zmat data structure
+    :param dih_name: The dihedral angle name
+    :type dih_name: str
+    :return: The axis, i.e. the central two atoms in the coordinate
+    :rtype: Tuple[int, int]
+    """
+    dih_coo, *_ = coordinates(vma)[dih_name]
+    assert len(dih_coo) == 4, f"{dih_name} is not a dihedral angle:\n{vma}"
+    _, ax_key1, ax_key2, _ = dih_coo
+    return ax_key1, ax_key2
 
 
 # # # names and standard naming
@@ -561,16 +577,19 @@ def string(vma, one_indexed=False):
     name_mat = name_matrix(vma)
 
     def _line_string(row_idx):
-        line_str = f'{symbs[row_idx]:<2s} '
+        line_str = f"{symbs[row_idx]:<2s} "
         keys = key_mat[row_idx]
         names_ = name_mat[row_idx]
-        line_str += ' '.join([
-            f'{keys[col_idx]:>d} {names_[col_idx]:>5s} '
-            for col_idx in range(min(row_idx, 3))])
+        line_str += " ".join(
+            [
+                f"{keys[col_idx]:>d} {names_[col_idx]:>5s} "
+                for col_idx in range(min(row_idx, 3))
+            ]
+        )
         return line_str
 
     natms = len(symbs)
-    vma_str = '\n'.join([_line_string(row_idx) for row_idx in range(natms)])
+    vma_str = "\n".join([_line_string(row_idx) for row_idx in range(natms)])
 
     return vma_str
 

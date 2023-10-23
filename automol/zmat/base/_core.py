@@ -779,25 +779,6 @@ def shift_down(zma, vals):
     return shift_vals
 
 
-def shift_up(zma, idxs):
-    """shift up from the dummy idxs
-
-    DEPRECATED -- usage need to be replaced with util.zmat_conv calls
-    """
-
-    dummy_idxs = sorted(atom_indices(zma, "X", match=True))
-
-    shift_idxs = []
-    for idx in idxs:
-        new_idx = idx
-        for dummy_idx in dummy_idxs:
-            if idx >= dummy_idx:
-                new_idx += 1
-        shift_idxs.append(new_idx)
-
-    return tuple(shift_idxs)
-
-
 # # helpers
 def _value_matrix(val_mat, angstrom, degree):
     """Format value matrix of the V-Matrix that contains the

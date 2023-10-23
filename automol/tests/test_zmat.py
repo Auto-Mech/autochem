@@ -466,12 +466,6 @@ def __linear_atom_keys():
     # wrong?
 
 
-def test__shift():
-    """ test zmat.shift_up
-    """
-    assert zmat.shift_up(C5H8O_ZMA, (3, 9, 12)) == (3, 10, 14)
-
-
 def test__extra():
     """ test zmat.bond_key_from_idxs
     """

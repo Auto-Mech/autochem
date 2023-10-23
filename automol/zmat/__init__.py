@@ -20,6 +20,7 @@ from automol.vmat import count
 from automol.vmat import atom_indices
 from automol.vmat import coordinate_key_matrix
 from automol.vmat import coordinates
+from automol.vmat import dihedral_axis
 from automol.vmat import names
 from automol.vmat import distance_names
 from automol.vmat import central_angle_names
@@ -70,7 +71,6 @@ from automol.zmat.base._core import dummy_parent_dict
 from automol.zmat.base._core import conversion_info
 from automol.zmat.base._core import linear_atom_keys
 from automol.zmat.base._core import shift_down
-from automol.zmat.base._core import shift_up
 # extra functions
 from automol.zmat.base._extra import samples
 from automol.zmat.base._extra import torsional_sampling_ranges
@@ -118,6 +118,7 @@ __all__ = [
     'atom_indices',
     'coordinate_key_matrix',
     'coordinates',
+    'dihedral_axis',
     'names',
     'distance_names',
     'central_angle_names',
@@ -168,7 +169,6 @@ __all__ = [
     'conversion_info',
     'linear_atom_keys',
     'shift_down',
-    'shift_up',
     # extra base functions
     'samples',
     'torsional_sampling_ranges',
