@@ -5,7 +5,7 @@
 import random
 import string
 
-from automol import geom, graph, reac, rotor, zmat
+from automol import geom, graph, reac, rotor_old, zmat
 
 
 # external
@@ -36,7 +36,7 @@ def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
     if grxn is not None:
         frm_bnd_keys = graph.ts.forming_bond_keys(reac.ts_graph(grxn))
         brk_bnd_keys = graph.ts.breaking_bond_keys(reac.ts_graph(grxn))
-        tors_names = rotor.names(rotors, flat=True)
+        tors_names = rotor_old.names(rotors, flat=True)
         tors_idxs = [zmat.coord_idxs(zma, name) for name in tors_names]
     else:
         frm_bnd_keys, brk_bnd_keys = frozenset({}), frozenset({})

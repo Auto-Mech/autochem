@@ -12,9 +12,9 @@ from phydat import phycon
 
 from automol import pot as pot_
 from automol import zmat
-from automol.rotor import _tors as tors
-from automol.rotor._name import group_torsions_into_rotors
-from automol.rotor._util import sort_tors_names
+from automol.rotor_old import _tors as tors
+from automol.rotor_old._name import group_torsions_into_rotors
+from automol.rotor_old._util import sort_tors_names
 
 
 # constructors

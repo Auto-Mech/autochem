@@ -12,9 +12,7 @@ from automol.geom import base as geom_base
 from automol.util import ZmatConv
 from automol.vmat import (
     atom_indices,
-    coordinates,
     count,
-    dihedral_angle_names,
     key_matrix,
     name_matrix,
     standard_name_matrix,
@@ -141,6 +139,23 @@ def value_dictionary(zma, angstrom=False, degree=False):
     val_dct = {name: float(val) for name, val in val_dct.items()}
 
     return val_dct
+
+
+def value(zma, name: str, angstrom: bool = False, degree: bool = False) -> float:
+    """Obtain the value of a Z-Matrix coordinate by name
+
+    :param zma: Z-Matrix
+    :type zma: automol Z-Matrix data structure
+    :param name: The coordinate name
+    :type name: str
+    :param angstrom: parameter to control Bohr->Angstrom conversion
+    :type angstrom: bool
+    :param degree: parameter to control radian->degree conversion
+    :type degree: bool
+    :rtype: dict[str: tuple(float)]
+    """
+    val_dct = value_dictionary(zma, angstrom=angstrom, degree=degree)
+    return val_dct[name]
 
 
 # # setters
@@ -664,27 +679,6 @@ def dihedral_angle_coordinate_name(zma, key1, key2, key3, key4):
 
     name = name_mat[key4][2]
 
-    return name
-
-
-def dihedral_axis_name(zma, axis):
-    """gives this name of a dihedral angle that has
-    the given axis atoms
-
-    currently fails if indices of axis not in zma, i.e.
-    if 5,1 in zma, code fails if 1,5 given
-    """
-    coords = coordinates(zma)
-    angles = dihedral_angle_names(zma)
-    name = None
-    for ang in angles:
-        _coord_idxs = coords[ang]
-        if (
-            tuple(list(_coord_idxs[0])[1:3]) == axis
-            or tuple(list(_coord_idxs[0])[3:1:-1]) == axis
-        ):
-            name = ang
-            break
     return name
 
 
