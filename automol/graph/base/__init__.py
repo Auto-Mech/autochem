@@ -229,7 +229,6 @@ from automol.graph.base._4heur import heuristic_bond_distance_limit
 from automol.graph.base._4heur import heuristic_bond_angle
 from automol.graph.base._4heur import rotational_bond_keys
 from automol.graph.base._4heur import rotational_groups
-from automol.graph.base._4heur import is_methyl_rotor
 from automol.graph.base._4heur import rotational_symmetry_number
 # geometry functions:
 # # stereo parity evaluations
@@ -526,7 +525,6 @@ __all__ = [
     'heuristic_bond_angle',
     'rotational_bond_keys',
     'rotational_groups',
-    'is_methyl_rotor',
     'rotational_symmetry_number',
     # geometry functions:
     # # stereo parity evaluations

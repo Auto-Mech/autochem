@@ -449,23 +449,6 @@ def test__coord_values():
     assert numpy.isclose(dangle2, 277.31157284331846)
 
 
-def __dihedral():
-    """ test zmat.dihedral_axis_name
-    """
-
-    assert zmat.dihedral_axis_name(C2H5OH_ZMA, (0, 1)) == 'D3'
-    assert zmat.dihedral_axis_name(C2H5OH_ZMA, (5, 1)) == 'D8'
-    # wrong?
-
-
-def __linear_atom_keys():
-    """ test zmat.linear_atom_keys
-    """
-    assert zmat.linear_atom_keys(C5H8O_ZMA) == (5, 9)
-    assert zmat.linear_atom_keys(C5H8O_ZMA, geom_indexing=True) == (5, 8)
-    # wrong?
-
-
 def test__extra():
     """ test zmat.bond_key_from_idxs
     """

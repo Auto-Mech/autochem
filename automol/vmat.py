@@ -6,8 +6,8 @@ from typing import List, Tuple
 import more_itertools
 import numpy
 import pyparsing as pp
-from phydat import ptab
 from pyparsing import pyparsing_common as ppc
+from phydat import ptab
 
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)
@@ -218,19 +218,19 @@ def coordinates(vma, shift=0, multi=True):
     return coo_dct
 
 
-def dihedral_axis(vma, dih_name: str) -> Tuple[int, int]:
-    """Get the axis of a dihedral angle from the name
+def torsion_axis(vma, dih_name: str) -> Tuple[int, int]:
+    """Get the rotational axis of a torsion from the dihedral angle name
 
     :param vma: A v-matrix or z-matrix
     :type vma: automol vmat or zmat data structure
-    :param dih_name: The dihedral angle name
+    :param dih_name: The dihedral angle name of the torsion
     :type dih_name: str
     :return: The axis, i.e. the central two atoms in the coordinate
     :rtype: Tuple[int, int]
     """
     dih_coo, *_ = coordinates(vma)[dih_name]
     assert len(dih_coo) == 4, f"{dih_name} is not a dihedral angle:\n{vma}"
-    _, ax_key1, ax_key2, _ = dih_coo
+    _, ax_key2, ax_key1, _ = dih_coo
     return ax_key1, ax_key2
 
 

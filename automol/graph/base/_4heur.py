@@ -19,9 +19,7 @@ from automol.graph.base._0core import (
     without_dummy_atoms,
 )
 from automol.graph.base._2algo import (
-    branch,
     branch_atom_keys,
-    isomorphic,
     rings_bond_keys,
 )
 from automol.graph.base._3kekule import (
@@ -215,30 +213,6 @@ def rotational_groups(gra, key1, key2, dummy=False):
     grp1 = tuple(sorted(grp1))
     grp2 = tuple(sorted(grp2))
     return grp1, grp2
-
-
-def is_methyl_rotor(gra, key1, key2):
-    """Deteremine if the rotor at a specific axis is a methyl rotor
-
-    :param gra: the graph
-    :param key1: the first atom key
-    :param key2: the second atom key
-    """
-    ch3 = (
-        {0: ("C", 0, None), 1: ("H", 0, None), 2: ("H", 0, None), 3: ("H", 0, None)},
-        {
-            frozenset({0, 1}): (1, None),
-            frozenset({0, 3}): (1, None),
-            frozenset({0, 2}): (1, None),
-        },
-    )
-
-    bnch1 = branch(gra, key1, key2)
-    bnch2 = branch(gra, key2, key1)
-    return any(
-        isomorphic(bnch, ch3, dummy=False, stereo=False, backbone_only=True)
-        for bnch in (bnch1, bnch2)
-    )
 
 
 def rotational_symmetry_number(gra, key1, key2, lin_keys=None):

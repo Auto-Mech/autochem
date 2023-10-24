@@ -35,6 +35,8 @@ can be replicated in two steps:
         for dummy_zkey, parent_zkey in ins_dct.items():
             <Insert an atom connected to `parent_zkey` with key `dummy_zkey`>
 """
+import numbers
+from collections.abc import Sequence
 from typing import Dict, List, Tuple, Union
 
 Key = Union[int, None]
@@ -128,6 +130,43 @@ def insert_dict(zc_: ZmatConv) -> Dict[int, int]:
     rel_dct = relabel_dict(zc_)
     ins_dct = {zk: rel_dct[pgk] for zk, (gk, pgk) in zc_.items() if gk is None}
     return ins_dct
+
+
+def geometry_keys(zc_: ZmatConv, zkeys: List[int], dummy: bool = False) -> List[int]:
+    """Convert a (potentially nested) list of z-matrix keys into geometry keys
+
+    Relabels real atoms and drops dummy atoms
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param zkeys: A list of z-matrix keys, nested to a consistent depth
+    :type zkeys: List[int]
+    :param dummy: Keep the dummy atoms as `None` values? defaults to False
+    :type dummy: bool, optional
+    :return: The corresponding keys of the geometry, minus dummy atoms
+    :rtype: List[int]
+    """
+    rel_dct = relabel_dict(zc_, rev=True)
+
+    def zkeys_to_gkeys_(zks):
+        """Recursively convert a nested list of z-matrix keys to geometry keys"""
+
+        assert isinstance(zks, Sequence), f"Cannot process non-sequence {zks}"
+
+        # If the first element is an integer, assume we have a list of z-matrix keys and
+        # conver them
+        if isinstance(zks[0], numbers.Integral):
+            if dummy:
+                gks = tuple(rel_dct[k] if k in rel_dct else None for k in zks)
+            else:
+                gks = tuple(rel_dct[k] for k in zks if k in rel_dct)
+        # If we have a sequence, recursively call this function
+        elif isinstance(zks[0], Sequence):
+            gks = tuple(map(zkeys_to_gkeys_, zks))
+
+        return gks
+
+    return zkeys_to_gkeys_(zkeys)
 
 
 # Getters

@@ -56,7 +56,7 @@ Level 5: L1-4 dependencies; hierarchical interdependency (descending)
  - etrans
  - combine
  - reac
- - rotor        [L5 dependencies: reac]
+ - rotors       [L5 dependencies: reac]
  - symm         [L5 dependencies: reac, rotor]
 """
 
@@ -86,6 +86,7 @@ from automol import etrans
 from automol import combine
 from automol import reac
 from automol import rotor
+from automol import rotor_old
 from automol import symm
 # type imports
 from automol.const import ReactionClass, ReactionSpin, ReactionInfo
@@ -119,6 +120,7 @@ __all__ = [
     'combine',
     'reac',
     'rotor',
+    'rotor_old',
     'symm',
     # type imports
     'ReactionClass', 'ReactionSpin', 'ReactionInfo',

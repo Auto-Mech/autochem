@@ -8,7 +8,7 @@ import copy
 import numpy
 
 from automol import graph, reac, zmat
-from automol.rotor._util import sort_tors_names
+from automol.rotor_old._util import sort_tors_names
 
 
 class OldTorsion:

@@ -13,7 +13,7 @@ from automol.vmat import count
 from automol.vmat import atom_indices
 from automol.vmat import coordinate_key_matrix
 from automol.vmat import coordinates
-from automol.vmat import dihedral_axis
+from automol.vmat import torsion_axis
 from automol.vmat import names
 from automol.vmat import distance_names
 from automol.vmat import central_angle_names
@@ -29,6 +29,7 @@ from automol.zmat.base._core import from_geometry
 # # getters
 from automol.zmat.base._core import value_matrix
 from automol.zmat.base._core import value_dictionary
+from automol.zmat.base._core import value
 # # setters
 from automol.zmat.base._core import set_key_matrix
 from automol.zmat.base._core import set_name_matrix
@@ -57,7 +58,6 @@ from automol.zmat.base._core import almost_equal
 from automol.zmat.base._core import distance_coordinate_name
 from automol.zmat.base._core import central_angle_coordinate_name
 from automol.zmat.base._core import dihedral_angle_coordinate_name
-from automol.zmat.base._core import dihedral_axis_name
 # # dummy atom functions
 from automol.zmat.base._core import dummy_keys
 from automol.zmat.base._core import dummy_parent_dict
@@ -82,7 +82,7 @@ __all__ = [
     'atom_indices',
     'coordinate_key_matrix',
     'coordinates',
-    'dihedral_axis',
+    'torsion_axis',
     'names',
     'distance_names',
     'central_angle_names',
@@ -98,6 +98,7 @@ __all__ = [
     # # getters
     'value_matrix',
     'value_dictionary',
+    'value',
     # # setters
     'set_key_matrix',
     'set_name_matrix',
@@ -126,7 +127,6 @@ __all__ = [
     'distance_coordinate_name',
     'central_angle_coordinate_name',
     'dihedral_angle_coordinate_name',
-    'dihedral_axis_name',
     # # dummy atom functions
     'dummy_keys',
     'dummy_parent_dict',
