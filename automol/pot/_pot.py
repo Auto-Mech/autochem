@@ -1,25 +1,9 @@
 """ drivers for coordinate scans
 """
 
-import itertools
-
-
-# Build the grirds ultimately used for building potentials
-def coords(grids):
-    """Determine the dimensions of the grid
-
-    m = (m1, m2, m3)
-    n = (n1, n2)
-    p = mxn = ((m1, n1), (m1, n2), (m2, n1), (m2, n2), (m3, n1), (m3, n2))
-
-    """
-    assert len(grids) in (1, 2, 3, 4), "Rotor must be 1-4 dimensions"
-    grid_vals = tuple(itertools.product(*grids))
-    return grid_vals
-
 
 # Manipulate potentials
-def scale(pot, scale_factor):
+def scale(pot, factor):
     """Scale the potential by scaling factor
 
     :param pot: potential along a coordinate
@@ -35,7 +19,7 @@ def scale(pot, scale_factor):
     val = 0
     pos_der = 0
     for i, (idx, val) in enumerate(pot.items()):
-        new_pot[idx] = val * scale_factor
+        new_pot[idx] = val * factor
         if i == 1:
             pos_der = val
     neg_der = val
@@ -121,7 +105,7 @@ def by_index(pot):
 
 
 # checks
-def is_nonempty(pot):
+def has_defined_values(pot):
     """Determine if the potential has any values"""
     return any(val is not None for val in pot.values())
 
