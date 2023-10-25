@@ -8,11 +8,6 @@ from automol.pot._pot import relax_scale
 from automol.pot._pot import remove_empty_terms
 from automol.pot._pot import by_index
 from automol.pot._pot import is_nonempty
-from automol.pot._intmol import lj_potential
-from automol.pot._intmol import exp6_potential
-from automol.pot._intmol import low_repulsion_struct
-from automol.pot._intmol import intramol_interaction_potential_sum
-from automol.pot._intmol import pairwise_potential_matrix
 from automol.pot._read import find_max1d
 from automol.pot._fit import setup_1d_potential
 
@@ -24,11 +19,6 @@ __all__ = [
     'remove_empty_terms',
     'by_index',
     'is_nonempty',
-    'lj_potential',
-    'exp6_potential',
-    'low_repulsion_struct',
-    'intramol_interaction_potential_sum',
-    'pairwise_potential_matrix',
     'find_max1d',
     'setup_1d_potential',
 ]

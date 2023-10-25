@@ -1,9 +1,8 @@
 """ Helper functions for working with Python dictionaries
 """
 
+import itertools
 from copy import deepcopy
-from itertools import permutations
-from itertools import starmap as _starmap
 
 import numpy
 
@@ -86,24 +85,11 @@ def values_by_key(dct, keys, fill_val=None):
     return tuple(dct[key] if key in dct else fill_val for key in keys)
 
 
-def values_by_unordered_tuple(dct, key, fill_val=None):
-    """return dictionary values where keys are a tuple where either order
-    of tuple will access element
+def value_by_unordered_key(dct, key, fill_val=None):
+    """return the first value matching a tuple key in any order"""
 
-    should really add a check if flipping key worder gives different vals
-    """
-
-    val = None
-    nkeys = len(key)
-    # vals = tuple(dct.get(key, None) for itertools.permutations(key, nkeys)))
-    for _key in permutations(key, nkeys):
-        val = dct.get(_key, None)
-        if val is not None:
-            break
-
-    if val is None:
-        val = fill_val
-
+    key_perms = itertools.permutations(key, len(key))
+    val = next((dct[k] for k in key_perms if k in dct), fill_val)
     return val
 
 
@@ -194,7 +180,7 @@ def transform_values(dct, func=lambda x: x):
 
 def transform_items_to_values(dct, func=lambda x: x):
     """apply a function to each value"""
-    return dict(zip(dct.keys(), _starmap(func, dct.items())))
+    return dict(zip(dct.keys(), itertools.starmap(func, dct.items())))
 
 
 def keys_sorted_by_value(dct):

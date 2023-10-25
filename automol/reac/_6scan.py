@@ -563,7 +563,7 @@ def _ts_bnd_len(zma, scan_coord):
     symbs = zmat.symbols(zma)
     (dist_coo,) = zmat.coordinates(zma)[scan_coord]
     ts_bnd_symbs = tuple(sorted(map(symbs.__getitem__, dist_coo)))
-    ts_bnd_len = dict_.values_by_unordered_tuple(bnd.LEN_DCT, ts_bnd_symbs)
+    ts_bnd_len = dict_.value_by_unordered_key(bnd.LEN_DCT, ts_bnd_symbs)
 
     return ts_bnd_len
 

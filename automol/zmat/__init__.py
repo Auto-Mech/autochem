@@ -95,6 +95,9 @@ from automol.zmat._conv import dihedral_angle
 # # torsions
 from automol.zmat._conv import torsion_coordinate_name
 from automol.zmat._conv import torsion_leading_atom
+# # repulsion energy
+from automol.zmat._conv import has_low_relative_repulsion_energy
+from automol.zmat._conv import total_repulsion_energy
 # extra functions:
 from automol.zmat._extra import is_atom_closest_to_bond_atom
 # ring functions:
@@ -193,6 +196,9 @@ __all__ = [
     # # torsions
     'torsion_coordinate_name',
     'torsion_leading_atom',
+    # # repulsion energy
+    'has_low_relative_repulsion_energy',
+    'total_repulsion_energy',
     # extra functions:
     'is_atom_closest_to_bond_atom',
     # ring functions

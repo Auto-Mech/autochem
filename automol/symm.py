@@ -5,7 +5,7 @@
 import random
 import string
 
-from automol import geom, graph, reac, rotor_old, zmat
+from automol import geom, graph, reac, rotor, zmat
 
 
 # external
