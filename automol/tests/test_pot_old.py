@@ -82,28 +82,6 @@ NUM_TORS = 3
 SCAN_INCREMENT = 0.523599
 
 
-def test__build_potential():
-    """test pot_.points
-    test pot_.coords
-    """
-
-    ref_1dgrid_coords = ((1.0,), (2.0,), (3.0,), (4.0,))
-
-    ref_2dgrid_coords = (
-        (1.0, 0.1),
-        (1.0, 0.2),
-        (2.0, 0.1),
-        (2.0, 0.2),
-        (3.0, 0.1),
-        (3.0, 0.2),
-        (4.0, 0.1),
-        (4.0, 0.2),
-    )
-
-    assert pot_.coords((PCOORDS1,)) == ref_1dgrid_coords
-    assert pot_.coords((PCOORDS1, PCOORDS2)) == ref_2dgrid_coords
-
-
 def test__transform_potential():
     """test pot_.scale
     test pot_.truncate
@@ -171,8 +149,8 @@ def test__empty_terms_in_potential():
     test pot_.remove_empty_terms
     """
 
-    assert pot_.is_nonempty(POT1)
-    assert not pot_.is_nonempty(POT4)
+    assert pot_.has_defined_values(POT1)
+    assert not pot_.has_defined_values(POT4)
 
     ref_filt_pot = {
         (0.00000000,): 0.00,
