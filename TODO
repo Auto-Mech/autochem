@@ -81,7 +81,8 @@
         [ ] Currently, we are just doing tors.pot = 
         [ ] Instead, we should make a function call to set the potential(s)
     [ ] pot module
-        [ ] Move intermolecular potentials into automol.geom
+        [X] Move intermolecular potentials into automol.geom
+        [ ] Finish implementing geom data structures along potential
     [ ] _6scan.py  (maybe leave this for now)
     [x] _8conv.py
     [ ] make reac.from_old_string handle dummy atoms correctly
@@ -93,21 +94,3 @@
             This means we no longer have to store a mapping, and should lend
             itself to the next step of adding structures to the object for
             tracking how they map onto each other.
-
-
-FAILED automol/tests/test_instab.py::test__transformation - TypeError: can only concatenate list (not "tuple") to list
-FAILED automol/tests/test_instab.py::test__stereo - TypeError: can only concatenate list (not "tuple") to list
-FAILED automol/tests/test_reac_old.py::test__reac__hydrogen_migration - AssertionError: assert ('R8',) == ('R2',)
-FAILED automol/tests/test_reac_old.py::test__reac__2ts_hydrogen_migration - assert 4 == 2
-FAILED automol/tests/test_reac_old.py::test__reac__beta_scission - AssertionError: assert ('R2',) == ('R8',)
-FAILED automol/tests/test_reac_old.py::test__reac__ring_forming_scission - AssertionError: 1-0-11 is not a coordinate in this zmatrix:
-FAILED automol/tests/test_reac_old.py::test__reac__hydrogen_abstraction - assert 2 == 1
-FAILED automol/tests/test_reac_old.py::test__reac__addition - AssertionError: assert {'D11', 'D5', 'D8'} == {'D11', 'D4', 'D7'}
-FAILED automol/tests/test_reac_old.py::test__reac__radrad_addition - AssertionError: assert {'D5', 'D8'} == {'D4', 'D7'}
-FAILED automol/tests/test_reac_old.py::test__reac__substitution - ValueError: too many values to unpack (expected 2)
-FAILED automol/tests/test_reac_old.py::test__reac_util - AssertionError: assert atoms:\n  0: {... [1, 1, null]\n == atoms:\n  0: {... [1, 1, null]\n
-FAILED automol/tests/test_reac_old.py::test__prod__hydrogen_abstraction - AssertionError: assert (({0: ('C', 0...: (1, None)})) == (({0: ('C', 0...: (1, None)}))
-FAILED automol/tests/test_reac_old.py::test__prod__addition - AssertionError: assert (({0: ('C', 0...: (1, None)})) == (({0: ('C', 0...: (1, None)}))
-FAILED automol/tests/test_rotor.py::test__ts - KeyError: 'hydrogen abstraction'
-FAILED automol/tests/test_symm.py::test__external_symmetry_factor - NotImplementedError: Not implemented without x2z!
-FAILED automol/tests/test_symm.py::test__hco_symm_num - NotImplementedError: Not implemented without x2z!
