@@ -308,3 +308,42 @@ def torsion_leading_atom(zma, key1, key2, zgra=None):
             lead_key = min(lead_key_candidates)
 
     return lead_key
+
+
+# repulsion energy
+def has_low_relative_repulsion_energy(
+    zma, ref_zma, model: str = "exp6", thresh=40.0
+) -> bool:
+    """Identify whether a z-matrix has low repulsion energy relative to a reference
+    z-matrix
+
+    :param zma: A z-matrix
+    :type zma: automol zmat data structure
+    :param ref_zma: A reference z-matrix to compare to
+    :type ref_zma: automol zmat data structure
+    :param model: The model potential to use, "exp6" (default) or "lj_12_6"
+    :type model: str, optional
+    :param thresh: Threshold for excess repulsion energy (kcal/mol), defaults to 40.0
+    :type thresh: float, optional
+    :return: `True` if it does, `False` if it doesn't
+    :rtype: bool
+    """
+    geo = geometry(zma)
+    ref_geo = geometry(ref_zma)
+    return geom.has_low_relative_repulsion_energy(
+        geo, ref_geo, model=model, thresh=thresh
+    )
+
+
+def total_repulsion_energy(zma, model: str = "exp6") -> float:
+    """Calculate the z-matrix's total repulsion energy using a model potential
+
+    :param zma: A z-matrix
+    :type zma: automol zmat data structure
+    :param model: The model potential to use, "exp6" (default) or "lj_12_6"
+    :type model: str, optional
+    :return: The repulsion energy
+    :rtype: float
+    """
+    geo = geometry(zma)
+    return geom.total_repulsion_energy(geo, model=model)

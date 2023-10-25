@@ -6,11 +6,8 @@
 """
 from itertools import chain
 
-import numpy
 import yaml
-from phydat import phycon
 
-from automol import pot as pot_
 from automol import zmat
 from automol.rotor_old import _tors as tors
 from automol.rotor_old._name import group_torsions_into_rotors

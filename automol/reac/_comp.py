@@ -100,7 +100,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
                     viable = False
 
             # Check distance relative to equi. bond
-            equi_bnd = dict_.values_by_unordered_tuple(
+            equi_bnd = dict_.value_by_unordered_key(
                 bnd.LEN_DCT, (symb1, symb2), fill_val=0.0
             )
             displace_from_equi = cnf_dist - equi_bnd

@@ -83,6 +83,10 @@ from automol.geom.base._1comp import almost_equal_coulomb_spectrum
 from automol.geom.base._1comp import argunique_coulomb_spectrum
 from automol.geom.base._1comp import almost_equal_dist_matrix
 from automol.geom.base._1comp import minimum_volume_geometry
+# intermolecular interactions
+from automol.geom.base._2intmol import has_low_relative_repulsion_energy
+from automol.geom.base._2intmol import total_repulsion_energy
+from automol.geom.base._2intmol import repulsion_energy
 
 
 __all__ = [
@@ -164,4 +168,8 @@ __all__ = [
     'argunique_coulomb_spectrum',
     'almost_equal_dist_matrix',
     'minimum_volume_geometry',
+    # intermolecular interactions
+    'has_low_relative_repulsion_energy',
+    'total_repulsion_energy',
+    'repulsion_energy',
 ]
