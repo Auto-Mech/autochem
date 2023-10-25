@@ -1,47 +1,10 @@
 """ drivers for coordinate scans
 """
 
-import copy
 import itertools
-
-import numpy
-
-from automol import zmat
 
 
 # Build the grirds ultimately used for building potentials
-def grid(zma, coord_name, span, symmetry, increment, from_equilibrium=False):
-    """scan grids"""
-
-    # Set the space
-    interval = (span / symmetry) - increment
-
-    npoints = int(round(interval / increment, 0)) + 1
-    _grid = numpy.linspace(0.0, interval, npoints)
-
-    # Displace from the coordinates equilibrium value if desired
-    if from_equilibrium:
-        val_dct = zmat.value_dictionary(zma)
-        ini_val = val_dct[coord_name]
-        _grid = tuple(float(val + ini_val) for val in _grid)
-
-    return _grid
-
-
-def points(grids):
-    """Determine the dimensions of the grid
-
-    m = (m1, m2, m3)
-    n = (n1, n2)
-    p = mxn = ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1))
-    """
-
-    grid_points = ((i for i in range(len(grid))) for grid in grids)
-    grid_points = tuple(itertools.product(*grid_points))
-
-    return grid_points
-
-
 def coords(grids):
     """Determine the dimensions of the grid
 
@@ -50,13 +13,8 @@ def coords(grids):
     p = mxn = ((m1, n1), (m1, n2), (m2, n1), (m2, n2), (m3, n1), (m3, n2))
 
     """
-
     assert len(grids) in (1, 2, 3, 4), "Rotor must be 1-4 dimensions"
-
-    # grid_vals = ((x for x in grid) for grid in grids)
-    # grid_vals = tuple(itertools.product(*grid_vals))
     grid_vals = tuple(itertools.product(*grids))
-
     return grid_vals
 
 
@@ -122,21 +80,6 @@ def relax_scale(pot):
     return new_pot
 
 
-def truncate(pot, sym_num):
-    """Take a potential and limit it's terms by the symmetry number"""
-
-    if sym_num == 1:
-        potr = copy.deepcopy(pot)
-    else:
-        potr = {}
-        lpot = int(len(pot) / sym_num)
-        for i, key in enumerate(pot.keys()):
-            if i < lpot:
-                potr[key] = pot[key]
-
-    return potr
-
-
 def remove_empty_terms(pot):
     """Remove terms from the potential that do not have
     a value associated with them
@@ -178,23 +121,6 @@ def by_index(pot):
 
 
 # checks
-def valid(pot):
-    """Check if the potential is valid"""
-
-    is_valid = True
-
-    dim = dimension(pot)
-    for key, val in pot.items():
-        if (
-            not isinstance(key, tuple)
-            or not len(key) == dim
-            or not isinstance(val, float)
-        ):
-            is_valid = False
-
-    return is_valid
-
-
 def is_nonempty(pot):
     """Determine if the potential has any values"""
     return any(val is not None for val in pot.values())
@@ -203,23 +129,3 @@ def is_nonempty(pot):
 def dimension(pot):
     """Find the dimension of the potential"""
     return len(list(pot.keys())[0])
-
-
-def is_symmetric(pot, thresh=0.6):
-    """Find if a pot is symmetric"""
-    pot_keys = sorted(list(pot.keys()))
-    symm_fac = abs(
-        (pot[pot_keys[1]] - pot[pot_keys[-1]]) / (pot[pot_keys[1]] + pot[pot_keys[-1]])
-    )
-    return symm_fac > thresh
-
-
-# I/O
-def string(pot):
-    """Write a string for the potential
-    maybe add a way to print coords and values?
-    right now its just values
-    call util.vec.string
-    """
-    pot_str = "".join(f" {val:.6f}" for val in pot.values())
-    return pot_str

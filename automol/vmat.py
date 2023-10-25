@@ -12,7 +12,7 @@ from phydat import ptab
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)
 SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
-VNAME = pp.Combine(pp.Char("RAD") + pp.Word(pp.nums))
+VNAME = pp.Combine(pp.Word(pp.alphas) + pp.Opt(pp.Word(pp.nums)))
 LINE_END = pp.Suppress(pp.lineEnd())
 
 LINE0 = pp.Group(CHAR)

@@ -53,12 +53,12 @@ def from_data(zma, tors_inf_dct, tors_names=None, multi=False):
 
 
 # Getters
-def dimensions(rotor_lst):
+def torsion_dimensions(rotor_lst):
     """Get the dimensions of each of the rotors"""
     return tuple(len(rotor) for rotor in rotor_lst)
 
 
-def names(rotor_lst, flat=False):
+def torsion_names(rotor_lst, flat=False):
     """Get a flat list of names for list of rotors"""
     _names = tuple(tuple(torsion.name for torsion in rotor) for rotor in rotor_lst)
     if flat:
@@ -66,7 +66,7 @@ def names(rotor_lst, flat=False):
     return _names
 
 
-def axes(rotor_lst, flat=False):
+def torsion_axes(rotor_lst, flat=False):
     """Build a list of list of axes("""
     _axes = tuple(tuple(torsion.axis for torsion in rotor) for rotor in rotor_lst)
     if flat:
@@ -74,7 +74,7 @@ def axes(rotor_lst, flat=False):
     return _axes
 
 
-def groups(rotor_lst, flat=False):
+def torsion_groups(rotor_lst, flat=False):
     """Build a list of list of axes("""
     grps = tuple(tuple(torsion.groups for torsion in rotor) for rotor in rotor_lst)
     if flat:
@@ -82,7 +82,7 @@ def groups(rotor_lst, flat=False):
     return grps
 
 
-def symmetries(rotor_lst, flat=False):
+def torsion_symmetries(rotor_lst, flat=False):
     """Build a list of list of axes("""
     symms = tuple(tuple(torsion.symmetry for torsion in rotor) for rotor in rotor_lst)
     if flat:
@@ -98,30 +98,6 @@ def potentials(rotor_lst, flat=False):
     if flat:
         pots = tuple(chain(*pots))
     return pots
-
-
-def grids(rotor_lst, span=2.0 * numpy.pi, increment=30.0 * phycon.DEG2RAD, flat=False):
-    """Build a list of list of grids"""
-
-    rotor_lst_grids = ()
-    for rotor in rotor_lst:
-        rotor_grids = ()
-        for torsion in rotor:
-            rotor_grids += (
-                pot_.grid(
-                    torsion.zma,
-                    torsion.name,
-                    span,
-                    torsion.symmetry,
-                    increment,
-                    from_equilibrium=True,
-                ),
-            )
-        rotor_lst_grids += (rotor_grids,)
-    if flat:
-        rotor_lst_grids = tuple(chain(*rotor_lst_grids))
-
-    return rotor_lst_grids
 
 
 def zmatrix(rotor_lst):

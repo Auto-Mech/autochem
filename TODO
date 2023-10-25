@@ -75,6 +75,13 @@
         [ ] All we need: axis, groups, and symmetry for each torsion in the z-matrix
         [ ] (Either TS z-matrix or regular z-matrix)
         [ ] See rotor.py::from_zmatrix
+    [ ] Fix how potentials are assigned to Rotors objects
+    (This is needed in order to finish wiping out the old rotor module)
+        [ ] This happens in mechdriver/mechroutines/models/_tors.py:130
+        [ ] Currently, we are just doing tors.pot = 
+        [ ] Instead, we should make a function call to set the potential(s)
+    [ ] pot module
+        [ ] Move intermolecular potentials into automol.geom
     [ ] _6scan.py  (maybe leave this for now)
     [x] _8conv.py
     [ ] make reac.from_old_string handle dummy atoms correctly
