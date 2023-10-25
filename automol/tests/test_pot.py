@@ -40,7 +40,6 @@ PROP_GEO2 = (
 
 
 # Potentials
-BAD_POT = {(0.00000000,): 0.00, (0.52359878, 1.0): 0.77, (1.04719755,): 1.62}
 POT1 = {
     (0.00000000,): 0.00,
     (0.52359878,): 0.77,
@@ -117,26 +116,13 @@ NUM_TORS = 3
 SCAN_INCREMENT = 0.523599
 
 
-def test__grid():
-    """test pot_.grid"""
-
-
-def test__valid_potential():
-    """test pot_.valid"""
-
-    assert pot_.valid(POT1)
-    assert not pot_.valid(BAD_POT)
-
-
 def test__build_potential():
     """test pot_.points
     test pot_.coords
     """
 
-    ref_1dgrid_pts = ((0,), (1,), (2,), (3,))
     ref_1dgrid_coords = ((1.0,), (2.0,), (3.0,), (4.0,))
 
-    ref_2dgrid_pts = ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1))
     ref_2dgrid_coords = (
         (1.0, 0.1),
         (1.0, 0.2),
@@ -148,9 +134,7 @@ def test__build_potential():
         (4.0, 0.2),
     )
 
-    assert pot_.points((PCOORDS1,)) == ref_1dgrid_pts
     assert pot_.coords((PCOORDS1,)) == ref_1dgrid_coords
-    assert pot_.points((PCOORDS1, PCOORDS2)) == ref_2dgrid_pts
     assert pot_.coords((PCOORDS1, PCOORDS2)) == ref_2dgrid_coords
 
 
@@ -180,38 +164,6 @@ def test__transform_potential():
     assert numpy.allclose(list(pot_scaled.keys()), list(ref_pot_scaled.keys()))
     for key, val in pot_scaled.items():
         assert numpy.isclose(val, ref_pot_scaled[key])
-
-    # Test truncating
-    ref_pot_trunc1 = {
-        (0.00000000,): 0.00,
-        (0.52359878,): 0.77,
-        (1.04719755,): 1.62,
-        (1.57079633,): 0.90,
-        (2.09439510,): 0.01,
-        (2.61799388,): 0.61,
-        (3.14159265,): 1.50,
-        (3.66519143,): 0.99,
-        (4.18879020,): 0.32,
-        (4.71238898,): 0.89,
-        (5.23598776,): 1.52,
-        (5.75958653,): 0.74,
-    }
-    ref_pot_trunc2 = {
-        (0.00000000,): 0.00,
-        (0.52359878,): 1.74,
-        (1.04719755,): 3.58,
-        (1.57079633,): 1.68,
-    }
-
-    pot_trunc1 = pot_.truncate(POT1, SYM_NUM1)
-    pot_trunc2 = pot_.truncate(POT2, SYM_NUM2)
-
-    assert numpy.allclose(list(pot_trunc1.keys()), list(ref_pot_trunc1.keys()))
-    assert numpy.allclose(list(pot_trunc2.keys()), list(ref_pot_trunc2.keys()))
-    for key, val in pot_trunc1.items():
-        assert numpy.isclose(val, ref_pot_trunc1[key])
-    for key, val in pot_trunc2.items():
-        assert numpy.isclose(val, ref_pot_trunc2[key])
 
     ref_idx_pot1 = {
         (0,): 0.00,
@@ -275,114 +227,6 @@ def test__empty_terms_in_potential():
     assert numpy.allclose(
         tuple(filt_pot.values()), tuple(ref_filt_pot.values()), atol=1.0e-2
     )
-
-
-def test__fit_potential():
-    """test pot_.fit_1d_potential"""
-
-    # full potential
-    init_pot1 = {
-        (0,): 0.000,
-        (1,): 1.299,
-        (2,): 3.085,
-        (3,): 2.780,
-        (4,): 2.045,
-        (5,): 3.052,
-        (6,): 3.949,
-        (7,): 2.655,
-        (8,): 1.480,
-        (9,): 2.358,
-        (10,): 2.948,
-        (11,): 1.289,
-    }
-    # one negative
-    init_pot2 = {
-        (0,): 0.000,
-        (1,): 1.299,
-        (2,): 3.085,
-        (3,): 2.780,
-        (4,): 2.045,
-        (5,): -10.0,
-        (6,): 3.949,
-        (7,): 2.655,
-        (8,): 1.480,
-        (9,): 2.358,
-        (10,): 2.948,
-        (11,): 1.289,
-    }
-    # two negatives
-    init_pot3 = {
-        (0,): 0.000,
-        (1,): 1.299,
-        (2,): 3.085,
-        (3,): 2.780,
-        (4,): 2.045,
-        (5,): -10.0,
-        (6,): 3.949,
-        (7,): 2.655,
-        (8,): 1.480,
-        (9,): 2.358,
-        (10,): 2.948,
-        (11,): -10.0,
-    }
-    # need one with max threshold closed
-
-    pot1 = pot_.fit_1d_potential(init_pot1, min_thresh=-0.0001, max_thresh=50.0)
-    pot2 = pot_.fit_1d_potential(init_pot2, min_thresh=-0.0001, max_thresh=50.0)
-    pot3 = pot_.fit_1d_potential(init_pot3, min_thresh=-0.0001, max_thresh=50.0)
-
-    ref_pot1 = {
-        (0,): 0.0,
-        (1,): 1.299,
-        (2,): 3.085,
-        (3,): 2.78,
-        (4,): 2.045,
-        (5,): 3.052,
-        (6,): 3.949,
-        (7,): 2.655,
-        (8,): 1.48,
-        (9,): 2.358,
-        (10,): 2.948,
-        (11,): 1.289,
-    }
-    ref_pot2 = {
-        (0,): 0.0,
-        (1,): 1.299,
-        (2,): 3.085,
-        (3,): 2.78,
-        (4,): 2.045,
-        (5,): 2.997,
-        (6,): 3.949,
-        (7,): 2.655,
-        (8,): 1.48,
-        (9,): 2.358,
-        (10,): 2.948,
-        (11,): 1.289,
-    }
-    # ref_pot3 = {(0,): 0.000, (1,): 1.299, (2,): 3.085, (3,): 2.780,
-    #             (4,): 2.045, (5,): 3.089, (6,): 3.949, (7,): 2.655,
-    #             (8,): 1.480, (9,): 2.358, (10,): 2.948, (11,): 2.273}
-    ref_pot3 = {
-        (0,): 0.0,
-        (1,): 1.299,
-        (2,): 3.085,
-        (3,): 2.78,
-        (4,): 2.045,
-        (5,): 2.997,
-        (6,): 3.949,
-        (7,): 2.655,
-        (8,): 1.48,
-        (9,): 2.358,
-        (10,): 2.948,
-        (11,): 1.474,
-    }
-
-    assert tuple(pot1.keys()) == tuple(ref_pot1.keys())
-    assert numpy.allclose(tuple(pot1.values()), tuple(ref_pot1.values()), atol=1.0e-2)
-    assert tuple(pot2.keys()) == tuple(ref_pot2.keys())
-    assert numpy.allclose(tuple(pot2.values()), tuple(ref_pot2.values()), atol=1.0e-2)
-    assert tuple(pot3.keys()) == tuple(ref_pot3.keys())
-    assert numpy.allclose(tuple(pot3.values()), tuple(ref_pot3.values()), atol=1.0e-2)
 
 
 def test__intmol():

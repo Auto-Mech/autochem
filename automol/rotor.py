@@ -153,6 +153,28 @@ def from_zmatrix(
 
 
 # Getters
+def zmatrix(rotors: Rotors):
+    """Get the z-matrix from a rotors object
+
+    :param rotors: A rotors object
+    :type rotors: Rotors
+    :returns: The z-matrix for these rotors
+    :rtype: automol zmat data structure
+    """
+    return rotors.zmatrix
+
+
+def rotor_list(rotors: Rotors) -> List[Rotor]:
+    """Get the list of rotors from a rotors object
+
+    :param rotors: A rotors object
+    :type rotors: Rotors
+    :returns: The list of rotors
+    :rtype: List[Rotor]
+    """
+    return rotors.rotor_list
+
+
 def torsion_names(
     rotors: Rotors, flat: bool = False
 ) -> Union[List[str], List[List[str]]]:
