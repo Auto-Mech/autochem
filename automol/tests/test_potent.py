@@ -81,74 +81,65 @@ POT1_GEO_DCT = {
     ),
 }
 
-POT1 = potent.from_dict(POT1_DCT)
-POT2 = potent.from_dict(
-    {
-        (0.00000000,): 0.00,
-        (0.52359878,): 1.74,
-        (1.04719755,): 3.58,
-        (1.57079633,): 1.68,
-        (2.09439510,): 0.01,
-        (2.61799388,): 1.75,
-        (3.14159265,): 3.59,
-        (3.66519143,): 1.69,
-        (4.18879020,): 0.02,
-        (4.71238898,): 1.72,
-        (5.23598776,): 3.60,
-        (5.75958653,): 1.60,
-    }
-)
-POT3 = potent.from_dict(
-    {
-        (0.00000000,): 0.00,
-        (0.52359878,): None,
-        (1.04719755,): 3.58,
-        (1.57079633,): None,
-        (2.09439510,): 0.01,
-        (2.61799388,): 1.75,
-        (3.14159265,): 3.59,
-        (3.66519143,): 1.69,
-        (4.18879020,): 0.02,
-        (4.71238898,): 1.72,
-        (5.23598776,): 3.60,
-        (5.75958653,): None,
-    }
-)
-POT4 = potent.from_dict(
-    {
-        (0.00000000,): None,
-        (0.52359878,): None,
-        (1.04719755,): None,
-        (1.57079633,): None,
-        (2.09439510,): None,
-        (2.61799388,): None,
-        (3.14159265,): None,
-        (3.66519143,): None,
-        (4.18879020,): None,
-        (4.71238898,): None,
-        (5.23598776,): None,
-        (5.75958653,): None,
-    }
-)
-POT5 = potent.from_dict(
-    {
-        (1.0, 0.1): 1.1,
-        (1.0, 0.2): 1.2,
-        (2.0, 0.1): 1.3,
-        (2.0, 0.2): 1.4,
-        (3.0, 0.1): 1.5,
-        (3.0, 0.2): 1.6,
-        (4.0, 0.1): 1.7,
-        (4.0, 0.2): 1.8,
-    }
-)
+POT2_DCT = {
+    (0.00000000,): 0.00,
+    (0.52359878,): 1.74,
+    (1.04719755,): 3.58,
+    (1.57079633,): 1.68,
+    (2.09439510,): 0.01,
+    (2.61799388,): 1.75,
+    (3.14159265,): 3.59,
+    (3.66519143,): 1.69,
+    (4.18879020,): 0.02,
+    (4.71238898,): 1.72,
+    (5.23598776,): 3.60,
+    (5.75958653,): 1.60,
+}
+POT3_DCT = {
+    (0.00000000,): 0.00,
+    (0.52359878,): None,
+    (1.04719755,): 3.58,
+    (1.57079633,): None,
+    (2.09439510,): 0.01,
+    (2.61799388,): 1.75,
+    (3.14159265,): 3.59,
+    (3.66519143,): 1.69,
+    (4.18879020,): 0.02,
+    (4.71238898,): 1.72,
+    (5.23598776,): 3.60,
+    (5.75958653,): None,
+}
+POT4_DCT = {
+    (0.00000000,): None,
+    (0.52359878,): None,
+    (1.04719755,): None,
+    (1.57079633,): None,
+    (2.09439510,): None,
+    (2.61799388,): None,
+    (3.14159265,): None,
+    (3.66519143,): None,
+    (4.18879020,): None,
+    (4.71238898,): None,
+    (5.23598776,): None,
+    (5.75958653,): None,
+}
+POT5_DCT = {
+    (1.0, 0.1): 1.1,
+    (1.0, 0.2): 1.2,
+    (2.0, 0.1): 1.3,
+    (2.0, 0.2): 1.4,
+    (3.0, 0.1): 1.5,
+    (3.0, 0.2): 1.6,
+    (4.0, 0.1): 1.7,
+    (4.0, 0.2): 1.8,
+}
 
 
 def test__potential():
     """test potent.from_dict, potent.scaled, potent.dict_"""
 
     # Test scaling
-    ref_pot_scaled = potent.from_dict(
+    ref_pot1_scaled = potent.from_dict(
         {
             (0.0,): 0.0,
             (0.52359878,): 0.9625,
@@ -165,8 +156,9 @@ def test__potential():
         }
     )
 
-    pot_scaled = potent.scaled(POT1, 1.25)
-    assert potent.almost_equal(pot_scaled, ref_pot_scaled)
+    pot1 = potent.from_dict(POT1_DCT)
+    pot1_scaled = potent.scaled(pot1, 1.25)
+    assert potent.almost_equal(pot1_scaled, ref_pot1_scaled)
 
     ref_pot1_idx_dct = {
         (0,): 0.00,
@@ -182,6 +174,8 @@ def test__potential():
         (10,): 1.52,
         (11,): 0.74,
     }
+    assert potent.dict_(pot1, index=True) == ref_pot1_idx_dct
+
     ref_pot5_idx_dct = {
         (0, 0): 1.1,
         (0, 1): 1.2,
@@ -192,17 +186,43 @@ def test__potential():
         (3, 0): 1.7,
         (3, 1): 1.8,
     }
-    assert potent.dict_(POT1, index=True) == ref_pot1_idx_dct
-    assert potent.dict_(POT5, index=True) == ref_pot5_idx_dct
+    pot5 = potent.from_dict(POT5_DCT)
+    assert potent.dict_(pot5, index=True) == ref_pot5_idx_dct
+
+
+def test__potential_with_geom():
+    """test potential with geometries"""
+    pot1 = potent.from_dict(POT1_DCT, aux_dct_dct={"geom": POT1_GEO_DCT})
+
+    assert potent.keys(pot1) == ("energy", "geom")
+    assert potent.value(pot1, 0.523) == 0.77
+    assert potent.value(pot1, 0.523, key="geom") == (
+        ("O", (0.016867, 0.751572, 0.0)),
+        ("H", (-0.402803, 0.43847, 0.0)),
+        ("H", (1.433949, -0.408156, 0.0)),
+    )
+    assert potent.dict_(pot1) == POT1_DCT
+    assert potent.dict_(pot1, key="geom") == POT1_GEO_DCT
+
+    pot1_without_geos = potent.from_dict(POT1_DCT)
+
+    assert potent.keys(pot1_without_geos) == ("energy",)
+    assert potent.value(pot1_without_geos, 0.523) == 0.77
+    assert potent.value(pot1_without_geos, 0.523, key="geom") is None
+    assert potent.dict_(pot1_without_geos) == POT1_DCT
+    assert potent.dict_(pot1_without_geos, key="geom") is None
+
 
 
 def test__has_defined_values():
     """test potent.has_defined_values and drop_null flag"""
+    pot1 = potent.from_dict(POT1_DCT)
+    assert potent.has_defined_values(pot1)
 
-    assert potent.has_defined_values(POT1)
-    assert not potent.has_defined_values(POT4)
+    pot4 = potent.from_dict(POT4_DCT)
+    assert not potent.has_defined_values(pot4)
 
-    ref_filt_pot_dct = {
+    ref_filt_pot3_dct = {
         (0.00000000,): 0.00,
         (1.04719755,): 3.58,
         (2.09439510,): 0.01,
@@ -213,10 +233,11 @@ def test__has_defined_values():
         (4.71238898,): 1.72,
         (5.23598776,): 3.60,
     }
-
-    assert potent.dict_(POT3, drop_null=True) == ref_filt_pot_dct
+    pot3 = potent.from_dict(POT3_DCT)
+    assert potent.dict_(pot3, drop_null=True) == ref_filt_pot3_dct
 
 
 if __name__ == "__main__":
-    test__potential()
-    test__has_defined_values()
+    # test__potential()
+    test__potential_with_geom()
+    # test__has_defined_values()
