@@ -1,4 +1,29 @@
 """A data structure for describing a multi-dimensional potential
+
+Values along the potential are stored in an xarray.Dataset object. Energies are required
+for every potential object, but it can additionally store geometry, gradient, hessian,
+or z-matrix values along the potential.
+
+This allows accessing values along the potential using the coordinate values.
+
+For example,
+
+    >>> ene = pot["energy"].sel(q1=0.1, q2=0.25, method="nearest")
+    >>> ene = potent.value(pot, 0.1, 0.25)   # using module function
+
+would grab the energy nearest to the coordinates (q1, q2) = (0.1, 0.25), whereas
+
+    >>> geo = pot["geom"].sel(q1=0.1, q2=0.25, method="nearest")
+    >>> ene = potent.value(pot, 0.1, 0.25, key="geom")   # using module function
+
+would grab the geometry for the same point.
+
+To scale the energies in the potential by 5, one could simply do
+
+    >>> pot["energy"] *= 5
+    >>> pot = potent.scaled(pot, 5)   # using module function
+
+which would scale the energies in place.
 """
 from typing import Dict, List, Optional
 
@@ -7,84 +32,112 @@ import xarray
 
 Potential = xarray.Dataset
 
+ALLOWED_KEYS = {"geom", "grad", "hess", "zmat"}
+KEY_TYPE_DCT = {
+    "energy": float,
+    # eventually, these could be replaced with specific types
+    "geom": object,
+    "grad": object,
+    "hess": object,
+    "zmat": object,
+}
+
 
 # Constructors
 def from_dict(
-    pot_dct: Dict[tuple, float],
+    ene_dct: Dict[tuple, float],
     coord_names: Optional[List[str]] = None,
-    geo_dct: Optional[Dict[tuple, object]] = None,
+    aux_dct_dct: Optional[Dict[str, Dict[tuple, object]]] = None,
 ) -> Potential:
-    """Construct a potential data structure from a dictionary of potential values
+    """Construct a potential data structure from a dictionary of energy values
 
-    :param pot_dct: A dictionary of potential values, by coordinate value
-    :type pot_dct: Dict[tuple, float]
-    :param pot_vals: The potential values, as an array with shape matching the numbers
-        of coordinates in order
-    :type pot_vals: List
-    :param geo_dct: A dictionary of geometries along the potential, by coordinate vlue
-    :type geo_dct: Dict[tuple, automol geom data structure]
+    :param ene_dct: A dictionary of energy values, by coordinate value
+    :type ene_dct: Dict[tuple, float]
+    :param coord_names: Optionally, specify the names for each coordinate in order
+    :type coord_names: List[str], optional
+    :param aux_dct_dct: Dictionaries of auxiliary values along the potential:
+        {
+            "geom": {
+                (0.15, 0.1): <automol geom data structure>,
+                (0.30, 0.2): <automol geom data structure>,
+                ...
+            }, ...
+        }
+        the keywords/types accepted are: "geom", "grad", "hess", and "zmat"
+    :type aux_dct_dct: Optional[Dict[str, Dict[tuple, object]]]
     :returns: A potential data structure
     :rtype: Potential
     """
-    coord_vals_lst = list(map(sorted, map(set, zip(*pot_dct.keys()))))
-
+    coord_vals_lst = list(map(sorted, map(set, zip(*ene_dct.keys()))))
     shape_ = tuple(map(len, coord_vals_lst))
-    pot_arr = numpy.array(list(pot_dct.values()), dtype=float)
-    pot_arr = numpy.reshape(pot_arr, shape_)
 
-    if geo_dct is None:
-        geo_arr = None
+    def array_from_dict_(val_dct, dtype):
+        """Create an array from a dictionary of values along the potential"""
+        val_arr = numpy.empty(shape_, dtype=dtype)
+        for idxs, _ in numpy.ndenumerate(val_arr):
+            coords = tuple(c[i] for i, c in zip(idxs, coord_vals_lst))
+            val_arr[idxs] = val_dct[coords]
+        return val_arr
+
+    ene_arr = array_from_dict_(ene_dct, float)
+
+    if aux_dct_dct is None:
+        aux_arr_dct = None
     else:
-        geo_arr = numpy.empty_like(pot_arr, dtype=object)
-        idxs_lst, _ = zip(*numpy.ndenumerate(pot_arr))
-        for idxs, geo in zip(idxs_lst, geo_dct.values()):
-            geo_arr[idxs] = geo
+        aux_arr_dct = {k: array_from_dict_(v, object) for k, v in aux_dct_dct.items()}
 
     return from_data(
-        pot_arr=pot_arr,
+        ene_arr=ene_arr,
         coord_vals_lst=coord_vals_lst,
         coord_names=coord_names,
-        geo_arr=geo_arr,
+        aux_arr_dct=aux_arr_dct,
     )
 
 
 def from_data(
-    pot_arr: List[List[float]],
+    ene_arr: List[List[float]],
     coord_vals_lst: List[List[float]],
     coord_names: Optional[List[str]] = None,
-    geo_arr: Optional[List[List[object]]] = None,
+    aux_arr_dct: Optional[List[List[object]]] = None,
 ) -> Potential:
-    """Construct a potential data structure from coordinate and potential values
+    """Construct a potential data structure from coordinate and energy values
 
-    :param pot_vals: The potential values, as an array with shape matching the numbers
-        of coordinates in order, or the corresponding flattened array
+    :param ene_arr: The array of energy values for the potential, with shape matching
+        the numbers of coordinates in order
     :type pot_vals: List[List[float]]
     :param coord_vals_lst: Lists of values for each coordinate
     :type coord_vals_lst: List[List[float]]
     :param coord_names: Optionally, specify the names for each coordinate
     :type coord_names: List[str], optional
+    :param aux_arr_dct: A dictionary of arrays of auxiliary values along the potential;
+        the allowed keys are: "geom", "grad", "hess", and "zmat"
     :returns: A potential data structure
     :rtype: Potential
     """
     shape_ = tuple(map(len, coord_vals_lst))
-    pot_arr = numpy.array(pot_arr, dtype=float)
 
-    if coord_names is None:
-        coord_names = [f"q{i}" for i, _ in enumerate(coord_vals_lst)]
+    coord_names = (
+        [f"q{i}" for i, _ in enumerate(coord_vals_lst)]
+        if coord_names is None
+        else coord_names
+    )
 
-    assert (
-        numpy.shape(pot_arr) == shape_
-    ), f"Potential values shape don't match coordinates:\n{pot_arr}\n{coord_vals_lst}"
-    assert len(coord_names) == len(coord_vals_lst)
+    def array_(vals, dtype):
+        arr = numpy.empty(shape_, dtype=dtype)
+        arr[:] = vals
+        return arr
 
-    data_vars = {"potential": (coord_names, pot_arr)}
+    data_vars = {"energy": (coord_names, array_(ene_arr, float))}
 
-    if geo_arr is not None:
-        geo_arr_data = geo_arr
-        geo_arr = numpy.empty_like(pot_arr, dtype=object)
-        geo_arr[:] = geo_arr_data
+    if aux_arr_dct is not None:
+        keys_ = set(aux_arr_dct)
+        assert (
+            keys_ <= ALLOWED_KEYS
+        ), f"Non-allowed keys detected in aux values: {keys_} !<= {ALLOWED_KEYS}"
 
-        data_vars["geometry"] = (coord_names, geo_arr)
+        data_vars.update(
+            {k: (coord_names, array_(v, object)) for k, v in aux_arr_dct.items()}
+        )
 
     return xarray.Dataset(
         data_vars=data_vars, coords=dict(zip(coord_names, coord_vals_lst))
@@ -93,12 +146,14 @@ def from_data(
 
 # Conversions
 def dict_(
-    pot: Potential, index: bool = False, drop_null: bool = False
+    pot: Potential, key: str = "energy", index: bool = False, drop_null: bool = False
 ) -> Dict[tuple, float]:
     """Convert a potential to a dictionary
 
     :param pot: A potential
     :type pot: Potential
+    :param key: Which values to select, defaults to "energy"
+    :type key: str, optional
     :param index: Use indices instead of coordinates for keys?, defaults to False
     :type index: bool, optional
     :param drop_null: Drop null values?
@@ -106,14 +161,23 @@ def dict_(
     :return: The potential formatted as a dictionary
     :rtype: Dict[tuple, float]
     """
+
+    def is_null_(val):
+        if KEY_TYPE_DCT[key] is float:
+            return numpy.isnan(val)
+        return val is None
+
+    if key not in keys(pot):
+        return None
+
     coord_vals_lst = coordinates_values(pot)
 
     pot_dct = {}
-    pot_vals = potential_values(pot)
+    pot_vals = values(pot, key=key)
     for idxs, val in numpy.ndenumerate(pot_vals):
-        key = idxs if index else tuple(c[i] for i, c in zip(idxs, coord_vals_lst))
-        if not numpy.isnan(val) or not drop_null:
-            pot_dct[key] = val
+        key_ = idxs if index else tuple(c[i] for i, c in zip(idxs, coord_vals_lst))
+        if not is_null_(val) or not drop_null:
+            pot_dct[key_] = val
 
     return pot_dct
 
@@ -127,18 +191,34 @@ def shape(pot: Potential) -> List[int]:
     :return: The shape
     :rtype: List[int]
     """
-    return pot.potential.shape
+    return pot.energy.shape
 
 
-def potential_values(pot: Potential) -> numpy.ndarray:
+def keys(pot: Potential) -> List[str]:
+    """Get a list of keys for the values stored in a Potential object
+
+    :param pot: A potential
+    :type pot: Potential
+    :return: The potential keys
+    :rtype: List[str]
+    """
+    return tuple(pot.keys())
+
+
+def values(pot: Potential, key: str = "energy") -> numpy.ndarray:
     """Get the potential values in a Potential object
 
     :param pot: A potential
     :type pot: Potential
+    :param key: Which values to select, defaults to "energy"
+    :type key: str, optional
     :return: The potential values
     :rtype: numpy.ndarray
     """
-    return pot.potential.values
+    if key not in keys(pot):
+        return None
+
+    return pot[key].values
 
 
 def coordinates_values(pot: Potential) -> List[numpy.ndarray]:
@@ -160,11 +240,15 @@ def coordinate_names(pot: Potential) -> List[str]:
     :return: The name of each coordinate
     :rtype: List[numpy.array]
     """
-    return pot.potential.dims
+    return pot.energy.dims
 
 
 def value(
-    pot: Potential, *coords: float, method: str = "nearest", **coord_dct: float
+    pot: Potential,
+    *coords: float,
+    key: str = "energy",
+    method: str = "nearest",
+    **coord_dct: float,
 ) -> float:
     """Get the value of the potential at a specific set of coordinates
 
@@ -177,6 +261,8 @@ def value(
     :type pot: Potential
     :param coords: The coordinates to get the potential value for
     :type coords: List[float]
+    :param key: Which values to select, defaults to "energy"
+    :type key: str, optional
     :param method: The method of value selection, defaults to "nearest"
         (See xarray.DataArray.sel for other options)
     :type method: str, optional
@@ -185,17 +271,24 @@ def value(
     :return: The potential value for these coordinates
     :rtype: float
     """
+    if key not in keys(pot):
+        return None
+
     assert not (
         coords and coord_dct
     ), f"Coordinates must be given by value *or* by keyword:\n{coords}\n{coord_dct}"
 
     coord_dct = dict(zip(coordinate_names(pot), coords)) if not coord_dct else coord_dct
-    return float(pot.sel(**coord_dct, method=method).potential)
+    return pot[key].sel(**coord_dct, method=method).item()
 
 
 # Value checking and equality
-def almost_equal(pot1: Potential, pot2: Potential, rtol=2e-3, atol=2e-6) -> bool:
+def almost_equal(
+    pot1: Potential, pot2: Potential, rtol: float = 2e-3, atol: float = 2e-6
+) -> bool:
     """Are these two potentials almost equal?
+
+    Currently not comparing auxiliary values
 
     :param pot1: A potential
     :type pot1: Potential
@@ -219,7 +312,7 @@ def almost_equal(pot1: Potential, pot2: Potential, rtol=2e-3, atol=2e-6) -> bool
         return False
 
     # Check the potential values
-    pot_vals1, pot_vals2 = map(potential_values, [pot1, pot2])
+    pot_vals1, pot_vals2 = map(values, [pot1, pot2])
     if not numpy.allclose(pot_vals1, pot_vals2, rtol=rtol, atol=atol):
         return False
 
@@ -240,7 +333,7 @@ def has_defined_values(pot: Potential) -> bool:
     :return: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    return bool(pot.potential.notnull().any())
+    return bool(pot.energy.notnull().any())
 
 
 # Transformations
@@ -254,7 +347,10 @@ def scaled(pot: Potential, factor: float) -> Potential:
     :return: The scaled potential
     :rtype: Potential
     """
-    return pot * factor
+    pot = pot.copy()  # could do deep=True, but only the energies need to be copied
+    pot["energy"] = pot.energy.copy()
+    pot["energy"] *= factor
+    return pot
 
 
 def squashed(pot: Potential, squash_factor: float = 0.07) -> Potential:
@@ -268,4 +364,7 @@ def squashed(pot: Potential, squash_factor: float = 0.07) -> Potential:
     :return: The scaled potential
     :rtype: Potential
     """
-    return pot / (1 + squash_factor * pot)
+    pot = pot.copy()  # could do deep=True, but only the energies need to be copied
+    pot["energy"] = pot.energy.copy()
+    pot["energy"] *= 1 / (1 + squash_factor * pot["energy"])
+    return pot
