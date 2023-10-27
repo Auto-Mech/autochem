@@ -3,9 +3,9 @@
 
 import pytest
 import numpy
-from automol import zmat
-# from automol import geom
+from automol import zmat, geom, smiles
 
+H_ZMA = geom.zmatrix(smiles.geometry('[H]'))
 CH4O2_ZMA = (
     ('C', (None, None, None), (None, None, None), (None, None, None)),
     ('O', (0, None, None), ('R1', None, None), (2.659, None, None)),
@@ -157,6 +157,16 @@ def test__from_data():
 
     assert not zmat.is_valid(zma1)
     assert not zmat.is_valid(zma2)
+
+    # Check that monatomic z-matrices are accepted
+    assert H_ZMA == zmat.from_data(
+        symbs=zmat.symbols(H_ZMA),
+        key_mat=zmat.key_matrix(H_ZMA),
+        val_mat=zmat.value_matrix(H_ZMA),
+        name_mat=zmat.name_matrix(H_ZMA),
+    )
+
+    assert zmat.is_valid(H_ZMA)
 
 
 def test__add_atom():
@@ -426,6 +436,9 @@ def test__string():
     zma = zmat.from_string(zmat.string(CH4O2_ZMA))
     assert zmat.almost_equal(zma, CH4O2_ZMA)
 
+    # Make sure we can handle monatomics correctly
+    assert H_ZMA == zmat.from_string(zmat.string(H_ZMA))
+
 
 def test__coord_values():
     """ test zmat.distance
@@ -465,4 +478,6 @@ def test__extra():
 
 
 if __name__ == '__main__':
-    test__extra()
+    # test__extra()
+    test__string()
+    test__from_data()
