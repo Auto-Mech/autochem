@@ -607,9 +607,9 @@ def distance_coordinate_name(zma, key1, key2):
 
     :param zma: the z-matrix
     :type zma: automol Z-Matrix data structure
-    :param key1: the first key in the torsion axis (rotational bond)
+    :param key1: the first key
     :type key1: int
-    :param key2: the second key in the torsion axis (rotational bond)
+    :param key2: the second key
     :type key2: int
     :rtype: str
     """

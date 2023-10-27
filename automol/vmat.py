@@ -218,6 +218,20 @@ def coordinates(vma, shift=0, multi=True):
     return coo_dct
 
 
+def coordinate(vma, name: str) -> List[int]:
+    """Get the atom keys defining a coordinate by name
+
+    :param vma: A v-matrix or z-matrix
+    :type vma: automol vmat or zmat data structure
+    :param name: The name of the coordinate, e.g. "R5"
+    :type name: str
+    :return: The atom keys defining the coordinate
+    :rtype: List[int]
+    """
+    coo, *_ = coordinates(vma)[name]
+    return coo
+
+
 def torsion_axis(vma, dih_name: str) -> Tuple[int, int]:
     """Get the rotational axis of a torsion from the dihedral angle name
 
@@ -228,9 +242,9 @@ def torsion_axis(vma, dih_name: str) -> Tuple[int, int]:
     :return: The axis, i.e. the central two atoms in the coordinate
     :rtype: Tuple[int, int]
     """
-    dih_coo, *_ = coordinates(vma)[dih_name]
+    dih_coo = coordinate(vma, dih_name)
     assert len(dih_coo) == 4, f"{dih_name} is not a dihedral angle:\n{vma}"
-    _, ax_key2, ax_key1, _ = dih_coo
+    _, ax_key1, ax_key2, _ = dih_coo
     return ax_key1, ax_key2
 
 

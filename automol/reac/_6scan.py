@@ -31,7 +31,7 @@ def build_scan_info(zrxn: Reaction, zma, var=False):
     scan_names = scan_coordinate(zrxn, zma)
     const_names = constraint_coordinates(zrxn, zma)
 
-    constraint_dct = zmat.constraint_dct(zma, const_names)
+    constraint_dct = zmat.constraint_dict(zma, const_names)
 
     # Build the grid
     grids = scan_grid(zrxn, zma, var=var)

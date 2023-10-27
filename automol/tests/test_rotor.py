@@ -273,8 +273,8 @@ def test__rotor_for_ts():
 
 
 if __name__ == "__main__":
-    test__rotor()
-    # test__rotor_with_dummy_atoms()
+    # test__rotor()
+    test__rotor_with_dummy_atoms()
     # test__rotor_multidimensional()
     # test__torsion_list_string()
     # test__rotor_for_ts()

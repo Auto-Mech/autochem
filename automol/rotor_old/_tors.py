@@ -36,7 +36,7 @@ class OldTorsion:
 
     def set_indices(self):
         """Build indices for the torsion"""
-        self.indices = zmat.coord_idxs(self.zma, self.name)
+        self.indices = zmat.coordinate(self.zma, self.name)
 
 
 # Build functions

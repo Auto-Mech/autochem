@@ -6,14 +6,13 @@ import dataclasses
 import itertools
 from typing import Dict, List, Optional, Union
 
-import numpy
 from phydat import phycon
 
 from automol import graph, zmat
 from automol.data import potent, tors
 from automol.data.potent import Potential
-from automol.data.tors import Axis, Grid, Groups, Torsion
-from automol.util import ZmatConv, zmat_conv
+from automol.data.tors import Axis, DihCoord, Grid, Groups, Torsion
+from automol.util import ZmatConv
 
 
 @dataclasses.dataclass
@@ -47,7 +46,7 @@ def from_data(zma, tor_lst: List[Torsion], pot: Optional[Potential] = None) -> R
     :rtype: Rotor
     """
     zma_names = zmat.dihedral_angle_names(zma)
-    tor_names = tuple(t.name for t in tor_lst)
+    tor_names = tuple(map(tors.name, tor_lst))
 
     assert all(
         n in zma_names for n in tor_names
@@ -74,26 +73,46 @@ def zmatrix(rotor: Rotor):
     return rotor.zmatrix
 
 
-def torsions(rotor: Rotor) -> List[Torsion]:
+def torsions(
+    rotor: Rotor, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None
+) -> List[Torsion]:
     """Get the torsions making up a rotor
 
     :param rotor: A rotor
     :type rotor: Rotor
+    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
+    :type key_typ: str, optional
+    :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
+    :type zc_: Optional[ZmatConv], optional
     :return: The list of torsions
     :rtype: List[Torsion]
     """
-    return rotor.torsions
+    assert key_typ in ("geom", "zmat"), f"Invalid key type {key_typ} requested"
+
+    tor_lst = rotor.torsions
+
+    if key_typ == "geom":
+        zc_ = zmat.conversion_info(zmatrix(rotor)) if zc_ is None else zc_
+        tor_lst = tuple(tors.with_geometry_indices(t, zc_=zc_) for t in tor_lst)
+
+    return tor_lst
 
 
-def torsion_dict(rotor: Rotor) -> Dict[str, Torsion]:
+def torsion_dict(
+    rotor: Rotor, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None
+) -> Dict[str, Torsion]:
     """Get the torsions in a rotor as a dictionary, by coordinate name
 
     :param rotor: A rotor
     :type rotor: Rotor
+    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
+    :type key_typ: str, optional
+    :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
+    :type zc_: Optional[ZmatConv], optional
     :return: The torsions in the rotor object, by coordinate name
     :rtype: Dict[str, Torsion]
     """
-    return {t.name: t for t in torsions(rotor)}
+    return {tors.name(t): t for t in torsions(rotor, key_typ=key_typ, zc_=zc_)}
 
 
 def potential(rotor: Rotor) -> Optional[Potential]:
@@ -126,7 +145,24 @@ def torsion_names(rotor: Rotor) -> List[str]:
     :return: The torsion coordinate names, in order
     :rtype: List[str]
     """
-    return tuple(t.name for t in torsions(rotor))
+    return tuple(map(tors.name, torsions(rotor)))
+
+
+def torsion_coordinate(
+    rotor: Rotor, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None
+) -> List[DihCoord]:
+    """Get the list of dihedral coordinate keys for the torsions in a rotor
+
+    :param rotor: A rotor
+    :type rotor: Rotor
+    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
+    :type key_typ: str, optional
+    :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
+    :type zc_: Optional[ZmatConv], optional
+    :return: The dihedral coordinates, in order
+    :rtype: List[DihKey]
+    """
+    return tuple(map(tors.coordinate, torsions(rotor, key_typ=key_typ, zc_=zc_)))
 
 
 def torsion_axes(
@@ -143,15 +179,7 @@ def torsion_axes(
     :return: The torsion rotational axes, in order
     :rtype: List[Axis]
     """
-    assert key_typ in ("geom", "zmat"), f"Invalid key type {key_typ} requested"
-
-    axes = tuple(t.axis for t in torsions(rotor))
-
-    if key_typ == "geom":
-        zc_ = zmat.conversion_info(zmatrix(rotor)) if zc_ is None else zc_
-        axes = zmat_conv.geometry_keys(zc_, axes)
-
-    return axes
+    return tuple(map(tors.axis, torsions(rotor, key_typ=key_typ, zc_=zc_)))
 
 
 def torsion_groups(
@@ -168,15 +196,7 @@ def torsion_groups(
     :return: The torsion rotational groups, in order
     :rtype: List[Groups]
     """
-    assert key_typ in ("geom", "zmat"), f"Invalid key type {key_typ} requested"
-
-    groups_lst = tuple(t.groups for t in torsions(rotor))
-
-    if key_typ == "geom":
-        zc_ = zmat.conversion_info(zmatrix(rotor)) if zc_ is None else zc_
-        groups_lst = zmat_conv.geometry_keys(zc_, groups_lst)
-
-    return groups_lst
+    return tuple(map(tors.groups, torsions(rotor, key_typ=key_typ, zc_=zc_)))
 
 
 def torsion_symmetries(rotor: Rotor) -> List[int]:
@@ -187,12 +207,10 @@ def torsion_symmetries(rotor: Rotor) -> List[int]:
     :return: The torsion rotational symmetries, in order
     :rtype: List[int]
     """
-    return tuple(t.symmetry for t in torsions(rotor))
+    return tuple(map(tors.symmetry, torsions(rotor)))
 
 
-def torsion_grids(
-    rotor: Rotor, span=2 * numpy.pi, increment=30 * phycon.DEG2RAD
-) -> List[Grid]:
+def torsion_grids(rotor: Rotor, increment=30 * phycon.DEG2RAD) -> List[Grid]:
     """Get the coordinate grids for the torsions in a rotor
 
     :param rotor: A rotor
@@ -201,30 +219,27 @@ def torsion_grids(
     :rtype: List[Grid]
     """
     zma = zmatrix(rotor)
-
-    def grid_(tor: Torsion) -> Grid:
-        symm = tor.symmetry
-        # [0, 30, 60, 90, ...] << in degrees
-        grid = numpy.arange(0, span / symm, increment)
-        # Start from the equilibrium value
-        grid += zmat.value(zma, tor.name)
-        return tuple(map(float, grid))
-
-    return tuple(map(grid_, torsions(rotor)))
+    return tuple(tors.grid(t, zma=zma, increment=increment) for t in torsions(rotor))
 
 
 # Setters
-def set_potential(rotor: Rotor, pot: Potential) -> Rotor:
+def set_potential(rotor: Rotor, pot: Potential, in_place: bool = False) -> Rotor:
     """Set the rotor potential
 
     :param rotor: A rotor
     :type rotor: Rotor
     :param pot: The rotor potential
     :type pot: Potential
+    :param in_place: Set the potential in-place, mutating the object? defaults to False
+    :type in_place: bool, optional
     :return: A new rotor
     :rtype: Rotor
     """
-    return from_data(zma=zmatrix(rotor), tor_lst=torsions(rotor), pot=pot)
+    if in_place:
+        rotor.potential = pot
+    else:
+        rotor = from_data(zma=zmatrix(rotor), tor_lst=torsions(rotor), pot=pot)
+    return rotor
 
 
 # Transformations
@@ -235,7 +250,7 @@ def partition_high_dimensional_rotor(rotor: Rotor) -> List[Rotor]:
 
     def is_methyl_rotor_(tor: Torsion) -> bool:
         """From a z-matrix and a torsion object, identify if this is a methyl rotor"""
-        group_keys = [[k] + list(g) for k, g in zip(tor.axis, tor.groups)]
+        group_keys = [[k] + list(g) for k, g in zip(tors.axis(tor), tors.groups(tor))]
         group_symbs = [list(map(symbs.__getitem__, ks)) for ks in group_keys]
         return bool(any(g == ["C", "H", "H", "H"] for g in group_symbs))
 
@@ -293,10 +308,10 @@ def rotors_from_data(
     :rtype: List[Rotor]
     """
     if tor_names_lst is None:
-        tor_names = [t.name for t in tor_lst]
+        tor_names = list(map(tors.name, tor_lst))
         tor_names_lst = [tor_names] if multi else [[n] for n in tor_names]
 
-    tor_dct = {t.name: t for t in tor_lst}
+    tor_dct = {tors.name(t): t for t in tor_lst}
 
     rotors = []
     for names in tor_names_lst:
@@ -345,12 +360,13 @@ def rotors_from_zmatrix(
 
     tor_lst = []
     for name in tor_names:
-        axis = zmat.torsion_axis(zma, name)
-        tor = tors.torsion_from_data(
-            name=name,
-            axis=axis,
-            groups=graph.rotational_groups(gra, *axis),
-            symm=graph.rotational_symmetry_number(gra, *axis, lin_keys=lin_keys),
+        tor_keys = list(reversed(zmat.coordinate(zma, name)))
+        tor_axis = tor_keys[1:3]
+        tor = tors.from_data(
+            name_=name,
+            coo=tor_keys,
+            grps=graph.rotational_groups(gra, *tor_axis),
+            symm=graph.rotational_symmetry_number(gra, *tor_axis, lin_keys=lin_keys),
         )
         tor_lst.append(tor)
 
@@ -380,24 +396,33 @@ def rotors_zmatrix(rotors: List[Rotor]):
     return zma
 
 
-def rotors_torsion_dict(rotors: List[Rotor]) -> Dict[str, Torsion]:
+def rotors_torsion_dict(
+    rotors: List[Rotor], key_typ: str = "zmat"
+) -> Dict[str, Torsion]:
     """Get the torsions in a list of rotors as a dictionary, by coordinate name
 
     :param rotors: A list of rotor objects
     :type rotors: List[Rotor]
+    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
+    :type key_typ: str, optional
     :return: The torsions in the rotor object, by coordinate name
     :rtype: Dict[str, Torsion]
     """
-    return {t.name: t for r in rotors for t in torsions(r)}
+    zc_ = None if key_typ == "zmat" else zmat.conversion_info(rotors_zmatrix(rotors))
+    return {
+        tors.name(t): t for r in rotors for t in torsions(r, key_typ=key_typ, zc_=zc_)
+    }
 
 
 def rotors_torsions(
-    rotors: List[Rotor], flat: bool = False, sort: bool = False
+    rotors: List[Rotor], key_typ: str = "zmat", flat: bool = False, sort: bool = False
 ) -> Union[List[Torsion], List[List[Torsion]]]:
     """Get the torsion coordinate names from a list of rotors
 
     :param rotors: A list of rotor objects
     :type rotors: List[Rotor]
+    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
+    :type key_typ: str, optional
     :param flat: Return a flat list instead of grouping by rotors?, defaults to False
     :type flat: bool, optional
     :param sort: Return a flat list sorted in z-matrix order?, defaults to False
@@ -406,11 +431,12 @@ def rotors_torsions(
     :rtype: Union[List[str], List[List[str]]]
     """
     if sort:
-        tor_dct = rotors_torsion_dict(rotors)
+        tor_dct = rotors_torsion_dict(rotors, key_typ=key_typ)
         zma = rotors_zmatrix(rotors)
         return tuple(tor_dct[n] for n in zmat.dihedral_angle_names(zma) if n in tor_dct)
 
-    tor_lst = tuple(map(torsions, rotors))
+    zc_ = zmat.conversion_info(rotors_zmatrix(rotors)) if key_typ == "geom" else None
+    tor_lst = tuple(torsions(r, key_typ=key_typ, zc_=zc_) for r in rotors)
     return tuple(itertools.chain(*tor_lst)) if flat else tor_lst
 
 
@@ -450,6 +476,23 @@ def rotors_torsion_names(
     """
     names_lst = tuple(map(torsion_names, rotors))
     return tuple(itertools.chain(*names_lst)) if flat else names_lst
+
+
+def rotors_torsion_coordinates(
+    rotors: List[Rotor], key_typ: str = "zmat", flat: bool = False
+) -> Union[List[DihCoord], List[List[DihCoord]]]:
+    """Get the torsion rotational keys from a list of rotors
+
+    :param rotors: A list of rotor objects
+    :type rotors: List[Rotor]
+    :param flat: Return a flat list instead of grouping by rotors?, defaults to False
+    :type flat: bool, optional
+    :return: A flat or grouped list of torsion keys
+    :rtype: Union[List[DihKey], List[List[DihKey]]]
+    """
+    zc_ = None if key_typ == "zmat" else zmat.conversion_info(rotors_zmatrix(rotors))
+    coo_lst = tuple(torsion_coordinate(r, key_typ=key_typ, zc_=zc_) for r in rotors)
+    return tuple(itertools.chain(*coo_lst)) if flat else coo_lst
 
 
 def rotors_torsion_axes(

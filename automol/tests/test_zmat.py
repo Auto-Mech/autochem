@@ -453,22 +453,15 @@ def test__extra():
     """ test zmat.bond_key_from_idxs
     """
 
-    assert zmat.bond_key_from_idxs(CH4O2_ZMA, [0, 1]) == 'R1'
-    assert zmat.bond_key_from_idxs(CH4O2_ZMA, [6, 2]) == 'R6'
+    assert zmat.distance_coordinate_name(CH4O2_ZMA, 0, 1) == 'R1'
+    assert zmat.distance_coordinate_name(CH4O2_ZMA, 6, 2) == 'R6'
 
     tors_names = (('D5',), ('D8',))
-    tors_names2 = ('D5', 'D8')
     assert zmat.set_constraint_names(C2H5OH_ZMA, tors_names, '1dhrf') == (
         'D5', 'D8')
     assert zmat.set_constraint_names(C2H5OH_ZMA, tors_names, '1dhrfa') == (
         'R1', 'R2', 'A2', 'R3', 'A3', 'D3', 'R4', 'A4', 'D4', 'R5', 'A5',
         'D5', 'R6', 'A6', 'D6', 'R7', 'A7', 'D7', 'R8', 'A8', 'D8')
-
-    ref_range = (0, 6.283185307179586)
-    tors_names2 = ('D5', 'D8')
-    ranges = zmat.torsional_sampling_ranges(tors_names2)
-    assert (numpy.allclose(ref_range, ranges[0]) and
-            numpy.allclose(ref_range, ranges[1]))
 
 
 if __name__ == '__main__':
