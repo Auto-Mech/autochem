@@ -81,12 +81,14 @@ from automol import inchi
 from automol import smiles
 from automol import zmat
 # L5
-from automol import pot
 from automol import etrans
 from automol import combine
 from automol import reac
+from automol import pot
 from automol import rotor_old
-from automol import rotor
+from automol import data
+from automol.data import rotor   # TEMPORARY - TAKE THIS OUT
+from automol.data import potent  # TEMPORARY - TAKE THIS OUT
 from automol import symm
 # type imports
 from automol.const import ReactionClass, ReactionSpin, ReactionInfo
@@ -115,12 +117,12 @@ __all__ = [
     'smiles',
     'zmat',
     # L5
-    'pot',
     'etrans',
     'combine',
     'reac',
+    'pot',
     'rotor_old',
-    'rotor',
+    'data',
     'symm',
     # type imports
     'ReactionClass', 'ReactionSpin', 'ReactionInfo',

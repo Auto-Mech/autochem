@@ -1,52 +1,19 @@
 """Implements a data structure for encoding rotor information
 
-Rotors:
-    zmatrix: The z-matrix relative to which the rotors are defined
-    rotor_list: The list of rotors
-
-Rotor = List[Torsion]  # each rotor is a list of torsion objects
-
-Torsion:
-    name: z-matrix coordinate name
-    axis: z-matrix keys identifying the rotational axis
-    groups: z-matrix keys identifying the rotational groups
-    symetry: the rotational symmetry of the torsion
+Rotors contain of one or more Torsion data structures
 """
 import dataclasses
 import itertools
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import numpy
-import yaml
 from phydat import phycon
 
-from automol import graph, potent, zmat
-from automol.potent import Potential
+from automol import graph, zmat
+from automol.data import potent, tors
+from automol.data.potent import Potential
+from automol.data.tors import Axis, Grid, Groups, Torsion
 from automol.util import ZmatConv, zmat_conv
-
-Axis = Tuple[int, int]
-Groups = Tuple[List[int], List[int]]
-Grid = List[float]
-
-
-@dataclasses.dataclass
-class Torsion:
-    """Encodes information for a single torsion, which is one component of a rotor
-
-    :param name: The z-matrix coordinate name
-    :type name: str
-    :param axis: The pair of atom keys defining the rotational axis
-    :type axis: Tuple[int, int]
-    :param groups: The sets of atoms keys defining the rotational groups
-    :type groups: Tuple[List[int], List[int]]
-    :type symmetry: The rotational symmetry number of the torsion
-    :type symmetry: int
-    """
-
-    name: str
-    axis: Axis
-    groups: Groups
-    symmetry: int
 
 
 @dataclasses.dataclass
@@ -67,32 +34,32 @@ class Rotor:
     potential: Optional[Potential] = None
 
 
-def from_data(zma, tors_lst: List[Torsion], pot: Optional[Potential] = None) -> Rotor:
+def from_data(zma, tor_lst: List[Torsion], pot: Optional[Potential] = None) -> Rotor:
     """Construct a rotor from data
 
     :param zma: A z-matrix
     :type zma: automol zmat data structure
-    :param tors_lst: A list of torsions
-    :type tors_lst: List[Torsion]
+    :param tor_lst: A list of torsions
+    :type tor_lst: List[Torsion]
     :param pot: Optionally, specify a potential for the rotor, defaults to None
     :type pot: Potential, optional
     :return: A rotor data structure
     :rtype: Rotor
     """
     zma_names = zmat.dihedral_angle_names(zma)
-    tors_names = tuple(t.name for t in tors_lst)
+    tor_names = tuple(t.name for t in tor_lst)
 
     assert all(
-        n in zma_names for n in tors_names
-    ), f"Torsion names don't match z-matrix:\n{tors_names}\n{zma}"
+        n in zma_names for n in tor_names
+    ), f"Torsion names don't match z-matrix:\n{tor_names}\n{zma}"
 
     if pot is not None:
         pot_names = potent.coordinate_names(pot)
         assert (
-            tors_names == pot_names
-        ), f"Torsion names don't match potential:\n{tors_names}\n{pot_names}"
+            tor_names == pot_names
+        ), f"Torsion names don't match potential:\n{tor_names}\n{pot_names}"
 
-    return Rotor(zmatrix=zma, torsions=tors_lst, potential=pot)
+    return Rotor(zmatrix=zma, torsions=tor_lst, potential=pot)
 
 
 # Getters
@@ -235,12 +202,12 @@ def torsion_grids(
     """
     zma = zmatrix(rotor)
 
-    def grid_(tors: Torsion) -> Grid:
-        symm = tors.symmetry
+    def grid_(tor: Torsion) -> Grid:
+        symm = tor.symmetry
         # [0, 30, 60, 90, ...] << in degrees
         grid = numpy.arange(0, span / symm, increment)
         # Start from the equilibrium value
-        grid += zmat.value(zma, tors.name)
+        grid += zmat.value(zma, tor.name)
         return tuple(map(float, grid))
 
     return tuple(map(grid_, torsions(rotor)))
@@ -257,7 +224,7 @@ def set_potential(rotor: Rotor, pot: Potential) -> Rotor:
     :return: A new rotor
     :rtype: Rotor
     """
-    return from_data(zma=zmatrix(rotor), tors_lst=torsions(rotor), pot=pot)
+    return from_data(zma=zmatrix(rotor), tor_lst=torsions(rotor), pot=pot)
 
 
 # Transformations
@@ -266,36 +233,36 @@ def partition_high_dimensional_rotor(rotor: Rotor) -> List[Rotor]:
     zma = zmatrix(rotor)
     symbs = zmat.symbols(zma)
 
-    def is_methyl_rotor_(tors: Torsion) -> bool:
+    def is_methyl_rotor_(tor: Torsion) -> bool:
         """From a z-matrix and a torsion object, identify if this is a methyl rotor"""
-        group_keys = [[k] + list(g) for k, g in zip(tors.axis, tors.groups)]
+        group_keys = [[k] + list(g) for k, g in zip(tor.axis, tor.groups)]
         group_symbs = [list(map(symbs.__getitem__, ks)) for ks in group_keys]
         return bool(any(g == ["C", "H", "H", "H"] for g in group_symbs))
 
-    tors_lst = torsions(rotor)
+    tor_lst = torsions(rotor)
 
-    if len(tors_lst) <= 4:
+    if len(tor_lst) <= 4:
         return (rotor,)
 
     # Separate methyl rotors from non-methyl rotors
     ch3_lst = []
     rem_lst = []
-    for tors in tors_lst:
-        if is_methyl_rotor_(tors):
-            ch3_lst.append(tors)
+    for tor in tor_lst:
+        if is_methyl_rotor_(tor):
+            ch3_lst.append(tor)
         else:
-            rem_lst.append(tors)
+            rem_lst.append(tor)
 
     if len(rem_lst) <= 4:
         # If there are <= 4 non-methyl rotors, group them into a single,
         # multi-dimensional rotor, followed by individual methyl rotors
-        tors_lsts = [rem_lst] + [[t] for t in ch3_lst]
+        tor_lsts = [rem_lst] + [[t] for t in ch3_lst]
     else:
         # If removing methyl rotors didn't reduce the dimensionality down to <= 4,
         # flatten this down to a list of one-dimensional rotors
-        tors_lsts = [[t] for t in tors_lst]
+        tor_lsts = [[t] for t in tor_lst]
 
-    rotors = tuple(from_data(zma=zma, tors_lst=ts) for ts in tors_lsts)
+    rotors = tuple(from_data(zma=zma, tor_lst=ts) for ts in tor_lsts)
     return rotors
 
 
@@ -303,8 +270,8 @@ def partition_high_dimensional_rotor(rotor: Rotor) -> List[Rotor]:
 # # Constructors
 def rotors_from_data(
     zma,
-    tors_lst: List[Torsion],
-    tors_names_lst: List[List[str]] = None,
+    tor_lst: List[Torsion],
+    tor_names_lst: List[List[str]] = None,
     partition: bool = True,
     multi: bool = False,
 ) -> List[Rotor]:
@@ -312,11 +279,11 @@ def rotors_from_data(
 
     :param zma: A z-matrix
     :type zma: automol zmat data structure
-    :param tors_lst: A list of torsions
-    :type tors_lst: List[Torsion]
-    :param tors_names_lst: A list of lists of torsion names identifying which torsions
+    :param tor_lst: A list of torsions
+    :type tor_lst: List[Torsion]
+    :param tor_names_lst: A list of lists of torsion names identifying which torsions
         should be included and how they should be grouped
-    :type tors_names_lst: List[List[str]]
+    :type tor_names_lst: List[List[str]]
     :param partition: Partition high-dimensional rotors? defaults to True
     :type partition: bool, optional
     :param multi: If no grouping was specified, group all torsions into a single rotor?
@@ -325,15 +292,15 @@ def rotors_from_data(
     :returns: A list of rotors for this z-matrix
     :rtype: List[Rotor]
     """
-    if tors_names_lst is None:
-        tors_names = [t.name for t in tors_lst]
-        tors_names_lst = [tors_names] if multi else [[n] for n in tors_names]
+    if tor_names_lst is None:
+        tor_names = [t.name for t in tor_lst]
+        tor_names_lst = [tor_names] if multi else [[n] for n in tor_names]
 
-    tors_dct = {t.name: t for t in tors_lst}
+    tor_dct = {t.name: t for t in tor_lst}
 
     rotors = []
-    for names in tors_names_lst:
-        rotor = Rotor(zmatrix=zma, torsions=[tors_dct[n] for n in names])
+    for names in tor_names_lst:
+        rotor = Rotor(zmatrix=zma, torsions=[tor_dct[n] for n in names])
         rotors.append(rotor)
 
     if partition:
@@ -346,7 +313,7 @@ def rotors_from_data(
 def rotors_from_zmatrix(
     zma,
     gra=None,
-    tors_names_lst: List[List[str]] = None,
+    tor_names_lst: List[List[str]] = None,
     partition: bool = True,
     multi: bool = False,
 ) -> List[Rotor]:
@@ -356,9 +323,9 @@ def rotors_from_zmatrix(
     :type zma: automol zmat data structure
     :param gra: Optionally, specify the z-matrix connectivity with a graph
     :type gra: automol graph data structure
-    :param tors_names_lst: A list of lists of torsion names identifying which torsions
+    :param tor_names_lst: A list of lists of torsion names identifying which torsions
         should be included and how they should be grouped
-    :type tors_names_lst: List[List[str]]
+    :type tor_names_lst: List[List[str]]
     :param partition: Partition high-dimensional rotors? defaults to True
     :type partition: bool, optional
     :param multi: If no grouping was specified, group all torsions into a single rotor?
@@ -373,24 +340,24 @@ def rotors_from_zmatrix(
     rot_bkeys = graph.rotational_bond_keys(gra, lin_keys=lin_keys)
 
     # Read in the torsion coordinate names and sort them in z-matrix order
-    tors_names = [zmat.torsion_coordinate_name(zma, *bk) for bk in rot_bkeys]
-    tors_names = [n for n in zmat.dihedral_angle_names(zma) if n in tors_names]
+    tor_names = [zmat.torsion_coordinate_name(zma, *bk) for bk in rot_bkeys]
+    tor_names = [n for n in zmat.dihedral_angle_names(zma) if n in tor_names]
 
-    tors_lst = []
-    for name in tors_names:
+    tor_lst = []
+    for name in tor_names:
         axis = zmat.torsion_axis(zma, name)
-        tors = Torsion(
+        tor = tors.torsion_from_data(
             name=name,
             axis=axis,
             groups=graph.rotational_groups(gra, *axis),
-            symmetry=graph.rotational_symmetry_number(gra, *axis, lin_keys=lin_keys),
+            symm=graph.rotational_symmetry_number(gra, *axis, lin_keys=lin_keys),
         )
-        tors_lst.append(tors)
+        tor_lst.append(tor)
 
     return rotors_from_data(
         zma=zma,
-        tors_lst=tors_lst,
-        tors_names_lst=tors_names_lst,
+        tor_lst=tor_lst,
+        tor_names_lst=tor_names_lst,
         partition=partition,
         multi=multi,
     )
@@ -439,14 +406,12 @@ def rotors_torsions(
     :rtype: Union[List[str], List[List[str]]]
     """
     if sort:
-        tors_dct = rotors_torsion_dict(rotors)
+        tor_dct = rotors_torsion_dict(rotors)
         zma = rotors_zmatrix(rotors)
-        return tuple(
-            tors_dct[n] for n in zmat.dihedral_angle_names(zma) if n in tors_dct
-        )
+        return tuple(tor_dct[n] for n in zmat.dihedral_angle_names(zma) if n in tor_dct)
 
-    tors_lst = tuple(map(torsions, rotors))
-    return tuple(itertools.chain(*tors_lst)) if flat else tors_lst
+    tor_lst = tuple(map(torsions, rotors))
+    return tuple(itertools.chain(*tor_lst)) if flat else tor_lst
 
 
 def rotors_potentials(rotors: List[Rotor]) -> List[Optional[Potential]]:
@@ -551,93 +516,3 @@ def rotors_torsion_grids(
     """
     grids_lst = tuple(map(torsion_grids, rotors))
     return tuple(itertools.chain(*grids_lst)) if flat else grids_lst
-
-
-# Torsion List functions
-def torsions_string(tors_lst: List[Torsion], one_indexed: bool = True) -> str:
-    """Write a list of torsions to a string
-
-    :param tors_lst: A list of torsions
-    :type tors_lst: List[Torsion]
-    :param one_indexed: Is this a one-indexed string? defaults to True
-    :type one_indexed: bool, optional
-    :returns: A string representations of the torsions, as a flattened list
-    :rtype: str
-    """
-    tors_yml_dct = torsions_yaml_data(tors_lst, one_indexed=one_indexed)
-    tors_str = yaml.dump(tors_yml_dct, sort_keys=False)
-    return tors_str
-
-
-def torsions_from_string(tors_str: str, one_indexed: bool = True) -> List[Torsion]:
-    """Write a list of torsions to a string
-
-    :param tors_str: A string representations of the torsions, as a flattened list
-    :type tors_str: str
-    :param one_indexed: Is this a one-indexed string? defaults to True
-    :type one_indexed: bool, optional
-    :returns: A list of torsions
-    :rtype: List[Torsion]
-    """
-    tors_yml_dct = yaml.load(tors_str, Loader=yaml.FullLoader)
-    tors_lst = torsions_from_yaml_data(tors_yml_dct, one_indexed=one_indexed)
-    return tors_lst
-
-
-def torsions_yaml_data(tors_lst: List[Torsion], one_indexed: bool = True) -> dict:
-    """Write a list of torsions to a yaml-formatted dictionary
-
-    :param tors_lst: A list of torsions
-    :type tors_lst: List[Torsion]
-    :param one_indexed: Is this a one-indexed string? defaults to True
-    :type one_indexed: bool, optional
-    :returns: A string representations of the torsions, as a flattened list
-    :rtype: str
-    """
-    shift = 1 if one_indexed else 0
-
-    tors_yml_dct = {}
-    for tors in tors_lst:
-        axis1, axis2 = (k + shift for k in tors.axis)
-        groups = ([k + shift for k in g] for g in tors.groups)
-        group1, group2 = ("-".join(map(str, g)) if len(g) > 1 else g[0] for g in groups)
-        tors_yml_dct[tors.name] = {
-            "axis1": axis1,
-            "group1": group1,
-            "axis2": axis2,
-            "group2": group2,
-            "symmetry": tors.symmetry,
-        }
-    return tors_yml_dct
-
-
-def torsions_from_yaml_data(tors_yml_dct: dict, one_indexed: bool = True) -> dict:
-    """Read a list of torsions out of a yaml-formatted torsion dictionary
-
-    :param tors_lst: A list of torsions
-    :type tors_lst: List[Torsion]
-    :param one_indexed: Is this a one-indexed string? defaults to True
-    :type one_indexed: bool, optional
-    :returns: A string representations of the torsions, as a flattened list
-    :rtype: str
-    """
-    shift = -1 if one_indexed else 0
-
-    tors_lst = []
-    for name, vals_dct in tors_yml_dct.items():
-        raw_axis = list(map(vals_dct.__getitem__, ["axis1", "axis2"]))
-        raw_groups = list(map(vals_dct.__getitem__, ["group1", "group2"]))
-        raw_groups = [
-            [g] if isinstance(g, int) else map(int, g.split("-")) for g in raw_groups
-        ]
-
-        tors = Torsion(
-            name=name,
-            axis=tuple(k + shift for k in raw_axis),
-            groups=tuple(tuple(k + shift for k in g) for g in raw_groups),
-            symmetry=vals_dct["symmetry"],
-        )
-
-        tors_lst.append(tors)
-
-    return tuple(tors_lst)

@@ -1,7 +1,8 @@
 """ test rotors
 """
 from automol import chi as chi_
-from automol import geom, reac, rotor, smiles
+from automol import geom, reac, smiles
+from automol.data import rotor, tors
 
 # Species Z-Matrix
 C3H7OH_ZMA = geom.zmatrix(smiles.geometry("CCCO"))
@@ -219,7 +220,7 @@ def test__rotor_multidimensional_custom_grouping():
     """test various ways to do the build"""
 
     tors_names_lst = (("D5",), ("D11",), ("D8", "D14", "D17", "D20"))
-    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
+    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tor_names_lst=tors_names_lst)
     assert rotor.rotors_torsion_names(rotors) == tors_names_lst
     assert rotor.rotors_torsion_axes(rotors) == (
         ((0, 1),),
@@ -229,13 +230,13 @@ def test__rotor_multidimensional_custom_grouping():
     assert rotor.rotors_torsion_symmetries(rotors) == ((3,), (3,), (1, 1, 1, 1))
 
     tors_names_lst = (("D5",), ("D11",))
-    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
+    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tor_names_lst=tors_names_lst)
     assert rotor.rotors_torsion_names(rotors) == (("D5",), ("D11",))
     assert rotor.rotors_torsion_axes(rotors) == (((0, 1),), ((5, 8),))
     assert rotor.rotors_torsion_symmetries(rotors) == ((3,), (3,))
 
     tors_names_lst = (("D8", "D14", "D17", "D20"),)
-    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
+    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tor_names_lst=tors_names_lst)
     assert rotor.rotors_torsion_names(rotors) == (("D8", "D14", "D17", "D20"),)
     assert rotor.rotors_torsion_axes(rotors) == (((1, 5), (5, 9), (9, 14), (14, 17)),)
     assert rotor.rotors_torsion_symmetries(rotors) == ((1, 1, 1, 1),)
@@ -250,7 +251,7 @@ def test__torsion_list_string():
     rotors = rotor.rotors_from_zmatrix(C3H7OH_ZMA)
 
     tors_lst = rotor.rotors_torsions(rotors, sort=True)
-    assert tors_lst == rotor.torsions_from_string(rotor.torsions_string(tors_lst))
+    assert tors_lst == tors.torsions_from_string(tors.torsions_string(tors_lst))
 
 
 def test__rotor_for_ts():

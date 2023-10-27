@@ -1,7 +1,7 @@
 """ test automol.potent module
 """
 
-from automol import potent
+from automol.data import potent
 
 # Potentials
 POT1_DCT = {
