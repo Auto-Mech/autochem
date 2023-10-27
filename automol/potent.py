@@ -46,15 +46,15 @@ KEY_TYPE_DCT = {
 # Constructors
 def from_dict(
     ene_dct: Dict[tuple, float],
-    coord_names: Optional[List[str]] = None,
+    coord_names: List[str],
     aux_dct_dct: Optional[Dict[str, Dict[tuple, object]]] = None,
 ) -> Potential:
     """Construct a potential data structure from a dictionary of energy values
 
     :param ene_dct: A dictionary of energy values, by coordinate value
     :type ene_dct: Dict[tuple, float]
-    :param coord_names: Optionally, specify the names for each coordinate in order
-    :type coord_names: List[str], optional
+    :param coord_names: Specify the names for each coordinate, in order
+    :type coord_names: List[str]
     :param aux_dct_dct: Dictionaries of auxiliary values along the potential:
         {
             "geom": {
@@ -97,7 +97,7 @@ def from_dict(
 def from_data(
     ene_arr: List[List[float]],
     coord_vals_lst: List[List[float]],
-    coord_names: Optional[List[str]] = None,
+    coord_names: List[str],
     aux_arr_dct: Optional[List[List[object]]] = None,
 ) -> Potential:
     """Construct a potential data structure from coordinate and energy values
@@ -107,20 +107,14 @@ def from_data(
     :type pot_vals: List[List[float]]
     :param coord_vals_lst: Lists of values for each coordinate
     :type coord_vals_lst: List[List[float]]
-    :param coord_names: Optionally, specify the names for each coordinate
-    :type coord_names: List[str], optional
+    :param coord_names: Specify the names for each coordinate, in order
+    :type coord_names: List[str]
     :param aux_arr_dct: A dictionary of arrays of auxiliary values along the potential;
         the allowed keys are: "geom", "grad", "hess", and "zmat"
     :returns: A potential data structure
     :rtype: Potential
     """
     shape_ = tuple(map(len, coord_vals_lst))
-
-    coord_names = (
-        [f"q{i}" for i, _ in enumerate(coord_vals_lst)]
-        if coord_names is None
-        else coord_names
-    )
 
     def array_(vals, dtype):
         arr = numpy.empty(shape_, dtype=dtype)

@@ -102,23 +102,23 @@ C2H5OH_CH3_ZRXN = reac.from_old_string(C2H5OH_CH3_ZRXN_STR)
 def test__rotor():
     """test a simple rotor without dummy atoms"""
 
-    rotors = rotor.from_zmatrix(C3H7OH_ZMA)
+    rotors = rotor.rotors_from_zmatrix(C3H7OH_ZMA)
 
-    rotor_names1 = rotor.torsion_names(rotors)
-    rotor_names2 = rotor.torsion_names(rotors, flat=True)
+    rotor_names1 = rotor.rotors_torsion_names(rotors)
+    rotor_names2 = rotor.rotors_torsion_names(rotors, flat=True)
     assert rotor_names1 == (("D5",), ("D8",), ("D11",))
     assert rotor_names2 == ("D5", "D8", "D11")
 
-    rotor_axes1 = rotor.torsion_axes(rotors)
-    rotor_axes2 = rotor.torsion_axes(rotors, flat=True)
-    rotor_axes3 = rotor.torsion_axes(rotors, "geom")
+    rotor_axes1 = rotor.rotors_torsion_axes(rotors)
+    rotor_axes2 = rotor.rotors_torsion_axes(rotors, flat=True)
+    rotor_axes3 = rotor.rotors_torsion_axes(rotors, "geom")
     assert rotor_axes1 == (((0, 1),), ((1, 5),), ((5, 8),))
     assert rotor_axes2 == ((0, 1), (1, 5), (5, 8))
     assert rotor_axes3 == (((0, 1),), ((1, 5),), ((5, 8),))
 
-    rotor_groups1 = rotor.torsion_groups(rotors)
-    rotor_groups2 = rotor.torsion_groups(rotors, flat=True)
-    rotor_groups3 = rotor.torsion_groups(rotors, "geom")
+    rotor_groups1 = rotor.rotors_torsion_groups(rotors)
+    rotor_groups2 = rotor.rotors_torsion_groups(rotors, flat=True)
+    rotor_groups3 = rotor.rotors_torsion_groups(rotors, "geom")
     assert rotor_groups1 == (
         (((2, 3, 4), (5, 6, 7, 8, 9, 10, 11)),),
         (((0, 2, 3, 4, 6, 7), (8, 9, 10, 11)),),
@@ -135,13 +135,13 @@ def test__rotor():
         (((0, 1, 2, 3, 4, 6, 7, 9, 10), (11,)),),
     )
 
-    rotor_symms1 = rotor.torsion_symmetries(rotors)
-    rotor_symms2 = rotor.torsion_symmetries(rotors, flat=True)
+    rotor_symms1 = rotor.rotors_torsion_symmetries(rotors)
+    rotor_symms2 = rotor.rotors_torsion_symmetries(rotors, flat=True)
     assert rotor_symms1 == ((3,), (1,), (1,))
     assert rotor_symms2 == (3, 1, 1)
 
-    rotor_grids1 = rotor.torsion_grids(rotors)
-    rotor_grids2 = rotor.torsion_grids(rotors, flat=True)
+    rotor_grids1 = rotor.rotors_torsion_grids(rotors)
+    rotor_grids2 = rotor.rotors_torsion_grids(rotors, flat=True)
     assert [list(map(len, r)) for r in rotor_grids1] == [[4], [12], [12]]
     assert list(map(len, rotor_grids2)) == [4, 12, 12]
 
@@ -149,18 +149,18 @@ def test__rotor():
 def test__rotor_with_dummy_atoms():
     """test a rotor with dummy atoms"""
 
-    rotors = rotor.from_zmatrix(C4H5OH_ZMA)
+    rotors = rotor.rotors_from_zmatrix(C4H5OH_ZMA)
 
-    rotor_names = rotor.torsion_names(rotors)
+    rotor_names = rotor.rotors_torsion_names(rotors)
     assert rotor_names == (("D5",), ("D12",))
 
-    rotor_axes1 = rotor.torsion_axes(rotors)
-    rotor_axes2 = rotor.torsion_axes(rotors, "geom")
+    rotor_axes1 = rotor.rotors_torsion_axes(rotors)
+    rotor_axes2 = rotor.rotors_torsion_axes(rotors, "geom")
     assert rotor_axes1 == (((0, 1),), ((9, 11),))
     assert rotor_axes2 == (((0, 1),), ((8, 9),))
 
-    rotor_groups1 = rotor.torsion_groups(rotors)
-    rotor_groups2 = rotor.torsion_groups(rotors, "geom")
+    rotor_groups1 = rotor.rotors_torsion_groups(rotors)
+    rotor_groups2 = rotor.rotors_torsion_groups(rotors, "geom")
     assert rotor_groups1 == (
         (((2, 3, 4), (5, 6, 7, 9, 11, 12)),),
         (((0, 1, 2, 3, 4, 5, 6, 7), (12,)),),
@@ -170,25 +170,25 @@ def test__rotor_with_dummy_atoms():
         (((0, 1, 2, 3, 4, 5, 6, 7), (10,)),),
     )
 
-    rotor_symms = rotor.torsion_symmetries(rotors)
+    rotor_symms = rotor.rotors_torsion_symmetries(rotors)
     assert rotor_symms == ((3,), (1,))
 
 
 def test__rotor_multidimensional():
     """test a multi-dimensional hindered rotor"""
     # Handle splitting multirotors when only one rotor of dim <= 4 exists
-    rotors = rotor.from_zmatrix(C6H13OH_ZMA, multi=True)
-    assert rotor.torsion_names(rotors) == (
+    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, multi=True)
+    assert rotor.rotors_torsion_names(rotors) == (
         ("D8", "D14", "D17", "D20"),
         ("D5",),
         ("D11",),
     )
-    assert rotor.torsion_axes(rotors) == (
+    assert rotor.rotors_torsion_axes(rotors) == (
         ((1, 5), (5, 9), (9, 14), (14, 17)),
         ((0, 1),),
         ((5, 8),),
     )
-    assert rotor.torsion_groups(rotors) == (
+    assert rotor.rotors_torsion_groups(rotors) == (
         (
             ((0, 2, 3, 4, 6, 7), (8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)),
             ((0, 1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 13), (14, 15, 16, 17, 18, 19, 20)),
@@ -198,12 +198,12 @@ def test__rotor_multidimensional():
         (((2, 3, 4), (5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)),),
         (((0, 1, 2, 3, 4, 6, 7, 9, 10, 14, 15, 16, 17, 18, 19, 20), (11, 12, 13)),),
     )
-    assert rotor.torsion_symmetries(rotors) == ((1, 1, 1, 1), (3,), (3,))
-    assert rotor.torsion_dimensions(rotors) == (4, 1, 1)
+    assert rotor.rotors_torsion_symmetries(rotors) == ((1, 1, 1, 1), (3,), (3,))
+    assert rotor.rotors_dimensions(rotors) == (4, 1, 1)
 
     # Hand splitting multirotors when there is a rotor of dim >= 4
-    rotors = rotor.from_zmatrix(C7H16O2_ZMA, multi=True)
-    assert rotor.torsion_names(rotors) == (
+    rotors = rotor.rotors_from_zmatrix(C7H16O2_ZMA, multi=True)
+    assert rotor.rotors_torsion_names(rotors) == (
         ("D5",),
         ("D8",),
         ("D11",),
@@ -219,26 +219,26 @@ def test__rotor_multidimensional_custom_grouping():
     """test various ways to do the build"""
 
     tors_names_lst = (("D5",), ("D11",), ("D8", "D14", "D17", "D20"))
-    rotors = rotor.from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
-    assert rotor.torsion_names(rotors) == tors_names_lst
-    assert rotor.torsion_axes(rotors) == (
+    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
+    assert rotor.rotors_torsion_names(rotors) == tors_names_lst
+    assert rotor.rotors_torsion_axes(rotors) == (
         ((0, 1),),
         ((5, 8),),
         ((1, 5), (5, 9), (9, 14), (14, 17)),
     )
-    assert rotor.torsion_symmetries(rotors) == ((3,), (3,), (1, 1, 1, 1))
+    assert rotor.rotors_torsion_symmetries(rotors) == ((3,), (3,), (1, 1, 1, 1))
 
     tors_names_lst = (("D5",), ("D11",))
-    rotors = rotor.from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
-    assert rotor.torsion_names(rotors) == (("D5",), ("D11",))
-    assert rotor.torsion_axes(rotors) == (((0, 1),), ((5, 8),))
-    assert rotor.torsion_symmetries(rotors) == ((3,), (3,))
+    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
+    assert rotor.rotors_torsion_names(rotors) == (("D5",), ("D11",))
+    assert rotor.rotors_torsion_axes(rotors) == (((0, 1),), ((5, 8),))
+    assert rotor.rotors_torsion_symmetries(rotors) == ((3,), (3,))
 
     tors_names_lst = (("D8", "D14", "D17", "D20"),)
-    rotors = rotor.from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
-    assert rotor.torsion_names(rotors) == (("D8", "D14", "D17", "D20"),)
-    assert rotor.torsion_axes(rotors) == (((1, 5), (5, 9), (9, 14), (14, 17)),)
-    assert rotor.torsion_symmetries(rotors) == ((1, 1, 1, 1),)
+    rotors = rotor.rotors_from_zmatrix(C6H13OH_ZMA, tors_names_lst=tors_names_lst)
+    assert rotor.rotors_torsion_names(rotors) == (("D8", "D14", "D17", "D20"),)
+    assert rotor.rotors_torsion_axes(rotors) == (((1, 5), (5, 9), (9, 14), (14, 17)),)
+    assert rotor.rotors_torsion_symmetries(rotors) == ((1, 1, 1, 1),)
 
 
 def test__torsion_list_string():
@@ -247,35 +247,33 @@ def test__torsion_list_string():
     (Not a complete serialization -- only serializes the flattened list of torsions)
     """
 
-    rotors = rotor.from_zmatrix(C3H7OH_ZMA)
+    rotors = rotor.rotors_from_zmatrix(C3H7OH_ZMA)
 
-    tors_lst = rotor.torsion_list(rotors)
-    assert tors_lst == rotor.torsion_list_from_string(
-        rotor.torsion_list_string(tors_lst)
-    )
+    tors_lst = rotor.rotors_torsions(rotors, sort=True)
+    assert tors_lst == rotor.torsions_from_string(rotor.torsions_string(tors_lst))
 
 
 def test__rotor_for_ts():
     """build rotors for a transition state"""
 
     ts_zgra = reac.ts_graph(C2H5OH_CH3_ZRXN)
-    rotors = rotor.from_zmatrix(C2H5OH_CH3_ZMA, gra=ts_zgra)
+    rotors = rotor.rotors_from_zmatrix(C2H5OH_CH3_ZMA, gra=ts_zgra)
 
-    print(rotor.torsion_names(rotors))
-    assert rotor.torsion_names(rotors) == (("D3",), ("D6",), ("D11",))
-    assert rotor.torsion_axes(rotors) == (((0, 1),), ((1, 3),), ((6, 10),))
-    assert rotor.torsion_groups(rotors) == (
+    print(rotor.rotors_torsion_names(rotors))
+    assert rotor.rotors_torsion_names(rotors) == (("D3",), ("D6",), ("D11",))
+    assert rotor.rotors_torsion_axes(rotors) == (((0, 1),), ((1, 3),), ((6, 10),))
+    assert rotor.rotors_torsion_groups(rotors) == (
         (((2,), (3, 4, 5, 6, 7, 8, 10, 11, 12, 13)),),
         (((0, 2, 4, 5), (6, 7, 8, 10, 11, 12, 13)),),
         (((0, 1, 2, 3, 4, 5, 7, 8), (11, 12, 13)),),
     )
-    assert rotor.torsion_symmetries(rotors) == ((1,), (1,), (3,))
-    assert rotor.torsion_dimensions(rotors) == (1, 1, 1)
+    assert rotor.rotors_torsion_symmetries(rotors) == ((1,), (1,), (3,))
+    assert rotor.rotors_dimensions(rotors) == (1, 1, 1)
 
 
 if __name__ == "__main__":
-    # test__rotor()
+    test__rotor()
     # test__rotor_with_dummy_atoms()
     # test__rotor_multidimensional()
     # test__torsion_list_string()
-    test__rotor_for_ts()
+    # test__rotor_for_ts()
