@@ -137,6 +137,13 @@ POT5_DCT = {
 
 def test__potential():
     """test potent.from_dict, potent.scaled, potent.dict_"""
+    pot1 = potent.from_dict(POT1_DCT, ["D5"])
+    assert potent.value(pot1, D5=0.523) == 0.77
+    assert potent.value(pot1, 0.523) == 0.77
+
+    pot5 = potent.from_dict(POT5_DCT, ["D5", "D8"])
+    assert potent.value(pot5, D5=3.0, D8=0.2) == 1.6
+    assert potent.value(pot5, 3.0, 0.2) == 1.6
 
     # Test scaling
     ref_pot1_scaled = potent.from_dict(
@@ -153,10 +160,10 @@ def test__potential():
             (4.71238898,): 1.1125,
             (5.23598776,): 1.900,
             (5.75958653,): 0.9250,
-        }
+        },
+        ["D5"],
     )
 
-    pot1 = potent.from_dict(POT1_DCT)
     pot1_scaled = potent.scaled(pot1, 1.25)
     assert potent.almost_equal(pot1_scaled, ref_pot1_scaled)
 
@@ -186,13 +193,12 @@ def test__potential():
         (3, 0): 1.7,
         (3, 1): 1.8,
     }
-    pot5 = potent.from_dict(POT5_DCT)
     assert potent.dict_(pot5, index=True) == ref_pot5_idx_dct
 
 
 def test__potential_with_geom():
     """test potential with geometries"""
-    pot1 = potent.from_dict(POT1_DCT, aux_dct_dct={"geom": POT1_GEO_DCT})
+    pot1 = potent.from_dict(POT1_DCT, ["D5"], aux_dct_dct={"geom": POT1_GEO_DCT})
 
     assert potent.keys(pot1) == ("energy", "geom")
     assert potent.value(pot1, 0.523) == 0.77
@@ -204,7 +210,7 @@ def test__potential_with_geom():
     assert potent.dict_(pot1) == POT1_DCT
     assert potent.dict_(pot1, key="geom") == POT1_GEO_DCT
 
-    pot1_without_geos = potent.from_dict(POT1_DCT)
+    pot1_without_geos = potent.from_dict(POT1_DCT, ["D5"])
 
     assert potent.keys(pot1_without_geos) == ("energy",)
     assert potent.value(pot1_without_geos, 0.523) == 0.77
@@ -213,13 +219,12 @@ def test__potential_with_geom():
     assert potent.dict_(pot1_without_geos, key="geom") is None
 
 
-
 def test__has_defined_values():
     """test potent.has_defined_values and drop_null flag"""
-    pot1 = potent.from_dict(POT1_DCT)
+    pot1 = potent.from_dict(POT1_DCT, ["D5"])
     assert potent.has_defined_values(pot1)
 
-    pot4 = potent.from_dict(POT4_DCT)
+    pot4 = potent.from_dict(POT4_DCT, ["D5"])
     assert not potent.has_defined_values(pot4)
 
     ref_filt_pot3_dct = {
@@ -233,7 +238,7 @@ def test__has_defined_values():
         (4.71238898,): 1.72,
         (5.23598776,): 3.60,
     }
-    pot3 = potent.from_dict(POT3_DCT)
+    pot3 = potent.from_dict(POT3_DCT, ["D5"])
     assert potent.dict_(pot3, drop_null=True) == ref_filt_pot3_dct
 
 

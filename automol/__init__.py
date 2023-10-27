@@ -85,8 +85,8 @@ from automol import pot
 from automol import etrans
 from automol import combine
 from automol import reac
-from automol import rotor
 from automol import rotor_old
+from automol import rotor
 from automol import symm
 # type imports
 from automol.const import ReactionClass, ReactionSpin, ReactionInfo
@@ -119,8 +119,8 @@ __all__ = [
     'etrans',
     'combine',
     'reac',
-    'rotor',
     'rotor_old',
+    'rotor',
     'symm',
     # type imports
     'ReactionClass', 'ReactionSpin', 'ReactionInfo',
