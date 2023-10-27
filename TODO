@@ -83,6 +83,7 @@
     [ ] pot module
         [X] Move intermolecular potentials into automol.geom
         [ ] Finish implementing geom data structures along potential
+    [ ] Correct mechdriver/mechlib/filesys/read.py:potential() to return the new potential objects?
     [ ] _6scan.py  (maybe leave this for now)
     [x] _8conv.py
     [ ] make reac.from_old_string handle dummy atoms correctly

@@ -230,7 +230,7 @@ def set_potential(rotor: Rotor, pot: Potential, in_place: bool = False) -> Rotor
     :type rotor: Rotor
     :param pot: The rotor potential
     :type pot: Potential
-    :param in_place: Set the potential in-place, mutating the object? defaults to False
+    :param in_place: Do this in-place, mutating the object? defaults to False
     :type in_place: bool, optional
     :return: A new rotor
     :rtype: Rotor
