@@ -13,6 +13,7 @@ from automol.vmat import count
 from automol.vmat import atom_indices
 from automol.vmat import coordinate_key_matrix
 from automol.vmat import coordinates
+from automol.vmat import coordinate
 from automol.vmat import torsion_axis
 from automol.vmat import names
 from automol.vmat import distance_names
@@ -66,11 +67,8 @@ from automol.zmat.base._core import linear_atom_keys
 from automol.zmat.base._core import shift_down
 # extra functions
 from automol.zmat.base._extra import samples
-from automol.zmat.base._extra import torsional_sampling_ranges
-from automol.zmat.base._extra import constraint_dct
+from automol.zmat.base._extra import constraint_dict
 from automol.zmat.base._extra import set_constraint_names
-from automol.zmat.base._extra import coord_idxs
-from automol.zmat.base._extra import bond_key_from_idxs
 
 
 __all__ = [
@@ -82,6 +80,7 @@ __all__ = [
     'atom_indices',
     'coordinate_key_matrix',
     'coordinates',
+    'coordinate',
     'torsion_axis',
     'names',
     'distance_names',
@@ -135,9 +134,6 @@ __all__ = [
     'shift_down',
     # extra functions
     'samples',
-    'torsional_sampling_ranges',
-    'constraint_dct',
+    'constraint_dict',
     'set_constraint_names',
-    'coord_idxs',
-    'bond_key_from_idxs',
 ]

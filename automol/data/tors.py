@@ -13,6 +13,7 @@ from automol import zmat
 from automol.util import ZmatConv, zmat_conv
 
 Axis = Tuple[int, int]
+DihCoord = Tuple[int, int, int, int]
 Groups = Tuple[List[int], List[int]]
 Grid = List[float]
 
@@ -23,8 +24,8 @@ class Torsion:
 
     :param name: The z-matrix coordinate name
     :type name: str
-    :param axis: The pair of atom keys defining the rotational axis
-    :type axis: Tuple[int, int]
+    :param coordinate: The z-matrix keys defining the torsion coordinate
+    :type coordinate: DihKey
     :param groups: The sets of atoms keys defining the rotational groups
     :type groups: Tuple[List[int], List[int]]
     :type symmetry: The rotational symmetry number of the torsion
@@ -32,20 +33,20 @@ class Torsion:
     """
 
     name: str
-    axis: Axis
+    coordinate: DihCoord
     groups: Groups
     symmetry: int
 
 
 # Torsion functions
 # # Constructors
-def torsion_from_data(name, axis, groups, symm) -> Torsion:
+def from_data(name_: str, coo: DihCoord, grps: Groups, symm: int) -> Torsion:
     """Construct a torsion from data
 
-    :param name: The z-matrix coordinate name
-    :type name: str
-    :param axis: The pair of atom keys defining the rotational axis
-    :type axis: Tuple[int, int]
+    :param name_: The z-matrix coordinate name
+    :type name_: str
+    :param coo: The z-matrix keys defining the torsion coordinate
+    :type coo: DihKey
     :param groups: The sets of atoms keys defining the rotational groups
     :type groups: Tuple[List[int], List[int]]
     :type symm: The rotational symmetry number of the torsion
@@ -53,18 +54,18 @@ def torsion_from_data(name, axis, groups, symm) -> Torsion:
     :return: The torsion data structure
     :rtype: Torsion
     """
-    assert len(axis) == 2
-    assert len(groups) == 2
+    assert len(coo) == 4, f"Invalid torsion coordinate: {coo}"
+    assert len(grps) == 2, f"Invalid torsion groups: {grps}"
     return Torsion(
-        name=str(name),
-        axis=tuple(axis),
-        groups=tuple(map(tuple, groups)),
+        name=str(name_),
+        coordinate=tuple(coo),
+        groups=tuple(map(tuple, grps)),
         symmetry=int(symm),
     )
 
 
 # # Getters
-def torsion_name(tor: Torsion) -> str:
+def name(tor: Torsion) -> str:
     """Get the coordinate name of a torsion
 
     :param tor: A torsion
@@ -75,9 +76,27 @@ def torsion_name(tor: Torsion) -> str:
     return tor.name
 
 
-def torsion_axis(
+def coordinate(
     tor: Torsion, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None
-) -> Axis:
+) -> DihCoord:
+    """Get the z-matrix keys defining the torsion coordinate
+
+    :param tor: A torsion
+    :type tor: Torsion
+    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
+    :type key_typ: str, optional
+    :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
+    :type zc_: Optional[ZmatConv], optional
+    :return: The torsion rotational keys
+    :rtype: str
+    """
+    coo = tor.coordinate
+    if key_typ == "geom":
+        coo = zmat_conv.geometry_keys(zc_, coo, dummy=True)
+    return coo
+
+
+def axis(tor: Torsion, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None) -> Axis:
     """Get the rotational axis of a torsion
 
     :param tor: A torsion
@@ -89,13 +108,11 @@ def torsion_axis(
     :return: The torsion rotational axis
     :rtype: str
     """
-    axis = tor.axis
-    if key_typ == "geom":
-        axis = zmat_conv.geometry_keys(zc_, axis)
-    return axis
+    ks_ = coordinate(tor, key_typ=key_typ, zc_=zc_)
+    return ks_[1:3]
 
 
-def torsion_groups(
+def groups(
     tor: Torsion, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None
 ) -> Groups:
     """Get the rotational groups of a torsion
@@ -109,13 +126,13 @@ def torsion_groups(
     :return: The torsion rotational groups
     :rtype: str
     """
-    groups = tor.groups
+    grps = tor.groups
     if key_typ == "geom":
-        groups = zmat_conv.geometry_keys(zc_, groups)
-    return groups
+        grps = zmat_conv.geometry_keys(zc_, grps)
+    return grps
 
 
-def torsion_symmetry(tor: Torsion) -> int:
+def symmetry(tor: Torsion) -> int:
     """Get the rotational symmetry of a torsion
 
     :param tor: A torsion
@@ -126,32 +143,38 @@ def torsion_symmetry(tor: Torsion) -> int:
     return tor.symmetry
 
 
-def torsion_grid(
-    tor: Torsion, zma, span=2 * numpy.pi, increment=30 * phycon.DEG2RAD
-) -> Grid:
+def span(tor: Torsion) -> float:
+    """Get the angular span of a torsion, based on the symmetry number
+
+    :param tor: A torsion
+    :type tor: Torsion
+    :return: The angular span of the torsion, 2 pi / symmetry
+    :rtype: float
+    """
+    return 2 * numpy.pi / symmetry(tor)
+
+
+def grid(tor: Torsion, zma, increment=30 * phycon.DEG2RAD) -> Grid:
     """Get the coordinate grid for a torsion
 
     :param tor: A torsion
     :type tor: Torsion
     :param zma: The z-matrix associated with this torsion
     :type zma: automol zmat data structure
-    :param span: The angular span of the grid, in radians
-    :type span: float
     :param increment: The grid increment, in radians
     :type increment: float
     :return: The coordinate grid
     :rtype: Grid
     """
-    symm = tor.symmetry
     # [0, 30, 60, 90, ...] << in degrees
-    grid = numpy.arange(0, span / symm, increment)
+    vals = numpy.arange(0, span(tor), increment)
     # Start from the equilibrium value
-    grid += zmat.value(zma, tor.name)
-    return tuple(map(float, grid))
+    vals += zmat.value(zma, name(tor))
+    return tuple(map(float, vals))
 
 
 # # Transformations
-def torsion_with_geometry_indices(tor: Torsion, zc_: ZmatConv) -> Torsion:
+def with_geometry_indices(tor: Torsion, zc_: ZmatConv) -> Torsion:
     """Given a z-matrix torsion and a z-matrix conversion, return a torsion with
     geometry indices
 
@@ -164,11 +187,11 @@ def torsion_with_geometry_indices(tor: Torsion, zc_: ZmatConv) -> Torsion:
     :return: A torsion data structure using geometry indices
     :rtype: Torsion
     """
-    return torsion_from_data(
-        name=torsion_name(tor),
-        axis=torsion_axis(tor, key_typ="geom", zc_=zc_),
-        groups=torsion_groups(tor, key_typ="geom", zc_=zc_),
-        symm=torsion_symmetry(tor),
+    return from_data(
+        name_=name(tor),
+        coo=coordinate(tor, key_typ="geom", zc_=zc_),
+        grps=groups(tor, key_typ="geom", zc_=zc_),
+        symm=symmetry(tor),
     )
 
 
@@ -217,15 +240,18 @@ def torsions_yaml_data(tor_lst: List[Torsion], one_indexed: bool = True) -> dict
 
     tor_yml_dct = {}
     for tor in tor_lst:
-        axis1, axis2 = (k + shift for k in tor.axis)
-        groups = ([k + shift for k in g] for g in tor.groups)
-        group1, group2 = ("-".join(map(str, g)) if len(g) > 1 else g[0] for g in groups)
-        tor_yml_dct[tor.name] = {
+        coo = [k + shift for k in coordinate(tor)]
+        axis1, axis2 = (k + shift for k in axis(tor))
+        grps = ([k + shift for k in g] for g in groups(tor))
+        grp1, grp2 = ("-".join(map(str, g)) if len(g) > 1 else g[0] for g in grps)
+        coo_str = "-".join("*" if k is None else str(k) for k in coo)
+        tor_yml_dct[name(tor)] = {
             "axis1": axis1,
-            "group1": group1,
+            "group1": grp1,
             "axis2": axis2,
-            "group2": group2,
-            "symmetry": tor.symmetry,
+            "group2": grp2,
+            "symmetry": symmetry(tor),
+            "coordinate": coo_str,
         }
     return tor_yml_dct
 
@@ -243,17 +269,22 @@ def torsions_from_yaml_data(tor_yml_dct: dict, one_indexed: bool = True) -> dict
     shift = -1 if one_indexed else 0
 
     tor_lst = []
-    for name, vals_dct in tor_yml_dct.items():
-        raw_axis = list(map(vals_dct.__getitem__, ["axis1", "axis2"]))
-        raw_groups = list(map(vals_dct.__getitem__, ["group1", "group2"]))
-        raw_groups = [
-            [g] if isinstance(g, int) else map(int, g.split("-")) for g in raw_groups
-        ]
+    for name_, vals_dct in tor_yml_dct.items():
+        ax_ = list(map(vals_dct.__getitem__, ["axis1", "axis2"]))
+        ax_ = [k + shift for k in ax_]
+        grps = list(map(vals_dct.__getitem__, ["group1", "group2"]))
+        grps = [[g] if isinstance(g, int) else map(int, g.split("-")) for g in grps]
+        grps = [[k + shift for k in g] for g in grps]
+        coo = vals_dct.get("coordinate", None)
+        if coo is None:
+            coo = [None, *ax_, None]
+        else:
+            coo = [None if s == "*" else int(s) + shift for s in coo.split("-")]
 
-        tor = torsion_from_data(
-            name=name,
-            axis=[k + shift for k in raw_axis],
-            groups=[[k + shift for k in g] for g in raw_groups],
+        tor = from_data(
+            name_=name_,
+            coo=coo,
+            grps=grps,
             symm=vals_dct["symmetry"],
         )
 
