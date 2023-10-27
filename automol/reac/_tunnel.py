@@ -82,7 +82,7 @@ def alpha(freqs, cfc_dct, vr4=None):
 
     term2 = 0.0
     for i, ifreq in enumerate(freqs):
-        vval = dict_.values_by_unordered_tuple(cfc_dct, (i, ridx, ridx))
+        vval = dict_.value_by_unordered_key(cfc_dct, (i, ridx, ridx))
 
         tm1 = (vval**2 / ifreq**3)
         tm2 = 2.0*ifreq**(-2) + (1.0 / (4.0*rfreq**2 + ifreq**2))

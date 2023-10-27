@@ -5,24 +5,24 @@
 """
 
 import itertools
-from automol.graph.base._kekule import kekule
-from automol.graph.base._kekule import radical_atom_keys
-from automol.graph.base._algo import branches
-from automol.graph.base._algo import rings_atom_keys
-from automol.graph.base._algo import isomorphism
-from automol.graph.base._core import atom_keys
-from automol.graph.base._core import bond_keys
-from automol.graph.base._core import atom_symbols
-from automol.graph.base._core import atom_symbol_keys
-from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import bond_orders
-from automol.graph.base._core import remove_atoms
-from automol.graph.base._core import remove_bonds
-from automol.graph.base._core import from_ts_graph
-from automol.graph.base._core import subgraph
-from automol.graph.base._core import explicit
-from automol.graph.base._canon import to_local_stereo
-from automol.graph.base._canon import from_local_stereo
+from automol.graph.base._3kekule import kekule
+from automol.graph.base._3kekule import radical_atom_keys
+from automol.graph.base._2algo import branches
+from automol.graph.base._2algo import rings_atom_keys
+from automol.graph.base._2algo import isomorphism
+from automol.graph.base._0core import atom_keys
+from automol.graph.base._0core import bond_keys
+from automol.graph.base._0core import atom_symbols
+from automol.graph.base._0core import atom_symbol_keys
+from automol.graph.base._0core import atoms_neighbor_atom_keys
+from automol.graph.base._0core import bond_orders
+from automol.graph.base._0core import remove_atoms
+from automol.graph.base._0core import remove_bonds
+from automol.graph.base._0core import ts_reagents_graph_without_stereo
+from automol.graph.base._0core import subgraph
+from automol.graph.base._0core import explicit
+from automol.graph.base._6canon import to_local_stereo
+from automol.graph.base._6canon import from_local_stereo
 
 
 # # core functions
@@ -120,7 +120,7 @@ def functional_group_dct(gra):
 
 
 # # finders for overaching types
-def hydrocarbon_species(gra):
+def is_hydrocarbon_species(gra):
     """ Determine if molecule is a hydrocarbon.
 
         :param gra: molecular graph
@@ -130,7 +130,7 @@ def hydrocarbon_species(gra):
     return bool(set(_unique_atoms(gra)) <= {'C', 'H'})
 
 
-def radical_species(gra):
+def is_radical_species(gra):
     """ Determine if molecule is a radical species.
 
         :param gra: molecular graph
@@ -538,8 +538,6 @@ def halide_groups(gra):
         for hal_idx in hal_idxs:
             hal_neighs = neighbors_of_type(gra, hal_idx, symb='C')
             if not hal_neighs:
-                print('halide not bound to carbon')
-                print(gra)
                 hal_neighs = neighbors_of_type(gra, hal_idx, symb='S')
                 hal_neighs = neighbors_of_type(gra, hal_idx, symb='B')
                 hal_neighs += neighbors_of_type(gra, hal_idx, symb='O')
@@ -799,7 +797,7 @@ def radical_dissociation_products(gra, pgra1):
         :rtype: tuple(automol.graph.object)
     """
 
-    gra = from_ts_graph(gra)
+    gra = ts_reagents_graph_without_stereo(gra)
 
     # Attempt to find a graph of product corresponding to pgra1
     pgra2 = None
@@ -807,7 +805,7 @@ def radical_dissociation_products(gra, pgra1):
         for adj in atoms_neighbor_atom_keys(gra)[rad]:
             for group in branches(gra, adj, stereo=False):
                 if isomorphism(group, pgra1, backbone_only=True):
-                    pgra2 = remove_atoms(gra, atom_keys(group))
+                    pgra2 = remove_atoms(gra, atom_keys(group), stereo=False)
                     if bond_keys(group) in pgra2:
                         pgra2 = remove_bonds(pgra2, bond_keys(group))
 

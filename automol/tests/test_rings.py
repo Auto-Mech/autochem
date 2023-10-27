@@ -210,11 +210,11 @@ def __zmat_ring():
     }
 
     # Get lists of atoms in the ring
-    rng_atoms1 = zmat.all_rings_atoms(ZMA1, zrxn=None)
-    rng_atoms2 = zmat.all_rings_atoms(ZMA2, zrxn=None)
-    rng_atoms3 = zmat.all_rings_atoms(ZMA3, zrxn=None)
-    rng_atoms4 = zmat.all_rings_atoms(ZMA4, zrxn=None)
-    rng_atoms5 = zmat.all_rings_atoms(ZMA5, zrxn=None)
+    rng_atoms1 = zmat.all_rings_atoms(ZMA1, tsg=None)
+    rng_atoms2 = zmat.all_rings_atoms(ZMA2, tsg=None)
+    rng_atoms3 = zmat.all_rings_atoms(ZMA3, tsg=None)
+    rng_atoms4 = zmat.all_rings_atoms(ZMA4, tsg=None)
+    rng_atoms5 = zmat.all_rings_atoms(ZMA5, tsg=None)
 
     # Sampling ranges (includes dihedral calls)
     rng_dct1 = zmat.all_rings_dct(ZMA1, rng_atoms1)
@@ -322,3 +322,7 @@ def __geom_ring():
     #     ('H',  (-4.2677394999, 4.7261055569, 1.4049815516)))
     # rng_atoms = ((0, 1, 4, 6, 8),)
     # assert not geom.all_rings_angles_reasonable(bad_geo, rng_atoms)
+
+
+if __name__ == "__main__":
+    test__ring_puckering()

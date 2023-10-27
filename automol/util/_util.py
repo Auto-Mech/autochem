@@ -120,6 +120,20 @@ def move_item_to_front(lst, item):
     return tuple(lst)
 
 
+def move_item_to_end(lst, item):
+    """ Move an item to the end of a list.
+
+        :param lst: the list
+        :type lst: list or tuple
+        :param item: the item, which must be in `lst`
+        :returns: the list, with the item moved to end
+        :rtype: tuple
+    """
+    lst = list(lst)
+    lst.append(lst.pop(lst.index(item)))
+    return tuple(lst)
+
+
 def move_items_to_front(lst, items):
     """ Move an item to the front of a list.
 
@@ -171,12 +185,6 @@ def scale_iterable(iterable, scale_factor):
         scaled_iterable = tuple(val * scale_factor for val in iterable)
 
     return scaled_iterable
-
-
-def numpy_to_float(iterable):
-    """ Convert a numpy array to a tuple of floats
-    """
-    return tuple(val.item() for val in iterable)
 
 
 def remove_duplicates_with_order(lst):

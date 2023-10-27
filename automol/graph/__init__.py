@@ -2,7 +2,6 @@
 
 Import hierarchy:
     vmat        no dependencies
-    zmat        no dependencies
     embed       no dependencies
     _conv       dependencies: vmat
 
@@ -16,267 +15,261 @@ Level 4 graph functions, which do depend on these things, belong in graph/*.py
 # L2
 # core functions:
 # # constructors
-from automol.graph.base._core import from_data
-from automol.graph.base._core import atoms_from_data
-from automol.graph.base._core import bonds_from_data
-from automol.graph.base._core import from_atoms_and_bonds
+from automol.graph.base._0core import from_data
+from automol.graph.base._0core import atoms_from_data
+from automol.graph.base._0core import bonds_from_data
+from automol.graph.base._0core import from_atoms_and_bonds
 # # getters
-from automol.graph.base._core import atoms
-from automol.graph.base._core import bonds
-from automol.graph.base._core import atom_keys
-from automol.graph.base._core import bond_keys
-from automol.graph.base._core import atom_symbols
-from automol.graph.base._core import bond_orders
-from automol.graph.base._core import atom_implicit_hydrogen_valences
-from automol.graph.base._core import atom_stereo_parities
-from automol.graph.base._core import ts_atom_product_stereo_parities
-from automol.graph.base._core import ts_atom_fleeting_stereo_parities
-from automol.graph.base._core import bond_stereo_parities
-from automol.graph.base._core import ts_bond_product_stereo_parities
-from automol.graph.base._core import ts_bond_fleeting_stereo_parities
-from automol.graph.base._core import stereo_parities
+from automol.graph.base._0core import atoms
+from automol.graph.base._0core import bonds
+from automol.graph.base._0core import atom_keys
+from automol.graph.base._0core import bond_keys
+from automol.graph.base._0core import atom_symbols
+from automol.graph.base._0core import bond_orders
+from automol.graph.base._0core import atom_implicit_hydrogens
+from automol.graph.base._0core import atom_stereo_parities
+from automol.graph.base._0core import ts_graph
+from automol.graph.base._0core import bond_stereo_parities
+from automol.graph.base._0core import stereo_parities
 # # setters
-from automol.graph.base._core import set_atom_symbols
-from automol.graph.base._core import set_bond_orders
-from automol.graph.base._core import set_atom_implicit_hydrogen_valences
-from automol.graph.base._core import set_atom_stereo_parities
-from automol.graph.base._core import set_bond_stereo_parities
-from automol.graph.base._core import set_ts_atom_product_stereo_parities
-from automol.graph.base._core import set_ts_atom_fleeting_stereo_parities
-from automol.graph.base._core import set_ts_bond_product_stereo_parities
-from automol.graph.base._core import set_ts_bond_fleeting_stereo_parities
-from automol.graph.base._core import set_stereo_parities
+from automol.graph.base._0core import set_atom_symbols
+from automol.graph.base._0core import set_bond_orders
+from automol.graph.base._0core import set_atom_implicit_hydrogens
+from automol.graph.base._0core import set_atom_stereo_parities
+from automol.graph.base._0core import set_bond_stereo_parities
+from automol.graph.base._0core import set_stereo_parities
 # # I/O
-from automol.graph.base._core import string
-from automol.graph.base._core import yaml_dictionary
-from automol.graph.base._core import from_string
-from automol.graph.base._core import from_yaml_dictionary
+from automol.graph.base._0core import string
+from automol.graph.base._0core import yaml_data
+from automol.graph.base._0core import from_string
+from automol.graph.base._0core import from_yaml_data
+from automol.graph.base._0core import from_old_yaml_data
 # # conversions
-from automol.graph.base._core import frozen
-from automol.graph.base._core import formula
+from automol.graph.base._0core import frozen
+from automol.graph.base._0core import formula
+from automol.graph.base._0core import symbols
+# # sorting
+from automol.graph.base._0core import argsort_by_size
+from automol.graph.base._0core import sort_by_size
 # # properties
-from automol.graph.base._core import atom_count
-from automol.graph.base._core import atom_count_by_type
-from automol.graph.base._core import heavy_atom_count
-from automol.graph.base._core import electron_count
-from automol.graph.base._core import atom_stereo_keys
-from automol.graph.base._core import bond_stereo_keys
-from automol.graph.base._core import stereo_keys
-from automol.graph.base._core import nitrogen_atom_stereo_keys
-from automol.graph.base._core import has_stereo
-from automol.graph.base._core import has_atom_stereo
-from automol.graph.base._core import has_bond_stereo
-from automol.graph.base._core import has_nitrogen_atom_stereo
-from automol.graph.base._core import has_fractional_bonds
-from automol.graph.base._core import is_ts_graph
-from automol.graph.base._core import atomic_numbers
-from automol.graph.base._core import mass_numbers
-from automol.graph.base._core import atom_element_valences
-from automol.graph.base._core import atom_lone_pair_counts
-from automol.graph.base._core import atom_van_der_waals_radius
-from automol.graph.base._core import atom_bond_valences
-from automol.graph.base._core import atom_explicit_hydrogen_valences
-from automol.graph.base._core import atom_unsaturations
-from automol.graph.base._core import bond_unsaturations
-from automol.graph.base._core import tetrahedral_atom_keys
-from automol.graph.base._core import maximum_spin_multiplicity
-from automol.graph.base._core import possible_spin_multiplicities
-from automol.graph.base._core import atom_symbol_keys
-from automol.graph.base._core import backbone_keys
-from automol.graph.base._core import backbone_bond_keys
-from automol.graph.base._core import backbone_hydrogen_keys
-from automol.graph.base._core import hydrogen_keys
-from automol.graph.base._core import atom_backbone_hydrogen_keys
-from automol.graph.base._core import atom_hydrogen_keys
-from automol.graph.base._core import terminal_atom_keys
-from automol.graph.base._core import unsaturated_atom_keys
-from automol.graph.base._core import unsaturated_bond_keys
-from automol.graph.base._core import lone_pair_atom_keys
-from automol.graph.base._core import angle_keys
+from automol.graph.base._0core import atom_count
+from automol.graph.base._0core import count
+from automol.graph.base._0core import electron_count
+from automol.graph.base._0core import atom_stereo_keys
+from automol.graph.base._0core import bond_stereo_keys
+from automol.graph.base._0core import stereo_keys
+from automol.graph.base._0core import has_stereo
+from automol.graph.base._0core import has_atom_stereo
+from automol.graph.base._0core import has_bond_stereo
+from automol.graph.base._0core import has_dummy_atoms
+from automol.graph.base._0core import has_pi_bonds
+from automol.graph.base._0core import is_ts_graph
+from automol.graph.base._0core import atomic_numbers
+from automol.graph.base._0core import mass_numbers
+from automol.graph.base._0core import van_der_waals_radii
+from automol.graph.base._0core import covalent_radii
+from automol.graph.base._0core import atomic_valences
+from automol.graph.base._0core import atom_lone_pairs
+from automol.graph.base._0core import atom_van_der_waals_radius
+from automol.graph.base._0core import atom_bond_counts
+from automol.graph.base._0core import atom_unpaired_electrons
+from automol.graph.base._0core import bond_unpaired_electrons
+from automol.graph.base._0core import tetrahedral_atom_keys
+from automol.graph.base._0core import maximum_spin_multiplicity
+from automol.graph.base._0core import possible_spin_multiplicities
+from automol.graph.base._0core import atom_symbol_keys
+from automol.graph.base._0core import backbone_keys
+from automol.graph.base._0core import backbone_bond_keys
+from automol.graph.base._0core import backbone_hydrogen_keys
+from automol.graph.base._0core import nonbackbone_hydrogen_keys
+from automol.graph.base._0core import atom_backbone_hydrogen_keys
+from automol.graph.base._0core import atom_nonbackbone_hydrogen_keys
+from automol.graph.base._0core import terminal_atom_keys
+from automol.graph.base._0core import unsaturated_atom_keys
+from automol.graph.base._0core import unsaturated_bond_keys
+from automol.graph.base._0core import lone_pair_atom_keys
+from automol.graph.base._0core import angle_keys
 # # relabeling and changing keys
-from automol.graph.base._core import relabel
-from automol.graph.base._core import transform_keys
-from automol.graph.base._core import standard_keys
-from automol.graph.base._core import standard_keys_for_sequence
-from automol.graph.base._core import relabel_for_zmatrix
-from automol.graph.base._core import relabel_for_geometry
-from automol.graph.base._core import negate_hydrogen_keys
+from automol.graph.base._0core import relabel
+from automol.graph.base._0core import standard_keys
+from automol.graph.base._0core import standard_keys_for_sequence
+from automol.graph.base._0core import zmatrix_conversion_info
+from automol.graph.base._0core import apply_zmatrix_conversion
+from automol.graph.base._0core import undo_zmatrix_conversion
 # # add/remove/insert/without
-from automol.graph.base._core import add_atoms
-from automol.graph.base._core import add_bonds
-from automol.graph.base._core import remove_atoms
-from automol.graph.base._core import remove_bonds
-from automol.graph.base._core import remove_atom_stereo_parities
-from automol.graph.base._core import remove_bond_stereo_parities
-from automol.graph.base._core import add_atom_implicit_hydrogens
-from automol.graph.base._core import add_atom_explicit_hydrogens
-from automol.graph.base._core import add_bonded_atom
-from automol.graph.base._core import insert_bonded_atom
-from automol.graph.base._core import add_dummy_atoms
-from automol.graph.base._core import insert_dummy_atoms
-from automol.graph.base._core import standard_keys_without_dummy_atoms
-from automol.graph.base._core import without_bond_orders
-from automol.graph.base._core import without_dummy_atoms
-from automol.graph.base._core import without_fractional_bonds
-from automol.graph.base._core import without_null_bonds
-from automol.graph.base._core import without_stereo_parities
-from automol.graph.base._core import from_ts_graph
-from automol.graph.base._core import explicit
-from automol.graph.base._core import implicit
-from automol.graph.base._core import explicit_bond_stereo_hydrogens
+from automol.graph.base._0core import add_atoms
+from automol.graph.base._0core import add_bonds
+from automol.graph.base._0core import remove_atoms
+from automol.graph.base._0core import remove_bonds
+from automol.graph.base._0core import change_implicit_hydrogens
+from automol.graph.base._0core import add_atom_explicit_hydrogens
+from automol.graph.base._0core import add_bonded_atom
+from automol.graph.base._0core import without_pi_bonds
+from automol.graph.base._0core import without_reacting_bonds
+from automol.graph.base._0core import without_dummy_atoms
+from automol.graph.base._0core import ts_reverse
+from automol.graph.base._0core import ts_reagents_graph_without_stereo
+from automol.graph.base._0core import without_bonds_by_orders
+from automol.graph.base._0core import without_stereo
+from automol.graph.base._0core import explicit
+from automol.graph.base._0core import implicit
 # # unions
-from automol.graph.base._core import union
-from automol.graph.base._core import union_from_sequence
+from automol.graph.base._0core import union
+from automol.graph.base._0core import union_from_sequence
 # # subgraphs and neighborhoods
-from automol.graph.base._core import subgraph
-from automol.graph.base._core import bond_induced_subgraph
-from automol.graph.base._core import subgraph_neighborhood
-from automol.graph.base._core import subgraph_neighbor_atom_keys
-from automol.graph.base._core import atom_neighborhood
-from automol.graph.base._core import atom_neighborhoods
-from automol.graph.base._core import bond_neighborhood
-from automol.graph.base._core import bond_neighborhoods
-from automol.graph.base._core import atom_neighbor_atom_key
-from automol.graph.base._core import atom_neighbor_atom_keys
-from automol.graph.base._core import atoms_neighbor_atom_keys
-from automol.graph.base._core import atom_sorted_neighbor_atom_keys
-from automol.graph.base._core import atoms_sorted_neighbor_atom_keys
-from automol.graph.base._core import atom_bond_keys
-from automol.graph.base._core import atoms_bond_keys
-from automol.graph.base._core import dummy_atoms_neighbor_atom_key
-from automol.graph.base._core import bonds_neighbor_atom_keys
-from automol.graph.base._core import bonds_neighbor_bond_keys
+from automol.graph.base._0core import subgraph
+from automol.graph.base._0core import bond_induced_subgraph
+from automol.graph.base._0core import atom_neighborhood
+from automol.graph.base._0core import atom_neighborhoods
+from automol.graph.base._0core import bond_neighborhood
+from automol.graph.base._0core import bond_neighborhoods
+from automol.graph.base._0core import atom_neighbor_atom_key
+from automol.graph.base._0core import atom_neighbor_atom_keys
+from automol.graph.base._0core import atoms_neighbor_atom_keys
+from automol.graph.base._0core import atom_sorted_neighbor_atom_keys
+from automol.graph.base._0core import local_stereo_priorities
+from automol.graph.base._0core import atom_stereo_sorted_neighbor_keys
+from automol.graph.base._0core import bond_stereo_sorted_neighbor_keys
+from automol.graph.base._0core import atoms_sorted_neighbor_atom_keys
+from automol.graph.base._0core import atom_bond_keys
+from automol.graph.base._0core import atoms_bond_keys
+from automol.graph.base._0core import dummy_parent_dict
+from automol.graph.base._0core import bonds_neighbor_atom_keys
+from automol.graph.base._0core import bonds_neighbor_bond_keys
 # algorithm functions:
 # # isomorphisms and equivalence
-from automol.graph.base._algo import isomorphism
-from automol.graph.base._algo import isomorphic
-from automol.graph.base._algo import unique
-from automol.graph.base._algo import sequence_isomorphism
-from automol.graph.base._algo import subgraph_isomorphism
-from automol.graph.base._algo import equivalent_atoms
-from automol.graph.base._algo import equivalent_bonds
-from automol.graph.base._algo import are_equivalent_atoms
-from automol.graph.base._algo import are_equivalent_bonds
-from automol.graph.base._algo import atom_equivalence_class_reps
-from automol.graph.base._algo import bond_equivalence_class_reps
+from automol.graph.base._2algo import isomorphism
+from automol.graph.base._2algo import isomorphic
+from automol.graph.base._2algo import unique
+from automol.graph.base._2algo import sequence_isomorphism
+from automol.graph.base._2algo import subgraph_isomorphism
+from automol.graph.base._2algo import equivalent_atoms
+from automol.graph.base._2algo import equivalent_bonds
+from automol.graph.base._2algo import are_equivalent_atoms
+from automol.graph.base._2algo import are_equivalent_bonds
+from automol.graph.base._2algo import atom_equivalence_class_reps
+from automol.graph.base._2algo import bond_equivalence_class_reps
 # # algorithms
-from automol.graph.base._algo import connected_components
-from automol.graph.base._algo import connected_components_atom_keys
-from automol.graph.base._algo import is_connected
-from automol.graph.base._algo import atom_shortest_paths
-from automol.graph.base._algo import shortest_path_between_atoms
-from automol.graph.base._algo import shortest_path_between_groups
-from automol.graph.base._algo import atom_longest_chains
-from automol.graph.base._algo import atom_longest_chain
-from automol.graph.base._algo import longest_chain
+from automol.graph.base._2algo import connected_components
+from automol.graph.base._2algo import connected_components_atom_keys
+from automol.graph.base._2algo import is_connected
+from automol.graph.base._2algo import atom_shortest_paths
+from automol.graph.base._2algo import shortest_path_between_atoms
+from automol.graph.base._2algo import shortest_path_between_groups
+from automol.graph.base._2algo import atom_longest_chains
+from automol.graph.base._2algo import atom_longest_chain
+from automol.graph.base._2algo import longest_chain
 # # branches and groups
-from automol.graph.base._algo import ring_atom_chirality
-from automol.graph.base._algo import branches
-from automol.graph.base._algo import branch_dict
-from automol.graph.base._algo import branch_atom_keys
-from automol.graph.base._algo import branch
-from automol.graph.base._algo import is_branched
+from automol.graph.base._2algo import ring_atom_chirality
+from automol.graph.base._2algo import branches
+from automol.graph.base._2algo import branch_dict
+from automol.graph.base._2algo import branch_atom_keys
+from automol.graph.base._2algo import branch
+from automol.graph.base._2algo import is_branched
 # # rings
-from automol.graph.base._algo import rings
-from automol.graph.base._algo import rings_atom_keys
-from automol.graph.base._algo import rings_bond_keys
-from automol.graph.base._algo import sorted_ring_atom_keys
-from automol.graph.base._algo import sorted_ring_atom_keys_from_bond_keys
-from automol.graph.base._algo import is_ring_key_sequence
-from automol.graph.base._algo import cycle_ring_atom_key_to_front
-from automol.graph.base._algo import ring_arc_complement_atom_keys
-from automol.graph.base._algo import ring_systems
-from automol.graph.base._algo import ring_systems_atom_keys
-from automol.graph.base._algo import ring_systems_bond_keys
-from automol.graph.base._algo import is_ring_system
-from automol.graph.base._algo import ring_system_decomposed_atom_keys
-from automol.graph.base._algo import ring_systems_decomposed_atom_keys
+from automol.graph.base._2algo import rings
+from automol.graph.base._2algo import rings_atom_keys
+from automol.graph.base._2algo import rings_bond_keys
+from automol.graph.base._2algo import sorted_ring_atom_keys
+from automol.graph.base._2algo import sorted_ring_atom_keys_from_bond_keys
+from automol.graph.base._2algo import is_ring_key_sequence
+from automol.graph.base._2algo import ring_arc_complement_atom_keys
+from automol.graph.base._2algo import ring_systems
+from automol.graph.base._2algo import ring_systems_atom_keys
+from automol.graph.base._2algo import ring_systems_bond_keys
+from automol.graph.base._2algo import spiro_atoms_grouped_neighbor_keys
+from automol.graph.base._2algo import spiro_atom_keys
+from automol.graph.base._2algo import is_ring_system
+from automol.graph.base._2algo import ring_system_decomposed_atom_keys
+from automol.graph.base._2algo import ring_systems_decomposed_atom_keys
 # kekule functions:
 # # core functions
-from automol.graph.base._kekule import kekule
-from automol.graph.base._kekule import kekules
-from automol.graph.base._kekule import kekule_bond_orders
-from automol.graph.base._kekule import kekules_bond_orders
-from automol.graph.base._kekule import kekules_bond_orders_collated
-from automol.graph.base._kekule import kekules_bond_orders_averaged
+from automol.graph.base._3kekule import kekule
+from automol.graph.base._3kekule import kekules
+from automol.graph.base._3kekule import kekule_bond_orders
+from automol.graph.base._3kekule import kekules_bond_orders
+from automol.graph.base._3kekule import kekules_bond_orders_collated
+from automol.graph.base._3kekule import kekules_bond_orders_averaged
 # # derived properties
-from automol.graph.base._kekule import linear_atom_keys
-from automol.graph.base._kekule import linear_segments_atom_keys
-from automol.graph.base._kekule import atom_hybridizations
-from automol.graph.base._kekule import atom_hybridizations_from_kekule
-from automol.graph.base._kekule import radical_atom_keys
-from automol.graph.base._kekule import radical_atom_keys_from_kekule
-from automol.graph.base._kekule import nonresonant_radical_atom_keys
-from automol.graph.base._kekule import vinyl_radical_atom_keys
-from automol.graph.base._kekule import sigma_radical_atom_keys
-from automol.graph.base._kekule import has_separated_radical_sites
-from automol.graph.base._kekule import resonance_bond_stereo_keys
-from automol.graph.base._kekule import vinyl_bond_stereo_keys
-from automol.graph.base._kekule import has_resonance_bond_stereo
-from automol.graph.base._kekule import has_vinyl_bond_stereo
-from automol.graph.base._kekule import has_nonkekule_bond_stereo
-from automol.graph.base._kekule import has_noninchi_stereo
-from automol.graph.base._kekule import radical_groups
-from automol.graph.base._kekule import radical_group_dct
-from automol.graph.base._kekule import rigid_planar_bond_keys
-from automol.graph.base._kekule import atom_centered_cumulene_keys
-from automol.graph.base._kekule import bond_centered_cumulene_keys
-# torsion/rotational bond functions:
-from automol.graph.base._rot import rotational_bond_keys
-from automol.graph.base._rot import rotational_groups
-from automol.graph.base._rot import rotational_symmetry_number
-from automol.graph.base._rot import bond_symmetry_numbers
+from automol.graph.base._3kekule import linear_atom_keys
+from automol.graph.base._3kekule import linear_segments_atom_keys
+from automol.graph.base._3kekule import atom_hybridizations
+from automol.graph.base._3kekule import atom_hybridizations_from_kekule
+from automol.graph.base._3kekule import radical_atom_keys
+from automol.graph.base._3kekule import radical_atom_keys_from_kekule
+from automol.graph.base._3kekule import nonresonant_radical_atom_keys
+from automol.graph.base._3kekule import vinyl_radical_atom_bond_keys
+from automol.graph.base._3kekule import sigma_radical_atom_bond_keys
+from automol.graph.base._3kekule import vinyl_radical_atom_keys
+from automol.graph.base._3kekule import sigma_radical_atom_keys
+from automol.graph.base._3kekule import has_separated_radical_sites
+from automol.graph.base._3kekule import resonance_bond_stereo_keys
+from automol.graph.base._3kekule import vinyl_bond_stereo_keys
+from automol.graph.base._3kekule import has_resonance_bond_stereo
+from automol.graph.base._3kekule import has_vinyl_bond_stereo
+from automol.graph.base._3kekule import has_nonkekule_bond_stereo
+from automol.graph.base._3kekule import has_noninchi_stereo
+from automol.graph.base._3kekule import radical_groups
+from automol.graph.base._3kekule import radical_group_dct
+from automol.graph.base._3kekule import rigid_planar_bond_keys
+from automol.graph.base._3kekule import atom_centered_cumulene_keys
+from automol.graph.base._3kekule import bond_centered_cumulene_keys
+# structural heuristics:
+from automol.graph.base._4heur import heuristic_bond_distance
+from automol.graph.base._4heur import heuristic_bond_distance_limit
+from automol.graph.base._4heur import heuristic_bond_angle
+from automol.graph.base._4heur import rotational_bond_keys
+from automol.graph.base._4heur import rotational_groups
+from automol.graph.base._4heur import rotational_symmetry_number
 # geometry functions:
 # # stereo parity evaluations
-from automol.graph.base._geom import geometry_atom_parity
-from automol.graph.base._geom import geometry_bond_parity
-from automol.graph.base._geom import geometry_local_parity
-from automol.graph.base._geom import geometries_have_matching_parities
-from automol.graph.base._geom import geometries_parity_mismatches
+from automol.graph.base._5geom import geometry_atom_parity
+from automol.graph.base._5geom import geometry_bond_parity
+from automol.graph.base._5geom import geometry_local_parity
+from automol.graph.base._5geom import geometries_have_matching_parities
+from automol.graph.base._5geom import geometries_parity_mismatches
+from automol.graph.base._5geom import linear_segment_dummy_direction
 # # corrections
-from automol.graph.base._geom import linear_vinyl_corrected_geometry
-from automol.graph.base._geom import geometry_rotate_bond
-from automol.graph.base._geom import geometry_dihedrals_near_value
-from automol.graph.base._geom import perturb_geometry_planar_dihedrals
+from automol.graph.base._5geom import geometry_correct_linear_vinyls
+from automol.graph.base._5geom import geometry_pseudorotate_atom
+from automol.graph.base._5geom import geometry_rotate_bond
+from automol.graph.base._5geom import geometry_dihedrals_near_value
 # canonicalization functions:
 # # canonical key functions
-from automol.graph.base._canon import canonical_enantiomer
-from automol.graph.base._canon import canonical_enantiomer_with_keys
-from automol.graph.base._canon import canonical
-from automol.graph.base._canon import canonical_keys
+from automol.graph.base._6canon import canonical_enantiomer
+from automol.graph.base._6canon import canonical_enantiomer_with_keys
+from automol.graph.base._6canon import canonical_ts_direction
+from automol.graph.base._6canon import canonical
+from automol.graph.base._6canon import canonical_keys
 # # canonical stereo functions
-from automol.graph.base._canon import stereogenic_atom_keys
-from automol.graph.base._canon import stereogenic_bond_keys
-from automol.graph.base._canon import stereogenic_keys
-from automol.graph.base._canon import stereogenic_atom_keys_from_priorities
-from automol.graph.base._canon import stereogenic_bond_keys_from_priorities
-from automol.graph.base._canon import reflect
-from automol.graph.base._canon import reflect_local_stereo
-from automol.graph.base._canon import to_local_stereo
-from automol.graph.base._canon import from_local_stereo
-from automol.graph.base._canon import set_stereo_from_geometry
+from automol.graph.base._6canon import stereogenic_atom_keys
+from automol.graph.base._6canon import stereogenic_bond_keys
+from automol.graph.base._6canon import stereogenic_keys
+from automol.graph.base._6canon import stereogenic_atom_keys_from_priorities
+from automol.graph.base._6canon import stereogenic_bond_keys_from_priorities
+from automol.graph.base._6canon import reflect
+from automol.graph.base._6canon import reflect_local_stereo
+from automol.graph.base._6canon import to_local_stereo
+from automol.graph.base._6canon import from_local_stereo
+from automol.graph.base._6canon import set_stereo_from_geometry
 # # symmetry class functions
-from automol.graph.base._canon import canonical_priorities
-from automol.graph.base._canon import calculate_priorities_and_assign_parities
+from automol.graph.base._6canon import canonical_priorities
+from automol.graph.base._6canon import calculate_priorities_and_assign_stereo
 # # parity evaluators
-from automol.graph.base._canon import parity_evaluator_from_geometry_
-from automol.graph.base._canon import parity_evaluator_read_canonical_
-from automol.graph.base._canon import parity_evaluator_flip_local_
+from automol.graph.base._6canon import parity_evaluator_from_geometry_
+from automol.graph.base._6canon import parity_evaluator_read_canonical_
+from automol.graph.base._6canon import parity_evaluator_flip_local_
 # AMChI functions:
-from automol.graph.base._amchi import amchi
-from automol.graph.base._amchi import amchi_with_indices
-from automol.graph.base._amchi import inchi_is_bad
+from automol.graph.base._7amchi import amchi
+from automol.graph.base._7amchi import amchi_with_indices
+from automol.graph.base._7amchi import inchi_is_bad
 # SMILES functions:
-from automol.graph.base._smiles import smiles
+from automol.graph.base._8smiles import smiles
 # stereo functions:
 # # core functions
-from automol.graph.base._stereo import expand_stereo
-from automol.graph.base._stereo import expand_stereo_with_priorities_and_amchis
-# # stereo evaluation
-from automol.graph.base._stereo import local_atom_stereo_parity_from_geometry
-from automol.graph.base._stereo import local_bond_stereo_parity_from_geometry
+from automol.graph.base._9stereo import expand_stereo
 # # stereo correction
-from automol.graph.base._stereo import stereo_corrected_geometry
+from automol.graph.base._9stereo import stereo_corrected_geometry
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -284,8 +277,8 @@ from automol.graph.base._func_group import functional_group_dct
 from automol.graph.base._func_group import functional_group_count_dct
 from automol.graph.base._func_group import ring_substituents
 # # finders for overaching types
-from automol.graph.base._func_group import hydrocarbon_species
-from automol.graph.base._func_group import radical_species
+from automol.graph.base._func_group import is_hydrocarbon_species
+from automol.graph.base._func_group import is_radical_species
 # # finders for reactive sites and groups
 from automol.graph.base._func_group import alkene_sites
 from automol.graph.base._func_group import alkyne_sites
@@ -310,23 +303,28 @@ from automol.graph.base._func_group import bonds_of_order
 from automol.graph.base._func_group import two_bond_idxs
 from automol.graph.base._func_group import neighbors_of_type
 from automol.graph.base._func_group import radicals_of_type
-# TS graph submodule:
+# submodules:
 from automol.graph.base import ts
+from automol.graph.base import vmat
 # L4
+# embedding functions:
+from automol.graph._0embed import embed_geometry
+from automol.graph._0embed import clean_geometry
+from automol.graph._0embed import geometry_matches
+from automol.graph._0embed import zmatrix_matches
 # conversion functions:
 # # conversions
-from automol.graph._conv import geometry
-from automol.graph._conv import inchi
-from automol.graph._conv import inchi_with_sort_from_geometry
-from automol.graph._conv import chi
-from automol.graph._conv import molfile_with_atom_mapping
-from automol.graph._conv import rdkit_molecule
-from automol.graph._conv import rdkit_reaction
-from automol.graph._conv import display
-from automol.graph._conv import display_reaction
-# submodules:
-from automol.graph import vmat
-from automol.graph import embed
+from automol.graph._1conv import geometry
+from automol.graph._1conv import ts_geometry_from_reactants
+from automol.graph._1conv import inchi
+from automol.graph._1conv import chi
+from automol.graph._1conv import rdkit_molecule
+from automol.graph._1conv import rdkit_reaction
+from automol.graph._1conv import display
+from automol.graph._1conv import display_reaction
+from automol.graph._1conv import svg_string
+from automol.graph._1conv import ipywidget
+from automol.graph._1conv import perturb_geometry_planar_dihedrals
 
 
 __all__ = [
@@ -344,57 +342,53 @@ __all__ = [
     'bond_keys',
     'atom_symbols',
     'bond_orders',
-    'atom_implicit_hydrogen_valences',
+    'atom_implicit_hydrogens',
     'atom_stereo_parities',
-    'ts_atom_product_stereo_parities',
-    'ts_atom_fleeting_stereo_parities',
     'bond_stereo_parities',
-    'ts_bond_product_stereo_parities',
-    'ts_bond_fleeting_stereo_parities',
     'stereo_parities',
     # # setters
     'set_atom_symbols',
     'set_bond_orders',
-    'set_atom_implicit_hydrogen_valences',
+    'set_atom_implicit_hydrogens',
     'set_atom_stereo_parities',
     'set_bond_stereo_parities',
-    'set_ts_atom_product_stereo_parities',
-    'set_ts_atom_fleeting_stereo_parities',
-    'set_ts_bond_product_stereo_parities',
-    'set_ts_bond_fleeting_stereo_parities',
     'set_stereo_parities',
     # # I/O
     'string',
-    'yaml_dictionary',
+    'yaml_data',
     'from_string',
-    'from_yaml_dictionary',
+    'from_yaml_data',
+    'from_old_yaml_data',
     # # conversions
     'frozen',
     'formula',
+    'symbols',
+    # # sorting
+    'argsort_by_size',
+    'sort_by_size',
     # # properties
     'atom_count',
-    'atom_count_by_type',
-    'heavy_atom_count',
+    'count',
     'electron_count',
     'atom_stereo_keys',
     'bond_stereo_keys',
     'stereo_keys',
-    'nitrogen_atom_stereo_keys',
     'has_stereo',
     'has_atom_stereo',
     'has_bond_stereo',
-    'has_nitrogen_atom_stereo',
-    'has_fractional_bonds',
+    'has_dummy_atoms',
+    'has_pi_bonds',
     'is_ts_graph',
     'atomic_numbers',
     'mass_numbers',
-    'atom_element_valences',
-    'atom_lone_pair_counts',
+    'van_der_waals_radii',
+    'covalent_radii',
+    'atomic_valences',
+    'atom_lone_pairs',
     'atom_van_der_waals_radius',
-    'atom_bond_valences',
-    'atom_explicit_hydrogen_valences',
-    'atom_unsaturations',
-    'bond_unsaturations',
+    'atom_bond_counts',
+    'atom_unpaired_electrons',
+    'bond_unpaired_electrons',
     'tetrahedral_atom_keys',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
@@ -402,9 +396,9 @@ __all__ = [
     'backbone_keys',
     'backbone_bond_keys',
     'backbone_hydrogen_keys',
-    'hydrogen_keys',
+    'nonbackbone_hydrogen_keys',
     'atom_backbone_hydrogen_keys',
-    'atom_hydrogen_keys',
+    'atom_nonbackbone_hydrogen_keys',
     'terminal_atom_keys',
     'unsaturated_atom_keys',
     'unsaturated_bond_keys',
@@ -412,43 +406,34 @@ __all__ = [
     'angle_keys',
     # # relabeling and changing keys
     'relabel',
-    'transform_keys',
     'standard_keys',
     'standard_keys_for_sequence',
-    'relabel_for_zmatrix',
-    'relabel_for_geometry',
-    'negate_hydrogen_keys',
+    'zmatrix_conversion_info',
+    'apply_zmatrix_conversion',
+    'undo_zmatrix_conversion',
     # # add/remove/insert/without
     'add_atoms',
     'add_bonds',
     'remove_atoms',
     'remove_bonds',
-    'remove_atom_stereo_parities',
-    'remove_bond_stereo_parities',
-    'add_atom_implicit_hydrogens',
+    'change_implicit_hydrogens',
     'add_atom_explicit_hydrogens',
     'add_bonded_atom',
-    'insert_bonded_atom',
-    'add_dummy_atoms',
-    'insert_dummy_atoms',
-    'standard_keys_without_dummy_atoms',
-    'without_bond_orders',
+    'without_pi_bonds',
+    'without_reacting_bonds',
     'without_dummy_atoms',
-    'without_fractional_bonds',
-    'without_null_bonds',
-    'without_stereo_parities',
-    'from_ts_graph',
+    'ts_reverse',
+    'ts_reagents_graph_without_stereo',
+    'without_bonds_by_orders',
+    'without_stereo',
     'explicit',
     'implicit',
-    'explicit_bond_stereo_hydrogens',
     # # unions
     'union',
     'union_from_sequence',
     # # subgraphs and neighborhoods
     'subgraph',
     'bond_induced_subgraph',
-    'subgraph_neighborhood',
-    'subgraph_neighbor_atom_keys',
     'atom_neighborhood',
     'atom_neighborhoods',
     'bond_neighborhood',
@@ -457,10 +442,13 @@ __all__ = [
     'atom_neighbor_atom_keys',
     'atoms_neighbor_atom_keys',
     'atom_sorted_neighbor_atom_keys',
+    'local_stereo_priorities',
+    'atom_stereo_sorted_neighbor_keys',
+    'bond_stereo_sorted_neighbor_keys',
     'atoms_sorted_neighbor_atom_keys',
     'atom_bond_keys',
     'atoms_bond_keys',
-    'dummy_atoms_neighbor_atom_key',
+    'dummy_parent_dict',
     'bonds_neighbor_atom_keys',
     'bonds_neighbor_bond_keys',
     # algorithm functions:
@@ -500,11 +488,12 @@ __all__ = [
     'sorted_ring_atom_keys',
     'sorted_ring_atom_keys_from_bond_keys',
     'is_ring_key_sequence',
-    'cycle_ring_atom_key_to_front',
     'ring_arc_complement_atom_keys',
     'ring_systems',
     'ring_systems_atom_keys',
     'ring_systems_bond_keys',
+    'spiro_atoms_grouped_neighbor_keys',
+    'spiro_atom_keys',
     'is_ring_system',
     'ring_system_decomposed_atom_keys',
     'ring_systems_decomposed_atom_keys',
@@ -524,6 +513,8 @@ __all__ = [
     'radical_atom_keys',
     'radical_atom_keys_from_kekule',
     'nonresonant_radical_atom_keys',
+    'vinyl_radical_atom_bond_keys',
+    'sigma_radical_atom_bond_keys',
     'vinyl_radical_atom_keys',
     'sigma_radical_atom_keys',
     'has_separated_radical_sites',
@@ -538,11 +529,13 @@ __all__ = [
     'rigid_planar_bond_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
-    # torsion/rotational bond functions:
+    # structural heuristics:
+    'heuristic_bond_distance',
+    'heuristic_bond_distance_limit',
+    'heuristic_bond_angle',
     'rotational_bond_keys',
     'rotational_groups',
     'rotational_symmetry_number',
-    'bond_symmetry_numbers',
     # geometry functions:
     # # stereo parity evaluations
     'geometry_atom_parity',
@@ -550,15 +543,17 @@ __all__ = [
     'geometry_local_parity',
     'geometries_have_matching_parities',
     'geometries_parity_mismatches',
+    'linear_segment_dummy_direction',
     # # corrections
-    'linear_vinyl_corrected_geometry',
+    'geometry_correct_linear_vinyls',
+    'geometry_pseudorotate_atom',
     'geometry_rotate_bond',
     'geometry_dihedrals_near_value',
-    'perturb_geometry_planar_dihedrals',
     # canonicalization functions:
     # # canonical key functions
     'canonical_enantiomer',
     'canonical_enantiomer_with_keys',
+    'canonical_ts_direction',
     'canonical',
     'canonical_keys',
     # # canonical stereo functions
@@ -574,7 +569,7 @@ __all__ = [
     'set_stereo_from_geometry',
     # # symmetry class functions
     'canonical_priorities',
-    'calculate_priorities_and_assign_parities',
+    'calculate_priorities_and_assign_stereo',
     # # parity evaluators
     'parity_evaluator_from_geometry_',
     'parity_evaluator_read_canonical_',
@@ -588,10 +583,6 @@ __all__ = [
     # stereo functions:
     # # core functions
     'expand_stereo',
-    'expand_stereo_with_priorities_and_amchis',
-    # # stereo evaluation
-    'local_atom_stereo_parity_from_geometry',
-    'local_bond_stereo_parity_from_geometry',
     # # stereo correction
     'stereo_corrected_geometry',
     # functional groups code:
@@ -601,8 +592,8 @@ __all__ = [
     'functional_group_count_dct',
     'ring_substituents',
     # # finders for overaching types
-    'hydrocarbon_species',
-    'radical_species',
+    'is_hydrocarbon_species',
+    'is_radical_species',
     # # finders for reactive sites and groups
     'alkene_sites',
     'alkyne_sites',
@@ -628,20 +619,26 @@ __all__ = [
     'neighbors_of_type',
     'radicals_of_type',
     # TS graph submodule:
+    'ts_graph',
     'ts',
+    'vmat',
     # L4
+    # embedding functions:
+    'embed_geometry',
+    'clean_geometry',
+    'geometry_matches',
+    'zmatrix_matches',
     # conversion functions:
     # # conversions
     'geometry',
+    'ts_geometry_from_reactants',
     'inchi',
-    'inchi_with_sort_from_geometry',
     'chi',
-    'molfile_with_atom_mapping',
     'rdkit_molecule',
     'rdkit_reaction',
     'display',
     'display_reaction',
-    # submodules:
-    'vmat',
-    'embed',
+    'svg_string',
+    'ipywidget',
+    'perturb_geometry_planar_dihedrals',
 ]

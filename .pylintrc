@@ -1,4 +1,5 @@
 [MASTER]
+max-line-length=88
 max-module-lines=1500
 max-branches=50
 max-nested-blocks=10
@@ -22,4 +23,7 @@ disable=
     unnecessary-lambda,
     consider-using-f-string,
     no-else-raise,
-    unnecessary-list-index-lookup
+    unnecessary-list-index-lookup,
+    invalid-name,
+    c-extension-no-member
+

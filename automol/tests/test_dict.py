@@ -91,12 +91,12 @@ def test__read():
     """
 
     # Unordered unordered tuple reads
-    val1 = dict_.values_by_unordered_tuple(DCT4, ('C', 'H'))
-    val2 = dict_.values_by_unordered_tuple(DCT4, ('H', 'C'))
+    val1 = dict_.value_by_unordered_key(DCT4, ('C', 'H'))
+    val2 = dict_.value_by_unordered_key(DCT4, ('H', 'C'))
     assert numpy.isclose(1.54, val1, val2)
 
-    val3 = dict_.values_by_unordered_tuple(DCT4, ('C', 'H'), fill_val=1.15)
-    val4 = dict_.values_by_unordered_tuple(DCT4, ('C', 'N'), fill_val=1.15)
+    val3 = dict_.value_by_unordered_key(DCT4, ('C', 'H'), fill_val=1.15)
+    val4 = dict_.value_by_unordered_key(DCT4, ('C', 'N'), fill_val=1.15)
     assert numpy.isclose(1.54, val3)
     assert numpy.isclose(1.15, val4)
 

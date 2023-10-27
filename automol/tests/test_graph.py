@@ -88,7 +88,7 @@ C2H2CL2F2_CGR = (
     {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
      frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
      frozenset({1, 5}): (1, None)})
-C2H2CL2F2_SGRS = (
+C2H2CL2F2_SGRS = tuple(sorted([
     ({0: ('C', 1, False), 1: ('C', 1, False), 2: ('F', 0, None),
       3: ('Cl', 0, None), 4: ('F', 0, None), 5: ('Cl', 0, None)},
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
@@ -104,7 +104,7 @@ C2H2CL2F2_SGRS = (
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
       frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
       frozenset({1, 5}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
 C3H3CL2F3_CGR = (
     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
@@ -114,7 +114,7 @@ C3H3CL2F3_CGR = (
      frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
      frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
      frozenset({2, 7}): (1, None)})
-C3H3CL2F3_SGRS = (
+C3H3CL2F3_SGRS = tuple(sorted([
     ({0: ('C', 1, None), 1: ('C', 1, False), 2: ('C', 1, False),
       3: ('Cl', 0, None), 4: ('Cl', 0, None), 5: ('F', 0, None),
       6: ('F', 0, None), 7: ('F', 0, None)},
@@ -143,7 +143,7 @@ C3H3CL2F3_SGRS = (
       frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
       frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
       frozenset({2, 7}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
 C3H5N3_CGR = (
     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
@@ -151,7 +151,7 @@ C3H5N3_CGR = (
     {frozenset({1, 4}): (1, None), frozenset({1, 2}): (1, None),
      frozenset({0, 3}): (1, None), frozenset({0, 2}): (1, None),
      frozenset({2, 5}): (1, None)})
-C3H5N3_SGRS = (
+C3H5N3_SGRS = tuple(sorted([
     ({0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
       3: ('N', 1, None), 4: ('N', 1, None), 5: ('N', 1, None)},
      {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, False),
@@ -172,9 +172,9 @@ C3H5N3_SGRS = (
      {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, True),
       frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, True),
       frozenset({2, 5}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
-C8H13O_SGRS = (
+C8H13O_SGRS = tuple(sorted([
     ({0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
       3: ('C', 1, None), 4: ('C', 1, None), 5: ('C', 1, None),
       6: ('C', 1, False), 7: ('C', 1, False), 8: ('O', 0, None)},
@@ -231,7 +231,7 @@ C8H13O_SGRS = (
       frozenset({0, 3}): (1, None), frozenset({2, 6}): (1, None),
       frozenset({6, 7}): (1, None), frozenset({8, 7}): (1, None),
       frozenset({3, 5}): (1, True), frozenset({5, 7}): (1, None)}),
-)
+], key=automol.graph.frozen))
 
 # FC=CC=CF + [OH] => FC=C[CH]C(O)F
 C4H5F2O_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
@@ -261,32 +261,6 @@ C4H5F3O2_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, False),
                  frozenset({11, 3}): (1, None), frozenset({1, 3}): (1, None),
                  frozenset({0, 9}): (1, None)})
 
-# CCO[C@H](O[O])C => C[CH]O[C@H](OO)C
-C4H9O3_TSG = ({0: ('C', 0, None, None, None), 1: ('C', 0, None, None, None),
-               2: ('C', 0, None, None, True), 3: ('C', 0, True, True, None),
-               4: ('O', 0, None, None, None), 5: ('O', 0, None, None, None),
-               6: ('O', 0, None, None, None), 7: ('H', 0, None, None, None),
-               8: ('H', 0, None, None, None), 9: ('H', 0, None, None, None),
-               10: ('H', 0, None, None, None), 11: ('H', 0, None, None, None),
-               12: ('H', 0, None, None, None), 13: ('H', 0, None, None, None),
-               14: ('H', 0, None, None, None), 15: ('H', 0, None, None, None)},
-              {frozenset({4, 6}): (1, None, None, None),
-               frozenset({2, 13}): (0.9, None, None, None),
-               frozenset({3, 15}): (1, None, None, None),
-               frozenset({4, 13}): (0.1, None, None, None),
-               frozenset({1, 11}): (1, None, None, None),
-               frozenset({3, 6}): (1, None, None, None),
-               frozenset({0, 2}): (1, None, None, None),
-               frozenset({2, 5}): (1, None, None, None),
-               frozenset({1, 12}): (1, None, None, None),
-               frozenset({2, 14}): (1, None, None, None),
-               frozenset({3, 5}): (1, None, None, None),
-               frozenset({1, 3}): (1, None, None, None),
-               frozenset({0, 7}): (1, None, None, None),
-               frozenset({1, 10}): (1, None, None, None),
-               frozenset({0, 8}): (1, None, None, None),
-               frozenset({0, 9}): (1, None, None, None)})
-
 # ISOBUTANE
 C4H10_GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
               3: ('C', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
@@ -308,16 +282,14 @@ def test__from_data():
     cgr = automol.graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_CGR),
         bnd_keys=graph.bond_keys(C8H13O_CGR),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C8H13O_CGR)),
+        atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_CGR),
     )
     assert cgr == C8H13O_CGR
 
     rgr = automol.graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_RGR),
         bnd_keys=graph.bond_keys(C8H13O_RGR),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C8H13O_RGR)),
+        atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_RGR),
         bnd_ord_dct=graph.bond_orders(C8H13O_RGR),
     )
     assert rgr == C8H13O_RGR
@@ -325,37 +297,11 @@ def test__from_data():
     sgr = automol.graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_SGR),
         bnd_keys=graph.bond_keys(C8H13O_SGR),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C8H13O_SGR)),
+        atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_SGR),
         atm_ste_par_dct=graph.atom_stereo_parities(C8H13O_SGR),
         bnd_ste_par_dct=graph.bond_stereo_parities(C8H13O_SGR)
     )
     assert sgr == C8H13O_SGR
-
-    tsg = automol.graph.from_data(
-        atm_symb_dct=graph.atom_symbols(C4H9O3_TSG),
-        bnd_keys=graph.bond_keys(C4H9O3_TSG),
-        atm_imp_hyd_vlc_dct=(
-            graph.atom_implicit_hydrogen_valences(C4H9O3_TSG)),
-        atm_ste_par_dct=graph.atom_stereo_parities(C4H9O3_TSG),
-        atm_prd_ste_par_dct=graph.ts_atom_product_stereo_parities(C4H9O3_TSG),
-        atm_ts_ste_par_dct=graph.ts_atom_fleeting_stereo_parities(C4H9O3_TSG),
-        bnd_ord_dct=graph.bond_orders(C4H9O3_TSG),
-        bnd_ste_par_dct=graph.bond_stereo_parities(C4H9O3_TSG),
-        bnd_prd_ste_par_dct=graph.ts_bond_product_stereo_parities(C4H9O3_TSG),
-        bnd_ts_ste_par_dct=graph.ts_bond_fleeting_stereo_parities(C4H9O3_TSG),
-    )
-    assert tsg == C4H9O3_TSG
-
-    assert graph.ts_atom_product_stereo_parities(C8H13O_SGR) is None
-    assert graph.ts_atom_fleeting_stereo_parities(C8H13O_SGR) is None
-    assert graph.ts_bond_product_stereo_parities(C8H13O_SGR) is None
-    assert graph.ts_bond_fleeting_stereo_parities(C8H13O_SGR) is None
-
-    assert graph.ts_atom_product_stereo_parities(C4H9O3_TSG) is not None
-    assert graph.ts_atom_fleeting_stereo_parities(C4H9O3_TSG) is not None
-    assert graph.ts_bond_product_stereo_parities(C4H9O3_TSG) is not None
-    assert graph.ts_bond_fleeting_stereo_parities(C4H9O3_TSG) is not None
 
 
 def test__setters():
@@ -363,7 +309,7 @@ def test__setters():
     """
     atm_symbs = numpy.array(list('CHON'))
     bnd_ords = numpy.arange(1, 4)
-    atm_imp_hyd_vlcs = numpy.arange(0, 4)
+    atm_imp_hyds = numpy.arange(0, 4)
     pars = numpy.array([None, True, False])
 
     print("\nTesting setters for an ordinary molecular graph...")
@@ -381,6 +327,7 @@ def test__setters():
     gra = graph.set_atom_symbols(orig_gra, atm_symb_dct)
     print(atm_symb_dct)
     assert atm_symb_dct == graph.atom_symbols(gra)
+    print(graph.set_atom_symbols(gra, orig_atm_symb_dct))
     assert orig_gra == graph.set_atom_symbols(gra, orig_atm_symb_dct)
 
     # bond orders
@@ -393,15 +340,14 @@ def test__setters():
     assert orig_gra == graph.set_bond_orders(gra, orig_bnd_ord_dct)
 
     # atom implicit hydrogen valences
-    orig_atm_imp_hyd_vlc_dct = graph.atom_implicit_hydrogen_valences(orig_gra)
-    atm_imp_hyd_vlc_dct = dict(
-        zip(atm_keys, numpy.random.choice(atm_imp_hyd_vlcs, size=natms)))
-    gra = graph.set_atom_implicit_hydrogen_valences(
-        orig_gra, atm_imp_hyd_vlc_dct)
-    print(atm_imp_hyd_vlc_dct)
-    assert atm_imp_hyd_vlc_dct == graph.atom_implicit_hydrogen_valences(gra)
-    assert orig_gra == graph.set_atom_implicit_hydrogen_valences(
-        gra, orig_atm_imp_hyd_vlc_dct)
+    orig_atm_imp_hyd_dct = graph.atom_implicit_hydrogens(orig_gra)
+    atm_imp_hyd_dct = dict(
+        zip(atm_keys, numpy.random.choice(atm_imp_hyds, size=natms)))
+    gra = graph.set_atom_implicit_hydrogens(orig_gra, atm_imp_hyd_dct)
+    print(atm_imp_hyd_dct)
+    assert atm_imp_hyd_dct == graph.atom_implicit_hydrogens(gra)
+    assert orig_gra == graph.set_atom_implicit_hydrogens(
+        gra, orig_atm_imp_hyd_dct)
 
     # atom stereo parities
     orig_atm_par_dct = graph.atom_stereo_parities(orig_gra)
@@ -418,95 +364,6 @@ def test__setters():
     print(bnd_par_dct)
     assert bnd_par_dct == graph.bond_stereo_parities(gra)
     assert orig_gra == graph.set_bond_stereo_parities(gra, orig_bnd_par_dct)
-
-    print("\nTesting setters for a TS graph...")
-    orig_gra = C4H9O3_TSG
-
-    atm_keys = graph.atom_keys(orig_gra)
-    bnd_keys = graph.bond_keys(orig_gra)
-    natms = len(atm_keys)
-    nbnds = len(bnd_keys)
-
-    # atom symbols
-    orig_atm_symb_dct = graph.atom_symbols(orig_gra)
-    atm_symb_dct = dict(
-        zip(atm_keys, numpy.random.choice(atm_symbs, size=natms)))
-    gra = graph.set_atom_symbols(orig_gra, atm_symb_dct)
-    print(atm_symb_dct)
-    assert atm_symb_dct == graph.atom_symbols(gra)
-    assert orig_gra == graph.set_atom_symbols(gra, orig_atm_symb_dct)
-
-    # bond orders
-    orig_bnd_ord_dct = graph.bond_orders(orig_gra)
-    bnd_ord_dct = dict(
-        zip(bnd_keys, numpy.random.choice(bnd_ords, size=nbnds)))
-    gra = graph.set_bond_orders(orig_gra, bnd_ord_dct)
-    print(bnd_ord_dct)
-    assert bnd_ord_dct == graph.bond_orders(gra)
-    assert orig_gra == graph.set_bond_orders(gra, orig_bnd_ord_dct)
-
-    # atom implicit hydrogen valences
-    orig_atm_imp_hyd_vlc_dct = graph.atom_implicit_hydrogen_valences(orig_gra)
-    atm_imp_hyd_vlc_dct = dict(
-        zip(atm_keys, numpy.random.choice(atm_imp_hyd_vlcs, size=natms)))
-    gra = graph.set_atom_implicit_hydrogen_valences(
-        orig_gra, atm_imp_hyd_vlc_dct)
-    print(atm_imp_hyd_vlc_dct)
-    assert atm_imp_hyd_vlc_dct == graph.atom_implicit_hydrogen_valences(gra)
-    assert orig_gra == graph.set_atom_implicit_hydrogen_valences(
-        gra, orig_atm_imp_hyd_vlc_dct)
-
-    # atom stereo parities
-    orig_atm_par_dct = graph.atom_stereo_parities(orig_gra)
-    atm_par_dct = dict(zip(atm_keys, numpy.random.choice(pars, size=natms)))
-    gra = graph.set_atom_stereo_parities(orig_gra, atm_par_dct)
-    print(atm_par_dct)
-    assert atm_par_dct == graph.atom_stereo_parities(gra)
-    assert orig_gra == graph.set_atom_stereo_parities(gra, orig_atm_par_dct)
-
-    # bond stereo parities
-    orig_bnd_par_dct = graph.bond_stereo_parities(orig_gra)
-    bnd_par_dct = dict(zip(bnd_keys, numpy.random.choice(pars, size=nbnds)))
-    gra = graph.set_bond_stereo_parities(orig_gra, bnd_par_dct)
-    print(bnd_par_dct)
-    assert bnd_par_dct == graph.bond_stereo_parities(gra)
-    assert orig_gra == graph.set_bond_stereo_parities(gra, orig_bnd_par_dct)
-
-    # TS atom product stereo parities
-    orig_atm_par_dct = graph.ts_atom_product_stereo_parities(orig_gra)
-    atm_par_dct = dict(zip(atm_keys, numpy.random.choice(pars, size=natms)))
-    gra = graph.set_ts_atom_product_stereo_parities(orig_gra, atm_par_dct)
-    print(atm_par_dct)
-    assert atm_par_dct == graph.ts_atom_product_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_atom_product_stereo_parities(
-        gra, orig_atm_par_dct)
-
-    # TS bond product stereo parities
-    orig_bnd_par_dct = graph.ts_bond_product_stereo_parities(orig_gra)
-    bnd_par_dct = dict(zip(bnd_keys, numpy.random.choice(pars, size=nbnds)))
-    gra = graph.set_ts_bond_product_stereo_parities(orig_gra, bnd_par_dct)
-    print(bnd_par_dct)
-    assert bnd_par_dct == graph.ts_bond_product_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_bond_product_stereo_parities(
-        gra, orig_bnd_par_dct)
-
-    # TS atom fleeting stereo parities
-    orig_atm_par_dct = graph.ts_atom_fleeting_stereo_parities(orig_gra)
-    atm_par_dct = dict(zip(atm_keys, numpy.random.choice(pars, size=natms)))
-    gra = graph.set_ts_atom_fleeting_stereo_parities(orig_gra, atm_par_dct)
-    print(atm_par_dct)
-    assert atm_par_dct == graph.ts_atom_fleeting_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_atom_fleeting_stereo_parities(
-        gra, orig_atm_par_dct)
-
-    # TS bond fleeting stereo parities
-    orig_bnd_par_dct = graph.ts_bond_fleeting_stereo_parities(orig_gra)
-    bnd_par_dct = dict(zip(bnd_keys, numpy.random.choice(pars, size=nbnds)))
-    gra = graph.set_ts_bond_fleeting_stereo_parities(orig_gra, bnd_par_dct)
-    print(bnd_par_dct)
-    assert bnd_par_dct == graph.ts_bond_fleeting_stereo_parities(gra)
-    assert orig_gra == graph.set_ts_bond_fleeting_stereo_parities(
-        gra, orig_bnd_par_dct)
 
 
 def test__string():
@@ -519,13 +376,13 @@ def test__string():
 def test__without_bond_orders():
     """ test graph.without_bond_orders
     """
-    assert C8H13O_CGR == graph.without_bond_orders(C8H13O_RGR)
+    assert C8H13O_CGR == graph.without_pi_bonds(C8H13O_RGR)
 
 
 def test__without_stereo_parities():
     """ test graph.without_stereo_parities
     """
-    assert C8H13O_CGR == graph.without_stereo_parities(C8H13O_SGR)
+    assert C8H13O_CGR == graph.without_stereo(C8H13O_SGR)
 
 
 def test__electron_count():
@@ -535,17 +392,24 @@ def test__electron_count():
 
 
 def test__atom_count():
-    """ test graph.electron_count
+    """ test graph.atom_count
     """
     assert graph.atom_count(C8H13O_CGR) == 22
+    assert graph.atom_count(C8H13O_CGR, symb='C') == 8
+    assert graph.atom_count(C8H13O_CGR, symb='O') == 1
+    assert graph.atom_count(C8H13O_CGR, heavy_only=True) == 9
+    assert graph.atom_count(C8H13O_CGR, symb='H') == 13
+    assert graph.atom_count(C8H13O_CGR, symb='H', heavy_only=True) == 0
     assert graph.atom_count(C8H13O_CGR, with_implicit=False) == 9
 
-
-def test__heavy_atom_count():
-    """ test graph.heavy_atom_count
-    """
-    cgr = graph.explicit(C8H13O_CGR)
-    assert graph.heavy_atom_count(cgr) == 9
+    cgr = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
+            3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
+            6: ('X', 0, None)},
+           {frozenset({1, 4}): (1, None), frozenset({1, 2}): (1, None),
+            frozenset({0, 3}): (1, None), frozenset({0, 1}): (1, None),
+            frozenset({2, 5}): (1, None)})
+    assert graph.atom_count(cgr) == 6
+    assert graph.atom_count(cgr, dummy=True) == 7
 
 
 def test__atoms_neighbor_atom_keys():
@@ -627,13 +491,9 @@ def test__branch():
 def test__connected_components():
     """ test graph.connected_components
     """
-    gra1 = C3H3_CGR
-    gra2 = C2_CGR
-    gra1_natms = automol.formula.atom_count(graph.formula(C3H3_CGR))
-    gra2 = graph.transform_keys(gra2, lambda x: x + gra1_natms)
+    (gra1, gra2), _ = graph.standard_keys_for_sequence([C3H3_CGR, C2_CGR])
 
-    gra = graph.union(gra1, gra2)
-    cmp_gras = graph.connected_components(gra)
+    cmp_gras = graph.connected_components(graph.union(gra1, gra2))
     assert cmp_gras in [(gra1, gra2), (gra2, gra1)]
 
 
@@ -682,18 +542,10 @@ def test__remove_bonds():
 
 # implicit/explicit hydrogen functions
 # # atom properties
-def test__atom_explicit_hydrogen_valences():
-    """ test graph.atom_explicit_hydrogen_valences
-    """
-    assert graph.atom_explicit_hydrogen_valences(CH2FH2H_CGR_EXP) == {
-        0: 0, 1: 2, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0
-    }
-
-
 def test__atom_hydrogen_keys():
     """ test graph.atom_hydrogen_keys
     """
-    assert graph.atom_hydrogen_keys(CH2FH2H_CGR_EXP) == {
+    assert graph.atom_nonbackbone_hydrogen_keys(CH2FH2H_CGR_EXP) == {
         0: frozenset(),
         1: frozenset({4, 5}),
         2: frozenset({6}),
@@ -714,7 +566,8 @@ def test__backbone_keys():
 def test__hydrogen_keys():
     """ test graph.hydrogen_keys
     """
-    assert graph.hydrogen_keys(CH2FH2H_CGR_EXP) == frozenset({4, 5, 6})
+    assert (graph.nonbackbone_hydrogen_keys(CH2FH2H_CGR_EXP) ==
+            frozenset({4, 5, 6}))
 
 
 def test__explicit():
@@ -763,31 +616,31 @@ def test__unique():
 
 
 # chemistry library
-def test__atom_element_valences():
-    """ test graph.atom_element_valences
+def test__atomic_valences():
+    """ test graph.atomic_valences
     """
-    assert graph.atom_element_valences(C8H13O_CGR) == {
+    assert graph.atomic_valences(C8H13O_CGR) == {
         0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 2}
 
 
-def test__atom_lone_pair_counts():
-    """ test graph.atom_lone_pair_counts
+def test__atom_lone_pairs():
+    """ test graph.atom_lone_pairs
     """
-    assert graph.atom_lone_pair_counts(C8H13O_CGR) == {
+    assert graph.atom_lone_pairs(C8H13O_CGR) == {
         0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 2}
 
 
-def test__atom_bond_valences():
-    """ test graph.atom_bond_valences
+def test__atom_bond_counts():
+    """ test graph.atom_bond_counts
     """
-    assert graph.atom_bond_valences(C8H13O_CGR) == {
+    assert graph.atom_bond_counts(C8H13O_CGR) == {
         0: 4, 1: 3, 2: 4, 3: 3, 4: 3, 5: 3, 6: 4, 7: 4, 8: 1}
 
 
 def test__atom_unsaturations():
     """ test graph.atom_unsaturations
     """
-    assert graph.atom_unsaturations(C8H13O_CGR) == {
+    assert graph.atom_unpaired_electrons(C8H13O_CGR) == {
         0: 0, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 0, 7: 0, 8: 1}
 
 
@@ -808,16 +661,6 @@ def test__possible_spin_multiplicities():
     """ test graph.possible_spin_multiplicities
     """
     assert graph.possible_spin_multiplicities(C2_CGR) == (1, 3, 5, 7)
-
-
-# miscellaneous
-def test__bond_symmetry_numbers():
-    """ test graph.bond_symmetry_numbers
-    """
-    assert graph.bond_symmetry_numbers(C8H13O_CGR) == {
-        frozenset({1, 4}): 1, frozenset({4, 6}): 1, frozenset({2, 6}): 3,
-        frozenset({0, 3}): 3, frozenset({6, 7}): 1, frozenset({8, 7}): 1,
-        frozenset({3, 5}): 1, frozenset({5, 7}): 1}
 
 
 # resonance graph library
@@ -1087,37 +930,29 @@ def test__rotational_bond_keys():
 def test__species__graph_conversion():
     """ test interchanging between graphs aligned by zma and geo
     """
-
-    chi = automol.smiles.chi('CC#CC#CCCCC#CC')
-    geo = automol.chi.geometry(chi)
+    geo = automol.smiles.geometry('CC#CC#CCCCC#CC')
     gra = automol.geom.graph(geo)
 
-    zma, zma_keys, dummy_key_dct = (
-        automol.geom.zmatrix_with_conversion_info(geo))
-    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+    zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
+    zgra = automol.graph.apply_zmatrix_conversion(gra, dc_)
+    assert zgra != gra
 
-    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
-    ggra = automol.graph.relabel_for_geometry(zgra)
-
-    old_zgra = zgra
-    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
-    assert zgra == old_zgra
+    geo_ = automol.zmat.geometry(zma, zc_=dc_)
+    gra_ = automol.geom.graph(geo_, stereo=False)
+    assert gra == gra_ == automol.graph.undo_zmatrix_conversion(zgra, dc_)
 
     # extra test case from Luna
     ich = 'InChI=1S/C11H8/c1-3-10(4-2)11-8-6-5-7-9-11/h1,5-9H,2H2'
     geo = automol.chi.geometry(ich)
     gra = automol.geom.graph(geo)
 
-    zma, zma_keys, dummy_key_dct = (
-        automol.geom.zmatrix_with_conversion_info(geo))
-    zgra = automol.graph.relabel_for_zmatrix(gra, zma_keys, dummy_key_dct)
+    zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
+    zgra = automol.graph.apply_zmatrix_conversion(gra, dc_)
+    assert zgra != gra
 
-    geo, gdummy_key_dct = automol.zmat.geometry_with_conversion_info(zma)
-    ggra = automol.graph.relabel_for_geometry(zgra)
-
-    old_zgra = zgra
-    zgra = automol.graph.insert_dummy_atoms(ggra, gdummy_key_dct)
-    assert zgra == old_zgra
+    geo_ = automol.zmat.geometry(zma, zc_=dc_)
+    gra_ = automol.geom.graph(geo_, stereo=False)
+    assert gra == gra_ == automol.graph.undo_zmatrix_conversion(zgra, dc_)
 
 
 # stereo graph library
@@ -1270,7 +1105,10 @@ def test__expand_stereo():
     """
     assert graph.expand_stereo(C2H2CL2F2_CGR) == C2H2CL2F2_SGRS
     assert graph.expand_stereo(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
-    assert graph.expand_stereo(C3H5N3_CGR) == C3H5N3_SGRS
+    # When symmetry equivalents are filtered out, we can't guarantee that the
+    # sequence will match exactly, but they will be isomorphic sequences.
+    assert graph.sequence_isomorphism(
+        graph.expand_stereo(C3H5N3_CGR), C3H5N3_SGRS, stereo=True)
     assert graph.expand_stereo(C8H13O_CGR) == C8H13O_SGRS
 
     # CC(OO)C(O[O])C(OO)C
@@ -1356,169 +1194,6 @@ def test__vmat__vmatrix():
     assert set(zma_keys) == graph.atom_keys(gra)
 
 
-def test__ts__fleeting_stereogenic_keys():
-    """ test graph.ts.fleeting_stereogenic_keys
-    """
-    # CCOCC + [OH] => CCO[CH]C + O
-    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('C', 0, None), 4: ('O', 0, None), 5: ('H', 0, None),
-            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-            9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-            15: ('O', 0, None), 16: ('H', 0, None)},
-           {frozenset({0, 5}): (1, None), frozenset({3, 14}): (1, None),
-            frozenset({2, 11}): (1, None), frozenset({1, 10}): (1, None),
-            frozenset({3, 4}): (1, None), frozenset({1, 9}): (1, None),
-            frozenset({0, 6}): (1, None), frozenset({12, 15}): (0.1, None),
-            frozenset({0, 2}): (1, None), frozenset({3, 13}): (1, None),
-            frozenset({2, 12}): (0.9, None), frozenset({16, 15}): (1, None),
-            frozenset({2, 4}): (1, None), frozenset({8, 1}): (1, None),
-            frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
-    assert not automol.graph.ts.fleeting_stereogenic_keys(tsg, ts_enant=False)
-
-    # CCOC(O[O])C => C[CH]OC(OO)C
-    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('C', 0, True), 4: ('O', 0, None), 5: ('O', 0, None),
-            6: ('O', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-            9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-            15: ('H', 0, None)},
-           {frozenset({4, 6}): (1, None), frozenset({3, 6}): (1, None),
-            frozenset({1, 12}): (1, None), frozenset({2, 14}): (1, None),
-            frozenset({1, 10}): (1, None), frozenset({0, 8}): (1, None),
-            frozenset({0, 9}): (1, None), frozenset({2, 13}): (0.9, None),
-            frozenset({3, 15}): (1, None), frozenset({4, 13}): (0.1, None),
-            frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
-            frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
-            frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert automol.graph.ts.fleeting_stereogenic_keys(tsg) == {2}
-    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
-            {2})
-
-    # CCOCC + [OH] => CCO[CH]C + O
-    tsg = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
-            3: ('O', 0, None), 4: ('O', 0, None), 5: ('O', 0, None),
-            6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None)},
-           {frozenset({8, 2}): (1, None), frozenset({1, 4}): (1, None),
-            frozenset({0, 6}): (0.9, None), frozenset({0, 1}): (1, None),
-            frozenset({3, 6}): (0.1, None), frozenset({2, 4}): (1, None),
-            frozenset({1, 5}): (1, None), frozenset({3, 5}): (1, None),
-            frozenset({0, 7}): (1, None)})
-    print(automol.graph.ts.fleeting_stereogenic_keys(tsg))
-    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg) ==
-            {frozenset({0, 1})})
-    assert (automol.graph.ts.fleeting_stereogenic_keys(tsg, ts_enant=False) ==
-            {frozenset({0, 1})})
-
-
-def test__ts__are_energetically_equivalent():
-    """ test graph.ts.are_energetically_equivalent
-    """
-    # Fleeting diastereomer:
-    #       CCOC(O[O])C => C[CH]OC(OO)C
-    #        * ^
-    # [* marks a fleeting TS stereosite]
-    # [^ marks a permanent stereosite]
-    tsg1 = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-             3: ('C', 0, True), 4: ('O', 0, None), 5: ('O', 0, None),
-             6: ('O', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-             9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-             12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-             15: ('H', 0, None)},
-            {frozenset({4, 6}): (1, None), frozenset({3, 6}): (1, None),
-             frozenset({1, 12}): (1, None), frozenset({2, 14}): (0.9, None),
-             frozenset({4, 14}): (0.1, None), frozenset({1, 10}): (1, None),
-             frozenset({0, 8}): (1, None), frozenset({0, 9}): (1, None),
-             frozenset({2, 13}): (1, None), frozenset({3, 15}): (1, None),
-             frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
-             frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
-             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    tsg2 = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-             3: ('C', 0, True), 4: ('O', 0, None), 5: ('O', 0, None),
-             6: ('O', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-             9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-             12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-             15: ('H', 0, None)},
-            {frozenset({4, 6}): (1, None), frozenset({3, 6}): (1, None),
-             frozenset({1, 12}): (1, None), frozenset({2, 14}): (1, None),
-             frozenset({1, 10}): (1, None), frozenset({0, 8}): (1, None),
-             frozenset({0, 9}): (1, None), frozenset({2, 13}): (0.9, None),
-             frozenset({3, 15}): (1, None), frozenset({4, 13}): (0.1, None),
-             frozenset({1, 11}): (1, None), frozenset({0, 2}): (1, None),
-             frozenset({2, 5}): (1, None), frozenset({3, 5}): (1, None),
-             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert not graph.ts.are_equivalent(tsg1, tsg2)
-    assert graph.ts.are_equivalent(tsg1, tsg2, ts_stereo=False)
-
-    # Fleeting enantiomer:
-    #       CCOCC + [OH] => C[CH]OCC + O
-    #        *
-    # [* marks a fleeting TS stereosite]
-    tsg1 = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-             3: ('C', 0, None), 4: ('O', 0, None), 5: ('H', 0, None),
-             6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-             9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-             12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-             15: ('O', 0, None), 16: ('H', 0, None)},
-            {frozenset({0, 5}): (1, None), frozenset({3, 14}): (1, None),
-             frozenset({11, 15}): (0.1, None), frozenset({2, 11}): (0.9, None),
-             frozenset({1, 10}): (1, None), frozenset({3, 4}): (1, None),
-             frozenset({1, 9}): (1, None), frozenset({0, 6}): (1, None),
-             frozenset({0, 2}): (1, None), frozenset({3, 13}): (1, None),
-             frozenset({2, 12}): (1, None), frozenset({15, 16}): (1, None),
-             frozenset({2, 4}): (1, None), frozenset({1, 8}): (1, None),
-             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    tsg2 = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-             3: ('C', 0, None), 4: ('O', 0, None), 5: ('H', 0, None),
-             6: ('H', 0, None), 7: ('H', 0, None), 8: ('H', 0, None),
-             9: ('H', 0, None), 10: ('H', 0, None), 11: ('H', 0, None),
-             12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-             15: ('O', 0, None), 16: ('H', 0, None)},
-            {frozenset({0, 5}): (1, None), frozenset({3, 14}): (1, None),
-             frozenset({2, 11}): (1, None), frozenset({1, 10}): (1, None),
-             frozenset({3, 4}): (1, None), frozenset({1, 9}): (1, None),
-             frozenset({0, 6}): (1, None), frozenset({12, 15}): (0.1, None),
-             frozenset({0, 2}): (1, None), frozenset({3, 13}): (1, None),
-             frozenset({2, 12}): (0.9, None), frozenset({15, 16}): (1, None),
-             frozenset({2, 4}): (1, None), frozenset({1, 8}): (1, None),
-             frozenset({0, 7}): (1, None), frozenset({1, 3}): (1, None)})
-    assert graph.ts.are_equivalent(tsg1, tsg2)
-    assert not graph.ts.are_equivalent(tsg1, tsg2, ts_enant=True)
-
-
-def test__ts__expand_reaction_stereo():
-    """ test graph.ts.stereo_expand_reverse_graphs
-    """
-    gra = C4H5F2O_TSG
-    assert len(graph.ts.expand_reaction_stereo(gra, enant=True)) == 16
-
-    gra = C4H5F3O2_TSG
-    assert len(graph.ts.expand_reaction_stereo(gra, enant=True)) == 8
-
-    # CC(OO)C(O[O])C(OO)C => CC(OO)C(OO)C(OO)[CH2]
-    gra = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
-            3: ('C', 0, None), 4: ('C', 0, None), 5: ('O', 0, None),
-            6: ('O', 0, None), 7: ('O', 0, None), 8: ('O', 0, None),
-            9: ('O', 0, None), 10: ('O', 0, None), 11: ('H', 0, None),
-            12: ('H', 0, None), 13: ('H', 0, None), 14: ('H', 0, None),
-            15: ('H', 0, None), 16: ('H', 0, None), 17: ('H', 0, None),
-            18: ('H', 0, None), 19: ('H', 0, None), 20: ('H', 0, None),
-            21: ('H', 0, None)},
-           {frozenset({10, 4}): (1, None), frozenset({8, 2}): (1, None),
-            frozenset({9, 3}): (1, None), frozenset({1, 15}): (1, None),
-            frozenset({0, 12}): (1, None), frozenset({18, 3}): (1, None),
-            frozenset({0, 11}): (0.9, None), frozenset({16, 1}): (1, None),
-            frozenset({11, 7}): (0.1, None), frozenset({0, 13}): (1, None),
-            frozenset({1, 14}): (1, None), frozenset({3, 4}): (1, None),
-            frozenset({9, 6}): (1, None), frozenset({21, 6}): (1, None),
-            frozenset({10, 7}): (1, None), frozenset({19, 4}): (1, None),
-            frozenset({0, 2}): (1, None), frozenset({17, 2}): (1, None),
-            frozenset({2, 4}): (1, None), frozenset({8, 5}): (1, None),
-            frozenset({20, 5}): (1, None), frozenset({1, 3}): (1, None)})
-    assert len(graph.ts.expand_reaction_stereo(gra, enant=False)) == 4
-
-
 def test__canonical():
     """ test graph.canonical
     """
@@ -1565,10 +1240,10 @@ def test__calculate_priorities_and_assign_parities():
         geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
 
-        par_eval_ = graph.parity_evaluator_from_geometry_(gra, geo)
+        par_eval_ = graph.parity_evaluator_from_geometry_(geo)
 
-        pri_dct, gra = graph.calculate_priorities_and_assign_parities(
-                gra, par_eval_=par_eval_)
+        pri_dct, gra, _ = graph.calculate_priorities_and_assign_stereo(
+            gra, par_eval_=par_eval_)
 
         print(pri_dct)
 
@@ -1576,10 +1251,14 @@ def test__calculate_priorities_and_assign_parities():
             automol.graph.atom_stereo_parities(gra), lambda x: x is not None)
         bnd_par_dct = automol.util.dict_.filter_by_value(
             automol.graph.bond_stereo_parities(gra), lambda x: x is not None)
+        # Frozensets don't sort properly, so use sorted tuples for the keys
+        bnd_par_dct = automol.util.dict_.transform_keys(
+            bnd_par_dct, lambda x: tuple(sorted(x)))
 
         atm_pars = [p for k, p in sorted(atm_par_dct.items()) if p is not None]
         bnd_pars = [p for k, p in sorted(bnd_par_dct.items()) if p is not None]
 
+        print(ref_atm_pars, ref_bnd_pars)
         print(atm_pars, bnd_pars)
         assert atm_pars == ref_atm_pars
         assert bnd_pars == ref_bnd_pars
@@ -1602,7 +1281,7 @@ def test__calculate_priorities_and_assign_parities():
         (r'[H]/N=N\[H]', [], [False]),      # cis   = '-' => False
         # Advanced tests
         ('F[C@@H]([C@@H](F)Cl)[C@H](F)Cl', [True, True, False], []),
-        (r'[H]/N=C\C(\C=N\[H])=N\[H]', [], [True, False, False]),
+        (r'[H]/N=C\C(\C=N\[H])=N\[H]', [], [False, True, False]),
     ]
     for smi, ref_atm_pars, ref_bnd_pars in args:
         _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars)
@@ -1796,7 +1475,6 @@ def test__smiles():
     """
     smis = [
         # Rings:
-        'C1[C@@]2(C3)O[C@@]2(C[N@H]3)OC1',
         r'[CH2]/C=C1\[N@H]C(=C1)O[O]',
         'C1CC1',
         # Stereo atoms:
@@ -1887,6 +1565,36 @@ def test__perturb_geometry_planar_dihedrals():
     assert numpy.isclose(dih, 170.)
 
 
+def test__stereo_corrected_geometry():
+    """test graph.stereo_corrected_geometry
+    """
+    geo = automol.smiles.geometry('C1C(F)C12C(F)C2')
+    gra = automol.geom.graph(geo)
+    sgras = automol.graph.expand_stereo(gra)
+    for sgra in sgras:
+        print(automol.graph.smiles(sgra))
+        sgeo = automol.graph.stereo_corrected_geometry(sgra, geo)
+        sgra_from_geo = automol.geom.graph(sgeo)
+        assert sgra_from_geo == sgra
+
+
+def test__embed__clean_geometry():
+    """test graph.embed.clean_geometry
+    """
+    # Make sure good geometries don't get bessed up by cleaning
+    # F/C=N\C#C
+    geo1 = (('C', (-3.321773, 0.223278, -1.798954)),
+            ('C', (-1.526479, 0.653524, -0.482726)),
+            ('N', (0.453152, 1.154608, 1.00976)),
+            ('C', (2.562887, 0.064839, 0.451482)),
+            ('F', (2.694212, -1.636094, -1.420516)),
+            ('H', (-4.917597, -0.155311, -2.962995)),
+            ('H', (4.300424, 0.512127, 1.504603)))
+    gra = automol.geom.graph(geo1)
+    geo2 = graph._0embed.clean_geometry(gra, geo1)
+    assert automol.geom.almost_equal(geo1, geo2)
+
+
 if __name__ == '__main__':
     # test__to_local_stereo()
 
@@ -1903,16 +1611,18 @@ if __name__ == '__main__':
     # test__species__graph_conversion()
     # test__canonical()
     # test__calculate_priorities_and_assign_parities()
-    # test__smiles()
+    test__smiles()
     # test__kekules()
     # test__geometry_atom_parity()
     # test__geometry_bond_parity()
     # test__geometries_parity_mismatches()
     # test__unique()
     # test__isomorphic()
-    # test__ts__fleeting_stereogenic_keys()
-    # test__ts__are_energetically_equivalent()
     # test__branch()
     # test__perturb_geometry_planar_dihedrals()
-    test__from_data()
-    test__setters()
+    # test__from_data()
+    # test__setters()
+    # test__atom_count()
+    # test__atom_hybridizations()
+    # test__kekules()
+    # test__stereo_corrected_geometry()

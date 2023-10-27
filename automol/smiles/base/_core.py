@@ -3,7 +3,7 @@
 The parsing functions apply equally well to SMILES or RSMILES strings, so the
 documentation simply refers to SMILES strings.
 """
-
+from typing import List
 import string
 import pyparsing as pp
 import numpy
@@ -53,7 +53,7 @@ ATOM_ENVIRONMENT = (
     BOND('bond') + DIREC('direc') + ATOM('atom') + RING_CLOSURES('ring_clos'))
 ATOM_ENVIRONMENT_COMBINED = pp.Combine(ATOM_ENVIRONMENT)
 CHAIN = pp.OneOrMore(ATOM_ENVIRONMENT_COMBINED)
-SUBCHAINS = pp.ZeroOrMore(pp.nestedExpr('(', ')', content=CHAIN))
+SUBCHAINS = pp.ZeroOrMore(pp.nestedExpr('(', ')', CHAIN))
 
 # smiles
 SMILES_PARSER = pp.OneOrMore(CHAIN + SUBCHAINS)
@@ -71,6 +71,22 @@ def without_resonance_stereo(smi):
     """
     smi = smi.replace('=/', '=')
     smi = smi.replace('=\\', '=')
+    return smi
+
+
+def without_stereo(smi):
+    """ Generate a SMILES string without resonance stereo.
+
+        :param smi: SMILES string
+        :type smi: str
+        :returns: A SMILES without resonance stereo, which will be readable by
+            other codes.
+        :rtype: str
+    """
+    smi = smi.replace('/', '')
+    smi = smi.replace('\\', '')
+    smi = smi.replace('@', '')
+    smi = smi.replace('@@', '')
     return smi
 
 
@@ -125,6 +141,96 @@ def reaction(rsmis, psmis):
     psmi = '.'.join(psmis)
     rxn_smi = f'{rsmi}>>{psmi}'
     return rxn_smi
+
+
+def is_reaction(smi: str) -> bool:
+    """ Is this a reaction SMILES string?
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: `True` if it is, `False` if it isn't
+    :rtype: bool
+    """
+    return ">>" in smi
+
+
+def reaction_reagents(smi: str) -> (str, str):
+    """ Get the reagents from a reaction SMILES string
+
+    Returns `(None, None)` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The reactant and product SMILES strings
+    :rtype: (str, str)
+    """
+    if not is_reaction(smi):
+        return (None, None)
+
+    smis = smi.split(">>")
+    assert len(smis) == 2, f"Invalid reaction SMILES: {smi}"
+    rsmi, psmi = smis
+    return rsmi, psmi
+
+
+def reaction_reactant(smi: str) -> str:
+    """ Get the reactant from a reaction SMILES string
+
+    Multiple reactants will be returned as one combined SMILES string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The reactant SMILES string
+    :rtype: str
+    """
+    rsmi, _ = reaction_reagents(smi)
+    return rsmi
+
+
+def reaction_product(smi: str) -> str:
+    """ Get the product from a reaction SMILES string
+
+    Multiple products will be returned as one combined SMILES string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The product SMILES string
+    :rtype: str
+    """
+    _, psmi = reaction_reagents(smi)
+    return psmi
+
+
+def reaction_reactants(smi: str) -> List[str]:
+    """ Get the reactants from a reaction SMILES string
+
+    Multiple reactants will in the order they appear in the string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The reactant SMILES strings
+    :rtype: List[str]
+    """
+    rsmi = reaction_reactant(smi)
+    return None if rsmi is None else rsmi.split('.')
+
+
+def reaction_products(smi: str) -> List[str]:
+    """ Get the products from a reaction SMILES string
+
+    Multiple products will in the order they appear in the string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :type smi: str
+    :returns: The product SMILES strings
+    :rtype: List[str]
+    """
+    rsmi = reaction_product(smi)
+    return None if rsmi is None else rsmi.split('.')
 
 
 # # properties
@@ -419,20 +525,3 @@ def _neighbor_key_and_direction_from_dict(key1, key2, direc_dct):
         nkey = None
 
     return nkey, direc
-
-
-# if __name__ == '__main__':
-#     SMIS = [
-#         r'[C@H](N)(O)(F)',
-#         r'[C@H]1(OO2)C[C@H]12',
-#         r'[C@H]1(OO2)C[C@@H]12',
-#         r'[C@@H]1(OO2)C[C@H]12',
-#         r'[C@@H]1(OO2)C[C@@H]12',
-#         r'CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O',
-#         r'F\C=C\F',
-#         r'[H]/N=N/N=N\[H]',
-#         r'C1CCCCCCCCCC/N=N/1',
-#     ]
-#
-#     for SMI in SMIS:
-#         print(reflect(SMI))
