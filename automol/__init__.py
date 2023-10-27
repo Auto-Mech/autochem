@@ -84,8 +84,7 @@ from automol import zmat
 from automol import etrans
 from automol import combine
 from automol import reac
-from automol import pot
-from automol import rotor_old
+from automol import _deprecated
 from automol import data
 from automol.data import rotor   # TEMPORARY - TAKE THIS OUT
 from automol.data import potent  # TEMPORARY - TAKE THIS OUT
@@ -120,8 +119,7 @@ __all__ = [
     'etrans',
     'combine',
     'reac',
-    'pot',
-    'rotor_old',
+    '_deprecated',
     'data',
     'symm',
     # type imports
