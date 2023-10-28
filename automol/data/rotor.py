@@ -390,6 +390,9 @@ def rotors_zmatrix(rotors: List[Rotor]):
     :returns: The z-matrix
     :rtype: automol zmat data structure
     """
+    if not rotors:
+        return None
+
     zmas = list(map(zmatrix, rotors))
     zma, *zmas = zmas
     assert all(zma == z for z in zmas)
@@ -408,6 +411,9 @@ def rotors_torsion_dict(
     :return: The torsions in the rotor object, by coordinate name
     :rtype: Dict[str, Torsion]
     """
+    if not rotors:
+        return {}
+
     zc_ = None if key_typ == "zmat" else zmat.conversion_info(rotors_zmatrix(rotors))
     return {
         tors.name(t): t for r in rotors for t in torsions(r, key_typ=key_typ, zc_=zc_)
@@ -430,6 +436,9 @@ def rotors_torsions(
     :return: A flat or grouped list of torsion names
     :rtype: Union[List[str], List[List[str]]]
     """
+    if not rotors:
+        return ()
+
     if sort:
         tor_dct = rotors_torsion_dict(rotors, key_typ=key_typ)
         zma = rotors_zmatrix(rotors)

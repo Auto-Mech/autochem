@@ -311,6 +311,7 @@ def linear_segment_dummy_direction(
     gra = relabel(gra, geo_idx_dct)
     gra = without_dummy_atoms(gra)
 
+    print("gra:", gra)
     # 1. Find atoms book-ending either side of the linear segment
     nkeys_dct = atoms_sorted_neighbor_atom_keys(gra)
     tra_dct = ts_transferring_atoms(gra)
