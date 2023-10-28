@@ -309,9 +309,13 @@ def from_string(zma_str, one_indexed=None, angstrom=True, degree=True):
     value_line = pp.Group(vmat.VNAME + pp.Suppress("=") + ppc.fnumber)
     value_lines = pp.delimitedList(value_line, delim=pp.lineEnd())
 
-    val_dct = dict(value_lines.parseString(val_str).asList())
-    val_dct[None] = None
-    val_mat = [list(map(val_dct.__getitem__, nrow)) for nrow in name_mat]
+    if nrows > 1:
+        val_dct = dict(value_lines.parseString(val_str).asList())
+        val_dct[None] = None
+        val_mat = [list(map(val_dct.__getitem__, nrow)) for nrow in name_mat]
+    else:
+        assert nrows == 1, f"Failed to parse z-matrix string: {zma_str}"
+        val_mat = [(None, None, None)]
 
     zma = from_data(
         symbs,
@@ -786,7 +790,6 @@ def _value_matrix(val_mat, angstrom, degree):
     :type degree: bool
     :rtype: tuple(tuple(str))
     """
-
     # Check dimensions and ensure proper formatting
     val_mat = [list(row) + [None] * (3 - len(row)) for row in val_mat]
     val_mat = numpy.array(val_mat, dtype=object)

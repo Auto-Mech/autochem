@@ -65,27 +65,28 @@
             [X] For each case in test__end_to_end(), check that each TS/R/P geometry matches the corresponding graph
     [X] Figure out the following error from test_convert.py::test__geom__with_stereo
     InChI=1S/C6H5O2/c7-5-3-1-2-4-6(5)8/h1-5H/t5-/m0/s1
-    [ ] Update existing Reac functions to properly handle structures
+    [X] Update existing Reac functions to properly handle structures
         [X] Implement reverse() function in _4struc.py
         [X] Rename reverse_zmatrix_conversion() => undo_zmatrix_conversion()
         [X] Test new from_chis, from_smiles, etc. functions in _8conv.py
         [X] Remove old with_structures_from_... functions
-    [ ] _7rot.py
-        [ ] Wipe out the torsion / rotor modules
-        [ ] All we need: axis, groups, and symmetry for each torsion in the z-matrix
-        [ ] (Either TS z-matrix or regular z-matrix)
-        [ ] See rotor.py::from_zmatrix
-    [ ] Fix how potentials are assigned to Rotors objects
+    [X] _7rot.py
+        [X] Wipe out the torsion / rotor modules
+        [X] All we need: axis, groups, and symmetry for each torsion in the z-matrix
+        [X] (Either TS z-matrix or regular z-matrix)
+        [X] See rotor.py::from_zmatrix
+    [X] Fix how potentials are assigned to Rotors objects
     (This is needed in order to finish wiping out the old rotor module)
-        [ ] This happens in mechdriver/mechroutines/models/_tors.py:130
-        [ ] Currently, we are just doing tors.pot = 
-        [ ] Instead, we should make a function call to set the potential(s)
-    [ ] pot module
+        [X] This happens in mechdriver/mechroutines/models/_tors.py:130
+        [X] Currently, we are just doing tors.pot = 
+        [X] Instead, we should make a function call to set the potential(s)
+    [X] pot module
         [X] Move intermolecular potentials into automol.geom
-        [ ] Finish implementing geom data structures along potential
-    [ ] Correct mechdriver/mechlib/filesys/read.py:potential() to return the new potential objects?
-    [ ] _6scan.py  (maybe leave this for now)
+        [X] Finish implementing geom data structures along potential
+    [-] Correct mechdriver/mechlib/filesys/read.py:potential() to return the new potential objects?
+    [-] _6scan.py  (maybe leave this for now)
     [x] _8conv.py
+    [ ] Debug mechdriver "simple" test case
     [ ] make reac.from_old_string handle dummy atoms correctly
     [ ] Move non-reac related files in automol/reac/ into automol/misc/
         New structure:
