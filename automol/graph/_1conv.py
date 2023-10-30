@@ -337,8 +337,35 @@ def display(gra, stereo=True, label=False, label_dct=None):
         `True`, the atom keys themselves will be used as labels.
     :param label_dct: bool
     """
+    arrow_svg_str = """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
+    <defs>
+        <marker id="arrowhead" markerWidth="5" markerHeight="5" 
+        refX="0" refY="2.5" orient="auto">
+        <polygon points="0 0, 5 2.5, 0 5" />
+        </marker>
+    </defs>
+    <line x1="20" y1="50" x2="120" y2="50" stroke="#000" 
+    stroke-width="10" marker-end="url(#arrowhead)" />
+    </svg>
+    """
+
+    arrow_widget = ipywidgets.Image(
+        value=arrow_svg_str.encode("utf-8"), format="svg+xml", width=100, height=50
+    )
+    arrow_widget
+
     rdkit_.turn_3d_visualization_off()
-    ipd.display(rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct))
+    if is_ts_graph(gra):
+        rgra = ts.reactants_graph(gra)
+        pgra = ts.products_graph(gra)
+        rwid = ipywidget(rgra, stereo=stereo, label=label, label_dct=label_dct)
+        pwid = ipywidget(pgra, stereo=stereo, label=label, label_dct=label_dct)
+        ipd.display(ipywidgets.HBox([rwid, arrow_widget, pwid]))
+    else:
+        ipd.display(
+            rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
+        )
 
 
 def display_reaction(rgras, pgras, stereo=True):
