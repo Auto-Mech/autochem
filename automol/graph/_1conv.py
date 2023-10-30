@@ -353,7 +353,6 @@ def display(gra, stereo=True, label=False, label_dct=None):
     arrow_widget = ipywidgets.Image(
         value=arrow_svg_str.encode("utf-8"), format="svg+xml", width=100, height=50
     )
-    arrow_widget
 
     rdkit_.turn_3d_visualization_off()
     if is_ts_graph(gra):
