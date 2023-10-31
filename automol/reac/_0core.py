@@ -1098,8 +1098,8 @@ def undo_zmatrix_conversion(
             zc_ = zmat_conv.relabel(zc_, rgt_zkey_dct, "zmat")
 
             # 3. {TS gkeys: reagent gkeys} (get TS => reagent gkeys mapping)
-            tg_to_rz = zmat_conv.relabel_dict(zc_)
-            rz_to_rg = zmat_conv.relabel_dict(rgt_zc, rev=True)
+            tg_to_rz = zmat_conv.relabel_dict(zc_, "geom")
+            rz_to_rg = zmat_conv.relabel_dict(rgt_zc, "zmat")
             tg_to_rg = dict_.compose(rz_to_rg, tg_to_rz)
 
             # 4. [reagent TS gkeys] (get sorted TS gkeys for the reagent)

@@ -92,7 +92,7 @@ def coordinate(
     """
     coo = tor.coordinate
     if key_typ == "geom":
-        coo = zmat_conv.geometry_keys(zc_, coo, dummy=True)
+        coo = zmat_conv.relabel_zmatrix_key_sequence(zc_, coo, dummy=True)
     return coo
 
 
@@ -128,7 +128,7 @@ def groups(
     """
     grps = tor.groups
     if key_typ == "geom":
-        grps = zmat_conv.geometry_keys(zc_, grps)
+        grps = zmat_conv.relabel_zmatrix_key_sequence(zc_, grps)
     return grps
 
 

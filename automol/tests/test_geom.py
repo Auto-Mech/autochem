@@ -596,8 +596,7 @@ C    0.000000   0.000000   8.000000"""
 def test__insert_dummies():
     """test geom.insert_dummies"""
     # 1. Generate a z-matrix to start with
-    ich = automol.smiles.chi("CC#CC#CCCCC#CC")
-    zma = automol.geom.zmatrix(automol.chi.geometry(ich))
+    zma = automol.geom.zmatrix(automol.smiles.geometry("CC#CC#CCCCC#CC"))
 
     # 2. Convert to cartesians and remove dummy atoms
     geo = automol.zmat.geometry(zma)
@@ -832,10 +831,10 @@ if __name__ == "__main__":
     # test__chi_with_sort()
     # test__argunique_coulomb_spectrum()
     # test__rotation_properties()
-    # test__insert_dummies()
+    test__insert_dummies()
     # test__hydrogen_bonded_structure()
     # test__from_string()
     # test__from_xyz_string()
     # test__insert_dummies()
-    test__closest_unbonded_atoms()
-    test__repulsion_energy()
+    # test__closest_unbonded_atoms()
+    # test__repulsion_energy()

@@ -23,6 +23,12 @@ from automol.vmat import angle_names
 from automol.vmat import dummy_coordinate_names
 from automol.vmat import standard_names
 from automol.vmat import standard_name_matrix
+from automol.vmat import distance_coordinate_name
+from automol.vmat import central_angle_coordinate_name
+from automol.vmat import dihedral_angle_coordinate_name
+from automol.vmat import dummy_keys
+from automol.vmat import dummy_source_dict
+from automol.vmat import conversion_info
 # core functions
 # # constructors
 from automol.zmat.base._core import from_data
@@ -55,16 +61,6 @@ from automol.zmat.base._core import add_atom
 from automol.zmat.base._core import remove_atom
 # # comparisons
 from automol.zmat.base._core import almost_equal
-# # coordinate names
-from automol.zmat.base._core import distance_coordinate_name
-from automol.zmat.base._core import central_angle_coordinate_name
-from automol.zmat.base._core import dihedral_angle_coordinate_name
-# # dummy atom functions
-from automol.zmat.base._core import dummy_keys
-from automol.zmat.base._core import dummy_parent_dict
-from automol.zmat.base._core import conversion_info
-from automol.zmat.base._core import linear_atom_keys
-from automol.zmat.base._core import shift_down
 # extra functions
 from automol.zmat.base._extra import samples
 from automol.zmat.base._extra import constraint_dict
@@ -128,10 +124,8 @@ __all__ = [
     'dihedral_angle_coordinate_name',
     # # dummy atom functions
     'dummy_keys',
-    'dummy_parent_dict',
+    'dummy_source_dict',
     'conversion_info',
-    'linear_atom_keys',
-    'shift_down',
     # extra functions
     'samples',
     'constraint_dict',
