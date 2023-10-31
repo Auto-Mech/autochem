@@ -58,16 +58,6 @@ CHECK_DCT = {"dist": None, "stereo": None, "coulomb": None}
 CHECK_DCT2 = {"dist": 3.5e-1, "stereo": None, "coulomb": 1.5e-2}
 
 
-# def test__newzma():
-#     """ test
-#     """
-#
-#     build_remdummy_shift_lst(zma)
-#     shift_vals_from_dummy(vals, zma)
-#     is_atom_closest_to_bond_atom(zma, idx_rad, bond_dist)
-#     calc_rxn_angle(ts_zma, frm_bnd_keys, brk_bnd_keys, rxn_class)
-#
-#
 def test__comp():
     """test automol.comp.is_unique"""
 

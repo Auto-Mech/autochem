@@ -4,7 +4,7 @@
 from phydat import bnd
 
 from automol import geom, graph, zmat
-from automol.reac._0core import class_, ts_graph, undo_zmatrix_conversion
+from automol.reac._0core import class_, ts_graph
 from automol.util import dict_
 
 
@@ -17,12 +17,13 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     viable = True
 
     # Get the bond dists and calculate the distance of bond being formed
-    ref_geo = zmat.geometry(ref_zma)
-    cnf_geo = zmat.geometry(zma)
-    grxn = undo_zmatrix_conversion(zrxn)
+    ref_geo = zmat.geometry(ref_zma, dummy=True)
+    cnf_geo = zmat.geometry(zma, dummy=True)
+    ts_gra = ts_graph(zrxn)
 
-    frm_bnd_keys = graph.ts.forming_bond_keys(ts_graph(grxn))
-    brk_bnd_keys = graph.ts.breaking_bond_keys(ts_graph(grxn))
+    frm_bnd_keys = graph.ts.forming_bond_keys(ts_gra)
+    brk_bnd_keys = graph.ts.breaking_bond_keys(ts_gra)
+    tra_dct = graph.ts.transferring_atoms(ts_gra)
 
     cnf_dist_lst = []
     ref_dist_lst = []
@@ -30,7 +31,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     cnf_ang_lst = []
     ref_ang_lst = []
     for frm_bnd_key in frm_bnd_keys:
-        frm_idx1, frm_idx2 = list(frm_bnd_key)
+        frm_idx1, frm_idx2 = frm_bnd_key
         cnf_dist = geom.distance(cnf_geo, frm_idx1, frm_idx2)
         ref_dist = geom.distance(ref_geo, frm_idx1, frm_idx2)
         cnf_dist_lst.append(cnf_dist)
@@ -38,37 +39,30 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
         bnd_key_lst.append(frm_bnd_key)
 
     for brk_bnd_key in brk_bnd_keys:
-        brk_idx1, brk_idx2 = list(brk_bnd_key)
+        brk_idx1, brk_idx2 = brk_bnd_key
         cnf_dist = geom.distance(cnf_geo, brk_idx1, brk_idx2)
         ref_dist = geom.distance(ref_geo, brk_idx1, brk_idx2)
         cnf_dist_lst.append(cnf_dist)
         ref_dist_lst.append(ref_dist)
         bnd_key_lst.append(brk_bnd_key)
 
-    for frm_bnd_key in frm_bnd_keys:
-        for brk_bnd_key in brk_bnd_keys:
-            for frm_idx in frm_bnd_key:
-                for brk_idx in brk_bnd_key:
-                    if frm_idx == brk_idx:
-                        idx2 = frm_idx
-                        idx1 = list(frm_bnd_key - frozenset({idx2}))[0]
-                        idx3 = list(brk_bnd_key - frozenset({idx2}))[0]
-                        cnf_ang = geom.central_angle(cnf_geo, idx1, idx2, idx3)
-                        ref_ang = geom.central_angle(ref_geo, idx1, idx2, idx3)
-                        cnf_ang_lst.append(cnf_ang)
-                        ref_ang_lst.append(ref_ang)
+    for tra_key, (don_key, acc_key) in tra_dct.items():
+        cnf_ang = geom.central_angle(cnf_geo, don_key, tra_key, acc_key)
+        ref_ang = geom.central_angle(ref_geo, don_key, tra_key, acc_key)
+        cnf_ang_lst.append(cnf_ang)
+        ref_ang_lst.append(ref_ang)
 
     # Set the maximum allowed displacement for a TS conformer
     max_disp = 0.6 * sens
     # better to check for bond-form length in bond scission with ring forming
-    if "addition" in class_(grxn):
+    if "addition" in class_(zrxn):
         max_disp = 0.8 * sens
-    if "abstraction" in class_(grxn):
+    if "abstraction" in class_(zrxn):
         # this was 1.4 - SJK reduced it to work for some OH abstractions
         max_disp = 1.0 * sens
 
     # Check forming bond angle similar to ini config
-    if "elimination" not in class_(grxn):
+    if "elimination" not in class_(zrxn):
         for ref_angle, cnf_angle in zip(ref_ang_lst, cnf_ang_lst):
             if abs(cnf_angle - ref_angle) > 0.44 * sens:
                 print("transitioning bond angle has diverged", ref_angle, cnf_angle)
@@ -77,7 +71,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
     symbs = geom.symbols(cnf_geo)
     lst_info = zip(ref_dist_lst, cnf_dist_lst, bnd_key_lst)
     for ref_dist, cnf_dist, bnd_key in lst_info:
-        if "add" in class_(grxn) or "abst" in class_(grxn):
+        if "add" in class_(zrxn) or "abst" in class_(zrxn):
             bnd_key1, bnd_key2 = min(list(bnd_key)), max(list(bnd_key))
             symb1 = symbs[bnd_key1]
             symb2 = symbs[bnd_key2]
@@ -85,8 +79,8 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
             if bnd_key in frm_bnd_keys:
                 # Check if radical atom is closer to some atom
                 # other than the bonding atom
-                cls = zmat.is_atom_closest_to_bond_atom(zma, bnd_key2, cnf_dist)
-                if not cls:
+                is_ok = geom.could_be_forming_bond(cnf_geo, *bnd_key, gra=ts_gra)
+                if not is_ok:
                     # ioprinter.diverged_ts('distance', ref_dist, cnf_dist)
                     print(" - Radical atom now has a new nearest neighbor")
                     viable = False
