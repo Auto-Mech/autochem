@@ -181,7 +181,7 @@ def zmatrix_with_conversion_info(geo, gra=None, zc_: ZmatConv = None):
         key_mat = [[None, None, None]]
         val_mat = [[None, None, None]]
         zma = zmat_base.from_data(symbs, key_mat, val_mat)
-        zc_ = {0: (0, None)}
+        zc_ = zmat_conv.from_zmat_data(1, {})
         return zma, zc_
 
     orig_gra = graph_without_stereo(geo) if gra is None else gra
