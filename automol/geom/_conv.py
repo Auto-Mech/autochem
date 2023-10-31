@@ -8,6 +8,7 @@ import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 from phydat import phycon
 
+from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
 from automol.geom import _pyx2z
 from automol.geom.base import (
@@ -27,13 +28,7 @@ from automol.geom.base import (
 )
 from automol.graph import base as graph_base
 from automol.inchi import base as inchi_base
-from automol.util import (
-    ZmatConv,
-    dict_,
-    heuristic,
-    vector,
-    zmat_conv,
-)
+from automol.util import ZmatConv, dict_, heuristic, vector, zmat_conv
 from automol.zmat import base as zmat_base
 
 
@@ -195,26 +190,28 @@ def zmatrix_with_conversion_info(geo, gra=None, zc_: ZmatConv = None):
         # If a specific z-matrix conversion was requested, apply it to the graph and see
         # if it replicates without reordering
         gra = graph_base.apply_zmatrix_conversion(orig_gra, zc_)
-        vma, zma_keys = graph_base.vmat.vmatrix(gra)
-        assert list(zma_keys) == sorted(
-            zma_keys
-        ), f"Could not replicate z-matrix conversion:\n{zc_}\nGeometry:{geo}"
+        vma, zkeys = graph_base.vmat.vmatrix(gra)
+        assert list(zkeys) == sorted(
+            zkeys
+        ), f"Failed to replicate z-matrix conversion:\n{zc_}\n{geo}"
+        zc_ = vmat.conversion_info(vma)
     else:
         # Build an initial z-matrix conversion data structure to put dummies on linear
         # atoms
         nreal = count(geo)
-        parent_keys = graph_base.linear_atom_keys(orig_gra)
-        zc_ = zmat_conv.from_geom_dummy_parent_keys(nreal, parent_keys, insert=False)
+        lin_gkeys = graph_base.linear_atom_keys(orig_gra)
+        zc0 = zmat_conv.from_geom_data(nreal, lin_gkeys)
 
         # Apply this z-matrix conversion to the graph
-        gra = graph_base.apply_zmatrix_conversion(orig_gra, zc_)
+        gra = graph_base.apply_zmatrix_conversion(orig_gra, zc0)
 
         # Generate a v-matrix for the graph and get the z-matrix reordering
-        vma, zma_keys = graph_base.vmat.vmatrix(gra)
+        vma, zkeys = graph_base.vmat.vmatrix(gra)
 
-        # Apply the new z-matrix ordering to the z-matrix conversion data structure
-        key_dct = dict(map(reversed, enumerate(zma_keys)))
-        zc_ = zmat_conv.relabel(zc_, key_dct)
+        # Re-generate the conversion info, to make sure the direction keys are present
+        gkeys = zmat_conv.relabel_zmatrix_key_sequence(zc0, zkeys, dummy=False)
+        orig_gkey_dct = dict(enumerate(gkeys))
+        zc_ = zmat_conv.relabel(vmat.conversion_info(vma), orig_gkey_dct, "geom")
 
     # Apply the z-matrix conversion to the geometry and generate the z-matrix
     geo = apply_zmatrix_conversion(geo, zc_, gra=orig_gra)
@@ -832,28 +829,29 @@ def apply_zmatrix_conversion(geo, zc_: ZmatConv, gra=None, dist: float = 1.0):
     :returns: The transformed molecular geometry
     :rtype: automol geom data structure
     """
-    idxs = zmat_conv.dummy_parent_keys(zc_, "geom")
+    lin_keys = zmat_conv.linear_atom_keys(zc_, "geom")
+    dir_key_dct = dict(zmat_conv.dummy_source_keys(zc_, "geom"))
     gra = graph_without_stereo(geo) if gra is None else gra
 
-    assert not set(idxs) & set(
-        graph_base.dummy_parent_dict(gra).values()
-    ), f"Attempting to add dummy atoms on atoms that already have them {geo}"
-
     # Partition parent atoms into adjacent segments
-    seg_idxs_lst = graph_base.linear_segments_atom_keys(gra, lin_keys=idxs)
+    lin_seg_keys_lst = graph_base.linear_segments_atom_keys(gra, lin_keys=lin_keys)
 
     # Build an initial z-matrix conversion data structure to describe the insertion
     nreal = count(geo)
-    parent_gkeys = list(itertools.chain(*seg_idxs_lst))
-    zc0 = zmat_conv.from_geom_dummy_parent_keys(nreal, parent_gkeys, insert=False)
+    lin_gkeys = list(itertools.chain(*lin_seg_keys_lst))
+    zc0 = zmat_conv.from_geom_data(nreal, lin_gkeys)
 
     # Identify a perpendicular direction for each segment and insert the dummy atoms
     # (Parent atom indices don't change, since the dummy atoms are added to the end)
     xyzs = coordinates(geo, angstrom=True)
-    for seg_idxs in seg_idxs_lst:
-        direc = graph_base.linear_segment_dummy_direction(gra, geo, seg_idxs)
-        for idx in seg_idxs:
-            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, direc))
+    for lin_seg_keys in lin_seg_keys_lst:
+        lin_key, *_ = lin_seg_keys
+        dir_key = dir_key_dct[lin_key]
+        lin_xyz, dir_xyz = coordinates(geo, idxs=(lin_key, dir_key))
+        dir_vec = vector.unit_norm(numpy.subtract(dir_xyz, lin_xyz))
+        dum_vec = vector.arbitrary_unit_perpendicular(dir_vec)
+        for idx in lin_seg_keys:
+            xyz = numpy.add(xyzs[idx], numpy.multiply(dist, dum_vec))
             geo = insert(geo, "X", xyz, angstrom=True)
 
     # Reorder the geometry to match the desired conversion
@@ -872,7 +870,7 @@ def undo_zmatrix_conversion(geo, zc_: ZmatConv):
     :returns: The transformed molecular geometry
     :rtype: automol geom data structure
     """
-    rel_dct = zmat_conv.relabel_dict(zc_, rev=True)
+    rel_dct = zmat_conv.relabel_dict(zc_, "zmat")
     idxs = zmat_conv.real_keys(zc_, "zmat")
     idxs = sorted(idxs, key=rel_dct.__getitem__)
     return subgeom(geo, idxs)

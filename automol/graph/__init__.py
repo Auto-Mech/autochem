@@ -133,7 +133,7 @@ from automol.graph.base._0core import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._0core import atoms_sorted_neighbor_atom_keys
 from automol.graph.base._0core import atom_bond_keys
 from automol.graph.base._0core import atoms_bond_keys
-from automol.graph.base._0core import dummy_parent_dict
+from automol.graph.base._0core import dummy_source_dict
 from automol.graph.base._0core import bonds_neighbor_atom_keys
 from automol.graph.base._0core import bonds_neighbor_bond_keys
 # algorithm functions:
@@ -228,7 +228,6 @@ from automol.graph.base._5geom import geometry_bond_parity
 from automol.graph.base._5geom import geometry_local_parity
 from automol.graph.base._5geom import geometries_have_matching_parities
 from automol.graph.base._5geom import geometries_parity_mismatches
-from automol.graph.base._5geom import linear_segment_dummy_direction
 # # corrections
 from automol.graph.base._5geom import geometry_correct_linear_vinyls
 from automol.graph.base._5geom import geometry_pseudorotate_atom
@@ -448,7 +447,7 @@ __all__ = [
     'atoms_sorted_neighbor_atom_keys',
     'atom_bond_keys',
     'atoms_bond_keys',
-    'dummy_parent_dict',
+    'dummy_source_dict',
     'bonds_neighbor_atom_keys',
     'bonds_neighbor_bond_keys',
     # algorithm functions:
@@ -543,7 +542,6 @@ __all__ = [
     'geometry_local_parity',
     'geometries_have_matching_parities',
     'geometries_parity_mismatches',
-    'linear_segment_dummy_direction',
     # # corrections
     'geometry_correct_linear_vinyls',
     'geometry_pseudorotate_atom',

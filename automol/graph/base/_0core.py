@@ -17,7 +17,7 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import functools
 import itertools
 import numbers
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 import numpy
 import yaml
@@ -1075,7 +1075,7 @@ def has_dummy_atoms(gra) -> bool:
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    return bool(dummy_parent_dict(gra))
+    return bool(atom_keys(gra, symb="X"))
 
 
 def has_pi_bonds(gra):
@@ -1666,8 +1666,8 @@ def zmatrix_conversion_info(gra) -> ZmatConv:
     :rtype: ZmatConv
     """
     zcount = count(gra)
-    par_zkey_dct = dummy_parent_dict(gra)
-    return zmat_conv.from_zmat_dummy_parent_dict(zcount, par_zkey_dct)
+    src_zkeys_dct = dummy_source_dict(gra)
+    return zmat_conv.from_zmat_data(zcount, src_zkeys_dct)
 
 
 def apply_zmatrix_conversion(gra, zc_: ZmatConv):
@@ -1706,7 +1706,7 @@ def undo_zmatrix_conversion(gra, zc_: ZmatConv = None):
         zc_ = zmatrix_conversion_info(gra)
 
     gra = remove_atoms(gra, zmat_conv.insert_dict(zc_))
-    gra = relabel(gra, zmat_conv.relabel_dict(zc_, rev=True))
+    gra = relabel(gra, zmat_conv.relabel_dict(zc_, "zmat"))
     return gra
 
 
@@ -2185,7 +2185,7 @@ def subgraph(gra, atm_keys, stereo=False):
     :rtype: automol graph data structure
     """
     atm_keys = set(atm_keys)
-    assert atm_keys <= atom_keys(gra)
+    assert atm_keys <= atom_keys(gra), f"Keys not present in graph:\n{atm_keys}\n{gra}"
     bnd_keys = set(filter(lambda x: x <= atm_keys, bond_keys(gra)))
     atm_dct = dict_.by_key(atoms(gra), atm_keys)
     bnd_dct = dict_.by_key(bonds(gra), bnd_keys)
@@ -2638,28 +2638,52 @@ def atoms_bond_keys(gra, ts_=True):
     return dict_.transform_values(atm_nbhs, bond_keys)
 
 
-def dummy_parent_dict(gra, ts_=True):
-    """Get the atoms that are connected to dummy atoms, by dummy atom key
-    (Requires that each dummy atom only be connected to one neighbor)
+def dummy_source_dict(
+    gra, ts_: bool = True, dir_: bool = True
+) -> Union[Dict[int, Tuple[int, int]], Dict[int, int]]:
+    """Get the source atoms for each dummy atom, by dummy atom key
+
+    The source atoms are (1.) the linear atom the dummy atom sits on and, (2.) an atom
+    specifying the linear direction
+
+    If requested, only the linear atom source will be returned
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
+    :param dir_: Include linear direction atoms? defaults to True
+    :type dir_: bool, optional
     :returns: The atoms that are connected to dummy atoms, by dummy atom key
     :rtype: dict[int: int]
     """
-    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
-    dummy_atm_keys = atom_keys(gra, symb="X")
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
+    tra_dct = ts_transferring_atoms(gra)
+    dum_keys = atom_keys(gra, symb="X")
 
-    dummy_parent_dct = {}
-    for key in dummy_atm_keys:
-        ngb_keys = atm_ngb_keys_dct[key]
-        assert len(ngb_keys) == 1, "Dummy atoms should only be connected to one atom!"
-        (ngb_key,) = ngb_keys
-        dummy_parent_dct[key] = ngb_key
+    src_dct = {}
+    for dum_key in dum_keys:
+        # 1. Find the linear atom, which should be the only neighbor
+        assert (
+            len(nkeys_dct[dum_key]) == 1
+        ), f"Dummy atoms should only be connected to one atom!\n{gra}"
 
-    return dummy_parent_dct
+        (lin_key,) = nkeys_dct[dum_key]
+        if not dir_:
+            src_dct[dum_key] = lin_key
+        else:
+            # 2. Find the direction atom; if this is a transferring atom, use the donor
+            # and acceptor as candidates, to avoid problems with Sn2 reactions
+            lin_nkeys = tra_dct[lin_key] if lin_key in tra_dct else nkeys_dct[lin_key]
+            dir_keys = sorted(set(lin_nkeys) - set(dum_keys))
+
+            assert (
+                dir_keys
+            ), f"Failed to identify direction atom for linear atom {lin_key}\n{gra}"
+            dir_key, *_ = dir_keys
+            src_dct[dum_key] = (lin_key, dir_key)
+
+    return src_dct
 
 
 def bonds_neighbor_atom_keys(gra, ts_=True):

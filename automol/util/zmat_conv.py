@@ -3,22 +3,30 @@
 Format:
 
     zmat_conv = {
-        0: (0, None),
-        1: (1, None),  # < parent atom 1
-        2: (None, 1),  # < dummy off of parent atom 1
-        3: (2, None),
-        4: (3, None),  # < parent atom 2
-        5: (None, 3),  # < dummy off of parent atom 2
-        6: (4, None),
+        0: (0, None, None),
+        1: (1, None, None),
+        2: (None, 1,    0), # < dummy off of atom 1, perpendicular to 0
+        3: (2, None, None),
+        4: (3, None, None),
+        5: (None, 3,    2), # < dummy off of atom 3, perpendicular to 2
+        6: (4, None, None),
         ...
-        zkey: (gkey, parent_gkey),
+        zkey: (gkey, lin_gkey, dir_gkey),
     }
 
     zkey is the z-matrix key for an atom
     gkey is the geometry key for an atom
         ('None' for dummy atoms)
-    parent_gkey is the geometry key for the parent of a dummy atom
+    lin_gkey is the geometry key for the linear atom requiring a dummy atom
         ('None' for real atoms)
+    dir_gkey is the geometry key for a linear atom neighbor, giving the linear direction
+        ('None' for real atoms)
+
+Dummy atoms will be placed over the linear atom, perpendicular to the linear direction
+as specified by the direction atom.
+
+Together, the linear and direction keys will be referred to as the dummy atom's "source
+keys", since they specify where the dummy atom is to be located.
 
 Using the `relabel_dict` and `insert_dict` functions below, a z-matrix transformation
 can be replicated in two steps:
@@ -37,136 +45,68 @@ can be replicated in two steps:
 """
 import numbers
 from collections.abc import Sequence
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
-Key = Union[int, None]
+Key = Optional[int]
 ZmatConv = Dict[int, Tuple[Key, Key]]
 
 
 # Constructors
-def from_geom_dummy_parent_keys(
-    nreal: int, parent_gkeys: List[int], insert: bool = False
-) -> ZmatConv:
-    """Generate a z-matrix conversion data structure from a list of geometry parent keys
+def from_zmat_data(zcount: int, src_zkeys_dct: Dict[int, Tuple[int, int]]) -> ZmatConv:
+    """Generate a z-matrix conversion data structure from z-matrix information
 
-    :param nreal: The number of real atoms in the geometry
-    :type nreal: int
-    :param parent_gkeys: The geometry keys of parent atoms (atoms receiving dummy atoms)
-    :type parent_gkeys: List[int]
-    :param insert: Insert the dummies immediately after their parents? If not, they
-        will be appended to the end; defaults to False
-    :type insert: bool, optional
-    :return: The z-matrix conversion
-    :rtype: ZmatConv
-    """
-    gkeys = list(range(nreal))
-    zc_vals = gkeys.copy()
-
-    for parent_gkey in parent_gkeys:
-        if insert:
-            zc_vals.insert(zc_vals.index(parent_gkey) + 1, (None, parent_gkey))
-        else:
-            zc_vals.append((None, parent_gkey))
-
-    zc_vals = [(val, None) if val in gkeys else val for val in zc_vals]
-
-    return dict(enumerate(zc_vals))
-
-
-def from_zmat_dummy_parent_dict(
-    ntotal: int, parent_zkey_dct: Dict[int, int]
-) -> ZmatConv:
-    """Generate a z-matrix conversion data structure from a dictionary mapping dummy
-    atom keys into their parent atom keys
-
-    :param ntotal: The total number of atoms in the z-matrix, including dummy atoms
-    :type ntotal: int
-    :param parent_zkey_dct: Final parent keys, by final dummy key
-    :type parent_zkey_dct: Dict[int, int]
+    :param zcount: The number of z-matrix atoms, including dummy atoms
+    :type zcount: int
+    :param src_zkeys_dct: The source atoms for each dummy atom, by dummy key; the source
+        atoms are (1.) the linear atom it connects to, and (2.) an atom specifying the
+        linear direction, with respect to which it has a 90 degree angle
+    :type src_zkeys_dct: Dict[int, Tuple[int, int]]
     :return: The z-matrix conversion
     :rtype: ZmatConv
     """
     # 1. Generate the mapping of final keys onto original keys
-    gkey_dct = dict(
-        map(reversed, enumerate(k for k in range(ntotal) if k not in parent_zkey_dct))
-    )
-    # 2. Generate the z-matrix conversion
-    zc_ = {
-        zk: (None, gkey_dct[parent_zkey_dct[zk]])
-        if zk in parent_zkey_dct
-        else (gkey_dct[zk], None)
-        for zk in range(ntotal)
+    real_zkeys = [k for k in range(zcount) if k not in src_zkeys_dct]
+    gkey_dct = dict(map(reversed, enumerate(real_zkeys)))
+
+    # 2. Apply the mapping to get the source atoms as geometry keys
+    src_gkeys_dct = {
+        k: tuple(map(gkey_dct.__getitem__, v)) for k, v in src_zkeys_dct.items()
     }
+
+    # 3. Generate the z-matrix conversion
+    zc_ = {zk: (gk, None, None) for zk, gk in gkey_dct.items()}
+    zc_.update({zk: (None, *sgks) for zk, sgks in src_gkeys_dct.items()})
+
+    # 4. Sort it for convenience
+    zc_ = dict(sorted(zc_.items()))
     return zc_
 
 
-# Conversion functions
-def relabel_dict(zc_: ZmatConv, rev: bool = False) -> Dict[int, int]:
-    """Describes the relabeling of non-dummies
+def from_geom_data(gcount: List[int], lin_gkeys: List[int]) -> ZmatConv:
+    """Generate a z-matrix conversion data structure from geometry information
 
-    :param zc_: A z-matrix conversion data structure
-    :type zc_: ZmatConv
-    :param rev: Get the reverse mapping?, defaults to False
-    :type rev: bool, optional
-    :return: A dictionary to relabel keys for dummy insertion
-    :rtype: Dict[int, int]
+    The direction atoms are left unspecified (None)
+
+    :param gcount: The number of geometry atoms, excluding dummy atoms
+    :type gcount: int
+    :param lin_gkeys: The linear atom keys that require dummy atoms
+    :type lin_gkeys: List[int]
+    :return: The z-matrix conversion
+    :rtype: ZmatConv
     """
-    rel_dct = {gk: zk for zk, (gk, _) in zc_.items() if gk is not None}
-    if rev:
-        rel_dct = dict(map(reversed, rel_dct.items()))
+    assert all(
+        0 <= k <= gcount for k in lin_gkeys
+    ), f"Linear atom keys {lin_gkeys} are out of range [0, {gcount}]"
 
-    return rel_dct
+    # 1. Add real atoms to the list of values
+    zc_vals = [(k, None, None) for k in range(gcount)]
 
+    # 2. Add dummy atoms to the list of values
+    zc_vals.extend((None, k, None) for k in lin_gkeys)
 
-def insert_dict(zc_: ZmatConv) -> Dict[int, int]:
-    """Describes the insertion of dummies, mapping their keys upon insertion to
-    their parent atom keys (*after relabeling*)
-
-    :param zc_: A z-matrix conversion data structure
-    :type zc_: ZmatConv
-    :return: A dictionary to insert dummies after relabeling using `relabel_dict`
-    :rtype: Dict[int, int]
-    """
-    rel_dct = relabel_dict(zc_)
-    ins_dct = {zk: rel_dct[pgk] for zk, (gk, pgk) in zc_.items() if gk is None}
-    return ins_dct
-
-
-def geometry_keys(zc_: ZmatConv, zkeys: List[int], dummy: bool = False) -> List[int]:
-    """Convert a (potentially nested) list of z-matrix keys into geometry keys
-
-    Relabels real atoms and drops dummy atoms
-
-    :param zc_: A z-matrix conversion data structure
-    :type zc_: ZmatConv
-    :param zkeys: A list of z-matrix keys, nested to a consistent depth
-    :type zkeys: List[int]
-    :param dummy: Keep the dummy atoms as `None` values? defaults to False
-    :type dummy: bool, optional
-    :return: The corresponding keys of the geometry, minus dummy atoms
-    :rtype: List[int]
-    """
-    rel_dct = relabel_dict(zc_, rev=True)
-
-    def zkeys_to_gkeys_(zks):
-        """Recursively convert a nested list of z-matrix keys to geometry keys"""
-
-        assert isinstance(zks, Sequence), f"Cannot process non-sequence {zks}"
-
-        # If the first element is an integer, assume we have a list of z-matrix keys and
-        # conver them
-        if isinstance(zks[0], numbers.Integral):
-            if dummy:
-                gks = tuple(rel_dct[k] if k in rel_dct else None for k in zks)
-            else:
-                gks = tuple(rel_dct[k] for k in zks if k in rel_dct)
-        # If we have a sequence, recursively call this function
-        elif isinstance(zks[0], Sequence):
-            gks = tuple(map(zkeys_to_gkeys_, zks))
-
-        return gks
-
-    return zkeys_to_gkeys_(zkeys)
+    # 3. Generate the z-matrix conversion
+    zc_ = dict(enumerate(zc_vals))
+    return zc_
 
 
 # Getters
@@ -198,7 +138,7 @@ def real_keys(zc_: ZmatConv, typ: str = "zmat") -> List[int]:
     assert typ in ("geom", "zmat")
 
     keys = [
-        gk if typ == "geom" else zk for zk, (gk, _) in zc_.items() if gk is not None
+        gk if typ == "geom" else zk for zk, (gk, _, _) in zc_.items() if gk is not None
     ]
     return tuple(sorted(keys))
 
@@ -211,11 +151,11 @@ def dummy_keys(zc_: ZmatConv) -> List[int]:
     :return: The dummy atom keys
     :rtype: List[int]
     """
-    keys = [zk for zk, (gk, _) in zc_.items() if gk is None]
+    keys = [zk for zk, (gk, _, _) in zc_.items() if gk is None]
     return tuple(sorted(keys))
 
 
-def dummy_parent_keys(zc_: ZmatConv, typ: str = "zmat") -> List[int]:
+def linear_atom_keys(zc_: ZmatConv, typ: str = "zmat") -> List[int]:
     """Get the list of original or final parent atom keyss from a z-matrix conversion
 
     :param zc_: A z-matrix conversion data structure
@@ -227,11 +167,236 @@ def dummy_parent_keys(zc_: ZmatConv, typ: str = "zmat") -> List[int]:
     """
     assert typ in ("geom", "zmat")
 
-    par_keys = [pgk for _, (_, pgk) in zc_.items() if pgk is not None]
+    lin_keys = [lgk for _, (_, lgk, _) in zc_.items() if lgk is not None]
     if typ == "zmat":
         rel_dct = relabel_dict(zc_)
-        par_keys = tuple(map(rel_dct.__getitem__, par_keys))
-    return tuple(sorted(par_keys))
+        lin_keys = tuple(map(rel_dct.__getitem__, lin_keys))
+    return tuple(sorted(lin_keys))
+
+
+def dummy_source_keys(zc_: ZmatConv, typ: str = "zmat") -> List[Tuple[int, int]]:
+    """Get the list of original or final parent atom keyss from a z-matrix conversion
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param typ: The type of keys to use ('geom' or 'zmat'); defaults to 'zmat'
+    :type typ: str, optional
+    :return: The list of parent atoms, using the original keys
+    :rtype: List[int]
+    """
+    assert typ in ("geom", "zmat")
+
+    src_keys = [(lgk, dgk) for _, (_, lgk, dgk) in zc_.items() if lgk is not None]
+    if typ == "zmat":
+        rel_dct = relabel_dict(zc_)
+        src_keys = tuple(tuple(map(rel_dct.__getitem__, ks)) for ks in src_keys)
+    return tuple(sorted(src_keys))
+
+
+def relabel_dict(zc_: ZmatConv, typ: str = "geom") -> Dict[int, int]:
+    """Describes the relabeling of real (non-dummy) atoms
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param typ: The type of keys to be relabeled ('geom' or 'zmat'); defaults to 'geom'
+    :type typ: str, optional
+    :return: A dictionary to relabel keys for dummy insertion
+    :rtype: Dict[int, int]
+    """
+    assert typ in ("geom", "zmat")
+
+    if typ == "geom":
+        rel_dct = {gk: zk for zk, (gk, _, _) in zc_.items() if gk is not None}
+    else:
+        rel_dct = {zk: gk for zk, (gk, _, _) in zc_.items() if gk is not None}
+
+    return rel_dct
+
+
+def insert_dict(zc_: ZmatConv) -> Dict[int, int]:
+    """Describes the insertion of dummies, mapping their keys upon insertion to
+    their parent atom keys (*after relabeling*)
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :return: A dictionary to insert dummies after relabeling using `relabel_dict`
+    :rtype: Dict[int, int]
+    """
+    rel_dct = relabel_dict(zc_)
+    ins_dct = {zk: rel_dct[lgk] for zk, (gk, lgk, _) in zc_.items() if gk is None}
+    return ins_dct
+
+
+# Transformations
+def without_direction_keys(zc_: ZmatConv) -> ZmatConv:
+    """Remove direction keys from the z-matrix conversion
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :return: A new z-matrix conversion data structure
+    :rtype: ZmatConv
+    """
+    zc_ = {zk: (gk, lgk, None) for zk, (gk, lgk, _) in zc_.items()}
+    return zc_
+
+
+def relabel(zc_: ZmatConv, key_dct: Dict[int, int], typ: str = "zmat") -> ZmatConv:
+    """Relabel the final (or original) keys of a z-matrix conversion
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param key_dct: The relabeling
+    :type key_dct: Dict[int, int]
+    :param typ: The type of keys to use ('geom' or 'zmat'); defaults to 'zmat'
+    :type typ: str, optional
+    :return: The z-matrix conversion
+    :rtype: ZmatConv
+    """
+    assert typ in ("geom", "zmat")
+
+    if typ == "geom":
+        key_dct[None] = None
+        zc_ = {zk: tuple(map(key_dct.__getitem__, gks)) for zk, gks in zc_.items()}
+    else:
+        zc_ = {key_dct[zk]: gks for zk, gks in zc_.items()}
+    return zc_
+
+
+def subset(
+    zc_: ZmatConv, keys: List[int], typ: str = "zmat", dir_: Optional[bool] = None
+) -> ZmatConv:
+    """Extract the z-matrix conversion for a subset of keys
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param keys: A subset of the keys in the conversion
+    :type keys: List[int]
+    :param typ: The type of keys to use ('geom' or 'zmat'); defaults to 'zmat'
+    :type typ: str, optional
+    :param dir_: Keep the direction keys? defaults to None, which keeps them for
+        z-matrix subsets but not for geometry subsets
+    :type dir_: Optional[bool], optional
+    :return: The subset z-matrix conversion
+    :rtype: ZmatConv
+    """
+    assert typ in ("geom", "zmat")
+
+    if dir_ is False:
+        zc_ = without_direction_keys(zc_)
+
+    if typ == "geom":
+        # If `keep_dir` is unspecified, drop direction keys
+        zc_ = without_direction_keys(zc_) if dir_ is None else zc_
+
+        # Grab the subset matching the geometry keys
+        keys = list(keys) + [None]
+        zc_ = {zk: gks for zk, gks in zc_.items() if all(k in keys for k in gks)}
+    else:
+        # Grab the subset matching the z-matrix keys
+        zc_ = {zk: gks for zk, gks in zc_.items() if zk in keys}
+
+    return zc_
+
+
+# Comparisons
+def isomorphism(
+    zc1: ZmatConv, zc2: ZmatConv, sub: bool = False, dir_: bool = False
+) -> Dict[int, int]:
+    """Get the isomorphism of one ZmatConv onto another
+
+    Assuming they share the same geometry keys, this backs out the graph isomorphism of
+    one set of z-matrix keys onto another.
+
+    :param zc1: A z-matrix conversion
+    :type zc1: ZmatConv
+    :param zc2: A relabeled z-matrix conversion
+    :type zc2: ZmatConv
+    :param sub: Find a subset isomorphism instead? defaults to False
+    :type sub: bool, optional
+    :param dir_: Include direction keys in the comparison? defaults to False
+    :type dir: bool, optional
+    :returns: A mapping of `zc1` onto `zc2`, if it exists
+    """
+    if not dir_:
+        zc1 = without_direction_keys(zc1)
+        zc2 = without_direction_keys(zc2)
+
+    keys1 = list(zc1.keys())
+    vals1 = list(zc1.values())
+    keys2 = list(zc2.keys())
+    vals2 = list(zc2.values())
+
+    if sub:
+        if not (len(zc1) >= len(zc2) and set(vals1) >= set(vals2)):
+            return None
+    else:
+        if not (len(zc1) == len(zc2) and set(vals1) == set(vals2)):
+            return None
+
+    key_dct = {keys1[vals1.index(v2)]: k2 for k2, v2 in zip(keys2, vals2)}
+    return key_dct
+
+
+def subset_isomorphism(
+    zc1: ZmatConv, zc2: ZmatConv, rev: bool = False, dir_: bool = False
+) -> Dict[int, int]:
+    """Get the isomorphism of a subset of one ZmatConv onto another
+
+    Assuming they share the same geometry keys, this backs out the graph isomorphism of
+    a subset of the z-matrix keys in `zc1` onto the z-matrix keys in `zc2`.
+
+    :param zc1: A z-matrix conversion
+    :type zc1: ZmatConv
+    :param zc2: A relabeled z-matrix conversion
+    :type zc2: ZmatConv
+    :param rev: Get the reverse isomorphism, of `zc2` onto `zc1`? defaults to False
+    :type rev: bool, optional
+    :param dir_: Include direction keys in the comparison? defaults to False
+    :type dir: bool, optional
+    :returns: A mapping of `zc1` onto `zc2`, if it exists
+    """
+    iso_dct = isomorphism(zc1, zc2, sub=True, dir_=dir_)
+    return dict(map(reversed, iso_dct.items())) if rev else iso_dct
+
+
+# Utility functions
+def relabel_zmatrix_key_sequence(
+    zc_: ZmatConv, zkeys: List[int], dummy: bool = False
+) -> List[int]:
+    """Convert a (potentially nested) list of z-matrix keys into geometry keys
+
+    Relabels real atoms and drops dummy atoms
+
+    :param zc_: A z-matrix conversion data structure
+    :type zc_: ZmatConv
+    :param zkeys: A list of z-matrix keys, nested to a consistent depth
+    :type zkeys: List[int]
+    :param dummy: Keep the dummy atoms as `None` values? defaults to False
+    :type dummy: bool, optional
+    :return: The corresponding keys of the geometry, minus dummy atoms
+    :rtype: List[int]
+    """
+    rel_dct = relabel_dict(zc_, typ="zmat")
+
+    def zkeys_to_gkeys_(zks):
+        """Recursively convert a nested list of z-matrix keys to geometry keys"""
+
+        assert isinstance(zks, Sequence), f"Cannot process non-sequence {zks}"
+
+        # If the first element is an integer, assume we have a list of z-matrix keys and
+        # conver them
+        if isinstance(zks[0], numbers.Integral):
+            if dummy:
+                gks = tuple(rel_dct[k] if k in rel_dct else None for k in zks)
+            else:
+                gks = tuple(rel_dct[k] for k in zks if k in rel_dct)
+        # If we have a sequence, recursively call this function
+        elif isinstance(zks[0], Sequence):
+            gks = tuple(map(zkeys_to_gkeys_, zks))
+
+        return gks
+
+    return zkeys_to_gkeys_(zkeys)
 
 
 # Conversions
@@ -259,99 +424,3 @@ def from_yaml_data(zc_yml: list) -> ZmatConv:
     vals = [tuple(row[1:]) for row in zc_yml]
     zc_ = dict(zip(keys, vals))
     return zc_
-
-
-# Other
-def relabel(zc_: ZmatConv, key_dct: Dict[int, int], typ: str = "zmat") -> ZmatConv:
-    """Relabel the final (or original) keys of a z-matrix conversion
-
-    :param zc_: A z-matrix conversion data structure
-    :type zc_: ZmatConv
-    :param key_dct: The relabeling
-    :type key_dct: Dict[int, int]
-    :param typ: The type of keys to use ('geom' or 'zmat'); defaults to 'zmat'
-    :type typ: str, optional
-    :return: The z-matrix conversion
-    :rtype: ZmatConv
-    """
-    assert typ in ("geom", "zmat")
-
-    if typ == "geom":
-        key_dct[None] = None
-        zc_ = {zk: (key_dct[gk], key_dct[pgk]) for zk, (gk, pgk) in zc_.items()}
-    else:
-        zc_ = {key_dct[zk]: (gk, pgk) for zk, (gk, pgk) in zc_.items()}
-    return zc_
-
-
-def subset(zc_: ZmatConv, keys: List[int], typ: str = "zmat") -> ZmatConv:
-    """Extract the z-matrix conversion for a subset of keys
-
-    :param zc_: A z-matrix conversion data structure
-    :type zc_: ZmatConv
-    :param keys: A subset of the keys in the conversion
-    :type keys: List[int]
-    :param typ: , defaults to "zmat"
-    :type typ: str, optional
-    :return: The subset z-matrix conversion
-    :rtype: ZmatConv
-    """
-    assert typ in ("geom", "zmat")
-
-    if typ == "geom":
-        zc_ = {
-            zk: (gk, pgk) for zk, (gk, pgk) in zc_.items() if gk in keys or pgk in keys
-        }
-    else:
-        zc_ = {zk: (gk, pgk) for zk, (gk, pgk) in zc_.items() if zk in keys}
-    return zc_
-
-
-def isomorphism(zc1: ZmatConv, zc2: ZmatConv, sub: bool = False) -> Dict[int, int]:
-    """Get the isomorphism of one ZmatConv onto another
-
-    Assuming they share the same geometry keys, this backs out the graph isomorphism of
-    one set of z-matrix keys onto another.
-
-    :param zc1: A z-matrix conversion
-    :type zc1: ZmatConv
-    :param zc2: A relabeled z-matrix conversion
-    :type zc2: ZmatConv
-    :param sub: Find a subset isomorphism instead? defaults to False
-    :type sub: bool, optional
-    :returns: A mapping of `zc1` onto `zc2`, if it exists
-    """
-    keys1 = list(zc1.keys())
-    vals1 = list(zc1.values())
-    keys2 = list(zc2.keys())
-    vals2 = list(zc2.values())
-
-    if sub:
-        if not (len(zc1) >= len(zc2) and set(vals1) >= set(vals2)):
-            return None
-    else:
-        if not (len(zc1) == len(zc2) and set(vals1) == set(vals2)):
-            return None
-
-    key_dct = {keys1[vals1.index(v2)]: k2 for k2, v2 in zip(keys2, vals2)}
-    return key_dct
-
-
-def subset_isomorphism(
-    zc1: ZmatConv, zc2: ZmatConv, rev: bool = False
-) -> Dict[int, int]:
-    """Get the isomorphism of a subset of one ZmatConv onto another
-
-    Assuming they share the same geometry keys, this backs out the graph isomorphism of
-    a subset of the z-matrix keys in `zc1` onto the z-matrix keys in `zc2`.
-
-    :param zc1: A z-matrix conversion
-    :type zc1: ZmatConv
-    :param zc2: A relabeled z-matrix conversion
-    :type zc2: ZmatConv
-    :param rev: Get the reverse isomorphism, of `zc2` onto `zc1`? defaults to False
-    :type rev: bool, optional
-    :returns: A mapping of `zc1` onto `zc2`, if it exists
-    """
-    iso_dct = isomorphism(zc1, zc2, sub=True)
-    return dict(map(reversed, iso_dct.items())) if rev else iso_dct

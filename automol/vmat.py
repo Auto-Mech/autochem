@@ -9,6 +9,8 @@ import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 from phydat import ptab
 
+from automol.util import ZmatConv, zmat_conv
+
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)
 SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
@@ -141,7 +143,7 @@ def count(vma):
 
 
 def atom_indices(vma, symb, match=True):
-    """Obtain the indices of a atoms of a particular type in the geometry.
+    """Obtain the indices of a atoms of a particular type in the v-matrix
 
     :param vma: V-Matrix
     :type vma: automol V-Matrix data structure
@@ -312,31 +314,6 @@ def angle_names(vma):
     return tuple(itertools.chain(central_angle_names(vma), dihedral_angle_names(vma)))
 
 
-def dummy_coordinate_names(vma):
-    """Obtain names of all coordinates associated with dummy atoms
-    defined in the V-Matrix.
-
-    :param vma: V-Matrix
-    :type vma: automol V-Matrix data structure
-    :rtype: tuple(str)
-    """
-
-    symbs = symbols(vma)
-    name_mat = numpy.array(name_matrix(vma))
-    dummy_keys = [idx for idx, sym in enumerate(symbs) if not ptab.to_number(sym)]
-    dummy_names = []
-    for dummy_key in dummy_keys:
-        for col_idx in range(3):
-            dummy_name = next(
-                filter(lambda x: x is not None, name_mat[dummy_key:, col_idx])
-            )
-            dummy_names.append(dummy_name)
-
-    dummy_names = tuple(dummy_names)
-
-    return dummy_names
-
-
 def standard_names(vma, shift=0):
     """Build a dictionary that can mas the coordinate names
     of the input V-Matrix to their name in a standard-form V-Matrix:
@@ -398,6 +375,166 @@ def standard_name_matrix(vma, shift=0):
     name_mat = tuple(map(tuple, name_mat))
 
     return name_mat
+
+
+def distance_coordinate_name(zma, key1, key2):
+    """get the name of a distance coordinate for a given bond
+
+    :param zma: the z-matrix
+    :type zma: automol Z-Matrix data structure
+    :param key1: the first key
+    :type key1: int
+    :param key2: the second key
+    :type key2: int
+    :rtype: str
+    """
+
+    key1, key2 = sorted([key1, key2])
+    name_mat = name_matrix(zma)
+    key_mat = key_matrix(zma)
+    assert (
+        key_mat[key2][0] == key1
+    ), f"{key1}-{key2} is not a coordinate in this zmatrix:\n{string(zma)}"
+    name = name_mat[key2][0]
+
+    return name
+
+
+def central_angle_coordinate_name(zma, key1, key2, key3):
+    """get the name of angle coordinate for a set of 3 atoms
+
+    :param zma: the z-matrix
+    :type zma: automol Z-Matrix data structure
+    :param key1: the first key
+    :type key1: int
+    :param key2: the second key (central atom)
+    :type key2: int
+    :param key3: the third key
+    :type key3: int
+    :rtype: str
+    """
+
+    key1, key3 = sorted([key1, key3])
+    name_mat = name_matrix(zma)
+    key_mat = key_matrix(zma)
+    assert (
+        key_mat[key3][0] == key2 and key_mat[key3][1] == key1
+    ), f"{key1}-{key2}-{key3} is not a coordinate in this zmatrix:\n{string(zma)}"
+    name = name_mat[key3][1]
+
+    return name
+
+
+def dihedral_angle_coordinate_name(zma, key1, key2, key3, key4):
+    """get the name of dihedral coordinate for a set of 4 atoms
+
+    :param zma: the z-matrix
+    :type zma: automol Z-Matrix data structure
+    :param key1: the first key
+    :type key1: int
+    :param key2: the second key
+    :type key2: int
+    :param key3: the third key
+    :type key3: int
+    :param key4: the fourth key
+    :type key4: int
+    :rtype: str
+    """
+
+    if key1 > key4:
+        key1, key2, key3, key4 = key4, key3, key2, key1
+
+    name_mat = name_matrix(zma)
+    key_mat = key_matrix(zma)
+    assert (
+        key_mat[key4][0] == key3
+        and key_mat[key4][1] == key2
+        and key_mat[key4][2] == key1
+    ), f"{key1}-{key2}-{key3}-{key4} is not a coordinate in this zmat:\n{string(zma)}"
+
+    name = name_mat[key4][2]
+
+    return name
+
+
+# # dummy atom functions
+def dummy_keys(zma):
+    """Obtain keys to dummy atoms in the Z-Matrix.
+
+    :param zma: Z-Matrix
+    :type zma: automol Z-Matrix data structure
+    :rtype: tuple[int]
+    """
+    keys = tuple(key for key, sym in enumerate(symbols(zma)) if sym == "X")
+    return keys
+
+
+def dummy_coordinate_names(vma):
+    """Obtain names of all coordinates associated with dummy atoms
+    defined in the V-Matrix.
+
+    :param vma: V-Matrix
+    :type vma: automol V-Matrix data structure
+    :rtype: tuple(str)
+    """
+
+    symbs = symbols(vma)
+    name_mat = numpy.array(name_matrix(vma))
+    dummy_keys = [idx for idx, sym in enumerate(symbs) if not ptab.to_number(sym)]
+    dummy_names = []
+    for dummy_key in dummy_keys:
+        for col_idx in range(3):
+            dummy_name = next(
+                filter(lambda x: x is not None, name_mat[dummy_key:, col_idx])
+            )
+            dummy_names.append(dummy_name)
+
+    dummy_names = tuple(dummy_names)
+
+    return dummy_names
+
+
+def dummy_source_dict(zma, dir_: bool = True):
+    """Obtain keys to dummy atoms in the Z-Matrix, along with their
+    parent atoms.
+
+    :param zma: Z-Matrix
+    :type zma: automol Z-Matrix data structure
+    :param dir_: Include linear direction atoms? defaults to True
+    :type dir_: bool, optional
+    :returns: A dictionary mapping dummy atoms onto their parent atoms
+    :rtype: dict[int: int]
+    """
+    key_mat = key_matrix(zma)
+    dum_keys = dummy_keys(zma)
+    src_dct = {}
+    for dum_key in dum_keys:
+        lin_key, dir_key, _ = key_mat[dum_key]
+        if lin_key is None:
+            lin_key = next(lk for lk, (k, _, _) in enumerate(key_mat) if k == dum_key)
+        if dir_key is None:
+            dir_key = next(dk for dk, (_, k, _) in enumerate(key_mat) if k == dum_key)
+
+        if not dir_:
+            src_dct[dum_key] = lin_key
+        else:
+            src_dct[dum_key] = (lin_key, dir_key)
+
+    return src_dct
+
+
+def conversion_info(zma) -> ZmatConv:
+    """Get the conversion information for this z-matrix, relative to geometry following
+    the same atom order
+
+    :param zma: Z-Matrix
+    :type zma: automol Z-Matrix data structure
+    :return: The z-matrix conversion
+    :rtype: ZmatConv
+    """
+    zcount = count(zma)
+    src_zkeys_dct = dummy_source_dict(zma)
+    return zmat_conv.from_zmat_data(zcount, src_zkeys_dct)
 
 
 # # V-Matrix-specific functions
