@@ -92,8 +92,6 @@ from automol.zmat._conv import torsion_leading_atom
 # # repulsion energy
 from automol.zmat._conv import has_low_relative_repulsion_energy
 from automol.zmat._conv import total_repulsion_energy
-# extra functions:
-from automol.zmat._extra import is_atom_closest_to_bond_atom
 # ring functions:
 from automol.zmat._ring import all_rings_atoms
 from automol.zmat._ring import all_rings_distances
@@ -189,8 +187,6 @@ __all__ = [
     # # repulsion energy
     'has_low_relative_repulsion_energy',
     'total_repulsion_energy',
-    # extra functions:
-    'is_atom_closest_to_bond_atom',
     # ring functions
     'all_rings_atoms',
     'all_rings_distances',
