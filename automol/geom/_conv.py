@@ -194,7 +194,6 @@ def zmatrix_with_conversion_info(geo, gra=None, zc_: ZmatConv = None):
         assert list(zkeys) == sorted(
             zkeys
         ), f"Failed to replicate z-matrix conversion:\n{zc_}\n{geo}"
-        zc_ = vmat.conversion_info(vma)
     else:
         # Build an initial z-matrix conversion data structure to put dummies on linear
         # atoms
