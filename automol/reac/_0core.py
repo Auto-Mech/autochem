@@ -485,9 +485,16 @@ def set_ts_graph(rxn: Reaction, tsg) -> Reaction:
     :returns: A new reaction object
     :rtype: Reaction
     """
-    rxn = copy.deepcopy(rxn)
-    rxn.ts_graph = tsg
-    return rxn
+    return from_data(
+        tsg=tsg,
+        rcts_keys=reactants_keys(rxn),
+        prds_keys=products_keys(rxn),
+        cla=class_(rxn),
+        ts_struc=ts_structure(rxn),
+        rct_strucs=reactant_structures(rxn),
+        prd_strucs=product_structures(rxn),
+        struc_typ=structure_type(rxn),
+    )
 
 
 def set_reactants_keys(rxn: Reaction, rcts_keys: List[List[int]]) -> Reaction:
@@ -500,9 +507,16 @@ def set_reactants_keys(rxn: Reaction, rcts_keys: List[List[int]]) -> Reaction:
     :returns: A new reaction object
     :rtype: Reaction
     """
-    rxn = copy.deepcopy(rxn)
-    rxn.reactants_keys = rcts_keys
-    return rxn
+    return from_data(
+        tsg=ts_graph(rxn),
+        rcts_keys=rcts_keys,
+        prds_keys=products_keys(rxn),
+        cla=class_(rxn),
+        ts_struc=ts_structure(rxn),
+        rct_strucs=reactant_structures(rxn),
+        prd_strucs=product_structures(rxn),
+        struc_typ=structure_type(rxn),
+    )
 
 
 def set_products_keys(rxn: Reaction, prds_keys: List[List[int]]) -> Reaction:
@@ -515,9 +529,16 @@ def set_products_keys(rxn: Reaction, prds_keys: List[List[int]]) -> Reaction:
     :returns: A new reaction object
     :rtype: Reaction
     """
-    rxn = copy.deepcopy(rxn)
-    rxn.products_keys = prds_keys
-    return rxn
+    return from_data(
+        tsg=ts_graph(rxn),
+        rcts_keys=reactants_keys(rxn),
+        prds_keys=prds_keys,
+        cla=class_(rxn),
+        ts_struc=ts_structure(rxn),
+        rct_strucs=reactant_structures(rxn),
+        prd_strucs=product_structures(rxn),
+        struc_typ=structure_type(rxn),
+    )
 
 
 def set_reaction_class(rxn: Reaction, cla: str) -> Reaction:
@@ -856,42 +877,63 @@ def product_mappings(
     )
 
 
-def reactant_graphs(rxn: Reaction, stereo: bool = True, shift_keys: bool = False):
+def reactant_graphs(
+    rxn: Reaction, stereo: bool = True, key_order: str = "R", shift_keys: bool = False
+):
     """Obtain graphs of the reactants in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param stereo: Include stereo? defaults to True
     :type stereo: bool, optional
+    :param key_order: The key order to use, 'T' or 'R'
+    :type key_order: str, optional
     :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
+        (Only has an effect on 'R' keys)
     :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
+    assert key_order in ("T", "R")
+
     rcts_gra = ts.reactants_graph(ts_graph(rxn), stereo=stereo)
     rcts_keys = reactants_keys(rxn)
 
     # Extract subgraphs (TS keys)
     rct_gras = [graph.subgraph(rcts_gra, ks, stereo=True) for ks in rcts_keys]
 
-    # Get mappings onto shifted or unshifted reactant keys
-    map_dcts = reactant_mappings(rxn, rev=True, shift_keys=shift_keys)
-    rct_gras = [graph.relabel(g, m) for g, m in zip(rct_gras, map_dcts)]
+    if key_order == "R":
+        # Get mappings onto shifted or unshifted reactant keys
+        map_dcts = reactant_mappings(rxn, rev=True, shift_keys=shift_keys)
+        rct_gras = [graph.relabel(g, m) for g, m in zip(rct_gras, map_dcts)]
     return tuple(rct_gras)
 
 
-def product_graphs(rxn: Reaction, stereo: bool = True, shift_keys=False):
+def product_graphs(
+    rxn: Reaction, stereo: bool = True, key_order: str = "P", shift_keys=False
+):
     """Obtain graphs of the products in this reaction.
 
     :param rxn: the reaction object
     :type rxn: Reaction
     :param stereo: Include stereo? defaults to True
     :type stereo: bool, optional
+    :param key_order: The key order to use, 'T' or 'P'
+    :type key_order: str, optional
     :param shift_keys: Shift keys after first reagent, to prevent overlap? default False
+        (Only has an effect on 'P' keys)
+    :type shift_keys: bool, optional
     :type shift_keys: bool, optional
     :rtype: tuple of automol graph data structures
     """
+    assert key_order in ("T", "P")
+
+    rev_key_order = "T" if key_order == "T" else "R"
+
     return reactant_graphs(
-        reverse_without_recalculating(rxn), stereo=stereo, shift_keys=shift_keys
+        reverse_without_recalculating(rxn),
+        stereo=stereo,
+        key_order=rev_key_order,
+        shift_keys=shift_keys,
     )
 
 

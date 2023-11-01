@@ -12,6 +12,13 @@ from automol.reac._0core import (
     set_ts_graph,
     ts_graph,
     without_stereo,
+    from_string,
+    reactant_graphs,
+    product_graphs,
+    reactants_keys,
+    products_keys,
+    set_reactants_keys,
+    set_products_keys,
 )
 
 
@@ -77,10 +84,23 @@ def expand_stereo_for_reaction(rxn: Reaction, rct_gras, prd_gras):
     return tuple(srxns)
 
 
+def from_string_transitional(rxn_str):
+    """A transitional string reader which reads both old and new reaction strings
+
+    :param rxn_str: string containing the (old or new) reaction object
+    :type rxn_str: str
+    """
+    yaml_dct = yaml.load(rxn_str, Loader=yaml.FullLoader)
+    if "forward TS atoms" in yaml_dct:
+        rxn = from_old_string(rxn_str)
+    else:
+        assert "atoms" in yaml_dct, f"Reaction string not recognized:\n{rxn_str}"
+        rxn = from_string(rxn_str)
+    return rxn
+
+
 def from_old_string(rxn_str, one_indexed=True, stereo=False):
     """Write a reaction object to a string
-
-    BROKEN: does not handle dummy atoms correctly
 
     :param rxn_str: string containing the reaction object
     :type rxn_str: str
@@ -113,6 +133,28 @@ def from_old_string(rxn_str, one_indexed=True, stereo=False):
     ftsg = graph.without_stereo(ftsg0)
     rtsg = graph.without_stereo(rtsg0)
     rxn = from_forward_reverse(cla, ftsg, rtsg, rcts_keys, prds_keys)
+
+    # Handle dummy atoms
+    if graph.has_dummy_atoms(ftsg):
+        rcts_keys0 = reactants_keys(rxn)
+        prds_keys0 = products_keys(rxn)
+        rct_gras = reactant_graphs(rxn, key_order="T")
+        prd_gras = product_graphs(rxn, key_order="T")
+
+        rcts_keys = []
+        for rct_keys0, rct_gra in zip(rcts_keys0, rct_gras):
+            bad_dum_keys = graph.unneeded_dummy_atom_keys(rct_gra)
+            rct_keys = [k for k in rct_keys0 if k not in bad_dum_keys]
+            rcts_keys.append(rct_keys)
+
+        prds_keys = []
+        for prd_keys0, prd_gra in zip(prds_keys0, prd_gras):
+            bad_dum_keys = graph.unneeded_dummy_atom_keys(prd_gra)
+            prd_keys = [k for k in prd_keys0 if k not in bad_dum_keys]
+            prds_keys.append(prd_keys)
+
+        rxn = set_reactants_keys(rxn, rcts_keys)
+        rxn = set_products_keys(rxn, prds_keys)
 
     if stereo:
         rcts_gra = graph.ts.reagents_graph_without_stereo(

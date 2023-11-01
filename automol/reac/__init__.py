@@ -6,6 +6,8 @@ from automol.reac._0core import Reaction
 from automol.reac._0core import from_data
 from automol.reac._0core import from_forward_reverse
 from automol.reac._0core import from_string
+from automol.reac._2stereo import from_old_string
+from automol.reac._2stereo import from_string_transitional
 from automol.reac._0core import string
 # # getters
 from automol.reac._0core import ts_graph
@@ -43,7 +45,6 @@ from automol.reac._0core import unique
 # stereo-specific reactions
 from automol.reac._2stereo import expand_stereo
 from automol.reac._2stereo import expand_stereo_for_reaction
-from automol.reac._2stereo import from_old_string
 from automol.reac._2stereo import reflect
 # finders
 from automol.reac._3find import trivial
@@ -113,6 +114,8 @@ __all__ = [
     'from_data',
     'from_forward_reverse',
     'from_string',
+    'from_old_string',
+    'from_string_transitional',
     'string',
     # # getters
     'ts_graph',
@@ -150,7 +153,6 @@ __all__ = [
     # stereo-specific reactions
     'expand_stereo',
     'expand_stereo_for_reaction',
-    'from_old_string',
     'reflect',
     # finders
     'trivial',

@@ -202,6 +202,7 @@ from automol.graph.base._3kekule import kekules_bond_orders_averaged
 # # derived properties
 from automol.graph.base._3kekule import linear_atom_keys
 from automol.graph.base._3kekule import linear_segments_atom_keys
+from automol.graph.base._3kekule import unneeded_dummy_atom_keys
 from automol.graph.base._3kekule import atom_hybridizations
 from automol.graph.base._3kekule import atom_hybridizations_from_kekule
 from automol.graph.base._3kekule import radical_atom_keys
@@ -497,6 +498,7 @@ __all__ = [
     # # derived properties
     'linear_atom_keys',
     'linear_segments_atom_keys',
+    'unneeded_dummy_atom_keys',
     'atom_hybridizations',
     'atom_hybridizations_from_kekule',
     'radical_atom_keys',

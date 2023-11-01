@@ -270,6 +270,19 @@ def linear_segments_atom_keys(gra, lin_keys=None):
     return lin_keys_lst
 
 
+def unneeded_dummy_atom_keys(gra) -> frozenset:
+    """Get the keys of dummy atoms which are not connected to linear atoms
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :returns: Keys for the unneeded dummy atoms
+    :rtype: frozenset[int]
+    """
+    dum_lin_key_dct = dummy_source_dict(gra, dir_=False)
+    lin_keys = linear_atom_keys(gra, dummy=False)
+    return frozenset(dk for dk, lk in dum_lin_key_dct.items() if lk not in lin_keys)
+
+
 def atom_hybridizations(gra):
     """resonance-dominant atom hybridizations, by atom"""
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
