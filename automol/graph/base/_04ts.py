@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 from automol import util
 from automol.graph.base._00core import (
     atom_keys,
+    atom_stereo_sorted_neighbor_keys,
     atoms_neighbor_atom_keys,
     bond_stereo_keys,
     bond_stereo_sorted_neighbor_keys,
@@ -13,10 +14,12 @@ from automol.graph.base._00core import (
     local_stereo_priorities,
     sort_by_size,
     stereo_parities,
+    tetrahedral_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reacting_bond_keys,
     ts_reagents_graph_without_stereo,
+    ts_reverse,
 )
 from automol.graph.base._02algo import (
     connected_components,
@@ -70,6 +73,25 @@ def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
             tra_dct[tra_key] = (don_key, acc_key)
 
     return tra_dct
+
+
+def sn2_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing atom transfers for Sn2 reactions; keys are the
+    transferring atoms, values are the donors and acceptors, respectively
+
+    Identifies transferring atoms that are tetrahedral
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A list of triples containing the donor atom, the transferring atom, and
+        the acceptor atom, respectively
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    tra_dct = atom_transfers(tsg)
+    tra_keys = set(tra_dct.keys())
+    tet_keys = tetrahedral_atom_keys(tsg)
+    sn2_keys = tra_keys & tet_keys
+    return util.dict_.by_key(tra_dct, sn2_keys)
 
 
 def zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
@@ -206,7 +228,57 @@ def breaking_rings_bond_keys(tsg):
     return brk_rngs_bnd_keys
 
 
-def constrained_1_2_insertion_local_parities(loc_tsg):
+def sn2_local_stereo_reversal_flips(tsg) -> Dict[int, bool]:
+    r"""For Sn2 reaction sites, identifies for which of them the local stereo flips upon
+    reversing the TS direction
+
+        Case 1: Reversal causes local parity flip (reversal value: `True`):
+
+                  3                     3
+                  |                     |
+            5-----1  +  6   <=>   5  +  1-----6
+                 / \                   / \
+                4   2                 4   2
+
+                clockwise             counterclockwise
+                ('+')                 ('-')
+
+        Case 2: Reversal leaves local parity unchanged (reversal value: `False`):
+
+                  3                     3
+                  |                     |
+            5-----1  +  6   <=>   5  +  1-----6
+                 / \                   / \
+                4   2                 4   2
+
+                clockwise             counterclockwise
+                ('+')                 ('-')
+
+        Given a reversal value, r_flip, the local parity upon reversing TS direction is
+        given by the following:
+
+            p_rev = p_forw ^ r_flip
+
+    :param tsg: A TS graph, with or without stereo (stereo is ignored)
+    :type tsg: automol graph data structure
+    :return: Which Sn2 sites flip stereo upon reversing TS direction
+    :rtype: Dict[int, bool]
+    """
+    rflip_dct = {}
+    for tra_key, (don_key, acc_key) in sn2_atom_transfers(tsg).items():
+        # Get the forward direction neighboring keys, sorted by local priority
+        nks0 = list(atom_stereo_sorted_neighbor_keys(tsg, tra_key))
+        # Replace the donor with the acceptor
+        nks0[nks0.index(don_key)] = acc_key
+        # Get the reverse direction neighboring keys, sorted by local priority
+        nks1 = atom_stereo_sorted_neighbor_keys(ts_reverse(tsg), tra_key)
+        # If the orderings are related by an even permuation, the parity will flip (due
+        # to umbrella inversion of the stereo center, see ASCII diagrams above)
+        rflip_dct[tra_key] = util.is_even_permutation(nks0, nks1)
+    return rflip_dct
+
+
+def constrained_1_2_insertion_local_parities(loc_tsg) -> Dict[frozenset, bool]:
     r"""Calculates the local parities of the reactant of a constrained 1,2-insertion, if
     present
 
@@ -233,9 +305,8 @@ def constrained_1_2_insertion_local_parities(loc_tsg):
 
     :param loc_tsg: TS graph with local stereo parities
     :type loc_tsg: automol graph data structure
-    :return: The key of the stereo site, its local parity, and a boolean
-        indicating whether or not this is for the products
-    :rtype: frozenset({int, int}, bool, bool
+    :return: The local parities of bonds subject to the constraint
+    :rtype: Dict[frozenset, bool]
     """
     loc_par_dct = util.dict_.filter_by_value(
         stereo_parities(loc_tsg), lambda x: x is not None
@@ -282,7 +353,7 @@ def constrained_1_2_insertion_local_parities(loc_tsg):
     return par_dct
 
 
-def vinyl_addition_local_parities(loc_tsg):
+def vinyl_addition_local_parities(loc_tsg) -> Dict[frozenset, bool]:
     r""" Calculates the local parity of the reactant or product of a
     vinyl addition, if present
 
@@ -299,9 +370,8 @@ def vinyl_addition_local_parities(loc_tsg):
 
     :param loc_tsg: TS graph with local stereo parities
     :type loc_tsg: automol graph data structure
-    :return: The key of the stereo site, its local parity, and a boolean
-        indicating whether or not this is for the products
-    :rtype: frozenset({int, int}, bool, bool
+    :return: The local parities of bonds subject to the constraint
+    :rtype: Dict[frozenset, bool]
     """
     bkeys = bond_stereo_keys(loc_tsg)
     loc_par_dct = util.dict_.filter_by_value(

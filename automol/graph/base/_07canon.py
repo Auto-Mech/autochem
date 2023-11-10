@@ -57,6 +57,7 @@ from automol.graph.base._02algo import (
 from automol.graph.base._03kekule import rigid_planar_bond_keys
 from automol.graph.base._04ts import (
     constrained_1_2_insertion_local_parities,
+    sn2_local_stereo_reversal_flips,
     vinyl_addition_local_parities,
 )
 from automol.graph.base._06geom import geometry_atom_parity, geometry_bond_parity
@@ -1199,7 +1200,7 @@ def parity_evaluator_flip_local_() -> ParityEvaluator:
 
         pri_dct = reassign_hydrogen_priorities(gra, pri_dct, neg=True)
 
-        orig_gra = ts_reverse(gra) if is_rev_ts else gra
+        flip_dct = sn2_local_stereo_reversal_flips(gra) if is_rev_ts else {}
 
         def _parity(key):
             # If the key is a number, this is an atom
@@ -1213,49 +1214,8 @@ def parity_evaluator_flip_local_() -> ParityEvaluator:
                 is_odd = util.is_odd_permutation(loc_srt, can_srt)
                 ret_par = is_odd ^ par
 
-                # If the original nkeys were different, assume we have an
-                # Sn2-like situation. In this case, we need to account for the
-                # difference in local parity between forward and reverse
-                # directions.
-                orig_nkeys = atom_stereo_sorted_neighbor_keys(orig_gra, key)
-                if sorted(nkeys) != sorted(orig_nkeys):
-                    # Identify forming and breaking keys involving this atom
-                    fbnd_keys = [k for k in ts_forming_bond_keys(orig_gra) if key in k]
-                    bbnd_keys = [k for k in ts_breaking_bond_keys(orig_gra) if key in k]
-
-                    # Check that this is really an Sn2 reaction, in which case
-                    # there will be exactly one of each
-                    assert len(fbnd_keys) == len(bbnd_keys) == 1, (
-                        f"Unforeseen case! Reversal alters stereo atom"
-                        f"neighbors but TS is not Sn2-like. Investigate!"
-                        f"\n{nkeys} != {orig_nkeys}\n{gra}\norig:\n{orig_gra}"
-                    )
-
-                    # Identify the forming and breaking neighbor keys
-                    (fatm_key,) = fbnd_keys[0] - {key}
-                    (batm_key,) = bbnd_keys[0] - {key}
-                    assert fatm_key != batm_key, (
-                        f"Breaking and forming bonds shouldn't match:"
-                        f"{fbnd_keys[0]} == {bbnd_keys[0]}\n{gra}"
-                    )
-
-                    # Get locally sorted neighbors based on the original graph
-                    orig_loc_srt = sorted(orig_nkeys, key=loc_pri_dct.__getitem__)
-
-                    # The local sort vector of the original graph contains the
-                    # breaking atom, while that of the current graph contains
-                    # the forming atom.
-                    assert batm_key in orig_loc_srt
-                    assert fatm_key in loc_srt
-
-                    # Replace the breaking atom with the forming atom for sort
-                    # comparison
-                    orig_loc_srt[orig_loc_srt.index(batm_key)] = fatm_key
-
-                    # If local ordering for the original graph is an even
-                    # permuation of the current one, we flip the parity.
-                    is_even = util.is_even_permutation(loc_srt, orig_loc_srt)
-                    ret_par ^= is_even
+                if key in flip_dct:
+                    ret_par ^= flip_dct[key]
 
             # Otherwise, this is a bond
             else:
@@ -1278,22 +1238,6 @@ def parity_evaluator_flip_local_() -> ParityEvaluator:
                     ret_par = par
                 else:
                     ret_par = not par
-
-                # For bonds, the neighbors used shouldn't change upon TS
-                # reversal for any of the cases we have dealt with. If this
-                # isn't the case, we need to extend this code to handle the
-                # unforeseen cases.
-                orig_nkey1s, orig_nkey2s = bond_stereo_sorted_neighbor_keys(
-                    orig_gra, key1, key2
-                )
-                assert sorted(nkey1s) == sorted(orig_nkey1s), (
-                    f"Unforeseen case! Reversal alters stereo bond neighbors:"
-                    f"\n{nkey1s} != {orig_nkey1s}\n{gra}\norig:\n{orig_gra}"
-                )
-                assert sorted(nkey2s) == sorted(orig_nkey2s), (
-                    f"Unforeseen case! Reversal alters stereo bond neighbors:"
-                    f"\n{nkey2s} != {orig_nkey2s}\n{gra}\norig:\n{orig_gra}"
-                )
 
             return ret_par
 
