@@ -311,7 +311,8 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
             exp_rda = exp_rdm.GetAtoms()[idx]
 
             nkeys0 = graph_base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
-            nkeys1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
+            nidxs1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
+            nkeys1 = list(map(key_from_idx.__getitem__, nidxs1))
 
             par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
             rda.SetChiralTag(ATOM_STEREO_TAG_FROM_BOOL[par1])
