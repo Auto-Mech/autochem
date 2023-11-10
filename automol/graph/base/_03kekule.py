@@ -7,7 +7,7 @@ from typing import List
 
 import numpy
 
-from automol.graph.base._0core import (
+from automol.graph.base._00core import (
     atom_bond_counts,
     atom_keys,
     atom_lone_pairs,
@@ -34,7 +34,7 @@ from automol.graph.base._0core import (
     without_dummy_atoms,
     without_pi_bonds,
 )
-from automol.graph.base._2algo import (
+from automol.graph.base._02algo import (
     branches,
     connected_components,
     connected_components_atom_keys,

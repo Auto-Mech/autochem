@@ -12,7 +12,7 @@ from phydat import phycon
 
 from automol import util
 from automol.geom import base as geom_base
-from automol.graph.base._0core import (
+from automol.graph.base._00core import (
     atom_keys,
     atom_neighbor_atom_keys,
     atom_stereo_sorted_neighbor_keys,
@@ -25,12 +25,12 @@ from automol.graph.base._0core import (
     relabel,
     ts_reacting_atom_keys,
 )
-from automol.graph.base._2algo import (
+from automol.graph.base._02algo import (
     branch_atom_keys,
     ring_systems_atom_keys,
     rings_bond_keys,
 )
-from automol.graph.base._3kekule import rigid_planar_bond_keys
+from automol.graph.base._03kekule import rigid_planar_bond_keys
 
 
 # stereo parity evaluations

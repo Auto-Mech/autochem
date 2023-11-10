@@ -1242,7 +1242,7 @@ def test__calculate_priorities_and_assign_parities():
 
         par_eval_ = graph.parity_evaluator_from_geometry_(geo)
 
-        pri_dct, gra, _ = graph.canonical_priorities_and_stereo_parities(
+        pri_dct, gra, _ = graph.calculate_priorities_and_parities(
             gra, par_eval_=par_eval_)
 
         print(pri_dct)

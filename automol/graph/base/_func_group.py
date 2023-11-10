@@ -5,24 +5,24 @@
 """
 
 import itertools
-from automol.graph.base._3kekule import kekule
-from automol.graph.base._3kekule import radical_atom_keys
-from automol.graph.base._2algo import branches
-from automol.graph.base._2algo import rings_atom_keys
-from automol.graph.base._2algo import isomorphism
-from automol.graph.base._0core import atom_keys
-from automol.graph.base._0core import bond_keys
-from automol.graph.base._0core import atom_symbols
-from automol.graph.base._0core import atom_symbol_keys
-from automol.graph.base._0core import atoms_neighbor_atom_keys
-from automol.graph.base._0core import bond_orders
-from automol.graph.base._0core import remove_atoms
-from automol.graph.base._0core import remove_bonds
-from automol.graph.base._0core import ts_reagents_graph_without_stereo
-from automol.graph.base._0core import subgraph
-from automol.graph.base._0core import explicit
-from automol.graph.base._6canon import to_local_stereo
-from automol.graph.base._6canon import from_local_stereo
+from automol.graph.base._03kekule import kekule
+from automol.graph.base._03kekule import radical_atom_keys
+from automol.graph.base._02algo import branches
+from automol.graph.base._02algo import rings_atom_keys
+from automol.graph.base._02algo import isomorphism
+from automol.graph.base._00core import atom_keys
+from automol.graph.base._00core import bond_keys
+from automol.graph.base._00core import atom_symbols
+from automol.graph.base._00core import atom_symbol_keys
+from automol.graph.base._00core import atoms_neighbor_atom_keys
+from automol.graph.base._00core import bond_orders
+from automol.graph.base._00core import remove_atoms
+from automol.graph.base._00core import remove_bonds
+from automol.graph.base._00core import ts_reagents_graph_without_stereo
+from automol.graph.base._00core import subgraph
+from automol.graph.base._00core import explicit
+from automol.graph.base._07canon import to_local_stereo
+from automol.graph.base._07canon import from_local_stereo
 
 
 # # core functions

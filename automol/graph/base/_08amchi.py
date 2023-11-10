@@ -6,7 +6,7 @@ import itertools
 
 from automol import form, util
 from automol.amchi import base as amchi_base
-from automol.graph.base._0core import (
+from automol.graph.base._00core import (
     atom_implicit_hydrogens,
     atom_keys,
     atom_stereo_keys,
@@ -22,12 +22,12 @@ from automol.graph.base._0core import (
     without_dummy_atoms,
     without_stereo,
 )
-from automol.graph.base._2algo import connected_components, rings_atom_keys
-from automol.graph.base._3kekule import (
+from automol.graph.base._02algo import connected_components, rings_atom_keys
+from automol.graph.base._03kekule import (
     kekules_bond_orders_collated,
     vinyl_radical_atom_keys,
 )
-from automol.graph.base._6canon import (
+from automol.graph.base._07canon import (
     canonical_enantiomer_with_keys,
     canonical_ts_direction,
 )

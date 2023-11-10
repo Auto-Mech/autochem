@@ -2,7 +2,7 @@
 """
 from automol import util, vmat
 from automol.graph.base import ts
-from automol.graph.base._0core import (
+from automol.graph.base._00core import (
     atom_count,
     atom_keys,
     atom_symbols,
@@ -13,7 +13,7 @@ from automol.graph.base._0core import (
     subgraph,
     terminal_atom_keys,
 )
-from automol.graph.base._2algo import (
+from automol.graph.base._02algo import (
     is_connected,
     ring_system_decomposed_atom_keys,
     ring_systems,

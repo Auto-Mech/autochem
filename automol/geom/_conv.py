@@ -704,7 +704,7 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vector.Vector:
     assert frm_key is not None, f"Atom {key} is not forming a bond in this graph:{tsg}"
 
     # Get the normal vector
-    pkeys = graph_base.ts.plane_keys(tsg, key)
+    pkeys = graph_base.ts.reacting_atom_plane_keys(tsg, key)
     pxyzs = coordinates(geo, idxs=pkeys)
     zvec = vector.best_unit_perpendicular(pxyzs)
 

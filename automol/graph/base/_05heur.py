@@ -5,29 +5,31 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 import itertools
 
-from phydat import phycon
-
-from automol.graph.base._0core import (
+from automol.graph.base._00core import (
     atom_implicit_hydrogens,
     atom_keys,
     atom_neighbor_atom_key,
+    atom_neighbor_atom_keys,
     atom_symbols,
     atoms_neighbor_atom_keys,
     bond_keys,
     explicit,
     implicit,
+    ts_breaking_bond_keys,
+    ts_forming_bond_keys,
+    ts_reagents_graph_without_stereo,
     without_dummy_atoms,
+    without_reacting_bonds,
 )
-from automol.graph.base._2algo import (
-    branch_atom_keys,
-    rings_bond_keys,
-)
-from automol.graph.base._3kekule import (
+from automol.graph.base._02algo import branch_atom_keys, rings_bond_keys
+from automol.graph.base._03kekule import (
     atom_hybridizations,
     kekules_bond_orders_collated,
     linear_segments_atom_keys,
+    rigid_planar_bond_keys,
 )
 from automol.util import heuristic
+from phydat import phycon
 
 # bond angles
 TET_ANG = 109.4712  # degrees
@@ -37,12 +39,22 @@ LIN_ANG = 180.0  # degrees
 
 # heuristic coordinate values
 def heuristic_bond_distance(
-    gra, key1: int, key2: int, angstrom: bool = True, check: bool = False
+    gra,
+    key1: int,
+    key2: int,
+    fdist_factor: float = 1.1,
+    bdist_factor: float = 0.9,
+    angstrom: bool = True,
+    check: bool = False,
 ) -> float:
     """The heuristic bond distance between two bonded atoms
 
-    Returns whichever is smaller of (a.) the sum of covalent radii, and (b.) the average
-    vdw radius.
+    For non-reacting atoms, returns whichever is smaller of (a.) the sum of covalent
+    radii, and (b.) the average vdw radius.
+
+    For reacting atoms, returns a multiple of whichever is larger of the same distances;
+    The multiple for forming bonds is set by `fdist_factor` and that for breaking bonds
+    is set by `bdist_factor`
 
     :param gra: Molecular graph
     :type gra: automol graph data structure
@@ -50,6 +62,11 @@ def heuristic_bond_distance(
     :type key1: int
     :param key2: The second atom key
     :type key2: int
+    :param fdist_factor: Set the forming bond distance to this times the average
+        van der Waals radius, defaults to 1.1
+    :type fdist_factor: float, optional
+    :param bdist_factor: Set the breaking bond distance to this times the average
+        van der Waals radius, defaults to 0.9
     :param angstrom: Return in angstroms intead of bohr?, defaults to True
     :type angstrom: bool, optional
     :param check: Check that these atoms are in fact bonded, defaults to False
@@ -62,7 +79,20 @@ def heuristic_bond_distance(
 
     symb_dct = atom_symbols(gra)
     symb1, symb2 = map(symb_dct.__getitem__, [key1, key2])
-    return heuristic.bond_distance(symb1, symb2, angstrom=angstrom)
+
+    bkey = frozenset({key1, key2})
+    if bkey in ts_forming_bond_keys(gra):
+        dist = fdist_factor * heuristic.bond_distance_limit(
+            symb1, symb2, angstrom=angstrom
+        )
+    elif bkey in ts_breaking_bond_keys(gra):
+        dist = bdist_factor * heuristic.bond_distance_limit(
+            symb1, symb2, angstrom=angstrom
+        )
+    else:
+        dist = heuristic.bond_distance(symb1, symb2, angstrom=angstrom)
+
+    return dist
 
 
 def heuristic_bond_distance_limit(
@@ -247,3 +277,32 @@ def rotational_symmetry_number(gra, key1, key2, lin_keys=None):
                 sym_num = 3
                 break
     return sym_num
+
+
+def ts_reacting_atom_plane_keys(tsg, key: int, include_self: bool = True):
+    """Keys used to define a plane for forming the TS geometry
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key: The key of a bond-forming atom
+    :type key: int
+    :param include_self: Whether to include the key itself; defaults to `True`
+    :type include_self: bool, optional
+    """
+    nrbs_gra = without_reacting_bonds(tsg)
+    rcts_gra = ts_reagents_graph_without_stereo(tsg)
+
+    nkeys_rct = atom_neighbor_atom_keys(rcts_gra, key)
+    nkeys_nrb = atom_neighbor_atom_keys(nrbs_gra, key)
+
+    pkeys = {key} if include_self else set()
+    pkeys |= nkeys_nrb if len(nkeys_rct) > 3 else nkeys_rct
+
+    rp_bkeys = rigid_planar_bond_keys(rcts_gra)
+    rp_bkey = next((bk for bk in rp_bkeys if key in bk), None)
+    if rp_bkey is not None:
+        (key_,) = rp_bkey - {key}
+        pkeys |= {key_}
+        pkeys |= atom_neighbor_atom_keys(rcts_gra, key_)
+
+    return frozenset(pkeys)
