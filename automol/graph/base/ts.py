@@ -47,7 +47,8 @@ from automol.graph.base._4heur import (
     heuristic_bond_distance as _heuristic_bond_distance,
 )
 from automol.graph.base._6canon import (
-    calculate_priorities_and_assign_stereo,
+    ParityEvaluator,
+    canonical_priorities_and_stereo_parities,
     parity_evaluator_flip_local_,
     to_local_stereo,
 )
@@ -294,7 +295,7 @@ def reagents_graph(tsg, prod=False, stereo=True, dummy=True):
     """
     gra = ts_reagents_graph_without_stereo(tsg, prod=prod, dummy=dummy)
     if stereo and has_stereo(tsg):
-        _, gra, _ = calculate_priorities_and_assign_stereo(
+        _, gra, _ = canonical_priorities_and_stereo_parities(
             gra,
             backbone_only=False,
             break_ties=False,
@@ -303,7 +304,7 @@ def reagents_graph(tsg, prod=False, stereo=True, dummy=True):
     return gra
 
 
-def parity_evaluator_reagents_from_ts_(tsg, prod=False):
+def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
     r"""Determines reactant or product stereochemistry from a TS graph
 
     (For internal use by the calculate_priorities_and_assign_stereo() function)
@@ -314,14 +315,15 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
     :type tsg: automol graph data structure
     :param prod: Do this for the products, instead of the reactants?
     :type prod: bool
-    :returns: A parity evaluator, `p_`, for which `p_(gra, pri_dct)(key)`
-        returns the parity for a given atom, given a set of priorities.
+    :returns: A parity evaluator, which takes a graph, a priority mapping, and a set of
+        keys and returns a dictionary of parities for those keys
+    :rtype: ParityEvaluator
     """
     # Handle Sn2 reactions by reversing before localizing, if getting products
     tsg0 = ts_reverse(tsg) if prod else tsg
     loc_tsg0 = to_local_stereo(tsg0)
 
-    # Handle constrained eliminations
+    # Handle constrained insertion/eliminations
     cpar_dct = constrained_1_2_insertion_local_parities(loc_tsg0)
     loc_tsg0 = set_stereo_parities(loc_tsg0, cpar_dct)
 
@@ -334,18 +336,21 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
     # the local stereo to find canonical assignments
     par_eval_flip_ = parity_evaluator_flip_local_()
 
-    def _evaluator(gra, pri_dct, ts_rev=False):
-        """Parity evaluator based on current priorities
+    def _evaluator(
+        gra, pri_dct: Dict[int, int], keys: List[int], ts_rev: bool = False
+    ) -> Dict[int, int]:
+        """Parity evaluator based on current priorities.
 
-        Note: `ts_rev` gets ignored here, because we are *not* assigning stereo
-        to a TS graph (We are using TS stereo to assign to a non-TS graph)
-
-        :param gra: molecular graph with canonical stereo parities
+        :param gra: A molecular graph
         :type gra: automol graph data structure
-        :param pri_dct: A dictionary mapping atom keys to priorities
-        :type pri_dct: dict
+        :param pri_dct: A dictionary mapping atom keys to priorities.
+        :type pri_dct: Dict[int, int]
+        :param keys: The keys to evaluate parities for
+        :type keys: List[int]
         :param ts_rev: Is this a reversed TS graph?
         :type ts_rev: bool
+        :returns: A dictionary of parities, by key
+        :rtype: Dict[int, int]
         """
 
         # Sanity check
@@ -357,27 +362,12 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False):
         loc_gra = ts_reagents_graph_without_stereo(
             loc_tsg0, keep_stereo=True, dummy=False
         )
-        p0_ = par_eval_flip_(loc_gra, pri_dct)
-
-        def _parity(key):
-            # Stereocenters directly shared with TS can be obtained from the
-            # flip local parity evaluator
-            par = p0_(key)
-
-            if par is None:
-                raise NotImplementedError(
-                    f"Reagent determination for this TS graph is not "
-                    f"yet implemented:\n{tsg}"
-                )
-
-            return par
-
-        return _parity
+        return par_eval_flip_(loc_gra, pri_dct, keys)
 
     return _evaluator
 
 
-def expand_stereo_for_reaction(tsg, rcts_gra, prds_gra):
+def expand_ts_stereo_for_reaction(tsg, rcts_gra, prds_gra):
     """Expand TS graph stereo that is consistent with reactants and products
 
     :param tsg: TS graph

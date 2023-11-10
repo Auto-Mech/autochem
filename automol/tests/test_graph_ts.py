@@ -482,7 +482,7 @@ def test__ts__expand_stereo_for_reaction():
         print('rgra0', rgra0)
         print('pgra0', pgra0)
         print('---')
-        stsgs = graph.ts.expand_stereo_for_reaction(tsg, rgra0, pgra0)
+        stsgs = graph.ts.expand_ts_stereo_for_reaction(tsg, rgra0, pgra0)
         assert len(stsgs) == num_ts_assignments
         for stsg in stsgs:
             rgra1 = graph.ts.reactants_graph(stsg)
@@ -649,5 +649,5 @@ if __name__ == '__main__':
     # test__from_local_stereo()
     # test__ts__reactants_graph()
     # test__rotational_bond_keys()
-    # test__ts__expand_stereo_for_reaction()
-    test__amchi()
+    test__ts__expand_stereo_for_reaction()
+    # test__amchi()

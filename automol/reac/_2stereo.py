@@ -73,7 +73,7 @@ def expand_stereo_for_reaction(rxn: Reaction, rct_gras, prd_gras):
     pgra = graph.relabel(prds_gra, mapping(rxn, "P", "T"))
 
     # 2. Expand all TSs
-    stsgs = graph.ts.expand_stereo_for_reaction(ts_graph(rxn), rgra, pgra)
+    stsgs = graph.ts.expand_ts_stereo_for_reaction(ts_graph(rxn), rgra, pgra)
 
     # 3. Copy them into reaction objects
     srxns = []

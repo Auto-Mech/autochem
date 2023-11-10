@@ -64,13 +64,15 @@ def expand_stereo(gra, enant=True, symeq=False):
             # a. Refine priorities based on current assignments
             pri_dct = refine_priorities(gra1, pri_dct=pri_dct)
 
-            # b. Generate a representation of the current assignments
-            rep = stereo_assignment_representation(gra1, pri_dct)
-            #   i. If the representation has been seen, continue (skip)
-            if rep in seen_reps and not symeq:
-                continue
-            #  ii. If not, add it to the list of seen representations
-            seen_reps.append(rep)
+            # b. Check symmetry equivalence, if requested
+            if not symeq:
+                #   i. Generate a representation of the current assignments
+                rep = stereo_assignment_representation(gra1, pri_dct)
+                #  ii. If the representation has been seen, continue (skip)
+                if rep in seen_reps:
+                    continue
+                # iii. If not, add it to the list of seen representations
+                seen_reps.append(rep)
 
             # c. Find stereogenic atoms and bonds based on current priorities
             keys = stereogenic_keys_from_priorities(gra1, pri_dct)
@@ -82,27 +84,14 @@ def expand_stereo(gra, enant=True, symeq=False):
 
     # 2. If requested, filter out non-canonical enantiomers
     if not enant:
-        # Save copies of graphs, priority dictionaries, and local stereo graphs
-        # that have been seen. The last will be used to check for enantiomers.
-        seen_gpls = []
-        for ugra, upri_dct in gps.copy():
-            # a. Convert to local stereo assignments
-            uloc_gra = to_local_stereo(ugra, pri_dct=upri_dct)
+        # a. Augment the list of graphs and priorities with local stereo graphs
+        gpls = [(g, p, to_local_stereo(g, p)) for g, p in gps]
 
-            # b. Reflect local stereo assignments
-            rloc_gra = reflect_local_stereo(uloc_gra)
-
-            # c. Check if the reflection matches anything we've seen
-            rgra, rpri_dct = next(
-                ((g, p) for g, p, l in seen_gpls if l == rloc_gra), (None, None)
-            )
-
-            # d. Add the current stereoisomer to the list of seen ones
-            seen_gpls.append((ugra, upri_dct, uloc_gra))
-
-            # e. If it does, we have a pair of enantiomers. Identify which one
-            # is non-canonical and remove it.
-            if rgra is not None:
+        # b. Find pairs of enantiomers and remove the non-canonical ones
+        for ugpl, rgpl in itertools.combinations(gpls, r=2):
+            ugra, upri_dct, uloc_gra = ugpl
+            rgra, rpri_dct, rloc_gra = rgpl
+            if rloc_gra == reflect_local_stereo(uloc_gra):
                 is_can = is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct)
 
                 if is_can is True:

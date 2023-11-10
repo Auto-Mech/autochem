@@ -16,7 +16,6 @@ from automol.graph.base._0core import (
     bond_stereo_parities,
     formula,
     implicit,
-    relabel,
     terminal_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
@@ -29,7 +28,6 @@ from automol.graph.base._3kekule import (
     vinyl_radical_atom_keys,
 )
 from automol.graph.base._6canon import (
-    break_priority_ties,
     canonical_enantiomer_with_keys,
     canonical_ts_direction,
 )
@@ -72,22 +70,13 @@ def amchi_with_indices(gra, stereo=True):
     return chi, chi_idx_dcts
 
 
-def connected_amchi_with_indices(gra, stereo=True, pri_dct=None, is_refl=None):
+def connected_amchi_with_indices(gra, stereo=True):
     """single-component AMChI string from a connected graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param stereo: Include stereo in the AMChI string, if present?
     :type stereo: bool
-    :param pri_dct: Optionally, pass in canonical priorities to avoid
-        recalculating. If this is an enantiomer, `gra` and `pri_dct` must
-        reflect the *canonical enantiomer*, and the `is_refl` flag must be
-        set.
-    :type pri_dct: dict[int: int]
-    :param is_refl: If using pre-canonicalized graph, is it a
-        reflected enantiomer? If True, yes; if False, it's an enantiomer
-        that isn't reflected; if None, it's not an enantiomer.
-    :type is_refl: bool or NoneType
     :returns: the AMChI string
     :rtype: str
     """
@@ -103,19 +92,27 @@ def connected_amchi_with_indices(gra, stereo=True, pri_dct=None, is_refl=None):
     gra, is_rev = canonical_ts_direction(gra)
 
     # 2. Canonicalize and determine canonical enantiomer
-    if pri_dct is None:
-        gra, chi_idx_dct, is_refl = canonical_enantiomer_with_keys(gra)
-    else:
-        chi_idx_dct = break_priority_ties(gra, pri_dct)
-
-    gra = relabel(gra, chi_idx_dct)
+    gra, chi_idx_dct, is_refl = canonical_enantiomer_with_keys(gra, relabel=True)
 
     # 3. Generate the appropriate layers
-    fml_str = _formula_string(gra)
-    main_lyr_dct = _main_layers(gra)
-    ste_lyr_dct = _stereo_layers(gra, is_refl=is_refl)
-    ts_lyr_dct = _ts_layers(gra, is_rev=is_rev)
+    #   a. Formula string
+    fml_str = formula_string(gra)
 
+    #   b. Main layers (c, h)
+    main_lyr_dct = {"c": connection_layer(gra), "h": hydrogen_layer(gra)}
+
+    #   b. Stereo layers (b, t, m, s)
+    ste_lyr_dct = {"b": bond_stereo_layer(gra), "t": atom_stereo_layer(gra)}
+    if is_refl is not None:
+        ste_lyr_dct["m"] = "1" if is_refl else "0"
+        ste_lyr_dct["s"] = "1"
+
+    #   c. TS layers (k, f, r)
+    ts_lyr_dct = {"k": bond_breaking_layer(gra), "f": bond_forming_layer(gra)}
+    if is_rev is not None:
+        ts_lyr_dct["r"] = "1" if is_rev else "0"
+
+    # 4. Build the AMChI string
     chi = amchi_base.from_data(
         fml_lyr=fml_str,
         main_lyr_dct=main_lyr_dct,
@@ -170,7 +167,7 @@ def inchi_is_bad(gra, ich):
 
 # # AMChI layer functions
 # # # Formula layer
-def _formula_string(gra):
+def formula_string(gra):
     """AMChI formula layer from graph
 
     :param gra: molecular graph
@@ -182,74 +179,13 @@ def _formula_string(gra):
 
 
 # # # Main layers
-def _main_layers(gra):
-    """Determine the main layers, describing the connectivity of the molecule.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: the 'c' and 'h' layers, as a dictionary
-    :rtype: str
-    """
-    conn_lyr = _connection_layer(gra)
-    nhyd_lyr = _hydrogen_layer(gra)
-    lyr_dct = {"c": conn_lyr, "h": nhyd_lyr}
-    return lyr_dct
-
-
-def _connection_layer(gra):
+def connection_layer(gra):
     """AMChI connection (c) layer from graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :returns: the connection layer, without prefix
     :rtype: str
-    """
-    conn_lyr, _ = _connection_layer_and_list(gra)
-    return conn_lyr
-
-
-def _hydrogen_layer(gra):
-    """AMChI hydrogen (h) layer from graph
-
-    :param gra: implicit molecular graph
-    :type gra: automol graph data structure
-    :returns: the hydrogen layer, without prefix
-    :rtype: str
-    """
-    # Determine hydrogen counts
-    nhyd_dct = atom_implicit_hydrogens(gra)
-    all_keys = sorted(atom_keys(gra), key=nhyd_dct.__getitem__)
-    grps = [
-        (nh, sorted(k + 1 for k in ks))
-        for nh, ks in itertools.groupby(all_keys, key=nhyd_dct.__getitem__)
-        if nh > 0
-    ]
-
-    # Build the hydrogen layer string
-    slyrs = []
-    for nhyd, keys in grps:
-        parts = util.equivalence_partition(keys, lambda x, y: y in (x - 1, x + 1))
-        parts = sorted(map(sorted, parts))
-        strs = [
-            "{:d}-{:d}".format(min(p), max(p)) if len(p) > 1 else "{:d}".format(p[0])
-            for p in parts
-        ]
-        if nhyd == 1:
-            slyrs.append(",".join(strs) + "H")
-        else:
-            slyrs.append(",".join(strs) + f"H{nhyd}")
-
-    nhyd_lyr = ",".join(slyrs)
-    return nhyd_lyr
-
-
-def _connection_layer_and_list(gra):
-    """AMChI connection layer and list from graph
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: the connection layer, without prefix, and connection list
-    :rtype: str, list
     """
     # Get a one-indexed neighbor keys dictionary.
     nkeys_dct = {
@@ -333,42 +269,49 @@ def _connection_layer_and_list(gra):
     # number
     term_keys = terminal_atom_keys(gra, backbone=True)
     start_key = min(term_keys) + 1 if term_keys else 1
-    conn_lyr, conn_lst = _recurse_connection_layer("", [], start_key)
+    conn_lyr, _ = _recurse_connection_layer("", [], start_key)
     conn_lyr = conn_lyr if conn_lyr != "1" else ""
 
-    return conn_lyr, conn_lst
+    return conn_lyr
+
+
+def hydrogen_layer(gra):
+    """AMChI hydrogen (h) layer from graph
+
+    :param gra: implicit molecular graph
+    :type gra: automol graph data structure
+    :returns: the hydrogen layer, without prefix
+    :rtype: str
+    """
+    # Determine hydrogen counts
+    nhyd_dct = atom_implicit_hydrogens(gra)
+    all_keys = sorted(atom_keys(gra), key=nhyd_dct.__getitem__)
+    grps = [
+        (nh, sorted(k + 1 for k in ks))
+        for nh, ks in itertools.groupby(all_keys, key=nhyd_dct.__getitem__)
+        if nh > 0
+    ]
+
+    # Build the hydrogen layer string
+    slyrs = []
+    for nhyd, keys in grps:
+        parts = util.equivalence_partition(keys, lambda x, y: y in (x - 1, x + 1))
+        parts = sorted(map(sorted, parts))
+        strs = [
+            "{:d}-{:d}".format(min(p), max(p)) if len(p) > 1 else "{:d}".format(p[0])
+            for p in parts
+        ]
+        if nhyd == 1:
+            slyrs.append(",".join(strs) + "H")
+        else:
+            slyrs.append(",".join(strs) + f"H{nhyd}")
+
+    nhyd_lyr = ",".join(slyrs)
+    return nhyd_lyr
 
 
 # # # Stereo layers
-def _stereo_layers(gra, is_refl=None):
-    """Determine the stereo layers, describing bond and atom stereochemistry.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param is_refl: Is this a reflected enantiomer? If True, yes; if
-        False, it's an enantiomer that isn't reflected; if None, it's not
-        an enantiomer.
-    :type is_refl: bool or NoneType
-    :returns: the 'b', 't', 'm', and 's' layers, as a dictionary
-    :rtype: str
-    """
-    b_lyr = _bond_stereo_layer(gra)
-    t_lyr = _atom_stereo_layer(gra)
-
-    lyr_dct = {}
-    if b_lyr:
-        lyr_dct["b"] = b_lyr
-    if t_lyr:
-        lyr_dct["t"] = t_lyr
-    if is_refl is not None:
-        assert t_lyr, "If this is an enantiomer, there must be an atom stereo layer."
-        lyr_dct["m"] = "1" if is_refl else "0"
-        lyr_dct["s"] = "1"
-
-    return lyr_dct
-
-
-def _bond_stereo_layer(gra):
+def bond_stereo_layer(gra):
     """AMChI bond stereo (b) layer from graph
 
     cis     = '-' = False
@@ -391,7 +334,7 @@ def _bond_stereo_layer(gra):
     return bnd_ste_lyr
 
 
-def _atom_stereo_layer(gra):
+def atom_stereo_layer(gra):
     """AMChI atom stereo (t, m) layer from graph
 
     S = counterclockwise = '@'  = '-' = False
@@ -414,35 +357,7 @@ def _atom_stereo_layer(gra):
 
 
 # # # TS layers
-def _ts_layers(gra, is_rev=None):
-    """Determine the TS layers, describing breaking/forming bonds and TS direction
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param is_rev: Is this a reverse TS? If True, yes; if False, it's a TS that
-        isn't reversed; if None, it's not a TS.
-    :type is_rev: bool or NoneType
-    :returns: the 'f', 'k', and 'r' layers, as a dictionary
-    :rtype: dict
-    """
-    k_lyr = _bond_breaking_layer(gra)
-    f_lyr = _bond_forming_layer(gra)
-
-    lyr_dct = {}
-    if k_lyr:
-        lyr_dct["k"] = k_lyr
-    if f_lyr:
-        lyr_dct["f"] = f_lyr
-    if is_rev is not None:
-        assert (
-            f_lyr or k_lyr
-        ), "If this is a TS, there must be breaking or forming bond layers."
-        lyr_dct["r"] = "1" if is_rev else "0"
-
-    return lyr_dct
-
-
-def _bond_breaking_layer(gra):
+def bond_breaking_layer(gra):
     """AMChI bond breaking (k) layer from graph
 
     :param gra: molecular graph
@@ -459,7 +374,7 @@ def _bond_breaking_layer(gra):
     return brk_bnd_lyr
 
 
-def _bond_forming_layer(gra):
+def bond_forming_layer(gra):
     """AMChI bond forming (f) layer from graph
 
     :param gra: molecular graph
