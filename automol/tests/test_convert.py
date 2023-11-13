@@ -331,6 +331,26 @@ def test__graph__misc():
     chi = automol.graph.chi(gra)
     assert ich == chi
 
+    # EXTRA TEST CASE 3
+    smi = '[CH]=C=C'
+    ich = automol.smiles.inchi(smi)
+    gra = automol.smiles.graph(smi)
+    chi = automol.graph.chi(gra)
+    assert ich == chi
+
+    # EXTRA TEST CASE 4
+    gra = ({0: ('C', 1, None),
+            2: ('C', 0, None),
+            4: ('C', 0, None),
+            5: ('H', 0, None),
+            6: ('H', 0, None)},
+           {frozenset({4, 5}): (1, None),
+            frozenset({2, 4}): (2, None),
+            frozenset({0, 2}): (2, None),
+            frozenset({4, 6}): (1, None)})
+    assert automol.graph.chi(gra) == "InChI=1S/C3H3/c1-3-2/h1H,2H2"
+
+
 
 def test__inchi_geometry():
     """ test automol.chi.geometry

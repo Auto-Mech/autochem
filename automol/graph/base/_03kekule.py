@@ -120,9 +120,10 @@ def kekules_bond_orders(gra):
     :rtype: tuple[dict]
     """
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
-    orig_bnd_ord_dct = bond_orders(gra)
-    gra = implicit(gra)
     gra = without_pi_bonds(gra)
+    bord_dct0 = bond_orders(gra)
+
+    gra = implicit(gra)
 
     # identify all of the independent pi systems and assign kekules to each
     pi_keys_lst = pi_system_atom_keys(gra)
@@ -134,7 +135,7 @@ def kekules_bond_orders(gra):
     bnd_ord_dcts = []
     # combine the kekules from each pi system together in all possible ways
     for bord_dcts in itertools.product(*pi_bord_dcts_lst):
-        bord_dct = orig_bnd_ord_dct.copy()
+        bord_dct = bord_dct0.copy()
         for dct in bord_dcts:
             bord_dct.update(dct)
         bnd_ord_dcts.append(bord_dct)
@@ -142,7 +143,7 @@ def kekules_bond_orders(gra):
     if bnd_ord_dcts:
         bnd_ord_dcts = tuple(bnd_ord_dcts)
     else:
-        bnd_ord_dcts = (orig_bnd_ord_dct,)
+        bnd_ord_dcts = (bord_dct0,)
 
     return bnd_ord_dcts
 
