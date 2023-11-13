@@ -428,6 +428,6 @@ if __name__ == "__main__":
     # test__expand_stereo_for_reaction()
     # test__from_old_string()
     # test__reverse()
-    # test__from_datatypes()
+    test__from_datatypes()
     test__end_to_end()
     # test__canonical_enantiomer()

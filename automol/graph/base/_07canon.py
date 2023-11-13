@@ -111,7 +111,7 @@ def canonical_enantiomer_with_keys(gra, relabel: bool = False):
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
         ugra = gra
-        upri_dct, uloc_gra, _ = calculate_priorities_and_parities(
+        upri_dct, _, uloc_gra, _ = calculate_priorities_and_parities(
             ugra,
             backbone_only=False,
             par_eval_=parity_evaluator_read_canonical_(),
@@ -123,11 +123,10 @@ def canonical_enantiomer_with_keys(gra, relabel: bool = False):
 
         # Determine canonical keys for the reflected graph while converting
         # back to the canonical stereo representation
-        rpri_dct, rgra, _ = calculate_priorities_and_parities(
+        rpri_dct, rgra, _, _ = calculate_priorities_and_parities(
             rloc_gra,
             backbone_only=False,
-            par_eval_=parity_evaluator_flip_local_(),
-            aux_par_eval_=parity_evaluator_flip_local_(),
+            par_eval_=parity_evaluator_flip_local_()
         )
 
         is_can = is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct)
@@ -169,7 +168,7 @@ def canonical_ts_direction(gra):
         ftsg = gra
         rtsg = ts_reverse(gra)
 
-        _, _, is_can = calculate_priorities_and_parities(gra)
+        _, _, _, is_can = calculate_priorities_and_parities(gra)
 
         is_rev = not is_can
         cd_gra = rtsg if is_rev else ftsg
@@ -211,7 +210,7 @@ def canonical_keys(gra, backbone_only=True):
     atm_par_dct0 = atom_stereo_parities(gra)
     bnd_par_dct0 = bond_stereo_parities(gra)
 
-    pri_dct, gra, _ = calculate_priorities_and_parities(
+    pri_dct, gra, _, _ = calculate_priorities_and_parities(
         gra, backbone_only=backbone_only
     )
     can_key_dct = break_priority_ties(gra, pri_dct)
@@ -476,7 +475,7 @@ def to_local_stereo(gra, pri_dct=None):
         pri_dct_ = (
             None if pri_dct is None else dict_.by_key(pri_dct, backbone_keys(can_gra))
         )
-        _, loc_gra, _ = calculate_priorities_and_parities(
+        _, _, loc_gra, _ = calculate_priorities_and_parities(
             can_gra,
             backbone_only=False,
             par_eval_=parity_evaluator_read_canonical_(),
@@ -505,11 +504,10 @@ def from_local_stereo(gra, pri_dct=None):
         pri_dct_ = (
             None if pri_dct is None else dict_.by_key(pri_dct, backbone_keys(loc_gra))
         )
-        _, can_gra, _ = calculate_priorities_and_parities(
+        _, can_gra, _, _ = calculate_priorities_and_parities(
             loc_gra,
             backbone_only=False,
             par_eval_=parity_evaluator_flip_local_(),
-            aux_par_eval_=parity_evaluator_flip_local_(),
             pri_dct=pri_dct_,
         )
     else:
@@ -551,7 +549,7 @@ def set_stereo_from_geometry(gra, geo, local_stereo=False, geo_idx_dct=None):
         else None
     )
 
-    _, gra, _ = calculate_priorities_and_parities(
+    _, _, gra, _ = calculate_priorities_and_parities(
         gra, par_eval_=par_eval_, aux_par_eval_=par_eval2_
     )
 
@@ -571,7 +569,7 @@ def canonical_priorities(gra, backbone_only=True, pri_dct=None):
     :returns: A dictionary of canonical priorities by atom key.
     :rtype: dict[int: int]
     """
-    pri_dct, _, _ = calculate_priorities_and_parities(
+    pri_dct, _, _, _ = calculate_priorities_and_parities(
         gra, backbone_only=backbone_only, pri_dct=pri_dct
     )
     return pri_dct
@@ -620,6 +618,7 @@ def calculate_priorities_and_parities(
         is_can_ts_dir = ts_is_canonical_direction(gra, pri_dct, rgra, rpri_dct)
         if not is_can_ts_dir:
             pri_dct = rpri_dct
+            gra = ts_reverse(rgra)
             aux_gra = ts_reverse(raux_gra)
     else:
         is_can_ts_dir = None
@@ -628,7 +627,7 @@ def calculate_priorities_and_parities(
     if not backbone_only:
         pri_dct = reassign_hydrogen_priorities(gra0, pri_dct)
 
-    return pri_dct, aux_gra, is_can_ts_dir
+    return pri_dct, gra, aux_gra, is_can_ts_dir
 
 
 def calculate_priorities_and_parities_core(

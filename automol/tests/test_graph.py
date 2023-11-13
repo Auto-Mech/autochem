@@ -1242,7 +1242,7 @@ def test__calculate_priorities_and_assign_parities():
 
         par_eval_ = graph.parity_evaluator_from_geometry_(geo)
 
-        pri_dct, gra, _ = graph.calculate_priorities_and_parities(
+        pri_dct, gra, _, _ = graph.calculate_priorities_and_parities(
             gra, par_eval_=par_eval_)
 
         print(pri_dct)
@@ -1603,9 +1603,9 @@ if __name__ == '__main__':
     # test__stereogenic_atom_keys()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
-    test__expand_stereo()
+    # test__expand_stereo()
     # test__species__graph_conversion()
-    # test__canonical()
+    test__canonical()
     # test__calculate_priorities_and_assign_parities()
     # test__smiles()
     # test__kekules()

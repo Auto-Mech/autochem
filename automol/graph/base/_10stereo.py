@@ -40,15 +40,15 @@ from automol.graph.base._07canon import (
 
 
 # # core functions
-def expand_stereo(gra, enant=True, symeq=False):
+def expand_stereo(gra, symeq=False, enant=True):
     """Obtain all possible stereoisomers of a graph, ignoring its assignments
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param enant: Include all enantiomers, or only canonical ones?
-    :type enant: bool
     :param symeq: Include symmetrically equivalent stereoisomers?
     :type symeq: bool
+    :param enant: Include all enantiomers, or only canonical ones?
+    :type enant: bool
     :returns: a series of molecular graphs for the stereoisomers
     """
 
@@ -183,7 +183,7 @@ def ts_reagents_graph(tsg, prod=False, stereo=True, dummy=True):
     """
     gra = ts_reagents_graph_without_stereo(tsg, prod=prod, dummy=dummy)
     if stereo and has_stereo(tsg):
-        _, gra, _ = calculate_priorities_and_parities(
+        _, gra, _, _ = calculate_priorities_and_parities(
             gra,
             backbone_only=False,
             par_eval_=parity_evaluator_reagents_from_ts_(tsg, prod=prod),
