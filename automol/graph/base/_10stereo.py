@@ -35,7 +35,7 @@ from automol.graph.base._07canon import (
     stereo_assignment_representation,
     stereogenic_keys_from_priorities,
     to_local_stereo,
-    ts_parity_evaluator_reagents_from_ts_ as parity_evaluator_reagents_from_ts_,
+    parity_evaluator_reagents_from_ts_ as parity_evaluator_reagents_from_ts_,
 )
 
 

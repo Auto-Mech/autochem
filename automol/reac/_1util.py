@@ -19,8 +19,8 @@ def hydrogen_migration_atom_keys(rxn: Reaction):
     a neighbor to the attacking atom along the chain to the donating atom
     :rtype: (int, int, int, int)
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
-    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.breaking_bond_keys(ts_graph(rxn))
     (tra_key,) = frm_bnd_key & brk_bnd_key
     (att_key,) = frm_bnd_key - brk_bnd_key
     (don_key,) = brk_bnd_key - frm_bnd_key
@@ -65,8 +65,8 @@ def ring_forming_scission_atom_keys(rxn: Reaction):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int, int)
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
-    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.breaking_bond_keys(ts_graph(rxn))
     (tra_key,) = frm_bnd_key & brk_bnd_key
     (att_key,) = frm_bnd_key - brk_bnd_key
     (don_key,) = brk_bnd_key - frm_bnd_key
@@ -97,8 +97,8 @@ def hydrogen_abstraction_atom_keys(rxn: Reaction):
     :returns: the attacking atom, the transferring atom, the donating atom
     :rtype: (int, int, int)
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
-    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.breaking_bond_keys(ts_graph(rxn))
     (hyd_key,) = frm_bnd_key & brk_bnd_key
     (att_key,) = frm_bnd_key - brk_bnd_key
     (don_key,) = brk_bnd_key - frm_bnd_key
@@ -116,8 +116,8 @@ def elimination_breaking_bond_keys(rxn: Reaction):
     """
     assert class_(rxn) == ReactionClass.ELIMINATION
     tsg = ts_graph(rxn)
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(tsg)
-    brk_bnd_keys = ts.ts_breaking_bond_keys(tsg)
+    (frm_bnd_key,) = ts.forming_bond_keys(tsg)
+    brk_bnd_keys = ts.breaking_bond_keys(tsg)
     brk_bnd_key1, brk_bnd_key2 = brk_bnd_keys
 
     symbs = graph.atom_symbols(tsg)
@@ -165,7 +165,7 @@ def insertion_forming_bond_keys(rxn: Reaction):
     # inconsistent results (i.e. the two bonds will reverse order).
     # If needed, we could add sorting that is based on the symbols of the
     # atoms instead.
-    frm_bnd_keys = reversed(sorted(ts.ts_forming_bond_keys(tsg), key=sorted))
+    frm_bnd_keys = reversed(sorted(ts.forming_bond_keys(tsg), key=sorted))
     frm_bnd_keys = sorted(
         frm_bnd_keys, key=lambda x: graph.atom_count(graph.bond_neighborhood(tsg, x))
     )
@@ -182,8 +182,8 @@ def substitution_atom_keys(rxn: Reaction):
     :returns: the attacking atom, the transferring atom, the leaving atom
     :rtype: (int, int, int)
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
-    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.breaking_bond_keys(ts_graph(rxn))
     (tra_key,) = frm_bnd_key & brk_bnd_key
     (att_key,) = frm_bnd_key - brk_bnd_key
     (lea_key,) = brk_bnd_key - frm_bnd_key

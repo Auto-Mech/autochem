@@ -52,7 +52,7 @@ def hydrogen_migration_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
     scan_name = zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -116,7 +116,7 @@ def beta_scission_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.breaking_bond_keys(ts_graph(rxn))
     scan_name = zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
@@ -150,7 +150,7 @@ def ring_forming_scission_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    (brk_bnd_key,) = ts.ts_breaking_bond_keys(ts_graph(rxn))
+    (brk_bnd_key,) = ts.breaking_bond_keys(ts_graph(rxn))
     scan_name = zmat.distance_coordinate_name(zma, *brk_bnd_key)
     return (scan_name,)
 
@@ -205,7 +205,7 @@ def elimination_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
 
     brk_bnd_key1, _ = elimination_breaking_bond_keys(rxn)
 
@@ -255,7 +255,7 @@ def hydrogen_abstraction_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
     scan_name = zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -318,7 +318,7 @@ def addition_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
     scan_name = zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 
@@ -420,7 +420,7 @@ def substitution_scan_coordinate(rxn: Reaction, zma):
     :returns: the name of the scan coordinate in the z-matrix
     :rtype: str
     """
-    (frm_bnd_key,) = ts.ts_forming_bond_keys(ts_graph(rxn))
+    (frm_bnd_key,) = ts.forming_bond_keys(ts_graph(rxn))
     scan_name = zmat.distance_coordinate_name(zma, *frm_bnd_key)
     return (scan_name,)
 

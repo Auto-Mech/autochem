@@ -458,7 +458,7 @@ def test__from_local_stereo():
     def _test(formula, tsg):
         print(f"{formula}: testing from_local_stereo")
         loc_tsg = graph.to_local_stereo(tsg)
-        assert tsg == graph.from_local_stereo(loc_tsg)
+        assert tsg == graph.from_local_stereo(loc_tsg), f"{tsg}\n\n{loc_tsg}"
 
     _test("CH4CLFNO", CH4CLFNO_TSG)
     _test("CH4CLFNO(rev)", graph.ts.reverse(CH4CLFNO_TSG))
@@ -646,8 +646,8 @@ def test__rotational_bond_keys():
 if __name__ == '__main__':
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
-    # test__from_local_stereo()
+    test__from_local_stereo()
     # test__ts__reactants_graph()
     # test__rotational_bond_keys()
-    test__ts__expand_stereo_for_reaction()
+    # test__ts__expand_stereo_for_reaction()
     # test__amchi()

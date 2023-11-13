@@ -30,7 +30,7 @@ def zmatrix_coordinate_names(zrxn: Reaction, zma):
 
         return _names
 
-    frm_bnd_keys = ts.ts_forming_bond_keys(ts_graph(zrxn))
-    brk_bnd_keys = ts.ts_breaking_bond_keys(ts_graph(zrxn))
+    frm_bnd_keys = ts.forming_bond_keys(ts_graph(zrxn))
+    brk_bnd_keys = ts.breaking_bond_keys(ts_graph(zrxn))
 
     return (_zma_names(zma, frm_bnd_keys), _zma_names(zma, brk_bnd_keys))
