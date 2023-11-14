@@ -28,14 +28,14 @@ from automol.graph.base._06geom import (
     geometry_rotate_bond,
 )
 from automol.graph.base._07canon import (
-    calculate_priorities_and_parities,
+    calculate_stereo,
     is_canonical_enantiomer,
+    parity_evaluator_reagents_from_ts_ as parity_evaluator_reagents_from_ts_,
     refine_priorities,
     reflect_local_stereo,
     stereo_assignment_representation,
     stereogenic_keys_from_priorities,
     to_local_stereo,
-    parity_evaluator_reagents_from_ts_ as parity_evaluator_reagents_from_ts_,
 )
 
 
@@ -62,21 +62,10 @@ def expand_stereo(gra, symeq=False, enant=True):
     while gps0 != gps:
         gps0 = gps
         gps = []
-        seen_reps = []
 
         for gra1, pri_dct in gps0:
             # a. Refine priorities based on current assignments
             pri_dct = refine_priorities(gra1, pri_dct=pri_dct)
-
-            # b. Check symmetry equivalence, if requested
-            if not symeq:
-                #   i. Generate a representation of the current assignments
-                rep = stereo_assignment_representation(gra1, pri_dct)
-                #  ii. If the representation has been seen, continue (skip)
-                if rep in seen_reps:
-                    continue
-                # iii. If not, add it to the list of seen representations
-                seen_reps.append(rep)
 
             # c. Find stereogenic atoms and bonds based on current priorities
             keys = stereogenic_keys_from_priorities(gra1, pri_dct)
@@ -88,24 +77,50 @@ def expand_stereo(gra, symeq=False, enant=True):
 
     # 2. If requested, filter out non-canonical enantiomers
     if not enant:
-        # a. Augment the list of graphs and priorities with local stereo graphs
-        gpls = [(g, p, to_local_stereo(g, p)) for g, p in gps]
+        gps = _remove_noncanonical_enantiomers_from_expansion(gps)
 
-        # b. Find pairs of enantiomers and remove the non-canonical ones
-        for ugpl, rgpl in itertools.combinations(gpls, r=2):
-            ugra, upri_dct, uloc_gra = ugpl
-            rgra, rpri_dct, rloc_gra = rgpl
-            if rloc_gra == reflect_local_stereo(uloc_gra):
-                is_can = is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct)
-
-                if is_can is True:
-                    gps.remove((rgra, rpri_dct))
-                elif is_can is False:
-                    gps.remove((ugra, upri_dct))
+    # 3. If requested, filter out symmetry equivalents
+    if not symeq:
+        gps = _remove_symmetry_equivalents_from_expansion(gps)
 
     sgras = [sgra for sgra, _ in gps]
     sgras = tuple(sorted(sgras, key=frozen))
     return sgras
+
+
+def _remove_noncanonical_enantiomers_from_expansion(gps):
+    """Remove non-canonical enantiomers from an expansion"""
+    gps = list(gps)
+
+    # a. Augment the list of graphs and priorities with local stereo graphs
+    gpls = [(g, p, to_local_stereo(g, p)) for g, p in gps]
+
+    # b. Find pairs of enantiomers and remove the non-canonical ones
+    for ugpl, rgpl in itertools.combinations(gpls, r=2):
+        ugra, upri_dct, uloc_gra = ugpl
+        rgra, rpri_dct, rloc_gra = rgpl
+        if rloc_gra == reflect_local_stereo(uloc_gra):
+            is_can = is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct)
+
+            if is_can is True:
+                gps.remove((rgra, rpri_dct))
+            elif is_can is False:
+                gps.remove((ugra, upri_dct))
+
+    return gps
+
+
+def _remove_symmetry_equivalents_from_expansion(gps):
+    """Remove symmetry-equivalent stereoisomers from an expansion"""
+    gps0 = gps
+    gps = []
+    seen_reps = []
+    for gra, pri_dct in gps0:
+        rep = stereo_assignment_representation(gra, pri_dct)
+        if rep not in seen_reps:
+            gps.append((gra, pri_dct))
+            seen_reps.append(rep)
+    return gps
 
 
 # # TS functions
@@ -183,7 +198,7 @@ def ts_reagents_graph(tsg, prod=False, stereo=True, dummy=True):
     """
     gra = ts_reagents_graph_without_stereo(tsg, prod=prod, dummy=dummy)
     if stereo and has_stereo(tsg):
-        _, gra, _, _ = calculate_priorities_and_parities(
+        gra, *_ = calculate_stereo(
             gra,
             backbone_only=False,
             par_eval_=parity_evaluator_reagents_from_ts_(tsg, prod=prod),

@@ -2,10 +2,10 @@
 """
 
 import itertools
-import numpy
-import automol
-from automol import graph
 
+import automol
+import numpy
+from automol import graph
 
 # Vinyl radical with E/Z stereo
 C3H5_SGR = (
@@ -1235,6 +1235,7 @@ def test__calculate_priorities_and_assign_parities():
     """
 
     def _test_from_smiles(smi, ref_atm_pars, ref_bnd_pars):
+        print(smi)
         chi = automol.smiles.chi(smi)
         print(chi)
         geo = automol.chi.geometry(chi)
@@ -1242,8 +1243,7 @@ def test__calculate_priorities_and_assign_parities():
 
         par_eval_ = graph.parity_evaluator_from_geometry_(geo)
 
-        pri_dct, gra, _, _ = graph.calculate_priorities_and_parities(
-            gra, par_eval_=par_eval_)
+        gra, _, pri_dct, *_ = graph.calculate_stereo(gra, par_eval_=par_eval_)
 
         print(pri_dct)
 
@@ -1605,8 +1605,8 @@ if __name__ == '__main__':
     # test__inchi_is_bad()
     # test__expand_stereo()
     # test__species__graph_conversion()
-    test__canonical()
-    # test__calculate_priorities_and_assign_parities()
+    # test__canonical()
+    test__calculate_priorities_and_assign_parities()
     # test__smiles()
     # test__kekules()
     # test__geometry_atom_parity()
