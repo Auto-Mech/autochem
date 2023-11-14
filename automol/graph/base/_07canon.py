@@ -306,7 +306,7 @@ def ts_direction_representation(tsg, pri_dct):
     return rep
 
 
-def ts_is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
+def is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
     """Is this TS direction the canonical one?
 
     :param ftsg: A TS graph in the forward direction
@@ -599,35 +599,69 @@ def calculate_stereo(
     :returns: A gaph with stereo assigned from `par_eval_`, a graph with stereo assigned
         from `can_par_eval_`, a canonical priority mapping, and a flag indicating
         whether a TS graph has a canonical direction (None for non-TS graphs)
-    :rtype: automol graph data structure, -//-, Dict[int, int], bool
+    :rtype: automol graph data structure, -//-, Dict[int, int], Optional[bool]
     """
-    gra0 = gra
-    pri_dct0 = pri_dct
-    # 1. Run the core stereo calculation algorithm
-    gra, can_gra, pri_dct = _calculate_stereo_core(
-        gra0, par_eval_, can_par_eval_, pri_dct=pri_dct0
-    )
-
-    # 2. If this is a TS graph, rerun the algorithm on reverse TS direction to figure
-    # out which one is canonical
-    if is_ts_graph(gra0):
-        rgra = ts_reverse(gra0)
-        rgra, rcan_gra, rpri_dct = _calculate_stereo_core(
-            rgra, par_eval_, can_par_eval_, pri_dct=pri_dct0, is_rev_ts=True
+    if is_ts_graph(gra):
+        gra, can_gra, pri_dct, is_can_ts_dir = _calculate_ts_stereo(
+            gra, par_eval_, can_par_eval_, pri_dct=pri_dct
         )
-        is_can_dir_ts = ts_is_canonical_direction(can_gra, pri_dct, rcan_gra, rpri_dct)
-        if not is_can_dir_ts:
-            gra = ts_reverse(rgra)
-            can_gra = ts_reverse(rcan_gra)
-            pri_dct = rpri_dct
     else:
-        is_can_dir_ts = None
+        gra, can_gra, pri_dct = _calculate_stereo_core(
+            gra, par_eval_, can_par_eval_, pri_dct=pri_dct
+        )
+        is_can_ts_dir = None
 
     # 3. If requested, add in priorities for explicit hydrogens.
     if not backbone_only:
-        pri_dct = reassign_hydrogen_priorities(gra0, pri_dct)
+        pri_dct = reassign_hydrogen_priorities(gra, pri_dct)
 
-    return gra, can_gra, pri_dct, is_can_dir_ts
+    return gra, can_gra, pri_dct, is_can_ts_dir
+
+
+def _calculate_ts_stereo(
+    tsg,
+    par_eval_: Optional[ParityEvaluator] = None,
+    can_par_eval_: Optional[ParityEvaluator] = None,
+    pri_dct: Optional[Dict[int, int]] = None,
+):
+    """Algorithm for calculating stereo parities and priorities for a TS graph
+
+    :param gra: a molecular graph
+    :type gra: automol graph data structure
+    :param par_eval_: A parity evaluator, used for calculating priorities
+    :type par_eval_: Optional[ParityEvaluator]
+    :param can_par_eval_: When `par_eval_` is non-canonical, this parity
+        evaluator must return canonical parities (used in priority calculation)
+    :type can_par_eval_: Optional[ParityEvaluator]
+    :param pri_dct: Optional initial priorities, to be refined.
+    :type pri_dct: Optional[Dict[int, int]]
+    :returns: A gaph with stereo assigned from `par_eval_`, a graph with stereo assigned
+        from `can_par_eval_`, a canonical priority mapping, and a flag indicating
+        whether a TS graph has a canonical direction
+    :rtype: automol graph data structure, -//-, Dict[int, int], bool
+    """
+    tsg0 = tsg
+    pri_dct0 = pri_dct
+
+    # 1. Run the core stereo calculation algorithm in the forward TS direction
+    tsg, can_tsg, pri_dct = _calculate_stereo_core(
+        tsg0, par_eval_, can_par_eval_, pri_dct=pri_dct0
+    )
+
+    # 2. Rerun the core stereo calculation algorithm in the reverse TS direction
+    rgra = ts_reverse(tsg0)
+    rgra, rcan_gra, rpri_dct = _calculate_stereo_core(
+        rgra, par_eval_, can_par_eval_, pri_dct=pri_dct0, is_rev_ts=True
+    )
+
+    # 3. Determine which direction is canonical
+    is_can_dir_ts = is_canonical_direction(can_tsg, pri_dct, rcan_gra, rpri_dct)
+    if not is_can_dir_ts:
+        tsg = ts_reverse(rgra)
+        can_tsg = ts_reverse(rcan_gra)
+        pri_dct = rpri_dct
+
+    return tsg, can_tsg, pri_dct, is_can_dir_ts
 
 
 def _calculate_stereo_core(
@@ -1255,8 +1289,9 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
         keys and returns a dictionary of parities for those keys
     :rtype: ParityEvaluator
     """
-    # Handle Sn2 reactions by reversing before localizing, if getting products
     tsg0 = ts_reverse(tsg) if prod else tsg
+
+    # Sn2 reactions are handled by converting to local stereochemistry
     loc_tsg0 = to_local_stereo(tsg0)
 
     # Handle constrained insertion/eliminations
@@ -1266,6 +1301,9 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
     # Handle vinyl radical additions
     vpar_dct = vinyl_addition_local_parities(loc_tsg0)
     loc_tsg0 = set_stereo_parities(loc_tsg0, vpar_dct)
+
+    # Generate the reagents graph with local parities
+    loc_rgra = ts_reagents_graph_without_stereo(loc_tsg0, keep_stereo=True)
 
     # Now that we have handled the exceptions, the local parities correspond to
     # what they will be for the reactants/products graph, so we can simply flip
@@ -1292,11 +1330,7 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
         # Do-nothing line to prevent linting complaint
         assert gra or not gra
         assert is_rev_ts or not is_rev_ts
-
-        loc_gra = ts_reagents_graph_without_stereo(
-            loc_tsg0, keep_stereo=True, dummy=False
-        )
-        return par_eval_flip_(loc_gra, pri_dct, keys)
+        return par_eval_flip_(loc_rgra, pri_dct, keys)
 
     return _evaluator
 
