@@ -30,7 +30,7 @@ from automol.graph.base._06geom import (
 from automol.graph.base._07canon import (
     calculate_stereo,
     is_canonical_enantiomer,
-    parity_evaluator_reagents_from_ts_ as parity_evaluator_reagents_from_ts_,
+    parity_evaluator_reagents_from_ts_,
     refine_priorities,
     reflect_local_stereo,
     stereo_assignment_representation,
@@ -41,6 +41,33 @@ from automol.graph.base._07canon import (
 
 # # core functions
 def expand_stereo(gra, symeq=False, enant=True):
+    """Obtain all possible stereoisomers of a graph, ignoring its assignments
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param symeq: Include symmetrically equivalent stereoisomers?
+    :type symeq: bool
+    :param enant: Include all enantiomers, or only canonical ones?
+    :type enant: bool
+    :returns: a series of molecular graphs for the stereoisomers
+    """
+    # 1. Run the core stereo expansion algorithm
+    gps = zip(*_expand_stereo_core(gra))
+
+    # 2. If requested, filter out non-canonical enantiomers
+    if not enant:
+        gps = _remove_noncanonical_enantiomers_from_expansion(gps)
+
+    # 3. If requested, filter out symmetry equivalents
+    if not symeq:
+        gps = _remove_symmetry_equivalents_from_expansion(gps)
+
+    sgras = [sgra for sgra, _ in gps]
+    sgras = tuple(sorted(sgras, key=frozen))
+    return sgras
+
+
+def _expand_stereo_core(gra):
     """Obtain all possible stereoisomers of a graph, ignoring its assignments
 
     :param gra: molecular graph
@@ -75,17 +102,8 @@ def expand_stereo(gra, symeq=False, enant=True):
                 gra2 = set_stereo_parities(gra1, dict(zip(keys, pars)))
                 gps.append((gra2, pri_dct))
 
-    # 2. If requested, filter out non-canonical enantiomers
-    if not enant:
-        gps = _remove_noncanonical_enantiomers_from_expansion(gps)
-
-    # 3. If requested, filter out symmetry equivalents
-    if not symeq:
-        gps = _remove_symmetry_equivalents_from_expansion(gps)
-
-    sgras = [sgra for sgra, _ in gps]
-    sgras = tuple(sorted(sgras, key=frozen))
-    return sgras
+    gras, pri_dcts = zip(*gps)
+    return gras, pri_dcts
 
 
 def _remove_noncanonical_enantiomers_from_expansion(gps):
@@ -138,7 +156,7 @@ def expand_ts_stereo_for_reaction(tsg, rcts_gra, prds_gra):
     rgra = without_dummy_atoms(rcts_gra)
     pgra = without_dummy_atoms(prds_gra)
     # Allow *all* possibilities for the TS, including symmetry equivalent ones
-    ste_tsgs = expand_stereo(tsg, enant=True, symeq=True)
+    ste_tsgs, _ = _expand_stereo_core(tsg)
 
     if has_stereo(rgra) or has_stereo(pgra):
         all_ste_tsgs = ste_tsgs
@@ -198,11 +216,8 @@ def ts_reagents_graph(tsg, prod=False, stereo=True, dummy=True):
     """
     gra = ts_reagents_graph_without_stereo(tsg, prod=prod, dummy=dummy)
     if stereo and has_stereo(tsg):
-        gra, *_ = calculate_stereo(
-            gra,
-            backbone_only=False,
-            par_eval_=parity_evaluator_reagents_from_ts_(tsg, prod=prod),
-        )
+        par_eval_ = parity_evaluator_reagents_from_ts_(tsg, prod=prod)
+        gra, *_ = calculate_stereo(gra, par_eval_=par_eval_)
     return gra
 
 

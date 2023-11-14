@@ -570,13 +570,20 @@ def calculate_stereo(
     gra,
     par_eval_: Optional[ParityEvaluator] = None,
     can_par_eval_: Optional[ParityEvaluator] = None,
-    pri_dct=None,
-    backbone_only=True,
+    pri_dct: Optional[Dict[int, int]] = None,
+    backbone_only: bool = True,
 ):
-    """Determine canonical priorities and assign stereo parities to this graph
+    """Algorithm for calculating stereo parities and priorities
 
-    This is how the parity evaluators are to be called:
-    >>> par = par_eval_(gra, pri_dct)(key)  # this returns the parity
+    Depending on the parity evaluators passed in, this function can be used to:
+        1. Assign canonical parities to a graph from a geometry
+        2. Assign local parities to a graph from a geometry
+        3. Convert canonical parities to local parities
+        4. Convert local parities to canonical parities
+        5. Determine reagent stereochemistry from a TS graph
+
+    It can also be used simply to calculate canonical stereo priorities, which are
+    always returned along with the stereo-assigned graph.
 
     :param gra: a molecular graph
     :type gra: automol graph data structure
@@ -586,7 +593,7 @@ def calculate_stereo(
         evaluator must return canonical parities (used in priority calculation)
     :type can_par_eval_: Optional[ParityEvaluator]
     :param pri_dct: Optional initial priorities, to be refined.
-    :type pri_dct: dict[int: int]
+    :type pri_dct: Optional[Dict[int, int]]
     :param backbone_only: Consider backbone atoms only?
     :type backbone_only: bool
     :returns: A gaph with stereo assigned from `par_eval_`, a graph with stereo assigned
@@ -597,7 +604,7 @@ def calculate_stereo(
     gra0 = gra
     pri_dct0 = pri_dct
     # 1. Run the core stereo calculation algorithm
-    gra, can_gra, pri_dct = calculate_stereo_core(
+    gra, can_gra, pri_dct = _calculate_stereo_core(
         gra0, par_eval_, can_par_eval_, pri_dct=pri_dct0
     )
 
@@ -605,7 +612,7 @@ def calculate_stereo(
     # out which one is canonical
     if is_ts_graph(gra0):
         rgra = ts_reverse(gra0)
-        rgra, rcan_gra, rpri_dct = calculate_stereo_core(
+        rgra, rcan_gra, rpri_dct = _calculate_stereo_core(
             rgra, par_eval_, can_par_eval_, pri_dct=pri_dct0, is_rev_ts=True
         )
         is_can_dir_ts = ts_is_canonical_direction(can_gra, pri_dct, rcan_gra, rpri_dct)
@@ -623,11 +630,11 @@ def calculate_stereo(
     return gra, can_gra, pri_dct, is_can_dir_ts
 
 
-def calculate_stereo_core(
+def _calculate_stereo_core(
     gra,
     par_eval_: Optional[ParityEvaluator] = None,
     can_par_eval_: Optional[ParityEvaluator] = None,
-    pri_dct=None,
+    pri_dct: Optional[Dict[int, int]] = None,
     is_rev_ts: bool = False,
 ):
     """Core algorithm for calculating stereo parities and priorities
@@ -640,7 +647,7 @@ def calculate_stereo_core(
         evaluator must return canonical parities (used in priority calculation)
     :type can_par_eval_: Optional[ParityEvaluator]
     :param pri_dct: Optional initial priorities, to be refined.
-    :type pri_dct: dict[int: int]
+    :type pri_dct: Optional[Dict[int, int]]
     :param is_rev_ts: A flag passed to the parity evaluators, indicating that the graph
         is a reversed TS; defaults to False
     :type is_rev_ts: bool, optional
@@ -654,8 +661,7 @@ def calculate_stereo_core(
 
     # Graph 1 will be for the priority calculation, graph 2 for the parity
     # assignments that will be returned.
-    gra = without_stereo(gra0)
-    can_gra = without_stereo(gra0)
+    gra = can_gra = without_stereo(gra0)
 
     pri_dct0 = 0  # Can't use None, since pri_dct can be None
     while pri_dct != pri_dct0:
