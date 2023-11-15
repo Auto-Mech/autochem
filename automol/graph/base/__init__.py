@@ -277,6 +277,7 @@ from automol.graph.base._09smiles import smiles
 # stereo functions:
 # # core functions
 from automol.graph.base._10stereo import expand_stereo
+from automol.graph.base._10stereo import expand_reaction_stereo
 # # stereo correction
 from automol.graph.base._10stereo import stereo_corrected_geometry
 # functional groups code:
@@ -573,6 +574,7 @@ __all__ = [
     # stereo functions:
     # # core functions
     'expand_stereo',
+    'expand_reaction_stereo',
     # # stereo correction
     'stereo_corrected_geometry',
     # functional groups code:

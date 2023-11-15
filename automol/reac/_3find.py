@@ -36,7 +36,7 @@ from automol.reac._0core import (
     unique,
 )
 from automol.reac._1util import assert_is_valid_reagent_graph_list
-from automol.reac._2stereo import expand_stereo_for_reaction
+from automol.reac._2stereo import expand_stereo_to_match_reagents
 
 
 def trivial(rct_gras, prd_gras):
@@ -818,7 +818,9 @@ def find(rct_gras, prd_gras, stereo=False):
             if not stereo:
                 all_rxns.append(rxn)
             else:
-                srxns = expand_stereo_for_reaction(rxn, rct_gras0, prd_gras0)
+                srxns = expand_stereo_to_match_reagents(
+                    rxn, rct_gras0, prd_gras0, shift_keys=True
+                )
                 all_rxns.extend(srxns)
 
     return tuple(all_rxns)

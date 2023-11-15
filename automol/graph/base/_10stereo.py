@@ -16,7 +16,6 @@ from automol.graph.base._00core import (
     set_stereo_parities,
     stereo_parities,
     ts_reagents_graph_without_stereo,
-    without_dummy_atoms,
     without_stereo,
 )
 from automol.graph.base._06geom import (
@@ -142,32 +141,42 @@ def _remove_symmetry_equivalents_from_expansion(gps):
 
 
 # # TS functions
-def expand_ts_stereo_for_reaction(tsg, rcts_gra, prds_gra):
-    """Expand TS graph stereo that is consistent with reactants and products
+def expand_reaction_stereo(ts_gra, flat: bool = False):
+    """Obtain all possible stereoisomeric channels of a reaction, grouped by reactants
+    and products (unless requesting `flat` expansion)
 
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param rcts_gra: reactants graph
-    :type rcts_gra: automol graph data structure
-    :param prds_gra: products graph
-    :type prds_gra: automol graph data structure
-    :return: A list of TS graphs with stereo assignments
+    :param ts_gra: TS graph
+    :type ts_gra: automol graph data structure
+    :param flat: Return a flat list, instead of grouping by reagents?, default False
+    :type flat: bool, optional
+    :returns: A list of triples: a reactants graph, a products graph, and a list of TS
+        graphs associated with them
+    :rtype: List[Tuple[graph, graph, List[graph]]]
     """
-    rgra = without_dummy_atoms(rcts_gra)
-    pgra = without_dummy_atoms(prds_gra)
+
+    def _from_groupby_result(groupby_result):
+        """For formatting groupby results"""
+        _, group = groupby_result
+        rcts_gras, prds_gras, ts_gras = zip(*group)
+        return (rcts_gras[0], prds_gras[0], ts_gras)
+
     # Allow *all* possibilities for the TS, including symmetry equivalent ones
-    ste_tsgs, _ = _expand_stereo_core(tsg)
+    ts_sgras, _ = _expand_stereo_core(ts_gra)
 
-    if has_stereo(rgra) or has_stereo(pgra):
-        all_ste_tsgs = ste_tsgs
-        ste_tsgs = []
-        for ste_tsg in all_ste_tsgs:
-            rgra_ = ts_reactants_graph(ste_tsg, dummy=False)
-            pgra_ = ts_products_graph(ste_tsg, dummy=False)
-            if rgra == rgra_ and pgra == pgra_:
-                ste_tsgs.append(ste_tsg)
+    rxn_sgras_lst = []
+    for ts_sgra in ts_sgras:
+        rcts_sgra = ts_reactants_graph(ts_sgra)
+        prds_sgra = ts_products_graph(ts_sgra)
+        rxn_sgras_lst.append((rcts_sgra, prds_sgra, ts_sgra))
 
-    return tuple(ste_tsgs)
+    rxn_sgras_lst = sorted(rxn_sgras_lst, key=lambda gs: tuple(map(frozen, gs)))
+
+    if not flat:
+        rxn_sgras_groupby_iter = itertools.groupby(
+            rxn_sgras_lst, key=lambda gs: tuple(map(frozen, gs[:-1]))
+        )
+        rxn_sgras_lst = list(map(_from_groupby_result, rxn_sgras_groupby_iter))
+    return rxn_sgras_lst
 
 
 def ts_reactants_graph(tsg, stereo=True, dummy=True):

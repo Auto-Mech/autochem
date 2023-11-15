@@ -37,7 +37,7 @@ from automol.graph.base._05heur import (
 )
 from automol.graph.base._10stereo import (
     expand_stereo,
-    expand_ts_stereo_for_reaction,
+    expand_reaction_stereo,
     ts_products_graph as products_graph,
     ts_reactants_graph as reactants_graph,
     ts_reagents_graph as reagents_graph,
@@ -70,7 +70,7 @@ __all__ = [
     "heuristic_bond_distance",
     "reacting_atom_plane_keys",
     "expand_stereo",
-    "expand_ts_stereo_for_reaction",
+    "expand_reaction_stereo",
     "reactants_graph",
     "products_graph",
     "reagents_graph",

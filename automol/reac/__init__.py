@@ -44,7 +44,7 @@ from automol.reac._0core import is_radical_radical
 from automol.reac._0core import unique
 # stereo-specific reactions
 from automol.reac._2stereo import expand_stereo
-from automol.reac._2stereo import expand_stereo_for_reaction
+from automol.reac._2stereo import expand_stereo_to_match_reagents
 from automol.reac._2stereo import reflect
 # finders
 from automol.reac._3find import trivial
@@ -152,7 +152,7 @@ __all__ = [
     'unique',
     # stereo-specific reactions
     'expand_stereo',
-    'expand_stereo_for_reaction',
+    'expand_stereo_to_match_reagents',
     'reflect',
     # finders
     'trivial',

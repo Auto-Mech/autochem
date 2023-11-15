@@ -50,7 +50,7 @@ def test__expand_stereo_for_reaction():
         rct_gras0 = tuple(map(smiles.graph, rct_smis))
         prd_gras0 = tuple(map(smiles.graph, prd_smis))
         rxn = reac.find(rct_gras0, prd_gras0, stereo=False)[0]
-        srxns = reac.expand_stereo_for_reaction(rxn, rct_gras0, prd_gras0)
+        srxns = reac.expand_stereo_to_match_reagents(rxn, rct_gras0, prd_gras0)
         assert len(srxns) == 1
         (srxn,) = srxns
         rct_gras1 = reac.reactant_graphs(srxn, shift_keys=False)
@@ -426,8 +426,8 @@ if __name__ == "__main__":
     # test__reactant_graphs()
     # test__expand_stereo()
     # test__expand_stereo_for_reaction()
-    # test__from_old_string()
+    test__from_old_string()
     # test__reverse()
-    test__from_datatypes()
-    test__end_to_end()
+    # test__from_datatypes()
+    # test__end_to_end()
     # test__canonical_enantiomer()
