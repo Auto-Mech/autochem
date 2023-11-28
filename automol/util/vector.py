@@ -1,10 +1,10 @@
 """ vector functions
 """
-import numbers
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 
 import numpy
-import transformations as tf
+from scipy.spatial.transform import Rotation
+from phydat import phycon
 
 Vector = Tuple[float, float, float]
 
@@ -60,9 +60,10 @@ def are_parallel(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), anti=False, tol=1e-3):
 
     ret = abs(ratio - 1) < tol
     if anti:
-        ret |= (abs(ratio + 1) < tol)
+        ret |= abs(ratio + 1) < tol
 
     return ret
+
 
 def orthogonalize(xyz1, xyz2, normalize=False):
     """orthogonalize `xyz2` against `xyz1`"""
@@ -92,7 +93,7 @@ def flip_if_left_handed(xvec, yvec, zvec) -> Vector:
     """
     zdir = numpy.cross(xvec, yvec)
     proj = numpy.dot(zvec, zdir)
-    if proj < 0.:
+    if proj < 0.0:
         zvec = numpy.negative(zvec)
     return tuple(map(float, zvec))
 
@@ -388,60 +389,34 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
 
 
 # transformations
-def rotator(axis, ang, orig_xyz=None):
-    """A function to rotate vectors about an axis at a particular point.
+def rotator(
+    axis: Vector, ang: float, degree: bool = False, orig_xyz: Optional[Vector] = None
+) -> Callable[[Vector], Vector]:
+    """Get a function for axis-angle rotations, optionally specifying the origin
 
-    :param axis: axis to rotate about
-    :type axis: list, tuple, or nd.array
-    :param angle: angle by which to rotate the vectors
-    :type angle: float
-    :param orig_xyz: origin of system
-    :type: list, tuple, or nd.array
-    :rtype: tuple(tuple(float))
+    :param axis: Rotational axis (norm is ignored)
+    :type axis: Vector
+    :param ang: Rotational angle
+    :type ang: float
+    :param degree: _description_, defaults to False
+    :type degree: bool, optional
+    :param orig_xyz: _description_, defaults to None
+    :type orig_xyz: Optional[Vector], optional
+    :return: _description_
+    :rtype: Callable[[Vector], Vector]
     """
-    aug_rot_mat = tf.rotation_matrix(ang, axis, point=orig_xyz)
-    return _transformer(aug_rot_mat)
+    orig_xyz = numpy.array([0.0, 0.0, 0.0] if orig_xyz is None else orig_xyz)
+    ang = ang * phycon.DEG2RAD if degree else ang
 
+    axis = unit_norm(axis)
 
-def aligner(xyz1a, xyz1b, xyz2a, xyz2b):
-    """a function to translate and rotate a system, bringing two points into
-    alignment
+    rot_mat = Rotation.from_rotvec(numpy.multiply(axis, ang)).as_matrix()
 
-    Takes 1a-1b into 2a-2b if they are equidistant; otherwise, takes 1a into 2a
-    and takes 1b onto the 2a-2b line
-    """
-    xyz1a, xyz1b, xyz2a, xyz2b = map(numpy.array, (xyz1a, xyz1b, xyz2a, xyz2b))
+    def rotate_(xyz: Vector) -> Vector:
+        xyz = numpy.array(xyz)
+        return numpy.dot(rot_mat, xyz - orig_xyz) + orig_xyz
 
-    trans = xyz2a - xyz1a
-
-    trans_mat = tf.translation_matrix(trans)
-
-    xyz1b = xyz1b + trans
-
-    rot_vec = unit_perpendicular(xyz1b, xyz2b, orig_xyz=xyz2a)
-    rot_ang = central_angle(xyz1b, xyz2a, xyz2b)
-    rot_mat = tf.rotation_matrix(rot_ang, rot_vec, point=xyz2a)
-
-    mat = numpy.dot(rot_mat, trans_mat)
-
-    return _transformer(mat)
-
-
-def _transformer(aug_mat):
-    def _transform(xyz):
-        aug_xyz = _augmented(xyz)
-        rot_aug_xyz = numpy.dot(aug_mat, aug_xyz)
-        rot_xyz = tuple(rot_aug_xyz[:3])
-        return rot_xyz
-
-    return _transform
-
-
-def _augmented(xyz):
-    assert len(xyz) == 3
-    assert all(isinstance(val, numbers.Real) for val in xyz)
-    xyz_aug = tuple(xyz) + (1.0,)
-    return xyz_aug
+    return rotate_
 
 
 # I/O

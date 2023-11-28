@@ -52,44 +52,6 @@ def test__vec():
 def test__mat():
     """test automol.automol.util.cart.mat"""
 
-    # Various matrix builder functions
-    rand_rot_mat = matrix.random_rotation_matrix()
-    assert len(rand_rot_mat) == 3
-    assert all(
-        len(row) == 3 and all(isinstance(val, float) for val in row)
-        for row in rand_rot_mat
-    )
-
-    ref_rot_mat = (
-        (1.0, 0.0, 0.0),
-        (0.0, -0.9922575676015892, 0.12419709955299955),
-        (0.0, -0.12419709955299955, -0.9922575676015892),
-    )
-    rot_mat = matrix.rotation_matrix((1.0, 0.0, 0.0), 30.0 / numpy.pi)
-
-    assert numpy.allclose(rot_mat, ref_rot_mat)
-
-    ref_axis_align_mat = (
-        (-0.41149979255451374, 0.9113875155894119, 0.006380999557419693),
-        (0.0, 0.0, 0.0),
-        (-0.9018068740366958, -0.4061404341551566, -0.14762895950464514),
-    )
-    axis_align_mat = matrix.axis_alignment_matrix(MAT[0], MAT[1])
-
-    assert numpy.allclose(axis_align_mat, ref_axis_align_mat)
-
-    ref_superimp_mat = (
-        (0.9931073252359884, 0.07107456632823939, 0.0932000353212035),
-        (-0.05722539832771756, 0.9879718232559653, -0.1436555959178673),
-        (-0.10228926800429702, 0.13733201547176194, 0.9852293251713573),
-    )
-
-    xyz1 = (MAT[0], MAT[1])
-    xyz2 = (MAT[2], MAT[3])
-    superimp_mat = matrix.superimposition_matrix(xyz1, xyz2, keep_origin=True)
-
-    assert numpy.allclose(superimp_mat, ref_superimp_mat)
-
     mat_str = matrix.string(MAT)
 
     assert mat_str == MAT_STR

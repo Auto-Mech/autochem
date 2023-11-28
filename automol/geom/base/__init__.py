@@ -68,7 +68,6 @@ from automol.geom.base._0core import translate
 from automol.geom.base._0core import translate_along_matrix
 from automol.geom.base._0core import perturb
 from automol.geom.base._0core import rotate
-from automol.geom.base._0core import euler_rotate
 from automol.geom.base._0core import transform
 from automol.geom.base._0core import transform_by_matrix
 from automol.geom.base._0core import reflect_coordinates
@@ -153,7 +152,6 @@ __all__ = [
     'translate_along_matrix',
     'perturb',
     'rotate',
-    'euler_rotate',
     'transform',
     'transform_by_matrix',
     'reflect_coordinates',

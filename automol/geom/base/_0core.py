@@ -1067,31 +1067,8 @@ def rotate(geo, axis, angle, orig_xyz=None, idxs=None, degree=False):
     :param degree: is the rotation angle in degrees? If not, radians.
     :type degree: bool
     """
-    angle = angle if not degree else angle * phycon.DEG2RAD
-
-    func = util.vector.rotator(axis, angle, orig_xyz=orig_xyz)
-
+    func = util.vector.rotator(axis, angle, orig_xyz=orig_xyz, degree=degree)
     return transform(geo, func, idxs=idxs)
-
-
-def euler_rotate(geo, theta, phi, psi):
-    """Rotate the coordinates of a molecular geometry about
-    the three Euler angles.
-
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param theta: angle to rotate about z-axis
-    :type theta: float
-    :param phi: angle to rotate about x'-axis
-    :type phi: float
-    :param psi: angle to rotate about z'-axis
-    :type psi: float
-    :rtype: automol geometry data structure
-    """
-
-    mat = util.matrix.euler_rotation_matrix(theta, phi, psi)
-
-    return transform_by_matrix(geo, mat)
 
 
 def transform(geo, func, idxs=None):

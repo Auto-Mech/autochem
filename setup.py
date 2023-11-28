@@ -43,13 +43,11 @@ setup(
         'autoreact',
         'autoreact.params',
         'phydat',
-        'transformations'
     ],
     package_dir={
         'automol': 'automol',
         'autoreact': 'autoreact',
         'phydat': 'phydat',
-        'transformations': 'transformations'
     },
     package_data={
         'automol': ['tests/data/*'],

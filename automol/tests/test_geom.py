@@ -517,23 +517,6 @@ def test__translate():
     assert automol.geom.almost_equal_dist_matrix(geo1, ref_geo1, thresh=0.001)
 
 
-def test__rotate():
-    """test geom.euler_rotate"""
-    ref_geo1 = (
-        ("F", (-3.0558758007514, -1.1509331162337, -0.9789776801786)),
-        ("C", (-1.0681262247754, -0.5805345601543, 0.532908762282)),
-        ("C", (1.1776424945939, -0.26506900172108, -0.4723503888912)),
-        ("Cl", (3.163419853813, 0.30082019331320, 1.0056384097658)),
-        ("H", (-1.3983240017954, -0.4010882123173, 2.5433538391085)),
-        ("H", (1.4140728611330, -0.46140633610660, -2.471679960480)),
-    )
-
-    theta, phi, psi = 15.0 / numpy.pi, 30.0 / numpy.pi, 20.0 / numpy.pi
-    geo1 = automol.geom.euler_rotate(C2H2CLF_GEO, theta, phi, psi)
-
-    assert automol.geom.almost_equal_dist_matrix(geo1, ref_geo1, thresh=0.001)
-
-
 def test__closest_unbonded_atoms():
     """test geom.closest_unbonded_atoms"""
 
