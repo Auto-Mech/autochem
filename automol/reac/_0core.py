@@ -129,6 +129,9 @@ def from_data(
         assert len(rct_strucs) == len(rcts_keys)
         assert len(prd_strucs) == len(prds_keys)
 
+        rct_strucs = tuple(rct_strucs)
+        prd_strucs = tuple(prd_strucs)
+
         # Infer the structural type
         ttyp = _identify_sequence_structure_type([ts_struc])
         rtyp = _identify_sequence_structure_type(rct_strucs)

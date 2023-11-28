@@ -8,6 +8,7 @@ from phydat import instab_fgrps
 
 from automol import chi as chi_
 from automol import geom, graph, zmat
+from automol.reac._0core import ts_structure
 from automol.reac._5conv import from_chis, from_zmatrices
 
 
@@ -83,9 +84,10 @@ def instability_product_graphs(gra, stereo=True):
 def instability_transformation(conn_zma, disconn_zmas):
     """Build the reaction objects for an instability"""
 
-    zrxn_objs = from_zmatrices([conn_zma], disconn_zmas, struc_typ=True, stereo=True)
-    if zrxn_objs:
-        zrxn, zma, _, _ = zrxn_objs[0]
+    zrxns = from_zmatrices([conn_zma], disconn_zmas, struc_typ="zmat", stereo=True)
+    if zrxns:
+        zrxn, *_ = zrxns
+        zma = ts_structure(zrxn)
     else:
         zrxn, zma = None, None
 
