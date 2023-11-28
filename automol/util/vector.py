@@ -12,13 +12,16 @@ Vector = Tuple[float, float, float]
 def unit_norm(xyz):
     """Normalize a vector (xyz) to 1.0.
 
+    Returns 0. for null vectors
+
     :param xyz: vector
     :type xyz: tuple, list, or numpy nd.array
     :rtype: float
     """
+    uxyz = xyz
     norm = numpy.linalg.norm(xyz)
-    uxyz = numpy.divide(xyz, norm)
-    assert numpy.allclose(numpy.linalg.norm(uxyz), 1.0)
+    if not numpy.isclose(norm, 0.):
+        uxyz = numpy.divide(xyz, norm)
     return uxyz
 
 
