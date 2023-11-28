@@ -328,7 +328,8 @@ def is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
     rtsg = implicit(rtsg)
     rpri_dct = dict_.by_key(rpri_dct, atom_keys(rtsg))
     rrep = ts_direction_representation(rtsg, rpri_dct)
-    return frep < rrep
+
+    return frep <= rrep
 
 
 # # canonical stereo functions
@@ -1289,21 +1290,21 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
         keys and returns a dictionary of parities for those keys
     :rtype: ParityEvaluator
     """
-    tsg0 = ts_reverse(tsg) if prod else tsg
+    tsg = ts_reverse(tsg) if prod else tsg
 
     # Sn2 reactions are handled by converting to local stereochemistry
-    loc_tsg0 = to_local_stereo(tsg0)
+    loc_tsg = to_local_stereo(tsg)
 
     # Handle constrained insertion/eliminations
-    cpar_dct = constrained_1_2_insertion_local_parities(loc_tsg0)
-    loc_tsg0 = set_stereo_parities(loc_tsg0, cpar_dct)
+    cpar_dct = constrained_1_2_insertion_local_parities(loc_tsg)
+    loc_tsg = set_stereo_parities(loc_tsg, cpar_dct)
 
     # Handle vinyl radical additions
-    vpar_dct = vinyl_addition_local_parities(loc_tsg0)
-    loc_tsg0 = set_stereo_parities(loc_tsg0, vpar_dct)
+    vpar_dct = vinyl_addition_local_parities(loc_tsg)
+    loc_tsg = set_stereo_parities(loc_tsg, vpar_dct)
 
     # Generate the reagents graph with local parities
-    loc_rgra = ts_reagents_graph_without_stereo(loc_tsg0, keep_stereo=True)
+    loc_rgra = ts_reagents_graph_without_stereo(loc_tsg, keep_stereo=True)
 
     # Now that we have handled the exceptions, the local parities correspond to
     # what they will be for the reactants/products graph, so we can simply flip

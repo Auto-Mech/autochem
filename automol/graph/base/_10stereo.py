@@ -51,7 +51,7 @@ def expand_stereo(gra, symeq=False, enant=True):
     :returns: a series of molecular graphs for the stereoisomers
     """
     # 1. Run the core stereo expansion algorithm
-    gps = zip(*_expand_stereo_core(gra))
+    gps = _expand_stereo_core(gra)
 
     # 2. If requested, filter out non-canonical enantiomers
     if not enant:
@@ -101,8 +101,7 @@ def _expand_stereo_core(gra):
                 gra2 = set_stereo_parities(gra1, dict(zip(keys, pars)))
                 gps.append((gra2, pri_dct))
 
-    gras, pri_dcts = zip(*gps)
-    return gras, pri_dcts
+    return gps
 
 
 def _remove_noncanonical_enantiomers_from_expansion(gps):
@@ -161,7 +160,7 @@ def expand_reaction_stereo(ts_gra, flat: bool = False):
         return (rcts_gras[0], prds_gras[0], ts_gras)
 
     # Allow *all* possibilities for the TS, including symmetry equivalent ones
-    ts_sgras, _ = _expand_stereo_core(ts_gra)
+    ts_sgras = expand_stereo(ts_gra, symeq=True, enant=True)
 
     rxn_sgras_lst = []
     for ts_sgra in ts_sgras:
