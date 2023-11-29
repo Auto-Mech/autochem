@@ -44,27 +44,6 @@ class Symtext():
         return cls.from_molecule(mol)
     
     @property
-    def is_enantiomer(self):
-        if self.pg.family == "C":
-            if self.pg.n == 0 or self.pg.n is None:
-                return 1
-            else:
-                return self.pg.n
-        elif self.pg.family == "D":
-            if self.pg.n == 0:
-                return 2
-            else:
-                return 2*self.pg.n
-        elif self.pg.family == "S":
-            return self.pg.n >> 1
-        elif self.pg.family == "T":
-            return 12
-        elif self.pg.family == "O":
-            return 24
-        elif self.pg.family == "I":
-            return 60
-    
-    @property
     def rotational_symmetry_number(self):
         if self.pg.family == "C":
             if self.pg.n == 0 or self.pg.n is None:

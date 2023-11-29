@@ -401,7 +401,6 @@ def rotate_mol_to_symels(mol, paxis, saxis):
                 break
         y = normalize(np.cross(z, x))
     else:
-        print("HERE B!")
         x = saxis
         y = np.cross(z,x)
     rmat = np.column_stack((x,y,z)) # This matrix rotates z to paxis, etc., ...

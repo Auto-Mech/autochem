@@ -158,8 +158,9 @@ def test__geom__with_stereo():
             sym_num = automol.geom.symtext_external_symmetry_number(sym_obj)
             print("MolSym symmetry number:", sym_num)
             # assert sym_num == x2z_sym_num, f"{sym_num} != {x2z_sym_num}"
+            print("It worked!\n")
         except:
-            print(f"Failed!\n{automol.geom.xyz_string(geo)}\n")
+            print(f"It failed!\n{automol.geom.xyz_string(geo)}\n")
 
 
 def test__graph__with_stereo():
