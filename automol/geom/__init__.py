@@ -96,6 +96,9 @@ from automol.geom.base._2intmol import has_low_relative_repulsion_energy
 from automol.geom.base._2intmol import total_repulsion_energy
 from automol.geom.base._2intmol import repulsion_energy
 # L4
+# MolSym interface
+from automol.geom._molsym import symtext_from_geometry
+from automol.geom._molsym import symtext_external_symmetry_number
 # conversion functions:
 # # conversions
 from automol.geom._conv import graph
@@ -228,6 +231,9 @@ __all__ = [
     'total_repulsion_energy',
     'repulsion_energy',
     # L4
+    # MolSym interface
+    "symtext_from_geometry",
+    "symtext_external_symmetry_number",
     # conversion functions:
     # # conversions
     'graph',
