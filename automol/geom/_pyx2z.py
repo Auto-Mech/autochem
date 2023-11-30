@@ -23,26 +23,6 @@ else:
     ar = None
 
 
-def to_oriented_geometry(geo):
-    """Generate an oriented x2z molecule object from a geometry.
-
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :rtype: x2z molecule object
-    """
-    if pyx2z is None:
-        raise NotImplementedError("Not implemented without x2z!")
-
-    _mg = pyx2z.MolecGeom()
-    for sym, xyz in geo:
-        _atm = pyx2z.Atom(sym)
-        _atm[0], _atm[1], _atm[2] = xyz
-        _mg.push_back(_atm)
-    orient_mg = pyx2z.MolecOrient(_mg)
-
-    return orient_mg
-
-
 def from_geometry(geo, ts_bnds=()):
     """Generate an x2z molecule object from a geometry.
 
@@ -110,17 +90,3 @@ def zmatrix_torsion_coordinate_names(x2m):
         raise NotImplementedError("Not implemented without x2z!")
 
     return pyx2z.rotational_bond_coordinates(x2m)
-
-
-def zmatrix_atom_ordering(x2m):
-    """Build dictionary that acts as a mapping from the order of atoms in the
-    x2z molecule object to the order of atoms in the reslutant Z-Matrix.
-
-    :param x2m: molecule object
-    :type x2m: x2z molecule object
-    :rtype: dict[int: int]
-    """
-    if pyx2z is None:
-        raise NotImplementedError("Not implemented without x2z!")
-
-    return {geo_key: zma_key for zma_key, geo_key in enumerate(x2m.atom_ordering())}

@@ -778,9 +778,9 @@ def external_symmetry_factor(geo, chiral_center=True):
     if is_atom(geo):
         ext_sym_fac = 1.0
     else:
-        sym_obj = _molsym.symtext_from_geometry(geo)
-        ext_sym_fac = _molsym.symtext_external_symmetry_number(sym_obj)
-        if _molsym.symtext_is_chiral(sym_obj) and chiral_center:
+        pg_obj = _molsym.point_group_from_geometry(geo)
+        ext_sym_fac = _molsym.point_group_symmetry_number(pg_obj)
+        if _molsym.point_group_is_chiral(pg_obj) and chiral_center:
             ext_sym_fac *= 0.5
 
     return ext_sym_fac
