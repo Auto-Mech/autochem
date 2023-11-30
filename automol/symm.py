@@ -33,6 +33,11 @@ def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
 
     :param symm_geos: geometries symmetrically similar to one another
     """
+    print("@AVC in internal_symm_from_sampling(); Args:")
+    print("symm_geos:", symm_geos)
+    print("rotors:", rotors)
+    print("grxn:", grxn)
+    print("zma:", zma)
 
     if grxn is not None:
         frm_bnd_keys = graph.ts.forming_bond_keys(reac.ts_graph(grxn))

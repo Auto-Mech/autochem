@@ -1,7 +1,8 @@
 """Interface to the MolSym code
 """
-import molsym
 import qcelemental as qcel
+
+import molsym
 from automol.geom.base import xyz_string
 from molsym.symtext.symel import PointGroup
 
@@ -46,21 +47,25 @@ def point_group_symmetry_number(pg_obj: PointGroup) -> int:
     :return: The external symmetry number
     :rtype: int
     """
+    sym_num = None
+
     if pg_obj.family == "C":
         if pg_obj.n == 0 or pg_obj.n is None:
-            return 1
+            sym_num = 1
         else:
-            return pg_obj.n
+            sym_num = pg_obj.n
     elif pg_obj.family == "D":
         if pg_obj.n == 0:
-            return 2
+            sym_num = 2
         else:
-            return 2 * pg_obj.n
+            sym_num = 2 * pg_obj.n
     elif pg_obj.family == "S":
-        return pg_obj.n >> 1
+        sym_num = pg_obj.n >> 1
     elif pg_obj.family == "T":
-        return 12
+        sym_num = 12
     elif pg_obj.family == "O":
-        return 24
+        sym_num = 24
     elif pg_obj.family == "I":
-        return 60
+        sym_num = 60
+
+    return sym_num
