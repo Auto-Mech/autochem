@@ -154,7 +154,7 @@ def span(tor: Torsion) -> float:
     return 2 * numpy.pi / symmetry(tor)
 
 
-def grid(tor: Torsion, zma, increment=30 * phycon.DEG2RAD) -> Grid:
+def grid(tor: Torsion, zma, increment: float=30 * phycon.DEG2RAD) -> Grid:
     """Get the coordinate grid for a torsion
 
     :param tor: A torsion

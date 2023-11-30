@@ -35,10 +35,8 @@ setup(
         'automol.smiles',
         'automol.zmat',
         # L5
-        'automol.pot',
         'automol.etrans',
         'automol.reac',
-        'automol.rotor',
         # other
         'autoreact',
         'autoreact.params',

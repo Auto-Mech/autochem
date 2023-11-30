@@ -1,5 +1,5 @@
 """
-    test automol.rotor
+    test automol instability functions
 """
 
 import automol

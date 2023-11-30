@@ -210,11 +210,13 @@ def torsion_symmetries(rotor: Rotor) -> List[int]:
     return tuple(map(tors.symmetry, torsions(rotor)))
 
 
-def torsion_grids(rotor: Rotor, increment=30 * phycon.DEG2RAD) -> List[Grid]:
+def torsion_grids(rotor: Rotor, increment: float=30 * phycon.DEG2RAD) -> List[Grid]:
     """Get the coordinate grids for the torsions in a rotor
 
     :param rotor: A rotor
     :type rotor: Rotor
+    :param increment: The grid increment, in radians
+    :type increment: float
     :return: The torsion coordinate grids, in order
     :rtype: List[Grid]
     """
@@ -555,7 +557,7 @@ def rotors_torsion_symmetries(
 
 
 def rotors_torsion_grids(
-    rotors: List[Rotor], flat: bool = False
+    rotors: List[Rotor], flat: bool = False, increment: float=30 * phycon.DEG2RAD
 ) -> Union[List[Grid], List[List[Grid]]]:
     """Get the torsion coordinate grids from a list of rotors
 
@@ -563,8 +565,10 @@ def rotors_torsion_grids(
     :type rotors: List[Rotor]
     :param flat: Return a flat list instead of grouping by rotors?, defaults to False
     :type flat: bool, optional
+    :param increment: The grid increment, in radians
+    :type increment: float
     :return: A flat or grouped list of torsion grids
     :rtype: Union[List[Grid], List[List[Grid]]]
     """
-    grids_lst = tuple(map(torsion_grids, rotors))
+    grids_lst = [torsion_grids(r, increment=increment) for r in rotors]
     return tuple(itertools.chain(*grids_lst)) if flat else grids_lst

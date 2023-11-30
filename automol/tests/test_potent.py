@@ -1,4 +1,4 @@
-""" test automol.potent module
+""" test automol.data.potent module
 """
 
 from automol.data import potent

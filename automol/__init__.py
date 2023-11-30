@@ -86,8 +86,6 @@ from automol import combine
 from automol import reac
 from automol import _deprecated
 from automol import data
-from automol.data import rotor   # TEMPORARY - TAKE THIS OUT
-from automol.data import potent  # TEMPORARY - TAKE THIS OUT
 from automol import symm
 # type imports
 from automol.const import ReactionClass, ReactionSpin, ReactionInfo
