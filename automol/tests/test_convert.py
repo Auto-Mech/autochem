@@ -151,16 +151,8 @@ def test__geom__with_stereo():
 
         assert automol.geom.formula(geo) == automol.chi.formula(chi)
 
-        # Testing MolSym functionality
-        # x2z_sym_num = automol.geom.external_symmetry_factor(geo, chiral_center=False)
-        try:
-            sym_obj = automol.geom.symtext_from_geometry(geo)
-            sym_num = automol.geom.symtext_external_symmetry_number(sym_obj)
-            print("MolSym symmetry number:", sym_num)
-            # assert sym_num == x2z_sym_num, f"{sym_num} != {x2z_sym_num}"
-            print("It worked!\n")
-        except:
-            print(f"It failed!\n{automol.geom.xyz_string(geo)}\n")
+        sym_num = automol.geom.external_symmetry_factor(geo)
+        print("symmetry number:", sym_num)
 
 
 def test__graph__with_stereo():

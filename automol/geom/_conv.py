@@ -10,7 +10,7 @@ from phydat import phycon
 
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
-from automol.geom import _pyx2z
+from automol.geom import _pyx2z, _molsym
 from automol.geom.base import (
     central_angle,
     coordinates,
@@ -778,9 +778,9 @@ def external_symmetry_factor(geo, chiral_center=True):
     if is_atom(geo):
         ext_sym_fac = 1.0
     else:
-        oriented_geom = _pyx2z.to_oriented_geometry(geo)
-        ext_sym_fac = oriented_geom.sym_num()
-        if oriented_geom.is_enantiomer() and chiral_center:
+        sym_obj = _molsym.symtext_from_geometry(geo)
+        ext_sym_fac = _molsym.symtext_external_symmetry_number(sym_obj)
+        if _molsym.symtext_is_chiral(sym_obj) and chiral_center:
             ext_sym_fac *= 0.5
 
     return ext_sym_fac
