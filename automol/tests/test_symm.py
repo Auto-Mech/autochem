@@ -1,7 +1,7 @@
 """ symmetry functions
 """
 
-from automol import symm
+from automol import symm, geom
 
 C2H2CLF_GEO = (
     ("F", (2.994881276150, -1.414434615111, -0.807144415388)),
@@ -105,10 +105,10 @@ TS_GEO = (
 
 def test__external_symmetry_factor():
     """test geom.external_symmety_factor"""
-    assert symm.external_symm(METHANE_GEO) == 12
-    assert symm.external_symm(H_GEO) == 1
-    assert symm.external_symm(C2H5OF_GEO) == 0.5
-    assert symm.external_symm(C2H2CLF_GEO) == 1
+    assert geom.external_symmetry_factor(METHANE_GEO) == 12
+    assert geom.external_symmetry_factor(H_GEO) == 1
+    assert geom.external_symmetry_factor(C2H5OF_GEO) == 0.5
+    assert geom.external_symmetry_factor(C2H2CLF_GEO) == 1
 
 
 def test__hco_symm_num():

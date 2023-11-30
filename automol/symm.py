@@ -9,14 +9,6 @@ from automol import geom, graph, reac, zmat
 from automol.data import rotor
 
 
-# external
-def external_symm(geo):
-    """Determine the external symmetry factor which relates to the external
-    point group symmetry
-    """
-    return geom.external_symmetry_factor(geo)
-
-
 # internal symmetry number
 def internal_symm_from_sampling(symm_geos, rotors, grxn=None, zma=None):
     """Determines the internal symmetry number for a given conformer geometry
