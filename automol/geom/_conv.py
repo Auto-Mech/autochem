@@ -10,7 +10,7 @@ from phydat import phycon
 
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
-from automol.geom import _pyx2z, _molsym
+from automol.geom import _molsym
 from automol.geom.base import (
     central_angle,
     coordinates,
@@ -242,29 +242,6 @@ def update_zmatrix(geo, zma, zc_: Optional[ZmatConv]=None):
     # 2. Form the updated z-matrix
     vma = zmat_base.vmatrix(zma)
     zma = zmat_base.from_geometry(vma, geo)
-
-    return zma
-
-
-def x2z_zmatrix(geo, ts_bnds=()):
-    """Generate a corresponding Z-Matrix for a molecular geometry
-    using x2z interface.
-
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param ts_bnds: keys for the breaking/forming bonds in a TS
-    :type ts_bnds: tuple(frozenset(int))
-    """
-
-    if is_atom(geo):
-        symbs = symbols(geo)
-        key_mat = [[None, None, None]]
-        val_mat = [[None, None, None]]
-        zma = zmat_base.from_data(symbs, key_mat, val_mat)
-    else:
-        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
-        zma = _pyx2z.to_zmatrix(x2m)
-    zma = zmat_base.standard_form(zma)
 
     return zma
 
@@ -612,6 +589,17 @@ def display(geo, gra=None, view=None, image_size=400):
 
 
 # # derived properties
+def is_connected(geo):
+    """Determine if all atoms in geometry are completely connected.
+
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :rtype: bool
+    """
+    comps = graph_base.connected_components(graph(geo, stereo=False))
+    return len(comps) == 1
+
+
 def linear_atoms(geo, gra=None, tol=5.0):
     """find linear atoms in a geometry (atoms with 180 degree bond angle)
 
@@ -793,9 +781,9 @@ def ts_reacting_electron_direction(geo, tsg, key) -> vector.Vector:
 
 
 def external_symmetry_factor(geo, chiral_center=True):
-    """Obtain the external symmetry factor for a geometry using x2z interface
-    which determines the initial symmetry factor and then divides by the
-    enantiomeric factor.
+    """Obtain the external symmetry factor for a geometry using MolSym
+
+    If requested, divides by the enantiomeric factor
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
@@ -811,31 +799,6 @@ def external_symmetry_factor(geo, chiral_center=True):
             ext_sym_fac *= 0.5
 
     return ext_sym_fac
-
-
-def x2z_torsion_coordinate_names(geo, ts_bnds=()):
-    """Generate a list of torsional coordinates using x2z interface. These
-    names corresond to the Z-Matrix generated using the same algorithm.
-
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param ts_bnds: keys for the breaking/forming bonds in a TS
-    :type ts_bnds: tuple(frozenset(int))
-    :rtype: tuple(str)
-    """
-
-    symbs = symbols(geo)
-    if len(symbs) == 1:
-        names = ()
-    else:
-        x2m = _pyx2z.from_geometry(geo, ts_bnds=ts_bnds)
-        names = _pyx2z.zmatrix_torsion_coordinate_names(x2m)
-
-        zma = _pyx2z.to_zmatrix(x2m)
-        name_dct = zmat_base.standard_names(zma)
-        names = tuple(map(name_dct.__getitem__, names))
-
-    return names
 
 
 # # derived operations

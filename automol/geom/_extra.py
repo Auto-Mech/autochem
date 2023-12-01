@@ -3,12 +3,7 @@
 from typing import List, Optional, Tuple
 
 import numpy
-from automol.geom._conv import (
-    graph,
-    inchi,
-    x2z_torsion_coordinate_names,
-    x2z_zmatrix,
-)
+from automol.geom._conv import graph, inchi
 from automol.geom.base import (
     almost_equal_coulomb_spectrum,
     almost_equal_dist_matrix,
@@ -16,10 +11,8 @@ from automol.geom.base import (
     count,
     dihedral_angle,
     distance_matrix,
-    swap_coordinates,
 )
 from automol.graph import base as graph_base
-from automol.zmat import base as zmat_base
 
 CHECK_DEFAULT_DCT = {"dist": 3.5e-1, "coulomb": 1.5e-2, "stereo": None, "tors": None}
 
@@ -29,9 +22,10 @@ def _similar_dist(geo, geoi, arg=3e-1):
     return almost_equal_dist_matrix(geo, geoi, thresh=arg)
 
 
-def _similar_tors(geo, geoi, arg=()):
+def _similar_tors(geo, geoi, arg=None):
     """Compare the torsions of two geometries"""
-    return are_torsions_same(geo, geoi, ts_bnds=arg)
+    _ = arg  # Added just to make wrapper function work
+    return are_torsions_same(geo, geoi)
 
 
 def _similar_stereo(geo, geoi, arg=None):
@@ -55,125 +49,11 @@ CHECK_FXN_DCT = {
 }
 
 
-def components_graph(geo, stereo=True):
-    """Generate a list of molecular graphs where each element is a graph that
-    consists of fully connected (bonded) atoms. Stereochemistry is included
-    if requested.
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param stereo: parameter to include stereochemistry information
-    :type stereo: bool
-    :rtype: automol molecular graph data structure
-    """
-    return graph_base.connected_components(graph(geo, stereo=stereo))
-
-
-def connected(geo, stereo=True):
-    """Determine if all atoms in geometry are completely connected.
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param stereo: parameter to include stereochemistry information
-    :type stereo: bool
-    :rtype: bool
-    """
-    return len(components_graph(geo, stereo=stereo)) == 1
-
-
-def rot_permutated_geoms(geo, frm_bnd_keys=(), brk_bnd_keys=()):
-    """Convert an input geometry to a list of geometries
-    corresponding to the rotational permuations of all the terminal groups.
-    :param geo: molecular geometry
-    :type geo: automol molecular geometry data structure
-    :param frm_bnd_keys: keys denoting atoms forming bond in TS
-    :type frm_bnd_keys: frozenset(int)
-    :param brk_bnd_keys: keys denoting atoms breaking bond in TS
-    :type brk_bnd_keys: frozenset(int)
-    :rtype: tuple(automol geom data structure)
-    """
-
-    # Set saddle based on frm and brk keys existing
-    saddle = bool(frm_bnd_keys or brk_bnd_keys)
-
-    gra = graph(geo, stereo=False)
-    term_atms = {}
-    all_hyds = []
-    neighbor_dct = graph_base.atoms_neighbor_atom_keys(gra)
-    ts_atms = []
-    for bnd_ in frm_bnd_keys:
-        ts_atms.extend(list(bnd_))
-    for bnd_ in brk_bnd_keys:
-        ts_atms.extend(list(bnd_))
-
-    # determine if atom is a part of a double bond
-    unsat_atms = graph_base.unsaturated_atom_keys(gra)
-    if not saddle:
-        rad_atms = graph_base.radical_atom_keys(gra, sing_res=True)
-        res_rad_atms = graph_base.radical_atom_keys(gra)
-        rad_atms = [atm for atm in rad_atms if atm not in res_rad_atms]
-    else:
-        rad_atms = []
-
-    gra = gra[0]
-    for atm in gra:
-        if gra[atm][0] == "H":
-            all_hyds.append(atm)
-    for atm in gra:
-        if atm in unsat_atms and atm not in rad_atms:
-            pass
-        else:
-            if atm not in ts_atms:
-                nonh_neighs = []
-                h_neighs = []
-                neighs = neighbor_dct[atm]
-                for nei in neighs:
-                    if nei in all_hyds:
-                        h_neighs.append(nei)
-                    else:
-                        nonh_neighs.append(nei)
-                if len(nonh_neighs) < 2 and len(h_neighs) > 1:
-                    term_atms[atm] = h_neighs
-    geo_final_lst = [geo]
-    for hyds in term_atms.values():
-        geo_lst = []
-        for geom in geo_final_lst:
-            geo_lst.extend(_swap_for_one(geom, hyds))
-        geo_final_lst = geo_lst
-
-    return geo_final_lst
-
-
-def _swap_for_one(geo, hyds):
-    """Rotational permuation for one rotational group.
-    :param geo: molecular geometry
-    :type geo: automol molecular geometry data structure
-    :param hyd: list of hydrogen atom indices
-    :type hyd: tuple(int)
-    :rtype: tuple(automol molecular geometry data structure)
-    """
-
-    geo_lst = []
-    if len(hyds) > 1:
-        new_geo = geo
-        if len(hyds) > 2:
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[2])
-            geo_lst.append(new_geo)
-        else:
-            geo_lst.append(new_geo)
-            new_geo = swap_coordinates(new_geo, hyds[0], hyds[1])
-            geo_lst.append(new_geo)
-
-    return geo_lst
-
-
-def are_torsions_same2(
+def are_torsions_same(
     geo1,
     geo2,
     tol: float = 0.09,
+    with_h_rotors: bool = True,
     idxs_lst: Optional[List[Tuple[int, int, int, int]]] = None,
 ):
     """Compare torsional angle values
@@ -184,10 +64,16 @@ def are_torsions_same2(
     :type geo2: automol geom data structure
     :param tol: Tolerance for the angle difference
     :type tol: float, optional
+    :param with_h_rotors: Include H rotors in the comparison?
+    :type with_h_rotors: bool, optional
+    :param idxs_lst: Specify the exact coordinates to compare
+    :type idxs_lst: Optional[List[Tuple[int, int, int, int]]]
     """
-    # # Form z-matrices, making sure they both have the same structure
-    # zma1, zc1 = zmatrix_with_conversion_info(geo1)
-    # zma2 = update_zmatrix(geo2, zma1, zc_=zc1)
+    if idxs_lst is None:
+        gra = graph(geo1, stereo=False)
+        idxs_lst = graph_base.rotational_coordinates(
+            gra, segment=True, with_h_rotors=with_h_rotors
+        )
 
     same_dihed = True
     for idxs in idxs_lst:
@@ -196,33 +82,6 @@ def are_torsions_same2(
         diff = numpy.pi - abs(abs(ang1 - ang2) - numpy.pi)
         if diff > tol:
             same_dihed = False
-    return same_dihed
-
-
-def are_torsions_same(geo, geoi, ts_bnds=()):
-    """compare all torsional angle values"""
-
-    dtol = 0.09
-    same_dihed = True
-
-    # Build the Z-Matrix torsion names
-    zma = x2z_zmatrix(geo, ts_bnds=ts_bnds)
-    tors_names = x2z_torsion_coordinate_names(geo, ts_bnds=ts_bnds)
-    zmai = x2z_zmatrix(geoi)
-    tors_namesi = x2z_torsion_coordinate_names(geoi, ts_bnds=ts_bnds)
-
-    # Compare the torsions
-    for idx, tors_name in enumerate(tors_names):
-        val = zmat_base.value_dictionary(zma)[tors_name]
-        vali = zmat_base.value_dictionary(zmai)[tors_namesi[idx]]
-        valip = vali + 2.0 * numpy.pi
-        valim = vali - 2.0 * numpy.pi
-        vchk1 = abs(val - vali)
-        vchk2 = abs(val - valip)
-        vchk3 = abs(val - valim)
-        if vchk1 > dtol and vchk2 > dtol and vchk3 > dtol:
-            same_dihed = False
-
     return same_dihed
 
 

@@ -526,30 +526,6 @@ def test__closest_unbonded_atoms():
     assert set(dist_dct.keys()) == {5, 17, 18, 19}
 
 
-def test__permutations():
-    """test geom.rot_permutated_geoms
-    test.geom.permutation
-    """
-
-    ref_perm_geo = (
-        ("C", (1.609011843391662, -0.13776060061651263, -0.04009265860394636)),
-        ("C", (-1.183424089784217, 0.1104486896299016, -0.03220275666562099)),
-        ("H", (2.789386604699099, 1.4908722862660362, 0.3439484428110317)),
-        ("H", (2.4787984007354567, -1.9869974801329033, -0.1705361344367882)),
-        ("H", (-1.9165482027220222, -0.10795919269481989, 1.8868187449753886)),
-        ("H", (-1.7411967628258649, 1.9663729732966975, -0.7497840216103133)),
-        ("H", (-2.036027793494113, -1.334976675748384, -1.2381516164697437)),
-    )
-    perm_geos = automol.geom.rot_permutated_geoms(C2H5_GEO)
-    assert any(
-        automol.geom.almost_equal_dist_matrix(geo, ref_perm_geo) for geo in perm_geos
-    )
-
-    ref_perm_idxs = (0, 1, 4, 5, 6, 7, 2, 3)
-    perm_idxs = automol.geom.permutation(C2H6_GEO_2, C2H6_GEO)
-    assert perm_idxs == ref_perm_idxs
-
-
 def test__traj():
     """test geom.from_xyz_trajectory_string"""
 

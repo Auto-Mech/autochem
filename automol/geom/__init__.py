@@ -7,9 +7,8 @@ Level 4 geometry functions belong in geom/*.py. These **do** require
 converion to other basic types (geom, graph, zmat, inchi).
 
 Import hierarchy:
-    _pyx2z      no dependencies
-    _conv       dependencies: automol.graph, _pyx2z
-    _extra      dependencies: automol.graph, _pyx2z, _conv
+    _conv       dependencies: automol.graph
+    _extra      dependencies: automol.graph, _conv
     ts          dependencies: automol.graph
 """
 
@@ -106,7 +105,6 @@ from automol.geom._conv import connectivity_graph_deprecated
 from automol.geom._conv import zmatrix
 from automol.geom._conv import zmatrix_with_conversion_info
 from automol.geom._conv import update_zmatrix
-from automol.geom._conv import x2z_zmatrix
 from automol.geom._conv import amchi
 from automol.geom._conv import amchi_with_sort
 from automol.geom._conv import inchi
@@ -118,12 +116,12 @@ from automol.geom._conv import rdkit_molecule
 from automol.geom._conv import py3dmol_view
 from automol.geom._conv import display
 # # derived properties
+from automol.geom._conv import is_connected
 from automol.geom._conv import linear_atoms
 from automol.geom._conv import closest_unbonded_atom_distances
 from automol.geom._conv import could_be_forming_bond
 from automol.geom._conv import ts_reacting_electron_direction
 from automol.geom._conv import external_symmetry_factor
-from automol.geom._conv import x2z_torsion_coordinate_names
 # # derived operations
 from automol.geom._conv import apply_zmatrix_conversion
 from automol.geom._conv import undo_zmatrix_conversion
@@ -131,10 +129,6 @@ from automol.geom._conv import set_distance
 from automol.geom._conv import set_central_angle
 from automol.geom._conv import set_dihedral_angle
 # extra functions:
-from automol.geom._extra import components_graph
-from automol.geom._extra import connected
-from automol.geom._extra import rot_permutated_geoms
-from automol.geom._extra import are_torsions_same2
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
 from automol.geom._extra import hydrogen_bonded_structure
@@ -241,7 +235,6 @@ __all__ = [
     'zmatrix',
     'zmatrix_with_conversion_info',
     'update_zmatrix',
-    'x2z_zmatrix',
     'amchi',
     'amchi_with_sort',
     'inchi',
@@ -253,12 +246,12 @@ __all__ = [
     'py3dmol_view',
     'display',
     # # derived properties
+    'is_connected',
     'linear_atoms',
     'closest_unbonded_atom_distances',
     'could_be_forming_bond',
     'ts_reacting_electron_direction',
     'external_symmetry_factor',
-    'x2z_torsion_coordinate_names',
     # # derived operations
     'apply_zmatrix_conversion',
     'undo_zmatrix_conversion',
@@ -266,10 +259,6 @@ __all__ = [
     'set_central_angle',
     'set_dihedral_angle',
     # extra functions:
-    'components_graph',
-    'connected',
-    'rot_permutated_geoms',
-    'are_torsions_same2',
     'are_torsions_same',
     'is_unique',
     'hydrogen_bonded_structure',

@@ -46,7 +46,7 @@ def symmetry_factors_from_sampling(geos, rotors, grxn=None):
         same_dist = geom.almost_equal_dist_matrix(
             geo1, geo2, thresh=3e-1, idxs=idx_pool
         )
-        same_tors = geom.are_torsions_same2(geo1, geo2, tors_gidxs)
+        same_tors = geom.are_torsions_same(geo1, geo2, tors_gidxs)
         return same_dist and same_tors
 
     # Identify unique geometries
