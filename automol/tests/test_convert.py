@@ -154,6 +154,9 @@ def test__geom__with_stereo():
         sym_num = automol.geom.external_symmetry_factor(geo)
         print("symmetry number:", sym_num)
 
+        end_sym_fac = automol.symm.end_group_symmetry_factor(geo)
+        print("end-group symmetry factor:", end_sym_fac)
+
 
 def test__graph__with_stereo():
     """ test graph conversions

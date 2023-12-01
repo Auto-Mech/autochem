@@ -27,7 +27,7 @@ def hydrogen_migration_atom_keys(rxn: Reaction):
 
     gra = ts.reactants_graph(ts_graph(rxn))
     path = graph.shortest_path_between_atoms(gra, att_key, don_key)
-    ngb_key = graph.atom_neighbor_atom_key(gra, att_key, incl_atm_keys=path)
+    ngb_key = graph.atom_neighbor_atom_key(gra, att_key, incl_keys=path)
     return att_key, tra_key, don_key, ngb_key
 
 

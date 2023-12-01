@@ -5,16 +5,10 @@ import itertools
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
-from phydat import phycon
-
 from automol import util, vmat
 from automol.geom import base as geom_base
-from automol.vmat import (
-    key_matrix,
-    name_matrix,
-    standard_name_matrix,
-    symbols,
-)
+from automol.graph import base as graph_base
+from phydat import phycon
 
 
 # # constructors
@@ -63,11 +57,11 @@ def from_geometry(vma, geo):
     :type geo: automol molecular geometry data structure
     :rtype: automol Z-Matrix data structure
     """
-    assert symbols(vma) == symbols(geo)
+    assert vmat.symbols(vma) == vmat.symbols(geo)
 
-    symbs = symbols(vma)
-    key_mat = key_matrix(vma)
-    name_mat = name_matrix(vma)
+    symbs = vmat.symbols(vma)
+    key_mat = vmat.key_matrix(vma)
+    name_mat = vmat.name_matrix(vma)
     val_mat = numpy.empty(numpy.shape(key_mat), dtype=object)
 
     for row, key_row in enumerate(key_mat):
@@ -127,7 +121,7 @@ def value_dictionary(zma, angstrom=False, degree=False):
     :rtype: dict[str: tuple(float)]
     """
 
-    names = numpy.ravel(name_matrix(zma))
+    names = numpy.ravel(vmat.name_matrix(zma))
     vals = numpy.ravel(value_matrix(zma, angstrom=angstrom, degree=degree))
     val_dct = dict(zip(names, vals))
 
@@ -166,9 +160,9 @@ def set_key_matrix(zma, key_mat):
     :rtype: automol Z-Matrix data structure
     """
 
-    symbs = symbols(zma)
+    symbs = vmat.symbols(zma)
     val_mat = value_matrix(zma)
-    name_mat = name_matrix(zma)
+    name_mat = vmat.name_matrix(zma)
     zma = from_data(symbs, key_mat, val_mat, name_mat)
 
     return zma
@@ -184,9 +178,9 @@ def set_name_matrix(zma, name_mat):
     :rtype: automol Z-Matrix data structure
     """
 
-    symbs = symbols(zma)
+    symbs = vmat.symbols(zma)
     val_mat = value_matrix(zma)
-    key_mat = key_matrix(zma)
+    key_mat = vmat.key_matrix(zma)
     zma = from_data(symbs, key_mat, val_mat, name_mat)
 
     return zma
@@ -202,9 +196,9 @@ def set_value_matrix(zma, val_mat):
     :rtype: automol Z-Matrix data structure
     """
 
-    symbs = symbols(zma)
-    key_mat = key_matrix(zma)
-    name_mat = name_matrix(zma)
+    symbs = vmat.symbols(zma)
+    key_mat = vmat.key_matrix(zma)
+    name_mat = vmat.name_matrix(zma)
     zma = from_data(symbs, key_mat, val_mat, name_mat)
 
     return zma
@@ -225,7 +219,7 @@ def set_values_by_name(zma, val_dct, angstrom=True, degree=True):
     """
 
     val_mat = numpy.array(value_matrix(zma), dtype=object)
-    name_mat = numpy.array(name_matrix(zma), dtype=object)
+    name_mat = numpy.array(vmat.name_matrix(zma), dtype=object)
 
     for (row, col), name in numpy.ndenumerate(name_mat):
         if name in val_dct:
@@ -336,8 +330,8 @@ def yaml_data(zma) -> list:
     :rtype: list
     """
     zma = round_(zma)
-    symbs = symbols(zma)
-    key_mat = key_matrix(zma)
+    symbs = vmat.symbols(zma)
+    key_mat = vmat.key_matrix(zma)
     val_mat = value_matrix(zma)
     zma_yml = [
         [s, *itertools.chain(*zip(k, v))] for s, k, v in zip(symbs, key_mat, val_mat)
@@ -380,6 +374,45 @@ def is_valid(zma):
     return ret
 
 
+# # properties
+def torsion_coordinates(
+    zma, gra, with_h_rotors: bool = True, with_ch_rotors: bool = True
+):
+    """Get the names and indices of torsional coordinates, as a dictionary
+
+    :param zma: A z-matrix
+    :type zma: automol zmat data structure
+    :param gra: A graph, specifying connectivity for the z-matrix
+    :type gra: automol graph data structure
+    :param with_h_rotors: Include H rotors?
+    :type with_h_rotors: bool
+    :param with_ch_rotors: Include CH rotors?
+    :type with_ch_rotors: bool
+    """
+    # 1. Identify rotational bond keys from graph
+    dum_src_dct = vmat.dummy_source_dict(zma, dir_=False)
+    lin_keys = list(dum_src_dct.values())
+    rot_bkeys = graph_base.rotational_bond_keys(
+        gra,
+        lin_keys=lin_keys,
+        with_h_rotors=with_h_rotors,
+        with_ch_rotors=with_ch_rotors,
+    )
+
+    # 2. Identify the first dihedral coordinate for each bond
+    dih_names = vmat.dihedral_angle_names(zma)
+    ckey_dct = vmat.coordinates(zma, multi=False)
+    bkey_dct = {n: frozenset(k[1:3]) for n, k in ckey_dct.items()}
+
+    tors_dct = {}
+    for bkey in rot_bkeys:
+        # The names are ordered, so this is guaranteed to find the first one
+        name = next(n for n in dih_names if bkey_dct[n] == bkey)
+        tors_dct[name] = ckey_dct[name]
+
+    return tors_dct
+
+
 # # conversions
 def vmatrix(zma):
     """Parse and return the V-Matrix component of a Z-Matrix.
@@ -388,7 +421,9 @@ def vmatrix(zma):
     :type zma: automol Z-Matrix data structure
     """
     return vmat.from_data(
-        symbs=symbols(zma), key_mat=key_matrix(zma), name_mat=name_matrix(zma)
+        symbs=vmat.symbols(zma),
+        key_mat=vmat.key_matrix(zma),
+        name_mat=vmat.name_matrix(zma),
     )
 
 
@@ -400,7 +435,7 @@ def formula(zma):
     :type: dict[str: int]
     """
 
-    syms = symbols(zma)
+    syms = vmat.symbols(zma)
     fml = util.formula_from_symbols(syms)
 
     return fml
@@ -417,8 +452,8 @@ def rename(zma, name_dct):
     :rtype: automol Z-Matrix data strucutre
     """
 
-    symbs = symbols(zma)
-    key_mat = key_matrix(zma)
+    symbs = vmat.symbols(zma)
+    key_mat = vmat.key_matrix(zma)
     val_mat = value_matrix(zma)
 
     vma = vmat.rename(zma, name_dct)
@@ -441,7 +476,7 @@ def standard_form(zma, shift=0):
     :param shift: value to shift the keys by when obtaining the keys
     :type shift: int
     """
-    name_mat = standard_name_matrix(zma, shift=shift)
+    name_mat = vmat.standard_name_matrix(zma, shift=shift)
     return set_name_matrix(zma, name_mat)
 
 
@@ -460,10 +495,10 @@ def round_(zma, decimals=6):
         lambda x: x if x is None else numpy.round(x, decimals=decimals)
     )
     return from_data(
-        symbs=symbols(zma),
-        key_mat=key_matrix(zma),
+        symbs=vmat.symbols(zma),
+        key_mat=vmat.key_matrix(zma),
         val_mat=r_(val_mat),
-        name_mat=name_matrix(zma),
+        name_mat=vmat.name_matrix(zma),
     )
 
 
@@ -499,16 +534,16 @@ def add_atom(
     :rtype: automol Z-Matrix data structure
     """
 
-    symbs = symbols(zma)
+    symbs = vmat.symbols(zma)
     symbs += (sym,)
 
-    key_mat = key_matrix(zma, shift=(1 if one_indexed else 0))
+    key_mat = vmat.key_matrix(zma, shift=(1 if one_indexed else 0))
     key_mat += (key_row,)
 
     val_mat = value_matrix(zma, angstrom=angstrom, degree=degree)
     val_mat += (val_row,)
 
-    name_mat = None if name_row is None else name_matrix(zma) + (name_row,)
+    name_mat = None if name_row is None else vmat.name_matrix(zma) + (name_row,)
 
     zma = from_data(
         symbs,
@@ -534,10 +569,10 @@ def remove_atom(zma, key):
     :rtype: automol Z-Matrix data structure
     """
 
-    symbs = list(symbols(zma))
+    symbs = list(vmat.symbols(zma))
     symbs.pop(key)
 
-    key_mat = list(key_matrix(zma))
+    key_mat = list(vmat.key_matrix(zma))
     key_mat.pop(key)
     key_mat = numpy.array(key_mat, dtype=object)
 
@@ -550,7 +585,7 @@ def remove_atom(zma, key):
     val_mat = list(value_matrix(zma))
     val_mat.pop(key)
 
-    name_mat = list(name_matrix(zma))
+    name_mat = list(vmat.name_matrix(zma))
     name_mat.pop(key)
 
     zma = from_data(symbs, key_mat, val_mat, name_mat)

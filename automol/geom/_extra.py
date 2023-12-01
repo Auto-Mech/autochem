@@ -1,8 +1,14 @@
 """ extra high-level geometry library functions
 """
-import numpy
+from typing import List, Optional, Tuple
 
-from automol.geom._conv import graph, inchi, x2z_torsion_coordinate_names, x2z_zmatrix
+import numpy
+from automol.geom._conv import (
+    graph,
+    inchi,
+    x2z_torsion_coordinate_names,
+    x2z_zmatrix,
+)
 from automol.geom.base import (
     almost_equal_coulomb_spectrum,
     almost_equal_dist_matrix,
@@ -164,21 +170,31 @@ def _swap_for_one(geo, hyds):
     return geo_lst
 
 
-def are_torsions_same2(geo, geoi, idxs_lst):
-    """Are torsions the same with torsions identified
-    by a list of 1x4 lists of atom indices
+def are_torsions_same2(
+    geo1,
+    geo2,
+    tol: float = 0.09,
+    idxs_lst: Optional[List[Tuple[int, int, int, int]]] = None,
+):
+    """Compare torsional angle values
+
+    :param geo1: A geometry
+    :type geo1: automol geom data structure
+    :param geo2: Another geometry
+    :type geo2: automol geom data structure
+    :param tol: Tolerance for the angle difference
+    :type tol: float, optional
     """
-    dtol = 0.09
+    # # Form z-matrices, making sure they both have the same structure
+    # zma1, zc1 = zmatrix_with_conversion_info(geo1)
+    # zma2 = update_zmatrix(geo2, zma1, zc_=zc1)
+
     same_dihed = True
     for idxs in idxs_lst:
-        val = dihedral_angle(geo, *idxs)
-        vali = dihedral_angle(geoi, *idxs)
-        valip = vali + 2.0 * numpy.pi
-        valim = vali - 2.0 * numpy.pi
-        vchk1 = abs(val - vali)
-        vchk2 = abs(val - valip)
-        vchk3 = abs(val - valim)
-        if vchk1 > dtol and vchk2 > dtol and vchk3 > dtol:
+        ang1 = dihedral_angle(geo1, *idxs)
+        ang2 = dihedral_angle(geo2, *idxs)
+        diff = numpy.pi - abs(abs(ang1 - ang2) - numpy.pi)
+        if diff > tol:
             same_dihed = False
     return same_dihed
 

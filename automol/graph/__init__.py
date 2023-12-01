@@ -85,6 +85,7 @@ from automol.graph.base._00core import nonbackbone_hydrogen_keys
 from automol.graph.base._00core import atom_backbone_hydrogen_keys
 from automol.graph.base._00core import atom_nonbackbone_hydrogen_keys
 from automol.graph.base._00core import terminal_atom_keys
+from automol.graph.base._00core import terminal_atom_neighbors
 from automol.graph.base._00core import unsaturated_atom_keys
 from automol.graph.base._00core import unsaturated_bond_keys
 from automol.graph.base._00core import lone_pair_atom_keys
@@ -220,6 +221,8 @@ from automol.graph.base._05heur import heuristic_bond_distance
 from automol.graph.base._05heur import heuristic_bond_distance_limit
 from automol.graph.base._05heur import heuristic_bond_angle
 from automol.graph.base._05heur import rotational_bond_keys
+from automol.graph.base._05heur import rotational_segment_keys
+from automol.graph.base._05heur import rotational_coordinates
 from automol.graph.base._05heur import rotational_groups
 from automol.graph.base._05heur import rotational_symmetry_number
 # geometry functions:
@@ -401,6 +404,7 @@ __all__ = [
     'atom_backbone_hydrogen_keys',
     'atom_nonbackbone_hydrogen_keys',
     'terminal_atom_keys',
+    'terminal_atom_neighbors',
     'unsaturated_atom_keys',
     'unsaturated_bond_keys',
     'lone_pair_atom_keys',
@@ -536,6 +540,8 @@ __all__ = [
     'heuristic_bond_distance_limit',
     'heuristic_bond_angle',
     'rotational_bond_keys',
+    'rotational_segment_keys',
+    'rotational_coordinates',
     'rotational_groups',
     'rotational_symmetry_number',
     # geometry functions:

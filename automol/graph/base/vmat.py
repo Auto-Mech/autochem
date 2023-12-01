@@ -7,7 +7,7 @@ from automol.graph.base._00core import (
     atom_keys,
     atom_symbols,
     atoms_neighbor_atom_keys,
-    atoms_sorted_neighbor_atom_keys,
+    atoms_zmat_sorted_neighbor_atom_keys,
     remove_bonds,
     string,
     subgraph,
@@ -352,15 +352,7 @@ def start_at(gra, key):
     missing from it
     """
     symb_dct = atom_symbols(gra)
-    nkeys_dct = atoms_sorted_neighbor_atom_keys(
-        gra,
-        symbs_first=(
-            "X",
-            "C",
-        ),
-        symbs_last=("H",),
-        ords_last=(0.1,),
-    )
+    nkeys_dct = atoms_zmat_sorted_neighbor_atom_keys(gra)
 
     nkeys = nkeys_dct[key]
     if not nkeys:
@@ -421,16 +413,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
 
     zma_keys = list(zma_keys)
     symb_dct = atom_symbols(gra)
-    ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
-        gra,
-        symbs_first=(
-            "X",
-            "C",
-        ),
-        symbs_last=("H",),
-        ords_last=(0.1,),
-        prioritize_keys=branch_keys,
-    )
+    nkeys_dct = atoms_zmat_sorted_neighbor_atom_keys(gra, prioritize_keys=branch_keys)
 
     # If this z-matrix is being continued from a partial z-matrix, the leading
     # atom for a torsion may have already be defined. To handle this case, I
@@ -444,7 +427,7 @@ def complete_branch(gra, key, vma, zma_keys, branch_keys=None):
                 lead_key_dct[axis] = zma_keys[idx]
 
     def _continue(key1, key2, key3, vma, zma_keys):
-        k3ns = list(ngb_keys_dct[key3])
+        k3ns = list(nkeys_dct[key3])
         for k3n in set(k3ns) & set(zma_keys):
             k3ns.remove(k3n)
 
@@ -507,15 +490,8 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
     :param keys: keys in the chain; the first atom should already be specified
     :param zma_keys: keys currently in the v-matrix
     """
-    ngb_keys_dct = atoms_sorted_neighbor_atom_keys(
-        subgraph(gra, zma_keys),
-        symbs_first=(
-            "X",
-            "C",
-        ),
-        symbs_last=("H",),
-        ords_last=(0.1,),
-    )
+    sub_gra = subgraph(gra, zma_keys)
+    nkeys_dct = atoms_zmat_sorted_neighbor_atom_keys(sub_gra)
 
     symb_dct = atom_symbols(gra)
 
@@ -524,9 +500,9 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
 
     # 1. Try to find a chain key3-key2-key1
     def _find_key1_and_key2():
-        for key2 in ngb_keys_dct[key3]:
+        for key2 in nkeys_dct[key3]:
             key1s = (
-                ngb_keys_dct[key2] if symb_dct[key2] != "X" else ngb_keys_dct[key3][1:]
+                nkeys_dct[key2] if symb_dct[key2] != "X" else nkeys_dct[key3][1:]
             )
             for key1 in key1s:
                 if key1 != key3:
@@ -537,7 +513,7 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
     # 2. If no complete chain can be found, allow key1 to be discontinuous
     if key1 is None and key2 is None:
         # Unless the starting z-matrix is monatomic, there *must* be a neighbor for key3
-        key2 = next((k for k in ngb_keys_dct[key3] if k in zma_keys), None)
+        key2 = next((k for k in nkeys_dct[key3] if k in zma_keys), None)
         # Since _find_key1_and_key2() failed, there must not be a neighbor for key2
         # aside from key3, so use another, discontinous z-matrix key, if there is one
         key1 = next((k for k in zma_keys if k not in (key2, key3)), None)
@@ -553,21 +529,21 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
 def _extend_chain_to_include_terminal_hydrogens(gra, keys, start=True, end=True):
     """extend each end of a chain to include terminal hydrogens, if any"""
     symb_dct = atom_symbols(gra)
-    atm_ngb_dct = atoms_neighbor_atom_keys(gra)
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
 
-    sta_ngbs = atm_ngb_dct[keys[0]] - {keys[1]}
-    end_ngbs = atm_ngb_dct[keys[-1]] - {keys[-2]}
+    sta_nkeys = nkeys_dct[keys[0]] - {keys[1]}
+    end_nkeys = nkeys_dct[keys[-1]] - {keys[-2]}
 
-    sta_ngb = min((k for k in sta_ngbs if symb_dct[k] == "H"), default=None)
-    end_ngb = min((k for k in end_ngbs if symb_dct[k] == "H"), default=None)
+    sta_nkey = min((k for k in sta_nkeys if symb_dct[k] == "H"), default=None)
+    end_nkey = min((k for k in end_nkeys if symb_dct[k] == "H"), default=None)
 
     keys = tuple(keys)
 
-    if start and sta_ngb is not None:
-        keys = (sta_ngb,) + keys
+    if start and sta_nkey is not None:
+        keys = (sta_nkey,) + keys
 
-    if end and end_ngb is not None:
-        keys = keys + (end_ngb,)
+    if end and end_nkey is not None:
+        keys = keys + (end_nkey,)
 
     return keys
 
@@ -576,10 +552,10 @@ def _atoms_missing_neighbors(gra, zma_keys):
     """get atoms from the list currently in the v-matrix with neighbors that
     are not in the v-matrix
     """
-    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
     keys = []
     for key in zma_keys:
-        if any(k not in zma_keys for k in ngb_keys_dct[key]):
+        if any(k not in zma_keys for k in nkeys_dct[key]):
             keys.append(key)
     keys = tuple(keys)
     return keys

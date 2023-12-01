@@ -1,12 +1,11 @@
 """
   Functions used for handling and comparing multiple geometries
 """
-
 import functools
+import itertools
+from typing import List
 
 import numpy
-from phydat import ptab
-
 from automol.geom.base._0core import (
     coordinates,
     distance,
@@ -14,6 +13,7 @@ from automol.geom.base._0core import (
     symbols,
     xyz_string,
 )
+from phydat import ptab
 
 
 # # properties used for comparisons
@@ -153,16 +153,22 @@ def _argunique(items, comparison, seen_items=()):
     return idxs
 
 
-def almost_equal_dist_matrix(geo1, geo2, thresh=0.1):
-    """form distance matrix for a set of xyz coordinates"""
+def almost_equal_dist_matrix(geo1, geo2, thresh=0.1, idxs: List[int] = None):
+    """form distance matrix for a set of xyz coordinates
 
-    natoms = len(geo1)
-    for i in range(natoms):
-        for j in range(natoms):
-            dist_mat1_ij = distance(geo1, i, j)
-            dist_mat2_ij = distance(geo2, i, j)
-            if abs(dist_mat1_ij - dist_mat2_ij) > thresh:
-                return False
+    :param geo1: A geometry
+    :type geo1: automol geom data structure
+    :param geo2: Another geometry
+    :type geo2: automol geom data structure
+    :param idxs: Optionally, restrict this to a subset of indices
+    :type idxs: Optional[List[int]]
+    """
+    idxs = list(range(len(geo1))) if idxs is None else idxs
+    for i, j in itertools.combinations(idxs, 2):
+        dist1 = distance(geo1, i, j)
+        dist2 = distance(geo2, i, j)
+        if abs(dist1 - dist2) > thresh:
+            return False
 
     return True
 

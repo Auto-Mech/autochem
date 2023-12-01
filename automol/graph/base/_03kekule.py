@@ -3,10 +3,9 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
-from typing import List
+from typing import List, Optional
 
 import numpy
-
 from automol.graph.base._00core import (
     atom_bond_counts,
     atom_keys,
@@ -33,12 +32,14 @@ from automol.graph.base._00core import (
     ts_transferring_atoms,
     without_dummy_atoms,
     without_pi_bonds,
+    atom_neighbor_atom_key,
 )
 from automol.graph.base._02algo import (
     branches,
     connected_components,
     connected_components_atom_keys,
     rings_atom_keys,
+    shortest_path_between_atoms,
 )
 from automol.util import dict_
 
@@ -197,7 +198,7 @@ def linear_atom_keys(gra, dummy=True):
 
     For TS graphs, includes atoms that are linear for *either* the reactants
     *or* the products. This both simplifies the way Reaction objects can be
-    handled and anticipates cases where the TS structure if close to either
+    handled and anticipates cases where the TS structure is close to either
     reactants or products.
 
     :param gra: the graph
@@ -237,38 +238,63 @@ def linear_atom_keys(gra, dummy=True):
     return frozenset(lin_atm_keys)
 
 
-def linear_segments_atom_keys(gra, lin_keys=None):
-    """atom keys for linear segments in the graph"""
-    ngb_keys_dct = atoms_neighbor_atom_keys(without_dummy_atoms(gra))
+def linear_segments_atom_keys(
+    gra, extend: bool = False, lin_keys: Optional[List[int]] = None
+) -> List[List[int]]:
+    """Atom keys for linear segments in the graph
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :param extend: Extend each segment, to include in-line neighbors on either side?
+    :type extend: bool, optional
+    :param lin_keys: Specify the keys of linear atoms, instead of determining from graph
+    :type lin_keys: Optional[List[int]]
+    :returns: A list of lists of keys for each segment
+    :rtype: List[List[int]]
+    """
 
     lin_keys = linear_atom_keys(gra, dummy=True) if lin_keys is None else lin_keys
-    lin_segs = connected_components(subgraph(gra, lin_keys))
 
-    lin_keys_lst = []
-    for lin_seg in lin_segs:
-        lin_seg_keys = atom_keys(lin_seg)
-        if len(lin_seg_keys) == 1:
-            (key,) = lin_seg_keys
-            lin_keys_lst.append([key])
+    # 1. Get graphs for each linear segment
+    segs = connected_components(subgraph(gra, lin_keys))
+
+    # 2. Build sorted lists of keys for each linear segment graph
+    keys_lst = []
+    for seg in segs:
+        seg_keys = atom_keys(seg)
+        if len(seg_keys) == 1:
+            keys_lst.append(seg_keys)
         else:
+            # a. Find the segment ends
+            seg_nkeys_dct = atoms_neighbor_atom_keys(seg)
             end_key1, end_key2 = sorted(
-                [
-                    key
-                    for key, ngb_keys in atoms_neighbor_atom_keys(lin_seg).items()
-                    if len(ngb_keys) == 1
-                ]
+                [k for k, ns in seg_nkeys_dct.items() if len(ns) == 1]
             )
-            ngb_keys_dct = atoms_neighbor_atom_keys(lin_seg)
+            # b. Sort the segment keys in order, end_key1-...-end_key2
+            keys = shortest_path_between_atoms(seg, end_key1, end_key2)
+            keys_lst.append(keys)
 
-            key = None
-            keys = [end_key1]
-            while key != end_key2:
-                (key,) = ngb_keys_dct[keys[-1]] - set(keys)
-                keys.append(key)
-            lin_keys_lst.append(keys)
+    # 3. If requested, extend the ends
+    if extend:
+        keys_lst = list(map(list, keys_lst))
 
-    lin_keys_lst = tuple(map(tuple, lin_keys_lst))
-    return lin_keys_lst
+        gra_ = without_dummy_atoms(gra)
+        for keys in keys_lst:
+            end_key1 = keys[0]
+            end_key2 = keys[-1]
+
+            # a. If there is a possible extension at end 1, insert it
+            ext_key1 = atom_neighbor_atom_key(gra_, end_key1, excl_keys=set(keys))
+            if ext_key1 is not None:
+                keys.insert(0, ext_key1)
+
+            # b. If there is a possible extension at end 2, append it
+            ext_key2 = atom_neighbor_atom_key(gra_, end_key2, excl_keys=set(keys))
+            if ext_key2 is not None:
+                keys.append(ext_key2)
+
+    keys_lst = tuple(map(tuple, keys_lst))
+    return keys_lst
 
 
 def unneeded_dummy_atom_keys(gra) -> frozenset:

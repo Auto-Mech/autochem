@@ -105,6 +105,7 @@ from automol.geom._conv import graph_without_stereo
 from automol.geom._conv import connectivity_graph_deprecated
 from automol.geom._conv import zmatrix
 from automol.geom._conv import zmatrix_with_conversion_info
+from automol.geom._conv import update_zmatrix
 from automol.geom._conv import x2z_zmatrix
 from automol.geom._conv import amchi
 from automol.geom._conv import amchi_with_sort
@@ -239,6 +240,7 @@ __all__ = [
     'connectivity_graph_deprecated',
     'zmatrix',
     'zmatrix_with_conversion_info',
+    'update_zmatrix',
     'x2z_zmatrix',
     'amchi',
     'amchi_with_sort',

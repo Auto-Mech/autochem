@@ -2,15 +2,15 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
-
 import itertools
+from typing import List, Optional
 
+import more_itertools as mit
 from automol.graph.base._00core import (
     atom_implicit_hydrogens,
-    atom_keys,
-    atom_neighbor_atom_key,
     atom_neighbor_atom_keys,
     atom_symbols,
+    atom_zmat_neighbor_atom_key,
     atoms_neighbor_atom_keys,
     bond_keys,
     explicit,
@@ -154,7 +154,12 @@ def heuristic_bond_angle(
 
 
 # heuristic structural properties
-def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True, with_chx_rotors=True):
+def rotational_bond_keys(
+    gra,
+    lin_keys: Optional[List[int]] = None,
+    with_h_rotors: bool = True,
+    with_ch_rotors: bool = True,
+):
     """Get all rotational bonds for a graph
 
     For TS graphs, this will include only bonds which are not pi bonds for
@@ -165,66 +170,149 @@ def rotational_bond_keys(gra, lin_keys=None, with_h_rotors=True, with_chx_rotors
     :type lin_keys: list[int]
     :param with_h_rotors: Include H rotors?
     :type with_h_rotors: bool
-    :param with_chx_rotors: Include CHX rotors?
-    :type with_chx_rotors: bool
+    :param with_ch_rotors: Include CH rotors?
+    :type with_ch_rotors: bool
+    :returns: The rotational bond keys
+    :rtype: frozenset[frozenset[{int, int}]]
+    """
+    rot_skeys_lst = rotational_segment_keys(
+        gra,
+        lin_keys=lin_keys,
+        with_h_rotors=with_h_rotors,
+        with_ch_rotors=with_ch_rotors,
+    )
+    rot_bkeys = [frozenset(ks[-2:]) for ks in rot_skeys_lst]
+    rot_bkeys = frozenset(sorted(rot_bkeys, key=sorted))
+    return rot_bkeys
+
+
+def rotational_segment_keys(
+    gra,
+    lin_keys: Optional[List[int]] = None,
+    with_h_rotors: bool = True,
+    with_ch_rotors: bool = True,
+):
+    """Get the keys for all rotational segments (bonds or linear segments)
+
+    For TS graphs, this will include only bonds which are not pi bonds for
+    *either* reactants or products.
+
+    :param gra: the graph
+    :param lin_keys: keys to linear atoms in the graph
+    :type lin_keys: list[int]
+    :param with_h_rotors: Include H rotors?
+    :type with_h_rotors: bool
+    :param with_ch_rotors: Include CH rotors?
+    :type with_ch_rotors: bool
     :returns: The rotational bond keys
     :rtype: frozenset[frozenset[{int, int}]]
     """
     gra = explicit(gra)
     sym_dct = atom_symbols(gra)
-    ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-    bnd_ord_dct = kekules_bond_orders_collated(gra)
-    rng_bnd_keys = list(itertools.chain(*rings_bond_keys(gra)))
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+    bord_dct = kekules_bond_orders_collated(gra)
+    rng_bkeys = list(itertools.chain(*rings_bond_keys(gra)))
 
-    def _is_rotational_bond(bnd_key):
-        ngb_keys_lst = [ngb_keys_dct[k] - bnd_key for k in bnd_key]
+    def _is_rotational_bond(bkey):
+        """Not guaranteed to have out-of-line neighbors
 
-        is_single = max(bnd_ord_dct[bnd_key]) <= 1
+        This is taken care of below by subtracting bonds in linear segments
+        """
+        ngb_keys_lst = [nkeys_dct[k] - bkey for k in bkey]
+
+        is_single = max(bord_dct[bkey]) <= 1
         has_neighbors = all(ngb_keys_lst)
-        not_in_ring = bnd_key not in rng_bnd_keys
+        not_in_ring = bkey not in rng_bkeys
 
         is_h_rotor = any(
             set(map(sym_dct.__getitem__, ks)) == {"H"} for ks in ngb_keys_lst
         )
-        is_chx_rotor = is_h_rotor and any(sym_dct[k] == "C" for k in bnd_key)
+        is_chx_rotor = is_h_rotor and any(sym_dct[k] == "C" for k in bkey)
 
         return (
             is_single
             and has_neighbors
             and not_in_ring
             and (not is_h_rotor or with_h_rotors)
-            and (not is_chx_rotor or with_chx_rotors)
+            and (not is_chx_rotor or with_ch_rotors)
         )
 
-    rot_bnd_keys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
-    lin_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys)
-    dum_keys = tuple(atom_keys(gra, symb="X"))
-    for keys in lin_keys_lst:
-        bnd_keys = sorted((k for k in rot_bnd_keys if k & set(keys)), key=sorted)
+    # 1. Find the rotational bonds
+    rot_bkeys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
 
-        # Check whether there are neighboring atoms on either side of the
-        # linear segment
-        excl_keys = set(keys) | set(dum_keys)
+    # 2. Find the linear segments, extended to include in-line neighbors
+    lin_seg_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys, extend=True)
 
-        end_key1 = atom_neighbor_atom_key(gra, keys[0], excl_atm_keys=excl_keys)
+    # 3. Start the rotational segment key list with linear segments that can rotate
+    keys_lst = []
+    for seg_keys in lin_seg_keys_lst:
+        seg_bkeys = list(map(frozenset, mit.pairwise(seg_keys)))
+        end_bkeys = {seg_bkeys[0], seg_bkeys[-1]}
+        if end_bkeys <= rot_bkeys:
+            keys_lst.append(seg_keys)
 
-        excl_keys |= {end_key1}
+        # (Remove bonds on either end from list of rotational bonds)
+        rot_bkeys -= set(seg_bkeys)
 
-        end_key2 = atom_neighbor_atom_key(gra, keys[-1], excl_atm_keys=excl_keys)
+    # 4. Add the remaining rotational bonds to the list
+    keys_lst.extend(map(sorted, rot_bkeys))
 
-        if end_key1 is None or end_key2 is None:
-            has_neighbors = False
-        else:
-            end_keys = {end_key1, end_key2}
-            ngb_keys_lst = [ngb_keys_dct[k] - excl_keys for k in end_keys]
-            has_neighbors = all(ngb_keys_lst)
+    keys_lst = frozenset(map(tuple, sorted(keys_lst, key=sorted)))
+    return keys_lst
 
-        if not has_neighbors:
-            rot_bnd_keys -= set(bnd_keys)
-        else:
-            rot_bnd_keys -= set(bnd_keys[:-1])
 
-    return rot_bnd_keys
+def rotational_coordinates(
+    gra,
+    segment: bool = True,
+    lin_keys: Optional[List[int]] = None,
+    with_h_rotors: bool = True,
+    with_ch_rotors: bool = True,
+):
+    """Get torsion coordinates for rotational segments
+
+    For rotational linear segments, the coordinate is either based on the ends of the
+    segment (segment=True), or based on the final bond in the segment, in which case
+    there must be a dummy atom for this to work.
+
+    Note that only the latter case will be a valid z-matrix coordinate.
+
+    :param gra: the graph
+    :type gra: automol graph data structure
+    :param segment: Stretch the coordinates across linear segments, instead of using the
+        final bond with a dummy atom? defaults to True
+    :type segment: bool, optional
+    :param lin_keys: keys to linear atoms in the graph
+    :type lin_keys: list[int]
+    :param with_h_rotors: Include H rotors?
+    :type with_h_rotors: bool
+    :param with_ch_rotors: Include CH rotors?
+    :type with_ch_rotors: bool
+    :returns: The rotational bond keys
+    :rtype: frozenset[frozenset[{int, int}]]
+    """
+    skeys_lst = rotational_segment_keys(
+        gra,
+        lin_keys=lin_keys,
+        with_h_rotors=with_h_rotors,
+        with_ch_rotors=with_ch_rotors,
+    )
+
+    coo_keys = []
+    for skeys in skeys_lst:
+        end_key1 = skeys[0] if segment else skeys[-2]
+        end_key2 = skeys[-1]
+
+        end_nkey1 = atom_zmat_neighbor_atom_key(gra, end_key1, excl_keys=skeys)
+
+        excl_keys = list(skeys) + [end_nkey1]
+        end_nkey2 = atom_zmat_neighbor_atom_key(gra, end_key2, excl_keys=excl_keys)
+
+        assert end_nkey1 is not None, f"Missing dummy atom for key {end_key1}?\n{gra}"
+        assert end_nkey2 is not None, f"Missing dummy atom for key {end_key2}?\n{gra}"
+
+        coo_keys.append((end_nkey1, end_key1, end_key2, end_nkey2))
+
+    return frozenset(coo_keys)
 
 
 def rotational_groups(gra, key1, key2, dummy=False):

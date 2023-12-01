@@ -56,6 +56,8 @@ from automol.zmat.base._core import yaml_data
 from automol.zmat.base._core import from_yaml_data
 # # validation
 from automol.zmat.base._core import is_valid
+# # properties
+from automol.zmat.base._core import torsion_coordinates
 # # conversions
 from automol.zmat.base._core import vmatrix
 from automol.zmat.base._core import formula
@@ -142,6 +144,8 @@ __all__ = [
     'from_yaml_data',
     # # validation
     'is_valid',
+    # # properties
+    'torsion_coordinates',
     # # conversions
     'vmatrix',
     'formula',

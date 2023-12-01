@@ -21,10 +21,9 @@ from typing import Dict, List, Tuple, Union
 
 import numpy
 import yaml
-from phydat import phycon, ptab
-
 from automol import form, util
 from automol.util import ZmatConv, dict_, zmat_conv
+from phydat import phycon, ptab
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1
@@ -1511,22 +1510,45 @@ def atom_backbone_hydrogen_keys(gra):
     return atm_hyd_keys_dct
 
 
-def terminal_atom_keys(gra, backbone=True):
-    """Get the backbone atom keys of this graph, including backbone hydrogens
+def terminal_atom_keys(gra, backbone=True, atom=True):
+    """Get the terminal atoms of this graph
+
+    If backbone=True, this will not include terminal hydrogens, unless they are backbone
+    hydrogens
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param backbone: Restrict this to backbone atoms?
     :type backbone: bool
+    :param atom: Treat a lone atom as terminal?
+    :type atom: bool, optional
     :returns: The atom keys
+    :rtype: frozenset[int]
+    """
+    term_nkey_dct = terminal_atom_neighbors(gra, backbone=backbone, atom=atom)
+    return frozenset(term_nkey_dct.keys())
+
+
+def terminal_atom_neighbors(gra, backbone=True, atom=True) -> Dict[int, int]:
+    """Get terminal atoms of this graph, along with their neighbor keys
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param backbone: Restrict this to backbone atoms?
+    :type backbone: bool
+    :param atom: Treat a lone atom as terminal?
+    :type atom: bool, optional
+    :returns: A dictionary mapping terminal atoms onto their neighors
     :rtype: frozenset[int]
     """
     if backbone:
         gra = implicit(gra)
 
-    atm_nkeys_dct = atoms_neighbor_atom_keys(gra)
-    atm_keys = [key for key, nkeys in atm_nkeys_dct.items() if len(nkeys) <= 1]
-    return frozenset(atm_keys)
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+    term_nkey_dct = {k: next(iter(ns)) for k, ns in nkeys_dct.items() if len(ns) == 1}
+    if atom:
+        term_nkey_dct.update({k: None for k, ns in nkeys_dct.items() if not ns})
+    return term_nkey_dct
 
 
 def unsaturated_atom_keys(gra):
@@ -2492,6 +2514,8 @@ def atoms_sorted_neighbor_atom_keys(
     symbs_last=("H",),
     ords_last=(0.1,),
     prioritize_keys=(),
+    excl_keys=(),
+    incl_keys=None,
     ts_=True,
 ):
     """Get keys for each atom's neighbors, sorted in a particular order
@@ -2506,39 +2530,40 @@ def atoms_sorted_neighbor_atom_keys(
     :type ords_last: tuple, optional
     :param prioritize_keys: Keys to put first no matter what, defaults to ()
     :type prioritize_keys: tuple, optional
+    :param excl_keys: Atom keys to exclude, defaults to ()
+    :type excl_keys: tuple, optional
+    :param incl_keys: Restrict the search to a subset of atom keys, defaults to None
+    :type incl_keys: tuple, optional
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
     :returns: Sorted neighboring atom keys by atom, as a dictionary
     :rtype: dict[int: tuple]
     """
-    atm_symb_dct = atom_symbols(gra)
-    bnd_ord_dct = bond_orders(gra)
-
-    def _neighbor_keys(atm_key, atm_nbh):
-        keys = sorted(atom_keys(atm_nbh) - {atm_key})
-        bnd_keys = [frozenset({atm_key, k}) for k in keys]
-        ords = list(map(bnd_ord_dct.__getitem__, bnd_keys))
-        ords = [-1 if o not in ords_last else ords_last.index(o) for o in ords]
-        symbs = list(map(atm_symb_dct.__getitem__, keys))
-        pris = [0 if k in prioritize_keys else 1 for k in keys]
-        srt_vals = list(zip(ords, pris, symbs))
-        srt = form.argsort_symbols(srt_vals, symbs_first, symbs_last, idx=2)
-        keys = tuple(map(keys.__getitem__, srt))
-        return keys
-
-    atm_ngb_keys_dct = dict_.transform_items_to_values(
-        atom_neighborhoods(gra, ts_=ts_), _neighbor_keys
-    )
-    return atm_ngb_keys_dct
+    return {
+        k: atom_sorted_neighbor_atom_keys(
+            gra,
+            k,
+            symbs_first=symbs_first,
+            symbs_last=symbs_last,
+            ords_last=ords_last,
+            prioritize_keys=prioritize_keys,
+            excl_keys=excl_keys,
+            incl_keys=incl_keys,
+            ts_=ts_,
+        )
+        for k in atom_keys(gra)
+    }
 
 
 def atom_sorted_neighbor_atom_keys(
     gra,
     atm_key,
-    excl_atm_keys=(),
-    incl_atm_keys=None,
     symbs_first=("C",),
     symbs_last=("H",),
+    ords_last=(0.1,),
+    prioritize_keys=(),
+    excl_keys=(),
+    incl_keys=None,
     ts_=True,
 ):
     """Get keys for this atom's neighbors, sorted in a particular order
@@ -2547,66 +2572,200 @@ def atom_sorted_neighbor_atom_keys(
     :type gra: automol graph data structure
     :param atm_key: The atom key
     :type atm_key: int
-    :param excl_atm_keys: Atom keys to exclude, defaults to ()
-    :type excl_atm_keys: tuple, optional
-    :param incl_atm_keys: Restrict the search to a subset of atom keys,
-        defaults to None
-    :type incl_atm_keys: tuple, optional
     :param symbs_first: Atom types to put first, defaults to ('C',)
     :type symbs_first: tuple, optional
     :param symbs_last: Atom types to put last, defaults to ('H',)
     :type symbs_last: tuple, optional
+    :param ords_last: Put neighbors bonded with these bond orders last,
+        defaults to (0.1,). (Mainly for internal use.)
+    :type ords_last: tuple, optional
+    :param prioritize_keys: Keys to put first no matter what, defaults to ()
+    :type prioritize_keys: tuple, optional
+    :param excl_keys: Atom keys to exclude, defaults to ()
+    :type excl_keys: tuple, optional
+    :param incl_keys: Restrict the search to a subset of atom keys, defaults to None
+    :type incl_keys: tuple, optional
+    :param ts_: If this is a TS graph, treat it as such?
+    :type ts_: bool
     :return: The neighboring atom keys, in the requested order
     :rtype: tuple[int]
     """
-    atm_symb_dct = atom_symbols(gra)
-    incl_atm_keys = atom_keys(gra) if incl_atm_keys is None else incl_atm_keys
+    symb_dct = atom_symbols(gra)
+    bord_dct = bond_orders(gra)
 
-    atm_nbh = atom_neighborhood(gra, atm_key, ts_=ts_)
-    atm_keys = sorted(atom_keys(atm_nbh) - {atm_key} - set(excl_atm_keys))
-    atm_keys = [k for k in atm_keys if k in incl_atm_keys]
+    # 1. Get the pools of neighbor keys, based on included and excluded keys
+    incl_keys = atom_keys(gra) if incl_keys is None else incl_keys
+    nbh = atom_neighborhood(gra, atm_key, ts_=ts_)
+    keys = set(incl_keys) & (atom_keys(nbh) - {atm_key} - set(excl_keys))
 
-    symbs = list(map(atm_symb_dct.__getitem__, atm_keys))
-    srt = form.argsort_symbols(symbs, symbs_first, symbs_last)
-    atm_keys = tuple(map(atm_keys.__getitem__, srt))
-    return atm_keys
+    # 2. Do the sorting
+    #   a. Sort by key value
+    keys = sorted(keys)
+
+    #   b. Sort by bond order, priority flag (if defined), and symbol
+    bkeys = [frozenset({atm_key, k}) for k in keys]
+    ords = list(map(bord_dct.__getitem__, bkeys))
+    ords = [-1 if o not in ords_last else ords_last.index(o) for o in ords]
+    symbs = list(map(symb_dct.__getitem__, keys))
+    pris = [0 if k in prioritize_keys else 1 for k in keys]
+    srt_vals = list(zip(ords, pris, symbs))
+    srt = form.argsort_symbols(srt_vals, symbs_first, symbs_last, idx=2)
+    keys = tuple(map(keys.__getitem__, srt))
+
+    return keys
 
 
 def atom_neighbor_atom_key(
     gra,
     atm_key,
-    excl_atm_keys=(),
-    incl_atm_keys=None,
     symbs_first=("C",),
     symbs_last=("H",),
+    ords_last=(0.1,),
+    prioritize_keys=(),
+    excl_keys=(),
+    incl_keys=None,
+    ts_=True,
 ):
-    """Get a key for one of an atom's neighbors
+    """Get the first of an atom's neighbors, according to a particular sort order
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param atm_key: The atom key
     :type atm_key: int
-    :param excl_atm_keys: Atom keys to exclude, defaults to ()
-    :type excl_atm_keys: tuple, optional
-    :param incl_atm_keys: Restrict the search to a subset of atom keys,
-        defaults to None
-    :type incl_atm_keys: tuple, optional
-    :param symbs_first: Atom symbols to search for first, defaults to ('C',)
+    :param symbs_first: Atom types to put first, defaults to ('C',)
     :type symbs_first: tuple, optional
-    :param symbs_last: Atom symbols to search for last, defaults to ('H',)
+    :param symbs_last: Atom types to put last, defaults to ('H',)
     :type symbs_last: tuple, optional
-    :return: The neighboring atom key
+    :param ords_last: Put neighbors bonded with these bond orders last,
+        defaults to (0.1,). (Mainly for internal use.)
+    :type ords_last: tuple, optional
+    :param prioritize_keys: Keys to put first no matter what, defaults to ()
+    :type prioritize_keys: tuple, optional
+    :param excl_keys: Atom keys to exclude, defaults to ()
+    :type excl_keys: tuple, optional
+    :param incl_keys: Restrict the search to a subset of atom keys, defaults to None
+    :type incl_keys: tuple, optional
+    :param ts_: If this is a TS graph, treat it as such?
+    :type ts_: bool
+    :return: A neighboring atom key
     :rtype: int
     """
-    atm_keys = atom_sorted_neighbor_atom_keys(
+    nkeys = atom_sorted_neighbor_atom_keys(
         gra,
         atm_key,
-        excl_atm_keys=excl_atm_keys,
-        incl_atm_keys=incl_atm_keys,
         symbs_first=symbs_first,
         symbs_last=symbs_last,
+        ords_last=ords_last,
+        prioritize_keys=prioritize_keys,
+        excl_keys=excl_keys,
+        incl_keys=incl_keys,
+        ts_=ts_,
     )
-    return atm_keys[0] if atm_keys else None
+    return nkeys[0] if nkeys else None
+
+
+def atoms_zmat_sorted_neighbor_atom_keys(
+    gra,
+    prioritize_keys=(),
+    excl_keys=(),
+    incl_keys=None,
+):
+    """Get keys for each atom's neighbors, sorted in a particular order
+
+    :param gra: the graph
+    :param symbs_first: Atom types to put first, defaults to ('C',)
+    :type symbs_first: tuple, optional
+    :param symbs_last: Atom types to put last, defaults to ('H',)
+    :type symbs_last: tuple, optional
+    :param ords_last: Put neighbors bonded with these bond orders last,
+        defaults to (0.1,). (Mainly for internal use.)
+    :type ords_last: tuple, optional
+    :param prioritize_keys: Keys to put first no matter what, defaults to ()
+    :type prioritize_keys: tuple, optional
+    :param excl_keys: Atom keys to exclude, defaults to ()
+    :type excl_keys: tuple, optional
+    :param incl_keys: Restrict the search to a subset of atom keys, defaults to None
+    :type incl_keys: tuple, optional
+    :returns: Sorted neighboring atom keys by atom, as a dictionary
+    :rtype: dict[int: tuple]
+    """
+    return {
+        k: atom_zmat_sorted_neighbor_atom_keys(
+            gra,
+            k,
+            prioritize_keys=prioritize_keys,
+            excl_keys=excl_keys,
+            incl_keys=incl_keys,
+        )
+        for k in atom_keys(gra)
+    }
+
+
+def atom_zmat_sorted_neighbor_atom_keys(
+    gra,
+    atm_key,
+    prioritize_keys=(),
+    excl_keys=(),
+    incl_keys=None,
+):
+    """Get keys for this atom's neighbors, sorted in a particular order
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_key: The atom key
+    :type atm_key: int
+    :param prioritize_keys: Keys to put first no matter what, defaults to ()
+    :type prioritize_keys: tuple, optional
+    :param excl_keys: Atom keys to exclude, defaults to ()
+    :type excl_keys: tuple, optional
+    :param incl_keys: Restrict the search to a subset of atom keys, defaults to None
+    :type incl_keys: tuple, optional
+    :return: The neighboring atom keys, in the requested order
+    :rtype: tuple[int]
+    """
+    return atom_sorted_neighbor_atom_keys(
+        gra,
+        atm_key,
+        symbs_first=("X", "C"),
+        symbs_last=("H",),
+        ords_last=(0.1,),
+        prioritize_keys=prioritize_keys,
+        excl_keys=excl_keys,
+        incl_keys=incl_keys,
+        ts_=True,
+    )
+
+
+def atom_zmat_neighbor_atom_key(
+    gra,
+    atm_key,
+    prioritize_keys=(),
+    excl_keys=(),
+    incl_keys=None,
+):
+    """Get keys for this atom's neighbors, sorted in a particular order
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param atm_key: The atom key
+    :type atm_key: int
+    :param prioritize_keys: Keys to put first no matter what, defaults to ()
+    :type prioritize_keys: tuple, optional
+    :param excl_keys: Atom keys to exclude, defaults to ()
+    :type excl_keys: tuple, optional
+    :param incl_keys: Restrict the search to a subset of atom keys, defaults to None
+    :type incl_keys: tuple, optional
+    :return: A neighboring atom key
+    :rtype: int
+    """
+    nkeys = atom_zmat_sorted_neighbor_atom_keys(
+        gra,
+        atm_key,
+        prioritize_keys=prioritize_keys,
+        excl_keys=excl_keys,
+        incl_keys=incl_keys,
+    )
+    return nkeys[0] if nkeys else None
 
 
 def atom_bond_keys(gra, atm_key, ts_=True):

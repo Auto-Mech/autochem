@@ -1,7 +1,7 @@
 """ Level 4 geometry functions
 """
 import itertools
-from typing import Dict
+from typing import Dict, Optional
 
 import numpy
 import pyparsing as pp
@@ -217,6 +217,33 @@ def zmatrix_with_conversion_info(geo, gra=None, zc_: ZmatConv = None):
     zma = zmat_base.from_geometry(vma, geo)
 
     return zma, zc_
+
+
+def update_zmatrix(geo, zma, zc_: Optional[ZmatConv]=None):
+    """Update a z-matrix from a geometry, optionally specifying the z-matrix conversion
+
+    :param geo: The updated geometry
+    :type geo: automol geom data structure
+    :param zma: The original z-matrix
+    :type zma: automol zmat data structure
+    :param zc_: The z-matrix conversion (only needed if geometry is reordered),
+        defaults to None
+    :type zc_: Optional[ZmatConv], optional
+    :returns: The updated z-matrix
+    :rtype: automol zmat data structure
+    """
+    # If no conversion info was passed in, assume no reordering and get it from the
+    # z-matrix
+    zc_ = zmat_base.conversion_info(zma) if zc_ is None else zc_
+
+    # 1. Apply z-matrix conversion to geometry so it matches
+    geo = apply_zmatrix_conversion(geo, zc_)
+
+    # 2. Form the updated z-matrix
+    vma = zmat_base.vmatrix(zma)
+    zma = zmat_base.from_geometry(vma, geo)
+
+    return zma
 
 
 def x2z_zmatrix(geo, ts_bnds=()):

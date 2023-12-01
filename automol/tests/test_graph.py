@@ -923,8 +923,62 @@ def test__rotational_bond_keys():
                        frozenset({2, 3})}))
     assert (automol.graph.rotational_bond_keys(cgr, with_h_rotors=False) ==
             frozenset({frozenset({2, 3})}))
-    assert (automol.graph.rotational_bond_keys(cgr, with_chx_rotors=False) ==
+    assert (automol.graph.rotational_bond_keys(cgr, with_ch_rotors=False) ==
             frozenset({frozenset({2, 3})}))
+
+    # Check that we don't misidentify rotational bond keys
+    cgr = automol.smiles.graph('C#CC=C')
+    assert automol.graph.rotational_bond_keys(cgr) == frozenset()
+
+
+def test__rotational_segment_keys():
+    """ test graph.rotational_segment_keys
+    """
+    gra = ({0: ('C', 3, None),
+            1: ('C', 0, None),
+            2: ('C', 0, None),
+            3: ('C', 0, None),
+            4: ('C', 0, None),
+            5: ('C', 0, None),
+            6: ('C', 0, None),
+            7: ('C', 2, None),
+            8: ('C', 1, None),
+            9: ('C', 3, None),
+            10: ('C', 2, None),
+            11: ('C', 3, None)},
+           {frozenset({3, 4}): (1, None),
+            frozenset({2, 3}): (1, None),
+            frozenset({1, 2}): (1, None),
+            frozenset({4, 5}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({6, 7}): (1, None),
+            frozenset({8, 9}): (1, None),
+            frozenset({7, 8}): (1, None),
+            frozenset({8, 10}): (1, None),
+            frozenset({5, 6}): (1, None),
+            frozenset({10, 11}): (1, None)})
+    assert automol.graph.rotational_segment_keys(gra) == frozenset({
+        (0, 1, 2, 3, 4, 5, 6, 7), (7, 8), (8, 9), (8, 10), (10, 11)
+    })
+
+
+def test__rotational_coordinates():
+    """ test graph.rotational_coordinates
+    """
+    # CC#CC#CC#CCC(C)CC (z-matrix)
+    geo = automol.smiles.geometry("CC#CC#CC#CCC(C)CC")
+    zma = automol.geom.zmatrix(geo)
+    zgra = automol.zmat.graph(zma, stereo=False, dummy=True)
+
+    tors_dct = automol.zmat.torsion_coordinates(zma, zgra)
+    coo_key_lst0 = set(map(tuple, map(reversed, tors_dct.values())))
+
+    coo_key_lst = graph.rotational_coordinates(zgra, segment=False)
+    assert coo_key_lst == coo_key_lst0, f"{coo_key_lst} != {coo_key_lst0}"
+
+    # Make sure the segment version runs
+    coo_key_lst = graph.rotational_coordinates(zgra)
+    print(coo_key_lst)
 
 
 def test__species__graph_conversion():
@@ -1581,7 +1635,7 @@ def test__stereo_corrected_geometry():
 def test__embed__clean_geometry():
     """test graph.embed.clean_geometry
     """
-    # Make sure good geometries don't get bessed up by cleaning
+    # Make sure good geometries don't get messed up by cleaning
     # F/C=N\C#C
     geo1 = (('C', (-3.321773, 0.223278, -1.798954)),
             ('C', (-1.526479, 0.653524, -0.482726)),
@@ -1591,7 +1645,7 @@ def test__embed__clean_geometry():
             ('H', (-4.917597, -0.155311, -2.962995)),
             ('H', (4.300424, 0.512127, 1.504603)))
     gra = automol.geom.graph(geo1)
-    geo2 = graph._0embed.clean_geometry(gra, geo1)
+    geo2 = graph.clean_geometry(gra, geo1)
     assert automol.geom.almost_equal(geo1, geo2)
 
 
@@ -1606,7 +1660,7 @@ if __name__ == '__main__':
     # test__expand_stereo()
     # test__species__graph_conversion()
     # test__canonical()
-    test__calculate_priorities_and_assign_parities()
+    # test__calculate_priorities_and_assign_parities()
     # test__smiles()
     # test__kekules()
     # test__geometry_atom_parity()
@@ -1622,3 +1676,5 @@ if __name__ == '__main__':
     # test__atom_hybridizations()
     # test__kekules()
     # test__stereo_corrected_geometry()
+    # test__embed__clean_geometry()
+    test__rotational_coordinates()
