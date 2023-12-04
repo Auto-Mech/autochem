@@ -77,6 +77,8 @@ def graph(chi, stereo=True, local_stereo=False):
     chis = split(chi)
     gras = [_connected_graph(c, stereo=stereo, local_stereo=local_stereo) for c in chis]
     gra = graph_.union_from_sequence(gras, shift_keys=True)
+    if stereo:
+        gra = graph_.with_explicit_stereo_hydrogens(gra)
     return gra
 
 

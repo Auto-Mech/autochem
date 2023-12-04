@@ -17,7 +17,7 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import functools
 import itertools
 import numbers
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
 import yaml
@@ -2088,32 +2088,73 @@ def without_stereo(gra, atm_keys=None, bnd_keys=None):
     return gra
 
 
-def explicit(gra, atm_keys=None):
+def with_explicit_stereo_hydrogens(gra, all_: bool = False, neg: bool = False):
+    r"""Make hydrogens explicit where necessary for specifying stereochemistry
+
+    By default, only adds the hydrogens which are necessary to depict the stereo
+    designation, which are hydrogens that are sole neighbors on one side of a stereo
+    bond, such as vinyl hydrogens:
+
+                A
+                 \
+                  X===Y
+                 /     \
+                B       H
+
+    If `all_=False`, hydrogens will be made explicit for all stereocenters.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param all_: Include hydrogens for all stereocenters, rather than just the ones
+        needed for depiction? defaults to False
+    :type all_: bool, optional
+    :param neg: Use negative indices for inserted hydrogens?, defaults to False
+    :type neg: bool, optional
+    :returns: A molecular graph
+    :rtype: automol graph data structure
+    """
+    if all_:
+        atm_keys = atom_stereo_keys(gra) | set(itertools.chain(*bond_stereo_keys(gra)))
+    else:
+        key_pool = set(itertools.chain(*bond_stereo_keys(gra)))
+        nkeys_dct = atoms_neighbor_atom_keys(gra)
+        nhyd_dct = atom_implicit_hydrogens(gra)
+        # Stereo-bonded atoms must have a second neighbor in addition to the other atom
+        # in the stereo bond. If absent, it must be an implicit hydrogen.
+        atm_keys = {k for k in key_pool if len(nkeys_dct[k]) == 1 and nhyd_dct[k]}
+
+    return explicit(gra, atm_keys=atm_keys, neg=neg)
+
+
+def explicit(gra, atm_keys: Optional[List[int]] = None, neg: bool = False):
     """Make implicit hydrogens in this graph explicit
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param atm_keys: Optionally, restrict this operation to a subset of atoms
-    :type atm_keys: list[int]
+    :type atm_keys: Optional[List[int]]
+    :param neg: Use negative indices for inserted hydrogens?, defaults to False
+    :type neg: bool, optional
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
     if not atoms(gra):
         return gra
 
-    atm_keys = backbone_keys(gra) if atm_keys is None else atm_keys
-    atm_keys = sorted(atm_keys)
-    atm_imp_hyd_dct = dict_.by_key(atom_implicit_hydrogens(gra), atm_keys)
+    keys = backbone_keys(gra) if atm_keys is None else atm_keys
+    keys = sorted(keys)
+    nhyd_dct = dict_.by_key(atom_implicit_hydrogens(gra), keys)
 
-    atm_exp_hyd_keys_dct = {}
-    next_atm_key = max(atom_keys(gra)) + 1
-    for atm_key in atm_keys:
-        imp_hyd = atm_imp_hyd_dct[atm_key]
-        atm_exp_hyd_keys_dct[atm_key] = set(range(next_atm_key, next_atm_key + imp_hyd))
-        next_atm_key += imp_hyd
+    hkeys_dct = {}
+    sign = -1 if neg else 1
+    next_key = sign * (max(atom_keys(gra)) + 1)
+    for atm_key in keys:
+        nhyd = nhyd_dct[atm_key]
+        hkeys_dct[atm_key] = set(range(next_key, next_key + nhyd))
+        next_key += sign * nhyd
 
-    gra = set_atom_implicit_hydrogens(gra, dict_.by_key({}, atm_keys, fill_val=0))
-    gra = add_atom_explicit_hydrogens(gra, atm_exp_hyd_keys_dct)
+    gra = set_atom_implicit_hydrogens(gra, dict_.by_key({}, keys, fill_val=0))
+    gra = add_atom_explicit_hydrogens(gra, hkeys_dct)
     return gra
 
 

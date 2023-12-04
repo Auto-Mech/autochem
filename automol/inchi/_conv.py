@@ -19,6 +19,8 @@ def graph(ich, stereo=True):
     :rtype: automol molecular graph
     """
     gra = amchi_.graph(ich, stereo=stereo)
+    if stereo:
+        gra = graph_.with_explicit_stereo_hydrogens(gra)
     return gra
 
 

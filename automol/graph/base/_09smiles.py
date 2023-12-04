@@ -23,17 +23,15 @@ from automol.graph.base._00core import atom_symbols
 from automol.graph.base._00core import atom_implicit_hydrogens
 from automol.graph.base._00core import atom_stereo_parities
 from automol.graph.base._00core import bond_orders
-from automol.graph.base._00core import bond_stereo_keys
 from automol.graph.base._00core import bond_stereo_parities
 from automol.graph.base._00core import atoms_neighbor_atom_keys
 from automol.graph.base._00core import terminal_atom_keys
 from automol.graph.base._00core import string
 from automol.graph.base._00core import implicit
 from automol.graph.base._00core import explicit
+from automol.graph.base._00core import with_explicit_stereo_hydrogens
 from automol.graph.base._00core import without_dummy_atoms
 from automol.graph.base._00core import without_stereo
-from automol.graph.base._00core import add_bonded_atom
-from automol.graph.base._00core import set_atom_implicit_hydrogens
 from automol.graph.base._02algo import is_connected
 from automol.graph.base._02algo import connected_components
 from automol.graph.base._02algo import rings_atom_keys
@@ -113,7 +111,7 @@ def _connected_smiles(gra, stereo=True, local_stereo=False, res_stereo=True,
     gra = explicit(gra, atm_keys=atom_keys(gra, symb='H'))
 
     # Insert hydrogens necessary for bond stereo
-    gra = _insert_stereo_hydrogens(gra)
+    gra = with_explicit_stereo_hydrogens(gra, all_=False, neg=True)
 
     # Find a dominant resonance
     kgr = kekule(gra, max_stereo_overlap=True)
@@ -503,29 +501,6 @@ def ring_representation_generator_(kgr, direc_dct, rng_pool, rng_tag_dct,
 
 
 # helpers
-def _insert_stereo_hydrogens(gra):
-    """ Insert hydrogens necessary for bond stereo into an implicit graph.
-        Hydrogens are given negative keys for proper stereo sorting
-    """
-    bnd_keys = bond_stereo_keys(gra)
-    nkeys_dct = atoms_neighbor_atom_keys(gra)
-    nhyd_dct = atom_implicit_hydrogens(gra)
-    next_key = -max(atom_keys(gra)) - 1
-    for bnd_key in bnd_keys:
-        key1, key2 = bnd_key
-        nkey1s = nkeys_dct[key1] - {key2}
-        nkey2s = nkeys_dct[key2] - {key1}
-        for key, nkeys in [(key1, nkey1s), (key2, nkey2s)]:
-            if not nkeys:
-                assert nhyd_dct[key] == 1
-                gra = add_bonded_atom(gra, 'H', key, next_key)
-                gra = set_atom_implicit_hydrogens(gra, {key: 0})
-
-                next_key = next_key - 1
-
-    return gra
-
-
 def _flip_direction(direc, flip=True):
     """ Flip the direction of a directional bond representation
 

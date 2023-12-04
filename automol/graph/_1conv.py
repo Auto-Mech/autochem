@@ -6,15 +6,9 @@ import itertools
 import IPython.display as ipd
 import ipywidgets
 import numpy
-from phydat import phycon
-
 from automol import error, geom
 from automol.extern import rdkit_
-from automol.graph._0embed import (
-    clean_geometry,
-    embed_geometry,
-    geometry_matches,
-)
+from automol.graph._0embed import clean_geometry, embed_geometry, geometry_matches
 from automol.graph.base import (
     amchi,
     angle_keys,
@@ -34,10 +28,12 @@ from automol.graph.base import (
     string,
     to_local_stereo,
     ts,
+    with_explicit_stereo_hydrogens,
     without_stereo,
 )
 from automol.smiles import base as smiles_base
 from automol.util import vector
+from phydat import phycon
 
 
 # # conversions
@@ -240,6 +236,12 @@ def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
     :param label_dct: bool
     :returns: the RDKit molecule
     """
+    if stereo:
+        assert gra == with_explicit_stereo_hydrogens(gra), (
+            f"Graph is missing hydrogens needed to depict stereo:\n{gra}\n"
+            f"You can add them using graph.with_explicit_stereo_hydrogens()"
+        )
+
     rdkit_.turn_3d_visualization_off()
     rdm = rdkit_.from_graph(gra, stereo=stereo, label=label, label_dct=label_dct)
     return rdm
@@ -350,16 +352,15 @@ def display(gra, stereo=True, label=False, label_dct=None):
     </svg>
     """
 
-    arrow_widget = ipywidgets.Image(
-        value=arrow_svg_str.encode("utf-8"), format="svg+xml", width=100, height=50
-    )
-
     rdkit_.turn_3d_visualization_off()
     if is_ts_graph(gra):
         rgra = ts.reactants_graph(gra)
         pgra = ts.products_graph(gra)
         rwid = ipywidget(rgra, stereo=stereo, label=label, label_dct=label_dct)
         pwid = ipywidget(pgra, stereo=stereo, label=label, label_dct=label_dct)
+        arrow_widget = ipywidgets.Image(
+            value=arrow_svg_str.encode("utf-8"), format="svg+xml", width=100, height=50
+        )
         ipd.display(ipywidgets.HBox([rwid, arrow_widget, pwid]))
     else:
         ipd.display(

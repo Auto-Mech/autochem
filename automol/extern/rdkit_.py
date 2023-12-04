@@ -331,6 +331,9 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
                 gra, key1, key2
             )
 
+            assert nkeys1, f"Atom {key1} lacks neighbors for stereo depiction:\n{gra}"
+            assert nkeys2, f"Atom {key2} lacks neighbors for stereo depiction:\n{gra}"
+
             nidx1 = idx_from_key[nkeys1[-1]]
             nidx2 = idx_from_key[nkeys2[-1]]
 

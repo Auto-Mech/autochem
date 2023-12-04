@@ -112,6 +112,7 @@ from automol.graph.base._00core import ts_reverse
 from automol.graph.base._00core import ts_reagents_graph_without_stereo
 from automol.graph.base._00core import without_bonds_by_orders
 from automol.graph.base._00core import without_stereo
+from automol.graph.base._00core import with_explicit_stereo_hydrogens
 from automol.graph.base._00core import explicit
 from automol.graph.base._00core import implicit
 # # unions
@@ -431,6 +432,7 @@ __all__ = [
     'ts_reagents_graph_without_stereo',
     'without_bonds_by_orders',
     'without_stereo',
+    'with_explicit_stereo_hydrogens',
     'explicit',
     'implicit',
     # # unions

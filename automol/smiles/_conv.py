@@ -80,6 +80,8 @@ def graph(smi, stereo=True, local_stereo=False):
     smis = split(smi)
     gras = [_connected_graph(s, stereo=stereo, local_stereo=local_stereo) for s in smis]
     gra = graph_.union_from_sequence(gras, shift_keys=True)
+    if stereo:
+        gra = graph_.with_explicit_stereo_hydrogens(gra)
     return gra
 
 
