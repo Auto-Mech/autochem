@@ -17,6 +17,7 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import functools
 import itertools
 import numbers
+import warnings
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
@@ -2517,10 +2518,11 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
         # Deal with cases of the form VC(W)=C(X)Y + Z <=> V[C](W)C(X)(Y)Z
         valence = len(nkeys) + nlps
         if valence > 2:
-            assert valence == 3 and len(nkeys_no_rbs) == len(nkeys) - 1, (
-                f"Unanticipated valence {valence} at key {key} is not resoved "
-                f"by dropping breaking bonds:\n{gra}"
-            )
+            if valence != 3 or len(nkeys_no_rbs) != len(nkeys) - 1:
+                warnings.warn(
+                    f"Unusual neighbor configuration at key {key} may result in "
+                    f"incorrect bond stereochemistry handling for this graph:\n{gra}"
+                )
             nkeys = nkeys_no_rbs
         # Sort them by priority
         nkeys = sorted(nkeys, key=pri_dct.__getitem__)
