@@ -84,8 +84,8 @@ def canonical_enantiomer(gra, relabel: bool = True):
         hasn't, and `None` indicates that it isn't an enantiomer
     :rtype: (automol graph data structure, bool)
     """
-    ce_gra, _, is_refl = canonical_enantiomer_with_keys(gra, relabel=relabel)
-    return ce_gra, is_refl
+    gra, _, is_can_enant = canonical_enantiomer_with_keys(gra, relabel=relabel)
+    return gra, is_can_enant
 
 
 def canonical_enantiomer_with_keys(gra, relabel: bool = False):
@@ -96,30 +96,28 @@ def canonical_enantiomer_with_keys(gra, relabel: bool = False):
     :type gra: automol graph data structure
     :param relabel: Relabel the graph with canonical keys? defaults to True
     :type relabel: bool, optional
-    :returns: a canonicalized graph of the canonical enantiomer, along with
-        a boolean flag indicating whether or not the graph has been
-        reflected; `True` indicates it has been, `False` indicates it
-        hasn't, and `None` indicates that it isn't an enantiomer
+    :returns: a canonicalized graph of the canonical enantiomer, along with a boolean
+        flag indicating whether or not the input graph is this enantiomer;
+        `True` indicates it is, `False` indicates it isn't, and `None` indicates that it
+        is achiral
     :rtype: (automol graph data structure, bool)
     """
     if not has_atom_stereo(gra):
-        egra = gra
-        ecan_key_dct = canonical_keys(gra, backbone_only=False)
-        is_refl = None
+        can_key_dct = canonical_keys(gra, backbone_only=False)
+        is_can_enant = None
     else:
         assert is_connected(gra), f"Requires a connected graph.\n{gra}"
         # Calculate canonical keys for the unreflected graph while converting
         # to the local stereo representation
-        ugra = gra
-        uloc_gra, _, upri_dct, *_ = calculate_stereo(
-            ugra,
+        loc_gra, _, pri_dct, *_ = calculate_stereo(
+            gra,
             par_eval_=parity_evaluator_flip_local_(),
             can_par_eval_=parity_evaluator_read_canonical_(),
             backbone_only=False,
         )
 
         # Reflect the graph in the local stereo representation
-        rloc_gra = reflect_local_stereo(uloc_gra)
+        rloc_gra = reflect_local_stereo(loc_gra)
 
         # Determine canonical keys for the reflected graph while converting
         # back to the canonical stereo representation
@@ -127,22 +125,18 @@ def canonical_enantiomer_with_keys(gra, relabel: bool = False):
             rloc_gra, backbone_only=False, par_eval_=parity_evaluator_flip_local_()
         )
 
-        is_can = is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct)
+        is_can_enant = is_canonical_enantiomer(gra, pri_dct, rgra, rpri_dct)
 
-        if is_can in (True, None):
-            egra = ugra
-            epri_dct = upri_dct
-        else:
-            egra = rgra
-            epri_dct = rpri_dct
+        if is_can_enant is False:
+            gra = rgra
+            pri_dct = rpri_dct
 
-        ecan_key_dct = break_priority_ties(egra, epri_dct)
-        is_refl = None if is_can is None else (not is_can)
+        can_key_dct = break_priority_ties(gra, pri_dct)
 
     if relabel:
-        egra = relabel_(egra, ecan_key_dct)
+        gra = relabel_(gra, can_key_dct)
 
-    return egra, ecan_key_dct, is_refl
+    return gra, can_key_dct, is_can_enant
 
 
 def canonical_ts_direction(gra):
@@ -150,28 +144,20 @@ def canonical_ts_direction(gra):
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :returns: a canonicalized graph of the canonical TS direction, along with
-        a boolean flag indicating whether or not the TS graph has been
-        reversed; `True` indicates it has been, `False` indicates it
-        hasn't, and `None` indicates that it isn't a TS graph
+    :returns: a graph of the canonical TS direction, along with a boolean flag
+        indicating whether or not the input graph has this direction;
+        `True` indicates it is, `False` indicates it isn't, and `None` indicates that it
+        isn't a TS graph
     :rtype: (automol graph data structure, bool)
     """
-    if not is_ts_graph(gra):
-        cd_gra = gra
-        is_rev = None
+    if is_ts_graph(gra):
+        *_, is_can_dir = calculate_stereo(gra)
+        if is_can_dir is False:
+            gra = ts_reverse(gra)
     else:
-        assert is_connected(gra), f"Requires a connected graph.\n{gra}"
-        # Calculate canonical keys for the unreflected graph while converting
-        # to the local stereo representation
-        ftsg = gra
-        rtsg = ts_reverse(gra)
+        is_can_dir = None
 
-        *_, is_can = calculate_stereo(gra)
-
-        is_rev = not is_can
-        cd_gra = rtsg if is_rev else ftsg
-
-    return cd_gra, is_rev
+    return gra, is_can_dir
 
 
 def canonical(gra):
@@ -256,25 +242,6 @@ def stereo_assignment_representation(gra, pri_dct):
     return rep
 
 
-def is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct):
-    """Is this enantiomer the canonical one?
-
-    :param ugra: An unreflected molecular graph
-    :type ugra: automol graph data structure
-    :param upri_dct: A dictionary mapping atom keys to priorities for `ugra`
-    :type upri_dct: dict
-    :param rgra: A reflected molecular graph
-    :type rgra: automol graph data structure
-    :param rpri_dct: A dictionary mapping atom keys to priorities for `rgra`
-    :type rpri_dct: dict
-    :returns: `True` if it is, `False` if it isn't, and `None` if it isn't an
-        enantiomer
-    """
-    urep = stereo_assignment_representation(ugra, upri_dct)
-    rrep = stereo_assignment_representation(rgra, rpri_dct)
-    return True if (urep < rrep) else False if (urep > rrep) else None
-
-
 def ts_direction_representation(tsg, pri_dct):
     """Generate a representation of the reaction direction to determine the
     canonical direction of a TS graph
@@ -304,6 +271,25 @@ def ts_direction_representation(tsg, pri_dct):
     ste_rep = stereo_assignment_representation(tsg, pri_dct)
     rep = (rxn_rep1, rxn_rep2, ste_rep)
     return rep
+
+
+def is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct):
+    """Is this enantiomer the canonical one?
+
+    :param ugra: An unreflected molecular graph
+    :type ugra: automol graph data structure
+    :param upri_dct: A dictionary mapping atom keys to priorities for `ugra`
+    :type upri_dct: dict
+    :param rgra: A reflected molecular graph
+    :type rgra: automol graph data structure
+    :param rpri_dct: A dictionary mapping atom keys to priorities for `rgra`
+    :type rpri_dct: dict
+    :returns: `True` if it is, `False` if it isn't, and `None` if it isn't an
+        enantiomer
+    """
+    urep = stereo_assignment_representation(ugra, upri_dct)
+    rrep = stereo_assignment_representation(rgra, rpri_dct)
+    return True if (urep < rrep) else False if (urep > rrep) else None
 
 
 def is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
@@ -603,20 +589,20 @@ def calculate_stereo(
     :rtype: automol graph data structure, -//-, Dict[int, int], Optional[bool]
     """
     if is_ts_graph(gra):
-        gra, can_gra, pri_dct, is_can_ts_dir = _calculate_ts_stereo(
+        gra, can_gra, pri_dct, is_can_dir = _calculate_ts_stereo(
             gra, par_eval_, can_par_eval_, pri_dct=pri_dct
         )
     else:
         gra, can_gra, pri_dct = _calculate_stereo_core(
             gra, par_eval_, can_par_eval_, pri_dct=pri_dct
         )
-        is_can_ts_dir = None
+        is_can_dir = None
 
     # 3. If requested, add in priorities for explicit hydrogens.
     if not backbone_only:
         pri_dct = reassign_hydrogen_priorities(gra, pri_dct)
 
-    return gra, can_gra, pri_dct, is_can_ts_dir
+    return gra, can_gra, pri_dct, is_can_dir
 
 
 def _calculate_ts_stereo(
@@ -656,13 +642,13 @@ def _calculate_ts_stereo(
     )
 
     # 3. Determine which direction is canonical
-    is_can_dir_ts = is_canonical_direction(can_tsg, pri_dct, rcan_gra, rpri_dct)
-    if not is_can_dir_ts:
+    is_can_dir = is_canonical_direction(can_tsg, pri_dct, rcan_gra, rpri_dct)
+    if not is_can_dir:
         tsg = ts_reverse(rgra)
         can_tsg = ts_reverse(rcan_gra)
         pri_dct = rpri_dct
 
-    return tsg, can_tsg, pri_dct, is_can_dir_ts
+    return tsg, can_tsg, pri_dct, is_can_dir
 
 
 def _calculate_stereo_core(

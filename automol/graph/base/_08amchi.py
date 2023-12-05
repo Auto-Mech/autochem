@@ -89,10 +89,10 @@ def connected_amchi_with_indices(gra, stereo=True):
     gra = implicit(gra)
 
     # 1. Identify the canonical direction for TS graphs (`None` for non-TS graphs)
-    gra, is_rev = canonical_ts_direction(gra)
+    gra, is_can_dir = canonical_ts_direction(gra)
 
     # 2. Canonicalize and determine canonical enantiomer
-    gra, chi_idx_dct, is_refl = canonical_enantiomer_with_keys(gra, relabel=True)
+    gra, chi_idx_dct, is_can_enant = canonical_enantiomer_with_keys(gra, relabel=True)
 
     # 3. Generate the appropriate layers
     #   a. Formula string
@@ -103,14 +103,14 @@ def connected_amchi_with_indices(gra, stereo=True):
 
     #   b. Stereo layers (b, t, m, s)
     ste_lyr_dct = {"b": bond_stereo_layer(gra), "t": atom_stereo_layer(gra)}
-    if is_refl is not None:
-        ste_lyr_dct["m"] = "1" if is_refl else "0"
+    if is_can_enant is not None:
+        ste_lyr_dct["m"] = "0" if is_can_enant else "1"
         ste_lyr_dct["s"] = "1"
 
     #   c. TS layers (k, f, r)
     ts_lyr_dct = {"k": bond_breaking_layer(gra), "f": bond_forming_layer(gra)}
-    if is_rev is not None:
-        ts_lyr_dct["r"] = "1" if is_rev else "0"
+    if is_can_dir is not None:
+        ts_lyr_dct["r"] = "0" if is_can_dir else "1"
 
     # 4. Build the AMChI string
     chi = amchi_base.from_data(
