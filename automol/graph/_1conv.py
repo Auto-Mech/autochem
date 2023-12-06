@@ -354,8 +354,8 @@ def display(gra, stereo=True, label=False, label_dct=None):
 
     rdkit_.turn_3d_visualization_off()
     if is_ts_graph(gra):
-        rgra = ts.reactants_graph(gra)
-        pgra = ts.products_graph(gra)
+        rgra = ts.reactants_graph(gra, stereo=stereo)
+        pgra = ts.products_graph(gra, stereo=stereo)
         rwid = ipywidget(rgra, stereo=stereo, label=label, label_dct=label_dct)
         pwid = ipywidget(pgra, stereo=stereo, label=label, label_dct=label_dct)
         arrow_widget = ipywidgets.Image(
