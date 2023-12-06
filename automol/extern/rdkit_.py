@@ -504,10 +504,10 @@ def to_connectivity_graph(rdm):
 def to_svg_string(rdm, image_size=300):
     """Convert the RDKit molecule to an SVG string"""
     rdd = Draw.MolDraw2DSVG(image_size, image_size)
-    opts = rdd.drawOptions()
-    opts.maxFontSize = 80
-    opts.minFontSize = 30
-    opts.bondLineWidth = 4
+    # opts = rdd.drawOptions()
+    # opts.maxFontSize = 80
+    # opts.minFontSize = 30
+    # opts.bondLineWidth = 4
     rdd.DrawMolecule(rdm)
     rdd.FinishDrawing()
     svg_str = rdd.GetDrawingText()
@@ -521,10 +521,10 @@ def to_grid_svg_string(rdms, image_size=300):
         image_size * num, image_size // 2, image_size, image_size // 2
     )
     opts = rdd.drawOptions()
-    opts.maxFontSize = 80
-    opts.minFontSize = 30
-    opts.bondLineWidth = 7
-    # opts.padding = 0
+    # opts.maxFontSize = 80
+    # opts.minFontSize = 30
+    # opts.bondLineWidth = 7
+    opts.padding = 0
     rdd.DrawMolecules(list(rdms))
     rdd.FinishDrawing()
     svg_str = rdd.GetDrawingText()
@@ -535,11 +535,10 @@ def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
     """Convert the RdKit molecule object to a PNG image."""
     cdraw = Draw.rdMolDraw2D.MolDraw2DCairo(image_size, image_size)
     opts = cdraw.drawOptions()
-    opts.maxFontSize = 90
-    opts.minFontSize = 70
-    opts.bondLineWidth = 20
+    # opts.maxFontSize = 90
+    # opts.minFontSize = 70
+    # opts.bondLineWidth = 20
     opts.clearBackground = False
-    # s.setBackgroundColour = 'black'
     highlights = ()
     highlight_radii = {}
     highlight_colors = {}
