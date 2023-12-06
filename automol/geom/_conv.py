@@ -6,8 +6,6 @@ from typing import Dict, Optional
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
-from phydat import phycon
-
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
 from automol.geom import _molsym
@@ -30,6 +28,7 @@ from automol.graph import base as graph_base
 from automol.inchi import base as inchi_base
 from automol.util import ZmatConv, dict_, heuristic, vector, zmat_conv
 from automol.zmat import base as zmat_base
+from phydat import phycon
 
 
 # # conversions
@@ -219,7 +218,7 @@ def zmatrix_with_conversion_info(geo, gra=None, zc_: ZmatConv = None):
     return zma, zc_
 
 
-def update_zmatrix(geo, zma, zc_: Optional[ZmatConv]=None):
+def update_zmatrix(geo, zma, zc_: Optional[ZmatConv] = None):
     """Update a z-matrix from a geometry, optionally specifying the z-matrix conversion
 
     :param geo: The updated geometry
@@ -426,9 +425,6 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
         to atoms in the graph
     :rtype: (str, dict)
     """
-    geo_idx_dct = (
-        dict(enumerate(range(count(geo)))) if geo_idx_dct is None else geo_idx_dct
-    )
     gra = graph_base.without_dummy_atoms(gra)
     gra = graph_base.kekule(gra)
     atm_keys = sorted(graph_base.atom_keys(gra))
@@ -441,6 +437,9 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     bnd_ords = dict_.values_by_key(graph_base.bond_orders(gra), bnd_keys)
 
     if geo is not None:
+        geo_idx_dct = (
+            dict(enumerate(range(count(geo)))) if geo_idx_dct is None else geo_idx_dct
+        )
         atm_xyzs = coordinates(geo)
         atm_xyzs = [
             atm_xyzs[geo_idx_dct[atm_key]]

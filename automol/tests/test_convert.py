@@ -144,13 +144,20 @@ def test__geom__with_stereo():
         ref_geo = automol.chi.geometry(ref_ich)
         ref_chi = automol.geom.chi(ref_geo)
 
+        # Test ChI conversion
         print(ref_chi, flush=True)
         geo = automol.chi.geometry(ref_chi)
         chi = automol.geom.chi(geo)
         assert chi == ref_chi
-
         assert automol.geom.formula(geo) == automol.chi.formula(chi)
 
+        # Test z-matrix conversion
+        zma = automol.geom.zmatrix(ref_geo)
+        geo = automol.zmat.geometry(zma)
+        chi = automol.geom.chi(geo)
+        assert chi == ref_chi
+
+        # Test symmetry factor calculations
         sym_num = automol.geom.external_symmetry_factor(geo)
         print("symmetry number:", sym_num)
 
@@ -356,6 +363,13 @@ def test__graph__misc():
             frozenset({4, 6}): (1, None)})
     assert automol.graph.chi(gra) == "InChI=1S/C3H3/c1-3-2/h1H,2H2"
 
+    # EXTRA TEST CASE 5
+    ref_ich = 'InChI=1S/C4H6O2/c1-3-4(2,5-3)6-3/h1-2H3'
+    geo = automol.chi.geometry(ref_ich)
+    zma = automol.geom.zmatrix(geo)
+    geo = automol.zmat.geometry(zma)
+    ich = automol.geom.inchi(geo, stereo=False)
+    assert ich == ref_ich, f"{ich} != {ref_ich}"
 
 
 def test__inchi_geometry():
