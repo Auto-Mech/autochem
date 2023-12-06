@@ -531,8 +531,8 @@ def _extend_chain_to_include_terminal_hydrogens(gra, keys, start=True, end=True)
     symb_dct = atom_symbols(gra)
     nkeys_dct = atoms_neighbor_atom_keys(gra)
 
-    sta_nkeys = nkeys_dct[keys[0]] - {keys[1]}
-    end_nkeys = nkeys_dct[keys[-1]] - {keys[-2]}
+    sta_nkeys = nkeys_dct[keys[0]] - set(keys)
+    end_nkeys = nkeys_dct[keys[-1]] - set(keys)
 
     sta_nkey = min((k for k in sta_nkeys if symb_dct[k] == "H"), default=None)
     end_nkey = min((k for k in end_nkeys if symb_dct[k] == "H"), default=None)
