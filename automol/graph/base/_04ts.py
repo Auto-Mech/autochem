@@ -26,7 +26,10 @@ from automol.graph.base._02algo import (
     rings_bond_keys,
     sorted_ring_atom_keys_from_bond_keys,
 )
-from automol.graph.base._03kekule import rigid_planar_bond_keys, vinyl_radical_atom_keys
+from automol.graph.base._03kekule import (
+    rigid_planar_bond_keys,
+    vinyl_radical_atom_bond_keys,
+)
 
 
 def is_bimolecular(tsg) -> bool:
@@ -373,40 +376,36 @@ def vinyl_addition_local_parities(loc_tsg) -> Dict[frozenset, bool]:
     :return: The local parities of bonds subject to the constraint
     :rtype: Dict[frozenset, bool]
     """
-    bkeys = bond_stereo_keys(loc_tsg)
+    ste_bkeys = bond_stereo_keys(loc_tsg)
     loc_par_dct = util.dict_.filter_by_value(
         stereo_parities(loc_tsg), lambda x: x is not None
     )
     loc_pri_dct = local_stereo_priorities(loc_tsg)
 
     gra = ts_reagents_graph_without_stereo(loc_tsg, prod=False)
-    vin_keys = vinyl_radical_atom_keys(gra)
+    vin_dct = vinyl_radical_atom_bond_keys(gra)
 
     par_dct = {}
-    # Identify stereogenic bonds with vinyl radical atoms
-    bkeys = [bk for bk in bkeys if bk & vin_keys]
-    for bkey in bkeys:
-        par = loc_par_dct[bkey]
 
-        # Get sorted neighbors for both atoms
-        akeys = sorted(bkey)
-        tnkeys_pair = bond_stereo_sorted_neighbor_keys(
-            loc_tsg, *akeys, pri_dct=loc_pri_dct
-        )
-        gnkeys_pair = bond_stereo_sorted_neighbor_keys(gra, *akeys, pri_dct=loc_pri_dct)
-        for akey, tnkeys, gnkeys in zip(akeys, tnkeys_pair, gnkeys_pair):
-            # Compare sorted neighbors for mismatch
-            if gnkeys and tnkeys != gnkeys:
-                assert akey in vin_keys, (
-                    f"Neighbor mismatch at {akey} is not due to "
-                    f"vinyl addition:\n{loc_tsg}"
-                )
-                # If the maximum priority neighbors don't match, flip
-                # the parity
-                if tnkeys[-1] != gnkeys[-1]:
-                    # Flip the parity
-                    par = not par
+    for vin_akey, vin_bkey in vin_dct.items():
+        if vin_bkey in ste_bkeys:
+            par = loc_par_dct[vin_bkey]
 
-                    par_dct[bkey] = par
+            (vin_nkey,) = vin_bkey - {vin_akey}
+
+            nkeys_ts, _ = bond_stereo_sorted_neighbor_keys(
+                loc_tsg, vin_akey, vin_nkey, pri_dct=loc_pri_dct
+            )
+            nkeys_r, _ = bond_stereo_sorted_neighbor_keys(
+                gra, vin_akey, vin_nkey, pri_dct=loc_pri_dct
+            )
+
+            # If the maximum priority neighbors don't match, flip
+            # the parity
+            if nkeys_r and nkeys_r[-1] != nkeys_ts[-1]:
+                # Flip the parity
+                par = not par
+
+                par_dct[vin_bkey] = par
 
     return par_dct

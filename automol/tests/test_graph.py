@@ -1677,4 +1677,5 @@ if __name__ == '__main__':
     # test__kekules()
     # test__stereo_corrected_geometry()
     # test__embed__clean_geometry()
-    test__rotational_coordinates()
+    # test__rotational_coordinates()
+    test__stereo_corrected_geometry()
