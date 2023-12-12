@@ -1349,6 +1349,49 @@ def tetrahedral_atom_keys(gra):
     return frozenset(tet_atm_keys)
 
 
+def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing atom transfers; keys are transferring atoms, values
+    are donors and acceptors, respectively
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A list of triples containing the donor atom, the transferring atom, and
+        the acceptor atom, respectively
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    brk_bkeys = ts_breaking_bond_keys(tsg)
+    frm_bkeys = ts_forming_bond_keys(tsg)
+
+    tra_dct = {}
+    for brk_bkey, frm_bkey in itertools.product(brk_bkeys, frm_bkeys):
+        if brk_bkey & frm_bkey:
+            (tra_key,) = brk_bkey & frm_bkey
+            (don_key,) = brk_bkey - frm_bkey
+            (acc_key,) = frm_bkey - brk_bkey
+            tra_dct[tra_key] = (don_key, acc_key)
+
+    return tra_dct
+
+
+def sn2_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing atom transfers for Sn2 reactions; keys are the
+    transferring atoms, values are the donors and acceptors, respectively
+
+    Identifies transferring atoms that are tetrahedral
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A list of triples containing the donor atom, the transferring atom, and
+        the acceptor atom, respectively
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    tra_dct = atom_transfers(tsg)
+    tra_keys = set(tra_dct.keys())
+    tet_keys = tetrahedral_atom_keys(tsg)
+    sn2_keys = tra_keys & tet_keys
+    return util.dict_.by_key(tra_dct, sn2_keys)
+
+
 def maximum_spin_multiplicity(gra, bond_order=True):
     """The highest possible spin multiplicity for this molecular graph
 
@@ -2466,23 +2509,18 @@ def atom_stereo_sorted_neighbor_keys(gra, key, self_apex=False, pri_dct=None):
     gra = without_dummy_atoms(gra)
     pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
-    nkeys = atom_neighbor_atom_keys(gra, key, ts_=True)
-    nkeys_no_brk = atom_neighbor_atom_keys(gra, key, ts_=False)
-    nlps = atom_lone_pairs(gra)[key]
-    # For Sn2 reactions, don't include the breaking bond key
-    valence = len(nkeys) + nlps
-    if valence > 4:
-        assert valence == 5 and len(nkeys_no_brk) == len(nkeys) - 1, (
-            f"Unanticipated valence {valence} at key {key} is not resoved by "
-            f"dropping breaking bonds:\n{gra}"
-        )
-        nkeys = nkeys_no_brk
+    # If this is an Sn2 stereocenter, use the reactants graph
+    if key in sn2_atom_transfers(gra):
+        gra = ts_reagents_graph_without_stereo(gra)
+
+    # Get the neighboring atom keys
+    nkeys = atom_neighbor_atom_keys(gra, key)
 
     # Sort them by priority
     nkeys = sorted(nkeys, key=pri_dct.__getitem__)
 
-    # If there are only three groups, use the stereo atom itself as
-    # the top apex of the tetrahedron.
+    # Optionally, if there are only three groups, use the stereo atom itself as
+    # the top apex of the tetrahedron
     if self_apex and len(nkeys) < 4:
         assert len(nkeys) == 3
         nkeys = [key] + list(nkeys)
@@ -2508,27 +2546,43 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
     gra = without_dummy_atoms(gra)
     pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
-    keys = {key1, key2}
-    gra_no_rxbs = without_bonds_by_orders(gra, [0.1, 0.9])
+    if is_ts_graph(gra):
+        gras = [
+            ts_reagents_graph_without_stereo(gra, prod=False),
+            ts_reagents_graph_without_stereo(gra, prod=True),
+        ]
+    else:
+        gras = [gra]
 
-    def _neighbor_keys(key):
-        nkeys = atom_neighbor_atom_keys(gra, key) - keys
-        nkeys_no_rbs = atom_neighbor_atom_keys(gra_no_rxbs, key) - keys
-        nlps = atom_lone_pairs(gra)[key]
-        # Deal with cases of the form VC(W)=C(X)Y + Z <=> V[C](W)C(X)(Y)Z
-        valence = len(nkeys) + nlps
-        if valence > 2:
-            if valence != 3 or len(nkeys_no_rbs) != len(nkeys) - 1:
-                warnings.warn(
-                    f"Unusual neighbor configuration at key {key} may result in "
-                    f"incorrect bond stereochemistry handling for this graph:\n{gra}"
-                )
-            nkeys = nkeys_no_rbs
-        # Sort them by priority
-        nkeys = sorted(nkeys, key=pri_dct.__getitem__)
-        return tuple(nkeys)
+    nkeys1 = set()
+    nkeys2 = set()
+    # For TS graphs, loop over reactants and products
+    for gra_ in gras:
+        # Check that the bond is rigid and planar on this side of the reaction, by
+        # checking for a tetrahedral atom
+        tet_keys = tetrahedral_atom_keys(gra_)
+        if key1 not in tet_keys and key2 not in tet_keys:
+            # Add these neighboring keys to the list
+            nkeys1_, nkeys2_ = bond_neighbor_atom_keys(gra_, key1, key2)
+            nkeys1.update(nkeys1_)
+            nkeys2.update(nkeys2_)
 
-    return (_neighbor_keys(key1), _neighbor_keys(key2))
+    # Check that we don't have more than two neighbors on either side
+    if len(nkeys1) > 2 or len(nkeys2) > 2:
+        warnings.warn(
+            f"Unusual neighbor configuration at bond {key1}-{key2} may result in "
+            f"incorrect bond stereochemistry handling for this graph:\n{gra}"
+        )
+
+        # Temporary patch for misidentified substitutions at double bonds, which are
+        # really two-step addition-eliminations
+        gra_ = without_bonds_by_orders(gra, [0.1, 0.9])
+        nkeys1, nkeys2 = bond_neighbor_atom_keys(gra_, key1, key2)
+
+    nkeys1 = tuple(sorted(nkeys1, key=pri_dct.__getitem__))
+    nkeys2 = tuple(sorted(nkeys2, key=pri_dct.__getitem__))
+
+    return (nkeys1, nkeys2)
 
 
 def atoms_neighbor_atom_keys(gra, ts_=True):
@@ -2888,44 +2942,94 @@ def dummy_source_dict(
     return src_dct
 
 
-def bonds_neighbor_atom_keys(gra, ts_=True):
-    """Get the keys of each bond's neighboring atoms, as a dictionary
+def bond_neighbor_atom_keys(
+    gra, key1: int, key2: int, ts_: bool = True
+) -> (frozenset, frozenset):
+    """Get the neighboring atom keys of the two atoms in a bond
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param key1: The first atom in the bond
+    :type key1: int
+    :param key2: The second atom in the bond
+    :type key2: int
+    :param ts_: If this is a TS graph, treat it as such?
+    :type ts_: bool
+    :returns: The neighbors of the two atoms, in order
+    :rtype: (frozenset, frozenset)
+    """
+    nkeys1 = atom_neighbor_atom_keys(gra, key1, ts_=ts_) - {key2}
+    nkeys2 = atom_neighbor_atom_keys(gra, key2, ts_=ts_) - {key1}
+    return (nkeys1, nkeys2)
+
+
+def bond_neighbor_bond_keys(
+    gra, key1: int, key2: int, ts_: bool = True
+) -> (frozenset, frozenset):
+    """Get the neighboring bond keys of the two atoms in a bond
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param key1: The first atom in the bond
+    :type key1: int
+    :param key2: The second atom in the bond
+    :type key2: int
+    :param ts_: If this is a TS graph, treat it as such?
+    :type ts_: bool
+    :returns: The neighboring bond keys of the two atoms, in order
+    :rtype: (frozenset, frozenset)
+    """
+    bkey = frozenset({key1, key2})
+    bkeys1 = atom_bond_keys(gra, key1, ts_=ts_) - {bkey}
+    bkeys2 = atom_bond_keys(gra, key2, ts_=ts_) - {bkey}
+    return (bkeys1, bkeys2)
+
+
+def bonds_neighbor_atom_keys(gra, group: bool=True, ts_: bool=True):
+    """Get the keys of each bond's neighboring atoms, as a dictionary
+
+    If requesting to group the neighbors by atom key, the groups will be sorted in the
+    sort order of the atom keys, but the bond keys will still be unordered sets.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param group: Group the neighbors by atom key?
+    :type group: bool, optional
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
     :returns: Neighboring atom keys by bond, as a dictionary
     :rtype: dict[frozenset: frozenset]
     """
+    bnd_nkeys_dct = {}
 
-    def _neighbor_keys(bnd_key, bnd_nbh):
-        return frozenset(atom_keys(bnd_nbh) - bnd_key)
+    for bkey in bond_keys(gra, ts_=ts_):
+        key1, key2 = sorted(bkey)
+        nkeys1, nkeys2  = bond_neighbor_atom_keys(gra, key1, key2, ts_=ts_)
+        bnd_nkeys_dct[bkey] = (nkeys1, nkeys2) if group else nkeys1 | nkeys2
 
-    bnd_ngb_keys_dct = dict_.transform_items_to_values(
-        bond_neighborhoods(gra, ts_=ts_), _neighbor_keys
-    )
-    return bnd_ngb_keys_dct
+    return bnd_nkeys_dct
 
 
-def bonds_neighbor_bond_keys(gra, ts_=True):
-    """Get the keys of each bond's neighboring bonds, as a dictionary
+def bonds_neighbor_bond_keys(gra, group: bool=True, ts_: bool=True):
+    """Get the keys of each bond's neighboring atoms, as a dictionary
+
+    If requesting to group the neighbors by atom key, the groups will be sorted in the
+    sort order of each bond's atom keys, but the bond keys will still be unordered sets.
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param group: Group the neighbors by atom key?
+    :type group: bool, optional
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
     :returns: Neighboring bond keys by bond, as a dictionary
     :rtype: dict[frozenset: frozenset]
     """
+    bnd_bkeys_dct = {}
 
-    def _neighbor_keys(bnd_key, bnd_nbh):
-        bnd_keys = bond_keys(bnd_nbh)
-        bnd_keys -= {bnd_key}
-        bnd_keys = frozenset(key for key in bnd_keys if key & bnd_key)
-        return bnd_keys
+    for bkey in bond_keys(gra, ts_=ts_):
+        key1, key2 = sorted(bkey)
+        bkeys1, bkeys2  = bond_neighbor_bond_keys(gra, key1, key2, ts_=ts_)
+        bnd_bkeys_dct[bkey] = (bkeys1, bkeys2) if group else bkeys1 | bkeys2
 
-    bnd_ngb_keys_dct = dict_.transform_items_to_values(
-        bond_neighborhoods(gra, ts_=ts_), _neighbor_keys
-    )
-    return bnd_ngb_keys_dct
+    return bnd_bkeys_dct

@@ -136,6 +136,8 @@ from automol.graph.base._00core import atoms_sorted_neighbor_atom_keys
 from automol.graph.base._00core import atom_bond_keys
 from automol.graph.base._00core import atoms_bond_keys
 from automol.graph.base._00core import dummy_source_dict
+from automol.graph.base._00core import bond_neighbor_atom_keys
+from automol.graph.base._00core import bond_neighbor_bond_keys
 from automol.graph.base._00core import bonds_neighbor_atom_keys
 from automol.graph.base._00core import bonds_neighbor_bond_keys
 # algorithm functions:
@@ -456,6 +458,8 @@ __all__ = [
     'atom_bond_keys',
     'atoms_bond_keys',
     'dummy_source_dict',
+    'bond_neighbor_atom_keys',
+    'bond_neighbor_bond_keys',
     'bonds_neighbor_atom_keys',
     'bonds_neighbor_bond_keys',
     # algorithm functions:

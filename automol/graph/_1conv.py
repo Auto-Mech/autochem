@@ -17,6 +17,7 @@ from automol.graph.base import (
     bond_keys,
     connected_components,
     explicit,
+    geometry_correct_linear_vinyls,
     geometry_dihedrals_near_value,
     has_stereo,
     inchi_is_bad,
@@ -169,6 +170,8 @@ def _clean_and_validate_connected_geometry(
 
     if stereo and geo is not None:
         geo = stereo_corrected_geometry(gra, geo, local_stereo=local_stereo)
+
+    geo = geometry_correct_linear_vinyls(gra, geo)
 
     if not geometry_matches(gra, geo, stereo=stereo, local_stereo=True):
         geo = clean_geometry(gra, geo, stereo=stereo, local_stereo=True)

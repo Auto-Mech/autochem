@@ -451,7 +451,7 @@ def test__bonds_neighbor_atom_keys():
     """ test graph.bonds_neighbor_atom_keys
     """
 
-    assert graph.bonds_neighbor_atom_keys(C8H13O_CGR) == {
+    assert graph.bonds_neighbor_atom_keys(C8H13O_CGR, group=False) == {
         frozenset({1, 4}): frozenset({6}),
         frozenset({4, 6}): frozenset({1, 2, 7}),
         frozenset({2, 6}): frozenset({4, 7}),
@@ -460,6 +460,17 @@ def test__bonds_neighbor_atom_keys():
         frozenset({8, 7}): frozenset({5, 6}),
         frozenset({3, 5}): frozenset({0, 7}),
         frozenset({5, 7}): frozenset({8, 3, 6})
+    }
+
+    assert graph.bonds_neighbor_atom_keys(C8H13O_CGR, group=True) == {
+        frozenset({1, 4}): (frozenset(), frozenset({6})),
+        frozenset({4, 6}): (frozenset({1}), frozenset({2, 7})),
+        frozenset({2, 6}): (frozenset(), frozenset({4, 7})),
+        frozenset({0, 3}): (frozenset(), frozenset({5})),
+        frozenset({6, 7}): (frozenset({2, 4}), frozenset({8, 5})),
+        frozenset({7, 8}): (frozenset({5, 6}), frozenset()),
+        frozenset({3, 5}): (frozenset({0}), frozenset({7})),
+        frozenset({5, 7}): (frozenset({3}), frozenset({8, 6}))
     }
 
 

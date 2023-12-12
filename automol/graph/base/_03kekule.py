@@ -426,8 +426,8 @@ def vinyl_radical_atom_bond_keys(gra):
     """Vinyl radical atom keys for this molecular graph
 
     :param gra: the molecular graph
-    :returns: the vinyl radical atom keys
-    :rtype: frozenset[int]
+    :returns: The vinyl radical bond keys, by atom key
+    :rtype: Dict[int, frozenset[int]]
     """
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
     atm_rad_keys = nonresonant_radical_atom_keys(gra)

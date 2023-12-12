@@ -9,7 +9,6 @@ from collections import abc
 import more_itertools as mit
 import numpy
 from phydat import phycon
-
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
@@ -344,14 +343,12 @@ def geometry_correct_linear_vinyls(
     :param tol: tolerance of bond angle(s) for determing linearity
     :type tol: float
     """
-    atm_keys = atom_keys(gra)
-    bnakeys_dct = bonds_neighbor_atom_keys(gra)
-    bnbkeys_dct = bonds_neighbor_bond_keys(gra)
+    bnakeys_dct = bonds_neighbor_atom_keys(gra, group=False)
+    bnbkeys_dct = bonds_neighbor_bond_keys(gra, group=False)
 
+    akeys = sorted(atom_keys(gra))
     geo_idx_dct = (
-        geo_idx_dct
-        if geo_idx_dct is not None
-        else {k: i for i, k in enumerate(sorted(atm_keys))}
+        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
     )
 
     bnd_keys = rigid_planar_bond_keys(gra)
@@ -552,10 +549,9 @@ def geometry_dihedrals_near_value(
         if tol is None
         else (tol * phycon.DEG2RAD if degree else tol)
     )
+    atm_keys = sorted(atom_keys(gra))
     geo_idx_dct = (
-        geo_idx_dct
-        if geo_idx_dct is not None
-        else {k: i for i, k in enumerate(sorted(atom_keys(gra)))}
+        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
     )
 
     nkeys_dct = atoms_neighbor_atom_keys(gra)

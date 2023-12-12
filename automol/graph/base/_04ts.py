@@ -1,20 +1,21 @@
 """TS classification and other functions
 """
 import itertools
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from automol import util
 from automol.graph.base._00core import (
     atom_keys,
     atom_stereo_sorted_neighbor_keys,
+    atom_transfers,
     atoms_neighbor_atom_keys,
     bond_stereo_keys,
     bond_stereo_sorted_neighbor_keys,
     is_ts_graph,
     local_stereo_priorities,
+    sn2_atom_transfers,
     sort_by_size,
     stereo_parities,
-    tetrahedral_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reacting_bond_keys,
@@ -52,49 +53,6 @@ def has_reacting_ring(tsg) -> bool:
     :rtype: bool
     """
     return bool(forming_rings_atom_keys(tsg) or breaking_rings_atom_keys(tsg))
-
-
-def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
-    """Get a dictionary describing atom transfers; keys are transferring atoms, values
-    are donors and acceptors, respectively
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: A list of triples containing the donor atom, the transferring atom, and
-        the acceptor atom, respectively
-    :rtype: Dict[int, Tuple[int, int]]
-    """
-    brk_bkeys = ts_breaking_bond_keys(tsg)
-    frm_bkeys = ts_forming_bond_keys(tsg)
-
-    tra_dct = {}
-    for brk_bkey, frm_bkey in itertools.product(brk_bkeys, frm_bkeys):
-        if brk_bkey & frm_bkey:
-            (tra_key,) = brk_bkey & frm_bkey
-            (don_key,) = brk_bkey - frm_bkey
-            (acc_key,) = frm_bkey - brk_bkey
-            tra_dct[tra_key] = (don_key, acc_key)
-
-    return tra_dct
-
-
-def sn2_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
-    """Get a dictionary describing atom transfers for Sn2 reactions; keys are the
-    transferring atoms, values are the donors and acceptors, respectively
-
-    Identifies transferring atoms that are tetrahedral
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: A list of triples containing the donor atom, the transferring atom, and
-        the acceptor atom, respectively
-    :rtype: Dict[int, Tuple[int, int]]
-    """
-    tra_dct = atom_transfers(tsg)
-    tra_keys = set(tra_dct.keys())
-    tet_keys = tetrahedral_atom_keys(tsg)
-    sn2_keys = tra_keys & tet_keys
-    return util.dict_.by_key(tra_dct, sn2_keys)
 
 
 def zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
