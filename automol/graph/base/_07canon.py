@@ -230,15 +230,10 @@ def stereo_assignment_representation(gra, pri_dct):
         bond_stereo_keys(gra), key=lambda x: sorted(map(pri_dct.__getitem__, x))
     )
 
-    atm_pris = tuple([pri_dct[k]] for k in atm_keys)
-    bnd_pris = tuple(sorted(map(pri_dct.__getitem__, k)) for k in bnd_keys)
-
-    atm_pars = dict_.values_by_key(atom_stereo_parities(gra), atm_keys)
-    bnd_pars = dict_.values_by_key(bond_stereo_parities(gra), bnd_keys)
-
-    pris = atm_pris + bnd_pris
-    pars = atm_pars + bnd_pars
-    rep = tuple(zip(pris, pars))
+    rep = tuple(
+        dict_.values_by_key(atom_stereo_parities(gra), atm_keys)
+        + dict_.values_by_key(bond_stereo_parities(gra), bnd_keys)
+    )
     return rep
 
 
