@@ -469,14 +469,31 @@ def additions(rct_gras, prd_gras):
 
     rxns = []
 
+    sub_type = None
     if len(rct_gras) == 2 and len(prd_gras) == 1:
+        sub_type = 'intermolecular'
         rct_gras = sort_reagents(rct_gras)
         x_gra, y_gra = rct_gras
         prd_gra, = prd_gras
         x_atm_keys = unsaturated_atom_keys(x_gra)
         y_atm_keys = unsaturated_atom_keys(y_gra)
-
         frm_bnd_pairs = tuple(itertools.product(x_atm_keys, y_atm_keys))
+    elif len(rct_gras) == 1 and len(prd_gras) == 1:
+        sub_type = 'intramolecular'
+        x_gra, = rct_gras
+        y_gra = ({}, {})
+        prd_gra, = prd_gras
+        x_atm_keys = unsaturated_atom_keys(x_gra)
+        frm_bnd_pairs = tuple(itertools.product(x_atm_keys, x_atm_keys))
+        # remove bond to self
+        frm_bnd_pairs = tuple([
+            frm_bnd_pair for frm_bnd_pair in frm_bnd_pairs if (
+                frm_bnd_pair[0] != frm_bnd_pair[1])])
+        # remove existing bonds
+        frm_bnd_pairs = tuple([
+            frm_bnd_pair for frm_bnd_pair in frm_bnd_pairs if not (
+                frozenset(frm_bnd_pair) in bond_keys(x_gra))])
+    if sub_type is not None:
         for x_atm_key, y_atm_key in frm_bnd_pairs:
             xy_gra = add_bonds(
                 union(x_gra, y_gra), [{x_atm_key, y_atm_key}])
