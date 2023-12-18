@@ -63,6 +63,24 @@ def beta_scission_ts_zmatrix(rxn, ts_geo):
     :param rxn: a Reaction object
     :param ts_geo: a transition state geometry
     """
+    def _break_in_ring(rxn):
+        """if breaking bond is a part of a ring,
+           sort ring keys so that breaking bond is first, 
+           so that it is included as a zmatrix coordinate
+        """
+        rng_keys = None
+        brk_rngs_keys = ts.breaking_rings_atom_keys(
+            rxn.forward_ts_graph)
+        brk_bnd, = ts.breaking_bond_keys(rxn.forward_ts_graph)
+        if brk_rngs_keys:
+            for brk_rng_keys in brk_rngs_keys:
+                rng_keys = set(brk_rng_keys).intersection(brk_bnd)
+                if len(rng_keys) > 1:
+                    rng_keys = tuple(rng_keys) + tuple(
+                        set(brk_rng_keys).difference(brk_bnd))
+                    break
+        return rng_keys
+
     rxn = rxn.copy()
 
     # 1. Get keys to linear or near-linear atoms
@@ -77,7 +95,9 @@ def beta_scission_ts_zmatrix(rxn, ts_geo):
     rxn = add_dummy_atoms(rxn, dummy_key_dct)
 
     # 4. Generate a z-matrix for the geometry
-    vma, zma_keys = automol.graph.vmat.vmatrix(rxn.forward_ts_graph)
+    rng_keys = _break_in_ring(rxn)
+    vma, zma_keys = automol.graph.vmat.vmatrix(
+        rxn.forward_ts_graph, rng_keys=rng_keys)
 
     zma_geo = automol.geom.from_subset(geo, zma_keys)
     zma = automol.zmat.from_geometry(vma, zma_geo)
