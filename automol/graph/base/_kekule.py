@@ -106,9 +106,9 @@ def kekules_bond_orders(gra):
         :returns: bond orders for all possible low-spin kekule graphs
         :rtype: tuple[dict]
     """
+    gra = without_bond_orders(gra)
     orig_bnd_ord_dct = bond_orders(gra)
     gra = implicit(from_ts_graph(gra))
-    gra = without_bond_orders(gra)
 
     # identify all of the independent pi systems and assign kekules to each
     pi_keys_lst = pi_system_atom_keys(gra)

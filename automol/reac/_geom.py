@@ -29,7 +29,8 @@ def hydrogen_migration_ts_geometry(rxn, rct_geos,
     gra = ts.reactants_graph(rxn.forward_ts_graph)
     atm_symbs = automol.graph.atom_symbols(gra)
     h_idx, = frm_bnd_key - brk_bnd_key
-    equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
+    # equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
+    equiv_h = []  # equivalent hs are outdated with fleeting stereo
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(
         gra, dist_dct, angstrom=True, degree=True)
 
@@ -180,7 +181,8 @@ def elimination_ts_geometry(rxn, rct_geos,
     if [atm_idx for atm_idx in frm_bnd_key if atm_symbs[atm_idx] == 'H']:
         h_idx, = [atm_idx for atm_idx in frm_bnd_key
                   if atm_symbs[atm_idx] == 'H']
-        equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
+        # equiv_h = automol.graph.equivalent_atoms(gra, h_idx, stereo=True)
+        equiv_h = []  # equivalent hs are outdated with fleeting stereo
     else:
         equiv_h = []
     dist_range_dct = automol.graph.embed.distance_ranges_from_coordinates(

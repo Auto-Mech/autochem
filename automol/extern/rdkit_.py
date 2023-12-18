@@ -137,6 +137,16 @@ def to_geometry(rdm):
     return geo
 
 
+def canonicalize_geometry(rdm):
+    rdkit.Chem.rdMolTransforms.CanonicalizeMol(rdm)
+    atms = rdm.GetAtoms()
+    syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
+    xyzs = tuple(map(tuple, rdm.GetConformer(0).GetPositions()))
+    geo = automol.geom.base.from_data(syms, xyzs, angstrom=False)
+    return geo
+    #return rdm
+
+
 def to_conformers(rdm, nconfs):
     """ Generate molecular geometries for a set of conformers
         from am RDKit molecule object.
@@ -261,10 +271,8 @@ def from_graph(gra, stereo=False):
     assert keys == list(range(len(keys)))
     symb_dct = automol.graph.base.atom_symbols(kgr)
     rad_dct = automol.graph.base.atom_unsaturations(kgr, bond_order=True)
-
     bnd_keys = automol.graph.base.bond_keys(kgr)
     ord_dct = automol.graph.base.bond_orders(kgr)
-
     erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
         atm = rdkit.Chem.Atom(symb_dct[key])
@@ -292,7 +300,6 @@ def to_graph(rdm):
     bnds = rdm.GetBonds()
     sym_dct = {rda.GetIdx(): rda.GetSymbol() for rda in atms}
     hyd_dct = {rda.GetIdx(): rda.GetImplicitValence() for rda in atms}
-    print(hyd_dct)
     ord_dct = {(rdb.GetBeginAtomIdx(), rdb.GetEndAtomIdx()):
                BOND_TYPE_DCT[rdb.GetBondType()]
                for rdb in bnds}
@@ -351,9 +358,9 @@ def draw(rdm, filename=None, highlight_radicals=False, image_size=600):
         highlightAtomColors=highlight_colors)
     opts.includeRadicals = False
     cdraw.FinishDrawing()
-    draw_out = draw.GetDrawingText()
+    draw_out = cdraw.GetDrawingText()
     if filename:
-        draw.WriteDrawingText(filename)
+        cdraw.WriteDrawingText(filename)
     return draw_out
 
 
