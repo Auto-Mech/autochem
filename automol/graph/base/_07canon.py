@@ -262,9 +262,7 @@ def ts_direction_representation(tsg, pri_dct):
         sorted(sorted(map(pri_dct.__getitem__, k)) for k in frm_keys),
         sorted(sorted(map(pri_dct.__getitem__, k)) for k in brk_keys),
     )
-    # Rep value 3: Stereochemistry
-    ste_rep = stereo_assignment_representation(tsg, pri_dct)
-    rep = (rxn_rep1, rxn_rep2, ste_rep)
+    rep = (rxn_rep1, rxn_rep2)
     return rep
 
 
@@ -302,15 +300,9 @@ def is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
     :type rpri_dct: dict
     :returns: A canonical representation of the TS reaction
     """
-    ftsg = implicit(ftsg)
-    fpri_dct = dict_.by_key(fpri_dct, atom_keys(ftsg))
     frep = ts_direction_representation(ftsg, fpri_dct)
-
-    rtsg = implicit(rtsg)
-    rpri_dct = dict_.by_key(rpri_dct, atom_keys(rtsg))
     rrep = ts_direction_representation(rtsg, rpri_dct)
-
-    return frep <= rrep
+    return True if (frep < rrep) else False if (frep > rrep) else None
 
 
 # # canonical stereo functions
@@ -631,16 +623,16 @@ def _calculate_ts_stereo(
     )
 
     # 2. Rerun the core stereo calculation algorithm in the reverse TS direction
-    rgra = ts_reverse(tsg0)
-    rgra, rcan_gra, rpri_dct = _calculate_stereo_core(
-        rgra, par_eval_, can_par_eval_, pri_dct=pri_dct0, is_rev_ts=True
+    rtsg = ts_reverse(tsg0)
+    rtsg, rcan_tsg, rpri_dct = _calculate_stereo_core(
+        rtsg, par_eval_, can_par_eval_, pri_dct=pri_dct0, is_rev_ts=True
     )
 
     # 3. Determine which direction is canonical
-    is_can_dir = is_canonical_direction(can_tsg, pri_dct, rcan_gra, rpri_dct)
-    if not is_can_dir:
-        tsg = ts_reverse(rgra)
-        can_tsg = ts_reverse(rcan_gra)
+    is_can_dir = is_canonical_direction(can_tsg, pri_dct, rcan_tsg, rpri_dct)
+    if is_can_dir is False:
+        tsg = ts_reverse(rtsg)
+        can_tsg = ts_reverse(rcan_tsg)
         pri_dct = rpri_dct
 
     return tsg, can_tsg, pri_dct, is_can_dir

@@ -600,6 +600,7 @@ def set_bond_orders(gra, bnd_ord_dct):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
+    bnd_ord_dct = dict_.transform_keys(bnd_ord_dct, frozenset)
     bnd_dct = dict_.multi.set_by_key_by_position(bonds(gra), bnd_ord_dct, BND_ORD_POS)
     return from_atoms_and_bonds(atoms(gra), bnd_dct)
 
@@ -649,6 +650,7 @@ def set_bond_stereo_parities(gra, bnd_par_dct):
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
+    bnd_par_dct = dict_.transform_keys(bnd_par_dct, frozenset)
     bnd_dct = dict_.multi.set_by_key_by_position(
         bonds(gra), bnd_par_dct, BND_STE_PAR_POS
     )

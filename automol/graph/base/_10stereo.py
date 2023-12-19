@@ -12,10 +12,12 @@ from automol.graph.base._00core import (
     bond_stereo_keys,
     frozen,
     has_stereo,
+    is_ts_graph,
     relabel,
     set_stereo_parities,
     stereo_parities,
     ts_reagents_graph_without_stereo,
+    ts_reverse,
     without_stereo,
 )
 from automol.graph.base._06geom import (
@@ -28,6 +30,7 @@ from automol.graph.base._06geom import (
 )
 from automol.graph.base._07canon import (
     calculate_stereo,
+    is_canonical_direction,
     is_canonical_enantiomer,
     parity_evaluator_reagents_from_ts_,
     refine_priorities,
@@ -53,11 +56,11 @@ def expand_stereo(gra, symeq=False, enant=True):
     # 1. Run the core stereo expansion algorithm
     gps = _expand_stereo_core(gra)
 
-    # 2. If requested, filter out non-canonical enantiomers
+    # 3. If requested, filter out non-canonical enantiomers
     if not enant:
         gps = _remove_noncanonical_enantiomers_from_expansion(gps)
 
-    # 3. If requested, filter out symmetry equivalents
+    # 4. If requested, filter out symmetry equivalents
     if not symeq:
         gps = _remove_symmetry_equivalents_from_expansion(gps)
 
@@ -71,36 +74,53 @@ def _expand_stereo_core(gra):
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param symeq: Include symmetrically equivalent stereoisomers?
-    :type symeq: bool
-    :param enant: Include all enantiomers, or only canonical ones?
-    :type enant: bool
+    :param dir: If this is a TS graph, get priorities for the canonical direction?
+    :type dir: bool, optional
     :returns: a series of molecular graphs for the stereoisomers
     """
+    ts_ = is_ts_graph(gra)
 
     bools = (False, True)
 
     gra0 = without_stereo(gra)
-    gps0 = None
-    gps = [(gra0, None)]
+    gprs0 = None
+    gprs = [(gra0, None, None)]
 
     # 1. Expand all possible stereoisomers, along with their priority mappings
-    while gps0 != gps:
-        gps0 = gps
-        gps = []
+    while gprs0 != gprs:
+        gprs0 = gprs
+        gprs = []
 
-        for gra1, pri_dct in gps0:
+        for gra0, pri_dct0, rpri_dct0 in gprs0:
             # a. Refine priorities based on current assignments
-            pri_dct = refine_priorities(gra1, pri_dct=pri_dct)
+            pri_dct = refine_priorities(gra0, pri_dct=pri_dct0)
+            rpri_dct = (
+                refine_priorities(ts_reverse(gra0), pri_dct=rpri_dct0) if ts_ else None
+            )
 
             # c. Find stereogenic atoms and bonds based on current priorities
-            keys = stereogenic_keys_from_priorities(gra1, pri_dct)
+            keys = stereogenic_keys_from_priorities(gra0, pri_dct)
 
             # d. Assign True/False parities in all possible ways
             for pars in itertools.product(bools, repeat=len(keys)):
-                gra2 = set_stereo_parities(gra1, dict(zip(keys, pars)))
-                gps.append((gra2, pri_dct))
+                gra = set_stereo_parities(gra0, dict(zip(keys, pars)))
+                gprs.append((gra, pri_dct, rpri_dct))
 
+    if ts_:
+        gps = _select_ts_canonical_direction_priorities(gprs)
+    else:
+        gps = [(g, p) for g, p, _ in gprs]
+
+    return gps
+
+
+def _select_ts_canonical_direction_priorities(gprs):
+    """Select select priorities for the canonical directions of each TS"""
+    gps = []
+    for ts_gra, pri_dct, rpri_dct in gprs:
+        ts_rgra = ts_reverse(ts_gra)
+        is_can_dir = is_canonical_direction(ts_gra, pri_dct, ts_rgra, rpri_dct)
+        gps.append((ts_gra, pri_dct if is_can_dir else rpri_dct))
     return gps
 
 
@@ -141,7 +161,7 @@ def _remove_symmetry_equivalents_from_expansion(gps):
 
 # # TS functions
 def expand_reaction_stereo(ts_gra, flat: bool = False):
-    """Obtain all possible stereoisomeric channels of a reaction, grouped by reactants
+    """Obtain all possible stereoisomeric pathways of a reaction, grouped by reactants
     and products (unless requesting `flat` expansion)
 
     :param ts_gra: TS graph
