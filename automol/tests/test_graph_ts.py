@@ -393,8 +393,8 @@ def test__set_stereo_from_geometry():
         rtsg = graph.ts_reverse(ftsg)
         assert ftsg != rtsg
         # Check that they have the same stereogenic keys
-        fste_keys = graph.stereogenic_keys(ftsg)
-        rste_keys = graph.stereogenic_keys(rtsg)
+        fste_keys = graph.unassigned_stereocenter_keys(ftsg)
+        rste_keys = graph.unassigned_stereocenter_keys(rtsg)
         print(fste_keys)
         print(rste_keys)
         assert len(fste_keys) == len(rste_keys) == npars1

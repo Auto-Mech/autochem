@@ -1,8 +1,8 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
 import numbers
-from automol import error, geom
-from automol import graph as graph_
+
+from automol import error, geom, graph as graph_
 from automol.amchi.base import (
     atom_stereo_parities,
     bond_stereo_parities,
@@ -303,17 +303,12 @@ def is_complete(chi):
     :type chi: str
     :rtype: bool
     """
-
     gra = graph(chi, stereo=False)
-    ste_atm_keys = graph_.stereogenic_atom_keys(gra)
-    ste_bnd_keys = graph_.stereogenic_bond_keys(gra)
-    graph_has_stereo = bool(ste_atm_keys or ste_bnd_keys)
+    is_missing_stereo = bool(graph_.unassigned_stereocenter_keys(gra))
 
-    _complete = equivalent(chi, standard_form(chi)) and not (
-        has_stereo(chi) ^ graph_has_stereo
+    return equivalent(chi, standard_form(chi)) and not (
+        has_stereo(chi) ^ is_missing_stereo
     )
-
-    return _complete
 
 
 def is_valid_multiplicity(chi, mul):

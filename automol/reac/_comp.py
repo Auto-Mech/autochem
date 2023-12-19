@@ -125,7 +125,7 @@ def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):
 def _check_stereo_parities(zma, ref_zma, zrxn):
     """make sure stereo is consistent with ref_zma"""
     gra = graph.without_stereo(ts_graph(zrxn))
-    ste_keys = graph.stereogenic_bond_keys(gra)
+    ste_keys = graph.unassigned_stereocenter_keys(gra, atom=False)
     geo = zmat.geometry(zma, dummy=True)
     ref_geo = zmat.geometry(ref_zma, dummy=True)
 

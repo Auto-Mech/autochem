@@ -306,76 +306,32 @@ def is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
 
 
 # # canonical stereo functions
-def stereogenic_atom_keys(gra, pri_dct=None, assigned=False):
-    """Find stereogenic atoms in this graph.
-
-    If the `assigned` flag is set to `False`, only  unassigned stereogenic
-    atoms will be detected.
+def unassigned_stereocenter_keys(
+    gra,
+    atom: bool = True,
+    bond: bool = True,
+    pri_dct: Optional[Dict[int, int]] = None,
+):
+    """Find keys to unassigned stereocenters in this graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param atom: Include atom stereocenters? defaults to True
+    :type atom: bool, optional
+    :param bond: Include bond stereocenters? defaults to True
+    :type bond: bool, optional
     :param pri_dct: priorities, to avoid recalculating
-    :type pri_dct: dict[int: int]
-    :param assigned: Include atoms that already have stereo assignments?
-    :param assigned: bool
-    :returns: the stereogenic atom keys
+    :type pri_dct: Optional[Dict[int, int]]
+    :returns: Keys to stereogenic atoms and bonds which are unassigned
     :rtype: frozenset
     """
     gra = without_dummy_atoms(gra)
     pri_dct = (
         canonical_priorities(gra, backbone_only=False) if pri_dct is None else pri_dct
     )
-    ste_atm_keys = stereogenic_atom_keys_from_priorities(
-        gra, pri_dct=pri_dct, assigned=assigned
+    ste_keys = stereocenter_keys_from_priorities(
+        gra, pri_dct, atom=atom, bond=bond, new=True
     )
-    return ste_atm_keys
-
-
-def stereogenic_bond_keys(gra, pri_dct=None, assigned=False):
-    """Find stereogenic bonds in this graph.
-
-    If the `assigned` flag is set to `False`, only  unassigned stereogenic
-    bonds will be detected.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param pri_dct: priorities, to avoid recalculating
-    :type pri_dct: dict[int: int]
-    :param assigned: Include bonds that already have stereo assignments?
-    :param assigned: bool
-    :returns: the stereogenic bond keys
-    :rtype: frozenset
-    """
-    gra = without_dummy_atoms(gra)
-    pri_dct = (
-        canonical_priorities(gra, backbone_only=False) if pri_dct is None else pri_dct
-    )
-    ste_bnd_keys = stereogenic_bond_keys_from_priorities(
-        gra, pri_dct=pri_dct, assigned=assigned
-    )
-    return ste_bnd_keys
-
-
-def stereogenic_keys(gra, pri_dct=None, assigned=False):
-    """Find stereogenic atoms and bonds in this graph.
-
-    If the `assigned` flag is set to `False`, only  unassigned stereogenic
-    atoms will be detected.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param pri_dct: priorities, to avoid recalculating
-    :type pri_dct: dict[int: int]
-    :param assigned: Include atoms/bonds that already have assignments?
-    :param assigned: bool
-    :returns: keys to stereogenic atoms and bonds
-    :rtype: frozenset
-    """
-    gra = without_dummy_atoms(gra)
-    pri_dct = (
-        canonical_priorities(gra, backbone_only=False) if pri_dct is None else pri_dct
-    )
-    ste_keys = stereogenic_keys_from_priorities(gra, pri_dct, assigned=assigned)
     return ste_keys
 
 
@@ -679,7 +635,7 @@ def _calculate_stereo_core(
         pri_dct = refine_priorities(can_gra, pri_dct)
 
         # b. Find stereogenic atoms and bonds based on current priorities
-        keys = stereogenic_keys_from_priorities(can_gra, pri_dct)
+        keys = stereocenter_keys_from_priorities(can_gra, pri_dct, new=True)
 
         # c. If there are none, the calculation is complete. Exit the loop.
         if not keys:
@@ -1310,44 +1266,50 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
 
 
 # # core algorithm helpers
-def stereogenic_keys_from_priorities(gra, pri_dct, assigned=False):
+def stereocenter_keys_from_priorities(
+    gra, pri_dct: Dict[int, int], atom: bool = True, bond: bool = True, new: bool=True
+):
     """Find stereogenic atoms and bonds in this graph, given a set of atom
     priority values
 
-    If the `assigned` flag is set to `False`, only  unassigned stereogenic
-    bonds will be detected.
+    If `new` flag is set to `True`, only unassigned stereocenters will be detected
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param pri_dct: priorities, to avoid recalculating
-    :type pri_dct: dict[int: int]
-    :param assigned: Include bonds that already have stereo assignments?
-    :param assigned: bool
+    :type pri_dct: Dict[int, int]
+    :param atom: Include atom stereocenters? defaults to True
+    :type atom: bool, optional
+    :param bond: Include bond stereocenters? defaults to True
+    :type bond: bool, optional
+    :param new: Detect only new, unassigned stereocenters?
+    :type new: bool, optional
     :returns: the stereogenic atom and bond keys
     :rtype: frozenset
     """
-    ste_atm_keys = stereogenic_atom_keys_from_priorities(
-        gra, pri_dct, assigned=assigned
-    )
-    ste_bnd_keys = stereogenic_bond_keys_from_priorities(
-        gra, pri_dct, assigned=assigned
-    )
-    return ste_atm_keys | ste_bnd_keys
+    ste_keys = frozenset()
+
+    if atom:
+        ste_keys |= _stereoatom_keys_from_priorities(
+            gra, pri_dct, new=new
+        )
+
+    if bond:
+        ste_keys |= _stereobond_keys_from_priorities(
+            gra, pri_dct, new=new
+        )
+    return ste_keys
 
 
-def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
-    """Find stereogenic atoms in this graph, given a set of atom priority
-    values
-
-    If the `assigned` flag is set to `False`, only  unassigned stereogenic
-    atoms will be detected.
+def _stereoatom_keys_from_priorities(gra, pri_dct, new: bool=True):
+    """Find stereogenic atoms in this graph, given a set of atom priority values
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param pri_dct: priorities, to avoid recalculating
     :type pri_dct: dict[int: int]
-    :param assigned: Include atoms that already have stereo assignments?
-    :type assigned: bool
+    :param new: Detect only new, unassigned stereocenters?
+    :type new: bool, optional
     :returns: the stereogenic atom keys
     :rtype: frozenset[int]
     """
@@ -1356,7 +1318,7 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
     pri_dct = reassign_hydrogen_priorities(gra, pri_dct)
 
     atm_keys = tetrahedral_atom_keys(gra)
-    if not assigned:
+    if new:
         # Remove assigned stereo keys
         atm_keys -= atom_stereo_keys(gra)
 
@@ -1370,19 +1332,15 @@ def stereogenic_atom_keys_from_priorities(gra, pri_dct, assigned=False):
     return ste_atm_keys
 
 
-def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
-    """Find stereogenic bonds in this graph, given a set of atom priority
-    values
-
-    If the `assigned` flag is set to `False`, only  unassigned stereogenic
-    bonds will be detected.
+def _stereobond_keys_from_priorities(gra, pri_dct, new: bool=True):
+    """Find stereogenic bonds in this graph, given a set of atom priority values
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param pri_dct: priorities, to avoid recalculating
     :type pri_dct: dict[int: int]
-    :param assigned: Include bonds that already have stereo assignments?
-    :param assigned: bool
+    :param new: Detect only new, unassigned stereocenters?
+    :type new: bool, optional
     :returns: the stereogenic bond keys
     :rtype: frozenset[frozenset[int]]
     """
@@ -1391,7 +1349,7 @@ def stereogenic_bond_keys_from_priorities(gra, pri_dct, assigned=False):
     pri_dct = reassign_hydrogen_priorities(gra, pri_dct)
 
     bnd_keys = rigid_planar_bond_keys(gra)
-    if not assigned:
+    if new:
         # Remove assigned stereo keys
         bnd_keys -= bond_stereo_keys(gra)
 

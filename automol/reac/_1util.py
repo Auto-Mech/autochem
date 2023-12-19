@@ -224,7 +224,7 @@ def _have_no_common_atom_keys(gras):
 
 def _have_no_partial_stereo(gras):
     if any(map(graph.has_stereo, gras)):
-        ret = not any(map(graph.stereogenic_keys, gras))
+        ret = not any(map(graph.unassigned_stereocenter_keys, gras))
     else:
         ret = True
     return ret

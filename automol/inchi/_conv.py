@@ -163,17 +163,12 @@ def is_complete(ich):
     :type ich: str
     :rtype: bool
     """
-
     gra = graph(ich, stereo=False)
-    ste_atm_keys = graph_.stereogenic_atom_keys(gra)
-    ste_bnd_keys = graph_.stereogenic_bond_keys(gra)
-    graph_has_stereo = bool(ste_atm_keys or ste_bnd_keys)
+    is_missing_stereo = bool(graph_.unassigned_stereocenter_keys(gra))
 
-    _complete = equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ graph_has_stereo
+    return equivalent(ich, standard_form(ich)) and not (
+        has_stereo(ich) ^ is_missing_stereo
     )
-
-    return _complete
 
 
 def is_bad(ich, gra=None):

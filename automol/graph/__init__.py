@@ -248,11 +248,8 @@ from automol.graph.base._07canon import canonical_ts_direction
 from automol.graph.base._07canon import canonical
 from automol.graph.base._07canon import canonical_keys
 # # canonical stereo functions
-from automol.graph.base._07canon import stereogenic_atom_keys
-from automol.graph.base._07canon import stereogenic_bond_keys
-from automol.graph.base._07canon import stereogenic_keys
-from automol.graph.base._07canon import stereogenic_atom_keys_from_priorities
-from automol.graph.base._07canon import stereogenic_bond_keys_from_priorities
+from automol.graph.base._07canon import unassigned_stereocenter_keys
+from automol.graph.base._07canon import stereocenter_keys_from_priorities
 from automol.graph.base._07canon import reflect
 from automol.graph.base._07canon import reflect_local_stereo
 from automol.graph.base._07canon import to_local_stereo
@@ -570,11 +567,8 @@ __all__ = [
     'canonical',
     'canonical_keys',
     # # canonical stereo functions
-    'stereogenic_atom_keys',
-    'stereogenic_bond_keys',
-    'stereogenic_keys',
-    'stereogenic_atom_keys_from_priorities',
-    'stereogenic_bond_keys_from_priorities',
+    'unassigned_stereocenter_keys',
+    'stereocenter_keys_from_priorities',
     'reflect',
     'reflect_local_stereo',
     'to_local_stereo',

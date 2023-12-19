@@ -1126,18 +1126,34 @@ def test__geometries_parity_mismatches():
     assert not graph.geometries_have_matching_parities(gra, geo1, geo4, keys)
 
 
-def test__stereogenic_atom_keys():
+def test__stereogenic_keys():
     """ test graph.stereogenic_atom_keys
     """
-    assert graph.stereogenic_atom_keys(C8H13O_CGR) == frozenset({6, 7})
-    assert graph.stereogenic_atom_keys(C3H3CL2F3_CGR) == frozenset({1, 2})
+    assert graph.unassigned_stereocenter_keys(C8H13O_CGR) == frozenset({
+        6, 7, frozenset({3, 5}),
+    })
+    assert graph.unassigned_stereocenter_keys(C3H3CL2F3_CGR) == frozenset({
+        1, 2
+    })
+    assert graph.unassigned_stereocenter_keys(C3H5N3_CGR) == frozenset(
+        {frozenset({1, 4}), frozenset({0, 3})})
+
+    # Atoms only
+    assert graph.unassigned_stereocenter_keys(C8H13O_CGR, bond=False) == frozenset({
+        6, 7
+    })
+
+    # Bonds only
+    assert graph.unassigned_stereocenter_keys(C8H13O_CGR, atom=False) == frozenset({
+        frozenset({3, 5}),
+    })
 
     cgr = ({0: ('C', 2, None), 1: ('C', 3, None), 2: ('C', 1, None),
             3: ('O', 1, None)},
            {frozenset({0, 2}): (1, None), frozenset({2, 3}): (1, None),
             frozenset({1, 2}): (1, None)})
-    print(graph.stereogenic_atom_keys(cgr))
-    assert graph.stereogenic_atom_keys(cgr) == frozenset({2})
+    print(graph.unassigned_stereocenter_keys(cgr))
+    assert graph.unassigned_stereocenter_keys(cgr) == frozenset({2})
 
     # Bug fix:
     cgr = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 2, None),
@@ -1152,17 +1168,8 @@ def test__stereogenic_atom_keys():
             frozenset({10, 12}): (1, None), frozenset({3, 5}): (1, None),
             frozenset({11, 7}): (1, None), frozenset({1, 3}): (1, None),
             frozenset({5, 7}): (1, None)})
-    print(graph.stereogenic_atom_keys(cgr))
-    assert graph.stereogenic_atom_keys(cgr) == frozenset({10, 11})
-
-
-def test__stereogenic_bond_keys():
-    """ test graph.stereogenic_bond_keys
-    """
-    assert graph.stereogenic_bond_keys(C8H13O_CGR) == frozenset(
-        {frozenset({3, 5})})
-    assert graph.stereogenic_bond_keys(C3H5N3_CGR) == frozenset(
-        {frozenset({1, 4}), frozenset({0, 3})})
+    print(graph.unassigned_stereocenter_keys(cgr))
+    assert graph.unassigned_stereocenter_keys(cgr) == frozenset({10, 11})
 
 
 def test__expand_stereo():
@@ -1665,7 +1672,7 @@ if __name__ == '__main__':
 
     # test__has_resonance_bond_stereo()
     # test__amchi_with_indices()
-    # test__stereogenic_atom_keys()
+    test__stereogenic_keys()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
     # test__expand_stereo()
@@ -1689,4 +1696,4 @@ if __name__ == '__main__':
     # test__stereo_corrected_geometry()
     # test__embed__clean_geometry()
     # test__rotational_coordinates()
-    test__stereo_corrected_geometry()
+    # test__stereo_corrected_geometry()

@@ -36,7 +36,7 @@ from automol.graph.base._07canon import (
     refine_priorities,
     reflect_local_stereo,
     stereo_assignment_representation,
-    stereogenic_keys_from_priorities,
+    stereocenter_keys_from_priorities,
     to_local_stereo,
 )
 
@@ -99,7 +99,7 @@ def _expand_stereo_core(gra):
             )
 
             # c. Find stereogenic atoms and bonds based on current priorities
-            keys = stereogenic_keys_from_priorities(gra0, pri_dct)
+            keys = stereocenter_keys_from_priorities(gra0, pri_dct, new=True)
 
             # d. Assign True/False parities in all possible ways
             for pars in itertools.product(bools, repeat=len(keys)):

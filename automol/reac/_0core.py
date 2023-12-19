@@ -110,7 +110,7 @@ def from_data(
     # Check the TS graph...
     # If present, stereo information should be complete
     if graph.has_stereo(tsg):
-        ste_keys = graph.stereogenic_keys(tsg)
+        ste_keys = graph.unassigned_stereocenter_keys(tsg)
         assert not ste_keys, f"TS graph has unassigned stereo at {ste_keys}:\n{tsg}"
 
     # Check the reactants and products keys
