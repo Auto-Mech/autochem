@@ -28,7 +28,8 @@ from automol.graph.base._00core import (
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reacting_atom_keys,
-    ts_reagents_graph_without_stereo,
+    ts_reagents_graphs_without_stereo,
+    ts_reactants_graph_without_stereo,
     ts_transferring_atoms,
     without_dummy_atoms,
     without_pi_bonds,
@@ -161,13 +162,7 @@ def kekules_bond_orders_collated(gra):
     :returns: bond orders for all possible low-spin kekule graphs
     :rtype: tuple[dict]
     """
-    if is_ts_graph(gra):
-        gras = [
-            ts_reagents_graph_without_stereo(gra, prod=False),
-            ts_reagents_graph_without_stereo(gra, prod=True),
-        ]
-    else:
-        gras = [gra]
+    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
 
     bnd_keys = list(bond_keys(gra))
     bnd_ords_lst = list(
@@ -209,17 +204,10 @@ def linear_atom_keys(gra, dummy=True):
     :rtype: tuple[int]
     """
     ts_ = is_ts_graph(gra)
-    if ts_:
-        gras = [
-            ts_reagents_graph_without_stereo(gra, prod=False),
-            ts_reagents_graph_without_stereo(gra, prod=True),
-        ]
-    else:
-        gras = [gra]
+    gras = ts_reagents_graphs_without_stereo(gra) if ts_ else [gra]
 
     lin_atm_keys = set()
     for gra_ in gras:
-        gra_ = ts_reagents_graph_without_stereo(gra_)
         nkeys_dct = atoms_neighbor_atom_keys(gra_)
         # To be linear, an atom must be both (a.) sp1 hybridized and (b.) have more than
         # 1 neighbor (exactly 2)
@@ -506,7 +494,7 @@ def ts_reacting_electron_direction(tsg, key: int):
     :rtype: (Tuple[int, int], Tuple[int, int], float)
     """
     assert key in ts_reacting_atom_keys(tsg), f"Atom {key} is not a reacting atom:{tsg}"
-    rcts_gra = ts_reagents_graph_without_stereo(tsg)
+    rcts_gra = ts_reactants_graph_without_stereo(tsg)
     tra_dct = ts_transferring_atoms(tsg)
     nkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
     vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
@@ -725,13 +713,7 @@ def rigid_planar_bond_keys(gra):
     :rtype: frozenset[frozenset[int]]
     """
     ts_ = is_ts_graph(gra)
-    if ts_:
-        gras = [
-            ts_reagents_graph_without_stereo(gra, prod=False),
-            ts_reagents_graph_without_stereo(gra, prod=True),
-        ]
-    else:
-        gras = [gra]
+    gras = ts_reagents_graphs_without_stereo(gra) if ts_ else [gra]
 
     rp_bnd_keys = set()
     for gra_ in gras:

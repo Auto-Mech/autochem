@@ -19,7 +19,7 @@ from automol.graph.base._00core import (
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reacting_bond_keys,
-    ts_reagents_graph_without_stereo,
+    ts_reactants_graph_without_stereo,
     ts_reverse,
 )
 from automol.graph.base._02algo import (
@@ -41,7 +41,7 @@ def is_bimolecular(tsg) -> bool:
     :returns: `True` if it is, `False` if it isn't
     :rtype: bool
     """
-    return len(connected_components(ts_reagents_graph_without_stereo(tsg))) == 2
+    return len(connected_components(ts_reactants_graph_without_stereo(tsg))) == 2
 
 
 def has_reacting_ring(tsg) -> bool:
@@ -71,7 +71,7 @@ def zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
     if not is_ts_graph(tsg) or has_reacting_ring(tsg) or not is_bimolecular(tsg):
         return None
 
-    rcts_gra = ts_reagents_graph_without_stereo(tsg, dummy=True)
+    rcts_gra = ts_reactants_graph_without_stereo(tsg, dummy=True)
     rct_gras = connected_components(rcts_gra)
 
     # 1. If there is an atom transfer, put the donor reagent first
@@ -276,7 +276,7 @@ def constrained_1_2_insertion_local_parities(loc_tsg) -> Dict[frozenset, bool]:
     nkeys_dct = atoms_neighbor_atom_keys(loc_tsg)
 
     # Check first reactants, then products
-    gra = ts_reagents_graph_without_stereo(loc_tsg, prod=False)
+    gra = ts_reactants_graph_without_stereo(loc_tsg)
     frm_bkeys = ts_forming_bond_keys(loc_tsg)
     rkeys_lst = list(map(set, forming_rings_atom_keys(loc_tsg)))
 
@@ -340,7 +340,7 @@ def vinyl_addition_local_parities(loc_tsg) -> Dict[frozenset, bool]:
     )
     loc_pri_dct = local_stereo_priorities(loc_tsg)
 
-    gra = ts_reagents_graph_without_stereo(loc_tsg, prod=False)
+    gra = ts_reactants_graph_without_stereo(loc_tsg)
     vin_dct = vinyl_radical_atom_bond_keys(gra)
 
     par_dct = {}

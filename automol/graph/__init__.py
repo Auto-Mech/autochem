@@ -109,6 +109,9 @@ from automol.graph.base._00core import without_pi_bonds
 from automol.graph.base._00core import without_reacting_bonds
 from automol.graph.base._00core import without_dummy_atoms
 from automol.graph.base._00core import ts_reverse
+from automol.graph.base._00core import ts_reactants_graph_without_stereo
+from automol.graph.base._00core import ts_products_graph_without_stereo
+from automol.graph.base._00core import ts_reagents_graphs_without_stereo
 from automol.graph.base._00core import ts_reagents_graph_without_stereo
 from automol.graph.base._00core import without_bonds_by_orders
 from automol.graph.base._00core import without_stereo
@@ -428,6 +431,9 @@ __all__ = [
     'without_reacting_bonds',
     'without_dummy_atoms',
     'ts_reverse',
+    'ts_reactants_graph_without_stereo',
+    'ts_products_graph_without_stereo',
+    'ts_reagents_graphs_without_stereo',
     'ts_reagents_graph_without_stereo',
     'without_bonds_by_orders',
     'without_stereo',

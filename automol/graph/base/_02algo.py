@@ -29,7 +29,7 @@ from automol.graph.base._00core import (
     remove_bonds,
     set_atom_symbols,
     string,
-    ts_reagents_graph_without_stereo,
+    ts_reactants_graph_without_stereo,
     union,
     union_from_sequence,
     without_dummy_atoms,
@@ -707,8 +707,7 @@ def rings_bond_keys(gra, ts_=True):
     :type ts_: bool
     :returns: A set of sets of bond keys for each ring.
     """
-    if not ts_:
-        gra = ts_reagents_graph_without_stereo(gra)
+    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
 
     bnd_keys = bond_keys(gra)
 

@@ -42,7 +42,7 @@ from automol.graph.base._00core import (
     tetrahedral_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
-    ts_reagents_graph_without_stereo,
+    ts_reactants_graph_without_stereo,
     ts_reverse,
     without_bonds_by_orders,
     without_dummy_atoms,
@@ -1233,7 +1233,7 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
     loc_tsg = set_stereo_parities(loc_tsg, vpar_dct)
 
     # Generate the reagents graph with local parities
-    loc_rgra = ts_reagents_graph_without_stereo(loc_tsg, keep_stereo=True)
+    loc_rgra = ts_reactants_graph_without_stereo(loc_tsg, keep_stereo=True)
 
     # Now that we have handled the exceptions, the local parities correspond to
     # what they will be for the reactants/products graph, so we can simply flip
@@ -1313,7 +1313,6 @@ def _stereoatom_keys_from_priorities(gra, pri_dct, new: bool=True):
     :returns: the stereogenic atom keys
     :rtype: frozenset[int]
     """
-    gra = without_pi_bonds(gra)
     gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
     pri_dct = reassign_hydrogen_priorities(gra, pri_dct)
 

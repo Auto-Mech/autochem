@@ -312,7 +312,7 @@ def bond_keys(gra, ts_=True):
     :returns: The bond keys
     :rtype: frozenset[{int, int}]
     """
-    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
+    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
     return frozenset(bonds(gra).keys())
 
 
@@ -347,7 +347,7 @@ def bond_orders(gra, ts_=True):
     :returns: A dictionary of bond orders, by bond key
     :rtype: dict[frozenset: int or float]
     """
-    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
+    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
     return dict_.multi.by_key_by_position(bonds(gra), bonds(gra).keys(), BND_ORD_POS)
 
 
@@ -535,10 +535,81 @@ def ts_reverse(tsg):
     return rev_tsg
 
 
-def ts_reagents_graph_without_stereo(
-    tsg, prod=False, dummy=True, keep_zeros=False, keep_stereo=False
+def ts_reagents_graphs_without_stereo(
+    tsg, dummy: bool = True, keep_zeros: bool = False, keep_stereo: bool = False
 ):
-    """Get the reactants or products from a TS graph, without stereo
+    """Get the reactants of a TS graph, without stereo
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param dummy: Keep dummy atoms? default True
+    :type dummy: bool, optional
+    :param keep_zeros: Keep the bonds with a resulting bond order of 0?
+    :type keep_zeros: bool
+    :param keep_stereo: Keep stereo, even though it is invalid?
+    :type keep_stereo: bool
+    :returns: The TS graph, without reacting bond orders
+    :rtype: automol graph data structure
+    """
+    rcts_gra = ts_reagents_graph_without_stereo(
+        tsg, prod=False, dummy=dummy, keep_zeros=keep_zeros, keep_stereo=keep_stereo
+    )
+    prds_gra = ts_reagents_graph_without_stereo(
+        tsg, prod=True, dummy=dummy, keep_zeros=keep_zeros, keep_stereo=keep_stereo
+    )
+    return (rcts_gra, prds_gra)
+
+
+def ts_reactants_graph_without_stereo(
+    tsg, dummy: bool = True, keep_zeros: bool = False, keep_stereo: bool = False
+):
+    """Get the reactants of a TS graph, without stereo
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param dummy: Keep dummy atoms? default True
+    :type dummy: bool, optional
+    :param keep_zeros: Keep the bonds with a resulting bond order of 0?
+    :type keep_zeros: bool
+    :param keep_stereo: Keep stereo, even though it is invalid?
+    :type keep_stereo: bool
+    :returns: The TS graph, without reacting bond orders
+    :rtype: automol graph data structure
+    """
+    return ts_reagents_graph_without_stereo(
+        tsg, prod=False, dummy=dummy, keep_zeros=keep_zeros, keep_stereo=keep_stereo
+    )
+
+
+def ts_products_graph_without_stereo(
+    tsg, dummy: bool = True, keep_zeros: bool = False, keep_stereo: bool = False
+):
+    """Get the reactants of a TS graph, without stereo
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param dummy: Keep dummy atoms? default True
+    :type dummy: bool, optional
+    :param keep_zeros: Keep the bonds with a resulting bond order of 0?
+    :type keep_zeros: bool
+    :param keep_stereo: Keep stereo, even though it is invalid?
+    :type keep_stereo: bool
+    :returns: The TS graph, without reacting bond orders
+    :rtype: automol graph data structure
+    """
+    return ts_reagents_graph_without_stereo(
+        tsg, prod=True, dummy=dummy, keep_zeros=keep_zeros, keep_stereo=keep_stereo
+    )
+
+
+def ts_reagents_graph_without_stereo(
+    tsg,
+    prod: bool = False,
+    dummy: bool = True,
+    keep_zeros: bool = False,
+    keep_stereo: bool = False,
+):
+    """Get the reactants or products of a TS graph, without stereo
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
@@ -1246,7 +1317,7 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True, ts_=True):
     :rtype: dict[int: int]
     """
     atm_keys = list(atom_keys(gra))
-    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
+    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
     # Convert to explicit graph if we watn implicit hydrogens in the count
     gra = explicit(gra) if with_implicit else gra
 
@@ -1330,13 +1401,9 @@ def tetrahedral_atom_keys(gra):
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    if is_ts_graph(gra):
-        gras = [
-            ts_reagents_graph_without_stereo(gra, prod=False),
-            ts_reagents_graph_without_stereo(gra, prod=True),
-        ]
-    else:
-        gras = [gra]
+    gra = without_pi_bonds(gra)
+
+    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
 
     keys = sorted(atom_keys(gra))
     tet_atm_keys = []
@@ -2350,7 +2417,7 @@ def atom_neighborhood(
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    gra = gra if ts_ else ts_reagents_graph_without_stereo(gra)
+    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
     bnd_keys = bond_keys(gra, ts_=ts_) if bnd_keys is None else bnd_keys
     nbh_bnd_keys = set(k for k in bnd_keys if atm_key in k)
 
@@ -2513,7 +2580,7 @@ def atom_stereo_sorted_neighbor_keys(gra, key, self_apex=False, pri_dct=None):
 
     # If this is an Sn2 stereocenter, use the reactants graph
     if key in sn2_atom_transfers(gra):
-        gra = ts_reagents_graph_without_stereo(gra)
+        gra = ts_reactants_graph_without_stereo(gra)
 
     # Get the neighboring atom keys
     nkeys = atom_neighbor_atom_keys(gra, key)
@@ -2548,13 +2615,7 @@ def bond_stereo_sorted_neighbor_keys(gra, key1, key2, pri_dct=None):
     gra = without_dummy_atoms(gra)
     pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
-    if is_ts_graph(gra):
-        gras = [
-            ts_reagents_graph_without_stereo(gra, prod=False),
-            ts_reagents_graph_without_stereo(gra, prod=True),
-        ]
-    else:
-        gras = [gra]
+    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
 
     nkeys1 = set()
     nkeys2 = set()
@@ -2987,7 +3048,7 @@ def bond_neighbor_bond_keys(
     return (bkeys1, bkeys2)
 
 
-def bonds_neighbor_atom_keys(gra, group: bool=True, ts_: bool=True):
+def bonds_neighbor_atom_keys(gra, group: bool = True, ts_: bool = True):
     """Get the keys of each bond's neighboring atoms, as a dictionary
 
     If requesting to group the neighbors by atom key, the groups will be sorted in the
@@ -3006,13 +3067,13 @@ def bonds_neighbor_atom_keys(gra, group: bool=True, ts_: bool=True):
 
     for bkey in bond_keys(gra, ts_=ts_):
         key1, key2 = sorted(bkey)
-        nkeys1, nkeys2  = bond_neighbor_atom_keys(gra, key1, key2, ts_=ts_)
+        nkeys1, nkeys2 = bond_neighbor_atom_keys(gra, key1, key2, ts_=ts_)
         bnd_nkeys_dct[bkey] = (nkeys1, nkeys2) if group else nkeys1 | nkeys2
 
     return bnd_nkeys_dct
 
 
-def bonds_neighbor_bond_keys(gra, group: bool=True, ts_: bool=True):
+def bonds_neighbor_bond_keys(gra, group: bool = True, ts_: bool = True):
     """Get the keys of each bond's neighboring atoms, as a dictionary
 
     If requesting to group the neighbors by atom key, the groups will be sorted in the
@@ -3031,7 +3092,7 @@ def bonds_neighbor_bond_keys(gra, group: bool=True, ts_: bool=True):
 
     for bkey in bond_keys(gra, ts_=ts_):
         key1, key2 = sorted(bkey)
-        bkeys1, bkeys2  = bond_neighbor_bond_keys(gra, key1, key2, ts_=ts_)
+        bkeys1, bkeys2 = bond_neighbor_bond_keys(gra, key1, key2, ts_=ts_)
         bnd_bkeys_dct[bkey] = (bkeys1, bkeys2) if group else bkeys1 | bkeys2
 
     return bnd_bkeys_dct

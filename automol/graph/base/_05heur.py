@@ -17,7 +17,7 @@ from automol.graph.base._00core import (
     implicit,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
-    ts_reagents_graph_without_stereo,
+    ts_reactants_graph_without_stereo,
     without_dummy_atoms,
     without_reacting_bonds,
 )
@@ -378,7 +378,7 @@ def ts_reacting_atom_plane_keys(tsg, key: int, include_self: bool = True):
     :type include_self: bool, optional
     """
     nrbs_gra = without_reacting_bonds(tsg)
-    rcts_gra = ts_reagents_graph_without_stereo(tsg)
+    rcts_gra = ts_reactants_graph_without_stereo(tsg)
 
     nkeys_rct = atom_neighbor_atom_keys(rcts_gra, key)
     nkeys_nrb = atom_neighbor_atom_keys(nrbs_gra, key)
