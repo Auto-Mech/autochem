@@ -3,13 +3,14 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy
 from automol.graph.base._00core import (
     atom_bond_counts,
     atom_keys,
     atom_lone_pairs,
+    atom_neighbor_atom_key,
     atom_unpaired_electrons,
     atoms,
     atoms_bond_keys,
@@ -27,13 +28,12 @@ from automol.graph.base._00core import (
     tetrahedral_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
+    ts_reactants_graph_without_stereo,
     ts_reacting_atom_keys,
     ts_reagents_graphs_without_stereo,
-    ts_reactants_graph_without_stereo,
     ts_transferring_atoms,
     without_dummy_atoms,
     without_pi_bonds,
-    atom_neighbor_atom_key,
 )
 from automol.graph.base._02algo import (
     branches,
@@ -226,19 +226,45 @@ def linear_atom_keys(gra, dummy=True):
     return frozenset(lin_atm_keys)
 
 
-def linear_segments_atom_keys(
-    gra, extend: bool = False, lin_keys: Optional[List[int]] = None
-) -> List[List[int]]:
-    """Atom keys for linear segments in the graph
+def linear_segment_cap_keys(
+    gra, lin_keys: Optional[List[int]] = None, extend: bool = False
+) -> Dict[List[int], Tuple[Optional[int], Optional[int]]]:
+    """Linear segments in the graph, along with the keys of their "capping" atoms, that
+    is the final in-line atom on either side
+
+    For sigma radicals and linear nitrogens, the capping atom is the same as the last
+    atom in the segment.
+
+    Otherwise, the capping atom is the neighbor of the last atom in the segment, which
+    falls within the line of the linear segment.
+
+    Examples:
+
+        H3C-C#C-C#C-C#C-CH3
+          ^(* * * * * *)^
+
+        .C#C-C#C-C#C-CH3
+        (* * * * * *)^
+         ^
+
+         N#C-H
+        (* *)^
+         ^
+
+        Cl....CH3--X--Br
+        ^    (*)      ^
+
+         ^  = cap
+        (*) = linear segment
 
     :param gra: A graph
     :type gra: automol graph data structure
-    :param extend: Extend each segment, to include in-line neighbors on either side?
-    :type extend: bool, optional
     :param lin_keys: Specify the keys of linear atoms, instead of determining from graph
     :type lin_keys: Optional[List[int]]
-    :returns: A list of lists of keys for each segment
-    :rtype: List[List[int]]
+    :param extend: Extend each segment, to include in-line neighbors on either side?
+    :type extend: bool, optional
+    :returns: A dictionary mapping linear segments onto their in-line neighbors
+    :rtype: Dict[List[int], Tuple[Optional[int], Optional[int]]]
     """
 
     lin_keys = linear_atom_keys(gra, dummy=True) if lin_keys is None else lin_keys
@@ -263,26 +289,54 @@ def linear_segments_atom_keys(
             keys_lst.append(keys)
 
     # 3. If requested, extend the ends
-    if extend:
-        keys_lst = list(map(list, keys_lst))
+    keys_lst = list(map(tuple, keys_lst))
 
-        gra_ = without_dummy_atoms(gra)
-        for keys in keys_lst:
-            end_key1 = keys[0]
-            end_key2 = keys[-1]
+    lin_seg_dct = {}
+    gra_ = without_dummy_atoms(gra)
+    for keys in keys_lst:
+        end_key1 = keys[0]
+        end_key2 = keys[-1]
 
-            # a. If there is a possible extension at end 1, insert it
-            ext_key1 = atom_neighbor_atom_key(gra_, end_key1, excl_keys=set(keys))
-            if ext_key1 is not None:
-                keys.insert(0, ext_key1)
+        # Identify in-line neighbors
+        excl_keys = set(keys)
+        ext_key1 = atom_neighbor_atom_key(gra_, end_key1, excl_keys=excl_keys)
 
-            # b. If there is a possible extension at end 2, append it
-            ext_key2 = atom_neighbor_atom_key(gra_, end_key2, excl_keys=set(keys))
-            if ext_key2 is not None:
-                keys.append(ext_key2)
+        excl_keys.add(ext_key1)
+        ext_key2 = atom_neighbor_atom_key(gra_, end_key2, excl_keys=excl_keys)
 
-    keys_lst = tuple(map(tuple, keys_lst))
-    return keys_lst
+        # Add in-line neighbors to the extended keys list, if not None
+        ext_keys = keys
+        if ext_key1 is not None:
+            ext_keys = (ext_key1,) + ext_keys
+
+        if ext_key2 is not None:
+            ext_keys = ext_keys + (ext_key2,)
+
+        if extend:
+            keys = ext_keys
+
+        # The cap keys are the ends of the extended keys lists
+        lin_seg_dct[keys] = (ext_keys[0], ext_keys[-1])
+
+    return lin_seg_dct
+
+
+def linear_segments_atom_keys(
+    gra, lin_keys: Optional[List[int]] = None, extend: bool = False
+) -> List[List[int]]:
+    """Atom keys for linear segments in the graph
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :param lin_keys: Specify the keys of linear atoms, instead of determining from graph
+    :type lin_keys: Optional[List[int]]
+    :param extend: Extend each segment, to include in-line neighbors on either side?
+    :type extend: bool, optional
+    :returns: A list of lists of keys for each segment
+    :rtype: List[List[int]]
+    """
+    lin_seg_dct = linear_segment_cap_keys(gra, extend=extend, lin_keys=lin_keys)
+    return tuple(lin_seg_dct.keys())
 
 
 def unneeded_dummy_atom_keys(gra) -> frozenset:

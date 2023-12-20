@@ -175,7 +175,7 @@ def linear_atom_keys(zc_: ZmatConv, typ: str = "zmat") -> List[int]:
 
 
 def dummy_source_keys(zc_: ZmatConv, typ: str = "zmat") -> List[Tuple[int, int]]:
-    """Get the list of original or final parent atom keyss from a z-matrix conversion
+    """Get the list of original or final parent atom keys from a z-matrix conversion
 
     :param zc_: A z-matrix conversion data structure
     :type zc_: ZmatConv

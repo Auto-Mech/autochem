@@ -199,6 +199,7 @@ from automol.graph.base._03kekule import kekules_bond_orders_collated
 from automol.graph.base._03kekule import kekules_bond_orders_averaged
 # # derived properties
 from automol.graph.base._03kekule import linear_atom_keys
+from automol.graph.base._03kekule import linear_segment_cap_keys
 from automol.graph.base._03kekule import linear_segments_atom_keys
 from automol.graph.base._03kekule import unneeded_dummy_atom_keys
 from automol.graph.base._03kekule import atom_hybridizations
@@ -521,6 +522,7 @@ __all__ = [
     'kekules_bond_orders_averaged',
     # # derived properties
     'linear_atom_keys',
+    'linear_segment_cap_keys',
     'linear_segments_atom_keys',
     'unneeded_dummy_atom_keys',
     'atom_hybridizations',

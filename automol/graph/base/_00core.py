@@ -2720,6 +2720,7 @@ def atom_sorted_neighbor_atom_keys(
     atm_key,
     symbs_first=("C",),
     symbs_last=("H",),
+    ords_first=(),
     ords_last=(0.1,),
     prioritize_keys=(),
     excl_keys=(),
@@ -2763,9 +2764,16 @@ def atom_sorted_neighbor_atom_keys(
     keys = sorted(keys)
 
     #   b. Sort by bond order, priority flag (if defined), and symbol
+    def _bond_order_sort_value(bkey):
+        ord_ = bord_dct[bkey]
+        if ord_ in ords_first:
+            return (-numpy.inf, ords_first.index(ord_))
+        if ord_ in ords_last:
+            return (+numpy.inf, ords_last.index(ord_))
+        return (0, 0)
+
     bkeys = [frozenset({atm_key, k}) for k in keys]
-    ords = list(map(bord_dct.__getitem__, bkeys))
-    ords = [-1 if o not in ords_last else ords_last.index(o) for o in ords]
+    ords = list(map(_bond_order_sort_value, bkeys))
     symbs = list(map(symb_dct.__getitem__, keys))
     pris = [0 if k in prioritize_keys else 1 for k in keys]
     srt_vals = list(zip(ords, pris, symbs))
@@ -2888,6 +2896,7 @@ def atom_zmat_sorted_neighbor_atom_keys(
         atm_key,
         symbs_first=("X", "C"),
         symbs_last=("H",),
+        ords_first=(),
         ords_last=(0.1,),
         prioritize_keys=prioritize_keys,
         excl_keys=excl_keys,

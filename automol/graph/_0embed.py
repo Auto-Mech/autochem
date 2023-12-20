@@ -64,9 +64,11 @@ from automol.graph.base import (
     to_local_stereo,
     ts,
     without_bonds_by_orders,
+    without_dummy_atoms,
     without_stereo,
 )
 from automol.util import dict_, heuristic
+from phydat import phycon
 
 
 # # geometry embedding functions
@@ -260,9 +262,12 @@ def geometry_matches(
     :rtype: bool
     """
     cgra = without_stereo(gra)
-    orig_cgra_ = geom.graph_without_stereo(geo)
+    cgra0 = geom.graph_without_stereo(geo)
 
-    cgra_ = orig_cgra_
+    cgra = without_dummy_atoms(cgra)
+    cgra0 = without_dummy_atoms(cgra0)
+
+    cgra_ = cgra0
     if is_ts_graph(cgra):
         r_bkeys = ts.reacting_bond_keys(cgra)
         r_ord_dct = dict_.by_key(bond_orders(cgra), r_bkeys)
@@ -280,11 +285,11 @@ def geometry_matches(
         frm_bkeys = ts.forming_bond_keys(cgra)
 
         # 1. Check that the breaking bond pairs are bonded in the geometry
-        bkeys = bond_keys(orig_cgra_)
+        bkeys = bond_keys(cgra0)
         matches &= all(bk in bkeys for bk in brk_bkeys)
 
         # 2. Check that the forming bond pairs form closest non-bonded pairs
-        no_fb_cgra_ = without_bonds_by_orders(orig_cgra_, [0.1])
+        no_fb_cgra_ = without_bonds_by_orders(cgra0, [0.1])
         bmatches = [
             geom.could_be_forming_bond(geo, *b, gra=no_fb_cgra_) for b in frm_bkeys
         ]

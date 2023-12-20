@@ -822,23 +822,26 @@ def apply_zmatrix_conversion(geo, zc_: ZmatConv, gra=None, dist: float = 1.0):
     gra = graph_without_stereo(geo) if gra is None else gra
 
     # Partition parent atoms into adjacent segments
-    lin_seg_keys_lst = graph_base.linear_segments_atom_keys(gra, lin_keys=lin_keys)
+    lin_seg_dct = graph_base.linear_segment_cap_keys(gra, lin_keys=lin_keys)
+    # lin_seg_keys_lst = graph_base.linear_segments_atom_keys(gra, lin_keys=lin_keys)
 
     # Build an initial z-matrix conversion data structure to describe the insertion
     nreal = count(geo)
-    lin_gkeys = list(itertools.chain(*lin_seg_keys_lst))
+    lin_gkeys = list(itertools.chain(*lin_seg_dct.keys()))
     zc0 = zmat_conv.from_geom_data(nreal, lin_gkeys)
 
     # Identify a perpendicular direction for each segment and insert the dummy atoms
     # (Parent atom indices don't change, since the dummy atoms are added to the end)
     xyzs = coordinates(geo, angstrom=True)
-    for lin_seg_keys in lin_seg_keys_lst:
-        lin_key, *_ = lin_seg_keys
-        dir_key = dir_key_dct[lin_key]
-        lin_xyz, dir_xyz = coordinates(geo, idxs=(lin_key, dir_key))
-        dir_vec = vector.unit_norm(numpy.subtract(dir_xyz, lin_xyz))
+    for seg_keys, cap_keys in lin_seg_dct.items():
+        key1, key2 = cap_keys
+        if key1 == key2:
+            key1, *_ = seg_keys
+            key2 = dir_key_dct[key1]
+        xyz1, xyz2 = coordinates(geo, idxs=(key1, key2))
+        dir_vec = vector.unit_norm(numpy.subtract(xyz2, xyz1))
         dum_vec = vector.arbitrary_unit_perpendicular(dir_vec)
-        for idx in lin_seg_keys:
+        for idx in seg_keys:
             xyz = numpy.add(xyzs[idx], numpy.multiply(dist, dum_vec))
             geo = insert(geo, "X", xyz, angstrom=True)
 
