@@ -347,6 +347,8 @@ def test__end_to_end():
     _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
     # addition
     _test(["CC[CH2]", "[O][O]"], ["CCCO[O]"])
+    # addtition (internal / unimolecular)
+    _test(["CC([O])C=C"], ["CC(O1)C1[CH2]"])  # not bimolecular
     # addition (H + H => H2)
     _test(["[H]", "[H]"], ["[H][H]"])
     # addition (stereo-specific)

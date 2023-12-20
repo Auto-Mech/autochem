@@ -22,6 +22,10 @@ Format:
     dir_gkey is the geometry key for a linear atom neighbor, giving the linear direction
         ('None' for real atoms)
 
+Note to self: The "direction" key should maybe be taken out. The one place where I was
+using it, I don't think it serves a function anymore, and it gave the wrong choice for
+the case that I was looking at (an Sn2 reaction).
+
 Dummy atoms will be placed over the linear atom, perpendicular to the linear direction
 as specified by the direction atom.
 

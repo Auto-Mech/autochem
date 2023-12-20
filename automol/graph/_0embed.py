@@ -68,7 +68,6 @@ from automol.graph.base import (
     without_stereo,
 )
 from automol.util import dict_, heuristic
-from phydat import phycon
 
 
 # # geometry embedding functions

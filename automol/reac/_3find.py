@@ -469,44 +469,41 @@ def additions(rct_gras, prd_gras):
     """
     rct_gras, _ = graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = graph.standard_keys_for_sequence(prd_gras)
+    rcts_gra = graph.union_from_sequence(rct_gras)
+    prds_gra = graph.union_from_sequence(prd_gras)
 
     rxns = []
 
+    frm_bnd_pairs = set()
     if len(rct_gras) == 2 and len(prd_gras) == 1:
-        rct_gras = graph.sort_by_size(rct_gras)
-        x_gra, y_gra = rct_gras
-        (prd_gra,) = prd_gras
-        x_atm_keys = graph.unsaturated_atom_keys(x_gra)
-        y_atm_keys = graph.unsaturated_atom_keys(y_gra)
+        rct1_gra, rct2_gra = rct_gras
+        atm1_keys = graph.unsaturated_atom_keys(rct1_gra)
+        atm2_keys = graph.unsaturated_atom_keys(rct2_gra)
+        frm_bnd_pairs = set(map(frozenset, itertools.product(atm1_keys, atm2_keys)))
+    elif len(rct_gras) == 1 and len(prd_gras) == 1:
+        atm_keys = graph.unsaturated_atom_keys(rcts_gra)
+        frm_bnd_pairs = set(map(frozenset, itertools.combinations(atm_keys, 2)))
+        frm_bnd_pairs -= graph.bond_keys(rcts_gra)
 
-        frm_bnd_pairs = tuple(itertools.product(x_atm_keys, y_atm_keys))
-        for x_atm_key, y_atm_key in frm_bnd_pairs:
-            xy_gra = graph.add_bonds(
-                graph.union(x_gra, y_gra), [{x_atm_key, y_atm_key}]
+    for atm1_key, atm2_key in frm_bnd_pairs:
+        rcts_gra_ = graph.add_bonds(rcts_gra, [(atm1_key, atm2_key)])
+
+        iso_dct = graph.isomorphism(rcts_gra_, prds_gra, stereo=False)
+        if iso_dct:
+            f_frm_bnd_key = (atm1_key, atm2_key)
+            b_brk_bnd_key = (iso_dct[atm1_key], iso_dct[atm2_key])
+            forw_tsg = ts.graph(rcts_gra, frm_bnd_keys=[f_frm_bnd_key], brk_bnd_keys=[])
+            back_tsg = ts.graph(prds_gra, frm_bnd_keys=[], brk_bnd_keys=[b_brk_bnd_key])
+
+            # Create the reaction object
+            rxn = from_forward_reverse(
+                cla=ReactionClass.ADDITION,
+                ftsg=forw_tsg,
+                rtsg=back_tsg,
+                rcts_keys=list(map(graph.atom_keys, rct_gras)),
+                prds_keys=list(map(graph.atom_keys, prd_gras)),
             )
-
-            iso_dct = graph.isomorphism(xy_gra, prd_gra, stereo=False)
-            if iso_dct:
-                rcts_gra = graph.union_from_sequence(rct_gras)
-                prds_gra = prd_gra
-                f_frm_bnd_key = (x_atm_key, y_atm_key)
-                b_brk_bnd_key = (iso_dct[x_atm_key], iso_dct[y_atm_key])
-                forw_tsg = ts.graph(
-                    rcts_gra, frm_bnd_keys=[f_frm_bnd_key], brk_bnd_keys=[]
-                )
-                back_tsg = ts.graph(
-                    prds_gra, frm_bnd_keys=[], brk_bnd_keys=[b_brk_bnd_key]
-                )
-
-                # Create the reaction object
-                rxn = from_forward_reverse(
-                    cla=ReactionClass.ADDITION,
-                    ftsg=forw_tsg,
-                    rtsg=back_tsg,
-                    rcts_keys=list(map(graph.atom_keys, rct_gras)),
-                    prds_keys=list(map(graph.atom_keys, prd_gras)),
-                )
-                rxns.append(rxn)
+            rxns.append(rxn)
 
     return rxns
 
