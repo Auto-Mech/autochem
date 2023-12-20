@@ -3070,7 +3070,7 @@ def bonds_neighbor_atom_keys(gra, group: bool = True, ts_: bool = True):
     :param ts_: If this is a TS graph, treat it as such?
     :type ts_: bool
     :returns: Neighboring atom keys by bond, as a dictionary
-    :rtype: dict[frozenset: frozenset]
+    :rtype: Dict[frozenset, Tuple[frozenset, frozenset]]
     """
     bnd_nkeys_dct = {}
 

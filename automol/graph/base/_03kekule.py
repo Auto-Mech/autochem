@@ -19,6 +19,7 @@ from automol.graph.base._00core import (
     bond_orders,
     bond_stereo_keys,
     bond_unpaired_electrons,
+    bond_neighbor_atom_keys,
     dummy_source_dict,
     has_atom_stereo,
     implicit,
@@ -743,49 +744,66 @@ def radical_group_dct(gra):
     return groups
 
 
-def rigid_planar_bond_keys(gra):
-    """Get keys to stereo candidate bonds, which will be stereogenic if their
-    groups are distinct on either side
+def rigid_planar_bond_keys(
+    gra, min_ncount: int = 1, min_ring_size: int = 8
+) -> frozenset[frozenset[int]]:
+    """Get the keys to bonds which are rigid and planar
 
-    Bonds will be considered stereo candidates if they are rigid and planar,
-    which happens when:
-        a. They are doubly bonded in at least one low-spin resonance structure
-        b. AND both atoms are sp2, excluding cumulenes which are linear rather
-        than planar and have sp1 atoms
+    This can be used to find candidates for bond stereochemistry
 
-    For TS graphs, bond keys in which both atoms are stereo candidates in the
-    TS are excluded, to prevent inconsistency in, for example, elimination
-    reactions.
-
-    Question: Is it possible for a bond to be rigid and planar for the TS and
-    the products, but not the reactants, without being captured by atom
-    stereochemistry? I don't think so, and this implementation assumes not.
-
-    :param gra: molecular graph
+    :param gra: A molecular graph
     :type gra: automol graph data structure
-    :returns: The bond keys
-    :rtype: frozenset[frozenset[int]]
+    :param min_ncount: Minimum # neighbors on either side for inclusion, defaults to 1
+        (If min_ncount = 0, this will still require at least one neighbor on one side)
+    :type min_ncount: int, optional
+    :param min_ring_size: Minimum ring size for inclusion, defaults to 8
+    :type min_ring_size: int, optional
     """
-    ts_ = is_ts_graph(gra)
-    gras = ts_reagents_graphs_without_stereo(gra) if ts_ else [gra]
+    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
 
-    rp_bnd_keys = set()
+    rkeys_lst = list(map(set, rings_atom_keys(gra, ts_=True)))
+
+    # 1. Find rigid, planar bonds along with their neighbors
+    # (Gather bonds and neighbors from both sides of the reaction)
+    rp_dct = {}
     for gra_ in gras:
-        gra_ = without_pi_bonds(gra_)
-        double_bnd_keys = dict_.keys_by_value(
-            kekules_bond_orders_collated(gra_), lambda x: 2 in x
-        )
+        for kgr in kekules(gra_):
+            ord_dct = bond_orders(kgr)
+            hyb_dct = atom_hybridizations_from_kekule(kgr)
 
-        # make sure both ends are sp^2 (excludes cumulenes)
-        atm_hyb_dct = atom_hybridizations(gra_)
-        sp2_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 2)
-        rp_bnd_keys |= {k for k in double_bnd_keys if k <= sp2_atm_keys}
+            sp2_keys = {k for k, h in hyb_dct.items() if h == 2}
+            bkeys = {bk for bk, o in ord_dct.items() if o == 2 and bk <= sp2_keys}
+            for bkey in bkeys:
+                bns0 = rp_dct[bkey] if bkey in rp_dct else (frozenset(), frozenset())
+                bns = bond_neighbor_atom_keys(gra_, *sorted(bkey))
+                # Planarity requires that at least one side have a neighbor key
+                if any(bns):
+                    rp_dct[bkey] = tuple(n0 | n for n0, n in zip(bns0, bns))
 
-    if ts_:
+    rp_bkeys = list(rp_dct.keys())
+
+    # 2. Enforce the minimum neighbor count
+    for bkey, bns in rp_dct.items():
+        if any(len(n) < min_ncount for n in bns):
+            rp_bkeys.remove(bkey)
+
+    # 3. Enforce the minimum ring size
+    for bkey, bns in rp_dct.items():
+        # Check that the ring includes some of the neighbors on either side
+        # (This is required for elimination TS graphs, where the bond is in the ring,
+        # but its neighbors are outside of it, so they are not constrained)
+        ring_sizes = [
+            len(rks) for rks in rkeys_lst if bkey <= rks and all(ns & rks for ns in bns)
+        ]
+        if ring_sizes and min(ring_sizes) < min_ring_size:
+            rp_bkeys.remove(bkey)
+
+    # TEMPORARY -- move this into the bond stereo candidates function
+    if is_ts_graph(gra):
         tet_atm_keys = tetrahedral_atom_keys(gra)
-        rp_bnd_keys = frozenset({k for k in rp_bnd_keys if k != k & tet_atm_keys})
+        rp_bkeys = frozenset({k for k in rp_bkeys if not k <= tet_atm_keys})
 
-    return rp_bnd_keys
+    return frozenset(rp_bkeys)
 
 
 def atom_centered_cumulene_keys(gra):
