@@ -745,6 +745,105 @@ def radical_group_dct(gra):
     return groups
 
 
+def rigid_planar_bonds(
+    gra, min_ncount: int = 1, min_ring_size: int = 8
+) -> Dict[frozenset[int], tuple[tuple, tuple]]:
+    """Get a mapping of rigid, planary bond keys onto their neighbor keys
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :param min_ncount: Minimum # neighbors on either side for inclusion, defaults to 1
+        (If min_ncount = 0, this will still require at least one neighbor on one side)
+    :type min_ncount: int, optional
+    :param min_ring_size: Minimum ring size for inclusion, defaults to 8
+    :type min_ring_size: int, optional
+    :returns: A mapping of rigid, planar bond keys onto their neighbor keys; The pair of
+        neighbor key lists is sorted by the atom key that they are neighbors to
+    :rtype: Dict[frozenset[int], tuple[tuple, tuple]]
+    """
+    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
+    nhyd_dct = atom_implicit_hydrogens(gra)
+
+    # 1. Find rigid, planar bonds in the graph, along with their neighbors
+    # (Initially, the neighbor keys will be stored as sets)
+    rp_dct = {}
+    for gra_ in gras:
+        for kgr in kekules(gra_):
+            ord_dct = bond_orders(kgr)
+            hyb_dct = atom_hybridizations_from_kekule(kgr)
+
+            sp2_keys = {k for k, h in hyb_dct.items() if h == 2}
+            rp_bkeys = {bk for bk, o in ord_dct.items() if o == 2 and bk <= sp2_keys}
+            for bkey in rp_bkeys:
+                key1, key2 = sorted(bkey)
+                # Get previous neighbor keys, if any
+                nkeys1, nkeys2 = rp_dct[bkey] if bkey in rp_dct else (set(), set())
+                # Get current neighbor keys
+                nkeys1_, nkeys2_ = bond_neighbor_atom_keys(gra_, key1, key2)
+                # Combine to give full sets of neighbor keys for TS graphs
+                rp_dct[bkey] = (nkeys1 | nkeys1_, nkeys2 | nkeys2_)
+
+    # 2. Enforce the minimum neighbor count
+    # (Neighbor keys will be converted to tuples, with Nones for implicit hydrogens)
+    for bkey in list(rp_dct.keys()):
+        # Convert to tuple
+        bnkeys = list(map(tuple, rp_dct[bkey]))
+        # Create placeholders for implicit hydrogens
+        bhkeys = [(None,) * nhyd_dct[k] for k in sorted(bkey)]
+        # Append the implicit hydrogen placeholders
+        bnkeys = [n + h for n, h in zip(bnkeys, bhkeys)]
+        # Get the total numbers of neighbors on either side
+        ncounts = list(map(len, bnkeys))
+        # Remove the bond if it doesn't have enough neighbors
+        # Even if min_ncount = 0 we need at least one neighbor on one side for planarity
+        if any(ncount < min_ncount for ncount in ncounts) or not any(ncounts):
+            rp_dct.pop(bkey)
+
+    # 3. Enforce the minimum ring size
+    rp_rng_const_dct = rigid_planar_bonds_ring_constraints(
+        gra, rp_dct, min_ring_size=min_ring_size
+    )
+    rp_dct = dict_.filter_by_key(rp_dct, lambda k: k not in rp_rng_const_dct)
+    return rp_dct
+
+
+def rigid_planar_bonds_ring_constraints(
+    gra, rp_dct: Dict[frozenset[int], tuple[tuple, tuple]], min_ring_size: int = 8
+) -> Dict[frozenset[int], tuple[int, int]]:
+    """Given a rigid, planar bond dictionary, identify bonds which are constrained by
+    small rings, along with the pairs of neighbors that are constrained to be cis
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :returns: A mapping of rigid, planar bond keys onto their neighbor keys
+    :type rp_dct: Dict[frozenset[int], tuple[tuple, tuple]]
+    :param min_ring_size: Minimum ring size for ignoring the constraint, defaults to 8
+    :type min_ring_size: int, optional
+    :return: A mapping of constrained rigid, planar bond keys onto the pair of neighbors
+        which are forced by the ring to be cis
+    :rtype: Dict[frozenset[int], tuple[int, int]]
+    """
+    # Get the pool of ring keys
+    rng_keys_pool = list(map(set, rings_atom_keys(gra, ts_=True)))
+
+    # Search for constrained rigid, planar bonds
+    rp_rng_const_dct = {}
+    for bkey, (nkeys1, nkeys2) in list(rp_dct.items()):
+        # Identify sufficiently small rings containing the bond
+        rng_keys_lst = [
+            rks for rks in rng_keys_pool if bkey <= rks and len(rks) < min_ring_size
+        ]
+        # Check for constraints in smaller rings first
+        for rng_keys in sorted(rng_keys_lst, key=len):
+            nkey1 = next((k for k in nkeys1 if k in rng_keys), None)
+            nkey2 = next((k for k in nkeys2 if k in rng_keys), None)
+            if nkey1 is not None and nkey2 is not None:
+                rp_rng_const_dct[bkey] = (nkey1, nkey2)
+                break
+
+    return rp_rng_const_dct
+
+
 def rigid_planar_bond_keys(
     gra, min_ncount: int = 1, min_ring_size: int = 8
 ) -> frozenset[frozenset[int]]:
@@ -760,48 +859,9 @@ def rigid_planar_bond_keys(
     :param min_ring_size: Minimum ring size for inclusion, defaults to 8
     :type min_ring_size: int, optional
     """
-    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
-
-    rkeys_lst = list(map(set, rings_atom_keys(gra, ts_=True)))
-
-    # 1. Find rigid, planar bonds along with their neighbors
-    # (Gather bonds and neighbors from both sides of the reaction)
-    rp_dct = {}
-    for gra_ in gras:
-        for kgr in kekules(gra_):
-            ord_dct = bond_orders(kgr)
-            hyb_dct = atom_hybridizations_from_kekule(kgr)
-
-            sp2_keys = {k for k, h in hyb_dct.items() if h == 2}
-            bkeys = {bk for bk, o in ord_dct.items() if o == 2 and bk <= sp2_keys}
-            for bkey in bkeys:
-                bns0 = rp_dct[bkey] if bkey in rp_dct else (frozenset(), frozenset())
-                bns = bond_neighbor_atom_keys(gra_, *sorted(bkey))
-                rp_dct[bkey] = tuple(n0 | n for n0, n in zip(bns0, bns))
-
-    rp_bkeys = list(rp_dct.keys())
-
-    # 2. Enforce the minimum neighbor count
-    nhyd_dct = atom_implicit_hydrogens(gra)
-    for bkey, bns in rp_dct.items():
-        ncounts = tuple(len(bn) + nhyd_dct[k] for k, bn in zip(sorted(bkey), bns))
-        # Even when min_ncount = 0, there must be at least one neighbor on one side for
-        # the bond to be planar
-        if not any(ncounts) or any(ncount < min_ncount for ncount in ncounts):
-            rp_bkeys.remove(bkey)
-
-    # 3. Enforce the minimum ring size
-    for bkey, bns in rp_dct.items():
-        # Check that the ring includes some of the neighbors on either side
-        # (This is required for elimination TS graphs, where the bond is in the ring,
-        # but its neighbors are outside of it, so they are not constrained)
-        ring_sizes = [
-            len(rks) for rks in rkeys_lst if bkey <= rks and all(ns & rks for ns in bns)
-        ]
-        if ring_sizes and min(ring_sizes) < min_ring_size:
-            rp_bkeys.remove(bkey)
-
-    return frozenset(rp_bkeys)
+    return frozenset(
+        rigid_planar_bonds(gra, min_ncount=min_ncount, min_ring_size=min_ring_size)
+    )
 
 
 def stereocenter_candidate_keys(

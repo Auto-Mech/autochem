@@ -1383,6 +1383,39 @@ def bond_unpaired_electrons(gra, bond_order=True):
     return bnd_unsat_dct
 
 
+def tetrahedral_atoms(gra, min_ncount: int=3) -> Dict[int, tuple]:
+    """Get a mapping of tetrahedral atom keys onto their neighbor keys
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :param min_ncount: Minimum # neighbors for inclusion, defaults to 3
+        (Difference must be made up by lone pairs)
+    :type min_ncount: int, optional
+    :returns: A mapping of tetrahedral atom keys onto their neighbor keys; For
+        substitution TS graphs, the reactant neighbors will be returned
+    :rtype: Dict[int, tuple]
+    """
+    gra = without_pi_bonds(gra)  # remove pi-bonds for the bond count below
+    nlp_dct = atom_lone_pairs(gra)
+    nhyd_dct = atom_implicit_hydrogens(gra)
+
+    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
+
+    tet_dct = {}
+    for gra_ in gras:
+        nkeys_dct = atoms_neighbor_atom_keys(gra_)
+        for key, nkeys in nkeys_dct.items():
+            nkeys = tuple(nkeys) + (None,) * nhyd_dct[key]
+            ncount = len(nkeys)
+            nlp = nlp_dct[key]
+            if ncount + nlp == 4 and not ncount < min_ncount:
+                # If both directions are tetrahedral, use reactant neighbors
+                if key not in tet_dct:
+                    tet_dct[key] = nkeys
+
+    return tet_dct
+
+
 def tetrahedral_atom_keys(gra):
     """Get keys to stereo candidate atoms, which will be stereogenic if their
     groups are all distinct
@@ -1401,21 +1434,7 @@ def tetrahedral_atom_keys(gra):
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    gra = without_pi_bonds(gra)  # remove pi-bonds for the bond count below
-
-    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
-
-    keys = sorted(atom_keys(gra))
-    tet_atm_keys = []
-    for gra_ in gras:
-        nbnds_lst = dict_.values_by_key(atom_bond_counts(gra_), keys)
-        nlps_lst = dict_.values_by_key(atom_lone_pairs(gra_), keys)
-        for key, nbnds, nlps in zip(keys, nbnds_lst, nlps_lst):
-            # Cases: 4 bonds 0 lone pairs OR 3 bonds and 1 lone pair
-            if (nbnds == 4 and nlps == 0) or (nbnds == 3 and nlps == 1):
-                tet_atm_keys.append(key)
-
-    return frozenset(tet_atm_keys)
+    return frozenset(tetrahedral_atoms(gra))
 
 
 def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
