@@ -23,6 +23,7 @@ from automol.util.dict_._dict_ import filter_by_key
 from automol.util.dict_._dict_ import filter_by_value
 from automol.util.dict_._dict_ import filter_keys
 from automol.util.dict_._dict_ import merge_sequence
+from automol.util.dict_._dict_ import sort_value_
 
 # submodules
 from automol.util.dict_ import multi
@@ -41,6 +42,7 @@ __all__ = [
     'filter_by_key',
     'filter_by_value',
     'merge_sequence', 'filter_keys',
+    'sort_value_',
     # submodules
     'multi',
 ]

@@ -5,7 +5,6 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 Reference:
 Schneider, Sayle, Landrum. J. Chem. Inf. Model. 2015, 55, 10, 2111–2120
 """
-import functools
 import itertools
 import numbers
 from collections import abc
@@ -32,14 +31,13 @@ from automol.graph.base._00core import (
     has_stereo,
     implicit,
     is_ts_graph,
-    local_stereo_priorities,
     mass_numbers,
     nonbackbone_hydrogen_keys,
     relabel as relabel_,
     set_atom_stereo_parities,
     set_stereo_parities,
+    stereo_keys,
     stereo_parities,
-    tetrahedral_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
@@ -49,12 +47,8 @@ from automol.graph.base._00core import (
     without_pi_bonds,
     without_stereo,
 )
-from automol.graph.base._02algo import (
-    connected_components,
-    is_connected,
-    rings_bond_keys,
-)
-from automol.graph.base._03kekule import rigid_planar_bond_keys
+from automol.graph.base._02algo import connected_components, is_connected
+from automol.graph.base._03kekule import stereocenter_candidate_keys
 from automol.graph.base._04ts import (
     constrained_1_2_insertion_local_parities,
     sn2_local_stereo_reversal_flips,
@@ -215,7 +209,7 @@ def canonical_keys(gra, backbone_only=True):
     return can_key_dct
 
 
-def stereo_assignment_representation(gra, pri_dct):
+def stereo_assignment_representation(gra, pri_dct: dict):
     """Generate a representation of a stereo assignment, for checking for
     symmetric equivalence or for determining a canonical enantiomer
 
@@ -225,10 +219,8 @@ def stereo_assignment_representation(gra, pri_dct):
     :type pri_dct: dict
     :returns: A canonical representation of the assignment
     """
-    atm_keys = sorted(atom_stereo_keys(gra), key=pri_dct.__getitem__)
-    bnd_keys = sorted(
-        bond_stereo_keys(gra), key=lambda x: sorted(map(pri_dct.__getitem__, x))
-    )
+    atm_keys = sorted(atom_stereo_keys(gra), key=pri_dct.get)
+    bnd_keys = sorted(bond_stereo_keys(gra), key=lambda x: sorted(map(pri_dct.get, x)))
 
     rep = tuple(
         dict_.values_by_key(atom_stereo_parities(gra), atm_keys)
@@ -237,7 +229,7 @@ def stereo_assignment_representation(gra, pri_dct):
     return rep
 
 
-def ts_direction_representation(tsg, pri_dct):
+def ts_direction_representation(tsg, pri_dct: dict):
     """Generate a representation of the reaction direction to determine the
     canonical direction of a TS graph
 
@@ -259,8 +251,8 @@ def ts_direction_representation(tsg, pri_dct):
     rxn_rep1 = (len(frm_keys), len(brk_keys))
     # Rep value 2: Canonical keys of bonds broken and formed
     rxn_rep2 = (
-        sorted(sorted(map(pri_dct.__getitem__, k)) for k in frm_keys),
-        sorted(sorted(map(pri_dct.__getitem__, k)) for k in brk_keys),
+        sorted(sorted(map(pri_dct.get, k)) for k in frm_keys),
+        sorted(sorted(map(pri_dct.get, k)) for k in brk_keys),
     )
     rep = (rxn_rep1, rxn_rep2)
     return rep
@@ -727,7 +719,7 @@ def reassign_hydrogen_priorities(gra, pri_dct, neg=False):
     return pri_dct
 
 
-def _refine_priorities(gra, pri_dct=None, _backbone_only=True):
+def _refine_priorities(gra, pri_dct: Optional[dict] = None, _backbone_only=True):
     """Refine the canonical priorities for this graph based on some sort value
 
     (Only for connected graphs)
@@ -800,7 +792,7 @@ def _refine_priorities(gra, pri_dct=None, _backbone_only=True):
                 ngb_keys = frozenset.union(*map(ngb_keys_dct.__getitem__, new_cla))
 
                 # Get priorities of these neighboring atoms.
-                ngb_idxs |= frozenset(map(pri_dct.__getitem__, ngb_keys))
+                ngb_idxs |= frozenset(map(pri_dct.get, ngb_keys))
 
                 # Don't include classes that were already up for re-evaluation.
                 ngb_idxs -= frozenset(dict(new_clas))
@@ -973,7 +965,7 @@ def sort_evaluator_atom_invariants_(gra):
     # based on their parent atoms
     nkeys_dct.update(dict_.by_key(atoms_neighbor_atom_keys(gra, ts_=True), hyd_keys))
 
-    def _evaluator(pri_dct):
+    def _evaluator(pri_dct: dict):
         """Sort value evaluator based on current priorities.
 
         :param pri_dct: A dictionary mapping atom keys to priorities
@@ -988,7 +980,7 @@ def sort_evaluator_atom_invariants_(gra):
             apar = apar_dct[key]
             bpars = bpars_dct[key]
             bords = bords_dct[key]
-            nidxs = tuple(sorted(map(pri_dct.__getitem__, nkeys_dct[key])))
+            nidxs = tuple(sorted(map(pri_dct.get, nkeys_dct[key])))
             return (symb, deg, hnum, mnum, apar, bpars, bords, nidxs)
 
         return _value
@@ -1043,8 +1035,6 @@ def parity_evaluator_from_geometry_(
         assert gra == explicit(
             gra
         ), "Explicit graph should be used when evaluating from geometry."
-
-        pri_dct = reassign_hydrogen_priorities(gra, pri_dct, neg=True)
 
         def _parity(key):
             # If the key is a number, this is an atom
@@ -1154,10 +1144,6 @@ def parity_evaluator_flip_local_() -> ParityEvaluator:
         gra = explicit(gra)
         par_dct = stereo_parities(gra)
 
-        loc_pri_dct = local_stereo_priorities(gra)
-
-        pri_dct = reassign_hydrogen_priorities(gra, pri_dct, neg=True)
-
         flip_dct = sn2_local_stereo_reversal_flips(gra) if is_rev_ts else {}
 
         def _parity(key):
@@ -1165,9 +1151,8 @@ def parity_evaluator_flip_local_() -> ParityEvaluator:
             if isinstance(key, numbers.Number):
                 par = par_dct[key]
 
-                nkeys = atom_stereo_sorted_neighbor_keys(gra, key)
-                can_srt = sorted(nkeys, key=pri_dct.__getitem__)
-                loc_srt = sorted(nkeys, key=loc_pri_dct.__getitem__)
+                loc_srt = atom_stereo_sorted_neighbor_keys(gra, key)
+                can_srt = atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=pri_dct)
 
                 is_odd = util.is_odd_permutation(loc_srt, can_srt)
                 ret_par = is_odd ^ par
@@ -1183,16 +1168,12 @@ def parity_evaluator_flip_local_() -> ParityEvaluator:
                 par = par_dct[key]
 
                 key1, key2 = key
-                nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(
+                loc_srt1, loc_srt2 = bond_stereo_sorted_neighbor_keys(gra, key1, key2)
+                can_srt1, can_srt2 = bond_stereo_sorted_neighbor_keys(
                     gra, key1, key2, pri_dct=pri_dct
                 )
 
-                can_nmax1 = nkey1s[-1]
-                can_nmax2 = nkey2s[-1]
-                loc_nmax1 = max(nkey1s, key=loc_pri_dct.__getitem__)
-                loc_nmax2 = max(nkey2s, key=loc_pri_dct.__getitem__)
-
-                if not (loc_nmax1 == can_nmax1) ^ (loc_nmax2 == can_nmax2):
+                if not (loc_srt1[-1] == can_srt1[-1]) ^ (loc_srt2[-1] == can_srt2[-1]):
                     ret_par = par
                 else:
                     ret_par = not par
@@ -1267,7 +1248,7 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
 
 # # core algorithm helpers
 def stereocenter_keys_from_priorities(
-    gra, pri_dct: Dict[int, int], atom: bool = True, bond: bool = True, new: bool=True
+    gra, pri_dct: Dict[int, int], atom: bool = True, bond: bool = True, new: bool = True
 ):
     """Find stereogenic atoms and bonds in this graph, given a set of atom
     priority values
@@ -1287,102 +1268,38 @@ def stereocenter_keys_from_priorities(
     :returns: the stereogenic atom and bond keys
     :rtype: frozenset
     """
-    ste_keys = frozenset()
 
-    if atom:
-        ste_keys |= _stereoatom_keys_from_priorities(
-            gra, pri_dct, new=new
+    def _atom_is_stereogenic(key):
+        nkeys = atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=pri_dct)
+        assert len(nkeys) <= 4, f"Too many neighbors! {nkeys}"
+        pris = list(map(pri_dct.get, nkeys))
+        return len(set(pris)) == len(pris)
+
+    def _bond_is_stereogenic(key):
+        nkeys_pair = bond_stereo_sorted_neighbor_keys(gra, *key, pri_dct=pri_dct)
+        ret = True
+        for nkeys in nkeys_pair:
+            assert len(nkeys) <= 2, f"Too many neighbors! {nkeys}"
+            pris = list(map(pri_dct.get, nkeys))
+            ret &= len(nkeys) == 1 or len(set(pris)) == len(pris)
+        return ret
+
+    def _is_stereogenic(key):
+        return (
+            _atom_is_stereogenic(key)
+            if isinstance(key, numbers.Number)
+            else _bond_is_stereogenic(key)
         )
 
-    if bond:
-        ste_keys |= _stereobond_keys_from_priorities(
-            gra, pri_dct, new=new
-        )
+    keys = stereocenter_candidate_keys(gra, atom=atom, bond=bond)
+    if new:
+        keys -= stereo_keys(gra)
+
+    ste_keys = frozenset(filter(_is_stereogenic, keys))
     return ste_keys
 
 
-def _stereoatom_keys_from_priorities(gra, pri_dct, new: bool=True):
-    """Find stereogenic atoms in this graph, given a set of atom priority values
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param pri_dct: priorities, to avoid recalculating
-    :type pri_dct: dict[int: int]
-    :param new: Detect only new, unassigned stereocenters?
-    :type new: bool, optional
-    :returns: the stereogenic atom keys
-    :rtype: frozenset[int]
-    """
-    gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = reassign_hydrogen_priorities(gra, pri_dct)
-
-    atm_keys = tetrahedral_atom_keys(gra)
-    if new:
-        # Remove assigned stereo keys
-        atm_keys -= atom_stereo_keys(gra)
-
-    def _is_stereogenic(key):
-        nkeys = atom_stereo_sorted_neighbor_keys(gra, key, pri_dct=pri_dct)
-        assert len(nkeys) <= 4, f"Too many neighbors! {nkeys}"
-        pris = list(map(pri_dct.__getitem__, nkeys))
-        return len(set(pris)) == len(pris)
-
-    ste_atm_keys = frozenset(filter(_is_stereogenic, atm_keys))
-    return ste_atm_keys
-
-
-def _stereobond_keys_from_priorities(gra, pri_dct, new: bool=True):
-    """Find stereogenic bonds in this graph, given a set of atom priority values
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param pri_dct: priorities, to avoid recalculating
-    :type pri_dct: dict[int: int]
-    :param new: Detect only new, unassigned stereocenters?
-    :type new: bool, optional
-    :returns: the stereogenic bond keys
-    :rtype: frozenset[frozenset[int]]
-    """
-    gra = without_pi_bonds(gra)
-    gra = explicit(gra)  # for simplicity, add the explicit hydrogens back in
-    pri_dct = reassign_hydrogen_priorities(gra, pri_dct)
-
-    bnd_keys = rigid_planar_bond_keys(gra)
-    if new:
-        # Remove assigned stereo keys
-        bnd_keys -= bond_stereo_keys(gra)
-
-    # Don't treat as a TS graph when checking for small rings
-    rng_bnd_keys_lst = rings_bond_keys(gra, ts_=False)
-    bnd_keys -= functools.reduce(  # remove double bonds in small rings
-        frozenset.union, filter(lambda x: len(x) < 8, rng_bnd_keys_lst), frozenset()
-    )
-
-    def _is_stereogenic(key):
-        key1, key2 = key
-        nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(
-            gra, key1, key2, pri_dct=pri_dct
-        )
-
-        ret = True
-        for nkeys in (nkey1s, nkey2s):
-            assert len(nkeys) <= 2, f"Too many neighbors! {nkeys}"
-            pris = list(map(pri_dct.__getitem__, nkeys))
-            ret &= (
-                False
-                if not nkeys  # C=:O:
-                else True
-                if len(nkeys) == 1  # C=N:-X
-                else len(set(pris)) == len(pris)  # C=C(-X)-Y
-            )
-
-        return ret
-
-    ste_bnd_keys = frozenset(filter(_is_stereogenic, bnd_keys))
-    return ste_bnd_keys
-
-
-def class_dict_from_priority_dict(pri_dct):
+def class_dict_from_priority_dict(pri_dct: dict):
     """Obtain a class dictionary from a priority dictionary.
 
     :param pri_dct: A dictionary mapping atom keys to priorities.
@@ -1392,6 +1309,6 @@ def class_dict_from_priority_dict(pri_dct):
     :rtype: dict[int: tuple]
     """
     keys = sorted(pri_dct.keys())
-    clas = sorted(keys, key=pri_dct.__getitem__)
-    cla_dct = {i: tuple(c) for i, c in itertools.groupby(clas, key=pri_dct.__getitem__)}
+    clas = sorted(keys, key=pri_dct.get)
+    cla_dct = {i: tuple(c) for i, c in itertools.groupby(clas, key=pri_dct.get)}
     return cla_dct

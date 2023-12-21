@@ -1,8 +1,8 @@
 """ Helper functions for working with Python dictionaries
 """
-
 import itertools
 from copy import deepcopy
+from typing import Any
 
 import numpy
 
@@ -232,3 +232,19 @@ def merge_sequence(dcts):
     for dct in dcts:
         merged_dct.update(dct)
     return merged_dct
+
+
+def sort_value_(dct, allow_missing: bool = True, missing_val: Any=None):
+    """Generate a sort value function from a dictionary
+
+    :param dct: A dictionary
+    :type dct: dict
+    :param allow_missing: Allow missing values?, defaults to True
+    :type allow_missing: bool, optional
+    :param missing_val: Value to assign to missing values, defaults to None
+    :type missing_val: Any, optional
+    """
+    def sort_value(key):
+        assert allow_missing or key in dct, "No key {key} in dictionary:\n{dict}"
+        return dct[key] if key in dct else missing_val
+    return sort_value

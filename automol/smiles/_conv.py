@@ -116,16 +116,6 @@ def _connected_graph(smi, stereo=True, local_stereo=False):
     )
 
     if graph_.has_stereo(gra):
-        # The parser marks all bonds with directional bonds on either side as
-        # having stereo, because it has no way to distinguish between them.  In
-        # lieu of a more rigorous check, remove stereo from all non-sp2 bonds.
-        # If this is an issue, we could create a more rigorous check to see if
-        # a bond is stereogenic.
-        ste_bnd_keys = graph_.bond_stereo_keys(gra)
-        sp2_bnd_keys = graph_.rigid_planar_bond_keys(gra)
-        bnd_keys = ste_bnd_keys - sp2_bnd_keys
-        gra = graph_.without_stereo(gra, bnd_keys=bnd_keys)
-
         if not local_stereo:
             # Convert from local to canonical stereo
             gra = graph_.from_local_stereo(gra)

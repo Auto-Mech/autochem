@@ -221,6 +221,7 @@ from automol.graph.base._03kekule import has_noninchi_stereo
 from automol.graph.base._03kekule import radical_groups
 from automol.graph.base._03kekule import radical_group_dct
 from automol.graph.base._03kekule import rigid_planar_bond_keys
+from automol.graph.base._03kekule import stereocenter_candidate_keys
 from automol.graph.base._03kekule import atom_centered_cumulene_keys
 from automol.graph.base._03kekule import bond_centered_cumulene_keys
 # structural heuristics:
@@ -544,6 +545,7 @@ __all__ = [
     'radical_groups',
     'radical_group_dct',
     'rigid_planar_bond_keys',
+    'stereocenter_candidate_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
     # structural heuristics:

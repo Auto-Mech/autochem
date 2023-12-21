@@ -342,9 +342,11 @@ def test__stereo():
     assert set(chi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
 
     # some cases that were breaking
+    print(chi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H'))
     assert set(chi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')) == {
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
+    print(chi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H'))
     assert set(chi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
         'AMChI=1/CH2N/c1-2/h1-2H/b2-1-',
         'AMChI=1/CH2N/c1-2/h1-2H/b2-1+'}
@@ -415,7 +417,7 @@ if __name__ == '__main__':
     # test__sorted_()
     # test__recalculate()
     # test__filter_enantiomer_reactions()
-    # test__stereo()
+    test__stereo()
     # test__join()
     # test__canonical_enantiomer()
-    test__racemic()
+    # test__racemic()

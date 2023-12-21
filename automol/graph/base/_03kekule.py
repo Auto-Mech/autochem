@@ -3,11 +3,12 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
 from automol.graph.base._00core import (
     atom_bond_counts,
+    atom_implicit_hydrogens,
     atom_keys,
     atom_lone_pairs,
     atom_neighbor_atom_key,
@@ -16,10 +17,10 @@ from automol.graph.base._00core import (
     atoms_bond_keys,
     atoms_neighbor_atom_keys,
     bond_keys,
+    bond_neighbor_atom_keys,
     bond_orders,
     bond_stereo_keys,
     bond_unpaired_electrons,
-    bond_neighbor_atom_keys,
     dummy_source_dict,
     has_atom_stereo,
     implicit,
@@ -776,15 +777,17 @@ def rigid_planar_bond_keys(
             for bkey in bkeys:
                 bns0 = rp_dct[bkey] if bkey in rp_dct else (frozenset(), frozenset())
                 bns = bond_neighbor_atom_keys(gra_, *sorted(bkey))
-                # Planarity requires that at least one side have a neighbor key
-                if any(bns):
-                    rp_dct[bkey] = tuple(n0 | n for n0, n in zip(bns0, bns))
+                rp_dct[bkey] = tuple(n0 | n for n0, n in zip(bns0, bns))
 
     rp_bkeys = list(rp_dct.keys())
 
     # 2. Enforce the minimum neighbor count
+    nhyd_dct = atom_implicit_hydrogens(gra)
     for bkey, bns in rp_dct.items():
-        if any(len(n) < min_ncount for n in bns):
+        ncounts = tuple(len(bn) + nhyd_dct[k] for k, bn in zip(sorted(bkey), bns))
+        # Even when min_ncount = 0, there must be at least one neighbor on one side for
+        # the bond to be planar
+        if not any(ncounts) or any(ncount < min_ncount for ncount in ncounts):
             rp_bkeys.remove(bkey)
 
     # 3. Enforce the minimum ring size
@@ -798,12 +801,47 @@ def rigid_planar_bond_keys(
         if ring_sizes and min(ring_sizes) < min_ring_size:
             rp_bkeys.remove(bkey)
 
-    # TEMPORARY -- move this into the bond stereo candidates function
-    if is_ts_graph(gra):
-        tet_atm_keys = tetrahedral_atom_keys(gra)
-        rp_bkeys = frozenset({k for k in rp_bkeys if not k <= tet_atm_keys})
-
     return frozenset(rp_bkeys)
+
+
+def stereocenter_candidate_keys(
+    gra, atom: bool = True, bond: bool = True
+) -> frozenset[Union[int, frozenset[int]]]:
+    """Get keys to stereocenter candidates in the graph
+
+    Stereocenter candidates are atoms and bonds which are potentially stereogenic.
+    The only thing left to check are the canonical priorities (atom symmetry classes)
+    of their neighbors.
+
+    :param gra: A molecular graph
+    :type gra: automol graph data structure
+    :param atom: Include atom stereocenter candidates? defaults to True
+    :type atom: bool, optional
+    :param bond: Include bond stereocenter candidates? defaults to True
+    :type bond: bool, optional
+    :returns: The keys of the stereocenter candidates
+    :rtype: frozenset[Union[int, frozenset[int]]]
+    """
+    keys = frozenset()
+
+    # 1. Atom stereocenter candidates: tetrahedral atoms
+    atm_keys = tetrahedral_atom_keys(gra)  # These need to be calculated no matter what
+    if atom:
+        keys |= atm_keys
+
+    if bond:
+        # 2. Bond stereocenter candidates: (a.) rigid, planar bonds, (b.) at least one
+        # neighbor on each side, (c.) not locked in ring with <8 atoms
+        bnd_keys = rigid_planar_bond_keys(gra, min_ncount=1, min_ring_size=8)
+
+        # 3. For TS graphs, remove redundant bond stereocenter candidates, where both
+        # atoms are already atom stereocenter candidates
+        if is_ts_graph(gra):
+            bnd_keys = frozenset({bk for bk in bnd_keys if not bk <= atm_keys})
+
+        keys |= bnd_keys
+
+    return keys
 
 
 def atom_centered_cumulene_keys(gra):
