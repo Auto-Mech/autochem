@@ -263,7 +263,7 @@ from automol.graph.base._07canon import canonical
 from automol.graph.base._07canon import canonical_keys
 # # canonical stereo functions
 from automol.graph.base._07canon import unassigned_stereocenter_keys
-from automol.graph.base._07canon import stereocenter_keys_from_priorities
+from automol.graph.base._07canon import stereocenter_keys_from_candidates
 from automol.graph.base._07canon import reflect
 from automol.graph.base._07canon import reflect_local_stereo
 from automol.graph.base._07canon import to_local_stereo
@@ -568,7 +568,7 @@ __all__ = [
     'canonical_keys',
     # # canonical stereo functions
     'unassigned_stereocenter_keys',
-    'stereocenter_keys_from_priorities',
+    'stereocenter_keys_from_candidates',
     'reflect',
     'reflect_local_stereo',
     'to_local_stereo',

@@ -8,7 +8,7 @@ Schneider, Sayle, Landrum. J. Chem. Inf. Model. 2015, 55, 10, 2111–2120
 import itertools
 import numbers
 from collections import abc
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy
 from automol import util
@@ -321,9 +321,8 @@ def unassigned_stereocenter_keys(
     pri_dct = (
         canonical_priorities(gra, backbone_only=False) if pri_dct is None else pri_dct
     )
-    ste_keys = stereocenter_keys_from_priorities(
-        gra, pri_dct, atom=atom, bond=bond, new=True
-    )
+    keys_pool = stereocenter_candidate_keys(gra, atom=atom, bond=bond)
+    ste_keys = stereocenter_keys_from_candidates(gra, keys_pool, pri_dct, new=True)
     return ste_keys
 
 
@@ -615,6 +614,8 @@ def _calculate_stereo_core(
     par_eval_ = parity_evaluator_read_canonical_() if par_eval_ is None else par_eval_
     can_par_eval_ = par_eval_ if can_par_eval_ is None else can_par_eval_
 
+    keys_pool = stereocenter_candidate_keys(gra)
+
     # Graph 1 will be for the priority calculation, graph 2 for the parity
     # assignments that will be returned.
     gra = can_gra = without_stereo(gra0)
@@ -627,7 +628,7 @@ def _calculate_stereo_core(
         pri_dct = refine_priorities(can_gra, pri_dct)
 
         # b. Find stereogenic atoms and bonds based on current priorities
-        keys = stereocenter_keys_from_priorities(can_gra, pri_dct, new=True)
+        keys = stereocenter_keys_from_candidates(can_gra, keys_pool, pri_dct, new=True)
 
         # c. If there are none, the calculation is complete. Exit the loop.
         if not keys:
@@ -1247,8 +1248,11 @@ def parity_evaluator_reagents_from_ts_(tsg, prod=False) -> ParityEvaluator:
 
 
 # # core algorithm helpers
-def stereocenter_keys_from_priorities(
-    gra, pri_dct: Dict[int, int], atom: bool = True, bond: bool = True, new: bool = True
+def stereocenter_keys_from_candidates(
+    gra,
+    keys: Union[int, frozenset[int]],
+    pri_dct: Dict[int, int],
+    new: bool = True,
 ):
     """Find stereogenic atoms and bonds in this graph, given a set of atom
     priority values
@@ -1257,12 +1261,10 @@ def stereocenter_keys_from_priorities(
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param keys: Keys of stereocenter candidates
+    :type keys: Union[int, frozenset[int]]
     :param pri_dct: priorities, to avoid recalculating
     :type pri_dct: Dict[int, int]
-    :param atom: Include atom stereocenters? defaults to True
-    :type atom: bool, optional
-    :param bond: Include bond stereocenters? defaults to True
-    :type bond: bool, optional
     :param new: Detect only new, unassigned stereocenters?
     :type new: bool, optional
     :returns: the stereogenic atom and bond keys
@@ -1291,9 +1293,8 @@ def stereocenter_keys_from_priorities(
             else _bond_is_stereogenic(key)
         )
 
-    keys = stereocenter_candidate_keys(gra, atom=atom, bond=bond)
     if new:
-        keys -= stereo_keys(gra)
+        keys = set(keys) - stereo_keys(gra)
 
     ste_keys = frozenset(filter(_is_stereogenic, keys))
     return ste_keys
