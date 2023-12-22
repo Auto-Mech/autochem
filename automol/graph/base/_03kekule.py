@@ -3,10 +3,13 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import numpy
 from automol.graph.base._00core import (
+    AtomKey,
+    AtomKeys,
+    BondKey,
     atom_bond_counts,
     atom_implicit_hydrogens,
     atom_keys,
@@ -27,11 +30,9 @@ from automol.graph.base._00core import (
     is_ts_graph,
     set_bond_orders,
     subgraph,
-    tetrahedral_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
-    ts_reacting_atom_keys,
     ts_reagents_graphs_without_stereo,
     ts_transferring_atoms,
     without_dummy_atoms,
@@ -190,6 +191,35 @@ def kekules_bond_orders_averaged(gra):
 
 
 # # derived properties
+def ts_linear_reacting_atom_keys(
+    tsg, breaking: bool = True, ring: bool = False
+) -> List[int]:
+    """Identify linear reacting atoms in a TS graph
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param breaking: Include breaking bonds?; default `True`
+    :type breaking: bool, optional
+    :param ring: Include atoms in rings?; default `False`
+    :type ring: bool, optional
+    :returns: `True` if it is, `False` if it isn't
+    :rtype: bool
+    """
+    rcts_gra = ts_reactants_graph_without_stereo(tsg)
+    tra_keys = set(ts_transferring_atoms(tsg).keys())
+    sig_keys = set(sigma_radical_atom_bond_keys(rcts_gra).keys())
+
+    key_pool = set(itertools.chain(*ts_forming_bond_keys(tsg)))
+    if breaking:
+        key_pool |= set(itertools.chain(*ts_breaking_bond_keys(tsg)))
+
+    if not ring:
+        key_pool -= set(itertools.chain(*rings_atom_keys(tsg)))
+
+    lin_keys = [k for k in key_pool if k in tra_keys or k in sig_keys]
+    return frozenset(lin_keys)
+
+
 def linear_atom_keys(gra, dummy=True):
     """Atoms forming linear bonds, based on their hybridization
 
@@ -526,96 +556,6 @@ def sigma_radical_atom_keys(gra):
     return frozenset(sigma_radical_atom_bond_keys(gra))
 
 
-def ts_reacting_electron_direction(tsg, key: int):
-    """Determine the reacting electron direction at one end of a forming bond
-
-    Does *not* account for stereochemistry
-
-    The direction is determined as follows:
-        1. One bond, defining the 'x' axis direction
-        2. Another bond, defining the 'y' axis direction
-        3. An angle, describing how far to rotate the 'x' axis bond about a right-handed
-        'z'-axis in order to arrive at the appropriate direction
-
-    The 'y'-axis bond is `None` if the direction is parallel or antiparallel
-    to the 'x'-axis bond, or if the orientation doesn't matter.
-
-    Both bonds are `None` if the direction is perpendicular to the 'x-y' plane.
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param key: The key of a bond-forming atom
-    :type key: int
-    :returns: Two directed bond keys (x and y, respectively) and an angle
-    :rtype: (Tuple[int, int], Tuple[int, int], float)
-    """
-    assert key in ts_reacting_atom_keys(tsg), f"Atom {key} is not a reacting atom:{tsg}"
-    rcts_gra = ts_reactants_graph_without_stereo(tsg)
-    tra_dct = ts_transferring_atoms(tsg)
-    nkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
-    vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
-    sig_dct = sigma_radical_atom_bond_keys(rcts_gra)
-
-    if key in tra_dct:
-        # key1 = transferring atom key
-        # key2 = donor atom
-        dkey, _ = tra_dct[key]
-        xbnd_key = (key, dkey)
-        ybnd_key = None
-        phi = numpy.pi
-    elif key in vin_dct:
-        # key1 = this key
-        # key2 = opposite end of the vinyl bond
-        (opp_key,) = vin_dct[key] - {key}
-        nkey = next(iter(nkeys_dct[key] - {key, opp_key}), None)
-        xbnd_key = (key, opp_key)
-        ybnd_key = None if nkey is None else (key, nkey)
-        phi = 4.0 * numpy.pi / 3.0
-    elif key in sig_dct:
-        # key1 = attacking atom key
-        # key2 = neighbor
-        (nkey,) = sig_dct[key] - {key}
-        xbnd_key = (key, nkey)
-        ybnd_key = None
-        phi = numpy.pi
-    else:
-        xbnd_key = None
-        ybnd_key = None
-        phi = None
-
-    return xbnd_key, ybnd_key, phi
-
-
-def ts_linear_reacting_atom_keys(
-    tsg, breaking: bool = True, ring: bool = False
-) -> List[int]:
-    """Identify linear reacting atoms in a TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param breaking: Include breaking bonds?; default `True`
-    :type breaking: bool, optional
-    :param ring: Include atoms in rings?; default `False`
-    :type ring: bool, optional
-    :returns: `True` if it is, `False` if it isn't
-    :rtype: bool
-    """
-    keys = set(itertools.chain(*ts_forming_bond_keys(tsg)))
-    if breaking:
-        keys |= set(itertools.chain(*ts_breaking_bond_keys(tsg)))
-
-    if not ring:
-        keys -= set(itertools.chain(*rings_atom_keys(tsg)))
-
-    lin_keys = set()
-    for key in keys:
-        _, _, phi = ts_reacting_electron_direction(tsg, key)
-        if phi is not None and numpy.allclose(phi, numpy.pi):
-            lin_keys.add(key)
-
-    return frozenset(lin_keys)
-
-
 def has_separated_radical_sites(gra):
     """does this radical have two or more separated radical sites?
 
@@ -747,7 +687,7 @@ def radical_group_dct(gra):
 
 def rigid_planar_bonds(
     gra, min_ncount: int = 1, min_ring_size: int = 8
-) -> Dict[frozenset[int], tuple[tuple, tuple]]:
+) -> Dict[BondKey, Tuple[AtomKeys, AtomKeys]]:
     """Get a mapping of rigid, planary bond keys onto their neighbor keys
 
     :param gra: A graph
@@ -759,7 +699,7 @@ def rigid_planar_bonds(
     :type min_ring_size: int, optional
     :returns: A mapping of rigid, planar bond keys onto their neighbor keys; The pair of
         neighbor key lists is sorted by the atom key that they are neighbors to
-    :rtype: Dict[frozenset[int], tuple[tuple, tuple]]
+    :rtype: Dict[BondKey, Tuple[AtomKeys, AtomKeys]]
     """
     gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
     nhyd_dct = atom_implicit_hydrogens(gra)
@@ -783,11 +723,14 @@ def rigid_planar_bonds(
                 # Combine to give full sets of neighbor keys for TS graphs
                 rp_dct[bkey] = (nkeys1 | nkeys1_, nkeys2 | nkeys2_)
 
+    # Convert to tuples
+    rp_dct = dict_.transform_values(rp_dct, lambda bnks: tuple(map(tuple, bnks)))
+
     # 2. Enforce the minimum neighbor count
     # (Neighbor keys will be converted to tuples, with Nones for implicit hydrogens)
     for bkey in list(rp_dct.keys()):
         # Convert to tuple
-        bnkeys = list(map(tuple, rp_dct[bkey]))
+        bnkeys = rp_dct[bkey]
         # Create placeholders for implicit hydrogens
         bhkeys = [(None,) * nhyd_dct[k] for k in sorted(bkey)]
         # Append the implicit hydrogen placeholders
@@ -800,16 +743,16 @@ def rigid_planar_bonds(
             rp_dct.pop(bkey)
 
     # 3. Enforce the minimum ring size
-    rp_rng_const_dct = rigid_planar_bonds_ring_constraints(
+    rp_rng_const_dct = rigid_planar_bonds_with_ring_constraints(
         gra, rp_dct, min_ring_size=min_ring_size
     )
     rp_dct = dict_.filter_by_key(rp_dct, lambda k: k not in rp_rng_const_dct)
     return rp_dct
 
 
-def rigid_planar_bonds_ring_constraints(
+def rigid_planar_bonds_with_ring_constraints(
     gra, rp_dct: Dict[frozenset[int], tuple[tuple, tuple]], min_ring_size: int = 8
-) -> Dict[frozenset[int], tuple[int, int]]:
+) -> Dict[BondKey, tuple[AtomKey, AtomKey]]:
     """Given a rigid, planar bond dictionary, identify bonds which are constrained by
     small rings, along with the pairs of neighbors that are constrained to be cis
 
@@ -846,7 +789,7 @@ def rigid_planar_bonds_ring_constraints(
 
 def rigid_planar_bond_keys(
     gra, min_ncount: int = 1, min_ring_size: int = 8
-) -> frozenset[frozenset[int]]:
+) -> frozenset[BondKey]:
     """Get the keys to bonds which are rigid and planar
 
     This can be used to find candidates for bond stereochemistry
@@ -862,46 +805,6 @@ def rigid_planar_bond_keys(
     return frozenset(
         rigid_planar_bonds(gra, min_ncount=min_ncount, min_ring_size=min_ring_size)
     )
-
-
-def stereocenter_candidate_keys(
-    gra, atom: bool = True, bond: bool = True
-) -> frozenset[Union[int, frozenset[int]]]:
-    """Get keys to stereocenter candidates in the graph
-
-    Stereocenter candidates are atoms and bonds which are potentially stereogenic.
-    The only thing left to check are the canonical priorities (atom symmetry classes)
-    of their neighbors.
-
-    :param gra: A molecular graph
-    :type gra: automol graph data structure
-    :param atom: Include atom stereocenter candidates? defaults to True
-    :type atom: bool, optional
-    :param bond: Include bond stereocenter candidates? defaults to True
-    :type bond: bool, optional
-    :returns: The keys of the stereocenter candidates
-    :rtype: frozenset[Union[int, frozenset[int]]]
-    """
-    keys = frozenset()
-
-    # 1. Atom stereocenter candidates: tetrahedral atoms
-    atm_keys = tetrahedral_atom_keys(gra)  # These need to be calculated no matter what
-    if atom:
-        keys |= atm_keys
-
-    if bond:
-        # 2. Bond stereocenter candidates: (a.) rigid, planar bonds, (b.) at least one
-        # neighbor on each side, (c.) not locked in ring with <8 atoms
-        bnd_keys = rigid_planar_bond_keys(gra, min_ncount=1, min_ring_size=8)
-
-        # 3. For TS graphs, remove redundant bond stereocenter candidates, where both
-        # atoms are already atom stereocenter candidates
-        if is_ts_graph(gra):
-            bnd_keys = frozenset({bk for bk in bnd_keys if not bk <= atm_keys})
-
-        keys |= bnd_keys
-
-    return keys
 
 
 def atom_centered_cumulene_keys(gra):

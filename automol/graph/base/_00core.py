@@ -36,6 +36,13 @@ BND_STE_PAR_POS = 1
 ATM_PROP_NAMES = ("symbol", "implicit_hydrogens", "stereo_parity")
 BND_PROP_NAMES = ("order", "stereo_parity")
 
+AtomKey = int
+BondKey = frozenset[int]
+CenterKey = Union[AtomKey, BondKey]
+AtomKeys = List[AtomKey]
+BondKeys = List[BondKey]
+CenterKeys = List[CenterKey]
+
 
 # # constructors
 def from_data(

@@ -220,65 +220,67 @@ from automol.graph.base._03kekule import has_nonkekule_bond_stereo
 from automol.graph.base._03kekule import has_noninchi_stereo
 from automol.graph.base._03kekule import radical_groups
 from automol.graph.base._03kekule import radical_group_dct
+from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._03kekule import rigid_planar_bond_keys
-from automol.graph.base._03kekule import stereocenter_candidate_keys
+from automol.graph.base._04stereo import stereocenter_candidates
+from automol.graph.base._04stereo import stereocenter_candidate_keys
 from automol.graph.base._03kekule import atom_centered_cumulene_keys
 from automol.graph.base._03kekule import bond_centered_cumulene_keys
 # structural heuristics:
-from automol.graph.base._05heur import heuristic_bond_distance
-from automol.graph.base._05heur import heuristic_bond_distance_limit
-from automol.graph.base._05heur import heuristic_bond_angle
-from automol.graph.base._05heur import rotational_bond_keys
-from automol.graph.base._05heur import rotational_segment_keys
-from automol.graph.base._05heur import rotational_coordinates
-from automol.graph.base._05heur import rotational_groups
-from automol.graph.base._05heur import rotational_symmetry_number
+from automol.graph.base._06heur import heuristic_bond_distance
+from automol.graph.base._06heur import heuristic_bond_distance_limit
+from automol.graph.base._06heur import heuristic_bond_angle
+from automol.graph.base._06heur import rotational_bond_keys
+from automol.graph.base._06heur import rotational_segment_keys
+from automol.graph.base._06heur import rotational_coordinates
+from automol.graph.base._06heur import rotational_groups
+from automol.graph.base._06heur import rotational_symmetry_number
 # geometry functions:
 # # stereo parity evaluations
-from automol.graph.base._06geom import geometry_atom_parity
-from automol.graph.base._06geom import geometry_bond_parity
-from automol.graph.base._06geom import geometry_local_parity
-from automol.graph.base._06geom import geometries_have_matching_parities
-from automol.graph.base._06geom import geometries_parity_mismatches
+from automol.graph.base._07geom import geometry_atom_parity
+from automol.graph.base._07geom import geometry_bond_parity
+from automol.graph.base._07geom import geometry_local_parity
+from automol.graph.base._07geom import geometries_have_matching_parities
+from automol.graph.base._07geom import geometries_parity_mismatches
 # # corrections
-from automol.graph.base._06geom import geometry_correct_linear_vinyls
-from automol.graph.base._06geom import geometry_pseudorotate_atom
-from automol.graph.base._06geom import geometry_rotate_bond
-from automol.graph.base._06geom import geometry_dihedrals_near_value
+from automol.graph.base._07geom import geometry_correct_linear_vinyls
+from automol.graph.base._07geom import geometry_pseudorotate_atom
+from automol.graph.base._07geom import geometry_rotate_bond
+from automol.graph.base._07geom import geometry_dihedrals_near_value
 # canonicalization functions:
 # # canonical key functions
-from automol.graph.base._07canon import canonical_enantiomer
-from automol.graph.base._07canon import canonical_enantiomer_with_keys
-from automol.graph.base._07canon import canonical_ts_direction
-from automol.graph.base._07canon import canonical
-from automol.graph.base._07canon import canonical_keys
+from automol.graph.base._08canon import canonical_enantiomer
+from automol.graph.base._08canon import canonical_enantiomer_with_keys
+from automol.graph.base._08canon import canonical_ts_direction
+from automol.graph.base._08canon import canonical
+from automol.graph.base._08canon import canonical_keys
 # # canonical stereo functions
-from automol.graph.base._07canon import unassigned_stereocenter_keys
-from automol.graph.base._07canon import stereocenter_keys_from_candidates
-from automol.graph.base._07canon import reflect
-from automol.graph.base._07canon import reflect_local_stereo
-from automol.graph.base._07canon import to_local_stereo
-from automol.graph.base._07canon import from_local_stereo
-from automol.graph.base._07canon import set_stereo_from_geometry
+from automol.graph.base._08canon import unassigned_stereocenter_keys
+from automol.graph.base._08canon import stereocenter_keys_from_candidates
+from automol.graph.base._08canon import reflect
+from automol.graph.base._08canon import reflect_local_stereo
+from automol.graph.base._08canon import to_local_stereo
+from automol.graph.base._08canon import from_local_stereo
+from automol.graph.base._08canon import set_stereo_from_geometry
 # # symmetry class functions
-from automol.graph.base._07canon import canonical_priorities
-from automol.graph.base._07canon import calculate_stereo
+from automol.graph.base._08canon import canonical_priorities
+from automol.graph.base._08canon import calculate_stereo
 # # parity evaluators
-from automol.graph.base._07canon import parity_evaluator_from_geometry_
-from automol.graph.base._07canon import parity_evaluator_read_canonical_
-from automol.graph.base._07canon import parity_evaluator_flip_local_
+from automol.graph.base._08canon import parity_evaluator_from_geometry_
+from automol.graph.base._08canon import parity_evaluator_read_canonical_
+from automol.graph.base._08canon import parity_evaluator_flip_local_
 # AMChI functions:
-from automol.graph.base._08amchi import amchi
-from automol.graph.base._08amchi import amchi_with_indices
-from automol.graph.base._08amchi import inchi_is_bad
+from automol.graph.base._09amchi import amchi
+from automol.graph.base._09amchi import amchi_with_indices
+from automol.graph.base._09amchi import inchi_is_bad
 # SMILES functions:
-from automol.graph.base._09smiles import smiles
+from automol.graph.base._10smiles import smiles
 # stereo functions:
 # # core functions
-from automol.graph.base._10stereo import expand_stereo
-from automol.graph.base._10stereo import expand_reaction_stereo
+from automol.graph.base._11stereo import expand_stereo
+from automol.graph.base._11stereo import expand_reaction_stereo
 # # stereo correction
-from automol.graph.base._10stereo import stereo_corrected_geometry
+from automol.graph.base._11stereo import stereo_corrected_geometry
 # functional groups code:
 # # core functions
 from automol.graph.base._func_group import FunctionalGroup
@@ -544,7 +546,9 @@ __all__ = [
     'has_noninchi_stereo',
     'radical_groups',
     'radical_group_dct',
+    'rigid_planar_bonds',
     'rigid_planar_bond_keys',
+    'stereocenter_candidates',
     'stereocenter_candidate_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',

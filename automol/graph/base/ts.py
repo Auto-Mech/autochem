@@ -18,9 +18,8 @@ from automol.graph.base._00core import (
 )
 from automol.graph.base._03kekule import (
     ts_linear_reacting_atom_keys as linear_reacting_atom_keys,
-    ts_reacting_electron_direction as reacting_electron_direction,
 )
-from automol.graph.base._04ts import (
+from automol.graph.base._05ts import (
     breaking_rings_atom_keys,
     breaking_rings_bond_keys,
     constrained_1_2_insertion_local_parities,
@@ -30,15 +29,16 @@ from automol.graph.base._04ts import (
     is_bimolecular,
     reacting_rings_atom_keys,
     reacting_rings_bond_keys,
+    ts_reacting_electron_direction as reacting_electron_direction,
     vinyl_addition_local_parities,
     zmatrix_sorted_reactants_keys,
     zmatrix_starting_ring_keys,
 )
-from automol.graph.base._05heur import (
+from automol.graph.base._06heur import (
     heuristic_bond_distance,
     ts_reacting_atom_plane_keys as reacting_atom_plane_keys,
 )
-from automol.graph.base._10stereo import (
+from automol.graph.base._11stereo import (
     expand_reaction_stereo,
     expand_stereo,
     ts_products_graph as products_graph,

@@ -37,7 +37,7 @@ from automol.graph.base._02algo import connected_components
 from automol.graph.base._02algo import rings_atom_keys
 from automol.graph.base._03kekule import kekule
 from automol.graph.base._03kekule import radical_atom_keys_from_kekule
-from automol.graph.base._07canon import canonical
+from automol.graph.base._08canon import canonical
 
 
 ORGANIC_SUBSET = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']

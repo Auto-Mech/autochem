@@ -20,8 +20,8 @@ from automol.graph.base._00core import (
     ts_reverse,
     without_stereo,
 )
-from automol.graph.base._03kekule import stereocenter_candidate_keys
-from automol.graph.base._06geom import (
+from automol.graph.base._04stereo import stereocenter_candidate_keys
+from automol.graph.base._07geom import (
     geometry_atom_parity,
     geometry_bond_parity,
     geometry_correct_linear_vinyls,
@@ -29,7 +29,7 @@ from automol.graph.base._06geom import (
     geometry_pseudorotate_atom,
     geometry_rotate_bond,
 )
-from automol.graph.base._07canon import (
+from automol.graph.base._08canon import (
     calculate_stereo,
     is_canonical_direction,
     is_canonical_enantiomer,

@@ -27,7 +27,7 @@ from automol.graph.base._03kekule import (
     kekules_bond_orders_collated,
     vinyl_radical_atom_keys,
 )
-from automol.graph.base._07canon import (
+from automol.graph.base._08canon import (
     canonical_enantiomer_with_keys,
     canonical_ts_direction,
 )

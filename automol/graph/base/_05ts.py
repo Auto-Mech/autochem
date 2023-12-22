@@ -3,6 +3,7 @@
 import itertools
 from typing import Dict, List
 
+import numpy
 from automol import util
 from automol.graph.base._00core import (
     atom_keys,
@@ -18,9 +19,11 @@ from automol.graph.base._00core import (
     stereo_parities,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
-    ts_reacting_bond_keys,
     ts_reactants_graph_without_stereo,
+    ts_reacting_atom_keys,
+    ts_reacting_bond_keys,
     ts_reverse,
+    ts_transferring_atoms,
 )
 from automol.graph.base._02algo import (
     connected_components,
@@ -29,6 +32,7 @@ from automol.graph.base._02algo import (
 )
 from automol.graph.base._03kekule import (
     rigid_planar_bond_keys,
+    sigma_radical_atom_bond_keys,
     vinyl_radical_atom_bond_keys,
 )
 
@@ -367,3 +371,63 @@ def vinyl_addition_local_parities(loc_tsg) -> Dict[frozenset, bool]:
                 par_dct[vin_bkey] = par
 
     return par_dct
+
+
+def ts_reacting_electron_direction(tsg, key: int):
+    """Determine the reacting electron direction at one end of a forming bond
+
+    Does *not* account for stereochemistry
+
+    The direction is determined as follows:
+        1. One bond, defining the 'x' axis direction
+        2. Another bond, defining the 'y' axis direction
+        3. An angle, describing how far to rotate the 'x' axis bond about a right-handed
+        'z'-axis in order to arrive at the appropriate direction
+
+    The 'y'-axis bond is `None` if the direction is parallel or antiparallel
+    to the 'x'-axis bond, or if the orientation doesn't matter.
+
+    Both bonds are `None` if the direction is perpendicular to the 'x-y' plane.
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param key: The key of a bond-forming atom
+    :type key: int
+    :returns: Two directed bond keys (x and y, respectively) and an angle
+    :rtype: (Tuple[int, int], Tuple[int, int], float)
+    """
+    assert key in ts_reacting_atom_keys(tsg), f"Atom {key} is not a reacting atom:{tsg}"
+    rcts_gra = ts_reactants_graph_without_stereo(tsg)
+    tra_dct = ts_transferring_atoms(tsg)
+    nkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
+    vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
+    sig_dct = sigma_radical_atom_bond_keys(rcts_gra)
+
+    if key in tra_dct:
+        # key1 = transferring atom key
+        # key2 = donor atom
+        dkey, _ = tra_dct[key]
+        xbnd_key = (key, dkey)
+        ybnd_key = None
+        phi = numpy.pi
+    elif key in vin_dct:
+        # key1 = this key
+        # key2 = opposite end of the vinyl bond
+        (opp_key,) = vin_dct[key] - {key}
+        nkey = next(iter(nkeys_dct[key] - {key, opp_key}), None)
+        xbnd_key = (key, opp_key)
+        ybnd_key = None if nkey is None else (key, nkey)
+        phi = 4.0 * numpy.pi / 3.0
+    elif key in sig_dct:
+        # key1 = attacking atom key
+        # key2 = neighbor
+        (nkey,) = sig_dct[key] - {key}
+        xbnd_key = (key, nkey)
+        ybnd_key = None
+        phi = numpy.pi
+    else:
+        xbnd_key = None
+        ybnd_key = None
+        phi = None
+
+    return xbnd_key, ybnd_key, phi

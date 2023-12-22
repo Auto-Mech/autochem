@@ -567,11 +567,10 @@ def _distance_bounds_matrices(gra, keys, sp_dct=None):
 
 
 # # constraint dictionaries
-def chirality_constraint_bounds(gra, keys):
+def chirality_constraint_bounds(loc_gra, keys):
     """bounds for enforcing chirality restrictions"""
-    ste_keys = set(atom_stereo_keys(gra)) & set(keys)
-    loc_gra = to_local_stereo(gra)
-    par_dct = atom_stereo_parities(gra)
+    ste_keys = set(atom_stereo_keys(loc_gra)) & set(keys)
+    par_dct = atom_stereo_parities(loc_gra)
 
     def _chirality_constraint(key):
         nkeys = atom_stereo_sorted_neighbor_keys(loc_gra, key, self_apex=True)
