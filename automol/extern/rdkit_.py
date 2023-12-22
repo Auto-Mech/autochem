@@ -1,9 +1,10 @@
 """ RDKit interface
 """
+import numbers
+
 import rdkit
 from rdkit import RDLogger
 from rdkit.Chem import AllChem, Draw
-
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph import base as graph_base
@@ -386,9 +387,9 @@ def _from_graph_without_stereo(gra, label=False, label_dct=None):
     if label:
         label_dct = {k: k for k in keys} if label_dct is None else label_dct
         # Re-index the label dict to use indices
-        label_dct = util.dict_.transform_keys(label_dct, idx_from_key.__getitem__)
+        label_dct = util.dict_.transform_keys(label_dct, idx_from_key.get)
         for idx, rda in enumerate(rdm.GetAtoms()):
-            if idx in label_dct:
+            if idx in label_dct and isinstance(label_dct[idx], numbers.Integral):
                 rda.SetProp("molAtomMapNumber", str(label_dct[idx]))
 
     rdm.UpdatePropertyCache()

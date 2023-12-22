@@ -1468,9 +1468,9 @@ def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
     return tra_dct
 
 
-def sn2_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
-    """Get a dictionary describing atom transfers for Sn2 reactions; keys are the
-    transferring atoms, values are the donors and acceptors, respectively
+def substitution_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing atom transfers for substitution reactions; keys are
+    the transferring atoms, values are the donors and acceptors, respectively
 
     Identifies transferring atoms that are tetrahedral
 
@@ -2608,7 +2608,7 @@ def atom_stereo_sorted_neighbor_keys(
     pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
     # If this is an Sn2 stereocenter, use the reactants graph
-    if key in sn2_atom_transfers(gra):
+    if key in substitution_atom_transfers(gra):
         gra = ts_reactants_graph_without_stereo(gra)
 
     # Get the neighboring atom keys

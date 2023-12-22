@@ -14,7 +14,7 @@ from automol.graph.base._00core import (
     bond_stereo_sorted_neighbor_keys,
     is_ts_graph,
     local_stereo_priorities,
-    sn2_atom_transfers,
+    substitution_atom_transfers,
     sort_by_size,
     stereo_parities,
     ts_breaking_bond_keys,
@@ -230,7 +230,7 @@ def sn2_local_stereo_reversal_flips(tsg) -> Dict[int, bool]:
     :rtype: Dict[int, bool]
     """
     rflip_dct = {}
-    for tra_key, (don_key, acc_key) in sn2_atom_transfers(tsg).items():
+    for tra_key, (don_key, acc_key) in substitution_atom_transfers(tsg).items():
         # Get the forward direction neighboring keys, sorted by local priority
         nks0 = list(atom_stereo_sorted_neighbor_keys(tsg, tra_key))
         # Replace the donor with the acceptor
