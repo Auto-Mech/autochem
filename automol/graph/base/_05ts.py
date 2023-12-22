@@ -21,42 +21,21 @@ from automol.graph.base._00core import (
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
     ts_reacting_atom_keys,
-    ts_reacting_bond_keys,
     ts_reverse,
     ts_transferring_atoms,
 )
 from automol.graph.base._02algo import (
     connected_components,
-    rings_bond_keys,
-    sorted_ring_atom_keys_from_bond_keys,
+    forming_rings_atom_keys,
+    has_reacting_ring,
+    is_bimolecular,
+    reacting_rings_atom_keys,
 )
 from automol.graph.base._03kekule import (
     rigid_planar_bond_keys,
     sigma_radical_atom_bond_keys,
     vinyl_radical_atom_bond_keys,
 )
-
-
-def is_bimolecular(tsg) -> bool:
-    """Is this a TS for a bimolecular reaction?
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: `True` if it is, `False` if it isn't
-    :rtype: bool
-    """
-    return len(connected_components(ts_reactants_graph_without_stereo(tsg))) == 2
-
-
-def has_reacting_ring(tsg) -> bool:
-    """Does this TS graph have a ring which is involved in the reaction?
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: `True` if it does, `False` if it doesn't
-    :rtype: bool
-    """
-    return bool(forming_rings_atom_keys(tsg) or breaking_rings_atom_keys(tsg))
 
 
 def zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
@@ -115,82 +94,6 @@ def zmatrix_starting_ring_keys(tsg) -> List[int]:
     frm_keys = list(itertools.chain(*frm_bkeys))
 
     return util.ring.cycle_to_optimal_split(rng_keys, brk_bkeys, frm_keys)
-
-
-def reacting_rings_atom_keys(tsg) -> List[List[int]]:
-    """Get the atom keys to rings containing breaking or forming bonds
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    rngs_bnd_keys = reacting_rings_bond_keys(tsg)
-    rngs_atm_keys = tuple(map(sorted_ring_atom_keys_from_bond_keys, rngs_bnd_keys))
-    return rngs_atm_keys
-
-
-def reacting_rings_bond_keys(tsg):
-    """get the bond keys to rings forming in the TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    bnd_keys = ts_reacting_bond_keys(tsg)
-    rngs_bnd_keys = tuple(
-        bks for bks in rings_bond_keys(tsg, ts_=True) if bnd_keys & bks
-    )
-    return rngs_bnd_keys
-
-
-def forming_rings_atom_keys(tsg) -> List[List[int]]:
-    """Get the atom keys to rings forming in the TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    frm_rngs_bnd_keys = forming_rings_bond_keys(tsg)
-    frm_rngs_atm_keys = tuple(
-        map(sorted_ring_atom_keys_from_bond_keys, frm_rngs_bnd_keys)
-    )
-    return frm_rngs_atm_keys
-
-
-def forming_rings_bond_keys(tsg):
-    """get the bond keys to rings forming in the TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    frm_bnd_keys = ts_forming_bond_keys(tsg)
-    frm_rngs_bnd_keys = tuple(
-        bks for bks in rings_bond_keys(tsg, ts_=True) if frm_bnd_keys & bks
-    )
-    return frm_rngs_bnd_keys
-
-
-def breaking_rings_atom_keys(tsg):
-    """get the atom keys to rings breaking in the TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    brk_rngs_bnd_keys = breaking_rings_bond_keys(tsg)
-    brk_rngs_atm_keys = tuple(
-        map(sorted_ring_atom_keys_from_bond_keys, brk_rngs_bnd_keys)
-    )
-    return brk_rngs_atm_keys
-
-
-def breaking_rings_bond_keys(tsg):
-    """get the bond keys to rings breaking in the TS graph
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    """
-    brk_bnd_keys = ts_breaking_bond_keys(tsg)
-    brk_rngs_bnd_keys = tuple(
-        bks for bks in rings_bond_keys(tsg, ts_=True) if brk_bnd_keys & bks
-    )
-    return brk_rngs_bnd_keys
 
 
 def sn2_local_stereo_reversal_flips(tsg) -> Dict[int, bool]:
