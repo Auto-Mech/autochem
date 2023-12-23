@@ -1,16 +1,22 @@
 """low-level stereochemistry functions
 """
+from collections import abc
 import numbers
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy
 from automol import util
+from automol.geom import base as geom_base
 from automol.graph.base._00core import (
     AtomKey,
     AtomKeys,
     BondKey,
     CenterKey,
     CenterKeys,
+    atom_keys,
+    atom_stereo_sorted_neighbor_keys,
+    bond_stereo_sorted_neighbor_keys,
+    explicit,
     is_ts_graph,
     local_stereo_priorities,
     stereo_parities,
@@ -23,7 +29,6 @@ from automol.graph.base._03kekule import (
     rigid_planar_bonds,
     vinyl_radical_atom_bond_keys,
 )
-from automol.graph.base._07geom import geometry_atom_parity, geometry_bond_parity
 from automol.util import dict_
 
 AtomNeighborDict = Dict[AtomKey, AtomKeys]
@@ -316,6 +321,178 @@ def vinyl_addition_reactant_parity_flips(
 #     :return: A mapping identifying which stereoatoms flip upon reversal
 #     :rtype: Dict[AtomKey, bool]
 #     """
+
+
+# stereo parity evaluations
+def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
+    r""" Calculate an atom parity directly from a geometry
+
+    Neighboring atom keys (`nkeys`) must be passed in as a priority-sorted
+    list. If `None`, a local parity calculation will occur based on the
+    atom keys in the molecular graph.
+
+    Atom parity is defined as follows:
+
+    The four keys passed in are apices of a tetrahedron. Looking at 2, 3,
+    and 4 from 1, they will either ascend in clockwise or counterclockwise
+    order.
+
+    If ascending in counterclockwise order, the parity is False ('-').
+    If ascending in clockwise order, the parity is True ('+').
+
+            2                   2
+           /1\                 /1\
+          3---4               4---3
+
+        counterclockwise    clockwise
+        False               True
+        '-'                 '+'
+
+    (Viewed looking down from 1)
+
+    If only three keys are passed in, they will be treated as keys 2, 3,
+    and 4 above and it will be assumed that there is a lone pair at 1.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param atm_key: the atom key whose parity is being evaluated
+    :type atm_key: int
+    :param nkeys: the neighboring atom keys, pre-sorted by priority
+    :type nkeys: list[int]
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    """
+    assert gra == explicit(
+        gra
+    ), "Explicit graph should be used when getting parities from geometry."
+
+    keys = sorted(atom_keys(gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+
+    nkeys = atom_stereo_sorted_neighbor_keys(gra, atm_key) if nkeys is None else nkeys
+
+    # If there are only three groups, use the stereo atom itself as
+    # the top apex of the tetrahedron.
+    if len(nkeys) == 4:
+        keys = nkeys
+    else:
+        assert len(nkeys) == 3
+        keys = [atm_key] + list(nkeys)
+
+    idxs = list(map(geo_idx_dct.__getitem__, keys))
+    xyzs = geom_base.coordinates(geo, idxs=idxs)
+    det_mat = numpy.ones((4, 4))
+    det_mat[:, 1:] = xyzs
+    det_val = numpy.linalg.det(det_mat)
+    assert det_val != 0.0  # for now, assume no four-atom planes
+    par = bool(det_val > 0.0)
+    return par
+
+
+def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
+    r""" Calculate a bond parity directly from a geometry
+
+    Neighboring bond keys (`bnd_nkeys`) must be passed in as a pair of
+    priority-sorted lists corresponding to the first and second atoms in
+    `bnd_key`. Note that the latter must be an *ordered list* in this case!
+    If `None`, a local parity calculation will occur based on the atom keys
+    in the molecular graph.
+
+    Bond parity is defined as follows:
+
+    For each atom in the double bond, find the heavy-atom neighbor with the
+    higher canonical number. Although hydrogen atoms have higher canonical
+    numbers, they are always given lowest priority.
+
+    If the neighbors are cis to each other, the parity is False ('-').
+    If the neighbors are trans to each other, the parity is True ('+').
+
+        max     max      max     min
+           \   /            \   /
+            A=B              A=B
+           /   \            /   \
+        min     min      min     max
+
+        cis              trans
+        False            True
+        '-'              '+'
+
+    If one side only has a single neighbor, then it is compared with the
+    maximum neighbor on the other side.
+
+        max     nei      max
+           \   /            \
+            A=B              A=B
+           /                /   \
+        min              min     nei
+
+        cis              trans
+        False            True
+        '-'              '+'
+
+    If both sides have only single neighbors, then they are compared to
+    each other.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param bnd_key: the bond key. If using `bnd_nkeys`, this must be an
+        ordered list!
+    :type bnd_key: list[int]
+    :param bnd_nkeys: a pair of lists of neighboring keys for the first and
+        second atoms in `bnd_key`, respectively.
+    :type bnd_nkeys: list[list[int]]
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    """
+    assert gra == explicit(
+        gra
+    ), "Explicit graph should be used when getting parities from geometry."
+
+    assert (
+        isinstance(bnd_key, abc.Collection) and len(bnd_key) == 2
+    ), f"{bnd_key} is not a valid bond key."
+    key1, key2 = bnd_key
+
+    keys = sorted(atom_keys(gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+
+    if bnd_nkeys is None:
+        nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(gra, key1, key2)
+    else:
+        assert (
+            isinstance(bnd_nkeys, abc.Collection)
+            and len(bnd_nkeys) == 2
+            and all(isinstance(nk, abc.Collection) for nk in bnd_nkeys)
+        ), f"Bond neighbor keys should be a pair of lists: {bnd_nkeys}"
+        nkey1s, nkey2s = bnd_nkeys
+
+    idx1 = geo_idx_dct[key1]
+    idx2 = geo_idx_dct[key2]
+    nidx1 = geo_idx_dct[nkey1s[-1]]
+    nidx2 = geo_idx_dct[nkey2s[-1]]
+
+    (xyz1,) = geom_base.coordinates(geo, idxs=(idx1,))
+    (xyz2,) = geom_base.coordinates(geo, idxs=(idx2,))
+    (nxyz1,) = geom_base.coordinates(geo, idxs=(nidx1,))
+    (nxyz2,) = geom_base.coordinates(geo, idxs=(nidx2,))
+
+    bnd1_vec = numpy.subtract(nxyz1, xyz1)
+    bnd2_vec = numpy.subtract(nxyz2, xyz2)
+
+    dot_val = numpy.vdot(bnd1_vec, bnd2_vec)
+    assert dot_val != 0.0  # for now, assume not collinear
+    par = bool(dot_val < 0.0)
+    return par
 
 
 def parity_evaluator_measure_from_geometry_(

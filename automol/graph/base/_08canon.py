@@ -48,13 +48,16 @@ from automol.graph.base._00core import (
     without_stereo,
 )
 from automol.graph.base._02algo import connected_components, is_connected
-from automol.graph.base._04stereo import stereocenter_candidate_keys
+from automol.graph.base._04stereo import (
+    geometry_atom_parity,
+    geometry_bond_parity,
+    stereocenter_candidate_keys,
+)
 from automol.graph.base._05ts import (
     constrained_1_2_insertion_local_parities,
     sn2_local_stereo_reversal_flips,
     vinyl_addition_local_parities,
 )
-from automol.graph.base._07geom import geometry_atom_parity, geometry_bond_parity
 from automol.util import dict_
 from phydat import ptab
 

@@ -237,8 +237,8 @@ from automol.graph.base._06heur import rotational_groups
 from automol.graph.base._06heur import rotational_symmetry_number
 # geometry functions:
 # # stereo parity evaluations
-from automol.graph.base._07geom import geometry_atom_parity
-from automol.graph.base._07geom import geometry_bond_parity
+from automol.graph.base._04stereo import geometry_atom_parity
+from automol.graph.base._04stereo import geometry_bond_parity
 from automol.graph.base._07geom import geometry_local_parity
 from automol.graph.base._07geom import geometries_have_matching_parities
 from automol.graph.base._07geom import geometries_parity_mismatches

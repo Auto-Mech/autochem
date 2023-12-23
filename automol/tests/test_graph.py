@@ -104,7 +104,7 @@ C2H2CL2F2_SGRS = tuple(sorted([
      {frozenset({0, 1}): (1, None), frozenset({0, 2}): (1, None),
       frozenset({0, 3}): (1, None), frozenset({1, 4}): (1, None),
       frozenset({1, 5}): (1, None)}),
-], key=automol.graph.frozen))
+], key=graph.frozen))
 
 C3H3CL2F3_CGR = (
     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 1, None),
@@ -143,7 +143,7 @@ C3H3CL2F3_SGRS = tuple(sorted([
       frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
       frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
       frozenset({2, 7}): (1, None)}),
-], key=automol.graph.frozen))
+], key=graph.frozen))
 
 C3H5N3_CGR = (
     {0: ('C', 1, None), 1: ('C', 1, None), 2: ('C', 0, None),
@@ -172,7 +172,7 @@ C3H5N3_SGRS = tuple(sorted([
      {frozenset({0, 2}): (1, None), frozenset({0, 3}): (1, True),
       frozenset({1, 2}): (1, None), frozenset({1, 4}): (1, True),
       frozenset({2, 5}): (1, None)}),
-], key=automol.graph.frozen))
+], key=graph.frozen))
 
 C8H13O_SGRS = tuple(sorted([
     ({0: ('C', 3, None), 1: ('C', 2, None), 2: ('C', 3, None),
@@ -231,7 +231,7 @@ C8H13O_SGRS = tuple(sorted([
       frozenset({0, 3}): (1, None), frozenset({2, 6}): (1, None),
       frozenset({6, 7}): (1, None), frozenset({8, 7}): (1, None),
       frozenset({3, 5}): (1, True), frozenset({5, 7}): (1, None)}),
-], key=automol.graph.frozen))
+], key=graph.frozen))
 
 # FC=CC=CF + [OH] => FC=C[CH]C(O)F
 C4H5F2O_TSG = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
@@ -279,14 +279,14 @@ C4H10_GRA = ({0: ('C', 0, None), 1: ('C', 0, None), 2: ('C', 0, None),
 def test__from_data():
     """ test getters
     """
-    cgr = automol.graph.from_data(
+    cgr = graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_CGR),
         bnd_keys=graph.bond_keys(C8H13O_CGR),
         atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_CGR),
     )
     assert cgr == C8H13O_CGR
 
-    rgr = automol.graph.from_data(
+    rgr = graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_RGR),
         bnd_keys=graph.bond_keys(C8H13O_RGR),
         atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_RGR),
@@ -294,7 +294,7 @@ def test__from_data():
     )
     assert rgr == C8H13O_RGR
 
-    sgr = automol.graph.from_data(
+    sgr = graph.from_data(
         atm_symb_dct=graph.atom_symbols(C8H13O_SGR),
         bnd_keys=graph.bond_keys(C8H13O_SGR),
         atm_imp_hyd_dct=graph.atom_implicit_hydrogens(C8H13O_SGR),
@@ -370,7 +370,7 @@ def test__string():
     """ test graph.string and graph.from_string
     """
     for sgr in C8H13O_SGRS:
-        assert sgr == automol.graph.from_string(automol.graph.string(sgr))
+        assert sgr == graph.from_string(graph.string(sgr))
 
 
 def test__without_bond_orders():
@@ -921,25 +921,25 @@ def test__rotational_bond_keys():
             3: ('C', 1, None)},
            {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
             frozenset({2, 3}): (1, None)})
-    cgr = automol.graph.explicit(cgr)
-    assert (automol.graph.rotational_bond_keys(cgr) ==
+    cgr = graph.explicit(cgr)
+    assert (graph.rotational_bond_keys(cgr) ==
             frozenset({frozenset({2, 3})}))
 
     cgr = ({0: ('C', 3, None), 1: ('C', 3, None), 2: ('C', 2, None),
             3: ('C', 2, None)},
            {frozenset({0, 2}): (1, None), frozenset({1, 3}): (1, None),
             frozenset({2, 3}): (1, None)})
-    assert (automol.graph.rotational_bond_keys(cgr) ==
+    assert (graph.rotational_bond_keys(cgr) ==
             frozenset({frozenset({0, 2}), frozenset({1, 3}),
                        frozenset({2, 3})}))
-    assert (automol.graph.rotational_bond_keys(cgr, with_h_rotors=False) ==
+    assert (graph.rotational_bond_keys(cgr, with_h_rotors=False) ==
             frozenset({frozenset({2, 3})}))
-    assert (automol.graph.rotational_bond_keys(cgr, with_ch_rotors=False) ==
+    assert (graph.rotational_bond_keys(cgr, with_ch_rotors=False) ==
             frozenset({frozenset({2, 3})}))
 
     # Check that we don't misidentify rotational bond keys
     cgr = automol.smiles.graph('C#CC=C')
-    assert automol.graph.rotational_bond_keys(cgr) == frozenset()
+    assert graph.rotational_bond_keys(cgr) == frozenset()
 
 
 def test__rotational_segment_keys():
@@ -968,7 +968,7 @@ def test__rotational_segment_keys():
             frozenset({8, 10}): (1, None),
             frozenset({5, 6}): (1, None),
             frozenset({10, 11}): (1, None)})
-    assert automol.graph.rotational_segment_keys(gra) == frozenset({
+    assert graph.rotational_segment_keys(gra) == frozenset({
         (0, 1, 2, 3, 4, 5, 6, 7), (7, 8), (8, 9), (8, 10), (10, 11)
     })
 
@@ -999,12 +999,12 @@ def test__species__graph_conversion():
     gra = automol.geom.graph(geo)
 
     zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
-    zgra = automol.graph.apply_zmatrix_conversion(gra, dc_)
+    zgra = graph.apply_zmatrix_conversion(gra, dc_)
     assert zgra != gra
 
     geo_ = automol.zmat.geometry(zma, zc_=dc_)
     gra_ = automol.geom.graph(geo_, stereo=False)
-    assert gra == gra_ == automol.graph.undo_zmatrix_conversion(zgra, dc_)
+    assert gra == gra_ == graph.undo_zmatrix_conversion(zgra, dc_)
 
     # extra test case from Luna
     ich = 'InChI=1S/C11H8/c1-3-10(4-2)11-8-6-5-7-9-11/h1,5-9H,2H2'
@@ -1012,12 +1012,12 @@ def test__species__graph_conversion():
     gra = automol.geom.graph(geo)
 
     zma, dc_ = automol.geom.zmatrix_with_conversion_info(geo)
-    zgra = automol.graph.apply_zmatrix_conversion(gra, dc_)
+    zgra = graph.apply_zmatrix_conversion(gra, dc_)
     assert zgra != gra
 
     geo_ = automol.zmat.geometry(zma, zc_=dc_)
     gra_ = automol.geom.graph(geo_, stereo=False)
-    assert gra == gra_ == automol.graph.undo_zmatrix_conversion(zgra, dc_)
+    assert gra == gra_ == graph.undo_zmatrix_conversion(zgra, dc_)
 
 
 # stereo graph library
@@ -1032,7 +1032,7 @@ def test__geometry_atom_parity():
            ('O', (1.916674, -0.693354, 0.754657)),
            ('H', (1.419231, -0.509954, 2.537223)))
     gra = automol.geom.graph(geo)
-    assert automol.graph.geometry_atom_parity(gra, geo, 0) is False
+    assert graph.geometry_atom_parity(gra, geo, 0) is False
 
     # '[C@@H](Cl)(F)(O)'
     geo = (('C', (-0.317722, 0.059267, -0.618703)),
@@ -1042,7 +1042,7 @@ def test__geometry_atom_parity():
            ('O', (2.108174, -0.367259, 0.380286)),
            ('H', (1.838541, -0.778373, 2.17386)))
     gra = automol.geom.graph(geo)
-    assert automol.graph.geometry_atom_parity(gra, geo, 0) is True
+    assert graph.geometry_atom_parity(gra, geo, 0) is True
 
 
 def test__geometry_bond_parity():
@@ -1055,7 +1055,7 @@ def test__geometry_bond_parity():
            ('H', (3.348622, 1.709226, -0.024014)),
            ('H', (-1.577309, 2.507937, -0.03731)))
     gra = automol.geom.graph(geo)
-    assert automol.graph.geometry_bond_parity(gra, geo, [1, 2]) is True
+    assert graph.geometry_bond_parity(gra, geo, [1, 2]) is True
 
     # r'F/C=N\[H]'
     geo = (('F', (-1.495767, 2.657838, -0.288402)),
@@ -1064,7 +1064,7 @@ def test__geometry_bond_parity():
            ('H', (3.359017, -0.121361, -0.3958)),
            ('H', (-2.514475, -1.347203, -1.263959)))
     gra = automol.geom.graph(geo)
-    assert automol.graph.geometry_bond_parity(gra, geo, [1, 2]) is False
+    assert graph.geometry_bond_parity(gra, geo, [1, 2]) is False
 
 
 def test__geometries_parity_mismatches():
@@ -1277,19 +1277,19 @@ def test__canonical():
         print(automol.geom.string(geo))
         gra = automol.geom.graph(geo)
 
-        gra = automol.graph.implicit(gra)
+        gra = graph.implicit(gra)
 
-        can_gra = automol.graph.canonical(gra)
-        print(automol.graph.string(can_gra, one_indexed=True))
+        can_gra = graph.canonical(gra)
+        print(graph.string(can_gra, one_indexed=True))
 
-        natms = len(automol.graph.atom_keys(gra))
+        natms = len(graph.atom_keys(gra))
 
         for _ in range(10):
             pmt = list(map(int, numpy.random.permutation(natms)))
             print(pmt)
-            pmt_gra = automol.graph.relabel(gra, dict(enumerate(pmt)))
-            can_pmt_gra = automol.graph.canonical(pmt_gra)
-            print(automol.graph.string(can_pmt_gra, one_indexed=True))
+            pmt_gra = graph.relabel(gra, dict(enumerate(pmt)))
+            can_pmt_gra = graph.canonical(pmt_gra)
+            print(graph.string(can_pmt_gra, one_indexed=True))
             assert can_pmt_gra == can_gra
 
     # More tests can be added here
@@ -1320,9 +1320,9 @@ def test__calculate_priorities_and_assign_parities():
         print(pri_dct)
 
         atm_par_dct = automol.util.dict_.filter_by_value(
-            automol.graph.atom_stereo_parities(gra), lambda x: x is not None)
+            graph.atom_stereo_parities(gra), lambda x: x is not None)
         bnd_par_dct = automol.util.dict_.filter_by_value(
-            automol.graph.bond_stereo_parities(gra), lambda x: x is not None)
+            graph.bond_stereo_parities(gra), lambda x: x is not None)
         # Frozensets don't sort properly, so use sorted tuples for the keys
         bnd_par_dct = automol.util.dict_.transform_keys(
             bnd_par_dct, lambda x: tuple(sorted(x)))
@@ -1530,7 +1530,7 @@ def test__amchi_with_indices():
 
     assert chi2 == 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
 
-    gra = automol.graph.union_from_sequence([gra1, gra2], shift_keys=True)
+    gra = graph.union_from_sequence([gra1, gra2], shift_keys=True)
     chi, chi_idx_dcts = graph.amchi_with_indices(gra)
     print(chi)
     print(chi_idx_dcts)
@@ -1569,9 +1569,9 @@ def test__smiles():
         chi = automol.smiles.chi(smi)
         geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
-        print(automol.graph.string(gra))
+        print(graph.string(gra))
         print(automol.geom.string(geo))
-        smi = automol.graph.smiles(gra)
+        smi = graph.smiles(gra)
         print('smiles from code:', smi)
 
         chi_smi = automol.chi.smiles(chi)
@@ -1580,8 +1580,8 @@ def test__smiles():
 
         schi = automol.smiles.chi(smi)
         print('chi from smiles:', schi)
-        # print(automol.graph.string(GRA, one_indexed=True))
-        print(automol.graph.rings_atom_keys(gra))
+        # print(graph.string(GRA, one_indexed=True))
+        print(graph.rings_atom_keys(gra))
         assert schi == chi
 
 
@@ -1599,20 +1599,20 @@ def test__smiles__with_resonance():
         chi = automol.smiles.chi(smi)
         geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
-        print(automol.graph.string(gra))
+        print(graph.string(gra))
         print(automol.geom.string(geo))
 
-        ste_keys = automol.graph.bond_stereo_keys(gra)
+        ste_keys = graph.bond_stereo_keys(gra)
         nste = len(ste_keys)
         ste_pars_lst = list(
             itertools.product(map(bool, range(2)), repeat=nste))
         for ste_pars in ste_pars_lst:
             bnd_par_dct = dict(zip(ste_keys, ste_pars))
             print(bnd_par_dct)
-            gra = automol.graph.set_bond_stereo_parities(gra, bnd_par_dct)
-            ach = automol.graph.amchi(gra)
+            gra = graph.set_bond_stereo_parities(gra, bnd_par_dct)
+            ach = graph.amchi(gra)
             print('amchi:', ach)
-            smi = automol.graph.smiles(gra)
+            smi = graph.smiles(gra)
             print('smiles from code:', smi)
             print()
 
@@ -1642,10 +1642,10 @@ def test__stereo_corrected_geometry():
     """
     geo = automol.smiles.geometry('C1C(F)C12C(F)C2')
     gra = automol.geom.graph(geo)
-    sgras = automol.graph.expand_stereo(gra)
+    sgras = graph.expand_stereo(gra)
     for sgra in sgras:
-        print(automol.graph.smiles(sgra))
-        sgeo = automol.graph.stereo_corrected_geometry(sgra, geo)
+        print(graph.smiles(sgra))
+        sgeo = graph.stereo_corrected_geometry(sgra, geo)
         sgra_from_geo = automol.geom.graph(sgeo)
         assert sgra_from_geo == sgra
 

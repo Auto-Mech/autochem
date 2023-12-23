@@ -6,6 +6,8 @@ from typing import Dict, Optional
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
+
+from phydat import phycon
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
 from automol.geom import _molsym
@@ -28,7 +30,6 @@ from automol.graph import base as graph_base
 from automol.inchi import base as inchi_base
 from automol.util import ZmatConv, dict_, heuristic, vector, zmat_conv
 from automol.zmat import base as zmat_base
-from phydat import phycon
 
 
 # # conversions
