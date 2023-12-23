@@ -142,8 +142,8 @@ from automol.graph.base._00core import atom_neighbor_atom_keys
 from automol.graph.base._00core import atoms_neighbor_atom_keys
 from automol.graph.base._00core import atom_sorted_neighbor_atom_keys
 from automol.graph.base._00core import local_stereo_priorities
-from automol.graph.base._00core import atom_stereo_sorted_neighbor_keys
-from automol.graph.base._00core import bond_stereo_sorted_neighbor_keys
+from automol.graph.base._04class import atom_stereo_sorted_neighbor_keys
+from automol.graph.base._04class import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._00core import atoms_sorted_neighbor_atom_keys
 from automol.graph.base._00core import atom_bond_keys
 from automol.graph.base._00core import atoms_bond_keys
@@ -231,8 +231,8 @@ from automol.graph.base._03kekule import radical_groups
 from automol.graph.base._03kekule import radical_group_dct
 from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._03kekule import rigid_planar_bond_keys
-from automol.graph.base._04stereo import stereocenter_candidates
-from automol.graph.base._04stereo import stereocenter_candidate_keys
+from automol.graph.base._05stereo import stereocenter_candidates
+from automol.graph.base._05stereo import stereocenter_candidate_keys
 from automol.graph.base._03kekule import atom_centered_cumulene_keys
 from automol.graph.base._03kekule import bond_centered_cumulene_keys
 # structural heuristics:
@@ -246,8 +246,8 @@ from automol.graph.base._06heur import rotational_groups
 from automol.graph.base._06heur import rotational_symmetry_number
 # geometry functions:
 # # stereo parity evaluations
-from automol.graph.base._04stereo import geometry_atom_parity
-from automol.graph.base._04stereo import geometry_bond_parity
+from automol.graph.base._05stereo import geometry_atom_parity
+from automol.graph.base._05stereo import geometry_bond_parity
 from automol.graph.base._07geom import geometry_local_parity
 from automol.graph.base._07geom import geometries_have_matching_parities
 from automol.graph.base._07geom import geometries_parity_mismatches

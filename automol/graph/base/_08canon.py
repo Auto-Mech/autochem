@@ -17,7 +17,6 @@ from automol.graph.base._00core import (
     atom_keys,
     atom_stereo_keys,
     atom_stereo_parities,
-    atom_stereo_sorted_neighbor_keys,
     atom_symbols,
     atoms_bond_keys,
     atoms_neighbor_atom_keys,
@@ -25,7 +24,6 @@ from automol.graph.base._00core import (
     bond_orders,
     bond_stereo_keys,
     bond_stereo_parities,
-    bond_stereo_sorted_neighbor_keys,
     explicit,
     has_atom_stereo,
     has_stereo,
@@ -48,15 +46,17 @@ from automol.graph.base._00core import (
     without_stereo,
 )
 from automol.graph.base._02algo import connected_components, is_connected
-from automol.graph.base._04stereo import (
-    geometry_atom_parity,
-    geometry_bond_parity,
-    stereocenter_candidate_keys,
-)
-from automol.graph.base._05ts import (
+from automol.graph.base._04class import (
+    atom_stereo_sorted_neighbor_keys,
+    bond_stereo_sorted_neighbor_keys,
     constrained_1_2_insertion_local_parities,
     sn2_local_stereo_reversal_flips,
     vinyl_addition_local_parities,
+)
+from automol.graph.base._05stereo import (
+    geometry_atom_parity,
+    geometry_bond_parity,
+    stereocenter_candidate_keys,
 )
 from automol.util import dict_
 from phydat import ptab

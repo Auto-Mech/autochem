@@ -1,7 +1,7 @@
 """low-level stereochemistry functions
 """
-from collections import abc
 import numbers
+from collections import abc
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy
@@ -14,13 +14,10 @@ from automol.graph.base._00core import (
     CenterKey,
     CenterKeys,
     atom_keys,
-    atom_stereo_sorted_neighbor_keys,
-    bond_stereo_sorted_neighbor_keys,
     explicit,
     is_ts_graph,
     local_stereo_priorities,
     stereo_parities,
-    substitution_atom_transfers,
     tetrahedral_atom_keys,
     tetrahedral_atoms,
 )
@@ -28,6 +25,11 @@ from automol.graph.base._03kekule import (
     rigid_planar_bond_keys,
     rigid_planar_bonds,
     vinyl_radical_atom_bond_keys,
+)
+from automol.graph.base._04class import (
+    atom_stereo_sorted_neighbor_keys,
+    bond_stereo_sorted_neighbor_keys,
+    substitution_atom_transfers,
 )
 from automol.util import dict_
 

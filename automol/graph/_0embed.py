@@ -27,8 +27,6 @@ Step 7 is performed byt the function automol.embed.cleaned_up_coordinates()
 import itertools
 
 import numpy
-from phydat import phycon
-
 from automol import embed, error, geom, zmat
 from automol.geom import base as geom_base
 from automol.graph.base import (
@@ -38,7 +36,6 @@ from automol.graph.base import (
     atom_shortest_paths,
     atom_stereo_keys,
     atom_stereo_parities,
-    atom_stereo_sorted_neighbor_keys,
     atom_symbols,
     atoms_neighbor_atom_keys,
     bond_keys,
@@ -67,7 +64,9 @@ from automol.graph.base import (
     without_dummy_atoms,
     without_stereo,
 )
+from automol.graph.base._04class import atom_stereo_sorted_neighbor_keys
 from automol.util import dict_, heuristic
+from phydat import phycon
 
 
 # # geometry embedding functions

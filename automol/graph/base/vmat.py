@@ -1,20 +1,31 @@
 """ graph-based z-matrix builder
 """
+import itertools
+from typing import List
+
 from automol import util, vmat
-from automol.graph.base import ts
 from automol.graph.base._00core import (
     atom_count,
     atom_keys,
     atom_symbols,
     atoms_neighbor_atom_keys,
     atoms_zmat_sorted_neighbor_atom_keys,
+    is_ts_graph,
     remove_bonds,
+    sort_by_size,
     string,
     subgraph,
     terminal_atom_keys,
+    ts_breaking_bond_keys,
+    ts_forming_bond_keys,
+    ts_reactants_graph_without_stereo,
 )
 from automol.graph.base._02algo import (
+    connected_components,
+    has_reacting_ring,
+    is_bimolecular,
     is_connected,
+    reacting_rings_atom_keys,
     ring_system_decomposed_atom_keys,
     ring_systems,
     rings,
@@ -22,6 +33,65 @@ from automol.graph.base._02algo import (
     shortest_path_between_groups,
     sorted_ring_atom_keys,
 )
+from automol.graph.base._04class import atom_transfers
+
+
+def ts_zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
+    """For bimolecular reactions without a TS ring, return keys for the reactants in the
+    order they should appear in the z-matrix
+
+    For unimolecular reactions or bimolecular reactions with a TS ring, returns None
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: For bimolecular reactions without a TS ring, the keys for each reactant,
+        in z-matrix order, i.e. atom donor first or, if there isn't one, larger reactant
+        first, as measured by (heavy atoms, total atoms, electrons)
+    :rtype: List[int]
+    """
+    if not is_ts_graph(tsg) or has_reacting_ring(tsg) or not is_bimolecular(tsg):
+        return None
+
+    rcts_gra = ts_reactants_graph_without_stereo(tsg, dummy=True)
+    rct_gras = connected_components(rcts_gra)
+
+    # 1. If there is an atom transfer, put the donor reagent first
+    tra_keys = set(atom_transfers(tsg))
+    if tra_keys:
+        rct_gras = sorted(rct_gras, key=lambda g: atom_keys(g) & tra_keys, reverse=True)
+    # 2. Otherwise, put the larger reagent first
+    else:
+        rct_gras = sort_by_size(rct_gras)
+
+    rcts_keys = tuple(map(tuple, map(sorted, map(atom_keys, rct_gras))))
+    return rcts_keys
+
+
+def ts_zmatrix_starting_ring_keys(tsg) -> List[int]:
+    """Return keys for a TS ring to start from, sorted in z-matrix order
+
+    If there isn't a TS ring, this returns `None`
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: The ring keys, sorted to exclude breaking bonds and include forming bonds
+        as late as possible
+    :rtype: List[int]
+    """
+    if not has_reacting_ring(tsg):
+        return None
+
+    rngs_keys = reacting_rings_atom_keys(tsg)
+
+    if len(rngs_keys) > 1:
+        raise NotImplementedError(f"Not implemented for multiple reacting rings: {tsg}")
+
+    (rng_keys,) = rngs_keys
+    brk_bkeys = {bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)}
+    frm_bkeys = {bk for bk in ts_forming_bond_keys(tsg) if bk < set(rng_keys)}
+    frm_keys = list(itertools.chain(*frm_bkeys))
+
+    return util.ring.cycle_to_optimal_split(rng_keys, brk_bkeys, frm_keys)
 
 
 def vmatrix(gra):
@@ -33,8 +103,8 @@ def vmatrix(gra):
     :rtype: automol vmat data structure
     """
     # Generate a v-matrix for the graph and get the z-matrix reordering
-    rng_keys = ts.zmatrix_starting_ring_keys(gra)
-    rcts_keys = ts.zmatrix_sorted_reactants_keys(gra)
+    rng_keys = ts_zmatrix_starting_ring_keys(gra)
+    rcts_keys = ts_zmatrix_sorted_reactants_keys(gra)
     if rcts_keys is not None:
         rct1_keys, rct2_keys = rcts_keys
         vma, zma_keys = connected_vmatrix(gra, keys=rct1_keys)
@@ -501,9 +571,7 @@ def _extend_chain_to_include_anchoring_atoms(gra, keys, zma_keys):
     # 1. Try to find a chain key3-key2-key1
     def _find_key1_and_key2():
         for key2 in nkeys_dct[key3]:
-            key1s = (
-                nkeys_dct[key2] if symb_dct[key2] != "X" else nkeys_dct[key3][1:]
-            )
+            key1s = nkeys_dct[key2] if symb_dct[key2] != "X" else nkeys_dct[key3][1:]
             for key1 in key1s:
                 if key1 != key3:
                     return key1, key2

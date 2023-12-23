@@ -17,7 +17,6 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import functools
 import itertools
 import numbers
-import warnings
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
@@ -1390,7 +1389,7 @@ def bond_unpaired_electrons(gra, bond_order=True):
     return bnd_unsat_dct
 
 
-def tetrahedral_atoms(gra, min_ncount: int=3) -> Dict[int, tuple]:
+def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
     """Get a mapping of tetrahedral atom keys onto their neighbor keys
 
     :param gra: A graph
@@ -1442,49 +1441,6 @@ def tetrahedral_atom_keys(gra):
     :rtype: frozenset[int]
     """
     return frozenset(tetrahedral_atoms(gra))
-
-
-def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
-    """Get a dictionary describing atom transfers; keys are transferring atoms, values
-    are donors and acceptors, respectively
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: A list of triples containing the donor atom, the transferring atom, and
-        the acceptor atom, respectively
-    :rtype: Dict[int, Tuple[int, int]]
-    """
-    brk_bkeys = ts_breaking_bond_keys(tsg)
-    frm_bkeys = ts_forming_bond_keys(tsg)
-
-    tra_dct = {}
-    for brk_bkey, frm_bkey in itertools.product(brk_bkeys, frm_bkeys):
-        if brk_bkey & frm_bkey:
-            (tra_key,) = brk_bkey & frm_bkey
-            (don_key,) = brk_bkey - frm_bkey
-            (acc_key,) = frm_bkey - brk_bkey
-            tra_dct[tra_key] = (don_key, acc_key)
-
-    return tra_dct
-
-
-def substitution_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
-    """Get a dictionary describing atom transfers for substitution reactions; keys are
-    the transferring atoms, values are the donors and acceptors, respectively
-
-    Identifies transferring atoms that are tetrahedral
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: A list of triples containing the donor atom, the transferring atom, and
-        the acceptor atom, respectively
-    :rtype: Dict[int, Tuple[int, int]]
-    """
-    tra_dct = atom_transfers(tsg)
-    tra_keys = set(tra_dct.keys())
-    tet_keys = tetrahedral_atom_keys(tsg)
-    sn2_keys = tra_keys & tet_keys
-    return util.dict_.by_key(tra_dct, sn2_keys)
 
 
 def maximum_spin_multiplicity(gra, bond_order=True):
@@ -2584,109 +2540,6 @@ def local_stereo_priorities(gra) -> Dict[int, int]:
     loc_pri_dct.update({k: -abs(k) for k in backbone_hydrogen_keys(gra)})
     loc_pri_dct.update({k: -numpy.inf for k in nonbackbone_hydrogen_keys(gra)})
     return loc_pri_dct
-
-
-def atom_stereo_sorted_neighbor_keys(
-    gra, key, self_apex: bool = False, pri_dct: Optional[Dict[int, int]] = None
-):
-    """Get keys for the neighbors of an atom that are relevant for atom
-    stereochemistry, sorted by priority (if requested)
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param key: the atom key
-    :type key: int
-    :param self_apex: If there are only 3 neighbors, put this atom as the apex?
-    :type self_apex: bool, optional
-    :param pri_dct: Priorities to sort by (optional)
-    :type pri_dct: Optional[Dict[int, int]]
-    :returns: The keys of neighboring atoms
-    :rtype: tuple[int]
-    """
-    gra = without_dummy_atoms(gra)
-    nhyd_dct = atom_implicit_hydrogens(gra)
-    pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
-
-    # If this is an Sn2 stereocenter, use the reactants graph
-    if key in substitution_atom_transfers(gra):
-        gra = ts_reactants_graph_without_stereo(gra)
-
-    # Get the neighboring atom keys
-    nkeys = list(atom_neighbor_atom_keys(gra, key))
-
-    # Add Nones for the implicit hydrogens
-    nkeys.extend([None] * nhyd_dct[key])
-
-    # Sort them by priority
-    nkeys = sorted(nkeys, key=dict_.sort_value_(pri_dct, missing_val=-numpy.inf))
-
-    # Optionally, if there are only three groups, use the stereo atom itself as
-    # the top apex of the tetrahedron
-    if self_apex and len(nkeys) < 4:
-        assert len(nkeys) == 3
-        nkeys = [key] + list(nkeys)
-
-    return tuple(nkeys)
-
-
-def bond_stereo_sorted_neighbor_keys(
-    gra, key1, key2, pri_dct: Optional[Dict[int, int]] = None
-):
-    """Get keys for the neighbors of a bond that are relevant for bond
-    stereochemistry, sorted by priority (if requested)
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param key1: the first atom in the bond
-    :type key1: int
-    :param key2: the second atom in the bond
-    :type key2: int
-    :param pri_dct: Priorities to sort by (optional)
-    :type pri_dct: Optional[Dict[int, int]]
-    :returns: The keys of neighboring atoms for the first and second atoms
-    :rtype: tuple[int], tuple[int]
-    """
-    gra = without_dummy_atoms(gra)
-    nhyd_dct = atom_implicit_hydrogens(gra)
-    pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
-
-    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
-
-    nkeys1 = set()
-    nkeys2 = set()
-    # For TS graphs, loop over reactants and products
-    for gra_ in gras:
-        # Check that the bond is rigid and planar on this side of the reaction, by
-        # checking for a tetrahedral atom
-        tet_keys = tetrahedral_atom_keys(gra_)
-        if key1 not in tet_keys and key2 not in tet_keys:
-            # Add these neighboring keys to the list
-            nkeys1_, nkeys2_ = bond_neighbor_atom_keys(gra_, key1, key2)
-            nkeys1.update(nkeys1_)
-            nkeys2.update(nkeys2_)
-
-    nkeys1 = list(nkeys1)
-    nkeys2 = list(nkeys2)
-    nkeys1.extend([None] * nhyd_dct[key1])
-    nkeys2.extend([None] * nhyd_dct[key2])
-
-    # Check that we don't have more than two neighbors on either side
-    if len(nkeys1) > 2 or len(nkeys2) > 2:
-        warnings.warn(
-            f"Unusual neighbor configuration at bond {key1}-{key2} may result in "
-            f"incorrect bond stereochemistry handling for this graph:\n{gra}"
-        )
-
-        # Temporary patch for misidentified substitutions at double bonds, which are
-        # really two-step addition-eliminations
-        gra_ = without_bonds_by_orders(gra, [0.1, 0.9])
-        nkeys1, nkeys2 = map(list, bond_neighbor_atom_keys(gra_, key1, key2))
-        nkeys1.extend([None] * nhyd_dct[key1])
-        nkeys2.extend([None] * nhyd_dct[key2])
-
-    nkeys1 = sorted(nkeys1, key=dict_.sort_value_(pri_dct, missing_val=-numpy.inf))
-    nkeys2 = sorted(nkeys2, key=dict_.sort_value_(pri_dct, missing_val=-numpy.inf))
-    return (tuple(nkeys1), tuple(nkeys2))
 
 
 def atoms_neighbor_atom_keys(gra, ts_=True):

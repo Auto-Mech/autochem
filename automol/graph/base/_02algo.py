@@ -11,7 +11,6 @@ import operator
 from typing import List
 
 import more_itertools as mit
-
 from automol import util
 from automol.graph.base import _01networkx
 from automol.graph.base._00core import (
@@ -30,6 +29,7 @@ from automol.graph.base._00core import (
     remove_bonds,
     set_atom_symbols,
     string,
+    subgraph as subgraph_,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
@@ -39,7 +39,6 @@ from automol.graph.base._00core import (
     without_dummy_atoms,
     without_stereo,
 )
-from automol.graph.base._00core import subgraph as subgraph_
 
 
 # # isomorphisms and equivalence

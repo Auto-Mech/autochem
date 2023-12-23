@@ -1,99 +1,183 @@
 """TS classification and other functions
 """
 import itertools
-from typing import Dict, List
+import warnings
+from typing import Dict, Optional, Tuple
 
 import numpy
 from automol import util
 from automol.graph.base._00core import (
-    atom_keys,
-    atom_stereo_sorted_neighbor_keys,
-    atom_transfers,
+    atom_implicit_hydrogens,
+    atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
+    bond_neighbor_atom_keys,
     bond_stereo_keys,
-    bond_stereo_sorted_neighbor_keys,
     is_ts_graph,
     local_stereo_priorities,
-    substitution_atom_transfers,
-    sort_by_size,
     stereo_parities,
+    tetrahedral_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
-    ts_reacting_atom_keys,
+    ts_reagents_graphs_without_stereo,
     ts_reverse,
-    ts_transferring_atoms,
+    without_bonds_by_orders,
+    without_dummy_atoms,
 )
-from automol.graph.base._02algo import (
-    connected_components,
-    forming_rings_atom_keys,
-    has_reacting_ring,
-    is_bimolecular,
-    reacting_rings_atom_keys,
-)
+from automol.graph.base._02algo import forming_rings_atom_keys
 from automol.graph.base._03kekule import (
     rigid_planar_bond_keys,
-    sigma_radical_atom_bond_keys,
     vinyl_radical_atom_bond_keys,
 )
+from automol.util import dict_
 
 
-def zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
-    """For bimolecular reactions without a TS ring, return keys for the reactants in the
-    order they should appear in the z-matrix
-
-    For unimolecular reactions or bimolecular reactions with a TS ring, returns None
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :returns: For bimolecular reactions without a TS ring, the keys for each reactant,
-        in z-matrix order, i.e. atom donor first or, if there isn't one, larger reactant
-        first, as measured by (heavy atoms, total atoms, electrons)
-    :rtype: List[int]
-    """
-    if not is_ts_graph(tsg) or has_reacting_ring(tsg) or not is_bimolecular(tsg):
-        return None
-
-    rcts_gra = ts_reactants_graph_without_stereo(tsg, dummy=True)
-    rct_gras = connected_components(rcts_gra)
-
-    # 1. If there is an atom transfer, put the donor reagent first
-    tra_keys = set(atom_transfers(tsg))
-    if tra_keys:
-        rct_gras = sorted(rct_gras, key=lambda g: atom_keys(g) & tra_keys, reverse=True)
-    # 2. Otherwise, put the larger reagent first
-    else:
-        rct_gras = sort_by_size(rct_gras)
-
-    rcts_keys = tuple(map(tuple, map(sorted, map(atom_keys, rct_gras))))
-    return rcts_keys
-
-
-def zmatrix_starting_ring_keys(tsg) -> List[int]:
-    """Return keys for a TS ring to start from, sorted in z-matrix order
-
-    If there isn't a TS ring, this returns `None`
+# reaction site classification
+def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing atom transfers; keys are transferring atoms, values
+    are donors and acceptors, respectively
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
-    :returns: The ring keys, sorted to exclude breaking bonds and include forming bonds
-        as late as possible
-    :rtype: List[int]
+    :returns: A list of triples containing the donor atom, the transferring atom, and
+        the acceptor atom, respectively
+    :rtype: Dict[int, Tuple[int, int]]
     """
-    if not has_reacting_ring(tsg):
-        return None
+    brk_bkeys = ts_breaking_bond_keys(tsg)
+    frm_bkeys = ts_forming_bond_keys(tsg)
 
-    rngs_keys = reacting_rings_atom_keys(tsg)
+    tra_dct = {}
+    for brk_bkey, frm_bkey in itertools.product(brk_bkeys, frm_bkeys):
+        if brk_bkey & frm_bkey:
+            (tra_key,) = brk_bkey & frm_bkey
+            (don_key,) = brk_bkey - frm_bkey
+            (acc_key,) = frm_bkey - brk_bkey
+            tra_dct[tra_key] = (don_key, acc_key)
 
-    if len(rngs_keys) > 1:
-        raise NotImplementedError(f"Not implemented for multiple reacting rings: {tsg}")
+    return tra_dct
 
-    (rng_keys,) = rngs_keys
-    brk_bkeys = {bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)}
-    frm_bkeys = {bk for bk in ts_forming_bond_keys(tsg) if bk < set(rng_keys)}
-    frm_keys = list(itertools.chain(*frm_bkeys))
 
-    return util.ring.cycle_to_optimal_split(rng_keys, brk_bkeys, frm_keys)
+def substitution_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing atom transfers for substitution reactions; keys are
+    the transferring atoms, values are the donors and acceptors, respectively
+
+    Identifies transferring atoms that are tetrahedral
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A list of triples containing the donor atom, the transferring atom, and
+        the acceptor atom, respectively
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    tra_dct = atom_transfers(tsg)
+    tra_keys = set(tra_dct.keys())
+    tet_keys = tetrahedral_atom_keys(tsg)
+    subst_keys = tra_keys & tet_keys
+    return util.dict_.by_key(tra_dct, subst_keys)
+
+
+# vvv DEPRECATED vvv
+def atom_stereo_sorted_neighbor_keys(
+    gra, key, self_apex: bool = False, pri_dct: Optional[Dict[int, int]] = None
+):
+    """Get keys for the neighbors of an atom that are relevant for atom
+    stereochemistry, sorted by priority (if requested)
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param key: the atom key
+    :type key: int
+    :param self_apex: If there are only 3 neighbors, put this atom as the apex?
+    :type self_apex: bool, optional
+    :param pri_dct: Priorities to sort by (optional)
+    :type pri_dct: Optional[Dict[int, int]]
+    :returns: The keys of neighboring atoms
+    :rtype: tuple[int]
+    """
+    gra = without_dummy_atoms(gra)
+    nhyd_dct = atom_implicit_hydrogens(gra)
+    pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
+
+    # If this is an Sn2 stereocenter, use the reactants graph
+    if key in substitution_atom_transfers(gra):
+        gra = ts_reactants_graph_without_stereo(gra)
+
+    # Get the neighboring atom keys
+    nkeys = list(atom_neighbor_atom_keys(gra, key))
+
+    # Add Nones for the implicit hydrogens
+    nkeys.extend([None] * nhyd_dct[key])
+
+    # Sort them by priority
+    nkeys = sorted(nkeys, key=dict_.sort_value_(pri_dct, missing_val=-numpy.inf))
+
+    # Optionally, if there are only three groups, use the stereo atom itself as
+    # the top apex of the tetrahedron
+    if self_apex and len(nkeys) < 4:
+        assert len(nkeys) == 3
+        nkeys = [key] + list(nkeys)
+
+    return tuple(nkeys)
+
+
+def bond_stereo_sorted_neighbor_keys(
+    gra, key1, key2, pri_dct: Optional[Dict[int, int]] = None
+):
+    """Get keys for the neighbors of a bond that are relevant for bond
+    stereochemistry, sorted by priority (if requested)
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param key1: the first atom in the bond
+    :type key1: int
+    :param key2: the second atom in the bond
+    :type key2: int
+    :param pri_dct: Priorities to sort by (optional)
+    :type pri_dct: Optional[Dict[int, int]]
+    :returns: The keys of neighboring atoms for the first and second atoms
+    :rtype: tuple[int], tuple[int]
+    """
+    gra = without_dummy_atoms(gra)
+    nhyd_dct = atom_implicit_hydrogens(gra)
+    pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
+
+    gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
+
+    nkeys1 = set()
+    nkeys2 = set()
+    # For TS graphs, loop over reactants and products
+    for gra_ in gras:
+        # Check that the bond is rigid and planar on this side of the reaction, by
+        # checking for a tetrahedral atom
+        tet_keys = tetrahedral_atom_keys(gra_)
+        if key1 not in tet_keys and key2 not in tet_keys:
+            # Add these neighboring keys to the list
+            nkeys1_, nkeys2_ = bond_neighbor_atom_keys(gra_, key1, key2)
+            nkeys1.update(nkeys1_)
+            nkeys2.update(nkeys2_)
+
+    nkeys1 = list(nkeys1)
+    nkeys2 = list(nkeys2)
+    nkeys1.extend([None] * nhyd_dct[key1])
+    nkeys2.extend([None] * nhyd_dct[key2])
+
+    # Check that we don't have more than two neighbors on either side
+    if len(nkeys1) > 2 or len(nkeys2) > 2:
+        warnings.warn(
+            f"Unusual neighbor configuration at bond {key1}-{key2} may result in "
+            f"incorrect bond stereochemistry handling for this graph:\n{gra}"
+        )
+
+        # Temporary patch for misidentified substitutions at double bonds, which are
+        # really two-step addition-eliminations
+        gra_ = without_bonds_by_orders(gra, [0.1, 0.9])
+        nkeys1, nkeys2 = map(list, bond_neighbor_atom_keys(gra_, key1, key2))
+        nkeys1.extend([None] * nhyd_dct[key1])
+        nkeys2.extend([None] * nhyd_dct[key2])
+
+    nkeys1 = sorted(nkeys1, key=dict_.sort_value_(pri_dct, missing_val=-numpy.inf))
+    nkeys2 = sorted(nkeys2, key=dict_.sort_value_(pri_dct, missing_val=-numpy.inf))
+    return (tuple(nkeys1), tuple(nkeys2))
 
 
 def sn2_local_stereo_reversal_flips(tsg) -> Dict[int, bool]:
@@ -274,63 +358,3 @@ def vinyl_addition_local_parities(loc_tsg) -> Dict[frozenset, bool]:
                 par_dct[vin_bkey] = par
 
     return par_dct
-
-
-def ts_reacting_electron_direction(tsg, key: int):
-    """Determine the reacting electron direction at one end of a forming bond
-
-    Does *not* account for stereochemistry
-
-    The direction is determined as follows:
-        1. One bond, defining the 'x' axis direction
-        2. Another bond, defining the 'y' axis direction
-        3. An angle, describing how far to rotate the 'x' axis bond about a right-handed
-        'z'-axis in order to arrive at the appropriate direction
-
-    The 'y'-axis bond is `None` if the direction is parallel or antiparallel
-    to the 'x'-axis bond, or if the orientation doesn't matter.
-
-    Both bonds are `None` if the direction is perpendicular to the 'x-y' plane.
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param key: The key of a bond-forming atom
-    :type key: int
-    :returns: Two directed bond keys (x and y, respectively) and an angle
-    :rtype: (Tuple[int, int], Tuple[int, int], float)
-    """
-    assert key in ts_reacting_atom_keys(tsg), f"Atom {key} is not a reacting atom:{tsg}"
-    rcts_gra = ts_reactants_graph_without_stereo(tsg)
-    tra_dct = ts_transferring_atoms(tsg)
-    nkeys_dct = atoms_neighbor_atom_keys(rcts_gra)
-    vin_dct = vinyl_radical_atom_bond_keys(rcts_gra)
-    sig_dct = sigma_radical_atom_bond_keys(rcts_gra)
-
-    if key in tra_dct:
-        # key1 = transferring atom key
-        # key2 = donor atom
-        dkey, _ = tra_dct[key]
-        xbnd_key = (key, dkey)
-        ybnd_key = None
-        phi = numpy.pi
-    elif key in vin_dct:
-        # key1 = this key
-        # key2 = opposite end of the vinyl bond
-        (opp_key,) = vin_dct[key] - {key}
-        nkey = next(iter(nkeys_dct[key] - {key, opp_key}), None)
-        xbnd_key = (key, opp_key)
-        ybnd_key = None if nkey is None else (key, nkey)
-        phi = 4.0 * numpy.pi / 3.0
-    elif key in sig_dct:
-        # key1 = attacking atom key
-        # key2 = neighbor
-        (nkey,) = sig_dct[key] - {key}
-        xbnd_key = (key, nkey)
-        ybnd_key = None
-        phi = numpy.pi
-    else:
-        xbnd_key = None
-        ybnd_key = None
-        phi = None
-
-    return xbnd_key, ybnd_key, phi

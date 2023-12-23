@@ -3,7 +3,6 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 from automol.graph.base._00core import (
-    atom_transfers,
     ts_breaking_bond_keys as breaking_bond_keys,
     ts_forming_bond_keys as forming_bond_keys,
     ts_graph as graph,
@@ -29,16 +28,15 @@ from automol.graph.base._02algo import (
 from automol.graph.base._03kekule import (
     ts_linear_reacting_atom_keys as linear_reacting_atom_keys,
 )
-from automol.graph.base._05ts import (
+from automol.graph.base._04class import (
+    atom_transfers,
     constrained_1_2_insertion_local_parities,
-    ts_reacting_electron_direction as reacting_electron_direction,
     vinyl_addition_local_parities,
-    zmatrix_sorted_reactants_keys,
-    zmatrix_starting_ring_keys,
 )
 from automol.graph.base._06heur import (
     heuristic_bond_distance,
     ts_reacting_atom_plane_keys as reacting_atom_plane_keys,
+    ts_reacting_electron_direction as reacting_electron_direction,
 )
 from automol.graph.base._11stereo import (
     expand_reaction_stereo,
@@ -73,8 +71,6 @@ __all__ = [
     "reacting_rings_atom_keys",
     "reacting_rings_bond_keys",
     "vinyl_addition_local_parities",
-    "zmatrix_sorted_reactants_keys",
-    "zmatrix_starting_ring_keys",
     "heuristic_bond_distance",
     "reacting_atom_plane_keys",
     "expand_stereo",

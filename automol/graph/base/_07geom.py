@@ -7,8 +7,6 @@ import numbers
 
 import more_itertools as mit
 import numpy
-from phydat import phycon
-
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
@@ -16,7 +14,6 @@ from automol.graph.base._00core import (
     atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
-    bond_stereo_sorted_neighbor_keys,
     bonds_neighbor_atom_keys,
     bonds_neighbor_bond_keys,
     relabel,
@@ -28,7 +25,9 @@ from automol.graph.base._02algo import (
     rings_bond_keys,
 )
 from automol.graph.base._03kekule import rigid_planar_bond_keys
-from automol.graph.base._04stereo import geometry_atom_parity, geometry_bond_parity
+from automol.graph.base._04class import bond_stereo_sorted_neighbor_keys
+from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
+from phydat import phycon
 
 
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None):

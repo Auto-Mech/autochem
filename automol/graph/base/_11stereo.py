@@ -20,7 +20,7 @@ from automol.graph.base._00core import (
     ts_reverse,
     without_stereo,
 )
-from automol.graph.base._04stereo import (
+from automol.graph.base._05stereo import (
     geometry_atom_parity,
     geometry_bond_parity,
     stereocenter_candidate_keys,
