@@ -29,7 +29,7 @@ from automol.graph.base._03kekule import (
 from automol.graph.base._04class import (
     atom_stereo_sorted_neighbor_keys,
     bond_stereo_sorted_neighbor_keys,
-    substitution_atom_transfers,
+    substitutions,
 )
 from automol.util import dict_
 
@@ -248,7 +248,7 @@ def substitution_reversal_parity_flips(
     :return: A mapping identifying which stereoatoms flip upon reversal
     :rtype: Dict[AtomKey, bool]
     """
-    subst_dct = substitution_atom_transfers(tsg)
+    subst_dct = substitutions(tsg)
 
     subst_flip_dct = {}
     for key in keys:

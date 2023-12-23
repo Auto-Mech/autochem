@@ -1,5 +1,6 @@
 """TS classification and other functions
 """
+import functools
 import itertools
 import warnings
 from typing import Dict, Optional, Tuple
@@ -24,7 +25,7 @@ from automol.graph.base._00core import (
     without_bonds_by_orders,
     without_dummy_atoms,
 )
-from automol.graph.base._02algo import forming_rings_atom_keys
+from automol.graph.base._02algo import forming_rings_atom_keys, reacting_rings_bond_keys
 from automol.graph.base._03kekule import (
     rigid_planar_bond_keys,
     vinyl_radical_atom_bond_keys,
@@ -57,16 +58,16 @@ def atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
     return tra_dct
 
 
-def substitution_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
-    """Get a dictionary describing atom transfers for substitution reactions; keys are
-    the transferring atoms, values are the donors and acceptors, respectively
+def substitutions(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing substitution reaction sites
 
-    Identifies transferring atoms that are tetrahedral
+    Maps transferring atoms onto their leaving and entering atoms, respectively
+
+    (Limited to substitutions at tetrahedral atoms)
 
     :param tsg: TS graph
     :type tsg: automol graph data structure
-    :returns: A list of triples containing the donor atom, the transferring atom, and
-        the acceptor atom, respectively
+    :returns: A mapping of transferring atoms onto leaving and entering atoms
     :rtype: Dict[int, Tuple[int, int]]
     """
     tra_dct = atom_transfers(tsg)
@@ -74,6 +75,80 @@ def substitution_atom_transfers(tsg) -> Dict[int, Tuple[int, int]]:
     tet_keys = tetrahedral_atom_keys(tsg)
     subst_keys = tra_keys & tet_keys
     return util.dict_.by_key(tra_dct, subst_keys)
+
+
+def eliminations(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing elimination reaction sites
+
+    Maps bonds across which eliminations occur onto their leaving atoms, along with the
+    forming bond key for each, if present
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A mapping of elimination bonds onto leaving atoms and forming bond keys
+        (Leaving atoms are sorted in order of the elimination bond atoms)
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    brk_bkeys_pool = ts_breaking_bond_keys(tsg)
+    frm_bkeys_pool = ts_forming_bond_keys(tsg)
+    rng_bkeys_lst = reacting_rings_bond_keys(tsg)
+
+    def is_elimination_bond_(brk_bkeys, frm_bkeys):
+        """An elimination bond key is a ring key that intersects two breaking bonds and
+        is not a forming bond
+        """
+
+        def is_elimination_bkey(bkey):
+            return all(bkey & bk for bk in brk_bkeys) and bkey not in frm_bkeys
+
+        return is_elimination_bkey
+
+    def common_atom(bkey1, bkey2):
+        return next(iter(bkey1 & bkey2))
+
+    # 1. Check reacting rings
+    elim_dct = {}
+    for rng_bkeys in rng_bkeys_lst:
+        brk_bkeys = brk_bkeys_pool & rng_bkeys
+        frm_bkeys = frm_bkeys_pool & rng_bkeys
+
+        # 2. Require two breaking bonds within the ring
+        if len(brk_bkeys) == 2:
+            # 3. Find the elimination bond
+            is_elim = is_elimination_bond_(brk_bkeys, frm_bkeys)
+            bkey = next(filter(is_elim, rng_bkeys), None)
+            if bkey is not None:
+                # a. Sort the breaking bonds in order of the elimination bond atom
+                brk_bkey1, brk_bkey2 = sorted(
+                    brk_bkeys, key=functools.partial(common_atom, bkey)
+                )
+
+                # b. Get the corresponding leaving atoms
+                (lea_key1,) = brk_bkey1 - bkey
+                (lea_key2,) = brk_bkey2 - bkey
+
+                # c. Get the forming bond key, if there is one
+                assert len(frm_bkeys) <= 1, "Unexpected multiple forming bonds:{tsg}"
+                frm_bkey = next(iter(frm_bkeys), None)
+
+                elim_dct[bkey] = (lea_key1, lea_key2, frm_bkey)
+
+    return elim_dct
+
+
+def insertions(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing insertion reaction sites
+
+    Maps bonds across which insertions occur onto their entering atoms, along with the
+    breaking bond key for each, if present
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A mapping of insertion bonds onto entering atoms and breaking bond keys
+        (Entering atoms are sorted in order of the insertion bond atoms)
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    return eliminations(ts_reverse(tsg))
 
 
 # vvv DEPRECATED vvv
@@ -99,7 +174,7 @@ def atom_stereo_sorted_neighbor_keys(
     pri_dct = local_stereo_priorities(gra) if pri_dct is None else pri_dct
 
     # If this is an Sn2 stereocenter, use the reactants graph
-    if key in substitution_atom_transfers(gra):
+    if key in substitutions(gra):
         gra = ts_reactants_graph_without_stereo(gra)
 
     # Get the neighboring atom keys
@@ -217,7 +292,7 @@ def sn2_local_stereo_reversal_flips(tsg) -> Dict[int, bool]:
     :rtype: Dict[int, bool]
     """
     rflip_dct = {}
-    for tra_key, (don_key, acc_key) in substitution_atom_transfers(tsg).items():
+    for tra_key, (don_key, acc_key) in substitutions(tsg).items():
         # Get the forward direction neighboring keys, sorted by local priority
         nks0 = list(atom_stereo_sorted_neighbor_keys(tsg, tra_key))
         # Replace the donor with the acceptor
