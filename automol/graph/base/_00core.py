@@ -1275,6 +1275,30 @@ def atom_lone_pairs(gra):
     return atm_lpc_dct
 
 
+def atom_electron_pairs(gra, bond_order: bool = True) -> Dict[AtomKey, int]:
+    """Get the total number of electron pairs for atoms in this graph, as a dictionary
+
+    The total includes both bonding pairs and non-bonding lone pairs
+
+    If `bond_order` is set to `True`, pi-bonds will be counted as welll
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :type bond_order: bool, optional
+    :returns: A dictionary of electron pair counts, by atom key
+    :rtype: Dict[AtomKey, int]
+    """
+    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
+
+    keys = sorted(atom_keys(gra))
+    nlps = dict_.values_by_key(atom_lone_pairs(gra), keys)
+    ncounts = dict_.values_by_key(atom_bond_counts(gra, bond_order=bond_order), keys)
+
+    npair_dct = {k: nl + nc for k, nl, nc in zip(keys, nlps, ncounts)}
+    return npair_dct
+
+
 def lone_pair_atom_keys(gra):
     """Get the keys of atoms in this graph that have lone pairs
 
@@ -1441,6 +1465,45 @@ def tetrahedral_atom_keys(gra):
     :rtype: frozenset[int]
     """
     return frozenset(tetrahedral_atoms(gra))
+
+
+def vinyl_center_candidates(
+    gra, by_bond: bool = False, min_ncount: int = 1
+) -> Union[Dict[BondKey, AtomKey], Dict[AtomKey, BondKey]]:
+    """Get candidate vinyl radical along with their associated bonds
+
+    Can be returned by bond, mapping vinyl bonds onto their vinyl radical atoms, or by
+    atom, mapping vinyl radical atoms onto their vinyl bonds
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :param by_bond: Return the mapping by bonds, instead of by atoms?
+    :type by_bond: bool, optional
+    :param min_ncount: Minimal # neighbor keys for consideration
+    :type min_ncount: int, optional
+    :return: A mappping of vinyl radical atom keys onto vinyl bond keys, or vice versa
+    :rtype: Union[Dict[BondKey, AtomKey], Dict[AtomKey, BondKey]]
+    """
+    ncount_dct = atom_bond_counts(gra, bond_order=False)
+    npair_dct = atom_electron_pairs(gra, bond_order=False)
+    nelec_dct = atom_unpaired_electrons(gra, bond_order=False)
+
+    vin_dct = {}
+    for bkey in bond_keys(gra):
+        for key1, key2 in itertools.permutations(bkey):
+            ncounts = map(ncount_dct.get, (key1, key2))
+            if all(ncount >= min_ncount for ncount in ncounts):
+                nelec1, nelec2 = map(nelec_dct.get, (key1, key2))
+                npair1, npair2 = map(npair_dct.get, (key1, key2))
+                # Check for the unpaired / paired electron pattern of a vinyl bond
+                if nelec1 == 2 and nelec2 == 1 and npair1 == 2 and npair2 == 3:
+                    bkey = frozenset({key1, key2})
+                    akey = key1
+                    if by_bond:
+                        vin_dct[bkey] = akey
+                    else:
+                        vin_dct[akey] = bkey
+    return vin_dct
 
 
 def maximum_spin_multiplicity(gra, bond_order=True):

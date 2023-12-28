@@ -499,11 +499,14 @@ def nonresonant_radical_atom_keys(gra):
 def vinyl_radical_atom_bond_keys(gra):
     """Vinyl radical atom keys for this molecular graph
 
+    Does not use resonance, to save on cost
+
     :param gra: the molecular graph
     :returns: The vinyl radical bond keys, by atom key
     :rtype: Dict[int, frozenset[int]]
     """
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
+
     atm_rad_keys = nonresonant_radical_atom_keys(gra)
     bnd_ords_dct = kekules_bond_orders_collated(gra)
     atm_bnd_keys_dct = atoms_bond_keys(gra)

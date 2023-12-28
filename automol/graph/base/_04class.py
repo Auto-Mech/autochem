@@ -8,6 +8,8 @@ from typing import Dict, Optional, Tuple
 import numpy
 from automol import util
 from automol.graph.base._00core import (
+    AtomKey,
+    BondKey,
     atom_implicit_hydrogens,
     atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
@@ -22,6 +24,7 @@ from automol.graph.base._00core import (
     ts_reactants_graph_without_stereo,
     ts_reagents_graphs_without_stereo,
     ts_reverse,
+    vinyl_center_candidates,
     without_bonds_by_orders,
     without_dummy_atoms,
 )
@@ -77,7 +80,38 @@ def substitutions(tsg) -> Dict[int, Tuple[int, int]]:
     return util.dict_.by_key(tra_dct, subst_keys)
 
 
-def eliminations(tsg) -> Dict[int, Tuple[int, int]]:
+def vinyl_addition_candidates(
+    tsg, min_ncount: int = 1
+) -> Dict[BondKey, Tuple[AtomKey, AtomKey]]:
+    """Get a dictionary describing vinyl addition reaction site *candidates*
+
+    Maps vinyl bond keys onto vinyl radical atoms entering atoms, respectively
+
+    (Only finds candidates, since resonance evaluation is expensive)
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param min_ncount: Minimal # neighbor keys for consideration
+    :type min_ncount: int, optional
+    :returns: A mapping of transferring atoms onto leaving and entering atoms
+    """
+    rcts_gra = ts_reactants_graph_without_stereo(tsg)
+
+    frm_bkeys = ts_forming_bond_keys(tsg)
+    vin_dct = vinyl_center_candidates(rcts_gra, by_bond=False, min_ncount=min_ncount)
+
+    vin_add_dct = {}
+    for frm_bkey in frm_bkeys:
+        key = next((k for k in vin_dct.keys() if k in frm_bkey), None)
+        if key is not None:
+            bkey = vin_dct[key]
+            (ent_key,) = frm_bkey - {key}
+
+            vin_add_dct[bkey] = (key, ent_key)
+    return vin_add_dct
+
+
+def eliminations(tsg) -> Dict[BondKey, Tuple[AtomKey, AtomKey, Optional[BondKey]]]:
     """Get a dictionary describing elimination reaction sites
 
     Maps bonds across which eliminations occur onto their leaving atoms, along with the
@@ -87,7 +121,6 @@ def eliminations(tsg) -> Dict[int, Tuple[int, int]]:
     :type tsg: automol graph data structure
     :returns: A mapping of elimination bonds onto leaving atoms and forming bond keys
         (Leaving atoms are sorted in order of the elimination bond atoms)
-    :rtype: Dict[int, Tuple[int, int]]
     """
     brk_bkeys_pool = ts_breaking_bond_keys(tsg)
     frm_bkeys_pool = ts_forming_bond_keys(tsg)

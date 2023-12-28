@@ -79,6 +79,7 @@ from automol.graph.base._00core import van_der_waals_radii
 from automol.graph.base._00core import covalent_radii
 from automol.graph.base._00core import atomic_valences
 from automol.graph.base._00core import atom_lone_pairs
+from automol.graph.base._00core import atom_electron_pairs
 from automol.graph.base._00core import atom_van_der_waals_radius
 from automol.graph.base._00core import atom_bond_counts
 from automol.graph.base._00core import atom_unpaired_electrons
@@ -386,6 +387,7 @@ __all__ = [
     'covalent_radii',
     'atomic_valences',
     'atom_lone_pairs',
+    'atom_electron_pairs',
     'atom_van_der_waals_radius',
     'atom_bond_counts',
     'atom_unpaired_electrons',
