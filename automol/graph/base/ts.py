@@ -30,8 +30,6 @@ from automol.graph.base._03kekule import (
 )
 from automol.graph.base._04class import (
     atom_transfers,
-    constrained_1_2_insertion_local_parities,
-    vinyl_addition_local_parities,
 )
 from automol.graph.base._06heur import (
     heuristic_bond_distance,
@@ -63,14 +61,12 @@ __all__ = [
     "atom_transfers",
     "breaking_rings_atom_keys",
     "breaking_rings_bond_keys",
-    "constrained_1_2_insertion_local_parities",
     "forming_rings_atom_keys",
     "forming_rings_bond_keys",
     "has_reacting_ring",
     "is_bimolecular",
     "reacting_rings_atom_keys",
     "reacting_rings_bond_keys",
-    "vinyl_addition_local_parities",
     "heuristic_bond_distance",
     "reacting_atom_plane_keys",
     "expand_stereo",

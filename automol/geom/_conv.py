@@ -6,7 +6,6 @@ from typing import Dict, Optional
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
-
 from phydat import phycon
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_

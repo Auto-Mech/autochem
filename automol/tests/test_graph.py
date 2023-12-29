@@ -1313,7 +1313,7 @@ def test__calculate_priorities_and_assign_parities():
         geo = automol.chi.geometry(chi)
         gra = automol.geom.graph(geo)
 
-        par_eval_ = graph.parity_evaluator_from_geometry_(geo)
+        par_eval_ = graph.parity_evaluator_measure_from_geometry_(geo)
 
         gra, _, pri_dct, *_ = graph.calculate_stereo(gra, par_eval_=par_eval_)
 

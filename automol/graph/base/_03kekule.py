@@ -744,6 +744,8 @@ def rigid_planar_bonds(
         # Even if min_ncount = 0 we need at least one neighbor on one side for planarity
         if any(ncount < min_ncount for ncount in ncounts) or not any(ncounts):
             rp_dct.pop(bkey)
+        else:
+            rp_dct[bkey] = tuple(bnkeys)
 
     # 3. Enforce the minimum ring size
     rp_rng_const_dct = rigid_planar_bonds_with_ring_constraints(

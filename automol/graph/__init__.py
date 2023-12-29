@@ -224,7 +224,6 @@ from automol.graph.base._03kekule import radical_group_dct
 from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._03kekule import rigid_planar_bond_keys
 from automol.graph.base._05stereo import stereocenter_candidates
-from automol.graph.base._05stereo import stereocenter_candidate_keys
 from automol.graph.base._03kekule import atom_centered_cumulene_keys
 from automol.graph.base._03kekule import bond_centered_cumulene_keys
 # structural heuristics:
@@ -256,20 +255,20 @@ from automol.graph.base._08canon import canonical_ts_direction
 from automol.graph.base._08canon import canonical
 from automol.graph.base._08canon import canonical_keys
 # # canonical stereo functions
-from automol.graph.base._08canon import unassigned_stereocenter_keys
-from automol.graph.base._08canon import stereocenter_keys_from_candidates
-from automol.graph.base._08canon import reflect
-from automol.graph.base._08canon import reflect_local_stereo
-from automol.graph.base._08canon import to_local_stereo
-from automol.graph.base._08canon import from_local_stereo
-from automol.graph.base._08canon import set_stereo_from_geometry
+from automol.graph.base._11stereo import unassigned_stereocenter_keys
+from automol.graph.base._05stereo import unassigned_stereocenter_keys_from_candidates
+from automol.graph.base._11stereo import reflect
+from automol.graph.base._00core import reflect_local_stereo
+from automol.graph.base._11stereo import to_local_stereo
+from automol.graph.base._11stereo import from_local_stereo
+from automol.graph.base._11stereo import set_stereo_from_geometry
 # # symmetry class functions
 from automol.graph.base._08canon import canonical_priorities
 from automol.graph.base._08canon import calculate_stereo
 # # parity evaluators
-from automol.graph.base._08canon import parity_evaluator_from_geometry_
-from automol.graph.base._08canon import parity_evaluator_read_canonical_
-from automol.graph.base._08canon import parity_evaluator_flip_local_
+from automol.graph.base._05stereo import parity_evaluator_measure_from_geometry_
+from automol.graph.base._05stereo import parity_evaluator_read_from_graph
+from automol.graph.base._05stereo import parity_evaluator_flip_from_graph
 # AMChI functions:
 from automol.graph.base._09amchi import amchi
 from automol.graph.base._09amchi import amchi_with_indices
@@ -551,7 +550,6 @@ __all__ = [
     'rigid_planar_bonds',
     'rigid_planar_bond_keys',
     'stereocenter_candidates',
-    'stereocenter_candidate_keys',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
     # structural heuristics:
@@ -584,7 +582,7 @@ __all__ = [
     'canonical_keys',
     # # canonical stereo functions
     'unassigned_stereocenter_keys',
-    'stereocenter_keys_from_candidates',
+    'unassigned_stereocenter_keys_from_candidates',
     'reflect',
     'reflect_local_stereo',
     'to_local_stereo',
@@ -594,9 +592,9 @@ __all__ = [
     'canonical_priorities',
     'calculate_stereo',
     # # parity evaluators
-    'parity_evaluator_from_geometry_',
-    'parity_evaluator_read_canonical_',
-    'parity_evaluator_flip_local_',
+    'parity_evaluator_measure_from_geometry_',
+    'parity_evaluator_read_from_graph',
+    'parity_evaluator_flip_from_graph',
     # AMChI functions:
     'amchi',
     'amchi_with_indices',

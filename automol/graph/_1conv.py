@@ -6,6 +6,7 @@ import itertools
 import IPython.display as ipd
 import ipywidgets
 import numpy
+from phydat import phycon
 from automol import error, geom
 from automol.extern import rdkit_
 from automol.graph._0embed import clean_geometry, embed_geometry, geometry_matches
@@ -34,7 +35,6 @@ from automol.graph.base import (
 )
 from automol.smiles import base as smiles_base
 from automol.util import vector
-from phydat import phycon
 
 
 # # conversions

@@ -2,11 +2,13 @@
 """
 import itertools
 from collections.abc import Iterable
+from typing import List
+
 from phydat import ptab
 
 
 def flatten(lst):
-    """ Flatten an arbitrarily nested list of lists (iterator)
+    """Flatten an arbitrarily nested list of lists (iterator)
 
     Source: https://stackoverflow.com/a/2158532
     """
@@ -17,8 +19,8 @@ def flatten(lst):
             yield elem
 
 
-def is_odd_permutation(seq1, seq2):
-    """ Determine whether a permutation of a sequence is odd.
+def is_odd_permutation(seq1: List, seq2: List):
+    """Determine whether a permutation of a sequence is odd.
 
     :param seq1: the first sequence
     :param seq2: the second sequence, which must be a permuation of the first
@@ -28,8 +30,8 @@ def is_odd_permutation(seq1, seq2):
     return not is_even_permutation(seq1, seq2)
 
 
-def is_even_permutation(seq1, seq2):
-    """ Determine whether a permutation of a sequence is even or odd.
+def is_even_permutation(seq1: List, seq2: List):
+    """Determine whether a permutation of a sequence is even or odd.
 
     :param seq1: the first sequence
     :param seq2: the second sequence, which must be a permuation of the first
@@ -37,7 +39,7 @@ def is_even_permutation(seq1, seq2):
     :rtype: bool
     """
     size = len(seq1)
-    assert sorted(seq1) == sorted(seq2) and len(set(seq1)) == size
+    assert set(seq1) == set(seq2) and len(set(seq1)) == size
     perm = [seq2.index(val) for val in seq1]
 
     sgn = 1
@@ -47,7 +49,7 @@ def is_even_permutation(seq1, seq2):
             swap_idx = perm.index(idx)
             perm[idx], perm[swap_idx] = perm[swap_idx], perm[idx]
 
-    parity = (sgn == 1)
+    parity = sgn == 1
 
     return parity
 
@@ -91,8 +93,7 @@ def equivalence_partition(iterable, relation, perfect=False):
         while True:
             new_classes = classes.copy()
             for cls1, cls2 in itertools.combinations(classes, r=2):
-                if any(relation(o1, o2)
-                       for o1, o2 in itertools.product(cls1, cls2)):
+                if any(relation(o1, o2) for o1, o2 in itertools.product(cls1, cls2)):
                     if cls2 in new_classes:
                         new_classes.remove(cls2)
                         cls1 |= cls2
@@ -107,13 +108,13 @@ def equivalence_partition(iterable, relation, perfect=False):
 
 # Useful functions on Python objects
 def move_item_to_front(lst, item):
-    """ Move an item to the front of a list.
+    """Move an item to the front of a list.
 
-        :param lst: the list
-        :type lst: list or tuple
-        :param item: the item, which must be in `lst`
-        :returns: the list, with the item moved to front
-        :rtype: tuple
+    :param lst: the list
+    :type lst: list or tuple
+    :param item: the item, which must be in `lst`
+    :returns: the list, with the item moved to front
+    :rtype: tuple
     """
     lst = list(lst)
     lst.insert(0, lst.pop(lst.index(item)))
@@ -121,13 +122,13 @@ def move_item_to_front(lst, item):
 
 
 def move_item_to_end(lst, item):
-    """ Move an item to the end of a list.
+    """Move an item to the end of a list.
 
-        :param lst: the list
-        :type lst: list or tuple
-        :param item: the item, which must be in `lst`
-        :returns: the list, with the item moved to end
-        :rtype: tuple
+    :param lst: the list
+    :type lst: list or tuple
+    :param item: the item, which must be in `lst`
+    :returns: the list, with the item moved to end
+    :rtype: tuple
     """
     lst = list(lst)
     lst.append(lst.pop(lst.index(item)))
@@ -135,13 +136,13 @@ def move_item_to_end(lst, item):
 
 
 def move_items_to_front(lst, items):
-    """ Move an item to the front of a list.
+    """Move an item to the front of a list.
 
-        :param lst: the list
-        :type lst: list or tuple
-        :param item: the item, which must be in `lst`
-        :returns: the list, with the item moved to front
-        :rtype: tuple
+    :param lst: the list
+    :type lst: list or tuple
+    :param item: the item, which must be in `lst`
+    :returns: the list, with the item moved to front
+    :rtype: tuple
     """
     lst = list(lst)
     for item in reversed(items):
@@ -150,18 +151,18 @@ def move_items_to_front(lst, items):
 
 
 def breakby(lst, elem):
-    """ Break a list by element, dropping the element itself.
+    """Break a list by element, dropping the element itself.
 
     Analogous to '<char>'.split('<string>') for strings.
     """
-    lsts = tuple(tuple(g) for k, g in
-                 itertools.groupby(lst, lambda x: x == elem) if not k)
+    lsts = tuple(
+        tuple(g) for k, g in itertools.groupby(lst, lambda x: x == elem) if not k
+    )
     return lsts
 
 
 def separate_negatives(lst):
-    """ Seperate a list of numbers into negative and nonnegative (>= 0)
-    """
+    """Seperate a list of numbers into negative and nonnegative (>= 0)"""
 
     neg_lst = tuple(val for val in lst if val < 0)
     pos_lst = tuple(val for val in lst if val >= 0)
@@ -170,14 +171,12 @@ def separate_negatives(lst):
 
 
 def value_similar_to(val, lst, thresh):
-    """ Check if a value is close to some lst of values within some threshold
-    """
+    """Check if a value is close to some lst of values within some threshold"""
     return any(abs(val - vali) < thresh for vali in lst)
 
 
 def scale_iterable(iterable, scale_factor):
-    """ Scale some type of iterable of floats by a scale factor
-    """
+    """Scale some type of iterable of floats by a scale factor"""
 
     if isinstance(iterable, list):
         scaled_iterable = list(val * scale_factor for val in iterable)
@@ -188,8 +187,7 @@ def scale_iterable(iterable, scale_factor):
 
 
 def remove_duplicates_with_order(lst):
-    """ Remove all duplicates of a list while not reordering the list.
-    """
+    """Remove all duplicates of a list while not reordering the list."""
     if isinstance(lst, list):
         lst = list(n for i, n in enumerate(lst) if n not in lst[:i])
     if isinstance(lst, tuple):
@@ -199,22 +197,22 @@ def remove_duplicates_with_order(lst):
 
 
 def sort_by_list(lst, ref_lst, include_missing=True):
-    """ Order the elements of the list by using the priorities given
-        by some reference lst.
+    """Order the elements of the list by using the priorities given
+    by some reference lst.
 
-        if include_missing:
-        a=[q, a, e, x, f, t], ref=[x, a, q, e] -> sort_a=[x, a, q, e, f, t]
-        if not include_missing:
-        a=[q, a, e, x, f], ref=[x, a, q, e] -> sort_a=[x, a, q, e]
+    if include_missing:
+    a=[q, a, e, x, f, t], ref=[x, a, q, e] -> sort_a=[x, a, q, e, f, t]
+    if not include_missing:
+    a=[q, a, e, x, f], ref=[x, a, q, e] -> sort_a=[x, a, q, e]
 
-        Note that any element in the original list not in original list is
-        dropped if the user specifies not to include it.
+    Note that any element in the original list not in original list is
+    dropped if the user specifies not to include it.
 
-        :param lst: list to sort
-        :type lst: tuple
-        :param ref_lst: list which sets the order of the previous list
-        :type ref_lst: tuple
-        :rtype: tuple
+    :param lst: list to sort
+    :type lst: tuple
+    :param ref_lst: list which sets the order of the previous list
+    :type ref_lst: tuple
+    :rtype: tuple
     """
 
     # Split input list by elements in and not in reference list
@@ -232,13 +230,13 @@ def sort_by_list(lst, ref_lst, include_missing=True):
 
 
 def formula_from_symbols(symbs):
-    """ Build a molecular formula from a list of atomic symbols.
+    """Build a molecular formula from a list of atomic symbols.
 
-        (note: dummy atoms will be filtered out and cases will be standardized)
+    (note: dummy atoms will be filtered out and cases will be standardized)
 
-        :param symbs: atomic symbols
-        :type symbs: tuple(str)
-        :rtype: str
+    :param symbs: atomic symbols
+    :type symbs: tuple(str)
+    :rtype: str
     """
 
     symbs = list(filter(ptab.to_number, map(ptab.to_symbol, symbs)))
@@ -247,11 +245,11 @@ def formula_from_symbols(symbs):
 
 
 def _unique_item_counts(iterable):
-    """ Build a dictionary giving the count of each unique item in a sequence.
+    """Build a dictionary giving the count of each unique item in a sequence.
 
-        :param iterable: sequence to obtain counts for
-        :type iterable: iterable object
-        :rtype: dict[obj: int]
+    :param iterable: sequence to obtain counts for
+    :type iterable: iterable object
+    :rtype: dict[obj: int]
     """
 
     items = tuple(iterable)

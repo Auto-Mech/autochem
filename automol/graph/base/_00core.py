@@ -2595,6 +2595,10 @@ def local_stereo_priorities(gra) -> Dict[int, int]:
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param with_none: Include None as a dictionary key?
+    :type with_none: bool, optional
+    :param none_val: The value for None, if included as a dictionary key
+    :type none_val: bool, optional
     :returns: The local priorities, by atom key
     :rtype: Dict[int, int]
     """
@@ -3062,3 +3066,19 @@ def bonds_neighbor_bond_keys(gra, group: bool = True, ts_: bool = True):
         bnd_bkeys_dct[bkey] = (bkeys1, bkeys2) if group else bkeys1 | bkeys2
 
     return bnd_bkeys_dct
+
+
+def reflect_local_stereo(gra):
+    """Reflect a graph with local stereo parities.
+
+    Assuming local stereo parities, the parities can simply be reversed.
+
+    :param gra: molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    """
+    atm_par_dct = atom_stereo_parities(gra)
+    atm_par_dct = dict_.transform_values(
+        atm_par_dct, lambda x: x if x is None else not x
+    )
+    gra = set_atom_stereo_parities(gra, atm_par_dct)
+    return gra

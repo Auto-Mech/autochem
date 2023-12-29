@@ -15,17 +15,12 @@ from automol.graph.base._00core import (
     CenterKeys,
     atom_keys,
     explicit,
-    is_ts_graph,
     local_stereo_priorities,
+    stereo_keys,
     stereo_parities,
-    tetrahedral_atom_keys,
     tetrahedral_atoms,
 )
-from automol.graph.base._03kekule import (
-    rigid_planar_bond_keys,
-    rigid_planar_bonds,
-    vinyl_radical_atom_bond_keys,
-)
+from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._04class import (
     atom_stereo_sorted_neighbor_keys,
     bond_stereo_sorted_neighbor_keys,
@@ -62,13 +57,13 @@ def stereocenter_candidates(
     :returns: A mapping of stereocenter candidates onto their neighbor keys
     :rtype: Dict[Union[int, frozenset[int]], tuple[tuple, tuple]]
     """
-    cand_cent_dct = {}
+    cand_dct = {}
 
     # 1. Atom stereocenter candidates: tetrahedral atoms
     # These need to be calculated no matter what
     cand_atm_dct = tetrahedral_atoms(gra, min_ncount=3)
     if atom:
-        cand_cent_dct.update(cand_atm_dct)
+        cand_dct.update(cand_atm_dct)
 
     if bond:
         # 2. Bond stereocenter candidates: (a.) rigid, planar bonds, (b.) at least one
@@ -82,86 +77,88 @@ def stereocenter_candidates(
             cand_bnd_dct, lambda bk: not bk <= cand_atm_keys
         )
 
-        cand_cent_dct.update(cand_bnd_dct)
+        cand_dct.update(cand_bnd_dct)
 
-    return cand_cent_dct
+    return cand_dct
 
 
-def stereocenter_candidates_grouped_and_sorted(
-    cand_cent_dct: CenterNeighborDict, pri_dct: Optional[Dict[AtomKey, int]] = None
+def unassigned_stereocenter_keys_from_candidates(
+    gra,
+    cand_dct: CenterNeighborDict,
+    pri_dct: Optional[Dict[AtomKey, int]] = None,
+) -> CenterKeys:
+    """Identify true, unassigned stereocenters from candidates, given a priority mapping
+
+    :param gra: A molecular graph
+    :type gra: automol graph data structure
+    :param cand_dct: A mapping of stereocenter candidates onto their neighbor keys
+    :type cand_dct: CenterNeighborDict
+    :param pri_dct: An atom priority mapping
+    :type pri_dct: Optional[Dict[AtomKey, int]]
+    :return: The atom and bond stereocenter candidates as separate dictionaries
+    :rtype: CenterKeys
+    """
+    ste_atm_dct, ste_bnd_dct = stereocenter_candidates_grouped(
+        cand_dct, pri_dct=pri_dct, drop_nonste=True
+    )
+    ste_keys = frozenset(ste_atm_dct) | frozenset(ste_bnd_dct)
+    ste_keys -= stereo_keys(gra)
+    return ste_keys
+
+
+def stereocenter_candidates_grouped(
+    cand_dct: CenterNeighborDict,
+    pri_dct: Optional[Dict[AtomKey, int]] = None,
+    drop_nonste: bool = False,
 ) -> Tuple[AtomNeighborDict, BondNeighborDict]:
     """Group stereocenter candidates by type
 
-    :param cand_cent_dct: A mapping of stereocenter candidates onto their neighbor keys
-    :type cand_cent_dct: CenterNeighborDict
+    :param cand_dct: A mapping of stereocenter candidates onto their neighbor keys
+    :type cand_dct: CenterNeighborDict
     :param pri_dct: An optional atom priority mapping for sorting the neighbor keys
     :type pri_dct: Optional[Dict[AtomKey, int]]
+    :param drop_nonste: Drop non-stereogenic candidates, based on priorities?
+    :type drop_nonste: bool, optional
     :return: The atom and bond stereocenter candidates as separate dictionaries
     :rtype: Tuple[AtomNeighborDict, BondNeighborDict]
     """
-    sort_value = (
+    assert not (
+        drop_nonste and pri_dct is None
+    ), "Droping non-stereogenics requires priorities"
+
+    def _atom_is_stereogenic(nkeys):
+        pris = list(map(pri_dct.get, nkeys))
+        return len(set(pris)) == len(pris)
+
+    def _bond_is_stereogenic(nkeys):
+        pris = [list(map(pri_dct.get, nks)) for nks in nkeys]
+        return all(len(ps) == 1 or len(set(ps)) == len(ps) for ps in pris)
+
+    pri_ = (
         None if pri_dct is None else dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
     )
-
-    def sort_atom_neighbors(nkeys):
-        return tuple(sorted(nkeys, key=sort_value))
-
-    def sort_bond_neighbors(bnkeys):
-        return tuple(tuple(sorted(nks, key=sort_value)) for nks in bnkeys)
 
     cand_atm_dct = {}
     cand_bnd_dct = {}
 
-    for key, nkeys in cand_cent_dct.items():
+    for key, nkeys in cand_dct.items():
+        # Atom
         if isinstance(key, numbers.Number):
-            cand_atm_dct[key] = sort_atom_neighbors(nkeys)
+            if pri_ is not None:
+                nkeys = tuple(sorted(nkeys, key=pri_))
+            if not drop_nonste or _atom_is_stereogenic(nkeys):
+                cand_atm_dct[key] = nkeys
+        # Bond
         else:
-            cand_bnd_dct[key] = sort_bond_neighbors(nkeys)
+            if pri_ is not None:
+                nkeys = tuple(tuple(sorted(nks, key=pri_)) for nks in nkeys)
+            if not drop_nonste or _bond_is_stereogenic(nkeys):
+                cand_bnd_dct[key] = nkeys
 
     return cand_atm_dct, cand_bnd_dct
 
 
-def stereocenter_candidate_keys(
-    gra, atom: bool = True, bond: bool = True
-) -> frozenset[Union[int, frozenset[int]]]:
-    """Get keys to stereocenter candidates in the graph
-
-    Stereocenter candidates are atoms and bonds which are potentially stereogenic.
-    The only thing left to check are the canonical priorities (atom symmetry classes)
-    of their neighbors.
-
-    :param gra: A molecular graph
-    :type gra: automol graph data structure
-    :param atom: Include atom stereocenter candidates? defaults to True
-    :type atom: bool, optional
-    :param bond: Include bond stereocenter candidates? defaults to True
-    :type bond: bool, optional
-    :returns: The keys of the stereocenter candidates
-    :rtype: frozenset[Union[int, frozenset[int]]]
-    """
-    keys = frozenset()
-
-    # 1. Atom stereocenter candidates: tetrahedral atoms
-    atm_keys = tetrahedral_atom_keys(gra)  # These need to be calculated no matter what
-    if atom:
-        keys |= atm_keys
-
-    if bond:
-        # 2. Bond stereocenter candidates: (a.) rigid, planar bonds, (b.) at least one
-        # neighbor on each side, (c.) not locked in ring with <8 atoms
-        bnd_keys = rigid_planar_bond_keys(gra, min_ncount=1, min_ring_size=8)
-
-        # 3. For TS graphs, remove redundant bond stereocenter candidates, where both
-        # atoms are already atom stereocenter candidates
-        if is_ts_graph(gra):
-            bnd_keys = frozenset({bk for bk in bnd_keys if not bk <= atm_keys})
-
-        keys |= bnd_keys
-
-    return keys
-
-
-# stereo parity evaluations
+# parity evaluation helpers
 def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
     r""" Calculate an atom parity directly from a geometry
 
@@ -346,10 +343,10 @@ def local_parity_flips(keys, pri_dct, loc_pri_dct, nkeys_dct):
     :type nkeys_dct: CenterNeighborDict
     """
     nkeys_dct = dict_.by_key(nkeys_dct, keys)
-    can_nkeys_dct, can_bnkeys_dct = stereocenter_candidates_grouped_and_sorted(
+    can_nkeys_dct, can_bnkeys_dct = stereocenter_candidates_grouped(
         nkeys_dct, pri_dct=pri_dct
     )
-    loc_nkeys_dct, loc_bnkeys_dct = stereocenter_candidates_grouped_and_sorted(
+    loc_nkeys_dct, loc_bnkeys_dct = stereocenter_candidates_grouped(
         nkeys_dct, pri_dct=loc_pri_dct
     )
 
@@ -422,15 +419,17 @@ def substitution_reversal_parity_flips(
     :return: A mapping identifying which stereoatoms flip upon reversal
     :rtype: Dict[AtomKey, bool]
     """
+    pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
+
     subst_dct = substitutions(tsg)
 
     subst_flip_dct = {}
     for key in keys:
         if key in subst_dct:
             don_key, acc_key = subst_dct[key]
-            nkeys0 = sorted(nkeys_dct[key], key=pri_dct.get)
+            nkeys0 = sorted(nkeys_dct[key], key=pri_)
             nkeys0[nkeys0.index(don_key)] = acc_key
-            nkeys = sorted(nkeys0, key=pri_dct.get)
+            nkeys = sorted(nkeys0, key=pri_)
 
             subst_flip_dct[key] = util.is_even_permutation(nkeys0, nkeys)
     return subst_flip_dct
@@ -455,6 +454,8 @@ def vinyl_addition_reactant_parity_flips(
     :return: A mapping identifying which parities flip
     :rtype: Dict[AtomKey, bool]
     """
+    pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
+
     vin_add_dct = vinyl_addition_candidates(tsg)
 
     vin_flip_dct = {}
@@ -466,8 +467,8 @@ def vinyl_addition_reactant_parity_flips(
             nkeys0 = list(nkeys_dct[bkey][idx])
             nkeys = nkeys0 + [add_key]
 
-            nmax0 = max(nkeys0, key=pri_dct.get)
-            nmax = max(nkeys, key=pri_dct.get)
+            nmax0 = max(nkeys0, key=pri_)
+            nmax = max(nkeys, key=pri_)
 
             vin_flip_dct[bkey] = nmax0 != nmax
 
@@ -497,6 +498,8 @@ def insertion_reactant_parity_flips(
     :return: A mapping identifying which parities flip, as described above
     :rtype: Dict[AtomKey, bool]
     """
+    pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
+
     ins_dct = insertions(tsg)
 
     ins_flip_dct = {}
@@ -505,11 +508,11 @@ def insertion_reactant_parity_flips(
             key1, key2 = sorted(bkey)
             lea_key1, lea_key2, *_ = ins_dct[bkey]
 
-            nkeys1b, nkeys2b = map(list, nkeys_dct[bkey])
+            nkeys1b, nkeys2b = (sorted(nks, key=pri_) for nks in nkeys_dct[bkey])
             nkeys1 = [key2, lea_key1] + nkeys1b
             nkeys2 = [key1, lea_key2] + nkeys2b
-            nkeys1_ = sorted(nkeys1, key=pri_dct.get)
-            nkeys2_ = sorted(nkeys2, key=pri_dct.get)
+            nkeys1_ = sorted(nkeys1, key=pri_)
+            nkeys2_ = sorted(nkeys2, key=pri_)
 
             sgn1 = util.is_even_permutation(nkeys1, nkeys1_)
             sgn2 = util.is_even_permutation(nkeys2, nkeys2_)
@@ -519,6 +522,7 @@ def insertion_reactant_parity_flips(
     return ins_flip_dct
 
 
+# parity evaluators
 def parity_evaluator_measure_from_geometry_(
     geo,
     local_stereo: bool = False,
@@ -563,7 +567,7 @@ def parity_evaluator_measure_from_geometry_(
 
         # 1. Get sorted neighbor keys for stereocenters
         nkeys_dct = dict_.by_key(nkeys_dct, keys)
-        atm_nkeys_dct, bnd_nkeys_dct = stereocenter_candidates_grouped_and_sorted(
+        atm_nkeys_dct, bnd_nkeys_dct = stereocenter_candidates_grouped(
             nkeys_dct, pri_dct=pri_dct
         )
 
@@ -681,6 +685,9 @@ def parity_evaluator_reactants_from_local_ts_graph_(
     """
     ts_par_dct = stereo_parities(loc_tsg)
 
+    # Determine local TS stereo parities
+    loc_pri_dct = local_stereo_priorities(loc_tsg)
+
     def parity_evaluator(
         gra,
         keys: CenterKeys,
@@ -703,22 +710,20 @@ def parity_evaluator_reactants_from_local_ts_graph_(
         :return: A parity assignment mapping for the given stereocenter keys
         :rtype: Dict[CenterKey, bool]
         """
+        assert gra or not gra
         assert is_rev_ts or not is_rev_ts
 
-        # 0. Read in local TS parities
+        # 0. Read in local TS parities for these keys
         par_dct = dict_.by_key(ts_par_dct, keys)
 
-        # 1. Determine local priorities
-        loc_pri_dct = local_stereo_priorities(gra)
-
-        # 2. Correct vinyl addition parity flips
+        # 1. Correct vinyl addition parity flips
         vin_flip_dct = vinyl_addition_reactant_parity_flips(
             loc_tsg, keys, loc_pri_dct, nkeys_dct
         )
         for key, flip in vin_flip_dct.items():
             par_dct[key] ^= flip
 
-        # 3. Determine insertion bonds from atom parities with insertion parity flips
+        # 2. Determine insertion bonds from atom parities with insertion parity flips
         ins_flip_dct = insertion_reactant_parity_flips(
             loc_tsg, keys, loc_pri_dct, nkeys_dct
         )
@@ -726,7 +731,7 @@ def parity_evaluator_reactants_from_local_ts_graph_(
             par1, par2 = map(ts_par_dct.get, bkey)
             par_dct[bkey] = par1 ^ par2 ^ flip
 
-        # 4. Apply local parity flips to convert to canonical stereo, if requested
+        # 3. Apply local parity flips to convert to canonical stereo, if requested
         if not local_stereo:
             loc_flip_dct = local_parity_flips(keys, pri_dct, loc_pri_dct, nkeys_dct)
             for key, flip in loc_flip_dct.items():

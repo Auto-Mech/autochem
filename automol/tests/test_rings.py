@@ -1,12 +1,8 @@
 """ test ring functionality in graph
 """
 
-from automol import graph
-from automol import smiles
-from automol import inchi
-from automol import geom
-from automol import zmat
 import numpy
+from automol import geom, graph, inchi, smiles, zmat
 
 # cyclohexane
 ICH1 = 'InChI=1S/C6H12/c1-2-4-6-5-3-1/h1-6H2'

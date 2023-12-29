@@ -2,7 +2,6 @@
 """
 
 from phydat import bnd
-
 from automol import geom, graph, zmat
 from automol.reac._0core import class_, ts_graph
 from automol.util import dict_
