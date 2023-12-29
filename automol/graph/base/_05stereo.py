@@ -330,19 +330,31 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     return par
 
 
-def local_parity_flips(keys, pri_dct, loc_pri_dct, nkeys_dct):
-    """Parity flips for converting canonical to local parities (or vice versa)
+def local_parities(
+    gra,
+    par_dct: Dict[CenterKey, bool],
+    pri_dct: Dict[AtomKey, int],
+    nkeys_dct: CenterNeighborDict,
+):
+    """Get local parity assignments from canonical ones, or vice versa
 
-    :param keys: The stereocenter keys at which the parity is being evaluated
-    :type keys: CenterKeys
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :param par_dct: The original parity assignments
+    :type par_dct: Dict[CenterKey, bool]
     :param pri_dct: The canonical priority mapping
     :type pri_dct: Dict[AtomKey, int]
-    :param loc_pri_dct: The local priority mapping
-    :type loc_pri_dct: Dict[AtomKey, int]
     :param nkeys_dct: Stereo-determining neighbors for the stereocenter keys
     :type nkeys_dct: CenterNeighborDict
     """
+    # Read in the parities
+    par_dct = par_dct.copy()
+    keys = dict_.keys_by_value(par_dct, lambda x: x is not None)
+
     nkeys_dct = dict_.by_key(nkeys_dct, keys)
+    loc_pri_dct = local_stereo_priorities(gra)
+
+    # Group atoms and bonds and sort their neighbors, canonically and locally
     can_nkeys_dct, can_bnkeys_dct = stereocenter_candidates_grouped(
         nkeys_dct, pri_dct=pri_dct
     )
@@ -350,13 +362,11 @@ def local_parity_flips(keys, pri_dct, loc_pri_dct, nkeys_dct):
         nkeys_dct, pri_dct=loc_pri_dct
     )
 
-    flip_dct = {}
-
     # Determine atom parity flips
     for key, can_nkeys in can_nkeys_dct.items():
         loc_nkeys = loc_nkeys_dct[key]
 
-        flip_dct[key] = util.is_odd_permutation(loc_nkeys, can_nkeys)
+        par_dct[key] ^= util.is_odd_permutation(loc_nkeys, can_nkeys)
 
     # Determine bond parity flips
     for bkey, (can_nkeys1, can_nkeys2) in can_bnkeys_dct.items():
@@ -367,18 +377,18 @@ def local_parity_flips(keys, pri_dct, loc_pri_dct, nkeys_dct):
             nks[-1] for nks in (can_nkeys1, can_nkeys2, loc_nkeys1, loc_nkeys2)
         )
 
-        flip_dct[bkey] = (loc_nmax1 != can_nmax1) ^ (loc_nmax2 != can_nmax2)
+        par_dct[bkey] ^= (loc_nmax1 != can_nmax1) ^ (loc_nmax2 != can_nmax2)
 
-    return flip_dct
+    return par_dct
 
 
-def substitution_reversal_parity_flips(
+def substitution_reversal_parities(
     tsg,
-    keys: CenterKeys,
+    par_dct: Dict[CenterKey, bool],
     pri_dct: Dict[AtomKey, int],
     nkeys_dct: CenterNeighborDict,
 ) -> Dict[AtomKey, bool]:
-    r"""Parity flips for reversing the direction of a substitution TS graph
+    r"""Update parity assignments for a substitution reversal
 
 
         Case 1: Reversal causes local parity flip (reversal value: `True`):
@@ -410,8 +420,8 @@ def substitution_reversal_parity_flips(
 
     :param tsg: A TS graph
     :type tsg: automol graph data structure
-    :param keys: The stereocenter keys at which the parity is being evaluated
-    :type keys: CenterKeys
+    :param par_dct: The original parity assignments
+    :type par_dct: Dict[CenterKey, bool]
     :param pri_dct: The priority mapping
     :type pri_dct: Dict[AtomKey, int]
     :param nkeys_dct: Stereo-determining neighbors for the stereocenter keys
@@ -419,11 +429,14 @@ def substitution_reversal_parity_flips(
     :return: A mapping identifying which stereoatoms flip upon reversal
     :rtype: Dict[AtomKey, bool]
     """
+    # Read in the parities
+    par_dct = par_dct.copy()
+    keys = dict_.keys_by_value(par_dct, lambda x: x is not None)
+
     pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
 
     subst_dct = substitutions(tsg)
 
-    subst_flip_dct = {}
     for key in keys:
         if key in subst_dct:
             don_key, acc_key = subst_dct[key]
@@ -431,13 +444,13 @@ def substitution_reversal_parity_flips(
             nkeys0[nkeys0.index(don_key)] = acc_key
             nkeys = sorted(nkeys0, key=pri_)
 
-            subst_flip_dct[key] = util.is_even_permutation(nkeys0, nkeys)
-    return subst_flip_dct
+            par_dct[key] ^= util.is_even_permutation(nkeys0, nkeys)
+    return par_dct
 
 
-def vinyl_addition_reactant_parity_flips(
+def vinyl_addition_reactant_parities(
     tsg,
-    keys: CenterKeys,
+    par_dct: Dict[CenterKey, bool],
     pri_dct: Dict[AtomKey, int],
     nkeys_dct: CenterNeighborDict,
 ) -> Dict[BondKey, bool]:
@@ -445,8 +458,8 @@ def vinyl_addition_reactant_parity_flips(
 
     :param tsg: A TS graph
     :type tsg: automol graph data structure
-    :param keys: The stereocenter keys at which the parity is being evaluated
-    :type keys: CenterKeys
+    :param par_dct: The original parity assignments
+    :type par_dct: Dict[CenterKey, bool]
     :param pri_dct: The local priority mapping
     :type pri_dct: Dict[AtomKey, int]
     :param nkeys_dct: Stereo-determining neighbors for the *reactant* graph
@@ -454,11 +467,14 @@ def vinyl_addition_reactant_parity_flips(
     :return: A mapping identifying which parities flip
     :rtype: Dict[AtomKey, bool]
     """
+    # Read in the parities
+    par_dct = par_dct.copy()
+    keys = dict_.keys_by_value(par_dct, lambda x: x is not None)
+
     pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
 
     vin_add_dct = vinyl_addition_candidates(tsg)
 
-    vin_flip_dct = {}
     for bkey in keys:
         if bkey in vin_add_dct:
             key, add_key = vin_add_dct[bkey]
@@ -470,14 +486,14 @@ def vinyl_addition_reactant_parity_flips(
             nmax0 = max(nkeys0, key=pri_)
             nmax = max(nkeys, key=pri_)
 
-            vin_flip_dct[bkey] = nmax0 != nmax
+            par_dct[bkey] ^= nmax0 != nmax
 
-    return vin_flip_dct
+    return par_dct
 
 
-def insertion_reactant_parity_flips(
+def insertion_reactant_parities(
     tsg,
-    keys: CenterKeys,
+    par_dct: Dict[CenterKey, bool],
     pri_dct: Dict[AtomKey, int],
     nkeys_dct: CenterNeighborDict,
 ) -> Dict[BondKey, bool]:
@@ -489,8 +505,8 @@ def insertion_reactant_parity_flips(
 
     :param tsg: A TS graph
     :type tsg: automol graph data structure
-    :param keys: The stereocenter keys at which the parity is being evaluated
-    :type keys: CenterKeys
+    :param par_dct: The original parity assignments
+    :type par_dct: Dict[CenterKey, bool]
     :param pri_dct: The local priority mapping
     :type pri_dct: Dict[AtomKey, int]
     :param nkeys_dct: Stereo-determining neighbors for the *reactant* graph
@@ -498,11 +514,15 @@ def insertion_reactant_parity_flips(
     :return: A mapping identifying which parities flip, as described above
     :rtype: Dict[AtomKey, bool]
     """
+    # Read in the parities
+    all_par_dct = stereo_parities(tsg)
+    par_dct = par_dct.copy()
+    keys = list(par_dct.keys())
+
     pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
 
     ins_dct = insertions(tsg)
 
-    ins_flip_dct = {}
     for bkey in keys:
         if bkey in ins_dct:
             key1, key2 = sorted(bkey)
@@ -517,9 +537,11 @@ def insertion_reactant_parity_flips(
             sgn1 = util.is_even_permutation(nkeys1, nkeys1_)
             sgn2 = util.is_even_permutation(nkeys2, nkeys2_)
 
-            ins_flip_dct[bkey] = not sgn1 ^ sgn2
+            par1, par2 = map(all_par_dct.get, (key1, key2))
+            if par1 is not None and par2 is not None:
+                par_dct[bkey] = not par1 ^ par2 ^ sgn1 ^ sgn2
 
-    return ins_flip_dct
+    return par_dct
 
 
 # parity evaluators
@@ -584,12 +606,9 @@ def parity_evaluator_measure_from_geometry_(
         # 3. Combine parity mappings
         par_dct = {**atm_par_dct, **bnd_par_dct}
 
-        # 4. Apply substitution reversal flips, if this is a reverse TS graph and we are
-        # measuring local parities
+        # 4. Apply substitution reversal flips, if this is a reverse TS graph
         if local_stereo and is_rev_ts:
-            flip_dct = substitution_reversal_parity_flips(gra, keys, pri_dct, nkeys_dct)
-            for key, flip in flip_dct.items():
-                par_dct[key] ^= flip
+            par_dct = substitution_reversal_parities(gra, par_dct, pri_dct, nkeys_dct)
 
         return par_dct
 
@@ -651,21 +670,12 @@ def parity_evaluator_flip_from_graph(
     # 0. Read in the parities
     par_dct = dict_.by_key(stereo_parities(gra), keys)
 
-    # 1. Determine local priorities
-    loc_pri_dct = local_stereo_priorities(gra)
+    # 1. Apply local parity flips to convert to/from canonical stereo
+    par_dct = local_parities(gra, par_dct, pri_dct, nkeys_dct)
 
-    # 2. Apply local parity flips to convert to/from canonical stereo
-    loc_flip_dct = local_parity_flips(keys, pri_dct, loc_pri_dct, nkeys_dct)
-    for key, flip in loc_flip_dct.items():
-        par_dct[key] ^= flip
-
-    # 3. Apply substitution reversal flips, if this is a reverse TS graph
+    # 2. Apply substitution reversal flips, if this is a reverse TS graph
     if is_rev_ts:
-        subst_flip_dct = substitution_reversal_parity_flips(
-            gra, keys, pri_dct, nkeys_dct
-        )
-        for key, flip in subst_flip_dct.items():
-            par_dct[key] ^= flip
+        par_dct = substitution_reversal_parities(gra, par_dct, pri_dct, nkeys_dct)
 
     return par_dct
 
@@ -717,25 +727,16 @@ def parity_evaluator_reactants_from_local_ts_graph_(
         par_dct = dict_.by_key(ts_par_dct, keys)
 
         # 1. Correct vinyl addition parity flips
-        vin_flip_dct = vinyl_addition_reactant_parity_flips(
-            loc_tsg, keys, loc_pri_dct, nkeys_dct
+        par_dct = vinyl_addition_reactant_parities(
+            loc_tsg, par_dct, loc_pri_dct, nkeys_dct
         )
-        for key, flip in vin_flip_dct.items():
-            par_dct[key] ^= flip
 
         # 2. Determine insertion bonds from atom parities with insertion parity flips
-        ins_flip_dct = insertion_reactant_parity_flips(
-            loc_tsg, keys, loc_pri_dct, nkeys_dct
-        )
-        for bkey, flip in ins_flip_dct.items():
-            par1, par2 = map(ts_par_dct.get, bkey)
-            par_dct[bkey] = par1 ^ par2 ^ flip
+        par_dct = insertion_reactant_parities(loc_tsg, par_dct, loc_pri_dct, nkeys_dct)
 
         # 3. Apply local parity flips to convert to canonical stereo, if requested
         if not local_stereo:
-            loc_flip_dct = local_parity_flips(keys, pri_dct, loc_pri_dct, nkeys_dct)
-            for key, flip in loc_flip_dct.items():
-                par_dct[key] ^= flip
+            par_dct = local_parities(gra, par_dct, pri_dct, nkeys_dct)
 
         return par_dct
 

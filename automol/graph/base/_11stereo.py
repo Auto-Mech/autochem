@@ -173,7 +173,6 @@ def to_local_stereo(gra, pri_dct=None):
         )
         loc_gra, *_ = calculate_stereo(
             can_gra,
-            backbone_only=False,
             par_eval_=parity_evaluator_flip_from_graph,
             can_par_eval_=parity_evaluator_read_from_graph,
             pri_dct=pri_dct_,
@@ -416,7 +415,6 @@ def from_local_stereo(gra, pri_dct=None):
         )
         can_gra, *_ = calculate_stereo(
             loc_gra,
-            backbone_only=False,
             par_eval_=parity_evaluator_flip_from_graph,
             pri_dct=pri_dct_,
         )
@@ -462,9 +460,7 @@ def unassigned_stereocenter_keys(
     :rtype: frozenset
     """
     gra = without_dummy_atoms(gra)
-    pri_dct = (
-        canonical_priorities(gra, backbone_only=False) if pri_dct is None else pri_dct
-    )
+    pri_dct = canonical_priorities(gra) if pri_dct is None else pri_dct
     cand_dct = stereocenter_candidates(gra, atom=atom, bond=bond)
     ste_keys = unassigned_stereocenter_keys_from_candidates(gra, cand_dct, pri_dct)
     return ste_keys

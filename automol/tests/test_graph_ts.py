@@ -713,10 +713,10 @@ def test__rotational_bond_keys():
 
 
 if __name__ == '__main__':
-    # test__set_stereo_from_geometry()
+    test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    test__ts__reagents_graph()
+    # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
     # test__amchi()

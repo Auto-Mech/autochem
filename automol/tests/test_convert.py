@@ -225,22 +225,26 @@ def test__graph__misc():
     """
 
     ref_ich = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H'
+    print(ref_ich)
     gra = automol.chi.graph(ref_ich)
     ich = automol.graph.chi(gra)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C4H4F2.HO/c5-3-1-2-4-6;/h1-4H;1H/b3-1-,4-2-;'
+    print(ref_ich)
     gra = automol.chi.graph(ref_ich)
     ich = automol.graph.chi(gra, stereo=True)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C4H8/c1-3-4-2/h3-4H,1-2H3/b4-3+'
+    print(ref_ich)
     geo = automol.chi.geometry(ref_ich)
     gra = automol.geom.graph(geo)
     ich = automol.graph.chi(gra, stereo=True)
     assert ich == ref_ich
 
     ref_ich = 'InChI=1S/C2H4O/c1-2-3/h2-3H,1H2'
+    print(ref_ich)
     ref_conn_gra = (
         {0: ('C', 0, None), 1: ('C', 0, None), 2: ('O', 0, None),
          3: ('H', 0, None), 4: ('H', 0, None), 5: ('H', 0, None),
@@ -253,6 +257,7 @@ def test__graph__misc():
     assert conn_gra == ref_conn_gra
 
     ich = 'InChI=1S/C2HCl/c1-2-3/h1H'
+    print(ich)
     gra = automol.chi.graph(ich)
     geo = automol.graph.geometry(gra)
     assert ich == automol.geom.inchi(geo)
