@@ -85,6 +85,7 @@ from automol.graph.base._00core import atom_bond_counts
 from automol.graph.base._00core import atom_unpaired_electrons
 from automol.graph.base._00core import bond_unpaired_electrons
 from automol.graph.base._00core import tetrahedral_atom_keys
+from automol.graph.base._00core import vinyl_radical_candidates
 from automol.graph.base._00core import maximum_spin_multiplicity
 from automol.graph.base._00core import possible_spin_multiplicities
 from automol.graph.base._00core import atom_symbol_keys
@@ -143,8 +144,6 @@ from automol.graph.base._00core import atom_neighbor_atom_keys
 from automol.graph.base._00core import atoms_neighbor_atom_keys
 from automol.graph.base._00core import atom_sorted_neighbor_atom_keys
 from automol.graph.base._00core import local_stereo_priorities
-from automol.graph.base._04class import atom_stereo_sorted_neighbor_keys
-from automol.graph.base._04class import bond_stereo_sorted_neighbor_keys
 from automol.graph.base._00core import atoms_sorted_neighbor_atom_keys
 from automol.graph.base._00core import atom_bond_keys
 from automol.graph.base._00core import atoms_bond_keys
@@ -232,6 +231,8 @@ from automol.graph.base._03kekule import radical_groups
 from automol.graph.base._03kekule import radical_group_dct
 from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._03kekule import rigid_planar_bond_keys
+from automol.graph.base._03kekule import strict_rigid_planar_bond_keys
+from automol.graph.base._03kekule import possible_rigid_planar_bond_keys
 from automol.graph.base._05stereo import stereocenter_candidates
 from automol.graph.base._03kekule import atom_centered_cumulene_keys
 from automol.graph.base._03kekule import bond_centered_cumulene_keys
@@ -249,7 +250,6 @@ from automol.graph.base._06heur import rotational_symmetry_number
 from automol.graph.base._05stereo import geometry_atom_parity
 from automol.graph.base._05stereo import geometry_bond_parity
 from automol.graph.base._07geom import geometry_local_parity
-from automol.graph.base._07geom import geometries_have_matching_parities
 from automol.graph.base._07geom import geometries_parity_mismatches
 # # corrections
 from automol.graph.base._07geom import geometry_correct_linear_vinyls
@@ -392,6 +392,7 @@ __all__ = [
     'atom_unpaired_electrons',
     'bond_unpaired_electrons',
     'tetrahedral_atom_keys',
+    'vinyl_radical_candidates',
     'maximum_spin_multiplicity',
     'possible_spin_multiplicities',
     'atom_symbol_keys',
@@ -450,8 +451,6 @@ __all__ = [
     'atoms_neighbor_atom_keys',
     'atom_sorted_neighbor_atom_keys',
     'local_stereo_priorities',
-    'atom_stereo_sorted_neighbor_keys',
-    'bond_stereo_sorted_neighbor_keys',
     'atoms_sorted_neighbor_atom_keys',
     'atom_bond_keys',
     'atoms_bond_keys',
@@ -539,6 +538,8 @@ __all__ = [
     'radical_group_dct',
     'rigid_planar_bonds',
     'rigid_planar_bond_keys',
+    'strict_rigid_planar_bond_keys',
+    'possible_rigid_planar_bond_keys',
     'stereocenter_candidates',
     'atom_centered_cumulene_keys',
     'bond_centered_cumulene_keys',
@@ -556,7 +557,6 @@ __all__ = [
     'geometry_atom_parity',
     'geometry_bond_parity',
     'geometry_local_parity',
-    'geometries_have_matching_parities',
     'geometries_parity_mismatches',
     # # corrections
     'geometry_correct_linear_vinyls',

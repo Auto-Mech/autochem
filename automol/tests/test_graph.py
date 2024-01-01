@@ -1120,10 +1120,6 @@ def test__geometries_parity_mismatches():
         (1, 2),)
     assert graph.geometries_parity_mismatches(gra, geo1, geo4, keys) == (
         3, (1, 2))
-    assert graph.geometries_have_matching_parities(gra, geo1, geo1, keys)
-    assert not graph.geometries_have_matching_parities(gra, geo1, geo2, keys)
-    assert not graph.geometries_have_matching_parities(gra, geo1, geo3, keys)
-    assert not graph.geometries_have_matching_parities(gra, geo1, geo4, keys)
 
 
 def test__stereogenic_keys():

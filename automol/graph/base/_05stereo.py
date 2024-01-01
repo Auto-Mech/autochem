@@ -1,7 +1,6 @@
 """low-level stereochemistry functions
 """
 import numbers
-from collections import abc
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy
@@ -22,8 +21,6 @@ from automol.graph.base._00core import (
 )
 from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._04class import (
-    atom_stereo_sorted_neighbor_keys,
-    bond_stereo_sorted_neighbor_keys,
     insertions,
     substitutions,
     vinyl_addition_candidates,
@@ -40,7 +37,7 @@ ParityEvaluator = Callable[
 
 
 def stereocenter_candidates(
-    gra, atom: bool = True, bond: bool = True
+    gra, atom: bool = True, bond: bool = True, strict: bool = True
 ) -> CenterNeighborDict:
     """Get the stereocenter candidates in the graph, along with their stereo-determining
     neighbors, as a dictionary
@@ -57,6 +54,8 @@ def stereocenter_candidates(
     :type atom: bool, optional
     :param bond: Include bond stereocenter candidates? defaults to True
     :type bond: bool, optional
+    :param strict: Only include bonds that are guaranteed to be rigid?
+    :type strict: bool, optional
     :returns: A mapping of candidates onto their stereo-determining neighbors
     """
     cand_dct = {}
@@ -70,7 +69,9 @@ def stereocenter_candidates(
     if bond:
         # 2. Bond stereocenter candidates: (a.) rigid, planar bonds, (b.) at least one
         # neighbor on each side, (c.) not locked in ring with <8 atoms
-        cand_bnd_dct = rigid_planar_bonds(gra, min_ncount=1, min_ring_size=8)
+        cand_bnd_dct = rigid_planar_bonds(
+            gra, min_ncount=1, min_ring_size=8, strict=strict
+        )
 
         # 3. For TS graphs, remove redundant bond stereocenter candidates, where both
         # atoms are already atom stereocenter candidates
@@ -82,6 +83,40 @@ def stereocenter_candidates(
         cand_dct.update(cand_bnd_dct)
 
     return cand_dct
+
+
+def atom_stereodetermining_neighbor_keys(gra, key: AtomKey) -> AtomKeys:
+    """Get the stereo-determining neighbor keys of an atom, sorted by local priority
+
+    :param gra: A molecular graph
+    :type gra: automol graph data structure
+    :param key: The atom key
+    :type key: AtomKey
+    :return: The stereo-determining neighbor keys
+    :rtype: AtomKeys
+    """
+    return stereocenter_candidates(gra, bond=False)[key]
+
+
+def bond_stereodetermining_neighbor_keys(
+    gra, key1: AtomKey, key2: AtomKey
+) -> Tuple[AtomKeys, AtomKeys]:
+    """Get the stereo-determining neighbor keys of a bond, sorted by local priority
+
+    :param gra: A molecular graph
+    :type gra: automol graph data structure
+    :param key1: The first atom key
+    :type key1: AtomKey
+    :param key2: The second atom key
+    :type key2: AtomKey
+    :return: The stereo-determining neighbor keys
+    :rtype: AtomKeys
+    """
+    keys = sorted([key1, key2])
+    bkey = frozenset(keys)
+    bnkeys = stereocenter_candidates(gra, strict=False)[bkey]
+    nkey1s, nkey2s = (bnkeys[keys.index(k)] for k in (key1, key2))
+    return nkey1s, nkey2s
 
 
 def unassigned_stereocenter_keys_from_candidates(
@@ -161,7 +196,7 @@ def stereocenter_candidates_grouped(
 
 
 # parity evaluation helpers
-def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
+def geometry_atom_parity(gra, geo, key, nkeys=None, geo_idx_dct=None):
     r""" Calculate an atom parity directly from a geometry
 
     Neighboring atom keys (`nkeys`) must be passed in as a priority-sorted
@@ -202,27 +237,22 @@ def geometry_atom_parity(gra, geo, atm_key, nkeys=None, geo_idx_dct=None):
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     """
-    assert gra == explicit(
-        gra
-    ), "Explicit graph should be used when getting parities from geometry."
+    assert gra == explicit(gra), f"Implicit hydrogens are not a allowed here: {gra}"
 
     keys = sorted(atom_keys(gra))
     geo_idx_dct = (
         {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
 
-    nkeys = atom_stereo_sorted_neighbor_keys(gra, atm_key) if nkeys is None else nkeys
+    nkeys = atom_stereodetermining_neighbor_keys(gra, key) if nkeys is None else nkeys
 
     # If there are only three groups, use the stereo atom itself as
     # the top apex of the tetrahedron.
-    if len(nkeys) == 4:
-        keys = nkeys
-    else:
-        assert len(nkeys) == 3
-        keys = [atm_key] + list(nkeys)
+    nkeys = [key, *nkeys] if len(nkeys) < 4 else nkeys
 
-    idxs = list(map(geo_idx_dct.__getitem__, keys))
-    xyzs = geom_base.coordinates(geo, idxs=idxs)
+    assert len(nkeys) == 4, f"nkeys: {nkeys}, key: {key}, gra:\n{gra}"
+
+    xyzs = geom_base.coordinates(geo, idxs=tuple(map(geo_idx_dct.get, nkeys)))
     det_mat = numpy.ones((4, 4))
     det_mat[:, 1:] = xyzs
     det_val = numpy.linalg.det(det_mat)
@@ -289,39 +319,26 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     """
-    assert gra == explicit(
-        gra
-    ), "Explicit graph should be used when getting parities from geometry."
-
-    assert (
-        isinstance(bnd_key, abc.Collection) and len(bnd_key) == 2
-    ), f"{bnd_key} is not a valid bond key."
-    key1, key2 = bnd_key
+    assert gra == explicit(gra), f"Implicit hydrogens are not a allowed here: {gra}"
 
     keys = sorted(atom_keys(gra))
     geo_idx_dct = (
         {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
 
-    if bnd_nkeys is None:
-        nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(gra, key1, key2)
-    else:
-        assert (
-            isinstance(bnd_nkeys, abc.Collection)
-            and len(bnd_nkeys) == 2
-            and all(isinstance(nk, abc.Collection) for nk in bnd_nkeys)
-        ), f"Bond neighbor keys should be a pair of lists: {bnd_nkeys}"
-        nkey1s, nkey2s = bnd_nkeys
+    bnd_key = sorted(bnd_key)
+    bnd_nkeys = (
+        bond_stereodetermining_neighbor_keys(gra, *bnd_key)
+        if bnd_nkeys is None
+        else bnd_nkeys
+    )
 
-    idx1 = geo_idx_dct[key1]
-    idx2 = geo_idx_dct[key2]
-    nidx1 = geo_idx_dct[nkey1s[-1]]
-    nidx2 = geo_idx_dct[nkey2s[-1]]
+    key1, key2 = bnd_key
+    nkey1, nkey2 = (nks[-1] for nks in bnd_nkeys)
 
-    (xyz1,) = geom_base.coordinates(geo, idxs=(idx1,))
-    (xyz2,) = geom_base.coordinates(geo, idxs=(idx2,))
-    (nxyz1,) = geom_base.coordinates(geo, idxs=(nidx1,))
-    (nxyz2,) = geom_base.coordinates(geo, idxs=(nidx2,))
+    xyz1, xyz2, nxyz1, nxyz2 = geom_base.coordinates(
+        geo, idxs=tuple(map(geo_idx_dct.get, (key1, key2, nkey1, nkey2)))
+    )
 
     bnd1_vec = numpy.subtract(nxyz1, xyz1)
     bnd2_vec = numpy.subtract(nxyz2, xyz2)
@@ -332,7 +349,7 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     return par
 
 
-def local_parities(
+def local_flipped_parities(
     gra,
     par_dct: Dict[CenterKey, bool],
     pri_dct: Dict[AtomKey, int],
@@ -673,7 +690,7 @@ def parity_evaluator_flip_from_graph(
     par_dct = dict_.by_key(stereo_parities(gra), keys)
 
     # 1. Apply local parity flips to convert to/from canonical stereo
-    par_dct = local_parities(gra, par_dct, pri_dct, nkeys_dct)
+    par_dct = local_flipped_parities(gra, par_dct, pri_dct, nkeys_dct)
 
     # 2. Apply substitution reversal flips, if this is a reverse TS graph
     if is_rev_ts:
@@ -738,7 +755,7 @@ def parity_evaluator_reactants_from_local_ts_graph_(
 
         # 3. Apply local parity flips to convert to canonical stereo, if requested
         if not local_stereo:
-            par_dct = local_parities(gra, par_dct, pri_dct, nkeys_dct)
+            par_dct = local_flipped_parities(gra, par_dct, pri_dct, nkeys_dct)
 
         return par_dct
 

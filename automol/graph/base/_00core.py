@@ -1408,9 +1408,9 @@ def bond_unpaired_electrons(gra, bond_order=True):
     # determine unsaturated valences for each atom
     atm_unp_dct = atom_unpaired_electrons(gra)
     # a bond's unsaturated is set by its limiting atom
-    bnd_unsats = [min(map(atm_unp_dct.__getitem__, k)) for k in bnd_keys]
-    bnd_unsat_dct = dict(zip(bnd_keys, bnd_unsats))
-    return bnd_unsat_dct
+    bnd_unps = [min(map(atm_unp_dct.__getitem__, k)) for k in bnd_keys]
+    bnd_unp_dct = dict(zip(bnd_keys, bnd_unps))
+    return bnd_unp_dct
 
 
 def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
@@ -1470,22 +1470,14 @@ def tetrahedral_atom_keys(gra):
     return frozenset(tetrahedral_atoms(gra))
 
 
-def vinyl_center_candidates(
-    gra, by_bond: bool = False, min_ncount: int = 1
-) -> Union[Dict[BondKey, AtomKey], Dict[AtomKey, BondKey]]:
+def vinyl_radical_candidates(gra, min_ncount: int = 1) -> Dict[AtomKey, BondKey]:
     """Get candidate vinyl radical along with their associated bonds
-
-    Can be returned by bond, mapping vinyl bonds onto their vinyl radical atoms, or by
-    atom, mapping vinyl radical atoms onto their vinyl bonds
 
     :param gra: A graph
     :type gra: automol graph data structure
-    :param by_bond: Return the mapping by bonds, instead of by atoms?
-    :type by_bond: bool, optional
     :param min_ncount: Minimal # neighbor keys for consideration
     :type min_ncount: int, optional
-    :return: A mappping of vinyl radical atom keys onto vinyl bond keys, or vice versa
-    :rtype: Union[Dict[BondKey, AtomKey], Dict[AtomKey, BondKey]]
+    :return: A mappping of vinyl radical atom keys onto vinyl bond keys
     """
     ncount_dct = atom_bond_counts(gra, bond_order=False)
     npair_dct = atom_electron_pairs(gra, bond_order=False)
@@ -1495,17 +1487,14 @@ def vinyl_center_candidates(
     for bkey in bond_keys(gra):
         for key1, key2 in itertools.permutations(bkey):
             ncounts = map(ncount_dct.get, (key1, key2))
-            if all(ncount >= min_ncount for ncount in ncounts):
+            if all(ncount >= min_ncount + 1 for ncount in ncounts):
                 nelec1, nelec2 = map(nelec_dct.get, (key1, key2))
                 npair1, npair2 = map(npair_dct.get, (key1, key2))
                 # Check for the unpaired / paired electron pattern of a vinyl bond
                 if nelec1 == 2 and nelec2 == 1 and npair1 == 2 and npair2 == 3:
                     bkey = frozenset({key1, key2})
                     akey = key1
-                    if by_bond:
-                        vin_dct[bkey] = akey
-                    else:
-                        vin_dct[akey] = bkey
+                    vin_dct[akey] = bkey
     return vin_dct
 
 
@@ -2593,7 +2582,7 @@ def atom_neighbor_atom_keys(
     return frozenset(atm_nkeys)
 
 
-def local_stereo_priorities(gra, with_none: bool=False) -> Dict[int, int]:
+def local_stereo_priorities(gra, with_none: bool = False) -> Dict[int, int]:
     """Generate a local priority dictionary
 
     :param gra: molecular graph

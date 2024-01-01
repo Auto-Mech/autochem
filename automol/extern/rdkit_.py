@@ -301,7 +301,7 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
     exp_gra = graph_base.explicit(gra)
     exp_rdm, idx_from_key = _from_graph_without_stereo(exp_gra)
     key_from_idx = dict(map(reversed, idx_from_key.items()))
-    nkeys_dct = graph_base.stereocenter_candidates(exp_gra)
+    nkeys_dct = graph_base.stereocenter_candidates(exp_gra, strict=False)
 
     # Set atom stereo
     atm_ste_dct = graph_base.atom_stereo_parities(exp_gra)
@@ -410,7 +410,7 @@ def to_graph(exp_rdm, stereo=True, order=False):
 
     exp_rdm = rdkit.Chem.AddHs(exp_rdm)
     exp_gra = _to_graph_without_stereo(exp_rdm)
-    nkeys_dct = graph_base.stereocenter_candidates(exp_gra)
+    nkeys_dct = graph_base.stereocenter_candidates(exp_gra, strict=False)
 
     # Assign atom stereo
     for exp_rda in exp_rdm.GetAtoms():

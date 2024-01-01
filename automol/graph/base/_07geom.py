@@ -14,18 +14,17 @@ from automol.graph.base._00core import (
     atom_neighbor_atom_keys,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
-    bonds_neighbor_atom_keys,
-    bonds_neighbor_bond_keys,
     relabel,
+    ts_reactants_graph_without_stereo,
     ts_reacting_atom_keys,
+    vinyl_radical_candidates,
 )
 from automol.graph.base._02algo import (
     branch_atom_keys,
     ring_systems_atom_keys,
     rings_bond_keys,
 )
-from automol.graph.base._03kekule import rigid_planar_bond_keys
-from automol.graph.base._04class import bond_stereo_sorted_neighbor_keys
+from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
 from phydat import phycon
 
@@ -48,34 +47,6 @@ def geometry_local_parity(gra, geo, key, geo_idx_dct=None):
     else:
         par = geometry_bond_parity(gra, geo, key, geo_idx_dct=geo_idx_dct)
     return par
-
-
-def geometries_have_matching_parities(gra, geo1, geo2, keys, geo_idx_dct=None):
-    """Check whether two geometries have matching parities at a list of sites
-
-    Keys in list may be atom or bond keys.  Any stereo in the graph object
-    gets ignored.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param geo1: the first molecular geometry
-    :type geo1: automol geometry data structure
-    :param geo2: the second molecular geometry
-    :type geo2: automol geometry data structure
-    :param keys: list of atom or bond keys for comparison sites
-    :type keys: list
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices.
-    :type geo_idx_dct: dict[int: int]
-    :returns: true if they match, false if not
-    """
-    return all(
-        (
-            geometry_local_parity(gra, geo1, key, geo_idx_dct=geo_idx_dct)
-            == geometry_local_parity(gra, geo2, key, geo_idx_dct=geo_idx_dct)
-        )
-        for key in keys
-    )
 
 
 def geometries_parity_mismatches(gra, geo1, geo2, keys, geo_idx_dct=None):
@@ -128,28 +99,21 @@ def geometry_correct_nonplanar_pi_bonds(
     )
     gra = relabel(gra, geo_idx_dct)
 
-    bnd_keys = rigid_planar_bond_keys(gra)
-    # Don't do this for bonds in rings
-    bnd_keys -= set(itertools.chain(*rings_bond_keys(gra, ts_=False)))
+    rp_dct = rigid_planar_bonds(gra, min_ring_size=numpy.inf)
 
-    for bkey in bnd_keys:
-        key1, key2 = bkey
+    for bkey, bnkeys in rp_dct.items():
+        key1, key2 = sorted(bkey)
+        nkey1, nkey2 = (nks[-1] for nks in bnkeys)
+        dih_ang = geom_base.dihedral_angle(geo, nkey1, key1, key2, nkey2)
 
-        # Figure out the correct angle to flip the stereo parity
-        nkey1s, nkey2s = bond_stereo_sorted_neighbor_keys(gra, key1, key2)
-        if nkey1s and nkey2s:
-            nkey1 = nkey1s[-1]
-            nkey2 = nkey2s[-1]
-            dih_ang = geom_base.dihedral_angle(geo, nkey1, key1, key2, nkey2)
+        # Rotate bonds that are closer to trans to 175 degrees
+        if numpy.pi / 2 < abs(dih_ang) < 3 * numpy.pi / 2:
+            ang = numpy.pi - pert - dih_ang
+        # Rotate bonds that are closer to cis to 5 degrees
+        else:
+            ang = pert - dih_ang
 
-            # Rotate bonds that are closer to trans to 175 degrees
-            if numpy.pi / 2 < abs(dih_ang) < 3 * numpy.pi / 2:
-                ang = numpy.pi - pert - dih_ang
-            # Rotate bonds that are closer to cis to 5 degrees
-            else:
-                ang = pert - dih_ang
-
-            geo = geometry_rotate_bond(gra, geo, [key1, key2], ang)
+        geo = geometry_rotate_bond(gra, geo, [key1, key2], ang)
 
     return geo
 
@@ -169,52 +133,45 @@ def geometry_correct_linear_vinyls(
     :param tol: tolerance of bond angle(s) for determing linearity
     :type tol: float
     """
-    bnakeys_dct = bonds_neighbor_atom_keys(gra, group=False)
-    bnbkeys_dct = bonds_neighbor_bond_keys(gra, group=False)
-
-    akeys = sorted(atom_keys(gra))
+    keys = sorted(atom_keys(gra))
     geo_idx_dct = (
-        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
     )
 
-    bnd_keys = rigid_planar_bond_keys(gra)
-    # Don't do this for bonds in rings
-    bnd_keys -= set(itertools.chain(*rings_bond_keys(gra, ts_=False)))
+    gra = ts_reactants_graph_without_stereo(gra)
+    rng_bkeys = set(itertools.chain(*rings_bond_keys(gra)))
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=False)
 
-    for bnd1_key in bnd_keys:
-        for bnd2_key in bnbkeys_dct[bnd1_key]:
-            (atm2_key,) = bnd1_key & bnd2_key
-            (atm1_key,) = bnd1_key - {atm2_key}
-            (atm3_key,) = bnd2_key - {atm2_key}
+    vin_dct = vinyl_radical_candidates(gra, min_ncount=0)
 
-            atm1_idx = geo_idx_dct[atm1_key]
-            atm2_idx = geo_idx_dct[atm2_key]
-            atm3_idx = geo_idx_dct[atm3_key]
+    for key, bkey in vin_dct.items():
+        if bkey not in rng_bkeys:
+            key2 = key
+            (key1,) = bkey - {key}
+            key3s = nkeys_dct[key] - {key, key1}
+            if key3s:
+                (key3,) = key3s
+                idx1, idx2, idx3 = tuple(map(geo_idx_dct.get, (key1, key2, key3)))
 
-            ang = geom_base.central_angle(geo, atm1_idx, atm2_idx, atm3_idx)
+                ang = geom_base.central_angle(geo, idx1, idx2, idx3)
 
-            if numpy.abs(ang - numpy.pi) < tol:
-                atm0_key = next(iter(bnakeys_dct[bnd1_key] - {atm3_key}), None)
-                atm0_key = atm3_key if atm0_key is None else atm0_key
-                atm0_idx = geo_idx_dct[atm0_key]
+                if numpy.abs(ang - numpy.pi) < tol:
+                    key0 = next(iter(nkeys_dct[key1] - {key2}), None)
+                    key0 = key3 if key0 is None else key0
+                    idx0 = geo_idx_dct[key0]
 
-                xyzs = geom_base.coordinates(geo)
+                    xyz0, xyz1, xyz2 = geom_base.coordinates(
+                        geo, idxs=(idx0, idx1, idx2)
+                    )
 
-                atm0_xyz = xyzs[atm0_idx]
-                atm1_xyz = xyzs[atm1_idx]
-                atm2_xyz = xyzs[atm2_idx]
+                    rot_axis = util.vector.unit_perpendicular(xyz0, xyz1, orig_xyz=xyz2)
 
-                rot_axis = util.vector.unit_perpendicular(
-                    atm0_xyz, atm1_xyz, orig_xyz=atm2_xyz
-                )
+                    rot_keys = branch_atom_keys(gra, key2, key3)
+                    rot_idxs = list(map(geo_idx_dct.get, rot_keys))
 
-                rot_atm_keys = branch_atom_keys(gra, atm2_key, atm3_key)
-
-                rot_idxs = list(map(geo_idx_dct.__getitem__, rot_atm_keys))
-
-                geo = geom_base.rotate(
-                    geo, rot_axis, numpy.pi / 3, orig_xyz=atm2_xyz, idxs=rot_idxs
-                )
+                    geo = geom_base.rotate(
+                        geo, rot_axis, numpy.pi / 3, orig_xyz=xyz2, idxs=rot_idxs
+                    )
 
     return geo
 

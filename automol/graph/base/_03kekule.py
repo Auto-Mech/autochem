@@ -689,8 +689,39 @@ def radical_group_dct(gra):
     return groups
 
 
+def strict_rigid_planar_bond_keys(gra) -> frozenset[BondKey]:
+    """Get bonds which are guaranteed to be rigid and planar
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :returns: The bond keys
+    """
+    bkeys = set()
+    for kgr in kekules(gra):
+        ord_dct = bond_orders(kgr)
+        hyb_dct = atom_hybridizations_from_kekule(kgr)
+
+        sp2_keys = {k for k, h in hyb_dct.items() if h == 2}
+        bkeys |= {bk for bk, o in ord_dct.items() if o == 2 and bk <= sp2_keys}
+    return frozenset(bkeys)
+
+
+def possible_rigid_planar_bond_keys(gra) -> frozenset[BondKey]:
+    """Get bonds which are could be rigid and planar
+
+    Includes all bonds bewteen sp2 atoms, whether rigid or not
+
+    :param gra: A graph
+    :type gra: automol graph data structure
+    :returns: The bond keys
+    """
+    bnd_unp_dct = bond_unpaired_electrons(gra)
+    bkeys = dict_.keys_by_value(bnd_unp_dct, lambda x: x == 1)
+    return frozenset(bkeys)
+
+
 def rigid_planar_bonds(
-    gra, min_ncount: int = 1, min_ring_size: int = 8
+    gra, min_ncount: int = 1, min_ring_size: int = 8, strict: bool = True
 ) -> Dict[BondKey, Tuple[AtomKeys, AtomKeys]]:
     """Get a mapping of rigid, planary bond keys onto their neighbor keys
 
@@ -703,6 +734,8 @@ def rigid_planar_bonds(
     :type min_ncount: int, optional
     :param min_ring_size: Minimum ring size for inclusion, defaults to 8
     :type min_ring_size: int, optional
+    :param strict: Only include bonds that are guaranteed to be rigid?
+    :type strict: bool, optional
     :returns: A mapping of rigid, planar bond keys onto their neighbor keys; The pair of
         neighbor key lists is sorted by the atom key that they are neighbors to
     :rtype: Dict[BondKey, Tuple[AtomKeys, AtomKeys]]
@@ -715,20 +748,20 @@ def rigid_planar_bonds(
     # (Initially, the neighbor keys will be stored as sets)
     rp_dct = {}
     for gra_ in gras:
-        for kgr in kekules(gra_):
-            ord_dct = bond_orders(kgr)
-            hyb_dct = atom_hybridizations_from_kekule(kgr)
+        rp_bkeys = (
+            strict_rigid_planar_bond_keys(gra_)
+            if strict
+            else possible_rigid_planar_bond_keys(gra_)
+        )
 
-            sp2_keys = {k for k, h in hyb_dct.items() if h == 2}
-            rp_bkeys = {bk for bk, o in ord_dct.items() if o == 2 and bk <= sp2_keys}
-            for bkey in rp_bkeys:
-                key1, key2 = sorted(bkey)
-                # Get previous neighbor keys, if any
-                nkeys1, nkeys2 = rp_dct[bkey] if bkey in rp_dct else (set(), set())
-                # Get current neighbor keys
-                nkeys1_, nkeys2_ = bond_neighbor_atom_keys(gra_, key1, key2)
-                # Combine to give full sets of neighbor keys for TS graphs
-                rp_dct[bkey] = (nkeys1 | nkeys1_, nkeys2 | nkeys2_)
+        for bkey in rp_bkeys:
+            key1, key2 = sorted(bkey)
+            # Get previous neighbor keys, if any
+            nkeys1, nkeys2 = rp_dct[bkey] if bkey in rp_dct else (set(), set())
+            # Get current neighbor keys
+            nkeys1_, nkeys2_ = bond_neighbor_atom_keys(gra_, key1, key2)
+            # Combine to give full sets of neighbor keys for TS graphs
+            rp_dct[bkey] = (nkeys1 | nkeys1_, nkeys2 | nkeys2_)
 
     # Convert to tuples
     rp_dct = dict_.transform_values(rp_dct, lambda bnks: tuple(map(tuple, bnks)))
