@@ -36,7 +36,6 @@ from automol.graph.base import (
     atom_shortest_paths,
     atom_stereo_keys,
     atom_stereo_parities,
-    atom_stereo_sorted_neighbor_keys,
     atom_symbols,
     atoms_neighbor_atom_keys,
     bond_keys,
@@ -57,6 +56,7 @@ from automol.graph.base import (
     set_stereo_from_geometry,
     stereo_keys,
     stereo_parities,
+    stereocenter_candidates,
     string,
     subgraph,
     to_local_stereo,
@@ -570,9 +570,13 @@ def chirality_constraint_bounds(loc_gra, keys):
     """bounds for enforcing chirality restrictions"""
     ste_keys = set(atom_stereo_keys(loc_gra)) & set(keys)
     par_dct = atom_stereo_parities(loc_gra)
+    nkeys_dct = stereocenter_candidates(loc_gra, atom=True, bond=False)
 
     def _chirality_constraint(key):
-        nkeys = atom_stereo_sorted_neighbor_keys(loc_gra, key, self_apex=True)
+        nkeys = nkeys_dct[key]
+        # Add the key itself as apex, if we only have 3 neighbors
+        if len(nkeys) < 4:
+            nkeys = (key,) + nkeys
         idxs = tuple(map(keys.index, nkeys))
         vol_range = (-999.0, -1.0) if par_dct[key] else (+1.0, +999.0)
         return idxs, vol_range

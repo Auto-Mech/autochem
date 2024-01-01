@@ -28,6 +28,7 @@ from automol.graph.base._00core import (
     has_atom_stereo,
     implicit,
     is_ts_graph,
+    local_stereo_priorities,
     set_bond_orders,
     subgraph,
     ts_breaking_bond_keys,
@@ -693,6 +694,8 @@ def rigid_planar_bonds(
 ) -> Dict[BondKey, Tuple[AtomKeys, AtomKeys]]:
     """Get a mapping of rigid, planary bond keys onto their neighbor keys
 
+    The neighbor keys are sorted by local priority
+
     :param gra: A graph
     :type gra: automol graph data structure
     :param min_ncount: Minimum # neighbors on either side for inclusion, defaults to 1
@@ -706,6 +709,7 @@ def rigid_planar_bonds(
     """
     gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
     nhyd_dct = atom_implicit_hydrogens(gra)
+    pri_dct = local_stereo_priorities(gra, with_none=True)
 
     # 1. Find rigid, planar bonds in the graph, along with their neighbors
     # (Initially, the neighbor keys will be stored as sets)
@@ -745,7 +749,7 @@ def rigid_planar_bonds(
         if any(ncount < min_ncount for ncount in ncounts) or not any(ncounts):
             rp_dct.pop(bkey)
         else:
-            rp_dct[bkey] = tuple(bnkeys)
+            rp_dct[bkey] = tuple(tuple(sorted(n, key=pri_dct.get)) for n in bnkeys)
 
     # 3. Enforce the minimum ring size
     rp_rng_const_dct = rigid_planar_bonds_with_ring_constraints(

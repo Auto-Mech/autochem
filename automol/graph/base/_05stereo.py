@@ -42,11 +42,14 @@ ParityEvaluator = Callable[
 def stereocenter_candidates(
     gra, atom: bool = True, bond: bool = True
 ) -> CenterNeighborDict:
-    """Get keys to stereocenter candidates in the graph
+    """Get the stereocenter candidates in the graph, along with their stereo-determining
+    neighbors, as a dictionary
 
     Stereocenter candidates are atoms and bonds which are potentially stereogenic.
     The only thing left to check are the canonical priorities (atom symmetry classes)
     of their neighbors.
+
+    The neighbor keys are sorted by local priority
 
     :param gra: A molecular graph
     :type gra: automol graph data structure
@@ -54,8 +57,7 @@ def stereocenter_candidates(
     :type atom: bool, optional
     :param bond: Include bond stereocenter candidates? defaults to True
     :type bond: bool, optional
-    :returns: A mapping of stereocenter candidates onto their neighbor keys
-    :rtype: Dict[Union[int, frozenset[int]], tuple[tuple, tuple]]
+    :returns: A mapping of candidates onto their stereo-determining neighbors
     """
     cand_dct = {}
 

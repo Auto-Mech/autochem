@@ -301,6 +301,7 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
     exp_gra = graph_base.explicit(gra)
     exp_rdm, idx_from_key = _from_graph_without_stereo(exp_gra)
     key_from_idx = dict(map(reversed, idx_from_key.items()))
+    nkeys_dct = graph_base.stereocenter_candidates(exp_gra)
 
     # Set atom stereo
     atm_ste_dct = graph_base.atom_stereo_parities(exp_gra)
@@ -311,7 +312,7 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
         if par0 is not None:
             exp_rda = exp_rdm.GetAtoms()[idx]
 
-            nkeys0 = graph_base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
+            nkeys0 = nkeys_dct[key]
             nidxs1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
             nkeys1 = list(map(key_from_idx.__getitem__, nidxs1))
 
@@ -321,19 +322,13 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
     # Set bond stereo
     bnd_ste_dct = graph_base.bond_stereo_parities(gra)
     for rdb in rdm.GetBonds():
-        idx1 = rdb.GetBeginAtomIdx()
-        idx2 = rdb.GetEndAtomIdx()
-        key1 = key_from_idx[idx1]
-        key2 = key_from_idx[idx2]
-        bkey = frozenset({key1, key2})
+        idxs = (rdb.GetBeginAtomIdx(), rdb.GetEndAtomIdx())
+        keys = tuple(map(key_from_idx.get, idxs))
+        bkey = frozenset(keys)
         par = bnd_ste_dct[bkey]
         if par is not None:
-            nkeys1, nkeys2 = graph_base.bond_stereo_sorted_neighbor_keys(
-                gra, key1, key2
-            )
-
-            assert nkeys1, f"Atom {key1} lacks neighbors for stereo depiction:\n{gra}"
-            assert nkeys2, f"Atom {key2} lacks neighbors for stereo depiction:\n{gra}"
+            bnkeys = nkeys_dct[bkey]
+            nkeys1, nkeys2 = [bnkeys[keys.index(k)] for k in sorted(keys)]
 
             nidx1 = idx_from_key[nkeys1[-1]]
             nidx2 = idx_from_key[nkeys2[-1]]
@@ -415,6 +410,7 @@ def to_graph(exp_rdm, stereo=True, order=False):
 
     exp_rdm = rdkit.Chem.AddHs(exp_rdm)
     exp_gra = _to_graph_without_stereo(exp_rdm)
+    nkeys_dct = graph_base.stereocenter_candidates(exp_gra)
 
     # Assign atom stereo
     for exp_rda in exp_rdm.GetAtoms():
@@ -422,7 +418,7 @@ def to_graph(exp_rdm, stereo=True, order=False):
         if par0 is not None:
             key = exp_rda.GetIdx()
 
-            nkeys0 = graph_base.atom_stereo_sorted_neighbor_keys(exp_gra, key)
+            nkeys0 = nkeys_dct[key]
             nkeys1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
 
             par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
@@ -430,15 +426,13 @@ def to_graph(exp_rdm, stereo=True, order=False):
 
     # Assign bond stereo
     for exp_rdb in exp_rdm.GetBonds():
-        key1 = exp_rdb.GetBeginAtomIdx()
-        key2 = exp_rdb.GetEndAtomIdx()
-        bkey = frozenset({key1, key2})
+        keys = (exp_rdb.GetBeginAtomIdx(), exp_rdb.GetEndAtomIdx())
+        bkey = frozenset(keys)
 
         par0 = BOND_STEREO_BOOL_FROM_TAG[exp_rdb.GetStereo()]
         if par0 is not None:
-            nkeys1, nkeys2 = graph_base.bond_stereo_sorted_neighbor_keys(
-                exp_gra, key1, key2
-            )
+            bnkeys = nkeys_dct[bkey]
+            nkeys1, nkeys2 = [bnkeys[keys.index(k)] for k in sorted(keys)]
 
             nkey1 = nkeys1[-1]
             nkey2 = nkeys2[-1]

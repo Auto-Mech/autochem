@@ -1416,6 +1416,8 @@ def bond_unpaired_electrons(gra, bond_order=True):
 def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
     """Get a mapping of tetrahedral atom keys onto their neighbor keys
 
+    The neighbor keys are sorted by local priority
+
     :param gra: A graph
     :type gra: automol graph data structure
     :param min_ncount: Minimum # neighbors for inclusion, defaults to 3
@@ -1428,6 +1430,7 @@ def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
     gra = without_pi_bonds(gra)  # remove pi-bonds for the bond count below
     nlp_dct = atom_lone_pairs(gra)
     nhyd_dct = atom_implicit_hydrogens(gra)
+    pri_dct = local_stereo_priorities(gra, with_none=True)
 
     gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
 
@@ -1441,7 +1444,7 @@ def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
             if ncount + nlp == 4 and not ncount < min_ncount:
                 # If both directions are tetrahedral, use reactant neighbors
                 if key not in tet_dct:
-                    tet_dct[key] = nkeys
+                    tet_dct[key] = tuple(sorted(nkeys, key=pri_dct.get))
 
     return tet_dct
 
@@ -2590,15 +2593,13 @@ def atom_neighbor_atom_keys(
     return frozenset(atm_nkeys)
 
 
-def local_stereo_priorities(gra) -> Dict[int, int]:
+def local_stereo_priorities(gra, with_none: bool=False) -> Dict[int, int]:
     """Generate a local priority dictionary
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param with_none: Include None as a dictionary key?
+    :param with_none: Include None as a key with priority -infinity?
     :type with_none: bool, optional
-    :param none_val: The value for None, if included as a dictionary key
-    :type none_val: bool, optional
     :returns: The local priorities, by atom key
     :rtype: Dict[int, int]
     """
@@ -2606,6 +2607,8 @@ def local_stereo_priorities(gra) -> Dict[int, int]:
     loc_pri_dct.update({k: k for k in backbone_keys(gra, hyd=False)})
     loc_pri_dct.update({k: -abs(k) for k in backbone_hydrogen_keys(gra)})
     loc_pri_dct.update({k: -numpy.inf for k in nonbackbone_hydrogen_keys(gra)})
+    if with_none:
+        loc_pri_dct[None] = -numpy.inf
     return loc_pri_dct
 
 
