@@ -118,7 +118,7 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
     )
 
     if is_inv is True:
-        gra = graph_.reflect_local_stereo(gra)
+        gra = graph_.invert_atom_stereo_parities(gra)
 
     if has_stereo(chi) and not local_stereo:
         gra = graph_.from_local_stereo(gra)

@@ -264,7 +264,7 @@ from automol.graph.base._08canon import canonical_keys
 from automol.graph.base._11stereo import unassigned_stereocenter_keys
 from automol.graph.base._05stereo import unassigned_stereocenter_keys_from_candidates
 from automol.graph.base._11stereo import reflect
-from automol.graph.base._00core import reflect_local_stereo
+from automol.graph.base._00core import invert_atom_stereo_parities
 from automol.graph.base._11stereo import to_local_stereo
 from automol.graph.base._11stereo import from_local_stereo
 from automol.graph.base._11stereo import set_stereo_from_geometry
@@ -568,7 +568,7 @@ __all__ = [
     'unassigned_stereocenter_keys',
     'unassigned_stereocenter_keys_from_candidates',
     'reflect',
-    'reflect_local_stereo',
+    'invert_atom_stereo_parities',
     'to_local_stereo',
     'from_local_stereo',
     'set_stereo_from_geometry',

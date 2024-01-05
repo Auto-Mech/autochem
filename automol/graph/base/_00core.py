@@ -3060,7 +3060,7 @@ def bonds_neighbor_bond_keys(gra, group: bool = True, ts_: bool = True):
     return bnd_bkeys_dct
 
 
-def reflect_local_stereo(gra):
+def invert_atom_stereo_parities(gra):
     """Reflect a graph with local stereo parities.
 
     Assuming local stereo parities, the parities can simply be reversed.

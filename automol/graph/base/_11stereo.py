@@ -16,7 +16,7 @@ from automol.graph.base._00core import (
     has_atom_stereo,
     has_stereo,
     is_ts_graph,
-    reflect_local_stereo,
+    invert_atom_stereo_parities,
     relabel,
     set_stereo_parities,
     stereo_parities,
@@ -194,7 +194,7 @@ def _remove_noncanonical_enantiomers_from_expansion(gps):
     for ugpl, rgpl in itertools.combinations(gpls, r=2):
         ugra, upri_dct, uloc_gra = ugpl
         rgra, rpri_dct, rloc_gra = rgpl
-        if rloc_gra == reflect_local_stereo(uloc_gra):
+        if rloc_gra == invert_atom_stereo_parities(uloc_gra):
             is_can = is_canonical_enantiomer(ugra, upri_dct, rgra, rpri_dct)
 
             if is_can is True:
@@ -435,7 +435,7 @@ def reflect(gra):
     """
     if has_atom_stereo(gra):
         loc_gra = to_local_stereo(gra)
-        loc_gra = reflect_local_stereo(loc_gra)
+        loc_gra = invert_atom_stereo_parities(loc_gra)
         gra = from_local_stereo(loc_gra)
     return gra
 

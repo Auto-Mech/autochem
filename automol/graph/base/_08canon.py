@@ -20,12 +20,11 @@ from automol.graph.base._00core import (
     bond_orders,
     bond_stereo_keys,
     bond_stereo_parities,
-    has_atom_stereo,
     implicit,
     is_ts_graph,
     mass_numbers,
     nonbackbone_hydrogen_keys,
-    reflect_local_stereo,
+    invert_atom_stereo_parities,
     relabel as relabel_,
     set_stereo_parities,
     stereo_keys,
@@ -134,38 +133,36 @@ def canonical_amchi_graph_with_numbers(
     gra = without_dummy_atoms(gra)
     gra = gra if stereo else without_stereo
     ste_keys = stereo_keys(gra)
+    atm_ste_keys = atom_stereo_keys(gra)
     cand_dct = stereocenter_candidates(gra)
 
     # 1. Convert to implicit-hydrogen form
     gra = implicit(gra)
 
-    # 2. Calculate canonical priorities and determine the canonical direction
+    # 2. Determine the canonical TS direction
     *_, pri_dct, is_can_dir = calculate_stereo(gra, cand_dct=cand_dct)
-
-    # 3. Set the graph to the canonical direction and update stereo-determining
-    # neighbors for atoms, which can change upon reversal
     gra = ts_reverse(gra) if is_can_dir is False else gra
     cand_dct.update(stereocenter_candidates(gra, bond=False))
 
-    # 4. Determine the canonical enantiomer
+    # 3. Determine the canonical enantiomer
     is_can_enant = None
-    if has_atom_stereo(gra):
+    if len(atm_ste_keys) == 1:
+        rgra = invert_atom_stereo_parities(gra)
+        is_can_enant = is_canonical_enantiomer(gra, pri_dct, rgra, pri_dct)
+        gra = rgra if is_can_enant is False else gra
+    elif len(atm_ste_keys) > 1:
         par_eval_ = parity_evaluator_flip_from_graph
         loc_gra = set_stereo_parities(gra, par_eval_(gra, ste_keys, pri_dct, cand_dct))
-        rloc_gra = reflect_local_stereo(loc_gra)
+        rloc_gra = invert_atom_stereo_parities(loc_gra)
         rgra, _, rpri_dct, _ = calculate_stereo(rloc_gra, par_eval_=par_eval_)
 
         is_can_enant = is_canonical_enantiomer(gra, pri_dct, rgra, rpri_dct)
 
-        # 4. Set the graph and priorities to the canonical enantiomer
-        if is_can_enant is False:
-            gra = rgra
-            pri_dct = rpri_dct
+        gra = rgra if is_can_enant is False else gra
+        pri_dct = rpri_dct if is_can_enant is False else pri_dct
 
-    # 5. Break priority ties to arrive at canonical numbers for the graph
+    # 4. Find canonical numbers and relabel
     num_dct = break_priority_ties(gra, pri_dct, neg_hkeys=False)
-
-    # 6. Relabel
     gra = relabel_(gra, num_dct)
 
     return gra, num_dct, is_can_dir, is_can_enant
