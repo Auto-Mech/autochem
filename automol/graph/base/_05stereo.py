@@ -57,6 +57,7 @@ def stereocenter_candidates(
     :param strict: Only include bonds that are guaranteed to be rigid?
     :type strict: bool, optional
     :returns: A mapping of candidates onto their stereo-determining neighbors
+    :rtype: CenterNeighborDict
     """
     cand_dct = {}
 
@@ -553,8 +554,8 @@ def insertion_reactant_parities(
             nkeys1_ = sorted(nkeys1, key=pri_)
             nkeys2_ = sorted(nkeys2, key=pri_)
 
-            sgn1 = util.is_even_permutation(nkeys1, nkeys1_)
-            sgn2 = util.is_even_permutation(nkeys2, nkeys2_)
+            sgn1 = util.is_odd_permutation(nkeys1, nkeys1_)
+            sgn2 = util.is_odd_permutation(nkeys2, nkeys2_)
 
             par1, par2 = map(all_par_dct.get, (key1, key2))
             if par1 is not None and par2 is not None:

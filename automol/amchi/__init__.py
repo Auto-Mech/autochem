@@ -66,6 +66,7 @@ from automol.amchi.base._core import equivalent
 # # split/join
 from automol.amchi.base._core import split
 from automol.amchi.base._core import join
+from automol.amchi.base._core import sorted_join
 # # sort
 from automol.amchi.base._core import sorted_
 from automol.amchi.base._core import argsort
@@ -164,6 +165,7 @@ __all__ = [
     # # split/join
     'split',
     'join',
+    'sorted_join',
     # # sort
     'sorted_',
     'argsort',

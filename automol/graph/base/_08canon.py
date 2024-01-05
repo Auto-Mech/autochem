@@ -28,6 +28,7 @@ from automol.graph.base._00core import (
     reflect_local_stereo,
     relabel as relabel_,
     set_stereo_parities,
+    stereo_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reverse,
@@ -38,6 +39,7 @@ from automol.graph.base._00core import (
 )
 from automol.graph.base._02algo import connected_components, is_connected
 from automol.graph.base._05stereo import (
+    CenterNeighborDict,
     parity_evaluator_flip_from_graph,
     parity_evaluator_read_from_graph,
     stereocenter_candidates,
@@ -51,96 +53,6 @@ ParityEvaluator = Callable[[Any, Dict[int, int], List[int], bool], Dict[int, int
 
 
 # # canonical key functions
-def canonical_enantiomer(gra, relabel: bool = True):
-    """Determine the canonical graph of the canonical enantiomer.
-
-    Graphs with stereo will be reflected.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param relabel: Relabel the graph with canonical keys? defaults to True
-    :type relabel: bool, optional
-    :returns: a canonicalized graph of the canonical enantiomer, along with
-        a boolean flag indicating whether or not the graph has been
-        reflected; `True` indicates it has been, `False` indicates it
-        hasn't, and `None` indicates that it isn't an enantiomer
-    :rtype: (automol graph data structure, bool)
-    """
-    gra, _, is_can_enant = canonical_enantiomer_with_keys(gra, relabel=relabel)
-    return gra, is_can_enant
-
-
-def canonical_enantiomer_with_keys(gra, relabel: bool = False):
-    """Determine the canonical graph of the canonical enantiomer, along with
-    the canonical key mapping.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param relabel: Relabel the graph with canonical keys? defaults to True
-    :type relabel: bool, optional
-    :returns: a canonicalized graph of the canonical enantiomer, along with a boolean
-        flag indicating whether or not the input graph is this enantiomer;
-        `True` indicates it is, `False` indicates it isn't, and `None` indicates that it
-        is achiral
-    :rtype: (automol graph data structure, bool)
-    """
-    if not has_atom_stereo(gra):
-        can_key_dct = canonical_keys(gra)
-        is_can_enant = None
-    else:
-        assert is_connected(gra), f"Requires a connected graph.\n{gra}"
-        # Calculate canonical keys for the unreflected graph while converting
-        # to the local stereo representation
-        loc_gra, _, pri_dct, *_ = calculate_stereo(
-            gra,
-            par_eval_=parity_evaluator_flip_from_graph,
-            can_par_eval_=parity_evaluator_read_from_graph,
-        )
-
-        # Reflect the graph in the local stereo representation
-        rloc_gra = reflect_local_stereo(loc_gra)
-
-        # Determine canonical keys for the reflected graph while converting
-        # back to the canonical stereo representation
-        rgra, _, rpri_dct, *_ = calculate_stereo(
-            rloc_gra, par_eval_=parity_evaluator_flip_from_graph
-        )
-
-        is_can_enant = is_canonical_enantiomer(gra, pri_dct, rgra, rpri_dct)
-
-        if is_can_enant is False:
-            gra = rgra
-            pri_dct = rpri_dct
-
-        can_key_dct = break_priority_ties(gra, pri_dct)
-
-    if relabel:
-        gra = relabel_(gra, can_key_dct)
-
-    return gra, can_key_dct, is_can_enant
-
-
-def canonical_ts_direction(gra):
-    """If this is a TS graph, determine the canonical direction for it
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: a graph of the canonical TS direction, along with a boolean flag
-        indicating whether or not the input graph has this direction;
-        `True` indicates it is, `False` indicates it isn't, and `None` indicates that it
-        isn't a TS graph
-    :rtype: (automol graph data structure, bool)
-    """
-    if is_ts_graph(gra):
-        *_, is_can_dir = calculate_stereo(gra)
-        if is_can_dir is False:
-            gra = ts_reverse(gra)
-    else:
-        is_can_dir = None
-
-    return gra, is_can_dir
-
-
 def canonical(gra):
     """A graph relabeled with canonical keys
 
@@ -155,6 +67,20 @@ def canonical(gra):
     """
     can_key_dct = canonical_keys(gra)
     return relabel_(gra, can_key_dct)
+
+
+def canonical_priorities(gra, pri_dct=None):
+    """Determine canonical priorities for this graph's atoms
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: Optional initial priorities, to be refined.
+    :type pri_dct: dict[int: int]
+    :returns: A dictionary of canonical priorities by atom key.
+    :rtype: dict[int: int]
+    """
+    *_, pri_dct, _ = calculate_stereo(gra, pri_dct=pri_dct)
+    return pri_dct
 
 
 def canonical_keys(gra):
@@ -192,6 +118,57 @@ def canonical_keys(gra):
     )
 
     return can_key_dct
+
+
+def canonical_amchi_graph_with_numbers(
+    gra, stereo: bool = True
+) -> (Any, Dict[int, int], bool, bool):
+    """Put a connected graph in AMChI-canonical form
+
+    :param gra: A connected graph
+    :type gra: automol graph data structure
+    :param stereo: Include stereo, if present? defaults to True
+    :type stereo: bool, optional
+    """
+    assert is_connected(gra), f"Graph is disconnected\n{gra}"
+    gra = without_dummy_atoms(gra)
+    gra = gra if stereo else without_stereo
+    ste_keys = stereo_keys(gra)
+    cand_dct = stereocenter_candidates(gra)
+
+    # 1. Convert to implicit-hydrogen form
+    gra = implicit(gra)
+
+    # 2. Calculate canonical priorities and determine the canonical direction
+    *_, pri_dct, is_can_dir = calculate_stereo(gra, cand_dct=cand_dct)
+
+    # 3. Set the graph to the canonical direction and update stereo-determining
+    # neighbors for atoms, which can change upon reversal
+    gra = ts_reverse(gra) if is_can_dir is False else gra
+    cand_dct.update(stereocenter_candidates(gra, bond=False))
+
+    # 4. Determine the canonical enantiomer
+    is_can_enant = None
+    if has_atom_stereo(gra):
+        par_eval_ = parity_evaluator_flip_from_graph
+        loc_gra = set_stereo_parities(gra, par_eval_(gra, ste_keys, pri_dct, cand_dct))
+        rloc_gra = reflect_local_stereo(loc_gra)
+        rgra, _, rpri_dct, _ = calculate_stereo(rloc_gra, par_eval_=par_eval_)
+
+        is_can_enant = is_canonical_enantiomer(gra, pri_dct, rgra, rpri_dct)
+
+        # 4. Set the graph and priorities to the canonical enantiomer
+        if is_can_enant is False:
+            gra = rgra
+            pri_dct = rpri_dct
+
+    # 5. Break priority ties to arrive at canonical numbers for the graph
+    num_dct = break_priority_ties(gra, pri_dct, neg_hkeys=False)
+
+    # 6. Relabel
+    gra = relabel_(gra, num_dct)
+
+    return gra, num_dct, is_can_dir, is_can_enant
 
 
 def stereo_assignment_representation(gra, pri_dct: dict):
@@ -283,25 +260,12 @@ def is_canonical_direction(ftsg, fpri_dct, rtsg, rpri_dct):
 
 
 # # core algorithm functions
-def canonical_priorities(gra, pri_dct=None):
-    """Determine canonical priorities for this graph's atoms
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param pri_dct: Optional initial priorities, to be refined.
-    :type pri_dct: dict[int: int]
-    :returns: A dictionary of canonical priorities by atom key.
-    :rtype: dict[int: int]
-    """
-    *_, pri_dct, _ = calculate_stereo(gra, pri_dct=pri_dct)
-    return pri_dct
-
-
 def calculate_stereo(
     gra,
     par_eval_: Optional[ParityEvaluator] = None,
     can_par_eval_: Optional[ParityEvaluator] = None,
     pri_dct: Optional[Dict[int, int]] = None,
+    cand_dct: Optional[CenterNeighborDict] = None,
 ):
     """Algorithm for calculating stereo parities and priorities
 
@@ -324,6 +288,8 @@ def calculate_stereo(
     :type can_par_eval_: Optional[ParityEvaluator]
     :param pri_dct: Optional initial priorities, to be refined.
     :type pri_dct: Optional[Dict[int, int]]
+    :param cand_dct: Optional pre-calculated stereocenter candidates
+    :type cand_dct: Optional[CenterNeighborDict]
     :returns: A gaph with stereo assigned from `par_eval_`, a graph with stereo assigned
         from `can_par_eval_`, a canonical priority mapping, and a flag indicating
         whether a TS graph has a canonical direction (None for non-TS graphs)
@@ -331,11 +297,11 @@ def calculate_stereo(
     """
     if is_ts_graph(gra):
         gra, can_gra, pri_dct, is_can_dir = _calculate_ts_stereo(
-            gra, par_eval_, can_par_eval_, pri_dct=pri_dct
+            gra, par_eval_, can_par_eval_, pri_dct=pri_dct, cand_dct=cand_dct
         )
     else:
         gra, can_gra, pri_dct = _calculate_stereo_core(
-            gra, par_eval_, can_par_eval_, pri_dct=pri_dct
+            gra, par_eval_, can_par_eval_, pri_dct=pri_dct, cand_dct=cand_dct
         )
         is_can_dir = None
 
@@ -347,6 +313,7 @@ def _calculate_ts_stereo(
     par_eval_: Optional[ParityEvaluator] = None,
     can_par_eval_: Optional[ParityEvaluator] = None,
     pri_dct: Optional[Dict[int, int]] = None,
+    cand_dct: Optional[CenterNeighborDict] = None,
 ):
     """Algorithm for calculating stereo parities and priorities for a TS graph
 
@@ -359,6 +326,8 @@ def _calculate_ts_stereo(
     :type can_par_eval_: Optional[ParityEvaluator]
     :param pri_dct: Optional initial priorities, to be refined.
     :type pri_dct: Optional[Dict[int, int]]
+    :param cand_dct: Optional pre-calculated stereocenter candidates
+    :type cand_dct: Optional[CenterNeighborDict]
     :returns: A gaph with stereo assigned from `par_eval_`, a graph with stereo assigned
         from `can_par_eval_`, a canonical priority mapping, and a flag indicating
         whether a TS graph has a canonical direction
@@ -369,13 +338,13 @@ def _calculate_ts_stereo(
 
     # 1. Run the core stereo calculation algorithm in the forward TS direction
     tsg, can_tsg, pri_dct = _calculate_stereo_core(
-        tsg0, par_eval_, can_par_eval_, pri_dct=pri_dct0
+        tsg0, par_eval_, can_par_eval_, pri_dct=pri_dct0, cand_dct=cand_dct
     )
 
     # 2. Rerun the core stereo calculation algorithm in the reverse TS direction
     rtsg = ts_reverse(tsg0)
     rtsg, rcan_tsg, rpri_dct = _calculate_stereo_core(
-        rtsg, par_eval_, can_par_eval_, pri_dct=pri_dct0, is_rev_ts=True
+        rtsg, par_eval_, can_par_eval_, pri_dct=pri_dct0, cand_dct=cand_dct, is_rev=True
     )
 
     # 3. Determine which direction is canonical
@@ -393,7 +362,8 @@ def _calculate_stereo_core(
     par_eval_: Optional[ParityEvaluator] = None,
     can_par_eval_: Optional[ParityEvaluator] = None,
     pri_dct: Optional[Dict[int, int]] = None,
-    is_rev_ts: bool = False,
+    cand_dct: Optional[CenterNeighborDict] = None,
+    is_rev: bool = False,
 ):
     """Core algorithm for calculating stereo parities and priorities
 
@@ -406,9 +376,11 @@ def _calculate_stereo_core(
     :type can_par_eval_: Optional[ParityEvaluator]
     :param pri_dct: Optional initial priorities, to be refined.
     :type pri_dct: Optional[Dict[int, int]]
-    :param is_rev_ts: A flag passed to the parity evaluators, indicating that the graph
+    :param cand_dct: Optional pre-calculated stereocenter candidates
+    :type cand_dct: Optional[CenterNeighborDict]
+    :param is_rev_: A flag passed to the parity evaluators, indicating that the graph
         is a reversed TS; defaults to False
-    :type is_rev_ts: bool, optional
+    :type is_rev: bool, optional
     :returns: A gaph with stereo assigned from `par_eval_`, a graph with stereo assigned
         from `can_par_eval_`, and a canonical priority mapping
     :rtype: automol graph data structure, -//-, Dict[int, int]
@@ -416,8 +388,7 @@ def _calculate_stereo_core(
     gra0 = gra
     par_eval_ = parity_evaluator_read_from_graph if par_eval_ is None else par_eval_
     can_par_eval_ = par_eval_ if can_par_eval_ is None else can_par_eval_
-
-    cand_dct = stereocenter_candidates(gra)
+    cand_dct = stereocenter_candidates(gra) if cand_dct is None else cand_dct
 
     # Graph 1 will be for the priority calculation, graph 2 for the parity
     # assignments that will be returned.
@@ -438,12 +409,12 @@ def _calculate_stereo_core(
             break
 
         # d. Assign parities to the canonical graph using the canonical parity evaluator
-        can_par_dct = can_par_eval_(gra0, keys, pri_dct, cand_dct, is_rev_ts=is_rev_ts)
+        can_par_dct = can_par_eval_(gra0, keys, pri_dct, cand_dct, is_rev_ts=is_rev)
         can_gra = set_stereo_parities(can_gra, can_par_dct)
 
         # e. Assign parities to the auxiliary graph using the auxiliary parity evaluator
         if par_eval_ != can_par_eval_:
-            par_dct = par_eval_(gra0, keys, pri_dct, cand_dct, is_rev_ts=is_rev_ts)
+            par_dct = par_eval_(gra0, keys, pri_dct, cand_dct, is_rev_ts=is_rev)
             gra = set_stereo_parities(gra, par_dct)
         else:
             gra = can_gra
@@ -463,40 +434,42 @@ def refine_priorities(gra, pri_dct: Optional[Dict[int, int]] = None):
         sort value.
     """
     gra = without_dummy_atoms(gra)
-    cgras = connected_components(gra)
-    cpri_dcts = [
+    gras = connected_components(gra)
+    pri_dcts = [
         None if pri_dct is None else dict_.by_key(pri_dct, ks, fill=False)
-        for ks in map(atom_keys, cgras)
+        for ks in map(atom_keys, gras)
     ]
     pri_dct = {}
-    for cgra, cpri_dct in zip(cgras, cpri_dcts):
-        cpri_dct = _refine_priorities(cgra, pri_dct=cpri_dct)
-        pri_dct.update(cpri_dct)
+    for gra_, pri_dct_ in zip(gras, pri_dcts):
+        pri_dct_ = _refine_priorities(gra_, pri_dct=pri_dct_)
+        pri_dct.update(pri_dct_)
 
     return pri_dct
 
 
-def break_priority_ties(gra, pri_dct: Dict[int, int]):
+def break_priority_ties(gra, pri_dct: Dict[int, int], neg_hkeys: bool = False):
     """Break ties within priority classes.
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param pri_dct: A dictionary mapping atom keys to priorities
     :type pri_dct: dict
+    :param neg_hkeys: Negate hydrogen keys? defaults to False
+    :type neg_hkeys: bool, optional
     :param srt_eval_: An evaluator for sort values, based on current class
         indices. Curried such that srt_val_(pri_dct)(key) returns the sort
         value.
     """
     gra = without_dummy_atoms(gra)
-    cgras = connected_components(gra)
-    cpri_dcts = [
+    gras = connected_components(gra)
+    pri_dcts = [
         None if pri_dct is None else dict_.by_key(pri_dct, ks, fill=False)
-        for ks in map(atom_keys, cgras)
+        for ks in map(atom_keys, gras)
     ]
     pri_dct = {}
-    for cgra, cpri_dct in zip(cgras, cpri_dcts):
-        cpri_dct = _break_priority_ties(cgra, pri_dct=cpri_dct)
-        pri_dct.update(cpri_dct)
+    for gra_, pri_dct_ in zip(gras, pri_dcts):
+        pri_dct_ = _break_priority_ties(gra_, pri_dct=pri_dct_, neg_hkeys=neg_hkeys)
+        pri_dct.update(pri_dct_)
 
     return pri_dct
 
@@ -590,7 +563,7 @@ def _refine_priorities(
     return pri_dct
 
 
-def _break_priority_ties(gra, pri_dct: Dict[int, int]):
+def _break_priority_ties(gra, pri_dct: Dict[int, int], neg_hkeys: bool = False):
     """Break ties within priority classes.
 
     (Only for connected graphs)
@@ -599,6 +572,8 @@ def _break_priority_ties(gra, pri_dct: Dict[int, int]):
     :type gra: automol graph data structure
     :param pri_dct: A dictionary mapping atom keys to priorities
     :type pri_dct: dict
+    :param neg_hkeys: Negate hydrogen keys? defaults to False
+    :type neg_hkeys: bool, optional
     :param srt_eval_: An evaluator for sort values, based on current class
         indices. Curried such that srt_val_(pri_dct)(key) returns the sort
         value.
@@ -630,8 +605,9 @@ def _break_priority_ties(gra, pri_dct: Dict[int, int]):
         new_clas = sorted(new_cla_dct.items(), reverse=True)
 
     # Now that the algorithm is complete, restore minus signs to hydrogen priorities
-    hkeys = atom_keys(gra, symb="H")
-    pri_dct = {k: -abs(p) if k in hkeys else p for k, p in pri_dct.items()}
+    if neg_hkeys:
+        hkeys = atom_keys(gra, symb="H")
+        pri_dct = {k: -abs(p) if k in hkeys else p for k, p in pri_dct.items()}
 
     return pri_dct
 

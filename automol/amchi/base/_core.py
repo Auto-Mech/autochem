@@ -12,7 +12,6 @@ from collections import abc
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
-
 from automol import form, util
 from automol.util import dict_
 
@@ -1141,15 +1140,45 @@ def join(chis, sort=True):
     :returns: the joined ChI string
     :rtype: str
     """
+    if not sort:
+        return _join(chis)
+
+    chis = list(itertools.chain(*map(split, chis)))
+    chi, _ = sorted_join(chis)
+    return chi
+
+
+def sorted_join(chis):
+    """Sort and join ChI strings, returning the sort order
+
+    :param chis: sequence of ChI strings
+    :type chis: tuple[str]
+    """
+    assert not any(
+        len(split(c)) > 1 for c in chis
+    ), f"List contains multi-component ChIs: {chis}"
+
+    srt = argsort(chis)
+    chi = _join([chis[i] for i in srt])
+    return chi, srt
+
+
+def _join(chis):
+    """Join separate ChI strings into one multi-component ChI string.
+
+    (Unsorted)
+
+    :param chis: sequence of ChI strings
+    :type chis: tuple[str]
+    :param sort: sort the ChI strings in the standard sort order?
+    :type sort: bool
+    :returns: the joined ChI string
+    :rtype: str
+    """
 
     pfxs = list(map(prefix, chis))
     assert len(set(pfxs)) == 1, f"ChIs in join must share same prefix: {chis}"
     pfx, *_ = pfxs
-
-    # first, make sure they are completely split up
-    chis = list(itertools.chain(*map(split, chis)))
-    if sort:
-        chis = sorted_(chis)
 
     fml_strs = list(map(formula_layer, chis))
     fml_str = join_layer_strings(fml_strs, count_sep="", sep=".")

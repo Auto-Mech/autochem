@@ -249,9 +249,6 @@ from automol.graph.base._07geom import geometry_rotate_bond
 from automol.graph.base._07geom import geometry_dihedrals_near_value
 # canonicalization functions:
 # # canonical key functions
-from automol.graph.base._08canon import canonical_enantiomer
-from automol.graph.base._08canon import canonical_enantiomer_with_keys
-from automol.graph.base._08canon import canonical_ts_direction
 from automol.graph.base._08canon import canonical
 from automol.graph.base._08canon import canonical_keys
 # # canonical stereo functions
@@ -271,7 +268,7 @@ from automol.graph.base._05stereo import parity_evaluator_read_from_graph
 from automol.graph.base._05stereo import parity_evaluator_flip_from_graph
 # AMChI functions:
 from automol.graph.base._09amchi import amchi
-from automol.graph.base._09amchi import amchi_with_indices
+from automol.graph.base._09amchi import amchi_with_numbers
 from automol.graph.base._09amchi import inchi_is_bad
 # SMILES functions:
 from automol.graph.base._10smiles import smiles
@@ -575,9 +572,6 @@ __all__ = [
     'geometry_dihedrals_near_value',
     # canonicalization functions:
     # # canonical key functions
-    'canonical_enantiomer',
-    'canonical_enantiomer_with_keys',
-    'canonical_ts_direction',
     'canonical',
     'canonical_keys',
     # # canonical stereo functions
@@ -597,7 +591,7 @@ __all__ = [
     'parity_evaluator_flip_from_graph',
     # AMChI functions:
     'amchi',
-    'amchi_with_indices',
+    'amchi_with_numbers',
     'inchi_is_bad',
     # SMILES functions:
     'smiles',

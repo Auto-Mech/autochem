@@ -634,8 +634,8 @@ def test__amchi():
             perm_fchi = graph.amchi(perm_ftsg)
             perm_rchi = graph.amchi(perm_rtsg)
 
-            assert perm_fchi == fchi
-            assert perm_rchi == rchi
+            assert perm_fchi == fchi, f"\n{perm_fchi} !=\n{fchi}"
+            assert perm_rchi == rchi, f"\n{perm_rchi} !=\n{rchi}"
 
     _test("CH4CLFNO", CH4CLFNO_TSG)
     _test("C4H11O2", C4H11O2_TSG)
@@ -713,10 +713,10 @@ def test__rotational_bond_keys():
 
 
 if __name__ == '__main__':
-    test__set_stereo_from_geometry()
+    # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
     # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    # test__amchi()
+    test__amchi()

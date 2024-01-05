@@ -3,6 +3,7 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
+from typing import Dict, List
 
 from automol import form, util
 from automol.amchi import base as amchi_base
@@ -15,62 +16,52 @@ from automol.graph.base._00core import (
     bond_stereo_keys,
     bond_stereo_parities,
     formula,
-    implicit,
     terminal_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
-    without_dummy_atoms,
-    without_stereo,
 )
 from automol.graph.base._02algo import connected_components, rings_atom_keys
 from automol.graph.base._03kekule import (
     kekules_bond_orders_collated,
     vinyl_radical_atom_keys,
 )
-from automol.graph.base._08canon import (
-    canonical_enantiomer_with_keys,
-    canonical_ts_direction,
-)
+from automol.graph.base._08canon import canonical_amchi_graph_with_numbers
 
 
 # AMChI functions
-def amchi(gra, stereo=True):
-    """AMChI string from graph
+def amchi(gra, stereo: bool = True) -> str:
+    """Generate an AMChI string with AMChI canonical numbers
 
-    :param gra: molecular graph
+    :param gra: A graph
     :type gra: automol graph data structure
-    :param stereo: Include stereo in the AMChI string, if present?
-    :type stereo: bool
-    :returns: the AMChI string
+    :param stereo: Include stereo, if present?, defaults to True
+    :type stereo: bool, optional
+    :returns: The AMChI string, along with the canonical numbers for each connected
     :rtype: str
     """
-    chi, _ = amchi_with_indices(gra, stereo=stereo)
+    chi, _ = amchi_with_numbers(gra, stereo=stereo)
     return chi
 
 
-def amchi_with_indices(gra, stereo=True):
-    """AMChI string and AMChI canonical indices from graph
+def amchi_with_numbers(gra, stereo: bool = True) -> (str, List[Dict[int, int]]):
+    """Generate an AMChI string with canonical atom numbers
 
-    :param gra: molecular graph
+    :param gra: A graph
     :type gra: automol graph data structure
-    :param stereo: Include stereo in the AMChI string, if present?
-    :type stereo: bool
-    :returns: the AMChI string and the AMChI canonical indices for each
-        connected component (components in multi-component AMChI ordering)
-    :rtype: (str, tuple[dct[int: int]])
+    :param stereo: Include stereo, if present?, defaults to True
+    :type stereo: bool, optional
+    :returns: The AMChI string, along with the canonical numbers for each connected
+        component, as a list of dictionaries
+    :rtype: (str, List[Dict[int, int]])
     """
     gras = connected_components(gra)
-    chis, chi_idx_dcts = zip(
-        *(connected_amchi_with_indices(g, stereo=stereo) for g in gras)
-    )
-    srt_idxs = amchi_base.argsort(chis)
-    chis = tuple(chis[i] for i in srt_idxs)
-    chi_idx_dcts = tuple(chi_idx_dcts[i] for i in srt_idxs)
-    chi = amchi_base.join(chis, sort=False)
-    return chi, chi_idx_dcts
+    chis, num_dcts = zip(*(_amchi_with_numbers(g, stereo=stereo) for g in gras))
+    chi, srt = amchi_base.sorted_join(chis)
+    num_dcts = tuple(num_dcts[i] for i in srt)
+    return chi, num_dcts
 
 
-def connected_amchi_with_indices(gra, stereo=True):
+def _amchi_with_numbers(gra, stereo=True):
     """single-component AMChI string from a connected graph
 
     :param gra: molecular graph
@@ -80,19 +71,10 @@ def connected_amchi_with_indices(gra, stereo=True):
     :returns: the AMChI string
     :rtype: str
     """
-    gra = without_dummy_atoms(gra)
-
-    if not stereo:
-        gra = without_stereo(gra)
-
-    # Convert to implicit graph
-    gra = implicit(gra)
-
-    # 1. Identify the canonical direction for TS graphs (`None` for non-TS graphs)
-    gra, is_can_dir = canonical_ts_direction(gra)
-
-    # 2. Canonicalize and determine canonical enantiomer
-    gra, chi_idx_dct, is_can_enant = canonical_enantiomer_with_keys(gra, relabel=True)
+    # 1. Put the graph in canonical AMChI format
+    gra, num_dct, is_can_dir, is_can_enant = canonical_amchi_graph_with_numbers(
+        gra, stereo=stereo
+    )
 
     # 3. Generate the appropriate layers
     #   a. Formula string
@@ -120,7 +102,7 @@ def connected_amchi_with_indices(gra, stereo=True):
         ts_lyr_dct=ts_lyr_dct,
     )
 
-    return chi, chi_idx_dct
+    return chi, num_dct
 
 
 # # inchi checker

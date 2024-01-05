@@ -1497,7 +1497,7 @@ def test__amchi():
     assert chi == 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
 
 
-def test__amchi_with_indices():
+def test__amchi_with_numbers():
     """ test graph.amchi
     """
     # bond stereo
@@ -1506,9 +1506,9 @@ def test__amchi_with_indices():
             {frozenset({1, 4}): (1, True), frozenset({1, 2}): (1, None),
              frozenset({0, 3}): (1, False), frozenset({0, 2}): (1, None),
              frozenset({2, 5}): (1, False)})
-    chi1, chi1_idx_dcts = graph.amchi_with_indices(gra1)
+    chi1, num_dcts1 = graph.amchi_with_numbers(gra1)
     print(chi1)
-    print(chi1_idx_dcts)
+    print(num_dcts1)
 
     assert chi1 == 'AMChI=1/C3H5N3/c4-1-3(6)2-5/h1-2,4-6H/b4-1-,5-2+,6-3-'
 
@@ -1520,20 +1520,20 @@ def test__amchi_with_indices():
              frozenset({0, 5}): (1, None), frozenset({2, 4}): (1, None),
              frozenset({1, 3}): (1, None), frozenset({1, 6}): (1, None),
              frozenset({2, 7}): (1, None)})
-    chi2, chi2_idx_dcts = graph.amchi_with_indices(gra2)
+    chi2, num_dcts2 = graph.amchi_with_numbers(gra2)
     print(chi2)
-    print(chi2_idx_dcts)
+    print(num_dcts2)
 
     assert chi2 == 'AMChI=1/C3H3Cl2F3/c4-2(7)1(6)3(5)8/h1-3H/t2-,3-/m1/s1'
 
     gra = graph.union_from_sequence([gra1, gra2], shift_keys=True)
-    chi, chi_idx_dcts = graph.amchi_with_indices(gra)
+    chi, num_dcts = graph.amchi_with_numbers(gra)
     print(chi)
-    print(chi_idx_dcts)
+    print(num_dcts)
 
     assert chi == ('AMChI=1/C3H3Cl2F3.C3H5N3/c4-2(7)1(6)3(5)8;4-1-3(6)2-5/'
                    'h1-3H;1-2,4-6H/b;4-1-,5-2+,6-3-/t2-,3-;/m1./s1')
-    assert chi_idx_dcts == (
+    assert num_dcts == (
         {6: 0, 7: 1, 8: 2, 9: 3, 10: 4, 11: 5, 12: 6, 13: 7},
         {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
 

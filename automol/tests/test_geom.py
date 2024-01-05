@@ -679,7 +679,7 @@ def __align():
 
 def test__inchi_with_sort():
     """test automol.geom.inchi_with_sort"""
-    ich, nums_lst = automol.geom.inchi_with_sort(C8H13O_H2O_GEO)
+    ich, nums_lst = automol.geom.inchi_with_numbers(C8H13O_H2O_GEO)
     print(ich)
     print(nums_lst)
 
@@ -692,7 +692,7 @@ def test__inchi_with_sort():
 
 def test__amchi_with_sort():
     """test automol.geom.amchi_with_sort"""
-    ach, nums_lst = automol.geom.amchi_with_sort(C8H13O_H2O_GEO)
+    ach, nums_lst = automol.geom.amchi_with_numbers(C8H13O_H2O_GEO)
     print(ach)
     print(nums_lst)
 

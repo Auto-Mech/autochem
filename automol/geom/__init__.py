@@ -106,9 +106,9 @@ from automol.geom._conv import zmatrix
 from automol.geom._conv import zmatrix_with_conversion_info
 from automol.geom._conv import update_zmatrix
 from automol.geom._conv import amchi
-from automol.geom._conv import amchi_with_sort
+from automol.geom._conv import amchi_with_numbers
 from automol.geom._conv import inchi
-from automol.geom._conv import inchi_with_sort
+from automol.geom._conv import inchi_with_numbers
 from automol.geom._conv import chi
 from automol.geom._conv import chi_with_sort
 from automol.geom._conv import smiles
@@ -236,9 +236,9 @@ __all__ = [
     'zmatrix_with_conversion_info',
     'update_zmatrix',
     'amchi',
-    'amchi_with_sort',
+    'amchi_with_numbers',
     'inchi',
-    'inchi_with_sort',
+    'inchi_with_numbers',
     'chi',
     'chi_with_sort',
     'smiles',

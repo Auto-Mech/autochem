@@ -254,12 +254,12 @@ def amchi(geo, stereo=True):
     :type stereo: bool
     :rtype: str
     """
-    ach, _ = amchi_with_sort(geo, stereo=stereo)
+    ach, _ = amchi_with_numbers(geo, stereo=stereo)
 
     return ach
 
 
-def amchi_with_sort(geo, stereo=True, gra=None):
+def amchi_with_numbers(geo, stereo=True, gra=None):
     """Determine the AMChI string and sort order for a molecular geometry.
 
     :param geo: molecular geometry
@@ -273,8 +273,8 @@ def amchi_with_sort(geo, stereo=True, gra=None):
     :rtype: (str, tuple[tuple[int]])
     """
     gra = graph(geo, stereo=stereo) if gra is None else gra
-    ach, ach_idx_dcts = graph_base.amchi_with_indices(gra, stereo=stereo)
-    nums_lst = tuple(map(dict_.keys_sorted_by_value, ach_idx_dcts))
+    ach, num_dcts = graph_base.amchi_with_numbers(gra, stereo=stereo)
+    nums_lst = tuple(map(dict_.keys_sorted_by_value, num_dcts))
     return ach, nums_lst
 
 
@@ -287,12 +287,12 @@ def inchi(geo, stereo=True):
     :type stereo: bool
     :rtype: str
     """
-    ich, _ = inchi_with_sort(geo, stereo=stereo)
+    ich, _ = inchi_with_numbers(geo, stereo=stereo)
 
     return ich
 
 
-def inchi_with_sort(geo, stereo=True, gra=None):
+def inchi_with_numbers(geo, stereo=True, gra=None):
     """Determine the InChI string and sort order for a molecular geometry.
 
     :param geo: molecular geometry
@@ -492,9 +492,9 @@ def chi_with_sort(geo, stereo=True, gra=None):
     gra = graph(geo, stereo=stereo) if gra is None else gra
 
     # new implementation
-    chi_, nums_lst = inchi_with_sort(geo, stereo=stereo, gra=gra)
+    chi_, nums_lst = inchi_with_numbers(geo, stereo=stereo, gra=gra)
     if graph_base.inchi_is_bad(gra, chi_):
-        chi_, nums_lst = amchi_with_sort(geo, stereo=stereo, gra=gra)
+        chi_, nums_lst = amchi_with_numbers(geo, stereo=stereo, gra=gra)
 
     return chi_, nums_lst
 
