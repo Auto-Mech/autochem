@@ -28,9 +28,7 @@ from automol.graph.base._02algo import (
 from automol.graph.base._03kekule import (
     ts_linear_reacting_atom_keys as linear_reacting_atom_keys,
 )
-from automol.graph.base._04class import (
-    atom_transfers,
-)
+from automol.graph.base._04class import atom_transfers
 from automol.graph.base._06heur import (
     heuristic_bond_distance,
     ts_reacting_atom_plane_keys as reacting_atom_plane_keys,
@@ -39,6 +37,7 @@ from automol.graph.base._06heur import (
 from automol.graph.base._11stereo import (
     expand_reaction_stereo,
     expand_stereo,
+    ts_fleeting_stereocenter_keys as fleeting_stereocenter_keys,
     ts_products_graph as products_graph,
     ts_reactants_graph as reactants_graph,
     ts_reagents_graph as reagents_graph,
@@ -71,6 +70,7 @@ __all__ = [
     "reacting_atom_plane_keys",
     "expand_stereo",
     "expand_reaction_stereo",
+    "fleeting_stereocenter_keys",
     "reactants_graph",
     "products_graph",
     "reagents_graph",

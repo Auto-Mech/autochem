@@ -655,7 +655,7 @@ def has_noninchi_stereo(gra):
     :rtype: bool
     """
     return (
-        has_nonkekule_bond_stereo(gra)
+        has_resonance_bond_stereo(gra)
         or has_vinyl_bond_stereo(gra)
         or has_atom_stereo(gra, symb="N")
     )

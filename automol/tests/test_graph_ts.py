@@ -1,7 +1,7 @@
 """ test graph.ts
 """
-import numpy
 import automol
+import numpy
 from automol import graph
 
 # Sn2 Atom Stereo
@@ -571,6 +571,29 @@ def test__ts__expand_reaction_stereo():
     _test("C8H14", C8H14_TSG, [1, 1, 1, 1])
 
 
+def test__ts__fleeting_stereocenter_keys():
+    """ test graph.ts.fleeting_stereocenter_keys
+    """
+    def _test(formula, tsg, ref_keys, ref_ns_keys):
+        print(f"{formula}: testing ts.fleeting_stereocenter_keys")
+        keys = graph.ts.fleeting_stereocenter_keys(tsg)
+        assert keys == ref_keys, f"{keys} != {ref_keys}"
+
+        ns_keys = graph.ts.fleeting_stereocenter_keys(tsg, strict=False)
+        assert ns_keys == ref_ns_keys, f"{ns_keys} != {ref_ns_keys}"
+
+    _test("CH4CLFNO", CH4CLFNO_TSG, frozenset(), frozenset())
+    _test("C4H11O2", C4H11O2_TSG, frozenset({2}), frozenset({2}))
+    _test("C2H3O4", C2H3O4_TSG, frozenset(), frozenset())
+    _test("C4H9O3", C4H9O3_TSG, frozenset({2}), frozenset({2}))
+    _test("C2H3F2O", C2H3F2O_TSG, frozenset(), frozenset())
+    _test("C4H5F3O2", C4H5F3O2_TSG, frozenset(), frozenset())
+    _test("C4H9O2", C4H9O2_TSG, frozenset(), frozenset({2}))
+    _test("C2H4O2", C2H4O2_TSG, frozenset(), frozenset())
+    _test("C4H4F2", C4H4F2_TSG, frozenset(), frozenset())
+    _test("C8H14", C8H14_TSG, frozenset(), frozenset())
+
+
 def test__ts__reagents_graph():
     """ test graph.ts.reactants_graph and graph.ts.products_graph
     """
@@ -719,4 +742,5 @@ if __name__ == '__main__':
     # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    test__amchi()
+    # test__amchi()
+    test__ts__fleeting_stereocenter_keys()

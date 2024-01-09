@@ -15,10 +15,11 @@ from automol.graph.base._00core import (
     frozen,
     has_atom_stereo,
     has_stereo,
-    is_ts_graph,
     invert_atom_stereo_parities,
+    is_ts_graph,
     relabel,
     set_stereo_parities,
+    stereo_keys,
     stereo_parities,
     ts_reagents_graph_without_stereo,
     ts_reverse,
@@ -308,6 +309,44 @@ def ts_reagents_graph(tsg, prod=False, stereo=True, dummy=True):
         par_eval_ = parity_evaluator_reactants_from_local_ts_graph_(loc_tsg)
         gra, *_ = calculate_stereo(gra, par_eval_=par_eval_)
     return gra
+
+
+def ts_fleeting_stereocenter_keys(tsg, strict: bool = True):
+    """Find keys to fleeting atom stereocenters in a TS graph
+
+    A fleeting stereocenter is a stereocenter which is not present in the reactants or
+    products
+
+    A non-strict fleeting stereocenter is implicitly present in the reactants or
+    products, whose configuration determines one of the reacant or product stereocenters
+    (Generally, a TS atom that determines a reactant or product bond)
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param strict: Only include strict fleeting stereocenters?
+    :type strict: bool, optional
+    :returns: The keys of fleeting atom stereocenters
+    :rtype: List[int]
+    """
+    akeys = atom_stereo_keys(tsg)
+    bkeys = bond_stereo_keys(tsg)
+    r_akeys = stereo_keys(ts_reactants_graph(tsg))
+    p_akeys = stereo_keys(ts_products_graph(tsg))
+    r_bkeys = bond_stereo_keys(ts_reactants_graph(tsg))
+    p_bkeys = bond_stereo_keys(ts_products_graph(tsg))
+
+    keys = set()
+    keys.update({k for k in akeys if k not in r_akeys and k not in p_akeys})
+    keys.update({k for k in bkeys if k not in r_bkeys and k not in p_bkeys})
+
+    if strict:
+        # Check for reactant/product bond keys which are determined by TS atom keys and
+        # remove the atom keys
+        for bkey in r_bkeys | p_bkeys:
+            if bkey <= akeys:
+                keys -= bkey
+
+    return frozenset(keys)
 
 
 # # stereo correction

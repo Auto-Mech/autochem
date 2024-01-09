@@ -594,7 +594,7 @@ def branch_dict(gra, atm_key, keep_root=False, stereo=False):
         subgraph for its branch
     :rtype: dict(int: automol graph data structure)
     """
-    island_gra = remove_bonds(gra, atom_bond_keys(gra, atm_key))
+    island_gra = remove_bonds(gra, atom_bond_keys(gra, atm_key), stereo=stereo)
     comps = connected_components(island_gra, stereo=stereo)
     root_atm = subgraph_(gra, {atm_key}, stereo=stereo)
 
