@@ -37,6 +37,7 @@ from automol.graph.base._06heur import (
 from automol.graph.base._11stereo import (
     expand_reaction_stereo,
     expand_stereo,
+    has_fleeting_atom_or_bond_stereo,
     ts_fleeting_stereocenter_keys as fleeting_stereocenter_keys,
     ts_products_graph as products_graph,
     ts_reactants_graph as reactants_graph,
@@ -70,6 +71,7 @@ __all__ = [
     "reacting_atom_plane_keys",
     "expand_stereo",
     "expand_reaction_stereo",
+    "has_fleeting_atom_or_bond_stereo",
     "fleeting_stereocenter_keys",
     "reactants_graph",
     "products_graph",

@@ -46,6 +46,10 @@ from automol.amchi.base._core import is_canonical_enantiomer_reaction
 from automol.amchi.base._core import is_canonical_reaction_direction
 from automol.amchi.base._core import is_enantiomer_list
 from automol.amchi.base._core import is_enantiomer_reaction
+# # # TS layers
+from automol.amchi.base._core import breaking_bond_keys
+from automol.amchi.base._core import forming_bond_keys
+from automol.amchi.base._core import is_reversed_ts
 # # # isotope layers
 from automol.amchi.base._core import bond_isotope_stereo_parities
 from automol.amchi.base._core import atom_isotope_stereo_parities
@@ -118,6 +122,10 @@ __all__ = [
     'is_canonical_reaction_direction',
     'is_enantiomer_list',
     'is_enantiomer_reaction',
+    # # # TS layers
+    'breaking_bond_keys',
+    'forming_bond_keys',
+    'is_reversed_ts',
     # # # isotope layers
     'bond_isotope_stereo_parities',
     'atom_isotope_stereo_parities',

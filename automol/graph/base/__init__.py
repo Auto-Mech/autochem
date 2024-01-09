@@ -286,6 +286,7 @@ from automol.graph.base._10smiles import smiles
 from automol.graph.base._11stereo import expand_stereo
 from automol.graph.base._11stereo import expand_reaction_stereo
 # # stereo correction
+from automol.graph.base._11stereo import has_fleeting_atom_or_bond_stereo
 from automol.graph.base._11stereo import stereo_corrected_geometry
 # functional groups code:
 # # core functions
@@ -590,6 +591,7 @@ __all__ = [
     'expand_stereo',
     'expand_reaction_stereo',
     # # stereo correction
+    'has_fleeting_atom_or_bond_stereo',
     'stereo_corrected_geometry',
     # functional groups code:
     # # core functions

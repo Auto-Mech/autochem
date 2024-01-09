@@ -582,6 +582,12 @@ def test__ts__fleeting_stereocenter_keys():
         ns_keys = graph.ts.fleeting_stereocenter_keys(tsg, strict=False)
         assert ns_keys == ref_ns_keys, f"{ns_keys} != {ref_ns_keys}"
 
+        # These examples all only have fleeting atom stereo
+        if keys:
+            assert graph.ts.has_fleeting_atom_or_bond_stereo(tsg) == (True, False)
+        else:
+            assert graph.ts.has_fleeting_atom_or_bond_stereo(tsg) == (False, False)
+
     _test("CH4CLFNO", CH4CLFNO_TSG, frozenset(), frozenset())
     _test("C4H11O2", C4H11O2_TSG, frozenset({2}), frozenset({2}))
     _test("C2H3O4", C2H3O4_TSG, frozenset(), frozenset())
@@ -641,6 +647,10 @@ def test__amchi():
 
         fchi = graph.amchi(ftsg)
         rchi = graph.amchi(rtsg)
+
+        # Check interconversion
+        assert graph.amchi(automol.amchi.graph(fchi)) == fchi
+        assert graph.amchi(automol.amchi.graph(rchi)) == rchi
 
         print("fchi:", fchi)
         print("rchi:", rchi)
@@ -742,5 +752,5 @@ if __name__ == '__main__':
     # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    # test__amchi()
-    test__ts__fleeting_stereocenter_keys()
+    test__amchi()
+    # test__ts__fleeting_stereocenter_keys()

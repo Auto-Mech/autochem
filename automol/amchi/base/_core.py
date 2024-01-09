@@ -775,9 +775,12 @@ def bond_stereo_parities(chi, one_indexed=False):
     :returns: A dictionary mapping bond keys onto parities
     :rtype: dict[frozenset[int]: bool]
     """
-    ste_lyr_dct = stereo_layers(chi)
-    bnd_ste_dct = _bond_stereo_parities(ste_lyr_dct, one_indexed=one_indexed)
-    return bnd_ste_dct
+    lyr_dct = stereo_layers(chi)
+    if "b" not in lyr_dct:
+        return {}
+
+    ste_dct = _bonds(lyr_dct["b"], one_indexed=one_indexed)
+    return ste_dct
 
 
 def atom_stereo_parities(chi, one_indexed=False):
@@ -917,6 +920,63 @@ def is_enantiomer_reaction(rct_chis, prd_chis):
     return is_enantiomer_list(rct_chis) or is_enantiomer_list(prd_chis)
 
 
+# # # TS layers
+def breaking_bond_keys(chi, one_indexed: bool = False):
+    """Get the breaking bond keys of a TS AMChI
+
+    :param chi: ChI string
+    :type chi: str
+    :param one_indexed: Return indices in one-indexing?
+    :type one_indexed: bool
+    :return: A set of bond keys
+    :rtype: frozenset[frozenset[int]]
+    """
+    lyr_dct = ts_layers(chi)
+
+    if "k" not in lyr_dct:
+        return frozenset()
+
+    bkeys = frozenset(_bonds(lyr_dct["k"], one_indexed=one_indexed).keys())
+    return bkeys
+
+
+def forming_bond_keys(chi, one_indexed: bool = False):
+    """Get the forming bond keys of a TS AMChI
+
+    :param chi: ChI string
+    :type chi: str
+    :param one_indexed: Return indices in one-indexing?
+    :type one_indexed: bool
+    :return: A set of bond keys
+    :rtype: frozenset[frozenset[int]]
+    """
+    lyr_dct = ts_layers(chi)
+
+    if "f" not in lyr_dct:
+        return frozenset()
+
+    bkeys = frozenset(_bonds(lyr_dct["f"], one_indexed=one_indexed).keys())
+    return bkeys
+
+
+def is_reversed_ts(chi):
+    """Is this a reversed TS AMChI?
+
+    :param chi: ChI string
+    :type chi: str
+    :return: `True` if it is a reversed TS, `False` if it is a non-reversed TS, `None`
+        if it isn't a TS
+    :rtype: Optional[bool]
+    """
+    lyr_dct = ts_layers(chi)
+
+    if "r" not in lyr_dct:
+        return None
+
+    assert lyr_dct["r"] in "01"
+    return lyr_dct["r"] == "1"
+
+
 # # # isotope layers
 def bond_isotope_stereo_parities(chi, one_indexed=False):
     """Parse the bond stereo parities from the isotope layers.
@@ -928,9 +988,12 @@ def bond_isotope_stereo_parities(chi, one_indexed=False):
     :returns: A dictionary mapping bond keys onto parities
     :rtype: dict[frozenset[int]: bool]
     """
-    iso_lyr_dct = isotope_layers(chi)
-    bnd_ste_dct = _bond_stereo_parities(iso_lyr_dct, one_indexed=one_indexed)
-    return bnd_ste_dct
+    lyr_dct = isotope_layers(chi)
+    if "b" not in lyr_dct:
+        return {}
+
+    ste_dct = _bonds(lyr_dct["b"], one_indexed=one_indexed)
+    return ste_dct
 
 
 def atom_isotope_stereo_parities(chi, one_indexed=False):
@@ -1404,26 +1467,25 @@ def join_layer_strings(lyrs, count_sep="*", sep=";"):
 
 
 # # common multilayer properties
-def _bond_stereo_parities(lyr_dct, one_indexed=False):
+def _bonds(lyr, one_indexed=False):
     """Parse bond stereo parities from a given layer dictionary"""
-    if "b" not in lyr_dct:
-        return {}
-
-    lyr = lyr_dct["b"]
-
     # Set up the parser
     integer = ppc.integer
     dash = pp.Suppress("-")
     bond = pp.Group(integer + dash + integer)
     parity = pp.Or(["+", "-", "?"])
-    term = pp.Group(bond + parity)
+    term = pp.Group(bond + pp.Opt(parity, default=None))
     parser = pp.Opt(pp.delimitedList(term, ","))
 
     # Do the parsing
     shift = 0 if one_indexed else -1
     lst = parser.parseString(lyr).asList()
     bnd_ste_dct = {
-        frozenset({k1 + shift, k2 + shift}): None if p == "?" else (p == "+")
+        frozenset({k1 + shift, k2 + shift}): True
+        if p == "+"
+        else False
+        if p == "-"
+        else None
         for (k1, k2), p in lst
     }
     return bnd_ste_dct

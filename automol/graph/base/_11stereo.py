@@ -2,8 +2,8 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
-
 import itertools
+import numbers
 from typing import Dict, Optional
 
 import numpy
@@ -347,6 +347,22 @@ def ts_fleeting_stereocenter_keys(tsg, strict: bool = True):
                 keys -= bkey
 
     return frozenset(keys)
+
+
+def has_fleeting_atom_or_bond_stereo(tsg, strict: bool = True) -> (bool, bool):
+    """Does this graph have fleeting atom or bond stereo?
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :param strict: Only include strict fleeting stereocenters?
+    :type strict: bool, optional
+    :return: A boolean flag for each type (atom and bond)
+    :rtype: (bool, bool)
+    """
+    keys = ts_fleeting_stereocenter_keys(tsg, strict=strict)
+    akeys = {k for k in keys if isinstance(k, numbers.Number)}
+    bkeys = keys - akeys
+    return bool(akeys), bool(bkeys)
 
 
 # # stereo correction

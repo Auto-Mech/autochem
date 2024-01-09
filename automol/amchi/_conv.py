@@ -1,5 +1,6 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
+import itertools
 import numbers
 
 from automol import error, geom, graph as graph_
@@ -7,10 +8,13 @@ from automol.amchi.base import (
     atom_stereo_parities,
     bond_stereo_parities,
     bonds,
+    breaking_bond_keys,
     equivalent,
+    forming_bond_keys,
     has_stereo,
     hydrogen_valences,
     is_inverted_enantiomer,
+    is_reversed_ts,
     isotope_layers,
     split,
     standard_form,
@@ -18,6 +22,7 @@ from automol.amchi.base import (
     with_inchi_prefix,
 )
 from automol.extern import rdkit_
+from automol.util import dict_
 
 
 # # conversions
@@ -109,6 +114,13 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
 
     is_inv = is_inverted_enantiomer(chi)
 
+    # TS graph
+    brk_bkeys = breaking_bond_keys(chi)
+    frm_bkeys = forming_bond_keys(chi)
+    is_rev = is_reversed_ts(chi)
+
+    all_keys = set(symb_dct.keys()) | set(itertools.chain(*bnd_keys))
+    symb_dct = dict_.by_key(symb_dct, all_keys, fill_val="H")
     gra = graph_.from_data(
         atm_symb_dct=symb_dct,
         bnd_keys=bnd_keys,
@@ -117,11 +129,17 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
         bnd_ste_par_dct=bnd_ste_par_dct,
     )
 
+    if brk_bkeys or frm_bkeys:
+        gra = graph_.ts_graph(gra, frm_bnd_keys=frm_bkeys, brk_bnd_keys=brk_bkeys)
+
     if is_inv is True:
         gra = graph_.invert_atom_stereo_parities(gra)
 
     if has_stereo(chi) and not local_stereo:
         gra = graph_.from_local_stereo(gra)
+
+    if is_rev is True:
+        gra = graph_.ts_reverse(gra)
 
     return gra
 
