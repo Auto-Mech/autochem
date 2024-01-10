@@ -1449,7 +1449,7 @@ def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
     return tet_dct
 
 
-def tetrahedral_atom_keys(gra):
+def tetrahedral_atom_keys(gra, min_ncount: int = 3) -> List[int]:
     """Get keys to stereo candidate atoms, which will be stereogenic if their
     groups are all distinct
 
@@ -1464,10 +1464,13 @@ def tetrahedral_atom_keys(gra):
 
     :param gra: molecular graph
     :type gra: automol graph data structure
+    :param min_ncount: Minimum # neighbors for inclusion, defaults to 3
+        (Difference must be made up by lone pairs)
+    :type min_ncount: int, optional
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    return frozenset(tetrahedral_atoms(gra))
+    return frozenset(tetrahedral_atoms(gra, min_ncount=min_ncount))
 
 
 def vinyl_radical_candidates(gra, min_ncount: int = 1) -> Dict[AtomKey, BondKey]:

@@ -692,56 +692,41 @@ def substitutions(rct_gras, prd_gras):
 
         # Loop over both orders of reactants: A+B and B+A
         for rgra1, rgra2 in itertools.permutations(rct_gras):
-            bnd_keys = graph.bond_keys(rgra1)
-            atom_symb_dct = graph.atom_symbols(rgra1)
+            tet_dct = graph.tetrahedral_atoms(rgra1, min_ncount=0)
             rad_keys = graph.unsaturated_atom_keys(rgra2)
 
-            # Break all possible bonds in total reactant
-            for bnd_key, rad_key in itertools.product(bnd_keys, rad_keys):
-                gra = graph.remove_bonds(rct_gra, [bnd_key])
-
-                # Form all possible bonds between rad site and non-H atoms
-                frm_keys = ()
-                for key in bnd_key:
-                    frm_symb = atom_symb_dct[key]
-                    if frm_symb != "H":
-                        frm_keys += (key,)
-
-                for frm_key in frm_keys:
-                    gra_ = graph.add_bonds(gra, [(frm_key, rad_key)])
+            for (key, nkeys), rad_key in itertools.product(tet_dct.items(), rad_keys):
+                # Form a bond to the radical atom
+                f_frm_bkey = (key, rad_key)
+                gra = graph.add_bonds(rct_gra, [f_frm_bkey])
+                for nkey in nkeys:
+                    # Remove a bond to the neighbor atom
+                    f_brk_bkey = (key, nkey)
+                    gra_ = graph.remove_bonds(gra, [f_brk_bkey])
 
                     inv_dct = graph.isomorphism(gra_, prd_gra, stereo=False)
                     if inv_dct:
-                        (brk_key2,) = bnd_key - {frm_key}
-                        f_frm_bnd_key = (frm_key, rad_key)
-                        f_brk_bnd_key = (frm_key, brk_key2)
-                        b_frm_bnd_key = (inv_dct[frm_key], inv_dct[brk_key2])
-                        b_brk_bnd_key = (inv_dct[frm_key], inv_dct[rad_key])
+                        b_brk_bkey = tuple(map(inv_dct.get, f_frm_bkey))
+                        b_frm_bkey = tuple(map(inv_dct.get, f_brk_bkey))
 
                         forw_tsg = ts.graph(
                             rct_gra,
-                            frm_bnd_keys=[f_frm_bnd_key],
-                            brk_bnd_keys=[f_brk_bnd_key],
+                            frm_bnd_keys=[f_frm_bkey],
+                            brk_bnd_keys=[f_brk_bkey],
                         )
                         back_tsg = ts.graph(
                             prd_gra,
-                            frm_bnd_keys=[b_frm_bnd_key],
-                            brk_bnd_keys=[b_brk_bnd_key],
+                            frm_bnd_keys=[b_frm_bkey],
+                            brk_bnd_keys=[b_brk_bkey],
                         )
-
-                        rcts_atm_keys = [graph.atom_keys(rgra1), graph.atom_keys(rgra2)]
-
-                        prds_atm_keys = list(map(graph.atom_keys, prd_gras))
-                        if inv_dct[rad_key] not in prds_atm_keys[0]:
-                            prds_atm_keys = list(reversed(prds_atm_keys))
 
                         # Create the reaction object
                         rxn = from_forward_reverse(
                             cla=ReactionClass.SUBSTITUTION,
                             ftsg=forw_tsg,
                             rtsg=back_tsg,
-                            rcts_keys=rcts_atm_keys,
-                            prds_keys=prds_atm_keys,
+                            rcts_keys=list(map(graph.atom_keys, rct_gras)),
+                            prds_keys=list(map(graph.atom_keys, prd_gras)),
                         )
                         rxns.append(rxn)
 
