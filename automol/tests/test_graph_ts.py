@@ -385,7 +385,7 @@ C4H4F2_GEO = (
 
 # Constrained TS Bond Stereo
 # [CH2]/C=C\[C@@H](CC)OO => CC[C@H]1OCC=C1 + [OH]
-#        *                             *
+#        *
 # [* marks a constrained bond stereocenter -- must be cis]
 C6H11O2_TSG = (
     {0: ('C', 0, None),
@@ -446,6 +446,70 @@ C6H11O2_TSG = (
 #     ('H', (-4.938737, 3.791284, 2.051566)),
 #     ('H', (-2.076922, 4.046719, 0.258913)),
 #     ('H', (-0.398204, -5.654819, 0.896648)))
+
+# Constrained TS Vinyl Bond Stereo + Atom Stereo
+# C=C[C@@H](CCC)O[O] => [H]/[C]=C/[C@@H](CCC)OO
+#                              *
+# [* marks a constrained bond stereocenter -- must be cis]
+C6H11O2b_TSG = (
+    {0: ('C', 0, None),
+     1: ('C', 0, None),
+     2: ('C', 0, False),
+     3: ('C', 0, None),
+     4: ('C', 0, None),
+     5: ('C', 0, None),
+     6: ('O', 0, None),
+     7: ('O', 0, None),
+     8: ('H', 0, None),
+     9: ('H', 0, None),
+     10: ('H', 0, None),
+     11: ('H', 0, None),
+     12: ('H', 0, None),
+     13: ('H', 0, None),
+     14: ('H', 0, None),
+     15: ('H', 0, None),
+     16: ('H', 0, None),
+     17: ('H', 0, None),
+     18: ('H', 0, None)},
+    {frozenset({2, 3}): (1, None),
+     frozenset({2, 6}): (1, None),
+     frozenset({4, 5}): (1, None),
+     frozenset({5, 17}): (1, None),
+     frozenset({0, 1}): (1, None),
+     frozenset({6, 7}): (1, None),
+     frozenset({7, 8}): (0.1, None),
+     frozenset({5, 16}): (1, None),
+     frozenset({5, 18}): (1, None),
+     frozenset({4, 14}): (1, None),
+     frozenset({2, 11}): (1, None),
+     frozenset({1, 10}): (1, None),
+     frozenset({0, 8}): (0.9, None),
+     frozenset({0, 9}): (1, None),
+     frozenset({3, 4}): (1, None),
+     frozenset({1, 2}): (1, None),
+     frozenset({4, 15}): (1, None),
+     frozenset({3, 13}): (1, None),
+     frozenset({3, 12}): (1, None)})
+# C6H11O2b_GEO = (
+#     ('C', (5.787848, -0.151178, -1.541546)),
+#     ('C', (3.461157, -0.812373, -1.686212)),
+#     ('C', (1.549103, -0.250423, 0.355867)),
+#     ('C', (-1.120547, -0.550261, -0.473615)),
+#     ('C', (-2.692891, 0.085392, 1.874711)),
+#     ('C', (-5.418684, 0.373202, 1.179352)),
+#     ('O', (2.431312, -1.320658, 2.595525)),
+#     ('O', (4.750424, -0.318698, 2.953194)),
+#     ('H', (6.447453, 0.650469, 0.710288)),
+#     ('H', (7.414901, -0.679888, -2.576486)),
+#     ('H', (2.744884, -1.92163, -3.292046)),
+#     ('H', (1.822851, 1.835276, 0.730881)),
+#     ('H', (-1.514309, 0.862512, -1.988341)),
+#     ('H', (-1.622245, -2.418038, -1.184909)),
+#     ('H', (-2.370337, -1.473728, 3.210659)),
+#     ('H', (-2.037551, 1.880908, 2.67804)),
+#     ('H', (-5.842784, 2.354336, 0.684703)),
+#     ('H', (-5.89428, -0.848404, -0.496429)),
+#     ('H', (-6.648168, -0.229583, 2.735668)))
 
 # Constrained TS Bond Stereo + (Reactant Bond Stereo => Product Atom Stereo)
 # C/C=C/C + C=CC=C => C[C@H]1[C@H](C)CC=CC1
@@ -661,6 +725,7 @@ def test__ts__fleeting_stereocenter_keys():
     _test("C2H4O2", C2H4O2_TSG, frozenset(), frozenset())
     _test("C4H4F2", C4H4F2_TSG, frozenset(), frozenset())
     _test("C6H11O2", C6H11O2_TSG, frozenset(), frozenset())
+    _test("C6H11O2b", C6H11O2b_TSG, frozenset(), frozenset())
     _test("C8H14", C8H14_TSG, frozenset(), frozenset())
 
 
@@ -717,6 +782,8 @@ def test__ts__reagents_graph():
           {frozenset({1, 2}): False, frozenset({6, 7}): False})
     _test("C6H11O2", C6H11O2_TSG,
           {5: False, frozenset({3, 4}): False}, {5: False})
+    _test("C6H11O2b", C6H11O2b_TSG,
+          {2: False}, {2: False, frozenset({0, 1}): True})
     _test("C8H14", C8H14_TSG, {frozenset({1, 6}): True}, {1: True, 6: True})
 
 

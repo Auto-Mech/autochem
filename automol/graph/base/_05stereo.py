@@ -594,6 +594,18 @@ def ring_bond_reactant_parities(
 
     pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
 
+    vin_add_dct = vinyl_addition_candidates(tsg)
+
+    # Insert vinyl addition neighbors back in, so they are captured by the ring
+    # constraint
+    nkeys_dct = nkeys_dct.copy()
+    for bkey in list(nkeys_dct.keys()):
+        if bkey in vin_add_dct:
+            vin_key, vin_nkey = vin_add_dct[bkey]
+            bnkeys = list(map(list, nkeys_dct[bkey]))
+            bnkeys[sorted(bkey).index(vin_key)].append(vin_nkey)
+            nkeys_dct[bkey] = tuple(map(tuple, bnkeys))
+
     rng_const_dct = rigid_planar_bonds_with_ring_constraints(tsg, nkeys_dct)
 
     for bkey in keys:
@@ -797,16 +809,16 @@ def parity_evaluator_reactants_from_local_ts_graph_(
         # 0. Read in local TS parities for these keys
         par_dct = dict_.by_key(ts_par_dct, keys)
 
-        # 1. Correct vinyl addition parity flips
+        # 1. Determine constrained-ring bond parities
+        par_dct = ring_bond_reactant_parities(loc_tsg, par_dct, loc_pri_dct, nkeys_dct)
+
+        # 2. Correct vinyl addition parity flips
         par_dct = vinyl_addition_reactant_parities(
             loc_tsg, par_dct, loc_pri_dct, nkeys_dct
         )
 
-        # 2. Determine insertion bonds from atom parities with insertion parity flips
+        # 3. Determine insertion bonds from atom parities with insertion parity flips
         par_dct = insertion_reactant_parities(loc_tsg, par_dct, loc_pri_dct, nkeys_dct)
-
-        # 3. Determine constrained-ring bond parities
-        par_dct = ring_bond_reactant_parities(loc_tsg, par_dct, loc_pri_dct, nkeys_dct)
 
         # 4. Apply local parity flips to convert to canonical stereo, if requested
         if not local_stereo:
