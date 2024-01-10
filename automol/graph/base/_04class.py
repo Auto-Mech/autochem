@@ -114,7 +114,9 @@ def eliminations(tsg) -> Dict[BondKey, Tuple[AtomKey, AtomKey, Optional[BondKey]
         """
 
         def is_elimination_bkey(bkey):
-            return all(bkey & bk for bk in brk_bkeys) and bkey not in frm_bkeys
+            return (
+                all(bkey & bk for bk in brk_bkeys) and bkey not in frm_bkeys | brk_bkeys
+            )
 
         return is_elimination_bkey
 
