@@ -33,6 +33,9 @@ from automol.amchi.base._core import racemic
 from automol.amchi.base._core import are_enantiomers
 from automol.amchi.base._core import are_diastereomers
 # # properties
+# # # prefix
+from automol.amchi.base._core import is_amchi
+from automol.amchi.base._core import is_inchi
 # # # formula layer
 from automol.amchi.base._core import symbols
 from automol.amchi.base._core import canonical_indices
@@ -135,6 +138,9 @@ __all__ = [
     'are_enantiomers',
     'are_diastereomers',
     # # properties
+    # # # prefix
+    'is_amchi',
+    'is_inchi',
     # # # formula layer
     'symbols',
     'canonical_indices',

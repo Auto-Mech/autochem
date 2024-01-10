@@ -618,6 +618,23 @@ def test__ts__reagents_graph():
         print(f"asserting {prds_par_dct} == {prds_par_dct_ref}")
         assert prds_par_dct == prds_par_dct_ref
 
+        print("Re-testing with implicit graphs...")
+        tsg = automol.graph.implicit(tsg)
+
+        print(f"{formula}: testing reactants_graph")
+        rcts_gra = automol.graph.ts.reactants_graph(tsg)
+        rcts_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.stereo_parities(rcts_gra), lambda x: x is not None)
+        print(f"asserting {rcts_par_dct} == {rcts_par_dct_ref}")
+        assert rcts_par_dct == rcts_par_dct_ref
+
+        print(f"{formula}: testing products_graph")
+        prds_gra = automol.graph.ts.products_graph(tsg)
+        prds_par_dct = automol.util.dict_.filter_by_value(
+            automol.graph.stereo_parities(prds_gra), lambda x: x is not None)
+        print(f"asserting {prds_par_dct} == {prds_par_dct_ref}")
+        assert prds_par_dct == prds_par_dct_ref
+
         print('---')
 
     _test("CH4CLFNO", CH4CLFNO_TSG, {0: False}, {0: True})

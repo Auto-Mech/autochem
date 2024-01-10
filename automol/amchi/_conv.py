@@ -13,6 +13,7 @@ from automol.amchi.base import (
     forming_bond_keys,
     has_stereo,
     hydrogen_valences,
+    is_inchi,
     is_inverted_enantiomer,
     is_reversed_ts,
     isotope_layers,
@@ -135,7 +136,8 @@ def _connected_graph(chi, stereo=True, local_stereo=False):
     if is_inv is True:
         gra = graph_.invert_atom_stereo_parities(gra)
 
-    if has_stereo(chi) and not local_stereo:
+    # Note: If this is an InChI string, local != canonical stereo!
+    if has_stereo(chi) and not local_stereo and (is_inv or is_inchi(chi)):
         gra = graph_.from_local_stereo(gra)
 
     if is_rev is True:

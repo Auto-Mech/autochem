@@ -544,6 +544,29 @@ def are_diastereomers(chi_a, chi_b):
 
 
 # # properties
+# # # prefix
+def is_amchi(chi: str) -> bool:
+    """Is this an AMChI string?
+
+    :param chi: ChI string
+    :type chi: str
+    :return: `True` if it is, `False`, if it isn't
+    :rtype: bool
+    """
+    return prefix(chi) == "AMChI"
+
+
+def is_inchi(chi: str) -> bool:
+    """Is this an InChI string?
+
+    :param chi: ChI string
+    :type chi: str
+    :return: `True` if it is, `False`, if it isn't
+    :rtype: bool
+    """
+    return prefix(chi) == "InChI"
+
+
 # # # formula layer
 def symbols(chi, one_indexed=False):
     """Determine the atomic symbols of backbone atoms in a ChI string

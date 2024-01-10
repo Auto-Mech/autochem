@@ -15,6 +15,7 @@ from automol.graph.base._00core import (
     atom_keys,
     explicit,
     local_stereo_priorities,
+    negate_hydrogen_stereo_priorities,
     stereo_keys,
     stereo_parities,
     tetrahedral_atoms,
@@ -136,6 +137,7 @@ def unassigned_stereocenter_keys_from_candidates(
     :return: The atom and bond stereocenter candidates as separate dictionaries
     :rtype: CenterKeys
     """
+    pri_dct = negate_hydrogen_stereo_priorities(gra, pri_dct, with_none=True)
     ste_atm_dct, ste_bnd_dct = stereocenter_candidates_grouped(
         cand_dct, pri_dct=pri_dct, drop_nonste=True
     )
@@ -604,6 +606,8 @@ def parity_evaluator_measure_from_geometry_(
         :return: A parity assignment mapping for the given stereocenter keys
         :rtype: Dict[CenterKey, bool]
         """
+        pri_dct = negate_hydrogen_stereo_priorities(gra, pri_dct, with_none=True)
+
         # 0. Determine local priories, if requesting local stereo
         pri_dct = local_stereo_priorities(gra) if local_stereo else pri_dct
 
@@ -687,6 +691,8 @@ def parity_evaluator_flip_from_graph(
     :return: A mapping of these stereocenter keys onto their parity assignments
     :rtype: Dict[CenterKey, bool]
     """
+    pri_dct = negate_hydrogen_stereo_priorities(gra, pri_dct, with_none=True)
+
     # 0. Read in the parities
     par_dct = dict_.by_key(stereo_parities(gra), keys)
 
@@ -740,6 +746,8 @@ def parity_evaluator_reactants_from_local_ts_graph_(
         :return: A parity assignment mapping for the given stereocenter keys
         :rtype: Dict[CenterKey, bool]
         """
+        pri_dct = negate_hydrogen_stereo_priorities(gra, pri_dct, with_none=True)
+
         assert gra or not gra
         assert is_rev_ts or not is_rev_ts
 

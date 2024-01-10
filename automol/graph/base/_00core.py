@@ -1550,6 +1550,30 @@ def atom_symbol_keys(gra):
     return symb_idx_dct
 
 
+def backbone_and_nonbackbone_hydrogen_keys(gra) -> (frozenset[int], frozenset[int]):
+    """Get the backbone and non-backbone hydrogen keys of this molecular graph
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :returns: The backbone and non-backbone hydrogen keys
+    :rtype: (frozenset[int], frozenset[int])
+    """
+    hkeys = atom_keys(gra, symb="H")
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+    nhyd_dct = atom_implicit_hydrogens(gra)
+    rxn_keys = ts_reacting_atom_keys(gra)
+
+    def _is_backbone(hkey):
+        is_h2 = all(k in hkeys and hkey < k for k in nkeys_dct[hkey])
+        is_multivalent = len(nkeys_dct[hkey]) > 1
+        has_implicit_hydrogens = nhyd_dct[hkey] > 0
+        is_reacting = hkey in rxn_keys
+        return is_h2 or is_multivalent or has_implicit_hydrogens or is_reacting
+
+    bbn_hkeys = frozenset(filter(_is_backbone, hkeys))
+    return bbn_hkeys, hkeys - bbn_hkeys
+
+
 def backbone_hydrogen_keys(gra):
     """Get the backbone hydrogen keys of this molecular graph
 
@@ -1563,23 +1587,8 @@ def backbone_hydrogen_keys(gra):
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    hyd_keys = atom_keys(gra, symb="H")
-    atm_ngb_keys_dct = atoms_neighbor_atom_keys(gra)
-    atm_imp_hyd_dct = atom_implicit_hydrogens(gra)
-    atm_rxn_keys = ts_reacting_atom_keys(gra)
-
-    def _is_backbone(hyd_key):
-        is_h2 = all(
-            ngb_key in hyd_keys and hyd_key < ngb_key
-            for ngb_key in atm_ngb_keys_dct[hyd_key]
-        )
-        is_multivalent = len(atm_ngb_keys_dct[hyd_key]) > 1
-        has_implicit_hydrogens = atm_imp_hyd_dct[hyd_key] > 0
-        is_reacting = hyd_key in atm_rxn_keys
-        return is_h2 or is_multivalent or has_implicit_hydrogens or is_reacting
-
-    bbn_hyd_keys = frozenset(filter(_is_backbone, hyd_keys))
-    return bbn_hyd_keys
+    bbn_hkeys, _ = backbone_and_nonbackbone_hydrogen_keys(gra)
+    return bbn_hkeys
 
 
 def nonbackbone_hydrogen_keys(gra):
@@ -1590,7 +1599,8 @@ def nonbackbone_hydrogen_keys(gra):
     :returns: The atom keys
     :rtype: frozenset[int]
     """
-    return atom_keys(gra, symb="H") - backbone_hydrogen_keys(gra)
+    _, hkeys = backbone_and_nonbackbone_hydrogen_keys(gra)
+    return hkeys
 
 
 def atom_nonbackbone_hydrogen_keys(gra):
@@ -2582,6 +2592,36 @@ def atom_neighbor_atom_keys(
     return frozenset(atm_nkeys)
 
 
+def negate_hydrogen_stereo_priorities(
+    gra, pri_dct: Dict[int, int], with_none: bool = True
+) -> Dict[int, int]:
+    """Negate stereo priorities for hydrogen atoms
+
+    Backbone hydrogens get a priority of -|p| where p is the initial priortiy value
+
+    Non-backbone hydrogens get a priority of -infinity
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param pri_dct: The initial priority dictionary
+    :type pri_dct: Dict[int, int]
+    :param with_none: Include None as a key with priority -infinity?
+    :type with_none: bool, optional
+    :returns: The priorities, by atom key
+    :rtype: Dict[int, int]
+    """
+    pri_dct = pri_dct.copy()
+
+    bbn_hkeys, hkeys = backbone_and_nonbackbone_hydrogen_keys(gra)
+
+    pri_dct.update({k: -abs(pri_dct[k]) for k in bbn_hkeys})
+    pri_dct.update({k: -numpy.inf for k in hkeys})
+    if with_none:
+        pri_dct[None] = -numpy.inf
+
+    return pri_dct
+
+
 def local_stereo_priorities(gra, with_none: bool = False) -> Dict[int, int]:
     """Generate a local priority dictionary
 
@@ -2592,12 +2632,10 @@ def local_stereo_priorities(gra, with_none: bool = False) -> Dict[int, int]:
     :returns: The local priorities, by atom key
     :rtype: Dict[int, int]
     """
-    loc_pri_dct = {}
-    loc_pri_dct.update({k: k for k in backbone_keys(gra, hyd=False)})
-    loc_pri_dct.update({k: -abs(k) for k in backbone_hydrogen_keys(gra)})
-    loc_pri_dct.update({k: -numpy.inf for k in nonbackbone_hydrogen_keys(gra)})
-    if with_none:
-        loc_pri_dct[None] = -numpy.inf
+    loc_pri_dct = {k: k for k in atom_keys(gra)}
+    loc_pri_dct = negate_hydrogen_stereo_priorities(
+        gra, loc_pri_dct, with_none=with_none
+    )
     return loc_pri_dct
 
 
