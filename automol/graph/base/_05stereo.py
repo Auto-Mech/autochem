@@ -20,7 +20,10 @@ from automol.graph.base._00core import (
     stereo_parities,
     tetrahedral_atoms,
 )
-from automol.graph.base._03kekule import rigid_planar_bonds
+from automol.graph.base._03kekule import (
+    rigid_planar_bonds,
+    rigid_planar_bonds_with_ring_constraints,
+)
 from automol.graph.base._04class import (
     insertions,
     substitutions,
@@ -486,7 +489,7 @@ def vinyl_addition_reactant_parities(
     :type pri_dct: Dict[AtomKey, int]
     :param nkeys_dct: Stereo-determining neighbors for the *reactant* graph
     :type nkeys_dct: CenterNeighborDict
-    :return: A mapping identifying which parities flip
+    :return: The updated parities
     :rtype: Dict[AtomKey, bool]
     """
     # Read in the parities
@@ -533,7 +536,7 @@ def insertion_reactant_parities(
     :type pri_dct: Dict[AtomKey, int]
     :param nkeys_dct: Stereo-determining neighbors for the *reactant* graph
     :type nkeys_dct: CenterNeighborDict
-    :return: A mapping identifying which parities flip, as described above
+    :return: The updated parities
     :rtype: Dict[AtomKey, bool]
     """
     # Read in the parities
@@ -562,6 +565,46 @@ def insertion_reactant_parities(
             par1, par2 = map(all_par_dct.get, (key1, key2))
             if par1 is not None and par2 is not None:
                 par_dct[bkey] = not par1 ^ par2 ^ sgn1 ^ sgn2
+
+    return par_dct
+
+
+def ring_bond_reactant_parities(
+    tsg,
+    par_dct: Dict[CenterKey, bool],
+    pri_dct: Dict[AtomKey, int],
+    nkeys_dct: CenterNeighborDict,
+) -> Dict[BondKey, bool]:
+    """Ring-constrained bond parities for the reactants of a TS graph
+
+    :param tsg: A TS graph
+    :type tsg: automol graph data structure
+    :param par_dct: The original parity assignments
+    :type par_dct: Dict[CenterKey, bool]
+    :param pri_dct: The local priority mapping
+    :type pri_dct: Dict[AtomKey, int]
+    :param nkeys_dct: Stereo-determining neighbors for the *reactant* graph
+    :type nkeys_dct: CenterNeighborDict
+    :return: The updated parities
+    :rtype: Dict[AtomKey, bool]
+    """
+    # Read in the parities
+    par_dct = par_dct.copy()
+    keys = list(par_dct.keys())
+
+    pri_ = dict_.sort_value_(pri_dct, missing_val=-numpy.inf)
+
+    rng_const_dct = rigid_planar_bonds_with_ring_constraints(tsg, nkeys_dct)
+
+    for bkey in keys:
+        if bkey in rng_const_dct:
+            nkeys1, nkeys2 = nkeys_dct[bkey]
+            nmax1 = max(nkeys1, key=pri_)
+            nmax2 = max(nkeys2, key=pri_)
+
+            rkey1, rkey2 = rng_const_dct[bkey]
+
+            par_dct[bkey] = nmax1 == rkey1 ^ nmax2 == rkey2
 
     return par_dct
 
@@ -762,7 +805,10 @@ def parity_evaluator_reactants_from_local_ts_graph_(
         # 2. Determine insertion bonds from atom parities with insertion parity flips
         par_dct = insertion_reactant_parities(loc_tsg, par_dct, loc_pri_dct, nkeys_dct)
 
-        # 3. Apply local parity flips to convert to canonical stereo, if requested
+        # 3. Determine constrained-ring bond parities
+        par_dct = ring_bond_reactant_parities(loc_tsg, par_dct, loc_pri_dct, nkeys_dct)
+
+        # 4. Apply local parity flips to convert to canonical stereo, if requested
         if not local_stereo:
             par_dct = local_flipped_parities(gra, par_dct, pri_dct, nkeys_dct)
 

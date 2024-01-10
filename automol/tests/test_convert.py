@@ -217,7 +217,7 @@ def test__smiles__with_stereo():
 
         smi = automol.chi.smiles(ref_chi)
         chi = automol.smiles.chi(smi)
-        assert chi == ref_chi
+        assert chi == ref_chi, f"{chi} != {ref_chi}"
 
 
 def test__graph__misc():

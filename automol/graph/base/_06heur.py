@@ -29,7 +29,7 @@ from automol.graph.base._03kekule import (
     atom_hybridizations,
     kekules_bond_orders_collated,
     linear_segments_atom_keys,
-    rigid_planar_bond_keys,
+    rigid_planar_bonds,
     sigma_radical_atom_bond_keys,
     vinyl_radical_atom_bond_keys,
 )
@@ -391,12 +391,13 @@ def ts_reacting_atom_plane_keys(tsg, key: int, include_self: bool = True):
     pkeys = {key} if include_self else set()
     pkeys |= nkeys_nrb if len(nkeys_rct) > 3 else nkeys_rct
 
-    rp_bkeys = rigid_planar_bond_keys(rcts_gra)
-    rp_bkey = next((bk for bk in rp_bkeys if key in bk), None)
+    rp_dct = rigid_planar_bonds(rcts_gra, min_ncount=0, min_ring_size=0, strict=False)
+    rp_bkey = next((bk for bk in rp_dct if key in bk), None)
     if rp_bkey is not None:
         (key_,) = rp_bkey - {key}
+        nkeys_ = rp_dct[rp_bkey][sorted(rp_bkey).index(key_)]
         pkeys |= {key_}
-        pkeys |= atom_neighbor_atom_keys(rcts_gra, key_)
+        pkeys |= set(nkeys_)
 
     return frozenset(pkeys)
 

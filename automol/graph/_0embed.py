@@ -587,42 +587,43 @@ def chirality_constraint_bounds(loc_gra, keys):
 
 def planarity_constraint_bounds(gra, keys):
     """bounds for enforcing planarity restrictions"""
-    ngb_key_dct = atoms_neighbor_atom_keys(gra)
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+    # rp_dct = rigid_planar_bond_keys(gra, min_ncount=0, min_ring_size=0)
     ngb_dct = bond_neighborhoods(gra)
-    bnd_keys = [
-        bnd_key
-        for bnd_key in rigid_planar_bond_keys(gra)
-        if atom_keys(ngb_dct[bnd_key]) <= set(keys)
+    bkeys = [
+        bkey
+        for bkey in rigid_planar_bond_keys(gra, min_ncount=0, min_ring_size=0)
+        if atom_keys(ngb_dct[bkey]) <= set(keys)
     ]
 
-    def _planarity_constraints(bnd_key):
-        key1, key2 = sorted(bnd_key)
-        key1ab = sorted(ngb_key_dct[key1] - {key2})
-        key2ab = sorted(ngb_key_dct[key2] - {key1})
+    def _planarity_constraints(bkey):
+        key1, key2 = sorted(bkey)
+        nkey1s = sorted(nkeys_dct[key1] - {key2})
+        nkey2s = sorted(nkeys_dct[key2] - {key1})
 
         lst = []
 
         # I don't think the order of the keys matters, but I tried to be
         # roughly consistent with Figure 8 in the Blaney Dixon paper
-        if len(key1ab) == 2 and len(key2ab) == 2:
-            lst.append(tuple(map(keys.index, key1ab + key2ab)))
-        if len(key1ab) == 2:
-            lst.append(tuple(map(keys.index, [key1, key2] + key1ab)))
-        if len(key2ab) == 2:
-            lst.append(tuple(map(keys.index, [key1, key2] + key2ab)))
-        if (len(key1ab) == 2 and len(key2ab) == 1) or (
-            len(key1ab) == 1 and len(key2ab) == 2
+        if len(nkey1s) == 2 and len(nkey2s) == 2:
+            lst.append(tuple(map(keys.index, nkey1s + nkey2s)))
+        if len(nkey1s) == 2:
+            lst.append(tuple(map(keys.index, [key1, key2] + nkey1s)))
+        if len(nkey2s) == 2:
+            lst.append(tuple(map(keys.index, [key1, key2] + nkey2s)))
+        if (len(nkey1s) == 2 and len(nkey2s) == 1) or (
+            len(nkey1s) == 1 and len(nkey2s) == 2
         ):
-            lst.append(tuple(map(keys.index, [key1] + key1ab + key2ab)))
-            lst.append(tuple(map(keys.index, [key2] + key1ab + key2ab)))
-        if len(key1ab) == 1 and len(key2ab) == 1:
-            lst.append(tuple(map(keys.index, [key1, key2] + key1ab + key2ab)))
+            lst.append(tuple(map(keys.index, [key1] + nkey1s + nkey2s)))
+            lst.append(tuple(map(keys.index, [key2] + nkey1s + nkey2s)))
+        if len(nkey1s) == 1 and len(nkey2s) == 1:
+            lst.append(tuple(map(keys.index, [key1, key2] + nkey1s + nkey2s)))
 
         return tuple(lst)
 
     const_dct = {
         idxs: (-0.5, +0.5)
-        for idxs in itertools.chain(*map(_planarity_constraints, bnd_keys))
+        for idxs in itertools.chain(*map(_planarity_constraints, bkeys))
     }
 
     return const_dct

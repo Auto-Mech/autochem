@@ -3,6 +3,7 @@
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 import itertools
+import numbers
 from typing import Dict, List, Optional, Tuple
 
 import numpy
@@ -813,18 +814,20 @@ def rigid_planar_bonds_with_ring_constraints(
 
     # Search for constrained rigid, planar bonds
     rp_rng_const_dct = {}
-    for bkey, (nkeys1, nkeys2) in list(rp_dct.items()):
-        # Identify sufficiently small rings containing the bond
-        rng_keys_lst = [
-            rks for rks in rng_keys_pool if bkey <= rks and len(rks) < min_ring_size
-        ]
-        # Check for constraints in smaller rings first
-        for rng_keys in sorted(rng_keys_lst, key=len):
-            nkey1 = next((k for k in nkeys1 if k in rng_keys), None)
-            nkey2 = next((k for k in nkeys2 if k in rng_keys), None)
-            if nkey1 is not None and nkey2 is not None:
-                rp_rng_const_dct[bkey] = (nkey1, nkey2)
-                break
+    for bkey, bnkeys in rp_dct.items():
+        if not isinstance(bkey, numbers.Number):  # Allow dict to contain atoms
+            nkeys1, nkeys2 = bnkeys
+            # Identify sufficiently small rings containing the bond
+            rng_keys_lst = [
+                rks for rks in rng_keys_pool if bkey <= rks and len(rks) < min_ring_size
+            ]
+            # Check for constraints in smaller rings first
+            for rng_keys in sorted(rng_keys_lst, key=len):
+                nkey1 = next((k for k in nkeys1 if k in rng_keys), None)
+                nkey2 = next((k for k in nkeys2 if k in rng_keys), None)
+                if nkey1 is not None and nkey2 is not None:
+                    rp_rng_const_dct[bkey] = (nkey1, nkey2)
+                    break
 
     return rp_rng_const_dct
 

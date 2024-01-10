@@ -383,6 +383,70 @@ C4H4F2_GEO = (
     ('F', (-1.246023, -5.354531, 0.023789)),
     ('H', (1.758437, -7.533401, 0.067458)))
 
+# Constrained TS Bond Stereo
+# [CH2]/C=C\[C@@H](CC)OO => CC[C@H]1OCC=C1 + [OH]
+#        *                             *
+# [* marks a constrained bond stereocenter -- must be cis]
+C6H11O2_TSG = (
+    {0: ('C', 0, None),
+     1: ('H', 0, None),
+     2: ('H', 0, None),
+     3: ('C', 0, None),
+     4: ('C', 0, None),
+     5: ('C', 0, False),
+     6: ('H', 0, None),
+     7: ('C', 0, None),
+     8: ('C', 0, None),
+     9: ('O', 0, None),
+     10: ('O', 0, None),
+     11: ('H', 0, None),
+     12: ('H', 0, None),
+     13: ('H', 0, None),
+     14: ('H', 0, None),
+     15: ('H', 0, None),
+     16: ('H', 0, None),
+     17: ('H', 0, None),
+     18: ('H', 0, None)},
+    {frozenset({4, 5}): (1, None),
+     frozenset({0, 1}): (1, None),
+     frozenset({7, 8}): (1, None),
+     frozenset({7, 14}): (1, None),
+     frozenset({10, 18}): (1, None),
+     frozenset({8, 16}): (1, None),
+     frozenset({5, 9}): (1, None),
+     frozenset({5, 7}): (1, None),
+     frozenset({0, 9}): (0.1, None),
+     frozenset({3, 4}): (1, None),
+     frozenset({8, 17}): (1, None),
+     frozenset({9, 10}): (0.9, None),
+     frozenset({7, 13}): (1, None),
+     frozenset({0, 3}): (1, None),
+     frozenset({0, 2}): (1, None),
+     frozenset({4, 12}): (1, None),
+     frozenset({5, 6}): (1, None),
+     frozenset({3, 11}): (1, None),
+     frozenset({8, 15}): (1, None)})
+# C6H11O2_GEO = (
+#     ('C', (4.922102, -0.449109, -0.140716)),
+#     ('H', (6.745736, 0.606405, 0.265351)),
+#     ('H', (4.118399, -0.660212, 1.822398)),
+#     ('C', (3.212445, 0.892843, -1.952966)),
+#     ('C', (0.697707, 0.795413, -1.846221)),
+#     ('C', (-0.747979, -0.689044, 0.330813)),
+#     ('H', (0.20965, 0.275312, 2.099735)),
+#     ('C', (-3.326397, 0.151782, 0.65621)),
+#     ('C', (-3.153725, 2.957264, 1.641096)),
+#     ('O', (1.273343, -2.63089, 0.385426)),
+#     ('O', (0.295383, -4.928983, -0.643783)),
+#     ('H', (4.311136, 1.35876, -3.540684)),
+#     ('H', (-0.750563, 1.001214, -3.184155)),
+#     ('H', (-4.26182, 0.460045, -1.176939)),
+#     ('H', (-4.495947, -0.850012, 1.98946)),
+#     ('H', (-1.97707, 2.856142, 3.362061)),
+#     ('H', (-4.938737, 3.791284, 2.051566)),
+#     ('H', (-2.076922, 4.046719, 0.258913)),
+#     ('H', (-0.398204, -5.654819, 0.896648)))
+
 # Constrained TS Bond Stereo + (Reactant Bond Stereo => Product Atom Stereo)
 # C/C=C/C + C=CC=C => C[C@H]1[C@H](C)CC=CC1
 #    ^                  ^     ^        *
@@ -489,7 +553,6 @@ def test__set_stereo_from_geometry():
 
     _test("CH4CLFNO", CH4CLFNO_TSG, CH4CLFNO_GEO, 1, 1)
     _test("C4H11O2", C4H11O2_TSG, C4H11O2_GEO, 1, 1)
-    # _test("C2H3O4", C2H3O4_TSG, C2H3O4_GEO, 1, 1)
     _test("C4H9O3", C4H9O3_TSG, C4H9O3_GEO, 2, 2)
     _test("C2H3F2O", C2H3F2O_TSG, C2H3F2O_GEO, 2, 2)
     _test("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4)
@@ -597,6 +660,7 @@ def test__ts__fleeting_stereocenter_keys():
     _test("C4H9O2", C4H9O2_TSG, frozenset(), frozenset({2}))
     _test("C2H4O2", C2H4O2_TSG, frozenset(), frozenset())
     _test("C4H4F2", C4H4F2_TSG, frozenset(), frozenset())
+    _test("C6H11O2", C6H11O2_TSG, frozenset(), frozenset())
     _test("C8H14", C8H14_TSG, frozenset(), frozenset())
 
 
@@ -651,6 +715,8 @@ def test__ts__reagents_graph():
     _test("C4H4F2", C4H4F2_TSG,
           {frozenset({1, 2}): True, frozenset({6, 7}): True},
           {frozenset({1, 2}): False, frozenset({6, 7}): False})
+    _test("C6H11O2", C6H11O2_TSG,
+          {5: False, frozenset({3, 4}): False}, {5: False})
     _test("C8H14", C8H14_TSG, {frozenset({1, 6}): True}, {1: True, 6: True})
 
 
@@ -766,8 +832,8 @@ if __name__ == '__main__':
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    # test__ts__reagents_graph()
+    test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    test__amchi()
-    # test__ts__fleeting_stereocenter_keys()
+    # test__amchi()
+    test__ts__fleeting_stereocenter_keys()
