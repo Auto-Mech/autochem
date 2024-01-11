@@ -15,6 +15,8 @@ Protocol for encoding resonance single bond stereo into the SMILES string:
     extra directional single bonds, but they won't affect anything.
 """
 import numpy
+from phydat import ptab
+
 from automol import util
 from automol.graph.base._00core import (
     atom_implicit_hydrogens,
@@ -37,10 +39,13 @@ from automol.graph.base._02algo import (
     is_connected,
     rings_atom_keys,
 )
-from automol.graph.base._03kekule import kekule, radical_atom_keys_from_kekule
+from automol.graph.base._03kekule import (
+    bad_stereo_bond_keys_from_kekule,
+    kekule,
+    radical_atom_keys_from_kekule,
+)
 from automol.graph.base._08canon import canonical
 from automol.util import dict_
-from phydat import ptab
 
 ORGANIC_SUBSET = ["B", "C", "N", "O", "P", "S", "F", "Cl", "Br", "I"]
 
@@ -124,9 +129,6 @@ def _connected_smiles(
     # Find a dominant resonance
     kgr = kekule(gra, max_stereo_overlap=True)
 
-    # Determine bond orders for this resonance
-    bnd_ord_dct = bond_orders(kgr)
-
     # Find stereo parities
     bnd_par_dct = dict_.filter_by_value(
         bond_stereo_parities(kgr), lambda x: x is not None
@@ -134,7 +136,8 @@ def _connected_smiles(
 
     # Remove stereo parities if requested
     if not res_stereo:
-        bnd_par_dct = dict_.filter_by_key(bnd_par_dct, lambda x: bnd_ord_dct[x] == 2)
+        bad_bkeys = bad_stereo_bond_keys_from_kekule(kgr)
+        bnd_par_dct = dict_.filter_by_key(bnd_par_dct, lambda x: x not in bad_bkeys)
 
     # Get the pool of stereo bonds for the graph and set up a dictionary for
     # storing bond directions. As the SMILES is built, each stereo

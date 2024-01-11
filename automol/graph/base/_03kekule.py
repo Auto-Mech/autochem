@@ -7,6 +7,7 @@ import numbers
 from typing import Dict, List, Optional, Tuple
 
 import numpy
+
 from automol.graph.base._00core import (
     AtomKey,
     AtomKeys,
@@ -25,6 +26,7 @@ from automol.graph.base._00core import (
     bond_orders,
     bond_stereo_keys,
     bond_unpaired_electrons,
+    bonds_neighbor_bond_keys,
     dummy_source_dict,
     has_atom_stereo,
     implicit,
@@ -64,12 +66,14 @@ def kekule(gra, max_stereo_overlap=True):
     :type max_stereo_overlap: bool
     :returns: a kekule graph
     """
-    ste_bnd_keys = bond_stereo_keys(gra)
+    ste_bkeys = bond_stereo_keys(gra)
+    nbkeys_dct = bonds_neighbor_bond_keys(gra, group=False)
 
     def _count_stereo_double_bonds(gra):
-        bnd_ord_dct = bond_orders(gra)
-        count = sum(bnd_ord_dct[k] == 2 for k in ste_bnd_keys)
-        return count
+        good_bkeys = good_stereo_bond_keys_from_kekule(
+            gra, ste_bkeys=ste_bkeys, nbkeys_dct=nbkeys_dct
+        )
+        return len(good_bkeys)
 
     gras = kekules(gra)
     if not max_stereo_overlap:
@@ -411,6 +415,58 @@ def atom_hybridizations_from_kekule(gra):
     atm_hybs = atm_unsats + atm_bnd_vlcs + atm_lpcs - 1
     atm_hyb_dct = dict_.transform_values(dict(zip(atm_keys, atm_hybs)), int)
     return atm_hyb_dct
+
+
+def bad_stereo_bond_keys_from_kekule(
+    gra,
+    ste_bkeys: Optional[frozenset[BondKey]] = None,
+    nbkeys_dct: Optional[Dict[BondKey, frozenset[BondKey]]] = None,
+) -> frozenset[BondKey]:
+    """Identify stereo bonds which are *not* well-represented by a Kekule graph
+
+    A stereo bond is well-represented by the Kekule graph if it is doubly-bonded and
+    surrounded by single bonds
+
+    :param gra: A kekule graph
+    :param ste_bkeys: Stereo bond keys, to avoid recalculating
+    :param nbkeys_dct: Neighboring bond keys, by bond key, to avoid recalculating
+    :returns: The bond keys
+    """
+    ste_bkeys = bond_stereo_keys(gra) if ste_bkeys is None else ste_bkeys
+    good_bkeys = good_stereo_bond_keys_from_kekule(
+        gra, ste_bkeys=ste_bkeys, nbkeys_dct=nbkeys_dct
+    )
+    return ste_bkeys - good_bkeys
+
+
+def good_stereo_bond_keys_from_kekule(
+    gra,
+    ste_bkeys: Optional[frozenset[BondKey]] = None,
+    nbkeys_dct: Optional[Dict[BondKey, frozenset[BondKey]]] = None,
+) -> frozenset[BondKey]:
+    """Identify stereo bonds which are well-represented by a Kekule graph
+
+    A stereo bond is well-represented by the Kekule graph if it is doubly-bonded and
+    surrounded by single bonds
+
+    :param gra: A kekule graph
+    :param ste_bkeys: Stereo bond keys, to avoid recalculating
+    :param nbkeys_dct: Neighboring bond keys, by bond key, to avoid recalculating
+    :returns: The bond keys
+    """
+    ord_dct = bond_orders(gra)
+    ste_bkeys = bond_stereo_keys(gra) if ste_bkeys is None else ste_bkeys
+    nbkeys_dct = (
+        bonds_neighbor_bond_keys(gra, group=False) if nbkeys_dct is None else nbkeys_dct
+    )
+
+    o1_bkeys = set(dict_.keys_by_value(ord_dct, lambda x: x == 1))
+    o2_bkeys = set(dict_.keys_by_value(ord_dct, lambda x: x == 2))
+    # Look for stereo bonds to be doubly-bonded and surrounded by single bonds
+    good_bkeys = frozenset(
+        bk for bk in ste_bkeys & o2_bkeys if nbkeys_dct[bk] <= o1_bkeys
+    )
+    return good_bkeys
 
 
 def radical_atom_keys(gra, sing_res=False, min_valence=1.0):

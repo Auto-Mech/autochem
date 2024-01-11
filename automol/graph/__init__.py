@@ -205,6 +205,8 @@ from automol.graph.base._03kekule import linear_segments_atom_keys
 from automol.graph.base._03kekule import unneeded_dummy_atom_keys
 from automol.graph.base._03kekule import atom_hybridizations
 from automol.graph.base._03kekule import atom_hybridizations_from_kekule
+from automol.graph.base._03kekule import bad_stereo_bond_keys_from_kekule
+from automol.graph.base._03kekule import good_stereo_bond_keys_from_kekule
 from automol.graph.base._03kekule import radical_atom_keys
 from automol.graph.base._03kekule import radical_atom_keys_from_kekule
 from automol.graph.base._03kekule import nonresonant_radical_atom_keys
@@ -530,6 +532,8 @@ __all__ = [
     'unneeded_dummy_atom_keys',
     'atom_hybridizations',
     'atom_hybridizations_from_kekule',
+    'bad_stereo_bond_keys_from_kekule',
+    'good_stereo_bond_keys_from_kekule',
     'radical_atom_keys',
     'radical_atom_keys_from_kekule',
     'nonresonant_radical_atom_keys',
