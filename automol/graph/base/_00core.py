@@ -1764,34 +1764,26 @@ def angle_keys(gra):
 
 
 # # relabeling and changing keys
-def relabel(gra, atm_key_dct, check=True):
+def relabel(gra, key_dct: Dict[AtomKey, AtomKey], check: bool = False):
     """Relabel the atoms in the graph with new keys, using a dictionary
 
     :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param atm_key_dct: New keys for a subset of the atoms, by current atom key
-    :type atm_key_dct: dict[int: int]
+    :param key_dct: New keys for a subset of the atoms, by current atom key
     :param check: Check that all keys in `atm_key_dct` are present in the graph?
-    :type check: bool
     :returns: A molecular graph
     :rtype: automol graph data structure
     """
-    orig_atm_keys = atom_keys(gra)
+    orig_keys = atom_keys(gra)
     if check:
-        assert (
-            set(atm_key_dct.keys()) <= orig_atm_keys
-        ), f"{set(atm_key_dct.keys())}\n{orig_atm_keys}"
+        assert set(key_dct.keys()) <= orig_keys, f"{set(key_dct.keys())}\n{orig_keys}"
 
-    new_atm_key_dct = dict(zip(orig_atm_keys, orig_atm_keys))
-    new_atm_key_dct.update(atm_key_dct)
-
-    _relabel_atom_key = new_atm_key_dct.__getitem__
-
-    def _relabel_bond_key(bnd_key):
-        return frozenset(map(_relabel_atom_key, bnd_key))
-
-    atm_dct = dict_.transform_keys(atoms(gra), _relabel_atom_key)
-    bnd_dct = dict_.transform_keys(bonds(gra), _relabel_bond_key)
+    key_dct_ = dict(zip(orig_keys, orig_keys))
+    key_dct_.update(key_dct)
+    key_dct_ = dict_.transform_values(key_dct_, int)
+    atm_dct = dict_.transform_keys(atoms(gra), key_dct_.get)
+    bnd_dct = dict_.transform_keys(
+        bonds(gra), lambda bk: frozenset(map(key_dct_.get, bk))
+    )
     return from_atoms_and_bonds(atm_dct, bnd_dct)
 
 

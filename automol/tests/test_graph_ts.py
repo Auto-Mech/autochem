@@ -930,5 +930,5 @@ if __name__ == '__main__':
     # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    # test__amchi()
-    test__ts__fleeting_stereocenter_keys()
+    test__amchi()
+    # test__ts__fleeting_stereocenter_keys()
