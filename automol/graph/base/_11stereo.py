@@ -328,22 +328,25 @@ def ts_fleeting_stereocenter_keys(tsg, strict: bool = True):
     :returns: The keys of fleeting atom stereocenters
     :rtype: List[int]
     """
-    akeys = atom_stereo_keys(tsg)
-    bkeys = bond_stereo_keys(tsg)
-    r_akeys = stereo_keys(ts_reactants_graph(tsg))
-    p_akeys = stereo_keys(ts_products_graph(tsg))
-    r_bkeys = bond_stereo_keys(ts_reactants_graph(tsg))
-    p_bkeys = bond_stereo_keys(ts_products_graph(tsg))
+    rcts_gra = ts_reactants_graph(tsg)
+    prds_gra = ts_products_graph(tsg)
+    r_akeys = atom_stereo_keys(rcts_gra)
+    p_akeys = atom_stereo_keys(prds_gra)
+    r_bkeys = bond_stereo_keys(rcts_gra)
+    p_bkeys = bond_stereo_keys(prds_gra)
+    rp_keys = r_akeys | r_bkeys | p_akeys | p_bkeys
 
-    keys = set()
-    keys.update({k for k in akeys if k not in r_akeys and k not in p_akeys})
-    keys.update({k for k in bkeys if k not in r_bkeys and k not in p_bkeys})
+    keys = {k for k in stereo_keys(tsg) if k not in rp_keys}
 
     if strict:
-        # Check for reactant/product bond keys which are determined by TS atom keys and
-        # remove the atom keys
+        # Missing case captured here: In some cases, the configuration of an adjacent
+        # pair of atom stereocenters is implied by the combination of one of the atoms
+        # being a stereocenter for the reactant or product and the bond being a
+        # stereocenter for the reactant or product (both must be present)
+        # In this case, the stereochemsitry of the reaction site is fully specified by
+        # the reactants and products and neither atom is truly a fleeting stereocenter
         for bkey in r_bkeys | p_bkeys:
-            if bkey <= akeys:
+            if any(akey in bkey for akey in r_akeys | p_akeys):
                 keys -= bkey
 
     return frozenset(keys)

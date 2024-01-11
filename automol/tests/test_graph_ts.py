@@ -263,12 +263,11 @@ C4H5F3O2_GEO = (
  ('O', (-1.286205, 1.482841, -4.596348)),
  ('H', (-3.168531, 0.849827, -3.99654)))
 
-# Fleeting Atom Stereo + (Reactant Atom Stereo => Product Bond Stereo)
+# Non-strict Fleeting Atom Stereo + (Reactant Atom Stereo => Product Bond Stereo)
 # CC[C@H](O[O])C => C/C=C/C + O[O]
 #  *
-# [* marks a fleeting stereo site]
-# An interesting case -- fleeting TS atom stereochemistry becomes bond
-# stereochemistry
+# [* a non-strict fleeting stereocenter, which is implied by the reactant and product
+# configurations]
 C4H9O2_TSG = (
  {0: ('C', 0, None),
   1: ('C', 0, None),
@@ -316,6 +315,34 @@ C4H9O2_GEO = (
  ('H', (1.635613, 2.957619, 0.475404)),
  ('H', (0.428192, 1.019683, 3.075372)),
  ('H', (-0.462632, 1.023199, -2.601261)))
+
+
+# Strict Fleeting Atom Stereo + Product Bond Stereo
+# CCCC(O[O])CCC => CC/C=C/CCC + [O]O
+#    *
+# [* similar to the case above, but not present in reactant due to symmetry]
+C7H15O2_TSG = (
+    {0: ('C', 3, None),
+     1: ('C', 3, None),
+     2: ('C', 1, False),
+     3: ('C', 1, False),
+     4: ('C', 2, None),
+     5: ('C', 2, None),
+     6: ('C', 2, None),
+     7: ('O', 0, None),
+     8: ('O', 0, None),
+     9: ('H', 0, None)},
+    {frozenset({2, 3}): (1, None),
+     frozenset({3, 6}): (1, None),
+     frozenset({0, 4}): (1, None),
+     frozenset({7, 9}): (0.1, None),
+     frozenset({7, 8}): (1, None),
+     frozenset({2, 4}): (1, None),
+     frozenset({3, 8}): (0.9, None),
+     frozenset({5, 6}): (1, None),
+     frozenset({1, 5}): (1, None),
+     frozenset({2, 9}): (0.9, None)})
+
 
 # Reactant Bond Stereo => Product Bond Stereo (flipped)
 # [H]\[C]=C/O + [OH] => O/C=C/O
@@ -722,6 +749,7 @@ def test__ts__fleeting_stereocenter_keys():
     _test("C2H3F2O", C2H3F2O_TSG, frozenset(), frozenset())
     _test("C4H5F3O2", C4H5F3O2_TSG, frozenset(), frozenset())
     _test("C4H9O2", C4H9O2_TSG, frozenset(), frozenset({2}))
+    _test("C7H15O2", C7H15O2_TSG, frozenset({2, 3}), frozenset({2, 3}))
     _test("C2H4O2", C2H4O2_TSG, frozenset(), frozenset())
     _test("C4H4F2", C4H4F2_TSG, frozenset(), frozenset())
     _test("C6H11O2", C6H11O2_TSG, frozenset(), frozenset())
@@ -899,7 +927,7 @@ if __name__ == '__main__':
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    test__ts__reagents_graph()
+    # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
     # test__amchi()
