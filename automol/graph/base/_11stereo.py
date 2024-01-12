@@ -303,7 +303,7 @@ def ts_reagents_graph(tsg, prod=False, stereo=True, dummy=True):
     :rtype: automol graph data structure
     """
     gra = ts_reagents_graph_without_stereo(tsg, prod=prod, dummy=dummy)
-    if stereo and has_stereo(tsg):
+    if stereo:
         tsg = ts_reverse(tsg) if prod else tsg
         loc_tsg = to_local_stereo(tsg)
         par_eval_ = parity_evaluator_reactants_from_local_ts_graph_(loc_tsg)

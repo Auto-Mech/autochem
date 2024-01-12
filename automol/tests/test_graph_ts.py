@@ -411,6 +411,24 @@ C4H4F2_GEO = (
     ('H', (1.758437, -7.533401, 0.067458)))
 
 # Constrained TS Bond Stereo
+# [CH2]/C=C\CC=C => C1C[CH]CCC=1
+#        *
+# [* marks a constrained bond stereocenter -- must be cis]
+C6H9_TSG = (
+    {0: ('C', 2, None),
+     1: ('C', 2, None),
+     2: ('C', 1, None),
+     3: ('C', 1, None),
+     4: ('C', 1, None),
+     5: ('C', 2, None)},
+    {frozenset({4, 5}): (1, None),
+     frozenset({0, 1}): (0.1, None),
+     frozenset({0, 2}): (1, None),
+     frozenset({2, 4}): (1, None),
+     frozenset({3, 5}): (1, None),
+     frozenset({1, 3}): (1, None)})
+
+# Constrained TS Bond Stereo
 # [CH2]/C=C\[C@@H](CC)OO => CC[C@H]1OCC=C1 + [OH]
 #        *
 # [* marks a constrained bond stereocenter -- must be cis]
@@ -808,6 +826,7 @@ def test__ts__reagents_graph():
     _test("C4H4F2", C4H4F2_TSG,
           {frozenset({1, 2}): True, frozenset({6, 7}): True},
           {frozenset({1, 2}): False, frozenset({6, 7}): False})
+    _test("C6H9", C6H9_TSG, {frozenset({2, 4}): False}, {})
     _test("C6H11O2", C6H11O2_TSG,
           {5: False, frozenset({3, 4}): False}, {5: False})
     _test("C6H11O2b", C6H11O2b_TSG,
@@ -927,8 +946,8 @@ if __name__ == '__main__':
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    # test__ts__reagents_graph()
+    test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    test__amchi()
+    # test__amchi()
     # test__ts__fleeting_stereocenter_keys()
