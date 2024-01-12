@@ -14,6 +14,8 @@ Protocol for encoding resonance single bond stereo into the SMILES string:
     directionality from all double bonds in the string. This may leave some
     extra directional single bonds, but they won't affect anything.
 """
+import itertools
+
 import numpy
 from phydat import ptab
 
@@ -23,6 +25,7 @@ from automol.graph.base._00core import (
     atom_keys,
     atom_stereo_parities,
     atom_symbols,
+    atom_neighbor_atom_key,
     atoms_neighbor_atom_keys,
     bond_orders,
     bond_stereo_parities,
@@ -230,6 +233,12 @@ def _connected_smiles(
     atm_keys = atom_keys(kgr)
     term_keys = terminal_atom_keys(gra, backbone=False)
     start_key = min(term_keys) if term_keys else min(atm_keys)
+
+    # Don't start on a stereo bond, because this causes confusion of the directionality
+    # handling
+    ste_keys = set(itertools.chain(*ste_bnd_key_pool))
+    if start_key in ste_keys:
+        start_key = atom_neighbor_atom_key(gra, start_key, excl_keys=ste_keys)
 
     smi, _ = _recurse_smiles("", [], start_key)
 
