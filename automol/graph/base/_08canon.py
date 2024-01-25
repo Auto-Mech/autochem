@@ -9,6 +9,8 @@ import itertools
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy
+from phydat import ptab
+
 from automol.graph.base._00core import (
     atom_implicit_hydrogens,
     atom_keys,
@@ -25,7 +27,6 @@ from automol.graph.base._00core import (
     is_ts_graph,
     mass_numbers,
     nonbackbone_hydrogen_keys,
-    relabel as relabel_,
     set_stereo_parities,
     stereo_keys,
     ts_breaking_bond_keys,
@@ -36,6 +37,9 @@ from automol.graph.base._00core import (
     without_pi_bonds,
     without_stereo,
 )
+from automol.graph.base._00core import (
+    relabel as relabel_,
+)
 from automol.graph.base._02algo import connected_components, is_connected
 from automol.graph.base._05stereo import (
     CenterNeighborDict,
@@ -45,7 +49,6 @@ from automol.graph.base._05stereo import (
     unassigned_stereocenter_keys_from_candidates,
 )
 from automol.util import dict_
-from phydat import ptab
 
 # Special types
 ParityEvaluator = Callable[[Any, Dict[int, int], List[int], bool], Dict[int, int]]
@@ -675,14 +678,12 @@ def sort_evaluator_atom_invariants_(gra):
     # For bond orders, *KEEP* reacting bonds
     bord_dct = bond_orders(imp_gra)
 
-    def _sortable_bond_orders(bnd_keys):
+    def _bond_type(bnd_keys):
         bords = dict_.values_by_key(bord_dct, bnd_keys)
         bords = tuple(sorted(map(_replace_reacting_bond_order, bords)))
         return bords
 
-    bords_dct = dict_.transform_values(
-        atoms_bond_keys(imp_gra, ts_=True), _sortable_bond_orders
-    )
+    btyps_dct = dict_.transform_values(atoms_bond_keys(imp_gra, ts_=True), _bond_type)
 
     # For neighboring keys, *KEEP* reacting bonds and hydrogens
     nkeys_dct = atoms_neighbor_atom_keys(imp_gra, ts_=True)
@@ -695,7 +696,7 @@ def sort_evaluator_atom_invariants_(gra):
     mnum_dct.update({k: -1 for k in hyd_keys})
     apar_dct.update({k: -1 for k in hyd_keys})
     bpars_dct.update({k: [-1] for k in hyd_keys})
-    bords_dct.update({k: [-1] for k in hyd_keys})
+    btyps_dct.update({k: [-1] for k in hyd_keys})
     # Use the actual neighboring atoms of hydrogens, so that they will sort
     # based on their parent atoms
     nkeys_dct.update(dict_.by_key(atoms_neighbor_atom_keys(gra, ts_=True), hyd_keys))
@@ -714,9 +715,9 @@ def sort_evaluator_atom_invariants_(gra):
             mnum = mnum_dct[key]
             apar = apar_dct[key]
             bpars = bpars_dct[key]
-            bords = bords_dct[key]
+            btyps = btyps_dct[key]
             nidxs = tuple(sorted(map(pri_dct.get, nkeys_dct[key])))
-            return (symb, deg, hnum, mnum, apar, bpars, bords, nidxs)
+            return (symb, deg, hnum, mnum, apar, bpars, btyps, nidxs)
 
         return _value
 
