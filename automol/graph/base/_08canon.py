@@ -20,6 +20,7 @@ from automol.graph.base._00core import (
     atom_symbols,
     atoms_bond_keys,
     atoms_neighbor_atom_keys,
+    backbone_keys,
     bond_orders,
     bond_stereo_keys,
     bond_stereo_parities,
@@ -176,27 +177,14 @@ def canonical_amchi_graph_with_numbers(
     return gra, num_dct, is_can_dir, is_can_enant
 
 
-def smiles_graph(
-    gra: Any, stereo: bool = True, local_stereo: bool = False, res_stereo: bool = True
-) -> Any:
+def smiles_graph(gra: Any, res_stereo: bool = True) -> Any:
     """Put a connected graph in a form appropriate for writing SMILES strings
 
     :param gra: molecular graph
-    :param stereo: Include stereo?
-    :param local_stereo: Is the graph using local stereo assignments?
     :param res_stereo: allow resonant double-bond stereo?
-    :return: The graph
+    :return: The graph, kekulized with appropriate implicit/explicit hydrogens
     """
     gra = without_dummy_atoms(gra)
-
-    if not stereo:
-        gra = without_stereo(gra)
-
-    # If not using local stereo assignments, canonicalize the graph first.
-    # From this point on, the stereo parities can be assumed to correspond to
-    # the neighboring atom keys.
-    if not local_stereo and has_stereo(gra):
-        gra = canonical(gra)
 
     # Convert to implicit graph
     gra = implicit(gra)
@@ -785,3 +773,76 @@ def class_dict_from_priority_dict(pri_dct: dict):
     clas = sorted(keys, key=pri_dct.get)
     cla_dct = {i: tuple(c) for i, c in itertools.groupby(clas, key=pri_dct.get)}
     return cla_dct
+
+
+def to_local_stereo(gra, pri_dct=None):
+    """Convert canonical stereo parities to local ones
+
+    Local parities are based directly on the key values of neighboring
+    atoms, whereas canonical parities are based on their canonical
+    priorities.  Consequently, local parities are specific to the
+    particular way the graph is labeled, so the graph cannot be relabeled
+    without corrupting stereo information, but they are useful for
+    temporarily decoupling stereo parities from each other as the graph is
+    manipulated in other ways.
+
+    Note that, for consistency with InChI and other systems, hydrogen keys
+    are treated as having lowest priority. This is done by setting their
+    sort value to negative infinity.
+
+    For TS graphs, canonical priorities are given with respect to the canonical
+    TS direction. To avoid dependence of local parities on the canonical
+    direction, we must *undo* the direction reversal that occurs during the
+    canonical priority calculation when generating local parities. As far as I
+    am aware, the *only* case affected by this is Sn2 reactions, so that is all
+    that I have implemented here.
+
+    :param gra: molecular graph with canonical stereo parities
+    :type gra: automol graph data structure
+    :param pri_dct: priorities, to avoid recalculating
+    :type pri_dct: dict[int: int]
+    :returns: molecular graph with local stereo parities
+    :rtype: automol graph data structure
+    """
+    can_gra = gra
+    if has_stereo(can_gra):
+        pri_dct_ = (
+            None if pri_dct is None else dict_.by_key(pri_dct, backbone_keys(can_gra))
+        )
+        loc_gra, *_ = calculate_stereo(
+            can_gra,
+            par_eval_=parity_evaluator_flip_from_graph,
+            can_par_eval_=parity_evaluator_read_from_graph,
+            pri_dct=pri_dct_,
+        )
+    else:
+        loc_gra = can_gra
+
+    return loc_gra
+
+
+def from_local_stereo(gra, pri_dct=None):
+    """Convert local stereo parities to canonical ones
+
+    :param gra: molecular graph with local stereo parities
+    :type gra: automol graph data structure
+    :param pri_dct: priorities, to avoid recalculating
+    :type pri_dct: dict[int: int]
+    :returns: molecular graph with canonical stereo parities
+    :rtype: automol graph data structure
+    """
+    loc_gra = gra
+
+    if has_stereo(loc_gra):
+        pri_dct_ = (
+            None if pri_dct is None else dict_.by_key(pri_dct, backbone_keys(loc_gra))
+        )
+        can_gra, *_ = calculate_stereo(
+            loc_gra,
+            par_eval_=parity_evaluator_flip_from_graph,
+            pri_dct=pri_dct_,
+        )
+    else:
+        can_gra = loc_gra
+
+    return can_gra

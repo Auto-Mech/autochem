@@ -24,9 +24,12 @@ Step 1 is performed by the function distance_bounds_matrices() below.
 Steps 2-6 are performed by the function automol.embed.sample_raw_distance_coordinates()
 Step 7 is performed byt the function automol.embed.cleaned_up_coordinates()
 """
+
 import itertools
 
 import numpy
+from phydat import phycon
+
 from automol import embed, error, geom, zmat
 from automol.geom import base as geom_base
 from automol.graph.base import (
@@ -66,7 +69,6 @@ from automol.graph.base import (
     without_stereo,
 )
 from automol.util import dict_, heuristic
-from phydat import phycon
 
 
 # # geometry embedding functions

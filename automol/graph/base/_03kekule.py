@@ -2,6 +2,7 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+
 import itertools
 import numbers
 from typing import Dict, List, Optional, Tuple
@@ -772,7 +773,7 @@ def possible_rigid_planar_bond_keys(gra) -> frozenset[BondKey]:
     :type gra: automol graph data structure
     :returns: The bond keys
     """
-    bnd_unp_dct = bond_unpaired_electrons(gra)
+    bnd_unp_dct = bond_unpaired_electrons(gra, bond_order=False)
     bkeys = dict_.keys_by_value(bnd_unp_dct, lambda x: x == 1)
     return frozenset(bkeys)
 

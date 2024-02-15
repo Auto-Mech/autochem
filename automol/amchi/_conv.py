@@ -1,9 +1,11 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
+
 import itertools
 import numbers
 
-from automol import error, geom, graph as graph_
+from automol import error, geom
+from automol import graph as graph_
 from automol.amchi.base import (
     atom_stereo_parities,
     bond_stereo_parities,

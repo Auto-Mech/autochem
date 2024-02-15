@@ -317,6 +317,8 @@ from automol.graph.base._08canon import (
     canonical,
     canonical_keys,
     canonical_priorities,
+    from_local_stereo,
+    to_local_stereo,
 )
 
 # AMChI functions:
@@ -332,12 +334,10 @@ from automol.graph.base._10smiles import smiles
 from automol.graph.base._11stereo import (
     expand_reaction_stereo,
     expand_stereo,
-    from_local_stereo,
     has_fleeting_atom_or_bond_stereo,
     reflect,
     set_stereo_from_geometry,
     stereo_corrected_geometry,
-    to_local_stereo,
     unassigned_stereocenter_keys,
 )
 

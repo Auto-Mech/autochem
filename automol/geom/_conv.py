@@ -1,12 +1,14 @@
 """ Level 4 geometry functions
 """
+
 import itertools
 from typing import Dict, Optional
 
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import phycon
+from pyparsing import pyparsing_common as ppc
+
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
 from automol.geom import _molsym
@@ -129,11 +131,15 @@ def connectivity_graph_deprecated(
         return (
             False
             if "X" in (sym1, sym2)
-            else (dist < rqh_bond_max)
-            if "H" in (sym1, sym2)
-            else (dist < rhh_bond_max)
-            if (sym1 == "H" and sym2 == "H")
-            else (dist < rqq_bond_max)
+            else (
+                (dist < rqh_bond_max)
+                if "H" in (sym1, sym2)
+                else (
+                    (dist < rhh_bond_max)
+                    if (sym1 == "H" and sym2 == "H")
+                    else (dist < rqq_bond_max)
+                )
+            )
         )
 
     idxs = range(len(xyzs))
@@ -442,9 +448,11 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
         )
         atm_xyzs = coordinates(geo)
         atm_xyzs = [
-            atm_xyzs[geo_idx_dct[atm_key]]
-            if atm_key in geo_idx_dct
-            else (0.0, 0.0, 0.0)
+            (
+                atm_xyzs[geo_idx_dct[atm_key]]
+                if atm_key in geo_idx_dct
+                else (0.0, 0.0, 0.0)
+            )
             for atm_key in atm_keys
         ]
     else:

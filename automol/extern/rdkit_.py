@@ -1,10 +1,12 @@
 """ RDKit interface
 """
+
 import numbers
 
 import rdkit
 from rdkit import RDLogger
 from rdkit.Chem import AllChem, Draw
+
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph import base as graph_base

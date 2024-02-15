@@ -1,5 +1,6 @@
 """ Level 4 functions depending on other basic types (geom, graph)
 """
+
 from typing import Tuple
 
 from automol import graph as graph_
