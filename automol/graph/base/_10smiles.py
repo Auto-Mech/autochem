@@ -14,7 +14,10 @@ Protocol for encoding resonance single bond stereo into the SMILES string:
     directionality from all double bonds in the string. This may leave some
     extra directional single bonds, but they won't affect anything.
 """
+
 import itertools
+from collections import Counter
+from typing import Dict
 
 import numpy
 from phydat import ptab
@@ -23,13 +26,15 @@ from automol import util
 from automol.graph.base._00core import (
     atom_implicit_hydrogens,
     atom_keys,
+    atom_neighbor_atom_key,
     atom_stereo_parities,
     atom_symbols,
-    atom_neighbor_atom_key,
     atoms_neighbor_atom_keys,
+    bond_keys,
     bond_orders,
     bond_stereo_parities,
     explicit,
+    has_stereo,
     implicit,
     string,
     terminal_atom_keys,
@@ -39,6 +44,8 @@ from automol.graph.base._00core import (
 )
 from automol.graph.base._02algo import (
     connected_components,
+    dfs_children,
+    dfs_parents,
     is_connected,
     rings_atom_keys,
 )
@@ -47,13 +54,15 @@ from automol.graph.base._03kekule import (
     kekule,
     radical_atom_keys_from_kekule,
 )
-from automol.graph.base._08canon import canonical
+from automol.graph.base._08canon import canonical, smiles_graph
 from automol.util import dict_
+
+RING_IDS = tuple(map(str, range(1, 10)))
 
 ORGANIC_SUBSET = ["B", "C", "N", "O", "P", "S", "F", "Cl", "Br", "I"]
 
-BOND_ORDER_2_BOND_STR = {1: "", 2: "=", 3: "#"}
-BOND_ORDER_2_BOND_STR_EXP = {1: "-", 2: "=", 3: "#"}
+BOND_ORDER_DCT = {1: "", 2: "=", 3: "#"}
+BOND_ORDER_EXP_DCT = {1: "-", 2: "=", 3: "#"}
 
 
 def smiles(gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=False):
@@ -75,7 +84,7 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=Fa
     """
     gras = connected_components(gra)
     smis = [
-        _connected_smiles(
+        _connected_smiles_OLD(
             g,
             stereo=stereo,
             local_stereo=local_stereo,
@@ -89,6 +98,91 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=Fa
 
 
 def _connected_smiles(
+    gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=False
+):
+    """SMILES string from graph
+
+    Inspiration for this implementation strategy:
+        https://github.com/pckroon/pysmiles/blob/master/pysmiles/write_smiles.py#L79
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param stereo: Include stereo?
+    :type stereo: bool
+    :param local_stereo: Is the graph using local stereo assignments? That
+        is, are they based on atom keys rather than canonical keys?
+    :type local_stereo: bool
+    :param res_stereo: allow resonant double-bond stereo?
+    :type res_stereo: bool
+    :param exp_singles: Use explicit '-' for single bonds?
+    :type exp_singles: bool
+    :returns: the SMILES string
+    :rtype: str
+    """
+    gra = smiles_graph(
+        gra, stereo=stereo, local_stereo=local_stereo, res_stereo=res_stereo
+    )
+
+    ste_bkeys = list(bond_stereo_parities(gra).keys())
+    print(exp_singles, ste_bkeys)
+
+    # If there are terminal atoms, start from the first one
+    atm_keys = atom_keys(gra)
+    term_keys = terminal_atom_keys(gra, backbone=False)
+    start_key = min(term_keys) if term_keys else min(atm_keys)
+    print(start_key)
+
+    print("start:", start_key)
+
+    child_dct = dfs_children(gra, start_key)
+    parent_dct = dfs_parents(gra, start_key)
+
+    dfs_bkeys = {frozenset({k, nk}) for k, nks in child_dct.items() for nk in nks}
+    rng_bkeys = list(bond_keys(gra) - dfs_bkeys)
+    rng_id_dct = {}  # This will store the ring numbers we have assigned, by index
+
+    print(child_dct)
+    print(parent_dct)
+    print(rng_bkeys)
+
+    bnch_depth = 0
+    bnch_start_keys = set()
+    keys = [start_key]
+    smi = ""
+    symb_dct = atom_symbols(gra)
+
+    while keys:
+        key = keys.pop()
+
+        # Open parentheses if we are starting a new branch
+        if key in bnch_start_keys:
+            smi += "("
+            bnch_depth += 1
+            bnch_start_keys.remove(key)
+
+        # Write the atom symbol
+        # smi += f"{symb_dct[key]}({key})"
+        smi += f"{symb_dct[key]}"
+
+        # Write the number for the ring bond
+        rkeys = [rk for rk, bk in enumerate(rng_bkeys) if key in bk]
+        rng_ids = [_ring_bond_id(rkey, rng_id_dct, inplace=True) for rkey in rkeys]
+        smi += "".join(rng_ids)
+
+        # Add neighbor keys to the list
+        if key in child_dct:
+            nkeys = child_dct[key]
+            bnch_start_keys.update(nkeys[1:])
+            keys.extend(nkeys)
+        # Close parentheses if we are at the end of a branch
+        elif bnch_depth:
+            smi += ")"
+            bnch_depth -= 1
+
+    return smi
+
+
+def _connected_smiles_OLD(
     gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=False
 ):
     """SMILES string from graph
@@ -117,7 +211,7 @@ def _connected_smiles(
     # If not using local stereo assignments, canonicalize the graph first.
     # From this point on, the stereo parities can be assumed to correspond to
     # the neighboring atom keys.
-    if not local_stereo:
+    if not local_stereo and has_stereo(gra):
         gra = canonical(gra)
 
     # Convert to implicit graph
@@ -240,6 +334,7 @@ def _connected_smiles(
     if start_key in ste_keys:
         start_key = atom_neighbor_atom_key(gra, start_key, excl_keys=ste_keys)
 
+    print("start:", start_key)
     smi, _ = _recurse_smiles("", [], start_key)
 
     return smi
@@ -375,9 +470,9 @@ def bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct, exp_singles
             # set the representation accordingly.
             bnd_ord = bnd_ord_dct[frozenset({key0, key1})]
             rep = (
-                BOND_ORDER_2_BOND_STR[bnd_ord]
+                BOND_ORDER_DCT[bnd_ord]
                 if not exp_singles
-                else BOND_ORDER_2_BOND_STR_EXP[bnd_ord]
+                else BOND_ORDER_EXP_DCT[bnd_ord]
             )
 
         # Determine if a direction has been assigned to this bond.
@@ -510,15 +605,17 @@ def ring_representation_generator_(
                 closures.append(rng[0])
                 bnd_ord = bnd_ord_dct[frozenset({rng[-1], rng[0]})]
                 bnd_rep = (
-                    BOND_ORDER_2_BOND_STR[bnd_ord]
+                    BOND_ORDER_DCT[bnd_ord]
                     if not exp_singles
-                    else BOND_ORDER_2_BOND_STR_EXP[bnd_ord]
+                    else BOND_ORDER_EXP_DCT[bnd_ord]
                 )
                 # Handle the special case where the last ring bond has stereo
                 if (rng[-1], rng[0]) in direc_dct:
                     direc = direc_dct[(rng[-1], rng[0])]
                     bnd_rep = bnd_rep + direc
                 tags.append(f"{bnd_rep}{tag}")
+            print(key, nkeys, closures, tags)
+            print(rng, tag)
             if key == rng[0]:
                 nkeys.remove(rng[-1])
                 closures.append(rng[-1])
@@ -546,6 +643,37 @@ def _flip_direction(direc, flip=True):
     else:
         ret = "\\" if direc == "/" else "/"
     return ret
+
+
+def _ring_bond_id(rkey: int, rng_id_dct: Dict[int, int], inplace: bool = True):
+    """Find the appropriate ring ID for a ring bond, by ring key
+
+    The ring keys are arbitrary, as long as they refer to the same ring bond.  I am
+    using the index from the list of ring bonds.
+
+    :param rkey: The ring key
+    :param rng_id_dct: The dictionary of ring bond IDs
+    :param inplace: Modify the ring ID dictionary in place?
+        (Otherwise, it must be updated after calling this function)
+    :return: The next available ring ID
+    """
+    # If this ring key already has an ID, return it
+    if rkey in rng_id_dct:
+        return rng_id_dct[rkey]
+
+    # Figure out how many times each ring ID has been used
+    count_dct = {i: 0 for i in RING_IDS}
+    count_dct.update(Counter(rng_id_dct.values()))
+
+    # Get the first available ring ID with a minimum count
+    min_count = min(count_dct.values())
+    rng_id = next(i for i in RING_IDS if count_dct[i] == min_count)
+
+    # If requested, update the ring ID dictionary in-place
+    if inplace:
+        rng_id_dct[rkey] = rng_id
+
+    return rng_id
 
 
 if __name__ == "__main__":

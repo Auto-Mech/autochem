@@ -5,8 +5,9 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 Reference:
 Schneider, Sayle, Landrum. J. Chem. Inf. Model. 2015, 55, 10, 2111–2120
 """
+
 import itertools
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy
 from phydat import ptab
@@ -22,6 +23,8 @@ from automol.graph.base._00core import (
     bond_orders,
     bond_stereo_keys,
     bond_stereo_parities,
+    explicit,
+    has_stereo,
     implicit,
     invert_atom_stereo_parities,
     is_ts_graph,
@@ -32,6 +35,7 @@ from automol.graph.base._00core import (
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reverse,
+    with_explicit_stereo_hydrogens,
     without_bonds_by_orders,
     without_dummy_atoms,
     without_pi_bonds,
@@ -41,6 +45,7 @@ from automol.graph.base._00core import (
     relabel as relabel_,
 )
 from automol.graph.base._02algo import connected_components, is_connected
+from automol.graph.base._03kekule import bad_stereo_bond_keys_from_kekule, kekule
 from automol.graph.base._05stereo import (
     CenterNeighborDict,
     parity_evaluator_flip_from_graph,
@@ -124,7 +129,7 @@ def canonical_keys(gra):
 
 def canonical_amchi_graph_with_numbers(
     gra, stereo: bool = True
-) -> (Any, Dict[int, int], bool, bool):
+) -> Tuple[Any, Dict[int, int], bool, bool]:
     """Put a connected graph in AMChI-canonical form
 
     :param gra: A connected graph
@@ -169,6 +174,48 @@ def canonical_amchi_graph_with_numbers(
     gra = relabel_(gra, num_dct)
 
     return gra, num_dct, is_can_dir, is_can_enant
+
+
+def smiles_graph(
+    gra: Any, stereo: bool = True, local_stereo: bool = False, res_stereo: bool = True
+) -> Any:
+    """Put a connected graph in a form appropriate for writing SMILES strings
+
+    :param gra: molecular graph
+    :param stereo: Include stereo?
+    :param local_stereo: Is the graph using local stereo assignments?
+    :param res_stereo: allow resonant double-bond stereo?
+    :return: The graph
+    """
+    gra = without_dummy_atoms(gra)
+
+    if not stereo:
+        gra = without_stereo(gra)
+
+    # If not using local stereo assignments, canonicalize the graph first.
+    # From this point on, the stereo parities can be assumed to correspond to
+    # the neighboring atom keys.
+    if not local_stereo and has_stereo(gra):
+        gra = canonical(gra)
+
+    # Convert to implicit graph
+    gra = implicit(gra)
+
+    # Don't allow implicit hydrogens connected to backbone hydrogens
+    gra = explicit(gra, atm_keys=atom_keys(gra, symb="H"))
+
+    # Insert hydrogens necessary for bond stereo
+    gra = with_explicit_stereo_hydrogens(gra, all_=False, neg=True)
+
+    # Find a dominant resonance
+    kgr = kekule(gra, max_stereo_overlap=True)
+
+    # Remove stereo parities at single bonds if requested
+    if not res_stereo:
+        bad_bkeys = bad_stereo_bond_keys_from_kekule(kgr)
+        kgr = set_stereo_parities(kgr, {bk: None for bk in bad_bkeys})
+
+    return kgr
 
 
 def stereo_assignment_representation(gra, pri_dct: dict):

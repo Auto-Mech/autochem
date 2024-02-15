@@ -8,8 +8,9 @@ import functools
 import itertools
 import numbers
 import operator
-from typing import List
+from typing import List, Dict
 
+import networkx
 import more_itertools as mit
 from automol import util
 from automol.graph.base import _01networkx
@@ -427,6 +428,28 @@ def connected_components_atom_keys(gra):
 def is_connected(gra):
     """is this a connected graph"""
     return len(connected_components(gra)) == 1
+
+
+def dfs_children(gra, key) -> Dict[int, List[int]]:
+    """Get the dictionary of children in a depth-first search
+
+    :param gra: A graph
+    :param key: The starting atom key
+    :return: The dictionary of children
+    """
+    nxg = _01networkx.from_graph(gra)
+    return networkx.dfs_successors(nxg, source=key)
+
+
+def dfs_parents(gra, key) -> Dict[int, int]:
+    """Get the dictionary of predecessors in a depth-first search
+
+    :param gra: A graph
+    :param key: The starting atom key
+    :return: The dictionary of parents
+    """
+    nxg = _01networkx.from_graph(gra)
+    return networkx.dfs_predecessors(nxg, source=key)
 
 
 def atom_shortest_paths(gra):
