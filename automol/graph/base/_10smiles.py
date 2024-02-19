@@ -102,7 +102,7 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=Fa
     """
     gras = connected_components(gra)
     smis = [
-        _connected_smiles_OLD(
+        _connected_smiles(
             g,
             stereo=stereo,
             local_stereo=local_stereo,
@@ -173,7 +173,6 @@ def _connected_smiles(
     # Identify bonds that will be directional, for specifying stereo
     # We will need to encode directions for these
     dir_bnds_dct = _directional_bonds(gra, parent_dct, child_dct, rng_bkeys)
-    print(dir_bnds_dct)
     dir_enc_dct = {}
 
     # Perform depth-first traversal, building the SMILES string
@@ -310,15 +309,16 @@ def _atom_parity_encoding(
     #   b. Add `None` for the implicit hyrodgen, if present
     if key in nhyd_dct and nhyd_dct[key]:
         smi_nkeys.append(None)
-    #   c. Add the child keys
+    #   c. Add the ring keys
+    smi_nkeys.extend(_ring_neighbors(key, rng_bkeys))
+    #   d. Add the child keys
     if key in child_dct:
         smi_nkeys.extend(child_dct[key])
-    #   d. Add the ring keys
-    smi_nkeys.extend(_ring_neighbors(key, rng_bkeys))
 
     # 3. Determine whether the SMILES parity is counter-clockwise
-    is_counter_clockwise = par_dct[key] & util.is_odd_permutation(loc_nkeys, smi_nkeys)
-    return "@" if is_counter_clockwise else "@@"
+    is_clockwise = par_dct[key] ^ util.is_odd_permutation(loc_nkeys, smi_nkeys)
+
+    return "@@" if is_clockwise else "@"
 
 
 def _update_directional_bond_encodings(
@@ -928,8 +928,6 @@ def ring_representation_generator_(
                     direc = direc_dct[(rng[-1], rng[0])]
                     bnd_rep = bnd_rep + direc
                 tags.append(f"{bnd_rep}{tag}")
-            print(key, nkeys, closures, tags)
-            print(rng, tag)
             if key == rng[0]:
                 nkeys.remove(rng[-1])
                 closures.append(rng[-1])
