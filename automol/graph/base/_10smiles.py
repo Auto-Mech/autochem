@@ -32,6 +32,7 @@ from automol.graph.base._00core import (
     atom_neighbor_atom_key,
     atom_stereo_parities,
     atom_symbols,
+    atom_unpaired_electrons,
     atoms_neighbor_atom_keys,
     bond_keys,
     bond_orders,
@@ -71,7 +72,11 @@ BondPairOrRingId = Union[Tuple[int, int], int]
 RING_IDS = tuple(map(str, range(1, 10)))
 
 ORGANIC_SUBSET = ["B", "C", "N", "O", "P", "S", "F", "Cl", "Br", "I"]
+HYDROGEN_COUNT_ENCODING = {0: "", 1: "H", 2: "H2", 3: "H3", 4: "H4"}
+BOND_ORDER_ENCODING = {1: "", 2: "=", 3: "#"}
+BOND_ORDER_ENCODING_EXP = {1: "-", 2: "=", 3: "#"}
 
+# deprecated:
 BOND_REP_DCT = {1: "", 2: "=", 3: "#"}
 BOND_REP_EXP_DCT = {1: "-", 2: "=", 3: "#"}
 HYD_REP_DCT = {0: "", 1: "H", **{n: f"H{n}" for n in range(2, 10)}}
@@ -145,101 +150,131 @@ def _connected_smiles(
     # Calculate properties
     symb_dct = atom_symbols(gra)
     nhyd_dct = atom_implicit_hydrogens(gra)
-    hrep_dct = dict_.transform_values(nhyd_dct, HYD_REP_DCT.get)
-    bond_rep_dct = BOND_REP_EXP_DCT if exp_singles else BOND_REP_DCT
-    brep_dct = dict_.transform_values(bond_orders(gra), bond_rep_dct.get)
-    ste_nkeys_dct = stereocenter_candidates(gra, strict=False)
-    ste_par_dct = dict_.filter_by_value(stereo_parities(gra), lambda x: x is not None)
+    rad_dct = atom_unpaired_electrons(gra, bond_order=True)
+    bord_dct = bond_orders(gra)
+    par_dct = dict_.filter_by_value(stereo_parities(gra), lambda x: x is not None)
+    loc_nkeys_dct = stereocenter_candidates(gra, strict=False)
 
     # If there are terminal atoms, start from the first one
     term_keys = terminal_atom_keys(gra, backbone=False)
     start_key = min(term_keys) if term_keys else min(atom_keys(gra))
-    print("start:", start_key)
 
     # Identify children and parents for depth-first traversal
     child_dct = dfs_children(gra, start_key)
     parent_dct = {ck: pk for pk, cks in child_dct.items() for ck in cks}
-    print(child_dct)
 
     # Identify ring bonds that won't be visited in the depth-first traversal
     # We will need to use ring bond markers for these
     dfs_bkeys = {frozenset({k, nk}) for k, nks in child_dct.items() for nk in nks}
     rng_bkeys = list(bond_keys(gra) - dfs_bkeys)
-    rng_id_dct = {}
+    rng_enc_dct = {}
 
     # Identify bonds that will be directional, for specifying stereo
     dir_bnds_dct = _directional_bonds(gra, parent_dct, child_dct, rng_bkeys)
-    print(dir_bnds_dct)
-    dir_dct = {}  # True: points down from source
+    dir_enc_dct = {}
 
     # Perform depth-first traversal, building the SMILES string
-    bnch_depth = 0
-    bnch_start_keys = set()
+    branch_depth = 0
+    branch_start_keys = set()
     keys = [start_key]
     smi = ""
     while keys:
         key = keys.pop()
 
-        # Open parentheses if we are starting a new branch
-        if key in bnch_start_keys:
+        # 1. Open parentheses for the branch
+        if key in branch_start_keys:
+            branch_depth += 1
+            branch_start_keys.remove(key)
             smi += "("
-            bnch_depth += 1
-            bnch_start_keys.remove(key)
 
-        # Write the bond type if this atom has a parent
+        # 2. Encode the bond to the parent atom
         if key in parent_dct:
-            pkey = parent_dct[key]
-
-            # Update the direction dictionary and write the directional bond marker
-            bnd = (pkey, key)
-            dir_dct = _update_directional_bonds(
-                bnd, dir_dct, dir_bnds_dct, ste_par_dct, ste_nkeys_dct
+            dir_enc_dct = _update_directional_bond_encodings(
+                key, parent_dct, dir_enc_dct, dir_bnds_dct, par_dct, loc_nkeys_dct
             )
-            smi += dir_dct[bnd] if bnd in dir_dct else ""
+            smi += _bond_encoding(key, parent_dct, bord_dct, dir_enc_dct, exp_singles)
 
-            # Write the bond marker for double and triple bonds
-            smi += brep_dct[frozenset(bnd)]
+        # 3. Encode the atom
+        par_enc = _atom_parity_encoding(
+            key, parent_dct, child_dct, nhyd_dct, rng_bkeys, par_dct, loc_nkeys_dct
+        )
+        smi += _atom_encoding(key, symb_dct, nhyd_dct, rad_dct, par_enc)
 
-        # Write the atom symbol
-        if key in ste_par_dct:
-            par0 = ste_par_dct[key]
-            nkeys0 = ste_nkeys_dct[key]
-            nkeys1 = _atom_stereodetermining_neighbor_keys(
-                key, parent_dct, child_dct, nhyd_dct, rng_bkeys
-            )
-            par1 = util.is_odd_permutation(nkeys1, nkeys0) ^ par0
-            prep = "@@" if par1 else "@"
-            smi += f"[{symb_dct[key]}{prep}{hrep_dct[key]}]"
-        else:
-            smi += f"{symb_dct[key]}"
+        # 4. Encode the ring-closure bonds for the atom
+        rng_enc_dct = _update_ring_bond_ids(key, rng_bkeys, rng_enc_dct)
+        smi += "".join(f"{rng_enc_dct[bk]}" for bk in rng_bkeys if key in bk)
 
-        # Write the ring bond markers, if any
-        rng_id_dct = _update_ring_bond_ids(key, rng_bkeys, rng_id_dct)
-        for bkey in rng_bkeys:
-            if key in bkey:
-                smi += f"{brep_dct[bkey]}{rng_id_dct[bkey]}"
-
-        # Add neighbor keys to the list in reversed order
-        # (Since we pop from the end of the list, they will come out in the order given)
+        # 5. Set continuation atoms or close parentheses for the branch
         if key in child_dct:
-            child_keys = list(reversed(child_dct[key]))
-            bnch_start_keys.update(child_keys[1:])
+            child_keys = list(reversed(child_dct[key]))  # reverse for ordered pop-off
+            branch_start_keys.update(child_keys[1:])
             keys.extend(child_keys)
-        # Close parentheses if we are at the end of a branch
-        elif bnch_depth:
+        elif branch_depth:
+            branch_depth -= 1
             smi += ")"
-            bnch_depth -= 1
 
     return smi
 
 
 # helpers
-def _atom_stereodetermining_neighbor_keys(
+def _atom_encoding(
+    key: int,
+    symb_dct: Dict[AtomKey, str],
+    nhyd_dct: Dict[AtomKey, int],
+    rad_dct: Dict[AtomKey, int],
+    par_enc: str,
+) -> str:
+    """Get the SMILES encoding of an atom
+
+    :param key: The atom key
+    :param symb_dct: The atomic symbols
+    :param nhyd_dct: The implicit hydrogens
+    :param rad_dct: The number of unpaired electrons
+    :param par_enc: The parity encoding, '@' or '@@'
+    :return: The SMILES encoding of the atom
+    """
+    symb = symb_dct[key]
+    if symb in ORGANIC_SUBSET and not par_enc and not rad_dct[key]:
+        return f"{symb}"
+
+    nhyd2enc = HYDROGEN_COUNT_ENCODING
+    hyd_enc = nhyd2enc[nhyd_dct[key]]
+    return f"[{symb}{par_enc}{hyd_enc}]"
+
+
+def _bond_encoding(
+    key: int,
+    parent_dct: Dict[AtomKey, int],
+    bord_dct: Dict[BondKey, int],
+    dir_dct: Dict[BondPairOrRingId, str],
+    exp_singles: bool,
+) -> str:
+    """Get the SMILES representation of the bond to an atom from its parent
+
+    :param key: The atom key
+    :param parent_dct: The SMILES parent atoms
+    :param bnd_ord_dct: The dictionary of bond orders
+    :param dir_dct: The dictionary of bond directions, by directional bond
+    :param exp_singles: Explicitly represent single bonds by dashes?
+    :return: The SMILES encoding of the bond
+    """
+    bnd = (parent_dct[key], key)
+    bkey = frozenset(bnd)
+
+    dir_enc = dir_dct.get(bnd, "")
+    ord2enc = BOND_ORDER_ENCODING_EXP if exp_singles else BOND_ORDER_ENCODING
+    ord_enc = ord2enc[bord_dct[bkey]]
+    return f"{dir_enc}{ord_enc}"
+
+
+def _atom_parity_encoding(
     key: int,
     parent_dct: Dict[int, int],
     child_dct: Dict[int, List[int]],
     nhyd_dct: Dict[int, int],
     rng_bkeys: List[frozenset[int, int]],
+    par_dct: Dict[CenterKey, bool],
+    loc_nkeys_dct: CenterNeighborDict,
 ) -> str:
     """Get the SMILES stereo-determining neighbors of an atom, in order
 
@@ -249,41 +284,56 @@ def _atom_stereodetermining_neighbor_keys(
     :param child_dct: The SMILES child atoms, sorted in order of appearance
     :param nhyd_dct: The implicit hydrogens
     :param rng_bkeys: The SMILES ring-closing bonds, sorted in order of appearance
+    :param par_dct: The dictionary of local stereo parities
+    :param loc_nkeys_dct: The dictionary of local stereo-determining neighbors
     :return: The stereo-determining neighbors, in order
     """
-    nkeys = []
-    # 1. Add the parent key
+    # 0. Return early if this atom is not a stereocenter
+    if key not in par_dct:
+        return ""
+
+    # 1. Get the locally sorted stero-determining neighbors
+    loc_nkeys = loc_nkeys_dct[key]
+    # 2. Get the SMILES-sorted stereo-determining neighbors
+    smi_nkeys = []
+    #   a. Add the parent key
     if key in parent_dct:
-        nkeys.append(parent_dct[key])
-    # 2. Add `None` for the implicit hyrodgen, if present
+        smi_nkeys.append(parent_dct[key])
+    #   b. Add `None` for the implicit hyrodgen, if present
     if key in nhyd_dct and nhyd_dct[key]:
-        nkeys.append(None)
-    # 3. Add the child keys
+        smi_nkeys.append(None)
+    #   c. Add the child keys
     if key in child_dct:
-        nkeys.extend(child_dct[key])
-    # 4. Add the ring keys
-    nkeys.extend(_ring_neighbors(key, rng_bkeys))
-    return tuple(nkeys)
+        smi_nkeys.extend(child_dct[key])
+    #   d. Add the ring keys
+    smi_nkeys.extend(_ring_neighbors(key, rng_bkeys))
+
+    # 3. Determine whether the SMILES parity is counter-clockwise
+    is_counter_clockwise = par_dct[key] & util.is_odd_permutation(loc_nkeys, smi_nkeys)
+    return "@" if is_counter_clockwise else "@@"
 
 
-def _update_directional_bonds(
-    bnd: Tuple[int, int],
+def _update_directional_bond_encodings(
+    key: int,
+    parent_dct: Dict[int, int],
     dir_dct: Dict[BondPairOrRingId, str],
     dir_bnds_dct: Dict[BondKey, Tuple[BondPairOrRingId, BondPairOrRingId]],
     par_dct: Dict[CenterKey, bool],
     nkeys_dct: CenterNeighborDict,
-) -> str:
-    """Find the appropriate direction for a directional bond
+) -> Dict[BondPairOrRingId, str]:
+    """Update the dictionary of directional bond encodings with the appropriate bond
+    direction for an atom to its parent
 
-    Warning: This modifies the direction dictionary in-place
-
-    :param bnd: The bond to update, specified as parent atom key, current atom key
+    :param key: The atom key
+    :param parent_dct: The SMILES parent atoms
     :param dir_dct: The dictionary of bond directions, by directional bond
     :param dir_bnds_dct: The dictionary of directional bond pairs, by stereo bond key
     :param par_dct: The dictionary of local stereo parities
     :param nkeys_dct: The dictionary of local stereo-determining neighbors
+    :return: The updated dictionary of bond directions
     """
     dir_dct = dir_dct.copy()
+    bnd = (parent_dct[key], key)
 
     # Identify the affected stereo bonds
     bnds_dct = dict_.filter_by_value(dir_bnds_dct, lambda bs: bnd in bs)
@@ -323,6 +373,35 @@ def _update_directional_bonds(
 
     dir_dct[bnd] = _flip_bond_direction(dir_dct[pbnd], flip=is_opposite)
     return dir_dct
+
+
+def _update_ring_bond_ids(
+    key: AtomKey, rng_bkeys: List[BondKey], rng_id_dct: Dict[BondKey, int]
+) -> Dict[BondKey, int]:
+    """Update the dictionary of ring bond IDs for a newly encountered atom
+
+    :param key: An atom key
+    :param rng_bkeys: An ordered list of ring bond keys
+    :param rng_id_dct: A dictionary of ring bond IDs, by bond key
+    :return: The updated dictionary of ring bond IDs, by bond key
+    """
+    rng_id_dct = rng_id_dct.copy()
+
+    # Figure out how many times each ring ID has been used
+    count_dct = {i: 0 for i in RING_IDS}
+    count_dct.update(Counter(rng_id_dct.values()))
+
+    for bkey in rng_bkeys:
+        if key in bkey and bkey not in rng_id_dct:
+            # Determine the next available ring ID with a minimum count
+            min_count = min(count_dct.values())
+            rng_id = next(i for i in RING_IDS if count_dct[i] == min_count)
+
+            # Assign the ring ID and update the count
+            rng_id_dct[bkey] = rng_id
+            count_dct[rng_id] += 1
+
+    return rng_id_dct
 
 
 def _directional_bonds(
@@ -399,35 +478,6 @@ def _ring_neighbors(key: int, rng_bkeys: List[frozenset[int]]) -> List[int]:
     :return: The neighboring atom keys
     """
     return [util.partner(bk, key) for bk in rng_bkeys if key in bk]
-
-
-def _update_ring_bond_ids(
-    key: AtomKey, rng_bkeys: List[BondKey], rng_id_dct: Dict[BondKey, int]
-) -> Dict[BondKey, int]:
-    """Update the dictionary of ring bond IDs for a newly encountered atom
-
-    :param key: An atom key
-    :param rng_bkeys: An ordered list of ring bond keys
-    :param rng_id_dct: A dictionary of ring bond IDs, by bond key
-    :return: The updated dictionary of ring bond IDs, by bond key
-    """
-    rng_id_dct = rng_id_dct.copy()
-
-    # Figure out how many times each ring ID has been used
-    count_dct = {i: 0 for i in RING_IDS}
-    count_dct.update(Counter(rng_id_dct.values()))
-
-    for bkey in rng_bkeys:
-        if key in bkey and bkey not in rng_id_dct:
-            # Determine the next available ring ID with a minimum count
-            min_count = min(count_dct.values())
-            rng_id = next(i for i in RING_IDS if count_dct[i] == min_count)
-
-            # Assign the ring ID and update the count
-            rng_id_dct[bkey] = rng_id
-            count_dct[rng_id] += 1
-
-    return rng_id_dct
 
 
 def _flip_bond_direction(direc, flip=True):
