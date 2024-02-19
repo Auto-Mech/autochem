@@ -17,13 +17,16 @@ Protocol for encoding resonance single bond stereo into the SMILES string:
 
 import itertools
 from collections import Counter
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy
 from phydat import ptab
 
 from automol import util
 from automol.graph.base._00core import (
+    AtomKey,
+    BondKey,
+    CenterKey,
     atom_implicit_hydrogens,
     atom_keys,
     atom_neighbor_atom_key,
@@ -32,12 +35,14 @@ from automol.graph.base._00core import (
     atoms_neighbor_atom_keys,
     bond_keys,
     bond_orders,
+    bond_stereo_keys,
     bond_stereo_parities,
     explicit,
     has_stereo,
     implicit,
     stereo_parities,
     string,
+    subgraph,
     terminal_atom_keys,
     with_explicit_stereo_hydrogens,
     without_dummy_atoms,
@@ -55,12 +60,13 @@ from automol.graph.base._03kekule import (
     radical_atom_keys_from_kekule,
 )
 from automol.graph.base._05stereo import (
-    CenterKey,
     CenterNeighborDict,
     stereocenter_candidates,
 )
 from automol.graph.base._08canon import canonical, smiles_graph, to_local_stereo
 from automol.util import dict_
+
+BondPairOrRingId = Union[Tuple[int, int], int]
 
 RING_IDS = tuple(map(str, range(1, 10)))
 
@@ -144,7 +150,6 @@ def _connected_smiles(
     brep_dct = dict_.transform_values(bond_orders(gra), bond_rep_dct.get)
     ste_nkeys_dct = stereocenter_candidates(gra, strict=False)
     ste_par_dct = dict_.filter_by_value(stereo_parities(gra), lambda x: x is not None)
-    print(ste_par_dct)
 
     # If there are terminal atoms, start from the first one
     term_keys = terminal_atom_keys(gra, backbone=False)
@@ -162,6 +167,11 @@ def _connected_smiles(
     rng_bkeys = list(bond_keys(gra) - dfs_bkeys)
     rng_id_dct = {}
 
+    # Identify bonds that will be directional, for specifying stereo
+    dir_bnds_dct = _directional_bonds(gra, parent_dct, child_dct, rng_bkeys)
+    print(dir_bnds_dct)
+    dir_dct = {}  # True: points down from source
+
     # Perform depth-first traversal, building the SMILES string
     bnch_depth = 0
     bnch_start_keys = set()
@@ -178,8 +188,17 @@ def _connected_smiles(
 
         # Write the bond type if this atom has a parent
         if key in parent_dct:
-            bkey = frozenset({key, parent_dct[key]})
-            smi += brep_dct[bkey]
+            pkey = parent_dct[key]
+
+            # Update the direction dictionary and write the directional bond marker
+            bnd = (pkey, key)
+            dir_dct = _update_directional_bonds(
+                bnd, dir_dct, dir_bnds_dct, ste_par_dct, ste_nkeys_dct
+            )
+            smi += dir_dct[bnd] if bnd in dir_dct else ""
+
+            # Write the bond marker for double and triple bonds
+            smi += brep_dct[frozenset(bnd)]
 
         # Write the atom symbol
         if key in ste_par_dct:
@@ -190,17 +209,15 @@ def _connected_smiles(
             )
             par1 = util.is_odd_permutation(nkeys1, nkeys0) ^ par0
             prep = "@@" if par1 else "@"
-            print(par0, nkeys0)
-            print(par1, nkeys1)
             smi += f"[{symb_dct[key]}{prep}{hrep_dct[key]}]"
         else:
             smi += f"{symb_dct[key]}"
 
         # Write the ring bond markers, if any
-        ridxs = [rk for rk, bk in enumerate(rng_bkeys) if key in bk]
-        if ridxs:
-            rng_ids = [_ring_bond_id(ridx, rng_id_dct, inplace=True) for ridx in ridxs]
-            smi += "".join(rng_ids)
+        rng_id_dct = _update_ring_bond_ids(key, rng_bkeys, rng_id_dct)
+        for bkey in rng_bkeys:
+            if key in bkey:
+                smi += f"{brep_dct[bkey]}{rng_id_dct[bkey]}"
 
         # Add neighbor keys to the list in reversed order
         # (Since we pop from the end of the list, they will come out in the order given)
@@ -216,6 +233,220 @@ def _connected_smiles(
     return smi
 
 
+# helpers
+def _atom_stereodetermining_neighbor_keys(
+    key: int,
+    parent_dct: Dict[int, int],
+    child_dct: Dict[int, List[int]],
+    nhyd_dct: Dict[int, int],
+    rng_bkeys: List[frozenset[int, int]],
+) -> str:
+    """Get the SMILES stereo-determining neighbors of an atom, in order
+
+    :param key: The atom key
+    :param par_dct: The local parity assignments
+    :param parent_dct: The SMILES parent atoms
+    :param child_dct: The SMILES child atoms, sorted in order of appearance
+    :param nhyd_dct: The implicit hydrogens
+    :param rng_bkeys: The SMILES ring-closing bonds, sorted in order of appearance
+    :return: The stereo-determining neighbors, in order
+    """
+    nkeys = []
+    # 1. Add the parent key
+    if key in parent_dct:
+        nkeys.append(parent_dct[key])
+    # 2. Add `None` for the implicit hyrodgen, if present
+    if key in nhyd_dct and nhyd_dct[key]:
+        nkeys.append(None)
+    # 3. Add the child keys
+    if key in child_dct:
+        nkeys.extend(child_dct[key])
+    # 4. Add the ring keys
+    nkeys.extend(_ring_neighbors(key, rng_bkeys))
+    return tuple(nkeys)
+
+
+def _update_directional_bonds(
+    bnd: Tuple[int, int],
+    dir_dct: Dict[BondPairOrRingId, str],
+    dir_bnds_dct: Dict[BondKey, Tuple[BondPairOrRingId, BondPairOrRingId]],
+    par_dct: Dict[CenterKey, bool],
+    nkeys_dct: CenterNeighborDict,
+) -> str:
+    """Find the appropriate direction for a directional bond
+
+    Warning: This modifies the direction dictionary in-place
+
+    :param bnd: The bond to update, specified as parent atom key, current atom key
+    :param dir_dct: The dictionary of bond directions, by directional bond
+    :param dir_bnds_dct: The dictionary of directional bond pairs, by stereo bond key
+    :param par_dct: The dictionary of local stereo parities
+    :param nkeys_dct: The dictionary of local stereo-determining neighbors
+    """
+    dir_dct = dir_dct.copy()
+
+    # Identify the affected stereo bonds
+    bnds_dct = dict_.filter_by_value(dir_bnds_dct, lambda bs: bnd in bs)
+
+    # If no stereo bonds are affected, return an empty string
+    if not bnds_dct:
+        return dir_dct
+
+    # Identify parnters among the affected stereo bonds that already have a direction
+    # These will determine the direction of the current bond
+    part_dct = dict_.transform_values(bnds_dct, lambda bs: util.partner(bs, bnd))
+    part_dct = dict_.filter_by_value(part_dct, lambda b: b in dir_dct)
+
+    # If no partners were identified, return an arbitrary upward bond direction
+    if not part_dct:
+        dir_dct[bnd] = "/"
+        return dir_dct
+
+    # Otherwise, there should only be one partner
+    assert len(part_dct) == 1, part_dct
+    ((bkey, pbnd),) = part_dct.items()
+
+    # Identify the SMILES stereo-determining neighbors for this stereo bond, for
+    # comparison with those determining its local parity
+    nsmi1, nsmi2 = (ks[-1] for ks in nkeys_dct[bkey])
+    nmax1, nmax2 = (util.partner(p, k) for k, p in zip(sorted(bkey), bnds_dct[bkey]))
+
+    # Determine whether the direction of this bond is opposite to the partner bond
+    bnd1, bnd2 = bnds_dct[bkey]
+    is_opposite = (
+        par_dct[bkey]
+        ^ (nsmi1 == nmax1)
+        ^ (nsmi2 == nmax2)
+        ^ (bnd1[0] in bkey)
+        ^ (bnd2[0] in bkey)
+    )
+
+    dir_dct[bnd] = _flip_bond_direction(dir_dct[pbnd], flip=is_opposite)
+    return dir_dct
+
+
+def _directional_bonds(
+    gra: Any,
+    parent_dct: Dict[int, int],
+    child_dct: Dict[int, List[int]],
+    rng_bkeys: List[frozenset[int, int]],
+) -> Dict[BondKey, Tuple[int, int]]:
+    """Determine directional bonds for the stereo bonds in a SMILES string
+
+    :param gra: The graph
+    :param parent_dct: The SMILES parent atoms
+    :param child_dct: The SMILES child atoms, sorted in order of appearance
+    :param rng_bkeys: The SMILES ring-closing bonds, sorted in order of appearance
+    :return: The two directional neighbors for each bond
+    """
+
+    # Neighbor keys for the whole graph
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+    # "Inner" neighbor keys for the subgraph induced by stereo bonds
+    # (For prioritizing directionality for intervening bonds)
+    bkeys = bond_stereo_keys(gra)
+    keys = set(itertools.chain(*bkeys))
+    inner_nkeys_dct = atoms_neighbor_atom_keys(subgraph(gra, keys))
+
+    # Sort neighbor keys based on which are best for indicating directionality
+    sort_dct = {}
+    for key in keys:
+        nkeys = []
+        # a. Ring bonds have lowest priority
+        nkeys.extend(_ring_neighbors(key, rng_bkeys))
+        # c. Child atoms the next lowest priority (later ones have higher priority)
+        if key in child_dct:
+            nkeys.extend(child_dct[key])
+        # b. Parent atoms have highest priority
+        if key in parent_dct:
+            nkeys.append(parent_dct[key])
+        assert frozenset(nkeys) == nkeys_dct[key]
+        sort_dct[key] = tuple(nkeys)
+
+    dir_bnds_dct = {}
+    for bkey in bkeys:
+        dir_bnds = []
+        for key in sorted(bkey):
+            # Use inner neighbors, if possible
+            nkeys = inner_nkeys_dct[key] - bkey
+            # If there are no inner neighbors, use outer neighbors
+            nkeys = nkeys if nkeys else nkeys_dct[key] - bkey
+            # Choose the best neighbor for indicating directionality
+            nkey = max(nkeys, key=sort_dct[key].index)
+
+            # Record the directional bond as (parent, child)
+            if nkey in child_dct and key in child_dct[nkey]:
+                dir_bnds.append((nkey, key))
+            elif key in child_dct and nkey in child_dct[key]:
+                dir_bnds.append((key, nkey))
+            # If we had to use a ring bond, store the ring bond index
+            else:
+                rng_bkey = frozenset({nkey, key})
+                assert rng_bkey in rng_bkeys
+                dir_bnds.append(rng_bkeys.index(rng_bkey))
+
+        dir_bnds_dct[bkey] = tuple(dir_bnds)
+
+    return dir_bnds_dct
+
+
+def _ring_neighbors(key: int, rng_bkeys: List[frozenset[int]]) -> List[int]:
+    """Find an atom's ring neighbors, if any, from a list of ring bonds
+
+    :param key: An atom key
+    :param rng_bkeys: A list of ring bonds
+    :return: The neighboring atom keys
+    """
+    return [util.partner(bk, key) for bk in rng_bkeys if key in bk]
+
+
+def _update_ring_bond_ids(
+    key: AtomKey, rng_bkeys: List[BondKey], rng_id_dct: Dict[BondKey, int]
+) -> Dict[BondKey, int]:
+    """Update the dictionary of ring bond IDs for a newly encountered atom
+
+    :param key: An atom key
+    :param rng_bkeys: An ordered list of ring bond keys
+    :param rng_id_dct: A dictionary of ring bond IDs, by bond key
+    :return: The updated dictionary of ring bond IDs, by bond key
+    """
+    rng_id_dct = rng_id_dct.copy()
+
+    # Figure out how many times each ring ID has been used
+    count_dct = {i: 0 for i in RING_IDS}
+    count_dct.update(Counter(rng_id_dct.values()))
+
+    for bkey in rng_bkeys:
+        if key in bkey and bkey not in rng_id_dct:
+            # Determine the next available ring ID with a minimum count
+            min_count = min(count_dct.values())
+            rng_id = next(i for i in RING_IDS if count_dct[i] == min_count)
+
+            # Assign the ring ID and update the count
+            rng_id_dct[bkey] = rng_id
+            count_dct[rng_id] += 1
+
+    return rng_id_dct
+
+
+def _flip_bond_direction(direc, flip=True):
+    """Flip the direction of a directional bond representation
+
+    :param direc: the directional bond representation, '/' or '\\'
+    :type direc: str
+    :param flip: Flip the representation? If False, don't flip it.
+    :type flip: bool
+    :returns: the new representation, flipped if requested
+    :rtype: str
+    """
+    if not flip:
+        return direc
+
+    return "\\" if direc == "/" else "/"
+
+
+# deprecated
 def _connected_smiles_OLD(
     gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=False
 ):
@@ -368,7 +599,6 @@ def _connected_smiles_OLD(
     if start_key in ste_keys:
         start_key = atom_neighbor_atom_key(gra, start_key, excl_keys=ste_keys)
 
-    print("start:", start_key)
     smi, _ = _recurse_smiles("", [], start_key)
 
     return smi
@@ -567,7 +797,7 @@ def bond_representation_generator_(kgr, ste_bnd_key_pool, direc_dct, exp_singles
             # Set the next bond direction, which should be the same as the
             # first if the bond is trans (parity = True) and should be flipped
             # if the bond is cis (parity = False).
-            next_direc = _flip_direction(direc, flip=flip)
+            next_direc = _flip_bond_direction(direc, flip=flip)
 
             direc_dct[(key2, nkey2)] = next_direc
 
@@ -660,110 +890,6 @@ def ring_representation_generator_(
 
 
 # helpers
-def _flip_direction(direc, flip=True):
-    """Flip the direction of a directional bond representation
-
-    :param direc: the directional bond representation, '/' or '\\'
-    :type direc: str
-    :param flip: Flip the representation? If False, don't flip it.
-    :type flip: bool
-    :returns: the new representation, flipped if requested
-    :rtype: str
-    """
-    if not flip:
-        ret = direc
-    else:
-        ret = "\\" if direc == "/" else "/"
-    return ret
-
-
-def _atom_stereodetermining_neighbor_keys(
-    key: int,
-    parent_dct: Dict[int, int],
-    child_dct: Dict[int, List[int]],
-    nhyd_dct: Dict[int, int],
-    rng_bkeys: List[frozenset[int, int]],
-) -> str:
-    """Get the SMILES stereo-determining neighbors of an atom, in order
-
-    :param key: The atom key
-    :param par_dct: The local parity assignments
-    :param parent_dct: The SMILES parent atoms
-    :param child_dct: The SMILES child atoms, sorted in order of appearance
-    :param nhyd_dct: The implicit hydrogens
-    :param rng_bkeys: The SMILES ring-closing bonds, sorted in order of appearance
-    :return: The stereo-determining neighbors, in order
-    """
-    nkeys = []
-    # 1. Add the parent key
-    if key in parent_dct:
-        nkeys.append(parent_dct[key])
-    # 2. Add `None` for the implicit hyrodgen, if present
-    if key in nhyd_dct and nhyd_dct[key]:
-        nkeys.append(None)
-    # 3. Add the child keys
-    if key in child_dct:
-        nkeys.extend(child_dct[key])
-    # 4. Add the ring keys
-    nkeys.extend(next(iter(bk - {key})) for bk in rng_bkeys if key in bk)
-    return tuple(nkeys)
-
-
-def _atom_parity_representation(
-    key: int,
-    par_dct: Dict[CenterKey, bool],
-    nkeys_dct: CenterNeighborDict,
-    nhyd_dct: Dict[int, int],
-    parent_dct: Dict[int, int],
-    child_dct: Dict[int, List[int]],
-    rng_bkeys: List[frozenset[int, int]],
-) -> str:
-    """Determine the parity representation of an atom, '@' or '@@'
-
-    :param key: The atom key
-    :param par_dct: The local parity assignments
-    :param nkeys_dct: The stereo-determining neighbors, sorted by local priority
-    :param nhyd_dct: The implicit hydrogens
-    :param parent_dct: The SMILES parent atoms
-    :param child_dct: The SMILES child atoms, sorted in order of appearance
-    :param rng_bkeys: The SMILES ring-closing bonds, sorted in order of appearance
-    :return: The appropriate parity representation, '@' or '@@'
-    """
-    nkeys0 = nkeys_dct[key]
-    print(nkeys0)
-
-
-def _ring_bond_id(rkey: int, rng_id_dct: Dict[int, int], inplace: bool = True):
-    """Find the appropriate ring ID for a ring bond, by ring key
-
-    The ring keys are arbitrary, as long as they refer to the same ring bond.  I am
-    using the index from the list of ring bonds.
-
-    :param rkey: The ring key
-    :param rng_id_dct: The dictionary of ring bond IDs
-    :param inplace: Modify the ring ID dictionary in place?
-        (Otherwise, it must be updated after calling this function)
-    :return: The next available ring ID
-    """
-    # If this ring key already has an ID, return it
-    if rkey in rng_id_dct:
-        return rng_id_dct[rkey]
-
-    # Figure out how many times each ring ID has been used
-    count_dct = {i: 0 for i in RING_IDS}
-    count_dct.update(Counter(rng_id_dct.values()))
-
-    # Get the first available ring ID with a minimum count
-    min_count = min(count_dct.values())
-    rng_id = next(i for i in RING_IDS if count_dct[i] == min_count)
-
-    # If requested, update the ring ID dictionary in-place
-    if inplace:
-        rng_id_dct[rkey] = rng_id
-
-    return rng_id
-
-
 if __name__ == "__main__":
     GRA = (
         {

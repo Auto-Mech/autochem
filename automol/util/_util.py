@@ -1,10 +1,25 @@
 """ miscellaneous utilities
 """
+
 import itertools
 from collections.abc import Iterable
-from typing import List
+from typing import Any, List
 
 from phydat import ptab
+
+
+def partner(pair: List, item: Any) -> Any:
+    """Get the partner of an item in a pair
+
+    The two items must be distinct
+
+    :param pair: An iterable of length 2
+    :param item: One of two items
+    :return: The other item
+    """
+    pair = set(pair)
+    assert len(pair) == 2 and item in pair
+    return next(iter(pair - {item}))
 
 
 def flatten(lst):

@@ -3002,7 +3002,7 @@ def dummy_source_dict(
 
 def bond_neighbor_atom_keys(
     gra, key1: int, key2: int, ts_: bool = True
-) -> (frozenset, frozenset):
+) -> Tuple[frozenset, frozenset]:
     """Get the neighboring atom keys of the two atoms in a bond
 
     :param gra: molecular graph
@@ -3023,7 +3023,7 @@ def bond_neighbor_atom_keys(
 
 def bond_neighbor_bond_keys(
     gra, key1: int, key2: int, ts_: bool = True
-) -> (frozenset, frozenset):
+) -> Tuple[frozenset, frozenset]:
     """Get the neighboring bond keys of the two atoms in a bond
 
     :param gra: molecular graph
