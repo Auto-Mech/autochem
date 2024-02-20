@@ -263,6 +263,7 @@ from automol.graph.base._07geom import geometry_dihedrals_near_value
 # # canonical key functions
 from automol.graph.base._08canon import canonical
 from automol.graph.base._08canon import canonical_keys
+from automol.graph.base._08canon import smiles_graph
 # # canonical stereo functions
 from automol.graph.base._11stereo import unassigned_stereocenter_keys
 from automol.graph.base._05stereo import unassigned_stereocenter_keys_from_candidates
@@ -571,6 +572,7 @@ __all__ = [
     # # canonical key functions
     'canonical',
     'canonical_keys',
+    'smiles_graph',
     # # canonical stereo functions
     'unassigned_stereocenter_keys',
     'unassigned_stereocenter_keys_from_candidates',

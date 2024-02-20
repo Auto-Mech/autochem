@@ -222,7 +222,7 @@ def chi(gra, stereo=True):
     return ret
 
 
-def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
+def rdkit_molecule(gra, stereo=True, exp=False, label=False, label_dct=None):
     """Convert a molecular graph to an RDKit molecule.
 
     This is mainly useful for quick visualization with IPython, which can
@@ -234,6 +234,8 @@ def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
     :type gra: automol graph data structure
     :param stereo: Include stereochemistry information?
     :type stereo: bool
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
+    :type exp: bool
     :param label: Display the molecule with atom labels?
     :type label: bool
     :param label_dct: Atom labels, by atom key.  If `None` and `label` is
@@ -241,24 +243,24 @@ def rdkit_molecule(gra, stereo=True, label=False, label_dct=None):
     :param label_dct: bool
     :returns: the RDKit molecule
     """
-    if stereo:
-        assert gra == with_explicit_stereo_hydrogens(gra), (
-            f"Graph is missing hydrogens needed to depict stereo:\n{gra}\n"
-            f"You can add them using graph.with_explicit_stereo_hydrogens()"
-        )
-
     rdkit_.turn_3d_visualization_off()
-    rdm = rdkit_.from_graph(gra, stereo=stereo, label=label, label_dct=label_dct)
+    rdm = rdkit_.from_graph(
+        gra, stereo=stereo, exp=exp, label=label, label_dct=label_dct
+    )
     return rdm
 
 
-def svg_string(gra, stereo=True, label=False, label_dct=None, image_size=200):
+def svg_string(
+    gra, stereo=True, exp=False, label=False, label_dct=None, image_size=200
+):
     """Get an SVG string for visualizing the graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param stereo: Include stereochemistry information?
     :type stereo: bool
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
+    :type exp: bool
     :param label: Display the molecule with atom labels?
     :type label: bool
     :param label_dct: Atom labels, by atom key.  If `None` and `label` is
@@ -269,18 +271,20 @@ def svg_string(gra, stereo=True, label=False, label_dct=None, image_size=200):
     :return: The SVG string, in svg+xml format
     :rtype: str
     """
-    rdm = rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
+    rdm = rdkit_molecule(gra, stereo=stereo, exp=exp, label=label, label_dct=label_dct)
     svg_str = rdkit_.to_svg_string(rdm, image_size=image_size)
     return svg_str
 
 
-def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=300):
+def ipywidget(gra, stereo=True, exp=False, label=False, label_dct=None, image_size=300):
     """Get an ipywidget object for visualizing the graph
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param stereo: Include stereochemistry information?
     :type stereo: bool
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
+    :type exp: bool
     :param label: Display the molecule with atom labels?
     :type label: bool
     :param label_dct: Atom labels, by atom key.  If `None` and `label` is
@@ -292,7 +296,12 @@ def ipywidget(gra, stereo=True, label=False, label_dct=None, image_size=300):
     :rtype: ipywidgets.Image
     """
     svg_str = svg_string(
-        gra, stereo=stereo, label=label, label_dct=label_dct, image_size=image_size
+        gra,
+        stereo=stereo,
+        exp=exp,
+        label=label,
+        label_dct=label_dct,
+        image_size=image_size,
     )
     widget = ipywidgets.Image(
         value=svg_str.encode("utf-8"),
@@ -331,13 +340,15 @@ def rdkit_reaction(rgras, pgras, stereo=True, res_stereo=False):
     return rdkit_.from_smarts(rxn_smi)
 
 
-def display(gra, stereo=True, label=False, label_dct=None):
+def display(gra, stereo=True, exp=False, label=False, label_dct=None):
     """Display graph to IPython using the RDKit visualizer
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param stereo: Include stereochemistry information?
     :type stereo: bool
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
+    :type exp: bool
     :param label: Display the molecule with atom labels?
     :type label: bool
     :param label_dct: Atom labels, by atom key.  If `None` and `label` is
@@ -361,15 +372,17 @@ def display(gra, stereo=True, label=False, label_dct=None):
     if is_ts_graph(gra):
         rgra = ts.reactants_graph(gra, stereo=stereo)
         pgra = ts.products_graph(gra, stereo=stereo)
-        rwid = ipywidget(rgra, stereo=stereo, label=label, label_dct=label_dct)
-        pwid = ipywidget(pgra, stereo=stereo, label=label, label_dct=label_dct)
+        rwid = ipywidget(rgra, stereo=stereo, exp=exp, label=label, label_dct=label_dct)
+        pwid = ipywidget(pgra, stereo=stereo, exp=exp, label=label, label_dct=label_dct)
         arrow_widget = ipywidgets.Image(
             value=arrow_svg_str.encode("utf-8"), format="svg+xml", width=100, height=50
         )
         ipd.display(ipywidgets.HBox([rwid, arrow_widget, pwid]))
     else:
         ipd.display(
-            rdkit_molecule(gra, stereo=stereo, label=label, label_dct=label_dct)
+            rdkit_molecule(
+                gra, stereo=stereo, exp=exp, label=label, label_dct=label_dct
+            )
         )
 
 

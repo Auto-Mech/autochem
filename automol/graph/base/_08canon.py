@@ -178,10 +178,11 @@ def canonical_amchi_graph_with_numbers(
     return gra, num_dct, is_can_dir, is_can_enant
 
 
-def smiles_graph(gra: Any, res_stereo: bool = True) -> Any:
+def smiles_graph(gra: Any, res_stereo: bool = True, exp: bool = False) -> Any:
     """Put a connected graph in a form appropriate for writing SMILES strings
 
     :param gra: molecular graph
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
     :param res_stereo: allow resonant double-bond stereo?
     :return: The graph, kekulized with appropriate implicit/explicit hydrogens
     """
@@ -192,11 +193,12 @@ def smiles_graph(gra: Any, res_stereo: bool = True) -> Any:
     gra = with_explicit_stereo_hydrogens(gra, all_=False, neg=True)
 
     # Make all other hydrogens implicit
-    bbn_keys = backbone_keys(gra, hyd=False)
-    ste_keys = set(itertools.chain(*bond_stereo_keys(gra)))
-    nbnd_dct = atom_bond_counts(gra, bond_order=False, with_implicit=True)
-    imp_keys = {k for k in bbn_keys if not (k in ste_keys and nbnd_dct[k] <= 2)}
-    gra = implicit(gra, atm_keys=imp_keys)
+    if not exp:
+        bbn_keys = backbone_keys(gra, hyd=False)
+        ste_keys = set(itertools.chain(*bond_stereo_keys(gra)))
+        nbnd_dct = atom_bond_counts(gra, bond_order=False, with_implicit=True)
+        imp_keys = {k for k in bbn_keys if not (k in ste_keys and nbnd_dct[k] <= 2)}
+        gra = implicit(gra, atm_keys=imp_keys)
 
     # Find a dominant resonance
     kgr = kekule(gra, max_stereo_overlap=True)
@@ -204,7 +206,7 @@ def smiles_graph(gra: Any, res_stereo: bool = True) -> Any:
     # Remove stereo parities at single bonds if requested
     if not res_stereo:
         bad_bkeys = bad_stereo_bond_keys_from_kekule(kgr)
-        kgr = set_stereo_parities(kgr, {bk: None for bk in bad_bkeys})
+        kgr = without_stereo(kgr, bnd_keys=bad_bkeys)
 
     return kgr
 

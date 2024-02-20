@@ -318,6 +318,7 @@ from automol.graph.base._08canon import (
     canonical_keys,
     canonical_priorities,
     from_local_stereo,
+    smiles_graph,
     to_local_stereo,
 )
 
@@ -619,6 +620,7 @@ __all__ = [
     # # canonical key functions
     "canonical",
     "canonical_keys",
+    "smiles_graph",
     # # canonical stereo functions
     "unassigned_stereocenter_keys",
     "unassigned_stereocenter_keys_from_candidates",

@@ -275,13 +275,17 @@ BOND_ORDER_DCT = {
 BOND_TYPE_DCT = dict(map(reversed, BOND_ORDER_DCT.items()))
 
 
-def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=None):
+def from_graph(
+    gra, stereo=False, exp=False, local_stereo=False, label=False, label_dct=None
+):
     """Generate an RDKit rdmecule object from a connected rdmecular graph
 
     :param gra: A molecular graph
     :type gra: automol graph data structure
     :param stereo: Include stereochemistry information?
     :type stereo: bool
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
+    :type exp: bool
     :param local_stereo: Does the graph have local stereo assignments? defaults to True
     :type local_stereo: bool, optional
     :param label: Display the molecule with atom labels?
@@ -290,6 +294,8 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
         `True`, the atom keys themselves will be used as labels.
     :param label_dct: bool
     """
+    gra = graph_base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
+    gra = graph_base.smiles_graph(gra, res_stereo=True, exp=exp)
     rdm, idx_from_key = _from_graph_without_stereo(
         gra, label=label, label_dct=label_dct
     )
@@ -300,22 +306,24 @@ def from_graph(gra, stereo=False, local_stereo=False, label=False, label_dct=Non
 
     # Otherwise, handle stereo
     gra = gra if local_stereo else graph_base.to_local_stereo(gra)
-    exp_gra = graph_base.explicit(gra)
-    exp_rdm, idx_from_key = _from_graph_without_stereo(exp_gra)
+    egra = graph_base.explicit(gra)
+    bad_bkeys = graph_base.bad_stereo_bond_keys_from_kekule(egra)
+    egra = graph_base.without_stereo(egra, bnd_keys=bad_bkeys)
+    erdm, idx_from_key = _from_graph_without_stereo(egra)
     key_from_idx = dict(map(reversed, idx_from_key.items()))
-    nkeys_dct = graph_base.stereocenter_candidates(exp_gra, strict=False)
+    nkeys_dct = graph_base.stereocenter_candidates(egra, strict=False)
 
     # Set atom stereo
-    atm_ste_dct = graph_base.atom_stereo_parities(exp_gra)
+    atm_ste_dct = graph_base.atom_stereo_parities(egra)
     for rda in rdm.GetAtoms():
         idx = rda.GetIdx()
         key = key_from_idx[idx]
         par0 = atm_ste_dct[key]
         if par0 is not None:
-            exp_rda = exp_rdm.GetAtoms()[idx]
+            erda = erdm.GetAtoms()[idx]
 
             nkeys0 = nkeys_dct[key]
-            nidxs1 = [b.GetOtherAtomIdx(exp_rda.GetIdx()) for b in exp_rda.GetBonds()]
+            nidxs1 = [b.GetOtherAtomIdx(erda.GetIdx()) for b in erda.GetBonds()]
             nkeys1 = list(map(key_from_idx.__getitem__, nidxs1))
 
             par1 = util.is_odd_permutation(nkeys0, nkeys1) ^ par0
@@ -355,13 +363,10 @@ def _from_graph_without_stereo(gra, label=False, label_dct=None):
     if label_dct is not None:
         label = True
 
-    gra = graph_base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
-    kgr = graph_base.kekule(gra, max_stereo_overlap=True)
-
     # Add atoms
-    keys = sorted(graph_base.atom_keys(kgr))
-    symb_dct = graph_base.atom_symbols(kgr, dummy_symbol="He")
-    rad_dct = graph_base.atom_unpaired_electrons(kgr, bond_order=True)
+    keys = sorted(graph_base.atom_keys(gra))
+    symb_dct = graph_base.atom_symbols(gra, dummy_symbol="He")
+    rad_dct = graph_base.atom_unpaired_electrons(gra, bond_order=True)
 
     erdm = rdkit.Chem.EditableMol(rdkit.Chem.Mol())
     for key in keys:
@@ -373,8 +378,8 @@ def _from_graph_without_stereo(gra, label=False, label_dct=None):
     idx_from_key = dict(map(reversed, enumerate(keys)))
 
     # Add bonds
-    bkeys = sorted(graph_base.bond_keys(kgr), key=sorted)
-    ord_dct = graph_base.bond_orders(kgr)
+    bkeys = sorted(graph_base.bond_keys(gra), key=sorted)
+    ord_dct = graph_base.bond_orders(gra)
     for bkey in bkeys:
         idx1, idx2 = map(idx_from_key.__getitem__, bkey)
         erdm.AddBond(idx1, idx2, BOND_ORDER_DCT[ord_dct[bkey]])
