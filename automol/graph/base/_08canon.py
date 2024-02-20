@@ -13,6 +13,7 @@ import numpy
 from phydat import ptab
 
 from automol.graph.base._00core import (
+    atom_bond_counts,
     atom_implicit_hydrogens,
     atom_keys,
     atom_stereo_keys,
@@ -186,14 +187,16 @@ def smiles_graph(gra: Any, res_stereo: bool = True) -> Any:
     """
     gra = without_dummy_atoms(gra)
 
-    # Convert to implicit graph
-    gra = implicit(gra)
-
-    # Don't allow implicit hydrogens connected to backbone hydrogens
-    gra = explicit(gra, atm_keys=atom_keys(gra, symb="H"))
-
-    # Insert hydrogens necessary for bond stereo
+    # Add in missing explicit hydrogens (connected to H or needed for stereo)
+    gra = explicit(gra, atm_keys=atom_keys(gra, symb="H"), neg=True)
     gra = with_explicit_stereo_hydrogens(gra, all_=False, neg=True)
+
+    # Make all other hydrogens implicit
+    bbn_keys = backbone_keys(gra, hyd=False)
+    ste_keys = set(itertools.chain(*bond_stereo_keys(gra)))
+    nbnd_dct = atom_bond_counts(gra, bond_order=False, with_implicit=True)
+    imp_keys = {k for k in bbn_keys if not (k in ste_keys and nbnd_dct[k] <= 2)}
+    gra = implicit(gra, atm_keys=imp_keys)
 
     # Find a dominant resonance
     kgr = kekule(gra, max_stereo_overlap=True)

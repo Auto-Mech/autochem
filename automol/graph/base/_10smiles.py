@@ -102,7 +102,7 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=Fa
     """
     gras = connected_components(gra)
     smis = [
-        _connected_smiles(
+        _connected_smiles_OLD(
             g,
             stereo=stereo,
             local_stereo=local_stereo,
@@ -271,7 +271,7 @@ def _bond_encoding(
     dir_enc = dir_dct.get(bnd, "")
     ord2enc = BOND_ORDER_ENCODING_EXP if exp_singles else BOND_ORDER_ENCODING
     ord_enc = ord2enc[bord_dct[bkey]]
-    return f"{dir_enc}{ord_enc}"
+    return f"{ord_enc}{dir_enc}"
 
 
 def _atom_parity_encoding(
