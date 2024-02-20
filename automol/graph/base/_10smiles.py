@@ -102,7 +102,7 @@ def smiles(gra, stereo=True, local_stereo=False, res_stereo=True, exp_singles=Fa
     """
     gras = connected_components(gra)
     smis = [
-        _connected_smiles_OLD(
+        _connected_smiles(
             g,
             stereo=stereo,
             local_stereo=local_stereo,
@@ -347,36 +347,52 @@ def _update_directional_bond_encodings(
     if not bnds_dct:
         return dir_dct
 
-    # Identify parnters among the affected stereo bonds that already have a direction
-    # These will determine the direction of the current bond
-    part_dct = dict_.transform_values(bnds_dct, lambda bs: util.partner(bs, bnd))
-    part_dct = dict_.filter_by_value(part_dct, lambda b: b in dir_dct)
+    # Identify previous directional bonds that determine the direction of this one
+    fix_bnds_dct = dict_.transform_values(
+        bnds_dct, lambda bs: frozenset(b for b in bs if b in dir_dct)
+    )
+    fix_bnds_dct = dict_.filter_by_value(fix_bnds_dct)
 
-    # If no partners were identified, return an arbitrary upward bond direction
-    if not part_dct:
+    # If the bond's direction is independent of all others, assign an arbitrary value
+    if not fix_bnds_dct:
         dir_dct[bnd] = "/"
         return dir_dct
 
-    # Otherwise, there should only be one partner
-    assert len(part_dct) == 1, part_dct
-    ((bkey, pbnd),) = part_dct.items()
-
-    # Identify the SMILES stereo-determining neighbors for this stereo bond, for
-    # comparison with those determining its local parity
-    nsmi1, nsmi2 = (ks[-1] for ks in nkeys_dct[bkey])
-    nmax1, nmax2 = (util.partner(p, k) for k, p in zip(sorted(bkey), bnds_dct[bkey]))
-
-    # Determine whether the direction of this bond is opposite to the partner bond
-    bnd1, bnd2 = bnds_dct[bkey]
-    is_opposite = (
-        par_dct[bkey]
-        ^ (nsmi1 == nmax1)
-        ^ (nsmi2 == nmax2)
-        ^ (bnd1[0] in bkey)
-        ^ (bnd2[0] in bkey)
+    # Otherwise, choose one of the other bonds to work with
+    # Find a bond on the opposite side of the bond, if there is one
+    # (Required for resonating bonds)
+    opp_fix_bnds_dct = dict_.transform_values(
+        fix_bnds_dct, lambda bs: frozenset(b for b in bs if not set(b) & set(bnd))
     )
+    opp_fix_bnds_dct = dict_.filter_by_value(opp_fix_bnds_dct)
 
-    dir_dct[bnd] = _flip_bond_direction(dir_dct[pbnd], flip=is_opposite)
+    # If there is a fixed bond on the opposite side of a stereocenter, the direction of
+    # this bond is determined by the configuration of the bond stereocenter
+    if opp_fix_bnds_dct:
+        bkey = next(iter(opp_fix_bnds_dct))
+        fbnd = next(iter(opp_fix_bnds_dct[bkey]))
+        keys = sorted(bkey)
+        bnds = sorted((fbnd, bnd), key=lambda b: tuple(set(b) & bkey))
+        nsmis = [util.partner(b, k) for k, b in zip(keys, bnds)]
+        nlocs = [ks[-1] for ks in nkeys_dct[bkey]]
+
+        is_opposite = (
+            par_dct[bkey]
+            ^ (nsmis[0] == nlocs[0])
+            ^ (nsmis[1] == nlocs[1])
+            ^ (bnds[0][0] in bkey)
+            ^ (bnds[1][0] in bkey)
+        )
+
+        dir_dct[bnd] = _flip_bond_direction(dir_dct[fbnd], flip=is_opposite)
+    # Otherwise, the direction of this bond is fixed by a bond on the same side of a
+    # stereocenter, and must be opposite in direction to it
+    else:
+        bkey = next(iter(fix_bnds_dct))
+        fbnd = next(iter(fix_bnds_dct[bkey]))
+        is_opposite = not (fbnd[0] in bkey) ^ (bnd[0] in bkey)
+        dir_dct[bnd] = _flip_bond_direction(dir_dct[fbnd], flip=is_opposite)
+
     return dir_dct
 
 
@@ -421,7 +437,7 @@ def _directional_bonds(
     :param parent_dct: The SMILES parent atoms
     :param child_dct: The SMILES child atoms, sorted in order of appearance
     :param rng_bkeys: The SMILES ring-closing bonds, sorted in order of appearance
-    :return: The two directional neighbors for each bond
+    :return: The directional bonds adjacent to each bond
     """
 
     # Neighbor keys for the whole graph
@@ -448,11 +464,10 @@ def _directional_bonds(
         assert frozenset(nkeys) == nkeys_dct[key]
         sort_dct[key] = tuple(nkeys)
 
-    # Now, build the dictionary of directional bonds, by stereo bond key
-    dir_bnds_dct = {}
+    # Now, build a list of all directional bonds
+    dir_bnds = []
     for bkey in bkeys:
-        dir_bnds = []
-        for key in sorted(bkey):
+        for key in bkey:
             # Use inner neighbors, if possible
             nkeys = inner_nkeys_dct[key] - bkey
             # If there are no inner neighbors, use outer neighbors
@@ -467,8 +482,8 @@ def _directional_bonds(
                 # Ring bonds will fall into this latter category
                 dir_bnds.append((key, nkey))
 
-        dir_bnds_dct[bkey] = tuple(dir_bnds)
-
+    # Finally, group the directional bonds by stereo bond key that they connect to
+    dir_bnds_dct = {bk: frozenset(b for b in dir_bnds if set(b) & bk) for bk in bkeys}
     return dir_bnds_dct
 
 
