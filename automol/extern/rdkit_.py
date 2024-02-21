@@ -120,7 +120,7 @@ def from_geometry_with_graph(geo, gra):
     :rtype: RDKit molecule object
     """
     natms = geom_base.count(geo)
-    rdm = from_graph(gra, stereo=False)
+    rdm = from_graph(gra, stereo=False, exp=True)
     rdc = rdkit.Chem.Conformer(natms)
     rdc.Set3D(True)
     xyzs = geom_base.coordinates(geo)

@@ -32,7 +32,6 @@ from automol.graph.base import (
     string,
     to_local_stereo,
     ts,
-    with_explicit_stereo_hydrogens,
     without_stereo,
 )
 from automol.smiles import base as smiles_base
@@ -116,12 +115,12 @@ def _connected_geometry(gra, check=True, log=False):
 
     # Define geometry generation methods
     def method1_(gra_):
-        rdm = rdkit_.from_graph(gra_, stereo=stereo, local_stereo=True)
+        rdm = rdkit_.from_graph(gra_, stereo=stereo, exp=True, local_stereo=True)
         geo = rdkit_.to_geometry(rdm)
         return geo
 
     def method2_(gra_):
-        rdm = rdkit_.from_graph(gra_, stereo=stereo, local_stereo=True)
+        rdm = rdkit_.from_graph(gra_, stereo=stereo, exp=True, local_stereo=True)
         (geo,) = rdkit_.to_conformers(rdm, nconfs=1)
         return geo
 
