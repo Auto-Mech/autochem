@@ -12,6 +12,7 @@ from collections import abc
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
+
 from automol import form, util
 from automol.util import dict_
 
@@ -788,13 +789,14 @@ def charge(chi):
 
 
 # # # stereo layers
-def bond_stereo_parities(chi, one_indexed=False):
+def bond_stereo_parities(chi, one_indexed=False, ordered_key=False):
     """Parse the bond stereo parities from the stereochemistry layers.
 
     :param chi: ChI string
     :type chi: str
     :param one_indexed: Return indices in one-indexing?
     :type one_indexed: bool
+    :param ordered_key: Return ordered or unordered bond keys?
     :returns: A dictionary mapping bond keys onto parities
     :rtype: dict[frozenset[int]: bool]
     """
@@ -802,7 +804,7 @@ def bond_stereo_parities(chi, one_indexed=False):
     if "b" not in lyr_dct:
         return {}
 
-    ste_dct = _bonds(lyr_dct["b"], one_indexed=one_indexed)
+    ste_dct = _bonds(lyr_dct["b"], one_indexed=one_indexed, ordered_key=ordered_key)
     return ste_dct
 
 
@@ -1443,9 +1445,11 @@ def join_layers(dcts):
         pfx: (
             join_layer_strings(lyrs)
             if pfx not in "ms"
-            else _join_m_layer_strings(lyrs)
-            if pfx != "s"
-            else _join_s_layer_strings(lyrs)
+            else (
+                _join_m_layer_strings(lyrs)
+                if pfx != "s"
+                else _join_s_layer_strings(lyrs)
+            )
         )
         for pfx, lyrs in zip(pfxs, lyrs_lst)
     }
@@ -1490,7 +1494,7 @@ def join_layer_strings(lyrs, count_sep="*", sep=";"):
 
 
 # # common multilayer properties
-def _bonds(lyr, one_indexed=False):
+def _bonds(lyr, one_indexed=False, ordered_key=False):
     """Parse bond stereo parities from a given layer dictionary"""
     # Set up the parser
     integer = ppc.integer
@@ -1499,16 +1503,15 @@ def _bonds(lyr, one_indexed=False):
     parity = pp.Or(["+", "-", "?"])
     term = pp.Group(bond + pp.Opt(parity, default=None))
     parser = pp.Opt(pp.delimitedList(term, ","))
+    key_type_ = tuple if ordered_key else frozenset
 
     # Do the parsing
     shift = 0 if one_indexed else -1
     lst = parser.parseString(lyr).asList()
     bnd_ste_dct = {
-        frozenset({k1 + shift, k2 + shift}): True
-        if p == "+"
-        else False
-        if p == "-"
-        else None
+        key_type_((k1 + shift, k2 + shift)): (
+            True if p == "+" else False if p == "-" else None
+        )
         for (k1, k2), p in lst
     }
     return bnd_ste_dct
