@@ -6,6 +6,7 @@ Function arguments:
     likewise for the product graphs. Otherwise, there would be no way to
     express the bonds broken and formed between reactants.
 """
+
 import copy
 import dataclasses
 import itertools
@@ -1279,7 +1280,5 @@ def _identify_sequence_structure_type(strucs):
     return (
         "geom"
         if all(map(geom.is_valid, strucs))
-        else "zmat"
-        if all(map(zmat.is_valid, strucs))
-        else None
+        else "zmat" if all(map(zmat.is_valid, strucs)) else None
     )
