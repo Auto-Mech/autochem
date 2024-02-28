@@ -1473,8 +1473,8 @@ def tetrahedral_atom_keys(gra, min_ncount: int = 3) -> List[int]:
     return frozenset(tetrahedral_atoms(gra, min_ncount=min_ncount))
 
 
-def vinyl_radical_candidates(gra, min_ncount: int = 1) -> Dict[AtomKey, BondKey]:
-    """Get candidate vinyl radical along with their associated bonds
+def vinyl_radical_bond_candidates(gra, min_ncount: int = 1) -> Dict[AtomKey, BondKey]:
+    """Get a mapping of candidate vinyl radical bonds onto their radical atoms
 
     :param gra: A graph
     :type gra: automol graph data structure
@@ -1497,7 +1497,7 @@ def vinyl_radical_candidates(gra, min_ncount: int = 1) -> Dict[AtomKey, BondKey]
                 if nelec1 == 2 and nelec2 == 1 and npair1 == 2 and npair2 == 3:
                     bkey = frozenset({key1, key2})
                     akey = key1
-                    vin_dct[akey] = bkey
+                    vin_dct[bkey] = akey
     return vin_dct
 
 

@@ -82,7 +82,6 @@ from automol.reac._5conv import zmatrices
 # # additional data types
 from automol.reac._5conv import ts_amchi
 from automol.reac._5conv import reaction_smiles
-from automol.reac._5conv import rdkit_reaction
 from automol.reac._5conv import display
 # # canonicity
 from automol.reac._5conv import is_canonical_enantiomer
@@ -190,7 +189,6 @@ __all__ = [
     # # additional data types
     'ts_amchi',
     'reaction_smiles',
-    'rdkit_reaction',
     'display',
     # # canonicity
     'is_canonical_enantiomer',

@@ -1,5 +1,6 @@
 """TS classification and other functions
 """
+
 import functools
 import itertools
 from typing import Dict, Optional, Tuple
@@ -13,7 +14,7 @@ from automol.graph.base._00core import (
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
     ts_reverse,
-    vinyl_radical_candidates,
+    vinyl_radical_bond_candidates,
 )
 from automol.graph.base._02algo import reacting_rings_bond_keys
 
@@ -80,10 +81,10 @@ def vinyl_addition_candidates(
     rcts_gra = ts_reactants_graph_without_stereo(tsg)
 
     frm_bkeys = ts_forming_bond_keys(tsg)
-    vin_dct = vinyl_radical_candidates(rcts_gra, min_ncount=min_ncount)
+    vin_dct = vinyl_radical_bond_candidates(rcts_gra, min_ncount=min_ncount)
 
     vin_add_dct = {}
-    for key, bkey in vin_dct.items():
+    for bkey, key in vin_dct.items():
         # Find a forming bond at the vinyl radical site
         frm_bkey = next((bk for bk in frm_bkeys if key in bk), None)
         if frm_bkey is not None:

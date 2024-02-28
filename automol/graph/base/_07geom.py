@@ -2,6 +2,7 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+
 import itertools
 import numbers
 
@@ -17,7 +18,7 @@ from automol.graph.base._00core import (
     relabel,
     ts_reactants_graph_without_stereo,
     ts_reacting_atom_keys,
-    vinyl_radical_candidates,
+    vinyl_radical_bond_candidates,
 )
 from automol.graph.base._02algo import (
     branch_atom_keys,
@@ -142,9 +143,9 @@ def geometry_correct_linear_vinyls(
     rng_bkeys = set(itertools.chain(*rings_bond_keys(gra)))
     nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=False)
 
-    vin_dct = vinyl_radical_candidates(gra, min_ncount=0)
+    vin_dct = vinyl_radical_bond_candidates(gra, min_ncount=0)
 
-    for key, bkey in vin_dct.items():
+    for bkey, key in vin_dct.items():
         if bkey not in rng_bkeys:
             key2 = key
             (key1,) = bkey - {key}

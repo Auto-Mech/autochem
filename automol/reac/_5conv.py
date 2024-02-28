@@ -1,5 +1,6 @@
 """ Conversion functions
 """
+
 from typing import List
 
 import IPython
@@ -358,40 +359,24 @@ def reaction_smiles(rxn) -> str:
     return rxn_smi
 
 
-def rdkit_reaction(rxn: Reaction, stereo=True, res_stereo=False):
-    """Convert a reaction object to an RDKit reaction object.
-
-    This is mainly useful for quick visualization with IPython, which can be
-    done as follows:
-    >>> from IPython.display import display
-    >>> display(rdkit_reaction(gra))
-
-        :param rxn: the reaction object
-        :param stereo: Include stereo?
-        :type stereo: bool
-        :param res_stereo: allow resonant double-bond stereo?
-        :type res_stereo: bool
-        :param rxn: the reaction object
-        :returns: the RDKit reaction
-    """
-    rdkit_.turn_3d_visualization_off()
-    rct_smis, prd_smis = smiles(
-        rxn, stereo=stereo, res_stereo=res_stereo, exp_singles=True
-    )
-    rcts_smi = ".".join(rct_smis)
-    prds_smi = ".".join(prd_smis)
-    rxn_smi = f"{rcts_smi}>>{prds_smi}"
-    return rdkit_.from_smarts(rxn_smi)
-
-
-def display(rxn: Reaction):
+def display(rxn: Reaction, stereo=True, exp=False, label=False, label_dct=None):
     """Display reaction object to IPython using the RDKit visualizer
 
     :param rxn: the reaction object
-    :returns: None
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
+    :type exp: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
     """
     rdkit_.turn_3d_visualization_off()
-    return IPython.display.display(rdkit_reaction(rxn))
+    return graph.display(
+        ts_graph(rxn), stereo=stereo, exp=exp, label=label, label_dct=label_dct
+    )
 
 
 # # canonicity
