@@ -3,8 +3,6 @@
 
 from typing import List
 
-import IPython
-
 from automol import amchi, geom, graph
 from automol import chi as chi_
 from automol import smiles as smiles_

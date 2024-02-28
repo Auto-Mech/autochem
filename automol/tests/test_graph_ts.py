@@ -631,6 +631,38 @@ C6H11O2b_TSG = (
 #     ('H', (-5.89428, -0.848404, -0.496429)),
 #     ('H', (-6.648168, -0.229583, 2.735668)))
 
+# Constrained TS Vinyl Bond Stereo + Atom Stereo
+# C=C[C]=COC => C=CC=CO[CH2]
+#       *           *
+# [* marks a constrained bond stereocenter -- must be cis]
+C5H7O_TSG = (
+{0: ('C', 0, None),
+  1: ('C', 0, None),
+  2: ('C', 0, None),
+  3: ('C', 0, None),
+  4: ('O', 0, None),
+  5: ('C', 0, None),
+  6: ('H', 0, None),
+  7: ('H', 0, None),
+  8: ('H', 0, None),
+  9: ('H', 0, None),
+  10: ('H', 0, None),
+  11: ('H', 0, None),
+  12: ('H', 0, None)},
+ {frozenset({3, 4}): (1, None),
+  frozenset({5, 11}): (1, None),
+  frozenset({0, 6}): (1, None),
+  frozenset({2, 3}): (1, None),
+  frozenset({1, 2}): (1, None),
+  frozenset({3, 9}): (1, None),
+  frozenset({4, 5}): (1, None),
+  frozenset({0, 1}): (1, None),
+  frozenset({5, 12}): (1, None),
+  frozenset({2, 10}): (0.1, None),
+  frozenset({1, 8}): (1, None),
+  frozenset({5, 10}): (0.9, None),
+  frozenset({0, 7}): (1, None)})
+
 # Constrained TS Bond Stereo + (Reactant Bond Stereo => Product Atom Stereo)
 # C/C=C/C + C=CC=C => C[C@H]1[C@H](C)CC=CC1
 #    ^                  ^     ^        *
@@ -921,6 +953,7 @@ def test__ts__reagents_graph():
     _test("C6H11O2", C6H11O2_TSG, {5: False, frozenset({3, 4}): False}, {5: False})
     _test("C6H11O2b", C6H11O2b_TSG, {2: False}, {2: False, frozenset({0, 1}): True})
     _test("C8H14", C8H14_TSG, {frozenset({1, 6}): True}, {1: True, 6: True})
+    _test("C5H7O", C5H7O_TSG, {frozenset({2, 3}): True}, {frozenset({2, 3}): True})
 
 
 def test__amchi():

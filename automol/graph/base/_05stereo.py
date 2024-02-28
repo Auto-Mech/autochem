@@ -617,7 +617,7 @@ def ring_bond_reactant_parities(
 
             rkey1, rkey2 = rng_const_dct[bkey]
 
-            par_dct[bkey] = nmax1 == rkey1 ^ nmax2 == rkey2
+            par_dct[bkey] = (nmax1 == rkey1) ^ (nmax2 == rkey2)
 
     return par_dct
 
