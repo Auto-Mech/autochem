@@ -9,12 +9,11 @@ from automol.inchi.base._core import recalculate
 from automol.inchi.base._core import standard_form
 # # getters
 from automol.inchi.base._core import version
-from automol.inchi.base._core import formula_sublayer
-from automol.inchi.base._core import formula_string
-from automol.inchi.base._core import main_sublayers
-from automol.inchi.base._core import charge_sublayers
-from automol.inchi.base._core import stereo_sublayers
-from automol.inchi.base._core import isotope_sublayers
+from automol.inchi.base._core import formula_layer
+from automol.inchi.base._core import main_layers
+from automol.inchi.base._core import charge_layers
+from automol.inchi.base._core import stereo_layers
+from automol.inchi.base._core import isotope_layers
 from automol.inchi.base._core import stereo_atoms
 from automol.inchi.base._core import stereo_bonds
 from automol.inchi.base._core import unassigned_stereo_bonds
@@ -26,6 +25,7 @@ from automol.inchi.base._core import reflect
 from automol.inchi.base._core import inchi_key
 from automol.inchi.base._core import smiles
 from automol.inchi.base._core import formula
+from automol.inchi.base._core import formula_string
 from automol.inchi.base._core import connectivity
 from automol.inchi.base._core import without_stereo
 from automol.inchi.base._core import racemic
@@ -43,8 +43,6 @@ from automol.inchi.base._core import argsort
 # # split/join
 from automol.inchi.base._core import split
 from automol.inchi.base._core import join
-# # helpers
-from automol.inchi.base._core import version_pattern
 # L4
 # # conversions
 from automol.inchi._conv import graph
@@ -81,12 +79,11 @@ __all__ = [
     'standard_form',
     # # getters
     'version',
-    'formula_sublayer',
-    'formula_string',
-    'main_sublayers',
-    'charge_sublayers',
-    'stereo_sublayers',
-    'isotope_sublayers',
+    'formula_layer',
+    'main_layers',
+    'charge_layers',
+    'stereo_layers',
+    'isotope_layers',
     'stereo_atoms',
     'stereo_bonds',
     'unassigned_stereo_bonds',
@@ -99,6 +96,7 @@ __all__ = [
     'inchi_key',
     'smiles',
     'formula',
+    'formula_string',
     'connectivity',
     'without_stereo',
     'racemic',
@@ -116,8 +114,6 @@ __all__ = [
     # # split/join
     'split',
     'join',
-    # # helpers
-    'version_pattern',
     # L4
     # # conversions
     'graph',

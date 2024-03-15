@@ -3,10 +3,10 @@
 
 import operator
 import numpy
-from automol.graph.base import _networkx
-from automol.geom.base._core import is_atom
-from automol.geom.base._core import reorder
-from automol.geom.base._comp import distance_matrix
+from automol.graph.base import _01networkx
+from automol.geom.base._0core import is_atom
+from automol.geom.base._0core import reorder
+from automol.geom.base._1comp import distance_matrix
 from automol.geom._conv import graph as graph_conv
 
 
@@ -23,9 +23,9 @@ def align(geo1, geo2):
         # Will only be able to map most heavy atoms.
         # Can't figure out what to do when heavy atom has two similar R groups
         # Use a distance matrix evaluation to handle that
-        igr1 = _networkx.from_graph(gra1)
-        igr2 = _networkx.from_graph(gra2)
-        iso_dcts = _networkx.all_isomorphisms(igr1, igr2)
+        igr1 = _01networkx.from_graph(gra1)
+        igr2 = _01networkx.from_graph(gra2)
+        iso_dcts = _01networkx.all_isomorphisms(igr1, igr2)
 
         if any(iso_dcts):
             # Calculate distance matrix of geo2

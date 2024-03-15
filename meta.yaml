@@ -8,17 +8,12 @@ source:
 
 requirements:
     build:
-        - conda-forge::python=3.7
+        - conda-forge::python
     run:
-        - auto-mech::autoio-base
-        - auto-mech::x2z
-        - psi4::psi4
-        - rdkit::rdkit=2020.09.1.0
-        - openbabel::openbabel
-        - conda-forge::python=3.7
-        - conda-forge::numpy=1.15.4
-        - conda-forge::scipy=1.5.0
-        - conda-forge::xarray
+        - conda-forget::rdkit
+        - conda-forge::python
+        - conda-forge::numpy
+        - conda-forge::scipy
         - conda-forge::more-itertools
         - conda-forge::pyyaml
         - conda-forge::mako
@@ -26,15 +21,13 @@ requirements:
         - conda-forge::matplotlib
         - conda-forge::pytest
         - conda-forge::pytest-cov
-        - conda-forge::future
-        - conda-forge::flake8
-        - conda-forge::pylint
+        - conda-forge::ruff
         - conda-forge::ipython
         - conda-forge::nglview
         - conda-forge::py3dmol
         - conda-forge::qcelemental
-        - conda-forge::cmake=3.20.2
-        - conda-forge::gcc_linux-64=7.5.0
-        - conda-forge::gxx_linux-64=7.5.0
-        - conda-forge::gfortran_linux-64=7.5.0
+        - conda-forge::cmake
+        - conda-forge::gcc_linux-64
+        - conda-forge::gxx_linux-64
+        - conda-forge::gfortran_linux-64
         - conda-forge::pyparsing

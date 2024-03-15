@@ -1,47 +1,48 @@
 """ common utilities used by automol
 """
 
-# functions
-from automol.util._util import flatten
-from automol.util._util import is_odd_permutation
-from automol.util._util import is_even_permutation
-from automol.util._util import equivalence_partition
-from automol.util._util import move_item_to_front
-from automol.util._util import move_items_to_front
-from automol.util._util import breakby
-from automol.util._util import separate_negatives
-from automol.util._util import value_similar_to
-from automol.util._util import scale_iterable
-from automol.util._util import remove_duplicates_with_order
-from automol.util._util import sort_by_list
-from automol.util._util import formula_from_symbols
-from automol.util._util import numpy_to_float
-# submodules
-from automol.util import vec
-from automol.util import mat
-from automol.util import highd_mat
-from automol.util import dict_
-
+from automol.util import dict_, heuristic, matrix, ring, tensor, vector, zmat_conv
+from automol.util._util import (
+    breakby,
+    equivalence_partition,
+    flatten,
+    formula_from_symbols,
+    is_even_permutation,
+    is_odd_permutation,
+    move_item_to_end,
+    move_item_to_front,
+    move_items_to_front,
+    partner,
+    remove_duplicates_with_order,
+    scale_iterable,
+    separate_negatives,
+    sort_by_list,
+    value_similar_to,
+)
+from automol.util.zmat_conv import ZmatConv
 
 __all__ = [
-    # functions
-    'flatten',
-    'is_odd_permutation',
-    'is_even_permutation',
-    'equivalence_partition',
-    'move_item_to_front',
-    'move_items_to_front',
-    'breakby',
-    'separate_negatives',
-    'value_similar_to',
-    'scale_iterable',
-    'remove_duplicates_with_order',
-    'sort_by_list',
-    'formula_from_symbols',
-    'numpy_to_float',
-    # submodules
-    'vec',
-    'mat',
-    'highd_mat',
-    'dict_',
+    "dict_",
+    "zmat_conv",
+    "heuristic",
+    "tensor",
+    "matrix",
+    "ring",
+    "vector",
+    "breakby",
+    "partner",
+    "equivalence_partition",
+    "flatten",
+    "formula_from_symbols",
+    "is_even_permutation",
+    "is_odd_permutation",
+    "move_item_to_end",
+    "move_item_to_front",
+    "move_items_to_front",
+    "remove_duplicates_with_order",
+    "scale_iterable",
+    "separate_negatives",
+    "sort_by_list",
+    "value_similar_to",
+    "ZmatConv",
 ]

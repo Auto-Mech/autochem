@@ -15,7 +15,7 @@ from automol.chi.base._core import standard_form
 # # getters
 from automol.amchi.base import version
 # from automol.chi.base._core import formula_sublayer  # defined below
-from automol.amchi.base import formula_string
+from automol.amchi.base import formula_layer
 from automol.amchi.base import main_layers as main_sublayers
 from automol.amchi.base import charge_layers as charge_sublayers
 from automol.amchi.base import stereo_layers as stereo_sublayers
@@ -33,6 +33,7 @@ from automol.amchi.base._core import with_inchi_prefix
 # from automol.chi.base._core import inchi_key  # goes in L4
 # from automol.chi.base._core import smiles     # goes in L4
 from automol.amchi.base import formula
+from automol.amchi.base import formula_string
 # # # properties
 from automol.chi.base._core import is_standard_form
 from automol.amchi.base import has_multiple_components
@@ -48,14 +49,12 @@ from automol.chi.base._core import split
 # # sort
 from automol.chi.base._core import sorted_
 from automol.chi.base._core import argsort
-# # helpers
-from automol.amchi.base import version_pattern
 
 
 def formula_sublayer(*args, **kwargs):
     """ Deprecated
     """
-    return formula_string(*args, **kwargs)
+    return formula_layer(*args, **kwargs)
 
 
 __all__ = [
@@ -67,7 +66,7 @@ __all__ = [
     # # getters
     'version',
     'formula_sublayer',
-    'formula_string',
+    'formula_layer',
     'main_sublayers',
     'charge_sublayers',
     'stereo_sublayers',
@@ -85,6 +84,7 @@ __all__ = [
     # 'inchi_key',
     # 'smiles',
     'formula',
+    'formula_string',
     # # # properties
     'is_standard_form',
     'has_multiple_components',
@@ -100,6 +100,4 @@ __all__ = [
     # # sort
     'sorted_',
     'argsort',
-    # # helpers
-    'version_pattern',
 ]
