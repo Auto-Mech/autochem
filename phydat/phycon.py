@@ -1,7 +1,6 @@
 """
 Library of physical constants
 """
-
 from qcelemental import constants as qcc
 
 

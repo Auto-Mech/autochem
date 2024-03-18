@@ -61,7 +61,6 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
     for freq in rt_freqs:
         if freq > freq_thresh:
             log_rt_freq += numpy.log(freq)
-            # print('reduced rt_freqs:', freq)
         else:
             nfreq_remove += 1
 
@@ -73,13 +72,11 @@ def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
     for idx, freq in enumerate(sort_tors_freqs):
         if idx+1 > nfreq_remove:
             log_tors_freq += numpy.log(freq)
-            # print('reduced tors_freqs:', freq)
         else:
             idx_remove.append(tors_freqs.index(freq))
 
     # Generate the scaling factor
     factor = numpy.exp(log_rt_freq - log_freq - log_tors_freq)
-    # print('idx_remove:', idx_remove)
     scale_factor = (idx_remove, factor)
 
     # generate the set of indices for torsions that are to be scaled
@@ -132,8 +129,6 @@ def _three_coeff_harm_scaling(freqs, method, basis):
     for freq in freqs:
         scale_factor = cf1 - (cf2 * freq**cf3)
         scaled_freqs += (freq * scale_factor,)
-        # print('m3 test:', freq,scale_factor)
-    # print('scaled freq test:',scaled_freqs)
     return scaled_freqs
 
 

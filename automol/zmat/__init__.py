@@ -20,6 +20,8 @@ from automol.vmat import count
 from automol.vmat import atom_indices
 from automol.vmat import coordinate_key_matrix
 from automol.vmat import coordinates
+from automol.vmat import coordinate
+from automol.vmat import torsion_axis
 from automol.vmat import names
 from automol.vmat import distance_names
 from automol.vmat import central_angle_names
@@ -28,6 +30,12 @@ from automol.vmat import angle_names
 from automol.vmat import dummy_coordinate_names
 from automol.vmat import standard_names
 from automol.vmat import standard_name_matrix
+from automol.vmat import distance_coordinate_name
+from automol.vmat import central_angle_coordinate_name
+from automol.vmat import dihedral_angle_coordinate_name
+from automol.vmat import dummy_keys
+from automol.vmat import dummy_source_dict
+from automol.vmat import conversion_info
 # core functions
 # # constructors
 from automol.zmat.base._core import from_data
@@ -35,6 +43,7 @@ from automol.zmat.base._core import from_geometry
 # # getters
 from automol.zmat.base._core import value_matrix
 from automol.zmat.base._core import value_dictionary
+from automol.zmat.base._core import value
 # # setters
 from automol.zmat.base._core import set_key_matrix
 from automol.zmat.base._core import set_name_matrix
@@ -43,46 +52,38 @@ from automol.zmat.base._core import set_values_by_name
 # # I/O
 from automol.zmat.base._core import string
 from automol.zmat.base._core import from_string
+from automol.zmat.base._core import yaml_data
+from automol.zmat.base._core import from_yaml_data
 # # validation
 from automol.zmat.base._core import is_valid
+# # properties
+from automol.zmat.base._core import torsion_coordinates
 # # conversions
 from automol.zmat.base._core import vmatrix
 from automol.zmat.base._core import formula
 # # relabelling
 from automol.zmat.base._core import rename
 from automol.zmat.base._core import standard_form
+from automol.zmat.base._core import round_
 # # add/remove atoms
 from automol.zmat.base._core import add_atom
 from automol.zmat.base._core import remove_atom
 # # comparisons
 from automol.zmat.base._core import almost_equal
-# # coordinate names
-from automol.zmat.base._core import distance_coordinate_name
-from automol.zmat.base._core import central_angle_coordinate_name
-from automol.zmat.base._core import dihedral_angle_coordinate_name
-from automol.zmat.base._core import dihedral_axis_name
-# # dummy atom functions
-from automol.zmat.base._core import dummy_keys
-from automol.zmat.base._core import dummy_key_dictionary
-from automol.zmat.base._core import dummy_neighbor_keys
-from automol.zmat.base._core import linear_atom_keys
-from automol.zmat.base._core import shift_down
-from automol.zmat.base._core import shift_up
 # extra functions
 from automol.zmat.base._extra import samples
-from automol.zmat.base._extra import torsional_sampling_ranges
-from automol.zmat.base._extra import constraint_dct
+from automol.zmat.base._extra import constraint_dict
 from automol.zmat.base._extra import set_constraint_names
-from automol.zmat.base._extra import coord_idxs
-from automol.zmat.base._extra import bond_key_from_idxs
 # L4
 # conversion functions
 # # conversions
 from automol.zmat._conv import graph
-from automol.zmat._conv import connectivity_graph
+from automol.zmat._conv import graph_without_stereo
 from automol.zmat._conv import geometry
 from automol.zmat._conv import geometry_with_conversion_info
-from automol.zmat._conv import geometry_with_dummy_atoms
+from automol.zmat._conv import rdkit_molecule
+from automol.zmat._conv import py3dmol_view
+from automol.zmat._conv import display
 # # derived properties
 from automol.zmat._conv import distance
 from automol.zmat._conv import central_angle
@@ -90,8 +91,9 @@ from automol.zmat._conv import dihedral_angle
 # # torsions
 from automol.zmat._conv import torsion_coordinate_name
 from automol.zmat._conv import torsion_leading_atom
-# extra functions:
-from automol.zmat._extra import is_atom_closest_to_bond_atom
+# # repulsion energy
+from automol.zmat._conv import has_low_relative_repulsion_energy
+from automol.zmat._conv import total_repulsion_energy
 # ring functions:
 from automol.zmat._ring import all_rings_atoms
 from automol.zmat._ring import all_rings_distances
@@ -113,6 +115,7 @@ __all__ = [
     'atom_indices',
     'coordinate_key_matrix',
     'coordinates',
+    'torsion_axis',
     'names',
     'distance_names',
     'central_angle_names',
@@ -128,6 +131,7 @@ __all__ = [
     # # getters
     'value_matrix',
     'value_dictionary',
+    'value',
     # # setters
     'set_key_matrix',
     'set_name_matrix',
@@ -136,14 +140,19 @@ __all__ = [
     # # I/O
     'string',
     'from_string',
+    'yaml_data',
+    'from_yaml_data',
     # # validation
     'is_valid',
+    # # properties
+    'torsion_coordinates',
     # # conversions
     'vmatrix',
     'formula',
     # # relabelling
     'rename',
     'standard_form',
+    'round_',
     # # add/remove atoms
     'add_atom',
     'remove_atom',
@@ -153,29 +162,25 @@ __all__ = [
     'distance_coordinate_name',
     'central_angle_coordinate_name',
     'dihedral_angle_coordinate_name',
-    'dihedral_axis_name',
     # # dummy atom functions
     'dummy_keys',
-    'dummy_key_dictionary',
-    'dummy_neighbor_keys',
-    'linear_atom_keys',
-    'shift_down',
-    'shift_up',
+    'dummy_source_dict',
+    'conversion_info',
     # extra base functions
     'samples',
-    'torsional_sampling_ranges',
-    'constraint_dct',
+    'constraint_dict',
     'set_constraint_names',
-    'coord_idxs',
-    'bond_key_from_idxs',
+    'coordinate',
     # L4
     # conversion functions
     # # conversions
     'graph',
-    'connectivity_graph',
+    'graph_without_stereo',
     'geometry',
     'geometry_with_conversion_info',
-    'geometry_with_dummy_atoms',
+    'rdkit_molecule',
+    'py3dmol_view',
+    'display',
     # # derived properties
     'distance',
     'central_angle',
@@ -183,8 +188,9 @@ __all__ = [
     # # torsions
     'torsion_coordinate_name',
     'torsion_leading_atom',
-    # extra functions:
-    'is_atom_closest_to_bond_atom',
+    # # repulsion energy
+    'has_low_relative_repulsion_energy',
+    'total_repulsion_energy',
     # ring functions
     'all_rings_atoms',
     'all_rings_distances',

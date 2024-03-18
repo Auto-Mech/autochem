@@ -68,10 +68,10 @@ def test__formula_string():
     """ chi.formula_string
     """
 
-    assert chi.formula_string(AR_ICH) == 'Ar'
-    assert chi.formula_string(CH4O_CH_ICH) == 'CH4O.CH'
-    assert chi.formula_string(CH2O2_ICH) == 'CH2O2'
-    assert chi.formula_string(C2H6O_ICH) == 'C2H6O'
+    assert chi.formula_layer(AR_ICH) == 'Ar'
+    assert chi.formula_layer(CH4O_CH_ICH) == 'CH4O.CH'
+    assert chi.formula_layer(CH2O2_ICH) == 'CH2O2'
+    assert chi.formula_layer(C2H6O_ICH) == 'C2H6O'
 
 
 def test__version():
@@ -85,6 +85,8 @@ def test__version():
 def test__standard_form():
     """ test chi.standard_form
     """
+    print(chi.standard_form(C2H6O_ICH, stereo=False))
+    print(C2H6O_ICH_NO_STEREO)
     assert (chi.standard_form(C2H6O_ICH, stereo=False) ==
             C2H6O_ICH_NO_STEREO)
     assert (chi.standard_form(C4H5F2O_ICH, stereo=False) ==
@@ -109,6 +111,8 @@ def test__reflect():
     """
     ich1 = 'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m1/s1'
     ich2 = 'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3'
+    print(chi.reflect(ich1))
+    print('InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1')
     assert (chi.reflect(ich1) ==
             'InChI=1S/C4H8O2/c1-3-4(2)6-5/h3-5H,1H2,2H3/t4-/m0/s1')
     assert chi.reflect(ich2) == ich2
@@ -338,9 +342,11 @@ def test__stereo():
     assert set(chi.expand_stereo(C8H13O_ICH_NO_STEREO)) == set(c8h13o_ste)
 
     # some cases that were breaking
+    print(chi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H'))
     assert set(chi.expand_stereo('InChI=1S/H2N2/c1-2/h1-2H')) == {
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1+',
         'InChI=1S/H2N2/c1-2/h1-2H/b2-1-'}
+    print(chi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H'))
     assert set(chi.expand_stereo('InChI=1S/CH2N/c1-2/h1-2H')) == {
         'AMChI=1/CH2N/c1-2/h1-2H/b2-1-',
         'AMChI=1/CH2N/c1-2/h1-2H/b2-1+'}
@@ -388,7 +394,7 @@ def test__racemic():
 
     ach = 'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m0/s1'
     assert (chi.racemic(ach) ==
-            'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/s3')
+            'AMChI=1/C6H11O/c1-3-4-6-5(2)7-6/h5-6H,1,3-4H2,2H3/t5-,6+/m2/s3')
 
     assert chi.racemic(AR_ICH) == AR_ICH
     assert chi.racemic(C8H13O_ICH_NO_STEREO) == C8H13O_ICH_NO_STEREO
@@ -411,6 +417,7 @@ if __name__ == '__main__':
     # test__sorted_()
     # test__recalculate()
     # test__filter_enantiomer_reactions()
-    # test__stereo()
+    test__stereo()
     # test__join()
-    test__canonical_enantiomer()
+    # test__canonical_enantiomer()
+    # test__racemic()

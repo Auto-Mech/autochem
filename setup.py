@@ -35,21 +35,17 @@ setup(
         'automol.smiles',
         'automol.zmat',
         # L5
-        'automol.pot',
         'automol.etrans',
         'automol.reac',
-        'automol.rotor',
         # other
         'autoreact',
         'autoreact.params',
         'phydat',
-        'transformations'
     ],
     package_dir={
         'automol': 'automol',
         'autoreact': 'autoreact',
         'phydat': 'phydat',
-        'transformations': 'transformations'
     },
     package_data={
         'automol': ['tests/data/*'],

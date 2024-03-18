@@ -36,31 +36,31 @@ def test__from_data():
     """ test getters
     """
     assert AR_ICH == inchi.standard_form(inchi.from_data(
-        fml_slyr=inchi.formula_sublayer(AR_ICH),
+        fml_lyr=inchi.formula_layer(AR_ICH),
     ))
 
     assert CH2O2_ICH == inchi.standard_form(inchi.from_data(
-        fml_slyr=inchi.formula_sublayer(CH2O2_ICH),
-        main_lyr_dct=inchi.main_sublayers(CH2O2_ICH),
-        char_lyr_dct=inchi.charge_sublayers(CH2O2_ICH),
+        fml_lyr=inchi.formula_layer(CH2O2_ICH),
+        main_lyr_dct=inchi.main_layers(CH2O2_ICH),
+        char_lyr_dct=inchi.charge_layers(CH2O2_ICH),
     ))
 
     assert C2H6O_ICH == inchi.standard_form(inchi.from_data(
-        fml_slyr=inchi.formula_sublayer(C2H6O_ICH),
-        main_lyr_dct=inchi.main_sublayers(C2H6O_ICH),
-        iso_lyr_dct=inchi.isotope_sublayers(C2H6O_ICH),
+        fml_lyr=inchi.formula_layer(C2H6O_ICH),
+        main_lyr_dct=inchi.main_layers(C2H6O_ICH),
+        iso_lyr_dct=inchi.isotope_layers(C2H6O_ICH),
     ))
 
     assert C2H2F2_ICH == inchi.standard_form(inchi.from_data(
-        fml_slyr=inchi.formula_sublayer(C2H2F2_ICH),
-        main_lyr_dct=inchi.main_sublayers(C2H2F2_ICH),
-        ste_lyr_dct=inchi.stereo_sublayers(C2H2F2_ICH),
+        fml_lyr=inchi.formula_layer(C2H2F2_ICH),
+        main_lyr_dct=inchi.main_layers(C2H2F2_ICH),
+        ste_lyr_dct=inchi.stereo_layers(C2H2F2_ICH),
     ))
 
     assert C8H13O_ICH == inchi.standard_form(inchi.from_data(
-        fml_slyr=inchi.formula_sublayer(C8H13O_ICH),
-        main_lyr_dct=inchi.main_sublayers(C8H13O_ICH),
-        ste_lyr_dct=inchi.stereo_sublayers(C8H13O_ICH),
+        fml_lyr=inchi.formula_layer(C8H13O_ICH),
+        main_lyr_dct=inchi.main_layers(C8H13O_ICH),
+        ste_lyr_dct=inchi.stereo_layers(C8H13O_ICH),
     ))
 
 
@@ -68,10 +68,10 @@ def test__formula_string():
     """ inchi.formula_string
     """
 
-    assert inchi.formula_string(AR_ICH) == 'Ar'
-    assert inchi.formula_string(CH4O_CH_ICH) == 'CH4O.CH'
-    assert inchi.formula_string(CH2O2_ICH) == 'CH2O2'
-    assert inchi.formula_string(C2H6O_ICH) == 'C2H6O'
+    assert inchi.formula_layer(AR_ICH) == 'Ar'
+    assert inchi.formula_layer(CH4O_CH_ICH) == 'CH4O.CH'
+    assert inchi.formula_layer(CH2O2_ICH) == 'CH2O2'
+    assert inchi.formula_layer(C2H6O_ICH) == 'C2H6O'
 
 
 def test__version():
