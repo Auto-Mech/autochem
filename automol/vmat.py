@@ -17,10 +17,10 @@ SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
 VNAME = pp.Combine(pp.Word(pp.alphas) + pp.Opt(pp.Word(pp.nums)))
 LINE_END = pp.Suppress(pp.lineEnd())
 
-LINE0 = pp.Group(CHAR)
-LINE1 = pp.Group(CHAR + ppc.integer + VNAME)
-LINE2 = pp.Group(CHAR + (ppc.integer + VNAME) * 2)
-LINE3 = pp.Group(CHAR + (ppc.integer + VNAME) * 3)
+LINE0 = pp.Group(SYMBOL)
+LINE1 = pp.Group(SYMBOL + ppc.integer + VNAME)
+LINE2 = pp.Group(SYMBOL + (ppc.integer + VNAME) * 2)
+LINE3 = pp.Group(SYMBOL + (ppc.integer + VNAME) * 3)
 
 LINES0 = LINE0
 LINES1 = LINE0 + LINE_END + LINE1
