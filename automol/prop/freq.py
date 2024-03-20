@@ -13,7 +13,7 @@ def scale_frequencies_and_zpe(freqs, method, basis, scale_method='c3'):
         freqs, method, basis, scale_method=scale_method)
 
     scaled_zpe = 0.0
-    if 'harm' in scale_method:
+    if 'harm' in scale_method or 'no_scale' in scale_method:
         # Calculate harmonic zpe using scaled frequencies
         scaled_zpe = sum(scaled_freqs)/2.0 * phycon.WAVEN2EH
     else:
