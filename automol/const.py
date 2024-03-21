@@ -216,6 +216,7 @@ class ReactionInfo:
         spin_req_classes = (
             ReactionClass.HYDROGEN_ABSTRACTION,  # AVC: Why is this in here??
             ReactionClass.ADDITION,
+            ReactionClass.BETA_SCISSION,
         )
         return (
             self.reaction_class() in spin_req_classes
