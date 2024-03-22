@@ -178,7 +178,9 @@ def canonical_amchi_graph_with_numbers(
     return gra, num_dct, is_can_dir, is_can_enant
 
 
-def smiles_graph(gra: Any, res_stereo: bool = True, exp: bool = False, dummy: bool=False) -> Any:
+def smiles_graph(
+    gra: Any, res_stereo: bool = True, exp: bool = False, dummy: bool = False
+) -> Any:
     """Put a connected graph in a form appropriate for writing SMILES strings
 
     :param gra: molecular graph

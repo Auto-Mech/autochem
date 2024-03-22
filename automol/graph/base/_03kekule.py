@@ -5,7 +5,7 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 import itertools
 import numbers
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy
 
@@ -391,13 +391,18 @@ def unneeded_dummy_atom_keys(gra) -> frozenset:
     return frozenset(dk for dk, lk in dum_lin_key_dct.items() if lk not in lin_keys)
 
 
-def atom_hybridizations(gra):
-    """resonance-dominant atom hybridizations, by atom"""
+def atom_hybridizations(gra, kgrs: Optional[List[Any]] = None):
+    """resonance-dominant atom hybridizations, by atom
+
+    :param gra: A graph
+    :param kgrs: Optionally, pass in the kekule graphs, to avoid recalculating them
+    """
     assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
+    kgrs = kekules(gra) if kgrs is None else kgrs
+
     atm_keys = list(atom_keys(gra))
     atm_hybs_by_res = [
-        dict_.values_by_key(atom_hybridizations_from_kekule(g), atm_keys)
-        for g in kekules(gra)
+        dict_.values_by_key(atom_hybridizations_from_kekule(g), atm_keys) for g in kgrs
     ]
     atm_hybs = [min(hybs) for hybs in zip(*atm_hybs_by_res)]
     atm_hyb_dct = dict(zip(atm_keys, atm_hybs))
@@ -754,11 +759,12 @@ def strict_rigid_planar_bond_keys(gra) -> frozenset[BondKey]:
     :type gra: automol graph data structure
     :returns: The bond keys
     """
-    bkeys = set()
-    for kgr in kekules(gra):
-        ord_dct = bond_orders(kgr)
-        hyb_dct = atom_hybridizations_from_kekule(kgr)
+    kgrs = kekules(gra)
+    hyb_dct = atom_hybridizations(gra, kgrs=kgrs)
 
+    bkeys = set()
+    for kgr in kgrs:
+        ord_dct = bond_orders(kgr)
         sp2_keys = {k for k, h in hyb_dct.items() if h == 2}
         bkeys |= {bk for bk, o in ord_dct.items() if o == 2 and bk <= sp2_keys}
     return frozenset(bkeys)

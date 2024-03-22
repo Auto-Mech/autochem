@@ -155,13 +155,17 @@ def to_geometry(rdm):
 
 
 def canonicalize_geometry(rdm):
+    """Canonicalize a geometry using RDKit
+
+    :param rdm: An RDKit molecule
+    :return: The geometry
+    """
     rdkit.Chem.rdMolTransforms.CanonicalizeMol(rdm)
     atms = rdm.GetAtoms()
     syms = tuple(str(rda.GetSymbol()).title() for rda in atms)
     xyzs = tuple(map(tuple, rdm.GetConformer(0).GetPositions()))
     geo = geom_base.from_data(syms, xyzs, angstrom=False)
     return geo
-    # return rdm
 
 
 def to_conformers(rdm, nconfs):
