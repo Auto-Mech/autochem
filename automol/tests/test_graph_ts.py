@@ -745,6 +745,29 @@ C8H14_GEO = (
     ("H", (-3.926188, -2.734536, -1.858791)),
 )
 
+# Unusual linearity case (biradical)
+# 
+# [CH2]/C=[C]/C#C => C=C=C=C=[CH] + [H]
+#          -  - -      - - -  -
+# [- marks a potentially linear atom]
+C5H4_TSG = ({0: ('C', 0, None),
+             1: ('C', 0, None),
+             2: ('H', 0, None),
+             3: ('H', 0, None),
+             4: ('C', 0, None),
+             5: ('C', 0, None),
+             6: ('C', 0, None),
+             7: ('H', 0, None),
+             8: ('H', 0, None)},
+            {frozenset({1, 4}): (1, True),
+             frozenset({0, 3}): (1, None),
+             frozenset({4, 5}): (1, None),
+             frozenset({6, 7}): (1, None),
+             frozenset({0, 1}): (1, None),
+             frozenset({0, 2}): (1, None),
+             frozenset({5, 6}): (1, None),
+             frozenset({1, 8}): (0.9, None)})
+
 
 def test__set_stereo_from_geometry():
     """test graph.set_stereo_from_geometry"""
@@ -1001,6 +1024,16 @@ def test__amchi():
     _test("C8H14", C8H14_TSG)
 
 
+def test__linear_atom_keys():
+    """test graph.linear_atom_keys"""
+    tsg = C5H4_TSG
+    rgra = graph.ts.reactants_graph(tsg, stereo=False)
+    pgra = graph.ts.products_graph(tsg, stereo=False)
+    assert graph.linear_atom_keys(tsg) == frozenset({1, 4, 5, 6})
+    assert graph.linear_atom_keys(rgra) == frozenset({4, 5, 6})
+    assert graph.linear_atom_keys(pgra) == frozenset({1, 4, 5, 6})
+
+
 def test__rotational_bond_keys():
     """test graph.rotational_bond_keys"""
     # C=C(O[O])C=C => [CH]=C(OO)C=C
@@ -1077,8 +1110,9 @@ if __name__ == "__main__":
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    test__ts__reagents_graph()
+    # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
     # test__amchi()
     # test__ts__fleeting_stereocenter_keys()
+    test__linear_atom_keys()

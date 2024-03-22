@@ -332,6 +332,8 @@ def test__end_to_end():
     _test(["CCC[CH2]"], ["CC[CH]C"])
     # beta scission (stereo-specific)
     _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
+    # beta scission (weird z-matrix / linear atom relationships
+    _test(['[CH2]/C=[C]/C#C'], ['C=C=C=C=[CH]', '[H]'])
     # ring-forming scission (FIXED)
     _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
     _test([r"[CH2]/C=C\[C@@H](CC)OO"], ["CC[C@H]1OCC=C1", "[OH]"])
