@@ -250,7 +250,7 @@ def linear_atom_keys(gra, dummy=True):
         nkeys_dct = atoms_neighbor_atom_keys(gra_)
         # To be linear, an atom must be both (a.) sp1 hybridized and (b.) have more than
         # 1 neighbor (exactly 2)
-        atm_hyb_dct = atom_hybridizations_from_kekule(implicit(kekule(gra_)))
+        atm_hyb_dct = atom_hybridizations(gra_)
         sp1_atm_keys = dict_.keys_by_value(atm_hyb_dct, lambda x: x == 1)
         lin_atm_keys |= set(k for k in sp1_atm_keys if len(nkeys_dct[k]) > 1)
 
