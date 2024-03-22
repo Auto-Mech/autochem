@@ -178,15 +178,17 @@ def canonical_amchi_graph_with_numbers(
     return gra, num_dct, is_can_dir, is_can_enant
 
 
-def smiles_graph(gra: Any, res_stereo: bool = True, exp: bool = False) -> Any:
+def smiles_graph(gra: Any, res_stereo: bool = True, exp: bool = False, dummy: bool=False) -> Any:
     """Put a connected graph in a form appropriate for writing SMILES strings
 
     :param gra: molecular graph
     :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
     :param res_stereo: allow resonant double-bond stereo?
+    :param dummy: Retain dummy atoms? Defaults to False
     :return: The graph, kekulized with appropriate implicit/explicit hydrogens
     """
-    gra = without_dummy_atoms(gra)
+    if not dummy:
+        gra = without_dummy_atoms(gra)
 
     # Add in missing explicit hydrogens (connected to H or needed for stereo)
     gra = explicit(gra, atm_keys=atom_keys(gra, symb="H"), neg=True)

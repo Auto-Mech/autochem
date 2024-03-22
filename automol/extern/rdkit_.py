@@ -305,7 +305,7 @@ def from_graph(
     :param label_dct: bool
     """
     gra = graph_base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
-    gra = graph_base.smiles_graph(gra, res_stereo=True, exp=exp)
+    gra = graph_base.smiles_graph(gra, res_stereo=True, exp=exp, dummy=True)
     rdm, idx_from_key = _from_graph_without_stereo(
         gra, label=label, label_dct=label_dct
     )
