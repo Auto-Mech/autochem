@@ -387,16 +387,15 @@ def relabel_zmatrix_key_sequence(
 
         assert isinstance(zks, Sequence), f"Cannot process non-sequence {zks}"
 
-        # If the first element is an integer, assume we have a list of z-matrix keys and
-        # conver them
-        if isinstance(zks[0], numbers.Integral):
+        # If we have a sequence, recursively call this function
+        if isinstance(zks[0], Sequence):
+            gks = tuple(map(zkeys_to_gkeys_, zks))
+        # Otherwise, assume we have a list of z-matrix keys and convert them
+        else:
             if dummy:
-                gks = tuple(rel_dct[k] if k in rel_dct else None for k in zks)
+                gks = tuple(map(rel_dct.get, zks))
             else:
                 gks = tuple(rel_dct[k] for k in zks if k in rel_dct)
-        # If we have a sequence, recursively call this function
-        elif isinstance(zks[0], Sequence):
-            gks = tuple(map(zkeys_to_gkeys_, zks))
 
         return gks
 
