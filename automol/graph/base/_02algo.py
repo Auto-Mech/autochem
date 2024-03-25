@@ -8,13 +8,15 @@ import functools
 import itertools
 import numbers
 import operator
-from typing import List, Dict
+from typing import Any, Dict, List, Tuple
 
-import networkx
 import more_itertools as mit
+import networkx
+
 from automol import util
 from automol.graph.base import _01networkx
 from automol.graph.base._00core import (
+    AtomKeys,
     add_bonds,
     atom_bond_keys,
     atom_count,
@@ -871,24 +873,26 @@ def ring_systems_bond_keys(gra, lump_spiro=True):
     return rsy_bnd_keys_lst
 
 
-def spiro_atoms_grouped_neighbor_keys(gra):
-    """Identify spiro atoms in the graph
-
-    Spiro atoms are the only atoms shared by one or more ring systems
+def spiros(gra: Any, repeat_end: bool = False) -> Dict[int, Tuple[AtomKeys, AtomKeys]]:
+    """Identify spiro-joined rings in the graph
 
     :param gra: Molecular graph
-    :type gra: automol graph data structure
+    :param repeat_end: Repeat the spiro atom at the end of the ring keys?
+    :returns: A dictionary of pairs of spiro-joined rings, by joining spiro atom
     """
-    rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
-    spi_ngb_dct = {}
-    for rsy_keys1, rsy_keys2 in itertools.combinations(rsy_keys_lst, r=2):
-        shared_keys = rsy_keys1 & rsy_keys2
+    rkeys_lst = rings_atom_keys(gra)
+    spi_dct = {}
+    for rkeys1, rkeys2 in itertools.combinations(rkeys_lst, r=2):
+        shared_keys = set(rkeys1) & set(rkeys2)
         if len(shared_keys) == 1:
             (spi_key,) = shared_keys
-            nkeys = atom_neighbor_atom_keys(gra, spi_key)
-            groups = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
-            spi_ngb_dct[spi_key] = frozenset(groups)
-    return spi_ngb_dct
+            rkeys1 = list(util.ring.cycle_item_to_front(rkeys1, spi_key))
+            rkeys2 = list(util.ring.cycle_item_to_front(rkeys2, spi_key))
+            if repeat_end:
+                rkeys1.append(spi_key)
+                rkeys2.append(spi_key)
+            spi_dct[spi_key] = (tuple(rkeys1), tuple(rkeys2))
+    return spi_dct
 
 
 def spiro_atom_keys(gra):
@@ -899,7 +903,7 @@ def spiro_atom_keys(gra):
     :param gra: Molecular graph
     :type gra: automol graph data structure
     """
-    return frozenset(spiro_atoms_grouped_neighbor_keys(gra))
+    return frozenset(spiros(gra))
 
 
 def is_ring_system(gra):
@@ -939,24 +943,34 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
 
     bnd_keys = list(mit.windowed(rng_keys + rng_keys[:1], 2))
 
+    # Save some information to handle spiros
+    spi_dct = spiros(rsy, repeat_end=True)
+
     # Remove bonds for the ring
     rsy = remove_bonds(rsy, bnd_keys)
     keys_lst = [rng_keys]
     done_keys = set(rng_keys)
 
     while bond_keys(rsy):
-        # Determine shortest paths for the graph with one more ring/arc deleted
+        # Identify possible arcs connecting keys that are already done
         sp_dct = atom_shortest_paths(rsy)
+        arc_pool = [
+            sp_dct[i][j]
+            for i, j in itertools.combinations(done_keys, 2)
+            if j in sp_dct[i]
+        ]
 
-        # The shortest path will be the next shortest arc in the system
-        arc_keys = min(
-            (
-                sp_dct[i][j]
-                for i, j in itertools.combinations(done_keys, 2)
-                if j in sp_dct[i]
-            ),
-            key=len,
+        # Include spiro rings as arcs
+        rng_keys_pool = list(map(set, rings_atom_keys(rsy)))
+        arc_pool.extend(
+            rk
+            for k, rks in spi_dct.items()
+            for rk in rks
+            if k in done_keys and set(rk) in rng_keys_pool
         )
+
+        # Identify the next shortest arc
+        arc_keys = min(arc_pool, key=len)
 
         # Add this arc to the list
         keys_lst.append(arc_keys)
@@ -964,7 +978,7 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
         # Add these keys to the list of done keys
         done_keys |= set(arc_keys)
 
-        # Delete tbond keys for the new arc and continue to the next iteration
+        # Delete the bond keys for the new arc and continue to the next iteration
         bnd_keys = list(map(frozenset, mit.windowed(arc_keys, 2)))
         rsy = remove_bonds(rsy, bnd_keys)
 
