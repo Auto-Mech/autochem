@@ -313,7 +313,7 @@ def rotors_from_data(
         tor_names = list(map(tors.name, tor_lst))
         tor_names_lst = [tor_names] if multi else [[n] for n in tor_names]
 
-    tor_dct = {tors.name(t): t for t in tor_lst}
+    tor_dct = {tors.name(t): tors.update_zmatrix_coordinate(t, zma) for t in tor_lst}
 
     rotors = []
     for names in tor_names_lst:
