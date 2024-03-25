@@ -484,32 +484,15 @@ def distance_bounds_matrices(
 
             start = end
 
-    # 2. reopen bounds on the torsions from the reactant
-    if relax_torsions:
-        rot_bnd_keys = rotational_bond_keys(gra)
-
-        tors_ijs = [
-            [i, j]
-            for i, j in itertools.combinations(range(natms), 2)
-            if j in sp_dct[i]
-            and len(sp_dct[i][j]) >= 4
-            and frozenset(sp_dct[i][j][1:3]) in rot_bnd_keys
-        ]
-
-        tors_ijs += list(map(list, map(reversed, tors_ijs)))
-
-        tors_idxs = tuple(map(list, zip(*tors_ijs)))
-
-        if tors_idxs:
-            lmat[tors_idxs] = lmat_old[tors_idxs]
-            umat[tors_idxs] = umat_old[tors_idxs]
-
-    # 3. reopen bounds on the angles from the reactant
+    # 2. reopen bounds on the angles from the reactant
+    # (also triggers torsional re-opening, for sufficient flexibility)
     if relax_angles:
+        relax_torsions = True
+
         ang_ijs = [
             [i, j]
             for i, j in itertools.combinations(range(natms), 2)
-            if j in sp_dct[i] and len(sp_dct[i][j]) >= 3
+            if j in sp_dct[i] and len(sp_dct[i][j]) == 3
         ]
         ang_ijs += list(map(list, map(reversed, ang_ijs)))
 
@@ -518,6 +501,35 @@ def distance_bounds_matrices(
         if ang_idxs:
             lmat[ang_idxs] = lmat_old[ang_idxs]
             umat[ang_idxs] = umat_old[ang_idxs]
+
+    # 3. reopen bounds on the torsions from the reactant
+    # (also opens >5-atom distances)
+    if relax_torsions:
+        rot_bkeys = rotational_bond_keys(gra)
+
+        # open up torsions at rotational bonds
+        tors_ijs = [
+            [i, j]
+            for i, j in itertools.combinations(range(natms), 2)
+            if j in sp_dct[i]
+            and len(sp_dct[i][j]) == 4
+            and frozenset(sp_dct[i][j][1:3]) in rot_bkeys
+        ]
+        # open up >5-atom distances
+        tors_ijs.extend(
+            [i, j]
+            for i, j in itertools.combinations(range(natms), 2)
+            if j in sp_dct[i]
+            and len(sp_dct[i][j]) > 4
+        )
+
+        tors_ijs += list(map(list, map(reversed, tors_ijs)))
+
+        tors_idxs = tuple(map(list, zip(*tors_ijs)))
+
+        if tors_idxs:
+            lmat[tors_idxs] = lmat_old[tors_idxs]
+            umat[tors_idxs] = umat_old[tors_idxs]
 
     # 4. set distance bounds for the forming bonds
     if dist_range_dct:
@@ -670,63 +682,6 @@ def heuristic_bond_angle_distance(
     return d13
 
 
-def heuristic_torsion_angle_distance(
-    gra,
-    key1,
-    key2,
-    key3,
-    key4,
-    angstrom=True,
-    a123=None,
-    a234=None,
-    d1234=None,
-    degree=True,
-    hyb_dct=None,
-):
-    """heuristic max distance between atoms at two ends of a torsion angle
-
-    Formula rearranged from eq. 2.15 in the following paper. Note that in the
-    denominator of this formula there is a typo: d02 and d12 should be switched
-
-    Havel, T. F.; Kunz, I.D.; Crippen, G. M.; "The Theory and Practice of
-    Distance Geometry"; Bulletin of Mathematical Biology; Vol. 45, No. 5.,
-    pp.  665-720, 1983.
-    """
-    if d1234 is None:
-        d1234 = numpy.pi
-    else:
-        d1234 *= phycon.DEG2RAD if degree else 1.0
-
-    d12 = heuristic_bond_distance(gra, key1, key2, angstrom=angstrom)
-    d23 = heuristic_bond_distance(gra, key2, key3, angstrom=angstrom)
-    d34 = heuristic_bond_distance(gra, key3, key4, angstrom=angstrom)
-    d13 = heuristic_bond_angle_distance(
-        gra, key1, key2, key3, angstrom=angstrom, a123=a123, hyb_dct=hyb_dct
-    )
-    d24 = heuristic_bond_angle_distance(
-        gra, key2, key3, key4, angstrom=angstrom, a123=a234, hyb_dct=hyb_dct
-    )
-
-    term1 = (d12**2 + d23**2 - d13**2) * (d23**2 + d34**2 - d24**2)
-    term2 = 2 * d23**2 * (d13**2 + d24**2 - d23**2)
-    term3 = (4 * d12**2 * d23**2 - (d12**2 + d23**2 - d13**2) ** 2) * (
-        4 * d23**2 * d34**2 - (d23**2 + d34**2 - d24**2) ** 2
-    )
-    if term3 < 0.0:
-        assert numpy.allclose(term3, 0)
-        term3 = 0.0
-
-    denom = numpy.sqrt(term3)
-
-    term4 = (term1 + term2 - numpy.cos(d1234) * denom) / (2 * d23**2)
-    if term4 < 0.0:
-        assert numpy.allclose(term4, 0)
-        term4 = 0.0
-
-    d14 = numpy.sqrt(term4)
-    return d14
-
-
 def closest_approach(gra, key1, key2):
     """closest approach between atoms, based on their van der Waals radii
 
@@ -746,10 +701,6 @@ def path_distance_bounds_(gra):
 
     hyb_dct = atom_hybridizations(gra)
     rng_keys_lst = rings_atom_keys(gra)
-    atm_ngb_keys = atoms_neighbor_atom_keys(gra)
-
-    ste_bnd_keys = bond_stereo_keys(gra)
-    bnd_par_dct = bond_stereo_parities(gra)
 
     def _distance_bounds(path):
         # if the path is 0, the atoms are disconnected and could be arbitrarily
@@ -773,41 +724,6 @@ def path_distance_bounds_(gra):
                 odist = heuristic_bond_angle_distance(gra, *path, hyb_dct=hyb_dct)
                 ldist = min(lrdist, odist)
                 udist = max(urdist, odist)
-        elif len(path) == 4:
-            if rsz == 0:
-                key2, key3 = path[1:3]
-                bnd_key23 = frozenset({key2, key3})
-                # handle bond stereo here
-                if bnd_key23 in ste_bnd_keys:
-                    key2_ngbs = sorted(atm_ngb_keys[key2] - {key3})
-                    key3_ngbs = sorted(atm_ngb_keys[key3] - {key2})
-                    pos2 = key2_ngbs.index(path[0])
-                    pos3 = key3_ngbs.index(path[-1])
-                    cis = bnd_par_dct[bnd_key23] != (pos2 != pos3)
-                    dih = 0.0 if cis else 180.0
-                    ldist = udist = heuristic_torsion_angle_distance(
-                        gra, *path, d1234=dih, degree=True, hyb_dct=hyb_dct
-                    )
-                else:
-                    ldist = heuristic_torsion_angle_distance(
-                        gra, *path, d1234=0.0, degree=True, hyb_dct=hyb_dct
-                    )
-                    udist = heuristic_torsion_angle_distance(
-                        gra, *path, d1234=180.0, degree=True, hyb_dct=hyb_dct
-                    )
-            else:
-                ang = (rsz - 2.0) * 180.0 / rsz
-                rdist = heuristic_torsion_angle_distance(
-                    gra, *path, d1234=0.0, degree=True, a123=ang, a234=ang
-                )
-                cdist = heuristic_torsion_angle_distance(
-                    gra, *path, d1234=0.0, degree=True, hyb_dct=hyb_dct
-                )
-                tdist = heuristic_torsion_angle_distance(
-                    gra, *path, d1234=180.0, degree=True, hyb_dct=hyb_dct
-                )
-                ldist = min(rdist, cdist)
-                udist = max(rdist, tdist)
         # otherwise, just do the sum of the distances between atoms along the
         # path
         else:
