@@ -227,7 +227,7 @@ from automol.graph.base._02algo import (
     sorted_ring_atom_keys,
     sorted_ring_atom_keys_from_bond_keys,
     spiro_atom_keys,
-    spiro_atoms_grouped_neighbor_keys,
+    spiros,
     subgraph_isomorphism,
     unique,
 )
@@ -551,7 +551,7 @@ __all__ = [
     "ring_systems",
     "ring_systems_atom_keys",
     "ring_systems_bond_keys",
-    "spiro_atoms_grouped_neighbor_keys",
+    "spiros",
     "spiro_atom_keys",
     "is_ring_system",
     "ring_system_decomposed_atom_keys",

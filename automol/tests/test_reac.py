@@ -337,6 +337,9 @@ def test__end_to_end():
     # ring-forming scission (FIXED)
     _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
     _test([r"[CH2]/C=C\[C@@H](CC)OO"], ["CC[C@H]1OCC=C1", "[OH]"])
+    # ring-forming scission with spiro atoms
+    _test(["CC1[C](O1)COO"], ["CC1C2(O1)CO2", "[OH]"])
+    _test(["CC1[C](OC1)CCOO"], ["CC1C2(OC1)CCO2", "[OH]"])
     # elimination
     _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
     # elimination (HONO)

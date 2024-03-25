@@ -208,7 +208,7 @@ from automol.graph.base._02algo import ring_arc_complement_atom_keys
 from automol.graph.base._02algo import ring_systems
 from automol.graph.base._02algo import ring_systems_atom_keys
 from automol.graph.base._02algo import ring_systems_bond_keys
-from automol.graph.base._02algo import spiro_atoms_grouped_neighbor_keys
+from automol.graph.base._02algo import spiros
 from automol.graph.base._02algo import spiro_atom_keys
 from automol.graph.base._02algo import is_ring_system
 from automol.graph.base._02algo import ring_system_decomposed_atom_keys
@@ -535,7 +535,7 @@ __all__ = [
     "ring_systems",
     "ring_systems_atom_keys",
     "ring_systems_bond_keys",
-    "spiro_atoms_grouped_neighbor_keys",
+    "spiros",
     "spiro_atom_keys",
     "is_ring_system",
     "ring_system_decomposed_atom_keys",
