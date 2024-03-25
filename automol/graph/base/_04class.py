@@ -167,3 +167,31 @@ def insertions(tsg) -> Dict[int, Tuple[int, int]]:
     :rtype: Dict[int, Tuple[int, int]]
     """
     return eliminations(ts_reverse(tsg))
+
+
+def ring_forming_scissions(tsg) -> Dict[int, Tuple[int, int]]:
+    """Get a dictionary describing substitution reaction sites
+
+    Maps transferring atoms onto their leaving and entering atoms, respectively
+
+    (Limited to substitutions at tetrahedral atoms)
+
+    :param tsg: TS graph
+    :type tsg: automol graph data structure
+    :returns: A mapping of transferring atoms onto leaving and entering atoms
+    :rtype: Dict[int, Tuple[int, int]]
+    """
+    tra_dct = atom_transfers(tsg)
+    rngs_bkeys = reacting_rings_bond_keys(tsg)
+
+    rsciss_dct = {}
+    for tra_key, (brk_nkey, frm_nkey) in tra_dct.items():
+        brk_bkey = frozenset({tra_key, brk_nkey})
+        frm_bkey = frozenset({tra_key, frm_nkey})
+        rng_bkeys = next(
+            (r for r in rngs_bkeys if frm_bkey in r and brk_bkey not in r), None
+        )
+        if rng_bkeys is not None:
+            rsciss_dct[tra_key] = (brk_nkey, frm_nkey)
+
+    return rsciss_dct

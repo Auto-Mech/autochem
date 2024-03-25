@@ -325,6 +325,13 @@ def test__end_to_end():
             print(f"\n{struc}\n almost equal ? \n{struc_}\n")
             assert zmat.almost_equal(struc, struc_)
 
+        # Test that we can build scan information for each class
+        scan_names, const_dct, grids, upd_guess = reac.build_scan_info(zrxn, ts_zma)
+        print("scan_names:", scan_names)
+        print("const_dct:", const_dct)
+        print("grids:", grids)
+        print("upd_guess:", upd_guess)
+
     # UNIMOLECULAR
     # hydrogen migration
     _test(["CCCO[O]"], ["[CH2]CCOO"])

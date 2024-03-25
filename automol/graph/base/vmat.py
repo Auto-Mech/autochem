@@ -1,15 +1,18 @@
 """ graph-based z-matrix builder
 """
+
 import itertools
-from typing import List
+from typing import Any, List
 
 from automol import util, vmat
 from automol.graph.base._00core import (
+    BondKeys,
     atom_count,
     atom_keys,
     atom_symbols,
     atoms_neighbor_atom_keys,
     atoms_zmat_sorted_neighbor_atom_keys,
+    bond_keys,
     is_ts_graph,
     remove_bonds,
     sort_by_size,
@@ -33,7 +36,7 @@ from automol.graph.base._02algo import (
     shortest_path_between_groups,
     sorted_ring_atom_keys,
 )
-from automol.graph.base._04class import atom_transfers
+from automol.graph.base._04class import atom_transfers, ring_forming_scissions
 
 
 def ts_zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
@@ -87,11 +90,18 @@ def ts_zmatrix_starting_ring_keys(tsg) -> List[int]:
         raise NotImplementedError(f"Not implemented for multiple reacting rings: {tsg}")
 
     (rng_keys,) = rngs_keys
-    brk_bkeys = {bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)}
     frm_bkeys = {bk for bk in ts_forming_bond_keys(tsg) if bk < set(rng_keys)}
-    frm_keys = list(itertools.chain(*frm_bkeys))
+    drop_bkeys = {bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)}
+    back_keys = list(itertools.chain(*frm_bkeys))
 
-    return util.ring.cycle_to_optimal_split(rng_keys, brk_bkeys, frm_keys)
+    # Special handling for ring-forming scissions
+    rsciss_dct = ring_forming_scissions(tsg)
+    if rsciss_dct:
+        tra_key, (brk_nkey, frm_nkey) = next(iter(rsciss_dct.items()))
+        drop_bkeys = [frozenset({tra_key, frm_nkey})]
+        back_keys = [tra_key]
+
+    return util.ring.cycle_to_optimal_split(rng_keys, drop_bkeys, back_keys)
 
 
 def vmatrix(gra):
@@ -144,6 +154,19 @@ def connected_vmatrix(gra, keys=None, rng_keys=None):
     rem_keys = atom_keys(gra) - set(zma_keys)
     vma, zma_keys = continue_vmatrix(gra, rem_keys, vma, zma_keys)
     return vma, zma_keys
+
+
+def missing_bond_keys(gra: Any, vma: Any) -> BondKeys:
+    """Identify the bonds that are missing in a V-Matrix
+
+    :param gra: A graph
+    :param vma: A V-Matrix
+    :returns: The missing bond keys
+    """
+    dist_names = vmat.distance_names(vma)
+    dist_coos = util.dict_.values_by_key(vmat.coordinates(vma, multi=False), dist_names)
+    miss_bkeys = bond_keys(gra) - set(map(frozenset, dist_coos))
+    return miss_bkeys
 
 
 def continue_vmatrix(gra, keys, vma, zma_keys):
