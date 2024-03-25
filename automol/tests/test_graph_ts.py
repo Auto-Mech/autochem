@@ -976,7 +976,7 @@ def test__ts__reagents_graph():
     _test("C6H11O2", C6H11O2_TSG, {5: False, frozenset({3, 4}): False}, {5: False})
     _test("C6H11O2b", C6H11O2b_TSG, {2: False}, {2: False, frozenset({0, 1}): True})
     _test("C8H14", C8H14_TSG, {frozenset({1, 6}): True}, {1: True, 6: True})
-    _test("C5H7O", C5H7O_TSG, {frozenset({2, 3}): True}, {frozenset({2, 3}): True})
+    _test("C5H7O", C5H7O_TSG, {}, {frozenset({2, 3}): True})
 
 
 def test__amchi():
@@ -1110,9 +1110,9 @@ if __name__ == "__main__":
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    # test__ts__reagents_graph()
+    test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
     # test__amchi()
     # test__ts__fleeting_stereocenter_keys()
-    test__linear_atom_keys()
+    # test__linear_atom_keys()

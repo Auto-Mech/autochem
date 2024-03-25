@@ -2,8 +2,9 @@
 
 Torsions are used to construct Rotor data structures
 """
+
 import dataclasses
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy
 import yaml
@@ -79,7 +80,7 @@ def name(tor: Torsion) -> str:
 def coordinate(
     tor: Torsion, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None
 ) -> DihCoord:
-    """Get the z-matrix keys defining the torsion coordinate
+    """Get the torsion coordinate keys
 
     :param tor: A torsion
     :type tor: Torsion
@@ -94,22 +95,6 @@ def coordinate(
     if key_typ == "geom":
         coo = zmat_conv.relabel_zmatrix_key_sequence(zc_, coo, dummy=True)
     return coo
-
-
-def axis(tor: Torsion, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None) -> Axis:
-    """Get the rotational axis of a torsion
-
-    :param tor: A torsion
-    :type tor: Torsion
-    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
-    :type key_typ: str, optional
-    :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
-    :type zc_: Optional[ZmatConv], optional
-    :return: The torsion rotational axis
-    :rtype: str
-    """
-    ks_ = coordinate(tor, key_typ=key_typ, zc_=zc_)
-    return ks_[1:3]
 
 
 def groups(
@@ -143,6 +128,68 @@ def symmetry(tor: Torsion) -> int:
     return tor.symmetry
 
 
+# setters
+def set_name(tor: Torsion, name_: str) -> Torsion:
+    """Set the coordinate name of a torsion
+
+    :param tor: A torsion
+    :param name_: The coordinate name
+    :return: The torsion
+    """
+    return from_data(
+        name_=name_, coo=coordinate(tor), grps=groups(tor), symm=symmetry(tor)
+    )
+
+
+def set_coordinate(tor: Torsion, coo: DihCoord) -> Torsion:
+    """get the torsion coordinate keys
+
+    :param tor: A torsion
+    :param coo: The torsion coordinate keys
+    :return: The torsion
+    """
+    return from_data(name_=name(tor), coo=coo, grps=groups(tor), symm=symmetry(tor))
+
+
+def set_groups(tor: Torsion, grps: Groups) -> Torsion:
+    """get the rotational groups of a torsion
+
+    :param tor: A torsion
+    :param grps: The torsion rotational groups
+    :return: The torsion
+    """
+    return from_data(
+        name_=name(tor), coo=coordinate(tor), grps=grps, symm=symmetry(tor)
+    )
+
+
+def set_symmetry(tor: Torsion, symm: int) -> Torsion:
+    """get the rotational symmetry of a torsion
+
+    :param tor: A torsion
+    :param symm: The rotational symmetry
+    :return: The torsion
+    """
+    return from_data(name_=name(tor), coo=coordinate(tor), grps=groups(tor), symm=symm)
+
+
+# properties
+def axis(tor: Torsion, key_typ: str = "zmat", zc_: Optional[ZmatConv] = None) -> Axis:
+    """Get the rotational axis of a torsion
+
+    :param tor: A torsion
+    :type tor: Torsion
+    :param key_typ: The type of keys to return, "zmat" (default) or "geom"
+    :type key_typ: str, optional
+    :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
+    :type zc_: Optional[ZmatConv], optional
+    :return: The torsion rotational axis
+    :rtype: str
+    """
+    ks_ = coordinate(tor, key_typ=key_typ, zc_=zc_)
+    return ks_[1:3]
+
+
 def span(tor: Torsion) -> float:
     """Get the angular span of a torsion, based on the symmetry number
 
@@ -154,7 +201,7 @@ def span(tor: Torsion) -> float:
     return 2 * numpy.pi / symmetry(tor)
 
 
-def grid(tor: Torsion, zma, increment: float=30 * phycon.DEG2RAD) -> Grid:
+def grid(tor: Torsion, zma, increment: float = 30 * phycon.DEG2RAD) -> Grid:
     """Get the coordinate grid for a torsion
 
     :param tor: A torsion
@@ -193,6 +240,19 @@ def with_geometry_indices(tor: Torsion, zc_: ZmatConv) -> Torsion:
         grps=groups(tor, key_typ="geom", zc_=zc_),
         symm=symmetry(tor),
     )
+
+
+def update_zmatrix_coordinate(tor: Torsion, zma: Any) -> Torsion:
+    """Update a torsion object from a z-matrix
+
+    Temporarily needed to make sure the torsion object contains sufficient information
+
+    :param tor: A torsion
+    :param zma: A z-matrix to update against
+    :return: The updated torsion
+    """
+    coo = list(reversed(zmat.coordinate(zma, name(tor))))
+    return set_coordinate(tor, coo)
 
 
 # Torsion List functions
