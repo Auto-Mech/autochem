@@ -47,7 +47,6 @@ can be replicated in two steps:
         for dummy_zkey, parent_zkey in ins_dct.items():
             <Insert an atom connected to `parent_zkey` with key `dummy_zkey`>
 """
-import numbers
 from collections.abc import Sequence
 from typing import Dict, List, Optional, Tuple
 
