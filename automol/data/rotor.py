@@ -462,6 +462,15 @@ def rotors_potentials(rotors: List[Rotor]) -> List[Optional[Potential]]:
     return tuple(map(potential, rotors))
 
 
+def rotors_have_potentials(rotors: List[Rotor]) -> bool:
+    """Do these rotors have potentials?
+
+    :param rotors: A list of rotor objects
+    :return: `True` if they do, `False` if they don't
+    """
+    return all(map(potent.has_defined_values, rotors_potentials(rotors)))
+
+
 def rotors_dimensions(rotors: List[Rotor]) -> List[int]:
     """Get the rotor dimensions from a list of rotors, in order
 
