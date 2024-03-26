@@ -513,4 +513,4 @@ def has_defined_values(pot: Potential) -> bool:
     :return: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    return bool(pot.energy.notnull().any())
+    return pot is not None and bool(pot.energy.notnull().any())
