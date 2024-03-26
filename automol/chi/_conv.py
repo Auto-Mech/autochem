@@ -225,7 +225,7 @@ def canonical_enantiomer_reaction(rct_chi, prd_chi):
 
 
 # # InCHI string converters
-def inchi_to_amchi(ich, printlog=True):
+def inchi_to_amchi(ich, convert=True, printlog=True):
     """For an InChI string with stereo convert to an AMChI
 
     Since stereo conversions are expensive, function checks
@@ -252,5 +252,8 @@ def inchi_to_amchi(ich, printlog=True):
                             "Check accuracy of InChI -> AMChI conversion:"
                             f"{ich} -> {chi}"
                         )
+    elif convert and amchi.prefix(chi) == "AMChI":
+        gra = amchi.graph(chi)
+        chi = graph.chi(gra)
 
     return chi
