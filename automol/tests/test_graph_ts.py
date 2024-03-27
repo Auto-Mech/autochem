@@ -636,32 +636,37 @@ C6H11O2b_TSG = (
 #       *           *
 # [* marks a constrained bond stereocenter -- must be cis]
 C5H7O_TSG = (
-{0: ('C', 0, None),
-  1: ('C', 0, None),
-  2: ('C', 0, None),
-  3: ('C', 0, None),
-  4: ('O', 0, None),
-  5: ('C', 0, None),
-  6: ('H', 0, None),
-  7: ('H', 0, None),
-  8: ('H', 0, None),
-  9: ('H', 0, None),
-  10: ('H', 0, None),
-  11: ('H', 0, None),
-  12: ('H', 0, None)},
- {frozenset({3, 4}): (1, None),
-  frozenset({5, 11}): (1, None),
-  frozenset({0, 6}): (1, None),
-  frozenset({2, 3}): (1, None),
-  frozenset({1, 2}): (1, None),
-  frozenset({3, 9}): (1, None),
-  frozenset({4, 5}): (1, None),
-  frozenset({0, 1}): (1, None),
-  frozenset({5, 12}): (1, None),
-  frozenset({2, 10}): (0.1, None),
-  frozenset({1, 8}): (1, None),
-  frozenset({5, 10}): (0.9, None),
-  frozenset({0, 7}): (1, None)})
+    {
+        0: ("C", 0, None),
+        1: ("C", 0, None),
+        2: ("C", 0, None),
+        3: ("C", 0, None),
+        4: ("O", 0, None),
+        5: ("C", 0, None),
+        6: ("H", 0, None),
+        7: ("H", 0, None),
+        8: ("H", 0, None),
+        9: ("H", 0, None),
+        10: ("H", 0, None),
+        11: ("H", 0, None),
+        12: ("H", 0, None),
+    },
+    {
+        frozenset({3, 4}): (1, None),
+        frozenset({5, 11}): (1, None),
+        frozenset({0, 6}): (1, None),
+        frozenset({2, 3}): (1, None),
+        frozenset({1, 2}): (1, None),
+        frozenset({3, 9}): (1, None),
+        frozenset({4, 5}): (1, None),
+        frozenset({0, 1}): (1, None),
+        frozenset({5, 12}): (1, None),
+        frozenset({2, 10}): (0.1, None),
+        frozenset({1, 8}): (1, None),
+        frozenset({5, 10}): (0.9, None),
+        frozenset({0, 7}): (1, None),
+    },
+)
 
 # Constrained TS Bond Stereo + (Reactant Bond Stereo => Product Atom Stereo)
 # C/C=C/C + C=CC=C => C[C@H]1[C@H](C)CC=CC1
@@ -746,27 +751,33 @@ C8H14_GEO = (
 )
 
 # Unusual linearity case (biradical)
-# 
+#
 # [CH2]/C=[C]/C#C => C=C=C=C=[CH] + [H]
 #          -  - -      - - -  -
 # [- marks a potentially linear atom]
-C5H4_TSG = ({0: ('C', 0, None),
-             1: ('C', 0, None),
-             2: ('H', 0, None),
-             3: ('H', 0, None),
-             4: ('C', 0, None),
-             5: ('C', 0, None),
-             6: ('C', 0, None),
-             7: ('H', 0, None),
-             8: ('H', 0, None)},
-            {frozenset({1, 4}): (1, True),
-             frozenset({0, 3}): (1, None),
-             frozenset({4, 5}): (1, None),
-             frozenset({6, 7}): (1, None),
-             frozenset({0, 1}): (1, None),
-             frozenset({0, 2}): (1, None),
-             frozenset({5, 6}): (1, None),
-             frozenset({1, 8}): (0.9, None)})
+C5H4_TSG = (
+    {
+        0: ("C", 0, None),
+        1: ("C", 0, None),
+        2: ("H", 0, None),
+        3: ("H", 0, None),
+        4: ("C", 0, None),
+        5: ("C", 0, None),
+        6: ("C", 0, None),
+        7: ("H", 0, None),
+        8: ("H", 0, None),
+    },
+    {
+        frozenset({1, 4}): (1, True),
+        frozenset({0, 3}): (1, None),
+        frozenset({4, 5}): (1, None),
+        frozenset({6, 7}): (1, None),
+        frozenset({0, 1}): (1, None),
+        frozenset({0, 2}): (1, None),
+        frozenset({5, 6}): (1, None),
+        frozenset({1, 8}): (0.9, None),
+    },
+)
 
 
 def test__set_stereo_from_geometry():
@@ -1106,13 +1117,52 @@ def test__rotational_bond_keys():
     assert graph.rotational_bond_keys(rtsg) == frozenset()
 
 
+def test__radical_atom_keys():
+    """test graph.radical_atom_keys"""
+    # [CH2]CC=C + [OH] => [CH2]C[CH]CO
+    tsg = (
+        {
+            0: ("C", 0, None),
+            1: ("H", 0, None),
+            2: ("H", 0, None),
+            3: ("C", 0, None),
+            4: ("C", 0, None),
+            5: ("C", 0, None),
+            6: ("H", 0, None),
+            7: ("H", 0, None),
+            8: ("H", 0, None),
+            9: ("H", 0, None),
+            10: ("H", 0, None),
+            11: ("O", 0, None),
+            12: ("H", 0, None),
+        },
+        {
+            frozenset({3, 4}): (1, None),
+            frozenset({5, 11}): (0.1, None),
+            frozenset({11, 12}): (1, None),
+            frozenset({3, 7}): (1, None),
+            frozenset({0, 3}): (1, None),
+            frozenset({4, 5}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({0, 2}): (1, None),
+            frozenset({3, 6}): (1, None),
+            frozenset({4, 8}): (1, None),
+            frozenset({5, 10}): (1, None),
+            frozenset({5, 9}): (1, None),
+        },
+    )
+    print(automol.graph.radical_atom_keys(tsg))
+    assert automol.graph.radical_atom_keys(tsg) == frozenset({0})
+
+
 if __name__ == "__main__":
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    test__ts__reagents_graph()
+    # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
     # test__amchi()
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
+    test__radical_atom_keys()
