@@ -41,7 +41,7 @@ def is_bad(chi, gra=None):
     ret = False
     if pfx == "InChI":
         gra = inchi.graph(chi) if gra is None else gra
-        ret = graph.base.inchi_is_bad(gra, chi)
+        ret = graph.inchi_is_bad(gra, chi)
 
     return ret
 
@@ -70,7 +70,7 @@ def without_stereo(chi, reassess_amchi=True):
     if pfx == "AMChI":
         ret = amchi.without_stereo(chi)
     elif pfx == "InChI":
-        ret = inchi.base.without_stereo(chi)
+        ret = inchi.without_stereo(chi)
     else:
         raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
 
@@ -96,7 +96,7 @@ def join(chis):
         chis = [inchi.amchi(c) if amchi.prefix(c) == "InChI" else c for c in chis]
         ret = amchi.join(chis)
     elif set(pfxs) == {"InChI"}:
-        ret = inchi.base.join(chis)
+        ret = inchi.join(chis)
     else:
         raise ValueError(f"One of these has an unknown prefix: {chis}.")
     return ret

@@ -97,7 +97,7 @@ def ts_zmatrix_starting_ring_keys(tsg) -> List[int]:
     # Special handling for ring-forming scissions
     rsciss_dct = ring_forming_scissions(tsg)
     if rsciss_dct:
-        tra_key, (brk_nkey, frm_nkey) = next(iter(rsciss_dct.items()))
+        tra_key, (_, frm_nkey) = next(iter(rsciss_dct.items()))
         drop_bkeys = [frozenset({tra_key, frm_nkey})]
         back_keys = [tra_key]
 

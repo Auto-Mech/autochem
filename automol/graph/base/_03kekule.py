@@ -482,6 +482,45 @@ def radical_atom_keys(gra, sing_res=False, min_valence=1.0):
     graph. If the `sing_res` flag is set, a single low-spin resonance
     structure will be chosen when there are multiple such structures.
 
+    For TS graphs, this will only return radical atoms that are not involved in the
+    reaction.
+
+    If you wish to identify radical atom keys based on the bond orders already
+    in `gra`, this can be done by using the `radical_atom_keys_from_kekule`
+    function.
+
+    :param gra: the molecular graph
+    :param sing_res: only include radical keys for a single (arbitrary)
+        resonance structure, or include all atoms that are radicals in any of
+        the low-spin resonance structures?
+    :type sing_res: bool
+    :param min_valence: optionally, specify that only sites with at least a
+        certain number of radical electrons be included
+    :type min_valence: int
+    :returns: the radical atom keys
+    :rtype: frozenset[int]
+    """
+    # If this is not a TS graph, call the main function directly
+    if not is_ts_graph(gra):
+        return _radical_atom_keys(gra, sing_res=sing_res, min_valence=min_valence)
+
+    # Otherwise, determine the non-reacting radical atoms
+    rgra, pgra = ts_reagents_graphs_without_stereo(gra)
+    rkeys = _radical_atom_keys(rgra)
+    pkeys = _radical_atom_keys(pgra)
+    return frozenset(rkeys & pkeys)
+
+
+def _radical_atom_keys(gra, sing_res=False, min_valence=1.0):
+    """Radical atom keys for this molecular graph
+
+    Radical atoms are based on the lowest-spin resonance structures for this
+    graph. If the `sing_res` flag is set, a single low-spin resonance
+    structure will be chosen when there are multiple such structures.
+
+    For TS graphs, this will only return radical atoms that are not involved in the
+    reaction.
+
     If you wish to identify radical atom keys based on the bond orders already
     in `gra`, this can be done by using the `radical_atom_keys_from_kekule`
     function.
