@@ -193,7 +193,6 @@ def connected_ring_systems(gra, rng_keys=None, check=True):
         assert is_connected(gra), "Graph must be connected!"
 
     rsys = sorted(ring_systems(gra), key=atom_count)
-
     # Construct the v-matrix for the first ring system, choosing which ring
     # to start from
     if rng_keys is None:
@@ -301,19 +300,24 @@ def ring_system(gra, keys_lst):
     # First, get the ring keys
     keys_lst = list(keys_lst)
     keys = keys_lst.pop(0)
-
+    incl_keys = keys
     # Break the bonds joining the last pair of atoms in each arc
     gra = remove_bonds(gra, [(k[-1], k[-2]) for k in keys_lst])
 
     # Start by constructing the v-matrix for the first ring
     vma, zma_keys = ring(gra, keys)
-
     # Now, complete the ring system by continuing the v-matrix along each arc
     for keys in keys_lst:
+        start_key = 1
+        if keys[-1] in incl_keys:
+            end_key = -1
+        else:
+            end_key = None
         # Note that the atoms on each end of the arc are already in the
         # v-matrix, so we ignore those
-        vma, zma_keys = continue_chain(gra, keys[1:-1], vma, zma_keys)
-
+        vma, zma_keys = continue_chain(
+            gra, keys[start_key:end_key], vma, zma_keys)
+        incl_keys += keys[start_key:end_key]
     return vma, zma_keys
 
 
