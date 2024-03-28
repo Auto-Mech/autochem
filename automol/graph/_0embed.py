@@ -241,7 +241,6 @@ def geometry_matches(
     stereo: bool = True,
     local_stereo: bool = False,
     check_ts_bonds: bool = True,
-    lin_reac_bonds: bool = False,
     log: bool = False,
 ) -> bool:
     """Check whether a geometry matches the graph
@@ -254,8 +253,6 @@ def geometry_matches(
     :param local_stereo: Does the graph have local stereo assignments? defaults to False
     :param check_ts_bonds: Check reacting bonds for TS graphs? If `True`, this will
         check that the atoms in reacting bonds are the closest atoms to each other
-    :param lin_reac_bonds: For TS graphs, check stereoconfiguration of bonds that are
-        linear for the reactants?
     :param log: Log information to the screen? defaults to False
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
@@ -305,11 +302,9 @@ def geometry_matches(
         ste_akeys = atom_stereo_keys(gra)
         ste_bkeys = bond_stereo_keys(gra)
 
-        # Exclude bonds that are linear for the reactants, if requtested
-        excl_keys = set()
-        if not lin_reac_bonds:
-            excl_keys = linear_atom_keys(ts.reactants_graph(gra, stereo=False))
-        ste_bkeys = {bk for bk in ste_bkeys if not bk & excl_keys}
+        # Exclude bonds that are likely to be near-linear, if requtested
+        lin_keys = linear_atom_keys(gra)
+        ste_bkeys = {bk for bk in ste_bkeys if not bk & lin_keys}
 
         ste_keys = sorted(ste_akeys) + sorted(ste_bkeys)
         pars = dict_.values_by_key(stereo_parities(gra), ste_keys)
