@@ -1155,6 +1155,78 @@ def test__radical_atom_keys():
     assert automol.graph.radical_atom_keys(tsg) == frozenset({0})
 
 
+def test__geometry():
+    """test graph.geometry"""
+    # [CH2]CC=C[CH2] => C=CC=C[CH2] + [H]
+    ts_gra = (
+        {
+            0: ("C", 0, None),
+            1: ("C", 0, False),
+            2: ("H", 0, None),
+            3: ("H", 0, None),
+            4: ("C", 0, None),
+            5: ("H", 0, None),
+            6: ("C", 0, None),
+            7: ("H", 0, None),
+            8: ("C", 0, None),
+            9: ("H", 0, None),
+            10: ("H", 0, None),
+            11: ("H", 0, None),
+            12: ("H", 0, None),
+        },
+        {
+            frozenset({9, 6}): (1, None),
+            frozenset({1, 4}): (1, True),
+            frozenset({4, 6}): (1, True),
+            frozenset({8, 11}): (1, None),
+            frozenset({0, 3}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({0, 2}): (1, None),
+            frozenset({8, 10}): (1, None),
+            frozenset({1, 12}): (0.9, None),
+            frozenset({1, 5}): (1, None),
+            frozenset({8, 6}): (1, None),
+            frozenset({4, 7}): (1, None),
+        },
+    )
+    rct_geos = (
+        (
+            ("C", (-4.672291, -0.457455, -0.152981)),
+            ("C", (-2.307244, 0.626363, -0.386708)),
+            ("H", (-4.95983, -2.139761, 0.988667)),
+            ("H", (-6.310429, 0.3332, -1.096682)),
+            ("C", (-0.126763, -0.273254, 0.751996)),
+            ("H", (-2.136558, 2.316753, -1.554504)),
+            ("C", (2.427578, 0.917615, 0.483968)),
+            ("H", (-0.245351, -1.969796, 1.913306)),
+            ("C", (4.36715, -0.817943, -0.625343)),
+            ("H", (2.260094, 2.642939, -0.678196)),
+            ("H", (3.103461, 1.582897, 2.340003)),
+            ("H", (6.355744, -0.318011, -0.564376)),
+            ("H", (3.802295, -2.420165, -1.773812)),
+        ),
+    )
+    geo_idx_dct = {
+        0: 8,
+        1: 6,
+        2: 11,
+        3: 12,
+        4: 4,
+        5: 10,
+        6: 1,
+        7: 7,
+        8: 0,
+        9: 5,
+        10: 2,
+        11: 3,
+        12: 9,
+    }
+    ts_geo = graph.ts_geometry_from_reactants(
+        ts_gra, rct_geos, geo_idx_dct=geo_idx_dct, check=True
+    )
+    print(automol.geom.round_(ts_geo))
+
+
 if __name__ == "__main__":
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
@@ -1165,4 +1237,5 @@ if __name__ == "__main__":
     # test__amchi()
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
-    test__radical_atom_keys()
+    # test__radical_atom_keys()
+    test__geometry()
