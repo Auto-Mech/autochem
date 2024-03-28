@@ -324,7 +324,7 @@ def has_fleeting_atom_or_bond_stereo(tsg, strict: bool = True) -> Tuple[bool, bo
 
 # # stereo correction
 def stereo_corrected_geometry(
-    gra, geo, geo_idx_dct=None, local_stereo: bool = False, lin_reac_bnds: bool = False
+    gra, geo, geo_idx_dct=None, local_stereo: bool = False, lin_reac_bonds: bool = False
 ):
     """Obtain a geometry corrected for stereo parities based on a graph
 
@@ -336,7 +336,8 @@ def stereo_corrected_geometry(
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     :param local_stereo: is this graph using local instead of canonical stereo?
-    :param lin_ts: For TS graphs, correct bonds that are linear for the reactants?
+    :param lin_reac_bonds: For TS graphs, correct bonds that are linear for the
+        reactants?
     :returns: a molecular geometry with corrected stereo
     """
     gra = gra if local_stereo else to_local_stereo(gra)
@@ -347,9 +348,9 @@ def stereo_corrected_geometry(
     gra = relabel(gra, geo_idx_dct)
 
     # Determine linear atoms of the reactant for excluding their bonds, if requested
-    excl_keys = (
-        set() if lin_reac_bnds else linear_atom_keys(ts_reactants_graph(gra, stereo=False))
-    )
+    excl_keys = set()
+    if not lin_reac_bonds:
+        excl_keys = linear_atom_keys(ts_reactants_graph(gra, stereo=False))
 
     par_dct = stereo_parities(gra)
     atm_keys = atom_stereo_keys(gra)

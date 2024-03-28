@@ -53,11 +53,11 @@ from automol.graph.base import (
     heuristic_bond_distance,
     heuristic_bond_distance_limit,
     is_ts_graph,
+    linear_atom_keys,
     rigid_planar_bond_keys,
     rings_atom_keys,
     rotational_bond_keys,
     set_stereo_from_geometry,
-    stereo_keys,
     stereo_parities,
     stereocenter_candidates,
     string,
@@ -241,6 +241,7 @@ def geometry_matches(
     stereo: bool = True,
     local_stereo: bool = False,
     check_ts_bonds: bool = True,
+    lin_reac_bonds: bool = False,
     log: bool = False,
 ) -> bool:
     """Check whether a geometry matches the graph
@@ -250,14 +251,12 @@ def geometry_matches(
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param stereo: Take stereochemistry into consideration? defaults to True
-    :type stereo: bool, optional
     :param local_stereo: Does the graph have local stereo assignments? defaults to False
-    :type local_stereo: bool, optional
     :param check_ts_bonds: Check reacting bonds for TS graphs? If `True`, this will
         check that the atoms in reacting bonds are the closest atoms to each other
-    :type check_ts_bonds: bool, optional
+    :param lin_reac_bonds: For TS graphs, check stereoconfiguration of bonds that are
+        linear for the reactants?
     :param log: Log information to the screen? defaults to False
-    :type log: bool, optional
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
@@ -303,7 +302,16 @@ def geometry_matches(
         gra = gra if local_stereo else to_local_stereo(gra)
         gra_ = set_stereo_from_geometry(cgra_, geo, local_stereo=True)
 
-        ste_keys = stereo_keys(gra)
+        ste_akeys = atom_stereo_keys(gra)
+        ste_bkeys = bond_stereo_keys(gra)
+
+        # Exclude bonds that are linear for the reactants, if requtested
+        excl_keys = set()
+        if not lin_reac_bonds:
+            excl_keys = linear_atom_keys(ts.reactants_graph(gra, stereo=False))
+        ste_bkeys = {bk for bk in ste_bkeys if not bk & excl_keys}
+
+        ste_keys = sorted(ste_akeys) + sorted(ste_bkeys)
         pars = dict_.values_by_key(stereo_parities(gra), ste_keys)
         pars_ = dict_.values_by_key(stereo_parities(gra_), ste_keys)
         matches &= pars == pars_
@@ -519,8 +527,7 @@ def distance_bounds_matrices(
         tors_ijs.extend(
             [i, j]
             for i, j in itertools.combinations(range(natms), 2)
-            if j in sp_dct[i]
-            and len(sp_dct[i][j]) > 4
+            if j in sp_dct[i] and len(sp_dct[i][j]) > 4
         )
 
         tors_ijs += list(map(list, map(reversed, tors_ijs)))

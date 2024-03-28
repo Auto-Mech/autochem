@@ -141,7 +141,7 @@ def geometry_correct_linear_vinyls(
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     :param tol: tolerance of bond angle(s) for determing linearity
-    :param excl_keys: Atom keys whose bonds should be excluded (For specifying linear atoms)
+    :param excl_keys: Atom keys whose bonds should be excluded (linear atoms)
     """
     excl_keys = frozenset(excl_keys)
 
