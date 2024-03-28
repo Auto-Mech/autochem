@@ -8,6 +8,8 @@ import numbers
 
 import more_itertools as mit
 import numpy
+from phydat import phycon
+
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
@@ -27,7 +29,6 @@ from automol.graph.base._02algo import (
 )
 from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
-from phydat import phycon
 
 
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None):
@@ -80,7 +81,11 @@ def geometries_parity_mismatches(gra, geo1, geo2, keys, geo_idx_dct=None):
 
 # corrections
 def geometry_correct_nonplanar_pi_bonds(
-    gra, geo, geo_idx_dct=None, pert=5.0 * phycon.DEG2RAD
+    gra,
+    geo,
+    geo_idx_dct=None,
+    pert: float = 5.0 * phycon.DEG2RAD,
+    excl_keys: frozenset[int] = frozenset(),
 ):
     """correct a geometry for non-planar pi-bonds
 
@@ -92,7 +97,7 @@ def geometry_correct_nonplanar_pi_bonds(
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     :param pert: Perturbation angle, in radians, to prevent perfect planarity
-    :type pert: float
+    :param excl_keys: Atom keys whose bonds should be excluded (for linear atoms)
     """
     akeys = sorted(atom_keys(gra))
     geo_idx_dct = (
@@ -100,7 +105,7 @@ def geometry_correct_nonplanar_pi_bonds(
     )
     gra = relabel(gra, geo_idx_dct)
 
-    rp_dct = rigid_planar_bonds(gra, min_ring_size=numpy.inf)
+    rp_dct = rigid_planar_bonds(gra, min_ring_size=numpy.inf, excl_keys=excl_keys)
 
     for bkey, bnkeys in rp_dct.items():
         key1, key2 = sorted(bkey)
@@ -120,7 +125,11 @@ def geometry_correct_nonplanar_pi_bonds(
 
 
 def geometry_correct_linear_vinyls(
-    gra, geo, geo_idx_dct=None, tol=2.0 * phycon.DEG2RAD
+    gra,
+    geo,
+    geo_idx_dct=None,
+    tol: float = 2.0 * phycon.DEG2RAD,
+    excl_keys: frozenset[int] = frozenset(),
 ):
     """correct a geometry for linear vinyl groups
 
@@ -132,8 +141,10 @@ def geometry_correct_linear_vinyls(
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     :param tol: tolerance of bond angle(s) for determing linearity
-    :type tol: float
+    :param excl_keys: Atom keys whose bonds should be excluded (linear atoms)
     """
+    excl_keys = frozenset(excl_keys)
+
     keys = sorted(atom_keys(gra))
     geo_idx_dct = (
         {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
@@ -146,7 +157,7 @@ def geometry_correct_linear_vinyls(
     vin_dct = vinyl_radical_bond_candidates(gra, min_ncount=0)
 
     for bkey, key in vin_dct.items():
-        if bkey not in rng_bkeys:
+        if bkey not in rng_bkeys and not bkey & excl_keys:
             key2 = key
             (key1,) = bkey - {key}
             key3s = nkeys_dct[key] - {key, key1}
