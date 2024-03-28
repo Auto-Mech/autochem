@@ -15,6 +15,7 @@ from automol.geom import base as geom_base
 from automol.graph.base._00core import (
     atom_keys,
     atom_neighbor_atom_keys,
+    atomic_numbers,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
     relabel,
@@ -24,11 +25,13 @@ from automol.graph.base._00core import (
 )
 from automol.graph.base._02algo import (
     branch_atom_keys,
+    branch_dict,
     ring_systems_atom_keys,
     rings_bond_keys,
 )
 from automol.graph.base._03kekule import rigid_planar_bonds
 from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
+from automol.util import dict_
 
 
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None):
@@ -235,14 +238,19 @@ def geometry_pseudorotate_atom(
     rxn_keys = ts_reacting_atom_keys(gra)
     rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
     nkeys = atom_neighbor_atom_keys(gra, key)
-    # Group together neighbors connected in a ring system
-    nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
-    # Add the other neighbors as singletons
-    nkey_sets.extend({k} for k in nkeys if not any(k in ks for ks in nkey_sets))
-    # Put the biggest groups first
-    nkey_sets = sorted(nkey_sets, key=len, reverse=True)
-    # Move groups containing reacting atom keys last
-    nkey_sets = sorted(nkey_sets, key=lambda g: bool(g & rxn_keys))
+    # Gather neighbors connected in a ring system
+    ring_nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
+    ring_nkey_sets = sorted(ring_nkey_sets, key=len, reverse=True)
+    # Gather the remaining neighbors
+    rem_nkeys = [k for k in nkeys if not any(k in ks for ks in ring_nkey_sets)]
+    # Sort the remaining neighbors by branch size and atomic number
+    anum_dct = atomic_numbers(gra)
+    size_dct = dict_.transform_values(branch_dict(gra, key), len)
+    sort_dct = {k: (k in rxn_keys, -size_dct[k], -anum_dct[k]) for k in rem_nkeys}
+    rem_nkeys = sorted(rem_nkeys, key=sort_dct.get)
+
+    # Now, put the two lists together
+    nkey_sets = ring_nkey_sets + [{k} for k in rem_nkeys]
 
     # Now, find a pair of atoms to keep fixed
     found_pair = False
