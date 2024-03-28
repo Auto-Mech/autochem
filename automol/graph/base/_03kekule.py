@@ -824,7 +824,11 @@ def possible_rigid_planar_bond_keys(gra) -> frozenset[BondKey]:
 
 
 def rigid_planar_bonds(
-    gra, min_ncount: int = 1, min_ring_size: int = 8, strict: bool = True
+    gra,
+    min_ncount: int = 1,
+    min_ring_size: int = 8,
+    strict: bool = True,
+    excl_keys: frozenset[int] = frozenset(),
 ) -> Dict[BondKey, Tuple[AtomKeys, AtomKeys]]:
     """Get a mapping of rigid, planary bond keys onto their neighbor keys
 
@@ -834,15 +838,15 @@ def rigid_planar_bonds(
     :type gra: automol graph data structure
     :param min_ncount: Minimum # neighbors on either side for inclusion, defaults to 1
         (If min_ncount = 0, this will still require at least one neighbor on one side)
-    :type min_ncount: int, optional
     :param min_ring_size: Minimum ring size for inclusion, defaults to 8
-    :type min_ring_size: int, optional
     :param strict: Only include bonds that are guaranteed to be rigid?
-    :type strict: bool, optional
+    :param excl_keys: Atom keys whose bonds should be excluded (for linear atoms)
     :returns: A mapping of rigid, planar bond keys onto their neighbor keys; The pair of
         neighbor key lists is sorted by the atom key that they are neighbors to
     :rtype: Dict[BondKey, Tuple[AtomKeys, AtomKeys]]
     """
+    excl_keys = frozenset(excl_keys)
+
     gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
     nhyd_dct = atom_implicit_hydrogens(gra)
     pri_dct = local_stereo_priorities(gra, with_none=True)
@@ -856,6 +860,8 @@ def rigid_planar_bonds(
             if strict
             else possible_rigid_planar_bond_keys(gra_)
         )
+
+        rp_bkeys = {bk for bk in rp_bkeys if not bk & excl_keys}
 
         for bkey in rp_bkeys:
             key1, key2 = sorted(bkey)

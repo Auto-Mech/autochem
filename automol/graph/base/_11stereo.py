@@ -26,6 +26,7 @@ from automol.graph.base._00core import (
     without_dummy_atoms,
     without_stereo,
 )
+from automol.graph.base._03kekule import linear_atom_keys
 from automol.graph.base._05stereo import (
     geometry_atom_parity,
     geometry_bond_parity,
@@ -322,7 +323,9 @@ def has_fleeting_atom_or_bond_stereo(tsg, strict: bool = True) -> Tuple[bool, bo
 
 
 # # stereo correction
-def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
+def stereo_corrected_geometry(
+    gra, geo, geo_idx_dct=None, local_stereo: bool = False, lin_reac_bnds: bool = False
+):
     """Obtain a geometry corrected for stereo parities based on a graph
 
     :param gra: molecular graph with stereo parities
@@ -332,25 +335,30 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
-    :param local_stereo: is this graph using local instead of canonical
-        stereo?
-    :type local_stereo: bool
+    :param local_stereo: is this graph using local instead of canonical stereo?
+    :param lin_ts: For TS graphs, correct bonds that are linear for the reactants?
     :returns: a molecular geometry with corrected stereo
     """
-    sgr = gra if local_stereo else to_local_stereo(gra)
+    gra = gra if local_stereo else to_local_stereo(gra)
     atm_keys = sorted(atom_keys(gra))
     geo_idx_dct = (
         {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
     )
     gra = relabel(gra, geo_idx_dct)
 
-    par_dct = stereo_parities(sgr)
-    bnd_keys = bond_stereo_keys(sgr)
-    atm_keys = atom_stereo_keys(sgr)
+    # Determine linear atoms of the reactant for excluding their bonds, if requested
+    excl_keys = (
+        set() if lin_reac_bnds else linear_atom_keys(ts_reactants_graph(gra, stereo=False))
+    )
+
+    par_dct = stereo_parities(gra)
+    atm_keys = atom_stereo_keys(gra)
+    bnd_keys = bond_stereo_keys(gra)
+    bnd_keys = {bk for bk in bnd_keys if not bk & excl_keys}
 
     # 1. Correct linear vinyl groups
-    geo = geometry_correct_linear_vinyls(gra, geo)
-    geo = geometry_correct_nonplanar_pi_bonds(gra, geo)
+    geo = geometry_correct_linear_vinyls(gra, geo, excl_keys=excl_keys)
+    geo = geometry_correct_nonplanar_pi_bonds(gra, geo, excl_keys=excl_keys)
 
     # 3. Loop over stereo-sites making corrections where needed
     for bnd_key in bnd_keys:
