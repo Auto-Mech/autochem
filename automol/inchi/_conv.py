@@ -161,12 +161,13 @@ def is_complete(ich):
     :type ich: str
     :rtype: bool
     """
-    gra = graph(ich, stereo=False)
-    is_missing_stereo = bool(graph_.unassigned_stereocenter_keys(gra))
+    gra0 = graph(ich, stereo=False)
 
-    return equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ is_missing_stereo
-    )
+    needs_stereo = False
+    if bool(graph_.unassigned_stereocenter_keys(gra0)):
+        needs_stereo = not has_stereo(ich)
+
+    return equivalent(ich, standard_form(ich)) and not needs_stereo
 
 
 def is_bad(ich, gra=None):
