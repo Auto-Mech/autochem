@@ -400,6 +400,13 @@ def test__racemic():
     assert chi.racemic(C8H13O_ICH_NO_STEREO) == C8H13O_ICH_NO_STEREO
 
 
+def test__is_complete():
+    """ test inchi.is_complete
+    """
+    ich = 'InChI=1S/C4H6O2/c1-3-4(2,5-3)6-3/h1-2H3/t3-,4+'
+    assert chi.is_complete(ich)
+
+
 if __name__ == '__main__':
     # test__from_data()
     # test__formula_string()
@@ -421,3 +428,4 @@ if __name__ == '__main__':
     # test__join()
     # test__canonical_enantiomer()
     # test__racemic()
+    test__is_complete()
