@@ -1256,14 +1256,26 @@ def filter_viable_reactions(rxns: List[Reaction]) -> List[Reaction]:
         # 5 maybe best, allow for triplet+doublet (high-spin alkylrad+O2 HAbs)
         return mult > 4
 
+    def _sing_spin_products(rxn):
+        prd_gras = product_graphs(rxn)
+        mult = sum(
+            map(
+                graph.maximum_spin_multiplicity,
+                map(graph.kekule, prd_gras),
+            )
+        )
+        return mult == 1
+
     for rxn in all_rxns:
         # Check for separated radical sites
         sep_rad = _produces_separated_radical_sites(rxn)
         hi_spin = _high_spin_products(rxn)
+        sing_spin = _sing_spin_products(rxn)
 
         # Add more conditions here, as needed ...
 
-        if not (sep_rad or hi_spin):
+        if not ((sep_rad and sing_spin) or hi_spin):
+
             rxns.append(rxn)
 
     return tuple(rxns)
