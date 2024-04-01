@@ -14,10 +14,8 @@ from automol.extern import rdkit_
 from automol.graph._0embed import clean_geometry, embed_geometry, geometry_matches
 from automol.graph.base import (
     amchi,
-    angle_keys,
     atom_keys,
     atom_stereo_parities,
-    bond_keys,
     connected_components,
     explicit,
     geometry_correct_linear_vinyls,
@@ -438,15 +436,6 @@ def ts_geometry_from_reactants(
     )
     tsg = relabel(tsg, geo_idx_dct)
 
-    # 0. Determine appropriate distance ranges
-    dist_range_dct = ts_distance_ranges_from_reactant_geometries(
-        tsg,
-        rct_geos,
-        fdist_factor=fdist_factor,
-        bdist_factor=bdist_factor,
-        angstrom=True,
-    )
-
     # 1. Join geometries for bimolecular reactions, yielding a single starting structure
     if len(rct_geos) > 1:
         ts_geo = ts_join_reactant_geometries(
@@ -466,15 +455,26 @@ def ts_geometry_from_reactants(
     ts_geo = stereo_corrected_geometry(tsg, ts_geo, local_stereo=True)
 
     if log:
-        print(f"Raw TS stere-corrected geometry before cleaning:\n{ts_geo}")
+        print(f"Raw TS stereo-corrected geometry before cleaning:\n{ts_geo}")
 
-    # 4. Embed the TS structure, using distances from the *original* reactant
+    # 4. Determine appropriate distance ranges for forming and breaking bonds
+    fdist_dct = {}
+    for key in ts.reacting_bond_keys(tsg):
+        fdist_dct[key] = ts.heuristic_bond_distance(
+            tsg,
+            *key,
+            fdist_factor=fdist_factor,
+            bdist_factor=bdist_factor,
+            angstrom=True,
+        )
+
+    # 5. Embed the TS structure, using distances from the *original* reactant
     # geometries along with forming/breaking bond distances
     ts_geo = clean_geometry(
         tsg,
         ts_geo,
         rct_geos=rct_geos,
-        dist_range_dct=dist_range_dct,
+        fdist_dct=fdist_dct,
         max_dist_err=max_dist_err,
         relax_angles=ts.has_reacting_ring(tsg),
         local_stereo=True,
@@ -556,69 +556,6 @@ def ts_join_reactant_geometries(tsg, rct_geos, geo_idx_dct=None, fdist_factor=1.
     geo = geom.translate(geo, fvec, idxs=idxs2, angstrom=True)
 
     return geo
-
-
-def ts_distance_ranges_from_reactant_geometries(
-    tsg,
-    rct_geos,
-    geo_idx_dct=None,
-    fdist_factor=1.1,
-    bdist_factor=0.9,
-    angles=True,
-    angstrom=True,
-):
-    """return a dictionary of distances for certain atoms in a sequence of
-    reactant geometries, shifting the keys as needed
-
-    :param tsg: TS graph
-    :type tsg: automol graph data structure
-    :param rct_geos: Reactant geometries
-    :type rct_geos: List[automol geom data structure]
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices, defaults to None
-    :type geo_idx_dct: dict[int: int], optional
-    :param fdist_factor: Set the forming bond distance to this times the average
-        van der Waals radius, defaults to 1.1
-    :type fdist_factor: float, optional
-    :param bdist_factor: Set the breaking bond distance to this times the average
-        van der Waals radius, defaults to 0.9
-    :type bdist_factor: float, optional
-    :param angles: include distances between the ends of bond angles?
-    :type angles: bool
-    :param angstrom: return the distances in angstroms?
-    :type angstrom: bool
-    """
-    keys = sorted(atom_keys(tsg))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
-    geo = sum(rct_geos, ())
-    tsg = relabel(tsg, geo_idx_dct)
-    gra = ts.reactants_graph(tsg)
-
-    # Add measured bond distances from the reactants geometry
-    bnd_keys = bond_keys(gra)
-    dists = [geom.distance(geo, *k, angstrom=angstrom) for k in bnd_keys]
-    dist_dct = dict(zip(bnd_keys, dists))
-    # Add measured angle distances from the reactants geometry, if requested
-    if angles:
-        ang_keys = [frozenset({k1, k3}) for k1, _, k3 in angle_keys(gra)]
-        dists = [geom.distance(geo, *k, angstrom=angstrom) for k in ang_keys]
-        dist_dct = dict(zip(ang_keys, dists))
-
-    # Add heuristic bond distances from the TS graph
-    for key in ts.reacting_bond_keys(tsg):
-        dist_dct[key] = ts.heuristic_bond_distance(
-            tsg,
-            *key,
-            fdist_factor=fdist_factor,
-            bdist_factor=bdist_factor,
-            angstrom=angstrom,
-        )
-
-    dist_range_dct = {k: (d, d) for k, d in dist_dct.items()}
-    return dist_range_dct
 
 
 def perturb_geometry_planar_dihedrals(

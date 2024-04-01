@@ -22,10 +22,11 @@ The steps in the algorithm are as follows:
 
 Step 1 is performed by the function distance_bounds_matrices() below.
 Steps 2-6 are performed by the function automol.embed.sample_raw_distance_coordinates()
-Step 7 is performed byt the function automol.embed.cleaned_up_coordinates()
+Step 7 is performed by the function automol.embed.cleaned_up_coordinates()
 """
 
 import itertools
+from typing import Dict, Optional
 
 import numpy
 from phydat import phycon
@@ -139,7 +140,7 @@ def clean_geometry(
     gra,
     geo,
     rct_geos=None,
-    dist_range_dct=None,
+    fdist_dct=None,
     max_dist_err=0.2,
     stereo=True,
     local_stereo=False,
@@ -167,6 +168,7 @@ def clean_geometry(
     :param none_if_failed: Return `None` if the geometry doesn't match? defaults to True
     type none_if_failed: bool, optional
     """
+    fdist_dct = {} if fdist_dct is None else fdist_dct
     gra = gra if local_stereo else to_local_stereo(gra)
 
     symb_dct = atom_symbols(gra)
@@ -180,30 +182,34 @@ def clean_geometry(
     if len(symb_dct) == 2:
         bkey = frozenset(symb_dct.keys())
         symbs = list(symb_dct.values())
-        if dist_range_dct and bkey in dist_range_dct:
-            bdist = sum(dist_range_dct[bkey]) / 2.0
-        else:
-            key1, key2 = bkey
-            bdist = heuristic_bond_distance(gra, key1, key2, angstrom=True)
+        key1, key2 = bkey
+        bdist = (
+            fdist_dct[bkey]
+            if bkey in fdist_dct
+            else heuristic_bond_distance(gra, key1, key2, angstrom=True)
+        )
         xyzs = [[0.0, 0.0, 0.0], [bdist, 0.0, 0.0]]
         return geom_base.from_data(symbs, xyzs, angstrom=True)
 
     rct_geos = [geo] if rct_geos is None else rct_geos
 
-    dist_gra = ts.reactants_graph(gra) if is_ts_graph(gra) else gra
+    rgra = ts.reactants_graph(gra) if is_ts_graph(gra) else gra
 
     keys = sorted(atom_keys(gra))
     xmat = geom_base.coordinates(geo, angstrom=True)
     lmat, umat = distance_bounds_matrices(
-        dist_gra,
+        rgra,
         keys,
         rct_geos=rct_geos,
-        dist_range_dct=dist_range_dct,
+        fdist_dct=fdist_dct,
         relax_angles=relax_angles,
         relax_torsions=True,
     )
 
-    pla_dct = planarity_constraint_bounds(gra, keys)
+    # Only enforce planarity based on the reactants
+    pla_dct = planarity_constraint_bounds(rgra, keys)
+
+    # For now, enforce chirality based on the products
     if stereo:
         chi_dct = chirality_constraint_bounds(gra, keys)
     else:
@@ -440,7 +446,7 @@ def qualitative_convergence_checker_(
 def distance_bounds_matrices(
     gra,
     keys,
-    dist_range_dct=(),
+    fdist_dct: Optional[Dict[frozenset[int], float]] = None,
     rct_geos=None,
     relax_angles=False,
     relax_torsions=False,
@@ -452,7 +458,7 @@ def distance_bounds_matrices(
 
     :param gra: molecular graph:
     :param keys: atom keys specifying the order of indices in the matrix
-    :param dist_range_dct: distance ranges for specific atoms in the graph
+    :param fdist_dct: distances for TS forming bonds
     :param rct_geos: Use reactant geometries to determine distance bounds for a TS
     :type rct_geos: List[automol geometry data structure], optional
     :param relax_angles: whether or not to allow angles to change from
@@ -462,6 +468,7 @@ def distance_bounds_matrices(
     :param sp_dct: a 2d dictionary giving the shortest path between any pair of
         atoms in the graph
     """
+    fdist_dct = {} if fdist_dct is None else fdist_dct
     sp_dct = atom_shortest_paths(gra) if sp_dct is None else sp_dct
 
     natms = len(keys)
@@ -534,12 +541,10 @@ def distance_bounds_matrices(
             umat[tors_idxs] = umat_old[tors_idxs]
 
     # 4. set distance bounds for the forming bonds
-    if dist_range_dct:
-        for bnd, (ldist, udist) in dist_range_dct.items():
-            idx1 = tuple(bnd)
-            idx2 = tuple(reversed(idx1))
-            lmat[idx1] = lmat[idx2] = ldist
-            umat[idx1] = umat[idx2] = udist
+    for bnd, fdist in fdist_dct.items():
+        idx1 = tuple(bnd)
+        idx2 = tuple(reversed(idx1))
+        lmat[idx1] = lmat[idx2] = umat[idx1] = umat[idx2] = fdist
 
     return lmat, umat
 

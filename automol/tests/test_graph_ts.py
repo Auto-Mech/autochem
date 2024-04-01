@@ -1157,6 +1157,45 @@ def test__radical_atom_keys():
 
 def test__geometry():
     """test graph.geometry"""
+    # C#C + [CH2] => [CH]=C[CH2]
+    ts_gra = (
+        {
+            0: ("C", 0, None),
+            1: ("H", 0, None),
+            2: ("H", 0, None),
+            3: ("C", 0, None),
+            4: ("C", 0, None),
+            5: ("H", 0, None),
+            6: ("H", 0, None),
+        },
+        {
+            frozenset({3, 4}): (1, True),
+            frozenset({4, 6}): (1, None),
+            frozenset({3, 5}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({0, 2}): (1, None),
+            frozenset({0, 4}): (0.1, None),
+        },
+    )
+    rct_geos = (
+        (
+            ("C", (0.0, 0.0, 0.20515244763195276)),
+            ("H", (0.0, 1.8754738110196252, -0.6154554531697327)),
+            ("H", (-0.0, -1.8754738110196252, -0.6154554531697327)),
+        ),
+        (
+            ("C", (0.0, 0.0, 1.1364019233530684)),
+            ("C", (0.0, 0.0, -1.1364019233530684)),
+            ("H", (0.0, 0.0, 3.152539388247273)),
+            ("H", (0.0, 0.0, -3.152539388247273)),
+        ),
+    )
+    geo_idx_dct = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
+    ts_geo = graph.ts_geometry_from_reactants(
+        ts_gra, rct_geos, geo_idx_dct=geo_idx_dct, check=True
+    )
+    print(automol.geom.round_(ts_geo))
+
     # [CH2]CC=C[CH2] => C=CC=C[CH2] + [H]
     ts_gra = (
         {
