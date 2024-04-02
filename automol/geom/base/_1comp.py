@@ -210,8 +210,7 @@ def minimum_volume_geometry(geos):
                     + (atom1[2] - atom2[2]) ** 2
                 )
                 # Check and see if distance is more than max
-                if rrtest > rrmax:
-                    rrmax = rrtest
+                rrmax = max(rrmax, rrtest)
         # If max below moving threshold, set to smallest geom
         if rrmax < rrminmax:
             rrminmax = rrmax
