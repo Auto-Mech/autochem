@@ -5,6 +5,7 @@ import numbers
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy
+
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
@@ -20,6 +21,7 @@ from automol.graph.base._00core import (
     stereo_keys,
     stereo_parities,
     tetrahedral_atoms,
+    without_dummy_atoms,
 )
 from automol.graph.base._03kekule import (
     rigid_planar_bonds,
@@ -64,6 +66,7 @@ def stereocenter_candidates(
     :returns: A mapping of candidates onto their stereo-determining neighbors
     :rtype: CenterNeighborDict
     """
+    gra = without_dummy_atoms(gra)  # remove dummy atoms
     cand_dct = {}
 
     # 1. Atom stereocenter candidates: tetrahedral atoms
