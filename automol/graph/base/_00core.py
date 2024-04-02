@@ -1427,6 +1427,7 @@ def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
         substitution TS graphs, the reactant neighbors will be returned
     :rtype: Dict[int, tuple]
     """
+    gra = without_dummy_atoms(gra)  # remove dummy atoms
     gra = without_pi_bonds(gra)  # remove pi-bonds for the bond count below
     nlp_dct = atom_lone_pairs(gra)
     nhyd_dct = atom_implicit_hydrogens(gra)

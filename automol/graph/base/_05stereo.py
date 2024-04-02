@@ -5,6 +5,7 @@ import numbers
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy
+
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
@@ -20,6 +21,7 @@ from automol.graph.base._00core import (
     stereo_keys,
     stereo_parities,
     tetrahedral_atoms,
+    without_dummy_atoms,
 )
 from automol.graph.base._03kekule import (
     rigid_planar_bonds,
@@ -64,6 +66,7 @@ def stereocenter_candidates(
     :returns: A mapping of candidates onto their stereo-determining neighbors
     :rtype: CenterNeighborDict
     """
+    gra = without_dummy_atoms(gra)  # remove dummy atoms
     cand_dct = {}
 
     # 1. Atom stereocenter candidates: tetrahedral atoms
@@ -347,10 +350,14 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
         geo, idxs=tuple(map(geo_idx_dct.get, (key1, key2, nkey1, nkey2)))
     )
 
-    bnd1_vec = numpy.subtract(nxyz1, xyz1)
-    bnd2_vec = numpy.subtract(nxyz2, xyz2)
+    # Project out the central bond direction
+    bvec = numpy.subtract(xyz2, xyz1)
+    nvec1 = numpy.subtract(nxyz1, xyz1)
+    nvec2 = numpy.subtract(nxyz2, xyz2)
+    pvec1 = util.vector.orthogonalize(bvec, nvec1)
+    pvec2 = util.vector.orthogonalize(bvec, nvec2)
 
-    dot_val = numpy.vdot(bnd1_vec, bnd2_vec)
+    dot_val = numpy.vdot(pvec1, pvec2)
     assert dot_val != 0.0  # for now, assume not collinear
     par = bool(dot_val < 0.0)
     return par

@@ -845,6 +845,7 @@ def rigid_planar_bonds(
         neighbor key lists is sorted by the atom key that they are neighbors to
     :rtype: Dict[BondKey, Tuple[AtomKeys, AtomKeys]]
     """
+    gra = without_dummy_atoms(gra)  # remove dummy atoms
     excl_keys = frozenset(excl_keys)
 
     gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]

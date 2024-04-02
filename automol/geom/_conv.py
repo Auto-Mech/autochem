@@ -559,6 +559,9 @@ def py3dmol_view(geo, gra=None, view=None, image_size=400):
     :return: A 3D view containing the molecule
     :rtype: py3Dmol.view
     """
+    if graph_base.is_ts_graph(gra):
+        gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
+
     rdm = rdkit_molecule(geo, gra=gra, stereo=False)
     mlf = rdkit_.to_molfile(rdm)
     return py3dmol_.view_molecule_from_molfile(mlf, view=view, image_size=image_size)
