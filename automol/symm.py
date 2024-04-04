@@ -118,6 +118,8 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
     """determine the symmetry number of a CHO molecule"""
     int_symm = 1.0
     chiral_center = 0
+    print("WARNING: symmetry number code currently gives wrong numbers")
+    print("Fix will be added by mid-April")
     if zrxn is not None:
         gra = reac.ts_graph(zrxn)
     else:
@@ -132,14 +134,18 @@ def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
     else:
         gra = graph.explicit(gra)
         atms = graph.atom_keys(gra)
-        atm_vals = graph.unsaturated_atom_keys(gra)
+        # atm_vals = graph.unsaturated_atom_keys(gra)
+        rot_atms = graph.rotational_segment_keys(gra)
         ring_atms = graph.rings_atom_keys(gra)
         ring_atms = [x for ring in ring_atms for x in ring]
-        atm_rads = graph.nonresonant_radical_atom_keys(gra)
+        # atm_rads = graph.nonresonant_radical_atom_keys(gra)
+        atm_rads = graph.radical_atom_keys(gra)
         atm_syms = graph.atom_symbols(gra)
         atms = [x for x in atms if atm_syms[x] != "H"]
         for atm in atms:
-            if atm in atm_vals and atm not in atm_rads:
+            # if atm in atm_vals and atm not in atm_rads:
+            #     continue
+            if atm not in rot_atms:
                 continue
             if atm in ring_atms:
                 atm_groups = graph.ring_atom_chirality(gra, atm, ring_atms)

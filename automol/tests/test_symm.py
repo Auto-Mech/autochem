@@ -115,12 +115,9 @@ def test__hco_symm_num():
     """test internal symmetry number"""
     assert symm.oxygenated_hydrocarbon_symm_num(METHANE_GEO) == (1.0, 12)
     assert symm.oxygenated_hydrocarbon_symm_num(ETHANE_GEO) == (3.0, 6)
-    print(symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO))
     assert symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO) == (3.0, 1)
     assert symm.oxygenated_hydrocarbon_symm_num(PROPYL_GEO) == (6.0, 1)
     assert symm.oxygenated_hydrocarbon_symm_num(ALLYL_GEO) == (1.0, 1)
-
-    print(symm.oxygenated_hydrocarbon_symm_num(TS_GEO))
     assert symm.oxygenated_hydrocarbon_symm_num(TS_GEO) == (3.0, 1)
 
 
