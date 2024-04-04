@@ -661,10 +661,6 @@ def branch(gra, atm_key, branch_key, keep_root=False, stereo=False):
         f"Input graph:\n{string(gra)}"
     )
     bnch_dct = branch_dict(gra, atm_key, keep_root=keep_root, stereo=stereo)
-    print('gra')
-    import automol.graph
-    print(automol.graph.string(gra))
-    print('keys', atm_key, branch_key, bnch_dct)
     return bnch_dct[branch_key]
 
 
@@ -1006,8 +1002,8 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
 
         # Delete the bond keys for the new arc and continue to the next iteration
         bnd_keys = list(map(frozenset, mit.windowed(arc_keys, 2)))
-        if spiro_key is not None:
-            bnd_keys += (bnd_key,)
+        # if spiro_key is not None:
+        #     bnd_keys += (bnd_key,)
         rsy = remove_bonds(rsy, bnd_keys)
     keys_lst = tuple(map(tuple, keys_lst))
     return keys_lst
