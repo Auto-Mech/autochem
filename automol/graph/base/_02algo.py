@@ -952,7 +952,6 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
     done_keys = set(rng_keys)
 
     while bond_keys(rsy):
-        # Identify possible arcs connecting keys that are already done
         sp_dct = atom_shortest_paths(rsy)
         arc_pool = [
             sp_dct[i][j]
@@ -971,6 +970,29 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
 
         # Identify the next shortest arc
         arc_keys = min(arc_pool, key=len)
+        # # Determine shortest paths for the graph with one more ring/arc deleted
+        # sp_dct = atom_shortest_paths(rsy)
+
+        # # The shortest path will be the next shortest arc in the system
+        # # fused
+        # all_arcs = list(
+        #     sp_dct[i][j] for i, j in itertools.combinations(done_keys, 2)
+        #     if j in sp_dct[i])
+        # # spiro 
+        # spiro_key = None
+        # if not all_arcs:
+        #     for bnd_key in bond_keys(rsy):
+        #         keya, keyb = bnd_key
+        #         if keya in done_keys:
+        #             spiro_key = keya
+        #         elif keyb in done_keys:
+        #             spiro_key = keyb
+        #             keyb = keya
+        #         if spiro_key is not None:
+        #             sp_dct = atom_shortest_paths(remove_bonds(rsy, (bnd_key,)))
+        #             all_arcs = (sp_dct[spiro_key][keyb],)
+        #             break
+        # arc_keys = min(all_arcs, key=len)
 
         # Add this arc to the list
         keys_lst.append(arc_keys)
@@ -980,8 +1002,9 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
 
         # Delete the bond keys for the new arc and continue to the next iteration
         bnd_keys = list(map(frozenset, mit.windowed(arc_keys, 2)))
+        # if spiro_key is not None:
+        #     bnd_keys += (bnd_key,)
         rsy = remove_bonds(rsy, bnd_keys)
-
     keys_lst = tuple(map(tuple, keys_lst))
     return keys_lst
 
