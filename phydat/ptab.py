@@ -39,6 +39,7 @@ def to_symbol(atom):
     :type atom: str/int
     :rtype: str
     """
+    atom = 0 if atom == -1 else atom
     return periodictable.to_E(atom)
 
 
@@ -49,6 +50,7 @@ def to_number(atom):
     :type atom: str/int
     :rtype: int
     """
+    atom = 0 if atom == -1 else atom
     return periodictable.to_Z(atom)
 
 
@@ -59,6 +61,7 @@ def to_mass_number(atom):
     :type atom: str/int
     :rtype: int
     """
+    atom = 0 if atom == -1 else atom
     return periodictable.to_A(atom)
 
 
@@ -69,6 +72,7 @@ def to_mass(atom):
     :type atom: str/int
     :rtype: float
     """
+    atom = 0 if atom == -1 else atom
     return periodictable.to_mass(atom)
 
 
@@ -79,6 +83,7 @@ def to_group(atom):
     :type atom: str/int
     :rtype: int
     """
+    atom = 0 if atom == -1 else atom
     return periodictable.to_group(atom)
 
 
@@ -89,6 +94,7 @@ def valence(atom):
     :type atom: str/int
     :rtype: int
     """
+    atom = 0 if atom == -1 else atom
     grp = periodictable.to_group(atom)
     val = GROUP_2_VALENCE[grp] if grp in GROUP_2_VALENCE else None
     return val
@@ -101,6 +107,7 @@ def lone_pair_count(atom):
     :type atom: str/int
     :rtype: int
     """
+    atom = 0 if atom == -1 else atom
     grp = periodictable.to_group(atom)
     lpc = GROUP_2_LONE_PAIR_COUNT[grp] if grp in GROUP_2_LONE_PAIR_COUNT else None
     return lpc
