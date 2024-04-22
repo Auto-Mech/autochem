@@ -114,93 +114,108 @@ def rotor_reduced_symm_factor(sym_factor, rotor_symms):
 ICH_DCT = {"C": "InChI=1S/C", "O": "InChI=1S/O"}
 
 
-def oxygenated_hydrocarbon_symm_num(geo, zrxn=None, racemic=True):
-    """determine the symmetry number of a CHO molecule"""
-    int_symm = 1.0
-    chiral_center = 0
-    print("WARNING: symmetry number code currently gives wrong numbers")
-    print("Fix will be added by mid-April")
+
+
+def oxygenated_hydrocarbon_symm_num(
+            geo, zrxn=None,
+            account_for_enantiomer=True,
+            radical_as_enantiomer=False):
+    """determine the symmetry number of a CHNO molecule"
+    :param geo: A geometry
+    :type geo: automol geom data structure
+    :param zrxn: reaction object
+    :type zrxn: automol Reac object
+    :param account_for_enantiomer: should symmetry number account for enantiomerism
+    :type account_for_enantiomer: boolean
+    :param radical_as_enantiomer: should radical site count as enantiomeric site?
+    :type radical_as_enantiomer: boolean
+    :returns: The internal and external symmetry factors
+    :rtype: tuple(float, float)
+    """
+    def _atom_symmetry(atmi, atmj):
+        """ Given axis atmi-atmj, returns the degree of symmetry
+            on side atmi
+        """
+        atm_symm = 1
+        # the if statement prevents double-doubling of symmetry
+        # in cases of umbrella motions (see, symmetry_about_umbrella)
+        if atmi not in set(rad_atms) ^ set(lone_pair_atms):
+            ngb_pris = [
+                priorities[atm] for atm in ngb_dct[atmi] if atm != atmj]
+            if all(pri == ngb_pris[0] for pri in ngb_pris):
+                atm_symm = len(ngb_pris)
+        return atm_symm
+
+    def _bond_symmetry(atmi, atmj):
+        """ combined symmetry of ends of axis atmi-atmj
+        """
+        return max(
+            _atom_symmetry(atmi, atmj),
+            _atom_symmetry(atmj, atmi))
+
+    def _is_enantiomeric():
+        """ is enantiomeric given the given
+            enantiomeric conditions
+        """
+        enantiomeric = False
+        for (atm, ngbs) in ngb_dct.items():
+            ngb_pris = [
+                priorities[ngb] for ngb in ngbs]
+            if not len(ngb_pris) == len(set(ngb_pris)):
+                continue
+            if len(ngb_pris) == 4:
+                enantiomeric = True
+            elif len(ngb_pris) == 3 and \
+                 atm in rad_atms and \
+                 radical_as_enantiomer:
+                enantiomeric = True
+            elif len(ngb_pris) == 3 and \
+                 atm in lone_pair_atms:
+                enantiomeric = True
+        return enantiomeric
+
+    def _symmetry_about_umbrella():
+        """ the factor of symmetry about umbrella sites
+        """
+        umb_symm = 1.
+        for umb_atm in set(rad_atms) ^ set(lone_pair_atms):
+            if not any(umb_atm in rot_bnd for rot_bnd in rotat_bnds):
+                continue
+            ngb_pris = [
+                priorities[atm] for atm in ngb_dct[umb_atm]]
+            if len(ngb_pris) == 3 and \
+               (len(ngb_pris) - len(set(ngb_pris))) == 1:
+                umb_symm *= 2.
+        return umb_symm
+
+    # Get priorities and connectivity info from graph
     if zrxn is not None:
         gra = reac.ts_graph(zrxn)
     else:
         gra = geom.graph(geo)
-    ethane_gra = (
-        {0: ("C", 3, None), 1: ("C", 3, None)},
-        {frozenset({0, 1}): (1, None)},
-    )
-    if graph.implicit(gra) == ethane_gra:
-        int_symm = 3.0
-        ext_symm = geom.external_symmetry_factor(geo)
-    else:
-        gra = graph.explicit(gra)
-        atms = graph.atom_keys(gra)
-        # atm_vals = graph.unsaturated_atom_keys(gra)
-        rot_atms = graph.rotational_segment_keys(gra)
-        ring_atms = graph.rings_atom_keys(gra)
-        ring_atms = [x for ring in ring_atms for x in ring]
-        # atm_rads = graph.nonresonant_radical_atom_keys(gra)
-        atm_rads = graph.radical_atom_keys(gra)
-        atm_syms = graph.atom_symbols(gra)
-        atms = [x for x in atms if atm_syms[x] != "H"]
-        for atm in atms:
-            # if atm in atm_vals and atm not in atm_rads:
-            #     continue
-            if atm not in rot_atms:
-                continue
-            if atm in ring_atms:
-                atm_groups = graph.ring_atom_chirality(gra, atm, ring_atms)
-            else:
-                atm_groups = graph.branches(gra, atm)
-            group_dct = {}
-            for group in atm_groups:
-                try:
-                    group_ich = graph.inchi(group)
-                except Exception as err:
-                    # Excepts rdkit errors, assumes group is complicated enough
-                    # that is is unique
-                    if not str(err).startswith("Python argument types in"):
-                        print("Error evaluating atom group in symm number routine")
-                        print(
-                            "Symmetry number may be incorrect as a result, group is",
-                            group,
-                        )
-                    group_ich = "".join(
-                        random.choice(string.ascii_letters) for i in range(10)
-                    )
-                if group_ich in group_dct:
-                    group_dct[group_ich] += 1
-                else:
-                    group_dct[group_ich] = 1
-            # remove atom inchi from dct
-            group_dct = {x: y for x, y in group_dct.items() if y != 0}
-            # print('group_dct', group_dct)
-            if len(group_dct) == 4:
-                chiral_center += 1
-            elif len(group_dct) == 3 and atm in atm_rads:
-                chiral_center += 1
-            # print('chiral_center', chiral_center)
-            # print('atm in atm_rads', atm, atm_rads)
-            if atm in ring_atms:
-                continue
-            if len(group_dct) == 2:
-                chain_group = None
-                symm_groups = None
-                for group in group_dct.keys():
-                    if group_dct[group] == 1:
-                        if group not in ("InChI=1S/H", "InChI=1S/O"):
-                            chain_group = group
-                    else:
-                        symm_groups = group
-                # print('chain', chain_group, symm_groups)
-                if chain_group and symm_groups:
-                    atm_symm = group_dct[symm_groups]
-                    # if atm_symm == 2:
-                    #     if chain_group != 'InChI=1S/H':
-                    #         atm_symm = 1
-                    int_symm *= atm_symm
-        ext_symm = geom.external_symmetry_factor(
-            geo, chiral_center=chiral_center > 0.0 and racemic
-        )
-        # print('in hco', int_symm, chiral_center, racemic)
+    rotat_bnds = graph.rotational_bond_keys(gra)
+    priorities = graph.canonical_priorities(gra)
+    ngb_dct = graph.atoms_neighbor_atom_keys(gra)
+    rad_atms = graph.radical_atom_keys(gra)
+    lone_pair_atms = graph.lone_pair_atom_keys(gra)
+
+    # Multiply the rotatable bond symmetries into the
+    # internal symmetry number
+    int_symm = 1.0
+    for bnd in rotat_bnds:
+        int_symm *= _bond_symmetry(*bnd)
+
+    # Determine if the external symmetry number should
+    # be half because of the enantiomer
+    chiral_center = False
+    if account_for_enantiomer:
+        chiral_center = _is_enantiomeric()
+
+    ext_symm = geom.external_symmetry_factor(
+        geo, chiral_center=chiral_center)
+
+    # Determine if the external symmetry number should
+    # be doubled from symmetry around umbrella
+    int_symm *= _symmetry_about_umbrella()
 
     return int_symm, ext_symm
