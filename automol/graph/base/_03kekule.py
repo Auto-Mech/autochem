@@ -679,6 +679,41 @@ def has_separated_radical_sites(gra):
     return len(rad_atm_keys) > 1
 
 
+def beta_scission_bond_keys(gra):
+    """Determine beta scission bonds for a graph
+
+    :param gra: a molecular graph
+    :returns: the beta scission bond keys
+    """
+    kgrs = kekules(gra)
+    bkeys = frozenset(itertools.chain(*map(beta_scission_bond_keys_from_kekule, kgrs)))
+    return bkeys
+
+
+def beta_scission_bond_keys_from_kekule(gra):
+    """Determine beta scission bonds for a particular kekule graph
+
+    Assumes the graph already has assigned bond orders
+
+    :param gra: a resonance-structure molecular graph
+    :returns: the beta scission bond keys
+    """
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+    # Determine radical sites and their neighboring atoms
+    rad_keys = radical_atom_keys_from_kekule(gra)
+    rad_nkeys = set(itertools.chain(*map(nkeys_dct.get, rad_keys)))
+
+    # Grab all single bonds
+    bkeys = dict_.keys_by_value(bond_orders(gra), lambda x: x == 1)
+    # Remove bonds with radicals
+    bkeys = {bk for bk in bkeys if not bk & rad_keys}
+    # Require bonds to be adjacent to radicals
+    bkeys = {bk for bk in bkeys if bk & rad_nkeys}
+
+    return bkeys
+
+
 def resonance_bond_stereo_keys(gra):
     """does this graph have stereo at a resonance bond?
 
