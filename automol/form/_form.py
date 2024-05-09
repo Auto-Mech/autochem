@@ -1,14 +1,17 @@
 """ Library for dealing with molecular formula,
     represented as dict[atom symbol: atom number]
 """
+
 import collections
 import functools
 import itertools
 from typing import List
 
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import ptab
+from pyparsing import pyparsing_common as ppc
+
+from automol.util import dict_
 
 SYMBOL = pp.Word(pp.alphas.upper(), pp.alphas.lower())
 ATOM_COUNT = pp.Group(
@@ -55,13 +58,8 @@ def heavy_atom_count(fml):
     :type fml: dict[str:int]
     :rtype: int
     """
-
     assert _is_standard(fml)
-
-    if "H" in fml:
-        fml = fml.copy()
-        fml.pop("H")
-
+    fml = without(fml, ["H"])
     return sum(fml.values())
 
 
@@ -78,6 +76,32 @@ def element_count(fml, symb):
     assert _is_standard(fml)
 
     return fml[symb] if symb in fml else 0
+
+
+def without(fml: dict[str, int], symbs: tuple = ()) -> dict[str, int]:
+    """Return a formula without hydrogen
+
+    :param fml: chemical formula, without hydrogen
+    """
+    return {k: v for k, v in fml.items() if k not in symbs}
+
+
+def match(fml1: dict[str, int], fml2: dict[str, int]) -> bool:
+    """Check for a match between two formulas, allowing wildcard values
+
+    A stoichiometry of `None` indicates a wildcard value
+
+    :param fml1: A chemical formula
+    :param fml2: Another chemical formula
+    :return: `True` if so, `False` if not
+    """
+    excl_symbs1 = dict_.keys_by_value(fml1, lambda x: x is None)
+    excl_symbs2 = dict_.keys_by_value(fml2, lambda x: x is None)
+    excl_symbs = excl_symbs1 | excl_symbs2
+
+    fml1 = without(fml1, excl_symbs)
+    fml2 = without(fml2, excl_symbs)
+    return fml1 == fml2
 
 
 def add_element(fml, symb, num=1):
@@ -239,7 +263,7 @@ def argsort_symbols(seq, symbs_first=("C", "H"), symbs_last=(), idx=None):
             entry = tuple(entry[0]) + entry[1:]
             start = entry[:idx]
             char = entry[idx]
-            rest = entry[(idx + 1):]
+            rest = entry[(idx + 1) :]
         else:
             start = ()
             char = entry[0]
