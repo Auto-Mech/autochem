@@ -30,10 +30,11 @@ from automol.graph.base import (
     string,
     to_local_stereo,
     ts,
+    union_from_sequence,
     without_stereo,
 )
 from automol.smiles import base as smiles_base
-from automol.util import vector
+from automol.util import dict_, vector
 
 
 # # conversions
@@ -352,6 +353,36 @@ def display(gra, stereo=True, exp=False, label=False, label_dct=None):
         `True`, the atom keys themselves will be used as labels.
     :param label_dct: bool
     """
+    rdkit_.turn_3d_visualization_off()
+    if is_ts_graph(gra):
+        rgra = ts.reactants_graph(gra, stereo=stereo)
+        pgra = ts.products_graph(gra, stereo=stereo)
+        display_reaction(
+            [rgra], [pgra], stereo=stereo, exp=exp, label=label, label_dct=label_dct
+        )
+    else:
+        ipd.display(
+            rdkit_molecule(
+                gra, stereo=stereo, exp=exp, label=label, label_dct=label_dct
+            )
+        )
+
+
+def display_reaction(rgras, pgras, stereo=True, exp=False, label=False, label_dct=None):
+    """Display reaction to IPython using the RDKit visualizer
+
+    :param rgras: reactant graphs
+    :param pgras: product graphs
+    :param stereo: Include stereochemistry information?
+    :type stereo: bool
+    :param exp: Include explicit hydrogens that aren't needed for stereochemistry?
+    :type exp: bool
+    :param label: Display the molecule with atom labels?
+    :type label: bool
+    :param label_dct: Atom labels, by atom key.  If `None` and `label` is
+        `True`, the atom keys themselves will be used as labels.
+    :param label_dct: bool
+    """
     arrow_svg_str = """
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
     <defs>
@@ -365,34 +396,40 @@ def display(gra, stereo=True, exp=False, label=False, label_dct=None):
     </svg>
     """
 
+    def _union(gras):
+        label_dct_ = {}
+        start = 0
+        gras_ = []
+        for gra in gras:
+            keys = atom_keys(gra)
+            if min(keys) < start:
+                key_dct = {k: k + start for k in keys}
+                gra = relabel(gra, key_dct)
+                label_dct_.update(dict(map(reversed, key_dct.items())))
+            else:
+                label_dct_.update({k: k for k in keys})
+            gras_.append(gra)
+            start = start + max(keys) + 1
+        return union_from_sequence(gras_), label_dct_
+
     rdkit_.turn_3d_visualization_off()
-    if is_ts_graph(gra):
-        rgra = ts.reactants_graph(gra, stereo=stereo)
-        pgra = ts.products_graph(gra, stereo=stereo)
-        rwid = ipywidget(rgra, stereo=stereo, exp=exp, label=label, label_dct=label_dct)
-        pwid = ipywidget(pgra, stereo=stereo, exp=exp, label=label, label_dct=label_dct)
-        arrow_widget = ipywidgets.Image(
-            value=arrow_svg_str.encode("utf-8"), format="svg+xml", width=100, height=50
-        )
-        ipd.display(ipywidgets.HBox([rwid, arrow_widget, pwid]))
-    else:
-        ipd.display(
-            rdkit_molecule(
-                gra, stereo=stereo, exp=exp, label=label, label_dct=label_dct
-            )
-        )
 
+    rgra, rlabel_dct = _union(rgras)
+    pgra, plabel_dct = _union(pgras)
 
-def display_reaction(rgras, pgras, stereo=True):
-    """Display reaction to IPython using the RDKit visualizer
+    if not label and not label_dct:
+        rlabel_dct = plabel_dct = None
 
-    :param rgras: reactant graphs
-    :param pgras: product graphs
-    :param stereo: parameter to include stereochemistry information
-    :type stereo: bool
-    """
-    rdkit_.turn_3d_visualization_off()
-    return ipd.display(rdkit_reaction(rgras, pgras, stereo=stereo))
+    if label_dct:
+        rlabel_dct = dict_.transform_keys(label_dct, rlabel_dct)
+        plabel_dct = dict_.transform_keys(label_dct, plabel_dct)
+
+    rwid = ipywidget(rgra, stereo=stereo, exp=exp, label=label, label_dct=rlabel_dct)
+    pwid = ipywidget(pgra, stereo=stereo, exp=exp, label=label, label_dct=plabel_dct)
+    arrow_widget = ipywidgets.Image(
+        value=arrow_svg_str.encode("utf-8"), format="svg+xml", width=100, height=50
+    )
+    ipd.display(ipywidgets.HBox([rwid, arrow_widget, pwid]))
 
 
 # # TS geometry helpers
