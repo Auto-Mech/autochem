@@ -1,8 +1,5 @@
 """ Handle symmetry factor stuff
 """
-import random
-import string
-
 from automol import geom, graph, reac, zmat
 from automol.data import rotor
 from automol.util import zmat_conv

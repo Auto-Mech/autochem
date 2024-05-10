@@ -978,7 +978,7 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
         # all_arcs = list(
         #     sp_dct[i][j] for i, j in itertools.combinations(done_keys, 2)
         #     if j in sp_dct[i])
-        # # spiro 
+        # # spiro
         # spiro_key = None
         # if not all_arcs:
         #     for bnd_key in bond_keys(rsy):

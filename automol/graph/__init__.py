@@ -236,6 +236,7 @@ from automol.graph.base._02algo import (
 # # core functions
 # # derived properties
 from automol.graph.base._03kekule import (
+    addition_atom_keys,
     atom_centered_cumulene_keys,
     atom_hybridizations,
     atom_hybridizations_from_kekule,
@@ -583,6 +584,7 @@ __all__ = [
     "vinyl_radical_atom_keys",
     "sigma_radical_atom_keys",
     "has_separated_radical_sites",
+    "addition_atom_keys",
     "beta_scission_bond_keys",
     "beta_scission_bond_keys_from_kekule",
     "resonance_bond_stereo_keys",

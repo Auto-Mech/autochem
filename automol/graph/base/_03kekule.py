@@ -679,8 +679,24 @@ def has_separated_radical_sites(gra):
     return len(rad_atm_keys) > 1
 
 
+def addition_atom_keys(gra):
+    """Determine the atoms where addition is likely to occur
+
+    Radical sites, if available, otherwise pi-bonds.
+
+    :param gra: a molecular graph
+    """
+    # 1. First, check for radical sites
+    add_keys = radical_atom_keys(gra, sing_res=False)
+    # 2. If none are found, check for other unsaturated sites (pi bonds)
+    if not add_keys:
+        unp_dct = atom_unpaired_electrons(gra, bond_order=False)
+        add_keys = dict_.keys_by_value(unp_dct)
+    return frozenset(add_keys)
+
+
 def beta_scission_bond_keys(gra):
-    """Determine beta scission bonds for a graph
+    """Determine the bonds where beta scissions can occur
 
     :param gra: a molecular graph
     :returns: the beta scission bond keys

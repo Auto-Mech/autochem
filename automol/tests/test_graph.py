@@ -5,6 +5,7 @@ import itertools
 
 import automol
 import numpy
+import pytest
 from automol import graph
 
 # Vinyl radical with E/Z stereo
@@ -1501,6 +1502,35 @@ def test__kekules():
 def test__kekule():
     """test graph.kekule"""
     assert graph.kekule(C3H3_CGR) in C3H3_RGRS
+
+
+@pytest.mark.parametrize(
+    "smi,res",
+    [
+        ("CCC", frozenset({})),
+        ("C=CC", frozenset({0, 1})),
+        ("C=C[CH2]", frozenset({0, 2})),
+        ("C=CCC[CH2]", frozenset({4})),
+        ("O=O", frozenset({0, 1})),
+    ],
+)
+def test__addition_atom_keys(smi, res):
+    """test graph.addition_atom_keys"""
+    gra = automol.smiles.graph(smi)
+    assert automol.graph.addition_atom_keys(gra) == res
+
+
+@pytest.mark.parametrize(
+    "smi,res",
+    [
+        ("COC", frozenset({})),
+        ("[CH2]OC", frozenset({frozenset({3, 4})})),
+    ],
+)
+def test__beta_scission_bond_keys(smi, res):
+    """test graph.beta_scission_bond_keys"""
+    gra = automol.smiles.graph(smi)
+    assert automol.graph.beta_scission_bond_keys(gra) == res
 
 
 def test__rotational_bond_keys():

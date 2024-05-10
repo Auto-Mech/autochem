@@ -8,6 +8,7 @@ from automol.const import ReactionClass
 from automol.graph import (
     add_bonded_atom,
     add_bonds,
+    addition_atom_keys,
     are_equivalent_atoms,
     atom_equivalence_class_reps,
     atom_keys,
@@ -506,8 +507,8 @@ def additions(rct_gras, viable_only=True):
         rct_gras = sort_by_size(rct_gras)
         rct1_gra, rct2_gra = rct_gras
 
-        rct1_atm_keys = unsaturated_atom_keys(rct1_gra)
-        rct2_atm_keys = unsaturated_atom_keys(rct2_gra)
+        rct1_atm_keys = addition_atom_keys(rct1_gra)
+        rct2_atm_keys = addition_atom_keys(rct2_gra)
 
         for frm_bnd_key in itertools.product(rct1_atm_keys, rct2_atm_keys):
             rcts_gra = union(rct1_gra, rct2_gra)
