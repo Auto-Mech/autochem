@@ -1,5 +1,7 @@
 """Test reac
 """
+
+import pytest
 from automol import chi as chi_
 from automol import geom, graph, reac, smiles, zmat
 
@@ -229,169 +231,174 @@ def test__from_datatypes():
     _test([r"F\N=[C]/F", "[C]#C"], [r"F\N=C(C#C)/F"])
 
 
-def test__end_to_end():
+@pytest.mark.parametrize(
+    "rct_smi,prd_smi",
+    [
+        # UNIMOLECULAR
+        # hydrogen migration
+        ("CCCO[O]", "[CH2]CCOO"),
+        # hydrogen migration (2TS)
+        ("CCC[CH2]", "CC[CH]C"),
+        # beta scission (stereo-specific)
+        ("F[CH][C@H](O)F", r"F/C=C\F.[OH]"),
+        # beta scission (weird z-matrix / linear atom relationships
+        ("[CH2]/C=[C]/C#C", "C=C=C=C=[CH].[H]"),
+        # ring-forming scission (FIXED)
+        ("[CH2]CCCOO", "C1CCCO1.[OH]"),
+        (r"[CH2]/C=C\[C@@H](CC)OO", "CC[C@H]1OCC=C1.[OH]"),
+        # ring-forming scission with spiro atoms
+        ("CC1[C](O1)COO", "CC1C2(O1)CO2.[OH]"),
+        ("CC1[C](OC1)CCOO", "CC1C2(OC1)CCO2.[OH]"),
+        # elimination
+        ("CCCCO[O]", "CCC=C.O[O]"),
+        # elimination (HONO)
+        ("CCCON(=O)=O", "CCC=O.N(=O)O"),
+        # BIMOLECULAR
+        # hydrogen abstraction
+        ("CCO.[CH3]", "[CH2]CO.C"),
+        # hydrogen abstraction (sigma)
+        ("CCO.C#[C]", "CC[O].C#C"),
+        # hydrogen abstraction (radical radical)
+        ("CCC.[H]", "CC[CH2].[HH]"),
+        # addition
+        ("CC[CH2].[O][O]", "CCCO[O]"),
+        # addtition (internal / unimolecular)
+        ("CC([O])C=C", "CC(O1)C1[CH2]"),  # not bimolecular
+        # addition (H + H => H2)
+        ("[H].[H]", "[H][H]"),
+        # addition (stereo-specific)
+        (r"F/C=C\F.[OH]", "F[CH][C@H](O)F"),
+        # addition (stereo-specific with ring)
+        ("C1C=C1.[OH]", "C1[CH][C@H]1(O)"),
+        # addition (vinyl radical)
+        (r"F\N=[C]/F.[C]#C", r"F\N=C(C#C)/F"),
+        # addition (vinyl and sigma radicals)
+        ("FC=[N].[C]#C", r"F/C=N\C#C"),
+        # addition (two vinyl radicals) (FIXED)
+        (r"F/C=[C]/[H].[H]/[C]=C/F", r"F/C=C\C=C/F"),
+        # addition (case 2)
+        ("C=CCCCCCC.[CH2]C", "CCC[CH]CCCCCC"),
+        # addition (radical radical 1)
+        ("CC[CH2].[H]", "CCC"),
+        # addition (radical radical 2) (FIXED)
+        ("[H].[OH]", "O"),
+        # addition (radical radical 3)
+        ("[CH3].[OH]", "CO"),
+        # addition (isc??)
+        ("N#N.[O]", "[N-]=[N+]=O"),
+        # substitution (Sn2) (FIXED)
+        ("[C@H](O)(C)F.[Cl]", "[C@@H](O)(C)Cl.[F]"),
+        # substitution (FIXED)
+        ("CO.[CH2]C", "CCC.[OH]"),
+        # insertion
+        ("CCC=C.O[O]", "CCCCO[O]"),
+        # insertion (HONO)
+        ("CCC=O.N(=O)O", "CCCON(=O)=O"),
+    ],
+)
+def test__end_to_end(rct_smi, prd_smi):
     """Test reac.ts_geometry"""
+    print("Testing end-to-end functionality")
+    print(f"{rct_smi}>>{rct_smi}")
 
-    def _test(rct_smis, prd_smis):
-        print("Testing end-to-end functionality")
-        print(f"{'.'.join(rct_smis)}>>{'.'.join(prd_smis)}")
+    rct_smis = rct_smi.split(".")
+    prd_smis = prd_smi.split(".")
 
-        # 1. find reactions
-        rxns = reac.from_smiles(rct_smis, prd_smis, stereo=True)
-        rxn, *_ = rxns  # select the first one for testing
+    # 1. find reactions
+    rxns = reac.from_smiles(rct_smis, prd_smis, stereo=True)
+    rxn, *_ = rxns  # select the first one for testing
 
-        # 2. add geometry structures
-        grxn = reac.with_structures(rxn, "geom")
+    # 2. add geometry structures
+    grxn = reac.with_structures(rxn, "geom")
 
-        # 3. add z-matrix structures
-        zrxn = reac.with_structures(rxn, "zmat")
+    # 3. add z-matrix structures
+    zrxn = reac.with_structures(rxn, "zmat")
 
-        # 5. tests
-        #   (a.) check that the geometry structures match the reaction graphs
-        ts_gra = reac.ts_graph(grxn)
-        ts_geo = reac.ts_structure(grxn)
-        rct_geos = reac.reactant_structures(grxn)
-        prd_geos = reac.product_structures(grxn)
-        rct_gras = reac.reactant_graphs(grxn)
-        prd_gras = reac.product_graphs(grxn)
+    # 5. tests
+    #   (a.) check that the geometry structures match the reaction graphs
+    ts_gra = reac.ts_graph(grxn)
+    ts_geo = reac.ts_structure(grxn)
+    rct_geos = reac.reactant_structures(grxn)
+    prd_geos = reac.product_structures(grxn)
+    rct_gras = reac.reactant_graphs(grxn)
+    prd_gras = reac.product_graphs(grxn)
 
-        print(f"\n{ts_gra}\n geometry matches ? \n{ts_geo}\n")
-        assert graph.geometry_matches(ts_gra, ts_geo)
+    print(f"\n{ts_gra}\n geometry matches ? \n{ts_geo}\n")
+    assert graph.geometry_matches(ts_gra, ts_geo)
 
-        assert len(rct_gras) == len(rct_geos)
-        print("Checking reactant geometries....")
-        for gra, geo in zip(rct_gras, rct_geos):
-            print(f"\n{gra}\n geometry matches ? \n{geo}\n")
-            assert graph.geometry_matches(gra, geo)
+    assert len(rct_gras) == len(rct_geos)
+    print("Checking reactant geometries....")
+    for gra, geo in zip(rct_gras, rct_geos):
+        print(f"\n{gra}\n geometry matches ? \n{geo}\n")
+        assert graph.geometry_matches(gra, geo)
 
-        assert len(prd_gras) == len(prd_geos)
-        print("Checking reactant geometries....")
-        for gra, geo in zip(prd_gras, prd_geos):
-            print(f"\n{gra}\n geometry matches ? \n{geo}\n")
-            assert graph.geometry_matches(gra, geo)
+    assert len(prd_gras) == len(prd_geos)
+    print("Checking reactant geometries....")
+    for gra, geo in zip(prd_gras, prd_geos):
+        print(f"\n{gra}\n geometry matches ? \n{geo}\n")
+        assert graph.geometry_matches(gra, geo)
 
-        #   (b.) check that the z-matrix structures match the reaction graphs
-        ts_zgra = reac.ts_graph(zrxn)
-        ts_zma = reac.ts_structure(zrxn)
-        rct_zmas = reac.reactant_structures(zrxn)
-        prd_zmas = reac.product_structures(zrxn)
-        rct_zgras = reac.reactant_graphs(zrxn)
-        prd_zgras = reac.product_graphs(zrxn)
+    #   (b.) check that the z-matrix structures match the reaction graphs
+    ts_zgra = reac.ts_graph(zrxn)
+    ts_zma = reac.ts_structure(zrxn)
+    rct_zmas = reac.reactant_structures(zrxn)
+    prd_zmas = reac.product_structures(zrxn)
+    rct_zgras = reac.reactant_graphs(zrxn)
+    prd_zgras = reac.product_graphs(zrxn)
 
-        print(f"\n{ts_zgra}\n z-matrix matches ? \n{ts_zma}\n")
-        assert graph.zmatrix_matches(ts_zgra, ts_zma)
+    print(f"\n{ts_zgra}\n z-matrix matches ? \n{ts_zma}\n")
+    assert graph.zmatrix_matches(ts_zgra, ts_zma)
 
-        assert len(rct_zgras) == len(rct_zmas)
-        print("Checking reactant z-matrices....")
-        for gra, zma in zip(rct_zgras, rct_zmas):
-            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
-            assert graph.zmatrix_matches(gra, zma)
+    assert len(rct_zgras) == len(rct_zmas)
+    print("Checking reactant z-matrices....")
+    for gra, zma in zip(rct_zgras, rct_zmas):
+        print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+        assert graph.zmatrix_matches(gra, zma)
 
-        assert len(prd_zgras) == len(prd_zmas)
-        print("Checking reactant z-matrices....")
-        for gra, zma in zip(prd_zgras, prd_zmas):
-            print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
-            assert graph.zmatrix_matches(gra, zma)
+    assert len(prd_zgras) == len(prd_zmas)
+    print("Checking reactant z-matrices....")
+    for gra, zma in zip(prd_zgras, prd_zmas):
+        print(f"\n{gra}\n z-matrix matches ? \n{zma}\n")
+        assert graph.zmatrix_matches(gra, zma)
 
-        #   (c.) check that the z-matrix structure can be converted back to geometries
-        grxn_ = reac.with_structures(zrxn, "geom")
-        assert reac.without_structures(
-            grxn, keep_info=False
-        ) == reac.without_structures(grxn_, keep_info=False)
+    #   (c.) check that the z-matrix structure can be converted back to geometries
+    grxn_ = reac.with_structures(zrxn, "geom")
+    assert reac.without_structures(grxn, keep_info=False) == reac.without_structures(
+        grxn_, keep_info=False
+    )
 
-        #   (d.) check that converting to z-matrix again gives the same result
-        zrxn_ = reac.with_structures(grxn_, "zmat")
-        assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
+    #   (d.) check that converting to z-matrix again gives the same result
+    zrxn_ = reac.with_structures(grxn_, "zmat")
+    assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
 
-        #   (e.) check that we can convert two and from string with structures
-        grxn_ = reac.from_string(reac.string(grxn))
-        zrxn_ = reac.from_string(reac.string(zrxn))
+    #   (e.) check that we can convert two and from string with structures
+    grxn_ = reac.from_string(reac.string(grxn))
+    zrxn_ = reac.from_string(reac.string(zrxn))
 
-        print(f"\n{grxn}\n matches ? \n{grxn_}\n")
-        assert reac.without_structures(grxn) == reac.without_structures(grxn_)
-        assert geom.almost_equal(reac.ts_structure(grxn), reac.ts_structure(grxn_))
-        strucs = reac.reactant_structures(grxn) + reac.product_structures(grxn)
-        strucs_ = reac.reactant_structures(grxn_) + reac.product_structures(grxn_)
-        for struc, struc_ in zip(strucs, strucs_):
-            print(f"\n{struc}\n almost equal ? \n{struc_}\n")
-            assert geom.almost_equal(struc, struc_)
+    print(f"\n{grxn}\n matches ? \n{grxn_}\n")
+    assert reac.without_structures(grxn) == reac.without_structures(grxn_)
+    assert geom.almost_equal(reac.ts_structure(grxn), reac.ts_structure(grxn_))
+    strucs = reac.reactant_structures(grxn) + reac.product_structures(grxn)
+    strucs_ = reac.reactant_structures(grxn_) + reac.product_structures(grxn_)
+    for struc, struc_ in zip(strucs, strucs_):
+        print(f"\n{struc}\n almost equal ? \n{struc_}\n")
+        assert geom.almost_equal(struc, struc_)
 
-        print(f"\n{zrxn}\n matches ? \n{zrxn_}\n")
-        assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
-        assert zmat.almost_equal(reac.ts_structure(zrxn), reac.ts_structure(zrxn_))
-        strucs = reac.reactant_structures(zrxn) + reac.product_structures(zrxn)
-        strucs_ = reac.reactant_structures(zrxn_) + reac.product_structures(zrxn_)
-        for struc, struc_ in zip(strucs, strucs_):
-            print(f"\n{struc}\n almost equal ? \n{struc_}\n")
-            assert zmat.almost_equal(struc, struc_)
+    print(f"\n{zrxn}\n matches ? \n{zrxn_}\n")
+    assert reac.without_structures(zrxn) == reac.without_structures(zrxn_)
+    assert zmat.almost_equal(reac.ts_structure(zrxn), reac.ts_structure(zrxn_))
+    strucs = reac.reactant_structures(zrxn) + reac.product_structures(zrxn)
+    strucs_ = reac.reactant_structures(zrxn_) + reac.product_structures(zrxn_)
+    for struc, struc_ in zip(strucs, strucs_):
+        print(f"\n{struc}\n almost equal ? \n{struc_}\n")
+        assert zmat.almost_equal(struc, struc_)
 
-        # Test that we can build scan information for each class
-        scan_names, const_dct, grids, upd_guess = reac.build_scan_info(zrxn, ts_zma)
-        print("scan_names:", scan_names)
-        print("const_dct:", const_dct)
-        print("grids:", grids)
-        print("upd_guess:", upd_guess)
-
-    # UNIMOLECULAR
-    # hydrogen migration
-    _test(["CCCO[O]"], ["[CH2]CCOO"])
-    # hydrogen migration (2TS)
-    _test(["CCC[CH2]"], ["CC[CH]C"])
-    # beta scission (stereo-specific)
-    _test(["F[CH][C@H](O)F"], [r"F/C=C\F", "[OH]"])
-    # beta scission (weird z-matrix / linear atom relationships
-    _test(['[CH2]/C=[C]/C#C'], ['C=C=C=C=[CH]', '[H]'])
-    # ring-forming scission (FIXED)
-    _test(["[CH2]CCCOO"], ["C1CCCO1", "[OH]"])
-    _test([r"[CH2]/C=C\[C@@H](CC)OO"], ["CC[C@H]1OCC=C1", "[OH]"])
-    # ring-forming scission with spiro atoms
-    _test(["CC1[C](O1)COO"], ["CC1C2(O1)CO2", "[OH]"])
-    _test(["CC1[C](OC1)CCOO"], ["CC1C2(OC1)CCO2", "[OH]"])
-    # elimination
-    _test(["CCCCO[O]"], ["CCC=C", "O[O]"])
-    # elimination (HONO)
-    _test(["CCCON(=O)=O"], ["CCC=O", "N(=O)O"])
-    # BIMOLECULAR
-    # hydrogen abstraction
-    _test(["CCO", "[CH3]"], ["[CH2]CO", "C"])
-    # hydrogen abstraction (sigma)
-    _test(["CCO", "C#[C]"], ["CC[O]", "C#C"])
-    # hydrogen abstraction (radical radical)
-    _test(["CCC", "[H]"], ["CC[CH2]", "[HH]"])
-    # addition
-    _test(["CC[CH2]", "[O][O]"], ["CCCO[O]"])
-    # addtition (internal / unimolecular)
-    _test(["CC([O])C=C"], ["CC(O1)C1[CH2]"])  # not bimolecular
-    # addition (H + H => H2)
-    _test(["[H]", "[H]"], ["[H][H]"])
-    # addition (stereo-specific)
-    _test([r"F/C=C\F", "[OH]"], ["F[CH][C@H](O)F"])
-    # addition (stereo-specific with ring)
-    _test(["C1C=C1", "[OH]"], ["C1[CH][C@H]1(O)"])
-    # addition (vinyl radical)
-    _test([r"F\N=[C]/F", "[C]#C"], [r"F\N=C(C#C)/F"])
-    # addition (vinyl and sigma radicals)
-    _test(["FC=[N]", "[C]#C"], [r"F/C=N\C#C"])
-    # addition (two vinyl radicals) (FIXED)
-    _test([r"F/C=[C]/[H]", r"[H]/[C]=C/F"], [r"F/C=C\C=C/F"])
-    # addition (case 2)
-    _test(["C=CCCCCCC", "[CH2]C"], ["CCC[CH]CCCCCC"])
-    # addition (radical radical 1)
-    _test(["CC[CH2]", "[H]"], ["CCC"])
-    # addition (radical radical 2) (FIXED)
-    _test(["[H]", "[OH]"], ["O"])
-    # addition (radical radical 3)
-    _test(["[CH3]", "[OH]"], ["CO"])
-    # addition (isc??)
-    _test(["N#N", "[O]"], ["[N-]=[N+]=O"])
-    # substitution (Sn2) (FIXED)
-    _test(["[C@H](O)(C)F", "[Cl]"], ["[C@@H](O)(C)Cl", "[F]"])
-    # substitution (FIXED)
-    _test(["CO", "[CH2]C"], ["CCC", "[OH]"])
-    # insertion
-    _test(["CCC=C", "O[O]"], ["CCCCO[O]"])
-    # insertion (HONO)
-    _test(["CCC=O", "N(=O)O"], ["CCCON(=O)=O"])
+    # Test that we can build scan information for each class
+    scan_names, const_dct, grids, upd_guess = reac.build_scan_info(zrxn, ts_zma)
+    print("scan_names:", scan_names)
+    print("const_dct:", const_dct)
+    print("grids:", grids)
+    print("upd_guess:", upd_guess)
 
 
 def test__canonical_enantiomer():
@@ -444,5 +451,5 @@ if __name__ == "__main__":
     # test__from_old_string()
     # test__reverse()
     # test__from_datatypes()
-    test__end_to_end()
+    test__end_to_end(["CC[CH2]", "[H]"], ["CCC"])
     # test__canonical_enantiomer()

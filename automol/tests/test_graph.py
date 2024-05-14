@@ -2486,12 +2486,32 @@ def test__embed__clean_geometry():
     assert automol.geom.almost_equal(geo1, geo2)
 
 
+def test__atom_hypervalencies():
+    """also tests geometry conversion for this case"""
+    geo = (
+        ("C", (0.1604, -0.2027, 0.0202)),
+        ("H", (-1.3399, 1.6931, -0.169)),
+        ("H", (-0.7776, -1.5753, -1.1172)),
+        ("H", (0.1415, -0.5361, 2.0067)),
+        ("H", (1.8671, 0.556, -0.7342)),
+        ("O", (-2.8677, 3.6235, -0.3617)),
+        ("H", (-4.0545, 2.5878, -1.3276)),
+    )
+    gra1 = automol.geom.graph(geo, fix_hyper=False)
+    nhyp_dct1 = automol.graph.atom_hypervalencies(gra1)
+    assert automol.util.dict_.by_value(nhyp_dct1) == {1: 1}
+
+    gra2 = automol.geom.graph(geo, fix_hyper=True)
+    nhyp_dct2 = automol.graph.atom_hypervalencies(gra2)
+    assert automol.util.dict_.by_value(nhyp_dct2) == {}
+
+
 if __name__ == "__main__":
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
     # test__amchi_with_indices()
-    test__stereogenic_keys()
+    # test__stereogenic_keys()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
     # test__expand_stereo()
@@ -2515,4 +2535,5 @@ if __name__ == "__main__":
     # test__stereo_corrected_geometry()
     # test__embed__clean_geometry()
     # test__rotational_coordinates()
-    test__stereo_corrected_geometry()
+    # test__stereo_corrected_geometry()
+    test__atom_hypervalencies()
