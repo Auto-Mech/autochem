@@ -53,7 +53,7 @@ def graph(geo, stereo=True, local_stereo=False):
     return gra
 
 
-def graph_without_stereo(geo, dist_factor=None):
+def graph_without_stereo(geo, dist_factor=None, fix_hyper: bool = True):
     """Generate a molecular graph from the molecular geometry that has
     connectivity information, but not stereochemistry
 
@@ -65,6 +65,7 @@ def graph_without_stereo(geo, dist_factor=None):
     :type geo: automol geometry data structure
     :param dist_factor: The multiplier on the distance limit, defaults to None
     :type dist_factor: float, optional
+    :param fix_hyper: Correct hypervalencies by removing the most distant neighbors?
     """
     symb_dct = dict(enumerate(symbols(geo)))
     keys = sorted(symb_dct.keys())
@@ -98,6 +99,20 @@ def graph_without_stereo(geo, dist_factor=None):
             bad_dnkeys = dnkeys - {best_dnkey}
             bad_bkeys = [(dkey, k) for k in bad_dnkeys]
             gra = graph_base.remove_bonds(gra, bad_bkeys)
+
+    # Remove hypervalencies, if requested
+    if fix_hyper:
+        nhyp_dct = dict_.by_value(graph_base.atom_hypervalencies(gra))
+        nkeys_dct = graph_base.atoms_neighbor_atom_keys(
+            graph_base.without_dummy_atoms(gra)
+        )
+
+        for key, nhyp in nhyp_dct.items():
+            # Get the neighboring keys sorted by distance
+            nkeys = sorted(nkeys_dct[key], key=lambda k: distance(geo, key, k))
+            # Remove the `nhyp` longest hypervalent bonds
+            hyp_bkeys = {(key, k) for k in nkeys[-nhyp:]}
+            gra = graph_base.remove_bonds(gra, hyp_bkeys)
 
     return gra
 
@@ -559,7 +574,7 @@ def py3dmol_view(geo, gra=None, view=None, image_size=400):
     :return: A 3D view containing the molecule
     :rtype: py3Dmol.view
     """
-    if graph_base.is_ts_graph(gra):
+    if gra is not None and graph_base.is_ts_graph(gra):
         gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
 
     rdm = rdkit_molecule(geo, gra=gra, stereo=False)

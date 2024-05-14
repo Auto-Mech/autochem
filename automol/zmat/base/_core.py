@@ -295,7 +295,7 @@ def from_string(zma_str, one_indexed=None, angstrom=True, degree=True):
     name_mat = vmat.name_matrix(vma)
 
     nrows = len(symbs)
-    val_str = "\n".join(zma_str.splitlines()[nrows:])
+    val_str = "\n".join(zma_str.strip().splitlines()[nrows:])
 
     value_line = pp.Group(vmat.VNAME + pp.Suppress("=") + ppc.fnumber)
     value_lines = pp.delimitedList(value_line, delim=pp.lineEnd())

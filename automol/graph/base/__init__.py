@@ -90,6 +90,7 @@ from automol.graph.base._00core import atom_van_der_waals_radius
 from automol.graph.base._00core import atom_bond_counts
 from automol.graph.base._00core import atom_unpaired_electrons
 from automol.graph.base._00core import bond_unpaired_electrons
+from automol.graph.base._00core import atom_hypervalencies
 from automol.graph.base._00core import tetrahedral_atoms
 from automol.graph.base._00core import tetrahedral_atom_keys
 from automol.graph.base._00core import vinyl_radical_bond_candidates
@@ -428,6 +429,7 @@ __all__ = [
     "atom_bond_counts",
     "atom_unpaired_electrons",
     "bond_unpaired_electrons",
+    "atom_hypervalencies",
     "tetrahedral_atoms",
     "tetrahedral_atom_keys",
     "vinyl_radical_bond_candidates",
