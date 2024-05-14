@@ -469,6 +469,15 @@ def shortest_path_between_atoms(gra, key1, key2):
     return shortest_path_between_groups(gra, [key1], [key2])
 
 
+def simple_paths_between_atoms(gra, key1, key2):
+    """shortest paths between any two atoms in the graph
+
+    :returns: a 2d dictionary keyed by pairs of atoms
+    """
+    nxg = _01networkx.from_graph(gra)
+    return _01networkx.simple_paths(nxg, key1, key2)
+
+
 def shortest_path_between_groups(gra, keys1, keys2):
     """shortest path between two groups of atoms
 

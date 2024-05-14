@@ -1,6 +1,7 @@
 """low-level stereochemistry functions
 """
 
+import itertools
 import numbers
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
@@ -23,6 +24,7 @@ from automol.graph.base._00core import (
     tetrahedral_atoms,
     without_dummy_atoms,
 )
+from automol.graph.base._02algo import simple_paths_between_atoms
 from automol.graph.base._03kekule import (
     rigid_planar_bonds,
     rigid_planar_bonds_with_ring_constraints,
@@ -203,6 +205,46 @@ def stereocenter_candidates_grouped(
                 cand_bnd_dct[key] = nkeys
 
     return cand_atm_dct, cand_bnd_dct
+
+
+def stereoatom_bridgehead_pairs(
+    gra, cand_dct: Optional[CenterNeighborDict] = None
+) -> Dict[
+    AtomKey, Tuple[Tuple[AtomKey, AtomKey, AtomKey], Tuple[AtomKey, AtomKey, AtomKey]]
+]:
+    r"""Identify pairs of interdependent bridgehead stereoatoms, if any
+
+    Bridgehead stereoatoms sharing the same three bridges are interdependent -- the
+    configuration of one dictates that of the other (they must be opposite).
+
+             .....
+            /     \
+        H--C--...--C--H
+            \     /
+             .....
+
+    :param gra: A molecular graph
+    :param cand_dct: A mapping of stereocenter candidates onto their neighbor keys
+        (To avoid recalculating)
+    :return: A dictionary mapping pairs of bridgehead atoms onto the connected neighbors
+        of each, respectively
+    """
+    cand_dct = (
+        stereocenter_candidates(gra, atom=True, bond=False)
+        if cand_dct is None
+        else cand_dct
+    )
+    cand_atm_dct, _ = stereocenter_candidates_grouped(cand_dct)
+
+    bhp_dct = {}
+    for key1, key2 in itertools.combinations(cand_atm_dct.keys(), r=2):
+        paths = simple_paths_between_atoms(gra, key1, key2)
+        conn_nkeys1 = tuple(p[1] for p in paths)
+        conn_nkeys2 = tuple(p[-2] for p in paths)
+        if len(set(conn_nkeys1)) == len(set(conn_nkeys2)) == 3:
+            bhp_dct[(key1, key2)] = (conn_nkeys1, conn_nkeys2)
+
+    return bhp_dct
 
 
 # parity evaluation helpers

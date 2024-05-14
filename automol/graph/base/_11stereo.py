@@ -9,6 +9,7 @@ from typing import Dict, Optional, Tuple
 
 import numpy
 
+from automol import util
 from automol.graph.base._00core import (
     atom_keys,
     atom_stereo_keys,
@@ -32,7 +33,9 @@ from automol.graph.base._05stereo import (
     geometry_bond_parity,
     parity_evaluator_measure_from_geometry_,
     parity_evaluator_reactants_from_local_ts_graph_,
+    stereoatom_bridgehead_pairs,
     stereocenter_candidates,
+    stereocenter_candidates_grouped,
     unassigned_stereocenter_keys_from_candidates,
 )
 from automol.graph.base._07geom import (
@@ -54,19 +57,24 @@ from automol.graph.base._08canon import (
 
 
 # # core functions
-def expand_stereo(gra, symeq=False, enant=True):
+def expand_stereo(gra, symeq: bool = False, enant: bool = True, strained: bool = False):
     """Obtain all possible stereoisomers of a graph, ignoring its assignments
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param symeq: Include symmetrically equivalent stereoisomers?
-    :type symeq: bool
     :param enant: Include all enantiomers, or only canonical ones?
-    :type enant: bool
+    :param strained: Include stereoisomers which are too strained to exist?
     :returns: a series of molecular graphs for the stereoisomers
     """
+    cand_dct = stereocenter_candidates(gra)
+
     # 1. Run the core stereo expansion algorithm
-    gps = _expand_stereo_core(gra)
+    gps = _expand_stereo_core(gra, cand_dct)
+
+    # 2. If requested, filter out strained stereoisomers
+    if not strained:
+        gps = _remove_strained_stereoisomers_from_expansion(gps, cand_dct)
 
     # 3. If requested, filter out non-canonical enantiomers
     if not enant:
@@ -81,18 +89,14 @@ def expand_stereo(gra, symeq=False, enant=True):
     return sgras
 
 
-def _expand_stereo_core(gra):
+def _expand_stereo_core(gra, cand_dct):
     """Obtain all possible stereoisomers of a graph, ignoring its assignments
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param dir: If this is a TS graph, get priorities for the canonical direction?
-    :type dir: bool, optional
     :returns: a series of molecular graphs for the stereoisomers
     """
     ts_ = is_ts_graph(gra)
-
-    cand_dct = stereocenter_candidates(gra)
 
     bools = (False, True)
 
@@ -135,6 +139,38 @@ def _select_ts_canonical_direction_priorities(gprs):
         ts_rgra = ts_reverse(ts_gra)
         is_can_dir = is_canonical_direction(ts_gra, pri_dct, ts_rgra, rpri_dct)
         gps.append((ts_gra, pri_dct if is_can_dir else rpri_dct))
+    return gps
+
+
+def _remove_strained_stereoisomers_from_expansion(gps, cand_dct):
+    """Remove strained stereoisomers from an expansion"""
+    gps = list(gps)
+    gra = without_stereo(gps[0][0])
+    bhp_dct = stereoatom_bridgehead_pairs(gra, cand_dct)
+
+    for gra, pri_dct in gps:
+        par_dct = stereo_parities(gra)
+        can_nkeys_dct, _ = stereocenter_candidates_grouped(cand_dct, pri_dct=pri_dct)
+        for (key1, key2), (conn_nkeys1, conn_nkeys2) in bhp_dct.items():
+            free_nkeys1 = tuple(k for k in cand_dct[key1] if k not in conn_nkeys1)
+            free_nkeys2 = tuple(k for k in cand_dct[key2] if k not in conn_nkeys2)
+
+            srt_nkeys1 = free_nkeys1 + conn_nkeys1
+            srt_nkeys2 = free_nkeys2 + conn_nkeys2
+            can_nkeys1 = can_nkeys_dct[key1]
+            can_nkeys2 = can_nkeys_dct[key2]
+
+            sgn1 = util.is_odd_permutation(srt_nkeys1, can_nkeys1)
+            sgn2 = util.is_odd_permutation(srt_nkeys2, can_nkeys2)
+
+            par1, par2 = map(par_dct.get, (key1, key2))
+
+            # If the parities relative to the above ordering are not opposite, then the
+            # configuration of the bridgehead pair is strained
+            is_strained = not par1 ^ par2 ^ sgn1 ^ sgn2
+            if is_strained:
+                gps.remove((gra, pri_dct))
+
     return gps
 
 

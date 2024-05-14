@@ -57,6 +57,11 @@ def all_pairs_shortest_path(nxg):
     return networkx.all_pairs_shortest_path(nxg)
 
 
+def simple_paths(nxg, key1, key2):
+    """simple paths between any two vertices in the graph"""
+    return tuple(map(tuple, networkx.all_simple_paths(nxg, source=key1, target=key2)))
+
+
 def all_isomorphisms(nxg1, nxg2):
     """Find all possible isomorphisms between two graphs"""
 
