@@ -14,6 +14,7 @@ Data structure:
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+
 import functools
 import itertools
 import numbers
@@ -21,9 +22,10 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
 import yaml
+from phydat import phycon, ptab
+
 from automol import form, util
 from automol.util import ZmatConv, dict_, zmat_conv
-from phydat import phycon, ptab
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1
@@ -1360,7 +1362,7 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True, ts_=True):
     return atm_nbnd_dct
 
 
-def atom_unpaired_electrons(gra, bond_order=True):
+def atom_unpaired_electrons(gra, bond_order: bool = True):
     """The number of unpaired electrons on each atom, calculated as the atomic
     valences minus the bond count
 
@@ -1411,6 +1413,18 @@ def bond_unpaired_electrons(gra, bond_order=True):
     bnd_unps = [min(map(atm_unp_dct.__getitem__, k)) for k in bnd_keys]
     bnd_unp_dct = dict(zip(bnd_keys, bnd_unps))
     return bnd_unp_dct
+
+
+def atom_hypervalencies(gra, bond_order: bool = True) -> Dict[int, int]:
+    """The number of excess bonds per atom, as a dictionary
+
+    :param gra: A graph
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :return: The hypervalencies, as a dictionary by atom key
+    """
+    atm_unp_dct = atom_unpaired_electrons(gra, bond_order=bond_order)
+    atm_hyp_dct = {k: abs(v) if v < 0 else 0 for k, v in atm_unp_dct.items()}
+    return atm_hyp_dct
 
 
 def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
@@ -2157,11 +2171,11 @@ def without_pi_bonds(gra):
     # don't set dummy bonds to one!
     bnd_ord_dct = bond_orders(gra)
     bnd_ords = [
-        0
-        if round(v, 1) == 0
-        else round(v % 1, 1)
-        if round(v % 1, 1) in (0.1, 0.9)
-        else 1
+        (
+            0
+            if round(v, 1) == 0
+            else round(v % 1, 1) if round(v % 1, 1) in (0.1, 0.9) else 1
+        )
         for v in map(bnd_ord_dct.__getitem__, bnd_keys)
     ]
     bnd_ord_dct = dict(zip(bnd_keys, bnd_ords))
