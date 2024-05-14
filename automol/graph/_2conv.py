@@ -114,8 +114,12 @@ def _connected_geometry(gra, check=True, log=False):
 
     # Define geometry generation methods
     def method1_(gra_):
-        rdm = rdkit_.from_graph(gra_, stereo=stereo, exp=True, local_stereo=True)
-        geo = rdkit_.to_geometry(rdm)
+        try:
+            rdm = rdkit_.from_graph(gra_, stereo=stereo, exp=True, local_stereo=True)
+            geo = rdkit_.to_geometry(rdm)
+        except ValueError:
+            rdm = rdkit_.from_graph(gra_, stereo=False, exp=True)
+            geo = rdkit_.to_geometry(rdm)
         return geo
 
     def method2_(gra_):
