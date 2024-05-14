@@ -1,6 +1,7 @@
 """ Level 4 geometry functions
 """
 
+import functools
 import itertools
 from typing import Dict, Optional
 
@@ -34,7 +35,7 @@ from automol.zmat import base as zmat_base
 
 
 # # conversions
-def graph(geo, stereo=True, local_stereo=False):
+def graph(geo, stereo=True, local_stereo=False, fix_hyper: bool = True):
     """Generate a molecular graph from the molecular geometry that has
     connectivity information and, if requested, stereochemistry.
 
@@ -44,9 +45,10 @@ def graph(geo, stereo=True, local_stereo=False):
     :type stereo: bool, optional
     :param local_stereo: Return local stereo assignments? defaults to False
     :type local_stereo: bool, optional
+    :param fix_hyper: Correct hypervalencies by removing the most distant neighbors?
     :rtype: automol molecular graph data structure
     """
-    gra = graph_without_stereo(geo)
+    gra = graph_without_stereo(geo, fix_hyper=fix_hyper)
     if stereo:
         gra = graph_base.set_stereo_from_geometry(gra, geo, local_stereo=local_stereo)
 
@@ -109,7 +111,7 @@ def graph_without_stereo(geo, dist_factor=None, fix_hyper: bool = True):
 
         for key, nhyp in nhyp_dct.items():
             # Get the neighboring keys sorted by distance
-            nkeys = sorted(nkeys_dct[key], key=lambda k: distance(geo, key, k))
+            nkeys = sorted(nkeys_dct[key], key=functools.partial(distance, geo, key))
             # Remove the `nhyp` longest hypervalent bonds
             hyp_bkeys = {(key, k) for k in nkeys[-nhyp:]}
             gra = graph_base.remove_bonds(gra, hyp_bkeys)
