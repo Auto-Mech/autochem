@@ -264,7 +264,7 @@ def geometry_matches(
     :rtype: bool
     """
     cgra = without_stereo(gra)
-    cgra0 = geom.graph_without_stereo(geo)
+    cgra0 = geom.graph_without_stereo(geo, fix_hyper=False)
 
     cgra = without_dummy_atoms(cgra)
     cgra0 = without_dummy_atoms(cgra0)

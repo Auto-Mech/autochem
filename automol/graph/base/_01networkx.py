@@ -4,8 +4,10 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
 import operator
+from typing import Optional
 
 import networkx
+
 from automol.graph.base._00core import (
     atom_implicit_hydrogens,
     atom_keys,
@@ -41,9 +43,11 @@ def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):
     return nxg
 
 
-def minimum_cycle_basis(nxg):
+def minimum_cycle_basis(nxg, weight: Optional[str] = None):
     """minimum cycle basis for the graph"""
-    rng_atm_keys_lst = networkx.algorithms.cycles.minimum_cycle_basis(nxg)
+    rng_atm_keys_lst = networkx.algorithms.cycles.minimum_cycle_basis(
+        nxg, weight=weight
+    )
     return frozenset(map(frozenset, rng_atm_keys_lst))
 
 
