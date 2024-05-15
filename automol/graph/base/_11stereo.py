@@ -10,9 +10,11 @@ from typing import Dict, Optional, Tuple
 import numpy
 
 from automol import util
+from automol.geom import base as geom_base
 from automol.graph.base._00core import (
     atom_keys,
     atom_stereo_keys,
+    atom_symbols,
     bond_stereo_keys,
     frozen,
     has_atom_stereo,
@@ -430,10 +432,15 @@ def set_stereo_from_geometry(gra, geo, local_stereo=False, geo_idx_dct=None):
         parities already present will be wiped out
     :rtype: automol graph data structure
     """
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
+    if geo_idx_dct is None:
+        symbs = util.dict_.values_sorted_by_key(atom_symbols(gra))
+        symbs_ = geom_base.symbols(geo)
+        assert symbs == symbs_, f"Symbol mismatch: {symbs} != {symbs_}\n{gra}\n{geo}"
+
+        keys = sorted(atom_keys(gra))
+        geo_idx_dct = (
+            {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+        )
 
     par_eval_ = parity_evaluator_measure_from_geometry_(
         geo, local_stereo=local_stereo, geo_idx_dct=geo_idx_dct

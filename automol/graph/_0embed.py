@@ -266,9 +266,6 @@ def geometry_matches(
     cgra = without_stereo(gra)
     cgra0 = geom.graph_without_stereo(geo, fix_hyper=False)
 
-    cgra = without_dummy_atoms(cgra)
-    cgra0 = without_dummy_atoms(cgra0)
-
     cgra_ = cgra0
     if is_ts_graph(cgra):
         r_bkeys = ts.reacting_bond_keys(cgra)
@@ -276,7 +273,9 @@ def geometry_matches(
         cgra_ = add_bonds(cgra_, keys=r_bkeys, ord_dct=r_ord_dct, check=False)
 
     # 1. Check that the connectivities match
-    matches = cgra == cgra_
+    # Note: Do not remove dummy atoms up front! The graph and geometry must be
+    # consistent for the stereo assessment
+    matches = without_dummy_atoms(cgra) == without_dummy_atoms(cgra_)
     if log:
         print("Connectivity matches?", matches)
         print(f"{cgra}\n == ? \n{cgra_}")
