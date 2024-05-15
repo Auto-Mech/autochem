@@ -1923,6 +1923,44 @@ def test__expand_stereo():
     assert len(graph.expand_stereo(gra, enant=False, symeq=True)) == 2
 
 
+def test__expand_stereo__strained():
+    """test removal of strained stereoisomers from stereoexpansion"""
+    # C=1C2CC(C=1)O2
+    gra = (
+        {
+            0: ("C", 1, None),
+            1: ("C", 1, None),
+            2: ("C", 2, None),
+            3: ("C", 1, None),
+            4: ("C", 1, None),
+            5: ("O", 0, None),
+        },
+        {
+            frozenset({1, 4}): (1, None),
+            frozenset({2, 3}): (1, None),
+            frozenset({0, 3}): (1, None),
+            frozenset({4, 5}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({2, 4}): (1, None),
+            frozenset({3, 5}): (1, None),
+        },
+    )
+
+    # Without removing strained stereoisomers, there are three distinct possibilities
+    sgras = graph.expand_stereo(gra, strained=True)
+    assert len(sgras) == 3, sgras
+
+    # With removing strained stereoisomers, there is only one distinct possibility
+    sgras = graph.expand_stereo(gra, strained=False)
+    assert len(sgras) == 1, sgras
+
+    (sgra,) = sgras
+    par_dct = automol.util.dict_.filter_by_value(
+        automol.graph.stereo_parities(sgra), lambda x: x is not None
+    )
+    assert par_dct == {3: False, 4: True}, par_dct
+
+
 def test__ring_systems():
     """test graph.ring_systems"""
     chi = automol.smiles.chi("C12CC(C1)C2CC3C(C3)CCC4C5CCC(CC5)C4")

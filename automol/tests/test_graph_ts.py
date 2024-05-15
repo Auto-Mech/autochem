@@ -3,6 +3,7 @@
 
 import automol
 import numpy
+import pytest
 from automol import graph
 
 # Sn2 Atom Stereo
@@ -779,6 +780,46 @@ C5H4_TSG = (
     },
 )
 
+# Bridghead Atom Stereo Pair
+# OO[C@@H]1CC=C[CH]1 => C=1[C@H]2C[C@H](C=1)O2 + [OH]
+#    *          *           *      *
+# [* marks a pair of bridgehead stereo atoms]
+C5H6O_TSG = (
+    {
+        0: ("O", 0, None),
+        1: ("O", 0, None),
+        2: ("C", 0, None),
+        3: ("H", 0, None),
+        4: ("C", 0, None),
+        5: ("C", 0, None),
+        6: ("C", 0, None),
+        7: ("C", 0, None),
+        8: ("H", 0, None),
+        9: ("H", 0, None),
+        10: ("H", 0, None),
+        11: ("H", 0, None),
+        12: ("H", 0, None),
+        13: ("H", 0, None),
+    },
+    {
+        frozenset({4, 10}): (1, None),
+        frozenset({2, 3}): (1, None),
+        frozenset({1, 2}): (1, None),
+        frozenset({4, 5}): (1, None),
+        frozenset({0, 1}): (0.9, None),
+        frozenset({6, 7}): (1, None),
+        frozenset({5, 12}): (1, None),
+        frozenset({7, 8}): (1, None),
+        frozenset({2, 4}): (1, None),
+        frozenset({5, 6}): (1, None),
+        frozenset({4, 11}): (1, None),
+        frozenset({6, 13}): (1, None),
+        frozenset({1, 5}): (0.1, None),
+        frozenset({2, 7}): (1, None),
+        frozenset({0, 9}): (1, None),
+    },
+)
+
 
 def test__set_stereo_from_geometry():
     """test graph.set_stereo_from_geometry"""
@@ -870,25 +911,28 @@ def test__from_local_stereo():
     _test("C8H14", C8H14_TSG)
 
 
-def test__ts__expand_reaction_stereo():
+@pytest.mark.parametrize(
+    "formula,ts_gra,ts_counts",
+    [
+        ("CH4CLFNO", CH4CLFNO_TSG, [1, 1]),
+        ("C4H11O2", C4H11O2_TSG, [2]),
+        ("C2H3O4", C2H3O4_TSG, [1]),
+        ("C4H9O3", C4H9O3_TSG, [2, 2]),
+        ("C2H3F2O", C2H3F2O_TSG, [1, 1, 1, 1]),
+        ("C4H5F3O2", C4H5F3O2_TSG, [1] * 12),
+        ("C4H9O2", C4H9O2_TSG, [1, 1, 1, 1]),
+        ("C2H4O2", C2H4O2_TSG, [1, 1]),
+        ("C4H4F2", C4H4F2_TSG, [1, 1, 1, 1]),
+        ("C8H14", C8H14_TSG, [1, 1, 1, 1]),
+        ("C5H6O", C5H6O_TSG, [1, 1]),
+    ],
+)
+def test__ts__expand_reaction_stereo(formula, ts_gra, ts_counts):
     """test graph.ts.expand_reaction_stereo"""
-
-    def _test(formula, tsg, num_ts_assignments_lst):
-        print(f"{formula}: testing ts.expand_reaction_stereo")
-        _, _, ts_sgras_lst = zip(*graph.ts.expand_reaction_stereo(tsg))
-        print(list(map(len, ts_sgras_lst)))
-        assert list(map(len, ts_sgras_lst)) == num_ts_assignments_lst
-
-    _test("CH4CLFNO", CH4CLFNO_TSG, [1, 1])
-    _test("C4H11O2", C4H11O2_TSG, [2])
-    _test("C2H3O4", C2H3O4_TSG, [1])
-    _test("C4H9O3", C4H9O3_TSG, [2, 2])
-    _test("C2H3F2O", C2H3F2O_TSG, [1, 1, 1, 1])
-    _test("C4H5F3O2", C4H5F3O2_TSG, [1] * 12)
-    _test("C4H9O2", C4H9O2_TSG, [1, 1, 1, 1])
-    _test("C2H4O2", C2H4O2_TSG, [1, 1])
-    _test("C4H4F2", C4H4F2_TSG, [1, 1, 1, 1])
-    _test("C8H14", C8H14_TSG, [1, 1, 1, 1])
+    print(f"{formula}: testing ts.expand_reaction_stereo")
+    _, _, ts_sgras_lst = zip(*graph.ts.expand_reaction_stereo(ts_gra))
+    print(list(map(len, ts_sgras_lst)))
+    assert list(map(len, ts_sgras_lst)) == ts_counts
 
 
 def test__ts__fleeting_stereocenter_keys():

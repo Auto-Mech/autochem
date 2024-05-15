@@ -451,5 +451,5 @@ if __name__ == "__main__":
     # test__from_old_string()
     # test__reverse()
     # test__from_datatypes()
-    test__end_to_end(["CC[CH2]", "[H]"], ["CCC"])
+    test__end_to_end("[C@H](O)(C)F.[Cl]", "[C@@H](O)(C)Cl.[F]")
     # test__canonical_enantiomer()

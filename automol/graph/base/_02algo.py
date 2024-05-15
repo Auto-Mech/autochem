@@ -27,12 +27,12 @@ from automol.graph.base._00core import (
     atoms_neighbor_atom_keys,
     bond_induced_subgraph,
     bond_keys,
+    bond_orders,
     frozen,
     implicit,
     remove_bonds,
     set_atom_symbols,
     string,
-    subgraph as subgraph_,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
@@ -41,6 +41,9 @@ from automol.graph.base._00core import (
     union_from_sequence,
     without_dummy_atoms,
     without_stereo,
+)
+from automol.graph.base._00core import (
+    subgraph as subgraph_,
 )
 
 
@@ -469,6 +472,15 @@ def shortest_path_between_atoms(gra, key1, key2):
     return shortest_path_between_groups(gra, [key1], [key2])
 
 
+def simple_paths_between_atoms(gra, key1, key2):
+    """shortest paths between any two atoms in the graph
+
+    :returns: a 2d dictionary keyed by pairs of atoms
+    """
+    nxg = _01networkx.from_graph(gra)
+    return _01networkx.simple_paths(nxg, key1, key2)
+
+
 def shortest_path_between_groups(gra, keys1, keys2):
     """shortest path between two groups of atoms
 
@@ -742,8 +754,15 @@ def rings_bond_keys(gra, ts_=True):
     def _ring_bond_keys(rng_atm_keys):
         return frozenset(filter(lambda x: x <= rng_atm_keys, bnd_keys))
 
-    nxg = _01networkx.from_graph(gra)
-    rng_atm_keys_lst = _01networkx.minimum_cycle_basis(nxg)
+    # Define weights, giving the breaking and forming bonds a higher value so that they
+    # are only included if necessary
+    ord_dct = bond_orders(gra)
+    wgt_dct = util.dict_.transform_values(
+        ord_dct, lambda o: int(o * 10000 if o < 1 else o)
+    )
+
+    nxg = _01networkx.from_graph(gra, edge_attrib_dct={"weight": wgt_dct})
+    rng_atm_keys_lst = _01networkx.minimum_cycle_basis(nxg, weight="weight")
     rng_bnd_keys_lst = frozenset(map(_ring_bond_keys, rng_atm_keys_lst))
     return rng_bnd_keys_lst
 
