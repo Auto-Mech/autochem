@@ -1,35 +1,32 @@
 [tool.poetry]
-name = "automol"
-version = "2023.8.0"
+name = "autochem"
+version = "2024.5.20"
 description = ""
 authors = ["Andreas Copan <avcopan@gmail.com>"]
 readme = "README.md"
 packages = [
     { include = "automol" },
-    { include = "transformations" },
+    { include = "autoreact" },
+    { include = "molsym" },
     { include = "phydat" },
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-numpy = "^1.25.2"
-qcelemental = "^0.26.0"
-pyparsing = "^3.1.1"
-more-itertools = "^10.1.0"
-scipy = "^1.11.2"
-networkx = "^3.1"
-ipython = "^8.14.0"
-ipywidgets = "^8.1.0"
-rdkit = "^2023.3.3"
-Mako = "^1.2.4"
-PyYAML = "^6.0.1"
-pandas = "^2.0.3"
-py3Dmol = "^2.0.3"
-pytest = "^7.4.0"
+python = "^3.10"
+ipython = "^8.24.0"
+ipywidgets = "^8.1.2"
+more-itertools = "^10.2.0"
+networkx = "^3.3"
+numpy = "^1.26.4"
+py3dmol = "^2.1.0"
+pyparsing = "^3.1.2"
+pytest = "^8.2.1"
+pyyaml = "^6.0.1"
+qcelemental = "^0.27.1"
+rdkit = "^2023.9.6"
+scipy = "^1.13.0"
+xarray = "^2024.5.0"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-notebook = "^7.0.2"
 
 [build-system]
 requires = ["poetry-core"]
