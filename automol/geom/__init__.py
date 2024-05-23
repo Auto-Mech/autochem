@@ -145,6 +145,12 @@ from automol.geom._align import align
 from automol.geom._ring import all_rings_angles_reasonable
 from automol.geom._ring import ring_angles_reasonable
 from automol.geom._ring import ring_fragments_geometry
+#adl cremer-pople paramters calculation
+from automol.geom._ring import translate_to_ring_center
+from automol.geom._ring import mean_ring_plane
+from automol.geom._ring import normal_to_ring_plane
+from automol.geom._ring import get_displacement
+from automol.geom._ring import cremer_pople_params
 
 
 __all__ = [
@@ -281,4 +287,10 @@ __all__ = [
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
     'ring_fragments_geometry',
+    #madl cremer-pople
+    'translate_to_ring_center',
+    'mean_ring_plane',
+    'normal_to_ring_plane',
+    'get_displacement',
+    'cremer_pople_params'
 ]
