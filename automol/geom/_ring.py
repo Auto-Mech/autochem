@@ -1,6 +1,7 @@
 """ get lvl 4
 """
 
+import numpy as np
 from phydat import phycon
 
 from automol.geom._conv import (
@@ -9,7 +10,7 @@ from automol.geom._conv import (
 from automol.geom.base import central_angle, subgeom
 from automol.graph import base as graph_base
 
-ATHRESH = 94.0 * phycon.DEG2RAD
+ATHRESH = 85.0 * phycon.DEG2RAD
 
 
 def all_rings_angles_reasonable(geo, rings_atoms, thresh=ATHRESH):
@@ -36,6 +37,8 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     """
 
     condition = True
+    # Lower threshold for 4 and 5 membered rings
+    if len(ring_atoms) < 6: thresh *= 0.8
     for i, ring_atom in enumerate(ring_atoms):
         _atoms = [ring_atom, ring_atoms[i - 1], ring_atoms[i - 2]]
         cangle = central_angle(geo, *_atoms, degree=False)
