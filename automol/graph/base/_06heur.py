@@ -188,6 +188,7 @@ def rotational_bond_keys(
         with_ch_rotors=with_ch_rotors,
         with_rings_rotors=with_rings_rotors,
         extend_lin_seg=True
+        with_rings_rotors=with_rings_rotors,
     )
     rot_bkeys = [frozenset(ks[-2:]) for ks in rot_skeys_lst]
     rot_bkeys = frozenset(sorted(rot_bkeys, key=sorted))
@@ -201,6 +202,7 @@ def rotational_segment_keys(
     with_ch_rotors: bool = True,
     with_rings_rotors: bool = False,
     extend_lin_seg: bool = True,
+    with_rings_rotors: bool = False,
 ):
     """Get the keys for all rotational segments (bonds or linear segments)
 
