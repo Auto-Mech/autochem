@@ -37,8 +37,13 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     """
 
     condition = True
+<<<<<<< HEAD
     # Lower threshold for 4 and 5 membered rings if not using relaxed thresh already
     if len(ring_atoms) < 6 and thresh > 70.: thresh *= 0.8
+=======
+    # Lower threshold for 4 and 5 membered rings
+    if len(ring_atoms) < 6: thresh *= 0.8
+>>>>>>> Adjusted threshold for ring reasonable angles
     for i, ring_atom in enumerate(ring_atoms):
         _atoms = [ring_atom, ring_atoms[i - 1], ring_atoms[i - 2]]
         cangle = central_angle(geo, *_atoms, degree=False)
