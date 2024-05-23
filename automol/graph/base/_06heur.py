@@ -164,6 +164,7 @@ def rotational_bond_keys(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    with_rings_rotors: bool = False,
 ):
     """Get all rotational bonds for a graph
 
@@ -185,6 +186,7 @@ def rotational_bond_keys(
         lin_keys=lin_keys,
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
+        with_rings_rotors=with_rings_rotors,
     )
     rot_bkeys = [frozenset(ks[-2:]) for ks in rot_skeys_lst]
     rot_bkeys = frozenset(sorted(rot_bkeys, key=sorted))
@@ -196,6 +198,7 @@ def rotational_segment_keys(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    with_rings_rotors: bool = False,
 ):
     """Get the keys for all rotational segments (bonds or linear segments)
 
@@ -209,6 +212,8 @@ def rotational_segment_keys(
     :type with_h_rotors: bool
     :param with_ch_rotors: Include CH rotors?
     :type with_ch_rotors: bool
+    :param with_rings_rotors: Include atoms in a ring?
+    :type with_rings_rotors: bool
     :returns: The rotational bond keys
     :rtype: frozenset[frozenset[{int, int}]]
     """
@@ -218,7 +223,7 @@ def rotational_segment_keys(
     bord_dct = kekules_bond_orders_collated(gra)
     rng_bkeys = list(itertools.chain(*rings_bond_keys(gra)))
 
-    def _is_rotational_bond(bkey):
+    def _is_rotational_bond(bkey,):
         """Not guaranteed to have out-of-line neighbors
 
         This is taken care of below by subtracting bonds in linear segments
@@ -237,7 +242,7 @@ def rotational_segment_keys(
         return (
             is_single
             and has_neighbors
-            and not_in_ring
+            and (not_in_ring or with_rings_rotors)
             and (not is_h_rotor or with_h_rotors)
             and (not is_chx_rotor or with_ch_rotors)
         )
