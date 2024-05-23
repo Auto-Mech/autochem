@@ -47,6 +47,13 @@ def all_rings_atoms(zma, tsg=None):
                         ring_atoms.append(atmb)
                     elif atmb == ring_atoms[-1] and atma not in ring_atoms:
                         ring_atoms.append(atma)
+                    print("Current ring_atoms",ring_atoms) #adl safety print
+
+            # check that ring is not already present in rings_atoms and eventually skip it
+            do_not_add_ring = 0
+            for rng in rings_atoms:
+                if not set(rng).difference(set(ring_atoms)): do_not_add_ring = 1
+            if do_not_add_ring: continue
 
             # check that ring is not already present in rings_atoms and eventually skip it
             do_not_add_ring = 0
@@ -60,7 +67,6 @@ def all_rings_atoms(zma, tsg=None):
             # Connectivity should still be preserved, if it is not COME BACK HERE AND FIGURE OUT HOW TO REORDER ATOMS AND PRESERVE CONN
             rings_atoms.append(tuple(ring_atoms))
             rings_atoms = frozenset(rings_atoms)
-    print('Final rings atoms at line 63 of ring.py:\n',rings_atoms) #adl safety print
 
     return rings_atoms
 
