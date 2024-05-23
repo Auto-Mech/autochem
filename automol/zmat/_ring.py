@@ -25,10 +25,8 @@ def all_rings_atoms(zma, tsg=None):
     :type rng_atoms: list
     """
 
-    if tsg is None:
-        rings_atoms = graph_base.rings_atom_keys(graph(zma))
-    else:
-        rings_atoms = []
+    rings_atoms = graph_base.rings_atom_keys(graph(zma, dummy=True))
+    if tsg is not None:
         for ring in graph_base.ts.forming_rings_bond_keys(tsg):
             # Determine number of atoms in the ring
             all_atoms = set()
@@ -49,9 +47,20 @@ def all_rings_atoms(zma, tsg=None):
                         ring_atoms.append(atmb)
                     elif atmb == ring_atoms[-1] and atma not in ring_atoms:
                         ring_atoms.append(atma)
+                    print("Current ring_atoms",ring_atoms) #adl safety print
+
+            # check that ring is not already present in rings_atoms and eventually skip it
+            do_not_add_ring = 0
+            for rng in rings_atoms:
+                if not set(rng).difference(set(ring_atoms)): do_not_add_ring = 1
+            if do_not_add_ring: continue
 
             # Add to overall list
-            rings_atoms.append(ring_atoms)
+            rings_atoms = list(rings_atoms)
+            rings_atoms.append(tuple(ring_atoms))
+            rings_atoms = frozenset(rings_atoms)
+            print('Current ring atoms:\n',ring_atoms,rings_atoms) #adl safety print
+    print('Final rings atoms at line 63 of ring.py:\n',rings_atoms) #adl safety print
 
     return rings_atoms
 
