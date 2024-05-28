@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "autochem"
-version = "2024.5.20"
+version = "2024.5.28"
 description = ""
 authors = ["Andreas Copan <avcopan@gmail.com>"]
 readme = "README.md"
