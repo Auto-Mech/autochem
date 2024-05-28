@@ -21,7 +21,6 @@ from automol.graph.base._00core import (
     relabel,
     ts_reactants_graph_without_stereo,
     ts_reacting_atom_keys,
-    vinyl_radical_bond_candidates,
 )
 from automol.graph.base._02algo import (
     branch_atom_keys,
@@ -29,7 +28,10 @@ from automol.graph.base._02algo import (
     ring_systems_atom_keys,
     rings_bond_keys,
 )
-from automol.graph.base._03kekule import rigid_planar_bonds
+from automol.graph.base._03kekule import (
+    rigid_planar_bonds,
+    vinyl_radical_atom_bond_keys,
+)
 from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
 from automol.util import dict_
 
@@ -157,9 +159,9 @@ def geometry_correct_linear_vinyls(
     rng_bkeys = set(itertools.chain(*rings_bond_keys(gra)))
     nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=False)
 
-    vin_dct = vinyl_radical_bond_candidates(gra, min_ncount=0)
+    vin_dct = vinyl_radical_atom_bond_keys(gra)
 
-    for bkey, key in vin_dct.items():
+    for key, bkey in vin_dct.items():
         if bkey not in rng_bkeys and not bkey & excl_keys:
             key2 = key
             (key1,) = bkey - {key}
