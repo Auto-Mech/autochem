@@ -40,6 +40,7 @@ from automol.graph.base._00core import (
     ts_reactants_graph_without_stereo,
     ts_reagents_graphs_without_stereo,
     ts_transferring_atoms,
+    vinyl_radical_bond_candidates,
     without_dummy_atoms,
     without_pi_bonds,
 )
@@ -600,25 +601,15 @@ def nonresonant_radical_atom_keys(gra):
 
 
 def vinyl_radical_atom_bond_keys(gra):
-    """Vinyl radical atom keys for this molecular graph
+    """Get a mapping of vinyl radical bonds onto their radical atoms
 
-    Does not use resonance, to save on cost
-
-    :param gra: the molecular graph
-    :returns: The vinyl radical bond keys, by atom key
+    :param gra: A graph
+    :return: A mappping of vinyl radical bond keys onto vinyl atom keys
     :rtype: Dict[int, frozenset[int]]
     """
-    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
-
-    atm_rad_keys = nonresonant_radical_atom_keys(gra)
-    bnd_ords_dct = kekules_bond_orders_collated(gra)
-    atm_bnd_keys_dct = atoms_bond_keys(gra)
-    vin_dct = {}
-    for atm_key in atm_rad_keys:
-        for bnd_key in atm_bnd_keys_dct[atm_key]:
-            if 2 in bnd_ords_dct[bnd_key]:
-                vin_dct[atm_key] = bnd_key
-                break
+    cand_dct = vinyl_radical_bond_candidates(gra)
+    hyb_dct = atom_hybridizations(gra)
+    vin_dct = {k: bk for bk, k in cand_dct.items() if hyb_dct[k] == 2}
     return vin_dct
 
 

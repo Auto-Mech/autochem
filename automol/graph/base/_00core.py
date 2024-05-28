@@ -1495,7 +1495,7 @@ def vinyl_radical_bond_candidates(gra, min_ncount: int = 1) -> Dict[AtomKey, Bon
     :type gra: automol graph data structure
     :param min_ncount: Minimal # neighbor keys for consideration
     :type min_ncount: int, optional
-    :return: A mappping of vinyl radical atom keys onto vinyl bond keys
+    :return: A mappping of vinyl radical bond keys onto vinyl atom keys
     """
     ncount_dct = atom_bond_counts(gra, bond_order=False)
     npair_dct = atom_electron_pairs(gra, bond_order=False)
