@@ -1568,7 +1568,9 @@ def atom_symbol_keys(gra):
     return symb_idx_dct
 
 
-def backbone_and_nonbackbone_hydrogen_keys(gra) -> Tuple[frozenset[int], frozenset[int]]:
+def backbone_and_nonbackbone_hydrogen_keys(
+    gra,
+) -> Tuple[frozenset[int], frozenset[int]]:
     """Get the backbone and non-backbone hydrogen keys of this molecular graph
 
     :param gra: molecular graph

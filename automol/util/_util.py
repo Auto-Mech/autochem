@@ -194,11 +194,11 @@ def scale_iterable(iterable, scale_factor):
     """Scale some type of iterable of floats by a scale factor"""
 
     if isinstance(iterable, list):
-        scaled_iterable = list(val * scale_factor for val in iterable)
+        iterable = list(val * scale_factor for val in iterable)
     elif isinstance(iterable, tuple):
-        scaled_iterable = tuple(val * scale_factor for val in iterable)
+        iterable = tuple(val * scale_factor for val in iterable)
 
-    return scaled_iterable
+    return iterable
 
 
 def remove_duplicates_with_order(lst):

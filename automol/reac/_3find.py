@@ -276,9 +276,19 @@ def eliminations(rct_gras, prd_gras):
     rct_gras, _ = graph.standard_keys_for_sequence(rct_gras)
     prd_gras, _ = graph.standard_keys_for_sequence(prd_gras)
 
-    def _identify(frm1_keys, frm2_keys, bnd_keys):
-        """Try and identify elmination from some set of keys"""
-        _rxns = []
+    rxns = []
+
+    if len(rct_gras) == 1 and len(prd_gras) == 2:
+        (rct_gra,) = rct_gras
+        prds_gra = graph.union_from_sequence(prd_gras)
+
+        # Generate keys all bonds and 1/2 the forming bond
+        frm1_keys = graph.atom_keys(rct_gra)
+        bnd_keys = graph.bond_keys(rct_gra)
+
+        rct_symbs = graph.atom_symbols(rct_gra)
+        frm2_keys = graph.unsaturated_atom_keys(rct_gra)
+        frm2_keys = frozenset(key for key in frm2_keys if rct_symbs[key] == "O")
 
         frm_bnd_keys = [
             (frm1_key, frm2_key)
@@ -352,41 +362,6 @@ def eliminations(rct_gras, prd_gras):
                             prds_keys=prds_atm_keys,
                         )
                         rxns.append(rxn)
-
-        return _rxns
-
-    rxns = []
-
-    if len(rct_gras) == 1 and len(prd_gras) == 2:
-        (rct_gra,) = rct_gras
-        prds_gra = graph.union_from_sequence(prd_gras)
-
-        # ngb_keys_dct = graph.atoms_neighbor_atom_keys(rct_gra)
-
-        # Generate keys all bonds and 1/2 the forming bond
-        frm1_keys = graph.atom_keys(rct_gra)
-        bnd_keys = graph.bond_keys(rct_gra)
-
-        frm2_keys = graph.unsaturated_atom_keys(rct_gra)
-        rct_symbs = graph.atom_symbols(rct_gra)
-        frm2_keys_o = frozenset(key for key in frm2_keys if rct_symbs[key] == "O")
-
-        rxns.extend(_identify(frm1_keys, frm2_keys_o, bnd_keys))
-
-        # OLD WAY. More IDs but more mistakes
-        # To make the function general, try to ID reaction
-        # with different types of keys for the attacking atom
-        # (1) unsaturated atom sites
-        # frm2_keys = graph.unsaturated_atom_keys(rct_gra)
-        # rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
-        # if not rxns:
-        #     # (2) remaining saturated atom sites
-        #     frm2_keys = graph.atom_keys(rct_gra, excl_syms=('H',)) - frm2_keys
-        #     rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
-        #     # if not rxns:  # Ignoring H2 formation for now for speed
-        #     #     # (3) H atoms
-        #     #     frm1_keys = graph.atom_keys(rct_gra, sym='H')
-        #     #     rxns.extend(_identify(frm1_keys, frm2_keys, bnd_keys))
 
     return rxns
 

@@ -422,8 +422,7 @@ def clean(
     """
     ene_arr = values(pot, copy=not in_place)
 
-    if log:
-        orig_ene_arr = ene_arr.copy()
+    orig_ene_arr = ene_arr.copy()
 
     # 1. Zero the start energy, if below threshold
     start_ene = ene_arr.flat[0]
