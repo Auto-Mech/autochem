@@ -34,5 +34,5 @@ jobs:
 
       - name: Run pytests
         run: |
-          pixi run pytest -v --ignore=automol/tests/test_symm.py
-
+          pixi run pytest -v automol --ignore=automol/tests/test_symm.py
+          pixi run pytest -v autoreact
