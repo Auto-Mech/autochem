@@ -47,7 +47,6 @@ def all_rings_atoms(zma, tsg=None):
                         ring_atoms.append(atmb)
                     elif atmb == ring_atoms[-1] and atma not in ring_atoms:
                         ring_atoms.append(atma)
-                    print("Current ring_atoms",ring_atoms) #adl safety print
 
             # check that ring is not already present in rings_atoms and eventually skip it
             do_not_add_ring = 0
