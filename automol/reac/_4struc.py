@@ -71,7 +71,7 @@ def with_structures(
     # If a structure type of `None` was requested, simply update with the structures
     # passed in
     if struc_typ is None:
-        rxn_ = update_structures(
+        rxn = update_structures(
             rxn,
             rct_strucs=rct_strucs,
             prd_strucs=prd_strucs,
@@ -81,7 +81,7 @@ def with_structures(
     # If this Reaction object doesn't have structures, or we are updating a Reaction
     # object with new reagent structures, add the requested structure type
     elif struc_typ == "geom" and (orig_struc_typ is None or new_strucs):
-        rxn_ = _with_geom_structures(
+        rxn = _with_geom_structures(
             rxn,
             rct_geos=rct_strucs,
             prd_geos=prd_strucs,
@@ -90,7 +90,7 @@ def with_structures(
             log=log,
         )
     elif struc_typ == "zmat" and (orig_struc_typ is None or new_strucs):
-        rxn_ = _with_zmat_structures(
+        rxn = _with_zmat_structures(
             rxn,
             rct_zmas=rct_strucs,
             prd_zmas=prd_strucs,
@@ -98,13 +98,9 @@ def with_structures(
             prd_zcs=prd_zcs,
             log=log,
         )
-    # If the Reaction already has this structure type, and no structures were passed in,
-    # return as-is
-    elif struc_typ == orig_struc_typ and no_strucs:
-        rxn_ = rxn
     # If we are converting geom => z-matrix, handle that case
     elif struc_typ == "zmat" and orig_struc_typ == "geom":
-        rxn_ = _convert_geom_to_zmat_structures(
+        rxn = _convert_geom_to_zmat_structures(
             rxn,
             rct_zmas=rct_strucs,
             prd_zmas=prd_strucs,
@@ -114,7 +110,7 @@ def with_structures(
         )
     # If we are converting geom => z-matrix, handle that case
     elif struc_typ == "geom" and orig_struc_typ == "zmat":
-        rxn_ = _convert_zmat_to_geom_structures(
+        rxn = _convert_zmat_to_geom_structures(
             rxn,
             rct_geos=rct_strucs,
             prd_geos=prd_strucs,
@@ -122,8 +118,10 @@ def with_structures(
             prd_zcs=prd_zcs,
             log=log,
         )
+    # If the Reaction already has this structure type, and no structures were passed in,
+    # return as-is
 
-    return rxn_
+    return rxn
 
 
 def reverse(rxn: Reaction, recalc: bool = True) -> Reaction:

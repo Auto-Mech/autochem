@@ -1,5 +1,6 @@
 """ Level 3 ChI functions (depend on inchi.base and extern and L1-2)
 """
+
 from automol.amchi import base as amchi_base
 from automol.inchi import base as inchi_base
 
@@ -104,47 +105,47 @@ def prefix(chi):
     return amchi_base.prefix(chi)
 
 
-def are_enantiomers(chi_a, chi_b, log=False):
+def are_enantiomers(chi1, chi2, log=False):
     """Assess if ChI string for two species are enantiomers of one another.
 
     :param chi: ChI string
     :type chi: str
     """
-    pfx_a, pfx_b = prefix(chi_a), prefix(chi_b)
-    if pfx_a == pfx_b:
-        if all(pfx == "AMChI" for pfx in (pfx_a, pfx_b)):
-            ret = amchi_base.are_enantiomers(chi_a, chi_b)
-        elif all(pfx == "InChI" for pfx in (pfx_a, pfx_b)):
-            ret = inchi_base.are_enantiomers(chi_a, chi_b)
+    pfx1, pfx2 = prefix(chi1), prefix(chi2)
+    ret = False
+
+    if pfx1 == pfx2:
+        if all(pfx == "AMChI" for pfx in (pfx1, pfx2)):
+            ret = amchi_base.are_enantiomers(chi1, chi2)
         else:
-            if log:
-                print("ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
+            assert all(pfx == "InChI" for pfx in (pfx1, pfx2)), f"Unknown prefix {pfx1}"
+            ret = inchi_base.are_enantiomers(chi1, chi2)
     else:
         if log:
-            print("ChI string prefixes of '{chi_a}' and '{chi_b}' don't match")
+            print(f"ChI string prefixes of '{chi1}' and '{chi2}' don't match")
         ret = False
 
     return ret
 
 
-def are_diastereomers(chi_a, chi_b, log=False):
+def are_diastereomers(chi1, chi2, log=False):
     """Assess if ChI string for two species are diastereomers of one another.
 
     :param chi: ChI string
     :type chi: str
     """
-    pfx_a, pfx_b = prefix(chi_a), prefix(chi_b)
-    if pfx_a == pfx_b:
-        if all(pfx == "AMChI" for pfx in (pfx_a, pfx_b)):
-            ret = amchi_base.are_diastereomers(chi_a, chi_b)
-        elif all(pfx == "InChI" for pfx in (pfx_a, pfx_b)):
-            ret = inchi_base.are_diastereomers(chi_a, chi_b)
+    pfx1, pfx2 = prefix(chi1), prefix(chi2)
+    ret = False
+
+    if pfx1 == pfx2:
+        if all(pfx == "AMChI" for pfx in (pfx1, pfx2)):
+            ret = amchi_base.are_diastereomers(chi1, chi2)
         else:
-            if log:
-                print("ChI string '{chi_a}' or '{chi_b}' has unknown prefix")
+            assert all(pfx == "InChI" for pfx in (pfx1, pfx2)), f"Unknown prefix {pfx1}"
+            ret = inchi_base.are_diastereomers(chi1, chi2)
     else:
         if log:
-            print("ChI string prefixes of '{chi_a}' and '{chi_b}' don't match")
+            print(f"ChI string prefixes of '{chi1}' and '{chi2}' don't match")
         ret = False
 
     return ret
