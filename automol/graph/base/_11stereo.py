@@ -12,9 +12,8 @@ import numpy
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
-    atom_keys,
+    align_with_geometry,
     atom_stereo_keys,
-    atom_symbols,
     bond_stereo_keys,
     frozen,
     has_atom_stereo,
@@ -378,12 +377,12 @@ def stereo_corrected_geometry(
         for the reactants or products?
     :returns: a molecular geometry with corrected stereo
     """
+    # Align the graph and the geometry keys/indices
+    gra, geo, *_, idx_dct = align_with_geometry(gra, geo, (), geo_idx_dct)
+
+    # Note: The alignment preserves graph atom ordering, so the local stereo does not
+    # change, i.e. this could be done before or after
     gra = gra if local_stereo else to_local_stereo(gra)
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-    gra = relabel(gra, geo_idx_dct)
 
     # Determine atoms expected to be linear for the TS, if requested
     excl_keys = set() if lin_ts_bonds else linear_atom_keys(gra)
@@ -413,7 +412,8 @@ def stereo_corrected_geometry(
                 f"\ngeo:\n{geo}\ngra:\n{gra}"
             )
 
-    return geo
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def set_stereo_from_geometry(gra, geo, local_stereo=False, geo_idx_dct=None):
@@ -432,30 +432,20 @@ def set_stereo_from_geometry(gra, geo, local_stereo=False, geo_idx_dct=None):
         parities already present will be wiped out
     :rtype: automol graph data structure
     """
-    if geo_idx_dct is None:
-        symbs = util.dict_.values_sorted_by_key(atom_symbols(gra))
-        symbs_ = geom_base.symbols(geo)
-        assert symbs == symbs_, f"Symbol mismatch: {symbs} != {symbs_}\n{gra}\n{geo}"
+    # Align the graph and the geometry keys/indices
+    gra, geo, _, key_dct, _ = align_with_geometry(gra, geo, (), geo_idx_dct)
 
-        keys = sorted(atom_keys(gra))
-        geo_idx_dct = (
-            {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-        )
-
-    par_eval_ = parity_evaluator_measure_from_geometry_(
-        geo, local_stereo=local_stereo, geo_idx_dct=geo_idx_dct
-    )
+    par_eval_ = parity_evaluator_measure_from_geometry_(geo, local_stereo=local_stereo)
     can_par_eval_ = None
 
     if local_stereo:
         # If requesting local stereo, we need an auxiliary canonical parity evaluator
-        can_par_eval_ = parity_evaluator_measure_from_geometry_(
-            geo, geo_idx_dct=geo_idx_dct
-        )
+        can_par_eval_ = parity_evaluator_measure_from_geometry_(geo)
 
     gra, *_ = calculate_stereo(gra, par_eval_=par_eval_, can_par_eval_=can_par_eval_)
 
-    return gra
+    # Restore the original atom keys of the graph
+    return relabel(gra, key_dct)
 
 
 def reflect(gra):

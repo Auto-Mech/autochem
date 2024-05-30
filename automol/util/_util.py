@@ -52,24 +52,14 @@ def translate(
         assert isinstance(seq_in, Collection), f"Cannot process non-sequence {seq_in}"
         type_ = type(seq_in)
 
-        # 1. If the collection is empty, return early
-        if not seq_in:
-            return type_()
+        seq_out = []
+        for item in seq_in:
+            if isinstance(item, Collection) and not isinstance(item, item_typ):
+                seq_out.append(transform_(item))
+            elif not drop or item in trans_dct:
+                seq_out.append(trans_dct.get(item))
 
-        # 2. Otherwise, get the first item
-        item = next(iter(seq_in))
-
-        # If we have a sequence, recursively call this function
-        if isinstance(item, Collection) and not isinstance(item, item_typ):
-            seq_out = type_(map(transform_, seq_in))
-        # Otherwise, assume we have a list of z-matrix keys and convert them
-        else:
-            if drop:
-                seq_out = type_(trans_dct[k] for k in seq_in if k in trans_dct)
-            else:
-                seq_out = type_(map(trans_dct.get, seq_in))
-
-        return seq_out
+        return type_(seq_out)
 
     return transform_(seq)
 

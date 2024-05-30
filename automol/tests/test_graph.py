@@ -1633,18 +1633,22 @@ def test__align_with_geometry():
     args = sorted(graph.atom_keys(zgra))
 
     # Check the alignment
-    gra1, geo1, args1, idx_dct = graph.align_with_geometry(zgra, geo, args, geo_idx_dct)
+    gra1, geo1, args1, key_dct, idx_dct = graph.align_with_geometry(zgra, geo, args, geo_idx_dct)
     assert graph.geometry_matches(gra1, geo1)
     assert args1.count(None) == 4
     assert [k for k in args1 if k is not None] == list(range(16))
+    gra0 = automol.graph.relabel(gra1, key_dct)
+    assert automol.graph.without_dummy_atoms(zgra) == gra0
     geo0 = automol.geom.reorder(geo1, idx_dct)
     assert automol.geom.almost_equal(geo, geo0)
 
     # Check that the alignment works with dummy atoms included
     zgeo = automol.zmat.geometry(zma, dummy=True)
-    zgra1, zgeo1, zargs1, zidx_dct = graph.align_with_geometry(zgra, zgeo, args)
+    zgra1, zgeo1, zargs1, zkey_dct, zidx_dct = graph.align_with_geometry(zgra, zgeo, args)
     assert graph.geometry_matches(zgra1, zgeo1)
     assert zargs1 == list(range(20))
+    zgra0 = automol.graph.relabel(zgra1, zkey_dct)
+    assert zgra == zgra0
     zgeo0 = automol.geom.reorder(zgeo1, zidx_dct)
     assert automol.geom.almost_equal(zgeo, zgeo0)
 

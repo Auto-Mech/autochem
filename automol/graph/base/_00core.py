@@ -1926,17 +1926,17 @@ def align_with_geometry(
     :param args: A list of arguments consisting of nested lists of graph keys, to be
         aligned with the graph and the geometry, defaults to None
     :param geo_idx_dct: Geometry indices by graph key, defaults to None
-    :return: The aligned graph, geometry, and arguments, followed by a mapping of new
-        (aligned) indices onto the original geometry indices
+    :return: The aligned graph, geometry, and arguments, followed by two mappings of the
+        new keys/indices onto the original graph keys and the original geometry indices
     """
-    keys = sorted(atom_keys(gra))
+    all_keys = sorted(atom_keys(gra))
     geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+        {k: i for i, k in enumerate(all_keys)} if geo_idx_dct is None else geo_idx_dct
     )
     geo_idx_dct = dict_.filter_by_value(geo_idx_dct, lambda x: x is not None)
 
     # 1. Make the graph keys consecutive
-    cons_keys = [k for k in keys if k in geo_idx_dct.keys()]
+    cons_keys = [k for k in all_keys if k in geo_idx_dct.keys()]
     cons_key_dct = {k: i for i, k in enumerate(cons_keys)}
     gra = subgraph(gra, cons_keys, stereo=True)
     gra = relabel(gra, cons_key_dct, check=True)
@@ -1944,13 +1944,21 @@ def align_with_geometry(
     # 2. Apply the same transformation to args
     args = util.translate(args, cons_key_dct, drop=False)
 
-    # 3. Determine the mapping of new (aligned) geometry indices onto old ones
+    # 3. Determine the mapping of new (aligned) graph keys onto the originals
+    key_dct = dict(map(reversed, cons_key_dct.items()))
+
+    # 4. Determine the mapping of new (aligned) geometry indices onto the originals
     idx_dct = dict_.transform_keys(geo_idx_dct, cons_key_dct.get)
 
-    # 4. Align the geometry indices with the consecutive graph keys
+    # 5. Align the geometry indices with the consecutive graph keys
     geo = geom_base.reorder(geo, dict(map(reversed, idx_dct.items())))
 
-    return gra, geo, args, idx_dct
+    # Sanity check: Check for alignment among the atom symbols
+    symbs = util.dict_.values_sorted_by_key(atom_symbols(gra))
+    symbs_ = geom_base.symbols(geo)
+    assert symbs == symbs_, f"{symbs} != {symbs_}\n{gra}\n{geo}\n{geo_idx_dct}"
+
+    return gra, geo, args, key_dct, idx_dct
 
 
 # # add/remove/insert/without
