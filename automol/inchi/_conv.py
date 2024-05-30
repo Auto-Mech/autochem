@@ -35,20 +35,6 @@ def geometry(ich, check=True):
     return geo
 
 
-def conformers(ich, nconfs=1):
-    """Generate a list of molecular geometries for various conformers
-    of a species from an InChI string.
-
-    :param ich: InChI string
-    :type ich: str
-    :param nconfs: number of conformer structures to generate
-    :type: int
-    :rtype: automol molecular geometry data structure
-    """
-    geos = amchi_.conformers(ich, nconfs=nconfs)
-    return geos
-
-
 def zmatrix(ich, check=True):
     """Generate a z-matrix from an InChI string.
 

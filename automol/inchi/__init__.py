@@ -47,7 +47,6 @@ from automol.inchi.base._core import join
 # # conversions
 from automol.inchi._conv import graph
 from automol.inchi._conv import geometry
-from automol.inchi._conv import conformers
 from automol.inchi._conv import zmatrix
 from automol.inchi._conv import amchi
 from automol.inchi._conv import rdkit_molecule
@@ -118,7 +117,6 @@ __all__ = [
     # # conversions
     'graph',
     'geometry',
-    'conformers',
     'zmatrix',
     'amchi',
     'rdkit_molecule',

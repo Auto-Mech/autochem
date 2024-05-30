@@ -169,67 +169,6 @@ def geometry(chi, check=True, log=False):
     return geo
 
 
-def conformers(chi, nconfs=1, check=True, accept_fewer=False):
-    """Generate a connected molecular geometry from a single-component ChI
-    string.
-
-    :param chi: ChI string
-    :type chi: str
-    :param nconfs: number of conformer structures to generate
-    :type nconfs: int
-    :param check: check stereo and connectivity?
-    :type check: bool
-    :param accept_fewer: accept fewer than nconfs conformers?
-    :type accept_fewer: bool
-    :rtype: automol molecular geometry
-    """
-    # Convert graph to local stereo to avoid multiple recanonicalizations
-    gra = _connected_graph(chi, stereo=True, local_stereo=True)
-    gra = graph_.explicit(gra)
-
-    smi = _connected_smiles(chi, res_stereo=False)
-    has_ste = has_stereo(chi)
-
-    try:
-        rdm = rdkit_.from_smiles(smi)
-        geos = rdkit_.to_conformers(rdm, nconfs=nconfs)
-    except (RuntimeError, TypeError, ValueError) as err:
-        raise error.FailedGeometryGenerationError("Failed AMChI:", chi) from err
-
-    ret_geos = []
-
-    # If the ChI has stereo, enforce correct stereo on the geometry.
-    if check:
-        for geo in geos:
-            if not has_ste:
-                # If there wasn't stereo, only check connectivity
-                gra_ = geom.graph(geo, stereo=False)
-                if graph_.isomorphism(gra, gra_, stereo=False):
-                    ret_geos.append(geo)
-            else:
-                # There is stereo.
-                # First, check connectivity.
-                gra_ = geom.graph(geo)
-                geo_idx_dct = graph_.isomorphism(gra, gra_, stereo=False)
-
-                if geo_idx_dct is not None:
-                    # Enforce correct stereo parities. This is necessary for
-                    # resonance bond stereo.
-                    geo = graph_.stereo_corrected_geometry(
-                        gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True
-                    )
-
-                    # Check if the assignment worked.
-                    gra_ = graph_.set_stereo_from_geometry(gra_, geo)
-                    if graph_.isomorphism(gra, gra_):
-                        ret_geos.append(geo)
-
-    if len(ret_geos) < nconfs and not accept_fewer:
-        raise error.FailedGeometryGenerationError("Failed AMChI:", chi)
-
-    return ret_geos
-
-
 def zmatrix(chi, check=True):
     """Generate a z-matrix from an ChI string.
 
