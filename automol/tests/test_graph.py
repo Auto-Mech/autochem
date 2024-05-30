@@ -1623,6 +1623,32 @@ def test__rotational_coordinates():
     print(coo_key_lst)
 
 
+def test__align_with_geometry():
+    """test graph.align_with_geometry"""
+    gra = automol.smiles.graph("C#CC1CCC1C#C")
+    geo = graph.geometry(gra)
+    zma, zc_ = automol.geom.zmatrix_with_conversion_info(geo, gra=gra)
+    zgra = graph.apply_zmatrix_conversion(gra, zc_)
+    geo_idx_dct = automol.util.zmat_conv.relabel_dict(zc_, "zmat")
+    args = sorted(graph.atom_keys(zgra))
+
+    # Check the alignment
+    gra1, geo1, args1, idx_dct = graph.align_with_geometry(zgra, geo, args, geo_idx_dct)
+    assert graph.geometry_matches(gra1, geo1)
+    assert args1.count(None) == 4
+    assert [k for k in args1 if k is not None] == list(range(16))
+    geo0 = automol.geom.reorder(geo1, idx_dct)
+    assert automol.geom.almost_equal(geo, geo0)
+
+    # Check that the alignment works with dummy atoms included
+    zgeo = automol.zmat.geometry(zma, dummy=True)
+    zgra1, zgeo1, zargs1, zidx_dct = graph.align_with_geometry(zgra, zgeo, args)
+    assert graph.geometry_matches(zgra1, zgeo1)
+    assert zargs1 == list(range(20))
+    zgeo0 = automol.geom.reorder(zgeo1, zidx_dct)
+    assert automol.geom.almost_equal(zgeo, zgeo0)
+
+
 def test__species__graph_conversion():
     """test interchanging between graphs aligned by zma and geo"""
     geo = automol.smiles.geometry("CC#CC#CCCCC#CC")
@@ -2573,5 +2599,6 @@ if __name__ == "__main__":
     # test__stereo_corrected_geometry()
     # test__embed__clean_geometry()
     # test__rotational_coordinates()
-    test__stereo_corrected_geometry()
+    # test__stereo_corrected_geometry()
     # test__atom_hypervalencies()
+    test__align_with_geometry()

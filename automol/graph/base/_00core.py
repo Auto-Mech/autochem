@@ -18,13 +18,14 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import functools
 import itertools
 import numbers
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy
 import yaml
 from phydat import phycon, ptab
 
 from automol import form, util
+from automol.geom import base as geom_base
 from automol.util import ZmatConv, dict_, zmat_conv
 
 ATM_SYM_POS = 0
@@ -1902,6 +1903,54 @@ def undo_zmatrix_conversion(gra, zc_: ZmatConv = None):
     gra = remove_atoms(gra, zmat_conv.insert_dict(zc_))
     gra = relabel(gra, zmat_conv.relabel_dict(zc_, "zmat"))
     return gra
+
+
+def align_with_geometry(
+    gra: Any,
+    geo: Any,
+    args: Optional[List[Any]] = None,
+    geo_idx_dct: Optional[Dict[AtomKey, AtomKey]] = None,
+) -> Tuple[Any, Any, Dict[AtomKey, AtomKey], List[Any]]:
+    """Align a graph with a geometry, preserving the relative atom ordering of the graph
+
+    By preserving relative ordering of graph atoms, local parities will remain valid,
+    even though the neighboring keys have changed
+
+    Transformations:
+        - Graph keys will be made consecutive while preserving their relative ordering
+        - Geometry will be reordered to match the graph ordering
+        - Arguments will be mapped from the original graph keys to the consecutive ones
+
+    :param gra: A molecular graph
+    :param geo: A molecular geometry
+    :param args: A list of arguments consisting of nested lists of graph keys, to be
+        aligned with the graph and the geometry, defaults to None
+    :param geo_idx_dct: Geometry indices by graph key, defaults to None
+    :return: The aligned graph, geometry, and arguments, followed by a mapping of new
+        (aligned) indices onto the original geometry indices
+    """
+    keys = sorted(atom_keys(gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+    geo_idx_dct = dict_.filter_by_value(geo_idx_dct, lambda x: x is not None)
+
+    # 1. Make the graph keys consecutive
+    cons_keys = [k for k in keys if k in geo_idx_dct.keys()]
+    cons_key_dct = {k: i for i, k in enumerate(cons_keys)}
+    gra = subgraph(gra, cons_keys, stereo=True)
+    gra = relabel(gra, cons_key_dct, check=True)
+
+    # 2. Apply the same transformation to args
+    args = util.translate(args, cons_key_dct, drop=False)
+
+    # 3. Determine the mapping of new (aligned) geometry indices onto old ones
+    idx_dct = dict_.transform_keys(geo_idx_dct, cons_key_dct.get)
+
+    # 4. Align the geometry indices with the consecutive graph keys
+    geo = geom_base.reorder(geo, dict(map(reversed, idx_dct.items())))
+
+    return gra, geo, args, idx_dct
 
 
 # # add/remove/insert/without
