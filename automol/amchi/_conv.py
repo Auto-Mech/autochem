@@ -4,7 +4,7 @@
 import itertools
 import numbers
 
-from automol import error, geom
+from automol import geom
 from automol import graph as graph_
 from automol.amchi.base import (
     atom_stereo_parities,

@@ -47,8 +47,8 @@ can be replicated in two steps:
         for dummy_zkey, parent_zkey in ins_dct.items():
             <Insert an atom connected to `parent_zkey` with key `dummy_zkey`>
 """
-from collections.abc import Sequence
 from typing import Dict, List, Optional, Tuple
+from automol.util._util import translate
 
 Key = Optional[int]
 ZmatConv = Dict[int, Tuple[Key, Key]]
@@ -380,25 +380,7 @@ def relabel_zmatrix_key_sequence(
     :rtype: List[int]
     """
     rel_dct = relabel_dict(zc_, typ="zmat")
-
-    def zkeys_to_gkeys_(zks):
-        """Recursively convert a nested list of z-matrix keys to geometry keys"""
-
-        assert isinstance(zks, Sequence), f"Cannot process non-sequence {zks}"
-
-        # If we have a sequence, recursively call this function
-        if isinstance(zks[0], Sequence):
-            gks = tuple(map(zkeys_to_gkeys_, zks))
-        # Otherwise, assume we have a list of z-matrix keys and convert them
-        else:
-            if dummy:
-                gks = tuple(map(rel_dct.get, zks))
-            else:
-                gks = tuple(rel_dct[k] for k in zks if k in rel_dct)
-
-        return gks
-
-    return zkeys_to_gkeys_(zkeys)
+    return translate(zkeys, rel_dct, drop=not dummy)
 
 
 # Conversions

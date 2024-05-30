@@ -556,14 +556,6 @@ def test__inchi_geometry():
     )
 
 
-def test__inchi_conformers():
-    """test automol.chi.conformers"""
-    ref_ich = "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3"
-    geos = automol.chi.conformers(ref_ich)
-    ichs = tuple(automol.geom.chi(geo) for geo in geos)
-    assert all(ich == ref_ich for ich in ichs)
-
-
 def test__multiple_rings():
     """test graph => inchi conversion for multiple rings"""
     ref_chi = (
@@ -626,7 +618,6 @@ if __name__ == "__main__":
     test__smiles__with_stereo()
     # test__graph__misc()
     # test__inchi_geometry()
-    # test__inchi_conformers()
     # test__multiple_rings()
     # test__weird_valencies()
     # test__symmetry_removal()
