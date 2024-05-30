@@ -187,6 +187,8 @@ def cycle_to_optimal_split(
     :rtype: List[object]
     """
     orig_items = items
+    split_pairs = list(split_pairs)
+    back_items = list(back_items)
 
     if not split_pairs and not back_items:
         return orig_items

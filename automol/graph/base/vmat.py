@@ -90,8 +90,8 @@ def ts_zmatrix_starting_ring_keys(tsg) -> List[int]:
         raise NotImplementedError(f"Not implemented for multiple reacting rings: {tsg}")
 
     (rng_keys,) = rngs_keys
-    frm_bkeys = {bk for bk in ts_forming_bond_keys(tsg) if bk < set(rng_keys)}
-    drop_bkeys = {bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)}
+    frm_bkeys = [bk for bk in ts_forming_bond_keys(tsg) if bk < set(rng_keys)]
+    drop_bkeys = [bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)]
     back_keys = list(itertools.chain(*frm_bkeys))
 
     # Special handling for ring-forming scissions
