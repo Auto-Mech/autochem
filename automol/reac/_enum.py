@@ -5,6 +5,8 @@
 import itertools
 
 from automol.const import ReactionClass
+from automol.const import ReactionSpin
+from automol.const import ReactionInfo
 from automol.graph import (
     add_bonded_atom,
     add_bonds,
@@ -690,3 +692,35 @@ def enumerate_reactions(rct_gras, rxn_type=None, viable_only=True):
         rxns = ()
 
     return rxns
+
+
+# initialize ReactionInfo from a string
+def reaction_info_from_string(rxn_str):
+    """
+    :param rxn_str: string representation of reaction information
+    :type rxn_str: string
+    """
+    class_ = None
+    spin_ = None
+    is_rad_rad_ = False
+    is_isc_ = False
+
+    if any(
+            value in rxn_str
+            for value in ReactionSpin):
+        spin_ = [value for value in ReactionSpin if value in rxn_str][0]
+    else:
+        spin_ = ReactionSpin.NONE
+
+    if any(
+            value in rxn_str
+            for value in ReactionClass):
+        class_ = ReactionClass(
+            [value for value in ReactionClass if value in rxn_str][0])
+    else:
+        print(f"Reaction {rxn_str} is not an option")
+
+    is_rad_rad_ = 'radical-radical' in rxn_str
+    is_isc_ = 'intersystem-crossing' in rxn_str
+    return ReactionInfo(
+        class_, spin_, is_rad_rad_, is_isc_)
