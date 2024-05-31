@@ -2605,4 +2605,5 @@ if __name__ == "__main__":
     # test__rotational_coordinates()
     # test__stereo_corrected_geometry()
     # test__atom_hypervalencies()
-    test__align_with_geometry()
+    # test__align_with_geometry()
+    test__embed__clean_geometry()

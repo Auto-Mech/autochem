@@ -1366,5 +1366,5 @@ if __name__ == "__main__":
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
     # test__radical_atom_keys()
-    # test__geometry()
-    test__zmatrix()
+    test__geometry()
+    # test__zmatrix()

@@ -19,7 +19,6 @@ Level 4 graph functions, which do depend on these things, belong in graph/*.py
 # embedding functions:
 from automol.graph._0embed import (
     clean_geometry,
-    embed_geometry,
     geometry_matches,
     zmatrix_matches,
 )
@@ -698,7 +697,6 @@ __all__ = [
     "vmat",
     # L4
     # embedding functions:
-    "embed_geometry",
     "clean_geometry",
     "geometry_matches",
     "zmatrix_matches",

@@ -1910,7 +1910,7 @@ def align_with_geometry(
     geo: Any,
     args: Optional[List[Any]] = None,
     geo_idx_dct: Optional[Dict[AtomKey, AtomKey]] = None,
-) -> Tuple[Any, Any, Dict[AtomKey, AtomKey], List[Any]]:
+) -> Tuple[Any, Any, List[Any], Dict[AtomKey, AtomKey], Dict[AtomKey, AtomKey]]:
     """Align a graph with a geometry, preserving the relative atom ordering of the graph
 
     By preserving relative ordering of graph atoms, local parities will remain valid,

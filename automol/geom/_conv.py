@@ -434,7 +434,7 @@ def _parse_sort_order_from_aux_info(aux_info):
     return nums_lst
 
 
-def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
+def molfile_with_atom_mapping(gra, geo=None):
     """Generate an MOLFile from a molecular graph.
     If coordinates are passed in, they are used to determine stereo.
 
@@ -442,8 +442,6 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     :type gra: automol graph data structure
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param geo_idx_dct:
-    :type geo_idx_dct: dict[:]
     :returns: the MOLFile string, followed by a mapping from MOLFile atoms
         to atoms in the graph
     :rtype: (str, dict)
@@ -459,21 +457,7 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     )
     bnd_ords = dict_.values_by_key(graph_base.bond_orders(gra), bnd_keys)
 
-    if geo is not None:
-        geo_idx_dct = (
-            dict(enumerate(range(count(geo)))) if geo_idx_dct is None else geo_idx_dct
-        )
-        atm_xyzs = coordinates(geo)
-        atm_xyzs = [
-            (
-                atm_xyzs[geo_idx_dct[atm_key]]
-                if atm_key in geo_idx_dct
-                else (0.0, 0.0, 0.0)
-            )
-            for atm_key in atm_keys
-        ]
-    else:
-        atm_xyzs = None
+    atm_xyzs = None if geo is None else coordinates(geo)
 
     mlf, key_map_inv = molfile.from_data(
         atm_keys,
