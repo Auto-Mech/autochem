@@ -243,8 +243,8 @@ def test__from_datatypes():
         ("F[CH][C@H](O)F", r"F/C=C\F.[OH]"),
         # beta scission (weird z-matrix / linear atom relationships
         ("[CH2]/C=[C]/C#C", "C=C=C=C=[CH].[H]"),
-        # # beta scission (intramolecular)
-        # ("C[C]1O[C@H]1COO", r"C/C([O])=C\COO"),
+        # beta scission (intramolecular)
+        ("C[C]1O[C@H]1COO", r"C/C([O])=C\COO"),
         # ring-forming scission (FIXED)
         ("[CH2]CCCOO", "C1CCCO1.[OH]"),
         (r"[CH2]/C=C\[C@@H](CC)OO", "CC[C@H]1OCC=C1.[OH]"),
@@ -454,6 +454,6 @@ if __name__ == "__main__":
     # test__reverse()
     # test__from_datatypes()
     # test__end_to_end("[C@H](O)(C)F.[Cl]", "[C@@H](O)(C)Cl.[F]")
-    test__end_to_end("CCCO[O]", "[CH2]CCOO")
-    # test__end_to_end("C[C]1O[C@H]1COO", r"C/C([O])=C\COO")
+    # test__end_to_end("CCCO[O]", "[CH2]CCOO")
+    test__end_to_end("C[C]1O[C@H]1COO", r"C/C([O])=C\COO")
     # test__canonical_enantiomer()

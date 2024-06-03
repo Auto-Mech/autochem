@@ -4,7 +4,7 @@
 import itertools
 from typing import Any, List
 
-from automol import util, vmat
+from automol import vmat
 from automol.graph.base._00core import (
     BondKeys,
     atom_count,
@@ -13,6 +13,7 @@ from automol.graph.base._00core import (
     atoms_neighbor_atom_keys,
     atoms_zmat_sorted_neighbor_atom_keys,
     bond_keys,
+    bonds_neighbor_atom_keys,
     is_ts_graph,
     remove_bonds,
     sort_by_size,
@@ -29,6 +30,7 @@ from automol.graph.base._02algo import (
     is_bimolecular,
     is_connected,
     reacting_rings_atom_keys,
+    reacting_rings_bond_keys,
     ring_system_decomposed_atom_keys,
     ring_systems,
     rings,
@@ -37,6 +39,8 @@ from automol.graph.base._02algo import (
     sorted_ring_atom_keys,
 )
 from automol.graph.base._04class import atom_transfers, ring_forming_scissions
+from automol.util import dict_
+from automol.util import ring as ring_
 
 
 def ts_zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:
@@ -85,14 +89,30 @@ def ts_zmatrix_starting_ring_keys(tsg) -> List[int]:
         return None
 
     rngs_keys = reacting_rings_atom_keys(tsg)
+    rngs_bkeys = reacting_rings_bond_keys(tsg)
 
     if len(rngs_keys) > 1:
         raise NotImplementedError(f"Not implemented for multiple reacting rings: {tsg}")
 
     (rng_keys,) = rngs_keys
-    frm_bkeys = [bk for bk in ts_forming_bond_keys(tsg) if bk < set(rng_keys)]
-    drop_bkeys = [bk for bk in ts_breaking_bond_keys(tsg) if bk < set(rng_keys)]
-    back_keys = list(itertools.chain(*frm_bkeys))
+    (rng_bkeys,) = rngs_bkeys
+    frm_bkeys = [bk for bk in ts_forming_bond_keys(tsg) if bk in rng_bkeys]
+    brk_bkeys = [bk for bk in ts_breaking_bond_keys(tsg) if bk in rng_bkeys]
+
+    # Determine the neighbor atom counts for each bond
+    bnkeys_dct = bonds_neighbor_atom_keys(tsg, group=False)
+    bncount_dct = dict_.transform_values(bnkeys_dct, len)
+    rem_bkeys = sorted(
+        set(rng_bkeys) - (set(frm_bkeys) | set(brk_bkeys)), key=bncount_dct.get
+    )
+
+    # If there are forming keys in the ring, drop the breaking keys, if possible
+    if frm_bkeys:
+        drop_bkeys = brk_bkeys if brk_bkeys else rem_bkeys
+        back_keys = list(itertools.chain(*frm_bkeys))
+    else:
+        drop_bkeys = rem_bkeys
+        back_keys = list(itertools.chain(*brk_bkeys))
 
     # Special handling for ring-forming scissions
     rsciss_dct = ring_forming_scissions(tsg)
@@ -101,7 +121,7 @@ def ts_zmatrix_starting_ring_keys(tsg) -> List[int]:
         drop_bkeys = [frozenset({tra_key, frm_nkey})]
         back_keys = [tra_key]
 
-    return util.ring.cycle_to_optimal_split(rng_keys, drop_bkeys, back_keys)
+    return ring_.cycle_to_optimal_split(rng_keys, drop_bkeys, back_keys)
 
 
 def vmatrix(gra):
@@ -164,7 +184,7 @@ def missing_bond_keys(gra: Any, vma: Any) -> BondKeys:
     :returns: The missing bond keys
     """
     dist_names = vmat.distance_names(vma)
-    dist_coos = util.dict_.values_by_key(vmat.coordinates(vma, multi=False), dist_names)
+    dist_coos = dict_.values_by_key(vmat.coordinates(vma, multi=False), dist_names)
     miss_bkeys = bond_keys(gra) - set(map(frozenset, dist_coos))
     return miss_bkeys
 
@@ -315,8 +335,7 @@ def ring_system(gra, keys_lst):
             end_key = None
         # Note that the atoms on each end of the arc are already in the
         # v-matrix, so we ignore those
-        vma, zma_keys = continue_chain(
-            gra, keys[start_key:end_key], vma, zma_keys)
+        vma, zma_keys = continue_chain(gra, keys[start_key:end_key], vma, zma_keys)
         incl_keys += keys[start_key:end_key]
     return vma, zma_keys
 
@@ -377,7 +396,7 @@ def continue_ring(gra, keys, vma, zma_keys):
     assert key is not None, "There must be a ring atom already in the v-matrix"
 
     # Cycle the connecting key to the front of the ring
-    keys = util.ring.cycle_item_to_front(keys, key)
+    keys = ring_.cycle_item_to_front(keys, key)
 
     # Break the bond between the first and last atoms to make this a chain
     gra = remove_bonds(gra, [(keys[0], keys[-1])])

@@ -147,7 +147,7 @@ def py3dmol_view(zma, gra=None, view=None, image_size=400):
     return geom.py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
 
 
-def display(zma, gra=None, vis_dists: bool=False, image_size: int=400, view=None):
+def display(zma, gra=None, vis_dists: bool = False, image_size: int = 400, view=None):
     """Display molecule to IPython using the RDKit visualizer
 
     :param zma: molecular z-matrix
@@ -162,7 +162,9 @@ def display(zma, gra=None, vis_dists: bool=False, image_size: int=400, view=None
     """
     geo = geometry(zma, dummy=True)
     vis_bkeys = list(distance_coordinates(zma).values()) if vis_dists else None
-    return geom.display(geo, gra=gra, view=view, image_size=image_size, vis_bkeys=vis_bkeys)
+    return geom.display(
+        geo, gra=gra, view=view, image_size=image_size, vis_bkeys=vis_bkeys
+    )
 
 
 # # derived properties

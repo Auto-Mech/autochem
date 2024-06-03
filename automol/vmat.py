@@ -7,8 +7,8 @@ from typing import Any, List, Tuple
 import more_itertools
 import numpy
 import pyparsing as pp
-from phydat import ptab
 from pyparsing import pyparsing_common as ppc
+from phydat import ptab
 
 from automol.util import ZmatConv, zmat_conv, dict_
 

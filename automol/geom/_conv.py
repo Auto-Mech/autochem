@@ -569,7 +569,11 @@ def py3dmol_view(geo, gra=None, view=None, image_size=400):
 
 
 def display(
-    geo, gra=None, view=None, image_size=400, vis_bkeys: Optional[tuple[tuple[int, int]]] = None
+    geo,
+    gra=None,
+    view=None,
+    image_size=400,
+    vis_bkeys: Optional[tuple[tuple[int, int]]] = None,
 ):
     """Display molecule to IPython using the RDKit visualizer
 
