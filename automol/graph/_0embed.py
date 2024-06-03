@@ -205,9 +205,16 @@ def geometry_matches(
         ste_akeys = atom_stereo_keys(gra)
         ste_bkeys = bond_stereo_keys(gra)
 
-        # Exclude bonds that are likely to be near-linear, if requtested
+        # Exclude bonds that are likely to be near-linear
         lin_keys = linear_atom_keys(gra)
         ste_bkeys = {bk for bk in ste_bkeys if not bk & lin_keys}
+
+        # Exclude bonds in small rings -- if marked as stereogenic rather than excluded,
+        # these are ring-opening TS graphs and the bond has ambiguous stereochemistry
+        rng_keys = [set(ks) for ks in rings_atom_keys(gra) if len(ks) < 8]
+        ste_bkeys = {
+            bk for bk in ste_bkeys if not any(bk & ks == bk for ks in rng_keys)
+        }
 
         ste_keys = sorted(ste_akeys) + sorted(ste_bkeys)
         pars = dict_.values_by_key(stereo_parities(gra), ste_keys)
