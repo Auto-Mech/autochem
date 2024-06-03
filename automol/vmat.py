@@ -1,15 +1,16 @@
 """ V-Matrix: Variable V-Matrix (V-Matrix without coordinate values)
 """
+
 import itertools
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import more_itertools
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from phydat import ptab
+from pyparsing import pyparsing_common as ppc
 
-from automol.util import ZmatConv, zmat_conv
+from automol.util import ZmatConv, zmat_conv, dict_
 
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)
@@ -218,6 +219,36 @@ def coordinates(vma, shift=0, multi=True):
     coo_dct.pop(None)
 
     return coo_dct
+
+
+def distance_coordinates(vma: Any) -> dict[str, tuple[int, ...]]:
+    """Get the distance coordinates by coordinate name
+
+    :param vma: V-Matrix
+    :type vma: automol V-Matrix data structure
+    :return: The coordinates, by coordinate name
+    """
+    return dict_.by_key(coordinates(vma, multi=False), distance_names(vma))
+
+
+def central_angle_coordinates(vma: Any) -> dict[str, tuple[int, ...]]:
+    """Get the central angle coordinates by coordinate name
+
+    :param vma: V-Matrix
+    :type vma: automol V-Matrix data structure
+    :return: The coordinates, by coordinate name
+    """
+    return dict_.by_key(coordinates(vma, multi=False), central_angle_names(vma))
+
+
+def dihedral_angle_coordinates(vma: Any) -> dict[str, tuple[int, ...]]:
+    """Get the dihedral angle coordinates by coordinate name
+
+    :param vma: V-Matrix
+    :type vma: automol V-Matrix data structure
+    :return: The coordinates, by coordinate name
+    """
+    return dict_.by_key(coordinates(vma, multi=False), dihedral_angle_names(vma))
 
 
 def coordinate(vma, name: str) -> List[int]:

@@ -568,7 +568,9 @@ def py3dmol_view(geo, gra=None, view=None, image_size=400):
     return py3dmol_.view_molecule_from_molfile(mlf, view=view, image_size=image_size)
 
 
-def display(geo, gra=None, view=None, image_size=400):
+def display(
+    geo, gra=None, view=None, image_size=400, vis_bkeys: Optional[tuple[tuple[int, int]]] = None
+):
     """Display molecule to IPython using the RDKit visualizer
 
     :param geo: molecular geometry
@@ -577,6 +579,7 @@ def display(geo, gra=None, view=None, image_size=400):
     :type gra: automol graph data structure
     :param image_size: The image size, if creating a new view, defaults to 400
     :type image_size: int, optional
+    :param vis_bkeys: Only visualize these bonds, by key
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
     """
@@ -584,6 +587,13 @@ def display(geo, gra=None, view=None, image_size=400):
     if ts_:
         tsg = gra
         gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
+
+    gra = graph(geo, stereo=False) if gra is None else gra
+
+    # If requested, visualize only a subset of the bonds by removing others
+    if vis_bkeys is not None:
+        excl_bkeys = graph_base.bond_keys(gra) - set(map(frozenset, vis_bkeys))
+        gra = graph_base.remove_bonds(gra, excl_bkeys, stereo=False, check=False)
 
     view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
 
