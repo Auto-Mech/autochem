@@ -1310,6 +1310,51 @@ def test__geometry():
     print(automol.geom.round_(ts_geo))
 
 
+def test__zmatrix():
+    """test z-matrix generation"""
+    # C[C]1O[C@H]1COO >> C/C([O])=C\COO
+    ts_gra = (
+        {
+            0: ("C", 0, None),
+            1: ("C", 0, False),
+            2: ("C", 0, None),
+            3: ("C", 0, None),
+            4: ("O", 0, None),
+            5: ("O", 0, None),
+            6: ("O", 0, None),
+            7: ("H", 0, None),
+            8: ("H", 0, None),
+            9: ("H", 0, None),
+            10: ("H", 0, None),
+            11: ("H", 0, None),
+            12: ("H", 0, None),
+            13: ("H", 0, None),
+        },
+        {
+            frozenset({3, 4}): (1, None),
+            frozenset({1, 4}): (0.9, None),
+            frozenset({1, 2}): (1, None),
+            frozenset({0, 3}): (1, None),
+            frozenset({2, 6}): (1, None),
+            frozenset({2, 12}): (1, None),
+            frozenset({5, 6}): (1, None),
+            frozenset({1, 3}): (1, True),
+            frozenset({13, 5}): (1, None),
+            frozenset({2, 11}): (1, None),
+            frozenset({0, 7}): (1, None),
+            frozenset({1, 10}): (1, None),
+            frozenset({0, 8}): (1, None),
+            frozenset({0, 9}): (1, None),
+        },
+    )
+
+    ts_geo = automol.graph.geometry(ts_gra)
+    ts_zma, ts_zc = automol.geom.zmatrix_with_conversion_info(ts_geo, gra=ts_gra)
+    ts_zgra = automol.graph.apply_zmatrix_conversion(ts_gra, ts_zc)
+
+    automol.graph.zmatrix_matches(ts_zgra, ts_zma)
+
+
 if __name__ == "__main__":
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
@@ -1322,3 +1367,4 @@ if __name__ == "__main__":
     # test__linear_atom_keys()
     # test__radical_atom_keys()
     test__geometry()
+    # test__zmatrix()

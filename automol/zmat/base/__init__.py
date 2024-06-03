@@ -13,6 +13,9 @@ from automol.vmat import count
 from automol.vmat import atom_indices
 from automol.vmat import coordinate_key_matrix
 from automol.vmat import coordinates
+from automol.vmat import distance_coordinates
+from automol.vmat import central_angle_coordinates
+from automol.vmat import dihedral_angle_coordinates
 from automol.vmat import coordinate
 from automol.vmat import torsion_axis
 from automol.vmat import names
@@ -78,6 +81,9 @@ __all__ = [
     'atom_indices',
     'coordinate_key_matrix',
     'coordinates',
+    'distance_coordinates',
+    'central_angle_coordinates',
+    'dihedral_angle_coordinates',
     'coordinate',
     'torsion_axis',
     'names',

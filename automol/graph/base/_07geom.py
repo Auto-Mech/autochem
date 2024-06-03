@@ -13,12 +13,11 @@ from phydat import phycon
 from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
-    atom_keys,
+    align_with_geometry,
     atom_neighbor_atom_keys,
     atomic_numbers,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
-    relabel,
     ts_reactants_graph_without_stereo,
     ts_reacting_atom_keys,
 )
@@ -104,11 +103,10 @@ def geometry_correct_nonplanar_pi_bonds(
     :param pert: Perturbation angle, in radians, to prevent perfect planarity
     :param excl_keys: Atom keys whose bonds should be excluded (for linear atoms)
     """
-    akeys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+    # Align the graph and the geometry keys/indices
+    gra, geo, excl_keys, _, idx_dct = align_with_geometry(
+        gra, geo, excl_keys, geo_idx_dct
     )
-    gra = relabel(gra, geo_idx_dct)
 
     rp_dct = rigid_planar_bonds(gra, min_ring_size=numpy.inf, excl_keys=excl_keys)
 
@@ -126,7 +124,8 @@ def geometry_correct_nonplanar_pi_bonds(
 
         geo = geometry_rotate_bond(gra, geo, [key1, key2], ang)
 
-    return geo
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def geometry_correct_linear_vinyls(
@@ -148,11 +147,9 @@ def geometry_correct_linear_vinyls(
     :param tol: tolerance of bond angle(s) for determing linearity
     :param excl_keys: Atom keys whose bonds should be excluded (linear atoms)
     """
-    excl_keys = frozenset(excl_keys)
-
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    # Align the graph and the geometry keys/indices
+    gra, geo, excl_keys, _, idx_dct = align_with_geometry(
+        gra, geo, excl_keys, geo_idx_dct
     )
 
     gra = ts_reactants_graph_without_stereo(gra)
@@ -168,29 +165,27 @@ def geometry_correct_linear_vinyls(
             key3s = nkeys_dct[key] - {key, key1}
             if key3s:
                 (key3,) = key3s
-                idx1, idx2, idx3 = tuple(map(geo_idx_dct.get, (key1, key2, key3)))
 
-                ang = geom_base.central_angle(geo, idx1, idx2, idx3)
+                ang = geom_base.central_angle(geo, key1, key2, key3)
 
                 if numpy.abs(ang - numpy.pi) < tol:
                     key0 = next(iter(nkeys_dct[key1] - {key2}), None)
                     key0 = key3 if key0 is None else key0
-                    idx0 = geo_idx_dct[key0]
 
                     xyz0, xyz1, xyz2 = geom_base.coordinates(
-                        geo, idxs=(idx0, idx1, idx2)
+                        geo, idxs=(key0, key1, key2)
                     )
 
                     rot_axis = util.vector.unit_perpendicular(xyz0, xyz1, orig_xyz=xyz2)
 
                     rot_keys = branch_atom_keys(gra, key2, key3)
-                    rot_idxs = list(map(geo_idx_dct.get, rot_keys))
 
                     geo = geom_base.rotate(
-                        geo, rot_axis, numpy.pi / 3, orig_xyz=xyz2, idxs=rot_idxs
+                        geo, rot_axis, numpy.pi / 3, orig_xyz=xyz2, idxs=rot_keys
                     )
 
-    return geo
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def geometry_pseudorotate_atom(
@@ -229,13 +224,8 @@ def geometry_pseudorotate_atom(
     :type geo_idx_dct: dict[int: int]
     """
     ang = ang * phycon.DEG2RAD if degree else ang
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
-    # For simplicity, relabel the graph to match the geometry
-    gra = relabel(gra, geo_idx_dct)
+    # Align the graph and the geometry keys/indices
+    gra, geo, (key,), _, idx_dct = align_with_geometry(gra, geo, (key,), geo_idx_dct)
 
     rxn_keys = ts_reacting_atom_keys(gra)
     rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
@@ -262,22 +252,23 @@ def geometry_pseudorotate_atom(
             nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
             break
 
-    if found_pair:
-        # Determine the rotational axis as the unit bisector between the fixed pair
-        xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
-        rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
+    # If we couldn't find one, return early
+    # (Would it be better just to fail?)
+    if not found_pair:
+        return None
 
-        # Identify the remaining keys to be rotated
-        rot_nkeys = nkeys - {nkey1, nkey2}
-        rot_keys = set(
-            itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys))
-        )
+    # Determine the rotational axis as the unit bisector between the fixed pair
+    xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
+    rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
 
-        geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
-    else:
-        geo = None
+    # Identify the remaining keys to be rotated
+    rot_nkeys = nkeys - {nkey1, nkey2}
+    rot_keys = set(itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys)))
 
-    return geo
+    geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
+
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
@@ -300,11 +291,8 @@ def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     :type geo_idx_dct: dict[int: int]
     """
     ang = ang * phycon.DEG2RAD if degree else ang
-    akeys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
-    )
-    gra = relabel(gra, geo_idx_dct)
+    # Align the graph and the geometry keys/indices
+    gra, geo, (key,), _, idx_dct = align_with_geometry(gra, geo, (key,), geo_idx_dct)
 
     key1, key2 = key
     xyzs = geom_base.coordinates(geo)
@@ -315,7 +303,9 @@ def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     rot_keys = branch_atom_keys(gra, key1, key2)
 
     geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz1, idxs=rot_keys)
-    return geo
+
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def geometry_dihedrals_near_value(
@@ -347,17 +337,14 @@ def geometry_dihedrals_near_value(
     :rtype: frozenset[tuple[int]]
     """
     ref_ang = ang * phycon.DEG2RAD if degree else ang
-    if abs_:
-        ref_ang = numpy.abs(ref_ang)
+    ref_ang = numpy.abs(ref_ang) if abs_ else ref_ang
     tol = (
         5.0 * phycon.DEG2RAD
         if tol is None
         else (tol * phycon.DEG2RAD if degree else tol)
     )
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
-    )
+    # Align the graph and the geometry keys/indices
+    gra, geo, _, key_dct, _ = align_with_geometry(gra, geo, (), geo_idx_dct)
 
     nkeys_dct = atoms_neighbor_atom_keys(gra)
     bnd_keys = backbone_bond_keys(gra)
@@ -370,15 +357,12 @@ def geometry_dihedrals_near_value(
         atm4_keys = nkeys_dct[atm3_key] - {atm2_key}
         for atm1_key, atm4_key in itertools.product(atm1_keys, atm4_keys):
             if atm1_key != atm4_key:
-                atm1_idx = geo_idx_dct[atm1_key]
-                atm2_idx = geo_idx_dct[atm2_key]
-                atm3_idx = geo_idx_dct[atm3_key]
-                atm4_idx = geo_idx_dct[atm4_key]
                 ang = geom_base.dihedral_angle(
-                    geo, atm1_idx, atm2_idx, atm3_idx, atm4_idx
+                    geo, atm1_key, atm2_key, atm3_key, atm4_key
                 )
                 if abs_:
                     ang = numpy.abs(ang)
                 if numpy.abs(ang - ref_ang) < tol:
                     dih_keys.append((atm1_key, atm2_key, atm3_key, atm4_key))
-    return frozenset(dih_keys)
+
+    return frozenset(util.translate(dih_keys, key_dct))

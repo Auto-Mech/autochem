@@ -1,0 +1,41 @@
+package:
+  name: autochem
+  version: "2024.5.29"
+
+about:
+  license: MIT
+  description: A library for manipulating molecular descriptors
+  repository: https://github.com/Auto-Mech/autochem
+
+source:
+  path: .
+
+build:
+  noarch: python
+  script: pip install . -v --no-deps
+
+requirements:
+  host:
+    - pip
+    - python >=3.10
+    - poetry
+    - wheel
+  run:
+    - python >=3.10
+    - pip
+    - ipython
+    - ipywidgets
+    - jupyter
+    - more-itertools
+    - networkx
+    - numpy
+    - py3dmol
+    - pylint
+    - pyparsing 
+    - pytest 
+    - pyyaml 
+    - qcelemental 
+    - rdkit 
+    - scipy 
+    - xarray 
+

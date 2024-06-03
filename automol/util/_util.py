@@ -2,7 +2,8 @@
 """
 
 import itertools
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
+from numbers import Number
 from typing import Any, List
 
 from phydat import ptab
@@ -32,6 +33,35 @@ def flatten(lst):
             yield from flatten(elem)
         else:
             yield elem
+
+
+def translate(
+    seq: Collection, trans_dct: dict, drop: bool = False, item_typ: type = Number
+) -> Collection:
+    """Translate items in a nested sequence or collection with a dictionary
+
+    :param seq: An arbitrarily nested sequence or collection
+    :param trans_dct: A translation dictionary
+    :param drop: Drop values missing from translation dictionary?, defaults to False
+    :param item_typ: The type of item to translate, defaults to Number
+    :return: _description_
+    """
+
+    def transform_(seq_in):
+        """Recursively convert a nested list of z-matrix keys to geometry keys"""
+        assert isinstance(seq_in, Collection), f"Cannot process non-sequence {seq_in}"
+        type_ = type(seq_in)
+
+        seq_out = []
+        for item in seq_in:
+            if isinstance(item, Collection) and not isinstance(item, item_typ):
+                seq_out.append(transform_(item))
+            elif not drop or item in trans_dct:
+                seq_out.append(trans_dct.get(item))
+
+        return type_(seq_out)
+
+    return transform_(seq)
 
 
 def is_odd_permutation(seq1: List, seq2: List):

@@ -75,7 +75,6 @@ from automol.amchi._conv import amchi_key as inchi_key
 from automol.amchi import smiles
 from automol.amchi import graph
 from automol.amchi import geometry
-from automol.amchi import conformers
 from automol.amchi import zmatrix
 from automol.amchi import rdkit_molecule
 from automol.amchi import rdkit_reaction
@@ -185,7 +184,6 @@ __all__ = [
     'smiles',
     'graph',
     'geometry',
-    'conformers',
     'zmatrix',
     'rdkit_molecule',
     'rdkit_reaction',

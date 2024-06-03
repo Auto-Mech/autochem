@@ -187,6 +187,8 @@ def cycle_to_optimal_split(
     :rtype: List[object]
     """
     orig_items = items
+    split_pairs = list(split_pairs)
+    back_items = list(back_items)
 
     if not split_pairs and not back_items:
         return orig_items
@@ -198,7 +200,7 @@ def cycle_to_optimal_split(
         return cycle_to_split(orig_items, split_pairs[0])
 
     # Try each split in the forward and reverse direction and see which puts the
-    # `front_items` closest to the front of the list
+    # `back_items` closest to the end of the list
     opt_items = None
     max_dist = 0
     for split_pair in split_pairs:

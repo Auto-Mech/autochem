@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "autochem"
-version = "2024.5.28"
-description = ""
+version = "2024.5.29"
+description = "A library for manipulating molecular descriptors"
 authors = ["Andreas Copan <avcopan@gmail.com>"]
 readme = "README.md"
 packages = [
@@ -15,6 +15,7 @@ packages = [
 python = "^3.10"
 ipython = "^8.24.0"
 ipywidgets = "^8.1.2"
+jupyter = "^1.0.0"
 more-itertools = "^10.2.0"
 networkx = "^3.3"
 numpy = "^1.26.4"

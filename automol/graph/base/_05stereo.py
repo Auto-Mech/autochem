@@ -15,7 +15,7 @@ from automol.graph.base._00core import (
     BondKey,
     CenterKey,
     CenterKeys,
-    atom_keys,
+    align_with_geometry,
     explicit,
     local_stereo_priorities,
     negate_hydrogen_stereo_priorities,
@@ -290,13 +290,10 @@ def geometry_atom_parity(gra, geo, key, nkeys=None, geo_idx_dct=None):
     :type geo_idx_dct: dict[int: int]
     """
     assert gra == explicit(gra), f"Implicit hydrogens are not a allowed here: {gra}"
-
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
     nkeys = atom_stereodetermining_neighbor_keys(gra, key) if nkeys is None else nkeys
+    gra, geo, (key, nkeys), *_ = align_with_geometry(
+        gra, geo, (key, nkeys), geo_idx_dct
+    )
 
     # If there are only three groups, use the stereo atom itself as
     # the top apex of the tetrahedron.
@@ -304,7 +301,7 @@ def geometry_atom_parity(gra, geo, key, nkeys=None, geo_idx_dct=None):
 
     assert len(nkeys) == 4, f"nkeys: {nkeys}, key: {key}, gra:\n{gra}"
 
-    xyzs = geom_base.coordinates(geo, idxs=tuple(map(geo_idx_dct.get, nkeys)))
+    xyzs = geom_base.coordinates(geo, idxs=nkeys)
     det_mat = numpy.ones((4, 4))
     det_mat[:, 1:] = xyzs
     det_val = numpy.linalg.det(det_mat)
@@ -372,24 +369,22 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     :type geo_idx_dct: dict[int: int]
     """
     assert gra == explicit(gra), f"Implicit hydrogens are not a allowed here: {gra}"
-
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
-    bnd_key = sorted(bnd_key)
     bnd_nkeys = (
         bond_stereodetermining_neighbor_keys(gra, *bnd_key)
         if bnd_nkeys is None
         else bnd_nkeys
     )
+    gra, geo, (bnd_key, bnd_nkeys), *_ = align_with_geometry(
+        gra, geo, (bnd_key, bnd_nkeys), geo_idx_dct
+    )
+
+    bnd_key = sorted(bnd_key)
 
     key1, key2 = bnd_key
     nkey1, nkey2 = (nks[-1] for nks in bnd_nkeys)
 
     xyz1, xyz2, nxyz1, nxyz2 = geom_base.coordinates(
-        geo, idxs=tuple(map(geo_idx_dct.get, (key1, key2, nkey1, nkey2)))
+        geo, idxs=(key1, key2, nkey1, nkey2)
     )
 
     # Project out the central bond direction

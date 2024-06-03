@@ -19,7 +19,6 @@ Level 4 graph functions, which do depend on these things, belong in graph/*.py
 # embedding functions:
 from automol.graph._0embed import (
     clean_geometry,
-    embed_geometry,
     geometry_matches,
     zmatrix_matches,
 )
@@ -65,6 +64,7 @@ from automol.graph.base._00core import (
     add_atoms,
     add_bonded_atom,
     add_bonds,
+    align_with_geometry,
     angle_keys,
     apply_zmatrix_conversion,
     argsort_by_size,
@@ -73,6 +73,7 @@ from automol.graph.base._00core import (
     atom_bond_keys,
     atom_count,
     atom_electron_pairs,
+    atom_hypervalencies,
     atom_implicit_hydrogens,
     atom_keys,
     atom_lone_pairs,
@@ -108,7 +109,6 @@ from automol.graph.base._00core import (
     bond_stereo_keys,
     bond_stereo_parities,
     bond_unpaired_electrons,
-    atom_hypervalencies,
     bonds,
     bonds_from_data,
     bonds_neighbor_atom_keys,
@@ -471,6 +471,7 @@ __all__ = [
     "zmatrix_conversion_info",
     "apply_zmatrix_conversion",
     "undo_zmatrix_conversion",
+    "align_with_geometry",
     # # add/remove/insert/without
     "add_atoms",
     "add_bonds",
@@ -696,7 +697,6 @@ __all__ = [
     "vmat",
     # L4
     # embedding functions:
-    "embed_geometry",
     "clean_geometry",
     "geometry_matches",
     "zmatrix_matches",
