@@ -147,6 +147,9 @@ def geometry_correct_linear_vinyls(
     :param tol: tolerance of bond angle(s) for determing linearity
     :param excl_keys: Atom keys whose bonds should be excluded (linear atoms)
     """
+    if geo is None:
+        return None
+
     # Align the graph and the geometry keys/indices
     gra, geo, excl_keys, _, idx_dct = align_with_geometry(
         gra, geo, excl_keys, geo_idx_dct

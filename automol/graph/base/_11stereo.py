@@ -377,6 +377,9 @@ def stereo_corrected_geometry(
         for the reactants or products?
     :returns: a molecular geometry with corrected stereo
     """
+    if geo is None:
+        return None
+
     # Align the graph and the geometry keys/indices
     gra, geo, *_, idx_dct = align_with_geometry(gra, geo, (), geo_idx_dct)
 

@@ -582,6 +582,9 @@ def perturb_geometry_planar_dihedrals(
         given amount
     :rtype: automol geometry data structure
     """
+    if geo is None:
+        return None
+
     ang = ang * phycon.DEG2RAD if degree else ang
 
     # Align the graph and the geometry keys/indices
