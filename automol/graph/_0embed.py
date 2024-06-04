@@ -92,6 +92,9 @@ def clean_geometry(
     :param relax_angles: Relax the angles in `geos`?
     :returns: The cleaned-up geometry
     """
+    if geo is None:
+        return None
+
     hard_geo = hardcoded_geometry(gra)
     if hard_geo is not None:
         return hard_geo
@@ -161,6 +164,9 @@ def geometry_matches(
     :returns: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
+    if geo is None:
+        return False
+
     cgra = without_stereo(gra)
     cgra0 = geom.graph_without_stereo(geo, fix_hyper=False)
 
