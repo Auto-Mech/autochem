@@ -19,6 +19,7 @@ from automol.geom.base import (
     count,
     dihedral_angle,
     distance,
+    from_data,
     insert,
     is_atom,
     reorder,
@@ -1028,3 +1029,26 @@ def set_dihedral_angle(
     geo = rotate(geo, axis, ddih, orig_xyz=xyzs[idx3], idxs=idxs)
 
     return geo
+
+
+# interfaces
+def ase_atoms(geo):
+    """Get an ASE Atoms object from a molecular geometry
+
+    :param geo: A molecular geometry
+    :return: The ASE Atoms object
+    """
+    from ase import Atoms
+
+    return Atoms(symbols=symbols(geo), positions=coordinates(geo, angstrom=True))
+
+
+def from_ase_atoms(atms_obj):
+    """Read a molecular geometry from an ASE Atoms object
+
+    :param atms_obj: An ASE Atoms object
+    :return: The molecular geometry
+    """
+    symbs = atms_obj.get_chemical_symbols()
+    xyzs = atms_obj.get_positions()
+    return from_data(symbs, xyzs, angstrom=True)

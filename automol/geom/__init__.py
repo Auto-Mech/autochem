@@ -128,6 +128,9 @@ from automol.geom._conv import undo_zmatrix_conversion
 from automol.geom._conv import set_distance
 from automol.geom._conv import set_central_angle
 from automol.geom._conv import set_dihedral_angle
+# # interfaces
+from automol.geom._conv import ase_atoms
+from automol.geom._conv import from_ase_atoms
 # extra functions:
 from automol.geom._extra import are_torsions_same
 from automol.geom._extra import is_unique
@@ -258,6 +261,9 @@ __all__ = [
     'set_distance',
     'set_central_angle',
     'set_dihedral_angle',
+    # # interfaces
+    'ase_atoms',
+    'from_ase_atoms',
     # extra functions:
     'are_torsions_same',
     'is_unique',
