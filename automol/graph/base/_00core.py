@@ -1758,27 +1758,69 @@ def unsaturated_bond_keys(gra):
     return unsat_bnd_keys
 
 
-def angle_keys(gra):
-    """Get triples of keys for pairs of adjacent bonds, with the central atom
-    in the middle
+def distance_keys(
+    gra, dup: bool = False, ts_: bool = True
+) -> frozenset[tuple[AtomKey, AtomKey]]:
+    """Get keys for distance coordinates
 
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: The angle keys
-    :rtype: frozenset[tuple[int]]
+    :param gra: A molecular graph
+    :param dup: Include duplicate coordinates, i.e. (0, 1) as well as (1, 0)?
+    :param ts_: Include TS-specific coordinates?
+    :returns: The distance keys
     """
-    bnd_keys = bond_keys(gra)
+    dist_keys = frozenset(map(tuple, map(sorted, bond_keys(gra, ts_=ts_))))
+    if dup:
+        dist_keys |= frozenset(map(tuple, map(reversed, dist_keys)))
+    return dist_keys
+
+
+def central_angle_keys(
+    gra, dup: bool = False, ts_: bool = False
+) -> frozenset[tuple[AtomKey, AtomKey, AtomKey, AtomKey]]:
+    """Get keys for central angle coordinates
+
+    :param gra: A molecular graph
+    :param dup: Include duplicate coordinates, i.e. (2, 0, 1) as well as (1, 0, 2)?
+    :param ts_: Include TS-specific coordinates?
+    :returns: The angle keys
+    """
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
 
     ang_keys = []
-    for bnd_key1, bnd_key2 in itertools.combinations(bnd_keys, r=2):
-        if bnd_key1 != bnd_key2 and bnd_key1 & bnd_key2:
-            (atm2_key,) = bnd_key1 & bnd_key2
-            (atm1_key,) = bnd_key1 - {atm2_key}
-            (atm3_key,) = bnd_key2 - {atm2_key}
-            ang_keys.append((atm1_key, atm2_key, atm3_key))
-            ang_keys.append((atm3_key, atm2_key, atm1_key))
+    for key in atom_keys(gra):
+        nkeys = nkeys_dct[key]
+        nkey_pairs = list(map(sorted, itertools.combinations(nkeys, r=2)))
+        new_ang_keys = [(n1, key, n2) for n1, n2 in nkey_pairs]
+        ang_keys.extend(new_ang_keys)
+        if dup:
+            ang_keys.extend(map(tuple, map(reversed, new_ang_keys)))
 
     return frozenset(ang_keys)
+
+
+def dihedral_angle_keys(
+    gra, dup: bool = False, ts_: bool = False
+) -> frozenset[tuple[AtomKey, AtomKey, AtomKey, AtomKey]]:
+    """Get keys for dihedral angle coordinates
+
+    :param gra: A molecular graph
+    :param dup: Include duplicate coordinates, i.e. (2, 0, 3, 1) and (1, 3, 0, 2)?
+    :param ts_: Include TS-specific coordinates?
+    :return: The dihedral keys
+    """
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
+
+    dih_keys = []
+    for key1, key2 in distance_keys(gra, dup=dup, ts_=ts_):
+        nkey1s = nkeys_dct[key1] - {key2}
+        nkey2s = nkeys_dct[key2] - {key1}
+        nkey_pairs = [
+            (n1, n2) for n1, n2 in itertools.product(nkey1s, nkey2s) if n1 != n2
+        ]
+        new_dih_keys = [(n1, key1, key2, n2) for n1, n2 in nkey_pairs]
+        dih_keys.extend(new_dih_keys)
+
+    return frozenset(dih_keys)
 
 
 # # relabeling and changing keys

@@ -108,7 +108,9 @@ from automol.graph.base._00core import terminal_atom_neighbors
 from automol.graph.base._00core import unsaturated_atom_keys
 from automol.graph.base._00core import unsaturated_bond_keys
 from automol.graph.base._00core import lone_pair_atom_keys
-from automol.graph.base._00core import angle_keys
+from automol.graph.base._00core import distance_keys
+from automol.graph.base._00core import central_angle_keys
+from automol.graph.base._00core import dihedral_angle_keys
 
 # # relabeling and changing keys
 from automol.graph.base._00core import relabel
@@ -448,7 +450,9 @@ __all__ = [
     "unsaturated_atom_keys",
     "unsaturated_bond_keys",
     "lone_pair_atom_keys",
-    "angle_keys",
+    "distance_keys",
+    "central_angle_keys",
+    "dihedral_angle_keys",
     # # relabeling and changing keys
     "relabel",
     "standard_keys",
