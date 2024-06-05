@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 
 import IPython.display as ipd
 import ipywidgets
+import more_itertools as mit
 import numpy
 from phydat import phycon
 
@@ -471,7 +472,7 @@ def ts_geometry_from_reactants(
     counts = list(map(geom.count, rct_geos))
     rcts_keys = [
         list(map(key_dct.get, range(c0, c0 + c)))
-        for c0, c in itertools.pairwise([0] + counts)
+        for c0, c in mit.pairwise([0] + counts)
     ]
 
     # 5. Embed the TS structure, using distances from the *original* reactant
