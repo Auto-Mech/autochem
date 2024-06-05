@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "autochem"
-version = "2024.5.29"
+version = "2024.6.5"
 description = "A library for manipulating molecular descriptors"
 authors = ["Andreas Copan <avcopan@gmail.com>"]
 readme = "README.md"
