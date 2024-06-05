@@ -1,6 +1,6 @@
 package:
   name: autochem
-  version: "2024.6.4"
+  version: "2024.6.5"
 
 about:
   license: MIT
@@ -8,7 +8,7 @@ about:
   repository: https://github.com/Auto-Mech/autochem
 
 source:
-  path: .
+  path: ..
 
 build:
   noarch: python
