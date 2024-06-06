@@ -87,9 +87,12 @@ from automol.reac._5conv import display
 from automol.reac._5conv import is_canonical_enantiomer
 from automol.reac._5conv import canonical_enantiomer
 # scan coordinates
-from automol.reac._6scan import build_scan_info
-from automol.reac._6scan import scan_coordinate
+from automol.reac._6scan import scan_coordinates
+from automol.reac._6scan import scan_values
 from automol.reac._6scan import constraint_coordinates
+from automol.reac._7scan_deprecated import build_scan_info
+from automol.reac._7scan_deprecated import scan_coordinate_name
+from automol.reac._7scan_deprecated import constraint_coordinate_names
 # reaction products
 from automol.reac._enum import enumerate_reactions
 # species instability transformations
@@ -194,9 +197,12 @@ __all__ = [
     'is_canonical_enantiomer',
     'canonical_enantiomer',
     # scan coordinates
-    'build_scan_info',
-    'scan_coordinate',
+    'scan_coordinates',
+    'scan_values',
     'constraint_coordinates',
+    'build_scan_info',
+    'scan_coordinate_name',
+    'constraint_coordinate_names',
     # reaction products
     'enumerate_reactions',
     # species instability transformations
