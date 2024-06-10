@@ -50,6 +50,7 @@ from automol.geom.base._0core import rotational_constants
 from automol.geom.base._0core import distance
 from automol.geom.base._0core import central_angle
 from automol.geom.base._0core import dihedral_angle
+from automol.geom.base._0core import measure
 from automol.geom.base._0core import zmatrix_row_values
 # # binary functions
 from automol.geom.base._0core import join
@@ -134,6 +135,7 @@ __all__ = [
     'distance',
     'central_angle',
     'dihedral_angle',
+    'measure',
     'zmatrix_row_values',
     # # binary functions
     'join',

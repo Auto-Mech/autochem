@@ -706,6 +706,28 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     return dih
 
 
+def measure(geo, coo, angstrom=False, degree=False):
+    """Measure a coordinate value for distance, central angle, or dihedral angle
+
+    :param geo: A molecular geometry
+    :param coo: The indices defining the coordinate
+        2 for distance, 3 for central angle, 4 for dihedral angle
+    :param angstrom: Give distances in angstrom?, defaults to False
+    :param degree: Give angles in degrees?, defaults to False
+    :return: The measured value
+    """
+    assert 2 <= len(coo) <= 4, f"Invalid coordinate: {coo}"
+
+    if len(coo) == 2:
+        return distance(geo, *coo, angstrom=angstrom)
+    if len(coo) == 3:
+        return central_angle(geo, *coo, degree=degree)
+    if len(coo) == 4:
+        return dihedral_angle(geo, *coo, degree=degree)
+
+    return None
+
+
 def zmatrix_row_values(
     geo, idx, idx1=None, idx2=None, idx3=None, angstrom=True, degree=True
 ):
