@@ -920,6 +920,15 @@ def set_distance(
     assert len(dist_idxs) == 2
     idx1, idx2 = dist_idxs
     gra = gra if gra is not None else graph_without_stereo(geo)
+
+    # For TS graphs, cut the branch of a reacting ring at the appropriate place
+    # (It would be better to have a more systematic approach to this to handle all rings
+    # in the graph...)
+    ts_rng_keys = graph_base.vmat.ts_zmatrix_starting_ring_keys(gra)
+    if ts_rng_keys is not None:
+        drop_bkey = (ts_rng_keys[0], ts_rng_keys[-1])
+        gra = graph_base.remove_bonds(gra, [drop_bkey])
+
     dist_val = dist_val if not angstrom else dist_val * phycon.ANG2BOHR
     idxs = graph_base.branch_atom_keys(gra, idx1, idx2)
 
