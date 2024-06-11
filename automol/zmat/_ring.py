@@ -138,7 +138,7 @@ def ring_distances(zma, rng_atoms):
     return dist_value_dct
 
 
-def ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
+def ring_distances_reasonable(zma, rng_atoms, dist_value_dct, thresh=0.3):
     """Are the distances between ring atoms reasonable?
 
     :param zma: Z-Matrix
@@ -150,7 +150,7 @@ def ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
     condition = True
     for i, rng_atom in enumerate(rng_atoms):
         chk_dist = dist_value_dct[i] - distance(zma, rng_atoms[i - 1], rng_atom)
-        if abs(chk_dist) > 0.3:
+        if abs(chk_dist) > thresh:
             condition = False
 
     return condition

@@ -10,7 +10,7 @@ from automol.geom._conv import (
 from automol.geom.base import central_angle, subgeom
 from automol.graph import base as graph_base
 
-ATHRESH = 85.0 * phycon.DEG2RAD
+ATHRESH = 80.0 * phycon.DEG2RAD
 
 
 def all_rings_angles_reasonable(geo, rings_atoms, thresh=ATHRESH):
@@ -37,8 +37,8 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     """
 
     condition = True
-    # Lower threshold for 4 and 5 membered rings
-    if len(ring_atoms) < 6: thresh *= 0.8
+    # Lower threshold for 4 and 5 membered rings if not using relaxed thresh already
+    if len(ring_atoms) < 6 and thresh > 70.: thresh *= 0.8
     for i, ring_atom in enumerate(ring_atoms):
         _atoms = [ring_atom, ring_atoms[i - 1], ring_atoms[i - 2]]
         cangle = central_angle(geo, *_atoms, degree=False)
@@ -55,8 +55,8 @@ def ring_fragments_geometry(geo, rings_atoms=None, ngbs=None):
     :param geo: molecular geometry
     :type geo: automol.geom object
     """
-
-    gra = graph(geo)
+    #adl TODO call with fix_hyper = False to prevent "assertion" error when calling fram_samp_geo
+    gra = graph(geo)  
     if rings_atoms is None:
         rings_atoms = graph_base.rings_atom_keys(gra)
     if ngbs is None:
