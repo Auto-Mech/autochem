@@ -1,13 +1,15 @@
 """
     Core functions defining the geometry data type
 """
+
 import itertools
-from typing import List
+from typing import List, Optional
 
 import more_itertools as mit
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
+from numpy.typing import ArrayLike
 from phydat import phycon, ptab
 
 from automol import form, util
@@ -16,8 +18,10 @@ AXIS_DCT = {"x": 0, "y": 1, "z": 2}
 
 CHAR = pp.Char(pp.alphas)
 SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
-XYZ_LINE = pp.Group(SYMBOL + pp.Group(ppc.fnumber * 3))
-XYZ_LINES = pp.delimitedList(XYZ_LINE, delim=pp.lineEnd())
+XYZ_LINE = pp.Group(
+    SYMBOL + pp.Group(ppc.fnumber * 3) + pp.Suppress(... + pp.LineEnd())
+)
+XYZ_LINES = pp.delimitedList(XYZ_LINE, delim=pp.LineStart())
 
 
 # # constructors
@@ -144,7 +148,7 @@ def set_coordinates(geo, xyz_dct, angstrom=False):
 
 
 # # I/O
-def string(geo, angstrom=True):
+def string(geo, angstrom: bool = True, mode: Optional[ArrayLike] = None):
     """Write a molecular geometry to a string:
        symb1  xyz1 xyz2 xyz3
        symbn  xyzn xyzn xyzn
@@ -152,7 +156,7 @@ def string(geo, angstrom=True):
     :param geo: molecular geometry
     :type geo: automol molecular geometry data structure
     :param angstrom: parameter to control coordinate conversion to Angstrom
-    :type angstrom: bool
+    :param mode: A vibrational mode or molecular motion to visualize
     :rtype: str
     """
 
@@ -160,17 +164,23 @@ def string(geo, angstrom=True):
     xyzs = coordinates(geo, angstrom=angstrom)
 
     natms = len(symbs)
-    assert len(xyzs) == natms
 
-    geo_str = "\n".join(
-        f"{symb:2s} {xyz[0]:10.6f} {xyz[1]:10.6f} {xyz[2]:10.6f}"
-        for symb, xyz in zip(symbs, xyzs)
-    )
+    symb_strs = [f"{s:2s}" for s in symbs]
+    xyz_strs = [f"{x[0]:10.6f} {x[1]:10.6f} {x[2]:10.6f}" for x in xyzs]
+    lines = [" ".join([s, x]) for s, x in zip(symb_strs, xyz_strs)]
+
+    # If requested, include the mode in the string
+    if mode is not None:
+        assert len(lines) == natms, f"Invalid mode for geometry:\n{mode}\n{geo}"
+        mode_strs = [f"{m[0]:10.6f} {m[1]:10.6f} {m[2]:10.6f}" for m in mode]
+        lines = ["  ".join([s, x]) for s, x in zip(lines, mode_strs)]
+
+    geo_str = "\n".join(lines)
 
     return geo_str
 
 
-def xyz_string(geo, comment=""):
+def xyz_string(geo, comment="", mode: Optional[ArrayLike] = None) -> str:
     """Write a molecular geometry to a string:
        natom
        comment
@@ -178,12 +188,11 @@ def xyz_string(geo, comment=""):
        symbn  xyzn xyzn xyzn
 
     :param geo: molecular geometry
-    :type geo: automol molecular geometry data structure
     :param comment: string to place in the comment line of string
-    :type comment: str
+    :param mode: A vibrational mode or molecular motion to visualize
     :rtype: str
     """
-    geo_str = string(geo, angstrom=True)
+    geo_str = string(geo, angstrom=True, mode=mode)
     xyz_str = f" {count(geo):d}\n{comment:s}\n{geo_str:s}"
     return xyz_str
 

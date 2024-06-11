@@ -7,8 +7,8 @@ from typing import Dict, Optional
 
 import numpy
 import pyparsing as pp
+from numpy.typing import ArrayLike
 from pyparsing import pyparsing_common as ppc
-from phydat import phycon
 
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
@@ -28,11 +28,13 @@ from automol.geom.base import (
     subgeom,
     symbols,
     translate,
+    xyz_string,
 )
 from automol.graph import base as graph_base
 from automol.inchi import base as inchi_base
 from automol.util import ZmatConv, dict_, heuristic, vector, zmat_conv
 from automol.zmat import base as zmat_base
+from phydat import phycon
 
 
 # # conversions
@@ -547,26 +549,29 @@ def rdkit_molecule(geo, gra=None, stereo=True):
     return rdkit_.from_geometry_with_graph(geo, gra)
 
 
-def py3dmol_view(geo, gra=None, view=None, image_size=400):
+def py3dmol_view(
+    geo, gra=None, view=None, image_size: int = 400, mode: Optional[ArrayLike] = None
+):
     """Get a py3DMol view of this molecular geometry
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param gra: A molecular graph, describing the connectivity, defaults to None
     :type gra: automol graph data structure, optional
-    :param image_size: The image size, if creating a new view, defaults to 400
-    :type image_size: int, optional
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
+    :param image_size: The image size, if creating a new view, defaults to 400
+    :param mode: A vibrational mode or molecular motion to visualize
     :return: A 3D view containing the molecule
     :rtype: py3Dmol.view
     """
     if gra is not None and graph_base.is_ts_graph(gra):
         gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
 
-    rdm = rdkit_molecule(geo, gra=gra, stereo=False)
-    mlf = rdkit_.to_molfile(rdm)
-    return py3dmol_.view_molecule_from_molfile(mlf, view=view, image_size=image_size)
+    xyz_str = xyz_string(geo, mode=mode)
+    return py3dmol_.view_molecule_from_xyz(
+        xyz_str, view=view, image_size=image_size, vib=(mode is not None)
+    )
 
 
 def display(
@@ -575,6 +580,7 @@ def display(
     view=None,
     image_size=400,
     vis_bkeys: Optional[tuple[tuple[int, int]]] = None,
+    mode: Optional[ArrayLike] = None,
 ):
     """Display molecule to IPython using the RDKit visualizer
 
@@ -582,11 +588,11 @@ def display(
     :type geo: automol geometry data structure
     :param gra: A molecular graph, describing the connectivity
     :type gra: automol graph data structure
-    :param image_size: The image size, if creating a new view, defaults to 400
-    :type image_size: int, optional
-    :param vis_bkeys: Only visualize these bonds, by key
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
+    :param image_size: The image size, if creating a new view, defaults to 400
+    :param vis_bkeys: Only visualize these bonds, by key
+    :param mode: A vibrational mode or molecular motion to visualize
     """
     ts_ = gra is not None and graph_base.is_ts_graph(gra)
     if ts_:
@@ -600,12 +606,12 @@ def display(
         excl_bkeys = graph_base.bond_keys(gra) - set(map(frozenset, vis_bkeys))
         gra = graph_base.remove_bonds(gra, excl_bkeys, stereo=False, check=False)
 
-    view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
+    view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size, mode=mode)
 
     if ts_:
         for frm_bkey in graph_base.ts.forming_bond_keys(tsg):
             fidx1, fidx2 = frm_bkey
-            fxyz1, fxyz2 = coordinates(geo, idxs=(fidx1, fidx2))
+            fxyz1, fxyz2 = coordinates(geo, idxs=(fidx1, fidx2), angstrom=True)
             rvec1 = ts_reacting_electron_direction(geo, tsg, fidx1)
             rvec2 = ts_reacting_electron_direction(geo, tsg, fidx2)
             view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, view=view)
