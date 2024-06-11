@@ -35,6 +35,7 @@ from automol.geom.base._0core import is_atom
 from automol.geom.base._0core import is_diatomic
 from automol.geom.base._0core import is_linear
 from automol.geom.base._0core import atom_count
+from automol.geom.base._0core import electron_count
 from automol.geom.base._0core import atom_indices
 from automol.geom.base._0core import dummy_atom_indices
 from automol.geom.base._0core import masses
@@ -120,6 +121,7 @@ __all__ = [
     'is_diatomic',
     'is_linear',
     'atom_count',
+    'electron_count',
     'atom_indices',
     'dummy_atom_indices',
     'masses',

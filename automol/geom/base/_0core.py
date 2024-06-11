@@ -434,6 +434,15 @@ def atom_count(geo, symb, match=True):
     return len(atom_indices(geo, symb, match=match))
 
 
+def electron_count(geo) -> int:
+    """Count the number of electrons in the geometry
+
+    :param geo: A molecular geometry
+    :return: The number of electrons
+    """
+    return form.electron_count(formula(geo))
+
+
 def atom_indices(geo, symb, match=True):
     """Obtain the indices of a atoms of a particular type in the geometry.
 
