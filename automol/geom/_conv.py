@@ -8,6 +8,7 @@ from typing import Dict, Optional
 import numpy
 import pyparsing as pp
 from numpy.typing import ArrayLike
+from phydat import phycon
 from pyparsing import pyparsing_common as ppc
 
 from automol import vmat
@@ -28,13 +29,13 @@ from automol.geom.base import (
     subgeom,
     symbols,
     translate,
+    without_dummy_atoms,
     xyz_string,
 )
 from automol.graph import base as graph_base
 from automol.inchi import base as inchi_base
 from automol.util import ZmatConv, dict_, heuristic, vector, zmat_conv
 from automol.zmat import base as zmat_base
-from phydat import phycon
 
 
 # # conversions
@@ -437,7 +438,7 @@ def _parse_sort_order_from_aux_info(aux_info):
     return nums_lst
 
 
-def molfile_with_atom_mapping(gra, geo=None):
+def molfile_with_atom_mapping(gra, geo=None, dummy: bool = False, bond_order: bool=True):
     """Generate an MOLFile from a molecular graph.
     If coordinates are passed in, they are used to determine stereo.
 
@@ -445,22 +446,30 @@ def molfile_with_atom_mapping(gra, geo=None):
     :type gra: automol graph data structure
     :param geo: molecular geometry
     :type geo: automol geometry data structure
+    :param dummy: Include dummy atoms?
+    :param bond_order: Include bond orders?
     :returns: the MOLFile string, followed by a mapping from MOLFile atoms
         to atoms in the graph
     :rtype: (str, dict)
     """
-    gra = graph_base.without_dummy_atoms(gra)
-    gra = graph_base.kekule(gra)
+    gra = graph_base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
+    if not dummy:
+        gra = graph_base.without_dummy_atoms(gra)
+        geo = None if geo is None else without_dummy_atoms(geo)
+
+    if bond_order:
+        gra = graph_base.kekule(gra)
+
     atm_keys = sorted(graph_base.atom_keys(gra))
     bnd_keys = list(graph_base.bond_keys(gra))
-    atm_syms = dict_.values_by_key(graph_base.atom_symbols(gra), atm_keys)
+    atm_syms = dict_.values_by_key(graph_base.atom_symbols(gra, dummy_symbol="He"), atm_keys)
     atm_bnd_vlcs = dict_.values_by_key(graph_base.atom_bond_counts(gra), atm_keys)
     atm_rad_vlcs = dict_.values_by_key(
         graph_base.atom_unpaired_electrons(gra), atm_keys
     )
     bnd_ords = dict_.values_by_key(graph_base.bond_orders(gra), bnd_keys)
 
-    atm_xyzs = None if geo is None else coordinates(geo)
+    atm_xyzs = None if geo is None else coordinates(geo, angstrom=True)
 
     mlf, key_map_inv = molfile.from_data(
         atm_keys,
@@ -568,9 +577,16 @@ def py3dmol_view(
     if gra is not None and graph_base.is_ts_graph(gra):
         gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
 
-    xyz_str = xyz_string(geo, mode=mode)
-    return py3dmol_.view_molecule_from_xyz(
-        xyz_str, view=view, image_size=image_size, vib=(mode is not None)
+    if mode is not None:
+        xyz_str = xyz_string(geo, mode=mode)
+        return py3dmol_.view_molecule_from_xyz(
+            xyz_str, view=view, image_size=image_size, vib=True
+        )
+
+    gra = graph(geo, stereo=False) if gra is None else gra
+    mlf_str, _ = molfile_with_atom_mapping(gra, geo, dummy=True, bond_order=False)
+    return py3dmol_.view_molecule_from_molfile(
+        mlf_str, view=view, image_size=image_size
     )
 
 
