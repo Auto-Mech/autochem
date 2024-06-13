@@ -242,7 +242,7 @@ def with_geometry_indices(tor: Torsion, zc_: ZmatConv) -> Torsion:
     )
 
 
-def update_zmatrix_coordinate(tor: Torsion, zma: Any) -> Torsion:
+def update_against_zmatrix(tor: Torsion, zma: Any) -> Torsion:
     """Update a torsion object from a z-matrix
 
     Temporarily needed to make sure the torsion object contains sufficient information
@@ -252,7 +252,9 @@ def update_zmatrix_coordinate(tor: Torsion, zma: Any) -> Torsion:
     :return: The updated torsion
     """
     coo = list(reversed(zmat.coordinate(zma, name(tor))))
-    return set_coordinate(tor, coo)
+    # In case the coordinate was re-ordered, make sure the groups match
+    grps = tuple(sorted(groups(tor), key=lambda g: coo[-1] in g))
+    return from_data(name_=name(tor), coo=coo, grps=grps, symm=symmetry(tor))
 
 
 # Torsion List functions
