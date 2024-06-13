@@ -8,8 +8,8 @@ from typing import Dict, Optional
 import numpy
 import pyparsing as pp
 from numpy.typing import ArrayLike
-from phydat import phycon
 from pyparsing import pyparsing_common as ppc
+from phydat import phycon
 
 from automol import vmat
 from automol.extern import molfile, py3dmol_, rdkit_
@@ -438,7 +438,9 @@ def _parse_sort_order_from_aux_info(aux_info):
     return nums_lst
 
 
-def molfile_with_atom_mapping(gra, geo=None, dummy: bool = False, bond_order: bool=True):
+def molfile_with_atom_mapping(
+    gra, geo=None, dummy: bool = False, bond_order: bool = True
+):
     """Generate an MOLFile from a molecular graph.
     If coordinates are passed in, they are used to determine stereo.
 
@@ -462,7 +464,9 @@ def molfile_with_atom_mapping(gra, geo=None, dummy: bool = False, bond_order: bo
 
     atm_keys = sorted(graph_base.atom_keys(gra))
     bnd_keys = list(graph_base.bond_keys(gra))
-    atm_syms = dict_.values_by_key(graph_base.atom_symbols(gra, dummy_symbol="He"), atm_keys)
+    atm_syms = dict_.values_by_key(
+        graph_base.atom_symbols(gra, dummy_symbol="He"), atm_keys
+    )
     atm_bnd_vlcs = dict_.values_by_key(graph_base.atom_bond_counts(gra), atm_keys)
     atm_rad_vlcs = dict_.values_by_key(
         graph_base.atom_unpaired_electrons(gra), atm_keys
@@ -713,7 +717,7 @@ def closest_unbonded_atom_distances(
     :rtype: Dict[int, float]
     """
     gra = graph_without_stereo(geo) if gra is None else gra
-    idxs = graph_base.atom_keys(gra)
+    idxs = graph_base.atom_keys(gra, excl_symbs=["X"])
     idxs -= graph_base.atom_neighbor_atom_keys(
         gra, idx, include_self=True, second_degree=excl_second_degree
     )
