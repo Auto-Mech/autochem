@@ -1,5 +1,6 @@
 """ test rotors
 """
+
 from automol import chi as chi_
 from automol import geom, reac, smiles
 from automol.data import rotor, tors
@@ -11,7 +12,58 @@ C6H13OH_ZMA = geom.zmatrix(smiles.geometry("CCC(C)CCO"))
 C7H16O2_ZMA = geom.zmatrix(
     chi_.geometry("InChI=1S/C7H16O2/c1-3-5-7(9,4-2)6-8/h8-9H,3-6H2,1-2H3/t7-/m1/s1")
 )
-H2_ZMA = geom.zmatrix(smiles.geometry("[H][H]"))  # make sure things don't break for a rotor-less structure
+H2_ZMA = geom.zmatrix(
+    smiles.geometry("[H][H]")
+)  # make sure things don't break for a rotor-less structure
+
+C4H7O3_TOR_STR = """
+D5:
+  axis1: 2
+  group1: 1-3-4
+  axis2: 5
+  group2: 6-7-8-9-10-11-12-13-14
+  symmetry: 1
+D6:
+  axis1: 5
+  group1: 1-2-3-4
+  axis2: 6
+  group2: 7-8-9-10-11-12-13-14
+  symmetry: 1
+D9:
+  axis1: 6
+  group1: 1-2-3-4-5-8-9-13-14
+  axis2: 7
+  group2: 10-11-12
+  symmetry: 3
+D12:
+  axis1: 6
+  group1: 1-2-3-4-5-7-9-10-11-12
+  axis2: 8
+  group2: 13-14
+  symmetry: 1
+D13:
+  axis1: 13
+  group1: 14
+  axis2: 8
+  group2: 1-2-3-4-5-6-7-9-10-11-12
+  symmetry: 1
+"""
+C4H7O3_ZMA = (
+    ("C", (None, None, None), (None, None, None), (None, None, None)),
+    ("C", (0, None, None), ("R1", None, None), (2.480088, None, None)),
+    ("H", (0, 1, None), ("R2", "A2", None), (2.039487, 2.103694, None)),
+    ("H", (0, 1, 2), ("R3", "A3", "D3"), (2.052919, 2.108722, 3.147005)),
+    ("O", (1, 0, 2), ("R4", "A4", "D4"), (2.497653, 2.286147, 3.278218)),
+    ("C", (4, 1, 0), ("R5", "A5", "D5"), (2.71753, 2.051854, 3.874355)),
+    ("C", (5, 4, 1), ("R6", "A6", "D6"), (2.849875, 1.968001, 0.904697)),
+    ("O", (5, 4, 6), ("R7", "A7", "D7"), (2.625782, 1.934588, 4.187407)),
+    ("H", (5, 4, 6), ("R8", "A8", "D8"), (2.056744, 1.797242, 2.134375)),
+    ("H", (6, 5, 4), ("R9", "A9", "D9"), (2.056056, 1.909271, 0.924466)),
+    ("H", (6, 5, 9), ("R10", "A10", "D10"), (2.057218, 1.9289, 4.190752)),
+    ("H", (6, 5, 9), ("R11", "A11", "D11"), (2.055208, 1.91078, 2.090482)),
+    ("O", (7, 5, 4), ("R12", "A12", "D12"), (2.683853, 1.893624, 5.081201)),
+    ("H", (12, 7, 5), ("R13", "A13", "D13"), (1.821823, 1.777218, 1.560426)),
+)
 
 
 # Transition state ZRXN object
@@ -314,9 +366,37 @@ def test__torsion_list_string():
     assert tors_lst == tors.torsions_from_string(tors.torsions_string(tors_lst))
 
 
+def test__consistency():
+    """check that torsions and z-matrices come out consistent when initializing from data"""
+    zma = C4H7O3_ZMA
+    tor_lst = tors.torsions_from_string(C4H7O3_TOR_STR)
+    rotors = rotor.rotors_from_data(zma=zma, tor_lst=tor_lst)
+
+    tor_coos = rotor.rotors_torsion_coordinates(rotors)
+    ref_tor_coos = (
+        ((0, 1, 4, 5),),
+        ((1, 4, 5, 6),),
+        ((4, 5, 6, 9),),
+        ((4, 5, 7, 12),),
+        ((5, 7, 12, 13),),
+    )
+    assert tor_coos == ref_tor_coos, f"{tor_coos} != {ref_tor_coos}"
+
+    tor_grps = rotor.rotors_torsion_groups(rotors)
+    ref_tor_grps = (
+        (((0, 2, 3), (5, 6, 7, 8, 9, 10, 11, 12, 13)),),
+        (((0, 1, 2, 3), (6, 7, 8, 9, 10, 11, 12, 13)),),
+        (((0, 1, 2, 3, 4, 7, 8, 12, 13), (9, 10, 11)),),
+        (((0, 1, 2, 3, 4, 6, 8, 9, 10, 11), (12, 13)),),
+        (((0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11), (13,)),),
+    )
+    assert tor_grps == ref_tor_grps, f"{tor_grps} != {ref_tor_grps}"
+
+
 if __name__ == "__main__":
     # test__rotor()
-    test__rotor_with_dummy_atoms()
+    # test__rotor_with_dummy_atoms()
     # test__rotor_multidimensional()
     # test__torsion_list_string()
     # test__rotor_for_ts()
+    test__consistency()
