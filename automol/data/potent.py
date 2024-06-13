@@ -147,7 +147,7 @@ def dict_(
     key: str = "energy",
     index: bool = False,
     zero_start_coord: bool = False,
-    drop_null: bool = False,
+    drop_null: bool = True,
 ) -> Dict[tuple, float]:
     """Convert a potential to a dictionary
 
