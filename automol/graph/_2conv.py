@@ -23,6 +23,7 @@ from automol.graph.base import (
     explicit,
     geometry_correct_linear_vinyls,
     geometry_dihedrals_near_value,
+    has_dummy_atoms,
     has_stereo,
     inchi_is_bad,
     is_ts_graph,
@@ -451,6 +452,10 @@ def ts_geometry_from_reactants(
     :return: TS geometry
     :rtype: automol geom data structure
     """
+    assert not has_dummy_atoms(
+        tsg
+    ), f"Cannot convert graph->geom with dummy atoms:\n{tsg}\n{rct_geos}"
+
     # 0. Join geometries for bimolecular reactions, yielding a single starting structure
     ts_geo = ts_join_reactant_geometries(tsg, rct_geos, geo_idx_dct=geo_idx_dct)
 

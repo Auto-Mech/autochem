@@ -8,6 +8,7 @@ from automol.reac._0core import (
     apply_zmatrix_conversion,
     mapping,
     product_graphs,
+    without_dummy_atoms,
     product_structures,
     products_conversion_info,
     reactant_graphs,
@@ -67,6 +68,11 @@ def with_structures(
     # 1. Check that we are adding a valid structural type
     if struc_typ not in ("geom", "zmat", None):
         raise ValueError(f"Requesting invalid structure type {struc_typ}")
+
+    # If there are no current structures, remove dummy atoms from the graph to avoid
+    # problems
+    if orig_struc_typ is None:
+        rxn = without_dummy_atoms(rxn)
 
     # If a structure type of `None` was requested, simply update with the structures
     # passed in
