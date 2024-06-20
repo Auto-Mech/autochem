@@ -282,7 +282,7 @@ from automol.graph.base._07geom import geometries_parity_mismatches
 
 # # corrections
 from automol.graph.base._07geom import geometry_correct_linear_vinyls
-from automol.graph.base._07geom import geometry_pseudorotate_atom
+from automol.graph.base._11stereo import geometry_pseudorotate_atom
 from automol.graph.base._07geom import geometry_rotate_bond
 from automol.graph.base._07geom import geometry_dihedrals_near_value
 

@@ -7,6 +7,8 @@ import itertools
 import numbers
 from typing import Dict, Optional, Tuple
 
+import more_itertools as mit
+from phydat import phycon
 import numpy
 
 from automol import util
@@ -27,6 +29,9 @@ from automol.graph.base._00core import (
     ts_reverse,
     without_dummy_atoms,
     without_stereo,
+    atom_neighbor_atom_keys,
+    atomic_numbers,
+    ts_reacting_atom_keys,
 )
 from automol.graph.base._03kekule import linear_atom_keys
 from automol.graph.base._05stereo import (
@@ -42,7 +47,6 @@ from automol.graph.base._05stereo import (
 from automol.graph.base._07geom import (
     geometry_correct_linear_vinyls,
     geometry_correct_nonplanar_pi_bonds,
-    geometry_pseudorotate_atom,
     geometry_rotate_bond,
 )
 from automol.graph.base._08canon import (
@@ -55,7 +59,12 @@ from automol.graph.base._08canon import (
     stereo_assignment_representation,
     to_local_stereo,
 )
-
+from automol.graph.base._02algo import (
+    branch_atom_keys,
+    branch_dict,
+    ring_systems_atom_keys,
+)
+from automol.util import dict_
 
 # # core functions
 def expand_stereo(gra, symeq: bool = False, enant: bool = True, strained: bool = False):
@@ -491,3 +500,104 @@ def unassigned_stereocenter_keys(
     cand_dct = stereocenter_candidates(gra, atom=atom, bond=bond)
     ste_keys = unassigned_stereocenter_keys_from_candidates(gra, cand_dct, pri_dct)
     return ste_keys
+
+
+def geometry_pseudorotate_atom(
+    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None
+):
+    r"""Pseudorotate an atom in a molecular geometry by a certain amount
+
+    'Pseudorotate' here means to rotate all but two of the atom's neighbors, which can
+    be used to invert/correct stereochemistry at an atom:
+
+        1   2                                     1   2
+         \ /                                       \ /
+          C--3   = 1,4 pseudorotation by pi =>   3--C
+          |                                         |
+          4                                         4
+
+    The two fixed atoms will be chosen to prevent the structural 'damage' from the
+    rotation as much as possible. For example, atoms in rings will be favored to be
+    fixed.
+
+    If such a choice is not possible -- for example, if three or more neighbors are
+    locked into connected rings -- then no geometry will be returned.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param key: The graph key of the atom to be rotated
+    :type key: frozenset[int]
+    :param ang: The angle of rotation (in radians, unless `degree = True`)
+    :type ang: float
+    :param degree: Is the angle of rotation in degrees?, default False
+    :type degree: bool
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    """
+    ang = ang * phycon.DEG2RAD if degree else ang
+    atm_keys = sorted(atom_keys(gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+
+    # For simplicity, relabel the graph to match the geometry
+    gra = relabel(gra, geo_idx_dct)
+
+    gra_reac = ts_reactants_graph(gra)
+    gra_prod = ts_products_graph(gra)
+
+    rxn_keys = ts_reacting_atom_keys(gra)
+ #   rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
+    nkeys = atom_neighbor_atom_keys(gra, key)
+    # Gather neighbors connected in a ring system
+    rsy_keys_lst = []
+    for rgra in (gra_reac,gra_prod):
+        rsy_keys_lst.extend(ring_systems_atom_keys(rgra, lump_spiro=False))
+    print("rsy_keys_lst",rsy_keys_lst)
+    rsy_keys_lst=list(set(rsy_keys_lst))
+    ring_nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
+    ring_nkey_sets = sorted(ring_nkey_sets, key=len, reverse=True)
+    # Gather the remaining neighbors
+    rem_nkeys = [k for k in nkeys if not any(k in ks for ks in ring_nkey_sets)]
+    # Sort the remaining neighbors by branch size and atomic number
+    anum_dct = atomic_numbers(gra)
+    size_dct = dict_.transform_values(branch_dict(gra, key), len)
+    sort_dct = {k: (k in rxn_keys, -size_dct[k], -anum_dct[k]) for k in rem_nkeys}
+    rem_nkeys = sorted(rem_nkeys, key=sort_dct.get)
+    print("nkeys",nkeys)
+    print("ring_nkey_sets",ring_nkey_sets)
+    print("rem_nkeys",rem_nkeys)
+
+    # Now, put the two lists together
+    nkey_sets = ring_nkey_sets + [{k} for k in rem_nkeys]
+    print("nkey_sets",nkey_sets)
+
+
+    # Now, find a pair of atoms to keep fixed
+    found_pair = False
+    for nkeys1, nkeys2 in mit.pairwise(nkey_sets + [set()]):
+        print(nkeys1, nkeys2)
+        if len(nkeys1) == 2 or len(nkeys1 | nkeys2) == 2:
+            found_pair = True
+            nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
+            break
+
+    if found_pair:
+        # Determine the rotational axis as the unit bisector between the fixed pair
+        xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
+        rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
+
+        # Identify the remaining keys to be rotated
+        rot_nkeys = nkeys - {nkey1, nkey2}
+        rot_keys = set(
+            itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys))
+        )
+
+        geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
+    else:
+        geo = None
+
+    return geo

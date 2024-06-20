@@ -311,7 +311,6 @@ from automol.graph.base._07geom import (
     geometry_correct_linear_vinyls,
     geometry_dihedrals_near_value,
     geometry_local_parity,
-    geometry_pseudorotate_atom,
     geometry_rotate_bond,
 )
 
@@ -346,6 +345,7 @@ from automol.graph.base._11stereo import (
     set_stereo_from_geometry,
     stereo_corrected_geometry,
     unassigned_stereocenter_keys,
+    geometry_pseudorotate_atom,
 )
 
 # functional groups code:
