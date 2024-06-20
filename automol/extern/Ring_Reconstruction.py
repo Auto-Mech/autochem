@@ -4,7 +4,7 @@
 # Code from Chan et al. 2021 https://doi.org/10.1021/acs.jcim.0c01144
 
 import math
-import numpy as np
+import numpy
 from automol.geom import (
                         translate_to_ring_center,
                         normal_to_ring_plane
@@ -18,7 +18,7 @@ from automol.geom import (
 ###############################
 
 def fixzero(x):
-    x_ = np.array([0.0]) if np.allclose(0,x, rtol=1e-06, atol=1e-08) else x 
+    x_ = numpy.array([0.0]) if numpy.allclose(0,x, rtol=1e-06, atol=1e-08) else x 
     return x_.item() 
 
 
@@ -161,11 +161,11 @@ def GetZ(ringsize, q, ang):
     K = int((ringsize-1)/2)+1 if ringsize%2==1 else int(ringsize/2)
     if ringsize%2==1: # odd ring size
         for j in range(ringsize):
-            tmp = np.sum([q[m-2]*np.cos(ang[m-2]+2*np.pi*m*j/ringsize) for m in range(2,K)])
-            Z.append(np.sqrt(2/ringsize)*tmp)
+            tmp = numpy.sum([q[m-2]*numpy.cos(ang[m-2]+2*numpy.pi*m*j/ringsize) for m in range(2,K)])
+            Z.append(numpy.sqrt(2/ringsize)*tmp)
     else:  # even ring size
         for j in range(ringsize):
-            tmp = np.sqrt(2/ringsize)*np.sum([q[m-2]*np.cos(ang[m-2]+2*np.pi*m*j/ringsize) for m in range(2,K)])+np.sqrt(1/ringsize)*q[-1]*(-1)**j
+            tmp = numpy.sqrt(2/ringsize)*numpy.sum([q[m-2]*numpy.cos(ang[m-2]+2*numpy.pi*m*j/ringsize) for m in range(2,K)])+numpy.sqrt(1/ringsize)*q[-1]*(-1)**j
             Z.append(tmp)
     return Z
 
@@ -187,7 +187,7 @@ def UpdateBondLength(ringsize, Z, init_bondl):
     """
     assert len(Z)==ringsize and len(init_bondl)==ringsize, "Inappropriate Input"
     N = ringsize
-    nr = [np.sqrt(np.square(init_bondl[i])-np.square(Z[(i+1)%N]-Z[i])) for i in range(N)] #Order of bonds from 0-1 to last-0
+    nr = [numpy.sqrt(numpy.square(init_bondl[i])-numpy.square(Z[(i+1)%N]-Z[i])) for i in range(N)] #Order of bonds from 0-1 to last-0
     return nr
 
 def UpdateBeta(ringsize, Z, r, beta):
@@ -200,14 +200,17 @@ def UpdateBeta(ringsize, Z, r, beta):
     idxlist = [[i,(i+1)%N,(i+2)%N] for i in range(ringsize)] #Order of angles from 0-1-2 to -2 -1 0
     beta_new = []
     for i in idxlist:
-        tmp_a = np.square(Z[i[2]]-Z[i[0]])-np.square(Z[i[1]]-Z[i[0]])-np.square(Z[i[2]]-Z[i[1]])
-        tmp_b = 2*r[i[0]]*r[i[1]]*np.cos(beta[i[0]])
+        tmp_a = numpy.square(Z[i[2]]-Z[i[0]])-numpy.square(Z[i[1]]-Z[i[0]])-numpy.square(Z[i[2]]-Z[i[1]])
+        tmp_b = 2*r[i[0]]*r[i[1]]*numpy.cos(beta[i[0]])
         tmp_c = 2*r_new[i[0]]*r_new[i[1]]
-        beta_new.append(np.arccos((tmp_a+tmp_b)/tmp_c))
+        if (tmp_a+tmp_b)/tmp_c > 0:
+            beta_new.append(numpy.arccos(min(1.,(tmp_a+tmp_b)/tmp_c)))
+        else:
+            beta_new.append(numpy.arccos(max(-1.,(tmp_a+tmp_b)/tmp_c)))
     return beta_new
 
 def RotationMatrix(phi):
-    rotation = np.array([(np.cos(phi), -np.sin(phi)), (np.sin(phi),np.cos(phi))])
+    rotation = numpy.array([(numpy.cos(phi), -numpy.sin(phi)), (numpy.sin(phi),numpy.cos(phi))])
     return rotation
 
 def SegCoord(segment, r, beta):
@@ -223,23 +226,23 @@ def SegCoord(segment, r, beta):
     segment_beta = [beta[x] for index, x in enumerate(segment)]
     alpha = []
     gamma = []
-    coordinate = [np.array((0,0)),np.array((segment_r[0],0))]
+    coordinate = [numpy.array((0,0)),numpy.array((segment_r[0],0))]
     slength = [segment_r[0]]
     if segsize>=3:
         for index in range(segsize-2):
             if index==0:
-                x = slength[-1] + r[index+1]*np.cos(np.pi-beta[index])  
-                y = r[index+1]*np.sin(np.pi-beta[index])
-                coordinate.append(np.array((x,y)))
+                x = slength[-1] + r[index+1]*numpy.cos(numpy.pi-beta[index])  
+                y = r[index+1]*numpy.sin(numpy.pi-beta[index])
+                coordinate.append(numpy.array((x,y)))
             else:
-                x = slength[-1] + r[index+1]*np.cos(np.pi-alpha[index-1])
-                y = r[index+1]*np.sin(np.pi-alpha[index-1])
+                x = slength[-1] + r[index+1]*numpy.cos(numpy.pi-alpha[index-1])
+                y = r[index+1]*numpy.sin(numpy.pi-alpha[index-1])
                 rota = RotationMatrix(gamma[index-1]) 
-                coord = np.matmul(rota,np.array((x,y)))
+                coord = numpy.matmul(rota,numpy.array((x,y)))
                 coordinate.append(coord)
-            slength.append(np.linalg.norm(coordinate[-1]))
-            alpha.append(segment_beta[index+1]-np.arcsin(np.sin(segment_beta[index])*slength[index]/slength[index+1]))
-            gamma.append(np.arctan2(y,x))
+            slength.append(numpy.linalg.norm(coordinate[-1]))
+            alpha.append(segment_beta[index+1]-numpy.arcsin(numpy.sin(segment_beta[index])*slength[index]/slength[index+1]))
+            gamma.append(numpy.arctan2(y,x))
     return coordinate
 
 def RingPartition(ringsize, z, r, beta):
@@ -288,42 +291,42 @@ def RingPartition(ringsize, z, r, beta):
     segcoord_1_init = SegCoord(segment1, r, beta)
     segcoord_2_init = SegCoord(segment2, r, beta)
     segcoord_3_init = SegCoord(segment3, r, beta)
-    Reflection = np.array((-1,1))
-    OPsq = np.inner(segcoord_1_init[-1], segcoord_1_init[-1])
-    PQsq = np.inner(segcoord_2_init[-1], segcoord_2_init[-1])
-    OQsq = np.inner(segcoord_3_init[-1], segcoord_3_init[-1])
+    Reflection = numpy.array((-1,1))
+    OPsq = numpy.inner(segcoord_1_init[-1], segcoord_1_init[-1])
+    PQsq = numpy.inner(segcoord_2_init[-1], segcoord_2_init[-1])
+    OQsq = numpy.inner(segcoord_3_init[-1], segcoord_3_init[-1])
     segcoord_1 = [Reflection*item for item in segcoord_1_init]
-    segcoord_2 = [x + np.sqrt((OQsq,0)) for x in segcoord_2_init]
-    segcoord_3 = [np.array(x) for x in segcoord_3_init]
+    segcoord_2 = [x + numpy.sqrt((OQsq,0)) for x in segcoord_2_init]
+    segcoord_3 = [numpy.array(x) for x in segcoord_3_init]
     # Link segment together
-    xp = (OPsq+OQsq-PQsq)/(2*np.sqrt(OQsq))
-    yp = np.sqrt(OPsq-np.square(xp))
-    phi1, phi2, phi3 = np.arctan2(segcoord_1[-1][1],segcoord_1[-1][0]), np.arctan2(segcoord_2[-1][1], segcoord_2[-1][0]-np.sqrt(OQsq)), np.arctan2(segcoord_3[-1][1], segcoord_3[-1][0])
-    phiseg1, phiseg2 = np.arctan2(yp,xp), np.arctan2(yp,xp-np.sqrt(OQsq))
-    sigma1, sigma2, sigma3 = np.abs(phi1-phiseg1), np.abs(phiseg2-phi2), np.abs(phi3)
+    xp = (OPsq+OQsq-PQsq)/(2*numpy.sqrt(OQsq))
+    yp = numpy.sqrt(OPsq-numpy.square(xp))
+    phi1, phi2, phi3 = numpy.arctan2(segcoord_1[-1][1],segcoord_1[-1][0]), numpy.arctan2(segcoord_2[-1][1], segcoord_2[-1][0]-numpy.sqrt(OQsq)), numpy.arctan2(segcoord_3[-1][1], segcoord_3[-1][0])
+    phiseg1, phiseg2 = numpy.arctan2(yp,xp), numpy.arctan2(yp,xp-numpy.sqrt(OQsq))
+    sigma1, sigma2, sigma3 = numpy.abs(phi1-phiseg1), numpy.abs(phiseg2-phi2), numpy.abs(phi3)
     Rsigma1, Rsigma2, Rsigma3 = RotationMatrix(-sigma1), RotationMatrix(sigma2), RotationMatrix(-sigma3)
-    coordinate_1 = [np.array((0,0))]
+    coordinate_1 = [numpy.array((0,0))]
     seg1_size = len(segcoord_1)
     for i in range(1,seg1_size-1):
-        coordinate_1.append(np.matmul(Rsigma1,segcoord_1[i]))
-    coordinate_1.append(np.array((xp,yp)))
+        coordinate_1.append(numpy.matmul(Rsigma1,segcoord_1[i]))
+    coordinate_1.append(numpy.array((xp,yp)))
     #### Check Here ####
     coordinate_2 = []
     seg2_size = len(segcoord_2)
     for i in range(seg2_size-2,0,-1):
-        tmp = np.sqrt((OQsq,0))
-        coordinate_2.append(tmp + np.matmul(Rsigma2, (segcoord_2[i]-tmp)))
-    coordinate_3 = [np.sqrt((OQsq,0))]
+        tmp = numpy.sqrt((OQsq,0))
+        coordinate_2.append(tmp + numpy.matmul(Rsigma2, (segcoord_2[i]-tmp)))
+    coordinate_3 = [numpy.sqrt((OQsq,0))]
     seg3_size = len(segcoord_3)
     for i in range(seg3_size-2,0,-1):
-        coordinate_3.append(np.matmul(Rsigma3, segcoord_3[i]))
+        coordinate_3.append(numpy.matmul(Rsigma3, segcoord_3[i]))
     coordinate = coordinate_1 + coordinate_2 + coordinate_3
-    Rg = np.sum(coordinate,axis=0)
-    phig = np.arctan2(Rg[1],Rg[0]) + np.pi/2
+    Rg = numpy.sum(coordinate,axis=0)
+    phig = numpy.arctan2(Rg[1],Rg[0]) + numpy.pi/2
     Rphig = RotationMatrix(-phig)    
-    newcoord = [np.matmul(Rphig, coordinate[i]-Rg).tolist()+[z[i]] for i in range(ringsize)]
-    origin = np.mean(newcoord,axis=0)
-    finalcoord = np.array(newcoord)-origin
+    newcoord = [numpy.matmul(Rphig, coordinate[i]-Rg).tolist()+[z[i]] for i in range(ringsize)]
+    origin = numpy.mean(newcoord,axis=0)
+    finalcoord = numpy.array(newcoord)-origin
     return finalcoord
 
 ####################################################
@@ -350,14 +353,14 @@ def SetRingPuckerCoords(ringpath, amplitude, angle, init_bondl, init_bondang):
 
     newcoord: ndarray 
     """
-#    molcenter = np.array(GetCoordinate(mol, ringpath)).mean(axis=0)
+#    molcenter = numpy.array(GetCoordinate(mol, ringpath)).mean(axis=0)
     N = len(ringpath)
     newZ = GetZ(N, amplitude, angle)
     new_bondl = UpdateBondLength(N, newZ, init_bondl)
     new_bondang = UpdateBeta(N, newZ, init_bondl, init_bondang)
-    newcoord = np.array(RingPartition(N, newZ, new_bondl, new_bondang)) 
-    np.set_printoptions(formatter={'float_kind':'{:f}'.format})
-    return newcoord.tolist()
+    newcoord = numpy.array(RingPartition(N, newZ, new_bondl, new_bondang)) 
+    numpy.set_printoptions(formatter={'float_kind':'{:f}'.format})
+    return newcoord.tolist(),newZ
 
 
 
@@ -379,24 +382,24 @@ def GetRingSubstituentPosition(coord, sub_coord,ring_sub_idx):
     
     beta: float range [0,2*pi) range is -pi;pi!!
     """
-    ring_coord = np.array(coord)
-    substituent_coord = np.array([coord[ring_sub_idx],sub_coord])
+    ring_coord = numpy.array(coord)
+    substituent_coord = numpy.array([coord[ring_sub_idx],sub_coord])
     alpha=0
     beta=0
     ring_coord_ = translate_to_ring_center(ring_coord)
     substituent_coord_ = substituent_coord - ring_coord.mean(axis=0)
-    S = np.diff(substituent_coord_,axis=0)
-    s = S/np.linalg.norm(S)
+    S = numpy.diff(substituent_coord_,axis=0)
+    s = S/numpy.linalg.norm(S)
     n = normal_to_ring_plane(ring_coord_)
-    alpha = np.arccos(fixzero(np.dot(s,n)))
+    alpha = numpy.arccos(fixzero(numpy.dot(s,n)))
     alpha = alpha.item()
-    R = np.array(substituent_coord_)[0]
-    U = R - np.dot(R,n)*n
-    u = U/np.linalg.norm(U)
-    v = np.cross(n,u)
-    su = fixzero(np.dot(s,u))
-    sv = fixzero(np.dot(s,v))
-    beta = np.arctan2(-sv,su)
+    R = numpy.array(substituent_coord_)[0]
+    U = R - numpy.dot(R,n)*n
+    u = U/numpy.linalg.norm(U)
+    v = numpy.cross(n,u)
+    su = fixzero(numpy.dot(s,u))
+    sv = fixzero(numpy.dot(s,v))
+    beta = numpy.arctan2(-sv,su)
     beta = beta.item()
     return alpha, beta
 
@@ -404,34 +407,34 @@ def SetRingSubstituentPosition(coord, alpha, beta, sub_coord, bondlength):
     """
     Update ring subtituent position. Bond length is fixed.
 
-    mol: rdmol
+    coord: list of tuples of ring coordinates (x,y,z)
 
-    ring: list  (ring index)
+    alpha: float (0, numpy.pi)
 
-    ring_substituent: list (ring atom index, substituent index)
+    beta: float  (-numpy.pi,*numpy.pi )
 
-    alpha: float (0, np.pi)
+    sub_coord tupla (xyz of ring atom to which sub is attached)
 
-    beta: float  (0,2*np.pi )
+    bondlength float (length of bond ring_atom - sub)
 
     Return:
 
-    coordinate: list
+    coordinates of sub atom (list)
     """
 
-    ring_coord = np.array(coord)
-    substituent_coord = np.array(sub_coord)
+    ring_coord = numpy.array(coord)
+    ring_at_coord = numpy.array(sub_coord)
     ring_coord_ = translate_to_ring_center(ring_coord)
     n = normal_to_ring_plane(ring_coord_) # Normal vector 
-    R = np.array(substituent_coord) - ring_coord.mean(axis=0) # ring atom position WITH RESPECT TO RING CENTER
-    U = R - np.dot(R,n)*n # u is projection of R orthogonal to n
-    u = U/np.linalg.norm(U)
-    v = np.cross(n,u) # v is orthogonal to n and u
-    x = fixzero(bondlength*np.sin(alpha)*np.cos(-beta))
-    y = fixzero(bondlength*np.sin(alpha)*np.sin(-beta)) 
-    z = fixzero(bondlength*np.cos(alpha))
-    b = np.array([x,y,z])
-    T = np.array([u,v,n]).T
-    ring_substituent_pos = np.matmul(T,b) + substituent_coord
+    R = numpy.array(ring_at_coord) - ring_coord.mean(axis=0) # ring atom position WITH RESPECT TO RING CENTER
+    U = R - numpy.dot(R,n)*n # u is projection of R orthogonal to n
+    u = U/numpy.linalg.norm(U)
+    v = numpy.cross(n,u) # v is orthogonal to n and u
+    x = fixzero(bondlength*numpy.sin(alpha)*numpy.cos(-beta))
+    y = fixzero(bondlength*numpy.sin(alpha)*numpy.sin(-beta)) 
+    z = fixzero(bondlength*numpy.cos(alpha))
+    b = numpy.array([x,y,z])
+    T = numpy.array([u,v,n]).T
+    ring_substituent_pos = numpy.matmul(T,b) + ring_at_coord
     return tuple(ring_substituent_pos.tolist())
  
