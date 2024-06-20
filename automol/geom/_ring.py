@@ -165,7 +165,7 @@ def cremer_pople_params(coords):
         amplitude = np.sqrt(qsin**2 + qcos**2).tolist()
         angle = np.arctan2(qsin,qcos).tolist()
 
-    return amplitude, angle
+    return (amplitude, angle), z.tolist()
     
 
 
