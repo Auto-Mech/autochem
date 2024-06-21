@@ -76,7 +76,7 @@ def from_dict(
         val_arr = numpy.empty(shape_, dtype=dtype)
         for idxs, _ in numpy.ndenumerate(val_arr):
             coords = tuple(c[i] for i, c in zip(idxs, coo_vals_lst))
-            val_arr[idxs] = val_dct[coords]
+            val_arr[idxs] = val_dct.get(coords, numpy.nan)
         return val_arr
 
     ene_arr = array_from_dict_(ene_dct, float)
