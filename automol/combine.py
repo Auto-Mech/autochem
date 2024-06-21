@@ -8,27 +8,26 @@ from automol import form, geom
 
 
 # Combines via geometry
-def formula_string(geo1, geo2):
+def formula_string(*geos):
     """get the overall combined stoichiometry"""
-
-    fml1 = geom.formula(geo1)
-    fml2 = geom.formula(geo2)
-    fml = form.join(fml1, fml2)
-    fml_str = form.string2(fml)
-
-    return fml_str
+    fml = form.join_sequence(list(map(geom.formula, geos)))
+    return form.string2(fml)
 
 
-def fake_vdw_geometry(geo1, geo2):
+def fake_vdw_geometry(*geos):
     """put two geometries together in a fake well"""
+    return geom.join_sequence(geos)
 
-    max_z_i = max(atom[1][2] for atom in geo1)
-    min_z_j = min(atom[1][2] for atom in geo2)
-    geo = geo1
-    geo2 = geom.translate(geo2, [0.0, 0.0, max_z_i + 6.0 - min_z_j])
-    geo += geo2
 
-    return geo
+def fake_vdw_frequencies_new(*geos):
+    """generate fake frequencies to fill in the missing internal modes of a fake well"""
+
+    def _external_mode_count(geo):
+        return 3 if geom.is_atom(geo) else 5 if geom.is_linear(geo) else 6
+
+    fake_geo = fake_vdw_geometry(*geos)
+    nfake = sum(map(_external_mode_count, geos)) - _external_mode_count(fake_geo)
+    return tuple(30.0 + i * 20.0 for i in range(nfake))
 
 
 def fake_vdw_frequencies(geo1, geo2):

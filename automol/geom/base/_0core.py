@@ -2,6 +2,7 @@
     Core functions defining the geometry data type
 """
 
+import functools
 import itertools
 from typing import List, Optional
 
@@ -788,17 +789,17 @@ def join(geo1, geo2, dist_cutoff=3.0 * phycon.ANG2BOHR, theta=0.0, phi=0.0):
     """Join two molecular geometries together where the intermolecular
     separation and orientation can be specified.
 
-    :param geo1: molecular geometry 1
+    :param geo1: Molecular geometry 1
     :type geo1: automol molecular geometry data structure
-    :param geo2: molecular geometry 2
+    :param geo2: Molecular geometry 2
     :type geo2: automol molecular geometry data structure
-    :param dist_cutoff: threshhold for center-of-mass distance
+    :param dist_cutoff: The closest allowable intermolecular separation
     :type: dist_cutoff: float
     :param theta: theta angle for intermolecular orientation
     :type theta: float
     :param phi: phi angle for intermolecular orientation
     :type phi: float
-    :rtype: automol molecular geometry data structure
+    :return: The combined geometry
     """
 
     if not geo1:
@@ -838,6 +839,15 @@ def join(geo1, geo2, dist_cutoff=3.0 * phycon.ANG2BOHR, theta=0.0, phi=0.0):
         xyzs = coordinates(geo1) + coordinates(geo2)
 
     return from_data(symbs, xyzs)
+
+
+def join_sequence(geos):
+    """Join a sequence of molecular geometries
+
+    :param geos: A sequence of molecular geometries
+    :return: The combined geometry
+    """
+    return functools.reduce(join, geos)
 
 
 def minimum_distance(geo1, geo2):
