@@ -75,7 +75,7 @@ def is_odd_permutation(seq1: List, seq2: List):
     return not is_even_permutation(seq1, seq2)
 
 
-def is_even_permutation(seq1: List, seq2: List):
+def is_even_permutation(seq1: List, seq2: List, check: bool = True):
     """Determine whether a permutation of a sequence is even or odd.
 
     :param seq1: the first sequence
@@ -84,7 +84,11 @@ def is_even_permutation(seq1: List, seq2: List):
     :rtype: bool
     """
     size = len(seq1)
-    assert set(seq1) == set(seq2) and len(set(seq1)) == size
+    if check:
+        assert (
+            set(seq1) == set(seq2) and len(set(seq1)) == size
+        ), f"No permutation between sequences:\n{seq1}\n{seq2}"
+
     perm = [seq2.index(val) for val in seq1]
 
     sgn = 1

@@ -161,16 +161,16 @@ def _remove_strained_stereoisomers_from_expansion(gps, cand_dct):
             can_nkeys1 = can_nkeys_dct[key1]
             can_nkeys2 = can_nkeys_dct[key2]
 
-            sgn1 = util.is_odd_permutation(srt_nkeys1, can_nkeys1)
-            sgn2 = util.is_odd_permutation(srt_nkeys2, can_nkeys2)
-
             par1, par2 = map(par_dct.get, (key1, key2))
 
             # If the parities relative to the above ordering are not opposite, then the
             # configuration of the bridgehead pair is strained
-            is_strained = not par1 ^ par2 ^ sgn1 ^ sgn2
-            if is_strained:
-                gps.remove((gra, pri_dct))
+            if par1 is not None and par2 is not None:
+                sgn1 = util.is_odd_permutation(srt_nkeys1, can_nkeys1)
+                sgn2 = util.is_odd_permutation(srt_nkeys2, can_nkeys2)
+                is_strained = not par1 ^ par2 ^ sgn1 ^ sgn2
+                if is_strained and (gra, pri_dct) in gps:
+                    gps.remove((gra, pri_dct))
 
     return gps
 
