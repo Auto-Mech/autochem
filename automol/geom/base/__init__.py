@@ -55,6 +55,7 @@ from automol.geom.base._0core import measure
 from automol.geom.base._0core import zmatrix_row_values
 # # binary functions
 from automol.geom.base._0core import join
+from automol.geom.base._0core import join_sequence
 from automol.geom.base._0core import minimum_distance
 from automol.geom.base._0core import permutation
 # # adding/removing atoms
@@ -141,6 +142,7 @@ __all__ = [
     'zmatrix_row_values',
     # # binary functions
     'join',
+    'join_sequence',
     'minimum_distance',
     'permutation',
     # # adding/removing atoms
