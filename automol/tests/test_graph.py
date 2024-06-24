@@ -1566,7 +1566,7 @@ def test__rotational_bond_keys():
 
     # Check that we don't misidentify rotational bond keys
     cgr = automol.smiles.graph("C#CC=C")
-    assert graph.rotational_bond_keys(cgr) == frozenset()
+    assert graph.rotational_bond_keys(cgr, extend_lin_seg) == frozenset()
 
 
 def test__rotational_segment_keys():
@@ -1615,7 +1615,7 @@ def test__rotational_coordinates():
     tors_dct = automol.zmat.torsion_coordinates(zma, zgra)
     coo_key_lst0 = set(map(tuple, map(reversed, tors_dct.values())))
 
-    coo_key_lst = graph.rotational_coordinates(zgra, segment=False)
+    coo_key_lst = graph.rotational_coordinates(zgra, extend_lin_seg=True, segment=False)
     assert coo_key_lst == coo_key_lst0, f"{coo_key_lst} != {coo_key_lst0}"
 
     # Make sure the segment version runs
