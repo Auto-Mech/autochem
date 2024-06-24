@@ -185,7 +185,7 @@ def rotational_bond_keys(
         lin_keys=lin_keys,
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
-        extend_lin_seg=False
+        extend_lin_seg=True
     )
     rot_bkeys = [frozenset(ks[-2:]) for ks in rot_skeys_lst]
     rot_bkeys = frozenset(sorted(rot_bkeys, key=sorted))
@@ -275,7 +275,7 @@ def rotational_coordinates(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
-    extend_lin_seg: bool = False
+    extend_lin_seg: bool = True
 ):
     """Get torsion coordinates for rotational segments
 

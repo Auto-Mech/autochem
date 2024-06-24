@@ -330,7 +330,7 @@ def distance_bounds_matrices(
     # 3. reopen bounds on the torsions from the reactant
     # (also opens >5-atom distances)
     if relax_torsions:
-        rot_bkeys = rotational_bond_keys(gra, extend_lin_seg=False)
+        rot_bkeys = rotational_bond_keys(gra)
 
         # open up torsions at rotational bonds
         tors_ijs = [
