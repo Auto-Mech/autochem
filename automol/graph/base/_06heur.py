@@ -275,6 +275,7 @@ def rotational_coordinates(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    extend_lin_seg: bool = False
 ):
     """Get torsion coordinates for rotational segments
 
@@ -303,6 +304,7 @@ def rotational_coordinates(
         lin_keys=lin_keys,
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
+        extend_lin_seg=extend_lin_seg
     )
 
     coo_keys = []
