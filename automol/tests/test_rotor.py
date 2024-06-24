@@ -234,7 +234,7 @@ def test__rotor_with_dummy_atoms():
     rotors = rotor.rotors_from_zmatrix(C4H5OH_ZMA)
 
     tors_lst = rotor.rotors_torsions(rotors, key_typ="geom", sort=True)
-    assert len(tors_lst) == 2
+    assert len(tors_lst) == 3
 
     rotor_names = rotor.rotors_torsion_names(rotors)
     assert rotor_names == (("D5",), ("D12",))

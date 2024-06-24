@@ -1157,8 +1157,8 @@ def test__rotational_bond_keys():
         },
     )
     rtsg = graph.ts.reverse(tsg)
-    assert graph.rotational_bond_keys(tsg, extend_lin_seg=False) == frozenset()
-    assert graph.rotational_bond_keys(rtsg, extend_lin_seg=False) == frozenset()
+    assert graph.rotational_bond_keys(tsg) == frozenset()
+    assert graph.rotational_bond_keys(rtsg) == frozenset()
 
 
 def test__radical_atom_keys():
