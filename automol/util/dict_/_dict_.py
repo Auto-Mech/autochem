@@ -59,13 +59,13 @@ def right_update(dct1, dct2):
     dct.update(dct2)
 
     # if both dictionaries have a nested dictionary, keep
-    # any non-overlapping nested key-value pairs and 
+    # any non-overlapping nested key-value pairs and
     # the dct2 key-values for overlapping keys.
     for key, value in dct1.items():
         if isinstance(value, dict) and key in dct2:
             for subkey, subval in value.items():
                 if subkey not in dct2[key]:
-                    dct[key][subkey] = subval 
+                    dct[key][subkey] = subval
     return dct
 
 
