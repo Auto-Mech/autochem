@@ -538,26 +538,19 @@ def geometry_pseudorotate_atom(
     :type geo_idx_dct: dict[int: int]
     """
     ang = ang * phycon.DEG2RAD if degree else ang
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
-    # For simplicity, relabel the graph to match the geometry
-    gra = relabel(gra, geo_idx_dct)
+    # Align the graph and the geometry keys/indices
+    gra, geo, (key,), _, idx_dct = align_with_geometry(gra, geo, (key,), geo_idx_dct)
 
     gra_reac = ts_reactants_graph(gra)
     gra_prod = ts_products_graph(gra)
 
     rxn_keys = ts_reacting_atom_keys(gra)
- #   rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
-    nkeys = atom_neighbor_atom_keys(gra, key)
-    # Gather neighbors connected in a ring system
     rsy_keys_lst = []
     for rgra in (gra_reac,gra_prod):
         rsy_keys_lst.extend(ring_systems_atom_keys(rgra, lump_spiro=False))
-    print("rsy_keys_lst",rsy_keys_lst)
     rsy_keys_lst=list(set(rsy_keys_lst))
+    nkeys = atom_neighbor_atom_keys(gra, key)
+    # Gather neighbors connected in a ring system
     ring_nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
     ring_nkey_sets = sorted(ring_nkey_sets, key=len, reverse=True)
     # Gather the remaining neighbors
@@ -567,14 +560,9 @@ def geometry_pseudorotate_atom(
     size_dct = dict_.transform_values(branch_dict(gra, key), len)
     sort_dct = {k: (k in rxn_keys, -size_dct[k], -anum_dct[k]) for k in rem_nkeys}
     rem_nkeys = sorted(rem_nkeys, key=sort_dct.get)
-    print("nkeys",nkeys)
-    print("ring_nkey_sets",ring_nkey_sets)
-    print("rem_nkeys",rem_nkeys)
 
     # Now, put the two lists together
     nkey_sets = ring_nkey_sets + [{k} for k in rem_nkeys]
-    print("nkey_sets",nkey_sets)
-
 
     # Now, find a pair of atoms to keep fixed
     found_pair = False
@@ -585,19 +573,20 @@ def geometry_pseudorotate_atom(
             nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
             break
 
-    if found_pair:
-        # Determine the rotational axis as the unit bisector between the fixed pair
-        xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
-        rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
+    if not found_pair:
+        return None
 
-        # Identify the remaining keys to be rotated
-        rot_nkeys = nkeys - {nkey1, nkey2}
-        rot_keys = set(
-            itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys))
-        )
+    # Determine the rotational axis as the unit bisector between the fixed pair
+    xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
+    rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
 
-        geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
-    else:
-        geo = None
+    # Identify the remaining keys to be rotated
+    rot_nkeys = nkeys - {nkey1, nkey2}
+    rot_keys = set(
+        itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys))
+    )
 
-    return geo
+    geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
+
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
