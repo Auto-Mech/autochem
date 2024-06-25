@@ -187,7 +187,7 @@ def rotational_bond_keys(
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
         with_rings_rotors=with_rings_rotors,
-        extend_lin_seg=True
+        extend_lin_seg=True,
         with_rings_rotors=with_rings_rotors,
     )
     rot_bkeys = [frozenset(ks[-2:]) for ks in rot_skeys_lst]
