@@ -51,16 +51,16 @@ def all_rings_atoms(zma, tsg=None):
             # Check that ring is not already present in rings_atoms
             do_not_add_ring = 0
             for rng in rings_atoms:
-                if not set(rng).difference(set(ring_atoms)): 
+                if not set(rng).difference(set(ring_atoms)):
                     do_not_add_ring = 1
-            if do_not_add_ring: 
+            if do_not_add_ring:
                 continue
 
             # Add to overall list
             rings_atoms = list(rings_atoms)
             # Added sort as I expect that connectivity is defined in "usual" way
-            ring_atoms = sorted(ring_atoms) 
-            # Connectivity should still be preserved, 
+            ring_atoms = sorted(ring_atoms)
+            # Connectivity should still be preserved,
             # If it is not COME BACK HERE AND FIX
             rings_atoms.append(tuple(ring_atoms))
             rings_atoms = frozenset(rings_atoms)

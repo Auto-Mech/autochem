@@ -5,9 +5,9 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 
 import itertools
 import numbers
-import numpy
 from typing import Dict, Optional, Tuple
 
+import numpy
 import more_itertools as mit
 from phydat import phycon
 
