@@ -37,9 +37,9 @@ def ring_angles_reasonable(geo, ring_atoms, thresh=ATHRESH):
     """
 
     condition = True
-    # Lower threshold for 4 and 5 membered rings 
+    # Lower threshold for 4 and 5 membered rings
     # if not using relaxed thresh already
-    if len(ring_atoms) < 6 and thresh > 70.: 
+    if len(ring_atoms) < 6 and thresh > 70.:
         thresh *= 0.8
     for i, ring_atom in enumerate(ring_atoms):
         _atoms = [ring_atom, ring_atoms[i - 1], ring_atoms[i - 2]]
@@ -167,9 +167,3 @@ def cremer_pople_params(coords):
         angle = np.arctan2(qsin,qcos).tolist()
 
     return (amplitude, angle), z.tolist()
-    
-
-
-
-
-
