@@ -6,7 +6,6 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import itertools
 import numbers
 
-import more_itertools as mit
 import numpy
 from phydat import phycon
 
@@ -14,18 +13,12 @@ from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
     align_with_geometry,
-    atom_neighbor_atom_keys,
-    atomic_numbers,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
     ts_reactants_graph_without_stereo,
-    ts_reacting_atom_keys,
-    vinyl_radical_bond_candidates,
 )
 from automol.graph.base._02algo import (
     branch_atom_keys,
-    branch_dict,
-    ring_systems_atom_keys,
     rings_bond_keys,
 )
 from automol.graph.base._03kekule import (
@@ -33,7 +26,6 @@ from automol.graph.base._03kekule import (
     vinyl_radical_atom_bond_keys,
 )
 from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
-from automol.util import dict_
 
 
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None):

@@ -48,22 +48,20 @@ def all_rings_atoms(zma, tsg=None):
                     elif atmb == ring_atoms[-1] and atma not in ring_atoms:
                         ring_atoms.append(atma)
 
-            # check that ring is not already present in rings_atoms and eventually skip it
+            # Check that ring is not already present in rings_atoms
             do_not_add_ring = 0
             for rng in rings_atoms:
-                if not set(rng).difference(set(ring_atoms)): do_not_add_ring = 1
-            if do_not_add_ring: continue
-
-            # check that ring is not already present in rings_atoms and eventually skip it
-            do_not_add_ring = 0
-            for rng in rings_atoms:
-                if not set(rng).difference(set(ring_atoms)): do_not_add_ring = 1
-            if do_not_add_ring: continue
+                if not set(rng).difference(set(ring_atoms)): 
+                    do_not_add_ring = 1
+            if do_not_add_ring: 
+                continue
 
             # Add to overall list
             rings_atoms = list(rings_atoms)
-            ring_atoms = sorted(ring_atoms) #adl added sort as I expect that connectivity is defined in "usual" way
-            # Connectivity should still be preserved, if it is not COME BACK HERE AND FIGURE OUT HOW TO REORDER ATOMS AND PRESERVE CONN
+            # Added sort as I expect that connectivity is defined in "usual" way
+            ring_atoms = sorted(ring_atoms) 
+            # Connectivity should still be preserved, 
+            # If it is not COME BACK HERE AND FIX
             rings_atoms.append(tuple(ring_atoms))
             rings_atoms = frozenset(rings_atoms)
 

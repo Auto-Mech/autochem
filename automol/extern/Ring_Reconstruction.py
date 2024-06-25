@@ -1,7 +1,11 @@
+""" 
+Reconstruct ring geometry from puckering parameters
+Code from Chan et al. 2021 https://doi.org/10.1021/acs.jcim.0c01144
+"""
 ##################################
 #### Ring Reconstruction (RR) ####
 ##################################
-# Code from Chan et al. 2021 https://doi.org/10.1021/acs.jcim.0c01144
+
 
 import numpy
 from automol.geom import (
@@ -17,6 +21,9 @@ from automol.geom import (
 ###############################
 
 def fixzero(x):
+    """
+    Fixes precision issues
+    """
     x_ = numpy.array([0.0]) if numpy.allclose(0,x, rtol=1e-06, atol=1e-08) else x
     return x_.item()
 
@@ -30,9 +37,9 @@ def fixzero(x):
 
 #     Input:
 
-#     mol: rdmol 
+#     mol: rdmol
 
-#     ringpath: list 
+#     ringpath: list
 
 #     Return:
 
@@ -47,14 +54,14 @@ def fixzero(x):
 
 #     Input:
 
-#     mol: rdmol 
+#     mol: rdmol
 
-#     ringidx: list 
+#     ringidx: list
 
 #     Return:
 
 #     bondlength: list
- 
+
 #     """
 #     N = len(ringpath)
 #     ringbond = [[ringpath[i], ringpath[(i+1)%N]] for i in range(N)]
@@ -68,14 +75,14 @@ def fixzero(x):
 
 #     Input:
 
-#     mol: rdmol 
+#     mol: rdmol
 
-#     ringidx: list 
+#     ringidx: list
 
 #     Return:
 
 #     bondlength: list
- 
+
 #     """
 #     N = len(ringpath)
 #     pair = [[ringpath[i], ringpath[(i+1)%N]] for i in range(N)]
@@ -96,14 +103,14 @@ def fixzero(x):
 
 #     Input:
 
-#     mol: rdmol 
+#     mol: rdmol
 
-#     ringpath: list 
+#     ringpath: list
 
 #     Return:
 
 #     bondang: list (output in radian)
- 
+
 #     """
 #     N = len(ringpath)
 #     atoms = [[ringpath[i], ringpath[(i+1)%N], ringpath[(i+2)%N]] for i in range(N)]
@@ -117,14 +124,14 @@ def fixzero(x):
 
 #     Input:
 
-#     mol: rdmol 
+#     mol: rdmol
 
-#     ringpath: list 
+#     ringpath: list
 
 #     Return:
 
 #     bondang: list (output in radian)
- 
+
 #     """
 #     N = len(ringpath)
 #     atoms = [[ringpath[i], ringpath[(i+1)%N], ringpath[(i+2)%N]] for i in range(N)]
@@ -136,7 +143,8 @@ def fixzero(x):
 #     for a in atoms:
 #         bond.append([int(mol.GetBondBetweenAtoms(a[i],a[i+1]
 #                                                  ).GetBondType()) for i in range(2)])
-#     elements_and_bond_order = [sorted_ele[i]+tuple(bond[i]) for i,j in enumerate(bond)]
+#     elements_and_bond_order = [sorted_ele[i]+tuple(bond[i]
+#                               ) for i,j in enumerate(bond)]
 #     bondang = [bondtable.BONDANGLE_REF.get(x,
 #             "Unknown bond length, please update BOND ANGLE table"
 #             ) for x in elements_and_bond_order]
