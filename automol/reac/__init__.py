@@ -95,6 +95,7 @@ from automol.reac._7scan_deprecated import scan_coordinate_name
 from automol.reac._7scan_deprecated import constraint_coordinate_names
 # reaction products
 from automol.reac._enum import enumerate_reactions
+from automol.reac._enum import reaction_info_from_string
 # species instability transformations
 from automol.reac._instab import instability_product_zmas
 from automol.reac._instab import instability_product_inchis
@@ -205,6 +206,7 @@ __all__ = [
     'constraint_coordinate_names',
     # reaction products
     'enumerate_reactions',
+    'reaction_info_from_string',
     # species instability transformations
     'instability_product_zmas',
     'instability_product_inchis',

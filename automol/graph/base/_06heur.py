@@ -185,6 +185,7 @@ def rotational_bond_keys(
         lin_keys=lin_keys,
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
+        extend_lin_seg=True
     )
     rot_bkeys = [frozenset(ks[-2:]) for ks in rot_skeys_lst]
     rot_bkeys = frozenset(sorted(rot_bkeys, key=sorted))
@@ -196,6 +197,7 @@ def rotational_segment_keys(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    extend_lin_seg: bool = True,
 ):
     """Get the keys for all rotational segments (bonds or linear segments)
 
@@ -246,7 +248,8 @@ def rotational_segment_keys(
     rot_bkeys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
 
     # 2. Find the linear segments, extended to include in-line neighbors
-    lin_seg_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys, extend=True)
+    lin_seg_keys_lst = linear_segments_atom_keys(
+        gra, lin_keys=lin_keys, extend=extend_lin_seg)
 
     # 3. Start the rotational segment key list with linear segments that can rotate
     keys_lst = []
@@ -272,6 +275,7 @@ def rotational_coordinates(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    extend_lin_seg: bool = True
 ):
     """Get torsion coordinates for rotational segments
 
@@ -300,6 +304,7 @@ def rotational_coordinates(
         lin_keys=lin_keys,
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
+        extend_lin_seg=extend_lin_seg
     )
 
     coo_keys = []
