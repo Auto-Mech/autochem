@@ -6,7 +6,6 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import itertools
 import numbers
 
-import more_itertools as mit
 import numpy
 from phydat import phycon
 
@@ -14,17 +13,12 @@ from automol import util
 from automol.geom import base as geom_base
 from automol.graph.base._00core import (
     align_with_geometry,
-    atom_neighbor_atom_keys,
-    atomic_numbers,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
     ts_reactants_graph_without_stereo,
-    ts_reacting_atom_keys,
 )
 from automol.graph.base._02algo import (
     branch_atom_keys,
-    branch_dict,
-    ring_systems_atom_keys,
     rings_bond_keys,
 )
 from automol.graph.base._03kekule import (
@@ -32,7 +26,6 @@ from automol.graph.base._03kekule import (
     vinyl_radical_atom_bond_keys,
 )
 from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
-from automol.util import dict_
 
 
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None):
@@ -189,90 +182,6 @@ def geometry_correct_linear_vinyls(
 
     # Restore the original atom ordering of the geometry
     return geom_base.reorder(geo, idx_dct)
-
-
-def geometry_pseudorotate_atom(
-    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None
-):
-    r"""Pseudorotate an atom in a molecular geometry by a certain amount
-
-    'Pseudorotate' here means to rotate all but two of the atom's neighbors, which can
-    be used to invert/correct stereochemistry at an atom:
-
-        1   2                                     1   2
-         \ /                                       \ /
-          C--3   = 1,4 pseudorotation by pi =>   3--C
-          |                                         |
-          4                                         4
-
-    The two fixed atoms will be chosen to prevent the structural 'damage' from the
-    rotation as much as possible. For example, atoms in rings will be favored to be
-    fixed.
-
-    If such a choice is not possible -- for example, if three or more neighbors are
-    locked into connected rings -- then no geometry will be returned.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param key: The graph key of the atom to be rotated
-    :type key: frozenset[int]
-    :param ang: The angle of rotation (in radians, unless `degree = True`)
-    :type ang: float
-    :param degree: Is the angle of rotation in degrees?, default False
-    :type degree: bool
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices.
-    :type geo_idx_dct: dict[int: int]
-    """
-    ang = ang * phycon.DEG2RAD if degree else ang
-    # Align the graph and the geometry keys/indices
-    gra, geo, (key,), _, idx_dct = align_with_geometry(gra, geo, (key,), geo_idx_dct)
-
-    rxn_keys = ts_reacting_atom_keys(gra)
-    rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
-    nkeys = atom_neighbor_atom_keys(gra, key)
-    # Gather neighbors connected in a ring system
-    ring_nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
-    ring_nkey_sets = sorted(ring_nkey_sets, key=len, reverse=True)
-    # Gather the remaining neighbors
-    rem_nkeys = [k for k in nkeys if not any(k in ks for ks in ring_nkey_sets)]
-    # Sort the remaining neighbors by branch size and atomic number
-    anum_dct = atomic_numbers(gra)
-    size_dct = dict_.transform_values(branch_dict(gra, key), len)
-    sort_dct = {k: (k in rxn_keys, -size_dct[k], -anum_dct[k]) for k in rem_nkeys}
-    rem_nkeys = sorted(rem_nkeys, key=sort_dct.get)
-
-    # Now, put the two lists together
-    nkey_sets = ring_nkey_sets + [{k} for k in rem_nkeys]
-
-    # Now, find a pair of atoms to keep fixed
-    found_pair = False
-    for nkeys1, nkeys2 in mit.pairwise(nkey_sets + [set()]):
-        if len(nkeys1) == 2 or len(nkeys1 | nkeys2) == 2:
-            found_pair = True
-            nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
-            break
-
-    # If we couldn't find one, return early
-    # (Would it be better just to fail?)
-    if not found_pair:
-        return None
-
-    # Determine the rotational axis as the unit bisector between the fixed pair
-    xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
-    rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
-
-    # Identify the remaining keys to be rotated
-    rot_nkeys = nkeys - {nkey1, nkey2}
-    rot_keys = set(itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys)))
-
-    geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
-
-    # Restore the original atom ordering of the geometry
-    return geom_base.reorder(geo, idx_dct)
-
 
 def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     """Rotate a bond in a molecular geometry by a certain amount
