@@ -1,4 +1,4 @@
-"""ChIKeys."""
+"""Functions operating on InChI and AMChI keys."""
 
 import pyparsing as pp
 
@@ -18,67 +18,46 @@ CHI_KEY = (
 )
 
 
-def to_dict(chk: str) -> dict:
-    """Split the ChI key into a dictionary of parsed elements.
+def first_hash(chk: str) -> str:
+    """Get the first hash block, indicating connectivity.
 
-    :param chk: The ChI key
-    :type chk: str
-    :return: The parsed elements; keys: "hash1", "hash2", "version", "protonation"
-    :rtype: dict
+    :param chk: An InChI or AMChI key
+    :return: The first hash block
     """
-    return CHI_KEY.parseString(chk).asDict()
+    return CHI_KEY.parseString(chk).get("hash1")
 
 
-def first_hash(chk):
-    """Parse ChIKey for the first hash block, indicating connectivity.
-
-    :param chk: ChIKey
-    :type chk: str
-    :rtype: str
-    """
-    chk_dct = to_dict(chk)
-    return chk_dct["hash1"]
-
-
-def second_hash(chk):
+def second_hash(chk: str) -> str:
     """Parse ChIKey for the second hash block, indicating stereochemistry.
 
-    :param chk: ChIKey
-    :type chk: str
-    :rtype: str
+    :param chk: A ChI key
     """
-    chk_dct = to_dict(chk)
-    return chk_dct["hash2"]
+    return CHI_KEY.parseString(chk).get("hash2")
 
 
-def version_indicator(chk):
+def version_indicator(chk: str) -> str:
     """Parse ChIKey second-hash block for the ChIKey version indicator.
 
-    :param chk: ChIKey
-    :type chk: str
-    :rtype: str
+    :param chk: A ChI key
     """
-    chk_dct = to_dict(chk)
-    return chk_dct["version"]
+    return CHI_KEY.parseString(chk).get("version")
 
 
-def protonation_indicator(chk):
+def protonation_indicator(chk: str) -> str:
     """Parse final character of ChIKey for the protonation indicator.
 
-    :param chk: ChIKey
-    :type chk: str
-    :rtype: str
+    :param chk: A ChI key
     """
-    chk_dct = to_dict(chk)
-    return chk_dct["protonation"]
+    return CHI_KEY.parseString(chk).get("protonation")
 
 
-def second_hash_with_extension(chk):
+def second_hash_with_extension(chk: str) -> str:
     """Parse ChIKey second-hash block for version and protonation
     indicators.
 
-    :param chk: ChIKey
-    :type chk: str
-    :rtype: str
+    :param chk: A ChI key
     """
-    return second_hash(chk) + version_indicator(chk) + "-" + protonation_indicator(chk)
+    hash2 = CHI_KEY.parseString(chk).get("hash2")
+    vers = CHI_KEY.parseString(chk).get("version")
+    prot = CHI_KEY.parseString(chk).get("protonation")
+    return hash2 + vers + "-" + prot
