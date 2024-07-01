@@ -1,5 +1,4 @@
-""" ChIKeys
-"""
+"""ChIKeys."""
 
 import pyparsing as pp
 
@@ -20,7 +19,7 @@ CHI_KEY = (
 
 
 def to_dict(chk: str) -> dict:
-    """Split the ChI key into a dictionary of parsed elements
+    """Split the ChI key into a dictionary of parsed elements.
 
     :param chk: The ChI key
     :type chk: str

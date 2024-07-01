@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-# ruff check automol
-# ruff check phydat
-# ruff check autoreact
-pylint --rcfile=.pylintrc automol
-pylint --rcfile=.pylintrc phydat
-pylint --rcfile=.pylintrc autoreact
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+FILES=(
+    "automol/inchi_key.py"
+    "automol/error.py"
+)
 
+(
+    cd $SCRIPT_DIR
+    echo pre-commit run black --files ${FILES[@]}
+    pre-commit run black --files ${FILES[@]}
+    pre-commit run ruff --files ${FILES[@]}
+    pre-commit run mypy --files ${FILES[@]}
+)
