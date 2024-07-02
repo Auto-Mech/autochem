@@ -4,10 +4,10 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
 
 import operator
-from typing import Optional
 
 import networkx
 
+from automol import util
 from automol.graph.base._00core import (
     atom_implicit_hydrogens,
     atom_keys,
@@ -43,12 +43,17 @@ def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):
     return nxg
 
 
-def minimum_cycle_basis(nxg, weight: Optional[str] = None):
-    """minimum cycle basis for the graph"""
-    rng_atm_keys_lst = networkx.algorithms.cycles.minimum_cycle_basis(
-        nxg, weight=weight
-    )
-    return frozenset(map(frozenset, rng_atm_keys_lst))
+def minimum_cycle_basis(nxg: networkx.Graph, weight: str | None = None):
+    """Cycle basis for the graph."""
+
+    def _order_and_normalize(rkeys):
+        """Order and normalize the ring keys."""
+        rkeys = networkx.cycle_basis(nxg.subgraph(rkeys))[0]
+        return util.ring.normalize(rkeys)
+
+    rkeys_lst = networkx.algorithms.cycles.minimum_cycle_basis(nxg, weight=weight)
+    # Ensure that the ordering is correct (not guaranteed by minimum cycle basis)
+    return tuple(sorted(map(_order_and_normalize, rkeys_lst)))
 
 
 def connected_component_atom_keys(nxg):

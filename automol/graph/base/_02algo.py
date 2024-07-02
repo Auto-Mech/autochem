@@ -752,6 +752,7 @@ def rings_bond_keys(gra, ts_=True):
     bnd_keys = bond_keys(gra)
 
     def _ring_bond_keys(rng_atm_keys):
+        rng_atm_keys = set(rng_atm_keys)
         return frozenset(filter(lambda x: x <= rng_atm_keys, bnd_keys))
 
     # Define weights, giving the breaking and forming bonds a higher value so that they
@@ -762,7 +763,7 @@ def rings_bond_keys(gra, ts_=True):
     )
 
     nxg = _01networkx.from_graph(gra, edge_attrib_dct={"weight": wgt_dct})
-    rng_atm_keys_lst = _01networkx.minimum_cycle_basis(nxg, weight="weight")
+    rng_atm_keys_lst = frozenset(_01networkx.minimum_cycle_basis(nxg, weight="weight"))
     rng_bnd_keys_lst = frozenset(map(_ring_bond_keys, rng_atm_keys_lst))
     return rng_bnd_keys_lst
 
