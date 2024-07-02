@@ -420,8 +420,8 @@ def display_reaction(rgras, pgras, stereo=True, exp=False, label=False, label_dc
         rlabel_dct = plabel_dct = None
 
     if label_dct:
-        rlabel_dct = dict_.transform_keys(label_dct, rlabel_dct)
-        plabel_dct = dict_.transform_keys(label_dct, plabel_dct)
+        rlabel_dct = dict_.transform_keys(label_dct, rlabel_dct.get)
+        plabel_dct = dict_.transform_keys(label_dct, plabel_dct.get)
 
     rwid = ipywidget(rgra, stereo=stereo, exp=exp, label=label, label_dct=rlabel_dct)
     pwid = ipywidget(pgra, stereo=stereo, exp=exp, label=label, label_dct=plabel_dct)
