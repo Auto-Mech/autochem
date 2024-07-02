@@ -1366,5 +1366,6 @@ if __name__ == "__main__":
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
     # test__radical_atom_keys()
-    test__geometry()
+    # test__geometry()
+    test__ts__expand_reaction_stereo("C5H6O", C5H6O_TSG, [1, 1])
     # test__zmatrix()
