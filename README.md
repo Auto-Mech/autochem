@@ -79,7 +79,7 @@ datatypes.
 ```
 >>> automol.zmat.display(zma)
 ```
-<img src="docs/c2h2-zmatrix.png" width="400">
+<img src=".github/c2h2-zmatrix.png" width="400">
 
 *Tracking connectivity.*
 We can track how the atoms are connected with a molecular graph.
@@ -105,7 +105,7 @@ hydrogens (both off by default).
 ```
 >>> automol.graph.display(gra, exp=True, label=True)
 ```
-<img src="docs/c2h2-graph.png" width="400">
+<img src=".github/c2h2-graph.png" width="400">
 
 The above graph matches the connectivity of the Cartesian geometry that we printed above.
 We might also wish to track this connectivity upon conversion to a Z-matrix.
@@ -135,7 +135,7 @@ We can see the connectivity more easily by displaying the graph.[^1]
 ```
 >>> automol.graph.display(zgra, exp=True, label=True)
 ```
-<img src="docs/c2h2-zmatrix-graph.png" width="400">
+<img src=".github/c2h2-zmatrix-graph.png" width="400">
 
 *Stereoexpansion.*
 As a simple example, we can enumerate the stereoisomers of 1,2-difluoroethylene as follows.
@@ -192,7 +192,7 @@ molecular graph.
 >>> ts_geo = automol.graph.geometry(ts_gra)
 >>> automol.geom.display(ts_geo, gra=ts_gra)
 ```
-<img src="docs/ch4-oh-geometry.png" width="400">
+<img src=".github/ch4-oh-geometry.png" width="400">
 
 Similarly, we can generate a Z-matrix for the transition state.
 ```
@@ -200,7 +200,7 @@ Similarly, we can generate a Z-matrix for the transition state.
 >>> ts_zgra = automol.graph.apply_zmatrix_conversion(ts_gra, zc_)
 >>> automol.zmat.display(ts_zma, gra=ts_zgra)
 ```
-<img src="docs/ch4-oh-zmatrix.png" width="400">
+<img src=".github/ch4-oh-zmatrix.png" width="400">
 
 Note the appropriate insertion of a dummy atom over the transferring hydrogen atom.
 
@@ -225,7 +225,7 @@ AMChI=1/C4H9O3/c1-3-6-4(2)7-5-8-3/h3-4H,1-2H3/t3-,4+/m1/s1/k8-5/f8-3/r1
 AMChI=1/C4H9O3/c1-3-6-4(2)7-5-8-3/h3-4H,1-2H3/t3-,4-/m1/s1/k8-5/f8-3/r1
 <Display omitted>
 ```
-<img src="docs/dee-ts-geometry.png" width="400">
+<img src=".github/dee-ts-geometry.png" width="400">
 
 Standard chemical identifiers like SMILES and InChI cannot describe individual
 transition states.
