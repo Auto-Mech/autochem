@@ -731,11 +731,17 @@ def rings_atom_keys(gra, ts_=True):
     :type ts_: bool
     :returns: A set of tuples of atom keys for each ring.
     """
-    rng_bnd_keys_lst = rings_bond_keys(gra, ts_=ts_)
-    rng_atm_keys_lst = frozenset(
-        map(sorted_ring_atom_keys_from_bond_keys, rng_bnd_keys_lst)
+    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
+
+    # Define weights, giving the breaking and forming bonds a higher value so that they
+    # are only included if necessary
+    ord_dct = bond_orders(gra)
+    wgt_dct = util.dict_.transform_values(
+        ord_dct, lambda o: int(o * 10000 if o < 1 else o)
     )
-    return rng_atm_keys_lst
+
+    nxg = _01networkx.from_graph(gra, edge_attrib_dct={"weight": wgt_dct})
+    return frozenset(_01networkx.minimum_cycle_basis(nxg, weight="weight"))
 
 
 def rings_bond_keys(gra, ts_=True):
@@ -747,24 +753,10 @@ def rings_bond_keys(gra, ts_=True):
     :type ts_: bool
     :returns: A set of sets of bond keys for each ring.
     """
-    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
-
-    bnd_keys = bond_keys(gra)
-
-    def _ring_bond_keys(rng_atm_keys):
-        return frozenset(filter(lambda x: x <= rng_atm_keys, bnd_keys))
-
-    # Define weights, giving the breaking and forming bonds a higher value so that they
-    # are only included if necessary
-    ord_dct = bond_orders(gra)
-    wgt_dct = util.dict_.transform_values(
-        ord_dct, lambda o: int(o * 10000 if o < 1 else o)
+    rng_atm_keys_lst = rings_atom_keys(gra, ts_=ts_)
+    return frozenset(
+        frozenset(map(frozenset, util.ring.edges(ks))) for ks in rng_atm_keys_lst
     )
-
-    nxg = _01networkx.from_graph(gra, edge_attrib_dct={"weight": wgt_dct})
-    rng_atm_keys_lst = _01networkx.minimum_cycle_basis(nxg, weight="weight")
-    rng_bnd_keys_lst = frozenset(map(_ring_bond_keys, rng_atm_keys_lst))
-    return rng_bnd_keys_lst
 
 
 def sorted_ring_atom_keys(rng):

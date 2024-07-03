@@ -6,8 +6,51 @@ r"""Functions for dealing with a list of items encoding a ring
                             \     /
                              5---4
 """
+
 import itertools
 from typing import List, Tuple
+
+import more_itertools as mit
+
+
+def normalize(items: List[object]) -> List[object]:
+    """Normalize the ordering of items in a ring.
+
+    :param items: The ring items
+    :return: The ring items, in normalized order
+    """
+    nitems = len(items)
+    start_item = min(items)
+    next_item = items[(items.index(start_item) + 1) % nitems]
+    prev_item = items[(items.index(start_item) - 1) % nitems]
+    if next_item > prev_item:
+        items = list(reversed(items))
+    return cycle(items, count=items.index(start_item))
+
+
+def cycle(items: List[object], count: int = 1) -> List[object]:
+    """Cycle ring items once.
+
+    Example:    (1, 2, 3, 4) -> (2, 3, 4, 1)
+
+    :param items: The ring items
+    :return: The ring items, cycled once
+    """
+    nitems = len(items)
+    cycler = itertools.cycle(items)
+    mit.consume(cycler, n=count % nitems)
+    return tuple(itertools.islice(cycler, nitems))
+
+
+def edges(items: List[object]) -> List[object]:
+    """Get the edge pairs of a ring.
+
+    Example:    (1, 2, 3, 4) -> ((1, 2), (2, 3), (3, 4), (4, 1))
+
+    :param items: The ring items
+    :return: The ring edge pairs
+    """
+    return tuple(zip(items, cycle(items), strict=False))
 
 
 def distance(
@@ -106,9 +149,7 @@ def cycle_items_to_front(
     return tuple(itertools.islice(cycler, nitems))
 
 
-def cycle_items_to_back(
-    items: List[object], back_items: List[object]
-) -> List[object]:
+def cycle_items_to_back(items: List[object], back_items: List[object]) -> List[object]:
     """Cycle ring items until a group of adjacent items is at the end of the list
 
     :param items: The ring items

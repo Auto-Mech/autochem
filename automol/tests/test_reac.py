@@ -455,5 +455,6 @@ if __name__ == "__main__":
     # test__from_datatypes()
     # test__end_to_end("[C@H](O)(C)F.[Cl]", "[C@@H](O)(C)Cl.[F]")
     # test__end_to_end("CCCO[O]", "[CH2]CCOO")
-    test__end_to_end("C[C]1O[C@H]1COO", r"C/C([O])=C\COO")
+    # test__end_to_end("C[C]1O[C@H]1COO", r"C/C([O])=C\COO")
+    test__end_to_end("CC1[C](O1)COO", "CC1C2(O1)CO2.[OH]")
     # test__canonical_enantiomer()
