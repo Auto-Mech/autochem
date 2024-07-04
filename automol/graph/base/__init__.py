@@ -186,6 +186,13 @@ from automol.graph.base._02algo import bond_equivalence_class_reps
 from automol.graph.base._02algo import connected_components
 from automol.graph.base._02algo import connected_components_atom_keys
 from automol.graph.base._02algo import is_connected
+from automol.graph.base._02algo import dfs_
+from automol.graph.base._02algo import dfs_atom_keys
+from automol.graph.base._02algo import dfs_bond_keys
+from automol.graph.base._02algo import dfs_children
+from automol.graph.base._02algo import dfs_parents
+from automol.graph.base._02algo import dfs_missing_bond_keys
+from automol.graph.base._02algo import dfs_missing_children
 from automol.graph.base._02algo import atom_shortest_paths
 from automol.graph.base._02algo import shortest_path_between_atoms
 from automol.graph.base._02algo import shortest_path_between_groups
@@ -522,6 +529,13 @@ __all__ = [
     "connected_components",
     "connected_components_atom_keys",
     "is_connected",
+    "dfs_",
+    "dfs_atom_keys",
+    "dfs_bond_keys",
+    "dfs_children",
+    "dfs_parents",
+    "dfs_missing_bond_keys",
+    "dfs_missing_children",
     "atom_shortest_paths",
     "shortest_path_between_atoms",
     "shortest_path_between_groups",

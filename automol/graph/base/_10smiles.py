@@ -20,7 +20,6 @@ from collections import Counter
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy
-from phydat import ptab
 
 from automol import util
 from automol.graph.base._00core import (
@@ -34,7 +33,6 @@ from automol.graph.base._00core import (
     atom_symbols,
     atom_unpaired_electrons,
     atoms_neighbor_atom_keys,
-    bond_keys,
     bond_orders,
     bond_stereo_keys,
     bond_stereo_parities,
@@ -51,7 +49,10 @@ from automol.graph.base._00core import (
 )
 from automol.graph.base._02algo import (
     connected_components,
+    dfs_,
     dfs_children,
+    dfs_missing_bond_keys,
+    dfs_parents,
     is_connected,
     rings_atom_keys,
 )
@@ -66,6 +67,7 @@ from automol.graph.base._05stereo import (
 )
 from automol.graph.base._08canon import canonical, smiles_graph, to_local_stereo
 from automol.util import dict_
+from phydat import ptab
 
 BondPairOrRingId = Union[Tuple[int, int], int]
 
@@ -161,13 +163,13 @@ def _connected_smiles(
     start_key = min(term_keys) if term_keys else min(atom_keys(gra))
 
     # Identify children and parents for depth-first traversal
-    child_dct = dfs_children(gra, start_key)
-    parent_dct = {ck: pk for pk, cks in child_dct.items() for ck in cks}
+    dfs = dfs_(gra, start_key)
+    child_dct = dfs_children(dfs)
+    parent_dct = dfs_parents(dfs)
 
     # Identify ring bonds that won't be visited in the depth-first traversal
     # We will need to encode ring bonds for these
-    dfs_bkeys = {frozenset({k, nk}) for k, nks in child_dct.items() for nk in nks}
-    rng_bkeys = list(bond_keys(gra) - dfs_bkeys)
+    rng_bkeys = dfs_missing_bond_keys(gra, dfs)
     rng_enc_dct = {}
 
     # Identify bonds that will be directional, for specifying stereo

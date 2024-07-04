@@ -1,9 +1,10 @@
 """ test graph.ts
 """
 
-import automol
 import numpy
 import pytest
+
+import automol
 from automol import graph
 
 # Sn2 Atom Stereo
@@ -821,44 +822,47 @@ C5H6O_TSG = (
 )
 
 
-def test__set_stereo_from_geometry():
+@pytest.mark.parametrize(
+    "formula,tsg,geo,npars1,npars2",
+    [
+        ("CH4CLFNO", CH4CLFNO_TSG, CH4CLFNO_GEO, 1, 1),
+        ("C4H11O2", C4H11O2_TSG, C4H11O2_GEO, 1, 1),
+        ("C4H9O3", C4H9O3_TSG, C4H9O3_GEO, 2, 2),
+        ("C2H3F2O", C2H3F2O_TSG, C2H3F2O_GEO, 2, 2),
+        ("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4),
+        ("C4H9O2", C4H9O2_TSG, C4H9O2_GEO, 2, 2),
+        ("C2H4O2", C2H4O2_TSG, C2H4O2_GEO, 1, 1),
+        ("C4H4F2", C4H4F2_TSG, C4H4F2_GEO, 2, 2),
+        ("C8H14", C8H14_TSG, C8H14_GEO, 2, 2),
+    ],
+)
+def test__set_stereo_from_geometry(formula, tsg, geo, npars1, npars2):
     """test graph.set_stereo_from_geometry"""
 
-    def _test(formula, tsg, geo, npars1, npars2):
-        print(f"{formula}: testing set_stereo_from_geometry")
-        ftsg = graph.without_stereo(tsg)
-        rtsg = graph.ts_reverse(ftsg)
-        assert ftsg != rtsg
-        # Check that they have the same stereogenic keys
-        fste_keys = graph.unassigned_stereocenter_keys(ftsg)
-        rste_keys = graph.unassigned_stereocenter_keys(rtsg)
-        print(fste_keys)
-        print(rste_keys)
-        assert len(fste_keys) == len(rste_keys) == npars1
-        assert fste_keys == rste_keys
-        # Check that they have the same parities
-        ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-        rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-        fste_par_dct = automol.util.dict_.filter_by_value(
-            graph.stereo_parities(ftsg), lambda x: x is not None
-        )
-        rste_par_dct = automol.util.dict_.filter_by_value(
-            graph.stereo_parities(rtsg), lambda x: x is not None
-        )
-        print(fste_par_dct)
-        print(rste_par_dct)
-        assert len(fste_par_dct) == len(rste_par_dct) == npars2
-        assert fste_par_dct == rste_par_dct
-
-    _test("CH4CLFNO", CH4CLFNO_TSG, CH4CLFNO_GEO, 1, 1)
-    _test("C4H11O2", C4H11O2_TSG, C4H11O2_GEO, 1, 1)
-    _test("C4H9O3", C4H9O3_TSG, C4H9O3_GEO, 2, 2)
-    _test("C2H3F2O", C2H3F2O_TSG, C2H3F2O_GEO, 2, 2)
-    _test("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4)
-    _test("C4H9O2", C4H9O2_TSG, C4H9O2_GEO, 2, 2)
-    _test("C2H4O2", C2H4O2_TSG, C2H4O2_GEO, 1, 1)
-    _test("C4H4F2", C4H4F2_TSG, C4H4F2_GEO, 2, 2)
-    _test("C8H14", C8H14_TSG, C8H14_GEO, 2, 2)
+    print(f"{formula}: testing set_stereo_from_geometry")
+    ftsg = graph.without_stereo(tsg)
+    rtsg = graph.ts_reverse(ftsg)
+    assert ftsg != rtsg
+    # Check that they have the same stereogenic keys
+    fste_keys = graph.unassigned_stereocenter_keys(ftsg)
+    rste_keys = graph.unassigned_stereocenter_keys(rtsg)
+    print(fste_keys)
+    print(rste_keys)
+    assert len(fste_keys) == len(rste_keys) == npars1
+    assert fste_keys == rste_keys
+    # Check that they have the same parities
+    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
+    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
+    fste_par_dct = automol.util.dict_.filter_by_value(
+        graph.stereo_parities(ftsg), lambda x: x is not None
+    )
+    rste_par_dct = automol.util.dict_.filter_by_value(
+        graph.stereo_parities(rtsg), lambda x: x is not None
+    )
+    print(fste_par_dct)
+    print(rste_par_dct)
+    assert len(fste_par_dct) == len(rste_par_dct) == npars2
+    assert fste_par_dct == rste_par_dct
 
 
 def test__to_local_stereo():
@@ -1034,49 +1038,53 @@ def test__ts__reagents_graph():
     _test("C5H7O", C5H7O_TSG, {}, {frozenset({2, 3}): True})
 
 
-def test__amchi():
+@pytest.mark.parametrize(
+    "formula,tsg",
+    [
+        ("CH4CLFNO", CH4CLFNO_TSG),
+        ("C4H11O2", C4H11O2_TSG),
+        ("C2H3O4", C2H3O4_TSG),
+        ("C4H9O3", C4H9O3_TSG),
+        ("C2H3F2O", C2H3F2O_TSG),
+        ("C4H5F3O2", C4H5F3O2_TSG),
+        ("C4H9O2", C4H9O2_TSG),
+        ("C2H4O2", C2H4O2_TSG),
+        ("C4H4F2", C4H4F2_TSG),
+        ("C8H14", C8H14_TSG),
+    ],
+)
+def test__amchi(formula, tsg):
     """test graph.amchi"""
+    print(f"{formula}: testing amchi")
+    ftsg = tsg
+    rtsg = graph.ts.reverse(ftsg)
 
-    def _test(formula, tsg):
-        print(f"{formula}: testing amchi")
-        ftsg = tsg
-        rtsg = graph.ts.reverse(ftsg)
+    fchi = graph.amchi(ftsg)
+    rchi = graph.amchi(rtsg)
 
-        fchi = graph.amchi(ftsg)
-        rchi = graph.amchi(rtsg)
+    # Check interconversion
+    print(fchi)
+    print(graph.amchi(automol.amchi.graph(fchi)))
+    assert graph.amchi(automol.amchi.graph(fchi)) == fchi
+    assert graph.amchi(automol.amchi.graph(rchi)) == rchi
 
-        # Check interconversion
-        assert graph.amchi(automol.amchi.graph(fchi)) == fchi
-        assert graph.amchi(automol.amchi.graph(rchi)) == rchi
+    print("fchi:", fchi)
+    print("rchi:", rchi)
+    assert fchi[:-1] == rchi[:-1]
 
-        print("fchi:", fchi)
-        print("rchi:", rchi)
-        assert fchi[:-1] == rchi[:-1]
+    orig_keys = sorted(graph.atom_keys(tsg))
+    for _ in range(5):
+        perm_keys = numpy.random.permutation(orig_keys)
+        perm_dct = dict(zip(orig_keys, perm_keys))
 
-        orig_keys = sorted(graph.atom_keys(tsg))
-        for _ in range(5):
-            perm_keys = numpy.random.permutation(orig_keys)
-            perm_dct = dict(zip(orig_keys, perm_keys))
+        perm_ftsg = graph.relabel(ftsg, perm_dct)
+        perm_rtsg = graph.relabel(rtsg, perm_dct)
 
-            perm_ftsg = graph.relabel(ftsg, perm_dct)
-            perm_rtsg = graph.relabel(rtsg, perm_dct)
+        perm_fchi = graph.amchi(perm_ftsg)
+        perm_rchi = graph.amchi(perm_rtsg)
 
-            perm_fchi = graph.amchi(perm_ftsg)
-            perm_rchi = graph.amchi(perm_rtsg)
-
-            assert perm_fchi == fchi, f"\n{perm_fchi} !=\n{fchi}"
-            assert perm_rchi == rchi, f"\n{perm_rchi} !=\n{rchi}"
-
-    _test("CH4CLFNO", CH4CLFNO_TSG)
-    _test("C4H11O2", C4H11O2_TSG)
-    _test("C2H3O4", C2H3O4_TSG)
-    _test("C4H9O3", C4H9O3_TSG)
-    _test("C2H3F2O", C2H3F2O_TSG)
-    _test("C4H5F3O2", C4H5F3O2_TSG)
-    _test("C4H9O2", C4H9O2_TSG)
-    _test("C2H4O2", C2H4O2_TSG)
-    _test("C4H4F2", C4H4F2_TSG)
-    _test("C8H14", C8H14_TSG)
+        assert perm_fchi == fchi, f"\n{perm_fchi} !=\n{fchi}"
+        assert perm_rchi == rchi, f"\n{perm_rchi} !=\n{rchi}"
 
 
 def test__linear_atom_keys():
@@ -1362,10 +1370,10 @@ if __name__ == "__main__":
     # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    # test__amchi()
+    test__amchi("CH4CLFNO", CH4CLFNO_TSG)
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
     # test__radical_atom_keys()
     # test__geometry()
-    test__ts__expand_reaction_stereo("C5H6O", C5H6O_TSG, [1, 1])
+    # test__ts__expand_reaction_stereo("C5H6O", C5H6O_TSG, [1, 1])
     # test__zmatrix()
