@@ -48,12 +48,15 @@ def minimum_cycle_basis(nxg: networkx.Graph, weight: str | None = None):
 
     def _order_and_normalize(rkeys):
         """Order and normalize the ring keys."""
-        rkeys = networkx.cycle_basis(nxg.subgraph(rkeys))[0]
+        cyc_iter = list(networkx.simple_cycles(nxg.subgraph(rkeys)))
+        rkeys = next((ks for ks in cyc_iter if set(ks) == set(rkeys)), None)
+        assert rkeys is not None, f"Failed to identify cycle for {rkeys} in\n{nxg}"
         return util.ring.normalize(rkeys)
 
     rkeys_lst = networkx.algorithms.cycles.minimum_cycle_basis(nxg, weight=weight)
     # Ensure that the ordering is correct (not guaranteed by minimum cycle basis)
-    return tuple(sorted(map(_order_and_normalize, rkeys_lst)))
+    rkeys_lst = tuple(sorted(map(_order_and_normalize, rkeys_lst)))
+    return rkeys_lst
 
 
 def connected_component_atom_keys(nxg):
