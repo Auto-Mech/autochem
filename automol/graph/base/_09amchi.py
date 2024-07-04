@@ -2,6 +2,7 @@
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+
 import itertools
 from typing import Dict, List
 
@@ -16,11 +17,19 @@ from automol.graph.base._00core import (
     bond_stereo_keys,
     bond_stereo_parities,
     formula,
+    relabel,
     terminal_atom_keys,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
 )
-from automol.graph.base._02algo import connected_components, rings_atom_keys
+from automol.graph.base._02algo import (
+    connected_components,
+    dfs_,
+    dfs_children,
+    dfs_missing_children,
+    dfs_parents,
+    rings_atom_keys,
+)
 from automol.graph.base._03kekule import (
     kekules_bond_orders_collated,
     vinyl_radical_atom_keys,
@@ -161,8 +170,85 @@ def formula_string(gra):
 
 
 # # # Main layers
-def connection_layer(gra):
+def connection_layer(gra, default_old: bool = True):
     """AMChI connection (c) layer from graph
+
+    To do: Remove the default_old flag and use only this implementation
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param default_old: Default to the old implementation, for non-polycycles?
+    :returns: the connection layer, without prefix
+    :rtype: str
+    """
+    # For now, use the old connection layer code for all but polycycles
+    if default_old and len(rings_atom_keys(gra)) <= 1:
+        return connection_layer_deprecated(gra)
+
+    # Switch to one-indexing
+    gra = relabel(gra, {k: k + 1 for k in atom_keys(gra)})
+
+    # If there are terminal atoms, start from the one with the lowest canonical
+    # number
+    term_keys = terminal_atom_keys(gra, backbone=True)
+    start_key = min(term_keys) if term_keys else 1
+
+    # Identify children and parents for depth-first traversal
+    dfs = dfs_(gra, start_key)
+    child_dct = dfs_children(dfs)
+    parent_dct = dfs_parents(dfs)
+
+    # Identify ring bonds that won'tibe visited in the depth-first traversal
+    # These will be connected back from the later DFS atom to the earlier one
+    miss_child_dct = dfs_missing_children(gra, dfs)
+
+    # Perform depth-first traversal, building the connection layer
+    branch_depth = 0
+    branch_start_keys = set()
+    keys = [start_key]
+    conn_lyr = ""
+    while keys:
+        key = keys.pop()
+
+        # 1. Open parentheses for the branch
+        if key in branch_start_keys:
+            branch_depth += 1
+            branch_start_keys.remove(key)
+            conn_lyr += "("
+        # 2. Encode the bond to the parent atom
+        elif key in parent_dct and not conn_lyr.endswith(")"):
+            conn_lyr += "-"
+
+        # 3. Encode the atom
+        conn_lyr += f"{key}"
+
+        # 4. Encode missing ring closure bonds
+        if key in miss_child_dct:
+            rng_keys = miss_child_dct.pop(key)
+            term_key = None if key in child_dct else rng_keys.pop()
+            conn_lyr += "".join([f"({k})" for k in rng_keys])
+            if term_key is not None:
+                conn_lyr += f"{term_key}" if conn_lyr.endswith(")") else f"-{term_key}"
+
+        # 4. Set continuation atoms, or terminate the string or branch
+        if key in child_dct:
+            child_keys = child_dct[key]
+            branch_start_keys.update(child_keys[1:])
+            keys.extend(child_keys)
+        else:
+            # b. Close parentheses if we are ending a branch
+            if branch_depth:
+                branch_depth -= 1
+                conn_lyr += ")"
+
+    conn_lyr = conn_lyr if conn_lyr != "1" else ""
+    return conn_lyr
+
+
+def connection_layer_deprecated(gra):
+    """AMChI connection (c) layer from graph
+
+    Deprecated: Needs to be dropped, but will require database changes
 
     :param gra: molecular graph
     :type gra: automol graph data structure

@@ -8,6 +8,7 @@ import functools
 import itertools
 import numbers
 import operator
+from collections import defaultdict
 from typing import Any, Dict, List, Tuple
 
 import more_itertools as mit
@@ -435,26 +436,84 @@ def is_connected(gra):
     return len(connected_components(gra)) == 1
 
 
-def dfs_children(gra, key) -> Dict[int, List[int]]:
-    """Get the dictionary of children in a depth-first search
+def dfs_(gra, key) -> list[tuple[int, int]]:
+    """Get the result of a depth-first search.
 
     :param gra: A graph
     :param key: The starting atom key
-    :return: The dictionary of children
+    :return: The depth-first search, encoded as edge tuples in visitation order
     """
     nxg = _01networkx.from_graph(gra)
-    return networkx.dfs_successors(nxg, source=key)
+    dfs = list(networkx.dfs_edges(nxg, source=key, sort_neighbors=sorted))
+    return dfs
 
 
-def dfs_parents(gra, key) -> Dict[int, int]:
-    """Get the dictionary of predecessors in a depth-first search
+def dfs_atom_keys(dfs: list[tuple[int, int]]) -> list[int]:
+    """Get the atom keys in order from a depth-first search.
+
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: The atom keys in visitation order
+    """
+    return list(mit.unique_justseen(itertools.chain(*dfs)))
+
+
+def dfs_bond_keys(dfs: list[tuple[int, int]]) -> list[frozenset[int]]:
+    """Get the bond keys in order from a depth-first search.
+
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: The bond keys in visitation order
+    """
+    return list(map(frozenset, dfs))
+
+
+def dfs_children(dfs: list[tuple[int, int]]) -> dict[int, list[int]]:
+    """Get a dictionary of children from a depth-first search.
+
+    :param dfs: The edges visited by the DFS search
+    :return: A dictionary mapping parents onto their children, in order
+    """
+    child_dct = defaultdict(list)
+    for pkey, ckey in dfs:
+        child_dct[pkey].append(ckey)
+    return dict(child_dct)
+
+
+def dfs_parents(dfs: list[tuple[int, int]]) -> dict[int, list[int]]:
+    """Get a dictionary of parents from a depth-first search.
+
+    :param dfs: The edges visited by the DFS search
+    :return: A dictionary mapping children onto their parents, in order
+    """
+    return {c: p for p, c in dfs}
+
+
+def dfs_missing_bond_keys(gra, dfs: list[tuple[int, int]]) -> frozenset[frozenset[int]]:
+    """Get the (ring) bond keys missed by a depth-first search.
 
     :param gra: A graph
-    :param key: The starting atom key
-    :return: The dictionary of parents
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: The bond keys missed by the search
     """
-    nxg = _01networkx.from_graph(gra)
-    return networkx.dfs_predecessors(nxg, source=key)
+    return bond_keys(gra) - frozenset(dfs_bond_keys(dfs))
+
+
+def dfs_missing_children(gra, dfs: list[tuple[int, int]]) -> dict[int, list[int]]:
+    """Get a dictionary of children which are missing from a depth-first search.
+
+    These are the children that are necessary to reconnect missing ring bonds.
+
+    :param gra: A graph
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: A dictionary mapping parents onto their missing children, in order
+    """
+    dfs_keys = dfs_atom_keys(dfs)
+    miss_bkeys = dfs_missing_bond_keys(gra, dfs)
+    miss_child_dct = defaultdict(list)
+    for bkey in miss_bkeys:
+        pkey, ckey = sorted(bkey, key=dfs_keys.index)
+        miss_child_dct[ckey].append(pkey)
+    miss_child_dct = util.dict_.transform_values(miss_child_dct, sorted)
+    return miss_child_dct
 
 
 def atom_shortest_paths(gra):

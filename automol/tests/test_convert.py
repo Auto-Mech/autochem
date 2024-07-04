@@ -559,11 +559,12 @@ def test__inchi_geometry():
 def test__multiple_rings():
     """test graph => inchi conversion for multiple rings"""
     ref_chi = (
-        "AMChI=1/C17H19NO3/c1-18-7-6-17-11-9(8)2-3-10(19)12(11)21-16"
+        "AMChI=1/C17H19NO3/c1-18-7-6-17-11-9-2-3-10(19)12(11)21-16"
         "(17)14(20)5-4-13(17)15(18)8-9/h2-5,13-16,19-20H,6-8H2,1H3/"
         "t13-,14-,15-,16+,17-,18-/m1/s1"
     )
     gra = automol.chi.graph(ref_chi)
+    print(f"gra = {gra}")
     chi = automol.graph.chi(gra, stereo=True)
     print(ref_chi)
     print(chi)
@@ -616,8 +617,8 @@ if __name__ == "__main__":
     # test__geom__with_stereo()
     # test__graph__with_stereo()
     # test__smiles__with_stereo()
-    test__graph__misc()
+    # test__graph__misc()
     # test__inchi_geometry()
-    # test__multiple_rings()
+    test__multiple_rings()
     # test__weird_valencies()
     # test__symmetry_removal()
