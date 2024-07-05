@@ -1,5 +1,6 @@
 """ Helper functions for working with Python dictionaries
 """
+
 import itertools
 from copy import deepcopy
 from typing import Any
@@ -42,30 +43,30 @@ def compose(dct1, dct2):
     return {k2: dct1[v2] for k2, v2 in dct2.items()}
 
 
-def right_update(dct1, dct2):
+def right_update(dct1, dct2, nested: bool = False):
     """Updates the entries of `dct1` with those of `dct2`.
 
     :param dct1: dictionary1 that will be updated
-    :type dct1: dict
     :param dct2: dictionary2 whose entries will override dct1
-    :type dct2: dict
     :rtype: dict
     """
 
     dct = {}
     dct1 = empty_if_none(dct1)
     dct2 = empty_if_none(dct2)
-    dct.update(dct1)
-    dct.update(dct2)
 
-    # if both dictionaries have a nested dictionary, keep
-    # any non-overlapping nested key-value pairs and
-    # the dct2 key-values for overlapping keys.
-    for key, value in dct1.items():
-        if isinstance(value, dict) and key in dct2:
-            for subkey, subval in value.items():
-                if subkey not in dct2[key]:
-                    dct[key][subkey] = subval
+    dct = dct1.copy()
+    for key, val in dct2.items():
+        if (
+            nested
+            and key in dct
+            and isinstance(dct[key], dict)
+            and isinstance(val, dict)
+        ):
+            dct[key] = right_update(dct[key], val)
+        else:
+            dct[key] = val
+
     return dct
 
 
@@ -243,7 +244,7 @@ def merge_sequence(dcts):
     return merged_dct
 
 
-def sort_value_(dct, allow_missing: bool = True, missing_val: Any=None):
+def sort_value_(dct, allow_missing: bool = True, missing_val: Any = None):
     """Generate a sort value function from a dictionary
 
     :param dct: A dictionary
@@ -253,7 +254,9 @@ def sort_value_(dct, allow_missing: bool = True, missing_val: Any=None):
     :param missing_val: Value to assign to missing values, defaults to None
     :type missing_val: Any, optional
     """
+
     def sort_value(key):
         assert allow_missing or key in dct, "No key {key} in dictionary:\n{dict}"
         return dct[key] if key in dct else missing_val
+
     return sort_value
