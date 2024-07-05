@@ -43,33 +43,6 @@ def compose(dct1, dct2):
     return {k2: dct1[v2] for k2, v2 in dct2.items()}
 
 
-def right_update(dct1, dct2, nested: bool = False):
-    """Updates the entries of `dct1` with those of `dct2`.
-
-    :param dct1: dictionary1 that will be updated
-    :param dct2: dictionary2 whose entries will override dct1
-    :rtype: dict
-    """
-
-    dct = {}
-    dct1 = empty_if_none(dct1)
-    dct2 = empty_if_none(dct2)
-
-    dct = dct1.copy()
-    for key, val in dct2.items():
-        if (
-            nested
-            and key in dct
-            and isinstance(dct[key], dict)
-            and isinstance(val, dict)
-        ):
-            dct[key] = right_update(dct[key], val)
-        else:
-            dct[key] = val
-
-    return dct
-
-
 def by_key(dct, keys, fill=True, fill_val=None):
     """dictionary on a set of keys, filling missing entries
 
@@ -132,45 +105,6 @@ def values_in_multilevel_dct(dct, key1, key2, fill_val=None):
         val = fill_val
 
     return val
-
-
-def separate_subdct(dct, key="global"):
-    """Pulls out a sub-dictionary indexed by the given key and returns it
-    and the original dictioanry with the requested sub-dictionary removed
-    """
-
-    # Grab the sub-dictonary and
-    sub_dct = dct.get(key, {})
-
-    # Build a new copy of the input dictionary with the sub-dict removed
-    dct2 = deepcopy(dct)
-    dct2.pop(key, None)
-
-    return dct2, sub_dct
-
-
-def merge_subdct(dct, key="global", keep_subdct=False):
-    """Obtain a sub-dictionary indexed by a given key and merge its contents
-    with all of the other sub-dictionaries in the main dictionary.
-
-    :param dct: dictionary containing several sub-dictionaries
-    :type dct: dict[str: dict]
-    :param key: key for the sub-dictionary to be merged
-    :type key: str, int, float, tuple
-    :param keep_subdct: keep/remove the sub-dictionary following the merge
-    :type keep_subdct: bool
-    """
-
-    if list(dct.keys()) == [key]:
-        new_dct = {key: dct[key]}
-    else:
-        new_dct, sub_dct = separate_subdct(dct, key=key)
-        for new_key in new_dct:
-            new_dct[new_key] = right_update(sub_dct, new_dct[new_key])
-        if keep_subdct:
-            new_dct[key] = sub_dct
-
-    return new_dct
 
 
 def keys_by_value(dct, func=lambda x: x):

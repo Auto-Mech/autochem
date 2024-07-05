@@ -58,21 +58,9 @@ DCT4 = {
 }
 
 
-def test__update():
-    """ test automol.dict_.right_update
-        test automol.dict_.merge_sequence
+def test__merge_sequence():
+    """ test automol.dict_.merge_sequence
     """
-
-    # Combine dct functions
-    ref_dct1 = {
-        'ich': 'InChI=1S/N2/c1-2',
-        'charge': 0,
-        'mult': 1
-    }
-
-    dct1 = dict_.right_update(DCT1, DCT2)
-
-    assert dct1 == ref_dct1
 
     ref_dct2 = {
         'ich': 'InChI=1S/N2/c1-2',
@@ -114,73 +102,6 @@ def test__read():
     assert val2 == 'subval2-1'
     assert val3 == 'fill'
     assert val4 == 'fill'
-
-
-def test__separate_and_merge():
-    """ test_separate_subdct
-    """
-
-    # Separate dictionaries
-    ref_subdct1 = {
-        'key1': {
-            'subkey1': 'subval1-1',
-            'subkey2': 'subval1-2'
-        },
-        'key2': {
-            'subkey1': 'subval2-1',
-            'subkey2': 'subval2-2'
-        }
-    }
-    ref_subdct2 = {
-        'subkey1': 'subvalg1',
-        'subkey3': 'subvalg3'
-    }
-
-    subdct1, subdct2 = dict_.separate_subdct(GDCT3, key='global')
-    assert ref_subdct1 == subdct1
-    assert ref_subdct2 == subdct2
-
-    subdct1, subdct2 = dict_.separate_subdct(GDCT3, key='key3')
-    assert GDCT3 == subdct1
-    assert not subdct2
-
-    # Merge subdictionaries
-    ref_mergedct1 = {
-        'key1': {
-            'subkey1': 'subval1-1',
-            'subkey3': 'subvalg3',
-            'subkey2': 'subval1-2'
-        },
-        'key2': {
-            'subkey1': 'subval2-1',
-            'subkey3': 'subvalg3',
-            'subkey2': 'subval2-2'
-        },
-        'global': {
-            'subkey1': 'subvalg1',
-            'subkey3': 'subvalg3'
-        }
-    }
-    ref_mergedct2 = {
-        'key1': {
-            'subkey1': 'subval1-1',
-            'subkey3': 'subvalg3',
-            'subkey2': 'subval1-2',
-        },
-        'key2': {
-            'subkey1': 'subval2-1',
-            'subkey3': 'subvalg3',
-            'subkey2': 'subval2-2',
-        }
-    }
-
-    mergedct1 = dict_.merge_subdct(GDCT3, key='global', keep_subdct=True)
-    mergedct2 = dict_.merge_subdct(GDCT3, key='global', keep_subdct=False)
-    mergedct3 = dict_.merge_subdct(GDCT4, key='global', keep_subdct=False)
-
-    assert ref_mergedct1 == mergedct1
-    assert ref_mergedct2 == mergedct2
-    assert GDCT4 == mergedct3
 
 
 def test__sort():
