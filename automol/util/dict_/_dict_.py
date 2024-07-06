@@ -1,5 +1,6 @@
 """ Helper functions for working with Python dictionaries
 """
+
 import itertools
 from copy import deepcopy
 from typing import Any
@@ -40,33 +41,6 @@ def compose(dct1, dct2):
     :rtype: dict
     """
     return {k2: dct1[v2] for k2, v2 in dct2.items()}
-
-
-def right_update(dct1, dct2):
-    """Updates the entries of `dct1` with those of `dct2`.
-
-    :param dct1: dictionary1 that will be updated
-    :type dct1: dict
-    :param dct2: dictionary2 whose entries will override dct1
-    :type dct2: dict
-    :rtype: dict
-    """
-
-    dct = {}
-    dct1 = empty_if_none(dct1)
-    dct2 = empty_if_none(dct2)
-    dct.update(dct1)
-    dct.update(dct2)
-
-    # if both dictionaries have a nested dictionary, keep
-    # any non-overlapping nested key-value pairs and
-    # the dct2 key-values for overlapping keys.
-    for key, value in dct1.items():
-        if isinstance(value, dict) and key in dct2:
-            for subkey, subval in value.items():
-                if subkey not in dct2[key]:
-                    dct[key][subkey] = subval
-    return dct
 
 
 def by_key(dct, keys, fill=True, fill_val=None):
@@ -131,45 +105,6 @@ def values_in_multilevel_dct(dct, key1, key2, fill_val=None):
         val = fill_val
 
     return val
-
-
-def separate_subdct(dct, key="global"):
-    """Pulls out a sub-dictionary indexed by the given key and returns it
-    and the original dictioanry with the requested sub-dictionary removed
-    """
-
-    # Grab the sub-dictonary and
-    sub_dct = dct.get(key, {})
-
-    # Build a new copy of the input dictionary with the sub-dict removed
-    dct2 = deepcopy(dct)
-    dct2.pop(key, None)
-
-    return dct2, sub_dct
-
-
-def merge_subdct(dct, key="global", keep_subdct=False):
-    """Obtain a sub-dictionary indexed by a given key and merge its contents
-    with all of the other sub-dictionaries in the main dictionary.
-
-    :param dct: dictionary containing several sub-dictionaries
-    :type dct: dict[str: dict]
-    :param key: key for the sub-dictionary to be merged
-    :type key: str, int, float, tuple
-    :param keep_subdct: keep/remove the sub-dictionary following the merge
-    :type keep_subdct: bool
-    """
-
-    if list(dct.keys()) == [key]:
-        new_dct = {key: dct[key]}
-    else:
-        new_dct, sub_dct = separate_subdct(dct, key=key)
-        for new_key in new_dct:
-            new_dct[new_key] = right_update(sub_dct, new_dct[new_key])
-        if keep_subdct:
-            new_dct[key] = sub_dct
-
-    return new_dct
 
 
 def keys_by_value(dct, func=lambda x: x):
@@ -243,7 +178,7 @@ def merge_sequence(dcts):
     return merged_dct
 
 
-def sort_value_(dct, allow_missing: bool = True, missing_val: Any=None):
+def sort_value_(dct, allow_missing: bool = True, missing_val: Any = None):
     """Generate a sort value function from a dictionary
 
     :param dct: A dictionary
@@ -253,7 +188,9 @@ def sort_value_(dct, allow_missing: bool = True, missing_val: Any=None):
     :param missing_val: Value to assign to missing values, defaults to None
     :type missing_val: Any, optional
     """
+
     def sort_value(key):
         assert allow_missing or key in dct, "No key {key} in dictionary:\n{dict}"
         return dct[key] if key in dct else missing_val
+
     return sort_value
