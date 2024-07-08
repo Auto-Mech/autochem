@@ -28,15 +28,9 @@ jobs:
         run: |
           pixi run pip install . --no-deps
 
-      - name: Lint (new)
+      - name: Lint
         run: |
           pixi run ./lint.sh
-
-      - name: Lint (old)
-        run: |
-          pixi run pylint --rcfile=.pylintrc automol
-          pixi run pylint --rcfile=.pylintrc phydat
-          pixi run pylint --rcfile=.pylintrc autoreact
 
       - name: Test
         run: |
