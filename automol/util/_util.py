@@ -1,16 +1,15 @@
-""" miscellaneous utilities
-"""
+"""miscellaneous utilities."""
 
 import itertools
 from collections.abc import Collection, Iterable
 from numbers import Number
-from typing import Any, List
+from typing import Any
 
 from phydat import ptab
 
 
-def partner(pair: List, item: Any) -> Any:
-    """Get the partner of an item in a pair
+def partner(pair: list, item: Any) -> Any:
+    """Get the partner of an item in a pair.
 
     The two items must be distinct
 
@@ -24,12 +23,12 @@ def partner(pair: List, item: Any) -> Any:
 
 
 def flatten(lst):
-    """Flatten an arbitrarily nested list of lists (iterator)
+    """Flatten an arbitrarily nested list of lists (iterator).
 
     Source: https://stackoverflow.com/a/2158532
     """
     for elem in lst:
-        if isinstance(elem, Iterable) and not isinstance(elem, (str, bytes)):
+        if isinstance(elem, Iterable) and not isinstance(elem, str | bytes):
             yield from flatten(elem)
         else:
             yield elem
@@ -38,7 +37,7 @@ def flatten(lst):
 def translate(
     seq: Collection, trans_dct: dict, drop: bool = False, item_typ: type = Number
 ) -> Collection:
-    """Translate items in a nested sequence or collection with a dictionary
+    """Translate items in a nested sequence or collection with a dictionary.
 
     :param seq: An arbitrarily nested sequence or collection
     :param trans_dct: A translation dictionary
@@ -48,7 +47,7 @@ def translate(
     """
 
     def transform_(seq_in):
-        """Recursively convert a nested list of z-matrix keys to geometry keys"""
+        """Recursively convert a nested list of z-matrix keys to geometry keys."""
         assert isinstance(seq_in, Collection), f"Cannot process non-sequence {seq_in}"
         type_ = type(seq_in)
 
@@ -64,7 +63,7 @@ def translate(
     return transform_(seq)
 
 
-def is_odd_permutation(seq1: List, seq2: List):
+def is_odd_permutation(seq1: list, seq2: list):
     """Determine whether a permutation of a sequence is odd.
 
     :param seq1: the first sequence
@@ -75,7 +74,7 @@ def is_odd_permutation(seq1: List, seq2: List):
     return not is_even_permutation(seq1, seq2)
 
 
-def is_even_permutation(seq1: List, seq2: List, check: bool = True):
+def is_even_permutation(seq1: list, seq2: list, check: bool = True):
     """Determine whether a permutation of a sequence is even or odd.
 
     :param seq1: the first sequence
@@ -104,11 +103,12 @@ def is_even_permutation(seq1: List, seq2: List, check: bool = True):
 
 
 def equivalence_partition(iterable, relation, perfect=False):
-    """Partitions a set of objects into equivalence classes
+    """Partitions a set of objects into equivalence classes.
 
     canned function taken from https://stackoverflow.com/a/38924631
 
     Args:
+    ----
         iterable: collection of objects to be partitioned
         relation: equivalence relation. I.e. relation(o1,o2) evaluates to True
             if and only if o1 and o2 are equivalent
@@ -132,7 +132,7 @@ def equivalence_partition(iterable, relation, perfect=False):
                 found = True
                 break
         if not found:  # it is in a new class
-            classes.append(set([obj]))
+            classes.append({obj})
 
     # 2. Now, account for the possibility of 'imperfect' equivalence relations,
     # where the relation gives a = c and b = c, but not a = b, and yet we still
@@ -211,8 +211,7 @@ def breakby(lst, elem):
 
 
 def separate_negatives(lst):
-    """Seperate a list of numbers into negative and nonnegative (>= 0)"""
-
+    """Seperate a list of numbers into negative and nonnegative (>= 0)."""
     neg_lst = tuple(val for val in lst if val < 0)
     pos_lst = tuple(val for val in lst if val >= 0)
 
@@ -220,15 +219,14 @@ def separate_negatives(lst):
 
 
 def value_similar_to(val, lst, thresh):
-    """Check if a value is close to some lst of values within some threshold"""
+    """Check if a value is close to some lst of values within some threshold."""
     return any(abs(val - vali) < thresh for vali in lst)
 
 
 def scale_iterable(iterable, scale_factor):
-    """Scale some type of iterable of floats by a scale factor"""
-
+    """Scale some type of iterable of floats by a scale factor."""
     if isinstance(iterable, list):
-        iterable = list(val * scale_factor for val in iterable)
+        iterable = [val * scale_factor for val in iterable]
     elif isinstance(iterable, tuple):
         iterable = tuple(val * scale_factor for val in iterable)
 
@@ -238,7 +236,7 @@ def scale_iterable(iterable, scale_factor):
 def remove_duplicates_with_order(lst):
     """Remove all duplicates of a list while not reordering the list."""
     if isinstance(lst, list):
-        lst = list(n for i, n in enumerate(lst) if n not in lst[:i])
+        lst = [n for i, n in enumerate(lst) if n not in lst[:i]]
     if isinstance(lst, tuple):
         lst = tuple(n for i, n in enumerate(lst) if n not in lst[:i])
 
@@ -263,13 +261,12 @@ def sort_by_list(lst, ref_lst, include_missing=True):
     :type ref_lst: tuple
     :rtype: tuple
     """
-
     # Split input list by elements in and not in reference list
     x_in_ref = tuple(x for x in lst if x in ref_lst)
     x_missing = tuple(x for x in lst if x not in ref_lst)
 
     # Sorted list of elements in th reference
-    sort_lst = tuple(sorted(list(x_in_ref), key=lambda x: ref_lst.index(x)))
+    sort_lst = tuple(sorted(x_in_ref, key=lambda x: ref_lst.index(x)))
 
     # If request append the missing elements
     if include_missing:
@@ -287,7 +284,6 @@ def formula_from_symbols(symbs):
     :type symbs: tuple(str)
     :rtype: str
     """
-
     symbs = list(filter(ptab.to_number, map(ptab.to_symbol, symbs)))
 
     return _unique_item_counts(symbs)
@@ -300,7 +296,6 @@ def _unique_item_counts(iterable):
     :type iterable: iterable object
     :rtype: dict[obj: int]
     """
-
     items = tuple(iterable)
 
     return {item: items.count(item) for item in sorted(set(items))}

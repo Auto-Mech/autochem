@@ -3,7 +3,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 FILES=(
     "automol/inchi_key.py"
     "automol/error.py"
-    "automol/vmat.py"
+    "automol/util/_util.py"
 )
 
 (
