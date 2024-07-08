@@ -13,6 +13,7 @@ C2H2F2_ICH_STEREO_UNKNOWN = 'InChI=1/C2H2F2/c3-1-2-4/h1-2H/b2-1?'
 def test__first_hash():
     """ inchi.key.first_hash()
     """
+    print(inchi.inchi_key(C2H2F2_ICH))
     assert (inchi_key.first_hash(
         inchi.inchi_key(C2H2F2_ICH)) == 'WFLOTYSKFUPZQB')
     assert (inchi_key.first_hash(
@@ -52,3 +53,8 @@ def test__protonation_indicator():
     assert inchi_key.protonation_indicator(inchi.inchi_key(ich1)) == 'N'
     assert inchi_key.protonation_indicator(inchi.inchi_key(ich2)) == 'M'
     assert inchi_key.protonation_indicator(inchi.inchi_key(ich3)) == 'O'
+
+
+if __name__ == "__main__":
+    print("Hello, world!")
+    test__first_hash()
