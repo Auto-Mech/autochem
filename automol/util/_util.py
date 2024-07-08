@@ -3,12 +3,12 @@
 import itertools
 from collections.abc import Collection, Iterable
 from numbers import Number
-from typing import Any
+from typing import Any, Callable    
 
 from phydat import ptab
 
 
-def partner(pair: list, item: Any) -> Any:
+def partner(pair: Any, item: Any) -> Any:
     """Get the partner of an item in a pair.
 
     The two items must be distinct
@@ -22,7 +22,7 @@ def partner(pair: list, item: Any) -> Any:
     return next(iter(pair - {item}))
 
 
-def flatten(lst):
+def flatten(lst: list):
     """Flatten an arbitrarily nested list of lists (iterator).
 
     Source: https://stackoverflow.com/a/2158532
@@ -42,11 +42,10 @@ def translate(
     :param seq: An arbitrarily nested sequence or collection
     :param trans_dct: A translation dictionary
     :param drop: Drop values missing from translation dictionary?, defaults to False
-    :param item_typ: The type of item to translate, defaults to Number
-    :return: _description_
+    :return: Translated version of collection
     """
 
-    def transform_(seq_in):
+    def transform_(seq_in: Collection) -> Collection:
         """Recursively convert a nested list of z-matrix keys to geometry keys."""
         assert isinstance(seq_in, Collection), f"Cannot process non-sequence {seq_in}"
         type_ = type(seq_in)
@@ -63,24 +62,22 @@ def translate(
     return transform_(seq)
 
 
-def is_odd_permutation(seq1: list, seq2: list):
+def is_odd_permutation(seq1: list, seq2: list) -> bool:
     """Determine whether a permutation of a sequence is odd.
 
-    :param seq1: the first sequence
-    :param seq2: the second sequence, which must be a permuation of the first
+    :param seq1: The first sequence
+    :param seq2: The second sequence, which must be a permuation of the first
     :returns: True if the permutation is even, False if it is odd
-    :rtype: bool
     """
     return not is_even_permutation(seq1, seq2)
 
 
 def is_even_permutation(seq1: list, seq2: list, check: bool = True):
-    """Determine whether a permutation of a sequence is even or odd.
+    """Determine whether a permutation of a sequence is even.
 
-    :param seq1: the first sequence
-    :param seq2: the second sequence, which must be a permuation of the first
+    :param seq1: The first sequence
+    :param seq2: The second sequence, which must be a permuation of the first
     :returns: True if the permutation is even, False if it is odd
-    :rtype: bool
     """
     size = len(seq1)
     if check:
@@ -102,17 +99,15 @@ def is_even_permutation(seq1: list, seq2: list, check: bool = True):
     return parity
 
 
-def equivalence_partition(iterable, relation, perfect=False):
+def equivalence_partition(iterable: Collection, relation: Callable [[Any,Any], bool], perfect:bool =False) -> list:
     """Partitions a set of objects into equivalence classes.
 
     canned function taken from https://stackoverflow.com/a/38924631
 
-    Args:
-    ----
-        iterable: collection of objects to be partitioned
-        relation: equivalence relation. I.e. relation(o1,o2) evaluates to True
-            if and only if o1 and o2 are equivalent
-        perfect: is this a perfect equivalence relation, where a = c and b = c
+    :param iterable: Collection of objects to be partitioned
+    :param relation: equivalence relation. I.e. relation(o1,o2) evaluates to True
+        if and only if o1 and o2 are equivalent
+    :param perfect: is this a perfect equivalence relation, where a = c and b = c
             guarantees a = b? if not, an extra search is performed to make sure
             that a, b, and c still end up in the same class
 
@@ -156,28 +151,24 @@ def equivalence_partition(iterable, relation, perfect=False):
 
 
 # Useful functions on Python objects
-def move_item_to_front(lst, item):
+def move_item_to_front(lst: list | tuple, item) -> tuple:
     """Move an item to the front of a list.
 
     :param lst: the list
-    :type lst: list or tuple
     :param item: the item, which must be in `lst`
     :returns: the list, with the item moved to front
-    :rtype: tuple
     """
     lst = list(lst)
     lst.insert(0, lst.pop(lst.index(item)))
     return tuple(lst)
 
 
-def move_item_to_end(lst, item):
+def move_item_to_end(lst: list | tuple, item) -> tuple:
     """Move an item to the end of a list.
 
     :param lst: the list
-    :type lst: list or tuple
     :param item: the item, which must be in `lst`
     :returns: the list, with the item moved to end
-    :rtype: tuple
     """
     lst = list(lst)
     lst.append(lst.pop(lst.index(item)))
@@ -243,7 +234,7 @@ def remove_duplicates_with_order(lst):
     return lst
 
 
-def sort_by_list(lst, ref_lst, include_missing=True):
+def sort_by_list(lst: tuple, ref_lst: tuple, include_missing=True) -> tuple:
     """Order the elements of the list by using the priorities given
     by some reference lst.
 
@@ -256,10 +247,7 @@ def sort_by_list(lst, ref_lst, include_missing=True):
     dropped if the user specifies not to include it.
 
     :param lst: list to sort
-    :type lst: tuple
     :param ref_lst: list which sets the order of the previous list
-    :type ref_lst: tuple
-    :rtype: tuple
     """
     # Split input list by elements in and not in reference list
     x_in_ref = tuple(x for x in lst if x in ref_lst)
@@ -275,26 +263,23 @@ def sort_by_list(lst, ref_lst, include_missing=True):
     return sort_lst
 
 
-def formula_from_symbols(symbs):
+def formula_from_symbols(symbs: tuple[str]) -> str:
     """Build a molecular formula from a list of atomic symbols.
 
     (note: dummy atoms will be filtered out and cases will be standardized)
 
     :param symbs: atomic symbols
-    :type symbs: tuple(str)
-    :rtype: str
     """
     symbs = list(filter(ptab.to_number, map(ptab.to_symbol, symbs)))
 
     return _unique_item_counts(symbs)
 
 
-def _unique_item_counts(iterable):
+def _unique_item_counts(iterable: Iterable) -> dict[object:int]:
     """Build a dictionary giving the count of each unique item in a sequence.
 
     :param iterable: sequence to obtain counts for
     :type iterable: iterable object
-    :rtype: dict[obj: int]
     """
     items = tuple(iterable)
 

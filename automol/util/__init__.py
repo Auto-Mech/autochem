@@ -1,12 +1,10 @@
-""" common utilities used by automol
-"""
+"""Common utilities used by automol."""
 
 from automol.util import dict_, heuristic, matrix, ring, tensor, vector, zmat_conv
 from automol.util._util import (
     breakby,
     equivalence_partition,
     flatten,
-    translate,
     formula_from_symbols,
     is_even_permutation,
     is_odd_permutation,
@@ -18,6 +16,7 @@ from automol.util._util import (
     scale_iterable,
     separate_negatives,
     sort_by_list,
+    translate,
     value_similar_to,
 )
 from automol.util.zmat_conv import ZmatConv
