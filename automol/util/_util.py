@@ -1,7 +1,7 @@
 """miscellaneous utilities."""
 
 import itertools
-from collections.abc import Callable, Collection, Iterable, Iterator
+from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
 from numbers import Number
 from typing import Any
 
@@ -152,7 +152,7 @@ def equivalence_partition(
 
 
 # Useful functions on Python objects
-def move_item_to_front(lst: list | tuple, item) -> tuple:
+def move_item_to_front(lst: Sequence, item) -> tuple:
     """Move an item to the front of a list.
 
     :param lst: The list
@@ -164,7 +164,7 @@ def move_item_to_front(lst: list | tuple, item) -> tuple:
     return tuple(lst)
 
 
-def move_item_to_end(lst: list | tuple, item) -> tuple:
+def move_item_to_end(lst: Sequence, item) -> tuple:
     """Move an item to the end of a list.
 
     :param lst: The list
@@ -176,7 +176,7 @@ def move_item_to_end(lst: list | tuple, item) -> tuple:
     return tuple(lst)
 
 
-def move_items_to_front(lst: list | tuple, items) -> tuple:
+def move_items_to_front(lst: Sequence, items) -> tuple:
     """Move an item to the front of a list.
 
     :param lst: The list
@@ -200,7 +200,7 @@ def breakby(lst: Collection, elem) -> tuple[tuple, tuple]:
     return lsts
 
 
-def separate_negatives(lst: list | tuple):
+def separate_negatives(lst: Sequence):
     """Seperate a list of numbers into negative and nonnegative (>= 0)."""
     neg_lst = tuple(val for val in lst if val < 0)
     pos_lst = tuple(val for val in lst if val >= 0)

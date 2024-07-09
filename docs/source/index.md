@@ -7,4 +7,5 @@ Welcome to my documentation website...
 automol/inchi_key.md
 automol/util.md
 automol/heuristic.md
+automol/matrix.md
 ```
