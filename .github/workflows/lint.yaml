@@ -32,4 +32,4 @@ jobs:
       # Lint
       - name: Lint
         run: |
-          pixi run ./lint.sh
+          pixi run ./old-lint.sh
