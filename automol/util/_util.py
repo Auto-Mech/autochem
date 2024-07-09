@@ -1,14 +1,14 @@
 """miscellaneous utilities."""
 
 import itertools
-from collections.abc import Collection, Iterable
+from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
 from numbers import Number
-from typing import Any, Callable    
+from typing import Any
 
 from phydat import ptab
 
 
-def partner(pair: Any, item: Any) -> Any:
+def partner(pair: Collection, item: Any) -> Any:
     """Get the partner of an item in a pair.
 
     The two items must be distinct
@@ -22,7 +22,7 @@ def partner(pair: Any, item: Any) -> Any:
     return next(iter(pair - {item}))
 
 
-def flatten(lst: list):
+def flatten(lst: Collection) -> Iterator:
     """Flatten an arbitrarily nested list of lists (iterator).
 
     Source: https://stackoverflow.com/a/2158532
@@ -72,7 +72,7 @@ def is_odd_permutation(seq1: list, seq2: list) -> bool:
     return not is_even_permutation(seq1, seq2)
 
 
-def is_even_permutation(seq1: list, seq2: list, check: bool = True):
+def is_even_permutation(seq1: list, seq2: list, check: bool = True) -> bool:
     """Determine whether a permutation of a sequence is even.
 
     :param seq1: The first sequence
@@ -99,20 +99,21 @@ def is_even_permutation(seq1: list, seq2: list, check: bool = True):
     return parity
 
 
-def equivalence_partition(iterable: Collection, relation: Callable [[Any,Any], bool], perfect:bool =False) -> list:
+def equivalence_partition(
+    iterable: Collection, relation: Callable[[Any, Any], bool], perfect: bool = False
+) -> list:
     """Partitions a set of objects into equivalence classes.
 
     canned function taken from https://stackoverflow.com/a/38924631
 
     :param iterable: Collection of objects to be partitioned
-    :param relation: equivalence relation. I.e. relation(o1,o2) evaluates to True
+    :param relation: Equivalence relation. I.e. relation(o1,o2) evaluates to True
         if and only if o1 and o2 are equivalent
-    :param perfect: is this a perfect equivalence relation, where a = c and b = c
+    :param perfect: Is this a perfect equivalence relation, where a = c and b = c
             guarantees a = b? if not, an extra search is performed to make sure
             that a, b, and c still end up in the same class
 
-    Returns: classes, partitions
-        classes: A sequence of sets. Each one is an equivalence class
+    :returns:A sequence of sets. Each one is an equivalence class
     """
     # 1. This part only works assuming it is a 'perfect' equivalence relation,
     # where a = c and b = c implies a = b
@@ -151,38 +152,36 @@ def equivalence_partition(iterable: Collection, relation: Callable [[Any,Any], b
 
 
 # Useful functions on Python objects
-def move_item_to_front(lst: list | tuple, item) -> tuple:
+def move_item_to_front(lst: Sequence, item) -> tuple:
     """Move an item to the front of a list.
 
-    :param lst: the list
-    :param item: the item, which must be in `lst`
-    :returns: the list, with the item moved to front
+    :param lst: The list
+    :param item: The item, which must be in `lst`
+    :returns: The list, with the item moved to front
     """
     lst = list(lst)
     lst.insert(0, lst.pop(lst.index(item)))
     return tuple(lst)
 
 
-def move_item_to_end(lst: list | tuple, item) -> tuple:
+def move_item_to_end(lst: Sequence, item) -> tuple:
     """Move an item to the end of a list.
 
-    :param lst: the list
-    :param item: the item, which must be in `lst`
-    :returns: the list, with the item moved to end
+    :param lst: The list
+    :param item: The item, which must be in `lst`
+    :returns: The list, with the item moved to end
     """
     lst = list(lst)
     lst.append(lst.pop(lst.index(item)))
     return tuple(lst)
 
 
-def move_items_to_front(lst, items):
+def move_items_to_front(lst: Sequence, items) -> tuple:
     """Move an item to the front of a list.
 
-    :param lst: the list
-    :type lst: list or tuple
-    :param item: the item, which must be in `lst`
-    :returns: the list, with the item moved to front
-    :rtype: tuple
+    :param lst: The list
+    :param item: The item, which must be in `lst`
+    :returns: The list, with the item moved to front
     """
     lst = list(lst)
     for item in reversed(items):
@@ -190,7 +189,7 @@ def move_items_to_front(lst, items):
     return tuple(lst)
 
 
-def breakby(lst, elem):
+def breakby(lst: Collection, elem) -> tuple[tuple, tuple]:
     """Break a list by element, dropping the element itself.
 
     Analogous to '<char>'.split('<string>') for strings.
@@ -201,7 +200,7 @@ def breakby(lst, elem):
     return lsts
 
 
-def separate_negatives(lst):
+def separate_negatives(lst: Sequence):
     """Seperate a list of numbers into negative and nonnegative (>= 0)."""
     neg_lst = tuple(val for val in lst if val < 0)
     pos_lst = tuple(val for val in lst if val >= 0)
@@ -209,12 +208,14 @@ def separate_negatives(lst):
     return neg_lst, pos_lst
 
 
-def value_similar_to(val, lst, thresh):
+def value_similar_to(val: float, lst: Collection[float], thresh: float) -> bool:
     """Check if a value is close to some lst of values within some threshold."""
     return any(abs(val - vali) < thresh for vali in lst)
 
 
-def scale_iterable(iterable, scale_factor):
+def scale_iterable(
+    iterable: Collection[float], scale_factor: float
+) -> Collection[float]:
     """Scale some type of iterable of floats by a scale factor."""
     if isinstance(iterable, list):
         iterable = [val * scale_factor for val in iterable]
@@ -224,7 +225,7 @@ def scale_iterable(iterable, scale_factor):
     return iterable
 
 
-def remove_duplicates_with_order(lst):
+def remove_duplicates_with_order(lst: list):
     """Remove all duplicates of a list while not reordering the list."""
     if isinstance(lst, list):
         lst = [n for i, n in enumerate(lst) if n not in lst[:i]]
@@ -234,7 +235,7 @@ def remove_duplicates_with_order(lst):
     return lst
 
 
-def sort_by_list(lst: tuple, ref_lst: tuple, include_missing=True) -> tuple:
+def sort_by_list(lst: tuple, ref_lst: tuple, include_missing: bool = True) -> tuple:
     """Order the elements of the list by using the priorities given
     by some reference lst.
 
@@ -246,8 +247,8 @@ def sort_by_list(lst: tuple, ref_lst: tuple, include_missing=True) -> tuple:
     Note that any element in the original list not in original list is
     dropped if the user specifies not to include it.
 
-    :param lst: list to sort
-    :param ref_lst: list which sets the order of the previous list
+    :param lst: List to sort
+    :param ref_lst: List which sets the order of the previous list
     """
     # Split input list by elements in and not in reference list
     x_in_ref = tuple(x for x in lst if x in ref_lst)
@@ -268,7 +269,7 @@ def formula_from_symbols(symbs: tuple[str]) -> str:
 
     (note: dummy atoms will be filtered out and cases will be standardized)
 
-    :param symbs: atomic symbols
+    :param symbs: Atomic symbols
     """
     symbs = list(filter(ptab.to_number, map(ptab.to_symbol, symbs)))
 
@@ -278,8 +279,8 @@ def formula_from_symbols(symbs: tuple[str]) -> str:
 def _unique_item_counts(iterable: Iterable) -> dict[object:int]:
     """Build a dictionary giving the count of each unique item in a sequence.
 
-    :param iterable: sequence to obtain counts for
-    :type iterable: iterable object
+    :param iterable: Sequence to obtain counts for
+    :type iterable: Iterable object
     """
     items = tuple(iterable)
 

@@ -5,6 +5,8 @@ FILES=(
     "automol/error.py"
     "automol/util/_util.py"
     "automol/util/__init__.py"
+    "automol/util/heuristic.py"
+    "automol/util/matrix.py"
 )
 
 (
