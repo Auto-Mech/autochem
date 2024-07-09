@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+set -e  # if any command fails, quit
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 (
     cd $SCRIPT_DIR
     echo "New linting:"
-    bash ./lint.sh
+    source ./lint.sh
 
     echo "Old linting:"
     pylint --rcfile=.pylintrc automol
