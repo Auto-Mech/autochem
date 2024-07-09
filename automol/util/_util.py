@@ -1,14 +1,14 @@
 """miscellaneous utilities."""
 
 import itertools
-from collections.abc import Collection, Iterable, Iterator
+from collections.abc import Callable, Collection, Iterable, Iterator
 from numbers import Number
-from typing import Any, Callable    
+from typing import Any
 
 from phydat import ptab
 
 
-def partner(pair: Collection , item: Any) -> Any:
+def partner(pair: Collection, item: Any) -> Any:
     """Get the partner of an item in a pair.
 
     The two items must be distinct
@@ -72,7 +72,7 @@ def is_odd_permutation(seq1: list, seq2: list) -> bool:
     return not is_even_permutation(seq1, seq2)
 
 
-def is_even_permutation(seq1: list, seq2: list, check: bool = True)-> bool:
+def is_even_permutation(seq1: list, seq2: list, check: bool = True) -> bool:
     """Determine whether a permutation of a sequence is even.
 
     :param seq1: The first sequence
@@ -99,7 +99,9 @@ def is_even_permutation(seq1: list, seq2: list, check: bool = True)-> bool:
     return parity
 
 
-def equivalence_partition(iterable: Collection, relation: Callable [[Any,Any], bool], perfect:bool =False) -> list:
+def equivalence_partition(
+    iterable: Collection, relation: Callable[[Any, Any], bool], perfect: bool = False
+) -> list:
     """Partitions a set of objects into equivalence classes.
 
     canned function taken from https://stackoverflow.com/a/38924631
@@ -175,7 +177,7 @@ def move_item_to_end(lst: list | tuple, item) -> tuple:
     return tuple(lst)
 
 
-def move_items_to_front(lst:list|tuple, items) -> tuple:
+def move_items_to_front(lst: list | tuple, items) -> tuple:
     """Move an item to the front of a list.
 
     :param lst: the list
@@ -188,7 +190,7 @@ def move_items_to_front(lst:list|tuple, items) -> tuple:
     return tuple(lst)
 
 
-def breakby(lst: Collection, elem) -> tuple [tuple,tuple]:
+def breakby(lst: Collection, elem) -> tuple[tuple, tuple]:
     """Break a list by element, dropping the element itself.
 
     Analogous to '<char>'.split('<string>') for strings.
@@ -207,12 +209,14 @@ def separate_negatives(lst: list | tuple):
     return neg_lst, pos_lst
 
 
-def value_similar_to(val : float, lst: Collection [float], thresh: float) -> bool:
+def value_similar_to(val: float, lst: Collection[float], thresh: float) -> bool:
     """Check if a value is close to some lst of values within some threshold."""
     return any(abs(val - vali) < thresh for vali in lst)
 
 
-def scale_iterable(iterable: Collection [float], scale_factor : float) -> Collection [float]:
+def scale_iterable(
+    iterable: Collection[float], scale_factor: float
+) -> Collection[float]:
     """Scale some type of iterable of floats by a scale factor."""
     if isinstance(iterable, list):
         iterable = [val * scale_factor for val in iterable]
@@ -232,7 +236,7 @@ def remove_duplicates_with_order(lst: list):
     return lst
 
 
-def sort_by_list(lst: tuple, ref_lst: tuple, include_missing: bool =True) -> tuple:
+def sort_by_list(lst: tuple, ref_lst: tuple, include_missing: bool = True) -> tuple:
     """Order the elements of the list by using the priorities given
     by some reference lst.
 
