@@ -112,3 +112,5 @@ lib/
 # ignore sela repo
 sella-repo/
 
+# Ignore notebook folder
+notebook/
