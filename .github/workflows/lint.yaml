@@ -1,4 +1,4 @@
-name: test
+name: lint
 
 on: 
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -29,8 +29,7 @@ jobs:
         run: |
           pixi run pip install . --no-deps
 
-      # Test
-      - name: Test
+      # Lint
+      - name: Lint
         run: |
-          pixi run pytest -v automol -v automol --ignore=automol/tests/test_convert.py
-          pixi run pytest -v autoreact
+          pixi run ./old-lint.sh
