@@ -96,6 +96,7 @@ from automol.amchi._conv import display_reaction
 # # derived properties
 from automol.amchi._conv import is_complete
 from automol.amchi._conv import is_valid_multiplicity
+from automol.amchi._conv import guess_spin
 # # derived transformations
 from automol.amchi._conv import add_stereo
 from automol.amchi._conv import expand_stereo
@@ -200,6 +201,7 @@ __all__ = [
     # # derived properties
     'is_complete',
     'is_valid_multiplicity',
+    'guess_spin',
     # # derived transformations
     'add_stereo',
     'expand_stereo',

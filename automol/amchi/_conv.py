@@ -4,7 +4,7 @@
 import itertools
 import numbers
 
-from automol import geom
+from automol import form, geom
 from automol import graph as graph_
 from automol.amchi.base import (
     atom_stereo_parities,
@@ -13,12 +13,15 @@ from automol.amchi.base import (
     breaking_bond_keys,
     equivalent,
     forming_bond_keys,
+    formula,
+    formula_layer,
     has_stereo,
     hydrogen_valences,
     is_inchi,
     is_inverted_enantiomer,
     is_reversed_ts,
     isotope_layers,
+    main_layers,
     split,
     standard_form,
     symbols,
@@ -284,6 +287,32 @@ def is_valid_multiplicity(chi, mul):
     """
     assert isinstance(mul, numbers.Integral)
     return mul in graph_.possible_spin_multiplicities(graph(chi, stereo=False))
+
+
+def guess_spin(chi: str) -> int:
+    """Guess the spin of a ChI string.
+
+    Apart from a special list of common molecules, simply guesses 0 or 1 depending on
+    whether the eletron count is even or odd, respectively.
+
+    Could be made smarter by converting to a graph, but that would be more expensive.
+
+    :param chi: A ChI string
+    :return: The ground-state spin guess
+    """
+    # First, check if this is a case with a hardcoded value
+    lookup_dct = {
+        ("O",): 2,
+        ('O2', ('c', '1-2')): 2,
+    }
+    key = (formula_layer(chi), *sorted(main_layers(chi).items()))
+    val = lookup_dct.get(key, None)
+    if val is not None:
+        return val
+
+    # Otherwise, guess based on the formula
+    fml = formula(chi)
+    return form.electron_count(fml) % 2
 
 
 # # derived transformations
