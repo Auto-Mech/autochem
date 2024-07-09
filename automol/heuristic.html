@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>automol.inchi_key &#8212; AutoChem 2024.6.5 documentation</title>
+    <title>automol.heuristic &#8212; AutoChem 2024.6.5 documentation</title>
   
   
   
@@ -40,11 +40,11 @@
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'automol/inchi_key';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'automol/heuristic';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="automol.util" href="util.html" />
-    <link rel="prev" title="Welcome to AutoChem’s documentation!" href="../index.html" />
+    <link rel="next" title="automol.matrix" href="matrix.html" />
+    <link rel="prev" title="automol.util" href="util.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -149,9 +149,9 @@
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">automol.inchi_key</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inchi_key.html">automol.inchi_key</a></li>
 <li class="toctree-l1"><a class="reference internal" href="util.html">automol.util</a></li>
-<li class="toctree-l1"><a class="reference internal" href="heuristic.html">automol.heuristic</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">automol.heuristic</a></li>
 <li class="toctree-l1"><a class="reference internal" href="matrix.html">automol.matrix</a></li>
 </ul>
 
@@ -207,7 +207,7 @@
       
       
       
-      <li><a href="../_sources/automol/inchi_key.md" target="_blank"
+      <li><a href="../_sources/automol/heuristic.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -291,7 +291,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>automol.inchi_key</h1>
+    <h1>automol.heuristic</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -301,11 +301,8 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.first_hash"><code class="docutils literal notranslate"><span class="pre">first_hash()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.protonation_indicator"><code class="docutils literal notranslate"><span class="pre">protonation_indicator()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.second_hash"><code class="docutils literal notranslate"><span class="pre">second_hash()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.second_hash_with_extension"><code class="docutils literal notranslate"><span class="pre">second_hash_with_extension()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.version_indicator"><code class="docutils literal notranslate"><span class="pre">version_indicator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance"><code class="docutils literal notranslate"><span class="pre">bond_distance()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance_limit"><code class="docutils literal notranslate"><span class="pre">bond_distance_limit()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -317,91 +314,53 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-automol.inchi_key">
-<span id="automol-inchi-key"></span><h1>automol.inchi_key<a class="headerlink" href="#module-automol.inchi_key" title="Link to this heading">#</a></h1>
-<p>Functions operating on InChI and AMChI keys.</p>
+  <section id="module-automol.util.heuristic">
+<span id="automol-heuristic"></span><h1>automol.heuristic<a class="headerlink" href="#module-automol.util.heuristic" title="Link to this heading">#</a></h1>
+<p>Structural heuristics.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="automol.inchi_key.first_hash">
-<span class="sig-prename descclassname"><span class="pre">automol.inchi_key.</span></span><span class="sig-name descname"><span class="pre">first_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chk</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.inchi_key.first_hash" title="Link to this definition">#</a></dt>
-<dd><p>Get the first hash block, indicating connectivity.</p>
+<dt class="sig sig-object py" id="automol.util.heuristic.bond_distance">
+<span class="sig-prename descclassname"><span class="pre">automol.util.heuristic.</span></span><span class="sig-name descname"><span class="pre">bond_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symb1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symb2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angstrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.heuristic.bond_distance" title="Link to this definition">#</a></dt>
+<dd><p>The heuristic bond distance between two atoms, based on their symbols.</p>
+<p>Returns whichever is smaller of (a.) the sum of covalent radii, and (b.) the average
+vdw radius.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>chk</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – An InChI or AMChI key</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symb1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The first atom symbol.</p></li>
+<li><p><strong>symb2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The second atom symbol.</p></li>
+<li><p><strong>angstrom</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Return in angstroms intead of bohr, defaults to True</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The first hash block</p>
+<dd class="field-odd"><p>The heuristic distance</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="automol.inchi_key.protonation_indicator">
-<span class="sig-prename descclassname"><span class="pre">automol.inchi_key.</span></span><span class="sig-name descname"><span class="pre">protonation_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chk</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.inchi_key.protonation_indicator" title="Link to this definition">#</a></dt>
-<dd><p>Parse final character of ChIKey for the protonation indicator.</p>
+<dt class="sig sig-object py" id="automol.util.heuristic.bond_distance_limit">
+<span class="sig-prename descclassname"><span class="pre">automol.util.heuristic.</span></span><span class="sig-name descname"><span class="pre">bond_distance_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symb1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symb2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angstrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.heuristic.bond_distance_limit" title="Link to this definition">#</a></dt>
+<dd><p>The heuristic bond distance limit (largest possible bond distance) between two
+atoms, based on their symbols.</p>
+<p>Returns <cite>dist_factor</cite> times whichever is larger of of (a.) the sum of covalent
+radii, and (b.) the average vdw radius.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>chk</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – A ChI key</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symb1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The first atom symbol</p></li>
+<li><p><strong>symb2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The second atom symbol</p></li>
+<li><p><strong>dist_factor</strong> (<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – The multiplier on the distance limit, defaults to 1.05</p></li>
+<li><p><strong>angstrom</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Return in angstroms intead of bohr?, defaults to True</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Final ChIKey protonation indicator character</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="automol.inchi_key.second_hash">
-<span class="sig-prename descclassname"><span class="pre">automol.inchi_key.</span></span><span class="sig-name descname"><span class="pre">second_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chk</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.inchi_key.second_hash" title="Link to this definition">#</a></dt>
-<dd><p>Parse ChIKey for the second hash block, indicating stereochemistry.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>chk</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – A ChI key</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The second hash block</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="automol.inchi_key.second_hash_with_extension">
-<span class="sig-prename descclassname"><span class="pre">automol.inchi_key.</span></span><span class="sig-name descname"><span class="pre">second_hash_with_extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chk</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.inchi_key.second_hash_with_extension" title="Link to this definition">#</a></dt>
-<dd><p>Parse ChIKey second-hash block for version and protonation
-indicators.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>chk</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – A ChI key</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Version and protonation indicators from second-hash block</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="automol.inchi_key.version_indicator">
-<span class="sig-prename descclassname"><span class="pre">automol.inchi_key.</span></span><span class="sig-name descname"><span class="pre">version_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chk</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.inchi_key.version_indicator" title="Link to this definition">#</a></dt>
-<dd><p>Parse ChIKey second-hash block for the ChIKey version indicator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>chk</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – A ChI key</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>ChIKey version indicator</p>
+<dd class="field-odd"><p>The heuristic distance</p>
 </dd>
 </dl>
 </dd></dl>
@@ -420,20 +379,20 @@ indicators.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../index.html"
+       href="util.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Welcome to AutoChem’s documentation!</p>
+        <p class="prev-next-title">automol.util</p>
       </div>
     </a>
     <a class="right-next"
-       href="util.html"
+       href="matrix.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">automol.util</p>
+        <p class="prev-next-title">automol.matrix</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -453,11 +412,8 @@ indicators.</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.first_hash"><code class="docutils literal notranslate"><span class="pre">first_hash()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.protonation_indicator"><code class="docutils literal notranslate"><span class="pre">protonation_indicator()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.second_hash"><code class="docutils literal notranslate"><span class="pre">second_hash()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.second_hash_with_extension"><code class="docutils literal notranslate"><span class="pre">second_hash_with_extension()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.inchi_key.version_indicator"><code class="docutils literal notranslate"><span class="pre">version_indicator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance"><code class="docutils literal notranslate"><span class="pre">bond_distance()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance_limit"><code class="docutils literal notranslate"><span class="pre">bond_distance_limit()</span></code></a></li>
 </ul>
   </nav></div>
 
