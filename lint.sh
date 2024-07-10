@@ -9,6 +9,7 @@ FILES=(
     "automol/util/matrix.py"
     "automol/util/ring.py"
     "automol/util/tensor.py"
+    "automol/util/vector.py"
 )
 
 (

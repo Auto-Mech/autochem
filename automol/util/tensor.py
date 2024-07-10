@@ -35,7 +35,7 @@ def string(
             idxs_lst = {tuple(sorted(x)) for x in idxs_lst}
         vals_lst = tuple(arr[idxs] for idxs in idxs_lst)
 
-        re_idxs = list(zip(idxs_lst, vals_lst))
+        re_idxs = list(zip(idxs_lst, vals_lst, strict=False))
         fin_idxs = tuple(sorted(re_idxs, key=lambda x: x[0]))
 
         return fin_idxs
@@ -85,16 +85,17 @@ def from_string(arr_str: str, fill_perms: bool = False) -> np.ndarray:
     return arr
 
 
-def string_submat_4d(arr):
+def string_submat_4d(arr: np.ndarray):
     """Writes a 4-dimensional matrix to a unique string format.
-
+    :param arr:higher dimensions matrix
+    :return: Numbers in a string
     idx1
       2d submat1
     idx2
       2d submat2
     idxn
-      2d submatn
-    """
+      2d submatn.
+    """  # noqa: D401
     nd1, nd2, nd3, nd4 = arr.shape
     idxs = tuple(val for val in range(nd1))
 
@@ -112,17 +113,18 @@ def string_submat_4d(arr):
     return arr_str
 
 
-def string_submat_3d(arr):
+def string_submat_3d(arr: np.ndarray):
     """Writes a 3-dimensional matrix to a unique string format.
-
+    :param arr:higher dimensions matrix
+    :return: Numbers in a string
     idx1
       2d submat1
     idx2
       2d submat2
     idxn
-      2d submatn
+      2d submatn.
 
-    """
+    """  # noqa: D401
     nd1, nd2, nd3 = arr.shape
     idxs = tuple(val for val in range(nd1))
 
@@ -146,12 +148,12 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
         ((idx1, idx2, ..., idxn), val2),
         ...,
         ((idx1, idx2, ..., idxn), valn),.
-    """
+    """  # noqa: D401
 
     def _gen_idxs(mat_idxs, mat_vals):
         """Permute idxs."""
         full_idxs, full_vals = [], []
-        for idxs, val in zip(mat_idxs, mat_vals):
+        for idxs, val in zip(mat_idxs, mat_vals, strict=False):
             idx_perms = tuple(itertools.permutations(idxs))
             for perm in idx_perms:
                 full_idxs.append(perm)
@@ -173,7 +175,7 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
     mat = np.zeros(dims)
     if fill_perms:
         mat_idxs, mat_vals = _gen_idxs(mat_idxs, mat_vals)
-    for idxs, val in zip(mat_idxs, mat_vals):
+    for idxs, val in zip(mat_idxs, mat_vals, strict=False):
         mat[idxs] = val
 
     return mat

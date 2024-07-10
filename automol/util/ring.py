@@ -84,7 +84,7 @@ def distance(
 
 def cycle_item_to_front(
     items: Sequence[object], item: object, end_item: object = None
-) -> tuple[object,...]:
+) -> tuple[object, ...]:
     """Cycle ring items until one is in front.
 
     Optionally, request one adjacent item to be at the end, reversing the ring order if
@@ -109,7 +109,7 @@ def cycle_item_to_front(
 
 def cycle_items_to_front(
     items: Sequence[object], front_items: Sequence[object]
-) -> tuple[object,...]:
+) -> tuple[object, ...]:
     """Cycle ring items until a group of adjacent items is at the front of the list.
 
     :param items: The ring items
@@ -130,7 +130,9 @@ def cycle_items_to_front(
     return tuple(itertools.islice(cycler, nitems))
 
 
-def cycle_items_to_back(items: Sequence[object], back_items: Sequence[object]) -> tuple[object,...]:
+def cycle_items_to_back(
+    items: Sequence[object], back_items: Sequence[object]
+) -> tuple[object, ...]:
     """Cycle ring items until a group of adjacent items is at the end of the list.
 
     :param items: The ring items
@@ -153,7 +155,7 @@ def cycle_items_to_back(items: Sequence[object], back_items: Sequence[object]) -
 
 def cycle_to_split(
     items: Sequence[object], split_pair: tuple[object, object]
-) -> tuple[object,...]:
+) -> tuple[object, ...]:
     """Cycle to split a pair of adjacent items, putting one on each end of the list.
 
     :param items: The ring items
@@ -191,7 +193,7 @@ def cycle_to_optimal_split(
     items: Sequence[object],
     split_pairs: Sequence[tuple[object, object]],
     back_items: Sequence[object],
-) -> tuple[object,...]:
+) -> tuple[object, ...]:
     """Cycle to find an "optimum split" that puts a subset of items as close as possible
     to the end of the list.
 
