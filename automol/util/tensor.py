@@ -1,5 +1,4 @@
-""" I/O operations for higher dimension matrices of 3 or higher
-"""
+"""I/O operations for higher dimension matrices of 3 or higher."""
 
 import itertools
 
@@ -9,12 +8,11 @@ from automol.util import vector
 
 
 # I/O
-def string(arr, include_zeros=False, include_perms=False, val_format="{0:>16.8f}"):
+def string(arr: np.ndarray, include_zeros=False, include_perms=False, val_format="{0:>16.8f}")-> str:
     """Write a higher dimensional array (3 or more) to a string.
 
     :param arr: higher dimensions matrix
-    :type arr: numpy.ndarray
-    :rtpye: str
+    :return: Numbers in a string
 
     Format of output string:
         idx1 idx2 .. idxn  val1
@@ -22,7 +20,7 @@ def string(arr, include_zeros=False, include_perms=False, val_format="{0:>16.8f}
     """
 
     def _chk_zero(val, include_zeros):
-        """decide to write value"""
+        """Decide to write value. """
         iszero = np.isclose(val, 0.0)
         return bool(not iszero or (iszero and include_zeros))
 
@@ -54,12 +52,11 @@ def string(arr, include_zeros=False, include_perms=False, val_format="{0:>16.8f}
     return arr_str
 
 
-def from_string(arr_str, fill_perms=False):
+def from_string(arr_str: str, fill_perms: bool =False)-> np.ndarray:
     """Write a higher dimensional array (3 or more) to a string.
 
     :param arr_str: string containing higher dimensions matrix
-    :type arr_str: str
-    :rtype: numpy.ndarray
+    :return: Array of high dimension matrix
 
     Format of input string:
         idx1 idx2 .. idxn  val1

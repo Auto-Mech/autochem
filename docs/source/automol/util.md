@@ -12,8 +12,12 @@ some words
 ```{eval-rst}
 .. automodule:: automol.util.matrix
 ```
-## automol.ring
+## automol.util.ring
 some words
 ```{eval-rst}
 .. automodule:: automol.util.ring
+```
+## automol.util.tensor
+```{eval-rst}
+.. automodule:: automol.util.tensor
 ```

@@ -8,6 +8,7 @@ FILES=(
     "automol/util/heuristic.py"
     "automol/util/matrix.py"
     "automol/util/ring.py"
+    "automol/util/tensor.py"
 )
 
 (
