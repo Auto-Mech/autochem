@@ -24,8 +24,9 @@ def partner(pair: Collection, item: Any) -> Any:
 
 def flatten(lst: Collection) -> Iterator:
     """Flatten an arbitrarily nested list of lists (iterator).
-
-    Source: https://stackoverflow.com/a/2158532
+    Source: https://stackoverflow.com/a/2158532 .
+    :param lst: An arbitrarily nested list or tuple
+    :return: An iterator over the flattened list of values
     """
     for elem in lst:
         if isinstance(elem, Iterable) and not isinstance(elem, str | bytes):
@@ -72,7 +73,7 @@ def is_odd_permutation(seq1: list, seq2: list) -> bool:
     return not is_even_permutation(seq1, seq2)
 
 
-def is_even_permutation(seq1: list, seq2: list, check: bool = True) -> bool:
+def is_even_permutation(seq1: Sequence, seq2: Sequence, check: bool = True) -> bool:
     """Determine whether a permutation of a sequence is even.
 
     :param seq1: The first sequence
@@ -189,10 +190,12 @@ def move_items_to_front(lst: Sequence, items) -> tuple:
     return tuple(lst)
 
 
-def breakby(lst: Collection, elem) -> tuple[tuple, tuple]:
+def breakby(lst: Sequence, elem) -> tuple[tuple, tuple]:
     """Break a list by element, dropping the element itself.
-
     Analogous to '<char>'.split('<string>') for strings.
+    :param lst: The list
+    :param elem: The element to break the list by, gets deleted
+    :return:The chunks between the break points of the input list
     """
     lsts = tuple(
         tuple(g) for k, g in itertools.groupby(lst, lambda x: x == elem) if not k
@@ -200,23 +203,35 @@ def breakby(lst: Collection, elem) -> tuple[tuple, tuple]:
     return lsts
 
 
-def separate_negatives(lst: Sequence):
-    """Seperate a list of numbers into negative and nonnegative (>= 0)."""
+def separate_negatives(lst: Sequence)-> tuple [tuple,tuple]:
+    """Seperate a list of numbers into negative and nonnegative (>= 0).
+    :param lst: The list
+    :return: Value for negatives and for positives. 
+    """
     neg_lst = tuple(val for val in lst if val < 0)
     pos_lst = tuple(val for val in lst if val >= 0)
 
     return neg_lst, pos_lst
 
 
-def value_similar_to(val: float, lst: Collection[float], thresh: float) -> bool:
-    """Check if a value is close to some lst of values within some threshold."""
+def value_similar_to(val: float, lst: Sequence[float], thresh: float) -> bool:
+    """Check if a value is close to any one of a list of values.
+    :param val: A number.
+    :param lst: A collection of numbers to compare to.
+    :param thresh: The comparison threshold.
+    :return: 'True' if close, 'False' if not.
+    """
     return any(abs(val - vali) < thresh for vali in lst)
 
 
 def scale_iterable(
     iterable: Collection[float], scale_factor: float
 ) -> Collection[float]:
-    """Scale some type of iterable of floats by a scale factor."""
+    """Scale some type of iterable of floats by a scale factor.
+    :param iterable: A list of numbers. 
+    :param scale_factor: A factor to scale by.
+    :return: 
+    """
     if isinstance(iterable, list):
         iterable = [val * scale_factor for val in iterable]
     elif isinstance(iterable, tuple):
