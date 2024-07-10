@@ -43,7 +43,6 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'automol/util';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="automol.heuristic" href="heuristic.html" />
     <link rel="prev" title="automol.inchi_key" href="inchi_key.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -151,8 +150,6 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="inchi_key.html">automol.inchi_key</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">automol.util</a></li>
-<li class="toctree-l1"><a class="reference internal" href="heuristic.html">automol.heuristic</a></li>
-<li class="toctree-l1"><a class="reference internal" href="matrix.html">automol.matrix</a></li>
 </ul>
 
     </div>
@@ -317,6 +314,27 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.sort_by_list"><code class="docutils literal notranslate"><span class="pre">sort_by_list()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.translate"><code class="docutils literal notranslate"><span class="pre">translate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.value_similar_to"><code class="docutils literal notranslate"><span class="pre">value_similar_to()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-automol.util.heuristic">automol.util.heuristic</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance"><code class="docutils literal notranslate"><span class="pre">bond_distance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance_limit"><code class="docutils literal notranslate"><span class="pre">bond_distance_limit()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol-util-matrix">automol.util.matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.matrix.string"><code class="docutils literal notranslate"><span class="pre">string()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol-ring">automol.ring</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle"><code class="docutils literal notranslate"><span class="pre">cycle()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_item_to_front"><code class="docutils literal notranslate"><span class="pre">cycle_item_to_front()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_items_to_back"><code class="docutils literal notranslate"><span class="pre">cycle_items_to_back()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_items_to_front"><code class="docutils literal notranslate"><span class="pre">cycle_items_to_front()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_to_optimal_split"><code class="docutils literal notranslate"><span class="pre">cycle_to_optimal_split()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_to_split"><code class="docutils literal notranslate"><span class="pre">cycle_to_split()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.distance"><code class="docutils literal notranslate"><span class="pre">distance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.edges"><code class="docutils literal notranslate"><span class="pre">edges()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.normalize"><code class="docutils literal notranslate"><span class="pre">normalize()</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -335,13 +353,14 @@ document.write(`
 <dl class="py function">
 <dt class="sig sig-object py" id="automol.util.breakby">
 <span class="sig-prename descclassname"><span class="pre">automol.util.</span></span><span class="sig-name descname"><span class="pre">breakby</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elem</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.breakby" title="Link to this definition">#</a></dt>
-<dd><p>Break a list by element, dropping the element itself.</p>
-<p>Analogous to ‘&lt;char&gt;’.split(‘&lt;string&gt;’) for strings.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>]</span></p>
-</dd>
-</dl>
+<dd><p>Break a list by element, dropping the element itself.
+Analogous to ‘&lt;char&gt;’.split(‘&lt;string&gt;’) for strings.
+:type lst: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a></span>
+:param lst: The list
+:type elem: 
+:param elem: The element to break the list by, gets deleted
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>]</span>
+:return:The chunks between the break points of the input list.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -370,13 +389,12 @@ that a, b, and c still end up in the same class</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="automol.util.flatten">
 <span class="sig-prename descclassname"><span class="pre">automol.util.</span></span><span class="sig-name descname"><span class="pre">flatten</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.flatten" title="Link to this definition">#</a></dt>
-<dd><p>Flatten an arbitrarily nested list of lists (iterator).</p>
-<p>Source: <a class="reference external" href="https://stackoverflow.com/a/2158532">https://stackoverflow.com/a/2158532</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a></span></p>
-</dd>
-</dl>
+<dd><p>Flatten an arbitrarily nested list of lists (iterator).
+Source: <a class="reference external" href="https://stackoverflow.com/a/2158532">https://stackoverflow.com/a/2158532</a> .
+:type lst: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Collection</span></code></a></span>
+:param lst: An arbitrarily nested list or tuple
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a></span>
+:return: An iterator over the flattened list of values.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -401,8 +419,8 @@ that a, b, and c still end up in the same class</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>seq1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span>) – The first sequence</p></li>
-<li><p><strong>seq2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span>) – The second sequence, which must be a permuation of the first</p></li>
+<li><p><strong>seq1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a></span>) – The first sequence</p></li>
+<li><p><strong>seq2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a></span>) – The second sequence, which must be a permuation of the first</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -518,24 +536,35 @@ that a, b, and c still end up in the same class</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="automol.util.remove_duplicates_with_order">
 <span class="sig-prename descclassname"><span class="pre">automol.util.</span></span><span class="sig-name descname"><span class="pre">remove_duplicates_with_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.remove_duplicates_with_order" title="Link to this definition">#</a></dt>
-<dd><p>Remove all duplicates of a list while not reordering the list.</p>
+<dd><p>Remove all duplicates of a list while not reordering the list.
+:type lst: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a></span>
+:param lst: A list.
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a></span>
+:return: A list, without duplicates.
+Note: To be deprecated
+and replaced with calls to more_itertools.unique_justseen.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="automol.util.scale_iterable">
 <span class="sig-prename descclassname"><span class="pre">automol.util.</span></span><span class="sig-name descname"><span class="pre">scale_iterable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.scale_iterable" title="Link to this definition">#</a></dt>
-<dd><p>Scale some type of iterable of floats by a scale factor.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Collection</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
-</dd>
-</dl>
+<dd><p>Scale some type of iterable of floats by a scale factor.
+:type iterable: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Collection</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span>
+:param iterable: A list of numbers.
+:type scale_factor: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>
+:param scale_factor: A factor to scale by.
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Collection</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span>
+:return: The scaled list of numbers.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="automol.util.separate_negatives">
 <span class="sig-prename descclassname"><span class="pre">automol.util.</span></span><span class="sig-name descname"><span class="pre">separate_negatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.separate_negatives" title="Link to this definition">#</a></dt>
-<dd><p>Seperate a list of numbers into negative and nonnegative (&gt;= 0).</p>
+<dd><p>Seperate a list of numbers into negative and nonnegative (&gt;= 0).
+:type lst: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a></span>
+:param lst: The list
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>]</span>
+:return: Value for negatives and for non-negatives.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -586,14 +615,283 @@ dropped if the user specifies not to include it.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="automol.util.value_similar_to">
 <span class="sig-prename descclassname"><span class="pre">automol.util.</span></span><span class="sig-name descname"><span class="pre">value_similar_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.value_similar_to" title="Link to this definition">#</a></dt>
-<dd><p>Check if a value is close to some lst of values within some threshold.</p>
+<dd><p>Check if a value is close to any one of a list of values.
+:type val: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>
+:param val: A number.
+:type lst: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span>
+:param lst: A collection of numbers to compare to.
+:type thresh: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>
+:param thresh: The comparison threshold.
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>
+:return: ‘True’ if close, ‘False’ if not.</p>
+</dd></dl>
+
+<section id="module-automol.util.heuristic">
+<span id="automol-util-heuristic"></span><h2>automol.util.heuristic<a class="headerlink" href="#module-automol.util.heuristic" title="Link to this heading">#</a></h2>
+<p>Structural heuristics.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.heuristic.bond_distance">
+<span class="sig-prename descclassname"><span class="pre">automol.util.heuristic.</span></span><span class="sig-name descname"><span class="pre">bond_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symb1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symb2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angstrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.heuristic.bond_distance" title="Link to this definition">#</a></dt>
+<dd><p>The heuristic bond distance between two atoms, based on their symbols.</p>
+<p>Returns whichever is smaller of (a.) the sum of covalent radii, and (b.) the average
+vdw radius.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symb1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The first atom symbol.</p></li>
+<li><p><strong>symb2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The second atom symbol.</p></li>
+<li><p><strong>angstrom</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Return in angstroms intead of bohr, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The heuristic distance</p>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.heuristic.bond_distance_limit">
+<span class="sig-prename descclassname"><span class="pre">automol.util.heuristic.</span></span><span class="sig-name descname"><span class="pre">bond_distance_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symb1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symb2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angstrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.heuristic.bond_distance_limit" title="Link to this definition">#</a></dt>
+<dd><p>The heuristic bond distance limit (largest possible bond distance) between two
+atoms, based on their symbols.</p>
+<p>Returns <cite>dist_factor</cite> times whichever is larger of of (a.) the sum of covalent
+radii, and (b.) the average vdw radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symb1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The first atom symbol</p></li>
+<li><p><strong>symb2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The second atom symbol</p></li>
+<li><p><strong>dist_factor</strong> (<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – The multiplier on the distance limit, defaults to 1.05</p></li>
+<li><p><strong>angstrom</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Return in angstroms intead of bohr?, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The heuristic distance</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="automol-util-matrix">
+<h2>automol.util.matrix<a class="headerlink" href="#automol-util-matrix" title="Link to this heading">#</a></h2>
+<p>some words</p>
+<p id="module-automol.util.matrix">3D matrices.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.matrix.string">
+<span class="sig-prename descclassname"><span class="pre">automol.util.matrix.</span></span><span class="sig-name descname"><span class="pre">string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{0:&gt;8.3f}'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.matrix.string" title="Link to this definition">#</a></dt>
+<dd><p>Write a matrix to a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mat</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#float" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span>) – matrix to form string with</p></li>
+<li><p><strong>val_format</strong> – A number-formatting string, such as “{:.3f}”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Matrix as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="automol-ring">
+<h2>automol.ring<a class="headerlink" href="#automol-ring" title="Link to this heading">#</a></h2>
+<p>some words</p>
+<p id="module-automol.util.ring">Functions for dealing with a list of items encoding a ring.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.cycle">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.cycle" title="Link to this definition">#</a></dt>
+<dd><p>Cycle ring items once.</p>
+<p>Example:    (1, 2, 3, 4) -&gt; (2, 3, 4, 1)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ring items, cycled once</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.cycle_item_to_front">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">cycle_item_to_front</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_item</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.cycle_item_to_front" title="Link to this definition">#</a></dt>
+<dd><p>Cycle ring items until one is in front.</p>
+<p>Optionally, request one adjacent item to be at the end, reversing the ring order if
+necessary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p></li>
+<li><p><strong>end_item</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/typing.html#typing.Optional" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – optionally, ensure that this is the last item in the ring</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parm item<span class="colon">:</span></dt>
+<dd class="field-even"><p>The item to cycle to the font</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The ring items with <cite>item</cite> cycled to the front and <cite>end_item</cite> to the end</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.cycle_items_to_back">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">cycle_items_to_back</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">back_items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.cycle_items_to_back" title="Link to this definition">#</a></dt>
+<dd><p>Cycle ring items until a group of adjacent items is at the end of the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p>
+</dd>
+<dt class="field-even">Parm back_items<span class="colon">:</span></dt>
+<dd class="field-even"><p>The item to cycle to the end</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The ring items <cite>back_items</cite> cycled to the end</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.cycle_items_to_front">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">cycle_items_to_front</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">front_items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.cycle_items_to_front" title="Link to this definition">#</a></dt>
+<dd><p>Cycle ring items until a group of adjacent items is at the front of the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p>
+</dd>
+<dt class="field-even">Parm front_items<span class="colon">:</span></dt>
+<dd class="field-even"><p>The item to cycle to the font</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The ring items with <cite>item</cite> cycled to the front and <cite>end_item</cite> to the end</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.cycle_to_optimal_split">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">cycle_to_optimal_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">back_items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.cycle_to_optimal_split" title="Link to this definition">#</a></dt>
+<dd><p>Cycle to find an “optimum split” that puts a subset of items as close as possible
+to the end of the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p></li>
+<li><p><strong>split_pairs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]]</span>) – Pairs where the cycle can be split</p></li>
+<li><p><strong>back_items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – Adjacent items that should be as close to the end as possible</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The cycle with the optimal split</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.cycle_to_split">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">cycle_to_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_pair</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.cycle_to_split" title="Link to this definition">#</a></dt>
+<dd><p>Cycle to split a pair of adjacent items, putting one on each end of the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>items</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><em>object</em></a><em>]</em>) – The ring items</p></li>
+<li><p><strong>split_pair</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><em>object</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><em>object</em></a><em>]</em>) – The pair of items to split</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ring items with one item in the pair at the start and one at the end</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.distance">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.distance" title="Link to this definition">#</a></dt>
+<dd><p>Find the distance between two items in a ring.</p>
+<p>By default, finds the shortest distance. Setting <cite>longest=True</cite> results in the
+longest distance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p></li>
+<li><p><strong>item1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>) – The item to start measuring distance from</p></li>
+<li><p><strong>item2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>) – The item to measure distance to</p></li>
+<li><p><strong>longest</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Return the longest distance?, defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#int" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of ring items between these two</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.edges">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.edges" title="Link to this definition">#</a></dt>
+<dd><p>Get the edge pairs of a ring.</p>
+<p>Example:    (1, 2, 3, 4) -&gt; ((1, 2), (2, 3), (3, 4), (4, 1))</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ring edge pairs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.ring.normalize">
+<span class="sig-prename descclassname"><span class="pre">automol.util.ring.</span></span><span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.ring.normalize" title="Link to this definition">#</a></dt>
+<dd><p>Normalize the ordering of items in a ring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The ring items</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ring items, in normalized order</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -615,15 +913,6 @@ dropped if the user specifies not to include it.</p>
         <p class="prev-next-subtitle">previous</p>
         <p class="prev-next-title">automol.inchi_key</p>
       </div>
-    </a>
-    <a class="right-next"
-       href="heuristic.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">automol.heuristic</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -657,6 +946,27 @@ dropped if the user specifies not to include it.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.sort_by_list"><code class="docutils literal notranslate"><span class="pre">sort_by_list()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.translate"><code class="docutils literal notranslate"><span class="pre">translate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.value_similar_to"><code class="docutils literal notranslate"><span class="pre">value_similar_to()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-automol.util.heuristic">automol.util.heuristic</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance"><code class="docutils literal notranslate"><span class="pre">bond_distance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.heuristic.bond_distance_limit"><code class="docutils literal notranslate"><span class="pre">bond_distance_limit()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol-util-matrix">automol.util.matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.matrix.string"><code class="docutils literal notranslate"><span class="pre">string()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol-ring">automol.ring</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle"><code class="docutils literal notranslate"><span class="pre">cycle()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_item_to_front"><code class="docutils literal notranslate"><span class="pre">cycle_item_to_front()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_items_to_back"><code class="docutils literal notranslate"><span class="pre">cycle_items_to_back()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_items_to_front"><code class="docutils literal notranslate"><span class="pre">cycle_items_to_front()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_to_optimal_split"><code class="docutils literal notranslate"><span class="pre">cycle_to_optimal_split()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.cycle_to_split"><code class="docutils literal notranslate"><span class="pre">cycle_to_split()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.distance"><code class="docutils literal notranslate"><span class="pre">distance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.edges"><code class="docutils literal notranslate"><span class="pre">edges()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.ring.normalize"><code class="docutils literal notranslate"><span class="pre">normalize()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
