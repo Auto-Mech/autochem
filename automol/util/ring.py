@@ -92,9 +92,7 @@ def cycle_item_to_front(
     :param items: The ring items
     :parm item: The item to cycle to the font
     :param end_item: optionally, ensure that this is the last item in the ring
-    :type end_item: object
     :returns: The ring items with `item` cycled to the front and `end_item` to the end
-    :rtype: List[int]
     """
     items = cycle_items_to_front(items, [item])
 
@@ -135,11 +133,8 @@ def cycle_items_to_back(items: list[object], back_items: list[object]) -> list[o
     """Cycle ring items until a group of adjacent items is at the end of the list.
 
     :param items: The ring items
-    :type items: List[object]
     :parm back_items: The item to cycle to the end
-    :type back_items: List[object]
     :returns: The ring items `back_items` cycled to the end
-    :rtype: List[int]
     """
     nitems = len(items)
 
@@ -165,7 +160,6 @@ def cycle_to_split(
     :param split_pair: The pair of items to split
     :type split_pair: Tuple[object, object]
     :return: The ring items with one item in the pair at the start and one at the end
-    :rtype: List[object]
     """
     nitems = len(items)
     split_pair = set(split_pair)
@@ -201,13 +195,9 @@ def cycle_to_optimal_split(
     to the end of the list.
 
     :param items: The ring items
-    :type items: List[object]
     :param split_pairs: Pairs where the cycle can be split
-    :type split_pairs: List[Tuple[object, object]]
     :param back_items: Adjacent items that should be as close to the end as possible
-    :type back_items: List[object]
     :return: The cycle with the optimal split
-    :rtype: List[object]
     """
     orig_items = items
     split_pairs = list(split_pairs)

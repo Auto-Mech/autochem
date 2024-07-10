@@ -26,7 +26,7 @@ def flatten(lst: Collection) -> Iterator:
     """Flatten an arbitrarily nested list of lists (iterator).
     Source: https://stackoverflow.com/a/2158532 .
     :param lst: An arbitrarily nested list or tuple
-    :return: An iterator over the flattened list of values
+    :return: An iterator over the flattened list of values.
     """
     for elem in lst:
         if isinstance(elem, Iterable) and not isinstance(elem, str | bytes):
@@ -195,7 +195,7 @@ def breakby(lst: Sequence, elem) -> tuple[tuple, tuple]:
     Analogous to '<char>'.split('<string>') for strings.
     :param lst: The list
     :param elem: The element to break the list by, gets deleted
-    :return:The chunks between the break points of the input list
+    :return:The chunks between the break points of the input list.
     """
     lsts = tuple(
         tuple(g) for k, g in itertools.groupby(lst, lambda x: x == elem) if not k
@@ -203,10 +203,10 @@ def breakby(lst: Sequence, elem) -> tuple[tuple, tuple]:
     return lsts
 
 
-def separate_negatives(lst: Sequence)-> tuple [tuple,tuple]:
+def separate_negatives(lst: Sequence) -> tuple[tuple, tuple]:
     """Seperate a list of numbers into negative and nonnegative (>= 0).
     :param lst: The list
-    :return: Value for negatives and for positives. 
+    :return: Value for negatives and for non-negatives.
     """
     neg_lst = tuple(val for val in lst if val < 0)
     pos_lst = tuple(val for val in lst if val >= 0)
@@ -228,9 +228,9 @@ def scale_iterable(
     iterable: Collection[float], scale_factor: float
 ) -> Collection[float]:
     """Scale some type of iterable of floats by a scale factor.
-    :param iterable: A list of numbers. 
+    :param iterable: A list of numbers.
     :param scale_factor: A factor to scale by.
-    :return: 
+    :return: The scaled list of numbers.
     """
     if isinstance(iterable, list):
         iterable = [val * scale_factor for val in iterable]
@@ -240,8 +240,13 @@ def scale_iterable(
     return iterable
 
 
-def remove_duplicates_with_order(lst: list):
-    """Remove all duplicates of a list while not reordering the list."""
+def remove_duplicates_with_order(lst: Sequence) -> Sequence:
+    """Remove all duplicates of a list while not reordering the list.
+    :param lst: A list.
+    :return: A list, without duplicates.
+    Note: To be deprecated
+    and replaced with calls to more_itertools.unique_justseen.
+    """
     if isinstance(lst, list):
         lst = [n for i, n in enumerate(lst) if n not in lst[:i]]
     if isinstance(lst, tuple):
