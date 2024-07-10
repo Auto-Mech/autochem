@@ -7,9 +7,8 @@ def string(mat: Sequence[Sequence[float]], val_format="{0:>8.3f}") -> str:
     """Write a matrix to a string.
 
     :param mat: matrix to form string with
-    :type mat: tuple(tuple(float))
-    :param precision: number of integers past decimal
-    :type precision: int
+    :param val_format: A number-formatting string, such as "{:.3f}"
+    :return: Matrix as a string
     """
     mat_str = ""
     for row in mat:

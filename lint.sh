@@ -7,6 +7,7 @@ FILES=(
     "automol/util/__init__.py"
     "automol/util/heuristic.py"
     "automol/util/matrix.py"
+    "automol/util/ring.py"
 )
 
 (
