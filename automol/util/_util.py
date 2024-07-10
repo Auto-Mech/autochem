@@ -190,7 +190,7 @@ def move_items_to_front(lst: Sequence, items) -> tuple:
     return tuple(lst)
 
 
-def breakby(lst: Sequence, elem) -> tuple[tuple, tuple]:
+def breakby(lst: Sequence, elem) -> tuple[tuple, ...]:
     """Break a list by element, dropping the element itself.
     Analogous to '<char>'.split('<string>') for strings.
     :param lst: The list
