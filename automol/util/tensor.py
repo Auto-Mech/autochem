@@ -1,5 +1,4 @@
-""" I/O operations for higher dimension matrices of 3 or higher
-"""
+"""I/O operations for higher dimension matrices of 3 or higher."""
 
 import itertools
 
@@ -9,12 +8,13 @@ from automol.util import vector
 
 
 # I/O
-def string(arr, include_zeros=False, include_perms=False, val_format="{0:>16.8f}"):
+def string(
+    arr: np.ndarray, include_zeros=False, include_perms=False, val_format="{0:>16.8f}"
+) -> str:
     """Write a higher dimensional array (3 or more) to a string.
 
     :param arr: higher dimensions matrix
-    :type arr: numpy.ndarray
-    :rtpye: str
+    :return: Numbers in a string
 
     Format of output string:
         idx1 idx2 .. idxn  val1
@@ -22,20 +22,20 @@ def string(arr, include_zeros=False, include_perms=False, val_format="{0:>16.8f}
     """
 
     def _chk_zero(val, include_zeros):
-        """decide to write value"""
+        """Decide to write value."""
         iszero = np.isclose(val, 0.0)
         return bool(not iszero or (iszero and include_zeros))
 
     def _chk_idxs(arr):
-        """decide if idxs
-        check if any permutation of idxs is already written
+        """Decide if idxs
+        check if any permutation of idxs is already written.
         """
         idxs_lst = tuple(idxs for idxs, _ in np.ndenumerate(arr))
         if not include_perms:
-            idxs_lst = set(tuple(sorted(x)) for x in idxs_lst)
+            idxs_lst = {tuple(sorted(x)) for x in idxs_lst}
         vals_lst = tuple(arr[idxs] for idxs in idxs_lst)
 
-        re_idxs = list(zip(idxs_lst, vals_lst))
+        re_idxs = list(zip(idxs_lst, vals_lst, strict=False))
         fin_idxs = tuple(sorted(re_idxs, key=lambda x: x[0]))
 
         return fin_idxs
@@ -43,7 +43,7 @@ def string(arr, include_zeros=False, include_perms=False, val_format="{0:>16.8f}
     arr_str = ""
     for idxs, val in _chk_idxs(arr):
         if _chk_zero(val, include_zeros):
-            val_str = "".join((f"{idx+1:<6d}" for idx in idxs))
+            val_str = "".join(f"{idx+1:<6d}" for idx in idxs)
             val_str += val_format.format(val)
             val_str += "\n"
 
@@ -54,18 +54,16 @@ def string(arr, include_zeros=False, include_perms=False, val_format="{0:>16.8f}
     return arr_str
 
 
-def from_string(arr_str, fill_perms=False):
+def from_string(arr_str: str, fill_perms: bool = False) -> np.ndarray:
     """Write a higher dimensional array (3 or more) to a string.
 
     :param arr_str: string containing higher dimensions matrix
-    :type arr_str: str
-    :rtype: numpy.ndarray
+    :return: Array of high dimension matrix
 
     Format of input string:
         idx1 idx2 .. idxn  val1
         idx1 idx2 .. idxn  valn
     """
-
     lines = arr_str.splitlines()
 
     # Get the number of values in each array dimension; initialize array
@@ -87,17 +85,17 @@ def from_string(arr_str, fill_perms=False):
     return arr
 
 
-def string_submat_4d(arr):
-    """Writes a 4-dimensional matrix to a unique string format
-
+def string_submat_4d(arr: np.ndarray):
+    """Writes a 4-dimensional matrix to a unique string format.
+    :param arr:higher dimensions matrix
+    :return: Numbers in a string
     idx1
       2d submat1
     idx2
       2d submat2
     idxn
-      2d submatn
-    """
-
+      2d submatn.
+    """  # noqa: D401
     nd1, nd2, nd3, nd4 = arr.shape
     idxs = tuple(val for val in range(nd1))
 
@@ -115,18 +113,18 @@ def string_submat_4d(arr):
     return arr_str
 
 
-def string_submat_3d(arr):
-    """Writes a 3-dimensional matrix to a unique string format
-
+def string_submat_3d(arr: np.ndarray):
+    """Writes a 3-dimensional matrix to a unique string format.
+    :param arr:higher dimensions matrix
+    :return: Numbers in a string
     idx1
       2d submat1
     idx2
       2d submat2
     idxn
-      2d submatn
+      2d submatn.
 
-    """
-
+    """  # noqa: D401
     nd1, nd2, nd3 = arr.shape
     idxs = tuple(val for val in range(nd1))
 
@@ -149,14 +147,13 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
         ((idx1, idx2, ..., idxn), val1),
         ((idx1, idx2, ..., idxn), val2),
         ...,
-        ((idx1, idx2, ..., idxn), valn),
-    """
+        ((idx1, idx2, ..., idxn), valn),.
+    """  # noqa: D401
 
     def _gen_idxs(mat_idxs, mat_vals):
-        """permute idxs"""
-
+        """Permute idxs."""
         full_idxs, full_vals = [], []
-        for idxs, val in zip(mat_idxs, mat_vals):
+        for idxs, val in zip(mat_idxs, mat_vals, strict=False):
             idx_perms = tuple(itertools.permutations(idxs))
             for perm in idx_perms:
                 full_idxs.append(perm)
@@ -169,7 +166,7 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
         mat_idxs, mat_vals = _gen_idxs(mat_idxs, mat_vals)
 
     # Get dimensionality of matrix (assumes 0 idx of mat)
-    ncoords = max((max(idxs) for idxs in mat_idxs)) + 1
+    ncoords = max(max(idxs) for idxs in mat_idxs) + 1
     ndim = len(mat_idxs[0])
 
     dims = tuple(ncoords for _ in range(ndim))
@@ -178,7 +175,7 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
     mat = np.zeros(dims)
     if fill_perms:
         mat_idxs, mat_vals = _gen_idxs(mat_idxs, mat_vals)
-    for idxs, val in zip(mat_idxs, mat_vals):
+    for idxs, val in zip(mat_idxs, mat_vals, strict=False):
         mat[idxs] = val
 
     return mat
