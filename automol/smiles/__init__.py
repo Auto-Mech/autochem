@@ -17,6 +17,7 @@ from automol.smiles.base._core import reaction_reactant
 from automol.smiles.base._core import reaction_product
 from automol.smiles.base._core import reaction_reactants
 from automol.smiles.base._core import reaction_products
+from automol.smiles.base._core import reaction_reactants_and_products
 # # properties
 from automol.smiles.base._core import parse_connected_molecule_properties
 # L4
@@ -53,6 +54,7 @@ __all__ = [
     'reaction_product',
     'reaction_reactants',
     'reaction_products',
+    'reaction_reactants_and_products',
     # # properties
     'parse_connected_molecule_properties',
     # L4
