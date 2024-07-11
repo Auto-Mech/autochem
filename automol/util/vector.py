@@ -478,7 +478,6 @@ def string(
     :param num_per_row: number of vector elements to write to a row
     :return: String
     """
-    require_vector_like(vec)
     if num_per_row is None:
         num_per_row = len(vec)
 

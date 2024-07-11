@@ -126,6 +126,6 @@ def test__highd_mat():
 
 
 if __name__ == "__main__":
-    #test__vec()
+    test__vec()
     # test__mat()
-    test__highd_mat()
+    # test__highd_mat()
