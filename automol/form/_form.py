@@ -9,14 +9,13 @@ from typing import List
 
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
-from phydat import ptab
 
 from automol.util import dict_
+from phydat import ptab
 
 SYMBOL = pp.Word(pp.alphas.upper(), pp.alphas.lower())
-ATOM_COUNT = pp.Group(
-    SYMBOL + pp.Opt(ppc.integer).setParseAction(lambda x: x if x else [1])
-)
+STOICH = pp.Opt(pp.Literal("*") | ppc.integer).setParseAction(lambda x: x if x else [1])
+ATOM_COUNT = pp.Group(SYMBOL + STOICH)
 FORMULA = pp.OneOrMore(ATOM_COUNT)
 
 
@@ -89,14 +88,14 @@ def without(fml: dict[str, int], symbs: tuple = ()) -> dict[str, int]:
 def match(fml1: dict[str, int], fml2: dict[str, int]) -> bool:
     """Check for a match between two formulas, allowing wildcard values
 
-    A stoichiometry of `None` indicates a wildcard value
+    A stoichiometry of -1 indicates a wildcard value
 
     :param fml1: A chemical formula
     :param fml2: Another chemical formula
     :return: `True` if so, `False` if not
     """
-    excl_symbs1 = dict_.keys_by_value(fml1, lambda x: x is None)
-    excl_symbs2 = dict_.keys_by_value(fml2, lambda x: x is None)
+    excl_symbs1 = dict_.keys_by_value(fml1, lambda x: x < 0)
+    excl_symbs2 = dict_.keys_by_value(fml2, lambda x: x < 0)
     excl_symbs = excl_symbs1 | excl_symbs2
 
     fml1 = without(fml1, excl_symbs)
@@ -209,14 +208,18 @@ def string2(fml):
     return fml_str
 
 
-def from_string(fml_str):
+def from_string(fml_str: str) -> dict[str, int]:
     """Convert formula string to formula dictionary.
 
+    Wildcard values can be specified as, for example, 'O2H*', which will be interpreted
+    as {'O': 2, 'H': -1} where the -1 indicates a wildcard stoichiometry.
+
     :param fml_str: stochiometric chemical formula string
-    :type fml_str: str
-    :rtype: dict[str:int]
+    :return: The formula
     """
-    return dict(FORMULA.parseString(fml_str).asList())
+    fml = dict(FORMULA.parseString(fml_str).asList())
+    fml = dict_.transform_values(fml, lambda x: -1 if x == "*" else x)
+    return fml
 
 
 def sorted_symbols(seq, symbs_first=("C", "H"), symbs_last=()):
