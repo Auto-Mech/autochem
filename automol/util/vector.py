@@ -36,9 +36,12 @@ def unit_direction(xyz1: Sequence | np.ndarray, xyz2: Sequence | np.ndarray) -> 
     return uxyz12
 
 
-def are_parallel( xyz1: Sequence | np.ndarray, xyz2: Sequence | np.ndarray,
-                 orig_xyz: Sequence | np.ndarray = (0.0, 0.0, 0.0),anti: bool = False,
-                 tol: float = 1e-3,
+def are_parallel(
+    xyz1: Sequence | np.ndarray,
+    xyz2: Sequence | np.ndarray,
+    orig_xyz: Sequence | np.ndarray = (0.0, 0.0, 0.0),
+    anti: bool = False,
+    tol: float = 1e-3,
 ) -> bool:
     """Assess if two vectors are parallel to each other.
 
@@ -77,7 +80,7 @@ def orthogonalize(xyz1, xyz2, normalize=False):
     return oxyz2
 
 
-def flip_if_left_handed(xvec:Vector, yvec:Vector, zvec:Vector) -> Vector:
+def flip_if_left_handed(xvec: Vector, yvec: Vector, zvec: Vector) -> Vector:
     """Given three vectors, flips the third one, if necessary, to make a right-handed
     coordinate system.
 
@@ -96,7 +99,7 @@ def flip_if_left_handed(xvec:Vector, yvec:Vector, zvec:Vector) -> Vector:
     return tuple(map(float, zvec))
 
 
-def best_unit_perpendicular(xyzs:list[Vector]):
+def best_unit_perpendicular(xyzs: list[Vector]):
     """Find a vector that is perpendicular to a series of points as much as possible.
 
     For 1 point, this is an arbitrary vector.
@@ -161,8 +164,12 @@ def unit_perpendicular(
     return uxyz3
 
 
-def unit_bisector(xyz1: Sequence | np.ndarray , xyz2: Sequence | np.ndarray,
-                   orig_xyz: Sequence | np.ndarray, outer: bool = False) -> np.ndarray:
+def unit_bisector(
+    xyz1: Sequence | np.ndarray,
+    xyz2: Sequence | np.ndarray,
+    orig_xyz: Sequence | np.ndarray,
+    outer: bool = False,
+) -> np.ndarray:
     """Calculate a unit bisector.
 
     :param xyz1: 3D vector
@@ -184,12 +191,13 @@ def unit_bisector(xyz1: Sequence | np.ndarray , xyz2: Sequence | np.ndarray,
 
 
 def from_internals(
-    dist: float=0.0,
-    xyz1: Sequence|np.ndarray =(0.0, 0.0, 0.0),
-    ang: float=0.0,
-    xyz2: Sequence | np.ndarray=(0.0, 0.0, 1.0),
-    dih: float=0.0,
-    xyz3: Sequence | np.ndarray=(0.0, 1.0, 0.0)) -> tuple [float] : 
+    dist: float = 0.0,
+    xyz1: Sequence | np.ndarray = (0.0, 0.0, 0.0),
+    ang: float = 0.0,
+    xyz2: Sequence | np.ndarray = (0.0, 0.0, 1.0),
+    dih: float = 0.0,
+    xyz3: Sequence | np.ndarray = (0.0, 1.0, 0.0),
+) -> tuple[float]:
     """Determine the position of a point (xyz4) in Cartesian coordinates whose
     position is related to three other points (xyz1, xyz2, xyz3) via a set
     of internal coordinates.
@@ -208,7 +216,9 @@ def from_internals(
     return xyz4
 
 
-def _local_position(dist:float =0.0, ang: float =0.0, dih: float=0.0)-> tuple[float]: 
+def _local_position(
+    dist: float = 0.0, ang: float = 0.0, dih: float = 0.0
+) -> tuple[float]:
     """Determine the xyz coordinates of a point in the local axis frame
     defined by a set of internal coordinates.
 
@@ -225,9 +235,10 @@ def _local_position(dist:float =0.0, ang: float =0.0, dih: float=0.0)-> tuple[fl
 
 
 def _local_axes(
-        xyz1: Sequence | np.ndarray=(0.0, 0.0, 0.0), 
-        xyz2: Sequence | np.ndarray=(0.0, 0.0, 1.0), 
-        xyz3: Sequence | np.ndarray=(0.0, 1.0, 0.0)) -> tuple[float]:
+    xyz1: Sequence | np.ndarray = (0.0, 0.0, 0.0),
+    xyz2: Sequence | np.ndarray = (0.0, 0.0, 1.0),
+    xyz3: Sequence | np.ndarray = (0.0, 1.0, 0.0),
+) -> tuple[float]:
     """Determine the  local axes for defining bond, angle, dihedral from
     the Cartesian coordinates of three support atoms.
 
@@ -246,7 +257,7 @@ def _local_axes(
     return (x_ax, y_ax, z_ax)
 
 
-def distance(xyz1: Sequence | np.ndarray, xyz2: Sequence | np.ndarray)->float:
+def distance(xyz1: Sequence | np.ndarray, xyz2: Sequence | np.ndarray) -> float:
     """Measure the distance between points.
 
     :param xyz1: 3D vector to point 1
@@ -258,15 +269,17 @@ def distance(xyz1: Sequence | np.ndarray, xyz2: Sequence | np.ndarray)->float:
     return dist
 
 
-def angle(xyz1: Sequence | np.ndarray,
-        xyz2: Sequence | np.ndarray,
-         orig_xyz: Sequence | np.ndarray=(0.0, 0.0, 0.0))-> float:
+def angle(
+    xyz1: Sequence | np.ndarray,
+    xyz2: Sequence | np.ndarray,
+    orig_xyz: Sequence | np.ndarray = (0.0, 0.0, 0.0),
+) -> float:
     """Measure the angle inscribed by three atoms.
 
     :param xyz1: 3D vector to point 1
     :param xyz2: 3D vector to point 2
     :param xyz3: 3D vector to point 3
-    :Note: there is no xyz3 
+    :Note: there is no xyz3
     :param orig_xyz: Origin of coordinate system `xyz1` and `xyz2` are in
     :return: Angle between three atoms
     """
@@ -283,9 +296,11 @@ def angle(xyz1: Sequence | np.ndarray,
     return ang
 
 
-def central_angle(xyz1: Sequence | np.ndarray, 
-                  xyz2: Sequence | np.ndarray, 
-                  xyz3: Sequence | np.ndarray)-> float:
+def central_angle(
+    xyz1: Sequence | np.ndarray,
+    xyz2: Sequence | np.ndarray,
+    xyz3: Sequence | np.ndarray,
+) -> float:
     """Measure the angle inscribed by three atoms.
 
     :param xyz1: 3D vector to point 1
@@ -296,17 +311,18 @@ def central_angle(xyz1: Sequence | np.ndarray,
     return angle(xyz1=xyz1, xyz2=xyz3, orig_xyz=xyz2)
 
 
-def projected_central_angle(xyz1, xyz2, xyz3):
+def projected_central_angle(
+    xyz1: Sequence | np.ndarray,
+    xyz2: Sequence | np.ndarray,
+    xyz3: Sequence | np.ndarray,
+) -> float:
     """Measure the angle inscribed by three atoms,
     projected onto the normal plane of the central atom.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
     :param xyz3: 3D vector to point 3
-    :type xyz3: tuple, list, or numpy nd.array
-    :rtype: float
+    :return: Angle projected on normal plane
     """
     uxyz21 = unit_perpendicular(xyz2, xyz1)
     uxyz23 = unit_perpendicular(xyz2, xyz3)
@@ -321,18 +337,19 @@ def projected_central_angle(xyz1, xyz2, xyz3):
     return ang
 
 
-def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
+def dihedral_angle(
+    xyz1: Sequence | np.ndarray,
+    xyz2: Sequence | np.ndarray,
+    xyz3: Sequence | np.ndarray,
+    xyz4: Sequence | np.ndarray,
+) -> float:
     """Measure the dihedral angle defined by four atoms.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
     :param xyz3: 3D vector to point 3
-    :type xyz3: tuple, list, or numpy nd.array
     :param xyz4: 3D vector to point 4
-    :type xyz4: tuple, list, or numpy nd.array
-    :rtype: float
+    :return: Dihedral angle of four atoms
     """
     # Get the cosine of the angle
     uxyz21 = unit_direction(xyz2, xyz1)
@@ -369,15 +386,9 @@ def rotator(
     """Get a function for axis-angle rotations, optionally specifying the origin.
 
     :param axis: Rotational axis (norm is ignored)
-    :type axis: Vector
     :param ang: Rotational angle
-    :type ang: float
     :param degree: _description_, defaults to False
-    :type degree: bool, optional
-    :param orig_xyz: _description_, defaults to None
-    :type orig_xyz: Optional[Vector], optional
     :return: _description_
-    :rtype: Callable[[Vector], Vector]
     """
     orig_xyz = np.array([0.0, 0.0, 0.0] if orig_xyz is None else orig_xyz)
     ang = ang * phycon.DEG2RAD if degree else ang
@@ -394,7 +405,7 @@ def rotator(
 
 
 # I/O
-def string(vec, num_per_row=None, val_format="{0:>8.3f}"):
+def string(vec:Sequence | np.ndarray, num_per_row=None, val_format="{0:>8.3f}")->str:
     """Write a vector to a string.
 
     :param vec: vector to form string with

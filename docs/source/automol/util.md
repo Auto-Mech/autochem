@@ -22,3 +22,7 @@ some words
 ```{eval-rst}
 .. automodule:: automol.util.tensor
 ```
+## automol.util.vector
+```{eval-rst}
+.. automodule:: automol.util.vector
+```
