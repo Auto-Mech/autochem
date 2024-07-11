@@ -63,6 +63,7 @@ from automol.amchi.base._core import has_stereo
 from automol.amchi.base._core import has_mobile_hydrogens
 from automol.amchi.base._core import low_spin_multiplicity
 from automol.amchi.base._core import is_enantiomer
+from automol.amchi.base._core import is_racemic
 # # comparisons
 from automol.amchi.base._core import same_connectivity
 from automol.amchi.base._core import equivalent
@@ -142,6 +143,7 @@ __all__ = [
     'has_mobile_hydrogens',
     'low_spin_multiplicity',
     'is_enantiomer',
+    'is_racemic',
     # # comparisons
     'same_connectivity',
     'equivalent',

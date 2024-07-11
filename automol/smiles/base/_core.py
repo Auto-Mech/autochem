@@ -233,6 +233,18 @@ def reaction_products(smi: str) -> List[str]:
     return None if rsmi is None else rsmi.split('.')
 
 
+def reaction_reactants_and_products(smi: str) -> tuple[list[str], list[str]]:
+    """ Get the reactants and products from a reaction SMILES string
+
+    Multiple reactants will be returned as one combined SMILES string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :returns: The SMILES strings for the reactants and products
+    """
+    return reaction_reactants(smi), reaction_products(smi)
+
+
 # # properties
 def parse_connected_molecule_properties(smi):
     """ Parse all properties from a SMILES string

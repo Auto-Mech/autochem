@@ -67,6 +67,7 @@ from automol.amchi.base._core import has_stereo
 from automol.amchi.base._core import has_mobile_hydrogens
 from automol.amchi.base._core import low_spin_multiplicity
 from automol.amchi.base._core import is_enantiomer
+from automol.amchi.base._core import is_racemic
 # # comparisons
 from automol.amchi.base._core import same_connectivity
 from automol.amchi.base._core import equivalent
@@ -85,6 +86,9 @@ from automol.amchi.base._core import _split_layer_string
 # L4
 # # conversions
 from automol.amchi._conv import amchi_key
+from automol.amchi._conv import chemkin_name
+from automol.amchi._conv import connectivity_digest
+from automol.amchi._conv import stereo_digest
 from automol.amchi._conv import smiles
 from automol.amchi._conv import graph
 from automol.amchi._conv import geometry
@@ -169,6 +173,7 @@ __all__ = [
     # # other properties
     'has_multiple_components',
     'is_enantiomer',
+    'is_racemic',
     'is_chiral',
     'has_stereo',
     'has_mobile_hydrogens',
@@ -190,6 +195,9 @@ __all__ = [
     # L4
     # # conversions
     'amchi_key',
+    'chemkin_name',
+    'connectivity_digest',
+    'stereo_digest',
     'smiles',
     'graph',
     'geometry',
