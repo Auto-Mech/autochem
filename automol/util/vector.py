@@ -405,7 +405,7 @@ def rotator(
 
 
 # I/O
-def string(vec:Sequence | np.ndarray, num_per_row=None, val_format="{0:>8.3f}")->str:
+def string(vec: Sequence | np.ndarray, num_per_row=None, val_format="{0:>8.3f}") -> str:
     """Write a vector to a string.
 
     :param vec: vector to form string with
