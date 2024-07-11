@@ -2,14 +2,18 @@
 
 import itertools
 
-import numpy as np
+import numpy
+from _collections_abc import Sequence
 
 from automol.util import vector
 
 
 # I/O
 def string(
-    arr: np.ndarray, include_zeros=False, include_perms=False, val_format="{0:>16.8f}"
+    arr: numpy.ndarray,
+    include_zeros: bool = False,
+    include_perms: bool = False,
+    val_format: str = "{0:>16.8f}",
 ) -> str:
     """Write a higher dimensional array (3 or more) to a string.
 
@@ -23,14 +27,14 @@ def string(
 
     def _chk_zero(val, include_zeros):
         """Decide to write value."""
-        iszero = np.isclose(val, 0.0)
+        iszero = numpy.isclose(val, 0.0)
         return bool(not iszero or (iszero and include_zeros))
 
     def _chk_idxs(arr):
         """Decide if idxs
         check if any permutation of idxs is already written.
         """
-        idxs_lst = tuple(idxs for idxs, _ in np.ndenumerate(arr))
+        idxs_lst = tuple(idxs for idxs, _ in numpy.ndenumerate(arr))
         if not include_perms:
             idxs_lst = {tuple(sorted(x)) for x in idxs_lst}
         vals_lst = tuple(arr[idxs] for idxs in idxs_lst)
@@ -54,7 +58,7 @@ def string(
     return arr_str
 
 
-def from_string(arr_str: str, fill_perms: bool = False) -> np.ndarray:
+def from_string(arr_str: str, fill_perms: bool = False) -> numpy.ndarray:
     """Write a higher dimensional array (3 or more) to a string.
 
     :param arr_str: string containing higher dimensions matrix
@@ -68,7 +72,7 @@ def from_string(arr_str: str, fill_perms: bool = False) -> np.ndarray:
 
     # Get the number of values in each array dimension; initialize array
     nvals = [int(val) for val in lines[-1].strip().split()[:-1]]
-    arr = np.zeros(nvals)
+    arr = numpy.zeros(nvals)
 
     mat_idxs, mat_vals = [], []
     for line in lines:
@@ -85,7 +89,7 @@ def from_string(arr_str: str, fill_perms: bool = False) -> np.ndarray:
     return arr
 
 
-def string_submat_4d(arr: np.ndarray):
+def string_submat_4d(arr: numpy.ndarray) -> str:
     """Writes a 4-dimensional matrix to a unique string format.
     :param arr:higher dimensions matrix
     :return: Numbers in a string
@@ -113,7 +117,7 @@ def string_submat_4d(arr: np.ndarray):
     return arr_str
 
 
-def string_submat_3d(arr: np.ndarray):
+def string_submat_3d(arr: numpy.ndarray) -> str:
     """Writes a 3-dimensional matrix to a unique string format.
     :param arr:higher dimensions matrix
     :return: Numbers in a string
@@ -141,7 +145,11 @@ def string_submat_3d(arr: np.ndarray):
     return arr_str
 
 
-def build_full_array(mat_idxs, mat_vals, fill_perms=False):
+def build_full_array(
+    mat_idxs: Sequence[tuple[int, ...], object],
+    mat_vals: Sequence[float],
+    fill_perms: bool = False,
+) -> numpy.ndarray:
     """Function to fill out the array with avail
     caps: (
         ((idx1, idx2, ..., idxn), val1),
@@ -172,7 +180,7 @@ def build_full_array(mat_idxs, mat_vals, fill_perms=False):
     dims = tuple(ncoords for _ in range(ndim))
 
     # Build the force constant matrix
-    mat = np.zeros(dims)
+    mat = numpy.zeros(dims)
     if fill_perms:
         mat_idxs, mat_vals = _gen_idxs(mat_idxs, mat_vals)
     for idxs, val in zip(mat_idxs, mat_vals, strict=False):

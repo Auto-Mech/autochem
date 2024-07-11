@@ -1,7 +1,7 @@
 """vector functions."""
 from collections.abc import Callable, Sequence
 
-import numpy as np
+import numpy
 from scipy.spatial.transform import Rotation
 
 from phydat import phycon
@@ -9,7 +9,7 @@ from phydat import phycon
 Vector = tuple[float, float, float]
 
 
-def unit_norm(xyz: Sequence | np.ndarray) -> float:
+def unit_norm(xyz: Sequence | numpy.ndarray) -> float:
     """Normalize a vector (xyz) to 1.0.
 
     Returns 0. for null vectors
@@ -18,28 +18,30 @@ def unit_norm(xyz: Sequence | np.ndarray) -> float:
     :return: Numbers in the vector
     """
     uxyz = xyz
-    norm = np.linalg.norm(xyz)
-    if not np.isclose(norm, 0.0):
-        uxyz = np.divide(xyz, norm)
+    norm = numpy.linalg.norm(xyz)
+    if not numpy.isclose(norm, 0.0):
+        uxyz = numpy.divide(xyz, norm)
     return uxyz
 
 
-def unit_direction(xyz1: Sequence | np.ndarray, xyz2: Sequence | np.ndarray) -> float:
+def unit_direction(
+    xyz1: Sequence | numpy.ndarray, xyz2: Sequence | numpy.ndarray
+) -> float:
     """Calculate a unit direction vector from `xyz1` to `xyz2`.
 
     :param xyz1: 3D vector
     :param xyz2: 3D vector
     :return: Unit direction vector from two vectors
     """
-    dxyz12 = np.subtract(xyz2, xyz1)
+    dxyz12 = numpy.subtract(xyz2, xyz1)
     uxyz12 = unit_norm(dxyz12)
     return uxyz12
 
 
 def are_parallel(
-    xyz1: Sequence | np.ndarray,
-    xyz2: Sequence | np.ndarray,
-    orig_xyz: Sequence | np.ndarray = (0.0, 0.0, 0.0),
+    xyz1: Sequence | numpy.ndarray,
+    xyz2: Sequence | numpy.ndarray,
+    orig_xyz: Sequence | numpy.ndarray = (0.0, 0.0, 0.0),
     anti: bool = False,
     tol: float = 1e-3,
 ) -> bool:
@@ -53,12 +55,12 @@ def are_parallel(
     :param tol: Tolerance for checking determinant
     :return: True if vectors are parallel, false if not
     """
-    vec1 = np.subtract(xyz1, orig_xyz)
-    vec2 = np.subtract(xyz2, orig_xyz)
-    len1 = np.linalg.norm(vec1)
-    len2 = np.linalg.norm(vec2)
+    vec1 = numpy.subtract(xyz1, orig_xyz)
+    vec2 = numpy.subtract(xyz2, orig_xyz)
+    len1 = numpy.linalg.norm(vec1)
+    len2 = numpy.linalg.norm(vec2)
 
-    ratio = np.dot(vec1, vec2) / (len1 * len2)
+    ratio = numpy.dot(vec1, vec2) / (len1 * len2)
 
     ret = abs(ratio - 1) < tol
     if anti:
@@ -72,9 +74,9 @@ def orthogonalize(xyz1, xyz2, normalize=False):
     :param xyz1: 3D vector
     :param xyz2: 3D vector.
     """
-    overlap = np.dot(xyz1, xyz2)
-    norm = np.dot(xyz1, xyz1)
-    oxyz2 = np.subtract(xyz2, np.multiply(overlap / norm, xyz1))
+    overlap = numpy.dot(xyz1, xyz2)
+    norm = numpy.dot(xyz1, xyz1)
+    oxyz2 = numpy.subtract(xyz2, numpy.multiply(overlap / norm, xyz1))
     if normalize:
         oxyz2 = unit_norm(oxyz2)
     return oxyz2
@@ -92,10 +94,10 @@ def flip_if_left_handed(xvec: Vector, yvec: Vector, zvec: Vector) -> Vector:
     :param zvec: A vector defining the z direction
     :returns: `zvec` or, if they made a left-handed system, `-zvec`
     """
-    zdir = np.cross(xvec, yvec)
-    proj = np.dot(zvec, zdir)
+    zdir = numpy.cross(xvec, yvec)
+    proj = numpy.dot(zvec, zdir)
     if proj < 0.0:
-        zvec = np.negative(zvec)
+        zvec = numpy.negative(zvec)
     return tuple(map(float, zvec))
 
 
@@ -119,8 +121,8 @@ def best_unit_perpendicular(xyzs: list[Vector]):
     elif len(xyzs) == 3:
         nvec = unit_perpendicular(*xyzs)
     else:
-        xyz0 = np.sum(xyzs, axis=0) / len(xyzs)
-        _, _, vmat = np.linalg.svd(np.subtract(xyzs, xyz0))
+        xyz0 = numpy.sum(xyzs, axis=0) / len(xyzs)
+        _, _, vmat = numpy.linalg.svd(numpy.subtract(xyzs, xyz0))
         nvec = vmat[2, :]
 
     nvec = tuple(map(float, nvec))
@@ -131,7 +133,7 @@ def arbitrary_unit_perpendicular(xyz, orig_xyz=(0.0, 0.0, 0.0)):
     """Determine an arbitrary perpendicular vector."""
     for xyz2 in ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1]):
         uxyz = unit_perpendicular(xyz, xyz2, orig_xyz=orig_xyz)
-        if np.linalg.norm(uxyz) > 1e-7:
+        if numpy.linalg.norm(uxyz) > 1e-7:
             break
 
     return uxyz
@@ -152,11 +154,11 @@ def unit_perpendicular(
     :type value_if_parallel: Vector
     :rtype: numpy.ndarray
     """
-    xyz1 = np.subtract(xyz1, orig_xyz)
-    xyz2 = np.subtract(xyz2, orig_xyz)
-    xyz3 = np.cross(xyz1, xyz2)
+    xyz1 = numpy.subtract(xyz1, orig_xyz)
+    xyz2 = numpy.subtract(xyz2, orig_xyz)
+    xyz3 = numpy.cross(xyz1, xyz2)
 
-    if np.linalg.norm(xyz3) > 1e-7:
+    if numpy.linalg.norm(xyz3) > 1e-7:
         uxyz3 = unit_norm(xyz3)
     else:
         uxyz3 = value_if_parallel
@@ -165,11 +167,11 @@ def unit_perpendicular(
 
 
 def unit_bisector(
-    xyz1: Sequence | np.ndarray,
-    xyz2: Sequence | np.ndarray,
-    orig_xyz: Sequence | np.ndarray,
+    xyz1: Sequence | numpy.ndarray,
+    xyz2: Sequence | numpy.ndarray,
+    orig_xyz: Sequence | numpy.ndarray,
     outer: bool = False,
-) -> np.ndarray:
+) -> numpy.ndarray:
     """Calculate a unit bisector.
 
     :param xyz1: 3D vector
@@ -184,19 +186,19 @@ def unit_bisector(
         ang=ang / 2.0,
         orig_xyz=orig_xyz,
     )
-    xyz = unit_norm(np.subtract(rot_(xyz1), orig_xyz))
+    xyz = unit_norm(numpy.subtract(rot_(xyz1), orig_xyz))
     if outer:
-        xyz = np.negative(xyz)
+        xyz = numpy.negative(xyz)
     return xyz
 
 
 def from_internals(
     dist: float = 0.0,
-    xyz1: Sequence | np.ndarray = (0.0, 0.0, 0.0),
+    xyz1: Sequence | numpy.ndarray = (0.0, 0.0, 0.0),
     ang: float = 0.0,
-    xyz2: Sequence | np.ndarray = (0.0, 0.0, 1.0),
+    xyz2: Sequence | numpy.ndarray = (0.0, 0.0, 1.0),
     dih: float = 0.0,
-    xyz3: Sequence | np.ndarray = (0.0, 1.0, 0.0),
+    xyz3: Sequence | numpy.ndarray = (0.0, 1.0, 0.0),
 ) -> tuple[float]:
     """Determine the position of a point (xyz4) in Cartesian coordinates whose
     position is related to three other points (xyz1, xyz2, xyz3) via a set
@@ -211,7 +213,7 @@ def from_internals(
     """
     local_xyz = _local_position(dist=dist, ang=ang, dih=dih)
     local_basis = _local_axes(xyz1=xyz1, xyz2=xyz2, xyz3=xyz3)
-    xyz4 = tuple(xyz1 + np.dot(local_xyz, local_basis))
+    xyz4 = tuple(xyz1 + numpy.dot(local_xyz, local_basis))
 
     return xyz4
 
@@ -227,17 +229,17 @@ def _local_position(
     :param dih: dihedral from `xyz1`, `xyz2`, `xyz3` to `xyz4` (in radians)
     :return: New coordinates
     """
-    x_comp = dist * np.sin(ang) * np.sin(dih)
-    y_comp = dist * np.sin(ang) * np.cos(dih)
-    z_comp = dist * np.cos(ang)
+    x_comp = dist * numpy.sin(ang) * numpy.sin(dih)
+    y_comp = dist * numpy.sin(ang) * numpy.cos(dih)
+    z_comp = dist * numpy.cos(ang)
 
     return (x_comp, y_comp, z_comp)
 
 
 def _local_axes(
-    xyz1: Sequence | np.ndarray = (0.0, 0.0, 0.0),
-    xyz2: Sequence | np.ndarray = (0.0, 0.0, 1.0),
-    xyz3: Sequence | np.ndarray = (0.0, 1.0, 0.0),
+    xyz1: Sequence | numpy.ndarray = (0.0, 0.0, 0.0),
+    xyz2: Sequence | numpy.ndarray = (0.0, 0.0, 1.0),
+    xyz3: Sequence | numpy.ndarray = (0.0, 1.0, 0.0),
 ) -> tuple[float]:
     """Determine the  local axes for defining bond, angle, dihedral from
     the Cartesian coordinates of three support atoms.
@@ -257,22 +259,22 @@ def _local_axes(
     return (x_ax, y_ax, z_ax)
 
 
-def distance(xyz1: Sequence | np.ndarray, xyz2: Sequence | np.ndarray) -> float:
+def distance(xyz1: Sequence | numpy.ndarray, xyz2: Sequence | numpy.ndarray) -> float:
     """Measure the distance between points.
 
     :param xyz1: 3D vector to point 1
     :param xyz2: 3D vector to point 2
     :return: Distance
     """
-    dist = np.linalg.norm(np.subtract(xyz1, xyz2))
+    dist = numpy.linalg.norm(numpy.subtract(xyz1, xyz2))
 
     return dist
 
 
 def angle(
-    xyz1: Sequence | np.ndarray,
-    xyz2: Sequence | np.ndarray,
-    orig_xyz: Sequence | np.ndarray = (0.0, 0.0, 0.0),
+    xyz1: Sequence | numpy.ndarray,
+    xyz2: Sequence | numpy.ndarray,
+    orig_xyz: Sequence | numpy.ndarray = (0.0, 0.0, 0.0),
 ) -> float:
     """Measure the angle inscribed by three atoms.
 
@@ -285,21 +287,21 @@ def angle(
     """
     uxyz1 = unit_direction(orig_xyz, xyz1)
     uxyz2 = unit_direction(orig_xyz, xyz2)
-    cos = np.dot(uxyz1, uxyz2)
+    cos = numpy.dot(uxyz1, uxyz2)
     if cos < -1.0:
-        assert np.allclose(cos, -1.0)
+        assert numpy.allclose(cos, -1.0)
         cos = -1.0
     elif cos > 1.0:
-        assert np.allclose(cos, 1.0)
+        assert numpy.allclose(cos, 1.0)
         cos = 1.0
-    ang = np.arccos(cos)
+    ang = numpy.arccos(cos)
     return ang
 
 
 def central_angle(
-    xyz1: Sequence | np.ndarray,
-    xyz2: Sequence | np.ndarray,
-    xyz3: Sequence | np.ndarray,
+    xyz1: Sequence | numpy.ndarray,
+    xyz2: Sequence | numpy.ndarray,
+    xyz3: Sequence | numpy.ndarray,
 ) -> float:
     """Measure the angle inscribed by three atoms.
 
@@ -312,9 +314,9 @@ def central_angle(
 
 
 def projected_central_angle(
-    xyz1: Sequence | np.ndarray,
-    xyz2: Sequence | np.ndarray,
-    xyz3: Sequence | np.ndarray,
+    xyz1: Sequence | numpy.ndarray,
+    xyz2: Sequence | numpy.ndarray,
+    xyz3: Sequence | numpy.ndarray,
 ) -> float:
     """Measure the angle inscribed by three atoms,
     projected onto the normal plane of the central atom.
@@ -326,22 +328,22 @@ def projected_central_angle(
     """
     uxyz21 = unit_perpendicular(xyz2, xyz1)
     uxyz23 = unit_perpendicular(xyz2, xyz3)
-    cos = np.dot(uxyz21, uxyz23)
+    cos = numpy.dot(uxyz21, uxyz23)
     if cos < -1.0:
-        assert np.allclose(cos, -1.0)
+        assert numpy.allclose(cos, -1.0)
         cos = -1.0
     elif cos > 1.0:
-        assert np.allclose(cos, 1.0)
+        assert numpy.allclose(cos, 1.0)
         cos = 1.0
-    ang = np.arccos(cos)
+    ang = numpy.arccos(cos)
     return ang
 
 
 def dihedral_angle(
-    xyz1: Sequence | np.ndarray,
-    xyz2: Sequence | np.ndarray,
-    xyz3: Sequence | np.ndarray,
-    xyz4: Sequence | np.ndarray,
+    xyz1: Sequence | numpy.ndarray,
+    xyz2: Sequence | numpy.ndarray,
+    xyz3: Sequence | numpy.ndarray,
+    xyz4: Sequence | numpy.ndarray,
 ) -> float:
     """Measure the dihedral angle defined by four atoms.
 
@@ -358,24 +360,24 @@ def dihedral_angle(
     uxyz34 = unit_direction(xyz3, xyz4)
     uxyz123_perp = unit_perpendicular(uxyz21, uxyz23)
     uxyz234_perp = unit_perpendicular(uxyz32, uxyz34)
-    cos = np.dot(uxyz123_perp, uxyz234_perp)
+    cos = numpy.dot(uxyz123_perp, uxyz234_perp)
 
     # Get the sign of the angle
-    val = np.dot(uxyz123_perp, uxyz34)
+    val = numpy.dot(uxyz123_perp, uxyz34)
     val = max(min(val, 1.0), -1.0)
     sign = 2 * (val < 0) - 1
 
     # Before plugging it into the arccos function, make sure we haven't
     # Slightly run out of bounds
     if cos < -1.0:
-        assert np.allclose(cos, -1.0)
+        assert numpy.allclose(cos, -1.0)
         cos = -1.0
     elif cos > 1.0:
-        assert np.allclose(cos, 1.0)
+        assert numpy.allclose(cos, 1.0)
         cos = 1.0
 
-    dih = sign * np.arccos(cos)
-    dih = np.mod(dih, 2 * np.pi)
+    dih = sign * numpy.arccos(cos)
+    dih = numpy.mod(dih, 2 * numpy.pi)
     return dih
 
 
@@ -390,23 +392,25 @@ def rotator(
     :param degree: _description_, defaults to False
     :return: _description_
     """
-    orig_xyz = np.array([0.0, 0.0, 0.0] if orig_xyz is None else orig_xyz)
+    orig_xyz = numpy.array([0.0, 0.0, 0.0] if orig_xyz is None else orig_xyz)
     ang = ang * phycon.DEG2RAD if degree else ang
 
     axis = unit_norm(axis)
 
-    rot_mat = Rotation.from_rotvec(np.multiply(axis, ang)).as_matrix()
+    rot_mat = Rotation.from_rotvec(numpy.multiply(axis, ang)).as_matrix()
 
     def rotate_(xyz: Vector) -> Vector:
-        xyz = np.array(xyz)
-        return np.dot(rot_mat, xyz - orig_xyz) + orig_xyz
+        xyz = numpy.array(xyz)
+        return numpy.dot(rot_mat, xyz - orig_xyz) + orig_xyz
 
     return rotate_
 
 
 # I/O
 def string(
-    vec: Sequence | np.ndarray, num_per_row: int | None = None, val_format="{0:>8.3f}"
+    vec: Sequence | numpy.ndarray,
+    num_per_row: int | None = None,
+    val_format="{0:>8.3f}",
 ) -> str:
     """Write a vector to a string.
 

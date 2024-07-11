@@ -3,7 +3,7 @@ from collections.abc import Sequence  # type: ignore
 
 
 # I/O
-def string(mat: Sequence[Sequence[float]], val_format="{0:>8.3f}") -> str:
+def string(mat: Sequence[Sequence[float]], val_format: str = "{0:>8.3f}") -> str:
     """Write a matrix to a string.
 
     :param mat: Matrix to form string with
