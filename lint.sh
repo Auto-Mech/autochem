@@ -11,6 +11,7 @@ FILES=(
     "automol/util/tensor.py"
     "automol/util/vector.py"
     "automol/util/zmat.py"
+    "automol/util/dict_/_dict_.py"
 )
 
 (
