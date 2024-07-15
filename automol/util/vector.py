@@ -131,8 +131,8 @@ def flip_if_left_handed(
     zdir = numpy.cross(xvec, yvec)
     proj = numpy.dot(zvec, zdir)
     if proj < 0.0:
-        return zvec
-    return tuple(map(float, zvec))
+        return numpy.negative(zvec)
+    return zvec
 
 
 def best_unit_perpendicular(xyzs: Sequence[Sequence | Vector]) -> Vector:
@@ -148,6 +148,9 @@ def best_unit_perpendicular(xyzs: Sequence[Sequence | Vector]) -> Vector:
     :param xyzs: The points
     :return: New vector
     """
+    assert all(
+        is_vector_like(xyz) for xyz in xyzs
+    ), f"One of these is not vector like: {xyzs}"
     if len(xyzs) <= 1:
         nvec = [1, 0, 0]
     elif len(xyzs) == 2:
@@ -163,8 +166,7 @@ def best_unit_perpendicular(xyzs: Sequence[Sequence | Vector]) -> Vector:
 
 
 def arbitrary_unit_perpendicular(
-    xyz: Sequence | Vector,
-    orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0)
+    xyz: Sequence | Vector, orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0)
 ) -> Vector:
     """Determine an arbitrary perpendicular vector."""
     require_vector_like(xyz)
@@ -194,6 +196,7 @@ def unit_perpendicular(
     require_vector_like(xyz1)
     require_vector_like(xyz2)
     require_vector_like(orig_xyz)
+    require_vector_like(value_if_parallel)
     xyz1 = numpy.subtract(xyz1, orig_xyz)
     xyz2 = numpy.subtract(xyz2, orig_xyz)
     xyz3 = numpy.cross(xyz1, xyz2)
@@ -201,7 +204,7 @@ def unit_perpendicular(
     if numpy.linalg.norm(xyz3) > 1e-7:
         uxyz3 = unit_norm(xyz3)
     else:
-        uxyz3 = value_if_parallel
+        uxyz3 = numpy.array(value_if_parallel)
 
     return uxyz3
 
@@ -209,7 +212,7 @@ def unit_perpendicular(
 def unit_bisector(
     xyz1: Sequence | Vector,
     xyz2: Sequence | Vector,
-    orig_xyz: Sequence | Vector,
+    orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0),
     outer: bool = False,
 ) -> Vector:
     """Calculate a unit bisector.
@@ -300,10 +303,10 @@ def _local_axes(
     uxyz23 = unit_direction(xyz2, xyz3)
     uxyz123_perp = unit_perpendicular(uxyz23, uxyz12)
 
-    z_ax = tuple(uxyz12)
-    y_ax = tuple(unit_perpendicular(uxyz12, uxyz123_perp))
-    x_ax = tuple(unit_perpendicular(y_ax, z_ax))
-    return (x_ax, y_ax, z_ax)
+    z_ax = uxyz12
+    y_ax = unit_perpendicular(uxyz12, uxyz123_perp)
+    x_ax = unit_perpendicular(y_ax, z_ax)
+    return numpy.array([x_ax, y_ax, z_ax])
 
 
 def distance(xyz1: Sequence | Vector, xyz2: Sequence | Vector) -> float:
@@ -442,8 +445,12 @@ def dihedral_angle(
 
 
 # transformations
+# Note: does not have updated format because that causes issues with geometry tests
 def rotator(
-    axis: Vector, ang: float, degree: bool = False, orig_xyz: Vector | None = None
+    axis: Vector,
+    ang: float,
+    degree: bool = False,
+    orig_xyz: Vector | Sequence = (0.0, 0.0, 0.0),
 ) -> Callable[[Vector], Vector]:
     """Get a function for axis-angle rotations, optionally specifying the origin.
 
@@ -452,7 +459,7 @@ def rotator(
     :param degree: _description_, defaults to False
     :return: _description_
     """
-    orig_xyz = numpy.array([0.0, 0.0, 0.0] if orig_xyz is None else orig_xyz)
+    orig_xyz = numpy.array(orig_xyz)
     ang = ang * phycon.DEG2RAD if degree else ang
 
     axis = unit_norm(axis)
@@ -464,7 +471,6 @@ def rotator(
         return numpy.dot(rot_mat, xyz - orig_xyz) + orig_xyz
 
     return rotate_
-
 
 
 # I/O
