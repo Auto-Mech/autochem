@@ -170,7 +170,7 @@ def filter_keys(dct_1:dict[object, tuple[object]],
     return dct_ret
 
 
-def merge_sequence(dctsdict[object, tuple[object]]):
+def merge_sequence(dcts:dict[object, tuple[object]]):
     """merge a sequence of dictionaries"""
     merged_dct = {}
     for dct in dcts:
