@@ -10,6 +10,7 @@ FILES=(
     "automol/util/ring.py"
     "automol/util/tensor.py"
     "automol/util/vector.py"
+    "automol/util/zmat.py"
 )
 
 (
