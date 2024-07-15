@@ -4,10 +4,11 @@
 import itertools
 from copy import deepcopy
 from typing import Any
+from _collections_abc import Callable
 
 import numpy
 
-
+# for dictionaries do dict [obj, tuple [obj, ...]]
 def invert(dct):
     """Transposes the keys and values in a dictionary
 
