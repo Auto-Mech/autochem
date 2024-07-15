@@ -1099,7 +1099,7 @@ def perturb(geo, atm_idx, pert_xyz):
     return pert_geo
 
 
-def rotate(geo, axis, angle, orig_xyz=None, idxs=None, degree=False):
+def rotate(geo, axis, angle, orig_xyz=(0., 0., 0.), idxs=None, degree=False):
     """Rotate the coordinates of a molecular geometry about
     an axis by a specified angle. A set of `idxs` can be supplied
     to transform a subset of coordinates.
