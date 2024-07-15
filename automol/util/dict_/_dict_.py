@@ -1,86 +1,93 @@
-""" Helper functions for working with Python dictionaries
-"""
+"""Helper functions for working with Python dictionaries."""
 
 import itertools
 from copy import deepcopy
 from typing import Any
 
 import numpy
+from _collections_abc import Callable
 
-# for dictionaries do dict [obj, tuple [obj, ...]]
-def invert(dct):
-    """Transposes the keys and values in a dictionary
 
-    :param dct: dictionary to transpose
-    :tupe dct: dict
-    :rtype: dict
+# for dictionaries do dict[object,object] [obj, tuple [obj, ...]]
+def invert(dct: dict[object, object]) -> dict[object, object]:
+    """Transposes the keys and values in a dictionary.
+
+    :param dct: Dictionary to transpose
+    :return: Transposed dictionary
     """
     return {val: key for key, val in dct.items()}
 
 
-def empty_if_none(obj):
+def empty_if_none(obj: object):
     """Returns an empty dictionary if input object is None,
     otherwise return the object.
-
-    :param obj: generic object
-    :type obj: any
-    """
+    :param obj: Generic object
+    :return: Object of none if none.
+    """  # noqa: D401
     return {} if obj is None else obj
 
 
-def compose(dct1, dct2):
-    """Get the composition of `dct1` with `dct2`
+def compose(
+    dct1: dict[object, object],
+    dct2: dict[object, object],
+) -> dict[object, object]:
+    """Get the composition of `dct1` with `dct2`.
 
     That is, dct[k] = dct1[dct2[k]]
 
     :param dct1: The first dictionary
-    :type dct1: dict
     :param dct2: The second dictionary
-    :type dct2: dict
     :returns: The composed dictionary
-    :rtype: dict
     """
     return {k2: dct1[v2] for k2, v2 in dct2.items()}
 
 
-def by_key(dct, keys, fill=True, fill_val=None):
-    """dictionary on a set of keys, filling missing entries
+def by_key(
+    dct: dict[object, object],
+    keys,
+    fill: bool = True,
+    fill_val: bool | None = None,
+) -> dict[object, object]:
+    """Dictionary on a set of keys, filling missing entries.
 
     :param fill: Fill in missing values?
     :type fill: bool
     :param fill_val: If `fill` is `True`, fill missing entries with this value.
-    """
+    """  # noqa: D401
     if fill:
-        dct = dict(zip(keys, values_by_key(dct, keys, fill_val=fill_val)))
+        dct = dict[object, object](
+            zip(keys, values_by_key(dct, keys, fill_val=fill_val), strict=False)
+        )
     else:
         dct = {key: dct[key] for key in keys if key in dct}
     return dct
 
 
-def by_value(dct, func=lambda x: x):
-    """dictionary on a set of values, determined by a function"""
+def by_value(dct: dict[object, object], func: Callable = lambda x: x):
+    """Dictionary on a set of values, determined by a function.
+    :param dct: Dictionary of values
+    :return: Dictionary with keys.
+    """  # noqa: D401
     keys = keys_by_value(dct, func)
     return by_key(dct, keys)
 
 
-def values_by_key(dct, keys, fill_val=None):
-    """return dictionary values for specific keys, filling missing entries"""
+def values_by_key(dct: dict[object, object], keys: object, fill_val: object = None):
+    """Return dictionary values for specific keys, filling missing entries."""
     return tuple(dct[key] if key in dct else fill_val for key in keys)
 
 
-def value_by_unordered_key(dct, key, fill_val=None):
-    """return the first value matching a tuple key in any order"""
-
+def value_by_unordered_key(dct: dict[object, object], key: object, fill_val=None):
+    """Return the first value matching a tuple key in any order."""
     key_perms = itertools.permutations(key, len(key))
     val = next((dct[k] for k in key_perms if k in dct), fill_val)
     return val
 
 
-def value_in_floatkey_dct(dct, key, tol=1.0e-5):
+def value_in_floatkey_dct(dct: dict[object, object], key: object, tol=1.0e-5):
     """Access value in a dictionary that may have floats with large numbers of
-    decimal places or strings
+    decimal places or strings.
     """
-
     if isinstance(key, float):
         val = None
         for dkey in dct:
@@ -93,11 +100,12 @@ def value_in_floatkey_dct(dct, key, tol=1.0e-5):
     return val
 
 
-def values_in_multilevel_dct(dct, key1, key2, fill_val=None):
+def values_in_multilevel_dct(
+    dct: dict[object, object], key1: object, key2: object, fill_val=None
+):
     """Obtain a dictionary value where
-    dct[key1][key2]
+    dct[key1][key2].
     """
-
     dct2 = dct.get(key1, None)
     if dct2 is not None:
         val = dct2.get(key2, fill_val)
@@ -107,56 +115,58 @@ def values_in_multilevel_dct(dct, key1, key2, fill_val=None):
     return val
 
 
-def keys_by_value(dct, func=lambda x: x):
-    """return dictionary keys for specific values"""
+def keys_by_value(dct: dict[object, object], func: Callable = lambda x: x):
+    """Return dictionary keys for specific values."""
     return frozenset(key for key, val in dct.items() if func(val))
 
 
-def transform_keys(dct, func=lambda x: x):
-    """apply a function to each key"""
-    return dict(zip(map(func, dct.keys()), dct.values()))
+def transform_keys(dct: dict[object, object], func: Callable = lambda x: x):
+    """Apply a function to each key."""
+    return dict[object, object](zip(map(func, dct.keys()), dct.values(), strict=False))
 
 
-def transform_values(dct, func=lambda x: x):
-    """apply a function to each value"""
-    return dict(zip(dct.keys(), map(func, dct.values())))
+def transform_values(dct: dict[object, object], func: Callable = lambda x: x):
+    """Apply a function to each value."""
+    return dict[object, object](zip(dct.keys(), map(func, dct.values()), strict=False))
 
 
-def transform_items_to_values(dct, func=lambda x: x):
-    """apply a function to each value"""
-    return dict(zip(dct.keys(), itertools.starmap(func, dct.items())))
+def transform_items_to_values(dct: dict[object, object], func: Callable = lambda x: x):
+    """Apply a function to each value."""
+    return dict[object, object](
+        zip(dct.keys(), itertools.starmap(func, dct.items()), strict=False)
+    )
 
 
-def keys_sorted_by_value(dct):
-    """dictionary keys sorted by their associated values"""
+def keys_sorted_by_value(dct: dict[object, object]):
+    """Dictionary keys sorted by their associated values."""  # noqa: D401
     return tuple(key for key, _ in sorted(dct.items(), key=lambda x: x[1]))
 
 
-def values_sorted_by_key(dct):
-    """dictionary values sorted by their associated keys"""
+def values_sorted_by_key(dct: dict[object, object]):
+    """Dictionary values sorted by their associated keys."""  # noqa: D401
     return tuple(val for _, val in sorted(dct.items()))
 
 
-def filter_by_key(dct, func=lambda x: x):
-    """filter dictionary entries by their values"""
+def filter_by_key(dct: dict[object, object], func: Callable = lambda x: x):
+    """Filter dictionary entries by their values."""
     return {key: val for key, val in dct.items() if func(key)}
 
 
-def filter_by_value(dct, func=lambda x: x):
-    """filter dictionary entries by their values"""
+def filter_by_value(dct: dict[object, object], func: Callable = lambda x: x):
+    """Filter dictionary entries by their values."""
     return {key: val for key, val in dct.items() if func(val)}
 
 
-def filter_keys(dct_1, dct_2):
+def filter_keys(
+    dct_1: dict[object, object], dct_2: dict[object, object]
+) -> dict[object, object]:
     """Given two dictionaries (dct1 bigger dct2), filter out
     from 1 all the entries present in 2.
 
     :param dct1:
     :param dct2:
     :return: filtered dct1
-    :rtype: dict[]
     """
-
     dct_ret = deepcopy(dct_1)
 
     keys_topop = list(dct_2.keys())
@@ -170,27 +180,30 @@ def filter_keys(dct_1, dct_2):
     return dct_ret
 
 
-def merge_sequence(dcts):
-    """merge a sequence of dictionaries"""
+def merge_sequence(dcts: dict[object, object]):
+    """Merge a sequence of dictionaries."""
     merged_dct = {}
     for dct in dcts:
         merged_dct.update(dct)
     return merged_dct
 
 
-def sort_value_(dct, allow_missing: bool = True, missing_val: Any = None):
-    """Generate a sort value function from a dictionary
+def sort_value_(
+    dct: dict[object, object],
+    allow_missing: bool = True,
+    missing_val: Any = None,
+):
+    """Generate a sort value function from a dictionary.
 
     :param dct: A dictionary
-    :type dct: dict
     :param allow_missing: Allow missing values?, defaults to True
-    :type allow_missing: bool, optional
-    :param missing_val: Value to assign to missing values, defaults to None
-    :type missing_val: Any, optional
+    :return:
     """
 
-    def sort_value(key):
-        assert allow_missing or key in dct, "No key {key} in dictionary:\n{dict}"
+    def sort_value(key: object):
+        assert (
+            allow_missing or key in dct
+        ), "No key {key} in dictionary:\n{dict[object,object]}"
         return dct[key] if key in dct else missing_val
 
     return sort_value
