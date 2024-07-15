@@ -2,10 +2,12 @@
 """
 
 import itertools
+from _collections_abc import Callable
 from copy import deepcopy
 from typing import Any
-from _collections_abc import Callable
+
 import numpy
+
 
 # for dictionaries do dict[object, tuple[object]] [obj, tuple [obj, ...]]
 def invert(dct:dict[object, tuple[object]][object, tuple[object]])-> dict[object, tuple[object]][object, tuple[object]]:
@@ -53,7 +55,7 @@ def by_key(dct:dict[object, tuple[object]], keys, fill:bool=True, fill_val:bool=
     return dct
 
 
-def by_value(dct:dict[object, tuple[object]], func:callable=lambda x: x):
+def by_value(dct:dict[object, tuple[object]], func: Callable=lambda x: x):
     """dictionary on a set of values, determined by a function.
     :param dct: Dictionary of values
     :return: Dictionary with keys.
@@ -107,22 +109,22 @@ def values_in_multilevel_dct(dct:dict[object, tuple[object]], key1:object,
     return val
 
 
-def keys_by_value(dct:dict[object, tuple[object]], func:callable=lambda x: x):
+def keys_by_value(dct:dict[object, tuple[object]], func: Callable =lambda x: x):
     """return dictionary keys for specific values"""
     return frozenset(key for key, val in dct.items() if func(val))
 
 
-def transform_keys(dct:dict[object, tuple[object]], func:callable=lambda x: x):
+def transform_keys(dct:dict[object, tuple[object]], func:Callable=lambda x: x):
     """apply a function to each key"""
     return dict[object, tuple[object]](zip(map(func, dct.keys()), dct.values()))
 
 
-def transform_values(dct:dict[object, tuple[object]], func:callable=lambda x: x):
+def transform_values(dct:dict[object, tuple[object]], func:Callable=lambda x: x):
     """apply a function to each value"""
     return dict[object, tuple[object]](zip(dct.keys(), map(func, dct.values())))
 
 
-def transform_items_to_values(dct:dict[object, tuple[object]], func:callable=lambda x: x):
+def transform_items_to_values(dct:dict[object, tuple[object]], func:Callable=lambda x: x):
     """apply a function to each value"""
     return dict[object, tuple[object]](zip(dct.keys(), itertools.starmap(func, dct.items())))
 
@@ -137,12 +139,12 @@ def values_sorted_by_key(dct:dict[object, tuple[object]]):
     return tuple(val for _, val in sorted(dct.items()))
 
 
-def filter_by_key(dct:dict[object, tuple[object]], func:callable=lambda x: x):
+def filter_by_key(dct:dict[object, tuple[object]], func:Callable=lambda x: x):
     """filter dictionary entries by their values"""
     return {key: val for key, val in dct.items() if func(key)}
 
 
-def filter_by_value(dct:dict[object, tuple[object]], func:callable=lambda x: x):
+def filter_by_value(dct:dict[object, tuple[object]], func:Callable=lambda x: x):
     """filter dictionary entries by their values"""
     return {key: val for key, val in dct.items() if func(val)}
 
