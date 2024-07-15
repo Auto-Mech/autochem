@@ -4,7 +4,6 @@
 import itertools
 from copy import deepcopy
 from typing import Any
-from _collections_abc import Callable
 
 import numpy
 
