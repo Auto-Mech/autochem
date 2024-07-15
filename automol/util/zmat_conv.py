@@ -51,7 +51,7 @@ from typing import Dict, List, Optional, Tuple
 from automol.util._util import translate
 
 Key = Optional[int]
-ZmatConv = Dict[int, Tuple[Key, Key]]
+ZmatConv = Dict[int, Tuple[Key, Key, Key]]
 
 
 # Constructors

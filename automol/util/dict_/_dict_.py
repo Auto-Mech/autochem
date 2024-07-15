@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy
 
-
+# for dictionaries do dict [obj, tuple [obj, ...]]
 def invert(dct):
     """Transposes the keys and values in a dictionary
 

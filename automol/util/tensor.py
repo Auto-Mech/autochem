@@ -25,14 +25,20 @@ def string(
         idx1 idx2 .. idxn  valn
     """
 
-    def _chk_zero(val, include_zeros):
-        """Decide to write value."""
+    def _chk_zero(val: str, include_zeros: bool = False):
+        """Decide to write value.
+        :param val: A number
+        :param include_zeroes:
+        :return: True if it is zero and False if not.
+        """
         iszero = numpy.isclose(val, 0.0)
         return bool(not iszero or (iszero and include_zeros))
 
-    def _chk_idxs(arr):
-        """Decide if idxs
+    def _chk_idxs(arr: numpy.ndarray) -> str:
+        """Decide if idxs.
         check if any permutation of idxs is already written.
+        :param arr: Array of high dimension matrix
+        :return: Index as a string.
         """
         idxs_lst = tuple(idxs for idxs, _ in numpy.ndenumerate(arr))
         if not include_perms:
@@ -156,6 +162,10 @@ def build_full_array(
         ((idx1, idx2, ..., idxn), val2),
         ...,
         ((idx1, idx2, ..., idxn), valn),.
+    :param mat_idxs: Matrix of the indez
+    :param mat_vals: Matrix
+    :param fill_perms: False if ...
+    :return: Array.
     """  # noqa: D401
 
     def _gen_idxs(mat_idxs, mat_vals):
