@@ -1,38 +1,34 @@
-[tool.poetry]
+[project]
 name = "autochem"
-version = "2024.6.5"
-description = "A library for manipulating molecular descriptors"
-authors = ["Andreas Copan <avcopan@gmail.com>"]
-readme = "README.md"
-packages = [
-    { include = "automol" },
-    { include = "autoreact" },
-    { include = "molsym" },
-    { include = "phydat" },
+version = "2024.7.17"
+description = "Add a short description here"
+authors = [{name = "Andreas Copan", email = "avcopan@gmail.com"}]
+requires-python = ">= 3.10"
+dependencies = [
+    "ipython",
+    "ipywidgets",
+    "jupyter",
+    "more-itertools",
+    "networkx",
+    "numpy<2.0",
+    "py3dmol",
+    "pylint",
+    "pyparsing",
+    "pytest",
+    "pyyaml",
+    "qcelemental",
+    "rdkit",
+    "scipy",
+    "xarray",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-ipython = "^8.24.0"
-ipywidgets = "^8.1.2"
-jupyter = "^1.0.0"
-more-itertools = "^10.2.0"
-networkx = "^3.3"
-numpy = "^1.26.4"
-py3dmol = "^2.1.0"
-pylint = "^3.2.2"
-pyparsing = "^3.1.2"
-pytest = "^8.2.1"
-pyyaml = "^6.0.1"
-qcelemental = "^0.27.1"
-rdkit = "^2023.9.6"
-scipy = "^1.13.0"
-xarray = "^2024.5.0"
-
+[tool.setuptools.packages.find]
+include = ["automol", "autoreact", "molsym", "phydat"]
+namespaces = false
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 # tools
 [tool.black]
