@@ -14,9 +14,9 @@ from typing import Dict, List
 
 import yaml
 
-from automol import const, geom, graph, zmat
-from automol.graph import ts
-from automol.util import ZmatConv, dict_, zmat_conv
+from .. import const, geom, graph, zmat
+from ..graph import ts
+from ..util import ZmatConv, dict_, zmat_conv
 
 
 @dataclasses.dataclass

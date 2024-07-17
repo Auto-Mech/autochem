@@ -10,8 +10,9 @@ from typing import List
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-from automol.util import dict_
 from phydat import ptab
+
+from ..util import dict_
 
 SYMBOL = pp.Word(pp.alphas.upper(), pp.alphas.lower())
 STOICH = pp.Opt(pp.Literal("*") | ppc.integer).setParseAction(lambda x: x if x else [1])

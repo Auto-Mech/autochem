@@ -7,8 +7,8 @@ import operator
 
 import networkx
 
-from automol import util
-from automol.graph.base._00core import (
+from ... import util
+from ._00core import (
     atom_implicit_hydrogens,
     atom_keys,
     atom_stereo_parities,

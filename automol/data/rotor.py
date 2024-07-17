@@ -8,11 +8,11 @@ from typing import Dict, List, Optional, Union
 
 from phydat import phycon
 
-from automol import graph, zmat
-from automol.data import potent, tors
-from automol.data.potent import Potential
-from automol.data.tors import Axis, DihCoord, Grid, Groups, Torsion
-from automol.util import ZmatConv
+from .. import graph, zmat
+from ..util import ZmatConv
+from . import potent, tors
+from .potent import Potential
+from .tors import Axis, DihCoord, Grid, Groups, Torsion
 
 
 @dataclasses.dataclass

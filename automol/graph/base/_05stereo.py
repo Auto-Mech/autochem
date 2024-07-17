@@ -7,9 +7,10 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy
 
-from automol import util
-from automol.geom import base as geom_base
-from automol.graph.base._00core import (
+from ... import util
+from ...geom import base as geom_base
+from ...util import dict_
+from ._00core import (
     AtomKey,
     AtomKeys,
     BondKey,
@@ -24,17 +25,16 @@ from automol.graph.base._00core import (
     tetrahedral_atoms,
     without_dummy_atoms,
 )
-from automol.graph.base._02algo import simple_paths_between_atoms
-from automol.graph.base._03kekule import (
+from ._02algo import simple_paths_between_atoms
+from ._03kekule import (
     rigid_planar_bonds,
     rigid_planar_bonds_with_ring_constraints,
 )
-from automol.graph.base._04class import (
+from ._04class import (
     insertions,
     substitutions,
     vinyl_addition_candidates,
 )
-from automol.util import dict_
 
 AtomNeighborDict = Dict[AtomKey, AtomKeys]
 BondNeighborDict = Dict[BondKey, Tuple[AtomKeys, AtomKeys]]

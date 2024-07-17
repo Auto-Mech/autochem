@@ -5,10 +5,10 @@ import itertools
 
 import numpy
 
-from automol import geom, util
-from automol.graph import base as graph_base
-from automol.util import ZmatConv
-from automol.zmat.base import (
+from .. import geom, util
+from ..graph import base as graph_base
+from ..util import ZmatConv
+from .base import (
     conversion_info,
     distance_coordinates,
     key_matrix,

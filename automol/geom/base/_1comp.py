@@ -6,14 +6,16 @@ import itertools
 from typing import List
 
 import numpy
-from automol.geom.base._0core import (
+
+from phydat import ptab
+
+from ._0core import (
     coordinates,
     distance,
     from_string,
     symbols,
     xyz_string,
 )
-from phydat import ptab
 
 
 # # properties used for comparisons

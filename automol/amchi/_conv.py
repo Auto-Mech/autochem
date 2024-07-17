@@ -4,9 +4,11 @@
 import itertools
 import numbers
 
-from automol import form, geom, inchi_key
-from automol import graph as graph_
-from automol.amchi.base import (
+from .. import form, geom, inchi_key
+from .. import graph as graph_
+from ..extern import rdkit_
+from ..util import dict_
+from .base import (
     atom_stereo_parities,
     bond_stereo_parities,
     bonds,
@@ -30,8 +32,6 @@ from automol.amchi.base import (
     symbols,
     with_inchi_prefix,
 )
-from automol.extern import rdkit_
-from automol.util import dict_
 
 
 # # conversions

@@ -2,9 +2,10 @@
 """
 
 from phydat import bnd
-from automol import geom, graph, zmat
-from automol.reac._0core import class_, ts_graph
-from automol.util import dict_
+
+from .. import geom, graph, zmat
+from ..util import dict_
+from ._0core import class_, ts_graph
 
 
 def similar_saddle_point_structure(zma, ref_zma, zrxn, sens=1.0):

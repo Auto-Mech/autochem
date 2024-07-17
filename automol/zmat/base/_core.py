@@ -5,10 +5,12 @@ import itertools
 import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
-from automol import util, vmat
-from automol.geom import base as geom_base
-from automol.graph import base as graph_base
+
 from phydat import phycon
+
+from ... import util, vmat
+from ...geom import base as geom_base
+from ...graph import base as graph_base
 
 
 # # constructors

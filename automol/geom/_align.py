@@ -2,12 +2,12 @@
 """
 
 import operator
+
 import numpy
-from automol.graph.base import _01networkx
-from automol.geom.base._0core import is_atom
-from automol.geom.base._0core import reorder
-from automol.geom.base._1comp import distance_matrix
-from automol.geom._conv import graph as graph_conv
+
+from ..graph.base import _01networkx
+from ._conv import graph as graph_conv
+from .base import distance_matrix, is_atom, reorder
 
 
 def align(geo1, geo2):

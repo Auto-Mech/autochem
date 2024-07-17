@@ -15,142 +15,142 @@ Import hierarchy:
 # L2
 # core functions
 # # constructors
-from automol.geom.base._0core import from_data
-from automol.geom.base._0core import subgeom
+from .base._0core import from_data
+from .base._0core import subgeom
 # # getters
-from automol.geom.base._0core import symbols
-from automol.geom.base._0core import coordinates
+from .base._0core import symbols
+from .base._0core import coordinates
 # # setters
-from automol.geom.base._0core import set_coordinates
+from .base._0core import set_coordinates
 # # I/O
-from automol.geom.base._0core import string
-from automol.geom.base._0core import xyz_string
-from automol.geom.base._0core import xyz_trajectory_string
-from automol.geom.base._0core import from_string
-from automol.geom.base._0core import from_xyz_string
-from automol.geom.base._0core import xyz_string_comment
-from automol.geom.base._0core import from_xyz_trajectory_string
-from automol.geom.base._0core import yaml_data
-from automol.geom.base._0core import from_yaml_data
+from .base._0core import string
+from .base._0core import xyz_string
+from .base._0core import xyz_trajectory_string
+from .base._0core import from_string
+from .base._0core import from_xyz_string
+from .base._0core import xyz_string_comment
+from .base._0core import from_xyz_trajectory_string
+from .base._0core import yaml_data
+from .base._0core import from_yaml_data
 # # validation
-from automol.geom.base._0core import is_valid
+from .base._0core import is_valid
 # # conversions
-from automol.geom.base._0core import formula
-from automol.geom.base._0core import formula_string
+from .base._0core import formula
+from .base._0core import formula_string
 # # properties
-from automol.geom.base._0core import count
-from automol.geom.base._0core import is_atom
-from automol.geom.base._0core import is_diatomic
-from automol.geom.base._0core import is_linear
-from automol.geom.base._0core import atom_count
-from automol.geom.base._0core import electron_count
-from automol.geom.base._0core import atom_indices
-from automol.geom.base._0core import dummy_atom_indices
-from automol.geom.base._0core import masses
-from automol.geom.base._0core import total_mass
-from automol.geom.base._0core import center_of_mass
-from automol.geom.base._0core import mass_centered
-from automol.geom.base._0core import reduced_mass
-from automol.geom.base._0core import inertia_tensor
-from automol.geom.base._0core import principal_axes
-from automol.geom.base._0core import moments_of_inertia
-from automol.geom.base._0core import rotational_constants
+from .base._0core import count
+from .base._0core import is_atom
+from .base._0core import is_diatomic
+from .base._0core import is_linear
+from .base._0core import atom_count
+from .base._0core import electron_count
+from .base._0core import atom_indices
+from .base._0core import dummy_atom_indices
+from .base._0core import masses
+from .base._0core import total_mass
+from .base._0core import center_of_mass
+from .base._0core import mass_centered
+from .base._0core import reduced_mass
+from .base._0core import inertia_tensor
+from .base._0core import principal_axes
+from .base._0core import moments_of_inertia
+from .base._0core import rotational_constants
 # # geometric measurements
-from automol.geom.base._0core import distance
-from automol.geom.base._0core import central_angle
-from automol.geom.base._0core import dihedral_angle
-from automol.geom.base._0core import measure
-from automol.geom.base._0core import zmatrix_row_values
+from .base._0core import distance
+from .base._0core import central_angle
+from .base._0core import dihedral_angle
+from .base._0core import measure
+from .base._0core import zmatrix_row_values
 # # binary functions
-from automol.geom.base._0core import join
-from automol.geom.base._0core import join_sequence
-from automol.geom.base._0core import minimum_distance
-from automol.geom.base._0core import permutation
+from .base._0core import join
+from .base._0core import join_sequence
+from .base._0core import minimum_distance
+from .base._0core import permutation
 # # adding/removing atoms
-from automol.geom.base._0core import insert
-from automol.geom.base._0core import remove
-from automol.geom.base._0core import without_dummy_atoms
-from automol.geom.base._0core import reorder
-from automol.geom.base._0core import move_atom
-from automol.geom.base._0core import swap_coordinates
+from .base._0core import insert
+from .base._0core import remove
+from .base._0core import without_dummy_atoms
+from .base._0core import reorder
+from .base._0core import move_atom
+from .base._0core import swap_coordinates
 # # transformations
-from automol.geom.base._0core import round_
-from automol.geom.base._0core import translate
-from automol.geom.base._0core import translate_along_matrix
-from automol.geom.base._0core import perturb
-from automol.geom.base._0core import rotate
-from automol.geom.base._0core import transform
-from automol.geom.base._0core import transform_by_matrix
-from automol.geom.base._0core import reflect_coordinates
-from automol.geom.base._0core import shift_atom_position
+from .base._0core import round_
+from .base._0core import translate
+from .base._0core import translate_along_matrix
+from .base._0core import perturb
+from .base._0core import rotate
+from .base._0core import transform
+from .base._0core import transform_by_matrix
+from .base._0core import reflect_coordinates
+from .base._0core import shift_atom_position
 # comparison functions
 # # properties used for comparisons
-from automol.geom.base._1comp import coulomb_spectrum
-from automol.geom.base._1comp import distance_matrix
+from .base._1comp import coulomb_spectrum
+from .base._1comp import distance_matrix
 # # comparisons
-from automol.geom.base._1comp import almost_equal
-from automol.geom.base._1comp import almost_equal_coulomb_spectrum
-from automol.geom.base._1comp import argunique_coulomb_spectrum
-from automol.geom.base._1comp import almost_equal_dist_matrix
-from automol.geom.base._1comp import minimum_volume_geometry
+from .base._1comp import almost_equal
+from .base._1comp import almost_equal_coulomb_spectrum
+from .base._1comp import argunique_coulomb_spectrum
+from .base._1comp import almost_equal_dist_matrix
+from .base._1comp import minimum_volume_geometry
 # intermolecular interactions
-from automol.geom.base._2intmol import has_low_relative_repulsion_energy
-from automol.geom.base._2intmol import total_repulsion_energy
-from automol.geom.base._2intmol import repulsion_energy
+from .base._2intmol import has_low_relative_repulsion_energy
+from .base._2intmol import total_repulsion_energy
+from .base._2intmol import repulsion_energy
 # L4
 # MolSym interface
-from automol.geom._molsym import point_group_from_geometry
+from ._molsym import point_group_from_geometry
 # conversion functions:
 # # conversions
-from automol.geom._conv import graph
-from automol.geom._conv import graph_without_stereo
-from automol.geom._conv import connectivity_graph_deprecated
-from automol.geom._conv import zmatrix
-from automol.geom._conv import zmatrix_with_conversion_info
-from automol.geom._conv import update_zmatrix
-from automol.geom._conv import amchi
-from automol.geom._conv import amchi_with_numbers
-from automol.geom._conv import inchi
-from automol.geom._conv import inchi_with_numbers
-from automol.geom._conv import chi
-from automol.geom._conv import chi_with_sort
-from automol.geom._conv import smiles
-from automol.geom._conv import rdkit_molecule
-from automol.geom._conv import py3dmol_view
-from automol.geom._conv import display
+from ._conv import graph
+from ._conv import graph_without_stereo
+from ._conv import connectivity_graph_deprecated
+from ._conv import zmatrix
+from ._conv import zmatrix_with_conversion_info
+from ._conv import update_zmatrix
+from ._conv import amchi
+from ._conv import amchi_with_numbers
+from ._conv import inchi
+from ._conv import inchi_with_numbers
+from ._conv import chi
+from ._conv import chi_with_sort
+from ._conv import smiles
+from ._conv import rdkit_molecule
+from ._conv import py3dmol_view
+from ._conv import display
 # # derived properties
-from automol.geom._conv import is_connected
-from automol.geom._conv import linear_atoms
-from automol.geom._conv import closest_unbonded_atom_distances
-from automol.geom._conv import could_be_forming_bond
-from automol.geom._conv import ts_reacting_electron_direction
-from automol.geom._conv import external_symmetry_factor
+from ._conv import is_connected
+from ._conv import linear_atoms
+from ._conv import closest_unbonded_atom_distances
+from ._conv import could_be_forming_bond
+from ._conv import ts_reacting_electron_direction
+from ._conv import external_symmetry_factor
 # # derived operations
-from automol.geom._conv import apply_zmatrix_conversion
-from automol.geom._conv import undo_zmatrix_conversion
-from automol.geom._conv import set_distance
-from automol.geom._conv import set_central_angle
-from automol.geom._conv import set_dihedral_angle
+from ._conv import apply_zmatrix_conversion
+from ._conv import undo_zmatrix_conversion
+from ._conv import set_distance
+from ._conv import set_central_angle
+from ._conv import set_dihedral_angle
 # # interfaces
-from automol.geom._conv import ase_atoms
-from automol.geom._conv import from_ase_atoms
+from ._conv import ase_atoms
+from ._conv import from_ase_atoms
 # extra functions:
-from automol.geom._extra import are_torsions_same
-from automol.geom._extra import is_unique
-from automol.geom._extra import hydrogen_bonded_structure
-from automol.geom._extra import hydrogen_bonded_idxs
+from ._extra import are_torsions_same
+from ._extra import is_unique
+from ._extra import hydrogen_bonded_structure
+from ._extra import hydrogen_bonded_idxs
 # align
-from automol.geom._align import align
+from ._align import align
 # ring functions
-from automol.geom._ring import all_rings_angles_reasonable
-from automol.geom._ring import ring_angles_reasonable
-from automol.geom._ring import ring_fragments_geometry
+from ._ring import all_rings_angles_reasonable
+from ._ring import ring_angles_reasonable
+from ._ring import ring_fragments_geometry
 #adl cremer-pople paramters calculation
-from automol.geom._ring import translate_to_ring_center
-from automol.geom._ring import mean_ring_plane
-from automol.geom._ring import normal_to_ring_plane
-from automol.geom._ring import get_displacement
-from automol.geom._ring import cremer_pople_params
+from ._ring import translate_to_ring_center
+from ._ring import mean_ring_plane
+from ._ring import normal_to_ring_plane
+from ._ring import get_displacement
+from ._ring import cremer_pople_params
 
 
 __all__ = [

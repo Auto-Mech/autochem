@@ -7,15 +7,19 @@ import itertools
 import numbers
 from typing import Dict, Optional, Tuple
 
-import numpy
 import more_itertools as mit
+import numpy
+
 from phydat import phycon
 
-from automol import util
-from automol.geom import base as geom_base
-from automol.graph.base._00core import (
+from ... import util
+from ...geom import base as geom_base
+from ...util import dict_
+from ._00core import (
     align_with_geometry,
+    atom_neighbor_atom_keys,
     atom_stereo_keys,
+    atomic_numbers,
     bond_stereo_keys,
     frozen,
     has_atom_stereo,
@@ -25,16 +29,19 @@ from automol.graph.base._00core import (
     set_stereo_parities,
     stereo_keys,
     stereo_parities,
+    ts_reacting_atom_keys,
     ts_reagents_graph_without_stereo,
     ts_reverse,
     without_dummy_atoms,
     without_stereo,
-    atom_neighbor_atom_keys,
-    atomic_numbers,
-    ts_reacting_atom_keys,
 )
-from automol.graph.base._03kekule import linear_atom_keys
-from automol.graph.base._05stereo import (
+from ._02algo import (
+    branch_atom_keys,
+    branch_dict,
+    ring_systems_atom_keys,
+)
+from ._03kekule import linear_atom_keys
+from ._05stereo import (
     geometry_atom_parity,
     geometry_bond_parity,
     parity_evaluator_measure_from_geometry_,
@@ -44,12 +51,12 @@ from automol.graph.base._05stereo import (
     stereocenter_candidates_grouped,
     unassigned_stereocenter_keys_from_candidates,
 )
-from automol.graph.base._07geom import (
+from ._07geom import (
     geometry_correct_linear_vinyls,
     geometry_correct_nonplanar_pi_bonds,
     geometry_rotate_bond,
 )
-from automol.graph.base._08canon import (
+from ._08canon import (
     calculate_stereo,
     canonical_priorities,
     from_local_stereo,
@@ -59,12 +66,7 @@ from automol.graph.base._08canon import (
     stereo_assignment_representation,
     to_local_stereo,
 )
-from automol.graph.base._02algo import (
-    branch_atom_keys,
-    branch_dict,
-    ring_systems_atom_keys,
-)
-from automol.util import dict_
+
 
 # # core functions
 def expand_stereo(gra, symeq: bool = False, enant: bool = True, strained: bool = False):

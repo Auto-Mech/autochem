@@ -4,8 +4,9 @@ dictionary values must all be tuples of the same length
 """
 
 from collections.abc import Mapping as _Mapping
-from automol.util.dict_._dict_ import values_by_key as _values_by_key
-from automol.util.dict_._dict_ import transform_values as _transform_values
+
+from ._dict_ import transform_values as _transform_values
+from ._dict_ import values_by_key as _values_by_key
 
 
 def is_multidict(mdct):

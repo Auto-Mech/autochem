@@ -1,7 +1,7 @@
 """ Level 4 functions depending on amchi, inchi, graph, geom
 """
-from automol import amchi, geom, graph, inchi
-from automol.chi.base import reflect, split
+from .. import amchi, geom, graph, inchi
+from .base import reflect, split
 
 
 # # conversions

@@ -1,7 +1,7 @@
 """Common utilities used by automol."""
 
-from automol.util import dict_, heuristic, matrix, ring, tensor, vector, zmat_conv
-from automol.util._util import (
+from . import dict_, heuristic, matrix, ring, tensor, vector, zmat_conv
+from ._util import (
     breakby,
     equivalence_partition,
     flatten,
@@ -19,7 +19,7 @@ from automol.util._util import (
     translate,
     value_similar_to,
 )
-from automol.util.zmat_conv import ZmatConv
+from .zmat_conv import ZmatConv
 
 __all__ = [
     "dict_",

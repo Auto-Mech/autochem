@@ -4,7 +4,7 @@
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-from automol.graph.base import from_data
+from .base import from_data
 
 BOND_ORDER_DCT = {"S": 1, "D": 2, "T": 3, "B": 1.5}
 

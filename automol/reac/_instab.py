@@ -6,10 +6,10 @@ import itertools
 
 from phydat import instab_fgrps
 
-from automol import chi as chi_
-from automol import geom, graph, zmat
-from automol.reac._0core import ts_structure
-from automol.reac._5conv import from_chis, from_zmatrices
+from .. import chi as chi_
+from .. import geom, graph, zmat
+from ._0core import ts_structure
+from ._5conv import from_chis, from_zmatrices
 
 
 # Identify instability products

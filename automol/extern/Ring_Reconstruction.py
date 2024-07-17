@@ -8,7 +8,7 @@ Code from Chan et al. 2021 https://doi.org/10.1021/acs.jcim.0c01144
 
 
 import numpy
-from automol.geom import (
+from ..geom import (
                         translate_to_ring_center,
                         normal_to_ring_plane
                         )

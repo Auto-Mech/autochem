@@ -27,16 +27,16 @@ Reaction ID Classes:
 
 import itertools
 
-from automol import form, graph
-from automol.const import ReactionClass
-from automol.graph import ts
-from automol.reac._0core import (
+from .. import form, graph
+from ..const import ReactionClass
+from ..graph import ts
+from ._0core import (
     from_forward_reverse,
     reverse_without_recalculating,
     unique,
 )
-from automol.reac._1util import assert_is_valid_reagent_graph_list
-from automol.reac._2stereo import expand_stereo_to_match_reagents
+from ._1util import assert_is_valid_reagent_graph_list
+from ._2stereo import expand_stereo_to_match_reagents
 
 
 def trivial(rct_gras, prd_gras):

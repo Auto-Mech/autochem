@@ -2,46 +2,46 @@
 """
 
 # # "constructor"
-from automol.inchi.base._core import from_data
+from ._core import from_data
 # # recalculate/standardize
-from automol.inchi.base._core import recalculate
-from automol.inchi.base._core import standard_form
+from ._core import recalculate
+from ._core import standard_form
 # # getters
-from automol.inchi.base._core import version
-from automol.inchi.base._core import formula_layer
-from automol.inchi.base._core import main_layers
-from automol.inchi.base._core import charge_layers
-from automol.inchi.base._core import stereo_layers
-from automol.inchi.base._core import isotope_layers
-from automol.inchi.base._core import stereo_atoms
-from automol.inchi.base._core import stereo_bonds
-from automol.inchi.base._core import unassigned_stereo_bonds
-from automol.inchi.base._core import is_enantiomer
-from automol.inchi.base._core import are_enantiomers
-from automol.inchi.base._core import are_diastereomers
-from automol.inchi.base._core import reflect
+from ._core import version
+from ._core import formula_layer
+from ._core import main_layers
+from ._core import charge_layers
+from ._core import stereo_layers
+from ._core import isotope_layers
+from ._core import stereo_atoms
+from ._core import stereo_bonds
+from ._core import unassigned_stereo_bonds
+from ._core import is_enantiomer
+from ._core import are_enantiomers
+from ._core import are_diastereomers
+from ._core import reflect
 # # conversions
-from automol.inchi.base._core import inchi_key
-from automol.inchi.base._core import smiles
-from automol.inchi.base._core import formula
-from automol.inchi.base._core import formula_string
-from automol.inchi.base._core import without_stereo
-from automol.inchi.base._core import racemic
-from automol.inchi.base._core import connectivity
+from ._core import inchi_key
+from ._core import smiles
+from ._core import formula
+from ._core import formula_string
+from ._core import without_stereo
+from ._core import racemic
+from ._core import connectivity
 # # properties
-from automol.inchi.base._core import is_standard_form
-from automol.inchi.base._core import has_multiple_components
-from automol.inchi.base._core import has_stereo
-from automol.inchi.base._core import low_spin_multiplicity
+from ._core import is_standard_form
+from ._core import has_multiple_components
+from ._core import has_stereo
+from ._core import low_spin_multiplicity
 # # comparisons
-from automol.inchi.base._core import same_connectivity
-from automol.inchi.base._core import equivalent
+from ._core import same_connectivity
+from ._core import equivalent
 # # sort
-from automol.inchi.base._core import sorted_
-from automol.inchi.base._core import argsort
+from ._core import sorted_
+from ._core import argsort
 # # split/join
-from automol.inchi.base._core import split
-from automol.inchi.base._core import join
+from ._core import split
+from ._core import join
 
 
 __all__ = [

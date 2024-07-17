@@ -3,8 +3,10 @@
 from typing import List, Optional, Tuple
 
 import numpy
-from automol.geom._conv import graph, inchi
-from automol.geom.base import (
+
+from ..graph import base as graph_base
+from ._conv import graph, inchi
+from .base import (
     almost_equal_coulomb_spectrum,
     almost_equal_dist_matrix,
     central_angle,
@@ -12,7 +14,6 @@ from automol.geom.base import (
     dihedral_angle,
     distance_matrix,
 )
-from automol.graph import base as graph_base
 
 CHECK_DEFAULT_DCT = {"dist": 3.5e-1, "coulomb": 1.5e-2, "stereo": None, "tors": None}
 

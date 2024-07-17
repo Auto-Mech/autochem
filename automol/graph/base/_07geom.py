@@ -7,25 +7,26 @@ import itertools
 import numbers
 
 import numpy
+
 from phydat import phycon
 
-from automol import util
-from automol.geom import base as geom_base
-from automol.graph.base._00core import (
+from ... import util
+from ...geom import base as geom_base
+from ._00core import (
     align_with_geometry,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
     ts_reactants_graph_without_stereo,
 )
-from automol.graph.base._02algo import (
+from ._02algo import (
     branch_atom_keys,
     rings_bond_keys,
 )
-from automol.graph.base._03kekule import (
+from ._03kekule import (
     rigid_planar_bonds,
     vinyl_radical_atom_bond_keys,
 )
-from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
+from ._05stereo import geometry_atom_parity, geometry_bond_parity
 
 
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None):

@@ -3,12 +3,12 @@
 
 from typing import List
 
-from automol import amchi, geom, graph
-from automol import chi as chi_
-from automol import smiles as smiles_
-from automol import zmat as zmat_
-from automol.extern import rdkit_
-from automol.reac._0core import (
+from .. import amchi, geom, graph
+from .. import chi as chi_
+from .. import smiles as smiles_
+from .. import zmat as zmat_
+from ..extern import rdkit_
+from ._0core import (
     Reaction,
     product_graphs,
     product_structures,
@@ -18,9 +18,9 @@ from automol.reac._0core import (
     ts_graph,
     without_stereo,
 )
-from automol.reac._2stereo import reflect
-from automol.reac._3find import find
-from automol.reac._4struc import with_structures
+from ._2stereo import reflect
+from ._3find import find
+from ._4struc import with_structures
 
 
 # # constructors from data types

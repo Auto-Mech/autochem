@@ -114,3 +114,6 @@ sella-repo/
 
 # Ignore notebook folder
 notebook/
+# pixi environments
+.pixi
+*.egg-info

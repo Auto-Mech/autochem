@@ -7,9 +7,9 @@ import rdkit
 from rdkit import RDLogger
 from rdkit.Chem import AllChem, Draw
 
-from automol import util
-from automol.geom import base as geom_base
-from automol.graph import base as graph_base
+from .. import util
+from ..geom import base as geom_base
+from ..graph import base as graph_base
 
 _LOGGER = RDLogger.logger()
 _LOGGER.setLevel(RDLogger.ERROR)

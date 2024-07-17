@@ -1,8 +1,8 @@
 """ reaction formulae
 """
 import itertools
-from automol.form._form import join_sequence
-from automol.form._form import add_element
+
+from ._form import add_element, join_sequence
 
 
 def is_valid_reaction(rct_fmls, prd_fmls):

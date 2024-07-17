@@ -4,8 +4,8 @@
 
 import numbers
 
-from automol.graph import base as graph_base
-from automol.inchi._conv import graph
+from ..graph import base as graph_base
+from ._conv import graph
 
 
 def is_valid_inchi_multiplicity(ich, mul):

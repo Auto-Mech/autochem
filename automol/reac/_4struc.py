@@ -2,13 +2,13 @@
 """
 from typing import List
 
-from automol import geom, graph, zmat
-from automol.reac._0core import (
+from .. import geom, graph, zmat
+from ..util import ZmatConv
+from ._0core import (
     Reaction,
     apply_zmatrix_conversion,
     mapping,
     product_graphs,
-    without_dummy_atoms,
     product_structures,
     products_conversion_info,
     reactant_graphs,
@@ -23,9 +23,9 @@ from automol.reac._0core import (
     ts_structure,
     undo_zmatrix_conversion,
     update_structures,
+    without_dummy_atoms,
     without_structures,
 )
-from automol.util import ZmatConv
 
 
 def with_structures(

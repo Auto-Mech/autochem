@@ -33,26 +33,26 @@ implemented here in _dgeom.py.
 Step 7. cleans up the result of the distance geometry and is done in
 _cleanup.py.
 """
-from automol.embed._dgeom import sample_raw_distance_coordinates
-from automol.embed._dgeom import triangle_smooth_bounds_matrices
-from automol.embed._dgeom import sample_distance_matrix
-from automol.embed._dgeom import distances_from_center
-from automol.embed._dgeom import metric_matrix
-from automol.embed._dgeom import coordinates_from_metric_matrix
-from automol.embed._dgeom import metric_matrix_from_coordinates
-from automol.embed._dgeom import distance_matrix_from_coordinates
-from automol.embed._dgeom import greatest_distance_errors
-from automol.embed._cleanup import volume
-from automol.embed._cleanup import volume_gradient
-from automol.embed._cleanup import error_function_
-from automol.embed._cleanup import error_function_gradient_
-from automol.embed._cleanup import error_function_numerical_gradient_
-from automol.embed._cleanup import polak_ribiere_beta
-from automol.embed._cleanup import line_search_alpha
-from automol.embed._cleanup import cleaned_up_coordinates
-from automol.embed._cleanup import gradient_convergence_checker_
-from automol.embed._cleanup import distance_convergence_checker_
-from automol.embed._cleanup import minimize_error
+from ._dgeom import sample_raw_distance_coordinates
+from ._dgeom import triangle_smooth_bounds_matrices
+from ._dgeom import sample_distance_matrix
+from ._dgeom import distances_from_center
+from ._dgeom import metric_matrix
+from ._dgeom import coordinates_from_metric_matrix
+from ._dgeom import metric_matrix_from_coordinates
+from ._dgeom import distance_matrix_from_coordinates
+from ._dgeom import greatest_distance_errors
+from ._cleanup import volume
+from ._cleanup import volume_gradient
+from ._cleanup import error_function_
+from ._cleanup import error_function_gradient_
+from ._cleanup import error_function_numerical_gradient_
+from ._cleanup import polak_ribiere_beta
+from ._cleanup import line_search_alpha
+from ._cleanup import cleaned_up_coordinates
+from ._cleanup import gradient_convergence_checker_
+from ._cleanup import distance_convergence_checker_
+from ._cleanup import minimize_error
 
 
 __all__ = [

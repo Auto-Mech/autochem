@@ -17,7 +17,7 @@ Level 4 graph functions, which do depend on these things, belong in graph/*.py
 # # constructors
 # L4
 # embedding functions:
-from automol.graph._0embed import (
+from ._0embed import (
     clean_geometry,
     geometry_matches,
     zmatrix_matches,
@@ -25,14 +25,14 @@ from automol.graph._0embed import (
 
 # conversion functions:
 # # RMG conversions
-from automol.graph._1rmg import (
+from ._1rmg import (
     RMG_ADJACENCY_LIST,
     from_parsed_rmg_adjacency_list,
     from_rmg_adjacency_list,
 )
 
 # # conversions
-from automol.graph._2conv import (
+from ._2conv import (
     chi,
     display,
     display_reaction,
@@ -47,7 +47,7 @@ from automol.graph._2conv import (
 )
 
 # submodules:
-from automol.graph.base import ts, vmat
+from .base import ts, vmat
 
 # # getters
 # # setters
@@ -59,7 +59,7 @@ from automol.graph.base import ts, vmat
 # # add/remove/insert/without
 # # unions
 # # subgraphs and neighborhoods
-from automol.graph.base._00core import (
+from .base._00core import (
     add_atom_explicit_hydrogens,
     add_atoms,
     add_bonded_atom,
@@ -191,7 +191,7 @@ from automol.graph.base._00core import (
 # # algorithms
 # # branches and groups
 # # rings
-from automol.graph.base._02algo import (
+from .base._02algo import (
     are_equivalent_atoms,
     are_equivalent_bonds,
     atom_equivalence_class_reps,
@@ -245,7 +245,7 @@ from automol.graph.base._02algo import (
 # kekule functions:
 # # core functions
 # # derived properties
-from automol.graph.base._03kekule import (
+from .base._03kekule import (
     addition_atom_keys,
     atom_centered_cumulene_keys,
     atom_hybridizations,
@@ -290,7 +290,7 @@ from automol.graph.base._03kekule import (
 # geometry functions:
 # # stereo parity evaluations
 # # parity evaluators
-from automol.graph.base._05stereo import (
+from .base._05stereo import (
     geometry_atom_parity,
     geometry_bond_parity,
     parity_evaluator_flip_from_graph,
@@ -301,7 +301,7 @@ from automol.graph.base._05stereo import (
 )
 
 # structural heuristics:
-from automol.graph.base._06heur import (
+from .base._06heur import (
     heuristic_bond_angle,
     heuristic_bond_distance,
     heuristic_bond_distance_limit,
@@ -313,7 +313,7 @@ from automol.graph.base._06heur import (
 )
 
 # # corrections
-from automol.graph.base._07geom import (
+from .base._07geom import (
     geometries_parity_mismatches,
     geometry_correct_linear_vinyls,
     geometry_dihedrals_near_value,
@@ -324,7 +324,7 @@ from automol.graph.base._07geom import (
 # canonicalization functions:
 # # canonical key functions
 # # symmetry class functions
-from automol.graph.base._08canon import (
+from .base._08canon import (
     calculate_stereo,
     canonical,
     canonical_keys,
@@ -335,16 +335,16 @@ from automol.graph.base._08canon import (
 )
 
 # AMChI functions:
-from automol.graph.base._09amchi import amchi, amchi_with_numbers, inchi_is_bad
+from .base._09amchi import amchi, amchi_with_numbers, inchi_is_bad
 
 # SMILES functions:
-from automol.graph.base._10smiles import smiles
+from .base._10smiles import smiles
 
 # # canonical stereo functions
 # stereo functions:
 # # core functions
 # # stereo correction
-from automol.graph.base._11stereo import (
+from .base._11stereo import (
     expand_reaction_stereo,
     expand_stereo,
     geometry_pseudorotate_atom,
@@ -360,7 +360,7 @@ from automol.graph.base._11stereo import (
 # # finders for overaching types
 # # finders for reactive sites and groups
 # # helper functions
-from automol.graph.base._func_group import (
+from .base._func_group import (
     FunctionalGroup,
     alcohol_groups,
     aldehyde_groups,

@@ -14,9 +14,9 @@ from typing import Any, Dict, List, Tuple
 import more_itertools as mit
 import networkx
 
-from automol import util
-from automol.graph.base import _01networkx
-from automol.graph.base._00core import (
+from ... import util
+from . import _01networkx
+from ._00core import (
     AtomKeys,
     add_bonds,
     atom_bond_keys,
@@ -43,7 +43,7 @@ from automol.graph.base._00core import (
     without_dummy_atoms,
     without_stereo,
 )
-from automol.graph.base._00core import (
+from ._00core import (
     subgraph as subgraph_,
 )
 

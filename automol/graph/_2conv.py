@@ -9,12 +9,15 @@ import IPython.display as ipd
 import ipywidgets
 import more_itertools as mit
 import numpy
+
 from phydat import phycon
 
-from automol import error, geom
-from automol.extern import rdkit_
-from automol.graph._0embed import clean_geometry, geometry_matches
-from automol.graph.base import (
+from .. import error, geom
+from ..extern import rdkit_
+from ..smiles import base as smiles_base
+from ..util import dict_, vector
+from ._0embed import clean_geometry, geometry_matches
+from .base import (
     align_with_geometry,
     amchi,
     atom_keys,
@@ -37,8 +40,6 @@ from automol.graph.base import (
     union_from_sequence,
     without_stereo,
 )
-from automol.smiles import base as smiles_base
-from automol.util import dict_, vector
 
 
 # # conversions
