@@ -1,7 +1,7 @@
 [project]
 name = "autochem"
 version = "2024.7.17"
-description = "Add a short description here"
+description = "A library for manipulating molecular descriptors "
 authors = [{name = "Andreas Copan", email = "avcopan@gmail.com"}]
 requires-python = ">= 3.10"
 dependencies = [
@@ -23,7 +23,8 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["automol", "autoreact", "molsym", "phydat"]
+where = ["."]
+include = ["automol*", "autoreact*", "molsym*", "phydat*"]
 namespaces = false
 
 [build-system]
