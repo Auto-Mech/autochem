@@ -5,8 +5,8 @@ import functools
 import itertools
 from typing import Dict, Optional, Tuple
 
-from automol import util
-from automol.graph.base._00core import (
+from ... import util
+from ._00core import (
     AtomKey,
     BondKey,
     tetrahedral_atom_keys,
@@ -16,7 +16,7 @@ from automol.graph.base._00core import (
     ts_reverse,
     vinyl_radical_bond_candidates,
 )
-from automol.graph.base._02algo import reacting_rings_bond_keys
+from ._02algo import reacting_rings_bond_keys
 
 
 # reaction site classification

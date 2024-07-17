@@ -13,8 +13,8 @@ import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-from automol import form, util
-from automol.util import dict_
+from ... import form, util
+from ...util import dict_
 
 
 # Build parser

@@ -2,13 +2,14 @@
 """
 
 import numpy as np
+
 from phydat import phycon
 
-from automol.geom._conv import (
+from ..graph import base as graph_base
+from ._conv import (
     graph,
 )
-from automol.geom.base import central_angle, subgeom
-from automol.graph import base as graph_base
+from .base import central_angle, subgeom
 
 ATHRESH = 80.0 * phycon.DEG2RAD
 

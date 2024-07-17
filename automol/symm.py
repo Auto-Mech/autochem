@@ -1,8 +1,8 @@
 """ Handle symmetry factor stuff
 """
-from automol import geom, graph, reac, zmat
-from automol.data import rotor
-from automol.util import zmat_conv
+from . import geom, graph, reac, zmat
+from .data import rotor
+from .util import zmat_conv
 
 
 # internal symmetry number

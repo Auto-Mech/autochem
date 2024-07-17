@@ -9,11 +9,12 @@ from typing import List, Optional
 import more_itertools as mit
 import numpy
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
 from numpy.typing import ArrayLike
+from pyparsing import pyparsing_common as ppc
+
 from phydat import phycon, ptab
 
-from automol import form, util
+from ... import form, util
 
 AXIS_DCT = {"x": 0, "y": 1, "z": 2}
 

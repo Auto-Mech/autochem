@@ -8,10 +8,11 @@ from typing import Any, List, Optional, Tuple
 
 import numpy
 import yaml
+
 from phydat import phycon
 
-from automol import zmat
-from automol.util import ZmatConv, zmat_conv
+from .. import zmat
+from ..util import ZmatConv, zmat_conv
 
 Axis = Tuple[int, int]
 DihCoord = Tuple[int, int, int, int]

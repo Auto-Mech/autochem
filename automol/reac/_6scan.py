@@ -1,14 +1,14 @@
 """ TS scanning functions
 """
 
-import numpy
 import more_itertools as mit
+import numpy
 
-from automol import geom
-from automol.const import ReactionClass
-from automol.graph import ts
-from automol.reac._0core import Reaction, class_, ts_graph, ts_structure
-from automol.reac._1util import (
+from .. import geom
+from ..const import ReactionClass
+from ..graph import ts
+from ._0core import Reaction, class_, ts_graph, ts_structure
+from ._1util import (
     hydrogen_migration_atom_keys,
     hydrogen_migration_might_dissociate,
     ring_forming_scission_chain,

@@ -3,9 +3,10 @@
 """
 
 import math
+
 import numpy
-# from phydat import phycon
-from automol.util import dict_
+
+from ..util import dict_
 
 
 # Tunneling expressions

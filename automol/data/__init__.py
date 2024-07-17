@@ -1,8 +1,8 @@
 """Data types that aren't molecules
 """
-from automol.data import potent
-from automol.data import rotor
-from automol.data import tors
+from . import potent
+from . import rotor
+from . import tors
 
 __all__ = [
     "potent",

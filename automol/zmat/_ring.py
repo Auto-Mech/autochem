@@ -3,12 +3,12 @@
 
 import math
 
-from automol.graph import base as graph_base
-from automol.zmat._conv import (
+from ..graph import base as graph_base
+from ._conv import (
     distance,
     graph,
 )
-from automol.zmat.base import (
+from .base import (
     coordinates,
     dihedral_angle_names,
     value_dictionary,

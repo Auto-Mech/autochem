@@ -10,9 +10,11 @@ import itertools
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy
+
 from phydat import ptab
 
-from automol.graph.base._00core import (
+from ...util import dict_
+from ._00core import (
     atom_bond_counts,
     atom_implicit_hydrogens,
     atom_keys,
@@ -43,19 +45,18 @@ from automol.graph.base._00core import (
     without_pi_bonds,
     without_stereo,
 )
-from automol.graph.base._00core import (
+from ._00core import (
     relabel as relabel_,
 )
-from automol.graph.base._02algo import connected_components, is_connected
-from automol.graph.base._03kekule import bad_stereo_bond_keys_from_kekule, kekule
-from automol.graph.base._05stereo import (
+from ._02algo import connected_components, is_connected
+from ._03kekule import bad_stereo_bond_keys_from_kekule, kekule
+from ._05stereo import (
     CenterNeighborDict,
     parity_evaluator_flip_from_graph,
     parity_evaluator_read_from_graph,
     stereocenter_candidates,
     unassigned_stereocenter_keys_from_candidates,
 )
-from automol.util import dict_
 
 # Special types
 ParityEvaluator = Callable[[Any, Dict[int, int], List[int], bool], Dict[int, int]]

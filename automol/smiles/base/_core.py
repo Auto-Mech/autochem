@@ -3,12 +3,15 @@
 The parsing functions apply equally well to SMILES or RSMILES strings, so the
 documentation simply refers to SMILES strings.
 """
-from typing import List
 import string
-import pyparsing as pp
+from typing import List
+
 import numpy
+import pyparsing as pp
+
 from phydat import ptab
-from automol import util
+
+from ... import util
 
 # Not currently dealing with aromatics
 # organic atoms

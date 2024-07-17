@@ -9,12 +9,17 @@ import numpy
 import pyparsing as pp
 from numpy.typing import ArrayLike
 from pyparsing import pyparsing_common as ppc
+
 from phydat import phycon
 
-from automol import vmat
-from automol.extern import molfile, py3dmol_, rdkit_
-from automol.geom import _molsym
-from automol.geom.base import (
+from .. import vmat
+from ..extern import molfile, py3dmol_, rdkit_
+from ..geom import _molsym
+from ..graph import base as graph_base
+from ..inchi import base as inchi_base
+from ..util import ZmatConv, dict_, heuristic, vector, zmat_conv
+from ..zmat import base as zmat_base
+from .base import (
     central_angle,
     coordinates,
     count,
@@ -32,10 +37,6 @@ from automol.geom.base import (
     without_dummy_atoms,
     xyz_string,
 )
-from automol.graph import base as graph_base
-from automol.inchi import base as inchi_base
-from automol.util import ZmatConv, dict_, heuristic, vector, zmat_conv
-from automol.zmat import base as zmat_base
 
 
 # # conversions

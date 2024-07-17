@@ -5,22 +5,21 @@ import math
 
 import more_itertools as mit
 import numpy
+
 from phydat import bnd, phycon
 
-from automol import zmat
-from automol.const import ReactionClass
-from automol.graph import ts
-
-# from automol.util import numpy_to_float
-from automol.reac._0core import Reaction, class_, ts_graph
-from automol.reac._1util import (
+from .. import zmat
+from ..const import ReactionClass
+from ..graph import ts
+from ..util import dict_
+from ._0core import Reaction, class_, ts_graph
+from ._1util import (
     elimination_breaking_bond_keys,
     hydrogen_migration_atom_keys,
     hydrogen_migration_might_dissociate,
     insertion_forming_bond_keys,
     ring_forming_scission_chain,
 )
-from automol.util import dict_
 
 
 # Wrapper function to obtain all of the scan data for a reaction

@@ -22,11 +22,12 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy
 import yaml
+
 from phydat import phycon, ptab
 
-from automol import form, util
-from automol.geom import base as geom_base
-from automol.util import ZmatConv, dict_, zmat_conv
+from ... import form, util
+from ...geom import base as geom_base
+from ...util import ZmatConv, dict_, zmat_conv
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1

@@ -2,8 +2,10 @@
 """
 
 import itertools
+
 import numpy
-from automol.mult._mult import spin as _spin
+
+from ._mult import spin as _spin
 
 
 def high(rct_mults, prd_mults):

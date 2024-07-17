@@ -9,7 +9,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy
 
-from automol.graph.base._00core import (
+from ...util import dict_
+from ._00core import (
     AtomKey,
     AtomKeys,
     BondKey,
@@ -44,14 +45,13 @@ from automol.graph.base._00core import (
     without_dummy_atoms,
     without_pi_bonds,
 )
-from automol.graph.base._02algo import (
+from ._02algo import (
     branches,
     connected_components,
     connected_components_atom_keys,
     rings_atom_keys,
     shortest_path_between_atoms,
 )
-from automol.util import dict_
 
 
 # # core functions

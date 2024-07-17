@@ -6,7 +6,7 @@
   Sigma is converted to Bohr as it is passed around to code
 """
 
-from automol.graph import FunctionalGroup
+from ..graph import FunctionalGroup
 
 
 # Dictionaries of parameters

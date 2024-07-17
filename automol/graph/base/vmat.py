@@ -4,8 +4,10 @@
 import itertools
 from typing import Any, List
 
-from automol import vmat
-from automol.graph.base._00core import (
+from ... import vmat
+from ...util import dict_
+from ...util import ring as ring_
+from ._00core import (
     BondKeys,
     atom_count,
     atom_keys,
@@ -24,7 +26,7 @@ from automol.graph.base._00core import (
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
 )
-from automol.graph.base._02algo import (
+from ._02algo import (
     connected_components,
     has_reacting_ring,
     is_bimolecular,
@@ -38,9 +40,7 @@ from automol.graph.base._02algo import (
     shortest_path_between_groups,
     sorted_ring_atom_keys,
 )
-from automol.graph.base._04class import atom_transfers, ring_forming_scissions
-from automol.util import dict_
-from automol.util import ring as ring_
+from ._04class import atom_transfers, ring_forming_scissions
 
 
 def ts_zmatrix_sorted_reactants_keys(tsg) -> List[List[int]]:

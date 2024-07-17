@@ -1,11 +1,11 @@
 """Helper functions for working with Python dictionaries."""
 
 import itertools
+from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
 
 import numpy
-from _collections_abc import Callable
 
 
 # for dictionaries do dict[object,object] [obj, tuple [obj, ...]]

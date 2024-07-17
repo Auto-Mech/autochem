@@ -1,9 +1,11 @@
 """ Level 4 functions depending on other basic types (graph, geom)
 """
 
-from automol import amchi as amchi_, geom, graph as graph_
-from automol.extern import rdkit_
-from automol.inchi.base import equivalent, has_stereo, standard_form
+from .. import amchi as amchi_
+from .. import geom
+from .. import graph as graph_
+from ..extern import rdkit_
+from .base import equivalent, has_stereo, standard_form
 
 
 # # conversions

@@ -1,11 +1,11 @@
 """I/O operations for higher dimension matrices of 3 or higher."""
 
 import itertools
+from collections.abc import Sequence
 
 import numpy
-from _collections_abc import Sequence
 
-from automol.util import vector
+from . import vector
 
 
 # I/O

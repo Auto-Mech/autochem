@@ -7,7 +7,11 @@ from typing import List, Optional
 
 import more_itertools as mit
 import numpy
-from automol.graph.base._00core import (
+
+from phydat import phycon
+
+from ...util import heuristic
+from ._00core import (
     atom_implicit_hydrogens,
     atom_neighbor_atom_keys,
     atom_symbols,
@@ -24,8 +28,8 @@ from automol.graph.base._00core import (
     without_dummy_atoms,
     without_reacting_bonds,
 )
-from automol.graph.base._02algo import branch_atom_keys, rings_bond_keys
-from automol.graph.base._03kekule import (
+from ._02algo import branch_atom_keys, rings_bond_keys
+from ._03kekule import (
     atom_hybridizations,
     kekules_bond_orders_collated,
     linear_segments_atom_keys,
@@ -33,8 +37,6 @@ from automol.graph.base._03kekule import (
     sigma_radical_atom_bond_keys,
     vinyl_radical_atom_bond_keys,
 )
-from automol.util import heuristic
-from phydat import phycon
 
 # bond angles
 TET_ANG = 109.4712  # degrees

@@ -2,7 +2,7 @@
 Needs to be replaced
 """
 
-from automol._deprecated._read import find_max1d
+from ._read import find_max1d
 
 
 __all__ = [

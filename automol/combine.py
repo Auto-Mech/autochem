@@ -8,7 +8,7 @@ import functools
 import itertools
 from operator import mul
 
-from automol import form, geom
+from . import form, geom
 
 
 # Combines via geometry

@@ -3,8 +3,9 @@
 from typing import List
 
 import yaml
-from automol import graph
-from automol.reac._0core import (
+
+from .. import graph
+from ._0core import (
     Reaction,
     from_forward_reverse,
     from_string,

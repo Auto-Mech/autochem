@@ -3,9 +3,9 @@
 
 import numpy
 
-from automol.amchi import base as amchi_base
-from automol.extern import rdkit_
-from automol.util import dict_
+from ...amchi import base as amchi_base
+from ...extern import rdkit_
+from ...util import dict_
 
 MAIN_PFXS = ("c", "h")
 CHAR_PFXS = ("q", "p")

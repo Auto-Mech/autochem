@@ -1,8 +1,8 @@
 """ Level 3 ChI functions (depend on inchi.base and extern and L1-2)
 """
 
-from automol.amchi import base as amchi_base
-from automol.inchi import base as inchi_base
+from ...amchi import base as amchi_base
+from ...inchi import base as inchi_base
 
 
 # # "constructor"

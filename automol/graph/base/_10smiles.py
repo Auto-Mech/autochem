@@ -21,8 +21,11 @@ from typing import Any, Dict, List, Tuple, Union
 
 import numpy
 
-from automol import util
-from automol.graph.base._00core import (
+from phydat import ptab
+
+from ... import util
+from ...util import dict_
+from ._00core import (
     AtomKey,
     BondKey,
     CenterKey,
@@ -47,7 +50,7 @@ from automol.graph.base._00core import (
     without_dummy_atoms,
     without_stereo,
 )
-from automol.graph.base._02algo import (
+from ._02algo import (
     connected_components,
     dfs_,
     dfs_children,
@@ -56,18 +59,16 @@ from automol.graph.base._02algo import (
     is_connected,
     rings_atom_keys,
 )
-from automol.graph.base._03kekule import (
+from ._03kekule import (
     bad_stereo_bond_keys_from_kekule,
     kekule,
     radical_atom_keys_from_kekule,
 )
-from automol.graph.base._05stereo import (
+from ._05stereo import (
     CenterNeighborDict,
     stereocenter_candidates,
 )
-from automol.graph.base._08canon import canonical, smiles_graph, to_local_stereo
-from automol.util import dict_
-from phydat import ptab
+from ._08canon import canonical, smiles_graph, to_local_stereo
 
 BondPairOrRingId = Union[Tuple[int, int], int]
 

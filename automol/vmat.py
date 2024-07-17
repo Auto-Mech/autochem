@@ -8,8 +8,9 @@ import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-from automol.util import ZmatConv, dict_, zmat_conv
 from phydat import ptab
+
+from .util import ZmatConv, dict_, zmat_conv
 
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)

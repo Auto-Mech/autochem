@@ -2,8 +2,8 @@
 """
 
 # submodules
-from automol.form import reac
-from automol.form._form import (
+from . import reac
+from ._form import (
     add_element,
     argsort_symbols,
     atom_count,

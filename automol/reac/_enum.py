@@ -4,10 +4,8 @@
 
 import itertools
 
-from automol.const import ReactionClass
-from automol.const import ReactionSpin
-from automol.const import ReactionInfo
-from automol.graph import (
+from ..const import ReactionClass, ReactionInfo, ReactionSpin
+from ..graph import (
     add_bonded_atom,
     add_bonds,
     addition_atom_keys,
@@ -34,10 +32,10 @@ from automol.graph import (
     union,
     unsaturated_atom_keys,
 )
-from automol.reac._0core import filter_viable_reactions, from_forward_reverse, unique
-from automol.reac._1util import assert_is_valid_reagent_graph_list
-from automol.reac._instab import instability_product_graphs
-from automol.util import dict_
+from ..util import dict_
+from ._0core import filter_viable_reactions, from_forward_reverse, unique
+from ._1util import assert_is_valid_reagent_graph_list
+from ._instab import instability_product_graphs
 
 
 # Unimolecular reactions

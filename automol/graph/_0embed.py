@@ -29,11 +29,13 @@ import itertools
 from typing import Any, Optional, Tuple
 
 import numpy
+
 from phydat import phycon
 
-from automol import embed, geom, zmat
-from automol.geom import base as geom_base
-from automol.graph.base import (
+from .. import embed, geom, zmat
+from ..geom import base as geom_base
+from ..util import dict_
+from .base import (
     add_bonds,
     atom_hybridizations,
     atom_keys,
@@ -63,7 +65,6 @@ from automol.graph.base import (
     without_dummy_atoms,
     without_stereo,
 )
-from automol.util import dict_
 
 
 # # geometry embedding functions

@@ -7,9 +7,9 @@ import itertools
 import re
 from typing import Dict, List
 
-from automol import form, util
-from automol.amchi import base as amchi_base
-from automol.graph.base._00core import (
+from ... import form, util
+from ...amchi import base as amchi_base
+from ._00core import (
     atom_implicit_hydrogens,
     atom_keys,
     atom_stereo_keys,
@@ -23,7 +23,7 @@ from automol.graph.base._00core import (
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
 )
-from automol.graph.base._02algo import (
+from ._02algo import (
     connected_components,
     dfs_,
     dfs_children,
@@ -31,11 +31,11 @@ from automol.graph.base._02algo import (
     dfs_parents,
     rings_atom_keys,
 )
-from automol.graph.base._03kekule import (
+from ._03kekule import (
     kekules_bond_orders_collated,
     vinyl_radical_atom_keys,
 )
-from automol.graph.base._08canon import canonical_amchi_graph_with_numbers
+from ._08canon import canonical_amchi_graph_with_numbers
 
 
 # AMChI functions

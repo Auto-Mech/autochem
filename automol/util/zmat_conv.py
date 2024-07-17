@@ -48,7 +48,8 @@ can be replicated in two steps:
             <Insert an atom connected to `parent_zkey` with key `dummy_zkey`>
 """
 from typing import Dict, List, Optional, Tuple
-from automol.util._util import translate
+
+from ._util import translate
 
 Key = Optional[int]
 ZmatConv = Dict[int, Tuple[Key, Key, Key]]

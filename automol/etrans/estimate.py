@@ -5,18 +5,19 @@
 import itertools
 
 import numpy
+
 from phydat import phycon
 
-from automol import chi, geom, graph
-from automol.etrans._fxn import troe_lj_collision_frequency
-from automol.etrans._par import (
+from .. import chi, geom, graph
+from ..graph import FunctionalGroup
+from ._fxn import troe_lj_collision_frequency
+from ._par import (
     D0_GRP_LST,
     LJ_DCT,
     LJ_EST_DCT,
     Z_ALPHA_EST_DCT,
     ZROT_DCT,
 )
-from automol.graph import FunctionalGroup
 
 
 # CALCULATE THE EFFECTIVE ALPHA VALUE
