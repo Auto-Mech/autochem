@@ -135,12 +135,20 @@ def values_in_multilevel_dct(
 
 
 def keys_by_value(dct: dict[object, object], func: Callable = lambda x: x):
-    """Return dictionary keys for specific values."""
+    """Return dictionary keys for specific values.
+    :param dict: Dictionary
+    :param func: Callable Function
+    :return: Key that was called based on value.
+    """
     return frozenset(key for key, val in dct.items() if func(val))
 
 
 def transform_keys(dct: dict[object, object], func: Callable = lambda x: x):
-    """Apply a function to each key."""
+    """Apply a function to each key.
+    :param dct: Dictionary
+    :param func: Callable function
+    :return: Dictionary and new values.
+    """
     return dict[object, object](zip(map(func, dct.keys()), dct.values(), strict=False))
 
 
