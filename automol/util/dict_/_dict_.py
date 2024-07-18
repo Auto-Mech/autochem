@@ -50,9 +50,9 @@ def by_key(
 ) -> dict[object, object]:
     """Dictionary on a set of keys, filling missing entries.
 
-    :param fill: Fill in missing values?
-    :type fill: bool
+    :param fill: Fill in missing values
     :param fill_val: If `fill` is `True`, fill missing entries with this value.
+    :return: 'fill; or dictionary with filled values
     """  # noqa: D401
     if fill:
         dct = dict[object, object](
@@ -66,6 +66,7 @@ def by_key(
 def by_value(dct: dict[object, object], func: Callable = lambda x: x):
     """Dictionary on a set of values, determined by a function.
     :param dct: Dictionary of values
+    :param func: Function
     :return: Dictionary with keys.
     """  # noqa: D401
     keys = keys_by_value(dct, func)
@@ -73,12 +74,22 @@ def by_value(dct: dict[object, object], func: Callable = lambda x: x):
 
 
 def values_by_key(dct: dict[object, object], keys: object, fill_val: object = None):
-    """Return dictionary values for specific keys, filling missing entries."""
+    """Return dictionary values for specific keys, filling missing entries.
+    :param dct: Dictionary of values
+    :param keys: Keys for entries
+    :param fill_val: Values to fill the missing keys
+    :return: Dictionary with new keys.
+    """
     return tuple(dct[key] if key in dct else fill_val for key in keys)
 
 
 def value_by_unordered_key(dct: dict[object, object], key: object, fill_val=None):
-    """Return the first value matching a tuple key in any order."""
+    """Return the first value matching a tuple key in any order.
+    :param dct: Dictionary of values
+    :param keys: Keys for entries
+    :param fill_val: Values to fill the missing keys
+    :return: Dictionary with new keys in order.
+    """
     key_perms = itertools.permutations(key, len(key))
     val = next((dct[k] for k in key_perms if k in dct), fill_val)
     return val
@@ -87,6 +98,10 @@ def value_by_unordered_key(dct: dict[object, object], key: object, fill_val=None
 def value_in_floatkey_dct(dct: dict[object, object], key: object, tol=1.0e-5):
     """Access value in a dictionary that may have floats with large numbers of
     decimal places or strings.
+    :param dct: Dictionary of values
+    :param keys: Keys for entries
+    :param tol: Tolerance for the floats 
+    :return: Dictionary with new values
     """
     if isinstance(key, float):
         val = None
@@ -105,6 +120,10 @@ def values_in_multilevel_dct(
 ):
     """Obtain a dictionary value where
     dct[key1][key2].
+    :param dict: Dictionary with two objects
+    :param key1: First key
+    :param key2: Second key
+    :return: Value of the second entry
     """
     dct2 = dct.get(key1, None)
     if dct2 is not None:
@@ -181,7 +200,9 @@ def filter_keys(
 
 
 def merge_sequence(dcts: dict[object, object]):
-    """Merge a sequence of dictionaries."""
+    """Merge a sequence of dictionaries.
+    :param dcts: Dictionary to merge
+    :return: Merged dictionaries"""
     merged_dct = {}
     for dct in dcts:
         merged_dct.update(dct)
