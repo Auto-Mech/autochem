@@ -49,6 +49,18 @@ def amchi_key(chi):
 def chemkin_name(chi: str) -> str:
     """Generate a CHEMKIN name from a ChI string.
 
+    Todo: Simplified names for common species. Anything that can be described as a
+    simple backbone with functional groups gets a simplified name. Examples:
+
+        C3y1 = [CH2]CC = propan-1-yl
+        C3p1 = [O]OCCC = propan-1-peroxy radical
+        C3h1y2 = OOC[CH]C = propan-1-hydroperoxy-2-yl radical
+        C3e1 = C=CC = prop-1-ene
+        C3a1 = O=CCC = propan-1-al (always 1 for aldehydes)
+        C3k2 = CC(=O)C = propan-2-one (never 1 for ketones)
+        C4e12 = O1CC1CC = 1,2-epoxybutane
+        C5e13 = O1CCC1CC = 1,3-epoxypentane
+
     :param chi: ChI string
     :return: The CHEMKIN name
     """
