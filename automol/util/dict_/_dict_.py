@@ -100,8 +100,8 @@ def value_in_floatkey_dct(dct: dict[object, object], key: object, tol=1.0e-5):
     decimal places or strings.
     :param dct: Dictionary of values
     :param keys: Keys for entries
-    :param tol: Tolerance for the floats 
-    :return: Dictionary with new values
+    :param tol: Tolerance for the floats
+    :return: Dictionary with new values.
     """
     if isinstance(key, float):
         val = None
@@ -123,7 +123,7 @@ def values_in_multilevel_dct(
     :param dict: Dictionary with two objects
     :param key1: First key
     :param key2: Second key
-    :return: Value of the second entry
+    :return: Value of the second entry.
     """
     dct2 = dct.get(key1, None)
     if dct2 is not None:
@@ -202,7 +202,8 @@ def filter_keys(
 def merge_sequence(dcts: dict[object, object]):
     """Merge a sequence of dictionaries.
     :param dcts: Dictionary to merge
-    :return: Merged dictionaries"""
+    :return: Merged dictionaries.
+    """
     merged_dct = {}
     for dct in dcts:
         merged_dct.update(dct)
