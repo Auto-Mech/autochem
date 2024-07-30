@@ -232,7 +232,7 @@ def argsort_symbols(
     symbs_first: Sequence[str] = ("C", "H"),
     symbs_last: Sequence[str] = (),
     idx: int | None = None,
-) -> tuple(int):  # type: ignore
+) -> tuple[str, ...]:
     """Determine the sort order for a sequence of atomic symbols.
 
     :param seq: Formula or sequence of atomic symbols
