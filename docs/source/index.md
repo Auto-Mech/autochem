@@ -6,4 +6,5 @@ Welcome to my documentation website...
 :hidden:
 automol/inchi_key.md
 automol/util.md
+automol/form.md
 ```
