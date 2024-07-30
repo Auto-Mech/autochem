@@ -19,7 +19,7 @@ ATOM_COUNT = pp.Group(SYMBOL + STOICH)
 FORMULA = pp.OneOrMore(ATOM_COUNT)
 
 
-def electron_count(fml:dict[str:int])->int:
+def electron_count(fml: dict[str:int]) -> int:
     """Count the number of electrons for the atoms in a molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -35,7 +35,7 @@ def electron_count(fml:dict[str:int])->int:
     return elec_count
 
 
-def atom_count(fml:dict[str:int])->int:
+def atom_count(fml: dict[str:int]) -> int:
     """Count the number of atoms in this molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -46,7 +46,7 @@ def atom_count(fml:dict[str:int])->int:
     return sum(fml.values())
 
 
-def heavy_atom_count(fml:dict[str:int])->int:
+def heavy_atom_count(fml: dict[str:int]) -> int:
     """Count the number of heavy atoms in this molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -57,7 +57,7 @@ def heavy_atom_count(fml:dict[str:int])->int:
     return sum(fml.values())
 
 
-def element_count(fml:dict[str:int], symb:str)-> int:
+def element_count(fml: dict[str:int], symb: str) -> int:
     """Count the number of a given element in this molecular formula.
 
     :param fml: Stochiometric chemical formula
