@@ -14,7 +14,7 @@ Level 1: No dependencies; no interdependencies
  - util
  - error
  - mult
- - formula
+ - form
  - inchi_key
  - vmat
  - prop
