@@ -202,7 +202,9 @@ def from_string(fml_str: str) -> dict[str, int]:
 
 
 def sorted_symbols(
-    seq: Sequence, symbs_first: Sequence = ("C", "H"), symbs_last=()
+    seq: Sequence,
+    symbs_first: Sequence[str] = ("C", "H"),
+    symbs_last: Sequence[str] = (),
 ) -> Sequence:
     """Produce a sorted list of atomic symbols; some elements given priority.
     By default, C placed first, then H, then others in alphabetical order.
@@ -227,8 +229,8 @@ def sorted_symbols(
 
 def argsort_symbols(
     seq: Sequence,
-    symbs_first: Sequence = ("C", "H"),
-    symbs_last: Sequence = (),
+    symbs_first: Sequence[str] = ("C", "H"),
+    symbs_last: Sequence[str] = (),
     idx: int | None = None,
 ) -> tuple(int):  # type: ignore
     """Determine the sort order for a sequence of atomic symbols.
