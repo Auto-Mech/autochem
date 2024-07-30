@@ -12,6 +12,8 @@ FILES=(
     "automol/util/vector.py"
     "automol/util/zmat.py"
     "automol/util/dict_/_dict_.py"
+    "automol/util/dict_/multi.py"
+    "automol/form/_form.py"
 )
 
 (

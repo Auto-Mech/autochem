@@ -1,7 +1,7 @@
 """Helper functions for working with Python dictionaries."""
 
 import itertools
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from copy import deepcopy
 from typing import Any
 
@@ -44,13 +44,14 @@ def compose(
 
 def by_key(
     dct: dict[object, object],
-    keys,
+    keys: object,
     fill: bool = True,
     fill_val: bool | None = None,
 ) -> dict[object, object]:
     """Dictionary on a set of keys, filling missing entries.
 
     :param fill: Fill in missing values
+    :param keys: Keys for missing values
     :param fill_val: If `fill` is `True`, fill missing entries with this value.
     :return: 'fill; or dictionary with filled values
     """  # noqa: D401
@@ -69,7 +70,7 @@ def by_value(dct: dict[object, object], func: Callable = lambda x: x):
     :param func: Function
     :return: Dictionary with keys.
     """  # noqa: D401
-    keys = keys_by_value(dct, func)
+    keys: Sequence[object] = keys_by_value(dct, func)
     return by_key(dct, keys)
 
 
@@ -77,7 +78,7 @@ def values_by_key(dct: dict[object, object], keys: object, fill_val: object = No
     """Return dictionary values for specific keys, filling missing entries.
     :param dct: Dictionary of values
     :param keys: Keys for entries
-    :param fill_val: Values to fill the missing keys
+    :param fill_val: Fill where value is none
     :return: Dictionary with new keys.
     """
     return tuple(dct[key] if key in dct else fill_val for key in keys)
@@ -100,7 +101,7 @@ def value_in_floatkey_dct(dct: dict[object, object], key: object, tol=1.0e-5):
     decimal places or strings.
     :param dct: Dictionary of values
     :param keys: Keys for entries
-    :param tol: Tolerance for the floats
+    :param tol: Tolerance 1.0e-5
     :return: Dictionary with new values.
     """
     if isinstance(key, float):
@@ -153,34 +154,57 @@ def transform_keys(dct: dict[object, object], func: Callable = lambda x: x):
 
 
 def transform_values(dct: dict[object, object], func: Callable = lambda x: x):
-    """Apply a function to each value."""
+    """Apply a function to each value.
+    :param dct: Dictionary
+    :param func: Callable function
+    :return: New values in a dictionary.
+    """
     return dict[object, object](zip(dct.keys(), map(func, dct.values()), strict=False))
 
 
 def transform_items_to_values(dct: dict[object, object], func: Callable = lambda x: x):
-    """Apply a function to each value."""
+    """Apply a function to each value.
+    :param dct: Dictionary
+    :param func: Callable function
+    :return: Dictionary with new values.
+    """
     return dict[object, object](
         zip(dct.keys(), itertools.starmap(func, dct.items()), strict=False)
     )
 
 
 def keys_sorted_by_value(dct: dict[object, object]):
-    """Dictionary keys sorted by their associated values."""  # noqa: D401
+    """Dictionary keys sorted by their associated values.
+    :param dct: Dictionary
+    :param func: Callable function
+    :return:Dictionary with sorted values.
+    """  # noqa: D401
     return tuple(key for key, _ in sorted(dct.items(), key=lambda x: x[1]))
 
 
 def values_sorted_by_key(dct: dict[object, object]):
-    """Dictionary values sorted by their associated keys."""  # noqa: D401
+    """Dictionary values sorted by their associated keys.
+    :param dct: Dictionary
+    :return: Dictionary with sorted values.
+    """  # noqa: D401
     return tuple(val for _, val in sorted(dct.items()))
 
 
 def filter_by_key(dct: dict[object, object], func: Callable = lambda x: x):
-    """Filter dictionary entries by their values."""
+    """Filter dictionary entries by their values.
+    :param dct: Dictionary
+    :param func: Callable function
+    :return:Dictionary with sorted values.
+    """
     return {key: val for key, val in dct.items() if func(key)}
 
 
 def filter_by_value(dct: dict[object, object], func: Callable = lambda x: x):
-    """Filter dictionary entries by their values."""
+    """Filter dictionary entries by their values.
+    :param dct: Dictionary
+    :param func: Callable function
+    :return:Dictionary with sorted values.
+    """
     return {key: val for key, val in dct.items() if func(val)}
 
 
@@ -190,8 +214,8 @@ def filter_keys(
     """Given two dictionaries (dct1 bigger dct2), filter out
     from 1 all the entries present in 2.
 
-    :param dct1:
-    :param dct2:
+    :param dct1: First dictionary
+    :param dct2: Second dictionary
     :return: filtered dct1
     """
     dct_ret = deepcopy(dct_1)
@@ -207,7 +231,7 @@ def filter_keys(
     return dct_ret
 
 
-def merge_sequence(dcts: dict[object, object]):
+def merge_sequence(dcts: Sequence[dict[object, object]]):
     """Merge a sequence of dictionaries.
     :param dcts: Dictionary to merge
     :return: Merged dictionaries.
