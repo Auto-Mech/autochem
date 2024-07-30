@@ -5,6 +5,7 @@ represented as dict[atom symbol: atom number].
 import collections
 import functools
 import itertools
+from _collections_abc import Sequence
 
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
@@ -97,16 +98,13 @@ def match(fml1: dict[str, int], fml2: dict[str, int]) -> bool:
     return fml1 == fml2
 
 
-def add_element(fml, symb, num=1):
+def add_element(fml:dict[str:int], symb:str, num:int=1)-> dict[str:int]:
     """Add or subtract (if num < 0) this element from the molecular formula.
 
-    :param fml: stochiometric chemical formula
-    :type fml: dict[str:int]
-    :param symb: atomic symbol of element to be added
-    :type symb: str
-    :param num: number of the element to add to the formula
-    :type num: int
-    :rtype: dict[str:int]
+    :param fml: Stochiometric chemical formula
+    :param symb: Atomic symbol of element to be added
+    :param num: Number of the element to add to the formula
+    :return: Formula with added element
     """
     assert ptab.to_number(symb)
     assert _is_standard(fml)
@@ -123,14 +121,12 @@ def add_element(fml, symb, num=1):
     return fml
 
 
-def join(fml1, fml2):
+def join(fml1:dict[str:int], fml2:dict[str:int])->int:
     """Join two formulas together.
 
-    :param fml1: stochiometric chemical formula 1
-    :type fml1: dict[str:int]
-    :param fml2: stochiometric chemical formula 2
-    :type fml2: dict[str:int]
-    :rtype: int
+    :param fml1: Stochiometric chemical formula 1
+    :param fml2: Stochiometric chemical formula 2
+    :return: Formula with the sum of both formulas
     """
     fml = dict(fml1)
     for symb, num in fml2.items():
@@ -139,12 +135,11 @@ def join(fml1, fml2):
     return fml
 
 
-def join_sequence(fmls):
+def join_sequence(fmls:dict[str:int])->int:
     """Join a sequence of formulas together.
 
-    :param fml: stochiometric chemical formula
-    :type fml: dict[str:int]
-    :rtype: int.
+    :param fml: Stochiometric chemical formula
+    :return: Sum of the formulas
     """
     return functools.reduce(join, fmls)
 
@@ -153,23 +148,19 @@ def sorted_symbols_in_sequence(fmls: list[dict]) -> list[dict]:
     """Sort a sequence of formulas based on Hill-sorting.
 
     :param fmls: A sequence of formulas
-    :type fmls: List[dict]
     :return: The same sequence, but sorted
-    :rtype: List[dict]
     """
     return sorted_symbols(join_sequence(fmls).keys())
 
 
 # Str<->Dict Converters
-def string(fml, hyd=True):
+def string(fml:dict[str:int], hyd:bool=True)->str:
     """Convert formula dictionary to formula string in the Hill convention.
     Resultant string is identical to InChI formula string.
 
     :param fml: stochiometric chemical formula
-    :type fml: dict[str:int]
     :param hyd: include hydrogens?
-    :type hyd: bool
-    :rtype: str
+    :return: True if formula includes hydrogen, False if no hydrogen
     """
     fml_lst = [
         (symb, fml[symb]) for symb in sorted_symbols(fml.keys()) if symb != "H" or hyd
@@ -182,13 +173,12 @@ def string(fml, hyd=True):
     return fml_str
 
 
-def string2(fml):
+def string2(fml:dict[str:int])->str:
     """Convert formula dictionary to formula string that includes 1s in when
     there is only one atom.
 
     :param fml: stochiometric chemical formula
-    :type fml: dict[str:int]
-    :rtype: str
+    :return: Formula which includes 1s when there is only one atom
     """
     fml = collections.OrderedDict(sorted(fml.items()))
 
@@ -211,17 +201,14 @@ def from_string(fml_str: str) -> dict[str, int]:
     return fml
 
 
-def sorted_symbols(seq, symbs_first=("C", "H"), symbs_last=()):
+def sorted_symbols(seq:Sequence, symbs_first:Sequence=("C", "H"), symbs_last=())->Sequence:
     """Produce a sorted list of atomic symbols; some elements given priority.
     By default, C placed first, then H, then others in alphabetical order.
 
-    :param seq: formula or sequence of atomic symbols
-    :type seq: dict, list, or tuple
-    :param symbs_first: atomic symbols to place first
-    :type symbs_first: sequence of strings
-    :param symbs_last: atomic symbols to place last
-    :type symbs_last: sequence of strings
-    :rtyp: tuple(str)
+    :param seq: Formula or sequence of atomic symbols
+    :param symbs_first: Atomic symbols to place first
+    :param symbs_last: Atomic symbols to place last
+    :return: Sorted list
     """
 
     def _sort_key(char):
@@ -236,18 +223,15 @@ def sorted_symbols(seq, symbs_first=("C", "H"), symbs_last=()):
     return tuple(sorted(seq, key=_sort_key))
 
 
-def argsort_symbols(seq, symbs_first=("C", "H"), symbs_last=(), idx=None):
+def argsort_symbols(seq:Sequence, symbs_first:Sequence=("C", "H"), 
+                    symbs_last:Sequence=(), idx:int | None=None)-> tuple(int): # type: ignore
     """Determine the sort order for a sequence of atomic symbols.
 
-    :param seq: formula or sequence of atomic symbols
-    :type seq: dict, list, or tuple
-    :param symbs_first: atomic symbols to place first
-    :type symbs_first: sequence of strings
-    :param symbs_last: atomic symbols to place last
-    :type symbs_last: sequence of strings
-    :param idx: index of symbol for sorting
-    :type idx: int
-    :rtype: tuple(int)
+    :param seq: Formula or sequence of atomic symbols
+    :param symbs_first: Atomic symbols to place first
+    :param symbs_last: Atomic symbols to place last
+    :param idx: Index of symbol for sorting
+    :return: Sorted syymboles
     """
 
     def _sort_key(entry):
@@ -275,13 +259,12 @@ def argsort_symbols(seq, symbs_first=("C", "H"), symbs_last=(), idx=None):
     )
 
 
-def sort_vector(fml, symbs=None):
+def sort_vector(fml:str, symbs:list[str]=None):
     """Generate a sort vector for sorting various formulas against each other.
 
     :param fml_str: stochiometric chemical formula string
-    :type fml_str: str
     :param symbs: atomic symbols in the desired sort order (optional)
-    :type symbs: list[str]
+    :return: Sorted vector
     """
     if symbs is None:
         symbs = sorted_symbols(fml.keys())
@@ -290,12 +273,11 @@ def sort_vector(fml, symbs=None):
     return vec
 
 
-def _is_standard(fml):
+def _is_standard(fml:dict[str:int])-> bool:
     """Assess if the formula conforms to the standard form.
 
     :param fml: stochiometric chemical formula
-    :type fml: dict[str:int]
-    :rtype: bool
+    :return: True if formula is in standard form, false if not
     """
     symbs = list(fml.keys())
 
