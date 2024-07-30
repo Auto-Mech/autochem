@@ -13,7 +13,10 @@ MultiDict = dict[object, tuple[object, ...]]
 
 
 def is_multidict(mdct: MultiDict) -> bool:
-    """Is this a multi-valued dictionary?."""
+    """Is this a multi-valued dictionary?.
+    :param mdict: Dictionary
+    :return: True if it is a multi-valued dictionary, False if not.
+    """
     assert isinstance(mdct, _Mapping)
     vals = mdct.values()
     return (
@@ -23,8 +26,12 @@ def is_multidict(mdct: MultiDict) -> bool:
     )
 
 
-def by_key_by_position(mdct, keys, pos) -> dict[object, object]:
-    """Position values, as a dictionary with these keys."""
+def by_key_by_position(mdct: MultiDict, keys: object, pos: int) -> dict[object, object]:
+    """Position values, as a dictionary with these keys.
+    :param mdct: Multi-valued dictionary
+    :param keys: Keys for sorting
+    :param pos: Position to select column for dictionary.
+    """
     assert is_multidict(mdct)
     assert set(keys) <= set(mdct.keys())
     dct = {}
@@ -35,8 +42,13 @@ def by_key_by_position(mdct, keys, pos) -> dict[object, object]:
     return dct
 
 
-def set_by_key_by_position(mdct, dct, pos) -> MultiDict:
-    """Set values by position and key."""
+def set_by_key_by_position(mdct: MultiDict, dct: dict, pos: int) -> MultiDict:
+    """Set values by position and key.
+    :param mdct: Multi-valued dictionary
+    :param dct: Dictionary
+    :param pos:Position to select column for dictionary.
+    :return: New multi-valued dictionary set by key and position.
+    """
     assert is_multidict(mdct)
     assert set(dct.keys()) <= set(mdct.keys())
     if dct:

@@ -44,13 +44,14 @@ def compose(
 
 def by_key(
     dct: dict[object, object],
-    keys,
+    keys: object,
     fill: bool = True,
     fill_val: bool | None = None,
 ) -> dict[object, object]:
     """Dictionary on a set of keys, filling missing entries.
 
     :param fill: Fill in missing values
+    :param keys: Keys for missing values
     :param fill_val: If `fill` is `True`, fill missing entries with this value.
     :return: 'fill; or dictionary with filled values
     """  # noqa: D401
