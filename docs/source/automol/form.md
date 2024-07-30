@@ -1,5 +1,5 @@
-## automol.util
+## automol.form
 some words
 ```{eval-rst}
-.. automodule:: automol.util
+.. automodule:: automol.form
 ```
