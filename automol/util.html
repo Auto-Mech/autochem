@@ -43,6 +43,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'automol/util';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="automol.form" href="form.html" />
     <link rel="prev" title="automol.inchi_key" href="inchi_key.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -150,6 +151,7 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="inchi_key.html">automol.inchi_key</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">automol.util</a></li>
+<li class="toctree-l1"><a class="reference internal" href="form.html">automol.form</a></li>
 </ul>
 
     </div>
@@ -366,6 +368,35 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.vector.unit_direction"><code class="docutils literal notranslate"><span class="pre">unit_direction()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.vector.unit_norm"><code class="docutils literal notranslate"><span class="pre">unit_norm()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.vector.unit_perpendicular"><code class="docutils literal notranslate"><span class="pre">unit_perpendicular()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-automol.util.dict_">automol.util.dict_</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.by_key"><code class="docutils literal notranslate"><span class="pre">by_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.by_value"><code class="docutils literal notranslate"><span class="pre">by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.compose"><code class="docutils literal notranslate"><span class="pre">compose()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.empty_if_none"><code class="docutils literal notranslate"><span class="pre">empty_if_none()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.filter_by_key"><code class="docutils literal notranslate"><span class="pre">filter_by_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.filter_by_value"><code class="docutils literal notranslate"><span class="pre">filter_by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.filter_keys"><code class="docutils literal notranslate"><span class="pre">filter_keys()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.invert"><code class="docutils literal notranslate"><span class="pre">invert()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.keys_by_value"><code class="docutils literal notranslate"><span class="pre">keys_by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.keys_sorted_by_value"><code class="docutils literal notranslate"><span class="pre">keys_sorted_by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.merge_sequence"><code class="docutils literal notranslate"><span class="pre">merge_sequence()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.sort_value_"><code class="docutils literal notranslate"><span class="pre">sort_value_()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.transform_items_to_values"><code class="docutils literal notranslate"><span class="pre">transform_items_to_values()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.transform_keys"><code class="docutils literal notranslate"><span class="pre">transform_keys()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.transform_values"><code class="docutils literal notranslate"><span class="pre">transform_values()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.value_by_unordered_key"><code class="docutils literal notranslate"><span class="pre">value_by_unordered_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.value_in_floatkey_dct"><code class="docutils literal notranslate"><span class="pre">value_in_floatkey_dct()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.values_by_key"><code class="docutils literal notranslate"><span class="pre">values_by_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.values_in_multilevel_dct"><code class="docutils literal notranslate"><span class="pre">values_in_multilevel_dct()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.values_sorted_by_key"><code class="docutils literal notranslate"><span class="pre">values_sorted_by_key()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-automol.util.dict_.multi">automol.util.dict_.multi</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.multi.by_key_by_position"><code class="docutils literal notranslate"><span class="pre">by_key_by_position()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.multi.is_multidict"><code class="docutils literal notranslate"><span class="pre">is_multidict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.multi.set_by_key_by_position"><code class="docutils literal notranslate"><span class="pre">set_by_key_by_position()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1421,6 +1452,317 @@ projected onto the normal plane of the central atom.</p>
 </dd></dl>
 
 </section>
+<section id="module-automol.util.dict_">
+<span id="automol-util-dict"></span><h2>automol.util.dict_<a class="headerlink" href="#module-automol.util.dict_" title="Link to this heading">#</a></h2>
+<p>dictionary helpers</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.by_key">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">by_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.by_key" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary on a set of keys, filling missing entries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fill</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Fill in missing values</p></li>
+<li><p><strong>keys</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>) – Keys for missing values</p></li>
+<li><p><strong>fill_val</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/typing.html#typing.Optional" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]</span>) – If <cite>fill</cite> is <cite>True</cite>, fill missing entries with this value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>‘fill; or dictionary with filled values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.by_value">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">by_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.by_value" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary on a set of values, determined by a function.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary of values
+:type func: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a></span>
+:param func: Function
+:return: Dictionary with keys.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.compose">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">compose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dct2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.compose" title="Link to this definition">#</a></dt>
+<dd><p>Get the composition of <cite>dct1</cite> with <cite>dct2</cite>.</p>
+<p>That is, dct[k] = dct1[dct2[k]]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dct1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The first dictionary</p></li>
+<li><p><strong>dct2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – The second dictionary</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The composed dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.empty_if_none">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">empty_if_none</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.empty_if_none" title="Link to this definition">#</a></dt>
+<dd><p>Returns an empty dictionary if input object is None,
+otherwise return the object.
+:type obj: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>
+:param obj: Generic object
+:return: Object of none if none.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.filter_by_key">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">filter_by_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.filter_by_key" title="Link to this definition">#</a></dt>
+<dd><p>Filter dictionary entries by their values.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary
+:type func: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a></span>
+:param func: Callable function
+:return:Dictionary with sorted values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.filter_by_value">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">filter_by_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.filter_by_value" title="Link to this definition">#</a></dt>
+<dd><p>Filter dictionary entries by their values.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary
+:type func: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a></span>
+:param func: Callable function
+:return:Dictionary with sorted values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.filter_keys">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">filter_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dct_2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.filter_keys" title="Link to this definition">#</a></dt>
+<dd><p>Given two dictionaries (dct1 bigger dct2), filter out
+from 1 all the entries present in 2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dct1</strong> – First dictionary</p></li>
+<li><p><strong>dct2</strong> – Second dictionary</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>filtered dct1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.invert">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.invert" title="Link to this definition">#</a></dt>
+<dd><p>Transposes the keys and values in a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dct</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – Dictionary to transpose</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Transposed dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.keys_by_value">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">keys_by_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.keys_by_value" title="Link to this definition">#</a></dt>
+<dd><p>Return dictionary keys for specific values.
+:param dict: Dictionary
+:type func: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a></span>
+:param func: Callable Function
+:return: Key that was called based on value.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.keys_sorted_by_value">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">keys_sorted_by_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.keys_sorted_by_value" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary keys sorted by their associated values.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary
+:param func: Callable function
+:return:Dictionary with sorted values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.merge_sequence">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">merge_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.merge_sequence" title="Link to this definition">#</a></dt>
+<dd><p>Merge a sequence of dictionaries.
+:type dcts: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]]</span>
+:param dcts: Dictionary to merge
+:return: Merged dictionaries.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.sort_value_">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">sort_value_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.sort_value_" title="Link to this definition">#</a></dt>
+<dd><p>Generate a sort value function from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dct</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>) – A dictionary</p></li>
+<li><p><strong>allow_missing</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Allow missing values?, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.transform_items_to_values">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">transform_items_to_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.transform_items_to_values" title="Link to this definition">#</a></dt>
+<dd><p>Apply a function to each value.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary
+:type func: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a></span>
+:param func: Callable function
+:return: Dictionary with new values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.transform_keys">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">transform_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.transform_keys" title="Link to this definition">#</a></dt>
+<dd><p>Apply a function to each key.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary
+:type func: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a></span>
+:param func: Callable function
+:return: Dictionary and new values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.transform_values">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">transform_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.transform_values" title="Link to this definition">#</a></dt>
+<dd><p>Apply a function to each value.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary
+:type func: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a></span>
+:param func: Callable function
+:return: New values in a dictionary.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.value_by_unordered_key">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">value_by_unordered_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.value_by_unordered_key" title="Link to this definition">#</a></dt>
+<dd><p>Return the first value matching a tuple key in any order.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary of values
+:param keys: Keys for entries
+:type fill_val: 
+:param fill_val: Values to fill the missing keys
+:return: Dictionary with new keys in order.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.value_in_floatkey_dct">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">value_in_floatkey_dct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.value_in_floatkey_dct" title="Link to this definition">#</a></dt>
+<dd><p>Access value in a dictionary that may have floats with large numbers of
+decimal places or strings.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary of values
+:param keys: Keys for entries
+:type tol: 
+:param tol: Tolerance 1.0e-5
+:return: Dictionary with new values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.values_by_key">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">values_by_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.values_by_key" title="Link to this definition">#</a></dt>
+<dd><p>Return dictionary values for specific keys, filling missing entries.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary of values
+:type keys: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>
+:param keys: Keys for entries
+:type fill_val: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/typing.html#typing.Optional" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param fill_val: Fill where value is none
+:return: Dictionary with new keys.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.values_in_multilevel_dct">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">values_in_multilevel_dct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.values_in_multilevel_dct" title="Link to this definition">#</a></dt>
+<dd><p>Obtain a dictionary value where
+dct[key1][key2].
+:param dict: Dictionary with two objects
+:type key1: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>
+:param key1: First key
+:type key2: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>
+:param key2: Second key
+:return: Value of the second entry.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.values_sorted_by_key">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.</span></span><span class="sig-name descname"><span class="pre">values_sorted_by_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dct</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.values_sorted_by_key" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary values sorted by their associated keys.
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span>
+:param dct: Dictionary
+:return: Dictionary with sorted values.</p>
+</dd></dl>
+
+</section>
+<section id="module-automol.util.dict_.multi">
+<span id="automol-util-dict-multi"></span><h2>automol.util.dict_.multi<a class="headerlink" href="#module-automol.util.dict_.multi" title="Link to this heading">#</a></h2>
+<p>multi-valued dictionary helpers.</p>
+<p>dictionary values must all be tuples of the same length</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.multi.by_key_by_position">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.multi.</span></span><span class="sig-name descname"><span class="pre">by_key_by_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.multi.by_key_by_position" title="Link to this definition">#</a></dt>
+<dd><p>Position values, as a dictionary with these keys.
+:type mdct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/constants.html#Ellipsis" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]]</span>
+:param mdct: Multi-valued dictionary
+:type keys: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></span>
+:param keys: Keys for sorting
+:type pos: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#int" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>
+:param pos: Position to select column for dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.multi.is_multidict">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.multi.</span></span><span class="sig-name descname"><span class="pre">is_multidict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdct</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.multi.is_multidict" title="Link to this definition">#</a></dt>
+<dd><p>Is this a multi-valued dictionary?.
+:param mdict: Dictionary
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>
+:return: True if it is a multi-valued dictionary, False if not.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.util.dict_.multi.set_by_key_by_position">
+<span class="sig-prename descclassname"><span class="pre">automol.util.dict_.multi.</span></span><span class="sig-name descname"><span class="pre">set_by_key_by_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.util.dict_.multi.set_by_key_by_position" title="Link to this definition">#</a></dt>
+<dd><p>Set values by position and key.
+:type mdct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/constants.html#Ellipsis" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]]</span>
+:param mdct: Multi-valued dictionary
+:type dct: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span>
+:param dct: Dictionary
+:type pos: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#int" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>
+:param pos:Position to select column for dictionary.
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/constants.html#Ellipsis" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]]</span>
+:return: New multi-valued dictionary set by key and position.</p>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1442,6 +1784,15 @@ projected onto the normal plane of the central atom.</p>
         <p class="prev-next-subtitle">previous</p>
         <p class="prev-next-title">automol.inchi_key</p>
       </div>
+    </a>
+    <a class="right-next"
+       href="form.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">automol.form</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -1527,6 +1878,35 @@ projected onto the normal plane of the central atom.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.vector.unit_direction"><code class="docutils literal notranslate"><span class="pre">unit_direction()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.vector.unit_norm"><code class="docutils literal notranslate"><span class="pre">unit_norm()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.vector.unit_perpendicular"><code class="docutils literal notranslate"><span class="pre">unit_perpendicular()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-automol.util.dict_">automol.util.dict_</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.by_key"><code class="docutils literal notranslate"><span class="pre">by_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.by_value"><code class="docutils literal notranslate"><span class="pre">by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.compose"><code class="docutils literal notranslate"><span class="pre">compose()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.empty_if_none"><code class="docutils literal notranslate"><span class="pre">empty_if_none()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.filter_by_key"><code class="docutils literal notranslate"><span class="pre">filter_by_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.filter_by_value"><code class="docutils literal notranslate"><span class="pre">filter_by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.filter_keys"><code class="docutils literal notranslate"><span class="pre">filter_keys()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.invert"><code class="docutils literal notranslate"><span class="pre">invert()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.keys_by_value"><code class="docutils literal notranslate"><span class="pre">keys_by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.keys_sorted_by_value"><code class="docutils literal notranslate"><span class="pre">keys_sorted_by_value()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.merge_sequence"><code class="docutils literal notranslate"><span class="pre">merge_sequence()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.sort_value_"><code class="docutils literal notranslate"><span class="pre">sort_value_()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.transform_items_to_values"><code class="docutils literal notranslate"><span class="pre">transform_items_to_values()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.transform_keys"><code class="docutils literal notranslate"><span class="pre">transform_keys()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.transform_values"><code class="docutils literal notranslate"><span class="pre">transform_values()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.value_by_unordered_key"><code class="docutils literal notranslate"><span class="pre">value_by_unordered_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.value_in_floatkey_dct"><code class="docutils literal notranslate"><span class="pre">value_in_floatkey_dct()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.values_by_key"><code class="docutils literal notranslate"><span class="pre">values_by_key()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.values_in_multilevel_dct"><code class="docutils literal notranslate"><span class="pre">values_in_multilevel_dct()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.values_sorted_by_key"><code class="docutils literal notranslate"><span class="pre">values_sorted_by_key()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-automol.util.dict_.multi">automol.util.dict_.multi</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.multi.by_key_by_position"><code class="docutils literal notranslate"><span class="pre">by_key_by_position()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.multi.is_multidict"><code class="docutils literal notranslate"><span class="pre">is_multidict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.util.dict_.multi.set_by_key_by_position"><code class="docutils literal notranslate"><span class="pre">set_by_key_by_position()</span></code></a></li>
 </ul>
 </li>
 </ul>

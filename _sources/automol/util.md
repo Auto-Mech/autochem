@@ -26,3 +26,11 @@ some words
 ```{eval-rst}
 .. automodule:: automol.util.vector
 ```
+## automol.util.dict_
+```{eval-rst}
+.. automodule:: automol.util.dict_
+```
+## automol.util.dict_.multi
+```{eval-rst}
+.. automodule:: automol.util.dict_.multi
+```
