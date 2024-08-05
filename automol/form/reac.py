@@ -4,7 +4,7 @@ import itertools
 from ._form import add_element, join_sequence
 
 
-def is_valid_reaction(rct_fmls:list[str], prd_fmls:list[str])->bool:
+def is_valid_reaction(rct_fmls: list[str], prd_fmls: list[str]) -> bool:
     """Use the formula to see if a reaction preserves stoichiometry.
 
     :param rct_fmls: stoichiometries of the reactants
@@ -14,7 +14,7 @@ def is_valid_reaction(rct_fmls:list[str], prd_fmls:list[str])->bool:
     return join_sequence(rct_fmls) == join_sequence(prd_fmls)
 
 
-def argsort_hydrogen_abstraction(rct_fmls:list[str], prd_fmls:list[str])->bool:
+def argsort_hydrogen_abstraction(rct_fmls: list[str], prd_fmls: list[str]) -> bool:
     """Generates the indices which allows the reactants and products of
     a hydrogen abstraction reaction can be sorted as RH + Q => R + QH.
 
