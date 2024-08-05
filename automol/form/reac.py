@@ -20,7 +20,7 @@ def argsort_hydrogen_abstraction(rct_fmls:list[str], prd_fmls:list[str])->bool:
 
     :param rct_fmls: stoichiometries of the reactants
     :param prd_fmls: stoichiometries of the products
-    :return: 
+    :return: Indices to sort reaction to R + QH
     """  # noqa: D401
     rxn_idxs = None
     if len(rct_fmls) == len(prd_fmls) == 2:
