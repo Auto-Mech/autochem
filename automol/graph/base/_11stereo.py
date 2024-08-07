@@ -156,11 +156,12 @@ def _select_ts_canonical_direction_priorities(gprs):
 
 def _remove_strained_stereoisomers_from_expansion(gps, cand_dct):
     """Remove strained stereoisomers from an expansion"""
-    gps = list(gps)
-    gra = without_stereo(gps[0][0])
+    gps0 = list(gps)
+    gra = without_stereo(gps0[0][0])
     bhp_dct = stereoatom_bridgehead_pairs(gra, cand_dct)
 
-    for gra, pri_dct in gps:
+    gps = gps0.copy()
+    for gra, pri_dct in gps0:
         par_dct = stereo_parities(gra)
         can_nkeys_dct, _ = stereocenter_candidates_grouped(cand_dct, pri_dct=pri_dct)
         for (key1, key2), (conn_nkeys1, conn_nkeys2) in bhp_dct.items():
@@ -176,11 +177,12 @@ def _remove_strained_stereoisomers_from_expansion(gps, cand_dct):
 
             # If the parities relative to the above ordering are not opposite, then the
             # configuration of the bridgehead pair is strained
+            # Exception: Adjacent bridgehead pairs will have groups on the same side
             if par1 is not None and par2 is not None:
                 sgn1 = util.is_odd_permutation(srt_nkeys1, can_nkeys1)
                 sgn2 = util.is_odd_permutation(srt_nkeys2, can_nkeys2)
                 is_strained = not par1 ^ par2 ^ sgn1 ^ sgn2
-                if is_strained and (gra, pri_dct) in gps:
+                if is_strained:
                     gps.remove((gra, pri_dct))
 
     return gps
@@ -548,9 +550,9 @@ def geometry_pseudorotate_atom(
 
     rxn_keys = ts_reacting_atom_keys(gra)
     rsy_keys_lst = []
-    for rgra in (gra_reac,gra_prod):
+    for rgra in (gra_reac, gra_prod):
         rsy_keys_lst.extend(ring_systems_atom_keys(rgra, lump_spiro=False))
-    rsy_keys_lst=list(set(rsy_keys_lst))
+    rsy_keys_lst = list(set(rsy_keys_lst))
     nkeys = atom_neighbor_atom_keys(gra, key)
     # Gather neighbors connected in a ring system
     ring_nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
@@ -584,9 +586,7 @@ def geometry_pseudorotate_atom(
 
     # Identify the remaining keys to be rotated
     rot_nkeys = nkeys - {nkey1, nkey2}
-    rot_keys = set(
-        itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys))
-    )
+    rot_keys = set(itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys)))
 
     geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
 

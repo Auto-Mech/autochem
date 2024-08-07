@@ -239,9 +239,9 @@ def stereoatom_bridgehead_pairs(
     bhp_dct = {}
     for key1, key2 in itertools.combinations(cand_atm_dct.keys(), r=2):
         paths = simple_paths_between_atoms(gra, key1, key2)
-        conn_nkeys1 = tuple(sorted(set(p[1] for p in paths)))
-        conn_nkeys2 = tuple(sorted(set(p[-2] for p in paths)))
-        if len(set(conn_nkeys1)) == len(set(conn_nkeys2)) == 3:
+        conn_dct = {p[1]: p[-2] for p in paths}
+        if len(set(conn_dct.keys())) == len(set(conn_dct.values())) == 3:
+            conn_nkeys1, conn_nkeys2 = zip(*sorted(conn_dct.items()), strict=True)
             bhp_dct[(key1, key2)] = (conn_nkeys1, conn_nkeys2)
 
     return bhp_dct

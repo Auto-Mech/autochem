@@ -1868,6 +1868,7 @@ def test__stereogenic_keys():
 
 def test__expand_stereo():
     """test graph.expand_stereo"""
+    print(graph.smiles(C2H2CL2F2_CGR))
     assert graph.expand_stereo(C2H2CL2F2_CGR) == C2H2CL2F2_SGRS
     assert graph.expand_stereo(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
     # When symmetry equivalents are filtered out, we can't guarantee that the
@@ -1953,42 +1954,32 @@ def test__expand_stereo():
     assert len(graph.expand_stereo(gra, enant=False, symeq=True)) == 2
 
 
-def test__expand_stereo__strained():
+@pytest.mark.parametrize(
+    "smi,npars1,npars2,par_dct",
+    [
+        ("C1C2OC2CC1", 3, 1, {1: False, 3: True}),
+        ("C1(O2)CC2CC1", 3, 1, {0: False, 3: True}),
+        ("C=1C2CC(C=1)O2", 3, 1, {1: False, 3: True}),
+    ]
+)
+def test__expand_stereo__strained(smi, npars1, npars2, par_dct):
     """test removal of strained stereoisomers from stereoexpansion"""
-    # C=1C2CC(C=1)O2
-    gra = (
-        {
-            0: ("C", 1, None),
-            1: ("C", 1, None),
-            2: ("C", 2, None),
-            3: ("C", 1, None),
-            4: ("C", 1, None),
-            5: ("O", 0, None),
-        },
-        {
-            frozenset({1, 4}): (1, None),
-            frozenset({2, 3}): (1, None),
-            frozenset({0, 3}): (1, None),
-            frozenset({4, 5}): (1, None),
-            frozenset({0, 1}): (1, None),
-            frozenset({2, 4}): (1, None),
-            frozenset({3, 5}): (1, None),
-        },
-    )
+    print(f"smi = {smi}")
+    gra = automol.smiles.graph(smi)
 
     # Without removing strained stereoisomers, there are three distinct possibilities
     sgras = graph.expand_stereo(gra, strained=True)
-    assert len(sgras) == 3, sgras
+    assert len(sgras) == npars1, f"{len(sgras)} != {npars1}"
 
     # With removing strained stereoisomers, there is only one distinct possibility
     sgras = graph.expand_stereo(gra, strained=False)
-    assert len(sgras) == 1, sgras
+    assert len(sgras) == npars2, f"{len(sgras)} != {npars2}"
 
     (sgra,) = sgras
-    par_dct = automol.util.dict_.filter_by_value(
+    par_dct_ = automol.util.dict_.filter_by_value(
         automol.graph.stereo_parities(sgra), lambda x: x is not None
     )
-    assert par_dct == {3: False, 4: True}, par_dct
+    assert par_dct_ == par_dct, f"{par_dct_} != {par_dct}"
 
 
 def test__ring_systems():
@@ -2606,4 +2597,6 @@ if __name__ == "__main__":
     # test__stereo_corrected_geometry()
     # test__atom_hypervalencies()
     # test__align_with_geometry()
-    test__embed__clean_geometry()
+    # test__embed__clean_geometry()
+    # test__expand_stereo__strained("C=1C2CC(C=1)O2", 3, 1, {1: False, 3: True})
+    test__expand_stereo()
